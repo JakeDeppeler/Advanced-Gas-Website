@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -83,7 +84,7 @@ export type XeroExpense = { label: string; section: string; amount: number };
 export type XeroState = { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string };
 
 export function CapacityEditor({
-  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0,
+  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0, fixedTab = false,
 }: {
   people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[];
   settings: CapSettings; dbReady: boolean; canManage: boolean; initialTab?: Tab;
@@ -92,6 +93,8 @@ export function CapacityEditor({
   /** Straight-line depreciation across the fleet, from the Vehicles tab. */
   fleetDep?: number;
   vanCount?: number;
+  /** The side bar picks the part (Team & wages, Costs), so the editor's own tab row is hidden. */
+  fixedTab?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -405,6 +408,9 @@ export function CapacityEditor({
     <div className="pt-cap">
       {!dbReady && <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> Costing won&rsquo;t save until the Supabase keys are set.</div>}
 
+      {/* The work mode and the rate strip are about what an hour is charged at,
+          so they sit on the rate tabs; Costs leads with what the business costs. */}
+      {tab !== "overheads" && (<>
       {/* Which way the work is being done. Same crew, same wages — what changes
           is how much of a paid day survives travel and between-jobs admin, and
           therefore what an hour has to be charged at. Sits above the numbers
@@ -486,8 +492,10 @@ export function CapacityEditor({
       )}
       </div>
 
-      <div className="pt-cap__tabrow">
-        <div className="pt-cap__tabs" role="tablist">
+      </>)}
+
+      <div className="pt-cap__tabrow" style={fixedTab ? { justifyContent: "flex-end" } : undefined}>
+        <div className="pt-cap__tabs" role="tablist" style={fixedTab ? { display: "none" } : undefined}>
           {TABS.map((t) => (
             <button key={t.k} type="button" role="tab" aria-selected={tab === t.k} className={`pt-cap__tab${tab === t.k ? " is-on" : ""}`} onClick={() => setTab(t.k)}>{t.label}</button>
           ))}
@@ -585,7 +593,7 @@ export function CapacityEditor({
                 return (
                   <div key={r.id} className="pt-cap__crew">
                     <div className="pt-cap__crewhead">
-                      <span className="pt-cap__name pt-cap__name--ro">{r.name}</span>
+                      <Link href={`/portal/team/${r.id}?tab=pay`} className="pt-cap__name pt-cap__name--ro" title={`Open ${r.name}’s file`}>{r.name} ›</Link>
                       <select className="pt-cap__type" value={r.level} onChange={(e) => setLevel(r.id, e.target.value as CrewLevel)}>
                         <option value="" disabled>Choose a level…</option>
                         {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
@@ -794,95 +802,57 @@ export function CapacityEditor({
 
       {tab === "overheads" && (
         <>
-          <div className="pt-note">
-            Everything the business carries except the crew on the tools — their wages are on the crew tab. Office and admin
-            wages, the vans, and every other overhead sit here, because none of them bill an hour and all of them have to be
-            earned back across the hours that do.
-          </div>
-
-          {/* The two numbers that separate a mobile week from a site week. Both
-              start as assumptions and are meant to be replaced with figures off
-              a real job. */}
-          <section className="pt-panel">
-            <h2 className="pt-panel__h">Travel &amp; admin, by how the work is done</h2>
-            <p className="pt-panel__sub">
-              Each person&rsquo;s travel and admin hours live on their own card. These two dials say how much of that
-              survives in each mode, so one set of crew figures covers both. Mobile is 100% of what&rsquo;s on the card,
-              which is why nothing moves until you change it.
+          {/* What it costs, then where it goes: the two questions anyone opening
+              Costs is asking, before any of the editors that set it. */}
+          <div className="pk" style={{ marginBottom: 18 }}>
+            <p className="pk-say">
+              Running the business costs <b>{money(ohTotal)} a year</b>, {money(ohTotal / 12)} a month
+              {hasHrs ? <> — <b>{money2(ohTotal / cap.totalBillHrs)} on every hour</b> the vans bill, across {hrs(cap.totalBillHrs)}</> : null}.
+              It doesn&rsquo;t include the crew&rsquo;s time on the tools: that&rsquo;s on Team &amp; wages.
             </p>
-            <div className="pt-cap__modegrid">
-              {WORK_MODES.map((m) => {
-                const a = assumptionsFor(s, m.key as WorkMode);
-                const set = (patch: Partial<typeof a>) =>
-                  setS({ ...s, modes: { ...(s.modes ?? {}), [m.key]: { ...a, ...patch } } });
-                return (
-                  <div key={m.key} className={`pt-cap__modecard${modeOf(s) === m.key ? " is-on" : ""}`}>
-                    <h3>{m.label}</h3>
-                    <label>
-                      <span>Travel kept</span>
-                      <input
-                        type="number" min={0} max={100} step={5} value={a.travelPct}
-                        onChange={(e) => set({ travelPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
-                      />
-                      <em>%</em>
-                    </label>
-                    <label>
-                      <span>Admin kept</span>
-                      <input
-                        type="number" min={0} max={100} step={5} value={a.adminPct}
-                        onChange={(e) => set({ adminPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
-                      />
-                      <em>%</em>
-                    </label>
-                    <p className="pt-cap__modehint">
-                      {m.key === "mobile"
-                        ? "A residential week as costed on the crew tab."
-                        : `Default is ${MODE_DEFAULTS.onsite.travelPct}% travel and ${MODE_DEFAULTS.onsite.adminPct}% admin: the drive in and home, and no between-jobs paperwork. Put real figures in off a site job.`}
-                    </p>
-                  </div>
-                );
-              })}
+            <div className="pk-grid4">
+              {[
+                { l: "A year", v: money(ohTotal), sub: `${money(ohTotal / 52)} a week` },
+                { l: "A month", v: money(ohTotal / 12), sub: "to cover before a cent of profit" },
+                { l: "Every billable hour", v: hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—", sub: hasHrs ? `${hrs(cap.totalBillHrs)} a year` : "add the crew to see this" },
+                { l: "Fixed, any fleet size", v: money(split.fixed + cap.officeOh), sub: `${money(split.perVan / Math.max(1, cap.vanCount))} more with each van` },
+              ].map((t) => (
+                <div key={t.l} className="pk-card pk-tile"><div className="pk-tl"><span>{t.l}</span></div><div className="pk-fig">{t.v}</div><div className="pk-ks" style={{ marginTop: 6 }}>{t.sub}</div></div>
+              ))}
             </div>
-          </section>
-
-          {officeRows.length > 0 && (
-            <section className="pt-panel">
-              <div className="pt-ov__charthead">
-                <h2 className="pt-panel__h">The office</h2>
-                <span className="pt-cap__grouptotal">{money(office.total)}<em>/yr</em></span>
-              </div>
-              <p className="pt-panel__sub">
-                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill —{" "}
-                <strong>{money2(office.perHr)}</strong> on top of every billable hour, before a tradesman&rsquo;s own wage.
-              </p>
-
-              {officeRows.map((r) => {
-                const cost = office.rows.find((x) => x.id === r.id)?.cost ?? 0;
-                return (
-                  <div key={r.id} className="pt-cap__crew">
-                    <div className="pt-cap__crewhead">
-                      <span className="pt-cap__name pt-cap__name--ro">{r.name}</span>
-                      <select className="pt-cap__type" value={r.level} onChange={(e) => setLevel(r.id, e.target.value as CrewLevel)}>
-                        {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
-                      </select>
-                      <span className="pt-cap__grouptotal">{money(cost)}<em>/yr</em></span>
-                    </div>
-                    <div className="pt-cap__grid">
-                      <CapField label="Hours / week" value={r.costing.hrsWeek} onChange={(v) => setCosting(r.id, { hrsWeek: v })} />
-                      <CapField label="Wage $/hr" value={r.costing.wage} onChange={(v) => setCosting(r.id, { wage: v })} />
-                      <CapField label="Leave (days)" value={r.costing.leaveDays} onChange={(v) => setCosting(r.id, { leaveDays: v })} />
-                      <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />
-                      <CapField label="RDOs (days)" value={r.costing.rdoDays} onChange={(v) => setCosting(r.id, { rdoDays: v })} />
-                      <CapField label="Pub. hols (days)" value={r.costing.phDays} onChange={(v) => setCosting(r.id, { phDays: v })} />
-                    </div>
-                    <div className="pt-cap__crewsum">
-                      <span>{perHour(cost)} on every billable hour</span>
-                    </div>
+            <section className="pk-card pk-pad">
+              <div className="pk-card-h"><b>Where it goes</b><span>biggest first · a year, its share, and on every billable hour</span></div>
+              {(() => {
+                const oh = overheadsOf(s);
+                const typed = s.ohSource === "internal"
+                  ? [{ k: "own", label: "Our own figure", v: ohTyped }]
+                  : OVERHEAD_GROUPS.map((g) => ({
+                    k: g.key, label: g.label,
+                    v: OVERHEAD_FIELDS.filter((f) => f.group === g.key && f.key !== "vehDep").reduce((a, f) => a + (Number(oh[f.key]) || 0), 0),
+                  }));
+                const rows = [
+                  { k: "office", label: "Office & admin wages", v: cap.officeOh },
+                  { k: "down", label: "Crew time you can’t bill", v: cap.labourOh },
+                  { k: "dep", label: "Van depreciation", v: fleetDep },
+                  ...typed,
+                ].filter((r) => r.v > 0).sort((x, y) => y.v - x.v);
+                const top = Math.max(1, ...rows.map((r) => r.v));
+                return rows.length ? (
+                  <div className="pk-where">
+                    {rows.map((r) => (
+                      <div key={r.k} className="pk-where-r">
+                        <span className="l">{r.label}</span>
+                        <span className="b" aria-hidden="true"><i style={{ width: `${(r.v / top) * 100}%` }} /></span>
+                        <span className="v">{money(r.v)}</span>
+                        <span className="p">{ohTotal > 0 ? `${Math.round((r.v / ohTotal) * 100)}%` : ""}</span>
+                        <span className="h">{perHour(r.v)}/hr</span>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
+                ) : <p className="pk-note">Nothing costed yet — file Xero&rsquo;s accounts below, or put in your own figure.</p>;
+              })()}
             </section>
-          )}
+          </div>
 
           <section className="pt-panel">
             <h2 className="pt-panel__h">Where the business overhead comes from</h2>
@@ -941,6 +911,8 @@ export function CapacityEditor({
             )}
           </section>
 
+          {(s.ohSource ?? "xero") === "xero" && (
+            <>
           <section className="pt-panel">
             <div className="pt-ov__charthead">
               <h2 className="pt-panel__h">From Xero</h2>
@@ -1043,9 +1015,12 @@ export function CapacityEditor({
             )}
           </section>
 
+            </>
+          )}
+
           <section className="pt-panel">
             <div className="pt-ov__charthead">
-              <h2 className="pt-panel__h">What the business costs to run</h2>
+              <h2 className="pt-panel__h">Every line, a year</h2>
               <span className="pt-cap__grouptotal">{money(ohTotal)}<em>/yr</em></span>
             </div>
             <p className="pt-panel__sub">
@@ -1074,20 +1049,6 @@ export function CapacityEditor({
                   <button type="button" onClick={() => setS({ ...s, vansOverride: null })}>back to {cap.realVans}</button>
                 ) : null}
               </label>
-            </div>
-
-            <div className="pt-oh__totals">
-              <div><span>{s.ohSource === "internal" ? "Our own figure" : "Filed from Xero"}</span><strong>{money(ohTyped)}</strong></div>
-              <div><span>Wages not on a job</span><strong>{money(ohFromCrew)}</strong></div>
-              <div><span>Vehicle depreciation</span><strong>{money(fleetDep)}</strong></div>
-              <div className="is-total"><span>All of it, a year</span><strong>{money(ohTotal)}</strong></div>
-            </div>
-
-            <div className="pt-oh__totals">
-              <div><span>A year</span><strong>{money(ohTotal)}</strong></div>
-              <div><span>A month</span><strong>{money(ohTotal / 12)}</strong></div>
-              <div><span>A week</span><strong>{money(ohTotal / 52)}</strong></div>
-              <div><span>Every billable hour</span><strong>{hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}</strong></div>
             </div>
 
             <p className="pt-oh__hint">
@@ -1200,6 +1161,94 @@ export function CapacityEditor({
               })}
             </div>
           </section>
+          {officeRows.length > 0 && (
+            <section className="pt-panel">
+              <div className="pt-ov__charthead">
+                <h2 className="pt-panel__h">The office</h2>
+                <span className="pt-cap__grouptotal">{money(office.total)}<em>/yr</em></span>
+              </div>
+              <p className="pt-panel__sub">
+                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill —{" "}
+                <strong>{money2(office.perHr)}</strong> on top of every billable hour, before a tradesman&rsquo;s own wage.
+              </p>
+
+              {officeRows.map((r) => {
+                const cost = office.rows.find((x) => x.id === r.id)?.cost ?? 0;
+                return (
+                  <div key={r.id} className="pt-cap__crew">
+                    <div className="pt-cap__crewhead">
+                      <Link href={`/portal/team/${r.id}?tab=pay`} className="pt-cap__name pt-cap__name--ro" title={`Open ${r.name}’s file`}>{r.name} ›</Link>
+                      <select className="pt-cap__type" value={r.level} onChange={(e) => setLevel(r.id, e.target.value as CrewLevel)}>
+                        {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
+                      </select>
+                      <span className="pt-cap__grouptotal">{money(cost)}<em>/yr</em></span>
+                    </div>
+                    <div className="pt-cap__grid">
+                      <CapField label="Hours / week" value={r.costing.hrsWeek} onChange={(v) => setCosting(r.id, { hrsWeek: v })} />
+                      <CapField label="Wage $/hr" value={r.costing.wage} onChange={(v) => setCosting(r.id, { wage: v })} />
+                      <CapField label="Leave (days)" value={r.costing.leaveDays} onChange={(v) => setCosting(r.id, { leaveDays: v })} />
+                      <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />
+                      <CapField label="RDOs (days)" value={r.costing.rdoDays} onChange={(v) => setCosting(r.id, { rdoDays: v })} />
+                      <CapField label="Pub. hols (days)" value={r.costing.phDays} onChange={(v) => setCosting(r.id, { phDays: v })} />
+                    </div>
+                    <div className="pt-cap__crewsum">
+                      <span>{perHour(cost)} on every billable hour</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
+          <details className="pt-oh__more" style={{ margin: "0 0 18px" }}>
+            <summary>How travel and admin count in each kind of work</summary>
+          {/* The two numbers that separate a mobile week from a site week. Both
+              start as assumptions and are meant to be replaced with figures off
+              a real job. */}
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">Travel &amp; admin, by how the work is done</h2>
+            <p className="pt-panel__sub">
+              Each person&rsquo;s travel and admin hours live on their own card. These two dials say how much of that
+              survives in each mode, so one set of crew figures covers both. Mobile is 100% of what&rsquo;s on the card,
+              which is why nothing moves until you change it.
+            </p>
+            <div className="pt-cap__modegrid">
+              {WORK_MODES.map((m) => {
+                const a = assumptionsFor(s, m.key as WorkMode);
+                const set = (patch: Partial<typeof a>) =>
+                  setS({ ...s, modes: { ...(s.modes ?? {}), [m.key]: { ...a, ...patch } } });
+                return (
+                  <div key={m.key} className={`pt-cap__modecard${modeOf(s) === m.key ? " is-on" : ""}`}>
+                    <h3>{m.label}</h3>
+                    <label>
+                      <span>Travel kept</span>
+                      <input
+                        type="number" min={0} max={100} step={5} value={a.travelPct}
+                        onChange={(e) => set({ travelPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+                      />
+                      <em>%</em>
+                    </label>
+                    <label>
+                      <span>Admin kept</span>
+                      <input
+                        type="number" min={0} max={100} step={5} value={a.adminPct}
+                        onChange={(e) => set({ adminPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+                      />
+                      <em>%</em>
+                    </label>
+                    <p className="pt-cap__modehint">
+                      {m.key === "mobile"
+                        ? "A residential week as costed on the crew tab."
+                        : `Default is ${MODE_DEFAULTS.onsite.travelPct}% travel and ${MODE_DEFAULTS.onsite.adminPct}% admin: the drive in and home, and no between-jobs paperwork. Put real figures in off a site job.`}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          </details>
+
         </>
       )}
 

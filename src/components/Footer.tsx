@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { site, services, publishedSuburbs, openingHours } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
+import { RATING_TEXT } from "@/lib/reviews";
 
 /** The suburbs the footer links from every page. The core hubs we most
  *  want to rank for, not all 73 — see the note by ftr__chips. */
@@ -124,7 +125,7 @@ export function Footer() {
               <li><Link href="/water-filtration/range">Full filtration range compared</Link></li>
               <li><Link href="/water-filtration/rainwater-uv">Tank &amp; rainwater filtration</Link></li>
               <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
-              <li><Link href="/tools/veu-rebate-estimator">VEU rebate estimator</Link></li>
+              <li><Link href="/tools/veu-rebate-estimator">VEU rebate calculator</Link></li>
               <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>
               <li><Link href="/tools/running-cost-calculator">Running cost calculator</Link></li>
               <li><Link href="/tools/hot-water-savings">Hot water savings calculator</Link></li>
@@ -196,7 +197,7 @@ export function Footer() {
           </li>
           <li>
             <span className="ftr__badge-tag">Rated</span>
-            <span className="ftr__badge-name">4.9★ on Google</span>
+            <span className="ftr__badge-name">{RATING_TEXT}★ on Google</span>
           </li>
           <li>
             <span className="ftr__badge-tag">Insured</span>

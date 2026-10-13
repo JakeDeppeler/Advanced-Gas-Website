@@ -125,10 +125,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   });
 
   add(office,
-    { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The year, the month, and is it paying", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "the numbers", "target", "funnel", "conversion", "leads to paid", "profit"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
+    { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
     { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
-    { href: "/portal/money", label: "Money in", short: "Money", blurb: "Invoices, overdue, plans, VEU", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "veu", "payment plan"] },
+    { href: "/portal/money", label: "Owed to us", short: "Owed", blurb: "Unpaid invoices, real estate and domestic, oldest first", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "money in", "real estate", "agents", "chase"] },
     { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },
     { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] },
     { href: "/trade/pricebook", label: "Pricebook", blurb: "What the iPad shows, and ServiceTitan", band: "customers", icon: "tag", also: ["price", "installed price", "ipad", "servicetitan"] },
@@ -144,13 +144,14 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       blurb: "What we need booked each week", band: "profit", icon: "target",
       also: ["goal", "target", "$3m", "profit", "jobs a week", "mix", "budget", "year goal"],
     },
-    { href: "/portal/finance", label: "Finance", blurb: "Live profit from Xero", band: "profit", icon: "chart", also: ["xero", "profit", "p&l", "revenue"] },
+    { href: "/portal/finance", label: "Profit & finance", short: "Finance", blurb: "Profit, margin, the bank and what’s owed, from Xero", band: "profit", icon: "chart", also: ["xero", "profit", "p&l", "revenue"] },
     {
       href: "/portal/finance/review", label: "How we went", short: "How we went", blurb: "A month or week, and why it went that way", band: "profit", icon: "chart",
       also: ["review", "month", "week", "why", "loss", "not in profit", "overheads high", "owed", "waiting on payment", "big job", "how did we go"],
     },
-    { href: "/portal/finance/owe", label: "What we owe", short: "We owe", blurb: "Bills to pay, in the order to pay them", band: "profit", icon: "list", also: ["bills", "payables", "creditors", "owe", "suppliers", "reece", "ato", "due"] },
-    { href: "/portal/finance/cash", label: "Money in & out", short: "Cash", blurb: "The bank each month, beside profit", band: "profit", icon: "trend", also: ["cash", "cash flow", "bank", "spending", "money out", "money in"] },
+    { href: "/portal/finance/owe", label: "We owe", short: "We owe", blurb: "Bills to pay, in the order to pay them", band: "profit", icon: "list", also: ["bills", "payables", "creditors", "owe", "suppliers", "reece", "ato", "due"] },
+    { href: "/portal/finance/cash", label: "Cash flow", short: "Cash", blurb: "The bank each month, and how many weeks it covers", band: "profit", icon: "trend", also: ["cash", "cash flow", "bank", "money out", "money in", "buffer", "cash to operate", "running costs"] },
+    { href: "/portal/finance/spend", label: "Spending", short: "Spending", blurb: "Every cost from Xero, against the same stretch before", band: "profit", icon: "list", also: ["spending", "costs", "expenses", "overheads", "parts", "where the money went", "up", "down"] },
     {
       href: "/portal/finance/hourly", label: "Our hourly rate", short: "Hourly rate", blurb: "What makes up an hour, and what we charge", band: "profit", icon: "clock",
       also: ["hourly", "charge out", "charge-out", "rate", "cost per hour", "break down", "overhead per hour", "utilisation", "billable hours"],
@@ -174,12 +175,27 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/vehicles", label: "Vehicles", blurb: "Weekly checks, service, damage", band: "crew", icon: "truck", also: ["van", "fleet", "rego", "service", "clean"] });
   add(office,
     { href: "/portal/supply", label: "Supply", blurb: "Reece pricing and orders", band: "crew", icon: "box", also: ["reece", "max", "order", "pricebook", "material"] },
+    {
+      href: "/portal/supply/next-week", label: "Next week's orders", short: "Next week", blurb: "Gear for next week's installs, and the electrician",
+      band: "crew", icon: "box", also: ["order", "purchase order", "mitsubishi", "reclaim", "rinnai", "brivis", "braemar", "istore", "electrician", "geoff", "work order", "next week"],
+    },
+    {
+      href: "/portal/supply/emails", label: "Supplier emails", blurb: "Who orders go to, and the wording",
+      band: "crew", icon: "box", also: ["supplier", "email", "wording", "sample", "test email", "vendor", "order email"],
+    },
   );
   items.push(
-    { href: "/portal/tools/fault-codes", label: "Tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
+    { href: "/portal/tools/fault-codes", label: "Trade tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
     // The same portal, built for the iPad in the van. Everyone gets it — it
     // shows a person their own work and nothing gated.
     { href: "/trade", label: "See the trade iPad", short: "Trade iPad", blurb: "The portal as a tradie sees it", band: "crew", icon: "tablet", also: ["ipad", "van", "monday", "tradesman", "trade portal", "field"] },
+  );
+  add(can(user, "vehicles"),
+    { href: "/portal/vehicles/tools", label: "Tools", blurb: "Every tool on every van, and when it's next tested", band: "crew", icon: "wrench", also: ["test and tag", "tag", "calibration", "tool register", "tools due"] },
+  );
+  add(office,
+    { href: "/portal/per-van", label: "Per van, per day", short: "Per van", blurb: "What each van brings in a day it's out", band: "crew", icon: "truck", also: ["revenue per van", "per day", "van a day", "per tech"] },
+    { href: "/portal/drive", label: "Drive time", blurb: "How much of the day is on the road", band: "crew", icon: "clock", also: ["driving", "travel", "routing", "on the road"] },
   );
   add(office,
     { href: "/portal/stock", label: "Factory stock", short: "Stock", blurb: "What's on the shelf, who took what", band: "crew", icon: "box", also: ["stock", "factory", "shelf", "inventory"] },
@@ -238,6 +254,36 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/board", label: "What it shows", short: "Pages", blurb: "Each page's figures, and where they come from", band: "board", icon: "chart", also: ["dashboard", "screen", "tv", "live", "feeds"] },
     { href: "/portal/finance/board", label: "Targets & commission", short: "Targets", blurb: "What it aims at, the bonus bands, the working days", band: "board", icon: "target", also: ["commission", "bonus", "working days", "holidays", "board targets"] },
   );
+  // The rebuilt Run the company pages (PR 2 of the new design).
+  add(office,
+    { href: "/portal/today", label: "Today", blurb: "How today is going, who's on what, the calls", band: "hidden", icon: "clock", also: ["today", "sold today", "team now", "call booking", "calls"] },
+    { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
+    { href: "/portal/sales", label: "Sales", blurb: "The month, the quotes out, the weeks", band: "hidden", icon: "trend", also: ["sales", "sold", "quotes out", "job types", "sold each week"] },
+    { href: "/portal/rates", label: "Team", short: "Labour rates", blurb: "Labour rates and the leaderboard", band: "hidden", icon: "people", also: ["labour rate", "leaderboard", "cost an hour", "break even"] },
+  );
+  add(office || can(user, "quotes"),
+    { href: "/portal/jobs", label: "Jobs", blurb: "Today's jobs, job profit, not billed, compliance certificates", band: "hidden", icon: "wrench", also: ["jobs", "not billed", "compliance certificate", "vba", "cert", "running over"] },
+  );
+
+  // Pages the side bar lists that the old home grid reached through a page's
+  // own tabs. Here so the search finds them and the side bar's gate is this list.
+  add(office,
+    { href: "/portal/finance/pl", label: "Profit & loss", short: "P&L", blurb: "Xero's profit and loss, month by month", band: "hidden", icon: "chart", also: ["p&l", "profit and loss", "income", "expenses", "xero"] },
+    { href: "/portal/finance/goals", label: "Year goal", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
+    { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
+    { href: "/portal/numbers", label: "Goals", blurb: "Every goal the portal measures against", band: "hidden", icon: "target", also: ["goals", "our numbers", "year goal", "sales goal", "months", "gross margin goal", "win rate goal"] },
+    { href: "/portal/finance/capacity", label: "Team & wages", short: "Our numbers", blurb: "Everyone on the team, their pay and billable hours", band: "hidden", icon: "people", also: ["our numbers", "wages", "crew", "capacity", "pay", "billable hours"] },
+    { href: "/portal/finance/capacity?t=overheads", label: "Costs", blurb: "What the business costs to run a year", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software"] },
+    { href: "/portal/pricing", label: "Rates & pricing", blurb: "Our hourly rate, call-out and after-hours", band: "hidden", icon: "tag", also: ["hourly rate", "call out", "callout", "after hours", "pricing", "charge out", "profit we want"] },
+    { href: "/portal/finance/capacity?part=vans", label: "Vans & loans", blurb: "What each van owes, and the repayments", band: "hidden", icon: "truck", also: ["van loan", "repayment", "finance", "new van"] },
+    { href: "/portal/finance/capacity?part=markup", label: "Markup", blurb: "Markup on materials and units", band: "hidden", icon: "tag", also: ["markup", "margin", "materials", "units"] },
+    { href: "/portal/finance/planning", label: "Future", blurb: "Hire someone, and other what-ifs", band: "hidden", icon: "trend", also: ["what if", "hire", "planning", "add a person", "future"] },
+    { href: "/portal/marketing?tab=ads", label: "Ads", blurb: "What the ads cost and bring in", band: "hidden", icon: "speaker", also: ["ads", "google ads", "facebook ads"] },
+    { href: "/portal/marketing?tab=social", label: "Social", blurb: "Posts on social media", band: "hidden", icon: "chat", also: ["social", "instagram", "facebook"] },
+    { href: "/portal/marketing?tab=assets", label: "Brand assets", blurb: "Logos, colours and photos", band: "hidden", icon: "grid", also: ["brand", "logo", "colours", "photos"] },
+  );
+  add(admin, { href: "/portal/commission", label: "Commission", blurb: "The month target and the bonus", band: "hidden", icon: "target", also: ["commission", "bonus", "month target", "incentive"] });
+  items.push({ href: "/portal/settings", label: "Settings", blurb: "How the portal looks, and what the business has", band: "hidden", icon: "user", also: ["settings", "theme", "dark mode", "business name", "start page"] });
   add(office,
     { href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece — is each one working", band: "hidden", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection"] },
   );

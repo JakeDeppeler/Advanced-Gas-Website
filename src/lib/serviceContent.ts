@@ -265,6 +265,24 @@ export type ServiceContent = {
      *  worth reading rather than just ranking. */
     watchOut?: string[];
     faqs?: { q: string; a: string }[];
+    /**
+     * Search-facing overrides for the system's own page. Without them the
+     * title is "<label>, Melbourne South-East" and the H1 is the label,
+     * which names the product but not where we do it. Searches for these
+     * systems are suburb searches ("gas ducted heating berwick"), so a page
+     * that wants to rank for one says the suburb. Opt-in per system.
+     */
+    seoTitle?: string;
+    seoDescription?: string;
+    h1?: { lead: string; accent: string };
+    /** Suburbs where this system is a common job, each linking to its
+     *  area page with one line on why. Lines should come from what the
+     *  suburb page already says about its housing, not new claims. */
+    localAreas?: {
+      heading: string;
+      note: string;
+      suburbs: { slug: string; line: string }[];
+    };
   }[];
 };
 
@@ -303,7 +321,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // Drop the files into /public, add the lines, and a navy photo band
     // appears on this page. Nothing else needs changing.
     // ------------------------------------------------------------------
-    metaTitle: "Air Conditioning Installation Pakenham & Berwick",
+    metaTitle: "Air Conditioning Installation Pakenham",
     metaDescription:
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Written quotes in 12 hrs, 6-year workmanship warranty.",
     heroFacts: [
@@ -314,7 +332,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     heroPhoto: "/ducted-condenser.webp",
     heroPhotoAlt: "A Kaden ducted condenser we installed on a stand against a brick wall",
-    h1: "Air conditioning, installed properly",
+    h1: "Air conditioning installation, Pakenham & SE Melbourne",
     intro:
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {
@@ -1949,6 +1967,23 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
         ],
         label: "Gas ducted heating",
+        seoTitle: "Gas Ducted Heating Berwick & Pakenham",
+        seoDescription:
+          "Gas ducted heating installed, replaced and serviced in Berwick, Pakenham, Narre Warren and Cranbourne. Brivis and Kaden, CO tested, written quote in 12 hrs.",
+        h1: { lead: "Gas ducted heating,", accent: "Berwick & Pakenham" },
+        localAreas: {
+          heading: "Gas ducted heating in your suburb.",
+          note:
+            "Most homes built across this corridor from the 80s to the 2010s went in with gas ducted heating, and a lot of those heaters are now at the age where the question is repair or replace. Each suburb below has its own page on the houses there and what we find in them.",
+          suburbs: [
+            { slug: "berwick", line: "Old Village weatherboards with little roof space, and the Timbarra double-storeys where the ducted retrofits happen" },
+            { slug: "pakenham", line: "The 90s Cameron Park brick estates and the newer Lakeside and Arena two-storeys" },
+            { slug: "beaconsfield", line: "Older north-side homes running gas ducted from an external cabinet on a slab, usually Brivis or Braemar" },
+            { slug: "narre-warren", line: "80s and 90s brick veneer, much of it still on the original gas ducted heater" },
+            { slug: "endeavour-hills", line: "80s homes on their original gas ducted heating, prime retrofit territory" },
+            { slug: "cranbourne", line: "Township weatherboards on original gas heating, and the 2010s Cranbourne North and East estates" },
+          ],
+        },
         blurb:
           "A gas furnace in the roof or against an outside wall, ducted to vents through the house. Still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring one up from cold.",
         photo: { src: "/duct-work.webp", alt: "Insulated flex ductwork run through a roof space to the vents", scene: true },
@@ -1981,6 +2016,8 @@ export const serviceContent: Record<string, ServiceContent> = {
           { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it a one-day job." },
           { q: "Is a 6-star worth the extra over a 3-star?", a: "On a house you're staying in, generally yes, the efficiency difference shows up every winter. On a house you're selling in two years, probably not. We'll show you where the crossover lands rather than just pushing the dearer one." },
           { q: "How long does a changeover take?", a: "A like-for-like internal swap is usually a single day. External or a first-time install with new ductwork runs longer, and we'll say which at the quote." },
+          { q: "How much does it cost to replace a gas ducted heater?", a: "A like-for-like Brivis Wombat replacement starts from $4,800 supplied and installed, and a higher-spec Brivis Buffalo from $5,600, with the old unit removed and a compliance certificate. Ductwork that needs replacing, a gas line that needs upsizing or a move from internal to external adds to that, and we tell you which at the quote rather than on the day." },
+          { q: "Should I replace my gas ducted heater with reverse cycle instead?", a: "If you also want cooling, price both. Reverse-cycle ducted heats and cools from one system, and the VEU rebate can take up to $4,200 off a gas-to-reverse-cycle switch, which narrows the gap a lot. If the house only needs heating and the ducts are sound, a like-for-like gas swap is still the cheaper job on the day. We'll quote both side by side if you ask." },
         ],
       },
       {

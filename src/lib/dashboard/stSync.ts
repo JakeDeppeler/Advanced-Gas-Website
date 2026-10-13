@@ -166,11 +166,13 @@ const RESOURCES: ResourceSpec[] = [
     resource: "estimates",
     module: "sales",
     table: "st_estimates",
-    map: (r: Row) => ({
+    map: (r: Row) => {
+      const status = str(pick(r, "statusName", "status"));
+      return {
       id: Number(r.id),
       job_id: num(r.jobId),
       customer_id: num(r.customerId),
-      status: str(pick(r, "statusName", "status")),
+      status,
       // Which side of the business wrote it. The board is a residential wall:
       // a commercial project at $119K is real work and real money, and it is
       // not what anybody standing in front of this screen is chasing.
@@ -186,10 +188,14 @@ const RESOURCES: ResourceSpec[] = [
       // reads, so a quote and an invoice are counted the same way.
       tax: num(r.tax),
       created_on: ts(pick(r, "createdOn")),
-      sold_on: ts(pick(r, "soldOn", "soldDate")),
+      // Only a quote that is sold now has a sold date. One that was sold and
+      // then un-sold keeps soldOn in ServiceTitan, and every figure that asked
+      // "has it a sold date?" went on counting it as a sale. raw keeps the date.
+      sold_on: status === "Sold" ? ts(pick(r, "soldOn", "soldDate")) : null,
       modified_on: ts(pick(r, "modifiedOn")),
       raw: r,
-    }),
+      };
+    },
   },
   {
     // Telecom sits behind its own scope. If it isn't granted the export 403s,
@@ -260,6 +266,50 @@ const RESOURCES: ResourceSpec[] = [
       arrived_on: ts(r.arrivedOn),
       done_on: ts(r.doneOn),
       canceled_on: ts(r.canceledOn),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
+    // Who was sent to each appointment. Made for every dispatched visit,
+    // clocked in or not, so it ties far more invoiced jobs to a tech than
+    // timesheets do (Crew & vans › Per van, per day). Dispatch is its own
+    // scope; without it this records an error against itself and the page
+    // says it can't attribute the work.
+    resource: "appointment-assignments",
+    module: "dispatch",
+    table: "st_appointment_assignments",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      job_id: num(r.jobId),
+      appointment_id: num(r.appointmentId),
+      technician_id: num(r.technicianId),
+      technician_name: str(r.technicianName),
+      assigned_on: ts(r.assignedOn),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
+    // When each visit is booked for. The job export has no time on it, so this
+    // is the only source of "which installs are next week" (Supply › Next week)
+    // and of the date and time on the electrician's work order. Kept in its own
+    // table — see migration 0062 for why st_jobs.scheduled_on stays empty.
+    resource: "appointments",
+    module: "jpm",
+    table: "st_appointments",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      job_id: num(r.jobId),
+      appointment_number: str(pick(r, "appointmentNumber", "number")),
+      start_at: ts(pick(r, "start", "startOn")),
+      end_at: ts(pick(r, "end", "endOn")),
+      arrival_window_start: ts(r.arrivalWindowStart),
+      arrival_window_end: ts(r.arrivalWindowEnd),
+      status: str(r.status),
+      special_instructions: str(r.specialInstructions),
       active: r.active !== false,
       modified_on: ts(pick(r, "modifiedOn")),
       raw: r,
@@ -420,6 +470,47 @@ const LOOKUPS: LookupSpec[] = [
     }),
   },
   {
+    // The Model on each equipment item. A quote line carries only the item's
+    // code, which for most units is a name; suppliers order by model
+    // (Supply › Next week, migration 0064).
+    resource: "pricebook-equipment",
+    module: "pricebook",
+    path: "equipment",
+    table: "st_pricebook_equipment",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      code: str(pick(r, "code")),
+      name: str(pick(r, "displayName", "name")),
+      model: str(pick(r, "model", "modelNumber")),
+      manufacturer: str(pick(r, "manufacturer")),
+      vendor: str((r.primaryVendor as Row | undefined)?.vendorName ?? null),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
+    // Each material's primary vendor and that vendor's part number — Reece's
+    // product number, for the Reece list and, later, a maX order (0066).
+    resource: "pricebook-materials",
+    module: "pricebook",
+    path: "materials",
+    table: "st_pricebook_materials",
+    map: (r: Row) => {
+      const pv = (r.primaryVendor ?? null) as Row | null;
+      return {
+        id: Number(r.id),
+        code: str(pick(r, "code")),
+        name: str(pick(r, "displayName", "name")),
+        vendor: str(pv?.vendorName ?? null),
+        vendor_part: str(pv ? pick(pv, "vendorPart", "supplierPartNumber") : null),
+        active: r.active !== false,
+        modified_on: ts(pick(r, "modifiedOn")),
+        raw: r,
+      };
+    },
+  },
+  {
     resource: "business-units",
     module: "settings",
     path: "business-units",
@@ -461,7 +552,11 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
       const rows = (await stList<Row>(spec.module, spec.path)).map(spec.map).filter((r) =>
         Number.isFinite(r.id),
       );
-      await sbUpsert(spec.table, rows, "id");
+      // Chunked as the exports are: the pricebook materials list runs to
+      // thousands of rows with their raw payloads.
+      for (let i = 0; i < rows.length; i += 500) {
+        await sbUpsert(spec.table, rows.slice(i, i + 500), "id");
+      }
       await recordLookup(spec.resource, startedAt, rows.length, null);
       report.push({ resource: spec.resource, status: "ok", records: rows.length, exhausted: true });
     } catch (e) {
@@ -547,6 +642,15 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
     }
   } catch (e) {
     report.push({ resource: JOURNAL_RESOURCE, status: "error", error: (e as Error).message });
+  }
+
+  // Book any new sale, or the difference on a re-sold one, into the sales
+  // ledger the sold figures read (migration 0058, st_sales).
+  try {
+    await sbRpc("book_estimate_sales");
+    report.push({ resource: "book-sales", status: "ok" });
+  } catch (e) {
+    report.push({ resource: "book-sales", status: "error", error: (e as Error).message });
   }
 
   // Turn the stored jobTypeId / businessUnitId / soldById into display names and

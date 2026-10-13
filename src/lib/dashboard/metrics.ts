@@ -1,6 +1,7 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
 import { fetchXeroReceivables, type XeroResult } from "./xero";
+import { stOpenInvoices, withStOpen } from "./stOwed";
 import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "./xeroFreshness";
 export { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState };
 import { suburbs } from "../suburbs";
@@ -1369,6 +1370,11 @@ async function serviceTitanMetrics(now: Date) {
   // One query rather than three, and deliberately not filtered to rows that
   // carry a seller — an estimate closed without one still sold, and excluding it
   // would make the leaderboard rows sum to less than the headline figure.
+  //
+  // Read from the sales ledger (st_sales, migration 0058), not the quotes: a
+  // quote un-sold and sold again stays on the day it first sold, and only a
+  // change in what it sold for lands on the day it was re-sold. A row is an
+  // entry, so values sum every row and counts take `first` rows only.
   const soldRows = quotes(
     await sbSelect<{
       id: number;
@@ -1380,15 +1386,18 @@ async function serviceTitanMetrics(now: Date) {
       job_id: number | null;
       customer_id: number | null;
       created_on: string | null;
+      first: boolean;
     }>(
-      "st_estimates",
+      "st_sales",
       [
-        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on"),
+        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on,first"),
         q.gte("sold_on", monthStart.toISOString()),
-        q.lt("total", String(QUOTE_CAP)),
+        q.lt("est_total", String(QUOTE_CAP)),
       ].join("&"),
     ),
   );
+  /** The sales themselves, one per quote, for counts and the Sold pop-up. */
+  const firstSales = soldRows.filter((r) => r.first);
 
   /**
    * Credit goes to whoever wrote the quote, not whoever happened to close it.
@@ -1420,7 +1429,7 @@ async function serviceTitanMetrics(now: Date) {
   const alertJobIds = [
     ...new Set(
       [
-        ...soldRows.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
+        ...firstSales.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
       ].filter((v): v is number => v != null),
     ),
   ];
@@ -1460,13 +1469,13 @@ async function serviceTitanMetrics(now: Date) {
 
   /** How many this person has sold this month, for the line under a Sold alert. */
   const soldCountByPerson = new Map<string, number>();
-  for (const r of soldRows) {
+  for (const r of firstSales) {
     const who = creditFor(r);
     if (who) soldCountByPerson.set(who, (soldCountByPerson.get(who) ?? 0) + 1);
   }
 
   const alertEvents: Metrics["alertEvents"] = [
-    ...soldRows
+    ...firstSales
       .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
       .map((r) => {
         const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
@@ -1776,8 +1785,8 @@ async function serviceTitanMetrics(now: Date) {
   const quotesQuietValue = quiet.reduce((n, j) => n + j.value, 0);
   const quotesQuiet = quiet.slice(0, 200);
 
-  const soldCountMonth = soldRows.length;
-  const soldCountToday = soldRows.filter(
+  const soldCountMonth = firstSales.length;
+  const soldCountToday = firstSales.filter(
     (r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today,
   ).length;
   const avgSoldValue = soldCountMonth ? soldMtd / soldCountMonth : null;
@@ -1865,7 +1874,7 @@ async function serviceTitanMetrics(now: Date) {
     const acc = bySeller.get(key) ?? blank();
     const v = Number(r.total ?? 0);
     acc.sold += v;
-    acc.jobs += 1;
+    if (r.first) acc.jobs += 1;
     if (r.sold_on) {
       const at = new Date(r.sold_on);
       if (at.getTime() >= weekStartMs) acc.soldWeek += v;
@@ -2303,9 +2312,20 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    * minutes within five minutes and is retried on the next recompute.
    */
   const lastXeroRead = previous?.sources?.xero?.at;
-  const xero: XeroResult = xeroReadDue(lastXeroRead, now)
+  const xeroRead: XeroResult = xeroReadDue(lastXeroRead, now)
     ? await fetchXeroReceivables()
     : { ok: false, reason: "not due" };
+  /*
+   * What's owed is two ledgers since ServiceTitan took over on 17 September
+   * (see stOwed.ts): Xero alone read $30K against $152K actually owing. Read
+   * together with Xero and combined only when both answer — a total with half
+   * its source missing is a confidently wrong figure, so a failed ServiceTitan
+   * read carries the whole last reading forward the way a failed Xero one does.
+   */
+  const xero: XeroResult = xeroRead.ok
+    ? await stOpenInvoices().then((st) => withStOpen(xeroRead, st, isoDateMelbourne(now)))
+      .catch((e: Error): XeroResult => ({ ok: false, reason: `servicetitan invoices: ${e.message}` }))
+    : xeroRead;
   sources.xero = xeroSourceState(xero.ok, lastXeroRead, now, xero.ok ? "" : xero.reason);
 
   // A settings read that fails must not blank every target on the wall, so it
@@ -2445,7 +2465,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       // Carried forward like the totals: a skipped or failed Xero read leaves
       // the chase list standing rather than emptying it, which would read as
       // "nothing overdue".
-      overdueList: xero.ok ? xero.overdue : prev?.overdueList ?? [],
+      overdueList: xero.ok ? xero.overdue.slice(0, 6) : prev?.overdueList ?? [],
 
       pace,
       paceData,

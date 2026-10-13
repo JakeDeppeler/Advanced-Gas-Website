@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./portal.css";
+import "./shell.css";
 
 export const metadata: Metadata = {
   title: "Team portal",

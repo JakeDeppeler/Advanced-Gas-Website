@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings, listUsers } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PaceTabs } from "@/components/portal/run/RunTabs";
 import { GoalPlanner } from "@/components/portal/GoalPlanner";
 import { Locked } from "@/components/portal/Locked";
 import { readYearGoal, STARTING_GOAL, STARTING_MIX } from "@/lib/portal/yearGoal";
@@ -12,7 +12,7 @@ import { isoDateMelbourne, workingDaysInMonth } from "@/lib/dashboard/dates";
 import { latestSnapshot } from "@/lib/dashboard/metrics";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Year goal — Team portal" };
+export const metadata = { title: "Pace — Team portal" };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -66,7 +66,6 @@ export default async function GoalPage() {
 
   return (
     <PortalShell user={user} variant="mid">
-      <PortalBack href="/portal" label="Home" />
       {!ready && (
         <div className="pt-note pt-note--warn">
           <strong>The database isn&rsquo;t connected.</strong> The goal can be explored but not saved until it is.
@@ -80,6 +79,7 @@ export default async function GoalPage() {
         booked={booked}
         month={{ name: MONTHS[Number(thisMonth.slice(5, 7)) - 1], workingDays: days.total, daysPerWeek: cfg.workingDays.length }}
         canSave={ready}
+        tabs={<PaceTabs on="mix" />}
       />
     </PortalShell>
   );

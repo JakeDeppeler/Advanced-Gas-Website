@@ -8,6 +8,7 @@ import {
   updateUser, createGoal, updateGoal, deleteGoal,
   createReview, deleteReview, createReport, deleteReport,
 } from "@/lib/portal/db";
+import { addLicence, removeLicence } from "@/lib/portal/crewFile/licences";
 
 export type ActionResult = { ok: boolean; error?: string };
 
@@ -117,5 +118,36 @@ export async function removeNote(input: { id: string; userId: string }): Promise
   const res = await deleteReport(input.id);
   if (!res.ok) return { ok: false, error: "Couldn't delete." };
   reval(input.userId);
+  return { ok: true };
+}
+
+/* Licences & tickets, written by whoever writes the file. */
+
+export async function addLicenceAction(input: { userId: string; name: string; number: string; expiresOn: string }): Promise<ActionResult> {
+  const me = await requireWriter();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const name = input.name.trim();
+  if (!name) return { ok: false, error: "Say what the licence is." };
+  if (input.expiresOn && !/^\d{4}-\d{2}-\d{2}$/.test(input.expiresOn)) return { ok: false, error: "Pick the date it runs out." };
+  try {
+    await addLicence({ userId: input.userId, name: name.slice(0, 120), number: input.number.trim().slice(0, 60) || null, expiresOn: input.expiresOn || null, by: me.email });
+  } catch {
+    return { ok: false, error: "Couldn't save the licence." };
+  }
+  reval(input.userId);
+  revalidatePath("/portal/team");
+  return { ok: true };
+}
+
+export async function removeLicenceAction(input: { userId: string; id: string }): Promise<ActionResult> {
+  const me = await requireWriter();
+  if (!me) return { ok: false, error: "Not allowed." };
+  try {
+    await removeLicence(input.id);
+  } catch {
+    return { ok: false, error: "Couldn't remove it." };
+  }
+  reval(input.userId);
+  revalidatePath("/portal/team");
   return { ok: true };
 }

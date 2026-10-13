@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { updateCrew, saveSettings, createCrewPerson, deleteUser, updateVehicle } from "@/lib/portal/db";
+import { updateCrew, saveSettings, getSettings, createCrewPerson, deleteUser, updateVehicle } from "@/lib/portal/db";
+import { readLoans, type VanLoan } from "@/lib/portal/fleet/loan";
 import { normaliseGrowth, type Growth } from "@/lib/portal/growthTypes";
 import { isCrewLevel, defaultsFor, type Costing, type CapSettings } from "@/lib/portal/crew";
 
@@ -67,6 +68,7 @@ export async function saveCrew(input: { userId: string; level: string; costing: 
   const res = await updateCrew(input.userId, input.level, input.costing);
   if (!res.ok) return { ok: false, error: "Couldn't save." };
   revalidatePath("/portal/finance/capacity");
+  revalidatePath(`/portal/team/${input.userId}`);
   return { ok: true };
 }
 
@@ -110,6 +112,45 @@ export async function saveVanMoney(input: {
   if (!res.ok) return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };
   revalidatePath("/portal/finance/capacity");
   revalidatePath("/portal/finance/planning");
+  revalidatePath("/portal/vehicles");
+  revalidatePath(`/portal/vehicles/${input.id}`);
+  return { ok: true };
+}
+
+/**
+ * One van's finance contract and the figures it's costed from, saved from the
+ * van's own Costs & details tab. The contract goes in settings (see
+ * withLoans in db.ts); price, repayment, life and resale stay on the van, where
+ * Vans & loans, the hourly rate and Planning already read them.
+ */
+export async function saveVanLoan(input: {
+  id: string; loan: VanLoan;
+  purchasePrice: number | null; purchasedOn: string | null; monthlyRepayment: number | null;
+  resaleValue: number | null; lifespanYears: number | null;
+}): Promise<ActionResult> {
+  const me = await requireOverhead();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!/^[\w-]{1,64}$/.test(input.id)) return { ok: false, error: "That van couldn't be found." };
+  const l = input.loan;
+  if (l.ratePct != null && (l.ratePct < 0 || l.ratePct > 40)) return { ok: false, error: "The interest rate should be between 0 and 40%." };
+  if (l.termMonths != null && (l.termMonths < 1 || l.termMonths > 120)) return { ok: false, error: "The term should be between 1 and 120 months." };
+  if (input.purchasedOn && !/^\d{4}-\d{2}-\d{2}$/.test(input.purchasedOn)) return { ok: false, error: "The date bought doesn't look right." };
+
+  const all = readLoans(await getSettings<unknown>("vehicle_loans").catch(() => null));
+  const clean = readLoans({ [input.id]: l })[input.id];
+  const empty = !clean || Object.values(clean).every((v) => v == null);
+  if (empty) delete all[input.id]; else all[input.id] = { ...clean, termMonths: clean.termMonths != null ? Math.round(clean.termMonths) : null };
+  const saved = await saveSettings("vehicle_loans", all);
+  if (!saved.ok) return { ok: false, error: saved.error === "not-configured" ? "Database not connected." : "Couldn't save the loan." };
+
+  const life = money(input.lifespanYears, 40);
+  const res = await updateVehicle(input.id, {
+    purchasePrice: money(input.purchasePrice), purchasedOn: input.purchasedOn || null,
+    monthlyRepayment: money(input.monthlyRepayment, 100_000), resaleValue: money(input.resaleValue),
+    lifespanYears: life === 0 ? null : life,
+  });
+  if (!res.ok) return { ok: false, error: "The loan saved, but the van's price and life didn't." };
+  revalidatePath("/portal/finance/capacity");
   revalidatePath("/portal/vehicles");
   revalidatePath(`/portal/vehicles/${input.id}`);
   return { ok: true };

@@ -9,6 +9,7 @@ import "../detail.css";
 import "../brands/[brand]/brand.css";
 import "./pricing.css";
 import { PageHero } from "@/components/PageHero";
+import { RATING_TEXT } from "@/lib/reviews";
 
 export const metadata: Metadata = {
   title: "Price List, Every System, Fully Installed",
@@ -186,7 +187,7 @@ export default function PricingPage() {
               <span>installs done since 2014 across Melbourne&rsquo;s south-east</span>
             </div>
             <div className="pricing-value__stat">
-              <strong>4.9 / 5</strong>
+              <strong>{RATING_TEXT} / 5</strong>
               <span>Google reviews · zero paid or filtered</span>
             </div>
             <div className="pricing-value__stat">

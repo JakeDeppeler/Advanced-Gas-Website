@@ -15,7 +15,6 @@ import { VanLoans } from "@/components/portal/VanLoans";
 import { MarkupEditor } from "@/components/portal/MarkupEditor";
 import { getGrowth } from "@/lib/portal/growth";
 import { EMPTY_GROWTH } from "@/lib/portal/growthTypes";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Our numbers — Team portal" };
@@ -93,21 +92,28 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
     .sort((a, b) => (a.sortOrder ?? 1e9) - (b.sortOrder ?? 1e9) || a.name.localeCompare(b.name))
     .map((u) => ({ id: u.id as string, name: u.name, email: u.email, level: u.level, costing: u.costing }));
 
+  // One part at a time, picked in the side bar (Our numbers › Team & wages,
+  // Costs, Vans & loans, Markup); the page is titled for the part it shows.
+  const tab: (typeof TABS)[number] = TABS.includes(searchParams?.t as (typeof TABS)[number]) ? (searchParams!.t as (typeof TABS)[number]) : "crew";
+  const [title, lede] =
+    part === "vans" ? ["Vans & loans", "What each van cost and still owes, the repayments, and what a new one would."]
+      : part === "markup" ? ["Markup", "What we put on materials and units, which is where the profit is."]
+        : tab === "overheads" ? ["Costs", "What the business costs to run a year, shared over every billable hour. Vans sit with each person instead."]
+          : tab === "rates" ? ["What each crew charges", "The rate a tech, or a tech and an apprentice, has to charge to cover what they cost and the profit we want."]
+            : ["Team & wages", "Everyone side by side: what they’re paid and how many hours they bill. Change it here or on their own file — it’s the same record, and every rate updates."];
+
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Our numbers" lede="Every figure the hourly rate, the Job calculator and Planning work from — the crew, the costs, the vans and the markups. This is the one place they're changed." xero={{ state: status, org: tenantName }} />
-      <nav className="pt-seg pt-nums__parts" aria-label="Our numbers">
-        {PARTS.map((p) => (
-          <Link key={p.k} href={p.k === "costs" ? "/portal/finance/capacity" : `/portal/finance/capacity?part=${p.k}`} className={`pt-seg__b${part === p.k ? " is-on" : ""}`} aria-current={part === p.k ? "page" : undefined}>{p.label}</Link>
-        ))}
-      </nav>
+      <FinanceHead title={title} lede={lede} xero={{ state: status, org: tenantName }} />
       {part === "costs" && (
         <CapacityEditor
+          key={tab}
+          fixedTab
           people={people}
           settings={withFleet(settings, vehicles)}
           dbReady={ready}
           canManage={can(user, "manage_users")}
-          initialTab={TABS.includes(searchParams?.t as typeof TABS[number]) ? (searchParams!.t as typeof TABS[number]) : undefined}
+          initialTab={tab}
           xeroExpenses={xeroExpenses}
           xero={xero}
           fleetDep={fleetDep}
@@ -120,6 +126,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
           vans={vehicles.map((v) => ({
             id: v.id, name: v.name, onRoad: v.status !== "off", purchasePrice: v.purchasePrice, amountOwing: v.amountOwing,
             monthlyRepayment: v.monthlyRepayment, resaleValue: v.resaleValue, lifespanYears: v.lifespanYears,
+            fromLoan: v.owingFromLoan, typedRepayment: v.typedRepayment,
           }))}
         />
       )}

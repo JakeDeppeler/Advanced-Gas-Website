@@ -43,6 +43,7 @@ export function GoalPlanner({
   booked,
   month,
   canSave,
+  tabs,
 }: {
   initial: YearGoal;
   /** Nothing is saved yet: the figures are the design's starting ones. */
@@ -56,6 +57,8 @@ export function GoalPlanner({
   /** This month's working days, so the jobs-booked target matches the board's. */
   month: { name: string; workingDays: number; daysPerWeek: number };
   canSave: boolean;
+  /** The page's own sub-tabs, under the title. */
+  tabs?: React.ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -94,9 +97,10 @@ export function GoalPlanner({
     <div className="pt-goal">
       <div className="pt-head pt-head--split">
         <div>
-          <h1>{g.revenue > 0 ? `${short(g.revenue)}${g.profitPct ? ` at ${g.profitPct}% profit` : ""}` : "The year goal"}</h1>
+          <h1>Pace</h1>
           <p>
-            How many of each job we need booked every week to get there — and how far off the current mix is.
+            {g.revenue > 0 ? <><b>{short(g.revenue)}{g.profitPct ? ` at ${g.profitPct}% profit` : ""}</b> · </> : null}
+            How many of each job we need booked every week to get there, and how far off the current mix is.
             {" "}{periodLabel(g)}.
           </p>
         </div>
@@ -104,6 +108,7 @@ export function GoalPlanner({
           {editing ? "Done" : "Change the goal"}
         </button>
       </div>
+      {tabs && <div className="pk-tabrow">{tabs}</div>}
 
       {sample && (
         <div className="pt-note pt-goal__note">

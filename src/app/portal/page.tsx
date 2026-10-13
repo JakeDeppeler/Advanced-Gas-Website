@@ -1,103 +1,100 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { cookies, headers } from "next/headers";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { BANDS, BAND_BLURB, BAND_LABEL, ICON, byBand, portalNav, type NavBand } from "@/lib/portal/nav";
-import { needsByBand, needsToday } from "@/lib/portal/needs";
-import { NeedsList } from "@/components/portal/NeedsList";
+import { needsToday } from "@/lib/portal/needs";
 import { localToday } from "@/lib/portal/xero";
-import { latestBoard, savedGoal, shortMoney } from "@/lib/portal/office";
+import { latestBoard, savedGoal, xeroProfit } from "@/lib/portal/office";
+import { meOf, openTodos, seesAll, teamPeople, todayMelbourne, visibleTo } from "@/lib/todos/store";
+import { byUrgency, dueState, dueWords, firstName } from "@/lib/todos/types";
+import { START_COOKIE, START_PAGES } from "@/lib/portal/businessTypes";
+import { DEFAULT_WORKING_CALENDAR, isWorkingDay } from "@/lib/dashboard/dates";
+import { Home, type HomeTodo } from "@/components/portal/home/Home";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Team portal" };
-
-/** Each section's icon: the same as its tab in the side bar. */
-const TAB_ICONS: Record<NavBand, string> = {
-  run: ICON.trend, board: ICON.screen, customers: ICON.chat, profit: ICON.chart, marketing: ICON.speaker,
-  crew: ICON.truck, "how-we-work": ICON.book, settings: ICON.user, hidden: ICON.grid,
-};
+export const metadata = { title: "Home — Team portal" };
 
 /**
- * Home, to the mock: the day, what needs someone today, then the portal's
- * eight sections as cards — each with how many of today's lines are its, and
- * how many pages it holds. The pages themselves are a tap away in the side
- * bar or on each section's page; listing all forty here as well made Home a
- * second copy of the side bar.
- *
- * The list only carries lines it can count (needs.ts), and hides at zero.
- *
- * Kept short on purpose: the first five lines, the rest folded away, and on a
- * desk — where the side bar already lists the sections with their counts — no
- * second copy of them as cards. They come back on a phone, where the side bar
- * is behind the menu button.
+ * Where the portal opens, when someone has picked a start page in Settings:
+ * only on the way in — signing in, a bookmark, a typed address — never when
+ * they click Home from inside the portal, or Home could never be reached.
  */
+function startPage(): string | null {
+  const key = cookies().get(START_COOKIE)?.value;
+  const start = START_PAGES.find((p) => p.key === key);
+  if (!start || start.href === "/portal") return null;
+  const from = headers().get("referer") ?? "";
+  let inside = false;
+  try {
+    const u = new URL(from);
+    inside = u.pathname.startsWith("/portal") && u.pathname !== "/portal/login";
+  } catch {
+    /* No referrer: a way in. */
+  }
+  return inside ? null : start.href;
+}
+
 export default async function PortalHome({ searchParams }: { searchParams: { denied?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
+  if (!searchParams.denied) {
+    const start = startPage();
+    if (start) redirect(start);
+  }
 
   const office = can(user, "overhead");
-  const [board, goal, lines] = await Promise.all([
+  const [board, goal, profit, open, me, all, people, lines] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
     office ? savedGoal() : Promise.resolve(null),
+    office ? xeroProfit().catch(() => ({ month: null, year: null, yearFrom: "" })) : Promise.resolve({ month: null, year: null, yearFrom: "" }),
+    openTodos().catch(() => []),
+    meOf(user).catch(() => null),
+    seesAll(user).catch(() => false),
+    teamPeople().catch(() => []),
     needsToday(user).catch(() => []),
   ]);
 
-  const first = user.name.split(" ")[0];
-  const items = portalNav(user, { goalLabel: goal ? shortMoney(goal.revenue) : null });
-  const need = needsByBand(lines);
+  // What's due today or late: the office sees the team's, everyone else their own.
+  const today = todayMelbourne();
+  const due = visibleTo(open, me?.id ?? null, all)
+    .filter((t) => ["overdue", "today"].includes(dueState(t, today)))
+    .sort(byUrgency);
+  const nameOf = new Map(people.map((p) => [p.id, firstName(p.name)]));
+  const todos: HomeTodo[] = due.map((t) => ({
+    id: t.id, title: t.title, notes: t.notes,
+    who: t.assigneeId ? nameOf.get(t.assigneeId) ?? null : null,
+    due: dueWords(t, today), late: dueState(t, today) === "overdue",
+  }));
 
-  // Melbourne's date, not the server's: a board that says Thursday on a Friday
-  // morning in Pakenham is wrong in the way people notice first.
-  const today = localToday().toLocaleDateString("en-AU", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+  // Melbourne's date and time, not the server's.
+  const now = new Date();
+  const date = localToday().toLocaleDateString("en-AU", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+  const time = now.toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
+  const month = now.toLocaleDateString("en-AU", { month: "long", timeZone: "Australia/Melbourne" });
+  // The board's own count of working days, with its holidays. Days left
+  // includes today when today is one.
+  const m = board?.metrics ?? null;
+  const day = m && m.workingDaysTotal > 0
+    ? { n: Math.min(m.workingDaysTotal, m.workingDaysTotal - m.workingDaysLeft + (isWorkingDay(now, DEFAULT_WORKING_CALENDAR) ? 1 : 0)), of: m.workingDaysTotal }
+    : null;
 
   return (
     <PortalShell user={user} variant="home">
-      <div className="pt-home">
-        {searchParams.denied && (
-          <div className="pt-note pt-note--warn">
-            <strong>That page isn&rsquo;t open to you.</strong> Ask an admin if you think it should be.
-          </div>
-        )}
-
-        <div className="pt-hi">
-          <span className="pt-hi__date">{today}</span>
-          <h1 className="pt-hi__h">G&rsquo;day {first}.</h1>
-        </div>
-
-        <Link href="/portal/search" className="pt-hsearch">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>
-          Search the portal
-        </Link>
-
-        {(office || can(user, "quotes")) && <NeedsList lines={lines} limit={5} empty={board ? undefined : "The board hasn’t made its first snapshot yet, so quotes and overdue invoices aren’t counted."} />}
-
-        <div className="pt-secs">
-          {BANDS.map((band) => {
-            const inBand = byBand(items, band);
-            if (!inBand.length || band === "hidden") return null;
-            const blurb = band === "profit" && goal ? `Margins, the ${shortMoney(goal.revenue)} goal and Xero` : BAND_BLURB[band];
-            const n = need[band] ?? 0;
-            return (
-              <Link key={band} href={`/portal/section/${band}`} className="pt-sec">
-                <span className="pt-sec__top">
-                  <span className="pt-tile__ico" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d={TAB_ICONS[band]} />
-                    </svg>
-                  </span>
-                  {n > 0 && <span className="pt-tile__badge">{n} need you</span>}
-                </span>
-                <span className="pt-sec__text">
-                  <span className="pt-sec__name">{BAND_LABEL[band]}</span>
-                  <span className="pt-sec__blurb">{blurb}</span>
-                  <span className="pt-sec__go">{inBand.length} {inBand.length === 1 ? "page" : "pages"} →</span>
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+      <Home
+        first={user.name.split(" ")[0]}
+        when={`${date} · ${time}`}
+        month={month}
+        day={day}
+        office={office}
+        m={m}
+        profitYear={profit.year}
+        goal={goal}
+        todos={todos}
+        overdue={todos.filter((t) => t.late).length}
+        lines={lines}
+        denied={!!searchParams.denied}
+      />
     </PortalShell>
   );
 }

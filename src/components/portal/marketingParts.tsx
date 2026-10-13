@@ -121,20 +121,12 @@ export function WindowPicker({ win, hrefFor }: { win: string; hrefFor: (w: Windo
   );
 }
 
-/** A section's tab strip: links, with the current one marked for a screen reader too. */
-export function SectionTabs({ label, tabs, current }: { label: string; tabs: { k: string; label: string; href: string }[]; current: string }) {
-  return (
-    <nav className="pt-tabs" aria-label={label}>
-      {tabs.map((t) => (
-        <Link
-          key={t.k}
-          href={t.href}
-          aria-current={t.k === current ? "page" : undefined}
-          className={`pt-tab${t.k === current ? " is-on" : ""}`}
-        >
-          {t.label}
-        </Link>
-      ))}
-    </nav>
-  );
+/**
+ * A section's tab strip. Marketing's pages are now one bar the shell draws
+ * across every one of them (sections.ts, `flat`), so a page's own strip would
+ * be a second copy of it; this renders nothing and is kept so the pages that
+ * call it don't each need touching.
+ */
+export function SectionTabs(_: { label: string; tabs: { k: string; label: string; href: string }[]; current: string }) {
+  return null;
 }

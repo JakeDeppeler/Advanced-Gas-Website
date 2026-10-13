@@ -5,13 +5,14 @@ import { can } from "@/lib/portal/caps";
 import { getVehicle, listVehicleLogs, latestVanChecks, listVanChecks, listVanPhotos, listUsers } from "@/lib/portal/db";
 import { signedUrls } from "@/lib/portal/storage";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { VehicleDetail } from "@/components/portal/VehicleDetail";
 import { VehicleCosts, VehicleChecks } from "@/components/portal/VehicleCosts";
 import { VehicleEdit } from "@/components/portal/VehicleEdit";
+import { VanFacts, VanOverview } from "@/components/portal/fleet/VanParts";
+import { VanMoney } from "@/components/portal/fleet/VanMoney";
+import { kmCell } from "@/components/portal/fleetStatus";
+import { Btn, Head, Tabs } from "@/components/portal/kit/Kit";
 import { VanWeekly, type WeeklyRow } from "@/components/portal/VanWeekly";
-import { VanHead } from "@/components/portal/tradeVan";
-import { VanTiles } from "@/components/portal/VanTiles";
 import { Ic } from "@/components/portal/TradeShell";
 import { OrderAnswer, ReportAnswer, ToolRegister } from "@/components/portal/OfficeAnswers";
 import { CHECK_KINDS, PHOTO_ANGLES, VEHICLE_CHECK, itemKey, vehicleKey } from "@/lib/portal/vanChecks";
@@ -76,34 +77,36 @@ export default async function VehiclePage({ params, searchParams }: { params: { 
     serviceCost: vehicle.serviceCost, kmYear: vehicle.kmYear, assignedTo: vehicle.assignedTo, regoDue: vehicle.regoDue,
   };
 
+  const lastRead = (await listVehicleLogs(vehicle.id).catch(() => []))
+    .filter((l) => l.kind === "reading").sort((a, b) => b.logDate.localeCompare(a.logDate))[0];
+  const status = vehicle.status === "repair" ? " · in for repair" : vehicle.status === "off" ? " · off the road" : "";
+
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/vehicles" label="The fleet" />
-      <div className="pt-head pt-head--split">
-        <div>
-          <h1>{vehicle.name}{first ? ` · ${first}` : ""}</h1>
-          <p>Checks, damage, parts and tools — what {first ?? "the driver"} sends in from the van, and the office&rsquo;s answers.</p>
+      <div className="pk">
+        <Head title={`${vehicle.name}${first ? ` · ${first}` : ""}`}
+          sub={`${[vehicle.rego, driver ? `signed to ${driver}` : "not signed to anyone"].filter(Boolean).join(" · ")}${status}`}
+          info={[
+            ["Weekly check", "Photos, the vehicle check and the stock count, due every Monday by 8am. What the tech flags lands on Damage & service."],
+            ["Damage & service", "What the van has sent in, and the office’s answer to each."],
+            ["Costs & details", "What the van cost, what it still owes, and what a year of it costs to run."],
+          ]} />
+        <div className="pk-btns" style={{ marginTop: -6 }}>
+          <Btn href={`/portal/vehicles/${vehicle.id}/checks/monthly`}>Do the monthly check</Btn>
+          <Btn href={href("km")} quiet>Log km</Btn>
+          <Btn href="/portal/vehicles" quiet>All vans</Btn>
         </div>
-        <div className="pt-vhead__acts">
-          <Link href={`/portal/vehicles/${vehicle.id}/checks/monthly`} className="pt-btn pt-btn--orange">Do the monthly check</Link>
-          <Link href={href("km")} className="pt-btn pt-btn--ghost">Log km</Link>
-        </div>
+        <VanFacts van={vehicle} today={today} kmCell={kmCell(vehicle.odometer, lastRead?.logDate ?? null, today)} />
+        <Tabs on={tab} label="This van" items={TABS.map((t) => ({ key: t.k, label: t.label, href: href(t.k) }))} />
+        {tab === "overview" && (
+          <VanOverview van={vehicle} driver={first} hrefs={{ check: href("check"), report: href("report"), parts: href("parts"), tools: href("tools"), stock: "/portal/stock" }} />
+        )}
       </div>
 
+      {/* The tabs below are the tech's own screens with the office's answers on
+          them, kept in the iPad's components so a fix to one is a fix to both. */}
       <div className="tr-embed">
-        <VanHead van={vehicle} who={driver ? `Signed to ${driver}` : "Not signed to anyone"} today={today} />
-
-        <nav className="tr-tabs" aria-label="This van">
-          {TABS.map((t) => (
-            <Link key={t.k} href={href(t.k)} aria-current={t.k === tab ? "page" : undefined} className={t.k === tab ? "is-on" : undefined}>{t.label}</Link>
-          ))}
-        </nav>
-
-        {tab === "overview" && (
-          <VanTiles van={vehicle} you={false} hrefs={{ check: href("check"), report: href("report"), parts: href("parts"), tools: href("tools"), stock: "/portal/stock" }} />
-        )}
-
-        {tab === "check" && <CheckTab vehicleId={vehicle.id} driver={first} />}
+      {tab === "check" && <CheckTab vehicleId={vehicle.id} driver={first} />}
         {tab === "report" && <ReportTab vehicleId={vehicle.id} canManage={canManage} />}
         {tab === "parts" && <PartsTab vehicleId={vehicle.id} vanName={vehicle.name} canManage={canManage} />}
         {tab === "tools" && <ToolsTab vehicleId={vehicle.id} canManage={canManage} />}
@@ -112,8 +115,14 @@ export default async function VehiclePage({ params, searchParams }: { params: { 
       {tab === "km" && <KmTab view={view} crew={crew} canManage={canManage} />}
       {tab === "costs" && (
         <>
-          <VehicleCosts vehicle={view} />
-          {canManage && <VehicleEdit vehicle={view} crew={crew} />}
+          {/* What it cost and how it's paid for is the office's; the crew see the
+              running side as before. */}
+          {can(user, "overhead") ? <VanMoney van={vehicle} canEdit={canManage} /> : <VehicleCosts vehicle={view} />}
+          {/* Read by anyone who can open the van; changed by a manager, after pressing Edit.
+              The date bought sits with the money when that card is on the page. */}
+          <div className="pk" style={{ marginTop: 18 }}>
+            <VehicleEdit vehicle={view} crew={crew} canEdit={canManage} showBought={!can(user, "overhead")} />
+          </div>
         </>
       )}
     </PortalShell>

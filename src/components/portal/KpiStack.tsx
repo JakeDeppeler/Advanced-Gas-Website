@@ -20,7 +20,13 @@ const HEALTH: Record<Health, { word: string; icon: string }> = {
  * The benchmarks are rules of thumb for a trade business with its field wages
  * in cost of sales, as this one's books have them — a guide, not a verdict.
  */
-export function KpiStack({ detail, label }: { detail: PLDetail; label: string }) {
+export function KpiStack({ detail, label, aims }: {
+  detail: PLDetail;
+  label: string;
+  /** The goals from Our numbers, as percentages. Left out, the usual 40 / 25 / 15. */
+  aims?: { gm?: number | null; ovh?: number | null; np?: number | null };
+}) {
+  const aGm = (aims?.gm ?? 40) / 100, aOh = (aims?.ovh ?? 25) / 100, aNp = (aims?.np ?? 15) / 100;
   const isOther = (t: string) => /other income/i.test(t);
   const isCogs = (t: string) => /cost of (sales|goods)|direct cost/i.test(t);
   const lines = (pick: (title: string, kind: string) => boolean) =>
@@ -41,9 +47,11 @@ export function KpiStack({ detail, label }: { detail: PLDetail; label: string })
 
   const share = (n: number) => n / revenue;
   const gm = share(gp), ohp = share(overheads), np = share(net);
-  const gmH: Health = gm >= 0.4 ? "good" : gm >= 0.3 ? "watch" : "low";
-  const ohH: Health = ohp <= 0.25 ? "good" : ohp <= 0.35 ? "watch" : "low";
-  const npH: Health = np >= 0.15 ? "good" : np >= 0.08 ? "watch" : "low";
+  // Within ten points of the aim is one to watch; past that it's off.
+  const gmH: Health = gm >= aGm ? "good" : gm >= aGm - 0.1 ? "watch" : "low";
+  const ohH: Health = ohp <= aOh ? "good" : ohp <= aOh + 0.1 ? "watch" : "low";
+  const npH: Health = np >= aNp ? "good" : np >= aNp / 2 ? "watch" : "low";
+  const pcAim = (a: number) => `${Math.round(a * 100)}%`;
   const adminInCogs = cogsLines.filter((l) => /admin|office|director/i.test(l.label));
 
   const Row = ({ k, name, amount, of, health, aim, items, total, note, highIsBad }: {
@@ -83,10 +91,10 @@ export function KpiStack({ detail, label }: { detail: PLDetail; label: string })
       <Row k="rev" name="Revenue" amount={revenue} of={1} items={revLines} />
       <Row k="cogs" name="Cost of goods sold" aim="parts, equipment, subbies and field wages" amount={cogs} of={share(cogs)} items={cogsLines}
         note={adminInCogs.length ? `${adminInCogs.map((l) => l.label).join(" and ")} ${adminInCogs.length === 1 ? "is" : "are"} filed in cost of sales in Xero. Most businesses put office wages in overheads; moved there, gross margin would read ${pc(share(gp + sum(adminInCogs)))}.` : undefined} />
-      <Row k="gp" name="Gross margin" aim="aim for 40%+" amount={gp} of={gm} health={gmH} total />
-      <Row k="oh" name="Overheads" aim="aim for 25% or less" amount={overheads} of={ohp} health={ohH} highIsBad items={ohLines} />
+      <Row k="gp" name="Gross margin" aim={`aim for ${pcAim(aGm)}+`} amount={gp} of={gm} health={gmH} total />
+      <Row k="oh" name="Overheads" aim={`aim for ${pcAim(aOh)} or less`} amount={overheads} of={ohp} health={ohH} highIsBad items={ohLines} />
       {Math.abs(other) > 0.5 && <Row k="other" name="Other income" aim="grants, incentives, contributions" amount={other} of={share(other)} items={otherLines} />}
-      <Row k="np" name="Net profit" aim="aim for 15%+" amount={net} of={np} health={net < 0 ? "low" : npH} total />
+      <Row k="np" name="Net profit" aim={`aim for ${pcAim(aNp)}+`} amount={net} of={np} health={net < 0 ? "low" : npH} total />
     </section>
   );
 }

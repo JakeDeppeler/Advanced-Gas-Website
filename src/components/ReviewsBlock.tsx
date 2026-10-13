@@ -10,7 +10,7 @@ import { site } from "@/lib/site";
  * the schema are both server-rendered. Falls back to the curated list if
  * the API isn't configured or errors.
  *
- * The structured data is the point: it's what makes ⭐4.9 eligible to
+ * The structured data is the point: it's what makes the star rating eligible to
  * show under our result in Google. Google requires the rating to be
  * visible on the same page, which the summary strip satisfies.
  */
@@ -42,13 +42,11 @@ export async function ReviewsBlock({
       bestRating: summary.best,
       ...(summary.verifiedCount ? { reviewCount: summary.count } : {}),
     },
-    review: reviews.slice(0, 5).map((r) => ({
-      "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
-      author: { "@type": "Person", name: r.who },
-      name: r.title,
-      reviewBody: r.txt,
-    })),
+    // No Review entries. The curated quotes in lib/reviews.ts can't be
+    // matched to Google reviews (Google showed 26 in total when this was
+    // written), and marking up a review nobody can find on Google is the
+    // fastest way to lose rich-result eligibility. Put them back only when
+    // they come from the Places API.
   };
 
   return (
@@ -66,7 +64,7 @@ export async function ReviewsBlock({
             <strong>{summary.value.toFixed(1)}</strong>
             <span className="rvs__stars" aria-hidden="true">★★★★★</span>
             <span className="rvs__count">
-              {summary.verifiedCount ? `from ${summary.count}+ Google reviews` : "on Google"}
+              {summary.verifiedCount ? `from ${summary.count} Google reviews` : "on Google"}
             </span>
           </div>
           {site.social.google && (

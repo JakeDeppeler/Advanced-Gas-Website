@@ -758,6 +758,56 @@ export async function getOverdueInvoices(): Promise<OverdueInvoice[] | null> {
   return sharedOverdue(integ.tenantId).catch(() => null);
 }
 
+/**
+ * Every unpaid sales invoice, due or not: Owed to us lists both. Same query
+ * and cache rules as the overdue list; `daysOver` is negative for days still
+ * to go.
+ */
+const sharedUnpaid = unstable_cache(
+  async (tenantId: string): Promise<OverdueInvoice[]> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const url = new URL(`${API_BASE}/Invoices`);
+    url.searchParams.set("where", 'Type=="ACCREC"&&Status=="AUTHORISED"&&AmountDue>0');
+    url.searchParams.set("order", "DueDate ASC");
+    url.searchParams.set("pageSize", "1000");
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`xero ${res.status}`);
+    const json = (await res.json()) as {
+      Invoices?: Array<{ InvoiceNumber?: string; Contact?: { Name?: string }; AmountDue?: number; DueDateString?: string; DueDate?: string }>;
+    };
+    const today = localToday().getTime();
+    const out: OverdueInvoice[] = [];
+    for (const inv of json.Invoices ?? []) {
+      const amountDue = Number(inv.AmountDue ?? 0);
+      if (!(amountDue > 0)) continue;
+      const raw = inv.DueDateString ?? inv.DueDate ?? "";
+      const ms = raw.startsWith("/Date(") ? Number(raw.slice(6, raw.search(/[+)]/))) : Date.parse(raw);
+      if (!Number.isFinite(ms)) continue;
+      out.push({
+        number: inv.InvoiceNumber ?? "",
+        contact: inv.Contact?.Name ?? "",
+        due: new Date(ms).toISOString().slice(0, 10),
+        daysOver: Math.floor((today - ms) / 86_400_000),
+        amountDue,
+      });
+    }
+    return out.sort((a, b) => b.daysOver - a.daysOver);
+  },
+  ["xero-unpaid"],
+  { revalidate: 300, tags: ["xero-reports"] },
+);
+
+/** Null when Xero isn't connected or didn't answer. */
+export async function getUnpaidInvoices(): Promise<OverdueInvoice[] | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedUnpaid(integ.tenantId).catch(() => null);
+}
+
 /* -------- What was invoiced, and billed to us, in a period -------- */
 
 export type PeriodInvoice = { number: string; contact: string; date: string; total: number; paid: number; due: number; overdue: boolean };

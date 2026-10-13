@@ -1,3 +1,4 @@
+import { TITLE_SUFFIX } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,7 +7,7 @@ import { HomeJourney } from "@/components/HomeJourney";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
-import { RATING_SUMMARY } from "@/lib/reviews";
+import { RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
@@ -57,7 +58,9 @@ function HeroQuoteFormSkeleton() {
 }
 
 export const metadata: Metadata = {
-  title: "Heat Pump, Split & Ducted Aircon, Pakenham",
+  // The root page sits beside the layout, so the layout's title
+  // template never applies to it; the suffix has to be written here.
+  title: { absolute: `Heating & Cooling Pakenham & SE Melbourne${TITLE_SUFFIX}` },
   description:
     "Heat pump hot water, split and ducted aircon, gas heating and servicing across Melbourne's south-east. Own crews, VEU rebate handled, free written quote.",
   alternates: { canonical: "/" },
@@ -184,7 +187,11 @@ export default async function HomePage() {
         <div className="wrap hero__grid">
           <div className="hero__copy">
 
+            {/* The slogan is the line people see; the kicker is what Google
+                reads as the page's subject. A slogan-only H1 told search
+                nothing about what we do or where. */}
             <h1 className="hero__h1">
+              <span className="hero__h1-kicker">Heating, cooling &amp; hot water in Pakenham &amp; SE Melbourne</span>{" "}
               One standard. Every job.
             </h1>
             <p className="hero__sub">
@@ -210,7 +217,7 @@ export default async function HomePage() {
               <div className="trust-rating">
                 <div className="trust-stars" aria-label="Five star Google rating">★★★★★</div>
                 <div className="trust-rating__txt">
-                  <strong><CountUp value="4.9 / 5" /></strong>
+                  <strong><CountUp value={`${RATING_TEXT} / 5`} /></strong>
                   <span>Google reviews</span>
                 </div>
               </div>
@@ -641,7 +648,7 @@ export default async function HomePage() {
             </div>
             <div className="reviews__badge">
               <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google</div>
+              <div><strong>{RATING_TEXT} / 5</strong> from {RATING_SUMMARY.count} Google reviews</div>
             </div>
           </div>
 

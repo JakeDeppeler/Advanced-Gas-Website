@@ -4,6 +4,7 @@ import Link from "next/link";
 import { site, openingHours } from "@/lib/site";
 import "./about.css";
 import { PageHero } from "@/components/PageHero";
+import { RATING_TEXT } from "@/lib/reviews";
 
 export const metadata: Metadata = {
   title: "About, Family-Owned Pakenham HVAC Specialists",
@@ -210,7 +211,7 @@ export default function AboutPage() {
       <section className="ab-next">
         <div className="wrap">
           <ul className="ab-nextrow">
-            <li><Link href="/reviews"><strong>What customers said</strong><span>4.9 out of 5, across the south-east</span></Link></li>
+            <li><Link href="/reviews"><strong>What customers said</strong><span>{RATING_TEXT} out of 5 on Google</span></Link></li>
             <li><Link href="/gallery"><strong>Work we have done</strong><span>Real installs, before and after</span></Link></li>
             <li><Link href="/services"><strong>What we take on</strong><span>Heating, cooling, gas and hot water</span></Link></li>
             <li><Link href="/service-areas"><strong>Where we work</strong><span>Every suburb, with drive times</span></Link></li>

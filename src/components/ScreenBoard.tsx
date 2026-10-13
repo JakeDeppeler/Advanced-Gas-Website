@@ -1292,7 +1292,12 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
             ? undefined
             : m.paymentsToday === 0
               ? "nothing in yet today"
-              : `${count(m.paymentsToday)} ${m.paymentsToday === 1 ? "payment" : "payments"} · ${plain(m.paidMonth ?? 0)} this month`
+              : /* Taken in ServiceTitan, where payments have lived since 17 September;
+                 Xero only sees them once the money clears through the bank feed,
+                 so this reads ahead of Xero and isn't meant to match it. The
+                 tile is "Paid today", so the count reads as payments without
+                 the word, and the line stays on one row at 1920. */
+                `${count(m.paymentsToday)} in ServiceTitan · ${plain(m.paidMonth ?? 0)} this month`
         }
       />
 

@@ -1,5 +1,4 @@
 import { PortalBack } from "@/components/portal/PortalBack";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine, type XeroState } from "@/components/portal/XeroLine";
 
 /**
@@ -8,9 +7,11 @@ import { XeroLine, type XeroState } from "@/components/portal/XeroLine";
  * Each tab had grown its own: Overview went back to Home and the rest to
  * Finance, every title was a different question, and a paragraph pushed the
  * Xero line onto a row of its own. Six tabs of one section now share one head
- * — back to Home, the tab's name, where the figures came from — the way the
- * design draws all six, so moving between them changes only what's under the
- * tabs.
+ * — back to Home, the tab's name, where the figures came from.
+ *
+ * No tab row: every one of these pages is in the side bar, under Profit &
+ * finance, Our numbers or Future, and the new design keeps tab rows for true
+ * sub-tabs only.
  */
 export function FinanceHead({ title, lede, xero }: {
   title: string;
@@ -30,7 +31,6 @@ export function FinanceHead({ title, lede, xero }: {
         </div>
         {xero && <XeroLine state={xero.state} org={xero.org} />}
       </div>
-      <PortalTabs set="finance" />
       {lede && <p className="pt-finhead__lede">{lede}</p>}
     </>
   );

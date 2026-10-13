@@ -10,9 +10,9 @@ import "../detail.css";
 import "./reviews.css";
 
 export const metadata: Metadata = {
-  title: `Reviews, ${RATING_SUMMARY.value}/5 from ${RATING_SUMMARY.count}+ locals`,
+  title: `Reviews, ${RATING_SUMMARY.value.toFixed(1)}/5 from ${RATING_SUMMARY.count} Google reviews`,
   description:
-    `What customers across Pakenham, Berwick, Officer and Cranbourne say about our heat pump, aircon and gas heating installs. ${RATING_SUMMARY.value}/5 from ${RATING_SUMMARY.count}+ Google reviews.`,
+    `What customers across Pakenham, Berwick, Officer and Cranbourne say about our heat pump, aircon and gas heating installs. ${RATING_SUMMARY.value.toFixed(1)}/5 from ${RATING_SUMMARY.count} Google reviews.`,
   alternates: { canonical: "/reviews" },
 };
 
@@ -36,7 +36,7 @@ export default async function ReviewsPage() {
             <span className="cur">Reviews</span>
           </nav>
           <div className="dp-hero__eyebrow">
-            <span className="ds-dot" /> {summary.value.toFixed(1)}/5 from {summary.count}+ locals
+            <span className="ds-dot" /> {summary.value.toFixed(1)}/5 from {summary.count} Google reviews
           </div>
           <h1>
             What our <span className="accent">customers</span> say.

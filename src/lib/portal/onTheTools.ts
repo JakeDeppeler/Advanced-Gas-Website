@@ -5,6 +5,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { mondayOf } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
 import { LEVEL_BILLABLE } from "@/lib/portal/crew";
+import { isoDateMelbourne } from "@/lib/dashboard/dates";
 
 type Sheet = { technician_id: number | null; dispatched_on: string | null; arrived_on: string | null; done_on: string | null; active: boolean | null };
 
@@ -12,7 +13,16 @@ const hoursBetween = (a: string | null, b: string | null) => (a && b ? Math.max(
 /** A visit longer than a working day is a clock left running, not a day on site. */
 export const MAX_VISIT_HRS = 12;
 
-export type ToolsRow = { name: string; roster: number | null; field: boolean; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number };
+/**
+ * `fourDays`: the Melbourne days in the four weeks they clocked in on at least once.
+ * `fourTimedOn`/`fourTimed`: on-site hours and visits over the four weeks where a
+ * drive was recorded at all. About a third of visits are dispatched the moment the
+ * tech arrives, which reads as no driving; a drive share taken over those as well
+ * would come out low, so Drive time divides by these.
+ */
+export type ToolsRow = { name: string; roster: number | null; field: boolean;
+  /** Runs a van of their own. Someone riding along drives when their van does, so their drive is the same trip counted twice. */
+  ownVan: boolean; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number; fourDays: number; fourTimedOn: number; fourTimed: number };
 export type OnTheTools = { rows: ToolsRow[]; lastOn: number; lastTravel: number; lastRoster: number; lastVisits: number; lastMonday: Date };
 
 /**
@@ -42,23 +52,26 @@ export const onTheTools = cache(async (): Promise<OnTheTools> => {
     const first = name.trim().split(/\s+/)[0].toLowerCase();
     const u = users.find((x) => x.active && x.name.trim().toLowerCase() === name.trim().toLowerCase())
       ?? users.find((x) => x.active && x.name.trim().split(/\s+/)[0].toLowerCase() === first);
-    return { hrs: u?.costing?.hrsWeek ?? null, field: u?.level ? LEVEL_BILLABLE[u.level] : true };
+    return { hrs: u?.costing?.hrsWeek ?? null, field: u?.level ? LEVEL_BILLABLE[u.level] : true, ownVan: u?.costing?.ownVan ?? true };
   };
 
-  type P = { name: string; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number };
+  type P = { name: string; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number; days: Set<string>; fourTimedOn: number; fourTimed: number };
   const people = new Map<number, P>();
   for (const s of sheets) {
     if (s.active === false || !s.arrived_on || !s.done_on || s.technician_id == null) continue;
     const on = hoursBetween(s.arrived_on, s.done_on);
     if (on <= 0 || on > MAX_VISIT_HRS) continue;
     const travel = Math.min(3, hoursBetween(s.dispatched_on, s.arrived_on));
-    const p = people.get(s.technician_id) ?? { name: techName.get(s.technician_id) ?? "Someone", lastOn: 0, lastTravel: 0, lastVisits: 0, fourOn: 0, fourTravel: 0, fourVisits: 0 };
+    const p = people.get(s.technician_id) ?? { name: techName.get(s.technician_id) ?? "Someone", lastOn: 0, lastTravel: 0, lastVisits: 0, fourOn: 0, fourTravel: 0, fourVisits: 0, days: new Set<string>(), fourTimedOn: 0, fourTimed: 0 };
     const at = Date.parse(s.arrived_on);
-    if (at < thisMonday.getTime()) { p.fourOn += on; p.fourTravel += travel; p.fourVisits += 1; }
+    if (at < thisMonday.getTime()) {
+      p.fourOn += on; p.fourTravel += travel; p.fourVisits += 1; p.days.add(isoDateMelbourne(new Date(at)));
+      if (travel > 0) { p.fourTimedOn += on; p.fourTimed += 1; }
+    }
     if (at >= lastMonday.getTime() && at < thisMonday.getTime()) { p.lastOn += on; p.lastTravel += travel; p.lastVisits += 1; }
     people.set(s.technician_id, p);
   }
-  const rows: ToolsRow[] = [...people.values()].map((p) => { const r = rostered(p.name); return { ...p, roster: r.hrs, field: r.field }; }).sort((a, b) => b.fourOn - a.fourOn);
+  const rows: ToolsRow[] = [...people.values()].map(({ days, ...p }) => { const r = rostered(p.name); return { ...p, fourDays: days.size, roster: r.hrs, field: r.field, ownVan: r.ownVan }; }).sort((a, b) => b.fourOn - a.fourOn);
 
   // The headline is the field crew's: the office's odd visit (an owner
   // quoting) would drag the share down for a reason that isn't the crew's.

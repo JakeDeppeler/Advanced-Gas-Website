@@ -11,6 +11,9 @@ export type VanMoney = {
   id: string; name: string; onRoad: boolean;
   purchasePrice: number | null; amountOwing: number | null; monthlyRepayment: number | null;
   resaleValue: number | null; lifespanYears: number | null;
+  /** Owing and repayment are worked out from the van's finance contract, set on its own page. */
+  fromLoan?: boolean;
+  typedRepayment?: number | null;
 };
 
 type Draft = Record<"purchasePrice" | "amountOwing" | "monthlyRepayment" | "resaleValue" | "lifespanYears", string>;
@@ -82,17 +85,27 @@ function VanRow({ v }: { v: VanMoney }) {
   );
   return (
     <tr className={v.onRoad ? undefined : "is-off"}>
-      <th scope="row">{v.name}{!v.onRoad && <em> off the road</em>}</th>
+      <th scope="row"><a href={`/portal/vehicles/${v.id}?tab=costs`} className="pt-nums__loan" title="Its loan, running costs and gear">{v.name} ›</a>{!v.onRoad && <em> off the road</em>}</th>
       {cell("purchasePrice", "paid")}
-      {cell("amountOwing", "still owing")}
-      {cell("monthlyRepayment", "repayment a month")}
+      {v.fromLoan ? (
+        // Worked out from the contract a repayment at a time; typing over it
+        // here would only be undone, so it says where it comes from instead.
+        <td colSpan={2}><a href={`/portal/vehicles/${v.id}?tab=costs`} className="pt-nums__loan">${Math.round(v.amountOwing ?? 0).toLocaleString("en-AU")} owing · ${(v.monthlyRepayment ?? 0).toFixed(2)} a month <em>from the loan ›</em></a></td>
+      ) : (
+        <>
+          {cell("amountOwing", "still owing")}
+          {cell("monthlyRepayment", "repayment a month")}
+        </>
+      )}
       {cell("resaleValue", "worth at the end of its life")}
       {cell("lifespanYears", "life in years", "", "yrs")}
       <td>
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={!dirty || bad || pending}
           onClick={() => start(async () => {
             const r = await saveVanMoney({
-              id: v.id, purchasePrice: toNum(d.purchasePrice), amountOwing: toNum(d.amountOwing), monthlyRepayment: toNum(d.monthlyRepayment),
+              id: v.id, purchasePrice: toNum(d.purchasePrice),
+              amountOwing: v.fromLoan ? v.amountOwing : toNum(d.amountOwing),
+              monthlyRepayment: v.fromLoan ? v.typedRepayment ?? null : toNum(d.monthlyRepayment),
               resaleValue: toNum(d.resaleValue), lifespanYears: toNum(d.lifespanYears),
             });
             setMsg(r.ok ? { ok: true, text: "Saved" } : { ok: false, text: r.error ?? "Couldn't save." });

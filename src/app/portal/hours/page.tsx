@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { TeamTabs } from "@/components/portal/run/RunTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
 import { MAX_VISIT_HRS, onTheTools } from "@/lib/portal/onTheTools";
@@ -33,11 +33,12 @@ export default async function HoursPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
-        <h1>Hours</h1>
+        <h1>Team</h1>
         <p>How much of the crew&rsquo;s paid week goes on customers&rsquo; jobs, from ServiceTitan&rsquo;s clock-ins.</p>
       </div>
+
+      <div className="pk-tabrow"><TeamTabs on="hours" /></div>
 
       <Figs
         cols={3}

@@ -2167,3 +2167,18 @@
 
 /* The journey's lede, under the process heading. */
 .page-home .process__lede { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
+
+/* Keyword line inside the homepage H1. Sits above the slogan at badge
+   scale so the headline still reads as the slogan. */
+.page-home .hero__h1-kicker {
+  display: block;
+  margin-bottom: 14px;
+  font-family: var(--f-mono);
+  font-size: clamp(12px, 1vw, 14px);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: none;
+  color: rgba(255,255,255,0.92);
+}

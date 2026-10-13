@@ -885,6 +885,42 @@ Changes made after the board was read back to us and the numbers were not
 believed. Each is here because a figure that gets argued with once stops being
 looked at afterwards.
 
+**Call booking stays blank until there are calls to measure.** Run the
+company › Today › Call booking is calls that became a booked job. ServiceTitan's
+phone log held 26 calls in total when it was built (10 in the last month), far
+fewer than the office takes, so the rate stays off below 30 inbound calls a
+week and the tab says why rather than showing a swinging percentage.
+
+**Compliance certificates are picked from the job, and can be overruled.**
+Run the company › Jobs › Not billed lists jobs finished in the last fortnight
+that look like they need a VBA certificate: a gas, hot water or drain job of
+any value, or anything over $750, never a quote visit, diagnostic or site
+assessment. ServiceTitan doesn't say which jobs are plumbing work, so the
+office marks any it gets wrong as "No cert needed" (migration 0059,
+`portal_certs`), and Lodged records the certificate number.
+
+**A sale is counted once, on the day it first sold.** ServiceTitan lets a
+quote be un-sold and sold again, and when it is, it moves the quote's sold
+date. Read straight off the quote, that moved the whole sale to the new day,
+and the day it first sold quietly lost it. Separately, a quote un-sold and
+left that way kept its sold date, so some figures went on counting it: 19
+quotes, $61K, January to July. Since migration 0058 every sold figure (Sold
+today and this month, the leaderboard, Pace, the month's sold margin, the
+Sold pop-up) reads the sales ledger, `st_sales`, which the sync books after
+each run (`book_estimate_sales()`), following Jake's rule of 12 October 2026:
+
+- re-sold for the same amount: it stays on the day it first sold and nothing
+  new counts, and the Sold pop-up doesn't play again;
+- re-sold for a different amount: the first day keeps what it sold for, and
+  the difference (up or down) goes on the day it was re-sold. It moves that
+  day's dollars, never the number of sales;
+- un-sold and not re-sold: it comes off, including the day it first sold.
+
+An un-sold quote has no sold date in `st_estimates` any more (the sync clears
+it; ServiceTitan's date stays in `raw`). The ledger starts from 12 October
+2026, so a re-sale before that can't be pulled apart: those quotes count on
+the date ServiceTitan holds now.
+
 **The close rate counts jobs, not options.** ServiceTitan writes one estimate
 per *option* — good, better and best on the same job are three rows — and over
 the last thirty days that is 4.1 options for every job actually quoted. Counted
@@ -2171,6 +2207,40 @@ month"; the board knows who closed the job and nothing else about them.
 **The rocket card is gone.** It only ever fired for a sale and was small enough
 to miss from across the room. Two celebration systems would have left the next
 reader guessing which one fires.
+
+## ServiceTitan became the ledger on 17 September 2026
+
+From that day ServiceTitan keeps the invoices (20xxx) and the payments, and
+sends Xero one journal a day. Xero's P&L is still complete — the journals carry
+the revenue — but Xero holds no invoice after INV-03654 of 17 September, and
+none of ServiceTitan's payments: every one since is `syncStatus: Pending`
+because payments don't travel, only the journal does.
+
+Two things follow:
+
+- **"Paid today" is ServiceTitan's payments, not Xero's bank.** On 12 October it
+  read $23,837 from seven payments entered that morning; Xero showed none of it,
+  because the money reaches Xero through the bank feed when it clears.
+- **What's owed is two sources.** ServiceTitan's open balances from 17
+  September plus Xero's unpaid invoices from before, read by
+  `src/lib/dashboard/stOwed.ts` for both the board (`receivablesTotal`,
+  `overdueTotal`, the ageing and the chase list) and Portal › Owed to us. On 12
+  October that was $122.5K in ServiceTitan against $30K in Xero, which the board
+  had been showing alone. The two are combined only when both answer; if
+  ServiceTitan's read fails the whole last reading carries forward behind the
+  Xero light, rather than a total with half its source missing.
+- The "Paid today" line says "in ServiceTitan" for that reason.
+
+## Our KPIs take their selling goals from the year goal
+
+Where Our numbers › Goals leaves a selling goal empty, Our KPIs uses what the
+year goal needs this month at the rates we're running at: the Pace plan
+(`m.pace.standing.month`), so the goals move with the year goal and the real
+win rate rather than being typed in five places. Quoted and quotes sent are
+then counted the plan's way, each job once — counted per option they read
+$1.6M against a goal set in jobs. On the Team tab the month's sales goal is
+shared evenly across everyone who has quoted; the team line decides the
+sentence, so one person ahead covering another behind is the team on track.
 
 ## Things worth knowing
 

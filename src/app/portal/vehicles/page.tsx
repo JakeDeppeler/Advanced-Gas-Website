@@ -6,12 +6,15 @@ import { listVehicles, listUsers, dbConfigured, type Vehicle } from "@/lib/porta
 import { FUEL_PRICE, KM_PER_WEEK, fuelPerYear, kmAYear, vehicleFinance } from "@/components/portal/vehicleMath";
 import { STATUS_LABEL } from "@/components/portal/vehicleStatus";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { AddVehicleForm } from "@/components/portal/AddVehicleForm";
 import { money } from "@/lib/portal/format";
 import { listVanChecks, listVehicleLogs } from "@/lib/portal/db";
 import { cleanCell, fleetAlerts, kmCell, serviceCell, sortByUrgency, type VanRow } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
+import { Btn, Card, Empty, Grid, Head, Kv, Note, Pill, Tabs, Tile, type Status } from "@/components/portal/kit/Kit";
+import { cellSt } from "@/components/portal/fleet/VanParts";
+import { VanLoans } from "@/components/portal/VanLoans";
+import { getGrowth } from "@/lib/portal/growth";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vehicles — Team portal" };
@@ -44,60 +47,29 @@ function fleetTotals(vehicles: Vehicle[]) {
   };
 }
 
-function status(v: Vehicle): { txt: string; cls: string } | null {
-  if (v.nextServiceKm === null || v.odometer === null) return null;
-  const left = v.nextServiceKm - v.odometer;
-  if (left <= 0) return { txt: `Service overdue ${km(Math.abs(left))}`, cls: "overdue" };
-  if (left <= 1000) return { txt: `Service due in ${km(left)}`, cls: "soon" };
-  return { txt: `${km(left)} to service`, cls: "ok" };
-}
+const COLS = ["Weekly clean", "Service", "Km reading"];
 
-/** One van's row: the three states it can be in, each with what we know under it. */
-function FleetTable({ rows, caption, muted }: { rows: VanRow[]; caption?: string; muted?: boolean }) {
+/** One van a row: its three states, each a pill with what we know under it. */
+function FleetTable({ rows, title, muted }: { rows: VanRow[]; title: string; muted?: boolean }) {
   return (
-    <section className={`pt-panel pt-fleetp${muted ? " is-muted" : ""}`}>
-      {caption && <h2 className="pt-panel__h">{caption}</h2>}
-      <div className="pt-fleet__wrap">
-        <table className="pt-fleet">
-          <thead>
-            <tr>
-              <th scope="col">Van</th>
-              <th scope="col">Weekly clean &amp; photos</th>
-              <th scope="col">Service</th>
-              <th scope="col">Km reading</th>
-              <th scope="col"><span className="pt-sr">Open</span></th>
-            </tr>
-          </thead>
+    <Card title={title} aside={muted ? "not counted in the alerts" : undefined}>
+      <div className="pk-tbl-wrap" style={muted ? { opacity: 0.75 } : undefined}>
+        <table className="pk-tbl pk-fleet">
+          <thead><tr><th>Van</th><th>Weekly clean &amp; photos</th><th>Service</th><th>Km reading</th><th><span className="pt-sr">Open</span></th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
-                <th scope="row">
-                  <div className="pt-fleet__van">
-                    <div className="pt-fleet__icon" aria-hidden="true">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7M7 19a2 2 0 1 0 0-.01M17 19a2 2 0 1 0 0-.01" /></svg>
-                    </div>
-                    <div>
-                      <strong>{r.name}</strong>
-                      <span>{[r.who, r.rego].filter(Boolean).join(" · ") || "No driver set"}</span>
-                    </div>
-                  </div>
-                </th>
+                <td><Link href={`/portal/vehicles/${r.id}`} className="pk-fleet-van"><b>{r.name}</b><span>{[r.who, r.rego].filter(Boolean).join(" · ") || "No driver set"}</span></Link></td>
                 {([r.clean, r.service, r.km] as const).map((c, i) => (
-                  <td key={i}>
-                    {/* The word is the signal; the colour only agrees with it. */}
-                    <span className={`pt-vstat pt-vstat--${c.severity}`}>{c.label}</span>
-                    <span className="pt-fleet__detail">{c.detail}</span>
-                  </td>
+                  <td key={i} data-l={COLS[i]}><Pill st={cellSt(c)} /><span className="pk-fleet-d">{c.detail}</span></td>
                 ))}
-                <td className="pt-fleet__go">
-                  <Link href={`/portal/vehicles/${r.id}`}>Open →</Link>
-                </td>
+                <td><Link href={`/portal/vehicles/${r.id}`} className="pk-fleet-go">Open ›</Link></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -114,6 +86,7 @@ const VIEWS = [
   { k: "clean", label: "Weekly clean & photos" },
   { k: "service", label: "Service requests" },
   { k: "km", label: "Km readings" },
+  { k: "loans", label: "Vans & loans" },
 ] as const;
 type ViewKey = (typeof VIEWS)[number]["k"];
 
@@ -121,7 +94,7 @@ const SEVERITY = { bad: 0, warn: 1, ok: 2, none: 3 } as const;
 
 /** Worst first on the column this view is about; everything else as it was. */
 function forView(rows: VanRow[], view: ViewKey): VanRow[] {
-  if (view === "all") return rows;
+  if (view === "all" || view === "loans") return rows;
   const col = view === "clean" ? "clean" : view === "service" ? "service" : "km";
   return [...rows].sort((a, b) => SEVERITY[a[col].severity] - SEVERITY[b[col].severity]);
 }
@@ -130,11 +103,16 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const view: ViewKey = (VIEWS.find((v) => v.k === searchParams.view)?.k ?? "all") as ViewKey;
+  // What each van cost and owes is the office's: the tab is only there for those who can see money.
+  const money$ = can(user, "overhead");
+  const views = VIEWS.filter((v) => v.k !== "loans" || money$);
+  const view: ViewKey = (views.find((v) => v.k === searchParams.view)?.k ?? "all") as ViewKey;
 
   const canManage = can(user, "vehicles");
   const ready = dbConfigured();
-  const [vehicles, users] = ready ? await Promise.all([listVehicles(), listUsers()]) : [[], []];
+  const [vehicles, users, growth] = ready
+    ? await Promise.all([listVehicles(), listUsers(), view === "loans" ? getGrowth() : null])
+    : [[], [], null];
   const crew = users.filter((u) => u.active && u.id).map((u) => ({ id: u.id as string, name: u.name }));
   const nameOf = new Map(crew.map((c) => [c.id, c.name]));
   const onRoad = vehicles.filter((v) => v.status === "on");
@@ -178,102 +156,65 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
   const offRows = sortByUrgency([...repair, ...off].map((v) => byId.get(v.id)!).filter(Boolean));
   const alerts = fleetAlerts(rows);
 
+  const onCount = onRoad.length;
+  const tile = (n: number, bad: boolean): Status => (n === 0 ? { k: "good", w: "All done" } : { k: bad ? "bad" : "mid", w: `${n} to do` });
+
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal" label="Home" />
-          <h1>The fleet</h1>
-          <p>{vehicles.length} {vehicles.length === 1 ? "van" : "vans"}. Weekly clean and photos are due every Monday morning.</p>
-        </div>
+      <div className="pk">
+        <Head title="Vehicles" sub={`${vehicles.length} ${vehicles.length === 1 ? "van" : "vans"} · weekly clean and photos are due every Monday morning`} info={[
+          ["Weekly clean & photos", "Done once each week, by Monday morning: the van cleaned and photographed from every side."],
+          ["Service", "Due within 2,000 km or three weeks shows amber; past it, red."],
+          ["Km reading", "The odometer, dated by the last reading. Servicing and running costs hang off it."],
+          ...(money$ ? [["Vans & loans", "What each van cost, what it still owes and the repayments. The same figures as Our numbers › Vans & loans."] as [string, string]] : []),
+        ]} />
+        {rows.length > 0 && <div className="pk-btns" style={{ marginTop: -6 }}><Btn href={`/portal/vehicles/${rows[0].id}`}>+ Log for a van</Btn></div>}
+
+        {!ready && <Empty>Vehicles need the database connected. The fleet can’t be read right now, so this is empty rather than the fleet being empty.</Empty>}
+
         {rows.length > 0 && (
-          <Link href={`/portal/vehicles/${rows[0].id}`} className="pt-btn pt-btn--orange pt-head__act">
-            + Log for a van
-          </Link>
+          <Grid cols={4}>
+            <Tile label="On the road" st={{ k: "none", w: "" }} fig={`${onCount} of ${vehicles.length}`} frac={vehicles.length ? onCount / vehicles.length : null}
+              sub={offRows.length ? `${offRows.length} in for repair or off the road` : "every van is out"} />
+            <Tile label="Weekly clean overdue" st={tile(alerts.cleanOverdue, true)} fig={String(alerts.cleanOverdue)} frac={onCount ? 1 - alerts.cleanOverdue / onCount : null} sub="due Monday morning" />
+            <Tile label="Service due" st={tile(alerts.serviceDue, false)} fig={String(alerts.serviceDue)} frac={onCount ? 1 - alerts.serviceDue / onCount : null} sub="within 2,000 km or three weeks" />
+            <Tile label="Km reading missing" st={tile(alerts.kmStale, false)} fig={String(alerts.kmStale)} frac={onCount ? 1 - alerts.kmStale / onCount : null} sub="everything else hangs off it" />
+          </Grid>
         )}
+
+        {vehicles.length > 0 && (
+          <Tabs on={view} label="Fleet views" items={views.map((v) => ({ key: v.k, label: v.label, href: v.k === "all" ? "/portal/vehicles" : `/portal/vehicles?view=${v.k}` }))} />
+        )}
+
+        {view === "loans" && growth ? (
+          <VanLoans growth={growth} vans={vehicles.map((v) => ({
+            id: v.id, name: v.name, onRoad: v.status !== "off", purchasePrice: v.purchasePrice, amountOwing: v.amountOwing,
+            monthlyRepayment: v.monthlyRepayment, resaleValue: v.resaleValue, lifespanYears: v.lifespanYears,
+            fromLoan: v.owingFromLoan, typedRepayment: v.typedRepayment,
+          }))} />
+        ) : vehicles.length === 0 ? (
+          ready && <Empty>No vehicles yet{canManage ? " — add one below." : "."}</Empty>
+        ) : (
+          <>
+            <FleetTable rows={forView(rows, view)} title={view === "all" ? "On the road · most urgent first" : "On the road · worst on this column first"} />
+            {offRows.length > 0 && <FleetTable rows={offRows} title="Not on the road" muted />}
+          </>
+        )}
+
+        {view !== "loans" && vehicles.length > 0 && (
+          <Card title="What the fleet costs a year" aside={money$ ? <Link href="/portal/vehicles?view=loans">Loans and repayments ›</Link> : undefined}>
+            <Kv t="Depreciation" sub="only on vans still being paid off" v={t.dep !== null ? money(t.dep) : "not set"} />
+            <Kv t="Fuel" sub={`at $${FUEL_PRICE.toFixed(2)}/L, ${KM_PER_WEEK} km a week where none is set`} v={t.fuel !== null ? money(t.fuel) : "not set"} />
+            <Kv t="Servicing" sub="each van’s interval and what a service costs" v={t.servicing !== null ? money(t.servicing) : "not set"} />
+            <Kv t={<b>Total</b>} sub="the Vehicles line in Our numbers" v={t.running !== null ? money(t.running) : "—"} />
+            <Note>A van that’s bought and paid for still loses value, but that isn’t cash going out, so it stays off the total. &ldquo;Not set&rdquo; means a van is missing the figure: purchase price and lifespan, service cost and km a year, or fuel use.</Note>
+          </Card>
+        )}
+
+        {/* Below the fleet rather than above it: adding a van happens a few times
+            a year, and the top of the page is kept for what's due. */}
+        {canManage && view !== "loans" && <AddVehicleForm crew={crew} />}
       </div>
-
-      {!ready && (
-        <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> Vehicles need the Supabase keys set on the server.</div>
-      )}
-
-      {rows.length > 0 && (
-        <div className="pt-alerts">
-          {/* Only the ones that are actually true. Three permanent tiles reading
-              zero teach people to stop looking at the row. */}
-          {alerts.cleanOverdue > 0 && (
-            <div className="pt-alert"><span>{alerts.cleanOverdue}</span><strong>Weekly clean overdue</strong><em>Due Monday morning</em></div>
-          )}
-          {alerts.serviceDue > 0 && (
-            <div className="pt-alert"><span>{alerts.serviceDue}</span><strong>Service due</strong><em>Within 2,000 km or three weeks</em></div>
-          )}
-          {alerts.kmStale > 0 && (
-            <div className="pt-alert"><span>{alerts.kmStale}</span><strong>Km reading missing</strong><em>Everything else hangs off it</em></div>
-          )}
-          {alerts.cleanOverdue + alerts.serviceDue + alerts.kmStale === 0 && (
-            <div className="pt-alert is-clear"><span>✓</span><strong>Nothing outstanding</strong><em>Every van is up to date</em></div>
-          )}
-        </div>
-      )}
-
-      {rows.length > 0 && (
-        <div className="pt-viewrow">
-          <nav className="pt-tabs pt-tabs--seg" aria-label="Fleet views">
-            {VIEWS.map((v) => (
-              <Link
-                key={v.k}
-                href={v.k === "all" ? "/portal/vehicles" : `/portal/vehicles?view=${v.k}`}
-                aria-current={v.k === view ? "page" : undefined}
-                className={`pt-tab${v.k === view ? " is-on" : ""}`}
-              >
-                {v.label}
-              </Link>
-            ))}
-          </nav>
-          <span className="pt-tabs__note">{view === "all" ? "Most urgent first" : "Worst on this column first"}</span>
-        </div>
-      )}
-
-      {vehicles.length === 0 ? (
-        <div className="pt-rep__empty">
-          {ready
-            ? <>No vehicles yet{canManage ? " — add one above." : "."}</>
-            : <>The fleet can&rsquo;t be read right now, so this is empty rather than the fleet being empty.</>}
-        </div>
-      ) : (
-        <>
-          <FleetTable rows={forView(rows, view)} caption={offRows.length > 0 ? "On the road" : undefined} />
-          {offRows.length > 0 && <FleetTable rows={offRows} caption="Not on the road" muted />}
-        </>
-      )}
-
-      {/* Below the fleet rather than above it: adding a van happens a few times
-          a year, and the design keeps the top of the page for what's due. */}
-      {canManage && <div className="pt-fleet__add"><AddVehicleForm crew={crew} /></div>}
-
-      {vehicles.length > 0 && (
-        <section className="pt-panel pt-fcost">
-          <div className="pt-fcost__row">
-            <h2 className="pt-panel__h">What the fleet costs a year</h2>
-            <dl>
-              <div><dt>Depreciation</dt><dd>{t.dep !== null ? money(t.dep) : "not set"}</dd></div>
-              <div><dt>Fuel</dt><dd>{t.fuel !== null ? money(t.fuel) : "not set"}</dd></div>
-              <div><dt>Servicing</dt><dd>{t.servicing !== null ? money(t.servicing) : "not set"}</dd></div>
-              <div><dt>Total</dt><dd>{t.running !== null ? money(t.running) : "—"}</dd></div>
-            </dl>
-          </div>
-          <details className="pt-fcost__how">
-            <summary>How these are worked out</summary>
-            <p>
-              Servicing from each van&rsquo;s interval and what a service costs, fuel at {FUEL_PRICE.toFixed(2)}/L, and {KM_PER_WEEK}km a
-              week where no figure has been entered. Depreciation counts only on vans still being paid off — one that&rsquo;s
-              bought and paid for still loses value, but that isn&rsquo;t cash going out. &ldquo;Not set&rdquo; means a van is missing
-              the figure: purchase price and lifespan for depreciation, service cost and km a year for servicing, fuel use for
-              fuel. The total is the Vehicles line in <Link href="/portal/finance/capacity">Our numbers</Link>.
-            </p>
-          </details>
-        </section>
-      )}
     </PortalShell>
   );
 }

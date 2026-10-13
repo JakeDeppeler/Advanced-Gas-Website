@@ -35,8 +35,8 @@ export function generateMetadata({ params }: { params: { suburb: string } }): Me
   // so the page 404s rather than impersonating the homepage.
   if (!sub) notFound();
   return seoMeta({
-    title: `Aircon, Heat Pump & Gas ${sub.name} ${sub.postcode}`,
-    description: `Licensed aircon, heat pump hot water and gas plumbing in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, written quotes, 6-year workmanship warranty.`,
+    title: `Air Conditioning & Heating ${sub.name} ${sub.postcode}`,
+    description: `Air conditioning, heating and hot water in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, written quotes, 6-year workmanship warranty.`,
     canonical: `/areas/${sub.slug}`,
     // Absolute so the suffix gives way, not the postcode. A long suburb
     // name (Beaconsfield Upper) pushed the title past 60 and the clamp
@@ -77,7 +77,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           { label: sub.name },
         ]}
         eyebrow={`${sub.name} · VIC ${sub.postcode} · ${sub.council}`}
-        title={<>Aircon, heat pump &amp; gas plumbing in <span className="accent">{sub.name}</span>.</>}
+        title={<>Air conditioning, heating &amp; hot water in <span className="accent">{sub.name}</span>.</>}
         sub={
           /* Outer-ring suburbs get a different opening. We can't claim to be
              around the corner in Ringwood and the map says so, so the honest
