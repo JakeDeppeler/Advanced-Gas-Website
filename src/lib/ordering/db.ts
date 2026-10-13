@@ -2,7 +2,7 @@ import "server-only";
 import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
 import {
-  isoAddDays, lineKey, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderedLine, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
+  dayLabel, isoAddDays, lineKey, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderedLine, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
   type WorkOrderDetails, type WorkOrderRow,
 } from "./plan";
 
@@ -203,12 +203,15 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
   const settings = await loadOrderingSettings();
   const tw = thisWeek(now), nw = nextWeek(now);
   const otherWeeks = [tw, nw].filter((w) => w.start !== week.start);
-  const [suppliers, inputs, alreadyOrdered, existing, skip, ...others] = await Promise.all([
+  const [suppliers, inputs, alreadyOrdered, existing, cancelled, held, ...others] = await Promise.all([
     loadSuppliers(), loadWeekInputs(loadRange), loadAlreadyOrdered(), listWeekOrders(week),
-    opts.auto ? loadCancelled() : Promise.resolve(undefined),
+    opts.auto ? loadCancelled() : Promise.resolve(new Set<string>()),
+    loadHolds(),
     ...otherWeeks.map((w) => listWeekOrders(w)),
   ]);
   const otherDrafts = others.flat().filter((p) => p.status === "draft");
+  // Held for next week's order, always; cancelled drafts' lines, on the automatic run.
+  const skip = new Set([...cancelled, ...held.map((h) => lineKey(h.job_id, h.sku_id))]);
   const plan = planWeek({ week, ...inputs, suppliers, alreadyOrdered, combineWindow, skip });
   let created = 0, updated = 0, removed = 0;
   const kept = new Set<number>();
@@ -450,5 +453,86 @@ export async function removeStockLine(lineId: number): Promise<boolean> {
   const po = await sbSelectOne<{ status: string }>("purchase_orders", `select=status&id=eq.${line.po_id}`);
   if (po?.status !== "draft") return false;
   await sbDelete("purchase_order_lines", `id=eq.${lineId}&manual=eq.true`);
+  return true;
+}
+
+/* ---------------------------------------------------------------- per line: already ordered, or hold for next week */
+
+/** Lines of one draft goods order, checked to belong to it. */
+async function draftLines(poId: number, lineIds: number[]) {
+  const po = await getOrder(poId);
+  if (!po || po.status !== "draft" || po.kind !== "order") return null;
+  const want = new Set(lineIds);
+  const lines = po.lines.filter((l) => want.has(l.id));
+  return lines.length ? { po, lines } : null;
+}
+
+/** A draft left with nothing on it goes, so the page doesn't offer to send an empty order. */
+async function dropIfEmpty(poId: number) {
+  const left = await sbSelect<{ id: number }>("purchase_order_lines", `select=id&po_id=eq.${poId}&limit=1`);
+  if (!left.length) await sbDelete("purchase_orders", `id=eq.${poId}&status=eq.draft`);
+}
+
+/**
+ * Some lines on a draft were ordered another way. They move off the draft
+ * onto a record of their own — status sent, "Ordered manually" — so they
+ * count as ordered from then on (never drafted again; flagged if the job
+ * moves) and the rest of the draft carries on as it was.
+ */
+export async function markLinesOrdered(poId: number, lineIds: number[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+  const got = await draftLines(poId, lineIds);
+  if (!got) return { ok: false, error: "Those lines aren't on a draft any more." };
+  const { po, lines } = got;
+  const prior = await sbSelect<{ id: number }>("purchase_orders", `select=id&po_number=like.${encodeURIComponent(`${po.po_number}-M*`)}`);
+  const number = `${po.po_number}-M${prior.length + 1}`;
+  const now = new Date().toISOString();
+  const id = await createOrder({
+    po_number: number, supplier_id: po.supplier_id, week_of: po.week_of, kind: "order", group_key: `manual-${po.id}-${prior.length + 1}`,
+    status: "sent", approved_by: who, approved_at: now, sent_at: now,
+    sent_to: `Ordered manually${how ? ` — ${how}` : ""}`, delivery_address: po.delivery_address, pickup: po.pickup,
+  });
+  await sbUpdate("purchase_order_lines", `po_id=eq.${po.id}&id=in.(${lines.map((l) => l.id).join(",")})`, { po_id: id });
+  await dropIfEmpty(po.id);
+  return { ok: true, note: `${lines.length} line${lines.length === 1 ? "" : "s"} marked as ordered (${number}). Nothing was emailed.` };
+}
+
+export type Hold = {
+  id: number; job_id: number; sku_id: number | null; supplier_id: string; job_number: string | null; customer_name: string | null;
+  install_date: string | null; sku_name: string | null; qty: number | null; until: string; held_by: string | null;
+};
+
+/** Holds still in force: until next week's ordering starts. */
+export async function loadHolds(): Promise<Hold[]> {
+  return sbSelect<Hold>("order_holds", `until=gt.${todayMelbourne()}&order=until.asc,install_date.asc`);
+}
+
+/**
+ * Hold lines off this order until next week's ordering (the Monday after
+ * today), so they go with next week's order instead. They come off the draft
+ * now and are drafted again, as normal, from that Monday.
+ */
+export async function holdLines(poId: number, lineIds: number[], who: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+  const got = await draftLines(poId, lineIds);
+  if (!got) return { ok: false, error: "Those lines aren't on a draft any more." };
+  const jobLines = got.lines.filter((l) => l.job_id != null && !l.manual);
+  if (!jobLines.length) return { ok: false, error: "Stock can't be held — take it off instead." };
+  const until = nextWeek(new Date()).start;
+  for (const l of jobLines) {
+    await sbDelete("order_holds", `job_id=eq.${l.job_id}&${l.sku_id == null ? "sku_id=is.null" : `sku_id=eq.${l.sku_id}`}`);
+    await sbInsert("order_holds", {
+      job_id: l.job_id, sku_id: l.sku_id, supplier_id: got.po.supplier_id, job_number: l.job_number, customer_name: l.customer_name,
+      install_date: l.install_date, sku_name: l.supplier_model ?? l.sku_name, qty: l.qty, until, held_by: who,
+    });
+  }
+  await sbDelete("purchase_order_lines", `po_id=eq.${got.po.id}&id=in.(${jobLines.map((l) => l.id).join(",")})`);
+  await dropIfEmpty(got.po.id);
+  return { ok: true, note: `Held for next week's order — it'll be drafted on ${dayLabel(until)}.` };
+}
+
+/** Release a hold. The caller redrafts, so the line is back on an order straight away. */
+export async function releaseHold(id: number): Promise<boolean> {
+  const h = await sbSelectOne<{ id: number }>("order_holds", `select=id&id=eq.${id}`);
+  if (!h) return false;
+  await sbDelete("order_holds", `id=eq.${id}`);
   return true;
 }

@@ -8,7 +8,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
 import { StockBoard, type ProductPick, type VanGroup } from "@/components/portal/StockBoard";
 import { ToolBoard } from "@/components/portal/ToolBoard";
-import { SECTIONS, dueState, isLow, isSection, keptVanLines, listMoves, listStock, type StockItem, type StockSection } from "@/lib/portal/stock";
+import { SECTIONS, dueState, fullName, isLow, isSection, keptVanLines, listMoves, listStock, type StockItem, type StockSection } from "@/lib/portal/stock";
 import { listOrders } from "@/lib/portal/van";
 import { listUsers, listVehicles } from "@/lib/portal/db";
 import { VAN_PLANT, VAN_STOCK, itemKey } from "@/lib/portal/vanChecks";
@@ -16,6 +16,10 @@ import { PB_CATEGORIES } from "@/lib/portal/installPrices";
 import { shelfProducts } from "@/lib/portal/pricebook";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { OrderAnswer } from "@/components/portal/OfficeAnswers";
+import { Card, Empty, Group, Pill, Row, Tabs } from "@/components/portal/kit/Kit";
+import { Arrived } from "@/components/portal/stock/Arrived";
+import { listStockLines, shelfMatch, type StockLine } from "@/lib/ordering/stockLines";
+import { loadSuppliers } from "@/lib/ordering/db";
 import "@/app/trade/trade.css";
 
 export const dynamic = "force-dynamic";
@@ -53,13 +57,33 @@ function pricebookPicks(systems: StockItem[]): ProductPick[] {
  * office keeps it — nothing upstream knows what is in the factory — and every
  * change is a movement, so each part's count matches the log under it.
  */
-export default async function StockPage({ searchParams }: { searchParams: { s?: string } }) {
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short" });
+
+export default async function StockPage({ searchParams }: { searchParams: { s?: string; v?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Factory stock" forWhom="managers" />;
 
   const section: StockSection = isSection(searchParams.s) ? searchParams.s : "materials";
+  // On the shelf, To order and Sent, like the orders themselves: what's here,
+  // what needs ordering, and what's been ordered and is on its way.
+  const view = searchParams.v === "order" ? "order" : searchParams.v === "sent" ? "sent" : "shelf";
   const all = await listStock();
+  const [lines, suppliers] = await Promise.all([
+    listStockLines().catch(() => null),
+    loadSuppliers().catch(() => []),
+  ]);
+  const supplierName = new Map(suppliers.map((x) => [x.id, x.name]));
+  const drafts = (lines ?? []).filter((l) => l.status === "draft");
+  const onWay = (lines ?? []).filter((l) => l.status !== "draft" && !l.receivedAt);
+  const monthAgo = Date.now() - 30 * 86_400_000;
+  const arrived = (lines ?? []).filter((l) => l.receivedAt && Date.parse(l.receivedAt) > monthAgo).sort((a, b) => b.receivedAt!.localeCompare(a.receivedAt!));
+  // Low lines with nothing already on an order for them.
+  const lowAll = (all ?? []).filter(isLow);
+  const ordered = (i: StockItem) => [...drafts, ...onWay].some((l) => shelfMatch(l, [i]) != null);
+  const lowToOrder = lowAll.filter((i) => !ordered(i));
+  const toOrderN = drafts.length + lowToOrder.length;
+  const lineSub = (l: StockLine) => [`${n(l.qty)} ×`, supplierName.get(l.supplierId) ?? l.supplierId, l.poNumber].join(" · ");
   const items = (all ?? []).filter((i) => i.section === section);
   const [moves, orders, vans, people] = await Promise.all([
     listMoves(40, items.map((i) => i.id)),
@@ -108,6 +132,54 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
         </p>
       </div>
 
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Tabs on={view} label="Shelf, to order or sent" items={[
+          { key: "shelf", label: "On the shelf", href: section === "materials" ? "/portal/stock" : `/portal/stock?s=${section}` },
+          { key: "order", label: "To order", href: "/portal/stock?v=order", count: lines ? toOrderN : undefined, red: lowToOrder.length > 0 },
+          { key: "sent", label: "Sent", href: "/portal/stock?v=sent", count: lines ? onWay.length : undefined },
+        ]} />
+      </div>
+
+      {view === "order" ? (
+        <div className="pk">
+          {lines == null && <Empty>The orders can&rsquo;t be read right now, so this can&rsquo;t say what&rsquo;s on order.</Empty>}
+          <Card title="On orders still to send" aside={<Link href="/portal/supply/next-week">Orders › To order ›</Link>}>
+            {drafts.length ? (
+              <Group>
+                {drafts.map((l) => <Row key={l.id} href="/portal/supply/next-week" title={l.name} sub={lineSub(l)} end={<Pill st={{ k: "mid", w: "Draft — not sent" }} />} />)}
+              </Group>
+            ) : <Empty>No stock on a draft order. Add some to a supplier&rsquo;s order with + Add stock on Orders › To order.</Empty>}
+          </Card>
+          <Card title="Low on the shelf" aside="at or under its low mark, with nothing on order">
+            {lowToOrder.length ? (
+              <Group>
+                {lowToOrder.map((i) => (
+                  <Row key={i.id} href="/portal/supply/next-week" title={fullName(i)} sub={`${n(i.qty)} ${i.unit} left · low at ${n(i.minQty)} · ${i.section === "systems" ? "Systems" : "Materials"}`}
+                    end={<Pill st={{ k: i.qty <= 0 ? "bad" : "mid", w: i.qty <= 0 ? "None left" : "Low" }} />} />
+                ))}
+              </Group>
+            ) : <Empty>{lowAll.length ? "Everything that's low is already on an order." : "Nothing is at or under its low mark."}</Empty>}
+          </Card>
+        </div>
+      ) : view === "sent" ? (
+        <div className="pk">
+          {lines == null && <Empty>The orders can&rsquo;t be read right now, so this can&rsquo;t say what&rsquo;s on its way.</Empty>}
+          <Card title="On its way" aside="sent to the supplier · press Arrived when it comes in and it goes on the shelf">
+            {onWay.length ? (
+              <Group>
+                {onWay.map((l) => <Row key={l.id} title={l.name} sub={`${lineSub(l)}${l.sentAt ? ` · sent ${day(l.sentAt)}` : ""}`} end={<Arrived lineId={l.id} what={l.name} />} />)}
+              </Group>
+            ) : <Empty>Nothing on its way. Stock added to an order shows here once the order&rsquo;s sent.</Empty>}
+          </Card>
+          <Card title="Arrived" aside="the last 30 days">
+            {arrived.length ? (
+              <Group>
+                {arrived.map((l) => <Row key={l.id} title={l.name} sub={`${lineSub(l)} · in ${day(l.receivedAt!)}${l.receivedBy ? ` · ${l.receivedBy}` : ""}`} end={<Pill st={{ k: "good", w: "On the shelf" }} />} />)}
+              </Group>
+            ) : <Empty>Nothing marked arrived in the last 30 days.</Empty>}
+          </Card>
+        </div>
+      ) : (<>
       <nav className="pt-tabs" aria-label="The factory">
         {SECTIONS.map((s) => (
           <Link
@@ -208,6 +280,7 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
           )}
         </section>
       )}
+      </>)}
     </PortalShell>
   );
 }

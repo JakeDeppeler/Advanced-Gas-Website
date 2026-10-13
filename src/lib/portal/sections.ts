@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "todo" | "run" | "pf" | "wall" | "future" | "numbers" | "cust" | "mkt" | "crew" | "how" | "you";
+export type SectionId = "home" | "todo" | "run" | "pf" | "wall" | "future" | "numbers" | "cust" | "mkt" | "crew" | "orders" | "how" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -37,6 +37,7 @@ export const SECTION_ICON: Record<string, string> = {
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
   jobs: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+  box: '<path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
   team: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 13.5a7 7 0 0 1 4 6.5"/>',
 };
 
@@ -144,18 +145,27 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "crew", label: "Crew & vans", icon: "van", group: 2, blurb: "The team, the fleet and supplies",
+    id: "crew", label: "Crew & vans", icon: "van", group: 2, blurb: "The team and the fleet",
     pages: [
       { label: "Team", href: "/portal/team" },
       { label: "Vehicles", href: "/portal/vehicles" },
-      { label: "Supply", href: "/portal/supply" },
-      { label: "Next week's orders", href: "/portal/supply/next-week" },
-      { label: "Factory stock", href: "/portal/stock" },
       { label: "Tools", href: "/portal/vehicles/tools" },
       { label: "From the crew", href: "/portal/requests" },
       { label: "Per van, per day", href: "/portal/per-van" },
       { label: "Drive time", href: "/portal/drive" },
       { label: "See the trade iPad", href: "/trade" },
+    ],
+  },
+  {
+    // Ordering for the installs and the factory's own shelf, apart from the
+    // crew: an order to send is the job, and once it's gone it moves to Sent.
+    id: "orders", label: "Orders & stock", icon: "box", group: 2, blurb: "Gear to order for the installs, what's gone, and the factory shelf",
+    pages: [
+      { label: "To order", href: "/portal/supply/next-week" },
+      { label: "Sent", href: "/portal/supply/next-week?tab=sent" },
+      { label: "Factory stock", href: "/portal/stock" },
+      { label: "Supplier emails", href: "/portal/supply/emails" },
+      { label: "Reece & pricing", href: "/portal/supply" },
     ],
   },
   {
