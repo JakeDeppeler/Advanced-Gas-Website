@@ -187,3 +187,36 @@ export async function notesIfOn(poId: number): Promise<void> {
     // The order went; the note can be added from Sent.
   }
 }
+
+/**
+ * Sent orders from the ticked suppliers whose jobs don't all have their note
+ * and file yet: the ones sent before this existed, and any ServiceTitan
+ * refused. Every week at once, so catching up doesn't mean paging through Sent.
+ */
+export async function ordersToNote(): Promise<number[]> {
+  const suppliers = await sbSelect<Pick<Supplier, "id" | "method">>("order_suppliers", "select=id,method");
+  const ids = await loadJobNoteSuppliers(suppliers);
+  if (!ids.length) return [];
+  const pos = await sbSelect<{ id: number; kind: string; details: { jobs?: { job_id: number }[] } | null; st_notes: JobNoteDone[] | null }>(
+    "purchase_orders", `select=id,kind,details,st_notes&status=eq.sent&supplier_id=in.(${ids.map(encodeURIComponent).join(",")})&order=sent_at.asc`,
+  );
+  if (!pos.length) return [];
+  const lines = await sbSelect<{ po_id: number; job_id: number | null }>("purchase_order_lines", `select=po_id,job_id&job_id=not.is.null&po_id=in.(${pos.map((p) => p.id).join(",")})`);
+  return pos.filter((p) => {
+    const jobs = p.kind === "work_order" ? (p.details?.jobs ?? []).map((j) => j.job_id) : lines.filter((l) => l.po_id === p.id).map((l) => l.job_id as number);
+    const done = p.st_notes ?? [];
+    return jobs.some((j) => !done.some((d) => d.job_id === j && d.note && d.file));
+  }).map((p) => p.id);
+}
+
+/** Note every one of them, oldest first. A missing scope is the same for all, so that stops the run. */
+export async function notePastOrders(): Promise<{ done: number; jobs: number; failed: string[] }> {
+  const out = { done: 0, jobs: 0, failed: [] as string[] };
+  for (const id of await ordersToNote()) {
+    const r = await noteOrderOnJobs(id);
+    if (r.ok) { out.done++; out.jobs += r.done.length; continue; }
+    out.failed.push(r.error ?? "refused");
+    if (/won't let the portal/.test(r.error ?? "")) break;
+  }
+  return out;
+}

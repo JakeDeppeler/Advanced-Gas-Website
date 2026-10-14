@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { saveStPoSettings } from "@/lib/ordering/stPurchaseOrders";
-import { saveJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
+import { notePastOrders, saveJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { saveSupplierEmail } from "@/lib/ordering/db";
@@ -71,4 +71,20 @@ export async function saveJobNotes(ids: string[]): Promise<ActionResult> {
   revalidatePath("/portal/supply/emails");
   revalidatePath("/portal/supply/next-week");
   return { ok: true, note: "Saved." };
+}
+
+/** Put every sent order from the ticked suppliers that isn't on its jobs yet onto them. */
+export async function noteAllPast(): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  try {
+    const r = await notePastOrders();
+    revalidatePath("/portal/supply/emails");
+    revalidatePath("/portal/supply/next-week");
+    const done = r.done ? `Noted ${r.done} order${r.done === 1 ? "" : "s"} on ${r.jobs} job${r.jobs === 1 ? "" : "s"} in ServiceTitan.` : "";
+    if (r.failed.length) return { ok: false, error: `${done} ${r.failed[0]}${r.failed.length > 1 ? ` (and ${r.failed.length - 1} more)` : ""}`.trim() };
+    return { ok: true, note: done || "Nothing left to note." };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }
