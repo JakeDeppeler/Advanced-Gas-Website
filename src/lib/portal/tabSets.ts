@@ -16,7 +16,7 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
     { href: "/portal/finance/cash", label: "Cash flow" },
     { href: "/portal/finance/spend", label: "Spending" },
     { href: "/portal/finance/owe", label: "We owe" },
-    { href: "/portal/finance/capacity", label: "Our numbers" },
+    { href: "/portal/finance/capacity", label: "Pricing & costs" },
     { href: "/portal/finance/hourly", label: "Our hourly rate" },
     { href: "/portal/finance/running", label: "Running costs" },
     { href: "/portal/finance/targets", label: "Targets" },

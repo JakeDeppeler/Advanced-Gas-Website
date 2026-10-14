@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Commission — Team portal" };
 
 /**
- * Our numbers › Commission: the month target and the bonus, and where each
+ * Pricing & costs › Commission: the month target and the bonus, and where each
  * person is against it this month. Commission dollars are pay, so the page is
  * the office's and the setting an admin's.
  */

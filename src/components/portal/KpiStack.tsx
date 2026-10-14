@@ -25,7 +25,7 @@ const HEALTH: Record<Health, { word: string; icon: string }> = {
 export function KpiStack({ detail, label, aims, revenueGoal, spread }: {
   detail: PLDetail;
   label: string;
-  /** The goals from Our numbers, as percentages. Left out, the usual 40 / 25 / 15. */
+  /** The goals from Pricing & costs, as percentages. Left out, the usual 40 / 25 / 15. */
   aims?: { gm?: number | null; ovh?: number | null; np?: number | null };
   /**
    * What the year goal wants invoiced by now in this period. Margins can all

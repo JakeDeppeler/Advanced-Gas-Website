@@ -28,7 +28,7 @@ export type OnTheTools = { rows: ToolsRow[]; lastOn: number; lastTravel: number;
 /**
  * Time on the tools, by person, from ServiceTitan's own clock-ins: arrived to
  * done on each visit, with dispatched to arrived as the drive. Against the week
- * their card on Our numbers says they're rostered for. One loader, so the Hours
+ * their card on Pricing & costs says they're rostered for. One loader, so the Hours
  * page and the Scoreboard tile can't disagree.
  */
 export const onTheTools = cache(async (): Promise<OnTheTools> => {

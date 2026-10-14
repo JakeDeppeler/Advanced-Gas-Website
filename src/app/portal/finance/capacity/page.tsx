@@ -17,12 +17,12 @@ import { getGrowth } from "@/lib/portal/growth";
 import { EMPTY_GROWTH } from "@/lib/portal/growthTypes";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Our numbers — Team portal" };
+export const metadata = { title: "Pricing & costs — Team portal" };
 
 const TABS = ["crew", "overheads", "rates"] as const;
 
 /**
- * The three parts of Our numbers. Every figure the hourly rate, the Job
+ * The three parts of Pricing & costs. Every figure the hourly rate, the Job
  * calculator and Planning work from is set in one of them, and nowhere else.
  */
 const PARTS = [
@@ -92,7 +92,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
     .sort((a, b) => (a.sortOrder ?? 1e9) - (b.sortOrder ?? 1e9) || a.name.localeCompare(b.name))
     .map((u) => ({ id: u.id as string, name: u.name, email: u.email, level: u.level, costing: u.costing }));
 
-  // One part at a time, picked in the side bar (Our numbers › Team & wages,
+  // One part at a time, picked in the side bar (Pricing & costs › Team & wages,
   // Costs, Vans & loans, Markup); the page is titled for the part it shows.
   const tab: (typeof TABS)[number] = TABS.includes(searchParams?.t as (typeof TABS)[number]) ? (searchParams!.t as (typeof TABS)[number]) : "crew";
   const [title, lede] =

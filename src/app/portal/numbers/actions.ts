@@ -10,7 +10,7 @@ import { normaliseGoals, type Goals } from "@/lib/portal/goalsTypes";
 import { saveYearGoal } from "@/app/portal/finance/goals/actions";
 
 /**
- * Our numbers › Goals saves two records: the parts of the year goal it shows
+ * Pricing & costs › Goals saves two records: the parts of the year goal it shows
  * (the months, so the year's sales; the profit %) and every other KPI goal,
  * the win rate to aim for among them. The year goal is read fresh and only
  * those fields changed, so the mix and the pace settings saved on Pace —

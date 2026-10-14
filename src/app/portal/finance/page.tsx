@@ -166,7 +166,7 @@ async function Connected({ period }: { period: PeriodKey }) {
     <>
       <Say>
         {words.replace(/^./, (c) => c.toUpperCase())} made <b>{money(s.net)} profit</b>, {pc(npPct, 1)} of sales.{" "}
-        {npGoal == null ? "There’s no profit goal yet — set one in Our numbers." : gap == null ? "That’s on goal." : <>The goal is {npGoal}% — <Bad>{gap}</Bad>.</>}
+        {npGoal == null ? "There’s no profit goal yet — set one in Pricing & costs." : gap == null ? "That’s on goal." : <>The goal is {npGoal}% — <Bad>{gap}</Bad>.</>}
       </Say>
       <Grid cols={4}>
         <Tile label="Net profit" st={npSt} fig={money(s.net)} frac={npGoal ? npPct / npGoal : null} sub={`${pc(npPct, 1)} of sales${npGoal ? ` · goal ${npGoal}%` : ""}`} href="/portal/finance/pl" />
@@ -177,7 +177,7 @@ async function Connected({ period }: { period: PeriodKey }) {
           sub={overdue != null ? `${money(overdue)} overdue${goals.overdue != null ? ` · limit ${money(goals.overdue)}` : ""}` : "Xero and ServiceTitan didn’t answer"} href="/portal/money" />
       </Grid>
 
-      <Lh>Across Profit &amp; finance</Lh>
+      <Lh>Across Money</Lh>
       <Grid cols={4}>
         <Sum title="Profit & loss" st={plSt} fig={money(s.revenue)} figSub={`sales ${words}`} href={`/portal/finance/pl${period === "fy" ? "" : `?p=${period}`}`} lines={[
           ["Profit", money(s.net)],
@@ -204,7 +204,7 @@ async function Connected({ period }: { period: PeriodKey }) {
           [npGoal ? `Under ${npGoal}%` : "Under the goal", jp && npGoal ? String(jp.under) : "—"],
           ["Losing money", jp ? String(jp.losing) : "—"],
         ]} />
-        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : "—"} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Our numbers"} href="/portal/finance/goals" lines={[
+        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : "—"} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Pricing & costs"} href="/portal/finance/goals" lines={[
           ["Should be by now", ys ? money(ys.expectedToDate) : "—"],
           ["Against the pace", ys?.delta != null ? <Diff d={ys.delta} /> : "—"],
         ]} />
