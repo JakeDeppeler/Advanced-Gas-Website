@@ -10,7 +10,7 @@ import { loadOrderingSettings, loadSuppliers } from "@/lib/ordering/db";
 import { loadStPoSettings, stPoOptions, vendorsByName } from "@/lib/ordering/stPurchaseOrders";
 import { StPoForm } from "@/components/portal/ordering/StPoForm";
 import { JobNotesForm } from "@/components/portal/ordering/JobNotesForm";
-import { loadJobNoteSuppliers, ordersToUpdate, TAG_SWAPS, tagKey, tagTypesByName } from "@/lib/ordering/stJobNotes";
+import { loadJobNoteSuppliers, brandTags, ordersToUpdate, TAG_SWAPS, tagKey, tagTypes } from "@/lib/ordering/stJobNotes";
 import { sbSelect } from "@/lib/dashboard/db";
 import { DEFAULT_ORDER_INTRO, DEFAULT_ORDER_SIGNOFF, DEFAULT_WORK_INTRO, type Supplier } from "@/lib/ordering/plan";
 
@@ -44,10 +44,11 @@ export default async function SupplierEmailsPage() {
     sbSelect<{ id: number; name: string }>("st_business_units", "select=id,name&active=eq.true&order=name.asc").catch(() => []),
     loadJobNoteSuppliers(suppliers).catch(() => [] as string[]),
     ordersToUpdate().catch(() => null),
-    tagTypesByName().catch(() => null),
+    tagTypes().catch(() => null),
   ]);
   // Which of the office's tag pairs are in ServiceTitan by name, for the card to say.
-  const swaps = TAG_SWAPS.map((t) => ({ from: t.from, to: t.to, when: t.when, found: tagNames ? tagNames.has(tagKey(t.to)) : null }));
+  const swaps = TAG_SWAPS.map((t) => ({ from: t.from, to: t.to, when: t.when, found: tagNames ? tagNames.byName.has(tagKey(t.to)) : null }));
+  const brands = tagNames ? brandTags(tagNames).map((b) => b.name).sort((x, y) => x.localeCompare(y)) : null;
 
   return (
     <PortalShell user={user}>
@@ -73,7 +74,7 @@ export default async function SupplierEmailsPage() {
           businessUnits={bus.map((b) => ({ id: b.id, name: b.name.trim() }))}
           suppliers={suppliers.filter((x) => x.method !== "work_order").map((x) => ({ id: x.id, name: x.name }))}
           found={found} error={opts.ok ? null : opts.error} />
-        <JobNotesForm initial={noted} toNote={toNote?.length ?? null} swaps={swaps}
+        <JobNotesForm initial={noted} toNote={toNote?.length ?? null} swaps={swaps} brands={brands}
           suppliers={suppliers.filter((x) => x.active && x.method !== "reece_cart").map((x) => ({ id: x.id, name: x.name, work: x.method === "work_order" }))} />
       </div>
     </PortalShell>

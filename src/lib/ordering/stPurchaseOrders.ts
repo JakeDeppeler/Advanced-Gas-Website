@@ -80,12 +80,14 @@ export async function stPoOptions(): Promise<{ ok: true; types: Named[]; warehou
   }
 }
 
-type Address = { street: string; unit: string | null; city: string; state: string; zip: string; country: string };
+// ServiceTitan requires unit even when there isn't one ("The Unit field is
+// required."), and takes "" as none; null is refused.
+type Address = { street: string; unit: string; city: string; state: string; zip: string; country: string };
 
 /** "1 Sierra Circuit, Pakenham VIC 3810" → its parts, for ServiceTitan's address; null when it won't split. */
 function splitAddress(a: string | null | undefined): Address | null {
   const m = (a ?? "").trim().match(/^(.*?),\s*(.+?)\s+([A-Z]{2,3})\s+(\d{4})$/);
-  return m ? { street: m[1], unit: null, city: m[2], state: m[3], zip: m[4], country: "Australia" } : null;
+  return m ? { street: m[1], unit: "", city: m[2], state: m[3], zip: m[4], country: "Australia" } : null;
 }
 
 type JobInfo = { id: number; job_number: string; bu: string | null; tech: string | null; addr: Record<string, unknown> | null };
@@ -155,7 +157,7 @@ export async function pushOrderToServiceTitan(poId: number): Promise<{ ok: boole
   const settings = await loadOrderingSettings();
   // The order's own delivery address when it reads as one, else the factory's.
   const factory = splitAddress(po.delivery_address) ?? splitAddress(settings.deliveryAddress)
-    ?? { street: settings.deliveryAddress, unit: null, city: "", state: "VIC", zip: "", country: "Australia" };
+    ?? { street: settings.deliveryAddress, unit: "", city: "", state: "VIC", zip: "", country: "Australia" };
   const withSku = po.lines.filter((l) => l.sku_id != null);
   const skipped = po.lines.length - withSku.length;
   const groups = new Map<number | null, typeof withSku>();
@@ -177,7 +179,7 @@ export async function pushOrderToServiceTitan(poId: number): Promise<{ ok: boole
       shipTo: {
         description: site ? `Job ${job?.job_number} site` : po.pickup ? "We collect it" : "Our factory",
         address: site
-          ? { street: String(site.street ?? ""), unit: (site.unit as string | null) ?? null, city: String(site.city ?? ""), state: String(site.state ?? ""), zip: String(site.zip ?? ""), country: String(site.country ?? "Australia") }
+          ? { street: String(site.street ?? ""), unit: String(site.unit ?? ""), city: String(site.city ?? ""), state: String(site.state ?? ""), zip: String(site.zip ?? ""), country: String(site.country ?? "Australia") }
           : factory,
       },
       vendorDocumentNumber: po.po_number,
