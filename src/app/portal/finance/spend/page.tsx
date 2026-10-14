@@ -78,7 +78,7 @@ async function Spend({ period, g }: { period: PeriodKey; g: G }) {
       <Card title="Where the money went" aside={before ? `${words} against ${spans.before.label} · from Xero` : `${words} · Xero didn’t return ${spans.before.label} to compare`}>
         <div className="pk-tbl-wrap">
           <table className="pk-tbl">
-            <thead><tr><th>Spent on</th><th>{period === "month" || period === "lastmonth" ? words : "This period"}</th><th>Before</th><th>Difference</th><th className="l">Share</th><th className="l">How it’s going</th></tr></thead>
+            <thead><tr><th>Spent on</th><th>{period === "month" || period === "lastmonth" || period === "prevmonth" ? words : "This period"}</th><th>Before</th><th>Difference</th><th className="l">Share</th><th className="l">How it’s going</th></tr></thead>
             <tbody>
               {lines.map((l) => {
                 const mv = moveOf(l);
