@@ -1523,15 +1523,20 @@ The Quoted card on **Today** and on **Quotes** prints the whole chain:
 *of $53,852 today · 12 quotes at 21% · 5 priced today*. A target nobody can
 follow is one the room argues with instead of hitting.
 
-**Still off the goal, and still wrong: the booked count.** `booked` is quote
-visits plus service calls, and the service lane is sized from *measured*
-invoices — the share of money that didn't come through a quote, over the average
-service invoice. That currently works out at about twenty-four jobs a day
-against a business booking three or four. The goal's own planned week says 29
-jobs, which is 5.8 a day and close to the truth. Pointing the count steps at the
-goal's mix instead of at measured invoices is the remaining piece; it needs the
-mix rows split into quoted work and service first, and nothing in the mix says
-which is which.
+**The booked count, measured properly.** It was briefly called broken here on
+the strength of a stale fixture reading twenty-four bookings a day against a
+"three or four" that had never been measured. Measured: ten working days into
+October the business had booked 102 jobs and completed 72 — **10.2 and 7.2 a
+day** — against a plan asking about **15.6 and 9.1**. Booking half as much again
+is what growing to $3.2M looks like; it is a stretch, not a unit error, and both
+cards carry their target.
+
+The chain is still worth knowing, because it is the one place the plan leans on
+measured invoices rather than on the goal: `booked` is quote visits plus service
+calls, and the service lane is the share of money that didn't come through a
+quote ($403K of the $3.2M, at 87.4% sold share) over the average service invoice
+($245 over 1 September to 14 October). If either of those moves, the booked
+target moves with it.
 
 ## No verdict on a fraction of one day
 
@@ -1554,11 +1559,10 @@ That figure only goes up through the day, means the same thing at 9am and at
 
 Two things deliberately left alone:
 
-- **Jobs booked and Jobs completed lost their chips and gained no target.** The
-  plan's *count* steps come back through the measured rates rather than straight
-  off the month's share, and `booked` currently works out at about twenty-four
-  jobs a day against a business booking three or four. That is a figure to fix
-  before it is a figure to print.
+- **Jobs booked and Jobs completed lost their chips and kept their targets.**
+  They briefly lost the targets too, wrongly — see *The booked count, measured
+  properly*. The chip is gone for the reason every day chip is; the target is
+  back because it is sound.
 - **The month and year verdicts stay.** A month of working days has enough in
   it to average out, which is the whole difference.
 

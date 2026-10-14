@@ -758,18 +758,17 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           {
             name: "Booked",
             value: st.count(m.bookingsToday, live),
-            /* No day target on this one. The plan's booked count comes back
-               through the rates rather than straight off the month, and it
-               currently reads about twenty-four jobs a day against a business
-               booking three or four — so it is a figure to fix before it is a
-               figure to print. The chip it used to carry is gone for the same
-               reason as the rest: see askedOfToday. */
-            sub: `from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"}`,
+            sub:
+              footWithTarget(
+                today?.booked.need,
+                `from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"}`,
+                "count",
+              ) ?? "",
           },
           {
             name: "Completed",
             value: st.count(m.jobsCompletedToday, live),
-            sub: `${count(m.jobsCompletedWeek)} this week`,
+            sub: footWithTarget(today?.completed.need, `${count(m.jobsCompletedWeek)} this week`, "count") ?? "",
           },
         ]}
         /* Each type and its count held together, because this line wraps and a
@@ -936,7 +935,19 @@ function rateNote(m: Metrics): string {
   // sentence can get. With full digits a $120,500 average sale pushed the
   // header 11px past its width — measured, not guessed. The goal in the same
   // line is written the same way.
-  if (r.avgSale.value != null) bits.push(`${money(r.avgSale.value)} sale`);
+  /*
+   * The average option, not the average sale.
+   *
+   * Two rates fit here and there are three. The close rate and the average
+   * option are the pair that turn the goal into the one number the room acts
+   * on each morning — quote this much, which is this many quotes — and the
+   * average option is the half of it that nothing else on the board names. The
+   * average sale has a column of its own on the Team page.
+   *
+   * Three was measured, not guessed: "21% close rate, $4,510 sale, $4,603
+   * quote" ran the subtitle 66px past its width, and "a quote" 5px past it.
+   */
+  if (r.avgQuote.value != null) bits.push(`${money(r.avgQuote.value)} quote`);
   if (bits.length === 0) return "";
   /*
    * Short on purpose, and the override marker is deliberately not in here.
@@ -2756,9 +2767,9 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
  * in them to average out. A target is a fact; a verdict on two hours of a
  * lumpy day is not.
  */
-function askedOfToday(target: number | null | undefined): string | null {
+function askedOfToday(target: number | null | undefined, kind: "money" | "count" = "money"): string | null {
   if (target == null || !(target > 0)) return null;
-  return `of ${plain(target)} today`;
+  return `of ${kind === "money" ? plain(target) : count(Math.round(target))} today`;
 }
 
 /**
@@ -2806,13 +2817,16 @@ function quotingAskedOfToday(m: Metrics): string | null {
 /**
  * The same, joined to whatever else the foot was going to say.
  *
- * Money only. The plan's *count* steps come back through the measured rates
- * rather than straight off the month's share, and the booked count currently
- * reads about twenty-four jobs a day against a business booking three or four.
- * A target nobody can stand behind is worse on a wall than no target.
+ * The count steps carry a target again. They were pulled on the strength of a
+ * stale fixture reading twenty-four bookings a day against a half-remembered
+ * "three or four" that was never measured. Measured: ten working days into
+ * October the business has booked 102 jobs and completed 72 — 10.2 and 7.2 a
+ * day — against a plan asking about 15.6 and 9.1. A stretch of half as much
+ * again on bookings is what a goal of growing to $3.2M looks like, not a
+ * broken number, and the room is owed the figure it is being asked for.
  */
-function footWithTarget(target: number | null | undefined, rest?: string): string | undefined {
-  return [askedOfToday(target), rest].filter(Boolean).join(" · ") || undefined;
+function footWithTarget(target: number | null | undefined, rest?: string, kind: "money" | "count" = "money"): string | undefined {
+  return [askedOfToday(target, kind), rest].filter(Boolean).join(" · ") || undefined;
 }
 
 function headVerdictOf(done: number | null | undefined, byNow: number | null | undefined) {
