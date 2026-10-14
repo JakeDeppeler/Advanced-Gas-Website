@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { listUsers, getSettings, listQuotes, dbConfigured } from "@/lib/portal/db";
 import { getCostSettings } from "@/lib/portal/costSettings";
-import { computeCapacity, type CrewLevel } from "@/lib/portal/crew";
+import { priceFactor, computeCapacity, type CrewLevel } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
@@ -39,7 +39,7 @@ export default async function TargetsPage() {
     const cap = computeCapacity(people, s);
     capacity = {
       billHrs: cap.totalBillHrs,
-      chargePerHr: cap.costPerHr * (1 + s.margin / 100),
+      chargePerHr: cap.costPerHr * priceFactor(s.margin),
       weeksYear: s.weeksYear,
       vans: cap.vanCount,
     };

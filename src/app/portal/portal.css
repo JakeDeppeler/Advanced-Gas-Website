@@ -5496,3 +5496,4 @@ a.pt-td__pill { text-decoration: none; }
 .pt-rc tr:last-child th { border-bottom: 0; }
 .pt-rc-sum .pt-hs__nums strong { white-space: nowrap; }
 @media (max-width: 520px) { .pt-rc-sum .pt-hs__nums strong { font-size: 24px; } }
+.pt-calc__em { font-style: normal; font-weight: 400; color: var(--pt-ink-2); font-size: 0.85em; }

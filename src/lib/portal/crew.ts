@@ -273,6 +273,16 @@ export const onCostPct = (s: CapSettings): number => {
 };
 
 /** An hour of someone's pay as it actually costs: the wage plus super, WorkCover and long service leave. */
+/**
+ * What a cost is multiplied by to price it so the margin is that share of the
+ * price, not that much on top of cost. "20%" used to mean cost × 1.2, which is
+ * 16.7% of what the customer pays, so a job priced at our rate showed 16.7% on
+ * Profit on every job against a 20% goal. Cost ÷ 0.8 is 20% of the price, the
+ * same thing the goal, the job profit page and the calculator all measure.
+ * Capped at 90% so a typo can't divide by zero.
+ */
+export const priceFactor = (marginPct: number): number => 1 / (1 - Math.min(90, Math.max(0, Number(marginPct) || 0)) / 100);
+
 export const loadedWage = (wage: number, s: CapSettings): number => wage * (1 + onCostPct(s) / 100);
 
 /**
@@ -521,7 +531,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
       const share = vanDays > 0 ? Math.min(1, Math.max(0, yearDays - daysOff(p.costing)) / vanDays) : 1;
       const crewHrs = hrsPerVan * share;
       const costPerHr = crewHrs > 0 ? Math.max(0, c.ridesCost + feeOf(p.id) - schemeOf(p.id)) / crewHrs : null;
-      const uplift = costPerHr != null ? costPerHr * (1 + s.margin / 100) : null;
+      const uplift = costPerHr != null ? costPerHr * priceFactor(s.margin) : null;
       return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr, uplift, crewHrs, ownDownPerHr: null as number | null };
     }
     if (!c.billable || c.billHrs <= 0) {
@@ -536,7 +546,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     const ownDownPerHr = c.labourOh / c.billHrs;
     const feePerHr = (feeOf(p.id) - schemeOf(p.id)) / c.billHrs;
     const costPerHr = labourPerHr + ownDownPerHr + feePerHr + businessPerHr;
-    const autoRate = costPerHr * (1 + s.margin / 100);
+    const autoRate = costPerHr * priceFactor(s.margin);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
     return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null, crewHrs: null as number | null, ownDownPerHr };
   });
@@ -765,7 +775,7 @@ export function scaleModel(cap: ReturnType<typeof computeCapacity>, s: CapSettin
     const billHrs = hrsEach * n;
     const overhead = split.fixed + cap.officeOh + perVanEach * n;
     const costPerHr = (overhead + crewCostEach * n) / billHrs;
-    const chargeOut = costPerHr * (1 + s.margin / 100);
+    const chargeOut = costPerHr * priceFactor(s.margin);
     rows.push({
       vans: n, billHrs, overhead,
       overheadPerHr: overhead / billHrs,
