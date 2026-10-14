@@ -1448,6 +1448,50 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## Deposits, part payments and finals
+
+Money in is split three ways on the **Today** page: *deposits $2,660 (1) ·
+settled $9,340 (3) · to apply $1,621 (1)*. October so far is 7 deposits worth
+$18,622 against 30 settling payments worth $62,357.
+
+**It has to be derived, because ServiceTitan records none of it.** Its payment
+`type` is the *method* — Bank Deposit/EFT, Online Payments, Visa, Cash, Cheque —
+and its invoices carry no deposit flag: of 885 jobs invoiced in 120 days only
+five have more than one invoice, so a deposit and the balance are two payments
+against one invoice rather than two invoices. There is nothing to read, only
+something to work out.
+
+The rule, in `paidKindTypes.ts`: each payment is applied to an invoice for an
+amount, so order them by the day they were paid and run a total. The one that
+takes the invoice to fully paid is the **final**; the first one that doesn't is
+the **deposit**; anything between is a **part payment**. That matches how the
+business is actually paid — a domestic install takes 40% up front and the
+balance on completion, a real estate job is paid in instalments as the rent
+comes in — and it assumes neither, because nothing records the percentage and a
+job paid 50% up front is still a deposit.
+
+**What was already paid comes off the invoice, not off a scan of every
+payment.** `total - balance` is what an invoice has taken, so subtracting
+today's own payments leaves what it had before. Without it, a final paid today
+against a deposit taken in August is the first payment the window can see and
+reads as a deposit — which `scripts/check-paid.ts` asserts in both directions.
+A payment nobody has applied to an invoice yet is counted as **to apply** rather
+than folded into one of the three: it is money in, and it is also somebody's job
+this afternoon.
+
+**How far back the invoicing goes** is already on the Invoiced today card, as
+the four counts beside the figure: done today, 1–3 days, 4–7 days, over a week.
+
+## What is not counted, and why
+
+**Booked jobs with a tech on them, against booked jobs without.** A job booked
+to quote over the phone is booked and assigned to nobody, so it counts the same
+as a real job on the board. `st_jobs.raw` carries `appointmentCount` —
+207 of about 985 jobs created in the last 45 days have none — but it carries no
+technician, and `st_timesheets` only knows about a tech once they have clocked
+on, which is after the fact. So the split is visible in outline and not
+measurable yet, and the board does not claim it.
+
 ## How many quotes the goal needs
 
 Every figure on the board traces back to the $3.2M, and the quoting chain is the

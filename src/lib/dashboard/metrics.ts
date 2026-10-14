@@ -20,6 +20,7 @@ import { computePaceData } from "./paceData";
 import { dailyPace, type DailyPace } from "./dailyPace";
 import { soldMargin, type SoldMargin } from "./soldMargin";
 import { onHold, type OnHold } from "./onHold";
+import { paidKinds, type PaidKinds } from "./paidKind";
 import { SALE_CREDIT_KEY, creditWith, normaliseSaleCredits } from "./saleCreditTypes";
 import { getSettings } from "@/lib/portal/db";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
@@ -184,6 +185,11 @@ export type Metrics = {
    */
   paidToday: number | null;
   paymentsToday: number | null;
+  /**
+   * Today's money in, split into deposits, part payments and finals — see
+   * paidKind.ts. Null on a day nothing has been banked.
+   */
+  paidKinds: PaidKinds | null;
   /** Banked since the 1st. Null until the payments export has ever returned a row. */
   paidMonth: number | null;
   /** What today's bookings were, by kind of work. Top three and a remainder. */
@@ -768,6 +774,9 @@ async function serviceTitanMetrics(now: Date) {
   const banked = paidRows.filter((p) => p.active !== false);
   const paidToday = everPaid > 0 ? banked.reduce((t, p) => t + Number(p.total ?? 0), 0) : null;
   const paymentsToday = everPaid > 0 ? banked.length : null;
+  // Degrades to no breakdown rather than to a wrong one: the day's total above
+  // is read separately and stays right, and the card simply drops its split.
+  const kindsToday = everPaid > 0 ? await paidKinds(today).catch(() => null) : null;
 
   // The month's banked total, for the Performance page's row of four: booked,
   // invoiced, paid, margin — what was asked for and what turned up.
@@ -1995,6 +2004,7 @@ async function serviceTitanMetrics(now: Date) {
     jobsInvoicedToday,
     paidToday,
     paymentsToday,
+    paidKinds: kindsToday,
     paidMonth,
     bookingsTodayTypes,
     jobsInvoicedTodayAge,
@@ -2240,6 +2250,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobsInvoicedToday: prev?.jobsInvoicedToday ?? 0,
       jobsInvoicedTodayAge: prev?.jobsInvoicedTodayAge ?? { sameDay: 0, days1to3: 0, days4to7: 0, older: 0 },
       paidToday: prev?.paidToday ?? null,
+      paidKinds: prev?.paidKinds ?? null,
       paidMonth: prev?.paidMonth ?? null,
       bookingsTodayTypes: prev?.bookingsTodayTypes ?? [],
       // The unbilled queue carries forward: a ServiceTitan that stopped

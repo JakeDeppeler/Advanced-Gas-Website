@@ -848,7 +848,19 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
                 : `${count(m.overdueCount)} ${m.overdueCount === 1 ? "invoice" : "invoices"}`,
           },
         ]}
-        foot={m.receivablesTotal == null ? undefined : `${money(m.receivablesTotal)} on the books all up`}
+        /* What today's money in actually was: a 40% deposit on an install, an
+           instalment on a real estate job, or the payment that closes one off.
+           ServiceTitan records none of it — its payment type is the method —
+           so it is worked out from what each payment leaves owing on its
+           invoice. See paidKindTypes.ts. */
+        /* The split, or the receivables total — not both. Together they ran to
+           two lines and pushed the two figures off their own baseline, and of
+           the two the split is the one that is new each day. What is on the
+           books all up is a figure the Invoices page gives a card of its own. */
+        foot={
+          paidKindLine(m.paidKinds) ??
+          (m.receivablesTotal == null ? undefined : `${money(m.receivablesTotal)} on the books all up`)
+        }
       />
     </>
   );
@@ -2747,6 +2759,27 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
 function askedOfToday(target: number | null | undefined): string | null {
   if (target == null || !(target > 0)) return null;
   return `of ${plain(target)} today`;
+}
+
+/**
+ * Today's money in, said as deposits, part payments and finals.
+ *
+ * Only the kinds that happened: on a day of three straight settlements,
+ * "deposits 0 · part 0" is two zeroes taking up the line that the third figure
+ * needs. Anything nobody has applied to an invoice yet is named rather than
+ * folded in — it is money in, and it is also somebody's job this afternoon.
+ */
+function paidKindLine(k: Metrics["paidKinds"]): string | null {
+  if (!k) return null;
+  const parts = ([
+    ["deposits", k.deposit],
+    ["part paid", k.part],
+    ["settled", k.final],
+    ["to apply", k.unmatched],
+  ] as const)
+    .filter(([, v]) => v.count > 0)
+    .map(([name, v]) => `${name} ${plain(v.value)} (${count(v.count)})`);
+  return parts.length ? parts.join(" · ") : null;
 }
 
 /**
