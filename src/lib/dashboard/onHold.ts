@@ -32,6 +32,7 @@ import {
   HOLD_TAGS_KEY,
   holdRules,
   normaliseHoldTags,
+  agesOf,
   sortHeld,
   tagIds,
   worstSide,
@@ -201,6 +202,7 @@ export async function onHold(now: Date = new Date()): Promise<OnHold | null> {
     valueOnUs: ours.reduce((n, x) => n + (x.value ?? 0), 0),
     valueOnThem: theirs.reduce((n, x) => n + (x.value ?? 0), 0),
     unpriced: list.filter((x) => x.value == null).length,
+    ages: agesOf(list),
     configured,
   };
 }

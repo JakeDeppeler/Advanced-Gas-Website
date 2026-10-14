@@ -5549,6 +5549,9 @@ a.pt-td__pill { text-decoration: none; }
   font-size: 14px;
 }
 .pt-ar__inv { display: block; font-size: 11.5px; font-weight: 600; color: var(--pt-ink-3); }
+/* Said in words under the name, because the grid's thirties cannot show a
+   seven-day rule: the colour marks it and the line says what it broke. */
+.pt-ar__over { display: block; font-size: 11.5px; font-weight: 700; color: var(--pt-accent); }
 .pt-ar__n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .pt-ar__tot { font-weight: 800; }
 /* Anything past due is marked in the cell it sits in, so the column tells you

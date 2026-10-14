@@ -58,7 +58,22 @@ export type ArRow = {
   invoices: number;
   /** The worst band this customer has anything in, for marking the row. */
   worst: ArBandKey;
+  /** The oldest invoice on the row, in days past due. */
+  oldestDays: number;
 };
+
+/**
+ * How long a kind of customer is allowed to take.
+ *
+ * A domestic job is paid on the day or within the week — the office's rule,
+ * and the one worth holding, because a homeowner who hasn't paid in a
+ * fortnight usually isn't going to without a phone call. An agency pays on
+ * its monthly owner-statement run, so the same seven days against Barry Plant
+ * would light up every row every month and teach the room to ignore the
+ * colour. The thirties on the grid are the accountant's cut; this is the
+ * office's.
+ */
+export const TERMS = { domestic: 7, realestate: 30 } as const;
 
 export type ArReport = {
   rows: ArRow[];
@@ -92,10 +107,11 @@ export function arReport(invoices: ArInvoice[]): ArReport {
     const name = (inv.customer ?? "").trim() || "No customer name";
     const band = arBand(inv.daysOver);
 
-    const row = byCustomer.get(name) ?? { customer: name, bands: emptyTotals(), total: 0, invoices: 0, worst: "current" };
+    const row = byCustomer.get(name) ?? { customer: name, bands: emptyTotals(), total: 0, invoices: 0, worst: "current" as ArBandKey, oldestDays: 0 };
     row.bands[band] += amount;
     row.total += amount;
     row.invoices += 1;
+    row.oldestDays = Math.max(row.oldestDays, inv.daysOver);
     byCustomer.set(name, row);
 
     totals[band] += amount;
@@ -113,3 +129,23 @@ export function arReport(invoices: ArInvoice[]): ArReport {
 
 /** What is past due: everything but Current. The figure the page leads with. */
 export const arOverdue = (t: ArTotals): number => t.d1_30 + t.d31_60 + t.d61_90 + t.d90;
+
+/**
+ * What has gone past the terms for this kind of customer.
+ *
+ * Counted per invoice rather than per customer row: a customer with one
+ * invoice at four days and one at twelve has breached on the second, and
+ * reporting their whole balance as late would overstate it.
+ */
+export function pastTerms(invoices: ArInvoice[], days: number): { count: number; value: number; worst: number } {
+  let count = 0;
+  let value = 0;
+  let worst = 0;
+  for (const i of invoices) {
+    if (!(i.amount > 0) || i.daysOver <= days) continue;
+    count += 1;
+    value += i.amount;
+    worst = Math.max(worst, i.daysOver);
+  }
+  return { count, value, worst };
+}

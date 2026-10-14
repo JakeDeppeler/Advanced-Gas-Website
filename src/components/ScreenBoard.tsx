@@ -12,6 +12,7 @@ import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 import { useBoardRemote } from "./screen/useBoardRemote";
 import { BOARD_PAGES, type BoardRemote } from "@/lib/board/remoteTypes";
+import { AGE_BANDS } from "@/lib/portal/stuckTypes";
 
 type Snapshot = {
   computedAt: string;
@@ -96,7 +97,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     if (!h) return "Open work waiting on something";
     const n = h.reasons.length;
     return (
-      `What each open job is waiting on, in the office’s own tags · ` +
+      `${count(h.jobsOnUs)} on us, ${count(h.jobsOnThem)} on the customer · ` +
       `${count(n)} ${n === 1 ? "reason" : "reasons"} in play` +
       (h.configured ? "" : " · default tag list")
     );
@@ -1552,28 +1553,45 @@ function OnHoldPage({ m, live }: { m: Metrics; live: Live }) {
       {/* A strip, not three cards: the figures are the scale of the problem and
           the page is about its shape, so they take a fifth of the height rather
           than a third. */}
+      {/*
+        * How long it has all been held, in the five bands the portal ages money
+        * in — the same shape as the AR summary on the Owed page, on purpose.
+        *
+        * The counts say how much is held and the reasons say why; this is the
+        * one that says whether it is getting worse, which is the question
+        * somebody standing in front of the board is actually asking. Whose move
+        * each job is has moved to the subtitle: it is on every band and every
+        * row below, and the strip only has room to say one thing well.
+        */}
       <div className="tile tile--navy hold__sum">
         <span className="hold__sumfig">
           <b>{count(total)}</b>
-          <em>jobs held</em>
+          <em>held</em>
         </span>
-        <span className="hold__sumsplit">
-          <span className="hold__sumside">
-            <i className="hold__side is-us">ours</i>
-            <b>{count(h.jobsOnUs)}</b>
-            <em>{plain(h.valueOnUs)} quoted</em>
-          </span>
-          <span className="hold__sumside">
-            <i className="hold__side is-them">theirs</i>
-            <b>{count(h.jobsOnThem)}</b>
-            <em>{plain(h.valueOnThem)} quoted</em>
-          </span>
+        <span className="hold__ages">
+          {/* The bars are shares of what the bands themselves add to, not of
+              the headline count. The two are the same number, and if a sync
+              ever leaves them half a beat apart it should not show up as five
+              bars that fail to fill their row. */}
+          {(() => {
+            const inBands = AGE_BANDS.reduce((t, x) => t + h.ages[x.key].count, 0) || 1;
+            return AGE_BANDS.map((band) => {
+            const v = h.ages[band.key];
+            const old = band.key === "d31_60" || band.key === "d60plus";
+            return (
+              <span className={`hold__age2${v.count === 0 ? " is-none" : old ? " is-old" : ""}`} key={band.key}>
+                <b>{count(v.count)}</b>
+                <em>{v.value > 0 ? money(v.value) : "—"}</em>
+                <i style={{ width: `${Math.round((v.count / inBands) * 100)}%` }} />
+                <span>{band.label}</span>
+              </span>
+            );
+            });
+          })()}
         </span>
         <span className="hold__sumnote">
-          {/* The one thing the money needs said about it. Which tag list is in
-              use is in the page's subtitle, not repeated here. */}
           {h.unpriced > 0
-            ? `${count(h.unpriced)} of them carry no quote, so the money is a floor`
+            ? `${count(h.unpriced)} carry no quote · the money is a floor`
             : "every one of them is quoted"}
         </span>
       </div>

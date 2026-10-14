@@ -12,7 +12,7 @@ import { BENCH } from "@/lib/portal/benchmarks";
 import { Av, Bad, Btn, Card, Empty, Grid, Group, Head, Kv, Lh, Note, Row, Say, Tabs, Tile, Two, status } from "@/components/portal/kit/Kit";
 import { XeroOff } from "@/components/portal/finance/Parts";
 import { ArTable } from "@/components/portal/ArTable";
-import { arReport } from "@/lib/portal/ar";
+import { TERMS, arReport, pastTerms } from "@/lib/portal/ar";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Owed to us — Team portal" };
@@ -79,10 +79,37 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
                 it. Above the two lists rather than below them, because this is
                 the view somebody opens the page for and the lists are the
                 detail behind it. */}
+            {/* The office's own terms, which the thirties on the grid cannot
+                show: a domestic job is paid on the day or inside the week, so
+                anything domestic past seven days is a breach however tidy it
+                looks in the 1–30 column. An agency is on a monthly statement
+                run, so the same seven days would light up every row every month
+                and teach the room to ignore the colour. */}
+            {seg !== "realestate" && (() => {
+              const dom = list.filter((i) => i.segment === "domestic");
+              const late = pastTerms(dom.map((i) => ({ customer: i.contact || "", amount: i.amountDue, daysOver: i.daysOver })), TERMS.domestic);
+              return (
+                <div style={{ margin: "14px 0 0" }}>
+                  <Tile
+                    label={`Domestic over ${TERMS.domestic} days`}
+                    st={late.count === 0 ? { k: "good", w: "None" } : { k: "bad", w: "Ring today" }}
+                    fig={money(late.value)}
+                    frac={late.count === 0 ? 1 : null}
+                    sub={
+                      late.count === 0
+                        ? `Every domestic invoice is inside ${TERMS.domestic} days. That is the rule.`
+                        : `${plural(late.count, "invoice")} past the rule · the worst is ${plural(late.worst, "day")} over`
+                    }
+                  />
+                </div>
+              );
+            })()}
+
             <section style={{ marginTop: 18 }}>
               <Lh>Accounts receivable · by customer</Lh>
               <ArTable
                 report={arReport(list.map((i) => ({ customer: i.contact || "", amount: i.amountDue, daysOver: i.daysOver })))}
+                termsDays={seg === "domestic" ? TERMS.domestic : seg === "realestate" ? TERMS.realestate : null}
                 partial={
                   owed?.partial === "xero"
                     ? "ServiceTitan only — Xero didn’t answer"

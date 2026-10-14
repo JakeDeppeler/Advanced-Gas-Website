@@ -13,7 +13,16 @@ const full = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
  * zeroes is a page with nothing to find in it — which is exactly how the
  * printed report does it too.
  */
-export function ArTable({ report, partial }: { report: ArReport; partial?: string | null }) {
+export function ArTable({
+  report,
+  partial,
+  termsDays,
+}: {
+  report: ArReport;
+  partial?: string | null;
+  /** Past this many days a row is marked as having broken the terms. */
+  termsDays?: number | null;
+}) {
   const { rows, totals, total } = report;
   const overdue = arOverdue(totals);
 
@@ -43,10 +52,29 @@ export function ArTable({ report, partial }: { report: ArReport; partial?: strin
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.customer} className={r.worst === "d90" || r.worst === "d61_90" ? "is-bad" : r.worst === "d31_60" ? "is-warn" : undefined}>
+              /* Marked on the terms first where there are terms: a domestic
+                 invoice at twelve days sits in the 1–30 column and looks like
+                 everything else, and the whole point of the rule is that it
+                 isn't. */
+              <tr
+                key={r.customer}
+                className={
+                  r.worst === "d90" || r.worst === "d61_90"
+                    ? "is-bad"
+                    : termsDays != null && r.oldestDays > termsDays
+                      ? "is-warn"
+                      : r.worst === "d31_60"
+                        ? "is-warn"
+                        : undefined
+                }
+              >
                 <th scope="row">
                   {r.customer}
-                  {r.invoices > 1 && <span className="pt-ar__inv">{r.invoices} invoices</span>}
+                  {termsDays != null && r.oldestDays > termsDays ? (
+                    <span className="pt-ar__over">{r.oldestDays} days — past {termsDays}</span>
+                  ) : (
+                    r.invoices > 1 && <span className="pt-ar__inv">{r.invoices} invoices</span>
+                  )}
                 </th>
                 {AR_BANDS.map((b) => (
                   <td key={b.key} className={`pt-ar__n${r.bands[b.key] > 0 && b.key !== "current" ? " is-on" : ""}`}>

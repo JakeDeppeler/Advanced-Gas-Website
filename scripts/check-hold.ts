@@ -11,6 +11,7 @@ import {
   holdRules,
   normaliseHoldTags,
   sideByDefault,
+  agesOf,
   sortHeld,
   tagIds,
   worstSide,
@@ -131,6 +132,30 @@ ok("ours before theirs, however old theirs is", order.map((x) => x.jobId).join("
 // Age before money, deliberately: a $15K quote written on Friday is not the
 // problem, and sorting by value would bury the one that has been sitting.
 ok("and within a side, oldest before biggest", order[0].ageDays === 24 && order[2].ageDays === 3);
+
+console.log("\n-- how long it has all been held --");
+// The wall's strip reads like the AR summary on the Owed page: a band per age,
+// the count and what it is worth. Measured on 14 October the real shape was
+// 25 / 28 / 24 / 5 / 1 across the five bands.
+const held = [
+  job({ jobId: 1, ageDays: 2, value: 1000 }),
+  job({ jobId: 2, ageDays: 7, value: 2000 }),
+  job({ jobId: 3, ageDays: 8, value: 4000 }),
+  job({ jobId: 4, ageDays: 30, value: 8000 }),
+  job({ jobId: 5, ageDays: 31, value: 500 }),
+  job({ jobId: 6, ageDays: 90, value: null }),
+];
+const ages = agesOf(held);
+ok("a week and under is this week", ages.d0_7.count === 2 && ages.d0_7.value === 3000, JSON.stringify(ages.d0_7));
+ok("eight opens the next band", ages.d8_14.count === 1);
+ok("thirty is the last of 15–30", ages.d15_30.count === 1 && ages.d15_30.value === 8000);
+ok("thirty-one is over a month", ages.d31_60.count === 1);
+ok("ninety is the long grass", ages.d60plus.count === 1);
+// A job with nothing quoted still has to be counted, or the band with the
+// oldest work in it reads as empty.
+ok("an unquoted job counts even though it adds no money", ages.d60plus.value === 0 && ages.d60plus.count === 1);
+ok("every job lands in exactly one band",
+   [ages.d0_7, ages.d8_14, ages.d15_30, ages.d31_60, ages.d60plus].reduce((t, x) => t + x.count, 0) === held.length);
 
 console.log(bad === 0 ? "\nAll good." : `\n${bad} failed.`);
 process.exit(bad === 0 ? 0 : 1);

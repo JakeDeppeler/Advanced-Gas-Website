@@ -6,7 +6,7 @@
  * bands are the part of an AR report people argue over, because 30 and 31 are
  * a day apart and a world apart.
  */
-import { AR_BANDS, arBand, arOverdue, arReport, emptyTotals } from "../src/lib/portal/ar";
+import { AR_BANDS, TERMS, arBand, arOverdue, arReport, emptyTotals, pastTerms } from "../src/lib/portal/ar";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -63,6 +63,28 @@ ok("nor is a credit", junk.rows.every((x) => x.customer !== "Credit note"));
 // Money with no name on it is still money owed, so it gets its own row rather
 // than falling into whichever customer happens to sort first.
 ok("an unnamed customer keeps its own row", junk.rows.length === 1 && junk.rows[0].customer === "No customer name", junk.rows[0]);
+
+console.log("\n-- the office's own terms, which the thirties cannot show --");
+// A domestic job is paid on the day or inside the week. Twelve days sits in
+// the 1–30 column looking like everything else, and the whole point of the
+// rule is that it isn't.
+const dom = [inv("Paid on time", 500, 3), inv("Twelve days", 1200, 12), inv("A month", 900, 31)];
+const late = pastTerms(dom, TERMS.domestic);
+ok("seven days is the domestic rule", TERMS.domestic === 7);
+ok("twelve days and a month break it; three does not", late.count === 2 && late.value === 2100, late);
+ok("and the worst is named", late.worst === 31);
+ok("exactly seven days is inside the rule", pastTerms([inv("Seven", 100, 7)], TERMS.domestic).count === 0);
+ok("eight is not", pastTerms([inv("Eight", 100, 8)], TERMS.domestic).count === 1);
+// Agents pay on a monthly statement run, so the same seven days against them
+// would light up every row every month and teach the room to ignore it.
+ok("agencies get the month", TERMS.realestate === 30);
+ok("a credit never counts as late", pastTerms([inv("Credit", -800, 40)], TERMS.domestic).count === 0);
+// Per invoice, not per customer: one at four days and one at twelve is one
+// breach, not a whole balance reported late.
+const mixed = arReport([inv("Both", 400, 4), inv("Both", 1000, 12)]);
+ok("the row keeps its oldest invoice for the marking", mixed.rows[0].oldestDays === 12);
+ok("but only the late invoice is counted late",
+   pastTerms([inv("Both", 400, 4), inv("Both", 1000, 12)], TERMS.domestic).value === 1000);
 
 console.log(bad === 0 ? "\nAll good." : `\n${bad} failed.`);
 process.exit(bad === 0 ? 0 : 1);

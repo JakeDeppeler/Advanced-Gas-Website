@@ -6,6 +6,10 @@
  * `./db`, which imports `server-only`.
  */
 
+import { AGE_BANDS, addTo, emptyBanded, type Banded } from "@/lib/portal/stuckTypes";
+
+export { AGE_BANDS, type Banded };
+
 /** Where the office says which tags mean a job is waiting on something. */
 export const HOLD_TAGS_KEY = "board-hold-tags";
 
@@ -153,9 +157,26 @@ export type OnHold = {
   valueOnThem: number;
   /** Held jobs with nothing quoted on them, so the value is a floor not a total. */
   unpriced: number;
+  /**
+   * How long the held work has been held, in the same five bands the portal
+   * ages money in.
+   *
+   * The counts say how much is held; this says whether it is getting worse,
+   * which is the question somebody standing in front of the board is actually
+   * asking. Read like the AR summary on the Owed page, deliberately: one
+   * shape for "how long has this been sitting", wherever it is being asked.
+   */
+  ages: Banded;
   /** True when the office has set the tag list; false when these are the defaults. */
   configured: boolean;
 };
+
+/** The age bands over a list of held jobs. Pure, so a check can run it. */
+export function agesOf(jobs: HeldJob[]): Banded {
+  const b = emptyBanded();
+  for (const j of jobs) addTo(b, j.ageDays, j.value ?? 0);
+  return b;
+}
 
 /**
  * Worst first: ours before theirs, then oldest.
