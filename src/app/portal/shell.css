@@ -765,3 +765,4 @@ label.pk-btn { cursor: pointer; }
 .pn .pt-nw__more[open] > summary::before { transform: rotate(90deg); }
 .pn .pt-nw__more > summary:hover { color: var(--ink); }
 .pk-file-acts .pk-linkbtn { align-self: center; }
+.pk-hot { color: var(--bad); }
