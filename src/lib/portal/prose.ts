@@ -12,14 +12,28 @@
 export type ProseBlock =
   | { kind: "h"; text: string }
   | { kind: "p"; text: string }
-  | { kind: "ul"; items: string[] };
+  | { kind: "ul"; items: string[] }
+  | { kind: "ol"; items: string[] };
 
-export function parseProse(body: string): ProseBlock[] {
+const NUMBERED = /^\d{1,2}[.)]\s+/;
+
+/**
+ * `numbered` turns "1. " lines into a numbered list. The handbook asks for it
+ * (the ten standards are a numbered ten); the blog, which renders public pages
+ * off the same parser, doesn't, so a post that happens to open a line with a
+ * number reads exactly as it always has.
+ */
+export function parseProse(body: string, opts: { numbered?: boolean } = {}): ProseBlock[] {
   const out: ProseBlock[] = [];
   // Split on blank lines, then decide what each chunk is.
   for (const chunk of body.replace(/\r\n/g, "\n").split(/\n\s*\n/)) {
     const lines = chunk.split("\n").map((l) => l.trim()).filter(Boolean);
     if (lines.length === 0) continue;
+
+    if (opts.numbered && lines.every((l) => NUMBERED.test(l))) {
+      out.push({ kind: "ol", items: lines.map((l) => l.replace(NUMBERED, "").trim()) });
+      continue;
+    }
 
     // A chunk whose every line is a bullet is one list, however long.
     if (lines.every((l) => l.startsWith("- "))) {
@@ -41,8 +55,26 @@ export function parseProse(body: string): ProseBlock[] {
   return out;
 }
 
+/**
+ * "**words**" as bold runs inside a line, for the handbook's lead-ins
+ * ("**Own it** — mistakes happen…"). Returned as runs, not HTML, so the
+ * renderer never puts typed text into markup. An unclosed "**" stays as it is.
+ */
+export function boldRuns(text: string): { strong: boolean; text: string }[] {
+  const out: { strong: boolean; text: string }[] = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let at = 0;
+  for (let m = re.exec(text); m; m = re.exec(text)) {
+    if (m.index > at) out.push({ strong: false, text: text.slice(at, m.index) });
+    out.push({ strong: true, text: m[1] });
+    at = m.index + m[0].length;
+  }
+  if (at < text.length) out.push({ strong: false, text: text.slice(at) });
+  return out;
+}
+
 /** Roughly how long it takes to read, for the line under the title. */
 export function readingMinutes(body: string): number {
-  const words = body.trim().split(/\s+/).filter(Boolean).length;
+  const words = body.replace(/\*\*/g, "").trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }

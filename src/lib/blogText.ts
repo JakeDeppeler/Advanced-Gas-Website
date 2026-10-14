@@ -38,7 +38,7 @@ export const toSlug = (s: string) =>
 export function bodySections(body: string): Section[] {
   return parseProse(body).map((b): Section =>
     b.kind === "h" ? { type: "h2", text: b.text }
-      : b.kind === "ul" ? { type: "ul", items: b.items }
+      : b.kind === "ul" || b.kind === "ol" ? { type: "ul", items: b.items }
         : { type: "p", text: b.text },
   );
 }

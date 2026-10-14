@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveTopic } from "@/app/portal/handbook/actions";
-import { parseProse, readingMinutes } from "@/lib/portal/prose";
+import { readingMinutes } from "@/lib/portal/prose";
+import { ProseBlocks } from "@/components/portal/ProseBlocks";
 
 /**
  * One handbook topic, read — and written, if you're allowed to.
@@ -36,7 +37,6 @@ export function TopicReader({
   const [draft, setDraft] = useState(body);
   const [msg, setMsg] = useState("");
 
-  const blocks = parseProse(body);
   const written = body.trim().length > 0;
 
   function save() {
@@ -95,8 +95,8 @@ export function TopicReader({
             placeholder={"Write the topic here.\n\nA blank line starts a new paragraph.\n\n## A heading looks like this\n\n- And a bullet looks like this"}
           />
           <p className="pt-topic__help">
-            Blank line for a new paragraph, <code>## </code> for a heading, <code>- </code> for a bullet. That is the
-            whole of it.
+            Blank line for a new paragraph, <code>## </code> for a heading, <code>- </code> for a bullet,
+            {" "}<code>1. </code> for a numbered list and <code>**words**</code> for bold. That is the whole of it.
           </p>
           {msg && <div className="pt-note pt-note--warn">{msg}</div>}
           <div className="pt-topic__acts">
@@ -108,11 +108,7 @@ export function TopicReader({
         </>
       ) : written ? (
         <div className="pt-prose">
-          {blocks.map((b, i) =>
-            b.kind === "h" ? <h2 key={i}>{b.text}</h2>
-            : b.kind === "ul" ? <ul key={i}>{b.items.map((it) => <li key={it}>{it}</li>)}</ul>
-            : <p key={i}>{b.text}</p>,
-          )}
+          <ProseBlocks body={body} />
         </div>
       ) : (
         <div className="pt-topic__empty">
