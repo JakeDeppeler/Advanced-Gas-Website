@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import { noteAllPast, saveJobNotes } from "@/app/portal/supply/emails/actions";
 
 /**
- * Supplier emails › Notes on the job: whose sent orders are written onto their
- * jobs in ServiceTitan, as a note with the order attached.
+ * Supplier emails › On the job in ServiceTitan: what a sent order does to its
+ * jobs. Every order swaps the office's "not ordered" tags for "ordered"; the
+ * ticked suppliers also leave a note with the order attached.
  */
-export function JobNotesForm({ initial, suppliers, toNote }: {
+export function JobNotesForm({ initial, suppliers, toNote, swaps }: {
   initial: string[]; suppliers: { id: string; name: string; work: boolean }[];
-  /** Sent orders from the ticked suppliers not yet on their jobs; null when that couldn't be read. */
+  /** Sent orders not yet up to date on their jobs; null when that couldn't be read. */
   toNote: number | null;
+  /** The tag pairs, and whether the "done" tag was found in ServiceTitan by name (null: couldn't check). */
+  swaps: { from: string; to: string; when: string; found: boolean | null }[];
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -21,11 +24,21 @@ export function JobNotesForm({ initial, suppliers, toNote }: {
   const [past, setPast] = useState<{ ok: boolean; text: string } | null>(null);
   return (
     <section className="pk-card pk-pad" id="job-notes" style={{ marginTop: 14 }}>
-      <div className="pk-card-h"><b>Notes on the job</b><span>each sent order written onto its jobs in ServiceTitan</span></div>
+      <div className="pk-card-h"><b>On the job in ServiceTitan</b><span>what a sent order changes on its jobs</span></div>
       <p className="pk-note" style={{ marginBottom: 8 }}>
-        When an order from a supplier ticked here is sent, each job it&rsquo;s for gets a note in ServiceTitan saying what was ordered and when,
-        with the order attached as a PDF. If ServiceTitan refuses, the email still goes and the order under Orders › Sent says why, with a button to try again.
+        When an order is sent, each job it&rsquo;s for has its tags changed to say so. For the suppliers ticked below, the job also gets a note saying
+        what was ordered and when, with the order attached as a PDF. If ServiceTitan refuses, the email still goes and the order under Orders › Sent says why, with a button to try again.
       </p>
+      <div className="pk-glh">Tags, for every supplier</div>
+      {swaps.map((t) => (
+        <div className="pk-kv" key={t.to}>
+          <span className="t"><b>{t.from} → {t.to}</b><span>when {t.when}</span></span>
+          <span className={`pk-said${t.found === false ? " bad" : ""}`}>
+            {t.found == null ? "Couldn’t check" : t.found ? "Found in ServiceTitan" : `No “${t.to}” tag in ServiceTitan — skipped`}
+          </span>
+        </div>
+      ))}
+      <div className="pk-glh">A note and the order, for these suppliers</div>
       {suppliers.map((s) => (
         <div className="pk-kv" key={s.id}>
           <span className="t"><b>{s.name}</b><span>{s.work ? "the work order" : "the order"}</span></span>
@@ -49,15 +62,15 @@ export function JobNotesForm({ initial, suppliers, toNote }: {
       <div className="pk-glh">Orders already sent</div>
       <div className="pk-kv">
         <span className="t">
-          <b>{toNote == null ? "Couldn’t check" : toNote === 0 ? "All on their jobs" : `${toNote} sent order${toNote === 1 ? " isn’t" : "s aren’t"} on ${toNote === 1 ? "its jobs" : "their jobs"} yet`}</b>
-          <span>sent before this was on, or refused by ServiceTitan — every week, not just this one</span>
+          <b>{toNote == null ? "Couldn’t check" : toNote === 0 ? "All up to date on their jobs" : `${toNote} sent order${toNote === 1 ? " isn’t" : "s aren’t"} up to date on ${toNote === 1 ? "its jobs" : "their jobs"} yet`}</b>
+          <span>tags, notes and purchase orders — sent before these were on, or refused by ServiceTitan, in any week</span>
         </span>
         {!!toNote && (
           <button type="button" className="pk-btn" disabled={pastBusy} onClick={() => startPast(async () => {
             const r = await noteAllPast();
-            setPast(r.ok ? { ok: true, text: r.note ?? "Done." } : { ok: false, text: r.error ?? "Couldn’t note them." });
+            setPast(r.ok ? { ok: true, text: r.note ?? "Done." } : { ok: false, text: r.error ?? "Couldn’t bring them up to date." });
             router.refresh();
-          })}>{pastBusy ? "Noting…" : "Note them now"}</button>
+          })}>{pastBusy ? "Working…" : "Bring them up to date"}</button>
         )}
       </div>
       {past && <p className={`pk-said${past.ok ? "" : " bad"}`} role="status" style={{ marginTop: 6 }}>{past.text}</p>}

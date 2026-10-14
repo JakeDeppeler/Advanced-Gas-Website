@@ -2,10 +2,11 @@ import "server-only";
 import { PDFDocument, StandardFonts, type PDFFont } from "pdf-lib";
 import { sbSelect, sbUpdate } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
-import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
+import { stFetch, stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, type PoWithLines } from "./db";
 import { orderDocument } from "./send";
+import { loadStPoSettings, pushOrderToServiceTitan } from "./stPurchaseOrders";
 import { dayLabel, dayTimeLabel, type Supplier } from "./plan";
 
 /**
@@ -19,7 +20,11 @@ import { dayLabel, dayTimeLabel, type Supplier } from "./plan";
  * a job already noted is skipped (st_notes), so a retry never doubles up.
  */
 
-export type JobNoteDone = { job_id: number; note: boolean; file: boolean };
+export type JobNoteDone = {
+  job_id: number; note: boolean; file: boolean;
+  /** The job's tags swapped from "not ordered" to "ordered" (or booked), and which went on. */
+  tags?: boolean; tagged?: string[];
+};
 
 const KEY = "st_job_notes";
 
@@ -126,14 +131,70 @@ function jobsOn(po: PoWithLines): number[] {
   return [...new Set(ids.filter((x): x is number => typeof x === "number" && x > 0))];
 }
 
-const plain = (e: unknown) => String((e as Error).message).replace(/^ServiceTitan (?:POST|PATCH) [^ ]+ failed: /, "");
+const plain = (e: unknown) => String((e as Error).message).replace(/^ServiceTitan (?:(?:POST|PATCH) )?[^ ]+ failed: /, "");
+
+/* ------------------------------------------------------------------ tags */
 
 /**
- * Note and attach on every job the order is for. Each half of each job is
- * recorded as it lands, so a refusal halfway leaves an exact record of what's
- * there and a retry does only the rest.
+ * The office's own tag pairs in ServiceTitan, swapped once the thing is done:
+ * the "not yet" one comes off and the done one goes on. Found by name, so a
+ * renamed tag is skipped rather than guessed at; Supplier emails shows which
+ * were found.
  */
-export async function noteOrderOnJobs(poId: number): Promise<{ ok: boolean; done: JobNoteDone[]; error?: string }> {
+export const TAG_SWAPS = [
+  { key: "system", from: "System Not Ordered", to: "System Ordered", when: "equipment is on a sent order" },
+  { key: "materials", from: "Materials Not Ordered", to: "Materials Ordered", when: "materials are on a sent order" },
+  { key: "electrician", from: "GTE Not Booked", to: "GTE Booked", when: "the electrician's work order is sent" },
+] as const;
+type SwapKey = (typeof TAG_SWAPS)[number]["key"];
+
+// The office's tags carry emoji and stray spaces ("System Ordered "); only the words count.
+export const tagKey = (s: string) => s.replace(/[^\p{L}\p{N}]+/gu, " ").trim().toLowerCase();
+
+export async function tagTypesByName(): Promise<Map<string, number>> {
+  const rows = await sbSelect<{ id: number; name: string | null; active: boolean | null }>("st_job_tags", "select=id,name,active");
+  return new Map(rows.filter((r) => r.name && r.active !== false).map((r) => [tagKey(r.name as string), r.id]));
+}
+
+function swapsFor(po: PoWithLines, jobId: number): SwapKey[] {
+  if (po.kind === "work_order") return ["electrician"];
+  const types = new Set(po.lines.filter((l) => l.job_id === jobId).map((l) => (l.sku_type ?? "").toLowerCase()));
+  return [...(types.has("equipment") ? ["system" as const] : []), ...(types.has("material") ? ["materials" as const] : [])];
+}
+
+/**
+ * Swap the tags on one job. ServiceTitan replaces a job's whole tag list on
+ * every update, so the current list is read first and only our pairs change:
+ * without it, the office's other tags (Dog, Key Safe…) would be wiped.
+ */
+async function swapTags(jobId: number, keys: SwapKey[], byName: Map<string, number>): Promise<string[]> {
+  const pairs = TAG_SWAPS.filter((s) => keys.includes(s.key))
+    .map((s) => ({ from: byName.get(tagKey(s.from)), to: byName.get(tagKey(s.to)), name: s.to }))
+    .filter((p): p is { from: number | undefined; to: number; name: (typeof TAG_SWAPS)[number]["to"] } => p.to != null);
+  if (!pairs.length) return [];
+  const job = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${jobId}`));
+  if (!Array.isArray(job.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's current tags, so they were left alone");
+  const drop = new Set(pairs.map((p) => p.from).filter((x): x is number => x != null));
+  const want = new Set(job.tagTypeIds.filter((t) => !drop.has(t)));
+  for (const p of pairs) want.add(p.to);
+  const same = want.size === job.tagTypeIds.length && job.tagTypeIds.every((t) => want.has(t));
+  if (!same) await stSend("PATCH", stTenantPath("jpm", `jobs/${jobId}`), { tagTypeIds: [...want] });
+  return pairs.map((p) => p.name);
+}
+
+/* ------------------------------------------------------------------ the run */
+
+async function notedSuppliers(): Promise<string[]> {
+  return loadJobNoteSuppliers(await sbSelect<Pick<Supplier, "id" | "method">>("order_suppliers", "select=id,method"));
+}
+
+/**
+ * Bring each of the order's jobs up to date in ServiceTitan: the tags swapped
+ * for every supplier, and for the ticked ones a note with the order attached.
+ * Each step of each job is recorded as it lands, so a refusal halfway leaves
+ * an exact record of what's there and a retry does only the rest.
+ */
+export async function updateJobsFor(poId: number, opts: { notes: boolean }): Promise<{ ok: boolean; done: JobNoteDone[]; error?: string }> {
   const po = (await getOrder(poId)) as (PoWithLines & { st_notes?: JobNoteDone[] | null }) | null;
   if (!po) return { ok: false, done: [], error: "That order couldn't be found." };
   if (po.status !== "sent") return { ok: false, done: [], error: "Send the order first." };
@@ -144,79 +205,117 @@ export async function noteOrderOnJobs(poId: number): Promise<{ ok: boolean; done
   };
 
   const jobs = jobsOn(po);
-  if (!jobs.length) return save(po.kind === "order" ? "Only factory stock on this order — there's no job to note." : "No jobs on this work order.");
-  const [supplier] = await sbSelect<Pick<Supplier, "name">>("order_suppliers", `select=name&id=eq.${encodeURIComponent(po.supplier_id)}`);
-  const doc = await orderDocument(poId);
-  if ("error" in doc) return save(doc.error);
-  const file = doc.pdf
-    ? { name: doc.pdf.filename, bytes: new Uint8Array(Buffer.from(doc.pdf.base64, "base64")) }
-    : { name: `${po.po_number} ${po.kind === "work_order" ? "work order" : "order"}.pdf`, bytes: await orderPdf({ subject: doc.subject, text: doc.text, how: `${po.kind === "work_order" ? "Work order" : "Order"} ${howSent(po)}${po.sent_at ? `, ${dayTimeLabel(po.sent_at).split(", ")[1]}` : ""}` }) };
+  if (!jobs.length) {
+    // Stock for the factory has no job to tag; only say so when a note was asked for.
+    return opts.notes ? save(po.kind === "order" ? "Only factory stock on this order — there's no job to note." : "No jobs on this work order.") : { ok: true, done };
+  }
+  let file: { name: string; bytes: Uint8Array } | null = null;
+  let supplier: Pick<Supplier, "name"> = { name: "the supplier" };
+  if (opts.notes && jobs.some((j) => !done.some((d) => d.job_id === j && d.note && d.file))) {
+    const [s] = await sbSelect<Pick<Supplier, "name">>("order_suppliers", `select=name&id=eq.${encodeURIComponent(po.supplier_id)}`);
+    if (s) supplier = s;
+    const doc = await orderDocument(poId);
+    if ("error" in doc) return save(doc.error);
+    file = doc.pdf
+      ? { name: doc.pdf.filename, bytes: new Uint8Array(Buffer.from(doc.pdf.base64, "base64")) }
+      : { name: `${po.po_number} ${po.kind === "work_order" ? "work order" : "order"}.pdf`, bytes: await orderPdf({ subject: doc.subject, text: doc.text, how: `${po.kind === "work_order" ? "Work order" : "Order"} ${howSent(po)}${po.sent_at ? `, ${dayTimeLabel(po.sent_at).split(", ")[1]}` : ""}` }) };
+  }
+  const byName = await tagTypesByName().catch(() => new Map<string, number>());
 
   for (const jobId of jobs) {
     let d = done.find((x) => x.job_id === jobId);
     if (!d) { d = { job_id: jobId, note: false, file: false }; done.push(d); }
+    let step: "note" | "file" | "tags" = "note";
     try {
-      if (!d.note) {
-        await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: noteFor(po, supplier ?? { name: "the supplier" }, jobId), pinToTop: false });
+      if (opts.notes && !d.note) {
+        await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: noteFor(po, supplier, jobId), pinToTop: false });
         d.note = true;
       }
-      if (!d.file) {
+      step = "file";
+      if (opts.notes && !d.file && file) {
         await stUpload(stTenantPath("forms", `jobs/${jobId}/attachments`), file.name, file.bytes, "application/pdf");
         d.file = true;
       }
+      step = "tags";
+      if (!d.tags) {
+        d.tagged = await swapTags(jobId, swapsFor(po, jobId), byName);
+        d.tags = true;
+      }
     } catch (e) {
       const m = plain(e);
-      const what = d.note ? "attach files to" : "add notes to";
+      const what = step === "note" ? "add notes to" : step === "file" ? "attach files to" : "change the tags on";
       // A 403 is the API app missing a scope, and is the same for every job.
       return save(/\b403\b/.test(m)
-        ? `ServiceTitan won't let the portal ${what} jobs — tick ${d.note ? "Forms › Attachments" : "Job Planning › Jobs"} (write) on the portal's API app and have it re-authorised.`
+        ? `ServiceTitan won't let the portal ${what} jobs — tick ${step === "file" ? "Forms › Attachments" : "Job Planning › Jobs"} (write) on the portal's API app and have it re-authorised.`
         : `Couldn't ${what} job ${jobId}: ${m}`);
     }
   }
   return save(null);
 }
 
-/** After a send: note the jobs when this supplier is on the list. Never fails the send. */
-export async function notesIfOn(poId: number): Promise<void> {
+/** Notes for the ticked suppliers, tags for everyone. */
+export async function updateJobs(poId: number): Promise<{ ok: boolean; done: JobNoteDone[]; error?: string }> {
+  const po = await getOrder(poId);
+  if (!po) return { ok: false, done: [], error: "That order couldn't be found." };
+  return updateJobsFor(poId, { notes: (await notedSuppliers()).includes(po.supplier_id) });
+}
+
+/** After a send: tags, and the note when this supplier is ticked. Never fails the send. */
+export async function jobsAfterSend(poId: number): Promise<void> {
   try {
-    const po = await getOrder(poId);
-    if (!po) return;
-    const suppliers = await sbSelect<Pick<Supplier, "id" | "method">>("order_suppliers", "select=id,method");
-    if ((await loadJobNoteSuppliers(suppliers)).includes(po.supplier_id)) await noteOrderOnJobs(poId);
+    await updateJobs(poId);
   } catch {
-    // The order went; the note can be added from Sent.
+    // The order went; the jobs can be brought up to date from Sent.
   }
 }
 
+type PastPo = { id: number; supplier_id: string; kind: string; details: { jobs?: { job_id: number }[] } | null; st_notes: JobNoteDone[] | null; st_pos: unknown[] | null };
+
 /**
- * Sent orders from the ticked suppliers whose jobs don't all have their note
- * and file yet: the ones sent before this existed, and any ServiceTitan
- * refused. Every week at once, so catching up doesn't mean paging through Sent.
+ * Sent orders whose jobs aren't up to date in ServiceTitan: a tag not yet
+ * swapped, a ticked supplier's note or file missing, or — once purchase orders
+ * are set up — no purchase order yet. The ones sent before each of these
+ * existed, and any ServiceTitan refused. Every week at once.
  */
-export async function ordersToNote(): Promise<number[]> {
-  const suppliers = await sbSelect<Pick<Supplier, "id" | "method">>("order_suppliers", "select=id,method");
-  const ids = await loadJobNoteSuppliers(suppliers);
-  if (!ids.length) return [];
-  const pos = await sbSelect<{ id: number; kind: string; details: { jobs?: { job_id: number }[] } | null; st_notes: JobNoteDone[] | null }>(
-    "purchase_orders", `select=id,kind,details,st_notes&status=eq.sent&supplier_id=in.(${ids.map(encodeURIComponent).join(",")})&order=sent_at.asc`,
-  );
+export async function ordersToUpdate(): Promise<number[]> {
+  const [ticked, pos, poSet] = await Promise.all([
+    notedSuppliers(),
+    sbSelect<PastPo>("purchase_orders", "select=id,supplier_id,kind,details,st_notes,st_pos&status=eq.sent&order=sent_at.asc"),
+    loadStPoSettings(),
+  ]);
   if (!pos.length) return [];
-  const lines = await sbSelect<{ po_id: number; job_id: number | null }>("purchase_order_lines", `select=po_id,job_id&job_id=not.is.null&po_id=in.(${pos.map((p) => p.id).join(",")})`);
+  const lines = await sbSelect<{ po_id: number; job_id: number | null; sku_id: number | null }>("purchase_order_lines", `select=po_id,job_id,sku_id&po_id=in.(${pos.map((p) => p.id).join(",")})`);
+  const poReady = poSet.auto && !!poSet.typeId && !!poSet.warehouseId;
   return pos.filter((p) => {
-    const jobs = p.kind === "work_order" ? (p.details?.jobs ?? []).map((j) => j.job_id) : lines.filter((l) => l.po_id === p.id).map((l) => l.job_id as number);
+    const mine = lines.filter((l) => l.po_id === p.id);
+    const jobs = p.kind === "work_order" ? (p.details?.jobs ?? []).map((j) => j.job_id) : [...new Set(mine.map((l) => l.job_id).filter((x): x is number => x != null))];
+    const noted = ticked.includes(p.supplier_id);
     const done = p.st_notes ?? [];
-    return jobs.some((j) => !done.some((d) => d.job_id === j && d.note && d.file));
+    const jobsBehind = jobs.some((j) => !done.some((d) => d.job_id === j && d.tags && (!noted || (d.note && d.file))));
+    const groups = new Set(mine.filter((l) => l.sku_id != null).map((l) => l.job_id)).size;
+    const poBehind = poReady && p.kind === "order" && groups > (p.st_pos?.length ?? 0);
+    return jobsBehind || poBehind;
   }).map((p) => p.id);
 }
 
-/** Note every one of them, oldest first. A missing scope is the same for all, so that stops the run. */
-export async function notePastOrders(): Promise<{ done: number; jobs: number; failed: string[] }> {
-  const out = { done: 0, jobs: 0, failed: [] as string[] };
-  for (const id of await ordersToNote()) {
-    const r = await noteOrderOnJobs(id);
-    if (r.ok) { out.done++; out.jobs += r.done.length; continue; }
-    out.failed.push(r.error ?? "refused");
-    if (/won't let the portal/.test(r.error ?? "")) break;
+/** Bring every one of them up to date, oldest first. A missing scope is the same for all, so that stops the run. */
+export async function updatePastOrders(): Promise<{ done: number; failed: string[] }> {
+  const out = { done: 0, failed: [] as string[] };
+  const poSet = await loadStPoSettings();
+  const poReady = poSet.auto && !!poSet.typeId && !!poSet.warehouseId;
+  for (const id of await ordersToUpdate()) {
+    const r = await updateJobs(id);
+    let err = r.ok ? null : r.error ?? "refused";
+    if (!err && poReady) {
+      const po = await getOrder(id);
+      if (po?.kind === "order") {
+        const p = await pushOrderToServiceTitan(id);
+        if (!p.ok) err = p.error ?? "ServiceTitan refused the purchase order";
+      }
+    }
+    if (!err) { out.done++; continue; }
+    out.failed.push(err);
+    if (/won't let the portal/.test(err)) break;
   }
   return out;
 }

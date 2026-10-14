@@ -20,7 +20,11 @@ import { getOrder, loadOrderingSettings, type PoWithLines } from "./db";
  */
 
 export type StPoSettings = {
-  /** Put every order into ServiceTitan as it's sent, rather than on the button. */
+  /**
+   * Put every order into ServiceTitan as it's sent, rather than on the button.
+   * On unless switched off: the office asked for every job to carry its
+   * purchase order. Nothing goes until the type and warehouse are picked.
+   */
   auto: boolean;
   /** The purchase order type ServiceTitan files them under. */
   typeId: number | null;
@@ -40,7 +44,7 @@ export async function loadStPoSettings(): Promise<StPoSettings> {
   const s = await getSettings<Partial<StPoSettings>>(KEY).catch(() => null);
   const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
   return {
-    auto: s?.auto === true,
+    auto: s?.auto !== false,
     typeId: n(s?.typeId), warehouseId: n(s?.warehouseId), stockBusinessUnitId: n(s?.stockBusinessUnitId),
     vendorIds: Object.fromEntries(Object.entries(s?.vendorIds ?? {}).filter(([, v]) => typeof v === "number")) as Record<string, number>,
   };
@@ -206,10 +210,13 @@ export async function pushOrderToServiceTitan(poId: number): Promise<{ ok: boole
   return errors.length ? { ok: false, made, error: errors.join(" ") } : { ok: true, made };
 }
 
-/** After a send: put it in ServiceTitan when that's switched on. Never fails the send. */
+/** After a send: put it in ServiceTitan when that's on and set up. Never fails the send. */
 export async function pushIfAuto(poId: number): Promise<void> {
   try {
-    if ((await loadStPoSettings()).auto) await pushOrderToServiceTitan(poId);
+    const s = await loadStPoSettings();
+    // Unset, every order would carry the same "pick a type first" refusal;
+    // the Sent card already says it isn't in ServiceTitan, with the button.
+    if (s.auto && s.typeId && s.warehouseId) await pushOrderToServiceTitan(poId);
   } catch {
     // The order went to the supplier; ServiceTitan can be retried from Sent.
   }

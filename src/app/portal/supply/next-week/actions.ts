@@ -7,7 +7,7 @@ import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrd
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
-import { noteOrderOnJobs } from "@/lib/ordering/stJobNotes";
+import { updateJobs } from "@/lib/ordering/stJobNotes";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -237,15 +237,15 @@ export async function pushToServiceTitan(id: number): Promise<ActionResult> {
   }
 }
 
-/** The note and the order PDF on each of the order's jobs in ServiceTitan; only what's missing is added. */
+/** Tags, and for the ticked suppliers the note and the order PDF, on each of the order's jobs in ServiceTitan; only what's missing is added. */
 export async function noteOnJobs(id: number): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   if (!isId(id)) return { ok: false, error: "Which order?" };
   try {
-    const r = await noteOrderOnJobs(id);
+    const r = await updateJobs(id);
     done();
-    return r.ok ? { ok: true, note: `Noted on ${r.done.length} job${r.done.length === 1 ? "" : "s"} in ServiceTitan.` } : { ok: false, error: r.error };
+    return r.ok ? { ok: true, note: `Up to date on ${r.done.length} job${r.done.length === 1 ? "" : "s"} in ServiceTitan.` } : { ok: false, error: r.error };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

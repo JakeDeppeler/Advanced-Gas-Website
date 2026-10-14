@@ -252,31 +252,35 @@ function InServiceTitan({ po }: { po: PoWithLines }) {
 }
 
 /**
- * The note and the order PDF on each job in ServiceTitan, for the suppliers
- * that have it (Reclaim and the electrician unless changed). It happens by
- * itself on sending; the button is for a refusal, or an order sent before.
+ * What the order has done to its jobs in ServiceTitan: the tags swapped to
+ * "ordered" (or booked) for every supplier, and for the ticked ones a note
+ * with the order attached. It happens by itself on sending; the button is for
+ * a refusal, or an order sent before.
  */
-function OnTheJobs({ po }: { po: PoWithLines }) {
+function OnTheJobs({ po, noted }: { po: PoWithLines; noted: boolean }) {
   const { busy, msg, run } = useAct();
   const jobs = po.kind === "work_order" ? (po.details?.jobs ?? []).map((j) => ({ id: j.job_id, n: j.job_number })) : po.lines.filter((l) => l.job_id != null).map((l) => ({ id: l.job_id as number, n: l.job_number }));
   const uniq = [...new Map(jobs.map((j) => [j.id, j])).values()];
   if (!uniq.length || po.status !== "sent") return null;
   const done = po.st_notes ?? [];
-  const full = uniq.filter((j) => done.some((d) => d.job_id === j.id && d.note && d.file));
+  const at = (id: number) => done.find((d) => d.job_id === id);
+  const full = uniq.filter((j) => { const d = at(j.id); return !!d?.tags && (!noted || (d.note && d.file)); });
   const all = full.length === uniq.length;
   const what = po.kind === "work_order" ? "work order" : "order";
+  const tags = [...new Set(done.flatMap((d) => d.tagged ?? []))];
+  const nums = (js: typeof uniq) => js.map((j) => j.n ?? j.id).join(", ");
   return (
     <div className="pt-nw__st">
       <span>
         <strong>On the job:</strong>{" "}
-        {all ? `note and ${what} on ${full.map((j) => j.n ?? j.id).join(", ")}`
-          : full.length ? `on ${full.map((j) => j.n ?? j.id).join(", ")} · ${uniq.length - full.length} still to go`
-          : "not on the job in ServiceTitan yet"}
+        {all ? `${noted ? `note and ${what}` : "tags changed"} on ${nums(full)}${tags.length ? ` · tagged ${tags.join(", ")}` : ""}`
+          : full.length ? `done on ${nums(full)} · ${uniq.length - full.length} still to go`
+          : "not up to date in ServiceTitan yet"}
       </span>
       {po.st_note_error && <span className="pt-nw__sterr">{po.st_note_error}</span>}
       {!all && (
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => noteOnJobs(po.id))}>
-          {busy ? "Adding…" : full.length || po.st_note_error ? "Try the job note again" : `Add note & ${what} to the job`}
+          {busy ? "Working…" : full.length || po.st_note_error ? "Try again" : noted ? `Add note & ${what} to the job` : "Change the job's tags"}
         </button>
       )}
       {msg?.ok && <span className="pt-inline is-ok">{msg.text}</span>}
@@ -290,7 +294,7 @@ function Buttons({ po, supplier, testTo, label, noted }: { po: PoWithLines; supp
     return po.status === "cancelled" ? null : (
       <div className="pt-nw__foot">
         {po.kind === "order" && <InServiceTitan po={po} />}
-        {(noted || (po.st_notes?.length ?? 0) > 0 || po.st_note_error) && <OnTheJobs po={po} />}
+        <OnTheJobs po={po} noted={!!noted} />
         <span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span>
       </div>
     );

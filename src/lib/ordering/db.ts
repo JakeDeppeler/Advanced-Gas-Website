@@ -36,7 +36,7 @@ export type PurchaseOrder = {
   st_pos?: Array<{ job_id: number | null; st_id: number | null; number: string | null }> | null;
   st_error?: string | null;
   /** The note and the order PDF on each job in ServiceTitan (0075). */
-  st_notes?: Array<{ job_id: number; note: boolean; file: boolean }> | null;
+  st_notes?: Array<{ job_id: number; note: boolean; file: boolean; tags?: boolean; tagged?: string[] }> | null;
   st_note_error?: string | null;
 };
 
