@@ -113,11 +113,11 @@ export const HANDBOOK: Shelf[] = [
     title: "The places — factory & vans",
     blurb: "The shed and the vans: whose job, how often, and what good looks like.",
     items: [
-      { title: "Keep the factory clean", note: "The areas, who owns what, end of day", status: "write" },
-      { title: "Stock & restock", note: "The van kit list, running low means flag it, deliveries", status: "write" },
+      { title: "Keep the factory clean", note: "The areas, who owns what, end of day", status: "have" },
+      { title: "Stock & restock", note: "The van kit list, running low means flag it, deliveries", status: "have" },
       { title: "Van care", note: "Daily tidy, weekly clean and restock", status: "have" },
       { title: "Monthly van condition check & damage log", note: "Every one to two months, photos, report early", status: "have" },
-      { title: "Rego, service & fuel", note: "Who tracks it", status: "write" },
+      { title: "Rego, service & fuel", note: "Who tracks it", status: "have" },
     ],
   },
   {
@@ -127,10 +127,10 @@ export const HANDBOOK: Shelf[] = [
     blurb: "ServiceTitan end to end, the numbers behind it, and how we talk to customers.",
     items: [
       { title: "On the job in ServiceTitan", note: "Lead → dispatch → estimate → invoice → paid, with photos and forms every job", status: "have", today: true },
-      { title: "The numbers", note: "The scoreboard, gross profit, utilisation, and what they mean for you", status: "have" },
+      { title: "The numbers", note: "The scoreboard, gross profit, utilisation, and what they mean for you", status: "have", gap: "Written, held back: the targets in it (close rate 45%+, gross profit toward 35%+, utilisation 70%) don't yet match the live model, which has close rate at 60% and no gross profit goal" },
       { title: "Reviews", note: "Ask on every happy job, make it easy, and we reply to them", status: "have" },
       { title: "The website", note: "Where to point everyone", status: "have" },
-      { title: "Notifications & customer comms", note: "“On my way”, reminders, quote follow-up", status: "write" },
+      { title: "Notifications & customer comms", note: "“On my way”, reminders, quote follow-up", status: "have" },
     ],
   },
   {
@@ -139,9 +139,9 @@ export const HANDBOOK: Shelf[] = [
     title: "Safety & compliance",
     blurb: "The part that wins every argument.",
     items: [
-      { title: "Safety wins every argument", note: "SWMS and JSA, incident reporting", status: "write", gap: "Consolidate what we already have" },
-      { title: "Compliance", note: "Never work outside your licence, gas and ARC, compliance certificates", status: "write", gap: "Consolidate what we already have" },
-      { title: "Insurances & rego", status: "write" },
+      { title: "Safety wins every argument", note: "SWMS and JSA, incident reporting", status: "have" },
+      { title: "Compliance", note: "Never work outside your licence, gas and ARC, compliance certificates", status: "have" },
+      { title: "Insurances & rego", status: "have" },
     ],
   },
   {
@@ -150,9 +150,9 @@ export const HANDBOOK: Shelf[] = [
     title: "Admin & getting paid",
     blurb: "Time on, money in, money out.",
     items: [
-      { title: "Timesheets & time codes", note: "Job, travel, yard, training, warranty, admin", status: "write" },
-      { title: "Invoicing & getting paid", note: "On the day, EFT, chasing money", status: "write" },
-      { title: "Payroll", note: "How and when", status: "write" },
+      { title: "Timesheets & time codes", note: "Job, travel, yard, training, warranty, admin", status: "have" },
+      { title: "Invoicing & getting paid", note: "On the day, EFT, chasing money", status: "have" },
+      { title: "Payroll", note: "How and when", status: "have" },
     ],
   },
   {
@@ -161,10 +161,10 @@ export const HANDBOOK: Shelf[] = [
     title: "Forms & templates",
     blurb: "The paper. Print it, fill it, put it back.",
     items: [
-      { title: "Estimate templates", note: "Good/Better/Best for the top ten jobs", status: "write", gap: "Part of the ServiceTitan build" },
-      { title: "Van kit & stock checklist", status: "write" },
-      { title: "Front-door card", note: "The greeting and the menu", status: "write" },
-      { title: "Vehicle condition check form", status: "write" },
+      { title: "Estimate templates", note: "Good/Better/Best for the top ten jobs", status: "write", gap: "Built in ServiceTitan as part of the build — link each one here" },
+      { title: "Van kit & stock checklist", status: "write", gap: "Jake + Jye to build the list" },
+      { title: "Front-door card", note: "The greeting and the menu", status: "have" },
+      { title: "Vehicle condition check form", status: "write", gap: "The form itself: walk-around points, photo prompts, damage log, sign-off" },
       { title: "Before-go-live checklist", status: "have" },
     ],
   },
@@ -175,9 +175,9 @@ export const HANDBOOK: Shelf[] = [
     blurb: "How you get better at this, and where to look it up.",
     items: [
       { title: "The team training day", status: "built", href: "/portal/sops" },
-      { title: "ServiceTitan how-tos", note: "A walk through the app", status: "write" },
-      { title: "Product guides", status: "write" },
-      { title: "Apprentice logbook & training plan", status: "write" },
+      { title: "ServiceTitan how-tos", note: "A walk through the app", status: "write", gap: "Short walkthroughs — dispatch, building an estimate, invoicing, photos and forms — added as they're made" },
+      { title: "Product guides", status: "write", gap: "Install and spec guides for the systems we fit most, added as they're made" },
+      { title: "Apprentice logbook & training plan", status: "write", gap: "Link the training plan and logbook; reviewed monthly with Dean" },
     ],
   },
 ];

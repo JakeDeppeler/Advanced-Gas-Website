@@ -4,7 +4,8 @@ import { getPortalUser } from "@/lib/portal/session";
 import { TradeShell } from "@/components/portal/TradeShell";
 import { HANDBOOK } from "@/lib/portal/content";
 import { handbookBodies, dbConfigured } from "@/lib/portal/db";
-import { parseProse, readingMinutes } from "@/lib/portal/prose";
+import { readingMinutes } from "@/lib/portal/prose";
+import { ProseBlocks } from "@/components/portal/ProseBlocks";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Handbook — Trade portal" };
@@ -82,11 +83,7 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
 
           {body ? (
             <div className="tr-prose" style={{ flex: "1 1 auto" }}>
-              {parseProse(body).map((b, i) =>
-                b.kind === "h" ? <h3 key={i} style={{ fontSize: 19, margin: "14px 0 6px" }}>{b.text}</h3>
-                : b.kind === "ul" ? <ul key={i}>{b.items.map((it) => <li key={it}>{it}</li>)}</ul>
-                : <p key={i}>{b.text}</p>,
-              )}
+              <ProseBlocks body={body} heading="h3" headingStyle={{ fontSize: 19, margin: "14px 0 6px" }} />
             </div>
           ) : (
             <div className="tr-stack tr-stack--sm" style={{ flex: "1 1 auto" }}>

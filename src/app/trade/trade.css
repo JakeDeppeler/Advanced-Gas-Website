@@ -520,7 +520,8 @@
 .tr-sop__step p { font-size: 15.5px; color: var(--tr-ink-2); }
 .tr-prose { font-size: 17px; line-height: 27px; }
 .tr-prose p + p { margin-top: 12px; }
-.tr-prose ul { margin: 8px 0; padding-left: 22px; }
+.tr-prose ul, .tr-prose ol { margin: 8px 0; padding-left: 22px; }
+.tr-prose ol { list-style: decimal; }
 
 /* ---- Videos ---- */
 .tr-vid { padding: 0; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
