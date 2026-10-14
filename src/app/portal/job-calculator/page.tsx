@@ -4,10 +4,15 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { JobCalculator } from "@/components/portal/JobCalculator";
 import { crewFigures } from "@/lib/portal/crewRates";
+import { priceFactor } from "@/lib/portal/crew";
 import { money2 } from "@/lib/portal/format";
 import { dbConfigured } from "@/lib/portal/db";
 import { getGrowth } from "@/lib/portal/growth";
 import { EMPTY_GROWTH } from "@/lib/portal/growthTypes";
+
+// With no markup saved, materials go on at whatever keeps the same share of
+// the price as the labour: 20% of the price is cost + 25%.
+const markupFor = (marginPct: number) => Math.round((priceFactor(marginPct) - 1) * 1000) / 10;
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Job calculator — Team portal" };
@@ -21,7 +26,7 @@ export default async function JobCalculatorPage() {
   // the arithmetic underneath every figure the calculator produces, and pricing
   // a job without it in front of you is guessing. Read from one place: the
   // trade portal's on-site calculator prices off the same figures.
-  const [{ crew, costPerHr, costPerHrOnsite, figures }, growth] = await Promise.all([
+  const [{ crew, costPerHr, costPerHrOnsite, figures, margin }, growth] = await Promise.all([
     crewFigures(),
     dbConfigured() ? getGrowth() : Promise.resolve(EMPTY_GROWTH),
   ]);
@@ -49,7 +54,7 @@ export default async function JobCalculatorPage() {
           </div>
         )}
       </div>
-      <JobCalculator crew={crew} costPerHr={costPerHr} costPerHrOnsite={costPerHrOnsite} calloutFee={165} materialsMarkup={growth.markup.materialsPct > 0 ? growth.markup.materialsPct : 20} />
+      <JobCalculator crew={crew} costPerHr={costPerHr} costPerHrOnsite={costPerHrOnsite} calloutFee={165} materialsMarkup={growth.markup.materialsPct > 0 ? growth.markup.materialsPct : markupFor(margin ?? 20)} margin={margin} />
     </PortalShell>
   );
 }

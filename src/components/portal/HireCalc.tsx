@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
+import { priceFactor,
   calcPerson, computeCapacity, defaultsFor, fleetDepOf, LEVEL_LABEL, withVans,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
@@ -74,7 +74,7 @@ export function HireCalc({ people, settings, growth }: { people: CrewMember[]; s
 
     // What their time sells for: their own hours at today's rate when they
     // run a van; the extra on the crew's hour when they ride along.
-    const charge = base.costPerHr * (1 + settings.margin / 100);
+    const charge = base.costPerHr * priceFactor(settings.margin);
     const rate = cap.rates.find((x) => x.id === "new-hire");
     const riding = !van || !me.chargeable;
     const priceHr = riding ? rate?.uplift ?? 0 : charge;

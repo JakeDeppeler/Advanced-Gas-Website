@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
+import { priceFactor,
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
   computeCapacity, loadedWage, onCostsOf, SUPER_GUARANTEE, countedElsewhere, crewCombos, defaultsFor, fleetDepOf, officeCost, overheadsOf, overheadSplit, overheadTotal,
   scaleOf, suggestOverhead, alwaysSupervised,
@@ -233,7 +233,7 @@ export function CapacityEditor({
   const ohTotal = cap.sharedOverhead;
   const hasHrs = cap.totalBillHrs > 0;
   const show = (n: number) => (hasHrs ? money2(n) : "—");
-  const blended = hasHrs ? cap.costPerHr * (1 + s.margin / 100) : null;
+  const blended = hasHrs ? cap.costPerHr * priceFactor(s.margin) : null;
 
   /** The fixed notes, plus one written on the spot for each crew level. */
   const noteFor = (key: string) => {
@@ -250,7 +250,7 @@ export function CapacityEditor({
       return {
         label: row.label,
         body: key.endsWith("-charge")
-          ? `${bodies} This is that cost with the ${s.margin}% margin on top, which is what goes on the quote. The margin goes on once, over everybody on the job, not on one of them.`
+          ? `${bodies} This is that cost priced so ${s.margin}% of what the customer pays is profit, which is what goes on the quote. The margin goes on once, over everybody on the job, not on one of them.`
           : `${bodies} This is what it costs before any margin. Quote below it and the job loses money however it felt on the day.`,
       };
     }
@@ -345,7 +345,7 @@ export function CapacityEditor({
       levelHours.filter((l) => !l.wageOnly).sort((a, b) => b.perHr - a.perHr)[0];
     if (!trade) return [] as { key: string; label: string; value: number; sub: string }[];
     const mate = levelHours.find((l) => l.wageOnly);
-    const m = 1 + s.margin / 100;
+    const m = priceFactor(s.margin);
     const rows = [
       { key: "trade-cost", label: `${trade.label} + overhead`, value: trade.perHr, sub: "Costs us" },
       { key: "trade-charge", label: `${trade.label} + overhead + ${s.margin}%`, value: trade.perHr * m, sub: "What we charge" },
@@ -472,7 +472,7 @@ export function CapacityEditor({
         />
         <Stat
           label="The year at full tilt"
-          value={hasHrs ? money(cap.totalBillHrs * cap.costPerHr * (1 + s.margin / 100)) : "—"}
+          value={hasHrs ? money(cap.totalBillHrs * cap.costPerHr * priceFactor(s.margin)) : "—"}
           sub="Every billable hour, sold"
           open={info === "ceiling"} onToggle={() => setInfo(info === "ceiling" ? null : "ceiling")}
         />

@@ -29,14 +29,14 @@ export default async function PricingPage() {
       <div className="pk">
         <Head title="Rates & pricing" sub="The numbers the whole portal is built on · change one here and every page updates" info={[
           ["Our hourly rate", "The one rate in the ServiceTitan pricebook. Changing it here doesn’t change ServiceTitan; keep the two the same."],
-          ["Profit we want", "Added on top of what an hour costs to build every rate on Our hourly rate and Team."],
+          ["Profit we want", "The share of the price that is profit once every wage and overhead is paid. Every rate on Our hourly rate and Team is built to leave it, so a job priced at our rates shows this on Profit on every job."],
         ]} />
         <Say>Match these to the ServiceTitan pricebook. Team › Labour rates sets our rate against what each person costs an hour.</Say>
         <NumbersForm title="Rates & pricing" aside="match these to the ServiceTitan pricebook" save={savePricing} canSave={can(user, "overhead")} rows={[
           { key: "hourly", label: "Our hourly rate", sub: "one rate for everyone, before GST", unit: "$ an hour", value: p.hourly },
           { key: "callout", label: "Call-out fee", sub: "before GST", unit: "$", value: p.callout },
           { key: "afterHours", label: "After-hours", sub: "times the hourly rate", unit: "× the hourly rate", value: p.afterHours },
-          { key: "margin", label: "Profit we want", sub: "on top of cost · used to build every rate", unit: "% on top of cost", value: cap?.margin ?? null },
+          { key: "margin", label: "Profit we want", sub: "of the price, after every cost · used to build every rate", unit: "% of the price", value: cap?.margin ?? null },
         ]} />
         <div className="pk-btns">
           <Btn href="/portal/finance/hourly">What makes up an hour ›</Btn>

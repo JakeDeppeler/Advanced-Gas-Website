@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
 import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { computeCapacity, LEVEL_LABEL, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
+import { priceFactor, computeCapacity, LEVEL_LABEL, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { money, plural } from "@/lib/portal/run/month";
 import { Bad, Btn, Card, Empty, Good, Head, Hero, Pair, Say } from "@/components/portal/kit/Kit";
@@ -85,7 +85,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
   const cap = computeCapacity(crew, s);
   const pricing = normalisePricing(pricingRaw);
   const ours = pricing.hourly;
-  const needs = cap.totalBillHrs > 0 ? cap.costPerHr * (1 + s.margin / 100) : null;
+  const needs = cap.totalBillHrs > 0 ? cap.costPerHr * priceFactor(s.margin) : null;
   const breakEven = cap.totalBillHrs > 0 ? cap.costPerHr : null;
   const people = cap.rates
     .map((r) => ({ r, p: crew.find((c) => c.id === r.id) }))

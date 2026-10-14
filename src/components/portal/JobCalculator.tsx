@@ -56,10 +56,12 @@ type JobKey = (typeof JOBS)[number]["k"];
 
 type MatLine = { id: number; what: string; cost: number; qty: number };
 
-export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, materialsMarkup = 20 }: {
+export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, materialsMarkup = 25, margin = null }: {
   crew: CrewRate[]; costPerHr: number | null; costPerHrOnsite: number | null; calloutFee: number;
-  /** The markup on materials saved on Our numbers; 20% until one is. */
+  /** The markup on materials saved on Our numbers; the one that matches the margin until one is. */
   materialsMarkup?: number;
+  /** The profit we want as a share of the price, which every rate is built to leave. */
+  margin?: number | null;
 }) {
   const [job, setJob] = useState<JobKey>("custom");
   // Per job, not per portal. Most jobs are mobile, so that is the default.
@@ -149,6 +151,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
     : null;
   const profit = ourCost !== null ? discounted - ourCost : null;
   const marginPct = profit !== null && discounted > 0 ? (profit / discounted) * 100 : null;
+  const goal = margin ?? 20;
 
   const jobDef = JOBS.find((j) => j.k === job);
   const underMin = jobDef && jobDef.min > 0 && discounted < jobDef.min;
@@ -325,7 +328,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
           {travelLabour > 0 && <div><span>Travel ({billedTravel} hrs)</span><strong>{money(travelLabour)}</strong></div>}
           {manualLabour > 0 && <div><span>Extra labour ({manualHrs} hrs)</span><strong>{money(manualLabour)}</strong></div>}
           <div className="pt-calc__break-total"><span>Labour</span><strong>{money(labour)}</strong></div>
-          {matCost > 0 && <div><span>Materials + {markup}%</span><strong>{money(matCharged)}</strong></div>}
+          {matCost > 0 && <div><span>Materials + {markup}% <em className="pt-calc__em">({Math.round((markup / (100 + markup)) * 100)}% of their price)</em></span><strong>{money(matCharged)}</strong></div>}
           {calloutCharged > 0 && <div><span>After-hours call-out</span><strong>{money(calloutCharged)}</strong></div>}
           {discount > 0 && <div><span>Discount {discount}%</span><strong>−{money(beforeDiscount - discounted)}</strong></div>}
           <div><span>GST 10%</span><strong>{money(gst)}</strong></div>
@@ -337,20 +340,20 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
         </div>
 
         {ourCost !== null ? (
-          <div className={`pt-job__worth${profit !== null && profit < 0 ? " is-bad" : marginPct !== null && marginPct < 15 ? " is-thin" : ""}`}>
+          <div className={`pt-job__worth${profit !== null && profit < 0 ? " is-bad" : marginPct !== null && marginPct < goal - 0.5 ? " is-thin" : ""}`}>
             <div className="pt-job__worth-h">Is it worth doing</div>
             <div className="pt-job__worthrow"><span>{jobHours} hrs, each at what that person costs an hour, + materials</span><strong>{money(ourCost)}</strong></div>
             <div className="pt-job__worthrow"><span>You keep (ex GST)</span><strong>{money(profit as number)}</strong></div>
             <div className="pt-job__worthrow pt-job__worthrow--total">
               <span>Margin</span>
-              <strong>{marginPct !== null ? `${Math.round(marginPct)}%` : "—"}</strong>
+              <strong>{marginPct !== null ? `${Math.round(marginPct)}%` : "—"}{marginPct !== null ? <em className="pt-calc__em"> of {goal}% wanted</em> : null}</strong>
             </div>
             <p className="pt-job__verdict">
               {profit !== null && profit < 0
                 ? "This job loses money at that price."
-                : marginPct !== null && marginPct < 15
-                  ? "Thin. It covers costs but there's little in it for the business."
-                  : "Comfortably above what the hours cost to put on the road."}
+                : marginPct !== null && marginPct < goal - 0.5
+                  ? `Under our ${goal}%. It covers every wage and overhead, but leaves ${money(Math.max(0, (goal / 100) * discounted - (profit ?? 0)))} less than the goal — check the materials markup, the hours and any discount.`
+                  : `At or over our ${goal}%: every wage and overhead is covered, and ${goal}% of the price is profit.`}
             </p>
           </div>
         ) : (
