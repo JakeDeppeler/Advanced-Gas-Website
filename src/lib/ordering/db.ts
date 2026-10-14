@@ -33,7 +33,7 @@ export type PurchaseOrder = {
   cc_emails: string[] | null;
   updated_at: string;
   /** What ServiceTitan made of it (0073): one purchase order per job, and one for stock. */
-  st_pos?: Array<{ job_id: number | null; st_id: number | null; number: string | null }> | null;
+  st_pos?: Array<{ job_id: number | null; st_id: number | null; number: string | null; status?: string | null; sentTried?: boolean }> | null;
   st_error?: string | null;
   /** The note and the order PDF on each job in ServiceTitan (0075). */
   st_notes?: Array<{ job_id: number; note: boolean; file: boolean; tags?: boolean; tagged?: string[] }> | null;

@@ -350,7 +350,7 @@ export async function jobsAfterSend(poId: number): Promise<void> {
   }
 }
 
-type PastPo = { id: number; supplier_id: string; kind: string; details: { jobs?: { job_id: number }[] } | null; st_notes: JobNoteDone[] | null; st_pos: unknown[] | null };
+type PastPo = { id: number; supplier_id: string; kind: string; details: { jobs?: { job_id: number }[] } | null; st_notes: JobNoteDone[] | null; st_pos: { st_id: number | null; sentTried?: boolean }[] | null };
 
 /**
  * Sent orders whose jobs aren't up to date in ServiceTitan: a tag not yet
@@ -374,7 +374,8 @@ export async function ordersToUpdate(): Promise<number[]> {
     const done = p.st_notes ?? [];
     const jobsBehind = jobs.some((j) => !done.some((d) => d.job_id === j && d.tags && (!noted || (d.note && d.file))));
     const groups = new Set(mine.filter((l) => l.sku_id != null).map((l) => l.job_id)).size;
-    const poBehind = poReady && p.kind === "order" && groups > (p.st_pos?.length ?? 0);
+    const made = p.st_pos ?? [];
+    const poBehind = poReady && p.kind === "order" && (groups > made.length || made.some((m) => m.st_id != null && !m.sentTried));
     return jobsBehind || poBehind;
   }).map((p) => p.id);
 }

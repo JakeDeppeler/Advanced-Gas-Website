@@ -231,18 +231,25 @@ function InServiceTitan({ po }: { po: PoWithLines }) {
   const made = po.st_pos ?? [];
   const jobs = po.lines.filter((l) => l.sku_id != null);
   const groups = new Set(jobs.map((l) => l.job_id)).size;
-  const done = groups > 0 && made.length >= groups;
+  const unsent = made.filter((m) => m.st_id != null && !m.sentTried);
+  const done = groups > 0 && made.length >= groups && !unsent.length;
+  // What ServiceTitan itself says, read back after asking for Sent.
+  const pending = made.filter((m) => m.status === "Pending");
+  const label = (m: (typeof made)[number]) => `${m.number ? (/^po\b/i.test(m.number) ? m.number : `PO ${m.number}`) : "purchase order"}${m.status ? ` (${m.status})` : ""}`;
   return (
     <div className="pt-nw__st">
       <span>
         <strong>ServiceTitan:</strong>{" "}
-        {made.length ? made.map((m) => (m.number ? (/^po\b/i.test(m.number) ? m.number : `PO ${m.number}`) : "purchase order")).join(", ") : "not in ServiceTitan yet"}
-        {made.length > 0 && !done ? ` · ${groups - made.length} still to go` : ""}
+        {made.length ? made.map(label).join(", ") : "not in ServiceTitan yet"}
+        {made.length > 0 && made.length < groups ? ` · ${groups - made.length} still to go` : ""}
       </span>
       {po.st_error && <span className="pt-nw__sterr">{po.st_error}</span>}
+      {pending.length > 0 && !unsent.length && (
+        <span className="pt-nw__sterr">ServiceTitan kept {pending.length === 1 ? "it" : "them"} Pending — use Mark as Sent on {pending.length === 1 ? "it" : "them"} in ServiceTitan.</span>
+      )}
       {!done && (
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => pushToServiceTitan(po.id))}>
-          {busy ? "Putting it in…" : made.length || po.st_error ? "Try ServiceTitan again" : "Put in ServiceTitan"}
+          {busy ? "Putting it in…" : unsent.length && made.length >= groups ? "Mark as Sent in ServiceTitan" : made.length || po.st_error ? "Try ServiceTitan again" : "Put in ServiceTitan"}
         </button>
       )}
       {/* A refusal is already on the order (st_error); only a success needs saying here. */}
