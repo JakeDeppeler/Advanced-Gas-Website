@@ -30,7 +30,9 @@ ok(jobClass(null) === "service", "no job type is service, not a quote");
 const sept: Measured = {
   from: "2026-09-01", to: "2026-10-04", weeks: 24 / 5,
   leads: 31, quoteVisits: 87, serviceBooked: 94, serviceCompleted: 72, installsCompleted: 28,
-  quoted: 122, sold: 22, soldValue: 69017,
+  // 122 quotes worth $540,268 between them, each counted at the average of its
+  // own options: $4,428 a quote, against a $3,137 average sale.
+  quoted: 122, quotedValue: 540268, sold: 22, soldValue: 69017,
   invoiced: 118144, soldWorkInvoiced: 108127, serviceInvoiced: 10017,
 };
 
@@ -38,6 +40,7 @@ const none = readPaceSettings(null);
 const r = ratesFrom(sept, none);
 ok(near(r.closeRate.value, 22 / 122), "close rate is jobs sold over jobs quoted (18%)", r.closeRate.value);
 ok(near(r.avgSale.value, 69017 / 22), "average sale $3,137", r.avgSale.value);
+ok(near(r.avgQuote.value, 540268 / 122), "average quote $4,428 — the option amount, not the sale", r.avgQuote.value);
 ok(near(r.soldShare.value, 108127 / 118144), "91.5% of invoicing came through a quote", r.soldShare.value);
 ok(near(r.visitsPerQuote.value, 87 / 122), "0.71 quote visits booked per job quoted", r.visitsPerQuote.value);
 ok(near(r.avgService.value, 10017 / 72), "$139 a service job, $0 jobs included", r.avgService.value);
@@ -48,8 +51,25 @@ const { plan, lanes } = yearPlan(3_200_000, r);
 const soldWork = 3_200_000 * (108127 / 118144);
 ok(near(plan.sold.value, soldWork), "sold $ = goal × sold share ($2.93M)", plan.sold.value);
 ok(near(plan.sold.count, soldWork / (69017 / 22)), "jobs sold = sold $ ÷ average sale (933)", plan.sold.count);
-ok(near(plan.quoted.count, plan.sold.count! / (22 / 122)), "jobs quoted = sold ÷ close rate (5,175)", plan.quoted.count);
-ok(near(plan.quoted.value, soldWork / (22 / 122)), "quoted $ = sold $ ÷ close rate", plan.quoted.value);
+ok(near(plan.quoted.value, soldWork / (22 / 122)), "quoted $ = sold $ ÷ close rate ($16.2M)", plan.quoted.value);
+/*
+ * The chain the whole plan now hangs off, and the one Jake asked for in those
+ * words: the goal says what has to be sold, the close rate says how much has to
+ * be quoted to sell it, and the average option amount says how many quotes that
+ * is. Every figure traces back to the $3.2M.
+ */
+ok(
+  near(plan.quoted.count, (soldWork / (22 / 122)) / (540268 / 122)),
+  "jobs quoted = quoted $ ÷ average option (3,667)",
+  plan.quoted.count,
+);
+// The bug this replaced: dividing by the average sale instead of the average
+// option asked for 5,177 quotes where the goal needs 3,667 — 41% more, every
+// year, with nothing on the card to say where the number came from.
+ok(
+  Math.round(plan.sold.count! / (22 / 122)) === 5177 && Math.round(plan.quoted.count!) === 3667,
+  "and the old route asked for 5,177 — a fifth of a year of quoting that was never needed",
+);
 const serviceJobs = (3_200_000 - soldWork) / (10017 / 72);
 ok(near(lanes.serviceJobs, serviceJobs), "service jobs = the rest ÷ average service job", lanes.serviceJobs);
 ok(near(plan.completed.count, plan.sold.count! + serviceJobs), "completed = installs + service jobs");
@@ -60,7 +80,12 @@ ok(plan.invoiced.value === 3_200_000, "invoiced is the goal");
 const withBook = yearPlan(3_200_000, ratesFrom(sept, { bookRate: 0.7, closeRate: null, avgSale: null })).plan;
 ok(near(withBook.leads.count, plan.booked.count! / 0.7), "leads = booked ÷ booking rate once set");
 const better = yearPlan(3_200_000, ratesFrom(sept, { bookRate: null, closeRate: 0.3, avgSale: null })).plan;
-ok(near(better.quoted.count, plan.sold.count! / 0.3), "a 30% close rate asks for fewer quotes, same sales");
+// Through the money now, not the sold count: close more of what you write and
+// you have to write less of it, and the average option is what turns the one
+// into the other.
+ok(near(better.quoted.count, soldWork / 0.3 / (540268 / 122)), "a 30% close rate asks for fewer quotes, same sales");
+ok(better.sold.count === plan.sold.count, "and the same number of sales");
+ok(better.quoted.count! < plan.quoted.count!, "fewer, not more", { at30: better.quoted.count, at18: plan.quoted.count });
 ok(near(better.sold.count, plan.sold.count!), "and doesn't change how many have to sell");
 
 // Thin samples don't set a rate.

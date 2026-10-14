@@ -193,6 +193,10 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       // Distinct jobs, not days of quoting: this is the close rate's denominator
       // and the rate is per job. The period counts above are per day.
       quoted: new Set(quotedJobs.filter((x) => within(x.d, window)).map((x) => x.job)).size,
+      // One figure per quote at the average of its options, summed — so
+      // quotedValue / quoted is the average option amount, which is what the
+      // plan divides the money to quote by.
+      quotedValue: quotedJobs.filter((x) => within(x.d, window)).reduce((t, x) => t + x.v, 0),
       sold: sold.length,
       soldValue: sold.reduce((t, s) => t + s.v, 0) + changedIn(window),
       invoiced: inWin.reduce((t, x) => t + x.v, 0),

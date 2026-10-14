@@ -736,12 +736,14 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         foot={
           !live.st
             ? undefined
-            : footWithTarget(
-                today?.quotedValue.need,
+            : [
+                quotingAskedOfToday(m),
                 m.quotesCreatedTodayCount === 0
                   ? "nothing quoted yet today"
-                  : `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"} priced today`,
-              )
+                  : `${count(m.quotesCreatedTodayCount)} priced today`,
+              ]
+                .filter(Boolean)
+                .join(" · ") || undefined
         }
       />
 
@@ -1637,13 +1639,15 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
             answers "how well" — three options a job is a quote, one is a price,
             and it is the first thing that slips on a flat-out day. */}
         <span className="tile__foot">
-          {footWithTarget(
-            today?.quotedValue.need,
+          {[
+            quotingAskedOfToday(m),
             `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}` +
               (m.quotesCreatedTodayCount > 0 && m.quotesCreatedTodayOptions > 0
-                ? ` · ${count(m.quotesCreatedTodayOptions)} options · ${avgOptions(m.quotesCreatedTodayOptions, m.quotesCreatedTodayCount)} each`
+                ? ` · ${avgOptions(m.quotesCreatedTodayOptions, m.quotesCreatedTodayCount)} options each`
                 : ""),
-          )}
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </div>
 
@@ -2743,6 +2747,27 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
 function askedOfToday(target: number | null | undefined): string | null {
   if (target == null || !(target > 0)) return null;
   return `of ${plain(target)} today`;
+}
+
+/**
+ * The quoting the day asks for, with its working shown.
+ *
+ * The chain Jake asked the board to carry, in the order he said it: the $3.2M
+ * goal says what has to be sold, the close rate says how much has to be quoted
+ * to sell it, and the average option amount says how many quotes that is. Every
+ * figure on the card traces back to the goal, and the card says so — a target
+ * nobody can follow is one the room argues with instead of hitting.
+ */
+function quotingAskedOfToday(m: Metrics): string | null {
+  const money = m.pace?.day.quoted.value ?? null;
+  if (money == null || !(money > 0)) return null;
+  const jobs = m.pace?.day.quoted.count ?? null;
+  const close = m.pace?.rates.closeRate.value ?? null;
+  const how =
+    jobs != null && jobs > 0 && close != null && close > 0
+      ? `${count(Math.round(jobs))} ${Math.round(jobs) === 1 ? "quote" : "quotes"} at ${Math.round(close * 100)}%`
+      : null;
+  return [`of ${plain(money)} today`, how].filter(Boolean).join(" · ");
 }
 
 /**

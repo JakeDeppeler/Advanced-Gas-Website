@@ -107,6 +107,13 @@ export type Measured = {
   serviceCompleted: number;
   installsCompleted: number;
   quoted: number;
+  /**
+   * What those quotes were worth, one figure per job at the **average of its
+   * options** — the same way the Quotes page values a quote. Good, better and
+   * best are alternatives and at most one of them sells, so the middle of what
+   * was put in front of the customer is what a quote is worth.
+   */
+  quotedValue: number;
   sold: number;
   soldValue: number;
   invoiced: number;
@@ -123,6 +130,16 @@ export type Rates = {
   bookRate: Rate;
   closeRate: Rate;
   avgSale: Rate;
+  /**
+   * What one quote is worth: the average option amount.
+   *
+   * This is the figure that turns "we need $53,850 quoted today" into "that is
+   * twelve quotes" — and it has to be the average *option*, not the average
+   * sale, because a quote is written before anybody picks an option. Using the
+   * average sale ($3,703 against $4,603) asked for a fifth more quotes than
+   * the goal actually needs.
+   */
+  avgQuote: Rate;
   /** Share of invoiced money that came through a quote. */
   soldShare: Rate;
   /** Quote visits booked for every job quoted. Under 1 when repairs get quoted on the spot. */
@@ -148,6 +165,7 @@ export function ratesFrom(m: Measured | null, s: PaceSettings): Rates {
 
   const close = m ? ratio(m.sold, m.quoted) : null;
   const sale = m && m.sold >= 3 ? m.soldValue / m.sold : null;
+  const quote = m ? ratio(m.quotedValue, m.quoted) : null;
   const share = m && m.invoiced > 0 ? Math.min(1, Math.max(0, m.soldWorkInvoiced / m.invoiced)) : null;
   const visits = m ? ratio(m.quoteVisits, m.quoted) : null;
   const service = m ? ratio(m.serviceInvoiced, m.serviceCompleted) : null;
@@ -157,6 +175,7 @@ export function ratesFrom(m: Measured | null, s: PaceSettings): Rates {
     bookRate: rate(null, s.bookRate),
     closeRate: rate(close, s.closeRate),
     avgSale: rate(sale, s.avgSale),
+    avgQuote: rate(quote),
     soldShare: rate(share),
     visitsPerQuote: rate(visits),
     avgService: rate(service),
@@ -191,12 +210,22 @@ export function yearPlan(goal: number, r: Rates): { plan: Plan; lanes: Lanes } {
   const serviceWork = share == null ? null : goal * (1 - share);
 
   const sold = soldWork != null && r.avgSale.value ? soldWork / r.avgSale.value : null;
-  const quoted = sold != null && r.closeRate.value ? sold / r.closeRate.value : null;
   // What has to go in front of customers to sell that much of it. The close
   // rate is counted in jobs, so this is the work the plan needs quoted, not a
-  // separate rate — sell a quarter of what you write and you have to write four
+  // separate rate — sell a fifth of what you write and you have to write five
   // times what you mean to sell.
   const quotedWork = soldWork != null && r.closeRate.value ? soldWork / r.closeRate.value : null;
+  /*
+   * How many quotes that is: the money to quote, over what one quote is worth.
+   *
+   * Not `sold / closeRate`, which is how this read until Jake asked the board
+   * to work the whole chain back from the goal. That route divided by the
+   * average *sale* — $3,703 — where a quote is written before anybody has
+   * picked an option, and the average option is $4,603. Over a year it asked
+   * for a fifth more quotes than the goal needs, and it never said so, because
+   * the only figure on the card was a count.
+   */
+  const quoted = quotedWork != null && r.avgQuote.value ? quotedWork / r.avgQuote.value : null;
   const quoteVisits = quoted != null && r.visitsPerQuote.value != null ? quoted * r.visitsPerQuote.value : null;
 
   // No service money in the plan is no service jobs, not an unknown number.

@@ -1448,6 +1448,47 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## How many quotes the goal needs
+
+Every figure on the board traces back to the $3.2M, and the quoting chain is the
+one the room acts on each morning. It runs in three steps:
+
+1. The goal's month, over the month's working days, is **what has to be sold
+   today** — $11,093.
+2. Divided by the **close rate** — 21% of quoted jobs land — that is **what has
+   to be quoted today**: $53,852.
+3. Divided by what one quote is worth, that is **how many quotes**: twelve.
+
+Step 3 used to divide by the average **sale**, through `sold ÷ closeRate`. A
+quote is written before anybody has picked an option, so the right figure is the
+average **option** — $4,603 against a $3,703 average sale — and the old route
+asked for 5,177 quotes a year where the goal needs 3,667. A fifth of a year of
+quoting that was never needed, with nothing on the card to say where the number
+came from.
+
+So `Measured` now carries `quotedValue` (one figure per quote, at the average of
+its own options — the same way the Quotes page values a quote), `Rates` carries
+`avgQuote` off it, and `yearPlan` reads:
+
+```
+quotedWork = soldWork / closeRate      // the money to put in front of people
+quoted     = quotedWork / avgQuote     // how many quotes that is
+```
+
+The Quoted card on **Today** and on **Quotes** prints the whole chain:
+*of $53,852 today · 12 quotes at 21% · 5 priced today*. A target nobody can
+follow is one the room argues with instead of hitting.
+
+**Still off the goal, and still wrong: the booked count.** `booked` is quote
+visits plus service calls, and the service lane is sized from *measured*
+invoices — the share of money that didn't come through a quote, over the average
+service invoice. That currently works out at about twenty-four jobs a day
+against a business booking three or four. The goal's own planned week says 29
+jobs, which is 5.8 a day and close to the truth. Pointing the count steps at the
+goal's mix instead of at measured invoices is the remaining piece; it needs the
+mix rows split into quoted work and service first, and nothing in the mix says
+which is which.
+
 ## No verdict on a fraction of one day
 
 `standingOf` pro-rates a period's need by how much of it has gone. Over a week
