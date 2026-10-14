@@ -1,103 +1,183 @@
 /**
- * Portal content — the handbook shelves, videos, reference info and tools.
+ * Portal content — the handbook sections, videos, reference info and tools.
  *
- * The HANDBOOK below is the company operations manual, grouped into the
- * seven shelves (A–G). Each item carries a status:
- *   - "have"  → the content is written, it just needs loading in (add an
- *               `href` to a file/Google Doc and it goes live).
- *   - "write" → a genuine gap still to create.
- *   - today   → flagged as ready-today in the source map.
- * So this doubles as the team's table of contents and our build tracker.
+ * HANDBOOK below is the company operations manual: one private place that
+ * holds how Advanced Gas runs, top to bottom, so the business runs to the
+ * same standard whoever is in the chair. It is the team's table of contents
+ * and our build tracker at the same time, which is why every item carries a
+ * status:
  *
- * Everything is plain data — edit here to change what's in the portal.
+ *   - "built"   → a page that already exists. Add an `href` and the item
+ *                 links straight to it.
+ *   - "have"    → the words are written and live in a document elsewhere; an
+ *                 admin pastes the body in from the section screen.
+ *   - "write"   → a genuine gap. `gap` says what it is waiting on.
+ *
+ * `today` flags the handful somebody can read on their first day.
+ *
+ * The bodies themselves are not in here. They live in `portal_handbook_topics`
+ * keyed on (letter, title), so the office can write and change them without a
+ * deploy — see the section screen and `saveHandbookBody`. Renaming a title
+ * orphans its body, so rename with that in mind.
+ *
+ * Everything else is plain data — edit here to change what's in the portal.
  */
 
-export type HandbookStatus = "have" | "write";
+export type HandbookStatus = "built" | "have" | "write";
 
 export type HandbookItem = {
   title: string;
   note?: string;
   status: HandbookStatus;
   today?: boolean;
-  href?: string; // add a file/Doc link and the item becomes clickable
-  gap?: string;  // for "write" items: what's needed
+  /** A page or document link. "built" items become clickable once it is set. */
+  href?: string;
+  /** For "write" and for "built" items with nowhere to point yet. */
+  gap?: string;
 };
 
 export type Shelf = {
+  /** The badge on the card, and the key bodies are stored under. */
   letter: string;
+  /** The URL. Kept apart from `letter` so a section can be renumbered. */
+  slug: string;
   title: string;
+  /** One line on the card: what this section is for. */
+  blurb?: string;
   items: HandbookItem[];
 };
 
 export const HANDBOOK: Shelf[] = [
   {
-    letter: "A",
-    title: "Who we are & how we work",
+    letter: "1",
+    slug: "home",
+    title: "Start here",
+    blurb: "What this is, where everything lives, and what has changed lately.",
     items: [
-      { title: "Welcome / who we are", note: "Company, licences, org chart", status: "have" },
-      { title: "The 10 standards we run on", status: "have" },
-      { title: "Attitude & the two-way deal", note: "“We train as long as you learn”", status: "have", today: true },
-      { title: "Who owns what + who decides", status: "have" },
-      { title: "The weekly & daily rhythm", note: "Van check, Monday huddle, scorecard, Wednesday planning", status: "have" },
+      { title: "Welcome — what this portal is", note: "Why it exists and how to use it", status: "write", today: true },
+      { title: "Quick links", note: "ServiceTitan, the scoreboard, the website, who to call", status: "write" },
+      { title: "What's changed", note: "Anything new since you last looked", status: "write" },
     ],
   },
   {
-    letter: "B",
-    title: "Your role & your future",
+    letter: "2",
+    slug: "how-we-work",
+    title: "How we work",
+    blurb: "Who we are, the standards we hold, and the rhythm the week runs to.",
     items: [
-      { title: "Expectations per role", note: "Tradesman & apprentice", status: "have" },
-      { title: "The career ladder", note: "Apprentice yr 1–4 → tradesman → leading hand → manager", status: "have", today: true },
-      { title: "Pay bands", status: "write", gap: "Needs award check + sign-off" },
-      { title: "KPIs per role", note: "The 3–4 each person is scored on", status: "write", gap: "Targets exist, per-role split doesn’t" },
-      { title: "Reward & consequence", note: "What you earn, and the fair path when you miss", status: "have", today: true },
+      { title: "Who we are", note: "The company, the licences, the org chart", status: "have", today: true },
+      { title: "The 10 standards we run on", status: "have", today: true },
+      { title: "Attitude", note: "The one thing we can't teach", status: "have", today: true },
+      { title: "Our deal with you", note: "We train you as long as you're here to learn", status: "have", today: true },
+      { title: "Who owns what, and who decides", status: "have" },
+      { title: "The rhythm", note: "Daily van check, Monday huddle, scorecard, Wednesday install planning, one-on-ones", status: "have" },
     ],
   },
   {
-    letter: "C",
+    letter: "3",
+    slug: "roles",
+    title: "Roles & your future",
+    blurb: "Every role written down, what each is scored on, and the way up.",
+    items: [
+      { title: "The team", note: "Overview, org chart and the order we hire in", status: "built", gap: "Link the page that already exists" },
+      { title: "Apprentice — not in a van", status: "built", gap: "Link the page that already exists" },
+      { title: "Apprentice — in a van", status: "built", gap: "Link the page that already exists" },
+      { title: "Installer", status: "built", gap: "Link the page that already exists" },
+      { title: "Tradesman", status: "built", gap: "Link the page that already exists" },
+      { title: "Leading Hand", status: "built", gap: "Link the page that already exists" },
+      { title: "Office Manager", status: "built", gap: "Link the page that already exists" },
+      { title: "Field Manager", note: "Variation limit still to be set", status: "built", gap: "Link the page, and Jake + Dean to set the $300–$500 variation limit" },
+      { title: "Service Manager", status: "built", gap: "Link the page that already exists" },
+      { title: "GM / Operations", status: "built", gap: "Link the page that already exists" },
+      { title: "The career ladder & pay bands", note: "Apprentice year 1–4 → tradesman → leading hand → manager", status: "have", gap: "Pay bands stay out until the award check and sign-off are done" },
+      { title: "KPIs per role", note: "The three or four each role is scored on", status: "write", gap: "Targets exist; the per-role split does not" },
+      { title: "Reward & consequence", note: "What you earn, and the fair path when you miss", status: "have" },
+    ],
+  },
+  {
+    letter: "4",
+    slug: "the-customer",
+    title: "The customer",
+    blurb: "From the front door to the review — how we turn up, sell and price.",
+    items: [
+      { title: "At the front door", note: "Parking, the intro line, boot covers, their home their rules", status: "have", today: true },
+      { title: "How we present", note: "Uniform, ID, business card", status: "have", today: true },
+      { title: "How we sell", note: "Value not price, the four steps, diagnose and explain, Good/Better/Best, the iPad menu, quoting on the phone, “it's too expensive”, ask for the sale, ask for the review", status: "have" },
+      { title: "How we quote & price", note: "Three options always, never invent a price, scope changes priced first, rebates as a deduction", status: "have" },
+      { title: "Check the rest of the house", note: "Every visit is an opportunity, including the free gas line test", status: "have" },
+    ],
+  },
+  {
+    letter: "5",
+    slug: "factory-and-vans",
     title: "The places — factory & vans",
+    blurb: "The shed and the vans: whose job, how often, and what good looks like.",
     items: [
-      { title: "Keep the factory clean", note: "Daily tidy, who owns which area, end-of-day", status: "write" },
-      { title: "Stock & restock system", note: "Van kit list, running-low flag, deliveries", status: "write" },
-      { title: "Van care", note: "Daily/weekly by the crew", status: "have" },
-      { title: "The monthly van condition check + damage log", status: "have", today: true },
+      { title: "Keep the factory clean", note: "The areas, who owns what, end of day", status: "write" },
+      { title: "Stock & restock", note: "The van kit list, running low means flag it, deliveries", status: "write" },
+      { title: "Van care", note: "Daily tidy, weekly clean and restock", status: "have" },
+      { title: "Monthly van condition check & damage log", note: "Every one to two months, photos, report early", status: "have" },
       { title: "Rego, service & fuel", note: "Who tracks it", status: "write" },
     ],
   },
   {
-    letter: "D",
-    title: "The customer",
-    items: [
-      { title: "At the front door", note: "Parking, “G’day I’m [name] from Advanced Gas,” boots, their-home-their-rules", status: "have" },
-      { title: "How we present", note: "Uniform, ID, business card", status: "have" },
-      { title: "How we sell", note: "Value not price, the 4 steps, diagnose & explain, Good/Better/Best, the iPad menu, quoting on the phone, “it’s too expensive,” ask for the sale", status: "have" },
-      { title: "How we quote & price", note: "Three options always, never invent a price, scope changes priced first, rebates", status: "have" },
-    ],
-  },
-  {
-    letter: "E",
+    letter: "6",
+    slug: "systems",
     title: "The systems",
+    blurb: "ServiceTitan end to end, the numbers behind it, and how we talk to customers.",
     items: [
-      { title: "On the job in ServiceTitan", note: "Lead → dispatch → estimate → invoice → paid, photos & forms every time", status: "have" },
-      { title: "The numbers", note: "The scoreboard, GP%, utilisation, what they mean", status: "have" },
-      { title: "Reviews", note: "Ask every happy job, make it easy, reply to them", status: "have" },
-      { title: "The website & where to point everyone", status: "have" },
+      { title: "On the job in ServiceTitan", note: "Lead → dispatch → estimate → invoice → paid, with photos and forms every job", status: "have", today: true },
+      { title: "The numbers", note: "The scoreboard, gross profit, utilisation, and what they mean for you", status: "have" },
+      { title: "Reviews", note: "Ask on every happy job, make it easy, and we reply to them", status: "have" },
+      { title: "The website", note: "Where to point everyone", status: "have" },
+      { title: "Notifications & customer comms", note: "“On my way”, reminders, quote follow-up", status: "write" },
     ],
   },
   {
-    letter: "F",
-    title: "Safety, compliance & admin",
+    letter: "7",
+    slug: "safety",
+    title: "Safety & compliance",
+    blurb: "The part that wins every argument.",
     items: [
-      { title: "Safety wins every argument", note: "SWMS/JSA, incident reporting", status: "write", gap: "Consolidate" },
-      { title: "Compliance", note: "Never work outside your licence, gas & ARC, compliance certs", status: "write", gap: "Consolidate" },
-      { title: "Timesheets, invoicing & getting paid", status: "write" },
+      { title: "Safety wins every argument", note: "SWMS and JSA, incident reporting", status: "write", gap: "Consolidate what we already have" },
+      { title: "Compliance", note: "Never work outside your licence, gas and ARC, compliance certificates", status: "write", gap: "Consolidate what we already have" },
+      { title: "Insurances & rego", status: "write" },
     ],
   },
   {
-    letter: "G",
+    letter: "8",
+    slug: "admin",
+    title: "Admin & getting paid",
+    blurb: "Time on, money in, money out.",
+    items: [
+      { title: "Timesheets & time codes", note: "Job, travel, yard, training, warranty, admin", status: "write" },
+      { title: "Invoicing & getting paid", note: "On the day, EFT, chasing money", status: "write" },
+      { title: "Payroll", note: "How and when", status: "write" },
+    ],
+  },
+  {
+    letter: "9",
+    slug: "forms",
     title: "Forms & templates",
+    blurb: "The paper. Print it, fill it, put it back.",
     items: [
-      { title: "Estimate templates", note: "Good/Better/Best, top 10 jobs", status: "write", gap: "Part of the ServiceTitan build" },
-      { title: "Checklists", note: "Van kit, front-door card, before-go-live", status: "write", gap: "Part have / part write" },
+      { title: "Estimate templates", note: "Good/Better/Best for the top ten jobs", status: "write", gap: "Part of the ServiceTitan build" },
+      { title: "Van kit & stock checklist", status: "write" },
+      { title: "Front-door card", note: "The greeting and the menu", status: "write" },
+      { title: "Vehicle condition check form", status: "write" },
+      { title: "Before-go-live checklist", status: "have" },
+    ],
+  },
+  {
+    letter: "10",
+    slug: "training",
+    title: "Training & resources",
+    blurb: "How you get better at this, and where to look it up.",
+    items: [
+      { title: "The team training day", status: "built", href: "/portal/sops" },
+      { title: "ServiceTitan how-tos", note: "A walk through the app", status: "write" },
+      { title: "Product guides", status: "write" },
+      { title: "Apprentice logbook & training plan", status: "write" },
     ],
   },
 ];

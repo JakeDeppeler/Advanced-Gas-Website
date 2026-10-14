@@ -13,7 +13,7 @@ import { parseProse, readingMinutes } from "@/lib/portal/prose";
  * function. A separate preview is a second renderer and it drifts.
  */
 export function TopicReader({
-  shelf, shelfTitle, title, note, status, gap, body, updatedBy, updatedAt, canEdit, footer,
+  shelf, shelfTitle, title, note, status, href, gap, body, updatedBy, updatedAt, canEdit, footer,
 }: {
   /** Previous / next, drawn at the foot of the article as the design has it. */
   footer?: React.ReactNode;
@@ -21,7 +21,9 @@ export function TopicReader({
   shelfTitle: string;
   title: string;
   note?: string;
-  status: "have" | "write";
+  status: "built" | "have" | "write";
+  /** Where a "built" topic already lives, when there is a page to point at. */
+  href?: string | null;
   gap?: string;
   body: string;
   updatedBy: string | null;
@@ -53,8 +55,19 @@ export function TopicReader({
       <h1 className="pt-topic__h">{title}</h1>
 
       <div className="pt-topic__meta">
-        <span className={`pt-chip ${written ? "is-ready" : status === "have" ? "is-have" : "is-write"}`}>
-          {written ? "Ready" : status === "have" ? "Written, not loaded in" : "Still to write"}
+        {/* Four states, and the one that matters is "can I read this now".
+            Built is its own: the words are not here because they are a page
+            somewhere else, which is a different thing from not existing. */}
+        <span className={`pt-chip ${written ? "is-ready" : status === "write" ? "is-write" : "is-have"}`}>
+          {written
+            ? "Ready"
+            : status === "built"
+              ? href
+                ? "Built — open it"
+                : "Built, not linked yet"
+              : status === "have"
+                ? "Written, not loaded in"
+                : "Still to write"}
         </span>
         {written && <span className="pt-topic__mins">{readingMinutes(body)} min read</span>}
         {updatedAt && (
@@ -103,7 +116,22 @@ export function TopicReader({
         </div>
       ) : (
         <div className="pt-topic__empty">
-          {status === "have" ? (
+          {status === "built" ? (
+            <>
+              <strong>This one is already built.</strong>
+              {href ? (
+                <>
+                  <span>It lives on its own page rather than in here.</span>
+                  <a className="pt-btn pt-btn--navy" href={href}>Open it</a>
+                </>
+              ) : (
+                <span>
+                  {gap ?? "The page exists; it just has not been linked here yet."}{" "}
+                  {canEdit ? "Add its link in src/lib/portal/content.ts, or paste the words in below." : "Ask an admin to link it."}
+                </span>
+              )}
+            </>
+          ) : status === "have" ? (
             <>
               <strong>This one is written — it just isn&rsquo;t in here yet.</strong>
               <span>

@@ -22,7 +22,13 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const shelf = HANDBOOK.find((s) => s.letter === searchParams.shelf?.toUpperCase()) ?? HANDBOOK[0];
+  // By slug or by number: the sections are numbered now, and the van's links
+  // were handed out with letters on them.
+  const want = (searchParams.shelf ?? "").toLowerCase();
+  const shelf =
+    HANDBOOK.find((s) => s.slug === want) ??
+    HANDBOOK.find((s) => s.letter.toLowerCase() === want) ??
+    HANDBOOK[0];
   const topic = shelf.items.find((t) => t.title === searchParams.topic) ?? shelf.items[0];
 
   // The same bodies the office portal writes. One handbook, two front doors —
@@ -36,13 +42,13 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
   const at = flat.findIndex((x) => x.s.letter === shelf.letter && x.t.title === topic.title);
   const prev = at > 0 ? flat[at - 1] : null;
   const next = at >= 0 && at < flat.length - 1 ? flat[at + 1] : null;
-  const href = (letter: string, title?: string) => `/trade/handbook?shelf=${letter}${title ? `&topic=${encodeURIComponent(title)}` : ""}`;
+  const href = (slug: string, title?: string) => `/trade/handbook?shelf=${slug}${title ? `&topic=${encodeURIComponent(title)}` : ""}`;
 
   return (
     <TradeShell user={user} active="tools" title="Handbook" sub="How we work, shelf by shelf">
       <nav className="tr-pills" aria-label="Shelves">
         {HANDBOOK.map((s) => (
-          <Link key={s.letter} href={href(s.letter)} aria-current={s.letter === shelf.letter ? "page" : undefined} className={`tr-pill tr-pill--sm${s.letter === shelf.letter ? " is-on" : ""}`}>
+          <Link key={s.letter} href={href(s.slug)} aria-current={s.letter === shelf.letter ? "page" : undefined} className={`tr-pill tr-pill--sm${s.letter === shelf.letter ? " is-on" : ""}`}>
             {s.letter} · {s.title}
           </Link>
         ))}
@@ -55,7 +61,7 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
             const on = t.title === topic.title;
             const w = written(t.title);
             return (
-              <Link key={t.title} href={href(shelf.letter, t.title)} aria-current={on ? "page" : undefined} className={`tr-pick${on ? " is-on" : ""}`}>
+              <Link key={t.title} href={href(shelf.slug, t.title)} aria-current={on ? "page" : undefined} className={`tr-pick${on ? " is-on" : ""}`}>
                 {/* The dot is the topic's state; the word for it is in the
                     panel, so colour is never the only signal. */}
                 <span aria-hidden="true" style={{ flex: "none", width: 9, height: 9, borderRadius: "50%", background: on ? "var(--tr-orange)" : w ? "var(--tr-blue)" : "transparent", boxShadow: w || on ? "none" : "inset 0 0 0 2px var(--tr-ink-3)" }} />
@@ -94,8 +100,8 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
           )}
 
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, paddingTop: 14, borderTop: "1px solid var(--tr-line)" }}>
-            {prev ? <Link href={href(prev.s.letter, prev.t.title)} className="tr-btn">← Previous</Link> : <span />}
-            {next ? <Link href={href(next.s.letter, next.t.title)} className="tr-btn">Next →</Link> : <span />}
+            {prev ? <Link href={href(prev.s.slug, prev.t.title)} className="tr-btn">← Previous</Link> : <span />}
+            {next ? <Link href={href(next.s.slug, next.t.title)} className="tr-btn">Next →</Link> : <span />}
           </div>
         </section>
       </div>

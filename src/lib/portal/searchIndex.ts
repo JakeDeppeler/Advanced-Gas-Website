@@ -56,13 +56,17 @@ export function buildSearchIndex(nav: NavItem[], deep = false): SearchRow[] {
   // the shelf — still the right page, which is what somebody searching wants.
   for (const shelf of HANDBOOK) {
     rows.push({
-      href: `/portal/handbook/${shelf.letter.toLowerCase()}`,
+      href: `/portal/handbook/${shelf.slug}`,
       label: shelf.title,
-      where: `Handbook · Shelf ${shelf.letter}`,
+      where: `Handbook · ${shelf.letter}`,
+      terms: shelf.blurb,
     });
     for (const item of shelf.items) {
       rows.push({
-        href: `/portal/handbook/${shelf.letter.toLowerCase()}`,
+        // Straight to the topic, not just its section: the reader reads
+        // ?topic=, and landing on a section of thirteen items and hunting for
+        // the one you searched for is most of the way back to not searching.
+        href: `/portal/handbook/${shelf.slug}?topic=${encodeURIComponent(item.title)}`,
         label: item.title,
         where: `Handbook · ${shelf.title}`,
         terms: item.note,

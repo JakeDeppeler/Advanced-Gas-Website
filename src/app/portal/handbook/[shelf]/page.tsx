@@ -11,7 +11,8 @@ import { handbookBodies, dbConfigured } from "@/lib/portal/db";
 export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { shelf: string } }) {
-  const s = HANDBOOK.find((x) => x.letter.toLowerCase() === params.shelf.toLowerCase());
+  const want = params.shelf.toLowerCase();
+  const s = HANDBOOK.find((x) => x.slug === want) ?? HANDBOOK.find((x) => x.letter.toLowerCase() === want);
   return { title: s ? `${s.title} — Handbook — Team portal` : "Handbook — Team portal" };
 }
 
@@ -34,7 +35,10 @@ export default async function HandbookShelfPage({
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const shelf = HANDBOOK.find((s) => s.letter.toLowerCase() === params.shelf.toLowerCase());
+  // Slug first, number second: the sections are numbered and a number in a URL
+  // says nothing, but links handed out before they were numbered still work.
+  const want = params.shelf.toLowerCase();
+  const shelf = HANDBOOK.find((s) => s.slug === want) ?? HANDBOOK.find((s) => s.letter.toLowerCase() === want);
   if (!shelf) notFound();
 
   const bodies = dbConfigured() ? await handbookBodies().catch(() => new Map()) : new Map();
@@ -45,7 +49,7 @@ export default async function HandbookShelfPage({
   const at = shelf.items.findIndex((t) => t.title === pick.title);
   const prev = at > 0 ? shelf.items[at - 1] : null;
   const next = at < shelf.items.length - 1 ? shelf.items[at + 1] : null;
-  const href = (title: string) => `/portal/handbook/${shelf.letter.toLowerCase()}?topic=${encodeURIComponent(title)}`;
+  const href = (title: string) => `/portal/handbook/${shelf.slug}?topic=${encodeURIComponent(title)}`;
 
   return (
     <PortalShell user={user}>
@@ -57,9 +61,9 @@ export default async function HandbookShelfPage({
             {HANDBOOK.map((s) => (
               <Link
                 key={s.letter}
-                href={`/portal/handbook/${s.letter.toLowerCase()}`}
+                href={`/portal/handbook/${s.slug}`}
                 aria-current={s.letter === shelf.letter ? "page" : undefined}
-                aria-label={`Shelf ${s.letter} — ${s.title}`}
+                aria-label={`Section ${s.letter} — ${s.title}`}
                 className={`pt-hb__letter${s.letter === shelf.letter ? " is-on" : ""}`}
               >
                 {s.letter}
@@ -79,8 +83,16 @@ export default async function HandbookShelfPage({
                   {/* Written, on the list, or still to write — three states,
                       and the one that matters is "can I read this now". */}
                   <span
-                    className={`pt-hb__dot${has ? " is-written" : t.status === "have" ? " is-have" : ""}`}
-                    aria-label={has ? "Written" : t.status === "have" ? "Exists, not loaded in" : "Still to write"}
+                    className={`pt-hb__dot${has ? " is-written" : t.status === "write" ? "" : " is-have"}`}
+                    aria-label={
+                      has
+                        ? "Written"
+                        : t.status === "built"
+                          ? "Already built elsewhere"
+                          : t.status === "have"
+                            ? "Exists, not loaded in"
+                            : "Still to write"
+                    }
                   />
                 </Link>
               );
@@ -95,6 +107,7 @@ export default async function HandbookShelfPage({
             title={pick.title}
             note={pick.note}
             status={pick.status}
+            href={pick.href ?? null}
             gap={pick.gap}
             body={current?.body ?? ""}
             updatedBy={current?.updatedBy ?? null}

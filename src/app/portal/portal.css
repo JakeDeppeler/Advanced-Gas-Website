@@ -4735,6 +4735,18 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-times__ok { font-size: 0.78rem; font-weight: 700; color: var(--pt-good); }
 .pt-times__err { font-size: 0.78rem; font-weight: 700; color: var(--pt-bad); }
 
+/* One line under a handbook section's name: what the section is for. The
+   cards were a title and a progress bar, which told you how much of something
+   was written without saying what it was. */
+.pt-hbx__blurb {
+  display: block;
+  margin: 2px 0 6px;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--pt-ink-3);
+}
+
 /* ------------------------------------------------------ who sold a job */
 /* A sold job per row with a picker for who gets the credit. Unlike every other
    setting on these pages this one moves money between people, so a moved row
@@ -5478,3 +5490,59 @@ a.pt-td__pill { text-decoration: none; }
 .pt-supem__allrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .pt-supem__allrow .pt-nw__input { flex: 1 1 260px; max-width: 420px; box-sizing: border-box; }
 .pt-supem__all .pt-inline { display: block; margin-top: 10px; }
+
+/* ------------------------------------------------------------------ print */
+/*
+ * Every handbook topic prints on its own.
+ *
+ * The spec asks for it and the reason is the shed: a van kit list or a
+ * front-door card is more use blu-tacked to a wall than behind a login. What
+ * prints is the words — the shell, the section rail, the topic list, the
+ * edit button and the previous/next links are all navigation, and navigation
+ * on paper is ink nobody reads.
+ */
+@media print {
+  .pn-side,
+  .pn-top,
+  .pn-tools,
+  .pn-search,
+  .pn-secbar,
+  .pn-scrim,
+  .pn-menu,
+  .pt-back,
+  .pt-hb__side,
+  .pt-topic__edit,
+  .pt-topic__foot {
+    display: none !important;
+  }
+  /* White ground and black ink: the portal's cream and navy cost a cartridge
+     and lose contrast on a mono printer. */
+  .pt,
+  .pn-main,
+  .pn-content,
+  .pt__content,
+  .pt-panel,
+  .pt-topic {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+  .pt-hb,
+  .pt-hb__main {
+    display: block !important;
+  }
+  .pt-topic__h { font-size: 22pt; margin: 0 0 6pt; }
+  .pt-topic__crumb { font-size: 9pt; color: #444 !important; }
+  /* A heading with its first paragraph orphaned onto the next page is the one
+     thing that makes a printed procedure hard to follow. */
+  .pt-topic__body h2,
+  .pt-topic__body h3 { break-after: avoid; page-break-after: avoid; }
+  .pt-topic__body li,
+  .pt-topic__body p { break-inside: avoid; page-break-inside: avoid; }
+  a[href]::after { content: ""; }
+}
