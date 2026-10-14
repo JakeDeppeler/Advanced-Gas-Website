@@ -283,62 +283,92 @@ what was written today and what is still out, biggest first. Both lists are one
 row per **job**, at the average of the options put in front of that customer,
 with the option count and ServiceTitan's own job number beside it.
 
-**On hold** is open work that is waiting on something, and the page is the
-**reasons**. A strip across the top — jobs held, how many on us and how many on
-the customer, what each side has quoted — then two panels that are the point of
-it: every reason in play, biggest pile first, with the age of the oldest in each
-and what it is worth; and the seven jobs sitting longest, ours first, each with
-every tag it carries.
+**Money** is everything we are owed and everything we owe, in the same bands,
+on one screen. A strip across the top — owed to us, we owe, and which way the
+gap runs — then the two ageings side by side, then the two work lists under
+them: the invoices to chase, oldest first, and the bills to pay, worst first.
+On 14 October 2026 that read $178,734 owed to us against $275,465 owing, a gap
+of $96,731 the wrong way, with $20,511 of ATO six months past due.
 
-**Nothing truncates a tag name and no job's tags are collapsed to a "+2".** The
-names are the only record anywhere of what has to happen next — "Rubbish Removal
-Not Booked" says exactly what to do and "Rubbish Rem…" says nothing — so each
-tag is its own chip and a job held four ways reads as four things to do. That
-costs rows: each job takes three lines, so seven fit where an eighth ran its
-tags off the bottom at every viewport. Fewer jobs, every reason on each of them
-readable, is the trade the page makes on purpose. The reason bands are one line
-each for the same reason in reverse: stacked over two lines, the eleventh ran
-past the bottom of its panel, and dropping a reason off a page about reasons
-was not an option.
+It replaced the **On hold** page, at the office's asking: the question the wall
+could not answer was not which jobs had stopped, which is on the portal's
+Stuck page (`/portal/stuck`), but whether the bills coming at us are
+covered by the money coming in.
 
-The reason comes from ServiceTitan's job tags, because nothing else in it says
-why a job has stopped. `st_jobs.raw` carries `tagTypeIds` and `st_job_tags`
-(migration 0071) carries the names; the office uses tags for exactly this, and
-also for half a dozen other things. So which of its 44 tags mean "held" is a
-setting — the portal's **Held work** page (`/portal/board/hold`) — and the
-default, when nothing is set, is the office's own grammar of waiting: *awaiting*
-something, something *required* or *needed*, something *not ordered* or *not
-booked*, a *problem*, a *voicemail* left. That picks out eleven of the 44; the
-subtitle says "default tag list" until somebody sets it, so the room knows which
-it is reading. `scripts/check-hold.ts` runs the rules over all 44 names.
+**The bands are the AR report's, not the Invoices page's.** Not due, then
+thirties. Invoices ages what we are owed over a fortnight, because its question
+is whether anything is slipping *this week*; this page's question is what we
+are about to lose and what we are about to be chased for, and the business asks
+that one in thirties everywhere else. Two cuts of the same money, each row
+labelled with the days it covers so neither can be read as the other. `arBand`
+in `src/lib/portal/ar.ts` draws both this page's boundaries and the portal's,
+so the wall and the report agree to the dollar.
 
-**Ours or theirs** rides along on every reason and every job rather than heading
-the page. It is the cut that decides who picks a job up: 44 quotes sitting with
-customers are a round of phone calls, and 16 installs with the materials never
-ordered are a purchase order. A job tagged both ways counts as ours — there is
-something here we can do, and filing it under the customer would park it behind
-a call that isn't ours to make. It is written in words on every row, with the
-colour behind it as the second signal.
+What we owe is Xero's authorised purchase bills with money still on them
+(`fetchXeroPayables`). What we are owed is the same two-ledger figure the
+Invoices page shows — ServiceTitan's open invoices from 17 September, Xero's
+before it — now carrying the thirties as well as the fortnight.
 
-Two things it deliberately does not do:
+Both ledgers are read in one trip, under the one five-minute gate, so the pair
+costs about 580 Xero calls a day against a tenant limit of 5,000. **The bills
+keep their own light in the footer** (`xero bills`) rather than sharing the
+receivables one: that gate is keyed to the last *successful* read, so folding a
+failed payables read into `sources.xero` would hold back the receivables
+timestamp and have every recompute re-read both ledgers — the 3,500-calls-a-day
+hole the gate was dug to fill.
+
+Nothing on the page is gated on ServiceTitan being up, and nothing on it ever
+prints a zero it did not measure. A panel with no reading says **Waiting on
+Xero**, not "—" and not "$0": on a page about money owing in both directions, a
+dash reads as nothing to report, which is the one reading it must not invite.
+"Nothing overdue" is only said when the count actually says zero.
+
+A bill's age is one number doing two jobs — positive past its due date,
+negative before it — which is what sorts the list in a single pass, most
+overdue down to soonest due. It is always written out ("15 days late", "due
+tomorrow", "due in 4 days"), because a bare "3" on a wall is whichever of the
+two the reader assumes. The ATO's bills carry no reference number at all, so
+every row shows its due date and adds the supplier's number where there is one.
+
+**Held work** kept its rules and lost its wall page. They are still live: the
+portal's **Stuck** page (`/portal/stuck`) shows them, and
+`scripts/check-hold.ts` runs them over all 44 of the office's tags.
+The reason comes from ServiceTitan's job tags, because nothing else in it
+says why a job has stopped. `st_jobs.raw` carries `tagTypeIds` and
+`st_job_tags` (migration 0073) carries the names; the office uses tags for
+exactly this, and also for half a dozen other things. So which of its 44 tags
+mean "held" is a setting — the portal's **Held work** page
+(`/portal/board/hold`) — and the default, when nothing is set, is the office's
+own grammar of waiting: *awaiting* something, something *required* or *needed*,
+something *not ordered* or *not booked*, a *problem*, a *voicemail* left. That
+picks out eleven of the 44.
+
+**Ours or theirs** rides along on every reason and every job. It is the cut that
+decides who picks a job up: 44 quotes sitting with customers are a round of
+phone calls, and 16 installs with the materials never ordered are a purchase
+order. A job tagged both ways counts as ours — there is something here we can
+do, and filing it under the customer would park it behind a call that isn't
+ours to make.
+
+Two things the hold figures deliberately do not do:
 
 - **Values are a floor, not a total.** A held job has a figure only where it
   carries a quote, at the same average-of-the-options rule the Quotes page uses,
   under the same $50,000 cap. Twenty-five of the seventy-nine have none, which
-  the panel says in words. The big figure on each side is therefore the
-  **count**, which is complete; the money is the sub-line, which never is.
-- **It leaves out the 92 untagged `InProgress` jobs**, which average 77 days.
-  Those are jobs nobody closed out, not jobs anybody is waiting on, and putting
-  them on the wall would bury thirty-six real ones under a records problem.
+  the page says in words. The headline is therefore the **count**, which is
+  complete; the money never is.
+- **They leave out the 92 untagged `InProgress` jobs**, which average 77 days.
+  Those are jobs nobody closed out, not jobs anybody is waiting on, and counting
+  them would bury thirty-six real ones under a records problem.
 
 Neither read is caught inside `onHold()`, deliberately. A swallowed failure on
-the jobs or the tags would compute "nothing is held" from an empty list and put
-a clear board on the wall, which is the one thing the board must not do; letting
-it throw hands it to the snapshot builder, which carries the last figures
-forward behind an amber dot like every other source. `tagIds` reads the tag
-array whether PostgREST hands it back as JSON or as its text, because the
-difference between `raw->tagTypeIds` and `raw->>tagTypeIds` is one character in
-a select string and the failure mode is a page that silently finds nothing.
+the jobs or the tags would compute "nothing is held" from an empty list, which
+is the one thing the board must not do; letting it throw hands it to the
+snapshot builder, which carries the last figures forward behind an amber dot
+like every other source. `tagIds` reads the tag array whether PostgREST hands
+it back as JSON or as its text, because the difference between
+`raw->tagTypeIds` and `raw->>tagTypeIds` is one character in a select string
+and the failure mode is a page that silently finds nothing.
 
 One tag was left out of the default on purpose: **Rebates 💰**, on 18 open jobs.
 It may well be a hold, but nothing in the name says so, and a tile that counts

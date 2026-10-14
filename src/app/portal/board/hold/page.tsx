@@ -12,8 +12,9 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Held work — Team portal" };
 
 /**
- * Which job tags mean a job is waiting on something, which is what the wall
- * board's On hold page counts.
+ * Which job tags mean a job is waiting on something, which is what the
+ * portal's Stuck page counts. The wall board carried it until the office
+ * asked for the money owed and owing in its place; the rules did not move.
  */
 export default async function HoldTagsPage() {
   const user = await getPortalUser();
@@ -31,13 +32,13 @@ export default async function HoldTagsPage() {
       <div className="pt-head">
         <h1>Held work</h1>
         <p>
-          The wall board&rsquo;s <strong>On hold</strong> page counts open jobs that are waiting on something, and the
+          The portal&rsquo;s <strong>Stuck</strong> page counts open jobs that are waiting on something, and the
           only thing in ServiceTitan that says what they are waiting on is the tag. Half the tags aren&rsquo;t holds at
           all — <em>Potential Member</em> sits on sixty-odd open jobs — so this is where the office says which ones are.
         </p>
         <p>
           <strong>On us</strong> is work somebody here can move today; <strong>on them</strong> is a quote or an answer
-          we are waiting on a customer for. The board shows the two apart, because they go to different people.
+          we are waiting on a customer for. They are shown apart, because they go to different people.
         </p>
       </div>
       {!ready && (

@@ -1,3 +1,4 @@
+import { arBand } from "@/lib/portal/ar";
 import { q, sbSelect } from "./db";
 import type { XeroResult } from "./xero";
 
@@ -42,15 +43,19 @@ export async function stOpenInvoices(): Promise<StOpen[]> {
  * invoice in both is counted once, from Xero.
  */
 export function withStOpen(xero: Extract<XeroResult, { ok: true }>, st: StOpen[], todayMel: string): Extract<XeroResult, { ok: true }> {
-  const out = { ...xero, aging: { ...xero.aging }, overdue: [...xero.overdue] };
+  // Both agings copied, not just the one: this adds ServiceTitan's open
+  // invoices to whichever bands they fall in, and mutating the reading it was
+  // handed would leave the caller's copy quietly double-counted.
+  const out = { ...xero, aging: { ...xero.aging }, arAging: { ...xero.arAging }, overdue: [...xero.overdue] };
   const seen = new Set(xero.numbers);
   const day = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
   for (const i of st) {
     if (seen.has(i.number)) continue;
     out.receivablesTotal += i.amount;
     // Overdue from the day after it's due, the same line Xero's are drawn on.
-    if (i.due >= todayMel) { out.aging.notDue += i.amount; continue; }
+    if (i.due >= todayMel) { out.aging.notDue += i.amount; out.arAging.current += i.amount; continue; }
     const days = Math.round((day(todayMel) - day(i.due)) / 86_400_000);
+    out.arAging[arBand(days)] += i.amount;
     out.overdueTotal += i.amount;
     out.overdueCount += 1;
     if (days <= 7) out.aging.d1to7 += i.amount;

@@ -1,6 +1,6 @@
 /**
  * Which of ServiceTitan's job tags mean a job is waiting on something, and
- * whose move it is — the setting behind the wall board's On hold page.
+ * whose move it is — the setting behind the portal's Stuck page.
  *
  * The office uses tags for exactly this, but it uses them for other things
  * too: of the 44 tags in use, "Potential Member" sits on 63 open jobs and means

@@ -1,3 +1,5 @@
+import { arBand } from "@/lib/portal/ar";
+import { agePayables, daysBetween, emptyAging, type Aging, type XeroBill, type XeroPayables } from "./payablesTypes";
 import { isoDateMelbourne } from "./dates";
 import { q, sbSelectOne } from "./db";
 
@@ -27,6 +29,29 @@ type Integration = {
 export type XeroAging = { notDue: number; d1to7: number; d8to14: number; d15to30: number; d30plus: number };
 
 /**
+ * The same money in the accountant's bands, which is the cut the AR report
+ * uses: not due, then thirties. See portal/ar.ts, whose `arBand` draws the
+ * boundaries so the wall and the report agree to the dollar.
+ *
+ * Both cuts, not one. The fortnight above answers "is anything slipping this
+ * week", which is what a board four metres away is for; the thirties answer
+ * "what are we about to lose", which is the question the money page asks of
+ * both ledgers at once — and it is the shape the office already reads in
+ * ServiceTitan, so putting a different one beside the bills would invite the
+ * room to reconcile two reports that were never the same report.
+ */
+export type XeroArAging = Aging;
+
+/**
+ * What we owe: authorised purchase bills with money still on them, aged by
+ * payablesTypes.ts — read from the same stored token the receivables use and
+ * under the same rule, that this file never refreshes it.
+ */
+export type { XeroBill, XeroPayables };
+
+export type XeroPayablesResult = ({ ok: true } & XeroPayables) | { ok: false; reason: string };
+
+/**
  * One overdue invoice, for the chase list.
  *
  * It carries the customer's name. That was left off at first, on the grounds
@@ -45,6 +70,8 @@ export type XeroResult =
       overdueCount: number;
       receivablesTotal: number;
       aging: XeroAging;
+      /** The same money in the AR report's thirties; see XeroArAging. */
+      arAging: XeroArAging;
       /** Every overdue invoice, oldest first; the wall shows the top six. */
       overdue: XeroOverdue[];
       /** Every unpaid invoice's number, so another source's copy isn't counted twice. */
@@ -71,6 +98,24 @@ async function currentToken(): Promise<{ token: string; tenant: string } | { err
   }
 
   return { token: row.access_token, tenant: row.tenant_id };
+}
+
+/**
+ * An invoice's due date as a calendar day, or null when it cannot be read.
+ *
+ * Xero serialises dates as "/Date(1234567890000+0000)/" unless the string
+ * variant is present, so prefer the string form and fall back to parsing the
+ * instant into a Melbourne day. Null is deliberately not "overdue": putting
+ * money in the worst bucket on the strength of a parse failure is exactly the
+ * confidently wrong figure this board is not allowed to show.
+ */
+function dueDayOf(inv: { DueDateString?: string; DueDate?: string }): string | null {
+  const raw = inv.DueDateString ?? inv.DueDate ?? "";
+  if (!raw) return null;
+  const isMs = raw.startsWith("/Date(");
+  const ms = isMs ? Number(raw.slice(6, raw.indexOf("+"))) : Date.parse(raw);
+  if (!Number.isFinite(ms)) return null;
+  return isMs ? isoDateMelbourne(new Date(ms)) : raw.slice(0, 10);
 }
 
 export async function fetchXeroReceivables(): Promise<XeroResult> {
@@ -105,11 +150,11 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   };
 
   const todayMel = isoDateMelbourne(new Date());
-  const DAY = 24 * 60 * 60 * 1000;
   let overdueTotal = 0;
   let overdueCount = 0;
   let receivablesTotal = 0;
   const aging: XeroAging = { notDue: 0, d1to7: 0, d8to14: 0, d15to30: 0, d30plus: 0 };
+  const arAging = emptyAging();
   const overdue: XeroOverdue[] = [];
   const numbers: string[] = [];
 
@@ -119,23 +164,18 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
     receivablesTotal += due;
     if (inv.InvoiceNumber) numbers.push(inv.InvoiceNumber);
 
-    // Xero serialises dates as "/Date(1234567890000+0000)/" unless the string
-    // variant is present; prefer the string form and fall back to parsing.
-    const raw = inv.DueDateString ?? inv.DueDate ?? "";
-    const ms = raw.startsWith("/Date(") ? Number(raw.slice(6, raw.indexOf("+"))) : Date.parse(raw);
-
-    // A due date we cannot read is not yet overdue: calling it 30+ days late
-    // would put money in the worst bucket on the strength of a parse failure.
     // Overdue from the day after it's due, in Melbourne — the same line the
-    // Money page's list draws, so the count above it agrees with the rows.
-    // Read as an instant, "due 10 Oct" turned overdue at 11am that day.
-    const dueDay = !Number.isFinite(ms) ? null : raw.startsWith("/Date(") ? isoDateMelbourne(new Date(ms)) : raw.slice(0, 10);
+    // portal's Owed page draws, so the count above it agrees with the rows.
+    // A date that cannot be read counts as not due; see dueDayOf.
+    const dueDay = dueDayOf(inv);
     if (!dueDay || dueDay >= todayMel) {
       aging.notDue += due;
+      arAging.current += due;
       continue;
     }
 
-    const days = Math.round((Date.parse(`${todayMel}T00:00:00Z`) - Date.parse(`${dueDay}T00:00:00Z`)) / DAY);
+    const days = daysBetween(dueDay, todayMel);
+    arAging[arBand(days)] += due;
     overdueTotal += due;
     overdueCount += 1;
     if (days <= 7) aging.d1to7 += due;
@@ -149,5 +189,68 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   // Oldest first: the chase list is worked from the top.
   overdue.sort((a, b) => b.days - a.days);
 
-  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, overdue, numbers };
+  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, arAging, overdue, numbers };
+}
+
+/**
+ * What we owe our suppliers, aged the way what we are owed is aged.
+ *
+ * The same read-only rule as everything else in this file: the stored token,
+ * never a refresh. Authorised ACCPAY invoices with an AmountDue are the bills
+ * that still have to be paid; a draft one is not yet a commitment and a paid
+ * one has no money on it.
+ *
+ * One page of a thousand. The business runs forty open bills against ten
+ * suppliers, so a second page would be a hypothetical — and a truncated read
+ * would understate what we owe, which is why the count is carried onto the
+ * screen beside the total rather than left for somebody to assume.
+ */
+export async function fetchXeroPayables(): Promise<XeroPayablesResult> {
+  const auth = await currentToken();
+  if ("error" in auth) return { ok: false, reason: auth.error };
+
+  const url = new URL(`${XERO_API}/Invoices`);
+  url.searchParams.set("where", 'Type=="ACCPAY"&&Status=="AUTHORISED"');
+  url.searchParams.set("pageSize", "1000");
+  // Headers and line items are a megabyte of nothing for a figure and a date.
+  url.searchParams.set("summaryOnly", "true");
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${auth.token}`,
+      "Xero-tenant-id": auth.tenant,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  // Never the body: a Xero error can echo the client id back.
+  if (!res.ok) return { ok: false, reason: `xero ${res.status} ${res.statusText}` };
+
+  const json = (await res.json()) as {
+    Invoices?: Array<{
+      AmountDue?: number;
+      DueDateString?: string;
+      DueDate?: string;
+      InvoiceNumber?: string;
+      Reference?: string;
+      Contact?: { Name?: string };
+    }>;
+  };
+
+  const todayMel = isoDateMelbourne(new Date());
+  return {
+    ok: true,
+    ...agePayables(
+      (json.Invoices ?? []).map((inv) => ({
+        supplier: inv.Contact?.Name ?? "\u2014",
+        // A supplier's own invoice number is what the office matches against;
+        // Xero's Reference carries it for bills raised off a statement.
+        number: inv.InvoiceNumber || inv.Reference || "\u2014",
+        due: dueDayOf(inv),
+        amount: Number(inv.AmountDue ?? 0),
+      })),
+      todayMel,
+    ),
+  };
 }

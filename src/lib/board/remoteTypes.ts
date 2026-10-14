@@ -6,8 +6,16 @@
  * "board-remote"; see remote.ts.
  */
 
-/** The board's pages, in the order it turns them. The board reads its list from here. */
-export const BOARD_PAGES = ["Today", "Pace", "Quotes", "On hold", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
+/**
+ * The board's pages, in the order it turns them. The board reads its list from here.
+ *
+ * A name is the key to everything a page has — its grid, its subtitle, its
+ * component — so renaming one is renaming all three, and a stored remote
+ * press naming the old one falls back to "whatever is up" rather than
+ * breaking. "On hold" was here until the office asked for the money owed and
+ * owing in its place; the held-work view it replaced is at /portal/stuck.
+ */
+export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Money", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
 /** The board's three alerts, as the demo shows them: a sale, a quote, a job to bill. */

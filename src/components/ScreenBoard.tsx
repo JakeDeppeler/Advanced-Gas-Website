@@ -12,7 +12,7 @@ import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 import { useBoardRemote } from "./screen/useBoardRemote";
 import { BOARD_PAGES, type BoardRemote } from "@/lib/board/remoteTypes";
-import { AGE_BANDS } from "@/lib/portal/stuckTypes";
+import { AR_BANDS, type ArBandKey } from "@/lib/portal/ar";
 
 type Snapshot = {
   computedAt: string;
@@ -39,7 +39,7 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   Today: "screen__grid--today",
   Pace: "screen__grid--pace",
   Quotes: "screen__grid--quotes",
-  "On hold": "screen__grid--hold",
+  Money: "screen__grid--money",
   Invoices: "screen__grid--invoices",
   "Daily pace": "screen__grid--daily",
   Team: "screen__grid--team",
@@ -89,18 +89,14 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `What the ${goal} goal needs of every step${rateNote(m)}${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
-  // Says what the page counts and where the reasons come from, not the counts —
-  // the strip under it carries those, and saying them twice wastes the one line
-  // that could say something else.
-  "On hold": (m) => {
-    const h = m.onHold;
-    if (!h) return "Open work waiting on something";
-    const n = h.reasons.length;
-    return (
-      `${count(h.jobsOnUs)} on us, ${count(h.jobsOnThem)} on the customer · ` +
-      `${count(n)} ${n === 1 ? "reason" : "reasons"} in play` +
-      (h.configured ? "" : " · default tag list")
-    );
+  // Says where each side comes from, not what it adds to: the strip under it
+  // carries both totals, and the one thing a figure about money needs that it
+  // cannot say itself is which ledger it was read out of.
+  Money: (m) => {
+    const bills = m.payables;
+    const owed = "Owed to us: ServiceTitan from 17 September, Xero before it";
+    if (!bills) return `${owed} · what we owe: the bills in Xero`;
+    return `${owed} · we owe: ${count(bills.count)} ${bills.count === 1 ? "bill" : "bills"} in Xero`;
   },
   // Names whose job it is, because the page is a work list rather than a score:
   // everything on it is something one person in the office does next.
@@ -539,7 +535,7 @@ export function ScreenBoard({
         {name === "Today" && <TodayPage m={m} live={live} />}
         {name === "Pace" && <PacePage m={m} live={live} now={now} />}
         {name === "Quotes" && <QuotesPage m={m} live={live} />}
-        {name === "On hold" && <OnHoldPage m={m} live={live} />}
+        {name === "Money" && <MoneyPage m={m} />}
         {name === "Invoices" && <InvoicesPage m={m} live={live} />}
         {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
@@ -1491,171 +1487,241 @@ function avgOptions(options: number, jobs: number): string {
 }
 
 /**
- * On hold: every open job that is waiting on something, and what each one is
- * waiting on.
+ * Money: everything we are owed, everything we owe, and the gap between them.
  *
- * The page is a tracker, so the **reasons** are the page and not a side panel:
- * all of them, in the office's own words, in full. The tag names are the only
- * record anywhere of why a job has stopped — "Rubbish Removal Not Booked" says
- * exactly what has to happen and "Rubbish Rem…" says nothing — so nothing here
- * truncates one, and no job's list of them is collapsed to "+2". A job tagged
- * four ways is a job with four things wrong with it, and the room should be
- * able to read all four from the far side of it.
+ * It replaced the On hold page because the question the office could not answer
+ * from the wall was not which jobs had stopped — that is on the portal's Stuck
+ * page — but whether the bills coming at us are covered by the money coming in.
+ * Both sides, in the same bands, on one screen, so the two can be read against
+ * each other instead of in two different reports.
  *
- * **Ours or theirs** rides along on every reason and every job rather than
- * heading the page. It is the cut that decides who picks the job up — 44 quotes
- * sitting with customers are a round of calls, 16 installs with the materials
- * never ordered are a purchase order — and it is said in words, with colour as
- * the second signal.
+ * **The same bands as the AR report**: not due, then thirties. The Invoices
+ * page ages what we are owed in a fortnight, because its question is whether
+ * anything is slipping this week; this page's question is what we are about to
+ * lose and what we are about to be chased for, and that one is asked in
+ * thirties everywhere else in the business. Two cuts of the same money, each
+ * labelled with the days it covers so neither can be mistaken for the other.
  *
- * Values are a floor, not a total: a held job carries a figure only where it
- * was quoted, which is why each side's headline figure is a **count**. The
- * count is complete; the money never is, and the header says how many have none.
+ * **Nothing here is gated on ServiceTitan.** Xero is its own source with its
+ * own light in the footer, and a blank is an honest answer where a zero would
+ * read as a business with no debts. A failed read carries the last one
+ * forward; the footer says how old it is.
  */
-function OnHoldPage({ m, live }: { m: Metrics; live: Live }) {
-  const h = m.onHold;
+function MoneyPage({ m }: { m: Metrics }) {
+  const ap = m.payables ?? null;
+  const arAges = m.receivablesArAging ?? null;
+  const owed = m.receivablesTotal;
+  const owe = ap?.total ?? null;
+  /* Which way the gap runs, said in words. The sign of a number is the one
+     thing nobody reads correctly from across a room, and "-$96,731" beside two
+     positive figures is the kind of thing that gets read as a third debt. */
+  const gap = owed != null && owe != null ? owed - owe : null;
 
-  if (!live.st || !h) {
-    return (
-      <div className="tile c12 hold__empty">
-        <span className="tile__label">{live.st ? "Nothing waiting on anything" : "Waiting on ServiceTitan"}</span>
-        <span className="hold__emptysub">
-          {live.st
-            ? "No open job carries a tag that means it is held."
-            : "The held list fills from the next ServiceTitan sync."}
+  const bars = (ages: Record<ArBandKey, number> | null, total: number | null) => {
+    if (!ages) return null;
+    /* Shares of the whole, not of the biggest band: the question is how much of
+       the money is late, and scaling each row to the largest makes a tidy
+       ledger look like a bad one. The denominator is the bands' own sum rather
+       than the headline total, so a reading where the two drift apart still
+       fills its row honestly. */
+    const sum = AR_BANDS.reduce((t, b) => t + (ages[b.key] || 0), 0);
+    const of = sum > 0 ? sum : total && total > 0 ? total : 0;
+    return AR_BANDS.map((b) => {
+      const v = ages[b.key] || 0;
+      return (
+        <span className="mny__bar" key={b.key}>
+          <span className="mny__barlabel">{b.label}</span>
+          <span className="mny__track">
+            <span
+              className={`mny__fill ${BAND_CLASS[b.key]}`}
+              style={{ width: of > 0 && v > 0 ? `${Math.max(1.5, (v / of) * 100).toFixed(1)}%` : "0%" }}
+            />
+          </span>
+          <b className={`mny__barval ${BAND_CLASS[b.key]}${v > 0 ? "" : " is-empty"}`}>{v > 0 ? plain(v) : "—"}</b>
         </span>
-      </div>
-    );
-  }
-
-  const total = h.jobsOnUs + h.jobsOnThem;
-  // Every reason, not a top few: eleven of them is the whole vocabulary this
-  // office has for waiting, and a page about why jobs stop that leaves some of
-  // the whys off is the wrong page.
-  const reasons = h.reasons;
-  /*
-   * Ours first and oldest first — sortHeld has already done it.
-   *
-   * Seven, measured rather than chosen: an eighth row ran the last job's tags
-   * and its job type past the bottom of the panel at every viewport. Each row
-   * is three lines because the tags have a line to themselves, and that is the
-   * trade — fewer jobs, every reason on each of them readable.
-   */
-  const rows = h.jobs.slice(0, 7);
-
-  const sideWord = (s: "us" | "them") => (s === "us" ? "ours" : "theirs");
-  const sideCls = (s: "us" | "them") => (s === "us" ? "is-us" : "is-them");
-  /** The age band. Thirty days is a job that has stopped being chased. */
-  const ageCls = (d: number) => (d >= 30 ? "is-bad" : d >= 14 ? "is-warn" : "");
+      );
+    });
+  };
 
   return (
     <>
-      {/* A strip, not three cards: the figures are the scale of the problem and
-          the page is about its shape, so they take a fifth of the height rather
-          than a third. */}
-      {/*
-        * How long it has all been held, in the five bands the portal ages money
-        * in — the same shape as the AR summary on the Owed page, on purpose.
-        *
-        * The counts say how much is held and the reasons say why; this is the
-        * one that says whether it is getting worse, which is the question
-        * somebody standing in front of the board is actually asking. Whose move
-        * each job is has moved to the subtitle: it is on every band and every
-        * row below, and the strip only has room to say one thing well.
-        */}
-      <div className="tile tile--navy hold__sum">
-        <span className="hold__sumfig">
-          <b>{count(total)}</b>
-          <em>held</em>
+      {/* The strip: the two totals and the gap, on one line. A fifth of the
+          height, because the totals are the scale of the thing and the four
+          panels under them are what somebody actually works from. */}
+      <div className="tile tile--navy mny__sum">
+        <span className="mny__big">
+          <em>Owed to us</em>
+          <b>{plain(owed)}</b>
+          <i>
+            {m.overdueCount == null || m.overdueTotal == null
+              ? "invoiced, not paid yet"
+              : m.overdueCount === 0
+                ? "none of it overdue"
+                : `${count(m.overdueCount)} overdue · ${plain(m.overdueTotal)}`}
+          </i>
         </span>
-        <span className="hold__ages">
-          {/* The bars are shares of what the bands themselves add to, not of
-              the headline count. The two are the same number, and if a sync
-              ever leaves them half a beat apart it should not show up as five
-              bars that fail to fill their row. */}
-          {(() => {
-            const inBands = AGE_BANDS.reduce((t, x) => t + h.ages[x.key].count, 0) || 1;
-            return AGE_BANDS.map((band) => {
-            const v = h.ages[band.key];
-            const old = band.key === "d31_60" || band.key === "d60plus";
-            return (
-              <span className={`hold__age2${v.count === 0 ? " is-none" : old ? " is-old" : ""}`} key={band.key}>
-                <b>{count(v.count)}</b>
-                <em>{v.value > 0 ? money(v.value) : "—"}</em>
-                <i style={{ width: `${Math.round((v.count / inBands) * 100)}%` }} />
-                <span>{band.label}</span>
-              </span>
-            );
-            });
-          })()}
+        <span className="mny__big">
+          <em>We owe</em>
+          <b>{plain(owe)}</b>
+          <i>
+            {!ap
+              ? "supplier bills"
+              : ap.overdueCount === 0
+                ? `${count(ap.count)} bills · none overdue`
+                : `${count(ap.overdueCount)} of ${count(ap.count)} overdue · ${plain(ap.overdueTotal)}`}
+          </i>
         </span>
-        <span className="hold__sumnote">
-          {h.unpriced > 0
-            ? `${count(h.unpriced)} carry no quote · the money is a floor`
-            : "every one of them is quoted"}
+        <span className={`mny__big mny__gap ${gap != null && gap < 0 ? "is-short" : ""}`}>
+          <em>{gap == null ? "The gap" : gap < 0 ? "We owe more than we're owed" : "We're owed more than we owe"}</em>
+          <b>{gap == null ? NA : plain(Math.abs(gap))}</b>
+          <i>
+            {ap && ap.dueSoon.count > 0
+              ? `${plain(ap.dueSoon.value)} of bills due inside a week`
+              : ap
+                ? "nothing more falls due this week"
+                : "both sides come from Xero"}
+          </i>
         </span>
       </div>
 
-      {/* The page. Every reason the office has for a job sitting still, in its
-          own words and in full, biggest pile first. */}
-      <div className="tile hold__reasons">
+      {/* The two ageings, side by side and in the same bands, so the shapes can
+          be compared at a glance: ours short and theirs long is a business
+          being paid before it pays, and the other way round is the one worth
+          doing something about. */}
+      <div className="tile mny__ar">
         <div className="tile__head">
-          <span className="tile__title">What they&rsquo;re waiting on</span>
-          <span className="tile__sub">every reason · jobs, oldest, quoted</span>
+          <span className="tile__title">Owed to us &middot; by age</span>
+          <span className="tile__sub">past the date the customer agreed to pay</span>
         </div>
-        <div className="hold__bands">
-          {reasons.map((r) => (
-            <span className="hold__band" key={r.name}>
-              <span className={`hold__side ${sideCls(r.side)}`}>{sideWord(r.side)}</span>
-              <span className="hold__bname">{r.name}</span>
-              <b className="hold__bjobs">{count(r.jobs)}</b>
-              <span className={`hold__bage ${ageCls(r.oldestDays)}`}>{r.oldestDays}d</span>
-              <span className="hold__bval">{r.value > 0 ? money(r.value) : "—"}</span>
-            </span>
-          ))}
-        </div>
+        <div className="mny__bars">{bars(arAges, owed) ?? <span className="tile__sub">{WAITING}</span>}</div>
       </div>
 
-      {/* The jobs, ours before theirs and oldest first — the order they get
-          picked up in. Every tag each one carries, in full: a job held four
-          ways needs four things doing, and a "+3" is three of them hidden. */}
-      <div className="tile hold__list">
+      <div className="tile mny__ap">
         <div className="tile__head">
-          <span className="tile__title">Sitting longest</span>
+          <span className="tile__title">What we owe &middot; by age</span>
+          <span className="tile__sub">past the date we agreed to pay</span>
+        </div>
+        <div className="mny__bars">{bars(ap?.aging ?? null, owe) ?? <span className="tile__sub">{WAITING}</span>}</div>
+      </div>
+
+      {/* Oldest first, because that is the order they get rung in. */}
+      <div className="tile mny__chase">
+        <div className="tile__head">
+          <span className="tile__title">Chase these &middot; oldest first</span>
           <span className="tile__sub">
-            {h.jobs.length > rows.length
-              ? `the oldest ${rows.length} of ${count(h.jobs.length)} · ${count(
-                  h.jobs.filter((x) => x.ageDays >= 30).length,
-                )} over a month`
-              : "ours first, then oldest"}
+            {m.overdueCount != null ? `${count(m.overdueCount)} overdue · ${plain(m.overdueTotal ?? 0)}` : NA}
           </span>
         </div>
-        <div className="hold__jobs">
-          {rows.map((j) => (
-            <div className="hold__job" key={j.jobId}>
-              <span className="hold__name">{j.who ?? j.what}</span>
-              <span className={`hold__age ${ageCls(j.ageDays)}`}>{j.ageDays} days</span>
-              <span className="hold__jval">
-                {j.value != null ? plain(j.value) : <span className="hold__unpriced">no quote</span>}
-              </span>
-              <span className="hold__why">
-                {j.reasons.map((name) => (
-                  <i className="hold__tag" key={name}>
-                    {name}
-                  </i>
-                ))}
-              </span>
-              <span className="hold__what">
-                {[j.what, j.where].filter(Boolean).join(" · ")}
-                {j.sold ? " · sold" : ""}
-              </span>
-            </div>
-          ))}
+        {m.overdueList.length === 0 ? (
+          /* "Nothing overdue" is a measurement, so it is only said when there
+             is one: an empty list with no count behind it is a Xero that has
+             not answered, not a ledger that is clear. */
+          <span className="tile__sub">{m.overdueCount === 0 ? "Nothing overdue" : WAITING}</span>
+        ) : (
+          <div className="mny__rows">
+            {m.overdueList.map((o) => (
+              <div className="mny__row" key={o.number}>
+                <span className="mny__who">
+                  <span className="mny__name">{o.name ?? "Invoice"}</span>
+                  <span className="mny__num">{o.number}</span>
+                </span>
+                <span className={`mny__age ${o.days > 30 ? "is-bad" : o.days > 14 ? "is-warn" : ""}`}>{o.days} days</span>
+                <span className="mny__amt">{plain(o.amount)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Worst first over both halves at once: the most overdue bill down to
+          the one falling due soonest. The ATO sitting six months past due and
+          the rent falling due on Tuesday are the same question — what has to be
+          paid, in what order — and splitting them into two lists would be the
+          board deciding that one of them is not urgent. */}
+      <div className="tile mny__bills">
+        <div className="tile__head">
+          <span className="tile__title">Bills &middot; worst first</span>
+          <span className="tile__sub">
+            {!ap
+              ? ""
+              : ap.count > MONEY_ROWS
+                ? `the worst ${MONEY_ROWS} of ${count(ap.count)} · ${plain(ap.total)}`
+                : `${count(ap.count)} ${ap.count === 1 ? "bill" : "bills"} · ${plain(ap.total)}`}
+          </span>
         </div>
+        {!ap || ap.bills.length === 0 ? (
+          <span className="tile__sub">{ap ? "Nothing owing" : WAITING}</span>
+        ) : (
+          <div className="mny__rows">
+            {ap.bills.slice(0, MONEY_ROWS).map((b) => (
+              <div className="mny__row" key={`${b.supplier}-${b.number}-${b.due}`}>
+                <span className="mny__who">
+                  <span className="mny__name">{b.supplier}</span>
+                  {/* The due date, always, and the supplier's own number where
+                      there is one — a third of these bills are ATO statements
+                      with no number at all, and a row whose second line is a
+                      bare dash looks like a feed that has lost something. */}
+                  <span className="mny__num">
+                    {b.number && b.number !== "—" ? `${b.number} · due ${dueLabel(b.due)}` : `due ${dueLabel(b.due)}`}
+                  </span>
+                </span>
+                <span className={`mny__age ${billAgeClass(b.days)}`}>{billAge(b.days)}</span>
+                <span className="mny__amt">{plain(b.amount)}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
 }
+
+/** Six rows a list: the panel's height at 1920×1080, measured rather than chosen. */
+const MONEY_ROWS = 6;
+
+/**
+ * What a panel says when Xero has not answered.
+ *
+ * Not a dash. A dash in a figure is read as "nothing to report", and on a page
+ * where the thing being reported is money owing in both directions that is the
+ * one reading it must not invite. The footer's light says how old the last
+ * reading is; this says which panel is standing on it.
+ */
+const WAITING = "Waiting on Xero";
+
+/**
+ * A band's weight on the page. Reserved for age, like every other use of the
+ * status palette — and every band says its days in words beside the colour.
+ */
+const BAND_CLASS: Record<ArBandKey, string> = {
+  // Light to dark to amber to red, in band order, so the bars climb rather
+  // than just differ. Current was the darkest of the five at first, which put
+  // the heaviest mark on the page against the money nobody has to chase.
+  current: "is-soft",
+  d1_30: "",
+  d31_60: "is-warn",
+  d61_90: "is-bad",
+  d90: "is-bad",
+};
+
+/**
+ * A bill's age in words. Positive days are past due; a bill not yet due says
+ * when it falls, because "due in 3" and "3 days late" are different jobs and
+ * a bare "3" on a wall is whichever one the reader assumes.
+ */
+function billAge(days: number): string {
+  if (days > 1) return `${days} days late`;
+  if (days === 1) return "1 day late";
+  if (days === 0) return "due today";
+  if (days === -1) return "due tomorrow";
+  return `due in ${-days} days`;
+}
+
+/** "25 Apr" — a bill's due date, short enough to ride under the supplier. */
+const dueLabel = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
+
+const billAgeClass = (days: number) => (days > 30 ? "is-bad" : days > 0 ? "is-warn" : days <= 7 ? "is-soon" : "");
 
 
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {

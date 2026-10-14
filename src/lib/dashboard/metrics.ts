@@ -1,6 +1,6 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
-import { fetchXeroReceivables, type XeroResult } from "./xero";
+import { fetchXeroPayables, fetchXeroReceivables, type XeroArAging, type XeroPayables, type XeroPayablesResult, type XeroResult } from "./xero";
 import { stOpenInvoices, withStOpen } from "./stOwed";
 import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "./xeroFreshness";
 export { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState };
@@ -394,6 +394,19 @@ export type Metrics = {
   receivablesTotal: number | null;
   /** What is owed, split by how long it has been owed. Null until Xero answers. */
   receivablesAging: { notDue: number; d1to7: number; d8to14: number; d15to30: number; d30plus: number } | null;
+  /**
+   * The same money in the AR report's bands — not due, then thirties — which
+   * is what the Money page shows beside the bills. Optional: a snapshot
+   * written before it has the fortnight cut only.
+   */
+  receivablesArAging?: XeroArAging | null;
+  /**
+   * What we owe our suppliers, aged the same way. Optional for the same
+   * reason, and null rather than zero until Xero has answered once: a wall
+   * that says we owe nothing because a token lapsed is worse than one that
+   * says nothing at all.
+   */
+  payables?: XeroPayables | null;
   /** The oldest overdue invoices, to work from the top: who owes it, and which invoice. */
   overdueList: Array<{ number: string; name?: string | null; days: number; amount: number }>;
 
@@ -2353,9 +2366,19 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    * minutes within five minutes and is retried on the next recompute.
    */
   const lastXeroRead = previous?.sources?.xero?.at;
-  const xeroRead: XeroResult = xeroReadDue(lastXeroRead, now)
-    ? await fetchXeroReceivables()
-    : { ok: false, reason: "not due" };
+  const lastBillsRead = previous?.sources?.["xero bills"]?.at;
+  /*
+   * Both ledgers in one trip, under the one gate.
+   *
+   * Two calls every five minutes, not two every twenty-five seconds — the
+   * gate is why this file may ask Xero anything at all (see xeroFreshness).
+   * Together rather than one after the other because the money page shows
+   * them side by side, and the pair is still well inside the tenant's daily
+   * allowance at roughly 580 calls a day.
+   */
+  const [xeroRead, billsRead]: [XeroResult, XeroPayablesResult] = xeroReadDue(lastXeroRead, now)
+    ? await Promise.all([fetchXeroReceivables(), fetchXeroPayables()])
+    : [{ ok: false, reason: "not due" }, { ok: false, reason: "not due" }];
   /*
    * What's owed is two ledgers since ServiceTitan took over on 17 September
    * (see stOwed.ts): Xero alone read $30K against $152K actually owing. Read
@@ -2368,6 +2391,16 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       .catch((e: Error): XeroResult => ({ ok: false, reason: `servicetitan invoices: ${e.message}` }))
     : xeroRead;
   sources.xero = xeroSourceState(xero.ok, lastXeroRead, now, xero.ok ? "" : xero.reason);
+  /*
+   * The bills get their own light, not a share of Xero's.
+   *
+   * Folding them into `sources.xero` would mean a failed payables read holding
+   * back the receivables timestamp — and since the five-minute gate is keyed
+   * to that timestamp, every recompute would then re-read both ledgers, which
+   * is the 3,500-calls-a-day hole the gate was dug to fill. Separate keys keep
+   * each half's freshness honest and each half's gate closed.
+   */
+  sources["xero bills"] = xeroSourceState(billsRead.ok, lastBillsRead, now, billsRead.ok ? "" : billsRead.reason);
 
   // A settings read that fails must not blank every target on the wall, so it
   // degrades to "nothing configured" and the default calendar, which the board
@@ -2504,6 +2537,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,
       receivablesAging: xero.ok ? xero.aging : (prev?.receivablesAging as Metrics["receivablesAging"]) ?? null,
+      receivablesArAging: xero.ok ? xero.arAging : prev?.receivablesArAging ?? null,
+      // Carried whole, bills and all: the Money page's list is what somebody
+      // works from, and half a list is a worse answer than yesterday's.
+      payables: billsRead.ok ? billsRead : prev?.payables ?? null,
       // Carried forward like the totals: a skipped or failed Xero read leaves
       // the chase list standing rather than emptying it, which would read as
       // "nothing overdue".

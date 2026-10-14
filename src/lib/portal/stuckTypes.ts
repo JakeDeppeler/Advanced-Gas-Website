@@ -101,7 +101,7 @@ export type StuckView = {
   unbilled: { bands: Banded; oldest: StuckJob[]; unknownType: number; noCharge: number; quoteVisits: number };
   /** Invoiced, not paid, banded by how long past due. */
   owed: { bands: Banded; notDueYet: Band; oldest: Array<StuckJob & { amount: number }> };
-  /** Open work waiting on something. Mirrors the wall board's On hold page. */
+  /** Open work waiting on something. The held rules live in dashboard/onHoldTypes.ts. */
   held: { jobs: number; onUs: number; onThem: number; reasons: Array<{ name: string; jobs: number; oldestDays: number }> } | null;
   /** How far back the unbilled scan looked. */
   sinceDays: number;
