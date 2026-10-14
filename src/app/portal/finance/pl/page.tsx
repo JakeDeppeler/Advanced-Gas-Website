@@ -123,7 +123,7 @@ async function Statement({ period }: { period: PeriodKey }) {
       <Card title="Profit & loss" aside="from Xero · before GST · the shaded column is the one you picked">
         <div className="pk-tbl-wrap">
           <table className="pk-tbl">
-            <thead><tr><th />{cols.map((c, i) => <th key={c.k} style={shade(i)}>{c.k === "month" || c.k === "lastmonth" ? periodWords(c.k) : c.label}</th>)}</tr></thead>
+            <thead><tr><th />{cols.map((c, i) => <th key={c.k} style={shade(i)}>{c.k === "month" || c.k === "lastmonth" || c.k === "prevmonth" ? periodWords(c.k) : c.label}</th>)}</tr></thead>
             <tbody>
               {groupRows("sales", "Sales", (x) => x.revenue)}
               {groupRows("jobs", "Cost of jobs", (x) => x.cogs)}
