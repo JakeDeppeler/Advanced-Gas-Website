@@ -76,6 +76,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "run", label: "How we're going", icon: "run", group: 1, blurb: "From lead to paid, against the goal",
     pages: [
       { label: "Today's numbers", href: "/portal/today" },
+      { label: "Month so far", href: "/portal/month" },
       { label: "KPIs", href: "/portal/kpis" },
       { label: "Sales", href: "/portal/sales" },
       // Office staff without the money see the pipeline itself, in Sales' place.

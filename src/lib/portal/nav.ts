@@ -282,6 +282,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   // The rebuilt Run the company pages (PR 2 of the new design).
   add(office,
     { href: "/portal/today", label: "Today", blurb: "How today is going, who's on what, the calls", band: "hidden", icon: "clock", also: ["today", "sold today", "team now", "call booking", "calls"] },
+    {
+      href: "/portal/month", label: "The month so far", short: "Month so far", blurb: "Jobs sold, the gear in them, and what's left to cover the month", band: "hidden", icon: "trend",
+      also: ["month", "this month", "month so far", "cost of goods", "cogs", "gear", "break even", "cover overheads", "sold jobs", "not billed", "before the reece bill"],
+    },
     { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
     { href: "/portal/sales", label: "Sales", blurb: "The month, the quotes out, the weeks", band: "hidden", icon: "trend", also: ["sales", "sold", "quotes out", "job types", "sold each week"] },
     { href: "/portal/rates", label: "Team", short: "Labour rates", blurb: "Labour rates and the leaderboard", band: "hidden", icon: "people", also: ["labour rate", "leaderboard", "cost an hour", "break even"] },
