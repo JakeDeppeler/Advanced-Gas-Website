@@ -164,6 +164,7 @@ export const SECTION_DEFS: SectionDef[] = [
     pages: [
       { label: "To order", href: "/portal/supply/next-week" },
       { label: "Sent", href: "/portal/supply/next-week?tab=sent" },
+      { label: "Work orders", href: "/portal/supply/work-orders" },
       { label: "Factory stock", href: "/portal/stock" },
       { label: "Supplier emails", href: "/portal/supply/emails" },
       { label: "Reece & pricing", href: "/portal/supply" },

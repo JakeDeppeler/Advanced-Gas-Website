@@ -173,7 +173,7 @@ async function replaceLines(poId: number, lines: PlannedLine[]) {
   if (lines.length) await sbInsert("purchase_order_lines", lines.map((l) => lineRow(poId, l)) as unknown as Row);
 }
 
-async function createOrder(row: Row): Promise<number> {
+export async function createOrder(row: Row): Promise<number> {
   await sbInsert("purchase_orders", row);
   const made = await sbSelectOne<{ id: number }>("purchase_orders", `select=id&po_number=eq.${encodeURIComponent(String(row.po_number))}`);
   if (!made) throw new Error(`Order ${row.po_number} didn't save`);
@@ -307,7 +307,8 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
     }
   };
   for (const p of existing) {
-    if (p.status === "draft" && !kept.has(p.id)) await drop(p);
+    // A work order made by hand (Work orders) isn't the plan's to take away.
+    if (p.status === "draft" && !kept.has(p.id) && !p.group_key.startsWith("manual:")) await drop(p);
   }
   // And a combined supplier's draft on the other week that this run didn't
   // reuse: its lines are on the one it did, or have been ordered since.
