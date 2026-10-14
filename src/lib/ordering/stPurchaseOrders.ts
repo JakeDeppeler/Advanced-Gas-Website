@@ -1,7 +1,7 @@
 import "server-only";
 import { sbSelect, sbUpdate } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
-import { stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { getOrder, loadOrderingSettings, type PoWithLines } from "./db";
 
 /**
@@ -36,7 +36,34 @@ export type StPoSettings = {
   vendorIds: Record<string, number>;
 };
 
-export type StPoMade = { job_id: number | null; st_id: number | null; number: string | null };
+export type StPoMade = {
+  job_id: number | null; st_id: number | null; number: string | null;
+  /** ServiceTitan's own status for it, read back after asking for Sent. */
+  status?: string | null;
+  /** Asked for Sent once already, so a ServiceTitan that won't isn't asked on every run. */
+  sentTried?: boolean;
+};
+
+/**
+ * The order has already gone to the supplier, so its purchase order is Sent,
+ * not Pending. Asked for on the create, and if it still reads Pending, asked
+ * for again on the purchase order itself; either way the status ServiceTitan
+ * actually holds is read back and kept, so the card says what's there rather
+ * than what was asked for.
+ */
+async function markSent(stId: number, sentAt: string): Promise<{ status: string | null; number: string | null }> {
+  const read = () => stFetch<{ status?: string; number?: string }>(stTenantPath("inventory", `purchase-orders/${stId}`))
+    .then((p) => ({ status: p.status ?? null, number: p.number ?? null }), () => ({ status: null, number: null }));
+  const now = await read();
+  if (now.status && now.status !== "Pending") return now;
+  try {
+    await stSend("PATCH", stTenantPath("inventory", `purchase-orders/${stId}`), { status: "Sent", sentOn: sentAt });
+  } catch {
+    return now;
+  }
+  const after = await read();
+  return { status: after.status ?? now.status, number: after.number ?? now.number };
+}
 
 const KEY = "st_purchase_orders";
 
@@ -183,6 +210,8 @@ export async function pushOrderToServiceTitan(poId: number): Promise<{ ok: boole
           : factory,
       },
       vendorDocumentNumber: po.po_number,
+      // Already emailed to the supplier: Sent, not waiting in Pending.
+      status: "Sent", sentOn: po.sent_at ?? new Date().toISOString(),
       impactsTechnicianPayroll: false,
       memo: `Portal order ${po.po_number}${job ? ` for job ${job.job_number}` : " — stock for the factory"}. Sent to ${po.sent_to ?? "the supplier"}.`,
       date: po.sent_at ?? new Date().toISOString(),
@@ -203,6 +232,15 @@ export async function pushOrderToServiceTitan(poId: number): Promise<{ ok: boole
       // rather than make the same mistake once per job.
       break;
     }
+  }
+
+  for (const m of made) {
+    if (m.st_id == null || m.sentTried) continue;
+    const r = await markSent(m.st_id, po.sent_at ?? new Date().toISOString());
+    m.status = r.status;
+    // The create answers with ServiceTitan's id; the number the office sees ("20257-001") comes on the read.
+    if (r.number) m.number = r.number;
+    m.sentTried = true;
   }
 
   const note = skipped ? ` ${skipped} line${skipped === 1 ? " has" : "s have"} no pricebook item, so ${skipped === 1 ? "it" : "they"} can't go on a ServiceTitan purchase order.` : "";
