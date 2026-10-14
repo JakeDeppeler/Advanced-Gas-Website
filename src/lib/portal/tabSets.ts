@@ -18,6 +18,7 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
     { href: "/portal/finance/owe", label: "We owe" },
     { href: "/portal/finance/capacity", label: "Our numbers" },
     { href: "/portal/finance/hourly", label: "Our hourly rate" },
+    { href: "/portal/finance/running", label: "Running costs" },
     { href: "/portal/finance/targets", label: "Targets" },
     // Quotes is a tab inside planning rather than a sibling: both ask about
     // work that has not happened yet.

@@ -157,6 +157,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["hourly", "charge out", "charge-out", "rate", "cost per hour", "break down", "overhead per hour", "utilisation", "billable hours"],
     },
     {
+      href: "/portal/finance/running", label: "Running costs", short: "Running costs", blurb: "Every overhead, and what it does with another van", band: "profit", icon: "list",
+      also: ["overheads", "overhead list", "running costs", "fixed costs", "cost to run", "more vans", "another van", "scale", "per van", "grow", "more people"],
+    },
+    {
       href: "/portal/journals", label: "Journal entries", short: "Journals", blurb: "ServiceTitan to Xero, and what didn't go",
       band: "profit", icon: "doc", also: ["journal", "xero sync", "sync error", "accounting", "export", "manual journal"],
     },

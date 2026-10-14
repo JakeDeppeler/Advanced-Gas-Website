@@ -28,11 +28,12 @@ export function JobsTabs({ on, notBilled, today }: { on: "today" | "profit" | "n
   );
 }
 
-export function TeamTabs({ on }: { on: "rates" | "build" | "leaders" | "hours" }) {
+export function TeamTabs({ on }: { on: "rates" | "build" | "running" | "leaders" | "hours" }) {
   return (
     <Tabs on={on} items={[
       { key: "rates", label: "Labour rates", href: "/portal/rates" },
       { key: "build", label: "Build our rate", href: "/portal/finance/hourly" },
+      { key: "running", label: "Running costs", href: "/portal/finance/running" },
       { key: "leaders", label: "Leaderboard", href: "/portal/rates?tab=leaders" },
       { key: "hours", label: "Hours", href: "/portal/hours" },
     ]} />
