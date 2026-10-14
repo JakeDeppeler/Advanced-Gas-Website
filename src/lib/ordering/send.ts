@@ -4,7 +4,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSignature, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
 import { pushIfAuto } from "./stPurchaseOrders";
-import { notesIfOn } from "./stJobNotes";
+import { jobsAfterSend } from "./stJobNotes";
 import {
   ccList, deliveryInstructionsFor, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
@@ -152,7 +152,7 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
   if (!email) {
     await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: now, sent_to: "Reece maX — entered by the office", updated_at: now });
     await pushIfAuto(id);
-    await notesIfOn(id);
+    await jobsAfterSend(id);
     return { ok: true, note: "Marked as ordered in maX." };
   }
 
@@ -176,7 +176,7 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
   }
   await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: supplier.email, updated_at: new Date().toISOString() });
   await pushIfAuto(id);
-  await notesIfOn(id);
+  await jobsAfterSend(id);
   return { ok: true, note: `Sent to ${supplier.email}, copied to ${ccList(settings, supplier, po, supplier.email).join(", ")}.` };
 }
 
@@ -192,7 +192,7 @@ export async function markOrderedManually(id: number, who: string, how: string):
     status: "sent", approved_by: who, approved_at: now, sent_at: now, send_error: null, updated_at: now,
     sent_to: `Ordered manually${how ? ` — ${how}` : ""}`,
   });
-  if (claimed.length) { await pushIfAuto(id); await notesIfOn(id); }
+  if (claimed.length) { await pushIfAuto(id); await jobsAfterSend(id); }
   return claimed.length ? { ok: true, note: "Marked as ordered. Nothing was emailed." } : { ok: false, error: "Only a draft can be marked — it may have just been sent." };
 }
 

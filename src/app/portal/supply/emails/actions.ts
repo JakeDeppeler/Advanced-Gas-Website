@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { saveStPoSettings } from "@/lib/ordering/stPurchaseOrders";
-import { notePastOrders, saveJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
+import { saveJobNoteSuppliers, updatePastOrders } from "@/lib/ordering/stJobNotes";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { saveSupplierEmail } from "@/lib/ordering/db";
@@ -73,17 +73,17 @@ export async function saveJobNotes(ids: string[]): Promise<ActionResult> {
   return { ok: true, note: "Saved." };
 }
 
-/** Put every sent order from the ticked suppliers that isn't on its jobs yet onto them. */
+/** Bring every sent order that isn't up to date on its jobs in ServiceTitan up to date: tags, notes, purchase orders. */
 export async function noteAllPast(): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   try {
-    const r = await notePastOrders();
+    const r = await updatePastOrders();
     revalidatePath("/portal/supply/emails");
     revalidatePath("/portal/supply/next-week");
-    const done = r.done ? `Noted ${r.done} order${r.done === 1 ? "" : "s"} on ${r.jobs} job${r.jobs === 1 ? "" : "s"} in ServiceTitan.` : "";
+    const done = r.done ? `${r.done} order${r.done === 1 ? "" : "s"} brought up to date in ServiceTitan.` : "";
     if (r.failed.length) return { ok: false, error: `${done} ${r.failed[0]}${r.failed.length > 1 ? ` (and ${r.failed.length - 1} more)` : ""}`.trim() };
-    return { ok: true, note: done || "Nothing left to note." };
+    return { ok: true, note: done || "Nothing left to do." };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

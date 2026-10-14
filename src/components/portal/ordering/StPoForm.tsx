@@ -8,8 +8,8 @@ type Opt = { id: number; name: string };
 
 /**
  * Supplier emails › ServiceTitan purchase orders: what a sent order is filed
- * under in ServiceTitan, and whether every order goes in on its own. Until the
- * first one has gone in cleanly from an order's button, the switch stays off.
+ * under in ServiceTitan, and whether every order goes in on its own (on, once
+ * the type and warehouse are picked).
  */
 export function StPoForm({ initial, types, warehouses, vendors, businessUnits, suppliers, found, error }: {
   initial: { auto: boolean; typeId: number | null; warehouseId: number | null; stockBusinessUnitId: number | null; vendorIds: Record<string, number> };
@@ -38,8 +38,8 @@ export function StPoForm({ initial, types, warehouses, vendors, businessUnits, s
     <section className="pk-card pk-pad" id="servicetitan">
       <div className="pk-card-h"><b>ServiceTitan purchase orders</b><span>each sent order onto its jobs in ServiceTitan</span></div>
       <p className="pk-note" style={{ marginBottom: 8 }}>
-        A sent order goes into ServiceTitan as a purchase order on each job it&rsquo;s for, and one for any factory stock, so the job shows what was ordered.
-        The supplier still gets the email as before. Press <b>Put in ServiceTitan</b> on an order under Orders › Sent to send one; once that&rsquo;s gone in right, switch it on for every order.
+        A sent order goes into ServiceTitan as a purchase order on each job it&rsquo;s for, and one for any factory stock, so the crew can see on the job what&rsquo;s been ordered for it.
+        The supplier still gets the email as before. Pick the type and the warehouse below and every sent order goes in by itself; orders sent before go in from <b>Bring them up to date</b> under On the job in ServiceTitan.
       </p>
       {error && <p className="pk-said bad" role="status" style={{ marginBottom: 8 }}>{error}</p>}
       <div className="pk-glh">Filed under</div>
