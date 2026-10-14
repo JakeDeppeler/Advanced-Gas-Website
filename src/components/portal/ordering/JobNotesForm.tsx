@@ -2,17 +2,23 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveJobNotes } from "@/app/portal/supply/emails/actions";
+import { noteAllPast, saveJobNotes } from "@/app/portal/supply/emails/actions";
 
 /**
  * Supplier emails › Notes on the job: whose sent orders are written onto their
  * jobs in ServiceTitan, as a note with the order attached.
  */
-export function JobNotesForm({ initial, suppliers }: { initial: string[]; suppliers: { id: string; name: string; work: boolean }[] }) {
+export function JobNotesForm({ initial, suppliers, toNote }: {
+  initial: string[]; suppliers: { id: string; name: string; work: boolean }[];
+  /** Sent orders from the ticked suppliers not yet on their jobs; null when that couldn't be read. */
+  toNote: number | null;
+}) {
   const router = useRouter();
   const [busy, start] = useTransition();
   const [on, setOn] = useState(() => new Set(initial));
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pastBusy, startPast] = useTransition();
+  const [past, setPast] = useState<{ ok: boolean; text: string } | null>(null);
   return (
     <section className="pk-card pk-pad" id="job-notes" style={{ marginTop: 14 }}>
       <div className="pk-card-h"><b>Notes on the job</b><span>each sent order written onto its jobs in ServiceTitan</span></div>
@@ -40,6 +46,21 @@ export function JobNotesForm({ initial, suppliers }: { initial: string[]; suppli
         })}>{busy ? "Saving…" : "Save"}</button>
         {msg && <span className={`pk-said${msg.ok ? "" : " bad"}`} role="status">{msg.text}</span>}
       </div>
+      <div className="pk-glh">Orders already sent</div>
+      <div className="pk-kv">
+        <span className="t">
+          <b>{toNote == null ? "Couldn’t check" : toNote === 0 ? "All on their jobs" : `${toNote} sent order${toNote === 1 ? " isn’t" : "s aren’t"} on ${toNote === 1 ? "its jobs" : "their jobs"} yet`}</b>
+          <span>sent before this was on, or refused by ServiceTitan — every week, not just this one</span>
+        </span>
+        {!!toNote && (
+          <button type="button" className="pk-btn" disabled={pastBusy} onClick={() => startPast(async () => {
+            const r = await noteAllPast();
+            setPast(r.ok ? { ok: true, text: r.note ?? "Done." } : { ok: false, text: r.error ?? "Couldn’t note them." });
+            router.refresh();
+          })}>{pastBusy ? "Noting…" : "Note them now"}</button>
+        )}
+      </div>
+      {past && <p className={`pk-said${past.ok ? "" : " bad"}`} role="status" style={{ marginTop: 6 }}>{past.text}</p>}
     </section>
   );
 }
