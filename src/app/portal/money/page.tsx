@@ -11,6 +11,8 @@ import { money, pc, plural } from "@/lib/portal/run/month";
 import { BENCH } from "@/lib/portal/benchmarks";
 import { Av, Bad, Btn, Card, Empty, Grid, Group, Head, Kv, Lh, Note, Row, Say, Tabs, Tile, Two, status } from "@/components/portal/kit/Kit";
 import { XeroOff } from "@/components/portal/finance/Parts";
+import { ArTable } from "@/components/portal/ArTable";
+import { arReport } from "@/lib/portal/ar";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Owed to us — Team portal" };
@@ -72,6 +74,24 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
               <Tile label="1 to 30 days late" st={b1 > 0 ? { k: "mid", w: "Chase" } : { k: "good", w: "None" }} fig={money(b1)} frac={tot ? b1 / tot : null} sub={`${tot ? pc((b1 / tot) * 100) : "0%"} of what’s owed`} />
               <Tile label="Over 30 days late" st={b2 > 0 ? { k: "bad", w: "Ring now" } : { k: "good", w: "None" }} fig={money(b2)} frac={tot ? b2 / tot : null} sub={`${tot ? pc((b2 / tot) * 100) : "0%"} of what’s owed`} />
             </Grid>
+            {/* The AR report proper: a row per customer, aged in thirties the
+                way ServiceTitan ages it, with the summary of the bands under
+                it. Above the two lists rather than below them, because this is
+                the view somebody opens the page for and the lists are the
+                detail behind it. */}
+            <section style={{ marginTop: 18 }}>
+              <Lh>Accounts receivable · by customer</Lh>
+              <ArTable
+                report={arReport(list.map((i) => ({ customer: i.contact || "", amount: i.amountDue, daysOver: i.daysOver })))}
+                partial={
+                  owed?.partial === "xero"
+                    ? "ServiceTitan only — Xero didn’t answer"
+                    : owed?.partial === "servicetitan"
+                      ? "Xero only — ServiceTitan’s copy didn’t load"
+                      : null
+                }
+              />
+            </section>
             <Two>
               <div style={{ display: "grid", gap: 16 }}>
                 <section>
