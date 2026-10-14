@@ -50,7 +50,7 @@ export async function jobForWork(id: number): Promise<JobForWork | null> {
   );
   if (!job) return null;
   const [loc, visit, crew, lc, cc] = await Promise.all([
-    job.location_id ? sbSelect<{ addr: Record<string, string | null> | null }>("st_locations", `select=addr:raw->address&id=eq.${job.location_id}`).then((r) => r[0] ?? null) : null,
+    job.location_id ? sbSelect<{ raw: { address?: Record<string, string | null> } | null }>("st_locations", `select=raw&id=eq.${job.location_id}`).then((r) => r[0] ?? null) : null,
     sbSelect<{ start_at: string | null; end_at: string | null; all_visits: string | null }>("job_next_appointment", `select=start_at,end_at,all_visits&job_id=eq.${id}`).then((r) => r[0] ?? null).catch(() => null),
     sbSelect<{ technician_name: string | null }>("st_appointment_assignments", `select=technician_name&job_id=eq.${id}&active=is.true`).catch(() => []),
     job.location_id ? sbSelect<{ type: string; value: string }>("st_location_contacts", `select=type,value&location_id=eq.${job.location_id}&active=is.true`).catch(() => []) : [],
@@ -60,7 +60,7 @@ export async function jobForWork(id: number): Promise<JobForWork | null> {
   const contacts = [...lc, ...cc];
   const phone = contacts.find((c) => c.type === "MobilePhone")?.value ?? contacts.find((c) => c.type === "Phone")?.value ?? null;
   const email = contacts.find((c) => c.type === "Email")?.value ?? null;
-  const a = loc?.addr ?? {};
+  const a = loc?.raw?.address ?? {};
   const site = [[a.unit, a.street].filter(Boolean).join(" "), a.city, [a.state, a.zip].filter(Boolean).join(" ")].filter((s) => s && s.trim()).join(", ");
   return {
     id: job.id, job_number: job.job_number, status: job.status, job_type: job.job_type, customer_name: job.customer_name, suburb: job.suburb,

@@ -29,9 +29,13 @@ export function WorkOrderForm({ job, to, back }: {
   return (
     <section className="pk-card pk-pad" id="new-work-order">
       <div className="pk-card-h"><b>Job {job.job_number}</b><span>{job.job_type ?? ""}</span></div>
-      <div className="pk-kv pk-wo-work">
-        <label className="t" htmlFor="wo-work"><b>What&rsquo;s the electrical work?</b><span>what Geoff reads first — the circuit, the isolator, the switchboard</span></label>
-        <textarea id="wo-work" className="pk-in" rows={3} value={f.work} onChange={set("work")} placeholder="e.g. New 20A circuit for the heat pump, isolator at the unit" />
+      {/* The one thing typed rather than read from ServiceTitan, so it gets the card's full width. */}
+      <div style={{ display: "grid", gap: 6, padding: "10px 0 12px" }}>
+        <label htmlFor="wo-work" className="pk-kv" style={{ border: 0, padding: 0 }}>
+          <span className="t"><b>What&rsquo;s the electrical work?</b><span>what Geoff reads first — the circuit, the isolator, the switchboard</span></span>
+        </label>
+        <textarea id="wo-work" className="pk-in" rows={3} style={{ width: "100%", resize: "vertical" }} value={f.work} onChange={set("work")}
+          placeholder="e.g. New 20A circuit for the heat pump, isolator at the unit" />
       </div>
       {field("date", "Day", "when you want him there", "date")}
       {field("time", "Time", "blank for any time that day", "time")}
