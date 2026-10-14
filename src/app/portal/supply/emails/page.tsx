@@ -10,11 +10,13 @@ import { loadOrderingSettings, loadSuppliers } from "@/lib/ordering/db";
 import { loadStPoSettings, stPoOptions, vendorsByName } from "@/lib/ordering/stPurchaseOrders";
 import { StPoForm } from "@/components/portal/ordering/StPoForm";
 import { JobNotesForm } from "@/components/portal/ordering/JobNotesForm";
-import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
+import { loadJobNoteSuppliers, ordersToNote } from "@/lib/ordering/stJobNotes";
 import { sbSelect } from "@/lib/dashboard/db";
 import { DEFAULT_ORDER_INTRO, DEFAULT_ORDER_SIGNOFF, DEFAULT_WORK_INTRO, type Supplier } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
+// "Note them now" writes to ServiceTitan once per job, for every order not yet noted.
+export const maxDuration = 60;
 export const metadata = { title: "Supplier emails — Team portal" };
 
 export default async function SupplierEmailsPage() {
@@ -35,12 +37,13 @@ export default async function SupplierEmailsPage() {
 
   // What ServiceTitan files purchase orders under, read live; the business
   // units come from the sync, which already has them.
-  const [stPo, opts, found, bus, noted] = await Promise.all([
+  const [stPo, opts, found, bus, noted, toNote] = await Promise.all([
     loadStPoSettings(),
     stPoOptions(),
     vendorsByName().catch(() => ({} as Record<string, number | null>)),
     sbSelect<{ id: number; name: string }>("st_business_units", "select=id,name&active=eq.true&order=name.asc").catch(() => []),
     loadJobNoteSuppliers(suppliers).catch(() => [] as string[]),
+    ordersToNote().catch(() => null),
   ]);
 
   return (
@@ -67,7 +70,7 @@ export default async function SupplierEmailsPage() {
           businessUnits={bus.map((b) => ({ id: b.id, name: b.name.trim() }))}
           suppliers={suppliers.filter((x) => x.method !== "work_order").map((x) => ({ id: x.id, name: x.name }))}
           found={found} error={opts.ok ? null : opts.error} />
-        <JobNotesForm initial={noted}
+        <JobNotesForm initial={noted} toNote={toNote?.length ?? null}
           suppliers={suppliers.filter((x) => x.active && x.method !== "reece_cart").map((x) => ({ id: x.id, name: x.name, work: x.method === "work_order" }))} />
       </div>
     </PortalShell>
