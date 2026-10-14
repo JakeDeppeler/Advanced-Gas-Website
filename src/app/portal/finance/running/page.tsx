@@ -29,7 +29,7 @@ type Line = { key: string; label: string; group: string; annual: number; perVan:
  * so the totals here are the totals there. A line either stays put however
  * many vans there are (the factory, the office, the accountant) or arrives
  * with each van (its fuel, insurance, tools, phone) — the switch is set per
- * line on Our numbers. Nothing new is worked out; it is the same model laid
+ * line on Pricing & costs. Nothing new is worked out; it is the same model laid
  * out line by line, with the next two vans beside today.
  */
 export default async function RunningCostsPage() {
@@ -107,7 +107,7 @@ export default async function RunningCostsPage() {
 
       {!has ? (
         <div className="pt-note pt-note--warn">
-          <strong>There&rsquo;s no crew with a van and billable hours yet,</strong> so nothing can be spread per hour or per van. Add the crew on <Link href="/portal/finance/capacity">Our numbers</Link>.
+          <strong>There&rsquo;s no crew with a van and billable hours yet,</strong> so nothing can be spread per hour or per van. Add the crew on <Link href="/portal/finance/capacity">Pricing & costs</Link>.
         </div>
       ) : (
         <>
@@ -126,7 +126,7 @@ export default async function RunningCostsPage() {
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
               <strong>Stays put</strong> lines don&rsquo;t move when a van is added, so the same dollars spread over more hours.{" "}
               <strong>Per van</strong> lines grow by today&rsquo;s cost of one van. Crew wages aren&rsquo;t here — they&rsquo;re a labour cost on each job;
-              the table under this one has them. Change a figure or which way a line goes on <Link href="/portal/finance/capacity">Our numbers</Link>.
+              the table under this one has them. Change a figure or which way a line goes on <Link href="/portal/finance/capacity?t=overheads">Wages &amp; costs › Overheads</Link>.
             </p>
             <div style={{ overflowX: "auto" }}>
               <table className="pt-table pt-rc">

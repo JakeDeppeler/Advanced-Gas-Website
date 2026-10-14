@@ -1,7 +1,7 @@
 /**
  * What we charge: the one hourly rate in the ServiceTitan pricebook, the
  * call-out fee and the after-hours multiple. Kept in portal_settings key
- * `pricing`, edited on Our numbers › Rates & pricing. The profit we want on
+ * `pricing`, edited on Pricing & costs › Rates & pricing. The profit we want on
  * top of cost is capacity.margin, which the hourly rate page already uses.
  *
  * Null is "not set": a page measuring against it says so rather than

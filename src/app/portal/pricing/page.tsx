@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Rates & pricing — Team portal" };
 
 /**
- * Our numbers › Rates & pricing: what we charge. The hourly rate is the one in
+ * Pricing & costs › Rates & pricing: what we charge. The hourly rate is the one in
  * the ServiceTitan pricebook, kept here so Team › Labour rates can set it
  * against what each person costs; the profit we want is the margin every
  * rate on Our hourly rate is built from.

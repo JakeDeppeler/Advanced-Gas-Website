@@ -18,7 +18,7 @@ const FY = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr"
 const CAL = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
- * Our numbers › Goals: every goal the portal measures against, in one place.
+ * Pricing & costs › Goals: every goal the portal measures against, in one place.
  * The year's sales and how they fall by month, the profit % and the win rate
  * are the year goal (the same record Pace and the wall board read); the rest
  * are portal_settings.goals.

@@ -16,7 +16,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
 import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
-import { ALIAS, buildSections, sectionOff, sectionOfPath, type Count, type Section } from "@/lib/portal/sections";
+import { ALIAS, buildSections, pathOff, type Count, type Section } from "@/lib/portal/sections";
 import { Crumb, MenuButton, SectionBar, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 
@@ -50,7 +50,7 @@ async function sideCounts(user: PortalUser, sections: Section[]): Promise<Record
       if (n) out["section:todo"] = { n, red: todos.overdue > 0 || callsLate };
       continue;
     }
-    const n = s.pages.reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
+    const n = s.pages.flatMap((p) => [p, ...(p.subs ?? [])]).reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
     if (n) out[`section:${s.id}`] = { n, red: true };
   }
   return out;
@@ -94,8 +94,7 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
 export async function PortalShell({ user, children, variant }: { user: PortalUser; children: React.ReactNode; variant?: "home" | "wide" | "mid" }) {
   const biz = await getBusiness();
   const path = headers().get("x-pt-path") ?? "";
-  const sec = path ? sectionOfPath(path) : null;
-  if (sec && sectionOff(sec, biz)) redirect("/portal");
+  if (path && pathOff(path, biz)) redirect("/portal");
 
   const items = portalNav(user);
   const sections = buildSections(items, biz, office(user));

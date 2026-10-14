@@ -1,7 +1,7 @@
 /**
  * The numbers behind growing the business — what a new van costs to put on
  * the road, and what the materials and units the crew install make on top of
- * the hour. Set on Finance → Our numbers, read by Planning; pure, so the
+ * the hour. Set on Finance → Pricing & costs, read by Planning; pure, so the
  * planner in the browser and the page on the server agree.
  *
  * Kept under their own settings key rather than inside the costing settings:

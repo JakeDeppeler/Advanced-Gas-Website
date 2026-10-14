@@ -564,7 +564,7 @@ a.pk-row:hover { background: var(--sunken); }
 @media (max-width: 760px) { .pk-certf { flex-basis: 100%; justify-content: flex-start; } }
 /* A rebuilt page's tab row on a page that hasn't been rebuilt yet. */
 .pk-tabrow { margin: 0 0 18px; }
-/* Our numbers: grouped inputs. */
+/* Pricing & costs: grouped inputs. */
 .pk-glh { font-size: 12px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.05em; margin: 18px 0 2px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .pk-glh + .pk-kv { border-top: 0; }
 .pk-big { font-family: var(--f-display, "Archivo", sans-serif); font-size: 20px; font-weight: 800; }

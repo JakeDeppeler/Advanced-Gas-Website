@@ -114,7 +114,7 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
             {s && s.fromTimesheets ? ` (${s.fromTimesheets} of these jobs use clocked hours)` : " — none have synced yet, so a job that ran long looks better here than it was"}.
           </li>
           <li>
-            <strong>Labour</strong> is each person&rsquo;s clocked time at what their own hour costs &mdash; the tech&rsquo;s at {crew?.costPerHr != null ? `about ${money(crew.costPerHr)} an hour` : "the crew's cost an hour"}, wages and on-costs plus the van&rsquo;s share of every overhead; an apprentice alongside adds only their own cost, not a second van, from <Link href="/portal/finance/capacity">Our numbers</Link>. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
+            <strong>Labour</strong> is each person&rsquo;s clocked time at what their own hour costs &mdash; the tech&rsquo;s at {crew?.costPerHr != null ? `about ${money(crew.costPerHr)} an hour` : "the crew's cost an hour"}, wages and on-costs plus the van&rsquo;s share of every overhead; an apprentice alongside adds only their own cost, not a second van, from <Link href="/portal/finance/capacity">Pricing & costs</Link>. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
           </li>
         </ul>
       </section>
