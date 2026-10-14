@@ -449,3 +449,22 @@ export function monthOnMonth(year: YearStanding): MonthOnMonth {
     changePct: change != null && previous?.income ? change / previous.income : null,
   };
 }
+
+/**
+ * The revenue the year goal wants invoiced across `from`–`to` (YYYY-MM-DD,
+ * both included): each month's share of the goal, by the year's shape, times
+ * the part of that month inside the span. For a span running to today, it's
+ * what should be invoiced by now.
+ */
+export function revenueGoalFor(goal: Pick<YearGoal, "basis" | "revenue" | "shape">, from: string, to: string): number {
+  const order = monthOrder(goal.basis);
+  const shape = normalisedShape(goal.shape);
+  const a = Date.parse(`${from}T00:00:00Z`), b = Date.parse(`${to}T00:00:00Z`) + 86_400_000;
+  let total = 0;
+  for (let d = new Date(Date.UTC(new Date(a).getUTCFullYear(), new Date(a).getUTCMonth(), 1)); d.getTime() < b; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) {
+    const ms = d.getTime(), me = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+    const overlap = Math.max(0, Math.min(me, b) - Math.max(ms, a));
+    total += goal.revenue * shape[order.indexOf(d.getUTCMonth())] * (overlap / (me - ms));
+  }
+  return total;
+}

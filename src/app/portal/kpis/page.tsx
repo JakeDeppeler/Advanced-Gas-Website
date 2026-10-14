@@ -13,6 +13,9 @@ import { followupRate } from "@/lib/portal/run/data";
 import { monthElapsed, money, pc, salesGoal } from "@/lib/portal/run/month";
 import { onTheTools } from "@/lib/portal/onTheTools";
 import { BENCH, benchStatus, type BenchKey } from "@/lib/portal/benchmarks";
+import { loadSpread, spreadDetail } from "@/lib/portal/run/spread";
+import { SpreadForm } from "@/components/portal/SpreadForm";
+import { revenueGoalFor } from "@/lib/portal/yearGoal";
 import { Bad, Card, Empty, Good, Head, PeriodTabs, Pill, Say, Tabs, none, status, type Status } from "@/components/portal/kit/Kit";
 import { PERIODS, periodSpans, periodWords, readPeriod } from "@/lib/portal/run/period";
 
@@ -51,7 +54,17 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     followupRate().catch(() => null),
     onTheTools().catch(() => null),
   ]);
-  const detail = xero.status === "connected" ? await getPLDetail(from, to).catch(() => null) : null;
+  const booked = xero.status === "connected" ? await getPLDetail(from, to).catch(() => null) : null;
+  // Once-a-year bills spread across the year (run/spread.ts), so the month the
+  // insurance lands isn't read as the month the business went backwards.
+  const spread = booked ? await spreadDetail(booked, from, to).catch(() => ({ detail: booked, notes: [] })) : null;
+  const detail = spread?.detail ?? null;
+  const spreadOn = booked ? await loadSpread().catch(() => []) : [];
+  // Every overhead account this period, and the ticked ones even when they're not in it.
+  const spreadChoices = booked
+    ? [...new Set([...spreadOn, ...booked.sections.filter((x) => x.kind === "out" && !/cost of (sales|goods)|direct cost/i.test(x.title)).flatMap((x) => x.lines.filter((l) => Math.abs(l.amount) > 0.5).map((l) => l.label))])].sort((a, b) => a.localeCompare(b))
+    : [];
+  const revGoal = year?.revenue ? { byNow: revenueGoalFor(year, from, to), year: shortMoney(year.revenue) } : null;
   const pl: PLSummary | null = detail ? summarisePL(detail) : null;
   const m = board?.metrics ?? null;
 
@@ -222,7 +235,8 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
             </>
           ) : xero.status === "connected" ? <>Xero didn’t send this year’s profit and loss, so there’s nothing to measure yet.</> : <>Connect Xero to see the money top to bottom.</>}
         </Say>
-        {detail ? <KpiStack detail={detail} label={periodWords(period)} aims={{ gm: goals.gm, ovh: goals.ovh, np: npGoal }} /> : <Empty>{xero.status === "connected" ? "No profit and loss from Xero for this year yet." : <>Xero isn’t connected. <Link href="/portal/integrations">Connect it ›</Link></>}</Empty>}
+        {detail ? <KpiStack detail={detail} label={periodWords(period)} aims={{ gm: goals.gm, ovh: goals.ovh, np: npGoal }} revenueGoal={revGoal} spread={spread?.notes} /> : <Empty>{xero.status === "connected" ? "No profit and loss from Xero for this year yet." : <>Xero isn’t connected. <Link href="/portal/integrations">Connect it ›</Link></>}</Empty>}
+        {booked && spreadChoices.length > 0 && <SpreadForm accounts={spreadChoices} initial={spreadOn} />}
         {pl && (
           <Card title="Against the benchmarks" aside="fixed for a service trade · not ours to change">
             {bench.map(([n, k, v, lower]) => (

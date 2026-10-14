@@ -5099,7 +5099,7 @@ a.pt-td__pill { text-decoration: none; }
 /* The company's KPIs. */
 .pt-kpi__spans { margin: 0 0 12px; }
 .pt-kpi__spans a { text-decoration: none; }
-.pt-kpi__head, .pt-kpi__row > summary, .pt-kpi__row.is-flat { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(80px, 1fr) 120px 80px 110px; gap: 14px; align-items: center; }
+.pt-kpi__head, .pt-kpi__row > summary, .pt-kpi__row.is-flat { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(80px, 1fr) 110px 76px 118px 128px; gap: 12px; align-items: center; }
 .pt-kpi__head { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); padding-bottom: 6px; }
 .pt-kpi__head span:nth-child(n+3) { text-align: right; }
 .pt-kpi__row { border-top: 1px solid var(--pt-tint); }
@@ -5132,7 +5132,8 @@ a.pt-td__pill { text-decoration: none; }
   .pt-kpi__head { display: none; }
   .pt-kpi__row > summary, .pt-kpi__row.is-flat { grid-template-columns: minmax(0, 1fr) auto auto; }
   .pt-kpi__bar { grid-column: 1 / -1; order: 5; }
-  .pt-kpi__health { grid-column: 1 / -1; justify-self: start; }
+  .pt-kpi__health { grid-column: span 1; justify-self: start; }
+  .pt-kpi__health:empty { display: none; }
   .pt-kpi__lines li { grid-template-columns: minmax(0, 1fr) auto auto; }
 }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
