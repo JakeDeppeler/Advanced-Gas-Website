@@ -133,7 +133,7 @@ export function JobProfitTable({ rows, target }: { rows: JobProfit[]; target: nu
                   </th>
                   <td>{money(j.price)}</td>
                   <td>{j.materials ? money(j.materials) : "—"}</td>
-                  <td>{j.hours == null ? "—" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " clocked"}`}</td>
+                  <td>{j.hours == null ? "—" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " on site"}${j.hoursFrom === "timesheets" && j.allowedHours ? ` of ${j.allowedHours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}` : ""}`}</td>
                   <td>{j.labour == null ? "—" : money(j.labour)}</td>
                   <td style={{ color: j.profit == null ? undefined : j.profit < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{j.profit == null ? "—" : money(j.profit)}</td>
                   {/* Red and down under the goal (or under nothing, with no goal set),

@@ -110,12 +110,11 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
           <li><strong>Price</strong> is the invoice before GST. GST goes to the ATO, so a margin worked on the price including it reads about nine points high.</li>
           <li><strong>Equipment and materials</strong> are the costs ServiceTitan&rsquo;s pricebook puts on each invoice line. An install with none recorded can&rsquo;t be costed — it would show as pure profit.</li>
           <li>
-            <strong>Hours</strong> are each tech&rsquo;s clocked time on the job from ServiceTitan&rsquo;s timesheets where they&rsquo;ve synced, otherwise the hours the job was sold with
+            <strong>Hours</strong> are how long the crew was on site, from ServiceTitan&rsquo;s timesheets where they&rsquo;ve synced &mdash; first to clock on to last to clock off, so a tech and an apprentice on a five-hour job read five hours, not ten &mdash; otherwise the hours the job was sold with
             {s && s.fromTimesheets ? ` (${s.fromTimesheets} of these jobs use clocked hours)` : " — none have synced yet, so a job that ran long looks better here than it was"}.
           </li>
           <li>
-            <strong>Labour</strong> is those hours at {crew?.costPerHr != null ? `${money(crew.costPerHr)} an hour` : "the crew's cost an hour"}: wages and on-costs plus each billable
-            hour&rsquo;s share of every overhead, from <Link href="/portal/finance/capacity">Our numbers</Link>. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
+            <strong>Labour</strong> is each person&rsquo;s clocked time at what their own hour costs &mdash; the tech&rsquo;s at {crew?.costPerHr != null ? `about ${money(crew.costPerHr)} an hour` : "the crew's cost an hour"}, wages and on-costs plus the van&rsquo;s share of every overhead; an apprentice alongside adds only their own cost, not a second van, from <Link href="/portal/finance/capacity">Our numbers</Link>. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
           </li>
         </ul>
       </section>

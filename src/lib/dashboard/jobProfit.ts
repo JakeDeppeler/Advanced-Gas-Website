@@ -40,7 +40,13 @@ export type JobProfit = {
   materials: number;
   hours: number | null;
   hoursFrom: "timesheets" | "sold" | null;
-  /** What the quote allowed, and what the crew actually clocked. */
+  /**
+   * What the quote allowed, and how long the crew was actually on site: from
+   * the first to clock on to the last to clock off, not everyone's timesheets
+   * added up. A five-hour job is quoted as five hours for the van whether one
+   * person goes or two, so two timesheets of five hours each are five hours
+   * on site — adding them read every two-hander as double its quote.
+   */
   allowedHours: number | null;
   actualHours: number | null;
   labour: number | null;
@@ -141,7 +147,7 @@ export async function jobProfits(
 
   const ids = priced.map((j) => j.jobId).filter((v): v is number => v != null);
   const jobs = new Map<number, { job_number: string | null; customer_name: string | null; job_type: string | null }>();
-  const hours = new Map<number, number>();
+  const spans = new Map<number, Array<[number, number]>>();
   const byTech = new Map<number, Map<number | null, number>>();
   const crewOn = new Map<number, Set<number>>();
   for (let i = 0; i < ids.length; i += 150) {
@@ -161,7 +167,10 @@ export async function jobProfits(
       if (t.active === false || t.canceled_on || !t.arrived_on || !t.done_on) continue;
       const h = (Date.parse(t.done_on) - Date.parse(t.arrived_on)) / 3_600_000;
       if (!(h > 0)) continue;
-      hours.set(Number(t.job_id), (hours.get(Number(t.job_id)) ?? 0) + Math.min(MAX_SHIFT_HOURS, h));
+      const a = Date.parse(t.arrived_on);
+      const list = spans.get(Number(t.job_id)) ?? [];
+      list.push([a, a + Math.min(MAX_SHIFT_HOURS, h) * 3_600_000]);
+      spans.set(Number(t.job_id), list);
       const per = byTech.get(Number(t.job_id)) ?? new Map<number | null, number>();
       const tid = t.technician_id != null ? Number(t.technician_id) : null;
       per.set(tid, (per.get(tid) ?? 0) + Math.min(MAX_SHIFT_HOURS, h));
@@ -173,6 +182,20 @@ export async function jobProfits(
       }
     }
   }
+  // Time on site per job: the clocked spans merged, so overlapping timesheets
+  // count once and a second visit on another day still adds its own hours.
+  const hours = new Map<number, number>();
+  for (const [job, list] of spans) {
+    list.sort((x, y) => x[0] - y[0]);
+    let total = 0;
+    let [s0, e0] = list[0];
+    for (const [s1, e1] of list.slice(1)) {
+      if (s1 <= e0) e0 = Math.max(e0, e1);
+      else { total += e0 - s0; [s0, e0] = [s1, e1]; }
+    }
+    hours.set(job, (total + e0 - s0) / 3_600_000);
+  }
+
   // Names for whoever clocked on, so the page can be cut by who did the work.
   const techIds = [...new Set([...crewOn.values()].flatMap((x) => [...x]))];
   const techName = new Map<number, string>();

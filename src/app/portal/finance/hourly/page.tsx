@@ -244,6 +244,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
 
           <section className="pt-panel" aria-labelledby="hs-spend">
             <h2 id="hs-spend" className="pt-panel__h">Where the money goes each year</h2>
+            <p className="pt-note" style={{ margin: "0 0 12px" }}>Every overhead line by line, and what it does with another van, is on <Link href="/portal/finance/running">Running costs</Link>.</p>
             <div className="pt-hs__spend">
               {spend.map((x) => (
                 <div key={x.key} className="pt-hs__row">
