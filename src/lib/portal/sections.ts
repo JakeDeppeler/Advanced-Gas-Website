@@ -85,6 +85,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Profit & loss", href: "/portal/finance/pl" },
       { label: "Cash flow", href: "/portal/finance/cash" },
       { label: "Owed to us", href: "/portal/money" },
+      { label: "Where the money's stuck", href: "/portal/stuck" },
       { label: "We owe", href: "/portal/finance/owe" },
       { label: "Spending", href: "/portal/finance/spend" },
       { label: "Profit on every job", href: "/portal/profit" },

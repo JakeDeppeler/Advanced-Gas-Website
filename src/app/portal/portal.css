@@ -5510,6 +5510,79 @@ a.pt-td__pill { text-decoration: none; }
 @media (max-width: 520px) { .pt-rc-sum .pt-hs__nums strong { font-size: 24px; } }
 .pt-calc__em { font-style: normal; font-weight: 400; color: var(--pt-ink-2); font-size: 0.85em; }
 
+/* ------------------------------------------ where the money's stuck */
+/* Three bands, each cut by age. The columns are the point: five numbers in a
+   row is a table, and the question is which column is growing — so each one
+   carries a bar as well as its figure, and the two past thirty days are
+   marked, because that is where "slow" turns into "gone". */
+.pt-stk__heads { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0 0 20px; }
+.pt-stk__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--pt-surface);
+  box-shadow: var(--pt-shadow);
+}
+.pt-stk__head--navy { background: var(--pt-navy-2); }
+.pt-stk__lbl { font-size: 13px; font-weight: 700; color: var(--pt-ink-2); }
+.pt-stk__head strong {
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--pt-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.pt-stk__sub { font-size: 12.5px; font-weight: 600; color: var(--pt-ink-3); }
+/*
+ * After the plain card's own colours, not before them.
+ *
+ * `.pt-stk__head--navy strong` and `.pt-stk__head strong` have the same
+ * specificity, so whichever is written last wins — and with the navy rules
+ * first, the one figure on the navy card took `--pt-ink` and came out navy on
+ * navy. In light mode it was simply not there; in dark it was fine, which is
+ * how it nearly shipped.
+ */
+.pt-stk__head--navy .pt-stk__lbl,
+.pt-stk__head--navy .pt-stk__sub { color: rgba(255, 255, 255, 0.72); }
+.pt-stk__head--navy strong { color: #fff; }
+
+.pt-stk__ages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin: 4px 0 16px; }
+.pt-stk__age { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pt-stk__age--total { border-left: 1px solid var(--pt-line); padding-left: 10px; }
+.pt-stk__agen {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--pt-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.pt-stk__agev { font-size: 13px; font-weight: 700; color: var(--pt-ink-2); font-variant-numeric: tabular-nums; }
+.pt-stk__agel { font-size: 12px; font-weight: 600; color: var(--pt-ink-3); }
+.pt-stk__bar { display: block; height: 5px; border-radius: 999px; background: var(--pt-line); overflow: hidden; }
+.pt-stk__bar i { display: block; height: 100%; border-radius: 999px; background: var(--pt-navy); }
+/* Past a month is the band that matters, so it is the one that changes colour
+   — and the column label says the age in words either way. */
+.pt-stk__age.is-old .pt-stk__agen { color: var(--pt-accent); }
+.pt-stk__age.is-old .pt-stk__bar i { background: var(--pt-accent); }
+.pt-stk__age.is-empty .pt-stk__agen { color: var(--pt-ink-3); }
+
+.pt-stk__tbl { margin-top: 6px; }
+.pt-stk__n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pt-stk__n.is-old { color: var(--pt-accent); font-weight: 700; }
+.pt-stk__where { display: block; font-size: 0.78rem; color: var(--pt-ink-3); font-weight: 600; }
+
+@media (max-width: 860px) {
+  .pt-stk__heads { grid-template-columns: 1fr; }
+  /* Three across on a phone, not six: a column 40px wide is a number with no
+     label under it. */
+  .pt-stk__ages { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pt-stk__age--total { border-left: 0; padding-left: 0; }
+}
+
 /* ------------------------------------------------------------------ print */
 /*
  * Every handbook topic prints on its own.

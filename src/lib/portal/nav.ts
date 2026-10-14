@@ -128,6 +128,11 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
     { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
     { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
+    {
+      href: "/portal/stuck", label: "Where the money's stuck", short: "Stuck", band: "run", icon: "chart",
+      blurb: "Done but not billed, billed but not paid, and jobs that have stopped",
+      also: ["stuck", "not billed", "unbilled", "to bill", "not invoiced", "not paid", "overdue", "aged", "ageing", "backlog", "on hold", "letting jobs go", "leak", "chase"],
+    },
     { href: "/portal/money", label: "Owed to us", short: "Owed", blurb: "Unpaid invoices, real estate and domestic, oldest first", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "money in", "real estate", "agents", "chase"] },
     { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },
     { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] },
