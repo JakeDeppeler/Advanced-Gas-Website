@@ -9,12 +9,14 @@ import { noteAllPast, saveJobNotes } from "@/app/portal/supply/emails/actions";
  * jobs. Every order swaps the office's "not ordered" tags for "ordered"; the
  * ticked suppliers also leave a note with the order attached.
  */
-export function JobNotesForm({ initial, suppliers, toNote, swaps }: {
+export function JobNotesForm({ initial, suppliers, toNote, swaps, brands }: {
   initial: string[]; suppliers: { id: string; name: string; work: boolean }[];
   /** Sent orders not yet up to date on their jobs; null when that couldn't be read. */
   toNote: number | null;
   /** The tag pairs, and whether the "done" tag was found in ServiceTitan by name (null: couldn't check). */
   swaps: { from: string; to: string; when: string; found: boolean | null }[];
+  /** The brand tags found ("Reclaim System Ordered"…); null when ServiceTitan couldn't be read. */
+  brands: string[] | null;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -38,6 +40,16 @@ export function JobNotesForm({ initial, suppliers, toNote, swaps }: {
           </span>
         </div>
       ))}
+      <div className="pk-kv">
+        <span className="t">
+          <b>Each brand&rsquo;s own System Ordered</b>
+          <span>
+            used instead of System Ordered when the brand has one — by the item&rsquo;s name first, so a Brivis heater ordered through Rinnai gets Brivis.
+            Make one in ServiceTitan named &ldquo;&lt;Brand&gt; System Ordered&rdquo; and it&rsquo;s used from the next order.
+          </span>
+        </span>
+        <span className="pk-said">{brands == null ? "Couldn’t check" : brands.length ? brands.join(", ") : "None yet"}</span>
+      </div>
       <div className="pk-glh">A note and the order, for these suppliers</div>
       {suppliers.map((s) => (
         <div className="pk-kv" key={s.id}>

@@ -2,7 +2,7 @@ import "server-only";
 import { PDFDocument, StandardFonts, type PDFFont } from "pdf-lib";
 import { sbSelect, sbUpdate } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
-import { stFetch, stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
+import { stFetch, stList, stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, type PoWithLines } from "./db";
 import { orderDocument } from "./send";
@@ -146,40 +146,114 @@ export const TAG_SWAPS = [
   { key: "materials", from: "Materials Not Ordered", to: "Materials Ordered", when: "materials are on a sent order" },
   { key: "electrician", from: "GTE Not Booked", to: "GTE Booked", when: "the electrician's work order is sent" },
 ] as const;
-type SwapKey = (typeof TAG_SWAPS)[number]["key"];
 
 // The office's tags carry emoji and stray spaces ("System Ordered "); only the words count.
 export const tagKey = (s: string) => s.replace(/[^\p{L}\p{N}]+/gu, " ").trim().toLowerCase();
 
-export async function tagTypesByName(): Promise<Map<string, number>> {
-  const rows = await sbSelect<{ id: number; name: string | null; active: boolean | null }>("st_job_tags", "select=id,name,active");
-  return new Map(rows.filter((r) => r.name && r.active !== false).map((r) => [tagKey(r.name as string), r.id]));
+export type TagNames = { byName: Map<string, number>; names: Map<number, string> };
+
+/**
+ * Every active job tag, read live so a tag made in ServiceTitan this morning
+ * is used on the next order rather than after the next sync. The synced copy
+ * is the fallback.
+ */
+export async function tagTypes(): Promise<TagNames> {
+  let rows: { id: number; name: string | null; active?: boolean | null }[];
+  try {
+    rows = await stList<{ id: number; name: string; active: boolean }>("settings", "tag-types", { active: "True" }, 5);
+    if (!rows.length) throw new Error("no tags came back");
+  } catch {
+    rows = await sbSelect<{ id: number; name: string | null; active: boolean | null }>("st_job_tags", "select=id,name,active");
+  }
+  const live = rows.filter((r) => r.name && r.active !== false);
+  return {
+    byName: new Map(live.map((r) => [tagKey(r.name as string), r.id])),
+    names: new Map(live.map((r) => [r.id, (r.name as string).trim()])),
+  };
 }
 
-function swapsFor(po: PoWithLines, jobId: number): SwapKey[] {
-  if (po.kind === "work_order") return ["electrician"];
-  const types = new Set(po.lines.filter((l) => l.job_id === jobId).map((l) => (l.sku_type ?? "").toLowerCase()));
-  return [...(types.has("equipment") ? ["system" as const] : []), ...(types.has("material") ? ["materials" as const] : [])];
+export async function tagTypesByName(): Promise<Map<string, number>> {
+  return (await tagTypes()).byName;
+}
+
+/**
+ * The office's brand tags: "Reclaim System Ordered", "Braemar System Order"…
+ * Any tag named "<brand> System Ordered" counts, so a new brand needs only
+ * the tag made in ServiceTitan. "<brand> System Not Ordered", when there is
+ * one, is its "not yet".
+ */
+export function brandTags(t: TagNames): { brand: string; id: number; notId: number | null; name: string }[] {
+  const out: { brand: string; id: number; notId: number | null; name: string }[] = [];
+  for (const [k, id] of t.byName) {
+    const m = k.match(/^(.+?) system order(?:ed)?$/);
+    if (!m || /\bnot$/.test(m[1])) continue;
+    const notId = t.byName.get(`${m[1]} system not ordered`) ?? t.byName.get(`${m[1]} system not order`) ?? null;
+    out.push({ brand: m[1], id, notId, name: t.names.get(id) ?? k });
+  }
+  // Longest first, so "mitsubishi electric" wins over a bare "electric".
+  return out.sort((x, y) => y.brand.length - x.brand.length);
+}
+
+type Item = { code: string | null; manufacturer: string | null };
+
+/**
+ * Whose system a line is. The item's own name decides first — a Brivis heater
+ * comes through Rinnai, and one is even filed under Rinnai as manufacturer —
+ * then the pricebook's manufacturer, then the supplier it was ordered from.
+ */
+function brandOf(line: PoWithLines["lines"][number], item: Item | undefined, supplier: string, brands: ReturnType<typeof brandTags>) {
+  const has = (text: string | null | undefined) => {
+    const k = ` ${tagKey(text ?? "")} `;
+    return brands.find((b) => k.includes(` ${b.brand} `));
+  };
+  return has(`${item?.code ?? ""} ${line.sku_name ?? ""} ${line.supplier_model ?? ""} ${line.description ?? ""}`) ?? has(item?.manufacturer) ?? has(supplier);
+}
+
+type TagPlan = { add: number[]; drop: number[] };
+
+/** The tags one job gets from this order. */
+function planFor(po: PoWithLines, jobId: number, t: TagNames, items: Map<number, Item>, supplier: string): TagPlan {
+  const id = (n: string) => t.byName.get(tagKey(n));
+  const add: (number | undefined)[] = [];
+  const drop: (number | null | undefined)[] = [];
+  const pair = (key: (typeof TAG_SWAPS)[number]["key"]) => {
+    const s = TAG_SWAPS.find((x) => x.key === key)!;
+    drop.push(id(s.from));
+    return id(s.to);
+  };
+  if (po.kind === "work_order") {
+    add.push(pair("electrician"));
+  } else {
+    const lines = po.lines.filter((l) => l.job_id === jobId);
+    const equipment = lines.filter((l) => (l.sku_type ?? "").toLowerCase() === "equipment");
+    if (equipment.length) {
+      const generic = pair("system");
+      const brands = brandTags(t);
+      for (const l of equipment) {
+        const b = brandOf(l, l.sku_id != null ? items.get(l.sku_id) : undefined, supplier, brands);
+        if (b) { add.push(b.id); drop.push(b.notId); } else add.push(generic);
+      }
+    }
+    if (lines.some((l) => (l.sku_type ?? "").toLowerCase() === "material")) add.push(pair("materials"));
+  }
+  return { add: [...new Set(add.filter((x): x is number => x != null))], drop: [...new Set(drop.filter((x): x is number => x != null))] };
 }
 
 /**
  * Swap the tags on one job. ServiceTitan replaces a job's whole tag list on
- * every update, so the current list is read first and only our pairs change:
+ * every update, so the current list is read first and only ours change:
  * without it, the office's other tags (Dog, Key Safe…) would be wiped.
  */
-async function swapTags(jobId: number, keys: SwapKey[], byName: Map<string, number>): Promise<string[]> {
-  const pairs = TAG_SWAPS.filter((s) => keys.includes(s.key))
-    .map((s) => ({ from: byName.get(tagKey(s.from)), to: byName.get(tagKey(s.to)), name: s.to }))
-    .filter((p): p is { from: number | undefined; to: number; name: (typeof TAG_SWAPS)[number]["to"] } => p.to != null);
-  if (!pairs.length) return [];
+async function swapTags(jobId: number, plan: TagPlan, t: TagNames): Promise<string[]> {
+  if (!plan.add.length) return [];
   const job = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${jobId}`));
   if (!Array.isArray(job.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's current tags, so they were left alone");
-  const drop = new Set(pairs.map((p) => p.from).filter((x): x is number => x != null));
-  const want = new Set(job.tagTypeIds.filter((t) => !drop.has(t)));
-  for (const p of pairs) want.add(p.to);
-  const same = want.size === job.tagTypeIds.length && job.tagTypeIds.every((t) => want.has(t));
+  const drop = new Set(plan.drop.filter((x) => !plan.add.includes(x)));
+  const want = new Set(job.tagTypeIds.filter((x) => !drop.has(x)));
+  for (const x of plan.add) want.add(x);
+  const same = want.size === job.tagTypeIds.length && job.tagTypeIds.every((x) => want.has(x));
   if (!same) await stSend("PATCH", stTenantPath("jpm", `jobs/${jobId}`), { tagTypeIds: [...want] });
-  return pairs.map((p) => p.name);
+  return plan.add.map((x) => t.names.get(x) ?? `#${x}`);
 }
 
 /* ------------------------------------------------------------------ the run */
@@ -220,7 +294,14 @@ export async function updateJobsFor(poId: number, opts: { notes: boolean }): Pro
       ? { name: doc.pdf.filename, bytes: new Uint8Array(Buffer.from(doc.pdf.base64, "base64")) }
       : { name: `${po.po_number} ${po.kind === "work_order" ? "work order" : "order"}.pdf`, bytes: await orderPdf({ subject: doc.subject, text: doc.text, how: `${po.kind === "work_order" ? "Work order" : "Order"} ${howSent(po)}${po.sent_at ? `, ${dayTimeLabel(po.sent_at).split(", ")[1]}` : ""}` }) };
   }
-  const byName = await tagTypesByName().catch(() => new Map<string, number>());
+  const tags = await tagTypes().catch((): TagNames => ({ byName: new Map(), names: new Map() }));
+  // The pricebook's name and manufacturer for each piece of equipment, to tell whose system it is.
+  const skuIds = [...new Set(po.lines.filter((l) => l.sku_id != null && (l.sku_type ?? "").toLowerCase() === "equipment").map((l) => l.sku_id as number))];
+  const items = new Map<number, Item>(skuIds.length
+    ? (await sbSelect<{ id: number; code: string | null; manufacturer: string | null }>("st_pricebook_equipment", `select=id,code:raw->>code,manufacturer:raw->>manufacturer&id=in.(${skuIds.join(",")})`).catch(() => []))
+      .map((r) => [r.id, { code: r.code, manufacturer: r.manufacturer }])
+    : []);
+  const supplierName = (await sbSelect<{ name: string }>("order_suppliers", `select=name&id=eq.${encodeURIComponent(po.supplier_id)}`).catch(() => []))[0]?.name ?? "";
 
   for (const jobId of jobs) {
     let d = done.find((x) => x.job_id === jobId);
@@ -238,7 +319,7 @@ export async function updateJobsFor(poId: number, opts: { notes: boolean }): Pro
       }
       step = "tags";
       if (!d.tags) {
-        d.tagged = await swapTags(jobId, swapsFor(po, jobId), byName);
+        d.tagged = await swapTags(jobId, planFor(po, jobId, tags, items, supplierName), tags);
         d.tags = true;
       }
     } catch (e) {
