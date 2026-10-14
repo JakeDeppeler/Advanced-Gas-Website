@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
+import { priceFactor,
   computeCapacity, defaultsFor, LEVEL_BILLABLE, LEVEL_LABEL, withVans,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
@@ -162,7 +162,7 @@ type Out = { hours: number; costPerHr: number; charge: number; yearCost: number;
 
 function outcome(cap: ReturnType<typeof computeCapacity>, _s: CapSettings, margin: number, cut: number, sold: number): Out {
   const hours = cap.totalBillHrs;
-  const charge = cap.costPerHr * (1 + margin / 100);
+  const charge = cap.costPerHr * priceFactor(margin);
   const revenue = hours * (sold / 100) * charge;
   const profit = revenue - cap.totalCost;
   const cutAmt = profit > 0 ? profit * (cut / 100) : 0;

@@ -9,6 +9,7 @@ import { localToday, plSpans, rangeSpans, type PLSpan } from "@/lib/portal/xero"
 export const PERIODS = [
   { k: "12m", label: "Last 12 months" },
   { k: "fy", label: "This financial year" },
+  { k: "prevmonth", label: "Month before" },
   { k: "lastmonth", label: "Last month" },
   { k: "month", label: "This month" },
 ] as const;
@@ -23,6 +24,15 @@ export function periodSpans(k: PeriodKey): { now: PLSpan; before: PLSpan } {
   if (k === "12m") return rangeSpans("12m");
   if (k === "month" || k === "lastmonth") return plSpans(k);
   const t = localToday();
+  if (k === "prevmonth") {
+    // The whole month before last, against the whole month before that.
+    const whole = (back: number): PLSpan => {
+      const a = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - back, 1));
+      const b = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - back + 1, 0));
+      return { from: iso(a), to: iso(b), label: a.toLocaleDateString("en-AU", { month: "long", year: "numeric", timeZone: "UTC" }) };
+    };
+    return { now: whole(2), before: whole(3) };
+  }
   const y = t.getUTCMonth() >= 6 ? t.getUTCFullYear() : t.getUTCFullYear() - 1;
   const from = new Date(Date.UTC(y, 6, 1));
   const lastYear = new Date(Date.UTC(t.getUTCFullYear() - 1, t.getUTCMonth(), t.getUTCDate()));
@@ -37,7 +47,7 @@ export function periodWords(k: PeriodKey): string {
   if (k === "12m") return "the last 12 months";
   if (k === "fy") return "this financial year";
   const t = localToday();
-  const m = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - (k === "lastmonth" ? 1 : 0), 1));
+  const m = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - (k === "lastmonth" ? 1 : k === "prevmonth" ? 2 : 0), 1));
   const name = m.toLocaleDateString("en-AU", { month: "long", timeZone: "UTC" });
   return k === "month" ? `${name} so far` : name;
 }

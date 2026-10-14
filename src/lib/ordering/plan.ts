@@ -120,6 +120,8 @@ export type WorkOrderJob = {
   customer_name: string | null;
   system_installed: string | null;
   electrical_items: string | null;
+  /** What the office says needs doing, on a work order made by hand from Work orders (no quote to read it from). */
+  work?: string | null;
 };
 
 export type WorkOrderDetails = {
@@ -582,6 +584,7 @@ export function workOrderEmail(o: { supplier: Supplier; poNumber: string; detail
   const jobs = d.jobs.map((j) =>
     `<strong>Job ${esc(j.job_number ?? "")}</strong> · ${esc(j.job_type ?? "")}`
     + (j.system_installed ? `<br>System: ${esc(j.system_installed)}` : "")
+    + (j.work ? `<br>Work needed: ${esc(j.work)}` : "")
     + (j.electrical_items ? `<br><span style="color:#6b6a68;">Electrical on the quote: ${esc(j.electrical_items)}</span>` : "")).join("<br><br>");
   const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
 ${row("When", esc(when) + (d.all_visits && d.all_visits.includes(",") ? `<br><span style="color:#6b6a68;">Our crew is on site: ${esc(d.all_visits)}</span>` : ""))}
@@ -601,7 +604,7 @@ ${row("Customer", contact || "No contact on file — call us")}
     opening, "",
     `When: ${when}${d.all_visits && d.all_visits.includes(",") ? ` (our crew on site: ${d.all_visits})` : ""}`,
     `Site: ${d.site_address}`,
-    ...d.jobs.map((j) => `Job ${j.job_number} · ${j.job_type}${j.system_installed ? ` · System: ${j.system_installed}` : ""}${j.electrical_items ? ` · Electrical: ${j.electrical_items}` : ""}`),
+    ...d.jobs.map((j) => `Job ${j.job_number} · ${j.job_type}${j.system_installed ? ` · System: ${j.system_installed}` : ""}${j.work ? ` · Work needed: ${j.work}` : ""}${j.electrical_items ? ` · Electrical: ${j.electrical_items}` : ""}`),
     `Our crew on site: ${d.crew.join(", ") || "To be confirmed"}`,
     `Customer: ${[d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).join(" · ") || "No contact on file — call us"}`,
     "",

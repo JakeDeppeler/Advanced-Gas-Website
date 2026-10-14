@@ -1,7 +1,7 @@
 import "server-only";
 import { listUsers, dbConfigured } from "./db";
 import { getCostSettings } from "./costSettings";
-import { computeCapacity, loadedWage, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
+import { computeCapacity, loadedWage, LEVEL_BILLABLE, LEVEL_LABEL, priceFactor, type CrewLevel } from "./crew";
 import type { CrewRate } from "@/components/portal/JobCalculator";
 
 export type RateFigure = { label: string; sub: string; mobile: number | null; onsite: number | null };
@@ -16,9 +16,11 @@ export type CrewFigures = {
   byLevel: Partial<Record<CrewLevel, number>>;
   /** True for a level whose people ride with a tech rather than run their own van. */
   ridesAlong: Partial<Record<CrewLevel, boolean>>;
+  /** The profit we want, as a share of the price. Null when nothing's set up. */
+  margin: number | null;
 };
 
-const EMPTY: CrewFigures = { crew: [], costPerHr: null, costPerHrOnsite: null, figures: [], byLevel: {}, ridesAlong: {} };
+const EMPTY: CrewFigures = { crew: [], costPerHr: null, costPerHrOnsite: null, figures: [], byLevel: {}, ridesAlong: {}, margin: null };
 
 /**
  * What the crew costs an hour, priced both ways.
@@ -72,7 +74,7 @@ export async function crewFigures(): Promise<CrewFigures> {
     // that wage with the margin on it, because the margin goes on what the crew
     // costs, both bodies in it.
     wage: Math.round(loadedWage(p.costing.wage, base) * 100) / 100,
-    wageCharge: Math.round(loadedWage(p.costing.wage, base) * (1 + base.margin / 100) * 100) / 100,
+    wageCharge: Math.round(loadedWage(p.costing.wage, base) * priceFactor(base.margin) * 100) / 100,
   }));
 
   // An average across everyone on that level. Two tradesmen on different wages
@@ -120,5 +122,6 @@ export async function crewFigures(): Promise<CrewFigures> {
     costPerHr: capMobile.totalBillHrs > 0 ? capMobile.costPerHr : null,
     costPerHrOnsite: capOnsite.totalBillHrs > 0 ? capOnsite.costPerHr : null,
     figures, byLevel, ridesAlong,
+    margin: base.margin,
   };
 }

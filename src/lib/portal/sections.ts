@@ -164,6 +164,7 @@ export const SECTION_DEFS: SectionDef[] = [
     pages: [
       { label: "To order", href: "/portal/supply/next-week" },
       { label: "Sent", href: "/portal/supply/next-week?tab=sent" },
+      { label: "Work orders", href: "/portal/supply/work-orders" },
       { label: "Factory stock", href: "/portal/stock" },
       { label: "Supplier emails", href: "/portal/supply/emails" },
       { label: "Reece & pricing", href: "/portal/supply" },
@@ -283,6 +284,7 @@ export const ALIAS: [string, string][] = [
   ["/portal/pace", "/portal/goal"],
   // Team › Build our rate.
   ["/portal/finance/hourly", "/portal/rates"],
+  ["/portal/finance/running", "/portal/rates"],
 ];
 const unalias = (path: string) => ALIAS.find(([from]) => path === from || path.startsWith(`${from}/`))?.[1] ?? path;
 

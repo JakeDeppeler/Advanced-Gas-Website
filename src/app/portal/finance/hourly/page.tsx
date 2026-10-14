@@ -12,7 +12,7 @@ import { onPlan, readPayPlan, withPlanWages } from "@/lib/portal/payPlan";
 import { firstName } from "@/lib/todos/types";
 import { HourBill } from "@/components/portal/HourBill";
 import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
-import {
+import { priceFactor,
   alwaysSupervised, assumptionsFor, loadedWage, onCostsOf, computeCapacity, daysOff, fleetDepOf, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, overheadLines,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
@@ -56,7 +56,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
   const capToday = computeCapacity(today, s);
   const cap = computeCapacity(people, s);
   const has = cap.totalBillHrs > 0;
-  const charge = cap.costPerHr * (1 + s.margin / 100);
+  const charge = cap.costPerHr * priceFactor(s.margin);
 
   // Where the hours go, person by person on the same rules calcPerson uses.
   const m = assumptionsFor(s);
@@ -185,7 +185,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
   const commOf = (id: string) => (planVans.some((p) => p.id === id) ? commEach : 0);
   const yearCost = cap.totalCost + commission;
   const hourCost = has ? yearCost / cap.totalBillHrs : 0;
-  const hourCharge = hourCost * (1 + s.margin / 100);
+  const hourCharge = hourCost * priceFactor(s.margin);
   const todayHour = capToday.totalBillHrs > 0 ? capToday.costPerHr : 0;
   const startLabel = new Date(`${plan.startOn}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -195,7 +195,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
   ];
   const spendTop = Math.max(1, ...spend.map((x) => x.annual));
   const pairCharge = leadCost != null && riders.length
-    ? (leadCost + riders.reduce((a, x) => a + x.full, 0) / riders.length) * (1 + s.margin / 100)
+    ? (leadCost + riders.reduce((a, x) => a + x.full, 0) / riders.length) * priceFactor(s.margin)
     : null;
 
   const crew = cap.rates
@@ -238,12 +238,13 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
               <div><span>We spend a year</span><strong>{m0(yearCost)}</strong><em>every wage and every bill{commission > 0 ? ", and commission" : ""}</em></div>
               <div><span>Hours we can bill</span><strong>{h0(cap.totalBillHrs)}</strong><em>across {cap.vanCount} {cap.vanCount === 1 ? "van" : "vans"}</em></div>
               <div><span>So an hour costs us</span><strong>{m2(hourCost)}</strong><em>{m0(yearCost)} ÷ {h0(cap.totalBillHrs)}</em></div>
-              <div className="is-charge"><span>We charge</span><strong>{m2(hourCharge)}</strong><em>with our {s.margin}% margin</em></div>
+              <div className="is-charge"><span>We charge</span><strong>{m2(hourCharge)}</strong><em>{s.margin}% of it is profit</em></div>
             </div>
           </section>
 
           <section className="pt-panel" aria-labelledby="hs-spend">
             <h2 id="hs-spend" className="pt-panel__h">Where the money goes each year</h2>
+            <p className="pt-note" style={{ margin: "0 0 12px" }}>Every overhead line by line, and what it does with another van, is on <Link href="/portal/finance/running">Running costs</Link>.</p>
             <div className="pt-hs__spend">
               {spend.map((x) => (
                 <div key={x.key} className="pt-hs__row">
@@ -276,7 +277,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
                             // On the plan, a commission earner's hour carries their commission too.
                             const add = r.billHrs > 0 ? commOf(r.id) / r.billHrs : 0;
                             const cost = r.costPerHr != null ? r.costPerHr + add : null;
-                            const rate = p.costing.rateOverride != null ? r.rate : cost != null ? cost * (1 + s.margin / 100) : null;
+                            const rate = p.costing.rateOverride != null ? r.rate : cost != null ? cost * priceFactor(s.margin) : null;
                             return <><td>{cost != null ? m2(cost) : "—"}{add > 0 && <em>{m2(add)} of it commission</em>}</td><td>{rate != null ? m2(rate) : "—"}</td></>;
                           })()}
                     </tr>
@@ -286,7 +287,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
             </div>
             {pairCharge != null && leadCost != null && (
               <p className="pt-hs__pair">
-                One hour of a {leadLabel.toLowerCase()} on their own: <strong>{m2(leadCost * (1 + s.margin / 100))}</strong>. With an apprentice on the job: <strong>{m2(pairCharge)}</strong>.
+                One hour of a {leadLabel.toLowerCase()} on their own: <strong>{m2(leadCost * priceFactor(s.margin))}</strong>. With an apprentice on the job: <strong>{m2(pairCharge)}</strong>.
                 That&rsquo;s still one hour of the van, not two.
               </p>
             )}
@@ -346,7 +347,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
                 <li><span>Every $10,000 a year of overhead<em>spread over {h0(cap.totalBillHrs)}</em></span><strong className="is-bad">+{m2(tenK)} an hour</strong></li>
                 <li><span>A $1 an hour pay rise for everyone<em>paid hours cost more than billed ones</em></span><strong className="is-bad">+{m2(raise)} an hour</strong></li>
                 {[s.margin - 10, s.margin + 10].filter((x) => x > 0).map((mg) => (
-                  <li key={mg}><span>Charging at a {mg}% margin<em>instead of {s.margin}%</em></span><strong>{m2(cap.costPerHr * (1 + mg / 100))} an hour</strong></li>
+                  <li key={mg}><span>Charging at a {mg}% margin<em>instead of {s.margin}%</em></span><strong>{m2(cap.costPerHr * priceFactor(mg))} an hour</strong></li>
                 ))}
               </ul>
             </section>
@@ -380,7 +381,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
               <div className="pt-hr__line is-total"><span /><span className="pt-hr__lbl">What an hour costs us</span><span /><span className="pt-hr__yr">{m0(cap.totalCost)}<em>a year</em></span><strong className="pt-hr__ph">{m2(cap.costPerHr)}</strong></div>
               <div className="pt-hr__line is-flat">
                 <span className="pt-hr__dot is-margin" aria-hidden="true" />
-                <span className="pt-hr__lbl">Margin, {s.margin}%<em>what&rsquo;s left to keep, and to cover the hours that go wrong</em></span>
+                <span className="pt-hr__lbl">Margin, {s.margin}% of the price<em>what&rsquo;s left to keep, and to cover the hours that go wrong</em></span>
                 <span className="pt-hr__bar" aria-hidden="true"><i className="is-margin" style={{ width: `${(marginPerHr / maxLayer) * 100}%` }} /></span>
                 <span className="pt-hr__yr">{m0(marginPerHr * cap.totalBillHrs)}<em>a year</em></span>
                 <strong className="pt-hr__ph">{m2(marginPerHr)}<em>{pc(marginPerHr / charge)}</em></strong>
@@ -390,7 +391,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
           </section>
 
           {riders.length > 0 && (() => {
-            const mk = 1 + s.margin / 100;
+            const mk = priceFactor(s.margin);
             const lead = leadCost ?? 0;
             const row = (label: string, note: string | null, cell: (x: (typeof riders)[number]) => string, cls?: string) => (
               <tr className={cls}>

@@ -1058,3 +1058,62 @@ export async function getBankSummary(fromDate: string, toDate: string): Promise<
   if (!integ?.tenantId || !integ.refreshToken) return null;
   return sharedBankSummary(integ.tenantId, fromDate, toDate).catch(() => null);
 }
+
+export type SupplierBill = {
+  id: string; supplier: string; number: string | null; date: string;
+  subTotal: number; total: number; amountDue: number;
+  lines: string[];
+  payments: Array<{ date: string; amount: number }>;
+};
+
+/**
+ * One supplier's bills over a span, with their line descriptions and the
+ * payments made against them — what the Reece check (finance/reeceCheck.ts)
+ * needs to tell a month's purchases from a statement balance. The list is
+ * read in summary, then each matching bill in full; a supplier has a bill or
+ * two a month, so that's a handful of calls.
+ */
+const sharedSupplierBills = unstable_cache(
+  async (tenantId: string, pattern: string, fromDate: string, toDate: string): Promise<SupplierBill[]> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const re = new RegExp(pattern, "i");
+    const headers = { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" };
+    const url = new URL(`${API_BASE}/Invoices`);
+    url.searchParams.set("where", `Type=="ACCPAY"&&Date>=${dt(fromDate)}&&Date<=${dt(toDate)}`);
+    url.searchParams.set("Statuses", "AUTHORISED,PAID");
+    url.searchParams.set("summaryOnly", "true");
+    url.searchParams.set("pageSize", "1000");
+    const res = await withSlot(() => fetch(url, { headers, cache: "no-store" }));
+    if (!res.ok) throw new Error(`xero ${res.status}`);
+    const list = ((await res.json()) as { Invoices?: Array<{ InvoiceID?: string; Contact?: { Name?: string } }> }).Invoices ?? [];
+    const out: SupplierBill[] = [];
+    for (const b of list.filter((x) => x.InvoiceID && re.test(x.Contact?.Name ?? "")).slice(0, 24)) {
+      const one = await withSlot(() => fetch(`${API_BASE}/Invoices/${b.InvoiceID}`, { headers, cache: "no-store" }));
+      if (!one.ok) throw new Error(`xero ${one.status}`);
+      const i = ((await one.json()) as { Invoices?: Array<{
+        InvoiceID: string; InvoiceNumber?: string; Contact?: { Name?: string }; DateString?: string; Date?: string;
+        SubTotal?: number; Total?: number; AmountDue?: number;
+        LineItems?: Array<{ Description?: string }>; Payments?: Array<{ Date?: string; Amount?: number }>;
+      }> }).Invoices?.[0];
+      if (!i) continue;
+      out.push({
+        id: i.InvoiceID, supplier: (i.Contact?.Name ?? "").trim(), number: i.InvoiceNumber?.trim() || null,
+        date: xeroDate(i.DateString ?? i.Date),
+        subTotal: Number(i.SubTotal ?? 0), total: Number(i.Total ?? 0), amountDue: Number(i.AmountDue ?? 0),
+        lines: (i.LineItems ?? []).map((l) => (l.Description ?? "").trim()).filter(Boolean),
+        payments: (i.Payments ?? []).map((p) => ({ date: xeroDate(p.Date), amount: Number(p.Amount ?? 0) })),
+      });
+    }
+    return out.sort((a, b) => a.date.localeCompare(b.date));
+  },
+  ["xero-supplier-bills"],
+  { revalidate: 600, tags: ["xero-reports"] },
+);
+
+/** Null when Xero isn't connected or didn't answer. */
+export async function getSupplierBills(pattern: string, fromDate: string, toDate: string): Promise<SupplierBill[] | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedSupplierBills(integ.tenantId, pattern, fromDate, toDate).catch(() => null);
+}

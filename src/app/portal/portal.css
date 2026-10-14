@@ -5111,7 +5111,7 @@ a.pt-td__pill { text-decoration: none; }
 /* The company's KPIs. */
 .pt-kpi__spans { margin: 0 0 12px; }
 .pt-kpi__spans a { text-decoration: none; }
-.pt-kpi__head, .pt-kpi__row > summary, .pt-kpi__row.is-flat { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(80px, 1fr) 120px 80px 110px; gap: 14px; align-items: center; }
+.pt-kpi__head, .pt-kpi__row > summary, .pt-kpi__row.is-flat { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(80px, 1fr) 110px 76px 118px 128px; gap: 12px; align-items: center; }
 .pt-kpi__head { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); padding-bottom: 6px; }
 .pt-kpi__head span:nth-child(n+3) { text-align: right; }
 .pt-kpi__row { border-top: 1px solid var(--pt-tint); }
@@ -5144,7 +5144,8 @@ a.pt-td__pill { text-decoration: none; }
   .pt-kpi__head { display: none; }
   .pt-kpi__row > summary, .pt-kpi__row.is-flat { grid-template-columns: minmax(0, 1fr) auto auto; }
   .pt-kpi__bar { grid-column: 1 / -1; order: 5; }
-  .pt-kpi__health { grid-column: 1 / -1; justify-self: start; }
+  .pt-kpi__health { grid-column: span 1; justify-self: start; }
+  .pt-kpi__health:empty { display: none; }
   .pt-kpi__lines li { grid-template-columns: minmax(0, 1fr) auto auto; }
 }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
@@ -5490,6 +5491,24 @@ a.pt-td__pill { text-decoration: none; }
 .pt-supem__allrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .pt-supem__allrow .pt-nw__input { flex: 1 1 260px; max-width: 420px; box-sizing: border-box; }
 .pt-supem__all .pt-inline { display: block; margin-top: 10px; }
+
+/* Running costs: every overhead, now and at more vans. */
+.pt-rc { font-size: 14px; }
+.pt-rc th[scope="row"] { font-weight: 500; padding-left: 12px; }
+.pt-rc .num { text-align: right; white-space: nowrap; }
+.pt-rc th.num { text-align: right; }
+.pt-rc__grp th, .pt-rc__grp td { font-weight: 700; background: var(--pt-tint); }
+.pt-rc__grp th[scope="rowgroup"] { padding-left: 0; text-align: left; }
+.pt-rc__tot th, .pt-rc__tot td { font-weight: 700; border-top: 2px solid var(--pt-line); }
+.pt-rc tfoot th[scope="row"] { padding-left: 0; font-weight: 700; }
+.pt-rc tr.is-now th, .pt-rc tr.is-now td { font-weight: 700; }
+.pt-rc__n { font-style: normal; color: var(--pt-ink-2); font-weight: 400; }
+.pt-rc tbody th[scope="row"], .pt-rc tfoot th[scope="row"] { text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--pt-ink); }
+.pt-rc__grp th[scope="rowgroup"] { text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--pt-ink); }
+.pt-rc tr:last-child th { border-bottom: 0; }
+.pt-rc-sum .pt-hs__nums strong { white-space: nowrap; }
+@media (max-width: 520px) { .pt-rc-sum .pt-hs__nums strong { font-size: 24px; } }
+.pt-calc__em { font-style: normal; font-weight: 400; color: var(--pt-ink-2); font-size: 0.85em; }
 
 /* ------------------------------------------------------------------ print */
 /*

@@ -13,6 +13,10 @@ import { followupRate } from "@/lib/portal/run/data";
 import { monthElapsed, money, pc, salesGoal } from "@/lib/portal/run/month";
 import { onTheTools } from "@/lib/portal/onTheTools";
 import { BENCH, benchStatus, type BenchKey } from "@/lib/portal/benchmarks";
+import { loadSpread, spreadDetail } from "@/lib/portal/run/spread";
+import { reeceFlags } from "@/lib/finance/reeceCheck";
+import { SpreadForm } from "@/components/portal/SpreadForm";
+import { revenueGoalFor } from "@/lib/portal/yearGoal";
 import { Bad, Card, Empty, Good, Head, PeriodTabs, Pill, Say, Tabs, none, status, type Status } from "@/components/portal/kit/Kit";
 import { PERIODS, periodSpans, periodWords, readPeriod } from "@/lib/portal/run/period";
 
@@ -51,7 +55,19 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     followupRate().catch(() => null),
     onTheTools().catch(() => null),
   ]);
-  const detail = xero.status === "connected" ? await getPLDetail(from, to).catch(() => null) : null;
+  const booked = xero.status === "connected" ? await getPLDetail(from, to).catch(() => null) : null;
+  // Once-a-year bills spread across the year (run/spread.ts), so the month the
+  // insurance lands isn't read as the month the business went backwards.
+  const spread = booked ? await spreadDetail(booked, from, to).catch(() => ({ detail: booked, notes: [] })) : null;
+  const detail = spread?.detail ?? null;
+  const spreadOn = booked ? await loadSpread().catch(() => []) : [];
+  // Every overhead account this period, and the ticked ones even when they're not in it.
+  const spreadChoices = booked
+    ? [...new Set([...spreadOn, ...booked.sections.filter((x) => x.kind === "out" && !/cost of (sales|goods)|direct cost/i.test(x.title)).flatMap((x) => x.lines.filter((l) => Math.abs(l.amount) > 0.5).map((l) => l.label))])].sort((a, b) => a.localeCompare(b))
+    : [];
+  // A Reece bill that looks like the statement balance, not the month's buying.
+  const reece = booked ? await reeceFlags(from, to).catch(() => null) : null;
+  const revGoal = year?.revenue ? { byNow: revenueGoalFor(year, from, to), year: shortMoney(year.revenue) } : null;
   const pl: PLSummary | null = detail ? summarisePL(detail) : null;
   const m = board?.metrics ?? null;
 
@@ -222,7 +238,24 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
             </>
           ) : xero.status === "connected" ? <>Xero didn’t send this year’s profit and loss, so there’s nothing to measure yet.</> : <>Connect Xero to see the money top to bottom.</>}
         </Say>
-        {detail ? <KpiStack detail={detail} label={periodWords(period)} aims={{ gm: goals.gm, ovh: goals.ovh, np: npGoal }} /> : <Empty>{xero.status === "connected" ? "No profit and loss from Xero for this year yet." : <>Xero isn’t connected. <Link href="/portal/integrations">Connect it ›</Link></>}</Empty>}
+        {reece && reece.length > 0 && (
+          <div className="pt-note pt-note--warn" role="note" style={{ marginBottom: 14 }}>
+            {reece.map((f) => (
+              <p key={f.bill.id} style={{ margin: "0 0 6px" }}>
+                <strong>Check the Reece bill for {f.month}.</strong>{" "}
+                {f.why === "carried" ? (
+                  <>It&rsquo;s {money(f.bill.total)}, and {money(f.owing)} was still owing on the Reece bill before it — so it looks like Reece&rsquo;s statement balance, not {f.month.split(" ")[0]}&rsquo;s purchases.
+                  If it is, {f.month.split(" ")[0]}&rsquo;s own Reece buying was about {money(f.purchasesExGst ?? 0)} and cost of goods here is about <strong>{money(f.overstatedExGst ?? 0)} too high</strong> (ex GST).</>
+                ) : (
+                  <>Its line reads &ldquo;{f.bill.lines.join(" ").replace(/\s+/g, " ").slice(0, 80)}&rdquo; — worked out from a statement balance, which can carry last month&rsquo;s unpaid materials in again.</>
+                )}{" "}
+                Reece&rsquo;s statement for the month shows the new invoices; the bill in Xero should be those, not the closing balance.
+              </p>
+            ))}
+          </div>
+        )}
+        {detail ? <KpiStack detail={detail} label={periodWords(period)} aims={{ gm: goals.gm, ovh: goals.ovh, np: npGoal }} revenueGoal={revGoal} spread={spread?.notes} /> : <Empty>{xero.status === "connected" ? "No profit and loss from Xero for this year yet." : <>Xero isn’t connected. <Link href="/portal/integrations">Connect it ›</Link></>}</Empty>}
+        {booked && spreadChoices.length > 0 && <SpreadForm accounts={spreadChoices} initial={spreadOn} />}
         {pl && (
           <Card title="Against the benchmarks" aside="fixed for a service trade · not ours to change">
             {bench.map(([n, k, v, lower]) => (
