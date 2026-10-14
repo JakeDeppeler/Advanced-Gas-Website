@@ -22,7 +22,7 @@ const m2 = (n: number) => `$${n.toFixed(0)}`;
  *
  * Labour rates is the one rate we charge against what each person costs an
  * hour, from the same sums as Our hourly rate (computeCapacity), so the two
- * can't disagree. The rate itself comes from Our numbers › Rates & pricing;
+ * can't disagree. The rate itself comes from Pricing & costs › Rates & pricing;
  * until it's set, the page says what the team needs and leaves the rest.
  */
 export default async function RatesPage({ searchParams }: { searchParams: { tab?: string } }) {
@@ -31,10 +31,10 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
   if (!can(user, "overhead")) return <Locked user={user} what="Team" forWhom="the office" />;
   const tab = searchParams.tab === "leaders" ? "leaders" : "rates";
   const head = (
-    <Head title="Team" sub={tab === "rates" ? "Labour rates · from Our numbers and the crew’s wages" : "Who sold what this month · ServiceTitan"} info={[
+    <Head title="Team" sub={tab === "rates" ? "Labour rates · from Pricing & costs and the crew’s wages" : "Who sold what this month · ServiceTitan"} info={[
       ["What the person costs", "Their pay with super and WorkCover, and their own time off the tools, spread over their billable hours."],
       ["Office share", "The office, the vans and every other overhead, spread over the whole team’s billable hours."],
-      ["What the team needs", "Everyone’s cost an hour plus the profit we want on top, from Our numbers."],
+      ["What the team needs", "Everyone’s cost an hour plus the profit we want on top, from Pricing & costs."],
       ["Leaderboard", "Credit goes to whoever wrote the quote. A re-sold quote counts once, on the day it first sold."],
     ]} />
   );
@@ -70,7 +70,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
               </div>
             ) : <Empty>No quotes or sales this month yet.</Empty>}
           </Card>
-          <p className="pk-note">Commission against the month target comes with Our numbers › Commission.</p>
+          <p className="pk-note">Commission against the month target comes with Pricing & costs › Commission.</p>
         </div>
       </PortalShell>
     );
@@ -101,12 +101,12 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
           {ours && needs ? (
             <>We charge {m2(ours)} an hour. To make {s.margin}% the team needs {m2(needs)}, {ours >= needs ? <Good>{m2(ours - needs)} to spare</Good> : <Bad>{m2(needs - ours)} short</Bad>}.</>
           ) : needs ? (
-            <>To make {s.margin}% the team needs {m2(needs)} an hour. Set the rate we charge in Our numbers to see how it compares.</>
+            <>To make {s.margin}% the team needs {m2(needs)} an hour. Set the rate we charge in Pricing & costs to see how it compares.</>
           ) : <>Nobody on the team has billable hours yet, so there’s no hourly cost to show.</>}
         </Say>
         <Pair>
           <Hero dark label="Our rate" right="ServiceTitan pricebook" fig={ours ? `${m2(ours)} /hr` : "Not set"} frac={ours && needs ? ours / Math.max(ours, needs) : null}
-            sub={ours && needs ? (ours >= needs ? `${m2(ours - needs)} over the ${m2(needs)} the team needs` : `${m2(needs - ours)} under the ${m2(needs)} the team needs`) : "Set it in Our numbers › Rates & pricing"} href="/portal/finance/hourly" />
+            sub={ours && needs ? (ours >= needs ? `${m2(ours - needs)} over the ${m2(needs)} the team needs` : `${m2(needs - ours)} under the ${m2(needs)} the team needs`) : "Set it in Pricing & costs › Rates & pricing"} href="/portal/finance/hourly" />
           <Hero label="What the team needs" right={`${s.margin}% profit · ${plural(people.length, "person", "people")}`} fig={needs ? `${m2(needs)} /hr` : "—"} frac={needs && ours ? needs / Math.max(ours, needs) : null}
             sub={breakEven ? `Break-even is ${m2(breakEven)} an hour, all in` : undefined} />
         </Pair>
@@ -138,10 +138,10 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
                 </span>
               </div>
             );
-          }) : <Empty>Add the crew’s wages in Our numbers to see what each person costs.</Empty>}
+          }) : <Empty>Add the crew’s wages in Pricing & costs to see what each person costs.</Empty>}
           <div className="pk-btns" style={{ marginTop: 14 }}>
             <Btn href="/portal/finance/hourly">Build our rate ›</Btn>
-            <Btn href="/portal/finance/capacity" quiet>Wages in Our numbers ›</Btn>
+            <Btn href="/portal/finance/capacity" quiet>Wages in Pricing & costs ›</Btn>
           </div>
         </Card>
       </div>

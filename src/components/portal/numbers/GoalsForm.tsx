@@ -38,7 +38,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 
 /**
- * Our numbers › Goals: the numbers every page is measured against. The year's
+ * Pricing & costs › Goals: the numbers every page is measured against. The year's
  * sales are the twelve months added up, so they can't disagree. A blank box is
  * "no goal", and the pages that use it say so.
  */

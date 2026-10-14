@@ -588,7 +588,7 @@ export type Vehicle = {
   fuelPer100: number | null;
   /** Rego renewal (migration 0039). */
   regoDue: string | null;
-  /** Finance repayment a month (migration 0055), set on Our numbers. */
+  /** Finance repayment a month (migration 0055), set on Pricing & costs. */
   monthlyRepayment: number | null;
   /** The finance contract, when one has been entered (settings key "vehicle_loans"). */
   loan?: VanLoan | null;

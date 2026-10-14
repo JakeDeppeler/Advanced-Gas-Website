@@ -58,7 +58,7 @@ type MatLine = { id: number; what: string; cost: number; qty: number };
 
 export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, materialsMarkup = 25, margin = null }: {
   crew: CrewRate[]; costPerHr: number | null; costPerHrOnsite: number | null; calloutFee: number;
-  /** The markup on materials saved on Our numbers; the one that matches the margin until one is. */
+  /** The markup on materials saved on Pricing & costs; the one that matches the margin until one is. */
   materialsMarkup?: number;
   /** The profit we want as a share of the price, which every rate is built to leave. */
   margin?: number | null;
@@ -226,7 +226,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
         <div className="pt-calc__panel">
           <h3 className="pt-calc__h">Who&rsquo;s on the job</h3>
           {crew.length === 0 ? (
-            <p className="pt-calc__hint">No crew rates yet — set each person&rsquo;s level and numbers in <strong>Finance → Our numbers</strong> and they&rsquo;ll show here. In the meantime, use the extra labour line below.</p>
+            <p className="pt-calc__hint">No crew rates yet — set each person&rsquo;s level and numbers in <strong>Pricing &amp; costs</strong> and they&rsquo;ll show here. In the meantime, use the extra labour line below.</p>
           ) : (
             byLevel.map((g) => (
               <div key={g.level} className="pt-job__group">
@@ -244,7 +244,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
                             <strong>{c.name}</strong>
                             <span>
                               {noPrice
-                                ? "No figure yet, set their numbers on Our numbers"
+                                ? "No figure yet, set their numbers on Pricing & costs"
                                 : rides && c.learner
                                   ? `${money2(c.charge as number)}/hr on top of the tradesman · their whole cost, school included, plus margin`
                                   : rides
@@ -357,7 +357,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
             </p>
           </div>
         ) : (
-          <p className="pt-calc__note">Set the crew up in <strong>Finance → Our numbers</strong> to see what this job costs you and what&rsquo;s left in it.</p>
+          <p className="pt-calc__note">Set the crew up in <strong>Pricing &amp; costs</strong> to see what this job costs you and what&rsquo;s left in it.</p>
         )}
 
         <p className="pt-calc__note">A ballpark to quote from — confirm the final number on a written quote.</p>

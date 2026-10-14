@@ -40,11 +40,12 @@ export function TeamTabs({ on }: { on: "rates" | "build" | "running" | "leaders"
   );
 }
 
-export function PaceTabs({ on }: { on: "mix" | "funnel" }) {
+export function PaceTabs({ on }: { on: "mix" | "funnel" | "year" }) {
   return (
     <Tabs on={on} items={[
       { key: "mix", label: "The mix", href: "/portal/goal" },
       { key: "funnel", label: "Step by step", href: "/portal/pace" },
+      { key: "year", label: "The year so far", href: "/portal/finance/goals" },
     ]} />
   );
 }

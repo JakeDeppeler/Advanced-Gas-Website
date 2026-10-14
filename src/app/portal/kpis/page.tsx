@@ -32,7 +32,7 @@ type TabKey = "overview" | "sell" | "work" | "paid" | "money" | "team";
 
 /**
  * Run the company › Our KPIs: every number the business is measured by,
- * against its goal (Our numbers) and, where there is one, the benchmark for a
+ * against its goal (Pricing & costs) and, where there is one, the benchmark for a
  * healthy service trade (fixed in code). Overview is the money top to bottom
  * from Xero for the financial year; each tab is one part of the business.
  */
@@ -76,7 +76,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const g = m ? salesGoal(m) : { month: null, byNow: null };
   const f = m ? monthElapsed(m) : null;
   /*
-   * Goals worked back from the year goal. Where Our numbers doesn't set one,
+   * Goals worked back from the year goal. Where Pricing & costs doesn't set one,
    * each selling goal is what the year's sales goal needs this month at the
    * rates we're running at — the Pace page's plan, at this month's share of
    * the year. So a goal moves when the year goal or our real win rate does,
@@ -188,7 +188,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   );
   const head = (
     <Head title="Our KPIs" sub={tab === "overview" || tab === "money" ? `${periodWords(period).charAt(0).toUpperCase()}${periodWords(period).slice(1)} · from Xero` : "This month · ServiceTitan and Xero"} info={[
-      ["Goal", "What we aim for this year, set in Our numbers. Change it there and every page moves with it."],
+      ["Goal", "What we aim for this year, set in Pricing & costs. Change it there and every page moves with it."],
       ["Benchmark", "What a healthy service trade looks like. Fixed, so it can’t be moved to suit a month."],
       ["No goal yet", "Nobody has set a goal for it, so it isn’t marked good or bad."],
     ]} />
@@ -266,7 +266,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
                 <Pill st={benchStatus(k, v, lower)} />
               </div>
             ))}
-            <p className="pk-note" style={{ marginTop: 10 }}>Our goals in Our numbers are what we aim for this year. The benchmark is what a healthy service trade looks like, and it stays put.</p>
+            <p className="pk-note" style={{ marginTop: 10 }}>Our goals in Pricing & costs are what we aim for this year. The benchmark is what a healthy service trade looks like, and it stays put.</p>
           </Card>
         )}
       </>
@@ -299,7 +299,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
           {good.length > 0 && <Good>{good.length} on track</Good>}
           {good.length > 0 && bad.length > 0 && ", but "}
           {bad.length > 0 && <Bad>{cap(bad.map((k) => k.name.toLowerCase()).join(" and "), good.length === 0)} {bad.length > 1 || bad[0].pl ? "need" : "needs"} work</Bad>}
-          {!good.length && !bad.length && <>Nothing here is set against a goal yet; set them in Our numbers.</>}
+          {!good.length && !bad.length && <>Nothing here is set against a goal yet; set them in Pricing & costs.</>}
           {(good.length > 0 || bad.length > 0) && "."}
         </Say>
         {list(ks, title, tab === "money" ? `${periodWords(period)} · Xero` : "this month")}

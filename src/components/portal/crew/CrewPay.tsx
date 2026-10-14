@@ -35,7 +35,7 @@ const GROUPS: { title: string; fields: Field[] }[] = [
 
 /**
  * One person's wage, hours and time off, on their own file. The same record
- * Our numbers › Team & wages edits, saved by the same action, so the hourly
+ * Pricing & costs › Team & wages edits, saved by the same action, so the hourly
  * rate, the Job calculator and Planning move with it either way.
  */
 export function CrewPay({ userId, first, level: level0, costing, rate }: {

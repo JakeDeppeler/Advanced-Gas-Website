@@ -17,7 +17,7 @@ export const metadata = { title: "Hire someone — Team portal" };
 
 /**
  * Planning, cut down to the question it gets asked: what does hiring one more
- * person take, and what does it make? Every figure comes from Our numbers —
+ * person take, and what does it make? Every figure comes from Pricing & costs —
  * the crew, the costs, the next van, the markups — so nothing is typed twice
  * and nothing here can drift from the hourly rate.
  */
@@ -34,7 +34,7 @@ export default async function PlanningPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="What if" lede="What another person takes, and what they make. Every figure comes from Our numbers; nothing here changes them." />
+      <FinanceHead title="What if" lede="What another person takes, and what they make. Every figure comes from Pricing & costs; nothing here changes them." />
       <PlanningTabs current="/portal/finance/planning" />
       <HireCalc people={people} settings={s} growth={growth} />
     </PortalShell>

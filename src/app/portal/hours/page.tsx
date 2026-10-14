@@ -17,7 +17,7 @@ const pc = (n: number) => `${Math.round(n * 100)}%`;
 /**
  * Time on the tools, by person, from ServiceTitan's own clock-ins: the moment
  * a tech marks themselves arrived to the moment they mark the job done. Travel
- * is dispatched to arrived. Against the week their card on Our numbers says
+ * is dispatched to arrived. Against the week their card on Pricing & costs says
  * they're rostered for, that's how much of the paid week went on customers.
  *
  * It replaced three tiles that waited on the crew's portal timesheets, which
@@ -67,7 +67,7 @@ export default async function HoursPage() {
       <section className="pt-panel" aria-labelledby="hrs-h">
         <h2 id="hrs-h" className="pt-panel__h">By person</h2>
         <p className="pt-panel__sub">
-          On site is arrived to done on each visit; driving is dispatched to arrived. Rostered is the week on their card on <Link href="/portal/finance/capacity">Our numbers</Link>. A visit clocked over {MAX_VISIT_HRS} hours is left out as a clock left running. The office&rsquo;s visits are listed but kept out of the totals above.
+          On site is arrived to done on each visit; driving is dispatched to arrived. Rostered is the week on their card on <Link href="/portal/finance/capacity">Pricing & costs</Link>. A visit clocked over {MAX_VISIT_HRS} hours is left out as a clock left running. The office&rsquo;s visits are listed but kept out of the totals above.
         </p>
         {rows.length ? (
           <div className="pt-fleet__wrap">

@@ -119,7 +119,7 @@ export default async function TeamMemberFile({ params, searchParams }: { params:
             <div>
               {tab === "goals" && sold != null && (
                 <div style={{ marginBottom: 14 }}>
-                  <Card title="Sold this month" aside={`target ${money(rule.monthTarget)} · from Our numbers`}>
+                  <Card title="Sold this month" aside={`target ${money(rule.monthTarget)} · from Pricing & costs`}>
                     <Kv t={money(sold)} sub={b!.hit ? "target hit" : `${money(b!.toGo)} to go`} v={<Pill st={b!.hit ? { k: "good", w: "Hit" } : sold / rule.monthTarget >= 0.75 ? { k: "mid", w: "Close" } : { k: "bad", w: "Behind" }} />} />
                     <div className={`pk-bar ${b!.hit ? "good" : "mid"}`}><i style={{ width: `${Math.max(2, Math.min(100, (sold / rule.monthTarget) * 100))}%` }} /></div>
                   </Card>
@@ -142,7 +142,7 @@ export default async function TeamMemberFile({ params, searchParams }: { params:
         )}
 
         {tab === "comm" && (
-          <Card title="Commission" aside={`${rule.ratePct}% of everything sold in the month, once the ${money(rule.monthTarget)} target is hit · Our numbers › Commission`}>
+          <Card title="Commission" aside={`${rule.ratePct}% of everything sold in the month, once the ${money(rule.monthTarget)} target is hit · Pricing & costs › Commission`}>
             {sold == null ? (
               <Empty>ServiceTitan has no one called {person.name}, so there are no sales to count. If they sell under another name, make the two match.</Empty>
             ) : (
@@ -191,7 +191,7 @@ export default async function TeamMemberFile({ params, searchParams }: { params:
                     v={<Pill st={l.status === "approved" ? { k: "good", w: "Approved" } : l.status === "declined" ? { k: "bad", w: "Declined" } : { k: "mid", w: "Asked" }} />} />
                 ))}
               </Card>
-              {/* The admin edits pay and hours here, on the person; Our numbers ›
+              {/* The admin edits pay and hours here, on the person; Pricing & costs ›
                   Team & wages is the same record laid side by side. */}
               {person.costing && money$ && can(me, "overhead") ? (
                 <CrewPay userId={person.id} first={first} level={isCrewLevel(person.level) ? person.level : "tradesman"} costing={person.costing} rate={rate} />

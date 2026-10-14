@@ -49,7 +49,7 @@ export default async function CommissionPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="What if" lede="The pay plan from January, and whether it pays for itself. Every figure comes from Our numbers." />
+      <FinanceHead title="What if" lede="The pay plan from January, and whether it pays for itself. Every figure comes from Pricing & costs." />
       <PlanningTabs current="/portal/finance/planning/commission" />
       <PayPlanModel people={people} settings={s} salesPerVan={salesPerVan} gpMargin={gpMargin} plan={plan} today={isoDateMelbourne(new Date())} />
     </PortalShell>

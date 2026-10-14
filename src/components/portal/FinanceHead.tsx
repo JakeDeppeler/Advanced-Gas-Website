@@ -10,7 +10,7 @@ import { XeroLine, type XeroState } from "@/components/portal/XeroLine";
  * — back to Home, the tab's name, where the figures came from.
  *
  * No tab row: every one of these pages is in the side bar, under Profit &
- * finance, Our numbers or Future, and the new design keeps tab rows for true
+ * finance, Pricing & costs or Future, and the new design keeps tab rows for true
  * sub-tabs only.
  */
 export function FinanceHead({ title, lede, xero }: {

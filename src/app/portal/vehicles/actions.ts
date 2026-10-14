@@ -65,7 +65,7 @@ export async function saveVehicle(input: {
   serviceCost: number | null; kmYear: number | null; assignedTo: string; regoDue?: string;
 }): Promise<ActionResult> {
   // What the van cost, what's owed, the repayment, resale and life are set on
-  // Finance → Our numbers (saveVanMoney) and nowhere else, so they're left out
+  // Finance → Pricing & costs (saveVanMoney) and nowhere else, so they're left out
   // here rather than written back from a form that no longer shows them.
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can edit a vehicle." };

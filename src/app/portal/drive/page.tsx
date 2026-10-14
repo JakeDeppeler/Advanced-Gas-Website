@@ -88,7 +88,7 @@ export default async function DrivePage() {
           <Tile label="Crew drive time" st={fleetSt} fig={`${Math.round(fleet)}%`} frac={fleet / 40} sub={`of the working day · aim ${BENCH.drive.words.split(" of")[0]}`} />
           <Tile label="Most on the road" st={benchStatus("drive", worst.pct, true)} fig={`${Math.round(worst.pct)}%`} frac={worst.pct / 40} sub={`${worst.name.split(" ")[0]} · ${worst.driveDay.toFixed(1)} hrs driving a day`} />
           <Tile label="Hours over the band" st={overH > 20 ? { k: "bad", w: "Routing" } : overH > 0 ? { k: "mid", w: "Watch it" } : { k: "good", w: "None" }} fig={`${overH} hrs`} frac={Math.min(1, overH / 80)} sub="over four weeks, across the crew" />
-          <Tile label="Worth at our rate" st={rate == null ? none("No rate set") : { k: "none", w: "" }} fig={worth != null ? money(worth) : "—"} frac={worth != null ? Math.min(1, worth / 8000) : null} sub={rate != null ? `${money(rate)} an hour we could have billed` : "set the hourly rate in Our numbers › Rates & pricing"} />
+          <Tile label="Worth at our rate" st={rate == null ? none("No rate set") : { k: "none", w: "" }} fig={worth != null ? money(worth) : "—"} frac={worth != null ? Math.min(1, worth / 8000) : null} sub={rate != null ? `${money(rate)} an hour we could have billed` : "set the hourly rate in Pricing & costs › Rates & pricing"} />
         </Grid>
         <Card title="Drive time per van" aside="each person running their own van · longest first · the coloured part is driving">
           {people.map((p) => {

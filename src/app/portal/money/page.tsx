@@ -107,7 +107,7 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
                   <div style={{ marginTop: 12 }}><Btn quiet href="/portal/jobs?tab=notbilled">See the jobs not billed ›</Btn></div>
                 </Card>
                 {goals.overdue != null && (
-                  <Tile label="Overdue against the limit" st={status(b1 + b2, goals.overdue, { lower: true })} fig={money(b1 + b2)} frac={b1 + b2 > 0 ? Math.min(1, goals.overdue / (b1 + b2)) : 1} sub={`limit ${money(goals.overdue)} · from Our numbers`} />
+                  <Tile label="Overdue against the limit" st={status(b1 + b2, goals.overdue, { lower: true })} fig={money(b1 + b2)} frac={b1 + b2 > 0 ? Math.min(1, goals.overdue / (b1 + b2)) : 1} sub={`limit ${money(goals.overdue)} · from Pricing & costs`} />
                 )}
                 {seg !== "all" && byName > 0 && <Note>{plural(byName, "older invoice")} here {byName === 1 ? "has" : "have"} no ServiceTitan business unit, so the customer’s name decided: agencies (Real Estate, Realty, Ray White, First National and the like) are real estate, everyone else domestic.</Note>}
               </div>

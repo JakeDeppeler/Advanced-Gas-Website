@@ -3,7 +3,7 @@
  * already holds (sales for the year and how it falls by month, the profit %,
  * the win rate — those stay in portal_settings.yeargoal, one place each).
  *
- * Kept in portal_settings key `goals`, edited on Our numbers › Goals. A goal
+ * Kept in portal_settings key `goals`, edited on Pricing & costs › Goals. A goal
  * that isn't set is null, and the page it's used on says "No goal yet" rather
  * than measuring against a number nobody chose. Gross margin and overheads
  * start at the aims the KPI stack has always used, 40% and 25%.

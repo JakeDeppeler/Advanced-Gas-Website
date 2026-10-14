@@ -232,19 +232,24 @@ export function Crumb({ sections }: { sections: Section[] }) {
 }
 
 /**
- * A flat section's pages, as the tab bar across the top of each of them. The
- * shell draws it, so every page in the section carries the same bar and no
- * page has to remember to.
+ * The tab row across the top of a page that shares its side bar line with
+ * others — Marketing's tabs, the wall board's setup pages — or of every page
+ * in a flat section. The shell draws it, so every page in the group carries
+ * the same row and no page has to remember to.
  */
 export function SectionBar({ sections }: { sections: Section[] }) {
   const path = usePathname() ?? "";
   const query = useSearchParams();
   const here = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
-  if (!here.section?.flat || here.section.pages.length < 2) return null;
+  const flat = here.section?.flat && here.section.pages.length > 1;
+  const group = here.page?.subs?.length ? [{ ...here.page, label: here.page.tab ?? here.page.label }, ...here.page.subs] : null;
+  const tabs = flat ? here.section!.pages : group;
+  if (!tabs) return null;
+  const at = flat ? here.page?.href : here.at;
   return (
-    <nav className="pk-seg pn-secbar" aria-label={here.section.label}>
-      {here.section.pages.map((p) => {
-        const on = p.href === here.page?.href;
+    <nav className="pk-seg pn-secbar" aria-label={flat ? here.section!.label : here.page!.label}>
+      {tabs.map((p) => {
+        const on = p.href === at;
         return (
           <Link key={p.href} href={p.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
             {p.label}

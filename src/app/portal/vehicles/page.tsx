@@ -166,7 +166,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
           ["Weekly clean & photos", "Done once each week, by Monday morning: the van cleaned and photographed from every side."],
           ["Service", "Due within 2,000 km or three weeks shows amber; past it, red."],
           ["Km reading", "The odometer, dated by the last reading. Servicing and running costs hang off it."],
-          ...(money$ ? [["Vans & loans", "What each van cost, what it still owes and the repayments. The same figures as Our numbers › Vans & loans."] as [string, string]] : []),
+          ...(money$ ? [["Vans & loans", "What each van cost, what it still owes and the repayments. The same figures as Pricing & costs › Vans & loans."] as [string, string]] : []),
         ]} />
         {rows.length > 0 && <div className="pk-btns" style={{ marginTop: -6 }}><Btn href={`/portal/vehicles/${rows[0].id}`}>+ Log for a van</Btn></div>}
 
@@ -206,7 +206,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
             <Kv t="Depreciation" sub="only on vans still being paid off" v={t.dep !== null ? money(t.dep) : "not set"} />
             <Kv t="Fuel" sub={`at $${FUEL_PRICE.toFixed(2)}/L, ${KM_PER_WEEK} km a week where none is set`} v={t.fuel !== null ? money(t.fuel) : "not set"} />
             <Kv t="Servicing" sub="each van’s interval and what a service costs" v={t.servicing !== null ? money(t.servicing) : "not set"} />
-            <Kv t={<b>Total</b>} sub="the Vehicles line in Our numbers" v={t.running !== null ? money(t.running) : "—"} />
+            <Kv t={<b>Total</b>} sub="the Vehicles line in Pricing & costs" v={t.running !== null ? money(t.running) : "—"} />
             <Note>A van that’s bought and paid for still loses value, but that isn’t cash going out, so it stays off the total. &ldquo;Not set&rdquo; means a van is missing the figure: purchase price and lifespan, service cost and km a year, or fuel use.</Note>
           </Card>
         )}
