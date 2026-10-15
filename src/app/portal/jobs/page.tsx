@@ -6,9 +6,10 @@ import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
 import { certJobs, CERT_DAYS, type CertJob } from "@/lib/portal/run/certs";
 import { melNow, money, pc, plural } from "@/lib/portal/run/month";
-import { Av, Bad, Btn, Card, Empty, Grid, Head, Pill, Say, Tile, none, type Status } from "@/components/portal/kit/Kit";
+import { Av, Bad, Btn, Card, Empty, Grid, Head, Pill, Say, Tabs, Tile, none, type Status } from "@/components/portal/kit/Kit";
 import { JobsTabs } from "@/components/portal/run/RunTabs";
 import { markCert } from "./actions";
+import { listJobs, type JobFilter, type ListedJob } from "@/lib/dashboard/jobList";
 import { stJobUrl, toBillJobs, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
 import { Suspense } from "react";
 import { XeroBilledCard } from "@/components/portal/run/XeroBilledCard";
@@ -36,12 +37,12 @@ function certStatus(c: CertJob): Status {
  * and their five-day clock underneath, because a job that needs a cert can't
  * be billed properly until it's in.
  */
-export default async function JobsPage({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function JobsPage({ searchParams }: { searchParams: { tab?: string; f?: string; q?: string; old?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   const office = can(user, "overhead");
   if (!office && !can(user, "quotes")) return <Locked user={user} what="Jobs" forWhom="the office" />;
-  const tab = (["profit", "notbilled"].includes(searchParams.tab ?? "") ? searchParams.tab : office ? "today" : "notbilled") as "today" | "profit" | "notbilled";
+  const tab = (["profit", "notbilled", "list"].includes(searchParams.tab ?? "") ? searchParams.tab : office ? "today" : "notbilled") as "today" | "profit" | "notbilled" | "list";
 
   const [board, certs, toBill] = await Promise.all([
     latestBoard(),
@@ -65,7 +66,72 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
   if (!m) return <PortalShell user={user}><div className="pk">{head}{tabs}<Empty>The board hasn’t made its first snapshot yet.</Empty></div></PortalShell>;
 
   let body: React.ReactNode;
-  if (tab === "today") {
+  if (tab === "list") {
+    const f: JobFilter = searchParams.f === "hold" || searchParams.f === "done" ? searchParams.f : "open";
+    const search = (searchParams.q ?? "").slice(0, 60);
+    const withOld = searchParams.old === "1";
+    const list = await listJobs(f, { search, withOld }).catch(() => null);
+    const href = (o: { f?: JobFilter; old?: boolean }) => {
+      const p = new URLSearchParams({ tab: "list" });
+      const ff = o.f ?? f;
+      if (ff !== "open") p.set("f", ff);
+      if (search) p.set("q", search);
+      if (o.old ?? withOld) p.set("old", "1");
+      return `/portal/jobs?${p.toString()}`;
+    };
+    const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "Australia/Melbourne" }) : null);
+    const state = (j: ListedJob): Status =>
+      f === "done" ? { k: "good", w: `Done ${when(j.completedOn) ?? ""}`.trim() }
+      : f === "hold" ? { k: "mid", w: j.holdReasons[0] ?? "On hold" }
+      : j.status === "InProgress" ? { k: "mid", w: "In progress" }
+      : j.nextVisit ? none(`Booked ${when(j.nextVisit)}`) : { k: "bad", w: "Not booked" };
+    body = (
+      <>
+        <div className="pk-btns" style={{ alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+          <Tabs on={f} label="Which jobs" items={[
+            { key: "open", label: "Open", href: href({ f: "open" }), count: list?.counts.open || undefined },
+            { key: "hold", label: "On hold", href: href({ f: "hold" }), count: list?.counts.hold || undefined },
+            { key: "done", label: "Completed", href: href({ f: "done" }) },
+          ]} />
+          <form method="get" action="/portal/jobs" className="pk-btns" role="search" style={{ alignItems: "center" }}>
+            <input type="hidden" name="tab" value="list" />
+            {f !== "open" && <input type="hidden" name="f" value={f} />}
+            {withOld && <input type="hidden" name="old" value="1" />}
+            <input id="jobs-q" name="q" defaultValue={search} className="pk-in wide" style={{ minWidth: 240 }} placeholder="Job number, customer or suburb" aria-label="Find a job" />
+            <button type="submit" className="pk-btn g">Find</button>
+          </form>
+        </div>
+        {!list ? <Empty>ServiceTitan&rsquo;s jobs couldn&rsquo;t be read just now.</Empty> : list.jobs.length === 0 ? (
+          <Empty>{search ? <>No {f === "done" ? "completed" : f === "hold" ? "held" : "open"} job matches &ldquo;{search}&rdquo;.</> : f === "hold" ? "Nothing on hold." : f === "open" ? "No open jobs." : "No completed jobs."}</Empty>
+        ) : (
+          <Card title={f === "open" ? "Open jobs" : f === "hold" ? "On hold" : "Completed"} aside={`${list.jobs.length}${list.capped ? " most recent" : ""} · ${f === "open" ? "next visit first" : f === "hold" ? "longest held first" : "newest first"}`}>
+            {list.jobs.map((j) => (
+              <div className="pk-kv pk-kv--act" key={j.id}>
+                <span className="t">
+                  <b>{[j.jobType ?? "Job", j.suburb].filter(Boolean).join(" · ")}</b>
+                  <span>{[
+                    j.jobNumber ? `#${j.jobNumber}` : null,
+                    j.customer,
+                    j.createdOn ? `booked ${when(j.createdOn)}` : null,
+                    f === "hold" && j.holdReasons.length > 1 ? j.holdReasons.slice(1).join(", ") : null,
+                    j.old ? "from the old system" : null,
+                  ].filter(Boolean).join(" · ")}</span>
+                </span>
+                <Pill st={state(j)} />
+                <a className="pk-btn g" href={stJobUrl(j.id)} target="_blank" rel="noreferrer" aria-label={`Open job ${j.jobNumber ?? j.id} in ServiceTitan`}>Open in ServiceTitan ↗</a>
+              </div>
+            ))}
+          </Card>
+        )}
+        <p className="pk-note" style={{ marginTop: 10 }}>
+          From ServiceTitan, synced every few minutes. <b>Open</b> is Scheduled or In progress; <b>On hold</b> is a job ServiceTitan has on Hold or one carrying a hold tag
+          (set in Settings › Wall board › Held work); <b>Completed</b> shows the newest first{list?.capped ? ", the latest 300" : ""}.
+          {list && list.oldHidden > 0 ? <> {list.oldHidden === 1 ? "1 job copied in from the old system still reads as open and is hidden" : `${list.oldHidden} jobs copied in from the old system still read as open and are hidden`} — <a href={href({ old: true })}>show {list.oldHidden === 1 ? "it" : "them"}</a>.</> : null}
+          {withOld ? <> Showing jobs from the old system too — <a href={href({ old: false })}>hide them</a>.</> : null}
+        </p>
+      </>
+    );
+  } else if (tab === "today") {
     const done = jobsToday.filter((j) => j.done).length;
     const over = jobsToday.filter((j) => j.quoted != null && j.taken > j.quoted + 0.25);
     const st = (j: (typeof jobsToday)[number]): Status =>

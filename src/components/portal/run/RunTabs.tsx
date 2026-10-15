@@ -18,10 +18,11 @@ export function SalesTabs({ on, cold }: { on: "overview" | "quotes" | "leads" | 
   );
 }
 
-export function JobsTabs({ on, notBilled, today }: { on: "today" | "profit" | "notbilled"; notBilled?: number; today?: number }) {
+export function JobsTabs({ on, notBilled, today }: { on: "today" | "list" | "profit" | "notbilled"; notBilled?: number; today?: number }) {
   return (
     <Tabs on={on} items={[
       { key: "today", label: "Today", href: "/portal/jobs", count: today || undefined },
+      { key: "list", label: "All jobs", href: "/portal/jobs?tab=list" },
       { key: "profit", label: "Job profit", href: "/portal/jobs?tab=profit" },
       { key: "notbilled", label: "Not billed", href: "/portal/jobs?tab=notbilled", count: notBilled || undefined, red: true },
     ]} />
