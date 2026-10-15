@@ -32,6 +32,9 @@ export type MyMonth = {
   quoted: number;
   quotedJobs: number;
   closeRate: number | null;
+  /** What a job they sold was worth, and how many options they put in front of people per job. */
+  avgTicket: number | null;
+  avgOptions: number | null;
   month: string;
 } | null;
 
@@ -42,8 +45,8 @@ export const myMonth = cache(async (name: string): Promise<MyMonth> => {
   if (!m) return null;
   const row = m.salesLeaderboard.find((r) => sameSeller(name, r.name));
   const month = new Date().toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", month: "long" });
-  if (!row) return { sold: 0, soldJobs: 0, quoted: 0, quotedJobs: 0, closeRate: null, month };
-  return { sold: row.sold, soldJobs: row.soldJobs, quoted: row.quoted, quotedJobs: row.quotedJobs, closeRate: row.closeRate, month };
+  if (!row) return { sold: 0, soldJobs: 0, quoted: 0, quotedJobs: 0, closeRate: null, avgTicket: null, avgOptions: null, month };
+  return { sold: row.sold, soldJobs: row.soldJobs, quoted: row.quoted, quotedJobs: row.quotedJobs, closeRate: row.closeRate, avgTicket: row.avgTicket, avgOptions: row.avgOptions, month };
 });
 
 export type MyQuotes = { open: number; quiet: number; quietestDays: number | null; value: number } | null;
@@ -93,4 +96,24 @@ export const myOpenQuotes = cache(async (name: string): Promise<MyQuotes> => {
   } catch {
     return null;
   }
+});
+
+
+/**
+ * The rest of what a tech sees of the numbers: their own day, and the team's
+ * month as a whole. Chosen by the office, and nothing past it — no costs, no
+ * margins, no one else's sales, no wages. Read off the wall board's last
+ * snapshot, the same figures the office sees.
+ */
+export type MyDay = { jobsDone: number; jobsTotal: number; hoursTaken: number; hoursAllowed: number | null; hoursOnAllowed: number } | null;
+export type TeamMonth = { sold: number; target: number | null; closeRate: number | null } | null;
+
+export const myDayAndTeam = cache(async (name: string): Promise<{ day: MyDay; team: TeamMonth }> => {
+  const m = (await latestBoard())?.metrics;
+  if (!m) return { day: null, team: null };
+  const t = m.daily?.techs.find((x) => sameSeller(name, x.tech)) ?? null;
+  return {
+    day: t ? { jobsDone: t.jobsDone, jobsTotal: t.jobsTotal, hoursTaken: t.hoursTaken, hoursAllowed: t.hoursQuoted, hoursOnAllowed: t.hoursTakenQuoted } : null,
+    team: { sold: m.soldMtd ?? 0, target: m.salesTargetMonthly ?? null, closeRate: m.closeRate30d ?? null },
+  };
 });
