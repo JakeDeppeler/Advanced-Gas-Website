@@ -393,6 +393,8 @@ export type Metrics = {
   overdueTotal: number | null;
   overdueCount: number | null;
   receivablesTotal: number | null;
+  /** How many invoices are still open, Xero's and ServiceTitan's together. Optional: older snapshots lack it. */
+  receivablesCount?: number | null;
   /** What is owed, split by how long it has been owed. Null until Xero answers. */
   receivablesAging: { notDue: number; d1to7: number; d8to14: number; d15to30: number; d30plus: number } | null;
   /**
@@ -561,6 +563,13 @@ export type Metrics = {
    */
   onHold: OnHold | null;
   paceSettings: PaceSettings | null;
+  /**
+   * The year's revenue goal and the floor under it ($3.2M and $2.5M), so a day
+   * card can say where it stands against both. The floor is the year goal's
+   * `floorRevenue`; null when none is set. Optional because older snapshots
+   * carry neither.
+   */
+  goalLevels?: { goal: number; floor: number | null } | null;
   /**
    * Profit on the jobs billed in the last 30 days, before GST. See jobProfit.ts.
    *
@@ -2460,6 +2469,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       overdueTotal: xero.ok ? xero.overdueTotal : prev?.overdueTotal ?? null,
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,
+      receivablesCount: xero.ok ? xero.numbers.length : prev?.receivablesCount ?? null,
       receivablesAging: xero.ok ? xero.aging : (prev?.receivablesAging as Metrics["receivablesAging"]) ?? null,
       receivablesArAging: xero.ok ? xero.arAging : prev?.receivablesArAging ?? null,
       // Carried whole, bills and all: the Money page's list is what somebody
@@ -2476,6 +2486,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       soldMargin: sold,
       onHold: held,
       paceSettings,
+      goalLevels: goal?.revenue ? { goal: goal.revenue, floor: Number((goal as { floorRevenue?: unknown }).floorRevenue) > 0 ? Number((goal as { floorRevenue?: unknown }).floorRevenue) : null } : null,
       jobProfitRecent,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.

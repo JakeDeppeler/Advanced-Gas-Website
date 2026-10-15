@@ -2526,3 +2526,10 @@ body:has(.screen) .utilbar {
   font-weight: 800;
   white-space: nowrap;
 }
+
+/* The day against the year goal and its floor: glyph and word, colour only
+   backs them up. Two short lines, the goal first. */
+.goalmarks { display: flex; flex-wrap: wrap; gap: calc(0.3 * var(--u)) calc(1 * var(--u)); margin-top: calc(0.4 * var(--u)); }
+.goalmark { font-size: calc(0.86 * var(--u)); }
+.tile--navy .goalmark.status--behind { color: #ff8d80; }
+.tile--navy .goalmark.status--ahead { color: #6fdca0; }

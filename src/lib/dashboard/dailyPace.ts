@@ -24,6 +24,7 @@
 
 import { q, sbSelect } from "./db";
 import { startOfDayMelbourne } from "./dates";
+import { jobClass } from "./pace";
 import { getSettings } from "@/lib/portal/db";
 import {
   STANDARD_HOURS_KEY,
@@ -67,20 +68,25 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
   const techIds = [...new Set(live.map((s) => Number(s.technician_id)))];
   const jobIds = [...new Set(live.map((s) => Number(s.job_id)))];
 
-  const [techs, jobs, invoices, standardRaw] = await Promise.all([
+  const [techs, jobs, invoices, standardRaw, typical] = await Promise.all([
     sbSelect<{ id: number; name: string | null }>(
       "st_technicians",
       [q.select("id,name"), `id=in.(${techIds.join(",")})`].join("&"),
     ).catch(() => []),
-    sbSelect<{ id: number; job_type: string | null; suburb: string | null; customer_name: string | null; status: string | null }>(
+    sbSelect<{ id: number; job_type: string | null; suburb: string | null; customer_name: string | null; status: string | null; project_id: string | null }>(
       "st_jobs",
-      [q.select("id,job_type,suburb,customer_name,status"), `id=in.(${jobIds.join(",")})`].join("&"),
+      [q.select("id,job_type,suburb,customer_name,status,project_id:raw->>projectId"), `id=in.(${jobIds.join(",")})`].join("&"),
     ).catch(() => []),
+    // The base table, not st_invoices_billed: ServiceTitan opens a job's
+    // invoice when it's booked, labour lines and all, so the quoted hours are
+    // there all day — the billed view only shows them once the job is closed,
+    // which is after the board stops mattering for it.
     sbSelect<{ job_id: number | null; sold_hours: number | null; total: number | null }>(
-      "st_invoices_billed",
+      "st_invoices",
       [q.select("job_id,sold_hours,total"), `job_id=in.(${jobIds.join(",")})`].join("&"),
     ).catch(() => []),
     getSettings<unknown>(STANDARD_HOURS_KEY).catch(() => null),
+    typicalHours(now).catch(() => new Map<string, number>()),
   ]);
 
   const standard = normaliseStandardHours(standardRaw);
@@ -93,9 +99,15 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
     const k = Number(i.job_id);
     const got = invByJob.get(k) ?? { soldHours: 0, total: 0 };
     got.soldHours += Number(i.sold_hours ?? 0);
-    got.total += Number(i.total ?? 0);
+    // Billed means the job is finished with its invoice on it, not that an
+    // invoice exists — every booked job has one.
+    if (job.get(k)?.status === "Completed") got.total += Number(i.total ?? 0);
     invByJob.set(k, got);
   }
+
+  // An install booked off a quote carries no labour on its own invoice; the
+  // sold estimate on the quote visit, in the same ServiceTitan project, does.
+  const estHours = await soldEstimateHours(jobs.map((j) => j.project_id).filter((v): v is string => !!v)).catch(() => new Map<string, number>());
 
   /*
    * One row per technician per appointment, so a tech who left a job and came
@@ -108,8 +120,11 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
     const jid = Number(s.job_id);
     const j = job.get(jid);
     const inv = invByJob.get(jid);
-    const soldHours = inv && inv.soldHours > 0 ? inv.soldHours : null;
+    const invHours = inv && inv.soldHours > 0 ? inv.soldHours : null;
+    const est = j?.project_id && jobClass(j.job_type) !== "quote" ? estHours.get(j.project_id) ?? null : null;
+    const soldHours = invHours ?? est;
     const std = j?.job_type ? standard[j.job_type] ?? null : null;
+    const usual = j?.job_type ? typical.get(j.job_type) ?? null : null;
     const onNow = !s.done_on;
     const taken = hoursBetween(s.arrived_on as string, s.done_on ? new Date(s.done_on) : now);
 
@@ -125,8 +140,8 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
         what: j?.job_type ?? "Job",
         where: j?.suburb ?? null,
         taken,
-        quoted: soldHours ?? std,
-        quotedFrom: soldHours != null ? "invoice" : std != null ? "standard" : null,
+        quoted: soldHours ?? std ?? usual,
+        quotedFrom: invHours != null ? "invoice" : est != null ? "estimate" : std != null ? "standard" : usual != null ? "typical" : null,
         // Done means this visit finished, not that ServiceTitan has closed the
         // job: the board is read at 5pm, and a job finished at 4 is done for
         // the day whatever its status says in the morning.
@@ -175,4 +190,80 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
       quotedCover: { with: quotedAll.length, of: all.length },
     },
   };
+}
+
+
+/** Labour hours on the sold estimates in each project: sku hours × quantity on every line. */
+async function soldEstimateHours(projects: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (!projects.length) return out;
+  const siblings = await sbSelect<{ id: number; project_id: string | null }>(
+    "st_jobs",
+    [q.select("id,project_id:raw->>projectId"), `raw->>projectId=in.(${[...new Set(projects)].join(",")})`].join("&"),
+  );
+  const projectOf = new Map(siblings.map((j) => [Number(j.id), j.project_id]));
+  if (!projectOf.size) return out;
+  const ests = await sbSelect<{ job_id: number | null; items: Array<{ qty?: number | null; sku?: { soldHours?: number | null } | null }> | null }>(
+    "st_estimates",
+    [q.select("job_id,items:raw->items"), `job_id=in.(${[...projectOf.keys()].join(",")})`, "status=ilike.sold*"].join("&"),
+  );
+  for (const e of ests) {
+    const p = e.job_id != null ? projectOf.get(Number(e.job_id)) : null;
+    if (!p) continue;
+    const h = (e.items ?? []).reduce((a, i) => a + Number(i.sku?.soldHours ?? 0) * Number(i.qty ?? 1), 0);
+    if (h > 0) out.set(p, (out.get(p) ?? 0) + h);
+  }
+  return out;
+}
+
+/**
+ * The usual time on site for each job type: the median over the last ninety
+ * days of finished jobs, five or more of them, overlapping timesheets counted
+ * once. The last resort behind a quote, an estimate and a standard time — a
+ * measured figure, and the card says it's "typical" rather than quoted.
+ */
+async function typicalHours(now: Date): Promise<Map<string, number>> {
+  const since = new Date(now.getTime() - 90 * 86_400_000).toISOString();
+  const sheets = await sbSelect<{ job_id: number | null; arrived_on: string | null; done_on: string | null }>(
+    "st_timesheets",
+    [q.select("job_id,arrived_on,done_on"), q.gte("arrived_on", since), q.isNull("canceled_on"), "limit=10000"].join("&"),
+  );
+  const spans = new Map<number, Array<[number, number]>>();
+  for (const t of sheets) {
+    if (t.job_id == null || !t.arrived_on || !t.done_on) continue;
+    const a = Date.parse(t.arrived_on), b = Math.min(Date.parse(t.done_on), a + 12 * 3_600_000);
+    if (!(b > a)) continue;
+    spans.set(Number(t.job_id), [...(spans.get(Number(t.job_id)) ?? []), [a, b]]);
+  }
+  const ids = [...spans.keys()];
+  const types = new Map<number, string>();
+  for (let i = 0; i < ids.length; i += 200) {
+    const rows = await sbSelect<{ id: number; job_type: string | null; status: string | null }>(
+      "st_jobs",
+      [q.select("id,job_type,status"), `id=in.(${ids.slice(i, i + 200).join(",")})`].join("&"),
+    );
+    for (const r of rows) if (r.job_type && r.status === "Completed") types.set(Number(r.id), r.job_type);
+  }
+  const byType = new Map<string, number[]>();
+  for (const [id, list] of spans) {
+    const type = types.get(id);
+    if (!type) continue;
+    list.sort((x, y) => x[0] - y[0]);
+    let total = 0;
+    let [s0, e0] = list[0];
+    for (const [s1, e1] of list.slice(1)) {
+      if (s1 <= e0) e0 = Math.max(e0, e1);
+      else { total += e0 - s0; [s0, e0] = [s1, e1]; }
+    }
+    total += e0 - s0;
+    byType.set(type, [...(byType.get(type) ?? []), total / 3_600_000]);
+  }
+  const out = new Map<string, number>();
+  for (const [type, hours] of byType) {
+    if (hours.length < 5) continue;
+    hours.sort((a, b) => a - b);
+    const mid = Math.floor(hours.length / 2);
+    out.set(type, Math.round((hours.length % 2 ? hours[mid] : (hours[mid - 1] + hours[mid]) / 2) * 4) / 4);
+  }
+  return out;
 }
