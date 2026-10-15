@@ -784,3 +784,22 @@ label.pk-btn { cursor: pointer; }
 .pt-office__count { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 13px; color: var(--ink2, #555); text-align: right; }
 .pt-office__list { margin-top: 10px; }
 @media (max-width: 600px) { .pt-office__count { align-items: flex-start; text-align: left; } }
+
+/* Kit lists: each van's last count beside the list, and a tick column that only prints. */
+.pt-kit__bar { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.pt-kit__bar .pk-seg { margin: 0; }
+.pt-kit__blurb { margin: -4px 0 0; max-width: 68ch; color: var(--ink2); font-size: 14px; line-height: 1.5; }
+.pt-kit__tbl td:first-child { min-width: 180px; }
+@media (max-width: 560px) { .pt-kit__tbl td:first-child { min-width: 130px; } }
+.pt-kit__van span { display: block; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink3); }
+.pt-kit__short { color: var(--bad); }
+.pt-kit__short b { font-size: 12px; font-weight: 800; }
+.pt-kit__tick { display: none; }
+@media print {
+  .pt-kit__bar, .pt-kit .pk-info, .pt-kit .pk-say, .pt-kit .pk-note { display: none !important; }
+  .pt-kit__van { display: none; }
+  .pt-kit .pk-tbl-wrap { overflow: visible; }
+  .pt-kit__tick { display: table-cell; width: 34px; }
+  .pt-kit__tick span { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #000; }
+  .pt-kit .pk-card { break-inside: avoid; box-shadow: none; border: 1px solid #999; }
+}
