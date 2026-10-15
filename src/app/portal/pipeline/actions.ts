@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { logTouch, setFollow } from "@/lib/pipeline/store";
+import { closeOffInServiceTitan } from "@/lib/pipeline/stLost";
 import { isHow, LOST_REASONS } from "@/lib/pipeline/types";
 
-export type Result = { ok: boolean; error?: string };
+export type Result = { ok: boolean; error?: string; said?: string };
 
 /** The pipeline is the office's: anyone who can see it can work it. */
 async function who() {
@@ -43,20 +44,28 @@ export async function saveFollowUp(input: { key: string; how?: string | null; no
   return { ok: true };
 }
 
-/** Closed off here. Dismiss it in ServiceTitan too, or it stays open there. */
-export async function markLost(input: { key: string; reason: string }): Promise<Result> {
+/**
+ * Lost, with the reason: recorded here, the quote's open estimates dismissed in
+ * ServiceTitan so it leaves the Follow Up list there, and a note on the job.
+ */
+export async function markLost(input: { key: string; reason: string; note?: string | null }): Promise<Result> {
   const me = await who();
   if (!me) return { ok: false, error: "The pipeline isn't open to you." };
   if (!goodKey(input.key)) return { ok: false, error: "That quote couldn't be found." };
   const reason = (LOST_REASONS as readonly string[]).includes(input.reason) ? input.reason : "Other";
+  const note = input.note?.trim().slice(0, 300) || null;
   try {
     await setFollow(input.key, { lost: { reason }, nextOn: null }, me.name);
-    await logTouch(input.key, "note", `Marked lost: ${reason}`, me.name);
+    await logTouch(input.key, "note", `Marked lost: ${reason}${note ? ` — ${note}` : ""}`, me.name);
   } catch {
     return { ok: false, error: "Couldn't save that. Try again." };
   }
+  const st = await closeOffInServiceTitan(input.key, reason, note, me.name).catch(() => null);
   revalidatePath("/portal/pipeline");
-  return { ok: true };
+  revalidatePath("/portal/pipeline/lost");
+  if (!st) return { ok: true, said: "Marked lost here. ServiceTitan couldn't be reached — dismiss it there by hand." };
+  if (st.failed) return { ok: true, said: `Marked lost here; ${st.dismissed ? `${st.dismissed} option${st.dismissed === 1 ? "" : "s"} dismissed, ` : ""}${st.failed} didn't dismiss in ServiceTitan (${st.error}) — do ${st.failed === 1 ? "it" : "those"} by hand.` };
+  return { ok: true, said: `Marked lost${st.dismissed ? ` and ${st.dismissed === 1 ? "dismissed" : `${st.dismissed} options dismissed`} in ServiceTitan` : ""}${st.noted ? ", with a note on the job" : ""}.` };
 }
 
 export async function reopen(input: { key: string }): Promise<Result> {

@@ -58,7 +58,7 @@ export type Pipeline = {
  * residential side — and grouped per job the same way, so the pipeline and the
  * board never disagree about how many quotes are out.
  */
-export async function loadPipeline(opts: { detail?: boolean } = {}): Promise<Pipeline> {
+export async function loadPipeline(opts: { detail?: boolean; recentDays?: number } = {}): Promise<Pipeline> {
   // Without detail it's the columns alone — no names, suburbs or phone numbers
   // — which is all a count needs, and two fewer round trips on every page.
   const detail = opts.detail ?? true;
@@ -124,7 +124,8 @@ export async function loadPipeline(opts: { detail?: boolean } = {}): Promise<Pip
 
   const out: PipeQuote[] = [];
   const stale: PipeQuote[] = [];
-  const recentDay = isoDateMelbourne(daysAgo(RECENT_DAYS));
+  // Won and lost kept this long; the Lost page asks for longer to see a pattern.
+  const recentDay = isoDateMelbourne(daysAgo(opts.recentDays ?? RECENT_DAYS));
   const liveDay = isoDateMelbourne(daysAgo(LIVE_DAYS));
 
   for (const [key, g] of groups) {
