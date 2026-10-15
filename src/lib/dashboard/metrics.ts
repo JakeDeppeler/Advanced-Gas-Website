@@ -20,6 +20,7 @@ import { computePaceData } from "./paceData";
 import { dailyPace, type DailyPace } from "./dailyPace";
 import { soldMargin, type SoldMargin } from "./soldMargin";
 import { onHold, type OnHold } from "./onHold";
+import { toBillJobs, type ToBillRow } from "./toBill";
 import { paidKinds, type PaidKinds } from "./paidKind";
 import { SALE_CREDIT_KEY, creditWith, normaliseSaleCredits } from "./saleCreditTypes";
 import { getSettings } from "@/lib/portal/db";
@@ -423,6 +424,7 @@ export type Metrics = {
     id: number;
     jobNumber: string | null;
     jobType: string | null;
+    customer?: string | null;
     suburb: string | null;
     at: string;
     value: number | null;
@@ -1171,96 +1173,8 @@ async function serviceTitanMetrics(now: Date) {
   const bookingsMonth = newWork.length;
   const bookingsToday = bookedTodayRows.length;
 
-  /**
-   * Jobs finished and not billed — what the Invoices page works from.
-   *
-   * ServiceTitan opens an invoice the moment a job is created, so there is no
-   * such thing as a completed job with no invoice row: on 60 days of history
-   * every one of 274 had one. What marks a job as unbilled is that its invoice
-   * is still sitting at zero, which 136 of those 274 were. Counting missing
-   * rows instead would have put a confident 0 on the wall forever.
-   *
-   * Fourteen days, not today: the point of the list is work that has been
-   * waiting, and a job finished on Friday afternoon is still unbilled on
-   * Monday. The page shows today's at the top.
-   */
-  /*
-   * The whole financial year, not a fortnight.
-   *
-   * A fortnight said 39 jobs. The year says 146, the oldest finished 96 days
-   * ago, and 51 of them are more than sixty days old — which is the difference
-   * between a tidy-up and the reason the year's revenue reads low. Half of
-   * September's completed work has nothing billed against it at all, and a
-   * fourteen-day window is exactly the window that cannot show that.
-   *
-   * Oldest first, because that is the order they get chased in. The year is the
-   * boundary rather than all time: the replica holds 462 unbilled jobs going
-   * back through the import, and a job from the old system is not work the
-   * office is going to go and invoice this week.
-   */
-  const toBillFrom = yearSpans("financial", currentYear("financial", now))[0].from;
-  const doneThisYear = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; suburb: string | null; completed_on: string }>(
-    "st_jobs",
-    [
-      q.select("id,job_number,job_type,suburb,completed_on"),
-      q.gte("completed_on", `${toBillFrom}T00:00:00Z`),
-      // A cancelled job still gets a completed_on — seven of the last
-      // fortnight's did — and a cancelled job is not work waiting to be
-      // billed. Without this the list sent the office chasing paperwork for
-      // jobs that never happened.
-      q.eq("status", "Completed"),
-      q.order("completed_on", "asc"),
-    ].join("&"),
-  ).catch(() => []);
-
-  const doneIds = doneThisYear.map((j) => Number(j.id)).filter(Number.isFinite);
-  // The invoice behind each, to find the ones still at zero.
-  const billedTotalByJob = new Map<number, number>();
-  // What the job was sold for, where it was sold before the visit at all.
-  const soldValueByJob = new Map<number, number>();
-  // Chunked rather than truncated. The year is 450-odd completed jobs where the
-  // fortnight was 40, and a `slice(0, 400)` here would have silently stopped
-  // looking for invoices partway down the list — every job past the cut would
-  // have read as unbilled.
-  for (let i = 0; i < doneIds.length; i += 200) {
-    const ids = doneIds.slice(i, i + 200).join(",");
-    const [invs, sold] = await Promise.all([
-      // The base table, not st_invoices_billed, and that is the point: this
-      // asks which finished jobs are still sitting at a zero invoice, and the
-      // view exists to hide exactly those.
-      sbSelect<{ job_id: number | null; total: number | null }>(
-        "st_invoices",
-        [q.select("job_id,total"), `job_id=in.(${ids})`].join("&"),
-      ).catch(() => []),
-      sbSelect<{ job_id: number | null; total: number | null }>(
-        "st_estimates",
-        [q.select("job_id,total"), `job_id=in.(${ids})`, "sold_on=not.is.null"].join("&"),
-      ).catch(() => []),
-    ]);
-    for (const inv of invs) {
-      if (inv.job_id == null) continue;
-      billedTotalByJob.set(Number(inv.job_id), (billedTotalByJob.get(Number(inv.job_id)) ?? 0) + Number(inv.total ?? 0));
-    }
-    for (const e of sold) {
-      if (e.job_id == null) continue;
-      soldValueByJob.set(Number(e.job_id), (soldValueByJob.get(Number(e.job_id)) ?? 0) + Number(e.total ?? 0));
-    }
-  }
-
-  const toBillAll = doneThisYear
-    .filter((j) => (billedTotalByJob.get(Number(j.id)) ?? 0) === 0)
-    // A quote visit and a site assessment are finished work that was never
-    // going to be invoiced. Twenty-one of the year's unbilled jobs are those,
-    // and a backlog that counts them is a backlog nobody can clear.
-    .filter((j) => jobClass(j.job_type) !== "quote")
-    .map((j) => ({
-      id: Number(j.id),
-      jobNumber: j.job_number ? String(j.job_number) : null,
-      jobType: j.job_type ? String(j.job_type) : null,
-      suburb: j.suburb ? String(j.suburb) : null,
-      at: String(j.completed_on),
-      value: soldValueByJob.get(Number(j.id)) ?? null,
-    }));
+  // Jobs finished and not billed, since ServiceTitan took over invoicing — see toBill.ts.
+  const toBillAll = await toBillJobs().catch(() => [] as ToBillRow[]);
   const toBillCount = toBillAll.length;
   const toBillValue = toBillAll.reduce((a, r) => a + (r.value ?? 0), 0);
   // Oldest first: the read is ordered ascending, so the head of the list is the
@@ -1500,6 +1414,16 @@ async function serviceTitanMetrics(now: Date) {
       "limit=20",
     ].join("&"),
   ).catch(() => []);
+
+  // What each just-finished job was sold for, for the "done" alert's figure.
+  const soldValueByJob = new Map<number, number>();
+  if (recentDoneRows.length) {
+    const sold = await sbSelect<{ job_id: number | null; total: number | null }>(
+      "st_estimates",
+      [q.select("job_id,total"), `job_id=in.(${recentDoneRows.map((r) => Number(r.id)).join(",")})`, "sold_on=not.is.null"].join("&"),
+    ).catch(() => []);
+    for (const e of sold) if (e.job_id != null) soldValueByJob.set(Number(e.job_id), (soldValueByJob.get(Number(e.job_id)) ?? 0) + Number(e.total ?? 0));
+  }
 
   for (const r of recentQuoteRows) if (r.job_id != null) alertJobIds.push(Number(r.job_id));
   const alertPlace = new Map<number, { jobType: string | null; suburb: string | null }>();
