@@ -128,6 +128,24 @@ export async function loadCancelled(): Promise<Set<string>> {
   return new Set((await linesOn(["cancelled"])).keys());
 }
 
+/** The -n on the end of an order number; 1 when there's none. */
+export const poSeq = (po: string | null | undefined): number => {
+  const m = (po ?? "").match(/-(\d+)$/);
+  return m ? Number(m[1]) : 1;
+};
+
+/**
+ * The next order number for a supplier's week that nobody has. Read from every
+ * order carrying that week's prefix, cancelled and moved ones included, so a
+ * gap or an order filed under another week can't hand out a number twice.
+ */
+export async function nextPoNumber(w: Week, supplierId: string): Promise<string> {
+  const prefix = poNumber(w, supplierId, 1);
+  const taken = await sbSelect<{ po_number: string }>("purchase_orders", `select=po_number&po_number=like.${encodeURIComponent(`${prefix}*`)}`);
+  const n = taken.filter((t) => t.po_number === prefix || /^-\d+$/.test(t.po_number.slice(prefix.length))).reduce((a, t) => Math.max(a, poSeq(t.po_number)), 0);
+  return poNumber(w, supplierId, n + 1);
+}
+
 export async function listWeekOrders(w: Week): Promise<PoWithLines[]> {
   const pos = await sbSelect<PurchaseOrder>("purchase_orders", `week_of=eq.${w.start}&order=id.asc`);
   if (!pos.length) return [];
@@ -241,8 +259,10 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
   // Order numbers run per supplier per week: AGA-261019-MIT, then -MIT-2 for
   // a top-up. Counted from every order that week, cancelled ones included,
   // so a number is never reused.
+  // The highest number used, not how many there are: a draft removed from the
+  // middle leaves a gap, and counting then hands out a number that's taken.
   const count = new Map<string, number>();
-  for (const p of existing) count.set(p.supplier_id, (count.get(p.supplier_id) ?? 0) + 1);
+  for (const p of existing) count.set(p.supplier_id, Math.max(count.get(p.supplier_id) ?? 0, poSeq(p.po_number)));
   const nextNumber = (supplierId: string) => {
     const n = (count.get(supplierId) ?? 0) + 1;
     count.set(supplierId, n);
@@ -435,10 +455,11 @@ export async function draftFor(supplierId: string, week: Week): Promise<number> 
   const draft = mine.find((p) => p.status === "draft");
   if (draft) return draft.id;
   const settings = await loadOrderingSettings();
-  const n = mine.length + 1;
+  const po = await nextPoNumber(week, supplierId);
+  const n = poSeq(po);
   return createOrder({
-    po_number: poNumber(week, supplierId, n), supplier_id: supplierId, week_of: week.start, kind: "order",
-    group_key: mine.length ? `all-${n}` : "all", status: "draft", delivery_address: settings.deliveryAddress,
+    po_number: po, supplier_id: supplierId, week_of: week.start, kind: "order",
+    group_key: n > 1 ? `all-${n}` : "all", status: "draft", delivery_address: settings.deliveryAddress,
   });
 }
 

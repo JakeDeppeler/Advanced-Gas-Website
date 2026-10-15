@@ -1,9 +1,9 @@
 import "server-only";
 import { sbSelect } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { createOrder, listWeekOrders, loadSuppliers } from "./db";
+import { createOrder, loadSuppliers, nextPoNumber } from "./db";
 import { approveAndSend } from "./send";
-import { poNumber, thisWeek, type Supplier, type WorkOrderDetails } from "./plan";
+import { thisWeek, type Supplier, type WorkOrderDetails } from "./plan";
 
 /**
  * Orders & stock › Work orders: the electrician for any job, not only the
@@ -101,7 +101,6 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
 
   const startAt = o.time ? melbourneInstant(o.date, o.time) : null;
   const week = thisWeek(new Date(`${o.date}T12:00:00+10:00`));
-  const already = (await listWeekOrders(week)).filter((p) => p.supplier_id === supplier.id).length;
   const details: WorkOrderDetails = {
     date: o.date, start_at: startAt, end_at: null, all_visits: null,
     site_address: o.site.trim() || job.site_address,
@@ -113,7 +112,7 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
     note: null,
   };
   const id = await createOrder({
-    po_number: poNumber(week, supplier.id, already + 1), supplier_id: supplier.id, week_of: week.start, kind: "work_order",
+    po_number: await nextPoNumber(week, supplier.id), supplier_id: supplier.id, week_of: week.start, kind: "work_order",
     group_key: `manual:${job.id}:${Date.now()}`, status: "draft", details, delivery_address: details.site_address, delivery_to_site: true,
   });
   const r = await approveAndSend(id, who);
