@@ -771,3 +771,16 @@ label.pk-btn { cursor: pointer; }
 @media (max-width: 600px) { .pk-kv--act .t { flex-basis: 100%; } }
 .pk-more > summary { cursor: pointer; font-weight: 700; color: var(--ink2, inherit); padding: 6px 0; }
 .pk-kv .t a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Office today: the morning routine, one numbered card a step. */
+.pt-office { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.pt-office__head { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.pt-office__n { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: var(--ink, #111); color: var(--bg, #fff); }
+.pt-office__step.is-clear .pt-office__n { background: var(--good-bg, #e3f5ea); color: var(--good, #1a7f37); }
+.pt-office__t { flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.pt-office__t b { font-size: 16px; }
+.pt-office__t span { font-size: 13.5px; color: var(--ink2, #555); }
+.pt-office__where { font-size: 12.5px !important; color: var(--ink3, #777) !important; }
+.pt-office__count { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 13px; color: var(--ink2, #555); text-align: right; }
+.pt-office__list { margin-top: 10px; }
+@media (max-width: 600px) { .pt-office__count { align-items: flex-start; text-align: left; } }

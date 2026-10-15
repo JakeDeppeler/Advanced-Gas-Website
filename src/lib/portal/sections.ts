@@ -68,6 +68,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "What needs doing, and who to keep in touch with",
     pages: [
       { label: "Today", href: "/portal/todo" },
+      { label: "Office today", href: "/portal/office", office: true },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
       { label: "Future planning", href: "/portal/plans", office: true },
     ],
