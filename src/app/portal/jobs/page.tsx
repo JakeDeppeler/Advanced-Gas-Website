@@ -10,6 +10,8 @@ import { Av, Bad, Btn, Card, Empty, Grid, Head, Pill, Say, Tile, none, type Stat
 import { JobsTabs } from "@/components/portal/run/RunTabs";
 import { markCert } from "./actions";
 import { stJobUrl, toBillJobs, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
+import { Suspense } from "react";
+import { XeroBilledCard } from "@/components/portal/run/XeroBilledCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs — Team portal" };
@@ -151,6 +153,13 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
           service work priced on the day shows —.
           {toBill == null ? " ServiceTitan couldn’t be read just now, so this is the board’s last copy." : ""}
         </p>
+        {office && (
+          <div style={{ marginBottom: 18 }}>
+            <Suspense fallback={<Card title="Before 17 September — checked against Xero"><Empty>Checking the older jobs against Xero…</Empty></Card>}>
+              <XeroBilledCard />
+            </Suspense>
+          </div>
+        )}
         <Card title="Compliance certificates" aside={`${CERT_DAYS} days from finishing · VBA · ${due.length} to lodge`}>
           {certs.length ? certs.map((c) => (
             <div className="pk-kv" key={c.jobId}>

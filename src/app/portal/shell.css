@@ -769,3 +769,5 @@ label.pk-btn { cursor: pointer; }
 .pk-kv--act { flex-wrap: wrap; }
 .pk-kv--act .pk-btn { white-space: nowrap; }
 @media (max-width: 600px) { .pk-kv--act .t { flex-basis: 100%; } }
+.pk-more > summary { cursor: pointer; font-weight: 700; color: var(--ink2, inherit); padding: 6px 0; }
+.pk-kv .t a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
