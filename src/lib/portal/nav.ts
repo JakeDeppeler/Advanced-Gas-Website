@@ -283,6 +283,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   add(office,
     { href: "/portal/today", label: "Today", blurb: "How today is going, who's on what, the calls", band: "hidden", icon: "clock", also: ["today", "sold today", "team now", "call booking", "calls"] },
     {
+      href: "/portal/office", label: "Office today", short: "Office today", blurb: "The morning routine: review, send, hold list, quotes due, part-paid", band: "hidden", icon: "list",
+      also: ["office", "office today", "morning", "routine", "review invoices", "needs review", "not sent", "hold list", "partially paid", "part paid", "follow up"],
+    },
+    {
       href: "/portal/month", label: "The month so far", short: "Month so far", blurb: "Jobs sold, the gear in them, and what's left to cover the month", band: "hidden", icon: "trend",
       also: ["month", "this month", "month so far", "cost of goods", "cogs", "gear", "break even", "cover overheads", "sold jobs", "not billed", "before the reece bill"],
     },
