@@ -26,7 +26,12 @@ export const HOW_LABEL: Record<TouchHow, string> = {
 
 export const isHow = (v: unknown): v is TouchHow => typeof v === "string" && v in HOW_LABEL;
 
-export const LOST_REASONS = ["Price", "Went with someone else", "Not going ahead", "No reply after 5 tries", "Other"] as const;
+/**
+ * Why a quote was lost — the workflow's four (price, timing, went elsewhere,
+ * no response) and the two that don't fit them. Short and fixed so the Lost
+ * page can count them; anything more goes in the note beside the reason.
+ */
+export const LOST_REASONS = ["Price", "Timing", "Went elsewhere", "No response", "Not going ahead", "Other"] as const;
 
 export type Touch = { at: string; how: TouchHow; note: string | null; by: string | null };
 

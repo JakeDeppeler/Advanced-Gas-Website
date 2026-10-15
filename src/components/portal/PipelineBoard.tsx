@@ -205,8 +205,12 @@ function Panel({ q, today, owners, me, canCustomer, onClose }: {
   };
   const [owner, setOwner] = useState<string>(q.owner ?? "");
   const [lostOpen, setLostOpen] = useState(false);
-  const [reason, setReason] = useState<string>(tries >= GIVE_UP_AFTER ? "No reply after 5 tries" : LOST_REASONS[0]);
+  const [reason, setReason] = useState<string>(tries >= GIVE_UP_AFTER ? "No response" : LOST_REASONS[0]);
+  const [lostNote, setLostNote] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  // What happened in ServiceTitan after a Mark lost: shown outside the form,
+  // which goes once the quote is no longer open.
+  const [said, setSaid] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -216,10 +220,12 @@ function Panel({ q, today, owners, me, canCustomer, onClose }: {
     return () => window.removeEventListener("keydown", esc);
   }, [onClose]);
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, close = true) => start(async () => {
+  const run = (fn: () => Promise<{ ok: boolean; error?: string; said?: string }>, close = true) => start(async () => {
     const r = await fn();
     if (!r.ok) { setMsg(r.error ?? "Couldn't save that."); return; }
     router.refresh();
+    // What happened in ServiceTitan is worth reading before the panel goes.
+    if (r.said) { setSaid(r.said); return; }
     if (close) onClose();
   });
   const isOpen = q.stage !== "won" && q.stage !== "lost";
@@ -288,7 +294,7 @@ function Panel({ q, today, owners, me, canCustomer, onClose }: {
               </select>
             </label>
             {tries >= GIVE_UP_AFTER - 1 && <p className="pt-pipe__note"><b aria-hidden="true">! </b>{plural(tries, "try", "tries")} so far. If this one doesn&rsquo;t answer, close it off as lost.</p>}
-            {msg && <p className="pt-inline is-err" role="alert">{msg}</p>}
+            {msg && !said && <p className="pt-inline is-err" role="alert">{msg}</p>}
             <div className="pt-pipe__acts">
               <button type="submit" className="pt-btn pt-btn--navy" disabled={pending}>{pending ? "Saving…" : how ? "Save the call" : "Save"}</button>
               <button type="button" className="pt-btn pt-btn--ghost" onClick={() => setLostOpen((v) => !v)} aria-expanded={lostOpen}>Mark lost</button>
@@ -300,12 +306,17 @@ function Panel({ q, today, owners, me, canCustomer, onClose }: {
                     {LOST_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </label>
-                <button type="button" className="pt-btn pt-btn--sm pt-pipe__lostbtn" disabled={pending} onClick={() => run(() => markLost({ key: q.key, reason }))}>Mark it lost</button>
-                <p className="pt-pipe__note">Dismiss it in ServiceTitan as well, so the board stops counting it.</p>
+                <label className="pt-field"><span>Anything to add</span>
+                  <input id="pipe-lostnote" value={lostNote} onChange={(e) => setLostNote(e.target.value)} placeholder="e.g. went with a cheaper quote, $800 less" maxLength={300} />
+                </label>
+                <button type="button" className="pt-btn pt-btn--sm pt-pipe__lostbtn" disabled={pending} onClick={() => run(() => markLost({ key: q.key, reason, note: lostNote || null }))}>Mark it lost</button>
+                <p className="pt-pipe__note">This dismisses the quote in ServiceTitan too, so it leaves the Follow Up list there, and notes the reason on the job.</p>
               </div>
             )}
           </form>
         )}
+
+        {said && <p className="pt-note" role="status" style={{ margin: "0 0 12px" }}>{said}</p>}
 
         {q.stage === "lost" && !q.dismissed && (
           <div className="pt-pipe__acts">
