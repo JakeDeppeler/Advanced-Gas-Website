@@ -904,6 +904,59 @@ export async function getPeriodInvoices(type: "ACCREC" | "ACCPAY", fromDate: str
   return sharedPeriodInvoices(integ.tenantId, type, fromDate, toDate).catch(() => null);
 }
 
+/* -------- Every sales invoice in a span, one row each -------- */
+
+export type SalesInvoiceRow = { id: string; number: string; contact: string; reference: string; date: string; total: number; status: string };
+
+/**
+ * Every authorised or paid sales invoice dated within a span, as rows — for
+ * checking jobs from before ServiceTitan took over invoicing against what
+ * was actually billed in Xero. Shared for ten minutes; thrown, not cached,
+ * on a failure.
+ */
+const sharedSalesIndex = unstable_cache(
+  async (tenantId: string, fromDate: string, toDate: string): Promise<SalesInvoiceRow[]> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const out: SalesInvoiceRow[] = [];
+    for (let page = 1; page <= 10; page++) {
+      const url = new URL(`${API_BASE}/Invoices`);
+      url.searchParams.set("where", `Type=="ACCREC"&&Date>=${dt(fromDate)}&&Date<=${dt(toDate)}`);
+      url.searchParams.set("Statuses", "AUTHORISED,PAID");
+      url.searchParams.set("summaryOnly", "true");
+      url.searchParams.set("pageSize", "1000");
+      url.searchParams.set("page", String(page));
+      const res = await withSlot(() => fetch(url, {
+        headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      }));
+      if (!res.ok) throw new Error(`xero ${res.status}`);
+      const json = (await res.json()) as { Invoices?: Array<{ InvoiceID?: string; InvoiceNumber?: string; Contact?: { Name?: string }; Reference?: string; Total?: number; Status?: string; DateString?: string; Date?: string }> };
+      const got = json.Invoices ?? [];
+      for (const i of got) {
+        out.push({
+          id: i.InvoiceID ?? "", number: i.InvoiceNumber ?? "", contact: i.Contact?.Name ?? "", reference: i.Reference ?? "",
+          date: xeroDate(i.DateString ?? i.Date), total: Number(i.Total ?? 0), status: i.Status ?? "",
+        });
+      }
+      if (got.length < 1000) break;
+    }
+    return out;
+  },
+  ["xero-sales-index"],
+  { revalidate: 600, tags: ["xero-reports"] },
+);
+
+/** Null when Xero isn't connected or didn't answer. */
+export async function getSalesInvoiceIndex(fromDate: string, toDate: string): Promise<SalesInvoiceRow[] | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedSalesIndex(integ.tenantId, fromDate, toDate).catch(() => null);
+}
+
+/** An invoice in Xero, to open from a list. */
+export const xeroInvoiceUrl = (id: string) => `https://go.xero.com/AccountsReceivable/View.aspx?InvoiceID=${encodeURIComponent(id)}`;
+
 export type XeroContactEmail = { name: string; email: string; customer: boolean; supplier: boolean; updated: string | null };
 
 /**
