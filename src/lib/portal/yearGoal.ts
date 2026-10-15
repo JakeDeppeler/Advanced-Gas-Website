@@ -28,6 +28,12 @@ export type YearGoal = {
   year: number;
   /** Revenue to invoice across the year. */
   revenue: number;
+  /**
+   * The year the business must not fall below — the floor under the goal
+   * ($2.5M under $3.2M). The wall board's day cards read against both. Null =
+   * not set, and the board shows the goal alone.
+   */
+  floorRevenue: number | null;
   /** What overheads are expected to run at across the year. Null = not set. */
   overhead: number | null;
   /**
@@ -114,6 +120,7 @@ export type GoalJob = { id: string; name: string; avgJob: number; margin: number
 export const DEFAULT_YEAR_GOAL: Omit<YearGoal, "year"> = {
   basis: "financial",
   revenue: 0,
+  floorRevenue: null,
   overhead: null,
   shape: null,
   profitPct: null,
@@ -166,6 +173,7 @@ export function readYearGoal(raw: unknown, today: Date): YearGoal {
     basis,
     year: typeof v.year === "number" ? v.year : currentYear(basis, today),
     revenue: Math.max(0, num(v.revenue) || 0),
+    floorRevenue: num(v.floorRevenue) > 0 ? Math.round(num(v.floorRevenue)) : null,
     overhead: v.overhead == null || !Number.isFinite(num(v.overhead)) ? null : Math.max(0, num(v.overhead)),
     shape: Array.isArray(v.shape) && v.shape.length === 12 ? (v.shape as number[]) : null,
     profitPct: Number.isFinite(pct) && pct > 0 && pct < 100 ? pct : null,

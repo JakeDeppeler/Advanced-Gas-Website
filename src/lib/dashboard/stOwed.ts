@@ -46,11 +46,12 @@ export function withStOpen(xero: Extract<XeroResult, { ok: true }>, st: StOpen[]
   // Both agings copied, not just the one: this adds ServiceTitan's open
   // invoices to whichever bands they fall in, and mutating the reading it was
   // handed would leave the caller's copy quietly double-counted.
-  const out = { ...xero, aging: { ...xero.aging }, arAging: { ...xero.arAging }, overdue: [...xero.overdue] };
+  const out = { ...xero, aging: { ...xero.aging }, arAging: { ...xero.arAging }, overdue: [...xero.overdue], numbers: [...xero.numbers] };
   const seen = new Set(xero.numbers);
   const day = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
   for (const i of st) {
     if (seen.has(i.number)) continue;
+    out.numbers.push(i.number);
     out.receivablesTotal += i.amount;
     // Overdue from the day after it's due, the same line Xero's are drawn on.
     if (i.due >= todayMel) { out.aging.notDue += i.amount; out.arAging.current += i.amount; continue; }

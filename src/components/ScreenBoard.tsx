@@ -678,6 +678,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         navy
         label="Sold today"
         value={st.plain(m.soldToday, live)}
+        goals={live.st ? goalMarks(m, m.soldToday, soldTarget) : undefined}
         foot={live.st ? footWithTarget(soldTarget, soldFoot) : soldFoot}
       />
 
@@ -692,6 +693,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <SideCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
+        goals={live.st ? goalMarks(m, m.revenueToday, today?.invoiced.need) : undefined}
         rows={
           !live.st || m.jobsInvoicedToday === 0
             ? undefined
@@ -720,6 +722,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <SideCard
         label="Quoted today"
         value={st.plain(m.quotesCreatedTodayValue, live)}
+        goals={live.st ? goalMarks(m, m.quotesCreatedTodayValue, m.pace?.day.quoted.value) : undefined}
         rows={
           !live.st || m.quotesCreatedTodayCount === 0
             ? undefined
@@ -818,22 +821,21 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
             : undefined
         }
       />
-      {/* Money in, both halves of it: what was banked today and what is still
-          owed. They were two different cards' worth of figure and only one card
-          between them, and they belong side by side anyway — a good day on the
-          left is the thing that shrinks the number on the right. */}
+      {/* What's out, and how late. The office asked for this card to be about
+          the money still to come in rather than the day's banking: how many
+          invoices are open, what they add up to, and the overdue part by how
+          late — the same bands as the Invoices page, so a tall 30+ is the
+          thing that sticks out. Today's payments keep the end of the foot. */}
       <SplitRateCard
-        label="Money in"
+        label="Money owed"
         halves={[
           {
-            name: "Paid today",
-            value: m.paidToday == null ? NA : plain(m.paidToday),
+            name: "Out",
+            value: m.receivablesTotal == null ? NA : money(m.receivablesTotal),
             sub:
-              m.paymentsToday == null
-                ? "payments not synced yet"
-                : m.paymentsToday === 0
-                  ? "nothing banked yet"
-                  : `${count(m.paymentsToday)} ${m.paymentsToday === 1 ? "payment" : "payments"}`,
+              m.receivablesCount == null
+                ? "not read from Xero yet"
+                : `${count(m.receivablesCount)} open ${m.receivablesCount === 1 ? "invoice" : "invoices"}`,
           },
           {
             name: "Overdue",
@@ -844,18 +846,13 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
                 : `${count(m.overdueCount)} ${m.overdueCount === 1 ? "invoice" : "invoices"}`,
           },
         ]}
-        /* What today's money in actually was: a 40% deposit on an install, an
-           instalment on a real estate job, or the payment that closes one off.
-           ServiceTitan records none of it — its payment type is the method —
-           so it is worked out from what each payment leaves owing on its
-           invoice. See paidKindTypes.ts. */
-        /* The split, or the receivables total — not both. Together they ran to
-           two lines and pushed the two figures off their own baseline, and of
-           the two the split is the one that is new each day. What is on the
-           books all up is a figure the Invoices page gives a card of its own. */
         foot={
-          paidKindLine(m.paidKinds) ??
-          (m.receivablesTotal == null ? undefined : `${money(m.receivablesTotal)} on the books all up`)
+          [
+            m.receivablesAging
+              ? `1–7d ${money(m.receivablesAging.d1to7)} · 8–14d ${money(m.receivablesAging.d8to14)} · 15–30d ${money(m.receivablesAging.d15to30)} · 30+ ${money(m.receivablesAging.d30plus)}`
+              : null,
+            m.paidToday != null && m.paidToday > 0 ? `paid today ${money(m.paidToday)}` : null,
+          ].filter(Boolean).join(" · ") || undefined
         }
       />
     </>
@@ -1346,7 +1343,9 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
                  so this reads ahead of Xero and isn't meant to match it. The
                  tile is "Paid today", so the count reads as payments without
                  the word, and the line stays on one row at 1920. */
-                `${count(m.paymentsToday)} in ServiceTitan · ${plain(m.paidMonth ?? 0)} this month`
+                // The deposit / part / final split moved here from Today's money
+                // card when that card became what's owed.
+                paidKindLine(m.paidKinds) ?? `${count(m.paymentsToday)} in ServiceTitan · ${plain(m.paidMonth ?? 0)} this month`
         }
       />
 
@@ -1741,6 +1740,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           <span className="tile__label">Quoted today</span>
         </span>
         <span className={vcls(plain(m.quotesCreatedTodayValue))}><Ticker id="Quoted today" text={plain(m.quotesCreatedTodayValue)} /></span>
+        <GoalMarks marks={goalMarks(m, m.quotesCreatedTodayValue, m.pace?.day.quoted.value)} />
         {/* How many options each job was given, not just how many were written
             in total. The count on its own answers "how busy"; the average
             answers "how well" — three options a job is a quote, one is a price,
@@ -1763,6 +1763,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           <span className="tile__label">Sold today</span>
         </span>
         <span className={vcls(plain(m.soldToday))}><Ticker id="Sold today" text={plain(m.soldToday)} /></span>
+        <GoalMarks marks={goalMarks(m, m.soldToday, soldTarget)} />
         <span className="tile__foot">
           {footWithTarget(
             soldTarget,
@@ -1980,7 +1981,7 @@ function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) 
                   index={index}
                   verdict={v}
                   figure={hrs(index != null ? p.hoursTakenQuoted : p.hoursTaken)}
-                  of={p.hoursQuoted != null ? `of ${hrs(p.hoursQuoted)} quoted` : "taken"}
+                  of={p.hoursQuoted != null ? `of ${hrs(p.hoursQuoted)} ${p.jobs.some((j) => j.quotedFrom === "typical") ? "allowed" : "quoted"}` : "taken"}
                   status={
                     index != null
                       ? verdictText(index, v)
@@ -1992,7 +1993,9 @@ function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) 
                   foot={
                     noQuote > 0
                       ? `${noQuote} of ${p.quotedCover.of} not quoted · ${hrs(p.hoursTaken)} all up`
-                      : undefined
+                      : p.jobs.some((j) => j.quotedFrom === "typical")
+                        ? `${p.jobs.filter((j) => j.quotedFrom === "typical").length} at the usual time for the job type`
+                        : undefined
                   }
                 />
               </div>
@@ -2909,6 +2912,38 @@ function quotingAskedOfToday(m: Metrics): string | null {
  * again on bookings is what a goal of growing to $3.2M looks like, not a
  * broken number, and the room is owed the figure it is being asked for.
  */
+/**
+ * Where the day stands against the year goal and the floor under it.
+ *
+ * Against the whole day's target, not the share of it the clock says is due:
+ * that share is what read "Ahead · 127%" at 9:22am off one sale. "▼ $6,323 to
+ * go" means the same thing at 9am and at 5pm, and turns to "▲ over" only when
+ * the day has actually done it. The floor's target is the goal's scaled down,
+ * because every day target on the wall is the year's revenue shared out.
+ */
+type GoalMark = { key: string; ok: boolean; text: string };
+const shortGoal = (v: number) => (v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M` : `$${Math.round(v / 1000)}K`);
+function goalMarks(m: Metrics, done: number | null | undefined, target: number | null | undefined): GoalMark[] {
+  const lv = m.goalLevels;
+  if (!lv || done == null || target == null || !(target > 0)) return [];
+  const levels = [{ key: "goal", year: lv.goal, need: target }];
+  if (lv.floor && lv.floor > 0 && lv.floor < lv.goal) levels.push({ key: "floor", year: lv.floor, need: (target * lv.floor) / lv.goal });
+  return levels.map((l) => {
+    const ok = done >= l.need;
+    const gap = Math.abs(done - l.need);
+    return { key: l.key, ok, text: `${ok ? "▲" : "▼"} ${shortGoal(l.year)} · ${plain(gap)} ${ok ? "over" : "to go"}` };
+  });
+}
+
+function GoalMarks({ marks }: { marks: GoalMark[] }) {
+  if (!marks.length) return null;
+  return (
+    <span className="goalmarks">
+      {marks.map((g) => <span key={g.key} className={`goalmark status status--${g.ok ? "ahead" : "behind"}`}>{g.text}</span>)}
+    </span>
+  );
+}
+
 function footWithTarget(target: number | null | undefined, rest?: string, kind: "money" | "count" = "money"): string | undefined {
   return [askedOfToday(target, kind), rest].filter(Boolean).join(" · ") || undefined;
 }
@@ -2937,9 +2972,12 @@ function SideCard({
   rows,
   foot,
   verdict,
+  goals,
 }: {
   label: string;
   value: string;
+  /** Against the year goal and its floor; see goalMarks. */
+  goals?: GoalMark[];
   rows?: Array<{ k: string; v: string }>;
   foot?: string;
   /** Where this figure sits against what the day needs by now, if anything measures it. */
@@ -2964,6 +3002,7 @@ function SideCard({
           </div>
         ) : null}
       </div>
+      {goals?.length ? <GoalMarks marks={goals} /> : null}
       {foot ? <span className="tile__foot">{foot}</span> : null}
     </div>
   );
@@ -2976,8 +3015,11 @@ function HeroCard({
   foot,
   navy,
   verdict,
+  goals,
 }: {
   label: string;
+  /** Against the year goal and its floor; see goalMarks. */
+  goals?: GoalMark[];
   /** Where this figure sits against what the day needs by now, if anything measures it. */
   verdict?: { verdict: Verdict; text: string } | null;
   value: string;
@@ -3010,6 +3052,7 @@ function HeroCard({
           ))}
         </div>
       ) : null}
+      {goals?.length ? <GoalMarks marks={goals} /> : null}
       {foot ? <span className="tile__foot">{foot}</span> : null}
     </div>
   );

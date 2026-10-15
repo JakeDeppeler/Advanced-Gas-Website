@@ -51,6 +51,7 @@ export async function saveYearGoal(g: YearGoal): Promise<ActionResult> {
     basis: g.basis === "calendar" ? "calendar" : "financial",
     year,
     revenue: Math.max(0, Math.round(Number(g.revenue) || 0)),
+    floorRevenue: Number(g.floorRevenue) > 0 ? Math.round(Number(g.floorRevenue)) : null,
     // Null, not zero: "no overhead expectation set" and "we expect to spend
     // nothing" are different, and only one of them should blank the tile.
     overhead: g.overhead == null || g.overhead === ("" as unknown) ? null : Math.max(0, Math.round(Number(g.overhead) || 0)),

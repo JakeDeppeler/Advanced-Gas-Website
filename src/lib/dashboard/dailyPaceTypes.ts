@@ -34,7 +34,7 @@ export type PaceJob = {
   taken: number;
   /** What it was quoted to take, or null when nothing says. */
   quoted: number | null;
-  quotedFrom: "invoice" | "standard" | null;
+  quotedFrom: "invoice" | "estimate" | "standard" | "typical" | null;
   done: boolean;
   /** Billed so far on this job, and whether anything has been. */
   billed: number;
