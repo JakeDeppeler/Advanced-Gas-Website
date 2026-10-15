@@ -766,3 +766,6 @@ label.pk-btn { cursor: pointer; }
 .pn .pt-nw__more > summary:hover { color: var(--ink); }
 .pk-file-acts .pk-linkbtn { align-self: center; }
 .pk-hot { color: var(--bad); }
+.pk-kv--act { flex-wrap: wrap; }
+.pk-kv--act .pk-btn { white-space: nowrap; }
+@media (max-width: 600px) { .pk-kv--act .t { flex-basis: 100%; } }

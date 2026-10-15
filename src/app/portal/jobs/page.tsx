@@ -9,6 +9,7 @@ import { melNow, money, pc, plural } from "@/lib/portal/run/month";
 import { Av, Bad, Btn, Card, Empty, Grid, Head, Pill, Say, Tile, none, type Status } from "@/components/portal/kit/Kit";
 import { JobsTabs } from "@/components/portal/run/RunTabs";
 import { markCert } from "./actions";
+import { stJobUrl, toBillJobs, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs — Team portal" };
@@ -40,7 +41,12 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
   if (!office && !can(user, "quotes")) return <Locked user={user} what="Jobs" forWhom="the office" />;
   const tab = (["profit", "notbilled"].includes(searchParams.tab ?? "") ? searchParams.tab : office ? "today" : "notbilled") as "today" | "profit" | "notbilled";
 
-  const [board, certs] = await Promise.all([latestBoard(), tab === "notbilled" ? certJobs().catch(() => []) : Promise.resolve([] as CertJob[])]);
+  const [board, certs, toBill] = await Promise.all([
+    latestBoard(),
+    tab === "notbilled" ? certJobs().catch(() => []) : Promise.resolve([] as CertJob[]),
+    // The whole list, read now rather than the board's six from its last snapshot.
+    tab === "notbilled" ? toBillJobs().catch(() => null) : Promise.resolve(null as ToBillRow[] | null),
+  ]);
   const m = board?.metrics ?? null;
   const now = melNow();
   const techs = m?.daily?.techs ?? [];
@@ -109,29 +115,42 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
       </>
     ) : <Empty>No jobs could be costed in the last 30 days.</Empty>;
   } else {
-    const rows = m.toBill ?? [];
+    const rows = toBill ?? m.toBill ?? [];
+    const count = toBill ? toBill.length : m.toBillCount;
+    const value = toBill ? toBill.reduce((a, r) => a + (r.value ?? 0), 0) : m.toBillValue;
+    const since = new Date(`${TO_BILL_FROM}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "long", timeZone: "UTC" });
     const due = certs.filter((c) => c.status === "due");
     body = (
       <>
         <Say>
-          {m.toBillCount ? <>{plural(m.toBillCount, "finished job")}{m.toBillValue ? `, ${money(m.toBillValue)},` : ""} {m.toBillCount === 1 ? "hasn’t" : "haven’t"} been invoiced. </> : <>Every finished job has been invoiced. </>}
+          {count ? <>{plural(count, "finished job")}{value ? `, ${money(value)} of it sold before the visit,` : ""} {count === 1 ? "hasn’t" : "haven’t"} been invoiced. </> : <>Every finished job has been invoiced. </>}
           {due.length > 0 && <Bad>{plural(due.length, "compliance certificate")} to lodge.</Bad>}
         </Say>
         {rows.length ? (
-          <Card>
-            {rows.slice(0, 40).map((r) => {
+          <Card title="Finished, not invoiced" aside={`${rows.length} · oldest first`}>
+            {rows.map((r) => {
               const days = Math.max(0, Math.round((Date.now() - Date.parse(r.at)) / 86_400_000));
               return (
-                <div className="pk-kv" key={r.id}>
-                  <span className="t"><b>{[r.jobType ?? "Job", r.suburb].filter(Boolean).join(" · ")}</b><span>{r.jobNumber ? `#${r.jobNumber} · ` : ""}finished {ago(r.at)}</span></span>
+                <div className="pk-kv pk-kv--act" key={r.id}>
+                  <span className="t">
+                    <b>{[r.jobType ?? "Job", r.suburb].filter(Boolean).join(" · ")}</b>
+                    <span>{[r.jobNumber ? `#${r.jobNumber}` : null, r.customer ?? null, `finished ${ago(r.at)}`].filter(Boolean).join(" · ")}</span>
+                  </span>
                   <Pill st={days > 7 ? { k: "bad", w: "Over a week" } : days > 2 ? { k: "mid", w: "Bill it" } : { k: "good", w: "Ready to bill" }} />
                   <span className="v">{r.value != null ? money(r.value) : "—"}</span>
+                  <a className="pk-btn g" href={stJobUrl(r.id)} target="_blank" rel="noreferrer" aria-label={`Open job ${r.jobNumber ?? r.id} in ServiceTitan`}>Open in ServiceTitan ↗</a>
                 </div>
               );
             })}
-            {rows.length > 40 && <p className="pk-note" style={{ marginTop: 8 }}>And {rows.length - 40} more, oldest last.</p>}
           </Card>
         ) : <Empty>Nothing waiting to be billed.</Empty>}
+        <p className="pk-note" style={{ margin: "10px 0 18px" }}>
+          <b>Where this comes from:</b> ServiceTitan, synced every few minutes. A job is on the list when it&rsquo;s marked Completed in ServiceTitan
+          since {since} and its invoice there is still at $0. Quote visits, site assessments and cancelled jobs are left out. Jobs finished before {since}{" "}
+          were invoiced in Xero, not ServiceTitan, so they aren&rsquo;t on it. The figure beside a job is what it was sold for before the visit, where it was;
+          service work priced on the day shows —.
+          {toBill == null ? " ServiceTitan couldn’t be read just now, so this is the board’s last copy." : ""}
+        </p>
         <Card title="Compliance certificates" aside={`${CERT_DAYS} days from finishing · VBA · ${due.length} to lodge`}>
           {certs.length ? certs.map((c) => (
             <div className="pk-kv" key={c.jobId}>
