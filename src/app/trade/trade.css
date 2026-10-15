@@ -626,3 +626,5 @@
   .tr-row:has(.tr-count) { flex-wrap: wrap; }
   .tr-bubble { max-width: 92%; }
 }
+/* Your numbers on the trade home: three cards, one a row on a phone. */
+@media (max-width: 560px) { .tr-grid--nums { grid-template-columns: minmax(0, 1fr); } }

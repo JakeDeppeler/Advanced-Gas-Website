@@ -6,7 +6,9 @@ import { mondayWeek } from "@/lib/portal/monday";
 import { listOrders, listReports, listTools } from "@/lib/portal/van";
 import { listLeave } from "@/lib/portal/people";
 import { tradeNotices } from "@/lib/portal/tradeNotices";
-import { myMonth, myOpenQuotes } from "@/lib/portal/tradeHome";
+import { myDayAndTeam, myMonth, myOpenQuotes } from "@/lib/portal/tradeHome";
+import { commissionRule } from "@/lib/portal/crewFile/commission";
+import { bonusFor } from "@/lib/portal/commissionTypes";
 import { isOpenReport, toolState } from "@/lib/portal/vanParts";
 import { leaveLabel } from "@/lib/portal/peopleParts";
 import { localToday } from "@/lib/portal/xero";
@@ -42,7 +44,7 @@ export default async function TradeHome() {
   const today = localToday();
   const week = await mondayWeek(user.id);
   const van = week.van;
-  const [month, mine, reports, orders, tools, leave, unread] = await Promise.all([
+  const [month, mine, reports, orders, tools, leave, unread, dt, rule] = await Promise.all([
     myMonth(user.name),
     myOpenQuotes(user.name),
     van ? listReports(van.id, 20) : [],
@@ -50,7 +52,11 @@ export default async function TradeHome() {
     van ? listTools(van.id) : null,
     user.id ? listLeave({ userId: user.id, limit: 5 }) : [],
     tradeNotices(user).then((t) => t.unread).catch(() => 0),
+    myDayAndTeam(user.name).catch(() => ({ day: null, team: null })),
+    commissionRule().catch(() => null),
   ]);
+  const bonus = month && rule && rule.monthTarget > 0 ? bonusFor(month.sold, rule) : null;
+  const hrs = (h: number) => `${h.toFixed(1)} h`;
 
   const needs: Need[] = [];
   if (unread > 0) {
@@ -155,10 +161,61 @@ export default async function TradeHome() {
                   {month.quotedJobs ? `${month.quotedJobs} jobs quoted · ${money(month.quoted)}` : "Nothing quoted in ServiceTitan under your name yet this month."}
                 </span>
               )}
+              {month.avgTicket != null || month.avgOptions != null ? (
+                <span className="tr-muted" style={{ fontSize: 15 }}>
+                  {[month.avgTicket != null ? `${money(month.avgTicket)} average sale` : null, month.avgOptions != null ? `${month.avgOptions.toFixed(1)} options a job` : null].filter(Boolean).join(" · ")}
+                </span>
+              ) : null}
             </>
           ) : (
             <p className="tr-empty">The month&rsquo;s figures aren&rsquo;t in yet — they come from the wall board&rsquo;s last sync.</p>
           )}
+        </section>
+      </div>
+
+      {/* Your numbers: the ones the office has said the crew sees — your day,
+          your bonus, the team's month. Never costs, margins or anyone's pay. */}
+      <div className="tr-grid tr-grid--3 tr-grid--nums" style={{ marginTop: 14 }}>
+        <section className="tr-card tr-stack" style={{ gap: 8 }}>
+          <div className="tr-card__h" style={{ marginBottom: 0 }}><h2>Your day</h2></div>
+          {dt.day ? (
+            <>
+              <span className="tr-big">{dt.day.jobsDone} of {dt.day.jobsTotal}</span>
+              <span className="tr-muted">jobs done today</span>
+              <div className="tr-bar" aria-hidden="true"><span style={{ width: `${dt.day.jobsTotal ? Math.round((dt.day.jobsDone / dt.day.jobsTotal) * 100) : 0}%` }} /></div>
+              <span className="tr-muted" style={{ fontSize: 15 }}>
+                {dt.day.hoursAllowed != null
+                  ? `${hrs(dt.day.hoursOnAllowed)} on site of ${hrs(dt.day.hoursAllowed)} allowed${dt.day.hoursOnAllowed > dt.day.hoursAllowed ? " — running over" : ""}`
+                  : `${hrs(dt.day.hoursTaken)} on site`}
+              </span>
+            </>
+          ) : <p className="tr-empty">Nothing clocked on yet today.</p>}
+        </section>
+
+        <section className="tr-card tr-stack" style={{ gap: 8 }}>
+          <div className="tr-card__h" style={{ marginBottom: 0 }}><h2>Your bonus</h2></div>
+          {bonus && rule && month ? (
+            <>
+              <span className="tr-big">{bonus.hit ? money(bonus.bonus) : money(bonus.toGo)}</span>
+              <span className="tr-muted">{bonus.hit ? `bonus this month — ${rule.ratePct}% of what you've sold` : `to go to the ${money(rule.monthTarget)} target`}</span>
+              <div className="tr-bar" aria-hidden="true"><span style={{ width: `${Math.min(100, Math.round((month.sold / rule.monthTarget) * 100))}%` }} /></div>
+              <span className="tr-muted" style={{ fontSize: 15 }}>{bonus.hit ? "Target hit." : `Hit it and it's ${money(bonus.wouldBe)} at ${rule.ratePct}%.`}</span>
+            </>
+          ) : <p className="tr-empty">No bonus set up for this month.</p>}
+        </section>
+
+        <section className="tr-card tr-stack" style={{ gap: 8 }}>
+          <div className="tr-card__h" style={{ marginBottom: 0 }}><h2>The team</h2></div>
+          {dt.team ? (
+            <>
+              <span className="tr-big">{money(dt.team.sold)}</span>
+              <span className="tr-muted">sold this month{dt.team.target ? ` of ${money(dt.team.target)}` : ""}</span>
+              {dt.team.target ? <div className="tr-bar" aria-hidden="true"><span style={{ width: `${Math.min(100, Math.round((dt.team.sold / dt.team.target) * 100))}%` }} /></div> : null}
+              <span className="tr-muted" style={{ fontSize: 15 }}>
+                {[dt.team.target ? `${Math.round((dt.team.sold / dt.team.target) * 100)}% of the month's goal` : null, dt.team.closeRate != null ? `${Math.round(dt.team.closeRate * 100)}% team close rate` : null].filter(Boolean).join(" · ")}
+              </span>
+            </>
+          ) : <p className="tr-empty">The team&rsquo;s figures come from the wall board&rsquo;s last sync.</p>}
         </section>
       </div>
     </TradeShell>
