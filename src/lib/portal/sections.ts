@@ -152,7 +152,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "crew", label: "Crew & vans", icon: "van", group: 2, blurb: "The team and the fleet",
     pages: [
       { label: "Team", href: "/portal/team" },
-      { label: "Vehicles & tools", tab: "Vehicles", href: "/portal/vehicles", subs: [{ label: "Tools", href: "/portal/vehicles/tools" }] },
+      { label: "Vehicles & tools", tab: "Vehicles", href: "/portal/vehicles", subs: [{ label: "Tools", href: "/portal/vehicles/tools" }, { label: "Kit lists", href: "/portal/vehicles/kit" }] },
       { label: "From the crew", href: "/portal/requests" },
       { label: "Per van & drive time", tab: "Per van, per day", href: "/portal/per-van", subs: [{ label: "Drive time", href: "/portal/drive" }] },
       { label: "See the trade iPad", href: "/trade" },
@@ -235,7 +235,7 @@ export type Section = {
 function offFor(biz: Business): Set<string> {
   const off = new Set<string>();
   // No vans: the fleet, its tools, and the two pages measured per van go.
-  if (!biz.has.vans) for (const h of ["/portal/vehicles", "/portal/vehicles/tools", "/portal/per-van", "/portal/drive"]) off.add(h);
+  if (!biz.has.vans) for (const h of ["/portal/vehicles", "/portal/vehicles/tools", "/portal/vehicles/kit", "/portal/per-van", "/portal/drive"]) off.add(h);
   if (!biz.has.ipad) off.add("/trade");
   if (!biz.has.wall) for (const h of WALL_PAGES) off.add(h);
   return off;
