@@ -11,6 +11,8 @@ import { byUrgency, dueState, dueWords, firstName } from "@/lib/todos/types";
 import { START_COOKIE, START_PAGES } from "@/lib/portal/businessTypes";
 import { DEFAULT_WORKING_CALENDAR, isWorkingDay } from "@/lib/dashboard/dates";
 import { Home, type HomeTodo } from "@/components/portal/home/Home";
+import { overview } from "@/lib/portal/home/overview";
+import { yearSpans } from "@/lib/portal/yearGoal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Home — Team portal" };
@@ -35,7 +37,7 @@ function startPage(): string | null {
   return inside ? null : start.href;
 }
 
-export default async function PortalHome({ searchParams }: { searchParams: { denied?: string } }) {
+export default async function PortalHome({ searchParams }: { searchParams: { denied?: string; r?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!searchParams.denied) {
@@ -54,6 +56,12 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
     teamPeople().catch(() => []),
     needsToday(user).catch(() => []),
   ]);
+  const span: 6 | 12 = searchParams.r === "6" ? 6 : 12;
+  const ov = office ? await overview(goal, span).catch(() => null) : null;
+  // Days left in the goal's year, for the ring.
+  const spans = goal ? yearSpans(goal.basis, goal.year) : null;
+  const yearEnd = spans ? spans[spans.length - 1].to : null;
+  const daysLeft = yearEnd ? Math.max(0, Math.ceil((Date.parse(`${yearEnd}T23:59:59+10:00`) - Date.now()) / 86_400_000)) : null;
 
   // What's due today or late: the office sees the team's, everyone else their own.
   const today = todayMelbourne();
@@ -94,6 +102,11 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
         overdue={todos.filter((t) => t.late).length}
         lines={lines}
         denied={!!searchParams.denied}
+        ov={ov ? {
+          data: ov, span, closeRate: board?.metrics?.closeRate30d ?? null,
+          yearInvoiced: board?.metrics?.revenueInvoicedYtd ?? null, yearGoal: goal?.revenue ?? null,
+          yearFloor: goal?.floorRevenue ?? null, daysLeft,
+        } : null}
       />
     </PortalShell>
   );
