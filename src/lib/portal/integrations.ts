@@ -6,6 +6,7 @@ import { getIntegration } from "@/lib/portal/db";
 import { reeceConfigured, reeceConnection } from "@/lib/pricebook/reece";
 import { getReviews } from "@/lib/googleReviews";
 import { lastMetaLead, metaConfigured, metaTokenSet } from "@/lib/leads/meta";
+import { site } from "@/lib/site";
 import { getInstagramFeed } from "@/lib/instagram";
 
 /**
@@ -251,12 +252,25 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       facts: [
         connected
           ? "Each one is saved as a lead and takes the wall board for a minute"
-          : "Set META_APP_SECRET and META_VERIFY_TOKEN, then point the page's webhook at /api/leads/meta",
+          : "Set META_APP_SECRET and META_VERIFY_TOKEN in the hosting settings first",
+        // The whole URL, not the path. It is the one thing that gets pasted
+        // into Meta, and half of it is a thing to go and work out.
+        //
+        // And it has to be the www host. The apex 308s to www for every path
+        // including /api (see next.config.mjs, WEB-002), and a webhook
+        // callback that redirects is a webhook that may never be delivered —
+        // so this reads the same canonical URL the rest of the site does
+        // rather than whatever host the portal happens to be open on.
+        `Callback URL: ${(process.env.NEXT_PUBLIC_SITE_URL || site.url).replace(/\/$/, "")}/api/leads/meta`,
         connected && !token
           ? "No page token (META_PAGE_TOKEN), so a lead form arrives without the name or number on it"
           : connected
             ? "Page token set, so the form answers come through with the lead"
             : "Subscribe the page to leadgen and messages once the webhook verifies",
+        // The step the App Dashboard does not do for you, and the one
+        // everybody misses: ticking the fields subscribes the APP, not the
+        // page. Nothing arrives until the page itself is subscribed.
+        "Then subscribe the page itself (POST /{page-id}/subscribed_apps), or nothing is ever sent",
       ],
       feeds: [{ label: "Website · Enquiries", href: "/portal/website" }, { label: "How the board works", href: "/portal/board" }],
       action: connected ? undefined : { label: "Meta webhooks", href: "https://developers.facebook.com/apps", external: true },
