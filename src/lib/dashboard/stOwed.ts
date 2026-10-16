@@ -16,25 +16,42 @@ import type { XeroResult } from "./xero";
  */
 export const ST_LEDGER_FROM = "2026-09-17";
 
-export type StOpen = { id: number; number: string; name: string | null; due: string; amount: number; unit: string | null };
+export type StOpen = {
+  id: number; number: string; name: string | null; due: string; amount: number; unit: string | null;
+  /** The invoice's full price and its job, so a deposit shows as what's been paid of it. */
+  total: number; jobId: number | null;
+  /**
+   * Whether the work is done. ServiceTitan opens a job's invoice when it's
+   * booked, dated that day with its terms running, so a $10,000 install with
+   * a $2,000 deposit reads $8,000 owing — and overdue — weeks before anyone
+   * has been out. Until the job is finished the balance isn't owed yet.
+   */
+  done: boolean;
+};
 
 /** A business unit that says something. ServiceTitan's imported history all sits in one that doesn't. */
 export const realUnit = (bu: string | null | undefined) => (bu && !/imported|default/i.test(bu) ? bu.trim() : null);
 
 /** ServiceTitan's invoices since it became the ledger that still have money owing. Throws when it can't read. */
 export async function stOpenInvoices(): Promise<StOpen[]> {
-  type R = { id: number; invoice_date: string; business_unit: string | null; ref: string | null; balance: string | null; due: string | null; customer: string | null };
-  const rows = await sbSelect<R>("st_invoices", [
-    q.select("id,invoice_date,business_unit,ref:raw->>referenceNumber,balance:raw->>balance,due:raw->>dueDate,customer:raw->customer->>name"),
+  type R = { id: number; job_id: number | null; total: number | null; invoice_date: string; business_unit: string | null; ref: string | null; balance: string | null; due: string | null; customer: string | null };
+  const rows = (await sbSelect<R>("st_invoices", [
+    q.select("id,job_id,total,invoice_date,business_unit,ref:raw->>referenceNumber,balance:raw->>balance,due:raw->>dueDate,customer:raw->customer->>name"),
     q.gte("invoice_date", ST_LEDGER_FROM), "limit=5000",
-  ].join("&"));
-  return rows
+  ].join("&")))
     // Imported rows are Xero's history copied in, already counted from Xero.
-    .filter((r) => Number(r.balance) > 0.5 && !/imported|default/i.test(r.business_unit ?? ""))
-    .map((r) => ({
-      id: r.id, number: r.ref ?? String(r.id), name: r.customer, due: (r.due ?? r.invoice_date).slice(0, 10),
-      amount: Number(r.balance), unit: realUnit(r.business_unit),
-    }));
+    .filter((r) => Number(r.balance) > 0.5 && !/imported|default/i.test(r.business_unit ?? ""));
+  const jobIds = [...new Set(rows.map((r) => r.job_id).filter((v): v is number => v != null))];
+  const status = new Map<number, string | null>();
+  for (let i = 0; i < jobIds.length; i += 200) {
+    const js = await sbSelect<{ id: number; status: string | null }>("st_jobs", [q.select("id,status"), `id=in.(${jobIds.slice(i, i + 200).join(",")})`].join("&"));
+    for (const j of js) status.set(Number(j.id), j.status);
+  }
+  return rows.map((r) => ({
+    id: r.id, number: r.ref ?? String(r.id), name: r.customer, due: (r.due ?? r.invoice_date).slice(0, 10),
+    amount: Number(r.balance), unit: realUnit(r.business_unit), total: Number(r.total ?? r.balance) || Number(r.balance),
+    jobId: r.job_id, done: r.job_id == null || status.get(Number(r.job_id)) === "Completed",
+  }));
 }
 
 /**
@@ -53,8 +70,9 @@ export function withStOpen(xero: Extract<XeroResult, { ok: true }>, st: StOpen[]
     if (seen.has(i.number)) continue;
     out.numbers.push(i.number);
     out.receivablesTotal += i.amount;
-    // Overdue from the day after it's due, the same line Xero's are drawn on.
-    if (i.due >= todayMel) {
+    // Overdue from the day after it's due, the same line Xero's are drawn on —
+    // and never while the work isn't done: that's a deposit's balance waiting.
+    if (!i.done || i.due >= todayMel) {
       out.aging.notDue += i.amount;
       out.arAging.current += i.amount;
       out.rows.push({ customer: i.name ?? "", amount: i.amount, daysOver: 0 });

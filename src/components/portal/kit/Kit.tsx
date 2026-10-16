@@ -87,17 +87,21 @@ export const Good = ({ children }: { children: ReactNode }) => <span className="
 
 const pct = (f: number) => `${Math.max(0, Math.min(1, f)) * 100}%`;
 
-/** A big figure with a bar: the dark one leads the page, the light one sits beside it. */
-export function Hero({ label, right, fig, frac, sub, dark, href }: { label: string; right?: string; fig: string; frac: number | null; sub?: ReactNode; dark?: boolean; href?: string }) {
+/**
+ * A big figure with a bar: the dark one leads the page, the light one sits
+ * beside it. Given a status it takes the status's colour — green,
+ * gold or red, with the word on it — instead of the plain black or white box.
+ */
+export function Hero({ label, right, fig, frac, sub, dark, href, st }: { label: string; right?: string; fig: string; frac: number | null; sub?: ReactNode; dark?: boolean; href?: string; st?: Status }) {
   const body = (
     <>
-      <div className="pk-hl"><span>{label}</span>{right && <span>{right}</span>}</div>
+      <div className="pk-hl"><span>{label}{st && st.k !== "none" ? <> <Pill st={st} /></> : null}</span>{right && <span>{right}</span>}</div>
       <div className="pk-hf">{fig}</div>
       <div className="pk-hb" aria-hidden="true"><i style={{ width: frac == null ? 0 : pct(frac) }} /></div>
       {sub && <div className="pk-hs">{sub}</div>}
     </>
   );
-  const cls = `pk-hero${dark ? "" : " light"}`;
+  const cls = `pk-hero${dark ? "" : " light"}${st && st.k !== "none" ? ` st-${st.k}` : ""}`;
   return href ? <Link href={href} className={cls}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 

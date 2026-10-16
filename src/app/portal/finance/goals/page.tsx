@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { getSettings, dbConfigured } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Bad, Btn, Card, Empty, Good, Grid, Head, Kv, Note, Pill, Say, Tile, Two, none, status, type Status } from "@/components/portal/kit/Kit";
+import { Bad, Btn, Card, Empty, Good, Grid, Head, Hero, Kv, Note, Pair, Pill, Say, Tile, Two, none, status, type Status } from "@/components/portal/kit/Kit";
 import { GoalBars, InOutChart, type GoalBar } from "@/components/portal/kit/HoverCharts";
 import { XeroOff } from "@/components/portal/finance/Parts";
 import { getMoneySeries, getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
@@ -68,6 +68,19 @@ export default async function YearGoalPage() {
   const ytdSt: Status = noGoal || y.banked == null ? none(noGoal ? "No goal yet" : "No figure") : status(y.banked, y.expectedToDate);
   const avgLeft = noGoal ? null : y.months.filter((m) => !m.complete).reduce((a, m) => a + m.goal, 0) / Math.max(1, y.monthsLeft);
 
+  // Both goals: the one we're going for and the one we can't go under. The
+  // floor's pace is the goal's pace scaled to its year, so a busy month asks
+  // more of both.
+  const floor = goal.floorRevenue && goal.floorRevenue > 0 && goal.floorRevenue < goal.revenue ? goal.floorRevenue : null;
+  const levels = noGoal || y.banked == null ? [] : [
+    { key: "goal", year: goal.revenue, byNow: y.expectedToDate },
+    ...(floor ? [{ key: "floor", year: floor, byNow: (y.expectedToDate * floor) / goal.revenue }] : []),
+  ].map((l) => {
+    const left = Math.max(0, l.year - (y.banked ?? 0));
+    return { ...l, st: status(y.banked ?? 0, l.byNow), delta: (y.banked ?? 0) - l.byNow, perMonth: y.monthsLeft > 0 ? left / y.monthsLeft : null };
+  });
+  const short = (n: number) => `$${(Math.round(n / 1e5) / 10).toLocaleString("en-AU")}M`;
+
   return (
     <PortalShell user={user}>
       <div className="pk">
@@ -90,6 +103,16 @@ export default async function YearGoalPage() {
                 </>
               )}
             </Say>
+
+            {levels.length > 0 && (
+              <Pair>
+                {levels.map((l) => (
+                  <Hero key={l.key} st={l.st} label={l.key === "goal" ? `Going for ${short(l.year)}` : `Not under ${short(l.year)}`} right={`${money(l.byNow)} by now`}
+                    fig={`${l.delta >= 0 ? "▲" : "▼"} ${money(Math.abs(l.delta))} ${l.delta >= 0 ? "ahead" : "behind"}`} frac={l.byNow > 0 ? Math.min(1, (y.banked ?? 0) / l.byNow) : null}
+                    sub={l.perMonth != null ? `${money(l.perMonth)} a month for the ${y.monthsLeft} ${y.monthsLeft === 1 ? "month" : "months"} left to reach ${short(l.year)}` : undefined} />
+                ))}
+              </Pair>
+            )}
 
             <Grid cols={4}>
               <Tile label="Invoiced so far" st={ytdSt} fig={y.banked != null ? money(y.banked) : "—"} frac={y.progress}
