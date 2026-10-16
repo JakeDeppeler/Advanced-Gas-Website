@@ -150,15 +150,22 @@ export const CREWS = [
 export type CrewKind = (typeof CREWS)[number]["k"];
 
 /**
- * What one van has to charge an hour, crewed each way, for a year: its fair
- * share of every overhead plus the crew's whole pay, over the hours one van
- * bills. A tech on their own still carries the whole van, which is why one
+ * What one van has to charge an hour, crewed each way: the overhead on every
+ * billed hour, plus the crew's whole pay over the hours one van bills. A tech
+ * on their own still carries a full share of the overheads, which is why one
  * person isn't half the crew rate.
+ *
+ * The overhead is the business's overhead over the hours the business bills —
+ * the same figure Running costs and Build our rate show — not the year split
+ * by vans. A van that goes out without a tech who bills carries costs and no
+ * hours, and the vans that do bill have to cover it; splitting by vans hid
+ * that and made every crew rate look cheaper than the year allows.
  */
 export function crewRates(r: CoverResult, vans: number, onCostPct: number) {
+  void vans;
   const i = r.inputs;
-  const share = vans > 0 ? r.overhead / vans : r.overhead;
   const hrsVan = i.daysOnTools * i.billPerDay;
+  const share = r.perHr.overhead * hrsVan;
   const loaded = 1 + onCostPct / 100;
   const factor = 1 / (1 - Math.min(90, Math.max(0, i.margin)) / 100);
   return {

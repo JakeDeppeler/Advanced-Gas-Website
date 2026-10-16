@@ -253,7 +253,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/plans", label: "Future planning", blurb: "What you want to do for the business, by when", band: "hidden", icon: "target", also: ["plans", "planning", "future", "goals", "ideas", "business plan", "long term", "someday", "vision"] });
   items.push({ href: "/portal/keep-in-touch", label: "Keep in touch", blurb: "Important people to reach out to every month", band: "hidden", icon: "people", also: ["contacts", "keep in contact", "relationships", "builders", "agents", "suppliers", "referrers", "call list", "reach out", "networking"] });
   items.push({ href: "/portal/todo", label: "To-do", blurb: "Today's jobs, given to each other, with the day each is due", band: "hidden", icon: "list", also: ["todo", "to do", "to-do list", "task", "tasks", "reminder", "due", "overdue", "jobs to do"] });
-  items.push({ href: "/portal/job-calculator", label: "Job calculator", short: "Job calc", blurb: "Price a job by who's on it", band: "hidden", icon: "calc", also: ["price", "quote", "rate", "labour"] });
   // The wall board's own tab: the remote first, because driving the TV is
   // what people come here to do; then what it shows, then what it aims at.
   add(office,
@@ -310,8 +309,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/finance/goals", label: "Year goal", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
     { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
     { href: "/portal/numbers", label: "Goals", blurb: "Every goal the portal measures against", band: "hidden", icon: "target", also: ["goals", "our numbers", "year goal", "sales goal", "months", "gross margin goal", "win rate goal"] },
-    { href: "/portal/finance/capacity", label: "Team & wages", short: "Pricing & costs", blurb: "Everyone on the team, their pay and billable hours", band: "hidden", icon: "people", also: ["our numbers", "wages", "crew", "capacity", "pay", "billable hours"] },
-    { href: "/portal/finance/capacity?t=overheads", label: "Costs", blurb: "What the business costs to run a year", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software"] },
+    { href: "/portal/finance/capacity", label: "Overheads", blurb: "Every overhead line — add, edit, a year, a week or a month a van", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software", "fuel", "servicing", "add a line"] },
     { href: "/portal/pricing", label: "Rates & pricing", blurb: "Our hourly rate, call-out and after-hours", band: "hidden", icon: "tag", also: ["hourly rate", "call out", "callout", "after hours", "pricing", "charge out", "profit we want"] },
     { href: "/portal/finance/capacity?part=vans", label: "Vans & loans", blurb: "What each van owes, and the repayments", band: "hidden", icon: "truck", also: ["van loan", "repayment", "finance", "new van"] },
     { href: "/portal/finance/capacity?part=markup", label: "Markup", blurb: "Markup on materials and units", band: "hidden", icon: "tag", also: ["markup", "margin", "materials", "units"] },

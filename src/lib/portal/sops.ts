@@ -202,7 +202,7 @@ export const SOPS: SopSection[] = [
       },
       {
         code: "B3", slug: "presenting-options", title: "Presenting options",
-        doIt: { href: "/portal/job-calculator", label: "Price it up" },
+        doIt: { href: "/portal/rates", label: "Our crew rates" },
         meta: [{ k: "Who", v: "The tradesman" }, { k: "When", v: "Every job — target is options presented on 95%+ of jobs" }],
         blocks: [
           { kind: "steps", title: "How it works", items: [

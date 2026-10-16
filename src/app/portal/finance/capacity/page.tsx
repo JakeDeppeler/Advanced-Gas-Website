@@ -8,6 +8,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
+import { theHour } from "@/lib/portal/cover/load";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
 import { Locked } from "@/components/portal/Locked";
@@ -94,7 +95,10 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
 
   // One part at a time, picked in the side bar (Pricing & costs › Team & wages,
   // Costs, Vans & loans, Markup); the page is titled for the part it shows.
-  const tab: (typeof TABS)[number] = TABS.includes(searchParams?.t as (typeof TABS)[number]) ? (searchParams!.t as (typeof TABS)[number]) : "crew";
+  // Team & wages and the old per-person rates are gone: wages live on each
+  // person's file, and every rate is worked on What an hour must cover.
+  const tab = "overheads" as const;
+  const hour = part === "costs" ? await theHour() : null;
   const [title, lede] =
     part === "vans" ? ["Vans & loans", "What each van cost and still owes, the repayments, and what a new one would."]
       : part === "markup" ? ["Markup", "What we put on materials and units, which is where the profit is."]
@@ -118,6 +122,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
           xero={xero}
           fleetDep={fleetDep}
           vanCount={vehicles.filter((v) => v.status !== "off").length}
+          billHrs={hour?.r.billHrs}
         />
       )}
       {part === "vans" && (

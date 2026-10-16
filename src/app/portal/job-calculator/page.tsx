@@ -1,60 +1,9 @@
 import { redirect } from "next/navigation";
-import { getPortalUser } from "@/lib/portal/session";
-import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
-import { JobCalculator } from "@/components/portal/JobCalculator";
-import { crewFigures } from "@/lib/portal/crewRates";
-import { priceFactor } from "@/lib/portal/crew";
-import { money2 } from "@/lib/portal/format";
-import { dbConfigured } from "@/lib/portal/db";
-import { getGrowth } from "@/lib/portal/growth";
-import { EMPTY_GROWTH } from "@/lib/portal/growthTypes";
 
-// With no markup saved, materials go on at whatever keeps the same share of
-// the price as the labour: 20% of the price is cost + 25%.
-const markupFor = (marginPct: number) => Math.round((priceFactor(marginPct) - 1) * 1000) / 10;
-
-export const dynamic = "force-dynamic";
-export const metadata = { title: "Job calculator — Team portal" };
-
-export default async function JobCalculatorPage() {
-  const user = await getPortalUser();
-  if (!user) redirect("/portal/login");
-
-  // What an hour of each kind of person costs, and how much of that is the
-  // shared overhead rather than their pay. Shown in the heading because it is
-  // the arithmetic underneath every figure the calculator produces, and pricing
-  // a job without it in front of you is guessing. Read from one place: the
-  // trade portal's on-site calculator prices off the same figures.
-  const [{ crew, costPerHr, costPerHrOnsite, figures, margin }, growth] = await Promise.all([
-    crewFigures(),
-    dbConfigured() ? getGrowth() : Promise.resolve(EMPTY_GROWTH),
-  ]);
-
-  return (
-    <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>Price a job by who&rsquo;s on it.</h1>
-        <p>Pick the job, who&rsquo;s on it and for how long. Each person prices at their own charge-out rate, and a day parked on one site prices differently to a day crossing the shire. Add travel and materials and it tells you what&rsquo;s actually left in it.</p>
-        {figures.length > 0 && (
-          <div className="pt-head__figs">
-            {figures.map((f) => (
-              <div key={f.label} className="pt-head__fig">
-                <span className="pt-head__figlbl">{f.label}</span>
-                <strong className="pt-head__figval">
-                  {f.mobile !== null ? <>{money2(f.mobile)}<em>/hr</em></> : "Not costed"}
-                </strong>
-                <span className="pt-head__figalt">
-                  {f.onsite !== null ? `${money2(f.onsite)}/hr on site` : "no on-site figure yet"}
-                </span>
-                <span className="pt-head__figsub">{f.sub}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <JobCalculator crew={crew} costPerHr={costPerHr} costPerHrOnsite={costPerHrOnsite} calloutFee={165} materialsMarkup={growth.markup.materialsPct > 0 ? growth.markup.materialsPct : markupFor(margin ?? 20)} margin={margin} />
-    </PortalShell>
-  );
+/**
+ * The Job calculator went: jobs are priced in ServiceTitan. An old link or
+ * bookmark lands on the crew rates the quotes are priced from.
+ */
+export default function JobCalculatorPage() {
+  redirect("/portal/rates");
 }

@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { melbourneInstant } from "@/lib/ordering/workOrders";
 import { listUsers } from "@/lib/portal/db";
 import { getCostSettings } from "@/lib/portal/costSettings";
-import { computeCapacity, type CrewLevel } from "@/lib/portal/crew";
+import { theHour } from "@/lib/portal/cover/load";
 import { readYearGoal, revenueGoalFor } from "@/lib/portal/yearGoal";
 import { getSettings } from "@/lib/portal/db";
 import { billable, classOf } from "@/lib/portal/stuckTypes";
@@ -190,13 +190,10 @@ export async function monthTrack(month: string): Promise<MonthTrack> {
 
   let toCover: number | null = null;
   if (settings) {
-    const people = users
-      .filter((u) => u.active && u.id && u.level)
-      .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
-    const cap = computeCapacity(people, settings);
-    // Everything but the gear: the crew's wages (riding-along apprentices
-    // included, who sit outside the hourly pool), the office and every overhead.
-    const year = cap.totalCost + cap.ridesCost;
+    void users;
+    // Everything but the gear: the crew's pay, the office and every overhead —
+    // the year What an hour must cover and Running costs are built on.
+    const year = (await theHour()).r.total;
     if (year > 0) toCover = (year * last) / 365;
   }
   const goal = goalRaw ? readYearGoal(goalRaw, new Date()) : null;

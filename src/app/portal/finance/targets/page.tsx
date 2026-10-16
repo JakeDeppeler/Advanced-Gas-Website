@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { listUsers, getSettings, listQuotes, dbConfigured } from "@/lib/portal/db";
 import { getCostSettings } from "@/lib/portal/costSettings";
-import { priceFactor, computeCapacity, type CrewLevel } from "@/lib/portal/crew";
+import { theHour } from "@/lib/portal/cover/load";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
@@ -32,16 +32,13 @@ export default async function TargetsPage() {
   // than only divided up into it.
   let capacity: Capacity | null = null;
   if (ready) {
-    const [users, s] = await Promise.all([listUsers(), getCostSettings()]);
-    const people = users
-      .filter((u) => u.active && u.id && u.level)
-      .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
-    const cap = computeCapacity(people, s);
+    // The same hour every pricing page quotes: billed hours on 6 of 8, priced to our margin.
+    const h = await theHour();
     capacity = {
-      billHrs: cap.totalBillHrs,
-      chargePerHr: cap.costPerHr * priceFactor(s.margin),
-      weeksYear: s.weeksYear,
-      vans: cap.vanCount,
+      billHrs: h.r.billHrs,
+      chargePerHr: h.r.atMargin,
+      weeksYear: h.s.weeksYear,
+      vans: h.vans,
     };
   }
 

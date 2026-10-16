@@ -84,7 +84,7 @@ export type XeroExpense = { label: string; section: string; amount: number };
 export type XeroState = { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string };
 
 export function CapacityEditor({
-  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0, fixedTab = false,
+  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0, fixedTab = false, billHrs,
 }: {
   people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[];
   settings: CapSettings; dbReady: boolean; canManage: boolean; initialTab?: Tab;
@@ -93,6 +93,8 @@ export function CapacityEditor({
   /** Straight-line depreciation across the fleet, from the Vehicles tab. */
   fleetDep?: number;
   vanCount?: number;
+  /** The hours the business bills a year, as every other page has it (theHour). */
+  billHrs?: number;
   /** The side bar picks the part (Team & wages, Costs), so the editor's own tab row is hidden. */
   fixedTab?: boolean;
 }) {
@@ -143,7 +145,7 @@ export function CapacityEditor({
     const weeks = Number(s.weeksYear) || 52;
     const vans = Math.max(1, fleetVansOf(s));
     // Start the new way of typing it at the same year, so switching doesn't move the total.
-    const rate = basis === "month" ? annual / 12 : basis === "week" ? annual / weeks : basis === "weekPerVan" ? annual / weeks / vans
+    const rate = basis === "month" ? annual / 12 : basis === "monthPerVan" ? annual / 12 / vans : basis === "week" ? annual / weeks : basis === "weekPerVan" ? annual / weeks / vans
       : annual / (38 * weeks * (1 + onCostPct(s) / 100));
     setRate(key, { basis, rate: Math.round(rate * 100) / 100, ...(basis === "wage" ? { hrsWeek: 38 } : {}) });
   };
@@ -176,7 +178,8 @@ export function CapacityEditor({
   const filedCount = xeroExpenses.filter((x) => xeroMap[x.label]).length;
 
   /** What a yearly figure works out to on each hour you can actually bill. */
-  const perHour = (annual: number) => (hasHrs && annual ? money2(annual / cap.totalBillHrs) : "—");
+  // Read when called, after hrsBilled is set further down.
+  const perHour = (annual: number) => (hrsBilled > 0 && annual ? money2(annual / hrsBilled) : "—");
   const emptyCount = overheadFields(s).filter((f) => !(f.key === "vehDep" && fleetDep > 0) && (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
 
   /** File every account whose name we can place, in one go. */
@@ -261,12 +264,13 @@ export function CapacityEditor({
     const pct = (v: number) => (wages > 0 && v > 0 ? (v / wages) * 100 : null);
     return { super: pct(sum(/superannuation/i)), workcover: pct(sum(/workcover|work cover|workers comp/i)), lsl: pct(sum(/long service/i)) };
   }, [xeroExpenses]);
-  const ohFromCrew = cap.labourOh + cap.officeOh;
-  // School fees entered on an apprentice's card move out of the training line
-  // and onto them; the ones on a van driver stay in this total, the ones riding
-  // along go into their crew's uplift instead, as computeCapacity has it.
-  const ohTotal = cap.sharedOverhead;
-  const hasHrs = cap.totalBillHrs > 0;
+  // The overhead as every page has it: the office staff and every overhead
+  // line. The crew's own pay — their time off the tools included — is on Build
+  // our rate, not here, so it isn't counted twice.
+  const ohFromCrew = office.total;
+  const ohTotal = office.total + overheadTotal(s);
+  const hrsBilled = billHrs ?? cap.totalBillHrs;
+  const hasHrs = hrsBilled > 0;
   const show = (n: number) => (hasHrs ? money2(n) : "—");
   const blended = hasHrs ? cap.costPerHr * priceFactor(s.margin) : null;
 
@@ -842,15 +846,15 @@ export function CapacityEditor({
           <div className="pk" style={{ marginBottom: 18 }}>
             <p className="pk-say">
               Running the business costs <b>{money(ohTotal)} a year</b>, {money(ohTotal / 12)} a month
-              {hasHrs ? <> — <b>{money2(ohTotal / cap.totalBillHrs)} on every hour</b> the vans bill, across {hrs(cap.totalBillHrs)}</> : null}.
-              It doesn&rsquo;t include the crew&rsquo;s time on the tools: that&rsquo;s on Team &amp; wages.
+              {hasHrs ? <> — <b>{money2(ohTotal / hrsBilled)} on every billed hour</b>, across the {hrs(hrsBilled)} the business bills</> : null}.
+              The techs&rsquo; and apprentices&rsquo; own pay isn&rsquo;t in it: that&rsquo;s on Build our rate.
             </p>
             <div className="pk-grid4">
               {[
                 { l: "A year", v: money(ohTotal), sub: `${money(ohTotal / 52)} a week` },
                 { l: "A month", v: money(ohTotal / 12), sub: "to cover before a cent of profit" },
-                { l: "Every billable hour", v: hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—", sub: hasHrs ? `${hrs(cap.totalBillHrs)} a year` : "add the crew to see this" },
-                { l: "Fixed, any fleet size", v: money(split.fixed + cap.officeOh), sub: `${money(split.perVan / Math.max(1, cap.vanCount))} more with each van` },
+                { l: "Every billed hour", v: hasHrs ? money2(ohTotal / hrsBilled) : "—", sub: hasHrs ? `${hrs(hrsBilled)} a year` : "add the crew to see this" },
+                { l: "Fixed, any fleet size", v: money(split.fixed + office.total), sub: `${money(split.perVan / Math.max(1, vanCount || cap.realVans || 1))} more with each van` },
               ].map((t) => (
                 <div key={t.l} className="pk-card pk-tile"><div className="pk-tl"><span>{t.l}</span></div><div className="pk-fig">{t.v}</div><div className="pk-ks" style={{ marginTop: 6 }}>{t.sub}</div></div>
               ))}
@@ -866,8 +870,7 @@ export function CapacityEditor({
                     v: overheadFields(s).filter((f) => f.group === g.key && f.key !== "vehDep").reduce((a, f) => a + (Number(oh[f.key]) || 0), 0),
                   }));
                 const rows = [
-                  { k: "office", label: "Office & admin wages", v: cap.officeOh },
-                  { k: "down", label: "Crew time you can’t bill", v: cap.labourOh },
+                  { k: "office", label: "Office & admin wages", v: office.total },
                   { k: "dep", label: "Van depreciation", v: fleetDep },
                   ...typed,
                 ].filter((r) => r.v > 0).sort((x, y) => y.v - x.v);
@@ -1059,37 +1062,27 @@ export function CapacityEditor({
               <span className="pt-cap__grouptotal">{money(ohTotal)}<em>/yr</em></span>
             </div>
             <p className="pt-panel__sub">
-              Everything the business carries except the labour that goes on a job. Office and admin wages are overhead and are in
-              here; so is the crew&rsquo;s own non-billable time. Only the hours a customer pays for are left out.
-              Spread across {hrs(cap.totalBillHrs)} of billable time.
+              Everything the business carries except the techs&rsquo; and apprentices&rsquo; own pay, which is on Build our rate. Office and admin
+              wages are overhead and are in here. Spread across the {hrs(hrsBilled)} the business bills a year.
             </p>
 
             <div className="pt-oh__split">
               <div>
                 <span>Fixed — same at any fleet size</span>
-                <strong>{money(split.fixed + cap.officeOh)}</strong>
-                <em>{ohTotal > 0 ? `${Math.round(((split.fixed + cap.officeOh) / ohTotal) * 100)}% of the lot` : ""}</em>
+                <strong>{money(split.fixed + office.total)}</strong>
+                <em>{ohTotal > 0 ? `${Math.round(((split.fixed + office.total) / ohTotal) * 100)}% of the lot` : ""}</em>
               </div>
               <div>
                 <span>Travels with each van</span>
                 <strong>{money(split.perVan)}</strong>
-                <em>{money(split.perVan / Math.max(1, cap.vanCount))} a van, across {cap.vanCount}</em>
+                <em>{money(split.perVan / Math.max(1, vanCount || cap.realVans || 1))} a van, across {vanCount || cap.realVans}</em>
               </div>
-              <label className="pt-oh__vans">
-                <span>Model it at</span>
-                <input type="number" min="1" max="30" value={cap.vanCount}
-                  onChange={(e) => setS({ ...s, vansOverride: parse(e.target.value) || null })} />
-                <span>vans</span>
-                {s.vansOverride ? (
-                  <button type="button" onClick={() => setS({ ...s, vansOverride: null })}>back to {cap.realVans}</button>
-                ) : null}
-              </label>
+
             </div>
 
             <p className="pt-oh__hint">
-              Billable hours are counted per van, not per head — {cap.vanCount} {cap.vanCount === 1 ? "van" : "vans"} at{" "}
-              {hrs(cap.hrsPerVan)} each. A tech and an apprentice on the one job are on site for one van-hour, not two, so the
-              apprentice lifts the crew&rsquo;s rate instead of adding hours to divide by.
+              Billed hours are the techs who bill × 205 days × 6 of 8 hours, set on What an hour must cover. An apprentice riding with a tech adds pay, not hours,
+              so they lift the crew&rsquo;s rate instead of adding hours to divide by.
             </p>
 
             {emptyCount > 0 && (
@@ -1117,8 +1110,7 @@ export function CapacityEditor({
                     </span>
                   </div>
                   {[
-                    { k: "office", label: "Office & admin wages", from: "The crew tab — everyone not on the tools", v: cap.officeOh },
-                    { k: "down", label: "Crew time you can’t bill", from: "Leave, sick, RDOs, school, driving and admin", v: cap.labourOh },
+                    { k: "office", label: "Office & admin wages", from: "Their own files on Team — everyone not on the tools", v: office.total },
                     { k: "dep", label: "Vehicle depreciation", from: `The Vehicles tab — ${vanCount} ${vanCount === 1 ? "van" : "vans"} on the road`, v: fleetDep },
                   ].filter((r) => r.v > 0).map((r) => (
                     <div key={r.k} className="pt-oh__line">
@@ -1199,6 +1191,7 @@ export function CapacityEditor({
                                     <em className="pt-oh__yr">
                                       = {money(lineAnnual(r, s))} a year
                                       {r.basis === "weekPerVan" ? ` · ${money(r.rate)} × ${s.weeksYear || 52} weeks × ${fleetVansOf(s)} ${fleetVansOf(s) === 1 ? "van" : "vans"}` : ""}
+                                      {r.basis === "monthPerVan" ? ` · ${money(r.rate)} × 12 months × ${fleetVansOf(s)} ${fleetVansOf(s) === 1 ? "van" : "vans"}` : ""}
                                       {r.basis === "wage" ? ` · with super, WorkCover & LSL (${onCostPct(s).toFixed(1)}%)` : ""}
                                     </em>
                                   )}
