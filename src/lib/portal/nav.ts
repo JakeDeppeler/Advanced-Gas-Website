@@ -162,6 +162,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["hourly", "charge out", "charge-out", "rate", "cost per hour", "break down", "overhead per hour", "utilisation", "billable hours"],
     },
     {
+      href: "/portal/finance/cover", label: "What an hour must cover", short: "Cover the hour", blurb: "Overheads and pay over the hours we bill, what-ifs, and each person's billed day", band: "profit", icon: "clock",
+      also: ["break even", "break-even", "overhead", "6 of 8", "billable", "billed hours", "efficiency", "productivity", "hours billed", "add a person", "apprentice", "per hour"],
+    },
+    {
       href: "/portal/finance/running", label: "Running costs", short: "Running costs", blurb: "Every overhead, and what it does with another van", band: "profit", icon: "list",
       also: ["overheads", "overhead list", "running costs", "fixed costs", "cost to run", "more vans", "another van", "scale", "per van", "grow", "more people"],
     },
