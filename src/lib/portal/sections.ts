@@ -106,6 +106,7 @@ export const SECTION_DEFS: SectionDef[] = [
     pages: [
       { label: "Goals", href: "/portal/numbers" },
       { label: "Hourly rate", href: "/portal/rates" },
+      { label: "What an hour must cover", href: "/portal/finance/cover" },
       { label: "Running costs", href: "/portal/finance/running" },
       {
         label: "Wages & costs", tab: "Team & wages", href: "/portal/finance/capacity",
