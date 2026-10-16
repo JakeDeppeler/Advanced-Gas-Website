@@ -7,13 +7,14 @@ import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
 import { listUsers, getCapSettings, getSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { personBills, yearSpend } from "@/lib/portal/hourBill";
+import { personBills, spendLines, yearSpend } from "@/lib/portal/hourBill";
+import { TeamTabs } from "@/components/portal/run/RunTabs";
 import { onPlan, readPayPlan, withPlanWages } from "@/lib/portal/payPlan";
 import { firstName } from "@/lib/todos/types";
 import { HourBill } from "@/components/portal/HourBill";
 import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { priceFactor,
-  alwaysSupervised, assumptionsFor, loadedWage, onCostsOf, computeCapacity, daysOff, fleetDepOf, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, overheadLines,
+  alwaysSupervised, assumptionsFor, loadedWage, onCostsOf, computeCapacity, daysOff, fleetDepOf, LEVEL_BILLABLE, LEVEL_LABEL, overheadFields, OVERHEAD_GROUPS, overheadLines,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
 
@@ -97,7 +98,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
   const internal = s.ohSource === "internal";
   const fleetDep = fleetDepOf(s);
   const groups = OVERHEAD_GROUPS.map((g) => {
-    const lines = OVERHEAD_FIELDS.filter((f) => f.group === g.key)
+    const lines = overheadFields(s).filter((f) => f.group === g.key)
       .map((f) => ({ label: f.key === "vehDep" && fleetDep > 0 ? "Van depreciation, from the Vehicles tab" : f.label, annual: Number(oh[f.key]) || 0 }))
       .filter((l) => l.annual > 0);
     return { key: g.key, label: g.label, blurb: g.blurb, annual: lines.reduce((a, l) => a + l.annual, 0), lines };
@@ -194,6 +195,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
     ...(commission > 0 ? [{ key: "commission", label: `Commission, ${plan.pct}% of their sales`, note: planVans.map((p) => firstName(p.name)).join(" & "), annual: commission }] : []),
   ];
   const spendTop = Math.max(1, ...spend.map((x) => x.annual));
+  const inside = spendLines(s, cap);
   const pairCharge = leadCost != null && riders.length
     ? (leadCost + riders.reduce((a, x) => a + x.full, 0) / riders.length) * priceFactor(s.margin)
     : null;
@@ -206,6 +208,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
   return (
     <PortalShell user={user}>
       <FinanceHead title="Our hourly rate" lede="What the business spends in a year, what that makes an hour on the tools cost, and what we charge for it." />
+      <div className="pk" style={{ marginBottom: 14 }}><TeamTabs on="build" /></div>
 
       {!has ? (
         <div className="pt-note pt-note--warn">
@@ -246,14 +249,35 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
             <h2 id="hs-spend" className="pt-panel__h">Where the money goes each year</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>Every overhead line by line, and what it does with another van, is on <Link href="/portal/finance/running">Running costs</Link>.</p>
             <div className="pt-hs__spend">
-              {spend.map((x) => (
-                <div key={x.key} className="pt-hs__row">
-                  <span className="pt-hs__lbl">{x.label}<em>{x.note}</em></span>
-                  <span className="pt-hs__bar" aria-hidden="true"><i style={{ width: `${Math.max(0, (x.annual / spendTop) * 100)}%` }} /></span>
-                  <strong className="pt-hs__yr">{m0(x.annual)}<em>a year</em></strong>
-                  <span className="pt-hs__ph">{m2(per(x.annual))}<em>an hour</em></span>
-                </div>
-              ))}
+              {spend.map((x) => {
+                const lines = inside[x.key] ?? [];
+                const row = (
+                  <>
+                    <span className="pt-hs__lbl">
+                      <span>{lines.length > 0 && <span className="pt-hs__caret" aria-hidden="true">›</span>}{x.label}</span>
+                      <em>{x.note}</em>
+                    </span>
+                    <span className="pt-hs__bar" aria-hidden="true"><i style={{ width: `${Math.max(0, (x.annual / spendTop) * 100)}%` }} /></span>
+                    <strong className="pt-hs__yr">{m0(x.annual)}<em>a year</em></strong>
+                    <span className="pt-hs__ph">{m2(per(x.annual))}<em>an hour</em></span>
+                  </>
+                );
+                // Opens to every line inside it, so "The vans" says which vans and which bills.
+                return lines.length > 0 ? (
+                  <details key={x.key} className="pt-hs__open">
+                    <summary className="pt-hs__row">{row}</summary>
+                    <div className="pt-hs__in">
+                      {lines.map((l, i) => (
+                        <div key={`${l.label}-${i}`} className="pt-hs__inrow">
+                          <span>{l.label}</span>
+                          <span>{m0(l.annual)}</span>
+                          <span>{m2(per(l.annual))}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                ) : <div key={x.key} className="pt-hs__row">{row}</div>;
+              })}
               <div className="pt-hs__row is-total">
                 <span className="pt-hs__lbl">All of it</span><span />
                 <strong className="pt-hs__yr">{m0(yearCost)}<em>a year</em></strong>

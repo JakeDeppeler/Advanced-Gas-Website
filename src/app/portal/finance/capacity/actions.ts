@@ -34,7 +34,7 @@ export async function saveCapSettings(s: CapSettings): Promise<ActionResult> {
   if (!me) return { ok: false, error: "Not allowed." };
   // The depreciation is read from the Vehicles tab every time; saving it would
   // freeze today's fleet into the settings.
-  const { fleetDep: _dep, ...keep } = s;
+  const { fleetDep: _dep, fleetVans: _vans, ...keep } = s;
   void _dep;
   const res = await saveSettings("capacity", keep);
   if (!res.ok) return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };

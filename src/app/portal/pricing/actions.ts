@@ -14,7 +14,7 @@ import { normalisePricing } from "@/lib/portal/pricingTypes";
 export async function savePricing(v: Record<string, number | null>): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
-  const p = await saveSettings("pricing", normalisePricing({ hourly: v.hourly, callout: v.callout, afterHours: v.afterHours }));
+  const p = await saveSettings("pricing", normalisePricing({ hourly: v.hourly, solo: v.solo, callout: v.callout, afterHours: v.afterHours }));
   if (!p.ok) return { ok: false, error: "Couldn’t save." };
   const margin = v.margin;
   if (margin != null) {
@@ -24,6 +24,6 @@ export async function savePricing(v: Record<string, number | null>): Promise<{ o
     const r = await saveSettings("capacity", { ...stored, margin });
     if (!r.ok) return { ok: false, error: "The rates saved; the profit didn’t." };
   }
-  for (const path of ["/portal/pricing", "/portal/rates", "/portal/finance/hourly", "/portal/finance/capacity", "/portal/job-calculator"]) revalidatePath(path);
+  for (const path of ["/portal/pricing", "/portal/rates", "/portal/finance/hourly", "/portal/finance/capacity", "/portal/job-calculator", "/portal/finance/cover"]) revalidatePath(path);
   return { ok: true };
 }

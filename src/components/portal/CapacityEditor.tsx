@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { priceFactor,
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
   computeCapacity, loadedWage, onCostsOf, SUPER_GUARANTEE, countedElsewhere, crewCombos, defaultsFor, fleetDepOf, officeCost, overheadsOf, overheadSplit, overheadTotal,
-  scaleOf, suggestOverhead, alwaysSupervised,
-  type CapSettings, type Costing, type CrewLevel,
+  scaleOf, suggestOverhead, alwaysSupervised, overheadFields, lineAnnual, fleetVansOf, onCostPct, RATE_BASES,
+  type CapSettings, type LineRate, type OverheadGroup, type RateBasis, type Costing, type CrewLevel,
   WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
 } from "@/lib/portal/crew";
 import { saveCapSettings, saveCrew, addCrewPerson, removeCrewPerson } from "@/app/portal/finance/capacity/actions";
@@ -127,6 +127,41 @@ export function CapacityEditor({
   const setLevel = (id: string, level: CrewLevel) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, level, costing: { ...defaultsFor(level), rateOverride: r.costing.rateOverride } } : r)));
   const setOh = (key: string, v: number) => setS((prev) => ({ ...prev, overheads: { ...overheadsOf(prev), [key]: v } }));
 
+  /*
+   * A line typed as a rate keeps the rate and saves the year it comes to, so
+   * every screen reading `overheads` sees the same figure this one does.
+   */
+  const setRate = (key: string, r: LineRate | null) => setS((prev) => {
+    const rates = { ...(prev.lineRates ?? {}) };
+    const oh = { ...overheadsOf(prev) };
+    if (r) { rates[key] = r; oh[key] = Math.round(lineAnnual(r, prev) * 100) / 100; } else delete rates[key];
+    return { ...prev, lineRates: rates, overheads: oh };
+  });
+  const changeBasis = (key: string, basis: RateBasis) => {
+    const annual = Number(overheadsOf(s)[key]) || 0;
+    if (basis === "year") return setRate(key, null);
+    const weeks = Number(s.weeksYear) || 52;
+    const vans = Math.max(1, fleetVansOf(s));
+    // Start the new way of typing it at the same year, so switching doesn't move the total.
+    const rate = basis === "month" ? annual / 12 : basis === "week" ? annual / weeks : basis === "weekPerVan" ? annual / weeks / vans
+      : annual / (38 * weeks * (1 + onCostPct(s) / 100));
+    setRate(key, { basis, rate: Math.round(rate * 100) / 100, ...(basis === "wage" ? { hrsWeek: 38 } : {}) });
+  };
+  const addLine = (group: OverheadGroup) => setS((prev) => {
+    const id = `x_${Date.now().toString(36)}`;
+    const line = { id, group, label: group === "staff" ? "Wages" : "New line", scale: (group === "vehicles" ? "perVan" : "fixed") as "perVan" | "fixed" };
+    const rates = { ...(prev.lineRates ?? {}) };
+    if (group === "staff") rates[id] = { basis: "wage", rate: 0, hrsWeek: 38 };
+    return { ...prev, extraLines: [...(prev.extraLines ?? []), line], lineRates: rates, overheads: { ...overheadsOf(prev), [id]: 0 } };
+  });
+  const renameLine = (id: string, label: string) => setS((prev) => ({ ...prev, extraLines: (prev.extraLines ?? []).map((x) => (x.id === id ? { ...x, label } : x)) }));
+  const removeLine = (id: string) => setS((prev) => {
+    const oh = { ...overheadsOf(prev) }; delete oh[id];
+    const rates = { ...(prev.lineRates ?? {}) }; delete rates[id];
+    const scales = { ...(prev.scales ?? {}) }; delete scales[id];
+    return { ...prev, extraLines: (prev.extraLines ?? []).filter((x) => x.id !== id), overheads: oh, lineRates: rates, scales };
+  });
+
   const xeroMap = s.xeroMap ?? {};
   /** What Xero says a given overhead line came to over the last twelve months. */
   const xeroTotal = (key: string) =>
@@ -142,7 +177,7 @@ export function CapacityEditor({
 
   /** What a yearly figure works out to on each hour you can actually bill. */
   const perHour = (annual: number) => (hasHrs && annual ? money2(annual / cap.totalBillHrs) : "—");
-  const emptyCount = OVERHEAD_FIELDS.filter((f) => !(f.key === "vehDep" && fleetDep > 0) && (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
+  const emptyCount = overheadFields(s).filter((f) => !(f.key === "vehDep" && fleetDep > 0) && (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
 
   /** File every account whose name we can place, in one go. */
   function applyAllSuggestions() {
@@ -828,7 +863,7 @@ export function CapacityEditor({
                   ? [{ k: "own", label: "Our own figure", v: ohTyped }]
                   : OVERHEAD_GROUPS.map((g) => ({
                     k: g.key, label: g.label,
-                    v: OVERHEAD_FIELDS.filter((f) => f.group === g.key && f.key !== "vehDep").reduce((a, f) => a + (Number(oh[f.key]) || 0), 0),
+                    v: overheadFields(s).filter((f) => f.group === g.key && f.key !== "vehDep").reduce((a, f) => a + (Number(oh[f.key]) || 0), 0),
                   }));
                 const rows = [
                   { k: "office", label: "Office & admin wages", v: cap.officeOh },
@@ -1102,9 +1137,9 @@ export function CapacityEditor({
                 const oh = overheadsOf(s);
                 // With the vans costed on the Vehicles tab, their depreciation is
                 // the locked line above; a typed figure here would be ignored.
-                const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key && !(f.key === "vehDep" && fleetDep > 0));
-                const shown = showEmpty ? fields : fields.filter((f) => (Number(oh[f.key]) || 0) !== 0);
-                if (shown.length === 0) return null;
+                const fields = overheadFields(s).filter((f) => f.group === g.key && !(f.key === "vehDep" && fleetDep > 0));
+                // A line added by hand stays on show at $0: it was added to be filled in.
+                const shown = showEmpty ? fields : fields.filter((f) => f.extra || (Number(oh[f.key]) || 0) !== 0);
                 const groupTotal = fields.reduce((a, f) => a + (Number(oh[f.key]) || 0), 0);
                 return (
                   <div key={g.key} className="pt-oh__group">
@@ -1127,7 +1162,10 @@ export function CapacityEditor({
                                   {f.label}
                                   <em>{accs.length} from Xero</em>
                                 </button>
+                              ) : f.extra ? (
+                                <input className="pt-oh__name" value={f.label} onChange={(e) => renameLine(f.key, e.target.value)} aria-label="Name of this line" />
                               ) : f.label}
+                              {f.extra && <button type="button" className="pt-oh__del" onClick={() => removeLine(f.key)} aria-label={`Remove ${f.label}`}>Remove</button>}
                               <button
                                 type="button"
                                 className={`pt-oh__scale is-${scaleOf(s, f.key)}`}
@@ -1136,10 +1174,37 @@ export function CapacityEditor({
                               >{scaleOf(s, f.key) === "perVan" ? "per van" : "fixed"}</button>
                             </span>
                             <span className="pt-oh__perhr">{perHour(Number(oh[f.key]) || 0)}</span>
-                            <span className="pt-oh__amt">
-                              <span>$</span>
-                              <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} aria-label={f.label} />
-                            </span>
+                            {(() => {
+                              const r = s.lineRates?.[f.key];
+                              return (
+                                <span className="pt-oh__how">
+                                  <span className="pt-oh__amt">
+                                    <span>$</span>
+                                    {r ? (
+                                      <input type="number" min="0" step="any" value={r.rate} onChange={(e) => setRate(f.key, { ...r, rate: parse(e.target.value) })} aria-label={`${f.label}, ${RATE_BASES.find((b) => b.k === r.basis)?.label}`} />
+                                    ) : (
+                                      <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} aria-label={`${f.label}, a year`} />
+                                    )}
+                                  </span>
+                                  <select className="pt-oh__basis" value={r?.basis ?? "year"} onChange={(e) => changeBasis(f.key, e.target.value as RateBasis)} aria-label={`How ${f.label} is worked out`}>
+                                    {RATE_BASES.map((b) => <option key={b.k} value={b.k}>{b.label}</option>)}
+                                  </select>
+                                  {r?.basis === "wage" && (
+                                    <label className="pt-oh__hrs">
+                                      <input type="number" min="0" max="80" value={r.hrsWeek ?? 0} onChange={(e) => setRate(f.key, { ...r, hrsWeek: parse(e.target.value) })} />
+                                      <span>hrs a week</span>
+                                    </label>
+                                  )}
+                                  {r && (
+                                    <em className="pt-oh__yr">
+                                      = {money(lineAnnual(r, s))} a year
+                                      {r.basis === "weekPerVan" ? ` · ${money(r.rate)} × ${s.weeksYear || 52} weeks × ${fleetVansOf(s)} ${fleetVansOf(s) === 1 ? "van" : "vans"}` : ""}
+                                      {r.basis === "wage" ? ` · with super, WorkCover & LSL (${onCostPct(s).toFixed(1)}%)` : ""}
+                                    </em>
+                                  )}
+                                </span>
+                              );
+                            })()}
                           </div>
                           {accs.length > 0 && openLines.has(f.key) && (
                             <div className="pt-oh__accs">
@@ -1156,6 +1221,9 @@ export function CapacityEditor({
                         </div>
                       );
                     })}
+                    <button type="button" className="pt-oh__add" onClick={() => addLine(g.key)}>
+                      + Add a line{g.key === "staff" ? " — someone paid who isn’t in the portal" : ` to ${g.label}`}
+                    </button>
                   </div>
                 );
               })}

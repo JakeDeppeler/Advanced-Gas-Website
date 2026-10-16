@@ -5,9 +5,10 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Bad, Card, Empty, Good, Head, Note, Pill, Say, Tabs, type Status } from "@/components/portal/kit/Kit";
-import { dbConfigured, getCapSettings, listUsers, listVehicles } from "@/lib/portal/db";
+import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } from "@/lib/portal/db";
+import { normalisePricing, type Pricing } from "@/lib/portal/pricingTypes";
 import { withFleet } from "@/lib/portal/costSettings";
-import { computeCapacity, onCostPct, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
+import { computeCapacity, onCostPct, onCostsOf, type CrewLevel, type CrewMember, type OnCosts } from "@/lib/portal/crew";
 import { DAYS_ON_TOOLS, PAID_HRS_YEAR, coverHour, overheadItems, scenarios, vansFor, type CoverInputs, type Fleet } from "@/lib/portal/cover/hour";
 import { personDays } from "@/lib/portal/cover/days";
 
@@ -51,7 +52,8 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
 
   const tab = searchParams.t === "days" ? "days" : "hour";
   const ready = dbConfigured();
-  const [users, stored, vehicles] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles()]) : [[], null, []];
+  const [users, stored, vehicles, pricingRaw] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles(), getSettings<unknown>("pricing").catch(() => null)]) : [[], null, [], null];
+  const pricing = normalisePricing(pricingRaw);
   const s = withFleet(stored, vehicles);
   const people: CrewMember[] = users
     .filter((u) => u.active && u.id && u.level)
@@ -70,7 +72,8 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
     billPerDay: num(searchParams.b, 6, 1, 12),
     dayHrs: 8,
     daysOnTools: Math.round(num(searchParams.d, DAYS_ON_TOOLS, 50, 260)),
-    charge: num(searchParams.c, 300, 0, 5000),
+    // What we charge for a tradesman and an apprentice, from Rates & pricing; $310 is what Jake gave until it's saved there.
+    charge: num(searchParams.c, pricing.hourly ?? 310, 0, 5000),
     margin: Number(s.margin) || 0,
   };
 
@@ -98,13 +101,13 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
           { key: "hour", label: "The hour", href: tabHref("hour") },
           { key: "days", label: "Each person's day", href: tabHref("days") },
         ]} />
-        {tab === "hour" ? <Hour i={i} lines={lines} fleet={fleet} oc={oc} searchParams={searchParams} /> : <Days i={i} searchParams={searchParams} />}
+        {tab === "hour" ? <Hour i={i} lines={lines} fleet={fleet} oc={oc} ocs={onCostsOf(s)} pricing={pricing} searchParams={searchParams} /> : <Days i={i} searchParams={searchParams} />}
       </div>
     </PortalShell>
   );
 }
 
-function Hour({ i, lines, fleet, oc, searchParams }: { i: CoverInputs; lines: ReturnType<typeof overheadItems>; fleet: Fleet; oc: number; searchParams: SP }) {
+function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInputs; lines: ReturnType<typeof overheadItems>; fleet: Fleet; oc: number; ocs: OnCosts; pricing: Pricing; searchParams: SP }) {
   const r = coverHour(lines, fleet, oc, i);
   const sc = scenarios(lines, fleet, oc, i);
   const vans = vansFor(fleet, i.techs);
@@ -137,7 +140,7 @@ function Hour({ i, lines, fleet, oc, searchParams }: { i: CoverInputs; lines: Re
             ["an", "Apprentices", "riding with a tech", i.apps],
             ["b", "Hours billed a day", `out of ${i.dayHrs}`, i.billPerDay],
             ["d", "Days on the tools", "a year, each tech", i.daysOnTools],
-            ["c", "What we charge", "$ an hour, crew", i.charge],
+            ["c", "What we charge", "$ an hour, tech + apprentice", i.charge],
           ].map(([k, label, sub, v]) => (
             <label key={k as string} className="pt-cover__f" htmlFor={`cv-${k}`}>
               <b>{label}</b><span>{sub}</span>
@@ -165,8 +168,18 @@ function Hour({ i, lines, fleet, oc, searchParams }: { i: CoverInputs; lines: Re
             <thead><tr><th>What has to be paid for</th><th>A year</th><th>Every billed hour</th></tr></thead>
             <tbody>
               <tr><td>Overheads <span className="ks">— every line below</span></td><td>{m0(r.overhead)}</td><td>{m2(r.perHr.overhead)}</td></tr>
-              <tr><td>Techs&rsquo; pay <span className="ks">— {i.techs} × {m2(i.techWage)} × {n0(PAID_HRS_YEAR)} hrs + {oc.toFixed(1)}%</span></td><td>{m0(r.techPay)}</td><td>{m2(r.perHr.tech)}</td></tr>
-              <tr><td>Apprentices&rsquo; pay <span className="ks">— {i.apps} × {m2(i.appWage)} × {n0(PAID_HRS_YEAR)} hrs + {oc.toFixed(1)}%</span></td><td>{m0(r.appPay)}</td><td>{m2(r.perHr.app)}</td></tr>
+              {(() => {
+                // The pay, taken apart: the wages, then each on-cost on top of all of them.
+                const tw = i.techs * i.techWage * PAID_HRS_YEAR, aw = i.apps * i.appWage * PAID_HRS_YEAR, w = tw + aw;
+                const rows: Array<[string, string, number]> = [
+                  ["Techs’ wages", `${i.techs} × ${m2(i.techWage)} × ${n0(PAID_HRS_YEAR)} hrs`, tw],
+                  ["Apprentices’ wages", `${i.apps} × ${m2(i.appWage)} × ${n0(PAID_HRS_YEAR)} hrs`, aw],
+                  ["Super", `${ocs.superPct}% of the wages`, (w * ocs.superPct) / 100],
+                  ["WorkCover", ocs.workcoverPct > 0 ? `${ocs.workcoverPct}% of the wages — the premium, as Xero shows it` : "not set — add it on Wages & costs", (w * ocs.workcoverPct) / 100],
+                  ["Long service leave", ocs.lslPct > 0 ? `${ocs.lslPct}% of the wages, put aside as it's earned` : "not set", (w * ocs.lslPct) / 100],
+                ];
+                return rows.map(([label, sub, v]) => <tr key={label}><td>{label} <span className="ks">— {sub}</span></td><td>{m0(v)}</td><td>{m2(hr(v))}</td></tr>);
+              })()}
               <tr className="tot"><td>To break even</td><td>{m0(r.total)}</td><td>{m2(r.perHr.total)}</td></tr>
               {i.margin > 0 && <tr><td>To make our {i.margin}% <span className="ks">— the break-even ÷ {(1 - i.margin / 100).toFixed(2)}, so {i.margin}% of the price is left</span></td><td>{m0(r.atMargin * r.billHrs)}</td><td><b>{m2(r.atMargin)}</b></td></tr>}
               <tr><td>At what we charge now</td><td>{m0(i.charge * r.billHrs)}</td><td>{m2(i.charge)}</td></tr>
@@ -174,6 +187,55 @@ function Hour({ i, lines, fleet, oc, searchParams }: { i: CoverInputs; lines: Re
           </table>
         </div>
       </Card>
+
+      {(() => {
+        // One van for a year, crewed one way: its share of the overheads and the
+        // crew's whole pay, over the hours that van bills.
+        const share = vans > 0 ? r.overhead / vans : r.overhead;
+        const hrsVan = i.daysOnTools * i.billPerDay;
+        const loaded = 1 + oc / 100;
+        const factor = 1 / (1 - Math.min(90, Math.max(0, i.margin)) / 100);
+        const crews = [
+          { k: "solo", label: "A tech on their own", sub: "one person, one van", apps: 0, charge: pricing.solo, chargeName: "our one-person rate" },
+          { k: "pair", label: "A tech and an apprentice", sub: "the usual crew", apps: 1, charge: i.charge, chargeName: "our crew rate" },
+          { k: "install", label: "A tech and two apprentices", sub: "an install crew, one van", apps: 2, charge: null as number | null, chargeName: "" },
+        ].map((c) => {
+          const pay = (i.techWage + c.apps * i.appWage) * PAID_HRS_YEAR * loaded;
+          const be = hrsVan > 0 ? (share + pay) / hrsVan : 0;
+          return { ...c, pay, be, price: be * factor };
+        });
+        return (
+          <Card title="What each crew has to charge" aside={`one van · ${n0(hrsVan)} billed hours a year`}>
+            <div className="pk-tbl-wrap">
+              <table className="pk-tbl">
+                <thead><tr><th>Crew</th><th>Van&rsquo;s share of overheads</th><th>Crew&rsquo;s pay</th><th>Break-even an hour</th>{i.margin > 0 && <th>To make {i.margin}%</th>}<th>What we charge</th></tr></thead>
+                <tbody>
+                  {crews.map((c) => (
+                    <tr key={c.k}>
+                      <td><b>{c.label}</b><div className="ks">{c.sub}</div></td>
+                      <td>{m0(share)}</td>
+                      <td>{m0(c.pay)}</td>
+                      <td>{m2(c.be)}</td>
+                      {i.margin > 0 && <td><b>{m2(c.price)}</b></td>}
+                      <td>
+                        {c.charge != null ? (
+                          <>{m2(c.charge)}<div className={c.charge < c.be ? "ks pt-cover__neg" : c.charge < c.price ? "ks" : "ks pt-cover__pos"}>{c.charge < c.be ? `${m2(c.be - c.charge)} under break-even` : c.charge < c.price ? `${m2(c.price - c.charge)} short of ${i.margin}%` : `${m2(c.charge - c.price)} over ${i.margin}%`}</div></>
+                        ) : c.k === "solo" ? <span className="ks">not set — <Link href="/portal/pricing">add it on Rates &amp; pricing</Link></span> : <span className="ks">price it at the {i.margin > 0 ? `${i.margin}%` : "break-even"} figure</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Note>
+              Each row is one van for a year, crewed that way every day: its fair share of every overhead ({m0(share)}, the year&rsquo;s {m0(r.overhead)} over {vans} {vans === 1 ? "van" : "vans"})
+              and the crew&rsquo;s whole pay, over the {n0(hrsVan)} hours a van bills at {i.billPerDay} of {i.dayHrs}. A tech alone still pays for the whole van, which is why one person
+              isn&rsquo;t half the crew rate. To price an install with two apprentices, use the <Link href="/portal/job-calculator">Job calculator</Link>: tick the tradesman and both
+              apprentices and put in the hours — each apprentice adds their own cost to the job.
+            </Note>
+          </Card>
+        );
+      })()}
 
       <Card title="What if" aside={`against ${m2(i.charge)} an hour`}>
         <div className="pk-tbl-wrap">

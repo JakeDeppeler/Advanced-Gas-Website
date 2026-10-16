@@ -8,7 +8,7 @@
  * always add back to the rate quoted everywhere else. Pure.
  */
 import {
-  assumptionsFor, computeCapacity, loadedWage, onCostsOf, overheadLines,
+  assumptionsFor, computeCapacity, fleetDepOf, loadedWage, officeCost, onCostsOf, overheadFields, overheadLines,
   type CapSettings, type CrewMember,
 } from "./crew";
 
@@ -37,6 +37,11 @@ export const LINE_OF: Record<string, string> = {
   vehRego: "vanRun", vehInsurance: "vanRun", vehFuel: "vanRun", vehService: "vanRun", vehOther: "vanRun",
   vehDep: "vehicle", vehFinance: "vehicle",
 };
+
+/** A line added by hand goes on the bill by the group it was added under. */
+const GROUP_LINE: Record<string, string> = { vehicles: "vanRun", tools: "tools", marketing: "marketing", staff: "officeStaff" };
+export const lineOf = (s: CapSettings, key: string): string =>
+  LINE_OF[key] ?? GROUP_LINE[(s.extraLines ?? []).find((x) => x.id === key)?.group ?? ""] ?? "admin";
 
 export const BILL_LINES: Array<{ key: string; label: string; family: BillFamily; note?: string }> = [
   { key: "wage", label: "Wage", family: "pay" },
@@ -85,7 +90,7 @@ export function personBills(people: CrewMember[], s: CapSettings, cap = computeC
     shared.admin = ((Number(s.internalOverhead) || 0) - cap.feesMoved) / H;
   } else {
     for (const [k, v] of Object.entries(overheadLines(s))) {
-      const to = LINE_OF[k] ?? "admin";
+      const to = lineOf(s, k);
       shared[to] = (shared[to] ?? 0) + (Number(v) || 0) / H;
     }
     // The school fees that moved onto the apprentices came off this line.
@@ -145,8 +150,8 @@ export function yearSpend(s: CapSettings, cap: ReturnType<typeof computeCapacity
     b.admin += Number(s.internalOverhead) || 0;
   } else {
     for (const [k, v] of Object.entries(overheadLines(s))) {
-      const line = LINE_OF[k] ?? "admin";
-      const to = line === "vanRun" || line === "vehicle" ? "vans" : line === "marketing" ? "marketing" : line === "admin" ? "admin" : "kit";
+      const line = lineOf(s, k);
+      const to = line === "vanRun" || line === "vehicle" ? "vans" : line === "marketing" ? "marketing" : line === "admin" || line === "officeStaff" ? "admin" : "kit";
       b[to] += Number(v) || 0;
     }
   }
@@ -163,4 +168,40 @@ export function yearSpend(s: CapSettings, cap: ReturnType<typeof computeCapacity
     { key: "marketing", label: "Marketing", note: "what keeps the phone ringing", annual: b.marketing },
     { key: "admin", label: "Rent, insurance & admin", note: "the yard, software, phones, accountant, bank", annual: b.admin },
   ].filter((x) => Math.abs(x.annual) > 0.5);
+}
+
+
+/**
+ * What's inside each of yearSpend's buckets, line by line, so a bucket can be
+ * opened to see what it covers. Built the same way yearSpend sorts the money,
+ * so the lines in a bucket add back to the bucket.
+ */
+export function spendLines(s: CapSettings, cap: ReturnType<typeof computeCapacity>): Record<string, Array<{ label: string; annual: number }>> {
+  const out: Record<string, Array<{ label: string; annual: number }>> = { tools: [], off: [], office: [], vans: [], kit: [], marketing: [], admin: [] };
+  for (const { p, c } of cap.per) {
+    if (c.fieldWages > 0.5) out.tools.push({ label: p.name, annual: c.fieldWages });
+    if (c.labourOh > 0.5) out.off.push({ label: p.name, annual: c.labourOh });
+  }
+  const office = officeCost(cap);
+  for (const r of office.rows) if (r.cost > 0.5) out.office.push({ label: r.name, annual: r.cost });
+  if (cap.officeOh - office.total > 0.5) out.office.push({ label: "The crew's office hours", annual: cap.officeOh - office.total });
+  if (s.ohSource === "internal") {
+    out.admin.push({ label: "Overheads, kept as one figure", annual: Number(s.internalOverhead) || 0 });
+    if (fleetDepOf(s) > 0) out.vans.push({ label: "Van depreciation, from the Vehicles tab", annual: fleetDepOf(s) });
+  } else {
+    const oh = overheadLines(s);
+    const label = new Map(overheadFields(s).map((f) => [f.key, f.label]));
+    for (const [k, v] of Object.entries(oh)) {
+      const n = Number(v) || 0;
+      if (Math.abs(n) <= 0.5) continue;
+      const line = lineOf(s, k);
+      const to = line === "vanRun" || line === "vehicle" ? "vans" : line === "marketing" ? "marketing" : line === "admin" || line === "officeStaff" ? "admin" : "kit";
+      out[to].push({ label: k === "vehDep" && fleetDepOf(s) > 0 ? "Van depreciation, from the Vehicles tab" : label.get(k) ?? k, annual: n });
+    }
+  }
+  const ownFees = cap.sharedOverhead - cap.labourOh - cap.officeOh - cap.otherOverhead;
+  const fees = ownFees - cap.feesMoved;
+  if (Math.abs(fees) > 0.5) out[s.ohSource === "internal" ? "admin" : "kit"].push({ label: "Trade-school fees on the apprentices, less the incentive and what came off training", annual: fees });
+  for (const k of Object.keys(out)) out[k].sort((a, b) => b.annual - a.annual);
+  return out;
 }

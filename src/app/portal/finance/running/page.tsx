@@ -7,8 +7,9 @@ import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
 import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
+import { latestBoard } from "@/lib/portal/office";
 import {
-  computeCapacity, fleetDepOf, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, officeCost, overheadLines, overheadSplit, scaleModel, scaleOf,
+  computeCapacity, fleetDepOf, LEVEL_LABEL, overheadFields, OVERHEAD_GROUPS, officeCost, overheadLines, overheadSplit, scaleModel, scaleOf,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
 
@@ -38,7 +39,9 @@ export default async function RunningCostsPage() {
   if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const ready = dbConfigured();
-  const [users, stored, vehicles] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles()]) : [[], null, []];
+  const [users, stored, vehicles, board] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles(), latestBoard()]) : [[], null, [], null];
+  // The board's 30-day close rate: of the quotes decided, how many were won. A count, not dollars.
+  const close = board?.metrics?.closeRate30d ?? null;
   const s: CapSettings = withFleet(stored, vehicles);
   const people: CrewMember[] = users
     .filter((u) => u.active && u.id && u.level)
@@ -59,7 +62,7 @@ export default async function RunningCostsPage() {
         { key: "fixed", label: "Overheads that stay put", group: "Kept as one figure", annual: split.fixed, perVan: false },
         { key: "perVan", label: "Overheads that come with each van", group: "Kept as one figure", annual: split.perVan, perVan: true },
       ]
-    : OVERHEAD_FIELDS.map((f) => ({
+    : overheadFields(s).map((f) => ({
         key: f.key,
         label: f.key === "vehDep" && fleetDep > 0 ? "Van depreciation (from Vehicles)" : f.label,
         group: groupLabel(f.group),
@@ -218,6 +221,18 @@ export default async function RunningCostsPage() {
                 Crew wages included, each van crewed like today&rsquo;s average, at our {s.margin}% margin. The hour gets cheaper with every van because the
                 {" "}{m0(fixedTotal)} that stays put is shared by more hours — it flattens out because each van brings {m0(extraVan)} of its own.
               </p>
+              <p className="pt-note" style={{ margin: "0 0 12px" }}>
+                <strong>Sales a year</strong> is what it takes to cover it: a year of labour sold at the charge-out — the hours billed × the rate, before materials, units and GST,
+                which go on top and pay for themselves.{" "}
+                {close ? (
+                  <>
+                    <strong>Quotes a year</strong> is that ÷ our close rate of {Math.round(close * 100)}% over the last 30 days: at that rate it takes{" "}
+                    {m0(100 / close)} of quotes for every $100 sold.{" "}
+                    {close < 0.85 ? <>Close more and the quotes needed fall in step — at {Math.round((close + 0.1) * 100)}% it would be {m0(100 / (close + 0.1))}.{" "}</> : null}
+                    The close rate counts quotes won, not dollars, so a run of big quotes lost reads better here than it was.
+                  </>
+                ) : <>The close rate isn&rsquo;t measured yet, so the quotes it would take aren&rsquo;t shown.</>}
+              </p>
               <div style={{ overflowX: "auto" }}>
                 <table className="pt-table pt-rc">
                   <thead>
@@ -228,7 +243,9 @@ export default async function RunningCostsPage() {
                       <th scope="col" className="num">Overhead an hour</th>
                       <th scope="col" className="num">An hour costs</th>
                       <th scope="col" className="num">Charge-out</th>
-                      <th scope="col" className="num">Sales to cover it</th>
+                      <th scope="col" className="num">Sales a year</th>
+                      {close ? <th scope="col" className="num">Quotes a year</th> : null}
+                      {close ? <th scope="col" className="num">Quotes a week</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -241,6 +258,8 @@ export default async function RunningCostsPage() {
                         <td className="num">{m2(r.costPerHr)}</td>
                         <td className="num"><strong>{m2(r.chargeOut)}</strong></td>
                         <td className="num">{m0(r.revenue)}</td>
+                        {close ? <td className="num">{m0(r.revenue / close)}</td> : null}
+                        {close ? <td className="num">{m0(r.revenue / close / 52)}</td> : null}
                       </tr>
                     ))}
                   </tbody>
