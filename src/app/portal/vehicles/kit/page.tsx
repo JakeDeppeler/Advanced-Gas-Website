@@ -16,9 +16,9 @@ const day = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleD
 const unitOf = (u: string) => (u === "ea" ? "each" : u);
 
 const BLURB: Record<KitList, string> = {
-  starter: "What every tradesman and apprentice carries in their bag. Give a new starter this list on day one, and check it back in at the end of each job.",
-  van: "What lives in every van: the refrigeration plant, pipe tools, power tools, test gear and safety kit. The same list in every van.",
-  stock: "What every van keeps on the shelf. Counted every Monday; anything at or under the minimum gets ordered that day — order at the minimum, not when it runs out.",
+  starter: "The minimum every tradesman and apprentice carries in their bag. Give a new starter this list on day one, and check it back in at the end of each job.",
+  van: "The minimum every van carries: the refrigeration plant, pipe tools, power tools, test gear and safety kit. The same list in every van.",
+  stock: "The minimum every van keeps on the shelf. Counted every Monday; anything at or under the minimum gets ordered that day — order at the minimum, not when it runs out.",
 };
 
 /**
@@ -75,7 +75,7 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
                 <thead>
                   <tr>
                     <th>Item</th>
-                    <th>{isStock ? "Min" : "Needed"}</th>
+                    <th>Minimum</th>
                     {vans.map((v) => (
                       <th key={v.vanId} className="pt-kit__van">
                         {v.van}

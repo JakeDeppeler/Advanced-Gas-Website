@@ -86,6 +86,8 @@ export function melbourneInstant(date: string, time: string): string {
 export type NewWorkOrder = {
   jobId: number; date: string; time: string | null; work: string;
   site: string; customer: string; phone: string; email: string; crew: string;
+  /** Who it goes to when not the electrician on file, and anyone else copied on this one. */
+  sendTo?: string | null; cc?: string[];
 };
 
 /**
@@ -113,9 +115,9 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
   };
   const id = await createOrder({
     po_number: await nextPoNumber(week, supplier.id), supplier_id: supplier.id, week_of: week.start, kind: "work_order",
-    group_key: `manual:${job.id}:${Date.now()}`, status: "draft", details, delivery_address: details.site_address, delivery_to_site: true,
+    group_key: `manual:${job.id}:${Date.now()}`, status: "draft", details, cc_emails: o.cc ?? [], delivery_address: details.site_address, delivery_to_site: true,
   });
-  const r = await approveAndSend(id, who);
+  const r = await approveAndSend(id, who, { to: o.sendTo ?? undefined });
   return r.ok ? { ok: true, id, note: r.note } : { ok: false, id, error: r.error };
 }
 

@@ -131,16 +131,19 @@ const NO_FROM = "Orders have to come from an advancedgas.com.au address. Set RES
  * double-click or two people on the page send it once. If the email then
  * fails it goes back to draft with the reason on it, so it can be sent again.
  */
-export async function approveAndSend(id: number, who: string): Promise<SendResult> {
+export async function approveAndSend(id: number, who: string, opts: { to?: string } = {}): Promise<SendResult> {
   // Built before claiming, so a bad form doesn't leave an order stuck as
   // "approved" with nothing sent.
   const b = await build(id);
   if ("error" in b) return { ok: false, error: b.error };
   const { po, supplier, settings, email, attachments } = b;
+  // A work order can go to someone other than the electrician on file (another
+  // sparky, the builder's), picked on the form; everything else goes to the supplier.
+  const to = opts.to?.trim() || supplier.email;
   if (po.status !== "draft") return { ok: false, error: `Already ${po.status}.` };
 
   const from = fromAddress();
-  if (email && !supplier.email) return { ok: false, error: `No email address for ${supplier.name}.` };
+  if (email && !to) return { ok: false, error: `No email address for ${supplier.name}.` };
   if (email && !from) return { ok: false, error: NO_FROM };
 
   const now = new Date().toISOString();
@@ -158,10 +161,10 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
 
   const err = await resend({
     from,
-    to: [supplier.email],
+    to: [to!],
     // The office keeps a copy of everything that goes out, and replies come
     // back to the office rather than to whoever pressed the button.
-    cc: ccList(settings, supplier, po, supplier.email),
+    cc: ccList(settings, supplier, po, to),
     reply_to: settings.replyTo,
     subject: email.subject,
     html: email.html,
@@ -174,10 +177,10 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
     });
     return { ok: false, error: err };
   }
-  await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: supplier.email, updated_at: new Date().toISOString() });
+  await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: to, updated_at: new Date().toISOString() });
   await pushIfAuto(id);
   await jobsAfterSend(id);
-  return { ok: true, note: `Sent to ${supplier.email}, copied to ${ccList(settings, supplier, po, supplier.email).join(", ")}.` };
+  return { ok: true, note: `Sent to ${to}, copied to ${ccList(settings, supplier, po, to).join(", ")}.` };
 }
 
 /**
