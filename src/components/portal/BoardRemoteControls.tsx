@@ -4,13 +4,19 @@ import { useEffect, useState, useTransition } from "react";
 import { keepLive, reloadBoard, rotate, setTheme, showDemo, showPage, type RemoteResult } from "@/app/portal/board/remote/actions";
 import { BOARD_PAGES, type BoardRemote, type DemoKind } from "@/lib/board/remoteTypes";
 
-const DEMOS: { kind: DemoKind; label: string; what: string }[] = [
+const DEMOS: { kind: DemoKind; label: string; what: string; once?: boolean }[] = [
   { kind: "sold", label: "SOLD!", what: "A sale, with the rocket" },
   { kind: "quote", label: "New quote", what: "A quote going out" },
   { kind: "done", label: "Time to bill", what: "A job finished, to invoice" },
-  // Worth knowing before you press it: this one holds the wall for the whole
-  // minute it is counting down, because that is what the real one does.
-  { kind: "lead", label: "New lead", what: "An enquiry to ring · holds the wall for a minute" },
+  /*
+   * One run, not a loop. The other three hold the wall for seven to eleven
+   * seconds, so two minutes of them is a dozen goes and you press "take it
+   * down" when you have seen enough. This one holds it for the whole minute it
+   * is counting down — the same minute the real one gives the office — and two
+   * minutes of that is the board hijacked twice over to show somebody one
+   * thing.
+   */
+  { kind: "lead", label: "New lead", what: "An enquiry to ring · one run, a minute long", once: true },
 ];
 
 const time = (iso: string) =>
@@ -103,7 +109,7 @@ export function BoardRemoteControls({ initial }: { initial: BoardRemote }) {
               className={`pt-wb__demo pt-wb__demo--${d.kind}${demo?.kind === d.kind ? " is-on" : ""}`}
               aria-pressed={demo?.kind === d.kind}
               disabled={pending}
-              onClick={() => run(() => showDemo(d.kind), `The ${d.label} demo is going up.`)}
+              onClick={() => run(() => showDemo(d.kind, d.once ? { once: true } : {}), `The ${d.label} demo is going up.`)}
             >
               <strong>{d.label}</strong>
               <span>{d.what}</span>

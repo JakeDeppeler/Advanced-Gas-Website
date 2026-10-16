@@ -21,7 +21,20 @@ export type BoardPageName = (typeof BOARD_PAGES)[number];
 /** The board's alerts, as the demo shows them: a sale, a quote, a job to bill, a new lead. */
 import { normalisePlan, type SoundPlan } from "@/lib/board/soundTypes";
 
-export type DemoKind = "sold" | "quote" | "done" | "lead";
+/**
+ * The sample alerts the remote can put on the wall.
+ *
+ * One list, and everything that validates a demo reads it. It was four
+ * separate hardcoded lists — this type, the guard below, the server action
+ * behind the button, and the board's own `?alert=` — and adding a fourth kind
+ * updated two of them, so the button answered "No such alert." on a kind the
+ * board could render perfectly well.
+ */
+export const DEMO_KINDS = ["sold", "quote", "done", "lead"] as const;
+export type DemoKind = (typeof DEMO_KINDS)[number];
+
+export const isDemoKind = (v: unknown): v is DemoKind =>
+  typeof v === "string" && (DEMO_KINDS as readonly string[]).includes(v);
 
 export type BoardRemote = {
   /**
@@ -55,7 +68,7 @@ export type BoardRemote = {
 export const EMPTY_REMOTE: BoardRemote = { view: null, demo: null, theme: null, reload: null, liveUntil: null, by: null, at: null };
 
 const isPage = (v: unknown): v is BoardPageName => typeof v === "string" && (BOARD_PAGES as readonly string[]).includes(v);
-const isDemo = (v: unknown): v is DemoKind => v === "sold" || v === "quote" || v === "done" || v === "lead";
+const isDemo = isDemoKind;
 const str = (v: unknown) => (typeof v === "string" && v ? v : null);
 
 /** Whatever is stored, as a remote the board can trust. */

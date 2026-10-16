@@ -3,6 +3,7 @@ import { ScreenBoard } from "@/components/ScreenBoard";
 import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { readRemote } from "@/lib/board/remote";
+import { isDemoKind } from "@/lib/board/remoteTypes";
 
 /**
  * The board itself, shared by /screen and /tv.
@@ -42,13 +43,12 @@ export async function Board({ token, params }: { token: string | null; params: B
       // Clamped, because this comes off a URL anybody with the token can edit
       // and a board inset by 40% is a support call, not a setting.
       safe={Math.min(10, Math.max(0, Number(params.safe) || 0))}
-      // `?alert=quote|done|sold` puts one alert on the board on a loop, so the
-      // thing can be judged on the wall it is for rather than in a screenshot.
-      // Sample figures, and it says so on screen — nobody should be able to
-      // mistake a preview for a sale that happened.
-      preview={
-        params.alert === "quote" || params.alert === "done" || params.alert === "sold" ? params.alert : undefined
-      }
+      // `?alert=quote|done|sold|lead` puts one alert on the board on a loop, so
+      // the thing can be judged on the wall it is for rather than in a
+      // screenshot. Sample figures, and it says so on screen — nobody should be
+      // able to mistake a preview for a sale that happened. The kinds come from
+      // DEMO_KINDS rather than being listed again here.
+      preview={isDemoKind(params.alert) ? params.alert : undefined}
     />
   );
 }
