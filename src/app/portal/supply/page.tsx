@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Head } from "@/components/portal/kit/Kit";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { loadSupplyState } from "@/lib/pricebook/supply";
 import { PortalTabs } from "@/components/portal/PortalTabs";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
@@ -56,10 +56,11 @@ export default async function SupplyPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>Supply</h1>
-        <p>Our contractor pricing from Reece, the pricebook it feeds, and every order that&rsquo;s gone out through it.</p>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Head title="Suppliers" sub="Reece pricing, the pricebook it feeds, and every order that's gone out" info={[
+          ["Where the link stands", "Whether ServiceTitan and Reece maX answer, and when the price file and the pricebook sync last ran."],
+          ["Supplier emails", "Who each supplier's orders go to, who's copied, and the wording."],
+        ]} />
       </div>
 
       <PortalTabs set="supply" />

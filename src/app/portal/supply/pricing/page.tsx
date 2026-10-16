@@ -2,10 +2,10 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { loadPricebookSettings, type PricebookSettings } from "@/lib/pricebook/stPricebook";
 import { Locked } from "@/components/portal/Locked";
+import { Head } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pricing rules — Supply — Team portal" };
@@ -51,10 +51,8 @@ export default async function SupplyPricingPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>Pricing rules</h1>
-        <p>The markups that turn our cost into the price in ServiceTitan.</p>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Head title="Pricing rules" sub={<>The markups that turn our cost into the price in ServiceTitan.</>} />
       </div>
 
       <PortalTabs set="supply" />

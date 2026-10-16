@@ -5765,3 +5765,7 @@ a.pt-td__pill { text-decoration: none; }
 @media (max-width: 760px) { .pt-hs__inrow { grid-template-columns: minmax(0, 1fr) auto auto; } }
 /* The locked lines carry an empty spacer cell; without it they sit on one row like the typed lines. */
 .pt-oh__row.is-locked > span:empty { display: none; }
+
+/* The stock and tool lists' title row: its own class, because .pt-stk__head
+   is the Stuck page's summary card and the later rule won on both. */
+.pt-shelf__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }

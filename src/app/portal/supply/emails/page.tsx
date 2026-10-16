@@ -13,6 +13,7 @@ import { JobNotesForm } from "@/components/portal/ordering/JobNotesForm";
 import { loadJobNoteSuppliers, brandTags, ordersToUpdate, TAG_SWAPS, tagKey, tagTypes } from "@/lib/ordering/stJobNotes";
 import { sbSelect } from "@/lib/dashboard/db";
 import { DEFAULT_ORDER_INTRO, DEFAULT_ORDER_SIGNOFF, DEFAULT_WORK_INTRO, type Supplier } from "@/lib/ordering/plan";
+import { Head } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
 // "Note them now" writes to ServiceTitan once per job, for every order not yet noted.
@@ -53,12 +54,8 @@ export default async function SupplierEmailsPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
-      <div className="pt-head">
-        <h1>Supplier emails</h1>
-        <p>
-          Who each order goes to and how the email reads. Change the wording, then send yourself a sample to see it.
-          Orders come from orders@advancedgas.com.au and replies go to {replyTo || "the office"}.
-        </p>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Head title="Supplier emails" sub={<>Who each order goes to and how the email reads. Change the wording, then send yourself a sample to see it. Orders come from orders@advancedgas.com.au and replies go to {replyTo || "the office"}.</>} />
       </div>
       <PortalTabs set="supply" />
       <SupplierEmails

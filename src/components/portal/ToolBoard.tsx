@@ -68,7 +68,7 @@ export function ToolBoard({ tools, canSave, kinds, names, people }: {
 
   return (
     <section className="pt-panel">
-      <div className="pt-stk__head">
+      <div className="pt-shelf__head">
         <h2 className="pt-panel__h">Tools</h2>
         {canSave && !adding && <button type="button" className="pt-btn pt-btn--orange" onClick={() => { setAdding(true); setMsg(null); }}>+ Add a tool</button>}
       </div>
