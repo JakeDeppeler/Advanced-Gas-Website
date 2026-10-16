@@ -6,16 +6,19 @@ import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
 import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { priceFactor, computeCapacity, LEVEL_LABEL, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
+import { priceFactor, computeCapacity, loadedWage, LEVEL_LABEL, LEVEL_BILLABLE, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
+import { coverBase } from "@/lib/portal/cover/load";
+import { coverHour, crewRates, vansFor } from "@/lib/portal/cover/hour";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { money, plural } from "@/lib/portal/run/month";
-import { Bad, Btn, Card, Empty, Good, Head, Hero, Pair, Say } from "@/components/portal/kit/Kit";
+import { Bad, Btn, Card, Empty, Good, Head, Say } from "@/components/portal/kit/Kit";
 import { TeamTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team — Team portal" };
 
 const m2 = (n: number) => `$${n.toFixed(0)}`;
+const mc = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /**
  * Run the company › Team: labour rates and the leaderboard.
@@ -34,7 +37,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
     <Head title="Team" sub={tab === "rates" ? "Labour rates · from Pricing & costs and the crew’s wages" : "Who sold what this month · ServiceTitan"} info={[
       ["What the person costs", "Their pay with super and WorkCover, and their own time off the tools, spread over their billable hours."],
       ["Office share", "The office, the vans and every other overhead, spread over the whole team’s billable hours."],
-      ["What the team needs", "Everyone’s cost an hour plus the profit we want on top, from Pricing & costs."],
+      ["Crew rates", "What we charge for one person in a van, a tech and an apprentice, and a tech with two apprentices — each against what that crew costs a van a year."],
       ["Leaderboard", "Credit goes to whoever wrote the quote. A re-sold quote counts once, on the day it first sold."],
     ]} />
   );
@@ -84,9 +87,10 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
   const crew: CrewMember[] = users.filter((u) => u.active && u.id && u.level).map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
   const cap = computeCapacity(crew, s);
   const pricing = normalisePricing(pricingRaw);
-  const ours = pricing.hourly;
+  const base = await coverBase();
+  // One person's cost an hour is measured against the one-person rate; the crew rate is for two.
+  const ours = pricing.solo ?? pricing.hourly;
   const needs = cap.totalBillHrs > 0 ? cap.costPerHr * priceFactor(s.margin) : null;
-  const breakEven = cap.totalBillHrs > 0 ? cap.costPerHr : null;
   const people = cap.rates
     .map((r) => ({ r, p: crew.find((c) => c.id === r.id) }))
     .filter((x): x is { r: (typeof cap.rates)[number]; p: CrewMember } => !!x.p && x.r.costPerHr != null && x.r.billHrs > 0);
@@ -97,20 +101,79 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
       <div className="pk">
         {head}
         <TeamTabs on="rates" />
-        <Say>
-          {ours && needs ? (
-            <>We charge {m2(ours)} an hour. To make {s.margin}% the team needs {m2(needs)}, {ours >= needs ? <Good>{m2(ours - needs)} to spare</Good> : <Bad>{m2(needs - ours)} short</Bad>}.</>
-          ) : needs ? (
-            <>To make {s.margin}% the team needs {m2(needs)} an hour. Set the rate we charge in Pricing & costs to see how it compares.</>
-          ) : <>Nobody on the team has billable hours yet, so there’s no hourly cost to show.</>}
-        </Say>
-        <Pair>
-          <Hero dark label="Our rate" right="ServiceTitan pricebook" fig={ours ? `${m2(ours)} /hr` : "Not set"} frac={ours && needs ? ours / Math.max(ours, needs) : null}
-            sub={ours && needs ? (ours >= needs ? `${m2(ours - needs)} over the ${m2(needs)} the team needs` : `${m2(needs - ours)} under the ${m2(needs)} the team needs`) : "Set it in Pricing & costs › Rates & pricing"} href="/portal/finance/hourly" />
-          <Hero label="What the team needs" right={`${s.margin}% profit · ${plural(people.length, "person", "people")}`} fig={needs ? `${m2(needs)} /hr` : "—"} frac={needs && ours ? needs / Math.max(ours, needs) : null}
-            sub={breakEven ? `Break-even is ${m2(breakEven)} an hour, all in` : undefined} />
-        </Pair>
-        <Card title="What each person costs against our one rate" aside="per billed hour · before GST">
+        {(() => {
+          const r = coverHour(base.lines, base.fleet, base.oc, base.i);
+          const cr = crewRates(r, vansFor(base.fleet, base.i.techs), base.oc);
+          const charge: Record<string, number | null> = { solo: base.pricing.solo, pair: base.pricing.hourly, install: base.pricing.install };
+          const rows = cr.rows.map((c) => ({ ...c, ours: charge[c.k] ?? null }));
+          const short = rows.filter((c) => c.ours != null && c.ours < c.price);
+          return (
+            <>
+              <Say>
+                {rows.every((c) => c.ours == null) ? <>None of our crew rates are set yet — put them in on Rates &amp; pricing.</>
+                  : short.length === 0 ? <Good>Every crew rate we&rsquo;ve set makes our {base.i.margin}%.</Good>
+                  : <Bad>{short.map((c) => c.label.replace(/^A /, "a ")).join(" and ")} {short.length === 1 ? "is" : "are"} under what makes {base.i.margin}%.</Bad>}
+              </Say>
+              <Card title="What we charge, by who's in the van" aside={`one van · ${cr.hrsVan.toLocaleString("en-AU")} billed hours a year · before GST`}>
+                <div className="pk-tbl-wrap">
+                  <table className="pk-tbl">
+                    <thead><tr><th>Crew</th><th>We charge</th><th>Break-even</th><th>To make {base.i.margin}%</th><th className="l">How it stands</th></tr></thead>
+                    <tbody>
+                      {rows.map((c) => (
+                        <tr key={c.k}>
+                          <td><b>{c.label}</b><div className="ks">{c.sub}</div></td>
+                          <td><b>{c.ours != null ? mc(c.ours) : "not set"}</b></td>
+                          <td>{mc(c.be)}</td>
+                          <td>{mc(c.price)}</td>
+                          <td className="l">{c.ours == null ? <span className="ks">set it on Rates &amp; pricing</span>
+                            : c.ours < c.be ? <span className="pt-cover__neg">▼ {mc(c.be - c.ours)} under break-even</span>
+                            : c.ours < c.price ? <span className="pt-cover__neg">! {mc(c.price - c.ours)} short of {base.i.margin}%</span>
+                            : <span className="pt-cover__pos">✓ {mc(c.ours - c.price)} over {base.i.margin}%</span>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="pk-note" style={{ marginTop: 10 }}>
+                  Each crew is one van for a year: its share of every overhead ({money(cr.share)}) and the crew&rsquo;s whole pay — a tech at {mc(base.i.techWage)}, apprentices at {mc(base.i.appWage)},
+                  with super, WorkCover and long service leave — over {base.i.billPerDay} of {base.i.dayHrs} hours billed. The working is on <a href="/portal/finance/cover">What an hour must cover</a>.
+                </p>
+              </Card>
+              {(() => {
+                const onTools = crew.filter((p) => LEVEL_BILLABLE[p.level]);
+                const apps = onTools.filter((p) => p.level === "apprentice");
+                const appAvg = apps.length ? apps.reduce((a, p) => a + p.costing.wage, 0) / apps.length : null;
+                const hrsYear = (p: CrewMember) => p.costing.hrsWeek * (Number(s.weeksYear) || 52);
+                return (
+                  <Card title="Each person's rate" aside="from their card on Team & wages">
+                    <div className="pk-tbl-wrap">
+                      <table className="pk-tbl">
+                        <thead><tr><th>Who</th><th>Wage an hour</th><th>With super, WorkCover &amp; LSL</th><th>Hours a week</th><th>Their pay a year</th></tr></thead>
+                        <tbody>
+                          {onTools.map((p) => (
+                            <tr key={p.id}>
+                              <td><b>{p.name}</b><div className="ks">{LEVEL_LABEL[p.level]}{p.costing.ownVan ? " · own van" : " · rides with a tech"}</div></td>
+                              <td><b>{mc(p.costing.wage)}</b></td>
+                              <td>{mc(loadedWage(p.costing.wage, s))}</td>
+                              <td>{p.costing.hrsWeek}</td>
+                              <td>{money(loadedWage(p.costing.wage, s) * hrsYear(p))}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="pk-note" style={{ marginTop: 10 }}>
+                      The crew rates above are built on a tech at {mc(base.i.techWage)} and an apprentice at {mc(base.i.appWage)}
+                      {appAvg != null ? <> — today&rsquo;s apprentices average {mc(appAvg)}</> : null}. Wrong wage? Change it on their card on <a href="/portal/finance/capacity">Team &amp; wages</a>;
+                      to work the rates on different wages, use <a href="/portal/finance/cover">What an hour must cover</a>.
+                    </p>
+                  </Card>
+                );
+              })()}
+            </>
+          );
+        })()}
+        <Card title={`What each person costs against our ${pricing.solo != null ? "one-person" : "crew"} rate`} aside="per billed hour · before GST">
           <div className="pk-legend">
             <span><i style={{ background: "var(--mid-f)" }} />what the person costs</span>
             <span><i style={{ background: "var(--track)" }} />office share</span>

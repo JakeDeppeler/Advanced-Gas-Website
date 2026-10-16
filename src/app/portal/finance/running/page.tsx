@@ -8,6 +8,7 @@ import { Locked } from "@/components/portal/Locked";
 import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
 import { latestBoard } from "@/lib/portal/office";
+import { TeamTabs } from "@/components/portal/run/RunTabs";
 import {
   computeCapacity, fleetDepOf, LEVEL_LABEL, overheadFields, OVERHEAD_GROUPS, officeCost, overheadLines, overheadSplit, scaleModel, scaleOf,
   type CapSettings, type CrewLevel, type CrewMember,
@@ -107,6 +108,7 @@ export default async function RunningCostsPage() {
   return (
     <PortalShell user={user}>
       <FinanceHead title="Running costs" lede="Every overhead, what it costs to keep the doors open, and what changes when another van goes on the road." />
+      <div className="pk" style={{ marginBottom: 14 }}><TeamTabs on="running" /></div>
 
       {!has ? (
         <div className="pt-note pt-note--warn">
@@ -186,7 +188,7 @@ export default async function RunningCostsPage() {
             <h2 id="rc-people" className="pt-panel__h">What one more person adds</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
               The average of who&rsquo;s here now. A tech with a van brings the van&rsquo;s costs and billable hours; an apprentice riding along brings their pay
-              and no extra hours — the customer pays for them through the higher crew rate. For a different wage, use <Link href="/portal/finance/planning">What if</Link>.
+              and no extra hours — the customer pays for them through the higher crew rate. For a different wage, use <Link href="/portal/finance/planning/hire">What if › Hire someone</Link>.
             </p>
             <div style={{ overflowX: "auto" }}>
               <table className="pt-table pt-rc">

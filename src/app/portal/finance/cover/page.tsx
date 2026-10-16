@@ -9,7 +9,8 @@ import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } fr
 import { normalisePricing, type Pricing } from "@/lib/portal/pricingTypes";
 import { withFleet } from "@/lib/portal/costSettings";
 import { computeCapacity, onCostPct, onCostsOf, type CrewLevel, type CrewMember, type OnCosts } from "@/lib/portal/crew";
-import { DAYS_ON_TOOLS, PAID_HRS_YEAR, coverHour, overheadItems, scenarios, vansFor, type CoverInputs, type Fleet } from "@/lib/portal/cover/hour";
+import { DAYS_ON_TOOLS, PAID_HRS_YEAR, coverHour, crewRates, scenarios, vansFor, type CoverInputs, type CoverLine, type Fleet } from "@/lib/portal/cover/hour";
+import { coverBase } from "@/lib/portal/cover/load";
 import { personDays } from "@/lib/portal/cover/days";
 
 export const dynamic = "force-dynamic";
@@ -51,31 +52,15 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
   if (!can(user, "overhead")) return <Locked user={user} what="What an hour must cover" forWhom="managers" />;
 
   const tab = searchParams.t === "days" ? "days" : "hour";
-  const ready = dbConfigured();
-  const [users, stored, vehicles, pricingRaw] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles(), getSettings<unknown>("pricing").catch(() => null)]) : [[], null, [], null];
-  const pricing = normalisePricing(pricingRaw);
-  const s = withFleet(stored, vehicles);
-  const people: CrewMember[] = users
-    .filter((u) => u.active && u.id && u.level)
-    .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
-  const cap = computeCapacity(people, s);
-  const lines = overheadItems(s, cap);
-  const oc = onCostPct(s);
-  // Techs are the qualified people with a van; an apprentice driving one of their own is still an apprentice.
-  const fleet: Fleet = { vans: cap.realVans, techs: cap.per.filter((x) => x.c.chargeable && x.p.level !== "apprentice").length };
-
-  const i: CoverInputs = {
-    techWage: num(searchParams.tw, 45, 0, 500),
-    appWage: num(searchParams.aw, 28, 0, 500),
-    techs: Math.round(num(searchParams.tn, Math.max(1, fleet.techs), 1, 50)),
-    apps: Math.round(num(searchParams.an, people.filter((p) => p.level === "apprentice").length, 0, 50)),
-    billPerDay: num(searchParams.b, 6, 1, 12),
-    dayHrs: 8,
-    daysOnTools: Math.round(num(searchParams.d, DAYS_ON_TOOLS, 50, 260)),
-    // What we charge for a tradesman and an apprentice, from Rates & pricing; $310 is what Jake gave until it's saved there.
-    charge: num(searchParams.c, pricing.hourly ?? 310, 0, 5000),
-    margin: Number(s.margin) || 0,
-  };
+  const { lines, fleet, oc, ocs, pricing, i } = await coverBase({
+    techWage: num(searchParams.tw, NaN, 0, 500),
+    appWage: num(searchParams.aw, NaN, 0, 500),
+    techs: searchParams.tn ? Math.round(num(searchParams.tn, 1, 1, 50)) : undefined,
+    apps: searchParams.an ? Math.round(num(searchParams.an, 0, 0, 50)) : undefined,
+    billPerDay: num(searchParams.b, NaN, 1, 12),
+    daysOnTools: searchParams.d ? Math.round(num(searchParams.d, DAYS_ON_TOOLS, 50, 260)) : undefined,
+    charge: num(searchParams.c, NaN, 0, 5000),
+  });
 
   const tabHref = (t: string) => {
     const q = new URLSearchParams(Object.entries(searchParams).filter(([k, v]) => k !== "t" && v != null) as [string, string][]);
@@ -101,13 +86,13 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
           { key: "hour", label: "The hour", href: tabHref("hour") },
           { key: "days", label: "Each person's day", href: tabHref("days") },
         ]} />
-        {tab === "hour" ? <Hour i={i} lines={lines} fleet={fleet} oc={oc} ocs={onCostsOf(s)} pricing={pricing} searchParams={searchParams} /> : <Days i={i} searchParams={searchParams} />}
+        {tab === "hour" ? <Hour i={i} lines={lines} fleet={fleet} oc={oc} ocs={ocs} pricing={pricing} searchParams={searchParams} /> : <Days i={i} searchParams={searchParams} />}
       </div>
     </PortalShell>
   );
 }
 
-function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInputs; lines: ReturnType<typeof overheadItems>; fleet: Fleet; oc: number; ocs: OnCosts; pricing: Pricing; searchParams: SP }) {
+function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInputs; lines: CoverLine[]; fleet: Fleet; oc: number; ocs: OnCosts; pricing: Pricing; searchParams: SP }) {
   const r = coverHour(lines, fleet, oc, i);
   const sc = scenarios(lines, fleet, oc, i);
   const vans = vansFor(fleet, i.techs);
@@ -189,21 +174,9 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
       </Card>
 
       {(() => {
-        // One van for a year, crewed one way: its share of the overheads and the
-        // crew's whole pay, over the hours that van bills.
-        const share = vans > 0 ? r.overhead / vans : r.overhead;
-        const hrsVan = i.daysOnTools * i.billPerDay;
-        const loaded = 1 + oc / 100;
-        const factor = 1 / (1 - Math.min(90, Math.max(0, i.margin)) / 100);
-        const crews = [
-          { k: "solo", label: "A tech on their own", sub: "one person, one van", apps: 0, charge: pricing.solo, chargeName: "our one-person rate" },
-          { k: "pair", label: "A tech and an apprentice", sub: "the usual crew", apps: 1, charge: i.charge, chargeName: "our crew rate" },
-          { k: "install", label: "A tech and two apprentices", sub: "an install crew, one van", apps: 2, charge: null as number | null, chargeName: "" },
-        ].map((c) => {
-          const pay = (i.techWage + c.apps * i.appWage) * PAID_HRS_YEAR * loaded;
-          const be = hrsVan > 0 ? (share + pay) / hrsVan : 0;
-          return { ...c, pay, be, price: be * factor };
-        });
+        const { share, hrsVan, rows } = crewRates(r, vans, oc);
+        const charges: Record<string, number | null> = { solo: pricing.solo, pair: i.charge, install: pricing.install };
+        const crews = rows.map((c) => ({ ...c, charge: charges[c.k] ?? null }));
         return (
           <Card title="What each crew has to charge" aside={`one van · ${n0(hrsVan)} billed hours a year`}>
             <div className="pk-tbl-wrap">
@@ -220,7 +193,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
                       <td>
                         {c.charge != null ? (
                           <>{m2(c.charge)}<div className={c.charge < c.be ? "ks pt-cover__neg" : c.charge < c.price ? "ks" : "ks pt-cover__pos"}>{c.charge < c.be ? `${m2(c.be - c.charge)} under break-even` : c.charge < c.price ? `${m2(c.price - c.charge)} short of ${i.margin}%` : `${m2(c.charge - c.price)} over ${i.margin}%`}</div></>
-                        ) : c.k === "solo" ? <span className="ks">not set — <Link href="/portal/pricing">add it on Rates &amp; pricing</Link></span> : <span className="ks">price it at the {i.margin > 0 ? `${i.margin}%` : "break-even"} figure</span>}
+                        ) : <span className="ks">not set — <Link href="/portal/pricing">add it on Rates &amp; pricing</Link></span>}
                       </td>
                     </tr>
                   ))}
