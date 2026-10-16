@@ -19,7 +19,6 @@ export const metadata = { title: "Processes — Trade portal" };
  * two front doors.
  */
 const TRADE_DO_IT: Record<string, string> = {
-  "/portal/job-calculator": "/trade/calc",
 };
 /** The van procedures each open their own step; A3 is admin's monthly check, done in the office. */
 const TRADE_DO_IT_CODE: Record<string, string | null> = {

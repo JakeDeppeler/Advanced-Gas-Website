@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
 import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { priceFactor, computeCapacity, loadedWage, LEVEL_LABEL, LEVEL_BILLABLE, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
+import { loadedWage, LEVEL_LABEL, LEVEL_BILLABLE, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
 import { coverBase } from "@/lib/portal/cover/load";
 import { coverHour, crewRates, vansFor } from "@/lib/portal/cover/hour";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
@@ -85,16 +85,8 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
     : [[], null, [], null];
   const s = withFleet(stored, vehicles);
   const crew: CrewMember[] = users.filter((u) => u.active && u.id && u.level).map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
-  const cap = computeCapacity(crew, s);
   const pricing = normalisePricing(pricingRaw);
   const base = await coverBase();
-  // One person's cost an hour is measured against the one-person rate; the crew rate is for two.
-  const ours = pricing.solo ?? pricing.hourly;
-  const needs = cap.totalBillHrs > 0 ? cap.costPerHr * priceFactor(s.margin) : null;
-  const people = cap.rates
-    .map((r) => ({ r, p: crew.find((c) => c.id === r.id) }))
-    .filter((x): x is { r: (typeof cap.rates)[number]; p: CrewMember } => !!x.p && x.r.costPerHr != null && x.r.billHrs > 0);
-  const scale = Math.max(ours ?? 0, needs ?? 0, ...people.map((x) => x.r.costPerHr ?? 0)) * 1.05 || 1;
 
   return (
     <PortalShell user={user}>
@@ -135,7 +127,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
                   </table>
                 </div>
                 <p className="pk-note" style={{ marginTop: 10 }}>
-                  Each crew is one van for a year: its share of every overhead ({money(cr.share)}) and the crew&rsquo;s whole pay — a tech at {mc(base.i.techWage)}, apprentices at {mc(base.i.appWage)},
+                  Each crew is one van: the overhead on every billed hour ({mc(cr.share / Math.max(1, cr.hrsVan))}) plus the crew&rsquo;s whole pay — a tech at {mc(base.i.techWage)}, apprentices at {mc(base.i.appWage)},
                   with super, WorkCover and long service leave — over {base.i.billPerDay} of {base.i.dayHrs} hours billed. The working is on <a href="/portal/finance/cover">What an hour must cover</a>.
                 </p>
               </Card>
@@ -173,40 +165,10 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
             </>
           );
         })()}
-        <Card title={`What each person costs against our ${pricing.solo != null ? "one-person" : "crew"} rate`} aside="per billed hour · before GST">
-          <div className="pk-legend">
-            <span><i style={{ background: "var(--mid-f)" }} />what the person costs</span>
-            <span><i style={{ background: "var(--track)" }} />office share</span>
-            {ours && <span><i style={{ background: "var(--good-f)" }} />profit</span>}
-            {ours && <span><i style={{ background: "var(--bad-f)" }} />loss</span>}
-            {ours && <span><i style={{ background: "var(--ink)", width: 2 }} />our rate</span>}
-          </div>
-          {people.length ? people.map(({ r, p }) => {
-            const own = (r.costPerHr ?? 0) - cap.businessPerHr;
-            const all = r.costPerHr ?? 0;
-            const diff = ours != null ? ours - all : null;
-            return (
-              <div className="pk-hbar" key={r.id} style={{ gridTemplateColumns: "minmax(110px, 1fr) minmax(80px, 3fr) auto" }}>
-                <span className="t">{p.name.split(" ")[0]}<span>{LEVEL_LABEL[p.level]}</span></span>
-                <div className="pk-stack" role="img" aria-label={`${p.name}: costs ${m2(own)} an hour, ${m2(cap.businessPerHr)} office share${diff != null ? `, ${diff >= 0 ? "profit" : "loss"} ${m2(Math.abs(diff))} at our rate` : ""}`}>
-                  <i className="cost" style={{ width: `${(own / scale) * 100}%` }} />
-                  <i className="share" style={{ width: `${(cap.businessPerHr / scale) * 100}%` }} />
-                  {diff != null && diff > 0 && <i className="profit" style={{ width: `${(diff / scale) * 100}%` }} />}
-                  {diff != null && diff < 0 && ours != null && <i className="loss" style={{ left: `${(ours / scale) * 100}%`, width: `${(-diff / scale) * 100}%` }} />}
-                  {ours != null && <em style={{ left: `${(ours / scale) * 100}%` }} />}
-                </div>
-                <span style={{ textAlign: "right", lineHeight: 1.3 }}>
-                  <b>{diff != null ? `${diff >= 0 ? "+" : "−"}${m2(Math.abs(diff))} an hour` : `${m2(all)} an hour`}</b>
-                  <span className="pk-ks" style={{ display: "block" }}>costs {m2(all)}</span>
-                </span>
-              </div>
-            );
-          }) : <Empty>Add the crew’s wages in Pricing & costs to see what each person costs.</Empty>}
-          <div className="pk-btns" style={{ marginTop: 14 }}>
-            <Btn href="/portal/finance/hourly">Build our rate ›</Btn>
-            <Btn href="/portal/finance/capacity" quiet>Wages in Pricing & costs ›</Btn>
-          </div>
-        </Card>
+        <div className="pk-btns">
+          <Btn href="/portal/finance/hourly">How the hour adds up ›</Btn>
+          <Btn href="/portal/finance/cover" quiet>Change the wages or hours ›</Btn>
+        </div>
       </div>
     </PortalShell>
   );

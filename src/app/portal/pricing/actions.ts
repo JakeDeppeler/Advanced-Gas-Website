@@ -24,6 +24,6 @@ export async function savePricing(v: Record<string, number | null>): Promise<{ o
     const r = await saveSettings("capacity", { ...stored, margin });
     if (!r.ok) return { ok: false, error: "The rates saved; the profit didn’t." };
   }
-  for (const path of ["/portal/pricing", "/portal/rates", "/portal/finance/hourly", "/portal/finance/capacity", "/portal/job-calculator", "/portal/finance/cover"]) revalidatePath(path);
+  for (const path of ["/portal/pricing", "/portal/rates", "/portal/finance/hourly", "/portal/finance/capacity", "/portal/finance/cover"]) revalidatePath(path);
   return { ok: true };
 }

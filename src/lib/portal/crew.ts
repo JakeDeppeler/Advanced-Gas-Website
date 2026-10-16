@@ -249,6 +249,14 @@ export type CapSettings = {
    * is paid for, the same way their school fees go on.
    */
   apprenticeScheme?: Record<string, number>;
+  /**
+   * The numbers every hour on the site is worked from: a tech's wage, an
+   * apprentice's, the hours of an eight-hour day that get billed, and the days
+   * a year on the tools, and how many techs bill and apprentices ride. Saved
+   * from What an hour must cover; until then it's $45, $28, 6 of 8, 205, and
+   * the crew as it is on Team.
+   */
+  hourModel?: { techWage?: number; appWage?: number; billPerDay?: number; daysOnTools?: number; techs?: number; apps?: number };
   /** Lines typed as a rate rather than a year — "$200 a week a van" — keyed like `overheads`. */
   lineRates?: Record<string, LineRate>;
   /** Lines added by hand under a group; their figures are in `overheads` under the same id. */
@@ -329,7 +337,7 @@ export function overheadsOf(s: CapSettings): Record<string, number> {
   if (!s.lineRates) return base;
   const out = { ...base };
   for (const [k, r] of Object.entries(s.lineRates)) {
-    if (r.basis === "weekPerVan" && !(Number(s.fleetVans) > 0)) continue;
+    if ((r.basis === "weekPerVan" || r.basis === "monthPerVan") && !(Number(s.fleetVans) > 0)) continue;
     out[k] = lineAnnual(r, s);
   }
   return out;
@@ -340,12 +348,13 @@ export function overheadsOf(s: CapSettings): Record<string, number> {
  * "$200 a week a van" or "Tash, $35 an hour, 25 hours". The rate is kept with
  * the line and the year worked out from it, so both stay true to what was said.
  */
-export type RateBasis = "year" | "month" | "week" | "weekPerVan" | "wage";
+export type RateBasis = "year" | "month" | "monthPerVan" | "week" | "weekPerVan" | "wage";
 export type LineRate = { basis: RateBasis; rate: number; hrsWeek?: number };
 
 export const RATE_BASES: { k: RateBasis; label: string }[] = [
   { k: "year", label: "a year" },
   { k: "month", label: "a month" },
+  { k: "monthPerVan", label: "a month, each van" },
   { k: "week", label: "a week" },
   { k: "weekPerVan", label: "a week, each van" },
   { k: "wage", label: "an hour, as a wage" },
@@ -364,6 +373,7 @@ export function lineAnnual(r: LineRate, s: CapSettings): number {
     case "month": return rate * 12;
     case "week": return rate * weeks;
     case "weekPerVan": return rate * weeks * fleetVansOf(s);
+    case "monthPerVan": return rate * 12 * fleetVansOf(s);
     case "wage": return rate * Math.max(0, Number(r.hrsWeek) || 0) * weeks * (1 + onCostPct(s) / 100);
     default: return rate;
   }
@@ -782,7 +792,7 @@ export function suggestOverhead(label: string): string | null {
 /** Whether a line grows with another van — the default, or your override. */
 export const scaleOf = (s: CapSettings, key: string): OverheadScale =>
   // "A week, each van" is a van's cost by definition, whatever the switch says.
-  s.lineRates?.[key]?.basis === "weekPerVan" ? "perVan" : s.scales?.[key] ?? overheadFields(s).find((f) => f.key === key)?.scale ?? "fixed";
+  s.lineRates?.[key]?.basis === "weekPerVan" || s.lineRates?.[key]?.basis === "monthPerVan" ? "perVan" : s.scales?.[key] ?? overheadFields(s).find((f) => f.key === key)?.scale ?? "fixed";
 
 export function overheadSplit(s: CapSettings): { fixed: number; perVan: number } {
   if (s.ohSource === "internal") {

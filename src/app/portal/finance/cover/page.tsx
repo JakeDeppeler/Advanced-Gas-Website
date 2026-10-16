@@ -11,6 +11,7 @@ import { withFleet } from "@/lib/portal/costSettings";
 import { computeCapacity, onCostPct, onCostsOf, type CrewLevel, type CrewMember, type OnCosts } from "@/lib/portal/crew";
 import { DAYS_ON_TOOLS, PAID_HRS_YEAR, coverHour, crewRates, scenarios, vansFor, type CoverInputs, type CoverLine, type Fleet } from "@/lib/portal/cover/hour";
 import { coverBase } from "@/lib/portal/cover/load";
+import { saveHourModel } from "./actions";
 import { personDays } from "@/lib/portal/cover/days";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,7 @@ const PERIODS = [
   { k: "90", label: "Last 3 months", days: 90 },
 ] as const;
 
-type SP = { t?: string; p?: string; tw?: string; aw?: string; tn?: string; an?: string; b?: string; d?: string; c?: string };
+type SP = { saved?: string; t?: string; p?: string; tw?: string; aw?: string; tn?: string; an?: string; b?: string; d?: string; c?: string };
 
 const num = (v: string | undefined, dflt: number, lo: number, hi: number) => {
   const n = Number(v);
@@ -116,13 +117,13 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
 
   return (
     <>
-      <Card title="The numbers it's worked on" aside="change any and press Work it out">
+      <Card title="The numbers it's worked on" aside="try any with Work it out · Save makes the wages, hours and days the site's own">
         <form method="get" action="/portal/finance/cover" className="pt-cover__form">
           {[
             ["tw", "Tech wage", "$ an hour", i.techWage],
             ["aw", "Apprentice wage", "$ an hour, on average", i.appWage],
-            ["tn", "Techs on the road", "one van each", i.techs],
-            ["an", "Apprentices", "riding with a tech", i.apps],
+            ["tn", "Techs who bill", "on their own, a van each", i.techs],
+            ["an", "Apprentices", "riding with a tech, not billing", i.apps],
             ["b", "Hours billed a day", `out of ${i.dayHrs}`, i.billPerDay],
             ["d", "Days on the tools", "a year, each tech", i.daysOnTools],
             ["c", "What we charge", "$ an hour, tech + apprentice", i.charge],
@@ -134,7 +135,9 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
           ))}
           <div className="pk-btns pt-cover__go">
             <button type="submit" className="pk-btn">Work it out</button>
-            {Object.keys(searchParams).some((k) => k !== "t") ? <Link href="/portal/finance/cover" className="pk-btn g">Back to the defaults</Link> : null}
+            <button type="submit" className="pk-btn g" formAction={saveHourModel} formMethod="post">Save as our numbers</button>
+            {Object.keys(searchParams).some((k) => k !== "t" && k !== "saved") ? <Link href="/portal/finance/cover" className="pk-btn g">Back to our numbers</Link> : null}
+            {searchParams.saved ? <span className="pk-said" role="status">Saved — every page now works the hour from these.</span> : null}
           </div>
         </form>
       </Card>
@@ -181,7 +184,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
           <Card title="What each crew has to charge" aside={`one van · ${n0(hrsVan)} billed hours a year`}>
             <div className="pk-tbl-wrap">
               <table className="pk-tbl">
-                <thead><tr><th>Crew</th><th>Van&rsquo;s share of overheads</th><th>Crew&rsquo;s pay</th><th>Break-even an hour</th>{i.margin > 0 && <th>To make {i.margin}%</th>}<th>What we charge</th></tr></thead>
+                <thead><tr><th>Crew</th><th>Overheads it carries</th><th>Crew&rsquo;s pay</th><th>Break-even an hour</th>{i.margin > 0 && <th>To make {i.margin}%</th>}<th>What we charge</th></tr></thead>
                 <tbody>
                   {crews.map((c) => (
                     <tr key={c.k}>
@@ -201,10 +204,9 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
               </table>
             </div>
             <Note>
-              Each row is one van for a year, crewed that way every day: its fair share of every overhead ({m0(share)}, the year&rsquo;s {m0(r.overhead)} over {vans} {vans === 1 ? "van" : "vans"})
-              and the crew&rsquo;s whole pay, over the {n0(hrsVan)} hours a van bills at {i.billPerDay} of {i.dayHrs}. A tech alone still pays for the whole van, which is why one person
-              isn&rsquo;t half the crew rate. To price an install with two apprentices, use the <Link href="/portal/job-calculator">Job calculator</Link>: tick the tradesman and both
-              apprentices and put in the hours — each apprentice adds their own cost to the job.
+              Each row is one van crewed that way: the overhead on every billed hour ({m2(r.perHr.overhead)}, the year&rsquo;s {m0(r.overhead)} over the {n0(r.billHrs)} hours the business bills),
+              plus the crew&rsquo;s pay — paid for {n0(PAID_HRS_YEAR)} hours a year but billing {n0(hrsVan)}, so every paid hour costs {(PAID_HRS_YEAR / Math.max(1, hrsVan)).toFixed(2)} times over on the hours billed.
+              A tech alone still carries a full share of the overheads, which is why one person isn&rsquo;t half the crew rate. Price an install with two apprentices in ServiceTitan at the install rate.
             </Note>
           </Card>
         );

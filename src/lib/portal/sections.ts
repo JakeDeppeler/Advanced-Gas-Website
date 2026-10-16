@@ -109,15 +109,13 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "What an hour must cover", href: "/portal/finance/cover" },
       { label: "Running costs", href: "/portal/finance/running" },
       {
-        label: "Wages & costs", tab: "Team & wages", href: "/portal/finance/capacity",
+        label: "Overheads", tab: "Overheads", href: "/portal/finance/capacity",
         subs: [
-          { label: "Overheads", href: "/portal/finance/capacity?t=overheads" },
           { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
           { label: "Materials markup", href: "/portal/finance/capacity?part=markup" },
         ],
       },
       { label: "Rates & pricing", href: "/portal/pricing" },
-      { label: "Job calculator", href: "/portal/job-calculator" },
       { label: "Pricebook", href: "/trade/pricebook" },
       { label: "Commission", href: "/portal/commission" },
       { label: "What if", href: "/portal/finance/planning" },

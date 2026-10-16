@@ -24,7 +24,7 @@ export default async function TradeCalcPage() {
         // Only to someone the office page will let in: it shows what everybody
         // earns, which is why it is behind the overhead capability.
         can(user, "overhead")
-          ? <Link href="/portal/job-calculator" className="tr__office">Full calculator</Link>
+          ? <Link href="/portal/rates" className="tr__office">Crew rates</Link>
           : undefined
       }
     >

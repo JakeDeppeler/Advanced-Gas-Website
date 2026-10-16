@@ -5,105 +5,55 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
-import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
-import { withFleet } from "@/lib/portal/costSettings";
 import { latestBoard } from "@/lib/portal/office";
 import { TeamTabs } from "@/components/portal/run/RunTabs";
-import {
-  computeCapacity, fleetDepOf, LEVEL_LABEL, overheadFields, OVERHEAD_GROUPS, officeCost, overheadLines, overheadSplit, scaleModel, scaleOf,
-  type CapSettings, type CrewLevel, type CrewMember,
-} from "@/lib/portal/crew";
+import { theHour } from "@/lib/portal/cover/load";
+import { PAID_HRS_YEAR, fleetSizes } from "@/lib/portal/cover/hour";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Running costs — Team portal" };
 
-const m0 = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
+const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const h0 = (n: number) => `${Math.round(n).toLocaleString("en-AU")} hrs`;
-
-type Line = { key: string; label: string; group: string; annual: number; perVan: boolean };
+const n1 = (n: number) => (Math.round(n * 10) / 10).toLocaleString("en-AU");
 
 /**
- * Every overhead on one list: what it costs a year, a month and an hour, and
- * what it does when another van goes on the road.
+ * Every overhead on one list: what it costs a year, a month and on every
+ * billed hour, and what it does when another van goes on the road.
  *
- * Read from the same settings and the same computeCapacity as Our hourly rate,
- * so the totals here are the totals there. A line either stays put however
- * many vans there are (the factory, the office, the accountant) or arrives
- * with each van (its fuel, insurance, tools, phone) — the switch is set per
- * line on Pricing & costs. Nothing new is worked out; it is the same model laid
- * out line by line, with the next two vans beside today.
+ * Worked from theHour — the same lines, the same billed hours (6 of 8, 205
+ * days, a van per tech) and the same wages as What an hour must cover, Build
+ * our rate and Labour rates — so a figure here is the figure there.
  */
 export default async function RunningCostsPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
-  const ready = dbConfigured();
-  const [users, stored, vehicles, board] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles(), latestBoard()]) : [[], null, [], null];
+  const [h, board] = await Promise.all([theHour(), latestBoard()]);
+  const { lines, fleet, oc, i, r, vans } = h;
   // The board's 30-day close rate: of the quotes decided, how many were won. A count, not dollars.
   const close = board?.metrics?.closeRate30d ?? null;
-  const s: CapSettings = withFleet(stored, vehicles);
-  const people: CrewMember[] = users
-    .filter((u) => u.active && u.id && u.level)
-    .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
-  const cap = computeCapacity(people, s);
-  const vans = cap.realVans;
-  const has = vans > 0 && cap.totalBillHrs > 0;
-  const hrsEach = has ? cap.totalBillHrs / vans : 0;
+  const has = r.billHrs > 0;
 
-  const internal = s.ohSource === "internal";
-  const split = overheadSplit(s);
-  const oh = overheadLines(s);
-  const fleetDep = fleetDepOf(s);
-  const groupLabel = (k: string) => OVERHEAD_GROUPS.find((g) => g.key === k)?.label ?? "";
-
-  const lines: Line[] = internal
-    ? [
-        { key: "fixed", label: "Overheads that stay put", group: "Kept as one figure", annual: split.fixed, perVan: false },
-        { key: "perVan", label: "Overheads that come with each van", group: "Kept as one figure", annual: split.perVan, perVan: true },
-      ]
-    : overheadFields(s).map((f) => ({
-        key: f.key,
-        label: f.key === "vehDep" && fleetDep > 0 ? "Van depreciation (from Vehicles)" : f.label,
-        group: groupLabel(f.group),
-        annual: Number(oh[f.key]) || 0,
-        perVan: scaleOf(s, f.key) === "perVan",
-      })).filter((l) => l.annual > 0);
-  // The office is wages, not a bill, but it is the biggest thing that stays put.
-  const office = officeCost(cap);
-  const officeLines: Line[] = office.rows.filter((r) => r.cost > 0).map((r) => ({ key: `office-${r.id}`, label: r.name, group: "Office & admin staff", annual: r.cost, perVan: false }));
-  // Tradesmen's own office hours are counted on the office line too; they aren't on the rows above.
-  const officeRest = cap.officeOh - office.total;
-  if (officeRest > 1) officeLines.push({ key: "office-crew", label: "Crew's office hours", group: "Office & admin staff", annual: officeRest, perVan: false });
-
-  const all = [...officeLines, ...lines];
-  const groups = [...new Set(all.map((l) => l.group))].map((g) => {
-    const ls = all.filter((l) => l.group === g).sort((a, b) => b.annual - a.annual);
-    return { label: g, lines: ls, annual: ls.reduce((a, l) => a + l.annual, 0) };
+  const perVanLines = lines.filter((l) => l.perVan && fleet.vans > 0);
+  const fixedTotal = lines.filter((l) => !l.perVan || fleet.vans <= 0).reduce((a, l) => a + l.annual, 0);
+  const perVanEach = fleet.vans > 0 ? perVanLines.reduce((a, l) => a + l.annual, 0) / fleet.vans : 0;
+  const at = (l: (typeof lines)[number], n: number) => (l.perVan && fleet.vans > 0 ? (l.annual / fleet.vans) * n : l.annual);
+  const cols = [vans, vans + 1, vans + 2];
+  const hrsVan = i.daysOnTools * i.billPerDay;
+  const perHr = (annual: number) => (has ? annual / r.billHrs : 0);
+  const groups = [...new Set(lines.map((l) => l.group))].map((g) => {
+    const ls = lines.filter((l) => l.group === g).sort((a, b) => b.annual - a.annual);
+    return { label: g, lines: ls };
   });
-  const total = all.reduce((a, l) => a + l.annual, 0);
-  const fixedTotal = all.filter((l) => !l.perVan).reduce((a, l) => a + l.annual, 0);
-  const perVanTotal = total - fixedTotal;
-  const extraVan = has ? perVanTotal / vans : 0;
-  const at = (l: Line, n: number) => (l.perVan && has ? (l.annual / vans) * n : l.annual);
-  const cols = has ? [vans, vans + 1, vans + 2] : [];
-  const perHr = (annual: number, n: number) => (hrsEach > 0 ? annual / (hrsEach * n) : 0);
 
-  // The whole hour at each fleet size, crew wages included.
-  const scale = has ? scaleModel(cap, s).filter((r) => r.vans >= 1) : [];
-
-  // What one more person brings, read off the people already here: their pay
-  // and on-costs, the van's costs if they drive one, and the hours they add.
-  const kinds = new Map<string, { label: string; n: number; pay: number; van: number; hrs: number }>();
-  for (const { p, c } of cap.per) {
-    const k = `${p.level}:${c.chargeable ? "van" : c.ridesCost > 0 ? "rides" : "office"}`;
-    const label = c.chargeable ? `${LEVEL_LABEL[p.level]} with a van` : c.ridesCost > 0 ? `${LEVEL_LABEL[p.level]} riding along` : LEVEL_LABEL[p.level];
-    const got = kinds.get(k) ?? { label, n: 0, pay: 0, van: 0, hrs: 0 };
-    got.n += 1; got.pay += c.wageCost; got.van += c.chargeable ? extraVan : 0; got.hrs += c.billHrs;
-    kinds.set(k, got);
-  }
-  const adds = [...kinds.values()].map((k) => ({ ...k, pay: k.pay / k.n, van: k.van / k.n, hrs: k.hrs / k.n })).sort((a, b) => b.pay + b.van - (a.pay + a.van));
+  const loaded = 1 + oc / 100;
+  const techPay = i.techWage * PAID_HRS_YEAR * loaded;
+  const appPay = i.appWage * PAID_HRS_YEAR * loaded;
+  const scale = fleetSizes(lines, fleet, oc, i, [1, 2, 3, 4, 5, 6, 7, 8]);
+  const appsPerVan = i.techs > 0 ? i.apps / i.techs : 0;
 
   return (
     <PortalShell user={user}>
@@ -112,17 +62,17 @@ export default async function RunningCostsPage() {
 
       {!has ? (
         <div className="pt-note pt-note--warn">
-          <strong>There&rsquo;s no crew with a van and billable hours yet,</strong> so nothing can be spread per hour or per van. Add the crew on <Link href="/portal/finance/capacity">Pricing & costs</Link>.
+          <strong>There&rsquo;s no tech on the road yet,</strong> so nothing can be spread over billed hours. Add the crew on <Link href="/portal/team">Team</Link>.
         </div>
       ) : (
         <>
           <section className="pt-panel pt-hs pt-rc-sum" aria-labelledby="rc-h">
             <h2 id="rc-h" className="pt-sr">The short version</h2>
             <div className="pt-hs__nums">
-              <div><span>Overheads a year</span><strong>{m0(total)}</strong><em>{m0(total / 12)} a month · {m0(total / 52)} a week</em></div>
+              <div><span>Overheads a year</span><strong>{m0(r.overhead)}</strong><em>{m0(r.overhead / 12)} a month · {m0(r.overhead / 52)} a week</em></div>
               <div><span>Stays put</span><strong>{m0(fixedTotal)}</strong><em>the same with one van or ten</em></div>
-              <div><span>Each van brings</span><strong>{m0(extraVan)}</strong><em>a year, on top of the crew&rsquo;s pay</em></div>
-              <div className="is-charge"><span>On every billable hour</span><strong>{m2(perHr(total, vans))}</strong><em>{m0(total)} ÷ {h0(cap.totalBillHrs)} across {vans} {vans === 1 ? "van" : "vans"}</em></div>
+              <div><span>Each van brings</span><strong>{m0(perVanEach)}</strong><em>a year, on top of the crew&rsquo;s pay</em></div>
+              <div className="is-charge"><span>On every billed hour</span><strong>{m2(r.perHr.overhead)}</strong><em>{m0(r.overhead)} ÷ {h0(r.billHrs)} — {i.techs} techs × {i.daysOnTools} days × {i.billPerDay} hrs</em></div>
             </div>
           </section>
 
@@ -130,8 +80,8 @@ export default async function RunningCostsPage() {
             <h2 id="rc-lines" className="pt-panel__h">Every overhead, now and with more vans</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
               <strong>Stays put</strong> lines don&rsquo;t move when a van is added, so the same dollars spread over more hours.{" "}
-              <strong>Per van</strong> lines grow by today&rsquo;s cost of one van. Crew wages aren&rsquo;t here — they&rsquo;re a labour cost on each job;
-              the table under this one has them. Change a figure or which way a line goes on <Link href="/portal/finance/capacity?t=overheads">Wages &amp; costs › Overheads</Link>.
+              <strong>Per van</strong> lines grow by today&rsquo;s cost of one van. The crew&rsquo;s own pay isn&rsquo;t here — it&rsquo;s on{" "}
+              <Link href="/portal/finance/hourly">Build our rate</Link>. Change a figure or which way a line goes on <Link href="/portal/finance/capacity?t=overheads">Wages &amp; costs › Overheads</Link>.
             </p>
             <div style={{ overflowX: "auto" }}>
               <table className="pt-table pt-rc">
@@ -140,8 +90,8 @@ export default async function RunningCostsPage() {
                     <th scope="col">Overhead</th>
                     <th scope="col">Grows with</th>
                     <th scope="col" className="num">A month</th>
-                    {cols.map((n, i) => <th key={n} scope="col" className="num">{i === 0 ? `A year now · ${n} vans` : `With ${n} vans`}</th>)}
-                    <th scope="col" className="num">An hour now</th>
+                    {cols.map((n, k) => <th key={n} scope="col" className="num">{k === 0 ? `A year now · ${n} vans` : `With ${n} vans`}</th>)}
+                    <th scope="col" className="num">A billed hour</th>
                   </tr>
                 </thead>
                 {groups.map((g) => (
@@ -149,15 +99,15 @@ export default async function RunningCostsPage() {
                     <tr className="pt-rc__grp">
                       <th scope="rowgroup" colSpan={3}>{g.label}</th>
                       {cols.map((n) => <td key={n} className="num">{m0(g.lines.reduce((a, l) => a + at(l, n), 0))}</td>)}
-                      <td className="num">{m2(perHr(g.annual, vans))}</td>
+                      <td className="num">{m2(perHr(g.lines.reduce((a, l) => a + at(l, vans), 0)))}</td>
                     </tr>
                     {g.lines.map((l) => (
                       <tr key={l.key}>
                         <th scope="row">{l.label}</th>
                         <td>{l.perVan ? "Per van" : "Stays put"}</td>
-                        <td className="num">{m0(l.annual / 12)}</td>
+                        <td className="num">{m0(at(l, vans) / 12)}</td>
                         {cols.map((n) => <td key={n} className="num">{m0(at(l, n))}</td>)}
-                        <td className="num">{m2(perHr(l.annual, vans))}</td>
+                        <td className="num">{m2(perHr(at(l, vans)))}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -165,18 +115,21 @@ export default async function RunningCostsPage() {
                 <tfoot>
                   <tr className="pt-rc__tot">
                     <th scope="row" colSpan={2}>All overheads</th>
-                    <td className="num">{m0(total / 12)}</td>
-                    {cols.map((n) => <td key={n} className="num">{m0(fixedTotal + extraVan * n)}</td>)}
-                    <td className="num">{m2(perHr(total, vans))}</td>
+                    <td className="num">{m0(r.overhead / 12)}</td>
+                    {cols.map((n) => <td key={n} className="num">{m0(fixedTotal + perVanEach * n)}</td>)}
+                    <td className="num">{m2(r.perHr.overhead)}</td>
                   </tr>
                   <tr>
-                    <th scope="row" colSpan={3}>Hours we can bill</th>
-                    {cols.map((n) => <td key={n} className="num">{h0(hrsEach * n)}</td>)}
+                    <th scope="row" colSpan={3}>Hours we bill</th>
+                    {cols.map((n) => <td key={n} className="num">{h0(hrsVan * (i.techs + n - vans))}</td>)}
                     <td />
                   </tr>
                   <tr className="pt-rc__tot">
-                    <th scope="row" colSpan={3}>Overhead on every billable hour</th>
-                    {cols.map((n) => <td key={n} className="num">{m2(perHr(fixedTotal + extraVan * n, n))}</td>)}
+                    <th scope="row" colSpan={3}>Overhead on every billed hour</th>
+                    {cols.map((n) => {
+                      const hrs = hrsVan * (i.techs + n - vans);
+                      return <td key={n} className="num">{hrs > 0 ? m2((fixedTotal + perVanEach * n) / hrs) : "—"}</td>;
+                    })}
                     <td />
                   </tr>
                 </tfoot>
@@ -187,8 +140,8 @@ export default async function RunningCostsPage() {
           <section className="pt-panel" aria-labelledby="rc-people">
             <h2 id="rc-people" className="pt-panel__h">What one more person adds</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
-              The average of who&rsquo;s here now. A tech with a van brings the van&rsquo;s costs and billable hours; an apprentice riding along brings their pay
-              and no extra hours — the customer pays for them through the higher crew rate. For a different wage, use <Link href="/portal/finance/planning/hire">What if › Hire someone</Link>.
+              Pay is the wage × {PAID_HRS_YEAR.toLocaleString("en-AU")} paid hours (a 38-hour week, all year — leave, holidays, sick days and RDOs are paid) with super, WorkCover and LSL ({oc.toFixed(1)}%).
+              A tech with a van brings the van&rsquo;s costs and {h0(hrsVan)} billed; an apprentice brings their pay and no hours of their own.
             </p>
             <div style={{ overflowX: "auto" }}>
               <table className="pt-table pt-rc">
@@ -202,73 +155,79 @@ export default async function RunningCostsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {adds.map((a) => (
-                    <tr key={a.label}>
-                      <th scope="row">{a.label}{a.n > 1 ? <em className="pt-rc__n"> · average of {a.n}</em> : null}</th>
-                      <td className="num">{m0(a.pay)}</td>
-                      <td className="num">{a.van > 0 ? m0(a.van) : "—"}</td>
-                      <td className="num"><strong>{m0(a.pay + a.van)}</strong></td>
-                      <td className="num">{a.hrs > 0 ? h0(a.hrs) : "none of their own"}</td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <th scope="row">A tech with a van <em className="pt-rc__n"> · at {m2(i.techWage)} an hour</em></th>
+                    <td className="num">{m0(techPay)}</td><td className="num">{m0(perVanEach)}</td>
+                    <td className="num"><strong>{m0(techPay + perVanEach)}</strong></td><td className="num">{h0(hrsVan)}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">An apprentice riding along <em className="pt-rc__n"> · at {m2(i.appWage)} an hour</em></th>
+                    <td className="num">{m0(appPay)}</td><td className="num">—</td>
+                    <td className="num"><strong>{m0(appPay)}</strong></td><td className="num">none of their own</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </section>
 
-          {scale.length > 0 && (
-            <section className="pt-panel" aria-labelledby="rc-scale">
-              <h2 id="rc-scale" className="pt-panel__h">The whole hour at each number of vans</h2>
-              <p className="pt-note" style={{ margin: "0 0 12px" }}>
-                Crew wages included, each van crewed like today&rsquo;s average, at our {s.margin}% margin. The hour gets cheaper with every van because the
-                {" "}{m0(fixedTotal)} that stays put is shared by more hours — it flattens out because each van brings {m0(extraVan)} of its own.
-              </p>
-              <p className="pt-note" style={{ margin: "0 0 12px" }}>
-                <strong>Sales a year</strong> is what it takes to cover it: a year of labour sold at the charge-out — the hours billed × the rate, before materials, units and GST,
-                which go on top and pay for themselves.{" "}
-                {close ? (
-                  <>
-                    <strong>Quotes a year</strong> is that ÷ our close rate of {Math.round(close * 100)}% over the last 30 days: at that rate it takes{" "}
-                    {m0(100 / close)} of quotes for every $100 sold.{" "}
-                    {close < 0.85 ? <>Close more and the quotes needed fall in step — at {Math.round((close + 0.1) * 100)}% it would be {m0(100 / (close + 0.1))}.{" "}</> : null}
-                    The close rate counts quotes won, not dollars, so a run of big quotes lost reads better here than it was.
-                  </>
-                ) : <>The close rate isn&rsquo;t measured yet, so the quotes it would take aren&rsquo;t shown.</>}
-              </p>
-              <div style={{ overflowX: "auto" }}>
-                <table className="pt-table pt-rc">
-                  <thead>
-                    <tr>
-                      <th scope="col">Vans</th>
-                      <th scope="col" className="num">Overheads a year</th>
-                      <th scope="col" className="num">Billable hours</th>
-                      <th scope="col" className="num">Overhead an hour</th>
-                      <th scope="col" className="num">An hour costs</th>
-                      <th scope="col" className="num">Charge-out</th>
-                      <th scope="col" className="num">Sales a year</th>
-                      {close ? <th scope="col" className="num">Quotes a year</th> : null}
-                      {close ? <th scope="col" className="num">Quotes a week</th> : null}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scale.map((r) => (
-                      <tr key={r.vans} className={r.isNow ? "is-now" : undefined}>
-                        <th scope="row">{r.vans}{r.isNow ? <em className="pt-rc__n"> · today</em> : null}</th>
-                        <td className="num">{m0(r.overhead)}</td>
-                        <td className="num">{h0(r.billHrs)}</td>
-                        <td className="num">{m2(r.overheadPerHr)}</td>
-                        <td className="num">{m2(r.costPerHr)}</td>
-                        <td className="num"><strong>{m2(r.chargeOut)}</strong></td>
-                        <td className="num">{m0(r.revenue)}</td>
-                        {close ? <td className="num">{m0(r.revenue / close)}</td> : null}
-                        {close ? <td className="num">{m0(r.revenue / close / 52)}</td> : null}
+          <section className="pt-panel" aria-labelledby="rc-scale">
+            <h2 id="rc-scale" className="pt-panel__h">The whole hour at each number of vans</h2>
+            <p className="pt-note" style={{ margin: "0 0 12px" }}>
+              Each van with a tech and {n1(appsPerVan)} apprentices — today&rsquo;s mix — at {i.billPerDay} of {i.dayHrs} hours billed. Break-even is everything (overheads and the crew&rsquo;s whole pay) over
+              the hours billed; with {n1(appsPerVan)} apprentices a van it sits between the one-person and two-person crew rates on <Link href="/portal/rates">Labour rates</Link>. The {m0(fixedTotal)} that stays
+              put is shared by more hours with each van; each van brings {m0(perVanEach)} of its own.
+            </p>
+            <p className="pt-note" style={{ margin: "0 0 12px" }}>
+              <strong>Sales a year</strong> is what it takes to cover it at the {r.inputs.margin}% price: the hours billed × the rate, labour only, before materials, units and GST.{" "}
+              {close ? (
+                <>
+                  <strong>Quotes a year</strong> is that ÷ our close rate of {Math.round(close * 100)}% over the last 30 days: {m0(100 / close)} of quotes for every $100 sold.{" "}
+                  {close < 0.85 ? <>At {Math.round((close + 0.1) * 100)}% it would be {m0(100 / (close + 0.1))}.{" "}</> : null}
+                  The close rate counts quotes won, not dollars.
+                </>
+              ) : <>The close rate isn&rsquo;t measured yet, so the quotes it would take aren&rsquo;t shown.</>}
+            </p>
+            <div style={{ overflowX: "auto" }}>
+              <table className="pt-table pt-rc">
+                <thead>
+                  <tr>
+                    <th scope="col">Vans</th>
+                    <th scope="col" className="num">Overheads a year</th>
+                    <th scope="col" className="num">Billed hours</th>
+                    <th scope="col" className="num">Overhead an hour</th>
+                    <th scope="col" className="num">Break-even</th>
+                    <th scope="col" className="num">To make {r.inputs.margin}%</th>
+                    <th scope="col" className="num">Sales a year</th>
+                    {close ? <th scope="col" className="num">Quotes a year</th> : null}
+                    {close ? <th scope="col" className="num">Quotes a week</th> : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {scale.map((x) => {
+                    const sales = x.r.atMargin * x.r.billHrs;
+                    const isNow = x.vans === fleet.vans;
+                    return (
+                      <tr key={x.vans} className={isNow ? "is-now" : undefined}>
+                        <th scope="row">{x.vans}{isNow ? <em className="pt-rc__n"> · today&rsquo;s fleet</em> : null}</th>
+                        <td className="num">{m0(x.r.overhead)}</td>
+                        <td className="num">{h0(x.r.billHrs)}</td>
+                        <td className="num">{m2(x.r.perHr.overhead)}</td>
+                        <td className="num">{m2(x.r.perHr.total)}</td>
+                        <td className="num"><strong>{m2(x.r.atMargin)}</strong></td>
+                        <td className="num">{m0(sales)}</td>
+                        {close ? <td className="num">{m0(sales / close)}</td> : null}
+                        {close ? <td className="num">{m0(sales / close / 52)}</td> : null}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="pt-note" style={{ margin: "12px 0 0" }}>
+              Today&rsquo;s fleet is {fleet.vans} vans with {i.techs} techs{fleet.vans > i.techs ? ` — ${fleet.vans - i.techs} driven by an apprentice who doesn't bill on their own` : ""}; this table puts a tech in every van.
+              The business as it is, and 3 vans against 5, is on <Link href="/portal/finance/planning">What if</Link>.
+            </p>
+          </section>
         </>
       )}
     </PortalShell>
