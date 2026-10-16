@@ -22,6 +22,7 @@
     "check:stuck": "npx tsx scripts/check-stuck.ts",
     "check:ar": "npx tsx scripts/check-ar.ts",
     "check:payables": "npx tsx scripts/check-payables.ts",
+    "check:leads": "npx tsx scripts/check-leads.ts",
     "check:credit": "npx tsx scripts/check-credit.ts",
     "check:theme": "npx tsx scripts/check-theme.ts",
     "check:sold": "npx tsx scripts/check-sold-margin.ts",

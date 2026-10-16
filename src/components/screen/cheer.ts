@@ -119,6 +119,10 @@ const NOTES: Record<CheerKind, number[]> = {
   done: [783.99, 659.25],
   // C5, E5, G5 — a major triad, which reads as "good news" to nearly everyone.
   sold: [523.25, 659.25, 783.99],
+  // A5, C#6, A5, C#6 — the same two notes alternating, twice. Not a chord and
+  // not resolving: the three above are news and this one is a telephone, and
+  // the difference has to carry from the next room with nobody looking up.
+  lead: [880, 1108.73, 880, 1108.73],
 };
 
 type Ctor = typeof AudioContext;
@@ -266,7 +270,7 @@ export function checkAudio(): void {
     .resume()
     .catch(() => {})
     .then(() => {
-      const srcs = [...new Set((["quote", "done", "sold"] as CheerKind[]).map(voice).flatMap((v) => (v.mode === "clip" ? [v.src] : [])))];
+      const srcs = [...new Set((["quote", "done", "sold", "lead"] as CheerKind[]).map(voice).flatMap((v) => (v.mode === "clip" ? [v.src] : [])))];
       return Promise.all(srcs.map((src) => load(src, c)));
     })
     .then((loaded) => {

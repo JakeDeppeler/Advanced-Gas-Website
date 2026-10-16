@@ -8,6 +8,7 @@
  * that happens to have every field.
  */
 
+import { leadCopy, type NewLead } from "@/lib/leads/newLeadTypes";
 import type { Metrics } from "./metrics";
 import type { BoardAlert, SoldBar } from "@/components/screen/Alert";
 
@@ -88,6 +89,46 @@ export function alertFrom(e: Metrics["alertEvents"][number], m: Metrics): BoardA
           e.amount > 0
           ? "Ready to bill"
           : "Price it, then bill it",
+  };
+}
+
+/**
+ * A new enquiry, dressed as the alert the room acts on.
+ *
+ * Separate from `alertFrom` above and fed from a different place: the other
+ * three are read off the snapshot, which is twenty-five seconds old at best,
+ * and this one comes from its own fast poll because the thing it is announcing
+ * is measured in seconds. What they share is the pop-up itself.
+ *
+ * The chip never repeats the big line. A Facebook message already says "Reply
+ * in Messenger" in letters a foot high; saying it again in the pill wastes the
+ * one line that could say what to do after.
+ */
+export function leadAlertFrom(lead: NewLead): BoardAlert {
+  const time = new Date(lead.at).toLocaleTimeString("en-AU", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Australia/Melbourne",
+  });
+  const copy = leadCopy(lead, time);
+  return {
+    kind: "lead",
+    // Namespaced, because the board keeps one set of seen ids for every alert
+    // it has ever shown and a lead's uuid and a job's number are not drawn from
+    // the same pot.
+    id: `lead-${lead.id}`,
+    time,
+    // A lead has no figure. Zero is not one either, which is why nothing on
+    // this alert renders it.
+    amount: 0,
+    name: copy.who,
+    where: copy.what,
+    lead: copy,
+    chip: copy.dialable
+      ? "Ring them before they ring somebody else"
+      : lead.source === "facebook-message"
+        ? "Answer it in the inbox, then get a number"
+        : "No number given — email them straight back",
   };
 }
 

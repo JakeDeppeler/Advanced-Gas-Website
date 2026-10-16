@@ -8,6 +8,9 @@ const DEMOS: { kind: DemoKind; label: string; what: string }[] = [
   { kind: "sold", label: "SOLD!", what: "A sale, with the rocket" },
   { kind: "quote", label: "New quote", what: "A quote going out" },
   { kind: "done", label: "Time to bill", what: "A job finished, to invoice" },
+  // Worth knowing before you press it: this one holds the wall for the whole
+  // minute it is counting down, because that is what the real one does.
+  { kind: "lead", label: "New lead", what: "An enquiry to ring · holds the wall for a minute" },
 ];
 
 const time = (iso: string) =>

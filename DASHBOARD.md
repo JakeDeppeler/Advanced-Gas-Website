@@ -2344,9 +2344,11 @@ nothing for SVG text. It reads `fill` now.
 
 ## The full-screen alerts
 
-Three events take the whole wall for a few seconds: a quote written, a job
-finished, a sale closed. `src/components/screen/Alert.tsx`, styled in the
-`.alert` block at the end of `screen.css`.
+Four events take the whole wall: a quote written, a job finished, a sale
+closed — a few seconds each — and a new enquiry, which holds it for the minute
+the office gives itself to ring. `src/components/screen/Alert.tsx`, styled in
+the `.alert` block at the end of `screen.css`. The enquiry alert has its own
+section below; everything here is about the other three.
 
 They replace the rocket card, which only ever fired for a sale and was small
 enough to miss from across the room. The point of a takeover is that it
@@ -2462,6 +2464,120 @@ month"; the board knows who closed the job and nothing else about them.
 **The rocket card is gone.** It only ever fired for a sale and was small enough
 to miss from across the room. Two celebration systems would have left the next
 reader guessing which one fires.
+
+
+## A new enquiry takes the wall for a minute
+
+The office's rule is that an enquiry gets rung inside sixty seconds. The board's
+job is to make the minute visible, so a website enquiry or a Facebook lead takes
+the whole wall, makes a noise, and counts the minute down with the number to
+ring in letters bigger than any figure the board otherwise prints.
+
+It is the fourth alert kind and shares everything structural with the other
+three — `Alert.tsx`, the queue, the seen-ids set, the Sounds page, the remote's
+demo button. What it does not share is where it comes from or how long it holds.
+
+**Sixty seconds of the wall, for about one enquiry a day.** Five times the
+longest of the other three. It is affordable because enquiries are rare — 36 in
+the last 30 days — and it is the point rather than the cost: the countdown *is*
+the instruction. Three can queue at most, as with any other alert.
+
+**It has its own feed, because the snapshot is too slow for it.**
+`/api/screen/leads`, polled every 15 seconds, reading one indexed slice of
+`portal_leads` and nothing else. The figures ride a 25-second recompute floor
+and a 30-second board poll, which would land a new lead on the wall with
+fifteen seconds of its minute left. Fifteen seconds of lag leaves
+three-quarters of the minute to do something with.
+
+**The watermark is the server's, never the television's.** The first call sends
+no `since` and the route answers with the newest enquiry already on file and
+nothing to show — which is what stops a panel that reloads itself at three in
+the morning waking up and announcing the whole of yesterday. After that the
+board hands back whatever it was given, so a failed poll loses nothing: the
+next one asks for the same window again. The watermark advances past enquiries
+that are *not* announced too, or a phone tap would be re-read every fifteen
+seconds for the rest of the day.
+
+**A tap on the phone number in the header is not an alert.** It is recorded as
+a lead (`kind = 'call'`) and there is nobody to ring: no name, no number, and
+the person tapping is already dialling. Everything else with a way to answer it
+— a number, an email, or a Messenger thread — qualifies.
+
+**The postcode is shown as a postcode.** Most of this patch's postcodes cover
+several suburbs (3977 covers seven), so turning one into a suburb name would be
+the board guessing, and it would be wrong six times in seven. A lead that
+carries a real suburb shows the suburb.
+
+**The number is grouped only when it is understood.** `0412 345 678`,
+`03 9704 1234`, and anything else — an extension, an overseas number, a typo —
+printed exactly as the customer typed it. A wall that rearranges a number it
+has not understood gets somebody dialled wrong.
+
+**The verb matches what there is to do.** A Facebook message has no number on
+it, so it says *reply within 48 seconds* over "Reply in Messenger" rather than
+contradicting itself in the two places the room is looking.
+
+**The bar is CSS, the digits are React.** The bar runs off the same `--hold` as
+the thin countdown line under every alert, so the two cannot drift apart. The
+digits come from two timestamps rather than by subtracting one per tick,
+because a television that drops frames loses ticks and would finish the minute
+late while the bar finished on time.
+
+**Its default sound is the board's own beeps**, a two-tone pair alternating
+twice — an alarm rather than a chord. Neither clip in `public/sounds` is right
+for it: one is a doorbell for a quote and the other is six and a half seconds
+of cash register, and a sale's noise playing when nobody has sold anything is
+the board lying for a second and a half. Upload something better on the Sounds
+page and this never fires.
+
+### Facebook leads and messages
+
+`POST /api/leads/meta` is Meta's webhook. A lead-ad form and the first message
+of a Messenger conversation both become the same `portal_leads` row the
+website's quote form writes, with a different `source` — so the alert, the lead
+counts, the suburb map and the month's total all got Facebook without learning
+what Facebook is.
+
+To connect it, in Meta: set `META_APP_SECRET` and `META_VERIFY_TOKEN` in the
+environment, point the page's webhook at `/api/leads/meta`, use the verify
+token, and subscribe the page to `leadgen` and `messages`. `META_PAGE_TOKEN` is
+what fetches the form answers; without it a lead still reaches the wall, with
+nothing on it but the fact that somebody enquired. The portal's Integrations
+page says which of the three are in place and when Facebook last sent anything.
+
+**The URL is public and on the internet.** The signature is checked over the
+raw body bytes before the body is parsed at all, and with no app secret set the
+route refuses everything rather than falling open. Everything read out of the
+body afterwards is read defensively; `scripts/check-leads.ts` runs Meta's own
+documented payloads through it, which is the only way to exercise a webhook
+twice — the alternative is going and enquiring on a Facebook page.
+
+**A Messenger message is keyed on the person and the day**, not on the message
+id. People type the way they talk: "hi", then "do you do evaporative", then "in
+Pakenham" — three deliveries, one enquiry, and three full-screen alerts would
+teach the room to ignore the board by lunchtime. The unique index on
+`external_id` answers both that and Meta's retries at once: the second write is
+simply refused. The same person enquiring again next week is a new day and a
+new alert, which is right.
+
+**The duplicate is caught, not ignored in SQL.** The obvious version is
+PostgREST's `on_conflict=external_id` with `resolution=ignore-duplicates`, which
+becomes `on conflict (external_id) do nothing` — and that matches a plain unique
+index only. Against the *partial* one on this column it fails with 42P10 on
+every insert, which would have meant a 500 to every delivery Facebook ever made
+and an hour of retries for each. A refused insert comes back as 409, and 409
+here means exactly what the ignore would have meant.
+
+**Two things the page's own replies must not do**: alert, and count. `is_echo`
+messages and anything sent from the page's own id are dropped, or the board
+would ring the office every time the office answered somebody.
+
+**The contact rule had to be widened** (`0077`). It read "a quote lead has name
+and phone, or it isn't a quote", which was true of every lead the business had
+because the website form makes both required. A Messenger enquiry has neither —
+the reply goes back down the thread it came from. The rule keeps its intent and
+loses its assumption: a quote has to have *something* to answer on, a phone, an
+email, or an id in the system it came from.
 
 ## ServiceTitan became the ledger on 17 September 2026
 

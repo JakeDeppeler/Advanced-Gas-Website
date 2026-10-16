@@ -1,3 +1,5 @@
+import { CALL_WITHIN_SEC } from "@/lib/leads/newLeadTypes";
+
 /**
  * Which sound each of the wall board's pop-ups makes, and how loud.
  *
@@ -7,12 +9,15 @@
  * any more except the two clips that ship with it.
  */
 
-export type SoundKind = "quote" | "done" | "sold";
+export type SoundKind = "quote" | "done" | "sold" | "lead";
 
 export const SOUND_KINDS: Array<{ kind: SoundKind; label: string; when: string; holdSec: number }> = [
   { kind: "quote", label: "New quote", when: "A quote goes out on a job", holdSec: 7 },
   { kind: "done", label: "Job completed", when: "A job is finished — time to bill", holdSec: 9 },
   { kind: "sold", label: "Sold!", when: "A job is sold", holdSec: 11 },
+  // The longest hold on the board by a factor of five, because it is not an
+  // announcement: it is a minute, counting down, with a number to ring in it.
+  { kind: "lead", label: "New lead — call now", when: "A website enquiry or a Facebook lead comes in", holdSec: CALL_WITHIN_SEC },
 ];
 
 /**
@@ -37,6 +42,16 @@ export const DEFAULT_PLAN: SoundPlan = {
   quote: { sound: "builtin:quote", volume: 1 },
   done: { sound: "builtin:quote", volume: 1 },
   sold: { sound: "builtin:sold", volume: 0.85 },
+  /*
+   * The one kind that defaults to the board's own notes rather than a
+   * recording. Neither clip in `public/sounds` is right for it — one is a
+   * doorbell for a quote and the other is six and a half seconds of cash
+   * register for a sale, and a sale's noise playing when nobody has sold
+   * anything is the board lying for a second and a half. The notes for this
+   * kind are a two-tone alternating pair, which is an alarm rather than a
+   * chord. Upload something better on the Sounds page and this never fires.
+   */
+  lead: { sound: "notes", volume: 1 },
 };
 
 /**

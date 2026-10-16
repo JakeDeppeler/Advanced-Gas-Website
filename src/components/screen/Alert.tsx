@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cheer } from "./cheer";
+import { CALL_WITHIN_SEC, secondsLeft, type LeadAlertCopy } from "@/lib/leads/newLeadTypes";
 
 /**
- * The three full-screen alerts: a quote written, a job finished, a sale closed.
+ * The four full-screen alerts: a quote written, a job finished, a sale closed,
+ * and an enquiry to ring.
  *
  * These take the whole wall for a few seconds. That is the point — the room is
  * four metres away and doing something else, so an event that matters has to
@@ -21,7 +23,7 @@ import { cheer } from "./cheer";
  * number, which is the only one that was ever true.
  */
 
-export type AlertKind = "quote" | "done" | "sold";
+export type AlertKind = "quote" | "done" | "sold" | "lead";
 
 /** One bar on the Sold alert: where a number was, where it is, and the target. */
 export type SoldBar = {
@@ -60,10 +62,25 @@ export type BoardAlert = {
    * at most one sells, and how far apart they are is the sales conversation.
    */
   options?: number[] | null;
+  /**
+   * Lead only: who to ring, on what number, about what. Its own field rather
+   * than borrowed from `name`/`where`/`amount` above — this alert has no figure
+   * at all and its lines are instructions, not a description of something that
+   * has already happened.
+   */
+  lead?: LeadAlertCopy | null;
 };
 
-/** How long each one holds the wall. The countdown bar is drawn from this. */
-export const HOLD_MS: Record<AlertKind, number> = { quote: 7000, done: 9000, sold: 11000 };
+/**
+ * How long each one holds the wall. The countdown bar is drawn from this.
+ *
+ * A lead holds it for the full minute the office gives itself to ring, which is
+ * five times the longest of the others and is the point of the alert rather
+ * than a cost of it: the countdown is the instruction. It is affordable because
+ * enquiries are rare — thirty-six in the last thirty days, so about one and a
+ * bit a day, against a board that turns a page every thirty seconds all day.
+ */
+export const HOLD_MS: Record<AlertKind, number> = { quote: 7000, done: 9000, sold: 11000, lead: CALL_WITHIN_SEC * 1000 };
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 
@@ -208,13 +225,34 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
    */
   useEffect(() => cheer(alert.kind), [alert.id, alert.kind]);
 
-  const head = alert.kind === "quote" ? "New quote" : alert.kind === "done" ? "Time to bill" : "SOLD!";
+  /*
+   * The seconds left of the minute, for the lead alert. Why it is worked out
+   * from a start time and not by counting down is on secondsLeft.
+   *
+   * The hook runs for every kind because hooks must; only the lead alert starts
+   * an interval, and only the lead alert reads the answer. Four times a second,
+   * so the digit changes when the second does rather than up to a second late.
+   */
+  const [left, setLeft] = useState(CALL_WITHIN_SEC);
+  useEffect(() => {
+    if (alert.kind !== "lead") return;
+    const from = Date.now();
+    const tick = () => setLeft(secondsLeft(from, Date.now()));
+    tick();
+    const t = setInterval(tick, 250);
+    return () => clearInterval(t);
+  }, [alert.id, alert.kind]);
+
+  const head =
+    alert.kind === "quote" ? "New quote" : alert.kind === "done" ? "Time to bill" : alert.kind === "lead" ? "NEW LEAD" : "SOLD!";
   const eyebrow =
     alert.kind === "quote"
       ? `First quote on this job · ${alert.time}`
       : alert.kind === "done"
         ? `Job completed · ${alert.time}`
-        : `Sold · ${alert.time}`;
+        : alert.kind === "lead"
+          ? alert.lead?.eyebrow ?? `New enquiry · ${alert.time}`
+          : `Sold · ${alert.time}`;
 
   return (
     <div
@@ -272,7 +310,9 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
             <span className="alert__ripple" style={{ animationDelay: "0.6s" }} />
             <span className="alert__ripple" style={{ animationDelay: alert.kind === "done" ? "1.3s" : "1.5s" }} />
             {alert.kind === "done" && <span className="alert__ripple" style={{ animationDelay: "2s" }} />}
-            <span className="alert__disc">{alert.kind === "done" ? <TickIcon /> : <DocIcon />}</span>
+            <span className="alert__disc">
+              {alert.kind === "done" ? <TickIcon /> : alert.kind === "lead" ? <PhoneIcon /> : <DocIcon />}
+            </span>
           </span>
         )}
 
@@ -291,6 +331,9 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
           <span className="alert__head">{head}</span>
         )}
 
+        {alert.kind === "lead" ? (
+          <LeadBody lead={alert.lead ?? null} left={left} />
+        ) : (
         <span className="alert__row">
           <Rolling value={alert.amount} className="alert__figure" />
           {alert.kind === "sold" ? (
@@ -305,6 +348,7 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
             </span>
           )}
         </span>
+        )}
 
         {/*
           * What the figure above is the average of.
@@ -362,6 +406,73 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
           reading it — nobody waits on a wall display wondering if it is stuck. */}
       <span className="alert__count" aria-hidden />
     </div>
+  );
+}
+
+/**
+ * The lead alert's body: the number, then who and what, then the minute.
+ *
+ * The number is the biggest thing on the board — bigger than a sale's figure —
+ * because it is the only part anybody has to act on, and the act is reading it
+ * out loud while walking to a phone. Everything else on the alert exists to
+ * tell the person dialling who is going to answer.
+ */
+function LeadBody({ lead, left }: { lead: LeadAlertCopy | null; left: number }) {
+  if (!lead) return null;
+  return (
+    <>
+      <span className={`lead__call${lead.dialable ? "" : " is-words"}`}>{lead.call}</span>
+      <span className="lead__who">
+        {lead.who}
+        <span className="lead__what">{[lead.what, lead.where].filter(Boolean).join(" · ")}</span>
+      </span>
+      {lead.also && <span className="lead__also">{lead.also}</span>}
+      <span className="lead__timer">
+        {/* The bar is CSS, off the same `--hold` as the line under the alert,
+            so the two cannot drift apart and neither depends on a timer this
+            component has to keep. The seconds beside it are the written form
+            of the same thing — the bar is never the only one that says it. */}
+        <span className="lead__track" aria-hidden>
+          <span className="lead__fill" />
+        </span>
+        <span className="lead__secs">
+          {/* At zero it stops counting and says so: a wall that reads
+              "ring within 0 seconds" is giving an instruction nobody can
+              follow, and the honest line is that the minute has gone. */}
+          {/* The verb matches what there is to do. A Facebook message has no
+              number on it, and "ring within 60 seconds" over a line that says
+              "Reply in Messenger" is the board contradicting itself in the two
+              places the room is looking. */}
+          {left > 0 ? (
+            <>
+              {lead.dialable ? "ring" : "reply"} within <b>{left}</b> {left === 1 ? "second" : "seconds"}
+            </>
+          ) : (
+            <b className="is-late">
+              the minute has gone — {lead.dialable ? "ring them anyway" : "answer it anyway"}
+            </b>
+          )}
+        </span>
+      </span>
+    </>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg viewBox="0 0 96 96" className="alert__icon" aria-hidden>
+      <path
+        className="alert__stroke"
+        d="M30 16 h12 l6 16 -8 6 a40 40 0 0 0 18 18 l6 -8 16 6 v12 a8 8 0 0 1 -8 8 C44 74 22 52 22 24 a8 8 0 0 1 8 -8 z"
+        fill="none"
+        stroke="#f36722"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="300"
+        style={{ animationDelay: "0.55s", animationDuration: "0.6s" }}
+      />
+    </svg>
   );
 }
 
@@ -424,6 +535,26 @@ function DocIcon() {
  * real one.
  */
 export function previewAlert(kind: AlertKind): BoardAlert {
+  if (kind === "lead") {
+    return {
+      kind,
+      id: "preview-lead",
+      time: "2:15 pm",
+      amount: 0,
+      name: "Sample",
+      where: "Preview",
+      lead: {
+        eyebrow: "Website enquiry · 2:15 pm (preview)",
+        call: "0412 345 678",
+        dialable: true,
+        who: "Sample Customer",
+        what: "Heat pump hot water",
+        where: "Postcode 3810",
+        also: null,
+      },
+      chip: "Preview · nobody has enquired",
+    };
+  }
   if (kind === "quote") {
     return {
       kind,

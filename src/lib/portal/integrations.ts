@@ -5,6 +5,7 @@ import { xeroConfigured } from "@/lib/portal/xero";
 import { getIntegration } from "@/lib/portal/db";
 import { reeceConfigured, reeceConnection } from "@/lib/pricebook/reece";
 import { getReviews } from "@/lib/googleReviews";
+import { lastMetaLead, metaConfigured, metaTokenSet } from "@/lib/leads/meta";
 import { getInstagramFeed } from "@/lib/instagram";
 
 /**
@@ -230,6 +231,35 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       ],
       feeds: [{ label: "How the board works", href: "/portal/board" }],
       action: token ? { label: "Open the live board", href: "/portal/finance/board/open", external: true } : undefined,
+    });
+  }
+
+  /* ---- Facebook leads */
+  {
+    const connected = metaConfigured();
+    const token = metaTokenSet();
+    const at = connected ? await safe(() => lastMetaLead(), null) : null;
+    out.push({
+      k: "facebook-leads", name: "Facebook leads",
+      does: "Lead-ad forms and first Messenger messages, straight onto the wall board.",
+      // "Working" is not claimed on the strength of two environment variables:
+      // the webhook can be configured here and never subscribed in Meta, and
+      // the only proof it is really wired up is a lead that came through it.
+      state: !connected ? "off" : at ? "working" : "attention",
+      status: !connected ? "Not connected" : at ? "Receiving" : "Set up, nothing received yet",
+      at,
+      facts: [
+        connected
+          ? "Each one is saved as a lead and takes the wall board for a minute"
+          : "Set META_APP_SECRET and META_VERIFY_TOKEN, then point the page's webhook at /api/leads/meta",
+        connected && !token
+          ? "No page token (META_PAGE_TOKEN), so a lead form arrives without the name or number on it"
+          : connected
+            ? "Page token set, so the form answers come through with the lead"
+            : "Subscribe the page to leadgen and messages once the webhook verifies",
+      ],
+      feeds: [{ label: "Website · Enquiries", href: "/portal/website" }, { label: "How the board works", href: "/portal/board" }],
+      action: connected ? undefined : { label: "Meta webhooks", href: "https://developers.facebook.com/apps", external: true },
     });
   }
 

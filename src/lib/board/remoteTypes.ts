@@ -18,10 +18,10 @@
 export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Money", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
-/** The board's three alerts, as the demo shows them: a sale, a quote, a job to bill. */
+/** The board's alerts, as the demo shows them: a sale, a quote, a job to bill, a new lead. */
 import { normalisePlan, type SoundPlan } from "@/lib/board/soundTypes";
 
-export type DemoKind = "sold" | "quote" | "done";
+export type DemoKind = "sold" | "quote" | "done" | "lead";
 
 export type BoardRemote = {
   /**
@@ -55,7 +55,7 @@ export type BoardRemote = {
 export const EMPTY_REMOTE: BoardRemote = { view: null, demo: null, theme: null, reload: null, liveUntil: null, by: null, at: null };
 
 const isPage = (v: unknown): v is BoardPageName => typeof v === "string" && (BOARD_PAGES as readonly string[]).includes(v);
-const isDemo = (v: unknown): v is DemoKind => v === "sold" || v === "quote" || v === "done";
+const isDemo = (v: unknown): v is DemoKind => v === "sold" || v === "quote" || v === "done" || v === "lead";
 const str = (v: unknown) => (typeof v === "string" && v ? v : null);
 
 /** Whatever is stored, as a remote the board can trust. */

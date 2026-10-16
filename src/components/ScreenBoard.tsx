@@ -9,7 +9,8 @@ import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, ve
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
 import { checkAudio, primeAudio, soundReason, soundState, soundStateOnServer, subscribeAudio } from "./screen/cheer";
 import { Ticker, TickerScope } from "./screen/Ticker";
-import { alertFrom } from "@/lib/dashboard/alertCopy";
+import { alertFrom, leadAlertFrom } from "@/lib/dashboard/alertCopy";
+import type { NewLead } from "@/lib/leads/newLeadTypes";
 import { useBoardRemote } from "./screen/useBoardRemote";
 import { BOARD_PAGES, type BoardRemote } from "@/lib/board/remoteTypes";
 import { AR_BANDS, type ArBandKey } from "@/lib/portal/ar";
@@ -24,6 +25,17 @@ type Snapshot = {
 // left on this URL for months would leak memory and flash white on every
 // location.reload(); swapping state in place does neither.
 const REFRESH_MS = 30_000;
+/*
+ * How often the board asks whether anybody has enquired.
+ *
+ * Its own cadence and its own route, because this is the one thing on the
+ * board measured in seconds rather than in money. The figures ride a 25-second
+ * recompute and a 30-second poll, which would land a new lead on the wall with
+ * fifteen seconds of its minute left; fifteen seconds of lag leaves
+ * three-quarters of the minute to do something with. The read behind it is one
+ * indexed slice of one table — see /api/screen/leads.
+ */
+const LEADS_MS = 15_000;
 // How often the board asks the server to recompute, matching the poll so the
 // wall is never more than a minute behind the replica. The endpoint recomputes
 // the snapshot on every one of these — cheap, it only reads the replica — but
@@ -151,6 +163,9 @@ const pct = (n: number | null | undefined) => (n == null ? "—" : `${Math.round
  * footer already says so.
  */
 type Live = { st: boolean };
+
+/** One thing waiting for the wall: a snapshot event, or an enquiry just in. */
+type QueueItem = { t: "event"; e: Metrics["alertEvents"][number] } | { t: "lead"; lead: NewLead };
 const NA = "—";
 
 /**
@@ -191,7 +206,17 @@ export function ScreenBoard({
   const [snap, setSnap] = useState(initial);
   const [now, setNow] = useState(() => new Date());
   const [page, setPage] = useState(0);
-  const [queue, setQueue] = useState<Metrics["alertEvents"]>([]);
+  /*
+   * What is waiting to take the wall.
+   *
+   * Two sorts of thing, from two sources at two speeds: the snapshot's own
+   * events, which still need the metrics beside them to work out a sale's
+   * progress bars, and new enquiries, which arrive already complete from their
+   * own poll. Keeping them in one queue is what makes them take turns — a sale
+   * and a lead landing together play one after the other rather than one over
+   * the top of the other.
+   */
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [paused, setPaused] = useState(false);
   // Bumped each time a previewed alert finishes, so it replays rather than
   // showing once and leaving the board behind it.
@@ -327,7 +352,7 @@ export function ScreenBoard({
          * A fresh load never hits this: `seen` is seeded from the first
          * snapshot, so everything already on the books counts as watched.
          */
-        if (fresh.length) setQueue((qd) => [...qd, ...fresh].slice(-3));
+        if (fresh.length) setQueue((qd) => [...qd, ...fresh.map((e): QueueItem => ({ t: "event", e }))].slice(-3));
 
         setSnap(next);
       } catch {
@@ -353,6 +378,49 @@ export function ScreenBoard({
       cancelled = true;
       clearInterval(timer);
       clearInterval(resyncTimer);
+    };
+  }, [token]);
+
+  /*
+   * The enquiry poll.
+   *
+   * Its own effect and its own clock, so the board's figures and the board's
+   * doorbell cannot slow each other down.
+   *
+   * The watermark is the server's, never this television's. The first call
+   * sends no `since` and the route answers with the newest enquiry already on
+   * file and nothing to show — which is what stops a panel that reloads itself
+   * at three in the morning waking up and announcing the whole of yesterday.
+   * After that the board hands back whatever it was given, so a poll that
+   * fails changes nothing and the next one asks for the same window again.
+   */
+  const since = useRef<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function pollLeads() {
+      try {
+        const qs = since.current ? `&since=${encodeURIComponent(since.current)}` : "";
+        const res = await fetch(`/api/screen/leads?k=${encodeURIComponent(token)}${qs}`, { cache: "no-store" });
+        if (!res.ok || cancelled) return;
+        const { next, leads } = (await res.json()) as { next?: string; leads?: NewLead[] };
+        if (cancelled) return;
+        if (next) since.current = next;
+        // The same seen set as the figures' alerts: a board is not allowed to
+        // announce the same thing twice, whichever door it came in by.
+        const fresh = (leads ?? []).filter((l) => !seen.current.has(`lead-${l.id}`));
+        for (const l of fresh) seen.current.add(`lead-${l.id}`);
+        if (fresh.length) setQueue((qd) => [...qd, ...fresh.map((lead): QueueItem => ({ t: "lead", lead }))].slice(-3));
+      } catch {
+        // A blip. The watermark has not moved, so nothing has been missed.
+      }
+    }
+
+    void pollLeads();
+    const timer = setInterval(pollLeads, LEADS_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
     };
   }, [token]);
 
@@ -406,8 +474,8 @@ export function ScreenBoard({
       ) : (
         celebrating && (
           <Alert
-            key={celebrating.id}
-            alert={alertFrom(celebrating, m)}
+            key={celebrating.t === "lead" ? `lead-${celebrating.lead.id}` : celebrating.e.id}
+            alert={celebrating.t === "lead" ? leadAlertFrom(celebrating.lead) : alertFrom(celebrating.e, m)}
             onDone={() => setQueue((qd) => qd.slice(1))}
           />
         )
