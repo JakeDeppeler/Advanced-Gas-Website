@@ -816,3 +816,7 @@ label.pk-btn { cursor: pointer; }
 .pt-cover__pos { color: var(--good); font-weight: 700; }
 .pt-cover__grp td { font-weight: 800; background: var(--sunken); }
 .pt-cover__days td:first-child { min-width: 200px; }
+/* What if › vans: today's real crew beside the van counts. */
+.pt-vans th span { display: block; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink3); }
+.pt-vans .pt-vans__now { border-right: 1px solid var(--line); }
+.pt-vans td:first-child { min-width: 180px; }

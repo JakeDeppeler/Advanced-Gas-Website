@@ -36,6 +36,7 @@ export default async function PricingPage() {
         <NumbersForm title="Rates & pricing" aside="match these to the ServiceTitan pricebook" save={savePricing} canSave={can(user, "overhead")} rows={[
           { key: "hourly", label: "Our hourly rate", sub: "a tradesman and an apprentice, before GST", unit: "$ an hour", value: p.hourly },
           { key: "solo", label: "One person in a van", sub: "a tech on their own, before GST", unit: "$ an hour", value: p.solo },
+          { key: "install", label: "Install crew", sub: "a tradesman and two apprentices, one van, before GST", unit: "$ an hour", value: p.install },
           { key: "callout", label: "Call-out fee", sub: "before GST", unit: "$", value: p.callout },
           { key: "afterHours", label: "After-hours", sub: "times the hourly rate", unit: "× the hourly rate", value: p.afterHours },
           { key: "margin", label: "Profit we want", sub: "of the price, after every cost · used to build every rate", unit: "% of the price", value: cap?.margin ?? null },

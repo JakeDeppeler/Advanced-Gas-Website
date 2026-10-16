@@ -14,7 +14,7 @@ import { normalisePricing } from "@/lib/portal/pricingTypes";
 export async function savePricing(v: Record<string, number | null>): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
-  const p = await saveSettings("pricing", normalisePricing({ hourly: v.hourly, solo: v.solo, callout: v.callout, afterHours: v.afterHours }));
+  const p = await saveSettings("pricing", normalisePricing({ hourly: v.hourly, solo: v.solo, install: v.install, callout: v.callout, afterHours: v.afterHours }));
   if (!p.ok) return { ok: false, error: "Couldn’t save." };
   const margin = v.margin;
   if (margin != null) {

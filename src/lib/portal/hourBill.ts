@@ -160,9 +160,9 @@ export function yearSpend(s: CapSettings, cap: ReturnType<typeof computeCapacity
   const ownFees = cap.sharedOverhead - cap.labourOh - cap.officeOh - cap.otherOverhead;
   if (s.ohSource === "internal") b.admin += ownFees - cap.feesMoved; else b.kit += ownFees - cap.feesMoved;
   return [
-    { key: "tools", label: "Wages for time on the tools", note: "the hours a customer pays for", annual: cap.fieldWages },
-    { key: "off", label: "Wages for time off the tools", note: "leave, holidays, sick days, RDOs, school, driving", annual: cap.labourOh },
-    { key: "office", label: "Office staff", note: "everyone who doesn't go out on jobs", annual: cap.officeOh },
+    { key: "tools", label: "Wages for time on the tools", note: "the hours a customer pays for · with super & WorkCover", annual: cap.fieldWages },
+    { key: "off", label: "Wages for time off the tools", note: "leave, holidays, sick days, RDOs, school, driving · with super & WorkCover", annual: cap.labourOh },
+    { key: "office", label: "Office staff", note: "everyone who doesn't go out on jobs · with super & WorkCover", annual: cap.officeOh },
     { key: "vans", label: "The vans", note: "fuel, servicing, rego, insurance, depreciation", annual: b.vans },
     { key: "kit", label: "Tools, uniforms & training", note: "including school fees", annual: b.kit },
     { key: "marketing", label: "Marketing", note: "what keeps the phone ringing", annual: b.marketing },
@@ -203,5 +203,24 @@ export function spendLines(s: CapSettings, cap: ReturnType<typeof computeCapacit
   const fees = ownFees - cap.feesMoved;
   if (Math.abs(fees) > 0.5) out[s.ohSource === "internal" ? "admin" : "kit"].push({ label: "Trade-school fees on the apprentices, less the incentive and what came off training", annual: fees });
   for (const k of Object.keys(out)) out[k].sort((a, b) => b.annual - a.annual);
+  // Every pay figure above carries super, WorkCover and LSL inside it. Take them
+  // out and show them as their own lines, so the wage is the wage and the
+  // on-costs are where you can see them — still adding back to the bucket.
+  const oc = onCostsOf(s);
+  const ocAll = oc.superPct + oc.workcoverPct + oc.lslPct;
+  if (ocAll > 0) {
+    for (const k of ["tools", "off", "office"]) {
+      const pay = out[k];
+      const total = pay.reduce((a, l) => a + l.annual, 0);
+      if (total <= 0) continue;
+      const wages = total / (1 + ocAll / 100);
+      out[k] = [
+        ...pay.map((l) => ({ label: `${l.label} — wages`, annual: l.annual / (1 + ocAll / 100) })),
+        { label: `Super, ${oc.superPct}%`, annual: (wages * oc.superPct) / 100 },
+        ...(oc.workcoverPct > 0 ? [{ label: `WorkCover, ${oc.workcoverPct}%`, annual: (wages * oc.workcoverPct) / 100 }] : []),
+        ...(oc.lslPct > 0 ? [{ label: `Long service leave, ${oc.lslPct}%`, annual: (wages * oc.lslPct) / 100 }] : []),
+      ];
+    }
+  }
   return out;
 }

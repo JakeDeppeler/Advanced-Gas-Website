@@ -139,3 +139,46 @@ export function scenarios(lines: CoverLine[], fleet: Fleet, onCostPct: number, i
     ...(worse !== i.billPerDay ? [run("worse", `Bill ${worse} of ${i.dayHrs} hours`, "an hour a day lost to driving, waiting or call-backs", { billPerDay: worse })] : []),
   ];
 }
+
+
+/** The crews a van goes out with, by how many apprentices ride with the tech. */
+export const CREWS = [
+  { k: "solo", label: "A tech on their own", sub: "one person, one van", apps: 0 },
+  { k: "pair", label: "A tech and an apprentice", sub: "the usual crew", apps: 1 },
+  { k: "install", label: "A tech and two apprentices", sub: "an install crew, one van", apps: 2 },
+] as const;
+export type CrewKind = (typeof CREWS)[number]["k"];
+
+/**
+ * What one van has to charge an hour, crewed each way, for a year: its fair
+ * share of every overhead plus the crew's whole pay, over the hours one van
+ * bills. A tech on their own still carries the whole van, which is why one
+ * person isn't half the crew rate.
+ */
+export function crewRates(r: CoverResult, vans: number, onCostPct: number) {
+  const i = r.inputs;
+  const share = vans > 0 ? r.overhead / vans : r.overhead;
+  const hrsVan = i.daysOnTools * i.billPerDay;
+  const loaded = 1 + onCostPct / 100;
+  const factor = 1 / (1 - Math.min(90, Math.max(0, i.margin)) / 100);
+  return {
+    share, hrsVan,
+    rows: CREWS.map((c) => {
+      const pay = (i.techWage + c.apps * i.appWage) * PAID_HRS_YEAR * loaded;
+      const be = hrsVan > 0 ? (share + pay) / hrsVan : 0;
+      return { ...c, pay, be, price: be * factor };
+    }),
+  };
+}
+
+/**
+ * The business at a different number of vans, each with a tech and the same
+ * share of apprentices as today. The van lines move a van at a time; the
+ * lines that stay put don't. Today's real crew is the `now` column beside it.
+ */
+export function fleetSizes(lines: CoverLine[], fleet: Fleet, onCostPct: number, i: CoverInputs, sizes: number[]) {
+  const appsPerVan = i.techs > 0 ? i.apps / i.techs : 0;
+  // Every van with its own tech, so the van count and the tech count are the same thing.
+  const even: Fleet = { vans: fleet.vans, techs: fleet.vans };
+  return sizes.map((v) => ({ vans: v, apps: v * appsPerVan, r: coverHour(lines, even, onCostPct, { ...i, techs: v, apps: v * appsPerVan }) }));
+}
