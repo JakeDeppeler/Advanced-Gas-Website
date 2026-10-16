@@ -185,6 +185,13 @@ export function Stuck({ v }: { v: StuckView }) {
             Open jobs waiting on something, in the office&rsquo;s own tags. The wall board shows this one too.
           </span>
         </div>
+        <p className="pt-note" style={{ margin: "0 0 12px" }}>
+          <strong>What on hold means:</strong> the job is open but stopped — ServiceTitan has it on Hold, or it carries one of the hold tags
+          (waiting on parts, on a quote to go out, on the customer, on an agent&rsquo;s approval). Until it moves, nobody can finish it, so it
+          can&rsquo;t be billed and can&rsquo;t be paid: the money isn&rsquo;t late, it hasn&rsquo;t started.{" "}
+          <strong>On us</strong> is a hold we can clear ourselves — order the part, send the quote, book the reattend.{" "}
+          <strong>On the customer</strong> is waiting for their answer or their agent&rsquo;s.
+        </p>
         {!v.held ? (
           <p className="pt-note">Nothing is held, or the tag list has not been set.</p>
         ) : (

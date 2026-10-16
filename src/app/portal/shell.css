@@ -22,7 +22,9 @@
   --line: rgba(60, 60, 67, 0.12); --quiet: rgba(118, 118, 128, 0.12); --track: rgba(118, 118, 128, 0.16);
   --mark: #1d1d1f; --on-mark: #ffffff;
   --good: #1f7a35; --good-f: #34c759; --good-bg: rgba(52, 199, 89, 0.14);
-  --mid: #6e6e73; --mid-f: #8e8e93; --mid-bg: rgba(118, 118, 128, 0.12);
+  /* Close to goal is gold, not grey: grey read as "no opinion" on a figure
+     that was nearly there. --neutral-f is the grey for avatars and icons. */
+  --mid: #8a5a00; --mid-f: #f5a623; --mid-bg: rgba(245, 166, 35, 0.16); --neutral-f: #8e8e93;
   --accent: #0071e3; --accent-bg: rgba(0, 113, 227, 0.1);
   --bad: #d70015; --bad-f: #ff3b30; --bad-bg: rgba(215, 0, 21, 0.08);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.04);
@@ -36,7 +38,7 @@
   --line: rgba(255, 255, 255, 0.1); --quiet: rgba(255, 255, 255, 0.08); --track: rgba(255, 255, 255, 0.12);
   --mark: #f5f5f7; --on-mark: #111113;
   --good: #30d158; --good-f: #30d158; --good-bg: rgba(48, 209, 88, 0.16);
-  --mid: #a1a1a6; --mid-f: #8e8e93; --mid-bg: rgba(255, 255, 255, 0.08);
+  --mid: #ffc35c; --mid-f: #f5a623; --mid-bg: rgba(245, 166, 35, 0.18); --neutral-f: #8e8e93;
   --accent: #0a84ff; --accent-bg: rgba(10, 132, 255, 0.16);
   --bad: #ff6961; --bad-f: #ff453a; --bad-bg: rgba(255, 69, 58, 0.14);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3); --seg-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -51,7 +53,7 @@
     --line: rgba(255, 255, 255, 0.1); --quiet: rgba(255, 255, 255, 0.08); --track: rgba(255, 255, 255, 0.12);
     --mark: #f5f5f7; --on-mark: #111113;
     --good: #30d158; --good-f: #30d158; --good-bg: rgba(48, 209, 88, 0.16);
-    --mid: #a1a1a6; --mid-f: #8e8e93; --mid-bg: rgba(255, 255, 255, 0.08);
+    --mid: #ffc35c; --mid-f: #f5a623; --mid-bg: rgba(245, 166, 35, 0.18); --neutral-f: #8e8e93;
     --accent: #0a84ff; --accent-bg: rgba(10, 132, 255, 0.16);
     --bad: #ff6961; --bad-f: #ff453a; --bad-bg: rgba(255, 69, 58, 0.14);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3); --seg-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
@@ -365,7 +367,7 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
 .ph-td-t span { display: block; font-size: 13px; color: var(--ink2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ph-td-meta { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
 .ph-who { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ink2); }
-.ph-av { width: 22px; height: 22px; border-radius: 99px; background: var(--mid-f); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex: none; }
+.ph-av { width: 22px; height: 22px; border-radius: 99px; background: var(--neutral-f); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex: none; }
 .ph-due { font-size: 12px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
 .ph-due.late { color: var(--bad); }
 .ph-more { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--ink); text-decoration: none; }
@@ -502,8 +504,8 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-row .t span span { display: inline; font-size: inherit; }
 .pk-row .v { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pk-chev { color: var(--ink4); font-size: 20px; line-height: 1; }
-.pk-ico { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--mid-f); color: #fff; flex: none; }
-.pk-av { width: 32px; height: 32px; border-radius: 99px; background: var(--mid-f); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none; }
+.pk-ico { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--neutral-f); color: #fff; flex: none; }
+.pk-av { width: 32px; height: 32px; border-radius: 99px; background: var(--neutral-f); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex: none; }
 .pk-kv { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
 .pk-kv:first-of-type { border-top: 0; }
 .pk-card-h + .pk-kv { border-top: 1px solid var(--line); }
@@ -539,7 +541,7 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-hbar b { font-variant-numeric: tabular-nums; text-align: right; }
 .pk-stack { position: relative; height: 24px; border-radius: 6px; background: var(--sunken); overflow: hidden; display: flex; }
 .pk-stack i { display: block; height: 100%; }
-.pk-stack .cost { background: var(--mid-f); } .pk-stack .share { background: var(--track); } .pk-stack .profit { background: var(--good-f); } .pk-stack .loss { background: var(--bad-f); position: absolute; top: 0; bottom: 0; }
+.pk-stack .cost { background: var(--neutral-f); } .pk-stack .share { background: var(--track); } .pk-stack .profit { background: var(--good-f); } .pk-stack .loss { background: var(--bad-f); position: absolute; top: 0; bottom: 0; }
 .pk-stack em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
 .pk-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink2); margin-bottom: 8px; }
 .pk-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
@@ -625,7 +627,7 @@ a.pk-row:hover { background: var(--sunken); }
   background: var(--surface); color: var(--ink); box-shadow: var(--seg-shadow); font-weight: 800; border-color: transparent;
 }
 .pn .pt-seg__b.is-on.pt-seg__b--good, .pn .pt-seg__b.is-on.pt-seg__b--on { background: var(--good-f); color: #fff; }
-.pn .pt-seg__b.is-on.pt-seg__b--repair { background: var(--mid-f); color: #fff; }
+.pn .pt-seg__b.is-on.pt-seg__b--repair { background: var(--neutral-f); color: #fff; }
 .pn .pt-seg__b.is-on.pt-seg__b--off { background: var(--bad-f); color: #fff; }
 /* A flat section's page bar, drawn by the shell above the page. */
 .pn-secbar { margin-bottom: 18px; }
@@ -820,3 +822,20 @@ label.pk-btn { cursor: pointer; }
 .pt-vans th span { display: block; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink3); }
 .pt-vans .pt-vans__now { border-right: 1px solid var(--line); }
 .pt-vans td:first-child { min-width: 180px; }
+
+/* A hero with a status: the box itself says how it's going, and the pill says it in words. */
+.pk-hero.st-good, .pk-hero.st-mid, .pk-hero.st-bad { color: var(--ink); box-shadow: var(--shadow); }
+.pk-hero.st-good { background: var(--good-bg); }
+.pk-hero.st-mid { background: var(--mid-bg); }
+.pk-hero.st-bad { background: var(--bad-bg); }
+.pk-hero.st-good .pk-hl, .pk-hero.st-mid .pk-hl, .pk-hero.st-bad .pk-hl { opacity: 1; color: var(--ink2); }
+.pk-hero.st-good .pk-hb, .pk-hero.st-mid .pk-hb, .pk-hero.st-bad .pk-hb { background: var(--track); }
+.pk-hero.st-good .pk-hb i { background: var(--good-f); }
+.pk-hero.st-mid .pk-hb i { background: var(--mid-f); }
+.pk-hero.st-bad .pk-hb i { background: var(--bad-f); }
+.pk-hero .pk-hl .pk-st { margin-left: 6px; vertical-align: 1px; }
+/* Both year goals under a figure: what's over and what's to go. */
+.pk-goals { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pk-goals .ok { color: var(--good); }
+.pk-goals .no { color: var(--bad); }
+.pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad) .pk-goals span { color: var(--on-mark); opacity: 0.9; }

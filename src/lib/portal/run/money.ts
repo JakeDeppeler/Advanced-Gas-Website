@@ -16,6 +16,14 @@ export type OwedInvoice = OverdueInvoice & {
   by: "servicetitan" | "name";
   /** Which system holds the invoice. */
   from: "xero" | "servicetitan";
+  /**
+   * "work" while the job isn't done — a deposit's balance, owed once the work
+   * is finished, never overdue — and "billed" once it is. Xero's are billed.
+   */
+  stage: "work" | "billed";
+  /** The invoice's price, and what's been paid of it (the deposit). */
+  total?: number;
+  paid?: number;
 };
 
 /** Where the two ledgers meet: see ST_LEDGER_FROM. */
@@ -38,8 +46,11 @@ async function stOpen(today: string): Promise<OwedInvoice[] | null> {
   if (!rows) return null;
   const day = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
   return rows.map((r) => ({
-    number: r.number, contact: r.name ?? "", due: r.due, daysOver: Math.round((day(today) - day(r.due)) / 86_400_000),
+    number: r.number, contact: r.name ?? "", due: r.due,
+    // Not done yet isn't late, whatever ServiceTitan's booking-day due date says.
+    daysOver: r.done ? Math.round((day(today) - day(r.due)) / 86_400_000) : Math.min(0, Math.round((day(today) - day(r.due)) / 86_400_000)),
     amountDue: r.amount, from: "servicetitan" as const, ...segOf(r.unit, r.name ?? ""),
+    stage: r.done ? "billed" as const : "work" as const, total: r.total, paid: Math.max(0, r.total - r.amount),
   }));
 }
 
@@ -70,7 +81,7 @@ export const owedInvoices = cache(async (): Promise<{ list: OwedInvoice[]; parti
   // An invoice in both is counted once, from Xero.
   const inXero = new Set(nums);
   const list: OwedInvoice[] = [
-    ...(inv ?? []).map((i) => ({ ...i, from: "xero" as const, ...segOf(units.get(i.number) ?? null, i.contact) })),
+    ...(inv ?? []).map((i) => ({ ...i, from: "xero" as const, stage: "billed" as const, ...segOf(units.get(i.number) ?? null, i.contact) })),
     ...(st ?? []).filter((i) => !inXero.has(i.number)),
   ];
   return { list, partial: !inv ? "xero" : !st ? "servicetitan" : null };

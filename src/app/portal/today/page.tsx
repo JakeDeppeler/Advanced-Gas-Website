@@ -10,6 +10,11 @@ import { melNow, money, plural, salesGoal } from "@/lib/portal/run/month";
 import { BENCH, benchStatus } from "@/lib/portal/benchmarks";
 import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Kv, Lh, Pair, Pill, Row, Say, Tabs, Tile, Two, none, status, type Status } from "@/components/portal/kit/Kit";
 import { SoldTodayChart } from "@/components/portal/kit/Charts";
+import { TwoGoals } from "@/components/portal/kit/TwoGoals";
+import { monthTrack } from "@/lib/portal/run/monthTrack";
+import { personDays } from "@/lib/portal/cover/days";
+import { coverBase } from "@/lib/portal/cover/load";
+import { dbConfigured } from "@/lib/portal/db";
 import { Icon } from "@/components/portal/shell/Sidebar";
 
 export const dynamic = "force-dynamic";
@@ -44,11 +49,17 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   if (!can(user, "overhead")) return <Locked user={user} what="Today" forWhom="the office" />;
 
   const tab = ["team", "calls"].includes(searchParams.tab ?? "") ? (searchParams.tab as string) : "overview";
-  const [board, lines, points, calls] = await Promise.all([
+  const isoMonth = new Date(Date.now() + 10 * 3_600_000).toISOString().slice(0, 7);
+  const [board, lines, points, calls, track, crew, hour] = await Promise.all([
     latestBoard(),
     needsToday(user).catch(() => []),
     tab === "overview" ? soldTodayPoints() : Promise.resolve([] as [number, number][]),
     tab === "calls" ? callStats(7) : Promise.resolve(null),
+    // Before the Reece bill: the gear in this month's sales, from the estimates as they're sold.
+    tab === "overview" && dbConfigured() ? monthTrack(isoMonth).catch(() => null) : Promise.resolve(null),
+    // How the crew worked this week: billed work a day against the hours we bill on.
+    tab === "overview" && dbConfigured() ? personDays(7, 8).catch(() => null) : Promise.resolve(null),
+    tab === "overview" ? coverBase().catch(() => null) : Promise.resolve(null),
   ]);
   const m = board?.metrics ?? null;
   const now = melNow();
@@ -160,7 +171,33 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   const sellSt = usual ? status(m.soldToday, usual) : none();
   const g = salesGoal(m);
   const notBilled = m.toBillCount ?? 0;
-  const quotedUsual = m.dailyQuotedTarget ?? null;
+  // A usual day's quoting: set on the board, or what a usual day's sales need at our close rate.
+  const quotedUsual = m.dailyQuotedTarget ?? (usual && m.closeRate30d ? usual / m.closeRate30d : null);
+  const levels = m.goalLevels ?? null;
+  const monthSt = g.byNow ? status(m.soldMtd, g.byNow) : none();
+
+  // Cost of goods. The month's sales so far: gear on the estimates as they're
+  // sold, against the most a sale can carry and still pay its way. The last 30
+  // days of finished jobs: gear and labour against the price — over 80% and
+  // the 20% we price for is gone.
+  const sales = track ? track.sold.reduce((a, j) => a + j.price, 0) : 0;
+  const gear = track ? track.sold.reduce((a, j) => a + j.gear, 0) : 0;
+  const gearShare = sales > 0 && gear > 0 ? gear / sales : null;
+  const gearMax = track?.maxGear ?? null;
+  const gearSt: Status = gearShare == null ? none("No costs yet") : gearMax != null ? status(gearShare * 100, gearMax * 100, { pts: true, lower: true }) : none();
+  const jp = m.jobProfitRecent ?? null;
+  const cogs = jp?.margin != null && jp.costed >= 5 ? 1 - jp.margin : null;
+  const cogsSt: Status = cogs == null ? none("Too few costed") : cogs > 0.8 ? { k: "bad", w: "Over 80%" } : cogs > 0.75 ? { k: "mid", w: "Close to 80%" } : { k: "good", w: "Under 80%" };
+
+  // The crew, last 7 days: hours of billed work a day per person, against the hours billed a day we price on.
+  const target = hour?.i.billPerDay ?? 6;
+  const people = (crew ?? []).filter((p) => p.days > 0 && p.onSiteTimed > 0);
+  const work = people.reduce((a, p) => a + p.workHrs, 0);
+  const days = people.reduce((a, p) => a + p.days, 0);
+  const timed = people.reduce((a, p) => a + p.onSiteTimed, 0);
+  const workDay = days > 0 ? work / days : null;
+  const speed = timed > 0 ? work / timed : null;
+  const effSt: Status = workDay == null ? none("No timesheets") : workDay >= target ? { k: "good", w: "On target" } : workDay >= target - 1.5 ? { k: "mid", w: "Under" } : { k: "bad", w: "Well under" };
   const daysIn = Math.max(1, (m.workingDaysTotal ?? 0) - (m.workingDaysLeft ?? 0));
   const leadsUsual = m.leadsMonth > 0 ? m.leadsMonth / daysIn : null;
   const team = m.daily?.team ?? null;
@@ -175,14 +212,14 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
           {notBilled > 0 && <Bad>{plural(notBilled, "job is", "jobs are")} done but not billed.</Bad>}
         </Say>
         <Pair>
-          <Hero dark label="Sold today" right={usual ? `a usual day ${money(usual)}` : "no goal set"} fig={money(m.soldToday)} frac={usual ? m.soldToday / usual : null}
-            sub={`${plural(m.soldCountToday, "job")} sold · ${plural(m.quotesCreatedTodayCount, "quote")} sent`} />
-          <Hero label={`${now.month} so far`} right={g.month ? `goal ${money(g.month)}` : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
-            sub={g.byNow != null ? `${money(g.byNow)} is where the goal says we should be by now` : "Set a year goal to see the pace"} href="/portal/sales" />
+          <Hero dark st={usual ? sellSt : undefined} label="Sold today" right={usual ? `a usual day ${money(usual)}` : "no goal set"} fig={money(m.soldToday)} frac={usual ? m.soldToday / usual : null}
+            sub={<>{plural(m.soldCountToday, "job")} sold · {plural(m.quotesCreatedTodayCount, "quote")} sent<TwoGoals levels={levels} done={m.soldToday} need={usual} /></>} />
+          <Hero st={g.byNow ? monthSt : undefined} label={`${now.month} so far`} right={g.month ? `goal ${money(g.month)}` : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
+            sub={<>{g.byNow != null ? `${money(g.byNow)} is where the goal says we should be by now` : "Set a year goal to see the pace"}<TwoGoals levels={levels} done={m.soldMtd} need={g.byNow} /></>} href="/portal/sales" />
         </Pair>
         <Grid>
           <Tile label="Quoted" st={quotedUsual ? status(m.quotesCreatedTodayValue, quotedUsual) : none()} fig={money(m.quotesCreatedTodayValue)} frac={quotedUsual ? m.quotesCreatedTodayValue / quotedUsual : null}
-            sub={`${plural(m.quotesCreatedTodayCount, "quote")}${quotedUsual ? ` · usual ${money(quotedUsual)}` : ""}`} href="/portal/pipeline" />
+            sub={<>{plural(m.quotesCreatedTodayCount, "quote")}{quotedUsual ? ` · a usual day ${money(quotedUsual)}` : ""}<TwoGoals levels={levels} done={m.quotesCreatedTodayValue} need={quotedUsual} /></>} href="/portal/pipeline" />
           <Tile label="Jobs done" st={team && team.jobsTotal ? (team.jobsDone >= team.jobsTotal ? { k: "good", w: "All done" } : none("Going")) : none("")}
             fig={team ? `${team.jobsDone} of ${team.jobsTotal}` : String(m.jobsCompletedToday)} frac={team && team.jobsTotal ? team.jobsDone / team.jobsTotal : null}
             sub={team ? `${team.jobsTotal - team.jobsDone} still on the go` : "finished today"} href="/portal/today?tab=team" />
@@ -190,6 +227,15 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
             sub={notBilled ? (m.toBillValue ? `${money(m.toBillValue)} done, not billed` : `${plural(notBilled, "job")} done, not billed`) : "nothing waiting to bill"} href="/portal/jobs?tab=notbilled" />
           <Tile label="Leads" st={leadsUsual ? status(m.leadsToday, leadsUsual) : none("")} fig={String(m.leadsToday)} frac={leadsUsual ? m.leadsToday / leadsUsual : null}
             sub={leadsUsual ? `usual ${leadsUsual.toFixed(leadsUsual < 10 ? 1 : 0)} a day` : "this month so far"} href="/portal/leads" />
+        </Grid>
+        <Lh>Before the Reece bill</Lh>
+        <Grid cols={3}>
+          <Tile label="Gear in this month's sales" st={gearSt} fig={gearShare != null ? `${Math.round(gearShare * 100)}%` : "—"} frac={gearShare}
+            sub={gearShare != null ? `${money(gear)} of ${money(sales)} sold${gearMax != null ? ` · most a sale can carry ${Math.round(gearMax * 100)}%` : ""}` : "nothing sold with costs yet this month"} href="/portal/month" />
+          <Tile label="Cost of goods, last 30 days" st={cogsSt} fig={cogs != null ? `${(Math.round(cogs * 1000) / 10).toFixed(1)}%` : "—"} frac={cogs}
+            sub={jp ? `gear and labour on ${jp.costed} finished jobs · keep it under 80%` : "no finished jobs costed yet"} href="/portal/profit" />
+          <Tile label="Billed work a day, last 7 days" st={effSt} fig={workDay != null ? `${workDay.toFixed(1)} hrs` : "—"} frac={workDay != null ? Math.min(1, workDay / 8) : null}
+            sub={workDay != null ? `of every 8-hour day · aim ${target}${speed != null ? ` · done at ${Math.round(speed * 100)}% speed` : ""}` : "no timesheets this week"} href="/portal/finance/cover?t=days&p=7" />
         </Grid>
         <Two>
           <Card title="Sold today" aside={usual ? "dashed line · a usual day" : "no goal set"}>
