@@ -322,7 +322,7 @@ body:has(.screen) .utilbar {
 /* A summary strip, then two ageings, then the two lists. The strip is a
    seventh: the totals are the scale of the thing and the four panels under
    them are what somebody actually works from. */
-.screen__grid--money { grid-template-rows: 0.4fr 0.78fr 1.3fr; }
+.screen__grid--money { grid-template-rows: 0.4fr 1.26fr 1.08fr; }
 .screen__grid--team { grid-template-rows: 1fr auto; }
 /* Five cards of equal height, then the day's one-line summary. */
 .screen__grid--daily { grid-template-rows: 1fr auto; }
@@ -1245,6 +1245,13 @@ body:has(.screen) .utilbar {
 .tile--navy .rows__k { color: rgba(255, 255, 255, 0.72); }
 .tile--navy .rows__v { color: #fff; }
 
+/* The one block that sits on the floor of a tile: the goal chips, then the
+   foot. See TileBottom — the chips used to find their own level and ended up
+   at a different height on each of the three cards across the top of Today. */
+.tile__bottom { margin-top: auto; display: flex; flex-direction: column; gap: calc(0.35 * var(--u)); min-width: 0; }
+.tile__bottom .goalmarks { margin-top: 0; }
+.tile__bottom .tile__foot { margin-top: 0; }
+
 .tile__foot {
   margin-top: auto;
   font-size: calc(0.95 * var(--u));
@@ -2075,10 +2082,93 @@ body:has(.screen) .utilbar {
    ────────────────────────────────────────────────────────────────────────── */
 
 .mny__sum { grid-column: span 12; }
-.mny__ar { grid-column: span 6; }
-.mny__ap { grid-column: span 6; }
-.mny__chase { grid-column: span 6; }
-.mny__bills { grid-column: span 6; }
+/* The report gets the width, because it is the page: a row per customer with
+   five bands and a total needs the room, and the two panels under it are the
+   other side of the ledger rather than an equal half of it. */
+.mny__ar { grid-column: span 12; }
+.mny__ap { grid-column: span 5; }
+.mny__bills { grid-column: span 7; }
+
+/* ── the AR report: a row per customer, their money across the bands ──
+
+   The same shape as the report the office opens in ServiceTitan, and the same
+   `arBand` draws both, so a customer lands in the same column on the wall as
+   on the report. Read from four metres, so: one line a row, the name never
+   wrapping, and the numbers on their own right-hand edges so the eye runs
+   down a column rather than hunting across a sentence.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.artab { display: flex; flex-direction: column; flex: 1; justify-content: space-between; padding: calc(0.3 * var(--u)) 0; }
+.artab__row {
+  display: grid;
+  /* The name takes what is left after five bands and a total, which at 1920
+     is room for the longest trading name this ledger has without ellipsing. */
+  grid-template-columns: minmax(0, 1fr) repeat(5, calc(7.4 * var(--u))) calc(8 * var(--u));
+  align-items: baseline;
+  gap: calc(0.6 * var(--u));
+  padding-bottom: calc(0.3 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+}
+.artab__row--head {
+  border-bottom: 1px solid var(--ink-2);
+  padding-bottom: calc(0.25 * var(--u));
+}
+.artab__row--head .artab__who,
+.artab__row--head .artab__cell {
+  font-size: calc(0.86 * var(--u));
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+/* The summary line is the report's own total, over every customer and not
+   just the ones listed — so it is marked off rather than looking like a
+   ninth row. */
+.artab__row--sum {
+  border-bottom: 0;
+  border-top: 1px solid var(--ink-2);
+  padding-top: calc(0.35 * var(--u));
+  margin-top: calc(0.15 * var(--u));
+}
+.artab__row--sum .artab__cell, .artab__row--sum .artab__who { font-weight: 900; }
+
+.artab__who { display: flex; align-items: baseline; gap: calc(0.5 * var(--u)); min-width: 0; }
+.artab__name {
+  font-size: calc(1.05 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The oldest invoice on the row, which is what decides whether it is a call
+   or a letter. Never the only signal: the band the money sits in says the
+   same thing, in its own column. */
+.artab__age {
+  flex: none;
+  font-size: calc(0.82 * var(--u));
+  font-weight: 800;
+  color: var(--muted-fig);
+  font-variant-numeric: tabular-nums;
+}
+.artab__age.is-warn { color: var(--accent); }
+.artab__age.is-bad { color: var(--vd-behind); }
+
+.artab__cell {
+  text-align: right;
+  font-size: calc(1.02 * var(--u));
+  font-weight: 700;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.artab__cell.is-soft { color: var(--navy); }
+.artab__cell.is-warn { color: #8a5308; }
+.artab__cell.is-bad { color: var(--vd-behind); }
+/* A band this customer has nothing in is a dot, not a dash and not a zero:
+   at a glance the row should read as the shape of where their money sits. */
+.artab__cell.is-empty { color: var(--ink-muted); font-weight: 600; }
+.artab__total { font-weight: 900; }
 
 /* The strip: three blocks on one line, divided rather than boxed.
    .tile--navy paints only the tile classes white, so everything in here names
@@ -2157,11 +2247,14 @@ body:has(.screen) .utilbar {
   border-bottom: 1px solid var(--hairline);
 }
 .mny__row:last-child { border-bottom: 0; padding-bottom: 0; }
-/* The name over the number, not beside it: a supplier or a property manager's
-   trading name is long, and squeezing both onto one line would truncate the
-   number — which is the half somebody types into Xero. */
-.mny__who { display: flex; flex-direction: column; gap: calc(0.05 * var(--u)); min-width: 0; }
+/* One line a bill, the same density as the report above it. The name and the
+   reference sat stacked while this panel was half the width; with the AR
+   report taking the row above, the panel is seven columns wide and there is
+   room for both on a line — which buys back the rows the shorter panel cost. */
+.mny__who { display: flex; align-items: baseline; gap: calc(0.55 * var(--u)); min-width: 0; }
 .mny__name {
+  flex: none;
+  max-width: 55%;
   font-size: calc(1.08 * var(--u));
   font-weight: 800;
   color: var(--navy);
@@ -2169,7 +2262,17 @@ body:has(.screen) .utilbar {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.mny__num { font-size: calc(0.82 * var(--u)); font-weight: 700; color: var(--muted-fig); white-space: nowrap; }
+/* The reference gives way before the supplier's name does: the name is what
+   somebody reads out, the reference is what they look up afterwards. */
+.mny__num {
+  min-width: 0;
+  font-size: calc(0.86 * var(--u));
+  font-weight: 700;
+  color: var(--muted-fig);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .mny__amt {
   justify-self: end;
   min-width: calc(4.8 * var(--u));

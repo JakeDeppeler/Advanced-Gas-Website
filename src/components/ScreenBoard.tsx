@@ -149,6 +149,39 @@ const plain = (n: number | null | undefined) =>
   n == null ? "—" : `$${Math.round(n).toLocaleString("en-AU")}`;
 
 const count = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("en-AU"));
+
+/**
+ * A figure for a line that is a shape rather than a sum: thousands from a
+ * thousand up, so four of them read as four of the same thing.
+ *
+ * `money` turns to K only at ten thousand, which is right for a figure on its
+ * own and wrong in a row of them — "1–7d $32K · 8–14d $48K · 15–30d $33K ·
+ * 30+ $8,175" has one number in a different alphabet to the other three, and
+ * the eye stops on the wrong one.
+ */
+const compact = (n: number | null | undefined) => {
+  if (n == null) return "—";
+  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(n) >= 1_000) return `$${Math.round(n / 1000)}K`;
+  return `$${Math.round(n).toLocaleString("en-AU")}`;
+};
+
+/**
+ * What is late, by band, for a one-line summary — the four overdue bands of
+ * the AR report, and nothing for a band with nothing in it.
+ *
+ * A band at zero is printed as a gap rather than as "$0": on a line this
+ * short, four bands where two are empty says less than two bands that are
+ * both real.
+ */
+function lateBands(a: Metrics["receivablesArAging"]): string | null {
+  if (!a) return null;
+  const parts = AR_BANDS.filter((b) => b.key !== "current")
+    .map((b) => ({ b, v: a[b.key] || 0 }))
+    .filter(({ v }) => v > 0)
+    .map(({ b, v }) => `${b.short} ${compact(v)}`);
+  return parts.length ? parts.join(" · ") : "nothing overdue";
+}
 const pct = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n * 100)}%`);
 
 /**
@@ -908,18 +941,30 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           {
             name: "Overdue",
             value: m.overdueTotal == null ? NA : money(m.overdueTotal),
+            // "56 invoices" under "Overdue", directly under "108 open
+            // invoices", reads as a second count of the same thing. It is the
+            // part of the first that is late, and saying so costs a word.
             sub:
               m.overdueCount == null
                 ? "not read from Xero yet"
-                : `${count(m.overdueCount)} ${m.overdueCount === 1 ? "invoice" : "invoices"}`,
+                : m.receivablesCount != null
+                  ? `${count(m.overdueCount)} of the ${count(m.receivablesCount)} are late`
+                  : `${count(m.overdueCount)} ${m.overdueCount === 1 ? "invoice" : "invoices"} late`,
           },
         ]}
         foot={
           [
-            m.receivablesAging
-              ? `1–7d ${money(m.receivablesAging.d1to7)} · 8–14d ${money(m.receivablesAging.d8to14)} · 15–30d ${money(m.receivablesAging.d15to30)} · 30+ ${money(m.receivablesAging.d30plus)}`
-              : null,
-            m.paidToday != null && m.paidToday > 0 ? `paid today ${money(m.paidToday)}` : null,
+            /*
+             * The overdue money in the same bands the Money page and the AR
+             * report use, and only the overdue: "Out" and "Overdue" are the
+             * two figures above it, so a Current band here would be the third
+             * way of saying one of them. It was the board's own fortnight cut
+             * — 1–7d, 8–14d — which is a different question asked of the same
+             * money, and two cuts of it on two pages thirty seconds apart is
+             * how a room starts checking the board against itself.
+             */
+            lateBands(m.receivablesArAging),
+            m.paidToday != null && m.paidToday > 0 ? `paid today ${compact(m.paidToday)}` : null,
           ].filter(Boolean).join(" · ") || undefined
         }
       />
@@ -1340,20 +1385,23 @@ const monthName = (now: Date) =>
  */
 function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
   /*
-   * A bucket the snapshot does not carry counts as zero.
+   * The same bands as the Money page, and as the AR report the office opens.
    *
-   * Snapshots written before the fortnight was split into 1–7 and 8–14 hold
-   * neither key, and `receivablesAging` is carried forward when a Xero read
-   * fails or is skipped — so the old shape outlives the deploy. Read loosely,
-   * those two rows came out as a dash beside a bar at its full width, which
-   * says "everything is a week late" on a board whose whole job is not to say
-   * things like that.
+   * This panel aged the money over a fortnight — 1–7, 8–14, 15–30, 30+ — on
+   * the argument that its question was whether anything was slipping *this
+   * week*, which was a fair argument for one page in isolation. It stopped
+   * being one when the same money appeared in thirties on Money and on
+   * Today's Money owed tile: three pages, thirty seconds apart, cutting one
+   * figure three ways. A room that has to reconcile the board against itself
+   * stops reading it. One cut, everywhere, and it is the accountant's.
+   *
+   * A band the snapshot does not carry counts as zero, because
+   * `receivablesArAging` is carried forward when a Xero read fails or is
+   * skipped, and a snapshot written before it has none of these keys.
    */
-  const a = m.receivablesAging;
+  const a = m.receivablesArAging;
   const num = (v: number | undefined) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
-  const aging = a
-    ? { notDue: num(a.notDue), d1to7: num(a.d1to7), d8to14: num(a.d8to14), d15to30: num(a.d15to30), d30plus: num(a.d30plus) }
-    : null;
+  const aging = a ? (Object.fromEntries(AR_BANDS.map((b) => [b.key, num(a[b.key])])) as Record<ArBandKey, number>) : null;
   const owed = m.receivablesTotal ?? 0;
   /* The ageing bars are shares of what is owed, not of the biggest bucket: the
      question is how much of the money is late, and scaling to the largest row
@@ -1493,13 +1541,7 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
           <span className="tile__sub">{NA}</span>
         ) : (
           <div className="inv__bars">
-            {[
-              { k: "Not due yet", v: aging.notDue, cls: "" },
-              { k: "1 – 7 days", v: aging.d1to7, cls: "is-soft" },
-              { k: "8 – 14 days", v: aging.d8to14, cls: "is-soft2" },
-              { k: "15 – 30 days", v: aging.d15to30, cls: "is-warn" },
-              { k: "30+ days", v: aging.d30plus, cls: "is-bad" },
-            ].map((r) => (
+            {AR_BANDS.map((b) => ({ k: b.label, v: aging[b.key], cls: BAND_CLASS[b.key] })).map((r) => (
               <span className="inv__bar" key={r.k}>
                 <span className="inv__barlabel">{r.k}</span>
                 <span className="inv__track">
@@ -1576,6 +1618,7 @@ function avgOptions(options: number, jobs: number): string {
  */
 function MoneyPage({ m }: { m: Metrics }) {
   const ap = m.payables ?? null;
+  const ar = m.receivablesCustomers ?? null;
   const arAges = m.receivablesArAging ?? null;
   const owed = m.receivablesTotal;
   const owe = ap?.total ?? null;
@@ -1651,16 +1694,76 @@ function MoneyPage({ m }: { m: Metrics }) {
         </span>
       </div>
 
-      {/* The two ageings, side by side and in the same bands, so the shapes can
-          be compared at a glance: ours short and theirs long is a business
-          being paid before it pays, and the other way round is the one worth
-          doing something about. */}
+      {/*
+        * The AR report, as the office already reads it: a row per customer,
+        * biggest balance first, their money spread across the bands with the
+        * totals underneath.
+        *
+        * This replaced five bars of the same money. The bars said how much was
+        * late and the report says who is late, and only one of those is a
+        * thing somebody can act on from across the room — the question in
+        * front of this panel is never "how much is in 31–60", it is "who do I
+        * ring".
+        */}
       <div className="tile mny__ar">
         <div className="tile__head">
-          <span className="tile__title">Owed to us &middot; by age</span>
-          <span className="tile__sub">past the date the customer agreed to pay</span>
+          <span className="tile__title">Owed to us &middot; by customer</span>
+          <span className="tile__sub">
+            {ar
+              ? ar.restCustomers > 0
+                ? `the biggest ${ar.rows.length} of ${count(ar.customers)} · ${plain(ar.restTotal)} across the rest`
+                : `${count(ar.customers)} ${ar.customers === 1 ? "customer" : "customers"}`
+              : "past the date the customer agreed to pay"}
+          </span>
         </div>
-        <div className="mny__bars">{bars(arAges, owed) ?? <span className="tile__sub">{WAITING}</span>}</div>
+        {!ar || ar.rows.length === 0 ? (
+          <span className="tile__sub">{ar ? "Nobody owes us anything" : WAITING}</span>
+        ) : (
+          <div className="artab">
+            <div className="artab__row artab__row--head">
+              <span className="artab__who">Customer</span>
+              {AR_BANDS.map((b) => (
+                <span key={b.key} className="artab__cell">{b.short}</span>
+              ))}
+              <span className="artab__cell artab__total">Total</span>
+            </div>
+            {ar.rows.map((r) => (
+              <div className="artab__row" key={r.customer}>
+                <span className="artab__who">
+                  <span className="artab__name">{r.customer}</span>
+                  {/* The oldest thing on the row, which is what decides whether
+                      it is a call or a letter, on the same line as the name so
+                      a row stays one line deep. A balance with nothing late
+                      says so rather than showing a nought. */}
+                  <span className={`artab__age ${r.oldestDays > 30 ? "is-bad" : r.oldestDays > 0 ? "is-warn" : ""}`}>
+                    {r.oldestDays > 0 ? `${r.oldestDays}d` : "on time"}
+                  </span>
+                </span>
+                {AR_BANDS.map((b) => {
+                  const v = r.bands[b.key] || 0;
+                  return (
+                    <span key={b.key} className={`artab__cell ${v > 0 ? BAND_CLASS[b.key] : "is-empty"}`}>
+                      {v > 0 ? plain(v) : "·"}
+                    </span>
+                  );
+                })}
+                <span className="artab__cell artab__total">{plain(r.total)}</span>
+              </div>
+            ))}
+            {/* The summary line, which is the thing the office checks the
+                report against. It is every customer's money, not the eight
+                above it, so it agrees with the figure on the strip. */}
+            <div className="artab__row artab__row--sum">
+              <span className="artab__who">All {count(ar.customers)}</span>
+              {AR_BANDS.map((b) => (
+                <span key={b.key} className={`artab__cell ${BAND_CLASS[b.key]}`}>
+                  {arAges && (arAges[b.key] || 0) > 0 ? plain(arAges[b.key]) : "·"}
+                </span>
+              ))}
+              <span className="artab__cell artab__total">{plain(owed)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="tile mny__ap">
@@ -1669,35 +1772,6 @@ function MoneyPage({ m }: { m: Metrics }) {
           <span className="tile__sub">past the date we agreed to pay</span>
         </div>
         <div className="mny__bars">{bars(ap?.aging ?? null, owe) ?? <span className="tile__sub">{WAITING}</span>}</div>
-      </div>
-
-      {/* Oldest first, because that is the order they get rung in. */}
-      <div className="tile mny__chase">
-        <div className="tile__head">
-          <span className="tile__title">Chase these &middot; oldest first</span>
-          <span className="tile__sub">
-            {m.overdueCount != null ? `${count(m.overdueCount)} overdue · ${plain(m.overdueTotal ?? 0)}` : NA}
-          </span>
-        </div>
-        {m.overdueList.length === 0 ? (
-          /* "Nothing overdue" is a measurement, so it is only said when there
-             is one: an empty list with no count behind it is a Xero that has
-             not answered, not a ledger that is clear. */
-          <span className="tile__sub">{m.overdueCount === 0 ? "Nothing overdue" : WAITING}</span>
-        ) : (
-          <div className="mny__rows">
-            {m.overdueList.map((o) => (
-              <div className="mny__row" key={o.number}>
-                <span className="mny__who">
-                  <span className="mny__name">{o.name ?? "Invoice"}</span>
-                  <span className="mny__num">{o.number}</span>
-                </span>
-                <span className={`mny__age ${o.days > 30 ? "is-bad" : o.days > 14 ? "is-warn" : ""}`}>{o.days} days</span>
-                <span className="mny__amt">{plain(o.amount)}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Worst first over both halves at once: the most overdue bill down to
@@ -1743,7 +1817,7 @@ function MoneyPage({ m }: { m: Metrics }) {
   );
 }
 
-/** Six rows a list: the panel's height at 1920×1080, measured rather than chosen. */
+/** Six bills a list: the panel's height at 1920×1080, measured rather than chosen. */
 const MONEY_ROWS = 6;
 
 /**
@@ -2991,6 +3065,26 @@ function quotingAskedOfToday(m: Metrics): string | null {
  */
 type GoalMark = { key: string; ok: boolean; text: string };
 const shortGoal = (v: number) => (v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M` : `$${Math.round(v / 1000)}K`);
+/**
+ * The goal chips and the foot, as one block pinned to the bottom of a tile.
+ *
+ * Together, and not two things that each find their own way down. They were
+ * two: the chips sat straight under the figure and the foot had `margin-top:
+ * auto`, so on a card whose figure is centred — the navy hero — the chips
+ * floated up with the figure and landed sixty pixels above where the same
+ * chips sat on the two cards beside it. Three cards in a row, three different
+ * heights for the same line. One auto margin, on one block, is the whole fix.
+ */
+function TileBottom({ goals, foot }: { goals?: GoalMark[]; foot?: string }) {
+  if (!goals?.length && !foot) return null;
+  return (
+    <span className="tile__bottom">
+      {goals?.length ? <GoalMarks marks={goals} /> : null}
+      {foot ? <span className="tile__foot">{foot}</span> : null}
+    </span>
+  );
+}
+
 function goalMarks(m: Metrics, done: number | null | undefined, target: number | null | undefined): GoalMark[] {
   const lv = m.goalLevels;
   if (!lv || done == null || target == null || !(target > 0)) return [];
@@ -3070,8 +3164,7 @@ function SideCard({
           </div>
         ) : null}
       </div>
-      {goals?.length ? <GoalMarks marks={goals} /> : null}
-      {foot ? <span className="tile__foot">{foot}</span> : null}
+      <TileBottom goals={goals} foot={foot} />
     </div>
   );
 }
@@ -3120,8 +3213,7 @@ function HeroCard({
           ))}
         </div>
       ) : null}
-      {goals?.length ? <GoalMarks marks={goals} /> : null}
-      {foot ? <span className="tile__foot">{foot}</span> : null}
+      <TileBottom goals={goals} foot={foot} />
     </div>
   );
 }

@@ -283,31 +283,42 @@ what was written today and what is still out, biggest first. Both lists are one
 row per **job**, at the average of the options put in front of that customer,
 with the option count and ServiceTitan's own job number beside it.
 
-**Money** is everything we are owed and everything we owe, in the same bands,
-on one screen. A strip across the top — owed to us, we owe, and which way the
-gap runs — then the two ageings side by side, then the two work lists under
-them: the invoices to chase, oldest first, and the bills to pay, worst first.
+**Money** is everything we are owed and everything we owe, on one screen. A
+strip across the top — owed to us, we owe, and which way the gap runs — then
+the **AR report**, a row per customer across the bands with the totals under
+it, and under that what we owe by age beside the bills to pay, worst first.
 On 14 October 2026 that read $178,734 owed to us against $275,465 owing, a gap
 of $96,731 the wrong way, with $20,511 of ATO six months past due.
+
+**The report replaced five bars of the same money, and a chase list.** The
+bars said how much was late; the report says *who* is late, and only one of
+those is a thing somebody can act on from across the room — the question in
+front of this panel is never "how much is in 31–60", it is "who do I ring".
+`arReport` is the portal's own, over the same rows, so a customer lands in the
+same column on the wall as in the report the office opens. Seven rows, measured
+against the panel rather than chosen, with what the rest come to said beside
+the heading so seven never passes as the whole ledger; the summary line under
+them is every customer's money, so it agrees with the figure on the strip.
 
 It replaced the **On hold** page, at the office's asking: the question the wall
 could not answer was not which jobs had stopped, which is on the portal's
 Stuck page (`/portal/stuck`), but whether the bills coming at us are
 covered by the money coming in.
 
-**The bands are the AR report's, not the Invoices page's.** Not due, then
-thirties. Invoices ages what we are owed over a fortnight, because its question
-is whether anything is slipping *this week*; this page's question is what we
-are about to lose and what we are about to be chased for, and the business asks
-that one in thirties everywhere else. Two cuts of the same money, each row
-labelled with the days it covers so neither can be read as the other. `arBand`
-in `src/lib/portal/ar.ts` draws both this page's boundaries and the portal's,
-so the wall and the report agree to the dollar.
+**One cut of the money, on every page that shows it.** Not due, then thirties,
+drawn by `arBand` in `src/lib/portal/ar.ts` — here, on the Invoices page's
+owed-by-age panel, on Today's Money owed tile and in the portal. The Invoices
+page used to age it over a fortnight (1–7, 8–14, 15–30, 30+) on the argument
+that its question was whether anything was slipping *this week*, which was a
+fair argument for one page in isolation and stopped being one the moment the
+same figure appeared in thirties on two others. Three pages thirty seconds
+apart, cutting one figure three ways, is how a room starts checking the board
+against itself — and a room that does that stops reading it.
 
 What we owe is Xero's authorised purchase bills with money still on them
 (`fetchXeroPayables`). What we are owed is the same two-ledger figure the
 Invoices page shows — ServiceTitan's open invoices from 17 September, Xero's
-before it — now carrying the thirties as well as the fortnight.
+before it.
 
 Both ledgers are read in one trip, under the one five-minute gate, so the pair
 costs about 580 Xero calls a day against a tenant limit of 5,000. **The bills
@@ -2062,13 +2073,13 @@ to-bill list has to filter on `status = 'Completed'`, not on the date being
 present. Without it the office was being sent to chase paperwork for jobs that
 never happened, and the count read 47 where it should read 40.
 
-**The ageing runs 1–7 and 8–14, not one fortnight.** A week late is a reminder
-and a fortnight late is a phone call, and a single bucket hid which it was.
-Snapshots written before the split hold neither key, and `receivablesAging` is
-carried forward when a Xero read fails or is skipped — so the old shape outlives
-the deploy. The page reads a missing bucket as zero: read loosely, those rows
-came out as a dash beside a bar at full width, which says "everything is a week
-late" on a board whose whole job is not to say things like that.
+**The ageing is the AR report's thirties**, the same as Money and Today — see
+the Money page above for why it stopped being this page's own fortnight cut.
+A band the snapshot does not carry counts as zero, because `receivablesArAging`
+is carried forward when a Xero read fails or is skipped and a snapshot written
+before it has none of these keys. Read loosely, a missing band came out as a
+dash beside a bar at full width, which says "everything is late" on a board
+whose whole job is not to say things like that.
 
 **The ageing bars are shares of everything owed**, not of the biggest bucket:
 the question is how much of the money is late, and scaling to the largest row

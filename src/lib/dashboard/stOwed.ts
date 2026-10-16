@@ -54,9 +54,15 @@ export function withStOpen(xero: Extract<XeroResult, { ok: true }>, st: StOpen[]
     out.numbers.push(i.number);
     out.receivablesTotal += i.amount;
     // Overdue from the day after it's due, the same line Xero's are drawn on.
-    if (i.due >= todayMel) { out.aging.notDue += i.amount; out.arAging.current += i.amount; continue; }
+    if (i.due >= todayMel) {
+      out.aging.notDue += i.amount;
+      out.arAging.current += i.amount;
+      out.rows.push({ customer: i.name ?? "", amount: i.amount, daysOver: 0 });
+      continue;
+    }
     const days = Math.round((day(todayMel) - day(i.due)) / 86_400_000);
     out.arAging[arBand(days)] += i.amount;
+    out.rows.push({ customer: i.name ?? "", amount: i.amount, daysOver: days });
     out.overdueTotal += i.amount;
     out.overdueCount += 1;
     if (days <= 7) out.aging.d1to7 += i.amount;

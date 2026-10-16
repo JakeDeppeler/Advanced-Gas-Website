@@ -1,5 +1,6 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
+import { arReport } from "@/lib/portal/ar";
 import { fetchXeroPayables, fetchXeroReceivables, type XeroArAging, type XeroPayables, type XeroPayablesResult, type XeroResult } from "./xero";
 import { stOpenInvoices, withStOpen } from "./stOwed";
 import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "./xeroFreshness";
@@ -152,6 +153,16 @@ export function quoteKey(r: {
 
 export type { SourceState } from "./sourceState";
 import type { SourceState } from "./sourceState";
+
+/**
+ * How many customers the AR table on the wall carries.
+ *
+ * Seven, measured against the panel at 1920 rather than chosen: it is a table
+ * read from four metres, so the rows stay at a size somebody can read standing
+ * up, and the eighth pushed the summary line off the bottom. What the rest
+ * come to is said under it, so seven rows never passes as the whole ledger.
+ */
+const AR_ROWS = 7;
 
 export type Metrics = {
   leadsToday: number;
@@ -403,6 +414,18 @@ export type Metrics = {
    * written before it has the fortnight cut only.
    */
   receivablesArAging?: XeroArAging | null;
+  /**
+   * The AR report proper: a row per customer, biggest balance first, each one
+   * split across the same bands. The top few only — the wall shows eight and
+   * the totals line says what the rest come to.
+   */
+  receivablesCustomers?: {
+    rows: Array<{ customer: string; bands: XeroArAging; total: number; invoices: number; oldestDays: number }>;
+    /** What the rows left off add to, so the panel can say so rather than imply the list is all of it. */
+    restTotal: number;
+    restCustomers: number;
+    customers: number;
+  } | null;
   /**
    * What we owe our suppliers, aged the same way. Optional for the same
    * reason, and null rather than zero until Xero has answered once: a wall
@@ -2323,6 +2346,29 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     ? await stOpenInvoices().then((st) => withStOpen(xeroRead, st, isoDateMelbourne(now)))
       .catch((e: Error): XeroResult => ({ ok: false, reason: `servicetitan invoices: ${e.message}` }))
     : xeroRead;
+  /*
+   * The AR report, built here and stored finished.
+   *
+   * `arReport` is the portal's, which is the point: the wall and the report
+   * the office already reads are the same function over the same rows, so
+   * they cannot disagree about which column a customer lands in. Only the top
+   * few rows are kept — a hundred invoices across sixty customers is not a
+   * thing to put in a snapshot, let alone on a wall.
+   */
+  const arCustomers = xero.ok
+    ? (() => {
+        const rep = arReport(xero.rows);
+        const shown = rep.rows.slice(0, AR_ROWS);
+        const rest = rep.rows.slice(AR_ROWS);
+        return {
+          rows: shown.map((r) => ({ customer: r.customer, bands: r.bands, total: r.total, invoices: r.invoices, oldestDays: r.oldestDays })),
+          restTotal: rest.reduce((t, r) => t + r.total, 0),
+          restCustomers: rest.length,
+          customers: rep.customers,
+        };
+      })()
+    : null;
+
   sources.xero = xeroSourceState(xero.ok, lastXeroRead, now, xero.ok ? "" : xero.reason);
   /*
    * The bills get their own light, not a share of Xero's.
@@ -2472,6 +2518,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       receivablesCount: xero.ok ? xero.numbers.length : prev?.receivablesCount ?? null,
       receivablesAging: xero.ok ? xero.aging : (prev?.receivablesAging as Metrics["receivablesAging"]) ?? null,
       receivablesArAging: xero.ok ? xero.arAging : prev?.receivablesArAging ?? null,
+      receivablesCustomers: arCustomers ?? prev?.receivablesCustomers ?? null,
       // Carried whole, bills and all: the Money page's list is what somebody
       // works from, and half a list is a worse answer than yesterday's.
       payables: billsRead.ok ? billsRead : prev?.payables ?? null,

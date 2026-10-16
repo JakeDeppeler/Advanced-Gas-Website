@@ -1,4 +1,4 @@
-import { arBand } from "@/lib/portal/ar";
+import { arBand, type ArInvoice } from "@/lib/portal/ar";
 import { agePayables, daysBetween, emptyAging, type Aging, type XeroBill, type XeroPayables } from "./payablesTypes";
 import { isoDateMelbourne } from "./dates";
 import { q, sbSelectOne } from "./db";
@@ -72,6 +72,13 @@ export type XeroResult =
       aging: XeroAging;
       /** The same money in the AR report's thirties; see XeroArAging. */
       arAging: XeroArAging;
+      /**
+       * Every unpaid invoice as the AR report wants it: who owes it, how much,
+       * how late. Not stored in the snapshot — the snapshot keeps the finished
+       * report, a row per customer, because that is what the wall shows and a
+       * hundred invoices is not.
+       */
+      rows: ArInvoice[];
       /** Every overdue invoice, oldest first; the wall shows the top six. */
       overdue: XeroOverdue[];
       /** Every unpaid invoice's number, so another source's copy isn't counted twice. */
@@ -157,6 +164,7 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   const arAging = emptyAging();
   const overdue: XeroOverdue[] = [];
   const numbers: string[] = [];
+  const rows: ArInvoice[] = [];
 
   for (const inv of json.Invoices ?? []) {
     const due = Number(inv.AmountDue ?? 0);
@@ -168,14 +176,21 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
     // portal's Owed page draws, so the count above it agrees with the rows.
     // A date that cannot be read counts as not due; see dueDayOf.
     const dueDay = dueDayOf(inv);
+    const name = inv.Contact?.Name ?? "";
     if (!dueDay || dueDay >= todayMel) {
       aging.notDue += due;
       arAging.current += due;
+      // Not due is still owed, so it is still a row on the report: a customer
+      // with $40K coming and nothing late belongs on a page about what we are
+      // owed, and leaving them off would make the rows disagree with the total
+      // above them.
+      rows.push({ customer: name, amount: due, daysOver: 0 });
       continue;
     }
 
     const days = daysBetween(dueDay, todayMel);
     arAging[arBand(days)] += due;
+    rows.push({ customer: name, amount: due, daysOver: days });
     overdueTotal += due;
     overdueCount += 1;
     if (days <= 7) aging.d1to7 += due;
@@ -189,7 +204,7 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   // Oldest first: the chase list is worked from the top.
   overdue.sort((a, b) => b.days - a.days);
 
-  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, arAging, overdue, numbers };
+  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, arAging, overdue, numbers, rows };
 }
 
 /**
