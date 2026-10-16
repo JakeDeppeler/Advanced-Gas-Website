@@ -4,6 +4,8 @@ import type { ProfitLoss } from "@/lib/portal/xero";
 import type { YearGoal } from "@/lib/portal/yearGoal";
 import type { NeedLine } from "@/lib/portal/needs";
 import { money } from "@/lib/portal/format";
+import type { Overview as OverviewData } from "@/lib/portal/home/overview";
+import { Overview } from "./Overview";
 
 type Tone = "good" | "mid" | "bad" | "none";
 type Status = { k: Tone; w: string };
@@ -60,6 +62,8 @@ export type HomeData = {
   overdue: number;
   lines: NeedLine[];
   denied: boolean;
+  /** The office's sales overview, in the Rapport layout. Null for the crew. */
+  ov: { data: OverviewData; span: 6 | 12; closeRate: number | null; yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null } | null;
 };
 
 /**
@@ -128,7 +132,12 @@ export function Home(d: HomeData) {
     <div className="ph">
       {d.denied && <div className="ph-note"><b>That page isn’t open to you.</b> Ask an admin if you think it should be.</div>}
 
-      <div className="ph-welcome">
+      {d.ov && (
+        <Overview ov={d.ov.data} span={d.ov.span} first={d.first} when={d.when} closeRate={d.ov.closeRate}
+          yearInvoiced={d.ov.yearInvoiced} yearGoal={d.ov.yearGoal} yearFloor={d.ov.yearFloor} daysLeft={d.ov.daysLeft} />
+      )}
+
+      {!d.ov && <div className="ph-welcome">
         <div>
           <h1>G’day {d.first}.</h1>
           <div className="ph-sub">{d.when}</div>
@@ -139,7 +148,7 @@ export function Home(d: HomeData) {
             : <>{month}’s figures aren’t in yet. </>)}
           {plural(d.todos.length, "to-do")} to get done and {plural(look.length, "thing")} to look at today.
         </p>
-      </div>
+      </div>}
 
       {d.office && (
         <section className="ph-card ph-month" aria-label={`${month} so far`}>
