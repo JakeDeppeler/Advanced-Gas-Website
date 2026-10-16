@@ -1,5 +1,5 @@
 import {
-  OVERHEAD_FIELDS, OVERHEAD_GROUPS, fleetDepOf, officeCost, overheadLines, overheadSplit, scaleOf,
+  overheadFields, OVERHEAD_GROUPS, fleetDepOf, officeCost, overheadLines, overheadSplit, scaleOf,
   type CapSettings, type computeCapacity,
 } from "@/lib/portal/crew";
 
@@ -59,7 +59,7 @@ export function overheadItems(s: CapSettings, cap: ReturnType<typeof computeCapa
   }
   const oh = overheadLines(s);
   const dep = fleetDepOf(s);
-  const lines = OVERHEAD_FIELDS.map((f) => ({
+  const lines = overheadFields(s).map((f) => ({
     key: f.key,
     label: f.key === "vehDep" && dep > 0 ? "Van depreciation (from Vehicles)" : f.label,
     group: groupLabel(f.group),

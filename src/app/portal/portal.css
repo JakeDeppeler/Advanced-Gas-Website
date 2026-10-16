@@ -5733,3 +5733,35 @@ a.pt-td__pill { text-decoration: none; }
   .pt-topic__body p { break-inside: avoid; page-break-inside: avoid; }
   a[href]::after { content: ""; }
 }
+
+/* Overhead lines typed as a rate: the amount, how it's worked out, and the year it comes to. */
+.pt-oh__row { grid-template-columns: minmax(0, 1fr) 82px minmax(148px, 300px); }
+.pt-oh__how { display: grid; grid-template-columns: minmax(90px, 1fr) auto; gap: 6px; align-items: center; }
+.pt-oh__basis { appearance: auto; border: 1px solid var(--pt-line); border-radius: 9px; background: var(--pt-surface); color: var(--pt-ink); font: inherit; font-size: 12.5px; padding: 8px 6px; }
+.pt-oh__hrs { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--pt-ink-3); }
+.pt-oh__hrs input { width: 64px; border: 1px solid var(--pt-line); border-radius: 8px; background: var(--pt-surface); color: var(--pt-ink); font: inherit; font-size: 13px; padding: 5px 8px; text-align: right; }
+.pt-oh__yr { grid-column: 1 / -1; font-style: normal; font-size: 11.5px; color: var(--pt-ink-3); text-align: right; }
+.pt-oh__name { border: 1px solid var(--pt-line); border-radius: 8px; background: var(--pt-surface); color: var(--pt-ink); font: inherit; font-size: 13.5px; padding: 5px 8px; min-width: 0; width: 220px; max-width: 100%; }
+.pt-oh__del { appearance: none; border: 0; background: none; color: var(--pt-ink-3); font: inherit; font-size: 11.5px; text-decoration: underline; cursor: pointer; padding: 0; }
+.pt-oh__add { appearance: none; border: 1px dashed var(--pt-line); background: none; border-radius: 9px; color: var(--pt-ink-2); font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 12px; margin: 8px 0 4px; cursor: pointer; }
+.pt-oh__add:hover { color: var(--pt-ink); border-color: var(--pt-ink-3); }
+@media (max-width: 720px) {
+  .pt-oh__row { grid-template-columns: minmax(0, 1fr); }
+  .pt-oh__how { grid-template-columns: minmax(0, 1fr) auto; }
+}
+
+/* Our hourly rate: each bucket opens to the lines inside it. */
+.pt-hs__open { border-top: 1px solid var(--pt-tint); }
+.pt-hs__open:first-child { border-top: 0; }
+.pt-hs__open > summary { list-style: none; cursor: pointer; border-top: 0; }
+.pt-hs__open > summary::-webkit-details-marker { display: none; }
+.pt-hs__open > summary:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 2px; border-radius: 6px; }
+.pt-hs__caret { display: inline-block; width: 14px; color: var(--pt-ink-3); transition: transform 0.15s; }
+.pt-hs__open[open] .pt-hs__caret { transform: rotate(90deg); }
+.pt-hs__in { padding: 0 0 12px 14px; display: grid; gap: 2px; }
+.pt-hs__inrow { display: grid; grid-template-columns: minmax(0, 1fr) 120px 90px; gap: 14px; font-size: 13px; color: var(--pt-ink-2); padding: 3px 0; font-variant-numeric: tabular-nums; }
+.pt-hs__inrow > span:not(:first-child) { text-align: right; }
+@media (prefers-reduced-motion: reduce) { .pt-hs__caret { transition: none; } }
+@media (max-width: 760px) { .pt-hs__inrow { grid-template-columns: minmax(0, 1fr) auto auto; } }
+/* The locked lines carry an empty spacer cell; without it they sit on one row like the typed lines. */
+.pt-oh__row.is-locked > span:empty { display: none; }

@@ -61,6 +61,7 @@ export const OVERHEAD_GROUPS = [
   { key: "tools", label: "Tools & equipment", blurb: "Replacing, repairing and calibrating what the crew works with." },
   { key: "marketing", label: "Marketing & sales", blurb: "What it costs to keep the phone ringing." },
   { key: "admin", label: "Admin & software", blurb: "The back office, the systems and the fees." },
+  { key: "staff", label: "Other wages", blurb: "People paid who aren't set up in the portal — entered as a wage, with super, WorkCover and LSL on top." },
 ] as const;
 
 export type OverheadGroup = (typeof OVERHEAD_GROUPS)[number]["key"];
@@ -248,6 +249,12 @@ export type CapSettings = {
    * is paid for, the same way their school fees go on.
    */
   apprenticeScheme?: Record<string, number>;
+  /** Lines typed as a rate rather than a year — "$200 a week a van" — keyed like `overheads`. */
+  lineRates?: Record<string, LineRate>;
+  /** Lines added by hand under a group; their figures are in `overheads` under the same id. */
+  extraLines?: ExtraLine[];
+  /** Vehicles on the road, from the Vehicles tab, for lines kept "a week, each van". Read fresh, never saved. */
+  fleetVans?: number;
 };
 
 export type OnCosts = {
@@ -314,8 +321,58 @@ export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 0, margin
  * total doesn't move.
  */
 export function overheadsOf(s: CapSettings): Record<string, number> {
-  if (s.overheads) return s.overheads;
-  return { vehOther: s.vehicles || 0, admOther: s.standard || 0 };
+  const base = s.overheads ?? { vehOther: s.vehicles || 0, admOther: s.standard || 0 };
+  // A line kept as a rate is worked out fresh, so a van added on the Vehicles
+  // tab moves "$200 a week a van" without anyone re-saving. Where the fleet
+  // isn't known (a screen that loaded settings without it), the figure saved
+  // with the rate stands.
+  if (!s.lineRates) return base;
+  const out = { ...base };
+  for (const [k, r] of Object.entries(s.lineRates)) {
+    if (r.basis === "weekPerVan" && !(Number(s.fleetVans) > 0)) continue;
+    out[k] = lineAnnual(r, s);
+  }
+  return out;
+}
+
+/**
+ * How a line's figure is typed. Xero files a year's total; a person thinks in
+ * "$200 a week a van" or "Tash, $35 an hour, 25 hours". The rate is kept with
+ * the line and the year worked out from it, so both stay true to what was said.
+ */
+export type RateBasis = "year" | "month" | "week" | "weekPerVan" | "wage";
+export type LineRate = { basis: RateBasis; rate: number; hrsWeek?: number };
+
+export const RATE_BASES: { k: RateBasis; label: string }[] = [
+  { k: "year", label: "a year" },
+  { k: "month", label: "a month" },
+  { k: "week", label: "a week" },
+  { k: "weekPerVan", label: "a week, each van" },
+  { k: "wage", label: "an hour, as a wage" },
+];
+
+/** A line added by hand, under one of the groups. Its figure lives in `overheads[id]` like any other. */
+export type ExtraLine = { id: string; group: OverheadGroup; label: string; scale: OverheadScale };
+
+export const fleetVansOf = (s: CapSettings): number => Math.max(0, Number(s.fleetVans) || 0);
+
+/** A year of a line kept as a rate. A wage carries super, WorkCover and LSL like every other wage. */
+export function lineAnnual(r: LineRate, s: CapSettings): number {
+  const rate = Math.max(0, Number(r.rate) || 0);
+  const weeks = Number(s.weeksYear) || 52;
+  switch (r.basis) {
+    case "month": return rate * 12;
+    case "week": return rate * weeks;
+    case "weekPerVan": return rate * weeks * fleetVansOf(s);
+    case "wage": return rate * Math.max(0, Number(r.hrsWeek) || 0) * weeks * (1 + onCostPct(s) / 100);
+    default: return rate;
+  }
+}
+
+/** Every line there is: the standard ones, then any added by hand, in their groups. */
+export function overheadFields(s: CapSettings): { key: string; group: OverheadGroup; label: string; hint?: string; scale: OverheadScale; extra?: boolean }[] {
+  const extras = (s.extraLines ?? []).map((x) => ({ key: x.id, group: x.group, label: x.label, scale: x.scale, extra: true }));
+  return [...OVERHEAD_FIELDS, ...extras];
 }
 
 export const fleetDepOf = (s: CapSettings): number => Math.max(0, Number(s.fleetDep) || 0);
@@ -344,7 +401,7 @@ export function overheadByGroup(s: CapSettings): { key: OverheadGroup; label: st
   return OVERHEAD_GROUPS.map((g) => ({
     key: g.key,
     label: g.label,
-    annual: OVERHEAD_FIELDS.filter((f) => f.group === g.key).reduce((a, f) => a + (Number(oh[f.key]) || 0), 0),
+    annual: overheadFields(s).filter((f) => f.group === g.key).reduce((a, f) => a + (Number(oh[f.key]) || 0), 0),
   }));
 }
 
@@ -724,7 +781,8 @@ export function suggestOverhead(label: string): string | null {
 
 /** Whether a line grows with another van — the default, or your override. */
 export const scaleOf = (s: CapSettings, key: string): OverheadScale =>
-  s.scales?.[key] ?? OVERHEAD_FIELDS.find((f) => f.key === key)?.scale ?? "fixed";
+  // "A week, each van" is a van's cost by definition, whatever the switch says.
+  s.lineRates?.[key]?.basis === "weekPerVan" ? "perVan" : s.scales?.[key] ?? overheadFields(s).find((f) => f.key === key)?.scale ?? "fixed";
 
 export function overheadSplit(s: CapSettings): { fixed: number; perVan: number } {
   if (s.ohSource === "internal") {
@@ -734,7 +792,7 @@ export function overheadSplit(s: CapSettings): { fixed: number; perVan: number }
   }
   const oh = overheadLines(s);
   let fixedTotal = 0, perVanTotal = 0;
-  for (const f of OVERHEAD_FIELDS) {
+  for (const f of overheadFields(s)) {
     const v = Number(oh[f.key]) || 0;
     if (scaleOf(s, f.key) === "perVan") perVanTotal += v; else fixedTotal += v;
   }

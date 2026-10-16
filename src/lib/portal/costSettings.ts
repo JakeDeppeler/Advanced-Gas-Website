@@ -9,7 +9,7 @@ export function fleetDepreciation(vehicles: Vehicle[]): number {
 }
 
 export function withFleet(stored: CapSettings | null, vehicles: Vehicle[]): CapSettings {
-  return { ...(stored ?? DEFAULT_SETTINGS), fleetDep: fleetDepreciation(vehicles) };
+  return { ...(stored ?? DEFAULT_SETTINGS), fleetDep: fleetDepreciation(vehicles), fleetVans: vehicles.filter((v) => v.status !== "off").length };
 }
 
 /**
