@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Tabs } from "@/components/portal/kit/Kit";
+import { Bad, Good, Grid, Head, Say, Tabs, Tile } from "@/components/portal/kit/Kit";
 import { Locked } from "@/components/portal/Locked";
 import { NextWeekOrders } from "@/components/portal/NextWeekOrders";
 import { money } from "@/lib/portal/format";
@@ -68,51 +67,48 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <h1>{view === "sent" ? "Sent" : "To order"}: {which === "this" ? "this week" : "next week"}</h1>
-        {view === "sent" ? (
-          <p>{weekLabel(week)}. Everything approved and sent for the week, to the suppliers and the electrician. An order lands here by itself the moment it goes; replies come back to {replyTo || "the office"}.</p>
-        ) : (
-          <p>{weekLabel(week)}. Drafted from the installs booked, and kept up to date as bookings come in. Nothing goes to a supplier or the electrician until it&rsquo;s approved here.</p>
-        )}
-        {dbReady && (
-          <div className="pt-head__figs">
-            <div className="pt-head__fig">
-              <div className="pt-head__figlbl">To approve</div>
-              <div className="pt-head__figval">{toApprove.length}</div>
-            </div>
-            <div className="pt-head__fig">
-              <div className="pt-head__figlbl">Goods</div>
-              <div className="pt-head__figval">{value ? money(value) : "—"}</div>
-              <div className="pt-head__figsub">Ex GST, at pricebook cost</div>
-            </div>
-            <div className="pt-head__fig">
-              <div className="pt-head__figlbl">Electrician</div>
-              <div className="pt-head__figval">{live.filter((o) => o.kind === "work_order").length}</div>
-              <div className="pt-head__figsub">Site visits</div>
-            </div>
-            {problems.length > 0 && (
-              <div className="pt-head__fig">
-                <div className="pt-head__figlbl">Can&rsquo;t order</div>
-                <div className="pt-head__figval pt-head__figalt">{problems.length}</div>
-                <div className="pt-head__figsub">Listed below</div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* To order is what's still to approve; an order moves to Sent by itself
-          once it's gone. The week stays put when you switch between them. */}
-      <div className="pk-rev-bar" style={{ marginBottom: 14 }}>
-        <Tabs on={view} label="To order or sent" items={[
-          { key: "todo", label: "To order", href: href("todo", which), count: dbReady ? toApprove.length : undefined, red: toApprove.length > 0 },
-          { key: "sent", label: "Sent", href: href("sent", which), count: dbReady ? sent.length : undefined },
-        ]} />
-        <div className="pt-nw__weeks" role="tablist" aria-label="Which week" style={{ margin: 0 }}>
-          <Link href={href(view, "next")} className={which === "next" ? "is-on" : undefined} aria-current={which === "next" ? "page" : undefined}>Next week</Link>
-          <Link href={href(view, "this")} className={which === "this" ? "is-on" : undefined} aria-current={which === "this" ? "page" : undefined}>This week</Link>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Head
+          title={view === "sent" ? "Sent" : "To order"}
+          sub={`${which === "this" ? "This week" : "Next week"} · ${weekLabel(week)}`}
+          info={view === "sent" ? [
+            ["Sent", `Everything approved and sent for the week, to the suppliers and the electrician. An order lands here by itself the moment it goes.`],
+            ["Replies", `Suppliers' replies come back to ${replyTo || "the office"}.`],
+          ] : [
+            ["Drafted for you", "Built from the installs booked for the week, and kept up to date as bookings come in."],
+            ["Nothing goes until it's approved", "No order reaches a supplier or the electrician until it's approved here."],
+            ["Can't order", "A line that can't be ordered — no supplier, no model on the quote, no crew — says why, so it can be fixed in ServiceTitan."],
+          ]}
+        />
+        <div className="pk-rev-bar">
+          {/* To order is what's still to approve; an order moves to Sent by
+              itself once it's gone. The week stays put when you switch. */}
+          <Tabs on={view} label="To order or sent" items={[
+            { key: "todo", label: "To order", href: href("todo", which), count: dbReady ? toApprove.length : undefined, red: toApprove.length > 0 },
+            { key: "sent", label: "Sent", href: href("sent", which), count: dbReady ? sent.length : undefined },
+          ]} />
+          <Tabs on={which} label="Which week" items={[
+            { key: "next", label: "Next week", href: href(view, "next") },
+            { key: "this", label: "This week", href: href(view, "this") },
+          ]} />
         </div>
+        {dbReady && (
+          <>
+            <Say>
+              {view === "sent"
+                ? <>{sent.length ? <>{sent.length} {sent.length === 1 ? "order has" : "orders have"} gone for {which === "this" ? "this" : "next"} week.</> : <>Nothing sent for {which === "this" ? "this" : "next"} week yet.</>}{" "}</>
+                : toApprove.length ? <Bad>{toApprove.length} {toApprove.length === 1 ? "order is" : "orders are"} waiting to be approved.</Bad> : <Good>Nothing waiting to approve.</Good>}{" "}
+              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered — listed below.</Bad> : null}
+            </Say>
+            <Grid cols={problems.length > 0 ? 4 : 3}>
+              <Tile label="To approve" st={toApprove.length ? { k: "mid", w: "Waiting" } : { k: "good", w: "All done" }} fig={String(toApprove.length)} frac={live.length ? (live.length - toApprove.length) / live.length : null}
+                sub={`${live.length} ${live.length === 1 ? "order" : "orders"} for the week`} />
+              <Tile label="Goods" st={{ k: "none", w: "" }} fig={value ? money(value) : "—"} frac={null} sub="ex GST, at pricebook cost" />
+              <Tile label="Electrician" st={{ k: "none", w: "" }} fig={String(live.filter((o) => o.kind === "work_order").length)} frac={null} sub="site visits booked" href="/portal/supply/work-orders" />
+              {problems.length > 0 && <Tile label="Can't order" st={{ k: "bad", w: "Fix it" }} fig={String(problems.length)} frac={null} sub="listed below, with why" />}
+            </Grid>
+          </>
+        )}
       </div>
 
       <NextWeekOrders

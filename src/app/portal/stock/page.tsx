@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
 import { StockBoard, type ProductPick, type VanGroup } from "@/components/portal/StockBoard";
@@ -16,7 +15,7 @@ import { PB_CATEGORIES } from "@/lib/portal/installPrices";
 import { shelfProducts } from "@/lib/portal/pricebook";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { OrderAnswer } from "@/components/portal/OfficeAnswers";
-import { Card, Empty, Group, Pill, Row, Tabs } from "@/components/portal/kit/Kit";
+import { Card, Empty, Group, Head, Pill, Row, Tabs } from "@/components/portal/kit/Kit";
 import { Arrived } from "@/components/portal/stock/Arrived";
 import { listStockLines, shelfMatch, type StockLine } from "@/lib/ordering/stockLines";
 import { loadSuppliers } from "@/lib/ordering/db";
@@ -123,16 +122,12 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
-      <div className="pt-head">
-        <h1>Factory stock</h1>
-        <p>
-          The materials on the shelf, the systems waiting to go in, and the tools that go out and come back. Take
-          something, put it back or count it, and the log keeps up.
-        </p>
-      </div>
-
       <div className="pk" style={{ marginBottom: 14 }}>
+        <Head title="Factory stock" sub="Materials on the shelf, systems waiting to go in, and tools that go out and come back" info={[
+          ["Take, add, count", "Take something and it comes off the shelf; add or count it and the figure is right again. The log keeps up."],
+          ["Low", "At or under its low mark. To order lists the low lines with nothing already on an order."],
+          ["Sent", "Stock on an order that's gone to the supplier. Press Arrived when it comes in and it goes on the shelf."],
+        ]} />
         <Tabs on={view} label="Shelf, to order or sent" items={[
           { key: "shelf", label: "On the shelf", href: section === "materials" ? "/portal/stock" : `/portal/stock?s=${section}` },
           { key: "order", label: "To order", href: "/portal/stock?v=order", count: lines ? toOrderN : undefined, red: lowToOrder.length > 0 },
@@ -180,19 +175,11 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
           </Card>
         </div>
       ) : (<>
-      <nav className="pt-tabs" aria-label="The factory">
-        {SECTIONS.map((s) => (
-          <Link
-            key={s.key}
-            href={s.key === "materials" ? "/portal/stock" : `/portal/stock?s=${s.key}`}
-            aria-current={s.key === section ? "page" : undefined}
-            className={`pt-tab${s.key === section ? " is-on" : ""}`}
-          >
-            {s.label}
-            {all && <span className="pt-tab__n">{n(per(s.key).length)}</span>}
-          </Link>
-        ))}
-      </nav>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Tabs on={section} label="The factory" items={SECTIONS.map((s) => ({
+          key: s.key, label: s.label, href: s.key === "materials" ? "/portal/stock" : `/portal/stock?s=${s.key}`, count: all ? per(s.key).length : undefined,
+        }))} />
+      </div>
 
       {all == null ? (
         <div className="pt-note pt-note--warn"><strong>The stock list can&rsquo;t be read.</strong> Nothing has been lost — the database didn&rsquo;t answer.</div>

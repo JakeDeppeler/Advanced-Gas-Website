@@ -92,7 +92,7 @@ export function StockBoard({ section, items, canSave, kinds, vanGroups, products
 
   return (
     <section className="pt-panel">
-      <div className="pt-stk__head">
+      <div className="pt-shelf__head">
         <h2 className="pt-panel__h">{systems ? "Systems in the factory" : "On the shelf"}</h2>
         {canSave && mode === "list" && (
           <div className="pt-stk__tools">

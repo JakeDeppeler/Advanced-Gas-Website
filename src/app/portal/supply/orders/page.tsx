@@ -2,13 +2,13 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { OrdersBoard } from "@/components/portal/OrdersBoard";
 import { orderTally, ORDER_STATUSES, type OrderStatus, type SupplyOrder } from "@/lib/pricebook/orders";
 import { listOrders } from "@/lib/pricebook/ordersDb";
 import { money } from "@/lib/portal/format";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
+import { Grid, Head, Tile } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Orders — Team portal" };
@@ -35,35 +35,15 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
-      <div className="pt-head">
-        <h1>Everything we&rsquo;ve ordered</h1>
-        <p>Every cart sent through Reece maX — what&rsquo;s on it, where it&rsquo;s going and what it came to.</p>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Head title="Everything we’ve ordered" sub="Every cart sent through Reece maX — what’s on it, where it’s going and what it came to" />
         {dbReady && orders.length > 0 && (
-          <div className="pt-head__figs">
-            <div className="pt-head__fig">
-              <div className="pt-head__figlbl">Orders</div>
-              <div className="pt-head__figval">{tally.total}</div>
-            </div>
-
-            <div className="pt-head__fig">
-              <div className="pt-head__figlbl">Value</div>
-              <div className="pt-head__figval">{tally.value == null ? "—" : money(tally.value)}</div>
-              <div className="pt-head__figsub">Ex GST, of the orders that carried a price</div>
-            </div>
-            <div className="pt-head__fig">
-              <div className="pt-head__figlbl">In ServiceTitan</div>
-              <div className="pt-head__figval">{tally.byStatus.ordered}</div>
-              <div className="pt-head__figsub">Purchase order raised</div>
-            </div>
-            {tally.unresolvedLines > 0 && (
-              <div className="pt-head__fig">
-                <div className="pt-head__figlbl">Unmatched lines</div>
-                <div className="pt-head__figval pt-head__figalt">{tally.unresolvedLines}</div>
-                <div className="pt-head__figsub">Not in the pricebook yet</div>
-              </div>
-            )}
-          </div>
+          <Grid cols={tally.unresolvedLines > 0 ? 4 : 3}>
+            <Tile label="Orders" st={{ k: "none", w: "" }} fig={String(tally.total)} frac={null} />
+            <Tile label="Value" st={{ k: "none", w: "" }} fig={tally.value == null ? "—" : money(tally.value)} frac={null} sub="ex GST, of the orders that carried a price" />
+            <Tile label="In ServiceTitan" st={tally.byStatus.ordered === tally.total ? { k: "good", w: "All raised" } : { k: "mid", w: `${tally.total - tally.byStatus.ordered} to raise` }} fig={String(tally.byStatus.ordered)} frac={tally.total ? tally.byStatus.ordered / tally.total : null} sub="purchase order raised" />
+            {tally.unresolvedLines > 0 && <Tile label="Unmatched lines" st={{ k: "bad", w: "Match them" }} fig={String(tally.unresolvedLines)} frac={null} sub="not in the pricebook yet" />}
+          </Grid>
         )}
       </div>
 

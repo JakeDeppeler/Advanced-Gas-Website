@@ -7,6 +7,7 @@ import { checkServiceTitan, type CheckReport } from "@/lib/dashboard/stCheck";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
+import { Head } from "@/components/portal/kit/Kit";
 
 // The check calls ServiceTitan for real, which is the point of it — so this
 // page is never cached and is slower than the rest of the portal.
@@ -40,14 +41,8 @@ export default async function SupplyHealthPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
-      <div className="pt-head">
-        <div className="pt-head__eyebrow">Connection check</div>
-        <h1>Is ServiceTitan answering?</h1>
-        <p>
-          Run fresh every time you open this page. It walks the stages in order — credentials present, credentials
-          well-formed, token exchange, then one real call per scope — and stops at the first failure, because
-          everything after it would fail for the same reason.
-        </p>
+      <div className="pk" style={{ marginBottom: 14 }}>
+        <Head title="Is ServiceTitan answering?" sub={<>Run fresh every time you open this page. It walks the stages in order — credentials present, credentials well-formed, token exchange, then one real call per scope — and stops at the first failure, because everything after it would fail for the same reason.</>} />
       </div>
 
       <PortalTabs set="supply" />
