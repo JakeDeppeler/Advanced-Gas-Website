@@ -8,7 +8,6 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { searchCatalogue } from "@/lib/pricebook/supply";
 import { reeceConnection, reeceSearch } from "@/lib/pricebook/reece";
 import { money2 } from "@/lib/portal/format";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
 
@@ -73,7 +72,7 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
         <Head title="Item search" sub={<>Look up a Reece product and what it costs us, for quoting.</>} />
       </div>
 
-      <PortalTabs set="supply" />
+      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       <form method="get" className="pt-sbox pt-sbox--lg" role="search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>

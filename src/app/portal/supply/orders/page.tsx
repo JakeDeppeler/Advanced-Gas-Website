@@ -6,7 +6,6 @@ import { OrdersBoard } from "@/components/portal/OrdersBoard";
 import { orderTally, ORDER_STATUSES, type OrderStatus, type SupplyOrder } from "@/lib/pricebook/orders";
 import { listOrders } from "@/lib/pricebook/ordersDb";
 import { money } from "@/lib/portal/format";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Grid, Head, Tile } from "@/components/portal/kit/Kit";
 
@@ -47,7 +46,7 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
         )}
       </div>
 
-      <PortalTabs set="supply" />
+      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       <OrdersBoard orders={orders} dbReady={dbReady} capped={orders.length >= CAP} initialStatus={initialStatus} />
     </PortalShell>

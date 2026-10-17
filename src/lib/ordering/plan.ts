@@ -142,6 +142,9 @@ export type PlannedWorkOrder = { supplier_id: string; group_key: string; details
 
 export type Problem = { job_number: string | null; customer_name: string | null; install_date: string | null; what: string };
 
+/** A problem's key for dismissing it: the job and what's wrong, so a new problem on the same job still shows. */
+export const problemKey = (p: Pick<Problem, "job_number" | "what">) => `${p.job_number ?? "?"}|${p.what}`;
+
 export type WeekPlan = { week: Week; orders: PlannedOrder[]; workOrders: PlannedWorkOrder[]; problems: Problem[] };
 
 /* ---------------------------------------------------------------- dates */

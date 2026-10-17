@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, noteOnJobs, orderedManually, pushToServiceTitan, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, noteOnJobs, orderedManually, pushToServiceTitan, redraft, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
-import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
+import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, problemKey, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 /**
  * Supply › Next week: each supplier's draft order and each electrician visit,
@@ -807,7 +807,7 @@ export function NextWeekOrders(props: {
           <h2 className="pt-panel__h">Needs a look</h2>
           <p className="pt-panel__sub">
             Fix these in ServiceTitan and redraft, or order them by hand. A job that moved after its order went is never
-            ordered twice, the supplier just needs telling the new date.
+            ordered twice, the supplier just needs telling the new date. Dealt with another way? Dismiss it; it comes back only if what&rsquo;s wrong changes.
           </p>
           <ul>
             {problems.map((p, i) => (
@@ -816,6 +816,7 @@ export function NextWeekOrders(props: {
                 {p.customer_name && <span> · {p.customer_name}</span>}
                 {p.install_date && <span className="pt-nw__muted"> · {dayLabel(p.install_date)}</span>}
                 <span className="pt-nw__what">{p.what}</span>
+                <button type="button" className="pt-todo__editbtn pt-nw__dismiss" disabled={busy} title="Dealt with: take it off this list" onClick={() => run(() => dismissProblem(problemKey(p)))}>Dismiss</button>
               </li>
             ))}
           </ul>

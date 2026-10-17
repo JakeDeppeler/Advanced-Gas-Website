@@ -33,6 +33,10 @@ const STATE: Record<SoldJob["state"], Status> = {
  * of the gear on it; price less gear is what it leaves to pay the month's
  * wages and overheads, which are known in advance. See run/monthTrack.ts.
  */
+/** Every row named: the job number and customer, or whatever of the job there is to go by. */
+const jobName = (j: { jobNumber?: string | null; customer?: string | null; jobId?: number | null; jobType?: string | null }) =>
+  [j.jobNumber ? `#${j.jobNumber}` : j.jobId ? `Job ${j.jobId}` : null, j.customer ?? (j.jobNumber || j.jobId ? null : j.jobType ?? "Job not linked")].filter(Boolean).join(" · ");
+
 export default async function MonthPage({ searchParams }: { searchParams: { m?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
@@ -91,6 +95,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
           info={[
             ["Sold", "Estimates marked sold this month, before GST."],
             ["Gear", "Units and materials on those estimates, at the cost ServiceTitan's pricebook puts on each line."],
+            ["Gear in it / Gear %", "How much of a job's price is gear, in dollars and as a share. The rest is what's left to pay the crew, the overheads and the profit."],
             ["To cover", "Every wage and overhead for the month from Pricing & costs, everything except the gear that goes into jobs."],
             ["Most gear a job can carry", "What's left of a sale after the month's share of wages and overheads and the profit we want. Over it, the job can't pay its way."],
           ]}
@@ -99,7 +104,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
 
         <Say>
           {t.sold.length === 0 ? <>Nothing sold in {name} yet.</> : noCosts ? (
-            <>{t.sold.length} jobs sold in {name} for {money(sales)}, but their estimates carry no gear costs, ServiceTitan only has costs on its own estimates, from mid-September 2026, so this month can&rsquo;t be read here.</>
+            <>{t.sold.length} jobs sold in {name} for {money(sales)}, but their estimates carry no gear costs. ServiceTitan only has costs on its own estimates from mid-September 2026, so this month can&rsquo;t be read here.</>
           ) : (
             <>
               {t.sold.length} {t.sold.length === 1 ? "job" : "jobs"} sold in {name}{current ? " so far" : ""} for <b>{money(sales)}</b>, with {money(gear)} of gear in {t.sold.length === 1 ? "it" : "them"} ({pc(share!)}).
@@ -130,6 +135,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
         </Grid>
 
         <Card title={`Jobs sold in ${name}`} aside={t.maxGear != null ? `▲ over ${pc(t.maxGear)} gear can't pay its way` : undefined}>
+          <p className="pk-note" style={{ marginTop: -2, marginBottom: 8 }}><b>Gear</b> is the units and materials in a job, at cost. <b>Gear %</b> is its share of the price, and <b>Left</b> is what&rsquo;s left to pay the crew, the overheads and the profit.</p>
           {t.sold.length === 0 ? <Empty>No jobs sold yet.</Empty> : (
             <div className="pk-tbl-wrap">
               <table className="pk-tbl">
@@ -141,7 +147,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
                     return (
                       <tr key={`${j.jobId ?? "x"}-${i}`}>
                         <td>
-                          <b>{j.jobNumber ? `#${j.jobNumber}` : "Job"}{j.customer ? ` · ${j.customer}` : ""}</b>
+                          <b>{jobName(j)}</b>
                           <div className="ks">{[j.jobType, j.soldBy ? `sold by ${j.soldBy}` : null].filter(Boolean).join(" · ")}</div>
                         </td>
                         <td>{day(j.soldOn)}</td>
@@ -173,7 +179,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
                   <tbody>
                     {t.unbilled.slice(0, 25).map((j) => (
                       <tr key={j.jobId}>
-                        <td><b>{j.jobNumber ? `#${j.jobNumber}` : "Job"}{j.customer ? ` · ${j.customer}` : ""}</b><div className="ks">{j.jobType}</div></td>
+                        <td><b>{jobName(j)}</b><div className="ks">{j.jobType}</div></td>
                         <td>{day(j.doneOn)}</td>
                         <td>{j.price != null ? money(j.price) : <span className="ks">no sold estimate</span>}</td>
                         <td className="l">{j.gear ? money(j.gear) : ""}</td>

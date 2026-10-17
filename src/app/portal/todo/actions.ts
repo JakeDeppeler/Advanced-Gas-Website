@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { createTodo, getTodo, meOf, removeTodo, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, updateTodo } from "@/lib/todos/store";
+import { MAX_LISTS, createTodo, getTodo, meOf, removeTodo, renameTodoList, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, todoLists, updateTodo } from "@/lib/todos/store";
 
 export type TodoResult = { ok: boolean; error?: string };
 
@@ -116,9 +116,30 @@ export async function saveLists(names: string[]): Promise<TodoResult> {
   if (!w || !w.all) return { ok: false, error: "Only the office can change the lists." };
   const clean = [...new Set(names.map((n) => n.trim()).filter(Boolean))];
   if (!clean.length) return { ok: false, error: "Keep at least one list." };
+  if (clean.length > MAX_LISTS) return { ok: false, error: `Five lists at most. Take one away first.` };
   const res = await saveTodoLists(clean);
   if (!res.ok) return { ok: false, error: "Couldn't save the lists." };
   revalidatePath("/portal/todo");
   return { ok: true };
 }
 
+
+/** Rename a list, and every to-do on it with it. */
+export async function renameList(from: string, to: string): Promise<TodoResult> {
+  const w = await who();
+  if (!w || !w.all) return { ok: false, error: "Only the office can change the lists." };
+  const name = to.trim().slice(0, 40);
+  if (!name) return { ok: false, error: "Give the list a name." };
+  const lists = await todoLists();
+  if (!lists.includes(from)) return { ok: false, error: "That list has gone." };
+  if (name !== from && lists.includes(name)) return { ok: false, error: "There's already a list called that." };
+  try {
+    await renameTodoList(from, name);
+    const r = await saveTodoLists(lists.map((l) => (l === from ? name : l)));
+    if (!r.ok) return { ok: false, error: "Couldn't save the lists." };
+  } catch {
+    return { ok: false, error: "Couldn't rename it. Try again." };
+  }
+  revalidatePath("/portal/todo");
+  return { ok: true };
+}

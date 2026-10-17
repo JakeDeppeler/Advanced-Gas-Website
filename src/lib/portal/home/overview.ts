@@ -72,8 +72,8 @@ export async function overview(goal: YearGoal | null, span: 6 | 12 = 12): Promis
   }
 
   const open = (pipe?.quotes ?? []).filter((x) => x.stage === "new" || x.stage === "due" || x.stage === "waiting");
-  // Most worth a call first: due a follow-up, then the biggest.
-  const hot = [...open].sort((a, b) => Number(b.stage === "due") - Number(a.stage === "due") || b.value - a.value).slice(0, 6);
+  // Newest first, so today's quotes are the ones in front of the office.
+  const hot = [...open].sort((a, b) => b.quotedOn.localeCompare(a.quotedOn) || b.value - a.value).slice(0, 6);
   const LABEL: Record<string, string> = { new: "Just quoted", due: "Follow up today", waiting: "Waiting on them", won: "Sold, last 30 days" };
   const stages: StageSlice[] = (["new", "due", "waiting", "won"] as Stage[]).map((k) => {
     const l = (pipe?.quotes ?? []).filter((x) => x.stage === k);

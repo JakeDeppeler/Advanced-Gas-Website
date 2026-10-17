@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addOwed, closeOwed, savePriority, type OweResult } from "@/app/portal/finance/owe/actions";
+import { addOwed, closeOwed, saveArrangement, savePriority, type OweResult } from "@/app/portal/finance/owe/actions";
 import { PRIORITIES, PRIORITY_RANK, supplierKey, type Owed, type Priority, type SupplierPriority } from "@/lib/owe/types";
 
 const m0 = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
@@ -110,7 +110,9 @@ export function OweBoard({ owed, priorities, today, xero, tiles = true }: {
                       <strong>{s.name}</strong>
                       <em>{s.items.length} {s.items.length === 1 ? "bill" : "bills"}{s.reason ? ` · ${s.reason}` : ""}</em>
                     </button>
-                    <PriorityPick s={s} pending={pending} onSave={(pr, reason) => run(() => savePriority(s.name, pr, reason), `${s.name}: ${PRIORITIES.find((p) => p.k === pr)?.label}.`)} />
+                    <PriorityPick s={s} pending={pending}
+                      onSave={(pr, reason) => run(() => savePriority(s.name, pr, reason), `${s.name}: ${PRIORITIES.find((p) => p.k === pr)?.label}.`)}
+                      onTerms={(kind, repay, note) => run(() => saveArrangement({ supplier: s.name, kind, repay, every: "month", note }), `${s.name} is on ${kind === "plan" ? "a payment plan" : "a line of credit"}, paid off over time.`)} />
                     <span className={`pt-owe__due${w.late ? " is-late" : ""}`}>{w.late ? "⚑ " : ""}{w.text}</span>
                     <strong className="pt-owe__amt">{m2(s.total)}{s.overdue > 0 && s.overdue < s.total && <em>{m0(s.overdue)} overdue</em>}</strong>
                   </div>
@@ -186,9 +188,11 @@ export function OweBoard({ owed, priorities, today, xero, tiles = true }: {
   );
 }
 
-function PriorityPick({ s, pending, onSave }: { s: Supplier; pending: boolean; onSave: (pr: Priority, reason: string) => void }) {
+function PriorityPick({ s, pending, onSave, onTerms }: { s: Supplier; pending: boolean; onSave: (pr: Priority, reason: string) => void; onTerms: (kind: "plan" | "credit", repay: string, note: string) => void }) {
   const [editing, setEditing] = useState(false);
-  const [pr, setPr] = useState<Priority>(s.pr);
+  // A priority, or paying it off on terms: a payment plan or a line of credit, with the amount a month.
+  const [pr, setPr] = useState<Priority | "plan" | "credit">(s.pr);
+  const [repay, setRepay] = useState("");
   const [reason, setReason] = useState(s.reason ?? "");
   if (!editing) {
     return (
@@ -198,10 +202,18 @@ function PriorityPick({ s, pending, onSave }: { s: Supplier; pending: boolean; o
     );
   }
   return (
-    <form className="pt-owe__pick" onSubmit={(e) => { e.preventDefault(); onSave(pr, reason); setEditing(false); }}>
-      <select value={pr} onChange={(e) => setPr(e.target.value as Priority)} aria-label={`Priority for ${s.name}`}>
+    <form className="pt-owe__pick" onSubmit={(e) => {
+      e.preventDefault();
+      if (pr === "plan" || pr === "credit") onTerms(pr, repay, reason);
+      else onSave(pr, reason);
+      setEditing(false);
+    }}>
+      <select value={pr} onChange={(e) => setPr(e.target.value as Priority | "plan" | "credit")} aria-label={`Priority for ${s.name}`}>
         {PRIORITIES.map((p) => <option key={p.k} value={p.k}>{p.label}  {p.blurb}</option>)}
+        <option value="plan">On a payment plan  paid off a month at a time</option>
+        <option value="credit">Line of credit  paid down over time</option>
       </select>
+      {(pr === "plan" || pr === "credit") && <input value={repay} onChange={(e) => setRepay(e.target.value)} inputMode="decimal" placeholder="$ a month" aria-label="How much a month" style={{ width: 110 }} />}
       <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why? e.g. no pay, no stock" maxLength={300} aria-label="Why" />
       <button type="submit" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending}>Save</button>
       <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setEditing(false)}>Cancel</button>

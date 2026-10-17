@@ -4,7 +4,6 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { listSyncRuns, type SyncRun } from "@/lib/pricebook/supply";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
 
@@ -48,7 +47,7 @@ export default async function SupplySyncsPage() {
         <Head title="Sync history" sub={<>Every pricebook run, what it changed, and anything that failed.</>} />
       </div>
 
-      <PortalTabs set="supply" />
+      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       {!dbReady ? (
         <section className="pt-panel">

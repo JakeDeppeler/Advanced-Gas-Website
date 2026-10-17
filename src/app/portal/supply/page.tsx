@@ -5,7 +5,6 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { loadSupplyState } from "@/lib/pricebook/supply";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +62,6 @@ export default async function SupplyPage() {
         ]} />
       </div>
 
-      <PortalTabs set="supply" />
 
       <section className="pt-panel pt-sup">
         <div className="pt-sup__head">
@@ -123,6 +121,17 @@ export default async function SupplyPage() {
       </section>
 
 
+      {/* What used to be a tab row: the supplier pages, as links, since the menu's Orders & stock is the way in. */}
+      <nav className="pk-card pk-pad sup-links" aria-label="More on suppliers">
+        <b>More on suppliers</b>
+        <span>
+          <Link href="/portal/supply/emails">Supplier emails</Link>
+          <Link href="/portal/supply/orders">Orders</Link>
+          <Link href="/portal/supply/search">Item search</Link>
+          <Link href="/portal/supply/syncs">Sync history</Link>
+          <Link href="/portal/supply/pricing">Pricing rules</Link>
+        </span>
+      </nav>
     </PortalShell>
   );
 }

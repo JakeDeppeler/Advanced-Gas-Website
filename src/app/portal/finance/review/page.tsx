@@ -86,7 +86,13 @@ export default async function ReviewPage({ searchParams }: { searchParams: { k?:
 
             <Grid cols={4}>
               {r.factors.map((f) => (
-                <Tile key={f.key} label={f.title} st={impactSt(f.impact)} fig={m$(Math.abs(f.impact))} frac={bridge ? Math.abs(f.impact) / bridge.max : null} sub={f.detail} />
+                // The work tile leads with what was earned: its effect on profit alone read as the month's takings.
+                f.key === "work" && r.now ? (
+                  <Tile key={f.key} label="The work, earned" st={impactSt(f.impact)} fig={m$(r.now.income)} frac={r.normal && r.normal.income > 0 ? r.now.income / r.normal.income : null}
+                    sub={`a usual ${r.kind} ${m$(r.normal?.income ?? 0)}, before GST · ${f.impact < 0 ? `${m$(Math.abs(f.impact))} less profit` : `${m$(f.impact)} more profit`} than usual`} />
+                ) : (
+                  <Tile key={f.key} label={f.title} st={impactSt(f.impact)} fig={m$(Math.abs(f.impact))} frac={bridge ? Math.abs(f.impact) / bridge.max : null} sub={f.detail} />
+                )
               ))}
               {r.sales && (
                 <Tile label="Money in" st={r.sales.total > 0 && r.sales.due / r.sales.total >= 0.3 ? { k: "mid", w: "Lots owed" } : { k: "good", w: "Coming in" }}

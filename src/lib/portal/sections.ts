@@ -69,9 +69,6 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  */
 export const SECTION_DEFS: SectionDef[] = [
   { id: "home", label: "Overview", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
-  // The quotes to chase, as their own tab, the way Rapport has its Pipeline:
-  // the office lives in it, so it isn't two clicks deep under Sales.
-  { id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, and who's chasing it", pages: [{ label: "Pipeline", href: "/portal/pipeline" }] },
   {
     id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "What needs doing, and who to keep in touch with",
     pages: [
@@ -81,6 +78,9 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Future planning", href: "/portal/plans", office: true },
     ],
   },
+  // The quotes to chase, as their own tab, the way Rapport has its Pipeline:
+  // the office lives in it, so it isn't two clicks deep under Sales.
+  { id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, and who's chasing it", pages: [{ label: "Pipeline", href: "/portal/pipeline" }] },
   {
     id: "run", label: "How we're going", icon: "run", group: 1, blurb: "From lead to paid, against the goal",
     pages: [
@@ -103,7 +103,6 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Stuck money", href: "/portal/stuck" },
       { label: "We owe", href: "/portal/finance/owe" },
       { label: "Spending", href: "/portal/finance/spend" },
-      { label: "Profit on every job", href: "/portal/profit" },
       { label: "Journals", href: "/portal/journals" },
     ],
   },
@@ -179,6 +178,7 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     id: "how", label: "How we work", icon: "book", group: 2, blurb: "The standard, written down",
     pages: [
+      { label: "Roles", href: "/portal/roles" },
       { label: "Processes", href: "/portal/sops" },
       { label: "Handbook", href: "/portal/handbook" },
       { label: "Learning", href: "/portal/learning" },
@@ -326,6 +326,8 @@ export const ALIAS: [string, string][] = [
   ["/portal/pipeline/lost", "/portal/sales"],
   ["/portal/leads", "/portal/sales"],
   ["/portal/not-billed", "/portal/jobs"],
+  // The job-by-job profit list lives with the jobs now, not under Finance.
+  ["/portal/profit", "/portal/jobs"],
   ["/portal/hours", "/portal/rates"],
   ["/portal/pace", "/portal/goal"],
   // Pricing & costs › Hourly rate's Build our rate tab.

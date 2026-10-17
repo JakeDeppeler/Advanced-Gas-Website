@@ -1084,8 +1084,20 @@ async function serviceTitanMetrics(now: Date) {
   const created = { todayV: 0, weekV: 0, monthV: 0, todayOptions: 0, monthOptions: 0 };
   const todayRowsForCount: { id: number; job_id: number | null; sold_on: string | null; customer_id: number | null; created_on: string | null }[] = [];
   const weekRowsForCount: { id: number; job_id: number | null; sold_on: string | null; customer_id: number | null; created_on: string | null }[] = [];
+  // A quote's worth is the average of its options: the customer takes one of
+  // them, so six options on one job is one job's money, not six. Each option
+  // carries its share, total over the count on that job, so a job's options
+  // add up to their average wherever the days fall. The pipeline counts a
+  // quote the same way.
+  const oppKey = (r: { id: number; job_id: number | null; customer_id: number | null; created_on: string | null }) =>
+    r.job_id != null ? `j${r.job_id}` : r.customer_id != null && r.created_on ? `c${r.customer_id}-${r.created_on.slice(0, 10)}` : `e${r.id}`;
+  const optionsOn = new Map<string, number>();
+  for (const r of createdRows) optionsOn.set(oppKey(r), (optionsOn.get(oppKey(r)) ?? 0) + 1);
+  const oppsToday = new Set<string>();
+  const oppsMonth = new Set<string>();
   for (const r of createdRows) {
-    const v = Number(r.total ?? 0);
+    const v = Number(r.total ?? 0) / (optionsOn.get(oppKey(r)) ?? 1);
+    oppsMonth.add(oppKey(r));
     created.monthV += v;
     created.monthOptions += 1;
     if (!r.created_on) continue;
@@ -1095,6 +1107,7 @@ async function serviceTitanMetrics(now: Date) {
       weekRowsForCount.push({ id: r.id, job_id: r.job_id, sold_on: r.sold_on, customer_id: r.customer_id, created_on: r.created_on });
     }
     if (isoDateMelbourne(at) === today) {
+      oppsToday.add(oppKey(r));
       created.todayV += v;
       created.todayOptions += 1;
       todayRowsForCount.push({ id: r.id, job_id: r.job_id, sold_on: r.sold_on, customer_id: r.customer_id, created_on: r.created_on });
@@ -1997,8 +2010,8 @@ async function serviceTitanMetrics(now: Date) {
     quotesCreatedTodayCount: todayClose.quoted,
     quotesCreatedTodayOptions: created.todayOptions,
     quotesCreatedTodaySold: todayClose.won,
-    avgQuoteToday: created.todayOptions ? created.todayV / created.todayOptions : null,
-    avgQuoteMonth: created.monthOptions ? created.monthV / created.monthOptions : null,
+    avgQuoteToday: oppsToday.size ? created.todayV / oppsToday.size : null,
+    avgQuoteMonth: oppsMonth.size ? created.monthV / oppsMonth.size : null,
     quotesCreatedWeekValue: created.weekV,
     quotesCreatedWeekCount: weekOpportunities,
     quotesCreatedMonthValue: created.monthV,

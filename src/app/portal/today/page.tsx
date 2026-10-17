@@ -167,12 +167,16 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   }
 
   // Overview
-  const usual = m.dailySalesTarget ?? null;
-  const sellSt = usual ? status(m.soldToday, usual) : none();
+  // A weekend has no daily target: the day reads grey, and anything sold on
+  // it is extra, on top of the week, not a shortfall against a usual day.
+  const weekend = /^(Saturday|Sunday)/.test(now.day);
+  const extra: Status = { k: "good", w: "Extra" };
+  const usual = weekend ? null : m.dailySalesTarget ?? null;
+  const sellSt = weekend ? (m.soldToday > 0 ? extra : none("Weekend")) : usual ? status(m.soldToday, usual) : none();
   const g = salesGoal(m);
   const notBilled = m.toBillCount ?? 0;
   // A usual day's quoting: set on the board, or what a usual day's sales need at our close rate.
-  const quotedUsual = m.dailyQuotedTarget ?? (usual && m.closeRate30d ? usual / m.closeRate30d : null);
+  const quotedUsual = weekend ? null : m.dailyQuotedTarget ?? (usual && m.closeRate30d ? usual / m.closeRate30d : null);
   const levels = m.goalLevels ?? null;
   const monthSt = g.byNow ? status(m.soldMtd, g.byNow) : none();
 
@@ -208,24 +212,24 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
         {head("ServiceTitan")}
         {tabs}
         <Say>
-          {usual ? <>Selling is {sellSt.k === "good" ? "on track" : sellSt.k === "mid" ? "close to goal" : "behind"} today. </> : <>No sales goal is set, so today has nothing to be measured against. </>}
+          {weekend ? <>It&rsquo;s the weekend, so there&rsquo;s no daily target{m.soldToday > 0 ? <>; {money(m.soldToday)} sold today is extra. </> : ". "}</> : usual ? <>Selling is {sellSt.k === "good" ? "on track" : sellSt.k === "mid" ? "close to goal" : "behind"} today. </> : <>No sales goal is set, so today has nothing to be measured against. </>}
           {notBilled > 0 && <Bad>{plural(notBilled, "job is", "jobs are")} done but not billed.</Bad>}
         </Say>
         <Pair>
-          <Hero dark st={usual ? sellSt : undefined} label="Sold today" right={usual ? goalWords(m, usual, "day") : "no goal set"} fig={money(m.soldToday)} frac={usual ? m.soldToday / usual : null}
-            sub={<>{plural(m.soldCountToday, "job")} sold · {plural(m.quotesCreatedTodayCount, "quote")} sent<TwoGoals levels={levels} done={m.soldToday} need={usual} /></>} />
+          <Hero dark st={usual || weekend ? sellSt : undefined} label="Sold today" right={weekend ? "weekend, no target" : usual ? goalWords(m, usual, "day") : "no goal set"} fig={money(m.soldToday)} frac={usual ? m.soldToday / usual : null}
+            sub={<>{plural(m.soldCountToday, "job")} sold · {plural(m.quotesCreatedTodayCount, "quote")} sent{weekend ? null : <TwoGoals levels={levels} done={m.soldToday} need={usual} />}</>} />
           <Hero st={g.byNow ? monthSt : undefined} label={`${now.month} so far`} right={g.month ? goalWords(m, g.month) : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
             sub={<>{g.byNow != null ? `${money(g.byNow)} is where the goal says we should be by now` : "Set a year goal to see the pace"}<TwoGoals levels={levels} done={m.soldMtd} need={g.byNow} /></>} href="/portal/sales" />
         </Pair>
         <Grid>
-          <Tile label="Quoted" st={quotedUsual ? status(m.quotesCreatedTodayValue, quotedUsual) : none()} fig={money(m.quotesCreatedTodayValue)} frac={quotedUsual ? m.quotesCreatedTodayValue / quotedUsual : null}
-            sub={<>{plural(m.quotesCreatedTodayCount, "quote")}{quotedUsual ? ` · a usual day ${money(quotedUsual)}` : ""}<TwoGoals levels={levels} done={m.quotesCreatedTodayValue} need={quotedUsual} /></>} href="/portal/pipeline" />
+          <Tile label="Quoted" st={weekend ? (m.quotesCreatedTodayValue > 0 ? extra : none("Weekend")) : quotedUsual ? status(m.quotesCreatedTodayValue, quotedUsual) : none()} fig={money(m.quotesCreatedTodayValue)} frac={quotedUsual ? m.quotesCreatedTodayValue / quotedUsual : null}
+            sub={<>{plural(m.quotesCreatedTodayCount, "quote")}{quotedUsual ? ` · a usual day ${money(quotedUsual)}` : ""}{weekend ? null : <TwoGoals levels={levels} done={m.quotesCreatedTodayValue} need={quotedUsual} />}</>} href="/portal/pipeline" />
           <Tile label="Jobs done" st={team && team.jobsTotal ? (team.jobsDone >= team.jobsTotal ? { k: "good", w: "All done" } : none("Going")) : none("")}
             fig={team ? `${team.jobsDone} of ${team.jobsTotal}` : String(m.jobsCompletedToday)} frac={team && team.jobsTotal ? team.jobsDone / team.jobsTotal : null}
             sub={team ? `${team.jobsTotal - team.jobsDone} still on the go` : "finished today"} href="/portal/today?tab=team" />
           <Tile label="Billed" st={notBilled ? { k: "mid", w: "To bill" } : { k: "good", w: "All billed" }} fig={money(m.revenueToday)} frac={m.revenueToday + m.toBillValue > 0 ? m.revenueToday / (m.revenueToday + m.toBillValue) : null}
             sub={notBilled ? (m.toBillValue ? `${money(m.toBillValue)} done, not billed` : `${plural(notBilled, "job")} done, not billed`) : "nothing waiting to bill"} href="/portal/jobs?tab=notbilled" />
-          <Tile label="Leads" st={leadsUsual ? status(m.leadsToday, leadsUsual) : none("")} fig={String(m.leadsToday)} frac={leadsUsual ? m.leadsToday / leadsUsual : null}
+          <Tile label="Leads" st={weekend ? (m.leadsToday > 0 ? extra : none("Weekend")) : leadsUsual ? status(m.leadsToday, leadsUsual) : none("")} fig={String(m.leadsToday)} frac={leadsUsual ? m.leadsToday / leadsUsual : null}
             sub={leadsUsual ? `usual ${leadsUsual.toFixed(leadsUsual < 10 ? 1 : 0)} a day` : "this month so far"} href="/portal/leads" />
         </Grid>
         <Lh>Before the Reece bill</Lh>

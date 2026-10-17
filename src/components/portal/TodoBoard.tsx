@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addTodo, deleteTodo, editTodo, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
-import { byUrgency, dueState, dueWords, firstName, quickDays, type Person, type Todo } from "@/lib/todos/types";
+import { addTodo, deleteTodo, editTodo, renameList, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
+import { dueState, dueWords, firstName, quickDays, type Person, type Todo } from "@/lib/todos/types";
 
 type Props = {
   todos: Todo[];
@@ -160,6 +160,8 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   const [over, setOver] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
   const [newList, setNewList] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [newName, setNewName] = useState("");
   const [moved, setMoved] = useState<Record<string, string>>({});
   useEffect(() => setMoved({}), [todos]);
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(null), 4500); return () => clearTimeout(t); }, [msg]);
@@ -231,7 +233,8 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
         <div className="td-board">
           {lists.map((l, i) => {
             const tone = TONES[i % TONES.length];
-            const items = shown.filter((t) => listOf(t) === l).sort(byUrgency);
+            // Newest first: what was just added is what's in front of you.
+            const items = shown.filter((t) => listOf(t) === l).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
             const can = !!drag && live.find((x) => x.id === drag)?.list !== l;
             return (
               <section
@@ -242,7 +245,13 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
               >
                 <header className="qp-colh">
                   <i className={`qp-dot td-dot t-${tone}`} aria-hidden="true" />
-                  <h2 id={`td-h-${i}`}>{l}</h2>
+                  {renaming === l ? (
+                    <form className="td-rename" onSubmit={(e) => { e.preventDefault(); if (newName.trim() && newName.trim() !== l) run(() => renameList(l, newName), "Renamed.", () => setRenaming(null)); else setRenaming(null); }}>
+                      <input id={`td-rn-${i}`} value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={40} aria-label={`New name for ${l}`} autoFocus onBlur={() => setRenaming(null)} />
+                    </form>
+                  ) : all ? (
+                    <h2 id={`td-h-${i}`}><button type="button" className="td-hbtn" title="Rename this list" onClick={() => { setRenaming(l); setNewName(l); }}>{l}</button></h2>
+                  ) : <h2 id={`td-h-${i}`}>{l}</h2>}
                   <span className="qp-n">{items.length}</span>
                   <span className="td-colacts">
                     {all && !items.length && lists.length > 1 && (
@@ -259,7 +268,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
               </section>
             );
           })}
-          {all && (
+          {all && lists.length < 5 && (
             <div className="td-newcol">
               {newList == null ? (
                 <button type="button" className="qp-drop td-newbtn" onClick={() => setNewList("")}>

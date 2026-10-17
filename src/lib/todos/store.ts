@@ -78,6 +78,13 @@ export async function saveOfficeIds(ids: string[]): Promise<{ ok: boolean }> {
 /* -------------------------------------------------------------- the lists */
 
 const LISTS = "todo-lists";
+/** Five across the page at most: past that a list of lists stops being a board. */
+export const MAX_LISTS = 5;
+
+/** A list renamed: its name in the settings and on every to-do that's on it. */
+export async function renameTodoList(from: string, to: string): Promise<void> {
+  await sbUpdate(T, `${q.eq("list", from)}`, { list: to.trim().slice(0, 40), updated_at: new Date().toISOString() });
+}
 
 /** The to-do lists, in the order they sit across the page. */
 export const todoLists = cache(async (): Promise<string[]> => {
@@ -86,7 +93,7 @@ export const todoLists = cache(async (): Promise<string[]> => {
 });
 
 export async function saveTodoLists(names: string[]): Promise<{ ok: boolean }> {
-  const clean = [...new Set(names.map((n) => n.trim().slice(0, 40)).filter(Boolean))].slice(0, 12);
+  const clean = [...new Set(names.map((n) => n.trim().slice(0, 40)).filter(Boolean))].slice(0, MAX_LISTS);
   return saveSettings(LISTS, { names: clean });
 }
 
