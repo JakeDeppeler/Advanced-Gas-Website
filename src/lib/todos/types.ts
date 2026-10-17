@@ -23,6 +23,10 @@ export type Todo = {
   list: string | null;
 };
 
+/** The lists Settings › Automatic writes to: the accounts person's, and the quote follow-ups. */
+export const FINANCE_LIST = "Finance";
+export const FOLLOW_UP_LIST = "Follow up";
+
 /** The lists until the office changes them on the page. */
 export const DEFAULT_LISTS = ["Quoting", "Advanced Gas"];
 

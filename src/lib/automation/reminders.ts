@@ -3,20 +3,20 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { sbInsert, sbSelectOne, sbUpdateReturning } from "@/lib/dashboard/db";
 import { toBillJobs } from "@/lib/dashboard/toBill";
 import { loadPipeline } from "@/lib/pipeline/store";
-import type { PipeQuote } from "@/lib/pipeline/types";
 import { isLow, listStock } from "@/lib/portal/stock";
 import { listStockLines, shelfMatch } from "@/lib/ordering/stockLines";
 import { addStockLine, draftFor, loadSuppliers } from "@/lib/ordering/db";
 import { nextWeek } from "@/lib/ordering/plan";
 import { ordersToUpdate, updateJobs } from "@/lib/ordering/stJobNotes";
 import { owedInvoices } from "@/lib/portal/run/money";
-import { latestChecksForVans, listVehicles } from "@/lib/portal/db";
 import { cleanCell } from "@/components/portal/fleetStatus";
 import { listContacts } from "@/lib/contacts/store";
 import { lastWords, nextDue, touchState } from "@/lib/contacts/types";
 import { matchName } from "@/lib/portal/crewFile/match";
-import { MAX_LISTS, createAutoTodo, officeIds, saveTodoLists, teamPeople, todoLists } from "@/lib/todos/store";
-import type { Person } from "@/lib/todos/types";
+import { MAX_LISTS, createAutoTodo, officeIds, saveTodoLists, setDone, teamPeople, todoLists } from "@/lib/todos/store";
+import { FINANCE_LIST, FOLLOW_UP_LIST, type Person } from "@/lib/todos/types";
+import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
+import { FOLLOW_UPS, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { clearApprovedQuoteTags } from "./quoteTag";
 
@@ -43,7 +43,7 @@ const who = (q: Pick<PipeQuote, "customer" | "suburb" | "jobNumber">) => [q.cust
 
 type Ctx = {
   sw: AutoSwitches;
-  /** Who the Accounts list's to-dos go to. */
+  /** Who the Finance list's to-dos go to. */
   accounts: Person | null;
   today: string;
   made: Map<string, string>;
@@ -70,12 +70,13 @@ const personNamed = (ctx: Ctx, name: string | null | undefined): Person | null =
   return hit ? ctx.people.find((p) => p.name === hit) ?? null : null;
 };
 
-async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; notes?: string; to: Person | null; sales?: boolean; accounts?: boolean; booking?: boolean; jobId?: number }): Promise<boolean> {
+async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; notes?: string; to: Person | null; sales?: boolean; accounts?: boolean; booking?: boolean; list?: string; dueOn?: string; jobId?: number; onMade?: (id: string | null) => void }): Promise<boolean> {
   if (ctx.made.has(key)) return false;
   const to = t.to ?? (t.accounts ? ctx.accounts : null) ?? ctx.office;
   if (!to) return false;
   try {
-    await createAutoTodo({ title: t.title, notes: t.notes ?? null, assigneeId: to.id, dueOn: ctx.today, list: listFor(ctx, !!t.sales, !!t.accounts, !!t.booking) ?? listFor(ctx, false) });
+    const id = await createAutoTodo({ title: t.title, notes: t.notes ?? null, assigneeId: to.id, dueOn: t.dueOn ?? ctx.today, list: (t.list && ctx.lists.includes(t.list) ? t.list : null) ?? listFor(ctx, !!t.sales, !!t.accounts, !!t.booking) ?? listFor(ctx, false) });
+    t.onMade?.(id);
     ctx.made.set(key, new Date().toISOString());
     ctx.log.push({ at: new Date().toISOString(), kind, ok: true, jobId: t.jobId, title: `To-do for ${to.name.split(" ")[0]}: ${t.title}` });
     return true;
@@ -91,10 +92,16 @@ async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; no
  * either job is on; a board already at its five lists keeps them on the
  * general list instead.
  */
-export const ACCOUNTS = "Accounts";
-async function ensureAccountsList(lists: string[], sw: AutoSwitches): Promise<string[]> {
-  if (lists.includes(ACCOUNTS) || !(sw.notInvoiced || sw.overdueInv) || lists.length >= MAX_LISTS) return lists;
-  const next = [...lists, ACCOUNTS];
+export const ACCOUNTS = FINANCE_LIST;
+export const FOLLOW_UP = FOLLOW_UP_LIST;
+async function ensureLists(lists: string[], sw: AutoSwitches): Promise<string[]> {
+  const want = [
+    ...((sw.notInvoiced || sw.overdueInv) ? [ACCOUNTS] : []),
+    ...(sw.quoteFollow ? [FOLLOW_UP] : []),
+  ].filter((l) => !lists.includes(l));
+  if (!want.length) return lists;
+  const next = [...lists, ...want].slice(0, MAX_LISTS);
+  if (next.length === lists.length) return lists;
   return (await saveTodoLists(next).catch(() => ({ ok: false }))).ok ? next : lists;
 }
 
@@ -169,20 +176,44 @@ async function factoryMin(ctx: Ctx) {
   }
 }
 
-/** A quote due a follow-up call, two days or more: a to-do for whoever's chasing it, or whoever wrote it. */
+/**
+ * Quote follow-ups, on their own Follow up list: one to-do per call in the
+ * Pipeline's rule (day 2, then 4 days on, then a week on), due the day the
+ * rule says, for whoever's chasing the quote or whoever wrote it. When the
+ * call is logged on the Pipeline, or the quote sells or is lost, the to-do
+ * ticks itself off. Only quotes out a fortnight or less: the rule is done by
+ * day 13, and older ones are the Pipeline's to sort.
+ */
+const FOLLOW_TODOS = "automation_follow_todos";
 async function quoteFollow(ctx: Ctx, pipe: PipeQuote[]) {
-  let n = 0;
-  for (const q of pipe) {
-    if (n >= PER_RUN) break;
-    if (q.stage !== "due" || !q.quotedOn) continue;
-    if (q.quietDays < 2 || daysBetween(q.quotedOn, ctx.today) > 30) continue;
-    const to = personNamed(ctx, q.owner) ?? personNamed(ctx, q.quotedBy);
-    if (await todo(ctx, "quoteFollow", `follow:${q.key}:${q.nextOn ?? q.quotedOn}`, {
-      title: `Follow up ${who(q)}${q.value ? `, ${money(q.value)}` : ""}`,
-      notes: [`${q.what ?? "Quote"}${q.jobNumber ? ` · job #${q.jobNumber}` : ""}${q.phone ? ` · ${q.phone}` : ""}.`, `Quoted ${dayLabel(q.quotedOn)}, quiet ${q.quietDays} days. Log the call on the Pipeline so it moves on.`].join("\n"),
-      to, sales: true, jobId: q.jobId ?? undefined,
-    })) n++;
+  const open = (await getSettings<Record<string, { id: string; n: number }>>(FOLLOW_TODOS).catch(() => null)) ?? {};
+  const byKey = new Map(pipe.map((q) => [q.key, q]));
+
+  // Done on the Pipeline: a call logged since, or the quote isn't waiting on a call any more.
+  for (const [k, t] of Object.entries(open)) {
+    const q = byKey.get(k);
+    if (q && q.stage === "due" && followUps(q.touches) <= t.n) continue;
+    await setDone(t.id, true, "Automatic").catch(() => false);
+    delete open[k];
   }
+
+  let made = 0;
+  for (const q of pipe) {
+    if (made >= 40) break;
+    if (q.stage !== "due" || !q.quotedOn || daysBetween(q.quotedOn, ctx.today) > 14) continue;
+    const n = followUps(q.touches);
+    if (n >= FOLLOW_UPS || open[q.key]) continue;
+    const due = q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? ctx.today;
+    const to = personNamed(ctx, q.owner) ?? personNamed(ctx, q.quotedBy);
+    const which = ["First", "Second", "Third"][n] ?? "Next";
+    if (await todo(ctx, "quoteFollow", `follow:${q.key}:${n}`, {
+      title: `${which} follow-up: ${who(q)}${q.value ? `, ${money(q.value)}` : ""}`,
+      notes: [`${q.what ?? "Quote"}${q.jobNumber ? ` · job #${q.jobNumber}` : ""}${q.phone ? ` · ${q.phone}` : ""}.`, `Quoted ${dayLabel(q.quotedOn)}. Log the call on the Pipeline and this ticks itself off.`].join("\n"),
+      to, list: FOLLOW_UP, dueOn: due < ctx.today ? due : ctx.today, jobId: q.jobId ?? undefined,
+      onMade: (id) => { if (id) open[q.key] = { id, n }; },
+    })) made++;
+  }
+  await saveSettings(FOLLOW_TODOS, open).catch(() => undefined);
 }
 
 /**
@@ -304,7 +335,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const [made, people, offIds, lists] = await Promise.all([loadMade(), teamPeople(), officeIds(), todoLists()]);
   const office = people.find((p) => p.id === sw.officeTo) ?? people.find((p) => offIds.includes(p.id)) ?? null;
   const accounts = people.find((p) => p.id === sw.accountsTo) ?? office;
-  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureAccountsList(lists, sw) };
+  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw) };
   const needPipe = sw.soldNotBooked || sw.quoteFollow;
   const pipe = needPipe ? await loadPipeline({ detail: true }).then((p) => p.quotes).catch(() => null) : [];
 

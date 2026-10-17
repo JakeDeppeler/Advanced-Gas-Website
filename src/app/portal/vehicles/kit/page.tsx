@@ -71,7 +71,14 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
         {def.lists.map((g) => (
           <Card key={g.group} title={g.group} aside={`${g.items.length} ${g.items.length === 1 ? "line" : "lines"}`}>
             <div className="pk-tbl-wrap">
+              {/* Fixed widths, the same in every group, so each column runs straight down the page. */}
               <table className="pk-tbl pt-kit__tbl">
+                <colgroup>
+                  <col className="pt-kit__c-item" />
+                  <col className="pt-kit__c-min" />
+                  {vans.map((v) => <col key={v.vanId} />)}
+                  <col className="pt-kit__c-tick" />
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Item</th>

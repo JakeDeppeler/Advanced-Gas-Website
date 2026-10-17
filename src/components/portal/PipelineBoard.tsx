@@ -334,6 +334,14 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   );
 }
 
+const ORD = ["1st call", "2nd call", "3rd call"];
+
+/** How long the quote has been out: "Quoted 9 Oct · out 9 days". */
+function outFor(q: PipeQuote, today: string): string {
+  const d = daysBetween(q.quotedOn, today);
+  return `Quoted ${shortDay(q.quotedOn)} · ${d <= 0 ? "today" : `out ${d === 1 ? "1 day" : `${d} days`}`}`;
+}
+
 /** The one fact on a card that decides what happens next, as Rapport's "Closes Dec 6". */
 function when(q: PipeQuote, today: string): { text: string; late: number } {
   const late = q.stage === "due" && q.nextOn && q.nextOn < today ? daysBetween(q.nextOn, today) : 0;
@@ -375,12 +383,12 @@ function Card({ q, today, i, onOpen, dragging, onDrag }: { q: PipeQuote; today: 
         title={[q.options > 1 ? `${q.options} options` : null, tries ? plural(tries, "try", "tries") : null, q.stage !== "won" ? "drag to move it" : null].filter(Boolean).join(" · ")}
       >
         <span className="qp-ct">
-          <span>{w.late ? <b aria-hidden="true">! </b> : null}{w.text}</span>
+          <span>{w.late ? <b aria-hidden="true">! </b> : null}{w.text}{(q.stage === "due" || q.stage === "waiting") ? ` · ${tries < FOLLOW_UPS ? `${ORD[tries]} of ${FOLLOW_UPS}` : "all calls done"}` : ""}</span>
           <span className="qp-dots" aria-hidden="true">•••</span>
         </span>
         <span className="qp-title">{q.customer ?? q.what ?? "Quote"}</span>
         <span className="qp-sub">{sub}</span>
-        <span className="qp-sub qp-quoted">Quoted {shortDay(q.quotedOn)}{(q.stage === "due" || q.stage === "waiting") ? ` · ${tries < FOLLOW_UPS ? `follow-up ${tries + 1} of ${FOLLOW_UPS}` : `${FOLLOW_UPS} follow-ups done`}` : ""}</span>
+        <span className="qp-sub qp-quoted">{outFor(q, today)}</span>
         <span className="qp-cf">
           <span className="qp-val">{m0(q.value)}</span>
           <span className="qp-avs">{people.map((p) => <Av key={p} name={p} title={p === q.owner ? `${p} is chasing it` : `Quoted by ${p}`} />)}</span>
