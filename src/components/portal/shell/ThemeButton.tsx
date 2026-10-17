@@ -27,7 +27,7 @@ const isDark = (choice: ThemeChoice) =>
  * Light or dark, in the top bar as the prototype has it. It says the mode
  * you're in and flips to the other; "match my computer" lives in Settings.
  */
-export function ThemeButton({ initial }: { initial: ThemeChoice }) {
+export function ThemeButton({ initial, cls }: { initial: ThemeChoice; cls?: string }) {
   const [choice, setChoice] = useState(initial);
   // "Match my computer" can only be read in the browser.
   const [dark, setDark] = useState(initial === "dark");
@@ -42,6 +42,17 @@ export function ThemeButton({ initial }: { initial: ThemeChoice }) {
     setChoice(next);
     applyTheme(next);
   };
+  // The dock's round button: a moon or a sun, the words in its tooltip.
+  if (cls) {
+    return (
+      <button type="button" className={cls} onClick={flip} aria-label={`Switch to ${dark ? "light" : "dark"} mode`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          {dark ? <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></> : <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />}
+        </svg>
+        <span className="pn-tip" aria-hidden="true">{dark ? "Light mode" : "Dark mode"}</span>
+      </button>
+    );
+  }
   return (
     <button type="button" className="pn-theme" onClick={flip} aria-label={`Switch to ${dark ? "light" : "dark"} mode`}>
       <span aria-hidden="true">{dark ? "☾" : "☀"}</span> {dark ? "Dark" : "Light"}

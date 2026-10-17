@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -19,6 +19,9 @@ import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal
 import { ALIAS, buildSections, pathOff, type Count, type Section } from "@/lib/portal/sections";
 import { Crumb, MenuButton, SectionBar, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
+import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shell/TopNav";
+import { Dock, type DockLink } from "@/components/portal/shell/Dock";
+import { FigureCount } from "@/components/portal/shell/FigureCount";
 
 const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_users");
 
@@ -28,7 +31,8 @@ const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_
  * how many — leads this month — carries no number of its own. To-do's is
  * what's due today, red once something's late.
  */
-async function sideCounts(user: PortalUser, sections: Section[]): Promise<Record<string, Count>> {
+// Both the side bar and the wide top bar want these, in the same request; cached so they're read once.
+const sideCounts = cache(async (user: PortalUser, sections: Section[]): Promise<Record<string, Count>> => {
   const [counts, todos, all, contacts] = await Promise.all([
     navCounts(user).catch(() => ({})),
     myCounts(user).catch(() => ({ due: 0, overdue: 0 })),
@@ -54,13 +58,13 @@ async function sideCounts(user: PortalUser, sections: Section[]): Promise<Record
     if (n) out[`section:${s.id}`] = { n, red: true };
   }
   return out;
-}
+});
 
 /**
  * Is the sync keeping up? The board's snapshot is rebuilt every few minutes,
  * so an old one says it isn't. Office only: it's their figures that go stale.
  */
-async function liveLine(user: PortalUser): Promise<LiveState | null> {
+const liveLine = cache(async (user: PortalUser): Promise<LiveState | null> => {
   if (!can(user, "overhead")) return null;
   const board = await latestBoard();
   const at = board?.computedAt ? Date.parse(board.computedAt) : NaN;
@@ -69,7 +73,7 @@ async function liveLine(user: PortalUser): Promise<LiveState | null> {
   const fresh = mins <= 30;
   const ago = mins < 90 ? `${mins} min ago` : `${Math.round(mins / 60)} h ago`;
   return { fresh, text: fresh ? "ServiceTitan · Xero" : `Synced ${ago}`, title: fresh ? `Last synced ${ago}` : `Last synced ${ago}: the sync may have stopped` };
-}
+});
 
 type BarProps = { user: PortalUser; sections: Section[]; biz: Business; small: boolean; foot: React.ReactNode };
 
@@ -80,6 +84,30 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
   return <Sidebar sections={buildSections(items, biz, office(user), counts)} biz={biz} small={small} foot={foot} live={live} />;
 }
 
+/** The wide bar's brand and pills, with the same counts as the side bar, streamed in the same way. */
+async function CountedTop({ user, sections, biz }: { user: PortalUser; sections: Section[]; biz: Business }) {
+  const [counts, live] = await Promise.all([sideCounts(user, sections).catch(() => ({})), liveLine(user).catch(() => null)]);
+  return (
+    <>
+      <Brand biz={biz} live={live} />
+      <TopNav sections={buildSections(portalNav(user), biz, office(user), counts)} />
+    </>
+  );
+}
+
+/**
+ * The places someone goes many times a day, for the dock: each only if this
+ * person can open it and the business has it.
+ */
+const DOCK: DockLink[] = [
+  { href: "/portal/todo", label: "To-do", icon: "todo" },
+  { href: "/portal/today", label: "Today's numbers", icon: "clock" },
+  { href: "/portal/pipeline", label: "Quotes", icon: "quote" },
+  { href: "/portal/supply/work-orders", label: "Work orders", icon: "bolt" },
+  { href: "/portal/board/remote", label: "Wall board", icon: "wall" },
+  { href: "/portal/settings", label: "Settings", icon: "cog" },
+];
+
 /**
  * The portal's chrome, to the new design: the side bar, a top bar with where
  * you are, the search, the bell and light or dark, then the page.
@@ -87,6 +115,11 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
  * What the side bar offers comes from sections.ts over portalNav, and what the
  * business has (Settings) takes sections away: a business with no wall board
  * has no Wall board section, and its pages send you home.
+ *
+ * On a wide screen the side bar gives way to Rapport's layout: the sections
+ * as pills across the top, and a dock of shortcuts floating down the left.
+ * Both menus are drawn and the CSS shows the one that fits, so there's no
+ * flash of the wrong one while the browser measures itself.
  *
  * The bar's width and the theme are cookies, read here, so the first paint is
  * already right.
@@ -102,6 +135,8 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
   const small = cookies().get(NAV_COOKIE)?.value === "small";
   const theme = readTheme(cookies().get(THEME_COOKIE)?.value);
   const first = user.name.split(" ")[0];
+  const allowed = new Set(items.map((i) => i.href));
+  const dock = DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz));
 
   const foot = (
     <>
@@ -129,19 +164,29 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       <div className="pn-main">
         <header className="pn-top">
           <MenuButton />
+          <Suspense fallback={<><Brand biz={biz} /><TopNav sections={sections} /></>}>
+            <CountedTop user={user} sections={sections} biz={biz} />
+          </Suspense>
           <Crumb sections={sections} />
           <div className="pn-tools">
-            <div className="pn-search"><PortalSearch rows={rows} placeholder="Search" /></div>
+            <SearchPop><PortalSearch rows={rows} placeholder="Search" /></SearchPop>
             <Bell user={user} href="/portal/notifications" cls="pn-bell" size={18} />
             <ThemeButton initial={theme} />
+            <Link href="/portal/me" className="pn-avbtn" title={`${user.name} · My file`}>
+              <span aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</span>
+              <span className="pn-vh">My file</span>
+            </Link>
           </div>
         </header>
         <main className="pt__content pn-content">
           {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
+          <Suspense fallback={null}><SectionPages sections={sections} /></Suspense>
           <Suspense fallback={null}><SectionBar sections={sections} /></Suspense>
           {children}
         </main>
       </div>
+      <Dock links={dock} theme={theme} />
+      <Suspense fallback={null}><FigureCount /></Suspense>
     </div>
   );
 }
