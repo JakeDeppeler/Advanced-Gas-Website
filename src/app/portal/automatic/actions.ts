@@ -3,13 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { loadSwitches, saveSwitches } from "@/lib/automation/log";
+import { AUTO_KEYS, loadSwitches, saveSwitches, type AutoKey } from "@/lib/automation/log";
+import { teamPeople } from "@/lib/todos/store";
 
-/** Turn the quote-tag clean-up on or off. Admins only: it writes to ServiceTitan. */
-export async function setQuoteTag(on: boolean): Promise<{ ok: boolean; error?: string }> {
+/** Turn one automatic job on or off. Admins only: some of them write to ServiceTitan. */
+export async function setAuto(key: AutoKey, on: boolean): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
-  const r = await saveSwitches({ ...(await loadSwitches()), quoteTag: !!on });
+  if (!AUTO_KEYS.includes(key)) return { ok: false, error: "That isn't one of them." };
+  const r = await saveSwitches({ ...(await loadSwitches()), [key]: !!on });
+  revalidatePath("/portal/automatic");
+  return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
+}
+
+/** Who gets the office's automatic to-dos. */
+export async function setOfficeTo(id: string | null): Promise<{ ok: boolean; error?: string }> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
+  if (id && !(await teamPeople()).some((p) => p.id === id)) return { ok: false, error: "That person isn't on the team list." };
+  const r = await saveSwitches({ ...(await loadSwitches()), officeTo: id || null });
   revalidatePath("/portal/automatic");
   return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
 }

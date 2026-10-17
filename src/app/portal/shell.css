@@ -2332,3 +2332,13 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .sx .pt-myyear__rates span { font-size: 12.5px; color: var(--ink2); }
 .sx .pt-myyear__rates strong { font-size: 18px; font-weight: 650; }
 .sx .pt-mythree { gap: 18px; margin: 0; }
+
+/* Automatic: who each to-do goes to, and the office picker. */
+.au-sub { margin: 2px 0 6px; font-size: 12.5px; color: var(--ink2); }
+.au-to-who { color: var(--ink); font-weight: 500; }
+.au-item p.au-meta { font-size: 12px; color: var(--ink3); margin-top: 3px; }
+.au-office { background: var(--quiet); border: 0; border-radius: 18px; padding: 12px 16px; margin: 4px 0 6px; }
+.au-to { display: inline-flex; align-items: center; gap: 8px; }
+.au-to select { height: 38px; border-radius: 999px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); padding: 0 14px; font: inherit; font-size: 13.5px; font-weight: 600; }
+.au-to em { font-style: normal; font-size: 12px; color: var(--ink2); }
+@media (max-width: 640px) { .au-item { flex-direction: column; align-items: flex-start; gap: 10px; } }

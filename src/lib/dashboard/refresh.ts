@@ -6,6 +6,7 @@ import { ensureXeroToken } from "@/lib/portal/xero";
 import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
 import { autoDraft } from "@/lib/ordering/autoDraft";
 import { clearApprovedQuoteTags } from "@/lib/automation/quoteTag";
+import { runAutomations } from "@/lib/automation/reminders";
 
 /**
  * Bring the board's snapshot up to date, if it's due.
@@ -83,6 +84,7 @@ async function run(pull: boolean) {
   if (pull) await autoDraft().catch(() => undefined);
   // And answered quotes lose their "Awaiting Quote Approval" tag (Settings › Automatic).
   if (pull) await clearApprovedQuoteTags().catch(() => undefined);
+  if (pull) await runAutomations().catch(() => undefined);
 }
 
 export async function refreshBoard(): Promise<{ refreshed: boolean; ageMs?: number; synced?: boolean; error?: string }> {
