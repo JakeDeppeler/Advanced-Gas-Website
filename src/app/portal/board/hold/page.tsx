@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { Locked } from "@/components/portal/Locked";
 import { HoldTags } from "@/components/portal/HoldTags";
 import { dbConfigured } from "@/lib/portal/db";
@@ -28,19 +28,11 @@ export default async function HoldTagsPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/section/board" label="Wall board" />
-      <div className="pt-head">
-        <h1>Held work</h1>
-        <p>
-          The portal&rsquo;s <strong>Stuck</strong> page counts open jobs that are waiting on something, and the
-          only thing in ServiceTitan that says what they are waiting on is the tag. Half the tags aren&rsquo;t holds at
-          all, <em>Potential Member</em> sits on sixty-odd open jobs, so this is where the office says which ones are.
-        </p>
-        <p>
-          <strong>On us</strong> is work somebody here can move today; <strong>on them</strong> is a quote or an answer
-          we are waiting on a customer for. They are shown apart, because they go to different people.
-        </p>
-      </div>
+      <PageHead title="Held work" line="Which ServiceTitan tags mean a job is waiting on something."
+        info={<>
+          <p>The <strong>Stuck</strong> page counts open jobs waiting on something, and the only thing in ServiceTitan that says what they&rsquo;re waiting on is the tag. Half the tags aren&rsquo;t holds at all (<em>Potential Member</em> sits on sixty-odd open jobs), so this is where the office says which ones are.</p>
+          <p><strong>On us</strong> is work somebody here can move today; <strong>on them</strong> is a quote or an answer we&rsquo;re waiting on a customer for.</p>
+        </>} />
       {!ready && (
         <div className="pt-note pt-note--warn">
           <strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.

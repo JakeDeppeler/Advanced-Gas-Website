@@ -34,10 +34,11 @@ const useHere = (sections: Section[]) => {
 export function TopNav({ sections, more = [] }: { sections: Section[]; more?: string[] }) {
   const here = useHere(sections);
   const all = sections.filter((s) => s.id !== "you");
-  // The section you're in stays on the bar even when it's one of the tucked
-  // ones, so the dark pill always says where you are.
-  const shown = all.filter((s) => !more.includes(s.id) || here.section?.id === s.id);
-  const tucked = all.filter((s) => more.includes(s.id) && here.section?.id !== s.id);
+  // A tucked section stays under More even while you're in it: More goes dark
+  // to say you're somewhere inside it, and the page's own row has its tabs.
+  const shown = all.filter((s) => !more.includes(s.id));
+  const tucked = all.filter((s) => more.includes(s.id));
+  const inMore = tucked.some((s) => s.id === here.section?.id);
   return (
     <nav className="pn-pills" aria-label="Sections">
       {shown.map((s) => {
@@ -77,7 +78,7 @@ export function TopNav({ sections, more = [] }: { sections: Section[]; more?: st
           </div>
         );
       })}
-      <More all={all} tucked={tucked} more={more} />
+      <More all={all} tucked={tucked} more={more} on={inMore} hereId={here.section?.id ?? null} />
     </nav>
   );
 }
@@ -87,7 +88,7 @@ export function TopNav({ sections, more = [] }: { sections: Section[]; more?: st
  * to choose which sit on the bar. The choice is a cookie, so the bar is
  * drawn right on the first paint of the next page.
  */
-function More({ all, tucked, more }: { all: Section[]; tucked: Section[]; more: string[] }) {
+function More({ all, tucked, more, on, hereId }: { all: Section[]; tucked: Section[]; more: string[]; on: boolean; hereId: string | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [choosing, setChoosing] = useState(false);
@@ -110,7 +111,7 @@ function More({ all, tucked, more }: { all: Section[]; tucked: Section[]; more: 
   };
   return (
     <div ref={ref} className={`pn-pillw pn-morew${open ? " open" : ""}`}>
-      <button type="button" className={`pn-pill pn-more${open ? " is-open" : ""}`} aria-expanded={open} onClick={() => { setOpen((o) => !o); setChoosing(false); setPick(more); }}>
+      <button type="button" className={`pn-pill pn-more${open ? " is-open" : ""}${on ? " on" : ""}`} aria-expanded={open} onClick={() => { setOpen((o) => !o); setChoosing(false); setPick(more); }}>
         {tucked.length ? "More" : "Edit"}
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
         {red > 0 && <span className="pn-pilln" title={`${red} need someone`}>{red > 99 ? "99+" : red}</span>}
@@ -138,23 +139,12 @@ function More({ all, tucked, more }: { all: Section[]; tucked: Section[]; more: 
             ) : (
               <>
                 {tucked.length === 0 && <span className="pn-droph">Every section is on the bar.</span>}
+                {/* Just the sections: each one's own pages are the row at the top of it. */}
                 {tucked.map((s) => (
-                  <div key={s.id} className="pn-moresec">
-                    <Link href={s.href} className="pn-dropa pn-moreh" onClick={() => setOpen(false)}>
-                      <span>{s.label}</span>
-                      {s.count?.red && s.count.n ? <span className="pn-n r">{s.count.n}</span> : null}
-                    </Link>
-                    {s.pages.length > 1 && (
-                      <div className="pn-morepages">
-                        {s.pages.map((p) => (
-                          <Link key={p.href} href={p.href} onClick={() => setOpen(false)}>
-                            {p.label}
-                            {p.count?.n ? <b className={p.count.red ? "r" : undefined}>{p.count.n}</b> : null}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <Link key={s.id} href={s.href} className={`pn-dropa pn-moreh${s.id === hereId ? " on" : ""}`} aria-current={s.id === hereId ? "page" : undefined} onClick={() => setOpen(false)}>
+                    <span>{s.label}</span>
+                    {s.count?.red && s.count.n ? <span className="pn-n r">{s.count.n}</span> : null}
+                  </Link>
                 ))}
                 <button type="button" className="pn-choose" onClick={() => { setPick(more); setChoosing(true); }}>Choose what&rsquo;s on the bar</button>
               </>

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { CrewNow } from "@/lib/portal/home/crewNow";
+import type { TeamRow } from "@/components/portal/home/Overview";
 import type { Metrics } from "@/lib/dashboard/metrics";
 import type { ProfitLoss } from "@/lib/portal/xero";
 import type { YearGoal } from "@/lib/portal/yearGoal";
@@ -63,7 +65,7 @@ export type HomeData = {
   lines: NeedLine[];
   denied: boolean;
   /** The office's sales overview, in the Rapport layout. Null for the crew. */
-  ov: { data: OverviewData; span: 6 | 12; closeRate: number | null; yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null } | null;
+  ov: { data: OverviewData; span: 6 | 12; closeRate: number | null; yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null; team?: TeamRow[]; crew?: CrewNow[] | null } | null;
 };
 
 /**
@@ -134,7 +136,7 @@ export function Home(d: HomeData) {
 
       {d.ov && (
         <Overview ov={d.ov.data} span={d.ov.span} first={d.first} when={d.when} closeRate={d.ov.closeRate}
-          yearInvoiced={d.ov.yearInvoiced} yearGoal={d.ov.yearGoal} yearFloor={d.ov.yearFloor} daysLeft={d.ov.daysLeft} />
+          yearInvoiced={d.ov.yearInvoiced} yearGoal={d.ov.yearGoal} yearFloor={d.ov.yearFloor} daysLeft={d.ov.daysLeft} team={d.ov.team ?? []} crew={d.ov.crew ?? null} />
       )}
 
       {!d.ov && <div className="ph-welcome">

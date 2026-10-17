@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CrewNow } from "@/lib/portal/home/crewNow";
 import type { Overview as Data } from "@/lib/portal/home/overview";
 import { CountUp } from "./CountUp";
 
@@ -45,9 +46,62 @@ function Icon({ d }: { d: string }) {
   );
 }
 
-export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, yearFloor, daysLeft, span }: {
+export type TeamRow = { name: string; sold: number; soldToday: number; quoted: number; soldJobs: number; quotedJobs: number; closeRate: number | null };
+
+const CREW_WORD = { working: "On a job", dispatched: "On the way", free: "Not on a job" } as const;
+const hm = (iso: string) => new Date(iso).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
+
+/**
+ * The month's sales leaderboard, as the wall board has it, and where each tech
+ * is right now: on a job, on the way, or not on a job (with what's next).
+ * State is written in words beside its colour, never colour alone.
+ */
+function TeamNow({ team, crew }: { team: TeamRow[]; crew: CrewNow[] | null }) {
+  const rows = [...team].sort((a, b) => b.sold - a.sold || b.quoted - a.quoted).slice(0, 8);
+  const top = Math.max(1, ...rows.map((r) => r.sold));
+  const count = (s: CrewNow["state"]) => (crew ?? []).filter((c) => c.state === s).length;
+  return (
+    <div className="rp-grid rp-team">
+      <section className="rp-panel rp-card tn-board" aria-labelledby="tn-lb">
+        <div className="rp-panel-h"><span className="rp-hh"><b id="tn-lb">Team leaderboard</b><span className="rp-note">sold this month</span></span><Link href="/portal/team" className="rp-round" aria-label="Open the team">↗</Link></div>
+        {rows.length ? (
+          <ol className="tn-lb">
+            {rows.map((r, i) => (
+              <li key={r.name}>
+                <span className={`tn-rank r${i + 1}`}>{i + 1}</span>
+                <span className="tn-who"><b>{r.name}</b><span>{r.soldJobs} sold of {r.quotedJobs} quoted{r.closeRate != null ? ` · ${Math.round(r.closeRate * 100)}% close` : ""}{r.soldToday ? ` · ${money(r.soldToday)} today` : ""}</span></span>
+                <span className="tn-bar"><i style={{ width: `${(r.sold / top) * 100}%` }} /></span>
+                <b className="tn-val">{money(r.sold)}</b>
+              </li>
+            ))}
+          </ol>
+        ) : <p className="rp-empty">Nothing sold yet this month.</p>}
+      </section>
+      <section className="rp-panel rp-card tn-crew" aria-labelledby="tn-cr">
+        <div className="rp-panel-h"><span className="rp-hh"><b id="tn-cr">The crew right now</b><span className="rp-note">{crew ? `${count("working")} on a job · ${count("dispatched")} on the way · ${count("free")} not on a job` : "from ServiceTitan's appointments"}</span></span><Link href="/portal/jobs" className="rp-round" aria-label="Open today's jobs">↗</Link></div>
+        {crew == null ? <p className="rp-empty">Couldn&rsquo;t read today&rsquo;s appointments just now.</p> : crew.length ? (
+          <ul className="tn-crewl">
+            {crew.map((c) => (
+              <li key={c.name} className={`s-${c.state}`}>
+                <span className="tn-dot" aria-hidden="true" />
+                <span className="tn-who">
+                  <b>{c.name}</b>
+                  <span>{c.job ? [c.job.number ? `#${c.job.number}` : null, c.job.customer, c.job.suburb].filter(Boolean).join(" · ") : "Nothing booked today"}</span>
+                </span>
+                <span className="tn-state">{CREW_WORD[c.state]}{c.state === "free" && c.nextAt ? `, next ${hm(c.nextAt)}` : ""}<small>{c.doneToday} of {c.bookedToday} done today</small></span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="rp-empty">No techs on today.</p>}
+      </section>
+    </div>
+  );
+}
+
+export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, yearFloor, daysLeft, span, team = [], crew = null }: {
   ov: Data; first: string; when: string; closeRate: number | null;
   yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null; span: 6 | 12;
+  team?: TeamRow[]; crew?: CrewNow[] | null;
 }) {
   const vsLast = ov.lastToDate > 0 ? (ov.mtd - ov.lastToDate) / ov.lastToDate : null;
 
@@ -226,6 +280,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
           </div>
         </section>
       </div>
+      <TeamNow team={team} crew={crew} />
     </div>
   );
 }

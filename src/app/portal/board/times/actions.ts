@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { readStandardTimes, saveStandardTimes, saveVeuRebate, type StandardHours } from "@/lib/board/standardTimes";
+import { pushDurationToServiceTitan, readStandardTimes, saveStandardTimes, saveVeuRebate, type StandardHours } from "@/lib/board/standardTimes";
 
-export type TimesResult = { ok: boolean; error?: string };
+export type TimesResult = { ok: boolean; error?: string; note?: string };
 
 /** The same people who run the wall board's remote. */
 async function office() {
@@ -30,15 +30,22 @@ export async function setStandardTime(jobType: string, hours: number | null): Pr
    * time, but a lost setting here is a wrong figure on a wall that nobody would
    * trace back to a race.
    */
+  // ServiceTitan first: the job type's duration is the one place the time
+  // lives. Only if it refuses is the time kept here instead, and the page says so.
+  let refused: string | null = null;
+  try {
+    await pushDurationToServiceTitan(name, hours);
+  } catch (e) {
+    refused = (e as Error).message.slice(0, 160);
+  }
   const { rows } = await readStandardTimes();
   const map: StandardHours = {};
-  for (const r of rows) if (r.hours != null) map[r.name] = r.hours;
-  if (hours == null) delete map[name];
+  for (const r of rows) if (r.from === "portal" && r.hours != null) map[r.name] = r.hours;
+  if (refused == null || hours == null) delete map[name];
   else map[name] = hours;
-
   await saveStandardTimes(map);
   revalidatePath("/portal/board/times");
-  return { ok: true };
+  return refused ? { ok: true, note: `Saved here, but ServiceTitan didn't take it: ${refused}` } : { ok: true, note: "Saved in ServiceTitan." };
 }
 
 /** Dollars a VEU job brings back in rebate. Blank clears it. */

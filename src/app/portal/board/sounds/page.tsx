@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { Locked } from "@/components/portal/Locked";
 import { BoardSounds } from "@/components/portal/BoardSounds";
 import { dbConfigured } from "@/lib/portal/db";
@@ -27,14 +27,8 @@ export default async function BoardSoundsPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/section/board" label="Wall board" />
-      <div className="pt-head">
-        <h1>Sounds</h1>
-        <p>
-          What the wall board plays when a quote goes out, a job is finished and a job is sold, and how loud each one is.
-          Upload your own MP3s below. The TV picks up a change within about ten seconds.
-        </p>
-      </div>
+      <PageHead title="Sounds" line="What the TV plays for a new quote, a finished job, a sale and a new lead."
+        info={<p>Pick a sound for each and how loud. Upload your own MP3s below. The TV picks up a change within about ten seconds.</p>} />
       {!ready && <div className="pt-note pt-note--warn"><strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.</div>}
       <BoardSounds
         plan={plan}

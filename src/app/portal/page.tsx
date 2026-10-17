@@ -12,6 +12,7 @@ import { START_COOKIE, START_PAGES } from "@/lib/portal/businessTypes";
 import { DEFAULT_WORKING_CALENDAR, isWorkingDay } from "@/lib/dashboard/dates";
 import { Home, type HomeTodo } from "@/components/portal/home/Home";
 import { overview } from "@/lib/portal/home/overview";
+import { crewNow } from "@/lib/portal/home/crewNow";
 import { yearSpans } from "@/lib/portal/yearGoal";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
     needsToday(user).catch(() => []),
   ]);
   const span: 6 | 12 = searchParams.r === "6" ? 6 : 12;
-  const ov = office ? await overview(goal, span).catch(() => null) : null;
+  const [ov, crew] = office ? await Promise.all([overview(goal, span).catch(() => null), crewNow().catch(() => null)]) : [null, null];
   // Days left in the goal's year, for the ring.
   const spans = goal ? yearSpans(goal.basis, goal.year) : null;
   const yearEnd = spans ? spans[spans.length - 1].to : null;
@@ -106,6 +107,8 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
           data: ov, span, closeRate: board?.metrics?.closeRate30d ?? null,
           yearInvoiced: board?.metrics?.revenueInvoicedYtd ?? null, yearGoal: goal?.revenue ?? null,
           yearFloor: goal?.floorRevenue ?? null, daysLeft,
+          team: (board?.metrics?.salesLeaderboard ?? []).map((r) => ({ name: r.name, sold: r.sold, soldToday: r.soldToday, quoted: r.quoted, soldJobs: r.soldJobs, quotedJobs: r.quotedJobs, closeRate: r.closeRate })),
+          crew,
         } : null}
       />
     </PortalShell>

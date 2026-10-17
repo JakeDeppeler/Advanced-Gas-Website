@@ -1,3 +1,4 @@
+import { PageHead } from "@/components/portal/kit/PageHead";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -27,9 +28,7 @@ export default async function SettingsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <h1>Settings</h1>
-      </div>
+      <PageHead title="Settings" line="How the portal looks on this device, and what the business has." />
       <div className="ps">
         <DeviceSettings theme={readTheme(cookies().get(THEME_COOKIE)?.value)} start={starts.some((s) => s.key === saved) ? (saved as string) : "home"} starts={starts} />
         <BusinessSettings initial={biz} canEdit={admin} />

@@ -68,7 +68,7 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
   const techIds = [...new Set(live.map((s) => Number(s.technician_id)))];
   const jobIds = [...new Set(live.map((s) => Number(s.job_id)))];
 
-  const [techs, jobs, invoices, standardRaw, typical] = await Promise.all([
+  const [techs, jobs, invoices, standardRaw, stTypes, typical] = await Promise.all([
     sbSelect<{ id: number; name: string | null }>(
       "st_technicians",
       [q.select("id,name"), `id=in.(${techIds.join(",")})`].join("&"),
@@ -86,10 +86,14 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
       [q.select("job_id,sold_hours,total"), `job_id=in.(${jobIds.join(",")})`].join("&"),
     ).catch(() => []),
     getSettings<unknown>(STANDARD_HOURS_KEY).catch(() => null),
+    sbSelect<{ name: string | null; duration: string | null }>("st_job_types", q.select("name,duration:raw->>duration")).catch(() => []),
     typicalHours(now).catch(() => new Map<string, number>()),
   ]);
 
-  const standard = normaliseStandardHours(standardRaw);
+  // ServiceTitan's job type durations (seconds; 0 is unset), with anything kept here on top.
+  const stDurations = (rows: Array<{ name: string | null; duration: string | null }>) => Object.fromEntries(rows
+    .filter((r) => r.name && Number(r.duration) > 0).map((r) => [r.name as string, Math.round((Number(r.duration) / 3600) * 100) / 100]));
+  const standard = { ...stDurations(stTypes), ...normaliseStandardHours(standardRaw) };
   const techName = new Map(techs.map((t) => [Number(t.id), t.name ?? null]));
   const job = new Map(jobs.map((j) => [Number(j.id), j]));
 

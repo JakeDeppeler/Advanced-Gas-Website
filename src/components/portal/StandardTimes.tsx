@@ -23,6 +23,7 @@ export function StandardTimes({ rows, set, rebate }: { rows: JobTypeRow[]; set: 
     Object.fromEntries(rows.map((r) => [r.name, r.hours == null ? "" : String(r.hours)])),
   );
   const [saved, setSaved] = useState<Record<string, "ok" | "err">>({});
+  const [note, setNote] = useState<string | null>(null);
   const [, start] = useTransition();
 
   const commit = (name: string, raw: string) => {
@@ -35,6 +36,7 @@ export function StandardTimes({ rows, set, rebate }: { rows: JobTypeRow[]; set: 
     start(async () => {
       const res = await setStandardTime(name, hours);
       setSaved((s) => ({ ...s, [name]: res.ok ? "ok" : "err" }));
+      if (res.note) setNote(`${name}: ${res.note}`);
     });
   };
 
@@ -48,9 +50,10 @@ export function StandardTimes({ rows, set, rebate }: { rows: JobTypeRow[]; set: 
       <div className="pt-panel__head">
         <h2 className="pt-panel__h">Hours per job type</h2>
         <span className="pt-panel__sub">
-          {set} set · {covered} of {busy} active types can be measured
+          {set} set · {covered} of {busy} active types can be measured · read from and saved to each job type&rsquo;s duration in ServiceTitan
         </span>
       </div>
+      {note && <p className="pt-inline is-ok" role="status">{note}</p>}
 
       <table className="pt-table pt-times">
         <thead>

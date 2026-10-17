@@ -1,8 +1,8 @@
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { MarkAllRead } from "@/components/portal/MarkAllRead";
 import { listNotices } from "@/lib/portal/notices";
 
@@ -22,14 +22,8 @@ export default async function NotificationsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-narrow">
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal" label="Home" />
-          <h1>For you</h1>
-        </div>
-        <MarkAllRead disabled={!notices.some((n) => n.unread)} />
-      </div>
+      <div className="nt-wide">
+      <PageHead title="For you" line="What needs doing, and what's new." action={<MarkAllRead disabled={!notices.some((n) => n.unread)} />} />
 
       {notices.length === 0 ? (
         <section className="pt-panel pt-empty">
@@ -41,7 +35,7 @@ export default async function NotificationsPage() {
         /* Two lists, not one. Something waiting on a person and something that
            changed are different kinds of thing, and running them together
            means the jobs get skimmed past along with the news. */
-        GROUPS.map(({ key, label }) => {
+        <div className="nt-cols">{GROUPS.map(({ key, label }) => {
           const rows = notices.filter((n) => n.group === key);
           if (rows.length === 0) return null;
           return (
@@ -62,7 +56,7 @@ export default async function NotificationsPage() {
               </section>
             </div>
           );
-        })
+        })}</div>
       )}
       </div>
     </PortalShell>

@@ -1,9 +1,9 @@
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Heads } from "@/components/portal/marketingParts";
 import { listIntegrations, type IntegrationState } from "@/lib/portal/integrations";
 import { Locked } from "@/components/portal/Locked";
@@ -45,14 +45,8 @@ export default async function IntegrationsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>Integrations</h1>
-        <p>
-          Every outside system the business runs on, whether it&rsquo;s working, and where its numbers turn up. Read from
-          what each one last sent, opening this page doesn&rsquo;t call any of them.
-        </p>
-      </div>
+      <PageHead title="Integrations" line="Every outside system the business runs on, and whether it's working."
+        info={<p>Read from what each one last sent; opening this page doesn&rsquo;t call any of them. Keys and passwords live in the hosting settings, never here.</p>} />
 
       <Heads
         items={[

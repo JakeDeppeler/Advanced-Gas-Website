@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { Locked } from "@/components/portal/Locked";
 import { BoardPreview } from "@/components/portal/BoardPreview";
 import { BoardRemoteControls } from "@/components/portal/BoardRemoteControls";
@@ -30,14 +30,9 @@ export default async function BoardRemotePage() {
 
   return (
     <PortalShell user={user} variant="wide">
-      <PortalBack href="/portal/section/board" label="Wall board" />
-      <div className="pt-head pt-head--split">
-        <div>
-          <h1>Wall board</h1>
-          <p>What&rsquo;s on the office screen right now, and a remote for it. Whatever you press here shows on the TV within a few seconds.</p>
-        </div>
-        <a className="pt-btn pt-btn--ghost" href="/portal/finance/board/open" target="_blank" rel="noreferrer">Open it full screen ↗</a>
-      </div>
+      <PageHead title="Wall board" line="What's on the office TV right now, and a remote for it."
+        info={<p>Whatever you press here shows on the TV within a few seconds. Somebody at the TV can still skip or hold with its own buttons.</p>}
+        action={<a className="qp-btn dark" href="/portal/finance/board/open" target="_blank" rel="noreferrer">Open it full screen ↗</a>} />
 
       {!ready && <div className="pt-note pt-note--warn"><strong>The database isn&rsquo;t connected,</strong> so the remote can&rsquo;t reach the board.</div>}
 
@@ -49,7 +44,6 @@ export default async function BoardRemotePage() {
           </div>
           <BoardPreview />
           <p className="pt-wb__links">
-            <Link href="/portal/board">What each page shows, and where its figures come from →</Link>
             <Link href="/portal/finance/board">Targets, commission and working days →</Link>
           </p>
         </section>

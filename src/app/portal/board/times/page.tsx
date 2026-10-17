@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { Locked } from "@/components/portal/Locked";
 import { StandardTimes } from "@/components/portal/StandardTimes";
 import { dbConfigured } from "@/lib/portal/db";
@@ -26,16 +26,8 @@ export default async function StandardTimesPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/section/board" label="Wall board" />
-      <div className="pt-head">
-        <h1>Standard times</h1>
-        <p>
-          How long each kind of job should take. The wall board&rsquo;s <strong>Daily pace</strong> page measures each
-          tech&rsquo;s hours against what the job was quoted to take, and most service work is billed without an hourly
-          labour line, so without these the dial has nothing to measure against. A job that <em>was</em> quoted in hours
-          still uses its own quote; this only fills in the ones that weren&rsquo;t.
-        </p>
-      </div>
+      <PageHead title="Standard times" line="How long each kind of job should take, read from and saved to ServiceTitan's job types."
+        info={<p>The Daily pace page measures each tech&rsquo;s hours against what the job should take. A job quoted in hours uses its own quote; these fill in the rest. Saving a time here changes the job type&rsquo;s duration in ServiceTitan, so dispatch books the same length of slot.</p>} />
       {!ready && (
         <div className="pt-note pt-note--warn">
           <strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.

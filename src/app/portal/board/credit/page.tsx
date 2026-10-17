@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { Locked } from "@/components/portal/Locked";
 import { SaleCredit } from "@/components/portal/SaleCredit";
 import { dbConfigured } from "@/lib/portal/db";
@@ -30,25 +30,11 @@ export default async function SaleCreditPage({ searchParams }: { searchParams?: 
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/section/board" label="Wall board" />
-      <div className="pt-head">
-        <h1>Who sold it</h1>
-        <p>
-          The board credits a job to whoever <em>wrote</em> the quote, because ServiceTitan only stamps a seller once an
-          estimate is closed from the sell screen, and this office closes most of them without naming one, so keying on
-          it listed the two people who had while six had been quoting. That is right nearly always. When it
-          isn&rsquo;t, somebody starts a quote and doesn&rsquo;t do the work, this is where the office says so.
-        </p>
-        <p>
-          A move takes the <strong>whole job</strong>, the quote as well as the sale. Moving the sale on its own would
-          give one person a sale against no quote and the other a quote that never closed, and the Team page&rsquo;s
-          &ldquo;sold out of quoted&rdquo; would read as nonsense for both of them.
-        </p>
-        <p className="pt-credit__warn">
-          This changes the leaderboard and the commission bands on it. Every move is kept with who made it and when. It
-          does not change anything in ServiceTitan.
-        </p>
-      </div>
+      <PageHead title="Who sold it" line="Move a sale to the person who really did the work. Changes the leaderboard, not ServiceTitan."
+        info={<>
+          <p>The board credits a job to whoever <em>wrote</em> the quote, because ServiceTitan only stamps a seller when an estimate is closed from the sell screen, and most are closed without one. That&rsquo;s right nearly always; this is for when it isn&rsquo;t.</p>
+          <p>A move takes the <strong>whole job</strong>, the quote as well as the sale, so &ldquo;sold out of quoted&rdquo; stays true for both people. Every move is kept with who made it and when.</p>
+        </>} />
       {!ready && (
         <div className="pt-note pt-note--warn">
           <strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.
