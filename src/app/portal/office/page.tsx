@@ -10,7 +10,7 @@ import { stJobUrl } from "@/lib/dashboard/toBill";
 import { dbConfigured } from "@/lib/portal/db";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Office today — Team portal" };
+export const metadata = { title: "Office today · Team portal" };
 
 const money = (v: number) => `$${Math.round(v).toLocaleString("en-AU")}`;
 const ago = (iso: string | null) => {
@@ -69,7 +69,7 @@ export default async function OfficeTodayPage() {
     },
     {
       key: "hold", title: "Clear the Hold list",
-      how: "For each held job: build and send the quote, send Geoff a work order, or book the reattend — then take it off Hold.",
+      how: "For each held job: build and send the quote, send Geoff a work order, or book the reattend, then take it off Hold.",
       where: "Dispatch → Hold",
       line: d.hold, unit: "jobs on hold", st: st(d.hold.count, d.hold.onUs > 0),
       more: { href: "/portal/jobs?tab=list&f=hold", label: "Every held job" },
@@ -85,14 +85,14 @@ export default async function OfficeTodayPage() {
     },
     {
       key: "partpaid", title: "Chase part-paid installs",
-      how: "Deposit taken, job finished, balance still owing — follow up anything past its terms.",
+      how: "Deposit taken, job finished, balance still owing, follow up anything past its terms.",
       where: "Accounting → Invoices → Partially Paid",
       line: d.partPaid, unit: "with a balance after a deposit", st: st(d.partPaid.count),
       more: { href: "/portal/money", label: "Owed to us" },
     },
     {
       key: "tobill", title: "Bill finished jobs with no invoice",
-      how: "Finished in ServiceTitan with the invoice still at $0 — price it and send it, or say why it's free.",
+      how: "Finished in ServiceTitan with the invoice still at $0, price it and send it, or say why it's free.",
       where: "Jobs → Not billed",
       line: d.toBill, unit: "finished, not invoiced", st: st(d.toBill.count, d.toBill.count > 0),
       more: { href: "/portal/jobs?tab=notbilled", label: "Every one" },
@@ -104,10 +104,10 @@ export default async function OfficeTodayPage() {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Office today" sub="The morning routine, in order — about fifteen minutes" />
+        <Head title="Office today" sub="The morning routine, in order, about fifteen minutes" />
         {!d ? <Empty>ServiceTitan couldn&rsquo;t be read just now. Try again in a minute.</Empty> : (
           <>
-            <Say>{waiting === 0 ? <>Morning {first} — everything&rsquo;s clear.</> : <>Morning {first} — {waiting} of the {steps.length} steps {waiting === 1 ? "has" : "have"} something waiting.</>}</Say>
+            <Say>{waiting === 0 ? <>Morning {first} , everything&rsquo;s clear.</> : <>Morning {first}  {waiting} of the {steps.length} steps {waiting === 1 ? "has" : "have"} something waiting.</>}</Say>
             <ol className="pt-office">
               {steps.map((s, idx) => (
                 <li key={s.key} className={`pt-office__step pk-card pk-pad${s.st.k === "good" ? " is-clear" : ""}`}>
@@ -129,11 +129,11 @@ export default async function OfficeTodayPage() {
                       {s.line.items.map((it) => (
                         <div className="pk-kv pk-kv--act" key={`${s.key}-${it.jobId}`}>
                           <span className="t"><b>{[it.jobNumber ? `#${it.jobNumber}` : null, it.customer].filter(Boolean).join(" · ") || "Job"}</b><span>{[it.what, it.since ? `finished ${ago(it.since)}` : null].filter(Boolean).join(" · ")}</span></span>
-                          <span className="v">{it.amount != null ? money(it.amount) : "—"}</span>
+                          <span className="v">{it.amount != null ? money(it.amount) : ""}</span>
                           <a className="pk-btn g" href={stJobUrl(it.jobId)} target="_blank" rel="noreferrer" aria-label={`Open job ${it.jobNumber ?? it.jobId} in ServiceTitan`}>Open ↗</a>
                         </div>
                       ))}
-                      {s.line.count > s.line.items.length ? <p className="pk-note" style={{ margin: "8px 0 0" }}>Oldest {s.line.items.length} of {s.line.count}{s.more ? <> — <Link href={s.more.href}>{s.more.label}</Link></> : " — the rest are in ServiceTitan's list"}.</p> : null}
+                      {s.line.count > s.line.items.length ? <p className="pk-note" style={{ margin: "8px 0 0" }}>Oldest {s.line.items.length} of {s.line.count}{s.more ? <>  <Link href={s.more.href}>{s.more.label}</Link></> : ", the rest are in ServiceTitan's list"}.</p> : null}
                     </div>
                   )}
                   {(!s.line || s.line.items.length === 0) && s.more ? <div className="pk-btns" style={{ marginTop: 10 }}><Link className="pk-btn g" href={s.more.href}>{s.more.label} ›</Link></div> : null}
@@ -141,7 +141,7 @@ export default async function OfficeTodayPage() {
               ))}
             </ol>
             <p className="pk-note" style={{ marginTop: 14 }}>
-              <b>Weekly:</b> Invoice Aging — send reminders on anything overdue (<Link href="/portal/money">Owed to us</Link>) — and reconcile the Xero bank feed.
+              <b>Weekly:</b> Invoice Aging, send reminders on anything overdue (<Link href="/portal/money">Owed to us</Link>), and reconcile the Xero bank feed.
               Counts are finished jobs since 17 September, read from ServiceTitan every few minutes.
             </p>
           </>

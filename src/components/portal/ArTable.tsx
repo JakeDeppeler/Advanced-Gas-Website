@@ -71,7 +71,7 @@ export function ArTable({
                 <th scope="row">
                   {r.customer}
                   {termsDays != null && r.oldestDays > termsDays ? (
-                    <span className="pt-ar__over">{r.oldestDays} days — past {termsDays}</span>
+                    <span className="pt-ar__over">{r.oldestDays} days, past {termsDays}</span>
                   ) : (
                     r.invoices > 1 && <span className="pt-ar__inv">{r.invoices} invoices</span>
                   )}
@@ -116,7 +116,7 @@ export function ArTable({
             return (
               <div key={b.key} className={`pt-arsum__cell${v === 0 ? " is-empty" : bad ? " is-bad" : b.key === "d31_60" ? " is-warn" : ""}`}>
                 <span className="pt-arsum__lbl">{b.label}</span>
-                <strong>{v > 0 ? full(v) : "—"}</strong>
+                <strong>{v > 0 ? full(v) : ""}</strong>
                 <span className="pt-arsum__bar"><i style={{ width: `${Math.round(share * 100)}%` }} /></span>
                 {/* "0% of the book" against $468 is arithmetically true and
                     reads as nothing owed. Anything real that rounds to zero

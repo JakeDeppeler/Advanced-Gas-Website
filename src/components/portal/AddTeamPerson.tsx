@@ -32,7 +32,7 @@ export function AddTeamPerson({ doneHref }: { doneHref: string }) {
   return (
     <section className="pt-panel">
       <h2 className="pt-panel__h">Add a person</h2>
-      <p className="pt-panel__sub">Name and level. Email is optional — add one so they can sign in, or leave it blank for someone you only want on the crew for costing.</p>
+      <p className="pt-panel__sub">Name and level. Email is optional, add one so they can sign in, or leave it blank for someone you only want on the crew for costing.</p>
       <div className="pt-cap__addform">
         <input className="pt-cap__name" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="pt-cap__addemail" placeholder="Email (optional)" value={email} onChange={(e) => setEmail(e.target.value)} />

@@ -15,7 +15,7 @@ import { saveHourModel } from "./actions";
 import { personDays } from "@/lib/portal/cover/days";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "What an hour must cover — Team portal" };
+export const metadata = { title: "What an hour must cover · Team portal" };
 
 const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -75,10 +75,10 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
       <div className="pk pt-cover">
         <Head
           title="What an hour must cover"
-          sub="Every overhead and everyone's pay, over the hours we actually bill — and what each person's day turns into"
+          sub="Every overhead and everyone's pay, over the hours we actually bill, and what each person's day turns into"
           info={[
-            ["Billed hours", `Of an ${i.dayHrs}-hour day, the hours a customer pays for. The rest is driving, loading, quoting, waiting and call-backs — paid, but not billed.`],
-            ["Pay", `The hourly wage plus super, WorkCover and long service leave (${oc.toFixed(1)}% on top), for a 38-hour week all year — leave, public holidays, sick days and RDOs are paid.`],
+            ["Billed hours", `Of an ${i.dayHrs}-hour day, the hours a customer pays for. The rest is driving, loading, quoting, waiting and call-backs, paid, but not billed.`],
+            ["Pay", `The hourly wage plus super, WorkCover and long service leave (${oc.toFixed(1)}% on top), for a 38-hour week all year, leave, public holidays, sick days and RDOs are paid.`],
             ["Days on the tools", `${DAYS_ON_TOOLS} a year: 260 weekdays less 20 days' leave, 13 public holidays, 10 sick days and 12 RDOs.`],
             ["Materials", "Not in here. Gear and units are bought for each job and marked up on their own, so the hour only has to cover people and overheads."],
           ]}
@@ -137,7 +137,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
             <button type="submit" className="pk-btn">Work it out</button>
             <button type="submit" className="pk-btn g" formAction={saveHourModel} formMethod="post">Save as our numbers</button>
             {Object.keys(searchParams).some((k) => k !== "t" && k !== "saved") ? <Link href="/portal/finance/cover" className="pk-btn g">Back to our numbers</Link> : null}
-            {searchParams.saved ? <span className="pk-said" role="status">Saved — every page now works the hour from these.</span> : null}
+            {searchParams.saved ? <span className="pk-said" role="status">Saved, every page now works the hour from these.</span> : null}
           </div>
         </form>
       </Card>
@@ -147,7 +147,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
         {i.margin > 0 ? <>, and <b>{m2(r.atMargin)}</b> to make our {i.margin}%</> : null}.{" "}
         {r.billHrs > 0 && (short
           ? <Bad>At {m2(i.charge)} an hour we&rsquo;d be {m0(-r.leftAtCharge)} a year short.</Bad>
-          : <Good>At {m2(i.charge)} an hour that leaves {m0(r.leftAtCharge)} a year — {r.marginAtCharge != null ? pct(r.marginAtCharge) : "—"} of what&rsquo;s billed.</Good>)}
+          : <Good>At {m2(i.charge)} an hour that leaves {m0(r.leftAtCharge)} a year, {r.marginAtCharge != null ? pct(r.marginAtCharge) : ""} of what&rsquo;s billed.</Good>)}
       </Say>
 
       <Card title="The hour, built up" aside={`${i.techs} ${i.techs === 1 ? "tech" : "techs"} × ${n0(i.daysOnTools)} days × ${i.billPerDay} hours = ${n0(r.billHrs)} billed hours a year`}>
@@ -155,7 +155,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
           <table className="pk-tbl">
             <thead><tr><th>What has to be paid for</th><th>A year</th><th>Every billed hour</th></tr></thead>
             <tbody>
-              <tr><td>Overheads <span className="ks">— every line below</span></td><td>{m0(r.overhead)}</td><td>{m2(r.perHr.overhead)}</td></tr>
+              <tr><td>Overheads <span className="ks">, every line below</span></td><td>{m0(r.overhead)}</td><td>{m2(r.perHr.overhead)}</td></tr>
               {(() => {
                 // The pay, taken apart: the wages, then each on-cost on top of all of them.
                 const tw = i.techs * i.techWage * PAID_HRS_YEAR, aw = i.apps * i.appWage * PAID_HRS_YEAR, w = tw + aw;
@@ -163,13 +163,13 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
                   ["Techs’ wages", `${i.techs} × ${m2(i.techWage)} × ${n0(PAID_HRS_YEAR)} hrs`, tw],
                   ["Apprentices’ wages", `${i.apps} × ${m2(i.appWage)} × ${n0(PAID_HRS_YEAR)} hrs`, aw],
                   ["Super", `${ocs.superPct}% of the wages`, (w * ocs.superPct) / 100],
-                  ["WorkCover", ocs.workcoverPct > 0 ? `${ocs.workcoverPct}% of the wages — the premium, as Xero shows it` : "not set — add it on Wages & costs", (w * ocs.workcoverPct) / 100],
+                  ["WorkCover", ocs.workcoverPct > 0 ? `${ocs.workcoverPct}% of the wages, the premium, as Xero shows it` : "not set, add it on Wages & costs", (w * ocs.workcoverPct) / 100],
                   ["Long service leave", ocs.lslPct > 0 ? `${ocs.lslPct}% of the wages, put aside as it's earned` : "not set", (w * ocs.lslPct) / 100],
                 ];
-                return rows.map(([label, sub, v]) => <tr key={label}><td>{label} <span className="ks">— {sub}</span></td><td>{m0(v)}</td><td>{m2(hr(v))}</td></tr>);
+                return rows.map(([label, sub, v]) => <tr key={label}><td>{label} <span className="ks"> {sub}</span></td><td>{m0(v)}</td><td>{m2(hr(v))}</td></tr>);
               })()}
               <tr className="tot"><td>To break even</td><td>{m0(r.total)}</td><td>{m2(r.perHr.total)}</td></tr>
-              {i.margin > 0 && <tr><td>To make our {i.margin}% <span className="ks">— the break-even ÷ {(1 - i.margin / 100).toFixed(2)}, so {i.margin}% of the price is left</span></td><td>{m0(r.atMargin * r.billHrs)}</td><td><b>{m2(r.atMargin)}</b></td></tr>}
+              {i.margin > 0 && <tr><td>To make our {i.margin}% <span className="ks">, the break-even ÷ {(1 - i.margin / 100).toFixed(2)}, so {i.margin}% of the price is left</span></td><td>{m0(r.atMargin * r.billHrs)}</td><td><b>{m2(r.atMargin)}</b></td></tr>}
               <tr><td>At what we charge now</td><td>{m0(i.charge * r.billHrs)}</td><td>{m2(i.charge)}</td></tr>
             </tbody>
           </table>
@@ -196,7 +196,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
                       <td>
                         {c.charge != null ? (
                           <>{m2(c.charge)}<div className={c.charge < c.be ? "ks pt-cover__neg" : c.charge < c.price ? "ks" : "ks pt-cover__pos"}>{c.charge < c.be ? `${m2(c.be - c.charge)} under break-even` : c.charge < c.price ? `${m2(c.price - c.charge)} short of ${i.margin}%` : `${m2(c.charge - c.price)} over ${i.margin}%`}</div></>
-                        ) : <span className="ks">not set — <Link href="/portal/pricing">add it on Rates &amp; pricing</Link></span>}
+                        ) : <span className="ks">not set, <Link href="/portal/pricing">add it on Rates &amp; pricing</Link></span>}
                       </td>
                     </tr>
                   ))}
@@ -205,7 +205,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
             </div>
             <Note>
               Each row is one van crewed that way: the overhead on every billed hour ({m2(r.perHr.overhead)}, the year&rsquo;s {m0(r.overhead)} over the {n0(r.billHrs)} hours the business bills),
-              plus the crew&rsquo;s pay — paid for {n0(PAID_HRS_YEAR)} hours a year but billing {n0(hrsVan)}, so every paid hour costs {(PAID_HRS_YEAR / Math.max(1, hrsVan)).toFixed(2)} times over on the hours billed.
+              plus the crew&rsquo;s pay, paid for {n0(PAID_HRS_YEAR)} hours a year but billing {n0(hrsVan)}, so every paid hour costs {(PAID_HRS_YEAR / Math.max(1, hrsVan)).toFixed(2)} times over on the hours billed.
               A tech alone still carries a full share of the overheads, which is why one person isn&rsquo;t half the crew rate. Price an install with two apprentices in ServiceTitan at the install rate.
             </Note>
           </Card>
@@ -226,7 +226,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
                     <td>{m2(x.r.perHr.total)}</td>
                     {i.margin > 0 && <td>{m2(x.r.atMargin)}</td>}
                     <td className={x.r.leftAtCharge < 0 ? "pt-cover__neg" : undefined}>{m0(x.r.leftAtCharge)}</td>
-                    <td>{x.key === "now" ? "—" : <span className={d < 0 ? "pt-cover__neg" : "pt-cover__pos"}>{d >= 0 ? "▲ " : "▼ "}{m0(Math.abs(d))}</span>}</td>
+                    <td>{x.key === "now" ? "" : <span className={d < 0 ? "pt-cover__neg" : "pt-cover__pos"}>{d >= 0 ? "▲ " : "▼ "}{m0(Math.abs(d))}</span>}</td>
                   </tr>
                 );
               })}
@@ -234,7 +234,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
           </table>
         </div>
         <Note>
-          A tech brings a van ({m0(perVanEach)} a year in fuel, insurance, servicing and the rest) and their own billed hours — but only if there&rsquo;s the work to fill them; a new van with half a diary is the &ldquo;Bill 5 of 8&rdquo; row, or worse. An apprentice brings their pay and no hours of their own —
+          A tech brings a van ({m0(perVanEach)} a year in fuel, insurance, servicing and the rest) and their own billed hours, but only if there&rsquo;s the work to fill them; a new van with half a diary is the &ldquo;Bill 5 of 8&rdquo; row, or worse. An apprentice brings their pay and no hours of their own 
           they pay for themselves only if the crew gets through the work faster or the crew rate covers them.
         </Note>
       </Card>
@@ -256,7 +256,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
             </tbody>
           </table>
         </div>
-        <Note>&ldquo;Over&rdquo; is where the break-even is more than the {m2(i.charge)} we charge — every hour billed there loses money.</Note>
+        <Note>&ldquo;Over&rdquo; is where the break-even is more than the {m2(i.charge)} we charge, every hour billed there loses money.</Note>
       </Card>
 
       <Card title="Every overhead" aside={`${lines.length} lines · ${m0(r.overhead)} a year`}>
@@ -281,7 +281,7 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
           </table>
         </div>
         <Note>
-          The figures are the ones on <Link href="/portal/finance/capacity?t=overheads">Wages &amp; costs › Overheads</Link>, filed from Xero; change them there. &ldquo;Each van&rdquo; lines are for {vans} {vans === 1 ? "van" : "vans"}{vans !== i.techs ? ` — ${i.techs} ${i.techs === 1 ? "tech" : "techs"} and ${vans - i.techs} driven by an apprentice` : ""}.
+          The figures are the ones on <Link href="/portal/finance/capacity?t=overheads">Wages &amp; costs › Overheads</Link>, filed from Xero; change them there. &ldquo;Each van&rdquo; lines are for {vans} {vans === 1 ? "van" : "vans"}{vans !== i.techs ? `, ${i.techs} ${i.techs === 1 ? "tech" : "techs"} and ${vans - i.techs} driven by an apprentice` : ""}.
           Office &amp; admin staff are their pay with on-costs. The techs&rsquo; and apprentices&rsquo; pay is above, not here.
         </Note>
       </Card>
@@ -351,9 +351,9 @@ async function Days({ i, searchParams }: { i: CoverInputs; searchParams: SP }) {
                         <td>{p.days}</td>
                         <td>{h1(p.onSite / Math.max(1, p.days))} h<div className="ks">{h1(p.onSite)} of {n0(p.paidHrs)} h paid{p.onSiteOpen > 0.5 ? ` · ${h1(p.onSiteOpen)} h on jobs not billed yet` : ""}</div></td>
                         <td><b>{h1(p.workHrs / Math.max(1, p.days))} h</b>{p.onSiteUntimed > 0.5 ? <div className="ks">+ {h1(p.onSiteUntimed / Math.max(1, p.days))} h on jobs with no sold time</div> : null}</td>
-                        <td>{speed == null ? "—" : <>{pct(speed)}<div className="ks">{h1(p.workHrs)} h of work in {h1(p.onSiteTimed)} h</div></>}</td>
+                        <td>{speed == null ? "" : <>{pct(speed)}<div className="ks">{h1(p.workHrs)} h of work in {h1(p.onSiteTimed)} h</div></>}</td>
                         <td>{m0(p.billed)}</td>
-                        <td>{p.paidHrs > 0 ? m2(p.billed / p.paidHrs) : "—"}</td>
+                        <td>{p.paidHrs > 0 ? m2(p.billed / p.paidHrs) : ""}</td>
                         <td className="l"><Pill st={st(p)} /></td>
                       </tr>
                     );
@@ -363,10 +363,10 @@ async function Days({ i, searchParams }: { i: CoverInputs; searchParams: SP }) {
             </div>
           </Card>
           <Note>
-            <b>Billed work</b> is the time each finished, invoiced job was sold for — the labour on its invoice, the sold estimate behind an install, or the standard time set for that kind of job.
+            <b>Billed work</b> is the time each finished, invoiced job was sold for, the labour on its invoice, the sold estimate behind an install, or the standard time set for that kind of job.
             A job&rsquo;s sold time is the crew&rsquo;s, so a tech and an apprentice on a 5-hour job are each credited 5 hours. <b>Speed</b> is that sold time over their own time on site for the same jobs:
             7 hours of work done in 5 is 140%. Jobs not finished and billed yet count as time on site only. Billed dollars are split between the people on a job by their time there.
-            Where the time on jobs with no sold time could put someone either side of the goal, the page says &ldquo;Can&rsquo;t say yet&rdquo; rather than guess — standard times for each kind of job, set on <Link href="/portal/board/times">Standard times</Link>, fill that in.
+            Where the time on jobs with no sold time could put someone either side of the goal, the page says &ldquo;Can&rsquo;t say yet&rdquo; rather than guess, standard times for each kind of job, set on <Link href="/portal/board/times">Standard times</Link>, fill that in.
             Paid hours are {i.dayHrs} for each day they clocked on; more hours on site than that is overtime, or a clock left running.
           </Note>
         </>

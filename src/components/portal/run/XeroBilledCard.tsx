@@ -16,7 +16,7 @@ const VERDICT: Record<XeroCheck["match"], Status> = {
 const why = (c: XeroCheck) =>
   c.match === "reference" ? `same reference as the job (${c.reference})`
   : c.match === "amount" ? "same customer, same amount"
-  : c.match === "customer" ? "invoices to this customer around then — nothing ties one to this job"
+  : c.match === "customer" ? "invoices to this customer around then, nothing ties one to this job"
   : c.customer ? "no invoice to this customer from three months before to six weeks after"
   : "no customer on the job to look up in Xero";
 
@@ -28,7 +28,7 @@ const why = (c: XeroCheck) =>
 export async function XeroBilledCard() {
   const r = await oldJobsAgainstXero().catch(() => null);
   if (!r) {
-    return <Card title="Before 17 September — checked against Xero"><Empty>Xero didn&rsquo;t answer, so the older jobs can&rsquo;t be checked just now.</Empty></Card>;
+    return <Card title="Before 17 September, checked against Xero"><Empty>Xero didn&rsquo;t answer, so the older jobs can&rsquo;t be checked just now.</Empty></Card>;
   }
   const none = r.checks.filter((c) => c.match === "none");
   const maybe = r.checks.filter((c) => c.match === "customer");
@@ -36,11 +36,11 @@ export async function XeroBilledCard() {
   const shown = [...none, ...maybe];
 
   return (
-    <Card title="Before 17 September — checked against Xero" aside={`${none.length} not found · ${maybe.length} to check · ${ok.length} billed`}>
+    <Card title="Before 17 September, checked against Xero" aside={`${none.length} not found · ${maybe.length} to check · ${ok.length} billed`}>
       <p className="pk-note" style={{ margin: "0 0 10px" }}>
         Jobs finished between 1 July and 16 September were invoiced in Xero, so ServiceTitan shows them all at $0. Each one with a $0 invoice is
         looked up in Xero: by the agent&rsquo;s reference where the job has one, then by customer and amount, then by customer around the date.
-        {" "}<b>Not in Xero</b> means no invoice to that customer at all from three months before the job to six weeks after — those are the ones to chase.
+        {" "}<b>Not in Xero</b> means no invoice to that customer at all from three months before the job to six weeks after, those are the ones to chase.
       </p>
       {shown.length === 0 ? <Empty>Every older job has its invoice in Xero.</Empty> : shown.map((c) => (
         <div className="pk-kv pk-kv--act" key={c.id}>

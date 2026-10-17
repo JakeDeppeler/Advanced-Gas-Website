@@ -12,7 +12,7 @@ import { EMPTY_REMOTE } from "@/lib/board/remoteTypes";
 import { dbConfigured } from "@/lib/portal/db";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Wall board remote — Team portal" };
+export const metadata = { title: "Wall board remote · Team portal" };
 
 /**
  * The wall board, and a remote for it: the board itself, live, beside the
@@ -45,7 +45,7 @@ export default async function BoardRemotePage() {
         <section className="pt-panel pt-wb__live">
           <div className="pt-wb__gh">
             <h2 className="pt-panel__h">On the wall now</h2>
-            <span className="pt-wb__fine">The board itself, live — it follows the remote as the TV does</span>
+            <span className="pt-wb__fine">The board itself, live, it follows the remote as the TV does</span>
           </div>
           <BoardPreview />
           <p className="pt-wb__links">

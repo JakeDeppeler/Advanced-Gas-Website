@@ -160,7 +160,7 @@ export function ClassicShell({ user, children, variant }: { user: PortalUser; ch
             <strong>Advanced</strong>
             <em>Gas &amp; Aircon · Team portal</em>
           </Link>
-          <Link href="/portal/me" className="pt__avatar" aria-label={`${user.name} — my file`}>{user.name.slice(0, 1).toUpperCase()}</Link>
+          <Link href="/portal/me" className="pt__avatar" aria-label={`${user.name}, my file`}>{user.name.slice(0, 1).toUpperCase()}</Link>
         </header>
 
         <main className="pt__content">

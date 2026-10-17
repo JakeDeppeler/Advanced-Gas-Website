@@ -137,7 +137,7 @@ export function GoalBars({ months, what = "Invoiced" }: { months: GoalBar[]; wha
       {m && on != null && (
         <Tip x={L + slot * on + slot / 2} y={Y(Math.max(m.value ?? 0, m.goal ?? 0))} w={W}>
           <b>{m.full}{m.state === "now" ? " · so far" : m.state === "future" ? " · to come" : ""}</b>
-          {m.state !== "future" && <span>{what} <em>{m.value == null ? "—" : money(m.value)}</em></span>}
+          {m.state !== "future" && <span>{what} <em>{m.value == null ? "" : money(m.value)}</em></span>}
           {m.goal != null && <span>Goal <em>{money(m.goal)}</em></span>}
           {d != null && m.state === "done" && <span className={d >= 0 ? "g" : "b"}>{d >= 0 ? "▲ Over by" : "▼ Short by"} <em>{money(Math.abs(d))}</em></span>}
           {d != null && m.state === "now" && <span>{money(Math.max(0, -d))} still to go</span>}

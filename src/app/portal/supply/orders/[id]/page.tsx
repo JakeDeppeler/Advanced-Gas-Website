@@ -9,7 +9,7 @@ import { money, money2 } from "@/lib/portal/format";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Order — Team portal" };
+export const metadata = { title: "Order · Team portal" };
 
 const MEL = "Australia/Melbourne";
 const when = (iso: string) =>
@@ -56,12 +56,12 @@ export default async function SupplyOrderPage({ params }: { params: { id: string
           </div>
           <div className="pt-head__fig">
             <div className="pt-head__figlbl">Going to</div>
-            <div className="pt-head__figval pt-sup__figtxt">{order.location ?? "—"}</div>
+            <div className="pt-head__figval pt-sup__figtxt">{order.location ?? ""}</div>
             {!order.location && <div className="pt-head__figsub">Not placed with Reece yet, so no branch</div>}
           </div>
           <div className="pt-head__fig">
             <div className="pt-head__figlbl">Amount</div>
-            <div className="pt-head__figval">{order.amount == null ? "—" : money(order.amount)}</div>
+            <div className="pt-head__figval">{order.amount == null ? "" : money(order.amount)}</div>
             <div className="pt-head__figsub">
               {order.amount == null ? "No line on this order carried a price" : "Ex GST, added up from the lines"}
             </div>
@@ -90,7 +90,7 @@ export default async function SupplyOrderPage({ params }: { params: { id: string
             {order.unresolved} {order.unresolved === 1 ? "line isn’t" : "lines aren’t"} in the ServiceTitan pricebook.
           </strong>{" "}
           They&rsquo;re marked below. Either the code is new to us, or the material exists but isn&rsquo;t linked to
-          the Reece vendor yet — a pricebook sync with <em>create missing</em> on will add the first kind.
+          the Reece vendor yet, a pricebook sync with <em>create missing</em> on will add the first kind.
         </div>
       )}
 
@@ -122,8 +122,8 @@ export default async function SupplyOrderPage({ params }: { params: { id: string
                     {l.quantity.toLocaleString("en-AU")}
                     {l.unitOfMeasure ? <em className="pt-sup__uom"> {l.unitOfMeasure}</em> : null}
                   </td>
-                  <td>{l.unitPriceExGst == null ? "—" : money2(l.unitPriceExGst)}</td>
-                  <td>{l.lineTotalExGst == null ? "—" : money2(l.lineTotalExGst)}</td>
+                  <td>{l.unitPriceExGst == null ? "" : money2(l.unitPriceExGst)}</td>
+                  <td>{l.lineTotalExGst == null ? "" : money2(l.lineTotalExGst)}</td>
                   <td className="pt-sup__matched">
                     {l.materialId != null ? (
                       <span title={`ServiceTitan material ${l.materialId}`}>{l.materialCode ?? `#${l.materialId}`}</span>

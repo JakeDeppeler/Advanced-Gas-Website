@@ -93,7 +93,7 @@ export function ReportsBoard({
       {canWrite && (
         <section className="pt-panel pt-rep__write">
           <h2 className="pt-panel__h">Write a report</h2>
-          <p className="pt-panel__sub">A note on a crew member — coaching, how they&rsquo;re tracking, a handover, or anything the leads and admins should know. It&rsquo;s recorded so no one has to chase it up in person.</p>
+          <p className="pt-panel__sub">A note on a crew member, coaching, how they&rsquo;re tracking, a handover, or anything the leads and admins should know. It&rsquo;s recorded so no one has to chase it up in person.</p>
           <form onSubmit={submit} className="pt-rep__form">
             <div className="pt-rep__formrow">
               <label className="pt-field">
@@ -164,7 +164,7 @@ export function ReportsBoard({
                 {r.title && <h3 className="pt-rep__title">{r.title}</h3>}
                 <p className="pt-rep__body">{r.body}</p>
                 <footer className="pt-rep__cardfoot">
-                  <span className="pt-rep__author">— {r.authorName || r.authorEmail}</span>
+                  <span className="pt-rep__author"> {r.authorName || r.authorEmail}</span>
                   {canDelete && (
                     <button type="button" className="pt-rep__del" onClick={() => del(r.id)} disabled={pending} aria-label="Delete report">
                       Delete

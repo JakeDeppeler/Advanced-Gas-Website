@@ -8,7 +8,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Pricing rules — Supply — Team portal" };
+export const metadata = { title: "Pricing rules, Supply · Team portal" };
 
 /** Name, what it does, and what it is set to. */
 type Rule = { k: string; what: string; v: string };
@@ -19,7 +19,7 @@ function rulesOf(s: PricebookSettings): Rule[] {
     {
       k: "Markup",
       what: "Applied to the vendor cost before it lands in the pricebook",
-      v: s.priceMode === "markup" ? `+${s.markupPercent}%` : "None — cost only",
+      v: s.priceMode === "markup" ? `+${s.markupPercent}%` : "None, cost only",
     },
     {
       k: "Sell prices",
@@ -82,7 +82,7 @@ export default async function SupplyPricingPage() {
           exact statement. Say the word and it becomes a form. */}
       <div className="pt-note">
         <strong>Read-only here.</strong> Changing a markup changes what every quote charges on the next sync, so it
-        stays a deliberate change made in <code>portal_settings</code> — the statement to run is in{" "}
+        stays a deliberate change made in <code>portal_settings</code> , the statement to run is in{" "}
         <code>PRICEBOOK.md</code> §2.
       </div>
     </PortalShell>

@@ -43,9 +43,9 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const ROLE_BLURB: Record<Role, string> = {
-  admin: "Full access — overhead costing, managing the team, and all reports.",
-  lead: "Runs the crew — writes and reads team reports, no overhead costing.",
-  member: "Everyday access — handbook, learning, information and tools.",
+  admin: "Full access, overhead costing, managing the team, and all reports.",
+  lead: "Runs the crew, writes and reads team reports, no overhead costing.",
+  member: "Everyday access, handbook, learning, information and tools.",
 };
 
 export const ROLES: Role[] = ["member", "lead", "admin"];

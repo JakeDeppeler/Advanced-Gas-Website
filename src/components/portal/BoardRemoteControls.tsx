@@ -98,7 +98,7 @@ export function BoardRemoteControls({ initial }: { initial: BoardRemote }) {
           {demo && <span className="pt-vstat pt-vstat--warn">Up until {time(demo.until)}</span>}
         </div>
         <p className="pt-wb__note">
-          One of the board&rsquo;s alerts on sample figures, over and over for two minutes — marked as a sample on the
+          One of the board&rsquo;s alerts on sample figures, over and over for two minutes, marked as a sample on the
           screen, so nobody takes it for a real sale.
         </p>
         <div className="pt-wb__demos">

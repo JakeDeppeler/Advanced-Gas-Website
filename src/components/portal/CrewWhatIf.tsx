@@ -73,7 +73,7 @@ export function CrewWhatIf({ people, settings, meId }: { people: CrewMember[]; s
             <tbody>
               {rows.map((r) => {
                 const a = rateNow.get(r.id), b = rateThen.get(r.id);
-                const fmt = (x: typeof a) => (x?.rate != null ? m2(x.rate) : x?.uplift != null ? `+${m2(x.uplift)} on a crew` : LEVEL_BILLABLE[r.level] ? "—" : "overhead");
+                const fmt = (x: typeof a) => (x?.rate != null ? m2(x.rate) : x?.uplift != null ? `+${m2(x.uplift)} on a crew` : LEVEL_BILLABLE[r.level] ? "" : "overhead");
                 return (
                   <tr key={r.id} className={r.on ? undefined : "is-off"}>
                     <th scope="row">{r.name}{r.id === meId && <em> you</em>}<em> {LEVEL_LABEL[r.level]}{r.added ? " · new" : ""}</em></th>
@@ -87,9 +87,9 @@ export function CrewWhatIf({ people, settings, meId }: { people: CrewMember[]; s
                     <td>
                       {LEVEL_BILLABLE[r.level]
                         ? <input id={`wi-v-${r.id}`} type="checkbox" checked={r.costing.ownVan} disabled={!r.on} onChange={(e) => set(r.id, { costing: { ...r.costing, ownVan: e.target.checked } })} aria-label={`${r.name} runs their own van`} />
-                        : "—"}
+                        : ""}
                     </td>
-                    <td>{r.added ? "—" : fmt(a)}</td>
+                    <td>{r.added ? "" : fmt(a)}</td>
                     <td>{r.on ? fmt(b) : "gone"}</td>
                     <td>
                       {r.added

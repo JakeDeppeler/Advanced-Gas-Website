@@ -31,7 +31,7 @@ export async function uploadSound(form: FormData): Promise<SoundResult> {
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Pick an MP3 file." };
   const isMp3 = /\.mp3$/i.test(file.name) || file.type === "audio/mpeg" || file.type === "audio/mp3";
   if (!isMp3) return { ok: false, error: "That isn't an MP3. Save it as .mp3 and try again." };
-  if (file.size > MAX_BYTES) return { ok: false, error: "That file is over 4MB — far longer than a pop-up. Trim it to a few seconds." };
+  if (file.size > MAX_BYTES) return { ok: false, error: "That file is over 4MB, far longer than a pop-up. Trim it to a few seconds." };
   const name = String(form.get("name") ?? "").trim().slice(0, 80) || file.name.replace(/\.mp3$/i, "").slice(0, 80);
   const secs = Number(form.get("seconds"));
   const id = randomUUID();
@@ -77,5 +77,5 @@ export async function deleteSound(id: string): Promise<SoundResult> {
 export async function playOnTv(kind: SoundKind): Promise<SoundResult> {
   if (!(await office())) return { ok: false, error: "Not allowed." };
   const r = await showDemo(kind, { once: true });
-  return r.ok ? { ok: true, note: "Sent to the TV — it plays within about ten seconds." } : { ok: false, error: r.error ?? "Couldn't reach the TV." };
+  return r.ok ? { ok: true, note: "Sent to the TV, it plays within about ten seconds." } : { ok: false, error: r.error ?? "Couldn't reach the TV." };
 }

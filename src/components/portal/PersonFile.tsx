@@ -159,7 +159,7 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
               </header>
               <p className="pf-review__body">{r.body}</p>
               <footer className="pf-review__foot">
-                <span>— {r.authorName || "Manager"}</span>
+                <span> {r.authorName || "Manager"}</span>
                 {canEdit && <button type="button" className="pf-del" disabled={pending} onClick={() => start(async () => { await removeReview({ id: r.id, userId }); refresh(); })}>Delete</button>}
               </footer>
             </article>
@@ -175,7 +175,7 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
                 {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} ★</option>)}
               </select>
             </div>
-            <textarea className="pf-textarea" rows={3} value={rBody} onChange={(e) => setRBody(e.target.value)} placeholder="How they're tracking — what's going well, what to work on…" />
+            <textarea className="pf-textarea" rows={3} value={rBody} onChange={(e) => setRBody(e.target.value)} placeholder="How they're tracking, what's going well, what to work on…" />
             <div className="pf-row-end">
               <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" disabled={pending || !rBody.trim()} onClick={() => start(async () => {
                 const res = await addReview({ userId, period: rPeriod, rating: rRating || null, body: rBody });
@@ -191,7 +191,7 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
       {on("notes") && (
       <section className="pt-panel pf-hidden">
         <h2 className="pt-panel__h">Managers&rsquo; notes <span className="pf-lock">hidden</span></h2>
-        <p className="pt-panel__sub">Private to managers — {name.split(" ")[0]} never sees these. Good, needs-work, or a plain note.</p>
+        <p className="pt-panel__sub">Private to managers, {name.split(" ")[0]} never sees these. Good, needs-work, or a plain note.</p>
 
         <div className="pf-notes">
           {notes.length === 0 && <div className="pf-empty">No notes yet.</div>}
@@ -202,7 +202,7 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
                 {n.body}
               </div>
               <div className="pf-note__foot">
-                <span>— {n.authorName || "Manager"} · {n.when}</span>
+                <span> {n.authorName || "Manager"} · {n.when}</span>
                 {canDeleteNotes && <button type="button" className="pf-del" disabled={pending} onClick={() => start(async () => { await removeNote({ id: n.id, userId }); refresh(); })}>Delete</button>}
               </div>
             </div>

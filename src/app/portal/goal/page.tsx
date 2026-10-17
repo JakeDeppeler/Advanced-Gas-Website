@@ -12,7 +12,7 @@ import { isoDateMelbourne, workingDaysInMonth } from "@/lib/dashboard/dates";
 import { latestSnapshot } from "@/lib/dashboard/metrics";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Pace — Team portal" };
+export const metadata = { title: "Pace · Team portal" };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 

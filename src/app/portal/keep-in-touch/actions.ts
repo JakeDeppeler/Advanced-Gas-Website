@@ -64,7 +64,7 @@ export async function reachedOut(id: string, input: { on: string; how: string; n
   if (!w) return { ok: false, error: "Only the office can log this." };
   const c = await getContact(id);
   if (!c) return { ok: false, error: "They've been taken off the list." };
-  if (!ISO.test(input.on ?? "") || input.on > todayMelbourne()) return { ok: false, error: "Pick the day — today or before." };
+  if (!ISO.test(input.on ?? "") || input.on > todayMelbourne()) return { ok: false, error: "Pick the day, today or before." };
   if (!HOWS.some((h) => h.key === input.how)) return { ok: false, error: "Pick how you got in touch." };
   try {
     await logTouch(c, { on: input.on, how: input.how, note: input.note, by: w.me });

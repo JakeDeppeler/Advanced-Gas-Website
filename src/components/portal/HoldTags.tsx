@@ -54,7 +54,7 @@ export function HoldTags({ rows, configured, held }: { rows: HoldTagRow[]; confi
           <button type="button" className="pt-btn pt-btn--ghost pt-hold__reset" onClick={back}>
             Back to the default list
           </button>{" "}
-          — the eleven the board picks out of the tag names by itself.
+          , the eleven the board picks out of the tag names by itself.
         </p>
       )}
 
@@ -79,7 +79,7 @@ export function HoldTags({ rows, configured, held }: { rows: HoldTagRow[]; confi
                 <td>
                   <strong>{r.name}</strong>
                 </td>
-                <td className="pt-hold__n">{r.open || "—"}</td>
+                <td className="pt-hold__n">{r.open || ""}</td>
                 <td className="pt-hold__set">
                   <span className="pt-seg">
                     {([

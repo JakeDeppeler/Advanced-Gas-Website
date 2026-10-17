@@ -6,7 +6,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { HANDBOOK } from "@/lib/portal/content";
 import { SOPS } from "@/lib/portal/sops";
 
-export const metadata = { title: "Handbook — Team portal" };
+export const metadata = { title: "Handbook · Team portal" };
 
 export default async function HandbookPage() {
   const user = await getPortalUser();
@@ -27,7 +27,7 @@ export default async function HandbookPage() {
           <PortalBack href="/portal" label="Home" />
           <h1>Handbook</h1>
           <p>
-            How we do things here, top to bottom — who we are, every role, how we treat customers, the factory and the
+            How we do things here, top to bottom, who we are, every role, how we treat customers, the factory and the
             vans, our systems, safety, and the forms. So the business runs to the same standard whoever is in the chair.
           </p>
         </div>

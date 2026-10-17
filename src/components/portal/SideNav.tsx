@@ -178,7 +178,7 @@ export function SideNav({ tabs, small: initialSmall, search, foot }: {
         </div>
 
         {small ? (
-          <button type="button" className="pt-side__home pt-side__searchbtn" onClick={toggleSize} aria-label="Search — opens the side bar" title="Search">
+          <button type="button" className="pt-side__home pt-side__searchbtn" onClick={toggleSize} aria-label="Search, opens the side bar" title="Search">
             <Ic d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" size={19} />
           </button>
         ) : (

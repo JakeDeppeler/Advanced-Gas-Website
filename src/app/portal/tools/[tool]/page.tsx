@@ -28,7 +28,7 @@ const TOOLS: Record<string, { tab: string; title: string; lede: string; el: Reac
 
 export function generateMetadata({ params }: { params: { tool: string } }) {
   const t = TOOLS[params.tool];
-  return { title: t ? `${t.title} — Tools — Team portal` : "Tools — Team portal" };
+  return { title: t ? `${t.title}, Tools · Team portal` : "Tools · Team portal" };
 }
 
 export default async function PortalToolPage({ params }: { params: { tool: string } }) {

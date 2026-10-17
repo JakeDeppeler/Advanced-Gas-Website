@@ -7,7 +7,7 @@ import { IMPORT_USER, WINDOWS, type CreditTotal, type SoldJob } from "@/lib/dash
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 const day = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "2-digit" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "2-digit" }) : "";
 
 /**
  * Every sale in the window, newest first, with who the board lists it under
@@ -121,7 +121,7 @@ export function SaleCredit({
              made them. */
           <p className="pt-note">
             <strong>{money(imported.value)}</strong> of this is under the ServiceTitan integration account rather than a
-            person. Everything sold before September 2026 is, because nothing recorded who sold it — moving those is a
+            person. Everything sold before September 2026 is, because nothing recorded who sold it, moving those is a
             guess, not a correction.
           </p>
         )}
@@ -212,7 +212,7 @@ export function SaleCredit({
                           somebody has to be able to find without remembering
                           who had it. */}
                       <option value="">
-                        {(j.original === IMPORT_USER ? "ServiceTitan import" : j.original) ?? "nobody"} — unchanged
+                        {(j.original === IMPORT_USER ? "ServiceTitan import" : j.original) ?? "nobody"} , unchanged
                       </option>
                       {people.map((p) => (
                         <option key={p} value={p}>

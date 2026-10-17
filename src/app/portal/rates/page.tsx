@@ -15,7 +15,7 @@ import { Bad, Btn, Card, Empty, Good, Head, Say } from "@/components/portal/kit/
 import { TeamTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Team — Team portal" };
+export const metadata = { title: "Team · Team portal" };
 
 const m2 = (n: number) => `$${n.toFixed(0)}`;
 const mc = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -37,7 +37,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
     <Head title="Hourly rate" sub={tab === "rates" ? "Labour rates · from Pricing & costs and the crew’s wages" : "Who sold what this month · ServiceTitan"} info={[
       ["What the person costs", "Their pay with super and WorkCover, and their own time off the tools, spread over their billable hours."],
       ["Office share", "The office, the vans and every other overhead, spread over the whole team’s billable hours."],
-      ["Crew rates", "What we charge for one person in a van, a tech and an apprentice, and a tech with two apprentices — each against what that crew costs a van a year."],
+      ["Crew rates", "What we charge for one person in a van, a tech and an apprentice, and a tech with two apprentices, each against what that crew costs a van a year."],
       ["Leaderboard", "Credit goes to whoever wrote the quote. A re-sold quote counts once, on the day it first sold."],
     ]} />
   );
@@ -65,7 +65,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
                         <td>{money(r.soldWeek)}</td>
                         <td>{money(r.soldToday)}</td>
                         <td>{money(r.quoted)}</td>
-                        <td>{r.closeRate != null ? `${Math.round(r.closeRate * 100)}%` : "—"}</td>
+                        <td>{r.closeRate != null ? `${Math.round(r.closeRate * 100)}%` : ""}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -102,7 +102,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
           return (
             <>
               <Say>
-                {rows.every((c) => c.ours == null) ? <>None of our crew rates are set yet — put them in on Rates &amp; pricing.</>
+                {rows.every((c) => c.ours == null) ? <>None of our crew rates are set yet, put them in on Rates &amp; pricing.</>
                   : short.length === 0 ? <Good>Every crew rate we&rsquo;ve set makes our {base.i.margin}%.</Good>
                   : <Bad>{short.map((c) => c.label.replace(/^A /, "a ")).join(" and ")} {short.length === 1 ? "is" : "are"} under what makes {base.i.margin}%.</Bad>}
               </Say>
@@ -127,8 +127,8 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
                   </table>
                 </div>
                 <p className="pk-note" style={{ marginTop: 10 }}>
-                  Each crew is one van: the overhead on every billed hour ({mc(cr.share / Math.max(1, cr.hrsVan))}) plus the crew&rsquo;s whole pay — a tech at {mc(base.i.techWage)}, apprentices at {mc(base.i.appWage)},
-                  with super, WorkCover and long service leave — over {base.i.billPerDay} of {base.i.dayHrs} hours billed. The working is on <a href="/portal/finance/cover">What an hour must cover</a>.
+                  Each crew is one van: the overhead on every billed hour ({mc(cr.share / Math.max(1, cr.hrsVan))}) plus the crew&rsquo;s whole pay, a tech at {mc(base.i.techWage)}, apprentices at {mc(base.i.appWage)},
+                  with super, WorkCover and long service leave, over {base.i.billPerDay} of {base.i.dayHrs} hours billed. The working is on <a href="/portal/finance/cover">What an hour must cover</a>.
                 </p>
               </Card>
               {(() => {
@@ -156,7 +156,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
                     </div>
                     <p className="pk-note" style={{ marginTop: 10 }}>
                       The crew rates above are built on a tech at {mc(base.i.techWage)} and an apprentice at {mc(base.i.appWage)}
-                      {appAvg != null ? <> — today&rsquo;s apprentices average {mc(appAvg)}</> : null}. Wrong wage? Change it on their card on <a href="/portal/finance/capacity">Team &amp; wages</a>;
+                      {appAvg != null ? <> , today&rsquo;s apprentices average {mc(appAvg)}</> : null}. Wrong wage? Change it on their card on <a href="/portal/finance/capacity">Team &amp; wages</a>;
                       to work the rates on different wages, use <a href="/portal/finance/cover">What an hour must cover</a>.
                     </p>
                   </Card>

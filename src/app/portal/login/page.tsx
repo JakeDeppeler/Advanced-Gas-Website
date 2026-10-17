@@ -1,4 +1,4 @@
-export const metadata = { title: "Team portal — sign in" };
+export const metadata = { title: "Team portal, sign in" };
 
 /**
  * Sign in: navy on the left, the form on the right.
@@ -28,7 +28,7 @@ export default function PortalLogin({
           <h2>
             One standard. Every job.
           </h2>
-          <p>The handbook, processes, tools and numbers the crew works from — all in one place.</p>
+          <p>The handbook, processes, tools and numbers the crew works from, all in one place.</p>
         </div>
 
         <p className="pt-login__foot">(03) 5947 8000 · Pakenham</p>
@@ -41,7 +41,7 @@ export default function PortalLogin({
 
           {sent && (
             <div className="pt-login__msg pt-login__msg--ok">
-              Check your email. If you&rsquo;re on the team, a sign-in link is on its way — it works once and expires in
+              Check your email. If you&rsquo;re on the team, a sign-in link is on its way, it works once and expires in
               15&nbsp;minutes.
             </div>
           )}

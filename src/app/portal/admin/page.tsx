@@ -7,7 +7,7 @@ import { ViewAsPicker } from "@/components/portal/ViewAs";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 
-export const metadata = { title: "Admin — Team portal" };
+export const metadata = { title: "Admin · Team portal" };
 
 export default async function AdminHome() {
   const user = await getPortalUser();

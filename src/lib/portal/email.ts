@@ -59,7 +59,7 @@ export async function sendPairingCode(to: string, code: string): Promise<{ ok: b
         <div style="background:#fff;border-radius:12px;padding:18px 20px;text-align:center;">
           <div style="font-family:'Courier New',Courier,monospace;font-size:34px;font-weight:700;letter-spacing:.08em;color:#0e1b4d;">${code}</div>
         </div>
-        <p style="font-size:13px;line-height:1.55;color:#8b93b8;margin:20px 0 0;">On the television, go to <strong style="color:#c6cdec;">advancedgas.com.au/tv</strong> and enter the code. If you didn't ask for this, ignore it — the code is useless without the screen.</p>
+        <p style="font-size:13px;line-height:1.55;color:#8b93b8;margin:20px 0 0;">On the television, go to <strong style="color:#c6cdec;">advancedgas.com.au/tv</strong> and enter the code. If you didn't ask for this, ignore it, the code is useless without the screen.</p>
       </div>
     </div>
   </body></html>`;

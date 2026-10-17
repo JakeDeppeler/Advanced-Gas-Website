@@ -18,9 +18,9 @@ function Stepper({ label, hint, value, shown, min, max, onChange }: {
     <div className="ptl-step">
       <span><strong>{label}</strong><em>{hint}</em></span>
       <span className="ptl-step__ctl">
-        <button type="button" aria-label={`Fewer — ${label.toLowerCase()}`} disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
+        <button type="button" aria-label={`Fewer, ${label.toLowerCase()}`} disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
         <output aria-live="polite">{shown}</output>
-        <button type="button" aria-label={`More — ${label.toLowerCase()}`} disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
+        <button type="button" aria-label={`More, ${label.toLowerCase()}`} disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
       </span>
     </div>
   );
@@ -43,10 +43,10 @@ export function PortalSizing() {
   // What the busiest run actually draws through the shower heads, mixed.
   const drawoff = Math.max(form.morningPeople, form.eveningPeople) * form.showerMinutes * FIXED.showerFlowLpm;
   const [a, b] = r.compare;
-  const covers = a.keepsUp && b.keepsUp ? "Yes — both do"
+  const covers = a.keepsUp && b.keepsUp ? "Yes, both do"
     : a.keepsUp ? `Only the ${a.name}`
       : b.keepsUp ? `Only the ${b.name}`
-        : "Neither — go a size up";
+        : "Neither, go a size up";
 
   return (
     <div className="ptl-grid">

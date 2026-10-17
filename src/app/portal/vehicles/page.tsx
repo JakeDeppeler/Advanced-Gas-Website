@@ -17,9 +17,9 @@ import { VanLoans } from "@/components/portal/VanLoans";
 import { getGrowth } from "@/lib/portal/growth";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Vehicles — Team portal" };
+export const metadata = { title: "Vehicles · Team portal" };
 
-const km = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("en-AU")} km`);
+const km = (n: number | null) => (n === null ? "" : `${n.toLocaleString("en-AU")} km`);
 
 /** What the fleet is worth, what's owed on it, and what a year of it costs. */
 function fleetTotals(vehicles: Vehicle[]) {
@@ -193,7 +193,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
             fromLoan: v.owingFromLoan, typedRepayment: v.typedRepayment,
           }))} />
         ) : vehicles.length === 0 ? (
-          ready && <Empty>No vehicles yet{canManage ? " — add one below." : "."}</Empty>
+          ready && <Empty>No vehicles yet{canManage ? ", add one below." : "."}</Empty>
         ) : (
           <>
             <FleetTable rows={forView(rows, view)} title={view === "all" ? "On the road · most urgent first" : "On the road · worst on this column first"} />
@@ -206,7 +206,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
             <Kv t="Depreciation" sub="only on vans still being paid off" v={t.dep !== null ? money(t.dep) : "not set"} />
             <Kv t="Fuel" sub={`at $${FUEL_PRICE.toFixed(2)}/L, ${KM_PER_WEEK} km a week where none is set`} v={t.fuel !== null ? money(t.fuel) : "not set"} />
             <Kv t="Servicing" sub="each van’s interval and what a service costs" v={t.servicing !== null ? money(t.servicing) : "not set"} />
-            <Kv t={<b>Total</b>} sub="the Vehicles line in Pricing & costs" v={t.running !== null ? money(t.running) : "—"} />
+            <Kv t={<b>Total</b>} sub="the Vehicles line in Pricing & costs" v={t.running !== null ? money(t.running) : ""} />
             <Note>A van that’s bought and paid for still loses value, but that isn’t cash going out, so it stays off the total. &ldquo;Not set&rdquo; means a van is missing the figure: purchase price and lifespan, service cost and km a year, or fuel use.</Note>
           </Card>
         )}

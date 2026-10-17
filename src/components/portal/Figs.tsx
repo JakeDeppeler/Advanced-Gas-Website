@@ -35,7 +35,7 @@ export function Figs({ items, cols = 3 }: { items: Fig[]; cols?: 2 | 3 | 4 }) {
         const body = (
           <>
             <span className="pt-fig__k">{f.label}</span>
-            <strong className="pt-fig__v">{f.value ?? "—"}</strong>
+            <strong className="pt-fig__v">{f.value ?? ""}</strong>
             {f.bar != null && (
               <span className="pt-fig__bar" aria-hidden="true">
                 <i style={{ width: `${Math.max(0, Math.min(1, f.bar)) * 100}%` }} />

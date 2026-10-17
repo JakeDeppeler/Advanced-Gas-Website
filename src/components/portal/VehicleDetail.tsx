@@ -25,7 +25,7 @@ export type LogView = {
 
 const KIND_LABEL: Record<VehicleLogKind, string> = { reading: "Km reading", fuel: "Fuel", service: "Service", damage: "Damage" };
 
-const km = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("en-AU")} km`);
+const km = (n: number | null) => (n === null ? "" : `${n.toLocaleString("en-AU")} km`);
 const dateShort = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short" });
 /** Log rows keep their cents — a fuel docket has them and rounding a receipt
  *  to the dollar makes it stop matching the paperwork. The stat strip above
@@ -45,7 +45,7 @@ const LOG_TITLE: Record<VehicleLogKind, { h: string; sub: string; empty: string 
   reading: { h: "Km readings", sub: "The odometer, whenever somebody looks at it. Anyone on the crew can add one.", empty: "No readings logged yet." },
   fuel: { h: "Fuel", sub: "Every fill, with the litres and what it cost.", empty: "No fills logged yet." },
   service: { h: "Service requests", sub: "What was asked for, what was done, and what it cost.", empty: "No services logged yet." },
-  damage: { h: "Damage log", sub: "Anything that happened to the van — logged the day it happened, not at sale time.", empty: "Nothing logged — which is the point." },
+  damage: { h: "Damage log", sub: "Anything that happened to the van, logged the day it happened, not at sale time.", empty: "Nothing logged, which is the point." },
 };
 
 export function VehicleDetail({ vehicle, logs, canManage, crew, log, banner = true }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; crew: CrewOption[]; log: VehicleLogKind | null; banner?: boolean }) {
@@ -109,7 +109,7 @@ export function VehicleDetail({ vehicle, logs, canManage, crew, log, banner = tr
                     {logMoney(l.cost) && <span>{logMoney(l.cost)}</span>}
                   </div>
                   {l.detail && <div className="pt-veh__logdetail">{l.detail}</div>}
-                  {l.createdBy && <div className="pt-veh__logby">— {l.createdBy}</div>}
+                  {l.createdBy && <div className="pt-veh__logby"> {l.createdBy}</div>}
                 </div>
                 {canManage && <button type="button" className="pf-del" disabled={pending} onClick={() => start(async () => { await removeLog({ id: l.id, vehicleId: vehicle.id }); refresh(); })}>Delete</button>}
               </div>

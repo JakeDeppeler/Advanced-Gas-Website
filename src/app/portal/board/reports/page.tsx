@@ -13,7 +13,7 @@ import { KIND_LABEL, type Report, type ReportKind } from "@/lib/reports/types";
 import { changeReportRecipient } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Reports — Team portal" };
+export const metadata = { title: "Reports · Team portal" };
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
@@ -63,7 +63,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: { k?
         </div>
         {reports.length === 0 ? (
           <p className="pt-rep__empty">
-            {all.length === 0 ? "None yet. The first goes at half past five on the next working day — or send one now, below." : "None of these yet."}
+            {all.length === 0 ? "None yet. The first goes at half past five on the next working day, or send one now, below." : "None of these yet."}
           </p>
         ) : (
           <div className="pt-fleet__wrap">

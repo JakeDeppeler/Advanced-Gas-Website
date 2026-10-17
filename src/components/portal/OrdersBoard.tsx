@@ -19,7 +19,7 @@ const when = (iso: string) =>
   new Date(iso).toLocaleString("en-AU", { timeZone: MEL, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
 /** A dash, not a zero: the cart genuinely carried no price. */
-const amount = (v: number | null) => (v == null ? "—" : money(v));
+const amount = (v: number | null) => (v == null ? "" : money(v));
 
 export function OrdersBoard({
   orders,

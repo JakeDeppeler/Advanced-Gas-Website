@@ -37,7 +37,7 @@ export type SopSection = {
 
 export const SOP_INTRO = [
   "This is the working version of how we do things. Every procedure here was agreed at the team training day and applies to everyone, from the director to the first-year apprentice.",
-  "None of it is finished. If a procedure does not work on the job, say so and bring the fix with it — see C6. When it changes, it changes for every van, and you will be told what changed and why.",
+  "None of it is finished. If a procedure does not work on the job, say so and bring the fix with it, see C6. When it changes, it changes for every van, and you will be told what changed and why.",
 ];
 
 export const SOP_VERSION = "Version 1.1 · FY26";
@@ -72,7 +72,7 @@ export const SOPS: SopSection[] = [
           { k: "Who", v: "Every tradesman and apprentice, on the van they are signed to" },
           { k: "When", v: "Monday morning, before leaving the factory" },
           { k: "Takes", v: "Ten minutes" },
-          { k: "Record", v: "In the portal, on your van — Vehicles → your van → Weekly" },
+          { k: "Record", v: "In the portal, on your van, Vehicles → your van → Weekly" },
         ],
         blocks: [
           { kind: "note", title: "Purpose", body: "A van that leaves short costs an hour and a customer. This check catches it on the Monday, while the factory is still open and there is a week to put it right." },
@@ -82,7 +82,7 @@ export const SOPS: SopSection[] = [
             "Review this week’s jobs. Know the scope, the gear and the access for each one.",
             "Load the materials for the week’s jobs.",
             "Check the tool bag is complete and back in the van.",
-            "Check batteries are charged — drill, impact, test gear.",
+            "Check batteries are charged, drill, impact, test gear.",
             "Check gas bottles are chained, upright and in date.",
             "Check ladders and racking are secure.",
             "Confirm drop sheets, shoe covers and stickers are on board.",
@@ -96,7 +96,7 @@ export const SOPS: SopSection[] = [
         ],
       },
       {
-        code: "A2", slug: "before-you-leave", title: "Before you leave — the line-by-line check",
+        code: "A2", slug: "before-you-leave", title: "Before you leave, the line-by-line check",
         meta: [
           { k: "Who", v: "Every tradesman and apprentice" },
           { k: "When", v: "Last ten minutes of every working day" },
@@ -122,17 +122,17 @@ export const SOPS: SopSection[] = [
           { k: "Who", v: "Admin, on each van" },
           { k: "When", v: "First week of the month" },
           { k: "Takes", v: "One hour" },
-          { k: "Record", v: "In the portal — Vehicles → the van → Monthly, with photos" },
+          { k: "Record", v: "In the portal, Vehicles → the van → Monthly, with photos" },
         ],
         blocks: [
           { kind: "note", title: "Purpose", body: "The weekly check covers stock and tools. This one covers the vehicle itself. Admin does it, with photos of the panels, the tyres and the km on the dash." },
           { kind: "steps", title: "Steps", items: [
             "Empty the van so the floor, shelves and every item can be seen.",
             "Clean anything dirty before it goes back in.",
-            "Body and panels — dents, scratches, mirrors, lights.",
-            "Tyres — tread, pressure including the spare, no sidewall damage.",
-            "Fluids — oil, coolant, brake fluid, washer bottle.",
-            "Service and rego — check the sticker and the logbook.",
+            "Body and panels, dents, scratches, mirrors, lights.",
+            "Tyres, tread, pressure including the spare, no sidewall damage.",
+            "Fluids, oil, coolant, brake fluid, washer bottle.",
+            "Service and rego, check the sticker and the logbook.",
             "Racking and shelving secure, gas bottle restraints sound.",
             "Fire extinguisher in date, first aid kit stocked, ladders undamaged.",
             "Harness and height gear in date and tagged. Test gear in calibration.",
@@ -147,17 +147,17 @@ export const SOPS: SopSection[] = [
         meta: [
           { k: "Who", v: "The tradesman who runs the van" },
           { k: "When", v: "Counted Monday with the weekly check, ordered as soon as it hits minimum" },
-          { k: "Owner", v: "Jake — ordering and supplier runs" },
+          { k: "Owner", v: "Jake, ordering and supplier runs" },
           { k: "Record", v: "Van stock list (factory wall and portal)" },
         ],
         blocks: [
           { kind: "list", title: "The rules", items: [
             "Every van carries the same list, so anyone can jump into any van and work.",
-            "At or under the minimum, it gets ordered that day — not when it runs out mid-job.",
+            "At or under the minimum, it gets ordered that day, not when it runs out mid-job.",
             "If you needed something that is not on the list, tell us. We will add it and keep it stocked.",
             "Never take stock from another van. That breaks someone else’s day. Ring Jake.",
             "Never buy stock out of your own pocket. The business buys it.",
-            "The van is your responsibility — stock, tools, cleanliness and damage.",
+            "The van is your responsibility, stock, tools, cleanliness and damage.",
           ] },
           { kind: "note", title: "Van setup", body: "Every van is fitted out to the same plan: same racking, same shelves, same spots. New vans are fitted to the plan and older vans are brought up to match. If the layout does not work on the job, say so and it changes in every van." },
         ],
@@ -170,14 +170,14 @@ export const SOPS: SopSection[] = [
     sops: [
       {
         code: "B1", slug: "arriving", title: "Arriving at the customer’s door",
-        meta: [{ k: "Who", v: "Whoever knocks — usually the tradesman" }, { k: "When", v: "Every job, every time" }],
+        meta: [{ k: "Who", v: "Whoever knocks, usually the tradesman" }, { k: "When", v: "Every job, every time" }],
         blocks: [
           { kind: "steps", title: "Steps", items: [
-            "Be on site at the specified time. First job means exactly that time — not leaving the factory then.",
+            "Be on site at the specified time. First job means exactly that time, not leaving the factory then.",
             "Park considerately. Do not block the driveway unless you need to.",
             "Phone away before you knock.",
             "Introduce yourself by name and by company.",
-            "Protection down before anything else — drop sheets, shoe covers, a clear path in and out.",
+            "Protection down before anything else, drop sheets, shoe covers, a clear path in and out.",
             "Explain what you are about to do before you start doing it.",
           ] },
           { kind: "note", title: "What good looks like", body: "The customer knows who you are, what is happening and roughly how long it will take, before you pick up a tool." },
@@ -190,12 +190,12 @@ export const SOPS: SopSection[] = [
           { kind: "steps", title: "The four steps", items: [
             "Listen. Let them tell you the whole story before you answer.",
             "Diagnose. Find the real problem before you reach for a price.",
-            "Explain. In plain words, no jargon — what it is, why it happened, what it means.",
+            "Explain. In plain words, no jargon, what it is, why it happened, what it means.",
             "Options. Give three, priced properly, and let them choose.",
           ] },
           { kind: "list", title: "Never", items: [
             "Never invent a price. If you do not know, find out.",
-            "Never price a scope change on the spot without the office — it gets priced before it gets built.",
+            "Never price a scope change on the spot without the office, it gets priced before it gets built.",
             "Apprentices do not discuss diagnosis, timing or price. Hand those questions to the tradesman.",
           ] },
         ],
@@ -203,10 +203,10 @@ export const SOPS: SopSection[] = [
       {
         code: "B3", slug: "presenting-options", title: "Presenting options",
         doIt: { href: "/portal/rates", label: "Our crew rates" },
-        meta: [{ k: "Who", v: "The tradesman" }, { k: "When", v: "Every job — target is options presented on 95%+ of jobs" }],
+        meta: [{ k: "Who", v: "The tradesman" }, { k: "When", v: "Every job, target is options presented on 95%+ of jobs" }],
         blocks: [
           { kind: "steps", title: "How it works", items: [
-            "Build three options — good, better, best — on the iPad.",
+            "Build three options, good, better, best, on the iPad.",
             "Present from the bottom up, so the cheapest is heard first.",
             "Explain what changes between them, not just what costs more.",
             "Lead with Mitsubishi Electric and say why: better unit, backed properly, fewer callbacks.",
@@ -220,11 +220,11 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Who", v: "The tradesman" }, { k: "When", v: "Any time price becomes the objection" }],
         blocks: [
           { kind: "list", title: "Treat it as a question, not a no", items: [
-            "“How long will it take?” — give a real answer, not an optimistic one.",
-            "“Will it be messy?” — show the drop sheets before they ask.",
-            "“Can you do it today?” — only promise what the schedule can do. Ring the office.",
-            "“Do I need compliance?” — if it is gas or electrical, yes, and we handle it. Say it with confidence.",
-            "“Why is it cheaper online?” — online is a box on a pallet. We are the install, the warranty and the callback.",
+            "“How long will it take?”, give a real answer, not an optimistic one.",
+            "“Will it be messy?”, show the drop sheets before they ask.",
+            "“Can you do it today?”, only promise what the schedule can do. Ring the office.",
+            "“Do I need compliance?”, if it is gas or electrical, yes, and we handle it. Say it with confidence.",
+            "“Why is it cheaper online?”, online is a box on a pallet. We are the install, the warranty and the callback.",
           ] },
           { kind: "list", title: "Two lines that win people over", items: [
             "“Even if you do not go with us, send your other quote through and I will make sure you are not being ripped off.”",
@@ -239,7 +239,7 @@ export const SOPS: SopSection[] = [
         blocks: [
           { kind: "steps", title: "Steps", items: [
             "Take two minutes to look at the hot water unit, the meter, the switchboard and the outdoor unit.",
-            "Photograph what you find — make, model, age, condition.",
+            "Photograph what you find, make, model, age, condition.",
             "Put our sticker on every unit you touch or inspect.",
             "Log it on the customer record in ServiceTitan, not in your head.",
             "Tell them what you saw, even if it is fine. No pressure, just the heads-up.",
@@ -261,7 +261,7 @@ export const SOPS: SopSection[] = [
         blocks: [
           { kind: "steps", title: "Steps", items: [
             "Ask while they are still happy and you are still standing there.",
-            "“Rapt you are happy — would you mind leaving us a quick review?”",
+            "“Rapt you are happy, would you mind leaving us a quick review?”",
             "Send the link then and there, or leave the card. Do not make them hunt for it.",
             "Ask on every happy job, not just the big ones.",
           ] },
@@ -273,7 +273,7 @@ export const SOPS: SopSection[] = [
         meta: [
           { k: "Who", v: "Whoever is on site" },
           { k: "When", v: "The moment it happens" },
-          { k: "Owner", v: "Dean — owns the resolution" },
+          { k: "Owner", v: "Dean, owns the resolution" },
         ],
         blocks: [
           { kind: "steps", title: "Steps", items: [
@@ -296,7 +296,7 @@ export const SOPS: SopSection[] = [
     sops: [
       {
         code: "C1", slug: "ten-standards", title: "The ten standards",
-        meta: [{ k: "Who", v: "Everyone — director to first-year apprentice" }, { k: "When", v: "Always" }],
+        meta: [{ k: "Who", v: "Everyone, director to first-year apprentice" }, { k: "When", v: "Always" }],
         blocks: [
           { kind: "note", body: "These do not move for a busy week." },
           { kind: "steps", items: [
@@ -318,14 +318,14 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Who", v: "Everyone" }, { k: "Principle", v: "Early is cheap, late is expensive" }],
         blocks: [
           { kind: "table", head: ["Situation", "Who you call"], rows: [
-            ["Everyday tech question", "Jye — first call for day-to-day work on the tools"],
-            ["Hard technical call", "Dean — anything Jye is not sure on, or you have not seen before"],
-            ["Pricing, spec or scope", "Jake — priced before it is built, no verbal side deals"],
-            ["Booking, late, sick, admin", "Kellie — as early as you know"],
-            ["Parts, stock, supplier run", "Jake — never out of pocket, never off another van"],
+            ["Everyday tech question", "Jye, first call for day-to-day work on the tools"],
+            ["Hard technical call", "Dean, anything Jye is not sure on, or you have not seen before"],
+            ["Pricing, spec or scope", "Jake, priced before it is built, no verbal side deals"],
+            ["Booking, late, sick, admin", "Kellie, as early as you know"],
+            ["Parts, stock, supplier run", "Jake, never out of pocket, never off another van"],
             ["Unsafe or outside your licence", "Stop. Say no. Ring Dean. You will never be in trouble for that call"],
           ] },
-          { kind: "note", body: "Pick whoever is closest to it. If it is not theirs, they will walk you to whoever owns it. Nobody minds being asked — what we mind is finding out on Friday that you were stuck on Tuesday." },
+          { kind: "note", body: "Pick whoever is closest to it. If it is not theirs, they will walk you to whoever owns it. Nobody minds being asked, what we mind is finding out on Friday that you were stuck on Tuesday." },
         ],
       },
       {
@@ -333,10 +333,10 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Who", v: "Everyone, including management" }, { k: "Applies", v: "In the van, on the phone, on site and in the group chat" }],
         blocks: [
           { kind: "list", title: "The rules", items: [
-            "Read the room. It is not always a joke — the same line that is funny on a good day lands differently on a bad one.",
+            "Read the room. It is not always a joke, the same line that is funny on a good day lands differently on a bad one.",
             "Think it through first. Have a crack before you ring, and come with what you have already tried.",
             "Ask when you do not know, but have two possible solutions before you get your answer.",
-            "Disagree away from the customer — in the office or in the van, never in front of the homeowner.",
+            "Disagree away from the customer, in the office or in the van, never in front of the homeowner.",
             "Never blame the office on site. We sort that internally, every time.",
           ] },
           { kind: "note", title: "This is not a schoolyard", tone: "warn", body: "Respect management and each other. We do not want to change the culture here, but the blame game and shit talk will not be tolerated. It will result in disciplinary action, up to and including termination of employment." },
@@ -345,15 +345,15 @@ export const SOPS: SopSection[] = [
       },
       {
         code: "C4", slug: "feedback", title: "How feedback is given",
-        meta: [{ k: "Who", v: "Whoever is giving it — usually Dean or the tradesman" }, { k: "Principle", v: "We are here to grow people, not put them down" }],
+        meta: [{ k: "Who", v: "Whoever is giving it, usually Dean or the tradesman" }, { k: "Principle", v: "We are here to grow people, not put them down" }],
         blocks: [
           { kind: "list", title: "The rules", items: [
             "Advise, do not accuse. “Here is where it went wrong and here is how to do it next time.”",
             "In private, close to the day. One on one, never in front of the team or in the group chat.",
-            "Be specific about the fix — the job, the step, and what good looks like.",
+            "Be specific about the fix, the job, the step, and what good looks like.",
             "It goes both ways. Tell us where we are getting it wrong.",
           ] },
-          { kind: "note", body: "Nobody gets it rubbed in their face. If you ever feel you were shown up rather than helped, say so — that one is on us to fix." },
+          { kind: "note", body: "Nobody gets it rubbed in their face. If you ever feel you were shown up rather than helped, say so, that one is on us to fix." },
         ],
       },
       {
@@ -362,9 +362,9 @@ export const SOPS: SopSection[] = [
         blocks: [
           { kind: "list", title: "First we look at us", items: [
             "Did we train it? If you were never properly shown, that is on us.",
-            "Did we give you the gear? Wrong tool, missing part, not enough time — that is a system problem.",
+            "Did we give you the gear? Wrong tool, missing part, not enough time, that is a system problem.",
             "Was the standard clear? If it was never written down or shown to you, we cannot hold you to it.",
-            "Did we set the job up right? Bad quote, wrong scope, incomplete info from the office — help us rectify it using your on-site experience so we overcome it together.",
+            "Did we set the job up right? Bad quote, wrong scope, incomplete info from the office, help us rectify it using your on-site experience so we overcome it together.",
           ] },
           { kind: "note", body: "We coach the input, never the outcome. Most problems are system problems, and we say so out loud when it was ours." },
         ],
@@ -373,7 +373,7 @@ export const SOPS: SopSection[] = [
         code: "C6", slug: "changing-a-process", title: "Changing a process that does not work",
         meta: [
           { k: "Who", v: "Anyone" },
-          { k: "When", v: "The moment you find it — not at a review six months later" },
+          { k: "When", v: "The moment you find it, not at a review six months later" },
           { k: "Closed out", v: "At the Monday huddle" },
         ],
         blocks: [
@@ -398,10 +398,10 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Applies to", v: "All apprentices, bands 1–2" }, { k: "Reviewed", v: "Every four months with Dean" }],
         blocks: [
           { kind: "list", title: "Non-negotiable", items: [
-            "Always with a tradesman. You may be left at a job at times, but always with supervision — by phone or FaceTime.",
+            "Always with a tradesman. You may be left at a job at times, but always with supervision, by phone or FaceTime.",
             "Never work outside your licence. No gas, refrigerant or live electrical unsupervised. Say no and ring Dean.",
             "Ask, never guess. Every single time.",
-            "Never talk price, timing or diagnosis — hand those to the tradesman.",
+            "Never talk price, timing or diagnosis, hand those to the tradesman.",
           ] },
           { kind: "list", title: "Expected of you", items: [
             "Stay a step ahead. Tool ready before it is asked for. Set up and pack up without being told.",
@@ -415,10 +415,10 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Applies to", v: "All tradesmen, band 3" }],
         blocks: [
           { kind: "list", items: [
-            "You own the job — quote it, sell it, install it to code, finish it clean.",
+            "You own the job, quote it, sell it, install it to code, finish it clean.",
             "You own the customer. You are the only one they meet.",
-            "You own the apprentice — their safety, supervision and learning while they are in your van.",
-            "You own the van — stock, tools, condition and cleanliness.",
+            "You own the apprentice, their safety, supervision and learning while they are in your van.",
+            "You own the van, stock, tools, condition and cleanliness.",
             "Three options on every job, priced properly.",
             "Photos, forms and notes complete on the day.",
           ] },
@@ -442,7 +442,7 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Applies to", v: "Apprentices" }, { k: "Review", v: "Every four months with Dean" }],
         blocks: [
           { kind: "list", title: "What the business puts in", items: [
-            "Tickets and licences as you are ready — gas, ARC refrigerant handling, electrical.",
+            "Tickets and licences as you are ready, gas, ARC refrigerant handling, electrical.",
             "A tradesman beside you whose job is to teach, not just get through the day.",
             "A sit-down with Dean every four months on your training plan and where you are up to.",
             "The gear and the time to do the job properly, so you are never set up to fail.",
@@ -450,7 +450,7 @@ export const SOPS: SopSection[] = [
           { kind: "list", title: "What you put in", items: [
             "Turn up on time, every day, ready to work.",
             "Turn up to trade school and pass the work. That part is only yours.",
-            "Ask when you do not know — with two possible solutions ready.",
+            "Ask when you do not know, with two possible solutions ready.",
             "Take the feedback and change what you actually do on the next job.",
             "Say no and ring Dean if you are asked to do something you are not licensed for.",
           ] },
@@ -461,28 +461,28 @@ export const SOPS: SopSection[] = [
   {
     letter: "E", slug: "how-you-earn", title: "How you earn",
     blurb: "Base pay, what you earn on top, and the service plans.",
-    draft: "Not final. Rates and mechanics are still to be confirmed with the IR adviser and the accountant, and the scheme starts once the price book is set up in ServiceTitan — within the next six months. Do not present these figures as settled.",
+    draft: "Not final. Rates and mechanics are still to be confirmed with the IR adviser and the accountant, and the scheme starts once the price book is set up in ServiceTitan, within the next six months. Do not present these figures as settled.",
     sops: [
       {
         code: "E1", slug: "what-you-earn", title: "What you earn",
         meta: [
           { k: "Applies to", v: "Tradesmen" },
           { k: "Starts", v: "Within six months, once the ServiceTitan price book is live" },
-          { k: "Status", v: "Draft — pending IR and accountant sign-off" },
+          { k: "Status", v: "Draft, pending IR and accountant sign-off" },
         ],
         blocks: [
           { kind: "note", title: "Base pay", body: "Your hourly rate for the hours you work, set by your band. It never moves with a good or bad week and is never at risk." },
           { kind: "list", title: "Sell it, earn on it", items: [
-            "Jobs under $5,000 — $50 to you",
-            "Jobs $5,000 to $10,000 — $100 to you",
-            "Jobs over $10,000 — $150 to you",
+            "Jobs under $5,000, $50 to you",
+            "Jobs $5,000 to $10,000, $100 to you",
+            "Jobs over $10,000, $150 to you",
           ] },
           { kind: "list", title: "Sign them up, earn on it", items: [
-            "An incentive on every service plan you sign — Comfort, Plus or Total Care.",
+            "An incentive on every service plan you sign, Comfort, Plus or Total Care.",
             "A payment on every replacement you tag that converts to a job.",
             "A payment on every heat pump conversion you bring in.",
           ] },
-          { kind: "note", body: "Installing it well is not a bonus — that is the standard, and it is what base pay is for." },
+          { kind: "note", body: "Installing it well is not a bonus, that is the standard, and it is what base pay is for." },
         ],
       },
       {
@@ -490,9 +490,9 @@ export const SOPS: SopSection[] = [
         meta: [{ k: "Who", v: "Everyone on the tools" }, { k: "When", v: "Every job, after the fix is agreed and before the invoice" }],
         blocks: [
           { kind: "table", head: ["Plan", "Price", "What they get"], rows: [
-            ["Comfort", "$245/yr", "Single split or gas heater — 1 annual service, priority booking, 10% off repairs, no call-out fee"],
-            ["Comfort Plus", "$385/yr", "Ducted — 1 service per system, priority booking, 15% off repairs, no call-out fee"],
-            ["Total Care", "$595/yr", "Heating and cooling — pre-summer and pre-winter service, 20% off repairs, no call-out fee, emergency response"],
+            ["Comfort", "$245/yr", "Single split or gas heater, 1 annual service, priority booking, 10% off repairs, no call-out fee"],
+            ["Comfort Plus", "$385/yr", "Ducted, 1 service per system, priority booking, 15% off repairs, no call-out fee"],
+            ["Total Care", "$595/yr", "Heating and cooling, pre-summer and pre-winter service, 20% off repairs, no call-out fee, emergency response"],
           ] },
           { kind: "note", body: "Memberships are not a discount scheme. They turn a one-off customer into someone who rings us for the next decade, and they fill the quiet months." },
         ],

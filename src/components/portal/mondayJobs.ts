@@ -18,7 +18,7 @@ import { PHOTO_ANGLES, VEHICLE_ITEMS, WEEKLY_CHECK, itemKey, vehicleKey, type Ch
 export type StepKey = "walkaround" | "tidy" | "check" | "stock" | "km" | "send";
 
 export const MONDAY_STEPS: { key: StepKey; title: string; hint: string }[] = [
-  { key: "walkaround", title: "Photos", hint: "Front, back, both sides, cab and load area — six photos." },
+  { key: "walkaround", title: "Photos", hint: "Front, back, both sides, cab and load area, six photos." },
   { key: "tidy", title: "Clean & tidy", hint: "Rubbish out, tools back where they live, the van ready for the week." },
   { key: "check", title: "Vehicle check", hint: "Go round the van. Anything off goes to the office as a service request." },
   { key: "stock", title: "Stock count", hint: "Count what’s on the van. Anything at or under the minimum goes on your order." },

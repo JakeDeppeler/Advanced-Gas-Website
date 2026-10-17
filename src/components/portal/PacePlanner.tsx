@@ -29,7 +29,7 @@ function short(n: number): string {
 
 /** Whole jobs from ten up; a tenth below, because "0 a day" hides 0.4. */
 function jobs(n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return "";
   if (n >= 10) return Math.round(n).toLocaleString("en-AU");
   const r = Math.round(n * 10) / 10;
   return r.toLocaleString("en-AU", { maximumFractionDigits: 1 });
@@ -39,13 +39,13 @@ function jobs(n: number | null | undefined): string {
 const kilo = (n: number) => (Math.abs(n) >= 10_000 ? `$${(Math.round(n / 100) / 10).toLocaleString("en-AU")}K` : money(n));
 
 const pc = (n: number | null | undefined, dp = 0) =>
-  n == null ? "—" : `${(n * 100).toLocaleString("en-AU", { maximumFractionDigits: dp, minimumFractionDigits: 0 })}%`;
+  n == null ? "" : `${(n * 100).toLocaleString("en-AU", { maximumFractionDigits: dp, minimumFractionDigits: 0 })}%`;
 
 /** A stage's figure: money for sold-as-dollars and invoiced, jobs otherwise. */
 const isMoney = (s: Stage) => s === "invoiced";
 
 function fig(s: Stage, n: number | null | undefined): string {
-  if (n == null) return "—";
+  if (n == null) return "";
   return isMoney(s) ? money(n) : jobs(n);
 }
 
@@ -152,7 +152,7 @@ export function PacePlanner({
           <h1>Pace</h1>
           <p>
             {goal.revenue > 0 ? <><b>{short(goal.revenue)}{goal.profitPct ? ` at ${goal.profitPct}%` : ""}</b> · </> : null}
-            What the goal takes at every step — leads, bookings, quotes, sales, jobs done and invoices — and whether
+            What the goal takes at every step, leads, bookings, quotes, sales, jobs done and invoices, and whether
             each one is keeping up. {label}{asOf ? `, as of ${asOf}` : ""}. Money includes GST.
           </p>
         </div>
@@ -164,7 +164,7 @@ export function PacePlanner({
 
       {sample && (
         <div className="pt-note pt-pace__note">
-          <strong>Not saved yet.</strong> These are the figures you asked for — {short(goal.revenue)} at {goal.profitPct}% for {label}.
+          <strong>Not saved yet.</strong> These are the figures you asked for, {short(goal.revenue)} at {goal.profitPct}% for {label}.
           Press <strong>Save</strong> and the wall board starts pacing against them.
         </div>
       )}
@@ -183,8 +183,8 @@ export function PacePlanner({
             </select>
           </label>
           <NumField label="Leads that book" hint="nothing measures this yet" suffix="%" decimal value={s.bookRate == null ? "" : String(Math.round(s.bookRate * 1000) / 10)} onChange={(raw) => set({ bookRate: asFrac(raw) })} placeholder="e.g. 70" />
-          <NumField label="Plan on a close rate" hint={v?.rates.closeRate.measured != null ? `measured ${pc(v.rates.closeRate.measured)} — leave blank to use it` : "leave blank to use the measured one"} suffix="%" decimal value={s.closeRate == null ? "" : String(Math.round(s.closeRate * 1000) / 10)} onChange={(raw) => set({ closeRate: asFrac(raw) })} />
-          <NumField label="Plan on an average sale" hint={v?.rates.avgSale.measured != null ? `measured ${money(v.rates.avgSale.measured)} — leave blank to use it` : "leave blank to use the measured one"} prefix="$" value={s.avgSale == null ? "" : String(Math.round(s.avgSale))} onChange={(raw) => { const n = num(raw); set({ avgSale: n && n > 0 ? n : null }); }} />
+          <NumField label="Plan on a close rate" hint={v?.rates.closeRate.measured != null ? `measured ${pc(v.rates.closeRate.measured)}, leave blank to use it` : "leave blank to use the measured one"} suffix="%" decimal value={s.closeRate == null ? "" : String(Math.round(s.closeRate * 1000) / 10)} onChange={(raw) => set({ closeRate: asFrac(raw) })} />
+          <NumField label="Plan on an average sale" hint={v?.rates.avgSale.measured != null ? `measured ${money(v.rates.avgSale.measured)}, leave blank to use it` : "leave blank to use the measured one"} prefix="$" value={s.avgSale == null ? "" : String(Math.round(s.avgSale))} onChange={(raw) => { const n = num(raw); set({ avgSale: n && n > 0 ? n : null }); }} />
           {canSave && (
             <div className="pt-pace__save">
               <button type="button" className="pt-btn pt-btn--orange" onClick={save} disabled={busy || !dirty || !(goal.revenue > 0)}>
@@ -235,10 +235,10 @@ export function PacePlanner({
                   <Drift now={y.gap} then={y.gapLastWeek} label="Since last week" />
                   <div className="pt-pace__drift">
                     <span>{y.gap < 0 ? "To get back on track" : "To stay on track"}</span>
-                    <strong>{y.weekNeeded == null ? "—" : `${money(y.weekNeeded)} a week`}</strong>
+                    <strong>{y.weekNeeded == null ? "" : `${money(y.weekNeeded)} a week`}</strong>
                     <em>
                       {y.weekPlanned == null ? "" : `against ${money(y.weekPlanned)} planned for ${monthName}`}
-                      {y.catchUp != null && y.catchUp > 1.005 ? ` — every stage ×${y.catchUp.toFixed(2)}` : ""}
+                      {y.catchUp != null && y.catchUp > 1.005 ? `, every stage ×${y.catchUp.toFixed(2)}` : ""}
                     </em>
                   </div>
                 </div>
@@ -274,7 +274,7 @@ export function PacePlanner({
                   <strong className={`pt-pace__need${isMoney(st) ? " is-money" : ""}`}>
                     {/* Thousands on the card, where a full figure wraps a
                         sixth of the page wide; the table has every digit. */}
-                    {need == null ? "—" : isMoney(st) ? kilo(need) : jobs(need)}
+                    {need == null ? "" : isMoney(st) ? kilo(need) : jobs(need)}
                     {need != null && <small> a week</small>}
                   </strong>
                   {need == null && st === "leads" && <span className="pt-pace__why">Set the share of leads that book</span>}
@@ -335,11 +335,11 @@ export function PacePlanner({
                   })}
                   <tr className="pt-pace__sub">
                     <th scope="row"><span className="pt-pace__rn">Sold, in dollars</span></th>
-                    <td>{v.year.sold.value == null ? "—" : money(v.year.sold.value)}</td>
-                    <td>{v.month.sold.value == null ? "—" : money(v.month.sold.value)}</td>
-                    <td className="is-strong">{v.week.sold.value == null ? "—" : money(v.week.sold.value)}</td>
-                    <td>{v.day.sold.value == null ? "—" : money(v.day.sold.value)}</td>
-                    <td>{data.periods.month.soldValue == null ? "—" : money(data.periods.month.soldValue)}</td>
+                    <td>{v.year.sold.value == null ? "" : money(v.year.sold.value)}</td>
+                    <td>{v.month.sold.value == null ? "" : money(v.month.sold.value)}</td>
+                    <td className="is-strong">{v.week.sold.value == null ? "" : money(v.week.sold.value)}</td>
+                    <td>{v.day.sold.value == null ? "" : money(v.day.sold.value)}</td>
+                    <td>{data.periods.month.soldValue == null ? "" : money(data.periods.month.soldValue)}</td>
                     <td />
                   </tr>
                 </tbody>
@@ -348,7 +348,7 @@ export function PacePlanner({
             <p className="pt-pace__foot">
               A week of it is {jobs(weekly(v.lanes.quoteVisits))} quote visits and {jobs(weekly(v.lanes.serviceBooked))} service calls booked,
               and {jobs(weekly(v.lanes.installs))} installs and {jobs(weekly(v.lanes.serviceJobs))} service jobs done. Each month is planned at its share of the year
-              {goal.shape ? ", as shaped on Finance · The year" : " — an even twelfth until the year is shaped on Finance · The year"}.
+              {goal.shape ? ", as shaped on Finance · The year" : ", an even twelfth until the year is shaped on Finance · The year"}.
             </p>
           </section>
 
@@ -357,20 +357,20 @@ export function PacePlanner({
             <div className="pt-pace__sech pt-pace__sech--in">
               <h2>The rates it&rsquo;s built on</h2>
               <span>
-                {m ? `Measured ${fmtDay(m.from)} to ${fmtDay(m.to)} — ${jobs(m.weeks)} working weeks since ServiceTitan went live` : "Nothing measured yet"}
+                {m ? `Measured ${fmtDay(m.from)} to ${fmtDay(m.to)}, ${jobs(m.weeks)} working weeks since ServiceTitan went live` : "Nothing measured yet"}
               </span>
             </div>
             <div className="pt-pace__rategrid">
-              <RateTile label="Leads that book" value={pc(v.rates.bookRate.value)} line={v.rates.bookRate.set ? "you set this" : "set it under Change the goal"} sub={`Calls aren't recorded anywhere this can read${data.calls ? ` — ServiceTitan's phone log has ${data.calls} in this window` : ""}, so it can't be measured.`} unset={v.rates.bookRate.value == null} />
+              <RateTile label="Leads that book" value={pc(v.rates.bookRate.value)} line={v.rates.bookRate.set ? "you set this" : "set it under Change the goal"} sub={`Calls aren't recorded anywhere this can read${data.calls ? `, ServiceTitan's phone log has ${data.calls} in this window` : ""}, so it can't be measured.`} unset={v.rates.bookRate.value == null} />
               <RateTile label="Close rate" value={pc(v.rates.closeRate.value)} line={rateLine(v.rates.closeRate, (n) => pc(n))} sub={m ? `${m.sold} of ${m.quoted} jobs quoted said yes. Per job, not per option.` : ""} />
-              <RateTile label="Average sale" value={v.rates.avgSale.value == null ? "—" : money(v.rates.avgSale.value)} line={rateLine(v.rates.avgSale, money)} sub={m ? `${money(m.soldValue)} across ${m.sold} jobs sold, including GST.` : ""} />
+              <RateTile label="Average sale" value={v.rates.avgSale.value == null ? "" : money(v.rates.avgSale.value)} line={rateLine(v.rates.avgSale, money)} sub={m ? `${money(m.soldValue)} across ${m.sold} jobs sold, including GST.` : ""} />
               <RateTile label="Through a quote" value={pc(v.rates.soldShare.value)} line="measured" sub="Of everything invoiced, the share on install and quote jobs. The rest is service and repairs." />
-              <RateTile label="Quote visits per job quoted" value={v.rates.visitsPerQuote.value == null ? "—" : v.rates.visitsPerQuote.value.toFixed(2)} line="measured" sub={m ? `${m.quoteVisits} visits booked for ${m.quoted} jobs quoted — some get priced on a service call.` : ""} />
-              <RateTile label="A service job" value={v.rates.avgService.value == null ? "—" : money(v.rates.avgService.value)} line="measured" sub={m ? `${money(m.serviceInvoiced)} over ${m.serviceCompleted} done. $0 warranty and follow-up calls are in it — they still take a booking.` : ""} />
+              <RateTile label="Quote visits per job quoted" value={v.rates.visitsPerQuote.value == null ? "" : v.rates.visitsPerQuote.value.toFixed(2)} line="measured" sub={m ? `${m.quoteVisits} visits booked for ${m.quoted} jobs quoted, some get priced on a service call.` : ""} />
+              <RateTile label="A service job" value={v.rates.avgService.value == null ? "" : money(v.rates.avgService.value)} line="measured" sub={m ? `${money(m.serviceInvoiced)} over ${m.serviceCompleted} done. $0 warranty and follow-up calls are in it, they still take a booking.` : ""} />
               <RateTile label="Service calls that go ahead" value={pc(v.rates.serviceCompletion.value)} line="measured" sub={m ? `${m.serviceCompleted} done for ${m.serviceBooked} booked.` : ""} />
             </div>
             <p className="pt-pace__foot">
-              Change a rate under <strong>Change the goal</strong> and every figure on this page moves with it — try a 30% close rate and
+              Change a rate under <strong>Change the goal</strong> and every figure on this page moves with it, try a 30% close rate and
               see how many fewer quotes it takes. Nothing reaches the wall until it&rsquo;s saved.
             </p>
           </section>
@@ -391,7 +391,7 @@ export function PacePlanner({
                     <strong>{pc(profit.summary.margin)}</strong>
                     <em>
                       {profit.summary.margin == null
-                        ? `${profit.summary.costed} costed so far — needs five`
+                        ? `${profit.summary.costed} costed so far, needs five`
                         : goal.profitPct
                           ? profit.summary.margin >= goal.profitPct / 100 ? `at or over the ${goal.profitPct}% goal` : `under the ${goal.profitPct}% goal`
                           : "no profit goal set"}
@@ -403,7 +403,7 @@ export function PacePlanner({
                     <em>on {money(profit.summary.revenue)} of work</em>
                   </div>
                   <div className="pt-pace__pfig">
-                    <span>Under {goal.profitPct ?? "—"}%</span>
+                    <span>Under {goal.profitPct ?? ""}%</span>
                     <strong>{profit.summary.under}</strong>
                     <em>{profit.summary.losing ? `${profit.summary.losing} losing money` : "none losing money"}</em>
                   </div>
@@ -428,8 +428,8 @@ export function PacePlanner({
                             </th>
                             <td>{money(j.price)}</td>
                             <td>{money(j.materials)}</td>
-                            <td>{j.hours == null ? "—" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : ""}`}</td>
-                            <td>{j.profit == null ? "—" : money(j.profit)}</td>
+                            <td>{j.hours == null ? "" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : ""}`}</td>
+                            <td>{j.profit == null ? "" : money(j.profit)}</td>
                             <td className={j.margin != null && goal.profitPct != null && j.margin < goal.profitPct / 100 ? "is-low" : ""}>
                               {pc(j.margin)}{j.margin != null && goal.profitPct != null && j.margin < goal.profitPct / 100 ? " ▼" : ""}
                             </td>
@@ -441,7 +441,7 @@ export function PacePlanner({
                 )}
                 <p className="pt-pace__foot">
                   Price before GST, less the equipment and materials cost on the invoice, less the hours at{" "}
-                  {profit.summary.costPerHr != null ? `${money(profit.summary.costPerHr)} an hour` : "the crew's cost an hour"} — wages plus each hour&rsquo;s share of
+                  {profit.summary.costPerHr != null ? `${money(profit.summary.costPerHr)} an hour` : "the crew's cost an hour"} , wages plus each hour&rsquo;s share of
                   the overheads, from Pricing & costs. {profit.summary.fromTimesheets ? `${profit.summary.fromTimesheets} jobs use clocked hours; the rest use the hours sold.` : "Hours are the hours each job was sold with until ServiceTitan's timesheets come through."}
                 </p>
               </>

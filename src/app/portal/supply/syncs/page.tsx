@@ -9,7 +9,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Sync history — Team portal" };
+export const metadata = { title: "Sync history · Team portal" };
 
 const MEL = "Australia/Melbourne";
 const when = (iso: string) =>
@@ -19,12 +19,12 @@ const count = (s: Record<string, unknown>, k: string): number | null => {
   const v = s[k];
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 };
-const show = (v: number | null) => (v == null ? "—" : v.toLocaleString("en-AU"));
+const show = (v: number | null) => (v == null ? "" : v.toLocaleString("en-AU"));
 
 function took(run: SyncRun): string {
   if (!run.finishedAt) return "didn’t finish";
   const ms = Date.parse(run.finishedAt) - Date.parse(run.startedAt);
-  if (!Number.isFinite(ms) || ms < 0) return "—";
+  if (!Number.isFinite(ms) || ms < 0) return "";
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
 }
 
@@ -58,7 +58,7 @@ export default async function SupplySyncsPage() {
       ) : runs.length === 0 ? (
         <section className="pt-emptycard">
           <strong>No pricebook syncs yet</strong>
-          <span>Each run will list what it changed in ServiceTitan — new items, price moves, and anything that failed.</span>
+          <span>Each run will list what it changed in ServiceTitan, new items, price moves, and anything that failed.</span>
         </section>
       ) : (
         <section className="pt-panel">
@@ -92,7 +92,7 @@ export default async function SupplySyncsPage() {
                       <td>{show(count(r.summary, "updated"))}</td>
                       <td>{show(count(r.summary, "created"))}</td>
                       <td>{show(count(r.summary, "unchanged"))}</td>
-                      <td>{errs > 0 ? errs : "—"}</td>
+                      <td>{errs > 0 ? errs : ""}</td>
                       <td>{took(r)}</td>
                     </tr>
                   );
@@ -110,7 +110,7 @@ export default async function SupplySyncsPage() {
                 .map((r) => (
                   <details key={r.id}>
                     <summary>
-                      {when(r.startedAt)} — {r.errors.length} error{r.errors.length === 1 ? "" : "s"}
+                      {when(r.startedAt)}  {r.errors.length} error{r.errors.length === 1 ? "" : "s"}
                     </summary>
                     <pre>{JSON.stringify(r.errors, null, 2)}</pre>
                   </details>

@@ -869,7 +869,7 @@ const sharedPeriodInvoices = unstable_cache(
       const dueOn = xeroDate(i.DueDateString ?? i.DueDate);
       return {
         number: i.InvoiceNumber ?? "",
-        contact: i.Contact?.Name ?? "—",
+        contact: i.Contact?.Name ?? "",
         date: xeroDate(i.DateString ?? i.Date),
         total: Number(i.Total ?? 0),
         paid: Number(i.AmountPaid ?? 0),
@@ -1036,7 +1036,7 @@ const sharedOwedBills = unstable_cache(
         if (!(due > 0.004)) continue;
         out.push({
           id: i.InvoiceID ?? `${i.InvoiceNumber}-${i.Contact?.Name}`,
-          supplier: (i.Contact?.Name ?? "—").trim(),
+          supplier: (i.Contact?.Name ?? "").trim(),
           number: i.InvoiceNumber?.trim() || null,
           reference: i.Reference?.trim() || null,
           date: xeroDate(i.DateString ?? i.Date),

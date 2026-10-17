@@ -13,7 +13,7 @@ import { Bad, Head, Hero, Pair, Say } from "@/components/portal/kit/Kit";
 import type { Owed } from "@/lib/owe/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "We owe — Team portal" };
+export const metadata = { title: "We owe · Team portal" };
 
 const daysTo = (iso: string, today: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 86_400_000);
 
@@ -48,7 +48,7 @@ export default async function OwePage() {
         <Head title="We owe" sub="Bills from Xero, and anything added here" info={[
           ["Due in the next 7 days", "Every bill due this week, and any already past its date."],
           ["Pay in this order", "Suppliers we can’t trade without first, then by due date. Set who matters most below."],
-          ["Added here", "Something owed that Xero has no bill for yet — a tax payment, a private loan."],
+          ["Added here", "Something owed that Xero has no bill for yet, a tax payment, a private loan."],
         ]} />
         <Say>
           <b>{money(wk)}</b> of bills {week.length === 1 ? "is" : "are"} due in the next 7 days.{" "}

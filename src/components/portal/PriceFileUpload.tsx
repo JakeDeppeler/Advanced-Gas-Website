@@ -18,7 +18,7 @@ export function PriceFileUpload() {
 
   async function send(file: File) {
     if (file.size > 4.4 * 1024 * 1024) {
-      setMsg({ ok: false, text: "That file is over 4.4 MB — too big to send from a browser. Export it as CSV, or ask for it to be loaded on the scheduled import." });
+      setMsg({ ok: false, text: "That file is over 4.4 MB, too big to send from a browser. Export it as CSV, or ask for it to be loaded on the scheduled import." });
       return;
     }
     setBusy(true);

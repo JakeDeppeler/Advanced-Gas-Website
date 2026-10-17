@@ -11,7 +11,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { Bad, Card, Empty, Head, Pill, Say, Tabs, type Status } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Tools — Team portal" };
+export const metadata = { title: "Tools · Team portal" };
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-AU", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
 const daysTo = (iso: string, today: string) => Math.round((Date.parse(`${iso}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
@@ -66,8 +66,8 @@ export default async function ToolRegister({ searchParams }: { searchParams: { v
                           <div className="ks">{[TOOL_KINDS.find((k) => k.k === t.kind)?.label, t.model, t.request ? TOOL_REQUEST.find((r) => r.k === t.request)?.label : null].filter(Boolean).join(" · ")}</div>
                         </td>
                         <td className="l"><Link href={`/portal/vehicles/${t.vehicleId}`}>{vanName.get(t.vehicleId) ?? "A van"}</Link></td>
-                        <td>{t.lastDoneOn ? day(t.lastDoneOn) : "—"}{t.lastDone && <div className="ks">{t.lastDone}</div>}</td>
-                        <td>{t.nextDueOn ? day(t.nextDueOn) : "—"}{t.nextDue && <div className="ks">{t.nextDue}</div>}</td>
+                        <td>{t.lastDoneOn ? day(t.lastDoneOn) : ""}{t.lastDone && <div className="ks">{t.lastDone}</div>}</td>
+                        <td>{t.nextDueOn ? day(t.nextDueOn) : ""}{t.nextDue && <div className="ks">{t.nextDue}</div>}</td>
                         <td className="l"><Pill st={st(t.nextDueOn)} /></td>
                       </tr>
                     ))}

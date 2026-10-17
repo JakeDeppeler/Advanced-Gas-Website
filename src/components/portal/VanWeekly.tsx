@@ -67,7 +67,7 @@ export function VanWeekly({ vehicleId, last, overdue, history }: Props) {
               {/* Three states, not two: taken, never taken, and taken but the
                   link has expired. Collapsing the last into "not taken" would
                   send somebody out to re-photograph a van that is fine. */}
-              <figcaption>{a}{p?.url ? "" : p ? " — won't load" : " — not taken"}</figcaption>
+              <figcaption>{a}{p?.url ? "" : p ? ", won't load" : ", not taken"}</figcaption>
             </figure>
           );
         })}
@@ -79,7 +79,7 @@ export function VanWeekly({ vehicleId, last, overdue, history }: Props) {
             <strong>{h.when}</strong>
             <span>
               {h.by ?? "Unnamed"} · {h.photos} photo{h.photos === 1 ? "" : "s"}
-              {h.missing.length > 0 && ` — ${h.missing.join(", ").toLowerCase()} missing`}
+              {h.missing.length > 0 && `, ${h.missing.join(", ").toLowerCase()} missing`}
             </span>
           </Link>
         ))}

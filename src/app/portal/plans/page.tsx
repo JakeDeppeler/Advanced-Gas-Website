@@ -14,7 +14,7 @@ import { listPlans } from "@/lib/plans/store";
 import type { Plan } from "@/lib/plans/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Future planning — Team portal" };
+export const metadata = { title: "Future planning · Team portal" };
 
 /**
  * What you want to do for the business, away from the day's jobs and quotes:
@@ -46,7 +46,7 @@ export default async function PlansPage() {
           <PortalBack href="/portal" label="Home" />
           <h1>Future planning</h1>
           <p>
-            What you want to do for the business — not the day&rsquo;s jobs or quotes, but the things that change how it runs.
+            What you want to do for the business, not the day&rsquo;s jobs or quotes, but the things that change how it runs.
             Put each one under when you&rsquo;d like to get to it, and move it along as it happens. Only you see your list.
           </p>
         </div>

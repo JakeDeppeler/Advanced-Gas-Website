@@ -49,11 +49,11 @@ export function PortalVeu() {
 
       <aside className="ptl-navy">
         <span className="ptl-navy__k">Ballpark VEU rebate</span>
-        <strong className="ptl-navy__big ptl-navy__big--md">{ok ? $(r.midRebate) : "—"}</strong>
+        <strong className="ptl-navy__big ptl-navy__big--md">{ok ? $(r.midRebate) : ""}</strong>
         <span className="ptl-navy__k">
           {ok
             ? <>Somewhere between {$(r.minRebate)} and {$(r.maxRebate)}. Confirmed at the site visit. Applied straight off the installed price.</>
-            : "Victorian postcodes only — VEU is a Victorian scheme."}
+            : "Victorian postcodes only, VEU is a Victorian scheme."}
         </span>
         {ok && owner === "landlord" && (
           <span className="ptl-navy__k">Landlords get VEU too. The $1,000 Solar Homes rebate is the one that needs an owner occupier.</span>

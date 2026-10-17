@@ -106,7 +106,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
             <input id="files-upload" ref={picker} type="file" multiple hidden onChange={upload}
               accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif,.ai,.eps,.psd,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.mp4,.mov" />
           </label>
-          <span className="pk-note">PDFs, pictures, artwork — up to 25MB each. Nothing here is public.</span>
+          <span className="pk-note">PDFs, pictures, artwork, up to 25MB each. Nothing here is public.</span>
         </div>
       )}
       {msg && <p className={`pk-said${msg.ok ? "" : " bad"}`} role="status">{msg.text}</p>}
@@ -124,7 +124,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
                     <b>{f.name}</b>
                     <span className="pk-ks">{countIn(f.id)} file{countIn(f.id) === 1 ? "" : "s"}{folders.some((x) => x.parentId === f.id && !x.archivedAt) ? " · has folders" : ""}</span>
                   </Link>
-                  {canEdit && <button type="button" className="pk-linkbtn" disabled={busy} onClick={() => act(() => archiveItem({ kind: "folder", id: f.id, archived: true }), `${f.name} archived — it's on the Archived tab.`)}>Archive</button>}
+                  {canEdit && <button type="button" className="pk-linkbtn" disabled={busy} onClick={() => act(() => archiveItem({ kind: "folder", id: f.id, archived: true }), `${f.name} archived, it's on the Archived tab.`)}>Archive</button>}
                 </div>
               ))}
             </div>
@@ -134,7 +134,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
           {(here.length > 0 || subfolders.length === 0) && <section className="pk-card pk-pad">
             <div className="pk-card-h"><b>{crumbs.length ? crumbs[crumbs.length - 1].name : "Files"}</b><span>{here.length} file{here.length === 1 ? "" : "s"}{subfolders.length ? ` · ${subfolders.length} folder${subfolders.length === 1 ? "" : "s"}` : ""}</span></div>
             {here.length === 0 ? (
-              <div className="pk-empty">{subfolders.length ? "No files loose in here — they're in the folders above." : "Nothing in here yet. Upload files, or make a folder to keep them in."}</div>
+              <div className="pk-empty">{subfolders.length ? "No files loose in here, they're in the folders above." : "Nothing in here yet. Upload files, or make a folder to keep them in."}</div>
             ) : (
               <div className="pk-filelist">
                 {here.map((f) => (

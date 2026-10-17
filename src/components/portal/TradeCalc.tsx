@@ -58,7 +58,7 @@ export function TradeCalc({ tradesman, apprentice, apprenticeRidesAlong }: {
           <span className="tr-small" style={{ fontWeight: 600 }}>
             {apprentice == null
               ? "No apprentice costed yet"
-              : `Adds ${money2(apprentice)}/hr to what the job costs${apprenticeRidesAlong ? " — their whole cost, over the van's hours" : ""}`}
+              : `Adds ${money2(apprentice)}/hr to what the job costs${apprenticeRidesAlong ? ", their whole cost, over the van's hours" : ""}`}
           </span>
         </button>
       </section>
@@ -67,7 +67,7 @@ export function TradeCalc({ tradesman, apprentice, apprenticeRidesAlong }: {
         <span className="tr-muted" style={{ fontWeight: 700 }}>{job.label}</span>
         <div className="tr-rows">
           <div className="tr-row"><span className="tr-row__k"><strong>Price</strong></span><span className="tr-big" style={{ fontSize: 30 }}>${job.min}</span></div>
-          <div className="tr-row"><span className="tr-row__k"><strong>Cost of the time</strong></span><span className="tr-big" style={{ fontSize: 30 }}>{cost == null ? "—" : money2(cost)}</span></div>
+          <div className="tr-row"><span className="tr-row__k"><strong>Cost of the time</strong></span><span className="tr-big" style={{ fontSize: 30 }}>{cost == null ? "" : money2(cost)}</span></div>
         </div>
 
         {left == null ? (
@@ -86,7 +86,7 @@ export function TradeCalc({ tradesman, apprentice, apprenticeRidesAlong }: {
         {perHr != null && (
           <p className="tr-small">
             {appr ? "The two of you cost" : "Your time costs"} the business {money2(perHr)} an hour.
-            Travel, materials and after-hours aren&rsquo;t in this — the office calculator has those.
+            Travel, materials and after-hours aren&rsquo;t in this, the office calculator has those.
           </p>
         )}
       </section>

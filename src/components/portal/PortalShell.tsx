@@ -102,7 +102,7 @@ async function CountedTop({ user, sections, biz }: { user: PortalUser; sections:
 const DOCK: DockLink[] = [
   { href: "/portal/todo", label: "To-do", icon: "todo" },
   { href: "/portal/today", label: "Today's numbers", icon: "clock" },
-  { href: "/portal/pipeline", label: "Quotes", icon: "quote" },
+  { href: "/portal/pipeline", label: "Pipeline", icon: "quote" },
   { href: "/portal/supply/work-orders", label: "Work orders", icon: "bolt" },
   { href: "/portal/board/remote", label: "Wall board", icon: "wall" },
   { href: "/portal/settings", label: "Settings", icon: "cog" },

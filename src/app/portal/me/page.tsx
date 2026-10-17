@@ -10,7 +10,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { money2 } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "My file — Team portal" };
+export const metadata = { title: "My file · Team portal" };
 
 
 function when(iso: string) {
@@ -99,7 +99,7 @@ export default async function MyFile() {
                     <span className="pf-review__when">{when(r.createdAt)}</span>
                   </header>
                   <p className="pf-review__body">{r.body}</p>
-                  <footer className="pf-review__foot"><span>— {r.authorName || "Manager"}</span></footer>
+                  <footer className="pf-review__foot"><span> {r.authorName || "Manager"}</span></footer>
                 </article>
               ))}
             </div>

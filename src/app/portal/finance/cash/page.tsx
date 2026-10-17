@@ -13,7 +13,7 @@ import { InOutChart } from "@/components/portal/kit/HoverCharts";
 import { XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Cash flow — Team portal" };
+export const metadata = { title: "Cash flow · Team portal" };
 
 type Month = { key: string; short: string; label: string; from: string; to: string };
 function months(today: string, n: number): Month[] {
@@ -57,7 +57,7 @@ export default async function CashPage({ searchParams }: { searchParams: { tab?:
         ] : [
           ["Running costs", "What goes out every month just to exist: wages, rent, insurance, software, vans. Parts and subbies aren’t in here because they only happen when there’s a job."],
           ["Weeks it covers", "Cash in the bank divided by a week of running costs. If the phone stopped tomorrow, this is how long we could keep paying everyone."],
-          ["The buffer", `${BENCH.cash.words} — ${BENCH.cash.why}. It’s what gets you through a slow January or a big customer paying late.`],
+          ["The buffer", `${BENCH.cash.words}, ${BENCH.cash.why}. It’s what gets you through a slow January or a big customer paying late.`],
         ]} />
         <Tabs on={tab} label="Cash flow" items={[
           { key: "flow", label: "Money in & out", href: "/portal/finance/cash" },
@@ -105,9 +105,9 @@ async function Flow() {
       </Say>
       <Pair>
         <Hero dark label="In the bank" right={cover.accounts ? `${cover.accounts} account${cover.accounts === 1 ? "" : "s"}` : undefined}
-          fig={cover.bank != null ? money(cover.bank) : "—"} frac={cover.bank != null && dueSoon > 0 ? Math.min(1, cover.bank / dueSoon) : cover.bank != null ? 1 : null}
+          fig={cover.bank != null ? money(cover.bank) : ""} frac={cover.bank != null && dueSoon > 0 ? Math.min(1, cover.bank / dueSoon) : cover.bank != null ? 1 : null}
           sub={bills == null ? "Xero didn’t return the bills" : `${money(dueSoon)} of bills due this week`} href="/portal/finance/owe" />
-        <Hero label="Coming in" right="owed to us" fig={owedTotal != null ? money(owedTotal) : "—"} frac={owedTotal && overdue != null ? overdue / owedTotal : null}
+        <Hero label="Coming in" right="owed to us" fig={owedTotal != null ? money(owedTotal) : ""} frac={owedTotal && overdue != null ? overdue / owedTotal : null}
           sub={overdue != null ? `${money(overdue)} of it is overdue` : "Xero didn’t return the invoices"} href="/portal/money" />
       </Pair>
       <Card title="Money in and money out" aside="solid = in · dashed = out · green where more came in · point at a month">
@@ -123,18 +123,18 @@ async function Flow() {
                 return (
                   <tr key={mo.key}>
                     <td><b>{mo.label}</b>{mo.to === today && <span className="ks"> so far</span>}</td>
-                    <td>{b ? money(b.received) : "—"}</td>
-                    <td>{b ? money(b.spent) : "—"}</td>
-                    <td style={{ color: net == null ? undefined : net < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{net == null ? "—" : `${net < 0 ? "▼" : "▲"} ${signed(net)}`}</td>
-                    <td>{pl ? money(pl.income) : "—"}</td>
-                    <td style={{ color: pl ? (pl.netProfit < 0 ? "var(--bad)" : undefined) : undefined }}>{pl ? `${pl.netProfit < 0 ? "▼ " : ""}${signed(pl.netProfit)}` : "—"}</td>
+                    <td>{b ? money(b.received) : ""}</td>
+                    <td>{b ? money(b.spent) : ""}</td>
+                    <td style={{ color: net == null ? undefined : net < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{net == null ? "" : `${net < 0 ? "▼" : "▲"} ${signed(net)}`}</td>
+                    <td>{pl ? money(pl.income) : ""}</td>
+                    <td style={{ color: pl ? (pl.netProfit < 0 ? "var(--bad)" : undefined) : undefined }}>{pl ? `${pl.netProfit < 0 ? "▼ " : ""}${signed(pl.netProfit)}` : ""}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <div style={{ marginTop: 12 }}><Note>Money in and out are everything through the bank accounts — customers paying, suppliers, wages, tax, loans. Sales and profit are the P&amp;L: what was invoiced, and what’s left after every cost, paid or not.</Note></div>
+        <div style={{ marginTop: 12 }}><Note>Money in and out are everything through the bank accounts, customers paying, suppliers, wages, tax, loans. Sales and profit are the P&amp;L: what was invoiced, and what’s left after every cost, paid or not.</Note></div>
       </Card>
     </>
   );
@@ -163,10 +163,10 @@ async function Operate() {
       </Say>
       <Grid cols={4}>
         <Tile label="Running costs a month" st={{ k: "none", w: "" }} fig={money(month)} frac={1} sub={`${money(weekly)} a week`} />
-        <Tile label="In the bank" st={st} fig={bank != null ? money(bank) : "—"} frac={weeks != null ? weeks / target : null} sub="Xero bank feeds" />
-        <Tile label="Weeks it covers" st={st.k === "good" ? { k: "good", w: "On track" } : st} fig={weeks != null ? weeks.toFixed(1) : "—"} frac={weeks != null ? weeks / target : null} sub={`aim for ${target} weeks or more`} />
+        <Tile label="In the bank" st={st} fig={bank != null ? money(bank) : ""} frac={weeks != null ? weeks / target : null} sub="Xero bank feeds" />
+        <Tile label="Weeks it covers" st={st.k === "good" ? { k: "good", w: "On track" } : st} fig={weeks != null ? weeks.toFixed(1) : ""} frac={weeks != null ? weeks / target : null} sub={`aim for ${target} weeks or more`} />
         <Tile label="To reach the buffer" st={need == null ? none("No figure") : need > 0 ? { k: st.k === "none" ? "mid" : st.k, w: "Short" } : { k: "good", w: "Done" }}
-          fig={need == null ? "—" : need > 0 ? money(need) : "Nothing"} frac={need == null ? null : 1 - need / (target * weekly)} sub={need ? "more cash to put aside" : "the buffer is there"} />
+          fig={need == null ? "" : need > 0 ? money(need) : "Nothing"} frac={need == null ? null : 1 - need / (target * weekly)} sub={need ? "more cash to put aside" : "the buffer is there"} />
       </Grid>
       <Two>
         <Card title="What it costs to run, a month" aside="the last three full months from Xero, averaged">
@@ -176,11 +176,11 @@ async function Operate() {
           <Note>Parts, materials and subbies are left out: they only happen when there’s a job to pay for them.</Note>
         </Card>
         <Card title="Next 30 days, worst case" aside="if nothing new gets billed">
-          <Kv t="In the bank now" v={bank != null ? money(bank) : "—"} />
-          <Kv t="Coming in" sub="everything owed to us gets paid" v={owedTotal != null ? `+${money(owedTotal)}` : "—"} />
-          <Kv t="Bills due" sub="every unpaid bill in Xero due by then, or late" v={bills30 != null ? `−${money(bills30)}` : "—"} />
+          <Kv t="In the bank now" v={bank != null ? money(bank) : ""} />
+          <Kv t="Coming in" sub="everything owed to us gets paid" v={owedTotal != null ? `+${money(owedTotal)}` : ""} />
+          <Kv t="Bills due" sub="every unpaid bill in Xero due by then, or late" v={bills30 != null ? `−${money(bills30)}` : ""} />
           <Kv t="A month of running costs" v={`−${money(month)}`} />
-          <Kv t={<b>Left at the end</b>} v={worst == null ? "—" : <span style={{ color: worst < 0 ? "var(--bad)" : "var(--good)" }}>{worst < 0 ? "▼ " : ""}{money(worst)}</span>} />
+          <Kv t={<b>Left at the end</b>} v={worst == null ? "" : <span style={{ color: worst < 0 ? "var(--bad)" : "var(--good)" }}>{worst < 0 ? "▼ " : ""}{money(worst)}</span>} />
         </Card>
       </Two>
     </>

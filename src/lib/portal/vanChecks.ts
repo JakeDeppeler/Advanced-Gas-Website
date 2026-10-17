@@ -19,11 +19,11 @@ export const CHECK_KINDS: {
   { k: "weekly", label: "Weekly van check", short: "Weekly", cadence: "Monday morning", who: "crew",
     blurb: "YOU do this one, on the van you're signed to. Ten minutes on a Monday before you leave. Anything wrong goes to the office the same day." },
   { k: "stock", label: "Van stock count", short: "Stock", cadence: "Monday, with the weekly check", who: "crew",
-    blurb: "Same list in every van. Update the counts, and anything at or under the minimum gets ordered that day — order at the minimum, not when it runs out." },
+    blurb: "Same list in every van. Update the counts, and anything at or under the minimum gets ordered that day, order at the minimum, not when it runs out." },
   { k: "monthly", label: "Monthly van condition check", short: "Monthly", cadence: "First week of the month", who: "admin",
-    blurb: "Admin does this one, with photos. A proper look over the van — what's wearing, what's due, what needs booking in." },
+    blurb: "Admin does this one, with photos. A proper look over the van, what's wearing, what's due, what needs booking in." },
   { k: "plant", label: "Power tools & plant", short: "Tools & plant", cadence: "With the monthly check", who: "admin",
-    blurb: "Lives in the van. Missing, damaged or flat goes to the office the same day — don't work around it." },
+    blurb: "Lives in the van. Missing, damaged or flat goes to the office the same day, don't work around it." },
   { k: "bag", label: "Tool bag", short: "Tool bag", cadence: "Back in at the end of the job", who: "crew",
     blurb: "What every tradesman and apprentice carries in the bag. Check it back in at the end of the job." },
 ];
@@ -38,11 +38,11 @@ export type CountGroup = { group: string; items: CountItem[] };
 const ea = (item: string, min: number): CountItem => ({ item, unit: "ea", min });
 
 export const VAN_STOCK: CountGroup[] = [
-  { group: "Copper — water & gas", items: [
+  { group: "Copper, water & gas", items: [
     { item: '1/2" copper', unit: "length", min: 2 },
     { item: '3/4" copper', unit: "length", min: 2 },
     ea("Candy cane (gas bend)", 2),
-    { item: "Pipe saddles & clips — assorted", unit: "pk", min: 1 },
+    { item: "Pipe saddles & clips, assorted", unit: "pk", min: 1 },
   ] },
   { group: "Brass fittings", items: [
     ea('Union 1/2"', 4), ea('Union 3/4"', 4),
@@ -51,14 +51,14 @@ export const VAN_STOCK: CountGroup[] = [
     ea('3/4"F to 15C elbow', 6), ea('3/4"M to 15C elbow', 6),
     ea("Gas regulator", 1),
   ] },
-  { group: "B-Press — water", items: [
+  { group: "B-Press, water", items: [
     ea('Cap 1/2"', 4), ea('Cap 3/4"', 4),
     ea('Elbow 1/2"', 10), ea('Elbow 3/4"', 10),
     ea('Tee 1/2"', 6), ea('Tee 3/4"', 6),
     ea('Coupling 1/2"', 6), ea('Coupling 3/4"', 6),
     ea('Male / female adaptors 1/2" & 3/4"', 8),
   ] },
-  { group: "B-Press — gas (yellow)", items: [
+  { group: "B-Press, gas (yellow)", items: [
     ea('Cap 1/2"', 4), ea('Cap 3/4"', 4),
     ea('Elbow 1/2"', 8), ea('Elbow 3/4"', 8),
     ea('Tee 1/2"', 4), ea('Tee 3/4"', 4),
@@ -73,7 +73,7 @@ export const VAN_STOCK: CountGroup[] = [
     ea("Tempering valve 50°C", 1),
     ea("Non-return valve", 2),
     ea("Flexible connectors", 4),
-    { item: "Tap & valve washers — assorted", unit: "pk", min: 1 },
+    { item: "Tap & valve washers, assorted", unit: "pk", min: 1 },
   ] },
   { group: "Controls", items: [
     ea("Networker controller", 1),
@@ -83,14 +83,14 @@ export const VAN_STOCK: CountGroup[] = [
     { item: "AAA batteries", unit: "pk", min: 2 },
   ] },
   { group: "Sealants, tapes & straps", items: [
-    { item: "Silicone — neutral cure", unit: "tube", min: 3 },
+    { item: "Silicone, neutral cure", unit: "tube", min: 3 },
     { item: "Duct tape", unit: "roll", min: 3 },
     { item: "Silver (foil) tape", unit: "roll", min: 3 },
     { item: "Hanging strap / banding", unit: "roll", min: 2 },
     { item: "Gas thread tape (yellow)", unit: "roll", min: 4 },
     { item: "Thread sealant (gas approved)", unit: "tube", min: 2 },
     ea("Ratchet / load straps", 4),
-    { item: "Cable ties — UV black", unit: "pk", min: 2 },
+    { item: "Cable ties, UV black", unit: "pk", min: 2 },
   ] },
   { group: "Gas & brazing", items: [
     ea("MAP gas", 2),
@@ -99,7 +99,7 @@ export const VAN_STOCK: CountGroup[] = [
   { group: "Drainage & site", items: [
     { item: "PVC drain pipe 20mm", unit: "m", min: 20 },
     { item: "PVC drain pipe 15mm", unit: "m", min: 10 },
-    ea("Drain fittings — elbows, joiners, tees", 15),
+    ea("Drain fittings, elbows, joiners, tees", 15),
     ea("Condensate pump", 1),
     { item: "PVC solvent cement + primer", unit: "tin", min: 1 },
     ea("Drop sheets", 3),
@@ -117,9 +117,9 @@ export const VAN_PLANT: CountGroup[] = [
   ] },
   { group: "Benders & pipe tools", items: [
     ea('Bender 3/8"', 1), ea('Bender 1/2"', 1),
-    ea("Tube cutter — small & large", 2), ea("Deburring tool", 1), ea("Flaring tool", 1),
+    ea("Tube cutter, small & large", 2), ea("Deburring tool", 1), ea("Flaring tool", 1),
     ea("Swaging / expanding tool", 1), ea("B-Press tool", 1),
-    { item: 'B-Press jaws — 1/2", 3/4", 25mm, 32mm', unit: "set", min: 1 },
+    { item: 'B-Press jaws, 1/2", 3/4", 25mm, 32mm', unit: "set", min: 1 },
   ] },
   { group: "Power tools", items: [
     ea("Cordless drill", 1), ea("Impact driver", 1), ea("Angle grinder", 1),
@@ -135,7 +135,7 @@ export const VAN_PLANT: CountGroup[] = [
     ea("Extension ladder", 1), ea("Step ladder", 1), ea("Harness + lanyard", 1),
     ea("Roof anchor kit", 1), ea("Fire extinguisher", 1), ea("First aid kit", 1),
     ea("Safety glasses", 2),
-    { item: "Gloves — general & cut resistant", unit: "pr", min: 2 },
+    { item: "Gloves, general & cut resistant", unit: "pr", min: 2 },
     ea("Ear protection", 1),
     { item: "P2 dust masks", unit: "pk", min: 1 },
     { item: "Knee pads", unit: "pr", min: 1 },
@@ -146,7 +146,7 @@ export const VAN_PLANT: CountGroup[] = [
 export const TOOL_BAG: CountGroup[] = [
   { group: "Tool bag", items: [
     ea("PVC pipe cutter", 1), ea("Screwdriver", 1), ea("Shifter", 2), ea("Hammer", 1),
-    ea("Level", 1), ea("Copper cutter — small", 1), ea("Copper cutter — large", 1),
+    ea("Level", 1), ea("Copper cutter, small", 1), ea("Copper cutter, large", 1),
     { item: "Allen keys", unit: "set", min: 1 },
     ea("Knife", 1), ea("Plasterboard saw", 1), ea("Tape measure", 1), ea("Drill", 1),
     ea("Head torch", 1),
@@ -165,10 +165,10 @@ export type TickItem = {
 export const WEEKLY_CHECK: TickItem[] = [
   { item: "Stock counted against the van stock sheet" },
   { item: "Anything at or under min qty flagged to the office" },
-  { item: "This week's jobs reviewed — you know what each one needs" },
+  { item: "This week's jobs reviewed, you know what each one needs" },
   { item: "Materials for the week's jobs loaded" },
   { item: "Tool bag complete and back in the van" },
-  { item: "Batteries charged — drill, impact, test gear" },
+  { item: "Batteries charged, drill, impact, test gear" },
   { item: "Gas bottles chained, upright and in date" },
   { item: "Ladders and racking secure" },
   { item: "Drop sheets, shoe covers and stickers on board" },

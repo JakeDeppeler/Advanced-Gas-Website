@@ -88,14 +88,14 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
     const stale = lastOk > 0 && now - lastOk > 45 * MIN;
     out.push({
       k: "servicetitan", name: "ServiceTitan",
-      does: "Jobs, invoices, quotes, calls and leads — the work itself.",
+      does: "Jobs, invoices, quotes, calls and leads, the work itself.",
       state: !configured ? "off" : !lastOk || stale || failing.length ? "attention" : "working",
       status: !configured ? "Not set up" : !lastOk ? "Never synced" : stale ? "Behind" : failing.length ? "Partly syncing" : "Syncing",
       at: configured && lastOk ? new Date(lastOk).toISOString() : null,
       facts: !configured
         ? ["The four ServiceTitan keys aren't on the server, so nothing is being copied"]
         : [
-            `${stRows.length} kinds of record kept in step${failing.length ? ` — ${failing.join(", ")} failing` : ""}`,
+            `${stRows.length} kinds of record kept in step${failing.length ? `, ${failing.join(", ")} failing` : ""}`,
             stale ? "Nothing new in over 45 minutes; the board is showing older figures" : "Copied into the database every few minutes while the board is on",
           ],
       feeds: [{ label: "Wall board", href: "/portal/board" }, { label: "Supply", href: "/portal/supply" }],
@@ -115,14 +115,14 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
     const dormant = lastRenew > 0 && now - lastRenew > 50 * 24 * 60 * MIN;
     out.push({
       k: "xero", name: "Xero",
-      does: "The accounts — profit, receivables and what's overdue.",
+      does: "The accounts, profit, receivables and what's overdue.",
       state: !configured || !connected ? "off" : dormant ? "attention" : "working",
       status: !configured ? "Not set up" : !connected ? "Not connected" : dormant ? "Reconnect soon" : exp > now ? "Connected" : "Connected · renews on next read",
       at: lastRenew ? new Date(lastRenew).toISOString() : null,
       facts: [
         connected && xero?.tenantName ? `Organisation: ${xero.tenantName}` : "No organisation linked",
         dormant
-          ? "Unused for over 50 days — Xero drops a connection at 60. Opening Finance renews it"
+          ? "Unused for over 50 days, Xero drops a connection at 60. Opening Finance renews it"
           : "Read-only. The sign-in renews itself whenever Finance reads it",
       ],
       feeds: [{ label: "Finance", href: "/portal/finance" }, { label: "Wall board", href: "/portal/board" }],
@@ -175,7 +175,7 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       state: !configured ? "off" : insta.length ? "working" : "attention",
       status: !configured ? "Not set up" : insta.length ? "Live" : "Not answering",
       at: insta[0]?.timestamp ?? null,
-      facts: [insta.length ? "The feed is coming through" : configured ? "The token is set but nothing comes back — it has likely expired" : "No access token on the server"],
+      facts: [insta.length ? "The feed is coming through" : configured ? "The token is set but nothing comes back, it has likely expired" : "No access token on the server"],
       feeds: [{ label: "Marketing · Social", href: "/portal/marketing?tab=social" }],
     });
   }
@@ -209,7 +209,7 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
         viewsFirst
           ? `Counting since ${new Date(`${viewsFirst.day}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}, last read counted ${new Date(`${viewsLast!.day}T00:00:00`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })}`
           : "Started with this release",
-        `Vercel Analytics on${ga ? ", Google Analytics on" : "; Google Analytics not set up"} — those live in their own dashboards`,
+        `Vercel Analytics on${ga ? ", Google Analytics on" : "; Google Analytics not set up"}, those live in their own dashboards`,
       ],
       feeds: [{ label: "Website · Pages", href: "/portal/website?tab=pages" }, { label: "Blog", href: "/portal/blog" }],
     });

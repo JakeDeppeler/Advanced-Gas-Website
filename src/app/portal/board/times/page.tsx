@@ -9,7 +9,7 @@ import { dbConfigured } from "@/lib/portal/db";
 import { readStandardTimes, readVeuRebate } from "@/lib/board/standardTimes";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Standard times — Team portal" };
+export const metadata = { title: "Standard times · Team portal" };
 
 /**
  * How long each kind of job should take, which is what the wall board's Daily
@@ -31,7 +31,7 @@ export default async function StandardTimesPage() {
         <h1>Standard times</h1>
         <p>
           How long each kind of job should take. The wall board&rsquo;s <strong>Daily pace</strong> page measures each
-          tech&rsquo;s hours against what the job was quoted to take — and most service work is billed without an hourly
+          tech&rsquo;s hours against what the job was quoted to take, and most service work is billed without an hourly
           labour line, so without these the dial has nothing to measure against. A job that <em>was</em> quoted in hours
           still uses its own quote; this only fills in the ones that weren&rsquo;t.
         </p>

@@ -55,7 +55,7 @@ export async function addItem(input: {
       (input.productId && i.productId === input.productId)
       || (lc(i.name) === lc(name) && lc(i.brand) === lc(input.brand) && (input.section === "systems" || lc(i.category) === lc(input.category)))
     ));
-    if (same) return { ok: false, error: `${same.brand ? `${same.brand} ${same.name}` : same.name} is already on the list — use Add or Count on its line.` };
+    if (same) return { ok: false, error: `${same.brand ? `${same.brand} ${same.name}` : same.name} is already on the list, use Add or Count on its line.` };
   }
   try {
     await addStockItem({
@@ -122,7 +122,7 @@ export async function stocktake(input: { rows: { id: string; count: string; minQ
     }
   }
   done();
-  if (failed) return { ok: false, error: `${failed} ${failed === 1 ? "line" : "lines"} didn't save. The rest did — check them and save again.` };
+  if (failed) return { ok: false, error: `${failed} ${failed === 1 ? "line" : "lines"} didn't save. The rest did, check them and save again.` };
   return { ok: true, note: counted ? `Counted ${counted} ${counted === 1 ? "line" : "lines"}.` : "Saved." };
 }
 
@@ -159,7 +159,7 @@ export async function removeItem(input: { id: string }): Promise<ActionResult> {
   if (!isId(input.id)) return { ok: false, error: "No such item." };
   try {
     const r = await removeStockItem(input.id);
-    if (r === "has-history") return { ok: false, error: "Something has been recorded against it, so it stays — the log needs it." };
+    if (r === "has-history") return { ok: false, error: "Something has been recorded against it, so it stays, the log needs it." };
   } catch {
     return { ok: false, error: "Couldn't remove it." };
   }

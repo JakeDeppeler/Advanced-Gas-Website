@@ -22,7 +22,7 @@ import { loadSuppliers } from "@/lib/ordering/db";
 import "@/app/trade/trade.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Factory stock — Team portal" };
+export const metadata = { title: "Factory stock · Team portal" };
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
@@ -141,7 +141,7 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
           <Card title="On orders still to send" aside={<Link href="/portal/supply/next-week">Orders › To order ›</Link>}>
             {drafts.length ? (
               <Group>
-                {drafts.map((l) => <Row key={l.id} href="/portal/supply/next-week" title={l.name} sub={lineSub(l)} end={<Pill st={{ k: "mid", w: "Draft — not sent" }} />} />)}
+                {drafts.map((l) => <Row key={l.id} href="/portal/supply/next-week" title={l.name} sub={lineSub(l)} end={<Pill st={{ k: "mid", w: "Draft, not sent" }} />} />)}
               </Group>
             ) : <Empty>No stock on a draft order. Add some to a supplier&rsquo;s order with + Add stock on Orders › To order.</Empty>}
           </Card>
@@ -182,7 +182,7 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
       </div>
 
       {all == null ? (
-        <div className="pt-note pt-note--warn"><strong>The stock list can&rsquo;t be read.</strong> Nothing has been lost — the database didn&rsquo;t answer.</div>
+        <div className="pt-note pt-note--warn"><strong>The stock list can&rsquo;t be read.</strong> Nothing has been lost, the database didn&rsquo;t answer.</div>
       ) : section === "tools" ? (
         <>
           <Figs
@@ -255,10 +255,10 @@ export default async function StockPage({ searchParams }: { searchParams: { s?: 
                   {moves.map((m) => (
                     <tr key={m.id}>
                       <td>{when(m.at)}</td>
-                      <td>{m.who || "—"}</td>
+                      <td>{m.who || ""}</td>
                       <td><strong>{m.item}</strong><span className="pt-fleet__sub">{REASON[section][m.reason] ?? m.reason}</span></td>
                       {section !== "tools" && <td className="pt-otab__num">{m.change > 0 ? `+${m.change}` : m.change}</td>}
-                      <td>{m.forWhat || "—"}</td>
+                      <td>{m.forWhat || ""}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -8,7 +8,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { TeamManager } from "@/components/portal/TeamManager";
 import { Locked } from "@/components/portal/Locked";
 
-export const metadata = { title: "Team & access — Team portal" };
+export const metadata = { title: "Team & access · Team portal" };
 export const dynamic = "force-dynamic";
 
 export default async function TeamPage() {

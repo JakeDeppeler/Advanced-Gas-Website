@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "todo" | "run" | "pf" | "numbers" | "cust" | "crew" | "orders" | "how" | "you";
+export type SectionId = "home" | "pipe" | "todo" | "run" | "pf" | "numbers" | "cust" | "crew" | "orders" | "how" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -69,6 +69,9 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  */
 export const SECTION_DEFS: SectionDef[] = [
   { id: "home", label: "Home", icon: "home", blurb: "", group: 0, pages: [{ label: "Home", href: "/portal" }] },
+  // The quotes to chase, as their own tab, the way Rapport has its Pipeline:
+  // the office lives in it, so it isn't two clicks deep under Sales.
+  { id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, and who's chasing it", pages: [{ label: "Pipeline", href: "/portal/pipeline" }] },
   {
     id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "What needs doing, and who to keep in touch with",
     pages: [
@@ -85,8 +88,6 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Month so far", href: "/portal/month" },
       { label: "KPIs", href: "/portal/kpis" },
       { label: "Sales", href: "/portal/sales" },
-      // Office staff without the money see the pipeline itself, in Sales' place.
-      { label: "Quote pipeline", href: "/portal/pipeline", unless: "/portal/sales" },
       { label: "Jobs", href: "/portal/jobs" },
       { label: "Pace & year goal", href: "/portal/goal" },
       { label: "How we went", href: "/portal/finance/review" },
@@ -321,7 +322,8 @@ export function activePage(pages: { href: string }[], path: string, query: URLSe
 export const ALIAS: [string, string][] = [
   ["/portal/tools", "/portal/tools/fault-codes"],
   // The pages that became tabs of the rebuilt Run the company pages.
-  ["/portal/pipeline", "/portal/sales"],
+  // Lost quotes stay a tab of Sales; the pipeline itself is its own tab.
+  ["/portal/pipeline/lost", "/portal/sales"],
   ["/portal/leads", "/portal/sales"],
   ["/portal/not-billed", "/portal/jobs"],
   ["/portal/hours", "/portal/rates"],

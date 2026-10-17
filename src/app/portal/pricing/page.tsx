@@ -10,7 +10,7 @@ import { NumbersForm } from "@/components/portal/numbers/NumbersForm";
 import { savePricing } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Rates & pricing — Team portal" };
+export const metadata = { title: "Rates & pricing · Team portal" };
 
 /**
  * Pricing & costs › Rates & pricing: what we charge. The hourly rate is the one in
@@ -29,7 +29,7 @@ export default async function PricingPage() {
       <div className="pk">
         <Head title="Rates & pricing" sub="The numbers the whole portal is built on · change one here and every page updates" info={[
           ["Our hourly rate", "What we charge an hour for a tradesman and an apprentice, as it is in the ServiceTitan pricebook. Changing it here doesn’t change ServiceTitan; keep the two the same."],
-          ["One person in a van", "What we charge when a tech goes out on their own. They still have the whole van to pay for, so it isn’t half the crew rate — What an hour must cover works out what it needs to be."],
+          ["One person in a van", "What we charge when a tech goes out on their own. They still have the whole van to pay for, so it isn’t half the crew rate, What an hour must cover works out what it needs to be."],
           ["Profit we want", "The share of the price that is profit once every wage and overhead is paid. Every rate on Our hourly rate and Team is built to leave it, so a job priced at our rates shows this on Profit on every job."],
         ]} />
         <Say>Match these to the ServiceTitan pricebook. Team › Labour rates sets our rate against what each person costs an hour.</Say>

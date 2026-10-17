@@ -10,7 +10,7 @@ import { localToday } from "@/lib/portal/xero";
 import { latestBoard, savedGoal, shortMoney } from "@/lib/portal/office";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Classic portal — Team portal" };
+export const metadata = { title: "Classic portal · Team portal" };
 
 /** Each section's icon: the same as its tab in the side bar. */
 const TAB_ICONS: Record<NavBand, string> = {

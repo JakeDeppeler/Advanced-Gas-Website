@@ -59,7 +59,7 @@ export async function closeOffInServiceTitan(key: string, reason: string, note: 
   const jobId = key.startsWith("j") ? Number(key.slice(1)) : ests.find((e) => e.job_id != null)?.job_id ?? null;
   if (jobId) {
     try {
-      const text = `Quote lost — ${reason}${note ? `: ${note}` : ""}. Marked by ${by} in the portal.`;
+      const text = `Quote lost, ${reason}${note ? `: ${note}` : ""}. Marked by ${by} in the portal.`;
       await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text, pinToTop: false });
       out.noted = true;
     } catch (err) {

@@ -104,7 +104,7 @@ export function SectionPages({ sections }: { sections: Section[] }) {
 /** The business at the top left of the wide bar, with whether the sync is keeping up. */
 export function Brand({ biz, live }: { biz: { name: string; short: string }; live?: LiveState | null }) {
   return (
-    <Link href="/portal" className="pn-brand" aria-label={`${biz.name} — Home`}>
+    <Link href="/portal" className="pn-brand" aria-label={`${biz.name} · Home`}>
       <span className="pn-logo" aria-hidden="true">{biz.short}</span>
       <span className="pn-brandt">
         <b>{biz.name}</b>

@@ -12,7 +12,7 @@ import { AUTHORS } from "@/lib/blog";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Blog — Team portal" };
+export const metadata = { title: "Blog · Team portal" };
 
 const WINDOW_DAYS = 30;
 
@@ -62,7 +62,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { t?: s
           <PortalBack href="/portal" label="Home" />
           <h1>Blog</h1>
           <p>
-            Every article on the website, newest first. Open one to edit it, or start a new one — a change is on the site
+            Every article on the website, newest first. Open one to edit it, or start a new one, a change is on the site
             as soon as it&rsquo;s published.
           </p>
         </div>
@@ -117,7 +117,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { t?: s
                         <Image src={p.photo} alt="" width={88} height={62} sizes="88px" className="pt-blogl__cover" />
                         <div>
                           <strong>{p.title}</strong>
-                          <span>{i + 1} · {when(p.updatedISO ?? p.publishedISO)} · {AUTHORS[p.author]?.name.split(" ")[0] ?? "—"}</span>
+                          <span>{i + 1} · {when(p.updatedISO ?? p.publishedISO)} · {AUTHORS[p.author]?.name.split(" ")[0] ?? ""}</span>
                         </div>
                       </div>
                     </th>
@@ -126,7 +126,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { t?: s
                       <span className={`pt-vstat pt-vstat--${status.tone}`}>{status.label}</span>
                       {status.note && <span className="pt-fleet__detail">{status.note}</span>}
                     </td>
-                    <td className="pt-blogl__num"><strong>{counting ? n.toLocaleString("en-AU") : "—"}</strong></td>
+                    <td className="pt-blogl__num"><strong>{counting ? n.toLocaleString("en-AU") : ""}</strong></td>
                     {/* Out of the five Google checks the editor runs. What's
                         missing is spelled out, kept to a narrow column so it
                         never squeezes the title. */}
@@ -151,7 +151,7 @@ export default async function BlogPage({ searchParams }: { searchParams: { t?: s
       {!counting && ready && (
         <div className="pt-note">
           <strong>Reads start counting from today.</strong> Until now nothing the portal can see recorded a page being
-          read, so there are no figures to go back over — the column fills in as people open the posts.
+          read, so there are no figures to go back over, the column fills in as people open the posts.
         </div>
       )}
     </PortalShell>

@@ -10,7 +10,7 @@ import { theHour } from "@/lib/portal/cover/load";
 import { PAID_HRS_YEAR, scenarios } from "@/lib/portal/cover/hour";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Hire someone — Team portal" };
+export const metadata = { title: "Hire someone · Team portal" };
 
 const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -48,11 +48,11 @@ export default async function HirePage() {
                 <tr>
                   <td><b>A tech with a van</b><div className="ks">{m2(i.techWage)} an hour</div></td>
                   <td>{m0(techCost - perVanEach)}</td><td>{m0(perVanEach)}</td><td><b>{m0(techCost)}</b></td><td>{n0(hrsVan)}</td>
-                  <td>{m0(techCost / 52)} a week of billed work{i.charge > 0 ? ` — ${(techCost / 52 / i.charge).toFixed(1)} hrs at ${m2(i.charge)}` : ""}</td>
+                  <td>{m0(techCost / 52)} a week of billed work{i.charge > 0 ? `, ${(techCost / 52 / i.charge).toFixed(1)} hrs at ${m2(i.charge)}` : ""}</td>
                 </tr>
                 <tr>
                   <td><b>An apprentice</b><div className="ks">{m2(i.appWage)} an hour, riding with a tech</div></td>
-                  <td>{m0(appCost)}</td><td>—</td><td><b>{m0(appCost)}</b></td><td>none of their own</td>
+                  <td>{m0(appCost)}</td><td></td><td><b>{m0(appCost)}</b></td><td>none of their own</td>
                   <td>{m0(appCost / 52)} a week, from the crews they make faster or the crew rate</td>
                 </tr>
               </tbody>
@@ -75,7 +75,7 @@ export default async function HirePage() {
                       <td>{m2(x.r.perHr.total)}</td>
                       <td>{m2(x.r.atMargin)}</td>
                       <td className={x.r.leftAtCharge < 0 ? "pt-cover__neg" : undefined}>{m0(x.r.leftAtCharge)}</td>
-                      <td>{x.key === "now" ? "—" : <span className={d < 0 ? "pt-cover__neg" : "pt-cover__pos"}>{d >= 0 ? "▲ " : "▼ "}{m0(Math.abs(d))}</span>}</td>
+                      <td>{x.key === "now" ? "" : <span className={d < 0 ? "pt-cover__neg" : "pt-cover__pos"}>{d >= 0 ? "▲ " : "▼ "}{m0(Math.abs(d))}</span>}</td>
                     </tr>
                   );
                 })}

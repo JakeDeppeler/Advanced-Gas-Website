@@ -18,7 +18,7 @@ import { getGrowth } from "@/lib/portal/growth";
 import { EMPTY_GROWTH } from "@/lib/portal/growthTypes";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Pricing & costs — Team portal" };
+export const metadata = { title: "Pricing & costs · Team portal" };
 
 const TABS = ["crew", "overheads", "rates"] as const;
 
@@ -104,7 +104,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
       : part === "markup" ? ["Markup", "What we put on materials and units, which is where the profit is."]
         : tab === "overheads" ? ["Costs", "What the business costs to run a year, shared over every billable hour. Vans sit with each person instead."]
           : tab === "rates" ? ["What each crew charges", "The rate a tech, or a tech and an apprentice, has to charge to cover what they cost and the profit we want."]
-            : ["Team & wages", "Everyone side by side: what they’re paid and how many hours they bill. Change it here or on their own file — it’s the same record, and every rate updates."];
+            : ["Team & wages", "Everyone side by side: what they’re paid and how many hours they bill. Change it here or on their own file, it’s the same record, and every rate updates."];
 
   return (
     <PortalShell user={user}>

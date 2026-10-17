@@ -54,7 +54,7 @@ export function Take5Form() {
             <h2>What&rsquo;s here today?</h2>
             <p className="tr-small">Tap everything that applies.</p>
           </div>
-          <input className="tr-input" value={job} onChange={(e) => setJob(e.target.value)} placeholder="Which job — customer, suburb or job number" aria-label="Which job" />
+          <input className="tr-input" value={job} onChange={(e) => setJob(e.target.value)} placeholder="Which job, customer, suburb or job number" aria-label="Which job" />
           <div className="tr-grid tr-grid--2" style={{ gap: 8 }}>
             {HAZARDS.map((h) => {
               const sel = on.includes(h.k);

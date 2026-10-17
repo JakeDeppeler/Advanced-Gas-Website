@@ -18,7 +18,7 @@ import { Head } from "@/components/portal/kit/Kit";
 export const dynamic = "force-dynamic";
 // "Note them now" writes to ServiceTitan once per job, for every order not yet noted.
 export const maxDuration = 60;
-export const metadata = { title: "Supplier emails — Team portal" };
+export const metadata = { title: "Supplier emails · Team portal" };
 
 export default async function SupplierEmailsPage() {
   const user = await getPortalUser();

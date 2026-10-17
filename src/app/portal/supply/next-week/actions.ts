@@ -86,7 +86,7 @@ export async function saveCc(input: { id: number; cc: string }): Promise<ActionR
   if (!isId(input.id)) return { ok: false, error: "Which order?" };
   const cc = parseEmails(input.cc.slice(0, 1000));
   if (cc.bad.length) return { ok: false, error: `Not an email address: ${cc.bad.join(", ")}` };
-  if (cc.ok.length > 10) return { ok: false, error: "That's a lot of people — ten at most." };
+  if (cc.ok.length > 10) return { ok: false, error: "That's a lot of people, ten at most." };
   const ok = await setOrderCc(input.id, cc.ok);
   done();
   return ok ? { ok: true } : { ok: false, error: "Only a draft order can be changed." };

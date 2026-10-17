@@ -22,7 +22,7 @@ function HorizonPick({ value, onChange }: { value: Horizon; onChange: (h: Horizo
 function AreaPick({ id, value, onChange }: { id: string; value: string; onChange: (a: string) => void }) {
   return (
     <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">—</option>
+      <option value=""></option>
       {AREAS.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
     </select>
   );

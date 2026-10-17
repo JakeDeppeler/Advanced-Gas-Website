@@ -112,7 +112,7 @@ export function GoalPlanner({
 
       {sample && (
         <div className="pt-note pt-goal__note">
-          <strong>Not saved yet.</strong> These are the design&rsquo;s starting figures — $3M at 25% and its example
+          <strong>Not saved yet.</strong> These are the design&rsquo;s starting figures, $3M at 25% and its example
           week. Change them to this year&rsquo;s and press <strong>Save the goal</strong>; the wall board starts pacing
           against it from then, and not before.
         </div>
@@ -137,10 +137,10 @@ export function GoalPlanner({
             </select>
           </label>
           <NumField label="Revenue goal" hint="to invoice across the year" prefix="$" value={g.revenue ? String(g.revenue) : ""} onChange={(v) => set({ revenue: num(v) })} />
-          <NumField label="The floor" hint="the least the year must make — the wall board reads against both" prefix="$" value={g.floorRevenue ? String(g.floorRevenue) : ""} onChange={(v) => set({ floorRevenue: v.trim() === "" ? null : num(v) })} />
+          <NumField label="The floor" hint="the least the year must make, the wall board reads against both" prefix="$" value={g.floorRevenue ? String(g.floorRevenue) : ""} onChange={(v) => set({ floorRevenue: v.trim() === "" ? null : num(v) })} />
           <NumField label="Profit to keep" suffix="%" decimal value={g.profitPct == null ? "" : String(g.profitPct)} onChange={(v) => set({ profitPct: v.trim() === "" ? null : num(v) })} />
           <NumField label="Working weeks" hint="a year" value={String(g.weeks)} onChange={(v) => set({ weeks: Math.max(1, Math.min(52, Math.round(num(v)) || 1)) })} />
-          <NumField label="Overheads" hint="optional — for The year's overhead line" prefix="$" value={g.overhead == null ? "" : String(g.overhead)} onChange={(v) => set({ overhead: v.trim() === "" ? null : num(v) })} />
+          <NumField label="Overheads" hint="optional, for The year's overhead line" prefix="$" value={g.overhead == null ? "" : String(g.overhead)} onChange={(v) => set({ overhead: v.trim() === "" ? null : num(v) })} />
         </section>
       )}
 
@@ -153,7 +153,7 @@ export function GoalPlanner({
             {g.revenue <= 0
               ? "Set a revenue goal to measure the week against."
               : short$ > 0
-                ? `${money(short$)} short${gap ? ` — about ${gap.extra} more ${gap.name.toLowerCase()} a week closes it` : ""}`
+                ? `${money(short$)} short${gap ? `, about ${gap.extra} more ${gap.name.toLowerCase()} a week closes it` : ""}`
                 : `Clears the goal by ${money(-short$)}`}
           </p>
         </section>
@@ -171,7 +171,7 @@ export function GoalPlanner({
                 ? "Plan the week below to see the margin."
                 : marginPct >= g.profitPct
                   ? `On track for ${g.profitPct}%`
-                  : `Below ${g.profitPct}% — the mix keeps ${marginPct}%`}
+                  : `Below ${g.profitPct}%, the mix keeps ${marginPct}%`}
           </p>
         </section>
       </div>
@@ -180,7 +180,7 @@ export function GoalPlanner({
         <div className="pt-goal__mixhead">
           <h2 className="pt-panel__h">Jobs a week, by type</h2>
           <span>
-            {sampleMix && !dirty && !sample ? "The design's example week — not saved yet · " : ""}
+            {sampleMix && !dirty && !sample ? "The design's example week, not saved yet · " : ""}
             {g.weeks} working weeks · edit the averages to your real numbers
           </span>
         </div>
@@ -252,7 +252,7 @@ export function GoalPlanner({
               <tr>
                 <th scope="row">Every week</th>
                 <td />
-                <td className="pt-goal__num">{marginPct == null ? "—" : `${marginPct}%`}</td>
+                <td className="pt-goal__num">{marginPct == null ? "" : `${marginPct}%`}</td>
                 <td className="pt-goal__num">{Math.round(t.jobsYear).toLocaleString("en-AU")}</td>
                 <td className="pt-goal__num pt-goal__jobs">{Math.round(t.jobsWeek * 10) / 10} jobs</td>
                 <td className="pt-goal__num">{money(t.revenueYear)}</td>
@@ -272,17 +272,17 @@ export function GoalPlanner({
       <div className="pt-goal__three">
         <section className="pt-goal__tile">
           <span>Revenue needed a week</span>
-          <strong>{g.revenue > 0 ? money(g.revenue / g.weeks) : "—"}</strong>
+          <strong>{g.revenue > 0 ? money(g.revenue / g.weeks) : ""}</strong>
           <em>this mix books {money(t.revenueWeek)}</em>
         </section>
         <section className="pt-goal__tile">
           <span>Jobs per tech a week</span>
-          <strong>{techs > 0 ? (Math.round((t.jobsWeek / techs) * 10) / 10).toLocaleString("en-AU") : "—"}</strong>
+          <strong>{techs > 0 ? (Math.round((t.jobsWeek / techs) * 10) / 10).toLocaleString("en-AU") : ""}</strong>
           <em>{techs > 0 ? `across ${techs} tech${techs === 1 ? "" : "s"}` : "nobody on the crew list runs jobs yet"}</em>
         </section>
         <section className="pt-goal__tile">
           <span>Jobs booked in {month.name}</span>
-          <strong>{booked == null ? "—" : booked.toLocaleString("en-AU")}</strong>
+          <strong>{booked == null ? "" : booked.toLocaleString("en-AU")}</strong>
           <em>
             {booked == null
               ? "waiting on ServiceTitan's first sync"
@@ -305,7 +305,7 @@ export function GoalPlanner({
       )}
 
       <p className="pt-goal__foot">
-        Average job values and margins are starting assumptions — set them from your real jobs as they come in.
+        Average job values and margins are starting assumptions, set them from your real jobs as they come in.
         {g.profitPct != null && ` A job type under ${g.profitPct}% drags the whole mix down even if revenue hits ${short(g.revenue)}.`}
       </p>
     </div>

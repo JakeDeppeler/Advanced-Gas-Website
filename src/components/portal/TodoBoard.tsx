@@ -60,7 +60,7 @@ function Item({ t, showWho }: { t: Todo; showWho: boolean }) {
   const isDone = ticked[t.id] ?? !!t.doneAt;
   const state = isDone ? "done" : dueState(t, today);
   const from = t.createdById && t.createdById !== t.assigneeId ? firstName(t.createdBy ?? name.get(t.createdById) ?? "") : null;
-  const whoName = t.assigneeId === meId ? "you" : firstName(name.get(t.assigneeId ?? "") ?? "—");
+  const whoName = t.assigneeId === meId ? "you" : firstName(name.get(t.assigneeId ?? "") ?? "");
 
   if (editing) {
     return (

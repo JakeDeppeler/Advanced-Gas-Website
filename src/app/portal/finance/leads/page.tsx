@@ -12,7 +12,7 @@ import { SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
 import { WEBSITE_TABS, websiteHref, windowKey } from "@/lib/portal/marketingTabs";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Website leads — Team portal" };
+export const metadata = { title: "Website leads · Team portal" };
 
 export default async function LeadsPage({ searchParams }: { searchParams: { d?: string } }) {
   const user = await getPortalUser();
@@ -38,7 +38,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { d?: 
       <div className="pt-head pt-head--split">
         <div>
           <h1>Every enquiry</h1>
-          <p>Every quote request and phone tap — which part of the site earns, the channel that sent them, how far away they are in drive time, and what hour they turn up. No customer details here; the enquiry still goes to the inbox.</p>
+          <p>Every quote request and phone tap, which part of the site earns, the channel that sent them, how far away they are in drive time, and what hour they turn up. No customer details here; the enquiry still goes to the inbox.</p>
         </div>
         <WindowPicker win={win} hrefFor={(w) => `/portal/finance/leads${w === "30" ? "" : `?d=${w}`}`} />
       </div>

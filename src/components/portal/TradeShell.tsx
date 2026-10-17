@@ -95,7 +95,7 @@ export function TradeShell({ user, active, title, sub, action, children }: {
               Office <TradeIcon path={TRADE_ICON.chevron} size={16} />
             </Link>
           )}
-          <Link href="/trade/me" className="tr__me" aria-label={`${user.name} — your file`}>{initial}</Link>
+          <Link href="/trade/me" className="tr__me" aria-label={`${user.name}, your file`}>{initial}</Link>
         </div>
       </header>
 

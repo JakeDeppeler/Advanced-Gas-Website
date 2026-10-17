@@ -12,7 +12,7 @@ import { listLicences, licenceState } from "@/lib/portal/crewFile/licences";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Team — Team portal" };
+export const metadata = { title: "Team · Team portal" };
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-AU", { timeZone: "UTC", day: "numeric", month: "short" });
 
@@ -61,7 +61,7 @@ export default async function TeamDirectory({ searchParams }: { searchParams: { 
         </div>
         {canManage && searchParams?.add === "1" && <AddTeamPerson doneHref="/portal/team" />}
         {people.length === 0 ? (
-          <Empty>{ready ? "No team members yet — add them above." : "The team can’t be read right now, so this is empty rather than the team being empty."}</Empty>
+          <Empty>{ready ? "No team members yet, add them above." : "The team can’t be read right now, so this is empty rather than the team being empty."}</Empty>
         ) : <TeamBoard initial={people} canManage={canManage} />}
       </div>
     </PortalShell>

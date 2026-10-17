@@ -7,11 +7,10 @@ import { Tabs } from "@/components/portal/kit/Kit";
  * between them feels like one page, and the side bar files them under it.
  */
 
-export function SalesTabs({ on, cold }: { on: "overview" | "quotes" | "lost" | "leads" | "types"; cold?: number }) {
+export function SalesTabs({ on }: { on: "overview" | "lost" | "leads" | "types"; cold?: number }) {
   return (
     <Tabs on={on} items={[
       { key: "overview", label: "Overview", href: "/portal/sales" },
-      { key: "quotes", label: "Quotes", href: "/portal/pipeline", count: cold || undefined, red: true },
       { key: "lost", label: "Lost", href: "/portal/pipeline/lost" },
       { key: "leads", label: "Leads", href: "/portal/leads" },
       { key: "types", label: "Job types", href: "/portal/sales?tab=types" },

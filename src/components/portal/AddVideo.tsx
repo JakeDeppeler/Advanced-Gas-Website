@@ -48,7 +48,7 @@ export function AddVideo({ track }: { track: string }) {
         <label className="pt-field"><span>Category</span><input className="pt-inp" value={f.category} onChange={set("category")} placeholder="Install standards" /></label>
         <label className="pt-field"><span>Minutes</span><input className="pt-inp" value={f.minutes} onChange={set("minutes")} inputMode="numeric" placeholder="12" /></label>
         <label className="pt-field"><span>What it shows</span><input className="pt-inp" value={f.description} onChange={set("description")} placeholder="The full method on a standard job." /></label>
-        <label className="pt-field"><span>Procedure code</span><input className="pt-inp" value={f.sopCode} onChange={set("sopCode")} placeholder="A1 — optional" /></label>
+        <label className="pt-field"><span>Procedure code</span><input className="pt-inp" value={f.sopCode} onChange={set("sopCode")} placeholder="A1, optional" /></label>
       </div>
       {msg && <div className="pt-note pt-note--warn">{msg}</div>}
       <div className="pt-topic__acts">

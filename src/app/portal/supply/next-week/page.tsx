@@ -16,7 +16,7 @@ import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
 export const maxDuration = 60;
-export const metadata = { title: "Next week — Team portal" };
+export const metadata = { title: "Next week · Team portal" };
 
 export default async function NextWeekPage({ searchParams }: { searchParams: { week?: string; tab?: string } }) {
   const user = await getPortalUser();
@@ -77,7 +77,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
           ] : [
             ["Drafted for you", "Built from the installs booked for the week, and kept up to date as bookings come in."],
             ["Nothing goes until it's approved", "No order reaches a supplier or the electrician until it's approved here."],
-            ["Can't order", "A line that can't be ordered — no supplier, no model on the quote, no crew — says why, so it can be fixed in ServiceTitan."],
+            ["Can't order", "A line that can't be ordered, no supplier, no model on the quote, no crew, says why, so it can be fixed in ServiceTitan."],
           ]}
         />
         <div className="pk-rev-bar">
@@ -98,12 +98,12 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
               {view === "sent"
                 ? <>{sent.length ? <>{sent.length} {sent.length === 1 ? "order has" : "orders have"} gone for {which === "this" ? "this" : "next"} week.</> : <>Nothing sent for {which === "this" ? "this" : "next"} week yet.</>}{" "}</>
                 : toApprove.length ? <Bad>{toApprove.length} {toApprove.length === 1 ? "order is" : "orders are"} waiting to be approved.</Bad> : <Good>Nothing waiting to approve.</Good>}{" "}
-              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered — listed below.</Bad> : null}
+              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered, listed below.</Bad> : null}
             </Say>
             <Grid cols={problems.length > 0 ? 4 : 3}>
               <Tile label="To approve" st={toApprove.length ? { k: "mid", w: "Waiting" } : { k: "good", w: "All done" }} fig={String(toApprove.length)} frac={live.length ? (live.length - toApprove.length) / live.length : null}
                 sub={`${live.length} ${live.length === 1 ? "order" : "orders"} for the week`} />
-              <Tile label="Goods" st={{ k: "none", w: "" }} fig={value ? money(value) : "—"} frac={null} sub="ex GST, at pricebook cost" />
+              <Tile label="Goods" st={{ k: "none", w: "" }} fig={value ? money(value) : ""} frac={null} sub="ex GST, at pricebook cost" />
               <Tile label="Electrician" st={{ k: "none", w: "" }} fig={String(live.filter((o) => o.kind === "work_order").length)} frac={null} sub="site visits booked" href="/portal/supply/work-orders" />
               {problems.length > 0 && <Tile label="Can't order" st={{ k: "bad", w: "Fix it" }} fig={String(problems.length)} frac={null} sub="listed below, with why" />}
             </Grid>

@@ -11,7 +11,7 @@ import { reportEmail } from "@/lib/reports/send";
 import { KIND_LABEL } from "@/lib/reports/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Report — Team portal" };
+export const metadata = { title: "Report · Team portal" };
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });

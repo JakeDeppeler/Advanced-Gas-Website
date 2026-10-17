@@ -13,7 +13,7 @@ import { fetchCustomer, findDoubles, liveView, loadSpec } from "@/lib/locations/
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const metadata = { title: "Site locations — Team portal" };
+export const metadata = { title: "Site locations · Team portal" };
 
 const day = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";

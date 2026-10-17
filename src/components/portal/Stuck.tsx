@@ -23,7 +23,7 @@ function Ages({ bands, withValue }: { bands: StuckView["owed"]["bands"]; withVal
         return (
           <div key={b.key} className={`pt-stk__age${v.count === 0 ? " is-empty" : old ? " is-old" : ""}`}>
             <span className="pt-stk__agen">{count(v.count)}</span>
-            {withValue && <span className="pt-stk__agev">{v.value > 0 ? money(v.value) : "—"}</span>}
+            {withValue && <span className="pt-stk__agev">{v.value > 0 ? money(v.value) : ""}</span>}
             {/* A bar as well as the figure: five numbers in a row is a table,
                 and the question is which column is growing. */}
             <span className="pt-stk__bar"><i style={{ width: `${Math.round((v.count / worst) * 100)}%` }} /></span>
@@ -33,7 +33,7 @@ function Ages({ bands, withValue }: { bands: StuckView["owed"]["bands"]; withVal
       })}
       <div className="pt-stk__age pt-stk__age--total">
         <span className="pt-stk__agen">{count(total.count)}</span>
-        {withValue && <span className="pt-stk__agev">{total.value > 0 ? money(total.value) : "—"}</span>}
+        {withValue && <span className="pt-stk__agev">{total.value > 0 ? money(total.value) : ""}</span>}
         <span className="pt-stk__bar" />
         <span className="pt-stk__agel">All of it</span>
       </div>
@@ -75,7 +75,7 @@ export function Stuck({ v }: { v: StuckView }) {
         </div>
         <div className="pt-stk__head">
           <span className="pt-stk__lbl">On hold</span>
-          <strong>{v.held ? count(v.held.jobs) : "—"}</strong>
+          <strong>{v.held ? count(v.held.jobs) : ""}</strong>
           <span className="pt-stk__sub">
             {v.held ? `${count(v.held.onUs)} on us, ${count(v.held.onThem)} on the customer` : "nothing held"}
           </span>
@@ -95,7 +95,7 @@ export function Stuck({ v }: { v: StuckView }) {
             invoice has no value on it, and a zero here would read as "none of
             it is worth anything". */}
         <p className="pt-note">
-          <strong>Counts only.</strong> None of these carry a value — the invoice is empty, which is exactly the
+          <strong>Counts only.</strong> None of these carry a value, the invoice is empty, which is exactly the
           problem. What they are worth is only known once somebody prices them.
           {v.unbilled.unknownType > 0 && (
             <>
@@ -107,7 +107,7 @@ export function Stuck({ v }: { v: StuckView }) {
           )}
           {v.unbilled.quoteVisits > 0 && (
             <> {count(v.unbilled.quoteVisits)} quote visits and {count(v.unbilled.noCharge)} no-charge jobs are also
-            out — neither is work anybody owes for.</>
+            out, neither is work anybody owes for.</>
           )}
         </p>
         {v.unbilled.oldest.length > 0 && (
@@ -141,7 +141,7 @@ export function Stuck({ v }: { v: StuckView }) {
           <h2 className="pt-panel__h">Billed, not paid</h2>
           <span className="pt-panel__sub">
             Invoices out with money still owing, by how long past their due date. ServiceTitan&rsquo;s ledger, from{" "}
-            {new Date("2026-09-17").toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })} —
+            {new Date("2026-09-17").toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })} 
             anything older was a Xero invoice and is on the Money page.
           </span>
         </div>
@@ -186,10 +186,10 @@ export function Stuck({ v }: { v: StuckView }) {
           </span>
         </div>
         <p className="pt-note" style={{ margin: "0 0 12px" }}>
-          <strong>What on hold means:</strong> the job is open but stopped — ServiceTitan has it on Hold, or it carries one of the hold tags
+          <strong>What on hold means:</strong> the job is open but stopped, ServiceTitan has it on Hold, or it carries one of the hold tags
           (waiting on parts, on a quote to go out, on the customer, on an agent&rsquo;s approval). Until it moves, nobody can finish it, so it
           can&rsquo;t be billed and can&rsquo;t be paid: the money isn&rsquo;t late, it hasn&rsquo;t started.{" "}
-          <strong>On us</strong> is a hold we can clear ourselves — order the part, send the quote, book the reattend.{" "}
+          <strong>On us</strong> is a hold we can clear ourselves, order the part, send the quote, book the reattend.{" "}
           <strong>On the customer</strong> is waiting for their answer or their agent&rsquo;s.
         </p>
         {!v.held ? (

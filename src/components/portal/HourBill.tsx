@@ -12,7 +12,7 @@ type Tab = "all" | BillFamily;
 /** What each part of the bill is, in the words someone reading it would use. */
 const ABOUT: Record<BillFamily, (x: { superPct: number }) => string> = {
   pay: ({ superPct }) => `What they're paid for the hour on the tools, and what goes on top of every wage: super at ${superPct}%, WorkCover, and long service leave put aside as they earn it.`,
-  off: () => "Every hour they're paid for and can't bill — leave, public holidays, sick days, RDOs, trade school, the drive and the paperwork between jobs, going back to fix our own work — spread over the hours they can. Their own days, not an average, so an apprentice carries their school and a tradesman doesn't.",
+  off: () => "Every hour they're paid for and can't bill, leave, public holidays, sick days, RDOs, trade school, the drive and the paperwork between jobs, going back to fix our own work, spread over the hours they can. Their own days, not an average, so an apprentice carries their school and a tradesman doesn't.",
   van: () => "The van they go out in: fuel, servicing, rego, insurance and tolls, then what the van itself costs a year in depreciation and finance. Shared across every billable hour.",
   kit: () => "What they work with and what keeps them busy: tools, uniform and PPE, training and licences, the marketing that keeps the phone ringing, and an apprentice's own school fees.",
   office: () => "The people behind them who don't go out on jobs, and the yard, software, phones, accountant, bank and insurance. Shared across every billable hour.",
@@ -119,7 +119,7 @@ export function HourBill({ bills, superPct, children }: { bills: PersonBill[]; s
                       {bills.map((b) => {
                         const x = b.lines.find((y) => y.key === l.key);
                         const time = x?.days != null ? (x.days ? `${x.days} ${x.days === 1 ? "day" : "days"} a year` : null) : x?.hrs != null && x.hrs > 0.5 ? `${h0(x.hrs)} a year` : null;
-                        return <td key={b.id}>{Math.abs(x?.perHr ?? 0) < 0.005 ? "—" : <>{m2(x!.perHr)}{time && <em>{time}</em>}</>}</td>;
+                        return <td key={b.id}>{Math.abs(x?.perHr ?? 0) < 0.005 ? "" : <>{m2(x!.perHr)}{time && <em>{time}</em>}</>}</td>;
                       })}
                     </tr>
                   ))}

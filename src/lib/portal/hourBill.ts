@@ -215,7 +215,7 @@ export function spendLines(s: CapSettings, cap: ReturnType<typeof computeCapacit
       if (total <= 0) continue;
       const wages = total / (1 + ocAll / 100);
       out[k] = [
-        ...pay.map((l) => ({ label: `${l.label} — wages`, annual: l.annual / (1 + ocAll / 100) })),
+        ...pay.map((l) => ({ label: `${l.label}, wages`, annual: l.annual / (1 + ocAll / 100) })),
         { label: `Super, ${oc.superPct}%`, annual: (wages * oc.superPct) / 100 },
         ...(oc.workcoverPct > 0 ? [{ label: `WorkCover, ${oc.workcoverPct}%`, annual: (wages * oc.workcoverPct) / 100 }] : []),
         ...(oc.lslPct > 0 ? [{ label: `Long service leave, ${oc.lslPct}%`, annual: (wages * oc.lslPct) / 100 }] : []),

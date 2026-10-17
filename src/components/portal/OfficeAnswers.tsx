@@ -138,9 +138,9 @@ function ToolFields({ f, set }: { f: ToolForm; set: (p: Partial<ToolForm>) => vo
       {field("boughtOn", "Bought", "date")}
       {field("lifeYears", "Lasts about (years)", "text", "6")}
       {field("lastDoneOn", "Last serviced or tagged", "date")}
-      {field("nextDue", "Next due — what", "text", "Test & tag")}
-      {field("nextDueOn", "Next due — when", "date")}
-      {field("lastDone", "Last done — what", "text", "Serviced")}
+      {field("nextDue", "Next due, what", "text", "Test & tag")}
+      {field("nextDueOn", "Next due, when", "date")}
+      {field("lastDone", "Last done, what", "text", "Serviced")}
     </div>
   );
 }
@@ -226,7 +226,7 @@ export function ToolRegister({ vehicleId, tools, canEdit }: { vehicleId: string;
               </div>
             );
           })}
-          {tools.length === 0 && editing !== "new" && <p className="tr-empty" style={{ padding: "8px 0" }}>Nothing on the register. Add each tool once — after that the tech can report it broken or due from their iPad.</p>}
+          {tools.length === 0 && editing !== "new" && <p className="tr-empty" style={{ padding: "8px 0" }}>Nothing on the register. Add each tool once, after that the tech can report it broken or due from their iPad.</p>}
         </div>
         {err && <p className="tr-note tr-note--warn">{err}</p>}
       </section>

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { section: string; sop: string } }) {
   const s = findSection(params.section)?.sops.find((x) => x.slug === params.sop);
-  return { title: s ? `${s.code} ${s.title} — Team portal` : "Processes — Team portal" };
+  return { title: s ? `${s.code} ${s.title} · Team portal` : "Processes · Team portal" };
 }
 
 /** A step's first part as its title — a heading, so no full stop — and the rest under it. */
@@ -62,7 +62,7 @@ export default async function SopPage({ params }: { params: { section: string; s
           )}
         </div>
 
-        {isDraft && <div className="pt-note pt-note--warn"><strong>Draft — only you can see this.</strong> The crew sees the last published version.</div>}
+        {isDraft && <div className="pt-note pt-note--warn"><strong>Draft, only you can see this.</strong> The crew sees the last published version.</div>}
 
         {changed && (
           <section className="pt-sopone__changed">

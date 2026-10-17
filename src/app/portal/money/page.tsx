@@ -19,7 +19,7 @@ import { ArTable } from "@/components/portal/ArTable";
 import { TERMS, arReport, pastTerms } from "@/lib/portal/ar";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Owed to us — Team portal" };
+export const metadata = { title: "Owed to us · Team portal" };
 
 const sum = (l: OwedInvoice[]) => l.reduce((a, i) => a + i.amountDue, 0);
 
@@ -68,7 +68,7 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
     <PortalShell user={user}>
       <div className="pk">
         <KpiHead title={<>Owed<br />to us</>} kpis={[
-          { icon: "card", fig: m?.paidMonth != null ? money(m.paidMonth) : "—", label: "Collected this month" },
+          { icon: "card", fig: m?.paidMonth != null ? money(m.paidMonth) : "", label: "Collected this month" },
           { icon: "doc", fig: money(sum(notDue)), label: "Invoiced, not yet due" },
           { icon: "clock", fig: money(b1 + b2), label: "Overdue", badge: over.length ? `${over.length} late` : undefined, tone: "down" },
         ]} />
@@ -76,7 +76,7 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
           ["Where it comes from", "Since 17 September ServiceTitan holds the invoices and the payments, and sends Xero a daily journal, so Xero has no invoice to show as owing. Before that date, Xero’s unpaid invoices are the record."],
           ["Work not done yet", "ServiceTitan opens a job's invoice the day it's booked. Until the job is finished, the balance after any deposit isn't owed yet, so it's counted here and never as overdue."],
           ["Overdue", "An invoiced, finished job past the date the customer agreed to pay. The longer it sits, the less likely it gets paid."],
-          ["Real estate", "Jobs in a Real Estate business unit in ServiceTitan, or, where the invoice isn’t there, a customer whose name is an agency’s. Everything else — homeowners, builders, commercial — is Domestic."],
+          ["Real estate", "Jobs in a Real Estate business unit in ServiceTitan, or, where the invoice isn’t there, a customer whose name is an agency’s. Everything else, homeowners, builders, commercial, is Domestic."],
           ["Billing", "A job finished but not invoiced can’t be paid. Billing on the day is the cheapest way to get paid faster."],
         ]} />
         <Tabs on={seg} label="Who owes it" items={[
@@ -91,7 +91,7 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
             {owed?.partial && <Note><b>Part of this is missing.</b> {owed.partial === "xero" ? "Xero didn’t answer, so the invoices from before 17 September aren’t here." : "ServiceTitan’s copy didn’t load, so the invoices from 17 September on aren’t here."}</Note>}
             <Say>
               <b>{money(tot)}</b> is out{seg === "realestate" ? " with real estate" : seg === "domestic" ? " with domestic customers" : ""}.{" "}
-              {sum(work) > 0 ? <>{money(sum(work))} of it is the balance on jobs not done yet — deposits taken, the rest owed once the work&rsquo;s finished. </> : null}
+              {sum(work) > 0 ? <>{money(sum(work))} of it is the balance on jobs not done yet, deposits taken, the rest owed once the work&rsquo;s finished. </> : null}
               {money(sum(notDue))} is invoiced and not due yet.{" "}
               {b1 + b2 > 0 ? <><Bad>{money(b1 + b2)} is overdue</Bad>{oldest.length ? <>, {money(b2)} of it over 30 days.</> : "."}</> : "None of it is overdue."}
             </Say>
@@ -185,9 +185,9 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
               );
             })()}
                 <Card title="Billing this month" aside="from ServiceTitan">
-                  <Kv t="Invoiced" v={m?.revenueInvoicedMtd != null ? money(m.revenueInvoicedMtd) : "—"} />
-                  <Kv t="Invoices" v={m?.invoiceCountMonth != null ? String(m.invoiceCountMonth) : "—"} />
-                  <Kv t="Done, not billed" sub={m?.toBillOldestDays ? `the oldest has waited ${m.toBillOldestDays} days` : undefined} v={m?.toBillCount != null ? <span style={{ color: m.toBillCount ? "var(--bad)" : undefined }}>{m.toBillCount}</span> : "—"} />
+                  <Kv t="Invoiced" v={m?.revenueInvoicedMtd != null ? money(m.revenueInvoicedMtd) : ""} />
+                  <Kv t="Invoices" v={m?.invoiceCountMonth != null ? String(m.invoiceCountMonth) : ""} />
+                  <Kv t="Done, not billed" sub={m?.toBillOldestDays ? `the oldest has waited ${m.toBillOldestDays} days` : undefined} v={m?.toBillCount != null ? <span style={{ color: m.toBillCount ? "var(--bad)" : undefined }}>{m.toBillCount}</span> : ""} />
                   <div style={{ marginTop: 12 }}><Btn quiet href="/portal/jobs?tab=notbilled">See the jobs not billed ›</Btn></div>
                 </Card>
                 {goals.overdue != null && (
@@ -201,9 +201,9 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
                 termsDays={seg === "domestic" ? TERMS.domestic : seg === "realestate" ? TERMS.realestate : null}
                 partial={
                   owed?.partial === "xero"
-                    ? "ServiceTitan only — Xero didn’t answer"
+                    ? "ServiceTitan only, Xero didn’t answer"
                     : owed?.partial === "servicetitan"
-                      ? "Xero only — ServiceTitan’s copy didn’t load"
+                      ? "Xero only, ServiceTitan’s copy didn’t load"
                       : null
                 }
               />

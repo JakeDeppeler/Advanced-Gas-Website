@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { track: string } }) {
   const t = LEARNING_TRACKS.find((x) => x.slug === params.track);
-  return { title: t ? `${t.label} — Learning — Team portal` : "Learning — Team portal" };
+  return { title: t ? `${t.label}, Learning · Team portal` : "Learning · Team portal" };
 }
 
 /** Learning, one shelf at a time, to Learning.dc.html. */
@@ -33,7 +33,7 @@ export default async function LearningTrackPage({ params }: { params: { track: s
   const canAdd = can(user, "manage_users");
   // There is nowhere in the portal to file a suggestion, so it goes to the
   // office inbox with the shelf already named.
-  const suggest = `mailto:${site.email}?subject=${encodeURIComponent(`Video suggestion — ${track.label}`)}`;
+  const suggest = `mailto:${site.email}?subject=${encodeURIComponent(`Video suggestion, ${track.label}`)}`;
 
   return (
     <PortalShell user={user}>

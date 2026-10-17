@@ -10,7 +10,7 @@ import { loadPipeline } from "@/lib/pipeline/store";
 import { daysBetween, type PipeQuote } from "@/lib/pipeline/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Lost quotes — Team portal" };
+export const metadata = { title: "Lost quotes · Team portal" };
 
 const DAYS = 90;
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
@@ -63,7 +63,7 @@ export default async function LostQuotesPage() {
                 <>
                   {lost.length} quotes lost in the last {DAYS} days, worth {money(lostValue)} with GST.
                   {top ? <> The biggest reason is <b>{top.k.toLowerCase()}</b>: {top.n} of them.</> : null}
-                  {unexplained ? <> {unexplained} were dismissed in ServiceTitan with no reason — mark them lost from <Link href="/portal/pipeline">Quotes</Link> instead, so the reason is kept.</> : null}
+                  {unexplained ? <> {unexplained} were dismissed in ServiceTitan with no reason, mark them lost from <Link href="/portal/pipeline">Quotes</Link> instead, so the reason is kept.</> : null}
                 </>
               )}
             </Say>

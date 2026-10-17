@@ -70,7 +70,7 @@ export function BoardCalendar({
     start(async () => {
       const res = await pushToBoard();
       if (!res.ok) return setErr(res.error ?? "Couldn't recompute the board.");
-      setNote("Board recomputed — the wall is showing these figures now.");
+      setNote("Board recomputed, the wall is showing these figures now.");
       router.refresh();
     });
   }
@@ -119,7 +119,7 @@ export function BoardCalendar({
         <h3 className="pt-bd__h3">Days off</h3>
         <p className="pt-panel__sub">
           Victorian public holidays and any shutdown days. They live here rather than in the code so the office can
-          correct them without a deploy. An empty list is fine — the per-day figure is just slightly optimistic in a
+          correct them without a deploy. An empty list is fine, the per-day figure is just slightly optimistic in a
           month with a holiday in it.
         </p>
 

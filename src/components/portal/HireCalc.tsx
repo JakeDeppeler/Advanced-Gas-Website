@@ -130,7 +130,7 @@ export function HireCalc({ people, settings, growth }: { people: CrewMember[]; s
       <div className="pt-hire__answers">
         <article className="pt-hire__card">
           <h3>Work to cover them</h3>
-          <strong>{r.coverHrs != null ? `${h0(r.coverHrs / WORK_WEEKS)} hrs a week` : "—"}</strong>
+          <strong>{r.coverHrs != null ? `${h0(r.coverHrs / WORK_WEEKS)} hrs a week` : ""}</strong>
           <p>
             {m0(r.addedCost / WORK_WEEKS)} of labour a week, {m0(r.addedCost)} a year
             {r.coverShare != null && <>, which is <b>{pc(r.coverShare)}</b> of the hours they {r.riding ? "are out on a crew" : "can bill"}</>}.
@@ -142,7 +142,7 @@ export function HireCalc({ people, settings, growth }: { people: CrewMember[]; s
           <p>
             {r.overheadsUp > 1
               ? van ? "Fuel, insurance, rego and servicing for another van, and its depreciation." : "Their share of what grows with the crew."
-              : "Nothing much — they ride with a tech, so no van comes with them."}
+              : "Nothing much, they ride with a tech, so no van comes with them."}
             {" "}On top of their pay of {m0(r.pay)} with super, WorkCover and leave.
           </p>
         </article>
@@ -151,7 +151,7 @@ export function HireCalc({ people, settings, growth }: { people: CrewMember[]; s
           {!van ? (
             <><strong>No van</strong><p>They ride with someone who already has one.</p></>
           ) : set.van ? (
-            <><strong>{m0(r.upfront)} up front</strong><p>Then {m0(r.monthly)} a month on the finance — {m0(r.monthly * 12)} a year.</p></>
+            <><strong>{m0(r.upfront)} up front</strong><p>Then {m0(r.monthly)} a month on the finance, {m0(r.monthly * 12)} a year.</p></>
           ) : (
             <><strong>Not set yet</strong><p>Put what a new van costs on <a href="/portal/finance/capacity?part=vans">Pricing & costs → Vans &amp; loans</a>.</p></>
           )}
@@ -175,7 +175,7 @@ export function HireCalc({ people, settings, growth }: { people: CrewMember[]; s
               <tr className="is-total"><th scope="row">What their hours make</th><td className={r.labourProfit >= 0 ? "is-good" : "is-bad"}>{m0(r.labourProfit)}</td></tr>
               <tr>
                 <th scope="row">Markup on the materials and units they install
-                  <em> {r.riding ? "none of their own — they help a tech who already buys them" : set.markup ? `one van's year from Pricing & costs, at ${busy}%` : "not set yet"}</em>
+                  <em> {r.riding ? "none of their own, they help a tech who already buys them" : set.markup ? `one van's year from Pricing & costs, at ${busy}%` : "not set yet"}</em>
                 </th>
                 <td>{r.riding || set.markup ? `+${m0(r.markup)}` : <a href="/portal/finance/capacity?part=markup">Set it</a>}</td>
               </tr>
@@ -192,8 +192,8 @@ export function HireCalc({ people, settings, growth }: { people: CrewMember[]; s
         </div>
         <p className="pt-hr__foot">
           {r.profit >= 0
-            ? <>Hiring them {verdict} its way: it covers itself once they&rsquo;re {r.coverShare != null ? pc(r.coverShare) : "—"} busy, and every hour past that is profit.</>
-            : <>At {busy}% busy they cost more than they bring in. They need to be at least {r.coverShare != null ? pc(r.coverShare) : "—"} busy before the markup on top is profit.</>}
+            ? <>Hiring them {verdict} its way: it covers itself once they&rsquo;re {r.coverShare != null ? pc(r.coverShare) : ""} busy, and every hour past that is profit.</>
+            : <>At {busy}% busy they cost more than they bring in. They need to be at least {r.coverShare != null ? pc(r.coverShare) : ""} busy before the markup on top is profit.</>}
           {r.paybackMonths != null && <> The van&rsquo;s {m0(r.upfront)} up front comes back in about {Math.ceil(r.paybackMonths)} months.</>}
           {" "}Every figure is from <a href="/portal/finance/capacity">Pricing & costs</a>; change them there.
         </p>

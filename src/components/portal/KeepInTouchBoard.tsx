@@ -83,7 +83,7 @@ function AddPanel({ onDone }: { onDone: () => void }) {
         }}
       >
         <ContactFields d={d} set={set} idp="kit-new" />
-        <label className="pt-field pt-kit__last"><span>Last time you spoke <em>(leave blank if not yet — they&rsquo;ll be due straight away)</em></span>
+        <label className="pt-field pt-kit__last"><span>Last time you spoke <em>(leave blank if not yet, they&rsquo;ll be due straight away)</em></span>
           <input id="kit-new-last" type="date" value={lastOn} max={today} onChange={(e) => setLastOn(e.target.value)} />
         </label>
         <div className="pt-todo__submit">
@@ -287,7 +287,7 @@ export function KeepInTouchBoard({ contacts, touches, owners, meId, today }: Pro
           {dueNow.length ? (
             <ul className="pt-kit__rows">{dueNow.map((c) => <Row key={c.id} c={c} />)}</ul>
           ) : (
-            <p className="pt-todo__empty">{contacts.length ? "Nobody's due — everyone's been reached out to on time." : "Nobody on the list yet. Add the people worth a call every month."}</p>
+            <p className="pt-todo__empty">{contacts.length ? "Nobody's due, everyone's been reached out to on time." : "Nobody on the list yet. Add the people worth a call every month."}</p>
           )}
         </section>
 

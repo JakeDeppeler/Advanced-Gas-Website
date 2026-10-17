@@ -10,7 +10,7 @@ import { KIT_LISTS, lastCounts, type KitList } from "@/lib/portal/fleet/kitLists
 import { itemKey } from "@/lib/portal/vanChecks";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Kit lists — Team portal" };
+export const metadata = { title: "Kit lists · Team portal" };
 
 const day = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-AU", { timeZone: "UTC", day: "numeric", month: "short" });
 const unitOf = (u: string) => (u === "ea" ? "each" : u);
@@ -18,7 +18,7 @@ const unitOf = (u: string) => (u === "ea" ? "each" : u);
 const BLURB: Record<KitList, string> = {
   starter: "The minimum every tradesman and apprentice carries in their bag. Give a new starter this list on day one, and check it back in at the end of each job.",
   van: "The minimum every van carries: the refrigeration plant, pipe tools, power tools, test gear and safety kit. The same list in every van.",
-  stock: "The minimum every van keeps on the shelf. Counted every Monday; anything at or under the minimum gets ordered that day — order at the minimum, not when it runs out.",
+  stock: "The minimum every van keeps on the shelf. Counted every Monday; anything at or under the minimum gets ordered that day, order at the minimum, not when it runs out.",
 };
 
 /**
@@ -50,7 +50,7 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
     <PortalShell user={user}>
       <div className="pk pt-kit">
         <Head title="Kit lists" sub="What a new starter carries, what every van carries, and the stock every van keeps" info={[
-          ["Where the lists come from", "Advanced Gas's own van sheets — the same lists the Monday checks count against, so a change to one is a change to both."],
+          ["Where the lists come from", "Advanced Gas's own van sheets, the same lists the Monday checks count against, so a change to one is a change to both."],
           ["Last count", "Each van's most recent sheet of this kind. A dash is a line nobody counted on it; “Not counted yet” means the van has never done one."],
           ["Tool register", <>Test-and-tag and calibration dates for each tool are on <Link href="/portal/vehicles/tools">Tools</Link>.</>],
         ]} />
@@ -97,7 +97,7 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
                           const s = short(qty, it.min);
                           return (
                             <td key={v.vanId} className={`pt-kit__van${s ? " pt-kit__short" : ""}`}>
-                              {qty == null ? <span className="ks">—</span> : <>{qty}{s ? <b> {isStock ? "low" : "short"}</b> : null}</>}
+                              {qty == null ? <span className="ks"></span> : <>{qty}{s ? <b> {isStock ? "low" : "short"}</b> : null}</>}
                             </td>
                           );
                         })}
@@ -111,7 +111,7 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
           </Card>
         ))}
         <Note>
-          {def.k === "starter" ? <>Power tools, test gear and safety kit come with the van — they&rsquo;re on <Link href="/portal/vehicles/kit?list=van">Van equipment</Link>. </> : null}
+          {def.k === "starter" ? <>Power tools, test gear and safety kit come with the van, they&rsquo;re on <Link href="/portal/vehicles/kit?list=van">Van equipment</Link>. </> : null}
           Printing gives a sheet with a tick column, for a new starter&rsquo;s first day or the shed wall.
         </Note>
       </div>

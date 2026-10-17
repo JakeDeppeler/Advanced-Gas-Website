@@ -22,7 +22,7 @@ export function ViewAsPicker({ current }: { current?: string }) {
     <section className="pt-va">
       <h2 className="pt-va__h">See it as they do</h2>
       <p className="pt-va__sub">
-        Look at the portal through a crew level&rsquo;s eyes — the same nav, the same pages, the same locked doors. It
+        Look at the portal through a crew level&rsquo;s eyes, the same nav, the same pages, the same locked doors. It
         only ever takes access away, never adds it, and while it&rsquo;s on you have that level&rsquo;s permissions for
         real, so you can&rsquo;t save anything they couldn&rsquo;t. It switches itself off after an hour.
       </p>
@@ -73,7 +73,7 @@ export function ViewAsBanner({ level }: { level: string }) {
   return (
     <div className="pt-va__bar">
       <span>
-        You&rsquo;re looking at the portal as a <strong>{label}</strong>. Nothing you do here can save — that&rsquo;s the point.
+        You&rsquo;re looking at the portal as a <strong>{label}</strong>. Nothing you do here can save, that&rsquo;s the point.
       </span>
       <button type="button" disabled={pending}
         onClick={() => start(async () => { await endPreview(); router.push("/portal/admin"); router.refresh(); })}>

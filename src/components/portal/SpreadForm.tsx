@@ -18,7 +18,7 @@ export function SpreadForm({ accounts, initial }: { accounts: string[]; initial:
     <details className="pk-card pk-pad" style={{ marginTop: 14 }}>
       <summary style={{ cursor: "pointer", fontWeight: 800 }}>Once-a-year bills, spread across the year <span className="pk-said">· {initial.length ? initial.join(", ") : "none"}</span></summary>
       <p className="pk-note" style={{ margin: "10px 0" }}>
-        Tick the bills that come once a year as part of running the business — insurance, WorkCover, rego. They count here at their yearly total spread by the day, the way the hourly rate counts them.
+        Tick the bills that come once a year as part of running the business, insurance, WorkCover, rego. They count here at their yearly total spread by the day, the way the hourly rate counts them.
         Leave anything one-off or unusual unticked, so it shows in the month it happened. Xero isn&rsquo;t changed.
       </p>
       {accounts.map((a) => (

@@ -89,7 +89,7 @@ export function QuoteBuilder() {
                   </div>
                   <div className="tr-opt__total">
                     <span>They pay</span>
-                    <strong>{total != null ? money(total) : "—"}</strong>
+                    <strong>{total != null ? money(total) : ""}</strong>
                   </div>
                   <span className="tr-small">{o.price == null ? "Measure up and price it before you show them." : o.priceNote}</span>
                 </div>
@@ -120,7 +120,7 @@ export function QuoteBuilder() {
               <button type="button" className="tr-btn" onClick={addExtra}>Add</button>
             </div>
             {msg && <p className="tr-note tr-note--warn">{msg}</p>}
-            <p className="tr-small">Typed in by you, at your price — nothing here comes from a list.</p>
+            <p className="tr-small">Typed in by you, at your price, nothing here comes from a list.</p>
           </section>
           <button type="button" className="tr-btn tr-btn--block" disabled={!q.options.length} onClick={() => setShowing(true)}>Show the customer</button>
           {q.options.length < MAX_OPTIONS && <Link href="/trade/pricebook" className="tr-link" style={{ textAlign: "center", padding: "8px 0" }}>+ Add another option</Link>}

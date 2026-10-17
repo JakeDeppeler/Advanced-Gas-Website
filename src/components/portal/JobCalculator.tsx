@@ -46,8 +46,8 @@ const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ?
  */
 export const JOBS = [
   { k: "custom", label: "Something else", hrs: 2, min: 0 },
-  { k: "evap1", label: "Evap service — single storey", hrs: 2, min: 300 },
-  { k: "evap2", label: "Evap service — double storey", hrs: 2.5, min: 375 },
+  { k: "evap1", label: "Evap service, single storey", hrs: 2, min: 300 },
+  { k: "evap2", label: "Evap service, double storey", hrs: 2.5, min: 375 },
   { k: "heater", label: "Heater service", hrs: 1.5, min: 220 },
   { k: "ducted", label: "Ducted split service", hrs: 1.5, min: 220 },
   { k: "split", label: "Split system service", hrs: 1.5, min: 220 },
@@ -217,7 +217,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
             <p className="pt-calc__hint" style={{ marginTop: 10 }}>
               An hour costs us <strong>{money2(modeCost)}</strong> this way
               {costPerHr !== costPerHrOnsite && (
-                <> &mdash; {money2(Math.abs(costPerHr - costPerHrOnsite))} {onsite ? "less" : "more"} than the other.</>
+                <>  {money2(Math.abs(costPerHr - costPerHrOnsite))} {onsite ? "less" : "more"} than the other.</>
               )}
             </p>
           )}
@@ -226,7 +226,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
         <div className="pt-calc__panel">
           <h3 className="pt-calc__h">Who&rsquo;s on the job</h3>
           {crew.length === 0 ? (
-            <p className="pt-calc__hint">No crew rates yet — set each person&rsquo;s level and numbers in <strong>Pricing &amp; costs</strong> and they&rsquo;ll show here. In the meantime, use the extra labour line below.</p>
+            <p className="pt-calc__hint">No crew rates yet, set each person&rsquo;s level and numbers in <strong>Pricing &amp; costs</strong> and they&rsquo;ll show here. In the meantime, use the extra labour line below.</p>
           ) : (
             byLevel.map((g) => (
               <div key={g.level} className="pt-job__group">
@@ -285,7 +285,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
             <button type="button" className={`pt-seg__b${chargeTravel ? "" : " is-on"}`} aria-pressed={!chargeTravel} onClick={() => setChargeTravel(false)}>Wear it</button>
           </div>
           {!chargeTravel && travelHrs > 0 && (
-            <p className="pt-calc__hint" style={{ marginTop: 8 }}>Still costs us {modeCost !== null ? money(travelHrs * modeCost) : "time"} — it comes out of the job&rsquo;s profit below.</p>
+            <p className="pt-calc__hint" style={{ marginTop: 8 }}>Still costs us {modeCost !== null ? money(travelHrs * modeCost) : "time"} , it comes out of the job&rsquo;s profit below.</p>
           )}
         </div>
 
@@ -346,13 +346,13 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
             <div className="pt-job__worthrow"><span>You keep (ex GST)</span><strong>{money(profit as number)}</strong></div>
             <div className="pt-job__worthrow pt-job__worthrow--total">
               <span>Margin</span>
-              <strong>{marginPct !== null ? `${Math.round(marginPct)}%` : "—"}{marginPct !== null ? <em className="pt-calc__em"> of {goal}% wanted</em> : null}</strong>
+              <strong>{marginPct !== null ? `${Math.round(marginPct)}%` : ""}{marginPct !== null ? <em className="pt-calc__em"> of {goal}% wanted</em> : null}</strong>
             </div>
             <p className="pt-job__verdict">
               {profit !== null && profit < 0
                 ? "This job loses money at that price."
                 : marginPct !== null && marginPct < goal - 0.5
-                  ? `Under our ${goal}%. It covers every wage and overhead, but leaves ${money(Math.max(0, (goal / 100) * discounted - (profit ?? 0)))} less than the goal — check the materials markup, the hours and any discount.`
+                  ? `Under our ${goal}%. It covers every wage and overhead, but leaves ${money(Math.max(0, (goal / 100) * discounted - (profit ?? 0)))} less than the goal, check the materials markup, the hours and any discount.`
                   : `At or over our ${goal}%: every wage and overhead is covered, and ${goal}% of the price is profit.`}
             </p>
           </div>
@@ -360,7 +360,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, ma
           <p className="pt-calc__note">Set the crew up in <strong>Pricing &amp; costs</strong> to see what this job costs you and what&rsquo;s left in it.</p>
         )}
 
-        <p className="pt-calc__note">A ballpark to quote from — confirm the final number on a written quote.</p>
+        <p className="pt-calc__note">A ballpark to quote from, confirm the final number on a written quote.</p>
       </div>
     </div>
   );

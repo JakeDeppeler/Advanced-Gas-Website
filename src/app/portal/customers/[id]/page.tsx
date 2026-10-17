@@ -11,10 +11,10 @@ import { customerJobs } from "@/lib/portal/office";
 import { money } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Customer — Team portal" };
+export const metadata = { title: "Customer · Team portal" };
 
 const day = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" }) : "";
 
 type Event = { at: string; kind: string; what: string; amount?: number | null };
 
@@ -82,7 +82,7 @@ export default async function CustomerPage({ params }: { params: { id: string } 
       <PortalBack href="/portal/customers" label="Customers" />
       <div className="pt-head">
         <h1>Customer {id}</h1>
-        <p>{where ? `${where} · ` : ""}everything ServiceTitan has on them, lead to paid. Their name and address are in ServiceTitan — the copy here holds the numbers only.</p>
+        <p>{where ? `${where} · ` : ""}everything ServiceTitan has on them, lead to paid. Their name and address are in ServiceTitan, the copy here holds the numbers only.</p>
       </div>
 
       <Figs
@@ -93,7 +93,7 @@ export default async function CustomerPage({ params }: { params: { id: string } 
           { label: "Quotes", value: String(byJob.size), sub: `${[...byJob.values()].filter((g) => g.sold).length} accepted` },
           {
             label: "First seen",
-            value: events[0] ? new Date(events[0].at).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short" }) : "—",
+            value: events[0] ? new Date(events[0].at).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short" }) : "",
             sub: events[0] ? `${new Date(events[0].at).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", year: "numeric" })} · ${events[0].kind.toLowerCase()}` : undefined,
           },
         ]}

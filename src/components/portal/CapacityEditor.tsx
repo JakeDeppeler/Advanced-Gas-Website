@@ -48,23 +48,23 @@ function Stat({ label, value, sub, open, onToggle }: {
  * clipped with them — which is why the first version opened into nothing.
  */
 const STAT_NOTES: Record<string, { label: string; body: string }> = {
-  oh: { label: "Overhead on every hour", body: "The overhead half of what an hour costs. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner — see the Another van tab." },
+  oh: { label: "Overhead on every hour", body: "The overhead half of what an hour costs. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner, see the Another van tab." },
   ceiling: { label: "The year at full tilt", body: "Every hour the crew can bill, sold at what we charge. Not a forecast and not a target: it is the ceiling, the most this crew can invoice in a year without another van or a higher rate. A revenue target above this number is a hiring decision, not a scheduling one." },
   breakeven: { label: "What the year costs to run", body: "Every wage for billable time plus every overhead the business carries, added up for the year. Invoice this much and the business breaks even; the gap between it and the tile beside it is what is left at full tilt, before tax." },
-  hrs: { label: "Hours we can bill a year", body: "The hours a customer actually pays for, across the year. Counted per van, not per head — a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount." },
+  hrs: { label: "Hours we can bill a year", body: "The hours a customer actually pays for, across the year. Counted per van, not per head, a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount." },
 };
 
 const GLOSSARY: { term: string; body: string }[] = [
-  { term: "Paid hours", body: "Every hour someone is paid for in a year — 38 a week across 52 weeks is 1,976. It includes leave, sick days, RDOs, public holidays and trade school, because you pay for all of them." },
+  { term: "Paid hours", body: "Every hour someone is paid for in a year, 38 a week across 52 weeks is 1,976. It includes leave, sick days, RDOs, public holidays and trade school, because you pay for all of them." },
   { term: "Billable hours", body: "The hours a customer actually pays for. Paid hours less the days off, less driving, admin and office time. This is the only number the overhead can be divided by, which is why it matters more than headcount." },
-  { term: "Utilisation", body: "Billable hours as a share of paid hours. It has a ceiling below 100% that nobody can beat — leave, sick, RDOs, holidays and school are entitlements. The ceiling is the honest best case; the gap below it is travel, admin and office time, and that is the part worth working on." },
+  { term: "Utilisation", body: "Billable hours as a share of paid hours. It has a ceiling below 100% that nobody can beat, leave, sick, RDOs, holidays and school are entitlements. The ceiling is the honest best case; the gap below it is travel, admin and office time, and that is the part worth working on." },
   { term: "Overhead", body: "Everything the business spends that isn't the labour going on a job. Rent, fuel, insurance, software, marketing, the office wages. It has to be earned back across the billable hours before a wage is paid." },
-  { term: "Fixed overhead", body: "The part that doesn't move when another van goes on the road — the factory, the office, the accountant, the marketing. More vans means the same money spread thinner, which is why the rate can fall." },
-  { term: "Per-van overhead", body: "The part that arrives with each van — its fuel, servicing, insurance, tools and phone. It grows one van at a time, so it never spreads thinner." },
+  { term: "Fixed overhead", body: "The part that doesn't move when another van goes on the road, the factory, the office, the accountant, the marketing. More vans means the same money spread thinner, which is why the rate can fall." },
+  { term: "Per-van overhead", body: "The part that arrives with each van, its fuel, servicing, insurance, tools and phone. It grows one van at a time, so it never spreads thinner." },
   { term: "Cost per billable hour", body: "What one hour you can bill actually costs: the wage for it, plus that hour's share of every overhead. Charge below this and the job loses money no matter how it felt on the day." },
   { term: "Charge-out rate", body: "Cost per billable hour plus the margin. What goes on the quote." },
-  { term: "On-costs", body: "What sits on top of a wage — super, workcover, leave loading. A $45 wage costs more than $45." },
-  { term: "Chargeable", body: "Someone a customer pays for. An apprentice is chargeable, but only as part of a crew — they are never sent out on their own, and the crew charges more than the tradesman would alone." },
+  { term: "On-costs", body: "What sits on top of a wage, super, workcover, leave loading. A $45 wage costs more than $45." },
+  { term: "Chargeable", body: "Someone a customer pays for. An apprentice is chargeable, but only as part of a crew, they are never sent out on their own, and the crew charges more than the tradesman would alone." },
   { term: "Margin", body: "What's left after everything is covered. It isn't profit until the year's overheads have all been earned back." },
 ];
 
@@ -179,7 +179,7 @@ export function CapacityEditor({
 
   /** What a yearly figure works out to on each hour you can actually bill. */
   // Read when called, after hrsBilled is set further down.
-  const perHour = (annual: number) => (hrsBilled > 0 && annual ? money2(annual / hrsBilled) : "—");
+  const perHour = (annual: number) => (hrsBilled > 0 && annual ? money2(annual / hrsBilled) : "");
   const emptyCount = overheadFields(s).filter((f) => !(f.key === "vehDep" && fleetDep > 0) && (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
 
   /** File every account whose name we can place, in one go. */
@@ -271,7 +271,7 @@ export function CapacityEditor({
   const ohTotal = office.total + overheadTotal(s);
   const hrsBilled = billHrs ?? cap.totalBillHrs;
   const hasHrs = hrsBilled > 0;
-  const show = (n: number) => (hasHrs ? money2(n) : "—");
+  const show = (n: number) => (hasHrs ? money2(n) : "");
   const blended = hasHrs ? cap.costPerHr * priceFactor(s.margin) : null;
 
   /** The fixed notes, plus one written on the spot for each crew level. */
@@ -488,7 +488,7 @@ export function CapacityEditor({
           <Stat
             key={r.key}
             label={r.label}
-            value={hasHrs ? <>{money2(r.value)}<em>/hr</em></> : "—"}
+            value={hasHrs ? <>{money2(r.value)}<em>/hr</em></> : ""}
             sub={r.sub}
             open={info === r.key}
             onToggle={() => setInfo(info === r.key ? null : r.key)}
@@ -499,7 +499,7 @@ export function CapacityEditor({
             the answer to a question the tile just declined to answer. */}
         <Stat
           label="Overhead on every hour"
-          value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}
+          value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : ""}
           sub={hasHrs ? `${money(ohTotal)} a year` : "Add the crew to see this"}
           open={info === "oh"} onToggle={() => setInfo(info === "oh" ? null : "oh")}
         />
@@ -511,13 +511,13 @@ export function CapacityEditor({
         />
         <Stat
           label="The year at full tilt"
-          value={hasHrs ? money(cap.totalBillHrs * cap.costPerHr * priceFactor(s.margin)) : "—"}
+          value={hasHrs ? money(cap.totalBillHrs * cap.costPerHr * priceFactor(s.margin)) : ""}
           sub="Every billable hour, sold"
           open={info === "ceiling"} onToggle={() => setInfo(info === "ceiling" ? null : "ceiling")}
         />
         <Stat
           label="What the year costs to run"
-          value={hasHrs ? money(cap.totalCost) : "—"}
+          value={hasHrs ? money(cap.totalCost) : ""}
           sub="Break even. Wages and every overhead"
           open={info === "breakeven"} onToggle={() => setInfo(info === "breakeven" ? null : "breakeven")}
         />
@@ -567,7 +567,7 @@ export function CapacityEditor({
           <section className="pt-panel">
             <h2 className="pt-panel__h">How the year works</h2>
             <p className="pt-panel__sub">
-              The settings every person&rsquo;s costing is worked out against. This tab is the people on the tools — office and
+              The settings every person&rsquo;s costing is worked out against. This tab is the people on the tools, office and
               admin sit under <strong>What it costs</strong>, because they carry no billable hours.
             </p>
             <div className="pt-cap__row3">
@@ -598,11 +598,11 @@ export function CapacityEditor({
             </div>
 
             <p className="pt-oh__hint" style={{ marginTop: 10 }}>
-              Every hour someone is paid for — on the tools, on leave or at school — costs their wage plus these, so they go on
+              Every hour someone is paid for, on the tools, on leave or at school, costs their wage plus these, so they go on
               the wage rather than in the overhead, and Xero&rsquo;s super and WorkCover accounts are left out of the overhead so
               they aren&rsquo;t counted twice. Super is the {SUPER_GUARANTEE}% guarantee on ordinary hours; Xero&rsquo;s share runs
               lower because overtime and bonuses are in the wages it divides by.{" "}
-              <strong>Call-backs</strong> are the hours that go back out to fix our own work — paid for, never billed, so they
+              <strong>Call-backs</strong> are the hours that go back out to fix our own work, paid for, never billed, so they
               come off what can be billed. At {s.callbackPct ?? 0}% that is{" "}
               {hrs(cap.util.paidHrs * ((s.callbackPct ?? 0) / 100))} a year the vans are out and earning nothing.
             </p>
@@ -615,7 +615,7 @@ export function CapacityEditor({
               either way and both modes are costed off the same ones.
             </div>
           )}
-          {rows.length === 0 && <div className="pf-empty">No team members yet — add one below, or in Admin → Team &amp; access.</div>}
+          {rows.length === 0 && <div className="pf-empty">No team members yet, add one below, or in Admin → Team &amp; access.</div>}
 
           {grouped.map((g) => (
             <section key={g.level || "unset"} className="pt-panel">
@@ -751,15 +751,15 @@ export function CapacityEditor({
 
                         <div className="pt-cap__crewsum">
                           {isOffice ? (
-                            <span>Non-billable — counted in office overhead</span>
+                            <span>Non-billable, counted in office overhead</span>
                           ) : ridesAlong ? (
-                            <span>Rides along — {money(loadedWage(r.costing.wage, s) * r.costing.hrsWeek * s.weeksYear)} a year, carried as overhead</span>
+                            <span>Rides along, {money(loadedWage(r.costing.wage, s) * r.costing.hrsWeek * s.weeksYear)} a year, carried as overhead</span>
                           ) : (
                             <>
                               <span>Billable <strong>{hrs(rt?.billHrs ?? 0)}</strong></span>
                               <span className="pt-cap__rate">
                                 Rate
-                                <strong>{rt?.rate != null ? money(rt.rate) : "—"}</strong>
+                                <strong>{rt?.rate != null ? money(rt.rate) : ""}</strong>
                                 <span className="pt-cap__override">
                                   override
                                   <input type="number" min="0" placeholder={rt?.autoRate != null ? String(Math.round(rt.autoRate)) : "auto"} value={r.costing.rateOverride ?? ""} onChange={(e) => setCosting(r.id, { rateOverride: e.target.value === "" ? null : parse(e.target.value) })} />
@@ -783,7 +783,7 @@ export function CapacityEditor({
                 <span className="pt-cap__grouptotal">{money(crewCost.total)}<em>/yr</em></span>
               </div>
               <p className="pt-panel__sub">
-                <strong>Real cost</strong> is what one billable hour of theirs costs in wages — the whole year&rsquo;s pay, on-costs
+                <strong>Real cost</strong> is what one billable hour of theirs costs in wages, the whole year&rsquo;s pay, on-costs
                 included, spread over only the hours a customer pays for. Leave, sick days, RDOs, trade school and driving are all
                 paid and none of them are billed, which is why it lands so far above the hourly wage. Office and admin have no
                 billable hours at all: their wages sit in the overhead instead.
@@ -799,17 +799,17 @@ export function CapacityEditor({
                         <strong>{r.name}</strong>
                         <em>{LEVEL_LABEL[r.level]} · {hrs(r.paidHrs)} paid{r.note ? ` · ${r.note}` : ""}</em>
                       </span>
-                      <span>{r.billHrs > 0 ? hrs(r.billHrs) : "—"}</span>
+                      <span>{r.billHrs > 0 ? hrs(r.billHrs) : ""}</span>
                       <span>{money2(r.wage)}</span>
-                      <strong className={r.perBillHr !== null ? "pt-cap__real" : ""}>{r.perBillHr !== null ? money2(r.perBillHr) : "—"}</strong>
+                      <strong className={r.perBillHr !== null ? "pt-cap__real" : ""}>{r.perBillHr !== null ? money2(r.perBillHr) : ""}</strong>
                       <strong>{money(r.wageCost)}</strong>
                     </div>
                   ))}
                   <div className="pt-cap__costrow is-total">
                     <span className="pt-cap__costwho"><strong>The lot</strong><em>{hrs(crewCost.paidHrs)} paid</em></span>
                     <span>{hrs(cap.totalBillHrs)}</span>
-                    <span>—</span>
-                    <strong>—</strong>
+                    <span></span>
+                    <strong></strong>
                     <strong>{money(crewCost.total)}</strong>
                   </div>
                 </div>
@@ -823,7 +823,7 @@ export function CapacityEditor({
               {add.open ? (
                 <div className="pt-cap__addform">
                   <input className="pt-cap__name" placeholder="Name" value={add.name} onChange={(e) => setAdd((a) => ({ ...a, name: e.target.value }))} />
-                  <input className="pt-cap__addemail" placeholder="Email (optional — for portal login)" value={add.email} onChange={(e) => setAdd((a) => ({ ...a, email: e.target.value }))} />
+                  <input className="pt-cap__addemail" placeholder="Email (optional, for portal login)" value={add.email} onChange={(e) => setAdd((a) => ({ ...a, email: e.target.value }))} />
                   <select className="pt-cap__type" value={add.level} onChange={(e) => setAdd((a) => ({ ...a, level: e.target.value as CrewLevel }))}>
                     {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
                   </select>
@@ -846,14 +846,14 @@ export function CapacityEditor({
           <div className="pk" style={{ marginBottom: 18 }}>
             <p className="pk-say">
               Running the business costs <b>{money(ohTotal)} a year</b>, {money(ohTotal / 12)} a month
-              {hasHrs ? <> — <b>{money2(ohTotal / hrsBilled)} on every billed hour</b>, across the {hrs(hrsBilled)} the business bills</> : null}.
+              {hasHrs ? <>  <b>{money2(ohTotal / hrsBilled)} on every billed hour</b>, across the {hrs(hrsBilled)} the business bills</> : null}.
               The techs&rsquo; and apprentices&rsquo; own pay isn&rsquo;t in it: that&rsquo;s on Build our rate.
             </p>
             <div className="pk-grid4">
               {[
                 { l: "A year", v: money(ohTotal), sub: `${money(ohTotal / 52)} a week` },
                 { l: "A month", v: money(ohTotal / 12), sub: "to cover before a cent of profit" },
-                { l: "Every billed hour", v: hasHrs ? money2(ohTotal / hrsBilled) : "—", sub: hasHrs ? `${hrs(hrsBilled)} a year` : "add the crew to see this" },
+                { l: "Every billed hour", v: hasHrs ? money2(ohTotal / hrsBilled) : "", sub: hasHrs ? `${hrs(hrsBilled)} a year` : "add the crew to see this" },
                 { l: "Fixed, any fleet size", v: money(split.fixed + office.total), sub: `${money(split.perVan / Math.max(1, vanCount || cap.realVans || 1))} more with each van` },
               ].map((t) => (
                 <div key={t.l} className="pk-card pk-tile"><div className="pk-tl"><span>{t.l}</span></div><div className="pk-fig">{t.v}</div><div className="pk-ks" style={{ marginTop: 6 }}>{t.sub}</div></div>
@@ -887,7 +887,7 @@ export function CapacityEditor({
                       </div>
                     ))}
                   </div>
-                ) : <p className="pk-note">Nothing costed yet — file Xero&rsquo;s accounts below, or put in your own figure.</p>;
+                ) : <p className="pk-note">Nothing costed yet, file Xero&rsquo;s accounts below, or put in your own figure.</p>;
               })()}
             </section>
           </div>
@@ -897,7 +897,7 @@ export function CapacityEditor({
             <p className="pt-panel__sub">
               Two ways to get the same number. Either add up what Xero says, account by account, or put in the one figure you
               already know is right. The office wages, the crew&rsquo;s unbillable time and the vans&rsquo; depreciation come from
-              the portal either way — they are never typed twice.
+              the portal either way, they are never typed twice.
             </p>
             <div className="pt-seg" role="group" aria-label="Overhead source">
               <button type="button" className={`pt-seg__b${(s.ohSource ?? "xero") === "xero" ? " is-on" : ""}`}
@@ -928,16 +928,16 @@ export function CapacityEditor({
                       <li>Insurance, licences and accreditations</li>
                       <li>Fuel, servicing, rego and tyres</li>
                       <li>Tools, software, phones and marketing</li>
-                      <li>Super, workers comp and payroll tax — every wage&rsquo;s on-costs</li>
+                      <li>Super, workers comp and payroll tax, every wage&rsquo;s on-costs</li>
                     </ul>
                   </div>
                   <div className="is-out">
                     <strong>Leave out</strong>
                     <ul>
-                      <li>Depreciation on the vans — comes from the Vehicles tab</li>
-                      <li>Office, admin and operations wages — come from the crew tab</li>
+                      <li>Depreciation on the vans, comes from the Vehicles tab</li>
+                      <li>Office, admin and operations wages, come from the crew tab</li>
                       <li>The crew&rsquo;s own wages, billable or not</li>
-                      <li>Materials and contractors — those go on the job</li>
+                      <li>Materials and contractors, those go on the job</li>
                     </ul>
                   </div>
                 </div>
@@ -968,7 +968,7 @@ export function CapacityEditor({
             )}
             {xero?.state === "failed" && (
               <div className="pt-note pt-note--warn">
-                <strong>Xero didn&rsquo;t answer.</strong> The report for {xero.span} came back empty — reload in a minute, or
+                <strong>Xero didn&rsquo;t answer.</strong> The report for {xero.span} came back empty, reload in a minute, or
                 reconnect from the Finance overview.
               </div>
             )}
@@ -976,7 +976,7 @@ export function CapacityEditor({
               <div className="pt-note pt-note--warn">
                 <strong>No expense accounts in the report.</strong> Xero returned {xero.sections.length}{" "}
                 {xero.sections.length === 1 ? "section" : "sections"} for {xero.span}
-                {xero.sections.length > 0 ? <> — {xero.sections.join(", ")}</> : null}.
+                {xero.sections.length > 0 ? <>  {xero.sections.join(", ")}</> : null}.
               </div>
             )}
 
@@ -1020,7 +1020,7 @@ export function CapacityEditor({
                 <summary>Review what came from Xero</summary>
                 {elsewhere.length > 0 && (
                   <>
-                    <h3 className="pt-oh__subh">Left out — already counted elsewhere</h3>
+                    <h3 className="pt-oh__subh">Left out, already counted elsewhere</h3>
                     <p className="pt-oh__hint">Adding these would charge the same money twice and lift every rate you quote.</p>
                     <div className="pt-cap__xero">
                       {elsewhere.map((x) => (
@@ -1068,7 +1068,7 @@ export function CapacityEditor({
 
             <div className="pt-oh__split">
               <div>
-                <span>Fixed — same at any fleet size</span>
+                <span>Fixed, same at any fleet size</span>
                 <strong>{money(split.fixed + office.total)}</strong>
                 <em>{ohTotal > 0 ? `${Math.round(((split.fixed + office.total) / ohTotal) * 100)}% of the lot` : ""}</em>
               </div>
@@ -1095,7 +1095,7 @@ export function CapacityEditor({
             {s.ohSource === "internal" && (
               <div className="pt-note">
                 Your own figure of <strong>{money(ohTyped)}</strong> is the one being used. The lines below are still here to fill
-                in when you want the detail back — switch the source above and they take over again.
+                in when you want the detail back, switch the source above and they take over again.
               </div>
             )}
 
@@ -1110,8 +1110,8 @@ export function CapacityEditor({
                     </span>
                   </div>
                   {[
-                    { k: "office", label: "Office & admin wages", from: "Their own files on Team — everyone not on the tools", v: office.total },
-                    { k: "dep", label: "Vehicle depreciation", from: `The Vehicles tab — ${vanCount} ${vanCount === 1 ? "van" : "vans"} on the road`, v: fleetDep },
+                    { k: "office", label: "Office & admin wages", from: "Their own files on Team, everyone not on the tools", v: office.total },
+                    { k: "dep", label: "Vehicle depreciation", from: `The Vehicles tab, ${vanCount} ${vanCount === 1 ? "van" : "vans"} on the road`, v: fleetDep },
                   ].filter((r) => r.v > 0).map((r) => (
                     <div key={r.k} className="pt-oh__line">
                       <div className="pt-oh__row is-locked">
@@ -1215,7 +1215,7 @@ export function CapacityEditor({
                       );
                     })}
                     <button type="button" className="pt-oh__add" onClick={() => addLine(g.key)}>
-                      + Add a line{g.key === "staff" ? " — someone paid who isn’t in the portal" : ` to ${g.label}`}
+                      + Add a line{g.key === "staff" ? ", someone paid who isn’t in the portal" : ` to ${g.label}`}
                     </button>
                   </div>
                 );
@@ -1229,7 +1229,7 @@ export function CapacityEditor({
                 <span className="pt-cap__grouptotal">{money(office.total)}<em>/yr</em></span>
               </div>
               <p className="pt-panel__sub">
-                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill —{" "}
+                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill,{" "}
                 <strong>{money2(office.perHr)}</strong> on top of every billable hour, before a tradesman&rsquo;s own wage.
               </p>
 
@@ -1343,15 +1343,15 @@ export function CapacityEditor({
                 <div key={l.key} className="pt-cap__layer"><span className="pt-cap__layer-lbl">{l.label}</span><span className="pt-cap__layer-val">{show(l.perHr)}</span></div>
               ))}
               <div className="pt-cap__layer pt-cap__layer--total"><span className="pt-cap__layer-lbl">Cost / billable hour</span><span className="pt-cap__layer-val">{show(cap.costPerHr)}</span></div>
-              <div className="pt-cap__layer pt-cap__layer--charge"><span className="pt-cap__layer-lbl">Plus {s.margin}% margin</span><span className="pt-cap__layer-val">{blended !== null ? money2(blended) : "—"}</span></div>
+              <div className="pt-cap__layer pt-cap__layer--charge"><span className="pt-cap__layer-lbl">Plus {s.margin}% margin</span><span className="pt-cap__layer-val">{blended !== null ? money2(blended) : ""}</span></div>
             </div>
           </section>
 
           <section className="pt-panel">
-            <h2 className="pt-panel__h">Utilisation — the ceiling, and the part in play</h2>
+            <h2 className="pt-panel__h">Utilisation, the ceiling, and the part in play</h2>
             <p className="pt-panel__sub">
               Two figures, because they mean different things. Leave, sick days, public holidays, RDOs and trade school are
-              entitlements — no amount of scheduling changes them, so the ceiling is the honest best case, not a target you
+              entitlements, no amount of scheduling changes them, so the ceiling is the honest best case, not a target you
               failed to hit. Travel, admin and office time are the part that is actually in play.
             </p>
 
@@ -1381,7 +1381,7 @@ export function CapacityEditor({
             </div>
 
             <div className="pt-util__read">
-              The most you could ever bill is <strong>{pct(cap.util.ceiling)}</strong> — everything above that belongs to the crew
+              The most you could ever bill is <strong>{pct(cap.util.ceiling)}</strong> , everything above that belongs to the crew
               by law. You&rsquo;re at <strong>{pct(cap.util.actual)}</strong>, so <strong>{pct(cap.util.inPlay)}</strong> is the
               ground worth fighting for.
               {hasHrs && <> Every point of it is about <strong>{hrs(cap.util.paidHrs / 100)}</strong> and{" "}
@@ -1395,7 +1395,7 @@ export function CapacityEditor({
               <div className="pt-pl__head"><span className="pt-pl__headlabel">Billable hours</span><strong className="pt-pl__headval">{hrs(cap.totalBillHrs)}</strong></div>
               <div className="pt-pl__head"><span className="pt-pl__headlabel">Utilisation</span><strong className="pt-pl__headval">{pct(cap.util.actual)}<em> of {pct(cap.util.ceiling)}</em></strong></div>
               <div className="pt-pl__head"><span className="pt-pl__headlabel">Total to recover</span><strong className="pt-pl__headval">{money(cap.totalCost)}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Revenue at that rate</span><strong className="pt-pl__headval">{blended !== null ? money(blended * cap.totalBillHrs) : "—"}</strong></div>
+              <div className="pt-pl__head"><span className="pt-pl__headlabel">Revenue at that rate</span><strong className="pt-pl__headval">{blended !== null ? money(blended * cap.totalBillHrs) : ""}</strong></div>
             </div>
           </section>
         </>

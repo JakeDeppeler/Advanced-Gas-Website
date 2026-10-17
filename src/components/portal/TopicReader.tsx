@@ -63,7 +63,7 @@ export function TopicReader({
             ? "Ready"
             : status === "built"
               ? href
-                ? "Built — open it"
+                ? "Built, open it"
                 : "Built, not linked yet"
               : status === "have"
                 ? "Written, not loaded in"
@@ -129,7 +129,7 @@ export function TopicReader({
             </>
           ) : status === "have" ? (
             <>
-              <strong>This one is written — it just isn&rsquo;t in here yet.</strong>
+              <strong>This one is written, it just isn&rsquo;t in here yet.</strong>
               <span>
                 It exists as a document somewhere. {canEdit ? "Paste it in and it is in the portal for good." : "Ask an admin to load it in."}
               </span>

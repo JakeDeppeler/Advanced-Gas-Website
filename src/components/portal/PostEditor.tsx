@@ -150,7 +150,7 @@ export function PostEditor({
         )}
         {d.photo && (
           <label className="pt-field" style={{ marginTop: 12 }}>
-            <span>What the photo shows <em>— read out to anyone using a screen reader</em></span>
+            <span>What the photo shows <em>, read out to anyone using a screen reader</em></span>
             <input value={d.photoAlt} onChange={(e) => set("photoAlt", e.target.value)} placeholder="Heat pump hot water unit against a brick wall" />
           </label>
         )}
@@ -223,11 +223,11 @@ export function PostEditor({
           </label>
           <label className="pt-field" style={{ marginTop: 12 }}><span>Author</span>
             <select value={d.author} onChange={(e) => set("author", e.target.value)}>
-              {authors.map((a) => <option key={a.k} value={a.k}>{a.name} — {a.role}</option>)}
+              {authors.map((a) => <option key={a.k} value={a.k}>{a.name}  {a.role}</option>)}
             </select>
           </label>
           <label className="pt-field" style={{ marginTop: 12 }}>
-            <span>Publish on <em>— a date ahead keeps it off the site until then</em></span>
+            <span>Publish on <em>, a date ahead keeps it off the site until then</em></span>
             <input type="date" value={d.publishedOn} onChange={(e) => set("publishedOn", e.target.value)} />
           </label>
 
@@ -272,7 +272,7 @@ export function PostEditor({
               {/* A built-in article can't be taken off the site from here —
                   only the edits can be taken away, which puts it back as it
                   was first written. */}
-              {d.builtIn ? "Undo my edits — put the original back" : d.status === "published" ? "Take it off the site" : "Delete this draft"}
+              {d.builtIn ? "Undo my edits, put the original back" : d.status === "published" ? "Take it off the site" : "Delete this draft"}
             </button>
           )}
         </section>
@@ -280,7 +280,7 @@ export function PostEditor({
         <section className="pt-panel">
           <h2 className="pt-panel__h">Google listing</h2>
           <p className="pt-panel__sub">What somebody sees before they decide whether to click.</p>
-          <label className="pt-field"><span>Web address{d.builtIn && <em> — fixed: Google and every link to it already use this one</em>}</span>
+          <label className="pt-field"><span>Web address{d.builtIn && <em> , fixed: Google and every link to it already use this one</em>}</span>
             <input
               value={slug}
               readOnly={d.builtIn}
@@ -290,7 +290,7 @@ export function PostEditor({
           </label>
           <p className="pt-pe__url">advancedgas.com.au/blog/{slug || "…"}</p>
 
-          <label className="pt-field" style={{ marginTop: 12 }}><span>Headline on Google <em>— leave blank to use the title</em></span>
+          <label className="pt-field" style={{ marginTop: 12 }}><span>Headline on Google <em>, leave blank to use the title</em></span>
             <input value={d.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} placeholder={d.title || "Shorter than the title, if the title is long"} />
           </label>
 
@@ -300,7 +300,7 @@ export function PostEditor({
               {/* Said as a count, not a hard stop: a good 160-character line
                   beats a truncated 150-character one. */}
               <em className={d.blurb.length > DESC_BUDGET ? " is-over" : ""}>
-                {" "}— {d.blurb.length} / {DESC_BUDGET}{d.blurb.length > DESC_BUDGET ? ", Google will cut it" : ""}
+                {" "} {d.blurb.length} / {DESC_BUDGET}{d.blurb.length > DESC_BUDGET ? ", Google will cut it" : ""}
               </em>
             </span>
             <textarea className="pf-textarea" rows={3} value={d.blurb} onChange={(e) => set("blurb", e.target.value)} placeholder="What shows under the title on Google, and on the blog card." />
@@ -309,7 +309,7 @@ export function PostEditor({
 
         <section className="pt-panel">
           <h2 className="pt-panel__h">Google checks · {passed} of {checks.length}</h2>
-          <p className="pt-panel__sub">Five things that decide how it shows up in a search. Not a ranking — nothing here knows what people search for.</p>
+          <p className="pt-panel__sub">Five things that decide how it shows up in a search. Not a ranking, nothing here knows what people search for.</p>
           <ul className="pt-pe__checks">
             {checks.map((c) => (
               // A tick or a cross in words as well as the mark, so the state

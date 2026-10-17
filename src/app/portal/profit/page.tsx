@@ -17,7 +17,7 @@ import { periodChoices, monthSpan } from "@/lib/finance/review";
 import { addDays, isoDateMelbourne, startOfMonthMelbourne } from "@/lib/dashboard/dates";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Profit on every job — Team portal" };
+export const metadata = { title: "Profit on every job · Team portal" };
 
 const WINDOWS = [
   { k: "month", label: "This month" },
@@ -36,7 +36,7 @@ function range(win: Win, now: Date): { from: string; to: string; name: string } 
   return { from: isoDateMelbourne(monthStart), to: isoDateMelbourne(now), name: monthStart.toLocaleDateString("en-AU", { month: "long", timeZone: "Australia/Melbourne" }) };
 }
 
-const pc = (n: number | null) => (n == null ? "—" : `${Math.round(n * 100)}%`);
+const pc = (n: number | null) => (n == null ? "" : `${Math.round(n * 100)}%`);
 
 /**
  * Margin, job by job: what each job charged before GST, what its equipment,
@@ -87,7 +87,7 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
             label: "Margin on costed jobs", feature: true,
             value: s?.margin != null ? pc(s.margin) : null,
             sub: s ? `${s.costed} of ${s.jobs} jobs in ${r.name}${target ? ` · goal ${target}%` : ""}` : undefined,
-            needs: s ? `${s.costed} jobs costed — needs five to mean anything` : "Couldn't read the invoices",
+            needs: s ? `${s.costed} jobs costed, needs five to mean anything` : "Couldn't read the invoices",
           },
           { label: "Profit on them", value: s ? money(s.profit) : null, sub: s ? `on ${money(s.revenue)} of work before GST` : undefined, needs: "Couldn't read the invoices" },
           {
@@ -110,13 +110,13 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
         <h2 className="pt-panel__h">How each job is costed</h2>
         <ul className="pt-profit__how">
           <li><strong>Price</strong> is the invoice before GST. GST goes to the ATO, so a margin worked on the price including it reads about nine points high.</li>
-          <li><strong>Equipment and materials</strong> are the costs ServiceTitan&rsquo;s pricebook puts on each invoice line. An install with none recorded can&rsquo;t be costed — it would show as pure profit.</li>
+          <li><strong>Equipment and materials</strong> are the costs ServiceTitan&rsquo;s pricebook puts on each invoice line. An install with none recorded can&rsquo;t be costed, it would show as pure profit.</li>
           <li>
-            <strong>Hours</strong> are how long the crew was on site, from ServiceTitan&rsquo;s timesheets where they&rsquo;ve synced &mdash; first to clock on to last to clock off, so a tech and an apprentice on a five-hour job read five hours, not ten &mdash; otherwise the hours the job was sold with
-            {s && s.fromTimesheets ? ` (${s.fromTimesheets} of these jobs use clocked hours)` : " — none have synced yet, so a job that ran long looks better here than it was"}.
+            <strong>Hours</strong> are how long the crew was on site, from ServiceTitan&rsquo;s timesheets where they&rsquo;ve synced, first to clock on to last to clock off, so a tech and an apprentice on a five-hour job read five hours, not ten, otherwise the hours the job was sold with
+            {s && s.fromTimesheets ? ` (${s.fromTimesheets} of these jobs use clocked hours)` : ", none have synced yet, so a job that ran long looks better here than it was"}.
           </li>
           <li>
-            <strong>Labour</strong> is each person&rsquo;s clocked time on the same hour the rates are priced from, <Link href="/portal/finance/cover">6 of 8 hours billed</Link>: a tech&rsquo;s hour at {soloHr != null ? `about ${money(soloHr)}` : "what a tech on their own has to cover"} &mdash; their pay and on-costs plus the overheads over the hours we bill; an apprentice alongside adds only their own pay{appHr != null ? `, about ${money(appHr)} an hour` : ""}, not a second van. Sold hours with no timesheet are costed at a tech and an apprentice{crew?.costPerHr != null ? `, ${money(crew.costPerHr)} an hour` : ""}. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
+            <strong>Labour</strong> is each person&rsquo;s clocked time on the same hour the rates are priced from, <Link href="/portal/finance/cover">6 of 8 hours billed</Link>: a tech&rsquo;s hour at {soloHr != null ? `about ${money(soloHr)}` : "what a tech on their own has to cover"} , their pay and on-costs plus the overheads over the hours we bill; an apprentice alongside adds only their own pay{appHr != null ? `, about ${money(appHr)} an hour` : ""}, not a second van. Sold hours with no timesheet are costed at a tech and an apprentice{crew?.costPerHr != null ? `, ${money(crew.costPerHr)} an hour` : ""}. What&rsquo;s left is profit after overheads, the same thing the goal&rsquo;s percentage means.
           </li>
         </ul>
       </section>

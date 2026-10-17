@@ -52,7 +52,7 @@ export function StPoForm({ initial, types, warehouses, vendors, businessUnits, s
         const autoName = auto != null ? vendors.find((v) => v.id === auto)?.name ?? `vendor ${auto}` : null;
         return (
           <div className="pk-kv" key={s.id}>
-            <span className="t"><b>{s.name}</b><span>{f.vendorIds[s.id] ? "set by hand" : autoName ? `matched by name: ${autoName}` : "not matched — pick one"}</span></span>
+            <span className="t"><b>{s.name}</b><span>{f.vendorIds[s.id] ? "set by hand" : autoName ? `matched by name: ${autoName}` : "not matched, pick one"}</span></span>
             <select id={`stpo-v-${s.id}`} className="pk-in" style={{ width: 260 }} value={f.vendorIds[s.id] ?? ""} aria-label={`${s.name} in ServiceTitan`}
               onChange={(e) => {
                 const v = { ...f.vendorIds };
@@ -67,7 +67,7 @@ export function StPoForm({ initial, types, warehouses, vendors, businessUnits, s
       })}
       <div className="pk-glh">Every order</div>
       <div className="pk-kv">
-        <span className="t"><b>Put every sent order into ServiceTitan</b><span>as it&rsquo;s sent — a refusal never stops the email going</span></span>
+        <span className="t"><b>Put every sent order into ServiceTitan</b><span>as it&rsquo;s sent, a refusal never stops the email going</span></span>
         <label className="pk-check"><input id="stpo-auto" type="checkbox" checked={f.auto} onChange={(e) => setF({ ...f, auto: e.target.checked })} /> {f.auto ? "On" : "Off"}</label>
       </div>
       <div className="pk-btns" style={{ marginTop: 14, alignItems: "center" }}>

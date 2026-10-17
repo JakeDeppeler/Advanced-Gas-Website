@@ -144,7 +144,7 @@ export function ToolBoard({ tools, canSave, kinds, names, people }: {
                   )}
                   {outFor === t.id && (
                     <div className="pt-stk__form">
-                      <input value={holder} onChange={(ev) => setHolder(ev.target.value)} placeholder="Who's taking it — a name or a van" aria-label="Who's taking it" list="tool-people" autoFocus />
+                      <input value={holder} onChange={(ev) => setHolder(ev.target.value)} placeholder="Who's taking it, a name or a van" aria-label="Who's taking it" list="tool-people" autoFocus />
                       <button type="button" className="pt-btn pt-btn--sm pt-btn--orange" disabled={pending || !holder.trim()} onClick={() => run(() => signTool({ id: t.id, out: true, holder }), () => setOutFor(null), "Signed out.")}>
                         {pending ? "Saving…" : "Sign out"}
                       </button>

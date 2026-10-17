@@ -54,7 +54,7 @@ export const HANDBOOK: Shelf[] = [
     title: "Start here",
     blurb: "What this is, where everything lives, and what has changed lately.",
     items: [
-      { title: "Welcome — what this portal is", note: "Why it exists and how to use it", status: "write", today: true },
+      { title: "Welcome, what this portal is", note: "Why it exists and how to use it", status: "write", today: true },
       { title: "Quick links", note: "ServiceTitan, the scoreboard, the website, who to call", status: "write" },
       { title: "What's changed", note: "Anything new since you last looked", status: "write" },
     ],
@@ -80,8 +80,8 @@ export const HANDBOOK: Shelf[] = [
     blurb: "Every role written down, what each is scored on, and the way up.",
     items: [
       { title: "The team", note: "Overview, org chart and the order we hire in", status: "built", gap: "Link the page that already exists" },
-      { title: "Apprentice — not in a van", status: "built", gap: "Link the page that already exists" },
-      { title: "Apprentice — in a van", status: "built", gap: "Link the page that already exists" },
+      { title: "Apprentice, not in a van", status: "built", gap: "Link the page that already exists" },
+      { title: "Apprentice, in a van", status: "built", gap: "Link the page that already exists" },
       { title: "Installer", status: "built", gap: "Link the page that already exists" },
       { title: "Tradesman", status: "built", gap: "Link the page that already exists" },
       { title: "Leading Hand", status: "built", gap: "Link the page that already exists" },
@@ -98,7 +98,7 @@ export const HANDBOOK: Shelf[] = [
     letter: "4",
     slug: "the-customer",
     title: "The customer",
-    blurb: "From the front door to the review — how we turn up, sell and price.",
+    blurb: "From the front door to the review, how we turn up, sell and price.",
     items: [
       { title: "At the front door", note: "Parking, the intro line, boot covers, their home their rules", status: "have", today: true },
       { title: "How we present", note: "Uniform, ID, business card", status: "have", today: true },
@@ -110,7 +110,7 @@ export const HANDBOOK: Shelf[] = [
   {
     letter: "5",
     slug: "factory-and-vans",
-    title: "The places — factory & vans",
+    title: "The places, factory & vans",
     blurb: "The shed and the vans: whose job, how often, and what good looks like.",
     items: [
       { title: "Keep the factory clean", note: "The areas, who owns what, end of day", status: "have" },
@@ -161,7 +161,7 @@ export const HANDBOOK: Shelf[] = [
     title: "Forms & templates",
     blurb: "The paper. Print it, fill it, put it back.",
     items: [
-      { title: "Estimate templates", note: "Good/Better/Best for the top ten jobs", status: "write", gap: "Built in ServiceTitan as part of the build — link each one here" },
+      { title: "Estimate templates", note: "Good/Better/Best for the top ten jobs", status: "write", gap: "Built in ServiceTitan as part of the build, link each one here" },
       { title: "Van kit & stock checklist", status: "write", gap: "Jake + Jye to build the list" },
       { title: "Front-door card", note: "The greeting and the menu", status: "have" },
       { title: "Vehicle condition check form", status: "write", gap: "The form itself: walk-around points, photo prompts, damage log, sign-off" },
@@ -175,7 +175,7 @@ export const HANDBOOK: Shelf[] = [
     blurb: "How you get better at this, and where to look it up.",
     items: [
       { title: "The team training day", status: "built", href: "/portal/sops" },
-      { title: "ServiceTitan how-tos", note: "A walk through the app", status: "write", gap: "Short walkthroughs — dispatch, building an estimate, invoicing, photos and forms — added as they're made" },
+      { title: "ServiceTitan how-tos", note: "A walk through the app", status: "write", gap: "Short walkthroughs, dispatch, building an estimate, invoicing, photos and forms, added as they're made" },
       { title: "Product guides", status: "write", gap: "Install and spec guides for the systems we fit most, added as they're made" },
       { title: "Apprentice logbook & training plan", status: "write", gap: "Link the training plan and logbook; reviewed monthly with Dean" },
     ],
@@ -333,7 +333,7 @@ export const INFO_SECTIONS: InfoSection[] = [
         title: "What we do",
         span: "full",
         body: [
-          "Heating, cooling, gas and hot water across Melbourne\u2019s south-east and Gippsland — heat pump hot water, split and ducted aircon, gas heating, servicing and commercial fit-outs. Directly employed crews, one standard every job.",
+          "Heating, cooling, gas and hot water across Melbourne\u2019s south-east and Gippsland, heat pump hot water, split and ducted aircon, gas heating, servicing and commercial fit-outs. Directly employed crews, one standard every job.",
         ],
       },
     ],
@@ -402,8 +402,8 @@ export const INFO_SECTIONS: InfoSection[] = [
           { k: "Split service", v: "$220+", note: "or $140 each for 3+ at one address" },
           { k: "Ducted split service", v: "$220+" },
           { k: "Gas heater service", v: "$220+" },
-          { k: "Evap cooler service — single storey", v: "$300+" },
-          { k: "Evap cooler service — double storey", v: "$375+" },
+          { k: "Evap cooler service, single storey", v: "$300+" },
+          { k: "Evap cooler service, double storey", v: "$375+" },
         ],
       },
       {
@@ -424,7 +424,7 @@ export const INFO_SECTIONS: InfoSection[] = [
           "Disposal of the old unit",
           "Compliance certificate",
           "VEU rebate applied where the unit qualifies",
-          "No hidden extras — the quote number is the invoice number",
+          "No hidden extras, the quote number is the invoice number",
         ],
       },
     ],

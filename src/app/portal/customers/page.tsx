@@ -10,10 +10,10 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { money } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "One customer — Team portal" };
+export const metadata = { title: "One customer · Team portal" };
 
 const day = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" }) : "";
 
 /**
  * Find a customer by a number somebody has in front of them — a job number,
@@ -83,10 +83,10 @@ export default async function CustomersPage({ searchParams }: { searchParams: { 
                         : <strong>{j.job_type || "Job"}</strong>}
                       <span className="pt-fleet__sub">Job {j.job_number ?? j.id}</span>
                     </td>
-                    <td>{j.suburb || "—"}</td>
-                    <td>{j.status || "—"}</td>
+                    <td>{j.suburb || ""}</td>
+                    <td>{j.status || ""}</td>
                     <td>{day(j.created_on)}</td>
-                    <td className="pt-otab__num">{j.total ? money(Number(j.total)) : "—"}</td>
+                    <td className="pt-otab__num">{j.total ? money(Number(j.total)) : ""}</td>
                   </tr>
                 ))}
               </tbody>
