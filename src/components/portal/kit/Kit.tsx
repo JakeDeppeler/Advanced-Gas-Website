@@ -49,7 +49,7 @@ export function Head({ title, sub, info }: { title: string; sub?: ReactNode; inf
   return (
     <div className="pk-head">
       <div>
-        <h1>{title}</h1>
+        {title && <h1>{title}</h1>}
         {sub && <div className="pk-sub">{sub}</div>}
       </div>
       {info && info.length > 0 && (
@@ -193,5 +193,46 @@ export function Sum({ title, st, fig, figSub, lines, href }: {
       {lines && lines.length > 0 && <dl>{lines.map(([k, v], i) => <div key={i}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
       <span className="go">Open ›</span>
     </Link>
+  );
+}
+
+/** Stroke icons for the KPI heads, 24×24. */
+const KPI_ICON: Record<string, string> = {
+  trophy: "M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3",
+  trend: "M3 17l6-6 4 4 8-8M15 7h6v6",
+  phone: "M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2",
+  card: "M3 6h18v12H3zM3 10h18M7 15h4",
+  doc: "M14 3H6v18h12V7zM14 3v4h4M9 12h6M9 16h6",
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 7v5l3 2",
+  bars: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+};
+export type Kpi = { icon: keyof typeof KPI_ICON | string; fig: ReactNode; label: ReactNode; badge?: ReactNode; tone?: "up" | "down" | "gold"; href?: string };
+
+/**
+ * A page head the Rapport way: a big title, two lines, and the page's few
+ * headline figures beside it, each in a round icon. The badge beside a
+ * figure carries its words, so a red one says "3 late", not just red.
+ */
+export function KpiHead({ title, kpis, hi }: { title: ReactNode; kpis: Kpi[]; hi?: ReactNode }) {
+  return (
+    <header className="rp-top rp-top--left rp-card" style={{ ["--i" as string]: 0 }}>
+      <div className="rp-title">
+        {hi && <span className="rp-hi">{hi}</span>}
+        <h1>{title}</h1>
+      </div>
+      <div className="rp-kpis">
+        {kpis.map((k, i) => {
+          const body = (
+            <>
+              <span className="rp-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={KPI_ICON[k.icon] ?? k.icon} /></svg>
+              </span>
+              <span><b>{k.fig}{k.badge != null && <em className={`rp-badge ${k.tone ?? "gold"}`}>{k.badge}</em>}</b><small>{k.label}</small></span>
+            </>
+          );
+          return k.href ? <Link key={i} href={k.href} className="rp-kpi">{body}</Link> : <div key={i} className="rp-kpi">{body}</div>;
+        })}
+      </div>
+    </header>
   );
 }

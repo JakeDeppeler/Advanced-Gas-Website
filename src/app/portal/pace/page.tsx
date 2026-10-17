@@ -9,7 +9,7 @@ import { PacePlanner } from "@/components/portal/PacePlanner";
 import { readYearGoal } from "@/lib/portal/yearGoal";
 import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { jobProfits } from "@/lib/dashboard/jobProfit";
-import { crewFigures } from "@/lib/portal/crewRates";
+import { hourJobCosts } from "@/lib/portal/cover/load";
 import { isoDateMelbourne, startOfMonthMelbourne } from "@/lib/dashboard/dates";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +36,7 @@ export default async function PacePage() {
     ? await Promise.all([
       getSettings<unknown>("yeargoal").catch(() => null),
       latestSnapshot().catch(() => null),
-      crewFigures().catch(() => null),
+      hourJobCosts().catch(() => null),
     ])
     : [null, null, null];
 

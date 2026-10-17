@@ -10,11 +10,13 @@ import { dbConfigured, listUsers } from "@/lib/portal/db";
 import { officeIds } from "@/lib/todos/store";
 import { loadPipeline, type Pipeline } from "@/lib/pipeline/store";
 import { daysBetween } from "@/lib/pipeline/types";
+import { KpiHead } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Quote pipeline — Team portal" };
 
-const k0 = (n: number) => (n >= 10_000 ? `$${Math.round(n / 1000)}K` : `$${Math.round(n).toLocaleString("en-AU")}`);
+const m0 = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
+const k1 = (n: number) => (n >= 10_000 ? `$${(n / 1000).toFixed(1)}K` : m0(n));
 
 /**
  * Every quote that's out, in the column that says what to do about it, for
@@ -46,26 +48,29 @@ export default async function PipelinePage() {
   // Of the quotes written in the last 30 days that have an answer, or are still out: how many sold.
   const month = p.quotes.filter((q) => daysBetween(q.quotedOn, p.today) <= 30);
   const wonMonth = month.filter((q) => q.stage === "won");
+  const rate = month.length >= 10 ? wonMonth.length / month.length : null;
+  const openValue = open.reduce((n, q) => n + q.value, 0);
+  const dueValue = due.reduce((n, q) => n + q.value, 0);
+  const late = due.some((q) => q.nextOn && q.nextOn < p.today);
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <h1>{canDo(user, "overhead") ? "Sales" : "Quote pipeline"}</h1>
-        <p>Every quote that&rsquo;s out, and who&rsquo;s chasing it. Quotes come in from ServiceTitan; the calls are logged here. Open means priced in the last 60 days and not yet sold or lost; values include GST, and a quote with several options counts at their average.</p>
-      </div>
-
       {canDo(user, "overhead") && <div className="pk-tabrow"><SalesTabs on="quotes" /></div>}
 
       {!pipe ? (
-        <p className="pt-note pt-note--warn">ServiceTitan&rsquo;s quotes couldn&rsquo;t be read just now. Try again in a minute.</p>
+        <>
+          <KpiHead title={<>Quote<br />pipeline</>} kpis={[]} />
+          <p className="pt-note pt-note--warn">ServiceTitan&rsquo;s quotes couldn&rsquo;t be read just now. Try again in a minute.</p>
+        </>
       ) : (
         <>
-          <p className="pt-pipe__line" role="status">
-            <span><strong>{open.length}</strong> out · {k0(open.reduce((n, q) => n + q.value, 0))}</span>
-            <span className={due.length ? "is-due" : undefined}><strong>{due.length}</strong> to ring today</span>
-            {month.length > 0 && <span><strong>{Math.round((wonMonth.length / month.length) * 100)}%</strong> of the last 30 days&rsquo; quotes sold</span>}
-          </p>
+          <KpiHead title={<>Quote<br />pipeline</>} kpis={[
+            { icon: "trophy", fig: m0(openValue), label: `Open · ${open.length} quotes out` },
+            ...(rate != null ? [{ icon: "trend", fig: m0(openValue * rate), label: `Likely to sell, at the ${Math.round(rate * 100)}% we sell` }] : []),
+            { icon: "phone", fig: String(due.length), label: "To ring today", badge: due.length ? k1(dueValue) : undefined, tone: (late ? "down" : "gold") as "down" | "gold" },
+          ]} />
           <PipelineBoard quotes={p.quotes} stale={p.stale} today={p.today} office={officeNames} me={user.name} canCustomer={can(user, "overhead")} />
+          <p className="pk-note qp-foot">Open means priced in the last 60 days and not yet sold or lost. Values include GST, and a quote with several options counts at their average. Quotes come in from ServiceTitan; the calls are logged here.</p>
         </>
       )}
     </PortalShell>

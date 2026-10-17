@@ -1,7 +1,7 @@
 import "server-only";
 import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { computeCapacity, onCostPct, onCostsOf, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
+import { LEVEL_BILLABLE, computeCapacity, onCostPct, onCostsOf, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { DAYS_ON_TOOLS, coverHour, crewRates, overheadItems, vansFor, type CoverInputs, type Fleet } from "./hour";
 
@@ -51,4 +51,27 @@ export async function theHour() {
   const r = coverHour(base.lines, base.fleet, base.oc, base.i);
   const vans = vansFor(base.fleet, base.i.techs);
   return { ...base, r, vans, crews: crewRates(r, vans, base.oc) };
+}
+
+/**
+ * What an hour on a job costs, for Profit on every job, the board and the
+ * reports: on the same 6-of-8 hour the pricing pages charge from, so a job's
+ * margin and the rate it was priced at are measured on one model.
+ *
+ * A tech's hour carries the van, the overheads and their own pay — what a
+ * tech on their own has to cover. An apprentice riding along adds their own
+ * pay over the hours a van bills and nothing more, because the overheads are
+ * already on the tech's hour. `costPerHr` is the usual crew, a tech and an
+ * apprentice, for sold hours with nobody clocked against them.
+ */
+export async function hourJobCosts(): Promise<{ costPerHr: number | null; techHr: number | null; appHr: number | null; crew: Array<{ name: string; cost: number | null }> }> {
+  const h = await theHour();
+  const solo = h.crews.rows.find((c) => c.k === "solo");
+  const pair = h.crews.rows.find((c) => c.k === "pair");
+  if (!solo || !pair || !(solo.be > 0)) return { costPerHr: null, techHr: null, appHr: null, crew: [] };
+  const appHr = pair.be - solo.be;
+  const crew = h.people
+    .filter((p) => LEVEL_BILLABLE[p.level])
+    .map((p) => ({ name: p.name, cost: p.level === "apprentice" ? appHr : solo.be }));
+  return { costPerHr: pair.be, techHr: solo.be, appHr, crew };
 }

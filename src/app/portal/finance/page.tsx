@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { xeroStatus, getPLDetail, getBankSummary, getMonthlyActuals, getOwedBills, redirectUri } from "@/lib/portal/xero";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { jobProfits } from "@/lib/dashboard/jobProfit";
-import { crewFigures } from "@/lib/portal/crewRates";
+import { hourJobCosts } from "@/lib/portal/cover/load";
 import { journalHealth } from "@/lib/journals/read";
 import { standing, yearSpans } from "@/lib/portal/yearGoal";
 import { ago } from "@/components/portal/Figs";
@@ -91,7 +91,7 @@ async function Connected({ period }: { period: PeriodKey }) {
       const g = await savedGoal();
       return g ? { g, raw: await getMonthlyActuals(yearSpans(g.basis, g.year)).catch(() => null) } : null;
     })(),
-    crewFigures().catch(() => null),
+    hourJobCosts().catch(() => null),
   ]);
   const s = now ? summarisePL(now) : null;
   const sb = before ? summarisePL(before) : null;
