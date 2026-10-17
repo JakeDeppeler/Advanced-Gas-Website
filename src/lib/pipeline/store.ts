@@ -252,7 +252,7 @@ export async function loadPipeline(opts: { detail?: boolean; recentDays?: number
       stale.push({ ...base, stage: "due" });
       continue;
     }
-    out.push({ ...base, stage: openStage({ pricedOn, nextOn: base.nextOn, touches: touches.length }, today) });
+    out.push({ ...base, pricedOn, stage: openStage({ pricedOn, nextOn: base.nextOn, touches }, today) });
   }
 
   return { quotes: out, stale: stale.sort((a, b) => b.value - a.value), today };

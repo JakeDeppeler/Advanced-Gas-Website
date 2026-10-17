@@ -17,8 +17,12 @@ export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
   officeTo: string | null;
+  /** Who gets the invoicing and overdue to-dos, on the Accounts list. Null: the office's person. */
+  accountsTo: string | null;
 };
-const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck"];
+// Quote follow-ups are off: Jake wants them worked on the Pipeline, by its
+// 2-day, 4-day, 1-week rule, not as to-dos.
+const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "quoteFollow"];
 
 const LOG = "automation_log";
 const SW = "automation";
@@ -26,7 +30,7 @@ const KEEP = 400;
 
 export async function loadSwitches(): Promise<AutoSwitches> {
   const s = await getSettings<Partial<AutoSwitches>>(SW).catch(() => null);
-  const out = { officeTo: typeof s?.officeTo === "string" ? s.officeTo : null } as AutoSwitches;
+  const out = { officeTo: typeof s?.officeTo === "string" ? s.officeTo : null, accountsTo: typeof s?.accountsTo === "string" ? s.accountsTo : null } as AutoSwitches;
   for (const k of AUTO_KEYS) out[k] = OFF_UNTIL_ASKED.includes(k) ? s?.[k] === true : s?.[k] !== false;
   return out;
 }

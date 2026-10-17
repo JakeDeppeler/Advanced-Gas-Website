@@ -17,9 +17,9 @@ type Auto = { k: AutoKey; title: string; what: string; to: string; note?: string
 
 const TODOS: Auto[] = [
   { k: "soldNotBooked", title: "Sold but not booked after 3 days", what: "A sold quote with nothing booked from it three days on.", to: "The office, on the Quoting list" },
-  { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan.", to: "The office" },
-  { k: "quoteFollow", title: "Quote not followed up in 2 days", what: "A quote due a follow-up call that's been quiet two days or more.", to: "Whoever's chasing it, or whoever wrote the quote; the office if neither is on the team list" },
-  { k: "overdueInv", title: "Invoices 7, 14 or 30 days overdue", what: "One to-do listing every invoice that's just crossed one of those marks, so the chasing is done in one sitting.", to: "The office" },
+  { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan.", to: "The accounts person, on the Accounts list" },
+  { k: "quoteFollow", title: "Quote follow-ups as to-dos", what: "A quote due a follow-up call.", to: "Whoever's chasing it, or whoever wrote the quote", note: "Off: follow-ups are worked on the Pipeline, 2 days after the quote, then 4 days, then a week." },
+  { k: "overdueInv", title: "Invoices 7, 14 or 30 days overdue", what: "One to-do listing every invoice that's just crossed one of those marks, so the chasing is done in one sitting.", to: "The accounts person, on the Accounts list" },
   { k: "keepInTouch", title: "Keep in touch gone overdue", what: "Someone on the Keep in touch list past their time.", to: "Whoever looks after that contact" },
   { k: "vanCheck", title: "Weekly van check not done by Monday 10 am", what: "A van with no weekly check this week.", to: "That van's driver", note: "Off until the crew have the trade iPads to do the check on." },
 ];
@@ -55,6 +55,7 @@ export default async function AutomaticPage() {
   const week = log.filter((e) => Date.now() - Date.parse(e.at) < 7 * 86_400_000);
   const count = (k: AutoKey) => week.filter((e) => e.kind === (k === "quoteTag" ? "quote-tag" : k) && e.ok).length;
   const admin = can(user, "manage_users");
+  const accountsTo = sw.accountsTo && people.some((p) => p.id === sw.accountsTo) ? sw.accountsTo : "";
   const officeTo = sw.officeTo && people.some((p) => p.id === sw.officeTo) ? sw.officeTo : people.find((p) => office.includes(p.id))?.id ?? people[0]?.id ?? "";
   return (
     <PortalShell user={user}>
@@ -73,6 +74,13 @@ export default async function AutomaticPage() {
             <p>Anything below that doesn&rsquo;t belong to one person.</p>
           </div>
           <OfficeTo people={people} value={officeTo} canEdit={admin} />
+        </div>
+        <div className="au-item au-office">
+          <div>
+            <b>The Accounts list goes to</b>
+            <p>Jobs to invoice and overdue money. They go on the Accounts list on the To-do board, for this person only.</p>
+          </div>
+          <OfficeTo people={people} value={accountsTo || officeTo} canEdit={admin} which="accountsTo" label="Who gets the Accounts list's to-dos" />
         </div>
         {TODOS.map((a) => <Item key={a.k} a={a} on={sw[a.k]} n={count(a.k)} admin={admin} />)}
       </section>

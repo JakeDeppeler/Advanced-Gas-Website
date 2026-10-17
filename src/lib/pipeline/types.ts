@@ -71,6 +71,8 @@ export type PipeQuote = {
   quotedOn: string;
   /** Whole days since the newest option: a re-price counts as being worked. */
   quietDays: number;
+  /** The day the newest option went out, which the follow-up rule counts from. */
+  pricedOn?: string;
   quotedBy: string | null;
   soldOn: string | null;
   owner: string | null;
@@ -101,26 +103,44 @@ export const addDays = (iso: string, n: number) => {
 export const FIRST_CALL_DAYS = 2;
 
 /**
- * When to ring again, by how many times they've been tried: 3 days, a week,
- * a fortnight, then a month. Spaced out because a customer chased every day
- * stops answering, and most quotes that sell late sell inside 30 days.
+ * Jake's follow-up rule: the first call two days after the quote, the next
+ * four days after that, the last a week after that. Three follow-ups, then the
+ * quote waits on the customer rather than being rung forever.
  */
+export const FOLLOW_UPS = 3;
 export function nextGap(touches: number): number {
-  return touches <= 1 ? 3 : touches === 2 ? 7 : touches === 3 ? 14 : 30;
+  return touches <= 1 ? 4 : 7;
 }
 
-/** After this many tries with no answer either way, the board suggests closing it off. */
-export const GIVE_UP_AFTER = 5;
+/** After the three follow-ups with no answer either way, the board suggests closing it off. */
+export const GIVE_UP_AFTER = FOLLOW_UPS;
+
+/** The follow-ups done on a quote: calls, texts, emails, visits; a note isn't one. */
+export const followUps = (touches: Array<{ how: TouchHow }>) => touches.filter((t) => t.how !== "note").length;
+
+/**
+ * When the next follow-up is due by the rule, from the quote day and the last
+ * follow-up: day 2, then 4 days after the first, then 7 after the second.
+ * Null once all three are done.
+ */
+export function ruleNext(pricedOn: string, touches: Array<{ at: string; how: TouchHow }>): string | null {
+  const done = touches.filter((t) => t.how !== "note").sort((a, b) => a.at.localeCompare(b.at));
+  if (done.length >= FOLLOW_UPS) return null;
+  if (!done.length) return addDays(pricedOn, FIRST_CALL_DAYS);
+  return addDays(done[done.length - 1].at.slice(0, 10), nextGap(done.length));
+}
 
 /**
  * The column for an open quote, judged from when it was last priced (a quote
- * re-priced today has just gone out again). A booked next call decides it outright; with
- * none booked, a quote nobody has touched waits out its first two days and is
- * then due, and one that has been touched but given no next day is due now —
- * a call with no next step is how quotes go quiet.
+ * re-priced today has just gone out again). A next call booked by hand decides
+ * it outright. Otherwise the follow-up rule does: untouched, it's Just quoted
+ * for its first two days and then due; after a follow-up it waits until the
+ * next one in the rule; after the third it waits on the customer.
  */
-export function openStage(q: { pricedOn: string; nextOn: string | null; touches: number }, today: string): Stage {
+export function openStage(q: { pricedOn: string; nextOn: string | null; touches: Array<{ at: string; how: TouchHow }> }, today: string): Stage {
   if (q.nextOn) return q.nextOn <= today ? "due" : "waiting";
-  if (q.touches > 0) return "due";
-  return daysBetween(q.pricedOn, today) < FIRST_CALL_DAYS ? "new" : "due";
+  const done = followUps(q.touches);
+  if (!done) return daysBetween(q.pricedOn, today) < FIRST_CALL_DAYS ? "new" : "due";
+  const next = ruleNext(q.pricedOn, q.touches);
+  return next && next <= today ? "due" : "waiting";
 }

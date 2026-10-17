@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markLost, reopen, saveFollowUp } from "@/app/portal/pipeline/actions";
 import {
-  FIRST_CALL_DAYS, GIVE_UP_AFTER, HOW_LABEL, LOST_REASONS, STAGES, addDays, daysBetween, nextGap,
+  FIRST_CALL_DAYS, FOLLOW_UPS, GIVE_UP_AFTER, HOW_LABEL, LOST_REASONS, STAGES, addDays, daysBetween, nextGap, ruleNext,
   type PipeQuote, type Stage, type TouchHow,
 } from "@/lib/pipeline/types";
 
@@ -29,7 +29,7 @@ const first = (name: string | null) => (name ? name.trim().split(/\s+/)[0] : nul
 
 /** The quick picks for the next call; the suggested one is pre-selected from how many tries it's had. */
 const GAPS: Array<{ d: number; label: string }> = [
-  { d: 1, label: "Tomorrow" }, { d: 3, label: "3 days" }, { d: 7, label: "1 week" }, { d: 14, label: "2 weeks" }, { d: 30, label: "1 month" },
+  { d: 1, label: "Tomorrow" }, { d: 2, label: "2 days" }, { d: 4, label: "4 days" }, { d: 7, label: "1 week" }, { d: 14, label: "2 weeks" },
 ];
 const OUTCOMES: TouchHow[] = ["call", "no_answer", "text", "email"];
 
@@ -109,9 +109,11 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   };
   const SORT_NEXT = { usual: "new", new: "old", old: "usual" } as const;
   const SORT_WORD = { usual: "Usual order", new: "Newest first", old: "Oldest first" } as const;
+  // The day a call fell due, booked by hand or by the follow-up rule: the longest late first.
+  const dueOn = (q: PipeQuote) => q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? "9999";
   const usual = (s: Stage) => shown.filter((q) => q.stage === s).sort(
     // Late calls first, longest late at the top; then everything due today, biggest first.
-    s === "due" ? (a, b) => (a.nextOn ?? "9999").localeCompare(b.nextOn ?? "9999") || b.value - a.value
+    s === "due" ? (a, b) => dueOn(a).localeCompare(dueOn(b)) || b.value - a.value
       : s === "waiting" ? (a, b) => (a.nextOn ?? "").localeCompare(b.nextOn ?? "")
         : s === "won" ? (a, b) => (b.soldOn ?? "").localeCompare(a.soldOn ?? "")
           : (a, b) => b.value - a.value,
@@ -343,8 +345,17 @@ function when(q: PipeQuote, today: string): { text: string; late: number } {
   if (q.stage === "booked" || q.stage === "billed") return { text: afterWords(q, today), late };
   if (q.stage === "lost") return { text: q.lostReason ?? "Lost", late };
   if (q.stage === "waiting" && q.nextOn) return { text: `Ring ${dayName(q.nextOn, today)}`, late };
+  if (q.stage === "waiting") {
+    const next = ruleNext(q.pricedOn ?? q.quotedOn, q.touches);
+    return { text: next ? `Ring ${dayName(next, today)}` : `All ${FOLLOW_UPS} follow-ups done`, late };
+  }
   if (late) return { text: `Call was due ${shortDay(q.nextOn as string)}`, late };
-  if (q.stage === "due") return { text: "Call today", late };
+  if (q.stage === "due") {
+    // Late against the rule (no call booked by hand): say by how much.
+    const next = ruleNext(q.pricedOn ?? q.quotedOn, q.touches);
+    const behind = next && next < today ? daysBetween(next, today) : 0;
+    return { text: behind ? `Call ${behind === 1 ? "a day" : `${behind} days`} late` : "Call today", late: behind };
+  }
   return { text: `Quoted ${ago(q.quotedOn, today)}`, late };
 }
 
@@ -369,6 +380,7 @@ function Card({ q, today, i, onOpen, dragging, onDrag }: { q: PipeQuote; today: 
         </span>
         <span className="qp-title">{q.customer ?? q.what ?? "Quote"}</span>
         <span className="qp-sub">{sub}</span>
+        <span className="qp-sub qp-quoted">Quoted {shortDay(q.quotedOn)}{(q.stage === "due" || q.stage === "waiting") ? ` · ${tries < FOLLOW_UPS ? `follow-up ${tries + 1} of ${FOLLOW_UPS}` : `${FOLLOW_UPS} follow-ups done`}` : ""}</span>
         <span className="qp-cf">
           <span className="qp-val">{m0(q.value)}</span>
           <span className="qp-avs">{people.map((p) => <Av key={p} name={p} title={p === q.owner ? `${p} is chasing it` : `Quoted by ${p}`} />)}</span>
@@ -465,7 +477,8 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
 
         <dl className="qp-facts">
           <div><dt>Worth</dt><dd>{m0(q.value)}</dd></div>
-          <div><dt>Quoted</dt><dd>{ago(q.quotedOn, today)}{q.quotedBy ? ` by ${first(q.quotedBy)}` : ""}</dd></div>
+          <div><dt>Quoted</dt><dd>{dayName(q.quotedOn, today)} · {ago(q.quotedOn, today)}{q.quotedBy ? ` by ${first(q.quotedBy)}` : ""}</dd></div>
+          {isOpen && <div><dt>Follow-ups</dt><dd>{Math.min(tries, FOLLOW_UPS)} of {FOLLOW_UPS} done{tries < FOLLOW_UPS ? ` · next ${dayName(q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? today, today)}` : ""}</dd></div>}
           {q.soldOn && <div><dt>Sold</dt><dd>{dayName(q.soldOn, today)}</dd></div>}
           {q.work && <div><dt>The job</dt><dd>{q.work.jobNumber ? `#${q.work.jobNumber}` : "In ServiceTitan"} · {afterWords(q, today)}</dd></div>}
           {q.work && q.work.invoiced > 0 && <div><dt>Invoiced</dt><dd>{m0(q.work.invoiced)}{q.work.owing ? `, ${m0(q.work.owing)} owing` : ", paid"}</dd></div>}
@@ -491,7 +504,9 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
             e.preventDefault();
             // Saving only who's on it leaves a booked call where it was.
             const moveNext = !!how || picked || !q.nextOn;
-            run(() => saveFollowUp({ key: q.key, how, note: note || null, nextOn: moveNext ? next : undefined, owner: owner || null }));
+            // The third follow-up is the last: unless a day's been picked, it waits on them.
+            const last = !!how && how !== "note" && tries + 1 >= FOLLOW_UPS && !picked;
+            run(() => saveFollowUp({ key: q.key, how, note: note || null, nextOn: moveNext ? (last ? null : next) : undefined, owner: owner || null }));
           }}>
             <fieldset>
               <legend>What happened?</legend>

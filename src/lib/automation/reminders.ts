@@ -15,7 +15,7 @@ import { cleanCell } from "@/components/portal/fleetStatus";
 import { listContacts } from "@/lib/contacts/store";
 import { lastWords, nextDue, touchState } from "@/lib/contacts/types";
 import { matchName } from "@/lib/portal/crewFile/match";
-import { createAutoTodo, officeIds, teamPeople, todoLists } from "@/lib/todos/store";
+import { MAX_LISTS, createAutoTodo, officeIds, saveTodoLists, teamPeople, todoLists } from "@/lib/todos/store";
 import type { Person } from "@/lib/todos/types";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { clearApprovedQuoteTags } from "./quoteTag";
@@ -43,6 +43,8 @@ const who = (q: Pick<PipeQuote, "customer" | "suburb" | "jobNumber">) => [q.cust
 
 type Ctx = {
   sw: AutoSwitches;
+  /** Who the Accounts list's to-dos go to. */
+  accounts: Person | null;
   today: string;
   made: Map<string, string>;
   log: AutoEntry[];
@@ -52,7 +54,8 @@ type Ctx = {
 };
 
 /** The office's own list for sales follow-ups ("Quoting"), and the general one for everything else. */
-const listFor = (ctx: Ctx, sales: boolean) => {
+const listFor = (ctx: Ctx, sales: boolean, accounts = false) => {
+  if (accounts) return ctx.lists.find((l) => l === ACCOUNTS) ?? null;
   const quoting = ctx.lists.find((l) => /quot|sales/i.test(l));
   const other = ctx.lists.find((l) => l !== quoting);
   return (sales ? quoting ?? ctx.lists[0] : other ?? ctx.lists[0]) ?? null;
@@ -65,12 +68,12 @@ const personNamed = (ctx: Ctx, name: string | null | undefined): Person | null =
   return hit ? ctx.people.find((p) => p.name === hit) ?? null : null;
 };
 
-async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; notes?: string; to: Person | null; sales?: boolean; jobId?: number }): Promise<boolean> {
+async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; notes?: string; to: Person | null; sales?: boolean; accounts?: boolean; jobId?: number }): Promise<boolean> {
   if (ctx.made.has(key)) return false;
-  const to = t.to ?? ctx.office;
+  const to = t.to ?? (t.accounts ? ctx.accounts : null) ?? ctx.office;
   if (!to) return false;
   try {
-    await createAutoTodo({ title: t.title, notes: t.notes ?? null, assigneeId: to.id, dueOn: ctx.today, list: listFor(ctx, !!t.sales) });
+    await createAutoTodo({ title: t.title, notes: t.notes ?? null, assigneeId: to.id, dueOn: ctx.today, list: listFor(ctx, !!t.sales, !!t.accounts) ?? listFor(ctx, false) });
     ctx.made.set(key, new Date().toISOString());
     ctx.log.push({ at: new Date().toISOString(), kind, ok: true, jobId: t.jobId, title: `To-do for ${to.name.split(" ")[0]}: ${t.title}` });
     return true;
@@ -78,6 +81,19 @@ async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; no
     ctx.log.push({ at: new Date().toISOString(), kind, ok: false, jobId: t.jobId, title: `Couldn't write the to-do: ${t.title}`, detail: (e as Error).message.slice(0, 200) });
     return false;
   }
+}
+
+/**
+ * The invoicing and overdue to-dos go on a list of their own, so they're the
+ * accounts person's and nobody else's. Added to the board the first time
+ * either job is on; a board already at its five lists keeps them on the
+ * general list instead.
+ */
+export const ACCOUNTS = "Accounts";
+async function ensureAccountsList(lists: string[], sw: AutoSwitches): Promise<string[]> {
+  if (lists.includes(ACCOUNTS) || !(sw.notInvoiced || sw.overdueInv) || lists.length >= MAX_LISTS) return lists;
+  const next = [...lists, ACCOUNTS];
+  return (await saveTodoLists(next).catch(() => ({ ok: false }))).ok ? next : lists;
 }
 
 /* -------------------------------------------------------------- the jobs */
@@ -109,7 +125,7 @@ async function notInvoiced(ctx: Ctx) {
     if (await todo(ctx, "notInvoiced", `bill:${r.id}`, {
       title: `Invoice job ${r.jobNumber ?? r.id}${r.customer ? `, ${r.customer}` : ""}`,
       notes: `${r.jobType ?? "Job"}${r.suburb ? ` in ${r.suburb}` : ""}, finished ${dayLabel(done)}${r.value ? `, sold at ${money(r.value)}` : ""}. No invoice in ServiceTitan yet.`,
-      to: null, jobId: r.id,
+      to: null, accounts: true, jobId: r.id,
     })) n++;
   }
 }
@@ -185,7 +201,7 @@ async function overdueInv(ctx: Ctx) {
     ...(fresh.length > shown.length ? [`and ${fresh.length - shown.length} more on Finance › Owed to us`] : []),
   ].join("\n");
   const key = `owed-run:${ctx.today}:${fresh.map((i) => i.number).join(",").slice(0, 60)}`;
-  if (await todo(ctx, "overdueInv", key, { title: `Chase ${fresh.length} overdue ${fresh.length === 1 ? "invoice" : "invoices"}, ${money(total)}`, notes, to: null })) {
+  if (await todo(ctx, "overdueInv", key, { title: `Chase ${fresh.length} overdue ${fresh.length === 1 ? "invoice" : "invoices"}, ${money(total)}`, notes, to: null, accounts: true })) {
     for (const i of fresh) ctx.made.set(`owed:${i.number}:${band(i.daysOver)}`, new Date().toISOString());
   }
 }
@@ -285,7 +301,8 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const sw = await loadSwitches();
   const [made, people, offIds, lists] = await Promise.all([loadMade(), teamPeople(), officeIds(), todoLists()]);
   const office = people.find((p) => p.id === sw.officeTo) ?? people.find((p) => offIds.includes(p.id)) ?? null;
-  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, lists };
+  const accounts = people.find((p) => p.id === sw.accountsTo) ?? office;
+  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureAccountsList(lists, sw) };
   const needPipe = sw.soldNotBooked || sw.quoteFollow;
   const pipe = needPipe ? await loadPipeline({ detail: true }).then((p) => p.quotes).catch(() => null) : [];
 
