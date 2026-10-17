@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { Locked } from "@/components/portal/Locked";
 import { EmailListEditor } from "@/components/portal/EmailListEditor";
 import { SendAgainButton } from "@/components/portal/ReportButtons";
@@ -35,19 +35,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: { k?
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/section/board" label="Wall board" />
-      <div className="pt-head pt-head--split">
-        <div>
-          <h1>Reports</h1>
-          <p>
-            The board&rsquo;s figures, put together and emailed at half past five: the day on every working day, the week on its
-            last working day, and the month on its last. Each one is kept here as it was sent.
-          </p>
-        </div>
-        <div className="pt-vhead__acts">
-          <Link href="/portal/board/reports/preview" className="pt-btn pt-btn--orange">Preview the reports</Link>
-        </div>
-      </div>
+      <PageHead title="Reports" line="The board's figures, emailed at 5:30 pm: daily, weekly and monthly."
+        info={<p>The day on every working day, the week on its last working day, and the month on its last. Each one is kept here as it was sent.</p>}
+        action={<Link href="/portal/board/reports/preview" className="qp-btn dark">Preview the reports</Link>} />
 
       {!ready && <div className="pt-note pt-note--warn"><strong>The database isn&rsquo;t connected,</strong> so nothing can be kept or sent yet.</div>}
 

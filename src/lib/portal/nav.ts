@@ -284,7 +284,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       href: "/portal/board/reports", label: "Reports", blurb: "The day, the week and the month, kept and emailed", band: "board", icon: "doc",
       also: ["report", "daily report", "weekly report", "monthly report", "email", "summary"],
     },
-    { href: "/portal/board", label: "What it shows", short: "Pages", blurb: "Each page's figures, and where they come from", band: "board", icon: "chart", also: ["dashboard", "screen", "tv", "live", "feeds"] },
     { href: "/portal/finance/board", label: "Targets & commission", short: "Targets", blurb: "What it aims at, the bonus bands, the working days", band: "board", icon: "target", also: ["commission", "bonus", "working days", "holidays", "board targets"] },
   );
   // The rebuilt Run the company pages (PR 2 of the new design).

@@ -1,10 +1,10 @@
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { ViewAsPicker } from "@/components/portal/ViewAs";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 
 export const metadata = { title: "Admin · Team portal" };
@@ -16,11 +16,7 @@ export default async function AdminHome() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>Admin</h1>
-        <p>Who&rsquo;s on the team and exactly what each person can see.</p>
-      </div>
+      <PageHead title="Admin" line="Who's on the team and exactly what each person can see." />
 
       {/* Four doors, two by two, as in the Admin mock: a title, what's behind
           it, and the one word that says what you'll do there. */}

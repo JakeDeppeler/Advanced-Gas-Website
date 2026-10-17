@@ -4,7 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { BoardCommission } from "@/components/portal/BoardCommission";
 import { BoardCalendar } from "@/components/portal/BoardCalendar";
 import { monthTargetsFromYearGoal, normaliseBoardSettings } from "@/lib/dashboard/boardSettings";
@@ -76,24 +76,11 @@ export default async function BoardPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/board" label="Wall board" />
-
-      <div className="pt-head pt-head--split">
-        <div>
-          <h1>What the board is aiming at</h1>
-          <p>
-            Every target on the wall comes from the year goal, worked out fresh for the month on every refresh. Change
-            the goal and the board follows within the minute.
-          </p>
-        </div>
-        {/* The board is gated by a shared token rather than a login, so it
-            cannot be linked to directly. This goes through a route that checks
-            the session first and then redirects with the token, which keeps the
-            token out of this page's markup. */}
-        <a className="pt-btn pt-btn--ghost" href="/portal/finance/board/open" target="_blank" rel="noreferrer">
-          Open the live board ↗
-        </a>
-      </div>
+      {/* The board is gated by a shared token rather than a login, so it
+          cannot be linked to directly; /open checks the session first. */}
+      <PageHead title="Targets & commission" line="What the board is aiming at this month, from the year goal."
+        info={<p>Every target on the wall comes from the year goal, worked out fresh for the month on every refresh. Change the goal and the board follows within the minute.</p>}
+        action={<a className="qp-btn dark" href="/portal/finance/board/open" target="_blank" rel="noreferrer">Open the live board ↗</a>} />
 
       {!ready && (
         <section className="pt-panel">

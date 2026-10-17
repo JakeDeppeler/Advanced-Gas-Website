@@ -208,7 +208,6 @@ export const SECTION_DEFS: SectionDef[] = [
       {
         label: "Wall board", tab: "Remote", href: "/portal/board/remote",
         subs: [
-          { label: "What it shows", href: "/portal/board" },
           { label: "Targets & commission", href: "/portal/finance/board" },
           { label: "Sounds", href: "/portal/board/sounds" },
           { label: "Standard times", href: "/portal/board/times" },

@@ -1,3 +1,4 @@
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { ROLE_LABELS } from "@/lib/portal/caps";
@@ -6,7 +7,6 @@ import { getUser, listGoals, listReviews, dbConfigured } from "@/lib/portal/db";
 import { PersonVan } from "@/components/portal/PersonVan";
 import { personVan } from "@/lib/portal/personVan";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { money2 } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
@@ -30,11 +30,7 @@ export default async function MyFile() {
 
   return (
     <PortalShell user={me}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>Where you&rsquo;re at, {me.name.split(" ")[0]}.</h1>
-        <p>What&rsquo;s expected of you, your goals and your reviews. Set by your manager.</p>
-      </div>
+      <PageHead title={<>Where you&rsquo;re at, {me.name.split(" ")[0]}.</>} line="What's expected of you, your goals and your reviews. Set by your manager." />
 
       {!record?.id && (
         <div className="pt-note">Your file isn&rsquo;t set up yet. Once a manager adds goals or a review, they&rsquo;ll show here.</div>
