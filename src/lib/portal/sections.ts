@@ -68,7 +68,7 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  * it sits in: Home, the business, the day-to-day, then settings.
  */
 export const SECTION_DEFS: SectionDef[] = [
-  { id: "home", label: "Home", icon: "home", blurb: "", group: 0, pages: [{ label: "Home", href: "/portal" }] },
+  { id: "home", label: "Overview", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
   // The quotes to chase, as their own tab, the way Rapport has its Pipeline:
   // the office lives in it, so it isn't two clicks deep under Sales.
   { id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, and who's chasing it", pages: [{ label: "Pipeline", href: "/portal/pipeline" }] },
@@ -94,7 +94,7 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "pf", label: "Money", icon: "pf", group: 1, blurb: "Profit, cash, who owes what, and Xero",
+    id: "pf", label: "Finance", icon: "pf", group: 1, blurb: "Profit, cash, who owes what, and Xero",
     pages: [
       { label: "Overview", href: "/portal/finance" },
       { label: "Profit & loss", href: "/portal/finance/pl" },

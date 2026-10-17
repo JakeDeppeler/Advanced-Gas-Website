@@ -1512,3 +1512,96 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
   /* Full width under the bar, starting under the mark, as Rapport's pages do. */
   .pt.pn .pn-content { max-width: none; margin: 0; padding-right: 40px; }
 }
+
+/* ------------------------------------------------------------------
+   Measured against Rapport side by side, at the same window: their bar,
+   title, figures and board run a little smaller and lighter than ours did.
+   Medium weights for titles and figures, the mark smaller, the toolbar and
+   cards at their sizes. Drag-and-drop states for the board.
+   ------------------------------------------------------------------ */
+@media (min-width: 1240px) {
+  .pn-top { height: 76px; padding-left: 104px; }
+  .pn-brand { gap: 10px; }
+  .pn-brand .pn-logo { width: 38px; height: 38px; border-radius: 11px; font-size: 12px; position: relative; }
+  .pn-brandt b { font-size: 19px; font-weight: 600; letter-spacing: -0.03em; }
+  .pn-pill { height: 40px; padding: 0 15px; font-size: 13.5px; font-weight: 500; }
+  .pn-round, .pn-tools .pn-bell, .pn-avbtn { width: 40px; height: 40px; }
+  .pt.pn .pn-content { padding-left: 104px; }
+}
+.pn-logodot { position: absolute; right: -3px; top: -3px; width: 11px; height: 11px; border-radius: 50%; background: var(--mid-f); box-shadow: 0 0 0 2px var(--rp-wash-b); }
+.pn-logodot.good { background: var(--good-f); }
+
+.rp-top--left .rp-title h1, .rp-title h1 { font-size: 38px; font-weight: 500; letter-spacing: -0.045em; line-height: 1.04; }
+.pn .pk-head h1, .pn .pt-head h1, .pn .pt-hi__h { font-weight: 500; letter-spacing: -0.04em; }
+.rp-kpi b { font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
+.rp-ico { width: 44px; height: 44px; }
+.pn .pk-fig, .pn .pk-hero .pk-hf, .rp-big .rp-num { font-weight: 500; letter-spacing: -0.03em; }
+
+.qp-find { height: 40px; width: 260px; }
+.qp-find input { font-size: 13.5px; }
+.qp-chip { height: 38px; font-size: 13px; font-weight: 500; padding: 0 14px 0 12px; }
+.qp-chip:has(.qp-av) { padding-left: 5px; }
+.qp-av { width: 26px; height: 26px; font-size: 11px; }
+.qp-view { padding: 3px; }
+.qp-view button { font-size: 13px; padding: 7px 14px; font-weight: 500; }
+.qp-dl { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--rp-line); background: var(--rp-card); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.qp-dl:hover { background: var(--surface); }
+.qp-colh h2 { font-size: 14px; font-weight: 600; }
+.qp-sum { font-size: 13px; font-weight: 600; }
+.qp-col { border-radius: 26px; padding: 10px; transition: background .2s, border-color .2s, opacity .2s; }
+.qp-card { min-height: 148px; padding: 14px 15px 15px; border-radius: 22px; grid-template-rows: auto auto auto 1fr; }
+.qp-ct { font-size: 11.5px; }
+.qp-dots { width: 30px; height: 30px; font-size: 9px; font-weight: 900; letter-spacing: 1.5px; opacity: .7; border-width: 1.5px; }
+.qp-title { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; margin-top: 6px; }
+.qp-sub { font-size: 12.5px; }
+.qp-cf { margin-top: 16px; align-items: center; }
+.qp-val { font-size: 18.5px; font-weight: 600; }
+.qp-avs .qp-av { width: 26px; height: 26px; }
+.qp-board { grid-template-columns: repeat(4, minmax(240px, 1fr)) 118px; gap: 14px; }
+.qp-drop { border-radius: 26px; }
+.qp-drop b { font-size: 14px; }
+.qp-dropi { width: 46px; height: 46px; }
+
+/* Dragging: where it can land lights up, where it can't fades back. */
+.qp-card[draggable="true"] { cursor: grab; }
+.qp-card.dragging { opacity: .45; transform: scale(.98); }
+.qp-col.cant, .qp-drop.cant { opacity: .5; }
+.qp-col.can, .qp-drop.can { border: 2px dashed var(--ink4); }
+.qp-col.over, .qp-drop.over { border-color: var(--ink); background: color-mix(in srgb, var(--surface) 85%, transparent); }
+.qp-toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 90; margin: 0; padding: 12px 18px; border-radius: 99px; background: var(--rp-on-bg); color: var(--rp-on-ink); font-size: 13.5px; font-weight: 600; box-shadow: 0 16px 40px -16px rgba(0,0,0,.5); }
+@media (prefers-reduced-motion: no-preference) { .qp-toast { animation: rp-rise .3s ease both; } }
+/* Ten sections in Inter need more room than Rapport's seven: the name beside
+   the mark only on a wide screen, and the words closer as it narrows. */
+@media (min-width: 1240px) and (max-width: 1759px) {
+  .pn-brandt { display: none; }
+  .pn-pill { padding: 0 12px; font-size: 13.5px; }
+}
+@media (min-width: 1240px) and (max-width: 1499px) {
+  .pn-top { padding-left: 28px; padding-right: 24px; gap: 10px; }
+  .pn-pills { gap: 0; }
+  .pn-pill { padding: 0 9px; font-size: 12.5px; }
+  .pn-tools { gap: 8px; }
+}
+@media (min-width: 1240px) and (max-width: 1339px) {
+  .pn-pill { padding: 0 7px; font-size: 12px; }
+}
+
+/* ------------------------------------------------------------------
+   The older pages, brought into line: no fake bold past the face's 600,
+   the intro paragraph at reading size, and their segmented controls and
+   tab rows drawn like the kit's.
+   ------------------------------------------------------------------ */
+.pt.pn { font-synthesis-weight: none; }
+.pn .pt-head p, .pn .pt-head > div > p { font-size: 14px; line-height: 1.55; color: var(--ink2); max-width: 72ch; }
+.pn .pt-head p b, .pn .pt-head p strong { color: var(--ink); font-weight: 600; }
+.pn .pt-seg { background: var(--rp-card); border: 1px solid var(--rp-line); padding: 3px; }
+.pn .pt-seg__b { font-size: 13px; font-weight: 500; padding: 6px 14px; }
+.pn .pt-seg__b.is-on { background: var(--rp-on-bg); color: var(--rp-on-ink); box-shadow: none; font-weight: 600; }
+.pn .pt-seg__b.is-on.pt-seg__b--good, .pn .pt-seg__b.is-on.pt-seg__b--on { background: var(--good-bg); color: var(--good); }
+.pn .pt-seg__b.is-on.pt-seg__b--off { background: var(--bad-bg); color: var(--bad); }
+.pn .pt-tabs { background: var(--rp-card); border: 1px solid var(--rp-line); }
+.pn .pt-tabs a, .pn .pt-tabs .pt-tab { font-size: 13px; font-weight: 500; }
+.pn .pt-tabs a.is-on, .pn .pt-tabs .pt-tab.is-on { background: var(--rp-on-bg); color: var(--rp-on-ink); box-shadow: none; font-weight: 600; }
+.pn .pt-btn { font-weight: 600; font-size: 13.5px; }
+.pn .pk-btn { font-weight: 600; font-size: 13.5px; }
+.pn input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .pn select, .pn textarea { font-family: inherit; }
