@@ -29,11 +29,12 @@ export function JobsTabs({ on, notBilled, today }: { on: "today" | "list" | "pro
   );
 }
 
-export function TeamTabs({ on }: { on: "rates" | "build" | "running" | "leaders" | "hours" }) {
+export function TeamTabs({ on }: { on: "rates" | "build" | "cover" | "running" | "leaders" | "hours" }) {
   return (
     <Tabs on={on} items={[
       { key: "rates", label: "Labour rates", href: "/portal/rates" },
       { key: "build", label: "Build our rate", href: "/portal/finance/hourly" },
+      { key: "cover", label: "What an hour must cover", href: "/portal/finance/cover" },
       { key: "running", label: "Running costs", href: "/portal/finance/running" },
       { key: "leaders", label: "Leaderboard", href: "/portal/rates?tab=leaders" },
       { key: "hours", label: "Hours", href: "/portal/hours" },
@@ -41,12 +42,13 @@ export function TeamTabs({ on }: { on: "rates" | "build" | "running" | "leaders"
   );
 }
 
-export function PaceTabs({ on }: { on: "mix" | "funnel" | "year" }) {
+export function PaceTabs({ on }: { on: "mix" | "funnel" | "year" | "set" }) {
   return (
     <Tabs on={on} items={[
       { key: "mix", label: "The mix", href: "/portal/goal" },
       { key: "funnel", label: "Step by step", href: "/portal/pace" },
       { key: "year", label: "The year so far", href: "/portal/finance/goals" },
+      { key: "set", label: "Set the goals", href: "/portal/numbers" },
     ]} />
   );
 }

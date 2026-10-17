@@ -247,7 +247,8 @@ export function SectionBar({ sections }: { sections: Section[] }) {
   if (!tabs) return null;
   const at = flat ? here.page?.href : here.at;
   return (
-    <nav className="pk-seg pn-secbar" aria-label={flat ? here.section!.label : here.page!.label}>
+    // On a wide screen a group's tabs are in the section row (SectionPages); this row is for the narrow layout.
+    <nav className={`pk-seg pn-secbar${flat ? "" : " pn-secbar--group"}`} aria-label={flat ? here.section!.label : here.page!.label}>
       {tabs.map((p) => {
         const on = p.href === at;
         return (

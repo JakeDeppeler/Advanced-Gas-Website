@@ -99,7 +99,8 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "This month", href: "/portal/month", subs: [{ label: "KPIs", href: "/portal/kpis" }, { label: "Month review", href: "/portal/finance/review" }] },
       { label: "Sales", href: "/portal/sales" },
       { label: "Jobs", href: "/portal/jobs" },
-      { label: "Year goal", href: "/portal/goal", subs: [{ label: "Set the goals", href: "/portal/numbers" }] },
+      // Setting the goals is in Year goal's own tab row.
+      { label: "Year goal", href: "/portal/goal" },
     ],
   },
   {
@@ -117,13 +118,8 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     id: "numbers", label: "Pricing & costs", icon: "numbers", group: 1, blurb: "What an hour costs, what we charge, and every figure behind it",
     pages: [
-      {
-        label: "Hourly rate", href: "/portal/rates",
-        subs: [
-          { label: "What an hour must cover", href: "/portal/finance/cover" },
-          { label: "Running costs", href: "/portal/finance/running" },
-        ],
-      },
+      // What an hour must cover and Running costs are in Hourly rate's own tab row.
+      { label: "Hourly rate", href: "/portal/rates" },
       {
         label: "Overheads", tab: "Overheads", href: "/portal/finance/capacity",
         subs: [
@@ -356,6 +352,10 @@ export const ALIAS: [string, string][] = [
   ["/portal/finance/hourly", "/portal/rates"],
   // A tab of Pace & year goal.
   ["/portal/finance/goals", "/portal/goal"],
+  ["/portal/numbers", "/portal/goal"],
+  // Tabs of Hourly rate.
+  ["/portal/finance/cover", "/portal/rates"],
+  ["/portal/finance/running", "/portal/rates"],
 ];
 const unalias = (path: string) => ALIAS.find(([from]) => path === from || path.startsWith(`${from}/`))?.[1] ?? path;
 

@@ -7,7 +7,7 @@ import { Icon } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { SEARCH_EVENT } from "@/components/portal/shell/TopNav";
 
-export type DockLink = { href: string; label: string; icon: string };
+export type DockLink = { href: string; label: string; icon: string; match?: string[]; count?: { n: number; red?: boolean }; section?: string };
 
 /**
  * The floating strip down the left of a wide screen, as Rapport has it: the
@@ -25,10 +25,13 @@ export function Dock({ links, theme }: { links: DockLink[]; theme: ThemeChoice }
         <span className="pn-tip" aria-hidden="true">Search</span>
       </button>
       {links.map((l) => {
-        const on = path === l.href.split("?")[0];
+        // Lit anywhere in its section, not just on the one page it opens.
+        const on = (l.match ?? [l.href]).some((h) => { const b = h.split("?")[0]; return path === b || path.startsWith(`${b}/`); });
+        const label = l.count?.n ? `${l.label}, ${l.count.n}${l.count.red ? " needing you" : ""}` : l.label;
         return (
-          <Link key={l.href} href={l.href} className={`pn-dk${on ? " on" : ""}`} aria-label={l.label} aria-current={on ? "page" : undefined}>
+          <Link key={l.href} href={l.href} className={`pn-dk${on ? " on" : ""}`} aria-label={label} aria-current={on ? "page" : undefined}>
             <Icon name={l.icon} size={18} />
+            {l.count?.n ? <span className={`pn-dkc${l.count.red ? " r" : ""}`} aria-hidden="true">{l.count.n > 99 ? "99+" : l.count.n}</span> : null}
             <span className="pn-tip" aria-hidden="true">{l.label}</span>
           </Link>
         );
