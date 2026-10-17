@@ -4,7 +4,6 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Heads } from "@/components/portal/marketingParts";
 import { listIntegrations, type IntegrationState } from "@/lib/portal/integrations";
 import { Locked } from "@/components/portal/Locked";
 
@@ -45,16 +44,13 @@ export default async function IntegrationsPage() {
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Integrations" line="Every outside system the business runs on, and whether it's working."
+      <div className="sx">
+      <PageHead hi="Settings" title="Integrations" kpis={[
+        { icon: "check", fig: String(count("working")), label: "Working" },
+        { icon: "alert", fig: String(count("attention")), label: count("attention") ? "Need a look, listed first" : "Need a look", ...(count("attention") ? { badge: "Look", tone: "down" as const } : {}) },
+        { icon: "plug", fig: String(count("off")), label: "Not connected yet" },
+      ]} line="Every outside system the business runs on, and whether it's working."
         info={<p>Read from what each one last sent; opening this page doesn&rsquo;t call any of them. Keys and passwords live in the hosting settings, never here.</p>} />
-
-      <Heads
-        items={[
-          { label: "Working", value: String(count("working")), sub: "nothing to do", feature: true },
-          { label: "Need a look", value: String(count("attention")), sub: count("attention") ? "listed first, below" : "all clear" },
-          { label: "Not connected", value: String(count("off")), sub: "not set up yet" },
-        ]}
-      />
 
       <div className="pt-integ">
         {sorted.map((r) => (
@@ -93,6 +89,7 @@ export default async function IntegrationsPage() {
       <p className="pt-panel__sub" style={{ marginTop: 18 }}>
         Keys and passwords live in the hosting settings, never here. This page only knows whether each one is set.
       </p>
+    </div>
     </PortalShell>
   );
 }

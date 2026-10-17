@@ -18,96 +18,126 @@ import type { JobTypeRow } from "@/lib/board/standardTimes";
  * half-finished save here is a page of settings nobody can tell apart from a
  * page of unset ones.
  */
-export function StandardTimes({ rows, set, rebate }: { rows: JobTypeRow[]; set: number; rebate: number | null }) {
-  const [vals, setVals] = useState<Record<string, string>>(
-    Object.fromEntries(rows.map((r) => [r.name, r.hours == null ? "" : String(r.hours)])),
-  );
-  const [saved, setSaved] = useState<Record<string, "ok" | "err">>({});
-  const [note, setNote] = useState<string | null>(null);
-  const [, start] = useTransition();
-
-  const commit = (name: string, raw: string) => {
-    const txt = raw.trim();
-    const hours = txt === "" ? null : Number(txt);
-    if (hours != null && (!Number.isFinite(hours) || hours <= 0 || hours > 24)) {
-      setSaved((s) => ({ ...s, [name]: "err" }));
-      return;
-    }
-    start(async () => {
-      const res = await setStandardTime(name, hours);
-      setSaved((s) => ({ ...s, [name]: res.ok ? "ok" : "err" }));
-      if (res.note) setNote(`${name}: ${res.note}`);
-    });
-  };
-
+export function StandardTimes({ rows, rebate }: { rows: JobTypeRow[]; set: number; rebate: number | null }) {
   const covered = rows.filter((r) => r.jobs > 0 && (r.hours != null || r.quoted > 0)).length;
   const busy = rows.filter((r) => r.jobs > 0).length;
+  const unset = rows.filter((r) => r.jobs > 0 && r.hours == null).length;
 
   return (
     <>
-      <VeuRebate rebate={rebate} />
       <div className="pt-panel">
-      <div className="pt-panel__head">
-        <h2 className="pt-panel__h">Hours per job type</h2>
-        <span className="pt-panel__sub">
-          {set} set · {covered} of {busy} active types can be measured · read from and saved to each job type&rsquo;s duration in ServiceTitan
-        </span>
-      </div>
-      {note && <p className="pt-inline is-ok" role="status">{note}</p>}
+        <div className="pt-panel__head">
+          <h2 className="pt-panel__h">Hours per job type</h2>
+          <span className="pt-panel__sub">
+            {covered} of {busy} types booked in the last 90 days can be measured
+            {unset > 0 ? ` · ${unset} still need a time` : ""} · click a time to change it in ServiceTitan
+          </span>
+        </div>
 
-      <table className="pt-table pt-times">
-        <thead>
-          <tr>
-            <th>Job type</th>
-            <th className="pt-times__n">Jobs · 90 days</th>
-            <th className="pt-times__n">Quoted in hours</th>
-            <th className="pt-times__n">Should take</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 && (
+        <table className="pt-table pt-times st2">
+          <thead>
             <tr>
-              <td colSpan={4}>No job types yet. They arrive with the next ServiceTitan sync.</td>
+              <th>Job type</th>
+              <th className="pt-times__n">Jobs · 90 days</th>
+              <th className="pt-times__n">Quoted in hours</th>
+              <th className="pt-times__n">Time in ServiceTitan</th>
             </tr>
-          )}
-          {rows.map((r) => (
-            <tr key={r.name} className={r.jobs === 0 ? "is-quiet" : undefined}>
-              <td>
-                <strong>{r.name}</strong>
-              </td>
-              <td className="pt-times__n">{r.jobs || ""}</td>
-              {/* How often the board can already measure this type without help.
-                  A type at 0 of 12 is the one worth setting; one at 12 of 12
-                  gains nothing from a standard time. */}
-              <td className="pt-times__n">{r.jobs > 0 ? `${r.quoted} of ${r.jobs}` : ""}</td>
-              <td className="pt-times__n">
-                <span className="pt-times__field">
-                  <input
-                    type="number"
-                    min="0"
-                    max="24"
-                    step="0.25"
-                    inputMode="decimal"
-                    aria-label={`Hours for ${r.name}`}
-                    value={vals[r.name] ?? ""}
-                    placeholder=""
-                    onChange={(e) => setVals((v) => ({ ...v, [r.name]: e.target.value }))}
-                    onBlur={(e) => commit(r.name, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-                    }}
-                  />
-                  <em>h</em>
-                  {saved[r.name] === "ok" && <b className="pt-times__ok">Saved</b>}
-                  {saved[r.name] === "err" && <b className="pt-times__err">0–24</b>}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={4}>No job types yet. They arrive with the next ServiceTitan sync.</td>
+              </tr>
+            )}
+            {rows.map((r) => (
+              <tr key={r.name} className={r.jobs === 0 ? "is-quiet" : undefined}>
+                <td><strong>{r.name}</strong></td>
+                <td className="pt-times__n">{r.jobs || "–"}</td>
+                {/* How often the board can already measure this type without help.
+                    A type at 0 of 12 is the one worth setting; one at 12 of 12
+                    gains nothing from a standard time. */}
+                <td className="pt-times__n">{r.jobs > 0 ? `${r.quoted} of ${r.jobs}` : "–"}</td>
+                <td className="pt-times__n"><TimeCell row={r} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+      <VeuRebate rebate={rebate} />
     </>
+  );
+}
+
+/** 1.5 → "1 h 30 m", 4 → "4 h". */
+function hoursWords(h: number): string {
+  const mins = Math.round(h * 60);
+  const hh = Math.floor(mins / 60);
+  const mm = mins % 60;
+  return hh && mm ? `${hh} h ${mm} m` : hh ? `${hh} h` : `${mm} m`;
+}
+
+/**
+ * The time, read straight from the job type in ServiceTitan, and changed in
+ * the row it sits in: click it, type the hours, Enter. A save goes to
+ * ServiceTitan first; only if ServiceTitan refuses is it kept in the portal,
+ * and the row says so rather than looking the same as one that saved.
+ */
+function TimeCell({ row }: { row: JobTypeRow }) {
+  const [hours, setHours] = useState(row.hours);
+  const [from, setFrom] = useState(row.from);
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState("");
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, start] = useTransition();
+
+  const open = () => { setVal(hours == null ? "" : String(hours)); setMsg(null); setEditing(true); };
+  const save = () => {
+    const txt = val.trim();
+    const next = txt === "" ? null : Number(txt);
+    if (next != null && (!Number.isFinite(next) || next <= 0 || next > 24)) {
+      setMsg({ ok: false, text: "Between 0 and 24 hours" });
+      return;
+    }
+    if (next === hours) { setEditing(false); return; }
+    start(async () => {
+      const res = await setStandardTime(row.name, next);
+      if (!res.ok) { setMsg({ ok: false, text: res.error ?? "Couldn't save" }); return; }
+      const kept = /didn't take/.test(res.note ?? "");
+      setHours(next);
+      setFrom(next == null ? null : kept ? "portal" : "servicetitan");
+      setEditing(false);
+      setMsg({ ok: !kept, text: kept ? "Kept here, ServiceTitan refused it" : "Saved in ServiceTitan" });
+    });
+  };
+
+  if (editing) {
+    return (
+      <span className="st2-edit">
+        <input
+          id={`st-${row.name}`}
+          type="number" min="0" max="24" step="0.25" inputMode="decimal" autoFocus
+          aria-label={`Hours for ${row.name}`}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
+          disabled={pending}
+        />
+        <em>h</em>
+        <button type="button" className="qp-btn dark st2-btn" onClick={save} disabled={pending}>{pending ? "Saving…" : "Save"}</button>
+        <button type="button" className="qp-btn st2-btn" onClick={() => setEditing(false)} disabled={pending}>Cancel</button>
+        {msg && !msg.ok && <b className="pt-times__err">{msg.text}</b>}
+      </span>
+    );
+  }
+  return (
+    <span className="st2-show">
+      {msg && <b className={msg.ok ? "pt-times__ok" : "pt-times__err"}>{msg.text}</b>}
+      {from === "portal" && !msg && <span className="st2-tag" title="ServiceTitan wouldn't take this time, so the portal is holding it">portal only</span>}
+      <button type="button" className={`st2-time${hours == null ? " is-unset" : ""}`} onClick={open} title={`Change the time for ${row.name}`} aria-label={`${hours == null ? "No time" : hoursWords(hours)} for ${row.name}. Change the time for ${row.name}`}>
+        {hours == null ? "Not set" : hoursWords(hours)}
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+      </button>
+    </span>
   );
 }
 

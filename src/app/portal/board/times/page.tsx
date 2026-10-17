@@ -26,7 +26,12 @@ export default async function StandardTimesPage() {
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Standard times" line="How long each kind of job should take, read from and saved to ServiceTitan's job types."
+      <div className="sx">
+      <PageHead hi="Wall board" title="Standard times" line="How long each kind of job should take, read from and saved to ServiceTitan's job types."
+        kpis={[
+          { icon: "clock", fig: `${rows.filter((r) => r.from === "servicetitan").length} of ${rows.length}`, label: "Job types with a time in ServiceTitan" },
+          { icon: "alert", fig: String(rows.filter((r) => r.jobs > 0 && r.hours == null).length), label: "Booked lately with no time" },
+        ]}
         info={<p>The Daily pace page measures each tech&rsquo;s hours against what the job should take. A job quoted in hours uses its own quote; these fill in the rest. Saving a time here changes the job type&rsquo;s duration in ServiceTitan, so dispatch books the same length of slot.</p>} />
       {!ready && (
         <div className="pt-note pt-note--warn">
@@ -34,6 +39,7 @@ export default async function StandardTimesPage() {
         </div>
       )}
       <StandardTimes rows={rows} set={set} rebate={rebate} />
+    </div>
     </PortalShell>
   );
 }

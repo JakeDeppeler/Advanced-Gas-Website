@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { KpiHead } from "@/components/portal/kit/Kit";
+import { PageHead } from "@/components/portal/kit/PageHead";
 import { AutoSwitch } from "@/components/portal/AutoSwitch";
 import { loadAutoLog, loadSwitches } from "@/lib/automation/log";
 
@@ -24,11 +24,11 @@ export default async function AutomaticPage() {
   const week = log.filter((e) => Date.now() - Date.parse(e.at) < 7 * 86_400_000);
   return (
     <PortalShell user={user}>
-      <KpiHead title="Automatic" kpis={[
-        { icon: "trend", fig: String(week.filter((e) => e.ok).length), label: "Done in the last 7 days" },
-        { icon: "clock", fig: String(week.filter((e) => !e.ok).length), label: "Couldn't be done, last 7 days" },
+      <div className="sx">
+      <PageHead hi="Settings" title="Automatic" line="What the portal does by itself after each ServiceTitan sync, and a line for every time it did something." kpis={[
+        { icon: "check", fig: String(week.filter((e) => e.ok).length), label: "Done in the last 7 days" },
+        { icon: "alert", fig: String(week.filter((e) => !e.ok).length), label: "Couldn't be done, last 7 days" },
       ]} />
-      <p className="pk-note td-intro">What the portal does by itself after each ServiceTitan sync, and a line for every time it did something.</p>
 
       <section className="pk-card pk-pad au-list">
         <h2 className="rv-h2">What runs by itself</h2>
@@ -65,6 +65,7 @@ export default async function AutomaticPage() {
           </ul>
         ) : <p className="qp-note">Nothing yet. The first run is after the next ServiceTitan sync.</p>}
       </section>
+    </div>
     </PortalShell>
   );
 }

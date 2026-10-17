@@ -30,7 +30,8 @@ export default async function BoardRemotePage() {
 
   return (
     <PortalShell user={user} variant="wide">
-      <PageHead title="Wall board" line="What's on the office TV right now, and a remote for it."
+      <div className="sx">
+      <PageHead hi="Wall board" title="Wall board" line="What's on the office TV right now, and a remote for it."
         info={<p>Whatever you press here shows on the TV within a few seconds. Somebody at the TV can still skip or hold with its own buttons.</p>}
         action={<a className="qp-btn dark" href="/portal/finance/board/open" target="_blank" rel="noreferrer">Open it full screen ↗</a>} />
 
@@ -51,6 +52,7 @@ export default async function BoardRemotePage() {
           <BoardRemoteControls initial={remote} />
         </section>
       </div>
+    </div>
     </PortalShell>
   );
 }

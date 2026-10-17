@@ -16,7 +16,8 @@ export default async function AdminHome() {
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Admin" line="Who's on the team and exactly what each person can see." />
+      <div className="sx">
+      <PageHead hi="Settings" title="Admin" line="Who's on the team and exactly what each person can see." />
 
       {/* Four doors, two by two, as in the Admin mock: a title, what's behind
           it, and the one word that says what you'll do there. */}
@@ -46,6 +47,7 @@ export default async function AdminHome() {
         </Link>
       </div>
       <ViewAsPicker current={user.viewingAs} />
+    </div>
     </PortalShell>
   );
 }

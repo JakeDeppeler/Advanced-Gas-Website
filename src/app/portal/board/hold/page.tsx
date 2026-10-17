@@ -28,7 +28,8 @@ export default async function HoldTagsPage() {
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Held work" line="Which ServiceTitan tags mean a job is waiting on something."
+      <div className="sx">
+      <PageHead hi="Wall board" title="Held work" line="Which ServiceTitan tags mean a job is waiting on something."
         info={<>
           <p>The <strong>Stuck</strong> page counts open jobs waiting on something, and the only thing in ServiceTitan that says what they&rsquo;re waiting on is the tag. Half the tags aren&rsquo;t holds at all (<em>Potential Member</em> sits on sixty-odd open jobs), so this is where the office says which ones are.</p>
           <p><strong>On us</strong> is work somebody here can move today; <strong>on them</strong> is a quote or an answer we&rsquo;re waiting on a customer for.</p>
@@ -39,6 +40,7 @@ export default async function HoldTagsPage() {
         </div>
       )}
       <HoldTags rows={rows} configured={configured} held={held} />
+    </div>
     </PortalShell>
   );
 }

@@ -35,7 +35,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: { k?
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Reports" line="The board's figures, emailed at 5:30 pm: daily, weekly and monthly."
+      <div className="sx">
+      <PageHead hi="Wall board" title="Reports" line="The board's figures, emailed at 5:30 pm: daily, weekly and monthly."
         info={<p>The day on every working day, the week on its last working day, and the month on its last. Each one is kept here as it was sent.</p>}
         action={<Link href="/portal/board/reports/preview" className="qp-btn dark">Preview the reports</Link>} />
 
@@ -105,6 +106,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: { k?
         <p className="pt-panel__sub">Every report goes to everyone on this list.</p>
         <EmailListEditor id="report" initial={recipients} change={changeReportRecipient} empty="Nobody is on the list, so the reports are kept here but not emailed." />
       </section>
+    </div>
     </PortalShell>
   );
 }

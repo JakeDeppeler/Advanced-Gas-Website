@@ -28,6 +28,7 @@ export default async function SettingsPage() {
 
   return (
     <PortalShell user={user}>
+      <div className="sx">
       <PageHead title="Settings" line="How the portal looks on this device, and what the business has." />
       <div className="ps">
         <DeviceSettings theme={readTheme(cookies().get(THEME_COOKIE)?.value)} start={starts.some((s) => s.key === saved) ? (saved as string) : "home"} starts={starts} />
@@ -42,6 +43,7 @@ export default async function SettingsPage() {
           </div>
         )}
       </div>
+    </div>
     </PortalShell>
   );
 }

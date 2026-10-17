@@ -2199,10 +2199,11 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 @media (max-width: 1100px) { .rp-grid.rp-team { grid-template-columns: 1fr; } }
 
 /* Settings pages: one header shape, full width. */
-.ph2 { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px 24px; flex-wrap: wrap; margin: 6px 0 22px; }
-.ph2-t h1 { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: -0.035em; }
-.ph2-t p { margin: 8px 0 0; font-size: 14.5px; color: var(--ink2); max-width: 70ch; }
-.ph2-acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ph2 { margin: 4px 0 22px; }
+.ph2-top { display: flex; align-items: center; gap: 18px 64px; flex-wrap: wrap; }
+.ph2-sub { display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; margin-top: 12px; }
+.ph2-sub p { margin: 0; font-size: 14px; color: var(--ink2); max-width: 70ch; }
+.ph2-acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-left: auto; }
 .ph2-acts .qp-btn { height: 42px; }
 .ph2-info { display: block; }
 .ph2-info p { margin: 0 0 8px; line-height: 1.55; }
@@ -2218,3 +2219,116 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .nt-cols { display: grid; gap: 18px; align-items: start; }
 @media (min-width: 1240px) { .nt-cols:has(> :nth-child(2)) { grid-template-columns: 1.4fr 1fr; } }
 @media (max-width: 900px) { .pn .ps { grid-template-columns: 1fr; } }
+
+/* To-do: lists reorder by dragging the header or with the arrows */
+.td-grab { cursor: grab; }
+.td-grab.dragging { opacity: .5; }
+.td-order { display: inline-flex; gap: 4px; }
+.td-arrow { width: 26px; height: 30px; font-size: 18px; }
+.td-arrow:disabled { opacity: .3; cursor: default; }
+.td-arrow:disabled:hover { background: var(--surface); }
+
+/* ------------------------------------------------------------------
+   Settings and Wall board, in the Overview's clothes.
+   Every tab under Settings wraps its page in .sx. The older panels in
+   there (pt-panel, ps-card) take the Overview panel's card, its 16px
+   heading with a small grey line under it, quieter body text and the
+   same pill buttons, so the section reads as part of the same site.
+   ------------------------------------------------------------------ */
+.sx { display: flex; flex-direction: column; gap: 18px; }
+.sx > * { margin-top: 0; margin-bottom: 0; }
+.sx .pt-panel, .sx .ps-card {
+  background: var(--rp-card); border: 1px solid var(--rp-line); border-radius: 30px; padding: 22px 24px; margin: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -24px rgba(80,40,10,.18);
+}
+/* Panels a component stacks inside its own wrapper still need the gap the page puts between its own. */
+.sx .pt-snd { display: flex; flex-direction: column; gap: 18px; }
+.sx .pt-panel__h, .sx .ps-h b { font-family: inherit; font-size: 16px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+.sx .pt-panel__head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.sx .pt-panel__head .pt-panel__sub { margin: 0; }
+.sx .pt-panel__sub { font-size: 12.5px; line-height: 1.45; color: var(--ink2); margin: 3px 0 14px; max-width: 80ch; }
+.sx .pt-panel__note, .sx .pt-panel > p:not([class]) { font-size: 13.5px; line-height: 1.55; color: var(--ink2); max-width: 80ch; }
+.sx .ps-h { margin-bottom: 6px; }
+.sx .ps-h span { font-size: 12.5px; color: var(--ink2); }
+.sx .ps-kv { border-top-color: var(--rp-line); }
+.sx .ps-kv .t b { font-weight: 600; font-size: 14px; }
+
+/* Tables: small grey headings that sit over their own column. */
+.sx .pt-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.sx .pt-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; color: var(--ink3); padding: 0 10px 10px; border-bottom: 1px solid var(--rp-line); vertical-align: bottom; }
+.sx .pt-table td { padding: 11px 10px; border-bottom: 1px solid var(--rp-line); vertical-align: middle; }
+.sx .pt-table th:first-child, .sx .pt-table td:first-child { padding-left: 0; }
+.sx .pt-table th:last-child, .sx .pt-table td:last-child { padding-right: 0; }
+.sx .pt-table tr:last-child td { border-bottom: 0; }
+.sx .pt-table td strong { font-weight: 600; }
+
+/* Fields, buttons and switches the same as everywhere else. */
+.sx .pt-field > span { font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.sx .pt-field input, .sx .pt-field select, .sx .pt-field textarea { border-color: var(--rp-line); border-radius: 14px; background: var(--surface); font-size: 14px; }
+.sx .pt-btn { height: 40px; padding: 0 18px; font-size: 13.5px; font-weight: 600; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+.sx .pt-btn--sm { height: 34px; padding: 0 14px; font-size: 13px; }
+.sx .pt-btn--ghost { background: var(--quiet); border: 0; color: var(--ink); }
+.sx .pt-seg { background: var(--rp-card); border: 1px solid var(--rp-line); padding: 4px; border-radius: 999px; }
+.sx .pt-seg button.on, .sx .pt-seg a.on, .sx .pt-seg [aria-pressed="true"] { background: var(--rp-on-bg); color: var(--rp-on-ink); box-shadow: none; }
+.sx .pt-note { border-radius: 18px; margin: 0; }
+.sx .pt-inline { font-size: 13px; }
+.sx .pk-card { border-radius: 30px; }
+.sx .rv-h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+
+/* Standard times: the ServiceTitan time, changed in its own row. */
+.sx .pt-times th.pt-times__n, .sx .pt-times td.pt-times__n { text-align: right; white-space: nowrap; }
+.sx .pt-times th:first-child { text-align: left; }
+.sx .st2 td { height: 50px; padding-top: 6px; padding-bottom: 6px; }
+.sx .st2 tr.is-quiet td { opacity: 1; color: var(--ink3); }
+.sx .st2 tr.is-quiet td strong { font-weight: 500; }
+.st2-show, .st2-edit { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.st2-time { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px 0 14px; border-radius: 999px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; min-width: 92px; justify-content: space-between; }
+.st2-time svg { color: var(--ink3); }
+.st2-time:hover { background: var(--quiet); }
+.st2-time:hover svg { color: var(--ink); }
+.st2-time.is-unset { color: var(--ink3); font-weight: 500; border-style: dashed; }
+.st2-edit input { width: 76px; height: 34px; border: 1.5px solid var(--ink); border-radius: 12px; padding: 0 10px; font: inherit; font-size: 14px; text-align: right; background: var(--surface); color: var(--ink); font-variant-numeric: tabular-nums; }
+.st2-edit em { font-style: normal; color: var(--ink3); }
+.st2-btn { height: 34px; padding: 0 14px; font-size: 13px; }
+.st2-tag { font-size: 11.5px; font-weight: 700; color: #3d2e00; background: color-mix(in srgb, var(--rp-gold) 70%, transparent); border-radius: 999px; padding: 3px 9px; }
+.sx .pt-times__ok, .sx .pt-times__err { font-size: 12px; }
+@media (max-width: 700px) {
+  .sx .st2 th:nth-child(3), .sx .st2 td:nth-child(3) { display: none; }
+  .st2-edit { flex-wrap: wrap; }
+}
+@media (min-width: 701px) { .sx .st2 th:last-child { width: 360px; } }
+@media (max-width: 700px) { .sx .st2 .st2-tag { display: none; } .sx .st2 th:nth-child(2) { white-space: normal; } .sx .pt-panel:has(> .st2) { padding: 18px 16px; } }
+
+/* A number column's heading sits over its numbers. */
+.sx .pt-table th[class$="__n"], .sx .pt-table td[class$="__n"], .sx .pt-table th[class$="__set"], .sx .pt-table td[class$="__set"] { text-align: right; }
+
+/* For you: the two lists start level, with the Overview's small headings. */
+.sx .nt-cols .pt-notice__group + .pt-notice__group { margin-top: 0; }
+.sx .pt-notice__label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); font-weight: 600; margin: 0 0 10px 4px; }
+.sx .pt-notice { padding: 8px 24px; }
+.sx .pt-notice__txt strong { font-size: 14px; font-weight: 600; }
+.sx .pt-notice__txt span { font-size: 12.5px; color: var(--ink2); }
+.sx .pt-notice__when { font-size: 12.5px; color: var(--ink2); }
+
+/* Settings: two columns that fill top-down, so a short card doesn't leave a hole beside a tall one. */
+@media (min-width: 901px) {
+  .sx .ps { display: block; columns: 2; column-gap: 18px; }
+  .sx .ps > * { break-inside: avoid; margin: 0 0 18px; display: block; }
+}
+.sx .ps-card { border-radius: 30px; padding: 22px 24px; box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -24px rgba(80,40,10,.18); }
+
+/* Admin's four doors as Overview panels. */
+.sx .pt-admgrid { gap: 18px; }
+.sx .pt-admcard { background: var(--rp-card); border: 1px solid var(--rp-line); border-radius: 30px; padding: 22px 24px; box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -24px rgba(80,40,10,.18); transition: transform .25s ease, box-shadow .25s ease; }
+.sx .pt-admcard:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 24px 48px -24px rgba(80,40,10,.26); }
+.sx .pt-admcard h2 { font-family: inherit; line-height: 1.3; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.sx .pt-admcard p { line-height: 1.5; font-size: 13px; color: var(--ink2); margin: 4px 0 14px; }
+.sx .pt-admcard span { align-self: flex-start; color: var(--ink); display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--quiet); font-size: 13px; font-weight: 600; }
+.sx .pt-admcard:hover span { background: var(--rp-on-bg); color: var(--rp-on-ink); }
+
+/* My file: the leave is up in the header now; the rates strip is an Overview panel. */
+.sx .pt-myyear { margin: 0; }
+.sx .pt-myyear__rates { margin: 0; background: var(--rp-card); border: 1px solid var(--rp-line); border-radius: 30px; padding: 20px 24px; box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -24px rgba(80,40,10,.18); }
+.sx .pt-myyear__rates span { font-size: 12.5px; color: var(--ink2); }
+.sx .pt-myyear__rates strong { font-size: 18px; font-weight: 650; }
+.sx .pt-mythree { gap: 18px; margin: 0; }
