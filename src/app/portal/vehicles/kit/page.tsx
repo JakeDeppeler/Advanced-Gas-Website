@@ -17,7 +17,7 @@ const unitOf = (u: string) => (u === "ea" ? "each" : u);
 
 const BLURB: Record<KitList, string> = {
   starter: "The minimum every tradesman and apprentice carries in their bag. Give a new starter this list on day one, and check it back in at the end of each job.",
-  van: "The minimum every van carries: the refrigeration plant, pipe tools, power tools, test gear and safety kit. The same list in every van.",
+  van: "What lives in every van: the tools, the servicing gear, fixings, what goes in the cannons, and drill bits. The same list in every van.",
   stock: "The minimum every van keeps on the shelf. Counted every Monday; anything at or under the minimum gets ordered that day, order at the minimum, not when it runs out.",
 };
 
@@ -111,7 +111,7 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
           </Card>
         ))}
         <Note>
-          {def.k === "starter" ? <>Power tools, test gear and safety kit come with the van, they&rsquo;re on <Link href="/portal/vehicles/kit?list=van">Van equipment</Link>. </> : null}
+          {def.k === "starter" ? <>What lives in the van rather than the bag is on <Link href="/portal/vehicles/kit?list=van">Tools for vans</Link>. </> : null}
           Printing gives a sheet with a tick column, for a new starter&rsquo;s first day or the shed wall.
         </Note>
       </div>

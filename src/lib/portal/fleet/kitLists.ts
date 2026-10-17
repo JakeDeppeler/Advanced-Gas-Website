@@ -16,7 +16,7 @@ export type KitList = "starter" | "van" | "stock";
 
 export const KIT_LISTS: { k: KitList; label: string; kind: CheckKind; lists: CountGroup[] }[] = [
   { k: "starter", label: "New starter", kind: "bag", lists: TOOL_BAG },
-  { k: "van", label: "Van equipment", kind: "plant", lists: VAN_PLANT },
+  { k: "van", label: "Tools for vans", kind: "plant", lists: VAN_PLANT },
   { k: "stock", label: "Van stock", kind: "stock", lists: VAN_STOCK },
 ];
 
