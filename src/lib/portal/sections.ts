@@ -83,7 +83,7 @@ export const SECTION_DEFS: SectionDef[] = [
   // the office lives in it, so it isn't two clicks deep under Sales.
   { id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, and who's chasing it", pages: [{ label: "Pipeline", href: "/portal/pipeline" }] },
   {
-    id: "run", label: "How we're going", icon: "run", group: 1, blurb: "From lead to paid, against the goal",
+    id: "run", label: "The Numbers", icon: "run", group: 1, blurb: "From lead to paid, against the goal",
     pages: [
       { label: "Today's numbers", href: "/portal/today" },
       { label: "Month so far", href: "/portal/month" },
@@ -151,12 +151,13 @@ export const SECTION_DEFS: SectionDef[] = [
         label: "Marketing", tab: "Campaigns", href: "/portal/marketing",
         subs: [
           { label: "Instagram", href: "/portal/marketing?tab=social" },
+          // Its own page, kept with the rest of Marketing as one of its tabs.
+          { label: "Materials", href: "/portal/materials" },
           { label: "Reviews", href: "/portal/marketing?tab=reviews" },
           { label: "Ads", href: "/portal/marketing?tab=ads" },
           { label: "Email list", href: "/portal/marketing?tab=emails" },
         ],
       },
-      { label: "Materials", href: "/portal/materials" },
       { label: "Blog", href: "/portal/blog" },
     ],
   },
