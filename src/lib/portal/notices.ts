@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { can, type PortalUser } from "@/lib/portal/caps";
-import { dbConfigured, getSettings, handbookBodies, listQuotes, listVanChecks, listVehicles, listVideos, saveSettings } from "@/lib/portal/db";
+import { dbConfigured, getSettings, handbookBodies, latestChecksForVans, listQuotes, listVehicles, listVideos, saveSettings, type VanCheck } from "@/lib/portal/db";
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
 import { journalErrors } from "@/lib/journals/read";
@@ -156,9 +156,8 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
   }
   const onRoad = vehicles.filter((v) => v.status === "on");
 
-  const checks = await Promise.all(
-    onRoad.map((v) => listVanChecks(v.id, "weekly", 1).catch(() => [])),
-  );
+  const latest = await latestChecksForVans(onRoad.map((v) => v.id)).catch(() => new Map<string, VanCheck>());
+  const checks = onRoad.map((v) => { const c = latest.get(`${v.id}|weekly`); return c ? [c] : []; });
 
   onRoad.forEach((v, i) => {
     const clean = cleanCell(checks[i][0]?.checkedOn ?? null, today);

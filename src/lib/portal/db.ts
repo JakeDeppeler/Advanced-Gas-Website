@@ -654,9 +654,11 @@ const toLog = (r: VehicleLogRow): VehicleLog => ({
  * repayments fall due and every page that reads a van reads the same balance.
  * Kept in settings rather than columns — a handful of vans, read with them.
  */
-async function withLoans(vs: Vehicle[]): Promise<Vehicle[]> {
+// The contracts are read alongside the vans, not after them: one round trip, not two.
+const loansSetting = () => getSettings<unknown>("vehicle_loans").catch(() => null);
+async function withLoans(vs: Vehicle[], stored?: Promise<unknown>): Promise<Vehicle[]> {
   if (!vs.length) return vs;
-  const loans = readLoans(await getSettings<unknown>("vehicle_loans").catch(() => null));
+  const loans = readLoans(await (stored ?? loansSetting()));
   const today = isoDateMelbourne(new Date());
   return vs.map((v) => {
     const loan = loans[v.id] ?? null;
@@ -668,9 +670,10 @@ async function withLoans(vs: Vehicle[]): Promise<Vehicle[]> {
 }
 
 export async function listVehicles(): Promise<Vehicle[]> {
+  const stored = loansSetting();
   const res = await sb(`portal_vehicles?select=*&order=active.desc,name.asc`);
   if (!res || !res.ok) return [];
-  return withLoans(((await res.json()) as VehicleRow[]).map(toVehicle));
+  return withLoans(((await res.json()) as VehicleRow[]).map(toVehicle), stored);
 }
 
 export async function getVehicle(id: string): Promise<Vehicle | null> {
@@ -918,6 +921,24 @@ export async function listVanChecks(vehicleId: string, kind?: CheckKind, limit =
   const res = await sb(`portal_van_checks?vehicle_id=eq.${encodeURIComponent(vehicleId)}${k}&select=*&order=checked_on.desc,created_at.desc&limit=${limit}`);
   if (!res || !res.ok) return [];
   return ((await res.json()) as VanCheckRow[]).map(toCheck);
+}
+
+/**
+ * The newest check of each kind for each van, in one read. The office counts
+ * behind every page used to ask once per van per kind: eight round trips to
+ * Tokyo on every page view for a table that changes once a week.
+ */
+export async function latestChecksForVans(vehicleIds: string[]): Promise<Map<string, VanCheck>> {
+  const out = new Map<string, VanCheck>();
+  if (!vehicleIds.length) return out;
+  const ids = vehicleIds.map((v) => `"${v.replace(/"/g, "")}"`).join(",");
+  const res = await sb(`portal_van_checks?vehicle_id=in.(${encodeURIComponent(ids)})&select=*&order=checked_on.desc,created_at.desc&limit=2000`);
+  if (!res || !res.ok) return out;
+  for (const r of (await res.json()) as VanCheckRow[]) {
+    const k = `${r.vehicle_id}|${r.kind}`;
+    if (!out.has(k)) out.set(k, toCheck(r));
+  }
+  return out;
 }
 
 export async function getVanCheck(id: string): Promise<VanCheck | null> {

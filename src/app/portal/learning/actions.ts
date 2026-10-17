@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { createVideo, markWatched, unmarkWatched } from "@/lib/portal/db";
 import { extractYouTubeId, isStored } from "@/lib/portal/videos";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export type LearningResult = { ok: boolean; error?: string };
 
@@ -31,7 +31,7 @@ export async function addVideo(input: {
   youtubeId: string; minutes: string; sopCode: string;
 }): Promise<LearningResult> {
   const me = await getPortalUser();
-  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can add a video." };
+  if (!me || !canEditStandards(me)) return { ok: false, error: "Only the owner can add a video." };
   if (!input.title.trim()) return { ok: false, error: "Give it a title." };
 
   // Paste a whole YouTube URL and it still works — pulling the id out here

@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markReconciled } from "@/app/portal/finance/cash/actions";
 
+// Xero's bank accounts page, where each account's Reconcile button sits.
+const XERO_BANK = "https://go.xero.com/Bank/BankAccounts.aspx";
 const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 
 /**
@@ -35,7 +37,11 @@ export function ReconcileNote({ stamp, today }: { stamp: { to: string; by: strin
           <button type="submit" className="qp-btn dark" disabled={pending}>Save</button>
         </form>
       ) : (
-        <button type="button" className="qp-btn" onClick={() => setOpen(true)}>Mark reconciled</button>
+        <span className="rc-acts">
+          {/* Reconciling happens in Xero; this only opens it there. The portal's Xero link is read-only. */}
+          <a className="qp-btn dark" href={XERO_BANK} target="_blank" rel="noreferrer">Open Xero to reconcile ↗</a>
+          <button type="button" className="rc-mark" onClick={() => setOpen(true)}>Done? Mark it</button>
+        </span>
       )}
     </div>
   );

@@ -3,10 +3,10 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { SOP_CHANGES, SOP_VERSION } from "@/lib/portal/sops";
-import { PortalBack } from "@/components/portal/PortalBack";
-import { can } from "@/lib/portal/caps";
+import { KpiHead } from "@/components/portal/kit/Kit";
 import { dbConfigured, listStoredSops } from "@/lib/portal/db";
 import { mergeSops } from "@/lib/portal/sopEdits";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Processes & procedures · Team portal" };
@@ -15,7 +15,7 @@ export default async function SopsPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const canEdit = can(user, "manage_users");
+  const canEdit = canEditStandards(user);
   const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
   const SECTIONS = mergeSops(stored, canEdit);
   const total = SECTIONS.reduce((a, s) => a + s.sops.length, 0);
@@ -23,17 +23,14 @@ export default async function SopsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal" label="Home" />
-          <h1 className="pt-sopx__h">One team. One standard. One goal.</h1>
-          <p>Every procedure here was agreed at the team training day and applies to everyone, from the director to the first-year apprentice.</p>
-        </div>
-        <div className="pt-sopx__acts">
-          <span className="pt-sopx__ver">{SOP_VERSION}</span>
-          {canEdit && drafts > 0 && <span className="pt-se__drafts">{drafts} draft{drafts === 1 ? "" : "s"}</span>}
-          {canEdit && <Link href="/portal/sops/edit" className="pt-btn pt-btn--navy pt-sopx__edit">Edit procedures</Link>}
-        </div>
+      <KpiHead title="Processes" kpis={[
+        { icon: "doc", fig: String(total), label: `Procedures in ${SECTIONS.length} sections` },
+        { icon: "clock", fig: SOP_VERSION.split(" ")[1] ?? SOP_VERSION, label: `Version, ${SOP_VERSION.split(" · ")[1] ?? ""}` },
+        ...(canEdit && drafts > 0 ? [{ icon: "trend", fig: String(drafts), label: drafts === 1 ? "Draft waiting" : "Drafts waiting" }] : []),
+      ]} />
+      <div className="sx-bar">
+        <p className="pk-note td-intro"><b>One team. One standard. One goal.</b> Every procedure here was agreed at the team training day and applies to everyone, from the director to the first-year apprentice.</p>
+        {canEdit && <Link href="/portal/sops/edit" className="qp-btn dark">Edit procedures</Link>}
       </div>
 
       {SOP_CHANGES[0] && (
