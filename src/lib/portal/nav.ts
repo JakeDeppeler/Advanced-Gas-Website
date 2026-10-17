@@ -251,6 +251,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
 
   // Not cards on the home grid, but still places the search should find.
   // Everyone has a list; the side bar links it beside Home, so it's here for the search.
+  items.push({ href: "/portal/toolbox", label: "Toolbox talks", blurb: "Topics to talk the crew through, and a record of each talk", band: "hidden", icon: "list", also: ["toolbox", "tool box", "toolbox talk", "safety talk", "tailgate", "pre-start", "meeting", "minutes", "safety meeting"] });
   items.push({ href: "/portal/plans", label: "Future planning", blurb: "What you want to do for the business, by when", band: "hidden", icon: "target", also: ["plans", "planning", "future", "goals", "ideas", "business plan", "long term", "someday", "vision"] });
   items.push({ href: "/portal/keep-in-touch", label: "Keep in touch", blurb: "Important people to reach out to every month", band: "hidden", icon: "people", also: ["contacts", "keep in contact", "relationships", "builders", "agents", "suppliers", "referrers", "call list", "reach out", "networking"] });
   items.push({ href: "/portal/todo", label: "To-do", blurb: "Today's jobs, given to each other, with the day each is due", band: "hidden", icon: "list", also: ["todo", "to do", "to-do list", "task", "tasks", "reminder", "due", "overdue", "jobs to do"] });

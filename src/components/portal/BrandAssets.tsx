@@ -76,14 +76,14 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
     <div className="pk">
       <div className="pk-files-bar">
         <nav className="pk-crumbs" aria-label="Folder">
-          <Link href={href(null, archived)}>Files</Link>
+          <Link href={href(null, archived)}>Materials</Link>
           {!archived && crumbs.map((c) => <span key={c.id}> › <Link href={href(c.id)}>{c.name}</Link></span>)}
-          {archived && <span> › Archived</span>}
+          {archived && <span> › No longer used</span>}
         </nav>
-        <span className="pk-seg" role="tablist" aria-label="Files or archived">
-          <Link href={href(null)} className={!archived ? "on" : undefined} aria-current={!archived ? "page" : undefined}>Files</Link>
+        <span className="pk-seg" role="tablist" aria-label="In use or no longer used">
+          <Link href={href(null)} className={!archived ? "on" : undefined} aria-current={!archived ? "page" : undefined}>In use</Link>
           <Link href={href(null, true)} className={archived ? "on" : undefined} aria-current={archived ? "page" : undefined}>
-            Archived{archFolders.length + archFiles.length ? ` · ${archFolders.length + archFiles.length}` : ""}
+            No longer used{archFolders.length + archFiles.length ? ` · ${archFolders.length + archFiles.length}` : ""}
           </Link>
         </span>
       </div>
@@ -124,7 +124,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
                     <b>{f.name}</b>
                     <span className="pk-ks">{countIn(f.id)} file{countIn(f.id) === 1 ? "" : "s"}{folders.some((x) => x.parentId === f.id && !x.archivedAt) ? " · has folders" : ""}</span>
                   </Link>
-                  {canEdit && <button type="button" className="pk-linkbtn" disabled={busy} onClick={() => act(() => archiveItem({ kind: "folder", id: f.id, archived: true }), `${f.name} archived, it's on the Archived tab.`)}>Archive</button>}
+                  {canEdit && <button type="button" className="pk-linkbtn" disabled={busy} onClick={() => act(() => archiveItem({ kind: "folder", id: f.id, archived: true }), `${f.name} marked no longer used.`)}>No longer used</button>}
                 </div>
               ))}
             </div>
@@ -140,7 +140,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
                 {here.map((f) => (
                   <div key={f.id} className="pk-file">
                     <span className={`pk-filetype t-${ext(f).toLowerCase()}`}>{ext(f)}</span>
-                    <span className="t"><b>{f.label}</b><span>{[size(f.bytes), `added ${day(f.createdAt)}`, f.addedBy].filter(Boolean).join(" · ")}</span></span>
+                    <span className="t"><b>{f.label} <em className="mk-cur">Current</em></b><span>{[size(f.bytes), `added ${day(f.createdAt)}`, f.addedBy].filter(Boolean).join(" · ")}</span></span>
                     <span className="pk-file-acts">
                       <a className="pk-btn" href={fileUrl(f, true)}>Download</a>
                       <a className="pk-btn g" href={fileUrl(f, false)} target="_blank" rel="noopener">Open</a>
@@ -151,7 +151,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
                           {allFolders.map((x) => <option key={x.id} value={x.id}>{path(x)}</option>)}
                         </select>
                       )}
-                      {canEdit && <button type="button" className="pk-linkbtn" disabled={busy} onClick={() => act(() => archiveItem({ kind: "file", id: f.id, archived: true }), `${f.label} archived.`)}>Archive</button>}
+                      {canEdit && <button type="button" className="pk-linkbtn" disabled={busy} onClick={() => act(() => archiveItem({ kind: "file", id: f.id, archived: true }), `${f.label} marked no longer used.`)}>No longer used</button>}
                     </span>
                   </div>
                 ))}
@@ -162,30 +162,30 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
       ) : (
         <>
           <section className="pk-card pk-pad">
-            <div className="pk-card-h"><b>Archived folders</b><span>restore one and everything in it comes back</span></div>
-            {archFolders.length === 0 ? <div className="pk-empty">No archived folders.</div> : (
+            <div className="pk-card-h"><b>Folders no longer used</b><span>put one back in use and everything in it comes back</span></div>
+            {archFolders.length === 0 ? <div className="pk-empty">No folders marked no longer used.</div> : (
               <div className="pk-filelist">
                 {archFolders.map((f) => (
                   <div key={f.id} className="pk-file">
                     <span className="pk-filetype">DIR</span>
-                    <span className="t"><b>{path(f)}</b><span>{(() => { const n = files.filter((x) => x.folderId === f.id && !x.archivedAt).length; return `${n} file${n === 1 ? "" : "s"}`; })()} · archived {day(f.archivedAt!)}</span></span>
-                    {canEdit && <span className="pk-file-acts"><button type="button" className="pk-btn g" disabled={busy} onClick={() => act(() => archiveItem({ kind: "folder", id: f.id, archived: false }), `${f.name} is back.`)}>Restore</button></span>}
+                    <span className="t"><b>{path(f)}</b><span>{(() => { const n = files.filter((x) => x.folderId === f.id && !x.archivedAt).length; return `${n} file${n === 1 ? "" : "s"}`; })()} · stopped using {day(f.archivedAt!)}</span></span>
+                    {canEdit && <span className="pk-file-acts"><button type="button" className="pk-btn g" disabled={busy} onClick={() => act(() => archiveItem({ kind: "folder", id: f.id, archived: false }), `${f.name} is back in use.`)}>Back in use</button></span>}
                   </div>
                 ))}
               </div>
             )}
           </section>
           <section className="pk-card pk-pad">
-            <div className="pk-card-h"><b>Archived files</b><span>still downloadable · delete for good only from here</span></div>
-            {archFiles.length === 0 ? <div className="pk-empty">No archived files.</div> : (
+            <div className="pk-card-h"><b>Materials no longer used</b><span>kept so you can see what went out before · still downloadable · delete for good only from here</span></div>
+            {archFiles.length === 0 ? <div className="pk-empty">Nothing marked no longer used.</div> : (
               <div className="pk-filelist">
                 {archFiles.map((f) => (
                   <div key={f.id} className="pk-file">
                     <span className={`pk-filetype t-${ext(f).toLowerCase()}`}>{ext(f)}</span>
-                    <span className="t"><b>{f.label}</b><span>{[size(f.bytes), f.folderId && byId.get(f.folderId) ? `in ${path(byId.get(f.folderId)!)}` : "Files (top)", `archived ${day(f.archivedAt!)}`].filter(Boolean).join(" · ")}</span></span>
+                    <span className="t"><b>{f.label} <em className="mk-old">No longer used</em></b><span>{[size(f.bytes), f.folderId && byId.get(f.folderId) ? `in ${path(byId.get(f.folderId)!)}` : "Materials (top)", `stopped using ${day(f.archivedAt!)}`].filter(Boolean).join(" · ")}</span></span>
                     <span className="pk-file-acts">
                       <a className="pk-btn g" href={fileUrl(f, true)}>Download</a>
-                      {canEdit && <button type="button" className="pk-btn g" disabled={busy} onClick={() => act(() => archiveItem({ kind: "file", id: f.id, archived: false }), `${f.label} is back.`)}>Restore</button>}
+                      {canEdit && <button type="button" className="pk-btn g" disabled={busy} onClick={() => act(() => archiveItem({ kind: "file", id: f.id, archived: false }), `${f.label} is back in use.`)}>Back in use</button>}
                       {canEdit && (sure === f.id ? (
                         <>
                           <button type="button" className="pk-btn bad" disabled={busy} onClick={() => act(async () => { const r = await removeBrandAsset({ id: f.id, path: f.path }); setSure(null); return r; }, "Deleted for good.")}>Yes, delete it</button>

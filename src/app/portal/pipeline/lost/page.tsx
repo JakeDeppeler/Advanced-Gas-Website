@@ -7,7 +7,7 @@ import { Locked } from "@/components/portal/Locked";
 import { SalesTabs } from "@/components/portal/run/RunTabs";
 import { Card, Empty, Grid, Head, Say, Tile, none } from "@/components/portal/kit/Kit";
 import { loadPipeline } from "@/lib/pipeline/store";
-import { daysBetween, type PipeQuote } from "@/lib/pipeline/types";
+import { daysBetween, isSold, type PipeQuote } from "@/lib/pipeline/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Lost quotes · Team portal" };
@@ -31,7 +31,8 @@ export default async function LostQuotesPage() {
 
   const p = await loadPipeline({ recentDays: DAYS }).catch(() => null);
   const lost = (p?.quotes ?? []).filter((q) => q.stage === "lost");
-  const won = (p?.quotes ?? []).filter((q) => q.stage === "won");
+  // Sold in the same window as the losses, wherever the job has got to since.
+  const won = (p?.quotes ?? []).filter((q) => isSold(q.stage) && q.soldOn != null && daysBetween(q.soldOn, p?.today ?? q.soldOn) <= DAYS);
   const reasonOf = (q: PipeQuote) => q.lostReason ?? NO_REASON;
 
   const group = (key: (q: PipeQuote) => string) => {

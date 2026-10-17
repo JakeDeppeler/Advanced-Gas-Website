@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "pipe" | "todo" | "run" | "pf" | "numbers" | "cust" | "crew" | "orders" | "how" | "you";
+export type SectionId = "home" | "pipe" | "todo" | "run" | "pf" | "numbers" | "cust" | "mkt" | "crew" | "orders" | "how" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -76,6 +76,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Office today", href: "/portal/office", office: true },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
       { label: "Future planning", href: "/portal/plans", office: true },
+      { label: "Toolbox talks", href: "/portal/toolbox" },
     ],
   },
   // The quotes to chase, as their own tab, the way Rapport has its Pipeline:
@@ -126,25 +127,33 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "cust", label: "Customers", icon: "chat", group: 2, blurb: "Customers, the website and where the work comes from",
+    id: "cust", label: "Customers", icon: "chat", group: 2, blurb: "Customers, their sites and what they've said",
     pages: [
       { label: "Customer chats", href: "/portal/chats" },
       { label: "Customers & sites", tab: "Customers", href: "/portal/customers", subs: [{ label: "Site locations", href: "/portal/locations" }] },
+    ],
+  },
+  {
+    // Its own tab: where the work comes from deserves one place, not three
+    // rows deep under Customers. Leads and the website first, then what we
+    // put out, then the files it's made of.
+    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Website leads, how the site does, Instagram, and every marketing file",
+    pages: [
       {
         label: "Website & leads", tab: "Website leads", href: "/portal/website",
         subs: [
           { label: "On the site", href: "/portal/website?tab=pages" },
-          { label: "Drop-off", href: "/portal/website?tab=dropoff" },
+          { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
           { label: "Every enquiry", href: "/portal/finance/leads" },
         ],
       },
       {
         label: "Marketing", tab: "Campaigns", href: "/portal/marketing",
         subs: [
+          { label: "Instagram", href: "/portal/marketing?tab=social" },
+          { label: "Materials", href: "/portal/marketing?tab=assets" },
           { label: "Reviews", href: "/portal/marketing?tab=reviews" },
           { label: "Ads", href: "/portal/marketing?tab=ads" },
-          { label: "Social", href: "/portal/marketing?tab=social" },
-          { label: "Files", href: "/portal/marketing?tab=assets" },
           { label: "Email list", href: "/portal/marketing?tab=emails" },
         ],
       },

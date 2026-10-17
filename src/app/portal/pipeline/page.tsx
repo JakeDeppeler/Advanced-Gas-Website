@@ -7,7 +7,7 @@ import { PipelineBoard } from "@/components/portal/PipelineBoard";
 import { dbConfigured, listUsers } from "@/lib/portal/db";
 import { officeIds } from "@/lib/todos/store";
 import { loadPipeline, type Pipeline } from "@/lib/pipeline/store";
-import { daysBetween } from "@/lib/pipeline/types";
+import { daysBetween, isSold } from "@/lib/pipeline/types";
 import { KpiHead } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +45,7 @@ export default async function PipelinePage() {
   const due = p.quotes.filter((q) => q.stage === "due");
   // Of the quotes written in the last 30 days that have an answer, or are still out: how many sold.
   const month = p.quotes.filter((q) => daysBetween(q.quotedOn, p.today) <= 30);
-  const wonMonth = month.filter((q) => q.stage === "won");
+  const wonMonth = month.filter((q) => isSold(q.stage));
   const rate = month.length >= 10 ? wonMonth.length / month.length : null;
   const openValue = open.reduce((n, q) => n + q.value, 0);
   const dueValue = due.reduce((n, q) => n + q.value, 0);

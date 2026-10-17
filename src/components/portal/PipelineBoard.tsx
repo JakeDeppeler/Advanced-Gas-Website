@@ -34,7 +34,20 @@ const GAPS: Array<{ d: number; label: string }> = [
 const OUTCOMES: TouchHow[] = ["call", "no_answer", "text", "email"];
 
 /** The stage bar in the panel says where a quote is in the run from quoted to sold. */
-const SHORT: Record<Stage, string> = { new: "Just quoted", due: "Follow up", waiting: "Waiting on them", won: "Sold", lost: "Lost" };
+const FOLD = { lost: "Lost in the last 30 days", stale: "Over 60 days, still open in ServiceTitan", booked: "Sold and booked", billed: "Completed, to be paid" } as const;
+
+/** Where a sold job is up to, in a few words: "Booked Tue 21 Oct", "Done 14 Oct, not invoiced yet". */
+function afterWords(q: PipeQuote, today: string): string {
+  const w = q.work;
+  if (!w) return "Not booked yet";
+  if (q.stage === "booked") return w.bookedFor ? `Booked ${dayName(isoMel(w.bookedFor), today)}` : w.status === "Hold" ? "On hold" : "Booked, no visit set";
+  if (w.owing == null) return w.completedOn ? `Done ${shortDay(w.completedOn)}, not invoiced yet` : "Done, not invoiced yet";
+  return w.completedOn ? `Done ${shortDay(w.completedOn)}, ${m0(w.owing)} owing` : `${m0(w.owing)} owing`;
+}
+/** A timestamp's day in Melbourne: a 9am visit is stored the evening before in UTC. */
+const isoMel = (ts: string) => new Date(ts).toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+
+const SHORT: Record<Stage, string> = { new: "Just quoted", due: "Follow up", waiting: "Waiting on them", won: "Sold, to be booked", booked: "Booked", billed: "Completed, to be paid", lost: "Lost" };
 
 /** A person's chip colour: muted, fixed by their name, and never one of the status colours. */
 const TONES = ["#c9b29b", "#9fb7aa", "#b7a9c8", "#d6b48c", "#a9b9c9", "#c7a7a1"];
@@ -62,7 +75,7 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   const [find, setFind] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [view, setView] = useState<"board" | "list">("board");
-  const [fold, setFold] = useState<"lost" | "stale" | null>(null);
+  const [fold, setFold] = useState<"lost" | "stale" | "booked" | "billed" | null>(null);
   const foldRef = useRef<HTMLElement>(null);
   const router = useRouter();
   // A quote dragged to a new column shows there at once; the server's copy
@@ -104,6 +117,9 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
           : (a, b) => b.value - a.value,
   );
   const lost = col("lost");
+  // After the sale: the next visit first, and the oldest money owing first.
+  const booked = shown.filter((q) => q.stage === "booked").sort((a, b) => (a.work?.bookedFor ?? "9999").localeCompare(b.work?.bookedFor ?? "9999"));
+  const billed = shown.filter((q) => q.stage === "billed").sort((a, b) => (a.work?.completedOn ?? "").localeCompare(b.work?.completedOn ?? ""));
 
   // On a phone the columns are a swipe, and the one to work is the second:
   // start there when it has anything in it.
@@ -172,7 +188,9 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   const pill = (o: string) => (o === me ? "Mine" : clash(o) ? o : (first(o) as string));
   const lostSum = lost.reduce((n, q) => n + q.value, 0);
   const staleSum = stale.reduce((n, q) => n + q.value, 0);
-  const listed = view === "list" ? STAGES.flatMap((s) => col(s.k)) : [];
+  const listed = view === "list" ? [...STAGES.flatMap((s) => col(s.k)), ...booked, ...billed] : [];
+  const bookedSum = booked.reduce((n, q) => n + q.value, 0);
+  const owingSum = billed.reduce((n, q) => n + (q.work?.owing ?? q.value), 0);
 
   return (
     <div className="qp">
@@ -221,12 +239,24 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
                 </button>
                 <ul className="qp-list">
                   {list.map((q, i) => <Card key={q.key} q={q} today={today} i={i} onOpen={() => setOpen(q.key)} dragging={drag === q.key} onDrag={(on) => { setDrag(on ? q.key : null); if (!on) setOver(null); }} />)}
-                  {!list.length && <li className="qp-empty">{s.k === "due" ? "Nobody to ring. Nice." : s.k === "won" ? "Nothing sold in 30 days." : "Nothing here."}</li>}
+                  {!list.length && <li className="qp-empty">{s.k === "due" ? "Nobody to ring. Nice." : s.k === "won" ? "Every sale has a job booked." : "Nothing here."}</li>}
                 </ul>
               </section>
             );
           })}
           <div className="qp-rail">
+            <button type="button" className={`qp-drop qp-after s-booked${fold === "booked" ? " on" : ""}`} onClick={() => setFold(fold === "booked" ? null : "booked")} aria-expanded={fold === "booked"}>
+              <span className="qp-dropi" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></svg>
+              </span>
+              <b>Booked</b>
+              <span>{booked.length ? <>{plural(booked.length, "job")} in the diary<br />{k1(bookedSum)}</> : "Nothing booked"}</span>
+            </button>
+            <button type="button" className={`qp-drop qp-after s-billed${fold === "billed" ? " on" : ""}`} onClick={() => setFold(fold === "billed" ? null : "billed")} aria-expanded={fold === "billed"}>
+              <span className="qp-dropi" aria-hidden="true">$</span>
+              <b>Completed, to be paid</b>
+              <span>{billed.length ? <>{plural(billed.length, "job")} done<br />{k1(owingSum)} to come in</> : "Nothing owing"}</span>
+            </button>
             <button type="button" className={`qp-drop${fold === "lost" ? " on" : ""}${dropCls("lost")}`} onClick={() => setFold(fold === "lost" ? null : "lost")} aria-expanded={fold === "lost"} {...dropProps("lost")}>
               <span className="qp-dropi x" aria-hidden="true">×</span>
               <b>Lost</b>
@@ -269,23 +299,29 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
       )}
 
       {fold && (
-        <section className="qp-fold" ref={foldRef} aria-label={fold === "lost" ? "Lost in the last 30 days" : "Over 60 days, still open in ServiceTitan"}>
+        <section className="qp-fold" ref={foldRef} aria-label={FOLD[fold]}>
           <header className="qp-foldh">
-            <b>{fold === "lost" ? "Lost in the last 30 days" : "Over 60 days, still open in ServiceTitan"}</b>
+            <b>{FOLD[fold]}</b>
             <button type="button" className="qp-x" onClick={() => setFold(null)} aria-label="Close">×</button>
           </header>
           {fold === "stale" && <p className="qp-note">Too old to chase. Mark each one lost here, and it&rsquo;s dismissed in ServiceTitan too, or it keeps counting as out.</p>}
+          {fold === "booked" && <p className="qp-note">Sold and booked in ServiceTitan. They move to Completed by themselves once the job is done.</p>}
+          {fold === "billed" && <p className="qp-note">The job&rsquo;s done and the money isn&rsquo;t all in. Paid in full, they leave the board.</p>}
           <ul className="qp-rows">
-            {(fold === "lost" ? lost : stale).map((q) => (
+            {(fold === "lost" ? lost : fold === "booked" ? booked : fold === "billed" ? billed : stale).map((q) => (
               <li key={q.key}>
                 <button type="button" onClick={() => setOpen(q.key)}>
-                  <b>{q.customer ?? q.what ?? "Quote"}</b>
-                  <span>{fold === "lost" ? (q.lostReason ?? (q.dismissed ? "Dismissed in ServiceTitan" : "Lost")) : `Quoted ${ago(q.quotedOn, today)}`}</span>
-                  <em>{m0(q.value)}</em>
+                  <b>{q.customer ?? q.what ?? "Quote"}{q.suburb ? <small> · {q.suburb}</small> : null}</b>
+                  <span>{fold === "lost" ? (q.lostReason ?? (q.dismissed ? "Dismissed in ServiceTitan" : "Lost"))
+                    : fold === "booked" || fold === "billed" ? afterWords(q, today)
+                      : `Quoted ${ago(q.quotedOn, today)}`}</span>
+                  <em>{fold === "billed" && q.work?.owing ? `${m0(q.work.owing)} owing` : m0(q.value)}</em>
                 </button>
               </li>
             ))}
             {fold === "lost" && !lost.length && <li className="qp-empty">Nothing lost in the last 30 days.</li>}
+            {fold === "booked" && !booked.length && <li className="qp-empty">Nothing booked in.</li>}
+            {fold === "billed" && !billed.length && <li className="qp-empty">Nothing waiting on money.</li>}
           </ul>
         </section>
       )}
@@ -299,7 +335,12 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
 /** The one fact on a card that decides what happens next, as Rapport's "Closes Dec 6". */
 function when(q: PipeQuote, today: string): { text: string; late: number } {
   const late = q.stage === "due" && q.nextOn && q.nextOn < today ? daysBetween(q.nextOn, today) : 0;
-  if (q.stage === "won") return { text: q.soldOn ? `Sold ${shortDay(q.soldOn)}` : "Sold", late };
+  if (q.stage === "won") {
+    // Sold a week and still not in the diary is the one that slips through.
+    const d = q.soldOn ? daysBetween(q.soldOn, today) : 0;
+    return { text: q.soldOn ? `Sold ${shortDay(q.soldOn)}${d >= 7 ? `, ${d} days unbooked` : ""}` : "Sold", late: d >= 7 ? d : 0 };
+  }
+  if (q.stage === "booked" || q.stage === "billed") return { text: afterWords(q, today), late };
   if (q.stage === "lost") return { text: q.lostReason ?? "Lost", late };
   if (q.stage === "waiting" && q.nextOn) return { text: `Ring ${dayName(q.nextOn, today)}`, late };
   if (late) return { text: `Call was due ${shortDay(q.nextOn as string)}`, late };
@@ -311,7 +352,8 @@ function Card({ q, today, i, onOpen, dragging, onDrag }: { q: PipeQuote; today: 
   const w = when(q, today);
   const tries = q.touches.filter((t) => t.how !== "note").length;
   const people = [...new Set([q.owner, q.quotedBy].filter((x): x is string => !!x))];
-  const sub = [q.customer ? q.what : null, q.suburb].filter(Boolean).join(" · ") || (q.jobNumber ? `Job ${q.jobNumber}` : "");
+  // Who and where: a quote is usually several options, so what was quoted doesn't name it.
+  const sub = [q.suburb, q.jobNumber ? `#${q.jobNumber}` : null].filter(Boolean).join(" · ");
   return (
     <li style={{ ["--i" as string]: Math.min(i, 8) }}>
       <button
@@ -384,10 +426,10 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
     if (r.said) { setSaid(r.said); return; }
     if (close) onClose();
   });
-  const isOpen = q.stage !== "won" && q.stage !== "lost";
+  const isOpen = q.stage === "new" || q.stage === "due" || q.stage === "waiting";
   const tel = q.phone?.replace(/[^\d+]/g, "");
   const w = when(q, today);
-  const at = STAGES.findIndex((s) => s.k === q.stage);
+  const at = q.stage === "booked" || q.stage === "billed" ? STAGES.length - 1 : STAGES.findIndex((s) => s.k === q.stage);
   const people = [...new Set([q.owner, q.quotedBy].filter((x): x is string => !!x))];
 
   return (
@@ -404,7 +446,7 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
             <span className="qp-stage">{SHORT[q.stage]}</span>
           </span>
           <span className="qp-title" id="pipe-panel-h">{q.customer ?? q.what ?? "Quote"}</span>
-          <span className="qp-sub">{[q.customer ? q.what : null, q.suburb].filter(Boolean).join(" · ")}</span>
+          <span className="qp-sub">{[q.suburb, q.jobNumber ? `#${q.jobNumber}` : null].filter(Boolean).join(" · ")}</span>
           <span className="qp-cf">
             <span className="qp-val">{m0(q.value)}<small>{q.options > 1 && q.stage !== "won" ? `average of ${q.options} options` : ""}</small></span>
             <span className="qp-avs">{people.map((p) => <Av key={p} name={p} />)}</span>
@@ -424,7 +466,10 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
         <dl className="qp-facts">
           <div><dt>Worth</dt><dd>{m0(q.value)}</dd></div>
           <div><dt>Quoted</dt><dd>{ago(q.quotedOn, today)}{q.quotedBy ? ` by ${first(q.quotedBy)}` : ""}</dd></div>
-          {q.stage === "won" && q.soldOn && <div><dt>Sold</dt><dd>{dayName(q.soldOn, today)}</dd></div>}
+          {q.soldOn && <div><dt>Sold</dt><dd>{dayName(q.soldOn, today)}</dd></div>}
+          {q.work && <div><dt>The job</dt><dd>{q.work.jobNumber ? `#${q.work.jobNumber}` : "In ServiceTitan"} · {afterWords(q, today)}</dd></div>}
+          {q.work && q.work.invoiced > 0 && <div><dt>Invoiced</dt><dd>{m0(q.work.invoiced)}{q.work.owing ? `, ${m0(q.work.owing)} owing` : ", paid"}</dd></div>}
+          {q.stage === "won" && <div><dt>Booked</dt><dd className="late">Not yet</dd></div>}
           {q.nextOn && isOpen && <div><dt>Next call</dt><dd className={q.nextOn < today ? "late" : undefined}>{dayName(q.nextOn, today)}{q.nextOn < today ? ` · ${plural(daysBetween(q.nextOn, today), "day")} late` : ""}</dd></div>}
         </dl>
 
@@ -438,7 +483,7 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
         </div>
         <div className="qp-links">
           {tel && <a className="qp-btn dark" href={`tel:${tel}`}>Call {q.phone}</a>}
-          {q.jobId && <a className="qp-btn" href={`https://go.servicetitan.com/#/Job/Index/${q.jobId}`} target="_blank" rel="noreferrer">Open in ServiceTitan</a>}
+          {(q.work?.jobId ?? q.jobId) && <a className="qp-btn" href={`https://go.servicetitan.com/#/Job/Index/${q.work?.jobId ?? q.jobId}`} target="_blank" rel="noreferrer">{q.work ? "Open the job in ServiceTitan" : "Open in ServiceTitan"}</a>}
         </div>
 
         {isOpen && (

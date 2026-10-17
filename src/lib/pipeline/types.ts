@@ -4,14 +4,31 @@
  * quote is in.
  */
 
-export type Stage = "new" | "due" | "waiting" | "won" | "lost";
+/**
+ * "won" is sold and not booked in yet. Past that a sale moves on by itself
+ * from ServiceTitan: "booked" once its job has a visit, "billed" once that job
+ * is done and still owes money. Paid in full, it leaves the board.
+ */
+export type Stage = "new" | "due" | "waiting" | "won" | "booked" | "billed" | "lost";
 
 export const STAGES: Array<{ k: Stage; label: string; blurb: string }> = [
   { k: "new", label: "Just quoted", blurb: "Out less than 2 days" },
   { k: "due", label: "Follow up today", blurb: "Ring these" },
   { k: "waiting", label: "Waiting on them", blurb: "Followed up, next call booked" },
-  { k: "won", label: "Sold", blurb: "Sold in the last 30 days" },
+  { k: "won", label: "Sold, to be booked", blurb: "Sold, no job booked for it yet" },
 ];
+
+/** After the sale, on the side of the board: they look after themselves, so they sit out of the way. */
+export const AFTER: Array<{ k: Stage; label: string; blurb: string }> = [
+  { k: "booked", label: "Booked", blurb: "The job's in the diary" },
+  { k: "billed", label: "Completed, to be paid", blurb: "Done, money still owing" },
+];
+
+/** Sold, wherever it's got to since. */
+export const isSold = (s: Stage) => s === "won" || s === "booked" || s === "billed";
+
+/** The job a sale turned into: the one made from the estimate, else the job it was quoted on if that job is the work. */
+export type WorkJob = { jobId: number; jobNumber: string | null; status: string; bookedFor: string | null; completedOn: string | null; owing: number | null; invoiced: number };
 
 export type TouchHow = "call" | "no_answer" | "text" | "email" | "visit" | "note";
 
@@ -61,6 +78,8 @@ export type PipeQuote = {
   lostReason: string | null;
   /** Lost in ServiceTitan (dismissed), rather than marked here. */
   dismissed: boolean;
+  /** Once sold: the job doing the work, when there is one. */
+  work: WorkJob | null;
   touches: Touch[];
 };
 

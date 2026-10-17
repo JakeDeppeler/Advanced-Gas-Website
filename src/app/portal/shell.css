@@ -1213,7 +1213,7 @@ label.pk-btn { cursor: pointer; }
 .qp-sum { margin-left: auto; font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 /* A long column scrolls in itself and fades at its foot, as Rapport's do. */
 .qp-list { list-style: none; margin: 0; padding: 0 0 26px; display: grid; gap: 12px; max-height: max(560px, calc(100vh - 330px)); overflow-y: auto; scrollbar-width: thin;
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent); }
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 22px), transparent); }
 .qp-empty { color: var(--ink2); font-size: 14px; padding: 18px 8px; text-align: center; }
 
 .qp-card { width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; display: grid; gap: 4px; min-height: 172px; grid-template-rows: auto auto auto 1fr;
@@ -2015,3 +2015,44 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .pn .pt-hbx__card:nth-child(4n+3) .pt-hbx__letter { background: var(--rp-orange); color: #fff; }
 .pn .pt-hbx__card:nth-child(4n+4) .pt-hbx__letter { background: var(--rp-dark); color: var(--rp-on-dark, #fff); }
 .pn .pt-hbx__card strong, .pn .pt-hbx__txt strong { font-weight: 600; }
+
+/* Future planning as a board: how soon, as colour, red then yellow, green
+   and grey; the column's name says the same in words. */
+.pl-board { grid-auto-columns: minmax(250px, 1fr); }
+.pl-blurb { margin: -6px 0 10px 4px; font-size: 12.5px; color: var(--ink2); }
+.pl-dot.t-red { background: var(--bad); } .pl-dot.t-gold { background: var(--rp-gold); } .pl-dot.t-forest { background: var(--rp-forest); } .pl-dot.t-grey { background: var(--ink3); }
+.pn .pl-col .pt-plan__card { background: var(--rp-dark); color: var(--rp-on-dark, #fff); }
+.pn .pl-col.t-red .pt-plan__card { background: #c8321e; color: #fff; }
+.pn .pl-col.t-gold .pt-plan__card { background: var(--rp-gold); color: #2b2000; }
+.pn .pl-col.t-forest .pt-plan__card { background: var(--rp-forest); color: #fff; }
+.pn .pl-col.t-grey .pt-plan__card { background: color-mix(in srgb, var(--ink3) 22%, var(--surface)); color: var(--ink); }
+.pl .pt-plan__cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.pl-done { padding: 4px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.pn .pl-done .pt-plan__card { background: var(--quiet); color: var(--ink); }
+
+/* Toolbox talks: topic cards in the board colours, the talks given below. */
+.tb { display: grid; gap: 16px; }
+.tb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.tb-card { width: 100%; text-align: left; border: 0; font: inherit; cursor: pointer; min-height: 170px; align-content: start; }
+.tb-card .td-foot { margin-top: auto; justify-content: space-between; }
+.tb-go { font-weight: 700; }
+.tb-add { min-height: 170px; }
+.tb-past h2 { display: flex; gap: 8px; align-items: center; }
+.tb-rows { list-style: none; margin: 0; padding: 0; }
+.tb-rows button { display: grid; grid-template-columns: 150px 1fr; gap: 2px 14px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--rp-line); background: none; color: var(--ink); font: inherit; padding: 12px 6px; cursor: pointer; }
+.tb-rows li:last-child button { border-bottom: 0; }
+.tb-rows button:hover { background: var(--quiet); border-radius: 12px; }
+.tb-when { grid-row: span 2; font-size: 13px; color: var(--ink2); font-weight: 600; }
+.tb-rows b { font-weight: 600; font-size: 14.5px; }
+.tb-rows span:last-child { font-size: 12.5px; color: var(--ink2); }
+.tb-points h3 { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.tb-points p { margin: 0; }
+@media (max-width: 640px) { .tb-rows button { grid-template-columns: 1fr; } .tb-when { grid-row: auto; } }
+.lad-future { border-bottom: 1px solid var(--rp-line); padding-bottom: 14px; }
+.lad-future h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--ink2); }
+.lad-next { border-style: dashed; background: transparent; }
+.nw-bar { justify-content: flex-start; gap: 12px; }
+.mk-ig { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 4px 0 14px; } .mk-ig .qp-btn { height: 44px; }
+.mk-cur, .mk-old { font-style: normal; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-left: 6px; vertical-align: 1px; }
+.mk-cur { background: var(--good-bg); color: var(--good); }
+.mk-old { background: var(--quiet); color: var(--ink2); }

@@ -17,10 +17,10 @@ export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; bl
     blurb: "The Google reviews, as they come in." },
   { k: "ads", label: "Ads", title: "What the ads are doing",
     blurb: "Spend, impressions and clicks, per platform." },
-  { k: "social", label: "Social", title: "What we're posting",
-    blurb: "The Instagram feed, and how each post did." },
-  { k: "assets", label: "Files", title: "Files",
-    blurb: "Logos, artwork, PDFs and photos, in folders. Download anything; archive what's done with." },
+  { k: "social", label: "Instagram", title: "Instagram",
+    blurb: "What we're posting on Instagram, straight from the account." },
+  { k: "assets", label: "Materials", title: "Marketing materials",
+    blurb: "Flyers, logos, artwork, PDFs and photos, in folders. Upload and download PNG and PDF; mark what's no longer used so nobody sends the old one." },
 ];
 
 /**

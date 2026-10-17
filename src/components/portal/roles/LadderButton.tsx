@@ -33,6 +33,19 @@ export function LadderButton({ ladder, here, cls = "qp-btn line" }: { ladder: La
             </div>
             <h2 id="ladder-h" className="rl-h">How to move up</h2>
             <p className="qp-note">You climb as you earn it, not by time served. Each step says what it takes to go up to the next.</p>
+            {ladder.future.length > 0 && (
+              <section className="lad-future" aria-label="Still to come">
+                <h3>Still to come</h3>
+                <div className="lad-seats">
+                  {ladder.future.map((f) => (
+                    <div key={f.after.id} className="lad-seat lad-next">
+                      <b>{f.name.replace(/\s*\((?:to come|future[^)]*)\)\s*$/i, "")}</b>
+                      <span>The step after {f.after.name}. Not a seat yet: it comes as the business grows.</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
             <ol className="lad">
               {top.map((rung, i) => (
                 <li key={rung.map((r) => r.id).join("+")} className="lad-rung">
