@@ -7,7 +7,7 @@ import { latestBoard, savedGoal } from "@/lib/portal/office";
 import { getGoals } from "@/lib/portal/goals";
 import { loadPipeline } from "@/lib/pipeline/store";
 import { followupRate, soldByType, soldByWeek } from "@/lib/portal/run/data";
-import { monthElapsed, melNow, money, pc, plural, salesGoal } from "@/lib/portal/run/month";
+import { goalWords, monthElapsed, melNow, money, pc, plural, salesGoal } from "@/lib/portal/run/month";
 import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Lh, Pair, Row, Say, Tile, Two, none, status } from "@/components/portal/kit/Kit";
 import { WeekBars } from "@/components/portal/kit/Charts";
 import { SalesTabs } from "@/components/portal/run/RunTabs";
@@ -102,7 +102,7 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
           {cold > 0 ? <><Bad>{plural(cold, "quote is", "quotes are")} going cold</Bad>{m.quotesQuietValue ? <>, with {money(m.quotesQuietValue)} waiting</> : null}.</> : <>No quotes have gone quiet.</>}
         </Say>
         <Pair>
-          <Hero dark label="Sold this month" right={g.month ? `goal ${money(g.month)}` : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
+          <Hero dark label="Sold this month" right={g.month ? goalWords(m, g.month) : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
             sub={g.byNow != null ? `goal by now ${money(g.byNow)} · ${sellSt.w.toLowerCase()}` : "set a year goal to see the pace"} />
           <Hero label="Quotes out" right={`${m.estimatesOpenCount} open`} fig={money(m.estimatesOpenValue)} frac={m.estimatesOpenCount ? fresh / m.estimatesOpenCount : null}
             sub={`${fresh} fresh or due a call · ${cold} going cold`} href="/portal/pipeline" />

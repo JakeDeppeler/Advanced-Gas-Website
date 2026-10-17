@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { getPLDetail, xeroStatus } from "@/lib/portal/xero";
 import { moveOf, spendLines, type SpendLine } from "@/lib/portal/run/money";
 import { money } from "@/lib/portal/run/month";
-import { PERIODS, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
+import { PERIODS, periodItems, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
 import { Bad, Card, Empty, Head, PeriodTabs, Pill, Say, Tabs } from "@/components/portal/kit/Kit";
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
@@ -46,8 +46,8 @@ export default async function SpendPage({ searchParams }: { searchParams: { p?: 
           ["Before", "The same stretch just before it, this month so far against the same days of last month, this financial year against the same point last year, so a part-done month isn’t compared with a whole one."],
           ["Up or down", "More than 10% and $200 either way. Smaller moves are the usual noise."],
         ]} />
-        <PeriodTabs on={period} items={PERIODS} href={(k) => href(k, g)} />
         <Tabs on={g} label="What it was spent on" items={GROUPS.map((x) => ({ key: x.k, label: x.label, href: href(period, x.k) }))} />
+        <PeriodTabs on={period} items={periodItems()} href={(k) => href(k, g)} />
         {xs === "connected" ? <Spend period={period} g={g} /> : <XeroOff state={xs} what="spending" />}
       </div>
     </PortalShell>

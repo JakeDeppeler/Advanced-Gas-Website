@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { createTodo, getTodo, meOf, removeTodo, saveOfficeIds, seesAll, setDone, teamPeople, updateTodo } from "@/lib/todos/store";
+import { createTodo, getTodo, meOf, removeTodo, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, updateTodo } from "@/lib/todos/store";
 
 export type TodoResult = { ok: boolean; error?: string };
 
@@ -21,7 +21,7 @@ async function who() {
  * Give someone a to-do. The office can give one to anyone; anyone else only
  * to themselves — a list of their own, without filling up somebody else's.
  */
-export async function addTodo(input: { title: string; assigneeId: string; dueOn: string; notes?: string }): Promise<TodoResult> {
+export async function addTodo(input: { title: string; assigneeId: string; dueOn: string; notes?: string; list?: string }): Promise<TodoResult> {
   const w = await who();
   if (!w) return { ok: false, error: "Sign in again." };
   if (!w.me) return { ok: false, error: "You're not on the team list, so there's no list to add to." };
@@ -32,7 +32,7 @@ export async function addTodo(input: { title: string; assigneeId: string; dueOn:
   if (!people.some((p) => p.id === input.assigneeId)) return { ok: false, error: "That person isn't on the team list." };
   if (!w.all && input.assigneeId !== w.me.id) return { ok: false, error: "You can add to your own list." };
   try {
-    await createTodo({ title, notes: input.notes ?? null, assigneeId: input.assigneeId, dueOn: input.dueOn, by: w.me });
+    await createTodo({ title, notes: input.notes ?? null, assigneeId: input.assigneeId, dueOn: input.dueOn, by: w.me, list: input.list ?? null });
   } catch {
     return { ok: false, error: "Couldn't save it. Try again." };
   }
@@ -63,7 +63,7 @@ export async function tickTodo(id: string, done: boolean): Promise<TodoResult> {
   return { ok: true };
 }
 
-export async function editTodo(id: string, patch: { title?: string; dueOn?: string; assigneeId?: string; notes?: string }): Promise<TodoResult> {
+export async function editTodo(id: string, patch: { title?: string; dueOn?: string; assigneeId?: string; notes?: string; list?: string }): Promise<TodoResult> {
   const { w, t, error } = await mayChange(id);
   if (!w || !t) return { ok: false, error: error ?? "Couldn't." };
   if (patch.title !== undefined && !patch.title.trim()) return { ok: false, error: "It needs a name." };
@@ -105,3 +105,20 @@ export async function setOffice(ids: string[]): Promise<TodoResult> {
   revalidatePath("/portal/todo");
   return { ok: true };
 }
+
+/**
+ * The lists across the top. Anyone who sees every list can add one or take
+ * one away; a list taken away hands its to-dos to the first list, so nothing
+ * on it is lost.
+ */
+export async function saveLists(names: string[]): Promise<TodoResult> {
+  const w = await who();
+  if (!w || !w.all) return { ok: false, error: "Only the office can change the lists." };
+  const clean = [...new Set(names.map((n) => n.trim()).filter(Boolean))];
+  if (!clean.length) return { ok: false, error: "Keep at least one list." };
+  const res = await saveTodoLists(clean);
+  if (!res.ok) return { ok: false, error: "Couldn't save the lists." };
+  revalidatePath("/portal/todo");
+  return { ok: true };
+}
+

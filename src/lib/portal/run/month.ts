@@ -25,6 +25,20 @@ export function dayOfMonth(m: Metrics): { n: number; of: number } | null {
   return { n: Math.min(m.workingDaysTotal, m.workingDaysTotal - m.workingDaysLeft + 1), of: m.workingDaysTotal };
 }
 
+const short = (n: number) => (n >= 1_000_000 ? `$${(Math.round(n / 100_000) / 10).toString()}M` : `$${Math.round(n / 1000)}K`);
+
+/**
+ * A goal figure that says which goal it is. The year has two, the goal and
+ * the floor under it ($3.2M and $2.5M), and a bare "goal $266,667" left the
+ * room guessing which; with both set, both are given.
+ */
+export function goalWords(m: Pick<Metrics, "goalLevels">, amount: number, lead = "goal"): string {
+  const lv = m.goalLevels;
+  if (!lv?.goal) return `${lead} ${money(amount)}`;
+  const top = `${short(lv.goal)} ${lead} ${money(amount)}`;
+  return lv.floor ? `${top} · ${short(lv.floor)} ${money((amount * lv.floor) / lv.goal)}` : top;
+}
+
 export const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
 export const pc = (n: number, dp = 0) => `${n.toFixed(dp)}%`;
 export const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString("en-AU")} ${n === 1 ? one : many}`;

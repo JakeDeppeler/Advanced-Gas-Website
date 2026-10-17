@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
 import { needsToday, type NeedLine } from "@/lib/portal/needs";
 import { callStats, soldTodayPoints } from "@/lib/portal/run/data";
-import { melNow, money, plural, salesGoal } from "@/lib/portal/run/month";
+import { goalWords, melNow, money, plural, salesGoal } from "@/lib/portal/run/month";
 import { BENCH, benchStatus } from "@/lib/portal/benchmarks";
 import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Kv, Lh, Pair, Pill, Row, Say, Tabs, Tile, Two, none, status, type Status } from "@/components/portal/kit/Kit";
 import { SoldTodayChart } from "@/components/portal/kit/Charts";
@@ -212,9 +212,9 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
           {notBilled > 0 && <Bad>{plural(notBilled, "job is", "jobs are")} done but not billed.</Bad>}
         </Say>
         <Pair>
-          <Hero dark st={usual ? sellSt : undefined} label="Sold today" right={usual ? `a usual day ${money(usual)}` : "no goal set"} fig={money(m.soldToday)} frac={usual ? m.soldToday / usual : null}
+          <Hero dark st={usual ? sellSt : undefined} label="Sold today" right={usual ? goalWords(m, usual, "day") : "no goal set"} fig={money(m.soldToday)} frac={usual ? m.soldToday / usual : null}
             sub={<>{plural(m.soldCountToday, "job")} sold · {plural(m.quotesCreatedTodayCount, "quote")} sent<TwoGoals levels={levels} done={m.soldToday} need={usual} /></>} />
-          <Hero st={g.byNow ? monthSt : undefined} label={`${now.month} so far`} right={g.month ? `goal ${money(g.month)}` : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
+          <Hero st={g.byNow ? monthSt : undefined} label={`${now.month} so far`} right={g.month ? goalWords(m, g.month) : "no goal set"} fig={money(m.soldMtd)} frac={g.month ? m.soldMtd / g.month : null}
             sub={<>{g.byNow != null ? `${money(g.byNow)} is where the goal says we should be by now` : "Set a year goal to see the pace"}<TwoGoals levels={levels} done={m.soldMtd} need={g.byNow} /></>} href="/portal/sales" />
         </Pair>
         <Grid>

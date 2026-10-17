@@ -5,7 +5,6 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { Heads } from "@/components/portal/marketingParts";
 import { KeepInTouchBoard } from "@/components/portal/KeepInTouchBoard";
-import { TodoTabs } from "@/components/portal/TodoTabs";
 import { dbConfigured } from "@/lib/portal/db";
 import { meOf, officeIds, seesAll, teamPeople, todayMelbourne } from "@/lib/todos/store";
 import { listContacts, touchesSince } from "@/lib/contacts/store";
@@ -70,7 +69,6 @@ export default async function KeepInTouchPage() {
             logs that they did.
           </p>
         </div>
-        <TodoTabs on="contacts" contactsDue={due.length} />
       </div>
 
       {!ready ? (

@@ -129,7 +129,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
     { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
     {
-      href: "/portal/stuck", label: "Where the money's stuck", short: "Stuck", band: "run", icon: "chart",
+      href: "/portal/stuck", label: "Stuck money", short: "Stuck", band: "run", icon: "chart",
       blurb: "Done but not billed, billed but not paid, and jobs that have stopped",
       also: ["stuck", "not billed", "unbilled", "to bill", "not invoiced", "not paid", "overdue", "aged", "ageing", "backlog", "on hold", "letting jobs go", "leak", "chase"],
     },

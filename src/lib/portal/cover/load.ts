@@ -24,8 +24,14 @@ export async function coverBase(over: Partial<CoverInputs> = {}) {
   const cap = computeCapacity(people, s);
   const lines = overheadItems(s, cap);
   const oc = onCostPct(s);
-  // Techs are the qualified people with a van; an apprentice driving one of their own is still an apprentice.
-  const fleet: Fleet = { vans: cap.realVans, techs: cap.per.filter((x) => x.c.chargeable && x.p.level !== "apprentice").length };
+  // Vans on the road are everyone with a van of their own, an apprentice
+  // driving one included: they bill like any van. Who rides along adds pay and
+  // no hours. Both come from the team as it stands, not from a saved number,
+  // so taking someone on or putting an apprentice in a van moves every rate.
+  const onRoad = cap.per.filter((x) => x.c.chargeable);
+  const riding = cap.per.filter((x) => x.c.billable && !x.c.chargeable);
+  const appVans = onRoad.filter((x) => x.p.level === "apprentice").length;
+  const fleet: Fleet = { vans: cap.realVans, techs: onRoad.length };
   const hm = s.hourModel ?? {};
   const pos = (v: unknown, d: number) => (Number(v) > 0 ? Number(v) : d);
   const defaults: CoverInputs = {
@@ -33,8 +39,9 @@ export async function coverBase(over: Partial<CoverInputs> = {}) {
     // worked, until other figures are saved on What an hour must cover.
     techWage: pos(hm.techWage, 45),
     appWage: pos(hm.appWage, 28),
-    techs: Math.round(pos(hm.techs, Math.max(1, fleet.techs))),
-    apps: Math.round(hm.apps != null && Number(hm.apps) >= 0 ? Number(hm.apps) : people.filter((p) => p.level === "apprentice").length),
+    techs: Math.max(1, onRoad.length),
+    apps: riding.length,
+    appVans,
     billPerDay: pos(hm.billPerDay, 6),
     dayHrs: 8,
     daysOnTools: pos(hm.daysOnTools, DAYS_ON_TOOLS),

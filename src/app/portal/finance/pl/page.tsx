@@ -7,7 +7,7 @@ import { xeroStatus, getPLDetail, type PLDetail } from "@/lib/portal/xero";
 import { savedGoal } from "@/lib/portal/office";
 import { summarisePL, type PLSummary } from "@/lib/portal/run/pl";
 import { money, pc } from "@/lib/portal/run/month";
-import { PERIODS, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
+import { PERIODS, periodItems, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
 import { Bad, Card, Good, Head, PeriodTabs, Say } from "@/components/portal/kit/Kit";
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
@@ -55,7 +55,7 @@ export default async function ProfitLossPage({ searchParams }: { searchParams: {
           ["Net profit", "What’s left at the end, after every cost."],
           ["The shaded column", "The period picked above. The changes at the foot are that period against the same stretch before it."],
         ]} />
-        <PeriodTabs on={period} items={PERIODS} href={(k) => `/portal/finance/pl${k === "month" ? "" : `?p=${k}`}`} />
+        <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/finance/pl${k === "month" ? "" : `?p=${k}`}`} />
         {xs === "connected" ? <Statement period={period} /> : <XeroOff state={xs} what="profit and loss" />}
       </div>
     </PortalShell>

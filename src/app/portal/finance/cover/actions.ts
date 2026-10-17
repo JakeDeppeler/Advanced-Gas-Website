@@ -20,7 +20,10 @@ export async function saveHourModel(form: FormData): Promise<void> {
   };
   const stored = await getCapSettings();
   if (!stored) return;
-  const hourModel = { techWage: n("tw", 1, 500), appWage: n("aw", 1, 500), billPerDay: n("b", 1, 12), daysOnTools: n("d", 50, 260), techs: n("tn", 1, 50), apps: n("an", 0, 50) };
+  // The vans and who rides along come from the team itself, so they're never
+  // saved here: a saved count would go stale the day someone starts or an
+  // apprentice gets a van.
+  const hourModel = { techWage: n("tw", 1, 500), appWage: n("aw", 1, 500), billPerDay: n("b", 1, 12), daysOnTools: n("d", 50, 260) };
   await saveSettings("capacity", { ...stored, hourModel: { ...(stored.hourModel ?? {}), ...Object.fromEntries(Object.entries(hourModel).filter(([, v]) => v != null)) } });
   for (const p of ["/portal/finance/cover", "/portal/finance/running", "/portal/finance/hourly", "/portal/rates", "/portal/finance/planning", "/portal/finance/capacity", "/portal/month"]) revalidatePath(p);
   redirect("/portal/finance/cover?saved=1");

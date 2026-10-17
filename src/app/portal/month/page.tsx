@@ -183,7 +183,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
                 </table>
               </div>
             )}
-            {t.unbilled.length > 25 ? <div style={{ marginTop: 10 }}><Note>{t.unbilled.length - 25} more on <Link href="/portal/stuck">Where the money&rsquo;s stuck</Link>.</Note></div> : null}
+            {t.unbilled.length > 25 ? <div style={{ marginTop: 10 }}><Note>{t.unbilled.length - 25} more on <Link href="/portal/stuck">Stuck money</Link>.</Note></div> : null}
           </Card>
         </div>
 
