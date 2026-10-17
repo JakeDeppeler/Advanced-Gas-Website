@@ -13,9 +13,9 @@ import { Locked } from "@/components/portal/Locked";
 import { currentPairing, prettyCode } from "@/lib/board/pairing";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Wall board — Team portal" };
+export const metadata = { title: "Wall board · Team portal" };
 
-const NA = "—";
+const NA = "";
 const m$ = (n: number | null | undefined) => (n == null ? NA : money(n));
 const n0 = (n: number | null | undefined) => (n == null ? NA : n.toLocaleString("en-AU"));
 const p0 = (n: number | null | undefined) => (n == null ? NA : pct(n));
@@ -98,8 +98,8 @@ const SOURCE_LABEL: Record<string, { name: string; feeds: string }> = {
 };
 const STATE_WORD: Record<string, { word: string; tone: string }> = {
   ok: { word: "Live", tone: "ok" },
-  stale: { word: "Behind — showing its last figures", tone: "warn" },
-  error: { word: "Failing — showing its last figures", tone: "bad" },
+  stale: { word: "Behind, showing its last figures", tone: "warn" },
+  error: { word: "Failing, showing its last figures", tone: "bad" },
   "not-configured": { word: "Not connected", tone: "none" },
 };
 
@@ -163,7 +163,7 @@ export default async function BoardPage() {
           <strong>Put the board on a screen</strong>
           <p>
             Type this on the television once. It signs that screen in for a year and the address becomes{" "}
-            <code>advancedgas.com.au/tv</code> — nothing secret left on display. The code works once and dies in fifteen
+            <code>advancedgas.com.au/tv</code> , nothing secret left on display. The code works once and dies in fifteen
             minutes; this page makes a new one when it does.
           </p>
         </div>
@@ -173,7 +173,7 @@ export default async function BoardPage() {
             <b>{prettyCode(pairing.code)}</b>
           </div>
         ) : (
-          <div className="pt-pair__code pt-pair__code--none">No code — the settings store is unreachable.</div>
+          <div className="pt-pair__code pt-pair__code--none">No code, the settings store is unreachable.</div>
         )}
       </div>
 
@@ -186,7 +186,7 @@ export default async function BoardPage() {
         <>
           <Heads
             items={[
-              { label: "Last refreshed", value: <LiveAge at={snap.computedAt} now={now} />, sub: fresh ? "recomputed every 25 seconds while the TV or this page is open" : "catching up — the TV has been off", feature: true },
+              { label: "Last refreshed", value: <LiveAge at={snap.computedAt} now={now} />, sub: fresh ? "recomputed every 25 seconds while the TV or this page is open" : "catching up, the TV has been off", feature: true },
               { label: "Sources live", value: `${liveCount} of ${sources.length}`, sub: liveCount === sources.length ? "everything is coming through" : "see below for which" },
               { label: "Targets set", value: `${set} of ${targets.length}`, sub: set === targets.length ? "every dial has something to aim at" : "a dial with no target stays blank" },
               { label: "Pages", value: "6", sub: "each on screen for 20 seconds" },
@@ -250,9 +250,9 @@ export default async function BoardPage() {
               <h2 className="pt-panel__h">How it works</h2>
               <ol className="pt-bd__how">
                 <li><strong>ServiceTitan is copied into the database</strong> every couple of minutes while the screen or this page is open, and overnight by a scheduled job. The TV never talks to ServiceTitan or Xero itself.</li>
-                <li><strong>Every 25 seconds the board recomputes</strong> one snapshot from that copy — every figure on all six pages comes from that one row, so no two tiles can disagree.</li>
+                <li><strong>Every 25 seconds the board recomputes</strong> one snapshot from that copy, every figure on all six pages comes from that one row, so no two tiles can disagree.</li>
                 <li><strong>A source that fails keeps its last figures</strong> behind an amber dot in the board&rsquo;s header. It never blanks and never shows a zero it didn&rsquo;t measure.</li>
-                <li><strong>A sale lands within about ten minutes</strong> of being closed — the rocket goes off on the sync after, not the moment it happens.</li>
+                <li><strong>A sale lands within about ten minutes</strong> of being closed, the rocket goes off on the sync after, not the moment it happens.</li>
                 <li><strong>Every target comes from the year goal</strong>: this month&rsquo;s share of the year to invoice and to sell, profit at the goal&rsquo;s percentage, and the planned week&rsquo;s jobs spread over the month&rsquo;s working days. Change the goal and the board follows on its next refresh.</li>
               </ol>
             </section>

@@ -11,7 +11,7 @@ import { theHour } from "@/lib/portal/cover/load";
 import { PAID_HRS_YEAR, fleetSizes } from "@/lib/portal/cover/hour";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Running costs — Team portal" };
+export const metadata = { title: "Running costs · Team portal" };
 
 const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -72,7 +72,7 @@ export default async function RunningCostsPage() {
               <div><span>Overheads a year</span><strong>{m0(r.overhead)}</strong><em>{m0(r.overhead / 12)} a month · {m0(r.overhead / 52)} a week</em></div>
               <div><span>Stays put</span><strong>{m0(fixedTotal)}</strong><em>the same with one van or ten</em></div>
               <div><span>Each van brings</span><strong>{m0(perVanEach)}</strong><em>a year, on top of the crew&rsquo;s pay</em></div>
-              <div className="is-charge"><span>On every billed hour</span><strong>{m2(r.perHr.overhead)}</strong><em>{m0(r.overhead)} ÷ {h0(r.billHrs)} — {i.techs} techs × {i.daysOnTools} days × {i.billPerDay} hrs</em></div>
+              <div className="is-charge"><span>On every billed hour</span><strong>{m2(r.perHr.overhead)}</strong><em>{m0(r.overhead)} ÷ {h0(r.billHrs)}  {i.techs} techs × {i.daysOnTools} days × {i.billPerDay} hrs</em></div>
             </div>
           </section>
 
@@ -80,7 +80,7 @@ export default async function RunningCostsPage() {
             <h2 id="rc-lines" className="pt-panel__h">Every overhead, now and with more vans</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
               <strong>Stays put</strong> lines don&rsquo;t move when a van is added, so the same dollars spread over more hours.{" "}
-              <strong>Per van</strong> lines grow by today&rsquo;s cost of one van. The crew&rsquo;s own pay isn&rsquo;t here — it&rsquo;s on{" "}
+              <strong>Per van</strong> lines grow by today&rsquo;s cost of one van. The crew&rsquo;s own pay isn&rsquo;t here, it&rsquo;s on{" "}
               <Link href="/portal/finance/hourly">Build our rate</Link>. Change a figure or which way a line goes on <Link href="/portal/finance/capacity?t=overheads">Wages &amp; costs › Overheads</Link>.
             </p>
             <div style={{ overflowX: "auto" }}>
@@ -128,7 +128,7 @@ export default async function RunningCostsPage() {
                     <th scope="row" colSpan={3}>Overhead on every billed hour</th>
                     {cols.map((n) => {
                       const hrs = hrsVan * (i.techs + n - vans);
-                      return <td key={n} className="num">{hrs > 0 ? m2((fixedTotal + perVanEach * n) / hrs) : "—"}</td>;
+                      return <td key={n} className="num">{hrs > 0 ? m2((fixedTotal + perVanEach * n) / hrs) : ""}</td>;
                     })}
                     <td />
                   </tr>
@@ -140,7 +140,7 @@ export default async function RunningCostsPage() {
           <section className="pt-panel" aria-labelledby="rc-people">
             <h2 id="rc-people" className="pt-panel__h">What one more person adds</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
-              Pay is the wage × {PAID_HRS_YEAR.toLocaleString("en-AU")} paid hours (a 38-hour week, all year — leave, holidays, sick days and RDOs are paid) with super, WorkCover and LSL ({oc.toFixed(1)}%).
+              Pay is the wage × {PAID_HRS_YEAR.toLocaleString("en-AU")} paid hours (a 38-hour week, all year, leave, holidays, sick days and RDOs are paid) with super, WorkCover and LSL ({oc.toFixed(1)}%).
               A tech with a van brings the van&rsquo;s costs and {h0(hrsVan)} billed; an apprentice brings their pay and no hours of their own.
             </p>
             <div style={{ overflowX: "auto" }}>
@@ -162,7 +162,7 @@ export default async function RunningCostsPage() {
                   </tr>
                   <tr>
                     <th scope="row">An apprentice riding along <em className="pt-rc__n"> · at {m2(i.appWage)} an hour</em></th>
-                    <td className="num">{m0(appPay)}</td><td className="num">—</td>
+                    <td className="num">{m0(appPay)}</td><td className="num"></td>
                     <td className="num"><strong>{m0(appPay)}</strong></td><td className="num">none of their own</td>
                   </tr>
                 </tbody>
@@ -173,7 +173,7 @@ export default async function RunningCostsPage() {
           <section className="pt-panel" aria-labelledby="rc-scale">
             <h2 id="rc-scale" className="pt-panel__h">The whole hour at each number of vans</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
-              Each van with a tech and {n1(appsPerVan)} apprentices — today&rsquo;s mix — at {i.billPerDay} of {i.dayHrs} hours billed. Break-even is everything (overheads and the crew&rsquo;s whole pay) over
+              Each van with a tech and {n1(appsPerVan)} apprentices, today&rsquo;s mix, at {i.billPerDay} of {i.dayHrs} hours billed. Break-even is everything (overheads and the crew&rsquo;s whole pay) over
               the hours billed; with {n1(appsPerVan)} apprentices a van it sits between the one-person and two-person crew rates on <Link href="/portal/rates">Labour rates</Link>. The {m0(fixedTotal)} that stays
               put is shared by more hours with each van; each van brings {m0(perVanEach)} of its own.
             </p>
@@ -224,7 +224,7 @@ export default async function RunningCostsPage() {
               </table>
             </div>
             <p className="pt-note" style={{ margin: "12px 0 0" }}>
-              Today&rsquo;s fleet is {fleet.vans} vans with {i.techs} techs{fleet.vans > i.techs ? ` — ${fleet.vans - i.techs} driven by an apprentice who doesn't bill on their own` : ""}; this table puts a tech in every van.
+              Today&rsquo;s fleet is {fleet.vans} vans with {i.techs} techs{fleet.vans > i.techs ? `, ${fleet.vans - i.techs} driven by an apprentice who doesn't bill on their own` : ""}; this table puts a tech in every van.
               The business as it is, and 3 vans against 5, is on <Link href="/portal/finance/planning">What if</Link>.
             </p>
           </section>

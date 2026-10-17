@@ -9,7 +9,7 @@ import { readTheme, START_COOKIE, START_PAGES, THEME_COOKIE } from "@/lib/portal
 import { BusinessSettings, DeviceSettings } from "@/components/portal/shell/SettingsForm";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Settings — Team portal" };
+export const metadata = { title: "Settings · Team portal" };
 
 /**
  * How the portal is set up: how it looks on this device and where it opens,

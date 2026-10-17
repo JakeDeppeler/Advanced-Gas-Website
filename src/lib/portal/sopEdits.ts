@@ -39,7 +39,7 @@ export function joinStep(s: SopStep): string {
   const d = s.do.trim();
   const n = s.note.trim();
   if (!n) return d;
-  return /[.!?]$/.test(d) ? `${d} ${n}` : `${d} — ${n}`;
+  return /[.!?]$/.test(d) ? `${d} ${n}` : `${d}, ${n}`;
 }
 
 export type StoredSop = {

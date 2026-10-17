@@ -78,7 +78,7 @@ export async function VanTiles({ van, hrefs, you }: {
               {tools == null
                 ? "The register can't be read right now"
                 : tools.length === 0
-                  ? you ? "The office hasn't put this van's tools on yet" : "Nothing on the register yet — add the van's tools"
+                  ? you ? "The office hasn't put this van's tools on yet" : "Nothing on the register yet, add the van's tools"
                   : asked.length || due.length
                     ? [...asked.map(({ t }) => t.name), ...due.filter(({ t }) => !t.request).map(({ t }) => `${t.name} ${(t.nextDue || "due").toLowerCase()} ${t.nextDueOn ? shortDate(t.nextDueOn) : ""}`.trim())].slice(0, 2).join(" · ")
                     : `${tools.length} on the van, nothing due`}

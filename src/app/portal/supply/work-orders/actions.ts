@@ -18,10 +18,10 @@ export async function sendWorkOrder(input: {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return { ok: false, error: "Pick the day you want the electrician there." };
   if (input.time && !/^\d{2}:\d{2}$/.test(input.time)) return { ok: false, error: "That time doesn't read as a time." };
   const work = input.work.trim();
-  if (!work) return { ok: false, error: "Say what electrical work is needed — it's what Geoff reads first." };
+  if (!work) return { ok: false, error: "Say what electrical work is needed, it's what Geoff reads first." };
   const cut = (s: string, n: number) => String(s ?? "").slice(0, n);
   const to = parseEmails(input.sendTo ?? "");
-  if (to.bad.length || to.ok.length > 1) return { ok: false, error: `Send to takes one email address${to.bad.length ? ` — “${to.bad[0]}” isn't one` : ""}.` };
+  if (to.bad.length || to.ok.length > 1) return { ok: false, error: `Send to takes one email address${to.bad.length ? `, “${to.bad[0]}” isn't one` : ""}.` };
   const cc = parseEmails(input.cc ?? "");
   if (cc.bad.length) return { ok: false, error: `“${cc.bad[0]}” isn't an email address.` };
   try {

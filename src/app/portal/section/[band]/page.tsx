@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 const isBand = (b: string): b is Exclude<NavBand, "hidden"> => b !== "hidden" && (BANDS as string[]).includes(b);
 
 export function generateMetadata({ params }: { params: { band: string } }) {
-  return { title: `${isBand(params.band) ? BAND_LABEL[params.band] : "Section"} — Team portal` };
+  return { title: `${isBand(params.band) ? BAND_LABEL[params.band] : "Section"} · Team portal` };
 }
 
 /**

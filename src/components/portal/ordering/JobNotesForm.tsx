@@ -36,7 +36,7 @@ export function JobNotesForm({ initial, suppliers, toNote, swaps, brands }: {
         <div className="pk-kv" key={t.to}>
           <span className="t"><b>{t.from} → {t.to}</b><span>when {t.when}</span></span>
           <span className={`pk-said${t.found === false ? " bad" : ""}`}>
-            {t.found == null ? "Couldn’t check" : t.found ? "Found in ServiceTitan" : `No “${t.to}” tag in ServiceTitan — skipped`}
+            {t.found == null ? "Couldn’t check" : t.found ? "Found in ServiceTitan" : `No “${t.to}” tag in ServiceTitan, skipped`}
           </span>
         </div>
       ))}
@@ -44,7 +44,7 @@ export function JobNotesForm({ initial, suppliers, toNote, swaps, brands }: {
         <span className="t">
           <b>Each brand&rsquo;s own System Ordered</b>
           <span>
-            used instead of System Ordered when the brand has one — by the item&rsquo;s name first, so a Brivis heater ordered through Rinnai gets Brivis.
+            used instead of System Ordered when the brand has one, by the item&rsquo;s name first, so a Brivis heater ordered through Rinnai gets Brivis.
             Make one in ServiceTitan named &ldquo;&lt;Brand&gt; System Ordered&rdquo; and it&rsquo;s used from the next order.
           </span>
         </span>
@@ -75,7 +75,7 @@ export function JobNotesForm({ initial, suppliers, toNote, swaps, brands }: {
       <div className="pk-kv">
         <span className="t">
           <b>{toNote == null ? "Couldn’t check" : toNote === 0 ? "All up to date on their jobs" : `${toNote} sent order${toNote === 1 ? " isn’t" : "s aren’t"} up to date on ${toNote === 1 ? "its jobs" : "their jobs"} yet`}</b>
-          <span>tags, notes and purchase orders — sent before these were on, or refused by ServiceTitan, in any week</span>
+          <span>tags, notes and purchase orders, sent before these were on, or refused by ServiceTitan, in any week</span>
         </span>
         {!!toNote && (
           <button type="button" className="pk-btn" disabled={pastBusy} onClick={() => startPast(async () => {

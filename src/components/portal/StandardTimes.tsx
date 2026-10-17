@@ -72,11 +72,11 @@ export function StandardTimes({ rows, set, rebate }: { rows: JobTypeRow[]; set: 
               <td>
                 <strong>{r.name}</strong>
               </td>
-              <td className="pt-times__n">{r.jobs || "—"}</td>
+              <td className="pt-times__n">{r.jobs || ""}</td>
               {/* How often the board can already measure this type without help.
                   A type at 0 of 12 is the one worth setting; one at 12 of 12
                   gains nothing from a standard time. */}
-              <td className="pt-times__n">{r.jobs > 0 ? `${r.quoted} of ${r.jobs}` : "—"}</td>
+              <td className="pt-times__n">{r.jobs > 0 ? `${r.quoted} of ${r.jobs}` : ""}</td>
               <td className="pt-times__n">
                 <span className="pt-times__field">
                   <input
@@ -87,7 +87,7 @@ export function StandardTimes({ rows, set, rebate }: { rows: JobTypeRow[]; set: 
                     inputMode="decimal"
                     aria-label={`Hours for ${r.name}`}
                     value={vals[r.name] ?? ""}
-                    placeholder="—"
+                    placeholder=""
                     onChange={(e) => setVals((v) => ({ ...v, [r.name]: e.target.value }))}
                     onBlur={(e) => commit(r.name, e.target.value)}
                     onKeyDown={(e) => {
@@ -141,7 +141,7 @@ function VeuRebate({ rebate }: { rebate: number | null }) {
       <div className="pt-panel__head">
         <h2 className="pt-panel__h">VEU rebate per job</h2>
         <span className="pt-panel__sub">
-          {rebate == null ? "Not set — VEU jobs drag the sold margin down" : `Counted as income on every VEU job`}
+          {rebate == null ? "Not set, VEU jobs drag the sold margin down" : `Counted as income on every VEU job`}
         </span>
       </div>
       <p className="pt-panel__note">
@@ -159,7 +159,7 @@ function VeuRebate({ rebate }: { rebate: number | null }) {
           inputMode="decimal"
           aria-label="VEU rebate per job"
           value={val}
-          placeholder="—"
+          placeholder=""
           onChange={(e) => setVal(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => {

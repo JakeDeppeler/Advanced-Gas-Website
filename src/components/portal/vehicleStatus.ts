@@ -16,7 +16,7 @@ export const STATUS_LABEL: Record<VehicleStatus, string> = {
 /** The explanation that follows the bold status on a vehicle's page. */
 export const STATUS_NOTE: Record<VehicleStatus, string> = {
   on: "",
-  repair: "It still counts as part of the fleet — it just isn't available for work right now.",
+  repair: "It still counts as part of the fleet, it just isn't available for work right now.",
   off: "It stays in the fleet and keeps its history, it just isn't counted as working.",
 };
 

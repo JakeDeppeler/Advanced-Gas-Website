@@ -15,7 +15,7 @@ import { overview } from "@/lib/portal/home/overview";
 import { yearSpans } from "@/lib/portal/yearGoal";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Home — Team portal" };
+export const metadata = { title: "Home · Team portal" };
 
 /**
  * Where the portal opens, when someone has picked a start page in Settings:

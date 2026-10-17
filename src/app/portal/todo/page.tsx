@@ -12,7 +12,7 @@ import { doneSince, meOf, officeIds, openTodos, seesAll, teamPeople, todayMelbou
 import { dueState, type Todo } from "@/lib/todos/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Today — Team portal" };
+export const metadata = { title: "Today · Team portal" };
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 

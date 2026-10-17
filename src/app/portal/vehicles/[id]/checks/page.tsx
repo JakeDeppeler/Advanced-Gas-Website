@@ -10,7 +10,7 @@ import { VanCheckHistory, type CheckView } from "@/components/portal/VanCheckHis
 import { CHECK_KINDS, actions, shortfalls } from "@/lib/portal/vanChecks";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Van checks — Team portal" };
+export const metadata = { title: "Van checks · Team portal" };
 
 const when = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 
@@ -47,7 +47,7 @@ export default async function ChecksPage({ params }: { params: { id: string } })
         <PortalBack href={`/portal/vehicles/${vehicle.id}`} label={vehicle.name} />
         <div className="pt-head__eyebrow">{vehicle.name}{vehicle.rego ? ` · ${vehicle.rego}` : ""}</div>
         <h1>Stock &amp; checks.</h1>
-        <p>The same sheets that live in the van — counted, ticked and photographed here instead of on paper, so the office sees it the moment it&rsquo;s done.</p>
+        <p>The same sheets that live in the van, counted, ticked and photographed here instead of on paper, so the office sees it the moment it&rsquo;s done.</p>
       </div>
 
       <div className="pt-vc__start">

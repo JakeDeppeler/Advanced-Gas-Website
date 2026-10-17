@@ -13,7 +13,7 @@ import { dayLabel, dayTimeLabel } from "@/lib/ordering/plan";
 export const dynamic = "force-dynamic";
 // Sending emails the electrician and then writes the note, the PDF and the tags to ServiceTitan.
 export const maxDuration = 60;
-export const metadata = { title: "Work orders — Team portal" };
+export const metadata = { title: "Work orders · Team portal" };
 
 const hhmm = (iso: string) =>
   new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso)).replace(/^24/, "00");
@@ -99,7 +99,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
               }}
             />
           ) : (
-            <p className="pk-said bad">There&rsquo;s no electrician set up to send work orders to — add one under Supplier emails.</p>
+            <p className="pk-said bad">There&rsquo;s no electrician set up to send work orders to, add one under Supplier emails.</p>
           )
         )}
 
@@ -117,12 +117,12 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
                   const when = d ? (d.start_at ? dayTimeLabel(d.start_at) : dayLabel(d.date)) : "";
                   const state = w.status === "sent"
                     ? `Sent ${w.sent_at ? dayLabel(isoDateMelbourne(new Date(w.sent_at))) : ""}`
-                    : w.send_error ? `Didn't send: ${w.send_error}` : "Draft — send it from To order";
+                    : w.send_error ? `Didn't send: ${w.send_error}` : "Draft, send it from To order";
                   const work = d?.jobs.map((j) => j.work).filter(Boolean).join("; ");
                   return (
                     <Row
                       key={w.id}
-                      title={`Job ${jobs || "?"} — ${when}`}
+                      title={`Job ${jobs || "?"}, ${when}`}
                       sub={`${d?.site_address ?? ""}${work ? ` · ${work}` : ""} · ${state}${onTheJob(w)}${w.manual ? "" : " · from the install plan"}`}
                     />
                   );

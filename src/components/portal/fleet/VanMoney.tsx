@@ -18,7 +18,7 @@ const dayMonthYear = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateS
 function gearSt(t: VanTool, today: Date): Status {
   const s = toolState(t, today);
   if (s.broken) return { k: "bad", w: "Broken" };
-  if (s.lifePct != null && s.lifePct >= 1) return { k: "bad", w: "Replace — past its life" };
+  if (s.lifePct != null && s.lifePct >= 1) return { k: "bad", w: "Replace, past its life" };
   if (s.old) return { k: "mid", w: "Replace soon" };
   if (s.overdue) return { k: "bad", w: `${t.nextDue || "Due"} overdue` };
   if (s.due) return { k: "mid", w: `${t.nextDue || "Due"} ${shortDate(t.nextDueOn!)}` };
@@ -49,7 +49,7 @@ export async function VanMoney({ van, canEdit }: { van: Vehicle; canEdit: boolea
     <div className="pk" style={{ marginTop: 18 }}>
       {st ? (
         <Say>
-          {van.name} cost <b>{van.purchasePrice != null ? m$(van.purchasePrice) : "—"}</b>
+          {van.name} cost <b>{van.purchasePrice != null ? m$(van.purchasePrice) : ""}</b>
           {loan?.deposit ? <>, {m$(loan.deposit)} of it down</> : null}. {st.paidCount} of {st.rows.length} repayments are made and <b>{m$(st.owingNow)} is still owing</b>
           {loan?.lender ? <> to {loan.lender}</> : null}, paid off by {monthYear(st.endsOn)}.
         </Say>
@@ -58,15 +58,15 @@ export async function VanMoney({ van, canEdit }: { van: Vehicle; canEdit: boolea
       )}
 
       <Grid cols={4}>
-        <Tile label="What we paid" st={{ k: "none", w: "" }} fig={van.purchasePrice != null ? m$(van.purchasePrice) : "—"} frac={null}
+        <Tile label="What we paid" st={{ k: "none", w: "" }} fig={van.purchasePrice != null ? m$(van.purchasePrice) : ""} frac={null}
           sub={[loan?.deposit ? `${m$(loan.deposit)} deposit` : null, st ? `${m$(st.financed)} borrowed` : null, van.purchasedOn ? `bought ${dayMonthYear(van.purchasedOn)}` : null].filter(Boolean).join(" · ") || "not entered"} />
         <Tile label="Still owing" st={owing == null ? none("Not entered") : owing <= 0 ? { k: "good", w: "Paid off" } : st ? { k: "none", w: `${Math.round((st.paidOff / st.financed) * 100)}% paid` } : none("Typed in")}
-          fig={owing != null ? m$(owing) : "—"} frac={st ? st.paidOff / st.financed : null}
+          fig={owing != null ? m$(owing) : ""} frac={st ? st.paidOff / st.financed : null}
           sub={st ? `${m$(st.paidOff)} paid off · ${m$(st.interestPaid)} interest so far` : "add the contract to track it"} />
-        <Tile label="A month" st={{ k: "none", w: "" }} fig={st ? m2(st.repayment) : van.monthlyRepayment ? m2(van.monthlyRepayment) : "—"} frac={null}
+        <Tile label="A month" st={{ k: "none", w: "" }} fig={st ? m2(st.repayment) : van.monthlyRepayment ? m2(van.monthlyRepayment) : ""} frac={null}
           sub={[loan?.lender, loan?.ratePct != null ? `${loan.ratePct}% a year` : null, st?.repaymentWorkedOut ? "worked out from the rate" : null].filter(Boolean).join(" · ") || "no repayment set"} />
         <Tile label="Paid off" st={st ? (left === 0 ? { k: "good", w: "Done" } : { k: "none", w: `${left} to go` }) : none("No contract")}
-          fig={st ? monthYear(st.endsOn) : "—"} frac={st ? st.paidCount / Math.max(1, st.rows.length) : null}
+          fig={st ? monthYear(st.endsOn) : ""} frac={st ? st.paidCount / Math.max(1, st.rows.length) : null}
           sub={st ? `${m$(st.interestLeft)} interest still to pay${st.next ? ` · next ${dayMonthYear(st.next.date)}` : ""}` : "first repayment, rate and term"} />
       </Grid>
 
@@ -111,21 +111,21 @@ export async function VanMoney({ van, canEdit }: { van: Vehicle; canEdit: boolea
 
       <Two>
         <Card title="What it costs to run" aside="a year">
-          <Kv t="Repayments" sub={loan?.lender ? `to ${loan.lender}` : undefined} v={st ? m$(st.repayment * 12) : van.monthlyRepayment ? m$(van.monthlyRepayment * 12) : "—"} />
-          <Kv t="Value lost" sub={van.lifespanYears ? `over ${van.lifespanYears} years, down to ${m$(van.resaleValue ?? 0)}` : "set its service life"} v={fin.annualDep != null ? m$(fin.annualDep) : "—"} />
-          <Kv t="Servicing" sub={van.serviceIntervalKm && van.serviceCost ? `${m$(van.serviceCost)} every ${van.serviceIntervalKm.toLocaleString("en-AU")} km` : "set on the van’s details"} v={fin.servicePerYear != null ? m$(fin.servicePerYear) : "—"} />
-          <Kv t="Fuel" sub={van.fuelPer100 ? `${van.fuelPer100} L/100 km` : "set its fuel use"} v={fuel != null ? m$(fuel) : "—"} />
+          <Kv t="Repayments" sub={loan?.lender ? `to ${loan.lender}` : undefined} v={st ? m$(st.repayment * 12) : van.monthlyRepayment ? m$(van.monthlyRepayment * 12) : ""} />
+          <Kv t="Value lost" sub={van.lifespanYears ? `over ${van.lifespanYears} years, down to ${m$(van.resaleValue ?? 0)}` : "set its service life"} v={fin.annualDep != null ? m$(fin.annualDep) : ""} />
+          <Kv t="Servicing" sub={van.serviceIntervalKm && van.serviceCost ? `${m$(van.serviceCost)} every ${van.serviceIntervalKm.toLocaleString("en-AU")} km` : "set on the van’s details"} v={fin.servicePerYear != null ? m$(fin.servicePerYear) : ""} />
+          <Kv t="Fuel" sub={van.fuelPer100 ? `${van.fuelPer100} L/100 km` : "set its fuel use"} v={fuel != null ? m$(fuel) : ""} />
         </Card>
         <Card title="What it’s worth" aside="straight-lined over its life">
-          <Kv t="Worth today" v={fin.worthNow != null ? m$(fin.worthNow) : "—"} />
-          <Kv t="Ours of it" sub="worth less what’s still owing" v={fin.equityNow != null ? <span style={{ color: fin.underwater ? "var(--bad)" : undefined, fontWeight: 700 }}>{fin.underwater ? "▼ " : ""}{m$(fin.equityNow)}</span> : "—"} />
+          <Kv t="Worth today" v={fin.worthNow != null ? m$(fin.worthNow) : ""} />
+          <Kv t="Ours of it" sub="worth less what’s still owing" v={fin.equityNow != null ? <span style={{ color: fin.underwater ? "var(--bad)" : undefined, fontWeight: 700 }}>{fin.underwater ? "▼ " : ""}{m$(fin.equityNow)}</span> : ""} />
           <Kv t="Service life" sub={fin.sellBy ? `sell by ${fin.sellBy}` : undefined}
-            v={fin.lifeLeft != null ? <Pill st={fin.pastLife ? { k: "bad", w: `${years(fin.lifeLeft)} over` } : fin.lifeLeft < 1 ? { k: "mid", w: `${years(fin.lifeLeft)} left` } : { k: "good", w: `${years(fin.lifeLeft)} left` }} /> : "—"} />
+            v={fin.lifeLeft != null ? <Pill st={fin.pastLife ? { k: "bad", w: `${years(fin.lifeLeft)} over` } : fin.lifeLeft < 1 ? { k: "mid", w: `${years(fin.lifeLeft)} left` } : { k: "good", w: `${years(fin.lifeLeft)} left` }} /> : ""} />
         </Card>
       </Two>
 
       <Card title="Gear on this van" aside={<Link href={`/portal/vehicles/${van.id}?tab=tools`}>Tools &amp; gear ›</Link>}>
-        {tools == null ? <Empty>The tool register can&rsquo;t be read right now.</Empty> : gear.length === 0 ? <Empty>Nothing on the register for this van yet — add its gear on Tools &amp; gear.</Empty> : (
+        {tools == null ? <Empty>The tool register can&rsquo;t be read right now.</Empty> : gear.length === 0 ? <Empty>Nothing on the register for this van yet, add its gear on Tools &amp; gear.</Empty> : (
           <>
             {replace.length > 0 && <p className="pk-note" style={{ marginBottom: 8 }}><b>{replace.length} {replace.length === 1 ? "thing needs" : "things need"} replacing or fixing.</b> Life is from the day it was bought; &ldquo;soon&rdquo; is the last sixth of it.</p>}
             <Group>

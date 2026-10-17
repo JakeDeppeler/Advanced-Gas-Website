@@ -10,7 +10,7 @@ import { theHour } from "@/lib/portal/cover/load";
 import { DAYS_ON_TOOLS, PAID_HRS_YEAR } from "@/lib/portal/cover/hour";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Our hourly rate — Team portal" };
+export const metadata = { title: "Our hourly rate · Team portal" };
 
 const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -56,11 +56,11 @@ export default async function HourlyPage() {
   const groups = [...new Set(lines.filter((l) => l.group !== "Office & admin staff").map((l) => l.group))];
   const buckets: Bucket[] = [
     { key: "tech", label: "Techs’ pay", note: `${i.techs} × ${m2(i.techWage)} × ${PAID_HRS_YEAR.toLocaleString("en-AU")} hrs · with super & WorkCover`, annual: r.techPay,
-      lines: payLines(`Wages — ${i.techs} × ${m2(i.techWage)} × ${PAID_HRS_YEAR.toLocaleString("en-AU")} hrs`, techWages) },
+      lines: payLines(`Wages, ${i.techs} × ${m2(i.techWage)} × ${PAID_HRS_YEAR.toLocaleString("en-AU")} hrs`, techWages) },
     { key: "app", label: "Apprentices’ pay", note: `${i.apps} × ${m2(i.appWage)} × ${PAID_HRS_YEAR.toLocaleString("en-AU")} hrs · with super & WorkCover`, annual: r.appPay,
-      lines: payLines(`Wages — ${i.apps} × ${m2(i.appWage)} × ${PAID_HRS_YEAR.toLocaleString("en-AU")} hrs`, appWages) },
+      lines: payLines(`Wages, ${i.apps} × ${m2(i.appWage)} × ${PAID_HRS_YEAR.toLocaleString("en-AU")} hrs`, appWages) },
     ...(office.length ? [{ key: "office", label: "Office & admin staff", note: "everyone who doesn't go out on jobs · with super & WorkCover", annual: office.reduce((a, l) => a + l.annual, 0),
-      lines: [...office.map((l) => ({ label: `${l.label} — wages`, annual: l.annual / loaded })), ...payLines("", officeWages).slice(1)] }] : []),
+      lines: [...office.map((l) => ({ label: `${l.label}, wages`, annual: l.annual / loaded })), ...payLines("", officeWages).slice(1)] }] : []),
     ...groups.map((g) => {
       const ls = lines.filter((l) => l.group === g).sort((a, b) => b.annual - a.annual);
       return { key: g, label: g, note: `${ls.length} ${ls.length === 1 ? "line" : "lines"}`, annual: ls.reduce((a, l) => a + l.annual, 0), lines: ls.map((l) => ({ label: l.label, annual: l.annual })) };
@@ -93,7 +93,7 @@ export default async function HourlyPage() {
           <section className="pt-panel" aria-labelledby="hs-crew">
             <h2 id="hs-crew" className="pt-panel__h">How a crew&rsquo;s hour adds up</h2>
             <p className="pt-note" style={{ margin: "0 0 12px" }}>
-              Someone on {m2(i.techWage)} an hour costs {m2(i.techWage * loaded)} with super, WorkCover and LSL — but that&rsquo;s per hour <em>paid</em>. They&rsquo;re paid for {PAID_HRS_YEAR.toLocaleString("en-AU")} hours
+              Someone on {m2(i.techWage)} an hour costs {m2(i.techWage * loaded)} with super, WorkCover and LSL, but that&rsquo;s per hour <em>paid</em>. They&rsquo;re paid for {PAID_HRS_YEAR.toLocaleString("en-AU")} hours
               a year (leave, holidays, sick days and RDOs included) and bill {hrsVan.toLocaleString("en-AU")} of them ({i.daysOnTools} days × {i.billPerDay} hours), so each billed hour has to carry{" "}
               {stretch.toFixed(2)} paid hours. Then the overhead goes on: {m0(r.overhead)} over the {h0(r.billHrs)} the business bills.
             </p>
@@ -103,8 +103,8 @@ export default async function HourlyPage() {
                   <tr><th scope="col" /> {crews.rows.map((c) => <th key={c.k} scope="col" className="num">{c.label.replace(/^A /, "")}</th>)}</tr>
                 </thead>
                 <tbody>
-                  <tr><th scope="row">Tech — {m2(i.techWage * loaded)} an hour paid</th>{crews.rows.map((c) => <td key={c.k} className="num">{m2(i.techWage * loaded * stretch)}</td>)}</tr>
-                  <tr><th scope="row">Apprentices — {m2(i.appWage * loaded)} an hour paid, each</th>{crews.rows.map((c) => <td key={c.k} className="num">{c.apps ? `${c.apps} × ${m2(i.appWage * loaded * stretch)}` : "—"}</td>)}</tr>
+                  <tr><th scope="row">Tech, {m2(i.techWage * loaded)} an hour paid</th>{crews.rows.map((c) => <td key={c.k} className="num">{m2(i.techWage * loaded * stretch)}</td>)}</tr>
+                  <tr><th scope="row">Apprentices, {m2(i.appWage * loaded)} an hour paid, each</th>{crews.rows.map((c) => <td key={c.k} className="num">{c.apps ? `${c.apps} × ${m2(i.appWage * loaded * stretch)}` : ""}</td>)}</tr>
                   <tr><th scope="row">Overhead on every billed hour</th>{crews.rows.map((c) => <td key={c.k} className="num">{m2(r.perHr.overhead)}</td>)}</tr>
                   <tr className="pt-rc__tot"><th scope="row">Break-even</th>{crews.rows.map((c) => <td key={c.k} className="num">{m2(c.be)}</td>)}</tr>
                   <tr><th scope="row">To make {i.margin}%</th>{crews.rows.map((c) => <td key={c.k} className="num"><strong>{m2(c.price)}</strong></td>)}</tr>
@@ -119,7 +119,7 @@ export default async function HourlyPage() {
               </table>
             </div>
             <p className="pt-note" style={{ margin: "12px 0 0" }}>
-              Adding the hourly wages straight up ({m2(i.techWage * loaded)} + {m2(i.appWage * loaded)} + {m2(i.appWage * loaded)} + the overhead) misses the {(stretch - 1).toFixed(2)} paid hours behind every billed one —
+              Adding the hourly wages straight up ({m2(i.techWage * loaded)} + {m2(i.appWage * loaded)} + {m2(i.appWage * loaded)} + the overhead) misses the {(stretch - 1).toFixed(2)} paid hours behind every billed one 
               the leave, the public holidays, the sick days, the RDOs and the two hours a day that don&rsquo;t get billed. Change the wages, crew or hours on{" "}
               <Link href="/portal/finance/cover">What an hour must cover</Link>.
             </p>

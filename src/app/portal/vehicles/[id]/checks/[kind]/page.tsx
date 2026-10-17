@@ -7,7 +7,7 @@ import { VanCheckForm } from "@/components/portal/VanCheckForm";
 import { CHECK_KINDS, type CheckKind } from "@/lib/portal/vanChecks";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Van check — Team portal" };
+export const metadata = { title: "Van check · Team portal" };
 
 export default async function RunCheckPage({ params }: { params: { id: string; kind: string } }) {
   const user = await getPortalUser();

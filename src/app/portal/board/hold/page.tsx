@@ -9,7 +9,7 @@ import { dbConfigured } from "@/lib/portal/db";
 import { readHoldTags } from "@/lib/board/holdTags";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Held work — Team portal" };
+export const metadata = { title: "Held work · Team portal" };
 
 /**
  * Which job tags mean a job is waiting on something, which is what the
@@ -34,7 +34,7 @@ export default async function HoldTagsPage() {
         <p>
           The portal&rsquo;s <strong>Stuck</strong> page counts open jobs that are waiting on something, and the
           only thing in ServiceTitan that says what they are waiting on is the tag. Half the tags aren&rsquo;t holds at
-          all — <em>Potential Member</em> sits on sixty-odd open jobs — so this is where the office says which ones are.
+          all, <em>Potential Member</em> sits on sixty-odd open jobs, so this is where the office says which ones are.
         </p>
         <p>
           <strong>On us</strong> is work somebody here can move today; <strong>on them</strong> is a quote or an answer

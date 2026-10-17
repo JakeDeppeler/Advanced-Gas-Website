@@ -9,7 +9,7 @@ import { dbConfigured } from "@/lib/portal/db";
 import { readSoldJobs, windowDays } from "@/lib/board/saleCredit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Who sold it — Team portal" };
+export const metadata = { title: "Who sold it · Team portal" };
 
 const EMPTY = { jobs: [], people: [], moves: 0, totals: [] };
 
@@ -35,9 +35,9 @@ export default async function SaleCreditPage({ searchParams }: { searchParams?: 
         <h1>Who sold it</h1>
         <p>
           The board credits a job to whoever <em>wrote</em> the quote, because ServiceTitan only stamps a seller once an
-          estimate is closed from the sell screen — and this office closes most of them without naming one, so keying on
+          estimate is closed from the sell screen, and this office closes most of them without naming one, so keying on
           it listed the two people who had while six had been quoting. That is right nearly always. When it
-          isn&rsquo;t — somebody starts a quote and doesn&rsquo;t do the work — this is where the office says so.
+          isn&rsquo;t, somebody starts a quote and doesn&rsquo;t do the work, this is where the office says so.
         </p>
         <p>
           A move takes the <strong>whole job</strong>, the quote as well as the sale. Moving the sale on its own would

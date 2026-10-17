@@ -21,10 +21,10 @@ import { Bad, Card, Grid, Head, Lh, PeriodTabs, Say, Sum, Tile, none, status, ty
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Profit & finance — Team portal" };
+export const metadata = { title: "Profit & finance · Team portal" };
 
 const INFO: [string, string][] = [
-  ["Net profit", "What’s left after every bill, wage and cost is paid — what the business actually made."],
+  ["Net profit", "What’s left after every bill, wage and cost is paid, what the business actually made."],
   ["Gross margin", "Out of every $100 we charge, what’s left after the parts and the tech’s time on the job."],
   ["In the bank", "Every bank account in Xero, and how many weeks of wages and overheads it would cover if the phone stopped."],
   ["Owed to us", "Invoices sent but not paid yet. Overdue means past the day they agreed to pay."],
@@ -51,7 +51,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { p?
         {xs === "connected" && tabs}
 
         {xs === "not-configured" && (
-          <Card title="Connect Xero — one-time setup">
+          <Card title="Connect Xero, one-time setup">
             <p className="pk-note">The app credentials aren’t set yet. Create a Xero app, then add its keys to the server:</p>
             <ol className="pk-note" style={{ lineHeight: 1.7, paddingLeft: 20 }}>
               <li>Go to <b>developer.xero.com</b> → <b>My Apps</b> → <b>New app</b> (Web app).</li>
@@ -166,14 +166,14 @@ async function Connected({ period }: { period: PeriodKey }) {
     <>
       <Say>
         {words.replace(/^./, (c) => c.toUpperCase())} made <b>{money(s.net)} profit</b>, {pc(npPct, 1)} of sales.{" "}
-        {npGoal == null ? "There’s no profit goal yet — set one in Pricing & costs." : gap == null ? "That’s on goal." : <>The goal is {npGoal}% — <Bad>{gap}</Bad>.</>}
+        {npGoal == null ? "There’s no profit goal yet, set one in Pricing & costs." : gap == null ? "That’s on goal." : <>The goal is {npGoal}%, <Bad>{gap}</Bad>.</>}
       </Say>
       <Grid cols={4}>
         <Tile label="Net profit" st={npSt} fig={money(s.net)} frac={npGoal ? npPct / npGoal : null} sub={`${pc(npPct, 1)} of sales${npGoal ? ` · goal ${npGoal}%` : ""}`} href="/portal/finance/pl" />
         <Tile label="Gross margin" st={gmSt} fig={pc(gmPct, 1)} frac={goals.gm ? gmPct / goals.gm : null} sub={goals.gm != null ? `goal ${goals.gm}% or more` : "no goal yet"} href="/portal/finance/pl" />
-        <Tile label="In the bank" st={bankSt} fig={cover.bank != null ? money(cover.bank) : "—"} frac={weeks != null ? weeks / BENCH.cash.lo : null}
+        <Tile label="In the bank" st={bankSt} fig={cover.bank != null ? money(cover.bank) : ""} frac={weeks != null ? weeks / BENCH.cash.lo : null}
           sub={cover.bank == null ? (cover.bankWhy === "no-scope" ? "Xero needs the bank permission" : "Xero didn’t answer") : weeks != null ? `${weeks.toFixed(1)} weeks of running costs · aim ${BENCH.cash.lo}+` : `${cover.accounts} accounts`} href="/portal/finance/cash?tab=operate" />
-        <Tile label="Owed to us" st={owedSt} fig={owed != null ? money(owed) : "—"} frac={owed && overdue != null ? 1 - overdue / owed : null}
+        <Tile label="Owed to us" st={owedSt} fig={owed != null ? money(owed) : ""} frac={owed && overdue != null ? 1 - overdue / owed : null}
           sub={overdue != null ? `${money(overdue)} overdue${goals.overdue != null ? ` · limit ${money(goals.overdue)}` : ""}` : "Xero and ServiceTitan didn’t answer"} href="/portal/money" />
       </Grid>
 
@@ -181,36 +181,36 @@ async function Connected({ period }: { period: PeriodKey }) {
       <Grid cols={4}>
         <Sum title="Profit & loss" st={plSt} fig={money(s.revenue)} figSub={`sales ${words}`} href={`/portal/finance/pl${period === "fy" ? "" : `?p=${period}`}`} lines={[
           ["Profit", money(s.net)],
-          ["Sales on before", salesD == null ? "—" : <Diff d={salesD} />],
+          ["Sales on before", salesD == null ? "" : <Diff d={salesD} />],
         ]} />
-        <Sum title="Cash flow" st={cashSt} fig={kept == null ? "—" : `${kept >= 0 ? "▲" : "▼"} ${money(Math.abs(kept))}`} figSub={kept == null ? "bank this month" : `the bank ${kept >= 0 ? "kept" : "lost"} this month`} href="/portal/finance/cash" lines={[
-          ["Money in", b ? money(b.received) : "—"],
-          ["Money out", b ? money(b.spent) : "—"],
+        <Sum title="Cash flow" st={cashSt} fig={kept == null ? "" : `${kept >= 0 ? "▲" : "▼"} ${money(Math.abs(kept))}`} figSub={kept == null ? "bank this month" : `the bank ${kept >= 0 ? "kept" : "lost"} this month`} href="/portal/finance/cash" lines={[
+          ["Money in", b ? money(b.received) : ""],
+          ["Money out", b ? money(b.spent) : ""],
         ]} />
         <Sum title="Owed to us" st={owedSt.k === "none" && overdue != null ? (overdue > 0 ? { k: "mid", w: `${late!.length} late` } : { k: "good", w: "None late" }) : owedSt}
-          fig={overdue != null ? money(overdue) : "—"} figSub="overdue" href="/portal/money" lines={[
-            ["Oldest", oldest != null ? `${oldest} days over` : "—"],
-            ["Over 60 days", old60 != null ? money(old60) : "—"],
+          fig={overdue != null ? money(overdue) : ""} figSub="overdue" href="/portal/money" lines={[
+            ["Oldest", oldest != null ? `${oldest} days over` : ""],
+            ["Over 60 days", old60 != null ? money(old60) : ""],
           ]} />
-        <Sum title="We owe" st={oweSt} fig={billsWeek != null ? money(billsWeek) : "—"} figSub="bills due in the next 7 days" href="/portal/finance/owe" lines={[
-          ["Late", billsLate != null ? money(billsLate) : "—"],
-          ["Every unpaid bill", billsAll != null ? money(billsAll) : "—"],
+        <Sum title="We owe" st={oweSt} fig={billsWeek != null ? money(billsWeek) : ""} figSub="bills due in the next 7 days" href="/portal/finance/owe" lines={[
+          ["Late", billsLate != null ? money(billsLate) : ""],
+          ["Every unpaid bill", billsAll != null ? money(billsAll) : ""],
         ]} />
         <Sum title="Spending" st={spendSt} fig={money(costs)} figSub={`costs ${words}`} href="/portal/finance/spend" lines={[
-          ["Costs on before", costD == null ? "—" : <Diff d={costD} lowerIsBetter />],
+          ["Costs on before", costD == null ? "" : <Diff d={costD} lowerIsBetter />],
           [top ? `Most moved: ${top.label}` : "Most moved", top ? <Diff d={top.now - top.usual} lowerIsBetter /> : "nothing much"],
         ]} />
-        <Sum title="Profit on every job" st={jobSt} fig={jp?.margin != null ? pc(jp.margin * 100) : "—"} figSub={`margin on costed jobs, ${job.words}`} href={`/portal/profit?w=${job.w}`} lines={[
-          [npGoal ? `Under ${npGoal}%` : "Under the goal", jp && npGoal ? String(jp.under) : "—"],
-          ["Losing money", jp ? String(jp.losing) : "—"],
+        <Sum title="Profit on every job" st={jobSt} fig={jp?.margin != null ? pc(jp.margin * 100) : ""} figSub={`margin on costed jobs, ${job.words}`} href={`/portal/profit?w=${job.w}`} lines={[
+          [npGoal ? `Under ${npGoal}%` : "Under the goal", jp && npGoal ? String(jp.under) : ""],
+          ["Losing money", jp ? String(jp.losing) : ""],
         ]} />
-        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : "—"} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Pricing & costs"} href="/portal/finance/goals" lines={[
-          ["Should be by now", ys ? money(ys.expectedToDate) : "—"],
-          ["Against the pace", ys?.delta != null ? <Diff d={ys.delta} /> : "—"],
+        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : ""} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Pricing & costs"} href="/portal/finance/goals" lines={[
+          ["Should be by now", ys ? money(ys.expectedToDate) : ""],
+          ["Against the pace", ys?.delta != null ? <Diff d={ys.delta} /> : ""],
         ]} />
-        <Sum title="Journal entries" st={jSt} fig={journals ? String(journals.errors) : "—"} figSub="didn’t reach Xero" href="/portal/journals" lines={[
-          ["Waiting to sync", journals ? String(journals.waiting) : "—"],
-          ["Last checked", journals?.checkedAt ? ago(journals.checkedAt) : "—"],
+        <Sum title="Journal entries" st={jSt} fig={journals ? String(journals.errors) : ""} figSub="didn’t reach Xero" href="/portal/journals" lines={[
+          ["Waiting to sync", journals ? String(journals.waiting) : ""],
+          ["Last checked", journals?.checkedAt ? ago(journals.checkedAt) : ""],
         ]} />
       </Grid>
       <p className="pk-note" style={{ margin: "-4px 0 0 4px" }}>“Before” is {before$}.</p>

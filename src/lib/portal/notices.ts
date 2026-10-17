@@ -164,7 +164,7 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
     const clean = cleanCell(checks[i][0]?.checkedOn ?? null, today);
     if (clean.severity === "bad") {
       out.push({
-        title: `Weekly van check — ${v.name}`,
+        title: `Weekly van check, ${v.name}`,
         detail: clean.detail,
         href: `/portal/vehicles/${v.id}`,
         tone: "bad",
@@ -175,7 +175,7 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
     const service = serviceCell(v.odometer, v.nextServiceKm, v.nextServiceDate, today);
     if (service.severity === "bad" || service.severity === "warn") {
       out.push({
-        title: `Service ${service.label.toLowerCase()} — ${v.name}`,
+        title: `Service ${service.label.toLowerCase()}, ${v.name}`,
         detail: service.detail,
         href: `/portal/vehicles/${v.id}`,
         tone: service.severity,
@@ -187,7 +187,7 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
     // makes the service warning above wrong too.
     const km = kmCell(v.odometer, null, today);
     if (v.odometer == null) {
-      out.push({ title: `No km reading — ${v.name}`, detail: km.detail, href: `/portal/vehicles/${v.id}`, tone: "warn", group: "doing", when: "" });
+      out.push({ title: `No km reading, ${v.name}`, detail: km.detail, href: `/portal/vehicles/${v.id}`, tone: "warn", group: "doing", when: "" });
     }
   });
 
@@ -196,7 +196,7 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
   // through.
   for (const j of journals) {
     out.push({
-      title: `Journal entry #${j.number ?? "—"} didn't sync to Xero`,
+      title: `Journal entry #${j.number ?? ""} didn't sync to Xero`,
       detail: j.message || j.name || "ServiceTitan gave no reason",
       href: "/portal/journals#errors",
       tone: "bad",

@@ -9,7 +9,7 @@ import { dbConfigured, listStoredSops } from "@/lib/portal/db";
 import { mergeSops } from "@/lib/portal/sopEdits";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Processes & procedures — Team portal" };
+export const metadata = { title: "Processes & procedures · Team portal" };
 
 export default async function SopsPage() {
   const user = await getPortalUser();
@@ -64,7 +64,7 @@ export default async function SopsPage() {
         ))}
       </section>
 
-      <p className="pt-sopx__foot">None of it is finished. If a procedure doesn&rsquo;t work on the job, say so and bring the fix with it — see C6.</p>
+      <p className="pt-sopx__foot">None of it is finished. If a procedure doesn&rsquo;t work on the job, say so and bring the fix with it, see C6.</p>
     </PortalShell>
   );
 }

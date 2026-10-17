@@ -47,10 +47,10 @@ export function AddVehicleForm({ crew }: { crew: { id: string; name: string }[] 
   return (
     <section className="pt-panel">
       <h2 className="pt-panel__h">Add a vehicle</h2>
-      <p className="pt-panel__sub">Fill in what you know now — anything you skip can be added later from the vehicle&rsquo;s page.</p>
+      <p className="pt-panel__sub">Fill in what you know now, anything you skip can be added later from the vehicle&rsquo;s page.</p>
 
       <div className="pt-veh__addgrid">
-        <label className="pt-field"><span>Name</span><input value={f.name} onChange={(e) => set("name")(e.target.value)} placeholder="e.g. Ute 1 — Hilux" /></label>
+        <label className="pt-field"><span>Name</span><input value={f.name} onChange={(e) => set("name")(e.target.value)} placeholder="e.g. Ute 1, Hilux" /></label>
         <label className="pt-field"><span>Rego</span><input value={f.rego} onChange={(e) => set("rego")(e.target.value)} placeholder="e.g. 1AB 2CD" /></label>
         <label className="pt-field"><span>Make / model / year</span><input value={f.details} onChange={(e) => set("details")(e.target.value)} placeholder="e.g. Toyota Hilux 2022" /></label>
         <div className="pt-field pt-field--wide">

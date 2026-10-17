@@ -9,7 +9,7 @@ import { AccessEditor } from "@/components/portal/AccessEditor";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Access levels — Team portal" };
+export const metadata = { title: "Access levels · Team portal" };
 
 export default async function AccessPage() {
   const user = await getPortalUser();

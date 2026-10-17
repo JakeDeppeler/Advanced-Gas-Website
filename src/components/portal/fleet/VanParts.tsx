@@ -21,7 +21,7 @@ export async function VanFacts({ van, today, kmCell }: { van: Vehicle; today: Da
   const regoSt: Status = regoDays == null ? { k: "none", w: "Not set" } : regoDays < 0 ? { k: "bad", w: "Overdue" } : regoDays <= 30 ? { k: "mid", w: "Soon" } : { k: "good", w: "OK" };
   return (
     <Grid cols={4}>
-      <Tile label="Odometer" st={cellSt(kmCell)} fig={van.odometer != null ? `${van.odometer.toLocaleString("en-AU")} km` : "—"} frac={null} sub={kmCell.detail} />
+      <Tile label="Odometer" st={cellSt(kmCell)} fig={van.odometer != null ? `${van.odometer.toLocaleString("en-AU")} km` : ""} frac={null} sub={kmCell.detail} />
       <Tile label="Next service" st={cellSt(service)} fig={van.nextServiceKm != null ? `${van.nextServiceKm.toLocaleString("en-AU")} km` : van.nextServiceDate ? shortDate(van.nextServiceDate) : "Not set"}
         frac={kmTo != null && van.serviceIntervalKm ? 1 - Math.max(0, kmTo) / van.serviceIntervalKm : null} sub={service.detail} />
       <Tile label="Rego due" st={regoSt} fig={van.regoDue ? shortDate(van.regoDue) : "Not set"} frac={null}
@@ -44,7 +44,7 @@ export async function VanOverview({ van, hrefs, driver }: {
   const { week, weekDone, lookAt, open, stockSheet, low, openOrders, tools, broken, due, asked, factoryLow } = await vanState(van);
   const chip = openOrders[0] ? partChip(openOrders[0]) : null;
   const toolSub = tools == null ? "The register can’t be read right now"
-    : tools.length === 0 ? "Nothing on the register yet — add the van’s tools"
+    : tools.length === 0 ? "Nothing on the register yet, add the van’s tools"
       : asked.length || due.length
         ? [...asked.map(({ t }) => t.name), ...due.filter(({ t }) => !t.request).map(({ t }) => `${t.name} ${(t.nextDue || "due").toLowerCase()} ${t.nextDueOn ? shortDate(t.nextDueOn) : ""}`.trim())].slice(0, 2).join(" · ")
         : `${tools.length} on the van, nothing due`;

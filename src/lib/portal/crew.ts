@@ -61,7 +61,7 @@ export const OVERHEAD_GROUPS = [
   { key: "tools", label: "Tools & equipment", blurb: "Replacing, repairing and calibrating what the crew works with." },
   { key: "marketing", label: "Marketing & sales", blurb: "What it costs to keep the phone ringing." },
   { key: "admin", label: "Admin & software", blurb: "The back office, the systems and the fees." },
-  { key: "staff", label: "Other wages", blurb: "People paid who aren't set up in the portal — entered as a wage, with super, WorkCover and LSL on top." },
+  { key: "staff", label: "Other wages", blurb: "People paid who aren't set up in the portal, entered as a wage, with super, WorkCover and LSL on top." },
 ] as const;
 
 export type OverheadGroup = (typeof OVERHEAD_GROUPS)[number]["key"];
@@ -430,7 +430,7 @@ export const CREW_LEVELS: {
     defaults: { wage: 22, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 40, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "office", label: "Office", plural: "Office staff", billable: false, blurb: "Scheduling, reception and keeping jobs moving. Not billable.",
     defaults: { wage: 35, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
-  { key: "adviser", label: "Finance adviser", plural: "Finance advisers", billable: false, blurb: "Outside adviser — accountant or bookkeeper. Sees the finance side and nothing else.",
+  { key: "adviser", label: "Finance adviser", plural: "Finance advisers", billable: false, blurb: "Outside adviser, accountant or bookkeeper. Sees the finance side and nothing else.",
     defaults: { wage: 0, hrsWeek: 0, leaveDays: 0, phDays: 0, sickDays: 0, schoolDays: 0, rdoDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 0, ownVan: false, otMult: 1, nightMult: 1 } },
   { key: "admin", label: "Admin", plural: "Admin staff", billable: false, blurb: "Accounts, compliance and the paperwork behind the business. Not billable.",
     defaults: { wage: 38, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
@@ -634,11 +634,11 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   };
 
   const layers = [
-    { key: "wages", label: "Labour — field wages (billable)", annual: fieldWages },
-    { key: "labour", label: "Overhead — downtime & crew riding along", annual: labourOh },
-    { key: "office", label: "Overhead — office & admin staff", annual: officeOh },
+    { key: "wages", label: "Labour, field wages (billable)", annual: fieldWages },
+    { key: "labour", label: "Overhead, downtime & crew riding along", annual: labourOh },
+    { key: "office", label: "Overhead, office & admin staff", annual: officeOh },
 
-    ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
+    ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead, ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
   return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, vanDays, sharedOverhead, sharedPerHr, businessPerHr, otherOverhead, feesMoved, totalCost, costPerHr, layers, rates, per, util };
@@ -695,7 +695,7 @@ export function crewCombos(
         key: `pair-${leadLevel}-${l.key}`,
         label: `${LEVEL_LABEL[leadLevel]} + ${LEVEL_LABEL[l.key].toLowerCase()}`,
         rate: lead!.rate + up,
-        note: `The van still bills one hour for one hour on site, so the ${LEVEL_LABEL[l.key].toLowerCase()} adds ${Math.round(up)} an hour to the crew rather than a second set of hours. That uplift is what pays for them across the year — a solo ${LEVEL_LABEL[leadLevel].toLowerCase()} does not carry them.`,
+        note: `The van still bills one hour for one hour on site, so the ${LEVEL_LABEL[l.key].toLowerCase()} adds ${Math.round(up)} an hour to the crew rather than a second set of hours. That uplift is what pays for them across the year, a solo ${LEVEL_LABEL[leadLevel].toLowerCase()} does not carry them.`,
       });
     }
   }
@@ -712,7 +712,7 @@ export function crewCombos(
         ? `Two ${LEVEL_PLURAL[lvl(pair[0])].toLowerCase()}`
         : `${LEVEL_LABEL[lvl(pair[0])]} + ${LEVEL_LABEL[lvl(pair[1])].toLowerCase()}`,
       rate: pair[0].rate + pair[1].rate,
-      note: "Two vans, two chargeable bodies — both rates apply.",
+      note: "Two vans, two chargeable bodies, both rates apply.",
     });
   }
 
@@ -729,9 +729,9 @@ export function crewCombos(
  * charge the same money twice and inflate every hourly rate.
  */
 const COUNTED_ELSEWHERE: { test: RegExp; where: string }[] = [
-  { test: /wages|salar|superannuation|workcover|work cover|long service|annual leave|payroll/i, where: "Carried on the crew tab — tech wages as labour on a job, office and director wages as overhead." },
+  { test: /wages|salar|superannuation|workcover|work cover|long service|annual leave|payroll/i, where: "Carried on the crew tab, tech wages as labour on a job, office and director wages as overhead." },
   { test: /^depreciation|amortisation/i, where: "Depreciation on the vans comes from the Vehicles tab." },
-  { test: /^materials|^cost of (sales|goods)|subcontract|contractor/i, where: "A job cost, not an overhead — it's allowed for in the job it was paid on, so it can't also sit on every hour." },
+  { test: /^materials|^cost of (sales|goods)|subcontract|contractor/i, where: "A job cost, not an overhead, it's allowed for in the job it was paid on, so it can't also sit on every hour." },
 ];
 
 export function countedElsewhere(label: string): string | null {

@@ -9,7 +9,7 @@ import { monthTrack, type SoldJob } from "@/lib/portal/run/monthTrack";
 import { dbConfigured } from "@/lib/portal/db";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "The month so far — Team portal" };
+export const metadata = { title: "The month so far · Team portal" };
 
 const money = (v: number) => `${v < -0.5 ? "−" : ""}$${Math.abs(Math.round(v)).toLocaleString("en-AU")}`;
 const pc = (f: number) => `${Math.round(f * 100)}%`;
@@ -87,11 +87,11 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
       <div className="pk">
         <Head
           title="The month so far"
-          sub="From jobs as they're sold in ServiceTitan — it doesn't wait for the Reece bill"
+          sub="From jobs as they're sold in ServiceTitan, it doesn't wait for the Reece bill"
           info={[
             ["Sold", "Estimates marked sold this month, before GST."],
             ["Gear", "Units and materials on those estimates, at the cost ServiceTitan's pricebook puts on each line."],
-            ["To cover", "Every wage and overhead for the month from Pricing & costs — everything except the gear that goes into jobs."],
+            ["To cover", "Every wage and overhead for the month from Pricing & costs, everything except the gear that goes into jobs."],
             ["Most gear a job can carry", "What's left of a sale after the month's share of wages and overheads and the profit we want. Over it, the job can't pay its way."],
           ]}
         />
@@ -99,13 +99,13 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
 
         <Say>
           {t.sold.length === 0 ? <>Nothing sold in {name} yet.</> : noCosts ? (
-            <>{t.sold.length} jobs sold in {name} for {money(sales)}, but their estimates carry no gear costs — ServiceTitan only has costs on its own estimates, from mid-September 2026 — so this month can&rsquo;t be read here.</>
+            <>{t.sold.length} jobs sold in {name} for {money(sales)}, but their estimates carry no gear costs, ServiceTitan only has costs on its own estimates, from mid-September 2026, so this month can&rsquo;t be read here.</>
           ) : (
             <>
               {t.sold.length} {t.sold.length === 1 ? "job" : "jobs"} sold in {name}{current ? " so far" : ""} for <b>{money(sales)}</b>, with {money(gear)} of gear in {t.sold.length === 1 ? "it" : "them"} ({pc(share!)}).
               {cover != null ? (
                 <>
-                  {" "}That leaves {money(left)} towards the month&rsquo;s {money(cover)} of wages and overheads —{" "}
+                  {" "}That leaves {money(left)} towards the month&rsquo;s {money(cover)} of wages and overheads,{" "}
                   {left >= cover ? <Good>{money(left - cover)} over, and that&rsquo;s profit</Good> : <Bad>{money(cover - left)} short of breaking even</Bad>}.
                   {forProfit != null ? <> At {pc(share!)} gear, {name} needs {money(forProfit)} of sales to make {pc(t.margin)}.</> : <> At {pc(share!)} gear, no amount of sales makes {pc(t.margin)}.</>}
                 </>
@@ -117,9 +117,9 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
         <Grid cols={4}>
           <Tile label={`Sold in ${name}`} st={soldSt} fig={money(sales)} frac={t.salesGoal ? sales / t.salesGoal : null}
             sub={t.salesGoal ? `goal ${money(t.salesGoal)} for the month${current ? ` · ${money(goalByNow!)} by today` : ""}` : "no sales goal set"} />
-          <Tile label="Gear in it" st={gearSt} fig={share == null || noCosts ? "—" : pc(share)} frac={share}
+          <Tile label="Gear in it" st={gearSt} fig={share == null || noCosts ? "" : pc(share)} frac={share}
             sub={t.maxGear != null ? `most a job can carry: ${pc(t.maxGear)}` : "set a sales goal to see the most a job can carry"} />
-          <Tile label="Left to cover the month" st={coverSt} fig={noCosts ? "—" : money(left)} frac={cover ? left / cover : null}
+          <Tile label="Left to cover the month" st={coverSt} fig={noCosts ? "" : money(left)} frac={cover ? left / cover : null}
             sub={cover != null ? `of ${money(cover)} wages & overheads${breakEven != null && !noCosts ? ` · break even at ${money(breakEven)} sold` : ""}` : "set the crew and costs on Pricing & costs"} />
           <Tile label="Done, not invoiced" st={nbSt} fig={t.unbilled.length ? String(t.unbilled.length) : "0"} frac={null} href="/portal/stuck"
             sub={t.unbilled.length
@@ -146,8 +146,8 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
                         </td>
                         <td>{day(j.soldOn)}</td>
                         <td>{money(j.price)}</td>
-                        <td>{j.gear > 0 ? money(j.gear) : "—"}{j.uncosted > 0 ? <div className="ks">{j.uncosted} {j.uncosted === 1 ? "line" : "lines"} with no cost</div> : null}</td>
-                        <td>{pct == null ? "—" : <b className={hot ? "pk-hot" : undefined}>{pc(pct)}{hot ? " ▲" : ""}</b>}</td>
+                        <td>{j.gear > 0 ? money(j.gear) : ""}{j.uncosted > 0 ? <div className="ks">{j.uncosted} {j.uncosted === 1 ? "line" : "lines"} with no cost</div> : null}</td>
+                        <td>{pct == null ? "" : <b className={hot ? "pk-hot" : undefined}>{pc(pct)}{hot ? " ▲" : ""}</b>}</td>
                         <td>{money(j.price - j.gear)}</td>
                         <td className="l"><Pill st={STATE[j.state]} /></td>
                       </tr>
@@ -176,7 +176,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
                         <td><b>{j.jobNumber ? `#${j.jobNumber}` : "Job"}{j.customer ? ` · ${j.customer}` : ""}</b><div className="ks">{j.jobType}</div></td>
                         <td>{day(j.doneOn)}</td>
                         <td>{j.price != null ? money(j.price) : <span className="ks">no sold estimate</span>}</td>
-                        <td className="l">{j.gear ? money(j.gear) : "—"}</td>
+                        <td className="l">{j.gear ? money(j.gear) : ""}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -190,7 +190,7 @@ export default async function MonthPage({ searchParams }: { searchParams: { m?: 
         <div style={{ marginTop: 18 }}>
           <Note>
             Invoiced in {name}: {money(t.invoiced.price)} across {t.invoiced.count} invoices, with {money(t.invoiced.gear)} of gear on them
-            {t.invoiced.price > 0 ? ` (${pc(t.invoiced.gear / t.invoiced.price)})` : ""}. Sold and invoiced are different months for the same job when it&rsquo;s done after the month it was sold —
+            {t.invoiced.price > 0 ? ` (${pc(t.invoiced.gear / t.invoiced.price)})` : ""}. Sold and invoiced are different months for the same job when it&rsquo;s done after the month it was sold,
             {" "}this page reads both straight from ServiceTitan, so neither waits for the supplier&rsquo;s bill. Wages and overheads are this month&rsquo;s share of the year on <Link href="/portal/finance/running">Running costs</Link>.
           </Note>
         </div>

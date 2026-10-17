@@ -13,7 +13,7 @@ import { isDue, touchState, type Contact, type Touch } from "@/lib/contacts/type
 import { firstName, shiftDay } from "@/lib/todos/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Keep in touch — Team portal" };
+export const metadata = { title: "Keep in touch · Team portal" };
 
 /**
  * The people worth a call every month — builders, agents, suppliers,
@@ -65,7 +65,7 @@ export default async function KeepInTouchPage() {
           <PortalBack href="/portal/todo" label="To-do" />
           <h1>Keep in touch</h1>
           <p>
-            The people worth staying close to — builders, agents, suppliers, referrers — and who looks after each.
+            The people worth staying close to, builders, agents, suppliers, referrers, and who looks after each.
             Reach out every month, or as often as each one is set to; anyone past their day is flagged until somebody
             logs that they did.
           </p>

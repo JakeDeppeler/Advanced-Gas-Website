@@ -10,7 +10,7 @@ import { LEARNING_TRACKS } from "@/lib/portal/content";
 import { allSops } from "@/lib/portal/sops";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Video — Learning — Team portal" };
+export const metadata = { title: "Video, Learning · Team portal" };
 
 /** The id is url-encoded in the path, so a stored uuid and a fallback both work. */
 export default async function VideoPage({ params }: { params: { track: string; video: string } }) {

@@ -9,7 +9,7 @@ import { Figs } from "@/components/portal/Figs";
 import { MAX_VISIT_HRS, onTheTools } from "@/lib/portal/onTheTools";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Hours — Team portal" };
+export const metadata = { title: "Hours · Team portal" };
 
 const h1 = (n: number) => `${n.toFixed(1)} hrs`;
 const pc = (n: number) => `${Math.round(n * 100)}%`;
@@ -77,9 +77,9 @@ export default async function HoursPage() {
                 {rows.map((r) => (
                   <tr key={r.name}>
                     <th scope="row">{r.name}{!r.field && <em> office</em>}</th>
-                    <td>{r.lastVisits ? h1(r.lastOn) : "—"}</td>
-                    <td>{r.roster ? `${r.roster} hrs` : "—"}</td>
-                    <td>{r.roster && r.lastVisits ? pc(r.lastOn / r.roster) : "—"}</td>
+                    <td>{r.lastVisits ? h1(r.lastOn) : ""}</td>
+                    <td>{r.roster ? `${r.roster} hrs` : ""}</td>
+                    <td>{r.roster && r.lastVisits ? pc(r.lastOn / r.roster) : ""}</td>
                     <td>{h1(r.fourOn / 4)}</td>
                     <td>{r.fourVisits}</td>
                   </tr>

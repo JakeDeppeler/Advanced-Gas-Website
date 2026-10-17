@@ -60,7 +60,7 @@ export function TimesheetWeek({ weekOf, dates, initial, submittedAt, otMult }: {
                     <td style={{ fontWeight: 800, whiteSpace: "nowrap" }}>{label(d)}</td>
                     <td><input value={days[d]?.start ?? ""} onChange={(e) => set(d, "start", e.target.value)} placeholder="7:00am" aria-label={`${label(d)} start`} /></td>
                     <td><input value={days[d]?.finish ?? ""} onChange={(e) => set(d, "finish", e.target.value)} placeholder="3:30pm" aria-label={`${label(d)} finish`} /></td>
-                    <td style={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{h == null ? "—" : h.toFixed(2)}</td>
+                    <td style={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{h == null ? "" : h.toFixed(2)}</td>
                     <td>
                       <input value={days[d]?.note ?? ""} onChange={(e) => set(d, "note", e.target.value)} placeholder={late ? "Late finish" : ""} aria-label={`${label(d)} note`} style={{ width: 130, color: late ? "var(--tr-orange-ink)" : undefined }} />
                     </td>

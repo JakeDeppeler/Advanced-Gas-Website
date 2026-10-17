@@ -124,7 +124,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
     <>
       <aside ref={ref} className={`pn-side${drawer ? " open" : ""}`} aria-label="Portal sections">
         <div className="pn-biz">
-          <Link href="/portal" className="pn-logo" aria-label={`${biz.name} — Home`}>{biz.short}</Link>
+          <Link href="/portal" className="pn-logo" aria-label={`${biz.name} · Home`}>{biz.short}</Link>
           <span className="pn-bizt">
             <b>{biz.name}</b>
             <span>{biz.name2 ? `${biz.name2} · ` : ""}Team portal</span>

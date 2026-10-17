@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { JobProfit } from "@/lib/dashboard/jobProfit";
 
 const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
-const pc = (n: number | null) => (n == null ? "—" : `${Math.round(n * 100)}%`);
+const pc = (n: number | null) => (n == null ? "" : `${Math.round(n * 100)}%`);
 const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
 
 type Result = "all" | "losing" | "under" | "ok" | "uncosted";
@@ -128,14 +128,14 @@ export function JobProfitTable({ rows, target }: { rows: JobProfit[]; target: nu
                     <span className="pt-pace__rk">{j.jobType ?? "Job"}</span>
                     <span className="pt-pace__rn">
                       {[j.jobNumber ? `#${j.jobNumber}` : null, j.customer, day(j.date), j.techs.length ? j.techs.join(" & ") : null].filter(Boolean).join(" · ")}
-                      {j.missing ? ` — ${j.missing}` : ""}
+                      {j.missing ? `, ${j.missing}` : ""}
                     </span>
                   </th>
                   <td>{money(j.price)}</td>
-                  <td>{j.materials ? money(j.materials) : "—"}</td>
-                  <td>{j.hours == null ? "—" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " on site"}${j.hoursFrom === "timesheets" && j.allowedHours ? ` of ${j.allowedHours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}` : ""}`}</td>
-                  <td>{j.labour == null ? "—" : money(j.labour)}</td>
-                  <td style={{ color: j.profit == null ? undefined : j.profit < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{j.profit == null ? "—" : money(j.profit)}</td>
+                  <td>{j.materials ? money(j.materials) : ""}</td>
+                  <td>{j.hours == null ? "" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " on site"}${j.hoursFrom === "timesheets" && j.allowedHours ? ` of ${j.allowedHours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}` : ""}`}</td>
+                  <td>{j.labour == null ? "" : money(j.labour)}</td>
+                  <td style={{ color: j.profit == null ? undefined : j.profit < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{j.profit == null ? "" : money(j.profit)}</td>
                   {/* Red and down under the goal (or under nothing, with no goal set),
                       green and up at or over it: the arrow says it as well as the colour. */}
                   <td style={{ color: j.margin == null ? undefined : (goal != null ? j.margin < goal : j.margin < 0) ? "var(--bad)" : "var(--good)", fontWeight: 700, whiteSpace: "nowrap" }}>

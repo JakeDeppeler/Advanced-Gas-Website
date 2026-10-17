@@ -76,7 +76,7 @@ export function VideoPlayer({ video, sopHref }: { video: Video; sopHref: string 
           onClick={toggle}
           title={isStored(video.id) ? undefined : "Not loaded in yet"}
         >
-          {busy ? "Saving…" : video.watched ? "✓ Watched — undo" : "Mark as watched"}
+          {busy ? "Saving…" : video.watched ? "✓ Watched, undo" : "Mark as watched"}
         </button>
         {sopHref && <a className="pt-btn pt-btn--ghost" href={sopHref}>Open the procedure it shows</a>}
       </div>

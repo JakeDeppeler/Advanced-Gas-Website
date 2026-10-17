@@ -171,12 +171,12 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
                 const late = q.stage === "due" && q.nextOn && q.nextOn < today ? daysBetween(q.nextOn, today) : 0;
                 return (
                   <tr key={q.key} onClick={() => setOpen(q.key)} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") setOpen(q.key); }}>
-                    <td><b>{q.customer ?? "—"}</b><span>{q.suburb ?? ""}</span></td>
-                    <td>{q.what ?? `Job ${q.jobNumber ?? "—"}`}</td>
+                    <td><b>{q.customer ?? ""}</b><span>{q.suburb ?? ""}</span></td>
+                    <td>{q.what ?? (q.jobNumber ? `Job ${q.jobNumber}` : "")}</td>
                     <td><span className={`qp-tag s-${q.stage}`}><i aria-hidden="true" />{SHORT[q.stage]}</span></td>
                     <td>{ago(q.quotedOn, today)}</td>
-                    <td className={late ? "late" : undefined}>{q.stage === "won" ? "—" : late ? `${plural(late, "day")} late` : q.nextOn ? dayName(q.nextOn, today) : "not booked"}</td>
-                    <td>{q.owner ? first(q.owner) : "—"}</td>
+                    <td className={late ? "late" : undefined}>{q.stage === "won" ? "" : late ? `${plural(late, "day")} late` : q.nextOn ? dayName(q.nextOn, today) : "not booked"}</td>
+                    <td>{q.owner ? first(q.owner) : ""}</td>
                     <td className="r"><b>{m0(q.value)}</b></td>
                   </tr>
                 );
@@ -220,7 +220,7 @@ function when(q: PipeQuote, today: string): { text: string; late: number } {
   if (q.stage === "won") return { text: q.soldOn ? `Sold ${shortDay(q.soldOn)}` : "Sold", late };
   if (q.stage === "lost") return { text: q.lostReason ?? "Lost", late };
   if (q.stage === "waiting" && q.nextOn) return { text: `Ring ${dayName(q.nextOn, today)}`, late };
-  if (late) return { text: `Call — was due ${shortDay(q.nextOn as string)}`, late };
+  if (late) return { text: `Call was due ${shortDay(q.nextOn as string)}`, late };
   if (q.stage === "due") return { text: "Call today", late };
   return { text: `Quoted ${ago(q.quotedOn, today)}`, late };
 }
@@ -229,7 +229,7 @@ function Card({ q, today, i, onOpen }: { q: PipeQuote; today: string; i: number;
   const w = when(q, today);
   const tries = q.touches.filter((t) => t.how !== "note").length;
   const people = [...new Set([q.owner, q.quotedBy].filter((x): x is string => !!x))];
-  const sub = [q.customer ? q.what : null, q.suburb].filter(Boolean).join(" · ") || `Job ${q.jobNumber ?? "—"}`;
+  const sub = [q.customer ? q.what : null, q.suburb].filter(Boolean).join(" · ") || (q.jobNumber ? `Job ${q.jobNumber}` : "");
   return (
     <li style={{ ["--i" as string]: Math.min(i, 8) }}>
       <button type="button" className={`qp-card s-${q.stage}${w.late ? " late" : ""}`} onClick={onOpen}>

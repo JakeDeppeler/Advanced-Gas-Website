@@ -7,7 +7,7 @@ import { MarkAllRead } from "@/components/portal/MarkAllRead";
 import { listNotices } from "@/lib/portal/notices";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "For you — Team portal" };
+export const metadata = { title: "For you · Team portal" };
 
 const GROUPS = [
   { key: "doing" as const, label: "Needs doing" },

@@ -13,7 +13,7 @@ import { Head } from "@/components/portal/kit/Kit";
 // page is never cached and is slower than the rest of the portal.
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const metadata = { title: "Connection check — Team portal" };
+export const metadata = { title: "Connection check · Team portal" };
 
 function Mark({ status }: { status: "ok" | "failed" | "skipped" }) {
   const label = status === "ok" ? "Working" : status === "failed" ? "Failed" : "Not checked";
@@ -42,7 +42,7 @@ export default async function SupplyHealthPage() {
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
       <div className="pk" style={{ marginBottom: 14 }}>
-        <Head title="Is ServiceTitan answering?" sub={<>Run fresh every time you open this page. It walks the stages in order — credentials present, credentials well-formed, token exchange, then one real call per scope — and stops at the first failure, because everything after it would fail for the same reason.</>} />
+        <Head title="Is ServiceTitan answering?" sub={<>Run fresh every time you open this page. It walks the stages in order, credentials present, credentials well-formed, token exchange, then one real call per scope, and stops at the first failure, because everything after it would fail for the same reason.</>} />
       </div>
 
       <PortalTabs set="supply" />
@@ -74,7 +74,7 @@ export default async function SupplyHealthPage() {
             <p className="pt-panel__sub">
               {report.linked
                 ? "Every endpoint answered. The counts below are what the tenant actually holds."
-                : "At least one stage failed. The first failure is the one to fix — the rest follow from it."}
+                : "At least one stage failed. The first failure is the one to fix, the rest follow from it."}
             </p>
             <dl className="pt-sup__dl">
               <dt>Auth host</dt>
@@ -139,10 +139,10 @@ export default async function SupplyHealthPage() {
                         <strong>{r.resource}</strong>
                         <span>
                           {r.scope} · {r.usedFor}
-                          {r.fix ? ` — ${r.fix}` : ""}
+                          {r.fix ? `, ${r.fix}` : ""}
                         </span>
                       </th>
-                      <td>{r.records == null ? "—" : r.records.toLocaleString("en-AU")}</td>
+                      <td>{r.records == null ? "" : r.records.toLocaleString("en-AU")}</td>
                       <td>
                         <Mark status={r.status} />
                       </td>

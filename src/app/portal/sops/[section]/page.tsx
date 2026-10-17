@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { section: string } }) {
   const s = findSection(params.section);
-  return { title: s ? `${s.title} — Team portal` : "Processes — Team portal" };
+  return { title: s ? `${s.title} · Team portal` : "Processes · Team portal" };
 }
 
 export default async function SopSectionPage({ params }: { params: { section: string } }) {

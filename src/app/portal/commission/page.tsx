@@ -12,7 +12,7 @@ import { NumbersForm } from "@/components/portal/numbers/NumbersForm";
 import { saveCommission } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Commission — Team portal" };
+export const metadata = { title: "Commission · Team portal" };
 
 /**
  * Pricing & costs › Commission: the month target and the bonus, and where each
@@ -50,7 +50,7 @@ export default async function CommissionPage() {
                   <span className={`pk-bar ${b.hit ? "good" : "mid"}`} style={{ display: "block", margin: "6px 0 0", maxWidth: 420 }}><i style={{ width: `${Math.max(2, Math.min(100, (p.sold / c.monthTarget) * 100))}%` }} /></span>
                 </span>
                 <Pill st={b.hit ? { k: "good", w: "Hit" } : { k: "mid", w: `${money(b.toGo)} to go` }} />
-                <span className="v">{b.hit ? money(b.bonus) : "—"}</span>
+                <span className="v">{b.hit ? money(b.bonus) : ""}</span>
               </div>
             );
           }) : <Empty>No sales this month yet.</Empty>}

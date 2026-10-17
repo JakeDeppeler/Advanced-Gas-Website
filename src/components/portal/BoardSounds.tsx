@@ -48,7 +48,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
 
   const secondsOf = (ref: string) => (ref.startsWith("file:") ? files.find((f) => `file:${f.id}` === ref)?.seconds ?? null : BUILTIN_SECONDS[ref] ?? null);
   const nameOf = (ref: string) =>
-    ref === "off" ? "No sound" : ref === "notes" ? "Short beeps" : BUILTINS.find((b) => b.ref === ref)?.name ?? files.find((f) => `file:${f.id}` === ref)?.name ?? "—";
+    ref === "off" ? "No sound" : ref === "notes" ? "Short beeps" : BUILTINS.find((b) => b.ref === ref)?.name ?? files.find((f) => `file:${f.id}` === ref)?.name ?? "";
   const usedBy = (id: string) => SOUND_KINDS.filter((k) => saved[k.kind].sound === `file:${id}`).map((k) => k.label);
 
   const hear = (kind: SoundKind, ref: string, volume: number) => {
@@ -102,7 +102,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
                 <div className="pt-field">
                   <span className="pt-snd__volhead">
                     <label htmlFor={`snd-${kind}-vol`}>Volume</label>
-                    <strong>{c.sound === "off" ? "—" : pct(c.volume)}</strong>
+                    <strong>{c.sound === "off" ? "" : pct(c.volume)}</strong>
                   </span>
                   <input
                     id={`snd-${kind}-vol`} type="range" min={0} max={MAX_VOLUME * 100} step={5}
@@ -112,7 +112,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
                   />
                   <span className="pt-snd__scale" aria-hidden="true"><span>Off</span><span>100%</span><span>{pct(MAX_VOLUME)}</span></span>
                 </div>
-                {c.volume > 1 && c.sound !== "off" && <p className="pt-snd__warn">Above 100% is louder than the file — a loud clip can crackle.</p>}
+                {c.volume > 1 && c.sound !== "off" && <p className="pt-snd__warn">Above 100% is louder than the file, a loud clip can crackle.</p>}
                 {long && <p className="pt-snd__warn">This clip runs {secs?.toFixed(1)}s and the pop-up shows for {holdSec}s, so the end is cut off.</p>}
                 <div className="pt-snd__play">
                   <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={c.sound === "off"} onClick={() => hear(kind, c.sound, c.volume)}>
@@ -120,7 +120,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
                   </button>
                   <button
                     type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={pending || dirty}
-                    title={dirty ? "Save first — the TV plays what's saved" : undefined}
+                    title={dirty ? "Save first, the TV plays what's saved" : undefined}
                     onClick={() => run("plan", () => playOnTv(kind))}
                   >
                     Play on the TV
@@ -136,7 +136,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
           </button>
           {dirty && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setPlan(saved)}>Undo changes</button>}
           {msg?.at === "plan" && <p className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`} role="status">{msg.text}</p>}
-          {!msg && dirty && <p className="pt-inline">Not saved yet — the TV still plays the old choice.</p>}
+          {!msg && dirty && <p className="pt-inline">Not saved yet, the TV still plays the old choice.</p>}
         </div>
       </section>
 
@@ -144,7 +144,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
         <h2 id="snd-files-h" className="pt-panel__h">Your sounds</h2>
         <p className="pt-panel__sub">
           Upload an MP3 and it&rsquo;s ready to pick above. Keep it shorter than the pop-up it&rsquo;s for, and use something
-          you have the right to use — a royalty-free clip, or one you recorded.
+          you have the right to use, a royalty-free clip, or one you recorded.
         </p>
         <form
           className="pt-snd__up"
@@ -181,7 +181,7 @@ export function BoardSounds({ plan: saved, files }: { plan: SoundPlan; files: Li
           <p className="pt-todo__empty">Nothing uploaded yet. The pop-ups play the built-in sounds until you pick something else.</p>
         )}
         <p className="pt-snd__now">
-          Playing now: {SOUND_KINDS.map((k) => `${k.label} — ${nameOf(saved[k.kind].sound)}${saved[k.kind].sound === "off" ? "" : ` at ${pct(saved[k.kind].volume)}`}`).join(" · ")}
+          Playing now: {SOUND_KINDS.map((k) => `${k.label}, ${nameOf(saved[k.kind].sound)}${saved[k.kind].sound === "off" ? "" : ` at ${pct(saved[k.kind].volume)}`}`).join(" · ")}
         </p>
       </section>
     </div>

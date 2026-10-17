@@ -9,11 +9,11 @@ import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Supply — Team portal" };
+export const metadata = { title: "Supply · Team portal" };
 
 const MEL = "Australia/Melbourne";
 const when = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString("en-AU", { timeZone: MEL, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "—";
+  iso ? new Date(iso).toLocaleString("en-AU", { timeZone: MEL, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
 
 /** Three states, never two: a thing can be working, not working, or unknown. */
 type Health = "ok" | "wait" | "off";
@@ -84,7 +84,7 @@ export default async function SupplyPage() {
                 ? `Connected${state.reece.customerNumber ? ` · customer ${state.reece.customerNumber}` : ""}`
                 : state.reece.status === "no-customer"
                   ? "Credentials are set, but no Reece customer account is linked yet"
-                  : "Reece hasn’t issued credentials yet — price files still work"
+                  : "Reece hasn’t issued credentials yet, price files still work"
             }
           />
           <Light

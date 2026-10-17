@@ -169,7 +169,7 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
                   <span className="pt-vc__countunit">{it.unit}</span>
                   <span className="pt-vc__countmin">{it.min}</span>
                   <span className="pt-vc__countqty">
-                    <input inputMode="numeric" value={qty ?? ""} placeholder="—" onChange={(e) => setEntry(key, { qty: parse(e.target.value) })} />
+                    <input inputMode="numeric" value={qty ?? ""} placeholder="" onChange={(e) => setEntry(key, { qty: parse(e.target.value) })} />
                   </span>
                 </label>
               );
@@ -196,7 +196,7 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
       {ticks && (
         <section className="pt-panel">
           <h2 className="pt-panel__h">Anything else worth a photo</h2>
-          <p className="pt-panel__sub">Damage, a mess, something that wasn&rsquo;t there last time — anything the photos above don&rsquo;t already cover.</p>
+          <p className="pt-panel__sub">Damage, a mess, something that wasn&rsquo;t there last time, anything the photos above don&rsquo;t already cover.</p>
           <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" onClick={() => shootFor("general", "General")}>Take a photo</button>
           {shotsFor("general").length > 0 && (
             <div className="pt-vc__shots">

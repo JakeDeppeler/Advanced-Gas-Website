@@ -29,7 +29,7 @@ function slugClash(slug: string, original: string | null): string | null {
   // Moving a built-in article would leave the original standing at its old
   // address beside a copy at the new one: there is no row there to take away.
   if (original && isBuiltIn(original)) {
-    return "That article's address is fixed — Google and every link to it already use it.";
+    return "That article's address is fixed, Google and every link to it already use it.";
   }
   if (BUILT_IN.some((p) => p.slug === slug)) {
     return "A post written in the code already has that address. Pick another, or you'd be replacing it.";
@@ -60,7 +60,7 @@ export async function savePost(input: {
   const title = input.title.trim();
   if (!title) return { ok: false, error: "Give it a title." };
   const slug = toSlug(input.slug || title);
-  if (!slug) return { ok: false, error: "That title doesn't make a usable web address — set one yourself." };
+  if (!slug) return { ok: false, error: "That title doesn't make a usable web address, set one yourself." };
   const clash = slugClash(slug, input.original);
   if (clash) return { ok: false, error: clash };
   if (!POST_CATS.includes(input.cat)) return { ok: false, error: "Pick a topic." };
@@ -71,7 +71,7 @@ export async function savePost(input: {
   // before. A draft can be as half-finished as it likes.
   if (input.publish) {
     if (!input.body.trim()) return { ok: false, error: "There's nothing in the post yet." };
-    if (!input.blurb.trim()) return { ok: false, error: "Write the description — it's what shows under the title on Google." };
+    if (!input.blurb.trim()) return { ok: false, error: "Write the description, it's what shows under the title on Google." };
     if (input.photo && !input.photoAlt.trim()) {
       return { ok: false, error: "Describe the cover photo. A reader on a screen reader gets that line and nothing else." };
     }

@@ -12,7 +12,7 @@ import { coverBase } from "@/lib/portal/cover/load";
 import { coverHour, fleetSizes } from "@/lib/portal/cover/hour";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "More or fewer vans — Team portal" };
+export const metadata = { title: "More or fewer vans · Team portal" };
 
 const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -66,7 +66,7 @@ export default async function VansPage({ searchParams }: { searchParams: { b?: s
       label: `Left a year at ${m2(i.charge)}`, now: m0(now.leftAtCharge), at: (c) => m0(c.r.leftAtCharge), strong: true,
       tone: (c) => ((c ? c.r.leftAtCharge : now.leftAtCharge) < 0 ? "pt-cover__neg" : "pt-cover__pos"),
     },
-    { label: "Against today", now: "—", at: (c) => `${c.r.leftAtCharge >= now.leftAtCharge ? "▲" : "▼"} ${m0(Math.abs(c.r.leftAtCharge - now.leftAtCharge))}`, tone: (c) => (c && c.r.leftAtCharge < now.leftAtCharge ? "pt-cover__neg" : "pt-cover__pos") },
+    { label: "Against today", now: "", at: (c) => `${c.r.leftAtCharge >= now.leftAtCharge ? "▲" : "▼"} ${m0(Math.abs(c.r.leftAtCharge - now.leftAtCharge))}`, tone: (c) => (c && c.r.leftAtCharge < now.leftAtCharge ? "pt-cover__neg" : "pt-cover__pos") },
   ];
 
   return (
@@ -82,7 +82,7 @@ export default async function VansPage({ searchParams }: { searchParams: { b?: s
         </form>
 
         <Say>
-          At {m2(i.charge)} an hour and {i.billPerDay} of {i.dayHrs} hours billed, today leaves {m0(now.leftAtCharge)} a year; <Good>{best.vans} vans would leave the most — {m0(best.r.leftAtCharge)}</Good>, if there&rsquo;s the work to fill them.{" "}
+          At {m2(i.charge)} an hour and {i.billPerDay} of {i.dayHrs} hours billed, today leaves {m0(now.leftAtCharge)} a year; <Good>{best.vans} vans would leave the most, {m0(best.r.leftAtCharge)}</Good>, if there&rsquo;s the work to fill them.{" "}
           {losing.length ? <Bad>{losing.join(" and ")} {losing.length === 1 ? "van loses" : "vans lose"} money.</Bad> : null}
         </Say>
 
@@ -111,7 +111,7 @@ export default async function VansPage({ searchParams }: { searchParams: { b?: s
         </section>
         <p className="pk-note">
           <b>Today</b> is the crew as it really is: {i.techs} techs and {i.apps} apprentices across {fleet.vans} vans{fleet.vans > i.techs ? `, ${fleet.vans - i.techs} of them driven by an apprentice who doesn't bill on their own` : ""}.
-          The other columns put a tech in every van. Each van brings its own running costs; the factory, the office and the accountant stay the same — at some size another office person is
+          The other columns put a tech in every van. Each van brings its own running costs; the factory, the office and the accountant stay the same, at some size another office person is
           needed, and that&rsquo;s a line to add on Wages &amp; costs. More vans only make more if there&rsquo;s the work to fill them: a van billing 4 hours a day instead of 6 is the
           {" "}<Link href="/portal/finance/planning?b=4">4-hour version of this page</Link>. The working is on <Link href="/portal/finance/cover">What an hour must cover</Link>.
         </p>

@@ -14,7 +14,7 @@ import { TOOL_REQUEST } from "@/lib/portal/vanParts";
 import "@/app/trade/trade.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "From the crew — Team portal" };
+export const metadata = { title: "From the crew · Team portal" };
 
 /**
  * Everything the crew has sent in from the iPad that waits on the office, on
@@ -47,7 +47,7 @@ export default async function RequestsPage() {
       <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
         <h1>From the crew</h1>
-        <p>What the crew has sent in from the van — answered here, and the answer shows on their iPad.</p>
+        <p>What the crew has sent in from the van, answered here, and the answer shows on their iPad.</p>
       </div>
 
       <div className="tr-embed">

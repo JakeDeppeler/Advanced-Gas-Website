@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export const metadata = { title: "Tools — Team portal" };
+export const metadata = { title: "Tools · Team portal" };
 
 /**
  * Tools is one page with a tab per tool, and it opens on the fault codes —

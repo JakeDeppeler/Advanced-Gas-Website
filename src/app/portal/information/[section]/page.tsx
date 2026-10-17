@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { section: string } }) {
   const s = INFO_SECTIONS.find((x) => x.slug === params.section);
-  return { title: s ? `${s.label} — Team portal` : "Information — Team portal" };
+  return { title: s ? `${s.label} · Team portal` : "Information · Team portal" };
 }
 
 /** One block, in whichever shape its content is. */

@@ -13,7 +13,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Item search — Team portal" };
+export const metadata = { title: "Item search · Team portal" };
 
 const MEL = "Australia/Melbourne";
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { timeZone: MEL, day: "numeric", month: "short" });
@@ -103,7 +103,7 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
             {hits.length > 0 &&
               (source === "live"
                 ? "live from maX"
-                : "from our copy of the price file — as fresh as the last import")}
+                : "from our copy of the price file, as fresh as the last import")}
           </p>
           {hits.length > 0 && (
             <div className="pt-tgt__tablewrap">
@@ -123,9 +123,9 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
                         <strong>{h.code}</strong>
                         <span>{h.description ?? "No description"}</span>
                       </th>
-                      <td>{h.uom ?? "—"}</td>
-                      <td>{h.cost == null ? "—" : money2(h.cost)}</td>
-                      {source === "replica" && <td>{h.seenAt ? day(h.seenAt) : "—"}</td>}
+                      <td>{h.uom ?? ""}</td>
+                      <td>{h.cost == null ? "" : money2(h.cost)}</td>
+                      {source === "replica" && <td>{h.seenAt ? day(h.seenAt) : ""}</td>}
                     </tr>
                   ))}
                 </tbody>

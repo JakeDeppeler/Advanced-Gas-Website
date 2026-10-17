@@ -13,7 +13,7 @@ import { hourJobCosts } from "@/lib/portal/cover/load";
 import { isoDateMelbourne, startOfMonthMelbourne } from "@/lib/dashboard/dates";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Pace — Team portal" };
+export const metadata = { title: "Pace · Team portal" };
 
 /**
  * Where the business sets its pace and sees whether it's holding it.

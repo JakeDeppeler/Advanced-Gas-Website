@@ -1426,3 +1426,89 @@ label.pk-btn { cursor: pointer; }
 @keyframes mf-up { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @media (max-width: 1100px) { .mf-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .mf-find { width: 100%; } .mf-table th:nth-child(3), .mf-table td:nth-child(3) { display: none; } }
+
+/* ------------------------------------------------------------------
+   Rapport's face, sizes and wash, over everything above. The portal reads
+   in Inter Tight (the public site keeps Manrope and Archivo), a size smaller
+   all through, on a wash that's peach at the top left and sage to the right.
+   ------------------------------------------------------------------ */
+.pt.pn {
+  --f-body: var(--font-portal), "Inter", system-ui, sans-serif;
+  --f-display: var(--font-portal), "Inter", system-ui, sans-serif;
+  --rp-wash-a: #f6dccb; --rp-wash-b: #f3eee8; --rp-wash-c: #e7ede3;
+  font-family: var(--f-body); font-size: 14px;
+}
+.pt.pn[data-theme="dark"] { --rp-wash-a: #2b1e16; --rp-wash-b: #141210; --rp-wash-c: #17201a; }
+@media (prefers-color-scheme: dark) { .pt.pn:not([data-theme]) { --rp-wash-a: #2b1e16; --rp-wash-b: #141210; --rp-wash-c: #17201a; } }
+.pn-main, .pn-main:has(.rp) {
+  background:
+    radial-gradient(900px 620px at 4% -6%, var(--rp-wash-a), transparent 66%),
+    radial-gradient(1100px 760px at 100% 18%, var(--rp-wash-c), transparent 62%),
+    var(--rp-wash-b);
+  background-attachment: fixed;
+}
+html:has(.pn), html:has(.pn) body { background: #f3eee8 !important; }
+html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { background: #141210 !important; }
+@media (prefers-color-scheme: dark) { html:has(.pn:not([data-theme])), html:has(.pn:not([data-theme])) body { background: #141210 !important; } }
+
+/* A size smaller: titles, figures, the sentence, the tiles. */
+.pn .pk-head h1, .pn .pt-head h1, .pn .pt-hi__h { font-size: 34px; font-weight: 600; letter-spacing: -0.035em; }
+.pn .pk-fig { font-size: 27px; font-weight: 650; letter-spacing: -0.03em; }
+.pn .pk-hero .pk-hf { font-size: 34px; font-weight: 650; }
+.pn .pk-say { font-size: 16px; }
+.pn .pk-card-h b, .pn .ph-card-h b { font-size: 16px; }
+.pn .pk-tl, .pn .pk-hero .pk-hl { font-size: 12.5px; }
+.pn .pk-ks { font-size: 12.5px; }
+.pn .pk-seg a, .pn .pk-seg button { font-size: 13px; padding: 6px 14px; }
+.rp-title h1 { font-size: 38px; font-weight: 600; letter-spacing: -0.035em; }
+.rp-top--left .rp-title h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.02; }
+.rp-ico { width: 46px; height: 46px; }
+.rp-kpi { gap: 12px; }
+.rp-kpi b { font-size: 21px; font-weight: 650; }
+.rp-kpi small { font-size: 12.5px; }
+.rp-big .rp-num { font-size: 38px; }
+.rp-panel-h > b, .rp-hh > b { font-size: 15px; }
+/* An empty figure keeps its line, so a tile with nothing to show lines up with the rest. */
+.pn .pk-fig:empty::before, .pn .pk-hf:empty::before, .rp-kpi b:empty::before, .pn .pk-kv .v:empty::before { content: "\00a0"; }
+
+/* The pipeline, a size smaller, as Rapport sets its board. */
+.qp-find { height: 44px; font-size: 14px; }
+.qp-find input { font-size: 14px; }
+.qp-chip { height: 42px; font-size: 13.5px; font-weight: 600; }
+.qp-av { width: 28px; height: 28px; font-size: 12px; }
+.qp-view button { font-size: 13.5px; padding: 8px 16px; }
+.qp-colh h2 { font-size: 15px; font-weight: 650; }
+.qp-sum { font-size: 13.5px; }
+.qp-card { min-height: 158px; padding: 15px 16px; border-radius: 22px; }
+.qp-ct { font-size: 12px; }
+.qp-dots { width: 30px; height: 30px; }
+.qp-title { font-size: 16.5px; font-weight: 600; margin-top: 4px; }
+.qp-sub { font-size: 12.5px; }
+.qp-val { font-size: 19.5px; font-weight: 650; }
+.qp-val small { font-size: 11.5px; }
+.qp-avs .qp-av { width: 28px; height: 28px; }
+.qp-big .qp-title { font-size: 23px; }
+.qp-big .qp-val { font-size: 28px; }
+.qp-drop b { font-size: 15px; }
+.qp-dropi { width: 48px; height: 48px; }
+
+@media (min-width: 1240px) {
+  /* The bar lines up with the page: the mark over the title, as Rapport's does. */
+  .pn-top { height: 80px; padding: 0 40px 0 112px; }
+  .pn-brand .pn-logo { width: 44px; height: 44px; border-radius: 13px; font-size: 13px; }
+  .pn-brandt b { font-size: 20px; font-weight: 650; letter-spacing: -0.025em; }
+  .pn-brandt > span { font-size: 11.5px; }
+  .pn-pill { height: 42px; padding: 0 16px; font-size: 14px; font-weight: 500; }
+  .pn-round, .pn-tools .pn-bell, .pn-avbtn { width: 44px; height: 44px; }
+  .pt.pn .pn-content { padding-top: 6px; }
+  .pn-secpages a { font-size: 13px; padding: 6px 13px; }
+}
+@media (min-width: 1240px) and (max-width: 1500px) {
+  /* Ten sections and the bar: the mark alone where the name won't fit. */
+  .pn-brandt { display: none; }
+  .pn-pill { padding: 0 12px; font-size: 13.5px; }
+}
+@media (min-width: 1240px) {
+  /* Full width under the bar, starting under the mark, as Rapport's pages do. */
+  .pt.pn .pn-content { max-width: none; margin: 0; padding-right: 40px; }
+}

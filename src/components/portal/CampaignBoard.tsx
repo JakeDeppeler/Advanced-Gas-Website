@@ -59,7 +59,7 @@ export function CampaignBoard({
         </div>
         <div className="pt-mkhead">
           <span className="pt-mkhead__k">Monthly spend</span>
-          <strong className="pt-mkhead__v">{tally.spend == null ? "—" : money(tally.spend)}</strong>
+          <strong className="pt-mkhead__v">{tally.spend == null ? "" : money(tally.spend)}</strong>
           <span className="pt-mkhead__sub">{tally.spend == null ? "no spend recorded" : "on what's live"}</span>
         </div>
         <div className="pt-mkhead">
@@ -71,7 +71,7 @@ export function CampaignBoard({
         </div>
         <div className="pt-mkhead">
           <span className="pt-mkhead__k">Cost a lead</span>
-          <strong className="pt-mkhead__v">{tally.costPerLead == null ? "—" : money(tally.costPerLead)}</strong>
+          <strong className="pt-mkhead__v">{tally.costPerLead == null ? "" : money(tally.costPerLead)}</strong>
           {/* Against attributed leads only. Dividing by every lead the site
               produced would credit the ads with the organic ones. */}
           <span className="pt-mkhead__sub">
@@ -137,7 +137,7 @@ export function CampaignBoard({
                       <strong>{c.name}</strong>
                       {c.blurb && <span className="pt-fleet__sub">{c.blurb}</span>}
                     </td>
-                    <td>{c.channel || "—"}</td>
+                    <td>{c.channel || ""}</td>
                     <td><span className="pt-aud">{audienceLabel(c.audience)}</span></td>
                     <td>
                       {/* Changing status is the edit anybody actually makes, so
@@ -152,12 +152,12 @@ export function CampaignBoard({
                         {STATUSES.map((s) => <option key={s.k} value={s.k}>{s.label}</option>)}
                       </select>
                     </td>
-                    <td>{c.monthlySpend == null ? "—" : money(c.monthlySpend)}</td>
+                    <td>{c.monthlySpend == null ? "" : money(c.monthlySpend)}</td>
                     <td>
-                      <strong>{c.leads == null ? "—" : c.leads}</strong>
+                      <strong>{c.leads == null ? "" : c.leads}</strong>
                       {c.leads == null && <span className="pt-fleet__sub">no utm set</span>}
                     </td>
-                    <td>{c.owner || "—"}</td>
+                    <td>{c.owner || ""}</td>
                     <td>
                       <button
                         type="button" className="pt-x" disabled={busy}

@@ -29,7 +29,7 @@ function useAct() {
 }
 
 const howSent = (s: Supplier) =>
-  s.method === "reece_cart" ? "Entered in Reece maX — not emailed. The sample shows the list to enter."
+  s.method === "reece_cart" ? "Entered in Reece maX, not emailed. The sample shows the list to enter."
     : s.method === "email_form" ? "Emailed, with their order form filled in and attached."
     : s.method === "work_order" ? "Emailed a work order for each site visit."
     : "Emailed.";
@@ -80,7 +80,7 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
       {emailed && !isWork && (
         <label className="pt-nw__check pt-supem__combine">
           <input type="checkbox" checked={combine} onChange={(e) => setCombine(e.target.checked)} />
-          One order for this week and next week — every job not yet ordered, in one delivery (for suppliers that charge a fee per delivery)
+          One order for this week and next week, every job not yet ordered, in one delivery (for suppliers that charge a fee per delivery)
         </label>
       )}
 
@@ -114,11 +114,11 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
             </button>
           )}
           <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={sample.busy || dirty}
-            title={dirty ? "Save first — the sample uses the saved wording" : undefined}
+            title={dirty ? "Save first, the sample uses the saved wording" : undefined}
             onClick={() => sample.run(() => sendSample({ to: sampleTo, supplierId: s.id }))}>
             {sample.busy ? "Sending…" : `Send me a sample`}
           </button>
-          {dirty && <span className="pt-nw__muted">Save first — the sample uses the saved wording.</span>}
+          {dirty && <span className="pt-nw__muted">Save first, the sample uses the saved wording.</span>}
         </span>
         {save.msg && <span className={`pt-inline ${save.msg.ok ? "is-ok" : "is-err"}`}>{save.msg.text}</span>}
         {sample.msg && <span className={`pt-inline ${sample.msg.ok ? "is-ok" : "is-err"}`}>{sample.msg.text}</span>}

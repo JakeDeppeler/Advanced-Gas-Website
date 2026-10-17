@@ -92,7 +92,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
           </Link>
           <Link href="/portal/sales" className="rp-kpi">
             <Icon d="M12 3a9 9 0 1 0 9 9h-9V3ZM15 3.5A9 9 0 0 1 20.5 9H15V3.5Z" />
-            <span><b>{closeRate != null ? <CountUp value={closeRate * 100} kind="pct" /> : "—"}</b><small>Close rate, last 30 days</small></span>
+            <span><b>{closeRate != null ? <CountUp value={closeRate * 100} kind="pct" /> : ""}</b><small>Close rate, last 30 days</small></span>
           </Link>
         </div>
       </header>
@@ -152,7 +152,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
               {ov.hot.map((h, k) => (
                 <Link key={h.key} href="/portal/pipeline" className={`rp-tile${h.stage === "due" ? " due" : ""}`} style={{ ["--i" as string]: 3 + k }}>
                   <span className="rp-tile-h">
-                    <span>{h.stage === "due" ? (h.nextOn && h.nextOn < new Date().toISOString().slice(0, 10) ? `Call — was due ${day(h.nextOn)}` : "Call today") : h.nextOn ? `Next call ${day(h.nextOn)}` : `Quoted ${day(h.quotedOn)}`}</span>
+                    <span>{h.stage === "due" ? (h.nextOn && h.nextOn < new Date().toISOString().slice(0, 10) ? `Call was due ${day(h.nextOn)}` : "Call today") : h.nextOn ? `Next call ${day(h.nextOn)}` : `Quoted ${day(h.quotedOn)}`}</span>
                     <span className="rp-dots" aria-hidden="true">•••</span>
                   </span>
                   <span className="rp-tile-t">{h.what ?? "Quote"}</span>
@@ -184,8 +184,8 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
               </div>
               <div className="rp-year-f">
                 <span><small>Invoiced</small><b>{short(yearInvoiced as number)}</b></span>
-                <span><small>Floor</small><b>{yearFloor ? short(yearFloor) : "—"}</b></span>
-                <span><small>Days left</small><b>{daysLeft ?? "—"}</b></span>
+                <span><small>Floor</small><b>{yearFloor ? short(yearFloor) : ""}</b></span>
+                <span><small>Days left</small><b>{daysLeft ?? ""}</b></span>
               </div>
             </>
           ) : <p className="rp-empty">Set a year goal and connect Xero to see the year.</p>}

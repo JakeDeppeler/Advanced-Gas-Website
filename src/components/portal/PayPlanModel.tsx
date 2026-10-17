@@ -94,9 +94,9 @@ export function PayPlanModel({ people, settings, salesPerVan, gpMargin, plan, to
                     <em> {LEVEL_LABEL[p.level]}{!p.costing.ownVan ? ", rides with a tech" : ""}</em>
                   </th>
                   <td>{m2(p.costing.wage)}</td>
-                  <td>{on ? m2(wage) : "—"}</td>
-                  <td>{on ? m0(ew) : "—"}</td>
-                  <td>{on ? (p.costing.ownVan ? m0(comm) : "no van of their own") : "—"}</td>
+                  <td>{on ? m2(wage) : ""}</td>
+                  <td>{on ? m0(ew) : ""}</td>
+                  <td>{on ? (p.costing.ownVan ? m0(comm) : "no van of their own") : ""}</td>
                 </tr>
               ))}
               <tr className="is-total"><th scope="row">All of it</th><td /><td /><td>{m0(extraWages)}</td><td>{m0(commission)}</td></tr>
@@ -115,7 +115,7 @@ export function PayPlanModel({ people, settings, salesPerVan, gpMargin, plan, to
           <li><span>What the plan costs a year<em>extra wages plus commission</em></span><strong>{m0(extra)}</strong></li>
           {gpMargin != null && <li><span>Of every extra dollar of sales, the business keeps<em>after parts, equipment and subbies ({Math.round(gpMargin * 100)}¢), less the {pct}% commission</em></span><strong>{Math.round((keep ?? 0) * 100)}¢</strong></li>}
           {needSales != null && (
-            <li className="is-total"><span>Sales need to grow by<em>for the plan to cost nothing — {Math.round((needSales / allSales) * 100)}% on today&rsquo;s {m0(allSales)} a year</em></span><strong>{m0(needSales)} a year</strong></li>
+            <li className="is-total"><span>Sales need to grow by<em>for the plan to cost nothing, {Math.round((needSales / allSales) * 100)}% on today&rsquo;s {m0(allSales)} a year</em></span><strong>{m0(needSales)} a year</strong></li>
           )}
         </ul>
         <p className="pt-hr__foot">

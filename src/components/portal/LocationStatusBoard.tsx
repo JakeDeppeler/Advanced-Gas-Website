@@ -124,7 +124,7 @@ export function LocationStatusBoard({
               <tr key={l.id} className={picked.has(l.id) ? "is-picked" : undefined}>
                 <td className="pt-loc__tick"><input type="checkbox" checked={picked.has(l.id)} onChange={() => toggle(l.id)} aria-label={`Tick ${l.name}`} /></td>
                 <td><strong>{l.name}</strong></td>
-                <td>{l.status ?? <span className="pt-loc__muted">—</span>}</td>
+                <td>{l.status ?? <span className="pt-loc__muted"></span>}</td>
                 <td className="pt-loc__muted">{l.tags.join(", ")}</td>
               </tr>
             ))}

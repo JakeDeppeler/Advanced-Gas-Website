@@ -15,7 +15,7 @@ import { Suspense } from "react";
 import { XeroBilledCard } from "@/components/portal/run/XeroBilledCard";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Jobs — Team portal" };
+export const metadata = { title: "Jobs · Team portal" };
 
 const ago = (iso: string) => {
   const d = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 86_400_000));
@@ -126,8 +126,8 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
         <p className="pk-note" style={{ marginTop: 10 }}>
           From ServiceTitan, synced every few minutes. <b>Open</b> is Scheduled or In progress; <b>On hold</b> is a job ServiceTitan has on Hold or one carrying a hold tag
           (set in Settings › Wall board › Held work); <b>Completed</b> shows the newest first{list?.capped ? ", the latest 300" : ""}.
-          {list && list.oldHidden > 0 ? <> {list.oldHidden === 1 ? "1 job copied in from the old system still reads as open and is hidden" : `${list.oldHidden} jobs copied in from the old system still read as open and are hidden`} — <a href={href({ old: true })}>show {list.oldHidden === 1 ? "it" : "them"}</a>.</> : null}
-          {withOld ? <> Showing jobs from the old system too — <a href={href({ old: false })}>hide them</a>.</> : null}
+          {list && list.oldHidden > 0 ? <> {list.oldHidden === 1 ? "1 job copied in from the old system still reads as open and is hidden" : `${list.oldHidden} jobs copied in from the old system still read as open and are hidden`}  <a href={href({ old: true })}>show {list.oldHidden === 1 ? "it" : "them"}</a>.</> : null}
+          {withOld ? <> Showing jobs from the old system too, <a href={href({ old: false })}>hide them</a>.</> : null}
         </p>
       </>
     );
@@ -151,7 +151,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
                   {jobsToday.map((j) => (
                     <tr key={j.jobId}>
                       <td><b>{j.what}</b></td>
-                      <td className="l">{j.where ?? "—"}</td>
+                      <td className="l">{j.where ?? ""}</td>
                       <td className="l"><span className="pk-who"><Av name={j.who} />{j.who.split(" ")[0]}</span></td>
                       <td>{j.taken.toFixed(1)}{j.quoted != null ? ` of ${j.quoted.toFixed(1)}` : ""}</td>
                       <td><Pill st={st(j)} /></td>
@@ -169,7 +169,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
     body = p && p.costed > 0 ? (
       <>
         <Say>
-          {plural(p.costed, "job")} in the last 30 days made {money(p.profit)}, {p.margin != null ? pc(p.margin * 100) : "—"} of what they sold for.{" "}
+          {plural(p.costed, "job")} in the last 30 days made {money(p.profit)}, {p.margin != null ? pc(p.margin * 100) : ""} of what they sold for.{" "}
           {p.losing > 0 && <Bad>{plural(p.losing, "lost money", "lost money")}.</Bad>}
         </Say>
         <Grid>
@@ -205,7 +205,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
                     <span>{[r.jobNumber ? `#${r.jobNumber}` : null, r.customer ?? null, `finished ${ago(r.at)}`].filter(Boolean).join(" · ")}</span>
                   </span>
                   <Pill st={days > 7 ? { k: "bad", w: "Over a week" } : days > 2 ? { k: "mid", w: "Bill it" } : { k: "good", w: "Ready to bill" }} />
-                  <span className="v">{r.value != null ? money(r.value) : "—"}</span>
+                  <span className="v">{r.value != null ? money(r.value) : ""}</span>
                   <a className="pk-btn g" href={stJobUrl(r.id)} target="_blank" rel="noreferrer" aria-label={`Open job ${r.jobNumber ?? r.id} in ServiceTitan`}>Open in ServiceTitan ↗</a>
                 </div>
               );
@@ -216,12 +216,12 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
           <b>Where this comes from:</b> ServiceTitan, synced every few minutes. A job is on the list when it&rsquo;s marked Completed in ServiceTitan
           since {since} and its invoice there is still at $0. Quote visits, site assessments and cancelled jobs are left out. Jobs finished before {since}{" "}
           were invoiced in Xero, not ServiceTitan, so they aren&rsquo;t on it. The figure beside a job is what it was sold for before the visit, where it was;
-          service work priced on the day shows —.
+          service work priced on the day shows .
           {toBill == null ? " ServiceTitan couldn’t be read just now, so this is the board’s last copy." : ""}
         </p>
         {office && (
           <div style={{ marginBottom: 18 }}>
-            <Suspense fallback={<Card title="Before 17 September — checked against Xero"><Empty>Checking the older jobs against Xero…</Empty></Card>}>
+            <Suspense fallback={<Card title="Before 17 September, checked against Xero"><Empty>Checking the older jobs against Xero…</Empty></Card>}>
               <XeroBilledCard />
             </Suspense>
           </div>

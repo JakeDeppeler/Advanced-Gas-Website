@@ -15,7 +15,7 @@ import { KIND_LABEL, type ReportKind } from "@/lib/reports/types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const metadata = { title: "Preview a report — Team portal" };
+export const metadata = { title: "Preview a report · Team portal" };
 
 const WHEN: Record<ReportKind, string> = {
   daily: "Goes at half past five every working day.",

@@ -36,7 +36,7 @@ export async function uploadCover(
   const c = conf();
   if (!c) return { ok: false, error: "Storage isn't configured." };
   if (!ALLOWED.includes(contentType)) return { ok: false, error: "JPEG, PNG, WebP or AVIF only." };
-  if (body.byteLength > MAX_BYTES) return { ok: false, error: "That's over 5 MB — resize it first." };
+  if (body.byteLength > MAX_BYTES) return { ok: false, error: "That's over 5 MB, resize it first." };
 
   const res = await fetch(`${c.url}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, {
     method: "POST",

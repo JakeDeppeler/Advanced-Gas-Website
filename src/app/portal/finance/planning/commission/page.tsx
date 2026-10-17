@@ -14,7 +14,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Commission — Team portal" };
+export const metadata = { title: "Commission · Team portal" };
 
 export default async function CommissionPage() {
   const user = await getPortalUser();

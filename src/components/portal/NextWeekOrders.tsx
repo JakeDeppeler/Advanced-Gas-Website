@@ -35,14 +35,14 @@ function Status({ po }: { po: PoWithLines }) {
   if (po.status === "sent") return <span className="pt-vstat pt-vstat--ok">Sent{po.sent_at ? ` ${when(po.sent_at)}` : ""}</span>;
   if (po.status === "approved") return <span className="pt-vstat pt-vstat--warn">Sending…</span>;
   if (po.status === "cancelled") return <span className="pt-vstat pt-vstat--none">Cancelled</span>;
-  return <span className="pt-vstat pt-vstat--bad">Draft — not sent</span>;
+  return <span className="pt-vstat pt-vstat--bad">Draft, not sent</span>;
 }
 
 const sendLabel = (s: Supplier | undefined, pickup = false) => {
   if (!s) return "Approve";
   if (s.method === "reece_cart") return "Mark ordered in maX";
   if (s.method === "work_order") return "Email the work order";
-  const how = pickup ? " — pick up" : "";
+  const how = pickup ? ", pick up" : "";
   if (s.method === "email_form") return `Email ${s.name} with their form${how}`;
   return `Email ${s.name}${how}`;
 };
@@ -90,7 +90,7 @@ function Delivery({ po, delivery }: { po: PoWithLines; delivery: DeliverySetting
       {editable && po.kind === "order" && <PickupChoice po={po} />}
       <span>
         {po.pickup
-          ? <><strong>Pick up</strong> — we collect it</>
+          ? <><strong>Pick up</strong> , we collect it</>
           : <><strong>Deliver to</strong> {po.delivery_address}{po.delivery_to_site && <span className="pt-nw__tag">Site delivery</span>}</>}
         {(() => {
           const said = deliveryInstructionsFor(po, delivery);
@@ -245,7 +245,7 @@ function InServiceTitan({ po }: { po: PoWithLines }) {
       </span>
       {po.st_error && <span className="pt-nw__sterr">{po.st_error}</span>}
       {pending.length > 0 && !unsent.length && (
-        <span className="pt-nw__sterr">ServiceTitan kept {pending.length === 1 ? "it" : "them"} Pending — use Mark as Sent on {pending.length === 1 ? "it" : "them"} in ServiceTitan.</span>
+        <span className="pt-nw__sterr">ServiceTitan kept {pending.length === 1 ? "it" : "them"} Pending, use Mark as Sent on {pending.length === 1 ? "it" : "them"} in ServiceTitan.</span>
       )}
       {!done && (
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => pushToServiceTitan(po.id))}>
@@ -345,7 +345,7 @@ function LineActions({ po, lines, what }: { po: PoWithLines; lines: PoLine[]; wh
       </button>
       {jobLines.length > 0 && (
         <button type="button" className="pt-nw__linkbtn" disabled={busy}
-          title={late ? `Next week's ordering starts ${dayLabel(until)} — after this is needed` : `Drafted again on ${dayLabel(until)}`}
+          title={late ? `Next week's ordering starts ${dayLabel(until)}, after this is needed` : `Drafted again on ${dayLabel(until)}`}
           onClick={() => run(() => holdForNextWeek({ id: po.id, lineIds: jobLines.map((l) => l.id) }))}>
           Order next week{late ? " (late)" : ""}
         </button>
@@ -373,7 +373,7 @@ function HeldList({ holds, which, byId }: { holds: Hold[]; which: "next" | "this
                 {h.customer_name && <span> · {h.customer_name}</span>}
                 <span> · {h.qty != null && `${qty(Number(h.qty))} × `}{h.sku_name}</span>
                 <span className="pt-nw__muted"> · {byId.get(h.supplier_id)?.name ?? h.supplier_id} · drafted {dayLabel(h.until)}{h.install_date && `, install ${dayLabel(h.install_date)}`}</span>
-                {late && <span className="pt-nw__flag">Needed by {dayLabel(neededBy(h.install_date!))} — order it now</span>}
+                {late && <span className="pt-nw__flag">Needed by {dayLabel(neededBy(h.install_date!))} , order it now</span>}
               </span>
               <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy} onClick={() => run(() => orderHeldNow({ holdId: h.id, which }))}>
                 Order now
@@ -449,7 +449,7 @@ function AddStock({ po, suppliers, which }: { po?: PoWithLines; suppliers?: Supp
           </span>
         ) : (
           <input className="pt-nw__input pt-nw__stocksearch" value={text} onChange={(e) => setText(e.target.value)} autoFocus
-            placeholder="Search the pricebook — name, code, model or Reece #" aria-label="Stock item" />
+            placeholder="Search the pricebook, name, code, model or Reece #" aria-label="Stock item" />
         )}
         <input className="pt-nw__input pt-nw__qty" type="number" min={1} step={1} value={n} onChange={(e) => setN(e.target.value)} aria-label="Quantity" />
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy || !item || !(Number(n) > 0) || (!!suppliers && !supplierId)}
@@ -475,7 +475,7 @@ function AddStock({ po, suppliers, which }: { po?: PoWithLines; suppliers?: Supp
         </ul>
       )}
       {!picked && text.trim().length >= 2 && found.length === 0 && (
-        <span className="pt-nw__muted">Nothing in the pricebook matches — Add puts &ldquo;{text.trim()}&rdquo; on as typed.</span>
+        <span className="pt-nw__muted">Nothing in the pricebook matches, Add puts &ldquo;{text.trim()}&rdquo; on as typed.</span>
       )}
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
     </div>
@@ -491,7 +491,7 @@ function OrderAll({ drafts, byId }: { drafts: PoWithLines[]; byId: Map<string, S
   const [open, setOpen] = useState(false);
   const sendable = drafts.filter((p) => byId.get(p.supplier_id)?.method !== "reece_cart");
   const reece = drafts.length - sendable.length;
-  if (!sendable.length) return reece ? <span className="pt-nw__muted">Only Reece left — enter it in maX and mark it ordered.</span> : null;
+  if (!sendable.length) return reece ? <span className="pt-nw__muted">Only Reece left, enter it in maX and mark it ordered.</span> : null;
   const goods = sendable.filter((p) => p.kind === "order").map((p) => `${byId.get(p.supplier_id)?.name ?? p.supplier_id}${p.pickup ? " (pick up)" : ""}`);
   const work = sendable.filter((p) => p.kind === "work_order").length;
   const flagged = sendable.filter((p) => byId.get(p.supplier_id)?.method === "email_form" && p.lines.some((l) => modelLooksLikeName(l.supplier_model ?? l.sku_name))).length;
@@ -509,7 +509,7 @@ function OrderAll({ drafts, byId }: { drafts: PoWithLines[]; byId: Map<string, S
             {goods.length > 0 && <>Email {goods.join(", ")}</>}
             {goods.length > 0 && work > 0 && " and "}
             {work > 0 && <>{work} work order{work === 1 ? "" : "s"} to the electrician</>}.
-            {reece > 0 && " Reece isn't included — enter it in maX, then mark it ordered."}
+            {reece > 0 && " Reece isn't included, enter it in maX, then mark it ordered."}
             {flagged > 0 && <span className="pt-nw__flag">A Mitsubishi line has no model number</span>}
           </p>
           <span className="pt-nw__actions">
@@ -544,7 +544,7 @@ function useLiveRefresh(ms: number) {
 type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; delivery: DeliverySettings; noted?: boolean };
 
 const installWhen = (l: { appointment_start: string | null; install_date: string | null }) =>
-  l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "—";
+  l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "";
 
 /**
  * Reece goes into maX one job at a time, so its lines are shown the same way:
@@ -557,7 +557,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
     <>
       {missing > 0 && (
         <p className="pt-nw__muted pt-nw__reecenote">
-          {missing} of {po.lines.length} line{po.lines.length === 1 ? " has" : "s have"} no Reece product number yet — it comes from the
+          {missing} of {po.lines.length} line{po.lines.length === 1 ? " has" : "s have"} no Reece product number yet, it comes from the
           vendor part number on the item&rsquo;s Reece vendor in the ServiceTitan pricebook.
         </p>
       )}
@@ -569,7 +569,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
                 <strong>Job {g.job_number}</strong>
                 {g.customer_name && <span> · {g.customer_name}</span>}
                 {g.suburb && <span> · {g.suburb}</span>}
-                <span className="pt-nw__muted"> — install {installWhen(g)}</span>
+                <span className="pt-nw__muted"> , install {installWhen(g)}</span>
               </>
             )}
             {g.job_id != null && po.status === "draft" && g.lines.length > 1 && <LineActions po={po} lines={g.lines} what="Whole job" />}
@@ -590,7 +590,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
                       {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
                       {!l.manual && po.status === "draft" && <LineActions po={po} lines={[l]} />}
                     </td>
-                    <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
+                    <td className="is-num">{l.unit_cost == null ? "" : money(l.unit_cost * l.qty)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -638,7 +638,7 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted }: CardProp
         <span>{po.pickup ? "We pick it up" : po.delivery_to_site ? "To the site" : "To the factory"}</span>
         <span><b>{money(total)}</b> ex GST</span>
       </p>
-      {flagged && <p className="pt-nw__flag" style={{ margin: "0 0 6px" }}>A line has no model number — open the lines to see which.</p>}
+      {flagged && <p className="pt-nw__flag" style={{ margin: "0 0 6px" }}>A line has no model number, open the lines to see which.</p>}
       <details className="pt-nw__more" open={flagged || undefined}>
         <summary>Show the lines{po.status === "draft" ? ", delivery and copies" : " and where it went"}</summary>
       <p className="pt-panel__sub">
@@ -660,14 +660,14 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted }: CardProp
                     <td>
                       <strong>{model}</strong>
                       {l.description && l.description !== model && <span>{l.description}</span>}
-                      {flag && <span className="pt-nw__flag">No model number — fill in Model on this item in the ServiceTitan pricebook</span>}
+                      {flag && <span className="pt-nw__flag">No model number, fill in Model on this item in the ServiceTitan pricebook</span>}
                       {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
                       {!l.manual && po.status === "draft" && <LineActions po={po} lines={[l]} />}
                     </td>
                     {l.job_id == null
-                      ? <><td><strong>Stock</strong><span>for the factory</span></td><td>—</td></>
+                      ? <><td><strong>Stock</strong><span>for the factory</span></td><td></td></>
                       : <><td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td><td>{installWhen(l)}</td></>}
-                    <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
+                    <td className="is-num">{l.unit_cost == null ? "" : money(l.unit_cost * l.qty)}</td>
                   </tr>
                 );
               })}
@@ -725,7 +725,7 @@ function WorkOrderCard({ po, supplier, testTo, alwaysCc, noted }: CardProps) {
           <dt>Customer</dt>
           <dd>
             {[d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).join(" · ") || <span className="pt-nw__flag">No contact in ServiceTitan</span>}
-            {d.customer_name && !d.customer_phone && d.customer_email && <span className="pt-nw__flag">Email only — no phone number on file</span>}
+            {d.customer_name && !d.customer_phone && d.customer_email && <span className="pt-nw__flag">Email only, no phone number on file</span>}
           </dd>
           {d.note && (<><dt>Note to Geoff</dt><dd className="pt-nw__muted">{d.note}</dd></>)}
         </dl>
@@ -797,7 +797,7 @@ export function NextWeekOrders(props: {
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => redraft(which))}>
           {busy ? "Drafting…" : shown.some((o) => o.status === "draft") ? "Redraft from the latest bookings" : "Draft now"}
         </button>
-        <span className="pt-nw__muted">Redraft only touches drafts — sent orders stay as they went.</span>
+        <span className="pt-nw__muted">Redraft only touches drafts, sent orders stay as they went.</span>
         <a className="pt-btn pt-btn--ghost pt-btn--sm" href="/portal/supply/emails">Supplier emails &amp; samples</a>
         {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
       </div>}
@@ -807,7 +807,7 @@ export function NextWeekOrders(props: {
           <h2 className="pt-panel__h">Needs a look</h2>
           <p className="pt-panel__sub">
             Fix these in ServiceTitan and redraft, or order them by hand. A job that moved after its order went is never
-            ordered twice — the supplier just needs telling the new date.
+            ordered twice, the supplier just needs telling the new date.
           </p>
           <ul>
             {problems.map((p, i) => (
@@ -835,7 +835,7 @@ export function NextWeekOrders(props: {
         <section className="pt-panel">
           <h2 className="pt-panel__h">Nothing left to send</h2>
           <p className="pt-panel__sub">
-            All {gone.length} {gone.length === 1 ? "order has" : "orders have"} gone — they&rsquo;re on the Sent tab. A new booking is drafted here within minutes.
+            All {gone.length} {gone.length === 1 ? "order has" : "orders have"} gone, they&rsquo;re on the Sent tab. A new booking is drafted here within minutes.
           </p>
         </section>
       )}

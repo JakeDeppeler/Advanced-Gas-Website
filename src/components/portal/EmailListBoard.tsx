@@ -13,7 +13,7 @@ const SEEN: Array<{ k: Seen; label: string }> = [
   { k: "never", label: "Never had a job" },
 ];
 const PAGE = 150;
-const day = (iso: string | null) => (iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "—");
+const day = (iso: string | null) => (iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "");
 
 /** One CSV cell, quoted when it has to be, and never read as a formula by a spreadsheet. */
 const cell = (v: string) => {
@@ -80,7 +80,7 @@ export function EmailListBoard({ rows, sources, yearAgo }: { rows: EmailRow[]; s
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(sendable.map((r) => r.email).join("; "));
-      setMsg({ ok: true, text: `Copied ${sendable.length.toLocaleString("en-AU")} addresses, separated by semicolons — paste them into BCC.` });
+      setMsg({ ok: true, text: `Copied ${sendable.length.toLocaleString("en-AU")} addresses, separated by semicolons, paste them into BCC.` });
     } catch {
       setMsg({ ok: false, text: "The browser wouldn't copy. Use Export instead." });
     }
@@ -176,7 +176,7 @@ export function EmailListBoard({ rows, sources, yearAgo }: { rows: EmailRow[]; s
         <p className="pt-panel__sub">
           Anyone who unsubscribes or asks not to be emailed goes on this list and stays off every copy and export, wherever
           else their address turns up. Every marketing email needs a way to unsubscribe, and only goes to people who&rsquo;ve
-          said yes or are already customers — that&rsquo;s the Spam Act, not just good manners.
+          said yes or are already customers, that&rsquo;s the Spam Act, not just good manners.
         </p>
         {bulkOpen ? (
           <form className="pt-el__bulk" onSubmit={(e) => { e.preventDefault(); run(() => optOutEmails(bulk, "Unsubscribed"), "Left {n} off the list."); setBulk(""); setBulkOpen(false); }}>

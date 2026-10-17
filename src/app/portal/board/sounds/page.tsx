@@ -10,7 +10,7 @@ import { readSounds } from "@/lib/board/sounds";
 import { DEFAULT_PLAN } from "@/lib/board/soundTypes";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Sounds — Team portal" };
+export const metadata = { title: "Sounds · Team portal" };
 
 /**
  * The wall board's sounds: which one each pop-up plays, how loud, and the MP3s
@@ -31,7 +31,7 @@ export default async function BoardSoundsPage() {
       <div className="pt-head">
         <h1>Sounds</h1>
         <p>
-          What the wall board plays when a quote goes out, a job is finished and a job is sold — and how loud each one is.
+          What the wall board plays when a quote goes out, a job is finished and a job is sold, and how loud each one is.
           Upload your own MP3s below. The TV picks up a change within about ten seconds.
         </p>
       </div>

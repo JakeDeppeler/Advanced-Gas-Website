@@ -90,8 +90,8 @@ export default async function TeamMemberFile({ params, searchParams }: { params:
       <Kv t="Level" v={level} />
       <Kv t="Van" v={vanView.van ? <Link href={`/portal/vehicles/${vanView.van.id}`}>{vanView.van.name} ›</Link> : "None"} />
       <Kv t="Charge-out" sub="what an hour of them is priced at" v={rate !== null ? `${money2(rate)}/hr` : "Not costed"} />
-      <Kv t="Annual leave" v={person.costing ? `${person.costing.leaveDays} days a year` : "—"} />
-      {money$ && <Kv t="Overtime" v={person.costing ? `${person.costing.otMult}× · ${money2(person.costing.wage * person.costing.otMult)}/hr` : "—"} />}
+      <Kv t="Annual leave" v={person.costing ? `${person.costing.leaveDays} days a year` : ""} />
+      {money$ && <Kv t="Overtime" v={person.costing ? `${person.costing.otMult}× · ${money2(person.costing.wage * person.costing.otMult)}/hr` : ""} />}
       <Kv t="Licences" v={lic.length ? (licBad ? <span style={{ color: "var(--bad)" }}>▼ one has run out</span> : lic.some((l) => l.st.k === "mid") ? "! one runs out soon" : `${lic.length} on file`) : "None recorded"} />
     </Card>
   );

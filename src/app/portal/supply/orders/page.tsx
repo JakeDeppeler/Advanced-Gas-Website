@@ -11,7 +11,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Grid, Head, Tile } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Orders — Team portal" };
+export const metadata = { title: "Orders · Team portal" };
 
 const CAP = 500;
 
@@ -36,11 +36,11 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
   return (
     <PortalShell user={user}>
       <div className="pk" style={{ marginBottom: 14 }}>
-        <Head title="Everything we’ve ordered" sub="Every cart sent through Reece maX — what’s on it, where it’s going and what it came to" />
+        <Head title="Everything we’ve ordered" sub="Every cart sent through Reece maX, what’s on it, where it’s going and what it came to" />
         {dbReady && orders.length > 0 && (
           <Grid cols={tally.unresolvedLines > 0 ? 4 : 3}>
             <Tile label="Orders" st={{ k: "none", w: "" }} fig={String(tally.total)} frac={null} />
-            <Tile label="Value" st={{ k: "none", w: "" }} fig={tally.value == null ? "—" : money(tally.value)} frac={null} sub="ex GST, of the orders that carried a price" />
+            <Tile label="Value" st={{ k: "none", w: "" }} fig={tally.value == null ? "" : money(tally.value)} frac={null} sub="ex GST, of the orders that carried a price" />
             <Tile label="In ServiceTitan" st={tally.byStatus.ordered === tally.total ? { k: "good", w: "All raised" } : { k: "mid", w: `${tally.total - tally.byStatus.ordered} to raise` }} fig={String(tally.byStatus.ordered)} frac={tally.total ? tally.byStatus.ordered / tally.total : null} sub="purchase order raised" />
             {tally.unresolvedLines > 0 && <Tile label="Unmatched lines" st={{ k: "bad", w: "Match them" }} fig={String(tally.unresolvedLines)} frac={null} sub="not in the pricebook yet" />}
           </Grid>

@@ -10,9 +10,9 @@ export type MarketingTab = "campaigns" | "emails" | "reviews" | "ads" | "social"
 
 export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; blurb: string }[] = [
   { k: "campaigns", label: "Campaigns", title: "Everything we're running",
-    blurb: "Every piece of marketing in one list — who it's for, where it runs, what it costs and what it brings in." },
+    blurb: "Every piece of marketing in one list, who it's for, where it runs, what it costs and what it brings in." },
   { k: "emails", label: "Email list", title: "Everyone we can email",
-    blurb: "Every address we hold — ServiceTitan customers, website enquiries, Xero and Keep in touch — in one list to cut down and export." },
+    blurb: "Every address we hold, ServiceTitan customers, website enquiries, Xero and Keep in touch, in one list to cut down and export." },
   { k: "reviews", label: "Reviews", title: "What customers say",
     blurb: "The Google reviews, as they come in." },
   { k: "ads", label: "Ads", title: "What the ads are doing",
@@ -34,7 +34,7 @@ export type WebsiteTab = "leads" | "pages" | "dropoff";
 
 export const WEBSITE_TABS: { k: WebsiteTab; label: string; title: string; blurb: string }[] = [
   { k: "leads", label: "Enquiries", title: "What the website brings in",
-    blurb: "Every quote request and phone tap — where they came from, how far away, and when. No customer details here; the enquiry still goes to the inbox." },
+    blurb: "Every quote request and phone tap, where they came from, how far away, and when. No customer details here; the enquiry still goes to the inbox." },
   { k: "pages", label: "Pages", title: "Which pages do the work",
     blurb: "Which pages people read, and which of them turn a reader into an enquiry." },
   { k: "dropoff", label: "Drop-off", title: "Where people leave",

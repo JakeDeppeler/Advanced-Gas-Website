@@ -33,7 +33,7 @@ export function WorkOrderForm({ job, to, back }: {
       {/* The one thing typed rather than read from ServiceTitan, so it gets the card's full width. */}
       <div style={{ display: "grid", gap: 6, padding: "10px 0 12px" }}>
         <label htmlFor="wo-work" className="pk-kv" style={{ border: 0, padding: 0 }}>
-          <span className="t"><b>What&rsquo;s the electrical work?</b><span>what Geoff reads first — the circuit, the isolator, the switchboard</span></span>
+          <span className="t"><b>What&rsquo;s the electrical work?</b><span>what Geoff reads first, the circuit, the isolator, the switchboard</span></span>
         </label>
         <textarea id="wo-work" className="pk-in" rows={3} style={{ width: "100%", resize: "vertical" }} value={f.work} onChange={set("work")}
           placeholder="e.g. New 20A circuit for the heat pump, isolator at the unit" />
@@ -45,7 +45,7 @@ export function WorkOrderForm({ job, to, back }: {
       {field("phone", "Phone")}
       {field("email", "Email")}
       {field("crew", "Our crew on site", "names, with commas")}
-      {field("sendTo", "Send to", `${to.name} unless you change it — for sending this one somewhere else`, "email")}
+      {field("sendTo", "Send to", `${to.name} unless you change it, for sending this one somewhere else`, "email")}
       {field("cc", "Also copy", "anyone else who should get it, with commas")}
       <div className="pk-btns" style={{ marginTop: 14, alignItems: "center" }}>
         <button type="button" className="pk-btn" disabled={busy || !f.work.trim() || !f.date} onClick={() => start(async () => {

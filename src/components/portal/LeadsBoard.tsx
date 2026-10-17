@@ -143,7 +143,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
               {/* "Tracking went live just now" was true the week it shipped and
                   gets less true every day after. What matters is the window
                   being read, which is on screen above. */}
-              <strong>Nothing in the last {days} days.</strong> Enquiries land here as they come through — widen the
+              <strong>Nothing in the last {days} days.</strong> Enquiries land here as they come through, widen the
               window above, or give it a few days before reading anything into it.
             </>
           ) : (
@@ -219,7 +219,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
                       <td>{sec.pages}</td>
                       <td>{sec.earning}</td>
                       <td>{sec.n}</td>
-                      <td>{sec.perPage ? sec.perPage.toFixed(2) : "—"}</td>
+                      <td>{sec.perPage ? sec.perPage.toFixed(2) : ""}</td>
                       <td>{sec.quotes}</td>
                       <td>{sec.calls}</td>
                     </tr>
@@ -233,8 +233,8 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
             <h2 className="pt-panel__h">The pages that earn</h2>
             <p className="pt-panel__sub">
               The page the enquiry was made on. Expect <strong>Get a quote</strong> near the top and do not read much
-              into it: it is the page the form lives on, not the page that convinced anybody. The list under it —
-              where the visit started — is the one that says what did the convincing.
+              into it: it is the page the form lives on, not the page that convinced anybody. The list under it 
+              where the visit started, is the one that says what did the convincing.
             </p>
             {earning.length === 0 ? (
               <div className="pf-empty">No page has produced an enquiry in this window.</div>
@@ -278,7 +278,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
             {pageReport.landingsKnown === 0 ? (
               <div className="pf-empty">
                 Not recorded yet. Landing pages started being captured on the deploy that added this panel, so this
-                fills in from the next enquiry onwards — the older leads in this window have no landing page on them
+                fills in from the next enquiry onwards, the older leads in this window have no landing page on them
                 and never will.
               </div>
             ) : (
@@ -309,11 +309,11 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
               {pageReport.silentCount} of {pageReport.totalPages} pages produced no enquiry in this window. Named
               below are the ones where that is worth knowing: services, prices, hot water, commercial, water
               filtration, the calculators. Suburb pages, brand pages, guides and fault codes are counted but not
-              listed — there are hundreds of them, and somebody looking up what E5 means is not shopping.
+              listed, there are hundreds of them, and somebody looking up what E5 means is not shopping.
             </p>
             <p className="pt-tgt__warn">
               Read this carefully. It counts enquiries, not visits, so a page with nothing against it is either a page
-              nobody read or a page everybody read and nobody acted on — and from here the two look the same. Take a
+              nobody read or a page everybody read and nobody acted on, and from here the two look the same. Take a
               name off this list and go and look it up in Vercel Analytics before concluding anything. A page with
               traffic and no enquiries needs rewriting. A page with no traffic needs linking to.
             </p>
@@ -336,7 +336,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
             <h2 className="pt-panel__h">When they come in</h2>
             <p className="pt-panel__sub">
               Melbourne time. The working day is {openLabel(site.hours[0].open)} to {openLabel(site.hours[0].close)}, so everything outside it is somebody enquiring
-              when there is nobody standing next to a phone — {afterHours} of {leads.length} of them, and {weekend} on
+              when there is nobody standing next to a phone, {afterHours} of {leads.length} of them, and {weekend} on
               a weekend.
             </p>
             <div className="pt-lead__dow">
@@ -466,8 +466,8 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
                         <strong>{r.name}</strong>
                         <span>{r.postcode ?? ""}</span>
                       </th>
-                      <td>{r.driveMax != null ? `${r.driveMax} min` : "—"}</td>
-                      <td>{r.km != null ? `${r.km} km` : "—"}</td>
+                      <td>{r.driveMax != null ? `${r.driveMax} min` : ""}</td>
+                      <td>{r.km != null ? `${r.km} km` : ""}</td>
                       <td>{r.n}</td>
                       <td>{r.quotes}</td>
                       <td>{r.calls}</td>

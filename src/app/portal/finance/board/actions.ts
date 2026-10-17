@@ -54,7 +54,7 @@ export async function saveBoardCalendar(input: {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(h)) return { ok: false, error: `"${h}" isn't a date the board can read.` };
   }
   if (input.workingDays.length === 0) {
-    return { ok: false, error: "Pick at least one working day — the board can't divide a month by none." };
+    return { ok: false, error: "Pick at least one working day, the board can't divide a month by none." };
   }
 
   const existing = (await getSettings<Record<string, unknown>>("dashboard")) ?? {};

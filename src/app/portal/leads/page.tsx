@@ -14,7 +14,7 @@ import { startOfMonthMelbourne } from "@/lib/dashboard/dates";
 import { serviceLabel } from "@/lib/dashboard/metrics";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Leads — Team portal" };
+export const metadata = { title: "Leads · Team portal" };
 
 const MEL = "Australia/Melbourne";
 const when = (iso: string) =>
@@ -72,8 +72,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
   const bySuburb = tally(webIn.map((l) => l.suburb?.trim() || l.postcode?.trim() || "Not given")).slice(0, 10);
 
   const rows = [
-    ...webIn.map((l) => ({ at: l.createdAt, src: l.kind === "call" ? "Website · phone tap" : "Website · quote form", what: l.service?.trim() ? serviceLabel(l.service.trim()) : "—", where: l.suburb || l.postcode || "—" })),
-    ...stIn.map((l) => ({ at: l.created_on, src: `ServiceTitan${l.campaign ? ` · ${l.campaign}` : ""}`, what: "—", where: "—" })),
+    ...webIn.map((l) => ({ at: l.createdAt, src: l.kind === "call" ? "Website · phone tap" : "Website · quote form", what: l.service?.trim() ? serviceLabel(l.service.trim()) : "", where: l.suburb || l.postcode || "" })),
+    ...stIn.map((l) => ({ at: l.created_on, src: `ServiceTitan${l.campaign ? ` · ${l.campaign}` : ""}`, what: "", where: "" })),
   ].sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 60);
 
   return (
@@ -81,7 +81,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
       <div className="pt-head pt-head--split">
         <div>
           <h1>Sales</h1>
-          <p>Who&rsquo;s asking, and from where — every enquiry in {monthLabel}, from the website and ServiceTitan.</p>
+          <p>Who&rsquo;s asking, and from where, every enquiry in {monthLabel}, from the website and ServiceTitan.</p>
         </div>
         <nav className="pt-win" aria-label="Month">
           <Link href="/portal/leads" className={`pt-win__opt${!last ? " is-on" : ""}`} aria-current={!last ? "page" : undefined}>This month</Link>

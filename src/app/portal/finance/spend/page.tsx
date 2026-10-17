@@ -11,7 +11,7 @@ import { Bad, Card, Empty, Head, PeriodTabs, Pill, Say, Tabs } from "@/component
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Spending — Team portal" };
+export const metadata = { title: "Spending · Team portal" };
 
 type G = "all" | SpendLine["group"];
 const GROUPS: { k: G; label: string }[] = [{ k: "all", label: "Everything" }, { k: "jobs", label: "Cost of jobs" }, { k: "overheads", label: "Overheads" }];
@@ -41,9 +41,9 @@ export default async function SpendPage({ searchParams }: { searchParams: { p?: 
     <PortalShell user={user}>
       <div className="pk">
         <Head title="Spending" sub="From Xero · before GST" info={[
-          ["Cost of jobs", "Parts, materials, subbies and field wages — what goes up and down with the work."],
+          ["Cost of jobs", "Parts, materials, subbies and field wages, what goes up and down with the work."],
           ["Overheads", "What it costs to keep the doors open, job or no job."],
-          ["Before", "The same stretch just before it — this month so far against the same days of last month, this financial year against the same point last year — so a part-done month isn’t compared with a whole one."],
+          ["Before", "The same stretch just before it, this month so far against the same days of last month, this financial year against the same point last year, so a part-done month isn’t compared with a whole one."],
           ["Up or down", "More than 10% and $200 either way. Smaller moves are the usual noise."],
         ]} />
         <PeriodTabs on={period} items={PERIODS} href={(k) => href(k, g)} />
@@ -86,14 +86,14 @@ async function Spend({ period, g }: { period: PeriodKey; g: G }) {
                   <tr key={l.label}>
                     <td><b>{l.label}</b>{g === "all" && <div className="ks">{l.group === "jobs" ? "cost of jobs" : "overhead"}</div>}</td>
                     <td><b>{money(l.now)}</b></td>
-                    <td>{before ? money(l.usual) : "—"}</td>
-                    <td>{before ? <Diff d={l.now - l.usual} lowerIsBetter /> : "—"}</td>
+                    <td>{before ? money(l.usual) : ""}</td>
+                    <td>{before ? <Diff d={l.now - l.usual} lowerIsBetter /> : ""}</td>
                     <td className="l" style={{ width: 150 }}><div className="pk-bar" style={{ margin: 0 }}><i style={{ width: `${tot > 0 ? Math.max(1, (l.now / tot) * 100) : 0}%` }} /></div></td>
                     <td className="l">{before ? <Pill st={mv === "up" ? { k: "bad", w: "Up", s: "▲" } : mv === "down" ? { k: "good", w: "Down", s: "▼" } : { k: "none", w: "Usual" }} /> : null}</td>
                   </tr>
                 );
               })}
-              <tr className="tot"><td>Total</td><td>{money(tot)}</td><td>{before ? money(usual) : "—"}</td><td>{before ? <Diff d={tot - usual} lowerIsBetter /> : "—"}</td><td /><td /></tr>
+              <tr className="tot"><td>Total</td><td>{money(tot)}</td><td>{before ? money(usual) : ""}</td><td>{before ? <Diff d={tot - usual} lowerIsBetter /> : ""}</td><td /><td /></tr>
             </tbody>
           </table>
         </div>

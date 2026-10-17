@@ -15,7 +15,7 @@ import { XeroLine } from "@/components/portal/XeroLine";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Targets — Team portal" };
+export const metadata = { title: "Targets · Team portal" };
 
 export default async function TargetsPage() {
   const user = await getPortalUser();

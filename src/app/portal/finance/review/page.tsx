@@ -11,7 +11,7 @@ import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const metadata = { title: "How we went — Team portal" };
+export const metadata = { title: "How we went · Team portal" };
 
 const m$ = (n: number) => `${n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
 // Rounded before the sign is picked, so 30 cents either way reads "$0", not "−$0".
@@ -78,7 +78,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { k?:
         </div>
 
         {status !== "connected" ? <XeroOff state={status} what={`${unit} to read`} /> : !r ? null : !r.now || !r.normal ? (
-          <Empty>Xero didn&rsquo;t return the {unit} or the ones before it, so there&rsquo;s nothing to compare. That isn&rsquo;t the same as nothing happening — reload in a minute.</Empty>
+          <Empty>Xero didn&rsquo;t return the {unit} or the ones before it, so there&rsquo;s nothing to compare. That isn&rsquo;t the same as nothing happening, reload in a minute.</Empty>
         ) : (
           <>
             <Say>

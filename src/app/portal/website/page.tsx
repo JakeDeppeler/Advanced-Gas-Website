@@ -18,7 +18,7 @@ import { Bars, Heads, Needs, SectionTabs, WindowPicker } from "@/components/port
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Website — Team portal" };
+export const metadata = { title: "Website · Team portal" };
 
 /**
  * The website: who it brings in, which pages do the work, and where people
@@ -121,7 +121,7 @@ async function WebsiteLeads({
           { label: "Phone taps", value: String(calls), sub: "tapped the number" },
           {
             label: `Outside ${openingHoursShort().replace(/\s/g, "")}`, value: String(outside),
-            sub: leads.length ? `${Math.round((outside / leads.length) * 100)}% — nobody on the tools` : "none yet",
+            sub: leads.length ? `${Math.round((outside / leads.length) * 100)}%, nobody on the tools` : "none yet",
           },
         ]}
       />
@@ -180,7 +180,7 @@ async function OnTheSite({
           { label: "Pages that earn", value: String(r.earningPages), sub: `of ${r.totalPages} on the site`, feature: true },
           { label: "Silent", value: String(r.silentCount), sub: "no enquiry in this window" },
           {
-            label: "Reads", value: views?.since ? views.total.toLocaleString("en-AU") : "—",
+            label: "Reads", value: views?.since ? views.total.toLocaleString("en-AU") : "",
             sub: views?.since ? `pages opened, counted since ${new Date(`${views.since}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}` : "counting starts with the next reader",
           },
         ]}
@@ -194,7 +194,7 @@ async function OnTheSite({
         </p>
         {read.length === 0 ? (
           <p className="pt-rep__empty">
-            {views?.since ? "Nothing read in this window." : "No reads counted yet — the site started counting with this release, and the list fills in as people open pages."}
+            {views?.since ? "Nothing read in this window." : "No reads counted yet, the site started counting with this release, and the list fills in as people open pages."}
           </p>
         ) : (
           <div className="pt-fleet__wrap">
@@ -208,7 +208,7 @@ async function OnTheSite({
                       <td><strong>{titleFor(path)}</strong><span className="pt-fleet__sub">{path}</span></td>
                       <td className="pt-blogl__num"><strong>{n.toLocaleString("en-AU")}</strong></td>
                       <td className="pt-blogl__num">{e}</td>
-                      {fullWindow && <td className="pt-blogl__num">{n ? `${((e / n) * 100).toFixed(1)}%` : "—"}</td>}
+                      {fullWindow && <td className="pt-blogl__num">{n ? `${((e / n) * 100).toFixed(1)}%` : ""}</td>}
                     </tr>
                   );
                 })}
@@ -255,11 +255,11 @@ function DropOff() {
   return (
     <Needs
       title="Nothing records a page view yet"
-      body="Drop-off is the share of people who start the quote form and stop at each step. The portal only ever sees an enquiry that was finished and sent, so the people who left are, by definition, not in the data. It needs the form to post a step event as each field is completed — a small table and a beacon from the form, and this becomes a real funnel."
+      body="Drop-off is the share of people who start the quote form and stop at each step. The portal only ever sees an enquiry that was finished and sent, so the people who left are, by definition, not in the data. It needs the form to post a step event as each field is completed, a small table and a beacon from the form, and this becomes a real funnel."
       bullets={[
         "A portal_form_events table: session, step, at",
         "The quote form posting a step event as it goes",
-        "Nothing personal in it — a step number and a timestamp",
+        "Nothing personal in it, a step number and a timestamp",
       ]}
     />
   );

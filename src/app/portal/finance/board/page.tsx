@@ -14,7 +14,7 @@ import { money } from "@/lib/portal/format";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Wall board — Team portal" };
+export const metadata = { title: "Wall board · Team portal" };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -60,7 +60,7 @@ export default async function BoardPage() {
     {
       k: "To sell",
       v: t.sales == null ? null : money(t.sales),
-      how: "The same figure — over a year, what's sold is what gets invoiced",
+      how: "The same figure, over a year, what's sold is what gets invoiced",
     },
     {
       k: "Gross profit",

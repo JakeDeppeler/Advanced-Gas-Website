@@ -12,7 +12,7 @@ import { Bad, Card, Good, Head, PeriodTabs, Say } from "@/components/portal/kit/
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Profit & loss — Team portal" };
+export const metadata = { title: "Profit & loss · Team portal" };
 
 type Group = "sales" | "jobs" | "overheads" | "other";
 const GROUPS: [Group, string][] = [["sales", "Sales"], ["jobs", "Cost of jobs"], ["overheads", "Overheads"], ["other", "Other income"]];
@@ -83,7 +83,7 @@ async function Statement({ period }: { period: PeriodKey }) {
   const shade = (i: number) => (i === at ? { background: "var(--sunken)" } : undefined);
   const cell = (v: number | null | undefined, i: number, bold?: boolean, pctOf?: number | null) => (
     <td key={i} style={shade(i)}>
-      {v == null ? "—" : bold ? <b>{money(v)}</b> : money(v)}
+      {v == null ? "" : bold ? <b>{money(v)}</b> : money(v)}
       {pctOf && v != null ? <div className="ks">{pc((v / pctOf) * 100, 1)}</div> : null}
     </td>
   );

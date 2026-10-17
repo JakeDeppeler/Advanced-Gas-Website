@@ -12,7 +12,7 @@ import { Head, Say } from "@/components/portal/kit/Kit";
 import { GoalsForm } from "@/components/portal/numbers/GoalsForm";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Goals — Team portal" };
+export const metadata = { title: "Goals · Team portal" };
 
 const FY = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 const CAL = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

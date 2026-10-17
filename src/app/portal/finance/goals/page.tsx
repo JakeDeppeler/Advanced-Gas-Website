@@ -14,7 +14,7 @@ import { PaceTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const metadata = { title: "Year goal — Team portal" };
+export const metadata = { title: "Year goal · Team portal" };
 
 const ahead = (d: number | null, flip = false): Status => {
   if (d == null) return none("No figure");
@@ -115,14 +115,14 @@ export default async function YearGoalPage() {
             )}
 
             <Grid cols={4}>
-              <Tile label="Invoiced so far" st={ytdSt} fig={y.banked != null ? money(y.banked) : "—"} frac={y.progress}
+              <Tile label="Invoiced so far" st={ytdSt} fig={y.banked != null ? money(y.banked) : ""} frac={y.progress}
                 sub={noGoal ? "no goal yet" : `${Math.round((y.progress ?? 0) * 100)}% of ${money(y.goal)}${y.missingMonths ? ` · ${y.missingMonths} month${y.missingMonths === 1 ? "" : "s"} Xero didn’t answer` : ""}`} />
-              <Tile label="Against the pace" st={noGoal ? none() : ahead(y.delta)} fig={y.delta == null || noGoal ? "—" : `${y.delta >= 0 ? "▲" : "▼"} ${money(Math.abs(y.delta))}`}
+              <Tile label="Against the pace" st={noGoal ? none() : ahead(y.delta)} fig={y.delta == null || noGoal ? "" : `${y.delta >= 0 ? "▲" : "▼"} ${money(Math.abs(y.delta))}`}
                 frac={y.banked != null && y.expectedToDate > 0 ? y.banked / y.expectedToDate : null} sub={`${money(y.expectedToDate)} is where the year should be today`} />
               <Tile label="Needed a month" st={y.neededPerRemainingMonth == null || avgLeft == null || noGoal ? none(noGoal ? "No goal yet" : "No figure") : status(avgLeft, y.neededPerRemainingMonth)}
-                fig={y.neededPerRemainingMonth == null || noGoal ? "—" : money(y.neededPerRemainingMonth)} frac={y.neededPerRemainingMonth && avgLeft ? avgLeft / y.neededPerRemainingMonth : null}
+                fig={y.neededPerRemainingMonth == null || noGoal ? "" : money(y.neededPerRemainingMonth)} frac={y.neededPerRemainingMonth && avgLeft ? avgLeft / y.neededPerRemainingMonth : null}
                 sub={noGoal ? "no goal yet" : `over the ${y.monthsLeft} ${y.monthsLeft === 1 ? "month" : "months"} left${avgLeft != null ? ` · the goal has ${money(avgLeft)}` : ""}`} />
-              <Tile label="Months that made it" st={made.length ? status(hit, made.length) : none("None finished yet")} fig={made.length ? `${hit} of ${made.length}` : "—"}
+              <Tile label="Months that made it" st={made.length ? status(hit, made.length) : none("None finished yet")} fig={made.length ? `${hit} of ${made.length}` : ""}
                 frac={made.length ? hit / made.length : null} sub="finished months at or over their goal" />
             </Grid>
 
@@ -134,19 +134,19 @@ export default async function YearGoalPage() {
               <Card title="Last month" aside="finished months only">
                 {mom.latest == null || mom.previous == null ? <Empty>Not enough finished months in {label} yet to compare.</Empty> : (
                   <>
-                    <Kv t={mom.previous.label} v={mom.previous.income == null ? "—" : money(mom.previous.income)} />
-                    <Kv t={mom.latest.label} v={mom.latest.income == null ? "—" : money(mom.latest.income)} />
+                    <Kv t={mom.previous.label} v={mom.previous.income == null ? "" : money(mom.previous.income)} />
+                    <Kv t={mom.latest.label} v={mom.latest.income == null ? "" : money(mom.latest.income)} />
                     <Kv t={<b>Change</b>} sub={mom.changePct != null ? `${Math.round(Math.abs(mom.changePct) * 100)}% on ${mom.previous.label}` : undefined}
-                      v={mom.change == null ? "—" : <Pill st={mom.change >= 0 ? { k: "good", w: `Up ${money(mom.change)}` } : { k: "bad", w: `Down ${money(-mom.change)}` }} />} />
+                      v={mom.change == null ? "" : <Pill st={mom.change >= 0 ? { k: "good", w: `Up ${money(mom.change)}` } : { k: "bad", w: `Down ${money(-mom.change)}` }} />} />
                     <Note>A part month against a whole one always reads as a collapse, so this month waits until it’s over.</Note>
                   </>
                 )}
               </Card>
               <Card title="Overheads" aside="everything out, from the P&L">
-                <Kv t="Spent so far" sub={`${label} to date`} v={oh.spent == null ? "—" : money(oh.spent)} />
-                <Kv t="Running at" sub="a month, over the finished months" v={oh.perMonth == null ? "—" : money(oh.perMonth)} />
-                <Kv t="Expected by now" sub={oh.goal == null ? "no overhead figure set for the year" : `of ${money(oh.goal)} for the year`} v={oh.expectedToDate == null ? "—" : money(oh.expectedToDate)} />
-                <Kv t={<b>Against that</b>} v={oh.delta == null ? "—" : <Pill st={{ ...ahead(oh.delta, true), w: `${money(Math.abs(oh.delta))} ${oh.delta > 0 ? "over" : "under"}` }} />} />
+                <Kv t="Spent so far" sub={`${label} to date`} v={oh.spent == null ? "" : money(oh.spent)} />
+                <Kv t="Running at" sub="a month, over the finished months" v={oh.perMonth == null ? "" : money(oh.perMonth)} />
+                <Kv t="Expected by now" sub={oh.goal == null ? "no overhead figure set for the year" : `of ${money(oh.goal)} for the year`} v={oh.expectedToDate == null ? "" : money(oh.expectedToDate)} />
+                <Kv t={<b>Against that</b>} v={oh.delta == null ? "" : <Pill st={{ ...ahead(oh.delta, true), w: `${money(Math.abs(oh.delta))} ${oh.delta > 0 ? "over" : "under"}` }} />} />
               </Card>
             </Two>
 
@@ -163,19 +163,19 @@ export default async function YearGoalPage() {
                       <tr key={m.label} style={!m.started ? { color: "var(--ink3)" } : undefined}>
                         <td><b>{m.label}</b> <span className="ks">{spans[i].year}{!m.started ? " · to come" : m.complete ? "" : " · so far"}</span></td>
                         {!noGoal && <td>{money(m.goal)}</td>}
-                        <td>{m.income == null ? (m.started ? "no answer" : "—") : money(m.income)}</td>
+                        <td>{m.income == null ? (m.started ? "no answer" : "") : money(m.income)}</td>
                         {!noGoal && (
                           <td>
                             {/* Finished months only: two days of October against a whole
                                 month's goal is a fact about the date, not about October. */}
                             {m.complete && m.vsGoal != null
                               ? <Pill st={{ ...ahead(m.vsGoal), w: `${money(Math.abs(m.vsGoal))} ${m.vsGoal >= 0 ? "over" : "short"}` }} />
-                              : <span className="ks">{m.started && !m.complete ? "part month" : "—"}</span>}
+                              : <span className="ks">{m.started && !m.complete ? "part month" : ""}</span>}
                           </td>
                         )}
-                        <td>{m.expenses == null ? "—" : money(m.expenses)}</td>
+                        <td>{m.expenses == null ? "" : money(m.expenses)}</td>
                         <td style={{ color: m.netProfit == null ? undefined : m.netProfit < 0 ? "var(--bad)" : undefined, fontWeight: m.netProfit != null && m.netProfit < 0 ? 700 : undefined }}>
-                          {m.netProfit == null ? "—" : `${m.netProfit < 0 ? "▼ " : ""}${money(m.netProfit)}`}
+                          {m.netProfit == null ? "" : `${m.netProfit < 0 ? "▼ " : ""}${money(m.netProfit)}`}
                         </td>
                       </tr>
                     ))}

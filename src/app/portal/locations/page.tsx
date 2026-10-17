@@ -9,10 +9,10 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { savedLists } from "@/lib/locations/stLocations";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Site locations — Team portal" };
+export const metadata = { title: "Site locations · Team portal" };
 
 const day = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" }) : "";
 
 /**
  * Villages and blocks with a location per unit: load the list into

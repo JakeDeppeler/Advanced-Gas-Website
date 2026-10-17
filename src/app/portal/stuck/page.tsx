@@ -10,7 +10,7 @@ import { stuckView } from "@/lib/portal/stuck";
 import { emptyBanded, type StuckView } from "@/lib/portal/stuckTypes";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Where the money's stuck — Team portal" };
+export const metadata = { title: "Where the money's stuck · Team portal" };
 
 const EMPTY: StuckView = {
   unbilled: { bands: emptyBanded(), oldest: [], unknownType: 0, noCharge: 0, quoteVisits: 0 },
@@ -42,7 +42,7 @@ export default async function StuckPage() {
         <p>
           Between finishing a job and banking the money there are three places it stops: the work is done and nobody
           has billed it, the invoice is out and nobody has paid it, or the job itself has stopped. This is all three,
-          cut the same way by how long each has been sitting — so the only question that matters, whether it is getting
+          cut the same way by how long each has been sitting, so the only question that matters, whether it is getting
           worse, is asked the same way three times.
         </p>
       </div>

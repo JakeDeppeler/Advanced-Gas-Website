@@ -51,7 +51,7 @@ export function MarkupEditor({ growth, xeroBought, xeroAccount, vans }: {
         </p>
         {perVanXero != null && (
           <p className="pt-nums__hint">
-            Xero: <strong>{m0(xeroBought as number)}</strong> bought in the last 12 months{xeroAccount ? ` under “${xeroAccount}”` : ""}, materials and units together — about <strong>{m0(perVanXero)}</strong> for each of the {vans} vans. Split that between the two boxes below.
+            Xero: <strong>{m0(xeroBought as number)}</strong> bought in the last 12 months{xeroAccount ? ` under “${xeroAccount}”` : ""}, materials and units together, about <strong>{m0(perVanXero)}</strong> for each of the {vans} vans. Split that between the two boxes below.
           </p>
         )}
         <div className="pt-nums__grid pt-nums__grid--two">

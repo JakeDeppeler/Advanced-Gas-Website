@@ -48,7 +48,7 @@ export function BoardCommission({
       <h2 className="pt-panel__h">Commission tiers</h2>
       <p className="pt-panel__sub">
         Marginal, on the month&rsquo;s sold total: each rate applies only to the dollars above its threshold. The
-        board shows how far the leader is from the next tier and never the dollar figure — the wall is visible to
+        board shows how far the leader is from the next tier and never the dollar figure, the wall is visible to
         everyone who walks past it.
       </p>
 

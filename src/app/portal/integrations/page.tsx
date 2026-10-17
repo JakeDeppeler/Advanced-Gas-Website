@@ -9,7 +9,7 @@ import { listIntegrations, type IntegrationState } from "@/lib/portal/integratio
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Integrations — Team portal" };
+export const metadata = { title: "Integrations · Team portal" };
 
 const TONE: Record<IntegrationState, string> = { working: "ok", attention: "warn", off: "none" };
 
@@ -50,7 +50,7 @@ export default async function IntegrationsPage() {
         <h1>Integrations</h1>
         <p>
           Every outside system the business runs on, whether it&rsquo;s working, and where its numbers turn up. Read from
-          what each one last sent — opening this page doesn&rsquo;t call any of them.
+          what each one last sent, opening this page doesn&rsquo;t call any of them.
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default async function IntegrationsPage() {
             <div className="pt-integ__side">
               <div>
                 <span className="pt-integ__k">Last heard from</span>
-                <strong>{ago(r.at) ?? "—"}</strong>
+                <strong>{ago(r.at) ?? ""}</strong>
               </div>
               <div>
                 <span className="pt-integ__k">Shows up in</span>

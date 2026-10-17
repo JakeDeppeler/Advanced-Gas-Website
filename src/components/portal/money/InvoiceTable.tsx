@@ -61,9 +61,9 @@ export function InvoiceTable({ rows }: { rows: InvRow[] }) {
               const word = k === "work" ? "Owed once done" : k === "over" ? `${plural(r.daysOver, "day")} late` : r.daysOver === 0 ? "Due today" : r.daysOver === -1 ? "Due tomorrow" : `Due in ${-r.daysOver} days`;
               return (
                 <tr key={`${r.number}-${r.due}-${r.stage}`} style={{ cursor: "default" }}>
-                  <td><b>{r.number || "—"}</b>{r.from === "xero" && <span>in Xero</span>}</td>
-                  <td><span className="mf-who"><span className="qp-av" aria-hidden="true">{(r.customer || "?").slice(0, 1).toUpperCase()}</span><span><b>{r.customer || "—"}</b>{k === "work" && r.total ? <span>{m0(r.total)} job{r.paid ? `, ${m0(r.paid)} paid` : ""}</span> : null}</span></span></td>
-                  <td>{k === "work" ? "—" : day(r.due)}</td>
+                  <td><b>{r.number || ""}</b>{r.from === "xero" && <span>in Xero</span>}</td>
+                  <td><span className="mf-who"><span className="qp-av" aria-hidden="true">{(r.customer || "?").slice(0, 1).toUpperCase()}</span><span><b>{r.customer || ""}</b>{k === "work" && r.total ? <span>{m0(r.total)} job{r.paid ? `, ${m0(r.paid)} paid` : ""}</span> : null}</span></span></td>
+                  <td>{k === "work" ? "" : day(r.due)}</td>
                   <td className="r"><b>{m0(r.amount)}</b></td>
                   <td><span className={`pk-st ${TONE[k]}`}><i aria-hidden="true" style={{ background: "currentColor" }} />{word}</span></td>
                 </tr>

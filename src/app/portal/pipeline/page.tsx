@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { SalesTabs } from "@/components/portal/run/RunTabs";
-import { can as canDo } from "@/lib/portal/caps";
 import { Locked } from "@/components/portal/Locked";
 import { PipelineBoard } from "@/components/portal/PipelineBoard";
 import { dbConfigured, listUsers } from "@/lib/portal/db";
@@ -13,7 +11,7 @@ import { daysBetween } from "@/lib/pipeline/types";
 import { KpiHead } from "@/components/portal/kit/Kit";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Quote pipeline — Team portal" };
+export const metadata = { title: "Quote pipeline · Team portal" };
 
 const m0 = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 const k1 = (n: number) => (n >= 10_000 ? `$${(n / 1000).toFixed(1)}K` : m0(n));
@@ -55,8 +53,6 @@ export default async function PipelinePage() {
 
   return (
     <PortalShell user={user}>
-      {canDo(user, "overhead") && <div className="pk-tabrow"><SalesTabs on="quotes" /></div>}
-
       {!pipe ? (
         <>
           <KpiHead title={<>Quote<br />pipeline</>} kpis={[]} />

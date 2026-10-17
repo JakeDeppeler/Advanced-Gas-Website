@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export function generateMetadata({ params }: { params: { shelf: string } }) {
   const want = params.shelf.toLowerCase();
   const s = HANDBOOK.find((x) => x.slug === want) ?? HANDBOOK.find((x) => x.letter.toLowerCase() === want);
-  return { title: s ? `${s.title} — Handbook — Team portal` : "Handbook — Team portal" };
+  return { title: s ? `${s.title}, Handbook · Team portal` : "Handbook · Team portal" };
 }
 
 /**
@@ -63,7 +63,7 @@ export default async function HandbookShelfPage({
                 key={s.letter}
                 href={`/portal/handbook/${s.slug}`}
                 aria-current={s.letter === shelf.letter ? "page" : undefined}
-                aria-label={`Section ${s.letter} — ${s.title}`}
+                aria-label={`Section ${s.letter}, ${s.title}`}
                 className={`pt-hb__letter${s.letter === shelf.letter ? " is-on" : ""}`}
               >
                 {s.letter}

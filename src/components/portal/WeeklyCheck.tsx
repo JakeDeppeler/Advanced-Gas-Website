@@ -309,7 +309,7 @@ export function WeeklyCheck(p: WeeklyStart) {
                         </span>
                         <span className="tr-count">
                           <button type="button" aria-label={`One less ${it.item}`} onClick={() => set(Math.max(0, (q ?? 0) - 1))}>&minus;</button>
-                          {q == null ? <em>—</em> : <strong>{q}</strong>}
+                          {q == null ? <em></em> : <strong>{q}</strong>}
                           <button type="button" aria-label={`One more ${it.item}`} onClick={() => set((q ?? 0) + 1)}>+</button>
                         </span>
                       </div>
@@ -321,7 +321,7 @@ export function WeeklyCheck(p: WeeklyStart) {
             <p className={lowNow ? "tr-note tr-note--warn" : "tr-small"}>
               {lowNow
                 ? `${lowNow} ${lowNow === 1 ? "line is" : "lines are"} at or under the minimum. They go on your order from the last step.`
-                : "Count what's actually on the van. Anything left at — isn't counted."}
+                : "Count what's actually on the van. Anything left at, isn't counted."}
             </p>
           </>
         )}
@@ -370,7 +370,7 @@ export function WeeklyCheck(p: WeeklyStart) {
             )}
             {lowNow > 0 && (
               <Link href="/trade/van/parts?low=1" className="tr-banner">
-                {lowNow} low on the van — put them on your order <I d={TRADE_ICON.chevron} />
+                {lowNow} low on the van, put them on your order <I d={TRADE_ICON.chevron} />
               </Link>
             )}
           </>

@@ -9,7 +9,7 @@ import { portalNav } from "@/lib/portal/nav";
 import { dbConfigured, handbookBodies, listVideos } from "@/lib/portal/db";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Search — Team portal" };
+export const metadata = { title: "Search · Team portal" };
 
 /**
  * The full search, to Search.dc.html.

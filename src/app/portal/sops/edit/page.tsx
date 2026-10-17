@@ -11,7 +11,7 @@ import { SOPS, SOP_VERSION } from "@/lib/portal/sops";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Edit processes — Team portal" };
+export const metadata = { title: "Edit processes · Team portal" };
 
 /**
  * The manual's own steps for a procedure, so editing one starts from what the

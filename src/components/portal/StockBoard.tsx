@@ -110,11 +110,11 @@ export function StockBoard({ section, items, canSave, kinds, vanGroups, products
             <label className="pt-field pt-stk__wide">
               <span>From the pricebook</span>
               <select value={f.productId} onChange={(ev) => pickProduct(ev.target.value)}>
-                <option value="">Not in the pricebook — type it below</option>
+                <option value="">Not in the pricebook, type it below</option>
                 {[...new Set(products.map((p) => p.shelf))].map((s) => (
                   <optgroup key={s} label={s}>
                     {products.filter((p) => p.shelf === s).map((p) => (
-                      <option key={p.id} value={p.id} disabled={p.kept}>{p.brand} · {p.name}{p.kept ? " — on the list" : ""}</option>
+                      <option key={p.id} value={p.id} disabled={p.kept}>{p.brand} · {p.name}{p.kept ? ", on the list" : ""}</option>
                     ))}
                   </optgroup>
                 ))}
@@ -144,7 +144,7 @@ export function StockBoard({ section, items, canSave, kinds, vanGroups, products
         <div className="pt-stk__seed">
           <p className="pt-panel__sub">
             The van stock sheet, so the factory and the vans call everything the same thing. Untick what the factory doesn&rsquo;t keep.
-            Nothing is counted yet — count the shelf next — and each low mark starts at one restock for every van.
+            Nothing is counted yet, count the shelf next, and each low mark starts at one restock for every van.
           </p>
           {vanGroups.map((g) => {
             const free = g.lines.filter((l) => !l.have);
@@ -244,7 +244,7 @@ export function StockBoard({ section, items, canSave, kinds, vanGroups, products
                   <span className="pt-stk__qty">
                     {i.countedAt ? <><strong>{fmt(i.qty)}</strong> {i.unit}</> : <b className="pt-stk__unk">Not counted yet</b>}
                     {/* Said in words beside the number, never only in the colour. */}
-                    {i.low ? <b className="pt-stk__low">Low — at or under {fmt(i.minQty)}</b> : i.minQty > 0 ? <small>low at {fmt(i.minQty)}</small> : null}
+                    {i.low ? <b className="pt-stk__low">Low, at or under {fmt(i.minQty)}</b> : i.minQty > 0 ? <small>low at {fmt(i.minQty)}</small> : null}
                   </span>
                   {canSave && (
                     <span className="pt-stk__acts">
@@ -260,7 +260,7 @@ export function StockBoard({ section, items, canSave, kinds, vanGroups, products
                         <option value="taken">Taken off the shelf</option>
                         <option value="returned">Put back</option>
                         <option value="delivered">Delivered</option>
-                        <option value="count">Stocktake — the shelf has</option>
+                        <option value="count">Stocktake, the shelf has</option>
                       </select>
                       <input inputMode="decimal" value={qty} onChange={(ev) => setQty(ev.target.value)} aria-label="How many" />
                       <input value={forWhat} onChange={(ev) => setForWhat(ev.target.value)} placeholder={reason === "taken" ? "For which job or van" : "Note (optional)"} aria-label="For" />

@@ -30,7 +30,7 @@ export async function addMember(input: { email: string; name: string; role: stri
   const res = await createUser({ email, name, role, invitedBy: me.email });
   if (!res.ok) {
     if (res.error === "exists") return { ok: false, error: "Someone with that email is already on the list." };
-    if (res.error === "not-configured") return { ok: false, error: "The database isn't connected yet — see the note above." };
+    if (res.error === "not-configured") return { ok: false, error: "The database isn't connected yet, see the note above." };
     return { ok: false, error: "Couldn't add them. Try again." };
   }
   revalidatePath("/portal/admin/team");

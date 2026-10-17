@@ -7,7 +7,7 @@ import { saveTargets } from "@/app/portal/finance/planning/actions";
 
 const parse = (v: string) => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? 0 : n; };
 const num = (n: number | null, dp = 1) =>
-  n == null ? "—" : n.toLocaleString("en-AU", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  n == null ? "" : n.toLocaleString("en-AU", { minimumFractionDigits: dp, maximumFractionDigits: dp });
 
 /**
  * Working backwards from a year's revenue to what Monday has to look like.
@@ -125,7 +125,7 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goal
             />
           </span>
           {goalRevenue != null && goalRevenue > 0 && (
-            <a className="pt-tgt__actual" href="/portal/goal">From the year goal — change it there</a>
+            <a className="pt-tgt__actual" href="/portal/goal">From the year goal, change it there</a>
           )}
         </label>
         <label className="pt-cap__f">
@@ -136,7 +136,7 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goal
           </span>
           {actual.winRate != null && (
             <button type="button" className="pt-tgt__actual" onClick={() => set({ winRate: actual.winRate as number })}>
-              Your actual is {actual.winRate}% &mdash; use it
+              Your actual is {actual.winRate}%, use it
             </button>
           )}
         </label>
@@ -147,7 +147,7 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goal
           </span>
           {actual.avgJob != null && (
             <button type="button" className="pt-tgt__actual" onClick={() => set({ avgJob: actual.avgJob as number })}>
-              {money(actual.avgJob)} across {actual.won} won &mdash; use it
+              {money(actual.avgJob)} across {actual.won} won, use it
             </button>
           )}
         </label>
@@ -232,7 +232,7 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goal
           <p>
             The target needs <strong>{num(plan.week.hours)} hours</strong> a week and the crew can bill{" "}
             <strong>{num(plan.hoursAvailableWeek)}</strong>, which is{" "}
-            <strong>{load != null ? `${Math.round(load * 100)}%` : "—"}</strong> of it.{" "}
+            <strong>{load != null ? `${Math.round(load * 100)}%` : ""}</strong> of it.{" "}
             {plan.ceiling != null && (
               <>Every billable hour sold at the current rate comes to <strong>{money(plan.ceiling)}</strong> a year, so a
               target above that needs another van or a higher rate, not a longer day.</>
@@ -283,9 +283,9 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goal
                         <span className="pt-calc__post">%</span>
                       </span>
                     </td>
-                    <td>{line ? num(line.jobsWeek) : "—"}</td>
-                    <td>{line ? num(line.jobsDay) : "—"}</td>
-                    <td>{line ? num(line.quotesWeek) : "—"}</td>
+                    <td>{line ? num(line.jobsWeek) : ""}</td>
+                    <td>{line ? num(line.jobsDay) : ""}</td>
+                    <td>{line ? num(line.quotesWeek) : ""}</td>
                   </tr>
                 );
               })}

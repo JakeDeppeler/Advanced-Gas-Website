@@ -13,10 +13,10 @@ import { journalErrors, journalSyncState, journalsWaiting, latestJournals, synce
 import { alertRecipients } from "@/lib/journals/alerts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Journal entries — Team portal" };
+export const metadata = { title: "Journal entries · Team portal" };
 
 const day = (iso: string | null) =>
-  iso ? new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "—";
+  iso ? new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : "";
 
 /** ServiceTitan's sync statuses in words, each with the chip that backs them up. */
 const STATUS: Record<string, { label: string; tone: "ok" | "bad" | "warn" | "none" }> = {
@@ -42,7 +42,7 @@ function EntryRow({ e, waiting }: { e: JournalEntry; waiting?: boolean }) {
   return (
     <li className="pt-jrn__row">
       <span className="pt-jrn__what">
-        <strong>#{e.number ?? "—"} · {e.name || "Journal entry"}</strong>
+        <strong>#{e.number ?? ""} · {e.name || "Journal entry"}</strong>
         <em>Posted {day(e.postDate)}{e.modifiedOn ? ` · last changed ${ago(e.modifiedOn)}` : ""}</em>
         {!waiting && <span className="pt-jrn__msg">{e.message || "ServiceTitan gave no reason."}</span>}
       </span>
@@ -98,7 +98,7 @@ export default async function JournalsPage() {
         <div className="pt-note pt-note--warn">
           <strong>ServiceTitan hasn&rsquo;t given the portal its journal entries.</strong> In the ServiceTitan developer
           portal, tick <b>Accounting › Journal Entries (read)</b> on the portal&rsquo;s API app and have the account
-          re-authorise it. Nothing else needs changing — the next sync picks them up.
+          re-authorise it. Nothing else needs changing, the next sync picks them up.
         </div>
       ) : state?.last_status === "error" ? (
         <div className="pt-note pt-note--warn">
@@ -139,7 +139,7 @@ export default async function JournalsPage() {
           <h2 className="pt-panel__h">Waiting to sync <span className="pt-tm__count">{waiting.length}</span></h2>
           <p className="pt-panel__sub">
             Never synced, or changed since they were, and still not in Xero {WAITING_AFTER_HOURS} hours after they last changed. If
-            these pile up, ServiceTitan isn&rsquo;t syncing on its own — turn on real-time sync in its Xero integration settings,
+            these pile up, ServiceTitan isn&rsquo;t syncing on its own, turn on real-time sync in its Xero integration settings,
             or sync them by hand there.
           </p>
           <ul className="pt-jrn">{waiting.slice(0, 50).map((e) => <EntryRow key={e.id} e={e} waiting />)}</ul>
@@ -158,12 +158,12 @@ export default async function JournalsPage() {
                 {latest.map((e) => (
                   <tr key={e.id}>
                     <td>
-                      <strong>#{e.number ?? "—"} · {e.name || "Journal entry"}</strong>
+                      <strong>#{e.number ?? ""} · {e.name || "Journal entry"}</strong>
                       {e.isEmpty && <span className="pt-fleet__sub">Nothing in it</span>}
                     </td>
                     <td>{day(e.postDate)}</td>
                     <td><Status s={e.syncStatus} /></td>
-                    <td>{e.exportedOn ? `${ago(e.exportedOn)}${e.exportedBy ? ` · ${e.exportedBy}` : ""}` : "—"}</td>
+                    <td>{e.exportedOn ? `${ago(e.exportedOn)}${e.exportedBy ? ` · ${e.exportedBy}` : ""}` : ""}</td>
                   </tr>
                 ))}
               </tbody>

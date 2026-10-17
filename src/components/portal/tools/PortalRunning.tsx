@@ -45,10 +45,10 @@ export function PortalRunning() {
             <select value={now} onChange={(e) => setNow(e.target.value as CurrentSystem)}>{NOW.map((n) => <option key={n.k} value={n.k}>{n.label}</option>)}</select>
           </label>
           <label className="ptl-field">Gas price (c/MJ)
-            <input type="text" inputMode="decimal" placeholder="From their bill" title={`Left blank, ${SAVINGS_DEFAULTS.gasCentsPerMJ} c/MJ — the Melbourne average`} value={gas} onChange={(e) => setGas(e.target.value)} />
+            <input type="text" inputMode="decimal" placeholder="From their bill" title={`Left blank, ${SAVINGS_DEFAULTS.gasCentsPerMJ} c/MJ, the Melbourne average`} value={gas} onChange={(e) => setGas(e.target.value)} />
           </label>
           <label className="ptl-field">Power price (c/kWh)
-            <input type="text" inputMode="decimal" placeholder="From their bill" title={`Left blank, ${SAVINGS_DEFAULTS.elecCentsPerKwh} c/kWh — the Melbourne average`} value={power} onChange={(e) => setPower(e.target.value)} />
+            <input type="text" inputMode="decimal" placeholder="From their bill" title={`Left blank, ${SAVINGS_DEFAULTS.elecCentsPerKwh} c/kWh, the Melbourne average`} value={power} onChange={(e) => setPower(e.target.value)} />
           </label>
         </div>
       </section>

@@ -8,7 +8,7 @@ import { Empty } from "@/components/portal/kit/Kit";
  * so they say different things, and neither shows a zero.
  */
 export function XeroOff({ state, what }: { state: "not-configured" | "not-connected" | "no-answer"; what: ReactNode }) {
-  if (state === "no-answer") return <Empty>Xero didn’t answer for {what} just now. That isn’t the same as nothing — reload in a minute.</Empty>;
+  if (state === "no-answer") return <Empty>Xero didn’t answer for {what} just now. That isn’t the same as nothing, reload in a minute.</Empty>;
   return <Empty>Xero isn’t connected, so there’s no {what} to show. <Link href="/portal/finance">Connect it on the Overview ›</Link></Empty>;
 }
 

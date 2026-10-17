@@ -23,7 +23,7 @@ export function PersonVan({
       {assign && !van && (
         <section className="pt-panel">
           <h2 className="pt-panel__h">No van signed to them</h2>
-          <p className="pt-panel__sub">Sign one and its weekly check, stock count and monthly report become theirs — and show up here.</p>
+          <p className="pt-panel__sub">Sign one and its weekly check, stock count and monthly report become theirs, and show up here.</p>
           <AssignVan userId={assign.userId} current={null} vans={assign.vans} />
         </section>
       )}
@@ -31,11 +31,11 @@ export function PersonVan({
       {van && (
         <section className="pt-panel">
           <div className="pt-veh__edithead">
-            <h2 className="pt-panel__h">{mine ? "Your van" : "Their van"} — {van.name}{van.rego ? ` · ${van.rego}` : ""}</h2>
+            <h2 className="pt-panel__h">{mine ? "Your van" : "Their van"}  {van.name}{van.rego ? ` · ${van.rego}` : ""}</h2>
             <Link href={`/portal/vehicles/${van.id}`} className="pt-btn pt-btn--ghost pt-btn--sm">Open the van →</Link>
           </div>
           <p className="pt-panel__sub">
-            Signed to {mine ? "you" : "them"}, so its checks are {mine ? "yours" : "theirs"} to do — the weekly one and the stock
+            Signed to {mine ? "you" : "them"}, so its checks are {mine ? "yours" : "theirs"} to do, the weekly one and the stock
             count on a Monday, the monthly condition check with photos.
           </p>
           <div className="pt-veh__checks">

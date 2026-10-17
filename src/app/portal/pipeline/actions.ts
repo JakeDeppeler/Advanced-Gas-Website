@@ -63,8 +63,8 @@ export async function markLost(input: { key: string; reason: string; note?: stri
   const st = await closeOffInServiceTitan(input.key, reason, note, me.name).catch(() => null);
   revalidatePath("/portal/pipeline");
   revalidatePath("/portal/pipeline/lost");
-  if (!st) return { ok: true, said: "Marked lost here. ServiceTitan couldn't be reached — dismiss it there by hand." };
-  if (st.failed) return { ok: true, said: `Marked lost here; ${st.dismissed ? `${st.dismissed} option${st.dismissed === 1 ? "" : "s"} dismissed, ` : ""}${st.failed} didn't dismiss in ServiceTitan (${st.error}) — do ${st.failed === 1 ? "it" : "those"} by hand.` };
+  if (!st) return { ok: true, said: "Marked lost here. ServiceTitan couldn't be reached, so dismiss it there by hand." };
+  if (st.failed) return { ok: true, said: `Marked lost here; ${st.dismissed ? `${st.dismissed} option${st.dismissed === 1 ? "" : "s"} dismissed, ` : ""}${st.failed} didn't dismiss in ServiceTitan (${st.error}), so do ${st.failed === 1 ? "it" : "those"} by hand.` };
   return { ok: true, said: `Marked lost${st.dismissed ? ` and ${st.dismissed === 1 ? "dismissed" : `${st.dismissed} options dismissed`} in ServiceTitan` : ""}${st.noted ? ", with a note on the job" : ""}.` };
 }
 

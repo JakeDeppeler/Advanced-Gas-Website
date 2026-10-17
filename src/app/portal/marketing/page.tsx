@@ -21,7 +21,7 @@ import { EmailListBoard } from "@/components/portal/EmailListBoard";
 import { buildEmailList } from "@/lib/emailList/build";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Marketing — Team portal" };
+export const metadata = { title: "Marketing · Team portal" };
 
 /**
  * Marketing: what we put out into the world — campaigns, reviews, ads, social,
@@ -140,12 +140,12 @@ async function Reviews() {
     <>
       <Heads
         items={[
-          { label: "Rating", value: sum ? sum.value.toFixed(1) : "—", sub: `out of ${sum?.best ?? 5} on Google`, feature: true },
+          { label: "Rating", value: sum ? sum.value.toFixed(1) : "", sub: `out of ${sum?.best ?? 5} on Google`, feature: true },
           {
-            label: "Reviews", value: sum ? String(sum.count) : "—",
+            label: "Reviews", value: sum ? String(sum.count) : "",
             // Google's own count or an estimate from the curated list — and
             // which it is matters enough that the card says so.
-            sub: sum?.verifiedCount ? "Google's own count" : "estimated — not Google's count",
+            sub: sum?.verifiedCount ? "Google's own count" : "estimated, not Google's count",
           },
           { label: "Where from", value: payload?.source === "google" ? "Google" : payload?.source === "curated" ? "Curated" : "Both", sub: "live feed or the stored copy" },
         ]}
@@ -190,7 +190,7 @@ async function Social() {
         <h2 className="pt-panel__h">The feed</h2>
         {posts.length === 0 ? (
           <p className="pt-rep__empty">
-            Nothing came back from Instagram. The feed needs a valid access token on the server — that is the
+            Nothing came back from Instagram. The feed needs a valid access token on the server, that is the
             thing to check, not the posting.
           </p>
         ) : (
@@ -223,7 +223,7 @@ function Ads() {
   return (
     <Needs
       title="No ad account is connected"
-      body="Spend, impressions and clicks live inside Meta and Google, and nothing in here talks to either. Until one is connected, what the ads produced is the lead count on the Campaigns tab — which is real, because it comes from the utm on the link rather than from the platform."
+      body="Spend, impressions and clicks live inside Meta and Google, and nothing in here talks to either. Until one is connected, what the ads produced is the lead count on the Campaigns tab, which is real, because it comes from the utm on the link rather than from the platform."
       bullets={[
         "A Meta Marketing API app, or the Google Ads API",
         "Read-only credentials on the server, like ServiceTitan's",

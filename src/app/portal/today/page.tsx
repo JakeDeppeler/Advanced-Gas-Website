@@ -18,7 +18,7 @@ import { dbConfigured } from "@/lib/portal/db";
 import { Icon } from "@/components/portal/shell/Sidebar";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Today — Team portal" };
+export const metadata = { title: "Today · Team portal" };
 
 /** Fewer inbound calls than this in the window and a booking rate is a coin toss. */
 const MIN_CALLS = 30;
@@ -230,11 +230,11 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
         </Grid>
         <Lh>Before the Reece bill</Lh>
         <Grid cols={3}>
-          <Tile label="Gear in this month's sales" st={gearSt} fig={gearShare != null ? `${Math.round(gearShare * 100)}%` : "—"} frac={gearShare}
+          <Tile label="Gear in this month's sales" st={gearSt} fig={gearShare != null ? `${Math.round(gearShare * 100)}%` : ""} frac={gearShare}
             sub={gearShare != null ? `${money(gear)} of ${money(sales)} sold${gearMax != null ? ` · most a sale can carry ${Math.round(gearMax * 100)}%` : ""}` : "nothing sold with costs yet this month"} href="/portal/month" />
-          <Tile label="Cost of goods, last 30 days" st={cogsSt} fig={cogs != null ? `${(Math.round(cogs * 1000) / 10).toFixed(1)}%` : "—"} frac={cogs}
+          <Tile label="Cost of goods, last 30 days" st={cogsSt} fig={cogs != null ? `${(Math.round(cogs * 1000) / 10).toFixed(1)}%` : ""} frac={cogs}
             sub={jp ? `gear and labour on ${jp.costed} finished jobs · keep it under 80%` : "no finished jobs costed yet"} href="/portal/profit" />
-          <Tile label="Billed work a day, last 7 days" st={effSt} fig={workDay != null ? `${workDay.toFixed(1)} hrs` : "—"} frac={workDay != null ? Math.min(1, workDay / 8) : null}
+          <Tile label="Billed work a day, last 7 days" st={effSt} fig={workDay != null ? `${workDay.toFixed(1)} hrs` : ""} frac={workDay != null ? Math.min(1, workDay / 8) : null}
             sub={workDay != null ? `of every 8-hour day · aim ${target}${speed != null ? ` · done at ${Math.round(speed * 100)}% speed` : ""}` : "no timesheets this week"} href="/portal/finance/cover?t=days&p=7" />
         </Grid>
         <Two>

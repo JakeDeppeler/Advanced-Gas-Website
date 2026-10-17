@@ -13,7 +13,7 @@ import { WeekBars } from "@/components/portal/kit/Charts";
 import { SalesTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Sales — Team portal" };
+export const metadata = { title: "Sales · Team portal" };
 
 const shortDay = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
 
@@ -65,7 +65,7 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
                       <tr key={t.type}>
                         <td><b>{t.type}</b></td>
                         <td>{t.jobs}</td>
-                        <td>{t.jobs ? money(t.value / t.jobs) : "—"}</td>
+                        <td>{t.jobs ? money(t.value / t.jobs) : ""}</td>
                         <td><b>{money(t.value)}</b></td>
                         <td className="l" style={{ width: 180 }}><div className="pk-bar ink" style={{ margin: 0 }}><i style={{ width: `${tot ? (t.value / tot) * 100 : 0}%` }} /></div></td>
                       </tr>
@@ -108,10 +108,10 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
             sub={`${fresh} fresh or due a call · ${cold} going cold`} href="/portal/pipeline" />
         </Pair>
         <Grid>
-          <Tile label="Win rate" st={close != null && winGoal != null ? status(close * 100, winGoal, { pts: true }) : none(close == null ? "Too few quotes" : undefined)} fig={close != null ? pc(close * 100) : "—"} frac={close ?? null} sub={winGoal != null ? `goal ${winGoal}%` : "no goal set"} />
-          <Tile label="Average job" st={m.avgSoldValue != null && goals.avgJob ? status(m.avgSoldValue, goals.avgJob) : none()} fig={m.avgSoldValue != null ? money(m.avgSoldValue) : "—"} frac={m.avgSoldValue != null && goals.avgJob ? m.avgSoldValue / goals.avgJob : null} sub={goals.avgJob ? `goal ${money(goals.avgJob)}` : "no goal set"} />
+          <Tile label="Win rate" st={close != null && winGoal != null ? status(close * 100, winGoal, { pts: true }) : none(close == null ? "Too few quotes" : undefined)} fig={close != null ? pc(close * 100) : ""} frac={close ?? null} sub={winGoal != null ? `goal ${winGoal}%` : "no goal set"} />
+          <Tile label="Average job" st={m.avgSoldValue != null && goals.avgJob ? status(m.avgSoldValue, goals.avgJob) : none()} fig={m.avgSoldValue != null ? money(m.avgSoldValue) : ""} frac={m.avgSoldValue != null && goals.avgJob ? m.avgSoldValue / goals.avgJob : null} sub={goals.avgJob ? `goal ${money(goals.avgJob)}` : "no goal set"} />
           <Tile label="Quotes sent" st={goals.quotesMonth && f ? status(m.quotesCreatedMonthCount, goals.quotesMonth * f) : none()} fig={String(m.quotesCreatedMonthCount)} frac={goals.quotesMonth && f ? m.quotesCreatedMonthCount / (goals.quotesMonth * f) : null} sub={goals.quotesMonth && f != null ? `goal by now ${Math.round(goals.quotesMonth * f)}` : "this month · no goal set"} href="/portal/pipeline" />
-          <Tile label="Followed up in 2 days" st={follow && goals.followup ? status(follow.pct, goals.followup, { pts: true }) : none(follow ? undefined : "Too few quotes")} fig={follow ? pc(follow.pct) : "—"} frac={follow ? follow.pct / 100 : null} sub={follow ? `of ${follow.of} quotes${goals.followup ? ` · goal ${goals.followup}%` : ""}` : "needs ten quotes in the last month"} href="/portal/pipeline" />
+          <Tile label="Followed up in 2 days" st={follow && goals.followup ? status(follow.pct, goals.followup, { pts: true }) : none(follow ? undefined : "Too few quotes")} fig={follow ? pc(follow.pct) : ""} frac={follow ? follow.pct / 100 : null} sub={follow ? `of ${follow.of} quotes${goals.followup ? ` · goal ${goals.followup}%` : ""}` : "needs ten quotes in the last month"} href="/portal/pipeline" />
         </Grid>
         <Two>
           <Card title="Sold each week" aside={weekGoal ? "green beat the weekly goal · this week still going" : "no weekly goal set"}>

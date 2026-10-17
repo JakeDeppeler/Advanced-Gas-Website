@@ -147,7 +147,7 @@ export function LocationImporter({
       say("Check…");
       const check = await paged("tags", "Check");
       failed.push(...check.failed);
-      say(check.changed === 0 ? "Check: every location has the right tags." : `Check still changed ${check.changed} — run again; if it keeps happening, tell Jake.`);
+      say(check.changed === 0 ? "Check: every location has the right tags." : `Check still changed ${check.changed}, run again; if it keeps happening, tell Jake.`);
       say(failed.length ? `Finished with ${failed.length} failures.` : "Done.");
       setPreview(null);
       router.refresh();
@@ -172,7 +172,7 @@ export function LocationImporter({
     <section className="pt-panel">
       <h2 className="pt-panel__h">Load a list</h2>
       <p className="pt-loc__lede">
-        A CSV with one row per unit — in Excel, <em>File → Save As → CSV</em>. Colour coding doesn’t survive that, so put
+        A CSV with one row per unit, in Excel, <em>File → Save As → CSV</em>. Colour coding doesn’t survive that, so put
         service status in a column of its own. Each row can have its own address, or leave the address columns out and
         give one address for every row below.
       </p>
@@ -207,7 +207,7 @@ export function LocationImporter({
                   value={map[f.key as FieldKey] ?? ""}
                   onChange={(e) => setMap((m) => ({ ...m, [f.key]: e.target.value === "" ? undefined : Number(e.target.value) }))}
                 >
-                  <option value="">—</option>
+                  <option value=""></option>
                   {header.map((h, i) => <option key={i} value={i}>{h || `Column ${i + 1}`}</option>)}
                 </select>
                 {"hint" in f && f.hint ? <small className="pt-loc__hint">{f.hint}</small> : null}
@@ -249,7 +249,7 @@ export function LocationImporter({
             </button>
             {noAddress > 0 && (
               <span className="pt-inline is-err">
-                {noAddress} {noAddress === 1 ? "has" : "have"} no street, suburb or postcode — map those columns or fill them in above.
+                {noAddress} {noAddress === 1 ? "has" : "have"} no street, suburb or postcode, map those columns or fill them in above.
               </span>
             )}
             {built.skipped > 0 && <span className="pt-loc__muted">{built.skipped} rows have no name or unit and are left out.</span>}
@@ -259,7 +259,7 @@ export function LocationImporter({
 
       {current && counts && (
         <>
-          <h3 className="pt-loc__h">Preview — {current.customer.name}</h3>
+          <h3 className="pt-loc__h">Preview, {current.customer.name}</h3>
           <p className="pt-loc__muted">
             {counts.new} new · {counts.exists} already there (left as they are, tags and notes updated) · {counts.double} look like a unit
             the customer already has under another name. {current.existing} locations on the customer now.
@@ -267,7 +267,7 @@ export function LocationImporter({
           {current.missingTags.length > 0 && (
             <div className="pt-note pt-note--warn">
               ServiceTitan has no tag called <strong>{current.missingTags.join("”, “")}</strong>. Create it under Settings → Tag Types,
-              spelled exactly the same, before importing — the tag step stops otherwise.
+              spelled exactly the same, before importing, the tag step stops otherwise.
             </div>
           )}
           <div className="pt-fleet__wrap pt-loc__scroll">
@@ -280,7 +280,7 @@ export function LocationImporter({
                     <tr key={r.name}>
                       <td><strong>{r.name}</strong></td>
                       <td>{[l?.address.street, l?.address.city, l?.address.zip].filter(Boolean).join(", ")}</td>
-                      <td>{l?.tags?.join(", ") || "—"}</td>
+                      <td>{l?.tags?.join(", ") || ""}</td>
                       <td className="pt-loc__note">{l?.notes?.[0] || ""}</td>
                       <td>
                         {r.state === "new" && "Create"}

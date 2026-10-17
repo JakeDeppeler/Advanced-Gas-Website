@@ -149,7 +149,7 @@ export function OweBoard({ owed, priorities, today, xero, tiles = true }: {
                   return (
                     <tr key={o.id}>
                       <th scope="row">{o.supplier}</th>
-                      <td>{o.what ?? "—"}</td>
+                      <td>{o.what ?? ""}</td>
                       <td className={w.late ? "is-bad" : undefined}>{w.late ? "⚑ " : ""}{w.text}</td>
                       <td><span className={`pt-owe__chip is-${pr}`}>{PRIORITIES.find((p) => p.k === pr)?.label}</span></td>
                       <td>{m2(o.amount)}</td>
@@ -200,7 +200,7 @@ function PriorityPick({ s, pending, onSave }: { s: Supplier; pending: boolean; o
   return (
     <form className="pt-owe__pick" onSubmit={(e) => { e.preventDefault(); onSave(pr, reason); setEditing(false); }}>
       <select value={pr} onChange={(e) => setPr(e.target.value as Priority)} aria-label={`Priority for ${s.name}`}>
-        {PRIORITIES.map((p) => <option key={p.k} value={p.k}>{p.label} — {p.blurb}</option>)}
+        {PRIORITIES.map((p) => <option key={p.k} value={p.k}>{p.label}  {p.blurb}</option>)}
       </select>
       <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why? e.g. no pay, no stock" maxLength={300} aria-label="Why" />
       <button type="submit" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending}>Save</button>

@@ -94,12 +94,12 @@ export function Home(d: HomeData) {
   const noPace: Status = { k: "none", w: d.goal ? "No pace yet" : "No goal" };
   const sell: Stat = mo?.soldValue != null && soldByNow
     ? { key: "sold", name: "Sold", st: status(mo.soldValue, soldByNow), fig: money(mo.soldValue), bar: mo.soldValue / soldByNow, sub: `of ${money(soldByNow)} by now · ${money(monthGoal as number)} for ${month}`, href: "/portal/sales" }
-    : { key: "sold", name: "Sold", st: mo?.soldValue != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.soldValue != null ? money(mo.soldValue) : "—", bar: 0, sub: mo?.soldValue != null ? (d.goal ? "sold this month" : "set a year goal for a pace") : "waiting on the first sync", href: "/portal/sales" };
+    : { key: "sold", name: "Sold", st: mo?.soldValue != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.soldValue != null ? money(mo.soldValue) : "", bar: 0, sub: mo?.soldValue != null ? (d.goal ? "sold this month" : "set a year goal for a pace") : "waiting on the first sync", href: "/portal/sales" };
 
   const done = st?.completed ?? null;
   const jobs: Stat = done?.done != null && done.byNow
     ? { key: "jobs", name: "Jobs done", st: status(done.done, done.byNow), fig: n0(done.done), bar: done.done / done.byNow, sub: `of ${n0(done.byNow)} by now`, href: "/portal/jobs" }
-    : { key: "jobs", name: "Jobs done", st: mo?.completed != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.completed != null ? n0(mo.completed) : "—", bar: 0, sub: "this month", href: "/portal/jobs" };
+    : { key: "jobs", name: "Jobs done", st: mo?.completed != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.completed != null ? n0(mo.completed) : "", bar: 0, sub: "this month", href: "/portal/jobs" };
 
   // Net profit: Xero's, for the year so far, against the goal's margin.
   const py = d.profitYear;
@@ -107,7 +107,7 @@ export function Home(d: HomeData) {
   const goalPct = d.goal?.profitPct ?? null;
   const np: Stat = npPct != null && goalPct
     ? { key: "np", name: "Net profit", st: status(npPct, goalPct, { pts: true }), fig: pc(npPct, 1), bar: npPct / goalPct, sub: `this year · goal ${pc(goalPct)}+`, href: "/portal/finance" }
-    : { key: "np", name: "Net profit", st: { k: "none", w: npPct != null ? "No goal" : "No figures" }, fig: npPct != null ? pc(npPct, 1) : "—", bar: 0, sub: npPct != null ? "this year · set a profit goal" : "needs Xero connected", href: "/portal/finance" };
+    : { key: "np", name: "Net profit", st: { k: "none", w: npPct != null ? "No goal" : "No figures" }, fig: npPct != null ? pc(npPct, 1) : "", bar: 0, sub: npPct != null ? "this year · set a profit goal" : "needs Xero connected", href: "/portal/finance" };
 
   // Owed, overdue: lower is better. With no limit set yet, nothing overdue is
   // on track, a month or less is one to watch, anything older is too high.
@@ -121,7 +121,7 @@ export function Home(d: HomeData) {
         fig: money(od), bar: m?.receivablesTotal ? od / m.receivablesTotal : od > 0 ? 1 : 0,
         sub: od > 0 ? `${plural(count, "invoice")}${oldest ? ` · oldest ${oldest} days` : ""}` : "nothing past its due date", href: "/portal/money",
       }
-    : { key: "owed", name: "Owed, overdue", st: { k: "none", w: "No figures" }, fig: "—", bar: 0, sub: "needs Xero connected", href: "/portal/money" };
+    : { key: "owed", name: "Owed, overdue", st: { k: "none", w: "No figures" }, fig: "", bar: 0, sub: "needs Xero connected", href: "/portal/money" };
 
   const stats = [sell, jobs, np, owed];
   const onTrack = stats.filter((s) => s.st.k === "good").length;

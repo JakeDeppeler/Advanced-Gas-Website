@@ -56,7 +56,7 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
   // The books are short until a journal entry that didn't reach Xero is fixed.
   if (journals.length) {
     const f = journals[0];
-    lines.push({ n: journals.length, text: `journal ${plural(journals.length, "entry", "entries")} didn't sync to Xero · #${f.number ?? "—"}${journals.length > 1 ? ` and ${journals.length - 1} more` : ""}`, href: "/portal/journals#errors" });
+    lines.push({ n: journals.length, text: `journal ${plural(journals.length, "entry", "entries")} didn't sync to Xero · #${f.number ?? ""}${journals.length > 1 ? ` and ${journals.length - 1} more` : ""}`, href: "/portal/journals#errors" });
   }
   // The pipeline's own "follow up today" column, so the count here is the
   // number of cards the office will find there.
