@@ -22,6 +22,7 @@ import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shell/TopNav";
 import { Dock, type DockLink } from "@/components/portal/shell/Dock";
 import { FigureCount } from "@/components/portal/shell/FigureCount";
+import { ChromeMemo } from "@/components/portal/shell/ChromeMemo";
 
 const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_users");
 
@@ -187,6 +188,7 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       </div>
       <Dock links={dock} theme={theme} />
       <Suspense fallback={null}><FigureCount /></Suspense>
+      <ChromeMemo />
     </div>
   );
 }

@@ -5,9 +5,9 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { findSection, SOP_CHANGES } from "@/lib/portal/sops";
 import { SopHashRedirect } from "@/components/portal/SopHashRedirect";
-import { can } from "@/lib/portal/caps";
 import { dbConfigured, listStoredSops } from "@/lib/portal/db";
 import { mergeSops } from "@/lib/portal/sopEdits";
+import { canEditStandards } from "@/lib/portal/standards";
 
 /**
  * Dynamic, not static.
@@ -32,7 +32,7 @@ export default async function SopSectionPage({ params }: { params: { section: st
   // What the office has written wins over the manual. A draft is only shown
   // to the people who could have written it, so a half-finished procedure
   // never reaches a van.
-  const canEdit = can(user, "manage_users");
+  const canEdit = canEditStandards(user);
   const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
   const sections = mergeSops(stored, canEdit);
   const section = sections.find((s) => s.slug === params.section) ?? findSection(params.section);

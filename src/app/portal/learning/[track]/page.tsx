@@ -4,12 +4,12 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import Link from "next/link";
 import { LEARNING_TRACKS } from "@/lib/portal/content";
-import { can } from "@/lib/portal/caps";
 import { dbConfigured, listVideos, watchedVideos } from "@/lib/portal/db";
 import { mergeVideos, onTrack } from "@/lib/portal/videos";
 import { AddVideo } from "@/components/portal/AddVideo";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { site } from "@/lib/site";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,7 @@ export default async function LearningTrackPage({ params }: { params: { track: s
     ? await Promise.all([listVideos().catch(() => []), watchedVideos(user.email).catch(() => new Set<string>())])
     : [[], new Set<string>()];
   const vids = onTrack(mergeVideos(stored, watched), track.slug);
-  const canAdd = can(user, "manage_users");
+  const canAdd = canEditStandards(user);
   // There is nowhere in the portal to file a suggestion, so it goes to the
   // office inbox with the shelf already named.
   const suggest = `mailto:${site.email}?subject=${encodeURIComponent(`Video suggestion, ${track.label}`)}`;

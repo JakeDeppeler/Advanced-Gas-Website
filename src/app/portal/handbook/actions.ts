@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { saveHandbookBody } from "@/lib/portal/db";
 import { HANDBOOK } from "@/lib/portal/content";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export type HandbookResult = { ok: boolean; error?: string };
 
@@ -19,7 +19,7 @@ export async function saveTopic(input: {
   shelf: string; title: string; body: string;
 }): Promise<HandbookResult> {
   const me = await getPortalUser();
-  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can write the handbook." };
+  if (!me || !canEditStandards(me)) return { ok: false, error: "Only the owner can write the handbook." };
 
   // The contents list is the spine: a body only attaches to a topic that is
   // actually on a shelf, so a typo in the URL can't create a phantom entry.

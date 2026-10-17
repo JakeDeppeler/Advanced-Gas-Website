@@ -5,6 +5,9 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CopyValue } from "@/components/portal/CopyValue";
 import { INFO_SECTIONS, type InfoContentBlock } from "@/lib/portal/content";
+import { loadInfoSection } from "@/lib/portal/info/store";
+import { canEditStandards } from "@/lib/portal/standards";
+import { InfoEditor } from "@/components/portal/InfoEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -126,8 +129,9 @@ export default async function InfoSectionPage({ params }: { params: { section: s
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const section = INFO_SECTIONS.find((s) => s.slug === params.section);
+  const section = await loadInfoSection(params.section);
   if (!section) notFound();
+  const canEdit = canEditStandards(user);
 
   return (
     <PortalShell user={user}>
@@ -156,6 +160,8 @@ export default async function InfoSectionPage({ params }: { params: { section: s
         {/* Two columns, with a block saying when it needs the width or the
             height. A tall block runs down beside the next two, which is how
             Pricing puts its price list beside hours and what's included. */}
+        {canEdit && <InfoEditor key={section.edited?.at ?? "orig"} slug={section.slug} intro={section.intro ?? ""} blocks={section.blocks} edited={!!section.edited} />}
+
         <div className="pt-info">
           {section.blocks.map((b, i) => (
             <div key={b.title ?? `b${i}`} className={b.span === "full" ? "pt-info__full" : b.span === "tall" ? "pt-info__tall" : undefined}>

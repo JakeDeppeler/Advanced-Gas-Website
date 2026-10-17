@@ -2,16 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { deleteStoredSop, saveStoredSop } from "@/lib/portal/db";
 import { SOP_AUDIENCES, SOP_FLAGS, slugify } from "@/lib/portal/sopEdits";
 import { SOPS } from "@/lib/portal/sops";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export type ActionResult = { ok: boolean; error?: string };
 
 async function requireEditor() {
   const me = await getPortalUser();
-  if (!me || !can(me, "manage_users")) return null;
+  if (!me || !canEditStandards(me)) return null;
   return me;
 }
 

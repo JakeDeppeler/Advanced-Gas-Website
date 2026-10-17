@@ -1,13 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { SopBlock as Block } from "@/components/portal/SopBlocks";
 import { findSection, SOP_CHANGES } from "@/lib/portal/sops";
 import { dbConfigured, listStoredSops } from "@/lib/portal/db";
 import { mergeSops, splitStep } from "@/lib/portal/sopEdits";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +34,7 @@ export default async function SopPage({ params }: { params: { section: string; s
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const canEdit = can(user, "manage_users");
+  const canEdit = canEditStandards(user);
   const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
   const sections = mergeSops(stored, canEdit);
   const section = sections.find((s) => s.slug === params.section) ?? findSection(params.section);

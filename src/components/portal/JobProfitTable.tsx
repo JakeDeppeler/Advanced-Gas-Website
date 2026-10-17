@@ -5,6 +5,8 @@ import type { JobProfit } from "@/lib/dashboard/jobProfit";
 
 const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
 const pc = (n: number | null) => (n == null ? "" : `${Math.round(n * 100)}%`);
+// Not imported from toBill: that module reads the database, and this one runs in the browser.
+const stJobUrl = (id: number) => `https://go.servicetitan.com/#/Job/Index/${id}`;
 const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
 
 type Result = "all" | "losing" | "under" | "ok" | "uncosted";
@@ -66,89 +68,111 @@ export function JobProfitTable({ rows, target }: { rows: JobProfit[]; target: nu
   const filtered = q || type || tech || result !== "all";
   const counts: Record<Result, number> = { all: rows.length, losing: 0, under: 0, ok: 0, uncosted: 0 };
   for (const j of rows) { const r = resultOf(j); counts[r] += 1; if (r === "losing") counts.under += 1; }
-  const RESULTS: Array<{ k: Result; label: string }> = [
-    { k: "all", label: `All ${counts.all}` },
-    { k: "losing", label: `Losing money ${counts.losing}` },
-    ...(goal != null ? [{ k: "under" as Result, label: `Under ${target}% ${counts.under + 0}` }] : []),
-    { k: "ok", label: `${goal != null ? `On ${target}%+` : "Making money"} ${counts.ok}` },
-    { k: "uncosted", label: `Couldn't cost ${counts.uncosted}` },
+  const RESULTS: Array<{ k: Result; label: string; n: number; tone: string }> = [
+    { k: "all", label: "All jobs", n: counts.all, tone: "all" },
+    { k: "losing", label: "Losing money", n: counts.losing, tone: "bad" },
+    ...(goal != null ? [{ k: "under" as Result, label: `Under ${target}%`, n: counts.under, tone: "warn" }] : []),
+    { k: "ok", label: goal != null ? `On ${target}% or better` : "Making money", n: counts.ok, tone: "good" },
+    { k: "uncosted", label: "Couldn't cost", n: counts.uncosted, tone: "none" },
   ];
+  const clear = () => { setQ(""); setType(""); setTech(""); setResult("all"); };
+  const below = (j: JobProfit) => j.margin != null && (goal != null ? j.margin < goal : j.margin < 0);
 
   return (
-    <section className="pt-panel pt-jp">
-      <div className="pt-jp__filters">
-        <input className="pt-kit__find" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a customer, job # or tech" aria-label="Find a customer, job number or tech" />
-        <label className="pt-jp__sel"><span>Type of job</span>
-          <select value={type} onChange={(e) => setType(e.target.value)}>
+    <div className="jp">
+      {/* How it came out: the first cut anyone makes, so big and out on the page, not tucked in the filters. */}
+      <nav className="jp-results" aria-label="How the job came out">
+        {RESULTS.map((o) => (
+          <button key={o.k} type="button" className={`jp-res t-${o.tone}${result === o.k ? " on" : ""}`} aria-pressed={result === o.k} onClick={() => setResult(o.k)}>
+            <span className="jp-resn">{o.n}</span>
+            <span className="jp-resl">{o.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="jp-filters">
+        <label className="qp-find jp-find">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <input id="jp-find" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a customer, job # or tech" aria-label="Find a customer, job number or tech" />
+        </label>
+        <label className="jp-sel"><span>Type</span>
+          <select id="jp-type" value={type} onChange={(e) => setType(e.target.value)}>
             <option value="">All types</option>
             {types.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </label>
-        <label className="pt-jp__sel"><span>Who worked it</span>
-          <select value={tech} onChange={(e) => setTech(e.target.value)} disabled={!techs.length}>
+        <label className="jp-sel"><span>Who</span>
+          <select id="jp-tech" value={tech} onChange={(e) => setTech(e.target.value)} disabled={!techs.length}>
             <option value="">{techs.length ? "Anyone" : "No timesheets yet"}</option>
             {techs.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </label>
-        <label className="pt-jp__sel"><span>Order</span>
-          <select value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
+        <label className="jp-sel"><span>Order</span>
+          <select id="jp-sort" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
             {SORTS.map((o) => <option key={o.k} value={o.k}>{o.label}</option>)}
           </select>
         </label>
       </div>
-      <nav className="pt-seg pt-jp__results" aria-label="How the job came out">
-        {RESULTS.map((o) => (
-          <button key={o.k} type="button" className={`pt-seg__b${result === o.k ? " is-on" : ""}`} aria-pressed={result === o.k} onClick={() => setResult(o.k)}>{o.label}</button>
-        ))}
-      </nav>
-      <p className="pt-jp__sum" role="status">
-        {shown.length} {shown.length === 1 ? "job" : "jobs"}{filtered ? " showing" : ""}
-        {costed.length ? ` · ${money(profit)} profit on ${money(work)} of costed work · ${pc(work > 0 ? profit / work : null)} margin` : ""}
-        {filtered && <button type="button" className="pt-todo__editbtn" onClick={() => { setQ(""); setType(""); setTech(""); setResult("all"); }}>Clear filters</button>}
-      </p>
 
-      {shown.length ? (
-        <div className="pt-pace__tablewrap">
-          <table className="pt-pace__table pt-pace__table--jobs pt-profit__table">
-            <thead>
-              <tr>
-                <th scope="col">Job</th>
-                <th scope="col">Price</th>
-                <th scope="col">Equipment &amp; materials</th>
-                <th scope="col">Hours</th>
-                <th scope="col">Labour</th>
-                <th scope="col">Profit</th>
-                <th scope="col">Margin</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((j) => (
-                <tr key={`${j.jobId ?? "x"}-${j.date}-${j.price}`} className={j.profit == null ? "is-uncosted" : undefined}>
-                  <th scope="row">
-                    <span className="pt-pace__rk">{j.jobType ?? "Job"}</span>
-                    <span className="pt-pace__rn">
-                      {[j.jobNumber ? `#${j.jobNumber}` : null, j.customer, day(j.date), j.techs.length ? j.techs.join(" & ") : null].filter(Boolean).join(" · ")}
-                      {j.missing ? `, ${j.missing}` : ""}
-                    </span>
-                  </th>
-                  <td>{money(j.price)}</td>
-                  <td>{j.materials ? money(j.materials) : ""}</td>
-                  <td>{j.hours == null ? "" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " on site"}${j.hoursFrom === "timesheets" && j.allowedHours ? ` of ${j.allowedHours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}` : ""}`}</td>
-                  <td>{j.labour == null ? "" : money(j.labour)}</td>
-                  <td style={{ color: j.profit == null ? undefined : j.profit < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{j.profit == null ? "" : money(j.profit)}</td>
-                  {/* Red and down under the goal (or under nothing, with no goal set),
-                      green and up at or over it: the arrow says it as well as the colour. */}
-                  <td style={{ color: j.margin == null ? undefined : (goal != null ? j.margin < goal : j.margin < 0) ? "var(--bad)" : "var(--good)", fontWeight: 700, whiteSpace: "nowrap" }}>
-                    {pc(j.margin)}{j.margin == null ? "" : (goal != null ? j.margin < goal : j.margin < 0) ? " ▼" : " ▲"}
-                  </td>
+      <section className="pk-card jp-card">
+        <p className="jp-sum" role="status">
+          <b>{shown.length} {shown.length === 1 ? "job" : "jobs"}{filtered ? " showing" : ""}</b>
+          {costed.length ? <span>{money(profit)} profit on {money(work)} of costed work · {pc(work > 0 ? profit / work : null)} margin</span> : null}
+          {filtered && <button type="button" className="jp-clear" onClick={clear}>Clear filters</button>}
+        </p>
+
+        {shown.length ? (
+          <div className="jp-wrap">
+            <table className="jp-table">
+              <thead>
+                <tr>
+                  <th scope="col">Job</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Gear</th>
+                  <th scope="col">Hours</th>
+                  <th scope="col">Labour</th>
+                  <th scope="col">Profit</th>
+                  <th scope="col">Margin</th>
+                  <th scope="col"><span className="pn-vh">ServiceTitan</span></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="pt-todo__empty">No jobs match. <button type="button" className="pt-todo__editbtn" onClick={() => { setQ(""); setType(""); setTech(""); setResult("all"); }}>Clear filters</button></p>
-      )}
-    </section>
+              </thead>
+              <tbody>
+                {shown.map((j) => {
+                  const tone = j.margin == null ? "none" : j.profit != null && j.profit < 0 ? "bad" : below(j) ? "warn" : "good";
+                  return (
+                    <tr key={`${j.jobId ?? "x"}-${j.date}-${j.price}`} className={j.profit == null ? "is-uncosted" : undefined}>
+                      <th scope="row">
+                        <b>{j.jobType ?? "Job"}</b>
+                        <span>
+                          {[j.jobNumber ? `#${j.jobNumber}` : null, j.customer, day(j.date), j.techs.length ? j.techs.join(" & ") : null].filter(Boolean).join(" · ")}
+                          {j.missing ? `, ${j.missing}` : ""}
+                        </span>
+                      </th>
+                      <td>{money(j.price)}</td>
+                      <td>{j.materials ? money(j.materials) : <i className="jp-nil">none</i>}</td>
+                      <td>{j.hours == null ? <i className="jp-nil">none</i> : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " on site"}${j.hoursFrom === "timesheets" && j.allowedHours ? ` of ${j.allowedHours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}` : ""}`}</td>
+                      <td>{j.labour == null ? <i className="jp-nil">none</i> : money(j.labour)}</td>
+                      <td className={`jp-profit t-${tone}`}>{j.profit == null ? <i className="jp-nil">can&rsquo;t cost</i> : money(j.profit)}</td>
+                      {/* The pill carries an arrow and its colour: down under the goal, up at or over it. */}
+                      <td>{j.margin == null ? null : <span className={`jp-pill t-${tone}`}>{below(j) ? "▼" : "▲"} {pc(j.margin)}</span>}</td>
+                      <td className="jp-st">
+                        {j.jobId != null && (
+                          <a href={stJobUrl(j.jobId)} target="_blank" rel="noreferrer" className="jp-open" title="Open this job in ServiceTitan">
+                            ServiceTitan
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="qp-empty">No jobs match. <button type="button" className="jp-clear" onClick={clear}>Clear filters</button></p>
+        )}
+      </section>
+    </div>
   );
 }

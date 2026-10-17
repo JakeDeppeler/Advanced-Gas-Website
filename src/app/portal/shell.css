@@ -1798,3 +1798,220 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
 .rl-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .rl-form textarea { line-height: 1.45; }
 .qp-opts button em { font-style: normal; opacity: .65; font-size: 12px; }
+
+/* ------------------------------------------------------------------
+   A sheet in the middle of the screen, for things opened off a board
+   (a plan, someone to keep in touch with) rather than the quote drawer.
+   ------------------------------------------------------------------ */
+.qp-scrim.mid { justify-content: center; align-items: center; padding: 24px; }
+.qp-panel.mid { width: min(640px, 100%); max-height: calc(100vh - 48px); }
+@media (prefers-reduced-motion: no-preference) {
+  .qp-panel.mid { animation: qp-mid .28s cubic-bezier(.2,.8,.2,1) both; }
+}
+@keyframes qp-mid { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .qp-scrim.mid { align-items: flex-end; padding: 0; } .qp-panel.mid { max-height: calc(100vh - 40px); } }
+.pl-notes { margin: 0; font-size: 14.5px; line-height: 1.55; white-space: pre-line; padding: 14px 16px; border-radius: 18px; background: var(--quiet); }
+.pl-steps { grid-template-columns: repeat(3, 1fr); }
+
+/* Plan cards open the sheet: the whole card is the button. */
+.pn .pt-plan__card { padding: 0; }
+.pt-plan__open { display: grid; gap: 8px; width: 100%; text-align: left; border: 0; background: none; color: inherit; font: inherit; padding: 14px 15px; border-radius: inherit; cursor: pointer; transition: transform .2s ease; }
+.pt-plan__open:hover { transform: translateY(-2px); }
+.pt-plan__open:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.pn .pt-plan__card .pt-plan__notes { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+
+/* Keep in touch, as the to-do board: three columns by when they're due, and the log. */
+.kt-card { width: 100%; text-align: left; border: 0; font: inherit; cursor: pointer; }
+.kt-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.kt-card .td-from { margin-left: auto; }
+.kt-find { height: 44px; padding: 0 18px; color: var(--ink); font: inherit; font-size: 14px; width: 240px; box-sizing: border-box; outline: 0; }
+.kt-add { height: 44px; margin-left: auto; }
+.kt-board { grid-auto-columns: minmax(250px, 1fr); }
+.kt-loglist li { list-style: none; }
+.kt-loglist button { display: grid; gap: 2px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--rp-line); background: none; color: var(--ink); font: inherit; padding: 10px 6px; cursor: pointer; border-radius: 10px; }
+.kt-loglist li:last-child button { border-bottom: 0; }
+.kt-loglist button:hover { background: var(--quiet); }
+.kt-loglist b { font-size: 14.5px; font-weight: 600; }
+.kt-loglist span { font-size: 12.5px; color: var(--ink2); }
+.kt-loglist .kt-when { font-size: 11.5px; font-weight: 600; color: var(--ink3); }
+.kt-loglist em { font-style: normal; font-size: 12.5px; color: var(--ink2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* The loading outline: the shapes of a page (a title and its figures, four
+   tiles, a card) breathing gently in the new look, inside the kept menu. */
+.ld-wrap { display: contents; }
+.ld-wrap :is(a, button) { pointer-events: none; }
+.ld { display: grid; gap: 18px; padding-top: 18px; }
+.ld-head { display: flex; align-items: center; gap: 36px; flex-wrap: wrap; }
+.ld-kpis { display: flex; gap: 28px; }
+.ld-b { display: block; border-radius: 26px; background: color-mix(in srgb, var(--rp-card) 75%, transparent); border: 1px solid var(--rp-line); }
+.ld-title { width: 230px; height: 46px; border-radius: 14px; }
+.ld-kpis .ld-b { width: 150px; height: 44px; border-radius: 99px; }
+.ld-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.ld-tile { height: 150px; }
+.ld-card { height: 340px; }
+@media (max-width: 900px) { .ld-row { grid-template-columns: 1fr 1fr; } .ld-kpis { display: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ld-b { animation: ld-breathe 1.4s ease-in-out infinite; }
+  .ld-row .ld-b:nth-child(2) { animation-delay: .1s; } .ld-row .ld-b:nth-child(3) { animation-delay: .2s; } .ld-row .ld-b:nth-child(4) { animation-delay: .3s; }
+  .ld { animation: rp-fade .25s ease .12s both; }
+}
+@keyframes ld-breathe { 50% { opacity: .55; } }
+.ld-cold .pn-main { padding-top: 84px; }
+
+/* Job profit: how the jobs came out as big buttons out on the page, the
+   filters as pills, and each job a row with its margin as a pill and a way
+   into ServiceTitan. */
+.jp { display: grid; gap: 14px; }
+.jp-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.jp-res { display: grid; gap: 2px; text-align: left; padding: 14px 18px 15px; border-radius: 24px; border: 1px solid var(--rp-line); background: var(--rp-card); color: var(--ink); font: inherit; cursor: pointer; position: relative; transition: transform .2s ease, background .2s; }
+.jp-res:hover { transform: translateY(-2px); }
+.jp-res::before { content: ""; position: absolute; top: 18px; right: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--ink3); }
+.jp-res.t-bad::before { background: var(--bad); } .jp-res.t-warn::before { background: var(--mid-f); } .jp-res.t-good::before { background: var(--good); } .jp-res.t-all::before { display: none; }
+.jp-resn { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.jp-resl { font-size: 13.5px; font-weight: 600; color: var(--ink2); }
+.jp-res.on { background: var(--rp-on-bg); color: var(--rp-on-ink); border-color: transparent; }
+.jp-res.on .jp-resl { color: inherit; opacity: .8; }
+.jp-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.jp-find { width: 340px; height: 46px; }
+.jp-sel { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 6px 0 16px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--rp-card); }
+.jp-sel span { font-size: 12.5px; color: var(--ink2); font-weight: 600; }
+.jp-sel select { border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; height: 40px; padding: 0 8px; cursor: pointer; max-width: 230px; }
+.jp-card { padding: 18px 20px 8px; }
+.jp-sum { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; margin: 0 0 6px; font-size: 14px; }
+.jp-sum span { color: var(--ink2); }
+.jp-clear { border: 0; background: none; color: var(--ink); text-decoration: underline; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; }
+.jp-wrap { overflow-x: auto; }
+.jp-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.jp-table thead th { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); text-align: right; padding: 10px 12px; border-bottom: 1px solid var(--rp-line); white-space: nowrap; }
+.jp-table thead th:first-child { text-align: left; padding-left: 4px; }
+.jp-table td, .jp-table tbody th { padding: 14px 12px; border-bottom: 1px solid var(--rp-line); text-align: right; font-size: 14.5px; white-space: nowrap; }
+.jp-table tbody tr:last-child > * { border-bottom: 0; }
+.jp-table tbody tr:hover > * { background: color-mix(in srgb, var(--quiet) 60%, transparent); }
+.jp-table tbody th { text-align: left; display: grid; gap: 3px; white-space: normal; font-weight: 400; padding-left: 4px; min-width: 260px; }
+.jp-table tbody th b { font-size: 15px; font-weight: 600; }
+.jp-table tbody th span { font-size: 12.5px; color: var(--ink2); }
+.jp-nil { font-style: normal; color: var(--ink3); font-size: 12.5px; }
+.jp-profit { font-weight: 700; }
+.jp-profit.t-bad { color: var(--bad); } .jp-profit.t-good { color: var(--good); }
+.jp-pill { display: inline-flex; gap: 4px; align-items: center; padding: 5px 11px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+.jp-pill.t-bad { background: var(--bad-bg); color: var(--bad); }
+.jp-pill.t-warn { background: var(--mid-bg); color: var(--mid); }
+.jp-pill.t-good { background: var(--good-bg); color: var(--good); }
+.jp-open { display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--rp-line); color: var(--ink); text-decoration: none; font-size: 12.5px; font-weight: 600; background: var(--surface); }
+.jp-open:hover { background: var(--rp-on-bg); color: var(--rp-on-ink); border-color: transparent; }
+.jp-table tr.is-uncosted > * { color: var(--ink2); }
+.rc-acts { display: inline-flex; align-items: center; gap: 12px; margin-left: auto; }
+.rc-mark { border: 0; background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; padding: 0; }
+
+/* Roles: a bar over the cards, each card a link to the role's own page. */
+.rl-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.rl-bar .qp-btn { height: 44px; }
+.rl-all { flex: 1 1 auto; }
+.rl-all > summary.qp-btn { display: inline-flex; width: auto; }
+.rl-all[open] > summary { margin-bottom: 12px; }
+a.rl-card { text-decoration: none; }
+a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* One role's page. */
+.rv { display: grid; gap: 16px; }
+.rv-lead { display: grid; gap: 12px; }
+.rv-tagline { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; text-wrap: balance; }
+.rv-intro { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink2); max-width: 78ch; }
+.rv-facts { display: flex; gap: 12px 40px; flex-wrap: wrap; margin: 4px 0 0; padding-top: 14px; border-top: 1px solid var(--rp-line); }
+.rv-facts dt { font-size: 12px; color: var(--ink3); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.rv-facts dd { margin: 3px 0 0; font-size: 15px; font-weight: 600; }
+/* Columns, not a grid: the lists run to different lengths, and a grid left holes beside the short ones. */
+.rv-grid { columns: 2; column-gap: 16px; }
+.rv-grid > .rv-sec { break-inside: avoid; margin-bottom: 16px; }
+.rv-sec h2, .rv-h2 { margin: 0 0 12px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.rv-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 14.5px; line-height: 1.5; }
+.rv-points li { position: relative; padding-left: 26px; }
+.rv-points.dot li::before { content: ""; position: absolute; left: 7px; top: .6em; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+.rv-points.yes li::before { content: "✓"; position: absolute; left: 2px; top: 0; font-weight: 700; color: var(--good); }
+.rv-points.no li { color: var(--ink2); }
+.rv-points.no li::before { content: "×"; position: absolute; left: 3px; top: -1px; font-weight: 700; font-size: 17px; color: var(--bad); }
+.rv-points.num { counter-reset: step; }
+.rv-points.num li { counter-increment: step; padding-left: 34px; }
+.rv-points.num li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--rp-on-bg); color: var(--rp-on-ink); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.rv-up { display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 22px 24px; border-radius: 28px; background: var(--rp-dark); color: var(--rp-on-dark, #fff); }
+.rv-up h2 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+.rv-up p { margin: 0; font-size: 15px; line-height: 1.55; max-width: 80ch; opacity: .88; }
+.rv-upbtn { background: #fff; color: #1d1d1f; }
+.rv-edit { display: grid; gap: 14px; }
+@media (max-width: 900px) { .rv-grid { columns: 1; } }
+
+/* The ladder: top rung first, a numbered step down the left of each. */
+.ld-ladder { width: min(720px, 100%); }
+.lad { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; position: relative; }
+.lad::before { content: ""; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px; background: var(--rp-line); }
+.lad-rung { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; position: relative; }
+.lad-n { width: 36px; height: 36px; border-radius: 50%; background: var(--rp-on-bg); color: var(--rp-on-ink); display: grid; place-items: center; font-weight: 700; font-size: 14px; z-index: 1; }
+.lad-seats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.lad-seat { display: grid; gap: 4px; padding: 12px 14px; border-radius: 18px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); text-decoration: none; }
+.lad-seat:hover { background: var(--quiet); }
+.lad-seat b { font-size: 15px; font-weight: 600; }
+.lad-seat b em { font-style: normal; color: var(--good); font-weight: 600; font-size: 13px; }
+.lad-seat span { font-size: 13px; line-height: 1.45; color: var(--ink2); }
+.lad-seat.here { border: 2px solid var(--ink); background: var(--quiet); }
+.lad-other { border-top: 1px solid var(--rp-line); padding-top: 16px; }
+.lad-other h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--ink2); }
+
+/* The Information editor: each block a fieldset of plain text boxes. */
+.ie-bar { display: flex; gap: 12px; align-items: center; }
+.ie-bar .qp-btn { height: 42px; }
+.ie { display: grid; gap: 16px; }
+.ie-head p code { font-size: 12.5px; background: var(--quiet); padding: 1px 6px; border-radius: 6px; }
+.ie-block { display: grid; gap: 12px; border: 1px solid var(--rp-line); border-radius: 22px; padding: 14px 16px 16px; margin: 0; }
+.ie-block legend { font-size: 13px; font-weight: 600; color: var(--ink2); padding: 0 6px; }
+.ie-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 10px; }
+.ie-acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ie-acts .qp-btn { height: 36px; font-size: 13px; padding: 0 14px; }
+.ie-navy { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--ink2); margin-right: auto; }
+.ie-add { min-height: 64px; }
+@media (max-width: 760px) { .ie-row { grid-template-columns: 1fr; } }
+
+/* Pace, a size down: its figures were set for the old heavy display face and
+   read as shouting beside the rest of the portal. Same order of size, smaller. */
+.pn .pt-pace__gap { font-family: inherit; font-size: 34px; line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; }
+.pn .pt-pace__drift > strong { font-family: inherit; font-size: 16.5px; line-height: 1.3; font-weight: 600; }
+.pn .pt-pace__drift > span, .pn .pt-pace__drift > em { font-size: 12.5px; }
+.pn .pt-pace__eyebrow { font-size: 11.5px; font-weight: 600; }
+.pn .pt-pace__sech h2 { font-family: inherit; font-size: 18px; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; }
+.pn .pt-pace__sech > span { font-size: 13px; }
+.pn .pt-pace__k { font-size: 11.5px; font-weight: 600; }
+.pn .pt-pace__need { font-family: inherit; font-size: 24px; line-height: 1.2; font-weight: 600; }
+.pn .pt-pace__need.is-money { font-size: 20px; }
+.pn .pt-pace__v { font-size: 12px; font-weight: 600; min-height: 24px; }
+.pn .pt-pace__rate > strong { font-family: inherit; font-size: 21px; line-height: 1.25; font-weight: 600; }
+.pn .pt-pace__rate > p, .pn .pt-pace__pfig > em { font-size: 12.5px; line-height: 1.45; }
+.pn .pt-pace__pfig > span { font-size: 12.5px; font-weight: 600; }
+.pn .pt-pace__pfig > strong { font-family: inherit; font-size: 22px; line-height: 1.25; font-weight: 600; }
+.pn .pt-pace__table { font-size: 13.5px; }
+.pn .pt-pace__sub { font-size: 13.5px; }
+
+/* How we work, to the rest of the portal: Inter at 600 for headings rather
+   than the old heavy display face, letters in the board colours, the
+   procedure page sat against the left edge like every other page, and the
+   handbook's reading text a size down. */
+.sx-bar { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.sx-bar .pk-note { margin: 0; }
+.sx-bar .qp-btn { height: 44px; }
+.pn .pt-sopx__row:nth-child(4n+1) .pt-sopx__letter { background: var(--rp-gold); color: #2b2000; }
+.pn .pt-sopx__row:nth-child(4n+2) .pt-sopx__letter { background: var(--rp-forest); color: #fff; }
+.pn .pt-sopx__row:nth-child(4n+3) .pt-sopx__letter { background: var(--rp-orange); color: #fff; }
+.pn .pt-sopx__row:nth-child(4n+4) .pt-sopx__letter { background: var(--rp-dark); color: var(--rp-on-dark, #fff); }
+.pn .pt-sopx__row strong { font-weight: 600; }
+.pn .pt-sopsec__head h1, .pn .pt-sopone__head h1 { font-family: inherit; font-size: 34px; line-height: 1.15; font-weight: 600; }
+.pn .pt-sopsec__code, .pn .pt-sopone__code { font-family: inherit; font-weight: 600; color: var(--ink2); }
+.pn .pt-sopone__step strong { font-family: inherit; font-size: 15.5px; line-height: 1.4; font-weight: 600; }
+.pn .pt-narrow.pt-sopone { margin: 0; max-width: 900px; }
+.pn .pt-sopone__step > span:first-child, .pn .pt-sopone__step > b:first-child { font-family: inherit; }
+.pn .pt-topic { border-radius: 28px; padding: 32px 38px; border: 1px solid var(--rp-line); background: var(--rp-card); box-shadow: none; }
+.pn .pt-topic__h { font-size: 30px; line-height: 1.15; font-weight: 600; }
+.pn .pt-prose { font-size: 15px; line-height: 1.65; }
+.pn .pt-hbx__progress strong { font-family: inherit; font-size: 26px; font-weight: 600; }
+.pn .pt-hbx__card:nth-child(4n+1) .pt-hbx__letter { background: var(--rp-gold); color: #2b2000; }
+.pn .pt-hbx__card:nth-child(4n+2) .pt-hbx__letter { background: var(--rp-forest); color: #fff; }
+.pn .pt-hbx__card:nth-child(4n+3) .pt-hbx__letter { background: var(--rp-orange); color: #fff; }
+.pn .pt-hbx__card:nth-child(4n+4) .pt-hbx__letter { background: var(--rp-dark); color: var(--rp-on-dark, #fff); }
+.pn .pt-hbx__card strong, .pn .pt-hbx__txt strong { font-weight: 600; }

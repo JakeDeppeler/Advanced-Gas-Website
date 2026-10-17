@@ -1,12 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { TopicReader } from "@/components/portal/TopicReader";
 import { HANDBOOK } from "@/lib/portal/content";
 import { handbookBodies, dbConfigured } from "@/lib/portal/db";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +112,7 @@ export default async function HandbookShelfPage({
             body={current?.body ?? ""}
             updatedBy={current?.updatedBy ?? null}
             updatedAt={current?.updatedAt ?? null}
-            canEdit={can(user, "manage_users")}
+            canEdit={canEditStandards(user)}
             footer={
               <>
                 {prev ? <Link href={href(prev.title)} className="pt-hb__prev" title={prev.title}>← Previous</Link> : <span />}

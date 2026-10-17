@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { SopEditor, type SectionView } from "@/components/portal/SopEditor";
@@ -9,6 +8,7 @@ import { dbConfigured, listStoredSops } from "@/lib/portal/db";
 import { mergeSops, splitStep, type SopStep } from "@/lib/portal/sopEdits";
 import { SOPS, SOP_VERSION } from "@/lib/portal/sops";
 import { Locked } from "@/components/portal/Locked";
+import { canEditStandards } from "@/lib/portal/standards";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit processes · Team portal" };
@@ -37,7 +37,7 @@ function manualSteps(): Record<string, { title: string; steps: SopStep[]; happen
 export default async function EditProcessesPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "manage_users")) return <Locked user={user} what="Editing processes" forWhom="admins" />;
+  if (!canEditStandards(user)) return <Locked user={user} what="Editing processes" forWhom="the owner" />;
 
   const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
   // The list on the left is what an editor would see on the page itself,

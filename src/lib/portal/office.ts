@@ -3,7 +3,7 @@ import { cache } from "react";
 import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { q, sbCount, sbSelect } from "@/lib/dashboard/db";
 import { actions, shortfalls, type CheckItems } from "@/lib/portal/vanChecks";
-import { dbConfigured, getSettings, listVanChecks, listVehicles } from "@/lib/portal/db";
+import { dbConfigured, getSettings, latestChecksForVans, listVehicles, type VanCheck } from "@/lib/portal/db";
 import { listOrders, openReports, toolRequests } from "@/lib/portal/van";
 import { listLeave, listTake5 } from "@/lib/portal/people";
 import { readYearGoal, yearSpans, type YearGoal } from "@/lib/portal/yearGoal";
@@ -94,11 +94,13 @@ export const vanIssues = cache(async (): Promise<VanIssue[]> => {
   for (const t of asked.filter((x) => !x.reply)) {
     out.push({ vehicleId: t.vehicleId, van: name.get(t.vehicleId) ?? "A van", item: t.name, note: t.requestNote ?? "", kind: "tool", on: (t.requestedAt ?? "").slice(0, 10) });
   }
+  const latest = await latestChecksForVans(onRoad.map((v) => v.id)).catch(() => new Map<string, VanCheck>());
   await Promise.all(
     onRoad.map(async (v) => {
-      const [weekly, monthly, bag, plant] = await Promise.all(
-        (["weekly", "monthly", "bag", "plant"] as const).map((k) => listVanChecks(v.id, k, 1).catch(() => [])),
-      );
+      const [weekly, monthly, bag, plant] = (["weekly", "monthly", "bag", "plant"] as const).map((k) => {
+        const c = latest.get(`${v.id}|${k}`);
+        return c ? [c] : [];
+      });
       for (const [rows, kind] of [[weekly, "weekly"], [monthly, "monthly"]] as const) {
         const c = rows[0];
         if (!c) continue;
