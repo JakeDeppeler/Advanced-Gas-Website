@@ -15,7 +15,7 @@ import { isDue, touchState } from "@/lib/contacts/types";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
-import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
+import { BAR_COOKIE, NAV_COOKIE, readBar, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
 import { ALIAS, buildSections, pathOff, type Count, type Section } from "@/lib/portal/sections";
 import { Crumb, MenuButton, SectionBar, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
@@ -86,12 +86,12 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
 }
 
 /** The wide bar's brand and pills, with the same counts as the side bar, streamed in the same way. */
-async function CountedTop({ user, sections, biz }: { user: PortalUser; sections: Section[]; biz: Business }) {
+async function CountedTop({ user, sections, biz, more }: { user: PortalUser; sections: Section[]; biz: Business; more: string[] }) {
   const [counts, live] = await Promise.all([sideCounts(user, sections).catch(() => ({})), liveLine(user).catch(() => null)]);
   return (
     <>
       <Brand biz={biz} live={live} />
-      <TopNav sections={buildSections(portalNav(user), biz, office(user), counts)} />
+      <TopNav sections={buildSections(portalNav(user), biz, office(user), counts)} more={more} />
     </>
   );
 }
@@ -135,6 +135,7 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
   const rows = buildSearchIndex(items);
   const small = cookies().get(NAV_COOKIE)?.value === "small";
   const theme = readTheme(cookies().get(THEME_COOKIE)?.value);
+  const more = readBar(cookies().get(BAR_COOKIE)?.value);
   const first = user.name.split(" ")[0];
   const allowed = new Set(items.map((i) => i.href));
   const dock = DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz));
@@ -165,8 +166,8 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       <div className="pn-main">
         <header className="pn-top">
           <MenuButton />
-          <Suspense fallback={<><Brand biz={biz} /><TopNav sections={sections} /></>}>
-            <CountedTop user={user} sections={sections} biz={biz} />
+          <Suspense fallback={<><Brand biz={biz} /><TopNav sections={sections} more={more} /></>}>
+            <CountedTop user={user} sections={sections} biz={biz} more={more} />
           </Suspense>
           <Crumb sections={sections} />
           <div className="pn-tools">

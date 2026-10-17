@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { whereAmI, type Count, type Section } from "@/lib/portal/sections";
 import { Icon, type LiveState } from "@/components/portal/shell/Sidebar";
+import { BAR_COOKIE } from "@/lib/portal/businessTypes";
 
 /**
  * The menu on a wide screen, after the Rapport dashboard: the sections as
@@ -30,9 +31,13 @@ const useHere = (sections: Section[]) => {
   return whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
 };
 
-export function TopNav({ sections }: { sections: Section[] }) {
+export function TopNav({ sections, more = [] }: { sections: Section[]; more?: string[] }) {
   const here = useHere(sections);
-  const shown = sections.filter((s) => s.id !== "you");
+  const all = sections.filter((s) => s.id !== "you");
+  // The section you're in stays on the bar even when it's one of the tucked
+  // ones, so the dark pill always says where you are.
+  const shown = all.filter((s) => !more.includes(s.id) || here.section?.id === s.id);
+  const tucked = all.filter((s) => more.includes(s.id) && here.section?.id !== s.id);
   return (
     <nav className="pn-pills" aria-label="Sections">
       {shown.map((s) => {
@@ -72,7 +77,92 @@ export function TopNav({ sections }: { sections: Section[] }) {
           </div>
         );
       })}
+      <More all={all} tucked={tucked} more={more} />
     </nav>
+  );
+}
+
+/**
+ * More: the sections tucked off the bar, each with its pages, and the place
+ * to choose which sit on the bar. The choice is a cookie, so the bar is
+ * drawn right on the first paint of the next page.
+ */
+function More({ all, tucked, more }: { all: Section[]; tucked: Section[]; more: string[] }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [choosing, setChoosing] = useState(false);
+  const [pick, setPick] = useState<string[]>(more);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setChoosing(false); } };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); setChoosing(false); } };
+    document.addEventListener("pointerdown", away);
+    window.addEventListener("keydown", key);
+    return () => { document.removeEventListener("pointerdown", away); window.removeEventListener("keydown", key); };
+  }, [open]);
+  const red = tucked.reduce((n, s) => n + (s.count?.red ? s.count.n : 0), 0);
+  const save = () => {
+    document.cookie = `${BAR_COOKIE}=${pick.length ? pick.join(".") : "-"}; path=/; max-age=${60 * 60 * 24 * 400}; samesite=lax`;
+    setOpen(false);
+    setChoosing(false);
+    router.refresh();
+  };
+  return (
+    <div ref={ref} className={`pn-pillw pn-morew${open ? " open" : ""}`}>
+      <button type="button" className={`pn-pill pn-more${open ? " is-open" : ""}`} aria-expanded={open} onClick={() => { setOpen((o) => !o); setChoosing(false); setPick(more); }}>
+        {tucked.length ? "More" : "Edit"}
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        {red > 0 && <span className="pn-pilln" title={`${red} need someone`}>{red > 99 ? "99+" : red}</span>}
+      </button>
+      {open && (
+        <div className="pn-moredrop">
+          <div className="pn-dropin pn-morein">
+            {choosing ? (
+              <>
+                <span className="pn-droph">What sits on the bar. Untick a section to tuck it under More.</span>
+                {all.map((s) => {
+                  const on = !pick.includes(s.id);
+                  return (
+                    <label key={s.id} className="pn-pick">
+                      <input type="checkbox" checked={on} disabled={s.id === "home"} onChange={() => setPick((p) => (on ? [...p, s.id] : p.filter((x) => x !== s.id)))} />
+                      <span>{s.label}</span>
+                    </label>
+                  );
+                })}
+                <div className="pn-pickacts">
+                  <button type="button" className="qp-btn dark" onClick={save}>Save the bar</button>
+                  <button type="button" className="qp-btn" onClick={() => setChoosing(false)}>Cancel</button>
+                </div>
+              </>
+            ) : (
+              <>
+                {tucked.length === 0 && <span className="pn-droph">Every section is on the bar.</span>}
+                {tucked.map((s) => (
+                  <div key={s.id} className="pn-moresec">
+                    <Link href={s.href} className="pn-dropa pn-moreh" onClick={() => setOpen(false)}>
+                      <span>{s.label}</span>
+                      {s.count?.red && s.count.n ? <span className="pn-n r">{s.count.n}</span> : null}
+                    </Link>
+                    {s.pages.length > 1 && (
+                      <div className="pn-morepages">
+                        {s.pages.map((p) => (
+                          <Link key={p.href} href={p.href} onClick={() => setOpen(false)}>
+                            {p.label}
+                            {p.count?.n ? <b className={p.count.red ? "r" : undefined}>{p.count.n}</b> : null}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className="pn-choose" onClick={() => { setPick(more); setChoosing(true); }}>Choose what&rsquo;s on the bar</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

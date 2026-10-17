@@ -13,7 +13,7 @@ const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { day: "n
 const ext = (f: Pick<BrandFile, "mime" | "path">) =>
   (f.mime === "application/pdf" ? "pdf" : f.mime?.startsWith("image/") ? f.mime.slice(6).replace("svg+xml", "svg").replace("jpeg", "jpg") : f.path.split(".").pop() ?? "file").toUpperCase().slice(0, 4);
 const href = (folderId: string | null, archived = false) =>
-  `/portal/marketing?tab=assets${folderId ? `&f=${folderId}` : ""}${archived ? "&v=archived" : ""}`;
+  `/portal/materials${folderId ? `?f=${folderId}${archived ? "&v=archived" : ""}` : archived ? "?v=archived" : ""}`;
 const fileUrl = (f: BrandFile, download: boolean) =>
   `/api/portal/asset?path=${encodeURIComponent(f.path)}${download ? `&dl=${encodeURIComponent(`${f.label}.${ext(f).toLowerCase()}`)}` : ""}`;
 

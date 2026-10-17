@@ -6,7 +6,7 @@
  * pages, the tab strips and the search index all read the same lists.
  */
 
-export type MarketingTab = "campaigns" | "emails" | "reviews" | "ads" | "social" | "assets";
+export type MarketingTab = "campaigns" | "emails" | "reviews" | "ads" | "social";
 
 export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; blurb: string }[] = [
   { k: "campaigns", label: "Campaigns", title: "Everything we're running",
@@ -19,8 +19,6 @@ export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; bl
     blurb: "Spend, impressions and clicks, per platform." },
   { k: "social", label: "Instagram", title: "Instagram",
     blurb: "What we're posting on Instagram, straight from the account." },
-  { k: "assets", label: "Materials", title: "Marketing materials",
-    blurb: "Flyers, logos, artwork, PDFs and photos, in folders. Upload and download PNG and PDF; mark what's no longer used so nobody sends the old one." },
 ];
 
 /**
@@ -49,6 +47,8 @@ export const MOVED_TABS: Record<string, string> = {
   leads: "/portal/website",
   site: "/portal/website?tab=pages",
   dropoff: "/portal/website?tab=dropoff",
+  // Materials is its own page now.
+  assets: "/portal/materials",
 };
 
 export const tabDef = (k: string) => MARKETING_TABS.find((t) => t.k === k) ?? MARKETING_TABS[0];

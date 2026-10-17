@@ -63,7 +63,7 @@ export async function removeCampaign(input: { id: string }): Promise<MarketingRe
 }
 
 const isUuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);
-const filesDone = () => revalidatePath("/portal/marketing");
+const filesDone = () => { revalidatePath("/portal/marketing"); revalidatePath("/portal/materials"); };
 
 /** What kind a file is, from what it is: the kit's four kinds, for filtering. */
 function kindOf(mime: string, name: string): string {

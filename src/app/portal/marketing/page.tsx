@@ -14,8 +14,6 @@ import {
 import { getReviews } from "@/lib/googleReviews";
 import { getInstagramFeed } from "@/lib/instagram";
 import { CampaignBoard } from "@/components/portal/CampaignBoard";
-import { BrandAssets } from "@/components/portal/BrandAssets";
-import { listFiles, listFolders } from "@/lib/portal/brandFiles";
 import { Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
 import { Locked } from "@/components/portal/Locked";
 import { EmailListBoard } from "@/components/portal/EmailListBoard";
@@ -98,7 +96,6 @@ export default async function MarketingPage({
       {tab === "reviews" && <Reviews />}
       {tab === "ads" && <Ads />}
       {tab === "social" && <Social />}
-      {tab === "assets" && <Assets folderId={searchParams.f} archived={searchParams.v === "archived"} />}
     </PortalShell>
   );
 }
@@ -214,14 +211,6 @@ async function Social() {
   );
 }
 
-/* --------------------------------------------------------- Files */
-async function Assets({ folderId, archived }: { folderId?: string; archived: boolean }) {
-  const [folders, files] = dbConfigured()
-    ? await Promise.all([listFolders().catch(() => []), listFiles().catch(() => [])])
-    : [[], []];
-  const open = folderId && folders.some((f) => f.id === folderId) ? folderId : null;
-  return <BrandAssets folders={folders} files={files} folderId={open} archived={archived} canEdit />;
-}
 
 /* ------------------------------------------------- the one with no source yet */
 function Ads() {

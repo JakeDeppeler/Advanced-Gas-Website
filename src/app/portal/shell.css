@@ -2056,3 +2056,28 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .mk-cur, .mk-old { font-style: normal; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-left: 6px; vertical-align: 1px; }
 .mk-cur { background: var(--good-bg); color: var(--good); }
 .mk-old { background: var(--quiet); color: var(--ink2); }
+
+/* More, on the wide bar: the sections tucked off it, each with its pages,
+   and the place to choose what stays on the bar. Opened by a click, not a
+   hover, because it holds a form. */
+@media (min-width: 1240px) {
+  .pn-more { border: 0; background: none; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .pn-more.is-open { color: var(--ink); background: var(--quiet); }
+  .pn-moredrop { position: absolute; right: 0; top: 100%; padding-top: 12px; z-index: 60; width: 340px; }
+  .pn-morein { max-height: calc(100vh - 120px); overflow-y: auto; gap: 4px; }
+  .pn-moresec { display: grid; gap: 2px; padding-bottom: 6px; border-bottom: 1px solid var(--rp-line); }
+  .pn-moresec:last-of-type { border-bottom: 0; }
+  .pn-moreh { font-weight: 700; }
+  .pn-morepages { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 8px 4px; }
+  .pn-morepages a { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 99px; background: var(--quiet); color: var(--ink); text-decoration: none; font-size: 12.5px; font-weight: 500; }
+  .pn-morepages a:hover { background: var(--rp-on-bg); color: var(--rp-on-ink); }
+  .pn-morepages b { font-size: 11px; color: var(--ink2); }
+  .pn-morepages b.r { color: var(--bad); }
+  .pn-choose { margin-top: 4px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; color: var(--ink2); font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; text-decoration: underline; }
+  .pn-choose:hover { background: var(--quiet); color: var(--ink); }
+  .pn-pick { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; font-size: 14px; cursor: pointer; }
+  .pn-pick:hover { background: var(--quiet); }
+  .pn-pick input { width: 17px; height: 17px; accent-color: var(--rp-on-bg); }
+  .pn-pickacts { display: flex; gap: 8px; padding: 8px 4px 2px; }
+  .pn-pickacts .qp-btn { height: 38px; font-size: 13.5px; }
+}
