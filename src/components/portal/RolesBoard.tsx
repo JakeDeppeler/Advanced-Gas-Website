@@ -22,6 +22,7 @@ export function RolesBoard({ roles, assign, people, canEdit, everyone, ladder }:
   const router = useRouter();
   const [pending, start] = useTransition();
   const [adding, setAdding] = useState(false);
+  const [all, setAll] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(null), 4000); return () => clearTimeout(t); }, [msg]);
   const inRole = (id: string) => people.filter((p) => assign[p.id] === id);
@@ -31,13 +32,7 @@ export function RolesBoard({ roles, assign, people, canEdit, everyone, ladder }:
     <div className="rl">
       <div className="rl-bar">
         <LadderButton ladder={ladder} />
-        <details className="rl-all">
-          <summary className="qp-btn line">What we expect of everyone</summary>
-          <div className="pk-card pk-pad rl-cols">
-            <div><h3>The standard, whoever you are</h3><ol>{everyone.standards.map((x) => <li key={x}>{x}</li>)}</ol></div>
-            <div><h3>Attitude</h3><ul>{everyone.attitude.map((x) => <li key={x}>{x}</li>)}</ul><h3>Our deal with you</h3><ul>{everyone.deal.map((x) => <li key={x}>{x}</li>)}</ul></div>
-          </div>
-        </details>
+        <button type="button" className="qp-btn line" onClick={() => setAll(true)}>What we expect of everyone</button>
       </div>
 
       <div className="rl-grid">
@@ -66,6 +61,20 @@ export function RolesBoard({ roles, assign, people, canEdit, everyone, ladder }:
       </div>
       {canEdit && unplaced.length > 0 && <p className="pk-note">Not in a role yet: {unplaced.map((p) => p.name).join(", ")}. Open a role and click their name to put them in it.</p>}
 
+      {all && (
+        <div className="qp-scrim mid" onClick={() => setAll(false)}>
+          <div className="qp-panel mid rl-everyone" role="dialog" aria-modal="true" aria-labelledby="rl-all-h" onClick={(e) => e.stopPropagation()}>
+            <div className="qp-ph">
+              <span>Every role</span>
+              <button type="button" className="qp-x" onClick={() => setAll(false)} aria-label="Close">×</button>
+            </div>
+            <h2 id="rl-all-h" className="rl-h">What we expect of everyone</h2>
+            <section className="tb-points"><h3>The standard, whoever you are</h3><ol className="rv-points num">{everyone.standards.map((x) => <li key={x}>{x}</li>)}</ol></section>
+            <section className="tb-points"><h3>Attitude</h3><ul className="rv-points dot">{everyone.attitude.map((x) => <li key={x}>{x}</li>)}</ul></section>
+            <section className="tb-points"><h3>Our deal with you</h3><ul className="rv-points yes">{everyone.deal.map((x) => <li key={x}>{x}</li>)}</ul></section>
+          </div>
+        </div>
+      )}
       {adding && (
         <div className="qp-scrim mid" onClick={() => setAdding(false)}>
           <div className="qp-panel mid rl-panel" role="dialog" aria-modal="true" aria-label="A new role" onClick={(e) => e.stopPropagation()}>

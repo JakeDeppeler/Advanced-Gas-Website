@@ -3,7 +3,7 @@ import { cache } from "react";
 import { q, sbInsert, sbSelect, sbUpsert } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { quoteKey, quotes } from "@/lib/dashboard/metrics";
-import { isHow, openStage, type PipeQuote, type Touch, type TouchHow } from "./types";
+import { isHow, openStage, type PipeQuote, type Stage, type Touch, type TouchHow, type WorkJob } from "./types";
 
 /** Open quotes are worked for 60 days; past that they're listed to close off, not chased. */
 export const LIVE_DAYS = 60;
@@ -11,13 +11,20 @@ export const LIVE_DAYS = 60;
 const RECENT_DAYS = 30;
 /** Further back than this, an "open" quote is old-system residue nobody will ring. */
 const LOOK_BACK_DAYS = 150;
+/** A sale is followed through to paid for this long; one still unbooked after it is a conversation, not a list. */
+const SOLD_DAYS = 120;
+/** A job that is only the quote visit, not the work the quote sold. */
+const QUOTE_JOB = /quot|assess|estimat|consult/i;
 
 type EstRow = {
   id: number; job_id: number | null; customer_id: number | null; status: string | null; total: number | string | null;
   created_on: string | null; sold_on: string | null; modified_on: string | null; created_by: string | null; sold_by: string | null;
   business_unit: string | null; name: string | null;
 };
-type JobRow = { id: number; job_number: string | null; customer_name: string | null; suburb: string | null; job_type: string | null; location_id: number | null };
+type JobRow = { id: number; job_number: string | null; customer_name: string | null; suburb: string | null; job_type: string | null; location_id: number | null; status: string | null; completed_on: string | null; business_unit: string | null };
+type MadeRow = { id: number; job_number: string | null; status: string | null; completed_on: string | null; est: string | null };
+type ApptRow = { job_id: number; start_at: string | null; status: string | null };
+type InvRow = { job_id: number; total: number | string | null; balance: string | null };
 type ContactRow = { owner: number; type: string; value: string };
 type FollowRow = { quote_key: string; owner: string | null; next_on: string | null; lost_at: string | null; lost_reason: string | null };
 type TouchRow = { quote_key: string; how: string; note: string | null; created_by: string | null; created_at: string };
@@ -64,7 +71,7 @@ export async function loadPipeline(opts: { detail?: boolean; recentDays?: number
   const detail = opts.detail ?? true;
   const today = isoDateMelbourne(new Date());
   const since = iso(daysAgo(LOOK_BACK_DAYS));
-  const recent = iso(daysAgo(RECENT_DAYS));
+  const recent = iso(daysAgo(detail ? SOLD_DAYS : RECENT_DAYS));
 
   const [estRaw, follows, touchRows] = await Promise.all([
     sbSelect<EstRow>("st_estimates", [
@@ -90,7 +97,11 @@ export async function loadPipeline(opts: { detail?: boolean; recentDays?: number
   }
 
   const jobIds = est.map((r) => r.job_id).filter((v): v is number => v != null);
-  const jobs = detail ? await byIds<JobRow>("st_jobs", "id,job_number,customer_name,suburb,job_type,location_id", "id", jobIds) : [];
+  const soldIds = est.filter((r) => r.status === "Sold").map((r) => r.id);
+  const [jobs, made] = detail ? await Promise.all([
+    byIds<JobRow>("st_jobs", "id,job_number,customer_name,suburb,job_type,location_id,status,completed_on,business_unit", "id", jobIds),
+    byIds<MadeRow>("st_jobs", "id,job_number,status,completed_on,est:raw->>createdFromEstimateId", "raw->>createdFromEstimateId", soldIds),
+  ]) : [[], []];
   const jobById = new Map(jobs.map((j) => [j.id, j]));
 
   const custIds = est.map((r) => r.customer_id).filter((v): v is number => v != null);
@@ -112,6 +123,63 @@ export async function loadPipeline(opts: { detail?: boolean; recentDays?: number
   };
   const phoneByCust = group(custPhones, (r) => r.customer_id);
   const phoneByLoc = group(locPhones, (r) => r.location_id);
+
+  // What each sale became. A job made from the estimate is the work; with none,
+  // the job it was quoted on is the work unless that job was only the quote visit.
+  const madeByEst = new Map<number, MadeRow[]>();
+  for (const m of made) {
+    const k = Number(m.est);
+    if (Number.isFinite(k)) madeByEst.set(k, [...(madeByEst.get(k) ?? []), m]);
+  }
+  const workOf = (rows: EstRow[]): Array<{ id: number; job_number: string | null; status: string; completed_on: string | null }> => {
+    const sold = rows.filter((r) => r.status === "Sold");
+    const fromEst = sold.flatMap((r) => madeByEst.get(r.id) ?? []).filter((j) => j.status && j.status !== "Canceled");
+    if (fromEst.length) return fromEst.map((j) => ({ id: j.id, job_number: j.job_number, status: j.status as string, completed_on: j.completed_on }));
+    const own = sold.map((r) => (r.job_id != null ? jobById.get(r.job_id) : undefined)).find(Boolean);
+    if (!own || !own.status || own.status === "Canceled" || QUOTE_JOB.test(own.job_type ?? "") || /assess/i.test(own.business_unit ?? "")) return [];
+    return [{ id: own.id, job_number: own.job_number, status: own.status, completed_on: own.completed_on }];
+  };
+  const workByKey = new Map<string, ReturnType<typeof workOf>>();
+  if (detail) for (const [key, g] of groups) if (g.rows.some((r) => r.status === "Sold")) workByKey.set(key, workOf(g.rows));
+  const workIds = [...workByKey.values()].flat().map((j) => j.id);
+  const [appts, invs] = workIds.length ? await Promise.all([
+    byIds<ApptRow>("st_appointments", "job_id,start_at,status", "job_id", workIds, ["order=start_at.asc"]),
+    byIds<InvRow>("st_invoices", "job_id,total,balance:raw->>balance", "job_id", workIds),
+  ]) : [[], []];
+  const nowIso = new Date().toISOString();
+  const nextVisit = new Map<number, string>();
+  for (const a of appts) {
+    if (!a.start_at || a.status === "Canceled") continue;
+    const cur = nextVisit.get(a.job_id);
+    // The next visit to come; failing that, the latest one there was.
+    if (!cur || (a.start_at >= nowIso && (cur < nowIso || a.start_at < cur)) || (cur < nowIso && a.start_at > cur)) nextVisit.set(a.job_id, a.start_at);
+  }
+  const billed = new Map<number, { total: number; owing: number }>();
+  for (const i of invs) {
+    const b = billed.get(i.job_id) ?? { total: 0, owing: 0 };
+    b.total += Number(i.total ?? 0);
+    b.owing += Math.max(0, Number(i.balance ?? 0));
+    billed.set(i.job_id, b);
+  }
+  /** Where a sale is up to, and the job to show for it; null once it's paid in full. */
+  const afterSale = (key: string): { stage: Stage; work: WorkJob | null } | null => {
+    const w = workByKey.get(key) ?? [];
+    if (!w.length) return { stage: "won", work: null };
+    const open = w.filter((j) => j.status !== "Completed");
+    const pick = open[0] ?? w[w.length - 1];
+    const sum = w.reduce((a, j) => { const b = billed.get(j.id); return { total: a.total + (b?.total ?? 0), owing: a.owing + (b?.owing ?? 0) }; }, { total: 0, owing: 0 });
+    const work: WorkJob = {
+      jobId: pick.id, jobNumber: pick.job_number, status: pick.status,
+      bookedFor: nextVisit.get(pick.id) ?? null,
+      completedOn: pick.completed_on ? isoDateMelbourne(new Date(pick.completed_on)) : null,
+      owing: sum.total > 0 ? Math.round(sum.owing * 100) / 100 : null,
+      invoiced: Math.round(sum.total * 100) / 100,
+    };
+    if (open.length) return { stage: "booked", work };
+    // Done: still on the board while money's owing, or while it hasn't been invoiced at all.
+    if (work.owing == null || work.owing > 0.5) return { stage: "billed", work };
+    return null;
+  };
 
   const followBy = new Map(follows.map((f) => [f.quote_key, f]));
   const touchesBy = new Map<string, Touch[]>();
@@ -163,10 +231,16 @@ export async function loadPipeline(opts: { detail?: boolean; recentDays?: number
       lostReason: f?.lost_reason ?? null,
       dismissed: allDismissed,
       touches,
+      work: null,
     };
 
     if (base.soldOn) {
-      if (base.soldOn >= recentDay) out.push({ ...base, stage: "won" });
+      if (!detail) {
+        if (base.soldOn >= recentDay) out.push({ ...base, stage: "won" });
+        continue;
+      }
+      const at = afterSale(key);
+      if (at) out.push({ ...base, stage: at.stage, work: at.work });
       continue;
     }
     if (f?.lost_at || allDismissed) {

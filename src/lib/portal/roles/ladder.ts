@@ -7,6 +7,8 @@ export type Ladder = {
   rungs: Role[][];
   /** Seats off that climb: the office, and the destination seats. */
   others: Role[];
+  /** Steps named in a "Grows into" that aren't a role yet: where a seat leads, still to come. */
+  future: Array<{ name: string; after: Role }>;
 };
 
 /**
@@ -38,12 +40,16 @@ export function ladderOf(roles: Role[]): Ladder {
   const longest = roots
     .map((r) => { rung.clear(); climb(r, 0, new Set()); return { r, rung: new Map(rung) }; })
     .sort((a, b) => b.rung.size - a.rung.size)[0];
-  if (!longest) return { rungs: [], others: roles };
+  // A "Grows into" that names no role is the next step still to come.
+  const future = roles
+    .filter((r) => r.growsInto.trim() && !(ups.get(r.id)?.length))
+    .map((r) => ({ name: r.growsInto.trim(), after: r }));
+  if (!longest) return { rungs: [], others: roles, future };
   const rungs: Role[][] = [];
   for (const r of roles) {
     const n = longest.rung.get(r.id);
     if (n == null) continue;
     (rungs[n] ??= []).push(r);
   }
-  return { rungs: rungs.filter(Boolean), others: roles.filter((r) => !longest.rung.has(r.id)) };
+  return { rungs: rungs.filter(Boolean), others: roles.filter((r) => !longest.rung.has(r.id)), future };
 }

@@ -1,3 +1,4 @@
+import { site } from "@/lib/site";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
@@ -186,12 +187,16 @@ async function Social() {
           { label: "Posts", value: String(posts.length), sub: "pulled from Instagram", feature: true },
         ]}
       />
+      <div className="mk-ig">
+        <a className="qp-btn dark" href={site.social.instagram} target="_blank" rel="noreferrer">Open @advancedgasaircon on Instagram ↗</a>
+        <span className="qp-note">{posts.length ? "The feed below comes straight from the account." : "The account isn't linked to the portal yet, so the feed can't show here."}</span>
+      </div>
       <section className="pt-panel">
         <h2 className="pt-panel__h">The feed</h2>
         {posts.length === 0 ? (
           <p className="pt-rep__empty">
-            Nothing came back from Instagram. The feed needs a valid access token on the server, that is the
-            thing to check, not the posting.
+            Nothing came back from Instagram. To show the posts here, the account needs linking once: an access
+            token from Meta for the Instagram business account, saved on the server as INSTAGRAM_ACCESS_TOKEN.
           </p>
         ) : (
           <div className="pt-grid-social">

@@ -4,7 +4,7 @@ import { QUOTE_CAP, quotes } from "@/lib/dashboard/metrics";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { revenueGoalFor, type YearGoal } from "@/lib/portal/yearGoal";
 import { loadPipeline } from "@/lib/pipeline/store";
-import type { PipeQuote, Stage } from "@/lib/pipeline/types";
+import { daysBetween, isSold, type PipeQuote, type Stage } from "@/lib/pipeline/types";
 
 /**
  * Home's overview: sold each month against the month's goal, the quotes most
@@ -75,8 +75,9 @@ export async function overview(goal: YearGoal | null, span: 6 | 12 = 12): Promis
   // Newest first, so today's quotes are the ones in front of the office.
   const hot = [...open].sort((a, b) => b.quotedOn.localeCompare(a.quotedOn) || b.value - a.value).slice(0, 6);
   const LABEL: Record<string, string> = { new: "Just quoted", due: "Follow up today", waiting: "Waiting on them", won: "Sold, last 30 days" };
+  const soldRecent = (x: PipeQuote) => isSold(x.stage) && x.soldOn != null && daysBetween(x.soldOn, today) <= 30;
   const stages: StageSlice[] = (["new", "due", "waiting", "won"] as Stage[]).map((k) => {
-    const l = (pipe?.quotes ?? []).filter((x) => x.stage === k);
+    const l = (pipe?.quotes ?? []).filter((x) => (k === "won" ? soldRecent(x) : x.stage === k));
     return { k, label: LABEL[k], count: l.length, value: l.reduce((a, x) => a + x.value, 0) };
   });
 

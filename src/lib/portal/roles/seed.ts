@@ -389,7 +389,7 @@ export const SEED_ROLES: Role[] = [
     "name": "Service Manager",
     "tagline": "Own the service, maintenance and membership book: the steady, high-margin money.",
     "reportsTo": "GM / Operations",
-    "growsInto": "",
+    "growsInto": "Running your own division (to come)",
     "manages": "Service techs",
     "intro": "While the Field Manager owns installs, you own the recurring side: service, maintenance, memberships and warranty. This is the most predictable and highest-margin revenue the business has, but only if someone owns filling that calendar and keeping customers coming back. Left to fit around installs, service always loses. Your whole job is to make sure it doesn't, and to turn every service visit into a relationship and often more work.",
     "day": [
@@ -426,6 +426,6 @@ export const SEED_ROLES: Role[] = [
       "Can run a small team and a reminder system",
       "Comfortable with the numbers behind memberships"
     ],
-    "moveUp": "A destination seat. As the service and membership base grows, this becomes one of the most valuable books in the business."
+    "moveUp": "A destination seat. As the service and membership base grows, this becomes one of the most valuable books in the business. The next step after it is running your own division, still to come."
   }
 ];

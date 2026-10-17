@@ -9,16 +9,6 @@ type Shared = { run: (fn: () => Promise<PlanResult>, ok?: string, after?: () => 
 /** Cards read this rather than being declared inside the board, so a half-typed note survives the board redrawing. */
 const Ctx = createContext<Shared>(null as unknown as Shared);
 
-function HorizonPick({ value, onChange }: { value: Horizon; onChange: (h: Horizon) => void }) {
-  return (
-    <div className="pt-todo__chips" role="group" aria-label="When">
-      {HORIZONS.map((h) => (
-        <button key={h.key} type="button" className={`pt-todo__chip${value === h.key ? " is-on" : ""}`} aria-pressed={value === h.key} onClick={() => onChange(h.key)}>{h.label}</button>
-      ))}
-    </div>
-  );
-}
-
 function AreaPick({ id, value, onChange }: { id: string; value: string; onChange: (a: string) => void }) {
   return (
     <select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
@@ -125,10 +115,40 @@ function PlanPanel({ p, onClose }: { p: Plan; onClose: () => void }) {
   );
 }
 
+/** How soon, as a colour down the board: red is now, then yellow, green, and grey for whenever. Each column says it in words too. */
+const TONE: Record<Horizon, string> = { month: "red", quarter: "gold", year: "forest", someday: "grey" };
+
+/** A new idea, written straight into its column: what it is and a description of it. */
+function AddIdea({ horizon, onDone }: { horizon: Horizon; onDone: () => void }) {
+  const { run, pending } = useContext(Ctx);
+  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState("");
+  const [area, setArea] = useState("");
+  return (
+    <li className="td-cardw">
+      <form className="td-form" onSubmit={(e) => { e.preventDefault(); run(() => addPlan({ title, horizon, area, notes }), "On the plan.", onDone); }}>
+        <input id={`pl-new-${horizon}`} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} required placeholder="The idea, in a line" autoFocus aria-label="The idea" />
+        <textarea id={`pl-new-notes-${horizon}`} rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000} placeholder="Describe it: why, what it'd take, who'd need to be in on it." aria-label="Description" />
+        <AreaPick id={`pl-new-area-${horizon}`} value={area} onChange={setArea} />
+        <div className="td-formacts">
+          <button type="submit" className="qp-btn dark" disabled={pending || !title.trim()}>Add</button>
+          <button type="button" className="qp-btn" onClick={onDone}>Cancel</button>
+        </div>
+      </form>
+    </li>
+  );
+}
+
+/**
+ * Future planning as a board like the to-do list: a column for each "when",
+ * coloured by how soon, ideas added straight into the column with a
+ * description, and each one opening in the middle of the screen.
+ */
 export function PlansBoard({ plans }: { plans: Plan[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(null), 4000); return () => clearTimeout(t); }, [msg]);
   const run = (fn: () => Promise<PlanResult>, ok?: string, after?: () => void) =>
     start(async () => {
       const r = await fn();
@@ -137,12 +157,8 @@ export function PlansBoard({ plans }: { plans: Plan[] }) {
       router.refresh();
     });
 
-  const [title, setTitle] = useState("");
-  const [horizon, setHorizon] = useState<Horizon>("year");
-  const [area, setArea] = useState("");
-  const [notes, setNotes] = useState("");
-  const [withNotes, setWithNotes] = useState(false);
-
+  const [adding, setAdding] = useState<Horizon | null>(plans.length ? null : "month");
+  const [showDone, setShowDone] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const opened = plans.find((p) => p.id === openId) ?? null;
   const open = plans.filter((p) => p.status !== "done");
@@ -150,68 +166,48 @@ export function PlansBoard({ plans }: { plans: Plan[] }) {
 
   return (
     <Ctx.Provider value={{ run, pending }}>
-      <div className="pt-plan">
-        <section className="pt-panel" aria-labelledby="plan-add-h">
-          <h2 id="plan-add-h" className="pt-panel__h">Add to the plan</h2>
-          <form
-            className="pt-plan__add"
-            onSubmit={(e) => {
-              e.preventDefault();
-              run(() => addPlan({ title, horizon, area, notes: withNotes ? notes : undefined }), "On the plan.", () => { setTitle(""); setNotes(""); setWithNotes(false); });
-            }}
-          >
-            <label className="pt-field pt-plan__what"><span>What do you want to do for the business?</span>
-              <input id="plan-title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} required placeholder="Get a second ducted crew going" />
-            </label>
-            <label className="pt-field pt-plan__area"><span>What it&rsquo;s about <em>(optional)</em></span><AreaPick id="plan-area" value={area} onChange={setArea} /></label>
-            <div className="pt-field pt-plan__when"><span>When would you like to get to it?</span><HorizonPick value={horizon} onChange={setHorizon} /></div>
-            {withNotes ? (
-              <label className="pt-field pt-plan__notesfield"><span>Notes <em>(optional)</em></span>
-                <textarea id="plan-notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000} placeholder="Why, what it'd take, who'd need to be in on it." />
-              </label>
-            ) : (
-              <button type="button" className="pt-todo__addnote" onClick={() => setWithNotes(true)}>+ Add a note</button>
-            )}
-            <div className="pt-todo__submit">
-              <button type="submit" className="pt-btn pt-btn--orange" disabled={pending || !title.trim()}>Add to the plan</button>
-              {msg && <p className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`} role="status">{msg.text}</p>}
-            </div>
-          </form>
-        </section>
-
-        <div className="pt-plan__cols">
-          {HORIZONS.map((h) => {
+      <div className="td pl">
+        <div className="qp-bar">
+          <button type="button" className={`qp-chip td-donebtn${showDone ? " on" : ""}`} aria-pressed={showDone} onClick={() => setShowDone((v) => !v)}>Done · {done.length}</button>
+        </div>
+        <div className="td-board pl-board">
+          {HORIZONS.map((h, i) => {
             const list = open.filter((p) => p.horizon === h.key).sort(byPlan);
+            const tone = TONE[h.key];
             return (
-              <section key={h.key} className="pt-plan__col" aria-labelledby={`plan-${h.key}`}>
-                <header className="pt-plan__colhead">
-                  <h3 id={`plan-${h.key}`}>{h.label}</h3>
-                  <span>{h.blurb}{list.length ? ` · ${list.length}` : ""}</span>
+              <section key={h.key} className={`qp-col td-col pl-col t-${tone}`} aria-labelledby={`pl-h-${i}`}>
+                <header className="qp-colh">
+                  <i className={`qp-dot pl-dot t-${tone}`} aria-hidden="true" />
+                  <h2 id={`pl-h-${i}`} title={h.blurb}>{h.label}</h2>
+                  <span className="qp-n">{list.length}</span>
+                  <span className="td-colacts">
+                    <button type="button" className="td-round" aria-label={`Add to ${h.label}`} title={`Add to ${h.label}`} onClick={() => setAdding(adding === h.key ? null : h.key)}>+</button>
+                  </span>
                 </header>
-                {list.length ? (
-                  <ul className="pt-plan__cards">{list.map((p) => <Card key={p.id} p={p} onOpen={() => setOpenId(p.id)} />)}</ul>
-                ) : (
-                  <p className="pt-todo__empty">Nothing here yet.</p>
-                )}
+                <p className="pl-blurb">{h.blurb}</p>
+                <ul className="qp-list td-list pt-plan__cards">
+                  {adding === h.key && <AddIdea horizon={h.key} onDone={() => setAdding(null)} />}
+                  {list.map((p) => <Card key={p.id} p={p} onOpen={() => setOpenId(p.id)} />)}
+                  {!list.length && adding !== h.key && <li className="qp-empty">Nothing for {h.label.toLowerCase()} yet.</li>}
+                </ul>
               </section>
             );
           })}
         </div>
 
-        <details className="pt-panel pt-todo__done">
-          <summary>
-            <span className="pt-panel__h">Done</span>
-            <span className="pt-todo__counts"><span>{done.length}</span></span>
-          </summary>
-          {done.length ? (
-            <ul className="pt-plan__cards is-done">{done.map((p) => <Card key={p.id} p={p} onOpen={() => setOpenId(p.id)} />)}</ul>
-          ) : (
-            <p className="pt-todo__empty">Nothing ticked off yet. It&rsquo;ll be worth seeing what&rsquo;s here in a year.</p>
-          )}
-        </details>
+        {showDone && (
+          <section className="qp-fold" aria-label="Done">
+            <header className="qp-foldh"><b>Done</b><button type="button" className="qp-x" onClick={() => setShowDone(false)} aria-label="Close">×</button></header>
+            {done.length ? (
+              <ul className="pt-plan__cards is-done pl-done">{done.map((p) => <Card key={p.id} p={p} onOpen={() => setOpenId(p.id)} />)}</ul>
+            ) : (
+              <p className="qp-empty">Nothing ticked off yet. It&rsquo;ll be worth seeing what&rsquo;s here in a year.</p>
+            )}
+          </section>
+        )}
       </div>
       {opened && <PlanPanel key={opened.id + opened.status} p={opened} onClose={() => setOpenId(null)} />}
-      {msg && opened && <p className={`qp-toast${msg.ok ? "" : " bad"}`} role="status">{msg.text}</p>}
+      {msg && <p className={`qp-toast${msg.ok ? "" : " bad"}`} role="status">{msg.text}</p>}
     </Ctx.Provider>
   );
 }

@@ -84,16 +84,17 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
             ["Can't order", "A line that can't be ordered, no supplier, no model on the quote, no crew, says why, so it can be fixed in ServiceTitan."],
           ]}
         />
-        <div className="pk-rev-bar">
-          {/* To order is what's still to approve; an order moves to Sent by
-              itself once it's gone. The week stays put when you switch. */}
-          <Tabs on={view} label="To order or sent" items={[
-            { key: "todo", label: "To order", href: href("todo", which), count: dbReady ? toApprove.length : undefined, red: toApprove.length > 0 },
-            { key: "sent", label: "Sent", href: href("sent", which), count: dbReady ? sent.length : undefined },
-          ]} />
+        <div className="pk-rev-bar nw-bar">
+          {/* The week first and on the left, as Jake asked: which week you're
+              looking at decides everything under it. To order is what's still
+              to approve; an order moves to Sent by itself once it's gone. */}
           <Tabs on={which} label="Which week" items={[
             { key: "next", label: "Next week", href: href(view, "next") },
             { key: "this", label: "This week", href: href(view, "this") },
+          ]} />
+          <Tabs on={view} label="To order or sent" items={[
+            { key: "todo", label: "To order", href: href("todo", which), count: dbReady ? toApprove.length : undefined, red: toApprove.length > 0 },
+            { key: "sent", label: "Sent", href: href("sent", which), count: dbReady ? sent.length : undefined },
           ]} />
         </div>
         {dbReady && (

@@ -171,8 +171,9 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
                     <span>{h.stage === "due" ? (h.nextOn && h.nextOn < new Date().toISOString().slice(0, 10) ? `Call was due ${day(h.nextOn)}` : "Call today") : h.nextOn ? `Next call ${day(h.nextOn)}` : `Quoted ${day(h.quotedOn)}`}</span>
                     <span className="rp-dots" aria-hidden="true">•••</span>
                   </span>
-                  <span className="rp-tile-t">{h.what ?? "Quote"}</span>
-                  <span className="rp-tile-c">{[h.customer, h.suburb].filter(Boolean).join(" · ")}</span>
+                  {/* Who and where, not what: a quote is often several options, and the office rings a person. */}
+                  <span className="rp-tile-t">{h.customer ?? (h.jobNumber ? `Job #${h.jobNumber}` : "A customer")}</span>
+                  <span className="rp-tile-c">{[h.suburb, h.jobNumber && h.customer ? `#${h.jobNumber}` : null].filter(Boolean).join(" · ") || "No suburb on the job"}</span>
                   <span className="rp-tile-f">
                     <b>{money(h.value)}</b>
                     <span>{h.options > 1 ? `${h.options} options · ` : ""}{h.quietDays === 0 ? "worked today" : `${h.quietDays} ${h.quietDays === 1 ? "day" : "days"} quiet`}</span>
