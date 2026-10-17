@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, noteOnJobs, orderedManually, pushToServiceTitan, redraft, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, redraft, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
+import { stockKey } from "@/lib/ordering/stockKey";
 import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, problemKey, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 /**
@@ -332,19 +333,29 @@ function Buttons({ po, supplier, testTo, label, noted }: { po: PoWithLines; supp
  */
 function LineActions({ po, lines, what }: { po: PoWithLines; lines: PoLine[]; what?: string }) {
   const { busy, msg, run } = useAct();
+  const stocked = useContext(StockedCtx);
   const ids = lines.map((l) => l.id);
   const jobLines = lines.filter((l) => l.job_id != null && !l.manual);
   // Held until next week's ordering — say so if that's too late for the install.
   const until = nextWeek(new Date()).start;
   const late = jobLines.some((l) => l.install_date && neededBy(l.install_date) < until);
+  const tagged = !what && lines.length === 1 && stocked.has(stockKey(lines[0]));
   return (
     <span className="pt-nw__lineacts">
-      <button type="button" className="pt-nw__linkbtn" disabled={busy}
+      {tagged && <span className="nw-stocktag" title="We keep this in the factory">Factory stock</span>}
+      <button type="button" className="nw-lbtn" disabled={busy}
         onClick={() => run(() => linesOrdered({ id: po.id, lineIds: ids }))}>
         {what ? `${what} already ordered` : "Already ordered"}
       </button>
+      {!what && (
+        <button type="button" className={`nw-lbtn${tagged ? " on" : ""}`} disabled={busy}
+          title="Take it off the order: we have it in the factory. Tags it Factory stock for next time."
+          onClick={() => run(() => fromStock({ id: po.id, lineIds: ids, items: lines.map((l) => ({ key: stockKey(l), name: l.supplier_model ?? l.sku_name ?? l.description ?? "" })) }))}>
+          In stock
+        </button>
+      )}
       {jobLines.length > 0 && (
-        <button type="button" className="pt-nw__linkbtn" disabled={busy}
+        <button type="button" className="nw-lbtn" disabled={busy}
           title={late ? `Next week's ordering starts ${dayLabel(until)}, after this is needed` : `Drafted again on ${dayLabel(until)}`}
           onClick={() => run(() => holdForNextWeek({ id: po.id, lineIds: jobLines.map((l) => l.id) }))}>
           Order next week{late ? " (late)" : ""}
@@ -531,6 +542,40 @@ function OrderAll({ drafts, byId }: { drafts: PoWithLines[]; byId: Map<string, S
  * the page re-reads itself every couple of minutes while it's on screen.
  * A server refresh keeps whatever is typed into an open box.
  */
+/** Which items carry the Factory stock tag, for every line on the page. */
+const StockedCtx = createContext<Set<string>>(new Set());
+
+/**
+ * Every ten minutes while the page is showing, ask ServiceTitan for what's
+ * new and redraft from it; the cheap re-read in between picks up anyone
+ * else's approvals. Says when it last looked.
+ */
+function PullLatest() {
+  const router = useRouter();
+  const [at, setAt] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const go = useCallback(async () => {
+    if (document.visibilityState !== "visible") return;
+    setBusy(true);
+    await pullLatest().catch(() => undefined);
+    setBusy(false);
+    setAt(new Date().toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" }));
+    router.refresh();
+  }, [router]);
+  useEffect(() => {
+    go();
+    const t = setInterval(go, 10 * 60_000);
+    return () => clearInterval(t);
+  }, [go]);
+  return (
+    <p className="nw-live" role="status">
+      <i className={busy ? "on" : undefined} aria-hidden="true" />
+      {busy ? "Checking ServiceTitan for new bookings…" : at ? `Checked ServiceTitan at ${at}. It checks again every 10 minutes while this page is open.` : "Checks ServiceTitan every 10 minutes while this page is open."}
+      <button type="button" className="rc-mark" onClick={go} disabled={busy}>Check now</button>
+    </p>
+  );
+}
+
 function useLiveRefresh(ms: number) {
   const router = useRouter();
   useEffect(() => {
@@ -756,6 +801,8 @@ export function NextWeekOrders(props: {
   holds: Hold[];
   /** Suppliers whose sent orders are noted on their jobs in ServiceTitan (stJobNotes). */
   notedSuppliers?: string[];
+  /** Items tagged Factory stock. */
+  stocked?: string[];
 }) {
   const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery, holds } = props;
   const view = props.view ?? "todo";
@@ -783,7 +830,9 @@ export function NextWeekOrders(props: {
   const work = shown.filter((o) => o.kind === "work_order").sort((a, b) => (a.details?.start_at ?? "").localeCompare(b.details?.start_at ?? ""));
 
   return (
+    <StockedCtx.Provider value={new Set(props.stocked ?? [])}>
     <div className="pt-nw">
+      {view === "todo" && <PullLatest />}
       {view === "todo" && !appointmentsSynced && (
         <p className="pt-note">
           <strong>Booking times are still coming across from ServiceTitan.</strong> Until they have, no install has a date, so there is
@@ -860,5 +909,6 @@ export function NextWeekOrders(props: {
 
       {view === "todo" && cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>
+    </StockedCtx.Provider>
   );
 }

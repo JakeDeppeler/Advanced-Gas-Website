@@ -195,7 +195,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       band: "crew", icon: "box", also: ["order", "purchase order", "mitsubishi", "reclaim", "rinnai", "brivis", "braemar", "istore", "electrician", "geoff", "work order", "next week"],
     },
     {
-      href: "/portal/supply/next-week?tab=sent", label: "Sent orders", short: "Sent", blurb: "Orders that have gone to the supplier or the electrician",
+      href: "/portal/supply/sent", label: "Sent orders", short: "Sent", blurb: "Orders that have gone to the supplier or the electrician",
       band: "crew", icon: "box", also: ["sent", "ordered", "purchase order", "po"],
     },
     {
@@ -323,6 +323,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   add(admin, { href: "/portal/commission", label: "Commission", blurb: "The month target and the bonus", band: "hidden", icon: "target", also: ["commission", "bonus", "month target", "incentive"] });
   items.push({ href: "/portal/settings", label: "Settings", blurb: "How the portal looks, and what the business has", band: "hidden", icon: "user", also: ["settings", "theme", "dark mode", "business name", "start page"] });
   add(office,
+    { href: "/portal/automatic", label: "Automatic", blurb: "What the portal does by itself, and a record of every time", band: "hidden", icon: "plug", also: ["automatic", "automation", "auto", "tags", "awaiting quote approval", "log", "history"] },
     { href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece, is each one working", band: "hidden", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection"] },
   );
 

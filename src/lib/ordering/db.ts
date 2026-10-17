@@ -564,3 +564,19 @@ export async function releaseHold(id: number): Promise<boolean> {
   await sbDelete("order_holds", `id=eq.${id}`);
   return true;
 }
+
+/**
+ * Every order that's gone, newest first, with its lines: what the Sent tab
+ * lists by supplier and searches by job. Approved counts as gone (it's on its
+ * way out); drafts and cancelled ones aren't here.
+ */
+export async function listSentOrders(limit = 400): Promise<PoWithLines[]> {
+  const pos = await sbSelect<PurchaseOrder>("purchase_orders", `status=in.(sent,approved)&order=sent_at.desc.nullslast,id.desc&limit=${limit}`);
+  if (!pos.length) return [];
+  const ids = pos.map((p) => p.id);
+  const parts = await Promise.all(Array.from({ length: Math.ceil(ids.length / 150) }, (_, i) => ids.slice(i * 150, i * 150 + 150))
+    .map((chunk) => sbSelect<PoLine>("purchase_order_lines", `po_id=in.(${chunk.join(",")})&order=id.asc`)));
+  const lines = parts.flat();
+  const num = (v: unknown) => (v == null ? null : Number(v));
+  return pos.map((p) => ({ ...p, lines: lines.filter((l) => l.po_id === p.id).map((l) => ({ ...l, qty: Number(l.qty), unit_cost: num(l.unit_cost) })) }));
+}
