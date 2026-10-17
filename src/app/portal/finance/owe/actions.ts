@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { addPayable, closePayable, setPriority } from "@/lib/owe/store";
-import { isPriority } from "@/lib/owe/types";
+import { addPayable, closePayable, setArrangement, setPriority } from "@/lib/owe/store";
+import { isArrangementKind, isPriority, isRepayEvery } from "@/lib/owe/types";
 
 export type OweResult = { ok: boolean; error?: string };
 
@@ -38,6 +38,27 @@ export async function closeOwed(id: string, how: "paid" | "removed"): Promise<Ow
   const u = await me();
   if (!u) return { ok: false, error: "Only the office can change this." };
   try { await closePayable(id, how); } catch { return { ok: false, error: "Couldn't save that. Try again." }; }
+  revalidatePath("/portal/finance/owe");
+  return { ok: true };
+}
+
+/** Put a supplier on a payment plan or a line of credit, or take them off one (kind ""). */
+export async function saveArrangement(input: { supplier: string; kind: string; repay: string; every: string; note: string }): Promise<OweResult> {
+  const u = await me();
+  if (!u) return { ok: false, error: "Only the office can change this." };
+  const supplier = input.supplier.trim();
+  if (!supplier) return { ok: false, error: "Which supplier?" };
+  if (!input.kind) {
+    const r = await setArrangement({ supplier, kind: null });
+    if (!r.ok) return { ok: false, error: "Couldn't save that. Try again." };
+    revalidatePath("/portal/finance/owe");
+    return { ok: true };
+  }
+  if (!isArrangementKind(input.kind)) return { ok: false, error: "Pick payment plan or line of credit." };
+  const repay = input.repay.trim() ? Number(input.repay.replace(/[$,\s]/g, "")) : null;
+  if (repay != null && !(repay > 0)) return { ok: false, error: "The repayment needs to be an amount." };
+  const r = await setArrangement({ supplier, kind: input.kind, repay, every: isRepayEvery(input.every) ? input.every : "month", note: input.note.trim().slice(0, 200) || null });
+  if (!r.ok) return { ok: false, error: "Couldn't save that. Try again." };
   revalidatePath("/portal/finance/owe");
   return { ok: true };
 }

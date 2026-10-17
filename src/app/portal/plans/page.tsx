@@ -5,7 +5,6 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { Heads } from "@/components/portal/marketingParts";
 import { PlansBoard } from "@/components/portal/PlansBoard";
-import { TodoTabs } from "@/components/portal/TodoTabs";
 import { dbConfigured } from "@/lib/portal/db";
 import { meOf, seesAll, todayMelbourne } from "@/lib/todos/store";
 import { listContacts } from "@/lib/contacts/store";
@@ -50,7 +49,6 @@ export default async function PlansPage() {
             Put each one under when you&rsquo;d like to get to it, and move it along as it happens. Only you see your list.
           </p>
         </div>
-        <TodoTabs on="plans" contactsDue={contactsDue} />
       </div>
 
       {!ready ? (

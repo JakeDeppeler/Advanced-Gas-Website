@@ -189,7 +189,7 @@ const KIND_LINE: Record<Report["kind"], string> = { daily: "Daily report", weekl
 export function reportEmail(r: Report): { subject: string; html: string; text: string } {
   const base = (process.env.NEXT_PUBLIC_SITE_URL || site.url).replace(/\/$/, "");
   const link = `${base}/portal/board/reports/${encodeURIComponent(r.key)}`;
-  const subject = `${r.title} — ${r.headline}`;
+  const subject = `${r.title}, ${r.headline}`;
   const at = r.figuresAt
     ? new Date(r.figuresAt).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" })
     : null;
@@ -256,7 +256,7 @@ export function reportEmail(r: Report): { subject: string; html: string; text: s
 </html>`;
 
   const text = [
-    `${KIND_LINE[r.kind]} — ${BIG[r.kind]}, ${r.periodLabel}`, r.headline, "",
+    `${KIND_LINE[r.kind]}, ${BIG[r.kind]}, ${r.periodLabel}`, r.headline, "",
     ...r.sections.flatMap((s) => [s.title.toUpperCase(), ...s.lines.map((l) => `  ${l.label}: ${l.value}${l.status ? ` [${l.status}]` : ""}${l.sub ? ` (${l.sub})` : ""}`), ...(s.note ? [`  ${s.note}`] : []), ""]),
     at ? `Figures as at ${at}, the same as the wall board.` : "",
     `In the portal: ${link}`,

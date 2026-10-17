@@ -88,7 +88,7 @@ export async function buildEmailList(): Promise<{ rows: EmailRow[]; sources: Sou
   const n = (s: EmailSource) => rows.filter((r) => r.sources.includes(s)).length;
   const stNote = custContacts == null && locContacts == null
     ? "The ServiceTitan contact sync hasn't run yet."
-    : (custContacts ?? []).length + (locContacts ?? []).length === 0 ? "Nothing synced from ServiceTitan yet — it fills in over the next few syncs." : null;
+    : (custContacts ?? []).length + (locContacts ?? []).length === 0 ? "Nothing synced from ServiceTitan yet, it fills in over the next few syncs." : null;
   const sources: SourceState[] = [
     { source: "servicetitan", count: n("servicetitan"), note: stNote },
     { source: "website", count: n("website"), note: null },

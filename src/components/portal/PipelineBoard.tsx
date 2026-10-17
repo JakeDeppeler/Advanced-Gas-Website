@@ -86,7 +86,17 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
     });
   }, [live, who, find]);
 
-  const col = (s: Stage) => shown.filter((q) => q.stage === s).sort(
+  // Each column can be put in date order, newest or oldest first, by its own button.
+  const [sortBy, setSortBy] = useState<Partial<Record<Stage, "new" | "old">>>({});
+  const dateOf = (q: PipeQuote) => (q.stage === "won" ? q.soldOn ?? q.quotedOn : q.quotedOn);
+  const col = (s: Stage) => {
+    const list = usual(s);
+    const by = sortBy[s];
+    return by ? [...list].sort((a, b) => (by === "new" ? dateOf(b).localeCompare(dateOf(a)) : dateOf(a).localeCompare(dateOf(b)))) : list;
+  };
+  const SORT_NEXT = { usual: "new", new: "old", old: "usual" } as const;
+  const SORT_WORD = { usual: "Usual order", new: "Newest first", old: "Oldest first" } as const;
+  const usual = (s: Stage) => shown.filter((q) => q.stage === s).sort(
     // Late calls first, longest late at the top; then everything due today, biggest first.
     s === "due" ? (a, b) => (a.nextOn ?? "9999").localeCompare(b.nextOn ?? "9999") || b.value - a.value
       : s === "waiting" ? (a, b) => (a.nextOn ?? "").localeCompare(b.nextOn ?? "")
@@ -201,6 +211,14 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
                   <span className="qp-n">{list.length}</span>
                   <span className="qp-sum">{list.length ? k1(sum) : ""}</span>
                 </header>
+                <button
+                  type="button" className={`qp-sort${sortBy[s.k] ? " on" : ""}`}
+                  onClick={() => setSortBy((m) => { const next = SORT_NEXT[m[s.k] ?? "usual"]; return { ...m, [s.k]: next === "usual" ? undefined : next }; })}
+                  aria-label={`${s.label}: ${SORT_WORD[sortBy[s.k] ?? "usual"]}. Change the order`}
+                >
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4" /></svg>
+                  {SORT_WORD[sortBy[s.k] ?? "usual"]}
+                </button>
                 <ul className="qp-list">
                   {list.map((q, i) => <Card key={q.key} q={q} today={today} i={i} onOpen={() => setOpen(q.key)} dragging={drag === q.key} onDrag={(on) => { setDrag(on ? q.key : null); if (!on) setOver(null); }} />)}
                   {!list.length && <li className="qp-empty">{s.k === "due" ? "Nobody to ring. Nice." : s.k === "won" ? "Nothing sold in 30 days." : "Nothing here."}</li>}

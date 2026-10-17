@@ -134,7 +134,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
                 <g className="rp-tip">
                   <rect x={Math.min(W - R - 132, Math.max(L, x(i) - 66))} y={Math.max(T, y(m.sold) - 52)} width={132} height={40} rx={10} />
                   <text x={Math.min(W - R - 132, Math.max(L, x(i) - 66)) + 12} y={Math.max(T, y(m.sold) - 52) + 17}>{m.label} · {money(m.sold)}</text>
-                  <text x={Math.min(W - R - 132, Math.max(L, x(i) - 66)) + 12} y={Math.max(T, y(m.sold) - 52) + 32} className="sub">{m.goal != null ? `goal ${money(m.goal)}` : "no goal"}</text>
+                  <text x={Math.min(W - R - 132, Math.max(L, x(i) - 66)) + 12} y={Math.max(T, y(m.sold) - 52) + 32} className="sub">{m.goal != null ? `${yearGoal ? `${short(yearGoal)} ` : ""}goal ${money(m.goal)}` : "no goal"}</text>
                 </g>
                 <text x={x(i)} y={H - 8} className="rp-axis" textAnchor="middle">{m.label}</text>
               </g>

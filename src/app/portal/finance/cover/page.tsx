@@ -117,13 +117,13 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
 
   return (
     <>
-      <Card title="The numbers it's worked on" aside="try any with Work it out · Save makes the wages, hours and days the site's own">
+      <Card title="The numbers it's worked on" aside="vans and riders come from the team · try any with Work it out · Save keeps the wages, hours and days">
         <form method="get" action="/portal/finance/cover" className="pt-cover__form">
           {[
             ["tw", "Tech wage", "$ an hour", i.techWage],
             ["aw", "Apprentice wage", "$ an hour, on average", i.appWage],
-            ["tn", "Techs who bill", "on their own, a van each", i.techs],
-            ["an", "Apprentices", "riding with a tech, not billing", i.apps],
+            ["tn", "Vans on the road", `everyone with their own van${(i.appVans ?? 0) > 0 ? `, ${i.appVans} an apprentice` : ""}`, i.techs],
+            ["an", "Riding along", "apprentices with a tech, not billing", i.apps],
             ["b", "Hours billed a day", `out of ${i.dayHrs}`, i.billPerDay],
             ["d", "Days on the tools", "a year, each tech", i.daysOnTools],
             ["c", "What we charge", "$ an hour, tech + apprentice", i.charge],
@@ -158,10 +158,12 @@ function Hour({ i, lines, fleet, oc, ocs, pricing, searchParams }: { i: CoverInp
               <tr><td>Overheads <span className="ks">, every line below</span></td><td>{m0(r.overhead)}</td><td>{m2(r.perHr.overhead)}</td></tr>
               {(() => {
                 // The pay, taken apart: the wages, then each on-cost on top of all of them.
-                const tw = i.techs * i.techWage * PAID_HRS_YEAR, aw = i.apps * i.appWage * PAID_HRS_YEAR, w = tw + aw;
+                // An apprentice driving their own van bills like a van and is paid like an apprentice.
+                const av = Math.min(i.techs, i.appVans ?? 0), tn = i.techs - av, an = i.apps + av;
+                const tw = tn * i.techWage * PAID_HRS_YEAR, aw = an * i.appWage * PAID_HRS_YEAR, w = tw + aw;
                 const rows: Array<[string, string, number]> = [
-                  ["Techs’ wages", `${i.techs} × ${m2(i.techWage)} × ${n0(PAID_HRS_YEAR)} hrs`, tw],
-                  ["Apprentices’ wages", `${i.apps} × ${m2(i.appWage)} × ${n0(PAID_HRS_YEAR)} hrs`, aw],
+                  ["Techs’ wages", `${tn} × ${m2(i.techWage)} × ${n0(PAID_HRS_YEAR)} hrs`, tw],
+                  ["Apprentices’ wages", `${an} × ${m2(i.appWage)} × ${n0(PAID_HRS_YEAR)} hrs${av ? `, ${av} in a van of their own` : ""}`, aw],
                   ["Super", `${ocs.superPct}% of the wages`, (w * ocs.superPct) / 100],
                   ["WorkCover", ocs.workcoverPct > 0 ? `${ocs.workcoverPct}% of the wages, the premium, as Xero shows it` : "not set, add it on Wages & costs", (w * ocs.workcoverPct) / 100],
                   ["Long service leave", ocs.lslPct > 0 ? `${ocs.lslPct}% of the wages, put aside as it's earned` : "not set", (w * ocs.lslPct) / 100],

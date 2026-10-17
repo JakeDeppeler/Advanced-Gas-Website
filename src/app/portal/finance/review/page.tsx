@@ -14,8 +14,6 @@ export const maxDuration = 60;
 export const metadata = { title: "How we went · Team portal" };
 
 const m$ = (n: number) => `${n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
-// Rounded before the sign is picked, so 30 cents either way reads "$0", not "−$0".
-const signed = (n: number) => { const r = Math.round(n); return `${r > 0 ? "+" : r < 0 ? "−" : ""}$${Math.abs(r).toLocaleString("en-AU")}`; };
 const pc = (n: number) => `${Math.round(n * 100)}%`;
 
 /**
@@ -88,7 +86,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { k?:
 
             <Grid cols={4}>
               {r.factors.map((f) => (
-                <Tile key={f.key} label={f.title} st={impactSt(f.impact)} fig={signed(f.impact)} frac={bridge ? Math.abs(f.impact) / bridge.max : null} sub={f.detail} />
+                <Tile key={f.key} label={f.title} st={impactSt(f.impact)} fig={m$(Math.abs(f.impact))} frac={bridge ? Math.abs(f.impact) / bridge.max : null} sub={f.detail} />
               ))}
               {r.sales && (
                 <Tile label="Money in" st={r.sales.total > 0 && r.sales.due / r.sales.total >= 0.3 ? { k: "mid", w: "Lots owed" } : { k: "good", w: "Coming in" }}

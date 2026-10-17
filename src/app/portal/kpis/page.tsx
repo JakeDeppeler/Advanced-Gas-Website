@@ -18,7 +18,7 @@ import { reeceFlags } from "@/lib/finance/reeceCheck";
 import { SpreadForm } from "@/components/portal/SpreadForm";
 import { revenueGoalFor } from "@/lib/portal/yearGoal";
 import { Bad, Card, Empty, Good, Head, PeriodTabs, Pill, Say, Tabs, none, status, type Status } from "@/components/portal/kit/Kit";
-import { PERIODS, periodSpans, periodWords, readPeriod } from "@/lib/portal/run/period";
+import { PERIODS, periodItems, periodSpans, periodWords, readPeriod } from "@/lib/portal/run/period";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Our KPIs · Team portal" };
@@ -40,7 +40,8 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Our KPIs" forWhom="the office" />;
-  const tab = (["sell", "work", "paid", "money", "team"].includes(searchParams.tab ?? "") ? searchParams.tab : "overview") as TabKey;
+  // Making money was the overview over again, so it went; an old link to it lands on the overview.
+  const tab = (["sell", "work", "paid", "team"].includes(searchParams.tab ?? "") ? searchParams.tab : "overview") as TabKey;
 
   // The money tabs read Xero for the period picked; the rest are this month.
   const period = readPeriod(searchParams.p);
@@ -182,7 +183,6 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
       { key: "sell", label: "Selling", href: q("sell"), count: red(sell) || undefined, red: true },
       { key: "work", label: "Doing the work", href: q("work"), count: red(work) || undefined, red: true },
       { key: "paid", label: "Getting paid", href: q("paid"), count: red(paid) || undefined, red: true },
-      { key: "money", label: "Making money", href: q("money"), count: red(money2) || undefined, red: true },
       { key: "team", label: "Team", href: q("team") },
     ]} />
   );
@@ -312,7 +312,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
       <div className="pk">
         {head}
         {tabs}
-        {(tab === "overview" || tab === "money") && <PeriodTabs on={period} items={PERIODS} href={(k) => `/portal/kpis${tab === "money" ? "?tab=money" : ""}${k !== "fy" ? `${tab === "money" ? "&" : "?"}p=${k}` : ""}`} />}
+        {(tab === "overview" || tab === "money") && <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/kpis${tab === "money" ? "?tab=money" : ""}${k !== "fy" ? `${tab === "money" ? "&" : "?"}p=${k}` : ""}`} />}
         {body}
       </div>
     </PortalShell>

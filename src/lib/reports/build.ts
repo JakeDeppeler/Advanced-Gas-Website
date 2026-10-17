@@ -13,9 +13,9 @@ import type { Report, ReportKind, ReportLine, ReportSection } from "@/lib/report
  * the wall: "not measured" is not "none".
  */
 
-const n = (v: number | null | undefined) => (v == null ? "—" : Math.round(v).toLocaleString("en-AU"));
-const m$ = (v: number | null | undefined) => (v == null ? "—" : money(v));
-const pct = (v: number | null | undefined, dp = 0) => (v == null || !Number.isFinite(v) ? "—" : `${(v * 100).toFixed(dp)}%`);
+const n = (v: number | null | undefined) => (v == null ? "" : Math.round(v).toLocaleString("en-AU"));
+const m$ = (v: number | null | undefined) => (v == null ? "" : money(v));
+const pct = (v: number | null | undefined, dp = 0) => (v == null || !Number.isFinite(v) ? "" : `${(v * 100).toFixed(dp)}%`);
 const plural = (k: number | null | undefined, one: string, many = `${one}s`) => `${n(k)} ${k === 1 ? one : many}`;
 const share = (a: number | null | undefined, b: number | null | undefined) => (a == null || !b || b <= 0 ? null : Math.max(0, a / b));
 
@@ -190,7 +190,7 @@ export function buildReport(
       title: "The rest of today",
       layout: "tiles",
       lines: [
-        { label: "Paid", value: m.paidToday == null ? "—" : m$(m.paidToday), sub: m.paidToday == null ? "payments not synced yet" : m.paymentsToday != null ? plural(m.paymentsToday, "payment") : undefined },
+        { label: "Paid", value: m.paidToday == null ? "" : m$(m.paidToday), sub: m.paidToday == null ? "payments not synced yet" : m.paymentsToday != null ? plural(m.paymentsToday, "payment") : undefined },
         { label: "Jobs booked", value: n(m.bookingsToday), sub: "today" },
         { label: "Quotes written", value: m$(m.quotesCreatedTodayValue), sub: plural(m.quotesCreatedTodayCount, "job") },
         { label: "Leads", value: n(m.leadsToday), sub: `${n(m.leadsWeek)} this week` },

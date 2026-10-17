@@ -16,7 +16,7 @@ import { summarisePL } from "@/lib/portal/run/pl";
 import { money, pc } from "@/lib/portal/run/month";
 import { cashCover, moveOf, owedInvoices, spendLines } from "@/lib/portal/run/money";
 import { BENCH } from "@/lib/portal/benchmarks";
-import { PERIODS, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
+import { PERIODS, periodItems, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
 import { Bad, Card, Grid, Head, Lh, PeriodTabs, Say, Sum, Tile, none, status, type Status } from "@/components/portal/kit/Kit";
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 
@@ -42,7 +42,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { p?
 
   const period = readPeriod(searchParams.p);
   const { status: xs, tenantName } = await xeroStatus();
-  const tabs = <PeriodTabs on={period} items={PERIODS} href={(k) => `/portal/finance${k === "fy" ? "" : `?p=${k}`}`} />;
+  const tabs = <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/finance${k === "fy" ? "" : `?p=${k}`}`} />;
 
   return (
     <PortalShell user={user}>

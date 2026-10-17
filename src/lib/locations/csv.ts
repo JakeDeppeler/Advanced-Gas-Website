@@ -46,7 +46,7 @@ export const FIELDS = [
   { key: "contactName", label: "Contact name / role" },
   { key: "email", label: "Contact email" },
   { key: "phone", label: "Contact phone" },
-  { key: "notes", label: "Notes", hint: "Pinned to the location — repairs, access" },
+  { key: "notes", label: "Notes", hint: "Pinned to the location, repairs, access" },
   { key: "status", label: "Service status", hint: "e.g. serviced / due / vacant" },
   { key: "tags", label: "Other tags", hint: "Tag names, separated by ; or ," },
 ] as const;

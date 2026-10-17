@@ -225,14 +225,14 @@ export async function buildReview(kind: Kind, key: string | null): Promise<Revie
 
     if (gap >= 0 || now.net >= normal.net * 0.95) {
       tone = "good";
-      headline = `${what} made ${now.net < 0 ? "a loss of " : ""}${m$(now.net)}${now.net < 0 ? "" : " profit"} — ${gap >= 0 ? `${m$(gap)} better than usual` : "about usual"}.`;
+      headline = `${what} made ${now.net < 0 ? "a loss of " : ""}${m$(now.net)}${now.net < 0 ? "" : " profit"}, ${gap >= 0 ? `${m$(gap)} better than usual` : "about usual"}.`;
       if (sales && owedShare >= 0.3) {
         tone = "warn";
-        points.push(`A good ${kind} on paper, but ${m$(sales.due)} of the ${m$(sales.total)} invoiced is still owed${sales.overdue > 0 ? ` (${m$(sales.overdue)} of it overdue)` : ""} — the money hasn't come in yet.`);
+        points.push(`A good ${kind} on paper, but ${m$(sales.due)} of the ${m$(sales.total)} invoiced is still owed${sales.overdue > 0 ? ` (${m$(sales.overdue)} of it overdue)` : ""}, the money hasn't come in yet.`);
       }
     } else {
       tone = now.net < 0 ? "bad" : "warn";
-      headline = `${what} ${now.net < 0 ? `lost ${m$(now.net)}` : `made ${m$(now.net)}`} — ${m$(gap)} under a usual ${kind}. The biggest reason: ${
+      headline = `${what} ${now.net < 0 ? `lost ${m$(now.net)}` : `made ${m$(now.net)}`}, ${m$(gap)} under a usual ${kind}. The biggest reason: ${
         worst.key === "work" ? "not enough work" : worst.key === "materials" ? "materials and subbies cost more than usual" : "the overheads ran high"
       }.`;
     }
@@ -246,7 +246,7 @@ export async function buildReview(kind: Kind, key: string | null): Promise<Revie
       }
       if (f.key === "overheads") {
         const up = moved.filter((x) => x.diff > 0 && !x.cogs).slice(0, 2).map((x) => `${x.label} up ${m$(x.diff)}`).join(", ");
-        points.push(`Overheads ${f.impact < 0 ? "ran" : "came in"} ${m$(f.impact)} ${f.impact < 0 ? "over" : "under"} usual${f.impact < 0 && up ? ` — ${up}` : ""}.`);
+        points.push(`Overheads ${f.impact < 0 ? "ran" : "came in"} ${m$(f.impact)} ${f.impact < 0 ? "over" : "under"} usual${f.impact < 0 && up ? `, ${up}` : ""}.`);
       }
     }
     if (sales && sales.top[0] && sales.total > 0 && sales.top[0].total / sales.total >= 0.25) {

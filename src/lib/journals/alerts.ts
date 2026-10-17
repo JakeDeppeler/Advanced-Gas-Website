@@ -84,7 +84,7 @@ export async function sendJournalAlerts(): Promise<AlertResult> {
   const rows = claimed.map((r) => `
     <tr>
       <td style="padding:12px 0;border-top:1px solid #e6e2d8;vertical-align:top;">
-        <div style="font-weight:700;color:#050a30;">#${r.number ?? "—"} · ${esc(r.name ?? "Journal entry")}</div>
+        <div style="font-weight:700;color:#050a30;">#${r.number ?? ""} · ${esc(r.name ?? "Journal entry")}</div>
         <div style="font-size:13px;color:#6b6a68;margin-top:2px;">Posted ${esc(day(r.post_date))}</div>
         <div style="font-size:14px;color:#b3261e;margin-top:6px;">${esc(r.message ?? "ServiceTitan gave no reason.")}</div>
         ${r.url ? `<a href="${esc(r.url)}" style="display:inline-block;margin-top:8px;font-size:13px;font-weight:700;color:#c2521a;text-decoration:none;">Open in ServiceTitan →</a>` : ""}
@@ -105,7 +105,7 @@ export async function sendJournalAlerts(): Promise<AlertResult> {
   </body></html>`;
   const text = [
     subject, "",
-    ...claimed.map((r) => `#${r.number ?? "—"} ${r.name ?? "Journal entry"} (posted ${day(r.post_date)}): ${r.message ?? "no reason given"}${r.url ? `\n  ${r.url}` : ""}`),
+    ...claimed.map((r) => `#${r.number ?? ""} ${r.name ?? "Journal entry"} (posted ${day(r.post_date)}): ${r.message ?? "no reason given"}${r.url ? `\n  ${r.url}` : ""}`),
     "", `Every journal entry: ${page}`,
   ].join("\n");
 

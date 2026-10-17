@@ -15,6 +15,23 @@ export const PERIODS = [
 ] as const;
 export type PeriodKey = (typeof PERIODS)[number]["k"];
 
+/**
+ * The period tabs as the office reads them: the months by name, newest
+ * first, then the financial year, then the last twelve months. Worked out
+ * each time, because the names move with the calendar.
+ */
+export function periodItems(): { k: PeriodKey; label: string }[] {
+  const t = localToday();
+  const name = (back: number) => new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - back, 1)).toLocaleDateString("en-AU", { month: "long", timeZone: "UTC" });
+  return [
+    { k: "month", label: name(0) },
+    { k: "lastmonth", label: name(1) },
+    { k: "prevmonth", label: name(2) },
+    { k: "fy", label: "This financial year" },
+    { k: "12m", label: "Last 12 months" },
+  ];
+}
+
 export const readPeriod = (v: string | undefined, dflt: PeriodKey = "fy"): PeriodKey =>
   PERIODS.some((p) => p.k === v) ? (v as PeriodKey) : dflt;
 

@@ -19,7 +19,12 @@ export type Todo = {
   createdById: string | null;
   createdBy: string | null;
   createdAt: string;
+  /** The list it's on: Quoting, Advanced Gas, or one the office added. Null sits in the first. */
+  list: string | null;
 };
+
+/** The lists until the office changes them on the page. */
+export const DEFAULT_LISTS = ["Quoting", "Advanced Gas"];
 
 export type Person = { id: string; name: string };
 

@@ -23,8 +23,16 @@ export const DAYS_ON_TOOLS = 205;
 export type CoverInputs = {
   techWage: number;
   appWage: number;
+  /** Vans on the road: everyone billing from a van of their own. */
   techs: number;
+  /** Apprentices riding with someone, adding pay and no hours. */
   apps: number;
+  /**
+   * Of the vans on the road, how many an apprentice drives. They bill like any
+   * van but are paid an apprentice's wage, so the hour counts their van and
+   * their own pay, not a tradesman's.
+   */
+  appVans?: number;
   /** Hours of the day that get billed. */
   billPerDay: number;
   /** Hours in the day they're paid for. */
@@ -101,8 +109,9 @@ export function coverHour(lines: CoverLine[], fleet: Fleet, onCostPct: number, i
   const perVanEach = fleet.vans > 0 ? lines.filter((l) => l.perVan).reduce((a, l) => a + l.annual, 0) / fleet.vans : 0;
   const overhead = fixed + perVanEach * vansFor(fleet, i.techs);
   const loaded = 1 + onCostPct / 100;
-  const techPay = i.techs * i.techWage * PAID_HRS_YEAR * loaded;
-  const appPay = i.apps * i.appWage * PAID_HRS_YEAR * loaded;
+  const appVans = Math.min(i.techs, Math.max(0, i.appVans ?? 0));
+  const techPay = (i.techs - appVans) * i.techWage * PAID_HRS_YEAR * loaded;
+  const appPay = (i.apps + appVans) * i.appWage * PAID_HRS_YEAR * loaded;
   const total = overhead + techPay + appPay;
   const billHrs = i.techs * i.daysOnTools * i.billPerDay;
   const per = (n: number) => (billHrs > 0 ? n / billHrs : 0);

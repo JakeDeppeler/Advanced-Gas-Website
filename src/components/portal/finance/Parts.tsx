@@ -18,7 +18,8 @@ export function Diff({ d, lowerIsBetter }: { d: number; lowerIsBetter?: boolean 
   const worse = lowerIsBetter ? d > 0 : d < 0;
   return (
     <span style={{ color: worse ? "var(--bad)" : "var(--good)", fontWeight: 700, whiteSpace: "nowrap" }}>
-      {d > 0 ? "▲ +" : "▼ −"}${Math.round(Math.abs(d)).toLocaleString("en-AU")}
+      {/* The arrow says which way; a plus or minus beside it said it twice. */}
+      {d > 0 ? "▲ " : "▼ "}${Math.round(Math.abs(d)).toLocaleString("en-AU")}
     </span>
   );
 }

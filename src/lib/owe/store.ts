@@ -1,6 +1,7 @@
 import "server-only";
 import { q, sbInsert, sbSelect, sbUpdate, sbUpsert } from "@/lib/dashboard/db";
-import { isPriority, supplierKey, type Owed, type Priority, type SupplierPriority } from "./types";
+import { getSettings, saveSettings } from "@/lib/portal/db";
+import { isArrangementKind, isPriority, supplierKey, type Arrangement, type Owed, type Priority, type SupplierPriority } from "./types";
 
 export async function listPriorities(): Promise<SupplierPriority[]> {
   const rows = await sbSelect<{ supplier: string; priority: string; reason: string | null }>("portal_supplier_priority", q.select("supplier,priority,reason")).catch(() => []);
@@ -24,4 +25,20 @@ export async function addPayable(input: { supplier: string; what: string | null;
 
 export async function closePayable(id: string, how: "paid" | "removed"): Promise<void> {
   await sbUpdate("portal_payables", `id=eq.${encodeURIComponent(id)}`, how === "paid" ? { paid_at: new Date().toISOString() } : { removed_at: new Date().toISOString() });
+}
+
+/* ---------------------------------------------------------- arrangements */
+
+const ARR = "owe-arrangements";
+
+/** Suppliers on a payment plan or a line of credit, kept in portal_settings. */
+export async function listArrangements(): Promise<Arrangement[]> {
+  const saved = await getSettings<{ list?: Arrangement[] }>(ARR).catch(() => null);
+  return (saved?.list ?? []).filter((a) => a && typeof a.supplier === "string" && isArrangementKind(a.kind));
+}
+
+export async function setArrangement(a: Arrangement | { supplier: string; kind: null }): Promise<{ ok: boolean }> {
+  const key = supplierKey(a.supplier);
+  const rest = (await listArrangements()).filter((x) => supplierKey(x.supplier) !== key);
+  return saveSettings(ARR, { list: a.kind ? [...rest, a as Arrangement] : rest });
 }

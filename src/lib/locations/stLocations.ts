@@ -111,7 +111,7 @@ export async function loadSpec(customerId: number): Promise<ImportSpec | null> {
 export function specProblem(spec: ImportSpec): string | null {
   if (!Number.isInteger(spec.customerId) || spec.customerId <= 0) return "No customer.";
   if (!spec.locations.length) return "The list is empty.";
-  if (spec.locations.length > 2000) return "That's more than 2,000 locations — split the list.";
+  if (spec.locations.length > 2000) return "That's more than 2,000 locations, split the list.";
   for (const l of spec.locations) {
     if (!l?.name?.trim()) return "Every location needs a name.";
     if (!l.address?.street || !l.address.city || !l.address.zip) {

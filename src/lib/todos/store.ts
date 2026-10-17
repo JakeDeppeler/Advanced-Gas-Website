@@ -4,7 +4,7 @@ import { q, sbInsert, sbSelect, sbUpdate, sbUpdateReturning } from "@/lib/dashbo
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getSettings, listUsers, saveSettings } from "@/lib/portal/db";
 import { can, type PortalUser } from "@/lib/portal/caps";
-import { dueState, type Person, type Todo } from "@/lib/todos/types";
+import { DEFAULT_LISTS, dueState, type Person, type Todo } from "@/lib/todos/types";
 
 /**
  * Where the to-dos live, and who sees which.
@@ -17,16 +17,18 @@ import { dueState, type Person, type Todo } from "@/lib/todos/types";
  */
 
 const T = "portal_todos";
-const COLS = "id,title,notes,assignee_id,due_on,done_at,done_by,created_by_id,created_by,created_at";
+const COLS = "id,title,notes,assignee_id,due_on,done_at,done_by,created_by_id,created_by,created_at,list";
 
 type Row = {
   id: string; title: string; notes: string | null; assignee_id: string | null; due_on: string;
   done_at: string | null; done_by: string | null; created_by_id: string | null; created_by: string | null; created_at: string;
+  list: string | null;
 };
 
 const toTodo = (r: Row): Todo => ({
   id: r.id, title: r.title, notes: r.notes, assigneeId: r.assignee_id, dueOn: r.due_on,
   doneAt: r.done_at, doneBy: r.done_by, createdById: r.created_by_id, createdBy: r.created_by, createdAt: r.created_at,
+  list: r.list ?? null,
 });
 
 export const todayMelbourne = () => isoDateMelbourne(new Date());
@@ -71,6 +73,21 @@ export const officeIds = cache(async (): Promise<string[]> => {
 
 export async function saveOfficeIds(ids: string[]): Promise<{ ok: boolean }> {
   return saveSettings(OFFICE, { ids: [...new Set(ids)].slice(0, 12) });
+}
+
+/* -------------------------------------------------------------- the lists */
+
+const LISTS = "todo-lists";
+
+/** The to-do lists, in the order they sit across the page. */
+export const todoLists = cache(async (): Promise<string[]> => {
+  const saved = await getSettings<{ names?: string[] }>(LISTS).catch(() => null);
+  return Array.isArray(saved?.names) && saved.names.length ? saved.names : DEFAULT_LISTS;
+});
+
+export async function saveTodoLists(names: string[]): Promise<{ ok: boolean }> {
+  const clean = [...new Set(names.map((n) => n.trim().slice(0, 40)).filter(Boolean))].slice(0, 12);
+  return saveSettings(LISTS, { names: clean });
 }
 
 /** Sees and adds to everyone's list: in the office, or an admin who manages the team. */
@@ -133,7 +150,7 @@ export async function overdueByPerson(): Promise<Array<{ name: string; n: number
 
 /* ----------------------------------------------------------------- writes */
 
-export async function createTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; by: Person }): Promise<void> {
+export async function createTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; by: Person; list?: string | null }): Promise<void> {
   await sbInsert(T, {
     title: input.title.trim().slice(0, 300),
     notes: input.notes?.trim() ? input.notes.trim().slice(0, 2000) : null,
@@ -141,15 +158,17 @@ export async function createTodo(input: { title: string; notes?: string | null; 
     due_on: input.dueOn,
     created_by_id: input.by.id,
     created_by: input.by.name,
+    list: input.list?.trim() ? input.list.trim().slice(0, 40) : null,
   });
 }
 
-export async function updateTodo(id: string, patch: { title?: string; notes?: string | null; assigneeId?: string; dueOn?: string }): Promise<void> {
+export async function updateTodo(id: string, patch: { title?: string; notes?: string | null; assigneeId?: string; dueOn?: string; list?: string | null }): Promise<void> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.title !== undefined) body.title = patch.title.trim().slice(0, 300);
   if (patch.notes !== undefined) body.notes = patch.notes?.trim() ? patch.notes.trim().slice(0, 2000) : null;
   if (patch.assigneeId !== undefined) body.assignee_id = patch.assigneeId;
   if (patch.dueOn !== undefined) body.due_on = patch.dueOn;
+  if (patch.list !== undefined) body.list = patch.list?.trim() ? patch.list.trim().slice(0, 40) : null;
   await sbUpdate(T, `${q.eq("id", id)}&removed_at=is.null`, body);
 }
 
