@@ -179,6 +179,8 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/website?tab=dropoff", label: "Drop-off", blurb: "Where people stop", band: "marketing", icon: "funnel", also: ["drop off", "abandon", "form"] },
     { href: "/portal/marketing?tab=emails", label: "Email list", blurb: "Everyone we can email, to export", band: "marketing", icon: "list", also: ["email", "mailing list", "newsletter", "export", "csv", "unsubscribe", "edm"] },
     { href: "/portal/marketing?tab=reviews", label: "Reviews", blurb: "Google reviews to answer", band: "marketing", icon: "star", also: ["google", "review", "rating"] },
+    { href: "/portal/materials", label: "Marketing materials", short: "Materials", blurb: "Flyers, logos and artwork, current or no longer used", band: "marketing", icon: "doc", also: ["materials", "flyer", "brochure", "logo", "artwork", "pdf", "png", "files", "brand", "print"] },
+    { href: "/portal/marketing?tab=social", label: "Instagram", blurb: "What we're posting", band: "marketing", icon: "globe", also: ["instagram", "social", "posts", "ig"] },
     { href: "/portal/blog", label: "Blog", blurb: "Posts on the website", band: "marketing", icon: "doc", also: ["article", "post", "write", "publish"] },
   );
 
@@ -317,8 +319,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/finance/capacity?part=markup", label: "Markup", blurb: "Markup on materials and units", band: "hidden", icon: "tag", also: ["markup", "margin", "materials", "units"] },
     { href: "/portal/finance/planning", label: "Future", blurb: "3 vans against 4 or 5, hire someone, and other what-ifs", band: "hidden", icon: "trend", also: ["what if", "hire", "planning", "add a person", "future", "more vans", "fewer vans", "3 vans", "5 vans"] },
     { href: "/portal/marketing?tab=ads", label: "Ads", blurb: "What the ads cost and bring in", band: "hidden", icon: "speaker", also: ["ads", "google ads", "facebook ads"] },
-    { href: "/portal/marketing?tab=social", label: "Social", blurb: "Posts on social media", band: "hidden", icon: "chat", also: ["social", "instagram", "facebook"] },
-    { href: "/portal/marketing?tab=assets", label: "Files", blurb: "Logos, artwork, PDFs and photos, in folders", band: "hidden", icon: "grid", also: ["brand", "logo", "colours", "photos", "files", "folder", "pdf", "png", "brand assets"] },
   );
   add(admin, { href: "/portal/commission", label: "Commission", blurb: "The month target and the bonus", band: "hidden", icon: "target", also: ["commission", "bonus", "month target", "incentive"] });
   items.push({ href: "/portal/settings", label: "Settings", blurb: "How the portal looks, and what the business has", band: "hidden", icon: "user", also: ["settings", "theme", "dark mode", "business name", "start page"] });

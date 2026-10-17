@@ -151,12 +151,12 @@ export const SECTION_DEFS: SectionDef[] = [
         label: "Marketing", tab: "Campaigns", href: "/portal/marketing",
         subs: [
           { label: "Instagram", href: "/portal/marketing?tab=social" },
-          { label: "Materials", href: "/portal/marketing?tab=assets" },
           { label: "Reviews", href: "/portal/marketing?tab=reviews" },
           { label: "Ads", href: "/portal/marketing?tab=ads" },
           { label: "Email list", href: "/portal/marketing?tab=emails" },
         ],
       },
+      { label: "Materials", href: "/portal/materials" },
       { label: "Blog", href: "/portal/blog" },
     ],
   },

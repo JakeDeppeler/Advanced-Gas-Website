@@ -67,6 +67,19 @@ export const readTheme = (v: string | undefined): ThemeChoice => (v === "dark" |
 /** The side bar open or small. Kept per device. */
 export const NAV_COOKIE = "pt_nav";
 
+/**
+ * Which sections sit under More on the wide top bar rather than on it. Kept
+ * per device, like the theme, and each person picks their own: the office
+ * lives in different sections to the owner.
+ *
+ * Out of the box the bar keeps the everyday sections and tucks the ones
+ * opened now and then; "-" saved means nothing tucked, everything on the bar.
+ */
+export const BAR_COOKIE = "pt_bar";
+export const DEFAULT_MORE = ["numbers", "cust", "crew", "orders", "how"];
+export const readBar = (v: string | undefined): string[] =>
+  v === undefined ? DEFAULT_MORE : v === "-" ? [] : v.split(".").filter((x) => /^[a-z]{2,12}$/.test(x));
+
 /** Where the portal opens. Kept per device, like the theme. */
 export const START_COOKIE = "pt_start";
 export const START_PAGES: { key: string; label: string; href: string; needs?: "office" | "wall" }[] = [
