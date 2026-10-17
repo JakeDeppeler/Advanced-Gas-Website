@@ -1921,8 +1921,9 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .rv-facts dt { font-size: 12px; color: var(--ink3); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 .rv-facts dd { margin: 3px 0 0; font-size: 15px; font-weight: 600; }
 /* Columns, not a grid: the lists run to different lengths, and a grid left holes beside the short ones. */
-.rv-grid { columns: 2; column-gap: 16px; }
-.rv-grid > .rv-sec { break-inside: avoid; margin-bottom: 16px; }
+/* A grid, not columns: each pair of cards starts on the same line and ends level with its neighbour. */
+.rv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.rv-grid > .rv-sec { margin: 0; }
 .rv-sec h2, .rv-h2 { margin: 0 0 12px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .rv-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 14.5px; line-height: 1.5; }
 .rv-points li { position: relative; padding-left: 26px; }
@@ -1938,7 +1939,7 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .rv-up p { margin: 0; font-size: 15px; line-height: 1.55; max-width: 80ch; opacity: .88; }
 .rv-upbtn { background: #fff; color: #1d1d1f; }
 .rv-edit { display: grid; gap: 14px; }
-@media (max-width: 900px) { .rv-grid { columns: 1; } }
+@media (max-width: 900px) { .rv-grid { grid-template-columns: 1fr; } }
 
 /* The ladder: top rung first, a numbered step down the left of each. */
 .ld-ladder { width: min(720px, 100%); }
@@ -2358,3 +2359,23 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 
 /* Pipeline cards: the day it was quoted, under who and where. */
 .qp-card .qp-quoted { opacity: .8; font-size: 12.5px; margin-top: 1px; }
+
+/* Kit lists: every group's table on the same columns. */
+.pt-kit__tbl { table-layout: fixed; width: 100%; min-width: 640px; }
+.pt-kit__c-item { width: 30%; }
+.pt-kit__c-min { width: 120px; }
+.pt-kit__c-tick { width: 0; }
+.pt-kit__tbl th:nth-child(2), .pt-kit__tbl td:nth-child(2) { text-align: right; }
+.pt-kit__tbl .pt-kit__van { text-align: right; }
+.pt-kit__tbl td:first-child { overflow-wrap: anywhere; }
+@media print { .pt-kit__tbl { table-layout: auto; min-width: 0; } }
+
+/* To-do: with five lists across, a list's name gets the room; its move and
+   remove buttons show when the pointer's on the list (always on touch). */
+@media (hover: hover) {
+  .td-col .td-order, .td-col .td-round[aria-label^="Take"] { display: none; }
+  .td-col:hover .td-order, .td-col:focus-within .td-order { display: inline-flex; }
+  .td-col:hover .td-round[aria-label^="Take"], .td-col:focus-within .td-round[aria-label^="Take"] { display: grid; }
+}
+.td-col .qp-colh h2 { min-width: 0; flex: 0 1 auto; }
+.td-col .qp-colh .td-colacts { flex: none; }

@@ -173,9 +173,10 @@ export async function createTodo(input: { title: string; notes?: string | null; 
  * A to-do the portal writes by itself (Settings › Automatic). Nobody wrote
  * it, so it carries no author id and says "Automatic" where a name would go.
  */
-export async function createAutoTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; list?: string | null }): Promise<void> {
+export async function createAutoTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; list?: string | null }): Promise<string | null> {
+  const title = input.title.trim().slice(0, 300);
   await sbInsert(T, {
-    title: input.title.trim().slice(0, 300),
+    title,
     notes: input.notes?.trim() ? input.notes.trim().slice(0, 2000) : null,
     assignee_id: input.assigneeId,
     due_on: input.dueOn,
@@ -183,6 +184,9 @@ export async function createAutoTodo(input: { title: string; notes?: string | nu
     created_by: "Automatic",
     list: input.list?.trim() ? input.list.trim().slice(0, 40) : null,
   });
+  // Its id, so the job that wrote it can tick it off when the thing is done.
+  const [row] = await sbSelect<{ id: string }>(T, [q.select("id"), q.eq("created_by", "Automatic"), q.eq("title", title), "order=created_at.desc", "limit=1"].join("&")).catch(() => []);
+  return row?.id ?? null;
 }
 
 export async function updateTodo(id: string, patch: { title?: string; notes?: string | null; assigneeId?: string; dueOn?: string; list?: string | null }): Promise<void> {

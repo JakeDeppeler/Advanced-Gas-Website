@@ -246,8 +246,11 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
         <div className="td-board">
           {lists.map((l, i) => {
             const tone = TONES[i % TONES.length];
-            // Newest first: what was just added is what's in front of you.
-            const items = shown.filter((t) => listOf(t) === l).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+            // Overdue at the top, longest late first; then newest first, so what
+            // was just added is what's in front of you.
+            const late = (t: Todo) => dueState(t, today) === "overdue";
+            const items = shown.filter((t) => listOf(t) === l).sort((a, b) =>
+              late(a) !== late(b) ? (late(a) ? -1 : 1) : late(a) ? a.dueOn.localeCompare(b.dueOn) : b.createdAt.localeCompare(a.createdAt));
             const can = !!drag && live.find((x) => x.id === drag)?.list !== l;
             return (
               <section

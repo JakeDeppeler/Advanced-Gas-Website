@@ -17,12 +17,10 @@ export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
   officeTo: string | null;
-  /** Who gets the invoicing and overdue to-dos, on the Accounts list. Null: the office's person. */
+  /** Who gets the invoicing and overdue to-dos, on the Finance list. Null: the office's person. */
   accountsTo: string | null;
 };
-// Quote follow-ups are off: Jake wants them worked on the Pipeline, by its
-// 2-day, 4-day, 1-week rule, not as to-dos.
-const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "quoteFollow"];
+const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck"];
 
 const LOG = "automation_log";
 const SW = "automation";
