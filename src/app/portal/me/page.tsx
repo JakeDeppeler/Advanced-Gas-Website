@@ -30,7 +30,14 @@ export default async function MyFile() {
 
   return (
     <PortalShell user={me}>
-      <PageHead title={<>Where you&rsquo;re at, {me.name.split(" ")[0]}.</>} line="What's expected of you, your goals and your reviews. Set by your manager." />
+      <div className="sx">
+      <PageHead hi="My file" title={<>Where you&rsquo;re at, {me.name.split(" ")[0]}.</>} line="What's expected of you, your goals and your reviews. Set by your manager."
+        kpis={c ? [
+          { icon: "calendar", fig: `${c.leaveDays} days`, label: "Annual leave a year" },
+          { icon: "clock", fig: `${c.rdoDays} days`, label: "RDOs" },
+          { icon: "alert", fig: `${c.sickDays} days`, label: "Sick leave" },
+          { icon: "calendar", fig: `${c.phDays} days`, label: "Public holidays" },
+        ] : undefined} />
 
       {!record?.id && (
         <div className="pt-note">Your file isn&rsquo;t set up yet. Once a manager adds goals or a review, they&rsquo;ll show here.</div>
@@ -38,17 +45,7 @@ export default async function MyFile() {
 
       {c && (
         <section className="pt-myyear" aria-labelledby="my-year">
-          <h2 id="my-year">Your year</h2>
-          <div className="pt-myyear__days">
-            {[
-              ["Annual leave", c.leaveDays], ["RDOs", c.rdoDays], ["Sick leave", c.sickDays], ["Public holidays", c.phDays],
-            ].map(([k, v]) => (
-              <div key={k as string} className="pt-myyear__tile">
-                <span>{k}</span>
-                <strong>{v}<em> days</em></strong>
-              </div>
-            ))}
-          </div>
+          <h2 id="my-year" className="pn-vh">Your rates</h2>
           <div className="pt-myyear__rates">
             <div><span>Overtime</span><strong>{c.otMult}× · {money2(c.wage * c.otMult)}/hr</strong></div>
             <div><span>Nights</span><strong>{c.nightMult}× · {money2(c.wage * c.nightMult)}/hr</strong></div>
@@ -107,6 +104,7 @@ export default async function MyFile() {
           the mock, which predates the van checks; it sits under the file
           rather than above it. */}
       <PersonVan {...vanView} mine />
+    </div>
     </PortalShell>
   );
 }

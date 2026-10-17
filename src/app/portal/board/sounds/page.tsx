@@ -27,13 +27,15 @@ export default async function BoardSoundsPage() {
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Sounds" line="What the TV plays for a new quote, a finished job, a sale and a new lead."
+      <div className="sx">
+      <PageHead hi="Wall board" title="Sounds" line="What the TV plays for a new quote, a finished job, a sale and a new lead."
         info={<p>Pick a sound for each and how loud. Upload your own MP3s below. The TV picks up a change within about ten seconds.</p>} />
       {!ready && <div className="pt-note pt-note--warn"><strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.</div>}
       <BoardSounds
         plan={plan}
         files={files.map(({ id, name, bytes, seconds, addedBy, addedAt }) => ({ id, name, bytes, seconds, addedBy, addedAt }))}
       />
+    </div>
     </PortalShell>
   );
 }

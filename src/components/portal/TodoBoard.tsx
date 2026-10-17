@@ -151,7 +151,7 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
  * there. A card drags from one list to another, and the office can add a
  * list or take an empty one away.
  */
-export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists }: Props) {
+export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -164,6 +164,11 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   const [newName, setNewName] = useState("");
   const [moved, setMoved] = useState<Record<string, string>>({});
   useEffect(() => setMoved({}), [todos]);
+  // The order is moved here at once and saved behind it, so a list doesn't
+  // jump back to where it was for the second the save takes.
+  const [lists, setLists] = useState(savedLists);
+  useEffect(() => setLists(savedLists), [savedLists]);
+  const [colDrag, setColDrag] = useState<string | null>(null);
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(null), 4500); return () => clearTimeout(t); }, [msg]);
   const name = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
 
@@ -192,6 +197,14 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   const listOf = (t: Todo) => (t.list && lists.includes(t.list) ? t.list : lists[0]);
   const forId = all && view !== "all" ? view : meId ?? "";
   const showWho = all ? view === "all" : true;
+
+  const moveList = (l: string, to: number) => {
+    const next = lists.filter((x) => x !== l);
+    next.splice(Math.max(0, Math.min(to, next.length)), 0, l);
+    if (next.join("\n") === lists.join("\n")) return;
+    setLists(next);
+    run(() => saveLists(next), "Order saved.");
+  };
 
   const dropOn = (l: string) => {
     const t = live.find((x) => x.id === drag);
@@ -239,11 +252,21 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
             return (
               <section
                 key={l} className={`qp-col td-col t-${tone}${drag ? (can ? " can" : "") : ""}${over === l ? " over" : ""}`} aria-labelledby={`td-h-${i}`}
-                onDragOver={(e) => { if (drag) { e.preventDefault(); if (over !== l) setOver(l); } }}
+                onDragOver={(e) => { if (drag || (colDrag && colDrag !== l)) { e.preventDefault(); if (over !== l) setOver(l); } }}
                 onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver((o) => (o === l ? null : o)); }}
-                onDrop={(e) => { e.preventDefault(); dropOn(l); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (colDrag) { const c = colDrag; setColDrag(null); setOver(null); moveList(c, i); }
+                  else dropOn(l);
+                }}
               >
-                <header className="qp-colh">
+                <header
+                  className={`qp-colh${all ? " td-grab" : ""}${colDrag === l ? " dragging" : ""}`}
+                  draggable={all && renaming !== l}
+                  onDragStart={(e) => { if (!all) return; setColDrag(l); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", l); }}
+                  onDragEnd={() => { setColDrag(null); setOver(null); }}
+                  title={all ? "Drag to move this list" : undefined}
+                >
                   <i className={`qp-dot td-dot t-${tone}`} aria-hidden="true" />
                   {renaming === l ? (
                     <form className="td-rename" onSubmit={(e) => { e.preventDefault(); if (newName.trim() && newName.trim() !== l) run(() => renameList(l, newName), "Renamed.", () => setRenaming(null)); else setRenaming(null); }}>
@@ -254,6 +277,12 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
                   ) : <h2 id={`td-h-${i}`}>{l}</h2>}
                   <span className="qp-n">{items.length}</span>
                   <span className="td-colacts">
+                    {all && lists.length > 1 && (
+                      <span className="td-order" role="group" aria-label={`Move the ${l} list`}>
+                        <button type="button" className="td-round td-arrow" aria-label={`Move ${l} left`} title="Move left" disabled={i === 0 || pending} onClick={() => moveList(l, i - 1)}>‹</button>
+                        <button type="button" className="td-round td-arrow" aria-label={`Move ${l} right`} title="Move right" disabled={i === lists.length - 1 || pending} onClick={() => moveList(l, i + 1)}>›</button>
+                      </span>
+                    )}
                     {all && !items.length && lists.length > 1 && (
                       <button type="button" className="td-round" aria-label={`Take the ${l} list away`} title="Take this list away" onClick={() => { if (confirm(`Take the "${l}" list away?`)) run(() => saveLists(lists.filter((x) => x !== l)), "List taken away."); }}>×</button>
                     )}

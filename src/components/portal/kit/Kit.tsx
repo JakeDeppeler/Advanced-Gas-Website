@@ -205,6 +205,17 @@ const KPI_ICON: Record<string, string> = {
   doc: "M14 3H6v18h12V7zM14 3v4h4M9 12h6M9 16h6",
   clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 7v5l3 2",
   bars: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  check: "M20 6 9 17l-5-5",
+  alert: "M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z",
+  people: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
+  mail: "M3 5h18v14H3zM3 6l9 7 9-7",
+  bell: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0",
+  tag: "M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8ZM7.5 7.5h.01",
+  plug: "M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4",
+  tv: "M3 5h18v12H3zM8 21h8M12 17v4",
+  sound: "M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14",
+  calendar: "M3 5h18v16H3zM16 3v4M8 3v4M3 10h18",
+  bolt: "M13 2 3 14h9l-1 8 10-12h-9z",
 };
 export type Kpi = { icon: keyof typeof KPI_ICON | string; fig: ReactNode; label: ReactNode; badge?: ReactNode; tone?: "up" | "down" | "gold"; href?: string };
 
@@ -220,19 +231,26 @@ export function KpiHead({ title, kpis, hi }: { title: ReactNode; kpis: Kpi[]; hi
         {hi && <span className="rp-hi">{hi}</span>}
         <h1>{title}</h1>
       </div>
-      <div className="rp-kpis">
-        {kpis.map((k, i) => {
-          const body = (
-            <>
-              <span className="rp-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={KPI_ICON[k.icon] ?? k.icon} /></svg>
-              </span>
-              <span><b>{k.fig}{k.badge != null && <em className={`rp-badge ${k.tone ?? "gold"}`}>{k.badge}</em>}</b><small>{k.label}</small></span>
-            </>
-          );
-          return k.href ? <Link key={i} href={k.href} className="rp-kpi">{body}</Link> : <div key={i} className="rp-kpi">{body}</div>;
-        })}
-      </div>
+      <KpiRow kpis={kpis} />
     </header>
+  );
+}
+
+/** The figures beside a page title, each in a round icon. */
+export function KpiRow({ kpis }: { kpis: Kpi[] }) {
+  return (
+    <div className="rp-kpis">
+      {kpis.map((k, i) => {
+        const body = (
+          <>
+            <span className="rp-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={KPI_ICON[k.icon] ?? k.icon} /></svg>
+            </span>
+            <span><b>{k.fig}{k.badge != null && <em className={`rp-badge ${k.tone ?? "gold"}`}>{k.badge}</em>}</b><small>{k.label}</small></span>
+          </>
+        );
+        return k.href ? <Link key={i} href={k.href} className="rp-kpi">{body}</Link> : <div key={i} className="rp-kpi">{body}</div>;
+      })}
+    </div>
   );
 }

@@ -76,9 +76,10 @@ export default async function BoardPage() {
 
   return (
     <PortalShell user={user}>
+      <div className="sx">
       {/* The board is gated by a shared token rather than a login, so it
           cannot be linked to directly; /open checks the session first. */}
-      <PageHead title="Targets & commission" line="What the board is aiming at this month, from the year goal."
+      <PageHead hi="Wall board" title="Targets & commission" line="What the board is aiming at this month, from the year goal."
         info={<p>Every target on the wall comes from the year goal, worked out fresh for the month on every refresh. Change the goal and the board follows within the minute.</p>}
         action={<a className="qp-btn dark" href="/portal/finance/board/open" target="_blank" rel="noreferrer">Open the live board ↗</a>} />
 
@@ -115,6 +116,7 @@ export default async function BoardPage() {
       <BoardCommission initial={cfg.commissionTiers} canSave={ready} />
 
       <BoardCalendar workingDays={cfg.workingDays} holidays={cfg.holidays} now={now.toISOString()} />
+    </div>
     </PortalShell>
   );
 }

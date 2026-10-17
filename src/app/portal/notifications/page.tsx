@@ -22,8 +22,12 @@ export default async function NotificationsPage() {
 
   return (
     <PortalShell user={user}>
+      <div className="sx">
       <div className="nt-wide">
-      <PageHead title="For you" line="What needs doing, and what's new." action={<MarkAllRead disabled={!notices.some((n) => n.unread)} />} />
+      <PageHead hi="Settings" title="For you" line="What needs doing, and what's new." kpis={[
+        { icon: "bell", fig: String(notices.filter((n) => n.group === GROUPS[0].key).length), label: GROUPS[0].label },
+        { icon: "doc", fig: String(notices.filter((n) => n.unread).length), label: "Not read yet" },
+      ]} action={<MarkAllRead disabled={!notices.some((n) => n.unread)} />} />
 
       {notices.length === 0 ? (
         <section className="pt-panel pt-empty">
@@ -59,6 +63,7 @@ export default async function NotificationsPage() {
         })}</div>
       )}
       </div>
+    </div>
     </PortalShell>
   );
 }

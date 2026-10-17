@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, redraft, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { stockKey } from "@/lib/ordering/stockKey";
@@ -550,28 +550,31 @@ const StockedCtx = createContext<Set<string>>(new Set());
  * new and redraft from it; the cheap re-read in between picks up anyone
  * else's approvals. Says when it last looked.
  */
-function PullLatest() {
+function PullLatest({ which }: { which: "next" | "this" }) {
   const router = useRouter();
   const [at, setAt] = useState<string | null>(null);
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const go = useCallback(async () => {
-    if (document.visibilityState !== "visible") return;
+  const go = useCallback(async (byHand = false) => {
+    if (!byHand && document.visibilityState !== "visible") return;
     setBusy(true);
-    await pullLatest().catch(() => undefined);
+    const r = await pullLatest(byHand ? which : undefined).catch((e: Error) => ({ ok: false, error: e.message, note: undefined }));
     setBusy(false);
+    setNote(byHand ? (r.ok ? (r.note ? { ok: true, text: r.note } : null) : { ok: false, text: r.error ?? "Couldn't check." }) : null);
     setAt(new Date().toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" }));
     router.refresh();
-  }, [router]);
+  }, [router, which]);
   useEffect(() => {
     go();
-    const t = setInterval(go, 10 * 60_000);
+    const t = setInterval(() => go(), 10 * 60_000);
     return () => clearInterval(t);
   }, [go]);
   return (
     <p className="nw-live" role="status">
       <i className={busy ? "on" : undefined} aria-hidden="true" />
       {busy ? "Checking ServiceTitan for new bookings…" : at ? `Checked ServiceTitan at ${at}. It checks again every 10 minutes while this page is open.` : "Checks ServiceTitan every 10 minutes while this page is open."}
-      <button type="button" className="rc-mark" onClick={go} disabled={busy}>Check now</button>
+      {note && !busy && <span className={`pt-inline ${note.ok ? "is-ok" : "is-err"}`}>{note.text}</span>}
+      <button type="button" className="rc-mark" onClick={() => go(true)} disabled={busy}>Check now</button>
     </p>
   );
 }
@@ -832,7 +835,7 @@ export function NextWeekOrders(props: {
   return (
     <StockedCtx.Provider value={new Set(props.stocked ?? [])}>
     <div className="pt-nw">
-      {view === "todo" && <PullLatest />}
+      {view === "todo" && <PullLatest which={which} />}
       {view === "todo" && !appointmentsSynced && (
         <p className="pt-note">
           <strong>Booking times are still coming across from ServiceTitan.</strong> Until they have, no install has a date, so there is
@@ -843,10 +846,6 @@ export function NextWeekOrders(props: {
       {view === "todo" && <div className="pt-nw__bar">
         <OrderAll drafts={shown.filter((o) => o.status === "draft")} byId={byId} />
         <AddStock which={which} suppliers={suppliers.filter((x) => x.active && x.method !== "work_order").sort((a, b) => a.name.localeCompare(b.name))} />
-        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => redraft(which))}>
-          {busy ? "Drafting…" : shown.some((o) => o.status === "draft") ? "Redraft from the latest bookings" : "Draft now"}
-        </button>
-        <span className="pt-nw__muted">Redraft only touches drafts, sent orders stay as they went.</span>
         <a className="pt-btn pt-btn--ghost pt-btn--sm" href="/portal/supply/emails">Supplier emails &amp; samples</a>
         {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
       </div>}
@@ -855,7 +854,7 @@ export function NextWeekOrders(props: {
         <section className="pt-panel pt-nw__problems">
           <h2 className="pt-panel__h">Needs a look</h2>
           <p className="pt-panel__sub">
-            Fix these in ServiceTitan and redraft, or order them by hand. A job that moved after its order went is never
+            Fix these in ServiceTitan and press Check now, or order them by hand. A job that moved after its order went is never
             ordered twice, the supplier just needs telling the new date. Dealt with another way? Dismiss it; it comes back only if what&rsquo;s wrong changes.
           </p>
           <ul>
@@ -895,8 +894,8 @@ export function NextWeekOrders(props: {
           <h2 className="pt-panel__h">Nothing drafted for this week yet</h2>
           <p className="pt-panel__sub">
             {which === "next"
-              ? "Next week is drafted from Wednesday, and again within minutes of any new booking. Press Draft now to make it from the bookings as they stand."
-              : "This week is drafted every weekday, within minutes of a new booking. Press Draft now to catch anything this instant."}
+              ? "Next week is drafted from Wednesday, and again within minutes of any new booking. Press Check now to make it from the bookings as they stand."
+              : "This week is drafted every weekday, within minutes of a new booking. Press Check now to catch anything this instant."}
           </p>
         </section>
       )}

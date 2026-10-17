@@ -30,20 +30,6 @@ async function office() {
 const done = () => revalidatePath("/portal/supply/next-week");
 const isId = (n: unknown): n is number => Number.isInteger(n) && (n as number) > 0;
 
-export async function redraft(which: "next" | "this"): Promise<ActionResult> {
-  const me = await office();
-  if (!me) return { ok: false, error: "Not allowed." };
-  try {
-    const week = which === "this" ? thisWeek(new Date()) : nextWeek(new Date());
-    const r = await draftWeek(week);
-    done();
-    const parts = [r.created && `${r.created} new`, r.updated && `${r.updated} updated`, r.removed && `${r.removed} no longer needed`].filter(Boolean);
-    return { ok: true, note: parts.length ? `Drafts: ${parts.join(", ")}.` : "Nothing to draft." };
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
-}
-
 export async function approve(id: number): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
@@ -286,14 +272,23 @@ export async function dismissProblem(key: string): Promise<ActionResult> {
  * GitHub runs that schedule every few hours on a quiet repository, so the page
  * that needs it fresh asks for itself.
  */
-export async function pullLatest(): Promise<ActionResult> {
+export async function pullLatest(which?: "next" | "this"): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   try {
     await refreshBoard();
     await autoDraft({ anyHour: true });
+    // Pressed by hand: also draft the week on screen. This is what Redraft
+    // used to do, and it is the only way next week drafts on a Monday or
+    // Tuesday, before the automatic run starts covering it on Wednesday.
+    let note: string | undefined;
+    if (which === "this" || which === "next") {
+      const r = await draftWeek(which === "this" ? thisWeek(new Date()) : nextWeek(new Date()));
+      const parts = [r.created && `${r.created} new`, r.updated && `${r.updated} updated`, r.removed && `${r.removed} no longer needed`].filter(Boolean);
+      note = parts.length ? `Drafts: ${parts.join(", ")}.` : "Up to date.";
+    }
     done();
-    return { ok: true };
+    return { ok: true, note };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

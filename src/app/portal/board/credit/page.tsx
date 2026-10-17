@@ -30,7 +30,8 @@ export default async function SaleCreditPage({ searchParams }: { searchParams?: 
 
   return (
     <PortalShell user={user}>
-      <PageHead title="Who sold it" line="Move a sale to the person who really did the work. Changes the leaderboard, not ServiceTitan."
+      <div className="sx">
+      <PageHead hi="Wall board" title="Who sold it" line="Move a sale to the person who really did the work. Changes the leaderboard, not ServiceTitan."
         info={<>
           <p>The board credits a job to whoever <em>wrote</em> the quote, because ServiceTitan only stamps a seller when an estimate is closed from the sell screen, and most are closed without one. That&rsquo;s right nearly always; this is for when it isn&rsquo;t.</p>
           <p>A move takes the <strong>whole job</strong>, the quote as well as the sale, so &ldquo;sold out of quoted&rdquo; stays true for both people. Every move is kept with who made it and when.</p>
@@ -41,6 +42,7 @@ export default async function SaleCreditPage({ searchParams }: { searchParams?: 
         </div>
       )}
       <SaleCredit jobs={jobs} people={people} moves={moves} totals={totals} days={days} />
+    </div>
     </PortalShell>
   );
 }
