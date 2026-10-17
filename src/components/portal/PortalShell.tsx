@@ -15,8 +15,8 @@ import { isDue, touchState } from "@/lib/contacts/types";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
-import { BAR_COOKIE, NAV_COOKIE, readBar, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
-import { ALIAS, buildSections, pathOff, type Count, type Section } from "@/lib/portal/sections";
+import { BAR_COOKIE, NAV_COOKIE, readBar, readTheme, THEME_COOKIE, type Business, type ThemeChoice } from "@/lib/portal/businessTypes";
+import { ALIAS, buildSections, pathOff, type Count, type Section, type SectionId, type SidePage } from "@/lib/portal/sections";
 import { Crumb, MenuButton, SectionBar, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shell/TopNav";
@@ -86,12 +86,12 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
 }
 
 /** The wide bar's brand and pills, with the same counts as the side bar, streamed in the same way. */
-async function CountedTop({ user, sections, biz, more }: { user: PortalUser; sections: Section[]; biz: Business; more: string[] }) {
+async function CountedTop({ user, sections, biz, more, docked }: { user: PortalUser; sections: Section[]; biz: Business; more: string[]; docked: SectionId[] }) {
   const [counts, live] = await Promise.all([sideCounts(user, sections).catch(() => ({})), liveLine(user).catch(() => null)]);
   return (
     <>
       <Brand biz={biz} live={live} />
-      <TopNav sections={buildSections(portalNav(user), biz, office(user), counts)} more={more} />
+      <TopNav sections={buildSections(portalNav(user), biz, office(user), counts)} more={more} docked={docked} />
     </>
   );
 }
@@ -100,14 +100,35 @@ async function CountedTop({ user, sections, biz, more }: { user: PortalUser; sec
  * The places someone goes many times a day, for the dock: each only if this
  * person can open it and the business has it.
  */
-const DOCK: DockLink[] = [
-  { href: "/portal/todo", label: "To-do", icon: "todo" },
-  { href: "/portal/today", label: "Today's numbers", icon: "clock" },
-  { href: "/portal/pipeline", label: "Pipeline", icon: "quote" },
-  { href: "/portal/supply/work-orders", label: "Work orders", icon: "bolt" },
+const DOCK: Array<Omit<DockLink, "match" | "count"> & { section?: SectionId }> = [
+  { href: "/portal/todo", label: "To-do", icon: "todo", section: "todo" },
+  { href: "/portal/pipeline", label: "Pipeline", icon: "quote", section: "pipe" },
+  { href: "/portal/supply/next-week", label: "Ordering", icon: "box", section: "orders" },
   { href: "/portal/board/remote", label: "Wall board", icon: "wall" },
-  { href: "/portal/settings", label: "Settings", icon: "cog" },
+  { href: "/portal/settings", label: "Settings", icon: "cog", section: "you" },
 ];
+
+/**
+ * The dock's links for this person, each with the addresses that light it:
+ * its section's pages, or for the wall board its own setup pages, which live
+ * in Settings but are their own place to go.
+ */
+function dockFor(sections: Section[], allowed: Set<string>, biz: Business, counts: Record<string, Count> = {}): DockLink[] {
+  const hrefs = (pages: SidePage[]) => pages.flatMap((p) => [p.href, ...(p.subs ?? []).map((x) => x.href)]);
+  const wall = sections.flatMap((s) => s.pages).find((p) => p.href === "/portal/board/remote");
+  const wallHrefs = wall ? hrefs([wall]) : ["/portal/board/remote"];
+  return DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz)).map((l) => {
+    const sec = l.section ? sections.find((s) => s.id === l.section) : null;
+    const match = sec ? hrefs(sec.pages).filter((h) => !wallHrefs.includes(h)) : wallHrefs;
+    return { href: l.href, label: l.label, icon: l.icon, match, count: l.section ? counts[`section:${l.section}`] : undefined, section: l.section };
+  });
+}
+
+/** The dock with its counts, streamed in like the bars' so they never hold a page up. */
+async function CountedDock({ user, sections, biz, allowed, theme }: { user: PortalUser; sections: Section[]; biz: Business; allowed: Set<string>; theme: ThemeChoice }) {
+  const counts = await sideCounts(user, sections).catch(() => ({}));
+  return <Dock links={dockFor(sections, allowed, biz, counts)} theme={theme} />;
+}
 
 /**
  * The portal's chrome, to the new design: the side bar, a top bar with where
@@ -138,7 +159,9 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
   const more = readBar(cookies().get(BAR_COOKIE)?.value);
   const first = user.name.split(" ")[0];
   const allowed = new Set(items.map((i) => i.href));
-  const dock = DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz));
+  const dock = dockFor(sections, allowed, biz);
+  // Sections that have a place in the dock come off the top bar.
+  const docked = dock.map((l) => l.section).filter((x): x is SectionId => !!x);
 
   const foot = (
     <>
@@ -166,8 +189,8 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       <div className="pn-main">
         <header className="pn-top">
           <MenuButton />
-          <Suspense fallback={<><Brand biz={biz} /><TopNav sections={sections} more={more} /></>}>
-            <CountedTop user={user} sections={sections} biz={biz} more={more} />
+          <Suspense fallback={<><Brand biz={biz} /><TopNav sections={sections} more={more} docked={docked} /></>}>
+            <CountedTop user={user} sections={sections} biz={biz} more={more} docked={docked} />
           </Suspense>
           <Crumb sections={sections} />
           <div className="pn-tools">
@@ -187,7 +210,9 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
           {children}
         </main>
       </div>
-      <Dock links={dock} theme={theme} />
+      <Suspense fallback={<Dock links={dock} theme={theme} />}>
+        <CountedDock user={user} sections={sections} biz={biz} allowed={allowed} theme={theme} />
+      </Suspense>
       <Suspense fallback={null}><FigureCount /></Suspense>
       <ChromeMemo />
     </div>

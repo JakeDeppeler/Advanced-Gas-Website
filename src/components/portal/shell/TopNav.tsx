@@ -31,9 +31,10 @@ const useHere = (sections: Section[]) => {
   return whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
 };
 
-export function TopNav({ sections, more = [] }: { sections: Section[]; more?: string[] }) {
+export function TopNav({ sections, more = [], docked = [] }: { sections: Section[]; more?: string[]; docked?: string[] }) {
   const here = useHere(sections);
-  const all = sections.filter((s) => s.id !== "you");
+  // What's in the dock down the left isn't on the bar as well.
+  const all = sections.filter((s) => s.id !== "you" && !docked.includes(s.id));
   // A tucked section stays under More even while you're in it: More goes dark
   // to say you're somewhere inside it, and the page's own row has its tabs.
   const shown = all.filter((s) => !more.includes(s.id));
@@ -166,10 +167,29 @@ export function SectionPages({ sections }: { sections: Section[] }) {
   const s = here.section;
   // A flat section's pages are already its tab row (SectionBar).
   if (!s || s.pages.length < 2 || s.flat) return null;
+  // The open page's own group (Customers › Sites, Wall board › Sounds…) runs
+  // on in the same row, after it, rather than as a second row of tabs under
+  // this one: one row of places to go, then the page.
   return (
     <nav className="pn-secpages" aria-label={s.label}>
       {s.pages.map((p) => {
         const at = p.href === here.page?.href;
+        const subs = at && p.subs?.length ? [{ ...p, label: p.tab ?? p.label }, ...p.subs] : null;
+        if (subs) {
+          return (
+            <span key={p.href} className="pn-secgroup" role="group" aria-label={p.label}>
+              {subs.map((x) => {
+                const on = x.href === here.at;
+                return (
+                  <Link key={x.href} href={x.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
+                    {x.label}
+                    {x.count?.n ? <span className={`c${x.count.red ? " r" : ""}`}>{x.count.n}</span> : null}
+                  </Link>
+                );
+              })}
+            </span>
+          );
+        }
         return (
           <Link key={p.href} href={p.href} className={at ? "on" : undefined} aria-current={at ? "page" : undefined}>
             {p.label}

@@ -2379,3 +2379,16 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 }
 .td-col .qp-colh h2 { min-width: 0; flex: 0 1 auto; }
 .td-col .qp-colh .td-colacts { flex: none; }
+
+/* Wide screens: a page's group is in the section row, so its own row goes. */
+@media (min-width: 1240px) {
+  .pn-secbar--group { display: none; }
+  .pn-secgroup { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 99px; background: var(--quiet); }
+  .pn-secgroup a { padding: 5px 12px; }
+  .pn-secgroup a.on { background: var(--rp-on-bg); color: var(--rp-on-ink); border-color: transparent; box-shadow: none; }
+}
+
+/* Dock: a count on a shortcut, as the bar's pills had. */
+.pn-dk { position: relative; }
+.pn-dkc { position: absolute; top: -3px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--ink3); color: #fff; font-size: 10.5px; font-weight: 800; display: grid; place-items: center; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
+.pn-dkc.r { background: #ff3b30; }
