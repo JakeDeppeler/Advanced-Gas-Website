@@ -26,7 +26,7 @@ import { paidKinds, type PaidKinds } from "./paidKind";
 import { SALE_CREDIT_KEY, creditWith, normaliseSaleCredits } from "./saleCreditTypes";
 import { getSettings } from "@/lib/portal/db";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
-import { crewFigures } from "../portal/crewRates";
+import { hourJobCosts } from "../portal/cover/load";
 import { currentYear, paceSettingsOf, yearSpans } from "../portal/yearGoal";
 import { journalHealth, type JournalHealth } from "@/lib/journals/read";
 import {
@@ -2461,8 +2461,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const pace = paceData ? buildPace(goal, paceSettings, paceData) : null;
   // One crew figure, two windows: the Performance page asks about the month and
   // the Pace strip about the year, and they must not disagree on what an hour
-  // costs.
-  const crew = await crewFigures().catch(() => null);
+  // costs. It's the 6-of-8 hour the pricing pages charge from.
+  const crew = await hourJobCosts().catch(() => null);
   const profitOver = async (from: string) =>
     crew == null
       ? null

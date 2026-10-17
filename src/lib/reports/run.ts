@@ -4,7 +4,7 @@ import { isoDateMelbourne, startOfMonthMelbourne, startOfWeekMelbourne, weekdayM
 import { normaliseBoardSettings } from "@/lib/dashboard/boardSettings";
 import { shiftIso } from "@/lib/dashboard/pace";
 import { jobProfits } from "@/lib/dashboard/jobProfit";
-import { crewFigures } from "@/lib/portal/crewRates";
+import { hourJobCosts } from "@/lib/portal/cover/load";
 import { getSettings } from "@/lib/portal/db";
 import { buildReport, type Period } from "@/lib/reports/build";
 import { claimReport, getReport, reportKey, reportRecipients, saveReport } from "@/lib/reports/store";
@@ -91,7 +91,7 @@ async function build(kind: ReportKind, now: Date, snap: Snapshot, at: string): P
   const period = periodOf(kind, now);
   let weekProfit = null;
   if (kind === "weekly") {
-    weekProfit = await crewFigures()
+    weekProfit = await hourJobCosts()
       .then((c) => jobProfits(period.from, period.to, c.costPerHr, snap.metrics.pace?.profitPct ?? null, c.crew))
       .then((r) => r.summary)
       .catch(() => null);
