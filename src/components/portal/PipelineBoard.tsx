@@ -64,16 +64,27 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   const [view, setView] = useState<"board" | "list">("board");
   const [fold, setFold] = useState<"lost" | "stale" | null>(null);
   const foldRef = useRef<HTMLElement>(null);
+  const router = useRouter();
+  // A quote dragged to a new column shows there at once; the server's copy
+  // replaces it when the page refreshes, and a failed save puts it back.
+  const [moved, setMoved] = useState<Record<string, { stage: Stage; nextOn: string | null }>>({});
+  const [drag, setDrag] = useState<string | null>(null);
+  const [over, setOver] = useState<Stage | "lost" | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [lostFor, setLostFor] = useState<string | null>(null);
+  useEffect(() => setMoved({}), [quotes]);
+  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 5000); return () => clearTimeout(t); }, [toast]);
+  const live = useMemo(() => quotes.map((q) => (moved[q.key] ? { ...q, ...moved[q.key] } : q)), [quotes, moved]);
 
   const shown = useMemo(() => {
     const needle = find.trim().toLowerCase();
-    return quotes.filter((q) => {
+    return live.filter((q) => {
       if (who === "none" && q.owner) return false;
       if (who !== "all" && who !== "none" && q.owner !== who) return false;
       if (needle && ![q.customer, q.suburb, q.what, q.jobNumber, q.phone].some((x) => x?.toLowerCase().includes(needle))) return false;
       return true;
     });
-  }, [quotes, who, find]);
+  }, [live, who, find]);
 
   const col = (s: Stage) => shown.filter((q) => q.stage === s).sort(
     // Late calls first, longest late at the top; then everything due today, biggest first.
@@ -95,7 +106,56 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   }, [dueN]);
   useEffect(() => { if (fold) foldRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [fold]);
 
-  const sel = [...quotes, ...stale].find((q) => q.key === open) ?? null;
+  const sel = [...live, ...stale].find((q) => q.key === open) ?? null;
+
+  /*
+   * Dragging a card is booking its next call, the one thing the columns
+   * stand for: Follow up rings today, Waiting on them books the call the
+   * board would suggest, and Lost opens the quote to say why. Just quoted
+   * and Sold aren't drop targets: one is time since the quote, the other
+   * comes from ServiceTitan when the customer says yes.
+   */
+  const dragged = drag ? live.find((q) => q.key === drag) ?? null : null;
+  const canDrop = (t: Stage | "lost") => !!dragged && dragged.stage !== t && (t === "lost" || t === "due" || t === "waiting");
+  const dropOn = (t: Stage | "lost") => {
+    const q = dragged;
+    setDrag(null);
+    setOver(null);
+    if (!q || !canDrop(t)) return;
+    if (t === "lost") { setLostFor(q.key); setOpen(q.key); return; }
+    const tries = q.touches.filter((x) => x.how !== "note").length;
+    const nextOn = t === "due" ? today : addDays(today, nextGap(tries + 1));
+    const who = q.customer ?? q.what ?? "The quote";
+    setMoved((m) => ({ ...m, [q.key]: { stage: t, nextOn } }));
+    saveFollowUp({ key: q.key, nextOn }).then((r) => {
+      if (!r.ok) {
+        setMoved((m) => { const n = { ...m }; delete n[q.key]; return n; });
+        setToast(r.error ?? "Couldn't move that. Try again.");
+        return;
+      }
+      setToast(t === "due" ? `${who} moved to Follow up, to ring today.` : `${who} moved to Waiting on them. Next call ${dayName(nextOn, today)}.`);
+      router.refresh();
+    });
+  };
+  const dropProps = (t: Stage | "lost") => ({
+    onDragOver: (e: React.DragEvent) => { if (canDrop(t)) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; if (over !== t) setOver(t); } },
+    onDragLeave: (e: React.DragEvent) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver((o) => (o === t ? null : o)); },
+    onDrop: (e: React.DragEvent) => { e.preventDefault(); dropOn(t); },
+  });
+  const dropCls = (t: Stage | "lost") => (drag ? (canDrop(t) ? " can" : " cant") : "") + (over === t ? " over" : "");
+
+  // The board as it's filtered, for a spreadsheet.
+  const download = () => {
+    const cell = (v: string | number | null | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [["Customer", "What", "Suburb", "Where it is", "Quoted", "Next call", "Who's chasing", "Worth"],
+      ...STAGES.flatMap((st) => col(st.k)).map((q) => [q.customer, q.what, q.suburb, SHORT[q.stage], q.quotedOn, q.nextOn, q.owner, Math.round(q.value)])];
+    const blob = new Blob([rows.map((r) => r.map(cell).join(",")).join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `quote-pipeline-${today}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
   const owners = [...new Set([...office, ...quotes.map((q) => q.owner).filter((o): o is string => !!o)])]
     .sort((a, b) => (a === me ? -1 : b === me ? 1 : a.localeCompare(b)));
   const clash = (o: string) => owners.filter((x) => first(x) === first(o)).length > 1;
@@ -123,6 +183,9 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
           <button type="button" className={view === "board" ? "on" : undefined} aria-pressed={view === "board"} onClick={() => setView("board")}>Board</button>
           <button type="button" className={view === "list" ? "on" : undefined} aria-pressed={view === "list"} onClick={() => setView("list")}>List</button>
         </div>
+        <button type="button" className="qp-dl" onClick={download} aria-label="Download the board as a spreadsheet" title="Download as a spreadsheet">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
+        </button>
       </div>
 
       {view === "board" ? (
@@ -131,7 +194,7 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
             const list = col(s.k);
             const sum = list.reduce((n, q) => n + q.value, 0);
             return (
-              <section key={s.k} className={`qp-col s-${s.k}`} aria-labelledby={`pipe-${s.k}`} style={{ ["--i" as string]: ci }}>
+              <section key={s.k} className={`qp-col s-${s.k}${dropCls(s.k)}`} aria-labelledby={`pipe-${s.k}`} style={{ ["--i" as string]: ci }} {...dropProps(s.k)}>
                 <header className="qp-colh">
                   <i className="qp-dot" aria-hidden="true" />
                   <h2 id={`pipe-${s.k}`} title={s.blurb}>{SHORT[s.k]}</h2>
@@ -139,14 +202,14 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
                   <span className="qp-sum">{list.length ? k1(sum) : ""}</span>
                 </header>
                 <ul className="qp-list">
-                  {list.map((q, i) => <Card key={q.key} q={q} today={today} i={i} onOpen={() => setOpen(q.key)} />)}
+                  {list.map((q, i) => <Card key={q.key} q={q} today={today} i={i} onOpen={() => setOpen(q.key)} dragging={drag === q.key} onDrag={(on) => { setDrag(on ? q.key : null); if (!on) setOver(null); }} />)}
                   {!list.length && <li className="qp-empty">{s.k === "due" ? "Nobody to ring. Nice." : s.k === "won" ? "Nothing sold in 30 days." : "Nothing here."}</li>}
                 </ul>
               </section>
             );
           })}
           <div className="qp-rail">
-            <button type="button" className={`qp-drop${fold === "lost" ? " on" : ""}`} onClick={() => setFold(fold === "lost" ? null : "lost")} aria-expanded={fold === "lost"}>
+            <button type="button" className={`qp-drop${fold === "lost" ? " on" : ""}${dropCls("lost")}`} onClick={() => setFold(fold === "lost" ? null : "lost")} aria-expanded={fold === "lost"} {...dropProps("lost")}>
               <span className="qp-dropi x" aria-hidden="true">×</span>
               <b>Lost</b>
               <span>{lost.length ? <>{plural(lost.length, "quote")} in 30 days<br />{k1(lostSum)}</> : "None in 30 days"}</span>
@@ -209,7 +272,8 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
         </section>
       )}
 
-      {sel && <Panel key={sel.key} q={sel} today={today} owners={owners} me={me} name={pill} canCustomer={canCustomer} onClose={() => setOpen(null)} />}
+      {sel && <Panel key={sel.key} q={sel} today={today} owners={owners} me={me} name={pill} canCustomer={canCustomer} startLost={lostFor === sel.key} onClose={() => { setOpen(null); setLostFor(null); }} />}
+      {toast && <p className="qp-toast" role="status">{toast}</p>}
     </div>
   );
 }
@@ -225,14 +289,20 @@ function when(q: PipeQuote, today: string): { text: string; late: number } {
   return { text: `Quoted ${ago(q.quotedOn, today)}`, late };
 }
 
-function Card({ q, today, i, onOpen }: { q: PipeQuote; today: string; i: number; onOpen: () => void }) {
+function Card({ q, today, i, onOpen, dragging, onDrag }: { q: PipeQuote; today: string; i: number; onOpen: () => void; dragging: boolean; onDrag: (on: boolean) => void }) {
   const w = when(q, today);
   const tries = q.touches.filter((t) => t.how !== "note").length;
   const people = [...new Set([q.owner, q.quotedBy].filter((x): x is string => !!x))];
   const sub = [q.customer ? q.what : null, q.suburb].filter(Boolean).join(" · ") || (q.jobNumber ? `Job ${q.jobNumber}` : "");
   return (
     <li style={{ ["--i" as string]: Math.min(i, 8) }}>
-      <button type="button" className={`qp-card s-${q.stage}${w.late ? " late" : ""}`} onClick={onOpen}>
+      <button
+        type="button" className={`qp-card s-${q.stage}${w.late ? " late" : ""}${dragging ? " dragging" : ""}`} onClick={onOpen}
+        draggable={q.stage === "new" || q.stage === "due" || q.stage === "waiting"}
+        onDragStart={(e) => { e.dataTransfer.setData("text/plain", q.key); e.dataTransfer.effectAllowed = "move"; onDrag(true); }}
+        onDragEnd={() => onDrag(false)}
+        title={[q.options > 1 ? `${q.options} options` : null, tries ? plural(tries, "try", "tries") : null, q.stage !== "won" ? "drag to move it" : null].filter(Boolean).join(" · ")}
+      >
         <span className="qp-ct">
           <span>{w.late ? <b aria-hidden="true">! </b> : null}{w.text}</span>
           <span className="qp-dots" aria-hidden="true">•••</span>
@@ -240,7 +310,7 @@ function Card({ q, today, i, onOpen }: { q: PipeQuote; today: string; i: number;
         <span className="qp-title">{q.customer ?? q.what ?? "Quote"}</span>
         <span className="qp-sub">{sub}</span>
         <span className="qp-cf">
-          <span className="qp-val">{m0(q.value)}<small>{q.stage === "won" ? (q.quotedBy ? `quoted by ${first(q.quotedBy)}` : "") : [q.options > 1 ? `${q.options} options` : null, tries ? plural(tries, "try", "tries") : q.quietDays > 0 ? `${plural(q.quietDays, "day")} quiet` : null].filter(Boolean).join(" · ")}</small></span>
+          <span className="qp-val">{m0(q.value)}</span>
           <span className="qp-avs">{people.map((p) => <Av key={p} name={p} title={p === q.owner ? `${p} is chasing it` : `Quoted by ${p}`} />)}</span>
         </span>
       </button>
@@ -248,8 +318,8 @@ function Card({ q, today, i, onOpen }: { q: PipeQuote; today: string; i: number;
   );
 }
 
-function Panel({ q, today, owners, me, name, canCustomer, onClose }: {
-  q: PipeQuote; today: string; owners: string[]; me: string; name: (o: string) => string; canCustomer: boolean; onClose: () => void;
+function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: {
+  q: PipeQuote; today: string; owners: string[]; me: string; name: (o: string) => string; canCustomer: boolean; startLost?: boolean; onClose: () => void;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -270,7 +340,7 @@ function Panel({ q, today, owners, me, name, canCustomer, onClose }: {
     if (on && !picked) setNext(addDays(today, suggested));
   };
   const [owner, setOwner] = useState<string>(q.owner ?? "");
-  const [lostOpen, setLostOpen] = useState(false);
+  const [lostOpen, setLostOpen] = useState(!!startLost);
   const [reason, setReason] = useState<string>(tries >= GIVE_UP_AFTER ? "No response" : LOST_REASONS[0]);
   const [lostNote, setLostNote] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -279,6 +349,8 @@ function Panel({ q, today, owners, me, name, canCustomer, onClose }: {
   const [said, setSaid] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Dropped on Lost: straight to why.
+  useEffect(() => { if (startLost) document.getElementById("pipe-reason")?.scrollIntoView({ block: "center" }); }, [startLost]);
   useEffect(() => {
     ref.current?.focus();
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };

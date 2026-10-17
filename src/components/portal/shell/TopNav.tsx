@@ -104,11 +104,17 @@ export function SectionPages({ sections }: { sections: Section[] }) {
 /** The business at the top left of the wide bar, with whether the sync is keeping up. */
 export function Brand({ biz, live }: { biz: { name: string; short: string }; live?: LiveState | null }) {
   return (
-    <Link href="/portal" className="pn-brand" aria-label={`${biz.name} · Home`}>
-      <span className="pn-logo" aria-hidden="true">{biz.short}</span>
+    // The sync's state is a dot on the mark, as Rapport keeps its bar to a
+    // name: green live, amber behind, with the words in its title and to a
+    // screen reader, so the colour is never the only signal.
+    <Link href="/portal" className="pn-brand" aria-label={`${biz.name} · Overview`} title={live?.title}>
+      <span className="pn-logo" aria-hidden="true">
+        {biz.short}
+        {live && <i className={`pn-logodot${live.fresh ? " good" : ""}`} />}
+      </span>
       <span className="pn-brandt">
         <b>{biz.name}</b>
-        {live ? <span title={live.title}><span className={`pn-dot${live.fresh ? " good" : ""}`} />{live.fresh ? "Live" : live.text}</span> : <span>Team portal</span>}
+        {live && <span className="pn-vh">{live.fresh ? "Live" : live.text}</span>}
       </span>
     </Link>
   );
