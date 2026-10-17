@@ -111,11 +111,11 @@
    !important because the root layout paints the body's colour inline for the
    public site. The bottom padding is room for the public site's phone call
    bar, which the portal doesn't have. */
-html:has(.pn), html:has(.pn) body { background: #f5f5f7 !important; }
+html:has(.pn), html:has(.pn) body { background: #f5f1ea !important; }
 html:has(.pn) body { padding-bottom: 0; }
-html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { background: #111113 !important; }
+html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { background: #15130f !important; }
 @media (prefers-color-scheme: dark) {
-  html:has(.pn:not([data-theme])), html:has(.pn:not([data-theme])) body { background: #111113 !important; }
+  html:has(.pn:not([data-theme])), html:has(.pn:not([data-theme])) body { background: #15130f !important; }
 }
 
 /* ------------------------------------------------------------- the frame */
@@ -222,7 +222,7 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
 .pn-main { min-width: 0; display: flex; flex-direction: column; }
 .pn-top {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 32px;
-  background: color-mix(in srgb, var(--page) 80%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--rp-wash-b) 80%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--line);
 }
 .pn-crumb { font-size: 14px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
@@ -849,15 +849,20 @@ label.pk-btn { cursor: pointer; }
 .pt.pn {
   --rp-wash-a: #fbefe4; --rp-wash-b: #f5f1ea; --rp-card: rgba(255, 255, 255, 0.78); --rp-line: rgba(60, 40, 20, 0.08);
   --rp-dark: #1f1c1a; --rp-on-dark: #f7f2ec; --rp-orange: #d24a1e; --rp-gold: #efc84a; --rp-forest: #2c5a4c; --rp-accent: #d24a1e;
+  /* What's chosen — the pill you're in, the tab you're on: near-black on the
+     light wash, cream on the dark one, where near-black wouldn't show. */
+  --rp-on-bg: #1f1c1a; --rp-on-ink: #f7f2ec; --rp-on-bad: #ff8a80; --rp-dock: #1f1c1a; --rp-dock-line: transparent;
 }
 .pt.pn[data-theme="dark"] {
   --rp-wash-a: #231a14; --rp-wash-b: #15130f; --rp-card: rgba(32, 29, 26, 0.86); --rp-line: rgba(255, 255, 255, 0.07);
   --rp-dark: #0f0e0d; --rp-on-dark: #f7f2ec; --rp-orange: #e0582b; --rp-gold: #f2cf5c; --rp-forest: #2f6353; --rp-accent: #ec6a3c;
+  --rp-on-bg: #f7f2ec; --rp-on-ink: #1f1c1a; --rp-on-bad: #c4001a; --rp-dock: #26221f; --rp-dock-line: rgba(255, 255, 255, 0.08);
 }
 @media (prefers-color-scheme: dark) {
   .pt.pn:not([data-theme]) {
     --rp-wash-a: #231a14; --rp-wash-b: #15130f; --rp-card: rgba(32, 29, 26, 0.86); --rp-line: rgba(255, 255, 255, 0.07);
     --rp-dark: #0f0e0d; --rp-on-dark: #f7f2ec; --rp-orange: #e0582b; --rp-gold: #f2cf5c; --rp-forest: #2f6353; --rp-accent: #ec6a3c;
+    --rp-on-bg: #f7f2ec; --rp-on-ink: #1f1c1a; --rp-on-bad: #c4001a; --rp-dock: #26221f; --rp-dock-line: rgba(255, 255, 255, 0.08);
   }
 }
 .pn-main:has(.rp) { background: radial-gradient(1200px 520px at 85% -10%, var(--rp-wash-a), transparent 60%), radial-gradient(900px 600px at -10% 10%, var(--rp-wash-a), transparent 55%), var(--rp-wash-b); }
@@ -985,3 +990,187 @@ label.pk-btn { cursor: pointer; }
 .rp-hh { display: grid; gap: 2px; }
 .rp-hh > b { font-size: 16px; font-weight: 600; color: var(--ink); }
 .rp-year, .rp-mix { align-self: start; }
+
+/* ------------------------------------------------------------------
+   The wide menu, after Rapport: sections as pills across the top bar, each
+   opening its pages; a dark dock of shortcuts floating down the left. Under
+   1240px none of it shows and the side bar is the menu, as before — the pills
+   need the width, and a phone keeps its drawer.
+   ------------------------------------------------------------------ */
+.pn-brand, .pn-pills, .pn-dock, .pn-secpages, .pn-avbtn, .pn-spop > .pn-round { display: none; }
+/* The whole portal sits on the overview's warm wash now, not only Home. */
+.pn-main { background: radial-gradient(1200px 520px at 85% -10%, var(--rp-wash-a), transparent 60%), radial-gradient(900px 600px at -10% 10%, var(--rp-wash-a), transparent 55%), var(--rp-wash-b); background-attachment: fixed; }
+.pn-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (min-width: 1240px) {
+  .pt.pn, .pt.pn.pn--mini { grid-template-columns: minmax(0, 1fr); }
+  .pn-side, .pn-scrim, .pn-crumb, .pn-menu, .pn-tools > .pn-theme { display: none; }
+
+  .pn-top {
+    height: 72px; padding: 0 28px; gap: 18px; border-bottom: 0;
+    background: color-mix(in srgb, var(--rp-wash-b) 72%, transparent);
+  }
+  .pn-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); flex: none; }
+  .pn-brand .pn-logo { width: 40px; height: 40px; border-radius: 50%; font-size: 13px; }
+  .pn-brandt { display: grid; line-height: 1.15; }
+  .pn-brandt b { font-family: var(--f-display, "Archivo", sans-serif); font-weight: 700; font-size: 16px; letter-spacing: -0.01em; white-space: nowrap; }
+  .pn-brandt > span { font-size: 12px; color: var(--ink2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+
+  .pn-pills {
+    display: flex; align-items: center; gap: 2px; margin: 0 auto; padding: 5px; border-radius: 99px;
+    background: var(--rp-card); border: 1px solid var(--rp-line); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 10px 26px -18px rgba(80,40,10,.25);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); min-width: 0;
+  }
+  .pn-pillw { position: relative; }
+  .pn-pill {
+    display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 15px; border-radius: 99px;
+    font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: none; white-space: nowrap;
+    transition: background .2s ease, color .2s ease;
+  }
+  .pn-pill:hover, .pn-pillw:focus-within > .pn-pill { color: var(--ink); background: var(--quiet); }
+  .pn-pill.on, .pn-pill.on:hover { background: var(--rp-on-bg); color: var(--rp-on-ink); }
+  .pn-pilln {
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--bad-f); color: #fff;
+    font-size: 10.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums;
+  }
+
+  /* The list hangs under its pill; the padding at its top is a bridge, so
+     the pointer can cross from the pill without the list closing. */
+  .pn-drop {
+    position: absolute; left: 50%; top: 100%; padding-top: 12px; z-index: 50; min-width: 250px;
+    opacity: 0; visibility: hidden; transform: translate(-50%, 6px); transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
+  }
+  .pn-pillw.many:hover > .pn-drop, .pn-pillw.many:focus-within > .pn-drop {
+    opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .18s ease, transform .18s ease, visibility 0s;
+  }
+  .pn-dropin {
+    display: grid; gap: 1px; padding: 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--rp-line);
+    box-shadow: 0 24px 50px -20px rgba(40, 20, 5, .35), 0 2px 6px rgba(0,0,0,.05);
+  }
+  .pn-droph { font-size: 12px; color: var(--ink3); padding: 6px 12px 8px; line-height: 1.35; }
+  .pn-dropa {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; font-size: 14px; font-weight: 500;
+    color: var(--ink); text-decoration: none; white-space: nowrap;
+  }
+  .pn-dropa:hover, .pn-dropa:focus-visible { background: var(--quiet); }
+  .pn-dropa.on { background: var(--rp-on-bg); color: var(--rp-on-ink); font-weight: 700; }
+  .pn-dropa.on .pn-n { color: var(--rp-on-ink); opacity: .8; }
+
+  .pn-tools { gap: 10px; }
+  .pn-round, .pn-tools .pn-bell, .pn-avbtn {
+    width: 42px; height: 42px; border-radius: 50%; display: inline-grid; place-items: center; cursor: pointer;
+    background: var(--rp-card); border: 1px solid var(--rp-line); color: var(--ink); text-decoration: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 16px -10px rgba(80,40,10,.2); transition: transform .2s ease;
+  }
+  .pn-round:hover, .pn-tools .pn-bell:hover, .pn-avbtn:hover { transform: translateY(-1px); }
+  .pn-avbtn { background: var(--rp-on-bg); color: var(--rp-on-ink); font-weight: 800; font-size: 14px; font-family: var(--f-display, "Archivo", sans-serif); border-color: transparent; }
+
+  /* The search: a round button, its box dropping under it. */
+  .pn-search.pn-spop { width: auto; position: relative; }
+  .pn-spop > .pn-round { display: inline-grid; }
+  .pn-spanel { display: none; position: absolute; right: 0; top: calc(100% + 10px); width: 420px; z-index: 55; padding: 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--rp-line); box-shadow: 0 24px 50px -20px rgba(40, 20, 5, .35); }
+  .pn-spop.open .pn-spanel { display: block; }
+  .pn-spop .pt-find__box { height: 42px; }
+  .pn-spop .pt-find__out { left: 0; right: 0; width: auto; }
+
+  /* The dock. */
+  .pn-dock {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; position: fixed; left: 20px; top: 50%; transform: translateY(-50%); z-index: 45;
+    padding: 10px 8px; border-radius: 99px; background: var(--rp-dock); border: 1px solid var(--rp-dock-line); box-shadow: 0 24px 50px -18px rgba(20, 10, 0, .55);
+  }
+  .pn-dock form { display: contents; }
+  .pn-dk {
+    position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 0; cursor: pointer;
+    background: transparent; color: color-mix(in srgb, var(--rp-on-dark) 72%, transparent); text-decoration: none; transition: background .2s ease, color .2s ease, transform .2s ease;
+  }
+  .pn-dk:hover, .pn-dk:focus-visible { background: rgba(255,255,255,.1); color: var(--rp-on-dark); }
+  .pn-dk.on { background: var(--rp-on-dark); color: var(--rp-dark); }
+  .pn-dksep { width: 22px; height: 1px; background: rgba(255,255,255,.14); margin: 4px 0; }
+  .pn-tip {
+    position: absolute; left: calc(100% + 14px); top: 50%; transform: translate(-4px, -50%); white-space: nowrap; pointer-events: none;
+    padding: 6px 11px; border-radius: 10px; background: var(--rp-dark); color: var(--rp-on-dark); font-size: 12.5px; font-weight: 700;
+    opacity: 0; transition: opacity .15s ease, transform .15s ease; box-shadow: 0 10px 24px -12px rgba(0,0,0,.5);
+  }
+  .pn-dk:hover .pn-tip, .pn-dk:focus-visible .pn-tip { opacity: 1; transform: translate(0, -50%); }
+
+  /* The page clears the dock, and the open section's pages run under the bar. */
+  .pt.pn .pn-content { padding: 18px 40px 64px 112px; max-width: 1640px; margin-inline: auto; }
+  .pn-secpages { display: flex; gap: 4px; flex-wrap: wrap; margin-top: -4px; }
+  .pn-secpages a {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 99px; font-size: 13.5px; font-weight: 600;
+    color: var(--ink2); text-decoration: none; border: 1px solid transparent; transition: background .2s ease, color .2s ease;
+  }
+  .pn-secpages a:hover { color: var(--ink); background: var(--quiet); }
+  .pn-secpages a.on { color: var(--ink); background: var(--rp-card); border-color: var(--rp-line); font-weight: 800; box-shadow: 0 6px 16px -12px rgba(80,40,10,.3); }
+  .pn-secpages .c { font-size: 11px; font-weight: 700; color: var(--ink3); }
+  .pn-secpages .c.r { color: var(--bad); }
+  .pn-secpages + .pn-secbar { margin-top: -8px; }
+}
+/* Tighter pills where the bar is only just wide enough for them. */
+@media (min-width: 1240px) and (max-width: 1440px) {
+  .pn-top { padding-right: 20px; gap: 12px; }
+  .pn-brandt { display: none; }
+  .pn-pill { padding: 0 12px; font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pn-drop, .pn-pill, .pn-dk, .pn-tip { transition: none; }
+}
+
+/* ------------------------------------------------------------------
+   The dashboards in the overview's clothes: every page built on the kit
+   (Today, How we're going, Money and the rest) gets the big soft cards on
+   the wash, the near-black lead card, and the same motion — cards rise in
+   turn, bars grow, figures count up (FigureCount). Status colours keep their
+   meaning; nothing here repaints a status.
+   ------------------------------------------------------------------ */
+.pn .pk-head h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.04; }
+.pn .pk-card, .pn .pk-grp, .pn .ph-card, .pn .pt-panel {
+  background: var(--rp-card); border: 1px solid var(--rp-line); border-radius: 26px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -26px rgba(80,40,10,.2);
+}
+.pn .pk-grp { border-radius: 22px; }
+.pn .pk-pad { padding: 20px 22px; }
+.pn .pk-tile { padding: 18px 20px; }
+.pn a.pk-card, .pn .pk-link, .pn a.pk-hero { transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease; }
+.pn a.pk-card:hover, .pn .pk-link:hover { transform: translateY(-3px); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 26px 44px -24px rgba(80,40,10,.3); }
+.pn a.pk-hero:hover { transform: translateY(-3px); }
+.pn .pk-fig { font-weight: 700; font-size: 32px; letter-spacing: -0.03em; }
+.pn .pk-hero { border-radius: 28px; padding: 22px 26px; box-shadow: 0 18px 40px -24px rgba(20,10,0,.45); }
+.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad) { background: var(--rp-dark); color: var(--rp-on-dark); }
+.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad) .pk-hb i { background: var(--rp-gold); }
+.pn .pk-hero.light { background: var(--rp-card); border: 1px solid var(--rp-line); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -26px rgba(80,40,10,.2); }
+.pn .pk-hero.st-good, .pn .pk-hero.st-mid, .pn .pk-hero.st-bad { border: 1px solid var(--rp-line); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -26px rgba(80,40,10,.2); }
+.pn .pk-hero .pk-hf { font-weight: 700; font-size: 40px; letter-spacing: -0.035em; }
+.pn .pk-hero .pk-hb, .pn .pk-bar { height: 8px; }
+.pn .pk-say { font-size: 18px; font-weight: 600; }
+.pn .pk-seg { background: var(--rp-card); border: 1px solid var(--rp-line); padding: 4px; }
+.pn .pk-seg a.on, .pn .pk-seg button.on { background: var(--rp-on-bg); color: var(--rp-on-ink); box-shadow: none; }
+.pn .pk-seg a.on .c, .pn .pk-seg button.on .c { color: var(--rp-on-ink); opacity: .75; }
+.pn .pk-seg a.on .c.r, .pn .pk-seg button.on .c.r { color: var(--rp-on-bad); opacity: 1; }
+.pn .pk-ico { border-radius: 50%; background: var(--rp-dark); color: var(--rp-on-dark); }
+.pn .pk-row { min-height: 62px; }
+.pn .pk-lh { margin-top: 4px; }
+@media (max-width: 860px) {
+  .pn .pk-head h1 { font-size: 30px; }
+  .pn .pk-hero .pk-hf { font-size: 32px; }
+  .pn .pk-card, .pn .pk-hero, .pn .pt-panel { border-radius: 22px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The page's blocks rise in turn; a grid's tiles follow one after another. */
+  .pn .pk > *, .pn .ph > * { animation: rp-rise .6s cubic-bezier(.2,.8,.2,1) both; }
+  .pn .pk > :nth-child(2), .pn .ph > :nth-child(2) { animation-delay: 50ms; }
+  .pn .pk > :nth-child(3), .pn .ph > :nth-child(3) { animation-delay: 100ms; }
+  .pn .pk > :nth-child(4), .pn .ph > :nth-child(4) { animation-delay: 150ms; }
+  .pn .pk > :nth-child(5), .pn .ph > :nth-child(5) { animation-delay: 200ms; }
+  .pn .pk > :nth-child(6), .pn .ph > :nth-child(6) { animation-delay: 250ms; }
+  .pn .pk > :nth-child(n+7), .pn .ph > :nth-child(n+7) { animation-delay: 300ms; }
+  .pn .pk-grid4 > *, .pn .pk-grid3 > *, .pn .pk-grid2 > *, .pn .pk-pair > * { animation: rp-rise .6s cubic-bezier(.2,.8,.2,1) both; }
+  .pn :is(.pk-grid4, .pk-grid3, .pk-grid2, .pk-pair) > :nth-child(2) { animation-delay: 70ms; }
+  .pn :is(.pk-grid4, .pk-grid3, .pk-grid2, .pk-pair) > :nth-child(3) { animation-delay: 140ms; }
+  .pn :is(.pk-grid4, .pk-grid3, .pk-grid2, .pk-pair) > :nth-child(4) { animation-delay: 210ms; }
+  .pn :is(.pk-grid4, .pk-grid3, .pk-grid2, .pk-pair) > :nth-child(n+5) { animation-delay: 280ms; }
+  .pn .pk-bar i, .pn .pk-hb i, .pn .pk-hbar .track i { transform-origin: left; animation: rp-grow 1s .3s cubic-bezier(.2,.8,.2,1) both; }
+}
+/* The title holds its line; the figures beside it wrap under it first. */
+@media (min-width: 641px) { .rp-title { flex: none; } .rp-title h1 { white-space: nowrap; } }
