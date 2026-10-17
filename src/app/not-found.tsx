@@ -10,7 +10,7 @@ const GO = [
   { href: "/range", label: "The full range", sub: "Every model we fit, with installed prices" },
   { href: "/pricing", label: "What it costs", sub: "Installed prices and the VEU rebate applied" },
   { href: "/service-areas", label: "Do you come to me?", sub: "Every suburb, with drive times from Pakenham" },
-  { href: "/quote", label: "Get a price", sub: "A written quote back inside 12 business hours" },
+  { href: "/quote", label: "Get a price", sub: "A written quote after a free site visit" },
   { href: "/blog", label: "Guides and advice", sub: "Rebates, sizing and running costs, explained" },
 ];
 

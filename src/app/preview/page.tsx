@@ -109,13 +109,13 @@ export default function PreviewPage() {
         {/* QUOTE card */}
         <div className="pv-card" id="quote">
           <div className="pv-eye"><span className="pv-eye__dot" /> 60-second quote</div>
-          <h2 className="pv-h">Written quote back within 12&nbsp;hrs.</h2>
+          <h2 className="pv-h">A written quote, rebate already&nbsp;off.</h2>
           <p className="pv-lede">Tell us what you need, we&rsquo;ll price it straight. Rebates already applied, no chasing.</p>
 
           <div className="pv-qcard">
             <div className="pv-qcard__ribbon">
               <span className="pv-qcard__dot" />
-              Usually replied within 12 hrs
+              We call back in business hours
             </div>
             <div className="pv-qcard__h">What do you need?</div>
             <p className="pv-qcard__sub">Tick every option, we&rsquo;ll quote the lot.</p>
@@ -302,7 +302,7 @@ export default function PreviewPage() {
           <ol className="pv-proc">
             {[
               [1, "You get in touch", "Fill the form or call, tell us what you need.", "~ 5 min"],
-              [2, "Quote back within 12 hrs", "Written quote straight to your inbox.", "within 12 hrs"],
+              [2, "Written quote after the visit", "Written quote straight to your inbox.", "after the visit"],
               [3, "Site visit if needed", "For ducted and tricky retrofits we pop out.", "when required"],
               [4, "We install & show you how", "Clean install, old unit gone, walk-through.", "install day"],
               [5, "Follow-up next week", "Quick call to make sure all is running right.", "week after"],
@@ -358,7 +358,7 @@ export default function PreviewPage() {
         {/* BIG CTA card */}
         <div className="pv-bcta">
           <h2 className="pv-bcta__h">VEU rebate already in the quote.</h2>
-          <p className="pv-bcta__p">Free, no-obligation. Usually back within 12 hrs during business hours.</p>
+          <p className="pv-bcta__p">Free, no-obligation. We call back in business hours.</p>
           <Link href="/quote" className="pv-bcta__btn">Start my free quote →</Link>
           <div className="pv-bcta__call">
             or call <a href={`tel:${site.phoneE164}`}><strong>{site.phone}</strong></a>

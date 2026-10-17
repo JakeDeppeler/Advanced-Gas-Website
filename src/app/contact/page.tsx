@@ -6,7 +6,7 @@ import { PageHero } from "@/components/PageHero";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Contact, Free quote in 12 hours",
+  title: "Contact, Free quotes across SE Melbourne",
   description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 75 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
   alternates: { canonical: "/contact" },
 };
@@ -16,7 +16,7 @@ export default function ContactPage() {
     <div className="page-contact">
       <PageHero
         eyebrow="Contact us"
-        title={<>Tell us what you need. <em>We&rsquo;ll come back within 12 hours.</em></>}
+        title={<>Tell us what you need. <em>We&rsquo;ll call you back in business hours.</em></>}
         sub={<>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75&nbsp;km. The person who quotes it is the person who installs it.</>}
       />
 
@@ -95,7 +95,7 @@ export default function ContactPage() {
             <li>
               <Link href="/quote">
                 <strong>Just want a price?</strong>
-                <span>A written quote back inside 12 business hours</span>
+                <span>A written quote after a free site visit</span>
               </Link>
             </li>
           </ul>

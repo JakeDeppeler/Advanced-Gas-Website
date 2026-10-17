@@ -719,18 +719,20 @@ async function leadMetrics(now: Date) {
   const prevWeekStart = addDays(weekStart, -7);
 
   const [leadsToday, leadsWeek, leadsPrevWeek, leadsMonth] = await Promise.all([
-    sbCount("portal_leads", q.gte("created_at", dayStart.toISOString())),
-    sbCount("portal_leads", q.gte("created_at", weekStart.toISOString())),
+    // Quote requests only: phone taps live in the same table (kind = 'call')
+    // and are evidence a page works, not an enquiry the office can ring back.
+    sbCount("portal_leads", [q.eq("kind", "quote"), q.gte("created_at", dayStart.toISOString())].join("&")),
+    sbCount("portal_leads", [q.eq("kind", "quote"), q.gte("created_at", weekStart.toISOString())].join("&")),
     sbCount(
       "portal_leads",
-      [q.gte("created_at", prevWeekStart.toISOString()), q.lt("created_at", weekStart.toISOString())].join("&"),
+      [q.eq("kind", "quote"), q.gte("created_at", prevWeekStart.toISOString()), q.lt("created_at", weekStart.toISOString())].join("&"),
     ),
-    sbCount("portal_leads", q.gte("created_at", startOfMonthMelbourne(now).toISOString())),
+    sbCount("portal_leads", [q.eq("kind", "quote"), q.gte("created_at", startOfMonthMelbourne(now).toISOString())].join("&")),
   ]);
 
   const recent = await sbSelect<LeadRow>(
     "portal_leads",
-    [q.select("suburb,postcode,service,address"), q.gte("created_at", addDays(now, -30).toISOString())].join("&"),
+    [q.select("suburb,postcode,service,address"), q.eq("kind", "quote"), q.gte("created_at", addDays(now, -30).toISOString())].join("&"),
   );
 
   const bySuburb = new Map<string, number>();

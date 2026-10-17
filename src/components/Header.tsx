@@ -876,7 +876,7 @@ const COMPANY_GROUPS: RailGroup[] = [
     items: [
       { href: "/contact", label: "Contact", sub: "Phone, email, where we are", icon: "\u2706" },
       { href: "/contact#emergency", label: "24/7 emergency", sub: "Gas leak, no hot water, CO alarm", icon: "!", lead: true },
-      { href: "/quote", label: "Get a quote", sub: "In writing, inside 12 business hours", icon: "\u2261" },
+      { href: "/quote", label: "Get a quote", sub: "In writing, after a free site visit", icon: "\u2261" },
     ],
   },
 ];

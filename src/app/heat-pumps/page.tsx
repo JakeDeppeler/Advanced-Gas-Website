@@ -317,7 +317,7 @@ export default function HeatPumpsPage() {
                 </span>
                 <h2>Quote for hot water.</h2>
                 <p className="quotesec__lede">
-                  60 seconds, no obligation, replied within 12 business hours. The VEU rebate is applied and GST is
+                  60 seconds, no obligation, and we call back in business hours. The VEU rebate is applied and GST is
                   included, so the number you get is the number you pay.
                 </p>
                 <ul className="quotesec__points">
@@ -369,7 +369,7 @@ export default function HeatPumpsPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Get it priced properly.</h2>
-            <p>A written quote after we have seen the job, with the VEU rebate already taken off the number. No obligation, and back with you inside 12 hours.</p>
+            <p>A written quote after we have seen the job, with the VEU rebate already taken off the number. No obligation, and the number on it is the number you pay.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>

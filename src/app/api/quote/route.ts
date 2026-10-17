@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendLeadSms } from "@/lib/leadSms";
 
 export const runtime = "nodejs";
 
@@ -110,6 +111,18 @@ export async function POST(req: Request) {
   // Email is a notification; this is the record.
   const stored = await storeLead(data, summaryLine, allPhotos.length, data.pagePath, data.utm);
 
+  // Then the texts: the customer hears from us in seconds, whatever the hour,
+  // and the on-call phone knows there is someone to ring. Nothing below
+  // depends on these having gone.
+  const sms = await sendLeadSms({
+    name: data.name,
+    phone: data.phone,
+    service: headline(data),
+    place: data.suburb || data.postcode || null,
+    landing: data.utm?.landing || data.pagePath || null,
+    from: data.utm?.utm_source || data.utm?.referrer || (data.utm?.gclid ? "google ads" : null) || (data.utm?.fbclid ? "facebook" : null),
+  }).catch((e) => { console.error("lead SMS threw", e); return { customer: false, team: 0 }; });
+
   if (!key) {
     // This used to return ok:true. On a deployment with no key that
     // meant every enquiry drew a "thanks, we've got it" for the
@@ -118,7 +131,7 @@ export async function POST(req: Request) {
     console.error("RESEND_API_KEY missing.");
     console.log("NEW LEAD →\n" + fallbackText(data, summaryLine, allPhotos.length));
     return stored
-      ? NextResponse.json({ ok: true, stored: true, emailed: false })
+      ? NextResponse.json({ ok: true, stored: true, emailed: false, sms })
       : new NextResponse("Could not record the enquiry", { status: 502 });
   }
 
@@ -158,7 +171,7 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, stored, emailed });
+  return NextResponse.json({ ok: true, stored, emailed, sms });
 }
 
 /* ------------ Durable record ------------ */
@@ -338,15 +351,15 @@ function fallbackCustomerText(d: Lead, summary: string) {
   return [
     `Hi ${d.name.split(" ")[0]},`,
     ``,
-    `Thanks for the quote request, we've got everything and one of the team will be back to you within 12 business hours.`,
+    `Thanks for the quote request, we've got everything. One of the team will call in business hours (Mon-Fri 7am-3:30pm) to book your free quote visit. Weekend requests are first on the list Monday morning.`,
     ``,
     `What you asked for:`,
     `  Service:   ${headline(d)}`,
     `  ${summary}`,
     ``,
     `What happens next:`,
-    `  1. We'll price it and email a written quote back within 12 hrs.`,
-    `  2. For bigger jobs (ducted, tricky retrofits) we'll come out for a site check.`,
+    `  1. We call to confirm the details and book a free quote visit.`,
+    `  2. After the visit, a written quote with the VEU rebate already applied.`,
     `  3. Any questions before you commit? Just reply to this email.`,
     ``,
     `If it's urgent, call (03) 5947 8000, you'll speak to someone on the tools.`,
@@ -506,7 +519,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
       <td style="background:${NAVY};padding:32px 32px 26px;color:#ffffff;">
         <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.55);font-family:'Courier New',monospace;">Advanced Gas &amp; Aircon</div>
         <div style="font-size:26px;font-weight:800;margin-top:8px;line-height:1.15;">Thanks ${escapeHtml(first)}, we've got your quote request.</div>
-        <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-top:12px;line-height:1.55;">One of the team will be back to you within <strong style="color:#ffffff;">12 business hours</strong> with a written quote. If it's urgent, ring us on <a href="tel:+61359478000" style="color:${ORANGE};text-decoration:none;font-weight:700;">(03) 5947 8000</a>.</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-top:12px;line-height:1.55;">One of the team will call in <strong style="color:#ffffff;">business hours</strong> (Mon&ndash;Fri 7am&ndash;3:30pm) to book your free quote visit. Weekend requests are first on the list Monday morning. If it's urgent, ring us on <a href="tel:+61359478000" style="color:${ORANGE};text-decoration:none;font-weight:700;">(03) 5947 8000</a>.</div>
       </td>
     </tr>
     <tr>
@@ -523,8 +536,8 @@ function renderCustomerEmail(d: Lead, summary: string): string {
         <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${INK_3};margin-bottom:12px;">What happens next</div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
           ${[
-            ["01", "Quote back in 12 hrs", "Written quote emailed to you, VEU rebate already applied."],
-            ["02", "Site visit if needed", "For bigger jobs we'll come out for a proper look before we quote."],
+            ["01", "We call to book a visit", "In business hours, usually the same day. Weekends are first on the list Monday morning."],
+            ["02", "Site visit, then a written quote", "A 20-minute look at the job, then a written quote with the VEU rebate already applied."],
             ["03", "Install &amp; walkthrough", "Clean install, old unit gone, we show you how the new one runs."],
           ].map(([n, t, d]) => `
           <tr>

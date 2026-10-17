@@ -504,7 +504,7 @@ export function HeroQuoteForm() {
           <div className="qcard__done-tick">✓</div>
           <h2 className="qcard__h">Got it. We&apos;ll be in touch.</h2>
           <p className="qcard__sub">
-            A real human will call or SMS you within 12 business hours with your fixed number and next step. Check your inbox, we&rsquo;ve sent a confirmation.
+            A real human will call or text you in business hours (Mon&ndash;Fri 7am&ndash;3:30pm) to book your free quote visit. Weekend? You&rsquo;re first on the list Monday morning. Check your inbox, we&rsquo;ve sent a confirmation.
           </p>
           <div className="qcard__done-ctas">
             <button type="button" className="ds-btn ds-btn--orange ds-btn--lg" onClick={resetForm}>
@@ -526,7 +526,7 @@ export function HeroQuoteForm() {
     <aside className="qcard">
       <div className="qcard__ribbon">
         <span className="qcard__ribbon-dot" />
-        Free quote · usually replied within 12 hrs
+        Free quote · we call back in business hours
       </div>
 
       <h2 className="qcard__h">Get a written quote</h2>
@@ -928,7 +928,7 @@ export function HeroQuoteForm() {
               )}
             </div>
             <p className="qcard__finep">
-              We&rsquo;ll come back within 12 hours. No spam, no shared data.
+              We&rsquo;ll call back in business hours. No spam, no shared data.
             </p>
           </StepBlock>
         )}

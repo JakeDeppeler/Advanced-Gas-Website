@@ -166,7 +166,7 @@ export default function PricingPage() {
                 <ValueRow label="Licensed plumbing &amp; refrigeration"    cheap="?" us={true} prem={true} />
                 <ValueRow label="VEU rebate applied at quote (not chased)" cheap={false} us={true} prem={true} />
                 <ValueRow label="Same person quotes and installs"          cheap={false} us={true} prem={false} />
-                <ValueRow label="Written quote in 12 hrs"       cheap={false} us={true} prem={true} />
+                <ValueRow label="Fixed-price written quote"    cheap={false} us={true} prem={true} />
                 <ValueRow label="Compliance certificate emailed in 24 hrs" cheap="?" us={true} prem={true} />
                 <ValueRow label="6-year workmanship warranty"              cheap={false} us={true} prem={true} />
                 <ValueRow label="Manufacturer warranty registered for you" cheap={false} us={true} prem={true} />
@@ -341,7 +341,7 @@ export default function PricingPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Want the exact price for your house?</h2>
-            <p>60-second form, written quote back within 12 business hours. VEU rebate already applied.</p>
+            <p>60-second form. We call back in business hours to book your visit; VEU rebate applied on the quote.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>

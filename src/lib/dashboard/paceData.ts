@@ -64,7 +64,7 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
   const invoicesFrom = [from, yearFrom, lastYearFrom].filter((v): v is string => v != null).sort()[0];
 
   const [webLeads, stLeads, booked, done, quotedRows, soldRows, invoices, calls] = await Promise.all([
-    sbSelect<{ created_at: string }>("portal_leads", [q.select("created_at"), q.gte("created_at", fromTs)].join("&")),
+    sbSelect<{ created_at: string }>("portal_leads", [q.select("created_at"), q.eq("kind", "quote"), q.gte("created_at", fromTs)].join("&")),
     sbSelect<{ created_on: string | null }>("st_leads", [q.select("created_on"), q.gte("created_on", fromTs)].join("&")).catch(() => []),
     sbSelect<{ created_on: string | null; job_type: string | null }>(
       "st_jobs",

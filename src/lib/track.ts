@@ -81,9 +81,30 @@ function gtag(...args: unknown[]): void {
   } catch { /* ignore */ }
 }
 
+function fbq(...args: unknown[]): void {
+  try {
+    const w = window as unknown as { fbq?: Gtag };
+    w.fbq?.(...args);
+  } catch { /* ignore */ }
+}
+
+/**
+ * A Google Ads conversion, if the account and that conversion's label are
+ * configured. The label comes from Ads > Goals > Conversions > the action's
+ * tag setup ("send_to": "AW-123/AbCdEf"); the part after the slash is the
+ * label. Without both this is nothing, which is the right amount of nothing.
+ */
+function adsConversion(label: string | undefined): void {
+  const ads = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+  if (!ads || !label) return;
+  gtag("event", "conversion", { send_to: `${ads}/${label}`, currency: "AUD", value: 1 });
+}
+
 /** A quote request went through. */
 export function trackLead(service: string, summary?: string): void {
   gtag("event", "generate_lead", { currency: "AUD", value: 1, service, summary });
+  adsConversion(process.env.NEXT_PUBLIC_GADS_LEAD_LABEL);
+  fbq("track", "Lead", { content_name: service });
 }
 
 /**
@@ -93,6 +114,8 @@ export function trackLead(service: string, summary?: string): void {
  */
 export function trackCall(where: string): void {
   gtag("event", "contact", { method: "phone", where });
+  adsConversion(process.env.NEXT_PUBLIC_GADS_CALL_LABEL);
+  fbq("track", "Contact", { content_name: where });
   try {
     const body = JSON.stringify({
       kind: "call",
