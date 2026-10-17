@@ -68,3 +68,24 @@ export async function closeOffInServiceTitan(key: string, reason: string, note: 
   }
   return out;
 }
+
+/**
+ * A follow-up logged on the pipeline, written onto the quote's job in
+ * ServiceTitan as a note, so the chasing is on record where the rest of the
+ * job is and anyone opening it there can see who rang and what was said.
+ * Null when the quote has no job to note (a quote made against the customer).
+ */
+export async function noteFollowUp(key: string, text: string): Promise<boolean | null> {
+  let jobId: number | null = key.startsWith("j") ? Number(key.slice(1)) : null;
+  if (!jobId) {
+    const all = key.startsWith("e") ? await sbSelect<Est>("st_estimates", [q.select("id,job_id,status"), `id=eq.${Number(key.slice(1))}`].join("&")).catch(() => []) : [];
+    jobId = all.find((e) => e.job_id != null)?.job_id ?? null;
+  }
+  if (!jobId) return null;
+  try {
+    await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: text.slice(0, 1000), pinToTop: false });
+    return true;
+  } catch {
+    return false;
+  }
+}

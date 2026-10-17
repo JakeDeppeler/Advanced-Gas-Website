@@ -59,7 +59,9 @@ export default async function AccountsPage() {
   const weekOut = new Date(Date.parse(`${today}T12:00:00Z`) + 7 * 86_400_000).toISOString().slice(0, 10);
   const billsDue = (bills ?? []).filter((b) => b.amountDue > 0 && b.due.slice(0, 10) <= weekOut).sort((a, b) => a.due.localeCompare(b.due));
   const billsDueTotal = billsDue.reduce((s, b) => s + b.amountDue, 0);
-  const mine = me ? todos.filter((t) => t.assigneeId === me.id).sort((a, b) => a.dueOn.localeCompare(b.dueOn)) : [];
+  // The Accounts list (where the invoicing and overdue to-dos go) and the
+  // viewer's own, newest first: what just landed is what's in front of you.
+  const mine = todos.filter((t) => t.list === "Accounts" || (!!me && t.assigneeId === me.id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const mineNow = mine.filter((t) => { const s = dueState(t, today); return s === "overdue" || s === "today"; });
 
   return (
@@ -69,26 +71,28 @@ export default async function AccountsPage() {
           { icon: "doc", fig: toBill ? String(bill.length) : "–", label: toBill ? `To invoice${billValue ? `, ${money(billValue)} sold` : ""}` : "Jobs can't be read", href: "/portal/jobs?tab=notbilled" },
           { icon: "alert", fig: owed ? money(lateTotal) : "–", label: owed ? `Overdue, ${plural(late.length, "invoice")}` : "Owed can't be read", href: "/portal/money", ...(late.some((i) => i.daysOver >= 30) ? { badge: "30+ days", tone: "down" as const } : {}) },
           { icon: "card", fig: bills ? money(billsDueTotal) : "–", label: bills ? "Bills due this week" : "Xero not connected", href: "/portal/finance/owe" },
-          { icon: "check", fig: String(mineNow.length), label: "Your to-dos due", href: "/portal/todo" },
+          { icon: "check", fig: String(mineNow.length), label: "To-dos due", href: "/portal/todo" },
         ]} />
+
+        <div className="ac-todos">
+          <Card title="To-dos" aside={<Link href="/portal/todo">To-do ›</Link>}>
+            {mine.length ? (
+                <Group>
+                  {mine.slice(0, SHOW).map((t) => {
+                    const s = dueState(t, today);
+                    return <Row key={t.id} href="/portal/todo" title={t.title} sub={[t.createdBy && t.createdBy !== me?.name ? `from ${t.createdBy}` : null, t.list, `added ${day(t.createdAt)}`].filter(Boolean).join(" · ")}
+                      end={<Pill st={{ k: s === "overdue" ? "bad" : s === "today" ? "mid" : "none", w: dueWords(t, today) }} />} />;
+                  })}
+                </Group>
+              ) : <p className="ac-empty">Nothing on the Accounts list or yours.</p>}
+            {mine.length > SHOW && <p className="ac-more"><Link href="/portal/todo">and {mine.length - SHOW} more on To-do</Link></p>}
+          </Card>
+
+        </div>
 
         {/* Two columns that each stack on their own, so a short list doesn't leave a hole beside a long one. */}
         <div className="ac-grid">
           <div className="ac-col">
-          <Card title="Your to-dos" aside={<Link href="/portal/todo">To-do ›</Link>}>
-            {!me ? <p className="ac-empty">You&rsquo;re not on the team list, so there&rsquo;s no list of yours to show.</p>
-              : mine.length ? (
-                <Group>
-                  {mine.slice(0, SHOW).map((t) => {
-                    const s = dueState(t, today);
-                    return <Row key={t.id} href="/portal/todo" title={t.title} sub={[t.createdBy && t.createdBy !== me.name ? `from ${t.createdBy}` : null, t.list].filter(Boolean).join(" · ") || undefined}
-                      end={<Pill st={{ k: s === "overdue" ? "bad" : s === "today" ? "mid" : "none", w: dueWords(t, today) }} />} />;
-                  })}
-                </Group>
-              ) : <p className="ac-empty">Nothing on your list.</p>}
-            {mine.length > SHOW && <p className="ac-more"><Link href="/portal/todo">and {mine.length - SHOW} more on To-do</Link></p>}
-          </Card>
-
           <MoneyToFollow owed={owed} late={late} />
           </div>
           <div className="ac-col">

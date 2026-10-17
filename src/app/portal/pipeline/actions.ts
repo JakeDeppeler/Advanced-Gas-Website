@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { logTouch, setFollow } from "@/lib/pipeline/store";
-import { closeOffInServiceTitan } from "@/lib/pipeline/stLost";
-import { isHow, LOST_REASONS } from "@/lib/pipeline/types";
+import { closeOffInServiceTitan, noteFollowUp } from "@/lib/pipeline/stLost";
+import { HOW_LABEL, isHow, LOST_REASONS } from "@/lib/pipeline/types";
 
 export type Result = { ok: boolean; error?: string; said?: string };
 
@@ -41,6 +41,14 @@ export async function saveFollowUp(input: { key: string; how?: string | null; no
     return { ok: false, error: "Couldn't save that. Try again." };
   }
   revalidatePath("/portal/pipeline");
+  // The follow-up onto the job in ServiceTitan too. Saved here either way;
+  // only a note that should have gone on and didn't is worth saying.
+  if (input.how && isHow(input.how)) {
+    const next = input.nextOn ? ` Next call ${new Date(`${input.nextOn}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })}.` : "";
+    const text = `Quote follow-up: ${HOW_LABEL[input.how]}${input.note?.trim() ? `. ${input.note.trim()}` : ""}.${next} Logged by ${me.name} in the portal.`;
+    const st = await noteFollowUp(input.key, text).catch(() => false);
+    if (st === false) return { ok: true, said: "Saved here, but the note didn't go on the job in ServiceTitan." };
+  }
   return { ok: true };
 }
 
