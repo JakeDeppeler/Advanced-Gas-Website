@@ -70,12 +70,22 @@ export async function clearApprovedQuoteTags(): Promise<{ removed: number; faile
         log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: false, jobId: j.id, title: `${label}: "Awaiting Quote Approval" is back on`, detail: "It came off earlier and something in ServiceTitan has put it back, so it's left alone for a week rather than taken off again." });
         continue;
       }
-      await stSend("PATCH", stTenantPath("jpm", `jobs/${j.id}`), { tagTypeIds: fresh.tagTypeIds.filter((x) => x !== tag.id) });
+      const reply = await stSend<{ tagTypeIds?: number[] } | null>("PATCH", stTenantPath("jpm", `jobs/${j.id}`), { tagTypeIds: fresh.tagTypeIds.filter((x) => x !== tag.id) });
       // Read it back: ServiceTitan answers OK to a change it doesn't make, and
       // a success logged without looking is how this said "took off" for tags
-      // that were still there.
+      // that were still there. Its own reply tells the two failures apart: a
+      // reply without the tag and a job with it means something in
+      // ServiceTitan put it straight back (a rule on open estimates, say);
+      // a reply with it means the change was ignored.
       const after = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${j.id}`));
-      if (!Array.isArray(after.tagTypeIds) || after.tagTypeIds.includes(tag.id)) throw new Error("ServiceTitan answered OK but the tag is still on the job");
+      if (!Array.isArray(after.tagTypeIds) || after.tagTypeIds.includes(tag.id)) {
+        const said = Array.isArray(reply?.tagTypeIds) ? (reply.tagTypeIds.includes(tag.id) ? "ignored" : "put back") : "unknown";
+        throw new Error(said === "put back"
+          ? "ServiceTitan took it off, then put it straight back: something in ServiceTitan re-adds this tag"
+          : said === "ignored"
+            ? "ServiceTitan answered OK but ignored the change: its reply still had the tag"
+            : "ServiceTitan answered OK but the tag is still on the job");
+      }
       made.set(`qtag-done:${j.id}`, new Date().toISOString());
       removed++;
       log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: true, jobId: j.id, title: `${label}: took off "Awaiting Quote Approval"`, detail: `Because ${why.get(j.id)}. Checked in ServiceTitan afterwards: it's off.` });

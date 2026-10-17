@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "pipe" | "todo" | "run" | "pf" | "numbers" | "cust" | "mkt" | "crew" | "orders" | "how" | "you";
+export type SectionId = "home" | "pipe" | "todo" | "run" | "pf" | "numbers" | "mkt" | "crew" | "orders" | "how" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -68,53 +68,62 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  * it sits in: Home, the business, the day-to-day, then settings.
  */
 export const SECTION_DEFS: SectionDef[] = [
+  /*
+   * Plain names that say what's on the page, and related pages under one tab
+   * (their own tab row across the top) instead of a line each. Nothing is
+   * taken away: every page is still here, it's just filed with its family.
+   */
   { id: "home", label: "Overview", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
   {
-    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "What needs doing, and who to keep in touch with",
+    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "What needs doing, who to keep in touch with, and what's coming",
     pages: [
-      { label: "Today", href: "/portal/todo" },
-      { label: "Office today", href: "/portal/office", office: true },
+      { label: "To-do list", href: "/portal/todo", subs: [{ label: "Office today", href: "/portal/office", office: true }] },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
       { label: "Future planning", href: "/portal/plans", office: true },
       { label: "Toolbox talks", href: "/portal/toolbox" },
     ],
   },
-  // The quotes to chase, as their own tab, the way Rapport has its Pipeline:
-  // the office lives in it, so it isn't two clicks deep under Sales.
-  { id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, and who's chasing it", pages: [{ label: "Pipeline", href: "/portal/pipeline" }] },
+  // The quotes to chase and the customers they're for, in one place.
   {
-    id: "run", label: "The Numbers", icon: "run", group: 1, blurb: "From lead to paid, against the goal",
+    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, who's chasing it, and the customers behind them",
     pages: [
-      { label: "Today's numbers", href: "/portal/today" },
-      { label: "Month so far", href: "/portal/month" },
-      { label: "KPIs", href: "/portal/kpis" },
-      { label: "Sales", href: "/portal/sales" },
-      { label: "Jobs", href: "/portal/jobs" },
-      { label: "Pace & year goal", href: "/portal/goal" },
-      { label: "How we went", href: "/portal/finance/review" },
+      { label: "Quotes", href: "/portal/pipeline" },
+      { label: "Customers", href: "/portal/customers", subs: [{ label: "Sites", href: "/portal/locations" }] },
+      { label: "Messages", href: "/portal/chats" },
     ],
   },
   {
-    id: "pf", label: "Finance", icon: "pf", group: 1, blurb: "Profit, cash, who owes what, and Xero",
+    id: "run", label: "The Numbers", icon: "run", group: 1, blurb: "How we're going: today, this month, sales, jobs and the year goal",
     pages: [
-      { label: "Overview", href: "/portal/finance" },
+      { label: "Today", href: "/portal/today" },
+      { label: "This month", href: "/portal/month", subs: [{ label: "KPIs", href: "/portal/kpis" }, { label: "Month review", href: "/portal/finance/review" }] },
+      { label: "Sales", href: "/portal/sales" },
+      { label: "Jobs", href: "/portal/jobs" },
+      { label: "Year goal", href: "/portal/goal", subs: [{ label: "Set the goals", href: "/portal/numbers" }] },
+    ],
+  },
+  {
+    id: "pf", label: "Finance", icon: "pf", group: 1, blurb: "What to invoice and chase, profit, cash, bills and Xero",
+    pages: [
       { label: "Accounts", href: "/portal/accounts" },
+      { label: "Summary", href: "/portal/finance" },
       { label: "Profit & loss", href: "/portal/finance/pl" },
       { label: "Cash flow", href: "/portal/finance/cash" },
-      { label: "Owed to us", href: "/portal/money" },
-      { label: "Stuck money", href: "/portal/stuck" },
-      { label: "We owe", href: "/portal/finance/owe" },
-      { label: "Spending", href: "/portal/finance/spend" },
-      { label: "Journals", href: "/portal/journals" },
+      { label: "Money owed to us", tab: "Owed to us", href: "/portal/money", subs: [{ label: "Stuck money", href: "/portal/stuck" }] },
+      { label: "Bills we owe", tab: "We owe", href: "/portal/finance/owe", subs: [{ label: "Spending", href: "/portal/finance/spend" }] },
+      { label: "Journals to Xero", href: "/portal/journals" },
     ],
   },
   {
     id: "numbers", label: "Pricing & costs", icon: "numbers", group: 1, blurb: "What an hour costs, what we charge, and every figure behind it",
     pages: [
-      { label: "Goals", href: "/portal/numbers" },
-      { label: "Hourly rate", href: "/portal/rates" },
-      { label: "What an hour must cover", href: "/portal/finance/cover" },
-      { label: "Running costs", href: "/portal/finance/running" },
+      {
+        label: "Hourly rate", href: "/portal/rates",
+        subs: [
+          { label: "What an hour must cover", href: "/portal/finance/cover" },
+          { label: "Running costs", href: "/portal/finance/running" },
+        ],
+      },
       {
         label: "Overheads", tab: "Overheads", href: "/portal/finance/capacity",
         subs: [
@@ -122,23 +131,15 @@ export const SECTION_DEFS: SectionDef[] = [
           { label: "Materials markup", href: "/portal/finance/capacity?part=markup" },
         ],
       },
-      { label: "Rates & pricing", href: "/portal/pricing" },
+      { label: "Our prices", href: "/portal/pricing" },
       { label: "Commission", href: "/portal/commission" },
       { label: "What if", href: "/portal/finance/planning" },
     ],
   },
   {
-    id: "cust", label: "Customers", icon: "chat", group: 2, blurb: "Customers, their sites and what they've said",
-    pages: [
-      { label: "Customer chats", href: "/portal/chats" },
-      { label: "Customers & sites", tab: "Customers", href: "/portal/customers", subs: [{ label: "Site locations", href: "/portal/locations" }] },
-    ],
-  },
-  {
-    // Its own tab: where the work comes from deserves one place, not three
-    // rows deep under Customers. Leads and the website first, then what we
-    // put out, then the files it's made of.
-    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Website leads, how the site does, Instagram, and every marketing file",
+    // Where the work comes from: leads and the website, what we put out,
+    // the files it's made of, and the blog.
+    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Website leads, how the site does, campaigns, and every marketing file",
     pages: [
       {
         label: "Website & leads", tab: "Website leads", href: "/portal/website",
@@ -149,7 +150,7 @@ export const SECTION_DEFS: SectionDef[] = [
         ],
       },
       {
-        label: "Marketing", tab: "Campaigns", href: "/portal/marketing",
+        label: "Campaigns & socials", tab: "Campaigns", href: "/portal/marketing",
         subs: [
           { label: "Instagram", href: "/portal/marketing?tab=social" },
           { label: "Reviews", href: "/portal/marketing?tab=reviews" },
@@ -157,20 +158,25 @@ export const SECTION_DEFS: SectionDef[] = [
           { label: "Email list", href: "/portal/marketing?tab=emails" },
         ],
       },
-      // Its own line, so it's in the Marketing menu on the top bar as well as the row under it.
-      { label: "Marketing materials", href: "/portal/materials" },
+      { label: "Materials", href: "/portal/materials" },
       { label: "Blog", href: "/portal/blog" },
     ],
   },
   {
-    id: "crew", label: "Crew & vans", icon: "van", group: 2, blurb: "The team and the fleet",
+    id: "crew", label: "Crew & vans", icon: "van", group: 2, blurb: "The team, the vans and their tools",
     pages: [
       { label: "Team", href: "/portal/team" },
-      { label: "Vehicles & tools", tab: "Vehicles", href: "/portal/vehicles", subs: [{ label: "Tools", href: "/portal/vehicles/tools" }, { label: "Kit lists", href: "/portal/vehicles/kit" }] },
+      {
+        label: "Vans & tools", tab: "Vans", href: "/portal/vehicles",
+        subs: [
+          { label: "Tools", href: "/portal/vehicles/tools" },
+          { label: "Kit lists", href: "/portal/vehicles/kit" },
+          { label: "Per van, per day", href: "/portal/per-van" },
+          { label: "Drive time", href: "/portal/drive" },
+        ],
+      },
       { label: "From the crew", href: "/portal/requests" },
-      { label: "Per van & drive time", tab: "Per van, per day", href: "/portal/per-van", subs: [{ label: "Drive time", href: "/portal/drive" }] },
-      { label: "Pricebook", href: "/trade/pricebook" },
-      { label: "See the trade iPad", href: "/trade" },
+      { label: "Trade iPad", href: "/trade", subs: [{ label: "Pricebook", href: "/trade/pricebook" }] },
     ],
   },
   {
@@ -178,9 +184,7 @@ export const SECTION_DEFS: SectionDef[] = [
     // is the job, and once it's gone it moves to Sent.
     id: "orders", label: "Orders & stock", icon: "box", group: 2, blurb: "Gear to order for the installs, what's gone, and the factory shelf",
     pages: [
-      { label: "To order", href: "/portal/supply/next-week" },
-      { label: "Sent", href: "/portal/supply/sent" },
-      { label: "Work orders", href: "/portal/supply/work-orders" },
+      { label: "To order", href: "/portal/supply/next-week", subs: [{ label: "Sent", href: "/portal/supply/sent" }, { label: "Work orders", href: "/portal/supply/work-orders" }] },
       { label: "Factory stock", href: "/portal/stock" },
       // Its own tab row (Supplier emails, Orders, Item search…) is on the page.
       { label: "Suppliers", href: "/portal/supply" },
@@ -191,21 +195,30 @@ export const SECTION_DEFS: SectionDef[] = [
     pages: [
       { label: "Roles", href: "/portal/roles" },
       { label: "Processes", href: "/portal/sops" },
-      { label: "Handbook", href: "/portal/handbook" },
-      { label: "Learning", href: "/portal/learning" },
-      { label: "Information", href: "/portal/information" },
-      { label: "Trade tools", href: "/portal/tools/fault-codes" },
+      {
+        label: "Handbook & info", tab: "Handbook", href: "/portal/handbook",
+        subs: [
+          { label: "Learning", href: "/portal/learning" },
+          { label: "Information", href: "/portal/information" },
+          { label: "Trade tools", href: "/portal/tools/fault-codes" },
+        ],
+      },
     ],
   },
   {
-    // Set up once and looked at rarely, so out of the way at the bottom — the
-    // wall board's eight setup pages are one line here and a tab row there.
+    // Set up once and looked at rarely, so out of the way at the bottom.
     id: "you", label: "Settings", icon: "me", group: 3, blurb: "Your file, alerts, the wall board and how the portal is set up",
     pages: [
-      { label: "Settings", href: "/portal/settings" },
       { label: "My file", href: "/portal/me" },
       { label: "Notifications", href: "/portal/notifications" },
-      { label: "Automatic", href: "/portal/automatic" },
+      {
+        label: "Settings", href: "/portal/settings",
+        subs: [
+          { label: "Automatic", href: "/portal/automatic" },
+          { label: "Integrations", href: "/portal/integrations" },
+          { label: "Admin", href: "/portal/admin" },
+        ],
+      },
       {
         label: "Wall board", tab: "Remote", href: "/portal/board/remote",
         subs: [
@@ -217,8 +230,6 @@ export const SECTION_DEFS: SectionDef[] = [
           { label: "Reports", href: "/portal/board/reports" },
         ],
       },
-      { label: "Integrations", href: "/portal/integrations" },
-      { label: "Admin", href: "/portal/admin" },
     ],
   },
 ];

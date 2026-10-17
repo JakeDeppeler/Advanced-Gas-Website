@@ -76,7 +76,7 @@ export const NAV_COOKIE = "pt_nav";
  * opened now and then; "-" saved means nothing tucked, everything on the bar.
  */
 export const BAR_COOKIE = "pt_bar";
-export const DEFAULT_MORE = ["numbers", "cust", "crew", "orders", "how"];
+export const DEFAULT_MORE = ["numbers", "crew", "orders", "how"];
 export const readBar = (v: string | undefined): string[] =>
   v === undefined ? DEFAULT_MORE : v === "-" ? [] : v.split(".").filter((x) => /^[a-z]{2,12}$/.test(x));
 
