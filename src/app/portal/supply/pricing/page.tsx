@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { loadPricebookSettings, type PricebookSettings } from "@/lib/pricebook/stPricebook";
 import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
@@ -55,7 +54,7 @@ export default async function SupplyPricingPage() {
         <Head title="Pricing rules" sub={<>The markups that turn our cost into the price in ServiceTitan.</>} />
       </div>
 
-      <PortalTabs set="supply" />
+      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       <section className="pt-panel pt-rules">
         <h2 className="pt-panel__h">How Reece&rsquo;s cost becomes a pricebook figure</h2>

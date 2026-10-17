@@ -2,6 +2,7 @@ import "server-only";
 import { getPLDetail, getPeriodInvoices, localToday, type PeriodInvoices, type PLDetail } from "@/lib/portal/xero";
 import { getSettings } from "@/lib/portal/db";
 import { readYearGoal, standing, yearSpans } from "@/lib/portal/yearGoal";
+import { ST_LEDGER_FROM, stPeriodInvoices } from "@/lib/dashboard/stOwed";
 
 /**
  * How a month or a week went, and why.
@@ -82,6 +83,32 @@ function before(kind: Kind, span: Span): Span[] {
 
 type PL = { income: number; cogs: number; opex: number; net: number; lines: Map<string, number>; cogsLines: Set<string> };
 
+/**
+ * The invoices for a span, from wherever they were kept: Xero up to
+ * ST_LEDGER_FROM, ServiceTitan from then on. Asking Xero alone for a month
+ * after the switch found no invoices, and the page said no money had come in.
+ */
+async function salesFor(from: string, to: string, today: string): Promise<PeriodInvoices | null> {
+  const dayBefore = (iso: string) => new Date(Date.parse(`${iso}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+  const [xero, st] = await Promise.all([
+    from < ST_LEDGER_FROM ? getPeriodInvoices("ACCREC", from, to < ST_LEDGER_FROM ? to : dayBefore(ST_LEDGER_FROM)) : Promise.resolve(null),
+    to >= ST_LEDGER_FROM ? stPeriodInvoices(from > ST_LEDGER_FROM ? from : ST_LEDGER_FROM, to, today).catch(() => null) : Promise.resolve(null),
+  ]);
+  if (!xero) return st;
+  if (!st) return xero;
+  const byContact = new Map<string, { contact: string; total: number; due: number; count: number }>();
+  for (const c of [...xero.byContact, ...st.byContact]) {
+    const g = byContact.get(c.contact) ?? { contact: c.contact, total: 0, due: 0, count: 0 };
+    g.total += c.total; g.due += c.due; g.count += c.count;
+    byContact.set(c.contact, g);
+  }
+  return {
+    count: xero.count + st.count, total: xero.total + st.total, paid: xero.paid + st.paid, due: xero.due + st.due, overdue: xero.overdue + st.overdue,
+    top: [...xero.top, ...st.top].sort((a, b) => b.total - a.total).slice(0, 10),
+    byContact: [...byContact.values()].sort((a, b) => b.total - a.total),
+  };
+}
+
 const COGS = /cost of (sales|goods)|direct cost|purchases/i;
 
 function plOf(d: PLDetail): PL {
@@ -157,7 +184,7 @@ export async function buildReview(kind: Kind, key: string | null): Promise<Revie
   const [nowD, priorD, sales, bills, goalRow] = await Promise.all([
     getPLDetail(span.from, to),
     Promise.all(prior.map((s) => getPLDetail(s.from, s.to))),
-    getPeriodInvoices("ACCREC", span.from, to),
+    salesFor(span.from, to, today),
     getPeriodInvoices("ACCPAY", span.from, to),
     getSettings<unknown>("yeargoal").catch(() => null),
   ]);

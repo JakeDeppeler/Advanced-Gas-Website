@@ -1,3 +1,4 @@
+import { getSettings } from "@/lib/portal/db";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -11,7 +12,7 @@ import {
   type PoWithLines,
 } from "@/lib/ordering/db";
 import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
-import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey } from "@/lib/ordering/plan";
+import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
@@ -54,7 +55,10 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote, pickupInstructions: settings.pickupInstructions };
     // Worked out live rather than stored with the drafts, so fixing a quote
     // or assigning a crew clears its line here straight away.
-    problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already, skip: new Set(h.map((x) => lineKey(x.job_id, x.sku_id))) }).problems;
+    // Dismissed ones stay out until what's wrong with the job changes.
+    const dismissed = new Set((await getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null))?.keys ?? []);
+    problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already, skip: new Set(h.map((x) => lineKey(x.job_id, x.sku_id))) }).problems
+      .filter((p) => !dismissed.has(problemKey(p)));
   } catch {
     dbReady = false;
   }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
+import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
 import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
@@ -249,4 +250,21 @@ export async function noteOnJobs(id: number): Promise<ActionResult> {
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
+}
+
+/**
+ * Clear a job off "Needs a look" when it's been dealt with outside the portal
+ * (ordered by hand, or not needed). Kept by the job and what was wrong, so a
+ * different problem on the same job still shows.
+ */
+export async function dismissProblem(key: string): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const k = String(key).slice(0, 400);
+  const saved = await getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null);
+  const keys = [...new Set([...(saved?.keys ?? []), k])].slice(-500);
+  const r = await saveSettings("order-problems-dismissed", { keys });
+  if (!r.ok) return { ok: false, error: "Couldn't save that." };
+  done();
+  return { ok: true };
 }

@@ -61,6 +61,11 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
   const area = line ? `${line} L${x(ov.months.length - 1)},${y(0)} L${x(0)},${y(0)} Z` : "";
   const goalPts = ov.months.map((m, i) => (m.goal != null ? [x(i), y(m.goal)] as [number, number] : null)).filter(Boolean) as Array<[number, number]>;
   const goalLine = goalPts.length ? `M${goalPts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L")}` : "";
+  // The floor under the goal ($2.5M under $3.2M), the same months scaled down, as its own line.
+  const floorRatio = yearFloor && yearGoal ? yearFloor / yearGoal : null;
+  const floorLine = floorRatio && goalPts.length
+    ? `M${ov.months.map((m, i) => (m.goal != null ? `${x(i).toFixed(1)},${y(m.goal * floorRatio).toFixed(1)}` : null)).filter(Boolean).join(" L")}`
+    : "";
   const total = ov.months.reduce((a, m) => a + m.sold, 0);
   const done = ov.months.filter((m) => !m.current && m.goal != null);
   const hit = done.filter((m) => m.sold >= (m.goal as number)).length;
@@ -110,7 +115,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
             </span>
           </div>
           <div className="rp-big"><CountUp value={total} /><span>sold in {span} months · <b>{hit}</b> of {done.length} months at goal</span></div>
-          <div className="rp-legend"><span><i className="dot" />Sold</span><span><i className="dash" />Month&rsquo;s goal</span></div>
+          <div className="rp-legend"><span><i className="dot" />Sold</span><span><i className="dash" />{yearGoal ? `${short(yearGoal)} goal` : "Month’s goal"}</span>{floorLine && yearFloor ? <span><i className="dash floor" />{short(yearFloor)} floor</span> : null}</div>
           <svg className="rp-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Sold each month for ${span} months against the month's goal`}>
             <defs>
               <linearGradient id="rp-fill" x1="0" y1="0" x2="0" y2="1">
@@ -125,6 +130,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
               </g>
             ))}
             {area && <path d={area} fill="url(#rp-fill)" className="rp-area" />}
+            {floorLine && <path d={floorLine} className="rp-goal rp-floor" pathLength={1} />}
             {goalLine && <path d={goalLine} className="rp-goal" pathLength={1} />}
             {line && <path d={line} className="rp-line" pathLength={1} />}
             {ov.months.map((m, i) => (
@@ -132,9 +138,19 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
                 <rect x={x(i) - (W - L - R) / (ov.months.length - 1 || 1) / 2} y={T} width={(W - L - R) / (ov.months.length - 1 || 1)} height={H - T - B} fill="transparent" />
                 <circle cx={x(i)} cy={y(m.sold)} r={4.5} className="rp-pt" />
                 <g className="rp-tip">
-                  <rect x={Math.min(W - R - 132, Math.max(L, x(i) - 66))} y={Math.max(T, y(m.sold) - 52)} width={132} height={40} rx={10} />
-                  <text x={Math.min(W - R - 132, Math.max(L, x(i) - 66)) + 12} y={Math.max(T, y(m.sold) - 52) + 17}>{m.label} · {money(m.sold)}</text>
-                  <text x={Math.min(W - R - 132, Math.max(L, x(i) - 66)) + 12} y={Math.max(T, y(m.sold) - 52) + 32} className="sub">{m.goal != null ? `${yearGoal ? `${short(yearGoal)} ` : ""}goal ${money(m.goal)}` : "no goal"}</text>
+                  {(() => {
+                    // Small and inside the chart: the month, what sold, and both goals for it.
+                    const tw = 150, th = floorRatio && m.goal != null ? 50 : 38;
+                    const tx = Math.min(W - R - tw, Math.max(L, x(i) - tw / 2)), ty = Math.max(T, y(m.sold) - th - 12);
+                    return (
+                      <>
+                        <rect x={tx} y={ty} width={tw} height={th} rx={8} />
+                        <text x={tx + 10} y={ty + 15}>{m.label} · {money(m.sold)}</text>
+                        <text x={tx + 10} y={ty + 28} className="sub">{m.goal != null ? `${yearGoal ? `${short(yearGoal)} ` : ""}goal ${money(m.goal)}` : "no goal"}</text>
+                        {floorRatio && m.goal != null && yearFloor ? <text x={tx + 10} y={ty + 41} className="sub">{short(yearFloor)} floor {money(m.goal * floorRatio)}</text> : null}
+                      </>
+                    );
+                  })()}
                 </g>
                 <text x={x(i)} y={H - 8} className="rp-axis" textAnchor="middle">{m.label}</text>
               </g>
@@ -144,7 +160,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
 
         <section className="rp-panel rp-hot rp-card" style={{ ["--i" as string]: 2 }} aria-labelledby="rp-hot-h">
           <div className="rp-panel-h">
-            <span className="rp-hh"><b id="rp-hot-h">Quotes to chase</b><span className="rp-note">follow-ups first, then the biggest</span></span>
+            <span className="rp-hh"><b id="rp-hot-h">Quotes to chase</b><span className="rp-note">newest first</span></span>
             <Link href="/portal/pipeline" className="rp-round" aria-label="Open Quotes">↗</Link>
           </div>
           {ov.hot.length ? (

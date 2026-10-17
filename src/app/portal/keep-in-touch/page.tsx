@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
+import { KpiHead } from "@/components/portal/kit/Kit";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
-import { Heads } from "@/components/portal/marketingParts";
 import { KeepInTouchBoard } from "@/components/portal/KeepInTouchBoard";
 import { dbConfigured } from "@/lib/portal/db";
 import { meOf, officeIds, seesAll, teamPeople, todayMelbourne } from "@/lib/todos/store";
@@ -59,33 +58,17 @@ export default async function KeepInTouchPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/todo" label="To-do" />
-          <h1>Keep in touch</h1>
-          <p>
-            The people worth staying close to, builders, agents, suppliers, referrers, and who looks after each.
-            Reach out every month, or as often as each one is set to; anyone past their day is flagged until somebody
-            logs that they did.
-          </p>
-        </div>
-      </div>
+      <KpiHead title={<>Keep<br />in touch</>} kpis={[
+        { icon: "phone", fig: String(due.length), label: "Due a call now", badge: late ? `${late} overdue` : undefined, tone: "down" },
+        { icon: "clock", fig: String(soon), label: "Due this week" },
+        { icon: "trophy", fig: `${reachedPeople} of ${contacts.length}`, label: `Reached in ${monthName}` },
+      ]} />
+      <p className="pk-note td-intro">The people worth staying close to (builders, agents, suppliers, referrers) and who looks after each. Anyone past their day is flagged until somebody logs that they reached out.</p>
 
       {!ready ? (
         <div className="pt-note pt-note--warn"><strong>The database isn&rsquo;t connected,</strong> so there&rsquo;s no list to show.</div>
       ) : (
         <>
-          <Heads
-            items={[
-              {
-                label: "Due now", value: String(due.length), feature: due.length > 0,
-                sub: due.length ? `${late} overdue · ${[...dueBy.entries()].sort((a, b) => b[1] - a[1]).map(([n, k]) => `${n} ${k}`).join(" · ")}` : "everyone reached out to on time",
-              },
-              { label: "Due this week", value: String(soon), sub: "in the next seven days" },
-              { label: `Reached in ${monthName}`, value: `${reachedPeople} of ${contacts.length}`, sub: `${thisMonth.length} ${thisMonth.length === 1 ? "call, text or visit" : "calls, texts and visits"} logged` },
-              { label: "On the list", value: String(contacts.length), sub: `looked after by ${owners.map((p) => firstName(p.name)).join(", ") || "the office"}` },
-            ]}
-          />
           <KeepInTouchBoard contacts={contacts} touches={touches} owners={owners} meId={meId} today={today} />
         </>
       )}

@@ -13,6 +13,12 @@ import { listJobs, type JobFilter, type ListedJob } from "@/lib/dashboard/jobLis
 import { stJobUrl, toBillJobs, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
 import { Suspense } from "react";
 import { XeroBilledCard } from "@/components/portal/run/XeroBilledCard";
+import { JobProfitTable } from "@/components/portal/JobProfitTable";
+import { jobProfits } from "@/lib/dashboard/jobProfit";
+import { hourJobCosts } from "@/lib/portal/cover/load";
+import { getSettings } from "@/lib/portal/db";
+import { readYearGoal } from "@/lib/portal/yearGoal";
+import { addDays, isoDateMelbourne } from "@/lib/dashboard/dates";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs · Team portal" };
@@ -166,6 +172,11 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
     );
   } else if (tab === "profit") {
     const p = m.jobProfitRecent ?? null;
+    // The whole list, job by job, here with the jobs rather than under Finance.
+    const [goalRow, crew] = await Promise.all([getSettings<unknown>("yeargoal").catch(() => null), hourJobCosts().catch(() => null)]);
+    const target = readYearGoal(goalRow, new Date()).profitPct;
+    const todayIso = isoDateMelbourne(new Date());
+    const list = await jobProfits(isoDateMelbourne(addDays(new Date(), -30)), todayIso, crew?.costPerHr ?? null, target, crew?.crew ?? []).catch(() => null);
     body = p && p.costed > 0 ? (
       <>
         <Say>
@@ -178,7 +189,8 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
           <Tile label="Under the goal’s margin" st={p.under ? { k: "mid", w: "Look at them" } : { k: "good", w: "None" }} fig={String(p.under)} frac={p.costed ? p.under / p.costed : null} sub="made something, not enough" />
           <Tile label="Lost money" st={p.losing ? { k: "bad", w: "Ran over" } : { k: "good", w: "None" }} fig={String(p.losing)} frac={p.costed ? p.losing / p.costed : null} sub="cost more than they sold for" />
         </Grid>
-        <div className="pk-btns"><Btn href="/portal/profit">Every job, one by one ›</Btn></div>
+        {list && list.rows.length > 0 ? <JobProfitTable rows={list.rows} target={target} /> : null}
+        <div className="pk-btns"><Btn href="/portal/profit">Pick another month ›</Btn></div>
         <p className="pk-note">Cost is parts from ServiceTitan plus the tech’s hours at the team’s cost an hour. A job that runs over eats its own profit.</p>
       </>
     ) : <Empty>No jobs could be costed in the last 30 days.</Empty>;

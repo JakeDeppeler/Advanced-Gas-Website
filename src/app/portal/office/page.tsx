@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { KpiHead } from "@/components/portal/kit/Kit";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -104,7 +105,11 @@ export default async function OfficeTodayPage() {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Office today" sub="The morning routine, in order, about fifteen minutes" />
+        <KpiHead title={<>Office<br />today</>} kpis={d ? [
+          { icon: "doc", fig: `${steps.filter((x) => x.st.k === "good").length} of ${steps.length}`, label: "Steps clear" },
+          { icon: "clock", fig: String(waiting), label: "With something waiting", badge: steps.some((x) => x.st.k === "bad") ? "late" : undefined, tone: "down" },
+        ] : []} />
+        <p className="pk-note td-intro">The morning routine, in order, about fifteen minutes.</p>
         {!d ? <Empty>ServiceTitan couldn&rsquo;t be read just now. Try again in a minute.</Empty> : (
           <>
             <Say>{waiting === 0 ? <>Morning {first} , everything&rsquo;s clear.</> : <>Morning {first}  {waiting} of the {steps.length} steps {waiting === 1 ? "has" : "have"} something waiting.</>}</Say>

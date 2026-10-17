@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { ReconcileNote } from "@/components/portal/finance/ReconcileNote";
+import { getSettings } from "@/lib/portal/db";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
@@ -45,7 +47,7 @@ export default async function CashPage({ searchParams }: { searchParams: { tab?:
   if (!can(user, "overhead")) return <Locked user={user} what="Cash flow" forWhom="managers" />;
 
   const tab = searchParams.tab === "operate" ? "operate" : "flow";
-  const { status: xs } = await xeroStatus();
+  const [{ status: xs }, reconciled] = await Promise.all([xeroStatus(), getSettings<{ to: string; by: string }>("bank-reconciled").catch(() => null)]);
 
   return (
     <PortalShell user={user}>
@@ -59,6 +61,7 @@ export default async function CashPage({ searchParams }: { searchParams: { tab?:
           ["Weeks it covers", "Cash in the bank divided by a week of running costs. If the phone stopped tomorrow, this is how long we could keep paying everyone."],
           ["The buffer", `${BENCH.cash.words}, ${BENCH.cash.why}. It’s what gets you through a slow January or a big customer paying late.`],
         ]} />
+        <ReconcileNote stamp={reconciled ? { to: reconciled.to, by: reconciled.by } : null} today={isoDateMelbourne(new Date())} />
         <Tabs on={tab} label="Cash flow" items={[
           { key: "flow", label: "Money in & out", href: "/portal/finance/cash" },
           { key: "operate", label: "Cash to operate", href: "/portal/finance/cash?tab=operate" },

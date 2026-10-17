@@ -92,3 +92,32 @@ export function withStOpen(xero: Extract<XeroResult, { ok: true }>, st: StOpen[]
   out.overdue.sort((a, b) => b.days - a.days);
   return out;
 }
+
+/**
+ * Sales invoices dated within a span, from ServiceTitan, in the same shape
+ * Xero's give: for spans on or after ST_LEDGER_FROM, when the invoices stopped
+ * going to Xero (it gets a daily journal instead), so asking Xero for them
+ * reads as no money in at all. Totals include GST, as Xero's do; paid is what
+ * isn't still owing on them.
+ */
+export async function stPeriodInvoices(from: string, to: string, todayMel: string) {
+  type R = { id: number; total: number | null; invoice_date: string; ref: string | null; balance: string | null; due: string | null; customer: string | null; business_unit: string | null };
+  const rows = (await sbSelect<R>("st_invoices", [
+    q.select("id,total,invoice_date,business_unit,ref:raw->>referenceNumber,balance:raw->>balance,due:raw->>dueDate,customer:raw->customer->>name"),
+    q.gte("invoice_date", from), `invoice_date=lte.${to}`, "limit=5000",
+  ].join("&"))).filter((r) => Number(r.total ?? 0) !== 0 && !/imported|default/i.test(r.business_unit ?? ""));
+  const byContact = new Map<string, { contact: string; total: number; due: number; count: number }>();
+  let total = 0, due = 0, overdue = 0;
+  const top = rows.map((r) => {
+    const t = Number(r.total ?? 0), d = Math.max(0, Number(r.balance ?? 0));
+    total += t; due += d;
+    const dueOn = (r.due ?? r.invoice_date).slice(0, 10);
+    if (d > 0 && dueOn < todayMel) overdue += d;
+    const c = r.customer ?? "Unknown";
+    const g = byContact.get(c) ?? { contact: c, total: 0, due: 0, count: 0 };
+    g.total += t; g.due += d; g.count += 1;
+    byContact.set(c, g);
+    return { number: r.ref ?? String(r.id), contact: c, date: r.invoice_date.slice(0, 10), total: t, paid: t - d, due: d, overdue: d > 0 && dueOn < todayMel };
+  }).sort((a, b) => b.total - a.total);
+  return { count: rows.length, total, paid: total - due, due, overdue, top: top.slice(0, 10), byContact: [...byContact.values()].sort((a, b) => b.total - a.total) };
+}

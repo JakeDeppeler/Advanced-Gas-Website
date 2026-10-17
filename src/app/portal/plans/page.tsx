@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
+import { KpiHead } from "@/components/portal/kit/Kit";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
-import { Heads } from "@/components/portal/marketingParts";
 import { PlansBoard } from "@/components/portal/PlansBoard";
 import { dbConfigured } from "@/lib/portal/db";
 import { meOf, seesAll, todayMelbourne } from "@/lib/todos/store";
@@ -40,16 +39,12 @@ export default async function PlansPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal" label="Home" />
-          <h1>Future planning</h1>
-          <p>
-            What you want to do for the business, not the day&rsquo;s jobs or quotes, but the things that change how it runs.
-            Put each one under when you&rsquo;d like to get to it, and move it along as it happens. Only you see your list.
-          </p>
-        </div>
-      </div>
+      <KpiHead title={<>Future<br />planning</>} kpis={[
+        { icon: "bars", fig: String(open.length), label: `On the plan · ${soon} in the next three months` },
+        { icon: "trend", fig: String(doing), label: doing ? "Working on now" : "Nothing started yet" },
+        { icon: "trophy", fig: String(doneThisYear), label: `Done in ${year}` },
+      ]} />
+      <p className="pk-note td-intro">The things that change how the business runs, not the day&rsquo;s jobs. Put each under when you&rsquo;d like to get to it and move it along as it happens. Only you see your list.</p>
 
       {!ready ? (
         <div className="pt-note pt-note--warn"><strong>The database isn&rsquo;t connected,</strong> so there&rsquo;s no list to show.</div>
@@ -57,14 +52,6 @@ export default async function PlansPage() {
         <div className="pt-note pt-note--warn"><strong>You&rsquo;re not on the team list,</strong> so there&rsquo;s nowhere to keep your plans. Ask an admin to add you.</div>
       ) : (
         <>
-          <Heads
-            items={[
-              { label: "On the plan", value: String(open.length), sub: `${soon} in the next three months`, feature: true },
-              { label: "Working on", value: String(doing), sub: doing ? "under way now" : "nothing started yet" },
-              { label: `Done in ${year}`, value: String(doneThisYear), sub: "ticked off this year" },
-              { label: "Someday", value: String(open.filter((p) => p.horizon === "someday").length), sub: "kept, with no date" },
-            ]}
-          />
           <PlansBoard plans={plans} />
         </>
       )}
