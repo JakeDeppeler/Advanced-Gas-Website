@@ -9,6 +9,7 @@ import { runDueReports } from "@/lib/reports/run";
 // board's own refresh route does — safe to call from both because ensureXeroToken
 // claims the refresh in the database first.
 import { ensureXeroToken } from "@/lib/portal/xero";
+import { clearApprovedQuoteTags } from "@/lib/automation/quoteTag";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,9 @@ export async function GET(req: Request) {
   const xeroToken = await ensureXeroToken().catch((e) => ({ ok: false, reason: (e as Error).message }));
 
   const sync = await syncServiceTitan(reset);
+  // Settings › Automatic: quotes that have plainly been answered lose their
+  // "Awaiting Quote Approval" tag. Never fails the sync.
+  const quoteTags = await clearApprovedQuoteTags().catch((e: Error) => ({ removed: 0, failed: 1, skipped: e.message }));
 
   // The snapshot is computed even when a sync leg failed — carry-forward inside
   // computeSnapshot keeps the last known value on screen rather than a blank.
@@ -79,6 +83,7 @@ export async function GET(req: Request) {
     durationMs: Date.now() - startedAt,
     sync,
     xeroToken,
+    quoteTags,
     commission,
     reports,
     sources: snapshot.sources,

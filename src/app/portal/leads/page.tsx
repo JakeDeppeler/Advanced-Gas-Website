@@ -12,6 +12,8 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { classifyLead } from "@/lib/portal/leadSource";
 import { startOfMonthMelbourne } from "@/lib/dashboard/dates";
 import { serviceLabel } from "@/lib/dashboard/metrics";
+import { campaignNames } from "@/lib/dashboard/campaigns";
+import { HeardChart } from "@/components/portal/HeardChart";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Leads · Team portal" };
@@ -46,7 +48,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
 
   const ready = dbConfigured();
   const inRange = (iso: string) => !to || Date.parse(iso) < to.getTime();
-  const [web, st, calls] = ready
+  const [web, st, calls, jobs, names] = ready
     ? await Promise.all([
       listWebLeads(from.toISOString()).catch(() => []),
       sbSelect<{ id: number; campaign: string | null; status: string | null; created_on: string }>(
@@ -55,8 +57,15 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
       sbSelect<{ id: number; campaign: string | null; received_on: string }>(
         "st_calls", [q.select("id,campaign,received_on"), q.gte("received_on", from.toISOString()), q.eq("direction", "Inbound")].join("&"),
       ).catch(() => []),
+      // Every job booked in the month, with the campaign the office picked
+      // for it: how ServiceTitan records where the customer heard about us.
+      sbSelect<{ id: number; cid: string | null; created_on: string }>(
+        "st_jobs", [q.select("id,cid:raw->>campaignId,created_on"), q.gte("created_on", from.toISOString()), "limit=5000"].join("&"),
+      ).catch(() => []),
+      campaignNames(),
     ])
-    : [[], [], []];
+    : [[], [], [], [], null];
+  const heard = tally(jobs.filter((j) => inRange(j.created_on)).map((j) => (j.cid ? names?.[j.cid] ?? `Campaign ${j.cid}` : "Not recorded")));
   const webIn = web.filter((l) => inRange(l.createdAt));
   const stIn = st.filter((l) => inRange(l.created_on));
   const callsIn = calls.filter((c) => inRange(c.received_on));
@@ -103,6 +112,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
           },
         ]}
       />
+
+      <HeardChart rows={heard} month={monthLabel} named={names != null} />
 
       <div className="pt-two">
         <Bars title="Where they came from" rows={bySource.map((r) => ({ label: r.label, n: r.n }))} empty="No enquiries yet this month." />

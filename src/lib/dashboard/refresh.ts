@@ -5,6 +5,7 @@ import { syncServiceTitan } from "@/lib/dashboard/stSync";
 import { ensureXeroToken } from "@/lib/portal/xero";
 import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
 import { autoDraft } from "@/lib/ordering/autoDraft";
+import { clearApprovedQuoteTags } from "@/lib/automation/quoteTag";
 
 /**
  * Bring the board's snapshot up to date, if it's due.
@@ -80,6 +81,8 @@ async function run(pull: boolean) {
   // nothing unless the bookings changed (and nothing out of office hours),
   // and a failure here never fails the board.
   if (pull) await autoDraft().catch(() => undefined);
+  // And answered quotes lose their "Awaiting Quote Approval" tag (Settings › Automatic).
+  if (pull) await clearApprovedQuoteTags().catch(() => undefined);
 }
 
 export async function refreshBoard(): Promise<{ refreshed: boolean; ageMs?: number; synced?: boolean; error?: string }> {

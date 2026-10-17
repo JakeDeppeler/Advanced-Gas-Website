@@ -1,9 +1,11 @@
 import { getSettings } from "@/lib/portal/db";
+import { sbSelect } from "@/lib/dashboard/db";
+import { loadStocked } from "@/lib/ordering/stocked";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Bad, Good, Grid, Head, Say, Tabs, Tile } from "@/components/portal/kit/Kit";
+import { Bad, Good, Grid, Head, Say, Tile } from "@/components/portal/kit/Kit";
 import { Locked } from "@/components/portal/Locked";
 import { NextWeekOrders } from "@/components/portal/NextWeekOrders";
 import { money } from "@/lib/portal/format";
@@ -25,11 +27,8 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   const which = searchParams?.week === "this" ? "this" : "next";
-  const view = searchParams?.tab === "sent" ? "sent" : "todo";
-  const href = (v: "todo" | "sent", w: "next" | "this") => {
-    const q = [v === "sent" ? "tab=sent" : null, w === "this" ? "week=this" : null].filter(Boolean).join("&");
-    return `/portal/supply/next-week${q ? `?${q}` : ""}`;
-  };
+  // Sent is its own tab now, every order that's gone, by supplier.
+  if (searchParams?.tab === "sent") redirect("/portal/supply/sent");
   const week = which === "this" ? thisWeek(new Date()) : nextWeek(new Date());
 
   // A failed read is not an empty week: dbReady carries the difference.
@@ -42,6 +41,8 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let delivery: { factoryInstructions?: string; deliveryNote?: string; pickupInstructions?: string } = {};
   let dbReady = true;
   let noted: string[] = [];
+  let stocked: string[] = [];
+  const waiting: Record<"next" | "this", number | null> = { next: null, this: null };
   try {
     const [o, s, inputs, already, sy, settings, h] = await Promise.all([
       listWeekOrders(week), loadSuppliers(), loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
@@ -50,6 +51,11 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     holds = h;
     suppliers = s;
     noted = await loadJobNoteSuppliers(s).catch(() => []);
+    stocked = (await loadStocked().catch(() => [])).map((x) => x.key);
+    // What's waiting to approve in each week, for the counts on the week pills.
+    const nw = nextWeek(new Date()), tw = thisWeek(new Date());
+    const drafts = await sbSelect<{ week_of: string }>("purchase_orders", `select=week_of&status=eq.draft&week_of=in.(${tw.start},${nw.start})`).catch(() => null);
+    if (drafts) { waiting.next = drafts.filter((d) => d.week_of === nw.start).length; waiting.this = drafts.filter((d) => d.week_of === tw.start).length; }
     synced = sy;
     replyTo = settings.replyTo;
     delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote, pickupInstructions: settings.pickupInstructions };
@@ -65,7 +71,6 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
 
   const live = orders.filter((o) => o.status !== "cancelled");
   const toApprove = live.filter((o) => o.status === "draft");
-  const sent = live.filter((o) => o.status === "sent" || o.status === "approved");
   const goods = live.filter((o) => o.kind === "order");
   const value = goods.reduce((t, o) => t + linesTotal(o.lines), 0);
 
@@ -73,36 +78,34 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     <PortalShell user={user}>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head
-          title={view === "sent" ? "Sent" : "To order"}
+          title="To order"
           sub={`${which === "this" ? "This week" : "Next week"} · ${weekLabel(week)}`}
-          info={view === "sent" ? [
-            ["Sent", `Everything approved and sent for the week, to the suppliers and the electrician. An order lands here by itself the moment it goes.`],
-            ["Replies", `Suppliers' replies come back to ${replyTo || "the office"}.`],
-          ] : [
+          info={[
             ["Drafted for you", "Built from the installs booked for the week, and kept up to date as bookings come in."],
             ["Nothing goes until it's approved", "No order reaches a supplier or the electrician until it's approved here."],
             ["Can't order", "A line that can't be ordered, no supplier, no model on the quote, no crew, says why, so it can be fixed in ServiceTitan."],
           ]}
         />
         <div className="pk-rev-bar nw-bar">
-          {/* The week first and on the left, as Jake asked: which week you're
-              looking at decides everything under it. To order is what's still
-              to approve; an order moves to Sent by itself once it's gone. */}
-          <Tabs on={which} label="Which week" items={[
-            { key: "next", label: "Next week", href: href(view, "next") },
-            { key: "this", label: "This week", href: href(view, "this") },
-          ]} />
-          <Tabs on={view} label="To order or sent" items={[
-            { key: "todo", label: "To order", href: href("todo", which), count: dbReady ? toApprove.length : undefined, red: toApprove.length > 0 },
-            { key: "sent", label: "Sent", href: href("sent", which), count: dbReady ? sent.length : undefined },
-          ]} />
+          {/* Each week its own pill, with what's waiting to approve in that
+              week as a badge on its corner, like the counts on the top bar.
+              What's been sent is the Sent tab. */}
+          <nav className="nw-weeks" aria-label="Which week">
+            {([["next", "Next week"], ["this", "This week"]] as const).map(([k, label]) => {
+              const n = waiting[k];
+              return (
+                <a key={k} href={k === "this" ? "/portal/supply/next-week?week=this" : "/portal/supply/next-week"} className={`nw-week${which === k ? " on" : ""}`} aria-current={which === k ? "page" : undefined}>
+                  {label}
+                  {n ? <span className="nw-badge" aria-label={`${n} waiting to approve`}>{n}</span> : null}
+                </a>
+              );
+            })}
+          </nav>
         </div>
         {dbReady && (
           <>
             <Say>
-              {view === "sent"
-                ? <>{sent.length ? <>{sent.length} {sent.length === 1 ? "order has" : "orders have"} gone for {which === "this" ? "this" : "next"} week.</> : <>Nothing sent for {which === "this" ? "this" : "next"} week yet.</>}{" "}</>
-                : toApprove.length ? <Bad>{toApprove.length} {toApprove.length === 1 ? "order is" : "orders are"} waiting to be approved.</Bad> : <Good>Nothing waiting to approve.</Good>}{" "}
+              {toApprove.length ? <Bad>{toApprove.length} {toApprove.length === 1 ? "order is" : "orders are"} waiting to be approved.</Bad> : <Good>Nothing waiting to approve.</Good>}{" "}
               {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered, listed below.</Bad> : null}
             </Say>
             <Grid cols={problems.length > 0 ? 4 : 3}>
@@ -118,7 +121,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
 
       <NextWeekOrders
         which={which}
-        view={view}
+        view="todo"
         dbReady={dbReady}
         appointmentsSynced={synced}
         orders={orders}
@@ -129,6 +132,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         testTo={user.email}
         alwaysCc={replyTo}
         delivery={delivery}
+        stocked={stocked}
       />
     </PortalShell>
   );

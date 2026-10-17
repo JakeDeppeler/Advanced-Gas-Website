@@ -2081,3 +2081,93 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
   .pn-pickacts { display: flex; gap: 8px; padding: 8px 4px 2px; }
   .pn-pickacts .qp-btn { height: 38px; font-size: 13.5px; }
 }
+
+/* To order: each week its own pill, the count waiting to approve as a badge
+   on its corner; per-line buttons; the Factory stock tag; the live check. */
+.nw-weeks { display: flex; gap: 10px; flex-wrap: wrap; }
+.nw-week { position: relative; display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--rp-card); color: var(--ink); text-decoration: none; font-size: 14.5px; font-weight: 600; }
+.nw-week:hover { background: var(--surface); }
+.nw-week.on { background: var(--rp-on-bg); color: var(--rp-on-ink); border-color: transparent; }
+.nw-badge { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--bad-f); color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--rp-wash-b, #f3ede6); font-variant-numeric: tabular-nums; }
+.pt-nw__lineacts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.nw-lbtn { height: 30px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.nw-lbtn:hover { background: var(--quiet); }
+.nw-lbtn.on { background: var(--good-bg); border-color: transparent; color: var(--good); }
+.nw-lbtn:disabled { opacity: .5; cursor: default; }
+.nw-stocktag { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 99px; background: var(--good-bg); color: var(--good); font-size: 11.5px; font-weight: 700; }
+.nw-live { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; font-size: 12.5px; color: var(--ink2); }
+.nw-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--good-f); }
+.nw-live i.on { animation: ld-breathe 1s ease-in-out infinite; background: var(--mid-f); }
+
+/* Sent: orders by supplier, each opening to its lines. */
+.sb { display: grid; gap: 14px; }
+.sb-group { padding: 16px 18px 8px; }
+.sb-gh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.sb-gh b { font-size: 17px; font-weight: 600; }
+.sb-gh span { font-size: 13px; color: var(--ink2); }
+.sb-rows { list-style: none; margin: 0; padding: 0; }
+.sb-rows li { border-top: 1px solid var(--rp-line); }
+.sb-row { display: grid; grid-template-columns: 110px minmax(0, 1.4fr) minmax(0, 1fr) 110px; gap: 12px; align-items: center; width: 100%; text-align: left; border: 0; background: none; color: var(--ink); font: inherit; padding: 12px 6px; cursor: pointer; border-radius: 12px; }
+.sb-row:hover { background: var(--quiet); }
+.sb-when { font-size: 13px; color: var(--ink2); font-weight: 600; }
+.sb-what { display: grid; gap: 2px; min-width: 0; }
+.sb-what b { font-size: 14px; font-weight: 600; font-family: ui-monospace, monospace; }
+.sb-what span, .sb-to { font-size: 12.5px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-sum { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sb-lines { width: 100%; border-collapse: collapse; margin: 0 0 12px; font-size: 13.5px; }
+.sb-lines td { padding: 8px 6px; border-top: 1px dashed var(--rp-line); vertical-align: top; }
+.sb-lines td span { display: block; font-size: 12px; color: var(--ink2); }
+.sb-lines td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 760px) { .sb-row { grid-template-columns: 1fr auto; } .sb-to, .sb-when { display: none; } }
+
+/* Where they heard about us: one series of horizontal bars, one colour. */
+.hc { display: grid; gap: 12px; margin-bottom: 16px; }
+.hc-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hc-h h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.hc-h span { font-size: 12.5px; color: var(--ink2); }
+.hc-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hc-rows li { display: grid; grid-template-columns: minmax(120px, 230px) 1fr 84px; gap: 12px; align-items: center; font-size: 13.5px; }
+.hc-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hc-bar { height: 14px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.hc-bar i { display: block; height: 100%; border-radius: 4px; background: var(--rp-forest); }
+.hc-bar i.none { background: var(--ink3); }
+.hc-rows li:hover .hc-bar i { filter: brightness(1.15); }
+.hc-n { text-align: right; font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.hc-n b { color: var(--ink); font-size: 14px; margin-right: 4px; }
+@media (max-width: 640px) { .hc-rows li { grid-template-columns: 1fr 70px; } .hc-bar { grid-column: 1 / -1; grid-row: 2; } }
+
+/* "What does this mean?" sat under the tiles below it: the header is its own
+   layer (its entry animation makes it one), so the open box was trapped at
+   the header's level. Lift the whole header while the box is open, and give
+   the box a solid card behind it. */
+.pk-head:has(.pk-info[open]) { position: relative; z-index: 70; }
+.pk-infop { z-index: 70; background: var(--surface); box-shadow: 0 24px 60px -18px rgba(30, 15, 0, .35), 0 2px 8px rgba(0,0,0,.06); }
+
+/* The top bar let the page show through its lower third as you scrolled:
+   keep it solid to just above its edge, and fade only the last few pixels. */
+@media (min-width: 1240px) {
+  .pn-top::before { background: color-mix(in srgb, var(--rp-wash-b) 94%, transparent); -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent); }
+}
+
+/* Settings › Automatic. */
+.au-list { display: grid; gap: 4px; margin-bottom: 16px; }
+.au-item { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 14px 0; border-top: 1px solid var(--rp-line); }
+.au-item b { font-size: 15px; font-weight: 600; }
+.au-item p { margin: 4px 0 0; font-size: 13px; color: var(--ink2); max-width: 70ch; line-height: 1.5; }
+.au-on { font-size: 13px; font-weight: 600; color: var(--good); white-space: nowrap; }
+.au-sw { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.au-sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.au-track { width: 40px; height: 24px; border-radius: 99px; background: var(--track); position: relative; transition: background .2s; }
+.au-track i { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.au-sw.on .au-track { background: var(--good); }
+.au-sw.on .au-track i { transform: translateX(16px); }
+.au-sw input:focus-visible + .au-track { outline: 2px solid var(--ink); outline-offset: 2px; }
+.au-sw em { font-style: normal; color: var(--bad); font-weight: 500; }
+.au-log { list-style: none; margin: 0; padding: 0; }
+.au-log li { display: grid; grid-template-columns: 170px 1fr auto; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rp-line); }
+.au-when { font-size: 12.5px; color: var(--ink2); }
+.au-what { display: grid; gap: 2px; }
+.au-what b { font-size: 14px; font-weight: 600; }
+.au-what span { font-size: 12.5px; color: var(--ink2); }
+.au-log li.bad .au-what b { color: var(--bad); }
+@media (max-width: 640px) { .au-log li { grid-template-columns: 1fr; } }

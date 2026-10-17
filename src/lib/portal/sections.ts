@@ -151,13 +151,13 @@ export const SECTION_DEFS: SectionDef[] = [
         label: "Marketing", tab: "Campaigns", href: "/portal/marketing",
         subs: [
           { label: "Instagram", href: "/portal/marketing?tab=social" },
-          // Its own page, kept with the rest of Marketing as one of its tabs.
-          { label: "Materials", href: "/portal/materials" },
           { label: "Reviews", href: "/portal/marketing?tab=reviews" },
           { label: "Ads", href: "/portal/marketing?tab=ads" },
           { label: "Email list", href: "/portal/marketing?tab=emails" },
         ],
       },
+      // Its own line, so it's in the Marketing menu on the top bar as well as the row under it.
+      { label: "Marketing materials", href: "/portal/materials" },
       { label: "Blog", href: "/portal/blog" },
     ],
   },
@@ -178,7 +178,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "orders", label: "Orders & stock", icon: "box", group: 2, blurb: "Gear to order for the installs, what's gone, and the factory shelf",
     pages: [
       { label: "To order", href: "/portal/supply/next-week" },
-      { label: "Sent", href: "/portal/supply/next-week?tab=sent" },
+      { label: "Sent", href: "/portal/supply/sent" },
       { label: "Work orders", href: "/portal/supply/work-orders" },
       { label: "Factory stock", href: "/portal/stock" },
       // Its own tab row (Supplier emails, Orders, Item search…) is on the page.
@@ -204,6 +204,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Settings", href: "/portal/settings" },
       { label: "My file", href: "/portal/me" },
       { label: "Notifications", href: "/portal/notifications" },
+      { label: "Automatic", href: "/portal/automatic" },
       {
         label: "Wall board", tab: "Remote", href: "/portal/board/remote",
         subs: [

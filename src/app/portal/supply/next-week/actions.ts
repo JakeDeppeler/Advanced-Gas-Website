@@ -1,5 +1,9 @@
 "use server";
 
+import { refreshBoard } from "@/lib/dashboard/refresh";
+import { autoDraft } from "@/lib/ordering/autoDraft";
+import { loadStocked, saveStocked } from "@/lib/ordering/stocked";
+
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
@@ -11,6 +15,12 @@ import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
 import { updateJobs } from "@/lib/ordering/stJobNotes";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
+
+async function tagStocked(items: Array<{ key: string; name: string }>, by: string) {
+  const cur = await loadStocked();
+  const have = new Set(cur.map((x) => x.key));
+  await saveStocked([...cur, ...items.filter((x) => !have.has(x.key)).map((x) => ({ ...x, by, at: new Date().toISOString() }))]);
+}
 
 async function office() {
   const me = await getPortalUser();
@@ -265,6 +275,56 @@ export async function dismissProblem(key: string): Promise<ActionResult> {
   const keys = [...new Set([...(saved?.keys ?? []), k])].slice(-500);
   const r = await saveSettings("order-problems-dismissed", { keys });
   if (!r.ok) return { ok: false, error: "Couldn't save that." };
+  done();
+  return { ok: true };
+}
+
+/**
+ * While To order is open: pull the latest from ServiceTitan (if the last pull
+ * is more than a couple of minutes old) and redraft from it if the bookings
+ * changed. The scheduled sync is meant to do this every ten minutes, but
+ * GitHub runs that schedule every few hours on a quiet repository, so the page
+ * that needs it fresh asks for itself.
+ */
+export async function pullLatest(): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  try {
+    await refreshBoard();
+    await autoDraft({ anyHour: true });
+    done();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/**
+ * We keep it in the factory: the lines come off the draft as taken from the
+ * shelf (recorded, nothing emailed), and the item is tagged Factory stock so
+ * the next order shows it as one we hold.
+ */
+export async function fromStock(input: { id: number; lineIds: number[]; items: Array<{ key: string; name: string }> }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const ids = lineIds(input.lineIds);
+  if (!isId(input.id) || !ids.length) return { ok: false, error: "Which lines?" };
+  try {
+    const r = await markLinesOrdered(input.id, ids, me.name || me.email, "From factory stock");
+    const items = (Array.isArray(input.items) ? input.items : []).map((x) => ({ key: String(x.key ?? "").slice(0, 80), name: String(x.name ?? "").slice(0, 160) })).filter((x) => x.key);
+    if (items.length) await tagStocked(items, me.name || me.email);
+    done();
+    return { ...r, note: `${ids.length === 1 ? "Taken" : `${ids.length} lines taken`} from factory stock. Tagged Factory stock for next time.` };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Take the Factory stock tag off an item: we don't keep it on the shelf any more. */
+export async function untagStocked(key: string): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  await saveStocked((await loadStocked()).filter((x) => x.key !== key));
   done();
   return { ok: true };
 }

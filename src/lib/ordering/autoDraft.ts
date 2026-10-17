@@ -69,11 +69,13 @@ async function release(fingerprint: string) {
   }).catch(() => undefined);
 }
 
-export async function autoDraft(opts: { force?: boolean } = {}): Promise<AutoDraftResult> {
+export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {}): Promise<AutoDraftResult> {
   const now = new Date();
   const today = todayMelbourne();
   const dow = new Date(`${today}T12:00:00Z`).getUTCDay(); // 0 Sun … 6 Sat, Melbourne date
-  if (!opts.force) {
+  // anyHour: someone has To order open and asked for it fresh, so the office
+  // hours don't apply; the fingerprint still stops it redrafting for nothing.
+  if (!opts.force && !opts.anyHour) {
     const hour = Number(new Intl.DateTimeFormat("en-AU", { timeZone: TZ, hour: "numeric", hourCycle: "h23" }).format(now));
     if (dow === 0 || dow === 6 || hour < 6 || hour >= 19) return { ok: true, skipped: "outside office hours" };
   }
