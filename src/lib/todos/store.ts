@@ -169,6 +169,22 @@ export async function createTodo(input: { title: string; notes?: string | null; 
   });
 }
 
+/**
+ * A to-do the portal writes by itself (Settings › Automatic). Nobody wrote
+ * it, so it carries no author id and says "Automatic" where a name would go.
+ */
+export async function createAutoTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; list?: string | null }): Promise<void> {
+  await sbInsert(T, {
+    title: input.title.trim().slice(0, 300),
+    notes: input.notes?.trim() ? input.notes.trim().slice(0, 2000) : null,
+    assignee_id: input.assigneeId,
+    due_on: input.dueOn,
+    created_by_id: null,
+    created_by: "Automatic",
+    list: input.list?.trim() ? input.list.trim().slice(0, 40) : null,
+  });
+}
+
 export async function updateTodo(id: string, patch: { title?: string; notes?: string | null; assigneeId?: string; dueOn?: string; list?: string | null }): Promise<void> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.title !== undefined) body.title = patch.title.trim().slice(0, 300);

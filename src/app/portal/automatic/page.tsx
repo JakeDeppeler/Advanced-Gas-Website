@@ -4,13 +4,44 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { PageHead } from "@/components/portal/kit/PageHead";
-import { AutoSwitch } from "@/components/portal/AutoSwitch";
-import { loadAutoLog, loadSwitches } from "@/lib/automation/log";
+import { AutoSwitch, OfficeTo } from "@/components/portal/AutoSwitch";
+import { officeIds, teamPeople } from "@/lib/todos/store";
+import { loadAutoLog, loadSwitches, type AutoKey } from "@/lib/automation/log";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Automatic · Team portal" };
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-AU", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
+
+type Auto = { k: AutoKey; title: string; what: string; to: string; note?: string };
+
+const TODOS: Auto[] = [
+  { k: "soldNotBooked", title: "Sold but not booked after 3 days", what: "A sold quote with nothing booked from it three days on.", to: "The office, on the Quoting list" },
+  { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan.", to: "The office" },
+  { k: "quoteFollow", title: "Quote not followed up in 2 days", what: "A quote due a follow-up call that's been quiet two days or more.", to: "Whoever's chasing it, or whoever wrote the quote; the office if neither is on the team list" },
+  { k: "overdueInv", title: "Invoices 7, 14 or 30 days overdue", what: "One to-do listing every invoice that's just crossed one of those marks, so the chasing is done in one sitting.", to: "The office" },
+  { k: "keepInTouch", title: "Keep in touch gone overdue", what: "Someone on the Keep in touch list past their time.", to: "Whoever looks after that contact" },
+  { k: "vanCheck", title: "Weekly van check not done by Monday 10 am", what: "A van with no weekly check this week.", to: "That van's driver", note: "Off until the crew have the trade iPads to do the check on." },
+];
+
+const ACTS: Auto[] = [
+  { k: "quoteTag", title: "Take “Awaiting Quote Approval” off answered quotes", what: "When a job with that tag has been invoiced, is booked in for a visit to come, or has had a job booked from its quote, the tag comes off in ServiceTitan. Only that tag; the job’s other tags stay.", to: "" },
+  { k: "factoryMin", title: "Low factory stock onto next week’s order", what: "A shelf line at or under its low mark, with nothing already on order, goes onto next week’s draft for the supplier it last came from, the same quantity as last time. It stays a draft until someone approves it. A line never ordered before becomes a to-do for the office instead.", to: "" },
+  { k: "orderTags", title: "“Materials Ordered” and “System Ordered” on jobs", what: "The tags already go on when an order is sent. This tries again, a few each sync, for any order whose jobs ServiceTitan wouldn’t tag at the time.", to: "" },
+];
+
+function Item({ a, on, n, admin }: { a: Auto; on: boolean; n: number; admin: boolean }) {
+  return (
+    <div className="au-item">
+      <div>
+        <b>{a.title}</b>
+        <p>{a.what}{a.to && <> <span className="au-to-who">Goes to: {a.to}.</span></>}</p>
+        {(a.note || n > 0) && <p className="au-meta">{[a.note, n > 0 ? `${n} in the last 7 days` : null].filter(Boolean).join(" · ")}</p>}
+      </div>
+      <AutoSwitch k={a.k} on={on} canEdit={admin} label={a.title} />
+    </div>
+  );
+}
 
 /**
  * Settings › Automatic: what the portal does by itself, and everything it has
@@ -20,8 +51,11 @@ export default async function AutomaticPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead") && !can(user, "manage_users")) return <Locked user={user} what="Automatic" forWhom="the office" />;
-  const [sw, log] = await Promise.all([loadSwitches(), loadAutoLog()]);
+  const [sw, log, people, office] = await Promise.all([loadSwitches(), loadAutoLog(), teamPeople(), officeIds()]);
   const week = log.filter((e) => Date.now() - Date.parse(e.at) < 7 * 86_400_000);
+  const count = (k: AutoKey) => week.filter((e) => e.kind === (k === "quoteTag" ? "quote-tag" : k) && e.ok).length;
+  const admin = can(user, "manage_users");
+  const officeTo = sw.officeTo && people.some((p) => p.id === sw.officeTo) ? sw.officeTo : people.find((p) => office.includes(p.id))?.id ?? people[0]?.id ?? "";
   return (
     <PortalShell user={user}>
       <div className="sx">
@@ -31,14 +65,21 @@ export default async function AutomaticPage() {
       ]} />
 
       <section className="pk-card pk-pad au-list">
-        <h2 className="rv-h2">What runs by itself</h2>
-        <div className="au-item">
+        <h2 className="rv-h2">To-dos it writes</h2>
+        <p className="au-sub">Each one is written once, due the day it&rsquo;s made, and lands on the To-do board like any other. Tick it off when it&rsquo;s done.</p>
+        <div className="au-item au-office">
           <div>
-            <b>Take &ldquo;Awaiting Quote Approval&rdquo; off answered quotes</b>
-            <p>When a job with that tag has been invoiced, is booked in for a visit to come, or has had a job booked from its quote, the tag comes off in ServiceTitan. Only that tag; the job&rsquo;s other tags stay.</p>
+            <b>The office&rsquo;s to-dos go to</b>
+            <p>Anything below that doesn&rsquo;t belong to one person.</p>
           </div>
-          <AutoSwitch on={sw.quoteTag} canEdit={can(user, "manage_users")} />
+          <OfficeTo people={people} value={officeTo} canEdit={admin} />
         </div>
+        {TODOS.map((a) => <Item key={a.k} a={a} on={sw[a.k]} n={count(a.k)} admin={admin} />)}
+      </section>
+
+      <section className="pk-card pk-pad au-list">
+        <h2 className="rv-h2">What it does itself</h2>
+        {ACTS.map((a) => <Item key={a.k} a={a} on={sw[a.k]} n={count(a.k)} admin={admin} />)}
         <div className="au-item">
           <div>
             <b>Draft the orders</b>
