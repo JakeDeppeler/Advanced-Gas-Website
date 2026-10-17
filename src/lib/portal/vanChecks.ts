@@ -22,7 +22,7 @@ export const CHECK_KINDS: {
     blurb: "Same list in every van. Update the counts, and anything at or under the minimum gets ordered that day, order at the minimum, not when it runs out." },
   { k: "monthly", label: "Monthly van condition check", short: "Monthly", cadence: "First week of the month", who: "admin",
     blurb: "Admin does this one, with photos. A proper look over the van, what's wearing, what's due, what needs booking in." },
-  { k: "plant", label: "Power tools & plant", short: "Tools & plant", cadence: "With the monthly check", who: "admin",
+  { k: "plant", label: "Tools for vans", short: "Van tools", cadence: "With the monthly check", who: "admin",
     blurb: "Lives in the van. Missing, damaged or flat goes to the office the same day, don't work around it." },
   { k: "bag", label: "Tool bag", short: "Tool bag", cadence: "Back in at the end of the job", who: "crew",
     blurb: "What every tradesman and apprentice carries in the bag. Check it back in at the end of the job." },
@@ -109,37 +109,43 @@ export const VAN_STOCK: CountGroup[] = [
   ] },
 ];
 
+/**
+ * Tools for vans, as Jake listed them (Oct 2026): what lives in every van,
+ * counted with the monthly check. It replaced the earlier draft list, so a
+ * van's last count of the old list doesn't carry across to this one.
+ */
 export const VAN_PLANT: CountGroup[] = [
-  { group: "Refrigeration plant", items: [
-    ea("Vacuum pump", 1), ea("Micron / vacuum gauge", 1), ea("Manifold gauge set", 1),
-    ea("Recovery machine", 1), ea("Recovery cylinder", 1), ea("Digital charging scales", 1),
-    ea("Electronic leak detector", 1),
+  { group: "Tools", items: [
+    ea("Vac pump", 1), ea("Refrigeration gauges", 1), ea("Bender, 20mm", 1), ea("Bender, 15mm", 1),
+    ea("Gas line tester", 1), ea("Water pressure tester", 1), ea("Silicone gun", 1), ea("Digital manometer", 1),
+    { item: "B-Press set", unit: "set", min: 1 },
+    { item: "Socket set", unit: "set", min: 1 },
+    ea("Shovel", 1), ea("Textas", 2), ea("Pencils", 2), ea("Grinder", 1),
+    ea("Grinder blade, diamond tip", 1), ea("Grinder blade, cutting", 1),
+    ea("Multitool blade", 1), ea("Circular saw blade", 1), ea("Reciprocating saw blade", 1),
   ] },
-  { group: "Benders & pipe tools", items: [
-    ea('Bender 3/8"', 1), ea('Bender 1/2"', 1),
-    ea("Tube cutter, small & large", 2), ea("Deburring tool", 1), ea("Flaring tool", 1),
-    ea("Swaging / expanding tool", 1), ea("B-Press tool", 1),
-    { item: 'B-Press jaws, 1/2", 3/4", 25mm, 32mm', unit: "set", min: 1 },
+  { group: "Servicing", items: [
+    { item: "Rags", unit: "bag", min: 1 },
+    ea("Hose", 1), ea("Pressure washer", 1), ea("Spray bottle", 1), ea("Cleaning solution", 1),
+    ea("Sponge", 1), ea("Steel sponge", 1), ea("Cleaning solution, split & evap", 1), ea("Flexi hoses", 2), ea("Deodoriser", 1),
   ] },
-  { group: "Power tools", items: [
-    ea("Cordless drill", 1), ea("Impact driver", 1), ea("Angle grinder", 1),
-    ea("Rotary hammer / SDS", 1), ea("Blower", 1), ea("Vacuum cleaner", 1),
-    ea("Work light", 1), ea("Spare batteries + chargers", 2),
+  { group: "Fixings", items: [
+    { item: "Tap-ins, 5mm", unit: "box", min: 1 },
+    { item: "Green plugs, 6mm", unit: "box", min: 1 },
+    { item: "Button head wood screws, 25mm", unit: "box", min: 1 },
+    { item: "Wall mates", unit: "box", min: 1 },
+    { item: "Metal teks, 16mm", unit: "box", min: 1 },
+    ea("Ramset", 1),
+    { item: "Nails", unit: "box", min: 1 },
+    { item: "Bugle screws, 100mm", unit: "box", min: 1 },
+    { item: "Roofing screws", unit: "box", min: 1 },
   ] },
-  { group: "Test & compliance", items: [
-    ea("Manometer (digital)", 1), ea("Combustion analyser", 1), ea("Gas leak detector", 1),
-    ea("Personal CO monitor", 1), ea("Multimeter", 1), ea("Clamp meter", 1),
-    ea("Insulation tester", 1), ea("Digital thermometer + probes", 1),
+  { group: "Cannons", items: [
+    ea("PVC, 20mm", 2), ea("Copper, 15mm", 2), ea("Copper, 20mm", 1), ea("Yellow tongue", 1),
   ] },
-  { group: "Access & safety", items: [
-    ea("Extension ladder", 1), ea("Step ladder", 1), ea("Harness + lanyard", 1),
-    ea("Roof anchor kit", 1), ea("Fire extinguisher", 1), ea("First aid kit", 1),
-    ea("Safety glasses", 2),
-    { item: "Gloves, general & cut resistant", unit: "pr", min: 2 },
-    ea("Ear protection", 1),
-    { item: "P2 dust masks", unit: "pk", min: 1 },
-    { item: "Knee pads", unit: "pr", min: 1 },
-    ea("Hi-vis", 1),
+  { group: "Perishables: hammer drill bits", items: [
+    ea("Drill bit, 5mm", 1), ea("Drill bit, 6mm", 1), ea("Drill bit, 8mm", 1), ea("Drill bit, 10mm", 1),
+    ea("Drill bit, 11mm", 1), ea("Drill bit, 12mm", 1), ea("Drill bit, 13mm", 1), ea("Drill bit, 32mm", 1),
   ] },
 ];
 

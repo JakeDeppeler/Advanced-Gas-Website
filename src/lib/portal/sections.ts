@@ -98,6 +98,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "pf", label: "Finance", icon: "pf", group: 1, blurb: "Profit, cash, who owes what, and Xero",
     pages: [
       { label: "Overview", href: "/portal/finance" },
+      { label: "Accounts", href: "/portal/accounts" },
       { label: "Profit & loss", href: "/portal/finance/pl" },
       { label: "Cash flow", href: "/portal/finance/cash" },
       { label: "Owed to us", href: "/portal/money" },

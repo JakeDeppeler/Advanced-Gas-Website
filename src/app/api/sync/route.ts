@@ -9,7 +9,6 @@ import { runDueReports } from "@/lib/reports/run";
 // board's own refresh route does — safe to call from both because ensureXeroToken
 // claims the refresh in the database first.
 import { ensureXeroToken } from "@/lib/portal/xero";
-import { clearApprovedQuoteTags } from "@/lib/automation/quoteTag";
 import { runAutomations } from "@/lib/automation/reminders";
 
 export const runtime = "nodejs";
@@ -54,11 +53,9 @@ export async function GET(req: Request) {
   const xeroToken = await ensureXeroToken().catch((e) => ({ ok: false, reason: (e as Error).message }));
 
   const sync = await syncServiceTitan(reset);
-  // Settings › Automatic: quotes that have plainly been answered lose their
-  // "Awaiting Quote Approval" tag. Never fails the sync.
-  const quoteTags = await clearApprovedQuoteTags().catch((e: Error) => ({ removed: 0, failed: 1, skipped: e.message }));
-  // And the rest of Settings › Automatic: to-dos from what the sync just
-  // brought in, low shelf lines onto next week's order, tags on sent orders.
+  // Settings › Automatic: answered quotes lose their "Awaiting Quote
+  // Approval" tag, to-dos from what the sync just brought in, low shelf lines
+  // onto next week's order, tags on sent orders. Never fails the sync.
   const automatic = await runAutomations().catch((e: Error) => ({ ran: [], failed: ["all"], skipped: e.message }));
 
   // The snapshot is computed even when a sync leg failed — carry-forward inside
@@ -87,7 +84,6 @@ export async function GET(req: Request) {
     durationMs: Date.now() - startedAt,
     sync,
     xeroToken,
-    quoteTags,
     automatic,
     commission,
     reports,

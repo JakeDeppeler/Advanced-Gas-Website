@@ -18,6 +18,7 @@ import { matchName } from "@/lib/portal/crewFile/match";
 import { createAutoTodo, officeIds, teamPeople, todoLists } from "@/lib/todos/store";
 import type { Person } from "@/lib/todos/types";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
+import { clearApprovedQuoteTags } from "./quoteTag";
 
 /**
  * Settings › Automatic: the jobs that turn something the portal can already
@@ -268,10 +269,13 @@ const release = () => sbUpdateReturning("portal_settings", `key=eq.${LOCK}`, { v
  * Every switched-on job, after each ServiceTitan sync. One job failing is
  * logged and the rest still run; nothing here ever fails the sync.
  */
-export async function runAutomations(): Promise<{ ran: string[]; failed: string[]; skipped?: string }> {
+export async function runAutomations(): Promise<{ ran: string[]; failed: string[]; skipped?: string; quoteTags?: unknown }> {
   if (!(await claim())) return { ran: [], failed: [], skipped: "already running" };
   try {
-    return await runAll();
+    // The quote tags first and inside the same claim: it keeps its own marks
+    // in the same "already done" list, which is read fresh after it.
+    const quoteTags = await clearApprovedQuoteTags().catch((e: Error) => ({ removed: 0, failed: 1, skipped: e.message }));
+    return { ...(await runAll()), quoteTags };
   } finally {
     await release();
   }

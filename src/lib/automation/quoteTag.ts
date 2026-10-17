@@ -1,7 +1,7 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
-import { loadSwitches, logAuto, type AutoEntry } from "./log";
+import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry } from "./log";
 
 /** Jobs fixed per run: a backlog clears over a few runs rather than all at once against ServiceTitan's rate limit. */
 const PER_RUN = 25;
@@ -48,22 +48,44 @@ export async function clearApprovedQuoteTags(): Promise<{ removed: number; faile
   for (const v of visits) if (!why.has(v.job_id)) why.set(v.job_id, "it's booked in for a visit");
   for (const e of ests) if (bookedEst.has(e.id) && !why.has(e.job_id)) why.set(e.job_id, "a job's been booked from its quote");
 
+  /*
+   * A job that couldn't be done waits a day before it's tried again, so one
+   * that ServiceTitan won't change doesn't fill the log every ten minutes.
+   * One that was done and has the tag again was put back by something in
+   * ServiceTitan; that's said once and the job left alone for a week.
+   */
+  const made = await loadMade();
+  const since = (k: string, days: number) => { const at = made.get(k); return !!at && Date.now() - Date.parse(at) < days * 86_400_000; };
   const log: AutoEntry[] = [];
   let removed = 0, failed = 0;
-  for (const j of tagged.filter((t) => why.has(t.id)).slice(0, PER_RUN)) {
+  for (const j of tagged.filter((t) => why.has(t.id) && !since(`qtag-fail:${t.id}`, 1) && !since(`qtag-back:${t.id}`, 7)).slice(0, PER_RUN)) {
     const label = j.job_number ? `Job ${j.job_number}` : `Job ${j.id}`;
     try {
       const fresh = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${j.id}`));
       if (!Array.isArray(fresh.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's tags");
       if (!fresh.tagTypeIds.includes(tag.id)) continue; // already off; the replica hasn't caught up
+      if (made.has(`qtag-done:${j.id}`)) {
+        made.set(`qtag-back:${j.id}`, new Date().toISOString());
+        failed++;
+        log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: false, jobId: j.id, title: `${label}: "Awaiting Quote Approval" is back on`, detail: "It came off earlier and something in ServiceTitan has put it back, so it's left alone for a week rather than taken off again." });
+        continue;
+      }
       await stSend("PATCH", stTenantPath("jpm", `jobs/${j.id}`), { tagTypeIds: fresh.tagTypeIds.filter((x) => x !== tag.id) });
+      // Read it back: ServiceTitan answers OK to a change it doesn't make, and
+      // a success logged without looking is how this said "took off" for tags
+      // that were still there.
+      const after = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${j.id}`));
+      if (!Array.isArray(after.tagTypeIds) || after.tagTypeIds.includes(tag.id)) throw new Error("ServiceTitan answered OK but the tag is still on the job");
+      made.set(`qtag-done:${j.id}`, new Date().toISOString());
       removed++;
-      log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: true, jobId: j.id, title: `${label}: took off "Awaiting Quote Approval"`, detail: `Because ${why.get(j.id)}.` });
+      log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: true, jobId: j.id, title: `${label}: took off "Awaiting Quote Approval"`, detail: `Because ${why.get(j.id)}. Checked in ServiceTitan afterwards: it's off.` });
     } catch (e) {
       failed++;
+      made.set(`qtag-fail:${j.id}`, new Date().toISOString());
       log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: false, jobId: j.id, title: `${label}: couldn't take off "Awaiting Quote Approval"`, detail: (e as Error).message.slice(0, 200) });
     }
   }
+  await saveMade(made).catch(() => undefined);
   await logAuto(log).catch(() => undefined);
   return { removed, failed };
 }
