@@ -16,7 +16,7 @@ const when = (iso: string) => new Date(iso).toLocaleString("en-AU", { weekday: "
 type Auto = { k: AutoKey; title: string; what: string; to: string; note?: string };
 
 const TODOS: Auto[] = [
-  { k: "soldNotBooked", title: "Sold but not booked after 3 days", what: "A sold quote with nothing booked from it three days on.", to: "The office, on the Quoting list" },
+  { k: "soldNotBooked", title: "Sold but not booked after 3 days", what: "A sold quote with nothing booked from it three days on.", to: "The office, on the Jobs to Book list" },
   { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan.", to: "The accounts person, on the Accounts list" },
   { k: "quoteFollow", title: "Quote follow-ups as to-dos", what: "A quote due a follow-up call.", to: "Whoever's chasing it, or whoever wrote the quote", note: "Off: follow-ups are worked on the Pipeline, 2 days after the quote, then 4 days, then a week." },
   { k: "overdueInv", title: "Invoices 7, 14 or 30 days overdue", what: "One to-do listing every invoice that's just crossed one of those marks, so the chasing is done in one sitting.", to: "The accounts person, on the Accounts list" },

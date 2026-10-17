@@ -54,8 +54,10 @@ type Ctx = {
 };
 
 /** The office's own list for sales follow-ups ("Quoting"), and the general one for everything else. */
-const listFor = (ctx: Ctx, sales: boolean, accounts = false) => {
+const listFor = (ctx: Ctx, sales: boolean, accounts = false, booking = false) => {
   if (accounts) return ctx.lists.find((l) => l === ACCOUNTS) ?? null;
+  // A sold job to book goes on the office's booking list ("Jobs to Book") when there is one.
+  if (booking) { const b = ctx.lists.find((l) => /\bbook/i.test(l)); if (b) return b; }
   const quoting = ctx.lists.find((l) => /quot|sales/i.test(l));
   const other = ctx.lists.find((l) => l !== quoting);
   return (sales ? quoting ?? ctx.lists[0] : other ?? ctx.lists[0]) ?? null;
@@ -68,12 +70,12 @@ const personNamed = (ctx: Ctx, name: string | null | undefined): Person | null =
   return hit ? ctx.people.find((p) => p.name === hit) ?? null : null;
 };
 
-async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; notes?: string; to: Person | null; sales?: boolean; accounts?: boolean; jobId?: number }): Promise<boolean> {
+async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; notes?: string; to: Person | null; sales?: boolean; accounts?: boolean; booking?: boolean; jobId?: number }): Promise<boolean> {
   if (ctx.made.has(key)) return false;
   const to = t.to ?? (t.accounts ? ctx.accounts : null) ?? ctx.office;
   if (!to) return false;
   try {
-    await createAutoTodo({ title: t.title, notes: t.notes ?? null, assigneeId: to.id, dueOn: ctx.today, list: listFor(ctx, !!t.sales, !!t.accounts) ?? listFor(ctx, false) });
+    await createAutoTodo({ title: t.title, notes: t.notes ?? null, assigneeId: to.id, dueOn: ctx.today, list: listFor(ctx, !!t.sales, !!t.accounts, !!t.booking) ?? listFor(ctx, false) });
     ctx.made.set(key, new Date().toISOString());
     ctx.log.push({ at: new Date().toISOString(), kind, ok: true, jobId: t.jobId, title: `To-do for ${to.name.split(" ")[0]}: ${t.title}` });
     return true;
@@ -109,7 +111,7 @@ async function soldNotBooked(ctx: Ctx, pipe: PipeQuote[]) {
     if (await todo(ctx, "soldNotBooked", `sold:${q.key}`, {
       title: `Book in ${who(q)}, sold ${age} days ago`,
       notes: [`${q.jobNumber ? `Job #${q.jobNumber} · ` : ""}${q.what ?? "Sold quote"}${q.value ? ` · ${money(q.value)}` : ""}.`, `Sold ${dayLabel(q.soldOn)} and nothing's been booked from it yet. It's in Pipeline › Sold, to be booked.`].join("\n"),
-      to: null, sales: true, jobId: q.jobId ?? undefined,
+      to: null, sales: true, booking: true, jobId: q.jobId ?? undefined,
     })) n++;
   }
 }
