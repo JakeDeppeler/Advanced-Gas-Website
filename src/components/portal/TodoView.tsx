@@ -4,7 +4,8 @@ import { TodoBoard } from "@/components/portal/TodoBoard";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { dbConfigured } from "@/lib/portal/db";
 import { doneSince, meOf, officeIds, openTodos, seesAll, teamPeople, todayMelbourne, todoLists, visibleTo } from "@/lib/todos/store";
-import { DEFAULT_LISTS, dueState, isAccountList, isAccountTodo, type Todo } from "@/lib/todos/types";
+import { DEFAULT_LISTS, accountRank, dueState, isAccountList, isAccountTodo, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { sbSelect } from "@/lib/dashboard/db";
 
 /**
  * The two to-do boards. One is people's own: what they set themselves or
@@ -40,9 +41,20 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
   // its to-dos is on (a quote follow-up on Quoting); people's own board
   // shows the rest.
   const own = saved.filter((l) => !isAccountList(l));
+  // in the order the work goes: quote, chase, book in, invoice.
   const lists = kind === "accounts"
-    ? saved.filter((l) => isAccountList(l) || todos.some((t) => t.list === l))
+    ? saved.filter((l) => isAccountList(l) || todos.some((t) => t.list === l)).sort((a, b) => accountRank(a) - accountRank(b))
     : own.length ? own : DEFAULT_LISTS;
+  // Each card's job, for the pop-up's link into ServiceTitan: one read for the lot.
+  const jobIds: Record<string, number> = {};
+  if (kind === "accounts" && ready) {
+    const nums = [...new Set(todos.map(jobNumberIn).filter((n): n is string => !!n))];
+    const rows = nums.length
+      ? await sbSelect<{ id: number; job_number: string }>("st_jobs", `select=id,job_number&job_number=in.(${nums.map(encodeURIComponent).join(",")})`).catch(() => [])
+      : [];
+    const byNum = new Map(rows.map((r) => [String(r.job_number), r.id]));
+    for (const t of todos) { const n = jobNumberIn(t); const id = n ? byNum.get(n) : undefined; if (id) jobIds[t.id] = id; }
+  }
 
   // The heading counts what this person is looking at: everything for the
   // office, their own list for anyone else.
@@ -74,6 +86,7 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
           lists={lists}
           allLists={saved}
           fixed={kind === "accounts"}
+          jobIds={jobIds}
         />
       )}
     </PortalShell>

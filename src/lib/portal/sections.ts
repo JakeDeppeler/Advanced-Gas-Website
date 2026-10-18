@@ -102,14 +102,18 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "run", label: "The Numbers", icon: "run", group: 1, blurb: "How we're going: today, this month, the KPIs and the year goal",
     pages: [
       { label: "Today", href: "/portal/today" },
-      { label: "Team now", href: "/portal/today?tab=team", gate: "/portal/today" },
       { label: "Call booking", href: "/portal/today?tab=calls", gate: "/portal/today" },
-      { label: "This month", href: "/portal/month" },
       { label: "KPIs", href: "/portal/kpis" },
       { label: "Month review", href: "/portal/finance/review" },
+      // Pace took in This month (its Month) and Year so far (its Year).
+      {
+        label: "Pace", group: [
+          { label: "Week", href: "/portal/pace" },
+          { label: "Month", href: "/portal/pace?view=month", gate: "/portal/pace" },
+          { label: "Year", href: "/portal/pace?view=year", gate: "/portal/pace" },
+        ],
+      },
       { label: "Year goal", href: "/portal/goal" },
-      { label: "Goal step by step", href: "/portal/pace" },
-      { label: "Year so far", href: "/portal/finance/goals" },
       { label: "Set the goals", href: "/portal/numbers" },
     ],
   },
@@ -333,7 +337,7 @@ export function activePage(pages: { href: string }[], path: string, query: URLSe
       if (![...want.entries()].every(([k, v]) => query.get(k) === v)) continue;
       score += 5;
     } else {
-      const named = ["tab", "part", "t"].find((k) => query.get(k) && pages.some((o) => o.href.startsWith(`${base}?`) && new URLSearchParams(o.href.split("?")[1]).get(k) === query.get(k)));
+      const named = ["tab", "part", "t", "view"].find((k) => query.get(k) && pages.some((o) => o.href.startsWith(`${base}?`) && new URLSearchParams(o.href.split("?")[1]).get(k) === query.get(k)));
       if (named) continue;
     }
     if (!best || score > best.score) best = { href: p.href, score };

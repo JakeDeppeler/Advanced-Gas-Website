@@ -11,6 +11,7 @@
  * them off — takes effect on their next page load, cookie or not.
  */
 
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { sign, verify } from "./token";
 import { resolveUser } from "./db";
@@ -52,8 +53,11 @@ export async function createSessionValue(identity: { email: string; name: string
   );
 }
 
-/** Current signed-in team member with fresh role + caps from the database. */
-export async function getPortalUser(): Promise<PortalUser | null> {
+/**
+ * Current signed-in team member with fresh role + caps from the database.
+ * Once per request: the page, the shell and its streamed parts each ask.
+ */
+export const getPortalUser = cache(async (): Promise<PortalUser | null> => {
   const value = cookies().get(SESSION_COOKIE)?.value;
   if (!value) return null;
   const s = secret();
@@ -62,7 +66,7 @@ export async function getPortalUser(): Promise<PortalUser | null> {
   if (!p || p.t !== "session" || !p.email) return null;
   const real = await resolveUser(String(p.email));
   return real ? applyPreview(real) : null;
-}
+});
 
 /**
  * An admin previewing the portal as a tradesman, an apprentice, the office.

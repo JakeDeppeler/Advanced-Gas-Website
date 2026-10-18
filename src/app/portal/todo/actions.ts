@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { isAccountList } from "@/lib/todos/types";
+import { FOLLOW_UP_LIST, isAccountList, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { sbSelect } from "@/lib/dashboard/db";
+import { getSettings } from "@/lib/portal/db";
+import { HOW_LABEL, isHow } from "@/lib/pipeline/types";
+import { saveFollowUp } from "@/app/portal/pipeline/actions";
 import { MAX_LISTS, createTodo, getTodo, meOf, removeTodo, renameTodoList, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, todoLists, updateTodo } from "@/lib/todos/store";
 
 export type TodoResult = { ok: boolean; error?: string };
@@ -145,5 +149,63 @@ export async function renameList(from: string, to: string): Promise<TodoResult> 
     return { ok: false, error: "Couldn't rename it. Try again." };
   }
   revalidatePath("/portal/todo");
+  return { ok: true };
+}
+
+/** The day as the notes write it: "Mon 19 Oct". */
+const dayWords = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+
+/**
+ * The quote on the Pipeline a to-do is chasing, if it's chasing one: the
+ * follow-up to-dos the portal writes are kept against their quote; an older
+ * quote to-do names its job, and the quote is that job's while it still has
+ * an open estimate. An invoice or booking to-do names a job too, but isn't a
+ * quote, so only the quote lists are looked at.
+ */
+async function quoteFor(t: Todo): Promise<string | null> {
+  const open = (await getSettings<Record<string, { id: string }>>("automation_follow_todos").catch(() => null)) ?? {};
+  const kept = Object.entries(open).find(([, v]) => v.id === t.id)?.[0];
+  if (kept) return kept;
+  if (!t.list || !(t.list === FOLLOW_UP_LIST || /quot|sales/i.test(t.list))) return null;
+  const n = jobNumberIn(t);
+  if (!n) return null;
+  const [job] = await sbSelect<{ id: number }>("st_jobs", `select=id&job_number=eq.${encodeURIComponent(n)}&limit=1`).catch(() => []);
+  if (!job) return null;
+  const [est] = await sbSelect<{ id: number }>("st_estimates", `select=id&job_id=eq.${job.id}&status=eq.Open&limit=1`).catch(() => []);
+  return est ? `j${job.id}` : null;
+}
+
+/**
+ * Account to-dos › the pop-up: what happened when they were rung, and then
+ * either it's done or when to try again. The line goes on top of the to-do's
+ * notes so the history reads newest first; a quote's call is also logged on
+ * the Pipeline (which notes the job in ServiceTitan), so the follow-up count
+ * there moves on with it.
+ */
+export async function logContact(input: { id: string; how?: string | null; note?: string; nextOn?: string | null; done?: boolean }): Promise<TodoResult & { said?: string }> {
+  const { w, t, error } = await mayChange(input.id);
+  if (!w || !t) return { ok: false, error: error ?? "Couldn't." };
+  const how = input.how && isHow(input.how) ? input.how : null;
+  const note = (input.note ?? "").trim().slice(0, 300);
+  const next = !input.done && input.nextOn && ISO.test(input.nextOn) ? input.nextOn : null;
+  if (!input.done && !next) return { ok: false, error: "Pick a day to follow up, or mark it done." };
+  if (!how && !note && !input.done && next === t.dueOn) return { ok: false, error: "Nothing's changed." };
+  const by = (w.me?.name ?? w.user.name).split(" ")[0];
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+  const line = `${dayWords(today)} ${by}: ${how ? HOW_LABEL[how] : "Note"}${note ? `, ${note}` : ""}${input.done ? ". Done." : next ? `. Follow up ${dayWords(next)}.` : "."}`;
+  try {
+    await updateTodo(t.id, { notes: `${line}\n${t.notes ?? ""}`.slice(0, 2000), ...(next ? { dueOn: next } : {}) });
+    if (input.done) await setDone(t.id, true, w.me?.name ?? w.user.name);
+  } catch {
+    return { ok: false, error: "Couldn't save that. Try again." };
+  }
+  revalidatePath("/portal/todo/accounts");
+  // The quote's own record, when it's a quote and something happened.
+  const key = how ? await quoteFor(t).catch(() => null) : null;
+  if (key) {
+    const r = await saveFollowUp({ key, how, note: note || null, ...(next ? { nextOn: next } : {}) }).catch(() => null);
+    if (!r?.ok) return { ok: true, said: "Saved here, but the call didn't go on the Pipeline. Log it there too." };
+    return { ok: true, said: r.said ?? "Saved, and logged on the Pipeline and the job." };
+  }
   return { ok: true };
 }

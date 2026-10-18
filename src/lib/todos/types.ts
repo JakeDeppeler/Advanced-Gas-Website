@@ -41,6 +41,18 @@ export const isAccountList = (l: string | null | undefined): boolean => !!l && (
  */
 export const isAccountTodo = (t: Pick<Todo, "createdBy" | "list">): boolean => t.createdBy === "Automatic" || isAccountList(t.list);
 
+/** Account to-dos run in the order the work does: quote, chase, book, bill. */
+export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /\bbook/i, new RegExp(`^${FINANCE_LIST}$`, "i")];
+export const accountRank = (l: string) => { const i = ACCOUNT_ORDER.findIndex((r) => r.test(l)); return i < 0 ? ACCOUNT_ORDER.length : i; };
+
+/** The ServiceTitan job a to-do names ("job #20131", "Invoice job 20304"), so it can link to it. */
+export const jobNumberIn = (t: Pick<Todo, "title" | "notes">): string | null =>
+  `${t.title}\n${t.notes ?? ""}`.match(/\bjob #?(\d{4,9})\b/i)?.[1] ?? null;
+
+/** A phone number in a to-do's notes, to ring from the pop-up. */
+export const phoneIn = (t: Pick<Todo, "notes">): string | null =>
+  (t.notes ?? "").match(/(?:^|[\s·(])((?:\+?61|0)[2-478](?:[ -]?\d){8})(?=$|[\s.,·)])/)?.[1]?.replace(/[\s-]/g, "") ?? null;
+
 /** The lists until the office changes them on the page. */
 export const DEFAULT_LISTS = ["Quoting", "Advanced Gas"];
 

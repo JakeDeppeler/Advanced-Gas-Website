@@ -48,9 +48,11 @@ export async function overview(goal: YearGoal | null, span: 6 | 12 = 12): Promis
   let lastToDate = 0;
   const dayOfMonth = Number(today.slice(8, 10));
   const lastKey = new Date(Date.UTC(y, mo - 2, 1)).toISOString().slice(0, 7);
+  let firstDay = "9999";
   for (const r of quotes(rows)) {
     if (!r.sold_on) continue;
     const d = mel(new Date(r.sold_on)).toISOString();
+    if (d < firstDay) firstDay = d;
     const key = d.slice(0, 7);
     const v = Number(r.total ?? 0);
     byMonth.set(key, (byMonth.get(key) ?? 0) + v);
@@ -81,10 +83,14 @@ export async function overview(goal: YearGoal | null, span: 6 | 12 = 12): Promis
     return { k, label: LABEL[k], count: l.length, value: l.reduce((a, x) => a + x.value, 0) };
   });
 
+  // Sales only reach back to when ServiceTitan took over, mid-September 2026.
+  // A last month that started before that was half counted, and "this month
+  // against it" read +2,547%; with no whole month to compare, say nothing.
+  const lastWhole = firstDay.slice(0, 10) <= `${lastKey}-03`;
   return {
     months,
     mtd: byMonth.get(today.slice(0, 7)) ?? 0,
-    lastToDate,
+    lastToDate: lastWhole ? lastToDate : 0,
     hot,
     stages,
     open: { count: open.length, value: open.reduce((a, x) => a + x.value, 0) },

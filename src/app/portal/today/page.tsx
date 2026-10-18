@@ -41,14 +41,16 @@ function needLook(l: NeedLine): { icon: string; word: string } {
 /**
  * Run the company › Today, to the prototype: how today is going against a
  * usual day, the tiles, sold today hour by hour, and what needs someone.
- * Team now is each tech's day; Call booking is calls into booked jobs.
+ * Call booking is calls into booked jobs.
  */
 export default async function TodayPage({ searchParams }: { searchParams: { tab?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Today" forWhom="the office" />;
 
-  const tab = ["team", "calls"].includes(searchParams.tab ?? "") ? (searchParams.tab as string) : "overview";
+  // Team now went: Jobs today shows the same people on the same jobs.
+  if (searchParams.tab === "team") redirect("/portal/jobs");
+  const tab = searchParams.tab === "calls" ? "calls" : "overview";
   const isoMonth = new Date(Date.now() + 10 * 3_600_000).toISOString().slice(0, 7);
   const [board, lines, points, calls, track, crew, hour] = await Promise.all([
     latestBoard(),
@@ -67,7 +69,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   const over = techs.filter((t) => t.hoursQuoted != null && t.hoursTakenQuoted > t.hoursQuoted + 0.25);
 
   const head = (sub: string) => (
-    <Head title={tab === "team" ? "Team now" : tab === "calls" ? "Call booking" : "Today"} sub={`${now.day} · ${now.time} · ${sub}`} info={[
+    <Head title={tab === "calls" ? "Call booking" : "Today"} sub={`${now.day} · ${now.time} · ${sub}`} info={[
       ["A usual day", "The month’s sales goal spread over its working days. Today is measured against it."],
       ["Sold", "Quotes a customer said yes to today. A quote re-sold for the same amount stays on the day it first sold."],
       ["Billed", "Everything invoiced today, whenever the job was done."],
@@ -78,38 +80,6 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
     return (
       <PortalShell user={user}>
         <div className="pk">{head("ServiceTitan")}<Empty>The board hasn’t made its first snapshot yet, so there’s nothing to show for today.</Empty></div>
-      </PortalShell>
-    );
-  }
-
-  if (tab === "team") {
-    return (
-      <PortalShell user={user}>
-        <div className="pk">
-          {head("ServiceTitan")}
-          <Say>
-            {techs.length ? <>{plural(techs.length, "person", "people")} on jobs today. </> : <>Nobody has a job in ServiceTitan today. </>}
-            {over.length > 0 && <Bad>{over.map((t) => t.tech.split(" ")[0]).join(" and ")} {over.length > 1 ? "are" : "is"} running over.</Bad>}
-          </Say>
-          {techs.length ? (
-            <Grid>
-              {techs.map((t) => {
-                const st: Status = t.hoursQuoted == null ? none("No quoted time") : t.hoursTakenQuoted > t.hoursQuoted + 0.25 ? { k: "bad", w: "Over time" } : { k: "good", w: "On time" };
-                const where = t.onNow ? [t.onNow.what, t.onNow.where].filter(Boolean).join(" · ") : t.jobsDone === t.jobsTotal ? "All done for today" : "Between jobs";
-                return (
-                  <Card key={t.tech}>
-                    <div className="pk-tl" style={{ color: "var(--ink)" }}><span style={{ display: "flex", alignItems: "center", gap: 10 }}><Av name={t.tech} /><b style={{ fontSize: 16 }}>{t.tech.split(" ")[0]}</b></span><Pill st={st} /></div>
-                    <div className="pk-ks" style={{ marginTop: 10 }}>{where}</div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-                      <span className="pk-ks">{t.jobsDone} of {t.jobsTotal} jobs · {t.hoursTaken.toFixed(1)} hrs</span>
-                      <b>{money(t.billedValue)} billed</b>
-                    </div>
-                  </Card>
-                );
-              })}
-            </Grid>
-          ) : <Empty>No jobs on the schedule today.</Empty>}
-        </div>
       </PortalShell>
     );
   }
@@ -216,7 +186,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
             sub={<>{plural(m.quotesCreatedTodayCount, "quote")}{quotedUsual ? ` · a usual day ${money(quotedUsual)}` : ""}{weekend ? null : <TwoGoals levels={levels} done={m.quotesCreatedTodayValue} need={quotedUsual} />}</>} href="/portal/pipeline" />
           <Tile label="Jobs done" st={team && team.jobsTotal ? (team.jobsDone >= team.jobsTotal ? { k: "good", w: "All done" } : none("Going")) : none("")}
             fig={team ? `${team.jobsDone} of ${team.jobsTotal}` : String(m.jobsCompletedToday)} frac={team && team.jobsTotal ? team.jobsDone / team.jobsTotal : null}
-            sub={team ? `${team.jobsTotal - team.jobsDone} still on the go` : "finished today"} href="/portal/today?tab=team" />
+            sub={team ? `${team.jobsTotal - team.jobsDone} still on the go` : "finished today"} href="/portal/jobs" />
           <Tile label="Billed" st={notBilled ? { k: "mid", w: "To bill" } : { k: "good", w: "All billed" }} fig={money(m.revenueToday)} frac={m.revenueToday + m.toBillValue > 0 ? m.revenueToday / (m.revenueToday + m.toBillValue) : null}
             sub={notBilled ? (m.toBillValue ? `${money(m.toBillValue)} done, not billed` : `${plural(notBilled, "job")} done, not billed`) : "nothing waiting to bill"} href="/portal/jobs?tab=notbilled" />
           <Tile label="Leads" st={weekend ? (m.leadsToday > 0 ? extra : none("Weekend")) : leadsUsual ? status(m.leadsToday, leadsUsual) : none("")} fig={String(m.leadsToday)} frac={leadsUsual ? m.leadsToday / leadsUsual : null}
@@ -225,7 +195,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
         <Lh>Before the Reece bill</Lh>
         <Grid cols={3}>
           <Tile label="Gear in this month's sales" st={gearSt} fig={gearShare != null ? `${Math.round(gearShare * 100)}%` : ""} frac={gearShare}
-            sub={gearShare != null ? `${money(gear)} of ${money(sales)} sold${gearMax != null ? ` · most a sale can carry ${Math.round(gearMax * 100)}%` : ""}` : "nothing sold with costs yet this month"} href="/portal/month" />
+            sub={gearShare != null ? `${money(gear)} of ${money(sales)} sold${gearMax != null ? ` · most a sale can carry ${Math.round(gearMax * 100)}%` : ""}` : "nothing sold with costs yet this month"} href="/portal/pace?view=month" />
           <Tile label="Cost of goods, last 30 days" st={cogsSt} fig={cogs != null ? `${(Math.round(cogs * 1000) / 10).toFixed(1)}%` : ""} frac={cogs}
             sub={jp ? `gear and labour on ${jp.costed} finished jobs · keep it under 80%` : "no finished jobs costed yet"} href="/portal/profit" />
           <Tile label="Billed work a day, last 7 days" st={effSt} fig={workDay != null ? `${workDay.toFixed(1)} hrs` : ""} frac={workDay != null ? Math.min(1, workDay / 8) : null}

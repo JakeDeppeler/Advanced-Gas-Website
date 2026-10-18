@@ -23,6 +23,7 @@ import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shel
 import { Dock, type DockLink } from "@/components/portal/shell/Dock";
 import { FigureCount } from "@/components/portal/shell/FigureCount";
 import { ChromeMemo } from "@/components/portal/shell/ChromeMemo";
+import { ScrollMark } from "@/components/portal/shell/ScrollMark";
 
 const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_users");
 
@@ -227,6 +228,7 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       </Suspense>
       <Suspense fallback={null}><FigureCount /></Suspense>
       <ChromeMemo />
+      <ScrollMark />
     </div>
   );
 }

@@ -297,7 +297,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["office", "office today", "morning", "routine", "review invoices", "needs review", "not sent", "hold list", "partially paid", "part paid", "follow up"],
     },
     {
-      href: "/portal/month", label: "The month so far", short: "Month so far", blurb: "Jobs sold, the gear in them, and what's left to cover the month", band: "hidden", icon: "trend",
+      href: "/portal/pace?view=month", label: "Pace this month", short: "Pace · month", blurb: "Jobs sold, the gear in them, and what's left to cover the month", band: "hidden", icon: "trend",
       also: ["month", "this month", "month so far", "cost of goods", "cogs", "gear", "break even", "cover overheads", "sold jobs", "not billed", "before the reece bill"],
     },
     { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
@@ -312,7 +312,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   // own tabs. Here so the search finds them and the side bar's gate is this list.
   add(office,
     { href: "/portal/finance/pl", label: "Profit & loss", short: "P&L", blurb: "Xero's profit and loss, month by month", band: "hidden", icon: "chart", also: ["p&l", "profit and loss", "income", "expenses", "xero"] },
-    { href: "/portal/finance/goals", label: "Year goal", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
+    { href: "/portal/pace?view=year", label: "Pace this year", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
     { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
     { href: "/portal/numbers", label: "Goals", blurb: "Every goal the portal measures against", band: "hidden", icon: "target", also: ["goals", "our numbers", "year goal", "sales goal", "months", "gross margin goal", "win rate goal"] },
     { href: "/portal/finance/capacity", label: "Overheads", blurb: "Every overhead line, add, edit, a year, a week or a month a van", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software", "fuel", "servicing", "add a line"] },

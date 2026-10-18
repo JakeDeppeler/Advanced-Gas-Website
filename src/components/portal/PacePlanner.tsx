@@ -91,6 +91,8 @@ export function PacePlanner({
   data,
   profit,
   canSave,
+  view = "week",
+  children,
 }: {
   goal: PaceGoal;
   /** No goal is saved: these are the figures asked for, not yet on the wall. */
@@ -99,6 +101,13 @@ export function PacePlanner({
   data: PaceData | null;
   profit: { summary: ProfitSummary; worst: JobProfit[] } | null;
   canSave: boolean;
+  /**
+   * Which of Pace's three tabs: the week's chain and what the goal takes, the
+   * month's jobs and profit, or the year's running total. The month and year
+   * bring their own server-read parts as `children` (MonthSoFar, YearSoFar).
+   */
+  view?: "week" | "month" | "year";
+  children?: React.ReactNode;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -195,6 +204,7 @@ export function PacePlanner({
       )}
       {!editing && msg && <p className={msg.ok ? "pt-pace__ok" : "pt-pace__err"} role="status">{msg.text}</p>}
 
+      {view === "month" && children}
       {!data ? (
         <div className="pt-note pt-note--warn">
           <strong>No figures yet.</strong> The board hasn&rsquo;t taken a snapshot from ServiceTitan, so there&rsquo;s nothing to pace. It does every ten minutes once the sync is running.
@@ -206,6 +216,7 @@ export function PacePlanner({
       ) : (
         <>
           {/* ---------------------------------------------------- the year */}
+          {view === "year" && (
           <section className={`pt-pace__year ${y && y.gap < 0 ? "is-behind" : "is-ahead"}`} aria-label="The year">
             {y ? (
               <>
@@ -249,8 +260,10 @@ export function PacePlanner({
               <p className="pt-pace__landing">Save the goal and the year&rsquo;s running total starts from the next snapshot.</p>
             )}
           </section>
+          )}
 
           {/* ---------------------------------------------------- the week */}
+          {view === "week" && (<>
           <div className="pt-pace__sech">
             <h2>This week</h2>
             <span>
@@ -290,8 +303,10 @@ export function PacePlanner({
               );
             })}
           </ol>
+          </>)}
 
           {/* ---------------------------------------------------- the plan */}
+          {view !== "year" && (
           <section className="pt-panel pt-pace__plan">
             <div className="pt-pace__sech pt-pace__sech--in">
               <h2>What it takes</h2>
@@ -347,8 +362,10 @@ export function PacePlanner({
               {goal.shape ? ", as shaped on Finance · The year" : ", an even twelfth until the year is shaped on Finance · The year"}.
             </p>
           </section>
+          )}
 
           {/* ---------------------------------------------------- the rates */}
+          {view === "week" && (
           <section className="pt-panel pt-pace__rates">
             <div className="pt-pace__sech pt-pace__sech--in">
               <h2>The rates it&rsquo;s built on</h2>
@@ -370,8 +387,10 @@ export function PacePlanner({
               see how many fewer quotes it takes. Nothing reaches the wall until it&rsquo;s saved.
             </p>
           </section>
+          )}
 
           {/* ---------------------------------------------------- profit */}
+          {view === "month" && (
           <section className="pt-panel pt-pace__profit">
             <div className="pt-pace__sech pt-pace__sech--in">
               <h2>Is the profit there?</h2>
@@ -443,8 +462,10 @@ export function PacePlanner({
               </>
             )}
           </section>
+          )}
         </>
       )}
+      {view === "year" && children}
     </div>
   );
 }
