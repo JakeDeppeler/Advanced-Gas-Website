@@ -105,7 +105,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
             ) : list.length === 0 ? (
               <Empty>No work orders yet.</Empty>
             ) : (
-              <WorkOrderList list={list} />
+              <WorkOrderList list={list} contacts={contacts} sparky={sparky ? { name: sparky.name.replace(/\s*\(.*\)\s*$/, "") || sparky.name, email: sparky.email } : null} />
             )}
           </Card>
         </div>

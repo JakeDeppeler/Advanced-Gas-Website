@@ -2476,6 +2476,26 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .wo-hits button:hover { border-color: var(--ink4); }
 .wo-hits span { font-size: 12.5px; color: var(--ink2); }
 @media (max-width: 560px) { .wo-facts > div { grid-template-columns: 1fr; gap: 2px; } }
+/* Editing one from its pop-up: the job, who it's for, then the details in two columns. */
+.wo-edit { display: grid; gap: 14px; }
+.wo-jobline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 14px; border-radius: 16px; background: var(--sunken); }
+.wo-jobline .wo-whol { color: var(--ink3); font-weight: 600; font-size: 13px; }
+.wo-jobline b { font-size: 15px; }
+.wo-was { font-style: normal; font-size: 12.5px; color: var(--ink3); text-decoration: line-through; }
+.wo-jobline .qp-btn { margin-left: auto; }
+.qp-btn.sm { height: 34px; padding: 0 14px; font-size: 13px; }
+.wo-edit .wo-who { padding: 0; }
+.wo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wo-f { display: grid; gap: 5px; min-width: 0; }
+.wo-f.wide { grid-column: 1 / -1; }
+.wo-f > span { font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.wo-f .pk-in { width: 100%; height: 40px; box-sizing: border-box; font-size: 14px; }
+.wo-f textarea.pk-in { height: auto; resize: vertical; }
+.wo-edit .wo-search { flex-wrap: wrap; }
+.wo-edit .wo-search .pk-in { height: 46px; box-sizing: border-box; min-width: 180px; font-size: 14px; }
+.wo-edit .qp-note { margin: 0; }
+@media (max-width: 560px) { .wo-grid { grid-template-columns: 1fr; } }
+
 /* Account to-dos' pop-up: did they go ahead? Won or lost, words on both. */
 .td-outcome { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px; background: var(--sunken); }
 .td-outcome > span { font-weight: 700; font-size: 14px; margin-right: 4px; }

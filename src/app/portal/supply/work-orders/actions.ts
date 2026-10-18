@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { createAndSendWorkOrder, findJobs, loadWoContacts, moveWorkOrder, saveWoContacts, type JobHit, type WoContact } from "@/lib/ordering/workOrders";
+import { createAndSendWorkOrder, editWorkOrder, findJobs, jobForWork, loadWoContacts, moveWorkOrder, saveWoContacts, type JobHit, type WoContact } from "@/lib/ordering/workOrders";
+import { approveAndSend, resendWorkOrder } from "@/lib/ordering/send";
 import { parseEmails } from "@/lib/ordering/plan";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
@@ -87,5 +88,57 @@ export async function moveToJob(input: { id: number; jobId: number }): Promise<A
     return r;
   } catch (e) {
     return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** What the pop-up fills in when a work order is put on another job: that job's site and customer. */
+export async function jobFill(jobId: number): Promise<{ site: string; customer: string; phone: string; email: string } | null> {
+  if (!(await office()) || !Number.isInteger(jobId) || jobId <= 0) return null;
+  const j = await jobForWork(jobId).catch(() => null);
+  // A job with no location on file falls back to its suburb, which is no better than the address already there.
+  return j ? { site: j.site_address !== (j.suburb ?? "") ? j.site_address : "", customer: j.customer_name ?? "", phone: j.phone ?? "", email: j.email ?? "" } : null;
+}
+
+/**
+ * Edit a work order from its pop-up: the job it's on, what it says, who it's
+ * for. Then, as asked: just keep it, send a draft, or email a sent one again.
+ */
+export async function saveWorkOrder(input: {
+  id: number; jobId: number; date: string; time: string; work: string; site: string; customer: string; phone: string; email: string; crew: string;
+  trade: string; toName: string; sendTo: string; then: "save" | "send" | "resend";
+}): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!Number.isInteger(input.id) || !Number.isInteger(input.jobId) || input.jobId <= 0) return { ok: false, error: "Which job?" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return { ok: false, error: "Pick the day." };
+  if (input.time && !/^\d{2}:\d{2}$/.test(input.time)) return { ok: false, error: "That time doesn't read as a time." };
+  if (!input.work.trim()) return { ok: false, error: "Say what work is needed, it's what they read first." };
+  const to = parseEmails(input.sendTo ?? "");
+  if (to.bad.length || to.ok.length > 1) return { ok: false, error: `Send to takes one email address${to.bad.length ? `, “${to.bad[0]}” isn't one` : ""}.` };
+  const cut = (s: string, n: number) => String(s ?? "").slice(0, n);
+  const trade = cut(input.trade, 60).trim();
+  try {
+    const e = await editWorkOrder(input.id, {
+      date: input.date, time: input.time || null, work: cut(input.work, 1500), site: cut(input.site, 300), customer: cut(input.customer, 200),
+      phone: cut(input.phone, 60), email: cut(input.email, 200), crew: cut(input.crew, 300),
+      // "Electrical" is the electrician's own, kept without a trade, as a new one would be.
+      trade: trade && !/^electric/i.test(trade) ? trade : null, toName: cut(input.toName, 80) || null,
+    });
+    if (!e.ok) return { ok: false, error: e.error };
+    const notes: string[] = ["Saved."];
+    const m = await moveWorkOrder(input.id, input.jobId, { quiet: input.then === "resend" });
+    if (m.ok && m.note) notes.push(m.note);
+    else if (!m.ok && m.error !== "It's already on that job.") return { ok: false, error: `Saved, but ${m.error}` };
+    const who = me.name || me.email;
+    const r = input.then === "send" ? await approveAndSend(input.id, who, { to: to.ok[0] })
+      : input.then === "resend" ? await resendWorkOrder(input.id, who, { to: to.ok[0] })
+      : null;
+    revalidatePath("/portal/supply/work-orders");
+    revalidatePath("/portal/supply/next-week");
+    if (r && !r.ok) return { ok: false, error: `Saved, but it didn't send: ${r.error}` };
+    if (r?.note) notes.push(r.note);
+    return { ok: true, note: notes.join(" ") };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
   }
 }

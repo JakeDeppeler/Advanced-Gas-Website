@@ -168,7 +168,7 @@ export async function saveWoContacts(list: WoContact[]): Promise<boolean> {
  * if it's gone, the new job gets the note and the work order in ServiceTitan.
  * The old job's note stays where it is: ServiceTitan's notes can't be taken back.
  */
-export async function moveWorkOrder(id: number, jobId: number): Promise<{ ok: boolean; error?: string; note?: string }> {
+export async function moveWorkOrder(id: number, jobId: number, opts: { quiet?: boolean } = {}): Promise<{ ok: boolean; error?: string; note?: string }> {
   const po = await getOrder(id);
   if (!po || po.kind !== "work_order" || !po.details) return { ok: false, error: "That work order couldn't be found." };
   const job = await jobForWork(jobId);
@@ -178,9 +178,50 @@ export async function moveWorkOrder(id: number, jobId: number): Promise<{ ok: bo
   const jobs = [{ ...(was ?? { system_installed: null, electrical_items: null, work: null }), job_id: job.id, job_number: job.job_number, job_type: job.job_type, customer_name: job.customer_name }, ...po.details.jobs.slice(1)];
   await sbUpdate("purchase_orders", `id=eq.${id}`, { details: { ...po.details, jobs }, updated_at: new Date().toISOString() });
   await sbUpdate("purchase_order_lines", `po_id=eq.${id}&job_id=eq.${was?.job_id ?? 0}`, { job_id: job.id, job_number: job.job_number, customer_name: job.customer_name }).catch(() => undefined);
-  if (po.status !== "sent") return { ok: true, note: `Moved to job ${job.job_number}.` };
+  // quiet: it's about to be emailed again, which notes the job with the new copy.
+  if (po.status !== "sent" || opts.quiet) return { ok: true, note: `Moved to job ${job.job_number}.` };
   const r = await updateJobs(id).catch((e: Error) => ({ ok: false, done: [], error: e.message }));
   return r.ok
     ? { ok: true, note: `Moved to job ${job.job_number}, noted there with the work order attached.${was ? ` Job ${was.job_number}'s note stays in ServiceTitan.` : ""}` }
     : { ok: true, note: `Moved to job ${job.job_number}, but ServiceTitan didn't take the note: ${r.error ?? "try again from To order › Sent"}.` };
+}
+
+export type WorkOrderEdit = {
+  date: string; time: string | null; work: string; site: string; customer: string; phone: string; email: string; crew: string;
+  /** Null for the electrician's; otherwise what the work is and who it's for. */
+  trade: string | null; toName: string | null;
+};
+
+/**
+ * Change what a work order says: the day, the site, the work, who it's for.
+ * Only the record changes here; a sent one is emailed again only when asked
+ * (resendWorkOrder), since a typo fixed in the portal isn't news to Ross.
+ * The lines move with the day, so the week sees it as in step with the job.
+ */
+export async function editWorkOrder(id: number, e: WorkOrderEdit): Promise<{ ok: boolean; error?: string }> {
+  const po = await getOrder(id);
+  if (!po || po.kind !== "work_order" || !po.details) return { ok: false, error: "That work order couldn't be found." };
+  if (po.status === "approved") return { ok: false, error: "It's sending right now. Try again in a moment." };
+  const d = po.details;
+  const [first, ...rest] = d.jobs;
+  const details: WorkOrderDetails = {
+    ...d,
+    date: e.date,
+    // A changed day with the old time kept would be a time on the wrong day; both come from the form.
+    start_at: e.time ? melbourneInstant(e.date, e.time) : null,
+    end_at: e.date === d.date ? d.end_at : null,
+    site_address: e.site.trim() || d.site_address,
+    customer_name: e.customer.trim() || null,
+    customer_phone: e.phone.trim() || null,
+    customer_email: e.email.trim() || null,
+    crew: e.crew.split(",").map((s) => s.trim()).filter(Boolean),
+    jobs: first ? [{ ...first, work: e.work.trim() || null }, ...rest] : d.jobs,
+    trade: e.trade?.trim() || null,
+    to_name: e.trade?.trim() ? e.toName?.trim() || null : null,
+  };
+  await sbUpdate("purchase_orders", `id=eq.${id}`, { details, delivery_address: details.site_address, updated_at: new Date().toISOString() });
+  if (e.date !== d.date || details.start_at !== d.start_at) {
+    await sbUpdate("purchase_order_lines", `po_id=eq.${id}`, { install_date: e.date, appointment_start: details.start_at }).catch(() => undefined);
+  }
+  return { ok: true };
 }
