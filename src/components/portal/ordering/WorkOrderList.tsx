@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { jobFill, saveWorkOrder, searchJobs } from "@/app/portal/supply/work-orders/actions";
 import type { JobHit, WoContact, WorkOrderRow } from "@/lib/ordering/workOrders";
+import { JobFilesPicker, type PickedFile } from "./JobFilesPicker";
 
 const day = (iso: string) => new Date(iso.length > 10 ? iso : `${iso}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "Australia/Melbourne" });
 const time = (iso: string) => new Date(iso).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
@@ -86,6 +87,7 @@ function WorkOrderPanel({ w, sparky, contacts, onClose }: { w: WorkOrderRow; spa
     ["The work", (d?.jobs ?? []).map((j) => j.work).filter(Boolean).join("; ") || "Not written down"],
     ["Customer", [d?.customer_name, d?.customer_phone, d?.customer_email].filter(Boolean).join(" · ")],
     ["Our crew", d?.crew.join(", ") || "To be confirmed"],
+    ["Files with it", (d?.files ?? []).map((f) => f.name).join(", ")],
     ["ServiceTitan", onTheJob(w)],
   ];
   return (
@@ -143,6 +145,7 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<JobHit[] | null>(null);
   const [pick, setPick] = useState<Pick>(() => pickFor(w, contacts));
+  const [files, setFiles] = useState<PickedFile[]>(d.files ?? []);
   const [f, setF] = useState({
     date: d.date, time: d.start_at ? hhmm(d.start_at) : "", work: d.jobs.map((j) => j.work).filter(Boolean).join("; "),
     site: d.site_address, customer: d.customer_name ?? "", phone: d.customer_phone ?? "", email: d.customer_email ?? "", crew: d.crew.join(", "),
@@ -167,7 +170,7 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
   const save = (then: "save" | "send" | "resend") => start(async () => {
     setErr(null);
     const trade = pick.kind === "sparky" ? "" : f.trade;
-    const r = await saveWorkOrder({ id: w.id, jobId: job.id, ...f, trade, toName: pick.kind === "sparky" ? "" : f.toName, then });
+    const r = await saveWorkOrder({ id: w.id, jobId: job.id, ...f, files, trade, toName: pick.kind === "sparky" ? "" : f.toName, then });
     if (!r.ok) { setErr(r.error ?? "Couldn't save it."); return; }
     router.refresh();
     onDone(r.note ?? "Saved.");
@@ -196,7 +199,8 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
                 <li key={h.id}>
                   <button type="button" disabled={busy} onClick={() => start(async () => {
                     setJob({ id: h.id, number: h.job_number, who: h.customer_name ?? "" });
-                    setFinding(false); setHits(null);
+                    // Files belong to the job they were ticked on.
+                    setFinding(false); setHits(null); setFiles([]);
                     // The new job's own site and customer, still there to change before saving.
                     const j = await jobFill(h.id);
                     if (j) setF((x) => ({ ...x, site: j.site || x.site, customer: j.customer || x.customer, phone: j.phone || x.phone, email: j.email || x.email }));
@@ -244,6 +248,7 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
         {field("sendTo", sent ? "Email the update to" : "Send to", "email", true)}
       </div>
 
+      {job.id > 0 && <JobFilesPicker jobId={job.id} jobNumber={job.number} picked={files} onChange={setFiles} />}
       {err && <p className="pk-said bad" role="status">{err}</p>}
       <div className="qp-links">
         {sent ? (

@@ -92,6 +92,8 @@ export type NewWorkOrder = {
   sendTo?: string | null; cc?: string[];
   /** The work, when it isn't electrical (water balancing), and the person's name for the email. */
   trade?: string | null; toName?: string | null;
+  /** Files on the job in ServiceTitan to send with it. */
+  files?: { id: number; name: string }[];
 };
 
 /**
@@ -117,6 +119,7 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
     jobs: [{ job_id: job.id, job_number: job.job_number, job_type: job.job_type, customer_name: job.customer_name, system_installed: null, electrical_items: null, work: o.work.trim() }],
     note: null,
     ...(o.trade?.trim() ? { trade: o.trade.trim(), to_name: o.toName?.trim() || null } : {}),
+    ...(o.files?.length ? { files: o.files } : {}),
   };
   const id = await createOrder({
     po_number: await nextPoNumber(week, supplier.id), supplier_id: supplier.id, week_of: week.start, kind: "work_order",
@@ -190,6 +193,7 @@ export type WorkOrderEdit = {
   date: string; time: string | null; work: string; site: string; customer: string; phone: string; email: string; crew: string;
   /** Null for the electrician's; otherwise what the work is and who it's for. */
   trade: string | null; toName: string | null;
+  files: { id: number; name: string }[];
 };
 
 /**
@@ -218,6 +222,7 @@ export async function editWorkOrder(id: number, e: WorkOrderEdit): Promise<{ ok:
     jobs: first ? [{ ...first, work: e.work.trim() || null }, ...rest] : d.jobs,
     trade: e.trade?.trim() || null,
     to_name: e.trade?.trim() ? e.toName?.trim() || null : null,
+    files: e.files,
   };
   await sbUpdate("purchase_orders", `id=eq.${id}`, { details, delivery_address: details.site_address, updated_at: new Date().toISOString() });
   if (e.date !== d.date || details.start_at !== d.start_at) {

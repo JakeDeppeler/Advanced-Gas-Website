@@ -142,6 +142,8 @@ export type WorkOrderDetails = {
    */
   trade?: string | null;
   to_name?: string | null;
+  /** Files on the job in ServiceTitan sent with it: plans, photos (jobFiles). */
+  files?: { id: number; name: string }[];
 };
 
 /** The electrician's work order (the usual one), or someone else's: water balancing, a plumber. */
@@ -609,6 +611,7 @@ ${row("Site", esc(d.site_address))}
 ${row("The job", jobs)}
 ${row("Our crew on site", esc(d.crew.join(", ") || "To be confirmed"))}
 ${row("Customer", contact || "No contact on file — call us")}
+${row("Attached", (d.files ?? []).map((f) => esc(f.name)).join("<br>"))}
 </table>`;
   const vars = { supplier: o.supplier.name, po: ref };
   // Someone other than the electrician (water balancing, a plumber) gets
@@ -631,6 +634,7 @@ ${row("Customer", contact || "No contact on file — call us")}
     ...d.jobs.map((j) => `Job ${j.job_number} · ${j.job_type}${j.system_installed ? ` · System: ${j.system_installed}` : ""}${j.work ? ` · Work needed: ${j.work}` : ""}${j.electrical_items ? ` · Electrical: ${j.electrical_items}` : ""}`),
     `Our crew on site: ${d.crew.join(", ") || "To be confirmed"}`,
     `Customer: ${[d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).join(" · ") || "No contact on file — call us"}`,
+    ...(d.files?.length ? [`Attached: ${d.files.map((f) => f.name).join(", ")}`] : []),
     "",
     ...(note ? [note, ""] : []),
     `Email us at ${o.settings.replyTo} · Advanced Gas & Aircon · 03 5947 8000`,

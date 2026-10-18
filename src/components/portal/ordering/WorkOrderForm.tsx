@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { removeWoContact, saveWoContact, sendWorkOrder } from "@/app/portal/supply/work-orders/actions";
 import type { WoContact } from "@/lib/ordering/workOrders";
+import { JobFilesPicker, type PickedFile } from "./JobFilesPicker";
 
 /**
  * Work orders › one job: what the electrician needs to know, filled in from
@@ -22,6 +23,7 @@ export function WorkOrderForm({ job, to, back, contacts: saved }: {
   const [busy, start] = useTransition();
   const [f, setF] = useState({ date: job.date, time: job.time, work: "", site: job.site, customer: job.customer, phone: job.phone, email: job.email, crew: job.crew, sendTo: to.email ?? "", cc: "" });
   const [contacts, setContacts] = useState(saved);
+  const [files, setFiles] = useState<PickedFile[]>([]);
   // Who it's for: the electrician (null) or one of the saved people.
   const [pick, setPick] = useState<WoContact | null>(null);
   const [adding, setAdding] = useState(false);
@@ -89,10 +91,11 @@ export function WorkOrderForm({ job, to, back, contacts: saved }: {
       {field("crew", "Our crew on site", "names, with commas")}
       {field("sendTo", "Send to", `${who} unless you change it, for sending this one somewhere else`, "email")}
       {field("cc", "Also copy", "anyone else who should get it, with commas")}
+      <div style={{ paddingTop: 14 }}><JobFilesPicker jobId={job.id} jobNumber={job.job_number} picked={files} onChange={setFiles} /></div>
       <div className="pk-btns" style={{ marginTop: 14, alignItems: "center" }}>
         <button type="button" className="pk-btn" disabled={busy || !f.work.trim() || !f.date} onClick={() => start(async () => {
           setMsg(null);
-          const r = await sendWorkOrder({ jobId: job.id, ...f, ...(pick ? { trade: pick.trade, toName: pick.name } : {}) });
+          const r = await sendWorkOrder({ jobId: job.id, ...f, files, ...(pick ? { trade: pick.trade, toName: pick.name } : {}) });
           setMsg(r.ok ? { ok: true, text: r.note ?? "Sent." } : { ok: false, text: r.error ?? "It didn’t send." });
           if (r.ok) { router.push(back); router.refresh(); }
         })}>{busy ? "Sending…" : sameTo ? `Send to ${who}` : f.sendTo.trim() ? `Send to ${f.sendTo.trim()}` : "Send"}</button>
@@ -100,7 +103,7 @@ export function WorkOrderForm({ job, to, back, contacts: saved }: {
         {msg && <span className={`pk-said${msg.ok ? "" : " bad"}`} role="status">{msg.text}</span>}
       </div>
       <p className="pk-note" style={{ marginTop: 10 }}>
-        Emailed to {f.sendTo.trim() || to.email || "the electrician"}, copied to the office{f.cc.trim() ? ` and ${f.cc.trim()}` : ""}. Then the job in ServiceTitan gets a note with the work order attached{pick ? "" : ", and its tag goes to GTE Booked"}.
+        Emailed to {f.sendTo.trim() || to.email || "the electrician"}, copied to the office{f.cc.trim() ? ` and ${f.cc.trim()}` : ""}{files.length ? `, with ${files.length === 1 ? "the file" : `${files.length} files`} from the job` : ""}. Then the job in ServiceTitan gets a note with the work order attached{pick ? "" : ", and its tag goes to GTE Booked"}.
       </p>
     </section>
   );

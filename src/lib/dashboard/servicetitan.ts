@@ -211,6 +211,30 @@ export async function stUpload<T>(path: string, filename: string, bytes: Uint8Ar
   throw new Error(`ServiceTitan POST ${path} failed: ${lastError}`);
 }
 
+/**
+ * Download a file ServiceTitan holds, e.g. an attachment on a job. It answers
+ * with the file or a redirect to its storage; fetch follows the redirect and,
+ * being cross-origin, drops our Authorization header on the way. Refuses
+ * anything over `maxBytes` rather than reading it into memory.
+ */
+export async function stDownload(path: string, maxBytes: number): Promise<{ bytes: Uint8Array; mime: string }> {
+  const url = `${API_BASE}/${path.replace(/^\//, "")}`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${await getToken()}`, "ST-App-Key": process.env.ST_APP_KEY ?? "" },
+      cache: "no-store",
+    });
+    if (res.status === 401 && attempt === 0) { token = null; continue; }
+    if (!res.ok) throw new Error(`ServiceTitan ${path} failed: ${res.status} ${res.statusText}`);
+    const length = Number(res.headers.get("content-length"));
+    if (Number.isFinite(length) && length > maxBytes) throw new Error(`it's ${Math.round(length / 1048576)} MB, too big to email`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.length > maxBytes) throw new Error(`it's ${Math.round(bytes.length / 1048576)} MB, too big to email`);
+    return { bytes, mime: res.headers.get("content-type")?.split(";")[0] || "application/octet-stream" };
+  }
+  throw new Error(`ServiceTitan ${path} failed: 401 Unauthorized`);
+}
+
 /** "{module}/v2/tenant/{tenant}/{resource}" — every tenant-scoped path. */
 export function stTenantPath(module: string, resource: string): string {
   return `${module}/v2/tenant/${tenantId()}/${resource}`;

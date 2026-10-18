@@ -5,6 +5,22 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { createAndSendWorkOrder, editWorkOrder, findJobs, jobForWork, loadWoContacts, moveWorkOrder, saveWoContacts, type JobHit, type WoContact } from "@/lib/ordering/workOrders";
 import { approveAndSend, resendWorkOrder } from "@/lib/ordering/send";
+import { listJobFiles, type JobFile } from "@/lib/ordering/jobFiles";
+
+type Picked = { id: number; name: string };
+/** The job files picked on the form, as far as they read as files: an id and a name, a handful at most. */
+const pickedFiles = (v: unknown): Picked[] =>
+  (Array.isArray(v) ? v : [])
+    .filter((f): f is Picked => !!f && Number.isInteger((f as Picked).id) && (f as Picked).id > 0 && typeof (f as Picked).name === "string")
+    .slice(0, 15)
+    .map((f) => ({ id: f.id, name: f.name.replace(/[\\/:*?"<>|\r\n]/g, "-").slice(0, 150) || `Attachment ${f.id}` }));
+
+/** The files on a job in ServiceTitan, to pick ones to send with a work order. */
+export async function jobFiles(jobId: number): Promise<{ files: JobFile[] } | { error: string }> {
+  if (!(await office())) return { error: "Not allowed." };
+  if (!Number.isInteger(jobId) || jobId <= 0) return { files: [] };
+  return listJobFiles(jobId);
+}
 import { parseEmails } from "@/lib/ordering/plan";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
@@ -13,7 +29,7 @@ export type ActionResult = { ok: boolean; error?: string; note?: string };
 export async function sendWorkOrder(input: {
   jobId: number; date: string; time: string; work: string; site: string; customer: string; phone: string; email: string; crew: string; sendTo: string; cc: string;
   /** Set when it's for someone other than the electrician: what the work is, and their name. */
-  trade?: string; toName?: string;
+  trade?: string; toName?: string; files?: Picked[];
 }): Promise<ActionResult> {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
@@ -33,6 +49,7 @@ export async function sendWorkOrder(input: {
       site: cut(input.site, 300), customer: cut(input.customer, 200), phone: cut(input.phone, 60), email: cut(input.email, 200), crew: cut(input.crew, 300),
       sendTo: to.ok[0] ?? null, cc: cc.ok.slice(0, 10),
       trade: cut(input.trade ?? "", 60) || null, toName: cut(input.toName ?? "", 80) || null,
+      files: pickedFiles(input.files),
     }, me.name || me.email);
     revalidatePath("/portal/supply/work-orders");
     revalidatePath("/portal/supply/next-week");
@@ -105,7 +122,7 @@ export async function jobFill(jobId: number): Promise<{ site: string; customer: 
  */
 export async function saveWorkOrder(input: {
   id: number; jobId: number; date: string; time: string; work: string; site: string; customer: string; phone: string; email: string; crew: string;
-  trade: string; toName: string; sendTo: string; then: "save" | "send" | "resend";
+  trade: string; toName: string; sendTo: string; files: Picked[]; then: "save" | "send" | "resend";
 }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
@@ -123,6 +140,7 @@ export async function saveWorkOrder(input: {
       phone: cut(input.phone, 60), email: cut(input.email, 200), crew: cut(input.crew, 300),
       // "Electrical" is the electrician's own, kept without a trade, as a new one would be.
       trade: trade && !/^electric/i.test(trade) ? trade : null, toName: cut(input.toName, 80) || null,
+      files: pickedFiles(input.files),
     });
     if (!e.ok) return { ok: false, error: e.error };
     const notes: string[] = ["Saved."];
