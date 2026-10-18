@@ -12,7 +12,6 @@ import { coverHour, crewRates, vansFor } from "@/lib/portal/cover/hour";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { money, plural } from "@/lib/portal/run/month";
 import { Bad, Btn, Card, Empty, Good, Head, Say } from "@/components/portal/kit/Kit";
-import { TeamTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team · Team portal" };
@@ -50,7 +49,6 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
       <PortalShell user={user}>
         <div className="pk">
           {head}
-          <TeamTabs on="leaders" />
           <Say>{top ? <><b>{top.name.split(" ")[0]} leads the month</b> with {money(top.sold)} sold from {plural(top.soldJobs, "job")}.</> : <>Nobody has sold anything this month yet.</>}</Say>
           <Card>
             {rows.length ? (
@@ -92,7 +90,6 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
     <PortalShell user={user}>
       <div className="pk">
         {head}
-        <TeamTabs on="rates" />
         {(() => {
           const r = coverHour(base.lines, base.fleet, base.oc, base.i);
           const cr = crewRates(r, vansFor(base.fleet, base.i.techs), base.oc);

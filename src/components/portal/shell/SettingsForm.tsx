@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { START_COOKIE, type Business, type BusinessHas, type ThemeChoice } from "@/lib/portal/businessTypes";
+import { BAR_COOKIE, START_COOKIE, type Business, type BusinessHas, type ThemeChoice } from "@/lib/portal/businessTypes";
 import { saveBusinessSettings } from "@/app/portal/settings/actions";
 import { applyTheme } from "@/components/portal/shell/ThemeButton";
 
@@ -61,6 +61,42 @@ export function DeviceSettings({ theme: initialTheme, start: initialStart, start
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Which sections sit on the wide top bar, and which are tucked under More.
+ * A cookie, like the theme, so the bar is drawn right on the first paint.
+ * It used to be chosen from an Edit button on the bar itself.
+ */
+export function TopBarSettings({ sections, more }: { sections: { id: string; label: string }[]; more: string[] }) {
+  const router = useRouter();
+  const [tucked, setTucked] = useState(more);
+  const flip = (id: string) => {
+    const next = tucked.includes(id) ? tucked.filter((x) => x !== id) : [...tucked, id];
+    setTucked(next);
+    try {
+      document.cookie = `${BAR_COOKIE}=${next.length ? next.join(".") : "-"}; path=/; max-age=${60 * 60 * 24 * 400}; samesite=lax`;
+    } catch {
+      /* Not remembered on this device. */
+    }
+    router.refresh();
+  };
+  return (
+    <div className="ps-card" id="top-bar">
+      <div className="ps-h"><b>Top bar</b><span>on a wide screen, this device only. Turn one off and it moves under More</span></div>
+      {sections.map((s) => {
+        const on = !tucked.includes(s.id);
+        return (
+          <div key={s.id} className="ps-kv">
+            <span className="t"><b>{s.label}</b><span>{on ? "On the bar" : "Under More"}</span></span>
+            <button type="button" role="switch" aria-checked={on} aria-label={`${s.label} on the top bar`} id={`bar-${s.id}`} className={`ps-toggle${on ? " on" : ""}`} onClick={() => flip(s.id)}>
+              <i />
+            </button>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

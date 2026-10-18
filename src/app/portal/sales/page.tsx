@@ -10,7 +10,6 @@ import { followupRate, soldByType, soldByWeek } from "@/lib/portal/run/data";
 import { goalWords, monthElapsed, melNow, money, pc, plural, salesGoal } from "@/lib/portal/run/month";
 import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Lh, Pair, Row, Say, Tile, Two, none, status } from "@/components/portal/kit/Kit";
 import { WeekBars } from "@/components/portal/kit/Charts";
-import { SalesTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Sales · Team portal" };
@@ -34,7 +33,7 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
   const m = board?.metrics ?? null;
   const cold = m?.quotesQuietCount ?? 0;
   const head = (
-    <Head title="Sales" sub="From the first quote to a yes · ServiceTitan" info={[
+    <Head title={tab === "types" ? "Job types" : "Sales"} sub={tab === "types" ? "What we sell, by kind of job · ServiceTitan" : "From the first quote to a yes · ServiceTitan"} info={[
       ["Quotes out", "Quotes from the last 60 days nobody has said yes or no to."],
       ["Going cold", "Over a week with nothing back. Ring these first."],
       ["Win rate", "Of the jobs we quoted, how many said yes. One job with three options is one quote."],
@@ -43,7 +42,7 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
   );
 
   if (!m) {
-    return <PortalShell user={user}><div className="pk">{head}<SalesTabs on={tab} /><Empty>The board hasn’t made its first snapshot yet.</Empty></div></PortalShell>;
+    return <PortalShell user={user}><div className="pk">{head}<Empty>The board hasn’t made its first snapshot yet.</Empty></div></PortalShell>;
   }
 
   if (tab === "types") {
@@ -53,7 +52,6 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
       <PortalShell user={user}>
         <div className="pk">
           {head}
-          <SalesTabs on="types" cold={cold} />
           <Say>{types.length ? <>{types[0].type} is the biggest earner in {now.month}, at {money(types[0].value)}.</> : <>Nothing has sold in {now.month} yet.</>}</Say>
           <Card title="Sold by job type" aside={`${now.month} so far`}>
             {types.length ? (
@@ -96,7 +94,6 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
     <PortalShell user={user}>
       <div className="pk">
         {head}
-        <SalesTabs on="overview" cold={cold} />
         <Say>
           {g.byNow ? <>{now.month} is {sellSt.k === "good" ? "on track" : sellSt.k === "mid" ? "a little behind" : "behind"}. </> : <>No sales goal is set for {now.month}. </>}
           {cold > 0 ? <><Bad>{plural(cold, "quote is", "quotes are")} going cold</Bad>{m.quotesQuietValue ? <>, with {money(m.quotesQuietValue)} waiting</> : null}.</> : <>No quotes have gone quiet.</>}

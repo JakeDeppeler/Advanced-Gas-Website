@@ -27,6 +27,20 @@ export type Todo = {
 export const FINANCE_LIST = "Finance";
 export const FOLLOW_UP_LIST = "Follow up";
 
+/**
+ * The lists the portal writes customer work to: invoices and late payments,
+ * quote follow-ups, and sold jobs to book in ("Jobs to Book", found by name
+ * as the automation finds it).
+ */
+export const isAccountList = (l: string | null | undefined): boolean => !!l && (l === FINANCE_LIST || l === FOLLOW_UP_LIST || /\bbook/i.test(l));
+
+/**
+ * Account to-dos: everything the portal wrote, and anything put on one of its
+ * lists. Kept off people's own to-do list, so ringing a customer back isn't
+ * mixed in with what someone set themselves.
+ */
+export const isAccountTodo = (t: Pick<Todo, "createdBy" | "list">): boolean => t.createdBy === "Automatic" || isAccountList(t.list);
+
 /** The lists until the office changes them on the page. */
 export const DEFAULT_LISTS = ["Quoting", "Advanced Gas"];
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
+import { isAccountList } from "@/lib/todos/types";
 import { MAX_LISTS, createTodo, getTodo, meOf, removeTodo, renameTodoList, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, todoLists, updateTodo } from "@/lib/todos/store";
 
 export type TodoResult = { ok: boolean; error?: string };
@@ -116,8 +117,11 @@ export async function saveLists(names: string[]): Promise<TodoResult> {
   if (!w || !w.all) return { ok: false, error: "Only the office can change the lists." };
   const clean = [...new Set(names.map((n) => n.trim()).filter(Boolean))];
   if (!clean.length) return { ok: false, error: "Keep at least one list." };
-  if (clean.length > MAX_LISTS) return { ok: false, error: `Five lists at most. Take one away first.` };
-  const res = await saveTodoLists(clean);
+  // People's own board only shows its own lists: the account lists it
+  // doesn't show stay where they were, after them.
+  const kept = (await todoLists()).filter((l) => isAccountList(l) && !clean.includes(l));
+  if (clean.length + kept.length > MAX_LISTS) return { ok: false, error: "That's as many lists as there's room for. Take one away first." };
+  const res = await saveTodoLists([...clean, ...kept]);
   if (!res.ok) return { ok: false, error: "Couldn't save the lists." };
   revalidatePath("/portal/todo");
   return { ok: true };

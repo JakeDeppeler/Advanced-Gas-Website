@@ -5,7 +5,6 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
-import { TeamTabs } from "@/components/portal/run/RunTabs";
 import { theHour } from "@/lib/portal/cover/load";
 import { DAYS_ON_TOOLS, PAID_HRS_YEAR } from "@/lib/portal/cover/hour";
 
@@ -74,7 +73,6 @@ export default async function HourlyPage() {
   return (
     <PortalShell user={user}>
       <FinanceHead title="Our hourly rate" lede="What the business spends in a year, the hours it bills, and so what an hour on the tools has to bring in." />
-      <div className="pk" style={{ marginBottom: 14 }}><TeamTabs on="build" /></div>
 
       {!has ? (
         <div className="pt-note pt-note--warn"><strong>There&rsquo;s no tech who bills yet,</strong> so there&rsquo;s no hour to take apart. Set the crew on <Link href="/portal/finance/cover">What an hour must cover</Link>.</div>

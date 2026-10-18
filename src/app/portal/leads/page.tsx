@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { SalesTabs } from "@/components/portal/run/RunTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Bars } from "@/components/portal/marketingParts";
 import { Figs } from "@/components/portal/Figs";
@@ -98,7 +97,6 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
         </nav>
       </div>
 
-      <div className="pk-tabrow"><SalesTabs on="leads" /></div>
 
       <Figs
         cols={4}

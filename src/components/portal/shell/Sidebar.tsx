@@ -138,8 +138,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
         <nav className="pn-navs">
           {sections.map((s, i) => {
             const on = here.section?.id === s.id;
-            // A flat section's pages are its tab bar, not a list here.
-            const many = s.pages.length > 1 && !s.flat;
+            const many = s.pages.length > 1;
             const shut = on && many && folded;
             return (
               <div key={s.id} className="pn-group">
@@ -228,36 +227,5 @@ export function Crumb({ sections }: { sections: Section[] }) {
     <div className="pn-crumb">
       {section.pages.length > 1 ? <>{section.label} › <b>{page.label}</b></> : <b>{section.label}</b>}
     </div>
-  );
-}
-
-/**
- * The tab row across the top of a page that shares its side bar line with
- * others — Marketing's tabs, the wall board's setup pages — or of every page
- * in a flat section. The shell draws it, so every page in the group carries
- * the same row and no page has to remember to.
- */
-export function SectionBar({ sections }: { sections: Section[] }) {
-  const path = usePathname() ?? "";
-  const query = useSearchParams();
-  const here = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
-  const flat = here.section?.flat && here.section.pages.length > 1;
-  const group = here.page?.subs?.length ? [{ ...here.page, label: here.page.tab ?? here.page.label }, ...here.page.subs] : null;
-  const tabs = flat ? here.section!.pages : group;
-  if (!tabs) return null;
-  const at = flat ? here.page?.href : here.at;
-  return (
-    // On a wide screen a group's tabs are in the section row (SectionPages); this row is for the narrow layout.
-    <nav className={`pk-seg pn-secbar${flat ? "" : " pn-secbar--group"}`} aria-label={flat ? here.section!.label : here.page!.label}>
-      {tabs.map((p) => {
-        const on = p.href === at;
-        return (
-          <Link key={p.href} href={p.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
-            {p.label}
-            {p.count?.n ? <span className={`c${p.count.red ? " r" : ""}`}>{p.count.n}</span> : null}
-          </Link>
-        );
-      })}
-    </nav>
   );
 }

@@ -7,7 +7,6 @@ import { latestBoard } from "@/lib/portal/office";
 import { certJobs, CERT_DAYS, type CertJob } from "@/lib/portal/run/certs";
 import { melNow, money, pc, plural } from "@/lib/portal/run/month";
 import { Av, Bad, Btn, Card, Empty, Grid, Head, Pill, Say, Tabs, Tile, none, type Status } from "@/components/portal/kit/Kit";
-import { JobsTabs } from "@/components/portal/run/RunTabs";
 import { markCert } from "./actions";
 import { listJobs, type JobFilter, type ListedJob } from "@/lib/dashboard/jobList";
 import { stJobUrl, toBillJobs, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
@@ -43,6 +42,9 @@ function certStatus(c: CertJob): Status {
  * and their five-day clock underneath, because a job that needs a cert can't
  * be billed properly until it's in.
  */
+/** Each view is its own tab in the section row, so each says which it is. */
+const TITLE = { today: "Jobs today", list: "All jobs", profit: "Job profit", notbilled: "Not billed" } as const;
+
 export default async function JobsPage({ searchParams }: { searchParams: { tab?: string; f?: string; q?: string; old?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
@@ -60,16 +62,15 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
   const now = melNow();
   const techs = m?.daily?.techs ?? [];
   const jobsToday = techs.flatMap((t) => t.jobs.map((j) => ({ ...j, who: t.tech })));
-  const tabs = <JobsTabs on={tab} notBilled={m?.toBillCount} today={jobsToday.length} />;
   const head = (
-    <Head title="Jobs" sub={`${now.day} · ServiceTitan`} info={[
+    <Head title={TITLE[tab]} sub={`${now.day} · ServiceTitan`} info={[
       ["Running over", "Hours on the job past what it was quoted to take."],
       ["Not billed", "Finished in ServiceTitan with no invoice yet. Every day it waits is a day longer to get paid."],
       ["Compliance certificate", `Lodged with the VBA within ${CERT_DAYS} days of finishing, by the licensed plumber who did or supervised the work.`],
     ]} />
   );
 
-  if (!m) return <PortalShell user={user}><div className="pk">{head}{tabs}<Empty>The board hasn’t made its first snapshot yet.</Empty></div></PortalShell>;
+  if (!m) return <PortalShell user={user}><div className="pk">{head}<Empty>The board hasn’t made its first snapshot yet.</Empty></div></PortalShell>;
 
   let body: React.ReactNode;
   if (tab === "list") {
@@ -268,7 +269,6 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
     <PortalShell user={user}>
       <div className="pk">
         {head}
-        {tabs}
         {body}
       </div>
     </PortalShell>

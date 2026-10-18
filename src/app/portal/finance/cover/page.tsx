@@ -5,7 +5,6 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Bad, Card, Empty, Good, Head, Note, Pill, Say, Tabs, type Status } from "@/components/portal/kit/Kit";
-import { TeamTabs } from "@/components/portal/run/RunTabs";
 import { dbConfigured, getCapSettings, getSettings, listUsers, listVehicles } from "@/lib/portal/db";
 import { normalisePricing, type Pricing } from "@/lib/portal/pricingTypes";
 import { withFleet } from "@/lib/portal/costSettings";
@@ -84,7 +83,6 @@ export default async function CoverPage({ searchParams }: { searchParams: SP }) 
             ["Materials", "Not in here. Gear and units are bought for each job and marked up on their own, so the hour only has to cover people and overheads."],
           ]}
         />
-        <TeamTabs on="cover" />
         <Tabs on={tab} label="View" items={[
           { key: "hour", label: "The hour", href: tabHref("hour") },
           { key: "days", label: "Each person's day", href: tabHref("days") },

@@ -16,8 +16,8 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
 import { BAR_COOKIE, NAV_COOKIE, readBar, readTheme, THEME_COOKIE, type Business, type ThemeChoice } from "@/lib/portal/businessTypes";
-import { ALIAS, buildSections, pathOff, type Count, type Section, type SectionId, type SidePage } from "@/lib/portal/sections";
-import { Crumb, MenuButton, SectionBar, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
+import { buildSections, pathOff, type Count, type Section, type SectionId } from "@/lib/portal/sections";
+import { Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shell/TopNav";
 import { Dock, type DockLink } from "@/components/portal/shell/Dock";
@@ -36,7 +36,7 @@ const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_
 const sideCounts = cache(async (user: PortalUser, sections: Section[]): Promise<Record<string, Count>> => {
   const [counts, todos, all, contacts] = await Promise.all([
     navCounts(user).catch(() => ({})),
-    myCounts(user).catch(() => ({ due: 0, overdue: 0 })),
+    myCounts(user).catch(() => ({ due: 0, overdue: 0, own: { due: 0, overdue: 0 }, acct: { due: 0, overdue: 0 } })),
     seesAll(user).catch(() => false),
     listContacts().catch(() => []),
   ]);
@@ -45,17 +45,18 @@ const sideCounts = cache(async (user: PortalUser, sections: Section[]): Promise<
   const today = isoDateMelbourne(new Date());
   const calls = all ? contacts.filter((c) => isDue(touchState(c, today))) : [];
   const callsLate = calls.some((c) => touchState(c, today) === "overdue");
-  if (todos.due) out["/portal/todo"] = { n: todos.due, red: todos.overdue > 0 };
+  if (todos.own.due) out["/portal/todo"] = { n: todos.own.due, red: todos.own.overdue > 0 };
+  if (todos.acct.due) out["/portal/todo/accounts"] = { n: todos.acct.due, red: todos.acct.overdue > 0 };
   if (calls.length) out["/portal/keep-in-touch"] = { n: calls.length, red: callsLate };
-  // A page that became a tab of another carries its count to that page.
-  for (const [from, to] of ALIAS) if (out[from] && !out[to]) out[to] = out[from];
+  // Not billed is a view of Jobs now, under Finance; its count goes with it.
+  if (out["/portal/not-billed"]) out["/portal/jobs?tab=notbilled"] = out["/portal/not-billed"];
   for (const s of sections) {
     if (s.id === "todo") {
       const n = todos.due + calls.length;
       if (n) out["section:todo"] = { n, red: todos.overdue > 0 || callsLate };
       continue;
     }
-    const n = s.pages.flatMap((p) => [p, ...(p.subs ?? [])]).reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
+    const n = s.pages.reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
     if (n) out[`section:${s.id}`] = { n, red: true };
   }
   return out;
@@ -108,20 +109,32 @@ const DOCK: Array<Omit<DockLink, "match" | "count"> & { section?: SectionId }> =
   { href: "/portal/settings", label: "Settings", icon: "cog", section: "you" },
 ];
 
+/** The wall board's own setup pages: in Settings' row, but the dock's Wall board lights for them. */
+const WALL_SETUP = ["/portal/board", "/portal/finance/board"];
+
 /**
  * The dock's links for this person, each with the addresses that light it:
  * its section's pages, or for the wall board its own setup pages, which live
  * in Settings but are their own place to go.
  */
 function dockFor(sections: Section[], allowed: Set<string>, biz: Business, counts: Record<string, Count> = {}): DockLink[] {
-  const hrefs = (pages: SidePage[]) => pages.flatMap((p) => [p.href, ...(p.subs ?? []).map((x) => x.href)]);
-  const wall = sections.flatMap((s) => s.pages).find((p) => p.href === "/portal/board/remote");
-  const wallHrefs = wall ? hrefs([wall]) : ["/portal/board/remote"];
   return DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz)).map((l) => {
     const sec = l.section ? sections.find((s) => s.id === l.section) : null;
-    const match = sec ? hrefs(sec.pages).filter((h) => !wallHrefs.includes(h)) : wallHrefs;
+    const match = sec ? sec.pages.map((p) => p.href).filter((h) => !WALL_SETUP.some((w) => h === w || h.startsWith(`${w}/`))) : WALL_SETUP;
     return { href: l.href, label: l.label, icon: l.icon, match, count: l.section ? counts[`section:${l.section}`] : undefined, section: l.section };
   });
+}
+
+/**
+ * The sections that can sit on the wide top bar: everything but Home (always
+ * there), Settings, and what the dock already carries. Settings lists these
+ * to choose which go under More.
+ */
+export function barSections(user: PortalUser, biz: Business): Section[] {
+  const items = portalNav(user);
+  const sections = buildSections(items, biz, office(user));
+  const docked = dockFor(sections, new Set(items.map((i) => i.href)), biz).map((l) => l.section);
+  return sections.filter((s) => s.id !== "home" && s.id !== "you" && !docked.includes(s.id));
 }
 
 /** The dock with its counts, streamed in like the bars' so they never hold a page up. */
@@ -206,7 +219,6 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
         <main className="pt__content pn-content">
           {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
           <Suspense fallback={null}><SectionPages sections={sections} /></Suspense>
-          <Suspense fallback={null}><SectionBar sections={sections} /></Suspense>
           {children}
         </main>
       </div>

@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { whereAmI, type Count, type Section } from "@/lib/portal/sections";
 import { Icon, type LiveState } from "@/components/portal/shell/Sidebar";
-import { BAR_COOKIE } from "@/lib/portal/businessTypes";
 
 /**
  * The menu on a wide screen, after the Rapport dashboard: the sections as
@@ -79,77 +78,48 @@ export function TopNav({ sections, more = [], docked = [] }: { sections: Section
           </div>
         );
       })}
-      <More all={all} tucked={tucked} more={more} on={inMore} hereId={here.section?.id ?? null} />
+      <More tucked={tucked} on={inMore} hereId={here.section?.id ?? null} />
     </nav>
   );
 }
 
 /**
- * More: the sections tucked off the bar, each with its pages, and the place
- * to choose which sit on the bar. The choice is a cookie, so the bar is
- * drawn right on the first paint of the next page.
+ * More: the sections tucked off the bar. Which ones are tucked is chosen in
+ * Settings, not here: an Edit button on the bar was one more thing to read
+ * past on every page for something set once. With nothing tucked, there's no
+ * More at all.
  */
-function More({ all, tucked, more, on, hereId }: { all: Section[]; tucked: Section[]; more: string[]; on: boolean; hereId: string | null }) {
-  const router = useRouter();
+function More({ tucked, on, hereId }: { tucked: Section[]; on: boolean; hereId: string | null }) {
   const [open, setOpen] = useState(false);
-  const [choosing, setChoosing] = useState(false);
-  const [pick, setPick] = useState<string[]>(more);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const away = (e: PointerEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setChoosing(false); } };
-    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); setChoosing(false); } };
+    const away = (e: PointerEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("pointerdown", away);
     window.addEventListener("keydown", key);
     return () => { document.removeEventListener("pointerdown", away); window.removeEventListener("keydown", key); };
   }, [open]);
+  if (!tucked.length) return null;
   const red = tucked.reduce((n, s) => n + (s.count?.red ? s.count.n : 0), 0);
-  const save = () => {
-    document.cookie = `${BAR_COOKIE}=${pick.length ? pick.join(".") : "-"}; path=/; max-age=${60 * 60 * 24 * 400}; samesite=lax`;
-    setOpen(false);
-    setChoosing(false);
-    router.refresh();
-  };
   return (
     <div ref={ref} className={`pn-pillw pn-morew${open ? " open" : ""}`}>
-      <button type="button" className={`pn-pill pn-more${open ? " is-open" : ""}${on ? " on" : ""}`} aria-expanded={open} onClick={() => { setOpen((o) => !o); setChoosing(false); setPick(more); }}>
-        {tucked.length ? "More" : "Edit"}
+      <button type="button" className={`pn-pill pn-more${open ? " is-open" : ""}${on ? " on" : ""}`} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        More
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
         {red > 0 && <span className="pn-pilln" title={`${red} need someone`}>{red > 99 ? "99+" : red}</span>}
       </button>
       {open && (
         <div className="pn-moredrop">
           <div className="pn-dropin pn-morein">
-            {choosing ? (
-              <>
-                <span className="pn-droph">What sits on the bar. Untick a section to tuck it under More.</span>
-                {all.map((s) => {
-                  const on = !pick.includes(s.id);
-                  return (
-                    <label key={s.id} className="pn-pick">
-                      <input type="checkbox" checked={on} disabled={s.id === "home"} onChange={() => setPick((p) => (on ? [...p, s.id] : p.filter((x) => x !== s.id)))} />
-                      <span>{s.label}</span>
-                    </label>
-                  );
-                })}
-                <div className="pn-pickacts">
-                  <button type="button" className="qp-btn dark" onClick={save}>Save the bar</button>
-                  <button type="button" className="qp-btn" onClick={() => setChoosing(false)}>Cancel</button>
-                </div>
-              </>
-            ) : (
-              <>
-                {tucked.length === 0 && <span className="pn-droph">Every section is on the bar.</span>}
-                {/* Just the sections: each one's own pages are the row at the top of it. */}
-                {tucked.map((s) => (
-                  <Link key={s.id} href={s.href} className={`pn-dropa pn-moreh${s.id === hereId ? " on" : ""}`} aria-current={s.id === hereId ? "page" : undefined} onClick={() => setOpen(false)}>
-                    <span>{s.label}</span>
-                    {s.count?.red && s.count.n ? <span className="pn-n r">{s.count.n}</span> : null}
-                  </Link>
-                ))}
-                <button type="button" className="pn-choose" onClick={() => { setPick(more); setChoosing(true); }}>Choose what&rsquo;s on the bar</button>
-              </>
-            )}
+            {/* Just the sections: each one's own pages are the row at the top of it. */}
+            {tucked.map((s) => (
+              <Link key={s.id} href={s.href} className={`pn-dropa pn-moreh${s.id === hereId ? " on" : ""}`} aria-current={s.id === hereId ? "page" : undefined} onClick={() => setOpen(false)}>
+                <span>{s.label}</span>
+                {s.count?.red && s.count.n ? <span className="pn-n r">{s.count.n}</span> : null}
+              </Link>
+            ))}
+            <Link href="/portal/settings#top-bar" className="pn-choose" onClick={() => setOpen(false)}>Change what&rsquo;s on the bar in Settings</Link>
           </div>
         </div>
       )}
@@ -160,36 +130,17 @@ function More({ all, tucked, more, on, hereId }: { all: Section[]; tucked: Secti
 /**
  * The open section's pages, as a row under the bar: on a wide screen the side
  * bar that used to list them is gone, and a tap on a touch screen can't open
- * a pill's list.
+ * a pill's list. Every page in the section is a tab here, and it's the only
+ * row of tabs: no page draws another under it.
  */
 export function SectionPages({ sections }: { sections: Section[] }) {
   const here = useHere(sections);
   const s = here.section;
-  // A flat section's pages are already its tab row (SectionBar).
-  if (!s || s.pages.length < 2 || s.flat) return null;
-  // The open page's own group (Customers › Sites, Wall board › Sounds…) runs
-  // on in the same row, after it, rather than as a second row of tabs under
-  // this one: one row of places to go, then the page.
+  if (!s || s.pages.length < 2) return null;
   return (
     <nav className="pn-secpages" aria-label={s.label}>
       {s.pages.map((p) => {
         const at = p.href === here.page?.href;
-        const subs = at && p.subs?.length ? [{ ...p, label: p.tab ?? p.label }, ...p.subs] : null;
-        if (subs) {
-          return (
-            <span key={p.href} className="pn-secgroup" role="group" aria-label={p.label}>
-              {subs.map((x) => {
-                const on = x.href === here.at;
-                return (
-                  <Link key={x.href} href={x.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
-                    {x.label}
-                    {x.count?.n ? <span className={`c${x.count.red ? " r" : ""}`}>{x.count.n}</span> : null}
-                  </Link>
-                );
-              })}
-            </span>
-          );
-        }
         return (
           <Link key={p.href} href={p.href} className={at ? "on" : undefined} aria-current={at ? "page" : undefined}>
             {p.label}

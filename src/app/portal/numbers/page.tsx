@@ -9,7 +9,6 @@ import { getGoals } from "@/lib/portal/goals";
 import { latestBoard, shortMoney } from "@/lib/portal/office";
 import { BENCH } from "@/lib/portal/benchmarks";
 import { Head, Say } from "@/components/portal/kit/Kit";
-import { PaceTabs } from "@/components/portal/run/RunTabs";
 import { GoalsForm } from "@/components/portal/numbers/GoalsForm";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +58,6 @@ export default async function GoalsPage() {
           ["No goal", "Leave a box empty and the pages that use it say “No goal yet” instead of marking it good or bad."],
           ["Benchmarks", "What a healthy service trade looks like. They’re fixed and shown beside these on Our KPIs."],
         ]} />
-        <PaceTabs on="set" />
         <Say>These are the numbers every page is measured against. Change one and Home, Our KPIs, Sales, Pace and the wall board all update.</Say>
         <GoalsForm months={months} labels={labels} current={current} profitPct={g.profitPct} goals={goals} canSave={can(user, "overhead")} suggest={suggest} />
       </div>

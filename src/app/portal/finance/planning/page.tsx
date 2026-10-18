@@ -4,7 +4,6 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
-import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Bad, Good, Say } from "@/components/portal/kit/Kit";
 import { latestBoard } from "@/lib/portal/office";
@@ -95,7 +94,6 @@ export default async function VansPage({ searchParams }: { searchParams: { b?: s
   return (
     <PortalShell user={user}>
       <FinanceHead title="What if" lede="The business at a different number of vans. Every figure comes from Pricing & costs; nothing here changes them." />
-      <PlanningTabs current="/portal/finance/planning" />
       <div className="pk pt-cover">
         <form method="get" action="/portal/finance/planning" className="pk-card pk-pad pt-cover__form">
           <label className="pt-cover__f" htmlFor="vn-b"><b>Hours billed a day</b><span>out of {i.dayHrs}</span><input id="vn-b" name="b" className="pk-in num" inputMode="decimal" defaultValue={String(i.billPerDay)} /></label>

@@ -4,7 +4,7 @@ import { q, sbInsert, sbSelect, sbUpdate, sbUpdateReturning } from "@/lib/dashbo
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getSettings, listUsers, saveSettings } from "@/lib/portal/db";
 import { can, type PortalUser } from "@/lib/portal/caps";
-import { DEFAULT_LISTS, dueState, type Person, type Todo } from "@/lib/todos/types";
+import { DEFAULT_LISTS, dueState, isAccountTodo, type Person, type Todo } from "@/lib/todos/types";
 
 /**
  * Where the to-dos live, and who sees which.
@@ -79,7 +79,8 @@ export async function saveOfficeIds(ids: string[]): Promise<{ ok: boolean }> {
 
 const LISTS = "todo-lists";
 /** Five across the page at most: past that a list of lists stops being a board. */
-export const MAX_LISTS = 5;
+/** Five on people's own board, and room beside them for the account lists. */
+export const MAX_LISTS = 8;
 
 /** A list renamed: its name in the settings and on every to-do that's on it. */
 export async function renameTodoList(from: string, to: string): Promise<void> {
@@ -131,14 +132,19 @@ export function visibleTo(todos: Todo[], meId: string | null, all: boolean): Tod
 }
 
 /** The side bar's number: mine that are overdue or due today. */
-export async function myCounts(user: PortalUser): Promise<{ due: number; overdue: number }> {
+type DueCount = { due: number; overdue: number };
+/** What's due for this person: all of it, then split into their own and the account to-dos, for each tab's count. */
+export async function myCounts(user: PortalUser): Promise<DueCount & { own: DueCount; acct: DueCount }> {
+  const none = { due: 0, overdue: 0 };
   const me = await meOf(user);
-  if (!me) return { due: 0, overdue: 0 };
+  if (!me) return { ...none, own: none, acct: none };
   const today = todayMelbourne();
+  const count = (ts: Todo[]): DueCount => {
+    const overdue = ts.filter((t) => dueState(t, today) === "overdue").length;
+    return { overdue, due: overdue + ts.filter((t) => dueState(t, today) === "today").length };
+  };
   const mine = (await openTodos()).filter((t) => t.assigneeId === me.id);
-  const overdue = mine.filter((t) => dueState(t, today) === "overdue").length;
-  const due = overdue + mine.filter((t) => dueState(t, today) === "today").length;
-  return { due, overdue };
+  return { ...count(mine), own: count(mine.filter((t) => !isAccountTodo(t))), acct: count(mine.filter(isAccountTodo)) };
 }
 
 /** Overdue, by person, most first — for Home's "Needs someone" and the daily report. */

@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { PortalShell } from "@/components/portal/PortalShell";
+import { barSections, PortalShell } from "@/components/portal/PortalShell";
 import { getBusiness } from "@/lib/portal/business";
-import { readTheme, START_COOKIE, START_PAGES, THEME_COOKIE } from "@/lib/portal/businessTypes";
-import { BusinessSettings, DeviceSettings } from "@/components/portal/shell/SettingsForm";
+import { BAR_COOKIE, readBar, readTheme, START_COOKIE, START_PAGES, THEME_COOKIE } from "@/lib/portal/businessTypes";
+import { BusinessSettings, DeviceSettings, TopBarSettings } from "@/components/portal/shell/SettingsForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Settings · Team portal" };
@@ -29,9 +29,10 @@ export default async function SettingsPage() {
   return (
     <PortalShell user={user}>
       <div className="sx">
-      <PageHead title="Settings" line="How the portal looks on this device, and what the business has." />
+      <PageHead title="Settings" line="How the portal looks on this device, what sits on the top bar, and what the business has." />
       <div className="ps">
         <DeviceSettings theme={readTheme(cookies().get(THEME_COOKIE)?.value)} start={starts.some((s) => s.key === saved) ? (saved as string) : "home"} starts={starts} />
+        <TopBarSettings sections={barSections(user, biz).map((s) => ({ id: s.id, label: s.label }))} more={readBar(cookies().get(BAR_COOKIE)?.value)} />
         <BusinessSettings initial={biz} canEdit={admin} />
         {admin && (
           <div className="ps-card">

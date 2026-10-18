@@ -3,7 +3,6 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings, listUsers } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PaceTabs } from "@/components/portal/run/RunTabs";
 import { GoalPlanner } from "@/components/portal/GoalPlanner";
 import { Locked } from "@/components/portal/Locked";
 import { readYearGoal, STARTING_GOAL, STARTING_MIX } from "@/lib/portal/yearGoal";
@@ -79,7 +78,6 @@ export default async function GoalPage() {
         booked={booked}
         month={{ name: MONTHS[Number(thisMonth.slice(5, 7)) - 1], workingDays: days.total, daysPerWeek: cfg.workingDays.length }}
         canSave={ready}
-        tabs={<PaceTabs on="mix" />}
       />
     </PortalShell>
   );
