@@ -130,25 +130,31 @@ function More({ tucked, on, hereId }: { tucked: Section[]; on: boolean; hereId: 
 /**
  * The open section's pages, as a row under the bar: on a wide screen the side
  * bar that used to list them is gone, and a tap on a touch screen can't open
- * a pill's list. Every page in the section is a tab here, and it's the only
- * row of tabs: no page draws another under it.
+ * a pill's list. A family's tab (Hourly, What if, Website) goes to its first
+ * page, and while you're in it its pages are a smaller row under this one.
  */
 export function SectionPages({ sections }: { sections: Section[] }) {
   const here = useHere(sections);
   const s = here.section;
   if (!s || s.pages.length < 2) return null;
+  const fam = here.page?.subs;
+  const tab = (p: { href: string; label: string; count?: Count }, on: boolean) => (
+    <Link key={p.href} href={p.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
+      {p.label}
+      {p.count?.n ? <span className={`c${p.count.red ? " r" : ""}`}>{p.count.n}</span> : null}
+    </Link>
+  );
   return (
-    <nav className="pn-secpages" aria-label={s.label}>
-      {s.pages.map((p) => {
-        const at = p.href === here.page?.href;
-        return (
-          <Link key={p.href} href={p.href} className={at ? "on" : undefined} aria-current={at ? "page" : undefined}>
-            {p.label}
-            {p.count?.n ? <span className={`c${p.count.red ? " r" : ""}`}>{p.count.n}</span> : null}
-          </Link>
-        );
-      })}
-    </nav>
+    <>
+      <nav className="pn-secpages" aria-label={s.label}>
+        {s.pages.map((p) => tab(p, p === here.page))}
+      </nav>
+      {fam && (
+        <nav className="pn-subpages" aria-label={here.page!.label}>
+          {fam.map((p) => tab(p, p === here.at))}
+        </nav>
+      )}
+    </>
   );
 }
 

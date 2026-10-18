@@ -52,7 +52,13 @@ export const SECTION_ICON: Record<string, string> = {
  * `?tab=`) or a page reached from it that has no line of its own in portalNav.
  */
 type PageDef = { label: string; href: string; office?: boolean; unless?: string; gate?: string };
-type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: PageDef[]; group: 0 | 1 | 2 | 3 };
+/**
+ * A tab that holds a few pages of one kind (Hourly: the rate, how it's built,
+ * what it covers). It's one tab in the section's row, and its pages are a
+ * second, smaller row under it while you're in one of them.
+ */
+type GroupDef = { label: string; group: PageDef[] };
+type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: (PageDef | GroupDef)[]; group: 0 | 1 | 2 | 3 };
 
 /**
  * Every section and page. Grouped by what you came to do — see how we're
@@ -60,12 +66,12 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  * which system a page reads. `group` is the block of the side bar it sits in:
  * Home, the business, the day-to-day, then settings.
  *
- * One row of tabs per section, and every page is a tab in it. Pages used to
- * be filed in families (Customers › Sites) with a second row of tabs, and
- * some pages drew a third row of their own; finding anything meant knowing
- * which tab it was inside. A longer row of plain names is quicker to scan.
- * What's left on a page is a filter on what it shows (a period, a van, a
- * month), not somewhere else to go.
+ * One row of tabs per section, and nearly every page is a tab in it. Only
+ * three are families with a row of their own under them — Hourly, What if
+ * and Website — because their pages are the same question asked three ways
+ * and read best side by side. Nothing else nests, and no page draws a tab
+ * row of its own: what's left on a page is a filter on what it shows (a
+ * period, a van, a month), not somewhere else to go.
  */
 export const SECTION_DEFS: SectionDef[] = [
   { id: "home", label: "Overview", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
@@ -137,18 +143,27 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     id: "numbers", label: "Pricing & costs", icon: "numbers", group: 1, blurb: "What an hour costs, what we charge, and every figure behind it",
     pages: [
-      { label: "Hourly rate", href: "/portal/rates" },
-      { label: "Build our rate", href: "/portal/finance/hourly" },
-      { label: "What an hour must cover", href: "/portal/finance/cover" },
+      {
+        label: "Hourly", group: [
+          { label: "Hourly rate", href: "/portal/rates" },
+          { label: "Our hourly rate", href: "/portal/finance/hourly" },
+          { label: "What an hour must cover", href: "/portal/finance/cover" },
+        ],
+      },
       { label: "Running costs", href: "/portal/finance/running" },
       { label: "Overheads", href: "/portal/finance/capacity" },
       { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
-      { label: "Materials markup", href: "/portal/finance/capacity?part=markup" },
+      // Materials markup is gone from here: it's set on each item in
+      // ServiceTitan, so a second copy here only drifted from it.
       { label: "Our prices", href: "/portal/pricing" },
       { label: "Commission", href: "/portal/commission" },
-      { label: "What if: vans", href: "/portal/finance/planning" },
-      { label: "Hire someone", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
-      { label: "Pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
+      {
+        label: "What if", group: [
+          { label: "Vans", href: "/portal/finance/planning" },
+          { label: "Hire someone", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
+          { label: "Pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
+        ],
+      },
     ],
   },
   {
@@ -156,10 +171,14 @@ export const SECTION_DEFS: SectionDef[] = [
     // the files it's made of, and the blog.
     id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Website leads, how the site does, campaigns, and every marketing file",
     pages: [
-      { label: "Website leads", href: "/portal/website" },
-      { label: "On the site", href: "/portal/website?tab=pages" },
-      { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
-      { label: "Every enquiry", href: "/portal/finance/leads" },
+      {
+        label: "Website", group: [
+          { label: "Website leads", href: "/portal/website" },
+          { label: "On the site", href: "/portal/website?tab=pages" },
+          { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
+          { label: "Every enquiry", href: "/portal/finance/leads" },
+        ],
+      },
       { label: "Campaigns", href: "/portal/marketing" },
       { label: "Instagram", href: "/portal/marketing?tab=social" },
       { label: "Reviews", href: "/portal/marketing?tab=reviews" },
@@ -232,7 +251,11 @@ export const SECTION_DEFS: SectionDef[] = [
 /** A count beside a page: red when it means something's wrong. */
 export type Count = { n: number; red?: boolean };
 
-export type SidePage = { href: string; label: string; count?: Count };
+/** A page, or a family of them (`subs`, the first being where the tab goes). */
+export type SidePage = { href: string; label: string; count?: Count; subs?: SidePage[] };
+
+/** Every page in a list, a family's pages in place of the family. */
+export const flatPages = (pages: SidePage[]): SidePage[] => pages.flatMap((p) => p.subs ?? [p]);
 export type Section = {
   id: SectionId;
   label: string;
@@ -272,7 +295,19 @@ export function buildSections(items: NavItem[], biz: Business, office: boolean, 
   const shows = (p: PageDef) => allowed.has(p.gate ?? p.href) && !off.has(p.href) && (!p.office || office) && !(p.unless && allowed.has(p.unless));
   const out: Section[] = [];
   for (const s of SECTION_DEFS) {
-    const pages: SidePage[] = s.pages.filter((p) => s.id === "home" || shows(p)).map((p) => ({ href: p.href, label: p.label, count: counts[p.href] }));
+    const pages: SidePage[] = [];
+    for (const p of s.pages) {
+      if (!("group" in p)) {
+        if (s.id === "home" || shows(p)) pages.push({ href: p.href, label: p.label, count: counts[p.href] });
+        continue;
+      }
+      const subs = p.group.filter(shows).map((x) => ({ href: x.href, label: x.label, count: counts[x.href] }));
+      if (!subs.length) continue;
+      // A family down to one page is just that page.
+      if (subs.length === 1) { pages.push(subs[0]); continue; }
+      const red = subs.reduce((n, x) => n + (x.count?.red ? x.count.n : 0), 0);
+      pages.push({ href: subs[0].href, label: p.label, subs, count: red ? { n: red, red: true } : undefined });
+    }
     if (!pages.length) continue;
     out.push({ id: s.id, label: s.label, icon: s.icon, blurb: s.blurb, group: s.group, href: pages[0].href, pages, count: counts[`section:${s.id}`] });
   }
@@ -318,14 +353,18 @@ export const ALIAS: [string, string][] = [
 ];
 const unalias = (path: string) => ALIAS.find(([from]) => path === from || path.startsWith(`${from}/`))?.[1] ?? path;
 
-/** The section and page an address belongs to, for the side bar, the tab row and the breadcrumb. */
-export function whereAmI(sections: Section[], path: string, query: URLSearchParams): { section: Section | null; page: SidePage | null } {
-  const all = sections.flatMap((s) => s.pages);
+/**
+ * The section and page an address belongs to, for the side bar, the tab rows
+ * and the breadcrumb. `page` is the tab in the section's row (a family, when
+ * it's in one); `at` is the page itself.
+ */
+export function whereAmI(sections: Section[], path: string, query: URLSearchParams): { section: Section | null; page: SidePage | null; at: SidePage | null } {
+  const owner = new Map<string, { section: Section; page: SidePage; at: SidePage }>();
+  for (const section of sections) for (const page of section.pages) for (const at of page.subs ?? [page]) owner.set(at.href, { section, page, at });
+  const all = [...owner.keys()].map((href) => ({ href }));
   // The page it's filed under when that's in this person's side bar; the
   // page itself otherwise.
   const aliased = unalias(path);
   const href = (aliased !== path ? activePage(all, aliased, query) : null) ?? activePage(all, path, query);
-  if (!href) return { section: null, page: null };
-  const section = sections.find((s) => s.pages.some((p) => p.href === href)) ?? null;
-  return { section, page: section?.pages.find((p) => p.href === href) ?? null };
+  return (href && owner.get(href)) || { section: null, page: null, at: null };
 }

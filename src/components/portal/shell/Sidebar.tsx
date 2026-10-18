@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { SECTION_ICON, whereAmI, type Count, type Section } from "@/lib/portal/sections";
@@ -169,10 +169,19 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
                 {on && many && !folded && (
                   <div className="pn-subs">
                     {s.pages.map((p) => (
-                      <Link key={p.href} href={p.href} className={`pn-sub${p.href === here.page?.href ? " on" : ""}`} aria-current={p.href === here.page?.href ? "page" : undefined}>
-                        <span>{p.label}</span>
-                        <N c={p.count} />
-                      </Link>
+                      <Fragment key={p.href}>
+                        <Link href={p.href} className={`pn-sub${p === here.page ? " on" : ""}`} aria-current={p === here.at ? "page" : undefined}>
+                          <span>{p.label}</span>
+                          <N c={p.count} />
+                        </Link>
+                        {/* A family's own pages, under it, while you're in it. */}
+                        {p === here.page && p.subs?.map((x) => (
+                          <Link key={x.href} href={x.href} className={`pn-sub pn-sub2${x === here.at ? " on" : ""}`} aria-current={x === here.at ? "page" : undefined}>
+                            <span>{x.label}</span>
+                            <N c={x.count} />
+                          </Link>
+                        ))}
+                      </Fragment>
                     ))}
                   </div>
                 )}
@@ -190,7 +199,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
             {/* A one-page section's flyout is its name, to go to it; the rest list their pages. */}
             {flying.pages.length > 1 ? <b>{flying.label}</b> : <Link href={flying.href} className="pn-flyh" onClick={() => { setFly(null); forgetFly(); }}>{flying.label}</Link>}
             {flying.pages.length > 1 && flying.pages.map((p) => (
-              <Link key={p.href} href={p.href} className={`pn-sub${p.href === here.page?.href ? " on" : ""}`} onClick={() => { setFly(null); forgetFly(); }}>
+              <Link key={p.href} href={p.href} className={`pn-sub${p === here.page ? " on" : ""}`} onClick={() => { setFly(null); forgetFly(); }}>
                 <span>{p.label}</span>
                 <N c={p.count} />
               </Link>
@@ -221,11 +230,11 @@ export function MenuButton() {
 export function Crumb({ sections }: { sections: Section[] }) {
   const path = usePathname() ?? "";
   const query = useSearchParams();
-  const { section, page } = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
+  const { section, page, at } = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
   if (!section || !page) return <div className="pn-crumb" />;
   return (
     <div className="pn-crumb">
-      {section.pages.length > 1 ? <>{section.label} › <b>{page.label}</b></> : <b>{section.label}</b>}
+      {section.pages.length > 1 ? <>{section.label} › {page.subs && at ? <>{page.label} › <b>{at.label}</b></> : <b>{page.label}</b>}</> : <b>{section.label}</b>}
     </div>
   );
 }
