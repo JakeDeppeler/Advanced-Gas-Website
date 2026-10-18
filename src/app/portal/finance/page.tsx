@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -68,7 +69,8 @@ export default async function FinancePage({ searchParams }: { searchParams: { p?
             <a href="/api/xero/connect" className="pk-btn">Connect Xero ›</a>
           </Card>
         )}
-        {xs === "connected" && <Connected period={period} />}
+        {/* The Xero reads stream in behind the heading and the period picker, rather than holding the whole page. */}
+        {xs === "connected" && <Suspense fallback={<div className="ld" aria-busy="true"><div className="ld-row"><span className="ld-b ld-tile" /><span className="ld-b ld-tile" /><span className="ld-b ld-tile" /><span className="ld-b ld-tile" /></div><span className="ld-b ld-card" /></div>}><Connected period={period} /></Suspense>}
       </div>
     </PortalShell>
   );

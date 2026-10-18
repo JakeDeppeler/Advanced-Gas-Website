@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { q, sbInsert, sbSelect, sbUpsert } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { quoteKey, quotes } from "@/lib/dashboard/metrics";
@@ -20,6 +21,8 @@ type EstRow = {
   id: number; job_id: number | null; customer_id: number | null; status: string | null; total: number | string | null;
   created_on: string | null; sold_on: string | null; modified_on: string | null; created_by: string | null; sold_by: string | null;
   business_unit: string | null; name: string | null;
+  /** The site it was quoted at: a quote written on the customer, not a job, has only this to name it by. */
+  location_id?: string | null;
 };
 type JobRow = { id: number; job_number: string | null; customer_name: string | null; suburb: string | null; job_type: string | null; location_id: number | null; status: string | null; completed_on: string | null; business_unit: string | null };
 type MadeRow = { id: number; job_number: string | null; status: string | null; completed_on: string | null; est: string | null };
@@ -70,12 +73,31 @@ export function loadPipeline(opts: { detail?: boolean; recentDays?: number } = {
 }
 
 /**
- * Once per request: the side bar's count, Home's needs list, the overview and
- * the page itself each asked for the pipeline, and each read four thousand
- * estimates again. React's cache() is per request, so a page never sees a
- * pipeline older than its own render.
+ * Kept between requests for a few minutes, and thrown away the moment it's
+ * out of date: when a call is logged or a quote changes here (pipelineChanged,
+ * from the writes below) and after each ServiceTitan pull (the board's
+ * refresh). Every office page asked for it — the side bar's count alone — and
+ * each read paged four thousand estimates out of Tokyo. Keyed on the day too,
+ * so "due today" can't carry over midnight.
  */
-const loadOnce = cache((detail: boolean, recentDays: number | null) => readPipeline({ detail, recentDays: recentDays ?? undefined }));
+export const PIPELINE_TAG = "pipeline";
+const sharedPipeline = unstable_cache(
+  (detail: boolean, recentDays: number | null, _day: string) => readPipeline({ detail, recentDays: recentDays ?? undefined }),
+  ["pipeline-v2"],
+  { revalidate: 180, tags: [PIPELINE_TAG] },
+);
+
+/** Once per request on top: a page and its shell ask several times in one render. */
+const loadOnce = cache((detail: boolean, recentDays: number | null) => sharedPipeline(detail, recentDays, isoDateMelbourne(new Date())));
+
+/** Something the pipeline shows has changed: the next page reads it fresh. */
+export function pipelineChanged(): void {
+  try {
+    revalidateTag(PIPELINE_TAG);
+  } catch {
+    // Outside a request (a script): nothing cached to throw away.
+  }
+}
 
 async function readPipeline(opts: { detail?: boolean; recentDays?: number }): Promise<Pipeline> {
   // Without detail it's the columns alone — no names, suburbs or phone numbers
@@ -89,7 +111,7 @@ async function readPipeline(opts: { detail?: boolean; recentDays?: number }): Pr
     sbSelect<EstRow>("st_estimates", [
       // total_inc, not total: every other quote figure in the portal and on the
       // wall is with GST, and the Scoreboard tile that opens this page is one.
-      q.select("id,job_id,customer_id,status,total:total_inc,created_on,sold_on,modified_on,created_by,sold_by,business_unit,name:raw->>name"),
+      q.select("id,job_id,customer_id,status,total:total_inc,created_on,sold_on,modified_on,created_by,sold_by,business_unit,name:raw->>name,location_id:raw->>locationId"),
       `or=(created_on.gte.${since},sold_on.gte.${recent})`,
       // Ordered from the start, so the paging reuses the first page instead
       // of reading it again to put an order on it.
@@ -121,11 +143,18 @@ async function readPipeline(opts: { detail?: boolean; recentDays?: number }): Pr
 
   const custIds = est.map((r) => r.customer_id).filter((v): v is number => v != null);
   const locIds = jobs.map((j) => j.location_id).filter((v): v is number => v != null);
+  // About four in ten quotes are written on the customer in ServiceTitan
+  // rather than on a job: no job number, no name on a job. Their site has
+  // both the name and the suburb, so they read as "Joel Shannon, Chelsea"
+  // instead of "a customer".
+  const siteIds = detail ? est.filter((r) => r.job_id == null && Number(r.location_id) > 0).map((r) => Number(r.location_id)) : [];
   const phoneTypes = `type=in.(Phone,MobilePhone)`;
-  const [custPhones, locPhones] = detail ? await Promise.all([
+  const [custPhones, locPhones, sites] = detail ? await Promise.all([
     byIds<{ customer_id: number; type: string; value: string }>("st_customer_contacts", "customer_id,type,value", "customer_id", custIds, [phoneTypes, "active=is.true"]),
-    byIds<{ location_id: number; type: string; value: string }>("st_location_contacts", "location_id,type,value", "location_id", locIds, [phoneTypes, "active=is.true"]),
-  ]) : [[], []];
+    byIds<{ location_id: number; type: string; value: string }>("st_location_contacts", "location_id,type,value", "location_id", [...locIds, ...siteIds], [phoneTypes, "active=is.true"]),
+    byIds<{ id: number; name: string | null; city: string | null }>("st_locations", "id,name:raw->>name,city:raw->address->>city", "id", siteIds),
+  ]) : [[], [], []];
+  const siteById = new Map(sites.map((x) => [x.id, x]));
   const group = <T,>(rows: T[], key: (r: T) => number) => {
     const m = new Map<number, ContactRow[]>();
     for (const r of rows) {
@@ -220,6 +249,7 @@ async function readPipeline(opts: { detail?: boolean; recentDays?: number }): Pr
     const sold = rows.filter((r) => r.status === "Sold" && r.sold_on);
     const allDismissed = rows.every((r) => r.status === "Dismissed");
     const job = first.job_id != null ? jobById.get(first.job_id) : undefined;
+    const site = !job && Number(first.location_id) > 0 ? siteById.get(Number(first.location_id)) : undefined;
     const f = followBy.get(key);
     const touches = touchesBy.get(key) ?? [];
     const quotedOn = isoDateMelbourne(new Date(first.created_on as string));
@@ -231,9 +261,9 @@ async function readPipeline(opts: { detail?: boolean; recentDays?: number }): Pr
       jobId: first.job_id,
       jobNumber: job?.job_number ?? null,
       customerId: first.customer_id,
-      customer: job?.customer_name ?? null,
-      suburb: job?.suburb ?? null,
-      phone: bestPhone(first.customer_id != null ? phoneByCust.get(first.customer_id) : undefined) ?? bestPhone(job?.location_id != null ? phoneByLoc.get(job.location_id) : undefined),
+      customer: job?.customer_name ?? site?.name ?? null,
+      suburb: job?.suburb ?? site?.city ?? null,
+      phone: bestPhone(first.customer_id != null ? phoneByCust.get(first.customer_id) : undefined) ?? bestPhone(job?.location_id != null ? phoneByLoc.get(job.location_id) : site ? phoneByLoc.get(site.id) : undefined),
       what: (rows.find((r) => r.name?.trim())?.name?.trim() || job?.job_type) ?? null,
       value: sold.length ? sold.reduce((n, r) => n + Number(r.total ?? 0), 0) : totals.reduce((a, b) => a + b, 0) / Math.max(1, totals.length),
       options: rows.length,
@@ -294,6 +324,7 @@ export const pipelineDue = cache(async (): Promise<{ due: number; late: number; 
 
 export async function logTouch(key: string, how: TouchHow, note: string | null, by: string): Promise<void> {
   await sbInsert("portal_quote_touches", { quote_key: key, how, note: note?.trim().slice(0, 500) || null, created_by: by });
+  pipelineChanged();
 }
 
 /** Set any of owner / next call / lost on a quote, leaving the rest as they were. */
@@ -309,4 +340,5 @@ export async function setFollow(key: string, patch: { owner?: string | null; nex
     updated_at: new Date().toISOString(),
   };
   await sbUpsert("portal_quote_follow", [row], "quote_key");
+  pipelineChanged();
 }

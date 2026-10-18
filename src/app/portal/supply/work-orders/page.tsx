@@ -6,9 +6,10 @@ import { Locked } from "@/components/portal/Locked";
 import { Card, Empty, Group, Head, Row } from "@/components/portal/kit/Kit";
 import { WorkOrderForm } from "@/components/portal/ordering/WorkOrderForm";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { findJobs, jobForWork, listWorkOrders, type WorkOrderRow } from "@/lib/ordering/workOrders";
+import { findJobs, jobForWork, listWorkOrders, loadWoContacts } from "@/lib/ordering/workOrders";
+import { WorkOrderList } from "@/components/portal/ordering/WorkOrderList";
 import { loadSuppliers } from "@/lib/ordering/db";
-import { dayLabel, dayTimeLabel } from "@/lib/ordering/plan";
+import { dayTimeLabel } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // Sending emails the electrician and then writes the note, the PDF and the tags to ServiceTitan.
@@ -18,14 +19,6 @@ export const metadata = { title: "Work orders · Team portal" };
 const hhmm = (iso: string) =>
   new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso)).replace(/^24/, "00");
 
-function onTheJob(w: WorkOrderRow): string {
-  if (w.status !== "sent") return "";
-  if (w.st_note_error) return ` · ServiceTitan: ${w.st_note_error}`;
-  const jobs = (w.details?.jobs ?? []).map((j) => j.job_id);
-  const done = w.st_notes ?? [];
-  const all = jobs.length > 0 && jobs.every((j) => done.some((d) => d.job_id === j && d.note && d.file && d.tags));
-  return all ? " · noted, attached and tagged in ServiceTitan" : " · not on the job in ServiceTitan yet";
-}
 
 /**
  * Orders & stock › Work orders: the electrician for any job. Search a job,
@@ -40,11 +33,12 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
 
   const q = (searchParams?.q ?? "").slice(0, 60);
   const jobId = Number(searchParams?.job);
-  const [hits, job, list, suppliers] = await Promise.all([
+  const [hits, job, list, suppliers, contacts] = await Promise.all([
     q ? findJobs(q).catch(() => null) : Promise.resolve([]),
     Number.isInteger(jobId) && jobId > 0 ? jobForWork(jobId).catch(() => null) : Promise.resolve(null),
     listWorkOrders().catch(() => null),
     loadSuppliers().catch(() => []),
+    loadWoContacts().catch(() => []),
   ]);
   const sparky = suppliers.find((s) => s.method === "work_order" && s.active);
   const back = `/portal/supply/work-orders${q ? `?q=${encodeURIComponent(q)}` : ""}`;
@@ -55,7 +49,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
       <div className="pk">
         <Head
           title="Work orders"
-          sub="The electrician for any job: find it, say what's needed, send it to GTE. It's noted on the job in ServiceTitan with the work order attached, and tagged GTE Booked."
+          sub="The electrician, water balancing or anyone else for any job: find it, say what's needed, send it. It's noted on the job in ServiceTitan with the work order attached. Click one below to see where it went."
         />
 
         {!job && (
@@ -90,6 +84,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
             <WorkOrderForm
               to={{ name: sparky.name.replace(/\s*\(.*\)\s*$/, "") || sparky.name, email: sparky.email }}
               back={back}
+              contacts={contacts}
               job={{
                 id: job.id, job_number: job.job_number, job_type: job.job_type,
                 date: job.start_at ? isoDateMelbourne(new Date(job.start_at)) : tomorrow,
@@ -110,24 +105,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
             ) : list.length === 0 ? (
               <Empty>No work orders yet.</Empty>
             ) : (
-              <Group>
-                {list.map((w) => {
-                  const d = w.details;
-                  const jobs = (d?.jobs ?? []).map((j) => j.job_number).filter(Boolean).join(" & ");
-                  const when = d ? (d.start_at ? dayTimeLabel(d.start_at) : dayLabel(d.date)) : "";
-                  const state = w.status === "sent"
-                    ? `Sent ${w.sent_at ? dayLabel(isoDateMelbourne(new Date(w.sent_at))) : ""}`
-                    : w.send_error ? `Didn't send: ${w.send_error}` : "Draft, send it from To order";
-                  const work = d?.jobs.map((j) => j.work).filter(Boolean).join("; ");
-                  return (
-                    <Row
-                      key={w.id}
-                      title={`Job ${jobs || "?"}, ${when}`}
-                      sub={`${d?.site_address ?? ""}${work ? ` · ${work}` : ""} · ${state}${onTheJob(w)}${w.manual ? "" : " · from the install plan"}`}
-                    />
-                  );
-                })}
-              </Group>
+              <WorkOrderList list={list} />
             )}
           </Card>
         </div>

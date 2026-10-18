@@ -26,13 +26,18 @@ export type Todo = {
 /** The lists Settings › Automatic writes to: the accounts person's, and the quote follow-ups. */
 export const FINANCE_LIST = "Finance";
 export const FOLLOW_UP_LIST = "Follow up";
+/** A quote the customer said yes to, waiting on their payment before ServiceTitan marks it sold. */
+export const WON_LIST = "Won, to be paid";
 
 /**
  * The lists the portal writes customer work to: invoices and late payments,
  * quote follow-ups, and sold jobs to book in ("Jobs to Book", found by name
  * as the automation finds it).
  */
-export const isAccountList = (l: string | null | undefined): boolean => !!l && (l === FINANCE_LIST || l === FOLLOW_UP_LIST || /\bbook/i.test(l));
+export const isAccountList = (l: string | null | undefined): boolean => !!l && (l === FINANCE_LIST || l === FOLLOW_UP_LIST || l === WON_LIST || /\bbook/i.test(l));
+
+/** A quote's to-do, which can be marked won or lost: on the quoting or follow-up lists. */
+export const isQuoteList = (l: string | null | undefined): boolean => !!l && (l === FOLLOW_UP_LIST || /quot|sales/i.test(l));
 
 /**
  * Account to-dos: everything the portal wrote, and anything put on one of its
@@ -42,12 +47,16 @@ export const isAccountList = (l: string | null | undefined): boolean => !!l && (
 export const isAccountTodo = (t: Pick<Todo, "createdBy" | "list">): boolean => t.createdBy === "Automatic" || isAccountList(t.list);
 
 /** Account to-dos run in the order the work does: quote, chase, book, bill. */
-export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /\bbook/i, new RegExp(`^${FINANCE_LIST}$`, "i")];
+export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /^won\b/i, /\bbook/i, new RegExp(`^${FINANCE_LIST}$`, "i")];
 export const accountRank = (l: string) => { const i = ACCOUNT_ORDER.findIndex((r) => r.test(l)); return i < 0 ? ACCOUNT_ORDER.length : i; };
 
 /** The ServiceTitan job a to-do names ("job #20131", "Invoice job 20304"), so it can link to it. */
 export const jobNumberIn = (t: Pick<Todo, "title" | "notes">): string | null =>
   `${t.title}\n${t.notes ?? ""}`.match(/\bjob #?(\d{4,9})\b/i)?.[1] ?? null;
+
+/** The ServiceTitan customer a to-do names ("customer #300986080"), for a quote written on the customer with no job. */
+export const customerIn = (t: Pick<Todo, "title" | "notes">): string | null =>
+  `${t.title}\n${t.notes ?? ""}`.match(/\bcustomer #(\d{5,12})\b/i)?.[1] ?? null;
 
 /** A phone number in a to-do's notes, to ring from the pop-up. */
 export const phoneIn = (t: Pick<Todo, "notes">): string | null =>

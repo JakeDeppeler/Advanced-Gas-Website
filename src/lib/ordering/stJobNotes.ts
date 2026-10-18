@@ -7,7 +7,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, type PoWithLines } from "./db";
 import { orderDocument } from "./send";
 import { loadStPoSettings, pushOrderToServiceTitan } from "./stPurchaseOrders";
-import { dayLabel, dayTimeLabel, type Supplier } from "./plan";
+import { dayLabel, dayTimeLabel, isElectrical, type Supplier } from "./plan";
 
 /**
  * A sent order — Reclaim's tank, the electrician's work order — written onto
@@ -118,7 +118,9 @@ function noteFor(po: PoWithLines, supplier: Pick<Supplier, "name">, jobId: numbe
   if (po.kind === "work_order" && po.details) {
     const d = po.details;
     const when = d.start_at ? dayTimeLabel(d.start_at) : dayLabel(d.date);
-    return `Electrician booked: ${supplier.name}, ${when}. Work order ${po.po_number} ${howSent(po)}. The work order is attached.`;
+    // Someone else's work order (water balancing) says so, rather than calling them the electrician.
+    const who = isElectrical(d) ? `Electrician booked: ${supplier.name}` : `${d.trade} booked${d.to_name ? `: ${d.to_name}` : ""}`;
+    return `${who}, ${when}. Work order ${po.po_number} ${howSent(po)}. The work order is attached.`;
   }
   const lines = po.lines.filter((l) => l.job_id === jobId);
   const what = lines.map((l) => `${qtyOf(l.qty)} × ${l.supplier_model || l.sku_name || l.description || "item"}`).join("; ");
@@ -222,7 +224,8 @@ function planFor(po: PoWithLines, jobId: number, t: TagNames, items: Map<number,
     return id(s.to);
   };
   if (po.kind === "work_order") {
-    add.push(pair("electrician"));
+    // GTE Booked is the electrician's tag; water balancing or a plumber leaves it alone.
+    if (isElectrical(po.details)) add.push(pair("electrician"));
   } else {
     const lines = po.lines.filter((l) => l.job_id === jobId);
     const equipment = lines.filter((l) => (l.sku_type ?? "").toLowerCase() === "equipment");

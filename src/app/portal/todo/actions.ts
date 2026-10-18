@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { FOLLOW_UP_LIST, isAccountList, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { FOLLOW_UP_LIST, WON_LIST, isAccountList, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { loadFlow, saveFlow } from "@/lib/todos/flow";
 import { sbSelect } from "@/lib/dashboard/db";
-import { getSettings } from "@/lib/portal/db";
-import { HOW_LABEL, isHow } from "@/lib/pipeline/types";
-import { saveFollowUp } from "@/app/portal/pipeline/actions";
+import { getSettings, saveSettings } from "@/lib/portal/db";
+import { HOW_LABEL, LOST_REASONS, isHow } from "@/lib/pipeline/types";
+import { markLost, saveFollowUp } from "@/app/portal/pipeline/actions";
 import { MAX_LISTS, createTodo, getTodo, meOf, removeTodo, renameTodoList, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, todoLists, updateTodo } from "@/lib/todos/store";
 
 export type TodoResult = { ok: boolean; error?: string };
@@ -208,4 +209,73 @@ export async function logContact(input: { id: string; how?: string | null; note?
     return { ok: true, said: r.said ?? "Saved, and logged on the Pipeline and the job." };
   }
   return { ok: true };
+}
+
+/**
+ * Account to-dos › Won, to be paid: the customer said yes and the deposit's
+ * on its way. The to-do waits on its own list; once ServiceTitan marks the
+ * quote sold it moves to Jobs to Book, once booked to Finance to invoice, and
+ * it ticks itself off when the invoice is out (reminders › accountFlow).
+ */
+export async function markWon(input: { id: string; note?: string }): Promise<TodoResult & { said?: string }> {
+  const { w, t, error } = await mayChange(input.id);
+  if (!w || !t) return { ok: false, error: error ?? "Couldn't." };
+  const key = await quoteFor(t).catch(() => null);
+  if (!key) return { ok: false, error: "This to-do isn't tied to a quote on the Pipeline, so it can't follow the sale through." };
+  const lists = await todoLists();
+  if (!lists.includes(WON_LIST)) {
+    // Straight after Follow up, where it's moved from.
+    const at = Math.max(lists.indexOf(FOLLOW_UP_LIST) + 1, 0) || lists.length;
+    const next = [...lists.slice(0, at), WON_LIST, ...lists.slice(at)];
+    if (next.length > MAX_LISTS || !(await saveTodoLists(next)).ok) return { ok: false, error: "There's no room for the Won list. Take a list away first." };
+  }
+  const by = (w.me?.name ?? w.user.name).split(" ")[0];
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+  const note = (input.note ?? "").trim().slice(0, 300);
+  const chase = new Date(Date.parse(`${today}T12:00:00Z`) + 2 * 86_400_000).toISOString().slice(0, 10);
+  try {
+    await updateTodo(t.id, {
+      list: WON_LIST,
+      title: t.title.replace(/^(First |Second |Third |Next )?follow[- ]up:?\s*/i, "Won: "),
+      dueOn: chase,
+      notes: `${dayWords(today)} ${by}: Won, waiting on payment${note ? `, ${note}` : ""}. Moves to Jobs to Book once ServiceTitan marks it sold.\n${t.notes ?? ""}`.slice(0, 2000),
+    });
+    const flow = await loadFlow();
+    flow[t.id] = { key, step: "won" };
+    await saveFlow(flow);
+    // Off the follow-up list's books, so the follow-ups don't tick it off or
+    // write the next call for a quote that's been won.
+    const open = (await getSettings<Record<string, { id: string; n: number }>>("automation_follow_todos").catch(() => null)) ?? {};
+    const k = Object.entries(open).find(([, v]) => v.id === t.id)?.[0];
+    if (k) { delete open[k]; await saveSettings("automation_follow_todos", open); }
+  } catch {
+    return { ok: false, error: "Couldn't save that. Try again." };
+  }
+  revalidatePath("/portal/todo/accounts");
+  // On the Pipeline too: a note, and the next call when the payment's to be chased.
+  const r = await saveFollowUp({ key, how: "note", note: `Won, waiting on payment${note ? `: ${note}` : ""}`, nextOn: chase }).catch(() => null);
+  return r?.ok ? { ok: true } : { ok: true, said: "Moved to Won, but the Pipeline didn't take the note." };
+}
+
+/** Lost: closed off on the Pipeline (and dismissed in ServiceTitan, with a note on the job), and ticked off here. */
+export async function markLostTodo(input: { id: string; reason: string; note?: string }): Promise<TodoResult & { said?: string }> {
+  const { w, t, error } = await mayChange(input.id);
+  if (!w || !t) return { ok: false, error: error ?? "Couldn't." };
+  const key = await quoteFor(t).catch(() => null);
+  if (!key) return { ok: false, error: "This to-do isn't tied to a quote on the Pipeline. Mark it lost there." };
+  const reason = (LOST_REASONS as readonly string[]).includes(input.reason) ? input.reason : "Other";
+  const r = await markLost({ key, reason, note: input.note?.trim() || null });
+  if (!r.ok) return { ok: false, error: r.error ?? "Couldn't mark it lost." };
+  const by = (w.me?.name ?? w.user.name).split(" ")[0];
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+  try {
+    await updateTodo(t.id, { notes: `${dayWords(today)} ${by}: Lost, ${reason.toLowerCase()}.\n${t.notes ?? ""}`.slice(0, 2000) });
+    await setDone(t.id, true, w.me?.name ?? w.user.name);
+    const flow = await loadFlow();
+    if (flow[t.id]) { delete flow[t.id]; await saveFlow(flow); }
+  } catch {
+    return { ok: false, error: "Marked lost on the Pipeline, but the to-do didn't tick off. Tick it by hand." };
+  }
+  revalidatePath("/portal/todo/accounts");
+  return { ok: true, said: r.said };
 }

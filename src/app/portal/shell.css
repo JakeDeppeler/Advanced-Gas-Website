@@ -2440,3 +2440,45 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .rp-mv.good { background: var(--good-bg); color: var(--good); }
 .rp-mv.mid { background: var(--mid-bg); color: var(--mid); }
 .rp-mv.bad { background: var(--bad-bg); color: var(--bad); }
+
+/* Home's streamed cards while they come in: the card's shape, breathing. */
+.ph-pending { display: grid; gap: 10px; }
+.ph-pending .ld-b { height: 18px; border-radius: 10px; }
+.ph-pending .ld-b:nth-child(3) { width: 70%; }
+.ph-pending.tall .ld-b { height: 34px; }
+
+/* Work orders: who it's for, the list, and the pop-up of where one went. */
+.wo-who { display: grid; gap: 8px; padding: 6px 0 12px; }
+.wo-whol { font-weight: 700; font-size: 14px; }
+.wo-who .qp-opts button em { font-style: normal; font-weight: 500; color: var(--ink3); margin-left: 4px; }
+.wo-who .qp-opts button.on em { color: inherit; opacity: .75; }
+.wo-chip { display: inline-flex; align-items: center; gap: 2px; }
+.wo-x { width: 26px; height: 26px; border-radius: 50%; border: 0; background: none; color: var(--ink3); cursor: pointer; font-size: 16px; }
+.wo-x:hover { background: var(--quiet); color: var(--bad); }
+.wo-new { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.wo-new .pk-in { flex: 1 1 180px; }
+.wo-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.wo-row { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 6px; border: 0; border-bottom: 1px solid var(--rp-line); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
+.wo-row:hover { background: var(--quiet); }
+.wo-row-t { display: grid; gap: 2px; min-width: 0; }
+.wo-row-t span { font-size: 13px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wo-state { flex: none; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--quiet); color: var(--ink2); }
+.wo-state.sent { background: var(--good-bg); color: var(--good); }
+.wo-state.bad { background: var(--bad-bg); color: var(--bad); }
+.wo-facts { display: grid; gap: 0; margin: 0; }
+.wo-facts > div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--rp-line); }
+.wo-facts dt { color: var(--ink3); font-size: 13px; }
+.wo-facts dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.wo-search { display: flex; gap: 8px; }
+.wo-search .pk-in { flex: 1; }
+.wo-hits { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.wo-hits button { width: 100%; display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--rp-line); background: var(--surface); color: inherit; font: inherit; cursor: pointer; }
+.wo-hits button:hover { border-color: var(--ink4); }
+.wo-hits span { font-size: 12.5px; color: var(--ink2); }
+@media (max-width: 560px) { .wo-facts > div { grid-template-columns: 1fr; gap: 2px; } }
+/* Account to-dos' pop-up: did they go ahead? Won or lost, words on both. */
+.td-outcome { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px; background: var(--sunken); }
+.td-outcome > span { font-weight: 700; font-size: 14px; margin-right: 4px; }
+.qp-btn.good { background: var(--good-f); color: #fff; border-color: transparent; }
+.td-lost { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.td-lost .qp-note { flex-basis: 100%; margin: 0; }
