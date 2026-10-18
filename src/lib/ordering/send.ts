@@ -6,6 +6,7 @@ import { fillMitsubishiForm } from "./mitsubishiForm";
 import { orderPdf } from "./orderPdf";
 import { pushIfAuto } from "./stPurchaseOrders";
 import { jobsAfterSend } from "./stJobNotes";
+import { jobFilesFor } from "./jobFiles";
 import {
   ccList, dateChangeEmail, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
@@ -208,6 +209,11 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
   const from = fromAddress();
   if (email && !to) return { ok: false, error: `No email address for ${supplier.name}.` };
   if (email && !from) return { ok: false, error: NO_FROM };
+  // The job's files picked on a work order, fetched before it's claimed so a
+  // file ServiceTitan won't hand over leaves it a draft with the reason.
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details) : [];
+  if ("error" in files) return { ok: false, error: files.error };
+  const all = [...(attachments ?? []), ...files];
 
   const now = new Date().toISOString();
   const claimed = await sbUpdateReturning<PurchaseOrder>("purchase_orders", `id=eq.${id}&status=eq.draft`, {
@@ -234,7 +240,7 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
     subject: email.subject,
     html: email.html,
     text: email.text,
-    ...(attachments ? { attachments } : {}),
+    ...(all.length ? { attachments: all } : {}),
   });
   if (err) {
     await sbUpdate("purchase_orders", `id=eq.${id}`, {
@@ -304,7 +310,10 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
   const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup });
-  const err = await sendMarked("TEST", supplier, email, to, settings, attachments);
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details) : [];
+  if ("error" in files) return { ok: false, error: files.error };
+  const all = [...(attachments ?? []), ...files];
+  const err = await sendMarked("TEST", supplier, email, to, settings, all.length ? all : undefined);
   return err ? { ok: false, error: err } : { ok: true, note: `Test sent to ${to}${attachments ? " with the form attached" : ""}. The order is still a draft.` };
 }
 
@@ -453,9 +462,12 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
   if (!to) return { ok: false, error: "Who should it go to?" };
   const from = fromAddress();
   if (!from) return { ok: false, error: NO_FROM };
+  const files = await jobFilesFor(po.details);
+  if ("error" in files) return { ok: false, error: files.error };
   const err = await resend({
     from, to: [to],
     cc: ccList(settings, isElectrical(po.details) ? supplier : { ...supplier, cc_emails: [] }, po, to),
+    ...(files.length ? { attachments: files } : {}),
     reply_to: settings.replyTo,
     subject: `Updated: ${email.subject}`,
     html: email.html.replace("<body style=\"margin:0;background:#f9f8f3;\">", `<body style="margin:0;background:#f9f8f3;">${UPDATED}`),
