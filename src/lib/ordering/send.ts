@@ -1,5 +1,5 @@
 import "server-only";
-import { sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
+import { sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSignature, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
@@ -7,7 +7,7 @@ import { orderPdf } from "./orderPdf";
 import { pushIfAuto } from "./stPurchaseOrders";
 import { jobsAfterSend } from "./stJobNotes";
 import {
-  ccList, deliveryInstructionsFor, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
+  ccList, dateChangeEmail, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
 } from "./plan";
 
@@ -227,7 +227,9 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
     to: [to!],
     // The office keeps a copy of everything that goes out, and replies come
     // back to the office rather than to whoever pressed the button.
-    cc: ccList(settings, supplier, po, to),
+    // The electrician's standing copies are for the electrician's work orders:
+    // water balancing with someone else goes to them and the office only.
+    cc: ccList(settings, po.kind === "work_order" && !isElectrical(po.details) ? { ...supplier, cc_emails: [] } : supplier, po, to),
     reply_to: settings.replyTo,
     subject: email.subject,
     html: email.html,
@@ -388,4 +390,46 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
 export async function sendReadyNotice(parts: EmailParts, to: string): Promise<string | null> {
   const from = fromAddress() ?? (process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>");
   return resend({ from, to: [to], subject: parts.subject, html: parts.html, text: parts.text });
+}
+
+/** The address an order actually went to, out of what Sent records ("Emailed the list to …", or the address). */
+const emailIn = (s: string | null) => s?.match(/[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>()]+/)?.[0] ?? null;
+
+export type MovedJob = { job_id: number; job_number: string | null; customer_name: string | null; from: string; to: string };
+
+/**
+ * A job on a sent order has moved: tell whoever it went to — the same
+ * address, the office copied — and move the order's date with it, so the
+ * order stands, nothing is ordered twice, and the warning on To order goes.
+ * Reece, entered in maX by hand, has no address to tell unless the list was
+ * emailed; the office changes the date in maX.
+ */
+export async function emailDateChange(poNumber: string, moves: MovedJob[]): Promise<SendResult & { to?: string }> {
+  const [row] = await sbSelect<{ id: number }>("purchase_orders", `select=id&po_number=eq.${encodeURIComponent(poNumber)}&status=in.(approved,sent)&order=id.desc&limit=1`);
+  const po = row ? await getOrder(row.id) : null;
+  if (!po || !moves.length) return { ok: false, error: `Order ${poNumber} isn't a sent order.` };
+  const supplier = await sbSelectOne<Supplier>("order_suppliers", `id=eq.${encodeURIComponent(po.supplier_id)}`);
+  if (!supplier) return { ok: false, error: "Unknown supplier." };
+  // Only an order that went by email is answered by email: one placed by
+  // phone or over the counter ("Ordered manually") may not have gone to the
+  // address on file at all, so that one stays the office's to pass on.
+  const to = emailIn(po.sent_to);
+  if (!to) {
+    return { ok: false, error: supplier.method === "reece_cart" ? "Entered in Reece maX: change the date there." : `Ordered from ${supplier.name} by hand, not by email, so let them know yourself.` };
+  }
+  const from = fromAddress();
+  if (!from) return { ok: false, error: NO_FROM };
+  const settings = await loadOrderingSettings();
+  const workOrder = po.kind === "work_order";
+  const email = dateChangeEmail({ supplier, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings });
+  const err = await resend({ from, to: [to], cc: ccList(settings, supplier, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text });
+  if (err) return { ok: false, error: err };
+  // The order now says the new day, so the next look at the week sees it as in step.
+  for (const m of moves) {
+    await sbUpdate("purchase_order_lines", `po_id=eq.${po.id}&job_id=eq.${m.job_id}`, { install_date: m.to, appointment_start: null }).catch(() => undefined);
+  }
+  if (workOrder && po.details) {
+    await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null }, updated_at: new Date().toISOString() }).catch(() => undefined);
+  }
+  return { ok: true, to, note: `Told ${supplier.name} (${to}).` };
 }

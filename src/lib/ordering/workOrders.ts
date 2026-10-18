@@ -1,8 +1,10 @@
 import "server-only";
-import { sbSelect } from "@/lib/dashboard/db";
+import { sbSelect, sbUpdate } from "@/lib/dashboard/db";
+import { getSettings, saveSettings } from "@/lib/portal/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { createOrder, loadSuppliers, nextPoNumber } from "./db";
+import { createOrder, getOrder, loadSuppliers, nextPoNumber } from "./db";
 import { approveAndSend } from "./send";
+import { updateJobs } from "./stJobNotes";
 import { thisWeek, type Supplier, type WorkOrderDetails } from "./plan";
 
 /**
@@ -88,6 +90,8 @@ export type NewWorkOrder = {
   site: string; customer: string; phone: string; email: string; crew: string;
   /** Who it goes to when not the electrician on file, and anyone else copied on this one. */
   sendTo?: string | null; cc?: string[];
+  /** The work, when it isn't electrical (water balancing), and the person's name for the email. */
+  trade?: string | null; toName?: string | null;
 };
 
 /**
@@ -112,6 +116,7 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
     customer_email: o.email.trim() || null,
     jobs: [{ job_id: job.id, job_number: job.job_number, job_type: job.job_type, customer_name: job.customer_name, system_installed: null, electrical_items: null, work: o.work.trim() }],
     note: null,
+    ...(o.trade?.trim() ? { trade: o.trade.trim(), to_name: o.toName?.trim() || null } : {}),
   };
   const id = await createOrder({
     po_number: await nextPoNumber(week, supplier.id), supplier_id: supplier.id, week_of: week.start, kind: "work_order",
@@ -123,6 +128,7 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
 
 export type WorkOrderRow = {
   id: number; po_number: string; status: string; sent_at: string | null; sent_to: string | null; send_error: string | null;
+  approved_by: string | null; cc_emails: string[] | null;
   details: WorkOrderDetails | null; st_notes: { job_id: number; note: boolean; file: boolean; tags?: boolean }[] | null; st_note_error: string | null;
   manual: boolean;
 };
@@ -132,7 +138,49 @@ export async function listWorkOrders(): Promise<WorkOrderRow[]> {
   const since = isoDateMelbourne(new Date(Date.now() - 60 * 86400000));
   const rows = await sbSelect<Omit<WorkOrderRow, "manual"> & { group_key: string }>(
     "purchase_orders",
-    `select=id,po_number,status,sent_at,sent_to,send_error,details,st_notes,st_note_error,group_key&kind=eq.work_order&status=neq.cancelled&week_of=gte.${since}&order=id.desc&limit=60`,
+    `select=id,po_number,status,sent_at,sent_to,send_error,approved_by,cc_emails,details,st_notes,st_note_error,group_key&kind=eq.work_order&status=neq.cancelled&week_of=gte.${since}&order=id.desc&limit=60`,
   );
   return rows.map(({ group_key, ...r }) => ({ ...r, manual: group_key.startsWith("manual:") }));
+}
+
+/* ------------------------------------------------- people we send them to */
+
+/**
+ * The people work orders go to besides the electrician on file: water
+ * balancing with Ross, a plumber, a builder's sparky. Picked on the form
+ * rather than typed each time. Kept in portal_settings: a handful of rows.
+ */
+export type WoContact = { id: string; name: string; email: string; trade: string };
+const CONTACTS = "work_order_contacts";
+
+export async function loadWoContacts(): Promise<WoContact[]> {
+  const s = await getSettings<{ list?: WoContact[] }>(CONTACTS).catch(() => null);
+  return Array.isArray(s?.list) ? s.list : [];
+}
+
+export async function saveWoContacts(list: WoContact[]): Promise<boolean> {
+  return (await saveSettings(CONTACTS, { list: list.slice(0, 40) })).ok;
+}
+
+/**
+ * Put a work order on another job: sent against the quote's job when the
+ * install's is the one it's for, say. The work order keeps everything else;
+ * if it's gone, the new job gets the note and the work order in ServiceTitan.
+ * The old job's note stays where it is: ServiceTitan's notes can't be taken back.
+ */
+export async function moveWorkOrder(id: number, jobId: number): Promise<{ ok: boolean; error?: string; note?: string }> {
+  const po = await getOrder(id);
+  if (!po || po.kind !== "work_order" || !po.details) return { ok: false, error: "That work order couldn't be found." };
+  const job = await jobForWork(jobId);
+  if (!job) return { ok: false, error: "That job isn't in the synced ServiceTitan jobs." };
+  const was = po.details.jobs[0];
+  if (was?.job_id === job.id) return { ok: false, error: "It's already on that job." };
+  const jobs = [{ ...(was ?? { system_installed: null, electrical_items: null, work: null }), job_id: job.id, job_number: job.job_number, job_type: job.job_type, customer_name: job.customer_name }, ...po.details.jobs.slice(1)];
+  await sbUpdate("purchase_orders", `id=eq.${id}`, { details: { ...po.details, jobs }, updated_at: new Date().toISOString() });
+  await sbUpdate("purchase_order_lines", `po_id=eq.${id}&job_id=eq.${was?.job_id ?? 0}`, { job_id: job.id, job_number: job.job_number, customer_name: job.customer_name }).catch(() => undefined);
+  if (po.status !== "sent") return { ok: true, note: `Moved to job ${job.job_number}.` };
+  const r = await updateJobs(id).catch((e: Error) => ({ ok: false, done: [], error: e.message }));
+  return r.ok
+    ? { ok: true, note: `Moved to job ${job.job_number}, noted there with the work order attached.${was ? ` Job ${was.job_number}'s note stays in ServiceTitan.` : ""}` }
+    : { ok: true, note: `Moved to job ${job.job_number}, but ServiceTitan didn't take the note: ${r.error ?? "try again from To order › Sent"}.` };
 }

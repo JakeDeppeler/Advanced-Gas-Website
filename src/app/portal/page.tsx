@@ -53,18 +53,22 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   const goalP = office ? savedGoal() : Promise.resolve(null);
   const ovP = office ? goalP.then((g) => overview(g, span)).catch(() => null) : Promise.resolve(null);
   const crewP = office ? crewNow().catch(() => null) : Promise.resolve(null);
-  const [board, goal, profit, open, me, all, people, lines, ov, crew] = await Promise.all([
+  // Xero's year and the "look at today" counts are the slowest reads on the
+  // page; for the office they're handed down unresolved and stream in under
+  // their own placeholders, so the rest draws without waiting on them.
+  const profitP = office ? xeroProfit().then((p) => p.year).catch(() => null) : Promise.resolve(null);
+  const linesP = needsToday(user).catch(() => []);
+  const [board, goal, open, me, all, people, ov, crew] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
     goalP,
-    office ? xeroProfit().catch(() => ({ month: null, year: null, yearFrom: "" })) : Promise.resolve({ month: null, year: null, yearFrom: "" }),
     openTodos().catch(() => []),
     meOf(user).catch(() => null),
     seesAll(user).catch(() => false),
     teamPeople().catch(() => []),
-    needsToday(user).catch(() => []),
     ovP,
     crewP,
   ]);
+  const lines = office ? linesP : await linesP;
   // Days left in the goal's year, for the ring.
   const spans = goal ? yearSpans(goal.basis, goal.year) : null;
   const yearEnd = spans ? spans[spans.length - 1].to : null;
@@ -103,7 +107,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
         day={day}
         office={office}
         m={m}
-        profitYear={profit.year}
+        profitYear={office ? profitP : null}
         goal={goal}
         todos={todos}
         overdue={todos.filter((t) => t.late).length}

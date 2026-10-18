@@ -889,7 +889,7 @@ export function NextWeekOrders(props: {
           <h2 className="pt-panel__h">Needs a look</h2>
           <p className="pt-panel__sub">
             Fix these in ServiceTitan and press Check now, or order them by hand. A job that moved after its order went is never
-            ordered twice, the supplier just needs telling the new date. Dealt with another way? Dismiss it; it comes back only if what&rsquo;s wrong changes.
+            ordered twice: the portal emails the supplier the new date in office hours (Settings › Automatic) and moves the order with it, and the line goes from here. Dealt with another way? Dismiss it; it comes back only if what&rsquo;s wrong changes.
           </p>
           <ul>
             {problems.map((p, i) => (

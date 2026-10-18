@@ -136,11 +136,24 @@ export type WorkOrderDetails = {
   customer_email: string | null;
   jobs: WorkOrderJob[];
   note: string | null;
+  /**
+   * What kind of work and who it's for, when it isn't the electrician on file:
+   * water balancing with Ross, a plumber. Absent on the electrician's own.
+   */
+  trade?: string | null;
+  to_name?: string | null;
 };
+
+/** The electrician's work order (the usual one), or someone else's: water balancing, a plumber. */
+export const isElectrical = (d: Pick<WorkOrderDetails, "trade"> | null | undefined) => !d?.trade || /electric/i.test(d.trade);
 
 export type PlannedWorkOrder = { supplier_id: string; group_key: string; details: WorkOrderDetails; lines: PlannedLine[] };
 
-export type Problem = { job_number: string | null; customer_name: string | null; install_date: string | null; what: string };
+export type Problem = {
+  job_number: string | null; customer_name: string | null; install_date: string | null; what: string;
+  /** A job moved after its order went: which order, for which day, and the day it's on now (moveNotices). */
+  moved?: { po_number: string; supplier_id: string; job_id: number; from: string; to: string };
+};
 
 /** A problem's key for dismissing it: the job and what's wrong, so a new problem on the same job still shows. */
 export const problemKey = (p: Pick<Problem, "job_number" | "what">) => `${p.job_number ?? "?"}|${p.what}`;
@@ -295,7 +308,8 @@ export function planWeek(input: {
     const was = alreadyOrdered instanceof Map ? alreadyOrdered.get(key) : undefined;
     if (was?.install_date && row.install_date && was.install_date !== row.install_date) {
       problem({ job_number: row.job_number, customer_name: row.customer_name, install_date: row.install_date,
-        what: `Moved to ${dayLabel(row.install_date)} after ${who} for ${dayLabel(was.install_date)} (${was.po_number}) — not ordered again. Let ${byId.get(was.supplier_id)?.name ?? "the supplier"} know the new date.` });
+        what: `Moved to ${dayLabel(row.install_date)} after ${who} for ${dayLabel(was.install_date)} (${was.po_number}) — not ordered again. Let ${byId.get(was.supplier_id)?.name ?? "the supplier"} know the new date.`,
+        moved: { po_number: was.po_number, supplier_id: was.supplier_id, job_id: Number(key.split(":")[0]), from: was.install_date, to: row.install_date } });
     }
     return true;
   };
@@ -580,7 +594,7 @@ export function workOrderEmail(o: { supplier: Supplier; poNumber: string; detail
   // number, so that is what the work order is called (o.poNumber stays the
   // portal's own record of it).
   const ref = workRef(d);
-  const subject = `Work order — ${ref} — ${when}`;
+  const subject = `${isElectrical(d) ? "Work order" : d.trade} — ${ref} — ${when}`;
   const row = (k: string, v: string | null | undefined) =>
     v ? `<tr><td style="${cell}width:150px;color:#6b6a68;">${esc(k)}</td><td style="${cell}">${v}</td></tr>` : "";
   const contact = [d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).map((s) => esc(String(s))).join(" · ");
@@ -597,10 +611,17 @@ ${row("Our crew on site", esc(d.crew.join(", ") || "To be confirmed"))}
 ${row("Customer", contact || "No contact on file — call us")}
 </table>`;
   const vars = { supplier: o.supplier.name, po: ref };
-  const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_WORK_INTRO : o.supplier.email_intro!, vars);
+  // Someone other than the electrician (water balancing, a plumber) gets
+  // plain wording of their own: the electrician's intro and sign-off are
+  // written to Geoff.
+  const sparky = isElectrical(d);
+  const first = (d.to_name ?? "").trim().split(/\s+/)[0];
+  const opening = sparky
+    ? fillWording(blank(o.supplier.email_intro) ? DEFAULT_WORK_INTRO : o.supplier.email_intro!, vars)
+    : `Hi${first ? ` ${first}` : ""},\n\nPlease book in the ${(d.trade ?? "work").toLowerCase()} for the job below.`;
   // The note to the electrician: the office's current wording, else the one
   // stored with the work order when it was drafted.
-  const note = !blank(o.supplier.email_signoff) ? fillWording(o.supplier.email_signoff!, vars) : d.note;
+  const note = !sparky ? d.note : !blank(o.supplier.email_signoff) ? fillWording(o.supplier.email_signoff!, vars) : d.note;
   const intro = paras(opening);
   const footer = `${note ? `<strong style="color:#050a30;">${paras(note)}</strong><br><br>` : ""}Email us at ${esc(o.settings.replyTo)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
   const text = [
@@ -622,6 +643,37 @@ export const workJobs = (d: WorkOrderDetails) =>
   `Job ${d.jobs.map((j) => j.job_number).filter(Boolean).join(" & ")}`;
 
 /** What a work order is called: the job number and the address. */
+/**
+ * A job on an order that's already gone has moved: the same order, a new day.
+ * One email per order, every moved job on it listed with the day it was for
+ * and the day it's on now.
+ */
+export function dateChangeEmail(o: {
+  supplier: Supplier; poNumber: string; ref: string; workOrder: boolean;
+  moves: Array<{ job_number: string | null; customer_name: string | null; from: string; to: string }>;
+  settings: OrderingSettings;
+}): EmailParts {
+  const first = o.moves[0];
+  const subject = `Date change — ${o.ref} — now ${dayLabel(first.to)}`;
+  const what = o.workOrder ? "the electrical" : "this order";
+  const intro = `Hi ${esc(o.supplier.name.replace(/\s*\(.*\)\s*$/, ""))},<br><br>The job below has moved, so ${what} is needed on the new day. Nothing else has changed; please keep everything as it was and just change the date.`;
+  const rows = o.moves.map((m) =>
+    `<tr><td style="${cell}"><strong>Job ${esc(m.job_number ?? "")}</strong>${m.customer_name ? `<br><span style="color:#6b6a68;">${esc(m.customer_name)}</span>` : ""}</td>`
+    + `<td style="${cell}"><s style="color:#6b6a68;">${esc(dayLabel(m.from))}</s></td><td style="${cell}"><strong>${esc(dayLabel(m.to))}</strong></td></tr>`).join("\n");
+  const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+<tr><th style="${head}">Job</th><th style="${head}">Was</th><th style="${head}">Now</th></tr>
+${rows}
+</table>`;
+  const footer = `Our reference ${esc(o.poNumber)} · Email us at ${esc(o.settings.replyTo)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
+  const text = [
+    `Hi ${o.supplier.name},`, "",
+    `The job below has moved, so ${what} is needed on the new day. Nothing else has changed; please keep everything as it was and just change the date.`, "",
+    ...o.moves.map((m) => `Job ${m.job_number ?? ""}${m.customer_name ? ` (${m.customer_name})` : ""}: was ${dayLabel(m.from)}, now ${dayLabel(m.to)}`), "",
+    `Our reference ${o.poNumber} · Email us at ${o.settings.replyTo} · Advanced Gas & Aircon · 03 5947 8000`,
+  ].join("\n");
+  return { subject, html: shell(`Date change — ${o.ref}`, intro, body, footer), text };
+}
+
 export const workRef = (d: WorkOrderDetails) => `${workJobs(d)} — ${d.site_address}`;
 
 /**

@@ -60,11 +60,13 @@ export type HomeData = {
   /** Sees the money: the month bar. */
   office: boolean;
   m: Metrics | null;
-  profitYear: ProfitLoss | null;
+  /** Xero's year so far. A promise for the office, so the page doesn't wait on Xero to draw. */
+  profitYear: ProfitLoss | null | Promise<ProfitLoss | null>;
   goal: YearGoal | null;
   todos: HomeTodo[];
   overdue: number;
-  lines: NeedLine[];
+  /** What to look at today. A promise for the office: its counts are the slowest reads on the page. */
+  lines: NeedLine[] | Promise<NeedLine[]>;
   denied: boolean;
   /** The office's sales overview, in the Rapport layout. Null for the crew. */
   ov: { data: OverviewData; span: 6 | 12; closeRate: number | null; yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null; team?: TeamRow[]; crew?: CrewNow[] | null } | null;
@@ -81,7 +83,8 @@ export type HomeData = {
  * covers, is left out until Cash to operate is built: nothing here works out
  * the weekly running cost yet.
  */
-export function Home(d: HomeData) {
+/** The month's four figures: sold, jobs done, net profit (Xero), owed. */
+function monthStats(d: HomeData, profitYear: ProfitLoss | null): Stat[] {
   const { m, month } = d;
   const st = m?.pace?.standing.month ?? null;
   const plan = m?.pace?.month ?? null;
@@ -106,7 +109,7 @@ export function Home(d: HomeData) {
     : { key: "jobs", name: "Jobs done", st: mo?.completed != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.completed != null ? n0(mo.completed) : "", bar: 0, sub: "this month", href: "/portal/jobs" };
 
   // Net profit: Xero's, for the year so far, against the goal's margin.
-  const py = d.profitYear;
+  const py = profitYear;
   const npPct = py && py.income > 0 ? (py.netProfit / py.income) * 100 : null;
   const goalPct = d.goal?.profitPct ?? null;
   const np: Stat = npPct != null && goalPct
@@ -127,10 +130,68 @@ export function Home(d: HomeData) {
       }
     : { key: "owed", name: "Owed, overdue", st: { k: "none", w: "No figures" }, fig: "", bar: 0, sub: "needs Xero connected", href: "/portal/money" };
 
-  const stats = [sell, jobs, np, owed];
-  const onTrack = stats.filter((s) => s.st.k === "good").length;
-  const measured = stats.filter((s) => s.st.k !== "none").length;
-  const look = d.lines;
+  return [sell, jobs, np, owed];
+}
+
+/** The month strip, drawn once Xero's year has come back. */
+async function MonthStrip({ d }: { d: HomeData }) {
+  const stats = monthStats(d, await Promise.resolve(d.profitYear).catch(() => null));
+  return (
+    <section className="ph-card ph-month" aria-label={`${d.month} so far`}>
+      <div className="ph-mb-h">
+        <b>{d.month} so far</b>
+        {d.day && <span>day {d.day.n} of {d.day.of}</span>}
+        {d.day && <div className="ph-mb-track" aria-hidden="true"><i style={{ width: `${(d.day.n / d.day.of) * 100}%` }} /></div>}
+      </div>
+      <div className="ph-mb-stats">
+        {stats.map((s) => (
+          <Link key={s.key} href={s.href} className="ph-mb-s">
+            <span className="ph-mb-l">{s.name}<Pill st={s.st} /></span>
+            <b>{s.fig}</b>
+            <div className={`ph-bar ${s.st.k}`} aria-hidden="true"><i style={{ width: `${(s.st.k === "none" ? 0 : clamp(s.bar)) * 100}%` }} /></div>
+            <span className="ph-ks">{s.sub}</span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Look at today, drawn once its counts are in. */
+async function LookToday({ lines }: { lines: NeedLine[] | Promise<NeedLine[]> }) {
+  const look = await Promise.resolve(lines).catch(() => [] as NeedLine[]);
+  return (
+    <section className="ph-card ph-pad" aria-labelledby="ph-look">
+      <div className="ph-card-h"><b id="ph-look">Look at today</b><span>most urgent first</span></div>
+      {look.length ? look.map((l) => {
+        const [what, ...rest] = l.text.split(" · ");
+        return (
+          <Link key={l.href + what} href={l.href} className="ph-row">
+            <span className="ph-hn">{l.n}</span>
+            <span className="ph-row-t"><b>{what}</b>{rest.length > 0 && <span>{rest.join(" · ")}</span>}</span>
+            <span className="ph-chev" aria-hidden="true">›</span>
+          </Link>
+        );
+      }) : <div className="ph-empty">All clear.</div>}
+    </section>
+  );
+}
+
+/** Stand-ins while a streamed part comes in: the card's shape, so nothing jumps. */
+const Pending = ({ label, tall }: { label: string; tall?: boolean }) => (
+  <section className={`ph-card ph-pad ph-pending${tall ? " tall" : ""}`} aria-busy="true" aria-label={label}>
+    <div className="ph-card-h"><b>{label}</b></div>
+    <span className="ld-b" /><span className="ld-b" /><span className="ld-b" />
+  </section>
+);
+
+export function Home(d: HomeData) {
+  const { month } = d;
+  // Only resolved here for the crew, whose lines are cheap and were awaited.
+  const look = Array.isArray(d.lines) ? d.lines : null;
+  const stats = d.profitYear instanceof Promise ? null : monthStats(d, d.profitYear);
+  const onTrack = stats ? stats.filter((s) => s.st.k === "good").length : 0;
+  const measured = stats ? stats.filter((s) => s.st.k !== "none").length : 0;
 
   return (
     <div className="ph">
@@ -149,32 +210,14 @@ export function Home(d: HomeData) {
           <div className="ph-sub">{d.when}</div>
         </div>
         <p className="ph-say">
-          {d.office && (measured
+          {d.office && stats && (measured
             ? <>{month} is <b>{onTrack} of {measured} on track</b>{d.day ? `, day ${d.day.n} of ${d.day.of}` : ""}. </>
             : <>{month}’s figures aren’t in yet. </>)}
-          {plural(d.todos.length, "to-do")} to get done and {plural(look.length, "thing")} to look at today.
+          {plural(d.todos.length, "to-do")} to get done{look ? <> and {plural(look.length, "thing")} to look at today</> : null}.
         </p>
       </div>}
 
-      {d.office && (
-        <section className="ph-card ph-month" aria-label={`${month} so far`}>
-          <div className="ph-mb-h">
-            <b>{month} so far</b>
-            {d.day && <span>day {d.day.n} of {d.day.of}</span>}
-            {d.day && <div className="ph-mb-track" aria-hidden="true"><i style={{ width: `${(d.day.n / d.day.of) * 100}%` }} /></div>}
-          </div>
-          <div className="ph-mb-stats">
-            {stats.map((s) => (
-              <Link key={s.key} href={s.href} className="ph-mb-s">
-                <span className="ph-mb-l">{s.name}<Pill st={s.st} /></span>
-                <b>{s.fig}</b>
-                <div className={`ph-bar ${s.st.k}`} aria-hidden="true"><i style={{ width: `${(s.st.k === "none" ? 0 : clamp(s.bar)) * 100}%` }} /></div>
-                <span className="ph-ks">{s.sub}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {d.office && <Suspense fallback={<Pending label={`${month} so far`} />}><MonthStrip d={d} /></Suspense>}
 
       <div className="ph-today">
         <section className="ph-card ph-pad" aria-labelledby="ph-todo">
@@ -197,19 +240,7 @@ export function Home(d: HomeData) {
           <Link href="/portal/todo" className="ph-more">All to-dos ›</Link>
         </section>
 
-        <section className="ph-card ph-pad" aria-labelledby="ph-look">
-          <div className="ph-card-h"><b id="ph-look">Look at today</b><span>most urgent first</span></div>
-          {look.length ? look.map((l) => {
-            const [what, ...rest] = l.text.split(" · ");
-            return (
-              <Link key={l.href + what} href={l.href} className="ph-row">
-                <span className="ph-hn">{l.n}</span>
-                <span className="ph-row-t"><b>{what}</b>{rest.length > 0 && <span>{rest.join(" · ")}</span>}</span>
-                <span className="ph-chev" aria-hidden="true">›</span>
-              </Link>
-            );
-          }) : <div className="ph-empty">All clear.</div>}
-        </section>
+        <Suspense fallback={<Pending label="Look at today" tall />}><LookToday lines={d.lines} /></Suspense>
       </div>
     </div>
   );

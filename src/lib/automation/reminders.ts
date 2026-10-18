@@ -8,6 +8,8 @@ import { listStockLines, shelfMatch } from "@/lib/ordering/stockLines";
 import { addStockLine, draftFor, loadSuppliers } from "@/lib/ordering/db";
 import { nextWeek } from "@/lib/ordering/plan";
 import { ordersToUpdate, updateJobs } from "@/lib/ordering/stJobNotes";
+import { findMoves, type Move } from "@/lib/ordering/moveNotices";
+import { emailDateChange } from "@/lib/ordering/send";
 import { owedInvoices } from "@/lib/portal/run/money";
 import { cleanCell } from "@/components/portal/fleetStatus";
 import { listContacts } from "@/lib/contacts/store";
@@ -19,6 +21,9 @@ import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/
 import { FOLLOW_UPS, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { clearApprovedQuoteTags } from "./quoteTag";
+import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
+import { getTodo, updateTodo } from "@/lib/todos/store";
+import { isSold } from "@/lib/pipeline/types";
 
 /**
  * Settings › Automatic: the jobs that turn something the portal can already
@@ -51,7 +56,12 @@ type Ctx = {
   people: Person[];
   office: Person | null;
   lists: string[];
+  /** Account to-dos following their quote through (todos/flow.ts): read once, saved at the end. */
+  flow: Record<string, FlowEntry>;
 };
+
+/** What to find a quote by in ServiceTitan: its job, or for one written on the customer, the customer. */
+const ref = (q: Pick<PipeQuote, "jobNumber" | "customerId">) => (q.jobNumber ? `Job #${q.jobNumber} · ` : q.customerId ? `No job yet, customer #${q.customerId} · ` : "");
 
 /** The office's own list for sales follow-ups ("Quoting"), and the general one for everything else. */
 const listFor = (ctx: Ctx, sales: boolean, accounts = false, booking = false) => {
@@ -117,8 +127,10 @@ async function soldNotBooked(ctx: Ctx, pipe: PipeQuote[]) {
     if (age < 3 || age > 45) continue;
     if (await todo(ctx, "soldNotBooked", `sold:${q.key}`, {
       title: `Book in ${who(q)}, sold ${age} days ago`,
-      notes: [`${q.jobNumber ? `Job #${q.jobNumber} · ` : ""}${q.what ?? "Sold quote"}${q.value ? ` · ${money(q.value)}` : ""}.`, `Sold ${dayLabel(q.soldOn)} and nothing's been booked from it yet. It's in Pipeline › Sold, to be booked.`].join("\n"),
+      notes: [`${ref(q)}${q.what ?? "Sold quote"}${q.value ? ` · ${money(q.value)}` : ""}.`, `Sold ${dayLabel(q.soldOn)} and nothing's been booked from it yet. It's in Pipeline › Sold, to be booked.`].join("\n"),
       to: null, sales: true, booking: true, jobId: q.jobId ?? undefined,
+      // Followed through: once it's booked it moves to Finance to invoice.
+      onMade: (id) => { if (id) ctx.flow[id] = { key: q.key, step: "book" }; },
     })) n++;
   }
 }
@@ -201,6 +213,8 @@ async function quoteFollow(ctx: Ctx, pipe: PipeQuote[]) {
   for (const q of pipe) {
     if (made >= 40) break;
     if (q.stage !== "due" || !q.quotedOn || daysBetween(q.quotedOn, ctx.today) > 14) continue;
+    // Won and waiting on payment: no more follow-up calls.
+    if (Object.values(ctx.flow).some((f) => f.key === q.key)) continue;
     const n = followUps(q.touches);
     if (n >= FOLLOW_UPS || open[q.key]) continue;
     const due = q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? ctx.today;
@@ -208,7 +222,7 @@ async function quoteFollow(ctx: Ctx, pipe: PipeQuote[]) {
     const which = ["First", "Second", "Third"][n] ?? "Next";
     if (await todo(ctx, "quoteFollow", `follow:${q.key}:${n}`, {
       title: `${which} follow-up: ${who(q)}${q.value ? `, ${money(q.value)}` : ""}`,
-      notes: [`${q.what ?? "Quote"}${q.jobNumber ? ` · job #${q.jobNumber}` : ""}${q.phone ? ` · ${q.phone}` : ""}.`, `Quoted ${dayLabel(q.quotedOn)}. Log the call on the Pipeline and this ticks itself off.`].join("\n"),
+      notes: [`${q.what ?? "Quote"}${q.jobNumber ? ` · job #${q.jobNumber}` : q.customerId ? ` · customer #${q.customerId}` : ""}${q.phone ? ` · ${q.phone}` : ""}.`, `Quoted ${dayLabel(q.quotedOn)}. Log the call on the Pipeline and this ticks itself off.`].join("\n"),
       to, list: FOLLOW_UP, dueOn: due < ctx.today ? due : ctx.today, jobId: q.jobId ?? undefined,
       onMade: (id) => { if (id) open[q.key] = { id, n }; },
     })) made++;
@@ -292,6 +306,91 @@ async function orderTags(ctx: Ctx) {
   }
 }
 
+/**
+ * A job moved after its gear was ordered or its electrician booked: the order
+ * stands, and whoever it went to is emailed the new day (emailDateChange),
+ * which moves the order's own date with it. Office hours only, so nobody is
+ * emailed at midnight; one email per order however many of its jobs moved.
+ * A refusal (Reece entered in maX, no address) is logged once and left to the
+ * warning on To order.
+ */
+async function orderMoves(ctx: Ctx) {
+  const hour = melHour();
+  if (melDow(ctx.today) === 0 || hour < 7 || hour >= 18) return;
+  const moves = await findMoves();
+  const byPo = new Map<string, Move[]>();
+  for (const m of moves) {
+    if (ctx.made.has(`move:${m.po_number}:${m.job_id}:${m.to}`)) continue;
+    byPo.set(m.po_number, [...(byPo.get(m.po_number) ?? []), m]);
+  }
+  for (const [po, ms] of [...byPo].slice(0, 6)) {
+    const failKey = `move-fail:${po}:${ms[0].to}`;
+    if (ctx.made.has(failKey)) continue;
+    const r = await emailDateChange(po, ms).catch((e: Error) => ({ ok: false as const, error: e.message, to: undefined, note: undefined }));
+    const jobs = ms.map((m) => m.job_number ?? m.job_id).join(", ");
+    const day = new Date(`${ms[0].to}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+    if (r.ok) {
+      for (const m of ms) ctx.made.set(`move:${m.po_number}:${m.job_id}:${m.to}`, new Date().toISOString());
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: true, jobId: ms[0].job_id, title: `Job ${jobs} moved to ${day}: ${r.note ?? "supplier told"} Order ${po} kept, its date changed.` });
+    } else {
+      ctx.made.set(failKey, new Date().toISOString());
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: false, jobId: ms[0].job_id, title: `Job ${jobs} moved to ${day}, couldn't tell the supplier about order ${po}`, detail: (r.error ?? "").slice(0, 200) });
+    }
+  }
+}
+
+/**
+ * Account to-dos following a sale through, one list to the next as
+ * ServiceTitan catches up: won and waiting on payment → sold, so book it in
+ * (Jobs to Book) → booked, so invoice it when it's done (Finance) → invoiced,
+ * ticked off. Lost along the way ticks it off too. Each move rewrites the
+ * to-do's header and puts a line on top of its notes, so the card says what
+ * to do now and the history of how it got there.
+ */
+async function accountFlow(ctx: Ctx, pipe: PipeQuote[]) {
+  const byKey = new Map(pipe.map((q) => [q.key, q]));
+  const bookList = ctx.lists.find((l) => /\bbook/i.test(l)) ?? null;
+  const day = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const line = (text: string, t: { notes: string | null }) => `${day(ctx.today)}: ${text}\n${t.notes ?? ""}`.slice(0, 2000);
+  for (const [id, f] of Object.entries(ctx.flow)) {
+    const t = await getTodo(id).catch(() => null);
+    if (!t || t.doneAt) { delete ctx.flow[id]; continue; }
+    const q = byKey.get(f.key);
+    if (!q) continue;
+    const name = who(q);
+    if (q.stage === "lost") {
+      await updateTodo(id, { notes: line("Lost on the Pipeline.", t) });
+      await setDone(id, true, "Automatic");
+      delete ctx.flow[id];
+      ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.jobId ?? undefined, title: `${name}: lost, ticked off` });
+      continue;
+    }
+    if (f.step === "won" && isSold(q.stage)) {
+      await updateTodo(id, { title: `Book in ${name}, sold ${q.soldOn ? day(q.soldOn) : "now"}`, dueOn: ctx.today, ...(bookList ? { list: bookList } : {}), notes: line("Marked sold in ServiceTitan. Book the job in.", t) });
+      f.step = "book";
+      // The sold-not-booked reminder would write a second card for this one.
+      ctx.made.set(`sold:${q.key}`, new Date().toISOString());
+      ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.jobId ?? undefined, title: `${name}: sold in ServiceTitan, moved to ${bookList ?? "book in"}` });
+    }
+    const booked = q.work?.bookedFor ?? null;
+    if (f.step === "book" && (q.stage === "booked" || q.stage === "billed" || booked)) {
+      const on = booked ? booked.slice(0, 10) : ctx.today;
+      await updateTodo(id, { title: `Invoice ${name} once it's done${booked ? `, booked ${day(on)}` : ""}`, dueOn: on < ctx.today ? ctx.today : on, list: ACCOUNTS, notes: line(`Booked${booked ? ` for ${day(on)}` : ""}${q.work?.jobNumber ? `, job #${q.work.jobNumber}` : ""}. Invoice it once it's done.`, t) });
+      f.step = "invoice";
+      f.jobId = q.work?.jobId;
+      // The not-invoiced reminder would write a second card for the same job.
+      if (q.work?.jobId) ctx.made.set(`bill:${q.work.jobId}`, new Date().toISOString());
+      ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.work?.jobId ?? q.jobId ?? undefined, title: `${name}: booked, moved to ${ACCOUNTS} to invoice` });
+    }
+    if (f.step === "invoice" && (q.stage === "billed" || (q.work?.invoiced ?? 0) > 0)) {
+      await updateTodo(id, { notes: line("Invoiced in ServiceTitan.", t) });
+      await setDone(id, true, "Automatic");
+      delete ctx.flow[id];
+      ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.work?.jobId ?? undefined, title: `${name}: invoiced, ticked off` });
+    }
+  }
+}
+
 /* --------------------------------------------------------------- the run */
 
 /**
@@ -335,8 +434,9 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const [made, people, offIds, lists] = await Promise.all([loadMade(), teamPeople(), officeIds(), todoLists()]);
   const office = people.find((p) => p.id === sw.officeTo) ?? people.find((p) => offIds.includes(p.id)) ?? null;
   const accounts = people.find((p) => p.id === sw.accountsTo) ?? office;
-  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw) };
-  const needPipe = sw.soldNotBooked || sw.quoteFollow;
+  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw), flow: await loadFlow() };
+  const flowAtStart = { ...ctx.flow };
+  const needPipe = sw.soldNotBooked || sw.quoteFollow || sw.accountFlow;
   const pipe = needPipe ? await loadPipeline({ detail: true }).then((p) => p.quotes).catch(() => null) : [];
 
   const jobs: Array<[AutoKey, () => Promise<void>]> = [
@@ -348,6 +448,8 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
     ["vanCheck", () => vanCheck(ctx)],
     ["keepInTouch", () => keepInTouch(ctx)],
     ["orderTags", () => orderTags(ctx)],
+    ["orderMoves", () => orderMoves(ctx)],
+    ["accountFlow", () => (pipe ? accountFlow(ctx, pipe) : Promise.reject(new Error("The pipeline couldn't be read")))],
   ];
   const ran: string[] = [];
   const failed: string[] = [];
@@ -362,6 +464,12 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
     }
   }
   await saveMade(ctx.made).catch(() => undefined);
+  // Merged with what's there now: a quote marked Won while this ran was saved
+  // after this read the list, and mustn't be written over.
+  const startKeys = new Set(Object.keys(flowAtStart));
+  const latest = await loadFlow().catch(() => ({} as Record<string, FlowEntry>));
+  for (const [id, f] of Object.entries(latest)) if (!startKeys.has(id) && !ctx.flow[id]) ctx.flow[id] = f;
+  await saveFlow(ctx.flow).catch(() => undefined);
   await logAuto(ctx.log).catch(() => undefined);
   return { ran, failed };
 }

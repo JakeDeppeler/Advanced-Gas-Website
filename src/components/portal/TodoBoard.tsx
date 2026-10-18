@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addTodo, deleteTodo, editTodo, logContact, renameList, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
-import { dueState, dueWords, firstName, jobNumberIn, phoneIn, quickDays, shiftDay, type Person, type Todo } from "@/lib/todos/types";
-import { HOW_LABEL, type TouchHow } from "@/lib/pipeline/types";
+import { addTodo, deleteTodo, editTodo, logContact, markLostTodo, markWon, renameList, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
+import { customerIn, dueState, dueWords, firstName, isQuoteList, jobNumberIn, phoneIn, quickDays, shiftDay, type Person, type Todo } from "@/lib/todos/types";
+import { HOW_LABEL, LOST_REASONS, type TouchHow } from "@/lib/pipeline/types";
 
 type Props = {
   todos: Todo[];
@@ -172,6 +172,9 @@ function ContactPanel({ t, onClose }: { t: Todo; onClose: () => void }) {
   const [done, setDone] = useState(false);
   const [next, setNext] = useState(shiftDay(today, 2));
   const [editing, setEditing] = useState(false);
+  const [lost, setLost] = useState(false);
+  const [reason, setReason] = useState<string>(LOST_REASONS[0]);
+  const quote = isQuoteList(t.list);
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     addEventListener("keydown", k);
@@ -180,6 +183,7 @@ function ContactPanel({ t, onClose }: { t: Todo; onClose: () => void }) {
   const phone = phoneIn(t);
   const job = jobNumberIn(t);
   const jobId = jobIds[t.id];
+  const customer = jobId ? null : customerIn(t);
   const days = [
     { label: "Tomorrow", iso: shiftDay(today, 1) },
     { label: "In 2 days", iso: shiftDay(today, 2) },
@@ -201,10 +205,28 @@ function ContactPanel({ t, onClose }: { t: Todo; onClose: () => void }) {
         ) : (
           <>
             {t.notes && <p className="td-cnotes">{t.notes}</p>}
-            {(phone || jobId) && (
+            {(phone || jobId || customer) && (
               <div className="qp-links">
                 {phone && <a className="qp-btn dark" href={`tel:${phone}`}>Call {phone}</a>}
                 {jobId && <a className="qp-btn" href={`https://go.servicetitan.com/#/Job/Index/${jobId}`} target="_blank" rel="noreferrer">Job #{job} in ServiceTitan ↗</a>}
+                {/* A quote written on the customer has no job yet: their record is where it is. */}
+                {customer && <a className="qp-btn" href={`https://go.servicetitan.com/#/Customer/${customer}`} target="_blank" rel="noreferrer">Customer in ServiceTitan ↗</a>}
+              </div>
+            )}
+            {quote && (
+              <div className="td-outcome">
+                <span>Did they go ahead?</span>
+                <button type="button" className="qp-btn good" disabled={pending} onClick={() => run(() => markWon({ id: t.id, note }), "Won, waiting on payment. It moves on once ServiceTitan marks it sold.", onClose)}>✓ Won, to be paid</button>
+                <button type="button" className="qp-btn line" aria-expanded={lost} onClick={() => setLost((v) => !v)}>× Lost</button>
+                {lost && (
+                  <div className="td-lost">
+                    <select id="td-lost-why" className="qp-date" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Why it was lost">
+                      {LOST_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    <button type="button" className="qp-btn bad" disabled={pending} onClick={() => run(() => markLostTodo({ id: t.id, reason, note }), "Marked lost.", onClose)}>Mark it lost</button>
+                    <span className="qp-note">Dismissed in ServiceTitan too, with the reason on the job. The note below goes with it.</span>
+                  </div>
+                )}
               </div>
             )}
             <form className="qp-form" onSubmit={(e) => {

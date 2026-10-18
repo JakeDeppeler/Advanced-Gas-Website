@@ -6,6 +6,8 @@ import { ensureXeroToken } from "@/lib/portal/xero";
 import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
 import { autoDraft } from "@/lib/ordering/autoDraft";
 import { runAutomations } from "@/lib/automation/reminders";
+import { pipelineChanged } from "@/lib/pipeline/store";
+import { warmPortal } from "@/lib/portal/warm";
 
 /**
  * Bring the board's snapshot up to date, if it's due.
@@ -69,7 +71,11 @@ async function run(pull: boolean) {
   // Same order as /api/sync: pull, then recompute. The snapshot is written even
   // when a leg failed, because carry-forward inside computeSnapshot keeps the
   // last known figures on the wall rather than blanking them.
-  if (pull) await syncServiceTitan(false);
+  if (pull) {
+    await syncServiceTitan(false);
+    // New quotes and sales in: the pipeline the portal keeps is out of date.
+    pipelineChanged();
+  }
   const snapshot = await computeSnapshot();
   await storeSnapshot(snapshot);
   // This month's commission line on each file, as /api/sync writes it. Only
@@ -83,6 +89,8 @@ async function run(pull: boolean) {
   if (pull) await autoDraft().catch(() => undefined);
   // And Settings › Automatic: the quote tags, the to-dos, low stock, order tags.
   if (pull) await runAutomations().catch(() => undefined);
+  // Last: the portal's shared caches, filled now so nobody waits on them.
+  if (pull) await warmPortal().catch(() => undefined);
 }
 
 export async function refreshBoard(): Promise<{ refreshed: boolean; ageMs?: number; synced?: boolean; error?: string }> {
