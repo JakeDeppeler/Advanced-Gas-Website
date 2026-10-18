@@ -40,14 +40,15 @@ export default async function FinancePage({ searchParams }: { searchParams: { p?
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Profit & finance" forWhom="managers" />;
 
-  const period = readPeriod(searchParams.p);
+  // Opens on this month: what's happening now is what people come to see.
+  const period = readPeriod(searchParams.p, "month");
   const { status: xs, tenantName } = await xeroStatus();
-  const tabs = <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/finance${k === "fy" ? "" : `?p=${k}`}`} />;
+  const tabs = <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/finance${k === "month" ? "" : `?p=${k}`}`} />;
 
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Overview" sub={`${periodWords(period).replace(/^./, (c) => c.toUpperCase())} · from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={INFO} />
+        <Head title="Summary" sub={`${periodWords(period).replace(/^./, (c) => c.toUpperCase())} · from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={INFO} />
         {xs === "connected" && tabs}
 
         {xs === "not-configured" && (

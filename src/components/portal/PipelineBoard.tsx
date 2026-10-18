@@ -240,7 +240,7 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
                   {SORT_WORD[sortBy[s.k] ?? "usual"]}
                 </button>
                 <ul className="qp-list">
-                  {list.map((q, i) => <Card key={q.key} q={q} today={today} i={i} onOpen={() => setOpen(q.key)} dragging={drag === q.key} onDrag={(on) => { setDrag(on ? q.key : null); if (!on) setOver(null); }} />)}
+                  {list.map((q, i) => <Card key={q.key} q={q} today={today} i={i} canCustomer={canCustomer} onOpen={() => setOpen(q.key)} dragging={drag === q.key} onDrag={(on) => { setDrag(on ? q.key : null); if (!on) setOver(null); }} />)}
                   {!list.length && <li className="qp-empty">{s.k === "due" ? "Nobody to ring. Nice." : s.k === "won" ? "Every sale has a job booked." : "Nothing here."}</li>}
                 </ul>
               </section>
@@ -367,16 +367,21 @@ function when(q: PipeQuote, today: string): { text: string; late: number } {
   return { text: `Quoted ${ago(q.quotedOn, today)}`, late };
 }
 
-function Card({ q, today, i, onOpen, dragging, onDrag }: { q: PipeQuote; today: string; i: number; onOpen: () => void; dragging: boolean; onDrag: (on: boolean) => void }) {
+function Card({ q, today, i, onOpen, dragging, onDrag, canCustomer }: { q: PipeQuote; today: string; i: number; onOpen: () => void; dragging: boolean; onDrag: (on: boolean) => void; canCustomer: boolean }) {
   const w = when(q, today);
   const tries = q.touches.filter((t) => t.how !== "note").length;
   const people = [...new Set([q.owner, q.quotedBy].filter((x): x is string => !!x))];
-  // Who and where: a quote is usually several options, so what was quoted doesn't name it.
-  const sub = [q.suburb, q.jobNumber ? `#${q.jobNumber}` : null].filter(Boolean).join(" · ");
+  const job = q.work?.jobId ?? q.jobId;
+  const jobNo = q.work?.jobNumber ?? q.jobNumber;
+  // The card opens its panel; the job and the customer are links of their own
+  // on it, so getting to either is one click from the board. Not a <button>
+  // for that reason: a link can't sit inside one.
   return (
     <li style={{ ["--i" as string]: Math.min(i, 8) }}>
-      <button
-        type="button" className={`qp-card s-${q.stage}${w.late ? " late" : ""}${dragging ? " dragging" : ""}`} onClick={onOpen}
+      <div
+        role="button" tabIndex={0}
+        className={`qp-card s-${q.stage}${w.late ? " late" : ""}${dragging ? " dragging" : ""}`} onClick={onOpen}
+        onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(); } }}
         draggable={q.stage === "new" || q.stage === "due" || q.stage === "waiting"}
         onDragStart={(e) => { e.dataTransfer.setData("text/plain", q.key); e.dataTransfer.effectAllowed = "move"; onDrag(true); }}
         onDragEnd={() => onDrag(false)}
@@ -387,13 +392,23 @@ function Card({ q, today, i, onOpen, dragging, onDrag }: { q: PipeQuote; today: 
           <span className="qp-dots" aria-hidden="true">•••</span>
         </span>
         <span className="qp-title">{q.customer ?? q.what ?? "Quote"}</span>
-        <span className="qp-sub">{sub}</span>
+        {q.suburb && <span className="qp-sub">{q.suburb}</span>}
         <span className="qp-sub qp-quoted">{outFor(q, today)}</span>
+        {(job || q.customerId) && (
+          <span className="qp-refs">
+            {job ? <a href={`https://go.servicetitan.com/#/Job/Index/${job}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the job in ServiceTitan">Job {jobNo ? `#${jobNo}` : "in ServiceTitan"} ↗</a> : null}
+            {q.customerId ? (
+              canCustomer
+                ? <a href={`/portal/customers/${q.customerId}`} onClick={(e) => e.stopPropagation()} title="Everything for this customer">Customer ›</a>
+                : <a href={`https://go.servicetitan.com/#/Customer/${q.customerId}`} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="Open the customer in ServiceTitan">Customer ↗</a>
+            ) : null}
+          </span>
+        )}
         <span className="qp-cf">
           <span className="qp-val">{m0(q.value)}</span>
           <span className="qp-avs">{people.map((p) => <Av key={p} name={p} title={p === q.owner ? `${p} is chasing it` : `Quoted by ${p}`} />)}</span>
         </span>
-      </button>
+      </div>
     </li>
   );
 }

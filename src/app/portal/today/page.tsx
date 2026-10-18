@@ -8,7 +8,7 @@ import { needsToday, type NeedLine } from "@/lib/portal/needs";
 import { callStats, soldTodayPoints } from "@/lib/portal/run/data";
 import { goalWords, melNow, money, plural, salesGoal } from "@/lib/portal/run/month";
 import { BENCH, benchStatus } from "@/lib/portal/benchmarks";
-import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Kv, Lh, Pair, Pill, Row, Say, Tabs, Tile, Two, none, status, type Status } from "@/components/portal/kit/Kit";
+import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Kv, Lh, Pair, Pill, Row, Say, Tile, Two, none, status, type Status } from "@/components/portal/kit/Kit";
 import { SoldTodayChart } from "@/components/portal/kit/Charts";
 import { TwoGoals } from "@/components/portal/kit/TwoGoals";
 import { monthTrack } from "@/lib/portal/run/monthTrack";
@@ -66,15 +66,8 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   const techs = m?.daily?.techs ?? [];
   const over = techs.filter((t) => t.hoursQuoted != null && t.hoursTakenQuoted > t.hoursQuoted + 0.25);
 
-  const tabs = (
-    <Tabs on={tab} items={[
-      { key: "overview", label: "Overview", href: "/portal/today" },
-      { key: "team", label: "Team now", href: "/portal/today?tab=team", count: techs.length || undefined },
-      { key: "calls", label: "Call booking", href: "/portal/today?tab=calls" },
-    ]} />
-  );
   const head = (sub: string) => (
-    <Head title="Today" sub={`${now.day} · ${now.time} · ${sub}`} info={[
+    <Head title={tab === "team" ? "Team now" : tab === "calls" ? "Call booking" : "Today"} sub={`${now.day} · ${now.time} · ${sub}`} info={[
       ["A usual day", "The month’s sales goal spread over its working days. Today is measured against it."],
       ["Sold", "Quotes a customer said yes to today. A quote re-sold for the same amount stays on the day it first sold."],
       ["Billed", "Everything invoiced today, whenever the job was done."],
@@ -84,7 +77,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   if (!m) {
     return (
       <PortalShell user={user}>
-        <div className="pk">{head("ServiceTitan")}{tabs}<Empty>The board hasn’t made its first snapshot yet, so there’s nothing to show for today.</Empty></div>
+        <div className="pk">{head("ServiceTitan")}<Empty>The board hasn’t made its first snapshot yet, so there’s nothing to show for today.</Empty></div>
       </PortalShell>
     );
   }
@@ -94,7 +87,6 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
       <PortalShell user={user}>
         <div className="pk">
           {head("ServiceTitan")}
-          {tabs}
           <Say>
             {techs.length ? <>{plural(techs.length, "person", "people")} on jobs today. </> : <>Nobody has a job in ServiceTitan today. </>}
             {over.length > 0 && <Bad>{over.map((t) => t.tech.split(" ")[0]).join(" and ")} {over.length > 1 ? "are" : "is"} running over.</Bad>}
@@ -129,7 +121,6 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
       <PortalShell user={user}>
         <div className="pk">
           {head("ServiceTitan calls")}
-          {tabs}
           {enough ? (
             <>
               <Say><b>{rate}% of calls became a booked job</b> this week: {calls.booked} of {calls.inbound}.</Say>
@@ -210,7 +201,6 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
     <PortalShell user={user}>
       <div className="pk">
         {head("ServiceTitan")}
-        {tabs}
         <Say>
           {weekend ? <>It&rsquo;s the weekend, so there&rsquo;s no daily target{m.soldToday > 0 ? <>; {money(m.soldToday)} sold today is extra. </> : ". "}</> : usual ? <>Selling is {sellSt.k === "good" ? "on track" : sellSt.k === "mid" ? "close to goal" : "behind"} today. </> : <>No sales goal is set, so today has nothing to be measured against. </>}
           {notBilled > 0 && <Bad>{plural(notBilled, "job is", "jobs are")} done but not billed.</Bad>}

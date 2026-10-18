@@ -7,7 +7,6 @@ import { computeCapacity, DEFAULT_SETTINGS, type CrewLevel, type CrewMember } fr
 import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
-import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { PayPlanModel } from "@/components/portal/PayPlanModel";
 import { readPayPlan } from "@/lib/portal/payPlan";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
@@ -50,7 +49,6 @@ export default async function CommissionPage() {
   return (
     <PortalShell user={user}>
       <FinanceHead title="What if" lede="The pay plan from January, and whether it pays for itself. Every figure comes from Pricing & costs." />
-      <PlanningTabs current="/portal/finance/planning/commission" />
       <PayPlanModel people={people} settings={s} salesPerVan={salesPerVan} gpMargin={gpMargin} plan={plan} today={isoDateMelbourne(new Date())} />
     </PortalShell>
   );

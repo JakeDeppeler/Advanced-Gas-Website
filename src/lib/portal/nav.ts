@@ -288,6 +288,9 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   );
   // The rebuilt Run the company pages (PR 2 of the new design).
   add(office,
+    { href: "/portal/accounts", label: "Accounts", blurb: "What to invoice, money to chase, bills to pay, and what hasn't reached Xero", band: "hidden", icon: "doc", also: ["accounts", "invoice", "to invoice", "chase", "overdue", "bills", "accounts person", "finance"] },
+    { href: "/portal/finance/leads", label: "Every enquiry", blurb: "Every lead from the website, the phone and ServiceTitan", band: "hidden", icon: "list", also: ["enquiry", "enquiries", "lead", "leads", "form", "website"] },
+    { href: "/portal/todo/accounts", label: "Account to-dos", blurb: "Quotes to follow up, invoices to send, late payments, jobs to book", band: "hidden", icon: "list", also: ["follow up", "chase", "invoice", "late payment", "overdue invoice", "book in", "account", "accounts to do"] },
     { href: "/portal/today", label: "Today", blurb: "How today is going, who's on what, the calls", band: "hidden", icon: "clock", also: ["today", "sold today", "team now", "call booking", "calls"] },
     {
       href: "/portal/office", label: "Office today", short: "Office today", blurb: "The morning routine: review, send, hold list, quotes due, part-paid", band: "hidden", icon: "list",

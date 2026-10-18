@@ -10,7 +10,6 @@ import { getMoneySeries, getMonthlyActuals, localToday, xeroStatus } from "@/lib
 import { monthOnMonth, overheadStanding, periodLabel, readYearGoal, standing, yearSpans, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
 import { money } from "@/lib/portal/run/month";
 import { Locked } from "@/components/portal/Locked";
-import { PaceTabs } from "@/components/portal/run/RunTabs";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -90,7 +89,6 @@ export default async function YearGoalPage() {
           ["Colours", "A month that made its goal is green with ▲; one that didn’t is red with ▼. This month is dashed until it’s over."],
           ["Change the goal", "Pricing & costs › Goals. Pace and the wall board read the same goal."],
         ]} />
-        <PaceTabs on="year" />
 
         {xs !== "connected" ? <XeroOff state={xs} what="year to measure against the goal" /> : (
           <>

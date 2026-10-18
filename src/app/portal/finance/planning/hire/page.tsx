@@ -4,7 +4,6 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
-import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { Locked } from "@/components/portal/Locked";
 import { theHour } from "@/lib/portal/cover/load";
 import { PAID_HRS_YEAR, scenarios } from "@/lib/portal/cover/hour";
@@ -37,7 +36,6 @@ export default async function HirePage() {
   return (
     <PortalShell user={user}>
       <FinanceHead title="What if" lede="What another person takes, and what they make. Every figure comes from Pricing & costs; nothing here changes them." />
-      <PlanningTabs current="/portal/finance/planning/hire" />
       <div className="pk pt-cover">
         <section className="pk-card pk-pad">
           <div className="pk-card-h"><b>What one more person takes</b><span>a year</span></div>

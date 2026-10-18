@@ -43,7 +43,6 @@ export function GoalPlanner({
   booked,
   month,
   canSave,
-  tabs,
 }: {
   initial: YearGoal;
   /** Nothing is saved yet: the figures are the design's starting ones. */
@@ -57,8 +56,6 @@ export function GoalPlanner({
   /** This month's working days, so the jobs-booked target matches the board's. */
   month: { name: string; workingDays: number; daysPerWeek: number };
   canSave: boolean;
-  /** The page's own sub-tabs, under the title. */
-  tabs?: React.ReactNode;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -108,7 +105,6 @@ export function GoalPlanner({
           {editing ? "Done" : "Change the goal"}
         </button>
       </div>
-      {tabs && <div className="pk-tabrow">{tabs}</div>}
 
       {sample && (
         <div className="pt-note pt-goal__note">

@@ -4,7 +4,6 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { SalesTabs } from "@/components/portal/run/RunTabs";
 import { Card, Empty, Grid, Head, Say, Tile, none } from "@/components/portal/kit/Kit";
 import { loadPipeline } from "@/lib/pipeline/store";
 import { daysBetween, isSold, type PipeQuote } from "@/lib/pipeline/types";
@@ -56,7 +55,6 @@ export default async function LostQuotesPage() {
     <PortalShell user={user}>
       <div className="pk">
         <Head title="Lost quotes" sub={`Last ${DAYS} days · marked lost here or dismissed in ServiceTitan`} />
-        {can(user, "overhead") && <SalesTabs on="lost" />}
         {!p ? <Empty>ServiceTitan&rsquo;s quotes couldn&rsquo;t be read just now.</Empty> : (
           <>
             <Say>

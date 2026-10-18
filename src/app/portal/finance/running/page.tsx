@@ -6,7 +6,6 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
-import { TeamTabs } from "@/components/portal/run/RunTabs";
 import { theHour } from "@/lib/portal/cover/load";
 import { PAID_HRS_YEAR, fleetSizes } from "@/lib/portal/cover/hour";
 
@@ -58,7 +57,6 @@ export default async function RunningCostsPage() {
   return (
     <PortalShell user={user}>
       <FinanceHead title="Running costs" lede="Every overhead, what it costs to keep the doors open, and what changes when another van goes on the road." />
-      <div className="pk" style={{ marginBottom: 14 }}><TeamTabs on="running" /></div>
 
       {!has ? (
         <div className="pt-note pt-note--warn">

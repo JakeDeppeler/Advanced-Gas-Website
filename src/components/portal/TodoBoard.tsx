@@ -18,6 +18,13 @@ type Props = {
   today: string;
   /** The lists across the page, in order. */
   lists: string[];
+  /** Every list, this board's and the other's, so a list keeps its colour on both. */
+  allLists?: string[];
+  /**
+   * Account to-dos: the lists are the ones the portal writes to, so they
+   * aren't added, moved, renamed or taken away from here.
+   */
+  fixed?: boolean;
 };
 
 /** Each list's colour, in turn, as the pipeline's columns have theirs. */
@@ -151,7 +158,7 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
  * there. A card drags from one list to another, and the office can add a
  * list or take an empty one away.
  */
-export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists }: Props) {
+export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists, allLists, fixed }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -215,6 +222,9 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
     run(() => editTodo(t.id, { list: l }), `Moved to ${l}.`);
   };
 
+  // Who may change the lists themselves, as opposed to what's on them.
+  const shape = all && !fixed;
+  const toneOf = (l: string, i: number) => TONES[Math.max(0, (allLists ?? lists).indexOf(l) >= 0 ? (allLists ?? lists).indexOf(l) : i) % TONES.length];
   const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag };
   const doneShown = done.filter(mine);
   const [officePick, setOfficePick] = useState<string[]>(office);
@@ -245,7 +255,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
 
         <div className="td-board">
           {lists.map((l, i) => {
-            const tone = TONES[i % TONES.length];
+            const tone = toneOf(l, i);
             // Overdue at the top, longest late first; then newest first, so what
             // was just added is what's in front of you.
             const late = (t: Todo) => dueState(t, today) === "overdue";
@@ -264,29 +274,29 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
                 }}
               >
                 <header
-                  className={`qp-colh${all ? " td-grab" : ""}${colDrag === l ? " dragging" : ""}`}
-                  draggable={all && renaming !== l}
-                  onDragStart={(e) => { if (!all) return; setColDrag(l); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", l); }}
+                  className={`qp-colh${shape ? " td-grab" : ""}${colDrag === l ? " dragging" : ""}`}
+                  draggable={shape && renaming !== l}
+                  onDragStart={(e) => { if (!shape) return; setColDrag(l); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", l); }}
                   onDragEnd={() => { setColDrag(null); setOver(null); }}
-                  title={all ? "Drag to move this list" : undefined}
+                  title={shape ? "Drag to move this list" : undefined}
                 >
                   <i className={`qp-dot td-dot t-${tone}`} aria-hidden="true" />
                   {renaming === l ? (
                     <form className="td-rename" onSubmit={(e) => { e.preventDefault(); if (newName.trim() && newName.trim() !== l) run(() => renameList(l, newName), "Renamed.", () => setRenaming(null)); else setRenaming(null); }}>
                       <input id={`td-rn-${i}`} value={newName} onChange={(e) => setNewName(e.target.value)} maxLength={40} aria-label={`New name for ${l}`} autoFocus onBlur={() => setRenaming(null)} />
                     </form>
-                  ) : all ? (
+                  ) : shape ? (
                     <h2 id={`td-h-${i}`}><button type="button" className="td-hbtn" title="Rename this list" onClick={() => { setRenaming(l); setNewName(l); }}>{l}</button></h2>
                   ) : <h2 id={`td-h-${i}`}>{l}</h2>}
                   <span className="qp-n">{items.length}</span>
                   <span className="td-colacts">
-                    {all && lists.length > 1 && (
+                    {shape && lists.length > 1 && (
                       <span className="td-order" role="group" aria-label={`Move the ${l} list`}>
                         <button type="button" className="td-round td-arrow" aria-label={`Move ${l} left`} title="Move left" disabled={i === 0 || pending} onClick={() => moveList(l, i - 1)}>‹</button>
                         <button type="button" className="td-round td-arrow" aria-label={`Move ${l} right`} title="Move right" disabled={i === lists.length - 1 || pending} onClick={() => moveList(l, i + 1)}>›</button>
                       </span>
                     )}
-                    {all && !items.length && lists.length > 1 && (
+                    {shape && !items.length && lists.length > 1 && (
                       <button type="button" className="td-round" aria-label={`Take the ${l} list away`} title="Take this list away" onClick={() => { if (confirm(`Take the "${l}" list away?`)) run(() => saveLists(lists.filter((x) => x !== l)), "List taken away."); }}>×</button>
                     )}
                     <button type="button" className="td-round" aria-label={`Add to ${l}`} title={`Add to ${l}`} onClick={() => setAdding(adding === l ? null : l)}>+</button>
@@ -300,7 +310,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
               </section>
             );
           })}
-          {all && lists.length < 5 && (
+          {shape && lists.length < 5 && (
             <div className="td-newcol">
               {newList == null ? (
                 <button type="button" className="qp-drop td-newbtn" onClick={() => setNewList("")}>

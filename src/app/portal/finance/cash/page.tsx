@@ -10,7 +10,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { cashCover, owedInvoices } from "@/lib/portal/run/money";
 import { money } from "@/lib/portal/run/month";
 import { BENCH } from "@/lib/portal/benchmarks";
-import { Bad, Card, Empty, Grid, Head, Hero, Kv, Note, Pair, Say, Tabs, Tile, Two, none, type Status } from "@/components/portal/kit/Kit";
+import { Bad, Card, Empty, Grid, Head, Hero, Kv, Note, Pair, Say, Tile, Two, none, type Status } from "@/components/portal/kit/Kit";
 import { InOutChart } from "@/components/portal/kit/HoverCharts";
 import { XeroOff } from "@/components/portal/finance/Parts";
 
@@ -52,7 +52,7 @@ export default async function CashPage({ searchParams }: { searchParams: { tab?:
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Cash flow" sub="Xero bank feeds" info={tab === "flow" ? [
+        <Head title={tab === "flow" ? "Cash flow" : "Cash to operate"} sub="Xero bank feeds" info={tab === "flow" ? [
           ["Money in", "Cash that hit the bank: paid invoices, deposits."],
           ["Money out", "Everything paid: wages, suppliers, BAS, super, leases."],
           ["Kept", "In less out. Profit isn’t cash until the invoice is paid."],
@@ -62,10 +62,6 @@ export default async function CashPage({ searchParams }: { searchParams: { tab?:
           ["The buffer", `${BENCH.cash.words}, ${BENCH.cash.why}. It’s what gets you through a slow January or a big customer paying late.`],
         ]} />
         <ReconcileNote stamp={reconciled ? { to: reconciled.to, by: reconciled.by } : null} today={isoDateMelbourne(new Date())} />
-        <Tabs on={tab} label="Cash flow" items={[
-          { key: "flow", label: "Money in & out", href: "/portal/finance/cash" },
-          { key: "operate", label: "Cash to operate", href: "/portal/finance/cash?tab=operate" },
-        ]} />
         {xs !== "connected" ? <XeroOff state={xs} what="bank" /> : tab === "flow" ? <Flow /> : <Operate />}
       </div>
     </PortalShell>

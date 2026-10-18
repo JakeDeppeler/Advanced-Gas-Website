@@ -3,7 +3,6 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PaceTabs } from "@/components/portal/run/RunTabs";
 import { Locked } from "@/components/portal/Locked";
 import { PacePlanner } from "@/components/portal/PacePlanner";
 import { readYearGoal } from "@/lib/portal/yearGoal";
@@ -72,7 +71,6 @@ export default async function PacePage() {
         data={snap?.metrics.paceData ?? null}
         profit={profit}
         canSave={ready}
-        tabs={<PaceTabs on="funnel" />}
       />
     </PortalShell>
   );

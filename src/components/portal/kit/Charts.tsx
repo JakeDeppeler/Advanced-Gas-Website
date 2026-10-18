@@ -68,6 +68,10 @@ export function SoldTodayChart({ points, usual, nowHour }: { points: [number, nu
  * Sold each week: a bar a week, green where it beat the weekly goal, with the
  * goal as a dashed line. The last bar is this week, still going, so it's
  * drawn open.
+ *
+ * Hover a week (or tab to it) and its figure shows. The tips are drawn after
+ * every bar, so a tip is never under the next week's bar; each week's strip
+ * lights its own tip through a sibling rule written for that chart.
  */
 export function WeekBars({ weeks, goal }: { weeks: { label: string; value: number }[]; goal: number | null }) {
   const W = 760, H = 220, L = 56, R = 12, T = 22, B = 28;
@@ -75,8 +79,20 @@ export function WeekBars({ weeks, goal }: { weeks: { label: string; value: numbe
   const n = Math.max(1, weeks.length);
   const slot = (W - L - R) / n, bw = Math.min(46, slot * 0.6);
   const Y = (v: number) => T + (H - T - B) * (1 - v / hi);
+  const TW = 172;
+  const tipH = goal ? 58 : 42;
+  const tips = weeks.map((w, i) => {
+    const current = i === weeks.length - 1;
+    const mid = L + slot * i + slot / 2;
+    const x = Math.min(W - R - TW, Math.max(L, mid - TW / 2));
+    const y = Math.max(2, Y(Math.max(0, w.value)) - tipH - 8);
+    const vs = goal ? w.value - goal : null;
+    return { i, x, y, head: `Week of ${w.label}${current ? " · so far" : ""}`, value: money(w.value), vs: vs == null ? null : vs >= 0 ? `${money(vs)} over the goal` : `${money(-vs)} under the goal` };
+  });
+  const css = weeks.map((_, i) => `.pk-wk .h${i}:hover~.t${i},.pk-wk .h${i}:focus~.t${i}{opacity:1}`).join("");
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Sold each week for the last ${n} weeks${goal ? `, against a weekly goal of ${money(goal)}` : ""}`} className="pk-chart">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Sold each week for the last ${n} weeks${goal ? `, against a weekly goal of ${money(goal)}` : ""}`} className="pk-chart pk-wk">
+      <style>{css}</style>
       {[0, hi / 2, hi].map((v) => (
         <g key={v}>
           <line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} stroke="var(--line)" />
@@ -98,9 +114,22 @@ export function WeekBars({ weeks, goal }: { weeks: { label: string; value: numbe
       {goal ? (
         <>
           <line x1={L} x2={W - R} y1={Y(goal)} y2={Y(goal)} stroke="var(--ink)" strokeDasharray="3 3" />
-          <text x={W - R} y={Y(goal) - 6} textAnchor="end" className="ax strong">weekly goal {money(goal)}</text>
+          {/* A halo in the card's colour, so a bar crossing the label doesn't run through the words. */}
+          <text x={W - R} y={Y(goal) - 6} textAnchor="end" className="ax strong pk-halo">weekly goal {money(goal)}</text>
         </>
       ) : null}
+      {weeks.map((w, i) => (
+        <rect key={`h${w.label}`} className={`pk-hit h${i}`} x={L + slot * i} y={T} width={slot} height={H - T - B} tabIndex={0}
+          aria-label={`${tips[i].head}: ${tips[i].value}${tips[i].vs ? `, ${tips[i].vs}` : ""}`} />
+      ))}
+      {tips.map((t) => (
+        <g key={`t${t.i}`} className={`pk-hovtip t${t.i}`} transform={`translate(${t.x.toFixed(1)} ${t.y.toFixed(1)})`} aria-hidden="true">
+          <rect width={TW} height={tipH} rx="9" fill="var(--surface)" stroke="var(--line)" />
+          <text x="11" y="17" className="ax">{t.head}</text>
+          <text x="11" y="35" className="ax strong pk-tipv">{t.value}</text>
+          {t.vs && <text x="11" y="51" className="ax">{t.vs}</text>}
+        </g>
+      ))}
     </svg>
   );
 }

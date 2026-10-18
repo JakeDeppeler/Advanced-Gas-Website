@@ -91,7 +91,6 @@ export function PacePlanner({
   data,
   profit,
   canSave,
-  tabs,
 }: {
   goal: PaceGoal;
   /** No goal is saved: these are the figures asked for, not yet on the wall. */
@@ -100,8 +99,6 @@ export function PacePlanner({
   data: PaceData | null;
   profit: { summary: ProfitSummary; worst: JobProfit[] } | null;
   canSave: boolean;
-  /** The page's own sub-tabs, under the title. */
-  tabs?: React.ReactNode;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -160,7 +157,6 @@ export function PacePlanner({
           {editing ? "Done" : "Change the goal"}
         </button>
       </div>
-      {tabs && <div className="pk-tabrow">{tabs}</div>}
 
       {sample && (
         <div className="pt-note pt-pace__note">
