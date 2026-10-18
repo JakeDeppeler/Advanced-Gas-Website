@@ -143,7 +143,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
         <div className="rp-kpis">
           <Link href="/portal/sales" className="rp-kpi">
             <Icon d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4ZM17 6h3v2a3 3 0 0 1-3 3M7 6H4v2a3 3 0 0 0 3 3" />
-            <span><b><CountUp value={ov.mtd} /></b>{vsLast != null && <em className={`rp-badge ${vsLast >= 0 ? "up" : "down"}`}>{vsLast >= 0 ? "+" : "−"}{Math.abs(Math.round(vsLast * 100))}% vs last month</em>}<small>Sold this month</small></span>
+            <span><span className="rp-kpiline"><b><CountUp value={ov.mtd} /></b>{vsLast != null && <em className={`rp-badge ${vsLast >= 0 ? "up" : "down"}`}>{vsLast >= 0 ? "+" : "−"}{Math.abs(Math.round(vsLast * 100))}% vs last month</em>}</span><small>Sold this month</small></span>
           </Link>
           <Link href="/portal/pipeline" className="rp-kpi">
             <Icon d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
@@ -240,7 +240,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
         </section>
 
         <section className="rp-panel rp-year rp-card" style={{ ["--i" as string]: 3 }} aria-labelledby="rp-year-h">
-          <div className="rp-panel-h"><b id="rp-year-h">The year</b><Link href="/portal/finance/goals" className="rp-round" aria-label="Open the year">↗</Link></div>
+          <div className="rp-panel-h"><b id="rp-year-h">The year</b><Link href="/portal/pace?view=year" className="rp-round" aria-label="Open the year">↗</Link></div>
           {yr != null ? (
             <>
               <div className="rp-ring">

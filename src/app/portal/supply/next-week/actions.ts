@@ -10,7 +10,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
 import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
-import { approveAllDrafts, approveAndSend, markOrderedManually, sendTest } from "@/lib/ordering/send";
+import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
 import { updateJobs } from "@/lib/ordering/stJobNotes";
 
@@ -71,6 +71,22 @@ export async function testSend(input: { id: number; to: string }): Promise<Actio
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return { ok: false, error: "That isn't an email address." };
   try {
     return await sendTest(input.id, to);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Reece, until maX can take an order from us: the list, emailed to whoever enters it. */
+export async function emailList(input: { id: number; to: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.id)) return { ok: false, error: "Which order?" };
+  const to = input.to.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return { ok: false, error: "That isn't an email address." };
+  try {
+    const r = await emailReeceList(input.id, me.name, to);
+    done();
+    return r;
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

@@ -44,17 +44,23 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let stocked: string[] = [];
   const waiting: Record<"next" | "this", number | null> = { next: null, this: null };
   try {
-    const [o, s, inputs, already, sy, settings, h] = await Promise.all([
-      listWeekOrders(week), loadSuppliers(), loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
+    // Everything in one go: these used to come one after another once the
+    // first lot was back, and each is a round trip to Tokyo.
+    const nw = nextWeek(new Date()), tw = thisWeek(new Date());
+    const supP = loadSuppliers();
+    const [o, s, inputs, already, sy, settings, h, nt, st, drafts, dis] = await Promise.all([
+      listWeekOrders(week), supP, loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
+      supP.then((x) => loadJobNoteSuppliers(x)).catch(() => [] as string[]),
+      loadStocked().catch(() => []),
+      // What's waiting to approve in each week, for the counts on the week pills.
+      sbSelect<{ week_of: string }>("purchase_orders", `select=week_of&status=eq.draft&week_of=in.(${tw.start},${nw.start})`).catch(() => null),
+      getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null),
     ]);
     orders = o;
     holds = h;
     suppliers = s;
-    noted = await loadJobNoteSuppliers(s).catch(() => []);
-    stocked = (await loadStocked().catch(() => [])).map((x) => x.key);
-    // What's waiting to approve in each week, for the counts on the week pills.
-    const nw = nextWeek(new Date()), tw = thisWeek(new Date());
-    const drafts = await sbSelect<{ week_of: string }>("purchase_orders", `select=week_of&status=eq.draft&week_of=in.(${tw.start},${nw.start})`).catch(() => null);
+    noted = nt;
+    stocked = st.map((x) => x.key);
     if (drafts) { waiting.next = drafts.filter((d) => d.week_of === nw.start).length; waiting.this = drafts.filter((d) => d.week_of === tw.start).length; }
     synced = sy;
     replyTo = settings.replyTo;
@@ -62,7 +68,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     // Worked out live rather than stored with the drafts, so fixing a quote
     // or assigning a crew clears its line here straight away.
     // Dismissed ones stay out until what's wrong with the job changes.
-    const dismissed = new Set((await getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null))?.keys ?? []);
+    const dismissed = new Set(dis?.keys ?? []);
     problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already, skip: new Set(h.map((x) => lineKey(x.job_id, x.sku_id))) }).problems
       .filter((p) => !dismissed.has(problemKey(p)));
   } catch {

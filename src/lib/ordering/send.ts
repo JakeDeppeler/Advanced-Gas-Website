@@ -3,6 +3,7 @@ import { sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSignature, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
+import { orderPdf } from "./orderPdf";
 import { pushIfAuto } from "./stPurchaseOrders";
 import { jobsAfterSend } from "./stJobNotes";
 import {
@@ -101,15 +102,77 @@ async function build(id: number): Promise<Built | { error: string }> {
 }
 
 /**
+ * The order as a PDF, to download and attach to the job: Mitsubishi's own
+ * filled-in form where that's what goes, otherwise the order drawn up the
+ * same way for every supplier — Reece's with its product numbers.
+ */
+export async function orderPdfFor(id: number): Promise<{ filename: string; pdf: Uint8Array } | { error: string }> {
+  const b = await build(id);
+  if ("error" in b) return b;
+  const form = b.attachments?.[0];
+  if (form) return { filename: form.filename, pdf: new Uint8Array(Buffer.from(form.content, "base64")) };
+  const { po, supplier, settings } = b;
+  const reece = supplier.method === "reece_cart";
+  const pdf = await orderPdf({
+    poNumber: po.po_number, supplier: supplier.name, date: todayDmy(),
+    deliver: po.pickup ? "We pick it up from the branch" : `Deliver to ${po.delivery_address || settings.deliveryAddress}`,
+    instructions: deliveryInstructionsFor(po, settings), orderedBy: settings.orderedBy, lines: po.lines,
+    partLabel: reece ? "Reece #" : "Model",
+    part: (l) => (reece ? l.supplier_part ?? "not set" : l.supplier_model ?? ""),
+  });
+  return { filename: `Order ${po.po_number} - ${supplier.name}.pdf`.replace(/[\\/:*?"<>|]/g, "-"), pdf };
+}
+
+/**
  * What a sent order said, for filing it on the job in ServiceTitan (stJobNotes):
  * built the same way the email was, so the copy on the job is the one that went.
+ * Reece's is the list it was entered from.
  */
 export async function orderDocument(id: number): Promise<{ subject: string; text: string; pdf?: { filename: string; base64: string } } | { error: string }> {
   const b = await build(id);
   if ("error" in b) return b;
-  if (!b.email) return { error: "Reece orders are entered in maX, so there's no email to attach." };
+  const email = b.email ?? reeceList(b);
   const form = b.attachments?.[0];
-  return { subject: b.email.subject, text: b.email.text, ...(form ? { pdf: { filename: form.filename, base64: form.content } } : {}) };
+  return { subject: email.subject, text: email.text, ...(form ? { pdf: { filename: form.filename, base64: form.content } } : {}) };
+}
+
+const reeceList = (b: Built) => reeceListEmail({
+  supplier: b.supplier, poNumber: b.po.po_number, lines: b.po.lines, delivery: b.po.delivery_address || b.settings.deliveryAddress,
+  settings: b.settings, instructions: deliveryInstructionsFor(b.po, b.settings), pickup: b.po.pickup,
+});
+
+/**
+ * Reece, until there's a maX integration: email the list to an address (the
+ * branch, or whoever enters it) with the PDF attached, and count the order as
+ * gone. Copied to the office like any order.
+ */
+export async function emailReeceList(id: number, who: string, to: string): Promise<SendResult> {
+  const b = await build(id);
+  if ("error" in b) return { ok: false, error: b.error };
+  if (b.supplier.method !== "reece_cart") return { ok: false, error: "Only a Reece list is emailed this way." };
+  if (b.po.status !== "draft") return { ok: false, error: `Already ${b.po.status}.` };
+  const from = fromAddress();
+  if (!from) return { ok: false, error: NO_FROM };
+  const file = await orderPdfFor(id);
+  const email = reeceList(b);
+  const now = new Date().toISOString();
+  const claimed = await sbUpdateReturning<PurchaseOrder>("purchase_orders", `id=eq.${id}&status=eq.draft`, {
+    status: "approved", approved_by: who, approved_at: now, send_error: null, updated_at: now,
+  });
+  if (!claimed.length) return { ok: false, error: "Someone else has just sent this." };
+  const err = await resend({
+    from, to: [to], cc: ccList(b.settings, b.supplier, b.po, to), reply_to: b.settings.replyTo,
+    subject: email.subject, html: email.html, text: email.text,
+    ...("pdf" in file ? { attachments: [{ filename: file.filename, content: Buffer.from(file.pdf).toString("base64") }] } : {}),
+  });
+  if (err) {
+    await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "draft", approved_by: null, approved_at: null, send_error: err, updated_at: new Date().toISOString() });
+    return { ok: false, error: err };
+  }
+  await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: `Emailed the list to ${to}`, updated_at: new Date().toISOString() });
+  await pushIfAuto(id);
+  await jobsAfterSend(id);
+  return { ok: true, note: `List emailed to ${to}, with the PDF.` };
 }
 
 const todayDmy = () => { const [y, m, d] = isoDateMelbourne().split("-"); return `${d}/${m}/${y}`; };

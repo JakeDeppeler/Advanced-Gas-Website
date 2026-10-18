@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { stockKey } from "@/lib/ordering/stockKey";
@@ -198,6 +198,38 @@ function TestSend({ po, testTo }: { po: PoWithLines; testTo: string }) {
   );
 }
 
+/**
+ * Reece, until there's a maX integration: the list emailed to whoever enters
+ * it (the branch, or the office), PDF attached, and the order counted as gone.
+ */
+function EmailList({ po, to: start }: { po: PoWithLines; to: string }) {
+  const { busy, msg, run } = useAct();
+  const [open, setOpen] = useState(false);
+  const [to, setTo] = useState(start);
+  if (!open) return <button type="button" className="pt-btn pt-btn--navy" onClick={() => setOpen(true)}>Email the list</button>;
+  return (
+    <div className="pt-nw__test">
+      <label className="pt-nw__testlbl" htmlFor={`list-${po.id}`}>Email the list to</label>
+      <input id={`list-${po.id}`} className="pt-nw__input" type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="the branch, or whoever enters it in maX" />
+      <span className="pt-nw__actions">
+        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy || !to.trim()} onClick={() => run(() => emailList({ id: po.id, to }))}>
+          {busy ? "Sending…" : "Send it"}
+        </button>
+        <a className="pt-btn pt-btn--ghost pt-btn--sm" href={`/api/portal/order-pdf?id=${po.id}`} download>Download PDF</a>
+        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(false)}>Close</button>
+      </span>
+      <span className="pt-nw__muted">The PDF goes with it, the office is copied in, and the order counts as ordered.</span>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
+  );
+}
+
+/** The order as a PDF, to save and attach to the job in ServiceTitan. */
+function DownloadPdf({ po }: { po: PoWithLines }) {
+  if (po.kind !== "order" || !po.lines.length) return null;
+  return <a className="pt-btn pt-btn--ghost pt-btn--sm" href={`/api/portal/order-pdf?id=${po.id}`} download>Download PDF</a>;
+}
+
 /** Already ordered by phone, online or over the counter: recorded, nothing emailed. */
 function OrderedElsewhere({ po }: { po: PoWithLines }) {
   const { busy, msg, run } = useAct();
@@ -303,7 +335,7 @@ function Buttons({ po, supplier, testTo, label, noted }: { po: PoWithLines; supp
       <div className="pt-nw__foot">
         {po.kind === "order" && <InServiceTitan po={po} />}
         <OnTheJobs po={po} noted={!!noted} />
-        <span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span>
+        <span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /><DownloadPdf po={po} /></span>
       </div>
     );
   }
@@ -318,7 +350,9 @@ function Buttons({ po, supplier, testTo, label, noted }: { po: PoWithLines; supp
           onClick={() => { if (confirm(`Cancel ${label}? Nothing has been sent.`)) run(() => cancel(po.id)); }}>
           Cancel
         </button>
+        {supplier?.method === "reece_cart" && <EmailList po={po} to={supplier.email || testTo} />}
         <TestSend po={po} testTo={testTo} />
+        <DownloadPdf po={po} />
         {supplier?.method !== "reece_cart" && <OrderedElsewhere po={po} />}
       </span>
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}

@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addTodo, deleteTodo, editTodo, renameList, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
-import { dueState, dueWords, firstName, quickDays, type Person, type Todo } from "@/lib/todos/types";
+import { addTodo, deleteTodo, editTodo, logContact, renameList, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
+import { dueState, dueWords, firstName, jobNumberIn, phoneIn, quickDays, shiftDay, type Person, type Todo } from "@/lib/todos/types";
+import { HOW_LABEL, type TouchHow } from "@/lib/pipeline/types";
 
 type Props = {
   todos: Todo[];
@@ -25,6 +26,8 @@ type Props = {
    * aren't added, moved, renamed or taken away from here.
    */
   fixed?: boolean;
+  /** The ServiceTitan job id of each to-do that names a job, for the pop-up's link. */
+  jobIds?: Record<string, number>;
 };
 
 /** Each list's colour, in turn, as the pipeline's columns have theirs. */
@@ -50,7 +53,7 @@ function When({ id, value, onChange, today }: { id: string; value: string; onCha
 }
 
 type Shared = {
-  run: (fn: () => Promise<TodoResult>, ok?: string, after?: () => void) => void;
+  run: (fn: () => Promise<TodoResult & { said?: string }>, ok?: string, after?: () => void) => void;
   pending: boolean;
   ticked: Record<string, boolean>;
   tick: (t: Todo, done: boolean) => void;
@@ -62,6 +65,9 @@ type Shared = {
   lists: string[];
   drag: string | null;
   setDrag: (id: string | null) => void;
+  /** Account to-dos: a card opens the pop-up to log a call, rather than the edit form. */
+  open: ((t: Todo) => void) | null;
+  jobIds: Record<string, number>;
 };
 /** Through context so the cards live at the top level: declared inside the board they would remount, and lose a half-typed edit, on every redraw. */
 const Ctx = createContext<Shared>(null as unknown as Shared);
@@ -111,7 +117,7 @@ function TodoForm({ t, list, forId, onDone }: { t?: Todo; list: string; forId: s
 }
 
 function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean }) {
-  const { tick, ticked, pending, name, meId, today, setDrag, drag } = useContext(Ctx);
+  const { tick, ticked, pending, name, meId, today, setDrag, drag, open } = useContext(Ctx);
   const [editing, setEditing] = useState(false);
   const isDone = ticked[t.id] ?? !!t.doneAt;
   const state = isDone ? "done" : dueState(t, today);
@@ -135,7 +141,7 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
           </button>
         </div>
-        <button type="button" className="td-body" onClick={() => setEditing(true)} aria-label={`Edit: ${t.title}`}>
+        <button type="button" className="td-body" onClick={() => (open ? open(t) : setEditing(true))} aria-label={`${open ? "Log a call" : "Edit"}: ${t.title}`}>
           <b className="td-title">{t.title}</b>
           {t.notes && <span className="td-notes">{t.notes}</span>}
         </button>
@@ -150,6 +156,92 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
   );
 }
 
+/** What can happen when someone's rung about an account to-do: the Pipeline's own words. */
+const HOWS: TouchHow[] = ["call", "no_answer", "text", "email"];
+
+/**
+ * Account to-dos › a card's pop-up: ring them from here, then say what
+ * happened and either tick it off or pick the day to try again. A quote's
+ * call is logged on the Pipeline as well (logContact). Edit is still here for
+ * changing the to-do itself.
+ */
+function ContactPanel({ t, onClose }: { t: Todo; onClose: () => void }) {
+  const { run, pending, today, jobIds } = useContext(Ctx);
+  const [how, setHow] = useState<TouchHow | null>(null);
+  const [note, setNote] = useState("");
+  const [done, setDone] = useState(false);
+  const [next, setNext] = useState(shiftDay(today, 2));
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    addEventListener("keydown", k);
+    return () => removeEventListener("keydown", k);
+  }, [onClose]);
+  const phone = phoneIn(t);
+  const job = jobNumberIn(t);
+  const jobId = jobIds[t.id];
+  const days = [
+    { label: "Tomorrow", iso: shiftDay(today, 1) },
+    { label: "In 2 days", iso: shiftDay(today, 2) },
+    { label: "In 4 days", iso: shiftDay(today, 4) },
+    { label: "Next week", iso: shiftDay(today, 7) },
+  ];
+  const nextWords = new Date(`${next}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const state = dueState(t, today);
+  return (
+    <div className="qp-scrim mid" onClick={onClose}>
+      <div className="qp-panel mid td-contact" role="dialog" aria-modal="true" aria-labelledby="td-contact-h" onClick={(e) => e.stopPropagation()}>
+        <div className="qp-ph">
+          <span>{t.list ?? "To-do"} · <span className={`td-due is-${state}`}>{state === "overdue" ? "⚑ " : ""}{dueWords(t, today)}</span></span>
+          <button type="button" className="qp-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <h2 id="td-contact-h" className="rl-h">{t.title}</h2>
+        {editing ? (
+          <TodoForm t={t} list={t.list ?? ""} forId={t.assigneeId ?? ""} onDone={() => setEditing(false)} />
+        ) : (
+          <>
+            {t.notes && <p className="td-cnotes">{t.notes}</p>}
+            {(phone || jobId) && (
+              <div className="qp-links">
+                {phone && <a className="qp-btn dark" href={`tel:${phone}`}>Call {phone}</a>}
+                {jobId && <a className="qp-btn" href={`https://go.servicetitan.com/#/Job/Index/${jobId}`} target="_blank" rel="noreferrer">Job #{job} in ServiceTitan ↗</a>}
+              </div>
+            )}
+            <form className="qp-form" onSubmit={(e) => {
+              e.preventDefault();
+              run(() => logContact({ id: t.id, how, note, nextOn: done ? null : next, done }), done ? "Done, and off the list." : `Moved to ${nextWords}.`, onClose);
+            }}>
+              <fieldset>
+                <legend>What happened?</legend>
+                <div className="qp-opts">
+                  {HOWS.map((h) => <button key={h} type="button" className={how === h ? "on" : undefined} aria-pressed={how === h} onClick={() => setHow(how === h ? null : h)}>{HOW_LABEL[h]}</button>)}
+                </div>
+              </fieldset>
+              <label className="qp-field"><span>Note <em>optional</em></span>
+                <textarea id="td-contact-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Paying Friday, or call after 3" maxLength={300} rows={2} />
+              </label>
+              <fieldset>
+                <legend>What now?</legend>
+                <div className="qp-opts">
+                  <button type="button" className={done ? "on" : undefined} aria-pressed={done} onClick={() => setDone(true)}>✓ All done</button>
+                  {days.map((d) => (
+                    <button key={d.label} type="button" className={!done && next === d.iso ? "on" : undefined} aria-pressed={!done && next === d.iso} onClick={() => { setDone(false); setNext(d.iso); }}>{d.label}</button>
+                  ))}
+                  <input id="td-contact-next" className="qp-date" type="date" value={next} min={today} onChange={(e) => { setDone(false); setNext(e.target.value); }} aria-label="Or pick a day to follow up" />
+                </div>
+              </fieldset>
+              <div className="qp-acts">
+                <button type="submit" className="qp-btn dark" disabled={pending}>{pending ? "Saving…" : done ? "Save and tick it off" : `Save, follow up ${nextWords}`}</button>
+                <button type="button" className="qp-btn line" onClick={() => setEditing(true)}>Edit the to-do</button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /**
  * The to-do lists, laid out as the pipeline is: a column for each list
  * (Quoting, Advanced Gas, and any the office adds), a card for each to-do
@@ -158,7 +250,7 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
  * there. A card drags from one list to another, and the office can add a
  * list or take an empty one away.
  */
-export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists, allLists, fixed }: Props) {
+export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists, allLists, fixed, jobIds }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -179,10 +271,12 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(null), 4500); return () => clearTimeout(t); }, [msg]);
   const name = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
 
-  const run = (fn: () => Promise<TodoResult>, ok?: string, after?: () => void) =>
+  const [contact, setContact] = useState<Todo | null>(null);
+  const run = (fn: () => Promise<TodoResult & { said?: string }>, ok?: string, after?: () => void) =>
     start(async () => {
       const r = await fn();
-      setMsg(r.ok ? (ok ? { ok: true, text: ok } : null) : { ok: false, text: r.error ?? "Couldn't do that." });
+      // `said` is something worth knowing about how it went (a quote that didn't reach the Pipeline).
+      setMsg(r.ok ? (r.said ? { ok: true, text: r.said } : ok ? { ok: true, text: ok } : null) : { ok: false, text: r.error ?? "Couldn't do that." });
       if (r.ok) after?.();
       router.refresh();
     });
@@ -225,13 +319,14 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   // Who may change the lists themselves, as opposed to what's on them.
   const shape = all && !fixed;
   const toneOf = (l: string, i: number) => TONES[Math.max(0, (allLists ?? lists).indexOf(l) >= 0 ? (allLists ?? lists).indexOf(l) : i) % TONES.length];
-  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag };
+  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag, open: fixed ? setContact : null, jobIds: jobIds ?? {} };
   const doneShown = done.filter(mine);
   const [officePick, setOfficePick] = useState<string[]>(office);
   const [showDone, setShowDone] = useState(false);
 
   return (
     <Ctx.Provider value={shared}>
+      {contact && <ContactPanel key={contact.id} t={contact} onClose={() => setContact(null)} />}
       <div className="td">
         <div className="qp-bar">
           {all && (

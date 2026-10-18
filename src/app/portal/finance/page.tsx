@@ -205,7 +205,7 @@ async function Connected({ period }: { period: PeriodKey }) {
           [npGoal ? `Under ${npGoal}%` : "Under the goal", jp && npGoal ? String(jp.under) : ""],
           ["Losing money", jp ? String(jp.losing) : ""],
         ]} />
-        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : ""} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Pricing & costs"} href="/portal/finance/goals" lines={[
+        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : ""} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Pricing & costs"} href="/portal/pace?view=year" lines={[
           ["Should be by now", ys ? money(ys.expectedToDate) : ""],
           ["Against the pace", ys?.delta != null ? <Diff d={ys.delta} /> : ""],
         ]} />

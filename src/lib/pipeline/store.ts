@@ -65,7 +65,19 @@ export type Pipeline = {
  * residential side — and grouped per job the same way, so the pipeline and the
  * board never disagree about how many quotes are out.
  */
-export async function loadPipeline(opts: { detail?: boolean; recentDays?: number } = {}): Promise<Pipeline> {
+export function loadPipeline(opts: { detail?: boolean; recentDays?: number } = {}): Promise<Pipeline> {
+  return loadOnce(opts.detail ?? true, opts.recentDays ?? null);
+}
+
+/**
+ * Once per request: the side bar's count, Home's needs list, the overview and
+ * the page itself each asked for the pipeline, and each read four thousand
+ * estimates again. React's cache() is per request, so a page never sees a
+ * pipeline older than its own render.
+ */
+const loadOnce = cache((detail: boolean, recentDays: number | null) => readPipeline({ detail, recentDays: recentDays ?? undefined }));
+
+async function readPipeline(opts: { detail?: boolean; recentDays?: number }): Promise<Pipeline> {
   // Without detail it's the columns alone — no names, suburbs or phone numbers
   // — which is all a count needs, and two fewer round trips on every page.
   const detail = opts.detail ?? true;
@@ -79,6 +91,9 @@ export async function loadPipeline(opts: { detail?: boolean; recentDays?: number
       // wall is with GST, and the Scoreboard tile that opens this page is one.
       q.select("id,job_id,customer_id,status,total:total_inc,created_on,sold_on,modified_on,created_by,sold_by,business_unit,name:raw->>name"),
       `or=(created_on.gte.${since},sold_on.gte.${recent})`,
+      // Ordered from the start, so the paging reuses the first page instead
+      // of reading it again to put an order on it.
+      "order=id.asc",
       "limit=5000",
     ].join("&")),
     sbSelect<FollowRow>("portal_quote_follow", q.select("quote_key,owner,next_on,lost_at,lost_reason")).catch(() => [] as FollowRow[]),

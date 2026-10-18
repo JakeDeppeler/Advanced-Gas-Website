@@ -1191,6 +1191,9 @@ label.pk-btn { cursor: pointer; }
 .rp-badge.gold { background: color-mix(in srgb, var(--rp-gold) 70%, transparent); color: #3d2e00; }
 .rp-kpi b { display: inline-flex; align-items: center; gap: 10px; }
 .rp-kpi b .rp-badge { margin: 0; font-size: 11.5px; letter-spacing: 0; }
+/* The figure and its badge on one line, as Rapport sets them. */
+.rp-kpiline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rp-kpiline .rp-badge { margin: 0; }
 
 .qp { --qp-new: var(--rp-gold); --qp-new-ink: #2b2000; --qp-due: var(--rp-orange); --qp-wait: var(--rp-forest); --qp-won: var(--rp-dark);
   display: grid; gap: 16px; min-width: 0; }
@@ -2163,6 +2166,10 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
    keep it solid to just above its edge, and fade only the last few pixels. */
 @media (min-width: 1240px) {
   .pn-top::before { background: color-mix(in srgb, var(--rp-wash-b) 94%, transparent); -webkit-mask-image: linear-gradient(#000 88%, transparent); mask-image: linear-gradient(#000 88%, transparent); }
+  /* At the top of the page the bar is clear and the wash runs up behind it;
+     the band comes in once something scrolls under it (ScrollMark). */
+  .pn-top::before { opacity: 0; transition: opacity .2s ease; }
+  .pn[data-scrolled] .pn-top::before { opacity: 1; }
 }
 
 /* Settings › Automatic. */
@@ -2409,3 +2416,27 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .pn-dk { position: relative; }
 .pn-dkc { position: absolute; top: -3px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--ink3); color: #fff; font-size: 10.5px; font-weight: 800; display: grid; place-items: center; line-height: 1; font-variant-numeric: tabular-nums; pointer-events: none; }
 .pn-dkc.r { background: #ff3b30; }
+
+/* Account to-dos' pop-up: the to-do's whole history, newest line first. */
+.td-contact .td-cnotes { margin: 0; white-space: pre-line; font-size: 14px; line-height: 1.5; color: var(--ink2); max-height: 180px; overflow-y: auto; padding: 12px 14px; border-radius: 16px; background: var(--sunken); }
+.td-contact .qp-ph .td-due { font-weight: 700; }
+.td-contact .qp-ph .td-due.is-overdue { color: var(--bad); }
+
+/* Overview › Job margins: the jobs just invoiced and what each left. */
+.rp-margins { margin-bottom: 18px; }
+.rp-margins .rp-panel-h { flex-wrap: wrap; }
+.rp-margins .rp-sub { flex: 1; font-size: 13px; color: var(--ink2); }
+.rp-mtbl { overflow-x: auto; }
+.rp-mtbl table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.rp-mtbl th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink3); padding: 8px 10px; border-bottom: 1px solid var(--rp-line); }
+.rp-mtbl td { padding: 10px; border-bottom: 1px solid var(--rp-line); vertical-align: middle; }
+.rp-mtbl tr:last-child td { border-bottom: 0; }
+.rp-mtbl .n { text-align: right; }
+.rp-mtbl td:first-child { display: grid; gap: 2px; }
+.rp-mtbl td:first-child span { font-size: 12.5px; color: var(--ink2); }
+.rp-mtbl a { color: var(--ink); text-decoration: none; }
+.rp-mtbl a:hover { text-decoration: underline; }
+.rp-mv { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--quiet); color: var(--ink2); white-space: nowrap; }
+.rp-mv.good { background: var(--good-bg); color: var(--good); }
+.rp-mv.mid { background: var(--mid-bg); color: var(--mid); }
+.rp-mv.bad { background: var(--bad-bg); color: var(--bad); }

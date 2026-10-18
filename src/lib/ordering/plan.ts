@@ -671,7 +671,7 @@ export function byJob<L extends PlannedLine>(lines: L[]): JobGroup<L>[] {
     || (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? ""));
 }
 
-const jobHeading = (g: JobGroup) => g.job_id == null ? "Stock for the factory" :
+export const jobHeading = (g: JobGroup) => g.job_id == null ? "Stock for the factory" :
   [`Job ${g.job_number ?? ""}`, g.customer_name, g.suburb].filter(Boolean).join(" · ")
   + (g.appointment_start ? ` — install ${dayTimeLabel(g.appointment_start)}` : g.install_date ? ` — install ${dayLabel(g.install_date)}` : "");
 

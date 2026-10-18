@@ -47,18 +47,24 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   }
 
   const office = can(user, "overhead");
-  const [board, goal, profit, open, me, all, people, lines] = await Promise.all([
+  const span: 6 | 12 = searchParams.r === "6" ? 6 : 12;
+  // The overview needs only the goal, so it starts as soon as the goal's in
+  // rather than after every read below has come back.
+  const goalP = office ? savedGoal() : Promise.resolve(null);
+  const ovP = office ? goalP.then((g) => overview(g, span)).catch(() => null) : Promise.resolve(null);
+  const crewP = office ? crewNow().catch(() => null) : Promise.resolve(null);
+  const [board, goal, profit, open, me, all, people, lines, ov, crew] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
-    office ? savedGoal() : Promise.resolve(null),
+    goalP,
     office ? xeroProfit().catch(() => ({ month: null, year: null, yearFrom: "" })) : Promise.resolve({ month: null, year: null, yearFrom: "" }),
     openTodos().catch(() => []),
     meOf(user).catch(() => null),
     seesAll(user).catch(() => false),
     teamPeople().catch(() => []),
     needsToday(user).catch(() => []),
+    ovP,
+    crewP,
   ]);
-  const span: 6 | 12 = searchParams.r === "6" ? 6 : 12;
-  const [ov, crew] = office ? await Promise.all([overview(goal, span).catch(() => null), crewNow().catch(() => null)]) : [null, null];
   // Days left in the goal's year, for the ring.
   const spans = goal ? yearSpans(goal.basis, goal.year) : null;
   const yearEnd = spans ? spans[spans.length - 1].to : null;

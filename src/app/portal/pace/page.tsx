@@ -10,8 +10,12 @@ import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { jobProfits } from "@/lib/dashboard/jobProfit";
 import { hourJobCosts } from "@/lib/portal/cover/load";
 import { isoDateMelbourne, startOfMonthMelbourne } from "@/lib/dashboard/dates";
+import { MonthSoFar } from "@/components/portal/run/MonthSoFar";
+import { YearSoFar } from "@/components/portal/run/YearSoFar";
 
 export const dynamic = "force-dynamic";
+// The year reads twelve months of Xero.
+export const maxDuration = 60;
 export const metadata = { title: "Pace · Team portal" };
 
 /**
@@ -23,19 +27,24 @@ export const metadata = { title: "Pace · Team portal" };
  * queries, so this page and the TV in the office can't disagree about how many
  * jobs were quoted this week. The profit on this month's jobs is read live,
  * because it lists the jobs.
+ *
+ * Three tabs (The Numbers › Pace): the week, the month — which took in what
+ * This month showed, the jobs sold and the gear in them — and the year, which
+ * took in Year so far's months against the goal from Xero.
  */
-export default async function PacePage() {
+export default async function PacePage({ searchParams }: { searchParams: { view?: string; m?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Pace" forWhom="managers" />;
 
+  const view = searchParams?.view === "month" ? "month" : searchParams?.view === "year" ? "year" : "week";
   const ready = dbConfigured();
   const now = new Date();
   const [row, snap, crew] = ready
     ? await Promise.all([
       getSettings<unknown>("yeargoal").catch(() => null),
       latestSnapshot().catch(() => null),
-      hourJobCosts().catch(() => null),
+      view === "month" ? hourJobCosts().catch(() => null) : Promise.resolve(null),
     ])
     : [null, null, null];
 
@@ -46,7 +55,8 @@ export default async function PacePage() {
   const shown = sample ? { ...goal, revenue: 3_200_000, profitPct: goal.profitPct ?? 20 } : goal;
 
   const from = isoDateMelbourne(startOfMonthMelbourne(now));
-  const profit = ready
+  // Only the month shows the profit on its jobs, so only the month reads it.
+  const profit = ready && view === "month"
     ? await jobProfits(from, isoDateMelbourne(now), crew?.costPerHr ?? null, shown.profitPct, crew?.crew ?? [])
       .then((r) => ({
         summary: r.summary,
@@ -71,7 +81,10 @@ export default async function PacePage() {
         data={snap?.metrics.paceData ?? null}
         profit={profit}
         canSave={ready}
-      />
+        view={view}
+      >
+        {view === "month" ? <MonthSoFar m={searchParams?.m} /> : view === "year" ? <YearSoFar /> : null}
+      </PacePlanner>
     </PortalShell>
   );
 }
