@@ -433,3 +433,42 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[]): Prom
   }
   return { ok: true, to, note: `Told ${supplier.name} (${to}).` };
 }
+
+const UPDATED_LINE = "Updated — this replaces the work order we sent earlier.";
+const UPDATED = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${UPDATED_LINE}</div>`;
+
+/**
+ * A sent work order changed (the day, the work, who it's for): email it again
+ * as it now reads, marked as an update, and put the new copy on the job, so
+ * the PDF in ServiceTitan is the one they're working from. The tags stay as
+ * they are: the job is still booked.
+ */
+export async function resendWorkOrder(id: number, who: string, opts: { to?: string } = {}): Promise<SendResult> {
+  const b = await build(id);
+  if ("error" in b) return { ok: false, error: b.error };
+  const { po, supplier, settings, email } = b;
+  if (po.kind !== "work_order" || !email) return { ok: false, error: "Only a work order is sent again this way." };
+  if (po.status !== "sent") return { ok: false, error: "It hasn't been sent yet." };
+  const to = opts.to?.trim() || emailIn(po.sent_to) || supplier.email;
+  if (!to) return { ok: false, error: "Who should it go to?" };
+  const from = fromAddress();
+  if (!from) return { ok: false, error: NO_FROM };
+  const err = await resend({
+    from, to: [to],
+    cc: ccList(settings, isElectrical(po.details) ? supplier : { ...supplier, cc_emails: [] }, po, to),
+    reply_to: settings.replyTo,
+    subject: `Updated: ${email.subject}`,
+    html: email.html.replace("<body style=\"margin:0;background:#f9f8f3;\">", `<body style="margin:0;background:#f9f8f3;">${UPDATED}`),
+    text: `${UPDATED_LINE}\n\n${email.text}`,
+  });
+  if (err) return { ok: false, error: err };
+  const now = new Date().toISOString();
+  // Clearing the note and file marks has the job noted again with this copy; the tags are left done.
+  const notes = (po as PoWithLines & { st_notes?: { job_id: number; note: boolean; file: boolean; tags?: boolean }[] | null }).st_notes;
+  await sbUpdate("purchase_orders", `id=eq.${id}`, {
+    sent_to: to, sent_at: now, approved_by: who, updated_at: now,
+    st_notes: Array.isArray(notes) ? notes.map((n) => ({ ...n, note: false, file: false })) : notes ?? null,
+  });
+  await jobsAfterSend(id);
+  return { ok: true, note: `Update emailed to ${to}.` };
+}
