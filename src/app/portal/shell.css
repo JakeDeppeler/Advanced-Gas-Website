@@ -194,6 +194,9 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
    turning blue: the box is what reads at a glance down a long list. */
 .pn-sub.on { color: var(--accent); font-weight: 700; background: var(--accent-bg); }
 .pn-sub.on:hover { background: var(--accent-bg); }
+/* A family's own pages, a step further in. */
+.pn-sub2 { padding-left: 58px; font-size: 12.5px; }
+.pn-sub.on:has(+ .pn-sub2) { background: none; }
 .pn-sep { height: 1px; background: var(--line); margin: 8px 10px; }
 
 .pn-fly {
@@ -634,8 +637,6 @@ a.pk-row:hover { background: var(--sunken); }
 .pn .pt-seg__b.is-on.pt-seg__b--good, .pn .pt-seg__b.is-on.pt-seg__b--on { background: var(--good-f); color: #fff; }
 .pn .pt-seg__b.is-on.pt-seg__b--repair { background: var(--neutral-f); color: #fff; }
 .pn .pt-seg__b.is-on.pt-seg__b--off { background: var(--bad-f); color: #fff; }
-/* A flat section's page bar, drawn by the shell above the page. */
-.pn-secbar { margin-bottom: 18px; }
 /* Charts you can point at: the tooltip sits beside the month, inside the card. */
 .pk-hchart { position: relative; }
 .pk-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16); border-radius: 12px; padding: 10px 12px; font-size: 13px; display: grid; gap: 3px; min-width: 190px; white-space: nowrap; }
@@ -1002,7 +1003,7 @@ label.pk-btn { cursor: pointer; }
    1240px none of it shows and the side bar is the menu, as before — the pills
    need the width, and a phone keeps its drawer.
    ------------------------------------------------------------------ */
-.pn-brand, .pn-pills, .pn-dock, .pn-secpages, .pn-avbtn, .pn-spop > .pn-round { display: none; }
+.pn-brand, .pn-pills, .pn-dock, .pn-secpages, .pn-subpages, .pn-avbtn, .pn-spop > .pn-round { display: none; }
 /* The whole portal sits on the overview's warm wash now, not only Home. */
 .pn-main { background: radial-gradient(1200px 520px at 85% -10%, var(--rp-wash-a), transparent 60%), radial-gradient(900px 600px at -10% 10%, var(--rp-wash-a), transparent 55%), var(--rp-wash-b); background-attachment: fixed; }
 .pn-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -1109,7 +1110,6 @@ label.pk-btn { cursor: pointer; }
   .pn-secpages a.on { color: var(--ink); background: var(--rp-card); border-color: var(--rp-line); font-weight: 800; box-shadow: 0 6px 16px -12px rgba(80,40,10,.3); }
   .pn-secpages .c { font-size: 11px; font-weight: 700; color: var(--ink3); }
   .pn-secpages .c.r { color: var(--bad); }
-  .pn-secpages + .pn-secbar { margin-top: -8px; }
 }
 /* Tighter pills where the bar is only just wide enough for them. */
 @media (min-width: 1240px) and (max-width: 1440px) {
@@ -1444,19 +1444,25 @@ label.pk-btn { cursor: pointer; }
 .pt.pn {
   --f-body: var(--font-portal), "Inter", system-ui, sans-serif;
   --f-display: var(--font-portal), "Inter", system-ui, sans-serif;
-  --rp-wash-a: #f6dccb; --rp-wash-b: #f3eee8; --rp-wash-c: #e7ede3;
+  /* Measured off Rapport's own overview: a greige ground a shade darker than
+     the cards, so they lift off it, peach in the top left and sage across
+     the right. The old ground was nearly the cards' colour and they sank. */
+  --rp-wash-a: #f3d8c5; --rp-wash-b: #ebe9e1; --rp-wash-c: #dfe4d6;
+  /* Cards a warm off-white rather than paper white, as Rapport's are. The
+     dark themes set their own --surface on a stronger selector. */
+  --surface: #faf8f4; --rp-card: rgba(255, 253, 249, 0.76);
   font-family: var(--f-body); font-size: 14px;
 }
 .pt.pn[data-theme="dark"] { --rp-wash-a: #2b1e16; --rp-wash-b: #141210; --rp-wash-c: #17201a; }
 @media (prefers-color-scheme: dark) { .pt.pn:not([data-theme]) { --rp-wash-a: #2b1e16; --rp-wash-b: #141210; --rp-wash-c: #17201a; } }
 .pn-main, .pn-main:has(.rp) {
   background:
-    radial-gradient(900px 620px at 4% -6%, var(--rp-wash-a), transparent 66%),
-    radial-gradient(1100px 760px at 100% 18%, var(--rp-wash-c), transparent 62%),
+    radial-gradient(1150px 820px at 0% 0%, var(--rp-wash-a), transparent 68%),
+    radial-gradient(1300px 900px at 100% 32%, var(--rp-wash-c), transparent 64%),
     var(--rp-wash-b);
   background-attachment: fixed;
 }
-html:has(.pn), html:has(.pn) body { background: #f3eee8 !important; }
+html:has(.pn), html:has(.pn) body { background: #ebe9e1 !important; }
 html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { background: #141210 !important; }
 @media (prefers-color-scheme: dark) { html:has(.pn:not([data-theme])), html:has(.pn:not([data-theme])) body { background: #141210 !important; } }
 
@@ -2389,12 +2395,14 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .td-col .qp-colh h2 { min-width: 0; flex: 0 1 auto; }
 .td-col .qp-colh .td-colacts { flex: none; }
 
-/* Wide screens: a page's group is in the section row, so its own row goes. */
+/* A family's pages (Hourly, What if, Website): a smaller segmented row under
+   the section's, the page you're on filled, so it reads as inside the tab. */
 @media (min-width: 1240px) {
-  .pn-secbar--group { display: none; }
-  .pn-secgroup { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 99px; background: var(--quiet); }
-  .pn-secgroup a { padding: 5px 12px; }
-  .pn-secgroup a.on { background: var(--rp-on-bg); color: var(--rp-on-ink); border-color: transparent; box-shadow: none; }
+  .pn-subpages { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 3px; margin-top: 10px; width: fit-content; max-width: 100%; align-self: flex-start; justify-self: start; border-radius: 99px; background: color-mix(in srgb, var(--ink) 6%, transparent); }
+  .pn-subpages a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; color: var(--ink2); text-decoration: none; transition: background .2s ease, color .2s ease; }
+  .pn-subpages a:hover { color: var(--ink); background: var(--rp-card); }
+  .pn-subpages a.on { background: var(--rp-on-bg); color: var(--rp-on-ink); }
+  .pn-subpages .c { font-size: 11px; font-weight: 700; opacity: .7; }
 }
 
 /* Dock: a count on a shortcut, as the bar's pills had. */

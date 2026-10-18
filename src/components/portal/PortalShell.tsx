@@ -16,7 +16,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
 import { BAR_COOKIE, NAV_COOKIE, readBar, readTheme, THEME_COOKIE, type Business, type ThemeChoice } from "@/lib/portal/businessTypes";
-import { buildSections, pathOff, type Count, type Section, type SectionId } from "@/lib/portal/sections";
+import { buildSections, flatPages, pathOff, type Count, type Section, type SectionId } from "@/lib/portal/sections";
 import { Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shell/TopNav";
@@ -56,7 +56,7 @@ const sideCounts = cache(async (user: PortalUser, sections: Section[]): Promise<
       if (n) out["section:todo"] = { n, red: todos.overdue > 0 || callsLate };
       continue;
     }
-    const n = s.pages.reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
+    const n = flatPages(s.pages).reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
     if (n) out[`section:${s.id}`] = { n, red: true };
   }
   return out;
@@ -120,7 +120,7 @@ const WALL_SETUP = ["/portal/board", "/portal/finance/board"];
 function dockFor(sections: Section[], allowed: Set<string>, biz: Business, counts: Record<string, Count> = {}): DockLink[] {
   return DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz)).map((l) => {
     const sec = l.section ? sections.find((s) => s.id === l.section) : null;
-    const match = sec ? sec.pages.map((p) => p.href).filter((h) => !WALL_SETUP.some((w) => h === w || h.startsWith(`${w}/`))) : WALL_SETUP;
+    const match = sec ? flatPages(sec.pages).map((p) => p.href).filter((h) => !WALL_SETUP.some((w) => h === w || h.startsWith(`${w}/`))) : WALL_SETUP;
     return { href: l.href, label: l.label, icon: l.icon, match, count: l.section ? counts[`section:${l.section}`] : undefined, section: l.section };
   });
 }
