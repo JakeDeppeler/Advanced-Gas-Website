@@ -2,7 +2,7 @@ import "server-only";
 import { sbSelect, sbUpdate } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { createOrder, getOrder, loadSuppliers, nextPoNumber } from "./db";
+import { cancelDraft, createOrder, getOrder, loadSuppliers, nextPoNumber } from "./db";
 import { approveAndSend } from "./send";
 import { updateJobs } from "./stJobNotes";
 import { thisWeek, type Supplier, type WorkOrderDetails } from "./plan";
@@ -163,6 +163,18 @@ export async function loadWoContacts(): Promise<WoContact[]> {
 
 export async function saveWoContacts(list: WoContact[]): Promise<boolean> {
   return (await saveSettings(CONTACTS, { list: list.slice(0, 40) })).ok;
+}
+
+/**
+ * A draft work order the office doesn't want, marked cancelled as To order
+ * cancels a draft: out of every list, and its job isn't drafted again
+ * automatically. Never one that's been sent — the electrician has it.
+ */
+export async function dropWorkOrderDraft(id: number): Promise<{ ok: boolean; error?: string }> {
+  const po = await getOrder(id);
+  if (!po || po.kind !== "work_order") return { ok: false, error: "That work order isn't there any more." };
+  if (po.status !== "draft") return { ok: false, error: "It's been sent, so it can't be deleted. Edit it and email the update instead." };
+  return (await cancelDraft(id)) ? { ok: true } : { ok: false, error: "It's been sent, so it can't be deleted." };
 }
 
 /**

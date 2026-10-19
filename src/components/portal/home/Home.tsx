@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { JobMargins } from "@/components/portal/home/JobMargins";
+import { JobMargins, MarginKpi, MarginKpiPending } from "@/components/portal/home/JobMargins";
 import type { CrewNow } from "@/lib/portal/home/crewNow";
 import type { TeamRow } from "@/components/portal/home/Overview";
 import type { Metrics } from "@/lib/dashboard/metrics";
@@ -199,6 +199,7 @@ export function Home(d: HomeData) {
 
       {d.ov && (
         <Overview ov={d.ov.data} span={d.ov.span} first={d.first} when={d.when} closeRate={d.ov.closeRate}
+          margin={<Suspense fallback={<MarginKpiPending />}><MarginKpi target={d.goal?.profitPct ?? null} /></Suspense>}
           yearInvoiced={d.ov.yearInvoiced} yearGoal={d.ov.yearGoal} yearFloor={d.ov.yearFloor} daysLeft={d.ov.daysLeft} team={d.ov.team ?? []} crew={d.ov.crew ?? null} />
       )}
       {/* Its own stream: costing jobs is the slowest read on the page, and the rest needn't wait for it. */}

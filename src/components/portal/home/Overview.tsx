@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { CrewNow } from "@/lib/portal/home/crewNow";
 import type { Overview as Data } from "@/lib/portal/home/overview";
 import { CountUp } from "./CountUp";
@@ -98,8 +99,10 @@ function TeamNow({ team, crew }: { team: TeamRow[]; crew: CrewNow[] | null }) {
   );
 }
 
-export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, yearFloor, daysLeft, span, team = [], crew = null }: {
+export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yearGoal, yearFloor, daysLeft, span, team = [], crew = null }: {
   ov: Data; first: string; when: string; closeRate: number | null;
+  /** The job margin beside the close rate: streamed, since costing jobs is the page's slowest read. */
+  margin?: ReactNode;
   yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null; span: 6 | 12;
   team?: TeamRow[]; crew?: CrewNow[] | null;
 }) {
@@ -153,6 +156,7 @@ export function Overview({ ov, first, when, closeRate, yearInvoiced, yearGoal, y
             <Icon d="M12 3a9 9 0 1 0 9 9h-9V3ZM15 3.5A9 9 0 0 1 20.5 9H15V3.5Z" />
             <span><b>{closeRate != null ? <CountUp value={closeRate * 100} kind="pct" /> : ""}</b><small>Close rate, last 30 days</small></span>
           </Link>
+          {margin}
         </div>
       </header>
 

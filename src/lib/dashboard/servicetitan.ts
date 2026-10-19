@@ -235,6 +235,40 @@ export async function stDownload(path: string, maxBytes: number): Promise<{ byte
   throw new Error(`ServiceTitan ${path} failed: 401 Unauthorized`);
 }
 
+/**
+ * A file ServiceTitan holds, to show in the browser: the storage link it
+ * redirects to when it does (short-lived, good for that one file, and needing
+ * no token), else the file itself. The link means a 5 MB photo doesn't pass
+ * through a function, which Vercel caps at 4.5 MB returned. A redirect back
+ * to ServiceTitan's own API would want the token, so that one is followed here.
+ */
+export async function stFileOrLink(path: string, maxBytes: number): Promise<{ url: string } | { bytes: Uint8Array; mime: string }> {
+  const url = `${API_BASE}/${path.replace(/^\//, "")}`;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${await getToken()}`, "ST-App-Key": process.env.ST_APP_KEY ?? "" },
+      cache: "no-store",
+      redirect: "manual",
+    });
+    if (res.status === 401 && attempt === 0) { token = null; continue; }
+    const to = res.status >= 300 && res.status < 400 ? res.headers.get("location") : null;
+    if (to) {
+      // Read, not cancelled: the redirect's body is a line at most, and cancelling it hangs Next's fetch.
+      await res.arrayBuffer().catch(() => undefined);
+      const abs = new URL(to, url);
+      if (abs.protocol === "https:" && abs.origin !== new URL(API_BASE).origin) return { url: abs.toString() };
+      return stDownload(path, maxBytes);
+    }
+    if (!res.ok) throw new Error(`ServiceTitan ${path} failed: ${res.status} ${res.statusText}`);
+    const length = Number(res.headers.get("content-length"));
+    if (Number.isFinite(length) && length > maxBytes) throw new Error(`it's ${Math.round(length / 1048576)} MB, too big to show`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.length > maxBytes) throw new Error(`it's ${Math.round(bytes.length / 1048576)} MB, too big to show`);
+    return { bytes, mime: res.headers.get("content-type")?.split(";")[0] || "application/octet-stream" };
+  }
+  throw new Error(`ServiceTitan ${path} failed: 401 Unauthorized`);
+}
+
 /** "{module}/v2/tenant/{tenant}/{resource}" — every tenant-scoped path. */
 export function stTenantPath(module: string, resource: string): string {
   return `${module}/v2/tenant/${tenantId()}/${resource}`;

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { createAndSendWorkOrder, editWorkOrder, findJobs, jobForWork, loadWoContacts, moveWorkOrder, saveWoContacts, type JobHit, type WoContact } from "@/lib/ordering/workOrders";
+import { createAndSendWorkOrder, dropWorkOrderDraft, editWorkOrder, findJobs, jobForWork, loadWoContacts, moveWorkOrder, saveWoContacts, type JobHit, type WoContact } from "@/lib/ordering/workOrders";
 import { approveAndSend, resendWorkOrder } from "@/lib/ordering/send";
 import { listJobFiles, type JobFile } from "@/lib/ordering/jobFiles";
 
@@ -159,4 +159,14 @@ export async function saveWorkOrder(input: {
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
+}
+
+/** Throw away a work order that hasn't gone: made on the wrong job, or not needed. Kept as cancelled, out of the list, rather than deleted. */
+export async function deleteWorkOrderDraft(id: number): Promise<ActionResult> {
+  if (!(await office())) return { ok: false, error: "Not allowed." };
+  if (!Number.isInteger(id) || id <= 0) return { ok: false, error: "Which work order?" };
+  const r = await dropWorkOrderDraft(id);
+  revalidatePath("/portal/supply/work-orders");
+  revalidatePath("/portal/supply/next-week");
+  return r.ok ? { ok: true, note: "Draft deleted." } : { ok: false, error: r.error };
 }
