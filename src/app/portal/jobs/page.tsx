@@ -9,7 +9,7 @@ import { melNow, money, pc, plural } from "@/lib/portal/run/month";
 import { Av, Bad, Btn, Card, Empty, Grid, Head, Pill, Say, Tabs, Tile, none, type Status } from "@/components/portal/kit/Kit";
 import { markCert } from "./actions";
 import { listJobs, type JobFilter, type ListedJob } from "@/lib/dashboard/jobList";
-import { stJobUrl, toBillJobs, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
+import { stJobUrl, toBillAndWaiting, TO_BILL_FROM, type ToBillRow } from "@/lib/dashboard/toBill";
 import { Suspense } from "react";
 import { XeroBilledCard } from "@/components/portal/run/XeroBilledCard";
 import { JobProfitTable } from "@/components/portal/JobProfitTable";
@@ -56,7 +56,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
     latestBoard(),
     tab === "notbilled" ? certJobs().catch(() => []) : Promise.resolve([] as CertJob[]),
     // The whole list, read now rather than the board's six from its last snapshot.
-    tab === "notbilled" ? toBillJobs().catch(() => null) : Promise.resolve(null as ToBillRow[] | null),
+    tab === "notbilled" ? toBillAndWaiting().catch(() => null) : Promise.resolve(null as ToBillRow[] | null),
   ]);
   const m = board?.metrics ?? null;
   const now = melNow();
@@ -196,9 +196,12 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
       </>
     ) : <Empty>No jobs could be costed in the last 30 days.</Empty>;
   } else {
-    const rows = toBill ?? m.toBill ?? [];
-    const count = toBill ? toBill.length : m.toBillCount;
-    const value = toBill ? toBill.reduce((a, r) => a + (r.value ?? 0), 0) : m.toBillValue;
+    // Visits whose sale was booked as a job of its own are billed on that job, once it's done: not counted here.
+    const live = toBill?.filter((r) => !r.waitingOn) ?? null;
+    const waiting = toBill?.filter((r) => r.waitingOn) ?? [];
+    const rows = live ?? m.toBill ?? [];
+    const count = live ? live.length : m.toBillCount;
+    const value = live ? live.reduce((a, r) => a + (r.value ?? 0), 0) : m.toBillValue;
     const since = new Date(`${TO_BILL_FROM}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "long", timeZone: "UTC" });
     const due = certs.filter((c) => c.status === "due");
     body = (
@@ -225,9 +228,24 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
             })}
           </Card>
         ) : <Empty>Nothing waiting to be billed.</Empty>}
+        {waiting.length > 0 && (
+          <Card title="Sold on the visit, billed on the job it was booked as" aside={`${waiting.length} · not counted above`}>
+            {waiting.map((r) => (
+              <div className="pk-kv pk-kv--act" key={r.id}>
+                <span className="t">
+                  <b>{[r.jobType ?? "Job", r.suburb].filter(Boolean).join(" · ")}</b>
+                  <span>{[r.jobNumber ? `#${r.jobNumber}` : null, r.customer ?? null, `visit finished ${ago(r.at)}`, `sold as #${r.waitingOn!.jobNumber ?? r.waitingOn!.id}, ${(r.waitingOn!.status ?? "booked").toLowerCase()}`].filter(Boolean).join(" · ")}</span>
+                </span>
+                <Pill st={{ k: "none", w: `Bill once #${r.waitingOn!.jobNumber ?? r.waitingOn!.id} is done` }} />
+                <span className="v">{r.value != null ? money(r.value) : ""}</span>
+                <a className="pk-btn g" href={stJobUrl(r.waitingOn!.id)} target="_blank" rel="noreferrer" aria-label={`Open job ${r.waitingOn!.jobNumber ?? r.waitingOn!.id} in ServiceTitan`}>Open #{r.waitingOn!.jobNumber ?? r.waitingOn!.id} ↗</a>
+              </div>
+            ))}
+          </Card>
+        )}
         <p className="pk-note" style={{ margin: "10px 0 18px" }}>
           <b>Where this comes from:</b> ServiceTitan, synced every few minutes. A job is on the list when it&rsquo;s marked Completed in ServiceTitan
-          since {since} and its invoice there is still at $0. Quote visits, site assessments and cancelled jobs are left out. Jobs finished before {since}{" "}
+          since {since} and its invoice there is still at $0. Quote visits, site assessments and cancelled jobs are left out. A visit whose sale was booked as a job of its own (an install made from the quote) is billed on that job once it&rsquo;s done, so it&rsquo;s listed apart until then. Jobs finished before {since}{" "}
           were invoiced in Xero, not ServiceTitan, so they aren&rsquo;t on it. The figure beside a job is what it was sold for before the visit, where it was;
           service work priced on the day shows .
           {toBill == null ? " ServiceTitan couldn’t be read just now, so this is the board’s last copy." : ""}
