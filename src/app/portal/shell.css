@@ -2496,15 +2496,39 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .wo-edit .qp-note { margin: 0; }
 @media (max-width: 560px) { .wo-grid { grid-template-columns: 1fr; } }
 /* The job's files, ticked to go with the work order. */
-.wo-files { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
-.wo-files legend { padding: 0; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
-.wo-files ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.wo-files label { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--rp-line); background: var(--surface); cursor: pointer; min-width: 0; }
-.wo-files label:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-.wo-files input { width: 18px; height: 18px; flex: none; accent-color: var(--rp-on-bg); }
+.wo-files { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 14px; }
+.wo-files legend { padding: 0; margin-bottom: 8px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+.wo-count { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 99px; background: var(--ink); color: var(--surface); }
+.wo-files ul { list-style: none; margin: 0; padding: 0; }
+.wo-fgroup { display: grid; gap: 8px; min-width: 0; }
+.wo-fgh { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--ink2); }
+.wo-files input { width: 18px; height: 18px; flex: none; accent-color: var(--rp-on-bg); margin: 0; }
 .wo-fname { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
 .wo-fat { flex: none; font-size: 12px; color: var(--ink3); }
+.wo-view { flex: none; font-size: 12.5px; font-weight: 600; color: var(--ink2); text-decoration: none; padding: 4px 8px; border-radius: 8px; }
+.wo-view:hover, .wo-view:focus-visible { background: var(--quiet); color: var(--ink); }
+/* Photos as pictures. A ticked one is outlined and says "Sending" over it: never colour alone. */
+.wo-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.wo-photos li { display: grid; border-radius: 14px; border: 1px solid var(--rp-line); background: var(--surface); overflow: hidden; min-width: 0; }
+.wo-photos li.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.wo-photos label { position: relative; display: grid; cursor: pointer; min-width: 0; }
+.wo-thumb { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--sunken); }
+.wo-thumb.none { display: grid; place-items: center; font-size: 12px; color: var(--ink3); }
+.wo-photos li.on .wo-thumb { opacity: .82; }
+.wo-tick { position: absolute; top: 8px; left: 8px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--ink); color: var(--surface); }
+.wo-pcap { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px 2px; }
+.wo-pcap .wo-fname { font-size: 12.5px; line-height: 1.3; }
+.wo-pfoot { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 4px 4px 10px; }
+.wo-flist { display: grid; gap: 6px; }
+.wo-flist li { display: flex; align-items: center; gap: 6px; padding-right: 6px; border-radius: 12px; border: 1px solid var(--rp-line); background: var(--surface); min-width: 0; }
+.wo-flist li.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.wo-flist label { flex: 1; display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; min-width: 0; }
+.wo-kind { flex: none; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; padding: 2px 6px; border-radius: 6px; background: var(--sunken); color: var(--ink2); }
 .wo-files .qp-note { margin: 0; display: flex; align-items: center; gap: 6px; }
+@media (max-width: 560px) {
+  .wo-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wo-flist .wo-fat { display: none; }
+}
 
 
 /* Account to-dos' pop-up: did they go ahead? Won or lost, words on both. */
@@ -2513,3 +2537,8 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .qp-btn.good { background: var(--good-f); color: #fff; border-color: transparent; }
 .td-lost { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .td-lost .qp-note { flex-basis: 100%; margin: 0; }
+
+/* Deleting a draft work order: off to the right, and asked twice. */
+.wo-edit .qp-links .wo-del { margin-left: auto; color: var(--bad); }
+.wo-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px; background: var(--bad-bg); }
+.wo-confirm > span { flex-basis: 100%; font-weight: 600; font-size: 14px; }

@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { jobFill, saveWorkOrder, searchJobs } from "@/app/portal/supply/work-orders/actions";
+import { deleteWorkOrderDraft, jobFill, saveWorkOrder, searchJobs } from "@/app/portal/supply/work-orders/actions";
 import type { JobHit, WoContact, WorkOrderRow } from "@/lib/ordering/workOrders";
 import { JobFilesPicker, type PickedFile } from "./JobFilesPicker";
 
@@ -153,6 +153,15 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
     sendTo: emailIn(w.sent_to) || (pick.kind === "saved" ? pick.c.email : sparky?.email ?? ""),
   });
   const [err, setErr] = useState<string | null>(null);
+  const [dropping, setDropping] = useState(false);
+  const drop = () => start(async () => {
+    setErr(null);
+    const r = await deleteWorkOrderDraft(w.id);
+    if (!r.ok) { setErr(r.error ?? "Couldn't delete it."); setDropping(false); return; }
+    // Gone from the list, so the pop-up closes with it.
+    router.refresh();
+    onCancel();
+  });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
   const choose = (p: Pick) => {
     setPick(p);
@@ -183,7 +192,7 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
         <span className="wo-whol">Job</span>
         <b>{job.number ? `Job ${job.number}` : "No job"}{job.who ? ` · ${job.who}` : ""}</b>
         {changedJob && <em className="wo-was">was {first?.job_number}</em>}
-        {!finding && <button type="button" className="qp-btn line sm" onClick={() => setFinding(true)}>Change</button>}
+        {!finding && <button type="button" className="qp-btn line sm" onClick={() => setFinding(true)}>Change the job</button>}
       </div>
       {finding && (
         <div className="wo-move">
@@ -263,7 +272,15 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
           </>
         )}
         <button type="button" className="qp-btn line" onClick={onCancel}>Cancel</button>
+        {!sent && !dropping && <button type="button" className="qp-btn line wo-del" disabled={busy} onClick={() => setDropping(true)}>Delete draft</button>}
       </div>
+      {dropping && (
+        <div className="wo-confirm" role="alertdialog" aria-labelledby="wo-del-q">
+          <span id="wo-del-q">Delete this draft? It hasn&rsquo;t been sent, so nobody is emailed.</span>
+          <button type="button" className="qp-btn bad" disabled={busy} onClick={drop} autoFocus>{busy ? "Deleting…" : "Yes, delete it"}</button>
+          <button type="button" className="qp-btn line" disabled={busy} onClick={() => setDropping(false)}>Keep it</button>
+        </div>
+      )}
       <p className="qp-note">
         {sent
           ? "Just save fixes the record here and nothing is emailed. Emailing the update sends the new version marked as an update, and puts it on the job in ServiceTitan."

@@ -1,5 +1,5 @@
 import "server-only";
-import { stDownload, stFetch, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { stDownload, stFetch, stFileOrLink, stTenantPath } from "@/lib/dashboard/servicetitan";
 import type { WorkOrderDetails } from "./plan";
 
 /**
@@ -20,7 +20,8 @@ export async function listJobFiles(jobId: number): Promise<{ files: JobFile[] } 
     const r = await stFetch<{ data?: Raw[] }>(stTenantPath("forms", `jobs/${jobId}/attachments`), { page: "1", pageSize: "100" });
     const files = (r.data ?? [])
       .filter((a) => typeof a.id === "number" && a.active !== false)
-      .map((a) => ({ id: a.id!, name: a.fileName || a.originalFileName || a.name || `Attachment ${a.id}`, at: a.createdOn ?? null }))
+      // ServiceTitan names them by where it keeps them ("Attaches/ndnjlust.pwe/plan.pdf"): the last part is the file's own name.
+      .map((a) => ({ id: a.id!, name: (a.fileName || a.originalFileName || a.name || "").split(/[\\/]/).pop() || `Attachment ${a.id}`, at: a.createdOn ?? null }))
       .sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
     return { files };
   } catch (e) {
@@ -44,4 +45,20 @@ export async function jobFilesFor(d: WorkOrderDetails | null): Promise<{ filenam
     }
   }
   return out;
+}
+
+/** Vercel returns at most 4.5 MB from a function: a file bigger than this, sent through, would fail. */
+const MAX_THROUGH = 4 * 1048576;
+
+/**
+ * One job file to look at, for the picker's previews and its View link: a
+ * link straight to where ServiceTitan keeps it when it redirects there, or
+ * the file itself when it doesn't (and it's small enough to pass on).
+ */
+export async function jobFileToShow(id: number): Promise<{ url: string } | { bytes: Uint8Array; mime: string } | { error: string }> {
+  try {
+    return await stFileOrLink(stTenantPath("forms", `jobs/attachment/${id}`), MAX_THROUGH);
+  } catch (e) {
+    return { error: (e as Error).message.replace(/^ServiceTitan \S+ failed: /, "") };
+  }
 }
