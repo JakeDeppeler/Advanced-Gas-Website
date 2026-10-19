@@ -20,6 +20,8 @@ export async function fillMitsubishiForm(o: {
   lines: PlannedLine[];
   delivery: string;
   deliveryInstructions: string | null;
+  /** The office's deliver-by date for the order, over the one from the first install. */
+  deliverBy?: string | null;
   settings: OrderingSettings;
   /** Melbourne date the order goes out; defaults to now. */
   today?: string;
@@ -70,7 +72,7 @@ export async function fillMitsubishiForm(o: {
   // Every row gets the order's one delivery date, the earliest any line is
   // needed: a date per row would let them split it into several deliveries,
   // each with its own fee — the thing combined orders exist to avoid.
-  const deliver = orderDelivery(o.lines, o.today ?? todayMelbourne());
+  const deliver = orderDelivery(o.lines, o.today ?? todayMelbourne(), o.deliverBy);
   let subtotal = 0;
   rows.forEach((r, idx) => {
     const i = idx + 1;

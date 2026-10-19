@@ -5769,3 +5769,9 @@ a.pt-td__pill { text-decoration: none; }
 /* The stock and tool lists' title row: its own class, because .pt-stk__head
    is the Stuck page's summary card and the later rule won on both. */
 .pt-shelf__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+/* An order's own deliver-by date and note to the supplier. */
+.pt-nw__field { display: grid; gap: 6px; }
+.pt-nw__field > span:first-child { font-weight: 600; font-size: 13.5px; }
+.pt-nw__dateline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.pt-nw__textarea { min-height: 76px; padding: 10px 12px; resize: vertical; line-height: 1.45; }
+.pt-nw__note { flex: 0 0 100%; margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--pt-tint); font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }

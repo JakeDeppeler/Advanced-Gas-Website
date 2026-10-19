@@ -52,13 +52,19 @@ export async function cancel(id: number): Promise<ActionResult> {
   return ok ? { ok: true } : { ok: false, error: "Only a draft can be cancelled." };
 }
 
-export async function saveDelivery(input: { id: number; toSite: boolean; address: string; instructions: string }): Promise<ActionResult> {
+export async function saveDelivery(input: { id: number; toSite: boolean; address: string; instructions: string; deliverBy?: string; note?: string; pickup?: boolean }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   if (!isId(input.id)) return { ok: false, error: "Which order?" };
   const address = input.address.trim().slice(0, 200);
-  if (!address) return { ok: false, error: "Where should it go?" };
-  const ok = await setDelivery(input.id, { toSite: !!input.toSite, address, instructions: input.instructions.trim().slice(0, 300) });
+  // A pick-up has nowhere to go; the date and the note still apply to it.
+  if (!address && !input.pickup) return { ok: false, error: "Where should it go?" };
+  const by = (input.deliverBy ?? "").trim();
+  if (by && !/^\d{4}-\d{2}-\d{2}$/.test(by)) return { ok: false, error: "That date doesn't read as a date." };
+  const ok = await setDelivery(input.id, {
+    toSite: !!input.toSite, address, instructions: input.instructions.trim().slice(0, 300),
+    deliverBy: by || null, note: (input.note ?? "").trim().slice(0, 600),
+  });
   done();
   return ok ? { ok: true } : { ok: false, error: "Only a draft order can be changed." };
 }

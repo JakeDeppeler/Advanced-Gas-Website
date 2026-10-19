@@ -24,6 +24,10 @@ export type PurchaseOrder = {
   delivery_instructions: string | null;
   /** We collect it rather than it being delivered (0070). */
   pickup: boolean;
+  /** The office's own deliver-by date for this order, over the one worked out from the first install (0080). */
+  deliver_by?: string | null;
+  /** A note to the supplier about this order alone, in the email (0080). */
+  supplier_note?: string | null;
   details: WorkOrderDetails | null;
   approved_by: string | null;
   approved_at: string | null;
@@ -345,11 +349,12 @@ export async function cancelDraft(id: number): Promise<boolean> {
   return true;
 }
 
-export async function setDelivery(id: number, patch: { toSite: boolean; address: string; instructions: string }): Promise<boolean> {
+export async function setDelivery(id: number, patch: { toSite: boolean; address: string; instructions: string; deliverBy: string | null; note: string }): Promise<boolean> {
   const po = await sbSelectOne<{ status: string; kind: string }>("purchase_orders", `select=status,kind&id=eq.${id}`);
   if (po?.status !== "draft" || po.kind !== "order") return false;
   await sbUpdate("purchase_orders", `id=eq.${id}&status=eq.draft`, {
     delivery_to_site: patch.toSite, delivery_address: patch.address, delivery_instructions: patch.instructions || null,
+    deliver_by: patch.deliverBy, supplier_note: patch.note || null,
     updated_at: new Date().toISOString(),
   });
   return true;

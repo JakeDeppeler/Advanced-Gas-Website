@@ -79,16 +79,29 @@ function PickupChoice({ po }: { po: PoWithLines }) {
   );
 }
 
-function Delivery({ po, delivery }: { po: PoWithLines; delivery: DeliverySettings }) {
+/**
+ * Where an order goes, when by, and a note for the supplier. The date is
+ * worked out from the first install on the order; the office can set its own
+ * for one order (sooner for a long weekend, later for stock nobody's waiting
+ * on), and clearing it goes back to the worked-out one.
+ */
+function Delivery({ po, delivery, supplierName }: { po: PoWithLines; delivery: DeliverySettings; supplierName?: string }) {
   const { busy, msg, run } = useAct();
   const [open, setOpen] = useState(false);
   const [toSite, setToSite] = useState(po.delivery_to_site);
   const [address, setAddress] = useState(po.delivery_address ?? "");
   const [instructions, setInstructions] = useState(po.delivery_instructions ?? "");
+  const [by, setBy] = useState(po.deliver_by ?? "");
+  const [note, setNote] = useState(po.supplier_note ?? "");
   const editable = po.status === "draft";
+  const order = po.kind === "order";
+  const today = todayMelbourne();
+  const worked = order ? orderDelivery(po.lines, today) : null;
+  const d = order ? orderDelivery(po.lines, today, po.deliver_by) : null;
+  const who = supplierName ?? "the supplier";
   return (
     <div className="pt-nw__deliver">
-      {editable && po.kind === "order" && <PickupChoice po={po} />}
+      {editable && order && <PickupChoice po={po} />}
       <span>
         {po.pickup
           ? <><strong>Pick up</strong> , we collect it</>
@@ -97,23 +110,43 @@ function Delivery({ po, delivery }: { po: PoWithLines; delivery: DeliverySetting
           const said = deliveryInstructionsFor(po, delivery);
           return said ? <span className="pt-nw__muted"> · {said}</span> : null;
         })()}
-        {po.kind === "order" && (() => {
-          const d = orderDelivery(po.lines, todayMelbourne());
-          return d ? <span> · <strong>{po.pickup ? "ready" : "by"} {d.label}</strong></span> : null;
-        })()}
+        {d && <span> · <strong>{po.pickup ? "ready" : "by"} {d.label}</strong>{po.deliver_by && <span className="pt-nw__tag">Your date</span>}</span>}
       </span>
-      {editable && !open && !po.pickup && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>Change</button>}
+      {editable && !open && order && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>Change</button>}
+      {po.supplier_note && !open && <p className="pt-nw__note"><strong>Note to {who}:</strong> {po.supplier_note}</p>}
       {editable && open && (
         <div className="pt-nw__deliveredit">
-          <label className="pt-nw__check">
-            <input type="checkbox" checked={toSite} onChange={(e) => setToSite(e.target.checked)} /> Deliver straight to site
+          {!po.pickup && (
+            <>
+              <label className="pt-nw__check">
+                <input type="checkbox" checked={toSite} onChange={(e) => setToSite(e.target.checked)} /> Deliver straight to site
+              </label>
+              <input className="pt-nw__input" value={address} onChange={(e) => setAddress(e.target.value)} aria-label="Delivery address" />
+              <input className="pt-nw__input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder={toSite ? "Instructions, e.g. leave at side gate" : delivery.factoryInstructions || "Instructions"} aria-label="Delivery instructions" />
+              {delivery.deliveryNote && <span className="pt-nw__muted">&ldquo;{delivery.deliveryNote}&rdquo; is added to every order.</span>}
+            </>
+          )}
+          <label className="pt-nw__field" htmlFor={`nw-by-${po.id}`}>
+            <span>{po.pickup ? "Ready by" : "Deliver by"}</span>
+            <span className="pt-nw__dateline">
+              <input id={`nw-by-${po.id}`} type="date" className="pt-nw__input" value={by} min={today} onChange={(e) => setBy(e.target.value)} />
+              {by && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setBy("")}>Use the install&rsquo;s date</button>}
+            </span>
+            <span className="pt-nw__muted">
+              {worked
+                ? <>From the first install it&rsquo;s {worked.label}{by ? ", your date goes instead" : ", which is what goes unless you pick a day"}.</>
+                : "Nothing on this order has an install date, so no date goes unless you pick one."}
+            </span>
           </label>
-          <input className="pt-nw__input" value={address} onChange={(e) => setAddress(e.target.value)} aria-label="Delivery address" />
-          <input className="pt-nw__input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder={toSite ? "Instructions, e.g. leave at side gate" : delivery.factoryInstructions || "Instructions"} aria-label="Delivery instructions" />
-          {delivery.deliveryNote && <span className="pt-nw__muted">&ldquo;{delivery.deliveryNote}&rdquo; is added to every order.</span>}
+          <label className="pt-nw__field" htmlFor={`nw-note-${po.id}`}>
+            <span>Note to {who}</span>
+            <textarea id={`nw-note-${po.id}`} className="pt-nw__input pt-nw__textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)}
+              placeholder="Anything about this order alone, e.g. ring Dean on 0400 000 000 before delivering" />
+            <span className="pt-nw__muted">Goes in the email under the delivery details. Only on this order.</span>
+          </label>
           <span className="pt-nw__actions">
             <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy}
-              onClick={() => run(async () => { const r = await saveDelivery({ id: po.id, toSite, address, instructions }); if (r.ok) setOpen(false); return r; })}>
+              onClick={() => run(async () => { const r = await saveDelivery({ id: po.id, toSite, address, instructions, deliverBy: by, note, pickup: po.pickup }); if (r.ok) setOpen(false); return r; })}>
               Save
             </button>
             <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(false)}>Close</button>
@@ -761,7 +794,7 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted }: CardProp
         </div>
       )}
       {po.status === "draft" && <AddStock po={po} />}
-      <Delivery po={po} delivery={delivery} />
+      <Delivery po={po} delivery={delivery} supplierName={supplier?.name} />
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
       </details>
       <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} noted={noted} />
