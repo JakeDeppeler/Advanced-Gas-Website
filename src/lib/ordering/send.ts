@@ -87,17 +87,19 @@ async function build(id: number): Promise<Built | { error: string }> {
     const orderDate = todayDmy();
     const form = await fillMitsubishiForm({
       poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings,
-      toSite: po.delivery_to_site, pickup: po.pickup, signaturePng: await loadSignature(),
+      toSite: po.delivery_to_site, pickup: po.pickup, deliverBy: po.deliver_by, signaturePng: await loadSignature(),
     });
     if ("error" in form) return { error: form.error };
     const attachments = [{ filename: mitsubishiFormFilename(po.po_number), content: Buffer.from(form.pdf).toString("base64") }];
     const email = mitsubishiOrderEmail({
       supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: true, pickup: po.pickup,
+      deliverBy: po.deliver_by, note: po.supplier_note,
     });
     return { po, supplier, settings, email, attachments };
   }
   const email = supplierOrderEmail({
     supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: false, pickup: po.pickup,
+    deliverBy: po.deliver_by, note: po.supplier_note,
   });
   return { po, supplier, settings, email };
 }
@@ -117,7 +119,7 @@ export async function orderPdfFor(id: number): Promise<{ filename: string; pdf: 
   const pdf = await orderPdf({
     poNumber: po.po_number, supplier: supplier.name, date: todayDmy(),
     deliver: po.pickup ? "We pick it up from the branch" : `Deliver to ${po.delivery_address || settings.deliveryAddress}`,
-    instructions: deliveryInstructionsFor(po, settings), orderedBy: settings.orderedBy, lines: po.lines,
+    instructions: [deliveryInstructionsFor(po, settings), po.supplier_note?.trim() ? `Note: ${po.supplier_note.trim()}` : null].filter(Boolean).join(" ") || null, orderedBy: settings.orderedBy, lines: po.lines,
     partLabel: reece ? "Reece #" : "Model",
     part: (l) => (reece ? l.supplier_part ?? "not set" : l.supplier_model ?? ""),
   });
@@ -139,7 +141,7 @@ export async function orderDocument(id: number): Promise<{ subject: string; text
 
 const reeceList = (b: Built) => reeceListEmail({
   supplier: b.supplier, poNumber: b.po.po_number, lines: b.po.lines, delivery: b.po.delivery_address || b.settings.deliveryAddress,
-  settings: b.settings, instructions: deliveryInstructionsFor(b.po, b.settings), pickup: b.po.pickup,
+  settings: b.settings, instructions: deliveryInstructionsFor(b.po, b.settings), pickup: b.po.pickup, note: b.po.supplier_note,
 });
 
 /**
@@ -309,7 +311,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   if ("error" in b) return { ok: false, error: b.error };
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
-  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup });
+  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup, note: po.supplier_note });
   const files = po.kind === "work_order" ? await jobFilesFor(po.details) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
