@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, useTransition } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addTodo, deleteTodo, editTodo, logContact, markLostTodo, markWon, renameList, saveLists, setOffice, tickTodo, type TodoResult } from "@/app/portal/todo/actions";
 import { customerIn, dueState, dueWords, firstName, isQuoteList, jobNumberIn, phoneIn, quickDays, shiftDay, type Person, type Todo } from "@/lib/todos/types";
@@ -68,6 +68,8 @@ type Shared = {
   /** Account to-dos: a card opens the pop-up to log a call, rather than the edit form. */
   open: ((t: Todo) => void) | null;
   jobIds: Record<string, number>;
+  /** Cards that have just landed on a list, added or moved there: they arrive with a flourish. */
+  fresh: Set<string>;
 };
 /** Through context so the cards live at the top level: declared inside the board they would remount, and lose a half-typed edit, on every redraw. */
 const Ctx = createContext<Shared>(null as unknown as Shared);
@@ -117,7 +119,7 @@ function TodoForm({ t, list, forId, onDone }: { t?: Todo; list: string; forId: s
 }
 
 function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean }) {
-  const { tick, ticked, pending, name, meId, today, setDrag, drag, open } = useContext(Ctx);
+  const { tick, ticked, pending, name, meId, today, setDrag, drag, open, fresh } = useContext(Ctx);
   const [editing, setEditing] = useState(false);
   const isDone = ticked[t.id] ?? !!t.doneAt;
   const state = isDone ? "done" : dueState(t, today);
@@ -127,7 +129,7 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
   return (
     <li className="td-cardw">
       <div
-        className={`td-card t-${tone} is-${state}${drag === t.id ? " dragging" : ""}`}
+        className={`td-card t-${tone} is-${state}${drag === t.id ? " dragging" : ""}${fresh.has(t.id) ? " is-fresh" : ""}`}
         draggable={!isDone}
         onDragStart={(e) => { e.dataTransfer.setData("text/plain", t.id); e.dataTransfer.effectAllowed = "move"; setDrag(t.id); }}
         onDragEnd={() => setDrag(null)}
@@ -321,6 +323,26 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   const forId = all && view !== "all" ? view : meId ?? "";
   const showWho = all ? view === "all" : true;
 
+  // What just landed on a list: a to-do added, or moved from another list.
+  // Measured against what was on the board last time, not on the first
+  // draw, so opening the page doesn't set every card off. Kept a moment
+  // and then let go, so a later redraw can't cut the arrival short.
+  const placed = useRef<Map<string, string> | null>(null);
+  const [fresh, setFresh] = useState<Set<string>>(new Set());
+  const where = live.map((t) => `${t.id}:${listOf(t)}`).join("|");
+  useEffect(() => {
+    const now = new Map(live.map((t) => [t.id, listOf(t)]));
+    const before = placed.current;
+    placed.current = now;
+    if (!before) return;
+    const landed = [...now].filter(([id, l]) => before.get(id) !== l).map(([id]) => id);
+    if (!landed.length) return;
+    setFresh((f) => new Set([...f, ...landed]));
+    const t = setTimeout(() => setFresh((f) => new Set([...f].filter((id) => !landed.includes(id)))), 1800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `where` is the board's placement, which is all this watches
+  }, [where]);
+
   const moveList = (l: string, to: number) => {
     const next = lists.filter((x) => x !== l);
     next.splice(Math.max(0, Math.min(to, next.length)), 0, l);
@@ -341,7 +363,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   // Who may change the lists themselves, as opposed to what's on them.
   const shape = all && !fixed;
   const toneOf = (l: string, i: number) => TONES[Math.max(0, (allLists ?? lists).indexOf(l) >= 0 ? (allLists ?? lists).indexOf(l) : i) % TONES.length];
-  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag, open: fixed ? setContact : null, jobIds: jobIds ?? {} };
+  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag, open: fixed ? setContact : null, jobIds: jobIds ?? {}, fresh };
   const doneShown = done.filter(mine);
   const [officePick, setOfficePick] = useState<string[]>(office);
   const [showDone, setShowDone] = useState(false);
@@ -365,6 +387,24 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
                   );
                 })}
             </div>
+          )}
+          {shape && lists.length < 5 && (
+            <span className="td-newwrap">
+              <button type="button" className={`qp-chip td-newchip${newList != null ? " on" : ""}`} aria-expanded={newList != null} aria-controls="td-newpop" onClick={() => setNewList(newList == null ? "" : null)}>
+                <span aria-hidden="true">+</span> New list
+              </button>
+              {newList != null && (
+                <form id="td-newpop" className="td-form td-newpop" onKeyDown={(e) => { if (e.key === "Escape") setNewList(null); }}
+                  onSubmit={(e) => { e.preventDefault(); if (newList.trim()) run(() => saveLists([...lists, newList.trim()]), "List added.", () => setNewList(null)); }}>
+                  <label htmlFor="td-newlist">A column of its own</label>
+                  <input id="td-newlist" value={newList} onChange={(e) => setNewList(e.target.value)} placeholder="e.g. Marketing" maxLength={40} required autoFocus />
+                  <div className="td-formacts">
+                    <button type="submit" className="qp-btn dark" disabled={pending || !newList.trim()}>Add list</button>
+                    <button type="button" className="qp-btn" onClick={() => setNewList(null)}>Cancel</button>
+                  </div>
+                </form>
+              )}
+            </span>
           )}
           <button type="button" className={`qp-chip td-donebtn${showDone ? " on" : ""}`} aria-pressed={showDone} onClick={() => setShowDone((v) => !v)}>Done this week · {doneShown.length}</button>
         </div>
@@ -427,25 +467,6 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
               </section>
             );
           })}
-          {shape && lists.length < 5 && (
-            <div className="td-newcol">
-              {newList == null ? (
-                <button type="button" className="qp-drop td-newbtn" onClick={() => setNewList("")}>
-                  <span className="qp-dropi x" aria-hidden="true">+</span>
-                  <b>New list</b>
-                  <span>a column of its own</span>
-                </button>
-              ) : (
-                <form className="td-form td-newform" onSubmit={(e) => { e.preventDefault(); if (newList.trim()) run(() => saveLists([...lists, newList.trim()]), "List added.", () => setNewList(null)); }}>
-                  <input id="td-newlist" value={newList} onChange={(e) => setNewList(e.target.value)} placeholder="e.g. Marketing" maxLength={40} required aria-label="The new list's name" autoFocus />
-                  <div className="td-formacts">
-                    <button type="submit" className="qp-btn dark" disabled={pending || !newList.trim()}>Add list</button>
-                    <button type="button" className="qp-btn" onClick={() => setNewList(null)}>Cancel</button>
-                  </div>
-                </form>
-              )}
-            </div>
-          )}
         </div>
 
         {showDone && (
