@@ -1,11 +1,18 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useTransition } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addPlan, changePlan, dropPlan, type PlanResult } from "@/app/portal/plans/actions";
 import { AREAS, areaLabel, byPlan, HORIZONS, STATUS_LABEL, type Horizon, type Plan, type PlanStatus } from "@/lib/plans/types";
 
-type Shared = { run: (fn: () => Promise<PlanResult>, ok?: string, after?: () => void) => void; pending: boolean };
+type Shared = {
+  run: (fn: () => Promise<PlanResult>, ok?: string, after?: () => void) => void;
+  pending: boolean;
+  drag: string | null;
+  setDrag: (id: string | null) => void;
+  /** Plans that have just landed in a column, new or moved there: they open up into place. */
+  fresh: Set<string>;
+};
 /** Cards read this rather than being declared inside the board, so a half-typed note survives the board redrawing. */
 const Ctx = createContext<Shared>(null as unknown as Shared);
 
@@ -19,10 +26,16 @@ function AreaPick({ id, value, onChange }: { id: string; value: string; onChange
 }
 
 /** A plan on the board: the whole card opens it, like a quote on the pipeline. */
-function Card({ p, onOpen }: { p: Plan; onOpen: () => void }) {
+function Card({ p, onOpen, movable = false }: { p: Plan; onOpen: () => void; movable?: boolean }) {
+  const { drag, setDrag, fresh } = useContext(Ctx);
   const area0 = areaLabel(p.area);
   return (
-    <li className={`pt-plan__card is-${p.status}`}>
+    <li
+      className={`pt-plan__card is-${p.status}${drag === p.id ? " dragging" : ""}${fresh.has(p.id) ? " is-fresh" : ""}`}
+      draggable={movable}
+      onDragStart={movable ? (e) => { e.dataTransfer.setData("text/plain", p.id); e.dataTransfer.effectAllowed = "move"; setDrag(p.id); } : undefined}
+      onDragEnd={movable ? () => setDrag(null) : undefined}
+    >
       <button type="button" className="pt-plan__open" onClick={onOpen} aria-label={`Open ${p.title}`}>
         <span className="pt-plan__title">{p.title}</span>
         <span className="pt-plan__tags">
@@ -124,9 +137,18 @@ function AddIdea({ horizon, onDone }: { horizon: Horizon; onDone: () => void }) 
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [area, setArea] = useState("");
+  // Sent: the form folds down while it saves, and the plan opens up in its
+  // place. If it didn't save, the form comes back as it was.
+  const [sending, setSending] = useState(false);
+  const sentAt = useRef(0);
+  const saved = useRef(false);
+  // Back as it was only if it didn't save; a saved one stays folded until it goes.
+  useEffect(() => { if (!pending && !saved.current) setSending(false); }, [pending]);
+  // The fold runs its full length before the form goes, however quick the save.
+  const folded = () => { saved.current = true; setTimeout(onDone, Math.max(0, 380 - (Date.now() - sentAt.current))); };
   return (
-    <li className="td-cardw">
-      <form className="td-form" onSubmit={(e) => { e.preventDefault(); run(() => addPlan({ title, horizon, area, notes }), "On the plan.", onDone); }}>
+    <li className={`td-cardw pl-addw${sending ? " is-sending" : ""}`}>
+      <form className="td-form" onSubmit={(e) => { e.preventDefault(); sentAt.current = Date.now(); setSending(true); run(() => addPlan({ title, horizon, area, notes }), "On the plan.", folded); }}>
         <input id={`pl-new-${horizon}`} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} required placeholder="The idea, in a line" autoFocus aria-label="The idea" />
         <textarea id={`pl-new-notes-${horizon}`} rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={4000} placeholder="Describe it: why, what it'd take, who'd need to be in on it." aria-label="Description" />
         <AreaPick id={`pl-new-area-${horizon}`} value={area} onChange={setArea} />
@@ -158,14 +180,44 @@ export function PlansBoard({ plans }: { plans: Plan[] }) {
     });
 
   const [adding, setAdding] = useState<Horizon | null>(plans.length ? null : "month");
+  // Dragging a plan to another column changes when it's for; shown there at once, saved behind.
+  const [drag, setDrag] = useState<string | null>(null);
+  const [over, setOver] = useState<Horizon | null>(null);
+  const [moved, setMoved] = useState<Record<string, Horizon>>({});
+  const live = plans.map((p) => (moved[p.id] ? { ...p, horizon: moved[p.id] } : p));
+  const dropOn = (h: Horizon) => {
+    const p = live.find((x) => x.id === drag);
+    setDrag(null);
+    setOver(null);
+    if (!p || p.horizon === h) return;
+    setMoved((m) => ({ ...m, [p.id]: h }));
+    run(() => changePlan(p.id, { horizon: h }), `Moved to ${HORIZONS.find((x) => x.key === h)?.label ?? h}.`);
+  };
+  // What just landed in a column, new or moved: measured against the board
+  // as it was, so opening the page doesn't set everything off.
+  const placed = useRef<Map<string, string> | null>(null);
+  const [fresh, setFresh] = useState<Set<string>>(new Set());
+  const where = live.filter((p) => p.status !== "done").map((p) => `${p.id}:${p.horizon}`).join("|");
+  useEffect(() => {
+    const now = new Map(live.filter((p) => p.status !== "done").map((p) => [p.id, p.horizon as string]));
+    const before = placed.current;
+    placed.current = now;
+    if (!before) return;
+    const landed = [...now].filter(([id, h]) => before.get(id) !== h).map(([id]) => id);
+    if (!landed.length) return;
+    setFresh((f) => new Set([...f, ...landed]));
+    const t = setTimeout(() => setFresh((f) => new Set([...f].filter((id) => !landed.includes(id)))), 1600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `where` is the board's placement, which is all this watches
+  }, [where]);
   const [showDone, setShowDone] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const opened = plans.find((p) => p.id === openId) ?? null;
-  const open = plans.filter((p) => p.status !== "done");
+  const open = live.filter((p) => p.status !== "done");
   const done = plans.filter((p) => p.status === "done").sort((a, b) => ((b.doneAt ?? "") < (a.doneAt ?? "") ? -1 : 1));
 
   return (
-    <Ctx.Provider value={{ run, pending }}>
+    <Ctx.Provider value={{ run, pending, drag, setDrag, fresh }}>
       <div className="td pl">
         <div className="qp-bar">
           <button type="button" className={`qp-chip td-donebtn${showDone ? " on" : ""}`} aria-pressed={showDone} onClick={() => setShowDone((v) => !v)}>Done · {done.length}</button>
@@ -175,7 +227,12 @@ export function PlansBoard({ plans }: { plans: Plan[] }) {
             const list = open.filter((p) => p.horizon === h.key).sort(byPlan);
             const tone = TONE[h.key];
             return (
-              <section key={h.key} className={`qp-col td-col pl-col t-${tone}`} aria-labelledby={`pl-h-${i}`}>
+              <section
+                key={h.key} className={`qp-col td-col pl-col t-${tone}${drag ? " can" : ""}${over === h.key ? " over" : ""}`} aria-labelledby={`pl-h-${i}`}
+                onDragOver={(e) => { if (drag) { e.preventDefault(); if (over !== h.key) setOver(h.key); } }}
+                onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver((o) => (o === h.key ? null : o)); }}
+                onDrop={(e) => { e.preventDefault(); dropOn(h.key); }}
+              >
                 <header className="qp-colh">
                   <i className={`qp-dot pl-dot t-${tone}`} aria-hidden="true" />
                   <h2 id={`pl-h-${i}`} title={h.blurb}>{h.label}</h2>
@@ -187,7 +244,7 @@ export function PlansBoard({ plans }: { plans: Plan[] }) {
                 <p className="pl-blurb">{h.blurb}</p>
                 <ul className="qp-list td-list pt-plan__cards">
                   {adding === h.key && <AddIdea horizon={h.key} onDone={() => setAdding(null)} />}
-                  {list.map((p) => <Card key={p.id} p={p} onOpen={() => setOpenId(p.id)} />)}
+                  {list.map((p) => <Card key={p.id} p={p} movable onOpen={() => setOpenId(p.id)} />)}
                   {!list.length && adding !== h.key && <li className="qp-empty">Nothing for {h.label.toLowerCase()} yet.</li>}
                 </ul>
               </section>

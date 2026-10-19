@@ -1686,17 +1686,18 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
 .td-newwrap { margin-left: auto; }
 .td-newwrap + .td-donebtn { margin-left: 0; }
 .td-newchip span { font-size: 16px; line-height: 1; margin-right: 2px; }
-.td-newpop { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: min(300px, calc(100vw - 32px)); box-sizing: border-box; box-shadow: 0 18px 40px -18px rgba(30, 15, 0, .45); animation: td-pop .18s ease-out; }
+.td-newpop { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: min(300px, calc(100vw - 32px)); box-sizing: border-box; box-shadow: 0 18px 40px -18px rgba(30, 15, 0, .45); animation: td-pop-in .18s ease-out; }
 .td-newpop label { font-size: 12.5px; font-weight: 600; color: var(--ink2); }
-@keyframes td-pop { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+@keyframes td-pop-in { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
 
 /* A card landing on a list, added or moved there: it drops in with a little
    overshoot, a bright edge glows round it and fades, and a shine runs across
-   it once. All on the card itself: the list scrolls, so anything drawn
-   outside the card would be clipped at the column's sides. */
-.td-card { position: relative; overflow: hidden; }
+   it once. The shine is a background sliding through a layer the card's own
+   size, so the card needn't clip, and the confetti from a tick can fly out. */
+.td { interpolate-size: allow-keywords; }
+.td-card { position: relative; }
 .td-card.is-fresh { animation: td-land .62s cubic-bezier(.2, .9, .3, 1.25), td-glow 1.3s .2s ease-out; }
-.td-card.is-fresh::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .55) 48%, transparent 66%); transform: translateX(-120%); animation: td-shine .9s .28s ease-in-out forwards; }
+.td-card.is-fresh::after, .td-card.is-popping::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .55) 50%, transparent 65%) no-repeat; background-size: 250% 100%; background-position: 160% 0; animation: td-shine .9s .28s ease-in-out forwards; }
 @keyframes td-land {
   0% { opacity: 0; transform: translateY(-22px) scale(.9) rotate(-1.5deg); }
   55% { opacity: 1; transform: translateY(3px) scale(1.03) rotate(.4deg); }
@@ -1707,10 +1708,33 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
   0% { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .9), 0 12px 24px -16px rgba(30, 15, 0, .5); }
   100% { box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0), 0 12px 24px -16px rgba(30, 15, 0, .5); }
 }
-@keyframes td-shine { to { transform: translateX(120%); } }
+@keyframes td-shine { from { background-position: 160% 0; } to { background-position: -60% 0; } }
+
+/* Ticked off: the tick fills and bounces, confetti bursts out of it, the card
+   gives a little pop and a shine, then folds away and the list closes up. */
+.td-card.is-popping { opacity: 1; animation: td-pop .5s cubic-bezier(.2, .9, .3, 1.4), td-glow 1s ease-out; }
+.td-card.is-popping .td-tick { position: relative; background: currentColor; opacity: 1; animation: td-tickpop .45s cubic-bezier(.2, .9, .3, 1.6); }
+.td-card.is-popping .td-tick svg { opacity: 1; color: var(--rp-dark); }
+.td-card.t-gold.is-popping .td-tick svg { color: var(--rp-gold); }
+.td-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; z-index: 2; }
+.td-burst i { position: absolute; left: calc(var(--w) / -2); top: -3px; width: var(--w); height: 6px; border-radius: 2px; background: var(--c); opacity: 0; animation: td-bit .7s cubic-bezier(.15, .7, .35, 1) forwards; }
+@keyframes td-bit {
+  0% { opacity: 1; transform: rotate(var(--a)) translateY(0) rotate(0) scale(.6); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(var(--r)) scale(1); }
+}
+@keyframes td-tickpop { 0% { transform: scale(.6); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes td-pop { 0% { transform: scale(1); } 35% { transform: scale(1.04); } 100% { transform: scale(1); } }
+.td-cardw.is-leaving { overflow: hidden; animation: td-fold .45s cubic-bezier(.4, 0, .2, 1) forwards; }
+@keyframes td-fold {
+  0% { opacity: 1; transform: none; }
+  40% { opacity: .5; transform: scale(.96) translateX(14px); }
+  100% { opacity: 0; transform: scale(.9) translateX(40px); height: 0; margin-bottom: -12px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .td-card.is-fresh, .td-newpop { animation: none; }
-  .td-card.is-fresh::after { display: none; }
+  .td-card.is-fresh, .td-card.is-popping, .td-card.is-popping .td-tick, .td-newpop { animation: none; }
+  .td-card.is-fresh::after, .td-card.is-popping::after, .td-burst { display: none; }
+  .td-cardw.is-leaving { animation: td-fade .25s forwards; }
 }
 .qp-toast.bad { background: var(--bad); color: #fff; }
 
@@ -2574,3 +2598,27 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .wo-edit .qp-links .wo-del { margin-left: auto; color: var(--bad); }
 .wo-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px; background: var(--bad-bg); }
 .wo-confirm > span { flex-basis: 100%; font-weight: 600; font-size: 14px; }
+
+@keyframes td-fade { to { opacity: 0; height: 0; margin-bottom: -12px; } }
+
+/* Future planning: a new plan's form folds down as it saves, and the plan
+   opens up out of the column in its place; one dragged to another column
+   opens up there the same way. Heights animate to and from auto through
+   interpolate-size (set on .td); where that isn't supported they just jump. */
+.pl .pt-plan__card[draggable="true"] { cursor: grab; }
+.pl .pt-plan__card.dragging { opacity: .45; }
+.pl-addw.is-sending { overflow: hidden; transform-origin: 50% 0; animation: pl-fold .38s cubic-bezier(.4, 0, .2, 1) forwards; pointer-events: none; }
+@keyframes pl-fold {
+  0% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: scale(.9); height: 0; margin-bottom: -10px; }
+}
+.pl .pt-plan__card.is-fresh { overflow: hidden; transform-origin: 50% 100%; animation: pl-open .55s cubic-bezier(.2, .9, .3, 1.12) both, td-glow 1.3s .35s ease-out; }
+@keyframes pl-open {
+  0% { opacity: 0; height: 0; padding-block: 0; transform: scaleY(.6) scaleX(.94); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-addw.is-sending { animation: none; opacity: .4; }
+  .pl .pt-plan__card.is-fresh { animation: none; }
+}
