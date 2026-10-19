@@ -135,9 +135,22 @@ async function soldNotBooked(ctx: Ctx, pipe: PipeQuote[]) {
   }
 }
 
-/** Finished before today and still no invoice: by the next morning it should have gone. */
+/**
+ * Finished before today and still no invoice: by the next morning it should
+ * have gone. The to-do ticks itself off once the job's off the list: invoiced,
+ * or found to be a visit whose sale was booked as a job of its own, which is
+ * billed when that one's done.
+ */
+const BILL_TODOS = "automation_bill_todos";
 async function notInvoiced(ctx: Ctx) {
   const rows = await toBillJobs();
+  const open = (await getSettings<Record<string, string>>(BILL_TODOS).catch(() => null)) ?? {};
+  const still = new Set(rows.map((r) => String(r.id)));
+  for (const [job, id] of Object.entries(open)) {
+    if (still.has(job)) continue;
+    await setDone(id, true, "Automatic").catch(() => false);
+    delete open[job];
+  }
   let n = 0;
   for (const r of rows) {
     if (n >= PER_RUN) break;
@@ -147,8 +160,10 @@ async function notInvoiced(ctx: Ctx) {
       title: `Invoice job ${r.jobNumber ?? r.id}${r.customer ? `, ${r.customer}` : ""}`,
       notes: `${r.jobType ?? "Job"}${r.suburb ? ` in ${r.suburb}` : ""}, finished ${dayLabel(done)}${r.value ? `, sold at ${money(r.value)}` : ""}. No invoice in ServiceTitan yet.`,
       to: null, accounts: true, jobId: r.id,
+      onMade: (id) => { if (id) open[String(r.id)] = id; },
     })) n++;
   }
+  await saveSettings(BILL_TODOS, open).catch(() => undefined);
 }
 
 /**
