@@ -2622,3 +2622,16 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
   .pl-addw.is-sending { animation: none; opacity: .4; }
   .pl .pt-plan__card.is-fresh { animation: none; }
 }
+
+/* Important to-dos: a flag button beside the tick, an "Important" tag on the
+   card (words, not only the ring), and a bright inner ring to pick it out. */
+.td-tags { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; margin-right: auto; }
+.td-imptag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #fff; color: #1f1c1a; letter-spacing: .01em; }
+.td-flag { width: 28px; height: 28px; border-radius: 50%; border: 0; background: transparent; color: inherit; display: grid; place-items: center; cursor: pointer; opacity: .45; flex: none; }
+.td-flag:hover, .td-flag:focus-visible { opacity: 1; background: rgba(255, 255, 255, .18); }
+.td-flag.on { opacity: 1; }
+.td-card.is-important { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .85), 0 12px 24px -16px rgba(30, 15, 0, .5); }
+.td-card.t-gold.is-important { box-shadow: inset 0 0 0 2px rgba(43, 32, 0, .7), 0 12px 24px -16px rgba(30, 15, 0, .5); }
+.td-card.t-gold .td-imptag { background: #2b2000; color: var(--rp-gold); }
+.td-imp { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; }
+.td-imp input { width: 16px !important; height: 16px; margin: 0; flex: none; accent-color: var(--ink); }

@@ -17,18 +17,18 @@ import { DEFAULT_LISTS, dueState, isAccountTodo, type Person, type Todo } from "
  */
 
 const T = "portal_todos";
-const COLS = "id,title,notes,assignee_id,due_on,done_at,done_by,created_by_id,created_by,created_at,list";
+const COLS = "id,title,notes,assignee_id,due_on,done_at,done_by,created_by_id,created_by,created_at,list,important";
 
 type Row = {
   id: string; title: string; notes: string | null; assignee_id: string | null; due_on: string;
   done_at: string | null; done_by: string | null; created_by_id: string | null; created_by: string | null; created_at: string;
-  list: string | null;
+  list: string | null; important: boolean | null;
 };
 
 const toTodo = (r: Row): Todo => ({
   id: r.id, title: r.title, notes: r.notes, assigneeId: r.assignee_id, dueOn: r.due_on,
   doneAt: r.done_at, doneBy: r.done_by, createdById: r.created_by_id, createdBy: r.created_by, createdAt: r.created_at,
-  list: r.list ?? null,
+  list: r.list ?? null, important: !!r.important,
 });
 
 export const todayMelbourne = () => isoDateMelbourne(new Date());
@@ -163,7 +163,7 @@ export async function overdueByPerson(): Promise<Array<{ name: string; n: number
 
 /* ----------------------------------------------------------------- writes */
 
-export async function createTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; by: Person; list?: string | null }): Promise<void> {
+export async function createTodo(input: { title: string; notes?: string | null; assigneeId: string; dueOn: string; by: Person; list?: string | null; important?: boolean }): Promise<void> {
   await sbInsert(T, {
     title: input.title.trim().slice(0, 300),
     notes: input.notes?.trim() ? input.notes.trim().slice(0, 2000) : null,
@@ -172,6 +172,7 @@ export async function createTodo(input: { title: string; notes?: string | null; 
     created_by_id: input.by.id,
     created_by: input.by.name,
     list: input.list?.trim() ? input.list.trim().slice(0, 40) : null,
+    important: !!input.important,
   });
 }
 
@@ -195,13 +196,14 @@ export async function createAutoTodo(input: { title: string; notes?: string | nu
   return row?.id ?? null;
 }
 
-export async function updateTodo(id: string, patch: { title?: string; notes?: string | null; assigneeId?: string; dueOn?: string; list?: string | null }): Promise<void> {
+export async function updateTodo(id: string, patch: { title?: string; notes?: string | null; assigneeId?: string; dueOn?: string; list?: string | null; important?: boolean }): Promise<void> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.title !== undefined) body.title = patch.title.trim().slice(0, 300);
   if (patch.notes !== undefined) body.notes = patch.notes?.trim() ? patch.notes.trim().slice(0, 2000) : null;
   if (patch.assigneeId !== undefined) body.assignee_id = patch.assigneeId;
   if (patch.dueOn !== undefined) body.due_on = patch.dueOn;
   if (patch.list !== undefined) body.list = patch.list?.trim() ? patch.list.trim().slice(0, 40) : null;
+  if (patch.important !== undefined) body.important = !!patch.important;
   await sbUpdate(T, `${q.eq("id", id)}&removed_at=is.null`, body);
 }
 

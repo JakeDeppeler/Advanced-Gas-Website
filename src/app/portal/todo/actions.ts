@@ -27,7 +27,7 @@ async function who() {
  * Give someone a to-do. The office can give one to anyone; anyone else only
  * to themselves — a list of their own, without filling up somebody else's.
  */
-export async function addTodo(input: { title: string; assigneeId: string; dueOn: string; notes?: string; list?: string }): Promise<TodoResult> {
+export async function addTodo(input: { title: string; assigneeId: string; dueOn: string; notes?: string; list?: string; important?: boolean }): Promise<TodoResult> {
   const w = await who();
   if (!w) return { ok: false, error: "Sign in again." };
   if (!w.me) return { ok: false, error: "You're not on the team list, so there's no list to add to." };
@@ -38,7 +38,7 @@ export async function addTodo(input: { title: string; assigneeId: string; dueOn:
   if (!people.some((p) => p.id === input.assigneeId)) return { ok: false, error: "That person isn't on the team list." };
   if (!w.all && input.assigneeId !== w.me.id) return { ok: false, error: "You can add to your own list." };
   try {
-    await createTodo({ title, notes: input.notes ?? null, assigneeId: input.assigneeId, dueOn: input.dueOn, by: w.me, list: input.list ?? null });
+    await createTodo({ title, notes: input.notes ?? null, assigneeId: input.assigneeId, dueOn: input.dueOn, by: w.me, list: input.list ?? null, important: !!input.important });
   } catch {
     return { ok: false, error: "Couldn't save it. Try again." };
   }
@@ -69,7 +69,7 @@ export async function tickTodo(id: string, done: boolean): Promise<TodoResult> {
   return { ok: true };
 }
 
-export async function editTodo(id: string, patch: { title?: string; dueOn?: string; assigneeId?: string; notes?: string; list?: string }): Promise<TodoResult> {
+export async function editTodo(id: string, patch: { title?: string; dueOn?: string; assigneeId?: string; notes?: string; list?: string; important?: boolean }): Promise<TodoResult> {
   const { w, t, error } = await mayChange(id);
   if (!w || !t) return { ok: false, error: error ?? "Couldn't." };
   if (patch.title !== undefined && !patch.title.trim()) return { ok: false, error: "It needs a name." };
