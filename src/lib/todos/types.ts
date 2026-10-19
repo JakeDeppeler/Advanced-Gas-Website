@@ -21,6 +21,8 @@ export type Todo = {
   createdAt: string;
   /** The list it's on: Quoting, Advanced Gas, or one the office added. Null sits in the first. */
   list: string | null;
+  /** Flagged as important: kept at the top of its list (0081). */
+  important: boolean;
 };
 
 /** The lists Settings › Automatic writes to: the accounts person's, and the quote follow-ups. */

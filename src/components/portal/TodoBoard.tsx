@@ -72,6 +72,9 @@ type Shared = {
   fresh: Set<string>;
   /** Cards just ticked off, on their way out: first the burst, then they fold away. */
   leaving: Record<string, "pop" | "leave">;
+  /** Flag a to-do as important, or take the flag off: shown at once, saved behind. */
+  flag: (t: Todo, on: boolean) => void;
+  isImportant: (t: Todo) => boolean;
 };
 /** Through context so the cards live at the top level: declared inside the board they would remount, and lose a half-typed edit, on every redraw. */
 const Ctx = createContext<Shared>(null as unknown as Shared);
@@ -84,14 +87,15 @@ function TodoForm({ t, list, forId, onDone }: { t?: Todo; list: string; forId: s
   const [who, setWho] = useState(t?.assigneeId ?? forId);
   const [due, setDue] = useState(t?.dueOn ?? today);
   const [onList, setOnList] = useState(t ? t.list ?? lists[0] : list);
+  const [important, setImportant] = useState(t?.important ?? false);
   const key = t?.id ?? `new-${list}`;
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (t) {
-      run(() => editTodo(t.id, { title, notes, dueOn: due, list: onList, ...(all && who ? { assigneeId: who } : {}) }), "Saved.", onDone);
+      run(() => editTodo(t.id, { title, notes, dueOn: due, list: onList, important, ...(all && who ? { assigneeId: who } : {}) }), "Saved.", onDone);
     } else {
       const to = all ? who : meId ?? "";
-      run(() => addTodo({ title, notes, assigneeId: to, dueOn: due, list: onList }), to === meId ? "Added." : `Added to ${firstName(people.find((p) => p.id === to)?.name ?? "their")}'s list.`, onDone);
+      run(() => addTodo({ title, notes, assigneeId: to, dueOn: due, list: onList, important }), to === meId ? "Added." : `Added to ${firstName(people.find((p) => p.id === to)?.name ?? "their")}'s list.`, onDone);
     }
   };
   return (
@@ -111,6 +115,10 @@ function TodoForm({ t, list, forId, onDone }: { t?: Todo; list: string; forId: s
           </select>
         )}
       </div>
+      <label className="td-imp" htmlFor={`td-i-${key}`}>
+        <input id={`td-i-${key}`} type="checkbox" checked={important} onChange={(e) => setImportant(e.target.checked)} />
+        <span aria-hidden="true">⚑</span> Important, keep it at the top
+      </label>
       <div className="td-formacts">
         <button type="submit" className="qp-btn dark" disabled={pending || !title.trim()}>{t ? "Save" : "Add"}</button>
         <button type="button" className="qp-btn" onClick={onDone}>Cancel</button>
@@ -137,7 +145,8 @@ function Burst() {
 }
 
 function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean }) {
-  const { tick, ticked, pending, name, meId, today, setDrag, drag, open, fresh, leaving } = useContext(Ctx);
+  const { tick, ticked, pending, name, meId, today, setDrag, drag, open, fresh, leaving, flag, isImportant } = useContext(Ctx);
+  const imp = isImportant(t);
   const going = leaving[t.id];
   const [editing, setEditing] = useState(false);
   const isDone = ticked[t.id] ?? !!t.doneAt;
@@ -148,13 +157,23 @@ function Card({ t, tone, showWho }: { t: Todo; tone: string; showWho: boolean })
   return (
     <li className={`td-cardw${going === "leave" ? " is-leaving" : ""}`}>
       <div
-        className={`td-card t-${tone} is-${state}${drag === t.id ? " dragging" : ""}${fresh.has(t.id) ? " is-fresh" : ""}${going ? " is-popping" : ""}`}
+        className={`td-card t-${tone} is-${state}${imp ? " is-important" : ""}${drag === t.id ? " dragging" : ""}${fresh.has(t.id) ? " is-fresh" : ""}${going ? " is-popping" : ""}`}
         draggable={!isDone}
         onDragStart={(e) => { e.dataTransfer.setData("text/plain", t.id); e.dataTransfer.effectAllowed = "move"; setDrag(t.id); }}
         onDragEnd={() => setDrag(null)}
       >
         <div className="td-top">
-          <span className={`td-due is-${state}`}>{state === "overdue" ? "⚑ " : ""}{isDone ? "Done" : dueWords(t, today)}</span>
+          <span className="td-tags">
+            {imp && !isDone && <span className="td-imptag">⚑ Important</span>}
+            <span className={`td-due is-${state}`}>{state === "overdue" ? "⚑ " : ""}{isDone ? "Done" : dueWords(t, today)}</span>
+          </span>
+          {!isDone && (
+            <button type="button" className={`td-flag${imp ? " on" : ""}`} aria-pressed={imp} disabled={pending}
+              aria-label={imp ? `Not important: ${t.title}` : `Important: ${t.title}`} title={imp ? "Take the important flag off" : "Flag as important, to the top"}
+              onClick={() => flag(t, !imp)}>
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill={imp ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5" /></svg>
+            </button>
+          )}
           <button
             type="button" role="checkbox" aria-checked={isDone} className="td-tick" disabled={pending}
             aria-label={`${isDone ? "Not done" : "Done"}: ${t.title}`} onClick={() => tick(t, !isDone)}
@@ -327,6 +346,14 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   // Ticked off: the card stays on the board long enough to celebrate and fold
   // away, even if the refresh that drops it from the list comes back first.
   const [leaving, setLeaving] = useState<Record<string, "pop" | "leave">>({});
+  const [flagged, setFlagged] = useState<Record<string, boolean>>({});
+  const isImportant = (t: Todo) => flagged[t.id] ?? t.important;
+  const flag = (t: Todo, on: boolean) => {
+    setFlagged((s) => ({ ...s, [t.id]: on }));
+    // Up to the top with the same arrival as a new one, so the eye follows it.
+    if (on) { setFresh((f) => new Set([...f, t.id])); setTimeout(() => setFresh((f) => new Set([...f].filter((id) => id !== t.id))), 1600); }
+    run(() => editTodo(t.id, { important: on }), on ? "Flagged, it's at the top." : "Flag taken off.");
+  };
   const [gone, setGone] = useState<Record<string, Todo>>({});
   const tick = (t: Todo, d: boolean) => {
     if (d) {
@@ -396,7 +423,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   // Who may change the lists themselves, as opposed to what's on them.
   const shape = all && !fixed;
   const toneOf = (l: string, i: number) => TONES[Math.max(0, (allLists ?? lists).indexOf(l) >= 0 ? (allLists ?? lists).indexOf(l) : i) % TONES.length];
-  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag, open: fixed ? setContact : null, jobIds: jobIds ?? {}, fresh, leaving };
+  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag, open: fixed ? setContact : null, jobIds: jobIds ?? {}, fresh, leaving, flag, isImportant };
   const doneShown = done.filter(mine);
   const [officePick, setOfficePick] = useState<string[]>(office);
   const [showDone, setShowDone] = useState(false);
@@ -446,12 +473,12 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
         <div className="td-board">
           {lists.map((l, i) => {
             const tone = toneOf(l, i);
-            // Newest first, so what was just added is what's in front of you.
-            // Overdue ones aren't lifted out of that order: pinned on top they
-            // buried today's additions under last week's, and the card's red
-            // "Overdue" flag already picks them out.
+            // Flagged important at the top; then soonest due first, through to
+            // the latest; on the same day, newest first so what was just added
+            // is in front of you.
             const items = [...shown, ...Object.values(gone).filter((g) => !shown.some((t) => t.id === g.id) && mine(g))]
-              .filter((t) => listOf(t) === l).sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id));
+              .filter((t) => listOf(t) === l)
+              .sort((a, b) => Number(isImportant(b)) - Number(isImportant(a)) || a.dueOn.localeCompare(b.dueOn) || b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id));
             const can = !!drag && live.find((x) => x.id === drag)?.list !== l;
             return (
               <section
