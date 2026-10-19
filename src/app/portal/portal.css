@@ -5775,3 +5775,36 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nw__dateline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .pt-nw__textarea { min-height: 76px; padding: 10px 12px; resize: vertical; line-height: 1.45; }
 .pt-nw__note { flex: 0 0 100%; margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--pt-tint); font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Documents under a licence card, and the page's own Documents. A file is a
+   row with what it is in words (PDF or IMG), never just an icon. */
+.pt-ifiles { display: grid; gap: 8px; margin-top: 6px; min-width: 0; }
+.pt-icopy__card .pt-ifiles { padding-top: 12px; border-top: 1px solid var(--pt-line); margin-top: 10px; }
+.pt-ifiles ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pt-ifiles li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "kind name acts" "kind meta acts"; column-gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--pt-bg); }
+.pt-ifiles__kind { grid-area: kind; font-size: 10.5px; font-weight: 800; letter-spacing: .04em; padding: 6px 7px; border-radius: 8px; background: #b3261e; color: #fff; }
+.pt-ifiles__kind.is-img { background: var(--pt-navy, #050a30); }
+.pt-ifiles__name { grid-area: name; font-weight: 700; font-size: 14px; color: var(--pt-ink); text-decoration: none; overflow-wrap: anywhere; }
+.pt-ifiles__name:hover { text-decoration: underline; }
+.pt-ifiles__meta { grid-area: meta; font-size: 12px; color: var(--pt-ink-2); }
+.pt-ifiles__acts { grid-area: acts; display: inline-flex; align-items: center; gap: 4px; }
+.pt-ifiles__acts a, .pt-ifiles__acts button { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--pt-ink); text-decoration: none; padding: 5px 9px; border-radius: 8px; border: 0; background: transparent; cursor: pointer; }
+.pt-ifiles__acts a:hover, .pt-ifiles__acts button:hover, .pt-ifiles__acts a:focus-visible { background: var(--pt-line); }
+.pt-ifiles__acts button { font-size: 16px; line-height: 1; color: var(--pt-ink-2); }
+.pt-ifiles__add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pt-ifiles__pick { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border-radius: 99px; border: 1.5px dashed var(--pt-line); background: transparent; font: inherit; font-size: 13px; font-weight: 600; color: var(--pt-ink-2); cursor: pointer; }
+.pt-ifiles__pick:hover { color: var(--pt-ink); border-color: var(--pt-ink-2); }
+.pt-ifiles__pick:disabled { opacity: .6; cursor: default; }
+.pt-ifiles__pick:focus-visible { outline: 2px solid var(--pt-ink); outline-offset: 2px; }
+.pt-ifiles__label { flex: 1 1 260px; min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink); font: inherit; font-size: 13.5px; }
+.pt-ifiles__msg { margin: 0; font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-ifiles__msg.is-bad { color: #b3261e; }
+.pt-idocs { margin-top: 16px; }
+.pt-idocs .pt-ifiles li { background: var(--pt-surface); border: 1px solid var(--pt-line); }
+@media (max-width: 560px) {
+  .pt-ifiles li { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "kind name" "kind meta" "acts acts"; row-gap: 4px; }
+  .pt-ifiles__acts { justify-self: start; margin-left: -6px; }
+}
+/* In a licence card there's a third of the page: name and size across, View and Download underneath. */
+.pt-icopy__card .pt-ifiles li { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "kind name" "kind meta" "acts acts"; row-gap: 4px; }
+.pt-icopy__card .pt-ifiles__acts { justify-self: start; margin-left: -6px; }

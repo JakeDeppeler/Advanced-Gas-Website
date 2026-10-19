@@ -8,6 +8,12 @@ import { INFO_SECTIONS, type InfoContentBlock } from "@/lib/portal/content";
 import { loadInfoSection } from "@/lib/portal/info/store";
 import { canEditStandards } from "@/lib/portal/standards";
 import { InfoEditor } from "@/components/portal/InfoEditor";
+import { InfoFiles, type InfoFileView } from "@/components/portal/InfoFiles";
+import { infoFiles, type InfoFile } from "@/lib/portal/info/files";
+
+/** What the page needs to list a document, and nothing about where it's kept. */
+const view = (f: InfoFile): InfoFileView => ({ id: f.id, label: f.label, mime: f.mime, bytes: f.bytes, at: f.at });
+type Docs = { slug: string; files: InfoFile[]; canEdit: boolean };
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +23,7 @@ export function generateMetadata({ params }: { params: { section: string } }) {
 }
 
 /** One block, in whichever shape its content is. */
-function Block({ b }: { b: InfoContentBlock }) {
+function Block({ b, docs }: { b: InfoContentBlock; docs: Docs }) {
   const navy = b.tone === "navy";
 
   if (b.as === "facts") {
@@ -67,6 +73,7 @@ function Block({ b }: { b: InfoContentBlock }) {
             <span>{r.k}</span>
             <strong>{r.v}</strong>
             <CopyValue value={r.v} label={r.k} />
+            <InfoFiles slug={docs.slug} card={r.k} files={docs.files.filter((f) => f.card === r.k).map(view)} canEdit={docs.canEdit} />
           </div>
         ))}
       </div>
@@ -132,6 +139,12 @@ export default async function InfoSectionPage({ params }: { params: { section: s
   const section = await loadInfoSection(params.section);
   if (!section) notFound();
   const canEdit = canEditStandards(user);
+  const files = await infoFiles(section.slug).catch(() => [] as InfoFile[]);
+  const docs: Docs = { slug: section.slug, files, canEdit };
+  // The page's own Documents: ones with no card, or whose card has since been renamed or taken off.
+  const cards = new Set(section.blocks.filter((b) => b.as === "copy").flatMap((b) => (b.rows ?? []).map((r) => r.k)));
+  const loose = files.filter((f) => !f.card || !cards.has(f.card));
+  const hasDocs = cards.size > 0 || loose.length > 0;
 
   return (
     <PortalShell user={user}>
@@ -165,10 +178,18 @@ export default async function InfoSectionPage({ params }: { params: { section: s
         <div className="pt-info">
           {section.blocks.map((b, i) => (
             <div key={b.title ?? `b${i}`} className={b.span === "full" ? "pt-info__full" : b.span === "tall" ? "pt-info__tall" : undefined}>
-              <Block b={b} />
+              <Block b={b} docs={docs} />
             </div>
           ))}
         </div>
+
+        {hasDocs && (loose.length > 0 || canEdit) && (
+          <section className="pt-icard pt-idocs" aria-labelledby="info-docs-h">
+            <h2 id="info-docs-h" className="pt-icard__h">Documents</h2>
+            <p className="pt-ibody">Certificates and anything else someone might ask us for, ready to send.</p>
+            <InfoFiles slug={section.slug} card={null} files={loose.map(view)} canEdit={canEdit} />
+          </section>
+        )}
       </div>
     </PortalShell>
   );
