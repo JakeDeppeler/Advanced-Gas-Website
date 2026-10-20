@@ -632,14 +632,50 @@ export async function mergeDrafts(keepId: number): Promise<{ ok: boolean; error?
  * is the office's to tell. What ServiceTitan was given (purchase orders, job
  * notes) is kept, so sending it again doesn't make them twice.
  */
-export async function putBackToDraft(id: number): Promise<{ ok: boolean; error?: string; was?: { po: string; to: string | null } }> {
-  const po = await sbSelectOne<{ status: string; po_number: string; sent_to: string | null }>("purchase_orders", `select=status,po_number,sent_to&id=eq.${id}`);
+export async function putBackToDraft(id: number): Promise<{ ok: boolean; error?: string; was?: { po: string; to: string | null }; folded?: string }> {
+  const po = await sbSelectOne<{ status: string; po_number: string; sent_to: string | null; kind: string; supplier_id: string; week_of: string; group_key: string }>(
+    "purchase_orders", `select=status,po_number,sent_to,kind,supplier_id,week_of,group_key&id=eq.${id}`,
+  );
   if (!po) return { ok: false, error: "That order isn't there any more." };
   if (po.status === "draft") return { ok: false, error: "It's already a draft." };
   if (po.status !== "sent" && po.status !== "approved") return { ok: false, error: `It's ${po.status}, so there's nothing to put back.` };
-  const got = await sbUpdateReturning("purchase_orders", `id=eq.${id}&status=in.(sent,approved)`, {
-    status: "draft", approved_by: null, approved_at: null, sent_at: null, sent_to: null, send_error: null, updated_at: new Date().toISOString(),
-  });
-  if (!got.length) return { ok: false, error: "It changed just now. Have another look." };
-  return { ok: true, was: { po: po.po_number, to: po.sent_to } };
+  // A supplier has one draft a week (purchase_orders_one_draft_order). When
+  // there's already one (a top-up drafted since this went), its lines come
+  // onto this order and it goes, rather than the database refusing a second.
+  let folded: string | undefined;
+  try {
+    if (po.kind === "order") {
+      const [other] = await sbSelect<{ id: number; po_number: string }>("purchase_orders",
+        `select=id,po_number&kind=eq.order&status=eq.draft&supplier_id=eq.${encodeURIComponent(po.supplier_id)}&week_of=eq.${po.week_of}&id=neq.${id}&limit=1`);
+      if (other) {
+        const mine = new Map((await sbSelect<PoLine>("purchase_order_lines", `po_id=eq.${id}&order=id.asc`)).map((l) => [lineKey(l.job_id, l.sku_id), l]));
+        for (const l of await sbSelect<PoLine>("purchase_order_lines", `po_id=eq.${other.id}&order=id.asc`)) {
+          const same = l.sku_id != null ? mine.get(lineKey(l.job_id, l.sku_id)) : undefined;
+          if (same) {
+            same.qty = Number(same.qty) + Number(l.qty);
+            await sbUpdate("purchase_order_lines", `id=eq.${same.id}`, { qty: same.qty });
+            await sbDelete("purchase_order_lines", `id=eq.${l.id}`);
+          } else {
+            await sbUpdate("purchase_order_lines", `id=eq.${l.id}`, { po_id: id });
+          }
+        }
+        await sbDelete("purchase_orders", `id=eq.${other.id}&status=eq.draft`);
+        folded = other.po_number;
+      }
+    } else {
+      const base = po.group_key.split("#")[0];
+      // Filtered here rather than with a LIKE: "job-12*" would also catch job-123.
+      const other = (await sbSelect<{ po_number: string; group_key: string }>("purchase_orders",
+        `select=po_number,group_key&kind=eq.work_order&status=eq.draft&week_of=eq.${po.week_of}&id=neq.${id}`))
+        .find((d) => d.group_key.split("#")[0] === base);
+      if (other) return { ok: false, error: `There's already a draft work order for this job that week (${other.po_number}). Send or delete that one first.` };
+    }
+    const got = await sbUpdateReturning("purchase_orders", `id=eq.${id}&status=in.(sent,approved)`, {
+      status: "draft", approved_by: null, approved_at: null, sent_at: null, sent_to: null, send_error: null, updated_at: new Date().toISOString(),
+    });
+    if (!got.length) return { ok: false, error: "It changed just now. Have another look." };
+  } catch (e) {
+    return { ok: false, error: `Couldn't put it back: ${(e as Error).message.slice(0, 160)}` };
+  }
+  return { ok: true, was: { po: po.po_number, to: po.sent_to }, folded };
 }
