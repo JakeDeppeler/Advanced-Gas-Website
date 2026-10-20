@@ -12,7 +12,7 @@ export type AutoEntry = { at: string; kind: string; title: string; detail?: stri
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend"] as const;
+export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */

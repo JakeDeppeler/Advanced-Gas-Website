@@ -199,6 +199,26 @@ export async function bookedDays(jobIds: number[]): Promise<Map<number, string>>
 }
 
 /**
+ * Jobs with a tech assigned to a visit from today on. A visit booked into an
+ * empty slot with nobody on it isn't settled yet, and a work order sent off
+ * it can have the contractor turning up to an empty house. Only active
+ * assignments on visits still to come, not cancelled: a tech on last week's
+ * quote visit says nothing about the install.
+ */
+export async function techAssigned(jobIds: number[], today: string): Promise<Set<number>> {
+  const ids = [...new Set(jobIds.filter((n) => Number.isInteger(n) && n > 0))];
+  if (!ids.length) return new Set();
+  const [visits, assigned] = await Promise.all([
+    sbSelect<{ id: number; job_id: number; start_at: string | null; status: string | null; active: boolean | null }>("st_appointments", `select=id,job_id,start_at,status,active&job_id=in.(${ids.join(",")})`),
+    sbSelect<{ job_id: number; appointment_id: number | null }>("st_appointment_assignments", `select=job_id,appointment_id&active=eq.true&job_id=in.(${ids.join(",")})`),
+  ]);
+  const ahead = new Set(visits
+    .filter((v) => v.active !== false && !/^cancel/i.test(v.status ?? "") && v.start_at && isoDateMelbourne(new Date(v.start_at)) >= today)
+    .map((v) => Number(v.id)));
+  return new Set(assigned.filter((a) => a.appointment_id != null && ahead.has(Number(a.appointment_id))).map((a) => Number(a.job_id)));
+}
+
+/**
  * A draft work order the office doesn't want, marked cancelled as To order
  * cancels a draft: out of every list, and its job isn't drafted again
  * automatically. Never one that's been sent — the electrician has it.

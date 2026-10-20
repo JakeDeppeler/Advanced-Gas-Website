@@ -10,7 +10,7 @@ import { ordersToUpdate, updateJobs } from "@/lib/ordering/stJobNotes";
 import { findMoves, type Move } from "@/lib/ordering/moveNotices";
 import { approveAndSend, emailDateChange, noteBookedFor, sendReadyNotice } from "@/lib/ordering/send";
 import { doneNoticeEmail, nextWeek, workRef, type WorkOrderDetails } from "@/lib/ordering/plan";
-import { autoFor, bookedDays, loadSparkyAuto, loadWoContacts } from "@/lib/ordering/workOrders";
+import { autoFor, bookedDays, loadSparkyAuto, loadWoContacts, techAssigned } from "@/lib/ordering/workOrders";
 import { site } from "@/lib/site";
 import { owedInvoices } from "@/lib/portal/run/money";
 import { cleanCell } from "@/components/portal/fleetStatus";
@@ -62,6 +62,8 @@ type Ctx = {
   flow: Record<string, FlowEntry>;
   /** What was emailed to a supplier or trade by itself this run, for the "it went" notice. */
   sent: { head: string; detail: string }[];
+  /** Left for a person to send, said in the same email so it isn't missed. */
+  held: { head: string; detail: string }[];
 };
 
 /** What to find a quote by in ServiceTitan: its job, or for one written on the customer, the customer. */
@@ -370,6 +372,13 @@ async function orderMoves(ctx: Ctx) {
  * not one touched in the last half hour (someone may still be on it), not one
  * for someone else with nowhere to send it, and not a contractor whose
  * switch is off on Work orders › Contractors. Same hours as passing on a move.
+ *
+ * Two more, each its own switch under this one on Settings › Automatic:
+ * nothing goes until a tech is assigned to the visit (a booking dropped into
+ * an empty slot isn't settled), and a job booked for today is left for the
+ * office to send by hand, since a same-day job is rung through, not emailed
+ * at 7:37 am with nobody checking it'll be read. That one is said once, in
+ * the log and the "it went" email, so it isn't left sitting as a draft.
  */
 async function workOrderSend(ctx: Ctx) {
   const hour = melHour();
@@ -378,7 +387,8 @@ async function workOrderSend(ctx: Ctx) {
     "purchase_orders", "select=id,po_number,group_key,updated_at,details&kind=eq.work_order&status=eq.draft&order=id.asc&limit=40",
   );
   const [contacts, sparkyAuto] = await Promise.all([loadWoContacts(), loadSparkyAuto()]);
-  const booked = await bookedDays(drafts.map((d) => d.details?.jobs?.[0]?.job_id ?? 0));
+  const jobIds = drafts.map((d) => d.details?.jobs?.[0]?.job_id ?? 0);
+  const [booked, teched] = await Promise.all([bookedDays(jobIds), ctx.sw.woNeedsTech ? techAssigned(jobIds, ctx.today) : null]);
   const settled = new Date(Date.now() - 30 * 60_000).toISOString();
   let n = 0;
   for (const d of drafts) {
@@ -393,9 +403,19 @@ async function workOrderSend(ctx: Ctx) {
     const failKey = `wosend-fail:${d.id}`;
     if (ctx.made.has(failKey) || ctx.made.has(`wo-hold:${d.id}`)) continue;
     const ref = workRef(det);
+    const who = det.trade ? `${det.to_name ?? det.trade} (${det.trade})` : "the electrician";
+    if (ctx.sw.woNotToday && det.date === ctx.today) {
+      const todayKey = `wo-today:${d.id}:${det.date}`;
+      if (!ctx.made.has(todayKey)) {
+        ctx.made.set(todayKey, new Date().toISOString());
+        ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: false, jobId, po: d.po_number, title: `Work order ${d.po_number} for ${who} is for today, so it's left for you to send: ${ref}` });
+        ctx.held.push({ head: `Work order for ${who}: ${ref}`, detail: `The job's booked for today, so it wasn't sent. It's a draft on Work orders: check they can make it, then press Send.` });
+      }
+      continue;
+    }
+    if (teched && !teched.has(jobId)) continue;
     const r = await approveAndSend(d.id, "Automatic").catch((e: Error) => ({ ok: false as const, error: e.message, note: undefined }));
     n++;
-    const who = det.trade ? `${det.to_name ?? det.trade} (${det.trade})` : "the electrician";
     if (r.ok) {
       ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: true, jobId, po: d.po_number, title: `Work order ${d.po_number} sent to ${who}: ${ref}`, detail: r.note ?? undefined });
       ctx.sent.push({ head: `Work order sent to ${who}: ${ref}`, detail: `${r.note ?? "Emailed."} For ${dayLabel(det.date)}.` });
@@ -547,7 +567,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const [made, people, offIds, lists] = await Promise.all([loadMade(), teamPeople(), officeIds(), todoLists()]);
   const office = people.find((p) => p.id === sw.officeTo) ?? people.find((p) => offIds.includes(p.id)) ?? null;
   const accounts = people.find((p) => p.id === sw.accountsTo) ?? office;
-  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw), flow: await loadFlow(), sent: [] };
+  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw), flow: await loadFlow(), sent: [], held: [] };
   const flowAtStart = { ...ctx.flow };
   const needPipe = sw.soldNotBooked || sw.quoteFollow || sw.accountFlow;
   const pipe = needPipe ? await loadPipeline({ detail: true }).then((p) => p.quotes).catch(() => null) : [];
@@ -579,9 +599,9 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   }
   await saveMade(ctx.made).catch(() => undefined);
   // One "it went" email for everything sent by itself this run.
-  if (ctx.sent.length) {
+  if (ctx.sent.length || ctx.held.length) {
     const to = (sw.notifyTo ?? NOTIFY_DEFAULT).split(/[,;\s]+/).filter((a) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
-    const parts = doneNoticeEmail({ items: ctx.sent, link: `${site.url.replace(/\/$/, "")}/portal/supply/work-orders` });
+    const parts = doneNoticeEmail({ items: ctx.sent, held: ctx.held, link: `${site.url.replace(/\/$/, "")}/portal/supply/work-orders` });
     for (const a of to.slice(0, 5)) {
       const err = await sendReadyNotice(parts, a).catch((e: Error) => e.message);
       if (err) ctx.log.push({ at: new Date().toISOString(), kind: "notice", ok: false, title: `Couldn't email ${a} what was sent`, detail: err.slice(0, 200) });

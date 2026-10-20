@@ -888,12 +888,24 @@ export function toApproveEmail(o: { orders: NewToOrder[]; workOrders: string[]; 
  * about the move or got the work order. Each line says who was emailed,
  * about which job, and what was said.
  */
-export function doneNoticeEmail(o: { items: { head: string; detail: string }[]; link: string }): EmailParts {
+export function doneNoticeEmail(o: { items: { head: string; detail: string }[]; held?: { head: string; detail: string }[]; link: string }): EmailParts {
   const n = o.items.length;
-  const subject = n === 1 ? `Sent automatically: ${o.items[0].head}` : `Sent automatically: ${n} emails to suppliers and trades`;
-  const body = `<ul style="margin:0;padding-left:20px;font:15px/22px ${SANS};color:#050a30;">${o.items.map((i) => `<li style="margin-bottom:8px;"><strong>${esc(i.head)}</strong><br><span style="color:#6b6a68;">${esc(i.detail)}</span></li>`).join("")}</ul>`;
-  const intro = "The portal sent these by itself after the last ServiceTitan sync. Nothing for you to do unless one's wrong.";
+  const held = o.held ?? [];
+  // What it left for a person leads the subject: that's the one that needs doing.
+  const subject = held.length
+    ? `Send by hand: ${held.length === 1 ? held[0].head : `${held.length} work orders for today`}${n ? `, and ${n} sent automatically` : ""}`
+    : n === 1 ? `Sent automatically: ${o.items[0].head}` : `Sent automatically: ${n} emails to suppliers and trades`;
+  const list = (xs: { head: string; detail: string }[]) => `<ul style="margin:0 0 16px;padding-left:20px;font:15px/22px ${SANS};color:#050a30;">${xs.map((i) => `<li style="margin-bottom:8px;"><strong>${esc(i.head)}</strong><br><span style="color:#6b6a68;">${esc(i.detail)}</span></li>`).join("")}</ul>`;
+  const heldHead = `<p style="margin:0 0 8px;font:600 15px/22px ${SANS};color:#050a30;">Left for you to send</p>`;
+  const sentHead = `<p style="margin:0 0 8px;font:600 15px/22px ${SANS};color:#050a30;">Sent by itself</p>`;
+  const body = held.length
+    ? `${heldHead}${list(held)}${n ? `${sentHead}${list(o.items)}` : ""}`
+    : list(o.items);
+  const intro = held.length
+    ? `Booked for today, so the portal didn't send ${held.length === 1 ? "this one" : "these"} by itself. Check the contractor can make it, then send it from Work orders.${n ? " The rest went by itself after the last ServiceTitan sync." : ""}`
+    : "The portal sent these by itself after the last ServiceTitan sync. Nothing for you to do unless one's wrong.";
   const footer = `Every one is on Orders & stock › Work orders and Settings › Automatic: ${esc(o.link)}<br>Change who gets these on Settings › Automatic.`;
-  const text = [intro, "", ...o.items.flatMap((i) => [`- ${i.head}`, `  ${i.detail}`]), "", `Work orders: ${o.link}`].join("\n");
-  return { subject, html: shell("Sent automatically", intro, body, footer), text };
+  const text = [intro, "", ...(held.length ? ["Left for you to send:", ...held.flatMap((i) => [`- ${i.head}`, `  ${i.detail}`]), ""] : []),
+    ...(n && held.length ? ["Sent by itself:"] : []), ...o.items.flatMap((i) => [`- ${i.head}`, `  ${i.detail}`]), "", `Work orders: ${o.link}`].join("\n");
+  return { subject, html: shell(held.length ? "Send these by hand" : "Sent automatically", intro, body, footer), text };
 }
