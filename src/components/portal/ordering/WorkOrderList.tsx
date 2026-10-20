@@ -295,7 +295,7 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
       <p className="qp-note">
         {sent
           ? "Just save fixes the record here and nothing is emailed. Emailing the update sends the new version marked as an update, and puts it on the job in ServiceTitan."
-          : "Sending emails it, copied to the office, then notes the job in ServiceTitan with the work order attached. Saved as a draft, it goes by itself once the job's booked in ServiceTitan (half an hour after your last change), unless they're set to By hand on Contractors."}
+          : "Sending emails it, copied to the office, then notes the job in ServiceTitan with the work order attached. Saved as a draft, it goes by itself once the job's booked in ServiceTitan with a tech on the visit (half an hour after your last change), unless they're set to By hand on Contractors. A job booked for today is left for you to send."}
       </p>
     </div>
   );
