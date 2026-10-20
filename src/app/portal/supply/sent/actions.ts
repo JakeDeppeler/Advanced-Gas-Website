@@ -27,7 +27,7 @@ export async function undoSend(id: number): Promise<{ ok: boolean; error?: strin
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
   if (!Number.isInteger(id) || id <= 0) return { ok: false, error: "Which order?" };
-  const r = await putBackToDraft(id);
+  const r = await putBackToDraft(id).catch((e: Error) => ({ ok: false as const, error: e.message, was: undefined, folded: undefined }));
   if (!r.ok) return { ok: false, error: r.error };
   const kind = await sbSelectOne<{ kind: string }>("purchase_orders", `select=kind&id=eq.${id}`).catch(() => null);
   if (kind?.kind === "work_order") await holdFromAutoSend(id).catch(() => undefined);
@@ -35,5 +35,5 @@ export async function undoSend(id: number): Promise<{ ok: boolean; error?: strin
   revalidatePath("/portal/supply/sent");
   revalidatePath("/portal/supply/next-week");
   revalidatePath("/portal/supply/work-orders");
-  return { ok: true, note: `${r.was?.po} is a draft again. Fix it and send it${kind?.kind === "work_order" ? " from Work orders; it won't go by itself" : " from To order"}.${r.was?.to ? ` If ${r.was.to} shouldn't have had it, let them know.` : ""}` };
+  return { ok: true, note: `${r.was?.po} is a draft again${r.folded ? `, with the lines from ${r.folded} (the draft that was waiting) added to it` : ""}. Fix it and send it${kind?.kind === "work_order" ? " from Work orders; it won't go by itself" : " from To order"}.${r.was?.to ? ` If ${r.was.to} shouldn't have had it, let them know.` : ""}` };
 }
