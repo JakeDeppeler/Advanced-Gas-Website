@@ -2635,3 +2635,32 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .td-card.t-gold .td-imptag { background: #2b2000; color: var(--rp-gold); }
 .td-imp { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; }
 .td-imp input { width: 16px !important; height: 16px; margin: 0; flex: none; accent-color: var(--ink); }
+
+/* Work orders › Sent automatically: what went out by itself, said in words. */
+.wo-auto { list-style: none; margin: 0; padding: 0; display: grid; }
+.wo-auto li { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 4px 14px; align-items: baseline; padding: 10px 2px; border-top: 1px solid var(--rp-line); font-size: 14px; }
+.wo-auto li:first-child { border-top: 0; }
+.wo-auto__k { font-weight: 700; font-size: 12.5px; color: var(--good); }
+.wo-auto li.bad .wo-auto__k { color: var(--bad); }
+.wo-auto__t { display: grid; gap: 2px; min-width: 0; }
+.wo-auto__t b { font-weight: 600; overflow-wrap: anywhere; }
+.wo-auto__t span { font-size: 12.5px; color: var(--ink2); }
+.wo-auto__at { font-size: 12.5px; color: var(--ink3); white-space: nowrap; }
+@media (max-width: 640px) { .wo-auto li { grid-template-columns: minmax(0, 1fr); } }
+.au-notify input { height: 38px; min-width: 260px; border-radius: 999px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); padding: 0 14px; font: inherit; font-size: 13.5px; }
+.au-notify button { height: 38px; padding: 0 16px; border-radius: 999px; border: 0; background: var(--ink); color: var(--surface); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.au-notify button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 560px) { .au-notify { flex-wrap: wrap; } .au-notify input { min-width: 0; flex: 1 1 100%; } }
+
+/* Sent › fix an order that's gone and send it again. */
+.sb-fixbar { padding: 4px 14px 10px; }
+.sb-fix { display: grid; gap: 6px; max-width: 560px; margin: 4px 14px 14px; padding: 14px 16px; border-radius: 16px; background: var(--sunken); }
+.sb-fix > b { font-size: 14.5px; }
+.sb-fix > p { margin: 0 0 4px; font-size: 13px; color: var(--ink2); }
+.sb-fix label { font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.sb-fix label span { font-weight: 400; }
+.sb-fix input:not([type="checkbox"]), .sb-fix textarea { width: 100%; box-sizing: border-box; border-radius: 12px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13.5px; padding: 9px 11px; }
+.sb-fix__check { display: flex; align-items: center; gap: 8px; color: var(--ink) !important; }
+.sb-fix__acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.sb-fix__msg { margin: 0; font-size: 13px; color: var(--good); }
+.sb-fix__msg.bad { color: var(--bad); }

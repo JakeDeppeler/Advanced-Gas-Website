@@ -10,6 +10,9 @@ import { findJobs, jobForWork, listWorkOrders, loadWoContacts } from "@/lib/orde
 import { WorkOrderList } from "@/components/portal/ordering/WorkOrderList";
 import { loadSuppliers } from "@/lib/ordering/db";
 import { dayTimeLabel } from "@/lib/ordering/plan";
+import { loadAutoLog, loadSwitches, NOTIFY_DEFAULT } from "@/lib/automation/log";
+
+const at = (iso: string) => new Date(iso).toLocaleString("en-AU", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
 
 export const dynamic = "force-dynamic";
 // Sending emails the electrician and then writes the note, the PDF and the tags to ServiceTitan.
@@ -33,13 +36,17 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
 
   const q = (searchParams?.q ?? "").slice(0, 60);
   const jobId = Number(searchParams?.job);
-  const [hits, job, list, suppliers, contacts] = await Promise.all([
+  const [hits, job, list, suppliers, contacts, autoLog, sw] = await Promise.all([
     q ? findJobs(q).catch(() => null) : Promise.resolve([]),
     Number.isInteger(jobId) && jobId > 0 ? jobForWork(jobId).catch(() => null) : Promise.resolve(null),
     listWorkOrders().catch(() => null),
     loadSuppliers().catch(() => []),
     loadWoContacts().catch(() => []),
+    loadAutoLog().catch(() => []),
+    loadSwitches().catch(() => null),
   ]);
+  // What went out by itself in the last fortnight: work orders sent once booked, and moved jobs passed on.
+  const auto = autoLog.filter((e) => (e.kind === "workOrderSend" || e.kind === "orderMoves") && Date.now() - Date.parse(e.at) < 14 * 86_400_000).slice(0, 12);
   const sparky = suppliers.find((s) => s.method === "work_order" && s.active);
   const back = `/portal/supply/work-orders${q ? `?q=${encodeURIComponent(q)}` : ""}`;
   const tomorrow = isoDateMelbourne(new Date(Date.now() + 86400000));
@@ -97,6 +104,24 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
             <p className="pk-said bad">There&rsquo;s no electrician set up to send work orders to, add one under Supplier emails.</p>
           )
         )}
+
+        <div style={{ marginTop: 18 }}>
+          <Card title="Sent automatically" aside={`the last two weeks · each one emailed to ${sw?.notifyTo ?? NOTIFY_DEFAULT} as it goes`}>
+            {auto.length ? (
+              <ul className="wo-auto">
+                {auto.map((e, i) => (
+                  <li key={`${e.at}-${i}`} className={e.ok ? undefined : "bad"}>
+                    <span className="wo-auto__k">{e.ok ? (e.kind === "orderMoves" ? "✓ Move passed on" : "✓ Work order sent") : "! Didn't go"}</span>
+                    <span className="wo-auto__t"><b>{e.title}</b>{e.detail && <span>{e.detail}</span>}</span>
+                    <span className="wo-auto__at">{at(e.at)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Empty>Nothing yet. A work order drafted from a booking is sent by itself once the job&rsquo;s booked, and when a booked job moves whoever had it is emailed the new day. Each one shows here and you&rsquo;re emailed to say it went.</Empty>
+            )}
+          </Card>
+        </div>
 
         <div style={{ marginTop: 18 }}>
           <Card title="Work orders" aside="the last two months and coming up">

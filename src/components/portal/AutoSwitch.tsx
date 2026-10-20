@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setAuto, setOfficeTo } from "@/app/portal/automatic/actions";
+import { setAuto, setNotifyTo, setOfficeTo } from "@/app/portal/automatic/actions";
 import type { AutoKey } from "@/lib/automation/log";
 
 /** On or off, said in words beside the switch. */
@@ -42,5 +42,20 @@ export function OfficeTo({ people, value, canEdit, which = "officeTo", label = "
       </select>
       {msg && <em>{msg}</em>}
     </span>
+  );
+}
+
+/** The addresses told when the portal emails a supplier or trade by itself. */
+export function NotifyTo({ value, canEdit }: { value: string; canEdit: boolean }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [v, setV] = useState(value);
+  const [msg, setMsg] = useState<string | null>(null);
+  return (
+    <form className="au-to au-notify" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await setNotifyTo(v); setMsg(r.ok ? "Saved" : r.error ?? "Couldn't save."); router.refresh(); }); }}>
+      <input id="au-notify" type="text" value={v} onChange={(e) => setV(e.target.value)} disabled={!canEdit || pending} aria-label="Who's emailed when it sends something by itself" placeholder="you@advancedgas.com.au" />
+      {canEdit && <button type="submit" disabled={pending || v === value}>Save</button>}
+      {msg && <em>{msg}</em>}
+    </form>
   );
 }

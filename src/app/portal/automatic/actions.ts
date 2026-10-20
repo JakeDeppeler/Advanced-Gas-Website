@@ -25,3 +25,16 @@ export async function setOfficeTo(id: string | null, which: "officeTo" | "accoun
   revalidatePath("/portal/automatic");
   return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
 }
+
+/** Who's emailed when the portal sends something by itself. */
+export async function setNotifyTo(value: string): Promise<{ ok: boolean; error?: string }> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
+  const list = value.split(/[,;\s]+/).map((a) => a.trim()).filter(Boolean);
+  const bad = list.find((a) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
+  if (bad) return { ok: false, error: `“${bad}” isn't an email address.` };
+  if (list.length > 5) return { ok: false, error: "Five addresses at most." };
+  const r = await saveSwitches({ ...(await loadSwitches()), notifyTo: list.length ? list.join(", ") : null });
+  revalidatePath("/portal/automatic");
+  return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
+}
