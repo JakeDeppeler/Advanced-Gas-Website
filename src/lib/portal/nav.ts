@@ -229,6 +229,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push(
     { href: "/portal/handbook", label: "Handbook", blurb: "The operations manual, A to G", band: "how-we-work", icon: "book", also: ["manual", "policy", "standard"] },
     { href: "/portal/roles", label: "Roles", blurb: "What we expect of each seat, and who's in it", band: "how-we-work", icon: "people", also: ["role", "roles", "expectations", "job description", "position", "seat", "apprentice", "tradesman", "leading hand", "field manager", "office manager"] },
+    { href: "/portal/leading", label: "Leading", blurb: "Who decides what without us, and how that grows", band: "how-we-work", icon: "people", also: ["leading", "leader", "leadership", "decision", "decide", "authority", "delegate", "spend limit", "sign off", "approve"] },
     { href: "/portal/sops", label: "Processes", blurb: `${SOP_COUNT} procedures, one standard`, band: "how-we-work", icon: "list", also: ["sop", "procedure", "checklist"] },
   );
   add(admin,
