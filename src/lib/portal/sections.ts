@@ -224,6 +224,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "how", label: "How we work", icon: "book", group: 2, blurb: "The standard, written down",
     pages: [
       { label: "Roles", href: "/portal/roles" },
+      { label: "Leading", href: "/portal/leading" },
       { label: "Processes", href: "/portal/sops" },
       { label: "Handbook", href: "/portal/handbook" },
       { label: "Learning", href: "/portal/learning" },
