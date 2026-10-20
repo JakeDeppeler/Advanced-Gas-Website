@@ -3,10 +3,11 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { Card, Empty, Group, Head, Row } from "@/components/portal/kit/Kit";
+import { Card, Empty, Group, Head, Row, Tabs } from "@/components/portal/kit/Kit";
+import { Contractors, type ContractorRow } from "@/components/portal/ordering/Contractors";
 import { WorkOrderForm } from "@/components/portal/ordering/WorkOrderForm";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { findJobs, jobForWork, listWorkOrders, loadWoContacts } from "@/lib/ordering/workOrders";
+import { findJobs, jobForWork, listWorkOrders, loadSparkyAuto, loadWoContacts } from "@/lib/ordering/workOrders";
 import { WorkOrderList } from "@/components/portal/ordering/WorkOrderList";
 import { loadSuppliers } from "@/lib/ordering/db";
 import { dayTimeLabel } from "@/lib/ordering/plan";
@@ -29,14 +30,15 @@ const hhmm = (iso: string) =>
  * installs' work orders on To order; this is for everything else — a
  * switchboard upgrade, a circuit for a job that wasn't quoted with one.
  */
-export default async function WorkOrdersPage({ searchParams }: { searchParams: { q?: string; job?: string } }) {
+export default async function WorkOrdersPage({ searchParams }: { searchParams: { q?: string; job?: string; tab?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Work orders" forWhom="managers" />;
 
   const q = (searchParams?.q ?? "").slice(0, 60);
   const jobId = Number(searchParams?.job);
-  const [hits, job, list, suppliers, contacts, autoLog, sw] = await Promise.all([
+  const tab = searchParams?.tab === "contractors" ? "contractors" : "orders";
+  const [hits, job, list, suppliers, contacts, autoLog, sw, sparkyAuto] = await Promise.all([
     q ? findJobs(q).catch(() => null) : Promise.resolve([]),
     Number.isInteger(jobId) && jobId > 0 ? jobForWork(jobId).catch(() => null) : Promise.resolve(null),
     listWorkOrders().catch(() => null),
@@ -44,6 +46,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
     loadWoContacts().catch(() => []),
     loadAutoLog().catch(() => []),
     loadSwitches().catch(() => null),
+    loadSparkyAuto().catch(() => true),
   ]);
   // What went out by itself in the last fortnight: work orders sent once booked, and moved jobs passed on.
   const auto = autoLog.filter((e) => (e.kind === "workOrderSend" || e.kind === "orderMoves") && Date.now() - Date.parse(e.at) < 14 * 86_400_000).slice(0, 12);
@@ -58,6 +61,31 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
           title="Work orders"
           sub="The electrician, water balancing or anyone else for any job: find it, say what's needed, send it. It's noted on the job in ServiceTitan with the work order attached. Click one below to see where it went."
         />
+
+        <div className="pk-btns" style={{ marginBottom: 14 }}>
+          <Tabs on={tab} label="Work orders" items={[
+            { key: "orders", label: "Work orders", href: "/portal/supply/work-orders" },
+            { key: "contractors", label: "Contractors", href: "/portal/supply/work-orders?tab=contractors", count: contacts.length + (sparky ? 1 : 0) || undefined },
+          ]} />
+        </div>
+
+        {tab === "contractors" ? (() => {
+          // How many went to each in the last two months: the electrician's are the ones with no trade.
+          const sent = (list ?? []).filter((w) => w.status === "sent");
+          const tally = (pick: (w: (typeof sent)[number]) => boolean) => {
+            const mine = sent.filter(pick);
+            return { sent: mine.length, last: mine.map((w) => w.sent_at ?? "").sort().pop() || null };
+          };
+          const rows: ContractorRow[] = contacts.map((c) => ({ c, ...tally((w) => (w.sent_to ?? "").toLowerCase().includes(c.email.toLowerCase())) }));
+          return (
+            <Card title="Contractors" aside="who work orders go to">
+              <Contractors
+                sparky={sparky ? { name: sparky.name.replace(/\s*\(.*\)\s*$/, "") || sparky.name, email: sparky.email ?? "", auto: sparkyAuto, ...tally((w) => !w.details?.trade) } : null}
+                rows={rows}
+              />
+            </Card>
+          );
+        })() : (<>
 
         {!job && (
           <Card title="Find the job" aside="by job number, customer or suburb">
@@ -134,6 +162,7 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
             )}
           </Card>
         </div>
+        </>)}
       </div>
     </PortalShell>
   );

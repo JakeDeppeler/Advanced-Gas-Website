@@ -2664,3 +2664,25 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .sb-fix__acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .sb-fix__msg { margin: 0; font-size: 13px; color: var(--good); }
 .sb-fix__msg.bad { color: var(--bad); }
+
+/* Work orders › Contractors. */
+.ct { display: grid; gap: 14px; }
+.ct .qp-note { margin: 0; line-height: 1.5; }
+.ct-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.ct-list > li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 14px 2px; border-top: 1px solid var(--rp-line); }
+.ct-list > li:first-child { border-top: 0; }
+.ct-who { display: grid; gap: 2px; min-width: 0; flex: 1 1 280px; }
+.ct-who b { font-size: 15px; }
+.ct-who span { font-size: 13.5px; color: var(--ink2); overflow-wrap: anywhere; }
+.ct-who em { font-style: normal; font-size: 12.5px; color: var(--ink3); }
+.ct-who em a { color: inherit; }
+.ct-row-acts { display: inline-flex; align-items: center; gap: 10px; }
+.ct-auto { min-width: 128px; }
+.ct-x { width: 30px; height: 30px; border-radius: 50%; border: 0; background: none; color: var(--ink3); font-size: 18px; cursor: pointer; }
+.ct-x:hover { background: var(--quiet); color: var(--bad); }
+.ct-form { flex: 1 1 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 14px; border-radius: 16px; background: var(--sunken); }
+.ct-form label { display: grid; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.ct-form input { height: 38px; border-radius: 12px; border: 1px solid var(--rp-line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13.5px; padding: 0 11px; }
+.ct-form .pk-said, .ct-acts { grid-column: 1 / -1; }
+.ct-acts { display: flex; gap: 8px; }
+@media (max-width: 560px) { .ct-form { grid-template-columns: minmax(0, 1fr); } }

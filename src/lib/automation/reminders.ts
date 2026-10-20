@@ -8,8 +8,9 @@ import { listStockLines, shelfMatch } from "@/lib/ordering/stockLines";
 import { addStockLine, draftFor, loadSuppliers } from "@/lib/ordering/db";
 import { ordersToUpdate, updateJobs } from "@/lib/ordering/stJobNotes";
 import { findMoves, type Move } from "@/lib/ordering/moveNotices";
-import { approveAndSend, emailDateChange, sendReadyNotice } from "@/lib/ordering/send";
+import { approveAndSend, emailDateChange, noteBookedFor, sendReadyNotice } from "@/lib/ordering/send";
 import { doneNoticeEmail, nextWeek, workRef, type WorkOrderDetails } from "@/lib/ordering/plan";
+import { autoFor, bookedDays, loadSparkyAuto, loadWoContacts } from "@/lib/ordering/workOrders";
 import { site } from "@/lib/site";
 import { owedInvoices } from "@/lib/portal/run/money";
 import { cleanCell } from "@/components/portal/fleetStatus";
@@ -357,39 +358,96 @@ async function orderMoves(ctx: Ctx) {
       ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: false, jobId: ms[0].job_id, title: `Job ${jobs} moved to ${day}, couldn't tell the supplier about order ${po}`, detail: (r.error ?? "").slice(0, 200) });
     }
   }
+  await contractorMoves(ctx);
 }
 
 /**
- * A work order drafted from a booking goes to the electrician (or whoever
- * it's for) by itself: once the job's booked, the work order is sent. Only
- * work orders: supplier orders for systems and materials still wait on To
- * order for someone to approve, because they spend money. Not one the office
- * made by hand and saved as a draft, which they're still working on, and not
- * one for a day that's gone. Same hours as telling a supplier about a move.
+ * Work orders go to the contractor by themselves once the job's booked: the
+ * electrician's drafted from a booking, and one the office made for anyone
+ * (water balancing with Ross) and saved as a draft, which goes the moment its
+ * job has a visit booked. Supplier orders for systems and materials still
+ * wait on To order, because they spend money. Not one for a day that's gone,
+ * not one touched in the last half hour (someone may still be on it), not one
+ * for someone else with nowhere to send it, and not a contractor whose
+ * switch is off on Work orders › Contractors. Same hours as passing on a move.
  */
 async function workOrderSend(ctx: Ctx) {
   const hour = melHour();
   if (melDow(ctx.today) === 0 || hour < 7 || hour >= 18) return;
-  const drafts = await sbSelect<{ id: number; po_number: string; group_key: string; details: WorkOrderDetails | null }>(
-    "purchase_orders", "select=id,po_number,group_key,details&kind=eq.work_order&status=eq.draft&order=id.asc&limit=20",
+  const drafts = await sbSelect<{ id: number; po_number: string; group_key: string; updated_at: string; details: WorkOrderDetails | null }>(
+    "purchase_orders", "select=id,po_number,group_key,updated_at,details&kind=eq.work_order&status=eq.draft&order=id.asc&limit=40",
   );
+  const [contacts, sparkyAuto] = await Promise.all([loadWoContacts(), loadSparkyAuto()]);
+  const booked = await bookedDays(drafts.map((d) => d.details?.jobs?.[0]?.job_id ?? 0));
+  const settled = new Date(Date.now() - 30 * 60_000).toISOString();
   let n = 0;
   for (const d of drafts) {
     if (n >= 6) break;
-    if (d.group_key.startsWith("manual:") || !d.details?.date || d.details.date < ctx.today) continue;
+    const det = d.details;
+    const jobId = det?.jobs?.[0]?.job_id;
+    if (!det?.date || det.date < ctx.today || !jobId) continue;
+    const manual = d.group_key.startsWith("manual:");
+    if (manual && (!booked.has(jobId) || d.updated_at > settled)) continue;
+    if (det.trade && !det.send_to) continue;
+    if (!autoFor(det, sparkyAuto, contacts)) continue;
     const failKey = `wosend-fail:${d.id}`;
     if (ctx.made.has(failKey)) continue;
-    const ref = workRef(d.details);
-    const jobId = d.details.jobs?.[0]?.job_id;
+    const ref = workRef(det);
     const r = await approveAndSend(d.id, "Automatic").catch((e: Error) => ({ ok: false as const, error: e.message, note: undefined }));
     n++;
+    const who = det.trade ? `${det.to_name ?? det.trade} (${det.trade})` : "the electrician";
     if (r.ok) {
-      ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: true, jobId, po: d.po_number, title: `Work order ${d.po_number} sent: ${ref}`, detail: r.note ?? undefined });
-      ctx.sent.push({ head: `Work order sent: ${ref}`, detail: `${r.note ?? "Emailed."} For ${dayLabel(d.details.date)}.` });
+      ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: true, jobId, po: d.po_number, title: `Work order ${d.po_number} sent to ${who}: ${ref}`, detail: r.note ?? undefined });
+      ctx.sent.push({ head: `Work order sent to ${who}: ${ref}`, detail: `${r.note ?? "Emailed."} For ${dayLabel(det.date)}.` });
     } else {
       // Logged once; it stays a draft on To order with the reason, for the office.
       ctx.made.set(failKey, new Date().toISOString());
       ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: false, jobId, po: d.po_number, title: `Couldn't send work order ${d.po_number}: ${ref}`, detail: (r.error ?? "").slice(0, 200) });
+    }
+  }
+}
+
+/**
+ * A work order made by hand has gone, and its job's booking has moved since:
+ * the contractor's day moves by as much as the booking did (water balancing
+ * the day after the install stays the day after), and they're emailed the
+ * new day. The planned ones are told by orderMoves, from the week's plan.
+ */
+async function contractorMoves(ctx: Ctx) {
+  const sent = await sbSelect<{ id: number; po_number: string; details: WorkOrderDetails | null }>(
+    "purchase_orders", `select=id,po_number,details&kind=eq.work_order&status=eq.sent&group_key=like.manual:*&order=id.desc&limit=80`,
+  );
+  const coming = sent.filter((p) => p.details?.date && p.details.date >= ctx.today && p.details.jobs?.[0]?.job_id);
+  if (!coming.length) return;
+  const [booked, contacts, sparkyAuto] = await Promise.all([bookedDays(coming.map((p) => p.details!.jobs[0].job_id)), loadWoContacts(), loadSparkyAuto()]);
+  // One sent before the booked day was kept: today's booking is its mark from here on, nobody emailed.
+  for (const p of coming.filter((x) => !x.details!.booked_for)) {
+    const on = booked.get(p.details!.jobs[0].job_id);
+    if (on) await noteBookedFor(p.id, on).catch(() => undefined);
+  }
+  const live = coming.filter((p) => p.details!.booked_for);
+  for (const p of live.slice(0, 40)) {
+    const d = p.details!;
+    const job = d.jobs[0];
+    const now = booked.get(job.job_id);
+    if (!now || now === d.booked_for) continue;
+    const shift = Math.round((Date.parse(`${now}T12:00:00Z`) - Date.parse(`${d.booked_for}T12:00:00Z`)) / 86_400_000);
+    const to = new Date(Date.parse(`${d.date}T12:00:00Z`) + shift * 86_400_000).toISOString().slice(0, 10);
+    const key = `cmove:${p.po_number}:${now}`;
+    if (ctx.made.has(key) || to < ctx.today) continue;
+    ctx.made.set(key, new Date().toISOString());
+    if (!autoFor(d, sparkyAuto, contacts)) {
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: false, jobId: job.job_id, po: p.po_number, title: `Job ${job.job_number ?? job.job_id} moved: ${d.to_name ?? d.trade ?? "the contractor"} not told`, detail: "Their work orders are set to manual on Work orders › Contractors. Edit the work order and email the update yourself." });
+      continue;
+    }
+    const r = await emailDateChange(p.po_number, [{ job_id: job.job_id, job_number: job.job_number, customer_name: job.customer_name, from: d.date, to }], { bookedFor: now })
+      .catch((e: Error) => ({ ok: false as const, error: e.message, note: undefined }));
+    const day = dayLabel(to);
+    if (r.ok) {
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: true, jobId: job.job_id, po: p.po_number, title: `Job ${job.job_number ?? job.job_id} moved: ${r.note ?? "contractor told"} Work order ${p.po_number} now ${day}.` });
+      ctx.sent.push({ head: `Job ${job.job_number ?? job.job_id} moved: work order now ${day}`, detail: `${r.note ?? "Told the contractor."} The booking moved from ${dayLabel(d.booked_for!)} to ${dayLabel(now)}.` });
+    } else {
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: false, jobId: job.job_id, po: p.po_number, title: `Job ${job.job_number ?? job.job_id} moved, couldn't tell the contractor about work order ${p.po_number}`, detail: (r.error ?? "").slice(0, 200) });
     }
   }
 }
