@@ -5808,3 +5808,6 @@ a.pt-td__pill { text-decoration: none; }
 /* In a licence card there's a third of the page: name and size across, View and Download underneath. */
 .pt-icopy__card .pt-ifiles li { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "kind name" "kind meta" "acts acts"; row-gap: 4px; }
 .pt-icopy__card .pt-ifiles__acts { justify-self: start; margin-left: -6px; }
+/* To order › a supplier with more than one draft: make it one bulk order. */
+.pt-nw__bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 10px; padding: 10px 14px; border-radius: 12px; background: var(--pt-tint); font-size: 13.5px; }
+.pt-nw__bulk > span:first-child { flex: 1 1 260px; }

@@ -81,3 +81,14 @@ export async function saveMade(made: Map<string, string>) {
   const keys = Object.fromEntries([...made].filter(([, at]) => at >= cut));
   return saveSettings(MADE, { keys });
 }
+
+/**
+ * A work order put back as a draft by hand isn't sent again by itself: the
+ * first one went somewhere wrong, and it waits for someone to fix it and
+ * press Send. Kept with the rest of what's been done.
+ */
+export async function holdFromAutoSend(poId: number) {
+  const made = await loadMade();
+  made.set(`wo-hold:${poId}`, new Date().toISOString());
+  await saveMade(made);
+}

@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { deleteWorkOrderDraft, jobFill, saveWorkOrder, searchJobs } from "@/app/portal/supply/work-orders/actions";
+import { undoSend } from "@/app/portal/supply/sent/actions";
 import type { JobHit, WoContact, WorkOrderRow } from "@/lib/ordering/workOrders";
 import { JobFilesPicker, type PickedFile } from "./JobFilesPicker";
 
@@ -67,6 +68,8 @@ function WorkOrderPanel({ w, sparky, contacts, onClose }: { w: WorkOrderRow; spa
   // A draft is opened to be fixed and sent, so it opens on the form.
   const [editing, setEditing] = useState<false | "details" | "job">(w.status === "sent" ? false : "details");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [undoing, setUndoing] = useState(false);
+  const router = useRouter();
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     addEventListener("keydown", k);
@@ -110,6 +113,13 @@ function WorkOrderPanel({ w, sparky, contacts, onClose }: { w: WorkOrderRow; spa
               {d && <button type="button" className="qp-btn dark" onClick={() => { setMsg(null); setEditing("details"); }}>{w.status === "sent" ? "Edit" : "Edit and send"}</button>}
               {d && <button type="button" className="qp-btn line" onClick={() => { setMsg(null); setEditing("job"); }}>Change the job number</button>}
               {job && <a className="qp-btn line" href={stJob(job.job_id)} target="_blank" rel="noreferrer">Job {job.job_number} in ServiceTitan ↗</a>}
+              {w.status === "sent" && (
+                <button type="button" className="qp-btn line" disabled={undoing} onClick={() => {
+                  if (!confirm(`Put this work order back as a draft? It went to ${w.sent_to ?? "them"}; nothing is emailed, so let them know if they shouldn't have had it. It won't go again by itself: fix it and press Send.`)) return;
+                  setUndoing(true);
+                  undoSend(w.id).then((r) => { setUndoing(false); setMsg(r.ok ? { ok: true, text: r.note ?? "A draft again." } : { ok: false, text: r.error ?? "Couldn't." }); if (r.ok) { router.refresh(); setEditing("details"); } });
+                }}>{undoing ? "Putting it back…" : "Undo: put it back as a draft"}</button>
+              )}
             </div>
           </>
         )}

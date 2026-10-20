@@ -42,6 +42,8 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let dbReady = true;
   let noted: string[] = [];
   let stocked: string[] = [];
+  // Every supplier order still a draft, this week and next: a card offers to make a supplier's into one bulk order.
+  let allDrafts: { id: number; po: string; supplier: string; week: string }[] = [];
   const waiting: Record<"next" | "this", number | null> = { next: null, this: null };
   try {
     // Everything in one go: these used to come one after another once the
@@ -53,7 +55,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
       supP.then((x) => loadJobNoteSuppliers(x)).catch(() => [] as string[]),
       loadStocked().catch(() => []),
       // What's waiting to approve in each week, for the counts on the week pills.
-      sbSelect<{ week_of: string }>("purchase_orders", `select=week_of&status=eq.draft&week_of=in.(${tw.start},${nw.start})`).catch(() => null),
+      sbSelect<{ id: number; po_number: string; supplier_id: string; kind: string; week_of: string }>("purchase_orders", `select=id,po_number,supplier_id,kind,week_of&status=eq.draft&week_of=in.(${tw.start},${nw.start})`).catch(() => null),
       getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null),
     ]);
     orders = o;
@@ -61,6 +63,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     suppliers = s;
     noted = nt;
     stocked = st.map((x) => x.key);
+    if (drafts) allDrafts = drafts.filter((d) => d.kind === "order").map((d) => ({ id: d.id, po: d.po_number, supplier: d.supplier_id, week: d.week_of }));
     if (drafts) { waiting.next = drafts.filter((d) => d.week_of === nw.start).length; waiting.this = drafts.filter((d) => d.week_of === tw.start).length; }
     synced = sy;
     replyTo = settings.replyTo;
@@ -139,6 +142,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         alwaysCc={replyTo}
         delivery={delivery}
         stocked={stocked}
+        allDrafts={allDrafts}
       />
     </PortalShell>
   );
