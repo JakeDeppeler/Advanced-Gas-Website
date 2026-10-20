@@ -120,6 +120,7 @@ export async function createAndSendWorkOrder(o: NewWorkOrder, who: string): Prom
     note: null,
     ...(o.trade?.trim() ? { trade: o.trade.trim(), to_name: o.toName?.trim() || null } : {}),
     ...(o.files?.length ? { files: o.files } : {}),
+    send_to: o.sendTo ?? null,
   };
   const id = await createOrder({
     po_number: await nextPoNumber(week, supplier.id), supplier_id: supplier.id, week_of: week.start, kind: "work_order",
@@ -153,16 +154,48 @@ export async function listWorkOrders(): Promise<WorkOrderRow[]> {
  * balancing with Ross, a plumber, a builder's sparky. Picked on the form
  * rather than typed each time. Kept in portal_settings: a handful of rows.
  */
-export type WoContact = { id: string; name: string; email: string; trade: string };
+export type WoContact = {
+  id: string; name: string; email: string; trade: string; phone?: string | null;
+  /** Work orders to them go by themselves once the job's booked, and they're told when it moves. On unless switched off. */
+  auto?: boolean;
+};
 const CONTACTS = "work_order_contacts";
+type Stored = { list?: WoContact[]; sparkyAuto?: boolean };
 
 export async function loadWoContacts(): Promise<WoContact[]> {
-  const s = await getSettings<{ list?: WoContact[] }>(CONTACTS).catch(() => null);
+  const s = await getSettings<Stored>(CONTACTS).catch(() => null);
   return Array.isArray(s?.list) ? s.list : [];
 }
 
-export async function saveWoContacts(list: WoContact[]): Promise<boolean> {
-  return (await saveSettings(CONTACTS, { list: list.slice(0, 40) })).ok;
+/** Whether the electrician on file gets theirs by themselves too. On unless switched off. */
+export async function loadSparkyAuto(): Promise<boolean> {
+  const s = await getSettings<Stored>(CONTACTS).catch(() => null);
+  return s?.sparkyAuto !== false;
+}
+
+export async function saveWoContacts(list: WoContact[], sparkyAuto?: boolean): Promise<boolean> {
+  const cur = (await getSettings<Stored>(CONTACTS).catch(() => null)) ?? {};
+  return (await saveSettings(CONTACTS, { ...cur, list: list.slice(0, 40), ...(sparkyAuto === undefined ? {} : { sparkyAuto }) })).ok;
+}
+
+/**
+ * Whether a work order goes by itself: the electrician's by the electrician's
+ * switch, anyone else's by theirs (found by the address it goes to). Someone
+ * typed in once and not saved as a contractor gets theirs by themselves too.
+ */
+export function autoFor(d: WorkOrderDetails, sparkyAuto: boolean, contacts: WoContact[]): boolean {
+  const to = (d.send_to ?? "").toLowerCase();
+  const c = to ? contacts.find((x) => x.email.toLowerCase() === to) : undefined;
+  if (c) return c.auto !== false;
+  return d.trade ? true : sparkyAuto;
+}
+
+/** The day each job's next visit is booked for, in Melbourne. A job with none isn't booked. */
+export async function bookedDays(jobIds: number[]): Promise<Map<number, string>> {
+  const ids = [...new Set(jobIds.filter((n) => Number.isInteger(n) && n > 0))];
+  if (!ids.length) return new Map();
+  const rows = await sbSelect<{ job_id: number; start_at: string | null }>("job_next_appointment", `select=job_id,start_at&job_id=in.(${ids.join(",")})`).catch(() => []);
+  return new Map(rows.filter((r) => r.start_at).map((r) => [Number(r.job_id), isoDateMelbourne(new Date(r.start_at!))]));
 }
 
 /**
@@ -206,6 +239,8 @@ export type WorkOrderEdit = {
   /** Null for the electrician's; otherwise what the work is and who it's for. */
   trade: string | null; toName: string | null;
   files: { id: number; name: string }[];
+  /** Who it goes to, kept with it; null leaves it to the electrician on file. */
+  sendTo?: string | null;
 };
 
 /**
@@ -235,6 +270,7 @@ export async function editWorkOrder(id: number, e: WorkOrderEdit): Promise<{ ok:
     trade: e.trade?.trim() || null,
     to_name: e.trade?.trim() ? e.toName?.trim() || null : null,
     files: e.files,
+    ...(e.sendTo !== undefined ? { send_to: e.sendTo } : {}),
   };
   await sbUpdate("purchase_orders", `id=eq.${id}`, { details, delivery_address: details.site_address, updated_at: new Date().toISOString() });
   if (e.date !== d.date || details.start_at !== d.start_at) {

@@ -146,6 +146,14 @@ export type WorkOrderDetails = {
   files?: { id: number; name: string }[];
   /** Each time the job moved after this went and whoever had it was emailed the new day, by itself. */
   moves?: { at: string; from: string; to: string; emailedTo: string }[];
+  /** Who a work order made by hand goes to, kept with a draft so it can be sent to them later (by itself, once booked). */
+  send_to?: string | null;
+  /**
+   * The day the job was booked for when this went. A contractor's day can sit
+   * apart from the install's (water balancing the day after): when the booking
+   * moves, their day moves by the same, and they're told.
+   */
+  booked_for?: string | null;
 };
 
 /** The electrician's work order (the usual one), or someone else's: water balancing, a plumber. */
@@ -667,10 +675,12 @@ export function dateChangeEmail(o: {
   supplier: Supplier; poNumber: string; ref: string; workOrder: boolean;
   moves: Array<{ job_number: string | null; customer_name: string | null; from: string; to: string }>;
   settings: OrderingSettings;
+  /** A contractor's own trade (water balancing), when it isn't the electrical. */
+  trade?: string | null;
 }): EmailParts {
   const first = o.moves[0];
   const subject = `Date change — ${o.ref} — now ${dayLabel(first.to)}`;
-  const what = o.workOrder ? "the electrical" : "this order";
+  const what = o.workOrder ? (o.trade ? `the ${o.trade.toLowerCase()}` : "the electrical") : "this order";
   const intro = `Hi ${esc(o.supplier.name.replace(/\s*\(.*\)\s*$/, ""))},<br><br>The job below has moved, so ${what} is needed on the new day. Nothing else has changed; please keep everything as it was and just change the date.`;
   const rows = o.moves.map((m) =>
     `<tr><td style="${cell}"><strong>Job ${esc(m.job_number ?? "")}</strong>${m.customer_name ? `<br><span style="color:#6b6a68;">${esc(m.customer_name)}</span>` : ""}</td>`

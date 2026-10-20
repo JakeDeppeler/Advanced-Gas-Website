@@ -205,7 +205,8 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
   const { po, supplier, settings, email, attachments } = b;
   // A work order can go to someone other than the electrician on file (another
   // sparky, the builder's), picked on the form; everything else goes to the supplier.
-  const to = opts.to?.trim() || supplier.email;
+  // Who a work order made for someone else was saved to go to, when it's sent later (or by itself).
+  const to = opts.to?.trim() || (po.kind === "work_order" ? po.details?.send_to?.trim() : "") || supplier.email;
   if (po.status !== "draft") return { ok: false, error: `Already ${po.status}.` };
 
   const from = fromAddress();
@@ -251,6 +252,7 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
     return { ok: false, error: err };
   }
   await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: to, updated_at: new Date().toISOString() });
+  if (po.kind === "work_order") await noteBookedFor(id);
   await pushIfAuto(id);
   await jobsAfterSend(id);
   return { ok: true, note: `Sent to ${to}, copied to ${ccList(settings, supplier, po, to).join(", ")}.` };
@@ -415,7 +417,7 @@ export type MovedJob = { job_id: number; job_number: string | null; customer_nam
  * Reece, entered in maX by hand, has no address to tell unless the list was
  * emailed; the office changes the date in maX.
  */
-export async function emailDateChange(poNumber: string, moves: MovedJob[]): Promise<SendResult & { to?: string }> {
+export async function emailDateChange(poNumber: string, moves: MovedJob[], opts: { bookedFor?: string } = {}): Promise<SendResult & { to?: string }> {
   const [row] = await sbSelect<{ id: number }>("purchase_orders", `select=id&po_number=eq.${encodeURIComponent(poNumber)}&status=in.(approved,sent)&order=id.desc&limit=1`);
   const po = row ? await getOrder(row.id) : null;
   if (!po || !moves.length) return { ok: false, error: `Order ${poNumber} isn't a sent order.` };
@@ -432,8 +434,12 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[]): Prom
   if (!from) return { ok: false, error: NO_FROM };
   const settings = await loadOrderingSettings();
   const workOrder = po.kind === "work_order";
-  const email = dateChangeEmail({ supplier, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings });
-  const err = await resend({ from, to: [to], cc: ccList(settings, supplier, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text });
+  // A contractor other than the electrician on file is greeted by their own
+  // name, and the electrician's standing copies aren't put on their email.
+  const other = workOrder && !isElectrical(po.details);
+  const them: Supplier = other ? { ...supplier, name: po.details?.to_name || po.details?.trade || supplier.name, cc_emails: [] } : supplier;
+  const email = dateChangeEmail({ supplier: them, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings, trade: other ? po.details?.trade : null });
+  const err = await resend({ from, to: [to], cc: ccList(settings, them, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text });
   if (err) return { ok: false, error: err };
   // The order now says the new day, so the next look at the week sees it as in step.
   for (const m of moves) {
@@ -442,9 +448,9 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[]): Prom
   if (workOrder && po.details) {
     // Kept on the work order too, so its pop-up shows the move was passed on and when.
     const told = { at: new Date().toISOString(), from: moves[0].from, to: moves[0].to, emailedTo: to };
-    await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null, moves: [...(po.details.moves ?? []), told].slice(-10) }, updated_at: new Date().toISOString() }).catch(() => undefined);
+    await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null, moves: [...(po.details.moves ?? []), told].slice(-10), ...(opts.bookedFor ? { booked_for: opts.bookedFor } : {}) }, updated_at: new Date().toISOString() }).catch(() => undefined);
   }
-  return { ok: true, to, note: `Told ${supplier.name} (${to}).` };
+  return { ok: true, to, note: `Told ${them.name} (${to}).` };
 }
 
 const UPDATED_LINE = "Updated — this replaces the work order we sent earlier.";
@@ -486,6 +492,7 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
     st_notes: Array.isArray(notes) ? notes.map((n) => ({ ...n, note: false, file: false })) : notes ?? null,
   });
   await jobsAfterSend(id);
+  await noteBookedFor(id);
   return { ok: true, note: `Update emailed to ${to}.` };
 }
 
@@ -523,4 +530,22 @@ export async function resendOrder(id: number, patch: { toSite: boolean; address:
   });
   if (err) return { ok: false, error: err };
   return { ok: true, note: `Sent the corrected order to ${to}, marked as replacing the first one.` };
+}
+
+/**
+ * The day the work order's job is booked for, as it went: the mark a later
+ * move is measured against, so a contractor's day moves by as much as the
+ * booking did. Left alone when the job has no visit booked.
+ */
+export async function noteBookedFor(id: number, day?: string | null): Promise<void> {
+  const po = await getOrder(id).catch(() => null);
+  const jobId = po?.details?.jobs?.[0]?.job_id;
+  if (!po?.details || !jobId) return;
+  let on = day ?? null;
+  if (on === null) {
+    const [v] = await sbSelect<{ start_at: string | null }>("job_next_appointment", `select=start_at&job_id=eq.${jobId}`).catch(() => []);
+    on = v?.start_at ? isoDateMelbourne(new Date(v.start_at)) : null;
+  }
+  if (!on || on === po.details.booked_for) return;
+  await sbUpdate("purchase_orders", `id=eq.${id}`, { details: { ...po.details, booked_for: on } }).catch(() => undefined);
 }

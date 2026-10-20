@@ -141,6 +141,7 @@ export async function saveWorkOrder(input: {
       // "Electrical" is the electrician's own, kept without a trade, as a new one would be.
       trade: trade && !/^electric/i.test(trade) ? trade : null, toName: cut(input.toName, 80) || null,
       files: pickedFiles(input.files),
+      sendTo: to.ok[0] ?? null,
     });
     if (!e.ok) return { ok: false, error: e.error };
     const notes: string[] = ["Saved."];
@@ -169,4 +170,37 @@ export async function deleteWorkOrderDraft(id: number): Promise<ActionResult> {
   revalidatePath("/portal/supply/work-orders");
   revalidatePath("/portal/supply/next-week");
   return r.ok ? { ok: true, note: "Draft deleted." } : { ok: false, error: r.error };
+}
+
+/** A contractor on Work orders › Contractors: added, or their details changed. */
+export async function saveContractor(input: { id?: string; name: string; trade: string; email: string; phone: string }): Promise<ActionResult> {
+  if (!(await office())) return { ok: false, error: "Not allowed." };
+  const name = input.name.trim().slice(0, 80), trade = input.trade.trim().slice(0, 60), phone = input.phone.trim().slice(0, 40);
+  const email = parseEmails(input.email ?? "");
+  if (!name) return { ok: false, error: "Give them a name." };
+  if (!trade) return { ok: false, error: "Say what work they do, e.g. Water balancing." };
+  if (email.bad.length || email.ok.length !== 1) return { ok: false, error: "One email address, the one work orders go to." };
+  const list = await loadWoContacts();
+  const was = input.id ? list.find((c) => c.id === input.id) : undefined;
+  const taken = list.find((c) => c.email.toLowerCase() === email.ok[0].toLowerCase() && c.id !== was?.id);
+  if (taken) return { ok: false, error: `${taken.name} already has that email.` };
+  const c: WoContact = { id: was?.id ?? `c${Date.now().toString(36)}`, name, trade, email: email.ok[0], phone: phone || null, auto: was?.auto ?? true };
+  const next = was ? list.map((x) => (x.id === was.id ? c : x)) : [...list, c];
+  if (!(await saveWoContacts(next))) return { ok: false, error: "Couldn't save." };
+  revalidatePath("/portal/supply/work-orders");
+  return { ok: true, note: was ? `${name} saved.` : `${name} added.` };
+}
+
+/** A contractor's work orders by themselves (sent once booked, told when it moves), or by hand. "sparky" is the electrician on file. */
+export async function setContractorAuto(id: string, on: boolean): Promise<ActionResult> {
+  if (!(await office())) return { ok: false, error: "Not allowed." };
+  const list = await loadWoContacts();
+  if (id === "sparky") {
+    if (!(await saveWoContacts(list, !!on))) return { ok: false, error: "Couldn't save." };
+  } else {
+    if (!list.some((c) => c.id === id)) return { ok: false, error: "They're not on the list any more." };
+    if (!(await saveWoContacts(list.map((c) => (c.id === id ? { ...c, auto: !!on } : c))))) return { ok: false, error: "Couldn't save." };
+  }
+  revalidatePath("/portal/supply/work-orders");
+  return { ok: true };
 }
