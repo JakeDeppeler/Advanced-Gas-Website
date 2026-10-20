@@ -24,7 +24,7 @@ export const HOME_JOURNEY: JourneyBeat[] = [
   {
     n: "02",
     kicker: "The quote",
-    h: "A written price, inside 12 hours.",
+    h: "A written price, not a guess.",
     p: "Straight to your inbox and itemised, with the VEU rebate already taken off the number rather than promised somewhere near the end of the conversation.",
     why: "No doorstep pressure, and no figure invented on the spot.",
     scene: "quote",

@@ -52,7 +52,7 @@ function HeroQuoteFormSkeleton() {
         <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
         <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
       </div>
-      <p className="qcard__finep">60s. No obligation. No spam. Response in 12 business hours.</p>
+      <p className="qcard__finep">60s. No obligation. No spam. We call back in business hours.</p>
     </div>
   );
 }
@@ -330,7 +330,7 @@ export default async function HomePage() {
             <div className="quotesec__grid">
               <div className="quotesec__left">
                 <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> 60-second quote</span>
-                <h2>Written quote back within 12&nbsp;hours.</h2>
+                <h2>A written quote, rebate already&nbsp;off.</h2>
                 <p className="quotesec__lede">
                   Tell us what you need and we&rsquo;ll price it properly. Rebate applied, GST included, nothing to chase.
                 </p>
@@ -418,7 +418,7 @@ export default async function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">Message for quote</span>
-                  <span className="fixprice__price-lbl">written quote back in 12 hrs</span>
+                  <span className="fixprice__price-lbl">fixed price after a site check</span>
                 </div>
                 <p className="fixprice__note">Reclaim CO₂ Split, glass-lined or stainless, tall or squat, in 160 / 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Get a quote &rarr;</a>
@@ -444,7 +444,7 @@ export default async function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">Message for quote</span>
-                  <span className="fixprice__price-lbl">written quote back in 12 hrs</span>
+                  <span className="fixprice__price-lbl">fixed price after a site check</span>
                 </div>
                 <a href="#quote" className="ds-btn ds-btn--orange">Get a quote &rarr;</a>
               </div>
@@ -775,7 +775,7 @@ export default async function HomePage() {
           <div className="bigcta__copy">
             <h2>Let&rsquo;s get your job done properly.</h2>
             <p>
-              A free written quote with the VEU rebate already applied, usually back to you within 12 business hours.
+              A free written quote with the VEU rebate already applied, after a free site check.
               The price only changes if the job does, and you approve the new number before we start. Prefer to talk?
               Give us a call.
             </p>

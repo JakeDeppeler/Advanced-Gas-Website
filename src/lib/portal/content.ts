@@ -240,7 +240,7 @@ export const INFO: InfoBlock[] = [
   {
     title: "The numbers we quote",
     rows: [
-      { k: "Quote turnaround", v: "Fixed price back within 12 business hours" },
+      { k: "Quote turnaround", v: "Most priced on the spot; otherwise we tell the customer when" },
       { k: "Workmanship warranty", v: "6 years, every job" },
       { k: "Compliance cert", v: "Emailed within 24 hours of install" },
       { k: "After-hours call-out", v: "$380 call-out, then $260/hr after" },
@@ -412,7 +412,7 @@ export const INFO_SECTIONS: InfoSection[] = [
           { k: "Business hours", v: "7:00am – 3:30pm, Mon–Fri" },
           { k: "Outside those hours", v: "Charged as a call-out" },
           { k: "After-hours call-out", v: "$380, then $260/hr" },
-          { k: "Quote turnaround", v: "Fixed price within 12 business hours" },
+          { k: "Quote turnaround", v: "Most priced on the spot; otherwise say when" },
           { k: "Compliance cert", v: "Emailed within 24 hours of install" },
         ],
       },
