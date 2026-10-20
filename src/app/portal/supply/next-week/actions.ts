@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
@@ -344,4 +344,14 @@ export async function untagStocked(key: string): Promise<ActionResult> {
   await saveStocked((await loadStocked()).filter((x) => x.key !== key));
   done();
   return { ok: true };
+}
+
+/** Every draft for this supplier made into one bulk order: one delivery, until it goes. */
+export async function mergeIntoBulk(id: number): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(id)) return { ok: false, error: "Which order?" };
+  const r = await mergeDrafts(id);
+  done();
+  return r.ok ? { ok: true, note: `Added ${r.merged?.join(", ")} to this one. It stays one bulk order until it's sent.` } : { ok: false, error: r.error };
 }

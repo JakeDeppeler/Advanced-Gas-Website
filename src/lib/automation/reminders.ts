@@ -391,7 +391,7 @@ async function workOrderSend(ctx: Ctx) {
     if (det.trade && !det.send_to) continue;
     if (!autoFor(det, sparkyAuto, contacts)) continue;
     const failKey = `wosend-fail:${d.id}`;
-    if (ctx.made.has(failKey)) continue;
+    if (ctx.made.has(failKey) || ctx.made.has(`wo-hold:${d.id}`)) continue;
     const ref = workRef(det);
     const r = await approveAndSend(d.id, "Automatic").catch((e: Error) => ({ ok: false as const, error: e.message, note: undefined }));
     n++;

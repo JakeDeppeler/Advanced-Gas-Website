@@ -2686,3 +2686,5 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .ct-form .pk-said, .ct-acts { grid-column: 1 / -1; }
 .ct-acts { display: flex; gap: 8px; }
 @media (max-width: 560px) { .ct-form { grid-template-columns: minmax(0, 1fr); } }
+.sb-fixbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sb-putback { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }

@@ -231,7 +231,7 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
   const settings = await loadOrderingSettings();
   const tw = thisWeek(now), nw = nextWeek(now);
   const otherWeeks = [tw, nw].filter((w) => w.start !== week.start);
-  const [suppliers, inputs, alreadyOrdered, existing, cancelled, held, ...others] = await Promise.all([
+  const [allSuppliers, inputs, alreadyOrdered, existing, cancelled, held, ...others] = await Promise.all([
     loadSuppliers(), loadWeekInputs(loadRange), loadAlreadyOrdered(), listWeekOrders(week),
     opts.auto ? loadCancelled() : Promise.resolve(new Set<string>()),
     loadHolds(),
@@ -240,6 +240,11 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
   const otherDrafts = others.flat().filter((p) => p.status === "draft");
   // Held for next week's order, always; cancelled drafts' lines, on the automatic run.
   const skip = new Set([...cancelled, ...held.map((h) => lineKey(h.job_id, h.sku_id))]);
+  // A supplier whose drafts the office made into one bulk order (mergeDrafts)
+  // is drafted as one combining across both weeks until that order goes, so
+  // the next run doesn't split it back into a week each.
+  const bulk = new Set([...existing, ...otherDrafts].filter((p) => p.kind === "order" && p.status === "draft" && p.group_key.startsWith("bulk")).map((p) => p.supplier_id));
+  const suppliers = allSuppliers.map((x) => (bulk.has(x.id) ? { ...x, combine_orders: true } : x));
   const plan = planWeek({ week, ...inputs, suppliers, alreadyOrdered, combineWindow, skip });
   let created = 0, updated = 0, removed = 0;
   const kept = new Set<number>();
@@ -584,4 +589,57 @@ export async function listSentOrders(limit = 400): Promise<PoWithLines[]> {
   const lines = parts.flat();
   const num = (v: unknown) => (v == null ? null : Number(v));
   return pos.map((p) => ({ ...p, lines: lines.filter((l) => l.po_id === p.id).map((l) => ({ ...l, qty: Number(l.qty), unit_cost: num(l.unit_cost) })) }));
+}
+
+/* ---------------------------------------------------------------- bulk and undo */
+
+/**
+ * One supplier's drafts made into one bulk order: every line from the others
+ * onto this one (the same item for the same job added together), the emptied
+ * drafts taken away. Marked as bulk, so drafting keeps it as one order across
+ * this week and next until it goes; one delivery, by the first install.
+ */
+export async function mergeDrafts(keepId: number): Promise<{ ok: boolean; error?: string; merged?: string[] }> {
+  const keep = await getOrder(keepId);
+  if (!keep || keep.kind !== "order") return { ok: false, error: "That order isn't there any more." };
+  if (keep.status !== "draft") return { ok: false, error: "Only a draft can take on more." };
+  const others = (await sbSelect<{ id: number; po_number: string }>("purchase_orders", `select=id,po_number&kind=eq.order&status=eq.draft&supplier_id=eq.${encodeURIComponent(keep.supplier_id)}&id=neq.${keepId}`));
+  if (!others.length) return { ok: false, error: "There's no other draft for this supplier to add." };
+  const mine = new Map(keep.lines.map((l) => [lineKey(l.job_id, l.sku_id), l]));
+  for (const o of others) {
+    const lines = await sbSelect<PoLine>("purchase_order_lines", `po_id=eq.${o.id}&order=id.asc`);
+    for (const l of lines) {
+      const same = l.sku_id != null ? mine.get(lineKey(l.job_id, l.sku_id)) : undefined;
+      if (same) {
+        same.qty += l.qty;
+        await sbUpdate("purchase_order_lines", `id=eq.${same.id}`, { qty: same.qty });
+        await sbDelete("purchase_order_lines", `id=eq.${l.id}`);
+      } else {
+        await sbUpdate("purchase_order_lines", `id=eq.${l.id}`, { po_id: keepId });
+        mine.set(lineKey(l.job_id, l.sku_id), { ...l, po_id: keepId });
+      }
+    }
+    // Empty now, and never sent: nothing to keep.
+    await sbDelete("purchase_orders", `id=eq.${o.id}&status=eq.draft`);
+  }
+  if (!keep.group_key.startsWith("bulk")) await sbUpdate("purchase_orders", `id=eq.${keepId}`, { group_key: `bulk:${keep.group_key}`, updated_at: new Date().toISOString() });
+  return { ok: true, merged: others.map((o) => o.po_number) };
+}
+
+/**
+ * An order or work order that went (to the wrong address, say) put back as a
+ * draft, to fix and send again. Nothing is emailed: whoever got the first one
+ * is the office's to tell. What ServiceTitan was given (purchase orders, job
+ * notes) is kept, so sending it again doesn't make them twice.
+ */
+export async function putBackToDraft(id: number): Promise<{ ok: boolean; error?: string; was?: { po: string; to: string | null } }> {
+  const po = await sbSelectOne<{ status: string; po_number: string; sent_to: string | null }>("purchase_orders", `select=status,po_number,sent_to&id=eq.${id}`);
+  if (!po) return { ok: false, error: "That order isn't there any more." };
+  if (po.status === "draft") return { ok: false, error: "It's already a draft." };
+  if (po.status !== "sent" && po.status !== "approved") return { ok: false, error: `It's ${po.status}, so there's nothing to put back.` };
+  const got = await sbUpdateReturning("purchase_orders", `id=eq.${id}&status=in.(sent,approved)`, {
+    status: "draft", approved_by: null, approved_at: null, sent_at: null, sent_to: null, send_error: null, updated_at: new Date().toISOString(),
+  });
+  if (!got.length) return { ok: false, error: "It changed just now. Have another look." };
+  return { ok: true, was: { po: po.po_number, to: po.sent_to } };
 }

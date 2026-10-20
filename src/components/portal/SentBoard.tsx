@@ -2,7 +2,26 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { fixAndResend } from "@/app/portal/supply/sent/actions";
+import { fixAndResend, undoSend } from "@/app/portal/supply/sent/actions";
+
+/**
+ * Sent to the wrong place: put it back as a draft, to fix and send again.
+ * Nothing is emailed; whoever got it is told by the office.
+ */
+function PutBack({ o }: { o: { id: number; po: string; sentTo: string | null; kind: string } }) {
+  const router = useRouter();
+  const [busy, start] = useTransition();
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  return (
+    <span className="sb-putback">
+      <button type="button" className="qp-btn line" disabled={busy}
+        onClick={() => { if (confirm(`Put ${o.po} back as a draft?${o.sentTo ? ` It went to ${o.sentTo}; nothing is emailed to them, so let them know if they shouldn't have had it.` : ""} You can fix it and send it again${o.kind === "work_order" ? " from Work orders" : " from To order"}.`)) start(async () => { const r = await undoSend(o.id); setMsg(r.ok ? { ok: true, text: r.note ?? "A draft again." } : { ok: false, text: r.error ?? "Couldn't." }); if (r.ok) router.refresh(); }); }}>
+        {busy ? "Putting it back…" : "Undo: put it back as a draft"}
+      </button>
+      {msg && <span className={`sb-fix__msg${msg.ok ? "" : " bad"}`} role="status">{msg.text}</span>}
+    </span>
+  );
+}
 
 type Line = { id: number; qty: number; item: string; desc: string | null; job: string | null; customer: string | null; cost: number | null };
 type Order = { id: number; po: string; supplier: string; kind: "order" | "work_order"; week: string; sentAt: string | null; sentTo: string | null; by: string | null; pickup: boolean; total: number; lines: Line[];
@@ -111,9 +130,10 @@ export function SentBoard({ orders }: { orders: Order[] }) {
                   {isOpen && o.kind === "order" && emailed(o.sentTo) && (
                     fixing === o.id
                       ? <FixAndResend o={o} onDone={() => setFixing(null)} />
-                      : <div className="sb-fixbar"><button type="button" className="qp-btn" onClick={() => setFixing(o.id)}>Wrong address or date? Fix it and resend</button></div>
+                      : <div className="sb-fixbar"><button type="button" className="qp-btn" onClick={() => setFixing(o.id)}>Wrong address or date? Fix it and resend</button><PutBack o={o} /></div>
                   )}
-                  {isOpen && o.kind === "work_order" && <div className="sb-fixbar"><a className="qp-btn" href="/portal/supply/work-orders">Change it and email the update on Work orders</a></div>}
+                  {isOpen && o.kind === "order" && !emailed(o.sentTo) && <div className="sb-fixbar"><PutBack o={o} /></div>}
+                  {isOpen && o.kind === "work_order" && <div className="sb-fixbar"><a className="qp-btn" href="/portal/supply/work-orders">Change it and email the update on Work orders</a><PutBack o={o} /></div>}
                   {isOpen && (
                     <table className="sb-lines">
                       <tbody>

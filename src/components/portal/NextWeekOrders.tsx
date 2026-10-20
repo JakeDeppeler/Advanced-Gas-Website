@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, mergeIntoBulk, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { stockKey } from "@/lib/ordering/stockKey";
@@ -656,7 +656,30 @@ function useLiveRefresh(ms: number) {
   }, [router, ms]);
 }
 
-type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; delivery: DeliverySettings; noted?: boolean };
+type DraftRef = { id: number; po: string; supplier: string; week: string };
+type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; delivery: DeliverySettings; noted?: boolean; others?: DraftRef[] };
+
+/**
+ * More than one draft for the same supplier (this week's and next week's):
+ * one button puts them all on this one, a bulk order that comes in one
+ * delivery, by the first install on it. Drafting keeps it as one until it goes.
+ */
+function MergeBulk({ po, others, name }: { po: PoWithLines; others: DraftRef[]; name: string }) {
+  const { busy, msg, run } = useAct();
+  const weekOf = (w: string) => `week of ${dayLabel(w)}`;
+  return (
+    <div className="pt-nw__bulk">
+      <span>
+        {name} has {others.length === 1 ? "another draft" : `${others.length} other drafts`}: {others.map((o) => `${o.po} (${weekOf(o.week)})`).join(", ")}.
+      </span>
+      <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy}
+        onClick={() => { if (confirm(`Put ${others.map((o) => o.po).join(", ")} onto ${po.po_number} as one bulk order? Everything comes in one delivery, by the first install on it.`)) run(() => mergeIntoBulk(po.id)); }}>
+        {busy ? "Adding…" : "Make it one bulk order"}
+      </button>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
+  );
+}
 
 const installWhen = (l: { appointment_start: string | null; install_date: string | null }) =>
   l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "";
@@ -728,7 +751,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
   );
 }
 
-function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted }: CardProps) {
+function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted, others = [] }: CardProps) {
   const total = linesTotal(po.lines);
   const needsModel = supplier?.method === "email_form";
   // The short version first: what, for which jobs, how much, how it gets here.
@@ -743,8 +766,10 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted }: CardProp
       <header className="pt-nw__cardhead">
         <h2 className="pt-panel__h">{supplier?.name ?? po.supplier_id}</h2>
         <Status po={po} />
+        {po.group_key.startsWith("bulk") && <span className="pt-nw__tag">Bulk order · this week and next</span>}
         <span className="pt-nw__po">{po.po_number}</span>
       </header>
+      {po.status === "draft" && po.kind === "order" && others.length > 0 && <MergeBulk po={po} others={others} name={supplier?.name ?? po.supplier_id} />}
       <p className="pt-nw__sum">
         <span><b>{po.lines.length}</b> line{po.lines.length === 1 ? "" : "s"}</span>
         {jobs.length > 0 && <span>{jobs.length === 1 ? `Job ${jobs[0].job_number}${jobs[0].customer_name ? ` · ${jobs[0].customer_name}` : ""}` : `${jobs.length} jobs: ${jobs.map((j) => j.job_number).join(", ")}`}</span>}
@@ -873,6 +898,8 @@ export function NextWeekOrders(props: {
   notedSuppliers?: string[];
   /** Items tagged Factory stock. */
   stocked?: string[];
+  /** Supplier orders still drafts this week and next, to offer making a supplier's into one. */
+  allDrafts?: DraftRef[];
 }) {
   const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery, holds } = props;
   const view = props.view ?? "todo";
@@ -968,7 +995,7 @@ export function NextWeekOrders(props: {
       )}
 
       {goods.length > 0 && <h2 className="pt-nw__section">Supplier orders</h2>}
-      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} />)}
+      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} others={(props.allDrafts ?? []).filter((d) => d.supplier === po.supplier_id && d.id !== po.id)} />)}
 
       {work.length > 0 && <h2 className="pt-nw__section">Electrician</h2>}
       {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} />)}
