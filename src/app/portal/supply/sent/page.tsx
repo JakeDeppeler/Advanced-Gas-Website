@@ -42,6 +42,7 @@ export default async function SentPage() {
         <SentBoard orders={orders.map((o) => ({
           id: o.id, po: o.po_number, supplier: names.get(o.supplier_id) ?? o.supplier_id, kind: o.kind, week: o.week_of,
           sentAt: o.sent_at ?? o.approved_at, sentTo: o.sent_to, by: o.approved_by, pickup: o.pickup,
+          delivery: { address: o.delivery_address ?? "", toSite: o.delivery_to_site, instructions: o.delivery_instructions ?? "", deliverBy: o.deliver_by ?? "", note: o.supplier_note ?? "" },
           total: linesTotal(o.lines),
           lines: o.lines.map((l) => ({ id: l.id, qty: l.qty, item: l.supplier_model ?? l.sku_name ?? "", desc: l.description, job: l.job_number, customer: l.customer_name, cost: l.unit_cost == null ? null : l.unit_cost * l.qty })),
         }))} />

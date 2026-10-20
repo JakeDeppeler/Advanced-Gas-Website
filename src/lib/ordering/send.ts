@@ -440,7 +440,9 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[]): Prom
     await sbUpdate("purchase_order_lines", `po_id=eq.${po.id}&job_id=eq.${m.job_id}`, { install_date: m.to, appointment_start: null }).catch(() => undefined);
   }
   if (workOrder && po.details) {
-    await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null }, updated_at: new Date().toISOString() }).catch(() => undefined);
+    // Kept on the work order too, so its pop-up shows the move was passed on and when.
+    const told = { at: new Date().toISOString(), from: moves[0].from, to: moves[0].to, emailedTo: to };
+    await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null, moves: [...(po.details.moves ?? []), told].slice(-10) }, updated_at: new Date().toISOString() }).catch(() => undefined);
   }
   return { ok: true, to, note: `Told ${supplier.name} (${to}).` };
 }
@@ -485,4 +487,40 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
   });
   await jobsAfterSend(id);
   return { ok: true, note: `Update emailed to ${to}.` };
+}
+
+/**
+ * A supplier order that's gone with something wrong on it (the wrong
+ * delivery address, the wrong day): the delivery fixed here, then the order
+ * emailed again to the same address, marked as replacing the one before, so
+ * the supplier works from the corrected one. Only an order that went by
+ * email; a work order is changed and resent from Work orders.
+ */
+export async function resendOrder(id: number, patch: { toSite: boolean; address: string; instructions: string; deliverBy: string | null; note: string }): Promise<SendResult> {
+  const cur = await getOrder(id);
+  if (!cur) return { ok: false, error: "That order isn't there any more." };
+  if (cur.kind !== "order") return { ok: false, error: "Change a work order and email the update from Work orders." };
+  if (cur.status !== "sent") return { ok: false, error: "It hasn't been sent yet; change it on To order." };
+  const to = emailIn(cur.sent_to);
+  if (!to) return { ok: false, error: "It wasn't emailed (ordered by hand or entered in maX), so let them know yourself." };
+  const from = fromAddress();
+  if (!from) return { ok: false, error: NO_FROM };
+  await sbUpdate("purchase_orders", `id=eq.${id}`, {
+    delivery_to_site: patch.toSite, delivery_address: patch.address || cur.delivery_address, delivery_instructions: patch.instructions || null,
+    deliver_by: patch.deliverBy, supplier_note: patch.note || null, updated_at: new Date().toISOString(),
+  });
+  const b = await build(id);
+  if ("error" in b) return { ok: false, error: b.error };
+  if (!b.email) return { ok: false, error: "There's no email for this one to send again." };
+  const line = `Updated — this replaces order ${b.po.po_number} we sent earlier. Please go by this one.`;
+  const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${line}</div>`;
+  const err = await resend({
+    from, to: [to], cc: ccList(b.settings, b.supplier, b.po, to), reply_to: b.settings.replyTo,
+    subject: `Updated: ${b.email.subject}`,
+    html: b.email.html.replace("<body style=\"margin:0;background:#f9f8f3;\">", `<body style="margin:0;background:#f9f8f3;">${banner}`),
+    text: `${line}\n\n${b.email.text}`,
+    ...(b.attachments?.length ? { attachments: b.attachments } : {}),
+  });
+  if (err) return { ok: false, error: err };
+  return { ok: true, note: `Sent the corrected order to ${to}, marked as replacing the first one.` };
 }

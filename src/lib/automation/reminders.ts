@@ -1,15 +1,16 @@
 import "server-only";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { sbInsert, sbSelectOne, sbUpdateReturning } from "@/lib/dashboard/db";
+import { sbInsert, sbSelect, sbSelectOne, sbUpdateReturning } from "@/lib/dashboard/db";
 import { toBillJobs } from "@/lib/dashboard/toBill";
 import { loadPipeline } from "@/lib/pipeline/store";
 import { isLow, listStock } from "@/lib/portal/stock";
 import { listStockLines, shelfMatch } from "@/lib/ordering/stockLines";
 import { addStockLine, draftFor, loadSuppliers } from "@/lib/ordering/db";
-import { nextWeek } from "@/lib/ordering/plan";
 import { ordersToUpdate, updateJobs } from "@/lib/ordering/stJobNotes";
 import { findMoves, type Move } from "@/lib/ordering/moveNotices";
-import { emailDateChange } from "@/lib/ordering/send";
+import { approveAndSend, emailDateChange, sendReadyNotice } from "@/lib/ordering/send";
+import { doneNoticeEmail, nextWeek, workRef, type WorkOrderDetails } from "@/lib/ordering/plan";
+import { site } from "@/lib/site";
 import { owedInvoices } from "@/lib/portal/run/money";
 import { cleanCell } from "@/components/portal/fleetStatus";
 import { listContacts } from "@/lib/contacts/store";
@@ -19,7 +20,7 @@ import { MAX_LISTS, createAutoTodo, officeIds, saveTodoLists, setDone, teamPeopl
 import { FINANCE_LIST, FOLLOW_UP_LIST, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
-import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
+import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { clearApprovedQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
 import { getTodo, updateTodo } from "@/lib/todos/store";
@@ -58,6 +59,8 @@ type Ctx = {
   lists: string[];
   /** Account to-dos following their quote through (todos/flow.ts): read once, saved at the end. */
   flow: Record<string, FlowEntry>;
+  /** What was emailed to a supplier or trade by itself this run, for the "it went" notice. */
+  sent: { head: string; detail: string }[];
 };
 
 /** What to find a quote by in ServiceTitan: its job, or for one written on the customer, the customer. */
@@ -124,7 +127,8 @@ async function soldNotBooked(ctx: Ctx, pipe: PipeQuote[]) {
     if (n >= PER_RUN) break;
     if (q.stage !== "won" || !q.soldOn) continue;
     const age = daysBetween(q.soldOn, ctx.today);
-    if (age < 3 || age > 45) continue;
+    // A day on is when the office should be booking it; it moves to Jobs to Book then.
+    if (age < 1 || age > 45) continue;
     if (await todo(ctx, "soldNotBooked", `sold:${q.key}`, {
       title: `Book in ${who(q)}, sold ${age} days ago`,
       notes: [`${ref(q)}${q.what ?? "Sold quote"}${q.value ? ` · ${money(q.value)}` : ""}.`, `Sold ${dayLabel(q.soldOn)} and nothing's been booked from it yet. It's in Pipeline › Sold, to be booked.`].join("\n"),
@@ -346,10 +350,46 @@ async function orderMoves(ctx: Ctx) {
     const day = new Date(`${ms[0].to}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
     if (r.ok) {
       for (const m of ms) ctx.made.set(`move:${m.po_number}:${m.job_id}:${m.to}`, new Date().toISOString());
-      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: true, jobId: ms[0].job_id, title: `Job ${jobs} moved to ${day}: ${r.note ?? "supplier told"} Order ${po} kept, its date changed.` });
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: true, jobId: ms[0].job_id, po, title: `Job ${jobs} moved to ${day}: ${r.note ?? "supplier told"} Order ${po} kept, its date changed.` });
+      ctx.sent.push({ head: `Job ${jobs} moved to ${day}`, detail: `${r.note ?? "Told whoever the order went to."} Order ${po} kept, its date changed to match.` });
     } else {
       ctx.made.set(failKey, new Date().toISOString());
       ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: false, jobId: ms[0].job_id, title: `Job ${jobs} moved to ${day}, couldn't tell the supplier about order ${po}`, detail: (r.error ?? "").slice(0, 200) });
+    }
+  }
+}
+
+/**
+ * A work order drafted from a booking goes to the electrician (or whoever
+ * it's for) by itself: once the job's booked, the work order is sent. Only
+ * work orders: supplier orders for systems and materials still wait on To
+ * order for someone to approve, because they spend money. Not one the office
+ * made by hand and saved as a draft, which they're still working on, and not
+ * one for a day that's gone. Same hours as telling a supplier about a move.
+ */
+async function workOrderSend(ctx: Ctx) {
+  const hour = melHour();
+  if (melDow(ctx.today) === 0 || hour < 7 || hour >= 18) return;
+  const drafts = await sbSelect<{ id: number; po_number: string; group_key: string; details: WorkOrderDetails | null }>(
+    "purchase_orders", "select=id,po_number,group_key,details&kind=eq.work_order&status=eq.draft&order=id.asc&limit=20",
+  );
+  let n = 0;
+  for (const d of drafts) {
+    if (n >= 6) break;
+    if (d.group_key.startsWith("manual:") || !d.details?.date || d.details.date < ctx.today) continue;
+    const failKey = `wosend-fail:${d.id}`;
+    if (ctx.made.has(failKey)) continue;
+    const ref = workRef(d.details);
+    const jobId = d.details.jobs?.[0]?.job_id;
+    const r = await approveAndSend(d.id, "Automatic").catch((e: Error) => ({ ok: false as const, error: e.message, note: undefined }));
+    n++;
+    if (r.ok) {
+      ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: true, jobId, po: d.po_number, title: `Work order ${d.po_number} sent: ${ref}`, detail: r.note ?? undefined });
+      ctx.sent.push({ head: `Work order sent: ${ref}`, detail: `${r.note ?? "Emailed."} For ${dayLabel(d.details.date)}.` });
+    } else {
+      // Logged once; it stays a draft on To order with the reason, for the office.
+      ctx.made.set(failKey, new Date().toISOString());
+      ctx.log.push({ at: new Date().toISOString(), kind: "workOrderSend", ok: false, jobId, po: d.po_number, title: `Couldn't send work order ${d.po_number}: ${ref}`, detail: (r.error ?? "").slice(0, 200) });
     }
   }
 }
@@ -449,7 +489,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const [made, people, offIds, lists] = await Promise.all([loadMade(), teamPeople(), officeIds(), todoLists()]);
   const office = people.find((p) => p.id === sw.officeTo) ?? people.find((p) => offIds.includes(p.id)) ?? null;
   const accounts = people.find((p) => p.id === sw.accountsTo) ?? office;
-  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw), flow: await loadFlow() };
+  const ctx: Ctx = { sw, today: isoDateMelbourne(new Date()), made, log: [], people, office, accounts, lists: await ensureLists(lists, sw), flow: await loadFlow(), sent: [] };
   const flowAtStart = { ...ctx.flow };
   const needPipe = sw.soldNotBooked || sw.quoteFollow || sw.accountFlow;
   const pipe = needPipe ? await loadPipeline({ detail: true }).then((p) => p.quotes).catch(() => null) : [];
@@ -464,6 +504,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
     ["keepInTouch", () => keepInTouch(ctx)],
     ["orderTags", () => orderTags(ctx)],
     ["orderMoves", () => orderMoves(ctx)],
+    ["workOrderSend", () => workOrderSend(ctx)],
     ["accountFlow", () => (pipe ? accountFlow(ctx, pipe) : Promise.reject(new Error("The pipeline couldn't be read")))],
   ];
   const ran: string[] = [];
@@ -479,6 +520,15 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
     }
   }
   await saveMade(ctx.made).catch(() => undefined);
+  // One "it went" email for everything sent by itself this run.
+  if (ctx.sent.length) {
+    const to = (sw.notifyTo ?? NOTIFY_DEFAULT).split(/[,;\s]+/).filter((a) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
+    const parts = doneNoticeEmail({ items: ctx.sent, link: `${site.url.replace(/\/$/, "")}/portal/supply/work-orders` });
+    for (const a of to.slice(0, 5)) {
+      const err = await sendReadyNotice(parts, a).catch((e: Error) => e.message);
+      if (err) ctx.log.push({ at: new Date().toISOString(), kind: "notice", ok: false, title: `Couldn't email ${a} what was sent`, detail: err.slice(0, 200) });
+    }
+  }
   // Merged with what's there now: a quote marked Won while this ran was saved
   // after this read the list, and mustn't be written over.
   const startKeys = new Set(Object.keys(flowAtStart));

@@ -144,6 +144,8 @@ export type WorkOrderDetails = {
   to_name?: string | null;
   /** Files on the job in ServiceTitan sent with it: plans, photos (jobFiles). */
   files?: { id: number; name: string }[];
+  /** Each time the job moved after this went and whoever had it was emailed the new day, by itself. */
+  moves?: { at: string; from: string; to: string; emailedTo: string }[];
 };
 
 /** The electrician's work order (the usual one), or someone else's: water balancing, a plumber. */
@@ -868,4 +870,20 @@ export function toApproveEmail(o: { orders: NewToOrder[]; workOrders: string[]; 
   const text = [intro, "", ...sorted.map((x) => item(x).text), ...o.workOrders.map((w) => `Electrician: ${w}`),
     ...(o.problems.length ? [`${o.problems.length} thing(s) need a look — see the page.`] : []), "", o.link].join("\n");
   return { subject, html: shell("New orders to approve", intro, body, footer), text };
+}
+
+/**
+ * "It went": what the portal emailed by itself this run, to whoever's set on
+ * Settings › Automatic, so nobody has to wonder whether GT Electrics heard
+ * about the move or got the work order. Each line says who was emailed,
+ * about which job, and what was said.
+ */
+export function doneNoticeEmail(o: { items: { head: string; detail: string }[]; link: string }): EmailParts {
+  const n = o.items.length;
+  const subject = n === 1 ? `Sent automatically: ${o.items[0].head}` : `Sent automatically: ${n} emails to suppliers and trades`;
+  const body = `<ul style="margin:0;padding-left:20px;font:15px/22px ${SANS};color:#050a30;">${o.items.map((i) => `<li style="margin-bottom:8px;"><strong>${esc(i.head)}</strong><br><span style="color:#6b6a68;">${esc(i.detail)}</span></li>`).join("")}</ul>`;
+  const intro = "The portal sent these by itself after the last ServiceTitan sync. Nothing for you to do unless one's wrong.";
+  const footer = `Every one is on Orders & stock › Work orders and Settings › Automatic: ${esc(o.link)}<br>Change who gets these on Settings › Automatic.`;
+  const text = [intro, "", ...o.items.flatMap((i) => [`- ${i.head}`, `  ${i.detail}`]), "", `Work orders: ${o.link}`].join("\n");
+  return { subject, html: shell("Sent automatically", intro, body, footer), text };
 }

@@ -4,9 +4,9 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { PageHead } from "@/components/portal/kit/PageHead";
-import { AutoSwitch, OfficeTo } from "@/components/portal/AutoSwitch";
+import { AutoSwitch, NotifyTo, OfficeTo } from "@/components/portal/AutoSwitch";
 import { officeIds, teamPeople } from "@/lib/todos/store";
-import { loadAutoLog, loadSwitches, type AutoKey } from "@/lib/automation/log";
+import { NOTIFY_DEFAULT, loadAutoLog, loadSwitches, type AutoKey } from "@/lib/automation/log";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Automatic · Team portal" };
@@ -16,7 +16,7 @@ const when = (iso: string) => new Date(iso).toLocaleString("en-AU", { weekday: "
 type Auto = { k: AutoKey; title: string; what: string; to: string; note?: string };
 
 const TODOS: Auto[] = [
-  { k: "soldNotBooked", title: "Sold but not booked after 3 days", what: "A sold quote with nothing booked from it three days on.", to: "The office, on the Jobs to Book list" },
+  { k: "soldNotBooked", title: "Sold but not booked after a day", what: "A sold quote with nothing booked from it a day on.", to: "The office, on the Jobs to Book list" },
   { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan.", to: "The accounts person, on the Finance list" },
   { k: "quoteFollow", title: "Quote follow-ups", what: "A to-do for each call in the Pipeline's rule: 2 days after the quote, then 4 days on, then a week on. It ticks itself off when the call is logged on the Pipeline, or the quote sells or is lost.", to: "Whoever's chasing it, or whoever wrote the quote, on the Follow up list" },
   { k: "overdueInv", title: "Invoices 7, 14 or 30 days overdue", what: "One to-do listing every invoice that's just crossed one of those marks, so the chasing is done in one sitting.", to: "The accounts person, on the Finance list" },
@@ -28,6 +28,7 @@ const ACTS: Auto[] = [
   { k: "quoteTag", title: "Take “Awaiting Quote Approval” off answered quotes", what: "When a job with that tag has been invoiced, is booked in for a visit to come, or has had a job booked from its quote, the tag comes off in ServiceTitan. Only that tag; the job’s other tags stay.", to: "" },
   { k: "factoryMin", title: "Low factory stock onto next week’s order", what: "A shelf line at or under its low mark, with nothing already on order, goes onto next week’s draft for the supplier it last came from, the same quantity as last time. It stays a draft until someone approves it. A line never ordered before becomes a to-do for the office instead.", to: "" },
   { k: "accountFlow", title: "Won quotes follow through to the invoice", what: "A quote marked Won on Account to-dos waits on its list until ServiceTitan marks it sold, then moves to Jobs to Book; once it's booked it moves to Finance to invoice, and ticks itself off when the invoice is out. A booking reminder made for a sale follows the same way. Lost on the Pipeline ticks it off.", to: "" },
+  { k: "workOrderSend", title: "Send work orders once the job's booked", what: "A work order drafted from a booking goes to the electrician (or whoever it's for) by itself, with the note, the PDF and the tags on the job in ServiceTitan, as if someone had pressed Send. Not system or material orders: those still wait on To order to be approved, because they spend money. Not a work order made by hand and saved as a draft, and not one for a day that's gone. Weekdays and Saturday, 7 am to 6 pm.", to: "" },
   { k: "orderMoves", title: "Tell the supplier when a job moves", what: "A job that moves after its gear was ordered or its electrician booked keeps its order, and whoever the order went to (GT Electrics, Rinnai and the rest) is emailed the new day, the office copied. The order's date moves with it, so it's never ordered twice. Weekdays and Saturday, 7 am to 6 pm. Reece lists entered in maX are changed there.", to: "" },
   { k: "orderTags", title: "“Materials Ordered” and “System Ordered” on jobs", what: "The tags already go on when an order is sent. This tries again, a few each sync, for any order whose jobs ServiceTitan wouldn’t tag at the time.", to: "" },
 ];
@@ -89,6 +90,13 @@ export default async function AutomaticPage() {
 
       <section className="pk-card pk-pad au-list">
         <h2 className="rv-h2">What it does itself</h2>
+        <div className="au-item au-office">
+          <div>
+            <b>Tell me when it&rsquo;s emailed someone</b>
+            <p>Whenever it sends a work order or tells a supplier a job&rsquo;s moved, these addresses get an email saying what went and to whom. Several with commas.</p>
+          </div>
+          <NotifyTo value={sw.notifyTo ?? NOTIFY_DEFAULT} canEdit={admin} />
+        </div>
         {ACTS.map((a) => <Item key={a.k} a={a} on={sw[a.k]} n={count(a.k)} admin={admin} />)}
         <div className="au-item">
           <div>

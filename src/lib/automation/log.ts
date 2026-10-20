@@ -6,20 +6,29 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
  * a log of every time it did something, newest first. Kept in settings, a
  * few hundred lines: it's a record to glance at, not an audit trail.
  */
-export type AutoEntry = { at: string; kind: string; title: string; detail?: string; ok: boolean; jobId?: number };
+export type AutoEntry = { at: string; kind: string; title: string; detail?: string; ok: boolean; jobId?: number; po?: string };
 /**
  * Each automatic job, on or off. All on unless switched off, except the van
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow"] as const;
+export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
   officeTo: string | null;
   /** Who gets the invoicing and overdue to-dos, on the Finance list. Null: the office's person. */
   accountsTo: string | null;
+  /**
+   * Who's emailed when the portal emails a supplier or the electrician by
+   * itself (a work order sent, a moved job passed on), so somebody knows it
+   * went. Addresses, comma-separated. Null: the owner.
+   */
+  notifyTo: string | null;
 };
+
+/** Where "it's done" notices go until someone sets the address on Settings › Automatic. */
+export const NOTIFY_DEFAULT = "jake@advancedgas.com.au";
 const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck"];
 
 const LOG = "automation_log";
@@ -28,7 +37,11 @@ const KEEP = 400;
 
 export async function loadSwitches(): Promise<AutoSwitches> {
   const s = await getSettings<Partial<AutoSwitches>>(SW).catch(() => null);
-  const out = { officeTo: typeof s?.officeTo === "string" ? s.officeTo : null, accountsTo: typeof s?.accountsTo === "string" ? s.accountsTo : null } as AutoSwitches;
+  const out = {
+    officeTo: typeof s?.officeTo === "string" ? s.officeTo : null,
+    accountsTo: typeof s?.accountsTo === "string" ? s.accountsTo : null,
+    notifyTo: typeof s?.notifyTo === "string" && s.notifyTo.trim() ? s.notifyTo : null,
+  } as AutoSwitches;
   for (const k of AUTO_KEYS) out[k] = OFF_UNTIL_ASKED.includes(k) ? s?.[k] === true : s?.[k] !== false;
   return out;
 }
