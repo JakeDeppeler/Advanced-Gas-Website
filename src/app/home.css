@@ -2229,3 +2229,101 @@
   text-shadow: none;
   color: rgba(255,255,255,0.92);
 }
+
+/* ---------- The crew strip ---------- */
+.page-home .crew { position: relative; padding: 72px 0 64px; background: var(--bg); }
+.page-home .crew__grid {
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
+  gap: 48px; align-items: center;
+}
+.page-home .crew__head { margin-bottom: 0; }
+.page-home .crew__head h2 { margin: 10px 0 14px; font-size: clamp(30px, 3.2vw, 42px); }
+.page-home .crew__head p { font-size: 17px; margin: 0 0 18px; max-width: 420px; }
+.page-home .crew__more { color: var(--navy); font-weight: 700; text-underline-offset: 3px; }
+.page-home .crew__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
+}
+.page-home .crewcard {
+  display: flex; flex-direction: column; gap: 2px;
+  background: #fff; border: 1px solid var(--line); border-radius: 16px;
+  padding: 0 0 16px; overflow: hidden; text-align: center;
+}
+/* The portraits are cut-outs on white, framed loosely; a square crop from
+   the top keeps every face at the same height across the row. */
+.page-home .crewcard__photo {
+  position: relative; aspect-ratio: 1 / 1; margin-bottom: 10px;
+  background: linear-gradient(180deg, #fff 0%, var(--bg-2) 100%);
+}
+.page-home .crewcard__photo img { object-fit: cover; object-position: 50% 0; }
+.page-home .crewcard__name { font-family: var(--f-display); font-size: 17px; color: var(--navy); padding: 0 10px; }
+.page-home .crewcard__role {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--orange-deep); padding: 0 10px;
+}
+.page-home .crewcard__line { font-size: 13.5px; line-height: 1.4; color: var(--ink-2); padding: 4px 12px 0; }
+@media (max-width: 1000px) {
+  .page-home .crew__grid { grid-template-columns: 1fr; gap: 28px; }
+}
+@media (max-width: 760px) {
+  .page-home .crew { padding: 48px 0 44px; }
+  .page-home .crew__list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+
+/* ---------- Interest-free payments (mock) ---------- */
+.page-home .finance { position: relative; padding: 80px 0; background: var(--bg-2); border-top: 1px solid var(--line); }
+.page-home .finance__grid {
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 56px; align-items: center;
+}
+.page-home .finance__copy { margin-bottom: 0; }
+.page-home .finance__copy h2 { margin: 10px 0 14px; }
+.page-home .finance__copy p { color: var(--ink-2); max-width: 560px; }
+.page-home .finance__points { list-style: none; padding: 0; margin: 18px 0 26px; display: grid; gap: 10px; }
+.page-home .finance__points li { display: flex; gap: 10px; align-items: baseline; color: var(--ink); }
+.page-home .finance__eg {
+  background: #fff; border: 1px solid var(--line); border-radius: 20px;
+  padding: 28px; box-shadow: 0 18px 40px -24px rgba(11,20,80,0.35);
+}
+.page-home .finance__eg-lbl {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3);
+}
+.page-home .finance__eg-item { margin-top: 8px; font-weight: 700; color: var(--navy); }
+.page-home .finance__eg-big {
+  font-family: var(--f-display); font-weight: 900; font-size: 52px; line-height: 1.05;
+  letter-spacing: -0.02em; color: var(--navy); margin-top: 10px;
+}
+.page-home .finance__eg-big small { font-size: 18px; font-weight: 700; color: var(--ink-2); letter-spacing: 0; }
+.page-home .finance__eg-calc { color: var(--ink-2); margin-top: 4px; }
+.page-home .finance__eg-note { font-size: 13px; color: var(--ink-3); margin: 14px 0 0; }
+@media (max-width: 900px) {
+  .page-home .finance { padding: 56px 0; }
+  .page-home .finance__grid { grid-template-columns: 1fr; gap: 28px; }
+  .page-home .finance__eg-big { font-size: 42px; }
+}
+
+/* ---------- Mock markers (preview only) ---------- */
+.mockflag {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+  padding: 5px 12px; border-radius: 999px;
+  background: #ffe14d; color: #3d3200; border: 1px dashed #8a7200;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.mockph { background: #ffe14d; color: #3d3200; padding: 0 4px; border-radius: 4px; font-weight: 600; }
+
+/* Interest-free question on the quote form's details step */
+.page-home .qfin { margin: 2px 0 12px; }
+.page-home .qfin__lbl {
+  display: block; margin-bottom: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2); font-family: var(--f-mono); letter-spacing: 0.02em;
+}
+.page-home .qfin__lbl em { font-style: normal; color: var(--ink-3); font-weight: 500; }
+.page-home .qfin__opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.page-home .qfin__opt {
+  padding: 9px 16px; border-radius: 999px;
+  border: 1.5px solid var(--line); background: #fff;
+  font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer;
+}
+.page-home .qfin__opt:hover { border-color: var(--sky); }
+.page-home .qfin__opt.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }

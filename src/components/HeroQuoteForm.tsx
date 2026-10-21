@@ -270,6 +270,8 @@ export function HeroQuoteForm() {
   const [notes, setNotes] = useState("");
   const [photos, setPhotos] = useState<Array<{ name: string; type: string; data: string }>>([]);
   const [hp, setHp] = useState("");
+  // Optional, and blank means they didn't say, not "no".
+  const [finance, setFinance] = useState<"" | "yes" | "maybe" | "no">("");
 
   // Brand-aware flow. HP: style/material steps only appear when Reclaim
   // is in play (Reclaim is the only brand we split-install; Thermann and
@@ -537,6 +539,7 @@ export function HeroQuoteForm() {
             ductedSize, ductedZones, ductedTablet,
             svcType, svcStories,
             waterWhere, waterWhy,
+            finance,
           },
           name, phone, email, postcode, address, notes,
           photos, hp,
@@ -577,6 +580,7 @@ export function HeroQuoteForm() {
     setAddress(""); setNotes(""); setPhotos([]);
     setAddressSuggestions([]); setShowAddressSuggestions(false);
     setHp("");
+    setFinance("");
   }
 
   if (done) {
@@ -1013,6 +1017,19 @@ export function HeroQuoteForm() {
                   ))}
                 </ul>
               )}
+            </div>
+
+            <div className="qfin" role="group" aria-labelledby="q-fin-lbl">
+              <span id="q-fin-lbl" className="qfin__lbl">Interested in interest-free payments? <em>(optional)</em></span>
+              <div className="qfin__opts">
+                {([["yes", "Yes"], ["maybe", "Maybe"], ["no", "No thanks"]] as const).map(([id, t]) => (
+                  <button key={id} type="button" aria-pressed={finance === id}
+                    className={`qfin__opt ${finance === id ? "is-on" : ""}`}
+                    onClick={() => setFinance(f => (f === id ? "" : id))}>
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* The note and the photos help the quote but aren't needed for

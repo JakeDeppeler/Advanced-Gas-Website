@@ -16,6 +16,7 @@ import { homePosts } from "@/lib/blogMerge";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { SuburbSearch } from "@/components/SuburbSearch";
 import { DoorIcon, type DoorIconKey } from "@/components/DoorIcon";
+import { TEAM } from "@/lib/team";
 import "./home.css";
 
 // Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
@@ -296,6 +297,36 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* THE CREW — faces and names near the top. Every competitor in
+          Pakenham leads with its people; this page had one small group photo
+          and nobody named. */}
+      <section className="crew">
+        <MockFlag>New section · real team from the About page</MockFlag>
+        <div className="wrap crew__grid">
+          <div className="crew__head ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Who you&rsquo;ll deal with</span>
+            <h2>Real people, from the first call to the clean-up.</h2>
+            <p>
+              Family-owned and based in Pakenham. The person who quotes your job is on site when it goes in, and the
+              office that books it is down the road.
+            </p>
+            <Link href="/about" className="crew__more">Meet the whole team &rarr;</Link>
+          </div>
+          <ul className="crew__list">
+            {TEAM.map((m) => (
+              <li key={m.name} className="crewcard">
+                <div className="crewcard__photo">
+                  <Image src={m.photo} alt={`${m.name}, ${m.role}`} fill sizes="(max-width: 760px) 45vw, 200px" />
+                </div>
+                <strong className="crewcard__name">{m.name}</strong>
+                <span className="crewcard__role">{m.roleShort}</span>
+                <span className="crewcard__line">{m.short}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       <section className="brands">
         <div className="wrap">
           <div className="brands__lead">
@@ -464,6 +495,37 @@ export default async function HomePage() {
           <p className="fixprice__foot">
             After something different? We install every major brand, <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it in writing.
           </p>
+        </div>
+      </section>
+
+      {/* INTEREST-FREE PAYMENTS — mock. No provider is set up, so every term
+          a provider would set is a highlighted placeholder. */}
+      <section className="finance">
+        <MockFlag>Mock · no finance provider set up yet</MockFlag>
+        <div className="wrap finance__grid">
+          <div className="finance__copy ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Interest-free payments</span>
+            <h2>Get it in now. Pay it off over time.</h2>
+            <p>
+              Spread the cost of a heat pump, split or ducted system over <Ph>up to 24 months</Ph>, interest free,
+              through <Ph>finance partner</Ph>. Ask for it on the quote and we set it up alongside the install.
+            </p>
+            <ul className="finance__points">
+              <li><span className="tick">✓</span> <span>No interest over the term <Ph>fees and terms from provider</Ph></span></li>
+              <li><span className="tick">✓</span> Works alongside the VEU rebate, which still comes off first</li>
+              <li><span className="tick">✓</span> One tick on the quote form, no separate application to chase</li>
+            </ul>
+            <a href="#quote" className="ds-btn ds-btn--orange">Ask about payments in your quote &rarr;</a>
+          </div>
+          <div className="finance__eg" aria-label="Example repayment">
+            <span className="finance__eg-lbl">Example</span>
+            <div className="finance__eg-item">Reclaim R290 all-in-one, fully installed</div>
+            <div className="finance__eg-big">$50.46<small> a fortnight</small></div>
+            <div className="finance__eg-calc">$2,624 over 52 fortnights (24 months)</div>
+            <p className="finance__eg-note">
+              Arithmetic only. <Ph>Provider establishment and account fees not included</Ph>
+            </p>
+          </div>
         </div>
       </section>
 
@@ -806,4 +868,13 @@ export default async function HomePage() {
       />
     </div>
   );
+}
+
+/* Mock-only markers. They label what the preview adds so it can be told
+   apart from the live page; both come out before anything ships. */
+function MockFlag({ children }: { children: React.ReactNode }) {
+  return <div className="mockflag">{children}</div>;
+}
+function Ph({ children }: { children: React.ReactNode }) {
+  return <mark className="mockph">[{children}]</mark>;
 }
