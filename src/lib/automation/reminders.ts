@@ -17,8 +17,8 @@ import { cleanCell } from "@/components/portal/fleetStatus";
 import { listContacts } from "@/lib/contacts/store";
 import { lastWords, nextDue, touchState } from "@/lib/contacts/types";
 import { matchName } from "@/lib/portal/crewFile/match";
-import { MAX_LISTS, createAutoTodo, officeIds, saveTodoLists, setDone, teamPeople, todoLists } from "@/lib/todos/store";
-import { FINANCE_LIST, FOLLOW_UP_LIST, type Person } from "@/lib/todos/types";
+import { MAX_LISTS, createAutoTodo, officeIds, openTodos, renameTodoList, saveTodoLists, setDone, teamPeople, todoLists } from "@/lib/todos/store";
+import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, jobNumberIn, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
 import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
@@ -50,7 +50,7 @@ const who = (q: Pick<PipeQuote, "customer" | "suburb" | "jobNumber">) => [q.cust
 
 type Ctx = {
   sw: AutoSwitches;
-  /** Who the Finance list's to-dos go to. */
+  /** Who the Invoice ready and Invoice overdue to-dos go to. */
   accounts: Person | null;
   today: string;
   made: Map<string, string>;
@@ -103,16 +103,33 @@ async function todo(ctx: Ctx, kind: AutoKey, key: string, t: { title: string; no
 }
 
 /**
- * The invoicing and overdue to-dos go on a list of their own, so they're the
- * accounts person's and nobody else's. Added to the board the first time
- * either job is on; a board already at its five lists keeps them on the
+ * The invoicing and overdue to-dos go on lists of their own, so they're the
+ * accounts person's and nobody else's: Invoice ready for finished jobs to
+ * bill, Invoice overdue for money out past its due date. Added to the board
+ * the first time either job is on; a board already full keeps them on the
  * general list instead.
  */
-export const ACCOUNTS = FINANCE_LIST;
+export const ACCOUNTS = READY_LIST;
 export const FOLLOW_UP = FOLLOW_UP_LIST;
 async function ensureLists(lists: string[], sw: AutoSwitches): Promise<string[]> {
+  // A board from before the split: Finance becomes Invoice ready (its to-dos
+  // with it), Invoice overdue goes in beside it, and the old "Chase 6 overdue
+  // invoices" bundles are ticked off, since overdueInv writes one card per
+  // invoice in their place this run.
+  if (lists.includes(FINANCE_LIST)) {
+    await renameTodoList(FINANCE_LIST, READY_LIST).catch(() => undefined);
+    const at = lists.indexOf(FINANCE_LIST);
+    const next = [...lists.slice(0, at), READY_LIST, ...(lists.includes(OVERDUE_LIST) ? [] : [OVERDUE_LIST]), ...lists.slice(at + 1)].filter((l, i, a) => a.indexOf(l) === i);
+    if ((await saveTodoLists(next).catch(() => ({ ok: false }))).ok) lists = next.slice(0, MAX_LISTS);
+    const old = (await openTodos().catch(() => [])).filter((t) => t.createdBy === "Automatic" && /^Chase \d+ overdue invoices?\b/.test(t.title));
+    for (const t of old) {
+      await updateTodo(t.id, { notes: `Replaced by one card per invoice on ${OVERDUE_LIST}, each ticking itself off when it's paid.\n${t.notes ?? ""}`.slice(0, 2000), list: OVERDUE_LIST }).catch(() => undefined);
+      await setDone(t.id, true, "Automatic").catch(() => false);
+    }
+  }
   const want = [
-    ...((sw.notInvoiced || sw.overdueInv) ? [ACCOUNTS] : []),
+    ...(sw.notInvoiced ? [READY_LIST] : []),
+    ...(sw.overdueInv ? [OVERDUE_LIST] : []),
     ...(sw.quoteFollow ? [FOLLOW_UP] : []),
   ].filter((l) => !lists.includes(l));
   if (!want.length) return lists;
@@ -166,7 +183,7 @@ async function notInvoiced(ctx: Ctx) {
     if (await todo(ctx, "notInvoiced", `bill:${r.id}`, {
       title: `Invoice job ${r.jobNumber ?? r.id}${r.customer ? `, ${r.customer}` : ""}`,
       notes: `${r.jobType ?? "Job"}${r.suburb ? ` in ${r.suburb}` : ""}, finished ${dayLabel(done)}${r.value ? `, sold at ${money(r.value)}` : ""}. No invoice in ServiceTitan yet.`,
-      to: null, accounts: true, jobId: r.id,
+      to: null, accounts: true, list: READY_LIST, jobId: r.id,
       onMade: (id) => { if (id) open[String(r.id)] = id; },
     })) n++;
   }
@@ -253,26 +270,39 @@ async function quoteFollow(ctx: Ctx, pipe: PipeQuote[]) {
 }
 
 /**
- * Invoices that have just gone 7, 14 or 30 days overdue, in one to-do for the
- * office rather than one each: the chasing is done as a sitting, and the
- * first run alone would otherwise be thirty cards.
+ * Every invoice past its due date, one card each on Invoice overdue, so the
+ * list is the chasing to do and nothing else. It was one card for every
+ * invoice that crossed 7, 14 or 30 days on a given day, which made a clear
+ * list impossible: one invoice could sit in three bundles. A card ticks itself
+ * off when its invoice drops off what we're owed (paid or credited), but only
+ * when the system that holds it answered this run: a Xero outage isn't a
+ * customer paying. Due date in the title, not the days, so the title holds still.
  */
+const OVERDUE_TODOS = "automation_overdue_todos";
 async function overdueInv(ctx: Ctx) {
   const owed = await owedInvoices();
   if (!owed) return;
-  const band = (d: number) => (d >= 30 ? 30 : d >= 14 ? 14 : d >= 7 ? 7 : 0);
-  const fresh = owed.list.filter((i) => band(i.daysOver) > 0 && !ctx.made.has(`owed:${i.number}:${band(i.daysOver)}`)).sort((a, b) => b.daysOver - a.daysOver);
-  if (!fresh.length) return;
-  const total = fresh.reduce((s, i) => s + i.amountDue, 0);
-  const shown = fresh.slice(0, 25);
-  const notes = [
-    ...shown.map((i) => `#${i.number} ${i.contact}: ${money(i.amountDue)}, ${i.daysOver} days overdue`),
-    ...(fresh.length > shown.length ? [`and ${fresh.length - shown.length} more on Finance › Owed to us`] : []),
-  ].join("\n");
-  const key = `owed-run:${ctx.today}:${fresh.map((i) => i.number).join(",").slice(0, 60)}`;
-  if (await todo(ctx, "overdueInv", key, { title: `Chase ${fresh.length} overdue ${fresh.length === 1 ? "invoice" : "invoices"}, ${money(total)}`, notes, to: null, accounts: true })) {
-    for (const i of fresh) ctx.made.set(`owed:${i.number}:${band(i.daysOver)}`, new Date().toISOString());
+  const open = (await getSettings<Record<string, { id: string; from: "xero" | "servicetitan" }>>(OVERDUE_TODOS).catch(() => null)) ?? {};
+  const late = owed.list.filter((i) => i.daysOver > 0 && i.stage === "billed").sort((a, b) => b.daysOver - a.daysOver);
+  const lateNow = new Set(late.map((i) => i.number));
+  for (const [num, t] of Object.entries(open)) {
+    if (lateNow.has(num) || owed.partial === t.from) continue;
+    await updateTodo(t.id, { notes: `${dayLabel(ctx.today)}: no longer overdue in ${t.from === "xero" ? "Xero" : "ServiceTitan"}, so it's paid or credited.` }).catch(() => undefined);
+    await setDone(t.id, true, "Automatic").catch(() => false);
+    delete open[num];
   }
+  let n = 0;
+  for (const i of late) {
+    if (n >= 60) break;
+    if (open[i.number]) continue;
+    if (await todo(ctx, "overdueInv", `chase:${i.number}`, {
+      title: `Chase invoice #${i.number}, ${i.contact}, ${money(i.amountDue)}, due ${dayLabel(i.due)}`,
+      notes: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} overdue when this was written. In ${i.from === "xero" ? "Xero" : "ServiceTitan"}. Ticks itself off once it's paid.`,
+      to: null, accounts: true, list: OVERDUE_LIST,
+      onMade: (id) => { if (id) open[i.number] = { id, from: i.from }; },
+    })) n++;
+  }
+  await saveSettings(OVERDUE_TODOS, open).catch(() => undefined);
 }
 
 /** Monday from 10 am: a van with no weekly check this week gets a to-do for its driver. */
@@ -480,6 +510,16 @@ async function contractorMoves(ctx: Ctx) {
  * to-do's header and puts a line on top of its notes, so the card says what
  * to do now and the history of how it got there.
  */
+const isBooked = (q: PipeQuote) => q.stage === "booked" || q.stage === "billed" || !!q.work?.bookedFor;
+
+async function bookedOff(ctx: Ctx, id: string, t: { notes: string | null }, q: PipeQuote, name: string, line: (text: string, t: { notes: string | null }) => string) {
+  const on = q.work?.bookedFor?.slice(0, 10) ?? null;
+  const when = on ? new Date(`${on}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : null;
+  await updateTodo(id, { notes: line(`Booked${when ? ` for ${when}` : ""}${q.work?.jobNumber ? `, job #${q.work.jobNumber}` : ""}. Off Jobs to Book; once it's done it goes on ${READY_LIST} if it isn't invoiced.`, t) });
+  await setDone(id, true, "Automatic");
+  ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.work?.jobId ?? q.jobId ?? undefined, title: `${name}: booked${when ? ` for ${when}` : ""}, off Jobs to Book` });
+}
+
 async function accountFlow(ctx: Ctx, pipe: PipeQuote[]) {
   const byKey = new Map(pipe.map((q) => [q.key, q]));
   const bookList = ctx.lists.find((l) => /\bbook/i.test(l)) ?? null;
@@ -505,22 +545,45 @@ async function accountFlow(ctx: Ctx, pipe: PipeQuote[]) {
       ctx.made.set(`sold:${q.key}`, new Date().toISOString());
       ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.jobId ?? undefined, title: `${name}: sold in ServiceTitan, moved to ${bookList ?? "book in"}` });
     }
-    const booked = q.work?.bookedFor ?? null;
-    if (f.step === "book" && (q.stage === "booked" || q.stage === "billed" || booked)) {
-      const on = booked ? booked.slice(0, 10) : ctx.today;
-      await updateTodo(id, { title: `Invoice ${name} once it's done${booked ? `, booked ${day(on)}` : ""}`, dueOn: on < ctx.today ? ctx.today : on, list: ACCOUNTS, notes: line(`Booked${booked ? ` for ${day(on)}` : ""}${q.work?.jobNumber ? `, job #${q.work.jobNumber}` : ""}. Invoice it once it's done.`, t) });
-      f.step = "invoice";
-      f.jobId = q.work?.jobId;
-      // The not-invoiced reminder would write a second card for the same job.
-      if (q.work?.jobId) ctx.made.set(`bill:${q.work.jobId}`, new Date().toISOString());
-      ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.work?.jobId ?? q.jobId ?? undefined, title: `${name}: booked, moved to ${ACCOUNTS} to invoice` });
+    // Booked: off Jobs to Book. It isn't ready to invoice until it's done, and
+    // the not-invoiced reminder puts it on Invoice ready the morning after.
+    if (f.step === "book" && isBooked(q)) {
+      await bookedOff(ctx, id, t, q, name, line);
+      delete ctx.flow[id];
+      continue;
     }
+    // Older cards, from before booking took them off, still finish when invoiced.
     if (f.step === "invoice" && (q.stage === "billed" || (q.work?.invoiced ?? 0) > 0)) {
       await updateTodo(id, { notes: line("Invoiced in ServiceTitan.", t) });
       await setDone(id, true, "Automatic");
       delete ctx.flow[id];
       ctx.log.push({ at: new Date().toISOString(), kind: "accountFlow", ok: true, jobId: q.work?.jobId ?? undefined, title: `${name}: invoiced, ticked off` });
     }
+  }
+}
+
+/**
+ * Anything still on Jobs to Book whose job is booked comes off, followed or
+ * not: a card written before the flow kept track of it, or one put there by
+ * hand that names a job ("job #20227"). Matched to the Pipeline by the job
+ * number, on the quote's job or the job booked from it.
+ */
+async function bookListSweep(ctx: Ctx, pipe: PipeQuote[]) {
+  const bookList = ctx.lists.find((l) => /\bbook/i.test(l));
+  if (!bookList) return;
+  const byJob = new Map<string, PipeQuote>();
+  for (const q of pipe) {
+    if (q.jobNumber) byJob.set(q.jobNumber, q);
+    if (q.work?.jobNumber) byJob.set(q.work.jobNumber, q);
+  }
+  const day = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const line = (text: string, t: { notes: string | null }) => `${day(ctx.today)}: ${text}\n${t.notes ?? ""}`.slice(0, 2000);
+  for (const t of await openTodos().catch(() => [])) {
+    if (t.list !== bookList || ctx.flow[t.id]) continue;
+    const num = jobNumberIn(t);
+    const q = num ? byJob.get(num) : undefined;
+    if (!q || !isBooked(q)) continue;
+    await bookedOff(ctx, t.id, t, q, who(q), line).catch(() => undefined);
   }
 }
 
@@ -583,7 +646,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
     ["orderTags", () => orderTags(ctx)],
     ["orderMoves", () => orderMoves(ctx)],
     ["workOrderSend", () => workOrderSend(ctx)],
-    ["accountFlow", () => (pipe ? accountFlow(ctx, pipe) : Promise.reject(new Error("The pipeline couldn't be read")))],
+    ["accountFlow", () => (pipe ? accountFlow(ctx, pipe).then(() => bookListSweep(ctx, pipe)) : Promise.reject(new Error("The pipeline couldn't be read")))],
   ];
   const ran: string[] = [];
   const failed: string[] = [];

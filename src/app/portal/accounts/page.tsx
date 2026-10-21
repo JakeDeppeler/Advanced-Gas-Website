@@ -10,7 +10,7 @@ import { owedInvoices, type OwedInvoice } from "@/lib/portal/run/money";
 import { getOwedBills, type OwedBill } from "@/lib/portal/xero";
 import { journalErrors } from "@/lib/journals/read";
 import { meOf, openTodos, todayMelbourne } from "@/lib/todos/store";
-import { FINANCE_LIST, dueState, dueWords } from "@/lib/todos/types";
+import { dueState, dueWords, isFinanceList } from "@/lib/todos/types";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { money, plural } from "@/lib/portal/run/month";
 
@@ -59,9 +59,9 @@ export default async function AccountsPage() {
   const weekOut = new Date(Date.parse(`${today}T12:00:00Z`) + 7 * 86_400_000).toISOString().slice(0, 10);
   const billsDue = (bills ?? []).filter((b) => b.amountDue > 0 && b.due.slice(0, 10) <= weekOut).sort((a, b) => a.due.localeCompare(b.due));
   const billsDueTotal = billsDue.reduce((s, b) => s + b.amountDue, 0);
-  // The Finance list (where the invoicing and overdue to-dos go) and the
+  // The invoicing lists (Invoice ready and Invoice overdue) and the
   // viewer's own, newest first: what just landed is what's in front of you.
-  const mine = todos.filter((t) => t.list === FINANCE_LIST || (!!me && t.assigneeId === me.id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const mine = todos.filter((t) => isFinanceList(t.list) || (!!me && t.assigneeId === me.id)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const mineNow = mine.filter((t) => { const s = dueState(t, today); return s === "overdue" || s === "today"; });
 
   return (
@@ -84,7 +84,7 @@ export default async function AccountsPage() {
                       end={<Pill st={{ k: s === "overdue" ? "bad" : s === "today" ? "mid" : "none", w: dueWords(t, today) }} />} />;
                   })}
                 </Group>
-              ) : <p className="ac-empty">Nothing on the Finance list or yours.</p>}
+              ) : <p className="ac-empty">Nothing to invoice or chase, and nothing of yours.</p>}
             {mine.length > SHOW && <p className="ac-more"><Link href="/portal/todo">and {mine.length - SHOW} more on To-do</Link></p>}
           </Card>
 

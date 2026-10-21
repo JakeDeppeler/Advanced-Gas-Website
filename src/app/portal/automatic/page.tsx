@@ -16,10 +16,10 @@ const when = (iso: string) => new Date(iso).toLocaleString("en-AU", { weekday: "
 type Auto = { k: AutoKey; title: string; what: string; to: string; note?: string };
 
 const TODOS: Auto[] = [
-  { k: "soldNotBooked", title: "Sold but not booked after a day", what: "A sold quote with nothing booked from it a day on.", to: "The office, on the Jobs to Book list" },
-  { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan.", to: "The accounts person, on the Finance list" },
+  { k: "soldNotBooked", title: "Sold but not booked after a day", what: "A sold quote with nothing booked from it a day on. It comes off the list by itself once a visit is booked in ServiceTitan.", to: "The office, on the Jobs to Book list" },
+  { k: "notInvoiced", title: "Finished but not invoiced by the next morning", what: "A job completed before today with no invoice in ServiceTitan. It ticks itself off once the invoice is in.", to: "The accounts person, on the Invoice ready list" },
   { k: "quoteFollow", title: "Quote follow-ups", what: "A to-do for each call in the Pipeline's rule: 2 days after the quote, then 4 days on, then a week on. It ticks itself off when the call is logged on the Pipeline, or the quote sells or is lost.", to: "Whoever's chasing it, or whoever wrote the quote, on the Follow up list" },
-  { k: "overdueInv", title: "Invoices 7, 14 or 30 days overdue", what: "One to-do listing every invoice that's just crossed one of those marks, so the chasing is done in one sitting.", to: "The accounts person, on the Finance list" },
+  { k: "overdueInv", title: "Invoices past their due date", what: "One to-do for each invoice that's overdue, with who owes it, how much and when it was due. It ticks itself off once the invoice is paid.", to: "The accounts person, on the Invoice overdue list" },
   { k: "keepInTouch", title: "Keep in touch gone overdue", what: "Someone on the Keep in touch list past their time.", to: "Whoever looks after that contact" },
   { k: "vanCheck", title: "Weekly van check not done by Monday 10 am", what: "A van with no weekly check this week.", to: "That van's driver", note: "Off until the crew have the trade iPads to do the check on." },
 ];
@@ -27,7 +27,7 @@ const TODOS: Auto[] = [
 const ACTS: Auto[] = [
   { k: "quoteTag", title: "Take “Awaiting Quote Approval” off answered quotes", what: "When a job with that tag has been invoiced, is booked in for a visit to come, or has had a job booked from its quote, the tag comes off in ServiceTitan. Only that tag; the job’s other tags stay.", to: "" },
   { k: "factoryMin", title: "Low factory stock onto next week’s order", what: "A shelf line at or under its low mark, with nothing already on order, goes onto next week’s draft for the supplier it last came from, the same quantity as last time. It stays a draft until someone approves it. A line never ordered before becomes a to-do for the office instead.", to: "" },
-  { k: "accountFlow", title: "Won quotes follow through to the invoice", what: "A quote marked Won on Account to-dos waits on its list until ServiceTitan marks it sold, then moves to Jobs to Book; once it's booked it moves to Finance to invoice, and ticks itself off when the invoice is out. A booking reminder made for a sale follows the same way. Lost on the Pipeline ticks it off.", to: "" },
+  { k: "accountFlow", title: "Won quotes follow through to booking", what: "A quote marked Won on Account to-dos waits on its list until ServiceTitan marks it sold, then moves to Jobs to Book. Once a visit is booked it comes off Jobs to Book, and anything else on that list naming a job that's booked comes off too. When the job's done and not invoiced, it goes on Invoice ready. Lost on the Pipeline ticks it off.", to: "" },
   { k: "workOrderSend", title: "Send work orders once the job's booked", what: "Every contractor's work order goes by itself: the electrician's drafted from a booking, and one made by hand for anyone (water balancing with Ross) and saved as a draft, once its job has a visit booked in ServiceTitan. With the note, the PDF and the tags on the job, as if someone had pressed Send. When a booking moves, a contractor's work order moves by as much and they're emailed the new day. Not system or material orders: those still wait on To order to be approved, because they spend money. Not a contractor set to By hand on Work orders › Contractors, not a draft changed in the last half hour, and not one for a day that's gone. The two below set when it waits. Weekdays and Saturday, 7 am to 6 pm.", to: "" },
   { k: "orderMoves", title: "Tell the supplier when a job moves", what: "A job that moves after its gear was ordered or its electrician booked keeps its order, and whoever the order went to (GT Electrics, Rinnai and the rest) is emailed the new day, the office copied. The order's date moves with it, so it's never ordered twice. Weekdays and Saturday, 7 am to 6 pm. Reece lists entered in maX are changed there.", to: "" },
   { k: "orderTags", title: "“Materials Ordered” and “System Ordered” on jobs", what: "The tags already go on when an order is sent. This tries again, a few each sync, for any order whose jobs ServiceTitan wouldn’t tag at the time.", to: "" },
@@ -86,10 +86,10 @@ export default async function AutomaticPage() {
         </div>
         <div className="au-item au-office">
           <div>
-            <b>The Finance list goes to</b>
-            <p>Jobs to invoice and overdue money. They go on the Finance list on the To-do board, for this person only.</p>
+            <b>Invoice ready and Invoice overdue go to</b>
+            <p>Jobs to invoice, and invoices to chase. Each on its own list on Account to-dos, for this person only.</p>
           </div>
-          <OfficeTo people={people} value={accountsTo || officeTo} canEdit={admin} which="accountsTo" label="Who gets the Finance list's to-dos" />
+          <OfficeTo people={people} value={accountsTo || officeTo} canEdit={admin} which="accountsTo" label="Who gets the invoicing to-dos" />
         </div>
         {TODOS.map((a) => <Item key={a.k} a={a} on={sw[a.k]} n={count(a.k)} admin={admin} />)}
       </section>

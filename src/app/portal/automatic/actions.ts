@@ -16,7 +16,7 @@ export async function setAuto(key: AutoKey, on: boolean): Promise<{ ok: boolean;
   return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
 }
 
-/** Who gets the office's automatic to-dos, or the Finance list's. */
+/** Who gets the office's automatic to-dos, or the invoicing lists'. */
 export async function setOfficeTo(id: string | null, which: "officeTo" | "accountsTo" = "officeTo"): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
