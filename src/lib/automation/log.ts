@@ -17,7 +17,7 @@ export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
   officeTo: string | null;
-  /** Who gets the invoicing and overdue to-dos, on the Finance list. Null: the office's person. */
+  /** Who gets the invoicing and overdue to-dos, on Invoice ready and Invoice overdue. Null: the office's person. */
   accountsTo: string | null;
   /**
    * Who's emailed when the portal emails a supplier or the electrician by

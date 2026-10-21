@@ -27,6 +27,14 @@ export type Todo = {
 
 /** The lists Settings › Automatic writes to: the accounts person's, and the quote follow-ups. */
 export const FINANCE_LIST = "Finance";
+/**
+ * Finance split in two, so the office has a clean list of each: finished jobs
+ * waiting on an invoice, and invoices out and unpaid past their due date. A
+ * board still on the one Finance list is moved over by the automatic run.
+ */
+export const READY_LIST = "Invoice ready";
+export const OVERDUE_LIST = "Invoice overdue";
+export const isFinanceList = (l: string | null | undefined): boolean => l === READY_LIST || l === OVERDUE_LIST || l === FINANCE_LIST;
 export const FOLLOW_UP_LIST = "Follow up";
 /** A quote the customer said yes to, waiting on their payment before ServiceTitan marks it sold. */
 export const WON_LIST = "Won, to be paid";
@@ -36,7 +44,7 @@ export const WON_LIST = "Won, to be paid";
  * quote follow-ups, and sold jobs to book in ("Jobs to Book", found by name
  * as the automation finds it).
  */
-export const isAccountList = (l: string | null | undefined): boolean => !!l && (l === FINANCE_LIST || l === FOLLOW_UP_LIST || l === WON_LIST || /\bbook/i.test(l));
+export const isAccountList = (l: string | null | undefined): boolean => !!l && (isFinanceList(l) || l === FOLLOW_UP_LIST || l === WON_LIST || /\bbook/i.test(l));
 
 /** A quote's to-do, which can be marked won or lost: on the quoting or follow-up lists. */
 export const isQuoteList = (l: string | null | undefined): boolean => !!l && (l === FOLLOW_UP_LIST || /quot|sales/i.test(l));
@@ -49,7 +57,7 @@ export const isQuoteList = (l: string | null | undefined): boolean => !!l && (l 
 export const isAccountTodo = (t: Pick<Todo, "createdBy" | "list">): boolean => t.createdBy === "Automatic" || isAccountList(t.list);
 
 /** Account to-dos run in the order the work does: quote, chase, book, bill. */
-export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /^won\b/i, /\bbook/i, new RegExp(`^${FINANCE_LIST}$`, "i")];
+export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /^won\b/i, /\bbook/i, new RegExp(`^${READY_LIST}$`, "i"), new RegExp(`^${OVERDUE_LIST}$`, "i"), new RegExp(`^${FINANCE_LIST}$`, "i")];
 export const accountRank = (l: string) => { const i = ACCOUNT_ORDER.findIndex((r) => r.test(l)); return i < 0 ? ACCOUNT_ORDER.length : i; };
 
 /** The ServiceTitan job a to-do names ("job #20131", "Invoice job 20304"), so it can link to it. */
