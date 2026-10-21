@@ -20,6 +20,33 @@ export type SoldRow = {
   raw: { name?: unknown; items?: unknown } | null;
 };
 
+/**
+ * A rebate line: REBATE-VEEC, REBATE-STC, REBATE-SOLARVIC and the like. They
+ * are set up in ServiceTitan as materials with a negative cost, the customer
+ * charged less and the certificate trader paying us, so added in with the gear
+ * they read as gear we never bought: $49k of October's $122k. They're kept
+ * apart here, the gear at its full cost and the rebate as money coming in. A
+ * cost below zero counts too, since no real unit or fitting has one. The
+ * database's st_rebate_back (migration 0082) is the same rule for invoices.
+ */
+type Line = { totalCost?: unknown; skuName?: unknown; sku?: { name?: unknown } | null };
+export function isRebateLine(i: Line): boolean {
+  const name = String(i.skuName ?? i.sku?.name ?? "");
+  return /^rebate/i.test(name) || Number(i.totalCost ?? 0) < 0;
+}
+
+/** An estimate's lines: what they cost us, rebates left out, and what the rebates bring back. */
+export function splitCost(items: Line[]): { cost: number; rebate: number } {
+  let cost = 0, rebate = 0;
+  for (const i of items) {
+    const c = Number(i.totalCost ?? 0);
+    if (!Number.isFinite(c)) continue;
+    if (isRebateLine(i)) rebate -= c;
+    else cost += c;
+  }
+  return { cost, rebate };
+}
+
 /** Where the office records what a VEU rebate is worth per job. */
 export const VEU_REBATE_KEY = "veu-rebate";
 
@@ -33,7 +60,10 @@ export type SoldMargin = {
   veuJobs: number;
   /** What the office says a rebate is worth, or null when nobody has said. */
   rebatePerJob: number | null;
+  /** From the estimates' rebate lines, and the office's figure for VEU jobs that have none. */
   rebateIncome: number;
+  /** VEU jobs with no rebate line and no figure set: their rebate isn't in the margin. */
+  veuUncounted: number;
   /** Sold jobs with no costed lines: in the coverage, out of the margin. */
   uncosted: number;
   uncostedValue: number;
@@ -66,6 +96,8 @@ export function summariseSold(rows: SoldRow[], rebate: number | null): SoldMargi
   let price = 0;
   let cost = 0;
   let veuJobs = 0;
+  let veuUncounted = 0;
+  let rebateIncome = 0;
   let uncosted = 0;
   let uncostedValue = 0;
   let allValue = 0;
@@ -77,7 +109,7 @@ export function summariseSold(rows: SoldRow[], rebate: number | null): SoldMargi
     allValue += p;
 
     const items = Array.isArray(r.raw?.items) ? (r.raw!.items as Array<Record<string, unknown>>) : [];
-    const c = items.reduce((a, i) => a + Number(i.totalCost ?? 0), 0);
+    const { cost: c, rebate: back } = splitCost(items);
     // No costed lines is not a free job. Counted in the coverage, left out of
     // the margin, rather than booked at 100%.
     if (!(c > 0)) {
@@ -89,21 +121,26 @@ export function summariseSold(rows: SoldRow[], rebate: number | null): SoldMargi
     jobs++;
     price += p;
     cost += c;
-    if (isVeu(typeof r.raw?.name === "string" ? r.raw.name : null)) veuJobs++;
+    const veu = isVeu(typeof r.raw?.name === "string" ? r.raw.name : null);
+    if (veu || back > 0) veuJobs++;
+    // The estimate's own rebate lines where it has them; the office's figure
+    // only for a VEU job without, so a rebate is never counted twice.
+    if (back > 0) rebateIncome += back;
+    else if (veu) {
+      if (rebate != null) rebateIncome += rebate;
+      else veuUncounted++;
+    }
   }
 
   if (jobs === 0) return null;
 
   /*
-   * The rebate, where the office has told us what it is.
-   *
-   * A VEU job is sold at a reduced price because the rebate covers the rest, so
-   * on the estimate alone it reads thin and sometimes below cost — which is the
-   * accounting, not the selling. The rebate is real income and nothing in
-   * ServiceTitan records it, so it is a figure the office sets; until it is set
-   * it is not counted, and the board says so rather than quietly assuming one.
+   * The rebate is income. A VEU job is sold at a reduced price because the
+   * rebate covers the rest, so on its price alone it reads thin and sometimes
+   * below cost. Most estimates carry the rebate as lines now; where one
+   * doesn't, the office's figure stands in, and until that's set the job's
+   * rebate isn't counted and the board says so.
    */
-  const rebateIncome = rebate != null ? rebate * veuJobs : 0;
   const withRebate = price + rebateIncome;
 
   return {
@@ -114,6 +151,7 @@ export function summariseSold(rows: SoldRow[], rebate: number | null): SoldMargi
     veuJobs,
     rebatePerJob: rebate,
     rebateIncome,
+    veuUncounted,
     uncosted,
     /** Of the month's sold value, the share this margin is computed over. */
     coveragePct: allValue > 0 ? (price / allValue) * 100 : null,

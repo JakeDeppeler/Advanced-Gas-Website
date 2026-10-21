@@ -148,7 +148,7 @@ export function JobProfitTable({ rows, target }: { rows: JobProfit[]; target: nu
                           {j.missing ? `, ${j.missing}` : ""}
                         </span>
                       </th>
-                      <td>{money(j.price)}</td>
+                      <td>{money(j.price)}{j.rebate > 0 ? <i className="jp-nil jp-reb">+ {money(j.rebate)} rebate</i> : null}</td>
                       <td>{j.materials ? money(j.materials) : <i className="jp-nil">none</i>}</td>
                       <td>{j.hours == null ? <i className="jp-nil">none</i> : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " on site"}${j.hoursFrom === "timesheets" && j.allowedHours ? ` of ${j.allowedHours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}` : ""}`}</td>
                       <td>{j.labour == null ? <i className="jp-nil">none</i> : money(j.labour)}</td>

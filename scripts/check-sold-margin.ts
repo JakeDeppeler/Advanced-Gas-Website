@@ -2,7 +2,7 @@
  * The margin on what was sold, and the three ways it could lie.
  */
 import { summariseSold } from "../src/lib/dashboard/soldMarginTypes";
-import { isVeu, normaliseRebate } from "../src/lib/dashboard/soldMarginTypes";
+import { isRebateLine, isVeu, normaliseRebate, splitCost } from "../src/lib/dashboard/soldMarginTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra = "") => {
@@ -48,6 +48,31 @@ ok("a set rebate is added as income", withRebate?.rebateIncome === 650);
 ok("which lifts the margin", withRebate!.marginPct! > noRebate!.marginPct!, `${Math.round(withRebate!.marginPct!)}%`);
 // (8310 + 650 - 10665) / (8310 + 650) = -19.0%
 ok("by the right amount", Math.round(withRebate!.marginPct!) === -19, String(Math.round(withRebate!.marginPct!)));
+
+console.log("\n-- rebate lines on the estimate --");
+// How October's VEU jobs actually look: the rebate is a material line at a
+// negative cost, which used to read as gear never bought.
+const lines = (subtotal: number, items: Array<{ totalCost: number; sku?: { name: string } }>, name = "Energy Efficient Upgrades - Ducted") => ({
+  id: Math.random(), status: "Sold", sold_on: "2026-10-05T00:00:00Z", subtotal, total: subtotal * 1.1, business_unit: "Domestic - Installation",
+  raw: { name, items },
+});
+const veec = lines(6000, [{ totalCost: 7000, sku: { name: "Mitsubishi ducted" } }, { totalCost: 500, sku: { name: "Copper" } }, { totalCost: -1560, sku: { name: "REBATE-VEEC" } }]);
+ok("the rebate line is spotted by name", isRebateLine({ totalCost: -1560, sku: { name: "REBATE-VEEC" } }));
+ok("and by an invoice line's skuName", isRebateLine({ totalCost: -36, skuName: "REBATE-STC" }));
+ok("and by a cost below zero whatever it's called", isRebateLine({ totalCost: -5, sku: { name: "Credit" } }));
+ok("a real fitting is not one", !isRebateLine({ totalCost: 12, sku: { name: "Copper" } }));
+const split = splitCost(veec.raw.items);
+ok("gear is counted at its full cost", split.cost === 7500, String(split.cost));
+ok("and the rebate comes back as a positive figure", split.rebate === 1560, String(split.rebate));
+const lined = summariseSold([veec], null);
+ok("the margin's cost leaves the rebate out", lined?.cost === 7500, String(lined?.cost));
+ok("the rebate is income", lined?.rebateIncome === 1560);
+// (6000 + 1560 - 7500) / (6000 + 1560) = 0.79%
+ok("and the margin is on price and rebate together", Math.round(lined!.marginPct! * 100) === 79, String(lined?.marginPct));
+ok("so the board has nothing to warn about", lined?.veuUncounted === 0 && lined?.veuJobs === 1);
+const both = summariseSold([veec], 650);
+ok("the office's figure isn't added on top of the lines", both?.rebateIncome === 1560);
+ok("a VEU job with no lines and no figure is the one flagged", summariseSold([veuJob, veec], null)?.veuUncounted === 1);
 
 console.log("\n-- spotting a VEU job --");
 ok("by the words the office uses", isVeu("Energy Efficient Upgrades - Ducted"));
