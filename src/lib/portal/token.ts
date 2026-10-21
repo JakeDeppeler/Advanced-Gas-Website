@@ -5,11 +5,9 @@
  * Edge middleware, in Node route handlers and in server components — no npm
  * dependency, and no "works locally, throws on the edge" surprises.
  *
- * A token is `base64url(payload) . base64url(hmac)`. Used for two things:
- *   - the short-lived magic-link token emailed to a team member, and
- *   - the longer-lived session cookie set once they click it.
- * Both are just payloads with an `exp` (epoch ms); verify() rejects an
- * expired or tampered token.
+ * A token is `base64url(payload) . base64url(hmac)`: the session cookie set
+ * once someone's sign-in code checks out. Just a payload with an `exp`
+ * (epoch ms); verify() rejects an expired or tampered token.
  */
 
 const enc = new TextEncoder();

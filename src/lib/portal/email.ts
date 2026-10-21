@@ -1,34 +1,32 @@
-/** Sends the portal sign-in link through Resend — the same REST endpoint
- *  the quote form already uses, so there's nothing new to configure beyond
- *  RESEND_API_KEY (and optionally RESEND_FROM_EMAIL). */
-
-export async function sendMagicLink(to: string, link: string): Promise<{ ok: boolean; error?: string }> {
+/** Sends the portal sign-in code through Resend — the same REST endpoint
+ *  the quote form already uses. The code is the subject as well as the body,
+ *  so it can be read off the notification without opening the email. */
+export async function sendLoginCode(to: string, code: string): Promise<{ ok: boolean; error?: string }> {
   const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>";
   if (!key) return { ok: false, error: "RESEND_API_KEY missing" };
 
+  const shown = `${code.slice(0, 3)} ${code.slice(3)}`;
   const html = `<!doctype html><html><body style="margin:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;">
     <div style="max-width:520px;margin:0 auto;padding:32px 24px;">
       <div style="background:#0e1b4d;border-radius:16px;padding:28px 28px 30px;color:#fff;">
         <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#f5a877;">Advanced Gas &amp; Aircon</div>
-        <h1 style="font-size:22px;margin:8px 0 6px;color:#fff;">Team portal sign-in</h1>
-        <p style="font-size:15px;line-height:1.55;color:#c6cdec;margin:0 0 22px;">Click below to sign in. The link works once and expires in 15&nbsp;minutes. If you didn't request it, you can ignore this email.</p>
-        <a href="${link}" style="display:inline-block;background:#c2521a;color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 22px;border-radius:12px;">Sign in to the portal →</a>
-        <p style="font-size:12px;color:#8b93b8;margin:24px 0 0;word-break:break-all;">Or paste this link into your browser:<br>${link}</p>
+        <h1 style="font-size:22px;margin:8px 0 6px;color:#fff;">Your sign-in code</h1>
+        <p style="font-size:15px;line-height:1.55;color:#c6cdec;margin:0 0 20px;">Type this on the portal&rsquo;s sign-in page. It works once and expires in 10&nbsp;minutes.</p>
+        <div style="background:#fff;border-radius:12px;padding:18px 20px;text-align:center;">
+          <div style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:700;letter-spacing:.12em;color:#0e1b4d;">${shown}</div>
+        </div>
+        <p style="font-size:13px;line-height:1.55;color:#8b93b8;margin:20px 0 0;">If you didn&rsquo;t ask to sign in, ignore this. Don&rsquo;t pass the code on: nobody at Advanced Gas will ever ask you for it.</p>
       </div>
     </div>
   </body></html>`;
+  const text = `Your Advanced Gas portal sign-in code: ${code}\n\nType it on the sign-in page. It works once and expires in 10 minutes. If you didn't ask to sign in, ignore this.`;
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject: "Your Advanced Gas portal sign-in link",
-        html,
-      }),
+      body: JSON.stringify({ from, to: [to], subject: `${code} is your Advanced Gas portal code`, html, text }),
     });
     if (!res.ok) return { ok: false, error: `${res.status} ${await res.text()}` };
     return { ok: true };

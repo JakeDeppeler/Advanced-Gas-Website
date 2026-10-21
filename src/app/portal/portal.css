@@ -412,10 +412,16 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-login__btn:hover { background: #a8460f; }
 .pt-login__btn:focus-visible { outline: 2px solid #f36722; outline-offset: 2px; }
 .pt-login__msg { border-radius: 12px; padding: 13px 15px; font-size: 13.5px; line-height: 1.5; margin-bottom: 18px; }
-.pt-login__msg--ok { background: var(--pt-good-soft); border: 1px solid var(--pt-good-line); color: #1b5e3c; }
-.pt-login__msg--err { background: var(--pt-bad-bg); border: 1px solid var(--pt-bad-line); color: #933027; }
+.pt-login__msg--ok { background: var(--pt-good-soft, #e6f3ec); border: 1px solid var(--pt-good-line, #bfe2cd); color: #1b5e3c; }
+.pt-login__msg--err { background: var(--pt-bad-bg, #fbe9e6); border: 1px solid var(--pt-bad-line, #f0c3bd); color: #933027; }
 .pt-login__fine { align-self: center; font-size: 14.5px; font-weight: 700; color: var(--pt-ink-2); text-decoration: none; }
 .pt-login__fine:hover { color: var(--pt-ink); }
+.pt-login__code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 24px; letter-spacing: .18em; text-align: center; }
+.pt-login__alt { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.pt-login__alt form { display: contents; }
+.pt-login__link { background: none; border: 0; padding: 0; font: inherit; font-size: 14.5px; font-weight: 700; color: var(--pt-ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pt-login__link:hover { color: var(--pt-ink); }
+.pt-login__link:focus-visible { outline: 2px solid #f36722; outline-offset: 2px; }
 
 @media (max-width: 820px) {
   /* The navy panel becomes a header rather than disappearing: it carries the
