@@ -41,13 +41,14 @@ const BG = "#faf8f3";
 /* ------------ human-readable labels for the option ids ------------ */
 
 const LABELS: Record<string, Record<string, string>> = {
-  hpBrand: { reclaim: "Reclaim", thermann: "Thermann", istore: "iStore" },
+  // "unsure" is the form's "Not sure" answer: the customer wants us to choose.
+  hpBrand: { reclaim: "Reclaim", thermann: "Thermann", istore: "iStore", unsure: "Not sure, recommend one" },
   hpStyle: { aio: "All-in-one", split: "Split system" },
-  hpSize: { small: "180 – 200 L", large: "275 – 300 L", xl: "315 – 400 L" },
+  hpSize: { small: "180 – 200 L", large: "275 – 300 L", xl: "315 – 400 L", unsure: "Not sure, size it for them" },
   hpMaterial: { stainless: "Stainless steel", glass: "Glass lined" },
   hpWifi: { yes: "Yes", no: "No" },
-  splitBrand: { mitsu: "Mitsubishi Electric", kaden: "Kaden" },
-  splitStyle: { single: "Single head", multi: "Multi-head" },
+  splitBrand: { mitsu: "Mitsubishi Electric", kaden: "Kaden", unsure: "No preference" },
+  splitStyle: { single: "Single head", multi: "Multi-head", unsure: "Not sure, design it for them" },
   splitSize: {
     "2.5": "2.5 kW", "3.5": "3.5 kW", "5.0": "5.0 kW", "7.1": "7.1 kW", "9.0": "9.0 kW",
     unsure: "Not sure, floor plan",
@@ -267,6 +268,8 @@ function headline(d: Lead): string {
   if (d.service === "split") return "Split system";
   if (d.service === "ducted") return "Ducted aircon";
   if (d.service === "service") return "Service / repair";
+  if (d.service === "water") return "Water filtration";
+  if (d.service === "other") return "Not sure / something else";
   return d.service;
 }
 

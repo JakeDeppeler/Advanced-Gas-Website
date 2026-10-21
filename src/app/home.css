@@ -181,6 +181,12 @@
   -webkit-backdrop-filter: blur(6px);
 }
 .page-home .hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.12); border-color: #fff; }
+.page-home .hero__reassure {
+  margin: -6px 0 0;
+  font-size: 14px;
+  color: rgba(255,255,255,0.78);
+  text-shadow: 0 2px 12px rgba(5,10,48,0.4);
+}
 
 .page-home .hero__trust {
   display: flex; align-items: center; gap: 20px;
@@ -259,6 +265,7 @@
      carries Call + Free Quote, and having both on screen at once is
      redundant. Desktop still shows them. */
   .page-home .hero__ctas { display: none; }
+  .page-home .hero__reassure { display: none; }
   /* Trust bar moves to sit BELOW the photo. `display: contents` on
      hero__copy promotes its children (badge / h1 / sub / trust) to
      direct grid children so we can reorder them. */
@@ -1515,6 +1522,46 @@
   border-color: var(--sky);
   box-shadow: 0 0 0 4px rgba(0,176,237,0.15);
 }
+.page-home .qfield textarea {
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit; font-size: 15px; line-height: 1.45;
+  background: #fff;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.page-home .qfield input:focus,
+.page-home .qfield textarea:focus {
+  border-color: var(--sky);
+  box-shadow: 0 0 0 4px rgba(0,176,237,0.15);
+}
+/* Red border plus the words underneath, never the border alone. */
+.page-home .qfield.is-err input { border-color: var(--red); }
+.page-home .qfield > .qfield__err {
+  font-family: inherit; font-size: 12.5px; font-weight: 600;
+  letter-spacing: 0; color: var(--red);
+}
+
+.page-home .qextras {
+  display: block; width: 100%;
+  margin: 2px 0 10px; padding: 11px 14px;
+  background: var(--bg);
+  border: 1.5px dashed var(--line-2); border-radius: 10px;
+  font: inherit; font-size: 14px; font-weight: 700; color: var(--navy);
+  text-align: left; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.page-home .qextras:hover { border-color: var(--sky); background: rgba(0,176,237,0.04); }
+.page-home .qextras em { font-style: normal; font-weight: 500; color: var(--ink-3); }
+/* A file input's "Choose Files / No file chosen" has a wide intrinsic size,
+   and as a grid item the card grew to fit it, past the edge of a phone. */
+.page-home .qcard { min-width: 0; }
+.page-home .qfield textarea,
+.page-home .qphoto input[type="file"] { width: 100%; min-width: 0; box-sizing: border-box; }
+.page-home .qstep__h { scroll-margin-top: 120px; }
+.page-home .qstep__h:focus { outline: none; }
 .page-home .qphoto input[type="file"] {
   padding: 10px 12px; font-size: 13.5px; background: var(--bg);
   border: 1.5px dashed var(--line-2);

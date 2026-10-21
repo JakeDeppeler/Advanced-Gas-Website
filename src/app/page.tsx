@@ -40,19 +40,18 @@ const HeroQuoteForm = dynamic(
 function HeroQuoteFormSkeleton() {
   return (
     <div className="qcard" aria-hidden="true">
-      <div className="qcard__ribbon"><span className="qcard__ribbon-dot" /> 60-second quote</div>
-      <h3 className="qcard__h">Get a quote in 60&nbsp;seconds.</h3>
+      <div className="qcard__ribbon"><span className="qcard__ribbon-dot" /> Free quote · usually replied within 12 hrs</div>
+      <h3 className="qcard__h">Get a written quote</h3>
       <p className="qcard__sub">Loading the quote form…</p>
       <div className="qcard__progress" aria-hidden="true">
-        <i className="is-on" /><i /><i /><i />
+        <i className="is-on" /><i /><i />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
-        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
-        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
-        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
+      {/* Six, matching the real first step, so nothing jumps when it loads. */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} style={{ height: 66, borderRadius: 12, background: "var(--line-2)" }} />
+        ))}
       </div>
-      <p className="qcard__finep">60s. No obligation. No spam. Response in 12 business hours.</p>
     </div>
   );
 }
@@ -195,13 +194,21 @@ export default async function HomePage() {
               One standard. Every job.
             </h1>
             <p className="hero__sub">
-              Heating, cooling, gas and hot water across Melbourne&rsquo;s south-east and Gippsland. Directly employed crews,
-              twelve years on the tools, and the same high standard every time.
+              We&rsquo;re a local Pakenham team looking after heating, cooling, gas and hot water across
+              Melbourne&rsquo;s south-east and Gippsland. Our own crews, twelve years on the tools, and the same high
+              standard every time.
             </p>
 
+            {/* A phone number beside the button for the people who'd rather
+                talk to someone, and one line on what happens after you ask, so
+                asking doesn't feel like signing up for something. */}
             <div className="hero__ctas" data-hide-sticky-cta>
-              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</a>
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a free quote →</a>
+              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">Call {site.phone}</a>
             </div>
+            <p className="hero__reassure">
+              No obligation, no hard sell. A real person gets back to you within 12 business hours.
+            </p>
 
             {/* The rebate used to be a third button here, animated, sending
                 people to another page at the very moment they were closest to
@@ -323,16 +330,19 @@ export default async function HomePage() {
       </section>
 
       {/* QUOTE FORM — dedicated section, wrapped in an orange callout box
-          so the whole 60-second quote reads as one branded panel. */}
+          so the whole 60-second quote reads as one branded panel. The sticky
+          bar steps aside while it's on screen: a "Get a quote" button over
+          the quote form only covers the boxes being filled in. */}
       <section className="quotesec" id="quote">
         <div className="wrap">
-          <div className="quotesec__box">
+          <div className="quotesec__box" data-hide-sticky-cta>
             <div className="quotesec__grid">
               <div className="quotesec__left">
                 <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> 60-second quote</span>
                 <h2>Written quote back within 12&nbsp;hours.</h2>
                 <p className="quotesec__lede">
-                  Tell us what you need and we&rsquo;ll price it properly. Rebate applied, GST included, nothing to chase.
+                  Tell us what you need, or tell us you&rsquo;re not sure, and we&rsquo;ll price it properly. Rebate
+                  applied, GST included, nothing to chase.
                 </p>
                 <ul className="quotesec__points">
                   <li><span className="tick tick--on-orange">✓</span> No obligation, and no sales call afterwards</li>
