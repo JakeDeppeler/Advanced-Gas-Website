@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { sendEmail } from "@/lib/email/send";
+import type { EmailKind } from "@/lib/email/eventTypes";
 
 export const runtime = "nodejs";
 
@@ -229,6 +231,9 @@ async function sendResend(opts: {
   key: string; from: string; to: string[]; replyTo?: string;
   subject: string; html: string; text: string;
   attachments?: Array<{ filename: string; content: string }>;
+  /** What this one is, for the record a failure leaves. Defaults to the lead email. */
+  kind?: EmailKind;
+  about?: Record<string, unknown>;
 }): Promise<boolean> {
   const body: Record<string, unknown> = {
     from: opts.from,
@@ -240,25 +245,18 @@ async function sendResend(opts: {
   if (opts.replyTo) body.reply_to = opts.replyTo;
   if (opts.attachments?.length) body.attachments = opts.attachments;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${opts.key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      console.error(`Resend send failed (${res.status}) to ${opts.to.join(", ")}: ${errText}`);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error("Resend threw", e);
-    return false;
-  }
+  /*
+   * Through the shared sender, which writes the row the wall board reads. The
+   * failure used to go to console.error and nowhere else: the customer was
+   * told their enquiry was in, the office waited for an email that Resend had
+   * refused, and nothing anywhere said so.
+   *
+   * `opts.key` is still taken and still ignored — the caller checks for it
+   * before composing anything, and sendEmail reads it itself.
+   */
+  const out = await sendEmail(opts.kind ?? "quote-lead", body as Parameters<typeof sendEmail>[1], opts.about ?? {});
+  if (!out.ok) console.error(`Resend send failed to ${opts.to.join(", ")}: ${out.error}`);
+  return out.ok;
 }
 
 /* ------------ Summaries ------------ */

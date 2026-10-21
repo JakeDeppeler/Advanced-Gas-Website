@@ -1461,6 +1461,13 @@ body:has(.screen) .utilbar {
   white-space: nowrap;
 }
 .screen__alert b { font-weight: 900; }
+/* One step up, for an email that was going to somebody outside the business:
+   a report nobody got is an inconvenience and a quote a customer never saw is
+   a job. Still amber-on-amber rather than red — the status palette is for how
+   a figure is tracking, and this is not a figure — so the word "never
+   arrived" is what carries it, with the weight as the second signal. */
+.screen__alert--bad { background: var(--vd-behind); color: #fff; }
+.screen__alert--bad .screen__alerticon { background: #fff; color: var(--vd-behind); }
 .screen__alerticon {
   display: inline-grid;
   place-items: center;

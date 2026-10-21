@@ -14,6 +14,7 @@ import type { NewLead } from "@/lib/leads/newLeadTypes";
 import { useBoardRemote } from "./screen/useBoardRemote";
 import { BOARD_PAGES, type BoardRemote } from "@/lib/board/remoteTypes";
 import { AR_BANDS, type ArBandKey } from "@/lib/portal/ar";
+import { emailAlertLine } from "@/lib/email/eventTypes";
 
 type Snapshot = {
   computedAt: string;
@@ -482,6 +483,15 @@ export function ScreenBoard({
   const healthy = fresh && degraded.length === 0;
   const journalAlert = !!m.journals && m.journals.errors > 0;
   /*
+   * Email that never arrived. The same footer, the same shape, the same rule:
+   * it is on every page, because it needs the office rather than the crew,
+   * and it is gone the moment somebody marks it sorted.
+   *
+   * Both can be up at once — a day where Xero is refusing journals and the
+   * mail is bouncing is a day somebody should know about twice.
+   */
+  const emailAlert = !!m.email && m.email.trouble > 0;
+  /*
    * An alert takes the whole wall, so the page underneath is put away rather
    * than merely covered.
    *
@@ -645,7 +655,7 @@ export function ScreenBoard({
         </TickerScope.Provider>
       </div>
 
-      <div className={`screen__foot${journalAlert ? " has-alert" : ""}`}>
+      <div className={`screen__foot${journalAlert || emailAlert ? " has-alert" : ""}`}>
         <span className="screen__feed">
           <span className={`screen__dot ${healthy ? "" : "screen__dot--stale"}`} aria-hidden />
           <b>{healthy ? "Live" : "Catching up"}</b>
@@ -654,9 +664,13 @@ export function ScreenBoard({
             because it's the one thing on the board that needs the office
             rather than the crew — and gone the run after it's fixed. */}
         {journalAlert && m.journals && <JournalAlert j={m.journals} short={name === "Pace"} />}
+        {/* An email that was refused on the way out, or bounced on the way in.
+            Nobody was told either way until this: a send failure went to a
+            serverless log and a bounce went nowhere at all. */}
+        {emailAlert && m.email && <EmailAlert h={m.email} />}
         {/* With the alert up and every feed fine, the green Live dot says what
             this line would, and the Pace page's key needs the room. */}
-        {!(journalAlert && healthy) && !ratesSetByHand(m) && <span>
+        {!((journalAlert || emailAlert) && healthy) && !ratesSetByHand(m) && <span>
           {degraded.length === 0
             ? fresh
               ? "All feeds connected"
@@ -3310,6 +3324,25 @@ const clockLabel = (now: Date) =>
     minute: "2-digit",
     timeZone: "Australia/Melbourne",
   });
+
+/**
+ * Email that didn't arrive.
+ *
+ * Reads as the thing that was lost rather than as a count of events — "1
+ * website enquiry never arrived" is a sentence somebody stands up for, where
+ * "1 email event" is one they walk past. The wording is in emailAlertLine, so
+ * it can be checked without a browser.
+ */
+function EmailAlert({ h }: { h: NonNullable<Metrics["email"]> }) {
+  return (
+    <span className={`screen__alert${h.toCustomer ? " screen__alert--bad" : ""}`} role="status">
+      <b className="screen__alerticon" aria-hidden="true">!</b>
+      <span>
+        <b>Email</b> · {emailAlertLine(h)}
+      </span>
+    </span>
+  );
+}
 
 function JournalAlert({ j, short }: { j: NonNullable<Metrics["journals"]>; short?: boolean }) {
   const n = j.errors;

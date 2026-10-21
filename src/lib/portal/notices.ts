@@ -5,6 +5,8 @@ import { dbConfigured, getSettings, handbookBodies, latestChecksForVans, listQuo
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
 import { journalErrors } from "@/lib/journals/read";
+import { listTrouble } from "@/lib/email/read";
+import { kindLabel } from "@/lib/email/eventTypes";
 import { meOf, openTodos, todayMelbourne } from "@/lib/todos/store";
 import { dueState, dueWords, firstName } from "@/lib/todos/types";
 import { myDueContacts } from "@/lib/contacts/store";
@@ -111,13 +113,14 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
   const today = localToday();
   const out: Notice[] = [];
 
-  const [vehicles, quotes, journals, me, todos] = await Promise.all([
+  const [vehicles, quotes, journals, me, todos, badEmail] = await Promise.all([
     listVehicles().catch(() => []),
     // Quotes are money and only the people who see money get told about them.
     can(user, "overhead") ? listQuotes().catch(() => []) : Promise.resolve([]),
     can(user, "overhead") ? journalErrors().catch(() => []) : Promise.resolve([]),
     meOf(user).catch(() => null),
     openTodos().catch(() => []),
+    can(user, "overhead") ? listTrouble(20).catch(() => []) : Promise.resolve([]),
   ]);
   const calls = await myDueContacts(user).catch(() => []);
 
@@ -201,6 +204,24 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
       tone: "bad",
       group: "doing",
       when: ago(j.modifiedOn),
+    });
+  }
+
+  /*
+   * An email nobody got. The one notice here that needs a person to say it is
+   * dealt with rather than clearing itself — a bounce has no state that comes
+   * good later — which is why the Email page has a button and nothing else
+   * does. See notices' own note above: this is the exception, and it is one
+   * because the alternative is a bell that rings for ever.
+   */
+  for (const e of badEmail) {
+    out.push({
+      title: `${kindLabel(e.kind)} ${e.status === "bounced" ? "bounced" : "didn’t send"}`,
+      detail: [e.to, e.detail].filter(Boolean).join(" · ") || "No reason given",
+      href: "/portal/email",
+      tone: "bad",
+      group: "doing",
+      when: ago(e.at),
     });
   }
 

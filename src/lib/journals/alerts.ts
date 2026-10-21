@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { q, sbSelect, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { site } from "@/lib/site";
+import { sendEmail } from "@/lib/email/send";
 
 /**
  * Emailing the office when a journal entry doesn't reach Xero.
@@ -110,17 +111,8 @@ export async function sendJournalAlerts(): Promise<AlertResult> {
   ].join("\n");
 
   const from = process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>";
-  let error: string | undefined;
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html, text }),
-    });
-    if (!res.ok) error = `Resend ${res.status}`;
-  } catch (e) {
-    error = e instanceof Error ? e.message : "send failed";
-  }
+  const out = await sendEmail("journal-alert", { from, to, subject, html, text });
+  const error = out.ok ? undefined : out.error;
 
   if (error) {
     // Undo the claims, so the next run sends them.

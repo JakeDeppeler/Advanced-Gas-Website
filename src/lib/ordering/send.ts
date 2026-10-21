@@ -11,6 +11,7 @@ import {
   ccList, dateChangeEmail, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
 } from "./plan";
+import { sendEmail } from "@/lib/email/send";
 
 export type SendResult = { ok: boolean; error?: string; note?: string };
 
@@ -35,20 +36,15 @@ function fromAddress(): string | null {
   return `Advanced Gas & Aircon <orders@${domain}>`;
 }
 
-async function resend(body: Record<string, unknown>): Promise<string | null> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return "RESEND_API_KEY isn't set";
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) return `Email didn't send (${res.status}): ${(await res.text().catch(() => "")).slice(0, 300)}`;
-    return null;
-  } catch (e) {
-    return `Email didn't send: ${(e as Error).message}`;
-  }
+/**
+ * Through the shared sender, so an order that never reached a supplier is on
+ * the wall rather than only in the draft it bounced back to. Returns the
+ * error as words, or null, which is the shape every caller here already
+ * handles.
+ */
+async function resend(body: Record<string, unknown>, about: Record<string, unknown> = {}): Promise<string | null> {
+  const out = await sendEmail("order", body as Parameters<typeof sendEmail>[1], about);
+  return out.ok ? null : `Email didn't send: ${out.error}`;
 }
 
 /**

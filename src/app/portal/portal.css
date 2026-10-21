@@ -334,6 +334,15 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-pill { font-family: var(--f-mono, monospace); font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; }
 .pt-pill--soon { background: var(--pt-amber-bg); color: var(--pt-amber); }
 .pt-pill--ready { background: var(--pt-good-soft); color: var(--pt-good); }
+/* An email that was refused: amber on the way out, red once it has bounced —
+   one of those usually has a cause somebody can fix, and the other is gone.
+   The word in the pill says which either way. */
+.pt-pill--sendfail { background: var(--pt-amber-bg); color: var(--pt-amber); }
+.pt-pill--bounced { background: var(--pt-bad-bg); color: var(--pt-bad); }
+/* A pill in a list row is a label on the row, not a band across it: the row's
+   title is a stretching flex column, so without this it fills the width and
+   reads as a highlight somebody applied by accident. */
+.pk-row .pt-pill { align-self: flex-start; width: fit-content; margin-top: 3px; }
 
 .pt-cathead { font-family: var(--f-display); font-size: 15px; font-weight: 800; color: var(--pt-ink); margin: 30px 0 14px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 12px; }
 .pt-cathead::after { content: ""; flex: 1; height: 1px; background: var(--pt-line); }

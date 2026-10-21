@@ -1,26 +1,23 @@
 import { NextResponse } from "next/server";
 import { site } from "@/lib/site";
+import { sendEmail } from "@/lib/email/send";
 
 export const runtime = "nodejs";
 
 type Signup = { email: string; hp?: string };
 
-/** Send via the Resend REST endpoint (fetch), the same way the quote form
- *  and the portal sign-in do — so there's no `resend` SDK dependency. */
+/** Through the shared sender, so a signup nobody was told about leaves a
+ *  record the wall board can read — see src/lib/email/send.ts. */
 async function send(opts: { key: string; from: string; to: string[]; replyTo?: string; subject: string; html?: string; text: string }) {
-  const body: Record<string, unknown> = { from: opts.from, to: opts.to, subject: opts.subject, text: opts.text };
-  if (opts.html) body.html = opts.html;
-  if (opts.replyTo) body.reply_to = opts.replyTo;
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${opts.key}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) console.error(`Newsletter email failed (${res.status}): ${await res.text().catch(() => "")}`);
-  } catch (e) {
-    console.error("Newsletter email threw", e);
-  }
+  const out = await sendEmail("newsletter", {
+    from: opts.from,
+    to: opts.to,
+    subject: opts.subject,
+    text: opts.text,
+    ...(opts.html ? { html: opts.html } : {}),
+    ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
+  });
+  if (!out.ok) console.error(`Newsletter email failed: ${out.error}`);
 }
 
 export async function POST(req: Request) {

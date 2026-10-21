@@ -2590,6 +2590,97 @@ the reply goes back down the thread it came from. The rule keeps its intent and
 loses its assumption: a quote has to have *something* to answer on, a phone, an
 email, or an id in the system it came from.
 
+
+## An email that didn't arrive says so on the wall
+
+Until now nothing did. The quote form told the customer their enquiry was in,
+the office waited for an email, and if Resend had refused it the only trace was
+a line in a serverless log nobody reads. A **bounce** left less than that: the
+provider knew, and nothing here ever asked.
+
+There are two failures and they are not the same thing.
+
+- **Didn't send.** The API call was refused — an expired key, an unverified
+  domain, a rate limit. We know at the time, and it is usually ours to fix.
+- **Bounced.** Resend accepted it and the receiving server refused it — a
+  mistyped address, a mailbox that is full or closed. We find out minutes or
+  hours later, through a webhook, or not at all. The message is gone and the
+  only fix is a person.
+
+Both land in `portal_email_events` and both put a banner in the board's footer
+beside the Xero journal alert, on every page, because it is the office's
+problem rather than the crew's.
+
+**One sender, for the first time.** There were seven copies of the same
+`fetch` to Resend — the quote form, the sign-in link, the pairing code, the
+reports, the supplier orders, the journal alert and the newsletter — each with
+its own idea of what to do when it failed. Six returned the error to a caller
+who logged it and one swallowed it, and none of them told anybody. They all go
+through `sendEmail` in `src/lib/email/send.ts` now, which is what gives a
+failure somewhere to be recorded and a bounce something to attach itself to an
+hour later.
+
+**A row per send, not only per failure.** A bounce webhook says "this message
+id bounced" and nothing about what the message was; without the send row the
+wall could say an email bounced and never say which one, which is an alert a
+room learns to walk past. Volume is tens a day.
+
+**Recording never breaks sending.** Every write in the sender is caught and
+dropped. A database that is unavailable is not a reason to fail an email Resend
+has already accepted — the cost of losing a row is that a later bounce cannot
+name what it was, and the cost the other way is a customer who never gets their
+quote because a logging table was down.
+
+**The alert names what was lost**, not what happened to it: "1 website enquiry
+never arrived" is a sentence somebody stands up for and "1 email event" is one
+they walk past. It names the *oldest* one's kind, because that is the one that
+has been sitting, and it goes a shade stronger when anything in the pile was
+going to somebody outside the business — a report nobody got is an
+inconvenience, a quote a customer never saw is a job. `emailAlertLine` has the
+wording, so it can be checked without a browser.
+
+**It is the one notice in this portal that needs a person to clear it.** The
+notices page is built on the principle that nothing is stored and nothing is
+marked read, because everything on it clears when the thing it describes is
+dealt with. A bounce has no state that comes good later. So the Email page
+(`/portal/email`, under Settings) has a **Sorted** button, and it is the only
+thing that takes the alert off the board. It does not claim the email was
+re-sent or the customer was rung — only that somebody looked, which is the most
+a button can honestly mean. Without it the light would be amber for ever, and a
+light that is always amber is one nobody reads.
+
+### Connecting the bounce webhook
+
+In Resend: Webhooks → Add, point it at
+`https://www.advancedgas.com.au/api/email/resend`, subscribe to
+`email.bounced` and `email.complained` (and `email.delivered` to make the
+record complete), and put the signing secret in `RESEND_WEBHOOK_SECRET`.
+Without that secret the route refuses everything rather than falling open — the
+URL is public, and an unauthenticated POST could otherwise put an alert on the
+office wall.
+
+Resend signs with Svix: a base64 HMAC-SHA256 of `id.timestamp.body` over the
+raw bytes, keyed on the secret with `whsec_` stripped and the rest
+base64-decoded, in a header that can carry several space-separated `v1,…`
+values while a secret is being rotated. Any one matching is a pass, and a
+timestamp more than five minutes out is refused, so yesterday's delivery
+cannot be replayed. `scripts/check-email.ts` builds signatures the way Svix
+builds them and checks all of that — a webhook cannot be exercised twice by
+hand, because the only way to fire a real one is to send an email somewhere
+that bounces.
+
+**The signature check lives in its own module** (`src/lib/email/svix.ts`) and
+not beside the rest of the rules, for a reason worth knowing before moving it
+back: the wall board is a client component and reads the alert's wording from
+`eventTypes.ts`. One `node:crypto` import at the top of a module the browser
+bundle touches and the build fails outright.
+
+**A spam complaint is not counted as undelivered.** It is worth knowing and it
+is not a message nobody read, and a wall that says the same word for both
+teaches the room that the word means nothing in particular. Neither is
+`delivery_delayed`: the provider is still trying, and a board that cried about
+every slow mail server would be amber all week.
+
 ## ServiceTitan became the ledger on 17 September 2026
 
 From that day ServiceTitan keeps the invoices (20xxx) and the payments, and

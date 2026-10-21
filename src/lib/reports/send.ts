@@ -1,6 +1,7 @@
 import "server-only";
 import { site } from "@/lib/site";
 import type { Report, ReportLine, ReportSection } from "@/lib/reports/types";
+import { sendEmail } from "@/lib/email/send";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -264,21 +265,11 @@ export function reportEmail(r: Report): { subject: string; html: string; text: s
   return { subject, html, text };
 }
 
-/** Send through Resend, as the sign-in links and the journal alerts do. */
+/** Send through the shared sender, as everything else here does. */
 export async function sendReportEmail(r: Report, to: string[]): Promise<{ ok: boolean; error?: string }> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { ok: false, error: "RESEND_API_KEY missing" };
   if (!to.length) return { ok: false, error: "No one is on the report list" };
   const from = process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>";
   const { subject, html, text } = reportEmail(r);
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html, text }),
-    });
-    return res.ok ? { ok: true } : { ok: false, error: `Resend ${res.status}` };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "send failed" };
-  }
+  const out = await sendEmail("report", { from, to, subject, html, text }, { report: r.kind });
+  return out.ok ? { ok: true } : { ok: false, error: out.error };
 }

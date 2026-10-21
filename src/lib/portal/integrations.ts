@@ -6,6 +6,7 @@ import { getIntegration } from "@/lib/portal/db";
 import { reeceConfigured, reeceConnection } from "@/lib/pricebook/reece";
 import { getReviews } from "@/lib/googleReviews";
 import { lastMetaLead, metaConfigured, metaTokenSet } from "@/lib/leads/meta";
+import { emailHealth } from "@/lib/email/read";
 import { site } from "@/lib/site";
 import { getInstagramFeed } from "@/lib/instagram";
 
@@ -183,15 +184,30 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
   /* ---- The quote form's email */
   {
     const configured = has("RESEND_API_KEY", "RESEND_FROM_EMAIL", "LEAD_NOTIFICATION_EMAIL");
+    const hook = has("RESEND_WEBHOOK_SECRET");
+    const trouble = db ? (await safe(() => emailHealth(), null))?.trouble ?? 0 : 0;
     out.push({
-      k: "email", name: "Quote form email",
-      does: "Sends each website enquiry to the office inbox.",
-      state: configured ? "working" : "attention",
-      status: configured ? "Set up" : "Not set up",
+      k: "email", name: "Email",
+      does: "Every message the business sends — enquiries, sign-ins, orders, reports — and whether it arrived.",
+      // Undelivered mail nobody has dealt with is the state worth showing,
+      // over "the key is set", which was all this row ever knew.
+      state: !configured ? "attention" : trouble > 0 ? "attention" : "working",
+      status: !configured ? "Not set up" : trouble > 0 ? `${trouble} didn’t arrive` : hook ? "Sending" : "Sending · no bounce webhook",
       // The last enquiry is the last time this had something to send.
       at: quoteLeads?.created_at ?? null,
-      facts: [configured ? "Every enquiry is emailed as well as saved" : "Enquiries are saved to the portal but not emailed to anyone"],
-      feeds: [{ label: "Website · Enquiries", href: "/portal/website" }],
+      facts: [
+        configured ? "Every enquiry is emailed as well as saved" : "Enquiries are saved to the portal but not emailed to anyone",
+        // Two different things can go wrong and only one of them is visible
+        // without the webhook: a refused send we find out about at the time,
+        // and a bounce the provider tells us about afterwards or not at all.
+        hook
+          ? "Bounces come back from Resend and go on the wall board"
+          : "No bounce webhook: a message the other end refuses is never heard about. Set RESEND_WEBHOOK_SECRET and point Resend at /api/email/resend",
+        trouble > 0
+          ? `${trouble} ${trouble === 1 ? "email has" : "emails have"} not arrived and nobody has marked them sorted`
+          : "Nothing sitting undelivered",
+      ],
+      feeds: [{ label: "Website · Enquiries", href: "/portal/website" }, { label: "Email that didn’t arrive", href: "/portal/email" }],
     });
   }
 

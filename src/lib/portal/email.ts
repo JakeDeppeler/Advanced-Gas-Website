@@ -1,10 +1,11 @@
-/** Sends the portal sign-in code through Resend — the same REST endpoint
- *  the quote form already uses. The code is the subject as well as the body,
- *  so it can be read off the notification without opening the email. */
+import { sendEmail } from "@/lib/email/send";
+
+/** Sends the portal sign-in code through the shared sender, so a failure
+ *  reaches the wall board rather than only the caller. The code is the
+ *  subject as well as the body, so it can be read off the notification
+ *  without opening the email. */
 export async function sendLoginCode(to: string, code: string): Promise<{ ok: boolean; error?: string }> {
-  const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>";
-  if (!key) return { ok: false, error: "RESEND_API_KEY missing" };
 
   const shown = `${code.slice(0, 3)} ${code.slice(3)}`;
   const html = `<!doctype html><html><body style="margin:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;">
@@ -22,17 +23,7 @@ export async function sendLoginCode(to: string, code: string): Promise<{ ok: boo
   </body></html>`;
   const text = `Your Advanced Gas portal sign-in code: ${code}\n\nType it on the sign-in page. It works once and expires in 10 minutes. If you didn't ask to sign in, ignore this.`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject: `${code} is your Advanced Gas portal code`, html, text }),
-    });
-    if (!res.ok) return { ok: false, error: `${res.status} ${await res.text()}` };
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "send failed" };
-  }
+  return sendEmail("sign-in", { from, to: [to], subject: `${code} is your Advanced Gas portal code`, html, text });
 }
 
 /**
@@ -44,9 +35,7 @@ export async function sendLoginCode(to: string, code: string): Promise<{ ok: boo
  * print on the portal, because it gets copied by eye across a room.
  */
 export async function sendPairingCode(to: string, code: string): Promise<{ ok: boolean; error?: string }> {
-  const key = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>";
-  if (!key) return { ok: false, error: "RESEND_API_KEY missing" };
 
   const html = `<!doctype html><html><body style="margin:0;background:#f4f5f8;font-family:Arial,Helvetica,sans-serif;">
     <div style="max-width:520px;margin:0 auto;padding:32px 24px;">
@@ -62,15 +51,5 @@ export async function sendPairingCode(to: string, code: string): Promise<{ ok: b
     </div>
   </body></html>`;
 
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject: `Wall board code: ${code}`, html }),
-    });
-    if (!res.ok) return { ok: false, error: `${res.status} ${await res.text()}` };
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "send failed" };
-  }
+  return sendEmail("pairing", { from, to: [to], subject: `Wall board code: ${code}`, html });
 }

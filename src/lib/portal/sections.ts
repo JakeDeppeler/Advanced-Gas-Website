@@ -241,6 +241,10 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Settings", href: "/portal/settings" },
       { label: "Automatic", href: "/portal/automatic" },
       { label: "Integrations", href: "/portal/integrations" },
+      // Where the wall board's email alert is cleared. In the nav rather than
+      // link-only, because the alert sends somebody looking for it and a page
+      // you can only reach from a banner on a television is not a page.
+      { label: "Email", href: "/portal/email" },
       { label: "Admin", href: "/portal/admin" },
       { label: "Wall board", href: "/portal/board/remote" },
       { label: "Targets & commission", href: "/portal/finance/board" },

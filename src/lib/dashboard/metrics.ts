@@ -29,6 +29,8 @@ import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { hourJobCosts } from "../portal/cover/load";
 import { currentYear, paceSettingsOf, yearSpans } from "../portal/yearGoal";
 import { journalHealth, type JournalHealth } from "@/lib/journals/read";
+import { emailHealth } from "@/lib/email/read";
+import type { EmailHealth } from "@/lib/email/eventTypes";
 import {
   commissionFor,
   monthTargetsFromYearGoal,
@@ -624,6 +626,12 @@ export type Metrics = {
    * snapshots from before it don't carry it.
    */
   journals?: JournalHealth | null;
+  /**
+   * Email that never arrived and nobody has dealt with. Null until the read
+   * has worked once, so a board that cannot reach the table says nothing
+   * rather than saying everything is fine.
+   */
+  email?: EmailHealth | null;
 };
 
 export type Snapshot = {
@@ -2492,6 +2500,9 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const jobProfitRecent = await profitOver(isoDateMelbourne(new Date(now.getTime() - 30 * 86_400_000)))
     .catch(() => previous?.metrics.jobProfitRecent ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
+  // Carried forward like the journals beside it: a failed read leaves the
+  // last reading standing rather than clearing an alert nobody has acted on.
+  const email = await emailHealth(now).catch(() => previous?.metrics.email ?? null);
 
   return {
     metrics: {
@@ -2553,6 +2564,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,
       jobProfitYear: previous?.metrics.jobProfitYear ?? null,
       journals,
+      email,
     },
     sources,
   };
