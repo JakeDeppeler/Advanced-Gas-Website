@@ -86,11 +86,14 @@ export type EmailHealth = {
  * not. The age rides along for the same reason it does on the journal alert —
  * an hour old is a mistake, three days old is a habit.
  */
-export function emailAlertLine(h: EmailHealth): string {
+export function emailAlertLine(h: EmailHealth, short = false): string {
   const n = h.trouble;
   const what = h.worstKind ? kindLabel(h.worstKind).toLowerCase() : "email";
   const head = n === 1 ? `1 ${what} never arrived` : `${n} emails never arrived`;
-  if (h.oldestHours == null) return head;
+  // The Pace page gives its footer to the dials' key, and with the journal
+  // alert up as well there is no room for how old this is. The count and the
+  // thing it was are what the line is for; the age is the part that goes.
+  if (short || h.oldestHours == null) return head;
   if (h.oldestHours < 1) return `${head} · just now`;
   if (h.oldestHours < 48) return `${head} · oldest ${Math.round(h.oldestHours)}h`;
   return `${head} · oldest ${Math.round(h.oldestHours / 24)} days`;

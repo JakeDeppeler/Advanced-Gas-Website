@@ -491,6 +491,23 @@ export function ScreenBoard({
    * mail is bouncing is a day somebody should know about twice.
    */
   const emailAlert = !!m.email && m.email.trouble > 0;
+
+  /*
+   * On Pace, one of them at most.
+   *
+   * That page's footer has to carry the dials' key — the words and dots that
+   * are the reason the dials may use red and green at all — and with both
+   * banners up as well, the brand and the clock were pushed off the end at
+   * 1920x1080. So Pace shows the worse of the two: an email to somebody
+   * outside the business beats a journal entry, because one of those is a
+   * customer waiting and the other is bookkeeping. The page turns every
+   * thirty seconds and the other eight carry both, so nothing is hidden for
+   * longer than that.
+   */
+  const crowded = PAGES[page] === "Pace" && journalAlert && emailAlert;
+  const emailWins = Boolean(m.email && m.email.toCustomer);
+  const showJournal = journalAlert && !(crowded && emailWins);
+  const showEmail = emailAlert && !(crowded && !emailWins);
   /*
    * An alert takes the whole wall, so the page underneath is put away rather
    * than merely covered.
@@ -655,7 +672,7 @@ export function ScreenBoard({
         </TickerScope.Provider>
       </div>
 
-      <div className={`screen__foot${journalAlert || emailAlert ? " has-alert" : ""}`}>
+      <div className={`screen__foot${showJournal || showEmail ? " has-alert" : ""}`}>
         <span className="screen__feed">
           <span className={`screen__dot ${healthy ? "" : "screen__dot--stale"}`} aria-hidden />
           <b>{healthy ? "Live" : "Catching up"}</b>
@@ -663,14 +680,14 @@ export function ScreenBoard({
         {/* A journal entry ServiceTitan couldn't post to Xero. On every page,
             because it's the one thing on the board that needs the office
             rather than the crew — and gone the run after it's fixed. */}
-        {journalAlert && m.journals && <JournalAlert j={m.journals} short={name === "Pace"} />}
+        {showJournal && m.journals && <JournalAlert j={m.journals} short={name === "Pace"} />}
         {/* An email that was refused on the way out, or bounced on the way in.
             Nobody was told either way until this: a send failure went to a
             serverless log and a bounce went nowhere at all. */}
-        {emailAlert && m.email && <EmailAlert h={m.email} />}
+        {showEmail && m.email && <EmailAlert h={m.email} short={name === "Pace"} />}
         {/* With the alert up and every feed fine, the green Live dot says what
             this line would, and the Pace page's key needs the room. */}
-        {!((journalAlert || emailAlert) && healthy) && !ratesSetByHand(m) && <span>
+        {!((showJournal || showEmail) && healthy) && !ratesSetByHand(m) && <span>
           {degraded.length === 0
             ? fresh
               ? "All feeds connected"
@@ -3333,12 +3350,12 @@ const clockLabel = (now: Date) =>
  * "1 email event" is one they walk past. The wording is in emailAlertLine, so
  * it can be checked without a browser.
  */
-function EmailAlert({ h }: { h: NonNullable<Metrics["email"]> }) {
+function EmailAlert({ h, short }: { h: NonNullable<Metrics["email"]>; short?: boolean }) {
   return (
     <span className={`screen__alert${h.toCustomer ? " screen__alert--bad" : ""}`} role="status">
       <b className="screen__alerticon" aria-hidden="true">!</b>
       <span>
-        <b>Email</b> · {emailAlertLine(h)}
+        <b>Email</b> · {emailAlertLine(h, short)}
       </span>
     </span>
   );
