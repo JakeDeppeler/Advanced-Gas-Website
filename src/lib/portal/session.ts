@@ -1,9 +1,7 @@
 /**
- * Portal sessions and the magic-link tokens that create them.
- *
- * Two token types, both signed with PORTAL_AUTH_SECRET via ./token:
- *   - a "magic" token (15 min) that goes in the emailed sign-in link, and
- *   - a "session" token (30 days) stored in an httpOnly cookie.
+ * Portal sessions: a "session" token (30 days), signed with
+ * PORTAL_AUTH_SECRET via ./token and stored in an httpOnly cookie, made once
+ * the emailed code checks out (./loginCode).
  *
  * The session cookie carries only identity (email + display name). The
  * live role and capabilities are looked up from the database on every
@@ -24,24 +22,9 @@ export { SESSION_COOKIE };
 export type { PortalUser };
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-const MAGIC_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 function secret(): string | null {
   return process.env.PORTAL_AUTH_SECRET || null;
-}
-
-export async function createMagicToken(email: string): Promise<string | null> {
-  const s = secret();
-  if (!s) return null;
-  return sign({ email: email.toLowerCase(), t: "magic", exp: Date.now() + MAGIC_TTL_MS }, s);
-}
-
-export async function readMagicToken(token: string): Promise<string | null> {
-  const s = secret();
-  if (!s) return null;
-  const p = await verify<{ email: string; t: string }>(token, s);
-  if (!p || p.t !== "magic" || !p.email) return null;
-  return String(p.email).toLowerCase();
 }
 
 export async function createSessionValue(identity: { email: string; name: string }): Promise<string | null> {

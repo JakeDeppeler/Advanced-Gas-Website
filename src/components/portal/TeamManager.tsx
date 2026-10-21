@@ -60,7 +60,7 @@ export function TeamManager({ users, meEmail, dbReady }: { users: Row[]; meEmail
 
       <section className="pt-panel pt-tm__add">
         <h2 className="pt-panel__h">Add someone to the team</h2>
-        <p className="pt-panel__sub">They&rsquo;ll be able to request a sign-in link straight away. Set their role now, you can fine-tune what they see below.</p>
+        <p className="pt-panel__sub">They&rsquo;ll be able to sign in with an emailed code straight away. Set their role now, you can fine-tune what they see below.</p>
         <form className="pt-tm__addform" onSubmit={submitAdd}>
           <label className="pt-field">
             <span>Name</span>
