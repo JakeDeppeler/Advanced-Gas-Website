@@ -2,7 +2,7 @@
 
 import { readUtm, trackLead } from "@/lib/track";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { site } from "@/lib/site";
 
 /* ============================================================
@@ -12,7 +12,7 @@ import { site } from "@/lib/site";
    across e.g. Reclaim + Thermann, 200L + 285L, etc.
    ============================================================ */
 
-type ServiceId = "hp" | "split" | "ducted" | "service" | "water";
+type ServiceId = "hp" | "split" | "ducted" | "service" | "water" | "other";
 
 const SERVICES: { id: ServiceId; t: string; s: string }[] = [
   { id: "hp",      t: "Heat pump hot water",  s: "Reclaim · iStore · Thermann" },
@@ -20,7 +20,16 @@ const SERVICES: { id: ServiceId; t: string; s: string }[] = [
   { id: "ducted",  t: "Ducted aircon",        s: "Whole-home cooling & heating" },
   { id: "service", t: "Service or repair",    s: "Gas, hot water, aircon" },
   { id: "water",   t: "Water filtration",     s: "Whole home · hot water · under sink" },
+  // Most people know roughly what they want, but not all of them, and the
+  // ones who don't were left choosing a category to get past the first
+  // screen. This goes straight to the details step with the note box open.
+  { id: "other",   t: "Not sure / something else", s: "Tell us in your own words" },
 ];
+
+/* A "Not sure" answer stands for every option on its step, so it can't
+   sit alongside them: picking it clears the rest, picking any of the rest
+   clears it. */
+const UNSURE = "unsure";
 
 /* ---- Heat pump options ---- */
 
@@ -28,6 +37,7 @@ const HP_BRANDS = [
   { id: "reclaim",  t: "Reclaim",  s: "CO₂, quietest, holds up on cold mornings" },
   { id: "thermann", t: "Thermann", s: "Australian made, parts in every Reece store" },
   { id: "istore",   t: "iStore",   s: "Takes the VEU rebate furthest, smart-app ready" },
+  { id: UNSURE,     t: "Not sure",  s: "Tell us how you use it, we'll recommend one" },
 ];
 
 const HP_STYLES = [
@@ -55,6 +65,7 @@ const HP_SIZE_RANGES: SizeRange[] = [
   { id: "small", t: "180 L – 200 L", s: "1–2 people · Reclaim 200 L · Thermann 200 L · iStore 180 L", aio: true,  split: false },
   { id: "large", t: "275 L – 300 L", s: "3+ people · Reclaim 300 L · Thermann 285 L · iStore 275 L",  aio: true,  split: true  },
   { id: "xl",    t: "315 L – 400 L", s: "Reclaim split only · 315 L or 400 L",                        aio: false, split: true  },
+  { id: UNSURE,  t: "Not sure",      s: "We'll size it from how many people live there",              aio: true,  split: true  },
 ];
 
 const HP_MATERIALS = [
@@ -67,6 +78,7 @@ const HP_MATERIALS = [
 const SPLIT_BRANDS = [
   { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium · up to 15 kW total heads on a 12 kW multi condenser" },
   { id: "kaden",  t: "Kaden",               s: "Great value · up to 23 kW total heads on an 18 kW multi" },
+  { id: UNSURE,   t: "No preference",       s: "We'll recommend one for the job" },
 ];
 // Multi-head condensers can be diversity-oversized (typical ~130%).
 // e.g. 21 kW of heads on an 18 kW condenser is fine, and Mitsubishi's
@@ -76,6 +88,9 @@ const SPLIT_BRAND_MAX_KW: Record<string, number> = { mitsu: 15, kaden: 23 };
 const SPLIT_STYLES = [
   { id: "single", t: "Single head",  s: "One indoor unit, one room" },
   { id: "multi",  t: "Multi-head",   s: "Multiple indoor units, one outdoor" },
+  // Skips both sizing steps: kW per room is the question homeowners are
+  // least able to answer, and we size it on site regardless.
+  { id: UNSURE,   t: "Not sure yet", s: "Tell us the rooms, we'll design it" },
 ];
 
 const HEAD_COUNTS = [
@@ -156,6 +171,7 @@ const FLOWS: Record<ServiceId, StepId[]> = {
   ducted:  ["service", "ducted-size", "ducted-zones", "ducted-tablet", "details"],
   service: ["service", "svc-type", "svc-stories", "details"],
   water:   ["service", "water-where", "water-why", "details"],
+  other:   ["service", "details"],
 };
 
 const WATER_WHERE = [
@@ -181,6 +197,26 @@ function toggle<T>(arr: T[], v: T): T[] {
   return arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
 }
 
+/** toggle(), but "Not sure" and the real options exclude each other. */
+function pick(arr: string[], v: string): string[] {
+  if (arr.includes(v)) return arr.filter(x => x !== v);
+  return v === UNSURE ? [UNSURE] : [...arr.filter(x => x !== UNSURE), v];
+}
+
+/* The details step checks itself rather than greying out the button.
+   A disabled button says nothing about which of four boxes it wants. */
+type FieldId = "name" | "phone" | "email" | "postcode";
+function fieldErrors(f: Record<FieldId, string>): Partial<Record<FieldId, string>> {
+  const e: Partial<Record<FieldId, string>> = {};
+  if (!f.name.trim()) e.name = "So we know who to ask for";
+  // Eight digits rather than ten: a landline without its area code is
+  // still a number we can ring, and rejecting it costs the lead.
+  if (f.phone.replace(/\D/g, "").length < 8) e.phone = "A number we can call or text";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) e.email = "Where the written quote goes";
+  if (!/^\d{4}$/.test(f.postcode.trim())) e.postcode = "Four digits, e.g. 3810";
+  return e;
+}
+
 /* ============================================================ */
 
 export function HeroQuoteForm() {
@@ -191,7 +227,15 @@ export function HeroQuoteForm() {
   // customer typed so they can retry or read us the phone number.
   const [sendFailed, setSendFailed] = useState(false);
 
-  const [service, setService] = useState<ServiceId>("hp");
+  // Nothing pre-ticked. It used to open on heat pump, which read as a
+  // choice already made for you.
+  const [service, setService] = useState<ServiceId | null>(null);
+  // Set once someone presses Next on a step they haven't answered, so the
+  // prompt appears when it's useful and not before.
+  const [nudge, setNudge] = useState(false);
+  const [showExtras, setShowExtras] = useState(false);
+  const cardRef = useRef<HTMLElement>(null);
+  const firstRender = useRef(true);
   const [waterWhere, setWaterWhere] = useState<string[]>([]);
   const [waterWhy, setWaterWhy] = useState<string[]>([]);
 
@@ -231,7 +275,8 @@ export function HeroQuoteForm() {
   // is in play (Reclaim is the only brand we split-install; Thermann and
   // iStore are AIO-only, always glass-lined). Split: multi-head and
   // single-head steps only appear when their style is selected.
-  const flow = useMemo(() => {
+  const flow = useMemo((): StepId[] => {
+    if (!service) return ["service"];
     if (service === "hp") {
       const hasReclaim = hpBrand.includes("reclaim");
       const wantsSplit = hasReclaim && hpStyle.includes("split");
@@ -262,8 +307,9 @@ export function HeroQuoteForm() {
     .reduce((sum, count) => sum + count, 0),
     [splitHeadConfig]);
   const brandMaxKw = useMemo(() => {
-    if (splitBrand.length === 0) return 18;
-    return Math.min(...splitBrand.map(b => SPLIT_BRAND_MAX_KW[b] ?? 18));
+    const brands = splitBrand.filter(b => b !== UNSURE);
+    if (brands.length === 0) return 18;
+    return Math.min(...brands.map(b => SPLIT_BRAND_MAX_KW[b] ?? 18));
   }, [splitBrand]);
   const multiHeadOverCap = multiHeadTotal > brandMaxKw;
 
@@ -281,7 +327,28 @@ export function HeroQuoteForm() {
   }
 
   const currentStep = flow[Math.min(step, flow.length - 1)];
-  const isLast = step === flow.length - 1;
+  const isLast = !!service && step === flow.length - 1;
+
+  // A tall step can leave the next one starting above the top of a phone
+  // screen, with the reader looking at the bottom half of a question. The
+  // question is what gets scrolled to, not the card: on a phone the card's
+  // own header is a third of the screen. scroll-margin-top in home.css
+  // keeps it clear of the fixed site header.
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    const q = cardRef.current?.querySelector<HTMLElement>(".qstep__h");
+    if (!q) return;
+    if (q.getBoundingClientRect().top < 80) q.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Focus follows the question so a screen reader announces it.
+    q.focus({ preventScroll: true });
+  }, [step]);
+
+  const errors = fieldErrors({ name, phone, email, postcode });
+  // Open from the start wherever an earlier answer pointed at the note box:
+  // "something else", where the note is the whole enquiry, and the split
+  // answers that say "tell us the rooms" or "send a floor plan".
+  const extrasOpen = showExtras || service === "other"
+    || splitStyle.includes(UNSURE) || splitSize.includes(UNSURE);
 
 
   const canNext = useMemo(() => {
@@ -305,7 +372,7 @@ export function HeroQuoteForm() {
       case "svc-stories": return !!svcStories;
       case "water-where": return waterWhere.length > 0;
       case "water-why": return waterWhy.length > 0;
-      case "details": return !!(name && phone && email && postcode);
+      case "details": return Object.keys(fieldErrors({ name, phone, email, postcode })).length === 0;
       default: return false;
     }
     // waterWhere/waterWhy belong here for the same reason every other
@@ -320,7 +387,11 @@ export function HeroQuoteForm() {
     name, phone, email, postcode,
   ]);
 
+  // A single-select first step has nothing to confirm, so a tap moves on.
+  // Coming back and tapping the same card keeps what was answered after it.
   function handleService(id: ServiceId) {
+    setNudge(false);
+    setStep(1);
     if (id === service) return;
     setService(id);
     // Reset downstream to avoid stale selections crossing flows.
@@ -401,6 +472,7 @@ export function HeroQuoteForm() {
   }
 
   function summary() {
+    if (service === "other") return "Not sure / something else, see notes";
     if (service === "hp") {
       const b = labels(HP_BRANDS, hpBrand);
       const st = labels(HP_STYLES, hpStyle);
@@ -438,11 +510,19 @@ export function HeroQuoteForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLast) {
-      if (canNext) setStep(s => s + 1);
+    if (!canNext) {
+      setNudge(true);
+      if (currentStep === "details") {
+        const first = (["name", "phone", "email", "postcode"] as FieldId[]).find(f => errors[f]);
+        if (first) document.getElementById(`q-${first}`)?.focus();
+      }
       return;
     }
-    if (!canNext) return;
+    setNudge(false);
+    if (!isLast) {
+      setStep(s => s + 1);
+      return;
+    }
     setSubmitting(true);
     setSendFailed(false);
     try {
@@ -484,7 +564,9 @@ export function HeroQuoteForm() {
     setDone(false);
     setSubmitting(false);
     setStep(0);
-    setService("hp");
+    setService(null);
+    setNudge(false);
+    setShowExtras(false);
     setHpBrand([]); setHpStyle([]); setHpSize([]); setHpMaterial([]);
     setHpWifi("yes");
     setSplitBrand([]); setSplitStyle([]); setSplitHeadConfig({}); setSplitSize([]);
@@ -523,21 +605,33 @@ export function HeroQuoteForm() {
   }
 
   return (
-    <aside className="qcard">
+    <aside className="qcard" ref={cardRef}>
       <div className="qcard__ribbon">
         <span className="qcard__ribbon-dot" />
         Free quote · usually replied within 12 hrs
       </div>
 
       <h2 className="qcard__h">Get a written quote</h2>
-      <p className="qcard__sub">Tick every option you&rsquo;d consider, we&rsquo;ll price the lot.</p>
+      <p className="qcard__sub">
+        A few taps, then your contact details. Not sure about something? Say so, and we&rsquo;ll work it out with you.
+      </p>
 
-      {/* progress */}
+      {/* progress. Until a service is picked the number of steps isn't
+          known, and "Step 1 / 2" that becomes "Step 2 / 7" reads as a trick. */}
       <div className="qcard__progress" aria-hidden="true">
-        {flow.map((_, i) => (
-          <i key={i} className={i <= step ? "is-on" : ""} />
-        ))}
-        <span className="qcard__progress-lbl">Step {step + 1} / {flow.length}</span>
+        {service ? (
+          <>
+            {flow.map((_, i) => (
+              <i key={i} className={i <= step ? "is-on" : ""} />
+            ))}
+            <span className="qcard__progress-lbl">Step {step + 1} / {flow.length}</span>
+          </>
+        ) : (
+          <>
+            <i className="is-on" /><i /><i />
+            <span className="qcard__progress-lbl">About a minute</span>
+          </>
+        )}
       </div>
 
       <form onSubmit={onSubmit} noValidate>
@@ -553,7 +647,7 @@ export function HeroQuoteForm() {
         />
 
         {currentStep === "service" && (
-          <StepBlock title="What do you need?" hint="Choose one, this sets your quote path.">
+          <StepBlock title="What can we help with?" hint="Tap one to start.">
             <div className="qgrid qgrid--2">
               {SERVICES.map(s => (
                 <OptCard key={s.id} multi={false} checked={service === s.id}
@@ -564,11 +658,20 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-brand" && (
-          <StepBlock title="Which brand(s) of heat pump?" hint="Pick any you'd consider, we'll quote all.">
-            <div className="qgrid qgrid--3">
+          <StepBlock title="Which brand(s) of heat pump?" hint="Pick any you'd consider and we'll quote them all, or pick Not sure.">
+            <div className="qgrid qgrid--2">
               {HP_BRANDS.map(b => (
                 <OptCard key={b.id} multi checked={hpBrand.includes(b.id)}
-                  onClick={() => setHpBrand(a => toggle(a, b.id))}
+                  onClick={() => {
+                    const next = pick(hpBrand, b.id);
+                    setHpBrand(next);
+                    // Style and material are Reclaim-only questions; without
+                    // Reclaim they're not asked, so they mustn't be sent either.
+                    if (!next.includes("reclaim")) {
+                      setHpStyle([]); setHpMaterial([]);
+                      setHpSize(a => a.filter(x => x !== "xl"));
+                    }
+                  }}
                   t={b.t} s={b.s} />
               ))}
             </div>
@@ -618,10 +721,10 @@ export function HeroQuoteForm() {
           );
           return (
             <StepBlock title="Tank size range" hint="Multiple selections OK. Exact size within the range depends on the brand we install for you.">
-              <div className={`qgrid qgrid--${filtered.length >= 3 ? 3 : 2}`}>
+              <div className={`qgrid qgrid--${filtered.length === 3 ? 3 : 2}`}>
                 {filtered.map(sz => (
                   <OptCard key={sz.id} multi checked={hpSize.includes(sz.id)}
-                    onClick={() => setHpSize(a => toggle(a, sz.id))}
+                    onClick={() => setHpSize(a => pick(a, sz.id))}
                     t={sz.t} s={sz.s} />
                 ))}
               </div>
@@ -657,10 +760,10 @@ export function HeroQuoteForm() {
 
         {currentStep === "split-brand" && (
           <StepBlock title="Which brand(s)?" hint="Multiple selections OK.">
-            <div className="qgrid qgrid--2">
+            <div className="qgrid qgrid--3">
               {SPLIT_BRANDS.map(b => (
                 <OptCard key={b.id} multi checked={splitBrand.includes(b.id)}
-                  onClick={() => setSplitBrand(a => toggle(a, b.id))}
+                  onClick={() => setSplitBrand(a => pick(a, b.id))}
                   t={b.t} s={b.s} />
               ))}
             </div>
@@ -668,11 +771,11 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "split-style" && (
-          <StepBlock title="Single head, multi-head, or both?">
-            <div className="qgrid qgrid--2">
+          <StepBlock title="Single head, multi-head, or both?" hint="One room, or several rooms off one outdoor unit.">
+            <div className="qgrid qgrid--3">
               {SPLIT_STYLES.map(x => (
                 <OptCard key={x.id} multi checked={splitStyle.includes(x.id)}
-                  onClick={() => setSplitStyle(a => toggle(a, x.id))}
+                  onClick={() => setSplitStyle(a => pick(a, x.id))}
                   t={x.t} s={x.s} />
               ))}
             </div>
@@ -733,7 +836,7 @@ export function HeroQuoteForm() {
             <div className="qgrid qgrid--3">
               {SPLIT_SIZES.map(sz => (
                 <OptCard key={sz.id} multi checked={splitSize.includes(sz.id)}
-                  onClick={() => setSplitSize(a => toggle(a, sz.id))}
+                  onClick={() => setSplitSize(a => pick(a, sz.id))}
                   t={sz.t} s={sz.s} />
               ))}
             </div>
@@ -748,7 +851,7 @@ export function HeroQuoteForm() {
             <div className="qgrid qgrid--3">
               {DUCTED_SIZES.map(sz => (
                 <OptCard key={sz.id} multi checked={ductedSize.includes(sz.id)}
-                  onClick={() => setDuctedSize(a => toggle(a, sz.id))}
+                  onClick={() => setDuctedSize(a => pick(a, sz.id))}
                   t={sz.t} s={sz.s} />
               ))}
             </div>
@@ -830,7 +933,7 @@ export function HeroQuoteForm() {
             <div className="qgrid qgrid--2">
               {WATER_WHERE.map(w => (
                 <OptCard key={w.id} multi checked={waterWhere.includes(w.id)}
-                  onClick={() => setWaterWhere(a => toggle(a, w.id))}
+                  onClick={() => setWaterWhere(a => pick(a, w.id))}
                   t={w.t} s={w.s} />
               ))}
             </div>
@@ -849,34 +952,42 @@ export function HeroQuoteForm() {
           </StepBlock>
         )}
 
-        {currentStep === "details" && (
-          <StepBlock title="Your details">
+        {currentStep === "details" && (() => {
+          const show = (f: FieldId) => (nudge ? errors[f] : undefined);
+          return (
+          <StepBlock title="Where should we send it?" hint="Four quick boxes, and your phone can usually fill them in for you.">
             <div className="qrow">
-              <label className="qfield">
-                <span>First name *</span>
-                <input type="text" placeholder="Jamie" value={name}
+              <Field id="name" label="First name" error={show("name")}>
+                <input id="q-name" type="text" placeholder="Jamie" value={name}
+                  autoComplete="given-name" enterKeyHint="next"
+                  aria-invalid={!!show("name")} aria-describedby={show("name") ? "q-name-err" : undefined}
                   onChange={(e) => setName(e.target.value)} required />
-              </label>
-              <label className="qfield">
-                <span>Mobile *</span>
-                <input type="tel" placeholder="04xx xxx xxx" value={phone}
+              </Field>
+              <Field id="phone" label="Mobile" error={show("phone")}>
+                <input id="q-phone" type="tel" placeholder="04xx xxx xxx" value={phone}
+                  autoComplete="tel" inputMode="tel" enterKeyHint="next"
+                  aria-invalid={!!show("phone")} aria-describedby={show("phone") ? "q-phone-err" : undefined}
                   onChange={(e) => setPhone(e.target.value)} required />
-              </label>
+              </Field>
             </div>
             <div className="qrow">
-              <label className="qfield">
-                <span>Email *</span>
-                <input type="email" placeholder="you@example.com" value={email}
+              <Field id="email" label="Email" error={show("email")}>
+                <input id="q-email" type="email" placeholder="you@example.com" value={email}
+                  autoComplete="email" inputMode="email" enterKeyHint="next" autoCapitalize="none" spellCheck={false}
+                  aria-invalid={!!show("email")} aria-describedby={show("email") ? "q-email-err" : undefined}
                   onChange={(e) => setEmail(e.target.value)} required />
-              </label>
-              <label className="qfield">
-                <span>Postcode *</span>
-                <input type="text" placeholder="3810" value={postcode}
-                  onChange={(e) => setPostcode(e.target.value)} required />
-              </label>
+              </Field>
+              <Field id="postcode" label="Postcode" error={show("postcode")}>
+                <input id="q-postcode" type="text" placeholder="3810" value={postcode}
+                  autoComplete="postal-code" inputMode="numeric" enterKeyHint="next"
+                  aria-invalid={!!show("postcode")} aria-describedby={show("postcode") ? "q-postcode-err" : undefined}
+                  // Digits only, capped after stripping rather than with maxLength,
+                  // which would cut a pasted "VIC 3810" down to "VIC ".
+                  onChange={(e) => setPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))} required />
+              </Field>
             </div>
             <div className="qfield qaddress">
-              <span>Full address <em>(optional, starts autofilling after 3 letters)</em></span>
+              <span>Street address <em>(optional, start typing and pick it from the list)</em></span>
               <input
                 type="text"
                 placeholder="12 Main Rd, Pakenham VIC 3810"
@@ -903,34 +1014,59 @@ export function HeroQuoteForm() {
                 </ul>
               )}
             </div>
-            <label className="qfield">
-              <span>Anything else? <em>(optional)</em></span>
-              <input type="text" placeholder="e.g. 4 bed house, easy roof access"
-                value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </label>
-            <div className="qfield qphoto">
-              <span>Photos of your current system <em>(optional, up to 6, helps us quote sharper)</em></span>
-              <input type="file" accept="image/*" multiple
-                disabled={photos.length >= 6}
-                onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />
-              {photos.length > 0 && (
-                <ul className="qphoto__list">
-                  {photos.map((p, i) => (
-                    <li key={i}>
-                      <span>✓ {p.name}</span>
-                      <button type="button" onClick={() => removePhoto(i)} aria-label={`Remove ${p.name}`}>×</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {photos.length > 0 && (
-                <span className="qphoto__hint">{photos.length} / 6 attached</span>
-              )}
-            </div>
+
+            {/* The note and the photos help the quote but aren't needed for
+                it, and as two more boxes they made the last step look like a
+                second form. One line until somebody wants them, unless an
+                earlier answer asked for them (see extrasOpen). */}
+            {!extrasOpen ? (
+              <button type="button" className="qextras" onClick={() => setShowExtras(true)}>
+                + Add a note or photos <em>(optional, helps us quote sharper)</em>
+              </button>
+            ) : (
+              <>
+                <label className="qfield">
+                  <span>
+                    {service === "other" ? "What's going on?" : "Anything else?"} <em>(optional)</em>
+                  </span>
+                  <textarea rows={service === "other" ? 3 : 2}
+                    placeholder={service === "other"
+                      ? "e.g. heater's making a noise, or we want to get off gas"
+                      : "e.g. 4 bed house, easy roof access"}
+                    value={notes} onChange={(e) => setNotes(e.target.value)} />
+                </label>
+                <div className="qfield qphoto">
+                  <span>Photos of your current system <em>(optional, up to 6)</em></span>
+                  <input type="file" accept="image/*" multiple
+                    disabled={photos.length >= 6}
+                    onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />
+                  {photos.length > 0 && (
+                    <ul className="qphoto__list">
+                      {photos.map((p, i) => (
+                        <li key={i}>
+                          <span>✓ {p.name}</span>
+                          <button type="button" onClick={() => removePhoto(i)} aria-label={`Remove ${p.name}`}>×</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {photos.length > 0 && (
+                    <span className="qphoto__hint">{photos.length} / 6 attached</span>
+                  )}
+                </div>
+              </>
+            )}
             <p className="qcard__finep">
               We&rsquo;ll come back within 12 hours. No spam, no shared data.
             </p>
           </StepBlock>
+          );
+        })()}
+
+        {nudge && !canNext && currentStep !== "details" && (
+          <p className="qhint qhint--warn" role="alert">
+            {currentStep === "service" ? "Tap one to start." : "Pick at least one to carry on."}
+          </p>
         )}
 
         {sendFailed && (
@@ -946,7 +1082,7 @@ export function HeroQuoteForm() {
           <button
             type="button"
             className="qback"
-            onClick={() => setStep(s => Math.max(0, s - 1))}
+            onClick={() => { setNudge(false); setStep(s => Math.max(0, s - 1)); }}
             disabled={step === 0}
           >
             ← Back
@@ -954,7 +1090,7 @@ export function HeroQuoteForm() {
           <button
             type="submit"
             className="ds-btn ds-btn--orange ds-btn--lg qnext"
-            disabled={submitting || !canNext}
+            disabled={submitting}
           >
             {isLast
               ? submitting
@@ -979,10 +1115,24 @@ function StepBlock({
 }) {
   return (
     <div className="qstep">
-      <h3 className="qstep__h">{title}</h3>
+      <h3 className="qstep__h" tabIndex={-1}>{title}</h3>
       {hint && <p className="qstep__hint">{hint}</p>}
       {children}
     </div>
+  );
+}
+
+function Field({
+  id, label, error, children,
+}: {
+  id: FieldId; label: string; error?: string; children: React.ReactNode;
+}) {
+  return (
+    <label className={`qfield ${error ? "is-err" : ""}`}>
+      <span>{label} *</span>
+      {children}
+      {error && <span className="qfield__err" id={`q-${id}-err`}>{error}</span>}
+    </label>
   );
 }
 

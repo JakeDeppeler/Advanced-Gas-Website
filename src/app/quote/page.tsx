@@ -33,7 +33,7 @@ export default function QuotePage() {
         </div>
       </section>
 
-      <section className="dp-quote">
+      <section className="dp-quote" data-hide-sticky-cta>
         <div className="wrap dp-quote__grid">
           <div className="dp-quote__copy">
             <span className="ds-eyebrow"><span className="ds-dot" /> What you get</span>
