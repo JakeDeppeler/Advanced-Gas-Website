@@ -8,6 +8,7 @@ import { readYearGoal, revenueGoalFor } from "@/lib/portal/yearGoal";
 import { getSettings } from "@/lib/portal/db";
 import { billable, classOf } from "@/lib/portal/stuckTypes";
 import { ST_LEDGER_FROM } from "@/lib/dashboard/stOwed";
+import { isRebateLine } from "@/lib/dashboard/soldMarginTypes";
 
 /**
  * How the month is going, read off the jobs as they're sold rather than off
@@ -28,7 +29,7 @@ import { ST_LEDGER_FROM } from "@/lib/dashboard/stOwed";
 
 type EstRow = {
   id: number; job_id: number | null; sold_on: string | null; subtotal: number | null; total: number | null;
-  sold_by: string | null; items: Array<{ total?: number | null; totalCost?: number | null; qty?: number | null; sku?: { type?: string | null; name?: string | null; soldHours?: number | null } | null }> | null;
+  sold_by: string | null; items: Array<{ total?: number | null; totalCost?: number | null; qty?: number | null; skuName?: string | null; sku?: { type?: string | null; name?: string | null; soldHours?: number | null } | null }> | null;
 };
 type JobRow = { id: number; job_number: string | null; job_type: string | null; customer_name: string | null; status: string | null; completed_on: string | null; no_charge: unknown; project_id?: string | null };
 
@@ -36,8 +37,10 @@ export type SoldJob = {
   jobId: number | null; jobNumber: string | null; customer: string | null; jobType: string | null; soldBy: string | null; soldOn: string;
   /** Before GST. */
   price: number;
-  /** Units and materials at cost, from the estimate's lines. */
+  /** Units and materials at cost, from the estimate's lines. Rebate lines aren't gear. */
   gear: number;
+  /** What the job's rebate lines bring back from the certificate trader. Income, not a discount on the gear. */
+  rebate: number;
   /** Gear lines that carry a price but no cost: the gear is in the job, its cost isn't. */
   uncosted: number;
   state: "billed" | "done" | "booked";
@@ -54,24 +57,25 @@ export type MonthTrack = {
   salesGoal: number | null;
   /** The profit we want, as a share of the price. */
   margin: number;
-  /** The most gear a job can carry and still pay its share of the month and the profit. Null without a sales goal. */
+  /** The most gear a job can carry, as a share of its price and rebate, and still pay its share of the month and the profit. Null without a sales goal. */
   maxGear: number | null;
-  invoiced: { count: number; price: number; gear: number };
+  invoiced: { count: number; price: number; gear: number; rebate: number };
   unbilled: UnbilledJob[];
 };
 
 const n = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const GEAR = /^(material|equipment)$/i;
 
-function gearOf(items: EstRow["items"]): { gear: number; uncosted: number } {
-  let gear = 0, uncosted = 0;
+function gearOf(items: EstRow["items"]): { gear: number; uncosted: number; rebate: number } {
+  let gear = 0, uncosted = 0, rebate = 0;
   for (const i of items ?? []) {
+    if (isRebateLine(i)) { rebate -= n(i.totalCost); continue; }
     if (!GEAR.test(i.sku?.type ?? "")) continue;
     const cost = n(i.totalCost);
     gear += cost;
     if (cost <= 0 && n(i.total) > 0) uncosted += 1;
   }
-  return { gear, uncosted };
+  return { gear, uncosted, rebate };
 }
 
 const priceOf = (e: { subtotal: number | null; total: number | null }) => (e.subtotal != null ? n(e.subtotal) : n(e.total) / 1.1);
@@ -91,8 +95,8 @@ export async function monthTrack(month: string): Promise<MonthTrack> {
       q.select("id,job_id,sold_on,subtotal,total,sold_by,items:raw->items"),
       `sold_on=gte.${encodeURIComponent(start)}`, `sold_on=lt.${encodeURIComponent(end)}`, "status=ilike.sold*", "limit=2000",
     ].join("&")),
-    sbSelect<{ job_id: number | null; subtotal: number | null; total: number | null; items_cost: number | null; business_unit: string | null }>("st_invoices", [
-      q.select("job_id,subtotal,total,items_cost,business_unit"), q.gte("invoice_date", from), `invoice_date=lte.${to}`, "limit=5000",
+    sbSelect<{ job_id: number | null; subtotal: number | null; total: number | null; items_cost: number | null; rebate_back: number | null; business_unit: string | null }>("st_invoices", [
+      q.select("job_id,subtotal,total,items_cost,rebate_back,business_unit"), q.gte("invoice_date", from), `invoice_date=lte.${to}`, "limit=5000",
     ].join("&")),
     listUsers().catch(() => []),
     getCostSettings().catch(() => null),
@@ -164,7 +168,7 @@ export async function monthTrack(month: string): Promise<MonthTrack> {
         : work.some((x) => x.status === "Completed" && !isBilled(x)) ? "done" : "booked";
     return {
       jobId: e.job_id, jobNumber: j?.job_number ?? null, customer: j?.customer_name ?? null, jobType: j?.job_type ?? null,
-      soldBy: e.sold_by, soldOn: String(e.sold_on ?? ""), price: priceOf(e), gear: g.gear, uncosted: g.uncosted, state,
+      soldBy: e.sold_by, soldOn: String(e.sold_on ?? ""), price: priceOf(e), gear: g.gear, rebate: g.rebate, uncosted: g.uncosted, state,
     };
   }).sort((a, b) => b.soldOn.localeCompare(a.soldOn));
 
@@ -185,7 +189,9 @@ export async function monthTrack(month: string): Promise<MonthTrack> {
   const invoiced = {
     count: realInv.filter((i) => n(i.total) > 0.5).length,
     price: realInv.reduce((a, i) => a + priceOf(i), 0),
-    gear: realInv.reduce((a, i) => a + n(i.items_cost), 0),
+    // items_cost nets the rebate lines off; added back, it's the gear bought.
+    gear: realInv.reduce((a, i) => a + n(i.items_cost) + n(i.rebate_back), 0),
+    rebate: realInv.reduce((a, i) => a + n(i.rebate_back), 0),
   };
 
   let toCover: number | null = null;

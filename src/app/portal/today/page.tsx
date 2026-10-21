@@ -147,7 +147,9 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   // the 20% we price for is gone.
   const sales = track ? track.sold.reduce((a, j) => a + j.price, 0) : 0;
   const gear = track ? track.sold.reduce((a, j) => a + j.gear, 0) : 0;
-  const gearShare = sales > 0 && gear > 0 ? gear / sales : null;
+  // Rebates are income the certificate trader pays, not a cut in the gear: the gear is measured against both.
+  const rebates = track ? track.sold.reduce((a, j) => a + j.rebate, 0) : 0;
+  const gearShare = sales + rebates > 0 && gear > 0 ? gear / (sales + rebates) : null;
   const gearMax = track?.maxGear ?? null;
   const gearSt: Status = gearShare == null ? none("No costs yet") : gearMax != null ? status(gearShare * 100, gearMax * 100, { pts: true, lower: true }) : none();
   const jp = m.jobProfitRecent ?? null;
@@ -195,7 +197,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
         <Lh>Before the Reece bill</Lh>
         <Grid cols={3}>
           <Tile label="Gear in this month's sales" st={gearSt} fig={gearShare != null ? `${Math.round(gearShare * 100)}%` : ""} frac={gearShare}
-            sub={gearShare != null ? `${money(gear)} of ${money(sales)} sold${gearMax != null ? ` · most a sale can carry ${Math.round(gearMax * 100)}%` : ""}` : "nothing sold with costs yet this month"} href="/portal/pace?view=month" />
+            sub={gearShare != null ? `${money(gear)} of ${money(sales)} sold${rebates > 0 ? ` + ${money(rebates)} rebates` : ""}${gearMax != null ? ` · most a sale can carry ${Math.round(gearMax * 100)}%` : ""}` : "nothing sold with costs yet this month"} href="/portal/pace?view=month" />
           <Tile label="Cost of goods, last 30 days" st={cogsSt} fig={cogs != null ? `${(Math.round(cogs * 1000) / 10).toFixed(1)}%` : ""} frac={cogs}
             sub={jp ? `gear and labour on ${jp.costed} finished jobs · keep it under 80%` : "no finished jobs costed yet"} href="/portal/profit" />
           <Tile label="Billed work a day, last 7 days" st={effSt} fig={workDay != null ? `${workDay.toFixed(1)} hrs` : ""} frac={workDay != null ? Math.min(1, workDay / 8) : null}

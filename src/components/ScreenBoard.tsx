@@ -2386,9 +2386,9 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
 function soldMarginNote(sm: Metrics["soldMargin"]): string {
   if (!sm || sm.marginPct == null) return "nothing costed yet";
   const jobs = `${sm.jobs} ${sm.jobs === 1 ? "job" : "jobs"}`;
-  if (sm.veuJobs > 0 && sm.rebatePerJob == null) {
-    return `${jobs} · ${sm.veuJobs} VEU, rebate not counted`;
-  }
+  // Older snapshots predate veuUncounted; for them every VEU job was uncounted without a figure.
+  const notCounted = sm.veuUncounted ?? (sm.rebatePerJob == null ? sm.veuJobs : 0);
+  if (notCounted > 0) return `${jobs} · ${notCounted} VEU, rebate not counted`;
   if (sm.uncosted > 0) return `${jobs} · ${sm.uncosted} not costed`;
   return `${jobs} sold this month`;
 }

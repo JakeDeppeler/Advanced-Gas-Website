@@ -50,8 +50,13 @@ export async function MonthSoFar({ m }: { m?: string }) {
 
   const sales = t.sold.reduce((a, j) => a + j.price, 0);
   const gear = t.sold.reduce((a, j) => a + j.gear, 0);
-  const left = sales - gear;
-  const share = sales > 0 ? gear / sales : null;
+  // The rebates are paid by the certificate trader, not the customer, so they
+  // aren't in the price; they are in what the jobs bring in, and the gear is
+  // measured against that.
+  const rebates = t.sold.reduce((a, j) => a + j.rebate, 0);
+  const takings = sales + rebates;
+  const left = takings - gear;
+  const share = takings > 0 ? gear / takings : null;
   const uncosted = t.sold.filter((j) => j.uncosted > 0 || (j.price > 0 && j.gear === 0 && /install|replace|supply/i.test(j.jobType ?? "")));
   // Estimates before mid-September 2026 were imported without their costs.
   const noCosts = sales > 0 && gear === 0;
@@ -65,7 +70,7 @@ export async function MonthSoFar({ m }: { m?: string }) {
   const priced = t.unbilled.filter((j) => j.price != null);
   const nbValue = priced.reduce((a, j) => a + (j.price ?? 0), 0);
   const nbGear = priced.reduce((a, j) => a + (j.gear ?? 0), 0);
-  const over = (j: SoldJob) => t.maxGear != null && j.price > 0 && j.gear / j.price > t.maxGear;
+  const over = (j: SoldJob) => t.maxGear != null && j.price + j.rebate > 0 && j.gear / (j.price + j.rebate) > t.maxGear;
 
   const soldSt: Status = goalByNow ? status(sales, goalByNow) : none();
   const gearSt: Status = share == null || noCosts ? none(noCosts ? "No costs" : "Nothing sold") : t.maxGear != null ? status(share * 100, t.maxGear * 100, { pts: true, lower: true }) : none();
@@ -81,7 +86,7 @@ export async function MonthSoFar({ m }: { m?: string }) {
             <>{t.sold.length} jobs sold in {name} for {money(sales)}, but their estimates carry no gear costs. ServiceTitan only has costs on its own estimates from mid-September 2026, so this month can&rsquo;t be read here.</>
           ) : (
             <>
-              {t.sold.length} {t.sold.length === 1 ? "job" : "jobs"} sold in {name}{current ? " so far" : ""} for <b>{money(sales)}</b>, with {money(gear)} of gear in {t.sold.length === 1 ? "it" : "them"} ({pc(share!)}).
+              {t.sold.length} {t.sold.length === 1 ? "job" : "jobs"} sold in {name}{current ? " so far" : ""} for <b>{money(sales)}</b>{rebates > 0 ? <>, and {money(rebates)} coming back in rebates</> : null}, with {money(gear)} of gear in {t.sold.length === 1 ? "it" : "them"} ({pc(share!)}{rebates > 0 ? " of the two together" : ""}).
               {cover != null ? (
                 <>
                   {" "}That leaves {money(left)} towards the month&rsquo;s {money(cover)} of wages and overheads,{" "}
@@ -97,7 +102,7 @@ export async function MonthSoFar({ m }: { m?: string }) {
           <Tile label={`Sold in ${name}`} st={soldSt} fig={money(sales)} frac={t.salesGoal ? sales / t.salesGoal : null}
             sub={t.salesGoal ? `goal ${money(t.salesGoal)} for the month${current ? ` · ${money(goalByNow!)} by today` : ""}` : "no sales goal set"} />
           <Tile label="Gear in it" st={gearSt} fig={share == null || noCosts ? "" : pc(share)} frac={share}
-            sub={t.maxGear != null ? `most a job can carry: ${pc(t.maxGear)}` : "set a sales goal to see the most a job can carry"} />
+            sub={`${!noCosts && share != null ? `${money(gear)} of gear${rebates > 0 ? ` against ${money(sales)} sold + ${money(rebates)} rebates` : ""} · ` : ""}${t.maxGear != null ? `most a job can carry: ${pc(t.maxGear)}` : "set a sales goal to see the most a job can carry"}`} />
           <Tile label="Left to cover the month" st={coverSt} fig={noCosts ? "" : money(left)} frac={cover ? left / cover : null}
             sub={cover != null ? `of ${money(cover)} wages & overheads${breakEven != null && !noCosts ? ` · break even at ${money(breakEven)} sold` : ""}` : "set the crew and costs on Pricing & costs"} />
           <Tile label="Done, not invoiced" st={nbSt} fig={t.unbilled.length ? String(t.unbilled.length) : "0"} frac={null} href="/portal/stuck"
@@ -109,14 +114,14 @@ export async function MonthSoFar({ m }: { m?: string }) {
         </Grid>
 
         <Card title={`Jobs sold in ${name}`} aside={t.maxGear != null ? `▲ over ${pc(t.maxGear)} gear can't pay its way` : undefined}>
-          <p className="pk-note" style={{ marginTop: -2, marginBottom: 8 }}><b>Gear</b> is the units and materials in a job, at cost. <b>Gear %</b> is its share of the price, and <b>Left</b> is what&rsquo;s left to pay the crew, the overheads and the profit.</p>
+          <p className="pk-note" style={{ marginTop: -2, marginBottom: 8 }}><b>Gear</b> is the units and materials in a job, at cost; the rebate lines aren&rsquo;t gear, they&rsquo;re money the certificate trader pays us, shown under the price. <b>Gear %</b> is the gear&rsquo;s share of the price and rebate together, and <b>Left</b> is what&rsquo;s left of both to pay the crew, the overheads and the profit.</p>
           {t.sold.length === 0 ? <Empty>No jobs sold yet.</Empty> : (
             <div className="pk-tbl-wrap">
               <table className="pk-tbl">
                 <thead><tr><th>Job</th><th>Sold</th><th>Price</th><th>Gear</th><th>Gear %</th><th>Left</th><th className="l">Where it&rsquo;s up to</th></tr></thead>
                 <tbody>
                   {t.sold.map((j, i) => {
-                    const pct = j.price > 0 ? j.gear / j.price : null;
+                    const pct = j.price + j.rebate > 0 ? j.gear / (j.price + j.rebate) : null;
                     const hot = over(j);
                     return (
                       <tr key={`${j.jobId ?? "x"}-${i}`}>
@@ -125,10 +130,10 @@ export async function MonthSoFar({ m }: { m?: string }) {
                           <div className="ks">{[j.jobType, j.soldBy ? `sold by ${j.soldBy}` : null].filter(Boolean).join(" · ")}</div>
                         </td>
                         <td>{day(j.soldOn)}</td>
-                        <td>{money(j.price)}</td>
+                        <td>{money(j.price)}{j.rebate > 0 ? <div className="ks">+ {money(j.rebate)} rebate</div> : null}</td>
                         <td>{j.gear > 0 ? money(j.gear) : ""}{j.uncosted > 0 ? <div className="ks">{j.uncosted} {j.uncosted === 1 ? "line" : "lines"} with no cost</div> : null}</td>
                         <td>{pct == null ? "" : <b className={hot ? "pk-hot" : undefined}>{pc(pct)}{hot ? " ▲" : ""}</b>}</td>
-                        <td>{money(j.price - j.gear)}</td>
+                        <td>{money(j.price + j.rebate - j.gear)}</td>
                         <td className="l"><Pill st={STATE[j.state]} /></td>
                       </tr>
                     );
@@ -169,8 +174,8 @@ export async function MonthSoFar({ m }: { m?: string }) {
 
         <div style={{ marginTop: 18 }}>
           <Note>
-            Invoiced in {name}: {money(t.invoiced.price)} across {t.invoiced.count} invoices, with {money(t.invoiced.gear)} of gear on them
-            {t.invoiced.price > 0 ? ` (${pc(t.invoiced.gear / t.invoiced.price)})` : ""}. Sold and invoiced are different months for the same job when it&rsquo;s done after the month it was sold,
+            Invoiced in {name}: {money(t.invoiced.price)} across {t.invoiced.count} invoices{t.invoiced.rebate > 0 ? `, plus ${money(t.invoiced.rebate)} in rebates` : ""}, with {money(t.invoiced.gear)} of gear on them
+            {t.invoiced.price + t.invoiced.rebate > 0 ? ` (${pc(t.invoiced.gear / (t.invoiced.price + t.invoiced.rebate))})` : ""}. Sold and invoiced are different months for the same job when it&rsquo;s done after the month it was sold,
             {" "}this page reads both straight from ServiceTitan, so neither waits for the supplier&rsquo;s bill. Wages and overheads are this month&rsquo;s share of the year on <Link href="/portal/finance/running">Running costs</Link>.
           </Note>
         </div>

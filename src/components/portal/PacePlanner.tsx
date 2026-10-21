@@ -441,7 +441,7 @@ export function PacePlanner({
                               <span className="pt-pace__rk">{j.jobType ?? "Job"}</span>
                               <span className="pt-pace__rn">{[j.jobNumber ? `#${j.jobNumber}` : null, j.customer, fmtDay(j.date)].filter(Boolean).join(" · ")}</span>
                             </th>
-                            <td>{money(j.price)}</td>
+                            <td>{money(j.price)}{j.rebate > 0 ? <span className="pt-pace__rn">+ {money(j.rebate)} rebate</span> : null}</td>
                             <td>{money(j.materials)}</td>
                             <td>{j.hours == null ? "" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : ""}`}</td>
                             <td>{j.profit == null ? "" : money(j.profit)}</td>

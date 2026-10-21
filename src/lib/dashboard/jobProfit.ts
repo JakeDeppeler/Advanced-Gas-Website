@@ -37,7 +37,10 @@ export type JobProfit = {
   date: string;
   /** Before GST. */
   price: number;
+  /** Equipment and materials at cost. Rebate lines aren't in it. */
   materials: number;
+  /** What the rebate lines bring back from the certificate trader: income on top of the price. */
+  rebate: number;
   hours: number | null;
   hoursFrom: "timesheets" | "sold" | null;
   /**
@@ -118,25 +121,30 @@ export async function jobProfits(
     total: number | null;
     subtotal: number | null;
     items_cost: number | null;
+    rebate_back: number | null;
     sold_hours: number | null;
     job_type: string | null;
   }>(
     "st_invoices_billed",
     [
-      q.select("id,job_id,invoice_date,total,subtotal,items_cost,sold_hours,job_type"),
+      q.select("id,job_id,invoice_date,total,subtotal,items_cost,rebate_back,sold_hours,job_type"),
       q.gte("invoice_date", from),
       `invoice_date=lte.${to}`,
     ].join("&"),
   );
 
   // One row per job: a job billed on two invoices was still one job.
-  const byJob = new Map<string, { jobId: number | null; date: string; price: number; materials: number; sold: number; jobType: string | null }>();
+  const byJob = new Map<string, { jobId: number | null; date: string; price: number; materials: number; rebate: number; sold: number; jobType: string | null }>();
   for (const i of invoices) {
     const price = i.subtotal != null ? Number(i.subtotal) : Number(i.total ?? 0) / (1 + GST_RATE);
     const k = i.job_id != null ? `j${i.job_id}` : `i${i.id}`;
-    const got = byJob.get(k) ?? { jobId: i.job_id, date: String(i.invoice_date), price: 0, materials: 0, sold: 0, jobType: i.job_type };
+    const got = byJob.get(k) ?? { jobId: i.job_id, date: String(i.invoice_date), price: 0, materials: 0, rebate: 0, sold: 0, jobType: i.job_type };
     got.price += price;
-    got.materials += Number(i.items_cost ?? 0);
+    // items_cost nets the rebate lines (materials at a negative cost) off the
+    // gear; added back, materials is what was bought, and the rebate is income.
+    const back = Number(i.rebate_back ?? 0);
+    got.materials += Number(i.items_cost ?? 0) + back;
+    got.rebate += back;
     got.sold += Number(i.sold_hours ?? 0);
     if (i.invoice_date && i.invoice_date > got.date) got.date = i.invoice_date;
     got.jobType = got.jobType ?? i.job_type;
@@ -248,7 +256,7 @@ export async function jobProfits(
       : per
         ? [...per].reduce((a, [tid, hh]) => a + hh * (costFor(tid != null ? techName.get(tid) : undefined) ?? costPerHr), 0)
         : h * costPerHr;
-    const profit = missing == null && labour != null ? j.price - j.materials - labour : null;
+    const profit = missing == null && labour != null ? j.price + j.rebate - j.materials - labour : null;
     return {
       jobId: j.jobId,
       jobNumber: meta?.job_number ?? null,
@@ -258,13 +266,15 @@ export async function jobProfits(
       date: j.date,
       price: j.price,
       materials: j.materials,
+      rebate: j.rebate,
       hours: h,
       hoursFrom,
       allowedHours: j.sold > 0 ? j.sold : null,
       actualHours: clocked ?? null,
       labour,
       profit,
-      margin: profit != null && j.price > 0 ? profit / j.price : null,
+      // Of what the job brought in, rebate and all.
+      margin: profit != null && j.price + j.rebate > 0 ? profit / (j.price + j.rebate) : null,
       missing,
       techs: j.jobId != null ? [...(crewOn.get(j.jobId) ?? [])].map((id) => techName.get(id)).filter((n): n is string => !!n).sort() : [],
     };
@@ -276,7 +286,7 @@ export async function jobProfits(
   const timed = rows.filter((r) => r.allowedHours != null && r.allowedHours > 0 && r.actualHours != null && r.actualHours > 0);
 
   const costed = rows.filter((r) => r.profit != null);
-  const revenue = costed.reduce((t, r) => t + r.price, 0);
+  const revenue = costed.reduce((t, r) => t + r.price + r.rebate, 0);
   const profit = costed.reduce((t, r) => t + (r.profit ?? 0), 0);
   const target = targetPct != null ? targetPct / 100 : null;
   return {
