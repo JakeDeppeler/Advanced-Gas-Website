@@ -162,6 +162,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["hourly", "charge out", "charge-out", "rate", "cost per hour", "break down", "overhead per hour", "utilisation", "billable hours"],
     },
     {
+      href: "/portal/rates/onsite", label: "On site & commercial rates", short: "On site", blurb: "Crew rates for an install that fills the day, and for commercial work", band: "profit", icon: "clock",
+      also: ["commercial", "commercial rate", "on site", "onsite", "install rate", "day rate", "all day", "site rate", "tender"],
+    },
+    {
       href: "/portal/finance/cover", label: "What an hour must cover", short: "Cover the hour", blurb: "Overheads and pay over the hours we bill, what-ifs, and each person's billed day", band: "profit", icon: "clock",
       also: ["break even", "break-even", "overhead", "6 of 8", "billable", "billed hours", "efficiency", "productivity", "hours billed", "add a person", "apprentice", "per hour"],
     },
