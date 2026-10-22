@@ -150,6 +150,7 @@ export const SECTION_DEFS: SectionDef[] = [
       {
         label: "Hourly", group: [
           { label: "Hourly rate", href: "/portal/rates" },
+          { label: "On site & commercial", href: "/portal/rates/onsite" },
           { label: "Our hourly rate", href: "/portal/finance/hourly" },
           { label: "What an hour must cover", href: "/portal/finance/cover" },
         ],
