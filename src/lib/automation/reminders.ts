@@ -18,7 +18,7 @@ import { listContacts } from "@/lib/contacts/store";
 import { lastWords, nextDue, touchState } from "@/lib/contacts/types";
 import { matchName } from "@/lib/portal/crewFile/match";
 import { MAX_LISTS, createAutoTodo, officeIds, openTodos, renameTodoList, saveTodoLists, setDone, teamPeople, todoLists } from "@/lib/todos/store";
-import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, jobNumberIn, type Person } from "@/lib/todos/types";
+import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, isAccountList, jobNumberIn, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
 import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
@@ -140,23 +140,83 @@ async function ensureLists(lists: string[], sw: AutoSwitches): Promise<string[]>
 
 /* -------------------------------------------------------------- the jobs */
 
-/** Sold three or more days ago and nothing booked from it: book it in before the customer wonders. */
-async function soldNotBooked(ctx: Ctx, pipe: PipeQuote[]) {
-  let n = 0;
-  for (const q of pipe) {
-    if (n >= PER_RUN) break;
-    if (q.stage !== "won" || !q.soldOn) continue;
-    const age = daysBetween(q.soldOn, ctx.today);
-    // A day on is when the office should be booking it; it moves to Jobs to Book then.
-    if (age < 1 || age > 45) continue;
-    if (await todo(ctx, "soldNotBooked", `sold:${q.key}`, {
-      title: `Book in ${who(q)}, sold ${age} days ago`,
-      notes: [`${ref(q)}${q.what ?? "Sold quote"}${q.value ? ` · ${money(q.value)}` : ""}.`, `Sold ${dayLabel(q.soldOn)} and nothing's been booked from it yet. It's in Pipeline › Sold, to be booked.`].join("\n"),
-      to: null, sales: true, booking: true, jobId: q.jobId ?? undefined,
-      // Followed through: once it's booked it moves to Finance to invoice.
-      onMade: (id) => { if (id) ctx.flow[id] = { key: q.key, step: "book" }; },
-    })) n++;
+/* ------------------------------------------------- lists that mirror */
+
+/**
+ * Three account lists that are the Pipeline's own columns, kept in step with
+ * it rather than written once: Quoting (a quote visit done, no quote written
+ * yet), Follow up (a quote out, not sold), Jobs to Book (sold, nothing booked).
+ * One card per job, written when it gets there and ticked off when it moves
+ * on, so each list is the whole of that stage and nothing else (Jake, 22 Oct).
+ *
+ * The card ids are kept by key (MIRROR), so a card someone ticks by hand isn't
+ * written again while the job sits where it is; it's theirs to have dealt
+ * with. A card already on the list for the same job (one written before this,
+ * or by the flow from Won) is taken over rather than doubled.
+ */
+const MIRROR = "automation_mirror";
+type MirrorTag = "book" | "follow" | "quote";
+type MirrorItem = { key: string; title: string; notes: string; to: Person | null; dueOn: string; jobNumber: string | null; jobId?: number };
+type MirrorState = Partial<Record<MirrorTag, Record<string, { id: string; due: string }>>>;
+
+async function mirror(ctx: Ctx, state: MirrorState, tag: MirrorTag, kind: AutoKey, list: string | null, items: MirrorItem[], gone: string) {
+  if (!list) return;
+  const open = state[tag] ?? (state[tag] = {});
+  const want = new Map(items.map((i) => [i.key, i]));
+  const line = (text: string, notes: string | null) => `${dayLabel(ctx.today)}: ${text}\n${notes ?? ""}`.slice(0, 2000);
+  for (const [k, t] of Object.entries(open)) {
+    const i = want.get(k);
+    if (i) {
+      // Still there: only the day it's due follows, e.g. the next call after one's logged.
+      if (t.due !== i.dueOn) { await updateTodo(t.id, { dueOn: i.dueOn }).catch(() => undefined); t.due = i.dueOn; }
+      continue;
+    }
+    const was = await getTodo(t.id).catch(() => null);
+    if (was && !was.doneAt) {
+      await updateTodo(t.id, { notes: line(gone, was.notes) }).catch(() => undefined);
+      await setDone(t.id, true, "Automatic").catch(() => false);
+    }
+    delete open[k];
   }
+  const onList = (await openTodos().catch(() => [])).filter((t) => t.list === list || (t.createdBy === "Automatic" && isAccountList(t.list)));
+  const taken = new Set(Object.values(state).flatMap((m) => Object.values(m ?? {}).map((t) => t.id)));
+  let n = 0;
+  for (const i of items) {
+    if (open[i.key] || n >= 80) continue;
+    // A card for this job already: take it over, onto this list, rather than write a second.
+    const same = onList.find((t) => !taken.has(t.id) && !ctx.flow[t.id] && (t.list === list || t.createdBy === "Automatic") && i.jobNumber && jobNumberIn(t) === i.jobNumber && (t.list === list || isQuoteish(t.title)));
+    if (same) {
+      await updateTodo(same.id, { title: i.title, list, dueOn: i.dueOn }).catch(() => undefined);
+      open[i.key] = { id: same.id, due: i.dueOn };
+      taken.add(same.id);
+      continue;
+    }
+    const to = i.to ?? ctx.office;
+    if (!to) continue;
+    try {
+      const id = await createAutoTodo({ title: i.title, notes: i.notes, assigneeId: to.id, dueOn: i.dueOn, list });
+      if (id) { open[i.key] = { id, due: i.dueOn }; taken.add(id); n++; }
+      ctx.log.push({ at: new Date().toISOString(), kind, ok: true, jobId: i.jobId, title: `To-do for ${to.name.split(" ")[0]}: ${i.title}` });
+    } catch (e) {
+      ctx.log.push({ at: new Date().toISOString(), kind, ok: false, jobId: i.jobId, title: `Couldn't write the to-do: ${i.title}`, detail: (e as Error).message.slice(0, 200) });
+    }
+  }
+}
+
+/** A card about chasing or booking a quote, as the older automatic ones were titled: safe to take over. */
+const isQuoteish = (title: string) => /^(follow up|first|second|third|next) |follow-up|^book in /i.test(title);
+
+/** Jobs to Book: every sale with nothing booked from it yet, from the day it sells. */
+async function soldNotBooked(ctx: Ctx, pipe: PipeQuote[], state: MirrorState) {
+  const list = ctx.lists.find((l) => /\bbook/i.test(l)) ?? null;
+  const inFlow = new Set(Object.values(ctx.flow).map((f) => f.key));
+  const items: MirrorItem[] = pipe.filter((q) => q.stage === "won" && q.soldOn && !inFlow.has(q.key)).map((q) => ({
+    key: q.key,
+    title: `Book in ${who(q)}, sold ${dayLabel(q.soldOn!)}`,
+    notes: `${ref(q)}${q.what ?? "Sold quote"}${q.value ? ` · ${money(q.value)}` : ""}${q.phone ? ` · ${q.phone}` : ""}.\nSold ${dayLabel(q.soldOn!)} and nothing's booked from it yet. Comes off by itself once a visit is booked in ServiceTitan.`,
+    to: null, dueOn: ctx.today, jobNumber: q.jobNumber, jobId: q.jobId ?? undefined,
+  }));
+  await mirror(ctx, state, "book", "soldNotBooked", list, items, "Booked in ServiceTitan, or no longer a sale. Off Jobs to Book.");
 }
 
 /**
@@ -228,45 +288,84 @@ async function factoryMin(ctx: Ctx) {
 }
 
 /**
- * Quote follow-ups, on their own Follow up list: one to-do per call in the
- * Pipeline's rule (day 2, then 4 days on, then a week on), due the day the
- * rule says, for whoever's chasing the quote or whoever wrote it. When the
- * call is logged on the Pipeline, or the quote sells or is lost, the to-do
- * ticks itself off. Only quotes out a fortnight or less: the rule is done by
- * day 13, and older ones are the Pipeline's to sort.
+ * Follow up: every quote out and not sold, one card each, due the day the
+ * Pipeline says to ring (its next call, else the 2/4/7-day rule). Logging a
+ * call on the Pipeline moves the card's day on; it ticks itself off when the
+ * quote sells, is lost, or passes 60 days and drops off the Pipeline. Before
+ * this it was a card per call for quotes a fortnight old or less, so the list
+ * was never the whole of what was out. A quote marked Won and waiting on
+ * payment is the flow's, not this list's.
  */
 const FOLLOW_TODOS = "automation_follow_todos";
-async function quoteFollow(ctx: Ctx, pipe: PipeQuote[]) {
-  const open = (await getSettings<Record<string, { id: string; n: number }>>(FOLLOW_TODOS).catch(() => null)) ?? {};
-  const byKey = new Map(pipe.map((q) => [q.key, q]));
-
-  // Done on the Pipeline: a call logged since, or the quote isn't waiting on a call any more.
-  for (const [k, t] of Object.entries(open)) {
-    const q = byKey.get(k);
-    if (q && q.stage === "due" && followUps(q.touches) <= t.n) continue;
+async function quoteFollow(ctx: Ctx, pipe: PipeQuote[], state: MirrorState) {
+  // The per-call cards from before: taken over where their quote is still out, closed where it isn't.
+  const old = (await getSettings<Record<string, { id: string; n: number }>>(FOLLOW_TODOS).catch(() => null)) ?? null;
+  if (old && Object.keys(old).length) {
+    const follow = state.follow ?? (state.follow = {});
+    const live = new Set(pipe.filter((q) => q.stage === "new" || q.stage === "due" || q.stage === "waiting").map((q) => q.key));
+    for (const [k, t] of Object.entries(old)) {
+      if (live.has(k) && !follow[k]) follow[k] = { id: t.id, due: "" };
+      else await setDone(t.id, true, "Automatic").catch(() => false);
+    }
+    await saveSettings(FOLLOW_TODOS, {}).catch(() => undefined);
+  }
+  const inFlow = new Set(Object.values(ctx.flow).map((f) => f.key));
+  const items: MirrorItem[] = pipe.filter((q) => (q.stage === "new" || q.stage === "due" || q.stage === "waiting") && q.quotedOn && !inFlow.has(q.key)).map((q) => {
+    const next = q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? ctx.today;
+    const calls = followUps(q.touches);
+    return {
+      key: q.key,
+      title: `Follow up ${who(q)}${q.value ? `, ${money(q.value)}` : ""}`,
+      notes: [`${q.what ?? "Quote"}${q.jobNumber ? ` · job #${q.jobNumber}` : q.customerId ? ` · customer #${q.customerId}` : ""}${q.phone ? ` · ${q.phone}` : ""}.`,
+        `Quoted ${dayLabel(q.quotedOn)}${calls ? `, followed up ${calls} ${calls === 1 ? "time" : "times"}` : ""}. Log the call on the Pipeline and the next one's day follows; it comes off when the quote's sold or lost.`].join("\n"),
+      to: personNamed(ctx, q.owner) ?? personNamed(ctx, q.quotedBy), dueOn: next, jobNumber: q.jobNumber, jobId: q.jobId ?? undefined,
+    };
+  });
+  await mirror(ctx, state, "follow", "quoteFollow", FOLLOW_UP, items, "Sold, lost, or out more than 60 days. Off Follow up.");
+  // The older "Follow up X, quiet 23 days" cards the Quoting list was given:
+  // any not taken over above are for quotes no longer out.
+  const mine = new Set(Object.values(state).flatMap((m) => Object.values(m ?? {}).map((t) => t.id)));
+  for (const t of await openTodos().catch(() => [])) {
+    if (t.createdBy !== "Automatic" || !/quot|sales/i.test(t.list ?? "") || !/^Follow up /.test(t.title) || mine.has(t.id)) continue;
+    await updateTodo(t.id, { notes: `${dayLabel(ctx.today)}: no longer out on the Pipeline (sold, lost or past 60 days). Follow-ups are on ${FOLLOW_UP} now.\n${t.notes ?? ""}`.slice(0, 2000) }).catch(() => undefined);
     await setDone(t.id, true, "Automatic").catch(() => false);
-    delete open[k];
   }
+}
 
-  let made = 0;
-  for (const q of pipe) {
-    if (made >= 40) break;
-    if (q.stage !== "due" || !q.quotedOn || daysBetween(q.quotedOn, ctx.today) > 14) continue;
-    // Won and waiting on payment: no more follow-up calls.
-    if (Object.values(ctx.flow).some((f) => f.key === q.key)) continue;
-    const n = followUps(q.touches);
-    if (n >= FOLLOW_UPS || open[q.key]) continue;
-    const due = q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? ctx.today;
-    const to = personNamed(ctx, q.owner) ?? personNamed(ctx, q.quotedBy);
-    const which = ["First", "Second", "Third"][n] ?? "Next";
-    if (await todo(ctx, "quoteFollow", `follow:${q.key}:${n}`, {
-      title: `${which} follow-up: ${who(q)}${q.value ? `, ${money(q.value)}` : ""}`,
-      notes: [`${q.what ?? "Quote"}${q.jobNumber ? ` · job #${q.jobNumber}` : q.customerId ? ` · customer #${q.customerId}` : ""}${q.phone ? ` · ${q.phone}` : ""}.`, `Quoted ${dayLabel(q.quotedOn)}. Log the call on the Pipeline and this ticks itself off.`].join("\n"),
-      to, list: FOLLOW_UP, dueOn: due < ctx.today ? due : ctx.today, jobId: q.jobId ?? undefined,
-      onMade: (id) => { if (id) open[q.key] = { id, n }; },
-    })) made++;
-  }
-  await saveSettings(FOLLOW_TODOS, open).catch(() => undefined);
+/**
+ * Quoting: a quote visit that's been done with no quote written for it. Read
+ * off ServiceTitan's jobs: a Quotation job completed in the last 30 days with
+ * no estimate on it, on another job in its project, or on the customer since
+ * the visit. Comes off once there is one, and Follow up takes it from there.
+ */
+async function quoteToWrite(ctx: Ctx, state: MirrorState) {
+  const list = ctx.lists.find((l) => /quot|sales/i.test(l)) ?? null;
+  const since = new Date(Date.now() - 30 * DAY).toISOString();
+  const jobs = await sbSelect<{ id: number; job_number: string | null; customer_name: string | null; completed_on: string | null; pid: string | null; cid: number | null; suburb: string | null }>("st_jobs",
+    `select=id,job_number,customer_name,completed_on,pid:raw->>projectId,cid:customer_id,suburb&job_type=ilike.quotation*&status=eq.Completed&completed_on=gte.${encodeURIComponent(since)}&limit=300`);
+  const ids = jobs.map((j) => j.id);
+  const pids = [...new Set(jobs.map((j) => j.pid).filter((v): v is string => !!v))];
+  const cids = [...new Set(jobs.map((j) => j.cid).filter((v): v is number => v != null))];
+  const [onJob, projJobs, onCust] = await Promise.all([
+    ids.length ? sbSelect<{ job_id: number }>("st_estimates", `select=job_id&job_id=in.(${ids.join(",")})`) : Promise.resolve([]),
+    pids.length ? sbSelect<{ id: number; pid: string }>("st_jobs", `select=id,pid:raw->>projectId&raw->>projectId=in.(${pids.join(",")})`) : Promise.resolve([]),
+    cids.length ? sbSelect<{ customer_id: number; created_on: string | null }>("st_estimates", `select=customer_id,created_on&customer_id=in.(${cids.join(",")})&created_on=gte.${encodeURIComponent(since)}`) : Promise.resolve([]),
+  ]);
+  const projIds = projJobs.map((j) => j.id).filter((id) => !ids.includes(id));
+  const onProjJob = projIds.length ? await sbSelect<{ job_id: number }>("st_estimates", `select=job_id&job_id=in.(${projIds.join(",")})`) : [];
+  const quoted = new Set(onJob.map((e) => Number(e.job_id)));
+  const projQuoted = new Set(projJobs.filter((j) => onProjJob.some((e) => Number(e.job_id) === Number(j.id))).map((j) => j.pid));
+  const items: MirrorItem[] = jobs.filter((j) => {
+    if (quoted.has(Number(j.id)) || (j.pid && projQuoted.has(j.pid))) return false;
+    const done = j.completed_on ? Date.parse(j.completed_on) - 3 * DAY : 0;
+    return !onCust.some((e) => Number(e.customer_id) === Number(j.cid) && e.created_on && Date.parse(e.created_on) >= done);
+  }).map((j) => ({
+    key: `j${j.id}`,
+    title: `Write the quote for ${[j.customer_name ?? `job #${j.job_number ?? j.id}`, j.suburb].filter(Boolean).join(", ")}`,
+    notes: `Job #${j.job_number ?? j.id} · quote visit done ${j.completed_on ? dayLabel(isoDateMelbourne(new Date(j.completed_on))) : ""}. No quote in ServiceTitan for it yet. Comes off once there is one.`,
+    to: null, dueOn: ctx.today, jobNumber: j.job_number, jobId: j.id,
+  }));
+  await mirror(ctx, state, "quote", "quoteToWrite", list, items, "Quote written in ServiceTitan. Off Quoting.");
 }
 
 /**
@@ -647,11 +746,13 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const needPipe = sw.soldNotBooked || sw.quoteFollow || sw.accountFlow;
   const pipe = needPipe ? await loadPipeline({ detail: true }).then((p) => p.quotes).catch(() => null) : [];
 
+  const mirrorState = (await getSettings<MirrorState>(MIRROR).catch(() => null)) ?? {};
   const jobs: Array<[AutoKey, () => Promise<void>]> = [
-    ["soldNotBooked", () => (pipe ? soldNotBooked(ctx, pipe) : Promise.reject(new Error("The pipeline couldn't be read")))],
+    ["soldNotBooked", () => (pipe ? soldNotBooked(ctx, pipe, mirrorState) : Promise.reject(new Error("The pipeline couldn't be read")))],
+    ["quoteToWrite", () => quoteToWrite(ctx, mirrorState)],
     ["notInvoiced", () => notInvoiced(ctx)],
     ["factoryMin", () => factoryMin(ctx)],
-    ["quoteFollow", () => (pipe ? quoteFollow(ctx, pipe) : Promise.reject(new Error("The pipeline couldn't be read")))],
+    ["quoteFollow", () => (pipe ? quoteFollow(ctx, pipe, mirrorState) : Promise.reject(new Error("The pipeline couldn't be read")))],
     ["overdueInv", () => overdueInv(ctx)],
     ["vanCheck", () => vanCheck(ctx)],
     ["keepInTouch", () => keepInTouch(ctx)],
@@ -672,6 +773,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
       ctx.log.push({ at: new Date().toISOString(), kind: k, ok: false, title: `${k} didn't run`, detail: (e as Error).message.slice(0, 200) });
     }
   }
+  await saveSettings(MIRROR, mirrorState).catch(() => undefined);
   await saveMade(ctx.made).catch(() => undefined);
   // One "it went" email for everything sent by itself this run.
   if (ctx.sent.length || ctx.held.length) {
