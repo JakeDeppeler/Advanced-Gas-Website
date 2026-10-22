@@ -8,7 +8,7 @@ import { listStockLines, shelfMatch } from "@/lib/ordering/stockLines";
 import { addStockLine, draftFor, loadSuppliers } from "@/lib/ordering/db";
 import { ordersToUpdate, updateJobs } from "@/lib/ordering/stJobNotes";
 import { findMoves, type Move } from "@/lib/ordering/moveNotices";
-import { approveAndSend, emailDateChange, noteBookedFor, sendReadyNotice } from "@/lib/ordering/send";
+import { approveAndSend, emailDateChange, noteBookedFor, noteDateChange, sendReadyNotice } from "@/lib/ordering/send";
 import { doneNoticeEmail, nextWeek, workRef, type WorkOrderDetails } from "@/lib/ordering/plan";
 import { autoFor, bookedDays, loadSparkyAuto, loadWoContacts, techAssigned } from "@/lib/ordering/workOrders";
 import { site } from "@/lib/site";
@@ -360,11 +360,14 @@ async function orderTags(ctx: Ctx) {
 
 /**
  * A job moved after its gear was ordered or its electrician booked: the order
- * stands, and whoever it went to is emailed the new day (emailDateChange),
- * which moves the order's own date with it. Office hours only, so nobody is
- * emailed at midnight; one email per order however many of its jobs moved.
- * A refusal (Reece entered in maX, no address) is logged once and left to the
- * warning on To order.
+ * stands. A subcontractor's work order is emailed the new day
+ * (emailDateChange), which moves the work order's date with it; they're the
+ * ones who turn up to the day. A supplier's order isn't emailed (Jake, 22 Oct:
+ * "only the subcontractors, not suppliers"): its lines take the new day
+ * quietly so To order sees it in step, and the move is logged. Office hours
+ * only, so nobody is emailed at midnight; one email per work order however
+ * many of its jobs moved. A refusal (no address) is logged once and left to
+ * the warning on To order.
  */
 async function orderMoves(ctx: Ctx) {
   const hour = melHour();
@@ -375,9 +378,18 @@ async function orderMoves(ctx: Ctx) {
     if (ctx.made.has(`move:${m.po_number}:${m.job_id}:${m.to}`)) continue;
     byPo.set(m.po_number, [...(byPo.get(m.po_number) ?? []), m]);
   }
+  const kinds = new Map((byPo.size ? await sbSelect<{ po_number: string; kind: string }>("purchase_orders", `select=po_number,kind&po_number=in.(${[...byPo.keys()].map((p) => `"${p}"`).join(",")})`).catch(() => []) : []).map((r) => [r.po_number, r.kind]));
   for (const [po, ms] of [...byPo].slice(0, 6)) {
     const failKey = `move-fail:${po}:${ms[0].to}`;
     if (ctx.made.has(failKey)) continue;
+    if (kinds.get(po) !== "work_order") {
+      const r = await noteDateChange(po, ms).catch((e: Error) => ({ ok: false, error: e.message }));
+      const jobs = ms.map((m) => m.job_number ?? m.job_id).join(", ");
+      if (r.ok) for (const m of ms) ctx.made.set(`move:${m.po_number}:${m.job_id}:${m.to}`, new Date().toISOString());
+      else ctx.made.set(failKey, new Date().toISOString());
+      ctx.log.push({ at: new Date().toISOString(), kind: "orderMoves", ok: r.ok, jobId: ms[0].job_id, po, title: r.ok ? `Job ${jobs} moved to ${dayLabel(ms[0].to)}: supplier order ${po} kept and its date changed, supplier not emailed` : `Job ${jobs} moved, couldn't change the date on order ${po}`, detail: r.ok ? undefined : (r.error ?? "").slice(0, 200) });
+      continue;
+    }
     const r = await emailDateChange(po, ms).catch((e: Error) => ({ ok: false as const, error: e.message, to: undefined, note: undefined }));
     const jobs = ms.map((m) => m.job_number ?? m.job_id).join(", ");
     const day = new Date(`${ms[0].to}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });

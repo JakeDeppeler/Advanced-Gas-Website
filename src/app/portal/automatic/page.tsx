@@ -29,7 +29,7 @@ const ACTS: Auto[] = [
   { k: "factoryMin", title: "Low factory stock onto next week’s order", what: "A shelf line at or under its low mark, with nothing already on order, goes onto next week’s draft for the supplier it last came from, the same quantity as last time. It stays a draft until someone approves it. A line never ordered before becomes a to-do for the office instead.", to: "" },
   { k: "accountFlow", title: "Won quotes follow through to booking", what: "A quote marked Won on Account to-dos waits on its list until ServiceTitan marks it sold, then moves to Jobs to Book. Once a visit is booked it comes off Jobs to Book, and anything else on that list naming a job that's booked comes off too. When the job's done and not invoiced, it goes on Invoice ready. Lost on the Pipeline ticks it off.", to: "" },
   { k: "workOrderSend", title: "Send work orders once the job's booked", what: "Every contractor's work order goes by itself: the electrician's drafted from a booking, and one made by hand for anyone (water balancing with Ross) and saved as a draft, once its job has a visit booked in ServiceTitan. With the note, the PDF and the tags on the job, as if someone had pressed Send. When a booking moves, a contractor's work order moves by as much and they're emailed the new day. Not system or material orders: those still wait on To order to be approved, because they spend money. Not a contractor set to By hand on Work orders › Contractors, not a draft changed in the last half hour, and not one for a day that's gone. The two below set when it waits. Weekdays and Saturday, 7 am to 6 pm.", to: "" },
-  { k: "orderMoves", title: "Tell the supplier when a job moves", what: "A job that moves after its gear was ordered or its electrician booked keeps its order, and whoever the order went to (GT Electrics, Rinnai and the rest) is emailed the new day, the office copied. The order's date moves with it, so it's never ordered twice. Weekdays and Saturday, 7 am to 6 pm. Reece lists entered in maX are changed there.", to: "" },
+  { k: "orderMoves", title: "Tell the subcontractor when a job moves", what: "A job that moves after its work order went keeps its work order, and the subcontractor it went to (GT Electrics, Ross and the rest) is emailed the new day, the office copied. Suppliers aren't emailed: a system or materials order stays as it is with its date moved to match, and you let the supplier know if a delivery has to change. Weekdays and Saturday, 7 am to 6 pm.", to: "" },
   { k: "orderTags", title: "“Materials Ordered” and “System Ordered” on jobs", what: "The tags already go on when an order is sent. This tries again, a few each sync, for any order whose jobs ServiceTitan wouldn’t tag at the time.", to: "" },
 ];
 
@@ -99,7 +99,7 @@ export default async function AutomaticPage() {
         <div className="au-item au-office">
           <div>
             <b>Tell me when it&rsquo;s emailed someone</b>
-            <p>Whenever it sends a work order or tells a supplier a job&rsquo;s moved, these addresses get an email saying what went and to whom. Several with commas.</p>
+            <p>Whenever it sends a work order or tells a subcontractor a job&rsquo;s moved, these addresses get an email saying what went and to whom. Several with commas.</p>
           </div>
           <NotifyTo value={sw.notifyTo ?? NOTIFY_DEFAULT} canEdit={admin} />
         </div>
