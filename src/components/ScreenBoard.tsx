@@ -776,13 +776,32 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
    * three is a day, three out of twenty is a different one. The quotes written
    * today are the denominator everybody actually has in their head.
    */
+  /*
+   * What today's figure is, when it is not just today's sales.
+   *
+   * A quote sold a fortnight ago and edited this morning puts the difference
+   * on this morning — that is the rule the sales ledger was built to (0058),
+   * and it is right. What it is not is readable: on 22 October this card read
+   * $656 over "3 jobs sold", because three sales worth $4,616 had $3,960
+   * taken off an earlier one netted against them, and nothing on the wall
+   * said so. The figure is untouched; the line under it now accounts for it.
+   */
+  const changed = m.soldTodayChanged;
+  const changedFoot =
+    !changed || changed.value === 0
+      ? ""
+      : ` · ${changed.value < 0 ? "less" : "plus"} ${plain(Math.abs(changed.value))} ${
+          changed.value < 0 ? "off" : "on"
+        } ${changed.count === 1 ? "an earlier sale" : `${count(changed.count)} earlier sales`}`;
+
   const soldFoot =
     soldJobs == null
       ? undefined
       : `${count(soldJobs)} ${soldJobs === 1 ? "job" : "jobs"} sold` +
         (m.quotesCreatedTodayCount > 0
           ? ` · ${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "quote" : "quotes"} written`
-          : "");
+          : "") +
+        changedFoot;
 
   const today = m.pace?.standing.today;
   /*

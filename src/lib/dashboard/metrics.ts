@@ -283,6 +283,11 @@ export type Metrics = {
   marginPct: number | null;
 
   soldCountToday: number;
+  /**
+   * Today's changes to sales made on an earlier day — the net and how many.
+   * Null when there are none, which is most days. See soldTodayChanged.
+   */
+  soldTodayChanged?: { value: number; count: number } | null;
   soldCountMonth: number;
   avgSoldValue: number | null;
   invoiceCountMonth: number;
@@ -1577,9 +1582,26 @@ async function serviceTitanMetrics(now: Date) {
     .filter((e) => Number.isFinite(Date.parse(e.at)))
     .sort((a, b) => Date.parse(a.at) - Date.parse(b.at))
     .slice(-12);
-  const soldToday = soldRows
-    .filter((r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today)
-    .reduce((s, r) => s + Number(r.total ?? 0), 0);
+  const soldTodayRows = soldRows.filter((r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today);
+  const soldToday = soldTodayRows.reduce((s, r) => s + Number(r.total ?? 0), 0);
+  /*
+   * The part of today's figure that is not a sale made today.
+   *
+   * The sales ledger books a quote's first sale on the day it sold, and any
+   * later change to its amount on the day it changed (migration 0058, Jake's
+   * rule of 12 October). So a quote sold a fortnight ago and edited down this
+   * morning puts a negative entry on this morning — which is correct, and
+   * unreadable on a wall without being said: on 22 October the board read
+   * $656 with "3 jobs sold" under it, because three real sales worth $4,616
+   * had $3,960 taken off an earlier one subtracted from them.
+   *
+   * Null on a normal day, so the line below it does not carry a clause about
+   * nothing. The figure itself is untouched.
+   */
+  const changedToday = soldTodayRows.filter((r) => !r.first);
+  const soldTodayChanged = changedToday.length
+    ? { value: changedToday.reduce((s, r) => s + Number(r.total ?? 0), 0), count: changedToday.length }
+    : null;
 
   // Today's quotes and the biggest ones still out — the Quotes page lists both.
   // An estimate carries no description of its own, so the label comes from the
@@ -2048,6 +2070,7 @@ async function serviceTitanMetrics(now: Date) {
     marginPct,
     soldCountMonth,
     soldCountToday,
+      soldTodayChanged,
     avgSoldValue,
     conversionTodayPct,
     quotesToday,
@@ -2318,6 +2341,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       marginPct: prev?.marginPct ?? null,
       soldCountMonth: prev?.soldCountMonth ?? 0,
       soldCountToday: prev?.soldCountToday ?? 0,
+      soldTodayChanged: prev?.soldTodayChanged ?? null,
       avgSoldValue: prev?.avgSoldValue ?? null,
       conversionTodayPct: prev?.conversionTodayPct ?? null,
       quotesToday: [],
