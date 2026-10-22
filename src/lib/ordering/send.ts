@@ -449,6 +449,21 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
   return { ok: true, to, note: `Told ${them.name} (${to}).` };
 }
 
+/**
+ * A supplier order whose job moved: the order stands and its lines take the
+ * new day, so To order sees it in step, but the supplier isn't emailed. The
+ * gear is ordered either way; only the subcontractors work to the day, and the
+ * office tells a supplier itself if a delivery has to move.
+ */
+export async function noteDateChange(poNumber: string, moves: MovedJob[]): Promise<{ ok: boolean; error?: string }> {
+  const [row] = await sbSelect<{ id: number }>("purchase_orders", `select=id&po_number=eq.${encodeURIComponent(poNumber)}&status=in.(approved,sent)&order=id.desc&limit=1`);
+  if (!row) return { ok: false, error: `Order ${poNumber} isn't a sent order.` };
+  for (const m of moves) {
+    await sbUpdate("purchase_order_lines", `po_id=eq.${row.id}&job_id=eq.${m.job_id}`, { install_date: m.to, appointment_start: null }).catch(() => undefined);
+  }
+  return { ok: true };
+}
+
 const UPDATED_LINE = "Updated — this replaces the work order we sent earlier.";
 const UPDATED = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${UPDATED_LINE}</div>`;
 
