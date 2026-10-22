@@ -2,7 +2,7 @@ import "server-only";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { sbInsert, sbSelect, sbSelectOne, sbUpdateReturning } from "@/lib/dashboard/db";
 import { toBillJobs } from "@/lib/dashboard/toBill";
-import { loadPipeline } from "@/lib/pipeline/store";
+import { LIVE_DAYS, loadPipeline } from "@/lib/pipeline/store";
 import { isLow, listStock } from "@/lib/portal/stock";
 import { listStockLines, shelfMatch } from "@/lib/ordering/stockLines";
 import { addStockLine, draftFor, loadSuppliers } from "@/lib/ordering/db";
@@ -20,7 +20,7 @@ import { matchName } from "@/lib/portal/crewFile/match";
 import { MAX_LISTS, createAutoTodo, officeIds, openTodos, renameTodoList, saveTodoLists, setDone, teamPeople, todoLists } from "@/lib/todos/store";
 import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, isAccountList, jobNumberIn, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
-import { FOLLOW_UPS, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
+import { FOLLOW_UPS, addDays, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
 import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { clearApprovedQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
@@ -311,8 +311,10 @@ async function quoteFollow(ctx: Ctx, pipe: PipeQuote[], state: MirrorState) {
   }
   const inFlow = new Set(Object.values(ctx.flow).map((f) => f.key));
   const items: MirrorItem[] = pipe.filter((q) => (q.stage === "new" || q.stage === "due" || q.stage === "waiting") && q.quotedOn && !inFlow.has(q.key)).map((q) => {
-    const next = q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? ctx.today;
     const calls = followUps(q.touches);
+    // Three calls in and nothing booked: it isn't overdue, it's waiting on them,
+    // so it's due the day it drops off the Pipeline, to be won or closed off.
+    const next = q.nextOn ?? ruleNext(q.pricedOn ?? q.quotedOn, q.touches) ?? (calls >= FOLLOW_UPS ? addDays(q.quotedOn, LIVE_DAYS) : ctx.today);
     return {
       key: q.key,
       title: `Follow up ${who(q)}${q.value ? `, ${money(q.value)}` : ""}`,
