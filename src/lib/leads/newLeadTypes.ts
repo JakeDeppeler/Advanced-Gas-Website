@@ -75,12 +75,16 @@ export function alertable(lead: NewLead): boolean {
   return Boolean(lead.phone?.trim() || lead.email?.trim() || isMessage(lead));
 }
 
-const isMessage = (lead: NewLead) => lead.source === "facebook-message";
+/** A conversation, answered where it started rather than by ringing a number. */
+export const isMessage = (lead: Pick<NewLead, "source">) =>
+  lead.source === "facebook-message" || lead.source === "instagram-message" || lead.source === "website-chat";
 
 /** Where it came from, in the room's words rather than the column's. */
 export function sourceLabel(source: string): string {
   if (source === "facebook") return "Facebook lead form";
   if (source === "facebook-message") return "Facebook message";
+  if (source === "instagram-message") return "Instagram message";
+  if (source === "website-chat") return "Website chat";
   if (source === "website") return "Website enquiry";
   if (source === "header") return "Phone tap";
   // Never invented: a source nobody has taught this function about is printed
@@ -151,7 +155,7 @@ export function leadCopy(lead: NewLead, time: string): LeadAlertCopy {
     eyebrow: `${sourceLabel(lead.source)} · ${time}`,
     // A Facebook message has no number on it: the reply goes back the way it
     // came, and saying so is more use than an empty space where a number was.
-    call: phone ?? (isMessage(lead) ? "Reply in Messenger" : email ? "Email them back" : "No number given"),
+    call: phone ?? (isMessage(lead) ? "Reply in the inbox" : email ? "Email them back" : "No number given"),
     dialable: Boolean(phone),
     who: clean(lead.name) ?? "Someone",
     what: clean(lead.headline) ?? clean(lead.service) ?? clean(lead.summary) ?? "New enquiry",

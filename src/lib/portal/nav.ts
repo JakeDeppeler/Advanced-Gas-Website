@@ -124,6 +124,12 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
   });
 
+  // Answered by whoever runs the pipeline, like the pipeline itself.
+  add(office || can(user, "quotes"), {
+    href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Website, Messenger and Instagram, with drafted replies", band: "customers", icon: "chat",
+    also: ["message", "messages", "messenger", "instagram", "facebook", "dm", "chat", "website chat", "inbox", "reply", "customer"],
+  });
+
   add(office,
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
     { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
@@ -134,7 +140,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["stuck", "not billed", "unbilled", "to bill", "not invoiced", "not paid", "overdue", "aged", "ageing", "backlog", "on hold", "letting jobs go", "leak", "chase"],
     },
     { href: "/portal/money", label: "Owed to us", short: "Owed", blurb: "Unpaid invoices, real estate and domestic, oldest first", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "money in", "real estate", "agents", "chase"] },
-    { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },
     { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] },
     { href: "/trade/pricebook", label: "Pricebook", blurb: "What the iPad shows, and ServiceTitan", band: "customers", icon: "tag", also: ["price", "installed price", "ipad", "servicetitan"] },
     // Beside the goal it paces: Run the company is six across, and a seventh

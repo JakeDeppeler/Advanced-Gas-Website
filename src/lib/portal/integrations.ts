@@ -9,6 +9,7 @@ import { lastMetaLead, metaConfigured, metaTokenSet } from "@/lib/leads/meta";
 import { emailHealth } from "@/lib/email/read";
 import { site } from "@/lib/site";
 import { getInstagramFeed } from "@/lib/instagram";
+import { getChatSettings } from "@/lib/chat/store";
 
 /**
  * Every outside system the business runs on, and whether it is working.
@@ -290,6 +291,31 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       ],
       feeds: [{ label: "Website · Enquiries", href: "/portal/website" }, { label: "How the board works", href: "/portal/board" }],
       action: connected ? undefined : { label: "Meta webhooks", href: "https://developers.facebook.com/apps", external: true },
+    });
+  }
+
+  /* ---- Customer chats */
+  {
+    const ai = has("ANTHROPIC_API_KEY");
+    const chat = db ? await safe(() => getChatSettings(), null) : null;
+    const lastIn = db
+      ? await safe(() => sbSelectOne<{ last_in_at: string }>("chat_threads", [q.select("last_in_at"), q.notNull("last_in_at"), q.order("last_in_at", "desc")].join("&")), null)
+      : null;
+    out.push({
+      k: "chats", name: "Customer chats",
+      does: "The website chat, Messenger and Instagram in one inbox, each reply drafted by Claude and sent by a person.",
+      // Drafting is the part that needs a key; the inbox itself works without one.
+      state: !ai ? "attention" : "working",
+      status: !ai ? "No drafts · key not set" : chat?.widget ? "Drafting · website chat on" : "Drafting · website chat off",
+      at: lastIn?.last_in_at ?? null,
+      facts: [
+        ai ? "Replies are drafted when a chat is opened, and nothing is sent until somebody presses send" : "Set ANTHROPIC_API_KEY in the hosting settings for drafted replies. Chats still come in and can be answered by hand",
+        chat?.widget ? "The website shows the chat button" : "The website chat is off. Turn it on from Customer chats › Settings",
+        chat?.bookingUrl ? "Offers the online booking link to people ready to book" : "No booking link yet, so it takes preferred times for the office to confirm",
+        "Messenger and Instagram come through the Facebook webhook above, subscribed to messages and message_echoes",
+      ],
+      feeds: [{ label: "Customer chats", href: "/portal/chats" }],
+      action: { label: "Chat settings", href: "/portal/chats/settings" },
     });
   }
 

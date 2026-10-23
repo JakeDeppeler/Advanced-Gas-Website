@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { leadFrom, metaConfigured, storeIncoming } from "@/lib/leads/meta";
 import { parseMetaBody, signatureOk, verifyChallenge } from "@/lib/leads/metaTypes";
+import { parseChatEvents } from "@/lib/chat/chatTypes";
+import { receiveMetaMessage } from "@/lib/chat/inbound";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Facebook's webhook: lead-ad forms and the first message of a conversation.
+ * Facebook's webhook: lead-ad forms, Messenger and Instagram messages.
  *
  * Both become the same `portal_leads` row the website's quote form writes, so
  * the wall board's call-now alert fires on a Facebook enquiry exactly as it
@@ -20,8 +22,9 @@ export const dynamic = "force-dynamic";
  * the route refuses everything rather than falling open.
  *
  * To connect it, in Meta: point the page's webhook at /api/leads/meta, use
- * META_VERIFY_TOKEN as the verify token, subscribe the page to `leadgen` and
- * `messages`, and set META_APP_SECRET and META_PAGE_TOKEN in the environment.
+ * META_VERIFY_TOKEN as the verify token, subscribe the page to `leadgen`,
+ * `messages` and `message_echoes` (and the Instagram account to `messages`),
+ * and set META_APP_SECRET and META_PAGE_TOKEN in the environment.
  * The portal's Integrations page says which of those are in place.
  */
 
@@ -77,5 +80,24 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, events: events.length, stored });
+  /*
+   * The same delivery, read again for the inbox: every message both ways,
+   * Instagram as well as Messenger, so the office can answer it from the
+   * portal. Separate from the lead pass above because they want different
+   * things — the lead pass wants one row per person per day and drops the
+   * page's own replies; the inbox wants every message, ours included.
+   *
+   * Same failure rule: a 500 and Meta retries, and the retry writes nothing
+   * twice because each message is keyed on Meta's own id.
+   */
+  const chats = parseChatEvents(body);
+  for (const ev of chats) {
+    try {
+      await receiveMetaMessage(ev);
+    } catch {
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ ok: true, events: events.length, stored, messages: chats.length });
 }

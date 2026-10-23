@@ -82,7 +82,7 @@ console.log("\n-- what the room is told --");
 }
 {
   const c = leadCopy(lead({ source: "facebook-message", phone: null, email: null }), "9:02 pm");
-  ok("a message says to reply, not to ring", c.call === "Reply in Messenger" && !c.dialable, c.call);
+  ok("a message says to reply, not to ring", c.call === "Reply in the inbox" && !c.dialable, c.call);
 }
 {
   const c = leadCopy(lead({ phone: null, email: "them@example.com" }), "2:15 pm");

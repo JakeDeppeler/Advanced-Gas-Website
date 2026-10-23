@@ -25,6 +25,7 @@ export const EMAIL_KINDS = {
   order: { label: "Supplier order", who: "a supplier" },
   "journal-alert": { label: "Journal alert", who: "the office" },
   newsletter: { label: "Newsletter sign-up", who: "the office" },
+  "chat-reply": { label: "Chat reply", who: "a customer" },
   other: { label: "Email", who: "somebody" },
 } as const;
 

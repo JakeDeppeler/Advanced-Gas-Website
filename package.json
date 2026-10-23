@@ -27,9 +27,11 @@
     "check:credit": "npx tsx scripts/check-credit.ts",
     "check:theme": "npx tsx scripts/check-theme.ts",
     "check:sold": "npx tsx scripts/check-sold-margin.ts",
-    "check:ordering": "npx tsx scripts/check-ordering.ts"
+    "check:ordering": "npx tsx scripts/check-ordering.ts",
+    "check:chat": "npx tsx scripts/check-chat.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
     "@types/leaflet": "^1.9.12",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",

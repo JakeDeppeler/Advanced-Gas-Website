@@ -27,7 +27,7 @@ export const metaTokenSet = () => Boolean(process.env.META_PAGE_TOKEN?.trim());
 /** What a webhook event turns into, before it is a row. */
 export type IncomingLead = {
   externalId: string;
-  source: "facebook" | "facebook-message";
+  source: "facebook" | "facebook-message" | "instagram-message" | "website-chat";
   at: string;
   name: string | null;
   phone: string | null;
@@ -131,6 +131,14 @@ export async function leadFrom(event: MetaEvent): Promise<IncomingLead> {
   };
 }
 
+/** How each kind is tagged, so the portal's channel counts file it with the platform it came through. */
+const UTM: Record<IncomingLead["source"], Record<string, string>> = {
+  facebook: { source: "facebook", medium: "lead-form" },
+  "facebook-message": { source: "facebook", medium: "messenger" },
+  "instagram-message": { source: "instagram", medium: "direct-message" },
+  "website-chat": { source: "website", medium: "chat" },
+};
+
 /**
  * Write it, once.
  *
@@ -179,7 +187,7 @@ export async function storeIncoming(lead: IncomingLead): Promise<void> {
       postcode: lead.postcode,
       summary: lead.summary,
       details: lead.details,
-      utm: { source: "facebook", medium: lead.source === "facebook" ? "lead-form" : "messenger" },
+      utm: UTM[lead.source],
     }),
   });
 
