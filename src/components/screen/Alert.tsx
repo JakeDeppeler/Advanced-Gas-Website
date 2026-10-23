@@ -441,7 +441,7 @@ function LeadBody({ lead, left }: { lead: LeadAlertCopy | null; left: number }) 
               follow, and the honest line is that the minute has gone. */}
           {/* The verb matches what there is to do. A Facebook message has no
               number on it, and "ring within 60 seconds" over a line that says
-              "Reply in Messenger" is the board contradicting itself in the two
+              "Reply in the inbox" is the board contradicting itself in the two
               places the room is looking. */}
           {left > 0 ? (
             <>

@@ -1804,7 +1804,7 @@ body:has(.screen) .utilbar {
   color: #fff;
   animation: lead-in 0.6s 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-/* "Reply in Messenger" is a sentence, not a number: it takes the same place
+/* "Reply in the inbox" is a sentence, not a number: it takes the same place
    and two thirds of the size, because a line of words set at the size of a
    phone number reads as shouting rather than as an instruction. */
 .lead__call.is-words { font-size: calc(4.6 * var(--u)); letter-spacing: 0; }

@@ -4,6 +4,7 @@ import { crewRequests, latestBoard, leadsThisMonth, vanIssues } from "@/lib/port
 import { noticeKey, seenSet, waitingNotices } from "@/lib/portal/notices";
 import { lowStockCount } from "@/lib/portal/stock";
 import { pipelineDue } from "@/lib/pipeline/store";
+import { waitingCount } from "@/lib/chat/store";
 
 /**
  * The counts on the cards — "13", "100 out", "7 overdue" — keyed by the card's
@@ -30,7 +31,7 @@ export type NavCount = { n: number; text: string; red: boolean };
 export async function navCounts(user: PortalUser): Promise<Record<string, NavCount>> {
   const office = can(user, "overhead");
   const pipeOk = office || can(user, "quotes");
-  const [board, leads, issues, waiting, seen, low, asks, pipe] = await Promise.all([
+  const [board, leads, issues, waiting, seen, low, asks, pipe, chats] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
     office ? leadsThisMonth() : Promise.resolve(null),
     office ? vanIssues() : Promise.resolve([]),
@@ -39,6 +40,7 @@ export async function navCounts(user: PortalUser): Promise<Record<string, NavCou
     office ? lowStockCount() : Promise.resolve(null),
     office ? crewRequests() : Promise.resolve({ orders: [], leave: [], incidents: [] }),
     pipeOk ? pipelineDue().catch(() => null) : Promise.resolve(null),
+    pipeOk ? waitingCount().catch(() => 0) : Promise.resolve(0),
   ]);
   const m = board?.metrics;
 
@@ -46,6 +48,8 @@ export async function navCounts(user: PortalUser): Promise<Record<string, NavCou
   const put = (href: string, n: number, text: string, red: boolean) => { badges[href] = { n, text, red }; };
   if (leads && leads.total > 0) put("/portal/leads", leads.total, leads.total.toLocaleString("en-AU"), false);
   if (pipe && pipe.due > 0) put("/portal/pipeline", pipe.due, `${pipe.due} to ring`, pipe.late > 0);
+  // Red, because somebody asked a question and is waiting on the answer.
+  if (chats > 0) put("/portal/chats", chats, `${chats} waiting`, true);
   if (m && (m.overdueCount ?? 0) > 0) put("/portal/money", m.overdueCount as number, `${m.overdueCount} overdue`, true);
   const vans = new Set([
     ...waiting.filter((n) => n.href.startsWith("/portal/vehicles/")).map((n) => n.href),

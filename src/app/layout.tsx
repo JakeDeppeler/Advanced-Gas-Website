@@ -14,6 +14,7 @@ import { localBusinessSchema } from "@/lib/schema";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
+import { ChatWidget } from "@/components/ChatWidget";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
 import { PageEnter } from "@/components/PageEnter";
@@ -144,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ChromeGate>
           <Footer />
           <StickyMobileCTA />
+          <ChatWidget />
         </ChromeGate>
         <Script
           id="ld-localbusiness"

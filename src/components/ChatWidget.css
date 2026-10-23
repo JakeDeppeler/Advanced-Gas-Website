@@ -1,0 +1,172 @@
+/* The website chat. Bottom right, above everything but the sticky bar's
+   job: on a phone it sits above that bar rather than over it, because the
+   Call button is the one thing on a phone that must never be covered. */
+
+.agchat {
+  position: fixed;
+  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  font-family: var(--f-body, inherit);
+}
+@media (max-width: 900px) {
+  .agchat { right: 14px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+}
+
+.agchat__launch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 20px 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy, #050a30);
+  color: #fff;
+  font-family: var(--f-display, inherit);
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 10px 30px rgba(5, 10, 48, 0.28);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.agchat__launch svg { color: var(--orange, #f36722); flex: none; }
+.agchat__launch:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(5, 10, 48, 0.32); }
+.agchat__launch:focus-visible { outline: 3px solid var(--orange, #f36722); outline-offset: 3px; }
+/* On a phone the words go: a pill across a third of the screen is too much
+   to float over the page, and the icon is the one everybody knows. */
+@media (max-width: 640px) {
+  .agchat__launch { width: 52px; padding: 0; justify-content: center; }
+  .agchat__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+.agchat.is-open .agchat__launch { background: #1f2550; }
+.agchat__dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--orange, #f36722);
+  box-shadow: 0 0 0 2px var(--navy, #050a30);
+}
+
+.agchat__panel {
+  width: min(380px, calc(100vw - 28px));
+  height: min(580px, calc(100dvh - 170px));
+  display: flex;
+  flex-direction: column;
+  background: var(--paper, #fff);
+  color: var(--ink, #1a1a1d);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(5, 10, 48, 0.28), 0 0 0 1px rgba(5, 10, 48, 0.06);
+  overflow: hidden;
+}
+
+.agchat__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 14px 18px;
+  background: var(--navy, #050a30);
+  color: #fff;
+}
+.agchat__head strong { display: block; font-family: var(--f-display, inherit); font-size: 17px; font-weight: 800; line-height: 1.2; }
+.agchat__head span { display: block; margin-top: 3px; font-size: 13px; line-height: 1.35; color: rgba(255, 255, 255, 0.72); }
+.agchat__x {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+.agchat__x:hover { background: rgba(255, 255, 255, 0.18); }
+.agchat__x:focus-visible { outline: 2px solid var(--orange, #f36722); outline-offset: 2px; }
+
+.agchat__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg, #faf8f3);
+}
+.agchat__msg { max-width: 86%; display: flex; flex-direction: column; gap: 3px; }
+.agchat__msg p {
+  margin: 0;
+  padding: 10px 13px;
+  border-radius: 16px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agchat__msg time { font-size: 11.5px; color: var(--ink-3, #5d5d64); padding: 0 6px; }
+.agchat__msg.is-us { align-self: flex-start; }
+.agchat__msg.is-us p { background: #fff; border: 1px solid var(--line, #ebe6d8); border-bottom-left-radius: 6px; }
+.agchat__msg.is-you { align-self: flex-end; align-items: flex-end; }
+.agchat__msg.is-you p { background: var(--navy, #050a30); color: #fff; border-bottom-right-radius: 6px; }
+.agchat__note { margin: 2px 4px 0; align-self: flex-end; max-width: 86%; text-align: right; font-size: 12.5px; line-height: 1.4; color: var(--ink-3, #5d5d64); }
+
+.agchat__form {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line, #ebe6d8);
+  background: #fff;
+}
+.agchat__who { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.agchat__who input,
+.agchat__text textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d6d0bf;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink, #1a1a1d);
+  font: inherit;
+  font-size: 16px; /* 16px or iOS zooms the page on focus */
+}
+.agchat__who input { height: 42px; padding: 0 12px; }
+.agchat__who input:focus,
+.agchat__text textarea:focus { outline: 2px solid var(--orange, #f36722); outline-offset: 1px; border-color: transparent; }
+.agchat__trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.agchat__send { display: flex; align-items: flex-end; gap: 8px; }
+.agchat__text { flex: 1; min-width: 0; }
+.agchat__text textarea { display: block; resize: none; padding: 10px 12px; line-height: 1.35; max-height: 120px; }
+.agchat__go {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--orange-deep, #c2521a);
+  color: #fff;
+  cursor: pointer;
+}
+.agchat__go:disabled { opacity: 0.55; cursor: default; }
+.agchat__go:focus-visible { outline: 2px solid var(--navy, #050a30); outline-offset: 2px; }
+.agchat__err { margin: 0; font-size: 13px; line-height: 1.4; color: #a12a1f; }
+.agchat__sos { margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink-3, #5d5d64); }
+.agchat__sos a { color: var(--ink, #1a1a1d); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .agchat__launch { transition: none; }
+}

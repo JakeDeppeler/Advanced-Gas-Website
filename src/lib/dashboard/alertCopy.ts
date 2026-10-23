@@ -8,7 +8,7 @@
  * that happens to have every field.
  */
 
-import { leadCopy, type NewLead } from "@/lib/leads/newLeadTypes";
+import { isMessage, leadCopy, type NewLead } from "@/lib/leads/newLeadTypes";
 import type { Metrics } from "./metrics";
 import type { BoardAlert, SoldBar } from "@/components/screen/Alert";
 
@@ -126,7 +126,7 @@ export function leadAlertFrom(lead: NewLead): BoardAlert {
     lead: copy,
     chip: copy.dialable
       ? "Ring them before they ring somebody else"
-      : lead.source === "facebook-message"
+      : isMessage(lead)
         ? "Answer it in the inbox, then get a number"
         : "No number given — email them straight back",
   };
