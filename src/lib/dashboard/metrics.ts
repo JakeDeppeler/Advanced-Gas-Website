@@ -485,6 +485,16 @@ export type Metrics = {
     who: string | null;
     /** Sold only: how many this person has closed this month, including this one. */
     nth: number | null;
+    /**
+     * Sold only: whether this sale is in the board's own figures.
+     *
+     * Commercial work is kept off a residential wall (see `isCommercial`), so a
+     * commercial sale moves no tile and belongs to no leaderboard — but it is
+     * still a sale, and the room still wants the cheer. Absent means counted;
+     * false means the alert must not draw a bar or a tally against figures this
+     * sale was never in, and says on its face why Sold today did not move.
+     */
+    counted?: boolean;
     /** Quote only: how many options were put in front of the customer. */
     options?: number | null;
     /**
@@ -1379,29 +1389,42 @@ async function serviceTitanMetrics(now: Date) {
   // quote un-sold and sold again stays on the day it first sold, and only a
   // change in what it sold for lands on the day it was re-sold. A row is an
   // entry, so values sum every row and counts take `first` rows only.
-  const soldRows = quotes(
-    await sbSelect<{
-      id: number;
-      sold_by: string | null;
-      created_by: string | null;
-      total: number | null;
-      sold_on: string | null;
-      business_unit: string | null;
-      job_id: number | null;
-      customer_id: number | null;
-      created_on: string | null;
-      first: boolean;
-    }>(
-      "st_sales",
-      [
-        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on,first"),
-        q.gte("sold_on", monthStart.toISOString()),
-        q.lt("est_total", String(QUOTE_CAP)),
-      ].join("&"),
-    ),
+  const allSoldRows = await sbSelect<{
+    id: number;
+    sold_by: string | null;
+    created_by: string | null;
+    total: number | null;
+    sold_on: string | null;
+    business_unit: string | null;
+    job_id: number | null;
+    customer_id: number | null;
+    created_on: string | null;
+    first: boolean;
+  }>(
+    "st_sales",
+    [
+      q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on,first"),
+      q.gte("sold_on", monthStart.toISOString()),
+      q.lt("est_total", String(QUOTE_CAP)),
+    ].join("&"),
   );
-  /** The sales themselves, one per quote, for counts and the Sold pop-up. */
+  const soldRows = quotes(allSoldRows);
+  /** The sales themselves, one per quote, for counts and every sold figure. */
   const firstSales = soldRows.filter((r) => r.first);
+
+  /**
+   * What the Sold pop-up announces — a wider set than the figures carry.
+   *
+   * `quotes()` keeps commercial work off the tiles for a good reason, and that
+   * reason stopped at the tiles: it was also swallowing the cheer. Three sales
+   * in a fortnight went past the room in silence, and the day Jake sold $2,500
+   * of commercial the board had nothing to say at all. A sale is a sale; what
+   * the figures count is a separate question, and `counted` below carries it.
+   *
+   * Field Plus residue stays out. Those 3,460 estimates were stamped sold by
+   * the import, not by anybody in this office, and there is nothing to cheer.
+   */
+  const alertSales = allSoldRows.filter((r) => r.first && !isFieldPlus(r.business_unit));
 
   /**
    * Credit goes to whoever wrote the quote, not whoever happened to close it.
@@ -1443,7 +1466,7 @@ async function serviceTitanMetrics(now: Date) {
   const alertJobIds = [
     ...new Set(
       [
-        ...firstSales.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
+        ...alertSales.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
       ].filter((v): v is number => v != null),
     ),
   ];
@@ -1502,11 +1525,15 @@ async function serviceTitanMetrics(now: Date) {
   }
 
   const alertEvents: Metrics["alertEvents"] = [
-    ...firstSales
+    ...alertSales
       .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
       .map((r) => {
         const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
         const who = creditFor(r);
+        // soldCountByPerson is built from the residential set, so it has no
+        // entry for a commercial sale and must not be asked for one: the tally
+        // would read as a sale the leaderboard has never heard of.
+        const counted = !isCommercial(r.business_unit);
         return {
           kind: "sold" as const,
           id: `sold-${r.id}`,
@@ -1515,7 +1542,8 @@ async function serviceTitanMetrics(now: Date) {
           jobType: place?.jobType ?? null,
           suburb: place?.suburb ?? null,
           who,
-          nth: who ? soldCountByPerson.get(who) ?? null : null,
+          nth: counted && who ? soldCountByPerson.get(who) ?? null : null,
+          counted,
         };
       }),
     /*
