@@ -26,9 +26,12 @@ import type { ParsedItem } from "./reeceFile";
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
+// The onboarding and PunchOut pages are browser pages on Reece's website, not
+// on the API host: the docs list them under www.reece.com.au and
+// stage.reece.com.au, and the API host answers them 404.
 const HOSTS = {
-  production: { auth: "https://auth.api.reecegroup.com.au", api: "https://open.api.reecegroup.com.au" },
-  test: { auth: "https://auth.api.test.reecegroup.com.au", api: "https://open.api.test.reecegroup.com.au" },
+  production: { auth: "https://auth.api.reecegroup.com.au", api: "https://open.api.reecegroup.com.au", link: "https://www.reece.com.au" },
+  test: { auth: "https://auth.api.test.reecegroup.com.au", api: "https://open.api.test.reecegroup.com.au", link: "https://stage.reece.com.au" },
 };
 
 export function reeceConfig() {
@@ -41,9 +44,7 @@ export function reeceConfig() {
     clientSecret: env("REECE_CLIENT_SECRET"),
     tokenUrl: env("REECE_AUTH_URL") ?? `${hosts.auth}/oauth2/token`,
     apiBase,
-    // The onboarding and PunchOut pages are browser redirects on the API host
-    // unless Reece says otherwise.
-    linkBase: (env("REECE_LINK_BASE") ?? apiBase).replace(/\/$/, ""),
+    linkBase: (env("REECE_LINK_BASE") ?? hosts.link).replace(/\/$/, ""),
     region: env("REECE_REGION") ?? "au",
     scopes: env("REECE_SCOPES") ?? "Default/read Default/write",
     customerNumber: env("REECE_CUSTOMER_NUMBER"),

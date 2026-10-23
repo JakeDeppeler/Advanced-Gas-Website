@@ -27,7 +27,9 @@ export async function GET(req: Request) {
     );
   }
 
-  const callback = `${reeceConfig().siteUrl}/api/reece/callback`;
+  // Reece sends the browser back here, so it must be absolute; without
+  // NEXT_PUBLIC_SITE_URL the address this was opened on is the right host.
+  const callback = `${reeceConfig().siteUrl || new URL(req.url).origin}/api/reece/callback`;
   let start;
   try {
     start = await reeceOnboardingStart(callback);

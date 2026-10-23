@@ -116,16 +116,27 @@ list, so "what changed and when" is a query, not a reconstruction.
 
 ### 5. Reece API credentials
 
-Reece's API team (ConnectingCustomers@reece.com.au) issues a **client id and
-secret** per environment (test and production are separate, with separate
-hosts) and links our **account number** to them. That is the whole handshake
-for a single-customer tool: no per-user login, no refresh tokens.
+Reece's API team issues a **client id and secret** per environment (test and
+production are separate, with separate hosts). How the account is named on
+each call depends on how Reece set us up:
+
+- **Customer-Token (how Reece set us up in production, Oct 2026).** We sign in
+  to maX once through Reece's onboarding page and Reece hands back a customer
+  token. Open
+  `https://www.advancedgas.com.au/api/reece/connect?k=<SCREEN_TOKEN>` in a
+  browser, sign in to maX with the account's login, pick the account, and you
+  land back on `/api/reece/callback`, which stores the token in
+  `portal_integrations` (provider `reece`). The onboarding page is on
+  `www.reece.com.au` (`stage.reece.com.au` for test), not the API host.
+- **Customer-Number**, for a dedicated single-customer tool: Reece links our
+  account number to the credentials and every call carries it. Set
+  `REECE_CUSTOMER_NUMBER`. A stored customer token wins over it.
 
 | Variable | Value |
 |---|---|
 | `REECE_CLIENT_ID` / `REECE_CLIENT_SECRET` | the issued credentials |
-| `REECE_CUSTOMER_NUMBER` | our Reece account number |
 | `REECE_ENV` | `production` (default) or `test`, matching the credentials |
+| `REECE_CUSTOMER_NUMBER` | only for the Customer-Number model |
 | `REECE_PUNCHOUT_SECRET` | `openssl rand -hex 32`, see PunchOut below |
 | `REECE_DOMAIN_KEY` | only if Reece's PunchOut "domain key" differs from the client id |
 
@@ -133,11 +144,6 @@ Then run **Reece check** from the Actions tab. It walks credentials → token �
 customer identity → one call per capability (branches, search, price file,
 invoices) and names what to fix at the first failure. A `price-file` stage
 reading "no price file generated yet" is normal before step 6.
-
-If Reece instead sets us up as a *platform* (the `Customer-Token` model), open
-`https://www.advancedgas.com.au/api/reece/connect?k=<SCREEN_TOKEN>` once in a
-browser with the maX login; the resulting token is stored in
-`portal_integrations` and used instead of the customer number.
 
 ### 6. Price file from the API
 
