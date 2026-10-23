@@ -45,15 +45,7 @@ export function alertFrom(e: Metrics["alertEvents"][number], m: Metrics): BoardA
      * target is real, so that bar is drawn.
      */
     const bars: SoldBar[] = [];
-    /*
-     * A commercial sale is cheered but not counted (see `counted` on the
-     * event). The bar works by subtracting this sale's figure out of the week's
-     * running total to find where the bar was standing a moment ago — which is
-     * only true of a sale that total includes. Do it to a commercial one and
-     * the bar slides backwards from a place the week never was, over a target
-     * this sale is not working towards. No bar is the honest answer.
-     */
-    const weekTarget = e.counted === false ? null : m.pace?.week.sold.value ?? null;
+    const weekTarget = m.pace?.week.sold.value ?? null;
     if (weekTarget && weekTarget > 0) {
       const now = m.paceData?.periods.week.soldValue ?? 0;
       const before = Math.max(0, now - e.amount);
@@ -73,16 +65,7 @@ export function alertFrom(e: Metrics["alertEvents"][number], m: Metrics): BoardA
       where: join(e.jobType, e.suburb) || "Sold",
       bars,
       // No pronoun: the board does not know, and does not need to.
-      //
-      // Where the sale is outside the board's figures the line says so instead
-      // of a tally, because the next thing anybody does is look at Sold today
-      // and find it unmoved. Better the alert answers that than the room
-      // decides one of the two is broken.
-      note: e.counted === false
-        ? "Commercial · not in the sold figures"
-        : e.nth != null && e.nth > 1
-          ? `${ordinal(e.nth)} sale this month`
-          : null,
+      note: e.nth != null && e.nth > 1 ? `${ordinal(e.nth)} sale this month` : null,
     };
   }
 

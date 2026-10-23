@@ -63,35 +63,25 @@ import {
  */
 export const QUOTE_CAP = 50_000;
 
-/**
- * Commercial work, kept off a residential wall.
+/*
+ * Commercial work used to be dropped here, by name: ServiceTitan stamps the
+ * side of the business on every record, and anything called "Commercial …" was
+ * kept off a residential wall. The case for it was one $119,000 project that
+ * sat at the top of "still out" and pushed a week of actual quoting off the
+ * bottom of the card.
  *
- * ServiceTitan names the side of the business on every record: "Commercial
- * Projects" and "Commercial Service" against the Domestic, Real Estate and
- * Retirement Village units. A commercial project at $119,000 is real money and
- * it is not what anybody standing in front of this screen is going to ring
- * about — it sat at the top of "still out" and pushed a week of actual quoting
- * off the bottom of the card.
+ * QUOTE_CAP already answers that, and answered it at the time: $119,000 is
+ * more than twice the ceiling, so the project was never reaching the card on
+ * its own account. What the name filter did instead was quietly delete a tenth
+ * of the month. In the fortnight it was last looked at that was three sales and
+ * $21,922 missing from Sold today, the leaderboard and the pace dials, and the
+ * Sold alert silent for the two people who closed them.
  *
- * This does not replace QUOTE_CAP, it complements it. Half the quotes carry
- * "Imported Default Businessunit", the migration placeholder, so the unit is
- * simply unknown for most of them: the name catches commercial work priced like
- * residential, and the ceiling catches the unclassified outliers.
- *
- * Applied here rather than in the query. `business_unit` is null on 151 of the
- * 273 jobs completed in the last sixty days — ServiceTitan's import placeholder
- * resolves to no name — and `NULL NOT LIKE 'Commercial%'` is NULL in SQL, not
- * true, so a `not.like` filter would have dropped every one of those rows and
- * taken most of the areas map with them. An unknown unit is not commercial; it
- * is unknown, and the eight rows this actually excludes are not worth a filter
- * that silently decides otherwise.
+ * So the figures count the whole business, and the ceiling stays as the guard
+ * it always was: one enormous job never gets to speak for a month. Commercial
+ * is 23 of the 614 quotes open under that ceiling and 3 of 52 sales this month
+ * — it was never the volume that was the problem, it was the one outlier.
  */
-const isCommercial = (unit: string | null | undefined) =>
-  unit != null && /^\s*commercial/i.test(unit);
-
-/** Drops the commercial side of the business from a fetched set of rows. */
-const domestic = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
-  rows.filter((r) => !isCommercial(r.business_unit));
 
 /**
  * Quotes that came across from Field Plus rather than being written in
@@ -125,12 +115,11 @@ const UNCLASSIFIED = /^imported default/i;
 const isFieldPlus = (unit: string | null | undefined) => unit != null && /^imported default/i.test(unit);
 
 /**
- * Estimates the board is allowed to talk about: written in ServiceTitan, on the
- * residential side. Jobs keep `domestic` on its own — an imported job still
- * happened, in a real suburb, for a real amount, and the areas map says so.
+ * Estimates the board is allowed to talk about: written in ServiceTitan rather
+ * than carried across from Field Plus. Both sides of the business count.
  */
 export const quotes = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
-  domestic(rows).filter((r) => !isFieldPlus(r.business_unit));
+  rows.filter((r) => !isFieldPlus(r.business_unit));
 
 /**
  * The key that identifies one quote rather than one option of it.
@@ -485,16 +474,6 @@ export type Metrics = {
     who: string | null;
     /** Sold only: how many this person has closed this month, including this one. */
     nth: number | null;
-    /**
-     * Sold only: whether this sale is in the board's own figures.
-     *
-     * Commercial work is kept off a residential wall (see `isCommercial`), so a
-     * commercial sale moves no tile and belongs to no leaderboard — but it is
-     * still a sale, and the room still wants the cheer. Absent means counted;
-     * false means the alert must not draw a bar or a tally against figures this
-     * sale was never in, and says on its face why Sold today did not move.
-     */
-    counted?: boolean;
     /** Quote only: how many options were put in front of the customer. */
     options?: number | null;
     /**
@@ -1161,20 +1140,18 @@ async function serviceTitanMetrics(now: Date) {
   // Sixty days, the same window the named quote lists use, so every "recent"
   // figure on the board means the same stretch of time.
   const AREA_DAYS = 60;
-  const jobPlaces = domestic(
-    await sbSelect<{
-      suburb: string | null;
-      postcode: string | null;
-      total: number | null;
-      job_type: string | null;
-      business_unit: string | null;
-    }>(
-      "st_jobs",
-      [
-        q.select("suburb,postcode,total,job_type,business_unit"),
-        q.gte("completed_on", addDays(now, -AREA_DAYS).toISOString()),
-      ].join("&"),
-    ),
+  const jobPlaces = await sbSelect<{
+    suburb: string | null;
+    postcode: string | null;
+    total: number | null;
+    job_type: string | null;
+    business_unit: string | null;
+  }>(
+    "st_jobs",
+    [
+      q.select("suburb,postcode,total,job_type,business_unit"),
+      q.gte("completed_on", addDays(now, -AREA_DAYS).toISOString()),
+    ].join("&"),
   );
 
   // Count and value together: where the work is, and what it was worth there.
@@ -1389,42 +1366,29 @@ async function serviceTitanMetrics(now: Date) {
   // quote un-sold and sold again stays on the day it first sold, and only a
   // change in what it sold for lands on the day it was re-sold. A row is an
   // entry, so values sum every row and counts take `first` rows only.
-  const allSoldRows = await sbSelect<{
-    id: number;
-    sold_by: string | null;
-    created_by: string | null;
-    total: number | null;
-    sold_on: string | null;
-    business_unit: string | null;
-    job_id: number | null;
-    customer_id: number | null;
-    created_on: string | null;
-    first: boolean;
-  }>(
-    "st_sales",
-    [
-      q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on,first"),
-      q.gte("sold_on", monthStart.toISOString()),
-      q.lt("est_total", String(QUOTE_CAP)),
-    ].join("&"),
+  const soldRows = quotes(
+    await sbSelect<{
+      id: number;
+      sold_by: string | null;
+      created_by: string | null;
+      total: number | null;
+      sold_on: string | null;
+      business_unit: string | null;
+      job_id: number | null;
+      customer_id: number | null;
+      created_on: string | null;
+      first: boolean;
+    }>(
+      "st_sales",
+      [
+        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on,first"),
+        q.gte("sold_on", monthStart.toISOString()),
+        q.lt("est_total", String(QUOTE_CAP)),
+      ].join("&"),
+    ),
   );
-  const soldRows = quotes(allSoldRows);
-  /** The sales themselves, one per quote, for counts and every sold figure. */
+  /** The sales themselves, one per quote, for counts and the Sold pop-up. */
   const firstSales = soldRows.filter((r) => r.first);
-
-  /**
-   * What the Sold pop-up announces — a wider set than the figures carry.
-   *
-   * `quotes()` keeps commercial work off the tiles for a good reason, and that
-   * reason stopped at the tiles: it was also swallowing the cheer. Three sales
-   * in a fortnight went past the room in silence, and the day Jake sold $2,500
-   * of commercial the board had nothing to say at all. A sale is a sale; what
-   * the figures count is a separate question, and `counted` below carries it.
-   *
-   * Field Plus residue stays out. Those 3,460 estimates were stamped sold by
-   * the import, not by anybody in this office, and there is nothing to cheer.
-   */
-  const alertSales = allSoldRows.filter((r) => r.first && !isFieldPlus(r.business_unit));
 
   /**
    * Credit goes to whoever wrote the quote, not whoever happened to close it.
@@ -1466,7 +1430,7 @@ async function serviceTitanMetrics(now: Date) {
   const alertJobIds = [
     ...new Set(
       [
-        ...alertSales.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
+        ...firstSales.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
       ].filter((v): v is number => v != null),
     ),
   ];
@@ -1525,15 +1489,11 @@ async function serviceTitanMetrics(now: Date) {
   }
 
   const alertEvents: Metrics["alertEvents"] = [
-    ...alertSales
+    ...firstSales
       .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
       .map((r) => {
         const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
         const who = creditFor(r);
-        // soldCountByPerson is built from the residential set, so it has no
-        // entry for a commercial sale and must not be asked for one: the tally
-        // would read as a sale the leaderboard has never heard of.
-        const counted = !isCommercial(r.business_unit);
         return {
           kind: "sold" as const,
           id: `sold-${r.id}`,
@@ -1542,8 +1502,7 @@ async function serviceTitanMetrics(now: Date) {
           jobType: place?.jobType ?? null,
           suburb: place?.suburb ?? null,
           who,
-          nth: counted && who ? soldCountByPerson.get(who) ?? null : null,
-          counted,
+          nth: who ? soldCountByPerson.get(who) ?? null : null,
         };
       }),
     /*

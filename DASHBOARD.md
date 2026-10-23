@@ -1079,16 +1079,26 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
-**Commercial work is excluded, but an unknown business unit is not.** The board
-is a residential wall and a $119K commercial project at the top of "still out"
-is not what the room is going to ring about. The exclusion is applied in code
-rather than in the query, because `business_unit` is null on **151 of the 273**
-jobs completed in the last sixty days — ServiceTitan's import placeholder
-resolves to no name in the lookup tables — and `NULL NOT LIKE 'Commercial%'` is
-NULL in SQL, not true, so a `not.like` filter would have dropped every one of
-those rows and taken most of the areas map with it. Unknown is not commercial;
-it is unknown. The eight rows that are genuinely commercial are not worth a
-filter that silently decides otherwise.
+**Commercial work counts.** For a while it did not: anything whose business
+unit started "Commercial" was dropped, because the wall is a residential one
+and a $119K commercial project at the top of "still out" is not what the room
+is going to ring about. The $50K quote ceiling already answered that, and
+answered it at the time — $119K is more than twice the ceiling and was never
+reaching the card on its own account. What the name filter did instead was
+quietly delete a tenth of the month: in the fortnight it was last looked at,
+three sales and **$21,922** missing from Sold today, the leaderboard and the
+pace dials, and the Sold alert silent for the two people who closed them. Both
+sides of the business are now counted everywhere — commercial is 23 of the 614
+quotes open under the ceiling, 3 of 52 sales this month and 22 of the 314 jobs
+on the areas map — and the ceiling stays as the guard it always was, so one
+enormous job never speaks for a month.
+
+The only business-unit filter left is the Field Plus import placeholder, and it
+is applied in code rather than in the query. `business_unit` is null on **151
+of the 273** jobs completed in the last sixty days — ServiceTitan's import
+placeholder resolves to no name in the lookup tables — and `NULL NOT LIKE
+'Imported%'` is NULL in SQL, not true, so a `not.like` filter would have dropped
+every one of those rows and taken most of the areas map with it.
 
 **Highest ticket only names a job it can classify.** The tile was showing
 **$21,890 · Sale**, which is an imported legacy invoice with no job type and no

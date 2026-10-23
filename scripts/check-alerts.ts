@@ -106,19 +106,5 @@ ok(!older.where.includes("option"), "and it still says nothing about options", o
 const soldAlert = alertFrom(ev({ kind: "sold", id: "sold-1", amount: 9000, options: 3, optionAmounts: [1, 2, 3], nth: 1 }), noPlan);
 ok(soldAlert.options == null, "a sale never lists options, whatever the event carries", soldAlert.options);
 
-console.log("\n-- a sale the figures do not carry --");
-// Commercial work is cheered but kept off the tiles, so the one thing the
-// alert must not do is draw itself against figures it is not part of: the bar
-// would start from a place the week never stood at, and the tally would name a
-// position on a leaderboard this sale is absent from.
-const offBoard = alertFrom(ev({ counted: false }), withPlan);
-ok(offBoard.bars?.length === 0, "no week bar: the week's total never included it", offBoard.bars?.length);
-ok(offBoard.note === "Commercial \u00b7 not in the sold figures", "and it says why Sold today has not moved", offBoard.note);
-ok(offBoard.name === "Jake Deppeler" && offBoard.amount === 5340, "everything else is a normal sale", offBoard);
-// A snapshot written before the flag existed, and an ordinary sale, both still
-// read as counted — absent means counted, so no old snapshot loses its bar.
-ok(alertFrom(ev({ counted: true }), withPlan).bars?.length === 1, "a counted sale keeps its bar");
-ok(alertFrom(ev({}), withPlan).note === "3rd sale this month", "and an older snapshot keeps its tally");
-
 console.log(failed ? `\n${failed} failed\n` : "\nall good\n");
 process.exit(failed ? 1 : 0);
