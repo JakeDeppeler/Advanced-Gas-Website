@@ -2,6 +2,9 @@ import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
 import { arReport } from "@/lib/portal/ar";
 import { fetchXeroPayables, fetchXeroReceivables, type XeroArAging, type XeroPayables, type XeroPayablesResult, type XeroResult } from "./xero";
+import { listArrangements } from "@/lib/owe/store";
+import { supplierKey } from "@/lib/owe/types";
+import type { OnTerms } from "./payablesTypes";
 import { stOpenInvoices, withStOpen } from "./stOwed";
 import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "./xeroFreshness";
 export { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState };
@@ -2364,8 +2367,25 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    * them side by side, and the pair is still well inside the tenant's daily
    * allowance at roughly 580 calls a day.
    */
+  /*
+   * Who is being paid off on terms, from the portal's own record (lib/owe).
+   *
+   * The office had already marked the ATO as a payment plan and Metalflex as a
+   * line of credit, and the portal's Owe board was already keeping both out of
+   * what is due this week. The wall was not reading it, so it went on calling
+   * $164K of scheduled repayment "overdue" — which is not a near miss, it is
+   * the panel's whole point lost: the two bills that actually had been missed
+   * were $2.5K and nowhere near the top of the list.
+   *
+   * Read every recompute rather than cached with the bills: it is one settings
+   * row, and a supplier put on a plan this morning should be off the overdue
+   * list by the time anybody looks up.
+   */
+  const onTerms: OnTerms = new Map(
+    (await listArrangements().catch(() => [])).map((a) => [supplierKey(a.supplier), a.kind]),
+  );
   const [xeroRead, billsRead]: [XeroResult, XeroPayablesResult] = xeroReadDue(lastXeroRead, now)
-    ? await Promise.all([fetchXeroReceivables(), fetchXeroPayables()])
+    ? await Promise.all([fetchXeroReceivables(), fetchXeroPayables(onTerms)])
     : [{ ok: false, reason: "not due" }, { ok: false, reason: "not due" }];
   /*
    * What's owed is two ledgers since ServiceTitan took over on 17 September

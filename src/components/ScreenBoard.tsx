@@ -1668,6 +1668,10 @@ function avgOptions(options: number, jobs: number): string {
  */
 function MoneyPage({ m }: { m: Metrics }) {
   const ap = m.payables ?? null;
+  /* Older snapshots predate the arrangements, and a carried-forward reading is
+     still a reading: with no split recorded, every bill is one to chase. */
+  const terms = ap?.onTerms ?? null;
+  const chase = ap ? ap.chaseable ?? { total: ap.total, count: ap.count } : null;
   const ar = m.receivablesCustomers ?? null;
   const arAges = m.receivablesArAging ?? null;
   const owed = m.receivablesTotal;
@@ -1821,7 +1825,19 @@ function MoneyPage({ m }: { m: Metrics }) {
           <span className="tile__title">What we owe &middot; by age</span>
           <span className="tile__sub">past the date we agreed to pay</span>
         </div>
-        <div className="mny__bars">{bars(ap?.aging ?? null, owe) ?? <span className="tile__sub">{WAITING}</span>}</div>
+        <div className="mny__bars">{bars(ap?.aging ?? null, chase?.total ?? owe) ?? <span className="tile__sub">{WAITING}</span>}</div>
+        {/* What the bands above deliberately leave out, named rather than
+            quietly missing: the bars are "what are we late on", and a supplier
+            being paid off to an agreed schedule is not late. Without this line
+            the panel would simply stop adding up to the figure on the strip. */}
+        {terms && terms.total > 0 && (
+          <div className="mny__terms">
+            <b>{compact(terms.total)}</b> on terms &middot;{" "}
+            {terms.suppliers
+              .map((t) => `${t.supplier} ${t.kind === "plan" ? "plan" : "credit"} ${compact(t.total)}`)
+              .join(" \u00b7 ")}
+          </div>
+        )}
       </div>
 
       {/* Worst first over both halves at once: the most overdue bill down to
@@ -1833,15 +1849,15 @@ function MoneyPage({ m }: { m: Metrics }) {
         <div className="tile__head">
           <span className="tile__title">Bills &middot; worst first</span>
           <span className="tile__sub">
-            {!ap
+            {!ap || !chase
               ? ""
-              : ap.count > MONEY_ROWS
-                ? `the worst ${MONEY_ROWS} of ${count(ap.count)} · ${plain(ap.total)}`
-                : `${count(ap.count)} ${ap.count === 1 ? "bill" : "bills"} · ${plain(ap.total)}`}
+              : chase.count > MONEY_ROWS
+                ? `the worst ${MONEY_ROWS} of ${count(chase.count)} · ${plain(chase.total)}`
+                : `${count(chase.count)} ${chase.count === 1 ? "bill" : "bills"} · ${plain(chase.total)}`}
           </span>
         </div>
         {!ap || ap.bills.length === 0 ? (
-          <span className="tile__sub">{ap ? "Nothing owing" : WAITING}</span>
+          <span className="tile__sub">{ap ? "Nothing to pay that isn\u2019t on terms" : WAITING}</span>
         ) : (
           <div className="mny__rows">
             {ap.bills.slice(0, MONEY_ROWS).map((b) => (

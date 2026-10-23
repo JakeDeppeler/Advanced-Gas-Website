@@ -1079,6 +1079,18 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
+**A supplier on terms is not overdue.** The portal's Owe board already records
+who is being paid off on a schedule — the ATO on a payment plan, Metalflex on a
+line of credit — and already keeps their bills out of what is due this week.
+The wall was not reading it. On 23 October that had the Money page calling
+**$119,012** overdue across six bills, of which **$116,503** was those two
+suppliers' scheduled repayment; the two bills that genuinely had been missed
+came to $2,509 and were buried under them. Their money is still owed and still
+in "We owe", which matches Xero to the cent; it is kept out of the ageing
+bands, the overdue figure, the week's cash and the pay order, and named on its
+own line under the bands so the panel still adds up. Put a supplier on terms in
+the portal and the wall follows on the next recompute.
+
 **Commercial work counts.** For a while it did not: anything whose business
 unit started "Commercial" was dropped, because the wall is a residential one
 and a $119K commercial project at the top of "still out" is not what the room

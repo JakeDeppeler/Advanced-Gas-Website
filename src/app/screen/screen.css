@@ -2243,6 +2243,19 @@ body:has(.screen) .utilbar {
    panel are ones with money behind them. */
 .mny__barval.is-empty, .mny__barval.is-empty.is-warn, .mny__barval.is-empty.is-bad { color: var(--ink-muted); }
 
+/* The money the bands above leave out, on one line under them. Muted and a
+   size down: it is the footnote that makes the panel add up, not a sixth band,
+   and it must never read as another thing that is late. */
+.mny__terms {
+  margin-top: calc(0.5 * var(--u));
+  padding-top: calc(0.5 * var(--u));
+  border-top: 1px solid var(--hairline);
+  font-size: calc(0.92 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.35;
+}
+.mny__terms b { font-weight: 800; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
 /* A list: who, how late, how much. Six rows spread down the panel. */
 .mny__rows { display: flex; flex-direction: column; flex: 1; justify-content: space-between; padding: calc(0.3 * var(--u)) 0; }
 .mny__row {

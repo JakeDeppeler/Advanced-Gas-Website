@@ -1,5 +1,5 @@
 import { arBand, type ArInvoice } from "@/lib/portal/ar";
-import { agePayables, daysBetween, emptyAging, type Aging, type XeroBill, type XeroPayables } from "./payablesTypes";
+import { agePayables, daysBetween, emptyAging, type Aging, type OnTerms, type XeroBill, type XeroPayables } from "./payablesTypes";
 import { isoDateMelbourne } from "./dates";
 import { q, sbSelectOne } from "./db";
 
@@ -220,7 +220,7 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
  * would understate what we owe, which is why the count is carried onto the
  * screen beside the total rather than left for somebody to assume.
  */
-export async function fetchXeroPayables(): Promise<XeroPayablesResult> {
+export async function fetchXeroPayables(onTerms: OnTerms): Promise<XeroPayablesResult> {
   const auth = await currentToken();
   if ("error" in auth) return { ok: false, reason: auth.error };
 
@@ -266,6 +266,7 @@ export async function fetchXeroPayables(): Promise<XeroPayablesResult> {
         amount: Number(inv.AmountDue ?? 0),
       })),
       todayMel,
+      onTerms,
     ),
   };
 }

@@ -11,7 +11,7 @@
  * same rule — they agree on this day's ledger, and this is what checks that
  * they still do.
  */
-import { agePayables, type RawBill } from "../src/lib/dashboard/payablesTypes";
+import { agePayables, type OnTerms, type RawBill } from "../src/lib/dashboard/payablesTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -128,6 +128,39 @@ ok("a zero is left out", agePayables([b("S", "1", TODAY, 0)], TODAY).count === 0
 // buried at the bottom of a list somebody works from the top.
 const noDate = agePayables([b("S", "1", null, 900)], TODAY);
 ok("no due date is due today, not overdue", noDate.overdueCount === 0 && noDate.aging.current === 900 && noDate.bills[0].due === TODAY);
+
+console.log("\n-- suppliers paid off on terms --");
+// The same ledger, with the two arrangements the office had actually recorded
+// in the portal on the day: the ATO on a payment plan, Metalflex on a line of
+// credit. Four of the five "overdue" bills belong to them.
+const ON_TERMS: OnTerms = new Map([
+  ["ato", "plan"],
+  ["metalflex", "credit"],
+]);
+const t = agePayables(LEDGER, TODAY, ON_TERMS);
+ok("the ledger is unchanged: still $275,465.24 over forty bills", near(t.total, 275465.24) && t.count === 40, { total: t.total, count: t.count });
+ok("$189,423.58 of it is on terms, over five bills", near(t.onTerms.total, 189423.58) && t.onTerms.count === 5, t.onTerms);
+ok("named biggest first: Metalflex, then the ATO", t.onTerms.suppliers.map((x) => x.supplier).join() === "Metalflex,ATO", t.onTerms.suppliers.map((x) => x.supplier));
+ok("each carries its kind", t.onTerms.suppliers.map((x) => x.kind).join() === "credit,plan", t.onTerms.suppliers.map((x) => x.kind));
+// The point of the exercise: the overdue figure stops being a payment plan.
+ok("overdue falls to $210.68 over one bill", near(t.overdueTotal, 210.68) && t.overdueCount === 1, { value: t.overdueTotal, count: t.overdueCount });
+ok("and that bill is the one genuinely missed", t.bills[0]?.supplier === "AA Officer Inbound", t.bills[0]);
+ok("nothing on terms is in the pay order", !t.bills.some((x) => ["ATO", "Metalflex"].includes(x.supplier)));
+ok("thirty-five bills to chase, $86,041.66", t.chaseable.count === 35 && near(t.chaseable.total, 86041.66), t.chaseable);
+ok("the bands add to what is chaseable, not to the total", near(Object.values(t.aging).reduce((a, v) => a + v, 0), t.chaseable.total));
+ok("chaseable and on terms add back to the total", near(t.chaseable.total + t.onTerms.total, t.total));
+// The ATO's April statement was the whole of the over-90 band and 31-60 was
+// nothing but the ATO; both empty out, and the credit line leaves 1-30.
+ok("over 90 empties", t.aging.d90 === 0, t.aging.d90);
+ok("31-60 empties", t.aging.d31_60 === 0, t.aging.d31_60);
+ok("1-30 is $210.68, the credit line gone from it", near(t.aging.d1_30, 210.68), t.aging.d1_30);
+// This week's cash never contained either of them, so it must not move.
+ok("what falls due this week is untouched", t.dueSoon.count === 8 && near(t.dueSoon.value, 16821.86), t.dueSoon);
+// The key is the portal's: a name typed with different case or spacing is the
+// same supplier, or an arrangement would silently stop applying.
+const loose = agePayables([b("  ATO  ", "x", "2026-01-01", 10)], TODAY, new Map([["ato", "plan"]]));
+ok("the name is matched loosely, as the portal matches it", loose.onTerms.count === 1 && loose.overdueCount === 0, loose.onTerms);
+ok("no arrangements means every bill is one to chase", agePayables(LEDGER, TODAY).onTerms.count === 0);
 
 console.log(bad === 0 ? "\nAll good." : `\n${bad} failed.`);
 process.exit(bad === 0 ? 0 : 1);
