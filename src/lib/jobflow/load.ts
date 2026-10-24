@@ -88,7 +88,17 @@ export function ago(iso: string | null, nowMs: number): string {
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" });
 const customerUrl = (id: number | null | undefined) => (id != null ? `/portal/customers/${id}` : null);
-const sum = (rows: FlowRow[]) => rows.reduce((a, r) => a + (r.value ?? 0), 0);
+
+/**
+ * The pill on a row says how long it has sat, and nothing else: the list it's
+ * in already says what's wrong, and saying it again on every row was most of
+ * what made the lists hard to read. Late from `bad` days; `mid` before that
+ * (or from `midAt`, with anything younger shown as fine).
+ */
+function age(days: number, bad: number, midAt = 0): FlowRow["st"] {
+  const w = days === 0 ? "Today" : days === 1 ? "1 day" : `${days} days`;
+  return days >= bad ? { k: "bad", w } : days >= midAt ? { k: "mid", w } : { k: "good", w };
+}
 const oldestFirst = (rows: FlowRow[]) => rows.sort((a, b) => b.days - a.days);
 
 /* ------------------------------------------------------------ open jobs */
@@ -187,31 +197,20 @@ export function openRow(j: OpenFacts, nowMs: number): FlowRow {
   const visitDays = j.lastVisit ? daysSince(j.lastVisit, nowMs) : 0;
   const madeDays = j.createdOn ? daysSince(j.createdOn, nowMs) : 0;
   const touched = j.modifiedOn ? daysSince(j.modifiedOn, nowMs) : 0;
-  let when = "", days = 0, st: FlowRow["st"] = { k: "mid", w: "" };
+  // Only what the stage and the pill don't already say.
+  let note: string | null = null, days = 0, st: FlowRow["st"] = { k: "mid", w: "" };
   switch (j.stage) {
-    case "nodate":
-      days = madeDays; when = `made ${ago(j.createdOn, nowMs)}`;
-      st = days >= 3 ? { k: "bad", w: `${days} days, no visit` } : { k: "mid", w: "Book it" };
-      break;
-    case "toquote":
-      days = visitDays; when = `visit ${ago(j.lastVisit, nowMs)}`;
-      st = days >= 2 ? { k: "bad", w: `${days} days since the visit` } : { k: "mid", w: days === 0 ? "Visited today" : "Quote it" };
-      break;
-    case "closevisit":
-      days = visitDays; when = `visit ${ago(j.lastVisit, nowMs)}, quote written`;
-      st = days >= 7 ? { k: "bad", w: `Open ${days} days` } : { k: "mid", w: "Close it" };
-      break;
+    case "nodate": days = madeDays; st = age(days, 3); break;
+    case "toquote": days = visitDays; st = age(days, 2); break;
+    case "closevisit": days = visitDays; st = age(days, 7); break;
     case "notclosed":
-      days = visitDays; when = `last visit ${ago(j.lastVisit, nowMs)}${j.neverStarted ? ", never started in the app" : ""}`;
-      st = days >= 7 ? { k: "bad", w: `${days} days open` } : { k: "mid", w: "Close it" };
+      days = visitDays; st = age(days, 7);
+      if (j.neverStarted) note = "never started in the app";
       break;
-    case "hold":
-      days = touched; when = `last changed ${ago(j.modifiedOn, nowMs)}`;
-      st = days >= 14 ? { k: "bad", w: `${days} days` } : { k: "mid", w: "On hold" };
-      break;
+    case "hold": days = touched; st = age(days, 14); break;
     default:
       days = visitDays || madeDays;
-      when = j.lastVisit ? `last visit ${day(j.lastVisit)}` : j.createdOn ? `made ${day(j.createdOn)}` : "";
+      note = j.lastVisit ? `last visit ${day(j.lastVisit)}` : j.createdOn ? `made ${day(j.createdOn)}` : null;
       st = { k: "none", w: "Check it" };
   }
   // The bigger of the two: an install's invoice often carries only the deposit so far, and the job is worth the sale.
@@ -219,7 +218,7 @@ export function openRow(j: OpenFacts, nowMs: number): FlowRow {
   return {
     key: `job-${j.id}`,
     title: [j.jobType ?? "Job", j.suburb].filter(Boolean).join(" · "),
-    sub: [j.jobNumber ? `#${j.jobNumber}` : null, j.customer, when, j.techs.length ? j.techs.join(", ") : null].filter((s): s is string => !!s),
+    sub: [j.jobNumber ? `#${j.jobNumber}` : null, j.customer, j.techs.length ? j.techs.join(", ") : null, note].filter((s): s is string => !!s),
     st, value, days,
     stUrl: stJobUrl(j.id),
     customerUrl: customerUrl(j.customerId),
@@ -281,8 +280,8 @@ async function enquiries(nowMs: number): Promise<FlowRow[]> {
     out.push({
       key: `lead-${l.id}`,
       title: [l.service ? serviceLabel(l.service) : "Enquiry", l.suburb].filter(Boolean).join(" · "),
-      sub: [l.name, phonePretty(l.phone), `asked ${ago(l.created_at, nowMs)}`, custs.length ? "on file in ServiceTitan, nothing booked since" : "not in ServiceTitan"].filter((s): s is string => !!s),
-      st: days >= 2 ? { k: "bad", w: `${days} days, no job` } : { k: "mid", w: "Ring them" },
+      sub: [l.name, phonePretty(l.phone), custs.length ? "a customer already, nothing booked since" : "not in ServiceTitan"].filter((s): s is string => !!s),
+      st: age(days, 2),
       value: null, days, stUrl: null,
       customerUrl: custs.length === 1 ? customerUrl(custs[0]) : null,
     });
@@ -298,14 +297,14 @@ async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: Fl
     const from = stage === "sold" ? x.soldOn ?? x.quotedOn : x.pricedOn ?? x.quotedOn;
     // By calendar day in Melbourne, as the pipeline counts it, so both pages say the same age.
     const days = Math.max(0, daysBetween(from, p.today));
-    const st: FlowRow["st"] = stage === "sold"
-      ? days > 7 ? { k: "bad", w: `${days} days, not booked` } : { k: "mid", w: "Book it" }
-      : x.stage === "new" ? { k: "none", w: "Just quoted: did it go?" }
-      : x.nextOn && x.nextOn < p.today ? { k: "bad", w: "Call is late" } : { k: "mid", w: "Ring today" };
+    // A quote's pill is the call, not the age: that's what the follow-up rule runs on.
+    const st: FlowRow["st"] = stage === "sold" ? age(days, 8)
+      : x.stage === "new" ? { k: "none", w: "Just quoted" }
+      : x.nextOn && x.nextOn < p.today ? { k: "bad", w: "Call late" } : { k: "mid", w: "Ring today" };
     return {
       key: `quote-${x.key}`,
       title: [x.what ?? "Quote", x.suburb].filter(Boolean).join(" · "),
-      sub: [x.jobNumber ? `#${x.jobNumber}` : null, x.customer, stage === "sold" ? `sold ${ago(from, nowMs)}` : `quoted ${ago(from, nowMs)}`, x.owner].filter((s): s is string => !!s),
+      sub: [x.jobNumber ? `#${x.jobNumber}` : null, x.customer, stage === "quoted" ? `quoted ${ago(from, nowMs)}` : null, x.owner].filter((s): s is string => !!s),
       st, value: x.value || null, days,
       stUrl: x.jobId ? stJobUrl(x.jobId) : null,
       customerUrl: customerUrl(x.customerId),
@@ -327,9 +326,10 @@ async function toBill(nowMs: number): Promise<FlowRow[]> {
     return {
       key: `job-${r.id}`,
       title: [r.jobType ?? "Job", r.suburb].filter(Boolean).join(" · "),
-      sub: [r.jobNumber ? `#${r.jobNumber}` : null, r.customer ?? null, `finished ${ago(r.at, nowMs)}`].filter((s): s is string => !!s),
+      sub: [r.jobNumber ? `#${r.jobNumber}` : null, r.customer ?? null].filter((s): s is string => !!s),
       // The same words and thresholds as Jobs › Not billed.
-      st: days > 7 ? { k: "bad", w: "Over a week" } : days > 2 ? { k: "mid", w: "Bill it" } : { k: "good", w: "Ready to bill" },
+      // Not billed's thresholds: late past a week, worth a nudge past two days.
+      st: age(days, 8, 3),
       value: r.value, days,
       stUrl: stJobUrl(r.id),
       customerUrl: customerUrl(r.customerId),
@@ -357,8 +357,8 @@ async function toSend(nowMs: number): Promise<FlowRow[]> {
     out.push({
       key: `inv-${i.id}`,
       title: [j.job_type ?? "Job", j.suburb].filter(Boolean).join(" · "),
-      sub: [j.job_number ? `#${j.job_number}` : null, j.customer_name, i.invoice_number ? `invoice ${i.invoice_number}` : null, `finished ${ago(j.completed_on, nowMs)}`].filter((s): s is string => !!s),
-      st: days >= 2 ? { k: "bad", w: `${days} days, not sent` } : { k: "mid", w: "Send it" },
+      sub: [j.job_number ? `#${j.job_number}` : null, j.customer_name, i.invoice_number ? `invoice ${i.invoice_number}` : null].filter((s): s is string => !!s),
+      st: age(days, 2),
       value: n(i.balance), days,
       stUrl: stJobUrl(Number(j.id)),
       customerUrl: customerUrl(j.customer_id),
@@ -371,15 +371,14 @@ async function toSend(nowMs: number): Promise<FlowRow[]> {
 async function overdue(): Promise<{ rows: FlowRow[]; partial: "xero" | "servicetitan" | null }> {
   const owed = await owedInvoices();
   if (!owed) throw new Error("owed: neither Xero nor ServiceTitan answered");
-  const due = (iso: string) => new Date(`${iso.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
   const rows = owed.list
     .filter((i) => i.stage === "billed" && i.daysOver > 0)
     .sort((a, b) => b.daysOver - a.daysOver)
     .map((i) => ({
       key: `owed-${i.from}-${i.number}`,
       title: i.contact || "Customer",
-      sub: [`invoice ${i.number}`, i.from === "xero" ? "in Xero" : "in ServiceTitan", `was due ${due(i.due)}`],
-      st: i.daysOver > 30 ? { k: "bad" as const, w: `${i.daysOver} days late` } : { k: "mid" as const, w: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} late` },
+      sub: [`invoice ${i.number}`, i.from === "xero" ? "in Xero" : "in ServiceTitan"],
+      st: { k: i.daysOver > 30 ? "bad" as const : "mid" as const, w: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} late` },
       value: i.amountDue, days: i.daysOver,
       stUrl: null, customerUrl: null,
     }));
@@ -427,5 +426,3 @@ export async function openJobCounts(nowMs = Date.now()): Promise<{ notClosed: nu
   const c = (k: FlowStage) => open.filter((j) => j.stage === k).length;
   return { notClosed: c("notclosed"), closeVisit: c("closevisit"), toQuote: c("toquote"), noDate: c("nodate") };
 }
-
-export const stageValue = (s: StageRows) => (s.rows && s.rows.some((r) => r.value != null) ? sum(s.rows) : null);

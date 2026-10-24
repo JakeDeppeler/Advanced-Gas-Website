@@ -36,11 +36,11 @@ export type FlowStage =
 export type Phase = "book" | "quote" | "work" | "paid" | "tidy";
 
 export const PHASES: Array<{ k: Phase; label: string }> = [
-  { k: "book", label: "Getting the job" },
+  { k: "book", label: "Booking" },
   { k: "quote", label: "Quoting" },
-  { k: "work", label: "Doing the work" },
+  { k: "work", label: "The work" },
   { k: "paid", label: "Getting paid" },
-  { k: "tidy", label: "Left over from the switch" },
+  { k: "tidy", label: "Old system" },
 ];
 
 export type StageDef = {
@@ -57,42 +57,42 @@ export type StageDef = {
 
 export const STAGES: StageDef[] = [
   {
-    k: "enquiry", phase: "book", label: "Asked, not booked",
+    k: "enquiry", phase: "book", label: "Enquiries to book",
     rule: "A website enquiry in the last 21 days, and no job or quote in ServiceTitan for that phone number or email since.",
     act: "Ring them and book it.",
   },
   {
-    k: "nodate", phase: "book", label: "Job made, no visit booked",
+    k: "nodate", phase: "book", label: "No visit booked",
     rule: "An open job in ServiceTitan with no appointment on it.",
     act: "Book the visit, or cancel the job.",
   },
   {
-    k: "booked", phase: "book", label: "Booked, on track", quiet: true,
+    k: "booked", phase: "book", label: "Booked", quiet: true,
     rule: "A visit in the diary, or one in the last two days that's still being finished.",
     act: "Nothing yet.",
   },
   {
-    k: "toquote", phase: "quote", label: "Visited, not quoted",
+    k: "toquote", phase: "quote", label: "To quote",
     rule: "A quote visit or site assessment whose appointment has been, with no quote written on the job or for the customer since.",
     act: "Write the quote and send it.",
   },
   {
-    k: "quoted", phase: "quote", label: "Quoted, to follow up",
+    k: "quoted", phase: "quote", label: "Quotes to chase",
     rule: "From the quote pipeline: quotes out less than two days, and the ones due a call today.",
     act: "Check new quotes went out. Ring the ones due.",
   },
   {
-    k: "closevisit", phase: "quote", label: "Quote visit to close",
+    k: "closevisit", phase: "quote", label: "Quote visits to close",
     rule: "A quote visit that's been, with its quote written, and the job still open in ServiceTitan.",
     act: "Complete the visit in ServiceTitan. A free quote closes at $0.",
   },
   {
-    k: "sold", phase: "work", label: "Sold, not booked",
+    k: "sold", phase: "work", label: "Sold, to book",
     rule: "From the quote pipeline: sold, with no job booked to do the work.",
     act: "Book the install and order the gear.",
   },
   {
-    k: "notclosed", phase: "work", label: "Visit day gone, job still open",
+    k: "notclosed", phase: "work", label: "Left open",
     rule: "The last appointment was two or more days ago, nothing is booked after it, and the job isn't completed, on hold or cancelled.",
     act: "Ask the tech. Done: complete it so it can be billed. Not done: book the return or put it on hold.",
   },
@@ -102,12 +102,12 @@ export const STAGES: StageDef[] = [
     act: "Find what it's waiting on and move it.",
   },
   {
-    k: "tobill", phase: "paid", label: "Done, not invoiced",
+    k: "tobill", phase: "paid", label: "To invoice",
     rule: "Completed since 17 September with the invoice still at $0. Quote visits and cancelled jobs are left out.",
     act: "Price the invoice and send it.",
   },
   {
-    k: "tosend", phase: "paid", label: "Invoiced, not sent",
+    k: "tosend", phase: "paid", label: "To send",
     rule: "Completed, invoiced, money owing, and ServiceTitan says the invoice was never sent.",
     act: "Check the invoice and send it.",
   },
@@ -117,7 +117,7 @@ export const STAGES: StageDef[] = [
     act: "Chase it.",
   },
   {
-    k: "imported", phase: "tidy", label: "Old jobs still open",
+    k: "imported", phase: "tidy", label: "Old jobs to close",
     rule: "Jobs copied across from the old system before 17 September that were never closed, each checked against Xero.",
     act: "Billed in Xero: close it in ServiceTitan. Not in Xero: bill it.",
   },
@@ -171,63 +171,6 @@ export function openStage(j: OpenJob, nowMs: number): FlowStage {
 /** An invoice the customer owes on and was never sent. The Office today count and this page use the same rule. */
 export const unsentOwing = (i: { sent: string | null | undefined; balance: number | string | null | undefined }) =>
   i.sent === "NotSent" && Number(i.balance ?? 0) > 0.5;
-
-/* ------------------------------------------------------------- the track */
-
-/** The steps a job goes through, start to finish. Quoted and Sold only on work that was quoted. */
-export type Step = "booked" | "visited" | "quoted" | "sold" | "done" | "invoiced" | "sent" | "paid";
-
-export const STEPS: Array<{ k: Step; label: string }> = [
-  { k: "booked", label: "Booked" },
-  { k: "visited", label: "Visited" },
-  { k: "quoted", label: "Quoted" },
-  { k: "sold", label: "Sold" },
-  { k: "done", label: "Done" },
-  { k: "invoiced", label: "Invoiced" },
-  { k: "sent", label: "Sent" },
-  { k: "paid", label: "Paid" },
-];
-
-/** done: passed. now: where it's stuck. todo: still to come. skip: not a step this job has. */
-export type StepState = "done" | "now" | "todo" | "skip";
-
-/** The step each stage is stuck at. Hold depends on whether anyone has been out yet. */
-function stuckAt(stage: FlowStage, visited: boolean): Step {
-  switch (stage) {
-    case "enquiry": case "nodate": return "booked";
-    case "booked": return "visited";
-    case "toquote": return "quoted";
-    case "quoted": return "sold";
-    case "hold": return visited ? "done" : "visited";
-    case "closevisit": case "sold": case "notclosed": case "imported": return "done";
-    case "tobill": return "invoiced";
-    case "tosend": return "sent";
-    case "overdue": return "paid";
-  }
-}
-
-/**
- * The job's track from booked to paid, for the strip on each row. `quotePath`
- * is work that went through a quote (a job with a sold quote on it); without
- * one, Quoted and Sold aren't steps it has. A quote visit left open is the
- * visit's own job, which closes at $0 once the quote is written: whatever
- * sells is booked, billed and paid on a job of its own, so those steps aren't
- * this one's.
- */
-export function trackFor(stage: FlowStage, opts: { quotePath?: boolean; visited?: boolean } = {}): Record<Step, StepState> {
-  const at = stuckAt(stage, opts.visited ?? false);
-  const quoting = stage === "toquote" || stage === "quoted" || stage === "sold" || stage === "closevisit";
-  const freeVisit = stage === "closevisit";
-  const order = STEPS.map((s) => s.k);
-  const i = order.indexOf(at);
-  const out = {} as Record<Step, StepState>;
-  for (const [n, k] of order.entries()) {
-    if ((k === "quoted" || k === "sold") && !opts.quotePath && !quoting) out[k] = "skip";
-    else if (freeVisit && (k === "sold" || k === "invoiced" || k === "sent" || k === "paid")) out[k] = "skip";
-    else out[k] = n < i ? "done" : n === i ? "now" : "todo";
-  }
-  return out;
-}
 
 /* ------------------------------------------------------- matching enquiries */
 

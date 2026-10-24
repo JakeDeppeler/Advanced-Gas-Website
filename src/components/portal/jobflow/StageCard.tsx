@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Card, Empty, Pill } from "@/components/portal/kit/Kit";
-import { StageSteps } from "./Track";
 import type { FlowRow } from "@/lib/jobflow/load";
 import type { StageDef } from "@/lib/jobflow/types";
 
@@ -30,17 +29,16 @@ export function FlowLine({ r }: { r: FlowRow }) {
 }
 
 /**
- * The stage that's picked on the board: what to do first, where these jobs
- * are in the run, then the jobs oldest first. How a job lands here is folded
- * away for whoever asks; the list is what gets worked.
+ * The stage that's picked on the board: what to do first, then the jobs
+ * oldest first. How a job lands here is folded away for whoever asks; the
+ * list is what gets worked.
  */
 export function StageCard({ def, rows, note, more }: { def: StageDef; rows: FlowRow[] | null; note?: string; more?: { href: string; label: string } }) {
   const total = rows ? rows.reduce((a, r) => a + (r.value ?? 0), 0) : 0;
-  const aside = rows == null ? "couldn’t be read" : rows.length ? [String(rows.length), total ? money(total) : null, "oldest first"].filter(Boolean).join(" · ") : "none";
+  const aside = rows == null ? "couldn’t be read" : rows.length ? [`${rows.length} ${rows.length === 1 ? "job" : "jobs"}`, total ? money(total) : null].filter(Boolean).join(" · ") : "none";
   return (
     <Card title={def.label} aside={aside}>
       <p className="jf-do"><b>To do:</b> {def.act}</p>
-      <StageSteps stage={def.k} />
       {rows == null ? <Empty>This couldn&rsquo;t be read just now, so it isn&rsquo;t counted. Try again in a minute.</Empty>
         : rows.length === 0 ? <Empty>Nothing here. ✓</Empty>
         : (

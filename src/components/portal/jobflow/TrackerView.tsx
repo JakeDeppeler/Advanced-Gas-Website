@@ -2,10 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { KpiHead, Say, Bad } from "@/components/portal/kit/Kit";
 import { StageCard } from "./StageCard";
-import { stageValue, type JobFlow, type StageRows } from "@/lib/jobflow/load";
+import type { JobFlow, StageRows } from "@/lib/jobflow/load";
 import { PHASES, STAGE, STAGES, type FlowStage } from "@/lib/jobflow/types";
-
-const money = (v: number) => (v >= 10_000 ? `$${(v / 1000).toFixed(1)}K` : `$${Math.round(v).toLocaleString("en-AU")}`);
 
 /** Where each stage's whole list lives, when it has a page of its own. */
 const MORE: Partial<Record<FlowStage, { href: string; label: string }>> = {
@@ -34,7 +32,6 @@ export function defaultStage(flow: JobFlow): FlowStage {
 /** What a stage's line on the board says after its name, in words. */
 function said(k: FlowStage, s: StageRows): { w: string; tone: "bad" | "ok" | "quiet" } | null {
   if (s.count == null) return { w: "couldn’t read", tone: "quiet" };
-  if (STAGE[k].quiet) return { w: "on track", tone: "quiet" };
   if (k === "imported") return s.count ? { w: "to tidy", tone: "quiet" } : { w: "✓", tone: "ok" };
   const n = late(s);
   if (n) return { w: `${n} late`, tone: "bad" };
@@ -47,7 +44,9 @@ function said(k: FlowStage, s: StageRows): { w: string; tone: "bad" | "ok" | "qu
  * The board is the whole run on one screen and the menu for the rest of the
  * page: each stage is one line, its count and how many are late, and picking
  * one opens its list underneath. One list at a time, because thirteen lists
- * one after another was a page nobody read to the bottom of.
+ * one after another was a page nobody read to the bottom of. Above it, one
+ * sentence: how many are late and where to start. The figures that used to
+ * head the page (money owed, the totals) are on pages of their own.
  */
 export function TrackerView({ flow, on, imported }: { flow: JobFlow; on: FlowStage; imported: ReactNode }) {
   const s = flow.stages;
@@ -55,17 +54,18 @@ export function TrackerView({ flow, on, imported }: { flow: JobFlow; on: FlowSta
   const rows = work.flatMap((d) => s[d.k].rows ?? []);
   const lateAll = rows.filter((r) => r.st.k === "bad").length;
   const unread = work.filter((d) => s[d.k].count == null);
-  const owed = (["tobill", "tosend", "overdue"] as const).reduce((a, k) => a + (stageValue(s[k]) ?? 0), 0);
+  const start = defaultStage(flow);
+  const booked = s.booked.count;
 
   return (
     <div className="pk jf">
-      <KpiHead title={<>Job<br />tracker</>} kpis={[
-        { icon: "bell", fig: String(rows.length), label: "Need someone" },
-        { icon: "alert", fig: String(lateAll), label: "Late", tone: lateAll ? "down" : undefined },
-        { icon: "card", fig: money(owed), label: "Done, money not in yet" },
-      ]} />
+      <KpiHead title={<>Job<br />tracker</>} kpis={[]} />
       <Say>
-        {rows.length === 0 ? <>Nothing is stuck.</> : <>{rows.length} {rows.length === 1 ? "job needs" : "jobs need"} someone{lateAll ? <>, <Bad>{lateAll} late</Bad></> : null}. Pick a stage to see them.</>}
+        {rows.length === 0 ? <>Nothing is stuck.</> : <>
+          {lateAll ? <><Bad>{lateAll} late</Bad> of {rows.length} that need someone.</> : <>{rows.length} {rows.length === 1 ? "needs" : "need"} someone, none late.</>}{" "}
+          Start with <Link href={`/portal/tracker?s=${start}#list`}>{STAGE[start].label.toLowerCase()}</Link>.
+        </>}
+        {booked ? <span className="jf-say__quiet"> {booked} more booked and on track.</span> : null}
         {unread.length > 0 && <> {unread.map((d) => d.label).join(", ")} couldn&rsquo;t be read just now.</>}
       </Say>
 
@@ -74,13 +74,13 @@ export function TrackerView({ flow, on, imported }: { flow: JobFlow; on: FlowSta
           <div key={p.k} className="jf-col">
             <h2 className="jf-col__h">{p.label}</h2>
             <ul>
-              {STAGES.filter((d) => d.phase === p.k).map((d) => {
+              {STAGES.filter((d) => d.phase === p.k && !d.quiet).map((d) => {
                 const st = s[d.k];
                 const tag = said(d.k, st);
-                const href = d.quiet ? "/portal/jobs" : `/portal/tracker?s=${d.k}#list`;
+                const href = `/portal/tracker?s=${d.k}#list`;
                 return (
                   <li key={d.k}>
-                    <Link href={href} className={`jf-stg${on === d.k ? " is-on" : ""}${d.quiet || st.count === 0 ? " is-quiet" : ""}`} aria-current={on === d.k ? "true" : undefined}>
+                    <Link href={href} className={`jf-stg${on === d.k ? " is-on" : ""}${st.count === 0 ? " is-quiet" : ""}`} aria-current={on === d.k ? "true" : undefined}>
                       <span className="jf-stg__n">{st.count == null ? "—" : st.count}</span>
                       <span className="jf-stg__l">{d.label}</span>
                       {tag ? <span className={`jf-stg__t is-${tag.tone}`}>{tag.w}</span> : null}
