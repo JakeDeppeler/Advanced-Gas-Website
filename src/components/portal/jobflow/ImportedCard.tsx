@@ -7,41 +7,37 @@ import { STAGE } from "@/lib/jobflow/types";
 
 const money = (v: number) => `$${Math.round(v).toLocaleString("en-AU")}`;
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "Australia/Melbourne" });
-const SHOW = 10;
-
-const VERDICT: Record<ImportedVerdict, { st: Status; act: string }> = {
-  unbilled: { st: { k: "bad", w: "Not in Xero" }, act: "There's a charge on it and no invoice to this customer in Xero around then. Bill it, or note why not." },
-  check: { st: { k: "mid", w: "Check it" }, act: "Xero has invoices to this customer around then, but none ties to this job. Look, then close it." },
-  empty: { st: { k: "none", w: "Nothing on it" }, act: "No charge on it and nothing in Xero. Cancel it in ServiceTitan unless the work is still to do." },
-  billed: { st: { k: "good", w: "Billed in Xero" }, act: "Billed. Complete or cancel it in ServiceTitan so it stops showing as open." },
+const VERDICT: Record<ImportedVerdict, { st: Status; head: string; act: string; open: boolean }> = {
+  unbilled: { st: { k: "bad", w: "Not in Xero" }, head: "Charged, not in Xero", act: "Bill it, or note why not.", open: true },
+  check: { st: { k: "mid", w: "Check it" }, head: "Maybe billed", act: "Xero has invoices to this customer around then; look, then close it.", open: true },
+  empty: { st: { k: "none", w: "Nothing on it" }, head: "Nothing on it", act: "Cancel it in ServiceTitan unless the work is still to do.", open: false },
+  billed: { st: { k: "good", w: "Billed in Xero" }, head: "Billed in Xero", act: "Complete or cancel it in ServiceTitan.", open: false },
 };
 
 const why = (c: ImportedCheck) =>
   c.match === "reference" ? `same reference (${c.reference})`
   : c.match === "amount" ? "same customer, same amount"
-  : c.match === "customer" ? "invoices to this customer around then"
-  : c.customer ? "no invoice to this customer from three months before to six weeks after"
-  : "no customer on the job to look up";
+  : c.match === "customer" ? "invoices to them around then"
+  : c.customer ? "nothing to this customer in Xero around then"
+  : "no customer on the job";
 
+/** One old job, one line, in the same shape as the tracker's other lists. */
 function Line({ c }: { c: ImportedCheck }) {
+  const title = [c.jobType ?? "Job", c.suburb].filter(Boolean).join(" · ");
   return (
-    <div className="pk-kv pk-kv--act jf-row">
+    <div className="jf-line">
       <span className="t">
-        <b>{[c.jobType ?? "Job", c.suburb].filter(Boolean).join(" · ")}</b>
-        <span>{[c.jobNumber ? `#${c.jobNumber}` : null, c.customer, `${c.status === "Hold" ? "on hold" : c.status === "InProgress" ? "in progress" : "scheduled"}, last visit ${day(c.doneOn)}`].filter(Boolean).join(" · ")}</span>
+        <b>{c.customerId != null ? <Link href={`/portal/customers/${c.customerId}`}>{title}</Link> : title}</b>
         <span>
-          {why(c)}
+          {[c.jobNumber ? `#${c.jobNumber}` : null, c.customer, `last visit ${day(c.doneOn)}`, why(c)].filter(Boolean).join(" · ")}
           {c.invoices.length > 0 && <>{": "}{c.invoices.map((i, n) => (
-            <span key={i.id || i.number}>{n ? ", " : ""}<a href={xeroInvoiceUrl(i.id)} target="_blank" rel="noreferrer">{i.number}</a> {day(i.date)} {money(i.total)}</span>
+            <span key={i.id || i.number}>{n ? ", " : ""}<a href={xeroInvoiceUrl(i.id)} target="_blank" rel="noreferrer">{i.number}</a> {money(i.total)}</span>
           ))}</>}
         </span>
       </span>
       <Pill st={VERDICT[c.verdict].st} />
       <span className="v">{c.sold != null ? money(c.sold) : ""}</span>
-      <span className="jf-row__go">
-        <a className="pk-btn g" href={stJobUrl(c.id)} target="_blank" rel="noreferrer" aria-label={`Open job ${c.jobNumber ?? c.id} in ServiceTitan`}>ServiceTitan ↗</a>
-        {c.customerId != null ? <Link className="pk-btn g" href={`/portal/customers/${c.customerId}`}>Customer</Link> : null}
-      </span>
+      <a className="pk-btn g jf-line__go" href={stJobUrl(c.id)} target="_blank" rel="noreferrer" aria-label={`Open job ${c.jobNumber ?? c.id} in ServiceTitan`}>Open ↗</a>
     </div>
   );
 }
@@ -54,33 +50,30 @@ export async function ImportedCard({ nowMs }: { nowMs: number }) {
   return <ImportedList checks={await importedAgainstXero(nowMs).catch(() => null)} />;
 }
 
-/** The list itself: null when Xero didn't answer. */
+/**
+ * The list itself, in four groups by what Xero says, each with its one thing
+ * to do. The two that need a decision are open; the two that only need
+ * closing in ServiceTitan are folded, so the money is what's read first.
+ * Null when Xero didn't answer.
+ */
 export function ImportedList({ checks }: { checks: ImportedCheck[] | null }) {
   const def = STAGE.imported;
-  const count = (v: ImportedVerdict) => (checks ?? []).filter((c) => c.verdict === v);
-  const unbilled = count("unbilled");
-  const owed = unbilled.reduce((a, c) => a + (c.sold ?? 0), 0);
+  const of = (v: ImportedVerdict) => (checks ?? []).filter((c) => c.verdict === v);
+  const owed = of("unbilled").reduce((a, c) => a + (c.sold ?? 0), 0);
   return (
-    <section id="imported" className="jf-stage">
-      <Card title={def.label} aside={checks == null ? "Xero didn’t answer" : `${checks.length} · ${unbilled.length} not in Xero${owed ? ` (${money(owed)})` : ""} · ${count("check").length} to check · ${count("billed").length} billed`}>
-        <p className="pk-note jf-rule"><b>Why it’s here:</b> {def.rule} <b>What to do:</b> {def.act}</p>
-        {checks == null ? <Empty>Xero didn&rsquo;t answer, so these can&rsquo;t be checked just now. Nothing is called unbilled on a guess.</Empty>
-          : checks.length === 0 ? <Empty>Every job from the old system is closed. ✓</Empty>
-          : (
-            <>
-              {(["unbilled", "check", "empty", "billed"] as const).filter((v) => count(v).length).map((v) => (
-                <p key={v} className="pk-note jf-verdict"><Pill st={VERDICT[v].st} /> {count(v).length}: {VERDICT[v].act}</p>
-              ))}
-              {checks.slice(0, SHOW).map((c) => <Line key={c.id} c={c} />)}
-              {checks.length > SHOW && (
-                <details className="jf-more">
-                  <summary>Show the other {checks.length - SHOW}</summary>
-                  {checks.slice(SHOW).map((c) => <Line key={c.id} c={c} />)}
-                </details>
-              )}
-            </>
-          )}
-      </Card>
-    </section>
+    <Card title={def.label} aside={checks == null ? "Xero didn’t answer" : `${checks.length}${owed ? ` · ${money(owed)} not in Xero` : ""}`}>
+      <p className="jf-do"><b>To do:</b> {def.act}</p>
+      {checks == null ? <Empty>Xero didn&rsquo;t answer, so these can&rsquo;t be checked just now. Nothing is called unbilled on a guess.</Empty>
+        : checks.length === 0 ? <Empty>Every job from the old system is closed. ✓</Empty>
+        : (["unbilled", "check", "empty", "billed"] as const).filter((v) => of(v).length).map((v) => (
+          <details key={v} className="jf-group" open={VERDICT[v].open}>
+            <summary><b>{VERDICT[v].head}</b> <span className="jf-group__n">{of(v).length}</span> <span className="jf-group__act">{VERDICT[v].act}</span></summary>
+            <div className="jf-lines">{of(v).map((c) => <Line key={c.id} c={c} />)}</div>
+          </details>
+        ))}
+      <div className="jf-foot">
+        <details className="jf-why"><summary>How a job ends up here</summary><p>{def.rule} Each is looked up in Xero by reference, then by customer and amount, then by customer around the date.</p></details>
+      </div>
+    </Card>
   );
 }

@@ -49,7 +49,7 @@ export type StageDef = {
   label: string;
   /** What puts a job here, in words, for the line under the title. */
   rule: string;
-  /** What to do about it, and where. */
+  /** What to do about it, in a line: the first thing the list says. The rule is there for whoever asks why. */
   act: string;
   /** Nothing to do: shown as a count, not a list to work. */
   quiet?: boolean;
@@ -59,12 +59,12 @@ export const STAGES: StageDef[] = [
   {
     k: "enquiry", phase: "book", label: "Asked, not booked",
     rule: "A website enquiry in the last 21 days, and no job or quote in ServiceTitan for that phone number or email since.",
-    act: "Ring them and book it, or note why not. Already booked under another number? Add this one to the customer.",
+    act: "Ring them and book it.",
   },
   {
     k: "nodate", phase: "book", label: "Job made, no visit booked",
     rule: "An open job in ServiceTitan with no appointment on it.",
-    act: "Book the visit, or cancel the job. Dispatch → Unscheduled.",
+    act: "Book the visit, or cancel the job.",
   },
   {
     k: "booked", phase: "book", label: "Booked, on track", quiet: true,
@@ -74,12 +74,12 @@ export const STAGES: StageDef[] = [
   {
     k: "toquote", phase: "quote", label: "Visited, not quoted",
     rule: "A quote visit or site assessment whose appointment has been, with no quote written on the job or for the customer since.",
-    act: "Write the quote and send it, or close the visit if there's nothing to quote.",
+    act: "Write the quote and send it.",
   },
   {
     k: "quoted", phase: "quote", label: "Quoted, to follow up",
     rule: "From the quote pipeline: quotes out less than two days, and the ones due a call today.",
-    act: "Check the new ones went to the customer. Ring the ones due.",
+    act: "Check new quotes went out. Ring the ones due.",
   },
   {
     k: "closevisit", phase: "quote", label: "Quote visit to close",
@@ -89,37 +89,37 @@ export const STAGES: StageDef[] = [
   {
     k: "sold", phase: "work", label: "Sold, not booked",
     rule: "From the quote pipeline: sold, with no job booked to do the work.",
-    act: "Book the install, order the gear.",
+    act: "Book the install and order the gear.",
   },
   {
     k: "notclosed", phase: "work", label: "Visit day gone, job still open",
     rule: "The last appointment was two or more days ago, nothing is booked after it, and the job isn't completed, on hold or cancelled.",
-    act: "Ask the tech: finished? Complete it so it can be billed. Not finished? Book the return visit or put it on hold. Never started in the app? The visit may not have happened: rebook it.",
+    act: "Ask the tech. Done: complete it so it can be billed. Not done: book the return or put it on hold.",
   },
   {
     k: "hold", phase: "work", label: "On hold",
     rule: "Status Hold in ServiceTitan, tagged or not.",
-    act: "Find out what it's waiting on and move it: quote it, order the part, book the return.",
+    act: "Find what it's waiting on and move it.",
   },
   {
     k: "tobill", phase: "paid", label: "Done, not invoiced",
     rule: "Completed since 17 September with the invoice still at $0. Quote visits and cancelled jobs are left out.",
-    act: "Price the invoice and send it, or note why it's free.",
+    act: "Price the invoice and send it.",
   },
   {
     k: "tosend", phase: "paid", label: "Invoiced, not sent",
     rule: "Completed, invoiced, money owing, and ServiceTitan says the invoice was never sent.",
-    act: "Check it and send it. Accounting → Invoices → Not Sent.",
+    act: "Check the invoice and send it.",
   },
   {
     k: "overdue", phase: "paid", label: "Overdue",
     rule: "Sent, and past its due date with money still owing. ServiceTitan's since 17 September, Xero's before.",
-    act: "Chase it. Owed to us has them by how late.",
+    act: "Chase it.",
   },
   {
     k: "imported", phase: "tidy", label: "Old jobs still open",
     rule: "Jobs copied across from the old system before 17 September that were never closed, each checked against Xero.",
-    act: "Billed in Xero: complete or cancel it in ServiceTitan. Not in Xero with a charge on it: bill it.",
+    act: "Billed in Xero: close it in ServiceTitan. Not in Xero: bill it.",
   },
 ];
 
