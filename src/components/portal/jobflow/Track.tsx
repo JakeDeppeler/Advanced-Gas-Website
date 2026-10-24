@@ -1,21 +1,26 @@
-import { STEPS, type Step, type StepState } from "@/lib/jobflow/types";
+import { STEPS, trackFor, type FlowStage } from "@/lib/jobflow/types";
 
-const SAY: Record<StepState, string> = { done: "done", now: "stuck here", todo: "to come", skip: "not a step for this job" };
+/** Stages whose jobs went through a quote, so Quoted and Sold are steps they have. */
+const QUOTING: FlowStage[] = ["toquote", "quoted", "closevisit", "sold"];
 
 /**
- * A job from booked to paid in one line: the steps it has passed, the one it's
- * stuck at, and what's still to come. Where it's stuck is written out beside
- * the dots in words, so the strip never relies on the dots' shading alone.
+ * Where a stage sits in a job's run from booked to paid, drawn once above its
+ * list rather than on every row: every job in a stage is stuck at the same
+ * step, and thirty copies of the same strip only made the list harder to read.
+ * The stuck step is named in words ("stuck here"), never by its shading alone.
  */
-export function Track({ track }: { track: Record<Step, StepState> }) {
-  const now = STEPS.find((s) => track[s.k] === "now");
-  const said = STEPS.filter((s) => track[s.k] !== "skip").map((s) => `${s.label}: ${SAY[track[s.k]]}`).join(", ");
+export function StageSteps({ stage }: { stage: FlowStage }) {
+  const t = trackFor(stage, { quotePath: QUOTING.includes(stage), visited: true });
+  const steps = STEPS.filter((s) => t[s.k] !== "skip");
   return (
-    <span className="jf-track" role="img" aria-label={said}>
-      <span className="jf-track__dots" aria-hidden="true">
-        {STEPS.map((s) => <i key={s.k} className={`jf-dot is-${track[s.k]}`} title={`${s.label}: ${SAY[track[s.k]]}`} />)}
-      </span>
-      {now ? <span className="jf-track__at" aria-hidden="true">at <b>{now.label}</b></span> : null}
-    </span>
+    <ol className="jf-steps" aria-label="Where these jobs are, from booked to paid">
+      {steps.map((s) => (
+        <li key={s.k} className={`is-${t[s.k]}`}>
+          {t[s.k] === "done" ? <span aria-hidden="true">✓ </span> : null}
+          {s.label}
+          {t[s.k] === "now" ? <span className="jf-steps__here"> · stuck here</span> : null}
+        </li>
+      ))}
+    </ol>
   );
 }

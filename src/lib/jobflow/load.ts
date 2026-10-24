@@ -10,8 +10,8 @@ import { loadPipeline } from "@/lib/pipeline/store";
 import { daysBetween } from "@/lib/pipeline/types";
 import { owedInvoices } from "@/lib/portal/run/money";
 import {
-  daysSince, emailKey, openStage, phoneKeys, trackFor, unsentOwing, ENQUIRY_DAYS, STAGES,
-  type FlowStage, type Step, type StepState,
+  daysSince, emailKey, openStage, phoneKeys, unsentOwing, ENQUIRY_DAYS, STAGES,
+  type FlowStage,
 } from "./types";
 
 export type Tone = "good" | "mid" | "bad" | "none";
@@ -29,7 +29,6 @@ export type FlowRow = {
   stUrl: string | null;
   /** The customer's page: every job, quote and invoice they have, in order. */
   customerUrl: string | null;
-  track: Record<Step, StepState>;
 };
 
 export type StageRows = {
@@ -217,10 +216,6 @@ export function openRow(j: OpenFacts, nowMs: number): FlowRow {
   }
   // The bigger of the two: an install's invoice often carries only the deposit so far, and the job is worth the sale.
   const value = Math.max(j.invoiced, j.sold) > 0.5 ? Math.max(j.invoiced, j.sold) : null;
-  // A quote visit on hold is still a quote visit: its track is the visit's, stopping at the quote.
-  const track = j.stage === "hold" && j.quoteVisit
-    ? trackFor(j.quoted ? "closevisit" : "toquote")
-    : trackFor(j.stage, { quotePath: j.sold > 0, visited: !!j.lastVisit });
   return {
     key: `job-${j.id}`,
     title: [j.jobType ?? "Job", j.suburb].filter(Boolean).join(" · "),
@@ -228,7 +223,6 @@ export function openRow(j: OpenFacts, nowMs: number): FlowRow {
     st, value, days,
     stUrl: stJobUrl(j.id),
     customerUrl: customerUrl(j.customerId),
-    track,
   };
 }
 
@@ -291,7 +285,6 @@ async function enquiries(nowMs: number): Promise<FlowRow[]> {
       st: days >= 2 ? { k: "bad", w: `${days} days, no job` } : { k: "mid", w: "Ring them" },
       value: null, days, stUrl: null,
       customerUrl: custs.length === 1 ? customerUrl(custs[0]) : null,
-      track: trackFor("enquiry"),
     });
   }
   return out;
@@ -316,7 +309,6 @@ async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: Fl
       st, value: x.value || null, days,
       stUrl: x.jobId ? stJobUrl(x.jobId) : null,
       customerUrl: customerUrl(x.customerId),
-      track: trackFor(stage, { quotePath: true, visited: true }),
     };
   };
   return {
@@ -341,7 +333,6 @@ async function toBill(nowMs: number): Promise<FlowRow[]> {
       value: r.value, days,
       stUrl: stJobUrl(r.id),
       customerUrl: customerUrl(r.customerId),
-      track: trackFor("tobill", { quotePath: r.value != null, visited: true }),
     };
   }));
 }
@@ -371,7 +362,6 @@ async function toSend(nowMs: number): Promise<FlowRow[]> {
       value: n(i.balance), days,
       stUrl: stJobUrl(Number(j.id)),
       customerUrl: customerUrl(j.customer_id),
-      track: trackFor("tosend"),
     });
   }
   return oldestFirst(out);
@@ -392,7 +382,6 @@ async function overdue(): Promise<{ rows: FlowRow[]; partial: "xero" | "servicet
       st: i.daysOver > 30 ? { k: "bad" as const, w: `${i.daysOver} days late` } : { k: "mid" as const, w: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} late` },
       value: i.amountDue, days: i.daysOver,
       stUrl: null, customerUrl: null,
-      track: trackFor("overdue"),
     }));
   return { rows, partial: owed.partial };
 }
