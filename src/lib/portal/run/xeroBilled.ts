@@ -73,6 +73,47 @@ function sameCustomer(a: string, b: string): boolean {
   return shared.length >= 2 && shared.length >= Math.min(x.length, y.length) - 1;
 }
 
+/** The span of Xero invoices a job done on this day is looked for in. */
+export const xeroWindow = (doneOn: string) => ({ from: shift(doneOn, -BEFORE_DAYS), to: shift(doneOn, AFTER_DAYS) });
+
+/**
+ * Each job against Xero's invoices, by reference, then amount, then customer,
+ * as above. Shared with the job tracker's check of the jobs the old system
+ * left open, so both lists call a job billed for the same reasons. `xero`
+ * must cover every job's window (xeroWindow).
+ */
+export function matchAgainstXero(jobs: Array<Omit<XeroCheck, "match" | "invoices">>, xero: SalesInvoiceRow[]): XeroCheck[] {
+  const byRef = new Map<string, SalesInvoiceRow[]>();
+  for (const inv of xero) {
+    const k = refKey(inv.reference);
+    if (k) byRef.set(k, [...(byRef.get(k) ?? []), inv]);
+  }
+
+  const checks: XeroCheck[] = jobs.map((base) => {
+    const done = base.doneOn.slice(0, 10);
+    const { from: lo, to: hi } = xeroWindow(done);
+    const k = refKey(base.reference);
+    const byReference = k ? (byRef.get(k) ?? []).filter((x) => k.startsWith("T") || (base.customer ? sameCustomer(x.contact, base.customer) : false)) : [];
+    if (byReference.length) return { ...base, match: "reference" as const, invoices: byReference };
+    const theirs = base.customer ? xero.filter((x) => x.date >= lo && x.date <= hi && sameCustomer(x.contact, base.customer!)) : [];
+    const want = base.sold;
+    if (want && want > 0) {
+      const exact = theirs.filter((x) => Math.abs(x.total - want) <= Math.max(2, want * 0.02));
+      if (exact.length) return { ...base, match: "amount" as const, invoices: exact };
+    }
+    if (theirs.length) {
+      // Nearest the finish date first: the invoice most likely to be this job's.
+      const near = [...theirs].sort((a, b) => Math.abs(Date.parse(a.date) - Date.parse(done)) - Math.abs(Date.parse(b.date) - Date.parse(done)));
+      return { ...base, match: "customer" as const, invoices: near.slice(0, 4) };
+    }
+    return { ...base, match: "none" as const, invoices: [] };
+  });
+
+  const order = { none: 0, customer: 1, amount: 2, reference: 3 } as const;
+  checks.sort((a, b) => order[a.match] - order[b.match] || a.doneOn.localeCompare(b.doneOn));
+  return checks;
+}
+
 export async function oldJobsAgainstXero(): Promise<{ checks: XeroCheck[]; from: string; to: string } | null> {
   const from = yearSpans("financial", currentYear("financial", new Date()))[0].from;
   const to = ST_LEDGER_FROM;
@@ -106,37 +147,9 @@ export async function oldJobsAgainstXero(): Promise<{ checks: XeroCheck[]; from:
 
   const xero = await getSalesInvoiceIndex(shift(from, -BEFORE_DAYS), shift(to, AFTER_DAYS));
   if (!xero) return null;
-  const byRef = new Map<string, SalesInvoiceRow[]>();
-  for (const inv of xero) {
-    const k = refKey(inv.reference);
-    if (k) byRef.set(k, [...(byRef.get(k) ?? []), inv]);
-  }
-
-  const checks: XeroCheck[] = open.map((j) => {
-    const done = j.completed_on.slice(0, 10);
-    const lo = shift(done, -BEFORE_DAYS), hi = shift(done, AFTER_DAYS);
-    const base = {
-      id: Number(j.id), jobNumber: j.job_number, jobType: j.job_type, customer: j.customer_name, suburb: j.suburb,
-      doneOn: j.completed_on, sold: sold.get(Number(j.id)) ?? null, reference: j.po?.trim() || null,
-    };
-    const k = refKey(j.po);
-    const byReference = k ? (byRef.get(k) ?? []).filter((x) => k.startsWith("T") || (j.customer_name ? sameCustomer(x.contact, j.customer_name) : false)) : [];
-    if (byReference.length) return { ...base, match: "reference" as const, invoices: byReference };
-    const theirs = j.customer_name ? xero.filter((x) => x.date >= lo && x.date <= hi && sameCustomer(x.contact, j.customer_name!)) : [];
-    const want = base.sold;
-    if (want && want > 0) {
-      const exact = theirs.filter((x) => Math.abs(x.total - want) <= Math.max(2, want * 0.02));
-      if (exact.length) return { ...base, match: "amount" as const, invoices: exact };
-    }
-    if (theirs.length) {
-      // Nearest the finish date first: the invoice most likely to be this job's.
-      const near = [...theirs].sort((a, b) => Math.abs(Date.parse(a.date) - Date.parse(done)) - Math.abs(Date.parse(b.date) - Date.parse(done)));
-      return { ...base, match: "customer" as const, invoices: near.slice(0, 4) };
-    }
-    return { ...base, match: "none" as const, invoices: [] };
-  });
-
-  const order = { none: 0, customer: 1, amount: 2, reference: 3 } as const;
-  checks.sort((a, b) => order[a.match] - order[b.match] || a.doneOn.localeCompare(b.doneOn));
+  const checks = matchAgainstXero(open.map((j) => ({
+    id: Number(j.id), jobNumber: j.job_number, jobType: j.job_type, customer: j.customer_name, suburb: j.suburb,
+    doneOn: j.completed_on, sold: sold.get(Number(j.id)) ?? null, reference: j.po?.trim() || null,
+  })), xero);
   return { checks, from, to };
 }

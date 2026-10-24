@@ -89,8 +89,10 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote out, the ones we lost, and the customers behind them",
+    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every job from enquiry to paid, every quote out, and the customers behind them",
     pages: [
+      // The whole run of a job, of which the quotes are one stretch.
+      { label: "Job tracker", href: "/portal/tracker", office: true },
       { label: "Quotes", href: "/portal/pipeline" },
       { label: "Lost quotes", href: "/portal/pipeline/lost", gate: "/portal/sales" },
       { label: "Customers", href: "/portal/customers" },

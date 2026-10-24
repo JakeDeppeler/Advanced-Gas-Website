@@ -4,6 +4,8 @@ import { ST_LEDGER_FROM } from "@/lib/dashboard/stOwed";
 import { onHold } from "@/lib/dashboard/onHold";
 import { toBillJobs } from "@/lib/dashboard/toBill";
 import { pipelineDue } from "@/lib/pipeline/store";
+import { openJobCounts } from "@/lib/jobflow/load";
+import { unsentOwing } from "@/lib/jobflow/types";
 
 /**
  * The office's morning, in the order the AGA job workflow runs it: review
@@ -27,6 +29,8 @@ export type OfficeDay = {
   hold: OfficeLine & { onUs: number };
   followUps: { due: number; late: number; open: number };
   toBill: OfficeLine;
+  /** Jobs whose visit has been and that nobody closed, from the job tracker. Null when they couldn't be read. */
+  leftOpen: { notClosed: number; closeVisit: number; toQuote: number } | null;
 };
 
 type Inv = { job_id: number | null; total: number | null; review: string | null; sent: string | null; balance: string | null; invoice_date: string | null; business_unit: string | null };
@@ -36,7 +40,7 @@ const n = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const TOP = 8;
 
 export async function officeDay(now: Date = new Date()): Promise<OfficeDay> {
-  const [invs, held, due, unbilled] = await Promise.all([
+  const [invs, held, due, unbilled, open] = await Promise.all([
     sbSelect<Inv>("st_invoices", [
       q.select("job_id,total,review:raw->>reviewStatus,sent:raw->>sentStatus,balance:raw->>balance,invoice_date,business_unit"),
       q.gte("invoice_date", ST_LEDGER_FROM), "limit=5000",
@@ -44,6 +48,7 @@ export async function officeDay(now: Date = new Date()): Promise<OfficeDay> {
     onHold(now).catch(() => null),
     pipelineDue().catch(() => ({ due: 0, late: 0, openCount: 0, openValue: 0 })),
     toBillJobs().catch(() => []),
+    openJobCounts(now.getTime()).catch(() => null),
   ]);
 
   // Only finished jobs' invoices: one on an open job is a booking, not a bill.
@@ -70,7 +75,7 @@ export async function officeDay(now: Date = new Date()): Promise<OfficeDay> {
   const yesterday = new Date(now.getTime() - 86_400_000 + 10 * 3_600_000).toISOString().slice(0, 10);
   const needsReview = done.filter((x) => (x.i.review ?? "") !== "Reviewed");
   const review = { ...line(needsReview, (i) => n(i.total)), yesterday: needsReview.filter((x) => (x.j.completed_on ?? "").slice(0, 10) >= yesterday).length };
-  const notSent = line(done.filter((x) => x.i.sent === "NotSent" && n(x.i.balance) > 0.5), (i) => n(i.balance));
+  const notSent = line(done.filter((x) => unsentOwing(x.i)), (i) => n(i.balance));
   const partPaid = line(done.filter((x) => n(x.i.balance) > 0.5 && n(x.i.total) - n(x.i.balance) > 0.5), (i) => n(i.balance));
 
   const heldJobs = held?.jobs ?? [];
@@ -87,5 +92,6 @@ export async function officeDay(now: Date = new Date()): Promise<OfficeDay> {
     items: unbilled.slice(0, TOP).map((u) => ({ jobId: u.id, jobNumber: u.jobNumber, customer: u.customer ?? null, what: u.jobType, amount: u.value, since: u.at })),
   };
 
-  return { review, notSent, partPaid, hold, followUps: { due: due.due, late: due.late, open: due.openCount }, toBill };
+  const leftOpen = open ? { notClosed: open.notClosed, closeVisit: open.closeVisit, toQuote: open.toQuote } : null;
+  return { review, notSent, partPaid, hold, followUps: { due: due.due, late: due.late, open: due.openCount }, toBill, leftOpen };
 }

@@ -2767,3 +2767,45 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .lead-del { justify-self: start; }
 @media (max-width: 980px) { .lead-bands, .lead-two { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .lead-formrow { grid-template-columns: 1fr; } .lead-limit { justify-items: start; text-align: left; } }
+
+/* Job tracker: every stage start to finish across the top, then a card a stage. */
+.jf-flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 18px 0 22px; }
+.jf-phase { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.jf-phase__h { font-size: 12px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0 4px; }
+.jf-tile { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l l" "n n" "s s" "p p"; row-gap: 4px; padding: 12px 14px; border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); color: var(--ink); text-decoration: none; min-width: 0; }
+.jf-tile:hover { box-shadow: 0 0 0 2px var(--line), var(--shadow); }
+.jf-tile__l { grid-area: l; font-size: 13px; font-weight: 700; line-height: 1.25; }
+.jf-tile__n { grid-area: n; font-family: var(--f-display, "Archivo", sans-serif); font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.jf-tile__s { grid-area: s; font-size: 12px; color: var(--ink3); min-height: 15px; }
+.jf-tile .pk-st { grid-area: p; justify-self: start; }
+.jf-tile.is-quiet { background: var(--sunken); box-shadow: none; }
+.jf-stage { margin: 0 0 14px; scroll-margin-top: 16px; }
+.jf-rule { margin: 0 0 10px; }
+.jf-foot { margin: 10px 0 0; }
+.jf-verdict { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 8px; }
+.jf-about { margin: 6px 0 18px; }
+.jf-row .t > span + span { margin-top: 2px; }
+.jf-row__go { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.jf-row__go .pk-btn { padding: 6px 12px; font-size: 13px; }
+.jf-more > summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--ink2); padding: 10px 0 4px; border-top: 1px solid var(--line); }
+.jf-more > summary:hover { color: var(--ink); }
+/* The track: passed steps filled, the stuck one a ring with its name beside, still-to-come hollow, steps the job doesn't have a dash. */
+.jf-track { display: inline-flex !important; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--ink3); }
+.jf-track__dots { display: inline-flex; align-items: center; }
+.jf-dot { display: block; width: 9px; height: 9px; border-radius: 99px; margin-right: 5px; box-sizing: border-box; }
+.jf-dot.is-done { background: var(--ink3); }
+.jf-dot.is-now { width: 13px; height: 13px; border: 3px solid var(--ink); background: var(--surface); }
+.jf-dot.is-todo { border: 1.5px solid var(--ink4); }
+.jf-dot.is-skip { width: 7px; height: 2px; border-radius: 1px; background: var(--ink4); }
+.jf-track__at b { color: var(--ink); font-weight: 800; }
+@media (max-width: 1100px) { .jf-flow { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .jf-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) {
+  .jf-flow { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  /* Two to a row inside each phase: fourteen tiles one under another is a page of scrolling before the first list. */
+  .jf-phase { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jf-phase__h { grid-column: 1 / -1; }
+  .jf-tile { padding: 10px 12px; }
+  .jf-tile__n { font-size: 22px; }
+  .jf-row__go { flex-basis: 100%; }
+}
