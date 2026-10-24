@@ -76,6 +76,16 @@ export default async function OfficeTodayPage() {
       more: { href: "/portal/jobs?tab=list&f=hold", label: "Every held job" },
       extra: d.hold.count ? `${d.hold.onUs} waiting on us` : undefined,
     },
+    ...(d.leftOpen ? [((o) => {
+      const all = o.notClosed + o.closeVisit + o.toQuote;
+      return {
+        key: "open", title: "Close jobs whose visit day has gone",
+        how: "Finished? Complete it so it can be billed. A quote visit closes once its quote is written, or gets quoted. Not finished? Book the return or put it on hold.",
+        where: "Portal → Job tracker",
+        line: null, unit: "", st: st(all, all > 0),
+        more: { href: "/portal/tracker#notclosed", label: `${o.notClosed} left open · ${o.closeVisit} quote visits to close · ${o.toQuote} to quote` },
+      } satisfies Step;
+    })(d.leftOpen)] : []),
     {
       key: "quotes", title: "Ring the quotes due today",
       how: "Call every quote due a follow-up. Won → sell it. Lost → mark it lost with the reason (it's dismissed in ServiceTitan for you).",

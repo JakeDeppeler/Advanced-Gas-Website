@@ -26,6 +26,8 @@ export type ToBillRow = {
   jobNumber: string | null;
   jobType: string | null;
   customer?: string | null;
+  /** ServiceTitan's customer, for the customer page. */
+  customerId?: number | null;
   suburb: string | null;
   /** When it was finished. */
   at: string;
@@ -53,10 +55,10 @@ export async function toBillJobs(): Promise<ToBillRow[]> {
  * install had even happened.
  */
 export async function toBillAndWaiting(): Promise<ToBillRow[]> {
-  const done = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; customer_name: string | null; suburb: string | null; completed_on: string }>(
+  const done = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; customer_id: number | null; customer_name: string | null; suburb: string | null; completed_on: string }>(
     "st_jobs",
     [
-      q.select("id,job_number,job_type,customer_name,suburb,completed_on"),
+      q.select("id,job_number,job_type,customer_id,customer_name,suburb,completed_on"),
       q.gte("completed_on", `${TO_BILL_FROM}T00:00:00Z`),
       q.eq("status", "Completed"),
       q.order("completed_on", "asc"),
@@ -111,6 +113,7 @@ export async function toBillAndWaiting(): Promise<ToBillRow[]> {
       jobNumber: j.job_number ? String(j.job_number) : null,
       jobType: j.job_type ? String(j.job_type) : null,
       customer: j.customer_name ? String(j.customer_name) : null,
+      customerId: j.customer_id != null ? Number(j.customer_id) : null,
       suburb: j.suburb ? String(j.suburb) : null,
       at: String(j.completed_on),
       value: sold.get(Number(j.id)) ?? null,
