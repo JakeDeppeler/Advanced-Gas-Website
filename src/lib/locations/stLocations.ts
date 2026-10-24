@@ -141,6 +141,61 @@ export async function fetchCustomer(customerId: number): Promise<{ id: number; n
   return { id: c.id, name: c.name };
 }
 
+type StCustomer = {
+  id: number;
+  name: string;
+  active?: boolean;
+  address?: { street?: string | null; city?: string | null; state?: string | null; zip?: string | null } | null;
+};
+
+export type CustomerHit = { id: number; name: string; address: string };
+
+const hitOf = (c: StCustomer): CustomerHit => ({
+  id: c.id,
+  name: c.name,
+  address: [c.address?.street, c.address?.city].filter(Boolean).join(", "),
+});
+
+/**
+ * Customers for the Sites search box, asked of ServiceTitan as the office
+ * types. Not from the synced tables: the sync copies jobs and locations but
+ * not customer names, and a village is usually a new customer with no jobs
+ * yet, which is exactly when its list gets loaded.
+ */
+export async function searchCustomers(term: string): Promise<CustomerHit[]> {
+  const t = term.trim().replace(/^#/, "");
+  if (/^\d+$/.test(t)) {
+    const c = await stFetch<StCustomer>(stTenantPath("crm", `customers/${t}`)).catch(() => null);
+    return c ? [hitOf(c)] : [];
+  }
+  if (t.length < 2) return [];
+  const r = await stFetch<{ data: StCustomer[] }>(stTenantPath("crm", "customers"), { name: t, active: "True", pageSize: "10" });
+  return (r.data ?? []).map(hitOf);
+}
+
+/** What a new list fills every row with: the customer's own address and first contacts. */
+export type SiteDefaults = { street: string; city: string; state: string; zip: string; contactName: string; email: string; phone: string };
+
+export async function siteDefaults(customerId: number): Promise<SiteDefaults> {
+  const [c, contacts] = await Promise.all([
+    stFetch<StCustomer>(stTenantPath("crm", `customers/${customerId}`)),
+    stFetch<{ data: (StContact & { active?: boolean })[] }>(stTenantPath("crm", `customers/${customerId}/contacts`), { pageSize: "50" })
+      .then((r) => (r.data ?? []).filter((x) => x.active !== false))
+      .catch(() => [] as StContact[]),
+  ]);
+  const email = contacts.find((x) => x.type === "Email");
+  const phone = contacts.find((x) => x.type === "Phone") ?? contacts.find((x) => x.type === "MobilePhone");
+  return {
+    street: c.address?.street?.trim() ?? "",
+    city: c.address?.city?.trim() ?? "",
+    state: c.address?.state?.trim() || "VIC",
+    zip: c.address?.zip?.trim() ?? "",
+    contactName: (email?.memo || phone?.memo || "").trim(),
+    email: email?.value?.trim() ?? "",
+    phone: phone?.value?.trim() ?? "",
+  };
+}
+
 export const fetchLive = (customerId: number) =>
   stList<StLocation>("crm", "locations", { customerId: String(customerId), active: "Any" });
 

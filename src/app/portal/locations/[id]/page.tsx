@@ -9,7 +9,7 @@ import { LocationStatusBoard } from "@/components/portal/LocationStatusBoard";
 import { LocationDoubles } from "@/components/portal/LocationDoubles";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { fetchCustomer, findDoubles, liveView, loadSpec } from "@/lib/locations/stLocations";
+import { fetchCustomer, findDoubles, liveView, loadSpec, siteDefaults } from "@/lib/locations/stLocations";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -54,7 +54,7 @@ export default async function CustomerLocationsPage({ params }: { params: { id: 
     );
   }
 
-  const spec = await loadSpec(id).catch(() => null);
+  const [spec, prefill] = await Promise.all([loadSpec(id).catch(() => null), siteDefaults(id).catch(() => null)]);
   const view = await liveView(id, spec).catch((e: Error) => ({ error: e.message }) as const);
 
   const active = "error" in view ? [] : view.locations.filter((l) => l.active);
@@ -99,6 +99,7 @@ export default async function CustomerLocationsPage({ params }: { params: { id: 
         customerId={id}
         tagNames={"error" in view ? [] : view.tagNames}
         saved={spec ? { count: spec.locations.length, savedAt: spec.savedAt ?? null, savedBy: spec.savedBy ?? null } : null}
+        prefill={prefill}
       />
     </PortalShell>
   );

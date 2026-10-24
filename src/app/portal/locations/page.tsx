@@ -7,6 +7,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { savedLists } from "@/lib/locations/stLocations";
+import { SiteSearch } from "@/components/portal/SiteSearch";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Site locations · Team portal" };
@@ -37,16 +38,12 @@ export default async function LocationsPage({ searchParams }: { searchParams: { 
         <p>A location per unit for villages and blocks: load the list into ServiceTitan, mark units serviced, fix doubles.</p>
       </div>
 
-      <form method="get" className="pt-sbox pt-sbox--lg" role="search">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>
-        <input type="search" name="customer" defaultValue={typed} inputMode="numeric" placeholder="ServiceTitan customer number" aria-label="ServiceTitan customer number" autoComplete="off" />
-      </form>
-      {typed && <div className="pt-note">That isn&rsquo;t a customer number. It&rsquo;s the number on the customer in ServiceTitan, digits only.</div>}
+      <SiteSearch saved={lists.map((l) => ({ customerId: l.customerId, count: l.count }))} />
 
       <section className="pt-panel">
         <h2 className="pt-panel__h">Saved lists</h2>
         {lists.length === 0 ? (
-          <p className="pt-rep__empty">None yet. Enter a customer number above to start one.</p>
+          <p className="pt-rep__empty">None yet. Find the village above to start one.</p>
         ) : (
           <div className="pt-fleet__wrap">
             <table className="pt-fleet pt-otab">

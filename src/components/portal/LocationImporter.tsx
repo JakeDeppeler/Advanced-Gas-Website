@@ -3,10 +3,10 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  buildLocations, EMPTY_DEFAULTS, FIELDS, guessColumns, parseCsv, statusValues,
+  BUILD_HEADER, buildLocations, buildSheet, EMPTY_DEFAULTS, FIELDS, guessColumns, parseCsv, statusValues, toCsv,
   type ColumnMap, type Defaults, type FieldKey,
 } from "@/lib/locations/csv";
-import type { ImportLocation, StatusTag } from "@/lib/locations/stLocations";
+import type { ImportLocation, SiteDefaults, StatusTag } from "@/lib/locations/stLocations";
 
 type Row = { name: string; state: "new" | "exists" | "double"; match?: { id: number; name: string } };
 type Preview = { customer: { name: string }; existing: number; rows: Row[]; missingTags: string[]; forList?: ImportLocation[] };
@@ -25,6 +25,8 @@ async function call<T>(body: Record<string, unknown>): Promise<T & { ok: boolean
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const BUILD_MAP = guessColumns(BUILD_HEADER);
+
 /**
  * Upload a CSV of units, map its columns, preview it against the customer's
  * live locations, then save it and run the import: create → contacts → notes →
@@ -32,11 +34,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
  * again, so "Run again" finishes anything a failure stopped.
  */
 export function LocationImporter({
-  customerId, tagNames, saved,
+  customerId, tagNames, saved, prefill,
 }: {
   customerId: number;
   tagNames: string[];
   saved: { count: number; savedAt: string | null; savedBy: string | null } | null;
+  /** The customer's address and first contacts from ServiceTitan, to start every row from. */
+  prefill: SiteDefaults | null;
 }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -44,7 +48,13 @@ export function LocationImporter({
   const [header, setHeader] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [map, setMap] = useState<ColumnMap>({});
-  const [d, setD] = useState<Defaults>(EMPTY_DEFAULTS);
+  const [d, setD] = useState<Defaults>({ ...EMPTY_DEFAULTS, ...(prefill ?? {}) });
+  // Build here by default: most villages are numbered units at one address
+  // with one office, which is three facts, not a spreadsheet.
+  const [mode, setMode] = useState<"build" | "csv">("build");
+  const [count, setCount] = useState("");
+  const [from, setFrom] = useState("1");
+  const [startStatus, setStartStatus] = useState("Due");
   const [statusTag, setStatusTag] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<Preview | null>(null);
   const [adopt, setAdopt] = useState<Record<string, boolean>>({});
@@ -53,8 +63,21 @@ export function LocationImporter({
   const [failures, setFailures] = useState<Failure[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
-  const statuses = useMemo(() => statusValues(rows, map), [rows, map]);
-  const built = useMemo(() => buildLocations(rows, map, d, statusTag), [rows, map, d, statusTag]);
+  const buildRows = useMemo(() => buildSheet(Number(count), Number(from), startStatus, d), [count, from, startStatus, d]);
+  const srcRows = mode === "build" ? buildRows : rows;
+  const srcMap = mode === "build" ? BUILD_MAP : map;
+  const statuses = useMemo(() => statusValues(srcRows, srcMap), [srcRows, srcMap]);
+  const built = useMemo(() => buildLocations(srcRows, srcMap, d, statusTag), [srcRows, srcMap, d, statusTag]);
+  const ready = mode === "build" ? buildRows.length > 0 : Boolean(file);
+
+  function download() {
+    const url = URL.createObjectURL(new Blob([toCsv(BUILD_HEADER, buildRows)], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `units-${customerId}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   // ServiceTitan won't take a location without a street, suburb and postcode;
   // saying so before the preview beats a refusal at the end.
   const noAddress = built.locations.filter((l) => !l.address.street || !l.address.city || !l.address.zip).length;
@@ -65,7 +88,7 @@ export function LocationImporter({
     if (all.length < 2) { setErr("That file has no rows under its header."); return; }
     const [h, ...rest] = all;
     const guess = guessColumns(h);
-    setFile(f.name); setHeader(h); setRows(rest); setMap(guess);
+    setMode("csv"); setFile(f.name); setHeader(h); setRows(rest); setMap(guess);
     const st: Record<string, string> = {};
     for (const v of statusValues(rest, guess)) st[v.toLowerCase()] = "";
     setStatusTag(st);
@@ -171,32 +194,84 @@ export function LocationImporter({
   return (
     <section className="pt-panel">
       <h2 className="pt-panel__h">Load a list</h2>
-      <p className="pt-loc__lede">
-        A CSV with one row per unit, in Excel, <em>File → Save As → CSV</em>. Colour coding doesn’t survive that, so put
-        service status in a column of its own. Each row can have its own address, or leave the address columns out and
-        give one address for every row below.
-      </p>
-
-      <input ref={input} type="file" accept=".csv,text/csv" hidden
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) void load(f); e.target.value = ""; }} />
       <div className="pt-loc__bar">
-        <button type="button" className="pt-btn pt-btn--ghost" disabled={busy} onClick={() => input.current?.click()}>
-          {file ? "Choose a different file" : "Choose a CSV"}
-        </button>
-        {file && <span className="pt-loc__muted">{file} · {rows.length} rows</span>}
-        {!file && (
-          <a className="pt-btn pt-btn--sm pt-btn--ghost" href="/templates/site-locations.csv" download>
-            Download a template
-          </a>
-        )}
-        {saved && !file && (
+        <div className="pt-seg" role="group" aria-label="How to make the list">
+          <button type="button" className={`pt-seg__b${mode === "build" ? " is-on" : ""}`} aria-pressed={mode === "build"} disabled={busy} onClick={() => setMode("build")}>Build it here</button>
+          <button type="button" className={`pt-seg__b${mode === "csv" ? " is-on" : ""}`} aria-pressed={mode === "csv"} disabled={busy} onClick={() => setMode("csv")}>Load a CSV</button>
+        </div>
+        {saved && (
           <button type="button" className="pt-btn pt-btn--navy" disabled={busy} onClick={() => void run(false)}>
             Run again on the saved list ({saved.count})
           </button>
         )}
       </div>
 
-      {file && (
+      {mode === "build" && (
+        <>
+          <p className="pt-loc__lede">
+            How many units, the main address and the main contact, and every unit gets them. The address and contact
+            start from the customer in ServiceTitan; change anything that&rsquo;s wrong.
+            {!prefill && " ServiceTitan didn’t answer, so fill them in."}
+          </p>
+          <div className="pt-veh__addgrid pt-loc__grid">
+            <label className="pt-field"><span>How many units</span><input id="loc-count" value={count} onChange={(e) => setCount(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="e.g. 120" autoFocus /></label>
+            <label className="pt-field"><span>First unit number</span><input id="loc-from" value={from} onChange={(e) => setFrom(e.target.value.replace(/\D/g, ""))} inputMode="numeric" /></label>
+            <label className="pt-field"><span>Every unit starts as</span><input id="loc-status" value={startStatus} onChange={(e) => setStartStatus(e.target.value)} placeholder="e.g. Due, blank for none" /><small className="pt-loc__hint">Its service status, mapped to a tag below</small></label>
+            <label className="pt-field"><span>Name prefix</span><input id="loc-prefix" value={d.namePrefix} onChange={(e) => setD({ ...d, namePrefix: e.target.value })} /><small className="pt-loc__hint">{buildRows.length ? `${built.locations[0]?.name ?? ""} to ${built.locations[built.locations.length - 1]?.name ?? ""}` : "Before the unit number: Unit 001"}</small></label>
+            <label className="pt-field pt-loc__check"><input id="loc-pad" type="checkbox" checked={d.pad} onChange={(e) => setD({ ...d, pad: e.target.checked })} /><span>Pad unit numbers (7 → 007)</span></label>
+          </div>
+
+          <h3 className="pt-loc__h">Main address</h3>
+          <div className="pt-veh__addgrid pt-loc__grid">
+            <label className="pt-field"><span>Street</span><input id="loc-street" value={d.street} onChange={(e) => setD({ ...d, street: e.target.value })} placeholder="e.g. 36-40 Racecourse Road" /></label>
+            <label className="pt-field"><span>Suburb</span><input id="loc-city" value={d.city} onChange={(e) => setD({ ...d, city: e.target.value })} /></label>
+            <label className="pt-field"><span>State</span><input id="loc-state" value={d.state} onChange={(e) => setD({ ...d, state: e.target.value })} /></label>
+            <label className="pt-field"><span>Postcode</span><input id="loc-zip" value={d.zip} onChange={(e) => setD({ ...d, zip: e.target.value })} inputMode="numeric" /></label>
+          </div>
+
+          <h3 className="pt-loc__h">Main contact</h3>
+          <div className="pt-veh__addgrid pt-loc__grid">
+            <label className="pt-field"><span>Name or role</span><input id="loc-contact" value={d.contactName} onChange={(e) => setD({ ...d, contactName: e.target.value })} placeholder="e.g. Village manager" /></label>
+            <label className="pt-field"><span>Email</span><input id="loc-email" value={d.email} onChange={(e) => setD({ ...d, email: e.target.value })} type="email" /></label>
+            <label className="pt-field"><span>Phone</span><input id="loc-phone" value={d.phone} onChange={(e) => setD({ ...d, phone: e.target.value })} type="tel" /></label>
+          </div>
+
+          {buildRows.length > 0 && (
+            <div className="pt-loc__bar">
+              <button type="button" className="pt-btn pt-btn--sm pt-btn--ghost" disabled={busy} onClick={download}>
+                Download these {buildRows.length} as a spreadsheet
+              </button>
+              <span className="pt-loc__muted">To mark some serviced or add notes in Excel first, then load it back under Load a CSV.</span>
+            </div>
+          )}
+        </>
+      )}
+
+      {mode === "csv" && (
+        <>
+          <p className="pt-loc__lede">
+            A CSV with one row per unit, in Excel, <em>File → Save As → CSV</em>. Colour coding doesn’t survive that, so put
+            service status in a column of its own. Each row can have its own address, or leave the address columns out and
+            give one address for every row below.
+          </p>
+
+          <input ref={input} type="file" accept=".csv,text/csv" hidden
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void load(f); e.target.value = ""; }} />
+          <div className="pt-loc__bar">
+            <button type="button" className="pt-btn pt-btn--ghost" disabled={busy} onClick={() => input.current?.click()}>
+              {file ? "Choose a different file" : "Choose a CSV"}
+            </button>
+            {file && <span className="pt-loc__muted">{file} · {rows.length} rows</span>}
+            {!file && (
+              <a className="pt-btn pt-btn--sm pt-btn--ghost" href="/templates/site-locations.csv" download>
+                Download a template
+              </a>
+            )}
+          </div>
+        </>
+      )}
+
+      {mode === "csv" && file && (
         <>
           <h3 className="pt-loc__h">Which column is which</h3>
           <div className="pt-veh__addgrid pt-loc__grid">
@@ -228,6 +303,11 @@ export function LocationImporter({
             <label className="pt-field pt-loc__check"><input type="checkbox" checked={d.pad} onChange={(e) => setD({ ...d, pad: e.target.checked })} /><span>Pad unit numbers (7 → 007)</span></label>
           </div>
 
+        </>
+      )}
+
+      {ready && (
+        <>
           {statuses.length > 0 && (
             <>
               <h3 className="pt-loc__h">Service status → ServiceTitan tag <em>(blank for no tag)</em></h3>
