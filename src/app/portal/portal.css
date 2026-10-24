@@ -4561,6 +4561,21 @@ a.pt-fig:hover { transform: translateY(-2px); }
 }
 .pt-loc__scroll td:first-child, .pt-loc__scroll td:nth-child(2) strong { white-space: nowrap; }
 
+/* Sites search: results drop under the box as you type. A result whose answer
+   is a beat behind the box dims rather than vanishing, so the list doesn't
+   flicker between keys. */
+.pt-sitefind { margin: 0 0 22px; }
+.pt-sitefind__msg { margin: 10px 2px 0; }
+.pt-sitefind__list { list-style: none; margin: 8px 0 0; padding: 0; border: 1px solid var(--pt-line); border-radius: 14px; background: var(--pt-surface); overflow: hidden; transition: opacity .15s; }
+.pt-sitefind__list.is-stale { opacity: .6; }
+.pt-sitefind__list li + li { border-top: 1px solid var(--pt-line); }
+.pt-sitefind__row { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 12px 16px; color: var(--pt-ink); text-decoration: none; }
+.pt-sitefind__row:hover, .pt-sitefind__row:focus-visible { background: var(--pt-tint); }
+.pt-sitefind__row:focus-visible { outline: 2px solid var(--pt-accent-mark); outline-offset: -2px; }
+.pt-sitefind__name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pt-sitefind__tag { font-size: 12.5px; font-weight: 600; color: var(--pt-ink-3); border: 1px solid var(--pt-line); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.pt-sitefind__tag.is-saved { color: var(--pt-good); background: var(--pt-good-soft); border-color: transparent; }
+
 /* ------------------------------------------------------------ keep in touch */
 /* Shares the to-do's language: red with a flag and the words when someone is
    past their day, the warm amber for due today or never rung, plain otherwise. */

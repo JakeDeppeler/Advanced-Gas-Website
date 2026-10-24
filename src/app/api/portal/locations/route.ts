@@ -5,7 +5,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import {
   addNotes, applyImport, checkContacts, fetchCustomer, fetchLive, loadSpec, mergeDouble, missingTagTypes, norm,
-  planImport, sameSpot, saveSpec, setStatus, specProblem, syncTags,
+  planImport, sameSpot, saveSpec, searchCustomers, setStatus, specProblem, syncTags,
   type ImportLocation, type StatusTag,
 } from "@/lib/locations/stLocations";
 
@@ -28,6 +28,19 @@ export const maxDuration = 60;
  * is hundreds of calls to ServiceTitan and a function has 60 seconds; the page
  * drives the loop and shows progress.
  */
+/** GET ?q= — the Sites search box: customers by name, or one by number. */
+export async function GET(req: Request) {
+  const user = await getPortalUser();
+  if (!user || !can(user, "manage_users")) return NextResponse.json({ ok: false, error: "Admins only." }, { status: 403 });
+  if (!serviceTitanConfigured()) return NextResponse.json({ ok: false, error: "ServiceTitan isn’t connected." }, { status: 503 });
+  const term = (new URL(req.url).searchParams.get("q") ?? "").slice(0, 80);
+  try {
+    return NextResponse.json({ ok: true, customers: await searchCustomers(term) });
+  } catch {
+    return NextResponse.json({ ok: false, error: "ServiceTitan didn’t answer the search." }, { status: 502 });
+  }
+}
+
 export async function POST(req: Request) {
   const user = await getPortalUser();
   if (!user || !can(user, "manage_users")) return NextResponse.json({ ok: false, error: "Admins only." }, { status: 403 });

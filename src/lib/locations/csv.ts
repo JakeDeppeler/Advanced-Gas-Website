@@ -169,3 +169,27 @@ export function buildLocations(
   }
   return { locations, skipped, statusTags };
 }
+
+/**
+ * The columns a list built in the portal has: the template's, so the guesser
+ * maps every one of them and a downloaded copy loads straight back in.
+ */
+export const BUILD_HEADER = ["Unit", "Street", "Suburb", "State", "Postcode", "Contact name", "Email", "Phone", "Status", "Notes", "Tags"];
+
+/**
+ * A village from three facts instead of a spreadsheet: how many units, the
+ * main address and the main contact, written onto every unit.
+ */
+export function buildSheet(count: number, from: number, status: string, d: Defaults): string[][] {
+  const n = Math.max(0, Math.min(2000, Math.floor(count) || 0));
+  const first = Math.max(0, Math.floor(from) || 0);
+  return Array.from({ length: n }, (_, i) => [
+    String(first + i), d.street, d.city, d.state, d.zip, d.contactName, d.email, d.phone, status.trim(), "", "",
+  ]);
+}
+
+/** Excel-safe CSV: every field quoted, with a BOM so Excel reads it as UTF-8. */
+export function toCsv(header: string[], rows: string[][]): string {
+  const q = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  return "﻿" + [header, ...rows].map((r) => r.map(q).join(",")).join("\r\n") + "\r\n";
+}
