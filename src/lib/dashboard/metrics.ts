@@ -1530,7 +1530,25 @@ async function serviceTitanMetrics(now: Date) {
         if (got) got.push(r);
         else byQuote.set(k, [r]);
       }
-      return [...byQuote.entries()].map(([k, rows]) => {
+      return [...byQuote.entries()]
+        /*
+         * The same ceiling the rest of the board quotes under.
+         *
+         * Every other quote figure stops at QUOTE_CAP; the alert never did,
+         * because until commercial work started counting there was nothing up
+         * there to come through — no residential quote has reached $50,000 in
+         * four months. The commercial pipeline has four open right now, the
+         * largest at $668,000, and one of them re-priced is an alert that takes
+         * the whole wall for eleven seconds with a figure no tile on the board
+         * will admit to.
+         *
+         * On the quote, not on the option, the way the open-quote lists judge
+         * it: filtering options one at a time would leave a job whose top
+         * option is $668,000 cheering its cheapest and reading like an ordinary
+         * day's work.
+         */
+        .filter(([, rows]) => rows.every((r) => Number(r.total ?? 0) < QUOTE_CAP))
+        .map(([k, rows]) => {
         const first = rows[0];
         const place = first.job_id != null ? alertPlace.get(Number(first.job_id)) : undefined;
         const total = rows.reduce((a, r) => a + Number(r.total ?? 0), 0);

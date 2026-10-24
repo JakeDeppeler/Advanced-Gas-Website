@@ -1105,6 +1105,15 @@ quotes open under the ceiling, 3 of 52 sales this month and 22 of the 314 jobs
 on the areas map — and the ceiling stays as the guard it always was, so one
 enormous job never speaks for a month.
 
+The alert was the one place that ceiling was not applied, and nobody had
+noticed because nothing up there could reach it: no residential quote has
+passed $50,000 in four months. Commercial has four open right now, the largest
+at **$668,000**, so the moment commercial started counting, one of them
+re-priced was a full-screen alert carrying a figure no tile on the board would
+admit to. It now obeys the same ceiling, judged on the quote rather than on
+each option — filtering options one at a time would leave a job whose top
+option is $668,000 cheering its cheapest and reading like an ordinary day.
+
 The only business-unit filter left is the Field Plus import placeholder, and it
 is applied in code rather than in the query. `business_unit` is null on **151
 of the 273** jobs completed in the last sixty days — ServiceTitan's import
