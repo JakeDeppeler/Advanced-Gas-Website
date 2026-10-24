@@ -2327,3 +2327,55 @@
 }
 .page-home .qfin__opt:hover { border-color: var(--sky); }
 .page-home .qfin__opt.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+/* ---------- Layout v2 (preview) ---------- */
+.page-home .reviews__sub { margin: 8px 0 0; color: var(--ink-2); font-size: 16px; }
+
+/* Why-us, folded under the services bento */
+.page-home .whyrow { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
+.page-home .whyrow__h {
+  font-family: var(--f-display); font-size: 26px; font-weight: 800; color: var(--navy);
+  margin: 0 0 20px; letter-spacing: -0.01em;
+}
+.page-home .whyrow__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 28px;
+}
+.page-home .whyrow__list li { display: flex; gap: 12px; align-items: flex-start; }
+.page-home .whyrow__list strong { display: block; color: var(--navy); font-size: 16px; margin-bottom: 2px; }
+.page-home .whyrow__list span:not(.tick) { color: var(--ink-2); font-size: 14.5px; line-height: 1.45; }
+@media (max-width: 900px) { .page-home .whyrow__list { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) {
+  .page-home .whyrow { margin-top: 40px; padding-top: 28px; }
+  .page-home .whyrow__list { grid-template-columns: 1fr; gap: 14px; }
+}
+
+/* How it works, as six steps in a row. Not .steps: design-system.css
+   already owns that name for the arrowed process grid. */
+.page-home .howto { position: relative; padding: 96px 0 88px; background: var(--navy); color: #fff; }
+.page-home .howto .ds-section-head { margin-bottom: 40px; }
+.page-home .howto .ds-section-head h2 { color: #fff; }
+.page-home .howto .ds-section-head p { color: rgba(255,255,255,0.78); margin-left: auto; margin-right: auto; }
+.page-home .howto__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;
+  counter-reset: none;
+}
+.page-home .howto__step {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 20px 16px 18px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 16px;
+}
+.page-home .howto__n { font-family: var(--f-mono); font-size: 12px; color: var(--orange); font-weight: 700; letter-spacing: 0.06em; }
+.page-home .howto__t { font-family: var(--f-display); font-size: 17px; line-height: 1.2; }
+.page-home .howto__h { font-size: 14px; line-height: 1.45; color: rgba(255,255,255,0.85); }
+.page-home .howto__why {
+  margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.14);
+  font-size: 12.5px; line-height: 1.4; color: rgba(255,255,255,0.65);
+}
+@media (max-width: 1100px) { .page-home .howto__list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .page-home .howto { padding: 60px 0 56px; }
+  .page-home .howto__list { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page-home .howto__step { padding: 16px 14px; }
+}

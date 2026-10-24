@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { CountUp } from "@/components/CountUp";
-import { HomeJourney } from "@/components/HomeJourney";
+import { HOME_JOURNEY } from "@/lib/homeJourney";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
@@ -397,6 +397,73 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* REVIEWS — straight after the quote form. They sat two-thirds of the
+          way down, under ten thousand pixels; every competitor puts theirs at
+          the top, and someone deciding whether to ask for a quote is the one
+          who needs them. */}
+      <section className="reviews" style={{ position: "relative" }}>
+        <MockFlag>Moved up · was near the bottom</MockFlag>
+        <div className="wrap">
+          <div className="reviews__head">
+            <div>
+              <span className="ds-eyebrow"><span className="ds-dot" /> Reviews</span>
+              <h2>What our customers say</h2>
+              <p className="reviews__sub">Real Pakenham, Berwick &amp; Officer households, straight from Google.</p>
+            </div>
+            <div className="reviews__badge">
+              <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
+              <div><strong>{RATING_TEXT} / 5</strong> from {RATING_SUMMARY.count} Google reviews</div>
+            </div>
+          </div>
+
+          <div className="reviews__marquee" aria-label="Recent Google reviews">
+            {REVIEW_COLUMNS.map((col, ci) => (
+              <div key={ci} className={`revcol revcol--${ci + 1}`}>
+                <div className="revcol__track">
+                  {[...col, ...col].map((r, ri) => (
+                    <article key={`${ci}-${ri}`} className="revcard">
+                      <div className="revcard__stars">★★★★★</div>
+                      <h3 className="revcard__title">{r.title}</h3>
+                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                      <div className="revcard__by">
+                        <span className="revcard__avatar">{r.a}</span>
+                        <div>
+                          <strong>{r.who}</strong>
+                          <span>{r.what}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
+            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
+          </div>
+
+          {/* Mobile-only auto-scrolling review marquee. Cards duplicated
+              so the CSS translateX(-50%) loop reads seamless. */}
+          <div className="reviews__rail" aria-hidden="true">
+            <div className="reviews__rail-track">
+              {[...liveReviews.slice(0, 8), ...liveReviews.slice(0, 8)].map((r, i) => (
+                <article key={`m-${i}`} className="revcard revcard--mobile">
+                  <div className="revcard__stars">★★★★★</div>
+                  <h3 className="revcard__title">{r.title}</h3>
+                  <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                  <div className="revcard__by">
+                    <span className="revcard__avatar">{r.a}</span>
+                    <div>
+                      <strong>{r.who}</strong>
+                      <span>{r.what}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FIXED-PRICE INSTALLS */}
       <section className="veu" id="rebates">
         <div className="wrap">
@@ -405,9 +472,9 @@ export default async function HomePage() {
               <span className="ds-dot ds-dot--orange" />
               What a proper install costs
             </span>
-            <h2 className="ds-h--on-dark">The standard doesn&rsquo;t change with the price.</h2>
+            <h2 className="ds-h--on-dark">What an install costs</h2>
             <p className="veu__sub veu__sub--center">
-              These are the three jobs we do most, with the VEU rebate already off and GST in. The number changes.
+              The standard doesn&rsquo;t change with the price. These are the three jobs we do most, with the VEU rebate already off and GST in. The number changes.
               The day doesn&rsquo;t: the same crew, the same procedures, the old unit taken away, and the compliance
               certificate and warranty pack emailed within 24&nbsp;hours, whichever one you pick.
             </p>
@@ -530,12 +597,13 @@ export default async function HomePage() {
       </section>
 
       {/* SERVICES BENTO */}
-      <section className="services" id="services">
+      <section className="services" id="services" style={{ position: "relative" }}>
+        <MockFlag>Merged · services and why-us in one</MockFlag>
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> What we do</span>
-            <h2>Everything gas, hot water &amp; air, under one local team.</h2>
-            <p>From a new split system in the bedroom to a full ducted retrofit and emergency gas leak callouts, same crew, same paperwork, same warranty.</p>
+            <h2>Our services</h2>
+            <p>Everything gas, hot water and air, under one local team. From a new split system in the bedroom to a full ducted retrofit and emergency gas leak callouts, same crew, same paperwork, same warranty.</p>
           </div>
 
           <div className="bento">
@@ -630,60 +698,47 @@ export default async function HomePage() {
               </div>
             </Link>
           </div>
+
+          {/* WHY US — folded in under the services. It was its own 1,100px
+              section straight after this one, making the same case twice. */}
+          <div className="whyrow">
+            <h3 className="whyrow__h">Why choose us</h3>
+            <ul className="whyrow__list">
+              {[
+                ["Brands we'd put in our own homes", "Chosen because they last, with parts in every Reece store."],
+                ["Our own crew, every job", "Directly employed. The person who quotes it is on site when it goes in."],
+                ["The install is the product", "Bracket, drain fall, pipe runs and commissioning, done properly."],
+                ["The standard is written down", "Twenty procedures, so the job never depends on who turned up."],
+                ["Certified and documented", "Photos on the day, compliance certificate within 24 hours."],
+                ["Still here after", "Six years on our workmanship, and a call the week after."],
+              ].map(([t, d]) => (
+                <li key={t}><span className="tick">✓</span><div><strong>{t}</strong><span>{d}</span></div></li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
-      {/* WHY US */}
-      <section className="whyus">
+      {/* HOW IT WORKS — six steps in a row. It was a scroll-driven story
+          2,900px tall, nearly a fifth of the page, for six sentences. */}
+      <section className="howto">
+        <MockFlag>Shortened · was 2,900px tall</MockFlag>
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> One standard, every job</span>
-            <h2>Anyone can hang a unit on a wall. The standard is everything around it.</h2>
-            <p>
-              The box is the same wherever you buy it. What changes is who installs it, what they do when nobody&rsquo;s
-              watching, and whether it still runs the way it should in five years.
-            </p>
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> The process</span>
+            <h2>How it works</h2>
+            <p>Simple, honest, no runaround. Six steps from the photo you send us to the week after it&rsquo;s in.</p>
           </div>
-          <div className="why-grid">
-            {[
-              ["01", "Brands we'd put in our own homes", "Reclaim, Mitsubishi Electric, Kaden, Brivis. Chosen because they last and because parts are in every Reece store, not because they were cheapest that week."],
-              ["02", "Our own crew, every job", "Directly employed installers and apprentices. Not labour hire, not a different subcontractor each time. The person who quotes it is on site when it goes in."],
-              ["03", "The install is the product", "Bracket, drain fall, pipe runs, insulation, commissioning. That's where a good unit becomes a good system or a callback, and it's the part nobody photographs."],
-              ["04", "The standard is written down", "Twenty procedures covering how a van is stocked, what gets photographed, what gets tested and what happens when something goes wrong. Not folklore, and not down to who turned up."],
-              ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours. Keep it for your insurer."],
-              ["06", "We're still here after", "Six years on our workmanship, manufacturer warranty on the unit, and a call the week after to make sure it's running the way we left it."],
-            ].map(([n, t, d], i) => (
-              <div key={n} className="why" style={{ ["--i" as string]: i }}>
-                <div className="why__num">/{n}</div>
-                <h3>{t}</h3>
-                <p>{d}</p>
-              </div>
+          <ol className="howto__list">
+            {HOME_JOURNEY.map((b) => (
+              <li key={b.n} className="howto__step">
+                <span className="howto__n">{b.n}</span>
+                <strong className="howto__t">{b.kicker}</strong>
+                <span className="howto__h">{b.h}</span>
+                <span className="howto__why">{b.why}</span>
+              </li>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* THE JOURNEY — the job from the other side of the front door.
-
-          This was six cards in a grid, which is the same shape as the four
-          sections above it, so it had no rank on the page and read as another
-          list of features. Somebody deciding whether to let a trade into their
-          house is following a story, so they get one: the drawing holds while
-          the beats move past it, and each beat ends on the line that says why
-          it matters that it is us. Same component as the commercial page's
-          plans-to-open-doors run, different drawings — a phone, a quote, a van
-          in a driveway, a head unit on a lounge room wall. */}
-      <section className="process">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How it works</span>
-            <h2 className="ds-h--on-dark">Simple, honest, no runaround.</h2>
-            <p className="process__lede">
-              From the photo you send us to the week after it is in. Six steps, and what we are holding ourselves to
-              at each of them.
-            </p>
-          </div>
-          <HomeJourney />
+          </ol>
         </div>
       </section>
 
@@ -709,75 +764,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* REVIEWS — social proof sits low on the page now, right after
-          "where we work" and before the questions + closing CTA. */}
-      <section className="reviews">
-        <div className="wrap">
-          <div className="reviews__head">
-            <div>
-              <span className="ds-eyebrow"><span className="ds-dot" /> What locals say</span>
-              <h2>Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
-            </div>
-            <div className="reviews__badge">
-              <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>{RATING_TEXT} / 5</strong> from {RATING_SUMMARY.count} Google reviews</div>
-            </div>
-          </div>
-
-          <div className="reviews__marquee" aria-label="Recent Google reviews">
-            {REVIEW_COLUMNS.map((col, ci) => (
-              <div key={ci} className={`revcol revcol--${ci + 1}`}>
-                <div className="revcol__track">
-                  {[...col, ...col].map((r, ri) => (
-                    <article key={`${ci}-${ri}`} className="revcard">
-                      <div className="revcard__stars">★★★★★</div>
-                      <h3 className="revcard__title">{r.title}</h3>
-                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
-                      <div className="revcard__by">
-                        <span className="revcard__avatar">{r.a}</span>
-                        <div>
-                          <strong>{r.who}</strong>
-                          <span>{r.what}</span>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
-            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
-          </div>
-
-          {/* Mobile-only auto-scrolling review marquee. Cards duplicated
-              so the CSS translateX(-50%) loop reads seamless. */}
-          <div className="reviews__rail" aria-hidden="true">
-            <div className="reviews__rail-track">
-              {[...liveReviews.slice(0, 8), ...liveReviews.slice(0, 8)].map((r, i) => (
-                <article key={`m-${i}`} className="revcard revcard--mobile">
-                  <div className="revcard__stars">★★★★★</div>
-                  <h3 className="revcard__title">{r.title}</h3>
-                  <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
-                  <div className="revcard__by">
-                    <span className="revcard__avatar">{r.a}</span>
-                    <div>
-                      <strong>{r.who}</strong>
-                      <span>{r.what}</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className="faq">
         <div className="wrap faq__grid">
           <div className="faq__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Questions we get a lot</span>
-            <h2>Heat pumps, rebates &amp; the fine print.</h2>
+            <span className="ds-eyebrow"><span className="ds-dot" /> FAQ</span>
+            <h2>Common questions</h2>
             <p>Quick honest answers. Still want a human? <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>Call {site.phone}</a>.</p>
           </div>
           <div className="faq__right">
@@ -798,7 +790,7 @@ export default async function HomePage() {
           <div className="tips__head">
             <div>
               <span className="ds-eyebrow"><span className="ds-dot" /> Expert tips</span>
-              <h2>Straight advice, from the people on the tools.</h2>
+              <h2>Guides &amp; tips</h2>
             </div>
             <Link href="/blog" className="tips__all">Read the blog →</Link>
           </div>
