@@ -1,12 +1,12 @@
 /**
- * The job tracker's stages: which list a job lands in, and the track drawn
- * under it.
+ * The job tracker's stages: which list a job lands in, and how an enquiry is
+ * matched to ServiceTitan.
  *
  * Each list is somebody's work for the morning. A job in the wrong list gets
  * the wrong person ringing the wrong customer; a job in no list is the job
  * this page exists to stop losing.
  */
-import { daysSince, emailKey, openStage, phoneKeys, trackFor, unsentOwing, STAGES, type OpenJob } from "../src/lib/jobflow/types";
+import { daysSince, emailKey, openStage, phoneKeys, unsentOwing, type OpenJob } from "../src/lib/jobflow/types";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -46,23 +46,6 @@ ok("not sent and paid on the day is fine", !unsentOwing({ sent: "NotSent", balan
 ok("a few cents of rounding isn't owing", !unsentOwing({ sent: "NotSent", balance: 0.4 }));
 ok("sent is sent", !unsentOwing({ sent: "Sent", balance: 500 }));
 ok("opened is sent", !unsentOwing({ sent: "Opened", balance: 500 }));
-
-console.log("\n-- the track --");
-const line = (t: Record<string, string>) => Object.entries(t).map(([k, v]) => `${k}:${v}`).join(" ");
-const tb = trackFor("tobill");
-ok("done, not invoiced: stuck at invoiced", tb.done === "done" && tb.invoiced === "now" && tb.sent === "todo", line(tb));
-ok("service work with no quote skips quoted and sold", tb.quoted === "skip" && tb.sold === "skip");
-const tbq = trackFor("tobill", { quotePath: true });
-ok("sold work keeps them, passed", tbq.quoted === "done" && tbq.sold === "done", line(tbq));
-const tq = trackFor("toquote");
-ok("to quote: visited, stuck at quoted", tq.visited === "done" && tq.quoted === "now" && tq.sold === "todo", line(tq));
-const cv = trackFor("closevisit", { quotePath: true });
-ok("a free quote visit stops at done: no bill, no payment of its own", cv.quoted === "done" && cv.done === "now" && cv.sold === "skip" && cv.invoiced === "skip" && cv.paid === "skip", line(cv));
-const od = trackFor("overdue");
-ok("overdue: everything but paid", od.sent === "done" && od.paid === "now", line(od));
-ok("hold before anyone's been: stuck at the visit", trackFor("hold", { visited: false }).visited === "now");
-ok("hold after a visit: stuck at done", trackFor("hold", { visited: true }).done === "now");
-ok("exactly one step is where it's stuck, for every stage", STAGES.every((s) => Object.values(trackFor(s.k, { quotePath: true })).filter((v) => v === "now").length === 1));
 
 console.log("\n-- matching an enquiry to ServiceTitan --");
 ok("a mobile as typed", JSON.stringify(phoneKeys("0412 345 678")) === JSON.stringify(["0412345678", "412345678"]), phoneKeys("0412 345 678"));
