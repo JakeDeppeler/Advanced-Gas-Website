@@ -83,7 +83,7 @@ export default async function OfficeTodayPage() {
         how: "Finished? Complete it so it can be billed. A quote visit closes once its quote is written, or gets quoted. Not finished? Book the return or put it on hold.",
         where: "Portal → Job tracker",
         line: null, unit: "", st: st(all, all > 0),
-        more: { href: "/portal/tracker#notclosed", label: `${o.notClosed} left open · ${o.closeVisit} quote visits to close · ${o.toQuote} to quote` },
+        more: { href: "/portal/tracker?c=doing#list", label: `${o.notClosed} left open · ${o.closeVisit} quote visits to close · ${o.toQuote} to quote` },
       } satisfies Step;
     })(d.leftOpen)] : []),
     {
