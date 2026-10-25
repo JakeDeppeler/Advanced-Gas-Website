@@ -59,7 +59,7 @@ export const FIELDS: FieldSpec[] = [
   { table: "st_jobs", column: "completed_on", expect: "partial",
     why: "a job booked and not yet done has none, which is most of a recent month" },
   { table: "st_jobs", column: "scheduled_on", expect: "absent",
-    why: "appointment times are on ServiceTitan's appointments resource, not the job export — the board blanks the 'scheduled next 7 days' tile rather than showing a measured-looking zero" },
+    why: "appointment times are on ServiceTitan's appointments resource, not the job export; the 'next 7 days' figure reads st_appointments instead" },
   { table: "st_jobs", column: "campaign", expect: "absent",
     why: "the job export sends campaignId and no name, and there is no campaigns lookup synced; nothing on the board reads it" },
 

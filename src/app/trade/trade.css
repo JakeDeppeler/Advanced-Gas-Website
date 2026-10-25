@@ -628,3 +628,16 @@
 }
 /* Your numbers on the trade home: three cards, one a row on a phone. */
 @media (max-width: 560px) { .tr-grid--nums { grid-template-columns: minmax(0, 1fr); } }
+
+/* My jobs: a row a job, its actions underneath on the full width so the
+   buttons stay thumb-sized on a phone. */
+.tr-card--warnline { box-shadow: inset 4px 0 0 var(--tr-orange-dk); }
+.tr-jobrows { display: flex; flex-direction: column; }
+.tr-jobrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; padding: 14px 0; border-top: 1px solid var(--tr-line); }
+.tr-jobrows > .tr-jobrow:first-child { border-top: 0; }
+.tr-jobrow__k { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tr-jobrow__k strong { font-size: 17.5px; line-height: 23px; font-weight: 800; overflow-wrap: anywhere; }
+.tr-jobrow__k span { font-size: 15px; line-height: 20px; color: var(--tr-ink-2); }
+.tr-jobact { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; }
+.tr-jobact__btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tr-jobact__form { display: flex; flex-direction: column; gap: 8px; }
