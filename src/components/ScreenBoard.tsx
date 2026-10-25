@@ -912,7 +912,8 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
             sub:
               footWithTarget(
                 today?.booked.need,
-                `from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"}`,
+                `from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"}` +
+                  (m.jobsScheduledNext7 != null ? ` · ${count(m.jobsScheduledNext7)} in the next 7 days` : ""),
                 "count",
               ) ?? "",
           },

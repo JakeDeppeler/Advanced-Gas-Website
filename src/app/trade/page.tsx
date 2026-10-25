@@ -12,6 +12,7 @@ import { bonusFor } from "@/lib/portal/commissionTypes";
 import { isOpenReport, toolState } from "@/lib/portal/vanParts";
 import { leaveLabel } from "@/lib/portal/peopleParts";
 import { localToday } from "@/lib/portal/xero";
+import { myJobs } from "@/lib/portal/tradeJobs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Trade portal" };
@@ -44,7 +45,7 @@ export default async function TradeHome() {
   const today = localToday();
   const week = await mondayWeek(user.id);
   const van = week.van;
-  const [month, mine, reports, orders, tools, leave, unread, dt, rule] = await Promise.all([
+  const [month, mine, reports, orders, tools, leave, unread, dt, rule, jobs] = await Promise.all([
     myMonth(user.name),
     myOpenQuotes(user.name),
     van ? listReports(van.id, 20) : [],
@@ -54,11 +55,16 @@ export default async function TradeHome() {
     tradeNotices(user).then((t) => t.unread).catch(() => 0),
     myDayAndTeam(user.name).catch(() => ({ day: null, team: null })),
     commissionRule().catch(() => null),
+    myJobs(user.name).catch(() => null),
   ]);
   const bonus = month && rule && rule.monthTarget > 0 ? bonusFor(month.sold, rule) : null;
   const hrs = (h: number) => `${h.toFixed(1)} h`;
 
   const needs: Need[] = [];
+  const leftOpen = (jobs?.open ?? []).filter((j) => !j.doneBy);
+  if (leftOpen.length) {
+    needs.push({ icon: "check", title: `${leftOpen.length} ${leftOpen.length === 1 ? "job" : "jobs"} left open after your visit`, sub: "Say if the work's done, or what's left", chip: "Sort it", tone: "warn", href: "/trade/jobs" });
+  }
   if (unread > 0) {
     needs.push({ icon: "chat", title: `${unread} ${unread === 1 ? "thing" : "things"} from the office`, sub: "Waiting in Messages", chip: "Read", tone: "warn", href: "/trade/messages" });
   }
@@ -67,7 +73,7 @@ export default async function TradeHome() {
       icon: "tag",
       title: `${mine.open} ${mine.open === 1 ? "quote" : "quotes"} waiting on a yes`,
       sub: mine.quiet ? `${mine.quiet === 1 ? "One has" : `${mine.quiet} have`} gone quiet${mine.quietestDays ? ` · the longest ${mine.quietestDays} days` : ""}` : "All written in the last week",
-      chip: "Follow up", tone: "warn",
+      chip: "Follow up", tone: "warn", href: "/trade/quotes",
     });
   }
   if (van && week.done < week.steps.length) {
@@ -177,7 +183,7 @@ export default async function TradeHome() {
           your bonus, the team's month. Never costs, margins or anyone's pay. */}
       <div className="tr-grid tr-grid--3 tr-grid--nums" style={{ marginTop: 14 }}>
         <section className="tr-card tr-stack" style={{ gap: 8 }}>
-          <div className="tr-card__h" style={{ marginBottom: 0 }}><h2>Your day</h2></div>
+          <div className="tr-card__h" style={{ marginBottom: 0 }}><h2>Your day</h2><Link href="/trade/jobs">My jobs →</Link></div>
           {dt.day ? (
             <>
               <span className="tr-big">{dt.day.jobsDone} of {dt.day.jobsTotal}</span>

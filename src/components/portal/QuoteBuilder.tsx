@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ProductArt } from "@/components/portal/ProductArt";
 import { QuotingFor } from "@/components/portal/QuoteBits";
 import { MAX_OPTIONS, optionTotal, useQuote } from "@/components/portal/quoteStore";
+import { sendQuoteToOffice } from "@/app/trade/quote/actions";
 
 const money = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 
@@ -22,6 +23,16 @@ export function QuoteBuilder() {
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
   const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState<{ ok: boolean; text: string } | null>(null);
+  const [sending, start] = useTransition();
+
+  function send() {
+    setSent(null);
+    start(async () => {
+      const r = await sendQuoteToOffice(q);
+      setSent({ ok: r.ok, text: r.ok ? r.said ?? "Sent." : r.error ?? "That didn't send." });
+    });
+  }
 
   function addExtra() {
     const n = Number(amount.replace(/[$,\s]/g, ""));
@@ -124,7 +135,9 @@ export function QuoteBuilder() {
           </section>
           <button type="button" className="tr-btn tr-btn--block" disabled={!q.options.length} onClick={() => setShowing(true)}>Show the customer</button>
           {q.options.length < MAX_OPTIONS && <Link href="/trade/pricebook" className="tr-link" style={{ textAlign: "center", padding: "8px 0" }}>+ Add another option</Link>}
-          <p className="tr-small">The quote still goes out of ServiceTitan. This is what you build it from.</p>
+          <button type="button" className="tr-btn tr-btn--block tr-btn--go" disabled={!q.options.length || sending} onClick={send}>{sending ? "Sending…" : "Send to the office"}</button>
+          {sent && <p className={`tr-note ${sent.ok ? "tr-note--good" : "tr-note--warn"}`} role="status">{sent.text}</p>}
+          <p className="tr-small">The quote still goes out of ServiceTitan. Send it to the office and they write it up from this, every option and extra included.</p>
           {(q.options.length > 0 || q.extras.length > 0 || q.customer) && (
             <button type="button" className="tr-btn tr-btn--sm" onClick={() => update(() => ({ customer: "", options: [], extras: [] }))}>Start a new quote</button>
           )}

@@ -26,6 +26,7 @@ import { clearApprovedQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
 import { getTodo, updateTodo } from "@/lib/todos/store";
 import { isSold } from "@/lib/pipeline/types";
+import { loadTradeDone, saveTradeDone } from "@/lib/portal/tradeJobs";
 
 /**
  * Settings › Automatic: the jobs that turn something the portal can already
@@ -155,11 +156,11 @@ async function ensureLists(lists: string[], sw: AutoSwitches): Promise<string[]>
  * or by the flow from Won) is taken over rather than doubled.
  */
 const MIRROR = "automation_mirror";
-type MirrorTag = "book" | "follow" | "quote";
+type MirrorTag = "book" | "follow" | "quote" | "close";
 type MirrorItem = { key: string; title: string; notes: string; to: Person | null; dueOn: string; jobNumber: string | null; jobId?: number };
 type MirrorState = Partial<Record<MirrorTag, Record<string, { id: string; due: string }>>>;
 
-async function mirror(ctx: Ctx, state: MirrorState, tag: MirrorTag, kind: AutoKey, list: string | null, items: MirrorItem[], gone: string) {
+async function mirror(ctx: Ctx, state: MirrorState, tag: MirrorTag, kind: AutoKey, list: string | null, items: MirrorItem[], gone: string, cap = 80) {
   if (!list) return;
   const open = state[tag] ?? (state[tag] = {});
   const want = new Map(items.map((i) => [i.key, i]));
@@ -182,7 +183,7 @@ async function mirror(ctx: Ctx, state: MirrorState, tag: MirrorTag, kind: AutoKe
   const taken = new Set(Object.values(state).flatMap((m) => Object.values(m ?? {}).map((t) => t.id)));
   let n = 0;
   for (const i of items) {
-    if (open[i.key] || n >= 80) continue;
+    if (open[i.key] || n >= cap) continue;
     // A card for this job already: take it over, onto this list, rather than write a second.
     const same = onList.find((t) => !taken.has(t.id) && !ctx.flow[t.id] && (t.list === list || t.createdBy === "Automatic") && i.jobNumber && jobNumberIn(t) === i.jobNumber && (t.list === list || isQuoteish(t.title)));
     if (same) {
@@ -239,7 +240,10 @@ async function notInvoiced(ctx: Ctx) {
   for (const r of rows) {
     if (n >= PER_RUN) break;
     const done = isoDateMelbourne(new Date(r.at));
-    if (done >= ctx.today || daysBetween(done, ctx.today) > 14) continue;
+    // Everything since ServiceTitan became the ledger (toBillJobs starts there),
+    // not just the last fortnight: a fortnight cut-off is how a service done
+    // in September at $0 never got a card at all.
+    if (done >= ctx.today) continue;
     if (await todo(ctx, "notInvoiced", `bill:${r.id}`, {
       title: `Invoice job ${r.jobNumber ?? r.id}${r.customer ? `, ${r.customer}` : ""}`,
       notes: `${r.jobType ?? "Job"}${r.suburb ? ` in ${r.suburb}` : ""}, finished ${dayLabel(done)}${r.value ? `, sold at ${money(r.value)}` : ""}. No invoice in ServiceTitan yet.`,
@@ -368,6 +372,83 @@ async function quoteToWrite(ctx: Ctx, state: MirrorState) {
     to: null, dueOn: ctx.today, jobNumber: j.job_number, jobId: j.id,
   }));
   await mirror(ctx, state, "quote", "quoteToWrite", list, items, "Quote written in ServiceTitan. Off Quoting.");
+}
+
+/**
+ * Jobs left open in ServiceTitan after their last visit: still In Progress or
+ * Scheduled, every visit in the past and nothing booked ahead. Until a job's
+ * completed it can't be invoiced, and the board counts it as work still to do,
+ * so these are money and figures both. In October 2026 there were 219.
+ *
+ * A job with no visit at all isn't one of these (it's never been booked), nor
+ * is one on Hold, which somebody parked on purpose. A card each for a last
+ * visit in the last 60 days, to whoever was on that visit when they're on the
+ * team list, else the office; anything older is one card for the lot, because
+ * a hundred cards about June would bury this week's. Newest first, thirty a
+ * run, so the first run doesn't land the whole backlog at once.
+ */
+const CLOSE_RECENT_DAYS = 60;
+async function jobsToClose(ctx: Ctx, state: MirrorState) {
+  const list = ctx.lists.find((l) => /service\s*titan/i.test(l)) ?? listFor(ctx, false);
+  const jobs = await sbSelect<{ id: number; job_number: string | null; customer_name: string | null; suburb: string | null; status: string; job_type: string | null }>(
+    "st_jobs", "select=id,job_number,customer_name,suburb,status,job_type&status=in.(InProgress,Scheduled)&limit=3000");
+  const ids = jobs.map((j) => j.id);
+  const visits: { job_id: number; start_at: string; id: number }[] = [];
+  const crew: { job_id: number; appointment_id: number | null; technician_name: string | null }[] = [];
+  for (let i = 0; i < ids.length; i += 200) {
+    const chunk = ids.slice(i, i + 200).join(",");
+    const [v, c] = await Promise.all([
+      sbSelect<{ job_id: number; start_at: string; id: number }>("st_appointments", `select=id,job_id,start_at&job_id=in.(${chunk})&active=not.is.false&status=neq.Canceled`),
+      sbSelect<{ job_id: number; appointment_id: number | null; technician_name: string | null }>("st_appointment_assignments", `select=job_id,appointment_id,technician_name&job_id=in.(${chunk})&active=not.is.false`).catch(() => []),
+    ]);
+    visits.push(...v);
+    crew.push(...c);
+  }
+  // A job the tech has marked done from the trade portal is the office's now,
+  // on Invoice ready; its close card comes off. The mark goes once ServiceTitan
+  // has the job completed or cancelled, so it can't hide a job forever.
+  const techDone = await loadTradeDone();
+  const stillOpen = new Set(jobs.map((j) => String(j.id)));
+  const keep = Object.fromEntries(Object.entries(techDone).filter(([id]) => stillOpen.has(id)));
+  if (Object.keys(keep).length !== Object.keys(techDone).length) await saveTradeDone(keep).catch(() => undefined);
+  const byJob = new Map<number, { start_at: string; id: number }[]>();
+  for (const v of visits) (byJob.get(Number(v.job_id)) ?? byJob.set(Number(v.job_id), []).get(Number(v.job_id))!).push(v);
+  const recent: MirrorItem[] = [];
+  const old: { job: (typeof jobs)[number]; last: string }[] = [];
+  const sorted: { job: (typeof jobs)[number]; last: { start_at: string; id: number } }[] = [];
+  for (const j of jobs) {
+    const vs = byJob.get(Number(j.id)) ?? [];
+    if (!vs.length || keep[String(j.id)]) continue;
+    const last = vs.reduce((a, b) => (a.start_at > b.start_at ? a : b));
+    // A visit today or later: the job's still going, not left open.
+    if (isoDateMelbourne(new Date(last.start_at)) >= ctx.today) continue;
+    sorted.push({ job: j, last });
+  }
+  sorted.sort((a, b) => b.last.start_at.localeCompare(a.last.start_at));
+  for (const { job: j, last } of sorted) {
+    const day = isoDateMelbourne(new Date(last.start_at));
+    if (daysBetween(day, ctx.today) > CLOSE_RECENT_DAYS) { old.push({ job: j, last: day }); continue; }
+    const tech = crew.find((c) => Number(c.appointment_id) === Number(last.id))?.technician_name ?? crew.find((c) => Number(c.job_id) === Number(j.id))?.technician_name ?? null;
+    const status = j.status === "InProgress" ? "In Progress" : j.status;
+    recent.push({
+      key: `j${j.id}`,
+      title: `Close job ${j.job_number ?? j.id} in ServiceTitan${j.customer_name ? `, ${j.customer_name}` : ""}${j.suburb ? `, ${j.suburb}` : ""}`,
+      notes: `${j.job_type ?? "Job"} · last visit ${dayLabel(day)}${tech ? ` (${tech})` : ""}, still ${status} with nothing booked after it.\nWork done: complete it in ServiceTitan so it can be invoiced. More to do: book the next visit. Not going ahead: cancel it. Comes off by itself once it's any of those.`,
+      to: personNamed(ctx, tech), dueOn: ctx.today, jobNumber: j.job_number, jobId: j.id,
+    });
+  }
+  if (old.length) {
+    const oldest = old.reduce((a, b) => (a.last < b.last ? a : b)).last;
+    recent.push({
+      key: "older",
+      // No count in the title: the card's written once and only its due day
+      // follows, so a number there would go stale as the office works through them.
+      title: `Older jobs still open in ServiceTitan, last visited over ${CLOSE_RECENT_DAYS} days ago`,
+      notes: `${old.length} when this card was written, the oldest visited ${dayLabel(oldest)}. Each is still In Progress or Scheduled with nothing booked. Complete, rebook or cancel them in ServiceTitan; the Job tracker has the live list. This card comes off once none are left.\n${old.slice(0, 40).map((o) => `#${o.job.job_number ?? o.job.id} ${o.job.customer_name ?? ""} (${dayLabel(o.last)})`).join("\n")}`.slice(0, 2000),
+      to: null, dueOn: ctx.today, jobNumber: null,
+    });
+  }
+  await mirror(ctx, state, "close", "jobsToClose", list, recent, "Completed, rebooked or cancelled in ServiceTitan, or marked done by the tech. Off the list.", 30);
 }
 
 /**
@@ -752,6 +833,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
   const jobs: Array<[AutoKey, () => Promise<void>]> = [
     ["soldNotBooked", () => (pipe ? soldNotBooked(ctx, pipe, mirrorState) : Promise.reject(new Error("The pipeline couldn't be read")))],
     ["quoteToWrite", () => quoteToWrite(ctx, mirrorState)],
+    ["jobsToClose", () => jobsToClose(ctx, mirrorState)],
     ["notInvoiced", () => notInvoiced(ctx)],
     ["factoryMin", () => factoryMin(ctx)],
     ["quoteFollow", () => (pipe ? quoteFollow(ctx, pipe, mirrorState) : Promise.reject(new Error("The pipeline couldn't be read")))],

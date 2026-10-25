@@ -792,20 +792,23 @@ async function serviceTitanMetrics(now: Date) {
   // Today as well as the week. The week's figure alone, on a page headed Today,
   // was read as today's: thirty jobs since Monday looked like thirty since
   // breakfast. Showing both beats labelling one harder.
-  const [jobsCompletedToday, jobsCompletedWeek, scheduledSoon, anyScheduled] = await Promise.all([
+  const [jobsCompletedToday, jobsCompletedWeek, soonVisits, anyVisits] = await Promise.all([
     sbCount("st_jobs", [q.gte("completed_on", startOfDayMelbourne(now).toISOString()), q.eq("status", "Completed")].join("&")),
     sbCount("st_jobs", [q.gte("completed_on", weekStart.toISOString()), q.eq("status", "Completed")].join("&")),
-    sbCount(
-      "st_jobs",
-      [q.gte("scheduled_on", now.toISOString()), q.lt("scheduled_on", addDays(now, 7).toISOString())].join("&"),
-    ),
-    sbCount("st_jobs", q.notNull("scheduled_on")),
+    // Appointment times live on ServiceTitan's appointments, not the job
+    // export, so st_jobs.scheduled_on is never filled; this used to read it
+    // and blank forever. Jobs, not visits: a two-day install is one job.
+    sbSelect<{ job_id: number | null }>(
+      "st_appointments",
+      [q.select("job_id"), q.gte("start_at", now.toISOString()), q.lt("start_at", addDays(now, 7).toISOString()), "active=not.is.false", "status=neq.Canceled"].join("&"),
+    ).catch(() => null),
+    sbCount("st_appointments", "").catch(() => 0),
   ]);
 
-  // Not one job in the replica carries an appointment time, so "0 scheduled"
-  // would be a statement about the sync dressed up as a statement about next
-  // week. Null blanks the tile instead, and the board says so.
-  const jobsScheduledNext7 = anyScheduled > 0 ? scheduledSoon : null;
+  // Null when the appointments sync has never run or the read failed: "0
+  // booked" would be a statement about the sync dressed up as one about next
+  // week, so the figure is left off instead.
+  const jobsScheduledNext7 = soonVisits && anyVisits > 0 ? new Set(soonVisits.map((v) => v.job_id).filter((j) => j != null)).size : null;
 
   /**
    * What customers actually paid today.
