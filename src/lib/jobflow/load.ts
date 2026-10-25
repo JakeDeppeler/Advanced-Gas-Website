@@ -21,6 +21,10 @@ export type FlowRow = {
   key: string;
   title: string;
   sub: string[];
+  /** Who, where and what, apart, for a board card to lay out as it likes. */
+  customer: string | null;
+  place: string | null;
+  kind: string | null;
   st: { k: Tone; w: string };
   /** Inc GST: the invoice where there is one, else what was sold or quoted. */
   value: number | null;
@@ -226,6 +230,7 @@ export function openRow(j: OpenFacts, nowMs: number): FlowRow {
   return {
     key: `job-${j.id}`,
     title: [j.jobType ?? "Job", j.suburb].filter(Boolean).join(" · "),
+    customer: j.customer, place: j.suburb, kind: j.jobType,
     sub: [j.jobNumber ? `#${j.jobNumber}` : null, j.customer, j.techs.length ? j.techs.join(", ") : null, note].filter((s): s is string => !!s),
     st, value, days,
     stUrl: stJobUrl(j.id),
@@ -288,6 +293,7 @@ async function enquiries(nowMs: number): Promise<FlowRow[]> {
     out.push({
       key: `lead-${l.id}`,
       title: [l.service ? serviceLabel(l.service) : "Enquiry", l.suburb].filter(Boolean).join(" · "),
+      customer: l.name, place: l.suburb, kind: l.service ? serviceLabel(l.service) : null,
       sub: [l.name, phonePretty(l.phone), custs.length ? "a customer already, nothing booked since" : "not in ServiceTitan"].filter((s): s is string => !!s),
       st: age(days, 2),
       value: null, days, stUrl: null,
@@ -313,6 +319,7 @@ async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: Fl
     return {
       key: `quote-${x.key}`,
       title: [x.what ?? "Quote", x.suburb].filter(Boolean).join(" · "),
+      customer: x.customer, place: x.suburb, kind: x.what,
       sub: [x.jobNumber ? `#${x.jobNumber}` : null, x.customer, stage === "quoted" ? `quoted ${ago(from, nowMs)}` : null, x.owner].filter((s): s is string => !!s),
       st, value: x.value || null, days,
       stUrl: x.jobId ? stJobUrl(x.jobId) : null,
@@ -335,6 +342,7 @@ async function toBill(nowMs: number): Promise<FlowRow[]> {
     return {
       key: `job-${r.id}`,
       title: [r.jobType ?? "Job", r.suburb].filter(Boolean).join(" · "),
+      customer: r.customer ?? null, place: r.suburb, kind: r.jobType,
       sub: [r.jobNumber ? `#${r.jobNumber}` : null, r.customer ?? null].filter((s): s is string => !!s),
       // The same words and thresholds as Jobs › Not billed.
       // Not billed's thresholds: late past a week, worth a nudge past two days.
@@ -366,6 +374,7 @@ async function toSend(nowMs: number): Promise<FlowRow[]> {
     out.push({
       key: `inv-${i.id}`,
       title: [j.job_type ?? "Job", j.suburb].filter(Boolean).join(" · "),
+      customer: j.customer_name, place: j.suburb, kind: j.job_type,
       sub: [j.job_number ? `#${j.job_number}` : null, j.customer_name, i.invoice_number ? `invoice ${i.invoice_number}` : null].filter((s): s is string => !!s),
       st: age(days, 2),
       value: n(i.balance), days,
@@ -386,6 +395,7 @@ async function overdue(): Promise<{ rows: FlowRow[]; partial: "xero" | "servicet
     .map((i) => ({
       key: `owed-${i.from}-${i.number}`,
       title: i.contact || "Customer",
+      customer: i.contact || null, place: null, kind: `Invoice ${i.number}`,
       sub: [`invoice ${i.number}`, i.from === "xero" ? "in Xero" : "in ServiceTitan"],
       // Past its due date is late, by definition: the column's count and the card agree.
       st: { k: "bad" as const, w: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} late` },
