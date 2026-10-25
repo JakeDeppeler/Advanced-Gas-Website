@@ -69,6 +69,9 @@ async function release(fingerprint: string) {
   }).catch(() => undefined);
 }
 
+/** What a run drafts: change it with the rules (see the fingerprint). */
+const RULES = 2;
+
 export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {}): Promise<AutoDraftResult> {
   const now = new Date();
   const today = todayMelbourne();
@@ -86,7 +89,10 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
   // The date and the weeks are in it, so the first run of each weekday (and
   // Wednesday's, when next week comes in) always drafts: that is the morning run.
   const inputs = await loadWeekInputs({ start: today, end: nextWeek(now).end });
-  const fingerprint = createHash("sha1").update(JSON.stringify({ today, weeks, inputs })).digest("hex");
+  // RULES goes up whenever what a run drafts changes, so the first run after
+  // that deploy drafts even though no job has: the work-only run for next week
+  // sat unused a morning because the inputs hadn't moved since 9:47.
+  const fingerprint = createHash("sha1").update(JSON.stringify({ RULES, today, weeks, workOnlyNext, inputs })).digest("hex");
   if (!(await claim(fingerprint, !!opts.force))) return { ok: true, skipped: "no change since the last draft, or a draft is running" };
 
   const runs: { week: Week; r: DraftResult }[] = [];
