@@ -511,7 +511,14 @@ export type Metrics = {
     soldToday: number;
     soldWeek: number;
     jobs: number;
-    /** What they have written, sold or not — the measure while nothing closes through the site. */
+    /**
+     * What they have written, sold or not — the measure while nothing closes
+     * through the site.
+     *
+     * Per quote, at the average of the options on it: one job priced ten ways
+     * is one sale, so it goes in once. `quotes` counts the same way, so the
+     * pair divides into the average quote beside it.
+     */
     quoted: number;
     quotedToday: number;
     quotedWeek: number;
@@ -1961,21 +1968,62 @@ async function serviceTitanMetrics(now: Date) {
     bySeller.set(key, acc);
   }
 
-  // Everyone who has written a quote this month, whether or not one has closed.
-  // A page called Team that lists two of seven people reads as broken, and the
-  // work the other five did is the pipeline the sold figures come out of.
+  /**
+   * Everyone who has written a quote this month, whether or not one has closed.
+   * A page called Team that lists two of seven people reads as broken, and the
+   * work the other five did is the pipeline the sold figures come out of.
+   *
+   * **Per quote, not per option.** Jake's rule, and the only one that survives
+   * being said out loud: give a customer one price or ten, it is still one
+   * sale. This column summed every option written, so one kitchen priced five
+   * ways on 16 October — $19,541.50, $17,781.50, $6,000.50, $6,000.50 and
+   * $5,120.50, at most one of which can ever sell — went in at $54,444.50. Over
+   * the month that read $1,944,850 against his name for $501,640 of quoting,
+   * because he averages 3.9 prices a job.
+   *
+   * Nothing else on the board counted it that way: the close rate and the
+   * average quote on the same card are per job, the pipeline is per job, and
+   * the weekly target this figure is measured against is built per job — so the
+   * dial was comparing four of one thing to one of another. The card said
+   * "$1,944,850" over "112 jobs" with "avg quote $5,849" beside it, three
+   * numbers that cannot all be true.
+   *
+   * The middle of what was put in front of the customer, the same convention
+   * the pipeline and Quoted today already use: good, better and best are
+   * alternatives, so the average is the number that needs least defending. How
+   * many ways they priced it is not lost — it is the options figure under the
+   * average quote, which is where a rate belongs rather than inside a total.
+   */
+  const quoteOptions = new Map<string, number>();
+  const quotesBy = new Map<string, Set<string>>();
+  for (const r of createdRows) {
+    if (r.created_by == null) continue;
+    const k = `${r.created_by}|${quoteKey(r)}`;
+    quoteOptions.set(k, (quoteOptions.get(k) ?? 0) + 1);
+    const seen = quotesBy.get(r.created_by) ?? new Set<string>();
+    seen.add(k);
+    quotesBy.set(r.created_by, seen);
+  }
   for (const r of createdRows) {
     const key = r.created_by;
     if (key == null) continue;
     const acc = bySeller.get(key) ?? blank();
-    const v = Number(r.total ?? 0);
+    // Each option carries its share — the quote's total over the number of
+    // options on it — so the options on one job add up to their average
+    // wherever the days fall. The same arithmetic the pipeline figure above
+    // uses, which is why the two finally agree.
+    const v = Number(r.total ?? 0) / (quoteOptions.get(`${key}|${quoteKey(r)}`) ?? 1);
     acc.quoted += v;
-    acc.quotes += 1;
     if (r.created_on) {
       const at = new Date(r.created_on);
       if (at.getTime() >= weekStartMs) acc.quotedWeek += v;
       if (isoDateMelbourne(at) === today) acc.quotedToday += v;
     }
+    bySeller.set(key, acc);
+  }
+  for (const [key, seen] of quotesBy) {
+    const acc = bySeller.get(key) ?? blank();
+    acc.quotes = seen.size;
     bySeller.set(key, acc);
   }
 

@@ -2500,7 +2500,11 @@ function TeamCard({
         <span className="teamcard__stat">
           <span className="teamcard__k">Quoted</span>
           <b>{plain(r.quoted)}</b>
-          <span className="teamcard__sub">{count(r.quotedJobs)} jobs</span>
+          {/* The month's quotes, not the thirty-day job count that used to sit
+              here: the figure above is this month's, and a count from a wider
+              window under it made the two refuse to divide into the average
+              quote two tiles along. */}
+          <span className="teamcard__sub">{count(r.quotes)} quotes</span>
         </span>
         <span className="teamcard__stat">
           <span className="teamcard__k">Close rate</span>

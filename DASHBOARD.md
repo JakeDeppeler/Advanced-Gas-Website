@@ -1079,6 +1079,24 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
+**One job priced ten ways is one sale.** The Team page's quoted column summed
+every option written. One kitchen priced five ways on 16 October — $19,541.50,
+$17,781.50, $6,000.50, $6,000.50 and $5,120.50, at most one of which can ever
+sell — went in at **$54,444.50**, and over the month that read **$1,944,850**
+against Jake's name for **$501,640** of quoting, because he averages 3.9 prices
+a job. Nothing else counted it that way: the close rate and the average quote on
+the same card are per job, the pipeline is per job, and the weekly target the
+figure is measured against is built per job, so the dial compared four of one
+thing to one of another. The card read "$1,944,850" over "112 jobs" with "avg
+quote $5,849" beside it — three numbers that cannot all be true. It is now the
+average of the options, the convention the pipeline and Quoted today already
+use, with each option carrying its share so a job's options land on the days
+they were written. How many ways a job was priced is not lost; it is the options
+figure under the average quote, which is where a rate belongs rather than inside
+a total. The count under the money is now the month's quotes rather than the
+thirty-day job count, so the pair divides. Dean and Chaz swap places: Chaz
+writes more options, Dean writes more quotes.
+
 **A supplier on terms is not overdue.** The portal's Owe board already records
 who is being paid off on a schedule — the ATO on a payment plan, Metalflex on a
 line of credit — and already keeps their bills out of what is due this week.
