@@ -116,36 +116,6 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
               {b1 + b2 > 0 ? <><Bad>{money(b1 + b2)} is overdue</Bad>{oldest.length ? <>, {money(b2)} of it over 30 days.</> : "."}</> : "None of it is overdue."}
             </Say>
 
-            <section className="rp-panel rp-card mf-top" aria-labelledby="mf-top-h" style={{ ["--i" as string]: 0 }}>
-              <div className="rp-panel-h">
-                <span className="rp-hh"><b id="mf-top-h">Who owes us the most</b><span className="rp-note">Invoiced and unpaid, biggest first{ranked.length > 5 && billedTot > 0 ? ` · the top five are ${pc((top5 / billedTot) * 100)} of it` : ""}</span></span>
-              </div>
-              {top.length ? (
-                <ol className="mf-toplist">
-                  {top.map((w, i) => (
-                    <li key={w.name} className="mf-toprow">
-                      <span className="mf-toprank" aria-hidden="true">{i + 1}</span>
-                      <span className="mf-topwho">
-                        <b>{w.name}</b>
-                        <span className="mf-topsub">
-                          {w.seg === "realestate" ? "Real estate" : "Domestic"} · {plural(w.n, "invoice")} ·{" "}
-                          {w.over > 0
-                            ? <span className="mf-toplate">{money(w.over)} overdue, oldest {plural(w.oldest, "day")} late</span>
-                            : "none overdue"}
-                        </span>
-                        <span className="mf-topbar" aria-hidden="true">
-                          <i className="due" style={{ width: `${((w.total - w.over) / topMax) * 100}%` }} />
-                          <i className={w.oldest > 30 ? "bad" : "late"} style={{ width: `${(w.over / topMax) * 100}%` }} />
-                        </span>
-                      </span>
-                      <b className="mf-topamt">{money(w.total)}</b>
-                    </li>
-                  ))}
-                </ol>
-              ) : <p className="rp-empty">Nobody owes us for invoiced work.</p>}
-              {ranked.length > top.length && <p className="rp-note mf-topmore">{plural(ranked.length - top.length, "more customer")} below in Accounts receivable.</p>}
-            </section>
-
             <div className="mf-grid">
               <section className="rp-panel rp-card mf-flow" aria-labelledby="mf-flow-h" style={{ ["--i" as string]: 1 }}>
                 <div className="rp-panel-h">
@@ -199,6 +169,36 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
                 </div>
               </section>
             </div>
+
+            <section className="rp-panel rp-card mf-top" aria-labelledby="mf-top-h" style={{ ["--i" as string]: 3 }}>
+              <div className="rp-panel-h">
+                <span className="rp-hh"><b id="mf-top-h">Who owes us the most</b><span className="rp-note">Invoiced and unpaid, biggest first{ranked.length > 5 && billedTot > 0 ? ` · the top five are ${pc((top5 / billedTot) * 100)} of it` : ""}</span></span>
+              </div>
+              {top.length ? (
+                <ol className="mf-toplist">
+                  {top.map((w, i) => (
+                    <li key={w.name} className="mf-toprow">
+                      <span className="mf-toprank" aria-hidden="true">{i + 1}</span>
+                      <span className="mf-topwho">
+                        <b>{w.name}</b>
+                        <span className="mf-topsub">
+                          {w.seg === "realestate" ? "Real estate" : "Domestic"} · {plural(w.n, "invoice")} ·{" "}
+                          {w.over > 0
+                            ? <span className="mf-toplate">{money(w.over)} overdue, oldest {plural(w.oldest, "day")} late</span>
+                            : "none overdue"}
+                        </span>
+                        <span className="mf-topbar" aria-hidden="true">
+                          <i className="due" style={{ width: `${((w.total - w.over) / topMax) * 100}%` }} />
+                          <i className={w.oldest > 30 ? "bad" : "late"} style={{ width: `${(w.over / topMax) * 100}%` }} />
+                        </span>
+                      </span>
+                      <b className="mf-topamt">{money(w.total)}</b>
+                    </li>
+                  ))}
+                </ol>
+              ) : <p className="rp-empty">Nobody owes us for invoiced work.</p>}
+              {ranked.length > top.length && <p className="rp-note mf-topmore">{plural(ranked.length - top.length, "more customer")} below in Accounts receivable.</p>}
+            </section>
 
             <section className="rp-panel rp-card" aria-labelledby="mf-inv-h" style={{ ["--i" as string]: 3 }}>
               <div className="rp-panel-h"><b id="mf-inv-h">Invoices</b><Link href="/portal/jobs?tab=notbilled" className="rp-round" aria-label="Jobs done but not billed" title="Jobs done but not billed">↗</Link></div>
