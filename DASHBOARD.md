@@ -1079,6 +1079,37 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
+**The board is reconciled against the database, not trusted.**
+`scripts/audit-board.sql` recomputes every published figure straight from the
+tables, to the rule the code says it uses, and sets it beside what the snapshot
+actually published. Run it in the Supabase SQL editor after any change to
+`metrics.ts`; it is read-only and prints `ok` or `MISMATCH` per figure. It
+exists because three wrong figures reached the wall in a row — a column that
+summed quote options, a footer that divided month money by thirty-day counts,
+and a footer that summed per-person rows for jobs two people had quoted. None
+failed a typecheck, none looked wrong, and all three were found by somebody
+doing the arithmetic out loud in front of the screen. Seventeen figures
+reconcile to the cent; the two it caught are below.
+
+**The team's row is read off the board, not summed from the cards.** Seven jobs
+this month were priced by two people — one of them, job 301332677, carries
+seventeen options split between Jake and Jye. Each person's options were being
+averaged against their own count, so neither share was a share of anything and
+the job landed on the board twice: **$29,338** of double count against a month
+of $818,896, with the close rate reading 50 of 222 against the board's own 47 of
+209. The option share is now divided by the whole quote's option count, so the
+shares add back to the one average the Quotes page shows, and the team foot
+reads `quotesCreatedMonthValue`, `soldMtd` and `closeRate30d` directly. The
+cards do not sum to the foot, and that is correct: a job two people quoted is
+one quote and two people's work.
+
+**A cancelled job is not a booking.** It was one for as long as it took somebody
+to ring back, and the tile measures work coming in. One of this month's 234 was
+cancelled. One job is not the reason to fix it — a figure nobody can reproduce
+from the job list is a figure the room stops believing. Both the Today tile and
+the Pace funnel now exclude them, together, so the two pages cannot drift on the
+one word.
+
 **One job priced ten ways is one sale.** The Team page's quoted column summed
 every option written. One kitchen priced five ways on 16 October — $19,541.50,
 $17,781.50, $6,000.50, $6,000.50 and $5,120.50, at most one of which can ever

@@ -1224,11 +1224,19 @@ async function serviceTitanMetrics(now: Date) {
    * Nothing is excluded for wanting a technician or a slot on the dispatch
    * board. ServiceTitan's job export carries neither, and a job booked with no
    * appointment at all is still a booking — 229 of them in the last 90 days.
+   *
+   * **A cancelled job is not a booking.** It was one for as long as it took
+   * somebody to ring back, and the tile measures work coming in. One of this
+   * month's 234 was cancelled; it is one job, and the reason to take it out is
+   * not its size — it is that a figure nobody can reproduce from the job list
+   * is a figure the room stops believing.
    */
-  const bookedMonthRows = await sbSelect<{ job_type: string | null; created_on: string | null }>(
-    "st_jobs",
-    [q.select("job_type,created_on"), q.gte("created_on", monthStart.toISOString())].join("&"),
-  ).catch(() => []);
+  const bookedMonthRows = (
+    await sbSelect<{ job_type: string | null; created_on: string | null; status: string | null }>(
+      "st_jobs",
+      [q.select("job_type,created_on,status"), q.gte("created_on", monthStart.toISOString())].join("&"),
+    ).catch(() => [])
+  ).filter((r) => r.status !== "Canceled");
   const newWork = bookedMonthRows.filter((r) => jobClass(r.job_type) !== "install");
   const todayFrom = startOfDayMelbourne(now).toISOString();
   const bookedTodayRows = newWork.filter((r) => (r.created_on ?? "") >= todayFrom);
@@ -1994,14 +2002,31 @@ async function serviceTitanMetrics(now: Date) {
    * many ways they priced it is not lost — it is the options figure under the
    * average quote, which is where a rate belongs rather than inside a total.
    */
+  /*
+   * The option count is the quote's, not the person's.
+   *
+   * Seven jobs this month were priced by two people — one of them, job
+   * 301332677, carries seventeen options split between Jake and Jye. Divide
+   * each person's options by their own count and neither share is a share of
+   * anything: both come out at roughly the whole job's average, and the two
+   * together put the job on the board twice. That was $23,069 of double count
+   * against a month of $818,896.
+   *
+   * Keyed on the quote alone, each option carries total ÷ options-on-the-job,
+   * so whoever wrote it, the shares add back to the one average the Quotes
+   * page shows. The person still gets the quote on their own card: the count
+   * below is per person, because a job two people priced is a job both of them
+   * worked, and that is why the team's own count is read off the board's
+   * figure rather than summed from these.
+   */
   const quoteOptions = new Map<string, number>();
   const quotesBy = new Map<string, Set<string>>();
   for (const r of createdRows) {
+    const jk = quoteKey(r);
+    quoteOptions.set(jk, (quoteOptions.get(jk) ?? 0) + 1);
     if (r.created_by == null) continue;
-    const k = `${r.created_by}|${quoteKey(r)}`;
-    quoteOptions.set(k, (quoteOptions.get(k) ?? 0) + 1);
     const seen = quotesBy.get(r.created_by) ?? new Set<string>();
-    seen.add(k);
+    seen.add(jk);
     quotesBy.set(r.created_by, seen);
   }
   for (const r of createdRows) {
@@ -2012,7 +2037,7 @@ async function serviceTitanMetrics(now: Date) {
     // options on it — so the options on one job add up to their average
     // wherever the days fall. The same arithmetic the pipeline figure above
     // uses, which is why the two finally agree.
-    const v = Number(r.total ?? 0) / (quoteOptions.get(`${key}|${quoteKey(r)}`) ?? 1);
+    const v = Number(r.total ?? 0) / (quoteOptions.get(quoteKey(r)) ?? 1);
     acc.quoted += v;
     if (r.created_on) {
       const at = new Date(r.created_on);

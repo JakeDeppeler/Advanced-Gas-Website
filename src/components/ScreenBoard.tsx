@@ -2357,8 +2357,24 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
     .sort((a, b) => (paceIndex(b.sold, monthSoldByNow) ?? -1) - (paceIndex(a.sold, monthSoldByNow) ?? -1))
     .slice(0, TEAM_CARDS);
 
-  const teamSold = people.reduce((a, r) => a + r.sold, 0);
-  const teamQuoted = people.reduce((a, r) => a + r.quoted, 0);
+  /*
+   * The team's own row is read off the board's figures, not summed from the
+   * cards above it.
+   *
+   * A sum of per-person rows is the same number by a longer route only while
+   * every row is a clean slice of the whole, and these are not: seven jobs
+   * this month were priced by two people, so they appear on two cards. Summed,
+   * the team read $841,965 over 179 quotes where the Quotes page — the same
+   * month, the same rule — said $818,896 over 175, and the close rate read
+   * 50 of 222 against 47 of 209. Two numbers for one thing on a wall is worse
+   * than either of them being slightly off.
+   *
+   * So the foot shows what the rest of the board shows and the cards stay the
+   * per-person cut. They will not add up to it, and that is correct: a job two
+   * people quoted is one quote and two people's work.
+   */
+  const teamSold = m.soldMtd;
+  const teamQuoted = m.quotesCreatedMonthValue;
   /*
    * Two windows on this strip, and every ratio has to stay inside one of them.
    *
@@ -2377,10 +2393,10 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
    * the gap is not an error in either: the rate counts jobs rather than money,
    * and $59,782 of this month's sales came off quotes written before October.
    */
-  const teamSoldJobs = people.reduce((a, r) => a + r.jobs, 0);
-  const teamQuotes = people.reduce((a, r) => a + r.quotes, 0);
-  const teamWon30d = people.reduce((a, r) => a + r.soldJobs, 0);
-  const teamQuotedJobs = people.reduce((a, r) => a + r.quotedJobs, 0);
+  const teamSoldJobs = m.soldCountMonth;
+  const teamQuotes = m.quotesCreatedMonthCount;
+  const teamWon30d = m.closeRate30dSold;
+  const teamQuotedJobs = m.closeRate30dQuotes;
   const teamMonthTarget = m.pace?.month.sold.value ?? null;
   /*
    * Where the team as a whole stands, on the same scale as the cards above it.
@@ -2429,7 +2445,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           </span>
           <span className="teamfoot__stat">
             <span className="teamfoot__k">Close rate</span>
-            <b>{teamQuotedJobs > 0 ? pct(teamWon30d / teamQuotedJobs) : NA}</b>
+            <b>{m.closeRate30d != null ? pct(m.closeRate30d) : NA}</b>
             {/* Jobs, not money, and over its own window — said out loud because
                 the figure beside it is dollars and the two do not multiply. */}
             <span className="teamfoot__sub">
@@ -2443,7 +2459,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           </span>
           <span className="teamfoot__stat">
             <span className="teamfoot__k">Avg quote</span>
-            <b>{teamQuotes > 0 ? plain(teamQuoted / teamQuotes) : NA}</b>
+            <b>{m.avgQuoteMonth != null ? plain(m.avgQuoteMonth) : NA}</b>
           </span>
           {/*
             * What the month's sales were sold at, from the estimates themselves.

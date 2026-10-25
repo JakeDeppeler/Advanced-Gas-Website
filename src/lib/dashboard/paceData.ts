@@ -66,9 +66,9 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
   const [webLeads, stLeads, booked, done, quotedRows, soldRows, invoices, calls] = await Promise.all([
     sbSelect<{ created_at: string }>("portal_leads", [q.select("created_at"), q.gte("created_at", fromTs)].join("&")),
     sbSelect<{ created_on: string | null }>("st_leads", [q.select("created_on"), q.gte("created_on", fromTs)].join("&")).catch(() => []),
-    sbSelect<{ created_on: string | null; job_type: string | null }>(
+    sbSelect<{ created_on: string | null; job_type: string | null; status: string | null }>(
       "st_jobs",
-      [q.select("created_on,job_type"), q.gte("created_on", fromTs)].join("&"),
+      [q.select("created_on,job_type,status"), q.gte("created_on", fromTs)].join("&"),
     ),
     sbSelect<{ completed_on: string | null; job_type: string | null; status: string | null }>(
       "st_jobs",
@@ -96,7 +96,12 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
   ]);
 
   const leadDays = [...webLeads.map((r) => day(r.created_at)), ...stLeads.map((r) => day(r.created_on))];
-  const bookedRows = booked.map((r) => ({ d: day(r.created_on), c: jobClass(r.job_type) })).filter((r) => r.c !== "install");
+  // Cancelled jobs are not bookings — the same rule the Today tile uses, so the
+  // two pages cannot drift apart on the one word.
+  const bookedRows = booked
+    .filter((r) => r.status !== "Canceled")
+    .map((r) => ({ d: day(r.created_on), c: jobClass(r.job_type) }))
+    .filter((r) => r.c !== "install");
   const doneRows = done
     .filter((r) => r.status === "Completed")
     .map((r) => ({ d: day(r.completed_on), c: jobClass(r.job_type) }))
