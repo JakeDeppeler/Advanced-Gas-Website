@@ -2430,6 +2430,17 @@ body:has(.screen) .utilbar {
 .teamcard__k { font-size: calc(0.76 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
 .teamcard__stat b { font-size: calc(1.05 * var(--u)); font-weight: 800; color: var(--navy); }
 .teamcard__sub { font-size: calc(0.74 * var(--u)); color: var(--ink-2); white-space: nowrap; }
+/* The window the rate columns run on, said once across the foot of the stats
+   rather than squeezed into three subs that would have overflowed a 125px
+   column. Muted and the smallest type on the card: it is a footnote, not a
+   measure. */
+.teamcard__window {
+  grid-column: 1 / -1;
+  font-size: calc(0.7 * var(--u));
+  color: var(--ink-muted);
+  white-space: nowrap;
+  padding-top: calc(0.1 * var(--u));
+}
 
 /* The team itself, across the foot. */
 .teamfoot {

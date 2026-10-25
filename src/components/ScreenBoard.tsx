@@ -2546,6 +2546,12 @@ function TeamCard({
           <b>{r.avgQuote != null ? plain(r.avgQuote) : NA}</b>
           <span className="teamcard__sub">{r.avgOptions != null ? `${r.avgOptions.toFixed(1)} options` : ""}</span>
         </span>
+        {/* Which window the three columns to the right of Quoted run on.
+            The money is this month and they are a rolling thirty days, because
+            a quote written on the 2nd has had a chance to close and one written
+            yesterday has not. Both are right and they do not divide into each
+            other, which is a trap worth one line rather than three labels. */}
+        <span className="teamcard__window">Close rate &amp; averages &middot; last 30 days</span>
       </span>
     </div>
   );
