@@ -1423,7 +1423,7 @@ label.pk-btn { cursor: pointer; }
 /* Who owes the most: a ranked list, each bar the customer's whole balance on
    one scale, the overdue part in the late shade with the amount written out
    beside it, so the colour is never the only way to read it. */
-.mf-top { margin-bottom: 18px; }
+/* Spaced by the page's own gap, like the panels either side of it. */
 .mf-toplist { list-style: none; margin: 4px 0 0; padding: 0; display: grid; }
 .mf-toprow { display: grid; grid-template-columns: 28px minmax(0, 1fr) 104px; gap: 6px 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--rp-line); }
 .mf-toprow:first-child { border-top: 0; }
