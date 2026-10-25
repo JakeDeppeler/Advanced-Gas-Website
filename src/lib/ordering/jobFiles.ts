@@ -30,8 +30,22 @@ export async function listJobFiles(jobId: number): Promise<{ files: JobFile[] } 
   }
 }
 
-/** The files picked on a work order, downloaded for the email. Fails whole, naming the file, so nothing half-attached goes out. */
-export async function jobFilesFor(d: WorkOrderDetails | null): Promise<{ filename: string; content: string }[] | { error: string }> {
+const PHOTO = /\.(jpe?g|png|heic|heif|webp|gif)$/i;
+/** Enough to show the switchboard, the run and the wall; a dozen downloads also fits inside a 60 s function. */
+const MAX_PHOTOS = 12;
+
+/**
+ * The files picked on a work order, downloaded for the email. Fails whole,
+ * naming the file, so nothing half-attached goes out.
+ *
+ * `photos`: every photo on the work order's jobs goes too, newest first
+ * (Jake, 26 Oct: the electrician should get the job's photos without anyone
+ * picking them). Photos only, because the reason files are picked by hand
+ * still holds for documents: an invoice or signed paperwork can sit on a
+ * job. Unlike a picked file, a photo that won't download or won't fit is
+ * left off rather than holding the work order back.
+ */
+export async function jobFilesFor(d: WorkOrderDetails | null, opts: { photos?: boolean } = {}): Promise<{ filename: string; content: string }[] | { error: string }> {
   const picked = d?.files ?? [];
   const out: { filename: string; content: string }[] = [];
   let total = 0;
@@ -42,6 +56,28 @@ export async function jobFilesFor(d: WorkOrderDetails | null): Promise<{ filenam
       out.push({ filename: f.name, content: Buffer.from(bytes).toString("base64") });
     } catch (e) {
       return { error: `Couldn't attach “${f.name}” from the job: ${(e as Error).message.replace(/^ServiceTitan \S+ failed: /, "")}.` };
+    }
+  }
+  if (opts.photos && d?.jobs?.length) {
+    const have = new Set(picked.map((f) => f.id));
+    const photos: JobFile[] = [];
+    for (const j of d.jobs) {
+      const r = await listJobFiles(j.job_id);
+      if ("files" in r) photos.push(...r.files.filter((f) => PHOTO.test(f.name) && !have.has(f.id)));
+    }
+    photos.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
+    const names = new Set(out.map((o) => o.filename));
+    for (const f of photos.slice(0, MAX_PHOTOS)) {
+      try {
+        const { bytes } = await stDownload(stTenantPath("forms", `jobs/attachment/${f.id}`), MAX_TOTAL - total);
+        total += bytes.length;
+        // Phones name every photo IMG_0001.jpg; two jobs' worth can clash.
+        const name = names.has(f.name) ? f.name.replace(/(\.[^.]+)$/, `-${f.id}$1`) : f.name;
+        names.add(name);
+        out.push({ filename: name, content: Buffer.from(bytes).toString("base64") });
+      } catch {
+        // Too big for what's left of the email, or ServiceTitan wouldn't hand it over: send without it.
+      }
     }
   }
   return out;

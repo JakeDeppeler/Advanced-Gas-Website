@@ -268,7 +268,7 @@ function WorkOrderEdit({ w, sparky, contacts, findFirst, onCancel, onDone }: {
         {field("sendTo", sent ? "Email the update to" : "Send to", "email", true)}
       </div>
 
-      {job.id > 0 && <JobFilesPicker jobId={job.id} jobNumber={job.number} picked={files} onChange={setFiles} />}
+      {job.id > 0 && <JobFilesPicker jobId={job.id} jobNumber={job.number} picked={files} onChange={setFiles} photosGo={pick.kind === "sparky" || /electric/i.test(f.trade ?? "")} />}
       {err && <p className="pk-said bad" role="status">{err}</p>}
       <div className="qp-links">
         {sent ? (

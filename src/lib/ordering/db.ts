@@ -218,7 +218,13 @@ export type DraftResult = {
  * afterwards, a line added to a quote — becomes a new top-up draft beside it,
  * because the plan already leaves out whatever was ordered.
  */
-export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Promise<DraftResult> {
+/**
+ * `workOnly`: the electrician's work orders and nothing else. Next week's
+ * supplier orders come in on Wednesday, when the office reviews them, but a
+ * subcontractor wants the notice as early as the booking: a job booked on
+ * Monday for next Thursday had no work order until Wednesday morning.
+ */
+export async function draftWeek(week: Week, opts: { auto?: boolean; workOnly?: boolean } = {}): Promise<DraftResult> {
   const now = new Date();
   // Suppliers that charge per delivery get one order for every job not yet
   // ordered from today to the end of next week — the same window whichever
@@ -278,7 +284,7 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
     return { n, po: poNumber(week, supplierId, n) };
   };
 
-  for (const o of plan.orders) {
+  for (const o of opts.workOnly ? [] : plan.orders) {
     for (const l of o.lines) if (!before.has(`${o.supplier_id}:${lineKey(l.job_id, l.sku_id)}`)) added.push({ supplier_id: o.supplier_id, line: l });
     const mine = existing.filter((p) => p.kind === "order" && p.supplier_id === o.supplier_id);
     const draft = mine.find((p) => p.status === "draft")
@@ -337,14 +343,17 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
   };
   for (const p of existing) {
     // A work order made by hand (Work orders) isn't the plan's to take away.
-    if (p.status === "draft" && !kept.has(p.id) && !p.group_key.startsWith("manual:")) await drop(p);
+    if (p.status === "draft" && !kept.has(p.id) && !p.group_key.startsWith("manual:") && (!opts.workOnly || p.kind === "work_order")) await drop(p);
   }
   // And a combined supplier's draft on the other week that this run didn't
   // reuse: its lines are on the one it did, or have been ordered since.
-  for (const p of otherDrafts) {
+  for (const p of opts.workOnly ? [] : otherDrafts) {
     if (p.kind === "order" && combined.has(p.supplier_id) && !kept.has(p.id)) await drop(p);
   }
-  return { plan, created, updated, removed, added, addedWork };
+  // Only the electrician's problems on a work-only run: the supplier side of
+  // next week is Wednesday's, and saying it twice teaches people to skim.
+  const said = opts.workOnly ? { ...plan, problems: plan.problems.filter((x) => /^Electrician/i.test(x.what)) } : plan;
+  return { plan: said, created, updated, removed, added, addedWork };
 }
 
 export async function cancelDraft(id: number): Promise<boolean> {

@@ -27,7 +27,11 @@ function Thumb({ f }: { f: JobFile }) {
  * with a View link. None are ticked to start: a job's files can include the
  * customer's invoice.
  */
-export function JobFilesPicker({ jobId, jobNumber, picked, onChange }: { jobId: number; jobNumber: string; picked: PickedFile[]; onChange: (p: PickedFile[]) => void }) {
+export function JobFilesPicker({ jobId, jobNumber, picked, onChange, photosGo = false }: {
+  jobId: number; jobNumber: string; picked: PickedFile[]; onChange: (p: PickedFile[]) => void;
+  /** An electrician's work order: every photo on the job is sent by itself (jobFilesFor), so they needn't be ticked. */
+  photosGo?: boolean;
+}) {
   const [state, setState] = useState<{ files: JobFile[] } | { error: string } | null>(null);
   useEffect(() => {
     let live = true;
@@ -63,8 +67,9 @@ export function JobFilesPicker({ jobId, jobNumber, picked, onChange }: { jobId: 
             <div className="wo-fgroup">
               <div className="wo-fgh">
                 <b>Photos ({photos.length})</b>
-                <button type="button" className="qp-btn line sm" onClick={() => setPhotos(!allPhotos)}>{allPhotos ? "Untick all photos" : "Tick all photos"}</button>
+                {!photosGo && <button type="button" className="qp-btn line sm" onClick={() => setPhotos(!allPhotos)}>{allPhotos ? "Untick all photos" : "Tick all photos"}</button>}
               </div>
+              {photosGo && <p className="qp-note">Every photo on the job goes to the electrician by itself, the newest {photos.length > 12 ? "12" : "ones"} first. Nothing to tick.</p>}
               <ul className="wo-photos">
                 {photos.map((f) => (
                   <li key={f.id} className={on.has(f.id) ? "on" : undefined}>
