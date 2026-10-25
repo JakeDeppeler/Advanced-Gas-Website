@@ -91,7 +91,7 @@ export function WorkOrderForm({ job, to, back, contacts: saved }: {
       {field("crew", "Our crew on site", "names, with commas")}
       {field("sendTo", "Send to", `${who} unless you change it, for sending this one somewhere else`, "email")}
       {field("cc", "Also copy", "anyone else who should get it, with commas")}
-      <div style={{ paddingTop: 14 }}><JobFilesPicker jobId={job.id} jobNumber={job.job_number} picked={files} onChange={setFiles} /></div>
+      <div style={{ paddingTop: 14 }}><JobFilesPicker jobId={job.id} jobNumber={job.job_number} picked={files} onChange={setFiles} photosGo={!pick || /electric/i.test(pick.trade)} /></div>
       <div className="pk-btns" style={{ marginTop: 14, alignItems: "center" }}>
         <button type="button" className="pk-btn" disabled={busy || !f.work.trim() || !f.date} onClick={() => start(async () => {
           setMsg(null);

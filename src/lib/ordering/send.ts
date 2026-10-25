@@ -210,7 +210,7 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
   if (email && !from) return { ok: false, error: NO_FROM };
   // The job's files picked on a work order, fetched before it's claimed so a
   // file ServiceTitan won't hand over leaves it a draft with the reason.
-  const files = po.kind === "work_order" ? await jobFilesFor(po.details) : [];
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: isElectrical(po.details) }) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
 
@@ -310,7 +310,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
   const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup, note: po.supplier_note });
-  const files = po.kind === "work_order" ? await jobFilesFor(po.details) : [];
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: isElectrical(po.details) }) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
   const err = await sendMarked("TEST", supplier, email, to, settings, all.length ? all : undefined);

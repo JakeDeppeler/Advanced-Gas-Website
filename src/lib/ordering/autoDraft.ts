@@ -80,6 +80,8 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
     if (dow === 0 || dow === 6 || hour < 6 || hour >= 19) return { ok: true, skipped: "outside office hours" };
   }
   const weeks: Week[] = [thisWeek(now), ...(dow >= 3 || dow === 0 ? [nextWeek(now)] : [])];
+  // Monday and Tuesday: next week's electrician work orders still, the rest of next week on Wednesday.
+  const workOnlyNext = weeks.length === 1;
 
   // The date and the weeks are in it, so the first run of each weekday (and
   // Wednesday's, when next week comes in) always drafts: that is the morning run.
@@ -92,6 +94,7 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
     // This week first: a combined supplier's draft then settles on next
     // week's run if both are drafted, the same as pressing Draft on each tab.
     for (const week of weeks) runs.push({ week, r: await draftWeek(week, { auto: true }) });
+    if (workOnlyNext) runs.push({ week: nextWeek(now), r: await draftWeek(nextWeek(now), { auto: true, workOnly: true }) });
   } catch (e) {
     // Not marked done, so the next caller tries again.
     await release("");
