@@ -64,6 +64,28 @@ export const soldByWeek = cache(async (n = 8): Promise<{ week: string; value: nu
   return weeks.map((w) => ({ week: w, value: by.get(w) ?? 0 }));
 });
 
+/**
+ * Invoiced each week, the same weeks as soldByWeek, by the day the job was
+ * done (the invoice date), so it reads as work finished rather than the day
+ * the office got round to pricing it. Completed jobs only, as everywhere else.
+ */
+export const invoicedByWeek = cache(async (weeks: string[]): Promise<number[]> => {
+  if (!weeks.length) return [];
+  const last = new Date(`${weeks[weeks.length - 1]}T12:00:00Z`);
+  last.setUTCDate(last.getUTCDate() + 7);
+  const rows = await sbSelect<{ invoice_date: string | null; total: number | null }>(
+    "st_invoices_billed",
+    [q.select("invoice_date,total"), q.gte("invoice_date", weeks[0]), q.lt("invoice_date", last.toISOString().slice(0, 10))].join("&"),
+  );
+  const by = new Map(weeks.map((w) => [w, 0]));
+  for (const r of rows) {
+    if (!r.invoice_date) continue;
+    const w = mondayOf(r.invoice_date.slice(0, 10));
+    if (by.has(w)) by.set(w, (by.get(w) ?? 0) + Number(r.total ?? 0));
+  }
+  return weeks.map((w) => by.get(w) ?? 0);
+});
+
 /** Sold this month by job type: jobs, value, average. */
 export const soldByType = cache(async (): Promise<{ type: string; jobs: number; value: number }[]> => {
   const rows = quotes(await sbSelect<SaleRow>("st_sales", [q.select("id,sold_on,total_inc,business_unit,first,job_id,customer_id,created_on"), q.gte("sold_on", startOfMonthMelbourne(new Date()).toISOString())].join("&")).catch(() => []));

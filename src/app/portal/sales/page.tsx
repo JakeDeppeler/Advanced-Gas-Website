@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { latestBoard, savedGoal } from "@/lib/portal/office";
 import { getGoals } from "@/lib/portal/goals";
 import { loadPipeline } from "@/lib/pipeline/store";
-import { followupRate, soldByType, soldByWeek } from "@/lib/portal/run/data";
+import { followupRate, invoicedByWeek, soldByType, soldByWeek } from "@/lib/portal/run/data";
 import { goalWords, monthElapsed, melNow, money, pc, plural, salesGoal } from "@/lib/portal/run/month";
 import { Av, Bad, Card, Empty, Grid, Group, Head, Hero, Lh, Pair, Row, Say, Tile, Two, none, status } from "@/components/portal/kit/Kit";
 import { WeekBars } from "@/components/portal/kit/Charts";
@@ -38,6 +38,8 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
       ["Going cold", "Over a week with nothing back. Ring these first."],
       ["Win rate", "Of the jobs we quoted, how many said yes. One job with three options is one quote."],
       ["Followed up in 2 days", "Quotes with a call, text or note on the pipeline within two days of going out."],
+      ["Sold and invoiced each week", "Bars are what sold that week. The line is what was invoiced for work done that week, completed jobs only. Invoicing also takes in service and repair work that was never quoted, so it can sit above sold even while quoted work is piling up; the work still to do is the better check."],
+      ["Sold, still to do", "Sold quotes whose job isn’t finished: not booked yet, or booked and not completed."],
     ]} />
   );
 
@@ -81,6 +83,14 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
   }
 
   const [weeks, follow, pipe] = await Promise.all([soldByWeek(8), followupRate().catch(() => null), loadPipeline({ detail: true }).catch(() => null)]);
+  // A failed read leaves the line off rather than drawing a week of zeroes it never measured.
+  const billed = await invoicedByWeek(weeks.map((w) => w.week)).catch(() => null);
+  const soldSum = weeks.reduce((t, w) => t + w.value, 0);
+  const billedSum = billed ? billed.reduce((t, v) => t + v, 0) : null;
+  // Sold work not finished yet: the honest answer to "are we selling more than we get done".
+  const toDo = (pipe?.quotes ?? []).filter((x) => x.stage === "won" || x.stage === "booked");
+  const toBook = toDo.filter((x) => x.stage === "won");
+  const toDoValue = toDo.reduce((t, x) => t + x.value, 0);
   const g = salesGoal(m);
   const sellSt = g.byNow ? status(m.soldMtd, g.byNow) : none();
   const f = monthElapsed(m);
@@ -111,8 +121,18 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
           <Tile label="Followed up in 2 days" st={follow && goals.followup ? status(follow.pct, goals.followup, { pts: true }) : none(follow ? undefined : "Too few quotes")} fig={follow ? pc(follow.pct) : ""} frac={follow ? follow.pct / 100 : null} sub={follow ? `of ${follow.of} quotes${goals.followup ? ` · goal ${goals.followup}%` : ""}` : "needs ten quotes in the last month"} href="/portal/pipeline" />
         </Grid>
         <Two>
-          <Card title="Sold each week" aside={weekGoal ? "green beat the weekly goal · this week still going" : "no weekly goal set"}>
-            <WeekBars weeks={weeks.map((w) => ({ label: shortDay(w.week), value: w.value }))} goal={weekGoal} />
+          <Card title="Sold and invoiced each week" aside={billed ? "bars sold · line invoiced" : "bars sold · invoiced couldn’t be read"}>
+            <WeekBars weeks={weeks.map((w) => ({ label: shortDay(w.week), value: w.value }))} goal={weekGoal}
+              line={billed ? { name: "Invoiced", values: billed } : null} />
+            <p className="pk-note">
+              {billedSum != null ? <>Last {weeks.length} weeks: sold <b>{money(soldSum)}</b>, invoiced <b>{money(billedSum)}</b>. </> : null}
+              {pipe ? (
+                toDo.length
+                  ? <>Sold and still to do: <b>{money(toDoValue)}</b> across {plural(toDo.length, "job", "jobs")}{toBook.length ? <>, {toBook.length} not booked in yet</> : null}.</>
+                  : <>No sold work is waiting to be done.</>
+              ) : null}
+              {weekGoal ? " Green bars beat the weekly goal; this week is still going." : ""}
+            </p>
           </Card>
           <div>
             <Lh>Biggest quotes waiting</Lh>

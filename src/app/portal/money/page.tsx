@@ -63,6 +63,26 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
   const q = (r: 6 | 12) => { const u = new URLSearchParams(); if (seg !== "all") u.set("seg", seg); if (r === 12) u.set("r", "12"); const t = u.toString(); return `/portal/money${t ? `?${t}` : ""}`; };
   const segHref = (k: string) => { const u = new URLSearchParams(); if (k !== "all") u.set("seg", k); if (span === 12) u.set("r", "12"); const t = u.toString(); return `/portal/money${t ? `?${t}` : ""}`; };
   const byName = list.filter((i) => i.by === "name").length;
+  // Who owes the most, invoiced work only: a deposit's balance on a job not
+  // finished isn't owed yet, so it never ranks anyone. Grouped by the name on
+  // the invoice, the same key the receivables table below uses, so the two
+  // agree on who's who.
+  const who = new Map<string, { name: string; total: number; over: number; oldest: number; n: number; seg: Segment }>();
+  for (const i of billed) {
+    if (!(i.amountDue > 0)) continue;
+    const name = (i.contact ?? "").trim() || "No customer name";
+    const w = who.get(name) ?? { name, total: 0, over: 0, oldest: 0, n: 0, seg: i.segment };
+    w.total += i.amountDue;
+    if (i.daysOver > 0) w.over += i.amountDue;
+    w.oldest = Math.max(w.oldest, i.daysOver);
+    w.n += 1;
+    who.set(name, w);
+  }
+  const ranked = [...who.values()].sort((a, b) => b.total - a.total);
+  const top = ranked.slice(0, 10);
+  const topMax = Math.max(1, ...top.map((w) => w.total));
+  const billedTot = sum(billed);
+  const top5 = ranked.slice(0, 5).reduce((t, w) => t + w.total, 0);
 
   return (
     <PortalShell user={user}>
@@ -95,6 +115,37 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
               {money(sum(notDue))} is invoiced and not due yet.{" "}
               {b1 + b2 > 0 ? <><Bad>{money(b1 + b2)} is overdue</Bad>{oldest.length ? <>, {money(b2)} of it over 30 days.</> : "."}</> : "None of it is overdue."}
             </Say>
+
+            <section className="rp-panel rp-card mf-top" aria-labelledby="mf-top-h" style={{ ["--i" as string]: 0 }}>
+              <div className="rp-panel-h">
+                <span className="rp-hh"><b id="mf-top-h">Who owes us the most</b><span className="rp-note">Invoiced and unpaid, biggest first{ranked.length > 5 && billedTot > 0 ? ` · the top five are ${pc((top5 / billedTot) * 100)} of it` : ""}</span></span>
+              </div>
+              {top.length ? (
+                <ol className="mf-toplist">
+                  {top.map((w, i) => (
+                    <li key={w.name} className="mf-toprow">
+                      <span className="mf-toprank" aria-hidden="true">{i + 1}</span>
+                      <span className="mf-topwho">
+                        <b>{w.name}</b>
+                        <span className="mf-topsub">
+                          {w.seg === "realestate" ? "Real estate" : "Domestic"} · {plural(w.n, "invoice")} ·{" "}
+                          {w.over > 0
+                            ? <span className="mf-toplate">{money(w.over)} overdue, oldest {plural(w.oldest, "day")} late</span>
+                            : "none overdue"}
+                        </span>
+                        <span className="mf-topbar" aria-hidden="true">
+                          <i className="due" style={{ width: `${((w.total - w.over) / topMax) * 100}%` }} />
+                          <i className={w.oldest > 30 ? "bad" : "late"} style={{ width: `${(w.over / topMax) * 100}%` }} />
+                        </span>
+                      </span>
+                      <b className="mf-topamt">{money(w.total)}</b>
+                    </li>
+                  ))}
+                </ol>
+              ) : <p className="rp-empty">Nobody owes us for invoiced work.</p>}
+              {ranked.length > top.length && <p className="rp-note mf-topmore">{plural(ranked.length - top.length, "more customer")} below in Accounts receivable.</p>}
+            </section>
+
             <div className="mf-grid">
               <section className="rp-panel rp-card mf-flow" aria-labelledby="mf-flow-h" style={{ ["--i" as string]: 1 }}>
                 <div className="rp-panel-h">

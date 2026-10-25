@@ -844,7 +844,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <SideCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
-        goals={live.st ? goalMarks(m, m.revenueToday, today?.invoiced.need) : undefined}
+        goals={live.st ? keepUpMarks(m, m.revenueToday) : undefined}
         rows={
           !live.st || m.jobsInvoicedToday === 0
             ? undefined
@@ -858,12 +858,12 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         foot={
           !live.st
             ? undefined
-            : footWithTarget(
-                today?.invoiced.need,
+            : [
+                keepUpFoot(m),
                 m.jobsInvoicedToday === 0
                   ? "nothing billed yet today"
                   : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`,
-              )
+              ].filter(Boolean).join(" · ")
         }
       />
 
@@ -3062,6 +3062,46 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
  * in them to average out. A target is a fact; a verdict on two hours of a
  * lumpy day is not.
  */
+/**
+ * What today has to invoice for the month to still land: the month's need,
+ * less everything done before today, over the billable days left with today
+ * among them. `share` scales the month's need to another goal level (the
+ * floor), since the floor's ask isn't the goal's ask scaled once the work
+ * already done comes off it.
+ *
+ * The plan's flat day share asked the same of the 28th whether the month was
+ * $40K behind or $40K ahead; this asks for what keeps up. Work dated today is
+ * taken back out of the month first, so the ask holds still through the day
+ * instead of shrinking as the day's own invoices arrive.
+ */
+function keepUpToday(m: Metrics, share = 1): number | null {
+  const month = m.pace?.standing.month.invoiced;
+  const today = m.pace?.standing.today.invoiced;
+  // A day off asks for nothing, the same as the plan.
+  if (!month || month.need == null || month.done == null || !((today?.need ?? 0) > 0) || !(m.workingDaysLeft >= 1)) return null;
+  return Math.max(0, month.need * share - (month.done - (today?.done ?? 0))) / m.workingDaysLeft;
+}
+
+function keepUpMarks(m: Metrics, done: number | null | undefined): GoalMark[] {
+  const lv = m.goalLevels;
+  if (!lv || done == null || !(lv.goal > 0)) return [];
+  const levels = [{ key: "goal", year: lv.goal, need: keepUpToday(m) }];
+  if (lv.floor && lv.floor > 0 && lv.floor < lv.goal) levels.push({ key: "floor", year: lv.floor, need: keepUpToday(m, lv.floor / lv.goal) });
+  return levels.filter((l) => l.need != null).map((l) => {
+    const need = l.need as number;
+    const ok = done >= need;
+    return { key: l.key, ok, text: `${ok ? "▲" : "▼"} ${shortGoal(l.year)} · ${plain(Math.abs(done - need))} ${ok ? "over" : "to go"}` };
+  });
+}
+
+/** "$9,800 a day to keep up · 5 billable days left": the ask and what it's spread over. */
+function keepUpFoot(m: Metrics): string | null {
+  const k = keepUpToday(m);
+  if (k == null) return null;
+  const n = m.workingDaysLeft;
+  return `${plain(k)} a day to keep up · ${count(n)} billable ${n === 1 ? "day" : "days"} left`;
+}
+
 function askedOfToday(target: number | null | undefined, kind: "money" | "count" = "money"): string | null {
   if (target == null || !(target > 0)) return null;
   return `of ${kind === "money" ? plain(target) : count(Math.round(target))} today`;
