@@ -14,6 +14,10 @@ on:
         description: "Site to check (default: the DASHBOARD_SYNC_URL host). Set to a Vercel preview URL to check a branch before it is merged."
         type: string
         required: false
+      estimate:
+        description: "Estimate ids, comma-separated (up to five). Instead of the connection check, lists every field ServiceTitan returns for them, to see whether it says a quote is a draft."
+        type: string
+        required: false
 
 jobs:
   check:
@@ -24,6 +28,7 @@ jobs:
           SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           URL_OVERRIDE: ${{ inputs.url }}
+          ESTIMATE: ${{ inputs.estimate }}
         run: |
           set -euo pipefail
 
@@ -44,6 +49,30 @@ jobs:
           BASE="${URL_OVERRIDE:-${SYNC_URL%/api/sync}}"
           CHECK_URL="${BASE%/}/api/servicetitan/check"
           echo "Checking ${CHECK_URL}"
+
+          # The estimate probe: digits and commas only reach the URL.
+          if [ -n "${ESTIMATE:-}" ]; then
+            IDS="$(printf '%s' "$ESTIMATE" | tr -cd '0-9,')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?estimate=${IDS}" > probe.json
+            {
+              echo "## What ServiceTitan returns for estimates ${IDS}"
+              echo
+              echo "Flag-like fields (draft, sent, status, review…), by estimate and endpoint:"
+              echo
+              echo '```json'
+              jq '.estimates | map_values({single: .single.flags, list: .list.flags, errors: [.single.error, .list.error]})' probe.json
+              echo '```'
+              echo
+              echo "Every field name the single-estimate endpoint returned:"
+              echo
+              echo '```'
+              jq -r '[.estimates[].single.fields[]] | unique | join(", ")' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq . probe.json
+            exit 0
+          fi
 
           # --fail-with-body so an HTTP error still prints the body: a 401 here
           # means the two CRON_SECRET copies disagree, and that is worth seeing.
