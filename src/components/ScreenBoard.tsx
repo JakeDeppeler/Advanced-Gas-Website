@@ -2359,7 +2359,27 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
 
   const teamSold = people.reduce((a, r) => a + r.sold, 0);
   const teamQuoted = people.reduce((a, r) => a + r.quoted, 0);
-  const teamSoldJobs = people.reduce((a, r) => a + r.soldJobs, 0);
+  /*
+   * Two windows on this strip, and every ratio has to stay inside one of them.
+   *
+   * The money is month to date; the close rate is a rolling thirty days,
+   * because a quote written on the 2nd has had a chance to close and one
+   * written yesterday has not. Both are right. Dividing across them is not,
+   * and the strip was doing it twice: the average quote was this month's
+   * $841,965 over the last thirty days' 222 jobs, which read $3,793 for a
+   * month that actually averaged $4,704, and the average ticket was the
+   * month's sold money over a thirty-day win count.
+   *
+   * So the month's money divides by the month's counts, the close rate keeps
+   * its own pair, and it now says which pair underneath itself — because the
+   * figures sit side by side and the first thing anybody does is multiply one
+   * by the other. $841,965 at 23% is $194K against $220,427 actually sold, and
+   * the gap is not an error in either: the rate counts jobs rather than money,
+   * and $59,782 of this month's sales came off quotes written before October.
+   */
+  const teamSoldJobs = people.reduce((a, r) => a + r.jobs, 0);
+  const teamQuotes = people.reduce((a, r) => a + r.quotes, 0);
+  const teamWon30d = people.reduce((a, r) => a + r.soldJobs, 0);
   const teamQuotedJobs = people.reduce((a, r) => a + r.quotedJobs, 0);
   const teamMonthTarget = m.pace?.month.sold.value ?? null;
   /*
@@ -2405,19 +2425,25 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span className="teamfoot__stat">
             <span className="teamfoot__k">Quoted · this month</span>
             <b>{plain(teamQuoted)}</b>
-            <span className="teamfoot__sub">{count(teamQuotedJobs)} jobs</span>
+            <span className="teamfoot__sub">{count(teamQuotes)} quotes</span>
           </span>
           <span className="teamfoot__stat">
             <span className="teamfoot__k">Close rate</span>
-            <b>{teamQuotedJobs > 0 ? pct(teamSoldJobs / teamQuotedJobs) : NA}</b>
+            <b>{teamQuotedJobs > 0 ? pct(teamWon30d / teamQuotedJobs) : NA}</b>
+            {/* Jobs, not money, and over its own window — said out loud because
+                the figure beside it is dollars and the two do not multiply. */}
+            <span className="teamfoot__sub">
+              {teamQuotedJobs > 0 ? `${count(teamWon30d)} of ${count(teamQuotedJobs)} jobs · 30 days` : ""}
+            </span>
           </span>
           <span className="teamfoot__stat">
             <span className="teamfoot__k">Avg ticket</span>
             <b>{teamSoldJobs > 0 ? plain(teamSold / teamSoldJobs) : NA}</b>
+            <span className="teamfoot__sub">{count(teamSoldJobs)} sold this month</span>
           </span>
           <span className="teamfoot__stat">
             <span className="teamfoot__k">Avg quote</span>
-            <b>{teamQuotedJobs > 0 ? plain(teamQuoted / teamQuotedJobs) : NA}</b>
+            <b>{teamQuotes > 0 ? plain(teamQuoted / teamQuotes) : NA}</b>
           </span>
           {/*
             * What the month's sales were sold at, from the estimates themselves.
