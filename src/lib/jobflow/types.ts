@@ -33,19 +33,8 @@ export type FlowStage =
   | "overdue"
   | "imported";
 
-export type Phase = "book" | "quote" | "work" | "paid" | "tidy";
-
-export const PHASES: Array<{ k: Phase; label: string }> = [
-  { k: "book", label: "Booking" },
-  { k: "quote", label: "Quoting" },
-  { k: "work", label: "The work" },
-  { k: "paid", label: "Getting paid" },
-  { k: "tidy", label: "Old system" },
-];
-
 export type StageDef = {
   k: FlowStage;
-  phase: Phase;
   label: string;
   /** What puts a job here, in words, for the line under the title. */
   rule: string;
@@ -57,73 +46,100 @@ export type StageDef = {
 
 export const STAGES: StageDef[] = [
   {
-    k: "enquiry", phase: "book", label: "Enquiries to book",
+    k: "enquiry", label: "Enquiries to book",
     rule: "A website enquiry in the last 21 days, and no job or quote in ServiceTitan for that phone number or email since.",
     act: "Ring them and book it.",
   },
   {
-    k: "nodate", phase: "book", label: "No visit booked",
+    k: "nodate", label: "No visit booked",
     rule: "An open job in ServiceTitan with no appointment on it.",
     act: "Book the visit, or cancel the job.",
   },
   {
-    k: "booked", phase: "book", label: "Booked", quiet: true,
+    k: "booked", label: "Booked", quiet: true,
     rule: "A visit in the diary, or one in the last two days that's still being finished.",
     act: "Nothing yet.",
   },
   {
-    k: "toquote", phase: "quote", label: "To quote",
+    k: "toquote", label: "To quote",
     rule: "A quote visit or site assessment whose appointment has been, with no quote written on the job or for the customer since.",
     act: "Write the quote and send it.",
   },
   {
-    k: "quoted", phase: "quote", label: "Quotes to chase",
+    k: "quoted", label: "Quotes to chase",
     rule: "From the quote pipeline: quotes out less than two days, and the ones due a call today.",
     act: "Check new quotes went out. Ring the ones due.",
   },
   {
-    k: "closevisit", phase: "quote", label: "Quote visits to close",
+    k: "closevisit", label: "Quote visits to close",
     rule: "A quote visit that's been, with its quote written, and the job still open in ServiceTitan.",
     act: "Complete the visit in ServiceTitan. A free quote closes at $0.",
   },
   {
-    k: "sold", phase: "work", label: "Sold, to book",
+    k: "sold", label: "Sold, to book",
     rule: "From the quote pipeline: sold, with no job booked to do the work.",
     act: "Book the install and order the gear.",
   },
   {
-    k: "notclosed", phase: "work", label: "Left open",
+    k: "notclosed", label: "Left open",
     rule: "The last appointment was two or more days ago, nothing is booked after it, and the job isn't completed, on hold or cancelled.",
     act: "Ask the tech. Done: complete it so it can be billed. Not done: book the return or put it on hold.",
   },
   {
-    k: "hold", phase: "work", label: "On hold",
+    k: "hold", label: "On hold",
     rule: "Status Hold in ServiceTitan, tagged or not.",
     act: "Find what it's waiting on and move it.",
   },
   {
-    k: "tobill", phase: "paid", label: "To invoice",
+    k: "tobill", label: "To invoice",
     rule: "Completed since 17 September with the invoice still at $0. Quote visits and cancelled jobs are left out.",
     act: "Price the invoice and send it.",
   },
   {
-    k: "tosend", phase: "paid", label: "To send",
+    k: "tosend", label: "To send",
     rule: "Completed, invoiced, money owing, and ServiceTitan says the invoice was never sent.",
     act: "Check the invoice and send it.",
   },
   {
-    k: "overdue", phase: "paid", label: "Overdue",
+    k: "overdue", label: "Overdue",
     rule: "Sent, and past its due date with money still owing. ServiceTitan's since 17 September, Xero's before.",
     act: "Chase it.",
   },
   {
-    k: "imported", phase: "tidy", label: "Old jobs to close",
+    k: "imported", label: "Old jobs to close",
     rule: "Jobs copied across from the old system before 17 September that were never closed, each checked against Xero.",
     act: "Billed in Xero: close it in ServiceTitan. Not in Xero: bill it.",
   },
 ];
 
 export const STAGE = Object.fromEntries(STAGES.map((s) => [s.k, s])) as Record<FlowStage, StageDef>;
+
+/**
+ * The board: one column a step, left to right, the way a job runs. Where two
+ * stages are the same step for the customer (an enquiry and a job with no
+ * visit both still need booking) they share a column, and each card says
+ * which with its tag. The old system's jobs aren't a step in anyone's job,
+ * so they sit under the board, not on it.
+ */
+export type ColumnKey = "book" | "toquote" | "quoted" | "sold" | "doing" | "toinvoice" | "tosend" | "owed";
+export const COLUMNS: Array<{ k: ColumnKey; label: string; stages: FlowStage[] }> = [
+  { k: "book", label: "To book", stages: ["enquiry", "nodate"] },
+  { k: "toquote", label: "To quote", stages: ["toquote"] },
+  { k: "quoted", label: "Quoted", stages: ["quoted", "closevisit"] },
+  { k: "sold", label: "Sold", stages: ["sold"] },
+  { k: "doing", label: "Doing", stages: ["notclosed", "hold", "booked"] },
+  { k: "toinvoice", label: "To invoice", stages: ["tobill"] },
+  { k: "tosend", label: "To send", stages: ["tosend"] },
+  { k: "owed", label: "Owed", stages: ["overdue"] },
+];
+
+/** The word on a card in a shared column, saying which of its stages the job is in. */
+export const TAG: Partial<Record<FlowStage, string>> = {
+  enquiry: "Enquiry", nodate: "No visit", closevisit: "Close visit", notclosed: "Left open", hold: "On hold", booked: "Booked",
+};
+
+/** The column a stage sits in. */
+export const columnOf = (k: FlowStage): ColumnKey | null => COLUMNS.find((c) => c.stages.includes(k))?.k ?? null;
 
 const DAY = 86_400_000;
 

@@ -5,17 +5,26 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Card, Empty, KpiHead } from "@/components/portal/kit/Kit";
-import { TrackerView, defaultStage } from "@/components/portal/jobflow/TrackerView";
+import { TrackerView, type Open } from "@/components/portal/jobflow/TrackerView";
 import { ImportedCard } from "@/components/portal/jobflow/ImportedCard";
 import { dbConfigured } from "@/lib/portal/db";
 import { loadJobFlow } from "@/lib/jobflow/load";
-import { STAGE, type FlowStage } from "@/lib/jobflow/types";
+import { COLUMNS, STAGE, columnOf, type FlowStage } from "@/lib/jobflow/types";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Job tracker · Team portal" };
 
-/** A stage from the address, if it's one with a list of its own. */
-const pick = (k: string | undefined): FlowStage | null => (k && k in STAGE && !STAGE[k as FlowStage].quiet ? (k as FlowStage) : null);
+/**
+ * What's opened under the board, from the address: a column (?c=), the old
+ * system's jobs (?c=old), or a stage (?s=, as links from before the board
+ * still say), which opens the column it sits in.
+ */
+function pick(c: string | undefined, s: string | undefined): Open {
+  if (c === "old" || s === "imported") return "old";
+  const col = COLUMNS.find((x) => x.k === c);
+  if (col) return col.k;
+  return s && s in STAGE ? columnOf(s as FlowStage) : null;
+}
 
 /**
  * Pipeline › Job tracker: every job from the enquiry to the money in the
@@ -23,10 +32,10 @@ const pick = (k: string | undefined): FlowStage | null => (k && k in STAGE && !S
  *
  * The stages come from what ServiceTitan records, never from tags: a job
  * nobody tagged still lands in one (see lib/jobflow/types.ts for the rules).
- * The board across the top is the whole business on one screen and picks the
- * stage (?s=) whose list shows underneath, oldest first.
+ * The board is the whole business on one screen: a column a step, a card a
+ * job. A column's heading opens its full list underneath.
  */
-export default async function TrackerPage({ searchParams }: { searchParams: { s?: string } }) {
+export default async function TrackerPage({ searchParams }: { searchParams: { c?: string; s?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="The job tracker" forWhom="the office" />;
@@ -37,7 +46,7 @@ export default async function TrackerPage({ searchParams }: { searchParams: { s?
   return (
     <PortalShell user={user}>
       {flow ? (
-        <TrackerView flow={flow} on={pick(searchParams.s) ?? defaultStage(flow)} imported={
+        <TrackerView flow={flow} open={pick(searchParams.c, searchParams.s)} imported={
           <Suspense fallback={<Card title="Old jobs still open"><Empty>Checking the jobs the old system left open against Xero…</Empty></Card>}>
             <ImportedCard nowMs={nowMs} />
           </Suspense>

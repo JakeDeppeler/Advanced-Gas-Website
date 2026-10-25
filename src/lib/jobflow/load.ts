@@ -87,6 +87,12 @@ export function ago(iso: string | null, nowMs: number): string {
 }
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", year: "numeric" });
+/** "Today", or "Tue 28" for a visit later on. */
+function visitDay(iso: string, nowMs: number): string {
+  const mel = (ms: number) => new Date(ms).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" });
+  if (mel(Date.parse(iso)) === mel(nowMs)) return "Today";
+  return new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric" });
+}
 const customerUrl = (id: number | null | undefined) => (id != null ? `/portal/customers/${id}` : null);
 
 /**
@@ -208,6 +214,8 @@ export function openRow(j: OpenFacts, nowMs: number): FlowRow {
       if (j.neverStarted) note = "never started in the app";
       break;
     case "hold": days = touched; st = age(days, 14); break;
+    // On track: the card says when the visit is, not how long anything has waited.
+    case "booked": days = 0; st = { k: "none", w: j.nextVisit ? visitDay(j.nextVisit, nowMs) : "Being done" }; break;
     default:
       days = visitDays || madeDays;
       note = j.lastVisit ? `last visit ${day(j.lastVisit)}` : j.createdOn ? `made ${day(j.createdOn)}` : null;
@@ -291,7 +299,7 @@ async function enquiries(nowMs: number): Promise<FlowRow[]> {
 
 /* ------------------------------------------------------------ quotes */
 
-async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: FlowRow[]; waiting: number }> {
+async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: FlowRow[] }> {
   const p = await loadPipeline();
   const row = (x: (typeof p.quotes)[number], stage: "quoted" | "sold"): FlowRow => {
     const from = stage === "sold" ? x.soldOn ?? x.quotedOn : x.pricedOn ?? x.quotedOn;
@@ -300,6 +308,7 @@ async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: Fl
     // A quote's pill is the call, not the age: that's what the follow-up rule runs on.
     const st: FlowRow["st"] = stage === "sold" ? age(days, 8)
       : x.stage === "new" ? { k: "none", w: "Just quoted" }
+      : x.stage === "waiting" ? { k: "none", w: "Waiting" }
       : x.nextOn && x.nextOn < p.today ? { k: "bad", w: "Call late" } : { k: "mid", w: "Ring today" };
     return {
       key: `quote-${x.key}`,
@@ -311,9 +320,9 @@ async function quoteStages(nowMs: number): Promise<{ quoted: FlowRow[]; sold: Fl
     };
   };
   return {
-    quoted: oldestFirst(p.quotes.filter((x) => x.stage === "new" || x.stage === "due").map((x) => row(x, "quoted"))),
+    // Every quote that's out, the ones waiting on the customer too: on the board they're the column's quiet end.
+    quoted: oldestFirst(p.quotes.filter((x) => x.stage === "new" || x.stage === "due" || x.stage === "waiting").map((x) => row(x, "quoted"))),
     sold: oldestFirst(p.quotes.filter((x) => x.stage === "won").map((x) => row(x, "sold"))),
-    waiting: p.quotes.filter((x) => x.stage === "waiting").length,
   };
 }
 
@@ -378,7 +387,8 @@ async function overdue(): Promise<{ rows: FlowRow[]; partial: "xero" | "servicet
       key: `owed-${i.from}-${i.number}`,
       title: i.contact || "Customer",
       sub: [`invoice ${i.number}`, i.from === "xero" ? "in Xero" : "in ServiceTitan"],
-      st: { k: i.daysOver > 30 ? "bad" as const : "mid" as const, w: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} late` },
+      // Past its due date is late, by definition: the column's count and the card agree.
+      st: { k: "bad" as const, w: `${i.daysOver} ${i.daysOver === 1 ? "day" : "days"} late` },
       value: i.amountDue, days: i.daysOver,
       stUrl: null, customerUrl: null,
     }));
@@ -404,13 +414,12 @@ export const loadJobFlow = cache(async (nowMs: number): Promise<JobFlow> => {
   if (open.ok) {
     const of = (k: FlowStage) => open.v.filter((j) => j.stage === k);
     for (const k of ["nodate", "toquote", "closevisit", "notclosed", "hold", "imported"] as const) put(k, oldestFirst(of(k).map((j) => openRow(j, nowMs))));
-    const booked = of("booked");
-    const today = booked.filter((j) => j.nextVisit && new Date(j.nextVisit).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" }) === new Date(nowMs).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" })).length;
-    stages.booked = { rows: [], count: booked.length, note: `${today} with a visit later today` };
+    // Soonest visit first: it's the diary, not a backlog.
+    put("booked", of("booked").sort((a, b) => (a.nextVisit ?? "").localeCompare(b.nextVisit ?? "")).map((j) => openRow(j, nowMs)));
   }
   if (leads.ok) put("enquiry", oldestFirst(leads.v));
   if (quotes.ok) {
-    put("quoted", quotes.v.quoted, `${quotes.v.waiting} more followed up and waiting on the customer`);
+    put("quoted", quotes.v.quoted);
     put("sold", quotes.v.sold);
   }
   if (bill.ok) put("tobill", bill.v);
