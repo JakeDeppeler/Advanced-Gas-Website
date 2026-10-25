@@ -1128,7 +1128,14 @@ what the work was or which side of the business it came from, and it was read
 as commercial. The tile now skips any job missing either field, so it names
 $7,145 · Install - Multi-Head · Sandhurst instead. Those jobs still count
 towards the map — they happened, in a real suburb, for a real amount; they just
-do not get named.
+do not get named. The $50,000 ceiling now applies to it too, on the same
+grounds: the tile reads as "what a good job looks like here", and a commercial
+fit-out at six figures answers a question nobody in front of the screen is
+asking. The job-finished alert takes the ceiling as well, on what the job sold
+for — eleven seconds of the whole wall carrying a figure no tile behind it
+would corroborate. Neither is a live change: across the last sixty days no
+completed job reaches $50,000 (the biggest named is $9,867 and the biggest sold
+value $25,361), so both are guards against the commercial side landing one.
 
 **The job types table totals the month under it.** Five ranked rows read as if
 they add up, and they are a top five. The last row is every invoice this month,

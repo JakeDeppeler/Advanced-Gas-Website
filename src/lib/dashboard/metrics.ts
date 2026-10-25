@@ -1181,9 +1181,16 @@ async function serviceTitanMetrics(now: Date) {
      *
      * Unclassified jobs still count towards the map: they happened, in a real
      * suburb, for a real amount. They just don't get named.
+     *
+     * The same goes for one over the quote ceiling, and for the same reason
+     * every quote figure stops there: a single job worth more than $50,000 is
+     * not what this tile is for. It is read as "what a good job looks like
+     * here", and a commercial fit-out at six figures answers a question nobody
+     * in front of the screen is asking. Counted on the map, not named on it —
+     * which is exactly how the unclassified ones are already handled.
      */
     const classified = j.business_unit != null && j.job_type != null;
-    if (classified && value > 0 && (highestTicket == null || value > highestTicket.value)) {
+    if (classified && value > 0 && value < QUOTE_CAP && (highestTicket == null || value > highestTicket.value)) {
       highestTicket = { value, jobType: j.job_type ?? null, suburb: place };
     }
   }
@@ -1574,6 +1581,18 @@ async function serviceTitanMetrics(now: Date) {
     })(),
     ...recentDoneRows
       .filter((r) => r.completed_on)
+      /*
+       * And the same ceiling again, on what the job sold for.
+       *
+       * This alert has never had one — it predates commercial counting, and a
+       * completed job is real work rather than a speculative number, so it was
+       * easy to leave. It is still eleven seconds of the whole wall carrying a
+       * figure, and the figure comes from the same estimates every quote tile
+       * caps at $50,000. A six-figure commercial fit-out finishing would put a
+       * number on the board that no tile behind it will corroborate, which is
+       * the one thing this wall is not allowed to do.
+       */
+      .filter((r) => (soldValueByJob.get(Number(r.id)) ?? 0) < QUOTE_CAP)
       .map((r) => ({
         kind: "done" as const,
         id: `done-${r.id}`,
