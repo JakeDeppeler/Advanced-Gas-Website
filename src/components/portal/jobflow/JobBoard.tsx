@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Pill } from "@/components/portal/kit/Kit";
 import type { FlowRow, JobFlow } from "@/lib/jobflow/load";
 import { COLUMNS, TAG, type ColumnKey, type FlowStage } from "@/lib/jobflow/types";
 
@@ -12,21 +11,34 @@ type Card = { row: FlowRow; stage: FlowStage };
 
 /** A job type short enough for a card: the kind of work, without ServiceTitan's "Installation - " in front. */
 const shortType = (t: string) =>
-  t.replace(/^installation\s*-\s*/i, "Install · ").replace(/^diagnostics\s*-\s*/i, "Diagnose · ").replace(/^service\s*-\s*/i, "Service · ").replace(/^repair\s*-\s*/i, "Repair · ");
+  t.replace(/^installation\s*-\s*/i, "Install ").replace(/^diagnostics\s*-\s*/i, "Diagnose ").replace(/^service\s*-\s*/i, "Service ").replace(/^repair\s*-\s*/i, "Repair ");
 
+/** "47 days" → "47d", "25 days late" → "25d late"; words like "Call late" or "Tue 28" stay as they are. */
+const compact = (w: string) => w.replace(/^(\d+) days?\b/, "$1d");
+/** The age says lateness in a mark and words as well as colour. */
+const SIGN = { bad: "▼ ", mid: "! ", good: "", none: "" } as const;
+
+/**
+ * One job in two lines: who and how long, then where and what it is, with
+ * the money on the right. No pills, no third line: a column of these reads
+ * as names down the page, which is how the office talks about jobs.
+ */
 function JobCard({ c, shared }: { c: Card; shared: boolean }) {
   const r = c.row;
-  // Titles are "What · Where" for jobs, the customer alone for an overdue invoice.
-  const [what, where] = r.title.includes(" · ") ? [r.title.slice(0, r.title.lastIndexOf(" · ")), r.title.slice(r.title.lastIndexOf(" · ") + 3)] : [r.sub[0] ?? "", r.title];
   const href = r.stUrl ?? r.customerUrl;
   const late = r.st.k === "bad";
+  const who = r.customer || r.place || r.title;
+  const what = r.kind ? shortType(r.kind) : null;
+  // In a shared column the stage leads the second line, where the type would be ("Close visit · Officer").
+  const line2 = (shared && TAG[c.stage] ? [TAG[c.stage], r.place] : [r.customer ? r.place : null, what]).filter(Boolean).join(" · ");
   const body = (
     <>
-      {shared && TAG[c.stage] ? <span className="jb-card__k">{TAG[c.stage]}</span> : null}
-      <b className="jb-card__w">{where}</b>
-      <span className="jb-card__t">{shortType(what)}</span>
-      <span className="jb-card__f">
-        <Pill st={r.st} />
+      <span className="jb-card__r">
+        <b className="jb-card__who">{who}</b>
+        <span className={`jb-age ${r.st.k}`}>{SIGN[r.st.k]}{compact(r.st.w)}</span>
+      </span>
+      <span className="jb-card__r">
+        <span className="jb-card__what">{line2}</span>
         {r.value != null ? <span className="jb-card__v">{money(r.value)}</span> : null}
       </span>
     </>

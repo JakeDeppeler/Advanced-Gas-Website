@@ -38,7 +38,6 @@ export function TrackerView({ flow, open, imported }: { flow: JobFlow; open: Ope
       <KpiHead title={<>Job<br />tracker</>} kpis={[]} />
       <Say>
         {lateAll ? <><Bad>{lateAll} late</Bad>, the most in <Link href={`/portal/tracker?c=${worst.k}#list`}>{worst.label.toLowerCase()}</Link>.</> : <>Nothing late.</>}{" "}
-        <span className="jf-say__quiet">Late cards sit at the top of each column. Click a card to open the job.</span>
         {unread.length > 0 && <> {unread.map((c) => c.label).join(", ")} couldn&rsquo;t be read just now.</>}
       </Say>
 
