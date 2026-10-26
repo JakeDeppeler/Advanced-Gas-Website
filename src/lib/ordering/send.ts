@@ -435,7 +435,13 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
   const other = workOrder && !isElectrical(po.details);
   const them: Supplier = other ? { ...supplier, name: po.details?.to_name || po.details?.trade || supplier.name, cc_emails: [] } : supplier;
   const email = dateChangeEmail({ supplier: them, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings, trade: other ? po.details?.trade : null });
-  const err = await resend({ from, to: [to], cc: ccList(settings, them, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text });
+  // The electrician gets the job's photos with every email about the job, the
+  // new day included: the ones added since the work order went are often the
+  // ones that matter (the switchboard, where the unit's going). Photos only,
+  // and never what was picked by hand, which went with the work order already.
+  const photos = workOrder && isElectrical(po.details) && po.details ? await jobFilesFor({ ...po.details, files: [] }, { photos: true }) : [];
+  const attachments = Array.isArray(photos) && photos.length ? { attachments: photos } : {};
+  const err = await resend({ from, to: [to], cc: ccList(settings, them, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text, ...attachments });
   if (err) return { ok: false, error: err };
   // The order now says the new day, so the next look at the week sees it as in step.
   for (const m of moves) {

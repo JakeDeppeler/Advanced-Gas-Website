@@ -5,6 +5,7 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Card, Empty, KpiHead } from "@/components/portal/kit/Kit";
+import { JobNoteBox } from "@/components/portal/JobNoteBox";
 import { TrackerView, type Open } from "@/components/portal/jobflow/TrackerView";
 import { ImportedCard } from "@/components/portal/jobflow/ImportedCard";
 import { dbConfigured } from "@/lib/portal/db";
@@ -46,11 +47,18 @@ export default async function TrackerPage({ searchParams }: { searchParams: { c?
   return (
     <PortalShell user={user}>
       {flow ? (
+        <>
         <TrackerView flow={flow} open={pick(searchParams.c, searchParams.s)} imported={
           <Suspense fallback={<Card title="Old jobs still open"><Empty>Checking the jobs the old system left open against Xero…</Empty></Card>}>
             <ImportedCard nowMs={nowMs} />
           </Suspense>
         } />
+        <div className="pk" style={{ marginTop: 18 }}>
+          <Card title="Note on a job" aside="any job, by its number">
+            <JobNoteBox idBase="trk-note" />
+          </Card>
+        </div>
+        </>
       ) : (
         <div className="pk">
           <KpiHead title={<>Job<br />tracker</>} kpis={[]} />

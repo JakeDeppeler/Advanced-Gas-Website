@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { JobNoteBox } from "@/components/portal/JobNoteBox";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
@@ -98,6 +99,13 @@ export default async function CustomerPage({ params }: { params: { id: string } 
           },
         ]}
       />
+
+      {jobs.some((j) => j.job_number) && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Note on a job</h2>
+          <JobNoteBox idBase="cust-note" jobs={jobs.filter((j) => j.job_number).map((j) => ({ number: j.job_number!, label: `Job ${j.job_number} · ${j.job_type || "job"}${j.status ? ` · ${j.status === "InProgress" ? "in progress" : j.status.toLowerCase()}` : ""}` }))} />
+        </section>
+      )}
 
       <section className="pt-panel">
         <h2 className="pt-panel__h">Lead to paid</h2>

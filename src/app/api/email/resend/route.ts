@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { recordProviderEvent } from "@/lib/email/send";
 import { statusFromResend } from "@/lib/email/eventTypes";
 import { svixOk } from "@/lib/email/svix";
+import { handleInbound } from "@/lib/email/inbound";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// An email forwarded to the jobs address can carry files to put on the job.
+export const maxDuration = 60;
 
 /**
  * Resend's webhook: what happened to an email after we handed it over.
@@ -46,6 +49,13 @@ export async function POST(req: Request) {
   } catch {
     // Signed, so it is Resend's, and unreadable, so there is nothing to retry.
     return NextResponse.json({ ok: true });
+  }
+
+  // An email sent to the jobs address: onto its job in ServiceTitan (inbound.ts).
+  // Subscribe the same webhook to email.received; the signature check above covers it.
+  if (body.type === "email.received") {
+    const r = await handleInbound(body.data ?? {}).catch((e: Error) => ({ ok: false as const, retry: true, said: e.message }));
+    return r.ok || !r.retry ? NextResponse.json({ ok: true, said: r.said }) : NextResponse.json({ ok: false }, { status: 500 });
   }
 
   const status = statusFromResend(body.type);
