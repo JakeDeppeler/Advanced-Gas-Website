@@ -648,6 +648,12 @@ export async function putBackToDraft(id: number): Promise<{ ok: boolean; error?:
   if (!po) return { ok: false, error: "That order isn't there any more." };
   if (po.status === "draft") return { ok: false, error: "It's already a draft." };
   if (po.status !== "sent" && po.status !== "approved") return { ok: false, error: `It's ${po.status}, so there's nothing to put back.` };
+  // An order put back from an earlier week comes forward to this one: To order
+  // only shows this week and next, and a draft left in the week it first went
+  // in (job 20403's, put back on 26 Oct from the week of the 19th) was on no
+  // page at all.
+  const current = thisWeek(new Date()).start;
+  const week = po.week_of < current ? current : po.week_of;
   // A supplier has one draft a week (purchase_orders_one_draft_order). When
   // there's already one (a top-up drafted since this went), its lines come
   // onto this order and it goes, rather than the database refusing a second.
@@ -655,7 +661,7 @@ export async function putBackToDraft(id: number): Promise<{ ok: boolean; error?:
   try {
     if (po.kind === "order") {
       const [other] = await sbSelect<{ id: number; po_number: string }>("purchase_orders",
-        `select=id,po_number&kind=eq.order&status=eq.draft&supplier_id=eq.${encodeURIComponent(po.supplier_id)}&week_of=eq.${po.week_of}&id=neq.${id}&limit=1`);
+        `select=id,po_number&kind=eq.order&status=eq.draft&supplier_id=eq.${encodeURIComponent(po.supplier_id)}&week_of=eq.${week}&id=neq.${id}&limit=1`);
       if (other) {
         const mine = new Map((await sbSelect<PoLine>("purchase_order_lines", `po_id=eq.${id}&order=id.asc`)).map((l) => [lineKey(l.job_id, l.sku_id), l]));
         for (const l of await sbSelect<PoLine>("purchase_order_lines", `po_id=eq.${other.id}&order=id.asc`)) {
@@ -675,12 +681,12 @@ export async function putBackToDraft(id: number): Promise<{ ok: boolean; error?:
       const base = po.group_key.split("#")[0];
       // Filtered here rather than with a LIKE: "job-12*" would also catch job-123.
       const other = (await sbSelect<{ po_number: string; group_key: string }>("purchase_orders",
-        `select=po_number,group_key&kind=eq.work_order&status=eq.draft&week_of=eq.${po.week_of}&id=neq.${id}`))
+        `select=po_number,group_key&kind=eq.work_order&status=eq.draft&week_of=eq.${week}&id=neq.${id}`))
         .find((d) => d.group_key.split("#")[0] === base);
       if (other) return { ok: false, error: `There's already a draft work order for this job that week (${other.po_number}). Send or delete that one first.` };
     }
     const got = await sbUpdateReturning("purchase_orders", `id=eq.${id}&status=in.(sent,approved)`, {
-      status: "draft", approved_by: null, approved_at: null, sent_at: null, sent_to: null, send_error: null, updated_at: new Date().toISOString(),
+      status: "draft", week_of: week, approved_by: null, approved_at: null, sent_at: null, sent_to: null, send_error: null, updated_at: new Date().toISOString(),
     });
     if (!got.length) return { ok: false, error: "It changed just now. Have another look." };
   } catch (e) {
