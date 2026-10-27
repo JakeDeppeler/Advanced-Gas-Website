@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dashboardDbConfigured } from "@/lib/dashboard/db";
+import { dashboardDbConfigured, q, sbCount } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { applyPlan, planPricebookSync, recordRun } from "@/lib/pricebook/stPricebook";
@@ -29,6 +29,15 @@ export async function GET(req: Request) {
   const apply = url.searchParams.get("apply") === "1";
   const limit = Math.min(500, Math.max(1, Number(url.searchParams.get("limit")) || 100));
   const startedAt = Date.now();
+
+  // With no Reece prices stored there is nothing to compare, and planning would
+  // still look up (or create) the Reece vendor in ServiceTitan to find that
+  // out. The nightly run went red every night from 2 October with no prices
+  // stored, and a failure that's always there is one nobody reads.
+  const items = await sbCount("supplier_items", q.eq("supplier", "reece"), "code").catch(() => null);
+  if (items === 0) {
+    return NextResponse.json({ ok: true, status: "skipped", reason: "No Reece prices stored yet: connect Reece or upload a price file" });
+  }
 
   let plan;
   try {

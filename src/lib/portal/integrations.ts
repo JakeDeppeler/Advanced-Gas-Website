@@ -45,7 +45,7 @@ export type IntegrationRow = {
   /** Where in the portal its data turns up. */
   feeds: { label: string; href: string }[];
   /** The one thing to do about it, where there's something to do. */
-  action?: { label: string; href: string; external?: boolean };
+  action?: { label: string; href: string; external?: boolean; /** A route handler that redirects off-site: a plain link, never prefetched. */ start?: boolean };
 };
 
 const has = (...keys: string[]) => keys.every((k) => Boolean(process.env[k]?.trim()));
@@ -140,14 +140,22 @@ export async function listIntegrations(): Promise<IntegrationRow[]> {
       k: "reece", name: "Reece",
       does: "Trade prices, the item catalogue, orders and invoices.",
       state: !configured ? (items ? "attention" : "off") : reece.status !== "ready" ? "attention" : errs ? "attention" : "working",
-      status: !configured ? (items ? "Price file only" : "Not set up") : reece.status === "no-customer" ? "No account linked" : errs ? "Last sync had errors" : "Connected",
+      status: !configured ? (items ? "Price file only" : "Waiting on Reece's API keys") : reece.status === "no-customer" ? "Keys in, maX account not linked" : errs ? "Last sync had errors" : "Connected",
       at: catalogue?.seen_at ?? null,
       facts: [
+        // Says which step is next, since each one is somebody else's to do:
+        // Reece issues the keys, the hosting settings hold them, and only a
+        // maX login can link the account.
+        ...(!configured ? ["REECE_CLIENT_ID and REECE_CLIENT_SECRET aren't set in the hosting settings. Reece's API team issues them."]
+          : reece.status === "no-customer" ? ["Connect Reece, then sign in with the business's maX login and pick the account."]
+          : reece.status === "ready" ? [reece.customerNumber ? `maX account ${reece.customerNumber}` : "maX account linked"] : []),
         items !== null ? `${items.toLocaleString("en-AU")} items in the catalogue` : "Catalogue couldn't be read",
         lastRun ? `Pricebook last synced ${new Date(lastRun.started_at).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}${errs ? `, ${errs} error${errs === 1 ? "" : "s"}` : ""}` : "The pricebook has never been synced",
       ],
       feeds: [{ label: "Supply", href: "/portal/supply" }, { label: "Trade pricebook", href: "/trade/pricebook" }],
-      action: { label: "Open Supply", href: "/portal/supply" },
+      action: configured && reece.status === "no-customer"
+        ? { label: "Connect Reece", href: "/api/reece/connect", start: true }
+        : { label: "Open Supply", href: "/portal/supply" },
     });
   }
 
