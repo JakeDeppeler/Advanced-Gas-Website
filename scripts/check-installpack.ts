@@ -64,18 +64,19 @@ ok("the unit is under Going in", names(p.units).join() === "Braemar Dominator Se
 ok("a rebate is never a material or work", ![...names(p.materials), ...p.work].some((n) => /rebate|VEEC/i.test(n)));
 ok("materials keep the quote's order", names(p.materials)[0] === "Bradflo Insulated Duct R1.0 350mm x 6 Metre" && p.materials.length === 6, names(p.materials));
 ok("names are tidied of ServiceTitan's stray spaces", names(p.materials).includes("Multivent MDO 4-Way 230mm x 230mm"));
-ok("the code shows when it differs from the name", p.materials[0].code === "INS-R1.0-350" && p.materials.find((l) => l.name === "Silicone")?.code === null);
+ok("no pricebook codes are printed", !JSON.stringify(p).includes("INS-R1.0-350"));
 ok("part quantities stay as written", p.materials.find((l) => l.name === "Silicone")?.qty === "0.5");
 ok("labour lines are listed, with a quantity when it isn't one", p.work.includes("Dominator - Electrical Connection") && p.work.includes("Extra Time ×2"), p.work);
 
 console.log("-- what's said about ordering --");
 const ord = (n: string) => [...p.units, ...p.materials].find((l) => l.name.startsWith(n))?.ordered;
-ok("a sent order says who, which and when", ord("Braemar") === "Braemar, AGA-261026-BRA-M1, sent Mon 26 Oct", ord("Braemar"));
-ok("a draft says it hasn't gone", ord("Bradflo") === "Reece, AGA-261026-REE: draft, not sent yet", ord("Bradflo"));
-ok("a cancelled order is no order", ord("Ardent") === "Not on an order", ord("Ardent"));
-ok("a pickup says so", ord("PVC Pressure") === "Reece, AGA-261019-REE-2, sent Tue 20 Oct (pick up)", ord("PVC Pressure"));
-ok("a line on no order says so plainly", ord("Silicone") === "Not on an order");
-ok("the electrician's work order is listed once", p.contractors.length === 1 && p.contractors[0].startsWith("GT Electrics: work order AGA-261026-GTE-7, sent"), p.contractors);
+ok("a sent order says sent and who to", ord("Braemar") === "Sent – Braemar", ord("Braemar"));
+ok("a draft says it hasn't gone", ord("Bradflo") === "Draft – not sent", ord("Bradflo"));
+ok("a cancelled order is no order", ord("Ardent") === "Not ordered", ord("Ardent"));
+ok("a pickup says so", ord("PVC Pressure") === "Sent – Reece (pick up)", ord("PVC Pressure"));
+ok("a line on no order says so plainly", ord("Silicone") === "Not ordered");
+ok("each line's state matches its words", [...p.units, ...p.materials].every((l) => (l.state === "sent") === l.ordered.startsWith("Sent") && (l.state === "none") === (l.ordered === "Not ordered")));
+ok("the electrician's work order is listed once", p.contractors.length === 1 && p.contractors[0].startsWith("GT Electrics – work order sent"), p.contractors);
 
 console.log("-- wording --");
 ok("the scope is the quote's, word for word", p.scope === SCOPE);
@@ -94,6 +95,7 @@ ok("…and the note says it was the orders", whatChanged(base, sent, false) === 
 const moved = packParts({ ...facts, visits: "Mon 2 Nov 7:00am", crew: "Ray Kennedy" });
 ok("a move and a crew change are both named", whatChanged(base, moved, false) === "the booking and the crew changed", whatChanged(base, moved, false));
 ok("photos are named when they're what changed", whatChanged(base, base, true) === "the photos changed");
+ok("a pack from the old layout is redone, and the note says only that", whatChanged({ ...base, layout: undefined, orders: "x" } as Partial<typeof base>, base, false) === "new layout only, nothing about the job changed");
 ok("a different sold quote is the quote changing", whatChanged(base, packParts({ ...facts, quote: { ...facts.quote, id: 1 } }), false) === "the quote changed");
 
 const [out, ...photos] = process.argv.slice(2);
