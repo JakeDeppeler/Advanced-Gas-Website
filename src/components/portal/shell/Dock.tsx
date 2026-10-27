@@ -18,6 +18,12 @@ export type DockLink = { href: string; label: string; icon: string; match?: stri
  */
 export function Dock({ links, theme }: { links: DockLink[]; theme: ThemeChoice }) {
   const path = usePathname() ?? "";
+  // Lit anywhere in its section, not just on the one page it opens. Where two
+  // sections claim an address (Suppliers is /portal/supply in Settings, To
+  // order /portal/supply/next-week in Orders) the closer page wins, so only
+  // one link lights.
+  const reach = (l: DockLink) => Math.max(-1, ...(l.match ?? [l.href]).map((h) => { const b = h.split("?")[0]; return path === b || path.startsWith(`${b}/`) ? b.length : -1; }));
+  const best = Math.max(-1, ...links.map(reach));
   return (
     <aside className="pn-dock" aria-label="Shortcuts">
       <button type="button" className="pn-dk" onClick={() => window.dispatchEvent(new Event(SEARCH_EVENT))} aria-label="Search">
@@ -25,8 +31,7 @@ export function Dock({ links, theme }: { links: DockLink[]; theme: ThemeChoice }
         <span className="pn-tip" aria-hidden="true">Search</span>
       </button>
       {links.map((l) => {
-        // Lit anywhere in its section, not just on the one page it opens.
-        const on = (l.match ?? [l.href]).some((h) => { const b = h.split("?")[0]; return path === b || path.startsWith(`${b}/`); });
+        const on = best >= 0 && reach(l) === best;
         const label = l.count?.n ? `${l.label}, ${l.count.n}${l.count.red ? " needing you" : ""}` : l.label;
         return (
           <Link key={l.href} href={l.href} className={`pn-dk${on ? " on" : ""}`} aria-label={label} aria-current={on ? "page" : undefined}>

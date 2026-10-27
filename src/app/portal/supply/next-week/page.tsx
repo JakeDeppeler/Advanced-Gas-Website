@@ -1,5 +1,4 @@
 import { getSettings } from "@/lib/portal/db";
-import { sbSelect } from "@/lib/dashboard/db";
 import { loadStocked } from "@/lib/ordering/stocked";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
@@ -14,22 +13,27 @@ import {
   type PoWithLines,
 } from "@/lib/ordering/db";
 import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
-import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
+import { dayLabel, linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
 export const maxDuration = 60;
-export const metadata = { title: "Next week · Team portal" };
+export const metadata = { title: "To order · Team portal" };
 
+/**
+ * Orders › To order: this week's and next week's orders in one list, soonest
+ * install first. There used to be a switch between the two weeks, which made
+ * the office check both to know nothing was waiting; the week an order was
+ * drafted for is the drafting's business, not the reader's.
+ */
 export default async function NextWeekPage({ searchParams }: { searchParams: { week?: string; tab?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
-  const which = searchParams?.week === "this" ? "this" : "next";
   // Sent is its own tab now, every order that's gone, by supplier.
   if (searchParams?.tab === "sent") redirect("/portal/supply/sent");
-  const week = which === "this" ? thisWeek(new Date()) : nextWeek(new Date());
+  const tw = thisWeek(new Date()), nw = nextWeek(new Date());
 
   // A failed read is not an empty week: dbReady carries the difference.
   let orders: PoWithLines[] = [];
@@ -44,93 +48,76 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let stocked: string[] = [];
   // Every supplier order still a draft, this week and next: a card offers to make a supplier's into one bulk order.
   let allDrafts: { id: number; po: string; supplier: string; week: string }[] = [];
-  const waiting: Record<"next" | "this", number | null> = { next: null, this: null };
   try {
-    // Everything in one go: these used to come one after another once the
-    // first lot was back, and each is a round trip to Tokyo.
-    const nw = nextWeek(new Date()), tw = thisWeek(new Date());
+    // Everything in one go: each is a round trip to Tokyo.
     const supP = loadSuppliers();
-    const [o, s, inputs, already, sy, settings, h, nt, st, drafts, dis] = await Promise.all([
-      listWeekOrders(week), supP, loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
+    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis] = await Promise.all([
+      listWeekOrders(tw), listWeekOrders(nw), supP, loadWeekInputs(tw), loadWeekInputs(nw), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
       supP.then((x) => loadJobNoteSuppliers(x)).catch(() => [] as string[]),
       loadStocked().catch(() => []),
-      // What's waiting to approve in each week, for the counts on the week pills.
-      sbSelect<{ id: number; po_number: string; supplier_id: string; kind: string; week_of: string }>("purchase_orders", `select=id,po_number,supplier_id,kind,week_of&status=eq.draft&week_of=in.(${tw.start},${nw.start})`).catch(() => null),
       getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null),
     ]);
-    orders = o;
+    orders = [...oThis, ...oNext];
     holds = h;
     suppliers = s;
     noted = nt;
     stocked = st.map((x) => x.key);
-    if (drafts) allDrafts = drafts.filter((d) => d.kind === "order").map((d) => ({ id: d.id, po: d.po_number, supplier: d.supplier_id, week: d.week_of }));
-    if (drafts) { waiting.next = drafts.filter((d) => d.week_of === nw.start).length; waiting.this = drafts.filter((d) => d.week_of === tw.start).length; }
+    allDrafts = orders.filter((d) => d.status === "draft" && d.kind === "order").map((d) => ({ id: d.id, po: d.po_number, supplier: d.supplier_id, week: d.week_of }));
     synced = sy;
     replyTo = settings.replyTo;
     delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote, pickupInstructions: settings.pickupInstructions };
     // Worked out live rather than stored with the drafts, so fixing a quote
     // or assigning a crew clears its line here straight away.
-    // Dismissed ones stay out until what's wrong with the job changes.
+    // Dismissed ones stay out until what's wrong with the job changes. A job
+    // whose install sits in both weeks' inputs is said once.
     const dismissed = new Set(dis?.keys ?? []);
-    problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already, skip: new Set(h.map((x) => lineKey(x.job_id, x.sku_id))) }).problems
-      .filter((p) => !dismissed.has(problemKey(p)));
+    const skip = new Set(h.map((x) => lineKey(x.job_id, x.sku_id)));
+    const seen = new Set<string>();
+    problems = [
+      ...planWeek({ week: tw, ...inThis, suppliers: s, alreadyOrdered: already, skip }).problems,
+      ...planWeek({ week: nw, ...inNext, suppliers: s, alreadyOrdered: already, skip }).problems,
+    ].filter((p) => { const k = problemKey(p); if (dismissed.has(k) || seen.has(k)) return false; seen.add(k); return true; });
   } catch {
     dbReady = false;
   }
 
   const live = orders.filter((o) => o.status !== "cancelled");
-  const toApprove = live.filter((o) => o.status === "draft");
-  const goods = live.filter((o) => o.kind === "order");
-  const value = goods.reduce((t, o) => t + linesTotal(o.lines), 0);
+  const waiting = live.filter((o) => o.status === "draft");
+  const value = waiting.filter((o) => o.kind === "order").reduce((t, o) => t + linesTotal(o.lines), 0);
+  const visits = waiting.filter((o) => o.kind === "work_order").length;
+  const soonest = waiting.map((o) => o.kind === "work_order" ? o.details?.date : o.lines.map((l) => l.install_date).filter(Boolean).sort()[0]).filter((d): d is string => !!d).sort()[0];
 
   return (
     <PortalShell user={user}>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head
           title="To order"
-          sub={`${which === "this" ? "This week" : "Next week"} · ${weekLabel(week)}`}
+          sub={`This week and next · ${weekLabel({ start: tw.start, end: nw.end })}`}
           info={[
-            ["Drafted for you", "Built from the installs booked for the week, and kept up to date as bookings come in."],
-            ["Nothing goes until it's approved", "No order reaches a supplier or the electrician until it's approved here."],
+            ["Drafted for you", "Built from the installs booked this week and next, and kept up to date as bookings come in. Next week starts drafting on Wednesday."],
+            ["Nothing goes until it's sent", "No order reaches a supplier or the electrician until someone presses its Send button here."],
             ["Can't order", "A line that can't be ordered, no supplier, no model on the quote, no crew, says why, so it can be fixed in ServiceTitan."],
           ]}
         />
-        <div className="pk-rev-bar nw-bar">
-          {/* Each week its own pill, with what's waiting to approve in that
-              week as a badge on its corner, like the counts on the top bar.
-              What's been sent is the Sent tab. */}
-          <nav className="nw-weeks" aria-label="Which week">
-            {([["next", "Next week"], ["this", "This week"]] as const).map(([k, label]) => {
-              const n = waiting[k];
-              return (
-                <a key={k} href={k === "this" ? "/portal/supply/next-week?week=this" : "/portal/supply/next-week"} className={`nw-week${which === k ? " on" : ""}`} aria-current={which === k ? "page" : undefined}>
-                  {label}
-                  {n ? <span className="nw-badge" aria-label={`${n} waiting to approve`}>{n}</span> : null}
-                </a>
-              );
-            })}
-          </nav>
-        </div>
         {dbReady && (
           <>
             <Say>
-              {toApprove.length ? <Bad>{toApprove.length} {toApprove.length === 1 ? "order is" : "orders are"} waiting to be approved.</Bad> : <Good>Nothing waiting to approve.</Good>}{" "}
-              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered, listed below.</Bad> : null}
+              {waiting.length
+                ? <><Bad>{waiting.length} {waiting.length === 1 ? "order is" : "orders are"} waiting to be sent</Bad>{soonest ? <>, the first for an install on {dayLabel(soonest)}</> : null}.</>
+                : <Good>Nothing waiting to be sent.</Good>}{" "}
+              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered yet.</Bad> : null}
             </Say>
-            <Grid cols={problems.length > 0 ? 4 : 3}>
-              <Tile label="To approve" st={toApprove.length ? { k: "mid", w: "Waiting" } : { k: "good", w: "All done" }} fig={String(toApprove.length)} frac={live.length ? (live.length - toApprove.length) / live.length : null}
-                sub={`${live.length} ${live.length === 1 ? "order" : "orders"} for the week`} />
-              <Tile label="Goods" st={{ k: "none", w: "" }} fig={value ? money(value) : ""} frac={null} sub="ex GST, at pricebook cost" />
-              <Tile label="Electrician" st={{ k: "none", w: "" }} fig={String(live.filter((o) => o.kind === "work_order").length)} frac={null} sub="site visits booked" href="/portal/supply/work-orders" />
-              {problems.length > 0 && <Tile label="Can't order" st={{ k: "bad", w: "Fix it" }} fig={String(problems.length)} frac={null} sub="listed below, with why" />}
+            <Grid cols={2}>
+              <Tile label="Not sent yet" st={waiting.length ? { k: "mid", w: "To send" } : { k: "good", w: "All sent" }} fig={String(waiting.length)} frac={null}
+                sub={[value ? `${money(value)} of gear ex GST` : null, visits ? `${visits} electrician ${visits === 1 ? "visit" : "visits"}` : null].filter(Boolean).join(" · ") || "nothing to send"} />
+              <Tile label="Can't order yet" st={problems.length ? { k: "bad", w: "Fix in ServiceTitan" } : { k: "good", w: "None" }} fig={String(problems.length)} frac={null}
+                sub={problems.length ? "listed below, each with why" : "every booked install can be ordered"} />
             </Grid>
           </>
         )}
       </div>
 
       <NextWeekOrders
-        which={which}
-        view="todo"
         dbReady={dbReady}
         appointmentsSynced={synced}
         orders={orders}
