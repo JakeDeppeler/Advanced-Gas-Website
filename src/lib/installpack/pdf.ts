@@ -1,8 +1,8 @@
 // An install pack as a PDF, for the install job in ServiceTitan, in the
 // website's colours: a navy header with the logo and job number, the address
-// and booking in a cream box, what's going in and the materials with a tick
-// box each for loading the van, the work on the quote, the quote's scope word
-// for word, then the photos four to a page. Pure apart from pdf-lib, so it can
+// and booking in a cream box, the scope of works sold word for word, then the
+// equipment and the materials with a tick box each for loading the van, the
+// work on the quote, each in a box of its own, then the photos four to a page. Pure apart from pdf-lib, so it can
 // be rendered from a fixture.
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
@@ -103,11 +103,50 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     right(pack.jobNumber, W - M, 22, bold, WHITE);
     y = H - BAND - 3 - 24;
   };
-  const room = (h: number) => { if (y - h < M + 28) band(false); };
+  /*
+   * Every section is a box: a cream title strip with the sky tab, a light
+   * border round its contents. A box that runs over a page is closed at the
+   * foot of one page and carries on under "(continued)" on the next, so a
+   * list is never left without its heading.
+   */
+  const LIMIT = M + 28;
+  const IN = M + 12;
+  const IN_R = W - M - 12;
+  let card: { title: string; note?: string; top: number } | null = null;
+  const strip = (title: string, note?: string): number => {
+    const top = y;
+    page.drawRectangle({ x: M, y: top - 24, width: W - 2 * M, height: 24, color: CREAM });
+    page.drawRectangle({ x: M, y: top - 24, width: 4, height: 24, color: SKY });
+    y = top - 16;
+    text(title, IN, 11, bold, NAVY);
+    if (note) right(note, IN_R, 8, font, GREY);
+    y = top - 24 - 18;
+    return top;
+  };
+  const edge = (bottom: number) => {
+    if (card) page.drawRectangle({ x: M, y: bottom, width: W - 2 * M, height: card.top - bottom, borderColor: LINE, borderWidth: 1 });
+  };
+  const room = (h: number) => {
+    if (y - h >= LIMIT) return;
+    edge(y - 2);
+    band(false);
+    if (card) card.top = strip(`${card.title} (continued)`, card.note);
+  };
+  const open = (title: string, note?: string) => {
+    card = null;
+    room(80);
+    card = { title, note, top: strip(title, note) };
+  };
+  const close = () => {
+    const bottom = y - 2;
+    edge(bottom);
+    card = null;
+    y = bottom - 14;
+  };
 
   band(true);
 
-  /* ---- what the job is, then the key facts in a cream box */
+  /* ---- what the job is, then the site and booking in a cream box */
   if (pack.jobType) { text(pack.jobType, M, 13, bold, NAVY); y -= 16; }
   if (pack.customer) { text(pack.customer, M, 10.5, font, GREY); y -= 10; }
   y -= 6;
@@ -142,26 +181,21 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     });
     y = top - rowsH[i / 2];
   }
-  y = boxTop - boxH - 22;
+  y = boxTop - boxH - 14;
 
-  /* ---- section headings: a sky tab and navy words */
-  const heading = (s: string, note?: string) => {
-    room(54);
-    y -= 10;
-    page.drawRectangle({ x: M, y: y - 2, width: 4, height: 14, color: SKY });
-    text(s, M + 10, 12.5, bold, NAVY);
-    if (note) right(note, W - M, 8.5, font, GREY);
-    y -= 10;
-    page.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: 0.8, color: LINE });
-    y -= 16;
+  const para = (s: string) => {
+    for (const l of wrap(font, 10.5, s, IN_R - IN)) { room(13.5); text(l, IN, 10.5); y -= 13.5; }
   };
 
-  /* ---- units and materials: a tick box, qty, the item, and whether it's ordered */
+  /* ---- the scope first, under the site: what was sold, before what to bring */
+  if (pack.scope) { open("Scope of works sold"); para(pack.scope); close(); }
+
+  /* ---- equipment and materials: a tick box, qty, the item, and whether it's ordered */
   const BOX = 10;
-  const QTY_X = M + BOX + 10;
+  const QTY_X = IN + BOX + 10;
   const ITEM_X = QTY_X + 34;
-  const ORD_W = 132;
-  const ORD_X = W - M - ORD_W;
+  const ORD_W = 120;
+  const ORD_X = IN_R - ORD_W;
   const ITEM_W = ORD_X - ITEM_X - 12;
   const table = (rows: PackLine[]) => {
     room(16);
@@ -169,7 +203,7 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     text("ITEM", ITEM_X, 7.5, bold, GREY);
     text("ORDERED", ORD_X, 7.5, bold, GREY);
     y -= 15;
-    for (const r of rows) {
+    rows.forEach((r, i) => {
       const name = wrap(font, 10.5, r.name, ITEM_W);
       const ordFont = r.state === "sent" ? font : bold;
       const ord = wrap(ordFont, 9, r.ordered, ORD_W);
@@ -178,43 +212,40 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
       const top = y;
       // An empty box to tick when it's in the van, with a pen on the printout
       // or on a tablet.
-      page.drawRectangle({ x: M, y: top - 2, width: BOX, height: BOX, borderColor: NAVY, borderWidth: 0.9 });
+      page.drawRectangle({ x: IN, y: top - 2, width: BOX, height: BOX, borderColor: NAVY, borderWidth: 0.9 });
       text(r.qty, QTY_X, 10.5, bold, NAVY);
       for (const l of name) { text(l, ITEM_X, 10.5); y -= 13; }
       y = top;
       const colour = r.state === "sent" ? GREY : r.state === "waiting" ? WAITING : MISSING;
       for (const l of ord) { text(l, ORD_X, 9, ordFont, colour); y -= 11.5; }
       y = top - h;
-      page.drawLine({ start: { x: M, y: y + 5 }, end: { x: W - M, y: y + 5 }, thickness: 0.5, color: LINE });
+      // A rule between rows; the box's own border closes the last one.
+      if (i < rows.length - 1) page.drawLine({ start: { x: IN, y: y + 5 }, end: { x: IN_R, y: y + 5 }, thickness: 0.5, color: LINE });
       y -= 9;
-    }
+    });
+    y += 8;
   };
 
   const tickNote = "Tick each one as it goes in the van";
-  heading("Going in", pack.units.length ? tickNote : undefined);
-  if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", M, 10, font, GREY); y -= 14; }
+  open("Equipment", pack.units.length ? tickNote : undefined);
+  if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
+  close();
 
-  heading("Materials", pack.materials.length ? tickNote : undefined);
-  if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", M, 10, font, GREY); y -= 14; }
+  open("Materials", pack.materials.length ? tickNote : undefined);
+  if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
+  close();
 
   const bullets = (items: string[]) => {
     for (const it of items) {
-      const lines = wrap(font, 10.5, it, W - 2 * M - 16);
+      const lines = wrap(font, 10.5, it, IN_R - IN - 16);
       room(lines.length * 13.5);
-      page.drawRectangle({ x: M + 1, y: y + 1.5, width: 5, height: 5, color: SKY });
-      for (const l of lines) { text(l, M + 16, 10.5); y -= 13.5; }
+      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color: SKY });
+      for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
     }
-    y -= 4;
   };
-  if (pack.work.length) { heading("Work on the quote"); bullets(pack.work); }
-  if (pack.contractors.length) { heading("Contractors"); bullets(pack.contractors); }
-
-  const para = (s: string) => {
-    for (const l of wrap(font, 10.5, s, W - 2 * M)) { room(13.5); text(l, M, 10.5); y -= 13.5; }
-    y -= 4;
-  };
-  if (pack.scope) { heading("Scope, from the sold quote"); para(pack.scope); }
-  if (pack.jobNotes) { heading("Notes on the job"); para(pack.jobNotes); }
+  if (pack.work.length) { open("Work on the quote"); bullets(pack.work); close(); }
+  if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
+  if (pack.jobNotes) { open("Notes on the job"); para(pack.jobNotes); close(); }
 
   /* ---- photos, four to a page */
   const embedded: { img: PDFImage; p: Photo }[] = [];
@@ -229,12 +260,12 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   }
   const unshown = meta.notShown + failed;
   if (embedded.length || unshown) {
-    heading("Photos");
-    text(
-      `${embedded.length ? `${embedded.length} photo${embedded.length === 1 ? "" : "s"} below, newest first.` : "No photos could go in."}${unshown ? ` ${unshown} more on the job in ServiceTitan.` : ""}`,
-      M, 10, font, GREY,
-    );
-    y -= 14;
+    room(80);
+    strip("Photos", [
+      embedded.length ? `${embedded.length} photo${embedded.length === 1 ? "" : "s"}, newest first` : "No photos could go in",
+      unshown ? `${unshown} more on the job in ServiceTitan` : null,
+    ].filter(Boolean).join(" · "));
+    y += 6;
   }
   // Two across, in rows that carry on from wherever the text ended, so a
   // pack with a short scope doesn't leave most of a page blank before them.
