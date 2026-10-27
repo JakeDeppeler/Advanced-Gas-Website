@@ -4194,6 +4194,14 @@ a.pt-fig:hover { transform: translateY(-2px); }
 
 /* The rates */
 .pt-pace__rategrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+/* The rates are reference, not the page: folded under the goal's table, open on a click. */
+.pt-pace__ratesfold { margin-bottom: 0; }
+.pt-pace__ratesfold > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; list-style-position: outside; }
+.pt-pace__ratesfold > summary > span { font-size: 13px; color: var(--ink3); }
+.pt-pace__ratesfold > summary::-webkit-details-marker { display: none; }
+.pt-pace__ratesfold > summary::before { content: "›"; display: inline-block; width: 12px; font-weight: 700; transition: transform .15s ease; }
+.pt-pace__ratesfold[open] > summary::before { transform: rotate(90deg); }
+.pt-pace__ratesfold[open] > summary { margin-bottom: 14px; }
 .pt-pace__rate { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 16px 18px; border-radius: 16px; background: var(--pt-bg); border: 1px solid var(--pt-line); }
 .pt-pace__rate.is-unset { border-style: dashed; border-color: var(--pt-accent-mark); }
 .pt-pace__rlabel { font-size: 14px; font-weight: 700; color: var(--pt-ink); }

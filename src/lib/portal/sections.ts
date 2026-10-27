@@ -77,13 +77,16 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
 export const SECTION_DEFS: SectionDef[] = [
   { id: "home", label: "Overview", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
   {
-    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Your to-dos, the customer work the portal lines up, and what's coming",
+    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "People's to-dos, the accounts' and marketing's, and what's coming",
     pages: [
-      { label: "To-do list", href: "/portal/todo" },
+      // Three boards in the order Jake reads them: people's own, then the
+      // accounts', then marketing's. Office today left the row; its counts
+      // are the account to-dos and the job tracker now.
+      { label: "People", href: "/portal/todo" },
       // Quote follow-ups, invoices to send, late payments, jobs to book: the
       // work the portal writes for the office, kept off people's own lists.
-      { label: "Account to-dos", href: "/portal/todo/accounts", office: true },
-      { label: "Office today", href: "/portal/office", office: true },
+      { label: "Accounts", href: "/portal/todo/accounts", office: true },
+      { label: "Marketing", href: "/portal/todo/marketing" },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
       { label: "Future planning", href: "/portal/plans", office: true },
       { label: "Toolbox talks", href: "/portal/toolbox" },
@@ -107,7 +110,6 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Today", href: "/portal/today" },
       { label: "Call booking", href: "/portal/today?tab=calls", gate: "/portal/today" },
       { label: "KPIs", href: "/portal/kpis" },
-      { label: "Month review", href: "/portal/finance/review" },
       // Pace took in This month (its Month) and Year so far (its Year).
       {
         label: "Pace", group: [

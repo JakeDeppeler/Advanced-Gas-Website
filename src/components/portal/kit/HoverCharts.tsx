@@ -93,60 +93,6 @@ export function InOutChart({ points, inLabel = "Money in", outLabel = "Money out
   );
 }
 
-export type GoalBar = { label: string; full: string; value: number | null; goal: number | null; state: "done" | "now" | "future" };
-
-/** A bar a month against that month's goal: green when it made it, red when it didn't. */
-export function GoalBars({ months, what = "Invoiced" }: { months: GoalBar[]; what?: string }) {
-  const [on, setOn] = useState<number | null>(null);
-  const W = 1080, H = 260, L = 60, R = 16, T = 18, B = 30;
-  const n = Math.max(1, months.length);
-  const hi = niceTop(Math.max(1, ...months.flatMap((m) => [m.value ?? 0, m.goal ?? 0])) * 1.12);
-  const slot = (W - L - R) / n, bw = Math.min(56, slot * 0.6);
-  const Y = (v: number) => T + (H - T - B) * (1 - v / hi);
-  const m = on != null ? months[on] : null;
-  const d = m && m.value != null && m.goal != null ? m.value - m.goal : null;
-  return (
-    <div className="pk-hchart" onMouseLeave={() => setOn(null)}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="pk-chart" role="img" aria-label={`${what} each month against its goal`}>
-        {[0, hi / 2, hi].map((v) => (
-          <g key={v}>
-            <line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} stroke="var(--line)" />
-            <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ax">{kd(v)}</text>
-          </g>
-        ))}
-        {months.map((mo, i) => {
-          const x = L + slot * i + (slot - bw) / 2;
-          const made = mo.value != null && mo.goal != null && mo.value >= mo.goal;
-          const fill = mo.state === "future" || mo.value == null ? "none" : mo.state === "now" ? "var(--quiet)" : mo.goal == null ? "var(--ink4)" : made ? "var(--good-f)" : "var(--bad-f)";
-          const v = mo.state === "future" ? mo.goal ?? 0 : mo.value ?? 0;
-          // Nothing to draw for a month Xero didn't answer, or one still to come with no goal.
-          const draw = !(mo.state === "future" && mo.goal == null) && !(mo.value == null && mo.state !== "future");
-          return (
-            <g key={mo.label} opacity={on != null && on !== i ? 0.55 : 1}>
-              {draw && <rect x={x} y={Y(v)} width={bw} height={Math.max(1, Y(0) - Y(v))} rx="5" fill={fill}
-                stroke={mo.state === "done" && mo.value != null ? "none" : "var(--ink3)"} strokeDasharray={mo.state === "done" ? undefined : "4 3"} />}
-              {mo.goal != null && mo.state !== "future" && <line x1={x - bw * 0.15} x2={x + bw * 1.15} y1={Y(mo.goal)} y2={Y(mo.goal)} stroke="var(--ink)" strokeWidth="1.6" strokeDasharray="4 3" />}
-              <text x={x + bw / 2} y={H - 8} textAnchor="middle" className={`ax${on === i ? " strong" : ""}`}>{mo.label}</text>
-              <rect x={L + slot * i} y={T} width={slot} height={H - T - B} fill="transparent" tabIndex={0}
-                aria-label={`${mo.full}: ${mo.value == null ? "no figure" : money(mo.value)}${mo.goal != null ? `, goal ${money(mo.goal)}` : ""}`}
-                onMouseEnter={() => setOn(i)} onFocus={() => setOn(i)} onClick={() => setOn(i)} style={{ cursor: "pointer", outline: "none" }} />
-            </g>
-          );
-        })}
-      </svg>
-      {m && on != null && (
-        <Tip x={L + slot * on + slot / 2} y={Y(Math.max(m.value ?? 0, m.goal ?? 0))} w={W}>
-          <b>{m.full}{m.state === "now" ? " · so far" : m.state === "future" ? " · to come" : ""}</b>
-          {m.state !== "future" && <span>{what} <em>{m.value == null ? "" : money(m.value)}</em></span>}
-          {m.goal != null && <span>Goal <em>{money(m.goal)}</em></span>}
-          {d != null && m.state === "done" && <span className={d >= 0 ? "g" : "b"}>{d >= 0 ? "▲ Over by" : "▼ Short by"} <em>{money(Math.abs(d))}</em></span>}
-          {d != null && m.state === "now" && <span>{money(Math.max(0, -d))} still to go</span>}
-        </Tip>
-      )}
-    </div>
-  );
-}
-
 export type LoanPoint = { label: string; full: string; balance: number; payment: number; interest: number; principal: number; paid: boolean };
 
 /**

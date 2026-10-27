@@ -4,21 +4,21 @@ import { TodoBoard } from "@/components/portal/TodoBoard";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { dbConfigured } from "@/lib/portal/db";
 import { doneSince, meOf, officeIds, openTodos, seesAll, teamPeople, todayMelbourne, todoLists, visibleTo } from "@/lib/todos/store";
-import { DEFAULT_LISTS, accountRank, dueState, isAccountList, isAccountTodo, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { DEFAULT_LISTS, MARKETING_LIST, accountRank, dueState, isAccountList, isAccountTodo, isMarketingList, jobNumberIn, type Todo } from "@/lib/todos/types";
 import { sbSelect } from "@/lib/dashboard/db";
 
 /**
- * The two to-do boards. One is people's own: what they set themselves or
- * were given. The other is the account to-dos: quotes to follow up, invoices
- * to send, late payments to chase, jobs to book, which the portal writes for
- * the office. Same board, same cards, each holding only its own.
+ * The three to-do boards. People's own: what they set themselves or were
+ * given. The account to-dos: quotes to follow up, invoices to send, late
+ * payments to chase, jobs to book, which the portal writes for the office.
+ * And marketing's. Same board, same cards, each holding only its own.
  *
  * The office — Jake, Dean and Kellie — each have a column, side by side, and
  * can add to any of them or give one to the crew; everyone else sees their own.
  * Every to-do has the day it's due by, and past that day it's flagged — here,
  * on the bell, on Home and in the daily report — until it's ticked off.
  */
-export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" | "accounts" }) {
+export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" | "accounts" | "marketing" }) {
   const ready = dbConfigured();
   const today = todayMelbourne();
   const [me, all, people, office, open, done, saved] = ready
@@ -33,17 +33,19 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
       ])
     : [null, false, [], [], [] as Todo[], [] as Todo[], DEFAULT_LISTS];
 
-  const ours = (t: Todo) => isAccountTodo(t) === (kind === "accounts");
+  const ours = (t: Todo) => (isAccountTodo(t) ? kind === "accounts" : isMarketingList(t.list) ? kind === "marketing" : kind === "mine");
   const meId = me?.id ?? null;
   const todos = visibleTo(open, meId, all).filter(ours);
   const doneSeen = visibleTo(done, meId, all).filter(ours);
   // The account board shows the portal's lists, and any other list one of
   // its to-dos is on (a quote follow-up on Quoting); people's own board
   // shows the rest.
-  const own = saved.filter((l) => !isAccountList(l));
+  const own = saved.filter((l) => !isAccountList(l) && !isMarketingList(l));
+  const marketing = saved.filter(isMarketingList);
   // in the order the work goes: quote, chase, book in, invoice.
   const lists = kind === "accounts"
     ? saved.filter((l) => isAccountList(l) || todos.some((t) => t.list === l)).sort((a, b) => accountRank(a) - accountRank(b))
+    : kind === "marketing" ? (marketing.length ? marketing : [MARKETING_LIST])
     : own.length ? own : DEFAULT_LISTS;
   // Each card's job, for the pop-up's link into ServiceTitan: one read for the lot.
   const jobIds: Record<string, number> = {};
@@ -63,7 +65,7 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
 
   return (
     <PortalShell user={user}>
-      <KpiHead title={kind === "accounts" ? <>Account to-dos</> : <>To-do</>} kpis={[
+      <KpiHead title={kind === "accounts" ? <>Account to-dos</> : kind === "marketing" ? <>Marketing to-dos</> : <>To-do</>} kpis={[
         { icon: "clock", fig: String(late.length), label: "Overdue", badge: late.length ? "flagged" : undefined, tone: "down" },
         { icon: "doc", fig: String(counted.filter((t) => dueState(t, today) === "today").length), label: "Due today" },
         { icon: "bars", fig: String(counted.length), label: kind === "accounts" ? "Quotes, invoices and payments to chase" : all ? "Open across the office" : "Open on your list" },
@@ -86,6 +88,7 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
           lists={lists}
           allLists={saved}
           fixed={kind === "accounts"}
+          locked={kind === "marketing"}
           jobIds={jobIds}
         />
       )}

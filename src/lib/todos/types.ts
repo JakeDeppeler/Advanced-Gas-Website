@@ -56,6 +56,14 @@ export const isQuoteList = (l: string | null | undefined): boolean => !!l && (l 
  */
 export const isAccountTodo = (t: Pick<Todo, "createdBy" | "list">): boolean => t.createdBy === "Automatic" || isAccountList(t.list);
 
+/**
+ * Marketing's own board: posts, ads, the website, reviews. A list of its own
+ * rather than a person's, so it sits beside the account to-dos instead of
+ * inside somebody's list.
+ */
+export const MARKETING_LIST = "Marketing";
+export const isMarketingList = (l: string | null | undefined): boolean => !!l && /\bmarketing\b/i.test(l);
+
 /** Account to-dos run in the order the work does: quote, chase, book, bill. */
 export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /^won\b/i, /\bbook/i, new RegExp(`^${READY_LIST}$`, "i"), new RegExp(`^${OVERDUE_LIST}$`, "i"), new RegExp(`^${FINANCE_LIST}$`, "i")];
 export const accountRank = (l: string) => { const i = ACCOUNT_ORDER.findIndex((r) => r.test(l)); return i < 0 ? ACCOUNT_ORDER.length : i; };
