@@ -183,9 +183,10 @@ export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "quot
 
 /**
  * Bumped when the PDF's design changes, so every pack still to be used is
- * made again in the new look. 2: the branded layout of 28 Oct.
+ * made again in the new look. 2: the branded layout of 28 Oct. 3: the same
+ * day's boxed sections, with the scope under the site.
  */
-export const LAYOUT = "2";
+export const LAYOUT = "3";
 
 const hash = (v: unknown) => createHash("sha1").update(JSON.stringify(v)).digest("hex").slice(0, 16);
 
