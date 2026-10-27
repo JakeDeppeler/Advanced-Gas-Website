@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { sbInsert, sbSelectOne, sbUpdateReturning } from "@/lib/dashboard/db";
+import { sbInsert, sbSelectOne, sbUpdateReturning, sbUpsert } from "@/lib/dashboard/db";
 import { TZ } from "@/lib/dashboard/dates";
 import { site } from "@/lib/site";
 import { draftWeek, loadOrderingSettings, loadSuppliers, loadWeekInputs, type DraftResult } from "./db";
@@ -33,6 +33,8 @@ import { sendReadyNotice } from "./send";
 
 const KEY = "ordering_last_draft";
 const RUN_FOR_MS = 3 * 60_000;
+const CHECK_EVERY_MS = 10 * 60_000;
+const CHECKED = "ordering_last_check";
 
 type State = { fingerprint: string; running_until: string; at?: string };
 
@@ -85,6 +87,20 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
   const weeks: Week[] = [thisWeek(now), ...(dow >= 3 || dow === 0 ? [nextWeek(now)] : [])];
   // Monday and Tuesday: next week's electrician work orders still, the rest of next week on Wednesday.
   const workOnlyNext = weeks.length === 1;
+
+  // Every ten minutes at most from the sync. Working out whether anything
+  // changed reads both ordering views (about 0.7 s), and doing that on every
+  // two-minute sync all day was a large share of the load the evening the
+  // database ran out of headroom (27 Oct). Someone opening To order still
+  // gets it fresh (anyHour), and so does a forced run.
+  if (!opts.force && !opts.anyHour) {
+    // Its own key, written on every check: the draft's own record only moves
+    // when something was drafted, so on a quiet day it would never hold.
+    const last = await sbSelectOne<{ value: { at?: string } }>("portal_settings", `select=value&key=eq.${CHECKED}`).catch(() => null);
+    const at = last?.value?.at ? Date.parse(last.value.at) : 0;
+    if (Date.now() - at < CHECK_EVERY_MS) return { ok: true, skipped: "checked in the last ten minutes" };
+    await sbUpsert("portal_settings", [{ key: CHECKED, value: { at: now.toISOString() }, updated_at: now.toISOString() }], "key").catch(() => undefined);
+  }
 
   // The date and the weeks are in it, so the first run of each weekday (and
   // Wednesday's, when next week comes in) always drafts: that is the morning run.
