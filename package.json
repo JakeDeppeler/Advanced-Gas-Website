@@ -29,6 +29,7 @@
     "check:sold": "npx tsx scripts/check-sold-margin.ts",
     "check:ordering": "npx tsx scripts/check-ordering.ts",
     "check:jobflow": "npx tsx scripts/check-jobflow.ts",
+    "check:installpack": "npx tsx scripts/check-installpack.ts",
     "check:chat": "npx tsx scripts/check-chat.ts"
   },
   "dependencies": {

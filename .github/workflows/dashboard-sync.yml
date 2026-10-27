@@ -87,3 +87,19 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 90 \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${base%/}/api/ordering/draft?mode=refresh"
+
+      # An install pack onto each install booked or changed since the last
+      # pull (Settings › Automatic). Its failure doesn't fail the sync.
+      - name: Install packs for booked installs
+        if: ${{ !inputs.reset }}
+        continue-on-error: true
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          base="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          base="${base%/api/sync}"
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${base%/}/api/install-packs"
