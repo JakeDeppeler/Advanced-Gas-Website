@@ -25,7 +25,9 @@ import { warmPortal } from "@/lib/portal/warm";
  * day would get the integration rate-limited to move a number that hadn't
  * changed.
  */
-const RECOMPUTE_AFTER_MS = 25_000;
+// A minute: the board reads as live, and recomputing it every 25 seconds was
+// a full set of reads three times as often as anyone can see the difference.
+const RECOMPUTE_AFTER_MS = 60_000;
 const SYNC_AFTER_MS = 2 * 60_000;
 
 // Two tabs on two machines can pass the staleness check together. Within one

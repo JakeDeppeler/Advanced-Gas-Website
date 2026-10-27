@@ -654,12 +654,19 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
   }
 
   // Turn the stored jobTypeId / businessUnitId / soldById into display names and
-  // push job_type down onto invoices. Cheap, idempotent, and safe to re-run.
-  try {
-    await sbRpc("dashboard_resolve_names");
-    report.push({ resource: "resolve-names", status: "ok" });
-  } catch (e) {
-    report.push({ resource: "resolve-names", status: "error", error: (e as Error).message });
+  // push job_type down onto invoices. Idempotent, but not cheap: it scans and
+  // updates the whole jobs, quotes and invoices tables, about a second, and
+  // run on every two-minute sync all day it was the single biggest load on the
+  // database the evening it ran out of headroom (27 Oct). Only when this pull
+  // brought rows in; with nothing new there is no name to resolve.
+  const fresh = report.some((r) => r.status === "ok" && (r.records ?? 0) > 0 && r.resource !== "journal-alerts");
+  if (fresh) {
+    try {
+      await sbRpc("dashboard_resolve_names");
+      report.push({ resource: "resolve-names", status: "ok" });
+    } catch (e) {
+      report.push({ resource: "resolve-names", status: "error", error: (e as Error).message });
+    }
   }
 
   /*
@@ -675,6 +682,10 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
    * Reported, never fatal: a shape finding is something to read on Monday, not
    * a reason to fail a sync that otherwise pulled everything it should.
    */
+  // Hourly, not every sync: a field that has gone null is a finding for Monday,
+  // and the check reads thirty days of every table it covers. The first sync
+  // in each hour's opening minutes runs it; syncs are two minutes apart.
+  if (new Date().getUTCMinutes() >= 3) return report;
   try {
     const rows = await sbRpcRows<FieldRow>("dashboard_field_health", { days: 30 });
     const findings = checkFields(rows);
