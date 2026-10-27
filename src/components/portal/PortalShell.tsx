@@ -24,6 +24,7 @@ import { Dock, type DockLink } from "@/components/portal/shell/Dock";
 import { FigureCount } from "@/components/portal/shell/FigureCount";
 import { ChromeMemo } from "@/components/portal/shell/ChromeMemo";
 import { ScrollMark } from "@/components/portal/shell/ScrollMark";
+import { KeepFresh } from "@/components/portal/shell/KeepFresh";
 
 const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_users");
 
@@ -229,6 +230,8 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       <Suspense fallback={null}><FigureCount /></Suspense>
       <ChromeMemo />
       <ScrollMark />
+      {/* The refresh route is the office's (overhead); nobody else would be let through. */}
+      {can(user, "overhead") && <KeepFresh />}
     </div>
   );
 }

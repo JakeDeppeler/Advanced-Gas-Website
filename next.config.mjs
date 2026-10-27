@@ -26,6 +26,11 @@ const nextConfig = {
     // browser first, which usually lands well under a megabyte, but a detailed
     // shot of a dent can run over the 1MB default and would fail silently.
     serverActions: { bodySizeLimit: "6mb" },
+    // Moving between portal tabs re-rendered every page from scratch, even
+    // one opened seconds before. Thirty seconds of the router's own cache
+    // makes going back to a tab instant; a save still refreshes it at once
+    // (every action revalidates its path), and a page left longer reads fresh.
+    staleTimes: { dynamic: 30, static: 180 },
   },
   /**
    * Permanent redirects for URLs that shipped and then moved.
