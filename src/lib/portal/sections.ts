@@ -67,10 +67,10 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  * Home, the business, the day-to-day, then settings.
  *
  * One row of tabs per section, and nearly every page is a tab in it. Only
- * four are families with a row of their own under them — Hourly, What if and
- * Website, because their pages are the same question asked three ways and
- * read best side by side, and Wall board, whose pages all set up one screen.
- * Nothing else nests, and no page draws a tab
+ * a few are families with a row of their own under them: Pace, Hourly, What
+ * if and Website, because their pages are the same question asked three ways and
+ * read best side by side, and Wall board and Ordering in Settings, whose
+ * pages each set up one thing. Nothing else nests, and no page draws a tab
  * row of its own: what's left on a page is a filter on what it shows (a
  * period, a van, a month), not somewhere else to go.
  */
@@ -217,13 +217,14 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     // Ordering for the installs and the factory's own shelf: an order to send
     // is the job, and once it's gone it moves to Sent.
-    id: "orders", label: "Orders & stock", icon: "box", group: 2, blurb: "Gear to order for the installs, what's gone, and the factory shelf",
+    id: "orders", label: "Orders & stock", icon: "box", group: 2, blurb: "Gear to order for the installs, what's gone, and the electrician",
     pages: [
+      // What to send, what's gone, and the electrician's visits. Suppliers
+      // and the factory shelf are set up, not worked from, so they're in
+      // Settings.
       { label: "To order", href: "/portal/supply/next-week" },
       { label: "Sent", href: "/portal/supply/sent" },
-      { label: "Work orders", href: "/portal/supply/work-orders" },
-      { label: "Factory stock", href: "/portal/stock" },
-      { label: "Suppliers", href: "/portal/supply" },
+      { label: "Electrician", href: "/portal/supply/work-orders" },
     ],
   },
   {
@@ -257,6 +258,13 @@ export const SECTION_DEFS: SectionDef[] = [
       // you can only reach from a banner on a television is not a page.
       { label: "Email", href: "/portal/email" },
       { label: "Admin", href: "/portal/admin" },
+      // How ordering is set up: who we buy from and what we keep on the shelf.
+      {
+        label: "Ordering", group: [
+          { label: "Suppliers", href: "/portal/supply" },
+          { label: "Factory stock", href: "/portal/stock" },
+        ],
+      },
       // Seven pages that all set up the one screen: one tab, its own row.
       {
         label: "Wall board", group: [

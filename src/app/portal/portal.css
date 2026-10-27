@@ -5448,6 +5448,8 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nw__cardhead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
 .pt-nw__po { margin-left: auto; font-family: var(--f-mono, ui-monospace, monospace); font-size: 13px; color: var(--pt-ink-3); }
 .pt-nw__table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+/* The lines show without a click now, so on a phone they scroll sideways in their card rather than squeeze each item to a word a line. */
+.pt-tgt__tablewrap > .pt-nw__table { min-width: 600px; }
 .pt-nw__table th, .pt-nw__table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--pt-line); vertical-align: top; font-size: 14px; }
 .pt-nw__table thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--pt-ink-3); border-bottom-width: 2px; white-space: nowrap; }
 .pt-nw__table td strong { display: block; color: var(--pt-ink); }
