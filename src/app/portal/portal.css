@@ -3152,6 +3152,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-integ__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .pt-integ__top .pt-panel__h { margin: 0; }
 .pt-integ__does { margin: 6px 0 10px; color: var(--pt-ink-2); }
+.pt-integ__said { margin: 0 0 14px; padding: 12px 16px; }
 .pt-integ__facts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .pt-integ__side { display: flex; flex-direction: column; gap: 12px; padding-left: 24px; border-left: 1px solid var(--pt-tint); align-items: flex-start; }
 .pt-integ__side > div { display: flex; flex-direction: column; gap: 2px; }

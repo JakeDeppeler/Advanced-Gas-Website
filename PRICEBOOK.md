@@ -122,11 +122,12 @@ each call depends on how Reece set us up:
 
 - **Customer-Token (how Reece set us up in production, Oct 2026).** We sign in
   to maX once through Reece's onboarding page and Reece hands back a customer
-  token. Open
+  token. Once the keys below are in, **Settings › Integrations** shows a
+  **Connect Reece** button on the Reece card (or open
   `https://www.advancedgas.com.au/api/reece/connect?k=<SCREEN_TOKEN>` in a
-  browser, sign in to maX with the account's login, pick the account, and you
-  land back on `/api/reece/callback`, which stores the token in
-  `portal_integrations` (provider `reece`). The onboarding page is on
+  browser). Sign in to maX with the account's login, pick the account, and you
+  land back on Integrations via `/api/reece/callback`, which stores the token
+  in `portal_integrations` (provider `reece`). The onboarding page is on
   `www.reece.com.au` (`stage.reece.com.au` for test), not the API host.
 - **Customer-Number**, for a dedicated single-customer tool: Reece links our
   account number to the credentials and every call carries it. Set
@@ -144,6 +145,12 @@ Then run **Reece check** from the Actions tab. It walks credentials → token �
 customer identity → one call per capability (branches, search, price file,
 invoices) and names what to fix at the first failure. A `price-file` stage
 reading "no price file generated yet" is normal before step 6.
+
+Until there are Reece prices in `supplier_items` (from the API or an upload),
+the nightly pricebook sync reports *skipped* rather than planning against
+nothing. Before that it went red every night from 2 October with nothing to
+compare, and a failure that is always there is one nobody reads. A real
+failure now prints the error body in the run log.
 
 ### 6. Price file from the API
 

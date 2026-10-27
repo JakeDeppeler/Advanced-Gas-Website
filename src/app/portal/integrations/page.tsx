@@ -31,7 +31,12 @@ function ago(iso: string | null): string | null {
  * connection check, Xero meant Finance, the board meant the dot in its own
  * header, and Instagram meant noticing the feed had gone quiet.
  */
-export default async function IntegrationsPage() {
+const REECE_SAID: Record<string, string> = {
+  connected: "Reece is connected. Tonight's pricebook sync pulls the price file; run Pricebook sync from GitHub Actions to have it sooner.",
+  notconfigured: "Reece can't be connected until its API keys are in the hosting settings.",
+};
+
+export default async function IntegrationsPage({ searchParams }: { searchParams: { reece?: string; account?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Integrations" forWhom="managers" />;
@@ -51,6 +56,12 @@ export default async function IntegrationsPage() {
         { icon: "plug", fig: String(count("off")), label: "Not connected yet" },
       ]} line="Every outside system the business runs on, and whether it's working."
         info={<p>Read from what each one last sent; opening this page doesn&rsquo;t call any of them. Keys and passwords live in the hosting settings, never here.</p>} />
+
+      {searchParams.reece && REECE_SAID[searchParams.reece] && (
+        <p className="pt-panel pt-integ__said" role="status">
+          {searchParams.reece === "connected" && /^\d+$/.test(searchParams.account ?? "") ? `maX account ${searchParams.account}: ` : ""}{REECE_SAID[searchParams.reece]}
+        </p>
+      )}
 
       <div className="pt-integ">
         {sorted.map((r) => (
@@ -77,7 +88,9 @@ export default async function IntegrationsPage() {
                 </span>
               </div>
               {r.action && (
-                r.action.external
+                r.action.start
+                  ? <a href={r.action.href} className="pt-btn pt-btn--navy pt-btn--sm">{r.action.label} →</a>
+                  : r.action.external
                   ? <a href={r.action.href} target="_blank" rel="noreferrer" className="pt-btn pt-btn--ghost pt-btn--sm">{r.action.label} ↗</a>
                   : <Link href={r.action.href} className="pt-btn pt-btn--ghost pt-btn--sm">{r.action.label} →</Link>
               )}

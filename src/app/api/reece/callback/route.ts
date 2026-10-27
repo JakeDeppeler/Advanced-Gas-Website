@@ -22,10 +22,13 @@ export async function GET(req: Request) {
     return new NextResponse(`Could not complete Reece onboarding: ${(e as Error).message}`, { status: 502 });
   }
 
-  const res = new NextResponse(
-    `Reece account ${result.customerNumber}${result.displayName ? ` (${result.displayName})` : ""} connected. The nightly price-file pull will now run; trigger it early from the Actions tab (Pricebook sync) if you want it sooner.`,
-    { headers: { "Content-Type": "text/plain; charset=utf-8" } },
-  );
+  // Back to Integrations, where the Reece row now reads Connected with the
+  // account number. Whoever got this far started it from there or holds the
+  // screen token; either way the page is where the next step is.
+  const back = new URL("/portal/integrations", req.url);
+  back.searchParams.set("reece", "connected");
+  back.searchParams.set("account", String(result.customerNumber));
+  const res = NextResponse.redirect(back);
   res.cookies.set("reece_request_token", "", { maxAge: 0, path: "/api/reece" });
   return res;
 }

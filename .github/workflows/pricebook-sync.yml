@@ -77,10 +77,16 @@ jobs:
           # 2. Plan (and optionally apply) against the ServiceTitan pricebook.
           if [ -n "$APPLY" ]; then
             curl --fail-with-body -sS --max-time 120 "${auth[@]}" \
-              "${BASE}/api/pricebook/sync?apply=1&limit=${LIMIT}" > sync.json
+              "${BASE}/api/pricebook/sync?apply=1&limit=${LIMIT}" > sync.json || { cat sync.json; exit 1; }
           else
             curl --fail-with-body -sS --max-time 120 "${auth[@]}" \
-              "${BASE}/api/pricebook/sync" > sync.json
+              "${BASE}/api/pricebook/sync" > sync.json || { cat sync.json; exit 1; }
+          fi
+
+          if [ "$(jq -r '.status // ""' sync.json)" = "skipped" ]; then
+            echo "## Pricebook sync — skipped: $(jq -r .reason sync.json)" >> "$GITHUB_STEP_SUMMARY"
+            jq -c . sync.json
+            exit 0
           fi
 
           JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/");'
