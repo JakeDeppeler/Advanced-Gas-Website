@@ -4,7 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { Card, Empty, KpiHead } from "@/components/portal/kit/Kit";
+import { Card, Empty, Head } from "@/components/portal/kit/Kit";
 import { JobNoteBox } from "@/components/portal/JobNoteBox";
 import { TrackerView, type Open } from "@/components/portal/jobflow/TrackerView";
 import { ImportedCard } from "@/components/portal/jobflow/ImportedCard";
@@ -33,8 +33,7 @@ function pick(c: string | undefined, s: string | undefined): Open {
  *
  * The stages come from what ServiceTitan records, never from tags: a job
  * nobody tagged still lands in one (see lib/jobflow/types.ts for the rules).
- * The board is the whole business on one screen: a column a step, a card a
- * job. A column's heading opens its full list underneath.
+ * A tile a step, and the picked step's jobs listed under them.
  */
 export default async function TrackerPage({ searchParams }: { searchParams: { c?: string; s?: string } }) {
   const user = await getPortalUser();
@@ -61,7 +60,7 @@ export default async function TrackerPage({ searchParams }: { searchParams: { c?
         </>
       ) : (
         <div className="pk">
-          <KpiHead title={<>Job<br />tracker</>} kpis={[]} />
+          <Head title="Job tracker" sub="Where every job is up to · ServiceTitan" />
           <Empty>ServiceTitan couldn&rsquo;t be read just now. Try again in a minute.</Empty>
         </div>
       )}

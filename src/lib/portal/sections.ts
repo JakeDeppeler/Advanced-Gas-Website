@@ -67,9 +67,10 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
  * Home, the business, the day-to-day, then settings.
  *
  * One row of tabs per section, and nearly every page is a tab in it. Only
- * three are families with a row of their own under them — Hourly, What if
- * and Website — because their pages are the same question asked three ways
- * and read best side by side. Nothing else nests, and no page draws a tab
+ * four are families with a row of their own under them — Hourly, What if and
+ * Website, because their pages are the same question asked three ways and
+ * read best side by side, and Wall board, whose pages all set up one screen.
+ * Nothing else nests, and no page draws a tab
  * row of its own: what's left on a page is a filter on what it shows (a
  * period, a van, a month), not somewhere else to go.
  */
@@ -89,15 +90,15 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every job from enquiry to paid, every quote out, and the customers behind them",
+    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every job from enquiry to paid, and every quote out",
     pages: [
-      // The whole run of a job, of which the quotes are one stretch.
+      // The whole run of a job, of which the quotes are one stretch. Just the
+      // two: this is where the office checks where things are up to, and the
+      // record pages (customers, sites) are tools you go to, not a status.
+      // Lost quotes left the row because nobody works from it; the page stays
+      // for search and old links.
       { label: "Job tracker", href: "/portal/tracker", office: true },
       { label: "Quotes", href: "/portal/pipeline" },
-      { label: "Lost quotes", href: "/portal/pipeline/lost", gate: "/portal/sales" },
-      { label: "Customers", href: "/portal/customers" },
-      { label: "Sites", href: "/portal/locations" },
-      { label: "Messages", href: "/portal/chats" },
     ],
   },
   {
@@ -237,9 +238,14 @@ export const SECTION_DEFS: SectionDef[] = [
   },
   {
     // Set up once and looked at rarely, so out of the way at the bottom.
-    id: "you", label: "Settings", icon: "me", group: 3, blurb: "Your file, alerts, the wall board and how the portal is set up",
+    id: "you", label: "Settings", icon: "me", group: 3, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
     pages: [
       { label: "My file", href: "/portal/me" },
+      // The records and the tools that build them (bulk site add lives on
+      // Sites), with Messages until a channel is connected to it.
+      { label: "Customers", href: "/portal/customers" },
+      { label: "Sites", href: "/portal/locations" },
+      { label: "Messages", href: "/portal/chats" },
       { label: "Notifications", href: "/portal/notifications" },
       { label: "Settings", href: "/portal/settings" },
       { label: "Automatic", href: "/portal/automatic" },
@@ -249,13 +255,18 @@ export const SECTION_DEFS: SectionDef[] = [
       // you can only reach from a banner on a television is not a page.
       { label: "Email", href: "/portal/email" },
       { label: "Admin", href: "/portal/admin" },
-      { label: "Wall board", href: "/portal/board/remote" },
-      { label: "Targets & commission", href: "/portal/finance/board" },
-      { label: "Sounds", href: "/portal/board/sounds" },
-      { label: "Standard times", href: "/portal/board/times" },
-      { label: "Held work", href: "/portal/board/hold" },
-      { label: "Who sold it", href: "/portal/board/credit" },
-      { label: "Reports", href: "/portal/board/reports" },
+      // Seven pages that all set up the one screen: one tab, its own row.
+      {
+        label: "Wall board", group: [
+          { label: "Wall board", href: "/portal/board/remote" },
+          { label: "Targets & commission", href: "/portal/finance/board" },
+          { label: "Sounds", href: "/portal/board/sounds" },
+          { label: "Standard times", href: "/portal/board/times" },
+          { label: "Held work", href: "/portal/board/hold" },
+          { label: "Who sold it", href: "/portal/board/credit" },
+          { label: "Reports", href: "/portal/board/reports" },
+        ],
+      },
     ],
   },
 ];
