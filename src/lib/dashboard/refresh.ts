@@ -8,7 +8,7 @@ import { autoDraft } from "@/lib/ordering/autoDraft";
 import { runAutomations } from "@/lib/automation/reminders";
 import { pipelineChanged } from "@/lib/pipeline/store";
 import { warmPortal } from "@/lib/portal/warm";
-import { runInstallPacks } from "@/lib/installpack/run";
+import { kickInstallPacks } from "@/lib/installpack/kick";
 
 /**
  * Bring the board's snapshot up to date, if it's due.
@@ -52,7 +52,6 @@ async function syncDue(): Promise<boolean> {
 }
 
 async function run(pull: boolean) {
-  const started = Date.now();
   /*
    * Turn Xero's handle before reading it.
    *
@@ -93,10 +92,9 @@ async function run(pull: boolean) {
   if (pull) await autoDraft().catch(() => undefined);
   // And Settings › Automatic: the quote tags, the to-dos, low stock, order tags.
   if (pull) await runAutomations().catch(() => undefined);
-  // An install pack for anything newly booked or changed: one at most here,
-  // and only with time left in the function, since building one downloads
-  // the job's photos. The rest go on the next pull or the Actions sync.
-  if (pull && Date.now() - started < 25_000) await runInstallPacks({ max: 1, deadline: started + 50_000 }).catch(() => undefined);
+  // An install pack for anything newly booked or changed, made in its own
+  // function (see kick.ts): there's never time left in this one.
+  if (pull) await kickInstallPacks().catch(() => undefined);
   // Last: the portal's shared caches, filled now so nobody waits on them.
   if (pull) await warmPortal().catch(() => undefined);
 }

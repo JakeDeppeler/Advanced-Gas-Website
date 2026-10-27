@@ -1,5 +1,5 @@
 import "server-only";
-import { q, sbSelect, sbUpsert } from "@/lib/dashboard/db";
+import { q, sbInsertIfAbsent, sbSelect, sbUpdateReturning, sbUpsert } from "@/lib/dashboard/db";
 import { stDownload, stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { loadSwitches, logAuto, type AutoEntry } from "@/lib/automation/log";
 import { buildPack, fingerprint, packParts, whatChanged, type PackFacts, type PackParts } from "./build";
@@ -29,12 +29,30 @@ type Row = {
   photo_ids: number[] | null;
   attached_at: string | null;
   photos_checked_at: string | null;
+  claimed_at?: string | null;
   last_error: string | null;
   last_tried_at: string | null;
 };
 
 /** Photos are checked against ServiceTitan this often, not every pull: listing them is two API calls a job. */
 const PHOTO_RECHECK_MS = 3 * 3_600_000;
+/** A claim older than this belongs to a run that died; a pack never takes longer. */
+const CLAIM_MS = 2 * 60_000;
+
+/**
+ * Take the job for this run, or learn another run has it. The board's
+ * refresh, the Actions sync and the morning cron can overlap, and two runs
+ * building the same pack would put it on the job twice. Returns the row as
+ * it stands once claimed — another run may have just finished it — or null.
+ */
+async function claimJob(jobId: number, estimateId: number): Promise<Row | null> {
+  await sbInsertIfAbsent("install_packs", { job_id: jobId, estimate_id: estimateId }, "job_id");
+  // Quoted: inside or=() PostgREST reads a bare dot or colon as syntax.
+  const cut = new Date(Date.now() - CLAIM_MS).toISOString();
+  const got = await sbUpdateReturning<Row>("install_packs", `job_id=eq.${jobId}&or=(claimed_at.is.null,claimed_at.lt.${encodeURIComponent(`"${cut}"`)})`, { claimed_at: new Date().toISOString() });
+  return got[0] ?? null;
+}
+
 /** After a failure, wait this long before trying the same job again. */
 const RETRY_MS = 30 * 60_000;
 /**
@@ -124,7 +142,14 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       photosChanged = true;
     }
 
-    const version = (row?.version ?? 0) + 1;
+    const mine = await claimJob(j.job_id, j.estimate_id).catch(() => null);
+    if (!mine) continue;
+    // Finished by another run between our read and our claim: nothing to do.
+    if (mine.attached_at && mine.fingerprint === fp && !photosChanged && mine.version > (row?.version ?? 0)) {
+      await sbUpsert("install_packs", [{ job_id: j.job_id, claimed_at: null }], "job_id").catch(() => undefined);
+      continue;
+    }
+    const version = (mine.version ?? 0) + 1;
     const label = `Job ${j.job_number ?? j.job_id}`;
     try {
       const built = await buildPackFile(j, f, version, deadline);
@@ -139,7 +164,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       const at = new Date().toISOString();
       await sbUpsert("install_packs", [{
         job_id: j.job_id, estimate_id: j.estimate_id, version, fingerprint: fp, parts, photo_ids: built.photoIds,
-        file_name: built.fileName, attached_at: at, photos_checked_at: at, last_error: noted ? null : "The PDF went on, but ServiceTitan refused the note.", last_tried_at: at, updated_at: at,
+        file_name: built.fileName, attached_at: at, photos_checked_at: at, claimed_at: null, last_error: noted ? null : "The PDF went on, but ServiceTitan refused the note.", last_tried_at: at, updated_at: at,
       }], "job_id");
       const did = version === 1 ? "made" : "updated";
       ran.push({ job: label, did, detail: `v${version}, ${shown}` });
@@ -147,7 +172,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
     } catch (e) {
       const msg = (e as Error).message.slice(0, 500);
       const at = new Date().toISOString();
-      await sbUpsert("install_packs", [{ job_id: j.job_id, estimate_id: j.estimate_id, version: row?.version ?? 0, last_error: msg, last_tried_at: at, updated_at: at }], "job_id").catch(() => undefined);
+      await sbUpsert("install_packs", [{ job_id: j.job_id, estimate_id: j.estimate_id, version: mine.version ?? 0, claimed_at: null, last_error: msg, last_tried_at: at, updated_at: at }], "job_id").catch(() => undefined);
       ran.push({ job: label, did: "failed", detail: msg });
       log.push({ at, kind: "installPack", title: `Install pack on job ${j.job_number ?? j.job_id} failed`, detail: msg, ok: false, jobId: j.job_id });
     }
