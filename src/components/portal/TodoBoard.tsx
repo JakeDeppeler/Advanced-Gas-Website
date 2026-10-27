@@ -26,6 +26,11 @@ type Props = {
    * aren't added, moved, renamed or taken away from here.
    */
   fixed?: boolean;
+  /**
+   * Marketing's board: one list that isn't saved with people's, so changing
+   * the lists here would rewrite theirs. Cards work as anywhere else.
+   */
+  locked?: boolean;
   /** The ServiceTitan job id of each to-do that names a job, for the pop-up's link. */
   jobIds?: Record<string, number>;
 };
@@ -313,7 +318,7 @@ function ContactPanel({ t, onClose }: { t: Todo; onClose: () => void }) {
  * there. A card drags from one list to another, and the office can add a
  * list or take an empty one away.
  */
-export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists, allLists, fixed, jobIds }: Props) {
+export function TodoBoard({ todos, done, people, office, meId, all, admin, today, lists: savedLists, allLists, fixed, locked, jobIds }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -421,7 +426,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   };
 
   // Who may change the lists themselves, as opposed to what's on them.
-  const shape = all && !fixed;
+  const shape = all && !fixed && !locked;
   const toneOf = (l: string, i: number) => TONES[Math.max(0, (allLists ?? lists).indexOf(l) >= 0 ? (allLists ?? lists).indexOf(l) : i) % TONES.length];
   const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today, lists, drag, setDrag, open: fixed ? setContact : null, jobIds: jobIds ?? {}, fresh, leaving, flag, isImportant };
   const doneShown = done.filter(mine);

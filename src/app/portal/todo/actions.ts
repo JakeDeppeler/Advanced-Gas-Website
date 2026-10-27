@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { FOLLOW_UP_LIST, WON_LIST, isAccountList, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { FOLLOW_UP_LIST, WON_LIST, isAccountList, isMarketingList, jobNumberIn, type Todo } from "@/lib/todos/types";
 import { loadFlow, saveFlow } from "@/lib/todos/flow";
 import { sbSelect } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
@@ -122,9 +122,9 @@ export async function saveLists(names: string[]): Promise<TodoResult> {
   if (!w || !w.all) return { ok: false, error: "Only the office can change the lists." };
   const clean = [...new Set(names.map((n) => n.trim()).filter(Boolean))];
   if (!clean.length) return { ok: false, error: "Keep at least one list." };
-  // People's own board only shows its own lists: the account lists it
-  // doesn't show stay where they were, after them.
-  const kept = (await todoLists()).filter((l) => isAccountList(l) && !clean.includes(l));
+  // People's own board only shows its own lists: the account and marketing
+  // lists it doesn't show stay where they were, after them.
+  const kept = (await todoLists()).filter((l) => (isAccountList(l) || isMarketingList(l)) && !clean.includes(l));
   if (clean.length + kept.length > MAX_LISTS) return { ok: false, error: "That's as many lists as there's room for. Take one away first." };
   const res = await saveTodoLists([...clean, ...kept]);
   if (!res.ok) return { ok: false, error: "Couldn't save the lists." };

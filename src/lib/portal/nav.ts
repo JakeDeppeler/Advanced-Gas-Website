@@ -272,6 +272,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/plans", label: "Future planning", blurb: "What you want to do for the business, by when", band: "hidden", icon: "target", also: ["plans", "planning", "future", "goals", "ideas", "business plan", "long term", "someday", "vision"] });
   items.push({ href: "/portal/keep-in-touch", label: "Keep in touch", blurb: "Important people to reach out to every month", band: "hidden", icon: "people", also: ["contacts", "keep in contact", "relationships", "builders", "agents", "suppliers", "referrers", "call list", "reach out", "networking"] });
   items.push({ href: "/portal/todo", label: "To-do", blurb: "Today's jobs, given to each other, with the day each is due", band: "hidden", icon: "list", also: ["todo", "to do", "to-do list", "task", "tasks", "reminder", "due", "overdue", "jobs to do"] });
+  items.push({ href: "/portal/todo/marketing", label: "Marketing to-dos", blurb: "Posts, ads, the website and reviews, with the day each is due", band: "hidden", icon: "list", also: ["marketing", "marketing to do", "social", "posts", "ads", "website", "reviews"] });
   // The wall board's own tab: the remote first, because driving the TV is
   // what people come here to do; then what it shows, then what it aims at.
   add(office,
@@ -312,7 +313,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["office", "office today", "morning", "routine", "review invoices", "needs review", "not sent", "hold list", "partially paid", "part paid", "follow up"],
     },
     {
-      href: "/portal/pace?view=month", label: "Pace this month", short: "Pace · month", blurb: "Jobs sold, the gear in them, and what's left to cover the month", band: "hidden", icon: "trend",
+      href: "/portal/pace?view=month", label: "Pace this month", short: "Pace · month", blurb: "The month against the goal: invoiced, booked, quoted, sold and done", band: "hidden", icon: "trend",
       also: ["month", "this month", "month so far", "cost of goods", "cogs", "gear", "break even", "cover overheads", "sold jobs", "not billed", "before the reece bill"],
     },
     { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
@@ -327,7 +328,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   // own tabs. Here so the search finds them and the side bar's gate is this list.
   add(office,
     { href: "/portal/finance/pl", label: "Profit & loss", short: "P&L", blurb: "Xero's profit and loss, month by month", band: "hidden", icon: "chart", also: ["p&l", "profit and loss", "income", "expenses", "xero"] },
-    { href: "/portal/pace?view=year", label: "Pace this year", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
+    { href: "/portal/pace?view=year", label: "Pace this year", blurb: "The year against the goal, and what a week it takes to land it", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
     { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
     { href: "/portal/numbers", label: "Goals", blurb: "Every goal the portal measures against", band: "hidden", icon: "target", also: ["goals", "our numbers", "year goal", "sales goal", "months", "gross margin goal", "win rate goal"] },
     { href: "/portal/finance/capacity", label: "Overheads", blurb: "Every overhead line, add, edit, a year, a week or a month a van", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software", "fuel", "servicing", "add a line"] },

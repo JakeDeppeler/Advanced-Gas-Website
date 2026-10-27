@@ -334,30 +334,6 @@ export type YearStanding = {
   missingMonths: number;
 };
 
-export type OverheadStanding = {
-  /** The year's expectation, when one is set. */
-  goal: number | null;
-  /** Spent so far. Null when no month answered. */
-  spent: number | null;
-  /** Pro-rata share of the expectation for the time elapsed. */
-  expectedToDate: number | null;
-  /** spent − expectedToDate. Positive means overspending. */
-  delta: number | null;
-  /** Average per complete month, which is the figure worth knowing. */
-  perMonth: number | null;
-};
-
-export type MonthOnMonth = {
-  /** The last complete month. */
-  latest: { label: string; income: number | null; expenses: number | null; netProfit: number | null } | null;
-  /** The one before it. */
-  previous: { label: string; income: number | null; expenses: number | null; netProfit: number | null } | null;
-  /** latest − previous, on invoiced. Null when either is missing. */
-  change: number | null;
-  /** The same as a share of the previous month. Null when that month was zero. */
-  changePct: number | null;
-};
-
 /**
  * How far through the period we are, 0–1, counting part-months.
  *
@@ -419,42 +395,6 @@ export function standing(goal: YearGoal, actuals: MonthActual[], today: Date): Y
     months,
     hasActuals: answered.length > 0,
     missingMonths: months.filter((m) => m.started && m.income == null).length,
-  };
-}
-
-export function overheadStanding(goal: YearGoal, year: YearStanding): OverheadStanding {
-  const seen = year.months.filter((m) => m.started && m.expenses != null);
-  const spent = seen.length ? seen.reduce((t, m) => t + (m.expenses ?? 0), 0) : null;
-  const complete = year.months.filter((m) => m.complete && m.expenses != null);
-  const expectedToDate = goal.overhead == null ? null : goal.overhead * year.elapsed;
-  return {
-    goal: goal.overhead,
-    spent,
-    expectedToDate,
-    delta: spent == null || expectedToDate == null ? null : spent - expectedToDate,
-    perMonth: complete.length ? complete.reduce((t, m) => t + (m.expenses ?? 0), 0) / complete.length : null,
-  };
-}
-
-/**
- * Last complete month against the one before it.
- *
- * Complete months only. A month three days old compared against a whole one
- * always reads as a collapse, and that is the comparison people make by
- * accident every time it is offered to them.
- */
-export function monthOnMonth(year: YearStanding): MonthOnMonth {
-  const done = year.months.filter((m) => m.complete);
-  const latest = done[done.length - 1] ?? null;
-  const previous = done[done.length - 2] ?? null;
-  const pick = (m: MonthRow | null) =>
-    m ? { label: m.label, income: m.income, expenses: m.expenses, netProfit: m.netProfit } : null;
-  const change = latest?.income != null && previous?.income != null ? latest.income - previous.income : null;
-  return {
-    latest: pick(latest),
-    previous: pick(previous),
-    change,
-    changePct: change != null && previous?.income ? change / previous.income : null,
   };
 }
 
