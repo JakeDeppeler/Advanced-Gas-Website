@@ -57,12 +57,14 @@ export const isQuoteList = (l: string | null | undefined): boolean => !!l && (l 
 export const isAccountTodo = (t: Pick<Todo, "createdBy" | "list">): boolean => t.createdBy === "Automatic" || isAccountList(t.list);
 
 /**
- * Marketing's own board: posts, ads, the website, reviews. A list of its own
- * rather than a person's, so it sits beside the account to-dos instead of
- * inside somebody's list.
+ * Marketing's own board, a list for each way we market: Google Ads, Facebook,
+ * and everything else (sign wraps, flyers, the website). Lists of its own
+ * rather than a person's, so they sit beside the account to-dos instead of
+ * inside somebody's list. The old single "Marketing" list still counts, so
+ * anything put on it stays on this board.
  */
-export const MARKETING_LIST = "Marketing";
-export const isMarketingList = (l: string | null | undefined): boolean => !!l && /\bmarketing\b/i.test(l);
+export const MARKETING_LISTS = ["Google Ads", "Facebook", "General marketing"];
+export const isMarketingList = (l: string | null | undefined): boolean => !!l && (MARKETING_LISTS.includes(l) || /\bmarketing\b/i.test(l));
 
 /** Account to-dos run in the order the work does: quote, chase, book, bill. */
 export const ACCOUNT_ORDER = [/quot|sales/i, new RegExp(`^${FOLLOW_UP_LIST}$`, "i"), /^won\b/i, /\bbook/i, new RegExp(`^${READY_LIST}$`, "i"), new RegExp(`^${OVERDUE_LIST}$`, "i"), new RegExp(`^${FINANCE_LIST}$`, "i")];

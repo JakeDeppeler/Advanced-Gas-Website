@@ -4,7 +4,7 @@ import { TodoBoard } from "@/components/portal/TodoBoard";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { dbConfigured } from "@/lib/portal/db";
 import { doneSince, meOf, officeIds, openTodos, seesAll, teamPeople, todayMelbourne, todoLists, visibleTo } from "@/lib/todos/store";
-import { DEFAULT_LISTS, MARKETING_LIST, accountRank, dueState, isAccountList, isAccountTodo, isMarketingList, jobNumberIn, type Todo } from "@/lib/todos/types";
+import { DEFAULT_LISTS, MARKETING_LISTS, accountRank, dueState, isAccountList, isAccountTodo, isMarketingList, jobNumberIn, type Todo } from "@/lib/todos/types";
 import { sbSelect } from "@/lib/dashboard/db";
 
 /**
@@ -45,7 +45,7 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
   // in the order the work goes: quote, chase, book in, invoice.
   const lists = kind === "accounts"
     ? saved.filter((l) => isAccountList(l) || todos.some((t) => t.list === l)).sort((a, b) => accountRank(a) - accountRank(b))
-    : kind === "marketing" ? (marketing.length ? marketing : [MARKETING_LIST])
+    : kind === "marketing" ? [...MARKETING_LISTS, ...marketing.filter((l) => !MARKETING_LISTS.includes(l) && todos.some((t) => t.list === l))]
     : own.length ? own : DEFAULT_LISTS;
   // Each card's job, for the pop-up's link into ServiceTitan: one read for the lot.
   const jobIds: Record<string, number> = {};
@@ -65,7 +65,7 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
 
   return (
     <PortalShell user={user}>
-      <KpiHead title={kind === "accounts" ? <>Account to-dos</> : kind === "marketing" ? <>Marketing to-dos</> : <>To-do</>} kpis={[
+      <KpiHead title={kind === "accounts" ? <>Account to-dos</> : kind === "marketing" ? <>Marketing to-dos</> : <>Personal to-dos</>} kpis={[
         { icon: "clock", fig: String(late.length), label: "Overdue", badge: late.length ? "flagged" : undefined, tone: "down" },
         { icon: "doc", fig: String(counted.filter((t) => dueState(t, today) === "today").length), label: "Due today" },
         { icon: "bars", fig: String(counted.length), label: kind === "accounts" ? "Quotes, invoices and payments to chase" : all ? "Open across the office" : "Open on your list" },
