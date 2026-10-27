@@ -272,7 +272,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/plans", label: "Future planning", blurb: "What you want to do for the business, by when", band: "hidden", icon: "target", also: ["plans", "planning", "future", "goals", "ideas", "business plan", "long term", "someday", "vision"] });
   items.push({ href: "/portal/keep-in-touch", label: "Keep in touch", blurb: "Important people to reach out to every month", band: "hidden", icon: "people", also: ["contacts", "keep in contact", "relationships", "builders", "agents", "suppliers", "referrers", "call list", "reach out", "networking"] });
   items.push({ href: "/portal/todo", label: "To-do", blurb: "Today's jobs, given to each other, with the day each is due", band: "hidden", icon: "list", also: ["todo", "to do", "to-do list", "task", "tasks", "reminder", "due", "overdue", "jobs to do"] });
-  items.push({ href: "/portal/todo/marketing", label: "Marketing to-dos", blurb: "Posts, ads, the website and reviews, with the day each is due", band: "hidden", icon: "list", also: ["marketing", "marketing to do", "social", "posts", "ads", "website", "reviews"] });
+  items.push({ href: "/portal/todo/marketing", label: "Marketing to-dos", blurb: "Google Ads, Facebook, and the rest: sign wraps, flyers, the website", band: "hidden", icon: "list", also: ["marketing", "marketing to do", "google ads", "facebook", "social", "posts", "ads", "sign wrap", "flyers", "website", "reviews"] });
   // The wall board's own tab: the remote first, because driving the TV is
   // what people come here to do; then what it shows, then what it aims at.
   add(office,

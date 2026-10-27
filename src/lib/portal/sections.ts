@@ -79,10 +79,10 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "People's to-dos, the accounts' and marketing's, and what's coming",
     pages: [
-      // Three boards in the order Jake reads them: people's own, then the
-      // accounts', then marketing's. Office today left the row; its counts
-      // are the account to-dos and the job tracker now.
-      { label: "People", href: "/portal/todo" },
+      // Three boards in the order Jake reads them: each person's own, then
+      // the accounts', then marketing's. Office today left the row; its
+      // counts are the account to-dos and the job tracker now.
+      { label: "Personal", href: "/portal/todo" },
       // Quote follow-ups, invoices to send, late payments, jobs to book: the
       // work the portal writes for the office, kept off people's own lists.
       { label: "Accounts", href: "/portal/todo/accounts", office: true },
