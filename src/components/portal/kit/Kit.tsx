@@ -109,8 +109,12 @@ export const Pair = ({ children }: { children: ReactNode }) => <div className="p
 export const Grid = ({ children, cols = 4 }: { children: ReactNode; cols?: 2 | 3 | 4 }) => <div className={`pk-grid${cols}`}>{children}</div>;
 export const Two = ({ children }: { children: ReactNode }) => <div className="pk-two">{children}</div>;
 
-/** A tile: what it is and how it's going, the figure, a bar, and what it's against. */
-export function Tile({ label, st, fig, frac, sub, href }: { label: string; st: Status; fig: string; frac: number | null; sub?: ReactNode; href?: string }) {
+/**
+ * A tile: what it is and how it's going, the figure, a bar, and what it's
+ * against. `on` marks the one picked, where a row of tiles chooses what's
+ * shown under it.
+ */
+export function Tile({ label, st, fig, frac, sub, href, on }: { label: string; st: Status; fig: string; frac: number | null; sub?: ReactNode; href?: string; on?: boolean }) {
   const body = (
     <>
       <div className="pk-tl"><span>{label}</span>{st.w ? <Pill st={st} /> : null}</div>
@@ -119,7 +123,10 @@ export function Tile({ label, st, fig, frac, sub, href }: { label: string; st: S
       {sub && <div className="pk-ks">{sub}</div>}
     </>
   );
-  return href ? <Link href={href} className="pk-card pk-tile pk-link">{body}</Link> : <div className="pk-card pk-tile">{body}</div>;
+  const cls = `pk-card pk-tile${on ? " on" : ""}`;
+  return href
+    ? <Link href={href} className={`${cls} pk-link`} aria-current={on ? "true" : undefined}>{body}</Link>
+    : <div className={cls}>{body}</div>;
 }
 
 export function Card({ title, aside, children, flush }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; flush?: boolean }) {

@@ -7,31 +7,40 @@ const money = (v: number) => `$${Math.round(v).toLocaleString("en-AU")}`;
 /** Shown before the rest fold away: enough to work the oldest without scrolling past a hundred. */
 const SHOW = 12;
 
+/** A job type short enough for a line: the kind of work, without ServiceTitan's "Installation - " in front. */
+const shortType = (t: string) =>
+  t.replace(/^installation\s*-\s*/i, "Install ").replace(/^diagnostics\s*-\s*/i, "Diagnose ").replace(/^service\s*-\s*/i, "Service ").replace(/^repair\s*-\s*/i, "Repair ");
+
 /**
- * One job, one line: what and where (opening the customer's whole history),
- * who and how long under it, then how late, what it's worth, and the way into
- * ServiceTitan to fix it.
+ * One job, one line: who and where first, because that's how the office
+ * talks about a job ("the Whitfields in Berwick"), then what it is, how late,
+ * what it's worth, and the way into ServiceTitan to fix it. The name opens
+ * the customer's whole history.
  */
 export function FlowLine({ r }: { r: FlowRow }) {
+  const head = r.customer ? [r.customer, r.place].filter(Boolean).join(" · ") : r.title;
+  // Without a name the title already says what it is; with one, the kind of work leads the second line.
+  const seen = new Set<string>();
+  const rest = [r.customer && r.kind ? shortType(r.kind) : null, ...r.sub.filter((x) => x !== r.customer)]
+    .filter((x): x is string => !!x && !seen.has(x.toLowerCase()) && !!seen.add(x.toLowerCase()));
   return (
     <div className="jf-line">
       <span className="t">
-        <b>{r.customerUrl ? <Link href={r.customerUrl}>{r.title}</Link> : r.title}</b>
-        <span>{r.sub.join(" · ")}</span>
+        <b>{r.customerUrl ? <Link href={r.customerUrl}>{head}</Link> : head}</b>
+        <span>{rest.join(" · ")}</span>
       </span>
       <Pill st={r.st} />
       <span className="v">{r.value != null ? money(r.value) : ""}</span>
       {r.stUrl
-        ? <a className="pk-btn g jf-line__go" href={r.stUrl} target="_blank" rel="noreferrer" aria-label={`Open ${r.title} in ServiceTitan`}>Open ↗</a>
+        ? <a className="pk-btn g jf-line__go" href={r.stUrl} target="_blank" rel="noreferrer" aria-label={`Open ${head} in ServiceTitan`}>Open ↗</a>
         : <span className="jf-line__go" aria-hidden="true" />}
     </div>
   );
 }
 
 /**
- * The stage that's picked on the board: what to do first, then the jobs
- * oldest first. How a job lands here is folded away for whoever asks; the
- * list is what gets worked.
+ * A step's list: what to do first, then the jobs oldest first. How a job lands
+ * here is on the page's "What does this mean?", not under every list.
  */
 export function StageCard({ def, rows, note, more }: { def: StageDef; rows: FlowRow[] | null; note?: string; more?: { href: string; label: string } }) {
   const total = rows ? rows.reduce((a, r) => a + (r.value ?? 0), 0) : 0;
@@ -52,11 +61,12 @@ export function StageCard({ def, rows, note, more }: { def: StageDef; rows: Flow
             )}
           </div>
         )}
-      <div className="jf-foot">
-        {note ? <span>{note}.</span> : null}
-        {more ? <Link href={more.href}>{more.label} ›</Link> : null}
-        <details className="jf-why"><summary>How a job ends up here</summary><p>{def.rule}</p></details>
-      </div>
+      {note || more ? (
+        <div className="jf-foot">
+          {note ? <span>{note}.</span> : null}
+          {more ? <Link href={more.href}>{more.label} ›</Link> : null}
+        </div>
+      ) : null}
     </Card>
   );
 }

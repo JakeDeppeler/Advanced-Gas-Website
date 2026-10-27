@@ -101,7 +101,7 @@ export const STAGES: StageDef[] = [
     act: "Check the invoice and send it.",
   },
   {
-    k: "overdue", label: "Overdue",
+    k: "overdue", label: "Owed, past due",
     rule: "Sent, and past its due date with money still owing. ServiceTitan's since 17 September, Xero's before.",
     act: "Chase it.",
   },
