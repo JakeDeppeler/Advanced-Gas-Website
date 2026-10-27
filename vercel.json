@@ -11,6 +11,10 @@
     {
       "path": "/api/ordering/draft?mode=refresh",
       "schedule": "5 20 * * 0-4"
+    },
+    {
+      "path": "/api/install-packs",
+      "schedule": "15 20 * * 0-4"
     }
   ]
 }
