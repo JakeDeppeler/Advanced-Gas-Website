@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "pipe" | "todo" | "run" | "sales" | "pf" | "numbers" | "mkt" | "crew" | "orders" | "how" | "you";
+export type SectionId = "home" | "crm" | "fin" | "mkt" | "team" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -61,134 +61,116 @@ type GroupDef = { label: string; group: PageDef[] };
 type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: (PageDef | GroupDef)[]; group: 0 | 1 | 2 | 3 };
 
 /**
- * Every section and page. Grouped by what you came to do — see how we're
- * going, look at the money, price the work, run the crew — rather than by
- * which system a page reads. `group` is the block of the side bar it sits in:
- * Home, the business, the day-to-day, then settings.
+ * Every area and page. The portal is a handful of areas, each a place you go
+ * for one kind of work: CRM is the customers' work from the enquiry to the
+ * job done, Finance is the money, Marketing is where the work comes from, Team
+ * is the crew and how we work, and Settings is set up once. `group` is the
+ * block of the side bar an area sits in: Home, the business, the crew, then
+ * settings.
  *
- * One row of tabs per section, and nearly every page is a tab in it. Only
- * a few are families with a row of their own under them: Pace, Hourly, What
- * if and Website, because their pages are the same question asked three ways and
- * read best side by side, and Wall board and Ordering in Settings, whose
- * pages each set up one thing. Nothing else nests, and no page draws a tab
- * row of its own: what's left on a page is a filter on what it shows (a
- * period, a van, a month), not somewhere else to go.
+ * Inside an area the pages that answer the same question are a family (Jobs,
+ * To-do, Cash, Pace...), one line in the side bar that opens to its pages
+ * while you're in it, so an area stays a short list. Families don't nest.
  */
 export const SECTION_DEFS: SectionDef[] = [
-  { id: "home", label: "Overview", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
+  { id: "home", label: "Home", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
   {
-    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "People's to-dos, the accounts' and marketing's, and what's coming",
+    id: "crm", label: "CRM", icon: "team", group: 1, blurb: "Every customer's work, from the first enquiry to the job done",
     pages: [
-      // Three boards in the order Jake reads them: each person's own, then
-      // the accounts', then marketing's. Office today left the row; its
-      // counts are the account to-dos and the job tracker now.
-      { label: "Personal", href: "/portal/todo" },
-      // Quote follow-ups, invoices to send, late payments, jobs to book: the
-      // work the portal writes for the office, kept off people's own lists.
-      { label: "Accounts", href: "/portal/todo/accounts", office: true },
-      { label: "Marketing", href: "/portal/todo/marketing" },
-      { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
-      { label: "Future planning", href: "/portal/plans", office: true },
-      { label: "Toolbox talks", href: "/portal/toolbox" },
-    ],
-  },
-  {
-    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every job from enquiry to paid, and every quote out",
-    pages: [
-      // The whole run of a job, of which the quotes are one stretch. Just the
-      // two: this is where the office checks where things are up to, and the
-      // record pages (customers, sites) are tools you go to, not a status.
+      { label: "Today", group: [
+        { label: "Today", href: "/portal/today" },
+        { label: "Call booking", href: "/portal/today?tab=calls", gate: "/portal/today" },
+      ] },
+      { label: "Leads", href: "/portal/leads" },
       // Lost quotes left the row because nobody works from it; the page stays
       // for search and old links.
-      { label: "Job tracker", href: "/portal/tracker", office: true },
       { label: "Quotes", href: "/portal/pipeline" },
+      // The whole run of a job, of which the quotes are one stretch.
+      { label: "Job tracker", href: "/portal/tracker", office: true },
+      { label: "Jobs", group: [
+        { label: "Jobs today", href: "/portal/jobs" },
+        { label: "All jobs", href: "/portal/jobs?tab=list", gate: "/portal/jobs" },
+      ] },
+      // What to send, what's gone, and the electrician's visits.
+      { label: "To order", group: [
+        { label: "To order", href: "/portal/supply/next-week" },
+        { label: "Sent", href: "/portal/supply/sent" },
+        { label: "Electrician", href: "/portal/supply/work-orders" },
+      ] },
+      // Each person's own board, then the accounts', then marketing's, the
+      // order Jake reads them. Account to-dos are the work the portal writes
+      // for the office, kept off people's own lists.
+      { label: "To-do", group: [
+        { label: "Personal", href: "/portal/todo" },
+        { label: "Accounts", href: "/portal/todo/accounts", office: true },
+        { label: "Marketing", href: "/portal/todo/marketing" },
+        { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
+      ] },
     ],
   },
   {
-    id: "run", label: "The Numbers", icon: "run", group: 1, blurb: "How we're going: today, this month, the KPIs and the year goal",
-    pages: [
-      { label: "Today", href: "/portal/today" },
-      { label: "Call booking", href: "/portal/today?tab=calls", gate: "/portal/today" },
-      { label: "KPIs", href: "/portal/kpis" },
-      // Pace took in This month (its Month) and Year so far (its Year).
-      {
-        label: "Pace", group: [
-          { label: "Week", href: "/portal/pace" },
-          { label: "Month", href: "/portal/pace?view=month", gate: "/portal/pace" },
-          { label: "Year", href: "/portal/pace?view=year", gate: "/portal/pace" },
-        ],
-      },
-      { label: "Year goal", href: "/portal/goal" },
-      { label: "Set the goals", href: "/portal/numbers" },
-    ],
-  },
-  {
-    id: "sales", label: "Sales & jobs", icon: "grow", group: 1, blurb: "What's sold, where it came from, and every job",
-    pages: [
-      { label: "Sales", href: "/portal/sales" },
-      { label: "Job types", href: "/portal/sales?tab=types", gate: "/portal/sales" },
-      { label: "Leads", href: "/portal/leads" },
-      { label: "Jobs today", href: "/portal/jobs" },
-      { label: "All jobs", href: "/portal/jobs?tab=list", gate: "/portal/jobs" },
-      { label: "Job profit", href: "/portal/jobs?tab=profit", gate: "/portal/jobs" },
-    ],
-  },
-  {
-    id: "pf", label: "Finance", icon: "pf", group: 1, blurb: "What to invoice and chase, profit, cash, bills and Xero",
+    id: "fin", label: "Finance", icon: "pf", group: 1, blurb: "What to invoice and chase, cash, profit, the goals and what we charge",
     pages: [
       { label: "Accounts", href: "/portal/accounts" },
-      { label: "Summary", href: "/portal/finance" },
-      { label: "Profit & loss", href: "/portal/finance/pl" },
-      { label: "Cash flow", href: "/portal/finance/cash" },
-      { label: "Cash to operate", href: "/portal/finance/cash?tab=operate", gate: "/portal/finance/cash" },
-      { label: "Not billed", href: "/portal/jobs?tab=notbilled", gate: "/portal/jobs" },
       { label: "Owed to us", href: "/portal/money" },
+      { label: "Not billed", href: "/portal/jobs?tab=notbilled", gate: "/portal/jobs" },
       { label: "Stuck money", href: "/portal/stuck" },
-      { label: "We owe", href: "/portal/finance/owe" },
-      { label: "Spending", href: "/portal/finance/spend" },
-      { label: "Journals to Xero", href: "/portal/journals" },
-    ],
-  },
-  {
-    id: "numbers", label: "Pricing & costs", icon: "numbers", group: 1, blurb: "What an hour costs, what we charge, and every figure behind it",
-    pages: [
-      {
-        label: "Hourly", group: [
-          { label: "Hourly rate", href: "/portal/rates" },
-          { label: "On site & commercial", href: "/portal/rates/onsite" },
-          { label: "Our hourly rate", href: "/portal/finance/hourly" },
-          { label: "What an hour must cover", href: "/portal/finance/cover" },
-        ],
-      },
-      { label: "Running costs", href: "/portal/finance/running" },
-      { label: "Overheads", href: "/portal/finance/capacity" },
-      { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
+      { label: "Cash", group: [
+        { label: "Cash flow", href: "/portal/finance/cash" },
+        { label: "Cash to operate", href: "/portal/finance/cash?tab=operate", gate: "/portal/finance/cash" },
+        { label: "We owe", href: "/portal/finance/owe" },
+        { label: "Spending", href: "/portal/finance/spend" },
+        { label: "Journals to Xero", href: "/portal/journals" },
+      ] },
+      { label: "Profit & sales", group: [
+        { label: "Summary", href: "/portal/finance" },
+        { label: "Profit & loss", href: "/portal/finance/pl" },
+        { label: "Job profit", href: "/portal/jobs?tab=profit", gate: "/portal/jobs" },
+        { label: "Sales", href: "/portal/sales" },
+        { label: "Job types", href: "/portal/sales?tab=types", gate: "/portal/sales" },
+      ] },
+      // Pace took in This month (its Month) and Year so far (its Year).
+      { label: "Goals & pace", group: [
+        { label: "Pace", href: "/portal/pace" },
+        { label: "Pace, month", href: "/portal/pace?view=month", gate: "/portal/pace" },
+        { label: "Pace, year", href: "/portal/pace?view=year", gate: "/portal/pace" },
+        { label: "KPIs", href: "/portal/kpis" },
+        { label: "Year goal", href: "/portal/goal" },
+        { label: "Set the goals", href: "/portal/numbers" },
+      ] },
       // Materials markup is gone from here: it's set on each item in
       // ServiceTitan, so a second copy here only drifted from it.
-      { label: "Our prices", href: "/portal/pricing" },
-      { label: "Commission", href: "/portal/commission" },
-      {
-        label: "What if", group: [
-          { label: "Vans", href: "/portal/finance/planning" },
-          { label: "Hire someone", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
-          { label: "Pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
-        ],
-      },
+      { label: "Pricing", group: [
+        { label: "Hourly rate", href: "/portal/rates" },
+        { label: "On site & commercial", href: "/portal/rates/onsite" },
+        { label: "Our hourly rate", href: "/portal/finance/hourly" },
+        { label: "What an hour must cover", href: "/portal/finance/cover" },
+        { label: "Our prices", href: "/portal/pricing" },
+        { label: "Commission", href: "/portal/commission" },
+      ] },
+      { label: "Costs", group: [
+        { label: "Running costs", href: "/portal/finance/running" },
+        { label: "Overheads", href: "/portal/finance/capacity" },
+        { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
+      ] },
+      { label: "What if", group: [
+        { label: "Vans", href: "/portal/finance/planning" },
+        { label: "Hire someone", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
+        { label: "Pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
+      ] },
     ],
   },
   {
     // Where the work comes from: leads and the website, what we put out,
     // the files it's made of, and the blog.
-    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Website leads, how the site does, campaigns, and every marketing file",
+    id: "mkt", label: "Marketing", icon: "mega", group: 1, blurb: "Website leads, how the site does, campaigns, and every marketing file",
     pages: [
-      {
-        label: "Website", group: [
-          { label: "Website leads", href: "/portal/website" },
-          { label: "On the site", href: "/portal/website?tab=pages" },
-          { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
-          { label: "Every enquiry", href: "/portal/finance/leads" },
-        ],
-      },
+      { label: "Website", group: [
+        { label: "Website leads", href: "/portal/website" },
+        { label: "On the site", href: "/portal/website?tab=pages" },
+        { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
+        { label: "Every enquiry", href: "/portal/finance/leads" },
+      ] },
       { label: "Campaigns", href: "/portal/marketing" },
       { label: "Instagram", href: "/portal/marketing?tab=social" },
       { label: "Reviews", href: "/portal/marketing?tab=reviews" },
@@ -199,44 +181,32 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "crew", label: "Crew & vans", icon: "van", group: 2, blurb: "The team, their hours, the vans and their tools",
+    id: "team", label: "Team", icon: "van", group: 2, blurb: "The crew, their hours, the vans, and how we work",
     pages: [
       { label: "Team", href: "/portal/team" },
       { label: "Leaderboard", href: "/portal/rates?tab=leaders", gate: "/portal/rates" },
       { label: "Hours", href: "/portal/hours" },
       { label: "From the crew", href: "/portal/requests" },
-      { label: "Vans", href: "/portal/vehicles" },
-      { label: "Tools", href: "/portal/vehicles/tools" },
-      { label: "Kit lists", href: "/portal/vehicles/kit" },
-      { label: "Per van, per day", href: "/portal/per-van" },
-      { label: "Drive time", href: "/portal/drive" },
+      { label: "Vans", group: [
+        { label: "Vans", href: "/portal/vehicles" },
+        { label: "Tools", href: "/portal/vehicles/tools" },
+        { label: "Kit lists", href: "/portal/vehicles/kit" },
+        { label: "Per van, per day", href: "/portal/per-van" },
+        { label: "Drive time", href: "/portal/drive" },
+      ] },
       { label: "Trade iPad", href: "/trade" },
       { label: "Pricebook", href: "/trade/pricebook" },
-    ],
-  },
-  {
-    // Ordering for the installs and the factory's own shelf: an order to send
-    // is the job, and once it's gone it moves to Sent.
-    id: "orders", label: "Orders & stock", icon: "box", group: 2, blurb: "Gear to order for the installs, what's gone, and the electrician",
-    pages: [
-      // What to send, what's gone, and the electrician's visits. Suppliers
-      // and the factory shelf are set up, not worked from, so they're in
-      // Settings.
-      { label: "To order", href: "/portal/supply/next-week" },
-      { label: "Sent", href: "/portal/supply/sent" },
-      { label: "Electrician", href: "/portal/supply/work-orders" },
-    ],
-  },
-  {
-    id: "how", label: "How we work", icon: "book", group: 2, blurb: "The standard, written down",
-    pages: [
-      { label: "Roles", href: "/portal/roles" },
-      { label: "Leading", href: "/portal/leading" },
-      { label: "Processes", href: "/portal/sops" },
-      { label: "Handbook", href: "/portal/handbook" },
-      { label: "Learning", href: "/portal/learning" },
-      { label: "Information", href: "/portal/information" },
-      { label: "Trade tools", href: "/portal/tools/fault-codes" },
+      { label: "Toolbox talks", href: "/portal/toolbox" },
+      { label: "How we work", group: [
+        { label: "Roles", href: "/portal/roles" },
+        { label: "Leading", href: "/portal/leading" },
+        { label: "Processes", href: "/portal/sops" },
+        { label: "Handbook", href: "/portal/handbook" },
+        { label: "Learning", href: "/portal/learning" },
+        { label: "Information", href: "/portal/information" },
+        { label: "Trade tools", href: "/portal/tools/fault-codes" },
+      ] },
+      { label: "Future planning", href: "/portal/plans", office: true },
     ],
   },
   {
@@ -259,24 +229,20 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Email", href: "/portal/email" },
       { label: "Admin", href: "/portal/admin" },
       // How ordering is set up: who we buy from and what we keep on the shelf.
-      {
-        label: "Ordering", group: [
-          { label: "Suppliers", href: "/portal/supply" },
-          { label: "Factory stock", href: "/portal/stock" },
-        ],
-      },
-      // Seven pages that all set up the one screen: one tab, its own row.
-      {
-        label: "Wall board", group: [
-          { label: "Wall board", href: "/portal/board/remote" },
-          { label: "Targets & commission", href: "/portal/finance/board" },
-          { label: "Sounds", href: "/portal/board/sounds" },
-          { label: "Standard times", href: "/portal/board/times" },
-          { label: "Held work", href: "/portal/board/hold" },
-          { label: "Who sold it", href: "/portal/board/credit" },
-          { label: "Reports", href: "/portal/board/reports" },
-        ],
-      },
+      { label: "Ordering", group: [
+        { label: "Suppliers", href: "/portal/supply" },
+        { label: "Factory stock", href: "/portal/stock" },
+      ] },
+      // Seven pages that all set up the one screen.
+      { label: "Wall board", group: [
+        { label: "Wall board", href: "/portal/board/remote" },
+        { label: "Targets & commission", href: "/portal/finance/board" },
+        { label: "Sounds", href: "/portal/board/sounds" },
+        { label: "Standard times", href: "/portal/board/times" },
+        { label: "Held work", href: "/portal/board/hold" },
+        { label: "Who sold it", href: "/portal/board/credit" },
+        { label: "Reports", href: "/portal/board/reports" },
+      ] },
     ],
   },
 ];

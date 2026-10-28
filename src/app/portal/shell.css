@@ -2867,3 +2867,60 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .jn-text { width: 100%; resize: vertical; font-size: 14px; line-height: 1.45; }
 .jn-hint { font-size: 13px; color: var(--ink3); }
 .pt-panel > .jn-box { margin-top: 10px; }
+
+/* ------------------------------------------------------------------
+   The side bar is the menu at every width (Jake chose it over the pills
+   and the dock): a soft panel floating on the wash, the areas in it, the
+   open area dark with its pages under it. This block comes last so it
+   undoes the wide-screen rules above that hid the side bar for the pills.
+   ------------------------------------------------------------------ */
+@keyframes pn-open { from { transform: translateY(-6px); } to { transform: none; } }
+.pn-side .pn-biz { padding: 2px 6px 14px; }
+.pn-side .pn-btn {
+  padding: 10px 12px; border-radius: 16px; font-size: 14.5px;
+  transition: background .2s ease, transform .2s cubic-bezier(.2,.8,.2,1);
+}
+.pn-side .pn-btn:hover { transform: translateX(2px); }
+.pn-side .pn-btn.on, .pn-side .pn-btn.on:hover { background: var(--rp-on-bg); color: var(--rp-on-ink); font-weight: 600; }
+.pn-side .pn-btn.on .pn-nico { background: transparent; color: inherit; }
+.pn-side .pn-btn.on .pn-chev { color: inherit; opacity: .7; }
+.pn-side .pn-n { padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink2); font-size: 11.5px; font-weight: 700; }
+.pn-side .pn-n.r { background: var(--bad-bg); color: var(--bad); }
+.pn-side .pn-btn.on .pn-n { background: var(--rp-orange, #d24a1e); color: #fff; }
+.pn-side .pn-subs { padding: 4px 0 6px; gap: 2px; animation: pn-open .3s cubic-bezier(.2,.8,.2,1) both; }
+.pn-side .pn-sub { padding: 7px 12px 7px 44px; border-radius: 12px; font-size: 13.5px; color: var(--ink2); }
+.pn-side .pn-sub:hover { color: var(--ink); }
+.pn-side .pn-sub.on, .pn-side .pn-sub.on:hover { color: var(--ink); background: color-mix(in srgb, var(--rp-orange, #d24a1e) 14%, transparent); font-weight: 700; }
+.pn-side .pn-sub2 { padding-left: 58px; font-size: 13px; }
+.pn-side .pn-sep { margin: 8px 12px; }
+
+@media (min-width: 861px) {
+  .pt.pn { grid-template-columns: 284px minmax(0, 1fr); }
+  .pt.pn.pn--mini { grid-template-columns: 92px minmax(0, 1fr); }
+  .pn-side {
+    display: flex; position: sticky; top: 16px; height: calc(100vh - 32px); margin: 16px 0 16px 16px;
+    border-radius: 30px; border: 1px solid var(--rp-line); background: var(--rp-card);
+    box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -24px rgba(80,40,10,.22);
+    padding: 18px 12px 14px;
+  }
+  .pn-crumb { display: block; }
+  .pn-menu { display: none; }
+  .pn-tools > .pn-theme { display: inline-flex; }
+  .pn-brand, .pn-pills, .pn-dock, .pn-secpages, .pn-subpages { display: none; }
+  .pn-top { height: 68px; padding: 0 32px; }
+  .pt.pn .pn-content { padding: 10px 40px 64px; max-width: 1640px; margin: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pn-side .pn-subs { animation: none; }
+  .pn-side .pn-btn { transition: none; }
+}
+/* The quotes board shares the width with the side bar now: narrower columns,
+   so all four fit without scrolling sideways on a laptop. */
+@media (min-width: 861px) {
+  .qp-board { grid-template-columns: repeat(4, minmax(190px, 1fr)) 112px; gap: 12px; }
+}
+@media (min-width: 861px) {
+  /* Small bar: something wrong in an area is a dot on its icon, not the count's pill. */
+  .pn--mini .pn-side .pn-btn .pn-n.r { padding: 0; width: 8px; height: 8px; min-width: 0; top: 5px; right: 10px; background: var(--bad-f); }
+  .pn--mini .pn-side { padding: 18px 8px 14px; }
+}

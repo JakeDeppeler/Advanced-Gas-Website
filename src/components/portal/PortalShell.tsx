@@ -15,12 +15,11 @@ import { isDue, touchState } from "@/lib/contacts/types";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
-import { BAR_COOKIE, NAV_COOKIE, readBar, readTheme, THEME_COOKIE, type Business, type ThemeChoice } from "@/lib/portal/businessTypes";
-import { buildSections, flatPages, pathOff, type Count, type Section, type SectionId } from "@/lib/portal/sections";
+import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
+import { buildSections, flatPages, pathOff, type Count, type Section } from "@/lib/portal/sections";
 import { Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
-import { Brand, SearchPop, SectionPages, TopNav } from "@/components/portal/shell/TopNav";
-import { Dock, type DockLink } from "@/components/portal/shell/Dock";
+import { SearchPop } from "@/components/portal/shell/TopNav";
 import { FigureCount } from "@/components/portal/shell/FigureCount";
 import { ChromeMemo } from "@/components/portal/shell/ChromeMemo";
 import { ScrollMark } from "@/components/portal/shell/ScrollMark";
@@ -29,12 +28,11 @@ import { KeepFresh } from "@/components/portal/shell/KeepFresh";
 const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_users");
 
 /**
- * The counts beside each page, and each section's: the number of things in it
- * that are wrong (red pages added up), so a section that only has a count of
- * how many — leads this month — carries no number of its own. To-do's is
- * what's due today, red once something's late.
+ * The counts beside each page, and each area's: the number of things in it
+ * that are wrong (red pages added up), so an area that only has a count of
+ * how many — leads this month — carries no number of its own.
  */
-// Both the side bar and the wide top bar want these, in the same request; cached so they're read once.
+// Cached so a page that draws the side bar twice (without counts, then with) reads them once.
 const sideCounts = cache(async (user: PortalUser, sections: Section[]): Promise<Record<string, Count>> => {
   const [counts, todos, all, contacts] = await Promise.all([
     navCounts(user).catch(() => ({})),
@@ -53,11 +51,6 @@ const sideCounts = cache(async (user: PortalUser, sections: Section[]): Promise<
   // Not billed is a view of Jobs now, under Finance; its count goes with it.
   if (out["/portal/not-billed"]) out["/portal/jobs?tab=notbilled"] = out["/portal/not-billed"];
   for (const s of sections) {
-    if (s.id === "todo") {
-      const n = todos.due + calls.length;
-      if (n) out["section:todo"] = { n, red: todos.overdue > 0 || callsLate };
-      continue;
-    }
     const n = flatPages(s.pages).reduce((t, p) => t + (out[p.href]?.red ? out[p.href].n : 0), 0);
     if (n) out[`section:${s.id}`] = { n, red: true };
   }
@@ -88,75 +81,18 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
   return <Sidebar sections={buildSections(items, biz, office(user), counts)} biz={biz} small={small} foot={foot} live={live} />;
 }
 
-/** The wide bar's brand and pills, with the same counts as the side bar, streamed in the same way. */
-async function CountedTop({ user, sections, biz, more, docked }: { user: PortalUser; sections: Section[]; biz: Business; more: string[]; docked: SectionId[] }) {
-  const [counts, live] = await Promise.all([sideCounts(user, sections).catch(() => ({})), liveLine(user).catch(() => null)]);
-  return (
-    <>
-      <Brand biz={biz} live={live} />
-      <TopNav sections={buildSections(portalNav(user), biz, office(user), counts)} more={more} docked={docked} />
-    </>
-  );
-}
-
 /**
- * The places someone goes many times a day, for the dock: each only if this
- * person can open it and the business has it.
- */
-const DOCK: Array<Omit<DockLink, "match" | "count"> & { section?: SectionId }> = [
-  { href: "/portal/todo", label: "To-do", icon: "todo", section: "todo" },
-  { href: "/portal/pipeline", label: "Pipeline", icon: "quote", section: "pipe" },
-  { href: "/portal/supply/next-week", label: "Ordering", icon: "box", section: "orders" },
-  { href: "/portal/board/remote", label: "Wall board", icon: "wall" },
-  { href: "/portal/settings", label: "Settings", icon: "cog", section: "you" },
-];
-
-/** The wall board's own setup pages: in Settings' row, but the dock's Wall board lights for them. */
-const WALL_SETUP = ["/portal/board", "/portal/finance/board"];
-
-/**
- * The dock's links for this person, each with the addresses that light it:
- * its section's pages, or for the wall board its own setup pages, which live
- * in Settings but are their own place to go.
- */
-function dockFor(sections: Section[], allowed: Set<string>, biz: Business, counts: Record<string, Count> = {}): DockLink[] {
-  return DOCK.filter((l) => allowed.has(l.href) && !pathOff(l.href, biz)).map((l) => {
-    const sec = l.section ? sections.find((s) => s.id === l.section) : null;
-    const match = sec ? flatPages(sec.pages).map((p) => p.href).filter((h) => !WALL_SETUP.some((w) => h === w || h.startsWith(`${w}/`))) : WALL_SETUP;
-    return { href: l.href, label: l.label, icon: l.icon, match, count: l.section ? counts[`section:${l.section}`] : undefined, section: l.section };
-  });
-}
-
-/**
- * The sections that can sit on the wide top bar: everything but Home (always
- * there), Settings, and what the dock already carries. Settings lists these
- * to choose which go under More.
- */
-export function barSections(user: PortalUser, biz: Business): Section[] {
-  const items = portalNav(user);
-  const sections = buildSections(items, biz, office(user));
-  const docked = dockFor(sections, new Set(items.map((i) => i.href)), biz).map((l) => l.section);
-  return sections.filter((s) => s.id !== "home" && s.id !== "you" && !docked.includes(s.id));
-}
-
-/** The dock with its counts, streamed in like the bars' so they never hold a page up. */
-async function CountedDock({ user, sections, biz, allowed, theme }: { user: PortalUser; sections: Section[]; biz: Business; allowed: Set<string>; theme: ThemeChoice }) {
-  const counts = await sideCounts(user, sections).catch(() => ({}));
-  return <Dock links={dockFor(sections, allowed, biz, counts)} theme={theme} />;
-}
-
-/**
- * The portal's chrome, to the new design: the side bar, a top bar with where
- * you are, the search, the bell and light or dark, then the page.
+ * The portal's chrome: the side bar of areas, a top bar with where you are,
+ * the search, the bell and light or dark, then the page.
  *
  * What the side bar offers comes from sections.ts over portalNav, and what the
- * business has (Settings) takes sections away: a business with no wall board
- * has no Wall board section, and its pages send you home.
+ * business has (Settings) takes areas and pages away: a business with no wall
+ * board has no Wall board pages, and they send you home.
  *
- * On a wide screen the side bar gives way to Rapport's layout: the sections
- * as pills across the top, and a dock of shortcuts floating down the left.
- * Both menus are drawn and the CSS shows the one that fits, so there's no
- * flash of the wrong one while the browser measures itself.
+ * The side bar is the menu at every width. It was swapped on a wide screen for
+ * the areas as pills across the top and a dock down the left; Jake chose the
+ * side bar, where the open area lists its pages, over both. On a phone it's a
+ * drawer.
  *
  * The bar's width and the theme are cookies, read here, so the first paint is
  * already right.
@@ -171,12 +107,7 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
   const rows = buildSearchIndex(items);
   const small = cookies().get(NAV_COOKIE)?.value === "small";
   const theme = readTheme(cookies().get(THEME_COOKIE)?.value);
-  const more = readBar(cookies().get(BAR_COOKIE)?.value);
   const first = user.name.split(" ")[0];
-  const allowed = new Set(items.map((i) => i.href));
-  const dock = dockFor(sections, allowed, biz);
-  // Sections that have a place in the dock come off the top bar.
-  const docked = dock.map((l) => l.section).filter((x): x is SectionId => !!x);
 
   const foot = (
     <>
@@ -204,9 +135,6 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
       <div className="pn-main">
         <header className="pn-top">
           <MenuButton />
-          <Suspense fallback={<><Brand biz={biz} /><TopNav sections={sections} more={more} docked={docked} /></>}>
-            <CountedTop user={user} sections={sections} biz={biz} more={more} docked={docked} />
-          </Suspense>
           <Crumb sections={sections} />
           <div className="pn-tools">
             <SearchPop><PortalSearch rows={rows} placeholder="Search" /></SearchPop>
@@ -220,13 +148,9 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
         </header>
         <main className="pt__content pn-content">
           {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
-          <Suspense fallback={null}><SectionPages sections={sections} /></Suspense>
           {children}
         </main>
       </div>
-      <Suspense fallback={<Dock links={dock} theme={theme} />}>
-        <CountedDock user={user} sections={sections} biz={biz} allowed={allowed} theme={theme} />
-      </Suspense>
       <Suspense fallback={null}><FigureCount /></Suspense>
       <ChromeMemo />
       <ScrollMark />
