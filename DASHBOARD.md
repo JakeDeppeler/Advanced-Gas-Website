@@ -1079,6 +1079,32 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
+**The Money page is gone.** Jake asked for it off the rotation, so the board is
+eight pages: Today, Pace, Quotes, Invoices, Daily pace, Team, Performance,
+Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
+still has it, arrangements and all. The payables read itself is left in place —
+`fetchXeroPayables`, the ageing and the on-terms split still run every five
+minutes and still reconcile — so the page is one revert away rather than a
+rebuild, at the cost of one Xero call nothing currently renders.
+
+**Lateness to a job cannot be measured yet, so there is no tile for it.** The
+third cut on these grounds, and the clearest. `st_appointments` carries the slot
+and the arrival window, `st_timesheets` carries `arrived_on` per technician, and
+the join works — but of the 558 visits in the last sixty days, **365 (65%) have
+`arrived_on` stamped at exactly the scheduled start, to the second**, and
+another 188 at exactly the dispatch moment. Those are defaults, not
+measurements: a real arrival is never exactly on the second. Strip them and 122
+visits are genuinely recorded, which is 22% of the work, spread one to
+thirty-one per technician — Jye has 1, Jake 4, Kayden 9. On that sample Kayden
+reads 78% late off nine visits. Naming a person on a wall off nine visits, with
+four in five of their jobs unmeasured and the measured ones self-selected, is
+the worst version of a confidently wrong number: it is wrong *about somebody*.
+
+What unlocks it is not code. It is technicians tapping **On my way / Arrived**
+in the ServiceTitan app so `arrived_on` is a real timestamp rather than a
+default. Once coverage is up the tile is a day's work — the fields, the join and
+the honest denominator are already worked out and in this file.
+
 **The board is reconciled against the database, not trusted.**
 `scripts/audit-board.sql` recomputes every published figure straight from the
 tables, to the rule the code says it uses, and sets it beside what the snapshot

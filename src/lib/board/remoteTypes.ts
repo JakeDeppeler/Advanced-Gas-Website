@@ -15,7 +15,7 @@
  * breaking. "On hold" was here until the office asked for the money owed and
  * owing in its place; the held-work view it replaced is at /portal/stuck.
  */
-export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Money", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
+export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
 /** The board's alerts, as the demo shows them: a sale, a quote, a job to bill, a new lead. */
