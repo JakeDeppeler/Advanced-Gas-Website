@@ -69,6 +69,16 @@ export type PackMeta = {
   notShown: number;
 };
 
+/**
+ * The bytes as an array of their own. pdf-lib reads a JPEG through
+ * `new DataView(bytes.buffer)`, from the start of the underlying buffer, and
+ * ignores where in it the image begins. A Buffer handed out from Node's shared
+ * pool starts part-way into a bigger one, and pdf-lib then reads someone
+ * else's bytes and stops at "SOI not found in JPEG". On 28 Oct that failed
+ * seven packs in a row on the server while every local render passed.
+ */
+const own = (bytes: Uint8Array) => (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice());
+
 export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(pack.title);
@@ -76,7 +86,9 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   doc.setCreator("Advanced Gas team portal");
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const logo = await doc.embedJpg(Buffer.from(LOGO_FULL_JPG, "base64"));
+  // A logo that won't embed costs the pack its logo, not the pack: the name
+  // goes in its place.
+  const logo = await doc.embedJpg(own(Buffer.from(LOGO_FULL_JPG, "base64"))).catch(() => null);
 
   let page!: PDFPage;
   let y = 0;
@@ -93,7 +105,8 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     page = doc.addPage([W, H]);
     const lw = 140;
     const lh = (lw * LOGO_FULL_SIZE.height) / LOGO_FULL_SIZE.width;
-    page.drawImage(logo, { x: M, y: H - BAND / 2 - lh / 2 + 2, width: lw, height: lh });
+    if (logo) page.drawImage(logo, { x: M, y: H - BAND / 2 - lh / 2 + 2, width: lw, height: lh });
+    else { y = H - BAND / 2 - 4; text("Advanced Gas & Aircon", M, 16, bold, NAVY); }
     page.drawRectangle({ x: 0, y: H - BAND - 3, width: W, height: 3, color: ORANGE });
     y = H - BAND / 2 + 9;
     right(first ? "INSTALL PACK · JOB" : "INSTALL PACK, CONTINUED · JOB", W - M, 8.5, bold, SKY);
@@ -244,7 +257,7 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   let failed = 0;
   for (const ph of photos) {
     try {
-      const img = /\.png$/i.test(ph.photo.name) ? await doc.embedPng(ph.bytes) : await doc.embedJpg(ph.bytes);
+      const img = /\.png$/i.test(ph.photo.name) ? await doc.embedPng(own(ph.bytes)) : await doc.embedJpg(own(ph.bytes));
       embedded.push({ img, p: ph.photo });
     } catch {
       failed++;

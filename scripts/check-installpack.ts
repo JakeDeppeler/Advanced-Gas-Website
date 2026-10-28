@@ -100,6 +100,18 @@ ok("a different sold quote is the quote changing", whatChanged(base, packParts({
 
 const [out, ...photos] = process.argv.slice(2);
 (async () => {
+  console.log("-- the PDF --");
+  // A photo handed over as a slice of a bigger buffer, as Node's shared pool
+  // hands out small Buffers: pdf-lib reads from the start of the underlying
+  // buffer, and on 28 Oct this failed seven live packs with "SOI not found".
+  const jpg = readFileSync("public/gas-ducted-install.jpg");
+  const big = new Uint8Array(jpg.length + 100);
+  big.set(jpg, 100);
+  const sliced = big.subarray(100);
+  const pdf = await packPdf(p, [{ photo: { id: 1, name: "slice.jpg", at: null, quoteVisit: true }, bytes: sliced }], { version: 5, madeAt: new Date(), notShown: 0 })
+    .catch((e: Error) => e);
+  ok("a JPEG that's a slice of a bigger buffer still goes in", pdf instanceof Uint8Array, pdf instanceof Error ? pdf.message : "");
+  ok("…and the photo is in it, not skipped", pdf instanceof Uint8Array && pdf.length > jpg.length);
   if (out) {
     const pics = photos.map((path, i) => ({ photo: { id: i, name: path.split("/").pop()!, at: "2026-10-12T01:00:00Z", quoteVisit: i % 2 === 0 }, bytes: readFileSync(path) }));
     writeFileSync(out, await packPdf(p, pics, { version: 2, madeAt: new Date("2026-10-27T23:00:00Z"), notShown: 3 }));
