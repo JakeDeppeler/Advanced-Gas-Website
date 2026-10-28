@@ -61,12 +61,12 @@ const p = buildPack(facts);
 const names = (ls: { name: string }[]) => ls.map((l) => l.name);
 console.log("-- what's listed --");
 ok("the unit is under Going in", names(p.units).join() === "Braemar Dominator Series 2 - Internal", names(p.units));
-ok("a rebate is never a material or work", ![...names(p.materials), ...p.work].some((n) => /rebate|VEEC/i.test(n)));
+ok("a rebate is never a material", !names(p.materials).some((n) => /rebate|VEEC/i.test(n)));
 ok("materials keep the quote's order", names(p.materials)[0] === "Bradflo Insulated Duct R1.0 350mm x 6 Metre" && p.materials.length === 6, names(p.materials));
 ok("names are tidied of ServiceTitan's stray spaces", names(p.materials).includes("Multivent MDO 4-Way 230mm x 230mm"));
 ok("no pricebook codes are printed", !JSON.stringify(p).includes("INS-R1.0-350"));
 ok("part quantities stay as written", p.materials.find((l) => l.name === "Silicone")?.qty === "0.5");
-ok("labour lines are listed, with a quantity when it isn't one", p.work.includes("Dominator - Electrical Connection") && p.work.includes("Extra Time ×2"), p.work);
+ok("labour lines aren't listed as gear", ![...names(p.units), ...names(p.materials)].some((n) => /Installation|Extra Time|Electrical Connection/.test(n)));
 
 console.log("-- what's said about ordering --");
 const ord = (n: string) => [...p.units, ...p.materials].find((l) => l.name.startsWith(n))?.ordered;
