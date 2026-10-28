@@ -244,6 +244,11 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     y += 8;
   };
 
+  // The gear starts a page of its own (Jake, 28 Oct), so the list someone
+  // ticks off while loading the van isn't split from its heading by the scope
+  // and notes; on most jobs equipment and materials then fit on one sheet.
+  card = null;
+  band(false);
   const tickNote = "Tick each one as it goes in the van";
   open("Equipment", pack.units.length ? tickNote : undefined);
   if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
@@ -267,20 +272,23 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   }
   const unshown = meta.notShown + failed;
   if (embedded.length || unshown) {
-    room(80);
+    // Photos on pages of their own, after the gear rather than under it.
+    band(false);
     strip("Photos", [
       embedded.length ? `${embedded.length} photo${embedded.length === 1 ? "" : "s"}, newest first` : "No photos could go in",
       unshown ? `${unshown} more on the job in ServiceTitan` : null,
     ].filter(Boolean).join(" · "));
     y += 6;
   }
-  // Two across, in rows that carry on from wherever the text ended, so a
-  // pack with a short scope doesn't leave most of a page blank before them.
-  // Sized so a fresh page holds two rows: four photos.
+  // Two across, two rows to a page: sized so the first photo page, under its
+  // heading, holds four like the rest.
   const GAP = 12;
   const CAP = 14;
   const cellW = (W - 2 * M - GAP) / 2;
-  const cellH = (H - BAND - 3 - 18 - (M + 28) - GAP) / 2 - CAP;
+  // The first row starts under the heading: band leaves y 27 below the header
+  // band, the heading takes 42 and the grid starts 6 back up from there.
+  const firstTop = H - BAND - 27 - 42 + 6;
+  const cellH = Math.floor((firstTop - (M + 28) - GAP) / 2 - CAP);
   let yTop = y;
   embedded.forEach(({ img, p }, i) => {
     const col = i % 2;
