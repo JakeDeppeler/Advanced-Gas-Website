@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, orderAhead, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
@@ -354,4 +354,18 @@ export async function mergeIntoBulk(id: number): Promise<ActionResult> {
   const r = await mergeDrafts(id);
   done();
   return r.ok ? { ok: true, note: `Added ${r.merged?.join(", ")} to this one. It stays one bulk order until it's sent.` } : { ok: false, error: r.error };
+}
+
+/** A sold quote's gear for one supplier onto that supplier's draft, before the install is booked (db.orderAhead). */
+export async function orderAheadNow(input: { estimateId: number; supplierId: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.estimateId) || !/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which sale and supplier?" };
+  try {
+    const r = await orderAhead(input.estimateId, input.supplierId);
+    done();
+    return r.ok ? { ok: true, note: r.note } : { ok: false, error: r.error ?? "Couldn't put it on the order." };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }

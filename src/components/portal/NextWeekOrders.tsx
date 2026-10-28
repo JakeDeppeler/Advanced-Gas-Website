@@ -2,11 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, mergeIntoBulk, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { stockKey } from "@/lib/ordering/stockKey";
-import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, thisWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, problemKey, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
+import { byJob, dayLabel, dayTimeLabel, isAhead, isStock, neededBy, nextWeek, thisWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, problemKey, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 /**
  * Orders › To order: every supplier order and electrician visit not sent yet,
@@ -731,7 +731,9 @@ function ReeceLines({ po }: { po: PoWithLines }) {
       {groups.map((g) => (
         <div key={g.job_id ?? "stock"} className="pt-nw__jobgroup">
           <h3 className="pt-nw__jobhead">
-            {g.job_id == null ? <strong>Stock for the factory</strong> : (
+            {g.job_id == null && g.estimate_id != null ? (
+              <><strong>{g.customer_name ?? "A sale"}</strong>{g.suburb && <span> · {g.suburb}</span>}<span className="pt-nw__muted"> · sold, install not booked yet</span></>
+            ) : g.job_id == null ? <strong>Stock for the factory</strong> : (
               <>
                 <strong>Job {g.job_number}</strong>
                 {g.customer_name && <span> · {g.customer_name}</span>}
@@ -766,7 +768,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
         </div>
       ))}
       {(() => {
-        const jobs = groups.filter((g) => g.job_id != null).length;
+        const jobs = groups.filter((g) => g.job_id != null || g.estimate_id != null).length;
         const stock = groups.length - jobs;
         return (
           <p className="pt-nw__total">
@@ -787,11 +789,13 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted, others = [
   // lines themselves, which are what get checked. Delivery and copies are
   // set once and rarely changed, so they fold.
   const jobs = [...new Map(po.lines.filter((l) => l.job_id != null).map((l) => [l.job_id, l])).values()];
-  const stock = po.lines.filter((l) => l.job_id == null).length;
+  const sales = [...new Map(po.lines.filter(isAhead).map((l) => [l.estimate_id, l])).values()];
+  const stock = po.lines.filter(isStock).length;
   const flagged = needsModel && po.lines.some((l) => modelLooksLikeName(l.supplier_model ?? l.sku_name ?? ""));
   const first = firstInstall(po);
   const forWhat = jobs.length === 1 ? `For job ${jobs[0].job_number}${jobs[0].customer_name ? ` · ${jobs[0].customer_name}` : ""}`
-    : jobs.length ? `For ${jobs.length} jobs: ${jobs.map((j) => j.job_number).join(", ")}` : "Stock for the factory";
+    : jobs.length ? `For ${jobs.length} jobs: ${jobs.map((j) => j.job_number).join(", ")}`
+    : sales.length ? `Ordered ahead for ${sales.map((x) => x.customer_name ?? "a sale").join(", ")}` : "Stock for the factory";
   return (
     <section className={`pt-panel pt-nw__card${po.status === "cancelled" ? " is-muted" : ""}`}>
       <header className="pt-nw__cardhead">
@@ -803,7 +807,8 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted, others = [
       {po.status === "draft" && po.kind === "order" && others.length > 0 && <MergeBulk po={po} others={others} name={supplier?.name ?? po.supplier_id} />}
       <p className="pt-nw__sum">
         <span><b>{forWhat}</b></span>
-        {jobs.length > 0 && stock > 0 && <span>and {stock} for the factory</span>}
+        {jobs.length > 0 && sales.length > 0 && <span>and {sales.length} sold, not booked yet</span>}
+        {(jobs.length > 0 || sales.length > 0) && stock > 0 && <span>and {stock} for the factory</span>}
         {first && <span>install {installWhen(first)}</span>}
         <span>{po.lines.length} {po.lines.length === 1 ? "item" : "items"}</span>
         <span><b>{money(total)}</b> ex GST</span>
@@ -830,7 +835,9 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted, others = [
                       {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
                       {!l.manual && po.status === "draft" && <LineActions po={po} lines={[l]} />}
                     </td>
-                    {l.job_id == null
+                    {isAhead(l)
+                      ? <><td><strong>Not booked</strong><span>{l.customer_name}</span></td><td>ordered ahead</td></>
+                      : l.job_id == null
                       ? <><td><strong>Stock</strong><span>for the factory</span></td><td></td></>
                       : <><td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td><td>{installWhen(l)}</td></>}
                     <td className="is-num">{l.unit_cost == null ? "" : money(l.unit_cost * l.qty)}</td>
@@ -917,6 +924,58 @@ function firstInstall(po: PoWithLines): { appointment_start: string | null; inst
 }
 const firstKey = (po: PoWithLines) => { const f = firstInstall(po); return f ? f.appointment_start ?? f.install_date ?? "~" : "~"; };
 
+/** A sold quote with no install booked, its gear by supplier (page.tsx builds it from sold_unbooked_order_lines). */
+export type UnbookedSale = {
+  estimateId: number; customer: string | null; suburb: string | null; what: string | null; soldOn: string | null; total: number | null;
+  quoteJob: string | null; issues: string[];
+  groups: { supplierId: string; supplier: string; items: { name: string; qty: number }[]; cost: number; ordered: string | null; drafted: string | null }[];
+};
+
+/**
+ * Sold, not booked in yet. Some suppliers take weeks, so their gear is worth
+ * ordering the day it sells rather than the week of the install: each sale's
+ * gear is split by supplier, each with a button that puts it on that
+ * supplier's draft. Nothing goes until that order is sent, and once the
+ * install is booked its gear isn't drafted a second time.
+ */
+function Unbooked({ sales }: { sales: UnbookedSale[] }) {
+  const { busy, msg, run } = useAct();
+  if (!sales.length) return null;
+  return (
+    <section className="pt-panel nw-ahead" id="ahead" aria-label="Sold, not booked in yet">
+      <h2 className="pt-panel__h">Sold, not booked in yet</h2>
+      <p className="pt-panel__sub">
+        Order the long-wait gear now if you like: it goes on that supplier&rsquo;s order below, to send when you&rsquo;re ready.
+        Once the install is booked, it isn&rsquo;t ordered again.
+      </p>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+      <div className="nw-ahead__list">
+        {sales.map((x) => (
+          <div key={x.estimateId} className="nw-ahead__sale">
+            <div className="nw-ahead__h">
+              <b>{x.customer ?? "A customer"}{x.suburb ? <span> · {x.suburb}</span> : null}</b>
+              <span className="pt-nw__muted">{[x.what, x.soldOn ? `sold ${dayLabel(x.soldOn)}` : null, x.total != null ? money(x.total) : null, x.quoteJob ? `quoted on job ${x.quoteJob}` : null].filter(Boolean).join(" · ")}</span>
+            </div>
+            {x.groups.map((g) => (
+              <div key={g.supplierId} className="nw-ahead__g">
+                <span className="nw-ahead__gt">
+                  <b>{g.supplier}</b>
+                  <span>{g.items.map((i) => `${qty(i.qty)} × ${i.name}`).join(", ")}</span>
+                </span>
+                <span className="nw-ahead__cost">{money(g.cost)}</span>
+                {g.ordered ? <span className="pt-vstat pt-vstat--ok">On order {g.ordered}</span>
+                  : g.drafted ? <span className="pt-vstat pt-vstat--warn">On {g.drafted}, not sent yet</span>
+                  : <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy} onClick={() => run(() => orderAheadNow({ estimateId: x.estimateId, supplierId: g.supplierId }))}>Order ahead</button>}
+              </div>
+            ))}
+            {x.issues.length > 0 && <p className="pt-nw__flag" style={{ margin: "6px 0 0" }}>{x.issues.join(" · ")}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function NextWeekOrders(props: {
   dbReady: boolean;
   appointmentsSynced: boolean;
@@ -938,6 +997,8 @@ export function NextWeekOrders(props: {
   stocked?: string[];
   /** Supplier orders still drafts this week and next, to offer making a supplier's into one. */
   allDrafts?: DraftRef[];
+  /** Sold quotes with no install booked yet, to order ahead from. */
+  unbooked?: UnbookedSale[];
 }) {
   const { dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery, holds } = props;
   const { busy, msg, run } = useAct();
@@ -1018,6 +1079,8 @@ export function NextWeekOrders(props: {
       {shown.map((po) => po.kind === "work_order"
         ? <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} />
         : <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} others={(props.allDrafts ?? []).filter((d) => d.supplier === po.supplier_id && d.id !== po.id)} />)}
+
+      <Unbooked sales={props.unbooked ?? []} />
 
       {cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>

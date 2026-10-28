@@ -109,7 +109,18 @@ export type PlannedLine = {
   unit_cost: number | null;
   /** Added by the office (stock), not drafted from a job; redrafting leaves it alone. */
   manual?: boolean;
+  /**
+   * The sold estimate the line is for. On a line ordered ahead (no install
+   * job yet) it is what ties the line to the sale, and the job made from the
+   * estimate later is matched by it so its gear isn't ordered twice (0088).
+   */
+  estimate_id?: number | null;
 };
+
+/** Ordered ahead: for a sale with no install job yet, so no job to name. */
+export const isAhead = (l: Pick<PlannedLine, "job_id" | "estimate_id">) => l.job_id == null && l.estimate_id != null;
+/** Stock for the factory: no job and no sale behind it. */
+export const isStock = (l: Pick<PlannedLine, "job_id" | "estimate_id">) => l.job_id == null && l.estimate_id == null;
 
 export type PlannedOrder = { supplier_id: string; lines: PlannedLine[] };
 
@@ -274,6 +285,11 @@ export function modelLooksLikeName(model: string | null | undefined): boolean {
 /* ---------------------------------------------------------------- the plan */
 
 export const lineKey = (jobId: number | null, skuId: number | null) => `${jobId}:${skuId ?? "-"}`;
+/** The same item on the same sale, whatever job it ends up on. */
+export const estKey = (estimateId: number, skuId: number | null) => `est:${estimateId}:${skuId ?? "-"}`;
+/** Every key a line answers to: its job's, and its sale's when it has one. */
+export const lineKeys = (l: { job_id: number | null; sku_id: number | null; estimate_id?: number | null }) =>
+  [...(l.job_id != null ? [lineKey(l.job_id, l.sku_id)] : []), ...(l.estimate_id != null ? [estKey(l.estimate_id, l.sku_id)] : [])];
 
 /** A line already on an approved or sent order: what it was ordered for, and on which order. */
 export type OrderedLine = { install_date: string | null; po_number: string; supplier_id: string };
@@ -316,8 +332,9 @@ export function planWeek(input: {
   // Already ordered is never ordered again, whatever the date now says. If the
   // install has moved since, the order went for the wrong day: say so, once
   // per order, so the supplier (or Geoff) can be told.
-  const ordered = (key: string, row: { job_number: string | null; customer_name: string | null; install_date: string | null }, who: string) => {
-    if (!alreadyOrdered.has(key)) return false;
+  const ordered = (keys: string | string[], row: { job_number: string | null; customer_name: string | null; install_date: string | null }, who: string) => {
+    const key = (Array.isArray(keys) ? keys : [keys]).find((k) => alreadyOrdered.has(k));
+    if (!key) return false;
     const was = alreadyOrdered instanceof Map ? alreadyOrdered.get(key) : undefined;
     if (was?.install_date && row.install_date && was.install_date !== row.install_date) {
       problem({ job_number: row.job_number, customer_name: row.customer_name, install_date: row.install_date,
@@ -340,8 +357,10 @@ export function planWeek(input: {
     }
     const s = l.supplier_id ? byId.get(l.supplier_id) : undefined;
     if (!s || s.method === "work_order") continue;
-    if (skip?.has(lineKey(l.job_id, l.sku_id))) continue;
-    if (ordered(lineKey(l.job_id, l.sku_id), l, "its gear was ordered")) continue;
+    // A line ordered ahead of the booking answers to its sale, not its job.
+    const keys = lineKeys(l);
+    if (keys.some((k) => skip?.has(k))) continue;
+    if (ordered(keys, l, "its gear was ordered")) continue;
     const qty = Number(l.qty ?? 1);
     if (!(qty > 0)) continue;
     if (s.method === "email_form" && modelLooksLikeName(l.supplier_model)) {
@@ -354,6 +373,7 @@ export function planWeek(input: {
       install_date: l.install_date, appointment_start: l.appointment_start,
       sku_id: l.sku_id, sku_name: l.sku_name, sku_type: l.sku_type, description: l.description,
       supplier_model: l.supplier_model, supplier_part: l.supplier_part ?? null, qty, unit_cost: l.unit_cost == null ? null : Number(l.unit_cost),
+      estimate_id: l.estimate_id ?? null,
     });
     orders.set(s.id, list);
   }
@@ -430,8 +450,8 @@ export function planWeek(input: {
 
 export type SupplierRow = {
   model: string; description: string | null; qty: number; unit_cost: number | null; jobs: string[]; first_install: string | null;
-  /** Each job this line is for, with the day its install is booked. */
-  installs: { job: string; date: string | null }[];
+  /** Each job this line is for, with the day its install is booked; `ahead` names a sale with no job yet. */
+  installs: { job: string; date: string | null; ahead?: boolean }[];
   /** How many of qty are stock for the factory rather than for a job. */
   stock: number;
 };
@@ -447,11 +467,13 @@ export function supplierRows(lines: PlannedLine[]): SupplierRow[] {
     const key = model.toLowerCase();
     const r = m.get(key) ?? { model, description: l.description, qty: 0, unit_cost: l.unit_cost, jobs: [], first_install: l.install_date, installs: [], stock: 0 };
     r.qty += l.qty;
-    if (l.job_id == null) r.stock += l.qty;
+    if (isStock(l)) r.stock += l.qty;
     if (l.job_number && !r.jobs.includes(l.job_number)) {
       r.jobs.push(l.job_number);
       r.installs.push({ job: l.job_number, date: l.install_date });
     }
+    const sale = isAhead(l) ? l.customer_name ?? "A sale" : null;
+    if (sale && !r.installs.some((i) => i.ahead && i.job === sale)) r.installs.push({ job: sale, date: null, ahead: true });
     if (l.install_date && (!r.first_install || l.install_date < r.first_install)) r.first_install = l.install_date;
     m.set(key, r);
   }
@@ -468,7 +490,7 @@ export function jobInstallNote(r: Pick<SupplierRow, "installs"> & { stock?: numb
   return [
     ...[...r.installs]
       .sort((a, b) => (a.date ?? "9").localeCompare(b.date ?? "9") || a.job.localeCompare(b.job))
-      .map((i) => `Job ${i.job}${i.date ? ` – install ${dayLabel(i.date)}` : ""}`),
+      .map((i) => (i.ahead ? `${i.job} – sold, install not booked yet` : `Job ${i.job}${i.date ? ` – install ${dayLabel(i.date)}` : ""}`)),
     // Stock beside job lines of the same model says how many are for the shelf.
     ...(r.stock ? [r.installs.length ? `Stock ×${qtyStr(r.stock)}` : "Stock"] : []),
   ].join("; ");
@@ -732,23 +754,27 @@ export function ccList(settings: Pick<OrderingSettings, "replyTo">, supplier: Su
 /* ---------------------------------------------------------------- Reece: one list per job */
 
 export type JobGroup<L extends PlannedLine = PlannedLine> = { job_id: number | null; job_number: string | null; customer_name: string | null; suburb: string | null;
-  install_date: string | null; appointment_start: string | null; lines: L[] };
+  install_date: string | null; appointment_start: string | null; lines: L[]; estimate_id?: number | null };
 
 /** Lines grouped by job, earliest install first — one maX cart per job. */
 export function byJob<L extends PlannedLine>(lines: L[]): JobGroup<L>[] {
-  const m = new Map<number | null, JobGroup<L>>();
+  const m = new Map<string, JobGroup<L>>();
   for (const l of lines) {
-    const g = m.get(l.job_id) ?? { job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
-      install_date: l.install_date, appointment_start: l.appointment_start, lines: [] };
+    const k = l.job_id != null ? `j${l.job_id}` : l.estimate_id != null ? `e${l.estimate_id}` : "stock";
+    const g = m.get(k) ?? { job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
+      install_date: l.install_date, appointment_start: l.appointment_start, lines: [], estimate_id: l.estimate_id ?? null };
     g.lines.push(l);
-    m.set(l.job_id, g);
+    m.set(k, g);
   }
-  // Stock (no job) goes last: the jobs are what's urgent.
-  return [...m.values()].sort((a, b) => Number(a.job_id == null) - Number(b.job_id == null)
+  // Booked jobs first, then sales ordered ahead, then stock: the dated work is what's urgent.
+  const rank = (g: JobGroup<L>) => (g.job_id != null ? 0 : g.estimate_id != null ? 1 : 2);
+  return [...m.values()].sort((a, b) => rank(a) - rank(b)
     || (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? ""));
 }
 
-export const jobHeading = (g: JobGroup) => g.job_id == null ? "Stock for the factory" :
+export const jobHeading = (g: JobGroup) => g.job_id == null && g.estimate_id != null
+  ? [g.customer_name ?? "A sale", g.suburb].filter(Boolean).join(" · ") + " — sold, install not booked yet"
+  : g.job_id == null ? "Stock for the factory" :
   [`Job ${g.job_number ?? ""}`, g.customer_name, g.suburb].filter(Boolean).join(" · ")
   + (g.appointment_start ? ` — install ${dayTimeLabel(g.appointment_start)}` : g.install_date ? ` — install ${dayLabel(g.install_date)}` : "");
 
