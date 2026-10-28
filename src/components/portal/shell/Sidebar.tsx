@@ -226,15 +226,21 @@ export function MenuButton() {
   );
 }
 
-/** Where you are: "Section › Page", or the section alone when it's one page. */
+/**
+ * Where you are: "Area › Page", or "Area › Family › Page" inside a family. A
+ * step named the same as the one before it is said once: "To order", not
+ * "To order › To order".
+ */
 export function Crumb({ sections }: { sections: Section[] }) {
   const path = usePathname() ?? "";
   const query = useSearchParams();
   const { section, page, at } = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
   if (!section || !page) return <div className="pn-crumb" />;
+  const steps = [section.label, ...(section.pages.length > 1 ? [page.label] : []), ...(page.subs && at ? [at.label] : [])]
+    .filter((x, i, all) => i === 0 || x !== all[i - 1]);
   return (
     <div className="pn-crumb">
-      {section.pages.length > 1 ? <>{section.label} › {page.subs && at ? <>{page.label} › <b>{at.label}</b></> : <b>{page.label}</b>}</> : <b>{section.label}</b>}
+      {steps.map((x, i) => (i < steps.length - 1 ? <span key={i}>{x} › </span> : <b key={i}>{x}</b>))}
     </div>
   );
 }

@@ -2924,3 +2924,7 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
   .pn--mini .pn-side .pn-btn .pn-n.r { padding: 0; width: 8px; height: 8px; min-width: 0; top: 5px; right: 10px; background: var(--bad-f); }
   .pn--mini .pn-side { padding: 18px 8px 14px; }
 }
+/* One warm wash behind the whole screen, side bar included: it was on the
+   page column only, which left the side bar on a flat grey strip. */
+.pt.pn { background: radial-gradient(1200px 520px at 85% -10%, var(--rp-wash-a), transparent 60%), radial-gradient(900px 600px at -10% 10%, var(--rp-wash-a), transparent 55%), var(--rp-wash-b); background-attachment: fixed; }
+.pt.pn .pn-main { background: transparent; }
