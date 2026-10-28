@@ -1,13 +1,16 @@
 // An install pack as a PDF, for the install job in ServiceTitan, in the
-// website's colours: a navy header with the logo and job number, the address
-// and booking in a cream box, the scope of works sold word for word and the
+// website's colours: the full logo on white with the job number beside it, an
+// orange rule, the address and booking in a cream box, the scope of works sold word for word and the
 // notes on the job, then the equipment and the materials with a tick box each for loading the van, the
-// work on the quote, each in a box of its own, then the photos four to a page. Pure apart from pdf-lib, so it can
+// work on the quote, each under its own heading, then the photos four to a
+// page. The plain style Jake picked on 28 Oct from four mock-ups: headings
+// with a short orange underline rather than boxes, and the long lists shaded
+// every other row so a line can be followed across the page. Pure apart from pdf-lib, so it can
 // be rendered from a fixture.
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import type { Pack, PackLine, Photo } from "./build";
-import { LOGO_MARK_PNG } from "./logo";
+import { LOGO_FULL_JPG, LOGO_FULL_SIZE } from "./logo";
 import { site } from "@/lib/site";
 
 const W = 595.28;
@@ -20,7 +23,7 @@ const SKY = rgb(0, 176 / 255, 237 / 255);
 const ORANGE = rgb(243 / 255, 103 / 255, 34 / 255);
 const CREAM = rgb(243 / 255, 239 / 255, 229 / 255);
 const LINE = rgb(235 / 255, 230 / 255, 216 / 255);
-const WHITE = rgb(1, 1, 1);
+const ZEBRA = rgb(0.985, 0.975, 0.955);
 const INK = rgb(0.1, 0.11, 0.18);
 const GREY = rgb(0.4, 0.42, 0.5);
 // Not ordered / not sent: flame-700 and signal-600, dark enough to read as
@@ -73,7 +76,7 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   doc.setCreator("Advanced Gas team portal");
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const logo = await doc.embedPng(Buffer.from(LOGO_MARK_PNG, "base64"));
+  const logo = await doc.embedJpg(Buffer.from(LOGO_FULL_JPG, "base64"));
 
   let page!: PDFPage;
   let y = 0;
@@ -84,64 +87,52 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     page.drawText(t, { x: xRight - f.widthOfTextAtSize(t, size), y, size, font: f, color });
   };
 
-  /* ---- the navy band, on every page: logo, name, and the job number */
+  /* ---- the header, on every page: the logo, and the job number */
   const BAND = 70;
   const band = (first: boolean) => {
     page = doc.addPage([W, H]);
-    page.drawRectangle({ x: 0, y: H - BAND, width: W, height: BAND, color: NAVY });
+    const lw = 140;
+    const lh = (lw * LOGO_FULL_SIZE.height) / LOGO_FULL_SIZE.width;
+    page.drawImage(logo, { x: M, y: H - BAND / 2 - lh / 2 + 2, width: lw, height: lh });
     page.drawRectangle({ x: 0, y: H - BAND - 3, width: W, height: 3, color: ORANGE });
-    // The mark sits on a white disc: it's drawn on white, and its G is the white.
-    page.drawCircle({ x: M + 22, y: H - BAND / 2, size: 22, color: WHITE });
-    page.drawImage(logo, { x: M + 22 - 15, y: H - BAND / 2 - 15, width: 30, height: 30 });
-    y = H - BAND / 2 + 2;
-    text("Advanced Gas & Aircon", M + 54, 15, bold, WHITE);
-    y -= 15;
-    text(first ? "INSTALL PACK" : "INSTALL PACK, CONTINUED", M + 54, 8.5, bold, SKY);
     y = H - BAND / 2 + 9;
-    right("JOB", W - M, 8.5, bold, SKY);
+    right(first ? "INSTALL PACK · JOB" : "INSTALL PACK, CONTINUED · JOB", W - M, 8.5, bold, SKY);
     y -= 22;
-    right(pack.jobNumber, W - M, 22, bold, WHITE);
+    right(pack.jobNumber, W - M, 22, bold, NAVY);
     y = H - BAND - 3 - 24;
   };
   /*
-   * Every section is a box: a cream title strip with the sky tab, a light
-   * border round its contents. A box that runs over a page is closed at the
-   * foot of one page and carries on under "(continued)" on the next, so a
-   * list is never left without its heading.
+   * Every section has a heading: navy, with a short orange underline and a
+   * hairline to the margin. A section that runs over a page carries on under
+   * "(continued)" on the next, so a list is never left without its heading.
    */
   const LIMIT = M + 28;
   const IN = M + 12;
   const IN_R = W - M - 12;
-  let card: { title: string; note?: string; top: number } | null = null;
-  const strip = (title: string, note?: string): number => {
+  let card: { title: string; note?: string } | null = null;
+  const strip = (title: string, note?: string) => {
     const top = y;
-    page.drawRectangle({ x: M, y: top - 24, width: W - 2 * M, height: 24, color: CREAM });
-    page.drawRectangle({ x: M, y: top - 24, width: 4, height: 24, color: SKY });
     y = top - 16;
-    text(title, IN, 11, bold, NAVY);
-    if (note) right(note, IN_R, 8, font, GREY);
+    text(title, M, 12.5, bold, NAVY);
+    if (note) right(note, W - M, 8, font, GREY);
+    page.drawRectangle({ x: M, y: top - 24, width: 34, height: 2.5, color: ORANGE });
+    page.drawLine({ start: { x: M + 34, y: top - 22.75 }, end: { x: W - M, y: top - 22.75 }, thickness: 0.6, color: LINE });
     y = top - 24 - 18;
-    return top;
-  };
-  const edge = (bottom: number) => {
-    if (card) page.drawRectangle({ x: M, y: bottom, width: W - 2 * M, height: card.top - bottom, borderColor: LINE, borderWidth: 1 });
   };
   const room = (h: number) => {
     if (y - h >= LIMIT) return;
-    edge(y - 2);
     band(false);
-    if (card) card.top = strip(`${card.title} (continued)`, card.note);
+    if (card) strip(`${card.title} (continued)`, card.note);
   };
   const open = (title: string, note?: string) => {
     card = null;
     room(80);
-    card = { title, note, top: strip(title, note) };
+    card = { title, note };
+    strip(title, note);
   };
   const close = () => {
-    const bottom = y - 2;
-    edge(bottom);
     card = null;
-    y = bottom - 14;
+    y -= 16;
   };
 
   band(true);
@@ -162,7 +153,7 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   const boxH = PAD + (addr.length ? 10 + addr.length * 17 + 6 : 0) + rowsH.reduce((a, b) => a + b, 0) + PAD - 8;
   const boxTop = y;
   page.drawRectangle({ x: BOX_X, y: y - boxH, width: BOX_W, height: boxH, color: CREAM });
-  page.drawRectangle({ x: BOX_X, y: y - boxH, width: 4, height: boxH, color: SKY });
+  page.drawRectangle({ x: BOX_X, y: y - boxH, width: 4, height: boxH, color: ORANGE });
   y -= PAD + 8;
   if (addr.length) {
     text("SITE", BOX_X + PAD, 7.5, bold, GREY);
@@ -212,6 +203,8 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
       const h = Math.max(name.length * 13, ord.length * 11.5);
       room(h + 9);
       const top = y;
+      // Every other row shaded, to follow a line across to its order status.
+      if (i % 2 === 0) page.drawRectangle({ x: M, y: top - h + 3, width: W - 2 * M, height: h + 9, color: ZEBRA });
       // An empty box to tick when it's in the van, with a pen on the printout
       // or on a tablet.
       page.drawRectangle({ x: IN, y: top - 2, width: BOX, height: BOX, borderColor: NAVY, borderWidth: 0.9 });
@@ -221,8 +214,6 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
       const colour = r.state === "sent" ? GREY : r.state === "waiting" ? WAITING : MISSING;
       for (const l of ord) { text(l, ORD_X, 9, ordFont, colour); y -= 11.5; }
       y = top - h;
-      // A rule between rows; the box's own border closes the last one.
-      if (i < rows.length - 1) page.drawLine({ start: { x: IN, y: y + 5 }, end: { x: IN_R, y: y + 5 }, thickness: 0.5, color: LINE });
       y -= 9;
     });
     y += 8;
