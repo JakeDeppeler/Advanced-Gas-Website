@@ -74,6 +74,6 @@ export const START_PAGES: { key: string; label: string; href: string; needs?: "o
   { key: "todo", label: "CRM › To-do", href: "/portal/todo" },
   { key: "today", label: "CRM › Today", href: "/portal/today", needs: "office" },
   { key: "kpis", label: "Finance › KPIs", href: "/portal/kpis", needs: "office" },
-  { key: "pipeline", label: "CRM › Quotes", href: "/portal/pipeline", needs: "office" },
+  { key: "pipeline", label: "Pipeline › Quotes", href: "/portal/pipeline", needs: "office" },
   { key: "wall", label: "Settings › Wall board remote", href: "/portal/board/remote", needs: "wall" },
 ];

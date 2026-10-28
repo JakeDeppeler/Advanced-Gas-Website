@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "crm" | "fin" | "mkt" | "team" | "you";
+export type SectionId = "home" | "crm" | "pipe" | "orders" | "fin" | "mkt" | "team" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -62,9 +62,11 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
 
 /**
  * Every area and page. The portal is a handful of areas, each a place you go
- * for one kind of work: CRM is the customers' work from the enquiry to the
- * job done, Finance is the money, Marketing is where the work comes from, Team
- * is the crew and how we work, and Settings is set up once. `group` is the
+ * for one kind of work: CRM is the day's jobs and to-dos, Pipeline the quotes
+ * from the enquiry to a yes or no, To order the gear for the installs,
+ * Finance the money, Marketing where the work comes from, Team the crew and
+ * how we work, and Settings is set up once. Pipeline and To order are areas
+ * of their own, not pages of CRM, because they're worked every day. `group` is the
  * block of the side bar an area sits in: Home, the business, the crew, then
  * settings.
  *
@@ -75,27 +77,15 @@ type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; p
 export const SECTION_DEFS: SectionDef[] = [
   { id: "home", label: "Home", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
   {
-    id: "crm", label: "CRM", icon: "team", group: 1, blurb: "Every customer's work, from the first enquiry to the job done",
+    id: "crm", label: "CRM", icon: "team", group: 1, blurb: "Today's work, every job, and everyone's to-dos",
     pages: [
       { label: "Today", group: [
         { label: "Today", href: "/portal/today" },
         { label: "Call booking", href: "/portal/today?tab=calls", gate: "/portal/today" },
       ] },
-      { label: "Leads", href: "/portal/leads" },
-      // Lost quotes left the row because nobody works from it; the page stays
-      // for search and old links.
-      { label: "Quotes", href: "/portal/pipeline" },
-      // The whole run of a job, of which the quotes are one stretch.
-      { label: "Job tracker", href: "/portal/tracker", office: true },
       { label: "Jobs", group: [
         { label: "Jobs today", href: "/portal/jobs" },
         { label: "All jobs", href: "/portal/jobs?tab=list", gate: "/portal/jobs" },
-      ] },
-      // What to send, what's gone, and the electrician's visits.
-      { label: "To order", group: [
-        { label: "To order", href: "/portal/supply/next-week" },
-        { label: "Sent", href: "/portal/supply/sent" },
-        { label: "Electrician", href: "/portal/supply/work-orders" },
       ] },
       // Each person's own board, then the accounts', then marketing's, the
       // order Jake reads them. Account to-dos are the work the portal writes
@@ -106,6 +96,25 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Marketing", href: "/portal/todo/marketing" },
         { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
       ] },
+    ],
+  },
+  {
+    id: "pipe", label: "Pipeline", icon: "quote", group: 1, blurb: "Every quote from the enquiry to a yes or a no, and where each job is up to",
+    pages: [
+      // Lost quotes left the row because nobody works from it; the page stays
+      // for search and old links.
+      { label: "Quotes", href: "/portal/pipeline" },
+      { label: "Leads", href: "/portal/leads" },
+      // The whole run of a job, of which the quotes are one stretch.
+      { label: "Job tracker", href: "/portal/tracker", office: true },
+    ],
+  },
+  {
+    id: "orders", label: "To order", icon: "box", group: 1, blurb: "Gear to order for the installs, what's gone, and the electrician",
+    pages: [
+      { label: "To order", href: "/portal/supply/next-week" },
+      { label: "Sent", href: "/portal/supply/sent" },
+      { label: "Electrician", href: "/portal/supply/work-orders" },
     ],
   },
   {
