@@ -1,7 +1,7 @@
 // An install pack as a PDF, for the install job in ServiceTitan, in the
 // website's colours: a navy header with the logo and job number, the address
-// and booking in a cream box, the scope of works sold word for word, then the
-// equipment and the materials with a tick box each for loading the van, the
+// and booking in a cream box, the scope of works sold word for word and the
+// notes on the job, then the equipment and the materials with a tick box each for loading the van, the
 // work on the quote, each in a box of its own, then the photos four to a page. Pure apart from pdf-lib, so it can
 // be rendered from a fixture.
 
@@ -189,6 +189,8 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
 
   /* ---- the scope first, under the site: what was sold, before what to bring */
   if (pack.scope) { open("Scope of works sold"); para(pack.scope); close(); }
+  // The office's own notes next, under the scope they add to (Jake, 28 Oct).
+  if (pack.jobNotes) { open("Notes on the job"); para(pack.jobNotes); close(); }
 
   /* ---- equipment and materials: a tick box, qty, the item, and whether it's ordered */
   const BOX = 10;
@@ -245,7 +247,6 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   };
   if (pack.work.length) { open("Work on the quote"); bullets(pack.work); close(); }
   if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
-  if (pack.jobNotes) { open("Notes on the job"); para(pack.jobNotes); close(); }
 
   /* ---- photos, four to a page */
   const embedded: { img: PDFImage; p: Photo }[] = [];
