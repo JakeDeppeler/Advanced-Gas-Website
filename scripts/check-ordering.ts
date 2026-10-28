@@ -155,6 +155,23 @@ console.log("\n-- booked, moved, cancelled --");
   const sk = planWeek({ week: w, lines, workOrders: [], suppliers, alreadyOrdered: new Set(), skip: new Set(["410:21"]) });
   ok("a line on a cancelled draft is left out of the automatic run", !sk.orders.some((o) => o.supplier_id === "reclaim"));
 
+  // Ordered ahead: Reclaim's heat pump for 20410 went on an order before the
+  // install was booked, against its estimate (77), with no job and no date.
+  const sold = lines.map((l) => (l.job_id === 410 ? { ...l, estimate_id: 77 } : l));
+  const ahead = new Map([["est:77:21", { install_date: null, po_number: "AGA-261026-REC", supplier_id: "reclaim" }]]);
+  const pa = planWeek({ week: w, lines: sold, workOrders: [], suppliers, alreadyOrdered: ahead });
+  const rec = pa.orders.find((o) => o.supplier_id === "reclaim");
+  ok("gear ordered ahead isn't ordered again once the job is booked", !rec?.lines.some((l) => l.job_id === 410));
+  ok("…and every other job's gear still is", pa.orders.flatMap((o) => o.lines).length === plan.orders.flatMap((o) => o.lines).length - 1);
+  ok("…and booking it isn't reported as a move", !pa.problems.some((x) => x.job_number === "20410"));
+  const onDraft = planWeek({ week: w, lines: sold, workOrders: [], suppliers, alreadyOrdered: new Set(), skip: new Set(["est:77:21"]) });
+  ok("…nor drafted beside it while it's still on a draft", !onDraft.orders.find((o) => o.supplier_id === "reclaim")?.lines.some((l) => l.job_id === 410));
+  ok("a drafted line keeps the estimate it came from", plan.orders.flatMap((o) => o.lines).every((l) => l.estimate_id === 9));
+  const aheadLine = { ...bySup.reclaim![0], job_id: null, job_number: null, customer_name: "Kirrily O'Brien", install_date: null, appointment_start: null, manual: true, estimate_id: 77 } as PlannedLine;
+  const ar = supplierRows([aheadLine]);
+  ok("a line ordered ahead is for the sale, not stock", ar[0].stock === 0 && jobInstallNote(ar[0]) === "Kirrily O'Brien – sold, install not booked yet", jobInstallNote(ar[0]));
+  ok("…and is its own group on the Reece list, before the stock", byJob([{ ...aheadLine, job_id: null, estimate_id: null, customer_name: null }, aheadLine])[0].estimate_id === 77);
+
   const urgentMail = toApproveEmail({ today: "2026-10-14", link: "https://x/portal", problems: [], workOrders: ["Job 20311 — 19 Fremont Street"],
     orders: [{ supplier: "Reece", lines: [L({ job_id: 1, job_number: "20999", install_date: "2026-10-16" }) as PlannedLine] },
              { supplier: "Rinnai (Brivis)", lines: [L({ job_id: 2, job_number: "20888", install_date: "2026-10-27" }) as PlannedLine] }] });
@@ -173,7 +190,7 @@ console.log("\n-- pick up, and stock --");
     deliveryInstructions: "We'll pick this up.", settings, attached: false, today: "2026-10-14", pickup: true });
   ok("pick-up email: subject and body say pick up, with a ready-by date", pu.subject.includes("PICK UP — ready to pick up by Tue 20 Oct")
     && pu.text.includes("Pick up: we'll collect this order") && pu.text.includes("Ready by: Tue 20 Oct") && !pu.text.includes("Deliver to:"), pu.subject);
-  const stock = { ...bySup.reclaim![0], job_id: null, job_number: null, customer_name: null, install_date: null, appointment_start: null, qty: 2, manual: true } as PlannedLine;
+  const stock = { ...bySup.reclaim![0], job_id: null, job_number: null, customer_name: null, install_date: null, appointment_start: null, qty: 2, manual: true, estimate_id: null } as PlannedLine;
   const rows = supplierRows([...bySup.reclaim!, stock]);
   ok("stock of the same model sits beside the job on one line", rows.length === 1 && rows[0].qty === 3 && rows[0].stock === 2);
   ok("…and the note says how many are stock", jobInstallNote(rows[0]) === "Job 20410 – install Fri 23 Oct; Stock ×2", jobInstallNote(rows[0]));

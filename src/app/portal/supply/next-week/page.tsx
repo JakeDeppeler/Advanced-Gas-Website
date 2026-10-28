@@ -6,19 +6,49 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Bad, Good, Grid, Head, Say, Tile } from "@/components/portal/kit/Kit";
 import { Locked } from "@/components/portal/Locked";
-import { NextWeekOrders } from "@/components/portal/NextWeekOrders";
+import { NextWeekOrders, type UnbookedSale } from "@/components/portal/NextWeekOrders";
 import { money } from "@/lib/portal/format";
 import {
-  appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadHolds, loadOrderingSettings, loadSuppliers, loadWeekInputs, type Hold,
-  type PoWithLines,
+  appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadHolds, loadOrderingSettings, loadSuppliers, loadUnbooked, loadWeekInputs, type Hold,
+  type PoWithLines, type UnbookedLine,
 } from "@/lib/ordering/db";
 import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
-import { dayLabel, linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
+import { dayLabel, estKey, linesTotal, lineKeys, nextWeek, planWeek, thisWeek, weekLabel, type OrderedLine, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
 export const maxDuration = 60;
 export const metadata = { title: "To order · Team portal" };
+
+/**
+ * Sold quotes not booked in yet, a card each, their gear split by supplier,
+ * and for each supplier whether it's on an order already. The electrician
+ * isn't offered: he's booked against an install date, and there isn't one.
+ */
+function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWithLines[], already: Map<string, OrderedLine>): UnbookedSale[] {
+  const byId = new Map(suppliers.map((x) => [x.id, x]));
+  const drafted = new Map<string, string>();
+  for (const p of drafts) for (const l of p.lines) for (const k of lineKeys(l)) drafted.set(k, p.po_number);
+  const sales = new Map<number, UnbookedSale>();
+  for (const r of rows) {
+    const sale = sales.get(r.estimate_id) ?? {
+      estimateId: r.estimate_id, customer: r.customer_name, suburb: r.suburb, what: r.estimate_name, soldOn: r.sold_on ? r.sold_on.slice(0, 10) : null,
+      total: r.total_inc, quoteJob: r.quote_job_number, groups: [], issues: [],
+    };
+    sales.set(r.estimate_id, sale);
+    if (r.issue) { sale.issues.push(`${r.sku_name ?? "An item"}: ${r.issue.toLowerCase()}`); continue; }
+    const sup = r.supplier_id ? byId.get(r.supplier_id) : undefined;
+    if (!sup || !sup.active || sup.method === "work_order") continue;
+    let g = sale.groups.find((x) => x.supplierId === sup.id);
+    if (!g) { g = { supplierId: sup.id, supplier: sup.name, items: [], cost: 0, ordered: null, drafted: null }; sale.groups.push(g); }
+    g.items.push({ name: r.supplier_model ?? r.sku_name ?? "Item", qty: Number(r.qty) });
+    g.cost += (r.unit_cost ?? 0) * Number(r.qty);
+    const k = estKey(r.estimate_id, r.sku_id);
+    if (already.has(k)) g.ordered = already.get(k)!.po_number;
+    else if (drafted.has(k)) g.drafted = drafted.get(k)!;
+  }
+  return [...sales.values()].filter((x) => x.groups.length || x.issues.length);
+}
 
 /**
  * Orders › To order: this week's and next week's orders in one list, soonest
@@ -48,16 +78,20 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let stocked: string[] = [];
   // Every supplier order still a draft, this week and next: a card offers to make a supplier's into one bulk order.
   let allDrafts: { id: number; po: string; supplier: string; week: string }[] = [];
+  let unbooked: UnbookedSale[] = [];
   try {
     // Everything in one go: each is a round trip to Tokyo.
     const supP = loadSuppliers();
-    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis] = await Promise.all([
+    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub] = await Promise.all([
       listWeekOrders(tw), listWeekOrders(nw), supP, loadWeekInputs(tw), loadWeekInputs(nw), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
       supP.then((x) => loadJobNoteSuppliers(x)).catch(() => [] as string[]),
       loadStocked().catch(() => []),
       getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null),
+      // Its own catch: a failed read of the sold-not-booked list leaves the rest of the page standing.
+      loadUnbooked().catch(() => null),
     ]);
     orders = [...oThis, ...oNext];
+    if (ub) unbooked = unbookedSales(ub, s, orders.filter((o) => o.status === "draft"), already);
     holds = h;
     suppliers = s;
     noted = nt;
@@ -85,6 +119,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   const waiting = live.filter((o) => o.status === "draft");
   const value = waiting.filter((o) => o.kind === "order").reduce((t, o) => t + linesTotal(o.lines), 0);
   const visits = waiting.filter((o) => o.kind === "work_order").length;
+  const aheadOpen = unbooked.filter((x) => x.groups.some((g) => !g.ordered && !g.drafted)).length;
   const soonest = waiting.map((o) => o.kind === "work_order" ? o.details?.date : o.lines.map((l) => l.install_date).filter(Boolean).sort()[0]).filter((d): d is string => !!d).sort()[0];
 
   return (
@@ -107,11 +142,13 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
                 : <Good>Nothing waiting to be sent.</Good>}{" "}
               {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered yet.</Bad> : null}
             </Say>
-            <Grid cols={2}>
+            <Grid cols={3}>
               <Tile label="Not sent yet" st={waiting.length ? { k: "mid", w: "To send" } : { k: "good", w: "All sent" }} fig={String(waiting.length)} frac={null}
                 sub={[value ? `${money(value)} of gear ex GST` : null, visits ? `${visits} electrician ${visits === 1 ? "visit" : "visits"}` : null].filter(Boolean).join(" · ") || "nothing to send"} />
               <Tile label="Can't order yet" st={problems.length ? { k: "bad", w: "Fix in ServiceTitan" } : { k: "good", w: "None" }} fig={String(problems.length)} frac={null}
                 sub={problems.length ? "listed below, each with why" : "every booked install can be ordered"} />
+              <Tile label="Sold, not booked in" st={aheadOpen ? { k: "mid", w: "Can order ahead" } : { k: "none", w: unbooked.length ? "All on order" : "None" }} fig={String(unbooked.length)} frac={null}
+                sub={unbooked.length ? "listed below, order the long-wait gear ahead" : "every sale has its install booked"} href={unbooked.length ? "#ahead" : undefined} />
             </Grid>
           </>
         )}
@@ -130,6 +167,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         delivery={delivery}
         stocked={stocked}
         allDrafts={allDrafts}
+        unbooked={unbooked}
       />
     </PortalShell>
   );

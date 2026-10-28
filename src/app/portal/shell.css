@@ -2928,3 +2928,16 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
    page column only, which left the side bar on a flat grey strip. */
 .pt.pn { background: radial-gradient(1200px 520px at 85% -10%, var(--rp-wash-a), transparent 60%), radial-gradient(900px 600px at -10% 10%, var(--rp-wash-a), transparent 55%), var(--rp-wash-b); background-attachment: fixed; }
 .pt.pn .pn-main { background: transparent; }
+/* To order › Sold, not booked in yet: a sale a block, its gear a row per supplier. */
+.nw-ahead__list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.nw-ahead__sale { border-radius: 18px; padding: 12px 14px; background: color-mix(in srgb, var(--ink) 4%, transparent); display: flex; flex-direction: column; gap: 6px; }
+.nw-ahead__h { display: flex; flex-direction: column; gap: 2px; }
+.nw-ahead__h b { font-size: 15px; font-weight: 600; }
+.nw-ahead__h b span { font-weight: 500; color: var(--ink2); }
+.nw-ahead__g { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.nw-ahead__gt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nw-ahead__gt b { font-size: 14px; font-weight: 600; }
+.nw-ahead__gt span { font-size: 12.5px; color: var(--ink2); }
+.nw-ahead__cost { font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .nw-ahead__g { grid-template-columns: minmax(0, 1fr) auto; } .nw-ahead__g > :last-child { grid-column: 1 / -1; justify-self: start; } }
+.nw-ahead { scroll-margin-top: 80px; }
