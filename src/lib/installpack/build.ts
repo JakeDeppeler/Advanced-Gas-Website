@@ -63,8 +63,6 @@ export type Pack = {
   facts: [string, string][];
   units: PackLine[];
   materials: PackLine[];
-  /** The labour and compliance lines on the quote, as names. */
-  work: string[];
   /** Contractors' work orders for the job (the electrician): who, and whether it's gone. */
   contractors: string[];
   scope: string | null;
@@ -170,7 +168,6 @@ export function buildPack(f: PackFacts): Pack {
     ] as [string, string][]).filter(([, v]) => v),
     units: fitted.filter((i) => i.type === "Equipment").map(line),
     materials: fitted.filter((i) => i.type === "Material").map(line),
-    work: fitted.filter((i) => i.type !== "Equipment" && i.type !== "Material").map((i) => (i.qty !== 1 ? `${tidy(i.name) || tidy(i.code)} ×${qtyText(i.qty)}` : tidy(i.name) || tidy(i.code))),
     contractors,
     scope,
     jobNotes: extraNotes(notes, scope),
@@ -186,8 +183,9 @@ export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "quot
  * made again in the new look. 2: the branded layout of 28 Oct. 3: the same
  * day's boxed sections, with the scope under the site. 4: the notes on the
  * job moved up under the scope. 5: the plain style, full logo on white.
+ * 6: contractors under the notes, the quote's labour lines left off.
  */
-export const LAYOUT = "5";
+export const LAYOUT = "6";
 
 const hash = (v: unknown) => createHash("sha1").update(JSON.stringify(v)).digest("hex").slice(0, 16);
 
@@ -204,7 +202,7 @@ export function packParts(f: PackFacts): PackParts {
     booking: hash(p.facts.find(([k]) => k === "Booked")?.[1] ?? ""),
     crew: hash(p.facts.find(([k]) => k === "Crew")?.[1] ?? ""),
     contact: hash([f.siteAddress, f.sitePhone, f.customer]),
-    quote: hash([f.quote.id, p.units.map((l) => [l.qty, l.name]), p.materials.map((l) => [l.qty, l.name]), p.work, p.scope, p.jobNotes]),
+    quote: hash([f.quote.id, p.units.map((l) => [l.qty, l.name]), p.materials.map((l) => [l.qty, l.name]), p.scope, p.jobNotes]),
     // From the orders themselves, not the wording, so rewording the PDF never
     // looks like an order changing.
     orders: hash(f.orders.map((o) => [o.skuId, o.po, o.status, o.pickup, o.kind]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))),

@@ -1,12 +1,12 @@
 // An install pack as a PDF, for the install job in ServiceTitan, in the
 // website's colours: the full logo on white with the job number beside it, an
-// orange rule, the address and booking in a cream box, the scope of works sold word for word and the
-// notes on the job, then the equipment and the materials with a tick box each for loading the van, the
-// work on the quote, each under its own heading, then the photos four to a
-// page. The plain style Jake picked on 28 Oct from four mock-ups: headings
-// with a short orange underline rather than boxes, and the long lists shaded
-// every other row so a line can be followed across the page. Pure apart from pdf-lib, so it can
-// be rendered from a fixture.
+// orange rule, the address and booking in a cream box, then the scope of works
+// sold word for word, the notes on the job and the contractors, then the
+// equipment and the materials with a tick box each for loading the van, then
+// the photos four to a page. The plain style Jake picked on 28 Oct from four
+// mock-ups: headings with a short orange underline rather than boxes, and the
+// long lists shaded every other row so a line can be followed across the page.
+// Pure apart from pdf-lib, so it can be rendered from a fixture.
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import type { Pack, PackLine, Photo } from "./build";
@@ -195,6 +195,18 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   if (pack.scope) { open("Scope of works sold"); para(pack.scope); close(); }
   // The office's own notes next, under the scope they add to (Jake, 28 Oct).
   if (pack.jobNotes) { open("Notes on the job"); para(pack.jobNotes); close(); }
+  // Who else is on the job and whether they've been told, before the gear
+  // (Jake, 28 Oct). The labour lines on the quote are left off: they're the
+  // price breakdown, and the scope above already says what the work is.
+  const bullets = (items: string[]) => {
+    for (const it of items) {
+      const lines = wrap(font, 10.5, it, IN_R - IN - 16);
+      room(lines.length * 13.5);
+      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color: SKY });
+      for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
+    }
+  };
+  if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
 
   /* ---- equipment and materials: a tick box, qty, the item, and whether it's ordered */
   const BOX = 10;
@@ -241,16 +253,6 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
   close();
 
-  const bullets = (items: string[]) => {
-    for (const it of items) {
-      const lines = wrap(font, 10.5, it, IN_R - IN - 16);
-      room(lines.length * 13.5);
-      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color: SKY });
-      for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
-    }
-  };
-  if (pack.work.length) { open("Work on the quote"); bullets(pack.work); close(); }
-  if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
 
   /* ---- photos, four to a page */
   const embedded: { img: PDFImage; p: Photo }[] = [];
