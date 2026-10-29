@@ -910,7 +910,7 @@ export function toApproveEmail(o: { orders: NewToOrder[]; workOrders: string[]; 
 
 /**
  * "It went": what the portal emailed by itself this run, to whoever's set on
- * Settings › Automatic, so nobody has to wonder whether GT Electrics heard
+ * To order › Automation, so nobody has to wonder whether GT Electrics heard
  * about the move or got the work order. Each line says who was emailed,
  * about which job, and what was said.
  */
@@ -930,7 +930,7 @@ export function doneNoticeEmail(o: { items: { head: string; detail: string }[]; 
   const intro = held.length
     ? `Booked for today, so the portal didn't send ${held.length === 1 ? "this one" : "these"} by itself. Check the contractor can make it, then send it from Work orders.${n ? " The rest went by itself after the last ServiceTitan sync." : ""}`
     : "The portal sent these by itself after the last ServiceTitan sync. Nothing for you to do unless one's wrong.";
-  const footer = `Every one is on Orders & stock › Work orders and Settings › Automatic: ${esc(o.link)}<br>Change who gets these on Settings › Automatic.`;
+  const footer = `Every one is on To order › Work orders and To order › Automation: ${esc(o.link)}<br>Change who gets these on To order › Automation.`;
   const text = [intro, "", ...(held.length ? ["Left for you to send:", ...held.flatMap((i) => [`- ${i.head}`, `  ${i.detail}`]), ""] : []),
     ...(n && held.length ? ["Sent by itself:"] : []), ...o.items.flatMap((i) => [`- ${i.head}`, `  ${i.detail}`]), "", `Work orders: ${o.link}`].join("\n");
   return { subject, html: shell(held.length ? "Send these by hand" : "Sent automatically", intro, body, footer), text };

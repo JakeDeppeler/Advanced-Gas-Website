@@ -526,7 +526,7 @@ async function keepInTouch(ctx: Ctx) {
  * before tagging existed): tried again, a few a run.
  */
 async function orderTags(ctx: Ctx) {
-  const ids = (await ordersToUpdate()).slice(0, 3);
+  const ids = (await ordersToUpdate({ pos: false })).slice(0, 3);
   for (const id of ids) {
     const r = await updateJobs(id).catch((e: Error) => ({ ok: false, done: [], error: e.message }));
     const failKey = `ordertag-fail:${id}:${(r.error ?? "").slice(0, 40)}`;
