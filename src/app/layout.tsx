@@ -135,16 +135,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ScrollToTop />
-        <ChromeGate>
+        <ChromeGate legacy>
           <Header />
         </ChromeGate>
         <main id="main" className="flex-1">{children}</main>
         <PageEnter />
         <SiteCross />
         <Reveal />
-        <ChromeGate>
+        <ChromeGate legacy>
           <Footer />
           <StickyMobileCTA />
+        </ChromeGate>
+        <ChromeGate>
           <ChatWidget />
         </ChromeGate>
         <Script

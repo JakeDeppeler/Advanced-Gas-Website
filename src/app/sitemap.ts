@@ -5,6 +5,7 @@ import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 import { detailedCodes, faultSlug } from "@/lib/faultCodes";
 import { publishedPosts } from "@/lib/blogLive";
+import { allProductParams } from "@/lib/homepage/data";
 
 /**
  * No `lastModified` anywhere in here, deliberately.
@@ -140,6 +141,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
+  // The product pages "Find your system" opens. Without the answers in the
+  // query string; that is the canonical form of each.
+  const findUrls: MetadataRoute.Sitemap = allProductParams().map((p) => ({
+    url: `${base}/find/${p.system}/${p.tier}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
   return [...staticUrls, ...serviceUrls, ...faultUrls,
-    ...systemUrls, ...suburbUrls, ...brandUrls, ...postUrls];
+    ...systemUrls, ...suburbUrls, ...brandUrls, ...findUrls, ...postUrls];
 }
