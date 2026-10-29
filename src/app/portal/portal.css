@@ -288,7 +288,7 @@
    true whichever way the switch is thrown. */
 .pt-head__figs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 10px;
   margin-top: 20px;
   max-width: 760px;
@@ -769,7 +769,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-veh__edithead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pt-veh__editgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 14px 0; align-items: end; }
 .pt-veh__editgrid .pt-field--wide, .pt-veh__addgrid .pt-field--wide { grid-column: 1 / -1; }
-.pt-veh__addgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+.pt-veh__addgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; align-items: end; }
 .pt-veh__addhead { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--pt-ink-3); margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid var(--pt-line); }
 .pt-veh__calc { margin-top: 14px; font-size: 13.5px; color: var(--pt-ink-2); background: var(--pt-bg); border: 1px solid var(--pt-line); border-radius: 10px; padding: 10px 13px; }
 .pt-veh__calc strong { color: var(--pt-ink); font-variant-numeric: tabular-nums; }
@@ -1082,7 +1082,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-vc__shot figcaption { padding: 6px 9px; font-size: 11.5px; font-weight: 600; color: var(--pt-ink-2); }
 .pt-vc__shot .pf-x { position: absolute; top: 5px; right: 5px; background: rgba(255,255,255,0.94); border-radius: 50%; }
 
-.pt-vc__start { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 11px; margin-bottom: 22px; }
+.pt-vc__start { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 11px; margin-bottom: 22px; }
 .pt-vc__starttile { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--pt-line); border-radius: 14px; padding: 15px 17px; text-decoration: none; background: var(--pt-surface); transition: transform 0.14s, box-shadow 0.14s; }
 .pt-vc__starttile:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgba(14,27,77,0.5); border-color: var(--pt-sky); }
 .pt-vc__starttile strong { font-family: var(--f-display); font-size: 14.5px; font-weight: 800; color: var(--pt-ink); }
@@ -1486,7 +1486,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-util__seg--actual { background: var(--pt-good-fill); }
 .pt-util__seg--play { background: #e0912a; }
 .pt-util__seg--legal { background: #9aa4cf; }
-.pt-util__keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.pt-util__keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
 .pt-util__key { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 3px solid var(--pt-line); }
 .pt-util__key.is-actual { border-left-color: var(--pt-good); }
 .pt-util__key.is-play { border-left-color: #e0912a; }
@@ -1679,7 +1679,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-cap__penhead > span { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-ink-3); }
 .pt-cap__edit { appearance: none; border: 1px solid var(--pt-line); background: var(--pt-surface); border-radius: 8px; padding: 4px 12px; font: inherit; font-size: 12px; font-weight: 700; color: var(--pt-ink-2); cursor: pointer; }
 .pt-cap__edit:hover { border-color: var(--pt-sky); color: var(--pt-ink); }
-.pt-cap__penrows { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pt-cap__penrows { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
 .pt-cap__penrows > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--pt-bg); }
 .pt-cap__penrows span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pt-ink-3); }
 .pt-cap__penrows strong { font-family: var(--f-display); font-size: 16.5px; font-weight: 800; color: var(--pt-ink); font-variant-numeric: tabular-nums; }
@@ -1999,7 +1999,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-yg__formbtns { display: flex; gap: 10px; align-items: center; grid-column: 1 / -1; }
 .pt-yg__err { font-size: 13px; color: var(--pt-bad); font-weight: 600; }
 
-.pt-yg__strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pt-yg__strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
 .pt-yg__cell { padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-bg); }
 .pt-yg__cell > span {
   display: block; font-family: var(--f-mono, monospace); font-size: 10.5px; letter-spacing: 0.07em;
@@ -4570,6 +4570,17 @@ a.pt-fig:hover { transform: translateY(-2px); }
 }
 .pt-loc__scroll td:first-child, .pt-loc__scroll td:nth-child(2) strong { white-space: nowrap; }
 
+/* Swap a tech (Site locations): one tick per booked day. */
+.pt-swap__days { list-style: none; margin: 4px 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.pt-swap__day { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--pt-line); border-radius: 10px; font-size: 14px; cursor: pointer; min-height: 44px; box-sizing: border-box; }
+.pt-swap__day:has(input:checked) { border-color: var(--pt-navy); box-shadow: inset 0 0 0 1px var(--pt-navy); }
+.pt-swap__day input { width: 18px; height: 18px; flex: none; }
+.pt-swap__day strong { white-space: nowrap; }
+.pt-swap__day .pt-loc__muted { margin-left: auto; white-space: nowrap; }
+.pt-swap__day.is-none { cursor: default; opacity: 0.55; }
+.pt-swap__sum { margin: 0 0 8px; font-size: 14px; color: var(--pt-ink); }
+.pt-swap__warn { margin: 0 0 8px; padding: 10px 12px; border: 1px solid var(--pt-amber-line); border-radius: 10px; background: var(--pt-amber-bg); color: var(--pt-amber); font-size: 13.5px; }
+
 /* Sites search: results drop under the box as you type. A result whose answer
    is a beat behind the box dims rather than vanishing, so the list doesn't
    flicker between keys. */
@@ -5370,7 +5381,7 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nums__msg { margin-left: 8px; font-size: 12.5px; font-weight: 600; }
 .pt-nums__msg.is-ok { color: var(--pt-good); }
 .pt-nums__msg.is-err { color: var(--pt-bad); }
-.pt-nums__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px 18px; margin: 4px 0 12px; }
+.pt-nums__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px 18px; margin: 4px 0 12px; }
 .pt-nums__f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--pt-ink); }
 .pt-nums__f > span:first-child em { display: block; font-style: normal; font-weight: 500; color: var(--pt-ink-3); font-size: 12px; }
 .pt-nums__f .pt-calc__field { align-self: flex-start; }
