@@ -7,9 +7,13 @@ import { Suspense, useEffect, useState } from "react";
 import {
   findSystem, galleryFor, specRows, answersFrom, answersQuery, findHref, bookHref, productHref, money, weekly,
   isHeatPump, isNewBuildHeatPump, BRAND_PAGES, PRODUCT_FAQS, SPEC_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
-  reviewTitle, type Answers,
+  reviewTitle, modelForAnswer, installTime as installTimeOf, type Answers,
 } from "@/lib/homepage/data";
 import type { Review } from "@/lib/reviews";
+
+/** A catalogue model behind this option, resolved on the server from lib/brands.ts. */
+export type PModel = { slug: string; chip: string; name: string; code: string; bestFor?: string; room?: string; href: string; specs: { label: string; value: string }[] };
+export type PBrand = { name: string; page?: string; site?: { label: string; href: string } };
 
 const FINS = [{ t: "Pay upfront", m: 0 }, { t: "24 months", m: 24 }, { t: "36 months", m: 36 }, { t: "60 months", m: 60 }];
 
@@ -18,7 +22,9 @@ const FINS = [{ t: "Pay upfront", m: 0 }, { t: "24 months", m: 24 }, { t: "36 mo
  * indexed. The answers ride along in the query string (?size=1&floor=0…);
  * the page renders without them too, for anyone who lands here from search.
  */
-export function ProductView({ system, tier: tierSlug, reviews, rating, count }: { system: string; tier: string; reviews: Review[]; rating: string; count: number }) {
+export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand }: {
+  system: string; tier: string; reviews: Review[]; rating: string; count: number; models: PModel[]; brand: PBrand | null;
+}) {
   const ref = findSystem(system)!;
   const { cat, sys } = ref;
   const ti = sys.tiers.findIndex((t) => t.slug === tierSlug);
@@ -27,13 +33,24 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count }: 
   const [ans, setAns] = useState<Answers>({});
   const [gi, setGi] = useState(0);
   const [fin, setFin] = useState(2);
+  // The model they picked here, or arrived with in ?model=. Until then the
+  // size they gave in the finder chooses one.
+  const [picked, setPicked] = useState<string | null>(null);
 
   // Changing the size keeps the URL in step, so a shared link shows what they saw.
+  function syncUrl(a: Answers, model: string | null) {
+    const qs = answersQuery(sys, a);
+    const q = [qs, model ? `model=${model}` : ""].filter(Boolean).join("&");
+    window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
+  }
   function setSize(i: number) {
     const next = { ...ans, size: i };
     setAns(next);
-    const qs = answersQuery(sys, next);
-    window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+    syncUrl(next, picked);
+  }
+  function pickModel(slug: string) {
+    setPicked(slug);
+    syncUrl(ans, slug);
   }
 
   const gal = galleryFor(sys, t);
@@ -50,11 +67,13 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count }: 
   const priceLbl = known ? (useFin ? `From, over ${FINS[fin].m} months with Brighte` : "Range starts from, installed") : "Installed price";
   const price = known ? (useFin ? `$${weekly(t.price!, FINS[fin].m)}/wk` : money(t.price!)) : "At quote";
   const priceSub = known ? (useFin ? `or ${money(t.price!)} installed` : `Includes GST${hp ? " and the VEU rebate" : ""}`) : "Fixed price after a free site check";
-  const book = bookHref(sys, t, ans);
+  const mi = Math.max(0, picked ? models.findIndex((m) => m.slug === picked) : modelForAnswer(models, size?.spec));
+  const model = models[mi] ?? null;
+  const book = bookHref(sys, t, ans, model?.slug);
 
   return (
     <div className="pp" id="product">
-      <Suspense fallback={null}><AnswersFromUrl system={system} onAnswers={setAns} /></Suspense>
+      <Suspense fallback={null}><AnswersFromUrl system={system} onAnswers={(a, m) => { setAns(a); if (m && models.some((x) => x.slug === m)) setPicked(m); }} /></Suspense>
       <div className="wrap">
         <div className="pp__bar">
           <Link href={findHref(sys, ans)} className="pp__back">← Back to your options</Link>
@@ -105,14 +124,36 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count }: 
             {isNewBuildHeatPump(sys, ans) && (
               <p className="find__veu" style={{ margin: 0 }}>The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
             )}
-            <div className="pm__lbl" id="pm-size">{sys.q.replace("?", "")}</div>
-            <div className="pm__sizes" role="group" aria-labelledby="pm-size">
-              {sys.sizes.map((z, i) => (
-                <button key={z.label} type="button" className={`pm__size${i === ans.size ? " pm__size--on" : ""}`} onClick={() => setSize(i)} aria-pressed={i === ans.size}>
-                  <strong>{z.label}</strong><span>{z.spec}</span>
-                </button>
-              ))}
-            </div>
+            {models.length > 1 ? (
+              <>
+                <div className="pm__lbl" id="pm-size">Choose a size</div>
+                <div className="pm__sizes" role="group" aria-labelledby="pm-size">
+                  {models.map((m, i) => (
+                    <button key={m.slug} type="button" className={`pm__size pm__size--model${i === mi ? " pm__size--on" : ""}`} onClick={() => pickModel(m.slug)} aria-pressed={i === mi}>
+                      <strong>{m.chip}</strong>{m.room && <span>{m.room}</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : models.length === 0 ? (
+              <>
+                <div className="pm__lbl" id="pm-size">{sys.q.replace("?", "")}</div>
+                <div className="pm__sizes" role="group" aria-labelledby="pm-size">
+                  {sys.sizes.map((z, i) => (
+                    <button key={z.label} type="button" className={`pm__size${i === ans.size ? " pm__size--on" : ""}`} onClick={() => setSize(i)} aria-pressed={i === ans.size}>
+                      <strong>{z.label}</strong><span>{z.spec}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
+            {model && (
+              <div className="pm__model" aria-live="polite">
+                <span className="pm__modelcode">{model.code}</span>
+                {model.bestFor && <span><b>Ideal for</b> {model.bestFor}</span>}
+                <Link href={model.href}>Full {model.code} details →</Link>
+              </div>
+            )}
             {SHOW_FINANCE && (
               <>
                 <div className="pm__lbl">How would you like to pay?</div>
@@ -148,12 +189,55 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count }: 
         <div className="wrap pp__two">
           <div className="pp__lead">
             <span className="aeye"><i /> Specifications</span>
-            <h2 className="h2 h2--sm">{t.brand} {t.model}</h2>
-            <p>{SPEC_NOTE}</p>
+            <h2 className="h2 h2--sm">{model ? model.name : `${t.brand} ${t.model}`}</h2>
+            <p>{model ? `${t.brand}'s published figures for the ${model.code}. The full spec sheet and manuals come with your written quote.` : SPEC_NOTE}</p>
           </div>
-          <dl className="pp__specs">
-            {specRows(cat, sys, t, ans).map((r) => <div key={r.k} className="pp__row"><dt>{r.k}</dt><dd>{r.v}</dd></div>)}
+          <dl className="pp__specs" key={model?.slug ?? "range"}>
+            {(model ? modelRows(model, cat.label, sys.label, installTimeOf(sys), size ? size.label + (size.spec ? ` (${size.spec})` : "") : null) : specRows(cat, sys, t, ans))
+              .map((r) => <div key={r.k} className="pp__row"><dt>{r.k}</dt><dd>{r.v}</dd></div>)}
           </dl>
+        </div>
+      </section>
+
+      <section className="pp__sec pp__sec--grey">
+        <div className="wrap pp__col">
+          <div className="pp__lead">
+            <span className="aeye"><i /> Resources</span>
+            <h2 className="h2 h2--sm">Everything about this one.</h2>
+          </div>
+          <div className="pres">
+            {model && (
+              <Link href={model.href} className="pres__card">
+                <span className="pres__tag">Model page</span>
+                <strong>{model.name}</strong>
+                <span className="pres__go">Full details and specs <i aria-hidden="true">→</i></span>
+              </Link>
+            )}
+            {brand?.page && (
+              <Link href={brand.page} className="pres__card">
+                <span className="pres__tag">Brand</span>
+                <strong>Why we fit {brand.name}</strong>
+                <span className="pres__go">Our honest take <i aria-hidden="true">→</i></span>
+              </Link>
+            )}
+            {brand?.site && (
+              <a href={brand.site.href} target="_blank" rel="noopener noreferrer" className="pres__card">
+                <span className="pres__tag">Manufacturer</span>
+                <strong>{brand.name} website</strong>
+                <span className="pres__go">Brochures and manuals <i aria-hidden="true">↗</i></span>
+              </a>
+            )}
+            <Link href={book} className="pres__card">
+              <span className="pres__tag">Spec sheet</span>
+              <strong>Spec sheet &amp; manuals</strong>
+              <span className="pres__go">Sent with your written quote <i aria-hidden="true">→</i></span>
+            </Link>
+            <div className="pres__card pres__card--plain">
+              <span className="pres__tag">Warranty</span>
+              <strong>Manufacturer warranty + 6 years on our work</strong>
+              <span className="pres__go">Compliance certificate within 24 hours</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -220,7 +304,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count }: 
           <span className="pp__stickyimg"><Image src={t.img} alt="" fill sizes="48px" /></span>
           <span className="pp__stickyt">
             <strong>{t.brand} {t.model}</strong>
-            <span>{known ? `From ${money(t.price!)} installed` : "Priced after a free site check"}{size ? ` · ${size.label}` : ""}</span>
+            <span>{known ? `From ${money(t.price!)} installed` : "Priced after a free site check"}{model ? ` · ${model.chip}` : size ? ` · ${size.label}` : ""}</span>
           </span>
           <Link href={book} className="abtn abtn--or">Book this install</Link>
         </div>
@@ -229,13 +313,25 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count }: 
   );
 }
 
-function AnswersFromUrl({ system, onAnswers }: { system: string; onAnswers: (a: Answers) => void }) {
+function AnswersFromUrl({ system, onAnswers }: { system: string; onAnswers: (a: Answers, model: string | null) => void }) {
   const params = useSearchParams();
   const key = params.toString();
   useEffect(() => {
     const ref = findSystem(system);
-    if (ref) onAnswers(answersFrom(ref.sys, (k) => params.get(k)));
+    if (ref) onAnswers(answersFrom(ref.sys, (k) => params.get(k)), params.get("model"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, system]);
   return null;
+}
+
+/** The model's own published specs, then the rows that are about the install rather than the box. */
+function modelRows(m: PModel, catLabel: string, sysLabel: string, install: string, yourSize: string | null) {
+  const rows = [{ k: "Model", v: m.code }, ...m.specs.map((x) => ({ k: x.label, v: x.value }))];
+  const has = (re: RegExp) => rows.some((r) => re.test(r.k));
+  rows.push({ k: "System", v: `${catLabel} · ${sysLabel}` });
+  if (yourSize) rows.push({ k: "Your answer", v: yourSize });
+  rows.push({ k: "Install time", v: install });
+  if (!has(/warranty/i)) rows.push({ k: "Warranty", v: "Manufacturer warranty on your quote + 6 years on our workmanship" });
+  rows.push({ k: "Compliance certificate", v: "Emailed within 24 hours of install" });
+  return rows;
 }

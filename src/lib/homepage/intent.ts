@@ -18,7 +18,7 @@ import type { Answers, Category } from "./data";
  */
 export type Intent =
   | { kind: "find"; system?: string; cat?: Category["id"]; answers?: Answers }
-  | { kind: "book"; system: string; tier: string; answers: Answers }
+  | { kind: "book"; system: string; tier: string; answers: Answers; model?: string }
   | { kind: "quote"; service: number };
 
 type Listener = (i: Intent) => boolean;

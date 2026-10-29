@@ -26,7 +26,8 @@ export function IntentFromUrl() {
       const [system, tier] = book.split(".");
       const ref = findSystem(system);
       if (ref && ref.sys.tiers.some((t) => t.slug === tier)) {
-        sendIntent({ kind: "book", system, tier, answers: answersFrom(ref.sys, get) }, "quote");
+        const model = get("model") ?? undefined;
+        sendIntent({ kind: "book", system, tier, answers: answersFrom(ref.sys, get), model }, "quote");
       }
       return;
     }

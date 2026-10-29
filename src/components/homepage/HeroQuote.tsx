@@ -20,7 +20,7 @@ import { readUtm, trackLead } from "@/lib/track";
  * email and, at most, one short "photos added" note.
  */
 
-type Booked = { sys: System; tierSlug: string; answers: Answers; pick: string };
+type Booked = { sys: System; tierSlug: string; answers: Answers; pick: string; model?: string };
 type Photo = { name: string; type: string; data: string; preview: string };
 
 const MAX_PHOTOS = 4;
@@ -81,7 +81,7 @@ export function HeroQuote() {
       const tier = ref?.sys.tiers.find((t) => t.slug === i.tier);
       if (!ref || !tier) return true;
       reset();
-      setBooked({ sys: ref.sys, tierSlug: tier.slug, answers: i.answers, pick: pickSummary(ref.sys, tier, i.answers) });
+      setBooked({ sys: ref.sys, tierSlug: tier.slug, answers: i.answers, model: i.model, pick: pickSummary(ref.sys, tier, i.answers, i.model) });
       return true;
     }
     if (i.kind === "quote") {
@@ -143,7 +143,7 @@ export function HeroQuote() {
           summary: [summary, ...Object.values(answers).filter((v) => !summary.includes(v))].join(" · "),
           details: {
             answers,
-            ...(booked ? { pick: booked.pick, findPage: `/find/${booked.sys.slug}/${booked.tierSlug}` } : { job: [fs?.t, ft?.label].filter(Boolean).join(" · ") }),
+            ...(booked ? { pick: booked.pick, findPage: `/find/${booked.sys.slug}/${booked.tierSlug}${booked.model ? `?model=${booked.model}` : ""}` } : { job: [fs?.t, ft?.label].filter(Boolean).join(" · ") }),
           },
           name: name.trim(), phone: phone.trim(), suburb: suburb.trim(), email: email.trim(),
           timing: when, propertyType: own,

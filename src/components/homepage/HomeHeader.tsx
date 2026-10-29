@@ -8,7 +8,8 @@ import { NAV, ICON, type NavGroup, type NavItem } from "@/lib/homepage/data";
 import { sendIntent } from "@/lib/homepage/intent";
 
 /**
- * The white header bar with product dropdowns. Homepage and /find pages only
+ * The header bar with product dropdowns: a slightly see-through floating bar
+ * over the hero that eases into a full-width bar as soon as the page scrolls. Homepage and /find pages only
  * for now; the rest of the site keeps components/Header.tsx until Jake has
  * signed this one off.
  *
@@ -19,7 +20,7 @@ import { sendIntent } from "@/lib/homepage/intent";
 export function AgLogo({ size = "md" }: { size?: "md" | "sm" | "ft" }) {
   return (
     <span className={`alogo${size === "md" ? "" : ` alogo--${size}`}`}>
-      <Image src="/advanced-gas-logo.webp" alt="Advanced Gas & Aircon" width={1508} height={700} priority={size !== "ft"} sizes="180px" />
+      <Image src="/advanced-gas-logo-clear.webp" alt="Advanced Gas & Aircon" width={600} height={200} priority={size !== "ft"} sizes="140px" />
     </span>
   );
 }
@@ -38,6 +39,15 @@ export function HomeHeader() {
   // After a dropdown card is clicked the pointer is still over the menu, so
   // :hover would hold it open over the section it just scrolled to.
   const [shut, setShut] = useState<string | null>(null);
+
+  // Floating bar over the hero; a full-width bar once the page moves.
+  const [solid, setSolid] = useState(false);
+  useEffect(() => {
+    const on = () => setSolid(window.scrollY > 24);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +74,7 @@ export function HomeHeader() {
   const quoteHref = onHome ? "#quote" : "/#quote";
 
   return (
-    <header className="wrap ahdr">
+    <header className={`ahdr${solid || open ? " is-solid" : ""}`}>
       <div className="hbar">
         <Link href="/" className="hbar__logo" aria-label="Advanced Gas & Aircon home" onClick={() => close()}>
           <AgLogo />

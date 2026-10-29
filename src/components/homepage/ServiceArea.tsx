@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PHOTO } from "@/lib/homepage/data";
 
 /**
@@ -37,7 +37,27 @@ function routeTo(s: AreaSuburb) {
   let cx = (x0 + x1) / 2 - (dy / len) * bend, cy = (y0 + y1) / 2 + (dx / len) * bend;
   if (cy > (y0 + y1) / 2 + 1) { cx = (x0 + x1) / 2 + (dy / len) * bend; cy = (y0 + y1) / 2 - (dx / len) * bend; }
   const f = (n: number) => n.toFixed(1);
-  return `M${f(x0)} ${f(y0)} Q${f(cx)} ${f(cy)} ${f(x1)} ${f(y1)}`;
+  return { d: `M${f(x0)} ${f(y0)} Q${f(cx)} ${f(cy)} ${f(x1)} ${f(y1)}`, x1, y1, left: x1 < x0 };
+}
+
+/**
+ * One of our vans, side on and facing right, drawn in map units with its
+ * wheels on the origin so it drives along the line rather than over it.
+ * Kept upright the whole way: rotating to follow the curve turns it upside
+ * down on any drive heading west, so it flips instead.
+ */
+function Van({ left }: { left: boolean }) {
+  return (
+    <g transform={left ? "scale(-1,1)" : undefined}>
+      <ellipse cx="2" cy="1" rx="38" ry="5" fill="rgba(2,6,26,.45)" />
+      <path d="M-38 -7 V-33 Q-38 -40 -31 -40 H15 Q21 -40 25 -35 L36 -22 Q42 -20 42 -14 V-7 Q42 -2 37 -2 H-33 Q-38 -2 -38 -7 Z" fill="#fff" stroke="#050A30" strokeWidth="2" />
+      <path d="M17 -35 L30 -21 H17 Z" fill="#0B1450" />
+      <rect x="-38" y="-20" width="55" height="6" fill="#FF7A36" />
+      <rect x="-32" y="-34" width="40" height="9" rx="2" fill="#E6F5FC" />
+      <circle cx="-22" cy="-2" r="7.5" fill="#050A30" /><circle cx="-22" cy="-2" r="3" fill="#C9D1E6" />
+      <circle cx="26" cy="-2" r="7.5" fill="#050A30" /><circle cx="26" cy="-2" r="3" fill="#C9D1E6" />
+    </g>
+  );
 }
 
 export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
@@ -46,6 +66,12 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
   const hit = useMemo(() => (query.length >= 3 ? suburbs.find((s) => s.name.toLowerCase().startsWith(query)) ?? null : null), [query, suburbs]);
   const route = hit && hit.slug !== "pakenham" ? routeTo(hit) : null;
   const hx = xPct(HQ.lng), hy = yPct(HQ.lat);
+  // An inline SVG's clock starts with the page, so begin="0s" would mean the
+  // drive was over before anyone typed. Start it when the suburb appears.
+  const drive = useRef<SVGAnimateMotionElement>(null);
+  useEffect(() => { drive.current?.beginElement(); }, [hit?.slug]);
+  // SMIL ignores prefers-reduced-motion, so the van is parked rather than driven.
+  const still = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const dots = suburbs.filter((s) => s.dot != null && s.slug !== "pakenham");
 
   return (
@@ -73,14 +99,18 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
               })}
               {route && (
                 <svg key={hit!.slug} className="aroute" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-                  <path className="aroute__glow" d={route} />
-                  <path className="aroute__line" d={route} pathLength={1} />
-                  <path className="aroute__dash" d={route} />
-                  <g className="aroute__van">
-                    <circle r="17" />
-                    <circle r="7" className="aroute__vandot" />
-                    <animateMotion dur="2.6s" begin="0.9s" repeatCount="indefinite" path={route} rotate="auto" />
-                  </g>
+                  <path className="aroute__glow" d={route.d} />
+                  <path className="aroute__line" d={route.d} pathLength={1} />
+                  <path className="aroute__dash" d={route.d} />
+                  {still ? (
+                    <g transform={`translate(${route.x1.toFixed(1)} ${route.y1.toFixed(1)})`}><Van left={route.left} /></g>
+                  ) : (
+                    <g className="aroute__van">
+                      <Van left={route.left} />
+                      {/* Drives once, easing in and out, and parks on the suburb. Chrome drops keySplines written without leading zeros, and the van then jumps straight to the end. */}
+                      <animateMotion ref={drive} dur="1.6s" begin="indefinite" fill="freeze" path={route.d} calcMode="spline" keyTimes="0;1" keyPoints="0;1" keySplines="0.45 0 0.2 1" />
+                    </g>
+                  )}
                 </svg>
               )}
               <span className="hq" style={{ left: `${hx}%`, top: `${hy}%` }}>

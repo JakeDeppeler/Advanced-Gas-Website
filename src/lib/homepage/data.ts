@@ -319,9 +319,9 @@ export const productHref = (sys: System, tier: Tier, ans: Answers) => {
   return `/find/${sys.slug}/${tier.slug}${qs ? `?${qs}` : ""}`;
 };
 
-export const bookHref = (sys: System, tier: Tier, ans: Answers) => {
+export const bookHref = (sys: System, tier: Tier, ans: Answers, model?: string) => {
   const qs = answersQuery(sys, ans);
-  return `/?book=${sys.slug}.${tier.slug}${qs ? `&${qs}` : ""}#quote`;
+  return `/?book=${sys.slug}.${tier.slug}${qs ? `&${qs}` : ""}${model ? `&model=${model}` : ""}#quote`;
 };
 
 export const findHref = (sys: System, ans: Answers) => {
@@ -330,8 +330,9 @@ export const findHref = (sys: System, ans: Answers) => {
 };
 
 /** The one-line pick the quote form carries, e.g. "Premium · Mitsubishi Electric MSZ-AP wall split · 20–30 m² · Upstairs". */
-export function pickSummary(sys: System, tier: Tier, ans: Answers) {
-  return [tier.tier, `${tier.brand} ${tier.model}`, ...answerChips(sys, ans)].join(" · ");
+export function pickSummary(sys: System, tier: Tier, ans: Answers, model?: string) {
+  const size = model ? tierModels(sys, tier).find((m) => m[1] === model)?.[2] : undefined;
+  return [tier.tier, `${tier.brand} ${tier.model}${size ? ` (${size})` : ""}`, ...answerChips(sys, ans)].join(" · ");
 }
 
 /** Question → answer, worded for whoever reads the lead. */
@@ -368,6 +369,69 @@ export function galleryFor(sys: System, tier: Tier): GalItem[] {
   }
   return out;
 }
+
+/**
+ * The real models behind each option, from lib/brands.ts, so the product
+ * page can offer sizes the way a manufacturer's page does and show each
+ * one's published specs. [brand slug, product slug, size label]. An option
+ * with no entry keeps the room-size picker: nothing here is invented, so a
+ * tier without a matching catalogue product simply doesn't get one.
+ */
+type ModelRef = [string, string, string];
+const MSZ_AP: ModelRef[] = [["mitsubishi-electric", "msz-ap25", "2.5 kW"], ["mitsubishi-electric", "msz-ap35", "3.5 kW"], ["mitsubishi-electric", "msz-ap50", "5.0 kW"], ["mitsubishi-electric", "msz-ap60", "6.0 kW"], ["mitsubishi-electric", "msz-ap71", "7.1 kW"], ["mitsubishi-electric", "msz-ap80", "8.0 kW"]];
+const KSI: ModelRef[] = [["kaden", "kaden-split-25", "2.5 kW"], ["kaden", "kaden-split-35", "3.5 kW"], ["kaden", "kaden-split-5", "5.0 kW"], ["kaden", "kaden-split-7", "7.0 kW"], ["kaden", "kaden-split-8", "8.0 kW"]];
+const PEAD: ModelRef[] = [["mitsubishi-electric", "pead-m", "10–14 kW"], ["mitsubishi-electric", "pead-large", "16–20 kW"]];
+const CF: ModelRef[] = [["thermann", "cf-16", "16 L/min"], ["thermann", "cf-20", "20 L/min"], ["thermann", "cf-26", "26 L/min"], ["thermann", "cf-32", "32 L/min"]];
+const ECO: ModelRef[] = [["reclaim", "eco-r290-200", "200 L"], ["reclaim", "eco-r290-300", "285 L"]];
+const ISTORE: ModelRef[] = [["istore", "istore-180", "180 L"], ["istore", "istore-270", "270 L"]];
+const STARPRO6: ModelRef[] = [["brivis", "brivis-internal-starpro-6", "Internal"], ["brivis", "brivis-external-starpro-6", "External"]];
+
+export const TIER_MODELS: Record<string, ModelRef[]> = {
+  "split-system.essential": KSI, "split-system.premium": MSZ_AP,
+  "reverse-cycle-split.essential": KSI, "reverse-cycle-split.premium": MSZ_AP,
+  "multi-head.essential": [["kaden", "kaden-multi-2", "2 heads"], ["kaden", "kaden-multi-4", "4 heads"], ["kaden", "kaden-multi-12", "5 heads · 12 kW"], ["kaden", "kaden-multi-18", "6 heads · 18 kW"]],
+  "multi-head.premium": [["mitsubishi-electric", "mxz-2f", "2 heads"], ["mitsubishi-electric", "mxz-3f", "3 heads"], ["mitsubishi-electric", "mxz-4f", "4 heads"], ["mitsubishi-electric", "mxz-5f", "5 heads"], ["mitsubishi-electric", "mxz-6c", "6 heads"]],
+  "multi-head.signature": [["mitsubishi-electric", "mfz-kw", "Floor console"]],
+  "ducted.essential": [["kaden", "kaden-ducted-10", "10 kW"], ["kaden", "kaden-ducted-12", "12.5 kW"], ["kaden", "kaden-ducted-14", "14 kW"], ["kaden", "kaden-ducted-17", "17 kW"]],
+  "ducted.premium": PEAD, "ducted.signature": PEAD,
+  "evaporative.essential": [["kaden", "kaden-evaporative-classic", "Classic"]],
+  "evaporative.premium": [["kaden", "kaden-evaporative-low", "Low-profile"]],
+  "evaporative.signature": [["brivis", "brivis-evap-advance", "Advance"]],
+  "heat-pump.essential": ISTORE, "heat-pump.premium": ECO,
+  "heat-pump.signature": [["reclaim", "co2-split-160-glass", "160 L"], ["reclaim", "co2-split-250-glass", "250 L"], ["reclaim", "co2-split-315-glass", "315 L"], ["reclaim", "co2-split-400-glass", "400 L"]],
+  "gas-continuous-flow.essential": CF, "gas-continuous-flow.premium": [CF[2], CF[3]], "gas-continuous-flow.signature": ECO,
+  "gas-storage.essential": [["thermann", "gas-storage-135", "135 L"], ["thermann", "gas-storage-170", "170 L"]],
+  "gas-storage.premium": CF, "gas-storage.signature": ISTORE,
+  "gas-ducted-heating.essential": [["brivis", "brivis-internal-wombat-3", "Internal"]],
+  "gas-ducted-heating.premium": STARPRO6, "gas-ducted-heating.signature": STARPRO6,
+  "zoning.premium": [["zonemate", "zonemate-touch", "Touch + Wi-Fi"]],
+};
+
+export const tierModels = (sys: System, tier: Tier) => TIER_MODELS[`${sys.slug}.${tier.slug}`] ?? [];
+
+/**
+ * The model that best fits the size they picked in the finder: nearest by
+ * number when the units agree (kW to kW, litres to litres), else the first.
+ */
+export function modelForAnswer(models: { chip: string }[], answerSpec: string | undefined): number {
+  const num = (t: string) => {
+    const m = t.match(/([\d.]+)\s*(kW|L\/min|L|heads?)/);
+    return m ? { n: parseFloat(m[1]), u: m[2].replace(/s$/, "") } : null;
+  };
+  const want = answerSpec ? num(answerSpec) : null;
+  if (!want) return 0;
+  let best = 0, gap = Infinity;
+  models.forEach((m, i) => {
+    const got = num(m.chip);
+    if (got && got.u === want.u && Math.abs(got.n - want.n) < gap) { gap = Math.abs(got.n - want.n); best = i; }
+  });
+  return best;
+}
+
+export const BRAND_SLUGS: Record<string, string> = {
+  "Mitsubishi Electric": "mitsubishi-electric", Kaden: "kaden", Brivis: "brivis", Reclaim: "reclaim",
+  Thermann: "thermann", iStore: "istore", Zonemate: "zonemate",
+};
 
 export const BRAND_PAGES: Record<string, string> = {
   "Mitsubishi Electric": "/brands/mitsubishi-electric",
