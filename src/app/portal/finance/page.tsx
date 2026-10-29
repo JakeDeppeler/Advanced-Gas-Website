@@ -9,7 +9,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { jobProfits } from "@/lib/dashboard/jobProfit";
 import { hourJobCosts } from "@/lib/portal/cover/load";
 import { journalHealth } from "@/lib/journals/read";
-import { standing, yearSpans } from "@/lib/portal/yearGoal";
+import { revenueGoalFor, standing, yearSpans } from "@/lib/portal/yearGoal";
 import { ago } from "@/components/portal/Figs";
 import { getGoals } from "@/lib/portal/goals";
 import { savedGoal } from "@/lib/portal/office";
@@ -20,9 +20,10 @@ import { BENCH } from "@/lib/portal/benchmarks";
 import { PERIODS, periodItems, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
 import { Bad, Card, Grid, Head, Lh, PeriodTabs, Say, Sum, Tile, none, status, type Status } from "@/components/portal/kit/Kit";
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
+import { MonthBars, MonthTrack, OwedByAge } from "@/components/portal/finance/Charts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Profit & finance · Team portal" };
+export const metadata = { title: "Finance overview · Team portal" };
 
 const INFO: [string, string][] = [
   ["Net profit", "What’s left after every bill, wage and cost is paid, what the business actually made."],
@@ -32,9 +33,10 @@ const INFO: [string, string][] = [
 ];
 
 /**
- * Profit & finance › Overview: the four figures that say whether the business
- * is healthy, then every page of the section summed up in one card each — the
- * whole tab at a glance, rather than a piece of each page laid out at length.
+ * Finance › Overview: the month against its goal and the year month by month
+ * as pictures first, with what's owed by how late it is; then the four
+ * figures that say whether the business is healthy, and every page of the
+ * area summed up in one card each.
  */
 export default async function FinancePage({ searchParams }: { searchParams: { p?: string } }) {
   const user = await getPortalUser();
@@ -49,7 +51,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { p?
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Summary" sub={`${periodWords(period).replace(/^./, (c) => c.toUpperCase())} · from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={INFO} />
+        <Head title="Overview" sub={`${periodWords(period).replace(/^./, (c) => c.toUpperCase())} · from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={INFO} />
         {xs === "connected" && tabs}
 
         {xs === "not-configured" && (
@@ -163,14 +165,46 @@ async function Connected({ period }: { period: PeriodKey }) {
 
   const jSt: Status = !journals ? none("Not read yet") : journals.errors > 0 ? { k: "bad", w: "Didn’t sync" } : journals.waiting > 0 ? { k: "mid", w: "Waiting" } : { k: "good", w: "All in Xero" };
 
+  // The month in progress, from the same year as the Year goal page: what's
+  // invoiced so far against the month's goal, and the goal pro-rated to today.
+  const nowIdx = ys ? ys.months.findIndex((m) => m.started && !m.complete) : -1;
+  const thisMonth = ys && nowIdx >= 0 ? ys.months[nowIdx] : null;
+  const monthEnd = new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 0)).toISOString().slice(0, 10);
+  const daysLeft = Math.round((Date.parse(monthEnd) - Date.parse(today)) / 86_400_000);
+  const monthName = new Date(`${today}T12:00:00Z`).toLocaleDateString("en-AU", { month: "long", timeZone: "UTC" });
+
   const before$ = spans.before.label;
 
   return (
     <>
       <Say>
         {words.replace(/^./, (c) => c.toUpperCase())} made <b>{money(s.net)} profit</b>, {pc(npPct, 1)} of sales.{" "}
-        {npGoal == null ? "There’s no profit goal yet, set one in Pricing & costs." : gap == null ? "That’s on goal." : <>The goal is {npGoal}%, <Bad>{gap}</Bad>.</>}
+        {npGoal == null ? "There’s no profit goal yet, set one in Settings › Goals." : gap == null ? "That’s on goal." : <>The goal is {npGoal}%, <Bad>{gap}</Bad>.</>}
       </Say>
+      {yearRaw && thisMonth && thisMonth.income != null && (
+        <MonthTrack label={monthName} income={thisMonth.income} goal={thisMonth.goal} byNow={revenueGoalFor(yearRaw.g, monthFrom, today)} daysLeft={daysLeft} />
+      )}
+      <div className="fo-two">
+        {ys?.hasActuals ? (
+          <Card title="Invoiced each month" aside={`${ys.label} · each month against its own goal`}>
+            <MonthBars months={ys.months} now={nowIdx} />
+            <div className="fo-leg">
+              <span><i className="met" />Made its goal</span>
+              <span><i className="under" />Short of it</span>
+              <span><i className="now" />This month so far</span>
+              <span><i className="gl" />The month&rsquo;s goal</span>
+            </div>
+          </Card>
+        ) : (
+          <Card title="Invoiced each month">
+            <p className="pk-note">{yearRaw ? "Xero didn’t answer for the months of the year." : "Set the year goal in Settings › Goals to see each month against it."}</p>
+          </Card>
+        )}
+        <Card title="Owed to us" aside={owed != null ? `${money(owed)} in all` : undefined}>
+          {owedList ? <OwedByAge list={owedList} /> : <p className="pk-note">Neither Xero nor ServiceTitan could be read for what&rsquo;s owed.</p>}
+        </Card>
+      </div>
+
       <Grid cols={4}>
         <Tile label="Net profit" st={npSt} fig={money(s.net)} frac={npGoal ? npPct / npGoal : null} sub={`${pc(npPct, 1)} of sales${npGoal ? ` · goal ${npGoal}%` : ""}`} href="/portal/finance/pl" />
         <Tile label="Gross margin" st={gmSt} fig={pc(gmPct, 1)} frac={goals.gm ? gmPct / goals.gm : null} sub={goals.gm != null ? `goal ${goals.gm}% or more` : "no goal yet"} href="/portal/finance/pl" />
@@ -207,7 +241,7 @@ async function Connected({ period }: { period: PeriodKey }) {
           [npGoal ? `Under ${npGoal}%` : "Under the goal", jp && npGoal ? String(jp.under) : ""],
           ["Losing money", jp ? String(jp.losing) : ""],
         ]} />
-        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : ""} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Pricing & costs"} href="/portal/pace?view=year" lines={[
+        <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : ""} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Settings › Goals"} href="/portal/pace?view=year" lines={[
           ["Should be by now", ys ? money(ys.expectedToDate) : ""],
           ["Against the pace", ys?.delta != null ? <Diff d={ys.delta} /> : ""],
         ]} />

@@ -880,13 +880,6 @@ export type UnbookedSale = {
 };
 
 /**
- * Sold, not booked in yet. Some suppliers take weeks, so their gear is worth
- * ordering the day it sells rather than the week of the install: each sale's
- * gear is split by supplier, each with a button that puts it on that
- * supplier's draft. Nothing goes until that order is sent, and once the
- * install is booked its gear isn't drafted a second time.
- */
-/**
  * A search and a row of chips over a list in the side column. The chips are
  * one choice at a time; the first is always everything.
  */
@@ -903,7 +896,7 @@ function SideFilter({ q, setQ, find, chips, on, setOn, label }: {
       {chips.length > 2 && (
         <div className="qp-people" role="group" aria-label={label}>
           {/* An empty chip only ever shows nothing; "(Seeley International)" and the like only make a chip wrap. */}
-          {chips.filter((c) => c.key === "all" || c.n > 0).map((c) => ({ ...c, label: c.label.replace(/\s*\(.*\)\s*$/, "") || c.label })).map((c) => (
+          {chips.filter((c) => c.key === "all" || c.n > 0).map((c) => ({ ...c, label: shortName(c.label) })).map((c) => (
             <button key={c.key} type="button" className={`qp-chip${on === c.key ? " on" : ""}`} aria-pressed={on === c.key} onClick={() => setOn(c.key)}>
               {c.label} · {c.n}
             </button>
@@ -915,69 +908,6 @@ function SideFilter({ q, setQ, find, chips, on, setOn, label }: {
 }
 
 const has = (needle: string, ...xs: (string | null | undefined)[]) => !needle || xs.some((x) => x?.toLowerCase().includes(needle));
-
-/**
- * Sold, not booked in yet. Some suppliers take weeks, so their gear is worth
- * ordering the day it sells rather than the week of the install: each sale's
- * gear is split by supplier, each with a button that puts it on that
- * supplier's draft. Nothing goes until that order is sent, and once the
- * install is booked its gear isn't drafted a second time. Narrowed by
- * supplier (only that supplier's gear shows), by what's still to order, or
- * by a name, a suburb or an item.
- */
-function Unbooked({ sales }: { sales: UnbookedSale[] }) {
-  const { busy, msg, run } = useAct();
-  const [q, setQ] = useState("");
-  const [on, setOn] = useState("all");
-  if (!sales.length) return null;
-  const open = (g: UnbookedSale["groups"][number]) => !g.ordered && !g.drafted;
-  const sups = new Map<string, { label: string; n: number }>();
-  for (const x of sales) for (const g of x.groups) sups.set(g.supplierId, { label: g.supplier, n: (sups.get(g.supplierId)?.n ?? 0) + 1 });
-  const chips = [
-    { key: "all", label: "All", n: sales.length },
-    { key: "open", label: "Not ordered", n: sales.filter((x) => x.groups.some(open)).length },
-    ...[...sups.entries()].sort((a, b) => b[1].n - a[1].n).map(([key, v]) => ({ key, ...v })),
-  ];
-  const needle = q.trim().toLowerCase();
-  const shown = sales
-    .map((x) => ({ ...x, groups: x.groups.filter((g) => on === "all" || (on === "open" ? open(g) : g.supplierId === on)) }))
-    .filter((x) => (on === "all" || x.groups.length) && has(needle, x.customer, x.suburb, x.what, x.quoteJob, ...x.groups.flatMap((g) => [g.supplier, ...g.items.map((i) => i.name)])));
-  return (
-    <section className="pt-panel nw-ahead" id="ahead" aria-label="Order ahead: sold, not booked in yet">
-      <h2 className="pt-panel__h">Order ahead</h2>
-      <p className="pt-panel__sub">
-        Sold, not booked in yet. Order the long-wait gear now if you like: it goes on that supplier&rsquo;s order, on the list to send
-        when you&rsquo;re ready. Once the install is booked, it isn&rsquo;t ordered again.
-      </p>
-      <SideFilter q={q} setQ={setQ} find="Find a customer, suburb or item" chips={chips} on={on} setOn={setOn} label="Show" />
-      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
-      {!shown.length && <p className="nw-none">Nothing matches that.</p>}
-      <div className="nw-ahead__list">
-        {shown.map((x) => (
-          <div key={x.estimateId} className="nw-ahead__sale">
-            <div className="nw-ahead__h">
-              <b>{x.customer ?? "A customer"}{x.suburb ? <span> · {x.suburb}</span> : null}</b>
-              <span className="pt-nw__muted">{[x.what, x.soldOn ? `sold ${dayLabel(x.soldOn)}` : null, x.total != null ? money(x.total) : null, x.quoteJob ? `quoted on job ${x.quoteJob}` : null].filter(Boolean).join(" · ")}</span>
-            </div>
-            {x.groups.map((g) => (
-              <div key={g.supplierId} className="nw-ahead__g">
-                <span className="nw-ahead__gt">
-                  <b>{g.supplier}</b>
-                  <span>{g.items.map((i) => `${qty(i.qty)} × ${i.name}`).join(", ")}</span>
-                </span>
-                <span className="nw-ahead__cost">{money(g.cost)}</span>
-                {g.ordered ? <span className="pt-vstat pt-vstat--ok">On order {g.ordered}</span>
-                  : g.drafted ? <span className="pt-vstat pt-vstat--warn">On {g.drafted}, not sent yet</span>
-                  : <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy} onClick={() => run(() => orderAheadNow({ estimateId: x.estimateId, supplierId: g.supplierId }))}>Order ahead</button>}
-              </div>
-            ))}
-            {x.issues.length > 0 && <p className="pt-nw__flag" style={{ margin: "6px 0 0" }}>{x.issues.join(" · ")}</p>}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 /* ------------------------------------------------------------- the checklist */
 
@@ -1001,52 +931,54 @@ function dueOf(po: PoWithLines, today: string, weekEnd: string): { when: When; d
   return { when: date <= today ? "today" : date <= weekEnd ? "week" : "next", date };
 }
 
-const verb = (s: Supplier | undefined) => (s?.method === "reece_cart" ? "Put the Reece order into maX" : `Send the ${s?.name ?? "supplier"} order`);
+/** Inside this many days, an order not sent yet is flagged: the gear has to land before the crew does. */
+const ALERT_DAYS = 4;
 
-/** The line itself, said as the thing to do. */
-function taskTitle(po: PoWithLines, s: Supplier | undefined): string {
-  if (po.kind === "work_order") {
-    const d = po.details;
-    return `Send ${s?.name ?? "the contractor"} the work order${d?.site_address ? ` for ${d.site_address.split(",")[0]}` : ""}`;
-  }
-  const jobs = [...new Map(po.lines.filter((l) => l.job_id != null).map((l) => [l.job_id, l])).values()];
-  const sales = [...new Map(po.lines.filter(isAhead).map((l) => [l.estimate_id, l])).values()];
-  if (jobs.length === 1) return `${verb(s)} for ${jobs[0].customer_name ?? `job ${jobs[0].job_number}`}`;
-  if (jobs.length > 1) return `${verb(s)} for ${jobs.length} jobs`;
-  if (sales.length) return `${verb(s)}, ordered ahead for ${sales.map((x) => x.customer_name ?? "a sale").join(" and ")}`;
-  return `${verb(s)} of factory stock`;
+const melDay = (instant: string) => new Date(instant).toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+const daysTo = (day: string, today: string) => Math.round((Date.parse(`${day}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
+const shortName = (name: string) => name.replace(/\s*\(.*\)\s*$/, "") || name;
+
+/** The day an order is for: its first install, or a work order's visit. */
+function dayOf(po: PoWithLines): string | null {
+  if (po.kind === "work_order") return po.details?.date ?? null;
+  const f = firstInstall(po);
+  return f ? (f.appointment_start ? melDay(f.appointment_start) : f.install_date) : null;
 }
 
+const inWords = (n: number, what: string) =>
+  n === 0 ? `${what} today` : n === 1 ? `${what} tomorrow` : n > 1 ? `${what} in ${n} days` : `${what} was ${-n} ${n === -1 ? "day" : "days"} ago`;
+
+/** Who and what an order is for, under the supplier's name. */
 function taskSub(po: PoWithLines): string {
   if (po.kind === "work_order") {
     const d = po.details;
-    return [d?.start_at ? dayTimeLabel(d.start_at) : d?.date ? dayLabel(d.date) : null, ...(d?.jobs ?? []).map((j) => `job ${j.job_number}`), d?.trade ?? null].filter(Boolean).join(" · ");
+    return [d?.site_address?.split(",")[0], ...(d?.jobs ?? []).map((j) => `job ${j.job_number}`), d?.trade ?? null].filter(Boolean).join(" · ");
   }
-  const jobs = [...new Set(po.lines.filter((l) => l.job_id != null).map((l) => l.job_number))];
-  const ahead = new Set(po.lines.filter(isAhead).map((l) => l.estimate_id)).size;
-  const first = firstInstall(po);
+  const jobs = [...new Map(po.lines.filter((l) => l.job_id != null).map((l) => [l.job_id, l])).values()];
+  const sales = [...new Map(po.lines.filter(isAhead).map((l) => [l.estimate_id, l])).values()];
+  const stock = po.lines.some(isStock);
   return [
-    jobs.length === 1 ? `Job ${jobs[0]}` : jobs.length ? `Jobs ${jobs.join(", ")}` : null,
-    // The title names the jobs; gear ordered ahead on the same order is said here.
-    jobs.length && ahead ? `and ${ahead} ordered ahead` : null,
-    first ? `install ${installWhen(first)}` : null,
+    jobs.length === 1 ? `${jobs[0].customer_name ?? "A customer"} · job ${jobs[0].job_number}` : jobs.length ? `${jobs.length} jobs: ${jobs.map((j) => j.job_number).join(", ")}` : null,
+    sales.length ? `ordered ahead for ${sales.map((x) => x.customer_name ?? "a sale").join(" and ")}` : null,
+    stock ? (jobs.length || sales.length ? "and factory stock" : "factory stock") : null,
     `${po.lines.length} ${po.lines.length === 1 ? "item" : "items"}`,
-    money(linesTotal(po.lines)),
     po.pickup ? "we pick it up" : po.delivery_to_site ? "to the site" : null,
   ].filter(Boolean).join(" · ");
 }
 
-/** When it's needed, in words, with the colour saying the same thing. */
-function DueTag({ po, due }: { po: PoWithLines; due: { when: When; date: string | null } }) {
+/**
+ * How many days until the install (or the visit), said in words and flagged
+ * with an alert inside ALERT_DAYS; nothing dated says why there's no day.
+ */
+function DaysTag({ po, today }: { po: PoWithLines; today: string }) {
   if (po.send_error) return <span className="pt-vstat pt-vstat--bad">Didn&rsquo;t send</span>;
-  if (po.kind === "work_order") {
-    const d = po.details?.date;
-    return d ? <span className={`pt-vstat ${due.when === "today" ? "pt-vstat--bad" : "pt-vstat--none"}`}>Visit {dayLabel(d)}</span> : null;
-  }
-  if (due.when === "none") return <span className="pt-vstat pt-vstat--none">No date</span>;
-  if (due.when === "today") return <span className="pt-vstat pt-vstat--bad">Needed ASAP</span>;
-  return <span className={`pt-vstat ${due.when === "week" ? "pt-vstat--warn" : "pt-vstat--none"}`}>Needed by {dayLabel(due.date!)}</span>;
+  const d = dayOf(po);
+  if (!d) return <span className="pt-vstat pt-vstat--none">{po.lines.some(isAhead) ? "Not booked yet" : "No install date"}</span>;
+  const n = daysTo(d, today);
+  const what = po.kind === "work_order" ? "Visit" : "Install";
+  return <span className={`pt-vstat ${n <= ALERT_DAYS ? "pt-vstat--bad" : n <= 7 ? "pt-vstat--warn" : "pt-vstat--none"}`}>{n <= ALERT_DAYS ? "⚠ " : ""}{inWords(n, what)}</span>;
 }
+const isAlert = (po: PoWithLines, today: string) => { const d = dayOf(po); return !!po.send_error || (d != null && daysTo(d, today) <= ALERT_DAYS); };
 
 function GroupHead({ name, n, note }: { name: string; n: number; note?: string }) {
   return (
@@ -1058,20 +990,74 @@ function GroupHead({ name, n, note }: { name: string; n: number; note?: string }
 }
 
 /**
- * One order on the list: the line says what to do and by when; it opens to
- * the order itself, every line, delivery and the button that sends it.
+ * One line on the list: who it's from, what it's for, how much, and how many
+ * days until the install; it drops down to what's in it, every line,
+ * delivery and the button that sends it.
  */
-function Task({ title, sub, tag, open, children }: { title: string; sub: string; tag: ReactNode; open: boolean; children: ReactNode }) {
+function Task({ title, sub, tag, amount, alert, open = false, children }: { title: string; sub: string; tag: ReactNode; amount?: string; alert?: boolean; open?: boolean; children: ReactNode }) {
   return (
-    <details className="nw-task" open={open || undefined}>
+    <details className={`nw-task${alert ? " is-alert" : ""}`} open={open || undefined}>
       <summary>
-        <span className="nw-task__dot" aria-hidden="true" />
+        <span className={`nw-task__dot${alert ? " is-alert" : ""}`} aria-hidden="true">{alert ? "!" : ""}</span>
         <span className="nw-task__t"><b>{title}</b><span>{sub}</span></span>
+        {amount && <b className="nw-task__amt">{amount}</b>}
         {tag}
-        <span className="nw-task__chev" aria-hidden="true">›</span>
+        <span className="nw-task__chev" aria-hidden="true">⌄</span>
       </summary>
       <div className="nw-task__body">{children}</div>
     </details>
+  );
+}
+
+/**
+ * Sold, not booked in yet, a line per supplier: Mitsubishi, and every sold
+ * job with gear from them, dropping down to each sale's gear with the button
+ * that puts it on that supplier's order. Some suppliers take weeks, so their
+ * gear is worth ordering the day it sells rather than the week of the
+ * install; once the install is booked, it isn't ordered again.
+ */
+function AheadRows({ sales }: { sales: UnbookedSale[] }) {
+  const { busy, msg, run } = useAct();
+  if (!sales.length) return null;
+  type Item = { sale: UnbookedSale; g: UnbookedSale["groups"][number] };
+  const bySup = new Map<string, { name: string; items: Item[] }>();
+  for (const sale of sales) for (const g of sale.groups) {
+    const r = bySup.get(g.supplierId) ?? { name: shortName(g.supplier), items: [] };
+    r.items.push({ sale, g });
+    bySup.set(g.supplierId, r);
+  }
+  const open = (i: Item) => !i.g.ordered && !i.g.drafted;
+  const rows = [...bySup.entries()].map(([id, r]) => ({ id, ...r, left: r.items.filter(open).length, cost: r.items.reduce((t, i) => t + i.g.cost, 0) }))
+    .sort((a, b) => b.left - a.left || b.cost - a.cost);
+  const unrouted = sales.filter((x) => x.issues.length);
+  return (
+    <div className="nw-grp" id="ahead">
+      <GroupHead name="Order ahead · not booked yet" n={sales.length} note={`${sales.length} sold, install not booked`} />
+      {rows.map((r) => (
+        <Task key={r.id} title={r.name} amount={money(r.cost)}
+          sub={`${r.items.length} sold ${r.items.length === 1 ? "job" : "jobs"}: ${r.items.map((i) => i.sale.customer ?? "a customer").join(", ")}`}
+          tag={r.left ? <span className="pt-vstat pt-vstat--none">Not booked yet</span> : <span className="pt-vstat pt-vstat--ok">All on order</span>}>
+          <ul className="nw-ahead2">
+            {r.items.map(({ sale, g }) => (
+              <li key={sale.estimateId}>
+                <span className="nw-ahead2__t">
+                  <b>{sale.customer ?? "A customer"}{sale.suburb ? ` · ${sale.suburb}` : ""}</b>
+                  <span>{[sale.what, sale.soldOn ? `sold ${dayLabel(sale.soldOn)}` : null, sale.quoteJob ? `quoted on job ${sale.quoteJob}` : null].filter(Boolean).join(" · ")}</span>
+                  <span>{g.items.map((i) => `${qty(i.qty)} × ${i.name}`).join(", ")}</span>
+                </span>
+                <b className="nw-task__amt">{money(g.cost)}</b>
+                {g.ordered ? <span className="pt-vstat pt-vstat--ok">On order {g.ordered}</span>
+                  : g.drafted ? <span className="pt-vstat pt-vstat--warn">On {g.drafted}, not sent yet</span>
+                  : <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => orderAheadNow({ estimateId: sale.estimateId, supplierId: g.supplierId }))}>Order ahead</button>}
+              </li>
+            ))}
+          </ul>
+          <p className="pt-nw__muted">It goes on {r.name}&rsquo;s order on this list, to send when you&rsquo;re ready. Once the install is booked, it isn&rsquo;t ordered again.</p>
+        </Task>
+      ))}
+      {unrouted.length > 0 && <p className="nw-gnote">{unrouted.map((x) => `${x.customer ?? "A sale"}: ${x.issues.join(", ")}`).join(" · ")}</p>}
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
   );
 }
 
@@ -1239,7 +1225,6 @@ export function NextWeekOrders(props: {
     { key: "none", name: "When you’re ready", pos: [] },
   ];
   for (const po of shown) groups.find((g) => g.key === due.get(po.id)!.when)!.pos.push(po);
-  const firstId = groups.find((g) => g.pos.length)?.pos[0]?.id;
 
   const card = (po: PoWithLines) => po.kind === "work_order"
     ? <WorkOrderCard po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} />
@@ -1278,12 +1263,15 @@ export function NextWeekOrders(props: {
             <div key={g.key} className="nw-grp">
               <GroupHead name={g.name} n={g.pos.length} />
               {g.pos.map((po) => (
-                <Task key={po.id} title={taskTitle(po, byId.get(po.supplier_id))} sub={taskSub(po)} tag={<DueTag po={po} due={due.get(po.id)!} />} open={po.id === firstId}>
+                <Task key={po.id} title={shortName(byId.get(po.supplier_id)?.name ?? po.supplier_id)} sub={taskSub(po)} amount={po.kind === "order" ? money(linesTotal(po.lines)) : undefined}
+                  tag={<DaysTag po={po} today={today} />} alert={isAlert(po, today)}>
                   {card(po)}
                 </Task>
               ))}
             </div>
           ))}
+
+          <AheadRows sales={props.unbooked ?? []} />
 
           {problems.length > 0 && (
             <div className="nw-grp">
@@ -1302,8 +1290,7 @@ export function NextWeekOrders(props: {
           {cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
         </section>
 
-        <aside className="nw-side" aria-label="Order ahead, and what's gone">
-          <Unbooked sales={props.unbooked ?? []} />
+        <aside className="nw-side" aria-label="What's gone">
           <SentList gone={gone} byId={byId} />
         </aside>
       </div>

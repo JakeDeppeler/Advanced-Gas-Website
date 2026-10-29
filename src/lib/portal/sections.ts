@@ -165,12 +165,18 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "fin", label: "Finance", icon: "pf", group: 3, blurb: "What to invoice and chase, cash, profit, the goals and what we charge",
+    id: "fin", label: "Finance", icon: "pf", group: 3, blurb: "Where the money stands, what to invoice and chase, cash, profit, the goals and what we charge",
+    // Six shortcuts, down from ten: the overview, then a family for each
+    // question (getting paid, cash, profit, pace, and planning what we charge
+    // and spend), each family's own pages a second row on the page.
     pages: [
-      { label: "Accounts", href: "/portal/accounts", icon: "book" },
-      { label: "Owed to us", href: "/portal/money", icon: "clock" },
-      { label: "Not billed", href: "/portal/jobs?tab=notbilled", gate: "/portal/jobs", icon: "quote" },
-      { label: "Stuck money", href: "/portal/stuck", icon: "bell" },
+      { label: "Overview", href: "/portal/finance", icon: "run" },
+      { label: "Get paid", icon: "clock", group: [
+        { label: "Accounts", href: "/portal/accounts" },
+        { label: "Owed to us", href: "/portal/money" },
+        { label: "Not billed", href: "/portal/jobs?tab=notbilled", gate: "/portal/jobs" },
+        { label: "Stuck money", href: "/portal/stuck" },
+      ] },
       { label: "Cash", icon: "pf", group: [
         { label: "Cash flow", href: "/portal/finance/cash" },
         { label: "Cash to operate", href: "/portal/finance/cash?tab=operate", gate: "/portal/finance/cash" },
@@ -179,40 +185,35 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Journals to Xero", href: "/portal/journals" },
       ] },
       { label: "Profit & sales", icon: "grow", group: [
-        { label: "Summary", href: "/portal/finance" },
         { label: "Profit & loss", href: "/portal/finance/pl" },
         { label: "Job profit", href: "/portal/jobs?tab=profit", gate: "/portal/jobs" },
         { label: "Sales", href: "/portal/sales" },
         { label: "Job types", href: "/portal/sales?tab=types", gate: "/portal/sales" },
       ] },
-      // Pace took in This month (its Month) and Year so far (its Year).
-      { label: "Goals & pace", icon: "run", group: [
-        { label: "Pace", href: "/portal/pace" },
-        { label: "Pace, month", href: "/portal/pace?view=month", gate: "/portal/pace" },
-        { label: "Pace, year", href: "/portal/pace?view=year", gate: "/portal/pace" },
+      // Pace's week, month and year are one layout; setting the goals is in Settings.
+      { label: "Goals & pace", icon: "numbers", group: [
+        { label: "This week", href: "/portal/pace" },
+        { label: "This month", href: "/portal/pace?view=month", gate: "/portal/pace" },
+        { label: "This year", href: "/portal/pace?view=year", gate: "/portal/pace" },
         { label: "KPIs", href: "/portal/kpis" },
         { label: "Year goal", href: "/portal/goal" },
-        { label: "Set the goals", href: "/portal/numbers" },
       ] },
-      // Materials markup is gone from here: it's set on each item in
-      // ServiceTitan, so a second copy here only drifted from it.
-      { label: "Pricing", icon: "tag", group: [
+      // What we charge, what it costs us, and what if: set up now and then,
+      // so one shortcut rather than three. Materials markup isn't here: it's
+      // set on each item in ServiceTitan, and a second copy only drifted.
+      { label: "Planning", icon: "tag", group: [
         { label: "Hourly rate", href: "/portal/rates" },
         { label: "On site & commercial", href: "/portal/rates/onsite" },
-        { label: "Our hourly rate", href: "/portal/finance/hourly" },
+        { label: "How the rate's built", href: "/portal/finance/hourly" },
         { label: "What an hour must cover", href: "/portal/finance/cover" },
         { label: "Our prices", href: "/portal/pricing" },
         { label: "Commission", href: "/portal/commission" },
-      ] },
-      { label: "Costs", icon: "quote", group: [
         { label: "Running costs", href: "/portal/finance/running" },
         { label: "Overheads", href: "/portal/finance/capacity" },
         { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
-      ] },
-      { label: "What if", icon: "bolt", group: [
-        { label: "Vans", href: "/portal/finance/planning" },
-        { label: "Hire someone", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
-        { label: "Pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
+        { label: "What if: vans", href: "/portal/finance/planning" },
+        { label: "What if: hire", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
+        { label: "What if: pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
       ] },
     ],
   },
@@ -264,6 +265,8 @@ export const SECTION_DEFS: SectionDef[] = [
       // you can only reach from a banner on a television is not a page.
       { label: "Email", href: "/portal/email", icon: "send" },
       { label: "Admin", href: "/portal/admin", icon: "cog" },
+      // The numbers every page measures against, set now and then: from Finance.
+      { label: "Goals", href: "/portal/numbers", icon: "numbers" },
       // How ordering is set up: who we buy from and what we keep on the shelf.
       { label: "Ordering", icon: "box", group: [
         { label: "Suppliers", href: "/portal/supply" },
