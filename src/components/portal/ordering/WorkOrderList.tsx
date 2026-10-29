@@ -26,38 +26,84 @@ function onTheJob(w: WorkOrderRow): string {
   return all ? "Noted on the job with the work order attached" : "Not on the job in ServiceTitan yet";
 }
 
+const todayIso = () => new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+
+/** Who a work order went to, in a word: the electrician on file, or the contractor and their trade. */
+const whoFor = (w: WorkOrderRow, sparky: Sparky | null) => isSparky(w) ? sparky?.name ?? "Electrician" : w.details?.to_name || w.details?.trade || "Contractor";
+
 /**
- * Work orders, each one a row that opens what it was: where it went, who it
- * was emailed to and copied to, what the work was, the job, and how it stands
- * in ServiceTitan. From there it can be edited — the job number when it went
- * against the quote's job rather than the install's, the details, who it's
- * for — and a draft sent, or a sent one emailed again with the changes.
+ * Work orders as a list to work through: the ones not sent yet first, then
+ * the visits coming up, then the ones done, each narrowed by contractor or a
+ * search. Each row opens what it was: where it went, who it was emailed and
+ * copied to, the work, the job, and how it stands in ServiceTitan. From there
+ * it can be edited — the job number when it went against the quote's job
+ * rather than the install's, the details, who it's for — and a draft sent, or
+ * a sent one emailed again with the changes.
  */
 export function WorkOrderList({ list, sparky, contacts }: { list: WorkOrderRow[]; sparky: Sparky | null; contacts: WoContact[] }) {
   // By id, so the pop-up shows the row as it reads after a save refreshes the list.
   const [openId, setOpen] = useState<number | null>(null);
+  const [q, setQ] = useState("");
+  const [on, setOn] = useState("all");
   const open = list.find((w) => w.id === openId) ?? null;
+  const today = todayIso();
+  const people = new Map<string, number>();
+  for (const w of list) people.set(whoFor(w, sparky), (people.get(whoFor(w, sparky)) ?? 0) + 1);
+  const needle = q.trim().toLowerCase();
+  const shown = list.filter((w) => (on === "all" || whoFor(w, sparky) === on) && (!needle || [
+    w.po_number, w.details?.site_address, w.details?.customer_name, w.details?.trade, w.details?.to_name, w.sent_to,
+    ...(w.details?.jobs ?? []).flatMap((j) => [j.job_number, j.customer_name, j.work]),
+  ].some((x) => x?.toLowerCase().includes(needle))));
+  const dateOf = (w: WorkOrderRow) => w.details?.start_at ?? w.details?.date ?? "";
+  const groups = [
+    { name: "Not sent", note: "drafts, and any that didn't go", rows: shown.filter((w) => w.status !== "sent") },
+    { name: "Coming up", note: "sent, visit still to come", rows: shown.filter((w) => w.status === "sent" && (w.details?.date ?? "") >= today).sort((a, b) => dateOf(a).localeCompare(dateOf(b))) },
+    { name: "Done", note: "the visit's been", rows: shown.filter((w) => w.status === "sent" && (w.details?.date ?? "") < today).sort((a, b) => dateOf(b).localeCompare(dateOf(a))) },
+  ];
   return (
     <>
-      <ul className="wo-list">
-        {list.map((w) => {
-          const d = w.details;
-          const jobs = (d?.jobs ?? []).map((j) => j.job_number).filter(Boolean).join(" & ");
-          const when = d ? (d.start_at ? `${day(d.start_at)} ${time(d.start_at)}` : day(d.date)) : "";
-          const state = w.status === "sent" ? `Sent ${w.sent_at ? day(w.sent_at) : ""}` : w.send_error ? "Didn't send" : "Draft";
-          return (
-            <li key={w.id}>
-              <button type="button" className="wo-row" onClick={() => setOpen(w.id)}>
-                <span className="wo-row-t">
-                  <b>Job {jobs || "?"}, {when}</b>
-                  <span>{[d?.site_address, isSparky(w) ? "Electrical" : d?.trade, d?.jobs.map((j) => j.work).filter(Boolean).join("; ")].filter(Boolean).join(" · ")}</span>
-                </span>
-                <span className={`wo-state${w.status === "sent" ? " sent" : w.send_error ? " bad" : ""}`}>{state}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="wo-filt">
+        <label className="qp-find">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <input id="wo-find" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a job, address, customer or the work" aria-label="Find a work order" />
+        </label>
+        {people.size > 1 && (
+          <div className="qp-people" role="group" aria-label="Contractor">
+            <button type="button" className={`qp-chip${on === "all" ? " on" : ""}`} aria-pressed={on === "all"} onClick={() => setOn("all")}>Everyone · {list.length}</button>
+            {[...people.entries()].sort((a, b) => b[1] - a[1]).map(([who, n]) => (
+              <button key={who} type="button" className={`qp-chip${on === who ? " on" : ""}`} aria-pressed={on === who} onClick={() => setOn(who)}>{who} · {n}</button>
+            ))}
+          </div>
+        )}
+      </div>
+      {!shown.length && <p className="nw-none">Nothing matches that.</p>}
+      {groups.filter((g) => g.rows.length).map((g) => (
+        <div key={g.name} className="nw-grp">
+          <div className="nw-gh"><h2>{g.name}</h2><span>{g.rows.length} · {g.note}</span></div>
+          <ul className="wo-list">
+            {g.rows.map((w) => {
+              const d = w.details;
+              const jobs = (d?.jobs ?? []).map((j) => j.job_number).filter(Boolean).join(" & ");
+              const when = d ? (d.start_at ? `${day(d.start_at)}, ${time(d.start_at)}` : day(d.date)) : "";
+              const sent = w.status === "sent";
+              const state = sent ? `Sent ${w.sent_at ? day(w.sent_at) : ""}` : w.send_error ? "Didn't send" : "Draft";
+              const work = d?.jobs.map((j) => j.work).filter(Boolean).join("; ");
+              return (
+                <li key={w.id}>
+                  <button type="button" className="wo-row" onClick={() => setOpen(w.id)}>
+                    <span className={`nw-task__dot${sent ? " is-done" : w.send_error ? " is-bad" : ""}`} aria-hidden="true">{sent ? "✓" : ""}</span>
+                    <span className="wo-row-t">
+                      <b>{d?.site_address?.split(",")[0] ?? "No address"}{jobs ? ` · job ${jobs}` : ""}</b>
+                      <span>{[when, whoFor(w, sparky), isSparky(w) || !d?.to_name ? null : d?.trade, work].filter(Boolean).join(" · ")}</span>
+                    </span>
+                    <span className={`wo-state${sent ? " sent" : w.send_error ? " bad" : " draft"}`}>{state}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
       {/* On the page itself: inside the card, whose styling makes a layer of its own, the pop-up would be held to the card. */}
       {open && createPortal(<WorkOrderPanel w={open} sparky={sparky} contacts={contacts} onClose={() => setOpen(null)} />, document.querySelector(".pt.pn") ?? document.body)}
     </>

@@ -886,9 +886,62 @@ export type UnbookedSale = {
  * supplier's draft. Nothing goes until that order is sent, and once the
  * install is booked its gear isn't drafted a second time.
  */
+/**
+ * A search and a row of chips over a list in the side column. The chips are
+ * one choice at a time; the first is always everything.
+ */
+function SideFilter({ q, setQ, find, chips, on, setOn, label }: {
+  q: string; setQ: (v: string) => void; find: string;
+  chips: { key: string; label: string; n: number }[]; on: string; setOn: (k: string) => void; label: string;
+}) {
+  return (
+    <div className="nw-filt">
+      <label className="qp-find">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={find} aria-label={find} />
+      </label>
+      {chips.length > 2 && (
+        <div className="qp-people" role="group" aria-label={label}>
+          {/* An empty chip only ever shows nothing; "(Seeley International)" and the like only make a chip wrap. */}
+          {chips.filter((c) => c.key === "all" || c.n > 0).map((c) => ({ ...c, label: c.label.replace(/\s*\(.*\)\s*$/, "") || c.label })).map((c) => (
+            <button key={c.key} type="button" className={`qp-chip${on === c.key ? " on" : ""}`} aria-pressed={on === c.key} onClick={() => setOn(c.key)}>
+              {c.label} · {c.n}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const has = (needle: string, ...xs: (string | null | undefined)[]) => !needle || xs.some((x) => x?.toLowerCase().includes(needle));
+
+/**
+ * Sold, not booked in yet. Some suppliers take weeks, so their gear is worth
+ * ordering the day it sells rather than the week of the install: each sale's
+ * gear is split by supplier, each with a button that puts it on that
+ * supplier's draft. Nothing goes until that order is sent, and once the
+ * install is booked its gear isn't drafted a second time. Narrowed by
+ * supplier (only that supplier's gear shows), by what's still to order, or
+ * by a name, a suburb or an item.
+ */
 function Unbooked({ sales }: { sales: UnbookedSale[] }) {
   const { busy, msg, run } = useAct();
+  const [q, setQ] = useState("");
+  const [on, setOn] = useState("all");
   if (!sales.length) return null;
+  const open = (g: UnbookedSale["groups"][number]) => !g.ordered && !g.drafted;
+  const sups = new Map<string, { label: string; n: number }>();
+  for (const x of sales) for (const g of x.groups) sups.set(g.supplierId, { label: g.supplier, n: (sups.get(g.supplierId)?.n ?? 0) + 1 });
+  const chips = [
+    { key: "all", label: "All", n: sales.length },
+    { key: "open", label: "Not ordered", n: sales.filter((x) => x.groups.some(open)).length },
+    ...[...sups.entries()].sort((a, b) => b[1].n - a[1].n).map(([key, v]) => ({ key, ...v })),
+  ];
+  const needle = q.trim().toLowerCase();
+  const shown = sales
+    .map((x) => ({ ...x, groups: x.groups.filter((g) => on === "all" || (on === "open" ? open(g) : g.supplierId === on)) }))
+    .filter((x) => (on === "all" || x.groups.length) && has(needle, x.customer, x.suburb, x.what, x.quoteJob, ...x.groups.flatMap((g) => [g.supplier, ...g.items.map((i) => i.name)])));
   return (
     <section className="pt-panel nw-ahead" id="ahead" aria-label="Order ahead: sold, not booked in yet">
       <h2 className="pt-panel__h">Order ahead</h2>
@@ -896,9 +949,11 @@ function Unbooked({ sales }: { sales: UnbookedSale[] }) {
         Sold, not booked in yet. Order the long-wait gear now if you like: it goes on that supplier&rsquo;s order, on the list to send
         when you&rsquo;re ready. Once the install is booked, it isn&rsquo;t ordered again.
       </p>
+      <SideFilter q={q} setQ={setQ} find="Find a customer, suburb or item" chips={chips} on={on} setOn={setOn} label="Show" />
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+      {!shown.length && <p className="nw-none">Nothing matches that.</p>}
       <div className="nw-ahead__list">
-        {sales.map((x) => (
+        {shown.map((x) => (
           <div key={x.estimateId} className="nw-ahead__sale">
             <div className="nw-ahead__h">
               <b>{x.customer ?? "A customer"}{x.suburb ? <span> · {x.suburb}</span> : null}</b>
@@ -923,7 +978,6 @@ function Unbooked({ sales }: { sales: UnbookedSale[] }) {
     </section>
   );
 }
-
 
 /* ------------------------------------------------------------- the checklist */
 
@@ -1074,32 +1128,57 @@ function HeldRows({ holds, byId }: { holds: Hold[]; byId: Map<string, Supplier> 
   );
 }
 
-/** What's already gone for this week's and next week's installs, newest first. Every one is on Sent. */
+/**
+ * What's already gone for this week's and next week's installs, newest first,
+ * narrowed by the week it's for, by supplier, or by a job, customer or PO.
+ * Ten show, the rest a press away; every order is on Sent too.
+ */
 function SentList({ gone, byId }: { gone: PoWithLines[]; byId: Map<string, Supplier> }) {
+  const [q, setQ] = useState("");
+  const [on, setOn] = useState("all");
+  const [all, setAll] = useState(false);
   if (!gone.length) return null;
-  const SHOW = 8;
-  const list = [...gone].sort((a, b) => (b.sent_at ?? "").localeCompare(a.sent_at ?? ""));
-  const value = gone.filter((o) => o.kind === "order").reduce((t, o) => t + linesTotal(o.lines), 0);
+  const SHOW = 10;
+  const weekStart = thisWeek(new Date()).start;
   const who = (o: PoWithLines) => o.kind === "work_order"
     ? o.details?.site_address?.split(",")[0] ?? o.po_number
     : o.lines.find((l) => l.customer_name)?.customer_name ?? (o.lines.some(isAhead) ? "ordered ahead" : "factory stock");
+  const name = (o: PoWithLines) => byId.get(o.supplier_id)?.name ?? o.supplier_id;
+  const sups = new Map<string, number>();
+  for (const o of gone) sups.set(o.supplier_id, (sups.get(o.supplier_id) ?? 0) + 1);
+  const thisWk = (o: PoWithLines) => o.week_of <= weekStart;
+  const chips = [
+    { key: "all", label: "All", n: gone.length },
+    { key: "this", label: "This week", n: gone.filter(thisWk).length },
+    { key: "next", label: "Next week", n: gone.filter((o) => !thisWk(o)).length },
+    ...[...sups.entries()].sort((a, b) => b[1] - a[1]).map(([key, n]) => ({ key, label: byId.get(key)?.name ?? key, n })),
+  ];
+  const needle = q.trim().toLowerCase();
+  const list = [...gone]
+    .filter((o) => on === "all" || (on === "this" ? thisWk(o) : on === "next" ? !thisWk(o) : o.supplier_id === on))
+    .filter((o) => has(needle, o.po_number, name(o), who(o), ...o.lines.flatMap((l) => [l.job_number, l.customer_name, l.sku_name, l.supplier_model])))
+    .sort((a, b) => (b.sent_at ?? "").localeCompare(a.sent_at ?? ""));
+  const value = list.filter((o) => o.kind === "order").reduce((t, o) => t + linesTotal(o.lines), 0);
   return (
     <section className="pt-panel nw-sent" aria-label="Already sent">
       <div className="nw-sent__h">
         <h2 className="pt-panel__h">Already sent</h2>
-        <span className="nw-sent__n">{gone.length}{value ? ` · ${money(value)}` : ""}</span>
+        <span className="nw-sent__n">{list.length}{value ? ` · ${money(value)}` : ""}</span>
       </div>
       <p className="pt-panel__sub">For this week&rsquo;s and next week&rsquo;s installs.</p>
+      <SideFilter q={q} setQ={setQ} find="Find a job, customer or PO" chips={chips} on={on} setOn={setOn} label="Show" />
+      {!list.length && <p className="nw-none">Nothing matches that.</p>}
       <ul>
-        {list.slice(0, SHOW).map((o) => (
+        {(all ? list : list.slice(0, SHOW)).map((o) => (
           <li key={o.id}>
             <span className="nw-sent__tick" aria-hidden="true">✓</span>
-            <span className="nw-sent__t"><b>{byId.get(o.supplier_id)?.name ?? o.supplier_id}</b><span>{who(o)}{o.sent_at ? ` · ${dayLabel(o.sent_at.slice(0, 10))}` : ""}</span></span>
+            <span className="nw-sent__t"><b>{name(o)}</b><span>{who(o)}{o.sent_at ? ` · ${dayLabel(o.sent_at.slice(0, 10))}` : ""}</span></span>
             {o.kind === "order" && <span className="nw-sent__v">{money(linesTotal(o.lines))}</span>}
           </li>
         ))}
       </ul>
-      <a className="nw-sent__all" href="/portal/supply/sent">{list.length > SHOW ? `${list.length - SHOW} more, every one on Sent` : "Every order on Sent"}</a>
+      {list.length > SHOW && <button type="button" className="nw-sent__all" onClick={() => setAll(!all)}>{all ? "Show fewer" : `Show all ${list.length}`}</button>}
+      <a className="nw-sent__all" href="/portal/supply/sent">Every order on Sent</a>
     </section>
   );
 }
