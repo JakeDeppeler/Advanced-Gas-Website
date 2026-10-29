@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { BLOCK_NAME, SECTION_ICON, whereAmI, type Count, type Section } from "@/lib/portal/sections";
@@ -26,10 +26,11 @@ function N({ c }: { c?: Count }) {
 }
 
 /**
- * The side bar, to the prototype: the business at the top, Home, then each
- * section under the name of its block (Day to day, Getting work, The
- * business). The open section — the one the page is in — lists its pages
- * under it; the rest are one line each. Counts sit beside sections and pages.
+ * The side bar: the business at the top, Home, then each area under the name
+ * of its block (Day to day, Getting work, The business), one line each with
+ * its count. It never opens into a list: an area's pages are the shortcuts
+ * across the top of the page (AreaShortcuts), so the menu stays the same
+ * short list wherever you are.
  *
  * « makes it a strip of icons; clicking an icon then goes to that section's
  * first page and slides its pages out beside the strip. The choice is a cookie,
@@ -53,10 +54,6 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
   const [small, setSmall] = useState(initialSmall);
   const [drawer, setDrawer] = useState(false);
   const [fly, setFly] = useState<{ id: string; top: number } | null>(null);
-  // The open section's pages fold away when its tab is clicked again, and
-  // open again on the next click. Moving to another page opens them again:
-  // the list is where you are, and a page shouldn't arrive with it hidden.
-  const [folded, setFolded] = useState(false);
   const ref = useRef<HTMLElement>(null);
   // Hover opens a small bar's section and leaving closes it a moment later,
   // so the pointer can cross the gap from the icon to the list.
@@ -89,7 +86,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
   }, [initialSmall]);
 
   // A tab within the same page doesn't redraw the shell, so close the drawer here too.
-  useEffect(() => { setDrawer(false); setFolded(false); }, [path, query]);
+  useEffect(() => { setDrawer(false); }, [path, query]);
 
   useEffect(() => {
     const open = () => setDrawer(true);
@@ -140,7 +137,6 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
           {sections.map((s, i) => {
             const on = here.section?.id === s.id;
             const many = s.pages.length > 1;
-            const shut = on && many && folded;
             return (
               <div key={s.id} className="pn-group">
                 {/* A new block starts with its name, or a rule when it has none.
@@ -150,18 +146,15 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
                   : <div className="pn-sep" role="separator" />)}
                 <Link
                   href={s.href}
-                  className={`pn-btn${on ? " on" : ""}${shut ? " shut" : ""}`}
-                  aria-current={on && !many ? "page" : undefined}
-                  aria-expanded={on && many && (!small || drawer) ? !folded : undefined}
+                  className={`pn-btn${on ? " on" : ""}`}
+                  aria-current={on ? (many ? "true" : "page") : undefined}
                   aria-label={small ? s.label : undefined}
                   data-sec={s.id}
                   onMouseEnter={small ? (e) => showFly(s.id, e.currentTarget) : undefined}
                   onMouseLeave={small ? hideFlySoon : undefined}
                   onFocus={small ? (e) => showFly(s.id, e.currentTarget) : undefined}
                   onClick={(e) => {
-                    // Already in this section: the tab opens and closes its list rather than reloading the first page.
-                    if (on && many && (!small || drawer)) { e.preventDefault(); setFolded((f) => !f); return; }
-                    if (!small || !many) { setFly(null); forgetFly(); return; }
+                    if (!small || !many || drawer) { setFly(null); forgetFly(); return; }
                     showFly(s.id, e.currentTarget);
                     try { sessionStorage.setItem(FLY_KEY, JSON.stringify({ id: s.id, at: Date.now() })); } catch { /* opens without the list */ }
                   }}
@@ -169,27 +162,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
                   <span className={`pn-nico c-${s.icon}`}><Icon name={s.icon} /></span>
                   <span className="pn-nl">{s.label}</span>
                   <N c={s.count} />
-                  {many && <span className="pn-chev" aria-hidden="true">›</span>}
                 </Link>
-                {on && many && !folded && (
-                  <div className="pn-subs">
-                    {s.pages.map((p) => (
-                      <Fragment key={p.href}>
-                        <Link href={p.href} className={`pn-sub${p === here.page ? " on" : ""}`} aria-current={p === here.at ? "page" : undefined}>
-                          <span>{p.label}</span>
-                          <N c={p.count} />
-                        </Link>
-                        {/* A family's own pages, under it, while you're in it. */}
-                        {p === here.page && p.subs?.map((x) => (
-                          <Link key={x.href} href={x.href} className={`pn-sub pn-sub2${x === here.at ? " on" : ""}`} aria-current={x === here.at ? "page" : undefined}>
-                            <span>{x.label}</span>
-                            <N c={x.count} />
-                          </Link>
-                        ))}
-                      </Fragment>
-                    ))}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -219,6 +192,42 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
       </aside>
       {drawer && <button type="button" className="pn-scrim" aria-label="Close the menu" onClick={() => setDrawer(false)} />}
     </>
+  );
+}
+
+/**
+ * The open area's pages, as shortcuts across the top of the page: each with
+ * its icon and count, the one you're on dark. A family (Cash, Pricing...) is
+ * one shortcut, and inside it its own pages are a second, smaller row. An
+ * area of one page has none. On a phone the row scrolls sideways.
+ */
+export function AreaShortcuts({ sections }: { sections: Section[] }) {
+  const path = usePathname() ?? "";
+  const query = useSearchParams();
+  const { section, page, at } = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
+  if (!section || section.pages.length < 2) return null;
+  return (
+    <div className="pn-short">
+      <nav className="pn-short1" aria-label={`${section.label} pages`}>
+        {section.pages.map((p) => (
+          <Link key={p.href} href={p.href} className={`pn-sc${p === page ? " on" : ""}`} aria-current={p === page && !p.subs ? "page" : undefined}>
+            {p.icon && <Icon name={p.icon} size={15} />}
+            <span>{p.label}</span>
+            <N c={p.count} />
+          </Link>
+        ))}
+      </nav>
+      {page?.subs && (
+        <nav className="pn-short2" aria-label={`${page.label} pages`}>
+          {page.subs.map((x) => (
+            <Link key={x.href} href={x.href} className={x === at ? "on" : undefined} aria-current={x === at ? "page" : undefined}>
+              <span>{x.label}</span>
+              <N c={x.count} />
+            </Link>
+          ))}
+        </nav>
+      )}
+    </div>
   );
 }
 

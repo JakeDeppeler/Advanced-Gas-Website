@@ -3069,3 +3069,30 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 @media (max-width: 1320px) { .nw-task__body { margin-left: 0; } }
 .nw-task__body .pt-tgt__tablewrap > .pt-nw__table { min-width: 460px; }
 .nw-side .pt-vstat { white-space: normal; max-width: 100%; height: auto; line-height: 1.35; padding-top: 4px; padding-bottom: 4px; }
+/* An area's pages as shortcuts across the top of the page (dropdown C): the
+   side bar lists the areas only. A family's own pages are a smaller second
+   row. On a phone the row scrolls sideways rather than wrap three deep. */
+.pn-short { display: flex; flex-direction: column; gap: 8px; }
+.pn-short1 { display: flex; flex-wrap: wrap; gap: 8px; }
+.pn-sc { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px; border-radius: 99px; font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--rp-card); border: 1px solid var(--rp-line); text-decoration: none; transition: transform .18s cubic-bezier(.2,.8,.2,1), background .2s ease; }
+.pn-sc svg { color: var(--ink3); flex: 0 0 auto; }
+.pn-sc:hover { transform: translateY(-2px); }
+.pn-sc:focus-visible { outline: 2px solid var(--rp-orange, #d24a1e); outline-offset: 2px; }
+.pn-sc.on { background: var(--rp-on-bg); color: var(--rp-on-ink); border-color: transparent; }
+.pn-sc.on svg { color: inherit; }
+.pn-sc .pn-n { margin-left: 0; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink2); font-size: 11.5px; font-weight: 700; }
+.pn-sc .pn-n.r { background: var(--bad-bg); color: var(--bad); }
+.pn-sc.on .pn-n { background: var(--rp-orange, #d24a1e); color: #fff; }
+.pn-short2 { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 6%, transparent); width: fit-content; max-width: 100%; }
+.pn-short2 a { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; color: var(--ink2); text-decoration: none; }
+.pn-short2 a:hover { color: var(--ink); }
+.pn-short2 a.on { background: var(--rp-card); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.pn-short2 .pn-n { margin-left: 0; }
+@media (max-width: 860px) {
+  .pn-short1, .pn-short2 { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .pn-short1 { margin: 0 -16px; padding: 0 16px 2px; }
+  .pn-short1::-webkit-scrollbar, .pn-short2::-webkit-scrollbar { display: none; }
+  .pn-sc { flex: 0 0 auto; height: 36px; padding: 0 13px; }
+  .pn-short2 a { flex: 0 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) { .pn-sc { transition: none; } }

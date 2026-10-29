@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "crm" | "pipe" | "orders" | "web" | "mkt" | "fin" | "team" | "you";
+export type SectionId = "home" | "crm" | "todo" | "pipe" | "orders" | "web" | "mkt" | "fin" | "team" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -44,6 +44,11 @@ export const SECTION_ICON: Record<string, string> = {
   bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',
+  // The page shortcuts' own.
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+  send: '<path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+  tag: '<path d="M3 10V3h7l11 11-7 7z"/><path d="M7 7h.01"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
   team: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 13.5a7 7 0 0 1 4 6.5"/>',
 };
 
@@ -52,13 +57,13 @@ export const SECTION_ICON: Record<string, string> = {
  * `gate`: the page whose access decides this one, for a view of a page (a
  * `?tab=`) or a page reached from it that has no line of its own in portalNav.
  */
-type PageDef = { label: string; href: string; office?: boolean; unless?: string; gate?: string };
+type PageDef = { label: string; href: string; office?: boolean; unless?: string; gate?: string; icon?: string };
 /**
  * A tab that holds a few pages of one kind (Hourly: the rate, how it's built,
  * what it covers). It's one tab in the section's row, and its pages are a
  * second, smaller row under it while you're in one of them.
  */
-type GroupDef = { label: string; group: PageDef[] };
+type GroupDef = { label: string; group: PageDef[]; icon?: string };
 type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: (PageDef | GroupDef)[]; group: Block };
 
 /**
@@ -71,41 +76,47 @@ export const BLOCK_NAME: Record<Block, string> = { 0: "", 1: "Day to day", 2: "G
 
 /**
  * Every area and page. The portal is a handful of areas, each a place you go
- * for one kind of work: CRM is the day's jobs and to-dos, Pipeline the quotes
- * from the enquiry to a yes or no, To order the gear for the installs,
- * Website the enquiries and how the site does, Marketing what we put out,
- * Finance the money, Team the crew and how we work, and Settings is set up
- * once. Pipeline and To order are areas of their own, not pages of CRM,
- * because they're worked every day; Website left Marketing for the same
- * reason, its leads being rung the day they come in. `group` is the block of
- * the side bar an area sits in (BLOCK_NAME).
+ * for one kind of work: CRM is the day's jobs, To-do everyone's lists,
+ * Pipeline the quotes from the enquiry to a yes or no, To order the gear for
+ * the installs, Website the enquiries and how the site does, Marketing what
+ * we put out, Finance the money, Team the crew and how we work, and Settings
+ * is set up once. To-do, Pipeline and To order are areas of their own, not
+ * pages of CRM, because they're worked every day; Website left Marketing for
+ * the same reason, its leads being rung the day they come in. `group` is the
+ * block of the side bar an area sits in (BLOCK_NAME).
  *
- * Inside an area the pages that answer the same question are a family (Jobs,
- * To-do, Cash, Pace...), one line in the side bar that opens to its pages
- * while you're in it, so an area stays a short list. Families don't nest.
+ * An area's pages are the shortcuts across the top of its pages, each with
+ * its `icon`; the side bar lists the areas alone. The pages that answer the
+ * same question are a family (Jobs, Cash, Pace...): one shortcut, whose own
+ * pages are a second row while you're in it. Families don't nest.
  */
 export const SECTION_DEFS: SectionDef[] = [
   { id: "home", label: "Home", icon: "home", blurb: "", group: 0, pages: [{ label: "Overview", href: "/portal" }] },
   {
-    id: "crm", label: "CRM", icon: "team", group: 1, blurb: "Today's work, every job, and everyone's to-dos",
+    id: "crm", label: "CRM", icon: "team", group: 1, blurb: "Today's work and every job",
     pages: [
-      { label: "Today", group: [
+      { label: "Today", icon: "clock", group: [
         { label: "Today", href: "/portal/today" },
         { label: "Call booking", href: "/portal/today?tab=calls", gate: "/portal/today" },
       ] },
-      { label: "Jobs", group: [
+      { label: "Jobs", icon: "jobs", group: [
         { label: "Jobs today", href: "/portal/jobs" },
         { label: "All jobs", href: "/portal/jobs?tab=list", gate: "/portal/jobs" },
       ] },
-      // Each person's own board, then the accounts', then marketing's, the
-      // order Jake reads them. Account to-dos are the work the portal writes
-      // for the office, kept off people's own lists.
-      { label: "To-do", group: [
-        { label: "Personal", href: "/portal/todo" },
-        { label: "Accounts", href: "/portal/todo/accounts", office: true },
-        { label: "Marketing", href: "/portal/todo/marketing" },
-        { label: "Keep in touch", href: "/portal/keep-in-touch", office: true },
-      ] },
+    ],
+  },
+  {
+    // Out of CRM and an area of its own: everyone's lists are worked all
+    // day, by more people than work the rest of CRM. Each person's own
+    // board, then the accounts', then marketing's, the order Jake reads
+    // them. Account to-dos are the work the portal writes for the office,
+    // kept off people's own lists.
+    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists: your own, the accounts', marketing's, and who to keep in touch with",
+    pages: [
+      { label: "Personal", href: "/portal/todo", icon: "me" },
+      { label: "Accounts", href: "/portal/todo/accounts", office: true, icon: "pf" },
+      { label: "Marketing", href: "/portal/todo/marketing", icon: "mega" },
+      { label: "Keep in touch", href: "/portal/keep-in-touch", office: true, icon: "phone" },
     ],
   },
   {
@@ -113,20 +124,20 @@ export const SECTION_DEFS: SectionDef[] = [
     pages: [
       // Lost quotes left the row because nobody works from it; the page stays
       // for search and old links.
-      { label: "Quotes", href: "/portal/pipeline" },
-      { label: "Leads", href: "/portal/leads" },
+      { label: "Quotes", href: "/portal/pipeline", icon: "quote" },
+      { label: "Leads", href: "/portal/leads", icon: "phone" },
       // The whole run of a job, of which the quotes are one stretch.
-      { label: "Job tracker", href: "/portal/tracker", office: true },
+      { label: "Job tracker", href: "/portal/tracker", office: true, icon: "run" },
     ],
   },
   {
     id: "orders", label: "To order", icon: "box", group: 1, blurb: "Gear to order for the installs, what's gone, the contractors' work orders, and what runs by itself",
     pages: [
-      { label: "To order", href: "/portal/supply/next-week" },
-      { label: "Sent", href: "/portal/supply/sent" },
+      { label: "To order", href: "/portal/supply/next-week", icon: "box" },
+      { label: "Sent", href: "/portal/supply/sent", icon: "send" },
       // Every contractor's, not just the electrician's: Ross's water balancing goes from here too.
-      { label: "Work orders", href: "/portal/supply/work-orders" },
-      { label: "Automation", href: "/portal/supply/automation" },
+      { label: "Work orders", href: "/portal/supply/work-orders", icon: "jobs" },
+      { label: "Automation", href: "/portal/supply/automation", icon: "bolt" },
     ],
   },
   {
@@ -134,40 +145,40 @@ export const SECTION_DEFS: SectionDef[] = [
     // that's written for it.
     id: "web", label: "Website", icon: "globe", group: 2, blurb: "Every enquiry from the site, how the site does, and the blog",
     pages: [
-      { label: "Website leads", href: "/portal/website" },
-      { label: "On the site", href: "/portal/website?tab=pages" },
-      { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
-      { label: "Every enquiry", href: "/portal/finance/leads" },
-      { label: "Blog", href: "/portal/blog" },
+      { label: "Website leads", href: "/portal/website", icon: "globe" },
+      { label: "On the site", href: "/portal/website?tab=pages", icon: "search" },
+      { label: "Drop-off pages", href: "/portal/website?tab=dropoff", icon: "run" },
+      { label: "Every enquiry", href: "/portal/finance/leads", icon: "phone" },
+      { label: "Blog", href: "/portal/blog", icon: "book" },
     ],
   },
   {
     // What we put out to bring the work in, and the files it's made of.
     id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Campaigns, ads, reviews, the email list and every marketing file",
     pages: [
-      { label: "Campaigns", href: "/portal/marketing" },
-      { label: "Instagram", href: "/portal/marketing?tab=social" },
-      { label: "Reviews", href: "/portal/marketing?tab=reviews" },
-      { label: "Ads", href: "/portal/marketing?tab=ads" },
-      { label: "Email list", href: "/portal/marketing?tab=emails" },
-      { label: "Materials", href: "/portal/materials" },
+      { label: "Campaigns", href: "/portal/marketing", icon: "mega" },
+      { label: "Instagram", href: "/portal/marketing?tab=social", icon: "grow" },
+      { label: "Reviews", href: "/portal/marketing?tab=reviews", icon: "star" },
+      { label: "Ads", href: "/portal/marketing?tab=ads", icon: "tag" },
+      { label: "Email list", href: "/portal/marketing?tab=emails", icon: "send" },
+      { label: "Materials", href: "/portal/materials", icon: "quote" },
     ],
   },
   {
     id: "fin", label: "Finance", icon: "pf", group: 3, blurb: "What to invoice and chase, cash, profit, the goals and what we charge",
     pages: [
-      { label: "Accounts", href: "/portal/accounts" },
-      { label: "Owed to us", href: "/portal/money" },
-      { label: "Not billed", href: "/portal/jobs?tab=notbilled", gate: "/portal/jobs" },
-      { label: "Stuck money", href: "/portal/stuck" },
-      { label: "Cash", group: [
+      { label: "Accounts", href: "/portal/accounts", icon: "book" },
+      { label: "Owed to us", href: "/portal/money", icon: "clock" },
+      { label: "Not billed", href: "/portal/jobs?tab=notbilled", gate: "/portal/jobs", icon: "quote" },
+      { label: "Stuck money", href: "/portal/stuck", icon: "bell" },
+      { label: "Cash", icon: "pf", group: [
         { label: "Cash flow", href: "/portal/finance/cash" },
         { label: "Cash to operate", href: "/portal/finance/cash?tab=operate", gate: "/portal/finance/cash" },
         { label: "We owe", href: "/portal/finance/owe" },
         { label: "Spending", href: "/portal/finance/spend" },
         { label: "Journals to Xero", href: "/portal/journals" },
       ] },
-      { label: "Profit & sales", group: [
+      { label: "Profit & sales", icon: "grow", group: [
         { label: "Summary", href: "/portal/finance" },
         { label: "Profit & loss", href: "/portal/finance/pl" },
         { label: "Job profit", href: "/portal/jobs?tab=profit", gate: "/portal/jobs" },
@@ -175,7 +186,7 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Job types", href: "/portal/sales?tab=types", gate: "/portal/sales" },
       ] },
       // Pace took in This month (its Month) and Year so far (its Year).
-      { label: "Goals & pace", group: [
+      { label: "Goals & pace", icon: "run", group: [
         { label: "Pace", href: "/portal/pace" },
         { label: "Pace, month", href: "/portal/pace?view=month", gate: "/portal/pace" },
         { label: "Pace, year", href: "/portal/pace?view=year", gate: "/portal/pace" },
@@ -185,7 +196,7 @@ export const SECTION_DEFS: SectionDef[] = [
       ] },
       // Materials markup is gone from here: it's set on each item in
       // ServiceTitan, so a second copy here only drifted from it.
-      { label: "Pricing", group: [
+      { label: "Pricing", icon: "tag", group: [
         { label: "Hourly rate", href: "/portal/rates" },
         { label: "On site & commercial", href: "/portal/rates/onsite" },
         { label: "Our hourly rate", href: "/portal/finance/hourly" },
@@ -193,12 +204,12 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Our prices", href: "/portal/pricing" },
         { label: "Commission", href: "/portal/commission" },
       ] },
-      { label: "Costs", group: [
+      { label: "Costs", icon: "quote", group: [
         { label: "Running costs", href: "/portal/finance/running" },
         { label: "Overheads", href: "/portal/finance/capacity" },
         { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
       ] },
-      { label: "What if", group: [
+      { label: "What if", icon: "bolt", group: [
         { label: "Vans", href: "/portal/finance/planning" },
         { label: "Hire someone", href: "/portal/finance/planning/hire", gate: "/portal/finance/planning" },
         { label: "Pay plan", href: "/portal/finance/planning/commission", gate: "/portal/finance/planning" },
@@ -208,21 +219,21 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     id: "team", label: "Team", icon: "van", group: 3, blurb: "The crew, their hours, the vans, and how we work",
     pages: [
-      { label: "Team", href: "/portal/team" },
-      { label: "Leaderboard", href: "/portal/rates?tab=leaders", gate: "/portal/rates" },
-      { label: "Hours", href: "/portal/hours" },
-      { label: "From the crew", href: "/portal/requests" },
-      { label: "Vans", group: [
+      { label: "Team", href: "/portal/team", icon: "team" },
+      { label: "Leaderboard", href: "/portal/rates?tab=leaders", gate: "/portal/rates", icon: "star" },
+      { label: "Hours", href: "/portal/hours", icon: "clock" },
+      { label: "From the crew", href: "/portal/requests", icon: "chat" },
+      { label: "Vans", icon: "van", group: [
         { label: "Vans", href: "/portal/vehicles" },
         { label: "Tools", href: "/portal/vehicles/tools" },
         { label: "Kit lists", href: "/portal/vehicles/kit" },
         { label: "Per van, per day", href: "/portal/per-van" },
         { label: "Drive time", href: "/portal/drive" },
       ] },
-      { label: "Trade iPad", href: "/trade" },
-      { label: "Pricebook", href: "/trade/pricebook" },
-      { label: "Toolbox talks", href: "/portal/toolbox" },
-      { label: "How we work", group: [
+      { label: "Trade iPad", href: "/trade", icon: "wall" },
+      { label: "Pricebook", href: "/trade/pricebook", icon: "tag" },
+      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
+      { label: "How we work", icon: "todo", group: [
         { label: "Roles", href: "/portal/roles" },
         { label: "Leading", href: "/portal/leading" },
         { label: "Processes", href: "/portal/sops" },
@@ -231,35 +242,35 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Information", href: "/portal/information" },
         { label: "Trade tools", href: "/portal/tools/fault-codes" },
       ] },
-      { label: "Future planning", href: "/portal/plans", office: true },
+      { label: "Future planning", href: "/portal/plans", office: true, icon: "grow" },
     ],
   },
   {
     // Set up once and looked at rarely, so out of the way at the bottom.
     id: "you", label: "Settings", icon: "me", group: 4, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
     pages: [
-      { label: "My file", href: "/portal/me" },
+      { label: "My file", href: "/portal/me", icon: "me" },
       // The records and the tools that build them (bulk site add lives on
       // Sites), with Messages until a channel is connected to it.
-      { label: "Customers", href: "/portal/customers" },
-      { label: "Sites", href: "/portal/locations" },
-      { label: "Messages", href: "/portal/chats" },
-      { label: "Notifications", href: "/portal/notifications" },
-      { label: "Settings", href: "/portal/settings" },
-      { label: "Automatic", href: "/portal/automatic" },
-      { label: "Integrations", href: "/portal/integrations" },
+      { label: "Customers", href: "/portal/customers", icon: "team" },
+      { label: "Sites", href: "/portal/locations", icon: "home" },
+      { label: "Messages", href: "/portal/chats", icon: "chat" },
+      { label: "Notifications", href: "/portal/notifications", icon: "bell" },
+      { label: "Settings", href: "/portal/settings", icon: "cog" },
+      { label: "Automatic", href: "/portal/automatic", icon: "bolt" },
+      { label: "Integrations", href: "/portal/integrations", icon: "numbers" },
       // Where the wall board's email alert is cleared. In the nav rather than
       // link-only, because the alert sends somebody looking for it and a page
       // you can only reach from a banner on a television is not a page.
-      { label: "Email", href: "/portal/email" },
-      { label: "Admin", href: "/portal/admin" },
+      { label: "Email", href: "/portal/email", icon: "send" },
+      { label: "Admin", href: "/portal/admin", icon: "cog" },
       // How ordering is set up: who we buy from and what we keep on the shelf.
-      { label: "Ordering", group: [
+      { label: "Ordering", icon: "box", group: [
         { label: "Suppliers", href: "/portal/supply" },
         { label: "Factory stock", href: "/portal/stock" },
       ] },
       // Seven pages that all set up the one screen.
-      { label: "Wall board", group: [
+      { label: "Wall board", icon: "wall", group: [
         { label: "Wall board", href: "/portal/board/remote" },
         { label: "Targets & commission", href: "/portal/finance/board" },
         { label: "Sounds", href: "/portal/board/sounds" },
@@ -276,7 +287,7 @@ export const SECTION_DEFS: SectionDef[] = [
 export type Count = { n: number; red?: boolean };
 
 /** A page, or a family of them (`subs`, the first being where the tab goes). */
-export type SidePage = { href: string; label: string; count?: Count; subs?: SidePage[] };
+export type SidePage = { href: string; label: string; count?: Count; subs?: SidePage[]; icon?: string };
 
 /** Every page in a list, a family's pages in place of the family. */
 export const flatPages = (pages: SidePage[]): SidePage[] => pages.flatMap((p) => p.subs ?? [p]);
@@ -322,15 +333,15 @@ export function buildSections(items: NavItem[], biz: Business, office: boolean, 
     const pages: SidePage[] = [];
     for (const p of s.pages) {
       if (!("group" in p)) {
-        if (s.id === "home" || shows(p)) pages.push({ href: p.href, label: p.label, count: counts[p.href] });
+        if (s.id === "home" || shows(p)) pages.push({ href: p.href, label: p.label, count: counts[p.href], icon: p.icon });
         continue;
       }
       const subs = p.group.filter(shows).map((x) => ({ href: x.href, label: x.label, count: counts[x.href] }));
       if (!subs.length) continue;
       // A family down to one page is just that page.
-      if (subs.length === 1) { pages.push(subs[0]); continue; }
+      if (subs.length === 1) { pages.push({ ...subs[0], icon: p.icon }); continue; }
       const red = subs.reduce((n, x) => n + (x.count?.red ? x.count.n : 0), 0);
-      pages.push({ href: subs[0].href, label: p.label, subs, count: red ? { n: red, red: true } : undefined });
+      pages.push({ href: subs[0].href, label: p.label, subs, count: red ? { n: red, red: true } : undefined, icon: p.icon });
     }
     if (!pages.length) continue;
     out.push({ id: s.id, label: s.label, icon: s.icon, blurb: s.blurb, group: s.group, href: pages[0].href, pages, count: counts[`section:${s.id}`] });

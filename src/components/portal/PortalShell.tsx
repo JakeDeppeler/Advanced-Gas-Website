@@ -17,7 +17,7 @@ import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
 import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
 import { buildSections, flatPages, pathOff, type Count, type Section } from "@/lib/portal/sections";
-import { Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
+import { AreaShortcuts, Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { SearchPop } from "@/components/portal/shell/TopNav";
 import { FigureCount } from "@/components/portal/shell/FigureCount";
@@ -74,6 +74,13 @@ const liveLine = cache(async (user: PortalUser): Promise<LiveState | null> => {
 
 type BarProps = { user: PortalUser; sections: Section[]; biz: Business; small: boolean; foot: React.ReactNode };
 
+/** The open area's shortcuts with their counts, the same counts as the side bar's (cached), streamed in the same way. */
+async function CountedShortcuts({ user, biz }: { user: PortalUser; biz: Business }) {
+  const items = portalNav(user);
+  const counts = await sideCounts(user, buildSections(items, biz, office(user))).catch(() => ({}));
+  return <AreaShortcuts sections={buildSections(items, biz, office(user), counts)} />;
+}
+
 /** The side bar with its counts, streamed in after the page so the counts never hold a page up. */
 async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
   const [counts, live] = await Promise.all([sideCounts(user, sections).catch(() => ({})), liveLine(user).catch(() => null)]);
@@ -89,10 +96,10 @@ async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
  * business has (Settings) takes areas and pages away: a business with no wall
  * board has no Wall board pages, and they send you home.
  *
- * The side bar is the menu at every width. It was swapped on a wide screen for
- * the areas as pills across the top and a dock down the left; Jake chose the
- * side bar, where the open area lists its pages, over both. On a phone it's a
- * drawer.
+ * The side bar is the menu at every width, the areas only. An area's pages
+ * are shortcuts across the top of the page instead of a list that opened
+ * under it in the side bar: Jake chose that (dropdown C) so the menu stays
+ * short wherever you are. On a phone the side bar is a drawer.
  *
  * The bar's width and the theme are cookies, read here, so the first paint is
  * already right.
@@ -148,6 +155,9 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
         </header>
         <main className="pt__content pn-content">
           {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
+          <Suspense fallback={<AreaShortcuts sections={sections} />}>
+            <CountedShortcuts user={user} biz={biz} />
+          </Suspense>
           {children}
         </main>
       </div>
