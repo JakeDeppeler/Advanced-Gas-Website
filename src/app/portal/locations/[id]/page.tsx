@@ -7,9 +7,11 @@ import { Locked } from "@/components/portal/Locked";
 import { LocationImporter } from "@/components/portal/LocationImporter";
 import { LocationStatusBoard } from "@/components/portal/LocationStatusBoard";
 import { LocationDoubles } from "@/components/portal/LocationDoubles";
+import { TechSwap } from "@/components/portal/TechSwap";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { fetchCustomer, findDoubles, liveView, loadSpec, siteDefaults } from "@/lib/locations/stLocations";
+import { siteVisits } from "@/lib/locations/visits";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -19,9 +21,11 @@ const day = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
 
 /**
- * One customer's site locations: status board, doubled-up units, and the list
- * loader. Everything shown is read from ServiceTitan on each load, so it
- * matches what the office sees there.
+ * One customer's site locations: status board, swapping a tech on the booked
+ * visits, doubled-up units, and the list loader. Locations are read from
+ * ServiceTitan on each load, so they match what the office sees there; the
+ * visits come from the synced tables (minutes behind), and the swap checks
+ * ServiceTitan itself before it changes anything.
  */
 export default async function CustomerLocationsPage({ params }: { params: { id: string } }) {
   const user = await getPortalUser();
@@ -55,7 +59,10 @@ export default async function CustomerLocationsPage({ params }: { params: { id: 
   }
 
   const [spec, prefill] = await Promise.all([loadSpec(id).catch(() => null), siteDefaults(id).catch(() => null)]);
-  const view = await liveView(id, spec).catch((e: Error) => ({ error: e.message }) as const);
+  const [view, booked] = await Promise.all([
+    liveView(id, spec).catch((e: Error) => ({ error: e.message }) as const),
+    siteVisits(id).catch(() => null),
+  ]);
 
   const active = "error" in view ? [] : view.locations.filter((l) => l.active);
   const doubles = "error" in view ? [] : findDoubles(view.locations);
@@ -83,6 +90,8 @@ export default async function CustomerLocationsPage({ params }: { params: { id: 
             .sort((a, b) => a.name.localeCompare(b.name, "en-AU", { numeric: true }))}
         />
       )}
+
+      {booked && booked.visits.length > 0 && <TechSwap visits={booked.visits} techs={booked.techs} busy={booked.busy} />}
 
       {doubles.length > 0 && (
         <LocationDoubles
