@@ -4,16 +4,15 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Bad, Good, Grid, Head, Say, Tile } from "@/components/portal/kit/Kit";
+import { Bad, Good, Head, Say } from "@/components/portal/kit/Kit";
 import { Locked } from "@/components/portal/Locked";
 import { NextWeekOrders, type UnbookedSale } from "@/components/portal/NextWeekOrders";
-import { money } from "@/lib/portal/format";
 import {
   appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadHolds, loadOrderingSettings, loadSuppliers, loadUnbooked, loadWeekInputs, type Hold,
   type PoWithLines, type UnbookedLine,
 } from "@/lib/ordering/db";
 import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
-import { dayLabel, estKey, linesTotal, lineKeys, nextWeek, planWeek, thisWeek, weekLabel, type OrderedLine, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
+import { dayLabel, estKey, lineKeys, nextWeek, planWeek, thisWeek, weekLabel, type OrderedLine, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
@@ -51,10 +50,11 @@ function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWi
 }
 
 /**
- * Orders › To order: this week's and next week's orders in one list, soonest
- * install first. There used to be a switch between the two weeks, which made
- * the office check both to know nothing was waiting; the week an order was
- * drafted for is the drafting's business, not the reader's.
+ * To order › To order: this week's and next week's orders as one checklist,
+ * by when each is needed. There used to be a switch between the two weeks,
+ * which made the office check both to know nothing was waiting; the week an
+ * order was drafted for is the drafting's business, not the reader's. The
+ * figures that were tiles over it are the list's own groups now.
  */
 export default async function NextWeekPage({ searchParams }: { searchParams: { week?: string; tab?: string } }) {
   const user = await getPortalUser();
@@ -117,8 +117,6 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
 
   const live = orders.filter((o) => o.status !== "cancelled");
   const waiting = live.filter((o) => o.status === "draft");
-  const value = waiting.filter((o) => o.kind === "order").reduce((t, o) => t + linesTotal(o.lines), 0);
-  const visits = waiting.filter((o) => o.kind === "work_order").length;
   const aheadOpen = unbooked.filter((x) => x.groups.some((g) => !g.ordered && !g.drafted)).length;
   const soonest = waiting.map((o) => o.kind === "work_order" ? o.details?.date : o.lines.map((l) => l.install_date).filter(Boolean).sort()[0]).filter((d): d is string => !!d).sort()[0];
 
@@ -130,7 +128,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
           sub={`This week and next · ${weekLabel({ start: tw.start, end: nw.end })}`}
           info={[
             ["Drafted for you", "Built from the installs booked this week and next, and kept up to date as bookings come in. Next week starts drafting on Wednesday."],
-            ["Nothing goes until it's sent", "No order reaches a supplier or the electrician until someone presses its Send button here."],
+            ["Nothing goes until it's sent", "No supplier order goes until someone presses its Send button here. A contractor's work order goes by itself once its job is booked, unless To order › Automation says otherwise."],
             ["Can't order", "A line that can't be ordered, no supplier, no model on the quote, no crew, says why, so it can be fixed in ServiceTitan."],
           ]}
         />
@@ -140,16 +138,9 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
               {waiting.length
                 ? <><Bad>{waiting.length} {waiting.length === 1 ? "order is" : "orders are"} waiting to be sent</Bad>{soonest ? <>, the first for an install on {dayLabel(soonest)}</> : null}.</>
                 : <Good>Nothing waiting to be sent.</Good>}{" "}
-              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered yet.</Bad> : null}
+              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered yet.</Bad> : null}{" "}
+              {aheadOpen > 0 ? <>{aheadOpen} sold {aheadOpen === 1 ? "job" : "jobs"} can be ordered ahead.</> : null}
             </Say>
-            <Grid cols={3}>
-              <Tile label="Not sent yet" st={waiting.length ? { k: "mid", w: "To send" } : { k: "good", w: "All sent" }} fig={String(waiting.length)} frac={null}
-                sub={[value ? `${money(value)} of gear ex GST` : null, visits ? `${visits} electrician ${visits === 1 ? "visit" : "visits"}` : null].filter(Boolean).join(" · ") || "nothing to send"} />
-              <Tile label="Can't order yet" st={problems.length ? { k: "bad", w: "Fix in ServiceTitan" } : { k: "good", w: "None" }} fig={String(problems.length)} frac={null}
-                sub={problems.length ? "listed below, each with why" : "every booked install can be ordered"} />
-              <Tile label="Sold, not booked in" st={aheadOpen ? { k: "mid", w: "Can order ahead" } : { k: "none", w: unbooked.length ? "All on order" : "None" }} fig={String(unbooked.length)} frac={null}
-                sub={unbooked.length ? "listed below, order the long-wait gear ahead" : "every sale has its install booked"} href={unbooked.length ? "#ahead" : undefined} />
-            </Grid>
           </>
         )}
       </div>

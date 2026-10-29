@@ -2941,3 +2941,72 @@ a.rl-card:focus-visible, .lad-seat:focus-visible { outline: 2px solid var(--ink)
 .nw-ahead__cost { font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .nw-ahead__g { grid-template-columns: minmax(0, 1fr) auto; } .nw-ahead__g > :last-child { grid-column: 1 / -1; justify-self: start; } }
 .nw-ahead { scroll-margin-top: 80px; }
+/* The name over a block of areas in the side bar: Day to day, Getting work,
+   The business. The small bar has no room for words and draws it as the rule
+   it replaced. */
+.pn-gh { padding: 12px 12px 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
+@media (min-width: 861px) {
+  .pn--mini .pn-gh { height: 1px; padding: 0; margin: 8px 12px; background: var(--line); font-size: 0; overflow: hidden; }
+}
+/* To order as a checklist (and To order › Automation): the list, with what
+   can be ordered ahead and what's gone in a narrower column beside it. */
+.nw-two { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+.nw-two > .pt-panel, .nw-two > .pk-card, .nw-side > .pt-panel { margin-bottom: 0; }
+.nw-side { display: flex; flex-direction: column; gap: 18px; }
+/* Side by side only while an open order's lines still fit beside the column. */
+@media (max-width: 1320px) { .nw-two { grid-template-columns: minmax(0, 1fr); } }
+.nw-two .au-log li { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; }
+.nw-two .au-log .au-when { grid-column: 1 / -1; }
+.nw-check { padding: 20px 24px 14px; }
+.nw-check .pt-nw__bar { margin: 0 0 6px; }
+.nw-grp { display: flex; flex-direction: column; padding-top: 10px; }
+.nw-gh { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 6px 2px 8px; }
+.nw-gh h2 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+.nw-gh > span { font-size: 12.5px; color: var(--ink3); text-align: right; }
+.nw-gh--clear { flex-direction: column; align-items: flex-start; padding: 14px 2px; }
+.nw-gh--clear > span { text-align: left; font-size: 13.5px; color: var(--ink2); }
+.nw-gnote { margin: 0 0 6px 36px; font-size: 12.5px; color: var(--ink2); line-height: 1.5; max-width: 78ch; }
+.nw-task, .nw-row { border-top: 1px solid var(--rp-line); }
+.nw-task > summary, .nw-row { display: flex; align-items: center; gap: 12px; padding: 12px 2px; }
+.nw-task > summary { cursor: pointer; list-style: none; border-radius: 14px; }
+.nw-task > summary::-webkit-details-marker { display: none; }
+.nw-task > summary:hover .nw-task__t b { text-decoration: underline; text-underline-offset: 3px; }
+.nw-task > summary:focus-visible { outline: 2px solid var(--rp-orange, #d24a1e); outline-offset: 2px; }
+.nw-task__dot { flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--ink) 25%, transparent); box-sizing: border-box; }
+.nw-task__dot.is-bad { border-color: var(--bad); }
+.nw-task__t { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.nw-task__t b { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.nw-task__t span { font-size: 12.5px; color: var(--ink2); }
+.nw-task .pt-vstat, .nw-row .pt-vstat { flex: 0 0 auto; white-space: nowrap; }
+.nw-task__chev { flex: 0 0 auto; color: var(--ink3); transition: transform .2s ease; }
+.nw-task[open] > summary .nw-task__chev { transform: rotate(90deg); }
+.nw-task__body { margin: 0 0 14px 34px; padding: 14px 18px; border-radius: 18px; background: var(--rp-card); border: 1px solid var(--rp-line); }
+.nw-task__in { display: flex; flex-direction: column; gap: 10px; }
+.nw-task__in > * { margin-top: 0; margin-bottom: 0; }
+.nw-task__body .pt-tgt__tablewrap > .pt-nw__table { min-width: 500px; }
+.nw-task__body .pt-nw__table th, .nw-task__body .pt-nw__table td { padding: 9px 8px; }
+.nw-task__po { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink2); }
+.nw-task__po b { color: var(--ink); }
+.nw-row .pt-btn { flex: 0 0 auto; }
+.nw-side .nw-ahead__g { grid-template-columns: minmax(0, 1fr) auto; }
+.nw-side .nw-ahead__g > :last-child { grid-column: 1 / -1; justify-self: start; }
+.nw-side .pt-panel { padding: 20px 20px; }
+.nw-sent__h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.nw-sent__n { font-size: 12.5px; font-weight: 700; color: var(--good); white-space: nowrap; }
+.nw-sent ul { list-style: none; margin: 0; padding: 0; }
+.nw-sent li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--rp-line); font-size: 13px; }
+.nw-sent__tick { flex: 0 0 18px; width: 18px; height: 18px; border-radius: 50%; background: var(--rp-forest, #2c5a4c); color: #fff; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.nw-sent__t { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.nw-sent__t b { font-weight: 600; }
+.nw-sent__t span { font-size: 12px; color: var(--ink2); }
+.nw-sent__v { font-variant-numeric: tabular-nums; color: var(--ink2); white-space: nowrap; }
+.nw-sent__all { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--rp-orange, #d24a1e); }
+@media (max-width: 640px) {
+  .nw-task > summary, .nw-row { flex-wrap: wrap; }
+  .nw-task__t { flex-basis: calc(100% - 40px); }
+  .nw-task .pt-vstat, .nw-row .pt-vstat, .nw-row .pt-btn { margin-left: 34px; }
+  .nw-task__chev { display: none; }
+  .nw-task__body { margin-left: 0; padding: 12px; }
+  .nw-check { padding: 16px 14px 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .nw-task__chev { transition: none; } }

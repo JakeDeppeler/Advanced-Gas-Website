@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "crm" | "pipe" | "orders" | "fin" | "mkt" | "team" | "you";
+export type SectionId = "home" | "crm" | "pipe" | "orders" | "web" | "mkt" | "fin" | "team" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -43,6 +43,7 @@ export const SECTION_ICON: Record<string, string> = {
   quote: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
   bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   cog: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',
   team: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 13.5a7 7 0 0 1 4 6.5"/>',
 };
 
@@ -58,17 +59,26 @@ type PageDef = { label: string; href: string; office?: boolean; unless?: string;
  * second, smaller row under it while you're in one of them.
  */
 type GroupDef = { label: string; group: PageDef[] };
-type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: (PageDef | GroupDef)[]; group: 0 | 1 | 2 | 3 };
+type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: (PageDef | GroupDef)[]; group: Block };
+
+/**
+ * The blocks of the side bar, top to bottom. A block with a name has it over
+ * its areas, so a longer list of areas still reads as a few kinds of work;
+ * Home and Settings are a line of their own and need no name.
+ */
+export type Block = 0 | 1 | 2 | 3 | 4;
+export const BLOCK_NAME: Record<Block, string> = { 0: "", 1: "Day to day", 2: "Getting work", 3: "The business", 4: "" };
 
 /**
  * Every area and page. The portal is a handful of areas, each a place you go
  * for one kind of work: CRM is the day's jobs and to-dos, Pipeline the quotes
  * from the enquiry to a yes or no, To order the gear for the installs,
- * Finance the money, Marketing where the work comes from, Team the crew and
- * how we work, and Settings is set up once. Pipeline and To order are areas
- * of their own, not pages of CRM, because they're worked every day. `group` is the
- * block of the side bar an area sits in: Home, the business, the crew, then
- * settings.
+ * Website the enquiries and how the site does, Marketing what we put out,
+ * Finance the money, Team the crew and how we work, and Settings is set up
+ * once. Pipeline and To order are areas of their own, not pages of CRM,
+ * because they're worked every day; Website left Marketing for the same
+ * reason, its leads being rung the day they come in. `group` is the block of
+ * the side bar an area sits in (BLOCK_NAME).
  *
  * Inside an area the pages that answer the same question are a family (Jobs,
  * To-do, Cash, Pace...), one line in the side bar that opens to its pages
@@ -110,15 +120,41 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "orders", label: "To order", icon: "box", group: 1, blurb: "Gear to order for the installs, what's gone, and the electrician",
+    id: "orders", label: "To order", icon: "box", group: 1, blurb: "Gear to order for the installs, what's gone, the contractors' work orders, and what runs by itself",
     pages: [
       { label: "To order", href: "/portal/supply/next-week" },
       { label: "Sent", href: "/portal/supply/sent" },
-      { label: "Electrician", href: "/portal/supply/work-orders" },
+      // Every contractor's, not just the electrician's: Ross's water balancing goes from here too.
+      { label: "Work orders", href: "/portal/supply/work-orders" },
+      { label: "Automation", href: "/portal/supply/automation" },
     ],
   },
   {
-    id: "fin", label: "Finance", icon: "pf", group: 1, blurb: "What to invoice and chase, cash, profit, the goals and what we charge",
+    // Where the enquiries arrive and how the site is doing, and the blog
+    // that's written for it.
+    id: "web", label: "Website", icon: "globe", group: 2, blurb: "Every enquiry from the site, how the site does, and the blog",
+    pages: [
+      { label: "Website leads", href: "/portal/website" },
+      { label: "On the site", href: "/portal/website?tab=pages" },
+      { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
+      { label: "Every enquiry", href: "/portal/finance/leads" },
+      { label: "Blog", href: "/portal/blog" },
+    ],
+  },
+  {
+    // What we put out to bring the work in, and the files it's made of.
+    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Campaigns, ads, reviews, the email list and every marketing file",
+    pages: [
+      { label: "Campaigns", href: "/portal/marketing" },
+      { label: "Instagram", href: "/portal/marketing?tab=social" },
+      { label: "Reviews", href: "/portal/marketing?tab=reviews" },
+      { label: "Ads", href: "/portal/marketing?tab=ads" },
+      { label: "Email list", href: "/portal/marketing?tab=emails" },
+      { label: "Materials", href: "/portal/materials" },
+    ],
+  },
+  {
+    id: "fin", label: "Finance", icon: "pf", group: 3, blurb: "What to invoice and chase, cash, profit, the goals and what we charge",
     pages: [
       { label: "Accounts", href: "/portal/accounts" },
       { label: "Owed to us", href: "/portal/money" },
@@ -170,27 +206,7 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    // Where the work comes from: leads and the website, what we put out,
-    // the files it's made of, and the blog.
-    id: "mkt", label: "Marketing", icon: "mega", group: 1, blurb: "Website leads, how the site does, campaigns, and every marketing file",
-    pages: [
-      { label: "Website", group: [
-        { label: "Website leads", href: "/portal/website" },
-        { label: "On the site", href: "/portal/website?tab=pages" },
-        { label: "Drop-off pages", href: "/portal/website?tab=dropoff" },
-        { label: "Every enquiry", href: "/portal/finance/leads" },
-      ] },
-      { label: "Campaigns", href: "/portal/marketing" },
-      { label: "Instagram", href: "/portal/marketing?tab=social" },
-      { label: "Reviews", href: "/portal/marketing?tab=reviews" },
-      { label: "Ads", href: "/portal/marketing?tab=ads" },
-      { label: "Email list", href: "/portal/marketing?tab=emails" },
-      { label: "Materials", href: "/portal/materials" },
-      { label: "Blog", href: "/portal/blog" },
-    ],
-  },
-  {
-    id: "team", label: "Team", icon: "van", group: 2, blurb: "The crew, their hours, the vans, and how we work",
+    id: "team", label: "Team", icon: "van", group: 3, blurb: "The crew, their hours, the vans, and how we work",
     pages: [
       { label: "Team", href: "/portal/team" },
       { label: "Leaderboard", href: "/portal/rates?tab=leaders", gate: "/portal/rates" },
@@ -220,7 +236,7 @@ export const SECTION_DEFS: SectionDef[] = [
   },
   {
     // Set up once and looked at rarely, so out of the way at the bottom.
-    id: "you", label: "Settings", icon: "me", group: 3, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
+    id: "you", label: "Settings", icon: "me", group: 4, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
     pages: [
       { label: "My file", href: "/portal/me" },
       // The records and the tools that build them (bulk site add lives on
@@ -269,7 +285,7 @@ export type Section = {
   label: string;
   icon: string;
   blurb: string;
-  group: 0 | 1 | 2 | 3;
+  group: Block;
   /** Where clicking the section goes: its first page. */
   href: string;
   /** More than one page: the section opens to list them. */

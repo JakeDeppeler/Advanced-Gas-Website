@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { SECTION_ICON, whereAmI, type Count, type Section } from "@/lib/portal/sections";
+import { BLOCK_NAME, SECTION_ICON, whereAmI, type Count, type Section } from "@/lib/portal/sections";
 import { NAV_COOKIE } from "@/lib/portal/businessTypes";
 
 export const DRAWER_EVENT = "pn:drawer";
@@ -27,8 +27,9 @@ function N({ c }: { c?: Count }) {
 
 /**
  * The side bar, to the prototype: the business at the top, Home, then each
- * section. The open section — the one the page is in — lists its pages under
- * it; the rest are one line each. Counts sit beside sections and pages.
+ * section under the name of its block (Day to day, Getting work, The
+ * business). The open section — the one the page is in — lists its pages
+ * under it; the rest are one line each. Counts sit beside sections and pages.
  *
  * « makes it a strip of icons; clicking an icon then goes to that section's
  * first page and slides its pages out beside the strip. The choice is a cookie,
@@ -142,7 +143,11 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
             const shut = on && many && folded;
             return (
               <div key={s.id} className="pn-group">
-                {i > 0 && sections[i - 1].group !== s.group && <div className="pn-sep" role="separator" />}
+                {/* A new block starts with its name, or a rule when it has none.
+                    The small bar has no room for a name and draws it as a rule. */}
+                {i > 0 && sections[i - 1].group !== s.group && (BLOCK_NAME[s.group]
+                  ? <div className="pn-gh">{BLOCK_NAME[s.group]}</div>
+                  : <div className="pn-sep" role="separator" />)}
                 <Link
                   href={s.href}
                   className={`pn-btn${on ? " on" : ""}${shut ? " shut" : ""}`}

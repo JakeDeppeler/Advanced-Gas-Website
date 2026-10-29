@@ -27,7 +27,7 @@ export type AutoSwitches = Record<AutoKey, boolean> & {
   notifyTo: string | null;
 };
 
-/** Where "it's done" notices go until someone sets the address on Settings › Automatic. */
+/** Where "it's done" notices go until someone sets the address on To order › Automation. */
 export const NOTIFY_DEFAULT = "jake@advancedgas.com.au";
 const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck"];
 
