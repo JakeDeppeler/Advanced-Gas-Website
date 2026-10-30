@@ -11,6 +11,7 @@ type Details = {
   splitBrand?: string[]; splitStyle?: string[]; splitHeadConfig?: Record<string, number>; splitSize?: string[];
   ductedSize?: string[]; ductedZones?: string[]; ductedTablet?: string;
   svcType?: string[]; svcStories?: string;
+  finance?: string;
 };
 
 type Lead = {
@@ -63,6 +64,7 @@ const LABELS: Record<string, Record<string, string>> = {
     "ducted-air": "Ducted aircon", "evap": "Evaporative cooler",
   },
   svcStories: { single: "Single storey", double: "Double storey" },
+  finance: { yes: "Yes, wants interest-free", maybe: "Maybe, ask them", no: "No" },
 };
 
 function label(field: string, id: string) {
@@ -414,6 +416,8 @@ function renderInternalEmail(d: Lead, summary: string, photoCount: number): stri
     rows.push(["Appliance", labels("svcType", det.svcType) || "(unspecified)"]);
     rows.push(["Storeys",   det.svcStories ? label("svcStories", det.svcStories) : "(unknown)"]);
   }
+
+  if (det.finance) rows.push(["Interest-free", label("finance", det.finance)]);
 
   const rowsHtml = rows.map(([k, v]) => `
     <tr>
