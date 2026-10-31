@@ -3630,3 +3630,76 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .cl-manage > summary { flex-wrap: wrap; padding: 14px 16px; }
   .cl-manage > .pk { padding: 0 16px 16px; }
 }
+
+/* ------------------------------------------------- website leads: each form, tied to its job
+   The job box sits over the row's right end, outside its <summary>, so
+   typing in it doesn't open the row. */
+.wl-say { margin: 4px 0 12px; font-size: 14px; color: var(--ink2); }
+.wl-bad { color: var(--bad); font-weight: 600; }
+.wl { display: grid; gap: 12px; margin-bottom: 18px; }
+.wl-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.wl-chips a { padding: 8px 14px; border-radius: 99px; background: var(--surface); border: 1px solid var(--rp-line); font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.wl-chips a.on { background: var(--rp-on-bg, var(--ink)); color: var(--rp-on-ink, #fff); border-color: transparent; }
+.wl-card { padding: 4px 22px; }
+.pn .pk-card.wl-card { margin: 0; }
+.wl-list { list-style: none; margin: 0; padding: 0; }
+.wl-li { position: relative; border-top: 1px solid var(--rp-line); }
+.wl-list > .wl-li:first-child { border-top: 0; }
+.wl-d > summary { display: grid; grid-template-columns: minmax(0, 1.3fr) 150px minmax(0, 1fr) 270px; grid-template-areas: "who when pics ." "track track track track"; align-items: center; gap: 8px 16px; padding: 14px 0; cursor: pointer; list-style: none; }
+.wl-d > summary::-webkit-details-marker { display: none; }
+.wl-d > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 10px; }
+.wl-who { grid-area: who; display: grid; gap: 2px; min-width: 0; }
+.wl-who b { font-size: 15px; font-weight: 600; }
+.wl-who > span { font-size: 13px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl-when { grid-area: when; font-size: 13px; color: var(--ink2); }
+.wl-d > summary .wl-thumbs, .wl-d > summary .wl-nophoto { grid-area: pics; }
+.wl-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+.wl-thumbs a, .wl-thumbs .wl-ph { width: 38px; height: 38px; border-radius: 10px; overflow: hidden; background: var(--quiet); display: block; }
+.wl-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wl-thumbs.big a, .wl-thumbs.big .wl-ph { width: 132px; height: 100px; border-radius: 14px; }
+.wl-nophoto { font-size: 13px; color: var(--ink3); }
+.wl-track { grid-area: track; display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); align-items: start; gap: 6px 20px; }
+.wl-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.wl-steps li { display: grid; gap: 5px; font-size: 12px; color: var(--ink3); }
+.wl-steps i { display: block; height: 5px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.wl-steps li.on i { background: var(--ink); }
+.wl-steps li.on { color: var(--ink2); }
+.wl-steps li.at { color: var(--ink); font-weight: 600; }
+.wl-steps li.late i { background: var(--bad); }
+.wl-steps li.late { color: var(--bad); font-weight: 600; }
+.wl-lines { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 1px; }
+.wl-said { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink2); }
+.wl-said.bad { color: var(--bad); font-weight: 600; }
+.wl-right { position: absolute; top: 14px; right: 0; display: flex; justify-content: flex-end; }
+.wl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--surface); font-size: 13px; font-weight: 600; }
+.wl-link { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; max-width: 270px; }
+.wl-link input { width: 160px; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--surface); font: inherit; font-size: 13.5px; color: var(--ink); }
+.wl-link .pk-btn { padding: 8px 15px; font-size: 13px; }
+.wl-link em, .wl-btns em { flex: 1 1 100%; font-style: normal; font-size: 12px; color: var(--ink2); text-align: right; }
+.wl-link em.bad, .wl-btns em.bad { color: var(--bad); }
+.wl-li.linked .wl-right { top: 14px; }
+.wl-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; margin: 0 0 16px; padding: 18px 20px; border-radius: 18px; background: var(--ground, #ededec); }
+.wl-body h3 { margin: 0 0 10px; font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.wl-form { margin: 0; display: grid; gap: 8px; }
+.wl-form div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; font-size: 13.5px; }
+.wl-form dt { color: var(--ink2); font-weight: 600; font-size: 12.5px; }
+.wl-form dd { margin: 0; white-space: pre-line; }
+.wl-note { margin: 8px 0 0; font-size: 12.5px; color: var(--ink2); }
+.wl-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.wl-acts .pk-btn, .wl-btns .pk-btn { padding: 7px 13px; font-size: 13px; }
+.wl-btns { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.wl-more { padding: 6px 0 12px; }
+.wl-more > summary { display: inline-block; padding: 8px 14px; border-radius: 99px; background: var(--quiet); font-size: 13px; font-weight: 600; cursor: pointer; list-style: none; }
+.wl-more > summary::-webkit-details-marker { display: none; }
+.wl-more[open] > summary { display: none; }
+.wl-empty { margin: 0; padding: 18px 0; font-size: 13.5px; color: var(--ink3); }
+@media (max-width: 1000px) {
+  .wl-d > summary { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who ." "when when" "pics pics" "track track"; padding-right: 0; }
+  .wl-right { position: static; justify-content: flex-start; padding: 0 0 12px; }
+  .wl-link { justify-content: flex-start; max-width: none; }
+  .wl-link em, .wl-btns em { text-align: left; }
+  .wl-track { grid-template-columns: minmax(0, 1fr); }
+  .wl-body { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) { .wl-card { padding: 4px 14px; } .wl-form div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.wl-retry { padding: 4px 11px !important; font-size: 12.5px !important; }
