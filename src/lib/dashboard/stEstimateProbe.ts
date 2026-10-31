@@ -112,7 +112,47 @@ export async function probeJobHistory(jobIds: number[]): Promise<Record<string, 
  * their status, and the shape of what they hold. Field names and types only,
  * never the answers, which can be anything a tech wrote about a customer.
  */
-export async function probeForms(match: string): Promise<{ forms?: unknown; submissions?: unknown; error?: string }> {
+const cut = (v: unknown) => (typeof v === "string" ? (v.length > 60 ? `${v.slice(0, 60)}…` : v) : v);
+
+/** A submission's units as a tree: names and types whole, answers cut to 60 characters, attachments as their first one's keys. */
+function shapeUnits(v: unknown, depth: number): unknown {
+  if (!Array.isArray(v) || depth > 4) return v == null ? null : typeof v;
+  return v.slice(0, 40).map((u: Record<string, unknown>) => {
+    const att = Array.isArray(u.attachments) ? u.attachments as unknown[] : null;
+    const first = att?.[0];
+    return {
+      name: u.name, type: u.type,
+      value: Array.isArray(u.value) ? (u.value as unknown[]).slice(0, 5).map(cut) : u.value && typeof u.value === "object" ? Object.keys(u.value as object) : cut(u.value),
+      comment: cut(u.comment),
+      attachments: att == null ? null : { count: att.length, first: first && typeof first === "object" ? Object.fromEntries(Object.entries(first as Record<string, unknown>).map(([k, x]) => [k, cut(x)])) : cut(first) },
+      keys: Object.keys(u).filter((k) => !["name", "type", "value", "comment", "attachments", "id", "units"].includes(k)),
+      ...(u.units != null ? { units: shapeUnits(u.units, depth + 1) } : {}),
+    };
+  });
+}
+
+/** Whether the list can be asked for one job's reports, or has to be read whole and sorted here. */
+async function tryOwnerFilter(formIds: string[], done: Record<string, unknown>): Promise<unknown> {
+  const job = (done.owners as Array<{ type?: string; id?: number }> | undefined)?.find((o) => o.type === "Job")?.id;
+  if (!job) return "no job owner";
+  const tries: Record<string, Record<string, string>> = {
+    "owners[0]": { "owners[0].type": "Job", "owners[0].id": String(job) },
+    ownerIds: { ownerType: "Job", ownerIds: String(job) },
+  };
+  const out: Record<string, unknown> = {};
+  for (const [k, extra] of Object.entries(tries)) {
+    try {
+      const r = await stFetch<{ data?: Array<{ owners?: Array<{ type?: string; id?: number }> }> }>(stTenantPath("forms", "submissions"), { formIds: formIds.join(","), pageSize: "50", ...extra });
+      const rows = r.data ?? [];
+      out[k] = { returned: rows.length, allThisJob: rows.every((x) => (x.owners ?? []).some((o) => o.type === "Job" && o.id === job)) };
+    } catch (e) {
+      out[k] = { error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+    }
+  }
+  return out;
+}
+
+export async function probeForms(match: string): Promise<{ forms?: unknown; sample?: unknown; ownerFilter?: unknown; submissions?: unknown; error?: string }> {
   const re = new RegExp(match.replace(/[^a-z0-9 ]/gi, "").trim() || "condition", "i");
   let forms: Array<Record<string, unknown>>;
   try {
@@ -127,8 +167,13 @@ export async function probeForms(match: string): Promise<{ forms?: unknown; subm
   try {
     const r = await stFetch<{ data?: Array<Record<string, unknown>>; totalCount?: number }>(stTenantPath("forms", "submissions"), { formIds: ids.join(","), pageSize: "5", includeTotal: "true" });
     const rows = r.data ?? [];
+    const done = rows.find((x) => x.status === "Completed");
     return {
       forms: named,
+      // One completed report laid out field by field, to build the work
+      // order's PDF from: answers cut short, attachments by their keys.
+      sample: done ? { id: done.id, units: shapeUnits(done.units, 0) } : null,
+      ownerFilter: done ? await tryOwnerFilter(ids, done) : null,
       submissions: {
         total: r.totalCount ?? null,
         fields: [...new Set(rows.flatMap((x) => paths(x)))],

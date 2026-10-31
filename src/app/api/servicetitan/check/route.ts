@@ -29,6 +29,8 @@ export const maxDuration = 60;
 // ?forms=<name> lists the tenant's forms and the shape of the newest
 // submissions of those matching the name (probeForms): whether a work order
 // can carry the job's Condition Report.
+// It also lays out one completed report field by field, answers cut short,
+// and tries filtering the list to one job.
 
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) {
