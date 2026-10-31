@@ -752,3 +752,19 @@ export const TOOLS: { t: string; s: string; href: string }[] = [
   { t: "Gas vs reverse-cycle", s: "Which heats your home for less", href: "/tools/heating-comparator" },
   { t: "Fault code lookup", s: "What the error on the screen means", href: "/tools/fault-codes" },
 ];
+
+/**
+ * The /find product page a catalogue model belongs to, for redirecting the
+ * old model pages (/brands/<brand>/<product>) there with that size picked.
+ * A model in more than one option goes to the first, which is the Cooling
+ * one for a split. Null for a model no option uses.
+ */
+export function productPageFor(brand: string, product: string): string | null {
+  for (const [key, refs] of Object.entries(TIER_MODELS)) {
+    if (refs.some(([b, p]) => b === brand && p === product)) {
+      const [sys, tier] = key.split(".");
+      return `/find/${sys}/${tier}?model=${product}`;
+    }
+  }
+  return null;
+}
