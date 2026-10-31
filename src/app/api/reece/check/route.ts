@@ -13,6 +13,16 @@ export const maxDuration = 60;
 //
 //   curl -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/reece/check
 
+/** Reece's own words from an error body ({"errors":[{"message":…}]}), or nothing. */
+function reeceSaid(body: string): string {
+  try {
+    const m = (JSON.parse(body) as { errors?: { message?: string }[] }).errors?.map((e) => e.message).filter(Boolean).join("; ");
+    return (m ?? "").slice(0, 200);
+  } catch {
+    return "";
+  }
+}
+
 type Stage = { stage: string; status: "ok" | "failed" | "skipped"; detail?: string; fix?: string };
 
 export async function GET(req: Request) {
@@ -61,7 +71,9 @@ export async function GET(req: Request) {
   const probes: Array<{ stage: string; path: string; params?: Record<string, string>; accept?: string; okStatuses?: number[]; usedFor: string }> = [
     { stage: "branches", path: "branches", usedFor: "pickup branch list for orders" },
     { stage: "search", path: "product-gateway/search", params: { searchPhrase: "copper", pageSize: "1" }, usedFor: "item search while quoting" },
-    { stage: "price-file", path: "price-gateway/price-file", params: { format: "MAX_CSV" }, accept: "text/csv", okStatuses: [200, 204], usedFor: "nightly catalogue pull" },
+    // JSON allowed as well as CSV, as the nightly pull asks: Reece writes its
+    // refusals as JSON, and with CSV alone it answers 406 instead of the 403.
+    { stage: "price-file", path: "price-gateway/price-file", params: { format: "MAX_CSV" }, accept: "text/csv, application/json", okStatuses: [200, 204], usedFor: "nightly catalogue pull" },
     { stage: "invoices", path: "invoice-gateway/invoice-headers", params: { documentTypes: "TAX_INVOICE", fromDate: new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10), toDate: new Date().toISOString().slice(0, 10) }, usedFor: "invoice sync" },
   ];
 
@@ -70,9 +82,11 @@ export async function GET(req: Request) {
     try {
       const res = await reeceRequest(p.path, { params: p.params, accept: p.accept });
       const ok = (p.okStatuses ?? [200]).includes(res.status);
-      // The body is read only to discard it; a price file can be large and
-      // nothing here needs its contents.
-      await res.text().catch(() => "");
+      // A price file can be large and nothing here needs it; a refusal is
+      // short and says why ("not authorized to access any customers"), so
+      // that is kept for the report.
+      const text = await res.text().catch(() => "");
+      const body = ok ? "" : text.slice(0, 300);
       if (ok) {
         stages.push({ stage: p.stage, status: "ok", detail: res.status === 204 ? "reachable, no price file generated yet" : `HTTP ${res.status}` });
       } else {
@@ -80,7 +94,7 @@ export async function GET(req: Request) {
         stages.push({
           stage: p.stage,
           status: "failed",
-          detail: `HTTP ${res.status} (${p.usedFor})`,
+          detail: `HTTP ${res.status} (${p.usedFor})${reeceSaid(body) ? `: ${reeceSaid(body)}` : ""}`,
           fix:
             res.status === 403 || res.status === 401
               ? "Reece has not enabled this capability for the app, or the customer number is not linked to it. Ask ConnectingCustomers@reece.com.au."
