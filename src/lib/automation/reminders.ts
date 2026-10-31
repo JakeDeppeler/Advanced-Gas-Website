@@ -22,7 +22,7 @@ import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, isAccountList, 
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, addDays, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
 import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
-import { clearApprovedQuoteTags } from "./quoteTag";
+import { syncQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
 import { getTodo, updateTodo } from "@/lib/todos/store";
 import { isSold } from "@/lib/pipeline/types";
@@ -812,7 +812,7 @@ export async function runAutomations(): Promise<{ ran: string[]; failed: string[
   try {
     // The quote tags first and inside the same claim: it keeps its own marks
     // in the same "already done" list, which is read fresh after it.
-    const quoteTags = await clearApprovedQuoteTags().catch((e: Error) => ({ removed: 0, failed: 1, skipped: e.message }));
+    const quoteTags = await syncQuoteTags().catch((e: Error) => ({ changed: 0, failed: 1, skipped: e.message }));
     return { ...(await runAll()), quoteTags };
   } finally {
     await release();
