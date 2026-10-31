@@ -341,21 +341,21 @@ async function quoteFollow(ctx: Ctx, pipe: PipeQuote[], state: MirrorState) {
 /**
  * Quoting: a quote visit that's been done with no quote written for it. Read
  * off ServiceTitan's jobs: a Quotation job completed in the last 30 days with
- * no estimate on it, on another job in its project, or on the customer since
- * the visit. Comes off once there is one, and Follow up takes it from there.
+ * no estimate on it, on another job in its project, or on the customer at the
+ * same address since the visit. Comes off once there is one, and Follow up takes it from there.
  */
 async function quoteToWrite(ctx: Ctx, state: MirrorState) {
   const list = ctx.lists.find((l) => /quot|sales/i.test(l)) ?? null;
   const since = new Date(Date.now() - 30 * DAY).toISOString();
-  const jobs = await sbSelect<{ id: number; job_number: string | null; customer_name: string | null; completed_on: string | null; pid: string | null; cid: number | null; suburb: string | null }>("st_jobs",
-    `select=id,job_number,customer_name,completed_on,pid:raw->>projectId,cid:customer_id,suburb&job_type=ilike.quotation*&status=eq.Completed&completed_on=gte.${encodeURIComponent(since)}&limit=300`);
+  const jobs = await sbSelect<{ id: number; job_number: string | null; customer_name: string | null; completed_on: string | null; pid: string | null; cid: number | null; loc: number | null; suburb: string | null }>("st_jobs",
+    `select=id,job_number,customer_name,completed_on,pid:raw->>projectId,cid:customer_id,loc:location_id,suburb&job_type=ilike.quotation*&status=eq.Completed&completed_on=gte.${encodeURIComponent(since)}&limit=300`);
   const ids = jobs.map((j) => j.id);
   const pids = [...new Set(jobs.map((j) => j.pid).filter((v): v is string => !!v))];
   const cids = [...new Set(jobs.map((j) => j.cid).filter((v): v is number => v != null))];
   const [onJob, projJobs, onCust] = await Promise.all([
     ids.length ? sbSelect<{ job_id: number }>("st_estimates", `select=job_id&job_id=in.(${ids.join(",")})`) : Promise.resolve([]),
     pids.length ? sbSelect<{ id: number; pid: string }>("st_jobs", `select=id,pid:raw->>projectId&raw->>projectId=in.(${pids.join(",")})`) : Promise.resolve([]),
-    cids.length ? sbSelect<{ customer_id: number; created_on: string | null }>("st_estimates", `select=customer_id,created_on&customer_id=in.(${cids.join(",")})&created_on=gte.${encodeURIComponent(since)}`) : Promise.resolve([]),
+    cids.length ? sbSelect<{ customer_id: number; created_on: string | null; loc: string | null }>("st_estimates", `select=customer_id,created_on,loc:raw->>locationId&customer_id=in.(${cids.join(",")})&created_on=gte.${encodeURIComponent(since)}`) : Promise.resolve([]),
   ]);
   const projIds = projJobs.map((j) => j.id).filter((id) => !ids.includes(id));
   const onProjJob = projIds.length ? await sbSelect<{ job_id: number }>("st_estimates", `select=job_id&job_id=in.(${projIds.join(",")})`) : [];
@@ -364,7 +364,8 @@ async function quoteToWrite(ctx: Ctx, state: MirrorState) {
   const items: MirrorItem[] = jobs.filter((j) => {
     if (quoted.has(Number(j.id)) || (j.pid && projQuoted.has(j.pid))) return false;
     const done = j.completed_on ? Date.parse(j.completed_on) - 3 * DAY : 0;
-    return !onCust.some((e) => Number(e.customer_id) === Number(j.cid) && e.created_on && Date.parse(e.created_on) >= done);
+    // Same address only: an agency's quote for another of its properties isn't this one's (quoteTag.ts).
+    return !onCust.some((e) => Number(e.customer_id) === Number(j.cid) && j.loc != null && Number(e.loc) === Number(j.loc) && e.created_on && Date.parse(e.created_on) >= done);
   }).map((j) => ({
     key: `j${j.id}`,
     title: `Write the quote for ${[j.customer_name ?? `job #${j.job_number ?? j.id}`, j.suburb].filter(Boolean).join(", ")}`,

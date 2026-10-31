@@ -45,7 +45,7 @@ export type Facts = {
   install: boolean;
   /** The job's own estimates, inactive ones left out. */
   ests: Est[];
-  /** A quote on another job in its project, or for the customer since the visit. */
+  /** A quote on another job in its project, or for the customer at the same address since the visit. */
   quotedElsewhere: boolean;
   /** The latest visit that's started, cancelled ones aside. */
   lastVisit: string | null;

@@ -13,7 +13,7 @@ const DAY = 86_400_000;
 /** Most pressing first: a sale waiting to be booked, then a quote written, then one to write, then tidying up. "sent" is never reached here: the office sets it. */
 const ORDER: Stage[] = ["toBook", "draft", "toQuote", "done"];
 
-type Job = { id: number; job_number: string | null; job_type: string | null; status: string | null; customer_id: number | null; pid: string | null; tags: number[] | null };
+type Job = { id: number; job_number: string | null; job_type: string | null; status: string | null; customer_id: number | null; loc: number | null; pid: string | null; tags: number[] | null };
 type EstRow = { id: number; job_id: number; customer_id: number | null; status: string | null; subtotal: number | null; created_on: string | null; sold_on: string | null; modified: string | null; active: string | null };
 
 const inList = (col: string, xs: (number | string)[]) => `${col}=in.(${xs.join(",")})`;
@@ -74,7 +74,7 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
   const quoteVisit = (j: Job) => /^(quotation|site assessment|diagnos)/i.test((j.job_type ?? "").trim());
   const visited = new Set(visits.filter((v) => v.status !== "Canceled").map((v) => Number(v.job_id)));
   const wanted = new Set([...tagged.map((r) => Number(r.id)), ...written.map((r) => Number(r.job_id)), ...sold.map((r) => Number(r.job_id))]);
-  const jobs = (await many<Job>("st_jobs", "id,job_number,job_type,status,customer_id,pid:raw->>projectId,tags:raw->tagTypeIds", "id", [...new Set([...wanted, ...visited])].filter((n) => n > 0)))
+  const jobs = (await many<Job>("st_jobs", "id,job_number,job_type,status,customer_id,loc:location_id,pid:raw->>projectId,tags:raw->tagTypeIds", "id", [...new Set([...wanted, ...visited])].filter((n) => n > 0)))
     .filter((j) => j.status !== "Canceled" && (wanted.has(Number(j.id)) || quoteVisit(j)));
   if (!jobs.length) return { changed: 0, failed: 0 };
   const jobIds = jobs.map((j) => Number(j.id));
@@ -125,7 +125,7 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
     const cids = [...new Set(toQuote.map((s) => s.j.customer_id).filter((c): c is number => c != null))];
     const [projJobs, custEsts] = await Promise.all([
       many<{ id: number; pid: string }>("st_jobs", "id,pid:raw->>projectId", "raw->>projectId", pids),
-      many<{ job_id: number | null; customer_id: number; created_on: string | null }>("st_estimates", "job_id,customer_id,created_on", "customer_id", cids, [q.gte("created_on", iso(now - (VISIT_DAYS + 3) * DAY))]),
+      many<{ job_id: number | null; customer_id: number; created_on: string | null; loc: string | null }>("st_estimates", "job_id,customer_id,created_on,loc:raw->>locationId", "customer_id", cids, [q.gte("created_on", iso(now - (VISIT_DAYS + 3) * DAY))]),
     ]);
     const projEsts = await many<{ job_id: number }>("st_estimates", "job_id", "job_id", projJobs.map((p) => Number(p.id)));
     const quotedJobs = new Set(projEsts.map((e) => Number(e.job_id)));
@@ -134,8 +134,13 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
       const own = Number(s.j.id);
       // Three days' grace before the visit, as quoteToWrite: a quote is sometimes started from the booking.
       const from = Date.parse(s.f.lastVisit ?? "") - 3 * DAY;
+      // The customer's quote counts only at the same address. An agency is one
+      // customer with hundreds of properties: Barry Plant – Bayside's quotes for
+      // other houses that week kept job 20721 (a Diagnostics at Seaford, 31 Oct)
+      // from ever getting Quotation Required, and 25 others like it.
       const elsewhere = (!!s.j.pid && projJobs.some((p) => p.pid === s.j.pid && Number(p.id) !== own && quotedJobs.has(Number(p.id))))
-        || custEsts.some((e) => Number(e.job_id) !== own && Number(e.customer_id) === Number(s.j.customer_id) && Date.parse(e.created_on ?? "") >= from);
+        || custEsts.some((e) => Number(e.job_id) !== own && Number(e.customer_id) === Number(s.j.customer_id)
+          && s.j.loc != null && Number(e.loc) === Number(s.j.loc) && Date.parse(e.created_on ?? "") >= from);
       if (elsewhere) s.stage = stageOf({ ...s.f, quotedElsewhere: true }, now);
     }
   }
