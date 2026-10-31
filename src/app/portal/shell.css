@@ -3317,3 +3317,120 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .fo-mk.lower { background: none; border-left: 2px dotted var(--ink); width: 0; margin-left: -1px; }
 .fo-leg i.mk.lower { background: none; border-left: 2px dotted var(--ink); width: 0; border-radius: 0; height: 12px; }
 .fo-hh .pk-st { margin-left: auto; }
+
+/* ------------------------------------------------- automations, as rows
+   To order › Automation and Settings › Automatic. One row each: icon, name
+   and a line, where it stands, the switch, a chevron. The rest folds under.
+   The switch sits over the row's right end, outside its <summary>, so
+   flicking it doesn't open the row too. */
+.ar-page { display: grid; gap: 16px; min-width: 0; }
+.ar-page > .pk { margin-bottom: 0; }
+.ar-donebtn { gap: 7px; font-size: 13.5px; }
+.ar-b { padding: 7px 13px; font-size: 13px; }
+.au-sorted { display: inline-flex; align-items: center; gap: 8px; }
+.au-sorted em { font-style: normal; font-size: 12px; color: var(--bad); }
+
+.ar-card { padding: 6px 24px 10px; }
+.ar-g + .ar-g { margin-top: 6px; }
+.ar-gh { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 16px 0 6px; }
+.ar-gh h2, .ar-gh span { margin: 0; font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.ar-gi { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 0 0 10px; font-size: 13px; color: var(--ink2); }
+
+.ar { position: relative; border-top: 1px solid var(--rp-line); }
+.ar-g .ar:first-of-type, .ar-gi + .ar { border-top-color: transparent; }
+.ar-d > summary, .ar-link {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) minmax(0, 250px) 92px 18px; align-items: center; gap: 14px;
+  padding: 12px 0; cursor: pointer; list-style: none; color: inherit; text-decoration: none;
+}
+.ar-d > summary::-webkit-details-marker { display: none; }
+.ar-d > summary:focus-visible, .ar-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 12px; }
+.ar-link { grid-template-columns: 36px minmax(0, 1fr) 18px; }
+.ar-ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--rp-line); color: var(--ink); }
+.ar-ic.bad { background: var(--bad-bg); border-color: transparent; color: var(--bad); }
+.ar-t { display: grid; gap: 2px; min-width: 0; }
+.ar-t b { font-size: 15px; font-weight: 600; color: var(--ink); }
+.ar-t span { font-size: 13px; color: var(--ink2); line-height: 1.45; }
+.ar-st { font-size: 13px; color: var(--ink2); text-align: right; line-height: 1.35; }
+.ar-st.bad { color: var(--bad); font-weight: 600; }
+.ar-d > summary .ar-chev { grid-column: 5; }
+.ar-chev { width: 8px; height: 8px; border-right: 1.8px solid var(--ink3); border-bottom: 1.8px solid var(--ink3); transform: rotate(-45deg); justify-self: center; transition: transform .15s; }
+.ar-d[open] .ar-chev { transform: rotate(45deg); }
+.ar.off .ar-t, .ar.off .ar-ic { opacity: .6; }
+.ar-sw { position: absolute; top: 18px; right: 32px; }
+.ar-sw .au-sw { min-width: 74px; }
+.ar-sw .au-on { display: inline-block; min-width: 74px; padding-top: 3px; }
+
+.ar-body { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 26px; margin: 0 0 14px 50px; padding: 18px 20px; border-radius: 18px; background: var(--ground, #ededec); }
+.ar-body.two { grid-template-columns: 1.4fr 1fr; }
+.ar-col { min-width: 0; }
+.ar-col h3, .ar-below h3 { margin: 0 0 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.ar-col p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.55; color: var(--ink2); }
+.ar-col p b { color: var(--ink); font-weight: 600; }
+.ar-note { font-size: 12.5px !important; color: var(--ink3) !important; }
+.ar-set { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 14px; padding: 9px 0; border-top: 1px solid var(--rp-line); }
+.ar-set:first-of-type { border-top: 0; padding-top: 0; }
+.ar-set > span:first-child { display: grid; gap: 2px; min-width: 0; flex: 1 1 180px; }
+.ar-set b { font-size: 14px; font-weight: 600; }
+.ar-set > span:first-child > span { font-size: 12.5px; color: var(--ink2); line-height: 1.4; }
+.ar-set .au-notify { flex: 1 1 100%; }
+.ar-set .au-notify input { flex: 1 1 auto; min-width: 0; }
+.ar-runs { list-style: none; margin: 0 0 6px; padding: 0; }
+.ar-runs li { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--rp-line); }
+.ar-runs li:first-child { border-top: 0; padding-top: 0; }
+.ar-runs em { font-style: normal; font-size: 12px; color: var(--ink3); }
+.ar-runs b { font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+.ar-runs b span { color: var(--good); }
+.ar-runs li.bad b, .ar-runs li.bad b span { color: var(--bad); }
+.ar-all { font-size: 13px; font-weight: 600; color: var(--ink); }
+.ar-below { grid-column: 1 / -1; border-top: 1px solid var(--rp-line); padding-top: 14px; }
+.ar-below .au-rules { margin: 0; padding: 0; border: 0; }
+
+/* Needs a look: dashed in the status red, so it reads as something to do,
+   not one more card. */
+.pn .pk-card.ar-look, .pk-card.ar-look { padding: 18px 24px 8px; border: 1.5px dashed var(--bad); }
+.ar-page .pk-sub .b { color: var(--bad); font-weight: 600; }
+.ar-older { margin-top: 4px; }
+.ar-older > summary { display: inline-block; padding: 10px 0 2px; font-size: 13px; font-weight: 600; cursor: pointer; list-style: none; }
+.ar-older > summary::-webkit-details-marker { display: none; }
+.ar-older > summary::after { content: " ›"; }
+.ar-older[open] > summary { display: none; }
+.ar-lookh { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; padding-bottom: 10px; border-bottom: 1px solid var(--rp-line); }
+.ar-lookh h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.ar-lookh span { font-size: 12.5px; color: var(--ink3); }
+.ar-lg { padding: 12px 0 6px; }
+.ar-lg + .ar-lg { border-top: 1px solid var(--rp-line); }
+.ar-lgh { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.ar-lgh b { font-size: 15px; font-weight: 600; }
+.ar-lgh .ar-n { font-size: 13px; color: var(--bad); font-weight: 600; margin-right: auto; }
+.ar-ll { list-style: none; margin: 6px 0 0 48px; padding: 0; }
+.ar-ll li { display: flex; justify-content: space-between; align-items: center; gap: 10px 16px; padding: 10px 0; border-top: 1px solid var(--rp-line); }
+.ar-ll li:first-child { border-top: 0; }
+.ar-lt { display: grid; gap: 2px; min-width: 0; }
+.ar-lt b { font-size: 14px; font-weight: 600; }
+.ar-lt span { font-size: 13px; color: var(--ink2); line-height: 1.45; }
+.ar-lt em { font-style: normal; font-size: 12px; color: var(--ink3); }
+.ar-la { display: flex; align-items: center; gap: 8px; flex: none; }
+.ar-more { margin: 0 0 6px 48px; }
+.ar-more > summary { display: inline-block; padding: 6px 0; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer; list-style: none; }
+.ar-more > summary::-webkit-details-marker { display: none; }
+.ar-more > summary::after { content: " ›"; }
+.ar-more[open] > summary::after { content: " ⌄"; }
+.ar-more .ar-ll { margin-left: 0; }
+
+@media (max-width: 900px) {
+  .ar-body, .ar-body.two { grid-template-columns: 1fr; gap: 18px; margin-left: 0; }
+}
+/* Phones: the status drops under the name, and the name keeps clear of
+   the switch over the row's right end. */
+@media (max-width: 640px) {
+  .ar-card { padding: 4px 16px 8px; }
+  .ar-d > summary { grid-template-columns: 36px minmax(0, 1fr) 0; gap: 4px 12px; padding-right: 84px; }
+  .ar-d > summary { align-items: start; }
+  .ar-d > summary .ar-st { grid-column: 2; text-align: left; margin-right: -84px; }
+  .ar-d > summary .ar-chev { display: none; }
+  .pn .pk-card.ar-look, .pk-card.ar-look { padding: 16px 16px 6px; }
+  .ar-sw { right: 0; top: 14px; }
+  .ar-sw .au-sw, .ar-sw .au-on { min-width: 0; }
+  .ar-ll, .ar-more { margin-left: 0; }
+  .ar-ll li { flex-direction: column; align-items: flex-start; }
+}

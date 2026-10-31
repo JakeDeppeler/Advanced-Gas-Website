@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setAuto, setNotifyTo, setOfficeTo } from "@/app/portal/automatic/actions";
+import { markSorted, setAuto, setNotifyTo, setOfficeTo } from "@/app/portal/automatic/actions";
 import type { AutoKey } from "@/lib/automation/log";
 
 /** On or off, said in words beside the switch. */
@@ -22,6 +22,23 @@ export function AutoSwitch({ k, on, canEdit, label }: { k: AutoKey; on: boolean;
       <span>{v ? "On" : "Off"}</span>
       {err && <em>{err}</em>}
     </label>
+  );
+}
+
+/** Takes a failure (or a group of them) off Needs a look, once it's been dealt with by hand. */
+export function MarkSorted({ keys, label = "Sorted", what }: { keys: string[]; label?: string; what: string }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <span className="au-sorted">
+      <button type="button" className="pk-btn g ar-b" disabled={pending} aria-label={`${label}: ${what}`} onClick={() => start(async () => {
+        const r = await markSorted(keys);
+        if (!r.ok) setErr(r.error ?? "Couldn't save.");
+        router.refresh();
+      })}>{pending ? "Saving…" : label}</button>
+      {err && <em>{err}</em>}
+    </span>
   );
 }
 
