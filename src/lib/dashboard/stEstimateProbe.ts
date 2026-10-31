@@ -104,3 +104,41 @@ export async function probeJobHistory(jobIds: number[]): Promise<Record<string, 
   }
   return out;
 }
+
+/**
+ * Can the portal read a completed form, so a work order can carry the job's
+ * Condition Report (Jake, 31 Oct)? Lists the tenant's forms by name, then the
+ * newest few submissions of those whose name matches: who they belong to,
+ * their status, and the shape of what they hold. Field names and types only,
+ * never the answers, which can be anything a tech wrote about a customer.
+ */
+export async function probeForms(match: string): Promise<{ forms?: unknown; submissions?: unknown; error?: string }> {
+  const re = new RegExp(match.replace(/[^a-z0-9 ]/gi, "").trim() || "condition", "i");
+  let forms: Array<Record<string, unknown>>;
+  try {
+    const r = await stFetch<{ data?: Array<Record<string, unknown>> }>(stTenantPath("forms", "forms"), { pageSize: "200" });
+    forms = r.data ?? [];
+  } catch (e) {
+    return { error: `forms: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
+  }
+  const named = forms.map((f) => ({ id: f.id, name: f.name, active: f.active, published: f.published ?? f.status ?? null }));
+  const ids = forms.filter((f) => re.test(String(f.name ?? ""))).map((f) => String(f.id));
+  if (!ids.length) return { forms: named, submissions: "no form name matched" };
+  try {
+    const r = await stFetch<{ data?: Array<Record<string, unknown>>; totalCount?: number }>(stTenantPath("forms", "submissions"), { formIds: ids.join(","), pageSize: "5", includeTotal: "true" });
+    const rows = r.data ?? [];
+    return {
+      forms: named,
+      submissions: {
+        total: r.totalCount ?? null,
+        fields: [...new Set(rows.flatMap((x) => paths(x)))],
+        each: rows.map((x) => ({
+          id: x.id, formId: x.formId, status: x.status, submittedOn: x.submittedOn ?? x.createdOn ?? null,
+          owners: Array.isArray(x.owners) ? (x.owners as Array<Record<string, unknown>>).map((o) => ({ type: o.type, id: o.id })) : null,
+        })),
+      },
+    };
+  } catch (e) {
+    return { forms: named, error: `submissions: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
+  }
+}

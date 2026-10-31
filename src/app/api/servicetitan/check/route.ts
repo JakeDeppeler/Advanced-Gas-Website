@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { checkServiceTitan } from "@/lib/dashboard/stCheck";
-import { probeEstimates, probeJobHistory } from "@/lib/dashboard/stEstimateProbe";
+import { probeEstimates, probeForms, probeJobHistory } from "@/lib/dashboard/stEstimateProbe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +25,10 @@ export const maxDuration = 60;
 //
 // ?job=<id>,<id> lists the kinds of event in those jobs' history
 // (probeJobHistory): whether ServiceTitan records a quote being sent.
+//
+// ?forms=<name> lists the tenant's forms and the shape of the newest
+// submissions of those matching the name (probeForms): whether a work order
+// can carry the job's Condition Report.
 
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) {
@@ -35,6 +39,8 @@ export async function GET(req: Request) {
   if (ids.length) return NextResponse.json({ estimates: await probeEstimates(ids) });
   const jobs = (new URL(req.url).searchParams.get("job") ?? "").split(",").map((x) => x.trim()).filter((x) => /^\d{1,12}$/.test(x)).slice(0, 5).map(Number);
   if (jobs.length) return NextResponse.json({ jobs: await probeJobHistory(jobs) });
+  const forms = new URL(req.url).searchParams.get("forms");
+  if (forms) return NextResponse.json({ forms: await probeForms(forms) });
 
   const report = await checkServiceTitan();
   return NextResponse.json(report);
