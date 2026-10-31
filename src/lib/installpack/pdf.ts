@@ -36,7 +36,7 @@ const MISSING = rgb(194 / 255, 32 / 255, 42 / 255);
  * pasted into it. A character the font can't draw becomes "?" rather than
  * failing the pack.
  */
-function drawable(font: PDFFont, s: string): string {
+export function drawable(font: PDFFont, s: string): string {
   let out = "";
   for (const ch of s.replace(/\t/g, "    ")) {
     try { font.encodeText(ch); out += ch; } catch { out += "?"; }
@@ -44,7 +44,7 @@ function drawable(font: PDFFont, s: string): string {
   return out;
 }
 
-function wrap(font: PDFFont, size: number, text: string, width: number): string[] {
+export function wrap(font: PDFFont, size: number, text: string, width: number): string[] {
   const out: string[] = [];
   // Split before cleaning: a newline isn't in the font, and would print as "?".
   for (const para of text.split("\n").map((t) => drawable(font, t))) {
@@ -77,7 +77,7 @@ export type PackMeta = {
  * else's bytes and stops at "SOI not found in JPEG". On 28 Oct that failed
  * seven packs in a row on the server while every local render passed.
  */
-const own = (bytes: Uint8Array) => (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice());
+export const own = (bytes: Uint8Array) => (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice());
 
 export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
