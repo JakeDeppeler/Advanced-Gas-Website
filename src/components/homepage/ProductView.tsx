@@ -8,7 +8,7 @@ import {
   modelForAnswer, installTime as installTimeOf, type Answers,
 } from "@/lib/homepage/data";
 import type { PV } from "./product/parts";
-import { LOOKS, LookGuide, LookShowroom, LookMagazine, LookSpecSheet, LookBento } from "./product/looks";
+import { LOOKS, LookGuide, LookShowroom, LookMix } from "./product/looks";
 import { LEARN, BOOKING_STEPS } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
@@ -34,7 +34,7 @@ export type PBrand = { name: string; page?: string; site?: { label: string; href
  * indexed. The answers ride along in the query string (?size=1&floor=0…);
  * the page renders without them too, for anyone who lands here from search.
  *
- * ?look=1…5 picks one of five layouts while Jake chooses between them.
+ * ?look=1…3 picks a layout while Jake chooses between them.
  */
 export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand, hero, tierBadges }: {
   system: string; tier: string; reviews: Review[]; rating: string; count: number; models: PModel[]; brand: PBrand | null;
@@ -133,7 +133,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     reviews, rating, count, brand, heroRef, pastHero,
   };
 
-  const Look = [LookGuide, LookShowroom, LookMagazine, LookSpecSheet, LookBento][look - 1] ?? LookGuide;
+  const Look = [LookGuide, LookShowroom, LookMix][look - 1] ?? LookGuide;
 
   return (
     <div className="pp px" id="product">
