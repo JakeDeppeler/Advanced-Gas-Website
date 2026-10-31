@@ -58,13 +58,14 @@ export function Pill({ st }: { st: Status }) {
 }
 
 /** The page's title and the line under it; "What does this mean?" opens the plain words. */
-export function Head({ title, sub, info }: { title: string; sub?: ReactNode; info?: [string, ReactNode][] }) {
+export function Head({ title, sub, info, action }: { title: string; sub?: ReactNode; info?: [string, ReactNode][]; action?: ReactNode }) {
   return (
     <div className="pk-head">
       <div>
         {title && <h1>{title}</h1>}
         {sub && <div className="pk-sub">{sub}</div>}
       </div>
+      {action}
       {info && info.length > 0 && (
         <details className="pk-info">
           <summary><span aria-hidden="true">i</span>What does this mean?</summary>

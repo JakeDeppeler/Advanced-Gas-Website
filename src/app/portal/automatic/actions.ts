@@ -40,6 +40,24 @@ export async function setNotifyTo(value: string): Promise<{ ok: boolean; error?:
 }
 
 /**
+ * Take failures off "Needs a look" once someone's dealt with them by hand:
+ * a tag taken off in ServiceTitan, a work order sent. The office's, since
+ * they're the ones who sort them. Keys are only ever the page's own, so
+ * anything that doesn't look like one is dropped.
+ */
+export async function markSorted(keys: string[]): Promise<{ ok: boolean; error?: string }> {
+  const me = await getPortalUser();
+  if (!me || !(can(me, "overhead") || can(me, "manage_users"))) return { ok: false, error: "Only the office can change this." };
+  const clean = keys.filter((k) => typeof k === "string" && /^[\w-]{1,40}\|[^|]{1,200}$/.test(k)).slice(0, 100);
+  if (!clean.length) return { ok: false, error: "Nothing to mark." };
+  const { markSortedKeys } = await import("@/lib/automation/log");
+  const r = await markSortedKeys(clean);
+  revalidatePath("/portal/automatic");
+  revalidatePath("/portal/supply/automation");
+  return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
+}
+
+/**
  * The quotes the old guess marked Awaiting Quote Approval: mark some still in
  * draft, or confirm them sent. The office's call, since only ServiceTitan's
  * quote screen shows the Draft tick. A slice at a time from the page, so a

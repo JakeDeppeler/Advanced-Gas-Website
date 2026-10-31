@@ -61,6 +61,32 @@ export async function logAuto(entries: AutoEntry[]) {
   await saveSettings(LOG, { entries: [...entries, ...cur].slice(0, KEEP) });
 }
 
+/* ------------------------------------------------------- sorted by hand */
+
+/**
+ * Failures someone has dealt with themselves, by the same key the "needs a
+ * look" list groups them under (kind and job), with when. A failure newer
+ * than its mark shows again: sorting one doesn't silence the next. Kept
+ * apart from the log because the sync rewrites the log on every run, and a
+ * mark written into it would race that.
+ */
+const SORTED = "automation_sorted";
+
+export async function loadSorted(): Promise<Record<string, string>> {
+  const s = await getSettings<{ keys?: Record<string, string> }>(SORTED).catch(() => null);
+  return s?.keys && typeof s.keys === "object" ? s.keys : {};
+}
+
+export async function markSortedKeys(keys: string[]) {
+  const cur = await loadSorted();
+  const now = new Date().toISOString();
+  // A fortnight is as far back as the list looks; older marks have nothing left to hide.
+  const cut = new Date(Date.now() - 15 * 86_400_000).toISOString();
+  const kept = Object.fromEntries(Object.entries(cur).filter(([, at]) => at >= cut));
+  for (const k of keys) kept[k] = now;
+  return saveSettings(SORTED, { keys: kept });
+}
+
 /* ----------------------------------------------------- what's been done */
 
 /**
