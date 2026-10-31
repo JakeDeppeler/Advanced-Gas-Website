@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addNote, removeNote, removeTopic, saveRecord, saveTopic, setSchedule, type ToolboxResult } from "@/app/portal/toolbox/actions";
-import { EVERY_WORDS, WEEKDAYS, talkName, type Every, type Schedule, type Session, type Topic } from "@/lib/toolbox/types";
+import { holdNote, newTopic, removeNote, removeTopic, saveRecord, setSchedule, bringBack, type ToolboxResult } from "@/app/portal/toolbox/actions";
+import { EVERY_SHORT, WEEKDAYS, talkName, timeWords, type Every, type Schedule, type Session, type Topic } from "@/lib/toolbox/types";
 
 const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).replace(",", "");
 const daysTo = (iso: string, today: string) => Math.round((Date.parse(`${iso}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
@@ -28,131 +28,191 @@ type Props = {
   sessions: Session[]; topics: Topic[]; people: string[]; me: string; canPlan: boolean;
 };
 
+const longDay = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).replace(",", "");
+/** Half-hours from 5 am to 6 pm: when a talk could reasonably start. */
+const TIMES = Array.from({ length: 27 }, (_, i) => `${String(5 + Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
+
 /**
- * Toolbox talks on a schedule: every week, fortnight or month on a weekday.
- * The next talk is up top with its notes (each a heading and what to say)
- * and, once it's been given, what was said: typed, or the transcript from an
- * AI note-taker. A note can go on this talk or the one after. Earlier talks
- * are a list underneath, each opening to its notes and record, and the topic
- * ideas are at the foot, each a press from becoming a note.
+ * Toolbox talks, kept to what's needed to run one: the next talk and its
+ * topics, the topics on hold for a later one, one form to write a topic
+ * (straight onto the next talk, or on hold), and a few settings. What was
+ * said at a talk is still kept, folded under the next talk and in the list
+ * of earlier ones: it's the record the crew was told.
  */
 export function ToolboxPlan({ schedule, today, current, next, earlier, sessions, topics, people, me, canPlan }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [draft, setDraft] = useState<{ head: string; text: string; on: string }>({ head: "", text: "", on: current });
+  const [draft, setDraft] = useState({ head: "", text: "" });
   useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(null), 4000); return () => clearTimeout(t); }, [msg]);
   const run = (fn: () => Promise<ToolboxResult>, ok: string, then?: () => void) =>
     start(async () => { const r = await fn(); setMsg(r.ok ? { ok: true, text: ok } : { ok: false, text: r.error ?? "Couldn't do that." }); if (r.ok) { then?.(); router.refresh(); } });
   const byDay = new Map(sessions.map((s) => [s.on, s]));
   const of = (on: string) => byDay.get(on) ?? empty(on);
   const name = (on: string) => talkName(schedule, on);
+  const cur = of(current);
+  const after = of(next);
+  const n = daysTo(current, today);
+  const at = timeWords(schedule.time);
+  const plan = [EVERY_SHORT[schedule.every], `${WEEKDAYS[schedule.day].slice(0, 3)}${at ? ` ${at}` : ""}`, schedule.runBy ? `${first(schedule.runBy)} runs it` : null, schedule.expected.length ? `${schedule.expected.length} expected` : "everyone expected"].filter(Boolean).join(" · ");
+  const set = (p: Partial<Pick<Schedule, "every" | "day" | "time" | "runBy" | "expected">>, ok: string) =>
+    run(() => setSchedule({ every: schedule.every, day: schedule.day, time: schedule.time, runBy: schedule.runBy, expected: schedule.expected, today, ...p }), ok);
+  const recorded = earlier.filter((on) => of(on).record).length;
 
   return (
-    <div className="tb2">
-      <section className="pk-card tb2-plan" aria-label="How often">
-        <span className="tb2-l">How often</span>
-        {canPlan ? (
-          <>
-            <span className="tb2-seg" role="group" aria-label="How often">
-              {(["week", "fortnight", "month"] as Every[]).map((e) => (
-                <button key={e} type="button" className={schedule.every === e ? "on" : undefined} aria-pressed={schedule.every === e} disabled={pending}
-                  onClick={() => run(() => setSchedule({ every: e, day: schedule.day, today }), `${EVERY_WORDS[e]} now.`)}>{EVERY_WORDS[e]}</button>
-              ))}
+    <div className="tb3">
+      <div className="tb3-col">
+        <section className="pk-card tb3-card" aria-labelledby="tb3-next">
+          <div className="tb3-nh">
+            <span>
+              <span className="tb3-l">Next talk</span>
+              <h2 id="tb3-next">{longDay(current)}{at ? `, ${at}` : ""}</h2>
+              <span className="tb3-sub">{plan}</span>
             </span>
-            <label className="tb2-day">
-              <span>{schedule.every === "month" ? "on the first" : "on"}</span>
-              <select id="tb2-day" value={schedule.day} disabled={pending} onChange={(e) => run(() => setSchedule({ every: schedule.every, day: Number(e.target.value), today }), "Day changed.")}>
-                {[1, 2, 3, 4, 5].map((d) => <option key={d} value={d}>{WEEKDAYS[d]}</option>)}
-              </select>
-            </label>
-          </>
-        ) : <b>{EVERY_WORDS[schedule.every]} {schedule.every === "month" ? "on the first" : "on"} {WEEKDAYS[schedule.day]}</b>}
-      </section>
+            <span className={`tb2-pill${n <= 1 ? " soon" : ""}${cur.record ? " done" : ""}`}>{cur.record ? "Recorded" : when(current, today)}</span>
+          </div>
+          <TopicRows s={cur} pending={pending} run={run} empty="Nothing on it yet. Write a topic on the right, or bring one back from On hold." />
+          {after.notes.length > 0 && (
+            <div className="tb3-after">
+              <span className="tb3-l">Already on the one after, {day(next)}</span>
+              <TopicRows s={after} pending={pending} run={run} empty="" />
+            </div>
+          )}
+          <details className="tb3-fold" open={!!cur.record || undefined}>
+            <summary>{cur.record ? `What was said · recorded${cur.who.length ? `, ${cur.who.length} there` : ""}` : "After the talk: what was said, and who was there"}</summary>
+            <RecordBox s={cur} people={people} me={me} pending={pending} run={run} />
+          </details>
+        </section>
 
-      <div className="tb2-two">
-        <div className="tb2-col">
-          <Talk s={of(current)} name={name(current)} today={today} big people={people} me={me} pending={pending} run={run} />
-          <Talk s={of(next)} name={name(next)} today={today} people={people} me={me} pending={pending} run={run} />
-        </div>
+        <section className="pk-card tb3-card" aria-labelledby="tb3-hold">
+          <h2 id="tb3-hold">On hold</h2>
+          <p className="tb3-sub">{topics.length ? `${topics.length} ${topics.length === 1 ? "topic" : "topics"} waiting` : "Nothing waiting. Put a topic on hold to keep it for a later talk."}</p>
+          {topics.length > 0 && (
+            <ul className="tb3-rows">
+              {topics.map((t) => (
+                <li key={t.id}>
+                  <span className="tb3-t"><b>{t.title}</b>{t.points.length > 0 && <span>{t.points.join(" · ")}</span>}</span>
+                  <span className="tb3-acts">
+                    <button type="button" className="pk-btn g tb3-b" disabled={pending} onClick={() => run(() => bringBack({ on: current, id: t.id }), `On the next talk: ${t.title}.`)}>Add to next talk</button>
+                    <button type="button" className="tb2-x" disabled={pending} aria-label={`Take "${t.title}" off`} title="Take it off for good"
+                      onClick={() => { if (confirm(`Take "${t.title}" off On hold for good?`)) run(() => removeTopic(t.id), "Taken off."); }}>×</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-        <div className="tb2-col">
-          <section className="pk-card tb2-add" aria-label="Add a note">
-            <h2>Add a note</h2>
-            <p className="tb2-sub">What you want to talk about, under a heading.</p>
-            <form onSubmit={(e) => { e.preventDefault(); run(() => addNote(draft), `Added to ${name(draft.on)}.`, () => setDraft({ head: "", text: "", on: draft.on })); }}>
-              <span className="tb2-for" role="group" aria-label="Which talk">
-                {[{ on: current, l: "This one" }, { on: next, l: "The one after" }].map((x) => (
-                  <button key={x.on} type="button" className={draft.on === x.on ? "on" : undefined} aria-pressed={draft.on === x.on} onClick={() => setDraft({ ...draft, on: x.on })}>
-                    <b>{x.l}</b><span>{name(x.on)}</span>
-                  </button>
-                ))}
-              </span>
-              <label className="qp-field"><span>Heading</span><input id="tb2-head" value={draft.head} onChange={(e) => setDraft({ ...draft, head: e.target.value })} maxLength={120} placeholder="e.g. Ladders on two-storey jobs" /></label>
-              <label className="qp-field"><span>The note</span><textarea id="tb2-text" rows={5} value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} maxLength={4000} placeholder="What happened, what to remind the crew of, what to ask them." /></label>
-              <button type="submit" className="qp-btn dark" disabled={pending || !draft.head.trim()}>Add to {draft.on === current ? "this talk" : "the one after"}</button>
-            </form>
-          </section>
-
-          <Topics topics={topics} pending={pending} run={run} onUse={(t) => setDraft({ ...draft, head: t.title, text: t.points.join("\n") })} />
-        </div>
+        {earlier.length > 0 && (
+          <details className="pk-card tb3-card tb3-past">
+            <summary><h2>Earlier talks</h2><span className="tb3-sub">{recorded} of {earlier.length} recorded</span><span className="tb2-cv" aria-hidden="true">⌄</span></summary>
+            {earlier.map((on) => {
+              const s = of(on);
+              return (
+                <details key={on} className="tb2-row">
+                  <summary>
+                    <span className={`tb2-dot${s.record ? " done" : ""}`} aria-hidden="true">{s.record ? "✓" : ""}</span>
+                    <span className="tb2-rt"><b>{name(on)}</b><span>{/\d/.test(name(on)) ? "" : `${day(on)} · `}{s.notes.length ? s.notes.map((x) => x.head).join(", ") : "no topics"}</span></span>
+                    <span className={`tb2-pill${s.record ? " done" : ""}`}>{s.record ? `Recorded${s.who.length ? `, ${s.who.length} there` : ""}` : "Not recorded"}</span>
+                    <span className="tb2-cv" aria-hidden="true">⌄</span>
+                  </summary>
+                  <div className="tb2-body">
+                    <TopicRows s={s} pending={pending} run={run} empty="No topics on it." past />
+                    <RecordBox s={s} people={people} me={me} pending={pending} run={run} />
+                  </div>
+                </details>
+              );
+            })}
+          </details>
+        )}
       </div>
 
-      <section className="pk-card tb2-past" aria-label="Earlier talks">
-        <h2>Earlier talks</h2>
-        {earlier.map((on) => {
-          const s = of(on);
-          return (
-            <details key={on} className="tb2-row">
-              <summary>
-                <span className={`tb2-dot${s.record ? " done" : ""}`} aria-hidden="true">{s.record ? "✓" : ""}</span>
-                <span className="tb2-rt"><b>{name(on)}</b><span>{/\d/.test(name(on)) ? "" : `${day(on)} · `}{s.notes.length ? `${s.notes.length} ${s.notes.length === 1 ? "note" : "notes"}: ${s.notes.map((n) => n.head).join(", ")}` : "no notes"}</span></span>
-                <span className={`tb2-pill${s.record ? " done" : ""}`}>{s.record ? `Recorded${s.who.length ? `, ${s.who.length} there` : ""}` : "Not recorded"}</span>
-                <span className="tb2-cv" aria-hidden="true">⌄</span>
-              </summary>
-              <div className="tb2-body">
-                <Notes s={s} pending={pending} run={run} />
-                <RecordBox s={s} people={people} me={me} pending={pending} run={run} />
+      <div className="tb3-col">
+        <section className="pk-card tb3-card" aria-labelledby="tb3-new">
+          <h2 id="tb3-new">New topic</h2>
+          <form className="tb3-form" onSubmit={(e) => e.preventDefault()}>
+            <label className="qp-field"><span>Heading</span><input id="tb3-head" value={draft.head} onChange={(e) => setDraft({ ...draft, head: e.target.value })} maxLength={120} placeholder="e.g. Ladders on two-storey jobs" /></label>
+            <label className="qp-field"><span>Description</span><textarea id="tb3-text" rows={4} value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} maxLength={4000} placeholder="What happened, what to remind the crew of, what to ask them." /></label>
+            <span className="tb3-acts">
+              <button type="button" className="qp-btn dark" disabled={pending || !draft.head.trim()} onClick={() => run(() => newTopic({ on: current, ...draft, to: "talk" }), "On the next talk.", () => setDraft({ head: "", text: "" }))}>Add to next talk</button>
+              <button type="button" className="qp-btn line" disabled={pending || !draft.head.trim()} onClick={() => run(() => newTopic({ on: current, ...draft, to: "hold" }), "Put on hold.", () => setDraft({ head: "", text: "" }))}>Put on hold</button>
+            </span>
+          </form>
+        </section>
+
+        <section className="pk-card tb3-card" aria-labelledby="tb3-set">
+          <h2 id="tb3-set">Settings</h2>
+          {canPlan ? (
+            <div className="tb3-set">
+              <div className="tb3-f">
+                <span>How often</span>
+                <span className="tb2-seg" role="group" aria-label="How often">
+                  {(["week", "fortnight", "month"] as Every[]).map((e) => (
+                    <button key={e} type="button" className={schedule.every === e ? "on" : undefined} aria-pressed={schedule.every === e} disabled={pending}
+                      onClick={() => set({ every: e }, `${EVERY_SHORT[e]} now.`)}>{EVERY_SHORT[e]}</button>
+                  ))}
+                </span>
               </div>
-            </details>
-          );
-        })}
-      </section>
+              <div className="tb3-f">
+                <span>Day and time{schedule.every === "month" ? " (the first of the month)" : ""}</span>
+                <span className="tb3-pair">
+                  <select id="tb3-day" aria-label="Day" value={schedule.day} disabled={pending} onChange={(e) => set({ day: Number(e.target.value) as Schedule["day"] }, "Day changed.")}>
+                    {[1, 2, 3, 4, 5].map((d) => <option key={d} value={d}>{WEEKDAYS[d]}</option>)}
+                  </select>
+                  <select id="tb3-time" aria-label="Time" value={schedule.time ?? ""} disabled={pending} onChange={(e) => set({ time: e.target.value || null }, "Time changed.")}>
+                    <option value="">No set time</option>
+                    {TIMES.map((t) => <option key={t} value={t}>{timeWords(t)}</option>)}
+                  </select>
+                </span>
+              </div>
+              <div className="tb3-f">
+                <span>Who runs it</span>
+                <select id="tb3-by" value={schedule.runBy ?? ""} disabled={pending} onChange={(e) => set({ runBy: e.target.value || null }, "Saved.")}>
+                  <option value="">Nobody set</option>
+                  {[...new Set([...people, ...(schedule.runBy ? [schedule.runBy] : [])])].map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="tb3-f">
+                <span>Who&rsquo;s expected <em>{schedule.expected.length ? "" : "none ticked means everyone"}</em></span>
+                <span className="qp-opts">
+                  {people.map((p) => {
+                    const on = schedule.expected.includes(p);
+                    return <button key={p} type="button" className={on ? "on" : undefined} aria-pressed={on} disabled={pending}
+                      onClick={() => set({ expected: on ? schedule.expected.filter((x) => x !== p) : [...schedule.expected, p] }, on ? `${first(p)} off the list.` : `${first(p)} expected.`)}><span className="qp-av" aria-hidden="true">{p.slice(0, 1)}</span>{first(p)}</button>;
+                  })}
+                </span>
+              </div>
+            </div>
+          ) : <p className="tb3-sub">{plan}. The office sets these.</p>}
+        </section>
+      </div>
       {msg && <p className={`qp-toast${msg.ok ? "" : " bad"}`} role="status">{msg.text}</p>}
     </div>
   );
 }
 
-type Run = (fn: () => Promise<ToolboxResult>, ok: string, then?: () => void) => void;
-
-function Talk({ s, name, today, big, people, me, pending, run }: { s: Session; name: string; today: string; big?: boolean; people: string[]; me: string; pending: boolean; run: Run }) {
-  const n = daysTo(s.on, today);
+/** A talk's topics: each can go on hold for a later talk, or come off. */
+function TopicRows({ s, pending, run, empty: none, past }: { s: Session; pending: boolean; run: Run; empty: string; past?: boolean }) {
+  if (!s.notes.length) return none ? <p className="tb2-none">{none}</p> : null;
   return (
-    <section className={`pk-card tb2-talk${big ? " big" : ""}`} aria-label={name}>
-      <div className="tb2-th">
-        <span><span className="tb2-l">{big ? "Next talk" : "The one after"}</span><b>{name}</b>{!/\d/.test(name) && <span className="tb2-sub">{day(s.on)}</span>}</span>
-        <span className={`tb2-pill${n <= 1 ? " soon" : ""}${s.record ? " done" : ""}`}>{s.record ? "Recorded" : when(s.on, today)}</span>
-      </div>
-      <Notes s={s} pending={pending} run={run} />
-      {big && <RecordBox s={s} people={people} me={me} pending={pending} run={run} />}
-    </section>
-  );
-}
-
-function Notes({ s, pending, run }: { s: Session; pending: boolean; run: Run }) {
-  if (!s.notes.length) return <p className="tb2-none">No notes yet. Add one on the right.</p>;
-  return (
-    <ul className="tb2-notes">
-      {s.notes.map((n) => (
-        <li key={n.id}>
-          <span className="tb2-nt"><b>{n.head}</b>{n.text && <span>{n.text}</span>}<em>{n.by ? `${n.by} · ` : ""}{day(n.at.slice(0, 10))}</em></span>
-          <button type="button" className="tb2-x" disabled={pending} aria-label={`Take "${n.head}" off`} title="Take this note off"
-            onClick={() => { if (confirm(`Take "${n.head}" off this talk?`)) run(() => removeNote({ on: s.on, id: n.id }), "Note taken off."); }}>×</button>
+    <ul className="tb3-rows">
+      {s.notes.map((x) => (
+        <li key={x.id}>
+          <span className="tb3-t"><b>{x.head}</b>{x.text && <span>{x.text}</span>}</span>
+          <span className="tb3-acts">
+            {!past && <button type="button" className="pk-btn g tb3-b" disabled={pending} onClick={() => run(() => holdNote({ on: s.on, id: x.id }), `On hold: ${x.head}.`)}>Put on hold</button>}
+            <button type="button" className="tb2-x" disabled={pending} aria-label={`Take "${x.head}" off`} title="Take it off this talk"
+              onClick={() => { if (confirm(`Take "${x.head}" off this talk?`)) run(() => removeNote({ on: s.on, id: x.id }), "Taken off."); }}>×</button>
+          </span>
         </li>
       ))}
     </ul>
   );
 }
+
+type Run = (fn: () => Promise<ToolboxResult>, ok: string, then?: () => void) => void;
+
+
 
 /**
  * What was said: typed, pasted, or loaded from the note-taker's file, and who
@@ -205,31 +265,3 @@ function RecordBox({ s, people, me, pending, run }: { s: Session; people: string
   );
 }
 
-/** Ideas for talks: each a press from the note form, and the crew can add their own. */
-function Topics({ topics, pending, run, onUse }: { topics: Topic[]; pending: boolean; run: Run; onUse: (t: Topic) => void }) {
-  const [adding, setAdding] = useState(false);
-  const [title, setTitle] = useState("");
-  const [points, setPoints] = useState("");
-  return (
-    <section className="pk-card tb2-topics" aria-label="Topic ideas">
-      <h2>Topic ideas</h2>
-      <p className="tb2-sub">Press one to put it in the note.</p>
-      <ul>
-        {topics.map((t) => (
-          <li key={t.id}>
-            <button type="button" className="tb2-use" onClick={() => onUse(t)}><b>{t.title}</b><span>{t.points.length} {t.points.length === 1 ? "point" : "points"}</span></button>
-            <button type="button" className="tb2-x" disabled={pending} aria-label={`Take "${t.title}" off the ideas`} title="Take this idea off"
-              onClick={() => { if (confirm(`Take "${t.title}" off the topic ideas?`)) run(() => removeTopic(t.id), "Idea taken off."); }}>×</button>
-          </li>
-        ))}
-      </ul>
-      {adding ? (
-        <form onSubmit={(e) => { e.preventDefault(); run(() => saveTopic({ title, points }), "Idea added.", () => { setTitle(""); setPoints(""); setAdding(false); }); }}>
-          <label className="qp-field"><span>The topic</span><input id="tb2-t-title" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="Working in roof spaces" /></label>
-          <label className="qp-field"><span>Points <em>one a line</em></span><textarea id="tb2-t-points" rows={4} value={points} onChange={(e) => setPoints(e.target.value)} /></label>
-          <span className="tb2-acts"><button type="submit" className="qp-btn dark" disabled={pending || !title.trim()}>Add the idea</button><button type="button" className="qp-btn line" onClick={() => setAdding(false)}>Cancel</button></span>
-        </form>
-      ) : <button type="button" className="qp-btn line" onClick={() => setAdding(true)}>+ Add an idea</button>}
-    </section>
-  );
-}
