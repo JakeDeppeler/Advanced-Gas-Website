@@ -3578,3 +3578,55 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 @media (max-width: 640px) { .hr-tile, .hr-people { padding: 16px; } .hr-pick .hr-l + .tb2-seg { margin-right: 0; } .hr .tb2-seg { max-width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; } .hr-pick .hr-l { flex: 1 1 100%; } }
 .hr-warn { flex: 1 1 100%; margin: 0; padding: 9px 12px; border-radius: 12px; background: var(--pt-amber-bg, #fdf0c9); color: var(--pt-amber, #8a5a00); font-size: 13px; line-height: 1.45; }
 @media (max-width: 640px) { .hr .tb2-seg a { padding: 8px 11px; font-size: 13px; } }
+
+/* ------------------------------------------------- team: the crew list */
+.cl { padding: 6px 22px 10px; margin-top: 16px; }
+.cl-wrap { overflow-x: auto; }
+.cl-t { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cl-t th, .cl-t td { padding: 12px 10px; text-align: left; vertical-align: middle; border-top: 1px solid var(--rp-line); }
+.cl-t thead th { border-top: 0; padding-top: 14px; font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.cl-gh th, .cl-gh td { border-top: 0; padding: 16px 10px 4px; font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.cl-gh td { text-align: right; }
+.cl-gh + tr th, .cl-gh + tr td { border-top: 0; }
+.cl-who { display: flex; align-items: center; gap: 12px; min-width: 190px; }
+.cl-av { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--quiet); font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.cl-who b { display: block; font-size: 15px; font-weight: 600; }
+.cl-who span span { display: block; font-size: 12.5px; color: var(--ink2); font-weight: 400; }
+.cl-van { font-weight: 600; white-space: nowrap; }
+.cl-now { display: grid; gap: 4px; justify-items: start; min-width: 200px; }
+.cl-now > span:last-child:not(.cl-pill) { font-size: 12.5px; color: var(--ink2); }
+.cl-pill { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: var(--quiet); color: var(--ink2); white-space: nowrap; }
+.cl-pill.on { background: var(--good); color: #fff; }
+.cl-pill.drive { background: var(--mid-f, #efc84a); color: #3d2e00; }
+.cl-fig { display: grid; gap: 6px; min-width: 140px; font-size: 13px; color: var(--ink2); }
+.cl-bar { display: block; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 9%, transparent); overflow: hidden; }
+.cl-bar i { display: block; height: 100%; border-radius: 99px; background: var(--ink); }
+.cl-bar.hrs i { background: var(--rp-orange, #d24a1e); }
+.cl-dim { color: var(--ink3); }
+.cl-open { text-align: right !important; width: 1%; }
+.cl-open .pk-btn { padding: 7px 14px; font-size: 13px; }
+.cl-note { margin: 6px 0 4px; font-size: 12.5px; color: var(--ink3); }
+.cl-manage { margin-top: 16px; padding: 0; }
+.cl-manage > summary { display: flex; align-items: baseline; gap: 12px; padding: 16px 22px; cursor: pointer; list-style: none; }
+.cl-manage > summary::-webkit-details-marker { display: none; }
+.cl-manage > summary b { font-size: 16px; font-weight: 600; }
+.cl-manage > summary span { font-size: 13px; color: var(--ink2); }
+.cl-manage > summary::after { content: "›"; margin-left: auto; color: var(--ink3); font-size: 18px; }
+.cl-manage[open] > summary::after { content: "⌄"; }
+.cl-manage > .pk { padding: 0 22px 18px; }
+@media (max-width: 640px) {
+  .cl { padding: 4px 12px 8px; }
+  .cl-t thead { display: none; }
+  .cl-t, .cl-t tbody, .cl-t tr, .cl-t th, .cl-t td { display: block; width: auto; }
+  .cl-t tr { padding: 10px 0; border-top: 1px solid var(--rp-line); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+  .cl-t tr.cl-gh { display: flex; justify-content: space-between; border-top: 0; padding: 12px 0 0; }
+  .cl-t th, .cl-t td { border-top: 0; padding: 0; }
+  .cl-t th[scope="row"] { grid-column: 1 / -1; }
+  .cl-t td.cl-van { display: none; }
+  .cl-t td:nth-child(3) { grid-column: 1 / -1; }
+  .cl-t td.cl-open { position: absolute; right: 0; }
+  .cl-t tr:not(.cl-gh) { position: relative; }
+  .cl-who, .cl-now, .cl-fig { min-width: 0; }
+  .cl-manage > summary { flex-wrap: wrap; padding: 14px 16px; }
+  .cl-manage > .pk { padding: 0 16px 16px; }
+}
