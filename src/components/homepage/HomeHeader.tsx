@@ -8,9 +8,11 @@ import { NAV, ICON, type NavGroup, type NavItem } from "@/lib/homepage/data";
 import { sendIntent } from "@/lib/homepage/intent";
 
 /**
- * The header bar with product dropdowns: a slightly see-through floating bar
- * over the hero that eases into a full-width bar as soon as the page scrolls. Homepage and /find pages only
- * for now; the rest of the site keeps components/Header.tsx until Jake has
+ * The header bar with product dropdowns. On the homepage, a slightly
+ * see-through floating bar over the hero that eases into a full-width bar as
+ * soon as the page scrolls. With `solid` (the /find product pages), a plain
+ * white bar flush to the top of the page that sticks there. Homepage and /find
+ * pages only for now; the rest of the site keeps components/Header.tsx until Jake has
  * signed this one off.
  *
  * The dropdowns open on hover and on focus, in CSS, so they work before
@@ -33,7 +35,7 @@ export function PhoneIcon({ size = 17, color = "currentColor" }: { size?: number
   );
 }
 
-export function HomeHeader() {
+export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
   const onHome = usePathname() === "/";
   const [open, setOpen] = useState(false);
   // After a dropdown card is clicked the pointer is still over the menu, so
@@ -74,7 +76,7 @@ export function HomeHeader() {
   const quoteHref = onHome ? "#quote" : "/#quote";
 
   return (
-    <header className={`ahdr${solid || open ? " is-solid" : ""}`}>
+    <header className={`ahdr${flat ? " ahdr--flat is-solid" : solid || open ? " is-solid" : ""}`}>
       <div className="hbar">
         <Link href="/" className="hbar__logo" aria-label="Advanced Gas & Aircon home" onClick={() => close()}>
           <AgLogo />
@@ -115,7 +117,7 @@ export function HomeHeader() {
         </nav>
         <div className="hbar__right">
           <a href="tel:+61359478000" className="hphone navx" data-call-from="header">
-            <PhoneIcon color="#00B0ED" />
+            <PhoneIcon color="#C2521A" />
             (03) 5947 8000
           </a>
           <Link href={quoteHref} className="hquote" onClick={() => close()}>Get a quote</Link>

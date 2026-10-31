@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Script from "next/script";
 import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { seoMeta } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/schema";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
-import { allProductParams, findSystem, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
+import { allProductParams, findSystem, heroFor, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
+import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
 import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { HomeFooter } from "@/components/homepage/HomeFooter";
@@ -65,6 +65,7 @@ export default function FindProductPage({ params }: { params: Params }) {
     return [{
       slug, chip, name: p.name, code: p.model ?? p.name, bestFor: p.bestFor, room,
       href: `/brands/${b}/${slug}`, specs: (p.specs ?? []).map((x) => ({ label: x.label, value: x.value })),
+      take: p.ourTake, badges: badgesFor(p, tier.feats), keys: keyFigures(p.specs),
     }];
   });
   const b = BRAND_SLUGS[tier.brand] ? findBrand(BRAND_SLUGS[tier.brand]) : null;
@@ -78,13 +79,15 @@ export default function FindProductPage({ params }: { params: Params }) {
   ]);
 
   return (
-    <div className="ag" id="top" data-no-reveal>
-      <section className="ahero pp__hero">
-        <Image src={PHOTO.team} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" />
-        <div className="ahero__scrim" aria-hidden="true" />
-        <HomeHeader />
-      </section>
-      <ProductView system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count} models={models} brand={brand} />
+    <div className="ag ag--flat" id="top" data-no-reveal>
+      {/* A plain white bar flush to the top that stays put, rather than the
+          homepage's floating one: a product page has no hero behind the bar
+          worth floating over until the photo, which starts under the crumbs. */}
+      <HomeHeader solid />
+      <ProductView
+        system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
+        models={models} brand={brand} hero={heroFor(sys, tier)} tierBadges={badgesFor({}, tier.feats)}
+      />
       <HomeFooter />
       <Script id="ld-find-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
     </div>

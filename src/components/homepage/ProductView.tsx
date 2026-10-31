@@ -3,16 +3,26 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import {
   findSystem, galleryFor, specRows, answersFrom, answersQuery, findHref, bookHref, productHref, money, weekly,
-  isHeatPump, isNewBuildHeatPump, BRAND_PAGES, PRODUCT_FAQS, SPEC_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
+  isHeatPump, isNewBuildHeatPump, PRODUCT_FAQS, SPEC_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
   reviewTitle, modelForAnswer, installTime as installTimeOf, type Answers,
 } from "@/lib/homepage/data";
 import type { Review } from "@/lib/reviews";
+import type { Badge } from "@/lib/homepage/badges";
 
 /** A catalogue model behind this option, resolved on the server from lib/brands.ts. */
-export type PModel = { slug: string; chip: string; name: string; code: string; bestFor?: string; room?: string; href: string; specs: { label: string; value: string }[] };
+export type PModel = {
+  slug: string; chip: string; name: string; code: string; bestFor?: string; room?: string; href: string;
+  specs: { label: string; value: string }[];
+  /** Our own two lines on this size, from the catalogue's ourTake. */
+  take?: string;
+  /** Only the badges this model's record actually states. */
+  badges: Badge[];
+  /** The figures that change between sizes, for the Model card. */
+  keys: { label: string; value: string }[];
+};
 export type PBrand = { name: string; page?: string; site?: { label: string; href: string } };
 
 const FINS = [{ t: "Pay upfront", m: 0 }, { t: "24 months", m: 24 }, { t: "36 months", m: 36 }, { t: "60 months", m: 60 }];
@@ -22,8 +32,11 @@ const FINS = [{ t: "Pay upfront", m: 0 }, { t: "24 months", m: 24 }, { t: "36 mo
  * indexed. The answers ride along in the query string (?size=1&floor=0…);
  * the page renders without them too, for anyone who lands here from search.
  */
-export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand }: {
+export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand, hero, tierBadges }: {
   system: string; tier: string; reviews: Review[]; rating: string; count: number; models: PModel[]; brand: PBrand | null;
+  hero: { src: string; alt: string; pos: string; ours: boolean };
+  /** Badges the option states itself (Wi-Fi in its feature list), for options with no catalogue model. */
+  tierBadges: Badge[];
 }) {
   const ref = findSystem(system)!;
   const { cat, sys } = ref;
@@ -36,6 +49,17 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   // The model they picked here, or arrived with in ?model=. Until then the
   // size they gave in the finder chooses one.
   const [picked, setPicked] = useState<string | null>(null);
+  // The bottom "Book this install" bar waits until the hero, which has its
+  // own book card, is off the screen; on top of the hero it covered it.
+  const heroRef = useRef<HTMLElement>(null);
+  const [pastHero, setPastHero] = useState(false);
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setPastHero(true); return; }
+    const io = new IntersectionObserver(([e]) => setPastHero(!e.isIntersecting && e.boundingClientRect.top < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Changing the size keeps the URL in step, so a shared link shows what they saw.
   function syncUrl(a: Answers, model: string | null) {
@@ -57,38 +81,156 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   const g = Math.min(gi, gal.length - 1);
   const cur = gal[g];
   const known = typeof t.price === "number";
-  const useFin = SHOW_FINANCE && FINS[fin].m > 0;
   const size = ans.size != null ? sys.sizes[ans.size] : null;
   const feats = t.feats.filter((f) => f !== WORKMANSHIP);
   const hp = isHeatPump(sys);
-  const chips = [sys.label, ...(size ? [size.label + (size.spec ? ` · ${size.spec}` : "")] : []), ...(hp && !isNewBuildHeatPump(sys, ans) ? ["VEU rebate applied"] : [])];
   const others = sys.tiers.map((x, i) => [x, i] as const).filter(([, i]) => i !== ti);
 
-  const priceLbl = known ? (useFin ? `From, over ${FINS[fin].m} months with Brighte` : "Range starts from, installed") : "Installed price";
-  const price = known ? (useFin ? `$${weekly(t.price!, FINS[fin].m)}/wk` : money(t.price!)) : "At quote";
-  const priceSub = known ? (useFin ? `or ${money(t.price!)} installed` : `Includes GST${hp ? " and the VEU rebate" : ""}`) : "Fixed price after a free site check";
   const mi = Math.max(0, picked ? models.findIndex((m) => m.slug === picked) : modelForAnswer(models, size?.spec));
   const model = models[mi] ?? null;
   const book = bookHref(sys, t, ans, model?.slug);
+  const badges = model ? model.badges : tierBadges;
+  // The figures beside "Model": the model's own, or the size they picked.
+  const modelKeys = model
+    ? model.keys
+    : size ? [{ label: "Typical size", value: size.spec ?? size.label }] : [];
+
+  function showPhoto(i: number) {
+    setGi(i);
+    document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <div className="pp" id="product">
       <Suspense fallback={null}><AnswersFromUrl system={system} onAnswers={(a, m) => { setAns(a); if (m && models.some((x) => x.slug === m)) setPicked(m); }} /></Suspense>
-      <div className="wrap">
-        <div className="pp__bar">
-          <Link href={findHref(sys, ans)} className="pp__back">← Back to your options</Link>
-          <ol className="pp__crumbs" aria-label="Breadcrumb">
+      {/* Breadcrumbs on a light grey bar under the header, as a manufacturer's page has them. */}
+      <nav className="ppx__crumbbar" aria-label="Breadcrumb">
+        <div className="wrap ppx__crumbin">
+          <ol className="pp__crumbs">
             <li><Link href="/">Home</Link></li>
             <li><Link href={`/?find=${cat.id}#find`}>{cat.label}</Link></li>
             <li><Link href={`/?find=${sys.slug}#find`}>{sys.label}</Link></li>
             <li aria-current="page">{t.brand} {t.model}</li>
           </ol>
+          <Link href={findHref(sys, ans)} className="ppx__back">← Back to your options</Link>
+        </div>
+      </nav>
+
+      <section className="ppx__hero" ref={heroRef}>
+        <div className="ppx__photo">
+          <Image src={hero.src} alt={hero.alt} fill priority sizes="100vw" style={{ objectPosition: hero.pos }} />
+          <span className="ppx__scrim" aria-hidden="true" />
+          {hero.ours && <span className="ppx__cap">One of our installs</span>}
+          <div className="wrap ppx__title">
+            <span className="ppx__brand">{t.brand} · {t.tier} option</span>
+            <h1 className="ppx__h1">{t.model}</h1>
+          </div>
         </div>
 
-        <div className="pp__top">
+        <div className="wrap ppx__low">
+          <div className="ppx__left">
+            {badges.length > 0 && (
+              <ul className="ppx__badges" aria-label="At a glance">
+                {badges.map((b) => (
+                  <li key={b.kind} className={`ppx__badge ppx__badge--${b.kind}`}><strong>{b.big}</strong><span>{b.small}</span></li>
+                ))}
+              </ul>
+            )}
+
+            <div className="ppx__card">
+              {/* The size's own "ideal for" line, so it changes with the tab and
+                  can't contradict the figures in the Model card below. */}
+              <h2 className="ppx__head">{model?.bestFor ?? feats[0] ?? sys.sub}</h2>
+              <p className="ppx__desc">{model?.take ? firstLines(model.take) : `${sys.sub}. ${feats.slice(1).join(". ")}`}</p>
+              <div className="ppx__thumbs">
+                {gal.map((x, i) => (
+                  <button key={x.src} type="button" className={`ppx__thumb${x.kind === "p" ? " ppx__thumb--prod" : ""}`} onClick={() => showPhoto(i)} aria-label={`See photo ${i + 1}: ${x.alt}`}>
+                    <Image src={x.src} alt="" fill sizes="64px" />
+                  </button>
+                ))}
+              </div>
+              <div className="ppx__price">
+                <strong>{known ? `From ${money(t.price!)}` : "Priced at your site check"}</strong>
+                <span>{known ? `installed, includes GST${hp ? " and the VEU rebate" : ""}` : "Free site check, then a fixed price in writing"}</span>
+              </div>
+              {isNewBuildHeatPump(sys, ans) && (
+                <p className="find__veu" style={{ margin: 0 }}>The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
+              )}
+            </div>
+
+            <div className="ppx__model">
+              <div className="ppx__modelhead">
+                <span className="ppx__modellbl" id="pm-size">{models.length ? "Model" : sys.q.replace("?", "")}</span>
+                <dl className="ppx__keys" aria-live="polite">
+                  {modelKeys.map((k) => <div key={k.label}><dt>{k.label}</dt><dd>{k.value}</dd></div>)}
+                </dl>
+              </div>
+              <div className="ppx__tabs" role="group" aria-labelledby="pm-size">
+                {models.length > 0
+                  ? models.map((m, i) => (
+                    <button key={m.slug} type="button" className={`ppx__tab${i === mi ? " ppx__tab--on" : ""}`} onClick={() => pickModel(m.slug)} aria-pressed={i === mi}>{m.chip}</button>
+                  ))
+                  : sys.sizes.map((z, i) => (
+                    <button key={z.label} type="button" className={`ppx__tab${i === ans.size ? " ppx__tab--on" : ""}`} onClick={() => setSize(i)} aria-pressed={i === ans.size}>{z.label}</button>
+                  ))}
+              </div>
+              {model && (
+                <div className="ppx__modelfoot">
+                  <span>{model.code}</span>
+                  <Link href={model.href}>Full {model.code} details →</Link>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="ppx__acts">
+            <Link href={book} className="ppx__act ppx__act--book">
+              <span className="ppx__actt"><small>Free site check, price in writing</small><strong>Book this install</strong></span>
+              <i aria-hidden="true">→</i>
+            </Link>
+            <a href="tel:+61359478000" data-call-from="product-hero" className="ppx__act">
+              <span className="ppx__actt"><small>Talk to our team</small><strong>Call (03) 5947 8000</strong></span>
+              <i aria-hidden="true">→</i>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* What the option includes, and the pay options when finance is on. */}
+      <section className="ppx__inc">
+        <div className="wrap ppx__incin">
+          <ul className="pp__hl">
+            {[...feats, "Free site check and a fixed price in writing"].map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}
+          </ul>
+          <div className="pp__trust">
+            <span><b>6 yrs</b>workmanship warranty</span>
+            <span><b>24 hrs</b>compliance certificate</span>
+            <span><b>Fixed</b>price in writing</span>
+          </div>
+          {SHOW_FINANCE && (
+            <div className="pm__fins">
+              {FINS.map((f, i) => (
+                <button key={f.t} type="button" className={`pm__fin${i === fin ? " pm__fin--on" : ""}`} onClick={() => setFin(i)} aria-pressed={i === fin}>
+                  <span className="pm__radio" aria-hidden="true" />
+                  <span className="pm__fint">{f.t}</span>
+                  <strong>{known ? (f.m ? `$${weekly(t.price!, f.m)}/wk` : money(t.price!)) : f.m ? "Weekly on quote" : "At quote"}</strong>
+                  <span className="pm__fins-s">{f.m ? "Brighte, subject to approval" : "Card, transfer or cash"}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="pp__sec" id="gallery">
+        <div className="wrap pp__two">
+          <div className="pp__lead">
+            <h2 className="h2 h2--sm">Photos</h2>
+            <p>The {t.brand} {t.model}, and some of the installs we&apos;ve done.</p>
+          </div>
           <div className="pp__gal">
             <div className={`pm__main${cur.kind === "p" ? " pm__main--prod" : ""}`}>
-              <Image key={cur.src} src={cur.src} alt={cur.alt} fill priority={g === 0} sizes="(max-width: 900px) 100vw, 640px" />
+              <Image key={cur.src} src={cur.src} alt={cur.alt} fill sizes="(max-width: 900px) 100vw, 720px" />
               <span className="pm__count">{g + 1} / {gal.length}</span>
               {cur.kind === "c" && <span className="pm__cap">One of our installs</span>}
               {gal.length > 1 && (
@@ -106,84 +248,8 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
               ))}
             </div>
           </div>
-
-          <div className="pp__info">
-            <span className="pp__tier" style={{ color: TONES[ti] }}>{t.tier} option</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span className="pp__brand">
-                {t.brand}
-                {BRAND_PAGES[t.brand] && <> · <Link href={BRAND_PAGES[t.brand]}>About this brand</Link></>}
-              </span>
-              <h1 className="pp__h">{t.model}</h1>
-            </div>
-            <div className="pp__chips">{chips.map((c) => <span key={c} className="pm__chip">{c}</span>)}</div>
-            <div className="pm__price">
-              <div><small>{priceLbl}</small><strong>{price}</strong></div>
-              <span className="pm__priceSub">{priceSub}</span>
-            </div>
-            {isNewBuildHeatPump(sys, ans) && (
-              <p className="find__veu" style={{ margin: 0 }}>The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
-            )}
-            {models.length > 1 ? (
-              <>
-                <div className="pm__lbl" id="pm-size">Choose a size</div>
-                <div className="pm__sizes" role="group" aria-labelledby="pm-size">
-                  {models.map((m, i) => (
-                    <button key={m.slug} type="button" className={`pm__size pm__size--model${i === mi ? " pm__size--on" : ""}`} onClick={() => pickModel(m.slug)} aria-pressed={i === mi}>
-                      <strong>{m.chip}</strong>{m.room && <span>{m.room}</span>}
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : models.length === 0 ? (
-              <>
-                <div className="pm__lbl" id="pm-size">{sys.q.replace("?", "")}</div>
-                <div className="pm__sizes" role="group" aria-labelledby="pm-size">
-                  {sys.sizes.map((z, i) => (
-                    <button key={z.label} type="button" className={`pm__size${i === ans.size ? " pm__size--on" : ""}`} onClick={() => setSize(i)} aria-pressed={i === ans.size}>
-                      <strong>{z.label}</strong><span>{z.spec}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : null}
-            {model && (
-              <div className="pm__model" aria-live="polite">
-                <span className="pm__modelcode">{model.code}</span>
-                {model.bestFor && <span><b>Ideal for</b> {model.bestFor}</span>}
-                <Link href={model.href}>Full {model.code} details →</Link>
-              </div>
-            )}
-            {SHOW_FINANCE && (
-              <>
-                <div className="pm__lbl">How would you like to pay?</div>
-                <div className="pm__fins">
-                  {FINS.map((f, i) => (
-                    <button key={f.t} type="button" className={`pm__fin${i === fin ? " pm__fin--on" : ""}`} onClick={() => setFin(i)} aria-pressed={i === fin}>
-                      <span className="pm__radio" aria-hidden="true" />
-                      <span className="pm__fint">{f.t}</span>
-                      <strong>{known ? (f.m ? `$${weekly(t.price!, f.m)}/wk` : money(t.price!)) : f.m ? "Weekly on quote" : "At quote"}</strong>
-                      <span className="pm__fins-s">{f.m ? "Brighte, subject to approval" : "Card, transfer or cash"}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-            <ul className="pp__hl">
-              {[...feats, "Free site check and a fixed price in writing"].map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}
-            </ul>
-            <div className="pp__btns">
-              <Link href={book} className="abtn abtn--or">Book this install →</Link>
-              <a href="tel:+61359478000" data-call-from="product-page" className="abtn abtn--ghost">Call (03) 5947 8000</a>
-            </div>
-            <div className="pp__trust">
-              <span><b>6 yrs</b>workmanship warranty</span>
-              <span><b>24 hrs</b>compliance certificate</span>
-              <span><b>Fixed</b>price in writing</span>
-            </div>
-          </div>
         </div>
-      </div>
+      </section>
 
       <section className="pp__sec">
         <div className="wrap pp__two">
@@ -299,7 +365,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
         </div>
       </section>
 
-      <div className="pp__sticky">
+      <div className={`pp__sticky${pastHero ? "" : " pp__sticky--away"}`} aria-hidden={!pastHero}>
         <div className="wrap pp__stickyin">
           <span className="pp__stickyimg"><Image src={t.img} alt="" fill sizes="48px" /></span>
           <span className="pp__stickyt">
@@ -334,4 +400,11 @@ function modelRows(m: PModel, catLabel: string, sysLabel: string, install: strin
   if (!has(/warranty/i)) rows.push({ k: "Warranty", v: "Manufacturer warranty on your quote + 6 years on our workmanship" });
   rows.push({ k: "Compliance certificate", v: "Emailed within 24 hours of install" });
   return rows;
+}
+
+/** The first two sentences of our take on a model: the card under the photo has room for two lines. */
+function firstLines(text: string) {
+  // A stop only ends a sentence before a space and a capital, so "2.5 kW" stays whole.
+  const parts = text.match(/[\s\S]*?[.!?](?=\s+[A-Z(]|\s*$)/g) ?? [text];
+  return parts.slice(0, 2).join("").trim();
 }

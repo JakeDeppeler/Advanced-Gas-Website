@@ -51,12 +51,12 @@ export function HomeFooter() {
             <span className="fhead" style={{ marginBottom: 0 }}>Get in touch</span>
             <div>
               <Link href="/contact" className="addr">
-                <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2CC5FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF7A36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
                 1 Sierra Circuit, Pakenham VIC 3810
               </Link>
-              <a href="tel:+61359478000" data-call-from="footer"><PhoneIcon size={15} color="#2CC5FF" />(03) 5947 8000</a>
+              <a href="tel:+61359478000" data-call-from="footer"><PhoneIcon size={15} color="#FF7A36" />(03) 5947 8000</a>
               <a href={`mailto:${site.email}`}>
-                <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2CC5FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7 12 13 2 7" /></svg>
+                <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF7A36" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7 12 13 2 7" /></svg>
                 {site.email}
               </a>
             </div>
@@ -84,14 +84,9 @@ export function HomeFooter() {
           </div>
         </nav>
 
-        <div className="hft__badges" aria-label="Licences and memberships">
-          <span className="fbadge"><b>✓</b>VEU accredited</span>
-          <span className="fbadge"><b>✓</b>Plumbing Lic. 46828</span>
-          <span className="fbadge"><b>✓</b>ARC AU59557</span>
-          <span className="fbadge"><b>✓</b>$20M public liability</span>
-          {SHOW_FINANCE && <span className="fbadge"><b>✓</b>Finance with Brighte</span>}
-          <span className="fbadge"><b>✓</b>Trade partner of Reece</span>
-        </div>
+        <p className="hft__lic">
+          VEU accredited · Plumbing Lic. 46828 · ARC AU59557 · $20M public liability{SHOW_FINANCE ? " · Finance with Brighte" : ""} · Trade partner of Reece
+        </p>
 
         <div className="hft__legal">
           <span>© {new Date().getFullYear()} Advanced Gas &amp; Airconditioning Services Pty Ltd · ABN {site.abn} · ACN {site.acn}</span>

@@ -125,7 +125,6 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
           </div>
 
           <div className="areatext">
-            <span className="aeye aeye--dark aeye--sky"><i /> Service area</span>
             <h2 className="h2" style={{ color: "#fff" }}>Every town within <span style={{ color: "#2CC5FF" }}>75 km of Pakenham.</span></h2>
             <p>From Dandenong to Warragul and up into the Dandenong Ranges. Type your suburb to check.</p>
             <label htmlFor="area-q">Your suburb</label>

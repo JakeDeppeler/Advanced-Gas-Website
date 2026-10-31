@@ -70,7 +70,6 @@ export default async function HomePage() {
         <HomeHeader />
         <div className="wrap ahero__in">
           <div className="ahero__copy anim">
-            <span className="ahero__eye"><span aria-hidden="true" />Heating, cooling &amp; hot water · Pakenham &amp; SE Melbourne</span>
             <h1 className="ahero__h1">One standard.<br /><span>Every job.</span></h1>
             <p className="ahero__p">
               A local Pakenham team looking after heating, cooling, gas and hot water across Melbourne&apos;s south-east and Gippsland. Our own crews, twelve years on the tools, and the same high standard every time.
@@ -121,7 +120,6 @@ export default async function HomePage() {
         <div className="wrap awhy__in">
           <div className="sechead arv">
             <div className="sechead__t">
-              <span className="aeye aeye--dark aeye--or"><i /> Why choose us</span>
               <h2 className="h2" style={{ color: "#fff" }}>The same crew, the same standard, <span style={{ color: "#FF7A36" }}>every job.</span></h2>
             </div>
             <div className="sechead__btns">
@@ -134,7 +132,7 @@ export default async function HomePage() {
               <Image src={PHOTO.whyBig} alt="" aria-hidden="true" fill sizes="(max-width: 960px) 100vw, 640px" />
               <div className="shade" aria-hidden="true" />
               <div className="body">
-                <span className="whycard__lbl" style={{ color: "#2CC5FF" }}>Directly employed</span>
+                <span className="whycard__lbl" style={{ color: "#FF7A36" }}>Directly employed</span>
                 <strong className="disp" style={{ fontSize: "clamp(26px, 2.6vw, 36px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-.02em" }}>Our own crews. Never subbies.</strong>
                 <span style={{ fontSize: 15, lineHeight: 1.55, color: "rgba(255,255,255,.85)", maxWidth: "30rem" }}>The person who quotes your job is on the same team as the person who installs it.</span>
               </div>
@@ -184,7 +182,6 @@ export default async function HomePage() {
         <div className="wrap svcs__in">
           <div className="svcs__head arv">
             <div className="sechead__t">
-              <span className="aeye"><i /> Our services</span>
               <h2 className="h2">Everything we do, <span style={{ color: "#C2521A" }}>under one roof.</span></h2>
             </div>
             <p>Installs, servicing and repairs for homes and businesses across the south-east. Same crew and the same standard, whichever job it is.</p>
@@ -195,9 +192,7 @@ export default async function HomePage() {
                 <>
                   <Image src={v.photo} alt={v.alt} fill sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 420px" style={{ objectPosition: v.pos }} />
                   <span className="sg__shade" aria-hidden="true" />
-                  <span className="sg__badge">{v.badge}</span>
                   <span className="sg__body">
-                    <span className="sico" style={{ background: v.bg, color: v.fg }}><Svg d={v.icon} /></span>
                     <strong>{v.t}</strong>
                     <span className="sg__more"><span>{v.s}</span><em>{v.cta} →</em></span>
                   </span>
@@ -222,7 +217,6 @@ export default async function HomePage() {
         <div className="wrap revs__in">
           <div className="sechead arv" style={{ gap: 24 }}>
             <div className="sechead__t" style={{ gap: 14, maxWidth: 620 }}>
-              <span className="aeye"><i /> What locals say</span>
               <h2 className="h2">Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
             </div>
             <div className="revs__score">
@@ -260,7 +254,6 @@ export default async function HomePage() {
       <section id="faq" className="hfaq">
         <div className="wrap hfaq__in">
           <div className="hfaq__intro arv">
-            <span className="aeye"><i /> Questions we get a lot</span>
             <h2 className="h2">Heat pumps, rebates &amp; the fine print.</h2>
             <p>Quick honest answers. Still want a human? <a href="tel:+61359478000" data-call-from="faq" style={{ color: "#050A30", textUnderlineOffset: 2 }}>Call (03) 5947 8000</a>.</p>
             <div className="hfaq__links">

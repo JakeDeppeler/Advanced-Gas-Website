@@ -361,6 +361,40 @@ const GAL: Record<string, GalItem[]> = {
   zoning: [g(IMG.zmTablet, "Zonemate tablet", "p", "Zonemate"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate"), g(PHOTO.ductedInstall, "A ducted install", "c")],
 };
 
+/**
+ * The full-width photo behind a product page's hero: one of our own installs
+ * of that kind of system, matched to the brand where we have one. None of
+ * these are manufacturer lifestyle shots except Zonemate's living room, which
+ * is a file we already had. Every install photo here is portrait, so `pos`
+ * picks the band that survives a wide crop.
+ */
+/** `ours` is false for the one manufacturer photo, so it never gets captioned as our install. */
+type Hero = { src: string; alt: string; pos: string; ours: boolean };
+const hero = (src: string, alt: string, pos = "center 45%", ours = true): Hero => ({ src, alt, pos, ours });
+const H = {
+  bedroom: hero("/kaden-indoor.webp", "A wall split we installed in a bedroom", "center 32%"),
+  roofDucted: hero("/ducted-split.webp", "A ducted indoor unit we installed in a roof space", "center 55%"),
+  kadenOutdoor: hero("/ducted-condenser.webp", "A Kaden ducted outdoor unit we installed", "center 40%"),
+  evap: hero("/evap-cooler-service.webp", "An evaporative cooler we service on a tiled roof", "center 40%"),
+  reclaimSplit: hero("/reclaim-split-back-1.jpg", "A Reclaim CO₂ split heat pump we installed", "center 45%"),
+  reclaimAio: hero("/ba-hw-after.webp", "A Reclaim heat pump we installed on a new concrete pad", "center 45%"),
+  changeover: hero("/gas-hot-water-changeover.webp", "A hot water changeover we did", "center 40%"),
+  thermannCf: hero("/thermann-continuous-flow-back.jpg", "A Thermann continuous flow unit we installed on a brick wall", "center 40%"),
+  gasDucted: hero("/gas-ducted-install.jpg", "A gas ducted heater we installed in a roof space", "center 55%"),
+  zonemate: hero("/ZoneMate-Touch-Duotone_Living-Room_1.jpg", "A Zonemate touch controller on a living room wall", "center 50%", false),
+};
+const HERO: Record<string, Hero> = {
+  "split-system": H.bedroom, "reverse-cycle-split": H.bedroom, "multi-head": H.bedroom,
+  ducted: H.roofDucted, "ducted.essential": H.kadenOutdoor,
+  evaporative: H.evap,
+  "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.changeover,
+  "gas-continuous-flow": H.thermannCf, "gas-continuous-flow.signature": H.reclaimAio,
+  "gas-storage": H.changeover, "gas-storage.premium": H.thermannCf,
+  "gas-ducted-heating": H.gasDucted,
+  zoning: H.zonemate,
+};
+export const heroFor = (sys: System, tier: Tier): Hero => HERO[`${sys.slug}.${tier.slug}`] ?? HERO[sys.slug] ?? H.bedroom;
+
 export function galleryFor(sys: System, tier: Tier): GalItem[] {
   const out: GalItem[] = [g(tier.img, `${tier.brand} ${tier.model}`, "p")];
   for (const it of GAL[sys.slug] ?? []) {

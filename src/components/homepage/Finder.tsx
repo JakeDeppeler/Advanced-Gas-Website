@@ -75,7 +75,6 @@ export function Finder() {
 
           <div className="find__head">
             <div className="find__intro">
-              <span className="aeye aeye--dark aeye--or"><i /> Find your system</span>
               <h2 className="find__h">What do you need <span>help with?</span></h2>
               <p className="find__p">
                 Pick what you need, answer a few quick questions about your home, and we&apos;ll show you three options side by side
