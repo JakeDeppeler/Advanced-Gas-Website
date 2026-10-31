@@ -13,6 +13,7 @@ import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
 import "@/components/homepage/homepage.css";
+import "@/components/homepage/product/looks.css";
 
 /**
  * The product page an option in "Find your system" opens. A real URL rather

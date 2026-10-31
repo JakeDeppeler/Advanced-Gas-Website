@@ -715,36 +715,7 @@
 .ag .pxh__brand{font-size:16px;font-weight:700;color:var(--sky-ink);margin-bottom:-10px}
 .ag .pxh__h1{font-family:var(--disp);font-size:clamp(40px,4.4vw,66px);font-weight:800;line-height:1;letter-spacing:-.03em;color:var(--navy);text-wrap:balance}
 .ag .pxh__best{margin:0;font-size:18px;line-height:1.5;color:var(--ink2);max-width:34rem}
-.ag .pxh__badges{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.ag .pxh__badge{display:inline-flex;align-items:baseline;gap:6px;background:#fff;border:1px solid var(--line2);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--ink3)}
-.ag .pxh__badge strong{font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy)}
-.ag .pxh__badge--energy strong{color:var(--or-ink)}
-.ag .pxh__pick{display:flex;flex-direction:column;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.ag .pxh__picklbl{font-family:var(--disp);font-size:14px;font-weight:700;color:var(--navy)}
-.ag .pxh__keys{margin:0;display:flex;flex-wrap:wrap;gap:8px 28px;padding-top:12px;border-top:1px solid var(--line);animation:agFadeUp .3s both}
-.ag .pxh__keys div{display:flex;flex-direction:column-reverse;line-height:1.2}
-.ag .pxh__keys dt{font-size:12px;color:var(--ink3)}
-.ag .pxh__keys dd{margin:0;font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
 .ag .pxh__buy{display:flex;flex-direction:column;gap:14px;padding-top:4px}
-.ag .pxh__price{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
-.ag .pxh__price strong{font-family:var(--disp);font-size:30px;font-weight:800;color:var(--navy);letter-spacing:-.01em}
-.ag .pxh__price span{font-size:14px;color:var(--ink3)}
-.ag .pxh__btns{display:flex;flex-wrap:wrap;gap:10px}
-.ag .pxh__btns .abtn{flex:1 1 210px;justify-content:center}
-.ag .pxh__promise{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13.5px;color:var(--ink2)}
-.ag .pxh__promise li::before{content:"✓";color:var(--sky-ink);font-weight:800;margin-right:6px}
-.ag .pxh__stage{display:flex;flex-direction:column;gap:10px}
-.ag .pxh__main{position:relative;aspect-ratio:5/4;border-radius:18px;overflow:hidden;background:var(--navy)}
-.ag .pxh__main img{object-fit:cover;animation:pxFade .35s both}
-.ag .pxh__main--prod{background:radial-gradient(120% 90% at 50% 42%,#fff 0%,#EEF3F8 70%,#E2E9F1 100%)}
-.ag .pxh__main--prod img{object-fit:contain;padding:9%}
-@keyframes pxFade{from{opacity:0}to{opacity:1}}
-.ag .pxh__thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
-.ag .pxh__th{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:2px solid transparent;background:#EEF3F8;padding:0;cursor:pointer;transition:border-color .15s}
-.ag .pxh__th img{object-fit:cover}
-.ag .pxh__th--prod img{object-fit:contain;padding:6px}
-.ag .pxh__th:hover{border-color:var(--navy)}
-.ag .pxh__th--on{border-color:var(--or)}
 
 /* Sits under the sticky header, which is 86px tall at every width. */
 .ag .pxt{position:sticky;top:86px;z-index:40;background:rgba(255,255,255,.97);backdrop-filter:blur(6px);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -764,7 +735,6 @@
 .ag .pxo__quote{margin:0;font-family:var(--disp);font-size:clamp(22px,2.1vw,30px);font-weight:700;line-height:1.38;letter-spacing:-.01em;color:var(--navy);text-wrap:pretty;padding-left:28px;border-left:4px solid var(--or)}
 .ag .pxo__by{font-size:13.5px;color:var(--ink3);padding-left:32px}
 .ag .pxo__why{background:#F4F7FA;border-radius:18px;padding:28px 30px;display:flex;flex-direction:column;gap:16px}
-.ag .pxo__h{font-family:var(--disp);font-size:20px;font-weight:800;color:var(--navy)}
 .ag .pxg{margin:56px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .ag .pxg div{display:flex;flex-direction:column-reverse;justify-content:flex-end;gap:10px;padding:24px;border-radius:16px;background:var(--navy);animation:agFadeUp .35s both}
 .ag .pxg dd{margin:0;font-family:var(--disp);font-size:clamp(26px,2.4vw,36px);font-weight:800;letter-spacing:-.02em;color:#fff;line-height:1.08;text-wrap:balance}
@@ -832,7 +802,7 @@
 
 @media (max-width:1000px){
   .ag .pxh__in,.ag .pxo__in,.ag .pxw{grid-template-columns:1fr}
-  .ag .pxh__stage{order:-1}
+  .ag .pxh__in > .stg{order:-1}
   .ag .pxw__lead{position:static}
   .ag .pxw__img{max-width:520px}
   .ag .pxb{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -840,7 +810,6 @@
 @media (max-width:600px){
   .ag .pxh{padding:16px 0 44px}
   .ag .pxh__h1{font-size:clamp(34px,10vw,44px)}
-  .ag .pxh__thumbs{grid-template-columns:repeat(4,minmax(0,1fr))}
   .ag .pxh__best{font-size:16.5px}
   .ag .ppx__tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
   .ag .pxs{padding:64px 0}
@@ -861,7 +830,7 @@
   .ag .atick path{stroke-dashoffset:0}
   .ag .aroute__line{stroke-dashoffset:0;animation:none}
   .ag .aroute__glow,.ag .aroute__dash{opacity:1;animation:none}
-  .ag .pxh__main img{animation:none;opacity:1}
+  .ag .stg__main img{animation:none;opacity:1}
 }
 
 /* The old site's body keeps 80px clear at the bottom on phones for its sticky

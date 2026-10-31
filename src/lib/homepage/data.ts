@@ -349,7 +349,7 @@ export function answerMap(qs: Question[], ans: Answers): Record<string, string> 
 /* ------------------------------------------------------------ product page */
 
 /** A brand's product shot only appears on that brand's options. "p" is a product shot, "c" one of our installs. */
-type GalItem = { src: string; alt: string; kind: "p" | "c"; brand?: string };
+export type GalItem = { src: string; alt: string; kind: "p" | "c"; brand?: string };
 const g = (src: string, alt: string, kind: "p" | "c", brand?: string): GalItem => ({ src, alt, kind, brand });
 
 const GAL: Record<string, GalItem[]> = {
