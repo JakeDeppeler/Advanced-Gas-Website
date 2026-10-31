@@ -20,7 +20,6 @@ const COMMON = [
   { label: "Ducted aircon", href: "/services/air-conditioning-installation" },
   { label: "Aircon service", href: "/services/aircon-servicing-repairs" },
   { label: "VEU rebate", href: "/rebates" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Fault codes", href: "/tools/fault-codes" },
   { label: "Emergency", href: "/contact#emergency" },
 ];

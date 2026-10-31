@@ -213,7 +213,7 @@ export function Finder() {
               <p className="find__fine">
                 Installed prices include GST, with the VEU rebate applied where it&apos;s eligible. &ldquo;Range starts from&rdquo; is the smallest model in that range; your exact size is priced in writing after a free site check.
                 {SHOW_FINANCE ? ` Weekly figures spread the installed price evenly over ${FINANCE_MONTHS} months with Brighte; finance is subject to approval and fees may apply.` : ""}{" "}
-                <Link href="/pricing">Full price list</Link> · <Link href="/tools/system-comparison">Compare systems</Link>
+                <Link href="/tools/system-comparison">Compare systems</Link>
               </p>
             </div>
           )}
