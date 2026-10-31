@@ -179,3 +179,120 @@ export const BOOKING_STEPS = (install: string): HowStep[] => [
   { t: "Install day", d: `How long: ${install.charAt(0).toLowerCase()}${install.slice(1)}. Done by our own crew.` },
   { t: "Handover", d: "The compliance certificate is emailed within 24 hours, and our workmanship is covered for six years." },
 ];
+
+/**
+ * Pros and cons for each option, keyed by "Brand Model" so an option listed
+ * under both Cooling and Heating carries one set. Written to be fair to the
+ * option, drawn from what the catalogue and the brand records already say:
+ * no new figures, and no claim we wouldn't make to someone's face.
+ */
+export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
+  "Kaden KSI wall split": {
+    pros: ["The lowest upfront cost of our split systems", "Heats and cools from the one unit", "A Reece brand, so parts are on the shelf locally"],
+    cons: ["A shorter track record in Australia than Mitsubishi", "One room per unit: several rooms means several outdoor units"],
+  },
+  "Mitsubishi Electric MSZ-AP wall split": {
+    pros: ["Very quiet on low fan, good for bedrooms", "The lowest failure rate of anything we install", "Parts still available many years on"],
+    cons: ["Costs more upfront than the Kaden", "One room per unit: several rooms means several outdoor units"],
+  },
+  "Mitsubishi Electric MSZ-AP Hyper Heating": {
+    pros: ["Holds its full rated heat down to −15°", "Made for the coldest mornings, when ordinary splits fade", "The same quiet MSZ-AP indoor unit"],
+    cons: ["Costs more than the standard MSZ-AP", "More than you need where winters are mild"],
+  },
+  "Kaden Multi-head system": {
+    pros: ["One outdoor unit runs several rooms", "Every room gets its own remote", "Costs less than the Mitsubishi multi-head"],
+    cons: ["If the outdoor unit stops, every room stops with it", "Each head needs its own pipe run, planned at the site check"],
+  },
+  "Mitsubishi Electric MXZ multi-head": {
+    pros: ["Two to six indoor heads off one outdoor unit", "Mix wall and floor-console heads", "Mitsubishi's reliability and parts support"],
+    cons: ["Costs more upfront than the Kaden", "If the outdoor unit stops, every room stops with it"],
+  },
+  "Mitsubishi Electric MXZ with floor consoles": {
+    pros: ["Heat comes in at floor level, where you feel it", "Nothing mounted high on feature walls", "Sits neatly under a window"],
+    cons: ["Takes up a little floor space", "Costs more than wall-mounted heads"],
+  },
+  "Kaden KDI ducted system": {
+    pros: ["Heats and cools the whole home", "Hidden in the roof, with slim ceiling vents", "Costs less than the Mitsubishi ducted"],
+    cons: ["Needs a usable roof space", "A bigger job: usually two to three days", "The range tops out at 17 kW"],
+  },
+  "Mitsubishi Electric PEAD-M ducted": {
+    pros: ["Zoned as standard", "Heating output matches the cooling", "Mitsubishi's reliability, hidden in the roof"],
+    cons: ["Costs more than the Kaden ducted", "Needs a usable roof space", "A bigger job: usually two to three days"],
+  },
+  "Mitsubishi Electric PEAD-M + Zonemate": {
+    pros: ["Touchscreen and phone control of every zone", "Run only the rooms you're using", "Mitsubishi's ducted system underneath"],
+    cons: ["The most expensive of our ducted options", "Needs a usable roof space"],
+  },
+  "Kaden Classic evaporative": {
+    pros: ["Cheap to run on dry, hot days", "Fresh air through the house all day", "The lowest upfront cost for whole-home cooling"],
+    cons: ["Cooling only, no heating", "Less effective on humid days", "Needs a window or door open to work"],
+  },
+  "Kaden Low-profile evaporative": {
+    pros: ["Sits low and neat on the roofline", "Cheap to run on dry, hot days", "Fresh air through the house"],
+    cons: ["Costs more than the Classic for the same cooling", "Cooling only, and less effective on humid days"],
+  },
+  "Brivis Advance low-profile": {
+    pros: ["A low-profile cabinet from a long-standing local brand", "Cheap to run on dry, hot days", "Fresh air through the house"],
+    cons: ["Cooling only, no heating", "Less effective on humid days"],
+  },
+  "Brivis Classic Wombat 3-star": {
+    pros: ["The lowest upfront cost for gas ducted heating", "Usually a straight swap into the same spot", "CO safety test on every install"],
+    cons: ["Uses more gas than the 6-star", "Heating only, no cooling"],
+  },
+  "Brivis StarPro 6-star": {
+    pros: ["Uses less gas than a 3-star", "Even warmth through the whole house", "CO safety test on every install"],
+    cons: ["Costs more upfront than the 3-star", "Heating only, and still on gas"],
+  },
+  "Brivis StarPro 6-star + Zonemate": {
+    pros: ["Heat only the rooms you're using", "Touchscreen and phone control", "6-star efficiency"],
+    cons: ["The most expensive of our gas heating options", "Heating only, and still on gas"],
+  },
+  "Zonemate Zone controller": {
+    pros: ["Turn rooms on and off from the wall", "Fits most ducted systems", "The cheapest way to cut a ducted system's running cost"],
+    cons: ["No phone control", "No per-room schedules"],
+  },
+  "Zonemate Touch + Wi-Fi": {
+    pros: ["A touchscreen wall controller", "Control every zone from your phone"],
+    cons: ["Costs more than the basic controller", "Phone control needs home Wi-Fi"],
+  },
+  "Milieu Smart zone control": {
+    pros: ["A schedule for every room", "Control from your phone"],
+    cons: ["The most expensive zoning option", "Needs home Wi-Fi, and a little setting up"],
+  },
+  "iStore 270 L R290 all-in-one": {
+    pros: ["VEU rebate taken off at the quote", "Solar diverter and Wi-Fi built in", "One unit: nothing else to place outside"],
+    cons: ["The compressor is in the same shell, so it hums near the house", "A shorter cylinder warranty than the Reclaim"],
+  },
+  "Reclaim ECO R290 all-in-one": {
+    pros: ["Australian made", "VEU rebate taken off at the quote", "One unit: nothing else to place outside"],
+    cons: ["Costs more than the iStore", "The compressor is in the same shell, so it hums near the house"],
+  },
+  "Reclaim CO₂ split heat pump": {
+    pros: ["The compressor sits away from the tank, so it's quieter", "CO₂ keeps making hot water on cold mornings", "Stainless tank option for harder water"],
+    cons: ["The highest upfront cost of our hot water options", "Two units to place, and more install work"],
+  },
+  "Thermann G-series continuous flow": {
+    pros: ["Hot water that doesn't run out", "Same-day swaps on common models", "Compact and wall-hung"],
+    cons: ["Stays on gas, so no VEU rebate", "Two showers at once is a job for the high-flow"],
+  },
+  "Thermann G-series, high-flow": {
+    pros: ["Runs two showers at once", "Hot water that doesn't run out"],
+    cons: ["Costs more than the standard model", "May need a bigger gas line, checked at the site check"],
+  },
+  "Reclaim Switch to a heat pump": {
+    pros: ["VEU rebate taken off at the quote", "Off gas for hot water", "Cuts hot water energy use by up to 75%"],
+    cons: ["Costs more upfront than another gas unit", "Needs outdoor space for the unit"],
+  },
+  "Thermann 4-star gas storage": {
+    pros: ["A like-for-like swap", "Same-day on common sizes", "The lowest upfront cost"],
+    cons: ["Can run out with back-to-back showers", "Keeps a tank hot all day, and stays on gas"],
+  },
+  "Thermann Upgrade to continuous flow": {
+    pros: ["Hot water that doesn't run out", "No tank to keep hot", "Frees up the space the tank took"],
+    cons: ["Costs more than a like-for-like tank", "May need a bigger gas line, checked at the site check"],
+  },
+  "iStore Switch to a heat pump": {
+    pros: ["VEU rebate taken off at the quote", "Off gas for hot water", "Cuts hot water energy use by up to 75%"],
+    cons: ["Costs more upfront than another gas tank", "Needs outdoor space for the unit"],
+  },
+};

@@ -181,3 +181,39 @@
 .ag .pxbr__sub{margin:0;font-size:16px;line-height:1.65;color:var(--ink2)}
 .ag .pxbr__go{align-self:flex-start;margin-top:6px}
 @media (max-width:1000px){.ag .pxbr{grid-template-columns:1fr}}
+
+/* ---------------------------------------------------------------- pros & cons */
+/* Plus and minus marks and the headings carry the meaning; the tints only back them up. */
+.ag .pcx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ag .pcx__col{border-radius:18px;padding:28px 30px;display:flex;flex-direction:column;gap:16px}
+.ag .pcx__col h3{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-size:21px;font-weight:800;color:var(--navy)}
+.ag .pcx__col h3 span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:20px;font-weight:800;flex:none}
+.ag .pcx__col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.ag .pcx__col li{position:relative;padding-left:24px;font-size:16px;line-height:1.5;color:var(--ink)}
+.ag .pcx__col--pro{background:var(--skylt)}
+.ag .pcx__col--pro h3 span{background:var(--sky);color:var(--navy)}
+.ag .pcx__col--pro li::before{content:"+";position:absolute;left:2px;font-weight:800;color:var(--sky-ink)}
+.ag .pcx__col--con{background:#fff;border:1px solid var(--line2)}
+.ag .pcx__col--con h3 span{background:#F3F4F7;color:var(--navy)}
+.ag .pcx__col--con li::before{content:"−";position:absolute;left:2px;font-weight:800;color:var(--ink3)}
+
+/* ---------------------------------------------------------------- savings */
+.ag .svx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.ag .svx__form{display:flex;flex-direction:column;gap:12px;background:#fff;border-radius:18px;padding:26px}
+.ag .svx__q{font-family:var(--disp);font-size:17px;font-weight:800;color:var(--navy)}
+.ag .svx__opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.ag .svx__opts--n{grid-template-columns:repeat(6,minmax(0,1fr))}
+.ag .svx__opts button{min-height:46px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--navy);font-size:14.5px;font-weight:700;cursor:pointer}
+.ag .svx__opts button:hover{border-color:var(--navy)}
+.ag .svx__opts button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.ag .svx__out{display:flex;flex-direction:column;gap:10px;background:var(--navy);color:#fff;border-radius:18px;padding:26px}
+.ag .svx__row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12);font-size:15px;color:rgba(255,255,255,.8)}
+.ag .svx__row strong{font-family:var(--disp);font-size:24px;font-weight:800;color:#fff}
+.ag .svx__row small,.ag .svx__save small{font-size:13px;font-weight:500;color:rgba(255,255,255,.7)}
+.ag .svx__save{display:flex;flex-direction:column;gap:4px;padding-top:6px}
+.ag .svx__save span{font-size:14px;color:var(--sky2)}
+.ag .svx__save strong{font-family:var(--disp);font-size:clamp(30px,3vw,42px);font-weight:900;letter-spacing:-.02em}
+.ag .svx__note{margin:auto 0 0;padding-top:10px;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.65)}
+.ag .svx__note a{color:#fff}
+@media (max-width:900px){.ag .pcx,.ag .svx{grid-template-columns:1fr}}
+@media (max-width:600px){.ag .pcx__col{padding:22px}.ag .svx__opts--n{grid-template-columns:repeat(3,minmax(0,1fr))}}

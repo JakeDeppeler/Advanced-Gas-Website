@@ -40,7 +40,7 @@
 .ag .bxo__t em{font-style:normal;font-size:14px;font-weight:700;color:var(--or-ink)}
 .ag .bxo__go{font-style:normal;margin-left:auto;color:var(--or);font-size:20px}
 
-.ag .bxs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,64px);align-items:start}
+.ag .bxs{display:grid;grid-template-columns:minmax(0,1fr);max-width:980px;margin:0 auto}
 .ag .bxs__col{display:flex;flex-direction:column;gap:14px}
 .ag .bxs__col p{margin:0;font-size:16px;line-height:1.7;color:var(--ink2)}
 .ag .bxs__col--card{background:#F4F7FA;border-radius:18px;padding:30px}

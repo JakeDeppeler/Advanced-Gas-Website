@@ -213,7 +213,7 @@ const t = (slug: Tier["slug"], brand: string, model: string, img: string, feats:
 const SPLIT_TIERS: Tier[] = [
   t("essential", "Kaden", "KSI wall split", IMG.kadenSplit, ["Reverse cycle: heats and cools", "Installed by our own crew", W], null),
   t("premium", "Mitsubishi Electric", "MSZ-AP wall split", IMG.mitsuSplit, ["As quiet as 19 dBA on low", "Back-to-back install in a morning", W], 2199),
-  t("signature", "Mitsubishi Electric", "MSZ-AP Hyper Heating", IMG.mitsuSplit, ["Full rated heat down to −15°", "Built for hills postcodes", W], null),
+  t("signature", "Mitsubishi Electric", "MSZ-AP Hyper Heating", IMG.mitsuSplit, ["Full rated heat down to −15°", "Built for colder, higher areas", W], null),
 ];
 
 type SystemDef = Omit<System, "qs"> & { more: Question[] };

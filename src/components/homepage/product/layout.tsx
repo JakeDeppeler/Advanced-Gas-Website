@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type PV, Crumbs, Badges, Price, Finance, BuyButtons, Promise, WhyList, Glance, FitFinder,
+  type PV, Crumbs, Badges, Price, Finance, BuyButtons, ProsCons, SavingsCalc, isHeatPumpOption, Promise, WhyList, Glance, FitFinder,
   SizeGuide, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 
@@ -16,7 +16,8 @@ import {
 export function ProductLayout({ v }: { v: PV }) {
   const { t, learn } = v;
   const tabs = [
-    ["overview", "Overview"], ...(learn ? [["how", "How it works"], ["fit", "Is it right for you?"]] : []),
+    ["overview", "Overview"], ["pros", "Pros & cons"], ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []),
+    ...(learn ? [["how", "How it works"], ["fit", "Is it right for you?"]] : []),
     ["sizes", "Sizes"], ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
   return (
@@ -41,6 +42,22 @@ export function ProductLayout({ v }: { v: PV }) {
 
       {v.glance.length > 0 && (
         <section className="lk2__stats"><div className="wrap"><Glance v={v} cls="lk2__glance" /></div></section>
+      )}
+
+      <section className="pxs" id="pros">
+        <div className="wrap pp__col">
+          <Lead eye="Pros & cons" h="The honest bit." />
+          <ProsCons v={v} />
+        </div>
+      </section>
+
+      {isHeatPumpOption(v) && (
+        <section className="pxs pxs--sky" id="savings">
+          <div className="wrap pp__col">
+            <Lead eye="Running costs" h="How much could you save?"><p>Two taps and we&apos;ll compare what you pay now with what this heat pump costs to run.</p></Lead>
+            <SavingsCalc v={v} />
+          </div>
+        </section>
       )}
 
       <Story v={v} />

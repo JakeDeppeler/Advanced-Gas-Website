@@ -94,11 +94,10 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   const mi = Math.max(0, picked ? models.findIndex((m) => m.slug === picked) : modelForAnswer(models, size?.spec));
   const model = models[mi] ?? null;
 
-  // A model's own record beats the option's feature list: where the model
-  // states its noise, an option line quoting a different dBA figure goes, so
-  // the page never shows two numbers for the same thing.
-  const statesSound = !!model?.specs.some((x) => /sound/i.test(x.label));
-  const optionLines = feats.filter((f) => !(statesSound && /dBA/.test(f)));
+  // An option line quoting a noise figure is about one size (the smallest);
+  // where the page offers sizes, it would sit under a 7.1 kW claiming the
+  // 2.5 kW's figure. The model's own spec table carries its real number.
+  const optionLines = feats.filter((f) => !(models.length && /dBA/.test(f)));
   const included = [...optionLines, "Free site check and a fixed price in writing", "Installed by our own crew", "Compliance certificate emailed within 24 hours", "6 years on our workmanship"];
 
   // Which of the system's sizes is showing: the one picked, or the one

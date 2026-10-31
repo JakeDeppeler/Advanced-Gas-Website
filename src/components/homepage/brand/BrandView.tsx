@@ -15,10 +15,15 @@ import { CATS, BRAND_SLUGS, TONES, productHref, money, weekly, SHOW_FINANCE, FIN
  */
 export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] }) {
   // The finder's options from this brand, matched the same way a product
-  // page finds its brand, so the two always agree.
-  const options = CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers
+  // page finds its brand, so the two always agree. A split appears under
+  // Cooling and again under Heating (as a reverse-cycle split); list it once,
+  // with both categories on its card.
+  const all = CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers
     .map((t, i) => ({ c, s, t, i }))
     .filter(({ t }) => BRAND_SLUGS[t.brand] === brand.slug)));
+  const options = all
+    .filter((o, k) => all.findIndex((x) => x.t.model === o.t.model) === k)
+    .map((o) => ({ ...o, cats: [...new Set(all.filter((x) => x.t.model === o.t.model).map((x) => x.c.label))] }));
   const facts = brand.heroFacts ?? [];
   const tabs = [
     ["why", "Why we fit them"], ...(options.length ? [["options", `${brand.name} options`]] : []),
@@ -112,11 +117,11 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
               <p className="bx__lede">Each one has its own page with sizes, specs, the price installed and how it works.</p>
             </div>
             <div className="bxo">
-              {options.map(({ c, s, t, i }) => (
+              {options.map(({ s, t, i, cats }) => (
                 <Link key={`${s.slug}.${t.slug}`} href={productHref(s, t, {})} className="bxo__card">
                   <span className="bxo__img"><Image src={t.img} alt="" fill sizes="(max-width: 600px) 90vw, 320px" /></span>
                   <span className="bxo__t">
-                    <span className="bxo__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier} · {c.label} · {s.label}</span>
+                    <span className="bxo__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier} · {cats.join(" & ")}</span>
                     <strong>{t.model}</strong>
                     {typeof t.price === "number" && (
                       <em>From {money(t.price)}{SHOW_FINANCE ? ` or $${weekly(t.price, FINANCE_MONTHS)}/wk` : ""}</em>
@@ -132,13 +137,6 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
 
       <section className="pxs" id="support">
         <div className="wrap bxs">
-          {brand.commonInMelbourne && (
-            <div className="bxs__col">
-              <span className="aeye"><i /> Around here</span>
-              <h2 className="h2 h2--sm">{brand.name} in Melbourne&apos;s south-east.</h2>
-              <p>{brand.commonInMelbourne}</p>
-            </div>
-          )}
           <div className="bxs__col bxs__col--card">
             <span className="aeye"><i /> Parts &amp; support</span>
             <h2 className="h2 h2--sm">{brand.servicing?.heading ?? "Keeping it running."}</h2>

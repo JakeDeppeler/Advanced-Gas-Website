@@ -385,7 +385,7 @@ const brandCatalogue: Brand[] = [
       { v: "9", k: "Models we install and support" },
       { v: "Since 1971", k: "Melbourne-built · Rinnai-owned since 2004" },
       { v: "3–6 star", k: "Wombat through to Starpro efficiency" },
-      { v: "5 + 6 yr", k: "Manufacturer, then our workmanship" },
+      { v: "5 yr & 6 yr", k: "5-yr manufacturer and 6-yr workmanship warranties, both from install day" },
     ],
     benefitsHeading: "Why the like-for-like usually wins.",
     benefitTiles: [
@@ -595,7 +595,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Brivis Buffalo external gas ducted heater cabinet",
         bestFor: "Homes built with the ducted heater outside on a pad rather than in an internal cupboard",
         ourTake:
-          "The outdoor-cabinet build, weatherproofed, with the quieter fan and longer service life of the internal Compact Classic. Common on the older Berwick, Endeavour Hills and Cranbourne weatherboards where the heater has always sat on a slab down the side of the house, and where the existing pad and gas line come straight across.",
+          "The outdoor-cabinet build, weatherproofed, with the quieter fan and longer service life of the internal Compact Classic. Common on older weatherboard homes where the heater has always sat on a slab down the side of the house, and where the existing pad and gas line come straight across.",
         specs: [
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
           { label: "Install position", value: "External weatherproof cabinet on ground pad" },
@@ -705,7 +705,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Low-profile roof-mounted evaporative cooler",
         bestFor: "Street-view sensitive homes and low-pitch roofs where the Classic silhouette is too tall",
         ourTake:
-          "Same cooling as the Contour, in a flatter cabinet. It goes on when the roofline is the thing that matters: a character street in Berwick, an Officer estate with covenants, or a low-pitch roof where the taller cabinet sits awkwardly. You're buying the silhouette rather than the cooling, and that's a fair reason to buy it.",
+          "Same cooling as the Contour, in a flatter cabinet. It goes on when the roofline is the thing that matters: a character street, an estate with covenants, or a low-pitch roof where the taller cabinet sits awkwardly. You're buying the silhouette rather than the cooling, and that's a fair reason to buy it.",
         specs: [
           { label: "Silhouette", value: "Low-Profile (flatter) roof silhouette" },
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
@@ -795,7 +795,7 @@ const brandCatalogue: Brand[] = [
       { v: "Under 1%", k: "Failure rate across our install base" },
       { v: "16", k: "Models we install and support" },
       { v: "Since 1978", k: "Selling in Australia" },
-      { v: "5 + 6 yr", k: "Manufacturer, then our workmanship" },
+      { v: "5 yr & 6 yr", k: "5-yr manufacturer and 6-yr workmanship warranties, both from install day" },
     ],
 
     benefitsHeading: "Why it's the one we quote first.",
@@ -818,7 +818,7 @@ const brandCatalogue: Brand[] = [
         t: "Hyper Heating for the hills",
         line: "Rated output held at -15\u00b0 ambient",
         detail:
-          "Standard splits start to fade on the coldest mornings, right when you want them. The Hyper Heating variant holds its rated heating capacity down to -15\u00b0, which is why we specify it in Emerald, Gembrook and Cockatoo rather than in Cranbourne.",
+          "Standard splits start to fade on the coldest mornings, right when you want them. The Hyper Heating variant holds its rated heating capacity down to -15\u00b0, which is why we specify it for homes in colder, higher areas.",
         icon: "flame",
       },
       {
@@ -1085,7 +1085,7 @@ const brandCatalogue: Brand[] = [
         veuEligible: true,
         bestFor: "Large great-room, warehouse-style living, or open double-height space",
         ourTake:
-          "The 7.1 is about as far as a wall unit sensibly goes. Past this, ducted or multi-head moves air around a room better than one head can. For a big north-facing living zone in Berwick or Officer, this is usually the answer.",
+          "The 7.1 is for a big open-plan living area, the kind with a wall of glass facing the afternoon sun. Only the 8.0 kW goes bigger in this range, and once a space needs more than that, ducted or multi-head moves the air around better than one head can.",
         specs: [
           { label: "Cooling capacity", value: "7.1 kW" },
           { label: "Heating capacity", value: "8.0 kW" },
@@ -1263,7 +1263,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Mitsubishi Electric PEA-M ducted indoor unit",
         bestFor: "3-4 bed single-storey ducted retrofit or new-build, 4-6 zones",
         ourTake:
-          "The PEA-M is Mitsubishi's default ducted system for a typical Melbourne family home. Three capacity steps (10 / 12.5 / 14 kW) cover most single-storey retrofits, and the HAA-VKA Hyper Heating variant holds capacity down to −15 °C, worth specifying for hills postcodes like Emerald and Gembrook. Pairs with the PUZ outdoor and any Zonemate zone controller.",
+          "The PEA-M is Mitsubishi's default ducted system for a typical Melbourne family home. Three capacity steps (10 / 12.5 / 14 kW) cover most single-storey retrofits, and the HAA-VKA Hyper Heating variant holds capacity down to −15 °C, worth specifying in colder, higher areas. Pairs with the PUZ outdoor and any Zonemate zone controller.",
         specs: [
           { label: "Cool / heat capacity", value: "10 kW · 12.5 kW · 14 kW (three model steps)" },
           { label: "Model codes", value: "PEA-M100HAA · PEA-M125HAA · PEA-M140HAA" },
@@ -1462,7 +1462,7 @@ const brandCatalogue: Brand[] = [
     intro:
       "Reclaim runs CO₂ (R744) where almost everyone else runs R290 or R134a. It is a natural refrigerant with zero global-warming potential, and the reason it matters here rather than on a spec sheet is that CO₂ keeps pulling heat out of the air on a cold Pakenham morning, when other heat pumps are working hardest for the least.",
     ourTake:
-      "Reclaim is the one to pick when you're staying in the house and want to stop thinking about hot water. CO₂ pulls heat out of cold air in a way most refrigerants can't, which matters in a Pakenham winter, and the tanks are built to outlast the compressor in front of them. Two designs: the CO₂ SPLIT, an outdoor heat pump plumbed to a separate tank, in glass-lined, stainless, 316 stainless and Earthworks finishes; and the ECO R290 ALL-IN-ONE, everything in one shell, at 200 L and 285 L. It costs more on day one and it's built to still be there in fifteen years.",
+      "Reclaim is the one to pick when you're staying in the house and want to stop thinking about hot water. CO₂ pulls heat out of cold air in a way most refrigerants can't, which matters on a cold winter morning, and the tanks are built to outlast the compressor in front of them. Two designs: the CO₂ SPLIT, an outdoor heat pump plumbed to a separate tank, in glass-lined, stainless, 316 stainless and Earthworks finishes; and the ECO R290 ALL-IN-ONE, everything in one shell, at 200 L and 285 L. It costs more on day one and it's built to still be there in fifteen years.",
     accreditation: "Reclaim accredited installer · listed on the Reclaim installer locator",
     productLabel: "13 models · CO₂ split heat pumps + ECO R290 all-in-one",
     photo: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png",
@@ -1773,7 +1773,7 @@ const brandCatalogue: Brand[] = [
         photo: "/Reclaim Glass lined and stainless v2.webp",
         photoAlt: "Reclaim CO₂ split heat pump",
         bestFor: "Family of four or five on town water",
-        ourTake: "315 L is the size most families land on, on the same CO₂ split platform as everything else in the range. Glass-lined tank with a sacrificial anode, which we swap every five to seven years, and which is perfectly at home in Pakenham town water.",
+        ourTake: "315 L is the size most families land on, on the same CO₂ split platform as everything else in the range. Glass-lined tank with a sacrificial anode, which we swap every five to seven years, and which is perfectly at home on town water.",
         specs: [
           { label: "Tank capacity", value: "315 L" },
           { label: "Tank material", value: "Glass-lined + sacrificial anode" },
@@ -1914,7 +1914,7 @@ const brandCatalogue: Brand[] = [
         photo: "/Reclaim Glass lined and stainless v2.webp",
         photoAlt: "Reclaim 400L CO₂ split heat pump stainless tank",
         bestFor: "Larger families (6+), acreage properties with high draw",
-        ourTake: "The most volume Reclaim make, in stainless, on the 5 kW compressor. For acreage through Devon Meadows and Pearcedale, or a big household in Cranbourne South, where the draw is high enough that stored litres and recovery speed both have to be there.",
+        ourTake: "The most volume Reclaim make, in stainless, on the 5 kW compressor. For acreage properties and big households, where the draw is high enough that stored litres and recovery speed both have to be there.",
         specs: [
           { label: "Tank capacity", value: "400 L" },
           { label: "Tank material", value: "Stainless steel" },
@@ -2231,7 +2231,7 @@ const brandCatalogue: Brand[] = [
       { v: "Same day", k: "Common parts over the counter at any Reece store" },
       { v: "8", k: "Models we install and support" },
       { v: "Aus-made", k: "Built by Dux in Moss Vale NSW · VEU bonus" },
-      { v: "5 + 6 yr", k: "Cylinder, then our workmanship" },
+      { v: "5 yr & 6 yr", k: "5-yr cylinder and 6-yr workmanship warranties, both from install day" },
     ],
     benefitsHeading: "Why the parts pipeline is the whole argument.",
     benefitTiles: [
@@ -2708,7 +2708,7 @@ const brandCatalogue: Brand[] = [
       { v: "$2,150", k: "Installed inc GST, VEU rebate applied at the quote" },
       { v: "2 models", k: "180 L and 270 L, nothing in between to read through" },
       { v: "R290", k: "Natural refrigerant, high COP" },
-      { v: "6 + 3 + 6 yr", k: "Cylinder, compressor, then our workmanship" },
+      { v: "6 yr · 3 yr · 6 yr", k: "Cylinder, compressor and workmanship warranties, all from install day" },
     ],
     benefitsHeading: "Why it's the pick when the rebate decides it.",
     benefitTiles: [
@@ -2860,7 +2860,7 @@ const brandCatalogue: Brand[] = [
         photo: "/270L-istore-heatpump.webp",
         photoAlt: "iStore 270L heat pump, installed unit",
         ourTake:
-          "270 L on a 4 kW compressor, and that pairing is the point: enough stored for a family of four, and enough output to have it back before the evening run. Our most-installed unit through Hampton Park and Cranbourne, with the rebate applied at the quote.",
+          "270 L on a 4 kW compressor, and that pairing is the point: enough stored for a family of four, and enough output to have it back before the evening run. One of our most-installed units, with the rebate applied at the quote.",
         specs: [
           { label: "Tank capacity", value: "270 L" },
           { label: "Refrigerant", value: "R290" },
@@ -2924,7 +2924,7 @@ const brandCatalogue: Brand[] = [
       { v: "12 models", k: "Splits, multi-head, ducted, gas ducted and evap" },
       { v: "Reece-exclusive", k: "Common parts in every Reece store in Victoria" },
       { v: "Since 2015", k: "Reece-exclusive brand, distributed nationally" },
-      { v: "5 + 6 yr", k: "Manufacturer parts + labour, then our workmanship" },
+      { v: "5 yr & 6 yr", k: "5-yr manufacturer and 6-yr workmanship warranties, both from install day" },
     ],
     benefitsHeading: "Why it's the one we quote for the whole house.",
     benefitTiles: [
@@ -3235,7 +3235,7 @@ const brandCatalogue: Brand[] = [
         photo: "/Kaden kdi-v2-Ducted Split System.webp",
         photoAlt: "Kaden ducted install with return-air duct work",
         bestFor: "Larger single-storey and double-storey family homes",
-        ourTake: "The top of the Kaden ducted range, and what goes into the double-storey family homes through Berwick, Officer and Clyde. Past 17 kW the range stops and the Mitsubishi PEA-M picks it up, which is a question of capacity rather than of quality.",
+        ourTake: "The top of the Kaden ducted range, and what goes into larger double-storey family homes. Past 17 kW the range stops and the Mitsubishi PEA-M picks it up, which is a question of capacity rather than of quality.",
         specs: [{ label: "Cool capacity", value: "17.0 kW" }],
         related: ["kaden-ducted-14", "pead-large"],
       },
@@ -3390,7 +3390,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Kaden 3-star external gas ducted heater cabinet",
         bestFor: "External-cabinet retrofit for homes with the ducted heater outside on a pad",
         ourTake:
-          "The 3-star external is the outdoor-cabinet sibling of the internal 3-star, same core burner and heat exchanger, weatherproof cabinet. Common on older Endeavour Hills / Berwick weatherboards where the ducted heater sits on an external slab.",
+          "The 3-star external is the outdoor-cabinet sibling of the internal 3-star, same core burner and heat exchanger, weatherproof cabinet. Common on older weatherboard homes where the ducted heater sits on an external slab.",
         specs: [
           { label: "Star rating", value: "3-star" },
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
@@ -3543,7 +3543,7 @@ const brandCatalogue: Brand[] = [
       { v: "30–40%", k: "Off an always-on ducted's running bill" },
       { v: "Up to 24", k: "Zones on one control, second board added" },
       { v: "0–100%", k: "Airflow per zone, not just on/off" },
-      { v: "5 + 5 + 6 yr", k: "Controller, dampers, our workmanship" },
+      { v: "5 yr · 5 yr · 6 yr", k: "Controller, dampers and workmanship warranties, all from install day" },
     ],
     benefitsHeading: "Why it goes in every ducted job we quote.",
     benefitTiles: [
