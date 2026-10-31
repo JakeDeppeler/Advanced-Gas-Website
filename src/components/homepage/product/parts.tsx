@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
-  findHref, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, reviewTitle,
-  type Category, type System, type Tier, type Answers, type Opt, type GalItem,
+  findHref, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, reviewTitle, modelForAnswer,
+  type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
 } from "@/lib/homepage/data";
 import type { HowStep, Learn } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
@@ -11,24 +11,24 @@ import type { Badge } from "@/lib/homepage/badges";
 import type { PModel, PBrand } from "../ProductView";
 
 /**
- * The pieces every product page layout is built from. The layouts differ in
- * arrangement and dress, never in what they say: each piece reads the same
- * figures from the same place, so swapping the look can't change a number.
+ * The pieces a product page is built from. Each reads its figures from the
+ * one PV object, so no two parts of the page can disagree about a number.
  */
 export type PV = {
   cat: Category; sys: System; t: Tier; ti: number;
   models: PModel[]; model: PModel | null; mi: number; size: Opt | null; ans: Answers;
   known: boolean; hp: boolean; newBuildHp: boolean;
   badges: Badge[]; modelKeys: { label: string; value: string }[];
-  gal: GalItem[]; g: number; setGi: (i: number) => void;
-  hero: { src: string; alt: string; pos: string; ours: boolean };
+  gal: GalItem[];
+  /** The header photo for the size showing, and which of the system's sizes that is. */
+  room: Hero; roomIdx: number | null;
   book: string; others: (readonly [Tier, number])[];
   learn: Learn | undefined; steps: HowStep[];
   /** The option's own feature lines, minus any the model's record contradicts. */
   optionLines: string[];
   whyTitle: string; whyLines: string[]; take: string; glance: { label: string; value: string }[];
   sizeOn: (i: number) => boolean; pickSize: (i: number) => void; pickModel: (slug: string) => void; setSize: (i: number) => void;
-  sizeNote: string; specRows: { k: string; v: string }[]; specNote: string; howImg: GalItem;
+  sizeNote: string; specRows: { k: string; v: string }[]; specNote: string;
   reviews: Review[]; rating: string; count: number; brand: PBrand | null;
   heroRef: React.RefObject<HTMLElement>; pastHero: boolean;
 };
@@ -111,36 +111,6 @@ export function Promise() {
   return <ul className="pmz"><li>Free site check</li><li>Fixed price in writing</li><li>6-yr workmanship warranty</li></ul>;
 }
 
-/** The gallery: one big picture, arrows, and the thumbnails under it. */
-export function Stage({ v, cls = "", thumbs = true, sizes = "(max-width: 900px) 100vw, 760px" }: { v: PV; cls?: string; thumbs?: boolean; sizes?: string }) {
-  const { gal, g, setGi } = v;
-  const cur = gal[g];
-  return (
-    <div className={`stg ${cls}`}>
-      <div className={`stg__main${cur.kind === "p" ? " stg__main--prod" : ""}`}>
-        <Image key={cur.src} src={cur.src} alt={cur.alt} fill priority={g === 0} sizes={sizes} />
-        {cur.kind === "c" && <span className="pm__cap">One of our installs</span>}
-        {gal.length > 1 && (
-          <>
-            <span className="pm__count">{g + 1} / {gal.length}</span>
-            <button type="button" className="pm__nav pm__nav--l" onClick={() => setGi((g - 1 + gal.length) % gal.length)} aria-label="Previous photo">←</button>
-            <button type="button" className="pm__nav pm__nav--r" onClick={() => setGi((g + 1) % gal.length)} aria-label="Next photo">→</button>
-          </>
-        )}
-      </div>
-      {thumbs && gal.length > 1 && (
-        <div className="stg__thumbs">
-          {gal.map((x, i) => (
-            <button key={x.src} type="button" className={`stg__th${x.kind === "p" ? " stg__th--prod" : ""}${i === g ? " stg__th--on" : ""}`} onClick={() => setGi(i)} aria-label={`Photo ${i + 1}: ${x.alt}`} aria-pressed={i === g}>
-              <Image src={x.src} alt="" fill sizes="110px" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function WhyList({ v, title = true }: { v: PV; title?: boolean }) {
   return (
     <>
@@ -160,17 +130,70 @@ export function Glance({ v, cls = "pxg" }: { v: PV; cls?: string }) {
   );
 }
 
-export function HowSteps({ v, cls = "pxw__steps" }: { v: PV; cls?: string }) {
-  if (!v.learn) return null;
+const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+
+/**
+ * "Which one suits me?" in two taps: which line sounds like their home, then
+ * the size question from the finder. It ends on the button to press, or on
+ * the other kind of system that fits better, and never on a size the page
+ * can't select.
+ */
+export function FitFinder({ v }: { v: PV }) {
+  const { learn, sys, models } = v;
+  const [path, setPath] = useState<number | null>(null);
+  const [sz, setSz] = useState<number | null>(null);
+  const [done, setDone] = useState(false);
+  if (!learn) return null;
+  const choices = [{ label: cap(learn.good[0]), alt: null }, ...learn.alt.map((a) => ({ label: cap(a.if), alt: a }))];
+  const alt = path != null ? choices[path].alt : null;
+  const button = sz == null ? null : models.length ? models[modelForAnswer(models, sys.sizes[sz].spec)].chip : sys.sizes[sz].label;
+  const restart = () => { setPath(null); setSz(null); setDone(false); };
+
   return (
-    <ol className={cls}>
-      {v.learn.how.map((x, i) => (
-        <li key={x.t}>
-          <span className="pxw__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-          <div><h3>{x.t}</h3><p>{x.d}</p></div>
-        </li>
-      ))}
-    </ol>
+    <div className="ff" aria-live="polite">
+      {path == null && (
+        <>
+          <span className="ff__q">Which sounds most like your home?</span>
+          <div className="ff__opts">
+            {choices.map((c, i) => <button key={c.label} type="button" className="ff__opt" onClick={() => setPath(i)}>{c.label}<i aria-hidden="true">→</i></button>)}
+          </div>
+        </>
+      )}
+      {path === 0 && sz == null && (
+        <>
+          <span className="ff__q">{sys.q}</span>
+          <div className="ff__opts">
+            {sys.sizes.map((z, i) => (
+              <button key={z.label} type="button" className="ff__opt" onClick={() => setSz(i)}>
+                <span><strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</span><i aria-hidden="true">→</i>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {path === 0 && sz != null && (
+        <div className="ff__res">
+          <span className="ff__tag">Your best fit</span>
+          <p>Press <b className="ff__btn">{button}</b> in the size buttons{done ? ". Done, it's selected." : ", or let us do it."}</p>
+          <div className="ff__acts">
+            {done
+              ? <Link href={v.book} className="abtn abtn--or abtn--flat">Book this install →</Link>
+              : <button type="button" className="abtn abtn--or abtn--flat" onClick={() => { v.pickSize(sz); setDone(true); }}>Select {button}</button>}
+            <button type="button" className="ff__again" onClick={restart}>Start again</button>
+          </div>
+        </div>
+      )}
+      {alt && (
+        <div className="ff__res">
+          <span className="ff__tag">A better fit</span>
+          <p>For that, a <b>{alt.label.toLowerCase()}</b> usually suits better than this one.</p>
+          <div className="ff__acts">
+            <Link href={`/?find=${alt.go}#find`} className="abtn abtn--or abtn--flat">See {alt.label} options →</Link>
+            <button type="button" className="ff__again" onClick={restart}>Start again</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

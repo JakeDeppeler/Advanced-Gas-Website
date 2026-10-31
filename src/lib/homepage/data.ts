@@ -373,7 +373,7 @@ const GAL: Record<string, GalItem[]> = {
  * picks the band that survives a wide crop.
  */
 /** `ours` is false for the one manufacturer photo, so it never gets captioned as our install. */
-type Hero = { src: string; alt: string; pos: string; ours: boolean };
+export type Hero = { src: string; alt: string; pos: string; ours: boolean };
 const hero = (src: string, alt: string, pos = "center 45%", ours = true): Hero => ({ src, alt, pos, ours });
 const H = {
   bedroom: hero("/kaden-indoor.webp", "A wall split we installed in a bedroom", "center 32%"),
@@ -398,6 +398,20 @@ const HERO: Record<string, Hero> = {
   zoning: H.zonemate,
 };
 export const heroFor = (sys: System, tier: Tier): Hero => HERO[`${sys.slug}.${tier.slug}`] ?? HERO[sys.slug] ?? H.bedroom;
+
+/**
+ * The header photo for each size of a room-by-room system, in the order of
+ * its sizes, so picking a size shows the kind of room it's for. Our own
+ * installs only: a size without one keeps the system's photo rather than
+ * borrowing a stock shot. Drop new photos in public/brand-installs and list
+ * them here.
+ */
+const ROOMS: Record<string, (Hero | null)[]> = {
+  "split-system": [H.bedroom, null, null, null],
+  "reverse-cycle-split": [H.bedroom, null, null, null],
+};
+export const roomFor = (sys: System, tier: Tier, size: number | null): Hero =>
+  (size != null ? ROOMS[sys.slug]?.[size] : null) ?? heroFor(sys, tier);
 
 export function galleryFor(sys: System, tier: Tier): GalItem[] {
   const out: GalItem[] = [g(tier.img, `${tier.brand} ${tier.model}`, "p")];

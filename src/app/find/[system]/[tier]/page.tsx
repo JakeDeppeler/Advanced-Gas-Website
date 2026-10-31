@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 import { seoMeta } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/schema";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
-import { allProductParams, findSystem, heroFor, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
+import { allProductParams, findSystem, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
 import { HomeFooter } from "@/components/homepage/HomeFooter";
@@ -13,7 +13,7 @@ import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
 import "@/components/homepage/homepage.css";
-import "@/components/homepage/product/looks.css";
+import "@/components/homepage/product/product.css";
 
 /**
  * The product page an option in "Find your system" opens. A real URL rather
@@ -88,7 +88,7 @@ export default function FindProductPage({ params }: { params: Params }) {
       <HomeHeader variant="flat" />
       <ProductView
         system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
-        models={models} brand={brand} hero={heroFor(sys, tier)} tierBadges={badgesFor({}, tier.feats)}
+        models={models} brand={brand} tierBadges={badgesFor({}, tier.feats)}
       />
       <HomeFooter />
       <Script id="ld-find-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />

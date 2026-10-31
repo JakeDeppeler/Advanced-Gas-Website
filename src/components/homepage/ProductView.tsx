@@ -5,10 +5,10 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import {
   findSystem, galleryFor, specRows, answersFrom, answersQuery, bookHref,
   isHeatPump, isNewBuildHeatPump, SPEC_NOTE, SIZE_NOTE, WORKMANSHIP,
-  modelForAnswer, installTime as installTimeOf, type Answers,
+  modelForAnswer, roomFor, installTime as installTimeOf, type Answers,
 } from "@/lib/homepage/data";
 import type { PV } from "./product/parts";
-import { LOOKS, LookGuide, LookShowroom, LookMix } from "./product/looks";
+import { ProductLayout } from "./product/layout";
 import { LEARN, BOOKING_STEPS } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
@@ -33,12 +33,9 @@ export type PBrand = { name: string; page?: string; site?: { label: string; href
  * One option from the finder, as a page of its own so it can be shared and
  * indexed. The answers ride along in the query string (?size=1&floor=0…);
  * the page renders without them too, for anyone who lands here from search.
- *
- * ?look=1…3 picks a layout while Jake chooses between them.
  */
-export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand, hero, tierBadges }: {
+export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand, tierBadges }: {
   system: string; tier: string; reviews: Review[]; rating: string; count: number; models: PModel[]; brand: PBrand | null;
-  hero: { src: string; alt: string; pos: string; ours: boolean };
   /** Badges the option states itself (Wi-Fi in its feature list), for options with no catalogue model. */
   tierBadges: Badge[];
 }) {
@@ -48,8 +45,6 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   const t = sys.tiers[ti];
 
   const [ans, setAns] = useState<Answers>({});
-  const [gi, setGi] = useState(0);
-  const [look, setLook] = useState(1);
   // The model they picked here, or arrived with in ?model=. Until then the
   // size they gave in the finder chooses one.
   const [picked, setPicked] = useState<string | null>(null);
@@ -63,12 +58,12 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     const io = new IntersectionObserver(([e]) => setPastHero(!e.isIntersecting && e.boundingClientRect.top < 0));
     io.observe(el);
     return () => io.disconnect();
-  }, [look]);
+  }, []);
 
   // Changing the size keeps the URL in step, so a shared link shows what they saw.
-  function syncUrl(a: Answers, model: string | null, lk = look) {
+  function syncUrl(a: Answers, model: string | null) {
     const qs = answersQuery(sys, a);
-    const q = [qs, model ? `model=${model}` : "", lk !== 1 ? `look=${lk}` : ""].filter(Boolean).join("&");
+    const q = [qs, model ? `model=${model}` : ""].filter(Boolean).join("&");
     window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
   }
   function setSize(i: number) {
@@ -85,15 +80,8 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     setSize(i);
     if (models.length) { setPicked(null); syncUrl({ ...ans, size: i }, null); }
   }
-  function pickLook(n: number) {
-    setLook(n);
-    setPastHero(false);
-    syncUrl(ans, picked, n);
-    window.scrollTo({ top: 0 });
-  }
 
   const gal = galleryFor(sys, t);
-  const g = Math.min(gi, gal.length - 1);
   const size = ans.size != null ? sys.sizes[ans.size] : null;
   const feats = t.feats.filter((f) => f !== WORKMANSHIP);
 
@@ -107,13 +95,26 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   const optionLines = feats.filter((f) => !(statesSound && /dBA/.test(f)));
   const included = [...optionLines, "Free site check and a fixed price in writing", "Installed by our own crew", "Compliance certificate emailed within 24 hours", "6 years on our workmanship"];
 
+  // Which of the system's sizes is showing: the one picked, or the one
+  // nearest the chosen model (a 6.0 kW model has no size row of its own).
+  const nums = (x?: string) => (x?.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
+  const roomIdx = model
+    ? (() => {
+      const want = nums(model.chip)[0];
+      if (want == null) return null;
+      let best: number | null = null, gap = Infinity;
+      sys.sizes.forEach((z, i) => nums(z.spec).forEach((n) => { if (Math.abs(n - want) < gap) { gap = Math.abs(n - want); best = i; } }));
+      return best;
+    })()
+    : ans.size ?? null;
+
   const v: PV = {
     cat, sys, t, ti, models, model, mi, size, ans,
     known: typeof t.price === "number", hp: isHeatPump(sys), newBuildHp: isNewBuildHeatPump(sys, ans),
     badges: model ? model.badges : tierBadges,
     // The figures beside the size buttons: the model's own, or the size they picked.
     modelKeys: model ? model.keys : size ? [{ label: "Typical size", value: size.spec ?? size.label }] : [],
-    gal, g, setGi, hero,
+    gal, room: roomFor(sys, t, roomIdx), roomIdx,
     book: bookHref(sys, t, ans, model?.slug),
     others: sys.tiers.map((x, i) => [x, i] as const).filter(([, i]) => i !== ti),
     learn: LEARN[sys.slug], steps: BOOKING_STEPS(installTimeOf(sys)),
@@ -128,42 +129,26 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     sizeNote: cat.id === "hw" ? "A rough guide only. We confirm the right size at the free site check." : SIZE_NOTE,
     specRows: model ? modelRows(model, cat.label, sys.label, installTimeOf(sys), size ? size.label + (size.spec ? ` (${size.spec})` : "") : null) : specRows(cat, sys, t, ans),
     specNote: model ? `${t.brand}'s published figures for the ${model.code}. The full spec sheet and manuals come with your written quote.` : SPEC_NOTE,
-    // How it works shows one of our installs where there is one; the product shot is already the hero.
-    howImg: gal.find((x) => x.kind === "c") ?? gal[0],
     reviews, rating, count, brand, heroRef, pastHero,
   };
 
-  const Look = [LookGuide, LookShowroom, LookMix][look - 1] ?? LookGuide;
 
   return (
     <div className="pp px" id="product">
       <Suspense fallback={null}>
-        <AnswersFromUrl system={system} onAnswers={(a, m, lk) => {
-          setAns(a);
-          if (m && models.some((x) => x.slug === m)) setPicked(m);
-          if (lk >= 1 && lk <= LOOKS.length) setLook(lk);
-        }} />
+        <AnswersFromUrl system={system} onAnswers={(a, m) => { setAns(a); if (m && models.some((x) => x.slug === m)) setPicked(m); }} />
       </Suspense>
-      <Look v={v} />
-      {/* Preview only: flips between the five layouts. Goes once one is chosen. */}
-      <div className="lksw" role="group" aria-label="Layout preview">
-        <span>Layout</span>
-        {LOOKS.map((x) => (
-          <button key={x.n} type="button" className={look === x.n ? "on" : ""} aria-pressed={look === x.n} onClick={() => pickLook(x.n)} title={x.name}>
-            {x.n}<em>{x.name}</em>
-          </button>
-        ))}
-      </div>
+      <ProductLayout v={v} />
     </div>
   );
 }
 
-function AnswersFromUrl({ system, onAnswers }: { system: string; onAnswers: (a: Answers, model: string | null, look: number) => void }) {
+function AnswersFromUrl({ system, onAnswers }: { system: string; onAnswers: (a: Answers, model: string | null) => void }) {
   const params = useSearchParams();
   const key = params.toString();
   useEffect(() => {
     const ref = findSystem(system);
-    if (ref) onAnswers(answersFrom(ref.sys, (k) => params.get(k)), params.get("model"), Number(params.get("look") ?? 1));
+    if (ref) onAnswers(answersFrom(ref.sys, (k) => params.get(k)), params.get("model"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, system]);
   return null;
