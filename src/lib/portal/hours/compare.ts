@@ -122,12 +122,23 @@ const hoursBetween = (a: string | null, b: string | null) => (a && b ? Math.max(
 
 /** Each person's time on the tools in each span, and the field crew's totals. */
 export async function hoursCompared(range: Span, compare: Span): Promise<[HoursWindow, HoursWindow]> {
-  if (!dbConfigured()) return [empty(range), empty(compare)];
+  const [a, b] = await hoursIn([range, compare]);
+  return [a, b];
+}
+
+/** This week so far, for the crew list's hours column. */
+export async function hoursThisWeek(): Promise<HoursWindow> {
+  const { range } = resolveSpans("week", "prev", {});
+  return (await hoursIn([range]))[0];
+}
+
+async function hoursIn(spans: Span[]): Promise<HoursWindow[]> {
+  if (!dbConfigured()) return spans.map(empty);
   const read = (s: Span) => sbSelect<Sheet>("st_timesheets", [
     q.select("technician_id,dispatched_on,arrived_on,done_on,active"), q.gte("arrived_on", s.from.toISOString()), q.lt("arrived_on", s.to.toISOString()), "limit=5000",
   ].join("&")).catch(() => [] as Sheet[]);
-  const [a, b, techs, users] = await Promise.all([
-    read(range), read(compare),
+  const [sheets, techs, users] = await Promise.all([
+    Promise.all(spans.map(read)),
     sbSelect<{ id: number; name: string | null }>("st_technicians", q.select("id,name")).catch(() => []),
     listUsers().catch(() => []),
   ]);
@@ -164,7 +175,7 @@ export async function hoursCompared(range: Span, compare: Span): Promise<[HoursW
       roster: field.filter((p) => p.roster).reduce((n, p) => n + (p.roster as number) * (s.weekdays / 5), 0),
     };
   };
-  return [tally(a, range), tally(b, compare)];
+  return spans.map((s, i) => tally(sheets[i], s));
 }
 
 const empty = (s: Span): HoursWindow => ({ span: s, people: [], on: 0, travel: 0, visits: 0, roster: 0 });
