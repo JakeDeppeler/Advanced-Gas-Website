@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import { HeroQuoteForm } from "@/components/HeroQuoteForm";
 import Link from "next/link";
-import { site, openingHours } from "@/lib/site";
-import "../detail.css";
-import "../home.css";
+import { openingHours } from "@/lib/site";
+import { HeroQuote } from "@/components/homepage/HeroQuote";
+import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import "@/components/homepage/homepage.css";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Get a Free Quote, Pakenham VEU-applied",
@@ -13,70 +16,36 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+/**
+ * The quote page: the homepage's quote form, so every quote on the site goes
+ * through the same steps and lands in the same place (/api/quote).
+ */
 export default function QuotePage() {
   return (
-    <div className="page-detail page-home">
-      <section className="dp-hero">
-        <div className="wrap">
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot" /> Free quote · usually back within 12 hrs
-          </div>
-          <h1>
-            Tell us what you need.<br />
-            Get a <span className="accent">written price</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            60 seconds, no obligation, no spam. We reply with a written quote within
-            <strong style={{ color: "#fff" }}> 12 business hours</strong>, or call us now on{" "}
-            <a href={`tel:${site.phoneE164}`} style={{ color: "var(--sky-2)", fontWeight: 700 }}>{site.phone}</a>.
-          </p>
-        </div>
-      </section>
-
-      <section className="dp-quote" data-hide-sticky-cta>
-        <div className="wrap dp-quote__grid">
-          <div className="dp-quote__copy">
-            <span className="ds-eyebrow"><span className="ds-dot" /> What you get</span>
-            <h2>No tricks. Just a real price.</h2>
-            <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 14 }}>
-              {[
-                ["VEU rebate handled for you", "Eligible Victorian homes. We apply it at the quote, you never chase it."],
-                ["Licensed plumbing & refrigeration", "Compliance certificate provided on completion."],
-                ["6-year workmanship warranty", "Triple the industry standard."],
-                ["Same-week installation", "Most jobs scheduled within 5–7 days of approval."],
-              ].map(([t, d]) => (
-                <li key={t} style={{ paddingLeft: 28, position: "relative" }}>
-                  <span style={{
-                    position: "absolute", left: 0, top: 2,
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    width: 20, height: 20, borderRadius: "50%",
-                    background: "var(--orange-deep)", color: "#fff",
-                    fontSize: 11, fontWeight: 800,
-                  }}>✓</span>
-                  <div style={{ fontFamily: "var(--f-display)", fontWeight: 700, color: "var(--navy)", fontSize: 16 }}>{t}</div>
-                  <div style={{ fontSize: 14.5, color: "var(--ink-2)" }}>{d}</div>
-                </li>
-              ))}
+    // data-no-reveal: the redesign pages opt out of the old site's scroll reveal.
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Get a quote" }]} />
+      <Hero
+        eye="Free quote · usually back within 12 hrs"
+        title={<>Tell us what you need. Get a <em>written price.</em></>}
+        sub="A few quick taps, no obligation and no spam. We reply with a written quote within 12 business hours."
+        ctas={false}
+      />
+      <section className="pxs" data-hide-sticky-cta>
+        <div className="wrap kx2 kxq2">
+          <div className="kx__prose">
+            <span className="aeye"><i /> What you get</span>
+            <h2 className="h2 h2--sm">No tricks. Just a real price.</h2>
+            <ul className="pp__hl">
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>VEU rebate handled for you.</strong> For eligible homes we apply it at the quote, so you never chase it.</p></li>
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>Licensed plumbing &amp; refrigeration.</strong> Compliance certificate on completion.</p></li>
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>6-year workmanship warranty</strong> on every install.</p></li>
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>Same-week installation.</strong> Most jobs scheduled within 5–7 days of approval.</p></li>
             </ul>
-            {/* Said "Mon–Sat" while the one record on the site says Mon–Fri.
-                An eighth hand-written copy of the opening hours, found after
-                the other seven were consolidated. */}
-            <p style={{ marginTop: 24, fontSize: 14, color: "var(--ink-3)" }}>
-              Prefer to talk? Call{" "}
-              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", fontWeight: 700 }}>{site.phone}</a>,{" "}
-              {openingHours()}. After hours goes to someone on the tools.
-            </p>
-            {/* Deliberately one quiet line, not a block of cards. This page has
-                one job and it is the form on the right; a reader who is not
-                ready yet needs a way out, not a reason to leave. */}
-            <p style={{ marginTop: 14, fontSize: 13.5, color: "var(--ink-3)" }}>
-              Not sure what you need yet?{" "}
-              <Link href="/range" style={{ color: "var(--navy)", fontWeight: 700 }}>See the full range</Link>{" "}or{" "}
-              <Link href="/tools/sizing-calculator" style={{ color: "var(--navy)", fontWeight: 700 }}>work out the size</Link>.
-            </p>
+            <p>Prefer to talk? Call <a href="tel:+61359478000">(03) 5947 8000</a>, {openingHours()}. After hours goes to someone on the tools.</p>
+            <p>Not sure what you need yet? <Link href="/#find">Find your system</Link> or <Link href="/tools/sizing-calculator">work out the size</Link>.</p>
           </div>
-
-          <HeroQuoteForm />
+          <HeroQuote />
         </div>
       </section>
     </div>

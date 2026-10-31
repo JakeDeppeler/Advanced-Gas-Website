@@ -118,3 +118,5 @@
 .ag .kxs--tools .pp__hl li{font-size:14px}
 .ag .kx__tool{background:#fff}
 .ag .kx__tool>section:first-child{padding-top:56px}
+/* The quote page: the homepage form on white needs its own edge. */
+.ag .kxq2 .qf{max-width:none;border:1px solid var(--line);box-shadow:0 30px 60px -40px rgba(5,10,48,.4)}

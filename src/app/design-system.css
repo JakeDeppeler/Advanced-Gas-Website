@@ -4684,3 +4684,6 @@ html[data-cross-dir="to-commercial"] .cross { background: var(--orange-deep); }
 /* Already deep enough; only its copy was translucent. */
 .bentile__line { color: #fff; }
 
+
+/* PageHero's emphasis matches the redesign's headers: sky blue, upright. */
+.phero__h1 em, .phero__h1 .accent { font-style: normal; color: #2CC5FF; }

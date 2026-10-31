@@ -3960,3 +3960,8 @@
     line-height: 1.18 !important;
   }
 }
+
+/* Older page headers emphasise the same way the redesign's do: sky blue,
+   upright. Kept last so it wins over the orange rules above. */
+.page-detail .dp-hero h1 em,
+.page-detail .dp-hero h1 .accent { font-style: normal; color: #2CC5FF; -webkit-text-fill-color: currentColor; }
