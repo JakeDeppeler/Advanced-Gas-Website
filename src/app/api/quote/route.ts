@@ -11,6 +11,12 @@ type Details = {
   splitBrand?: string[]; splitStyle?: string[]; splitHeadConfig?: Record<string, number>; splitSize?: string[];
   ductedSize?: string[]; ductedZones?: string[]; ductedTablet?: string;
   svcType?: string[]; svcStories?: string;
+  /** The homepage form: every question it asked, worded as asked, with the answer picked. */
+  answers?: Record<string, string>;
+  /** The finder option they booked from, when they came through it. */
+  pick?: string; findPage?: string;
+  /** What they picked on the form's first two steps, e.g. "Air conditioning · Split system". */
+  job?: string;
 };
 
 type Lead = {
@@ -111,7 +117,9 @@ export async function POST(req: Request) {
 
   // Everything below can fail, so the lead goes to the database first.
   // Email is a notification; this is the record.
-  const stored = await storeLead(data, summaryLine, allPhotos.length, data.pagePath, data.utm);
+  const storedId = await storeLead(data, summaryLine, allPhotos.length, data.pagePath, data.utm);
+  const stored = storedId !== false;
+  const id = storedId || undefined;
 
   if (!key) {
     // This used to return ok:true. On a deployment with no key that
@@ -121,7 +129,7 @@ export async function POST(req: Request) {
     console.error("RESEND_API_KEY missing.");
     console.log("NEW LEAD →\n" + fallbackText(data, summaryLine, allPhotos.length));
     return stored
-      ? NextResponse.json({ ok: true, stored: true, emailed: false })
+      ? NextResponse.json({ ok: true, stored: true, emailed: false, id })
       : new NextResponse("Could not record the enquiry", { status: 502 });
   }
 
@@ -161,7 +169,7 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, stored, emailed });
+  return NextResponse.json({ ok: true, stored, emailed, id });
 }
 
 /* ------------ Durable record ------------ */
@@ -178,7 +186,7 @@ export async function POST(req: Request) {
  * don't need a database to run the form. See
  * supabase/migrations/0019_portal_leads_capture.sql for the table.
  */
-async function storeLead(data: Lead, summary: string, photoCount: number, pagePath?: string, utm?: Record<string, string>): Promise<boolean> {
+async function storeLead(data: Lead, summary: string, photoCount: number, pagePath?: string, utm?: Record<string, string>): Promise<string | false> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
@@ -192,7 +200,9 @@ async function storeLead(data: Lead, summary: string, photoCount: number, pagePa
         apikey: key,
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
-        Prefer: "return=minimal",
+        // The row's id goes back to the homepage form, which attaches photos
+        // to this lead in a second request rather than sending a second lead.
+        Prefer: "return=representation",
       },
       body: JSON.stringify({
         kind: "quote",
@@ -208,6 +218,9 @@ async function storeLead(data: Lead, summary: string, photoCount: number, pagePa
         phone: data.phone,
         email: data.email || null,
         postcode: data.postcode || data.suburb || null,
+        suburb: data.suburb || null,
+        timing: data.timing || null,
+        property_type: data.propertyType || null,
         address: data.address || null,
         notes: data.notes || null,
         photo_count: photoCount,
@@ -218,7 +231,8 @@ async function storeLead(data: Lead, summary: string, photoCount: number, pagePa
       console.error(`Supabase insert failed (${res.status}): ${await res.text().catch(() => "")}`);
       return false;
     }
-    return true;
+    const rows = (await res.json().catch(() => [])) as { id?: string }[];
+    return rows[0]?.id ?? "";
   } catch (e) {
     console.error("Supabase insert threw", e);
     return false;
@@ -268,11 +282,20 @@ function headline(d: Lead): string {
   if (d.service === "service") return "Service / repair";
   if (d.service === "water") return "Water filtration";
   if (d.service === "other") return "Not sure / something else";
+  if (d.service === "evaporative-cooling") return "Evaporative cooling";
+  if (d.service === "gas-hot-water") return "Gas hot water";
+  if (d.service === "gas-heating") return "Gas heating";
+  if (d.service === "zoning") return "Zoning & controls";
+  if (d.service === "gas-plumbing") return "Gas & plumbing";
+  if (d.service === "commercial") return "Commercial";
   return d.service;
 }
 
 function friendlySummary(d: Lead): string {
   const det = d.details || {};
+  // The homepage form writes its own summary from the answers it collected;
+  // the legacy fields below would only print "(any)" for every one of them.
+  if (det.answers) return d.summary || det.job || "";
   if (d.service === "hp") {
     const brand = labels("hpBrand", det.hpBrand) || "(any)";
     const style = labels("hpStyle", det.hpStyle) || "(any)";
@@ -329,6 +352,7 @@ function fallbackText(d: Lead, summary: string, photoCount: number) {
     `Email:     ${d.email || ","}`,
     `Postcode:  ${d.postcode || d.suburb || ","}`,
     d.address ? `Address:   ${d.address}` : null,
+    ...(d.details?.answers ? [``, ...Object.entries(d.details.answers).map(([q, a]) => `${q}  ${a}`)] : []),
     ``,
     `Notes:     ${d.notes || ","}`,
     photoCount ? `Photos:    ${photoCount} attached` : null,
@@ -414,6 +438,13 @@ function renderInternalEmail(d: Lead, summary: string, photoCount: number): stri
     rows.push(["Appliance", labels("svcType", det.svcType) || "(unspecified)"]);
     rows.push(["Storeys",   det.svcStories ? label("svcStories", det.svcStories) : "(unknown)"]);
   }
+  if (det.answers) {
+    // The homepage form: replace the legacy rows with what was actually asked.
+    rows.length = 0;
+    if (det.pick) rows.push(["Picked from the finder", det.pick]);
+    if (det.job) rows.push(["Job", det.job]);
+    for (const [q, a] of Object.entries(det.answers)) rows.push([q, a]);
+  }
 
   const rowsHtml = rows.map(([k, v]) => `
     <tr>
@@ -446,7 +477,7 @@ function renderInternalEmail(d: Lead, summary: string, photoCount: number): stri
             <td style="padding:6px 0;color:${INK};font-weight:600;"><a href="mailto:${escapeHtml(d.email)}" style="color:${NAVY};text-decoration:none;">${escapeHtml(d.email || ",")}</a></td>
           </tr>
           <tr>
-            <td style="padding:6px 0;color:${INK_3};text-transform:uppercase;font-size:12px;letter-spacing:0.06em;">Postcode</td>
+            <td style="padding:6px 0;color:${INK_3};text-transform:uppercase;font-size:12px;letter-spacing:0.06em;">${d.postcode ? "Postcode" : "Suburb"}</td>
             <td style="padding:6px 0;color:${INK};font-weight:600;">${escapeHtml(d.postcode || d.suburb || ",")}</td>
           </tr>
           ${d.address ? `

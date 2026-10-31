@@ -135,16 +135,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ScrollToTop />
-        <ChromeGate>
+        <ChromeGate legacy>
           <Header />
         </ChromeGate>
         <main id="main" className="flex-1">{children}</main>
         <PageEnter />
         <SiteCross />
         <Reveal />
+        {/* One footer for the whole site, the redesign pages included (Jake's
+            call); only the header and the sticky call bar give way there. */}
         <ChromeGate>
           <Footer />
+        </ChromeGate>
+        <ChromeGate legacy>
           <StickyMobileCTA />
+        </ChromeGate>
+        <ChromeGate>
           <ChatWidget />
         </ChromeGate>
         <Script
