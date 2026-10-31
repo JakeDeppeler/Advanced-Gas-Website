@@ -152,7 +152,46 @@ async function tryOwnerFilter(formIds: string[], done: Record<string, unknown>):
   return out;
 }
 
-export async function probeForms(match: string): Promise<{ forms?: unknown; sample?: unknown; ownerFilter?: unknown; submissions?: unknown; error?: string }> {
+/**
+ * The traffic-light answer on recent completed reports, by job number, to
+ * learn which number is green and which is red (1 is amber: job 20721, 31
+ * Oct). Only the light's number and the job number.
+ */
+async function stoplights(formIds: string[]): Promise<unknown> {
+  try {
+    const r = await stFetch<{ data?: Array<{ status?: string; units?: Array<{ name?: string; type?: string; value?: unknown }> }> }>(
+      stTenantPath("forms", "submissions"), { formIds: formIds.join(","), pageSize: "60", status: "Completed" });
+    return (r.data ?? []).filter((x) => x.status === "Completed").map((x) => ({
+      job: x.units?.find((u) => /job number/i.test(u.name ?? ""))?.value ?? null,
+      lights: (x.units ?? []).filter((u) => u.type === "Stoplight").map((u) => u.value),
+    })).filter((x) => x.lights.length);
+  } catch (e) {
+    return { error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+  }
+}
+
+/** Whether a report's photos are also among its job's files (so they already go with a work order), and how the job's files are named. */
+async function formPhotosOnJob(done: Record<string, unknown>): Promise<unknown> {
+  const job = (done.owners as Array<{ type?: string; id?: number }> | undefined)?.find((o) => o.type === "Job")?.id;
+  if (!job) return "no job owner";
+  const formFiles = ((done.units as Array<{ attachments?: Array<{ fileName?: string; originalFileName?: string }> }> | undefined) ?? [])
+    .flatMap((u) => u.attachments ?? []);
+  try {
+    const r = await stFetch<{ data?: Array<{ id?: number; fileName?: string; originalFileName?: string; name?: string }> }>(stTenantPath("forms", `jobs/${job}/attachments`), { pageSize: "200" });
+    const jobFiles = r.data ?? [];
+    const names = new Set(jobFiles.flatMap((f) => [f.fileName, f.originalFileName, f.name].filter(Boolean)));
+    return {
+      formPhotos: formFiles.length,
+      onJob: formFiles.filter((f) => names.has(f.fileName) || names.has(f.originalFileName)).length,
+      jobFiles: jobFiles.length,
+      jobFileExamples: jobFiles.slice(0, 3).map((f) => ({ fileName: f.fileName, originalFileName: f.originalFileName, name: f.name })),
+    };
+  } catch (e) {
+    return { error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+  }
+}
+
+export async function probeForms(match: string): Promise<{ forms?: unknown; sample?: unknown; ownerFilter?: unknown; stoplights?: unknown; photosOnJob?: unknown; submissions?: unknown; error?: string }> {
   const re = new RegExp(match.replace(/[^a-z0-9 ]/gi, "").trim() || "condition", "i");
   let forms: Array<Record<string, unknown>>;
   try {
@@ -174,6 +213,8 @@ export async function probeForms(match: string): Promise<{ forms?: unknown; samp
       // order's PDF from: answers cut short, attachments by their keys.
       sample: done ? { id: done.id, units: shapeUnits(done.units, 0) } : null,
       ownerFilter: done ? await tryOwnerFilter(ids, done) : null,
+      stoplights: await stoplights(ids),
+      photosOnJob: done ? await formPhotosOnJob(done) : null,
       submissions: {
         total: r.totalCount ?? null,
         fields: [...new Set(rows.flatMap((x) => paths(x)))],
