@@ -19,7 +19,7 @@
 .ag .bxh__facts dt{font-size:13px;color:rgba(255,255,255,.7)}
 
 .ag .bx__quote{font-size:clamp(20px,1.8vw,26px)}
-.ag .bx__lede{margin:0;font-size:16px;color:rgba(255,255,255,.78)}
+.ag .pp__lead p.bx__lede,.ag .bx__lede{margin:0;font-size:16px;color:rgba(255,255,255,.82)}
 
 .ag .bxt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .ag .bxt__card{display:flex;flex-direction:column;gap:8px;background:#fff;border-radius:18px;padding:26px}
