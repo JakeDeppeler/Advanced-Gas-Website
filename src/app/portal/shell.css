@@ -3744,3 +3744,18 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pt.pn .pk-seg a.on .c, .pt.pn .pk-seg button.on .c { color: var(--ink3); opacity: 1; }
 .pt.pn .pk-seg a.on .c.r, .pt.pn .pk-seg button.on .c.r { color: var(--bad); }
 .pt.pn .pk-seg .c { display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 5px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 8%, transparent); font-size: 11px; }
+/* A page head's figures sit at the far end of the title's row, as the
+   mocks lay it out, rather than tucked against the title. */
+.pn .ph2-top { justify-content: space-between; align-items: flex-end; }
+/* The leading figure in a row of them is the dark one, as the mocks have
+   Enquiries: one tile carrying the headline, the rest white. */
+.pn .pt-fig.is-feature { background: var(--rp-dark); color: var(--rp-on-dark); box-shadow: var(--shadow); border-color: transparent; }
+.pn .pt-fig.is-feature .pt-fig__k, .pn .pt-fig.is-feature .pt-fig__sub, .pn .pt-fig.is-feature .pt-fig__from { color: color-mix(in srgb, var(--rp-on-dark) 78%, transparent); }
+.pn .pt-fig.is-feature .pt-fig__parts > summary, .pn .pt-fig.is-feature .pt-fig__more { color: var(--rp-on-dark); }
+.pn .pt-fig.is-feature .pt-fig__parts dl > div { border-top-color: rgba(255, 255, 255, .14); }
+/* The tile that's chosen, where tiles are tabs (the Job tracker's stages):
+   outlined, as the mock has it, so its solid status pill still reads. */
+.pt.pn .pk-card.pk-tile.on { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink), var(--shadow); }
+.pt.pn .pk-tile.on .pk-tl > span:first-child, .pt.pn .pk-tile.on .pk-ks { opacity: 1; color: var(--ink2); }
+.pt.pn .pk-tile.on .pk-bar { background: var(--track); }
+.pn .rp-top--left { justify-content: space-between; align-items: flex-end; }
