@@ -33,7 +33,7 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
   const m = board?.metrics ?? null;
   const cold = m?.quotesQuietCount ?? 0;
   const head = (
-    <Head title={tab === "types" ? "Job types" : "Sales"} sub={tab === "types" ? "What we sell, by kind of job · ServiceTitan" : "From the first quote to a yes · ServiceTitan"} info={[
+    <Head title={tab === "types" ? "Job types" : "Sales"} eyebrow={tab === "types" ? "What we sell, by kind of job · ServiceTitan" : "From the first quote to a yes · ServiceTitan"} info={[
       ["Quotes out", "Quotes from the last 60 days nobody has said yes or no to."],
       ["Going cold", "Over a week with nothing back. Ring these first."],
       ["Win rate", "Of the jobs we quoted, how many said yes. One job with three options is one quote."],

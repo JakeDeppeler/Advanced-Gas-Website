@@ -94,12 +94,9 @@ export function GoalPlanner({
     <div className="pt-goal">
       <div className="pt-head pt-head--split">
         <div>
-          <h1>Pace</h1>
-          <p>
-            {g.revenue > 0 ? <><b>{short(g.revenue)}{g.profitPct ? ` at ${g.profitPct}% profit` : ""}</b> · </> : null}
-            How many of each job we need booked every week to get there, and how far off the current mix is.
-            {" "}{periodLabel(g)}.
-          </p>
+          {g.revenue > 0 && <div className="pk-eyebrow">{g.floorRevenue && g.floorRevenue > 0 && g.floorRevenue < g.revenue ? `${short(g.floorRevenue)} and ${short(g.revenue)} goals` : short(g.revenue)}{g.profitPct ? ` at ${g.profitPct}% profit` : ""} · {periodLabel(g)}</div>}
+          <h1>Year goal</h1>
+          <p>How many of each job we need booked every week to get there, and how far off the current mix is.</p>
         </div>
         <button type="button" className="pt-btn pt-btn--ghost pt-goal__edit" onClick={() => setEditing((v) => !v)} aria-expanded={editing}>
           {editing ? "Done" : "Change the goal"}

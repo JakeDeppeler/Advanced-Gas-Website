@@ -51,7 +51,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { p?
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Overview" sub={`${periodWords(period).replace(/^./, (c) => c.toUpperCase())} · from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={INFO} />
+        <Head title="Overview" eyebrow={`${periodWords(period).replace(/^./, (c) => c.toUpperCase())} · from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={INFO} />
         {xs === "connected" && tabs}
 
         {xs === "not-configured" && (
