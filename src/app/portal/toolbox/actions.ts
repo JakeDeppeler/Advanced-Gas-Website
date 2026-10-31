@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { loadToolbox, saveToolbox } from "@/lib/toolbox/store";
-import type { Talk, Topic } from "@/lib/toolbox/types";
+import { can } from "@/lib/portal/caps";
+import { loadSession, loadToolbox, saveSchedule, saveSession, saveToolbox } from "@/lib/toolbox/store";
+import { onOrAfter, type Every, type Schedule, type Session, type Topic } from "@/lib/toolbox/types";
 
 export type ToolboxResult = { ok: boolean; error?: string; id?: string };
 
@@ -38,22 +39,76 @@ export async function removeTopic(id: string): Promise<ToolboxResult> {
   return { ok: true };
 }
 
-/** Save what was talked about: the day, who was there, what was said and what was agreed. */
-export async function saveTalk(input: { topicId: string | null; title: string; on: string; who: string[]; notes: string; actions: string }): Promise<ToolboxResult> {
+const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const empty = (on: string): Session => ({ on, notes: [], record: null, who: [], recordedBy: null, recordedAt: null });
+
+/** How often the talk is, and on which weekday. The office's call: it moves everyone's. */
+export async function setSchedule(input: { every: Every; day: number; today: string }): Promise<ToolboxResult> {
   const me = await getPortalUser();
   if (!me) return { ok: false, error: "Sign in again." };
-  const title = t(input.title, 120);
-  if (!title) return { ok: false, error: "Say what the talk was on." };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.on ?? "")) return { ok: false, error: "Pick the day." };
-  const s = await loadToolbox();
-  const talk: Talk = {
-    id: newId(), topicId: input.topicId && s.topics.some((x) => x.id === input.topicId) ? input.topicId : null, title, on: input.on,
-    by: me.name, who: (Array.isArray(input.who) ? input.who : []).map((x) => t(x, 80)).filter(Boolean).slice(0, 40),
-    notes: t(input.notes, 6000), actions: t(input.actions, 3000), at: new Date().toISOString(),
-  };
-  const talks = [talk, ...s.talks].sort((a, b) => b.on.localeCompare(a.on) || b.at.localeCompare(a.at));
-  const r = await saveToolbox({ ...s, talks });
-  if (!r.ok) return { ok: false, error: "Couldn't save the talk." };
+  if (!can(me, "overhead") && !can(me, "manage_users")) return { ok: false, error: "Only the office can change how often the talk is." };
+  const every: Every = input.every === "fortnight" || input.every === "month" ? input.every : "week";
+  const day = Math.min(5, Math.max(1, Math.round(Number(input.day) || 1))) as Schedule["day"];
+  // A fortnight counts from the next talk, so it lands on the week it's set.
+  const r = await saveSchedule({ every, day, start: onOrAfter(isDay(input.today) ? input.today : new Date().toISOString().slice(0, 10), day) });
+  if (!r.ok) return { ok: false, error: "Couldn't save it." };
   revalidatePath("/portal/toolbox");
-  return { ok: true, id: talk.id };
+  return { ok: true };
+}
+
+/** A note on what to talk about, under its heading, on a date's talk. */
+export async function addNote(input: { on: string; head: string; text: string }): Promise<ToolboxResult> {
+  const me = await getPortalUser();
+  if (!me) return { ok: false, error: "Sign in again." };
+  if (!isDay(input.on)) return { ok: false, error: "Pick which talk it's for." };
+  const head = t(input.head, 120);
+  if (!head) return { ok: false, error: "Give it a heading." };
+  try {
+    const s = (await loadSession(input.on)) ?? empty(input.on);
+    const id = newId();
+    await saveSession({ ...s, notes: [...s.notes, { id, head, text: t(input.text, 4000), by: first(me.name), at: new Date().toISOString() }] });
+    revalidatePath("/portal/toolbox");
+    return { ok: true, id };
+  } catch {
+    return { ok: false, error: "Couldn't save the note." };
+  }
+}
+
+export async function removeNote(input: { on: string; id: string }): Promise<ToolboxResult> {
+  const me = await getPortalUser();
+  if (!me) return { ok: false, error: "Sign in again." };
+  if (!isDay(input.on)) return { ok: false, error: "That talk couldn't be found." };
+  try {
+    const s = await loadSession(input.on);
+    if (!s) return { ok: true };
+    await saveSession({ ...s, notes: s.notes.filter((n) => n.id !== input.id) });
+    revalidatePath("/portal/toolbox");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Couldn't take it off." };
+  }
+}
+
+/**
+ * What was said at a talk: typed, or the transcript from an AI note-taker
+ * pasted or loaded from its file, and who was there. Saving it again
+ * replaces it; clearing the box takes it off.
+ */
+export async function saveRecord(input: { on: string; record: string; who: string[] }): Promise<ToolboxResult> {
+  const me = await getPortalUser();
+  if (!me) return { ok: false, error: "Sign in again." };
+  if (!isDay(input.on)) return { ok: false, error: "That talk couldn't be found." };
+  const record = String(input.record ?? "").replace(/\r\n/g, "\n").trim().slice(0, 100_000);
+  try {
+    const s = (await loadSession(input.on)) ?? empty(input.on);
+    await saveSession({
+      ...s, record: record || null,
+      who: (Array.isArray(input.who) ? input.who : []).map((x) => t(x, 80)).filter(Boolean).slice(0, 40),
+      recordedBy: record ? me.name : null, recordedAt: record ? new Date().toISOString() : null,
+    });
+    revalidatePath("/portal/toolbox");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Couldn't save what was said." };
+  }
 }
