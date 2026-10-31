@@ -71,7 +71,11 @@ export default function FindProductPage({ params }: { params: Params }) {
     }];
   });
   const b = BRAND_SLUGS[tier.brand] ? findBrand(BRAND_SLUGS[tier.brand]) : null;
-  const brand: PBrand | null = b ? { name: b.name, page: `/brands/${b.slug}`, site: b.resources?.[0] } : null;
+  const brand: PBrand | null = b ? {
+    name: b.name, page: `/brands/${b.slug}`, site: b.resources?.[0],
+    tagline: b.tagline, sub: b.heroSub, origin: b.origin, photo: b.photo, photoAlt: b.photoAlt, photoScene: b.photoScene,
+    features: b.keyFeatures?.slice(0, 3), facts: b.heroFacts?.slice(0, 3),
+  } : null;
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },

@@ -159,3 +159,25 @@
   .ag .ff{padding:20px}
   .ag .ff__res p{font-size:20px}
 }
+
+/* ---------------------------------------------------------------- finance */
+.ag .fin{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:12px;background:#F4F7FA}
+.ag .fin__line{margin:0;font-size:14px;color:var(--ink2)}
+.ag .fin__line strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
+.ag .fin__terms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.ag .fin__terms button{min-height:34px;border:1px solid var(--line2);border-radius:8px;background:#fff;color:var(--navy);font-size:12.5px;font-weight:700;cursor:pointer;padding:0}
+.ag .fin__terms button:hover{border-color:var(--navy)}
+.ag .fin__terms button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.ag .fin__more{align-self:flex-start;background:none;border:0;padding:0;font-size:12.5px;font-weight:600;color:var(--sky-ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ag .fin__note{margin:0;font-size:12px;line-height:1.5;color:var(--ink3)}
+
+/* ---------------------------------------------------------------- the brand */
+.ag .pxbr{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,4vw,72px);align-items:center}
+.ag .pxbr__img{position:relative;aspect-ratio:4/3;border-radius:22px;overflow:hidden;background:#fff}
+.ag .pxbr__img img{object-fit:contain;padding:8%}
+.ag .pxbr__img--scene img{object-fit:cover;padding:0}
+.ag .pxbr__t{display:flex;flex-direction:column;gap:14px}
+.ag .pxbr__tag{margin:0;font-family:var(--disp);font-size:clamp(20px,1.8vw,24px);font-weight:700;line-height:1.35;color:var(--navy)}
+.ag .pxbr__sub{margin:0;font-size:16px;line-height:1.65;color:var(--ink2)}
+.ag .pxbr__go{align-self:flex-start;margin-top:6px}
+@media (max-width:1000px){.ag .pxbr{grid-template-columns:1fr}}

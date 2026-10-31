@@ -46,6 +46,10 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // The price list went (Jake, Oct 2026): every option now carries its
+      // own from price and finance figure on its product page, reached from
+      // Find your system.
+      { source: "/pricing", destination: "/#find", permanent: true },
       // The blog editor moved out of Marketing into its own section. Not
       // permanent: these are portal addresses, never indexed, and a 308 is
       // cached by the browser for good.

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES,
+  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_NOTE, TONES,
   findSystem, answerChips, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
   type Answers,
 } from "@/lib/homepage/data";
@@ -195,7 +195,7 @@ export function Finder() {
                         {t.feats.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}
                       </ul>
                       <div className="tier__price">
-                        <small>{known ? (SHOW_FINANCE ? "From, with Brighte finance" : "Range starts from, installed") : "Installed price"}</small>
+                        <small>{known ? (SHOW_FINANCE ? "From, with finance" : "Range starts from, installed") : "Installed price"}</small>
                         <strong>{known ? (SHOW_FINANCE ? `$${weekly(t.price!, FINANCE_MONTHS)}/wk` : money(t.price!)) : "At quote"}</strong>
                         <em>{known ? (SHOW_FINANCE ? `or ${money(t.price!)} installed` : `Includes GST${isHeatPump(sys) ? " and the VEU rebate" : ""}`) : "Fixed price after a free site check"}</em>
                       </div>
@@ -212,7 +212,7 @@ export function Finder() {
               </div>
               <p className="find__fine">
                 Installed prices include GST, with the VEU rebate applied where it&apos;s eligible. &ldquo;Range starts from&rdquo; is the smallest model in that range; your exact size is priced in writing after a free site check.
-                {SHOW_FINANCE ? ` Weekly figures spread the installed price evenly over ${FINANCE_MONTHS} months with Brighte; finance is subject to approval and fees may apply.` : ""}{" "}
+                {SHOW_FINANCE ? ` Weekly figures are over ${FINANCE_MONTHS} months. ${FINANCE_NOTE}` : ""}{" "}
                 <Link href="/tools/system-comparison">Compare systems</Link>
               </p>
             </div>

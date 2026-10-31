@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type PV, Crumbs, Badges, Price, BuyButtons, Promise, WhyList, Glance, FitFinder,
+  type PV, Crumbs, Badges, Price, Finance, BuyButtons, Promise, WhyList, Glance, FitFinder,
   SizeGuide, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 
@@ -17,7 +17,7 @@ export function ProductLayout({ v }: { v: PV }) {
   const { t, learn } = v;
   const tabs = [
     ["overview", "Overview"], ...(learn ? [["how", "How it works"], ["fit", "Is it right for you?"]] : []),
-    ["sizes", "Sizes"], ["specs", "Specs"], ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
+    ["sizes", "Sizes"], ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
   return (
     <div className="pxp">
@@ -64,6 +64,8 @@ export function ProductLayout({ v }: { v: PV }) {
           <SpecTable v={v} />
         </div>
       </section>
+
+      <BrandBit v={v} />
 
       <section className="pxs pxs--navy" id="booking">
         <div className="wrap pp__col">
@@ -117,6 +119,7 @@ function Hero({ v }: { v: PV }) {
           <div className="pxhero__card">
             <span className="pxhero__pimg"><Image src={t.img} alt={`${t.brand} ${t.model}`} fill sizes="240px" /></span>
             <Price v={v} />
+            <Finance v={v} />
             <BuyButtons v={v} />
             <Promise />
           </div>
@@ -153,6 +156,35 @@ function Hero({ v }: { v: PV }) {
 
 /** "Main bedroom or small lounge" → "Main bedroom": the first room is enough on a button. */
 const shortRoom = (sub: string) => sub.split(/ or |, /)[0];
+
+/**
+ * A little about who makes it, after the product and before booking, with
+ * the way through to the brand's own page for anyone who wants the full
+ * "why we use them".
+ */
+function BrandBit({ v }: { v: PV }) {
+  const b = v.brand;
+  if (!b?.tagline) return null;
+  return (
+    <section className="pxs pxs--cream" id="brand">
+      <div className="wrap pxbr">
+        {b.photo && (
+          <div className={`pxbr__img${b.photoScene ? " pxbr__img--scene" : ""}`}>
+            <Image src={b.photo} alt={b.photoAlt ?? b.name} fill sizes="(max-width: 900px) 100vw, 560px" />
+          </div>
+        )}
+        <div className="pxbr__t">
+          <span className="aeye"><i /> The brand{b.origin ? ` · ${b.origin}` : ""}</span>
+          <h2 className="h2 h2--sm">{b.name}</h2>
+          <p className="pxbr__tag">{b.tagline}</p>
+          {b.sub && <p className="pxbr__sub">{b.sub}</p>}
+          {b.features && b.features.length > 0 && <ul className="pp__hl">{b.features.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>}
+          {b.page && <Link href={b.page} className="abtn abtn--navy abtn--flat pxbr__go">Why we install {b.name} →</Link>}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /** How it works, one step per row with a picture, alternating sides. */
 function Story({ v }: { v: PV }) {

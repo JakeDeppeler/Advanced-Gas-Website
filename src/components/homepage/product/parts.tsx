@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import {
-  findHref, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, reviewTitle, modelForAnswer,
+  findHref, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, TONES, reviewTitle, modelForAnswer,
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
 } from "@/lib/homepage/data";
 import type { Alt, HowStep, Learn } from "@/lib/homepage/learn";
@@ -32,6 +32,8 @@ export type PV = {
   sizeOn: (i: number) => boolean; pickSize: (i: number) => void; pickModel: (slug: string) => void; setSize: (i: number) => void;
   /** Merge answers from the fit form (size included) into the page, so the size, the figures and Book this install all follow. */
   applyAnswers: (a: Answers) => void;
+  /** Finance term in months, for the weekly figure. */
+  term: number; setTerm: (m: number) => void;
   sizeNote: string; specRows: { k: string; v: string }[]; specNote: string;
   reviews: Review[]; rating: string; count: number; brand: PBrand | null;
   heroRef: React.RefObject<HTMLElement>; pastHero: boolean;
@@ -69,6 +71,28 @@ export function Price({ v }: { v: PV }) {
     <div className="pr">
       <strong>{known ? `From ${money(t.price!)}` : "Priced at your site check"}</strong>
       <span>{known ? `installed, includes GST${hp ? " and the VEU rebate" : ""}` : "Free site check, then a fixed price in writing"}</span>
+    </div>
+  );
+}
+
+/**
+ * The weekly figure under the price, with the terms to flick between. The
+ * figures are examples (see SHOW_FINANCE), and the note under them says so.
+ */
+export function Finance({ v }: { v: PV }) {
+  const { known, t, term, setTerm } = v;
+  const [open, setOpen] = useState(false);
+  if (!SHOW_FINANCE || !known) return null;
+  return (
+    <div className="fin">
+      <p className="fin__line">or <strong>${weekly(t.price!, term)}/wk</strong> over {term} months</p>
+      <div className="fin__terms" role="group" aria-label="Finance term">
+        {FINANCE_TERMS.map((m) => (
+          <button key={m} type="button" className={m === term ? "on" : ""} aria-pressed={m === term} onClick={() => setTerm(m)}>{m} mo</button>
+        ))}
+      </div>
+      <button type="button" className="fin__more" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? "Hide" : "How this works"}</button>
+      {open && <p className="fin__note">{FINANCE_NOTE}</p>}
     </div>
   );
 }
@@ -236,7 +260,6 @@ export function SpecLinks({ v }: { v: PV }) {
   const { model, brand } = v;
   return (
     <div className="pxr">
-      {model && <Link href={model.href}>Full {model.code} page →</Link>}
       {brand?.page && <Link href={brand.page}>Why we fit {brand.name} →</Link>}
       {brand?.site && <a href={brand.site.href} target="_blank" rel="noopener noreferrer">{brand.name} brochures and manuals ↗</a>}
     </div>
@@ -317,7 +340,7 @@ export function Sticky({ v }: { v: PV }) {
         <span className="pp__stickyimg"><Image src={t.img} alt="" fill sizes="48px" /></span>
         <span className="pp__stickyt">
           <strong>{t.brand} {t.model}</strong>
-          <span>{known ? `From ${money(t.price!)} installed` : "Priced after a free site check"}{model ? ` · ${model.chip}` : size ? ` · ${size.label}` : ""}</span>
+          <span>{known ? `From ${money(t.price!)} installed${SHOW_FINANCE ? ` or $${weekly(t.price!, v.term)}/wk` : ""}` : "Priced after a free site check"}{model ? ` · ${model.chip}` : size ? ` · ${size.label}` : ""}</span>
         </span>
         <Link href={book} className="abtn abtn--or">Book this install</Link>
       </div>

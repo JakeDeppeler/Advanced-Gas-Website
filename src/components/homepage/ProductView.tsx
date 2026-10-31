@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
   findSystem, galleryFor, specRows, answersFrom, answersQuery, bookHref,
-  isHeatPump, isNewBuildHeatPump, SPEC_NOTE, SIZE_NOTE, WORKMANSHIP,
+  isHeatPump, isNewBuildHeatPump, SPEC_NOTE, SIZE_NOTE, WORKMANSHIP, FINANCE_MONTHS,
   modelForAnswer, roomFor, installTime as installTimeOf, type Answers,
 } from "@/lib/homepage/data";
 import type { PV } from "./product/parts";
@@ -27,7 +27,12 @@ export type PModel = {
   features?: string[];
   why?: string[];
 };
-export type PBrand = { name: string; page?: string; site?: { label: string; href: string } };
+export type PBrand = {
+  name: string; page?: string; site?: { label: string; href: string };
+  /** For the brand section: a few lines about who makes it, from lib/brands.ts. */
+  tagline?: string; sub?: string; origin?: string; photo?: string; photoAlt?: string; photoScene?: boolean;
+  features?: string[]; facts?: { v: string; k: string }[];
+};
 
 /**
  * One option from the finder, as a page of its own so it can be shared and
@@ -48,6 +53,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   // The model they picked here, or arrived with in ?model=. Until then the
   // size they gave in the finder chooses one.
   const [picked, setPicked] = useState<string | null>(null);
+  const [term, setTerm] = useState(FINANCE_MONTHS);
   // The bottom "Book this install" bar waits until the hero, which has its
   // own book card, is off the screen; on top of the hero it covered it.
   const heroRef = useRef<HTMLElement>(null);
@@ -124,7 +130,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     take: model?.take ?? `${sys.sub}. ${optionLines.join(". ")}.`,
     glance: model ? model.specs.filter((x) => !/warranty|refrigerant/i.test(x.label)).slice(0, 4) : [],
     sizeOn: (i) => (models.length ? modelForAnswer(models, sys.sizes[i].spec) === mi && !!sys.sizes[i].spec : ans.size === i),
-    pickSize, pickModel, setSize,
+    pickSize, pickModel, setSize, term, setTerm,
     applyAnswers: (a) => {
       const next = { ...ans, ...a };
       setAns(next);

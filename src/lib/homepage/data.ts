@@ -5,21 +5,29 @@
  * Live.dc.html) rather than retyped, so the systems, questions, prices and
  * FAQs read the same here as in the clickable version he signed off.
  *
- * Prices are only the ones Jake has confirmed. Everything else is `null` and
- * prints "At quote" until he supplies a real figure. Don't fill one in.
+ * Prices: the ones Jake has confirmed are set on each option. The rest are
+ * `null` here and show as PLACEHOLDER_PRICE, at Jake's request, so the
+ * preview reads as finished; `mockPrice` marks them so they're easy to find
+ * and replace before launch. Don't guess a real figure in their place.
  */
 
+/** Stand-in "from" price for options without a confirmed one (Jake, Oct 2026). */
+export const PLACEHOLDER_PRICE = 999;
+
 /**
- * Brighte finance. Built, but switched off until Brighte is set up.
+ * Finance. On, with MOCK figures at Jake's request (Oct 2026), so the preview
+ * shows how weekly pricing reads; no provider is set up yet.
  *
- * When this is false nothing finance-related renders: weekly prices, the
- * "How would you like to pay?" choices, the "Can I pay it off?" FAQ and the
- * footer badge. The weekly maths below is a plain split with no interest or
- * fees, which is NOT what Brighte charges, so it has to be replaced with their
- * real terms before this is turned on.
+ * The weekly maths below is a plain split with no interest or fees. That is
+ * not what any finance provider charges, so before launch it has to be
+ * replaced with the provider's real terms, rates and fees, and FINANCE_NOTE
+ * with their required wording. Turn this off to hide every finance figure.
  */
-export const SHOW_FINANCE = false;
+export const SHOW_FINANCE = true;
+/** The default term, and the terms a customer can flick between. */
 export const FINANCE_MONTHS = 36;
+export const FINANCE_TERMS = [12, 24, 36, 48, 60];
+export const FINANCE_NOTE = "Example repayments only, spread evenly with no interest or fees. Finance is subject to approval; real terms are confirmed on your quote.";
 
 export const weekly = (price: number, months = FINANCE_MONTHS) => Math.ceil(price / ((months * 52) / 12));
 export const money = (n: number) => "$" + n.toLocaleString("en-AU");
@@ -162,6 +170,8 @@ export type Tier = {
   img: string;
   feats: string[];
   price: number | null;
+  /** True where `price` is PLACEHOLDER_PRICE rather than a confirmed figure. */
+  mockPrice?: boolean;
 };
 
 export type FaqKey = "split" | "multi" | "ducted" | "evap" | "hp" | "gashw" | "gasheat" | "zone";
@@ -196,7 +206,8 @@ export type Category = {
 
 const W = "6-yr workmanship warranty";
 const t = (slug: Tier["slug"], brand: string, model: string, img: string, feats: string[], price: number | null): Tier => ({
-  slug, tier: (slug[0].toUpperCase() + slug.slice(1)) as Tier["tier"], brand, model, img, feats, price,
+  slug, tier: (slug[0].toUpperCase() + slug.slice(1)) as Tier["tier"], brand, model, img, feats,
+  price: price ?? PLACEHOLDER_PRICE, ...(price == null ? { mockPrice: true } : {}),
 });
 
 const SPLIT_TIERS: Tier[] = [
@@ -724,7 +735,7 @@ export const NAV: NavGroup[] = [
 export const HOME_FAQS: (QA & { finance?: boolean })[] = [
   qa("How much is the VEU rebate, really?", "It depends on your existing hot water unit, your home and the new unit going in. We apply it at the quote stage so you don't pay it then claim it back, and give you the exact number after a 20-minute site check."),
   qa("Is the quote fixed?", "It's in writing, and it only changes if the job does. If we open a wall or a roof space and find something the site check couldn't show, we stop, price the difference and get your approval before going on."),
-  { ...qa("Can I pay it off?", "Yes. Finance is available through Brighte, subject to approval. We'll show you the weekly figure alongside the installed price on your quote."), finance: true },
+  { ...qa("Can I pay it off?", "Yes. Finance is available, subject to approval, over terms from 12 to 60 months. We'll show you the weekly figure alongside the installed price on your quote."), finance: true },
   qa("How long does an install actually take?", "A like-for-like heat pump swap is usually one day. A new split is half a day. A full ducted retrofit is 2–3 days."),
   qa("Do you do emergencies on weekends?", "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to someone on the tools, not an overseas call centre."),
   qa("What's the warranty?", "Manufacturer warranty on the unit (typically 6–10 years on the tank), 6 years on our workmanship, and a compliance certificate emailed within 24 hours of install."),
