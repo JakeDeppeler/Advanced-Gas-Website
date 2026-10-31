@@ -3703,3 +3703,15 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 }
 @media (max-width: 640px) { .wl-card { padding: 4px 14px; } .wl-form div { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
 .wl-retry { padding: 4px 11px !important; font-size: 12.5px !important; }
+
+/* ------------------------------------------------- solid status pills, to the mock
+   The fill is the status colour itself, with its sign and word on it in an
+   ink that reads at 4.5:1 or better: white on red, near-black on yellow,
+   cream on green, near-black on gold. The sign stays, so the colour is
+   never the only thing saying it. */
+.pt.pn .pk-st.bad { background: var(--bad-f); color: #fff; }
+.pt.pn .pk-st.mid { background: var(--mid-f); color: #2b2000; }
+.pt.pn .pk-st.good { background: var(--good-f); color: #f4f1ea; }
+.pt.pn .pk-st.ahead { background: var(--ahead-f); color: #1f1600; }
+.pt.pn .pk-st { font-weight: 700; padding: 4px 11px; }
+.pt.pn .pk-st > span[aria-hidden] { color: inherit; opacity: 1; }
