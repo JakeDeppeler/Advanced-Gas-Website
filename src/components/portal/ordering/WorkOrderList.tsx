@@ -3,16 +3,19 @@
 import { useEffect, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { deleteWorkOrderDraft, jobFill, saveWorkOrder, searchJobs } from "@/app/portal/supply/work-orders/actions";
+import { deleteWorkOrderDraft, jobFill, saveWorkOrder, searchJobs, sendDraft } from "@/app/portal/supply/work-orders/actions";
 import { undoSend } from "@/app/portal/supply/sent/actions";
 import type { JobHit, WoContact, WorkOrderRow } from "@/lib/ordering/workOrders";
 import { JobFilesPicker, type PickedFile } from "./JobFilesPicker";
+import { Icon } from "@/components/portal/shell/Menu";
 
 const day = (iso: string) => new Date(iso.length > 10 ? iso : `${iso}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "Australia/Melbourne" });
 const time = (iso: string) => new Date(iso).toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
 const hhmm = (iso: string) => new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso)).replace(/^24/, "00");
 const stJob = (id: number) => `https://go.servicetitan.com/#/Job/Index/${id}`;
 const isSparky = (w: WorkOrderRow) => !w.details?.trade || /electric/i.test(w.details.trade);
+/** Sent by the booking automation rather than by someone pressing Send: it signs them "Automatic". */
+const byItself = (w: WorkOrderRow) => w.status === "sent" && w.approved_by === "Automatic";
 const emailIn = (s: string | null) => s?.match(/[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>()]+/)?.[0] ?? "";
 
 type Sparky = { name: string; email: string | null };
@@ -39,13 +42,21 @@ const whoFor = (w: WorkOrderRow, sparky: Sparky | null) => isSparky(w) ? sparky?
  * it can be edited — the job number when it went against the quote's job
  * rather than the install's, the details, who it's for — and a draft sent, or
  * a sent one emailed again with the changes.
+ *
+ * Its marks are one each: a bolt on one that went by itself, a warning on
+ * one that didn't go, nothing on one sent by hand. A draft has a plain Send
+ * button on its row, which opens a short pop-up to check who it's going to
+ * and the work, rather than the whole form.
  */
 export function WorkOrderList({ list, sparky, contacts }: { list: WorkOrderRow[]; sparky: Sparky | null; contacts: WoContact[] }) {
   // By id, so the pop-up shows the row as it reads after a save refreshes the list.
   const [openId, setOpen] = useState<number | null>(null);
+  const [sendId, setSend] = useState<number | null>(null);
   const [q, setQ] = useState("");
   const [on, setOn] = useState("all");
   const open = list.find((w) => w.id === openId) ?? null;
+  const sending = list.find((w) => w.id === sendId) ?? null;
+  const marked = list.some((w) => byItself(w) || (w.status !== "sent" && w.send_error));
   const today = todayIso();
   const people = new Map<string, number>();
   for (const w of list) people.set(whoFor(w, sparky), (people.get(whoFor(w, sparky)) ?? 0) + 1);
@@ -76,6 +87,13 @@ export function WorkOrderList({ list, sparky, contacts }: { list: WorkOrderRow[]
           </div>
         )}
       </div>
+      {marked && (
+        <p className="wo-key">
+          <span><span className="wo-mk" aria-hidden="true"><Icon name="bolt" size={12} /></span>sent by itself</span>
+          <span><span className="wo-mk bad" aria-hidden="true"><Icon name="alert" size={12} /></span>didn&rsquo;t go</span>
+          <span>no mark: sent by hand</span>
+        </p>
+      )}
       {!shown.length && <p className="nw-none">Nothing matches that.</p>}
       {groups.filter((g) => g.rows.length).map((g) => (
         <div key={g.name} className="nw-grp">
@@ -88,16 +106,23 @@ export function WorkOrderList({ list, sparky, contacts }: { list: WorkOrderRow[]
               const sent = w.status === "sent";
               const state = sent ? `Sent ${w.sent_at ? day(w.sent_at) : ""}` : w.send_error ? "Didn't send" : "Draft";
               const work = d?.jobs.map((j) => j.work).filter(Boolean).join("; ");
+              const failed = !sent && !!w.send_error;
               return (
-                <li key={w.id}>
+                <li key={w.id} className="wo-li">
                   <button type="button" className="wo-row" onClick={() => setOpen(w.id)}>
-                    <span className={`nw-task__dot${sent ? " is-done" : w.send_error ? " is-bad" : ""}`} aria-hidden="true">{sent ? "✓" : ""}</span>
+                    <span className={`nw-task__dot${sent ? " is-done" : failed ? " is-bad" : ""}`} aria-hidden="true">{sent ? "✓" : ""}</span>
                     <span className="wo-row-t">
                       <b>{d?.site_address?.split(",")[0] ?? "No address"}{jobs ? ` · job ${jobs}` : ""}</b>
                       <span>{[when, whoFor(w, sparky), isSparky(w) || !d?.to_name ? null : d?.trade, work].filter(Boolean).join(" · ")}</span>
+                      {failed && <span className="wo-why">Didn&rsquo;t go: {w.send_error}</span>}
                     </span>
-                    <span className={`wo-state${sent ? " sent" : w.send_error ? " bad" : " draft"}`}>{state}</span>
+                    <span className="wo-end">
+                      {byItself(w) && <span className="wo-mk" title="Sent by itself once the job was booked"><Icon name="bolt" size={14} /><span className="wo-sr">Sent by itself</span></span>}
+                      {failed && <span className="wo-mk bad" title="Didn't go"><Icon name="alert" size={14} /><span className="wo-sr">Didn&rsquo;t go</span></span>}
+                      <span className={`wo-state${sent ? " sent" : failed ? " bad" : " draft"}`}>{state}</span>
+                    </span>
                   </button>
+                  {!sent && d && d.jobs[0] && <button type="button" className="pk-btn wo-send" onClick={() => setSend(w.id)}>Send</button>}
                 </li>
               );
             })}
@@ -106,6 +131,7 @@ export function WorkOrderList({ list, sparky, contacts }: { list: WorkOrderRow[]
       ))}
       {/* On the page itself: inside the card, whose styling makes a layer of its own, the pop-up would be held to the card. */}
       {open && createPortal(<WorkOrderPanel w={open} sparky={sparky} contacts={contacts} onClose={() => setOpen(null)} />, document.querySelector(".pt.pn") ?? document.body)}
+      {sending && createPortal(<SendPop w={sending} sparky={sparky} contacts={contacts} onClose={() => setSend(null)} onMore={() => { setSend(null); setOpen(sending.id); }} />, document.querySelector(".pt.pn") ?? document.body)}
     </>
   );
 }
@@ -170,6 +196,107 @@ function WorkOrderPanel({ w, sparky, contacts, onClose }: { w: WorkOrderRow; spa
           </>
         )}
         {msg && <p className={`pk-said${msg.ok ? "" : " bad"}`} role="status">{msg.text}</p>}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Send, from a draft's row: who it's going to, the address, the work, and
+ * the PDF to check, then Send. Everything else on the work order goes as
+ * it's saved; "Edit everything" opens the whole form for the rest.
+ */
+function SendPop({ w, sparky, contacts, onClose, onMore }: { w: WorkOrderRow; sparky: Sparky | null; contacts: WoContact[]; onClose: () => void; onMore: () => void }) {
+  const router = useRouter();
+  const [busy, start] = useTransition();
+  const d = w.details!;
+  const first = d.jobs[0];
+  const [pick, setPick] = useState<Pick>(() => pickFor(w, contacts));
+  const [to, setTo] = useState(() => {
+    const p = pickFor(w, contacts);
+    return emailIn(w.sent_to) || d.send_to || (p.kind === "saved" ? p.c.email : p.kind === "sparky" ? sparky?.email ?? "" : "");
+  });
+  const typed = d.jobs.map((j) => j.work).filter(Boolean).join("; ");
+  const [work, setWork] = useState(typed);
+  const [startPick] = useState(pick);
+  // A planned one carries what's going in rather than typed work.
+  const planned = d.jobs.map((j) => [j.system_installed, j.electrical_items].filter(Boolean).join(" · ")).filter(Boolean).join("; ");
+  const [err, setErr] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    addEventListener("keydown", k);
+    return () => removeEventListener("keydown", k);
+  }, [onClose]);
+  const value = pick.kind === "sparky" ? "sparky" : pick.kind === "saved" ? `c:${pick.c.id}` : "other";
+  const choose = (v: string) => {
+    if (v === "sparky") { setPick({ kind: "sparky" }); setTo(sparky?.email ?? ""); return; }
+    const c = contacts.find((x) => `c:${x.id}` === v);
+    if (c) { setPick({ kind: "saved", c }); setTo(c.email); }
+  };
+  const when = d.start_at ? `${day(d.start_at)}, ${time(d.start_at)}` : day(d.date);
+  // Unchanged but for the address, it goes as it's saved; changed, it's saved first, the same as the full form.
+  const asIs = pick === startPick && work === typed;
+  const send = () => start(async () => {
+    setErr(null);
+    const r = asIs ? await sendDraft({ id: w.id, to }) : await saveWorkOrder({
+      id: w.id, jobId: first.job_id, date: d.date, time: d.start_at ? hhmm(d.start_at) : "", work,
+      site: d.site_address, customer: d.customer_name ?? "", phone: d.customer_phone ?? "", email: d.customer_email ?? "", crew: d.crew.join(", "),
+      trade: pick.kind === "saved" ? pick.c.trade : pick.kind === "other" ? d.trade ?? "" : "",
+      toName: pick.kind === "saved" ? pick.c.name : pick.kind === "other" ? d.to_name ?? "" : "",
+      sendTo: to, files: d.files ?? [], then: "send",
+    });
+    if (!r.ok) { setErr(r.error ?? "It didn't send."); return; }
+    router.refresh();
+    setDone(r.note ?? "Sent.");
+  });
+  return (
+    <div className="qp-scrim mid" onClick={onClose}>
+      <div className="qp-panel mid wo-panel wo-sendpop" role="dialog" aria-modal="true" aria-labelledby="wo-send-h" onClick={(e) => e.stopPropagation()}>
+        <div className="qp-ph">
+          <span>Work order {w.po_number}</span>
+          <button type="button" className="qp-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <h2 id="wo-send-h" className="rl-h">Send the work order</h2>
+        <p className="wo-sendsub">Job {first.job_number} · {d.site_address.split(",")[0]} · {when}</p>
+        {done ? (
+          <>
+            <p className="pk-said" role="status">{done}</p>
+            <div className="qp-links"><button type="button" className="qp-btn dark" onClick={onClose} autoFocus>Done</button></div>
+          </>
+        ) : (
+          <>
+            <label className="wo-f wide" htmlFor="wos-who">
+              <span>Contractor</span>
+              <select id="wos-who" className="pk-in" value={value} onChange={(e) => choose(e.target.value)} disabled={busy}>
+                {sparky && <option value="sparky">{sparky.name} · Electrical</option>}
+                {contacts.map((c) => <option key={c.id} value={`c:${c.id}`}>{c.name} · {c.trade}</option>)}
+                {pick.kind === "other" && <option value="other">{[d.to_name, d.trade].filter(Boolean).join(" · ") || "As it is"}</option>}
+              </select>
+            </label>
+            <label className="wo-f wide" htmlFor="wos-to">
+              <span>Email</span>
+              <input id="wos-to" type="email" className="pk-in" value={to} onChange={(e) => setTo(e.target.value)} disabled={busy} />
+            </label>
+            <div className="wo-f wide">
+              <span>The PDF</span>
+              {/* A plain link: it's built fresh on request, and Link would prefetch it. */}
+              <a className="wo-pdf" href={`/api/portal/order-pdf?id=${w.id}`}><Icon name="file" size={15} />Work order {w.po_number}.pdf<em>download to check</em></a>
+            </div>
+            {planned && !typed && <p className="wo-planned"><b>On the work order</b>{planned}</p>}
+            <label className="wo-f wide" htmlFor="wos-work">
+              <span>{planned && !typed ? "Anything to add (leave blank to send it as it is)" : "The work"}</span>
+              <textarea id="wos-work" className="pk-in" rows={planned && !typed ? 2 : 4} value={work} onChange={(e) => setWork(e.target.value)} disabled={busy} />
+            </label>
+            <p className="qp-note">The office is copied, and it&rsquo;s noted on job {first.job_number} in ServiceTitan with the PDF attached.</p>
+            {err && <p className="pk-said bad" role="status">{err}</p>}
+            <div className="qp-links">
+              <button type="button" className="qp-btn dark" disabled={busy || !to.trim() || (!asIs && !work.trim())} onClick={send}>{busy ? "Sending…" : "Send"}</button>
+              <button type="button" className="qp-btn line" onClick={onClose} disabled={busy}>Cancel</button>
+              <button type="button" className="qp-btn line wo-more" onClick={onMore} disabled={busy}>Edit everything</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
