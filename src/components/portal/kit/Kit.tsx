@@ -10,10 +10,11 @@ import type { ReactNode } from "react";
  * colour is never the only signal.
  */
 
-export type Tone = "good" | "mid" | "bad" | "none";
+/** Red behind, yellow close, green on track, gold ahead: one rule on every page. */
+export type Tone = "good" | "mid" | "bad" | "ahead" | "none";
 /** `s` replaces the tone's sign where the word is a direction: "▲ Up" is bad news for a cost. */
 export type Status = { k: Tone; w: string; s?: string };
-const SIGN: Record<Tone, string> = { good: "✓", mid: "!", bad: "▼", none: "" };
+const SIGN: Record<Tone, string> = { good: "✓", mid: "!", bad: "▼", ahead: "▲", none: "" };
 
 /**
  * The prototype's status rule. Money and counts go by ratio — at or over goal
@@ -31,7 +32,19 @@ export function status(actual: number, goal: number, o: { pts?: boolean; lower?:
   }
   const ahead = !o.pts && !o.lower && goal > 0 && actual / goal >= 1.1;
   const w = k === "good" ? (ahead ? "Ahead" : "On track") : k === "mid" ? (o.lower ? "Watch it" : "Close") : o.lower ? "Too high" : "Behind";
-  return { k, w };
+  return { k: ahead ? "ahead" : k, w };
+}
+
+/**
+ * Against the year's two goals ($2.5M and $3M), each where it should be by
+ * now: under the lower one behind, between the two close, at the higher one
+ * on track, 10% over it ahead.
+ */
+export function status2(actual: number, lower: number | null, goal: number): Status {
+  if (actual >= goal * 1.1) return { k: "ahead", w: "Ahead" };
+  if (actual >= goal) return { k: "good", w: "On track" };
+  if (lower != null && lower < goal ? actual >= lower : actual >= goal * 0.9) return { k: "mid", w: "Close" };
+  return { k: "bad", w: "Behind" };
 }
 export const none = (w = "No goal yet"): Status => ({ k: "none", w });
 

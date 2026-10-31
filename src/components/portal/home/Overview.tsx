@@ -103,11 +103,13 @@ export type HomeTodo = { id: string; title: string; notes: string | null; who: s
 /** As many as fill the panel beside the chart and the two cards under it. */
 const TODOS_SHOWN = 8;
 
-export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yearGoal, yearFloor, daysLeft, span, team = [], crew = null, important }: {
+export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yearGoal, yearFloor, daysLeft, yearByNow = null, span, team = [], crew = null, important }: {
   ov: Data; first: string; when: string; closeRate: number | null;
   /** The job margin beside the close rate: streamed, since costing jobs is the page's slowest read. */
   margin?: ReactNode;
   yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null; span: 6 | 12;
+  /** Where the year's goal says invoicing should be by today. */
+  yearByNow?: number | null;
   team?: TeamRow[]; crew?: CrewNow[] | null;
   /** Flagged important on To-do, most urgent first: the team's for the office. */
   important: HomeTodo[];
@@ -125,7 +127,7 @@ export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yea
   const area = line ? `${line} L${x(ov.months.length - 1)},${y(0)} L${x(0)},${y(0)} Z` : "";
   const goalPts = ov.months.map((m, i) => (m.goal != null ? [x(i), y(m.goal)] as [number, number] : null)).filter(Boolean) as Array<[number, number]>;
   const goalLine = goalPts.length ? `M${goalPts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L")}` : "";
-  // The floor under the goal ($2.5M under $3.2M), the same months scaled down, as its own line.
+  // The lower goal under the year's ($2.5M under $3M), the same months scaled down, as its own line.
   const floorRatio = yearFloor && yearGoal ? yearFloor / yearGoal : null;
   const floorLine = floorRatio && goalPts.length
     ? `M${ov.months.map((m, i) => (m.goal != null ? `${x(i).toFixed(1)},${y(m.goal * floorRatio).toFixed(1)}` : null)).filter(Boolean).join(" L")}`
@@ -180,7 +182,7 @@ export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yea
             </span>
           </div>
           <div className="rp-big"><CountUp value={total} /><span>sold in {span} months · <b>{hit}</b> of {done.length} months at goal</span></div>
-          <div className="rp-legend"><span><i className="dot" />Sold</span><span><i className="dash" />{yearGoal ? `${short(yearGoal)} goal` : "Month’s goal"}</span>{floorLine && yearFloor ? <span><i className="dash floor" />{short(yearFloor)} floor</span> : null}</div>
+          <div className="rp-legend"><span><i className="dot" />Sold</span><span><i className="dash" />{yearGoal ? `${short(yearGoal)} goal` : "Month’s goal"}</span>{floorLine && yearFloor ? <span><i className="dash floor" />{short(yearFloor)} goal</span> : null}</div>
           <svg className="rp-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Sold each month for ${span} months against the month's goal`}>
             <defs>
               <linearGradient id="rp-fill" x1="0" y1="0" x2="0" y2="1">
@@ -212,7 +214,7 @@ export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yea
                         <rect x={tx} y={ty} width={tw} height={th} rx={8} />
                         <text x={tx + 10} y={ty + 15}>{m.label} · {money(m.sold)}</text>
                         <text x={tx + 10} y={ty + 28} className="sub">{m.goal != null ? `${yearGoal ? `${short(yearGoal)} ` : ""}goal ${money(m.goal)}` : "no goal"}</text>
-                        {floorRatio && m.goal != null && yearFloor ? <text x={tx + 10} y={ty + 41} className="sub">{short(yearFloor)} floor {money(m.goal * floorRatio)}</text> : null}
+                        {floorRatio && m.goal != null && yearFloor ? <text x={tx + 10} y={ty + 41} className="sub">{short(yearFloor)} goal {money(m.goal * floorRatio)}</text> : null}
                       </>
                     );
                   })()}
@@ -260,12 +262,13 @@ export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yea
                     <line x1="90" y1={90 - RR - 9} x2="90" y2={90 - RR + 9} className="rp-ring-mark" transform={`rotate(${floorAt * 360} 90 90)`} />
                   )}
                 </svg>
-                <span className="rp-ring-in"><b><CountUp value={yr * 100} kind="pct" /></b><span>of {short(yearGoal as number)}</span></span>
+                <span className="rp-ring-in"><b><CountUp value={yr * 100} kind="pct" /></b><span>of {short(yearGoal as number)}{daysLeft != null ? ` · ${daysLeft} days left` : ""}</span></span>
               </div>
+              {/* Where each goal says the year should be by today, beside what's in. */}
               <div className="rp-year-f">
                 <span><small>Invoiced</small><b>{short(yearInvoiced as number)}</b></span>
-                <span><small>Floor</small><b>{yearFloor ? short(yearFloor) : ""}</b></span>
-                <span><small>Days left</small><b>{daysLeft ?? ""}</b></span>
+                {yearByNow != null && yearFloor && yearGoal ? <span><small>{short(yearFloor)} by now</small><b>{short(yearByNow * (yearFloor / yearGoal))}</b></span> : <span><small>{yearFloor ? `${short(yearFloor)} goal` : ""}</small><b /></span>}
+                {yearByNow != null ? <span><small>{short(yearGoal as number)} by now</small><b>{short(yearByNow)}</b></span> : <span><small>Days left</small><b>{daysLeft ?? ""}</b></span>}
               </div>
             </>
           ) : <p className="rp-empty">Set a year goal and connect Xero to see the year.</p>}

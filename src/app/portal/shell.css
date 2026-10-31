@@ -823,7 +823,7 @@ label.pk-btn { cursor: pointer; }
 .pk-goals { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 6px; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .pk-goals .ok { color: var(--good); }
 .pk-goals .no { color: var(--bad); }
-.pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad) .pk-goals span { color: var(--on-mark); opacity: 0.9; }
+.pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad):not(.st-ahead) .pk-goals span { color: var(--on-mark); opacity: 0.9; }
 
 /* ------------------------------------------------------------------
    Home's overview, after the Rapport dashboard: a warm wash behind the
@@ -1122,8 +1122,8 @@ label.pk-btn { cursor: pointer; }
 .pn a.pk-hero:hover { transform: translateY(-3px); }
 .pn .pk-fig { font-weight: 700; font-size: 32px; letter-spacing: -0.03em; }
 .pn .pk-hero { border-radius: 28px; padding: 22px 26px; box-shadow: 0 18px 40px -24px rgba(20,10,0,.45); }
-.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad) { background: var(--rp-dark); color: var(--rp-on-dark); }
-.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad) .pk-hb i { background: var(--rp-gold); }
+.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad):not(.st-ahead) { background: var(--rp-dark); color: var(--rp-on-dark); }
+.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad):not(.st-ahead) .pk-hb i { background: var(--rp-gold); }
 .pn .pk-hero.light { background: var(--rp-card); border: 1px solid var(--rp-line); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -26px rgba(80,40,10,.2); }
 .pn .pk-hero.st-good, .pn .pk-hero.st-mid, .pn .pk-hero.st-bad { border: 1px solid var(--rp-line); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -26px rgba(80,40,10,.2); }
 .pn .pk-hero .pk-hf { font-weight: 700; font-size: 40px; letter-spacing: -0.035em; }
@@ -3301,3 +3301,19 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pn-c { flex: 0 0 auto; white-space: nowrap; }
 /* On a small phone the theme button keeps its sun or moon and loses the word. */
 @media (max-width: 520px) { .pn-right .pn-theme { padding: 0 10px; font-size: 0; } .pn-right .pn-theme > span[aria-hidden] { font-size: 14px; } }
+/* Gold for ahead, 10% or more over: a sheen, so it isn't mistaken for the yellow of close. */
+.pk-st.ahead { color: #1f1600; background: var(--ahead-f); }
+.pk-bar.ahead i { background: var(--ahead-f); }
+.pk-hero.st-ahead { background: var(--ahead-bg); color: var(--ink); box-shadow: var(--shadow); }
+.pk-hero.st-ahead .pk-hl { opacity: 1; color: var(--ink2); }
+.pk-hero.st-ahead .pk-hb { background: var(--track); }
+.pk-hero.st-ahead .pk-hb i { background: var(--ahead-f); }
+/* The month bar in the status's colour, with the lower goal's mark dotted. */
+.fo-track i.st-bad, .fo-leg i.st-bad { background: var(--bad-f); }
+.fo-track i.st-mid, .fo-leg i.st-mid { background: var(--mid-f); }
+.fo-track i.st-good, .fo-leg i.st-good { background: var(--good-f); }
+.fo-track i.st-ahead, .fo-leg i.st-ahead { background: var(--ahead-f); }
+.fo-track i.st-none, .fo-leg i.st-none { background: var(--ink4); }
+.fo-mk.lower { background: none; border-left: 2px dotted var(--ink); width: 0; margin-left: -1px; }
+.fo-leg i.mk.lower { background: none; border-left: 2px dotted var(--ink); width: 0; border-radius: 0; height: 12px; }
+.fo-hh .pk-st { margin-left: auto; }

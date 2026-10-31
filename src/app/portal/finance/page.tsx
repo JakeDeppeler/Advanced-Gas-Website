@@ -12,13 +12,13 @@ import { journalHealth } from "@/lib/journals/read";
 import { revenueGoalFor, standing, yearSpans } from "@/lib/portal/yearGoal";
 import { ago } from "@/components/portal/Figs";
 import { getGoals } from "@/lib/portal/goals";
-import { savedGoal } from "@/lib/portal/office";
+import { savedGoal, shortMoney } from "@/lib/portal/office";
 import { summarisePL } from "@/lib/portal/run/pl";
 import { money, pc } from "@/lib/portal/run/month";
 import { cashCover, moveOf, owedInvoices, spendLines } from "@/lib/portal/run/money";
 import { BENCH } from "@/lib/portal/benchmarks";
 import { PERIODS, periodItems, periodSpans, periodWords, readPeriod, type PeriodKey } from "@/lib/portal/run/period";
-import { Bad, Card, Grid, Head, Lh, PeriodTabs, Say, Sum, Tile, none, status, type Status } from "@/components/portal/kit/Kit";
+import { Bad, Card, Grid, Head, Lh, PeriodTabs, Say, Sum, Tile, none, status, status2, type Status } from "@/components/portal/kit/Kit";
 import { Diff, XeroOff } from "@/components/portal/finance/Parts";
 import { MonthBars, MonthTrack, OwedByAge } from "@/components/portal/finance/Charts";
 
@@ -161,7 +161,10 @@ async function Connected({ period }: { period: PeriodKey }) {
   const jobSt: Status = jp?.margin == null || jp.costed < 5 ? none(jp ? "Too few costed" : "No figure") : jobGoal != null ? status(jp.margin * 100, npGoal!, { pts: true }) : none();
 
   const ys = yearRaw?.raw ? standing(yearRaw.g, yearRaw.raw.map((p) => ({ income: p?.income ?? null, expenses: p?.expenses ?? null, netProfit: p?.netProfit ?? null })), new Date()) : null;
-  const yearSt: Status = !ys || ys.banked == null ? none(yearRaw ? "No figure" : "No goal yet") : status(ys.banked, ys.expectedToDate);
+  // Read against both goals: the lower one ($2.5M) asks the same share of its own year by now.
+  const lowerShare = yearRaw?.g.floorRevenue && yearRaw.g.revenue ? yearRaw.g.floorRevenue / yearRaw.g.revenue : null;
+  const lowerByNow = ys && lowerShare != null ? ys.expectedToDate * lowerShare : null;
+  const yearSt: Status = !ys || ys.banked == null ? none(yearRaw ? "No figure" : "No goal yet") : status2(ys.banked, lowerByNow, ys.expectedToDate);
 
   const jSt: Status = !journals ? none("Not read yet") : journals.errors > 0 ? { k: "bad", w: "Didn’t sync" } : journals.waiting > 0 ? { k: "mid", w: "Waiting" } : { k: "good", w: "All in Xero" };
 
@@ -182,7 +185,8 @@ async function Connected({ period }: { period: PeriodKey }) {
         {npGoal == null ? "There’s no profit goal yet, set one in Settings › Goals." : gap == null ? "That’s on goal." : <>The goal is {npGoal}%, <Bad>{gap}</Bad>.</>}
       </Say>
       {yearRaw && thisMonth && thisMonth.income != null && (
-        <MonthTrack label={monthName} income={thisMonth.income} goal={thisMonth.goal} byNow={revenueGoalFor(yearRaw.g, monthFrom, today)} daysLeft={daysLeft} />
+        <MonthTrack label={monthName} income={thisMonth.income} goal={thisMonth.goal} byNow={revenueGoalFor(yearRaw.g, monthFrom, today)} daysLeft={daysLeft}
+          lowerShare={lowerShare} goalName={shortMoney(yearRaw.g.revenue)} lowerName={yearRaw.g.floorRevenue ? shortMoney(yearRaw.g.floorRevenue) : null} />
       )}
       <div className="fo-two">
         {ys?.hasActuals ? (
@@ -242,7 +246,8 @@ async function Connected({ period }: { period: PeriodKey }) {
           ["Losing money", jp ? String(jp.losing) : ""],
         ]} />
         <Sum title="Year goal" st={yearSt} fig={ys?.banked != null ? money(ys.banked) : ""} figSub={ys ? `invoiced of ${money(ys.goal)}` : "set the year goal in Settings › Goals"} href="/portal/pace?view=year" lines={[
-          ["Should be by now", ys ? money(ys.expectedToDate) : ""],
+          ...(lowerByNow != null && yearRaw?.g.floorRevenue ? [[`${shortMoney(yearRaw.g.floorRevenue)} by now`, money(lowerByNow)] as [string, string]] : []),
+          [ys ? `${shortMoney(ys.goal)} by now` : "Should be by now", ys ? money(ys.expectedToDate) : ""],
           ["Against the pace", ys?.delta != null ? <Diff d={ys.delta} /> : ""],
         ]} />
         <Sum title="Journal entries" st={jSt} fig={journals ? String(journals.errors) : ""} figSub="didn’t reach Xero" href="/portal/journals" lines={[
