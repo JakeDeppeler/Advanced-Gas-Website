@@ -58,10 +58,16 @@ export function Pill({ st }: { st: Status }) {
 }
 
 /** The page's title and the line under it; "What does this mean?" opens the plain words. */
-export function Head({ title, sub, info, action }: { title: string; sub?: ReactNode; info?: [string, ReactNode][]; action?: ReactNode }) {
+/**
+ * A page's head. `eyebrow` is the small line over the title the mocks put
+ * when and where-from in ("Friday 30 October · 2:56 pm · ServiceTitan");
+ * `sub` is a line under it.
+ */
+export function Head({ title, sub, info, action, eyebrow }: { title: string; sub?: ReactNode; info?: [string, ReactNode][]; action?: ReactNode; eyebrow?: ReactNode }) {
   return (
     <div className="pk-head">
       <div>
+        {eyebrow && <div className="pk-eyebrow">{eyebrow}</div>}
         {title && <h1>{title}</h1>}
         {sub && <div className="pk-sub">{sub}</div>}
       </div>

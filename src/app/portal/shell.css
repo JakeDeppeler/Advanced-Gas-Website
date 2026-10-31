@@ -3715,3 +3715,32 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pt.pn .pk-st.ahead { background: var(--ahead-f); color: #1f1600; }
 .pt.pn .pk-st { font-weight: 700; padding: 4px 11px; }
 .pt.pn .pk-st > span[aria-hidden] { color: inherit; opacity: 1; }
+
+/* ------------------------------------------------- page heads and ledes, to the mocks
+   When and where from goes in a small line over the title; the sentence
+   under it is a lede, the page's words in grey with what matters in ink or
+   the status colour, rather than a bold line shouting the whole of it. */
+.pn .pk-eyebrow { font-size: 13px; font-weight: 600; color: var(--ink2); margin-bottom: 2px; }
+.pn .pk-say { font-size: 15px; font-weight: 400; line-height: 1.5; color: var(--ink2); }
+.pn .pk-say b { font-weight: 600; color: var(--ink); }
+.pn .pk-say .b { font-weight: 600; color: var(--bad); }
+.pn .pk-say .g { font-weight: 600; color: var(--good); }
+.pn .pk-head + .pk-say { margin-top: -8px; }
+/* Each goal's difference as a solid chip, its sign and words on it, on the
+   dark hero as on the light. */
+.pt.pn .pk-goals { gap: 6px; margin-top: 10px; }
+.pt.pn .pk-goals > span, .pt.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad):not(.st-ahead) .pk-goals > span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; opacity: 1; }
+.pt.pn .pk-goals > span.ok, .pt.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad):not(.st-ahead) .pk-goals > span.ok { background: var(--good-f); color: #f4f1ea; }
+.pt.pn .pk-goals > span.no, .pt.pn .pk-hero:not(.light):not(.st-good):not(.st-mid):not(.st-bad):not(.st-ahead) .pk-goals > span.no { background: var(--bad-f); color: #fff; }
+/* Row icons light, as the mocks draw them: a white square with a hairline. */
+.pt.pn .pk-ico { width: 36px; height: 36px; border-radius: 11px; background: var(--surface); border: 1px solid var(--rp-line); color: var(--ink); }
+.pk-grp-h { padding: 16px 18px 6px; }
+.pk-grp-h b { font-size: 17px; font-weight: 600; }
+/* In-page tabs (Open · On hold · Completed, Work orders · Contractors) as the
+   mocks draw them: a grey track with the chosen one lifted out in white, the
+   same as the sub-tabs under the top bar, rather than filled black. */
+.pt.pn .pk-seg { background: color-mix(in srgb, var(--ink) 7%, transparent); border: 0; padding: 4px; }
+.pt.pn .pk-seg a.on, .pt.pn .pk-seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 2px 6px -2px rgba(0, 0, 0, .08); }
+.pt.pn .pk-seg a.on .c, .pt.pn .pk-seg button.on .c { color: var(--ink3); opacity: 1; }
+.pt.pn .pk-seg a.on .c.r, .pt.pn .pk-seg button.on .c.r { color: var(--bad); }
+.pt.pn .pk-seg .c { display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 5px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 8%, transparent); font-size: 11px; }

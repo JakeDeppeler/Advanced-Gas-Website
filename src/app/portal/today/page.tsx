@@ -69,7 +69,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   const over = techs.filter((t) => t.hoursQuoted != null && t.hoursTakenQuoted > t.hoursQuoted + 0.25);
 
   const head = (sub: string) => (
-    <Head title={tab === "calls" ? "Call booking" : "Today"} sub={`${now.day} · ${now.time} · ${sub}`} info={[
+    <Head title={tab === "calls" ? "Call booking" : "Today"} eyebrow={`${now.day} · ${now.time} · ${sub}`} info={[
       ["A usual day", "The month’s sales goal spread over its working days. Today is measured against it."],
       ["Sold", "Quotes a customer said yes to today. A quote re-sold for the same amount stays on the day it first sold."],
       ["Billed", "Everything invoiced today, whenever the job was done."],
@@ -208,16 +208,16 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
             <SoldTodayChart points={points} usual={usual} nowHour={now.hour} />
           </Card>
           <div>
-            <Lh>Needs someone</Lh>
             {lines.length ? (
               <Group>
+                <div className="pk-grp-h"><b>Needs someone</b></div>
                 {lines.slice(0, 6).map((l) => {
                   const look = needLook(l);
                   const [what, ...rest] = l.text.split(" · ");
                   return <Row key={l.href + what} href={l.href} lead={<span className="pk-ico"><Icon name={look.icon} size={16} /></span>} title={`${l.n} ${what}`} sub={rest.join(" · ") || undefined} end={<Pill st={{ k: "bad", w: look.word }} />} />;
                 })}
               </Group>
-            ) : <Empty>Nothing waiting on anyone.</Empty>}
+            ) : <><Lh>Needs someone</Lh><Empty>Nothing waiting on anyone.</Empty></>}
           </div>
         </Two>
       </div>

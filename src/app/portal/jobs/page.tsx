@@ -63,7 +63,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
   const techs = m?.daily?.techs ?? [];
   const jobsToday = techs.flatMap((t) => t.jobs.map((j) => ({ ...j, who: t.tech })));
   const head = (
-    <Head title={TITLE[tab]} sub={`${now.day} · ServiceTitan`} info={[
+    <Head title={TITLE[tab]} eyebrow={`${now.day} · ServiceTitan`} info={[
       ["Running over", "Hours on the job past what it was quoted to take."],
       ["Not billed", "Finished in ServiceTitan with no invoice yet. Every day it waits is a day longer to get paid."],
       ["Compliance certificate", `Lodged with the VBA within ${CERT_DAYS} days of finishing, by the licensed plumber who did or supervised the work.`],
