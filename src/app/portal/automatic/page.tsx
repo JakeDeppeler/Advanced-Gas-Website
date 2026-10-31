@@ -9,6 +9,8 @@ import { OfficeTo } from "@/components/portal/AutoSwitch";
 import { ACTS, AutoLog, Item, ORDER_KINDS, TODOS, kindOf } from "@/components/portal/automation/AutoParts";
 import { officeIds, teamPeople } from "@/lib/todos/store";
 import { loadAutoLog, loadSwitches, type AutoKey } from "@/lib/automation/log";
+import { guessedSent } from "@/lib/automation/quoteDrafts";
+import { GuessedQuotes } from "@/components/portal/automation/GuessedQuotes";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Automatic · Team portal" };
@@ -23,7 +25,7 @@ export default async function AutomaticPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead") && !can(user, "manage_users")) return <Locked user={user} what="Automatic" forWhom="the office" />;
-  const [sw, all, people, office] = await Promise.all([loadSwitches(), loadAutoLog(), teamPeople(), officeIds()]);
+  const [sw, all, people, office, guessed] = await Promise.all([loadSwitches(), loadAutoLog(), teamPeople(), officeIds(), guessedSent().catch(() => [])]);
   const log = all.filter((e) => !ORDER_KINDS.has(e.kind));
   const week = log.filter((e) => Date.now() - Date.parse(e.at) < 7 * 86_400_000);
   const count = (k: AutoKey) => week.filter((e) => e.kind === kindOf(k) && e.ok).length;
@@ -69,6 +71,13 @@ export default async function AutomaticPage() {
           <Link className="pt-btn pt-btn--ghost pt-btn--sm" href="/portal/supply/automation">To order › Automation</Link>
         </div>
       </section>
+
+      {guessed.length > 0 && (
+        <section className="pk-card pk-pad">
+          <h2 className="rv-h2">Quotes to sort: draft or sent?</h2>
+          <GuessedQuotes rows={guessed.map(({ jobId, jobNumber, customer, jobType, quotes, written }) => ({ jobId, jobNumber, customer, jobType, quotes, written }))} />
+        </section>
+      )}
 
       <section className="pk-card pk-pad">
         <h2 className="rv-h2">What it&rsquo;s done</h2>

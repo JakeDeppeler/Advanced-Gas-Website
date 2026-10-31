@@ -2,34 +2,35 @@
  * Where a job's quote is up to, and the tag that says so in ServiceTitan:
  *
  *   visit done, nothing quoted yet ..... Quotation Required
- *   a quote out ........................ Awaiting Quote Approval
+ *   a quote written, not sold .......... Quote In Draft
+ *   the quote sent ..................... Awaiting Quote Approval (by hand)
  *   sold, nothing booked ............... To Be Booked
- *   sold and booked, or invoiced ....... none of the three
+ *   sold and booked, or invoiced ....... none of them
  *
- * ServiceTitan's Draft tick isn't in its API: the estimate probe (#360) found
- * no draft or sent field on any endpoint, and none of our estimates carry one.
- * So "out" is the nearest thing the data shows: an open quote with a price on
- * it that hasn't been changed for a day. One still being written keeps
- * changing, or has no price yet. A draft left alone longer than that reads as
- * out; the office puts Quotation Required back, and it's left alone (see
- * quoteTag.ts) until the quote sells.
+ * Nothing here ever decides a quote has been sent. ServiceTitan doesn't say:
+ * the estimate probe (#360) found no draft or sent field on any endpoint, and
+ * the job history probe (31 Oct) holds only job and technician events, with
+ * nothing for a quote emailed or presented even on jobs whose quotes sold.
+ * Until 31 Oct "sent" was guessed from a priced quote left unchanged for a
+ * day, and drafts got Awaiting Quote Approval (job 20527). Now the office
+ * swaps Quote In Draft for Awaiting Quote Approval when they send it (Jake,
+ * 31 Oct), and a job at Awaiting is never put back (planTags).
  *
  * Kept apart from the ServiceTitan calls so it can be checked without them.
  */
 
-export type Stage = "toQuote" | "sent" | "toBook" | "done";
+export type Stage = "toQuote" | "draft" | "sent" | "toBook" | "done";
 export type TaggedStage = Exclude<Stage, "done">;
 
 export const STAGE_TAGS: Record<TaggedStage, string> = {
   toQuote: "Quotation Required",
+  draft: "Quote In Draft",
   sent: "Awaiting Quote Approval",
   toBook: "To Be Booked",
 };
-const RANK: Record<Stage, number> = { toQuote: 1, sent: 2, toBook: 3, done: 4 };
+const RANK: Record<Stage, number> = { toQuote: 1, draft: 2, sent: 3, toBook: 4, done: 5 };
 
 const DAY = 86_400_000;
-/** How long a priced quote sits unchanged before it counts as out. */
-export const QUIET_MS = DAY;
 /** A quote visit this long ago with nothing quoted has been let go; quoteToWrite stops at the same point. */
 export const VISIT_DAYS = 30;
 /** A quote older than this is off the Pipeline, and its job is left as it is. */
@@ -66,8 +67,10 @@ export function stageOf(f: Facts, now: number): Stage | null {
   }
   // A visit still to come means the quote isn't settled yet, whatever's on the job.
   if (f.future || f.install) return null;
-  const out = f.ests.filter((e) => e.status === "Open" && Number(e.subtotal) > 0 && at(e.modifiedOn) > 0 && now - at(e.modifiedOn) >= QUIET_MS);
-  if (out.length) return now - Math.max(...out.map((e) => at(e.createdOn))) <= LIVE_DAYS * DAY ? "sent" : null;
+  // Written and not sold: a draft as far as anything here can tell. Sent is
+  // the office's to say (above).
+  const open = f.ests.filter((e) => e.status === "Open");
+  if (open.length) return now - Math.max(...open.map((e) => at(e.createdOn))) <= LIVE_DAYS * DAY ? "draft" : null;
   // Quoted and lost, or quoted on another job: there's nothing to write.
   if (f.ests.some((e) => e.status === "Dismissed") || f.quotedElsewhere) return null;
   if (!f.quoteVisit || !f.lastVisit || now - at(f.lastVisit) > VISIT_DAYS * DAY) return null;
@@ -83,19 +86,21 @@ export type TagPlan =
  * The job's tags with its stage's in place of the other two. Null: leave it
  * as it is.
  *
- * Never backwards: a job at Awaiting Quote Approval isn't put back to
- * Quotation Required because another option is being written, and To Be
- * Booked stays when a sold quote is unsold to change it.
+ * Never backwards: a job at Awaiting Quote Approval isn't put back to Quote
+ * In Draft because another option is being written, and To Be Booked stays
+ * when a sold quote is unsold to change it. `ours` are stage tags this
+ * automation put on by guessing, which don't hold a job back: the office
+ * marks those still in draft from Settings › Automatic (quoteDrafts.ts).
  *
  * Never to an empty list. ServiceTitan answers OK to one and changes nothing,
  * which is why taking Awaiting Quote Approval off a job that had no other tag
  * failed every day. Swapping one tag for the next always leaves one on.
  */
-export function planTags(cur: number[], stage: Stage, ids: Partial<Record<TaggedStage, number>>): TagPlan | null {
+export function planTags(cur: number[], stage: Stage, ids: Partial<Record<TaggedStage, number>>, ours: number[] = []): TagPlan | null {
   const stageOfId = new Map<number, TaggedStage>();
   for (const s of Object.keys(STAGE_TAGS) as TaggedStage[]) if (ids[s] != null) stageOfId.set(ids[s] as number, s);
   const on = cur.filter((x) => stageOfId.has(x));
-  if (on.some((x) => RANK[stageOfId.get(x) as TaggedStage] > RANK[stage])) return null;
+  if (on.some((x) => !ours.includes(x) && RANK[stageOfId.get(x) as TaggedStage] > RANK[stage])) return null;
   const want = stage === "done" ? null : ids[stage] ?? null;
   // That tag isn't in ServiceTitan, or has been renamed: nothing to swap to.
   if (stage !== "done" && want == null) return null;
