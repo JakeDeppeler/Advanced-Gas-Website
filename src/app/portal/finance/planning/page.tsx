@@ -66,7 +66,7 @@ export default async function VansPage({ searchParams }: { searchParams: { b?: s
   const goalY = (searchParams.gy ?? "").trim().slice(0, 20);
   const goalG = num(searchParams.gg?.replace(/[$,\s]/g, ""), 0, 1e9);
   const goals: Array<{ label: string; amount: number }> = [
-    ...(goal.floorRevenue ? [{ label: `${short(goal.floorRevenue)} floor`, amount: goal.floorRevenue }] : []),
+    ...(goal.floorRevenue ? [{ label: `${short(goal.floorRevenue)} goal`, amount: goal.floorRevenue }] : []),
     ...(goal.revenue ? [{ label: `${short(goal.revenue)} goal`, amount: goal.revenue }] : []),
     ...(Number.isFinite(goalG) && goalG > 0 ? [{ label: `${goalY || "Your year"}: ${short(goalG)}`, amount: goalG }] : []),
   ];

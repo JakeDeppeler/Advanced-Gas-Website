@@ -13,7 +13,7 @@ import { DEFAULT_WORKING_CALENDAR, isWorkingDay } from "@/lib/dashboard/dates";
 import { Home, type HomeTodo } from "@/components/portal/home/Home";
 import { overview } from "@/lib/portal/home/overview";
 import { crewNow } from "@/lib/portal/home/crewNow";
-import { yearSpans } from "@/lib/portal/yearGoal";
+import { revenueGoalFor, yearSpans } from "@/lib/portal/yearGoal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Home · Team portal" };
@@ -72,6 +72,8 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   const spans = goal ? yearSpans(goal.basis, goal.year) : null;
   const yearEnd = spans ? spans[spans.length - 1].to : null;
   const daysLeft = yearEnd ? Math.max(0, Math.ceil((Date.parse(`${yearEnd}T23:59:59+10:00`) - Date.now()) / 86_400_000)) : null;
+  // Where the year's goal says we should be by today, for the year card; the lower goal is its share of it.
+  const yearByNow = goal && spans ? revenueGoalFor(goal, spans[0].from, todayMelbourne()) : null;
 
   // What's due today or late: the office sees the team's, everyone else their own.
   const today = todayMelbourne();
@@ -118,7 +120,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
         ov={ov ? {
           data: ov, span, closeRate: board?.metrics?.closeRate30d ?? null,
           yearInvoiced: board?.metrics?.revenueInvoicedYtd ?? null, yearGoal: goal?.revenue ?? null,
-          yearFloor: goal?.floorRevenue ?? null, daysLeft,
+          yearFloor: goal?.floorRevenue ?? null, daysLeft, yearByNow,
           team: (board?.metrics?.salesLeaderboard ?? []).map((r) => ({ name: r.name, sold: r.sold, soldToday: r.soldToday, quoted: r.quoted, soldJobs: r.soldJobs, quotedJobs: r.quotedJobs, closeRate: r.closeRate })),
           crew,
         } : null}

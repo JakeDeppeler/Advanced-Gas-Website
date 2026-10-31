@@ -133,7 +133,7 @@ export function GoalPlanner({
             </select>
           </label>
           <NumField label="Revenue goal" hint="to invoice across the year" prefix="$" value={g.revenue ? String(g.revenue) : ""} onChange={(v) => set({ revenue: num(v) })} />
-          <NumField label="The floor" hint="the least the year must make, the wall board reads against both" prefix="$" value={g.floorRevenue ? String(g.floorRevenue) : ""} onChange={(v) => set({ floorRevenue: v.trim() === "" ? null : num(v) })} />
+          <NumField label="The lower goal" hint="the least the year must make; the portal and the wall board read against both" prefix="$" value={g.floorRevenue ? String(g.floorRevenue) : ""} onChange={(v) => set({ floorRevenue: v.trim() === "" ? null : num(v) })} />
           <NumField label="Profit to keep" suffix="%" decimal value={g.profitPct == null ? "" : String(g.profitPct)} onChange={(v) => set({ profitPct: v.trim() === "" ? null : num(v) })} />
           <NumField label="Working weeks" hint="a year" value={String(g.weeks)} onChange={(v) => set({ weeks: Math.max(1, Math.min(52, Math.round(num(v)) || 1)) })} />
           <NumField label="Overheads" hint="optional, for The year's overhead line" prefix="$" value={g.overhead == null ? "" : String(g.overhead)} onChange={(v) => set({ overhead: v.trim() === "" ? null : num(v) })} />
