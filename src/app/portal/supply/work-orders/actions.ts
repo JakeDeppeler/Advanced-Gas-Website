@@ -64,6 +64,28 @@ async function office() {
   return me && can(me, "overhead") ? me : null;
 }
 
+/**
+ * Send a draft as it's saved, from its row's Send pop-up, to the address
+ * given there. Nothing on it is edited: a planned electrician's work order
+ * carries its system and electrical items rather than typed work, and the
+ * edit path would want work typed before it would send.
+ */
+export async function sendDraft(input: { id: number; to: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!Number.isInteger(input.id) || input.id <= 0) return { ok: false, error: "Which work order?" };
+  const to = parseEmails(input.to ?? "");
+  if (to.bad.length || to.ok.length !== 1) return { ok: false, error: to.bad.length ? `“${to.bad[0]}” isn't an email address.` : "Send to takes one email address." };
+  try {
+    const r = await approveAndSend(input.id, me.name || me.email, { to: to.ok[0] });
+    revalidatePath("/portal/supply/work-orders");
+    revalidatePath("/portal/supply/next-week");
+    return r.ok ? { ok: true, note: r.note ?? "Sent." } : { ok: false, error: r.error };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 /** Someone work orders go to, saved to pick next time: water balancing with Ross, a plumber. */
 export async function saveWoContact(input: { name: string; email: string; trade: string }): Promise<ActionResult & { contact?: WoContact }> {
   if (!(await office())) return { ok: false, error: "Not allowed." };
