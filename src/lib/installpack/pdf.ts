@@ -1,7 +1,7 @@
 // An install pack as a PDF, for the install job in ServiceTitan, in the
 // website's colours: the full logo on white with the job number beside it, an
 // orange rule, the address and booking in a cream box, then the scope of works
-// sold word for word, the notes on the job and the contractors, then the
+// (the job summary, word for word) and the contractors, then the
 // equipment and the materials with a tick box each for loading the van, then
 // the photos four to a page. The plain style Jake picked on 28 Oct from four
 // mock-ups: headings with a short orange underline rather than boxes, and the
@@ -191,10 +191,11 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     for (const l of wrap(font, 10.5, s, IN_R - IN)) { room(13.5); text(l, IN, 10.5); y -= 13.5; }
   };
 
-  /* ---- the scope first, under the site: what was sold, before what to bring */
-  if (pack.scope) { open("Scope of works sold"); para(pack.scope); close(); }
-  // The office's own notes next, under the scope they add to (Jake, 28 Oct).
-  if (pack.jobNotes) { open("Notes on the job"); para(pack.jobNotes); close(); }
+  /* ---- the scope first, under the site: what the job is, before what to bring */
+  open("Scope of works sold");
+  if (pack.scope) para(pack.scope);
+  else { text("No job summary written on this job. Check with the office.", IN, 10, font, GREY); y -= 14; }
+  close();
   // Who else is on the job and whether they've been told, before the gear
   // (Jake, 28 Oct). The labour lines on the quote are left off: they're the
   // price breakdown, and the scope above already says what the work is.
@@ -247,17 +248,26 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   // The gear starts a page of its own (Jake, 28 Oct), so the list someone
   // ticks off while loading the van isn't split from its heading by the scope
   // and notes; on most jobs equipment and materials then fit on one sheet.
-  card = null;
-  band(false);
   const tickNote = "Tick each one as it goes in the van";
-  open("Equipment", pack.units.length ? tickNote : undefined);
-  if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
-  close();
+  if (pack.quoted) {
+    card = null;
+    band(false);
+    open("Equipment", pack.units.length ? tickNote : undefined);
+    if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
+    close();
 
-  open("Materials", pack.materials.length ? tickNote : undefined);
-  if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
-  close();
-
+    open("Materials", pack.materials.length ? tickNote : undefined);
+    if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
+    close();
+  } else {
+    // Without a sold quote there's nothing to list, and empty tables would
+    // read as "nothing needed"; one line on the first page says why instead
+    // of a page of its own.
+    open("Equipment and materials");
+    text("No sold quote on this job, so no list. Check with the office what's going in.", IN, 10, font, GREY);
+    y -= 14;
+    close();
+  }
 
   /* ---- photos, four to a page */
   const embedded: { img: PDFImage; p: Photo }[] = [];
