@@ -8,10 +8,10 @@ import { NAV, ICON, type NavGroup, type NavItem } from "@/lib/homepage/data";
 import { sendIntent } from "@/lib/homepage/intent";
 
 /**
- * The header bar with product dropdowns. On the homepage, a slightly
- * see-through floating bar over the hero that stays the same size and shape
- * all the way down the page. With `solid` (the /find product pages), a plain
- * white bar flush to the top of the page that sticks there. Homepage and /find
+ * The header: a plain white bar flush to the top of the page that stays
+ * there, like the rest of the site's, with the product dropdowns Jake liked
+ * for finding a service. The calculators sit under "Tools for you" beside
+ * the phone rather than taking a place in the nav. Homepage and /find
  * pages only for now; the rest of the site keeps components/Header.tsx until Jake has
  * signed this one off.
  *
@@ -35,7 +35,16 @@ export function PhoneIcon({ size = 17, color = "currentColor" }: { size?: number
   );
 }
 
-export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
+const TOOLS: [string, string, string][] = [
+  ["VEU rebate calculator", "What you'd get off a heat pump", "/tools/veu-rebate-estimator"],
+  ["Aircon sizing calculator", "The kW your room needs", "/tools/sizing-calculator"],
+  ["Running cost calculator", "What a system costs to run", "/tools/running-cost-calculator"],
+  ["Hot water savings", "Gas or electric to a heat pump", "/tools/hot-water-savings"],
+  ["Gas vs reverse-cycle", "Which heats your home for less", "/tools/heating-comparator"],
+  ["Fault code lookup", "What the error on the screen means", "/tools/fault-codes"],
+];
+
+export function HomeHeader() {
   const onHome = usePathname() === "/";
   const [open, setOpen] = useState(false);
   // After a dropdown card is clicked the pointer is still over the menu, so
@@ -66,11 +75,8 @@ export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
 
   const quoteHref = onHome ? "#quote" : "/#quote";
 
-  // The same bar the whole way down: it used to widen into a full-width bar
-  // on scroll or with the menu open, and read as the header growing.
-
   return (
-    <header className={`ahdr${flat ? " ahdr--flat is-solid" : ""}`}>
+    <header className="ahdr ahdr--flat is-solid">
       <div className="hbar">
         <Link href="/" className="hbar__logo" aria-label="Advanced Gas & Aircon home" onClick={() => close()}>
           <AgLogo />
@@ -110,11 +116,23 @@ export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
           })}
         </nav>
         <div className="hbar__right">
+          <div className={`htools navx${shut === "tools" ? " is-shut" : ""}`} onMouseLeave={() => shut === "tools" && setShut(null)}>
+            <button type="button" className="htools__btn" aria-haspopup="true">
+              Tools for you
+              <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <div className="htools__menu">
+              {TOOLS.map(([t, s, h]) => (
+                <Link key={h} href={h} className="htools__item" onClick={() => close("tools")}><strong>{t}</strong><span>{s}</span></Link>
+              ))}
+              <Link href="/tools" className="htools__all" onClick={() => close("tools")}>All tools →</Link>
+            </div>
+          </div>
           <a href="tel:+61359478000" className="hphone navx" data-call-from="header">
             <PhoneIcon color="#C2521A" />
-            (03) 5947 8000
+            <span className="hphone__t"><small>Call now</small>(03) 5947 8000</span>
           </a>
-          <Link href={quoteHref} className="hquote" onClick={() => close()}>Get a quote</Link>
+          <Link href={quoteHref} className="hquote" onClick={() => close()}>Get free quote →</Link>
           <button type="button" className="menubtn" aria-label={open ? "Close menu" : "Menu"} aria-expanded={open} aria-controls="m-menu" onClick={() => setOpen((v) => !v)}>
             <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <path d={open ? "M6 6l12 12M18 6 6 18" : "M4 7h16M4 12h16M4 17h16"} />
@@ -143,6 +161,12 @@ export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
               )}
             </div>
           ))}
+          <div className="mmenu__grp">
+            <Link href="/tools" className="mmenu__head" onClick={() => close()}>Tools for you <i aria-hidden="true">→</i></Link>
+            <div className="mmenu__tools">
+              {TOOLS.map(([t, , h]) => <Link key={h} href={h} className="mmenu__item" onClick={() => close()}>{t}</Link>)}
+            </div>
+          </div>
           <a href="tel:+61359478000" className="abtn abtn--navy abtn--full" data-call-from="mobile-menu">Call (03) 5947 8000</a>
         </div>
       )}

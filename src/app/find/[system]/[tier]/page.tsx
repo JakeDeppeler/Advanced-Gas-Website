@@ -9,6 +9,7 @@ import { allProductParams, findSystem, heroFor, money, PHOTO, REVIEW_MATCH, tier
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
 import { HomeFooter } from "@/components/homepage/HomeFooter";
+import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
 import "@/components/homepage/homepage.css";
 
@@ -79,6 +80,7 @@ export default function FindProductPage({ params }: { params: Params }) {
 
   return (
     <div className="ag ag--flat" id="top" data-no-reveal>
+      <HomeHeader />
       <ProductView
         system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
         models={models} brand={brand} hero={heroFor(sys, tier)} tierBadges={badgesFor({}, tier.feats)}

@@ -135,9 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ScrollToTop />
-        {/* The site's own white header on every page, the redesign's included:
-            Jake preferred it to the redesign's floating bar. */}
-        <ChromeGate>
+        <ChromeGate legacy>
           <Header />
         </ChromeGate>
         <main id="main" className="flex-1">{children}</main>

@@ -83,20 +83,22 @@
 .ag .hbar__logo{display:flex;align-items:center;flex:none}
 /* public/advanced-gas-logo-clear.webp: the site logo with its white made
    transparent and trimmed, so it sits on the see-through header. */
-.ag .alogo{display:block;height:42px}
+.ag .alogo{display:block;height:44px}
 .ag .alogo img{display:block;height:100%;width:auto}
 .ag .alogo--sm{height:32px}
 .ag .alogo--ft{height:38px}
 .ag .hnav{display:flex;align-items:stretch}
 .ag .hd{display:flex}
-.ag .hd__top{position:relative;display:flex;align-items:center;gap:8px;padding:0 18px;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);text-decoration:none;white-space:nowrap}
+.ag .hd__top{position:relative;display:flex;align-items:center;gap:8px;padding:0 14px;font-family:var(--body);font-weight:600;font-size:15px;letter-spacing:0;text-transform:none;color:var(--navy);text-decoration:none;white-space:nowrap}
 .ag .hd__top:hover{color:var(--navy)}
-.ag .hd__top::after{content:"";position:absolute;left:18px;right:18px;bottom:24px;height:2px;border-radius:2px;background:var(--or);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+.ag .hd__top::after{content:"";position:absolute;left:14px;right:14px;bottom:22px;height:2px;border-radius:2px;background:var(--or);transform:scaleX(0);transform-origin:left;transition:transform .2s}
 .ag .hd:hover .hd__top::after,.ag .hd:focus-within .hd__top::after{transform:scaleX(1)}
-.ag .hd__pm{position:relative;width:10px;height:10px;flex:none}
-.ag .hd__pm::before,.ag .hd__pm::after{content:"";position:absolute;left:0;top:4px;width:10px;height:2px;border-radius:1px;background:var(--or);transition:transform .2s}
-.ag .hd__pm::after{transform:rotate(90deg)}
-.ag .hd:hover .hd__pm::after,.ag .hd:focus-within .hd__pm::after{transform:rotate(0)}
+/* A chevron, like the rest of the site's menus, not a plus. */
+.ag .hd__pm{position:relative;width:8px;height:8px;flex:none;border-right:1.8px solid var(--ink3);border-bottom:1.8px solid var(--ink3);transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.ag .hd:hover .hd__pm,.ag .hd:focus-within .hd__pm{transform:translateY(1px) rotate(225deg)}
+.ag .hd__pm--x::before,.ag .hd__pm--x::after{content:"";position:absolute;left:0;top:4px;width:10px;height:2px;border-radius:1px;background:var(--or);transition:transform .2s}
+
+
 .ag .hmega{position:absolute;left:0;right:0;top:100%;background:rgba(241,243,246,.97);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:0 0 12px 12px;padding:18px 20px 20px;opacity:0;visibility:hidden;transform:translateY(-6px);pointer-events:none;transition:opacity .18s,transform .2s cubic-bezier(.2,.7,.2,1),visibility .18s;box-shadow:0 34px 50px -26px rgba(2,6,26,.6)}
 .ag .hd:hover .hmega,.ag .hd:focus-within .hmega{opacity:1;visibility:visible;transform:none;pointer-events:auto}
 .ag .hd.is-shut .hmega{opacity:0;visibility:hidden;pointer-events:none}
@@ -116,10 +118,26 @@
 .ag .mcard--cta i{font-style:normal;color:var(--or2);font-size:20px}
 .ag .mcard__head{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--sky2)}
 .ag .hbar__right{display:flex;align-items:center;gap:10px;flex:none}
-.ag .hphone{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;border:1px solid var(--line2);border-radius:10px;padding:0 20px;min-height:52px;transition:border-color .15s}
+.ag .hphone__t{display:flex;flex-direction:column;line-height:1.1}
+.ag .hphone__t small{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.ag .htools{position:relative;display:flex}
+.ag .htools__btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--navy);font-family:var(--disp);font-weight:700;font-size:15px;cursor:pointer}
+.ag .htools:hover .htools__btn,.ag .htools:focus-within .htools__btn{border-color:var(--navy)}
+.ag .htools__menu{position:absolute;right:0;top:calc(100% + 10px);width:330px;background:#fff;border-radius:12px;padding:8px;box-shadow:0 24px 50px -20px rgba(5,10,48,.45);border:1px solid var(--line);display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility .15s;z-index:5}
+/* A strip of hover bridge so the menu doesn't close crossing the gap. */
+.ag .htools__menu::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
+.ag .htools:hover .htools__menu,.ag .htools:focus-within .htools__menu{opacity:1;visibility:visible;transform:none}
+.ag .htools.is-shut .htools__menu{opacity:0;visibility:hidden}
+.ag .htools__item{display:flex;flex-direction:column;gap:1px;padding:9px 12px;border-radius:8px;text-decoration:none;color:var(--navy)}
+.ag .htools__item:hover{background:#F3F4F7;color:var(--navy)}
+.ag .htools__item strong{font-size:14.5px}
+.ag .htools__item span{font-size:12.5px;color:var(--ink3)}
+.ag .htools__all{margin-top:4px;padding:10px 12px;border-top:1px solid var(--line);font-size:14px;font-weight:700;color:var(--or-ink);text-decoration:none}
+.ag .mmenu__tools{display:flex;flex-direction:column;gap:2px}
+.ag .hphone{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;border:1px solid var(--line2);border-radius:10px;padding:0 16px;min-height:48px;transition:border-color .15s}
 .ag .hphone:hover{border-color:var(--navy);color:var(--navy)}
-.ag .hquote{display:inline-flex;align-items:center;font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.03em;text-transform:uppercase;color:#fff;background:var(--or);border-radius:10px;padding:0 24px;min-height:52px;text-decoration:none;transition:background .15s;white-space:nowrap}
-.ag .hquote:hover{background:var(--or-h);color:#fff}
+.ag .hquote{display:inline-flex;align-items:center;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:0;text-transform:none;color:#fff;background:var(--navy);border-radius:10px;padding:0 20px;min-height:48px;text-decoration:none;transition:background .15s;white-space:nowrap}
+.ag .hquote:hover{background:var(--navy2);color:#fff}
 .ag .menubtn{display:none;width:48px;height:48px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--navy);cursor:pointer;place-items:center}
 .ag .mmenu{position:absolute;left:16px;right:16px;top:calc(100% - 6px);z-index:100;background:#fff;color:var(--navy);border-radius:12px;padding:16px;box-shadow:0 30px 60px -20px rgba(2,6,26,.6);display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 120px);overflow:auto;animation:agFadeUp .25s both}
 .ag .mmenu__grp{display:flex;flex-direction:column;gap:4px;padding-bottom:12px;border-bottom:1px solid var(--line)}
@@ -133,13 +151,13 @@
 .ag .mmenu__th--ph img{object-fit:cover;padding:0}
 /* The 15px nav needs about 1,450px at full spacing: on mid-size laptops the
    items close up a little, and below 1,360px they fold into the menu button. */
-@media (max-width:1480px){.ag .hd__top{padding:0 12px}.ag .hd__top::after{left:12px;right:12px}.ag .hphone{padding:0 14px}.ag .hquote{padding:0 18px}.ag .hbar{gap:12px}}
-@media (max-width:1360px){.ag .menubtn{display:grid}.ag .navx{display:none !important}}
+@media (max-width:1400px){.ag .hd__top{padding:0 10px}.ag .hd__top::after{left:10px;right:10px}.ag .hphone{padding:0 12px}.ag .htools__btn{padding:0 12px}.ag .hquote{padding:0 16px}.ag .hbar{gap:10px}}
+@media (max-width:1280px){.ag .menubtn{display:grid}.ag .navx{display:none !important}}
 /* On a phone the bar keeps the same proportions at a size that leaves the screen to the page. */
 @media (max-width:600px){.ag .ahdr{padding:10px 12px 0}.ag .hbar{padding:0 10px 0 14px;min-height:72px}.ag .ahdr.is-solid .hbar{padding:0 14px 0 16px}.ag .alogo{height:36px}.ag .hquote{padding:0 14px;font-size:13.5px;min-height:48px}.ag .menubtn{width:48px;height:48px}}
 /* /find pages: a plain white bar flush to the top, stuck there while the page scrolls. */
 .ag .ahdr--flat{position:sticky;padding:0}
-.ag .ahdr--flat .hbar,.ag .ahdr--flat.is-solid .hbar{border-radius:0;border-width:0 0 1px;border-color:var(--line);box-shadow:none}
+.ag .ahdr--flat .hbar,.ag .ahdr--flat.is-solid .hbar{border-radius:0;border-width:0 0 1px;border-color:var(--line);box-shadow:none;min-height:86px;padding:0 max(24px,calc((100% - 1360px) / 2))}
 .ag .ahdr--flat .hbar::before{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
 @media (max-width:360px){.ag .hquote{display:none}}
 
@@ -243,15 +261,11 @@
    empty card above the fold. */
 @media (min-width:601px){
   .ag .qf{min-height:640px}
+  /* The four first choices share the card's height rather than leave a gap under them. */
+  .ag .qf__step--first{flex:1}
+  .ag .qf__step--first .qf__opts{flex:1;display:grid;grid-auto-rows:1fr}
 }
 .ag .qf__go{margin-left:auto;color:var(--or);font-size:18px;flex:none}
-.ag .qf__us{display:flex;align-items:center;gap:14px;background:#F6F7F9;border-radius:12px;padding:10px}
-.ag .qf__usimg{position:relative;width:104px;height:68px;border-radius:8px;overflow:hidden;flex:none}
-/* Zoomed onto the six of them; at this size the whole photo is mostly vans. */
-.ag .qf__usimg img{object-fit:cover;transform:scale(2.1);transform-origin:48% 60%}
-.ag .qf__ust{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:13px;color:var(--ink2);line-height:1.35}
-.ag .qf__ust strong{font-family:var(--disp);font-size:15px;color:var(--navy)}
-.ag .qf__ust .stars{font-size:12px;letter-spacing:1px}
 .ag .qf__foot{margin:auto 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3);text-align:center}
 @media (max-width:600px){.ag .qf{padding:22px 18px;min-height:0}.ag .qf__tile{font-size:13px;gap:8px;padding:9px 10px}.ag .qf__ti{width:30px;height:30px}}
 @media (max-width:380px){.ag .qf__row2{grid-template-columns:1fr}}

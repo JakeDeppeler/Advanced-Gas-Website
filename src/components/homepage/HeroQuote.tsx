@@ -25,7 +25,7 @@ type Photo = { name: string; type: string; data: string; preview: string };
 
 const MAX_PHOTOS = 4;
 
-export function HeroQuote({ rating, count }: { rating: string; count: number }) {
+export function HeroQuote() {
   const [svc, setSvc] = useState<number | null>(null);
   const [type, setType] = useState<number | null>(null);
   const [ans, setAns] = useState<Answers>({});
@@ -227,7 +227,7 @@ export function HeroQuote({ rating, count }: { rating: string; count: number }) 
       </div>
 
       {cur === "svc" && (
-        <div className="qf__step">
+        <div className="qf__step qf__step--first">
           <div>
             <h2 className="qf__h">What can we help with?</h2>
             <p className="qf__sub">A few quick taps, then your details.</p>
@@ -240,32 +240,6 @@ export function HeroQuote({ rating, count }: { rating: string; count: number }) 
                 <span className="qf__ti" style={{ background: x.bg, color: x.fg }}><Svg d={x.icon} size={18} /></span>
                 <span className="qf__optt"><strong>{x.t}</strong><small>{x.s}</small></span>
                 <span className="qf__go" aria-hidden="true">→</span>
-              </button>
-            ))}
-          </div>
-          {/* Who turns up: the crew, not a stock photo, beside the rating. */}
-          <div className="qf__us">
-            <span className="qf__usimg"><Image src="/team-photo.webp" alt="The Advanced Gas crew with our vans at the Pakenham workshop" fill sizes="320px" /></span>
-            <span className="qf__ust">
-              <strong>Our own crew, never subbies</strong>
-              <span><span className="stars stars--ink" aria-hidden="true">★★★★★</span> {rating} from {count} Google reviews</span>
-            </span>
-          </div>
-        </div>
-      )}
-
-      {cur === "type" && fs && (
-        <div className="qf__step">
-          <div><span className="qf__crumb">{fs.t}</span><h2 className="qf__h">{fs.q}</h2></div>
-          {/* Services has seven; a shorter picture keeps them inside the form's fixed height. */}
-          <div className={`qf__types${fs.types.length > 6 ? " qf__types--many" : ""}`}>
-            {fs.types.map((y, i) => (
-              <button key={y.label} type="button" className="qf__type" style={{ animationDelay: `${i * 0.07}s` }}
-                onClick={() => { setType(i); setAns({}); go(2); }}>
-                <span className="qf__typeimg">
-                  {y.img ? <Image src={y.img} alt="" fill sizes="180px" /> : <Svg d={y.icon ?? ""} size={34} stroke="#0C6F96" width={1.6} />}
-                </span>
-                <span className="qf__typet">{y.label}</span>
               </button>
             ))}
           </div>

@@ -8,7 +8,7 @@ import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
 import { HOME_FAQS, PHOTO, SERVICES, SHOW_FINANCE } from "@/lib/homepage/data";
 import { areaSuburbs } from "@/lib/homepage/areas";
-import { PhoneIcon } from "@/components/homepage/HomeHeader";
+import { HomeHeader, PhoneIcon } from "@/components/homepage/HomeHeader";
 import { HeroQuote, Svg } from "@/components/homepage/HeroQuote";
 import { Finder } from "@/components/homepage/Finder";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
@@ -62,6 +62,7 @@ export default async function HomePage() {
 
   return (
     <div className="ag" id="top" data-no-reveal>
+      <HomeHeader />
       {/* ===== HERO ===== */}
       <section className="ahero">
         {/* A real <img> with priority rather than a CSS background: it is the LCP element. */}
@@ -88,7 +89,7 @@ export default async function HomePage() {
               <Link href="/rebates"><strong>Up to $2,700 →</strong><small>See if you qualify</small></Link>
             </div>
           </div>
-          <HeroQuote rating={rating} count={summary.count} />
+          <HeroQuote />
         </div>
       </section>
 
