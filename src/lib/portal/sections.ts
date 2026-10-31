@@ -111,12 +111,16 @@ export const SECTION_DEFS: SectionDef[] = [
     // board, then the accounts', then marketing's, the order Jake reads
     // them. Account to-dos are the work the portal writes for the office,
     // kept off people's own lists.
-    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists: your own, the accounts', marketing's, and who to keep in touch with",
+    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists, who to keep in touch with, toolbox talks and future plans",
     pages: [
       { label: "Personal", href: "/portal/todo", icon: "me" },
       { label: "Accounts", href: "/portal/todo/accounts", office: true, icon: "pf" },
       { label: "Marketing", href: "/portal/todo/marketing", icon: "mega" },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true, icon: "phone" },
+      // Things to get through rather than to look up, so on the lists with the
+      // rest of the work, not in Team.
+      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
+      { label: "Future planning", href: "/portal/plans", office: true, icon: "grow" },
     ],
   },
   {
@@ -233,7 +237,6 @@ export const SECTION_DEFS: SectionDef[] = [
       ] },
       { label: "Trade iPad", href: "/trade", icon: "wall" },
       { label: "Pricebook", href: "/trade/pricebook", icon: "tag" },
-      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
       { label: "How we work", icon: "todo", group: [
         { label: "Roles", href: "/portal/roles" },
         { label: "Leading", href: "/portal/leading" },
@@ -243,7 +246,6 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Information", href: "/portal/information" },
         { label: "Trade tools", href: "/portal/tools/fault-codes" },
       ] },
-      { label: "Future planning", href: "/portal/plans", office: true, icon: "grow" },
     ],
   },
   {
