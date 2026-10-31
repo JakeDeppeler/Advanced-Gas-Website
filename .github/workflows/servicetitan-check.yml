@@ -18,6 +18,10 @@ on:
         description: "Estimate ids, comma-separated (up to five). Instead of the connection check, lists every field ServiceTitan returns for them, to see whether it says a quote is a draft."
         type: string
         required: false
+      forms:
+        description: "A form name to look for (e.g. condition). Instead of the connection check, lists ServiceTitan's forms and the shape of the newest submissions of the matching ones, without their answers."
+        type: string
+        required: false
       job:
         description: "Job ids (not numbers), comma-separated (up to five). Instead of the connection check, lists the kinds of event in each job's history, to see whether ServiceTitan records a quote being sent."
         type: string
@@ -34,6 +38,7 @@ jobs:
           URL_OVERRIDE: ${{ inputs.url }}
           ESTIMATE: ${{ inputs.estimate }}
           JOB: ${{ inputs.job }}
+          FORMS: ${{ inputs.forms }}
         run: |
           set -euo pipefail
 
@@ -76,6 +81,22 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "--- raw probe ---"
             jq . probe.json
+            exit 0
+          fi
+
+          # The forms probe: letters, digits and spaces only reach the URL.
+          if [ -n "${FORMS:-}" ]; then
+            NAME="$(printf '%s' "$FORMS" | tr -cd 'A-Za-z0-9 ' | sed 's/ /%20/g')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?forms=${NAME}" > probe.json
+            {
+              echo "## ServiceTitan forms, and the newest submissions matching \"${FORMS}\""
+              echo
+              echo '```json'
+              jq '.forms' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.forms' probe.json
             exit 0
           fi
 
