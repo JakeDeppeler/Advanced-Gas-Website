@@ -1,101 +1,206 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
+import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { dayLabel } from "@/lib/ordering/plan";
+import { tagKey, tagTypes } from "@/lib/ordering/stJobNotes";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry } from "./log";
+import { LIVE_DAYS, planTags, STAGE_TAGS, stageOf, VISIT_DAYS, type Est, type Facts, type Stage, type TaggedStage } from "./quoteStage";
 
-/** Jobs fixed per run: a backlog clears over a few runs rather than all at once against ServiceTitan's rate limit. */
+/** Jobs looked at in ServiceTitan per run: a backlog clears over a few runs rather than all at once against its rate limit. */
 const PER_RUN = 25;
+const DAY = 86_400_000;
+/** Most pressing first: a sale waiting to be booked, then a quote out, then one to write, then tidying up. */
+const ORDER: Stage[] = ["toBook", "sent", "toQuote", "done"];
 
-type Job = { id: number; job_number: string | null };
+type Job = { id: number; job_number: string | null; job_type: string | null; status: string | null; customer_id: number | null; pid: string | null; tags: number[] | null };
+type EstRow = { id: number; job_id: number; customer_id: number | null; status: string | null; subtotal: number | null; created_on: string | null; sold_on: string | null; modified: string | null; active: string | null };
+
+const inList = (col: string, xs: (number | string)[]) => `${col}=in.(${xs.join(",")})`;
+const chunks = <T,>(xs: T[], n = 150) => Array.from({ length: Math.ceil(xs.length / n) }, (_, i) => xs.slice(i * n, i * n + n));
+const many = async <T,>(table: string, cols: string, col: string, xs: (number | string)[], extra: string[] = []) =>
+  xs.length ? (await Promise.all(chunks(xs).map((c) => sbSelect<T>(table, [q.select(cols), inList(col, c), ...extra].join("&"))))).flat() : [];
+const day = (iso: string | null) => (iso ? dayLabel(isoDateMelbourne(new Date(iso))) : "");
+const toEst = (e: EstRow): Est => ({ status: e.status, subtotal: e.subtotal, createdOn: e.created_on, modifiedOn: e.modified, soldOn: e.sold_on });
 
 /**
- * Take "Awaiting Quote Approval" off a job once the quote has plainly been
- * answered: the job has been invoiced, it's booked in for a visit to come, or
- * a job has been booked from its quote. Left on, the tag sends the office
- * chasing customers who've already said yes.
+ * The quote tags follow the quote, as the office moves them by hand:
+ * Quotation Required once the visit's done, Awaiting Quote Approval once the
+ * quote's out, To Be Booked once it sells, and off once the work's booked.
+ * Where a job is up to, and why each step is read the way it is, is in
+ * quoteStage.ts.
  *
- * Read from the replica to find them, but each job's tags are read fresh from
- * ServiceTitan before the change, and only that one tag comes off: ServiceTitan
- * replaces a job's whole tag list on update, and the office's other tags stay.
+ * Each step is taken once per job. A tag the office takes off or puts back by
+ * hand afterwards stays as they left it until the quote moves on, so marking a
+ * draft Quotation Required again isn't undone on the next sync. A job never
+ * seen before that's already at its stage is remembered as at it, for the
+ * same reason.
+ *
+ * Found from the replica, but each job's tags are read fresh from ServiceTitan
+ * before the change and read back after it: ServiceTitan replaces the whole
+ * list on update, so the office's other tags are carried over, and it answers
+ * OK to changes it doesn't make.
  */
-export async function clearApprovedQuoteTags(): Promise<{ removed: number; failed: number; skipped?: string }> {
-  if (!(await loadSwitches()).quoteTag) return { removed: 0, failed: 0, skipped: "switched off" };
-  const tags = await sbSelect<{ id: number; name: string | null }>("st_job_tags", q.select("id,name"));
-  const tag = tags.find((t) => /awaiting\s+quote\s+approval/i.test(t.name ?? ""));
-  if (!tag) return { removed: 0, failed: 0, skipped: "no such tag" };
+export async function syncQuoteTags(): Promise<{ changed: number; failed: number; skipped?: string }> {
+  if (!(await loadSwitches()).quoteTag) return { changed: 0, failed: 0, skipped: "switched off" };
+  const t = await tagTypes();
+  const ids: Partial<Record<TaggedStage, number>> = {};
+  for (const s of Object.keys(STAGE_TAGS) as TaggedStage[]) {
+    const id = t.byName.get(tagKey(STAGE_TAGS[s]));
+    if (id != null) ids[s] = id;
+  }
+  const stageIds = Object.values(ids) as number[];
+  if (!stageIds.length) return { changed: 0, failed: 0, skipped: "none of the quote tags are in ServiceTitan" };
 
-  const tagged = await sbSelect<Job>("st_jobs", [q.select("id,job_number"), `raw->tagTypeIds=cs.[${tag.id}]`, "limit=1000"].join("&"));
-  if (!tagged.length) return { removed: 0, failed: 0 };
-  const ids = tagged.map((j) => j.id);
-  const inList = (col: string, xs: (number | string)[]) => `${col}=in.(${xs.join(",")})`;
-  const chunks = <T,>(xs: T[], n = 150) => Array.from({ length: Math.ceil(xs.length / n) }, (_, i) => xs.slice(i * n, i * n + n));
-  const many = async <T,>(table: string, cols: string, col: string, xs: (number | string)[], extra: string[] = []) =>
-    (await Promise.all(chunks(xs).map((c) => sbSelect<T>(table, [q.select(cols), inList(col, c), ...extra].join("&"))))).flat();
-
-  const now = new Date().toISOString();
-  const [invoiced, visits, ests] = await Promise.all([
-    many<{ job_id: number }>("st_invoices", "job_id", "job_id", ids, ["total=gt.0"]),
-    // Status filtered here rather than in the query: neq leaves out rows with no status at all.
-    many<{ job_id: number; status: string | null }>("st_appointments", "job_id,status", "job_id", ids, [`start_at=gt.${now}`]).then((r) => r.filter((a) => a.status !== "Canceled")),
-    many<{ id: number; job_id: number }>("st_estimates", "id,job_id", "job_id", ids),
+  const now = Date.now();
+  const iso = (ms: number) => new Date(ms).toISOString();
+  // In play: a job with one of the tags already, a quote visit in the last
+  // month, or a quote written or sold while it's still on the Pipeline.
+  const [tagged, visits, written, sold] = await Promise.all([
+    Promise.all(stageIds.map((id) => sbSelect<{ id: number }>("st_jobs", `select=id&raw->tagTypeIds=cs.[${id}]&limit=2000`))).then((r) => r.flat()),
+    sbSelect<{ job_id: number; status: string | null }>("st_appointments", [q.select("job_id,status"), q.gte("start_at", iso(now - VISIT_DAYS * DAY)), q.lt("start_at", iso(now)), "limit=3000"].join("&")),
+    sbSelect<{ job_id: number }>("st_estimates", [q.select("job_id"), q.gte("created_on", iso(now - LIVE_DAYS * DAY)), "limit=5000"].join("&")),
+    sbSelect<{ job_id: number }>("st_estimates", [q.select("job_id"), q.gte("sold_on", iso(now - LIVE_DAYS * DAY)), "limit=5000"].join("&")),
   ]);
-  const booked = ests.length
-    ? await many<{ est: string | null; status: string | null }>("st_jobs", "est:raw->>createdFromEstimateId,status", "raw->>createdFromEstimateId", ests.map((e) => e.id))
-    : [];
-  const bookedEst = new Set(booked.filter((b) => b.status !== "Canceled").map((b) => Number(b.est)));
-  const why = new Map<number, string>();
-  for (const i of invoiced) why.set(i.job_id, "it's been invoiced");
-  for (const v of visits) if (!why.has(v.job_id)) why.set(v.job_id, "it's booked in for a visit");
-  for (const e of ests) if (bookedEst.has(e.id) && !why.has(e.job_id)) why.set(e.job_id, "a job's been booked from its quote");
+  const quoteVisit = (j: Job) => /^(quotation|site assessment)/i.test((j.job_type ?? "").trim());
+  const visited = new Set(visits.filter((v) => v.status !== "Canceled").map((v) => Number(v.job_id)));
+  const wanted = new Set([...tagged.map((r) => Number(r.id)), ...written.map((r) => Number(r.job_id)), ...sold.map((r) => Number(r.job_id))]);
+  const jobs = (await many<Job>("st_jobs", "id,job_number,job_type,status,customer_id,pid:raw->>projectId,tags:raw->tagTypeIds", "id", [...new Set([...wanted, ...visited])].filter((n) => n > 0)))
+    .filter((j) => j.status !== "Canceled" && (wanted.has(Number(j.id)) || quoteVisit(j)));
+  if (!jobs.length) return { changed: 0, failed: 0 };
+  const jobIds = jobs.map((j) => Number(j.id));
 
-  /*
-   * A job that couldn't be done waits a day before it's tried again, so one
-   * that ServiceTitan won't change doesn't fill the log every ten minutes.
-   * One that was done and has the tag again was put back by something in
-   * ServiceTitan; that's said once and the job left alone for a week.
-   */
+  const [estRows, appts, invoiced] = await Promise.all([
+    many<EstRow>("st_estimates", "id,job_id,customer_id,status,subtotal,created_on,sold_on,modified:raw->>modifiedOn,active:raw->>active", "job_id", jobIds),
+    many<{ job_id: number; start_at: string | null; status: string | null }>("st_appointments", "job_id,start_at,status", "job_id", jobIds),
+    many<{ job_id: number }>("st_invoices", "job_id", "job_id", jobIds, ["total=gt.0"]),
+  ]);
+  const ests = estRows.filter((e) => e.active !== "false");
+  const estIds = ests.map((e) => Number(e.id));
+  const madeFrom = await many<{ est: string | null; status: string | null }>("st_jobs", "est:raw->>createdFromEstimateId,status", "raw->>createdFromEstimateId", estIds);
+  const bookedEst = new Set(madeFrom.filter((b) => b.status !== "Canceled").map((b) => Number(b.est)));
+  const invoicedJobs = new Set(invoiced.map((i) => Number(i.job_id)));
+  const estsBy = new Map<number, EstRow[]>();
+  for (const e of ests) estsBy.set(Number(e.job_id), [...(estsBy.get(Number(e.job_id)) ?? []), e]);
+  const visitsBy = new Map<number, { last: string | null; future: boolean }>();
+  for (const a of appts) {
+    if (a.status === "Canceled" || !a.start_at) continue;
+    const v = visitsBy.get(Number(a.job_id)) ?? { last: null, future: false };
+    if (Date.parse(a.start_at) > now) v.future = true;
+    else if (!v.last || a.start_at > v.last) v.last = a.start_at;
+    visitsBy.set(Number(a.job_id), v);
+  }
+
+  const facts = (j: Job, quotedElsewhere = false): Facts => {
+    const mine = estsBy.get(Number(j.id)) ?? [];
+    const v = visitsBy.get(Number(j.id));
+    return {
+      quoteVisit: quoteVisit(j),
+      install: /installation/i.test(j.job_type ?? ""),
+      ests: mine.map(toEst),
+      quotedElsewhere,
+      lastVisit: v?.last ?? null,
+      future: v?.future ?? false,
+      bookedFrom: mine.some((e) => bookedEst.has(Number(e.id))),
+      invoiced: invoicedJobs.has(Number(j.id)),
+    };
+  };
+  const staged = jobs.map((j) => { const f = facts(j); return { j, f, stage: stageOf(f, now) }; });
+
+  // A quote can be written on another job in the project, or against the
+  // customer, as quoteToWrite allows: only worth looking for where nothing's
+  // quoted on the job itself.
+  const toQuote = staged.filter((s) => s.stage === "toQuote");
+  if (toQuote.length) {
+    const pids = [...new Set(toQuote.map((s) => s.j.pid).filter((p): p is string => !!p && p !== "0"))];
+    const cids = [...new Set(toQuote.map((s) => s.j.customer_id).filter((c): c is number => c != null))];
+    const [projJobs, custEsts] = await Promise.all([
+      many<{ id: number; pid: string }>("st_jobs", "id,pid:raw->>projectId", "raw->>projectId", pids),
+      many<{ job_id: number | null; customer_id: number; created_on: string | null }>("st_estimates", "job_id,customer_id,created_on", "customer_id", cids, [q.gte("created_on", iso(now - (VISIT_DAYS + 3) * DAY))]),
+    ]);
+    const projEsts = await many<{ job_id: number }>("st_estimates", "job_id", "job_id", projJobs.map((p) => Number(p.id)));
+    const quotedJobs = new Set(projEsts.map((e) => Number(e.job_id)));
+    for (const s of toQuote) {
+      // Not the job's own: a draft on it is why it's still at Quotation Required.
+      const own = Number(s.j.id);
+      // Three days' grace before the visit, as quoteToWrite: a quote is sometimes started from the booking.
+      const from = Date.parse(s.f.lastVisit ?? "") - 3 * DAY;
+      const elsewhere = (!!s.j.pid && projJobs.some((p) => p.pid === s.j.pid && Number(p.id) !== own && quotedJobs.has(Number(p.id))))
+        || custEsts.some((e) => Number(e.job_id) !== own && Number(e.customer_id) === Number(s.j.customer_id) && Date.parse(e.created_on ?? "") >= from);
+      if (elsewhere) s.stage = stageOf({ ...s.f, quotedElsewhere: true }, now);
+    }
+  }
+
   const made = await loadMade();
-  const since = (k: string, days: number) => { const at = made.get(k); return !!at && Date.now() - Date.parse(at) < days * 86_400_000; };
+  const since = (k: string, days: number) => { const at = made.get(k); return !!at && now - Date.parse(at) < days * DAY; };
+  const stamp = () => new Date().toISOString();
+  const names = new Map((Object.keys(ids) as TaggedStage[]).map((s) => [ids[s] as number, STAGE_TAGS[s]]));
+  const name = (id: number) => names.get(id) ?? `#${id}`;
   const log: AutoEntry[] = [];
-  let removed = 0, failed = 0;
-  for (const j of tagged.filter((t) => why.has(t.id) && !since(`qtag-fail:${t.id}`, 1) && !since(`qtag-back:${t.id}`, 7)).slice(0, PER_RUN)) {
-    const label = j.job_number ? `Job ${j.job_number}` : `Job ${j.id}`;
-    try {
-      const fresh = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${j.id}`));
-      if (!Array.isArray(fresh.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's tags");
-      if (!fresh.tagTypeIds.includes(tag.id)) continue; // already off; the replica hasn't caught up
-      if (made.has(`qtag-done:${j.id}`)) {
-        made.set(`qtag-back:${j.id}`, new Date().toISOString());
-        failed++;
-        log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: false, jobId: j.id, title: `${label}: "Awaiting Quote Approval" is back on`, detail: "It came off earlier and something in ServiceTitan has put it back, so it's left alone for a week rather than taken off again." });
+  let changed = 0, failed = 0, looked = 0;
+
+  const why = (s: (typeof staged)[number], stage: Stage): string => {
+    const mine = estsBy.get(Number(s.j.id)) ?? [];
+    if (stage === "toQuote") return `Quote visit ${day(s.f.lastVisit)} and no quote in ServiceTitan for it yet.`;
+    if (stage === "sent") {
+      const out = mine.filter((e) => e.status === "Open" && Number(e.subtotal) > 0).map((e) => e.modified ?? "").sort().pop() ?? null;
+      return `Its quote has a price on it and hasn't changed since ${day(out)}, so it's counted as sent. ServiceTitan doesn't share its Draft tick: if it's still a draft, put Quotation Required back and the job's left alone until the quote sells.`;
+    }
+    const soldOn = mine.filter((e) => e.status === "Sold").map((e) => e.sold_on ?? "").sort().pop() ?? null;
+    if (stage === "toBook") return `Quote sold ${day(soldOn)} and nothing booked from it yet. It comes off once the work's booked.`;
+    return `Sold ${day(soldOn)}, and ${s.f.bookedFrom ? "a job's been booked from its quote" : s.f.future ? "it's booked in for a visit" : "it's been invoiced"}.`;
+  };
+  const atStage = (cur: number[], stage: Stage) => stage === "done" ? !cur.some((x) => stageIds.includes(x)) : cur.includes(ids[stage] as number);
+
+  for (const stage of ORDER) {
+    for (const s of staged.filter((x) => x.stage === stage)) {
+      const key = `qstage:${s.j.id}:${stage}`;
+      if (made.has(key)) continue;
+      const cur = Array.isArray(s.j.tags) ? s.j.tags.map(Number) : [];
+      if (!planTags(cur, stage, ids)) {
+        if (atStage(cur, stage)) made.set(key, stamp());
         continue;
       }
-      const reply = await stSend<{ tagTypeIds?: number[] } | null>("PATCH", stTenantPath("jpm", `jobs/${j.id}`), { tagTypeIds: fresh.tagTypeIds.filter((x) => x !== tag.id) });
-      // Read it back: ServiceTitan answers OK to a change it doesn't make, and
-      // a success logged without looking is how this said "took off" for tags
-      // that were still there. Its own reply tells the two failures apart: a
-      // reply without the tag and a job with it means something in
-      // ServiceTitan put it straight back (a rule on open estimates, say);
-      // a reply with it means the change was ignored.
-      const after = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${j.id}`));
-      if (!Array.isArray(after.tagTypeIds) || after.tagTypeIds.includes(tag.id)) {
-        const said = Array.isArray(reply?.tagTypeIds) ? (reply.tagTypeIds.includes(tag.id) ? "ignored" : "put back") : "unknown";
-        throw new Error(said === "put back"
-          ? "ServiceTitan took it off, then put it straight back: something in ServiceTitan re-adds this tag"
-          : said === "ignored"
-            ? "ServiceTitan answered OK but ignored the change: its reply still had the tag"
-            : "ServiceTitan answered OK but the tag is still on the job");
+      if (looked >= PER_RUN || since(`qtag-fail:${s.j.id}`, 1)) continue;
+      looked++;
+      const label = s.j.job_number ? `Job ${s.j.job_number}` : `Job ${s.j.id}`;
+      try {
+        const fresh = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${s.j.id}`));
+        if (!Array.isArray(fresh.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's tags, so they were left alone");
+        const plan = planTags(fresh.tagTypeIds, stage, ids);
+        if (!plan) {
+          // The replica was behind: it's already where it should be, or the office has moved it on.
+          if (atStage(fresh.tagTypeIds, stage)) made.set(key, stamp());
+          continue;
+        }
+        if ("stuck" in plan) {
+          made.set(key, stamp());
+          log.push({ at: stamp(), kind: "quote-tag", ok: false, jobId: Number(s.j.id), title: `${label}: "${plan.stuck.map(name).join('" and "')}" left on`, detail: `${why(s, stage)} ${plan.stuck.length > 1 ? "They're the job's only tags" : "It's the job's only tag"}, and ServiceTitan won't take a job's last tag off from here, so take ${plan.stuck.length > 1 ? "them" : "it"} off in ServiceTitan.` });
+          continue;
+        }
+        const reply = await stSend<{ tagTypeIds?: number[] } | null>("PATCH", stTenantPath("jpm", `jobs/${s.j.id}`), { tagTypeIds: plan.tags });
+        const after = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${s.j.id}`));
+        const landed = (tags: number[] | undefined) => Array.isArray(tags) && (plan.add == null || tags.includes(plan.add)) && !plan.drop.some((x) => tags.includes(x));
+        if (!landed(after.tagTypeIds)) {
+          // Its own reply tells the two failures apart, as it did for the remover before this.
+          throw new Error(landed(reply?.tagTypeIds)
+            ? "ServiceTitan made the change, then put it straight back: something in ServiceTitan sets this job's tags"
+            : "ServiceTitan answered OK but didn't make the change");
+        }
+        made.set(key, stamp());
+        changed++;
+        const what = plan.add != null && plan.drop.length
+          ? `"${plan.drop.map(name).join('" and "')}" → "${name(plan.add)}"`
+          : plan.add != null ? `"${name(plan.add)}" on` : `"${plan.drop.map(name).join('" and "')}" off`;
+        log.push({ at: stamp(), kind: "quote-tag", ok: true, jobId: Number(s.j.id), title: `${label}: ${what}`, detail: why(s, stage) });
+      } catch (e) {
+        failed++;
+        made.set(`qtag-fail:${s.j.id}`, stamp());
+        log.push({ at: stamp(), kind: "quote-tag", ok: false, jobId: Number(s.j.id), title: `${label}: couldn't change its quote tag`, detail: (e as Error).message.slice(0, 200) });
       }
-      made.set(`qtag-done:${j.id}`, new Date().toISOString());
-      removed++;
-      log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: true, jobId: j.id, title: `${label}: took off "Awaiting Quote Approval"`, detail: `Because ${why.get(j.id)}. Checked in ServiceTitan afterwards: it's off.` });
-    } catch (e) {
-      failed++;
-      made.set(`qtag-fail:${j.id}`, new Date().toISOString());
-      log.push({ at: new Date().toISOString(), kind: "quote-tag", ok: false, jobId: j.id, title: `${label}: couldn't take off "Awaiting Quote Approval"`, detail: (e as Error).message.slice(0, 200) });
     }
   }
   await saveMade(made).catch(() => undefined);
   await logAuto(log).catch(() => undefined);
-  return { removed, failed };
+  return { changed, failed };
 }
