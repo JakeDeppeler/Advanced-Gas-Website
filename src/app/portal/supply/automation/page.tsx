@@ -7,6 +7,9 @@ import { Bad, Good, Head, Say } from "@/components/portal/kit/Kit";
 import { NotifyTo } from "@/components/portal/AutoSwitch";
 import { AutoLog, Item, ORDER_ACTS, ORDER_KINDS, WO_RULES, kindOf, type Auto } from "@/components/portal/automation/AutoParts";
 import { NOTIFY_DEFAULT, loadAutoLog, loadSwitches, type AutoKey } from "@/lib/automation/log";
+import { packStatuses } from "@/lib/installpack/facts";
+import { LAYOUT } from "@/lib/installpack/build";
+import { PackList } from "@/components/portal/automation/PackList";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Automation · Team portal" };
@@ -25,7 +28,7 @@ export default async function OrderingAutomationPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Ordering automation" forWhom="managers" />;
-  const [sw, all] = await Promise.all([loadSwitches(), loadAutoLog().catch(() => [])]);
+  const [sw, all, packs] = await Promise.all([loadSwitches(), loadAutoLog().catch(() => []), packStatuses(LAYOUT).catch(() => null)]);
   const log = all.filter((e) => ORDER_KINDS.has(e.kind) && Date.now() - Date.parse(e.at) < 14 * 86_400_000);
   const week = log.filter((e) => Date.now() - Date.parse(e.at) < 7 * 86_400_000);
   const done = week.filter((e) => e.ok).length;
@@ -85,6 +88,7 @@ export default async function OrderingAutomationPage() {
             <h2 className="rv-h2">In ServiceTitan</h2>
             {row("orderTags")}
             {row("installPack")}
+            {packs && <PackList packs={packs} />}
           </section>
         </div>
 
@@ -99,3 +103,4 @@ export default async function OrderingAutomationPage() {
     </PortalShell>
   );
 }
+
