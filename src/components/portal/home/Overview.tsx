@@ -6,7 +6,7 @@ import { CountUp } from "./CountUp";
 
 /**
  * Home's overview, after the Rapport dashboard: three headline figures, sold
- * each month against the goal, the quotes most worth a call, the year as a
+ * each month against the goal, the to-dos flagged important, the year as a
  * ring, and where the open quotes sit — built around our work, in our words.
  *
  * Everything is drawn on the server and is complete as it lands; the motion
@@ -17,7 +17,6 @@ import { CountUp } from "./CountUp";
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 const short = (n: number) => (n >= 1e6 ? `$${(Math.round(n / 1e5) / 10).toLocaleString("en-AU")}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n)}`);
-const day = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-AU", { timeZone: "UTC", day: "numeric", month: "short" });
 
 /** A smooth line through the points: Catmull-Rom turned into cubic Béziers. */
 function smooth(pts: Array<[number, number]>): string {
@@ -99,13 +98,21 @@ function TeamNow({ team, crew }: { team: TeamRow[]; crew: CrewNow[] | null }) {
   );
 }
 
-export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yearGoal, yearFloor, daysLeft, span, team = [], crew = null }: {
+export type HomeTodo = { id: string; title: string; notes: string | null; who: string | null; due: string; late: boolean };
+
+/** As many as fill the panel beside the chart and the two cards under it. */
+const TODOS_SHOWN = 8;
+
+export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yearGoal, yearFloor, daysLeft, span, team = [], crew = null, important }: {
   ov: Data; first: string; when: string; closeRate: number | null;
   /** The job margin beside the close rate: streamed, since costing jobs is the page's slowest read. */
   margin?: ReactNode;
   yearInvoiced: number | null; yearGoal: number | null; yearFloor: number | null; daysLeft: number | null; span: 6 | 12;
   team?: TeamRow[]; crew?: CrewNow[] | null;
+  /** Flagged important on To-do, most urgent first: the team's for the office. */
+  important: HomeTodo[];
 }) {
+  const late = important.filter((t) => t.late).length;
   const vsLast = ov.lastToDate > 0 ? (ov.mtd - ov.lastToDate) / ov.lastToDate : null;
 
   // The chart: one scale for the line, the goal and the labels.
@@ -216,31 +223,29 @@ export function Overview({ ov, first, when, closeRate, margin, yearInvoiced, yea
           </svg>
         </section>
 
+        {/* The important to-dos where the quotes to chase were: the quotes have
+            their own cards on Follow up, and To get done below has what's due today. */}
         <section className="rp-panel rp-hot rp-card" style={{ ["--i" as string]: 2 }} aria-labelledby="rp-hot-h">
           <div className="rp-panel-h">
-            <span className="rp-hh"><b id="rp-hot-h">Quotes to chase</b><span className="rp-note">newest first</span></span>
-            <Link href="/portal/pipeline" className="rp-round" aria-label="Open Quotes">↗</Link>
+            <span className="rp-hh"><b id="rp-hot-h">Important</b><span className="rp-note">{important.length ? <>{important.length} flagged on To-do{late ? <> · <span className="rp-late">{late} late</span></> : ""}</> : "flagged on To-do"}</span></span>
+            <Link href="/portal/todo" className="rp-round" aria-label="Open To-do">↗</Link>
           </div>
-          {ov.hot.length ? (
-            <div className="rp-tiles">
-              {ov.hot.map((h, k) => (
-                <Link key={h.key} href="/portal/pipeline" className={`rp-tile${h.stage === "due" ? " due" : ""}`} style={{ ["--i" as string]: 3 + k }}>
-                  <span className="rp-tile-h">
-                    <span>{h.stage === "due" ? (h.nextOn && h.nextOn < new Date().toISOString().slice(0, 10) ? `Call was due ${day(h.nextOn)}` : "Call today") : h.nextOn ? `Next call ${day(h.nextOn)}` : `Quoted ${day(h.quotedOn)}`}</span>
-                    <span className="rp-dots" aria-hidden="true">•••</span>
-                  </span>
-                  {/* Who and where, not what: a quote is often several options, and the office rings a person. */}
-                  <span className="rp-tile-t">{h.customer ?? (h.jobNumber ? `Job #${h.jobNumber}` : "A customer")}</span>
-                  <span className="rp-tile-c">{[h.suburb, h.jobNumber && h.customer ? `#${h.jobNumber}` : null].filter(Boolean).join(" · ") || "No suburb on the job"}</span>
-                  <span className="rp-tile-f">
-                    <b>{money(h.value)}</b>
-                    <span>{h.options > 1 ? `${h.options} options · ` : ""}{h.quietDays === 0 ? "worked today" : `${h.quietDays} ${h.quietDays === 1 ? "day" : "days"} quiet`}</span>
-                    {(h.owner ?? h.quotedBy) && <span className="rp-av" title={h.owner ?? h.quotedBy ?? ""}>{(h.owner ?? h.quotedBy ?? "?").slice(0, 1).toUpperCase()}</span>}
-                  </span>
-                </Link>
+          {important.length ? (
+            <ol className="rp-todos">
+              {important.slice(0, TODOS_SHOWN).map((t) => (
+                <li key={t.id}>
+                  <Link href="/portal/todo" className="rp-td">
+                    <span className="rp-td-t"><b>{t.title}</b>{t.notes && <span>{t.notes}</span>}</span>
+                    <span className="rp-td-m">
+                      {t.who && <span className="rp-who" title={t.who}>{t.who}</span>}
+                      <span className={`rp-due${t.late ? " late" : ""}`}>{t.due}</span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          ) : <p className="rp-empty">No open quotes in the last 60 days.</p>}
+            </ol>
+          ) : <p className="rp-empty">Nothing flagged. Flag a to-do as important on To-do and it shows here.</p>}
+          {important.length > TODOS_SHOWN && <Link href="/portal/todo" className="rp-more">{important.length - TODOS_SHOWN} more on To-do ›</Link>}
         </section>
 
         <section className="rp-panel rp-year rp-card" style={{ ["--i" as string]: 3 }} aria-labelledby="rp-year-h">
