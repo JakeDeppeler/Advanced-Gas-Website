@@ -19,7 +19,7 @@ on:
         type: string
         required: false
       forms:
-        description: "A form name to look for (e.g. condition). Instead of the connection check, lists ServiceTitan's forms and the shape of the newest submissions of the matching ones, without their answers."
+        description: "A form name to look for (e.g. condition). Instead of the connection check, lists ServiceTitan's forms and the shape of the newest submissions of the matching ones: one completed report field by field, answers cut to 60 characters."
         type: string
         required: false
       job:
