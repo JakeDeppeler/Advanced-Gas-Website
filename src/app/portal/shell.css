@@ -3226,7 +3226,7 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
    green on track, gold ahead; the green and yellow are the year card's.
    ================================================================== */
 .pt.pn {
-  --ground: #e8e8e7; --app: #f1f1f0; --page: #f1f1f0; --surface: #ffffff; --rp-card: #ffffff;
+  --ground: #ededec; --app: #ededec; --page: #ededec; --surface: #ffffff; --rp-card: #ffffff;
   --rp-wash-a: #e8e8e7; --rp-wash-b: #e8e8e7; --rp-wash-c: #e8e8e7;
   --ink2: #636368; --ink3: #6a6a6f;
   --good: #2c5a4c; --good-f: #2c5a4c; --good-bg: #e0ece7;
@@ -3239,11 +3239,13 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 @media (prefers-color-scheme: dark) {
   .pt.pn:not([data-theme]) { --ground: #0f0f10; --app: #18181a; --page: #18181a; --surface: #222224; --rp-card: #222224; --rp-wash-a: #0f0f10; --rp-wash-b: #0f0f10; --rp-wash-c: #0f0f10; }
 }
-.pt.pn { display: block; padding: 20px; background: var(--ground); background-attachment: scroll; }
-.pt.pn .pn-main { max-width: 1480px; margin: 0 auto; min-height: calc(100vh - 40px); border-radius: 32px; background: var(--app); box-shadow: 0 30px 60px -40px rgba(29, 29, 31, 0.18); }
-.pt.pn .pn-content { padding: 16px 22px 40px; max-width: none; }
+.pt.pn { display: block; padding: 0; background: var(--ground); background-attachment: scroll; }
+/* The whole window, one grey from edge to edge: Jake didn't want the page as
+   a panel inside the page ("a board in a board"). */
+.pt.pn .pn-main { max-width: none; margin: 0; min-height: 100vh; border-radius: 0; background: var(--app); box-shadow: none; }
+.pt.pn .pn-content { padding: 18px 32px 48px; max-width: none; }
 
-.pn-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 16px 22px 0; }
+.pn-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 18px 32px 0; }
 .pn-brand { justify-self: start; display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--ink); text-decoration: none; }
 .pn-brand b { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pn-bar .pn-logo { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--surface); font-size: 11.5px; font-weight: 700; }
