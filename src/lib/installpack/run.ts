@@ -7,8 +7,8 @@ import { installJobs, packFactsFor, packPhotos, type InstallJob } from "./facts"
 import { packPdf, type PackPhoto } from "./pdf";
 
 /**
- * Settings › Automatic › Install pack: put a pack on every install booked
- * from a sold quote, and a new version when what it says changes.
+ * Settings › Automatic › Install pack: put a pack on every install job, and
+ * a new version when what it says changes.
  *
  * Runs after each ServiceTitan pull. Deciding what's due is four database
  * reads; making a pack is the slow part (the job's photos listed and
@@ -45,7 +45,7 @@ const CLAIM_MS = 2 * 60_000;
  * building the same pack would put it on the job twice. Returns the row as
  * it stands once claimed — another run may have just finished it — or null.
  */
-async function claimJob(jobId: number, estimateId: number): Promise<Row | null> {
+async function claimJob(jobId: number, estimateId: number | null): Promise<Row | null> {
   await sbInsertIfAbsent("install_packs", { job_id: jobId, estimate_id: estimateId }, "job_id");
   // Quoted: inside or=() PostgREST reads a bare dot or colon as syntax.
   const cut = new Date(Date.now() - CLAIM_MS).toISOString();
@@ -156,7 +156,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       const shown = `${built.photos} photo${built.photos === 1 ? "" : "s"}${built.notShown ? ` (${built.notShown} more on the job)` : ""}`;
       await stUpload(stTenantPath("forms", `jobs/${j.job_id}/attachments`), built.fileName, built.pdf, "application/pdf");
       const note = version === 1
-        ? `Install pack attached (${built.fileName}): what's going in, every material and where it was ordered, the work and scope from the sold quote, and ${shown}.`
+        ? `Install pack attached (${built.fileName}): the scope from the job summary, ${f.quote ? "what's going in and every material from the sold quote with where it was ordered" : "no equipment list as there's no sold quote on the job"}, and ${shown}.`
         : `Install pack updated to v${version}: ${whatChanged(row?.parts ?? null, parts, photosChanged)}. The new PDF (${built.fileName}) is attached; use it rather than earlier versions.`;
       // The PDF is on the job either way; a refused note shouldn't make the
       // next run upload it again.

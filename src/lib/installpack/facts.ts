@@ -3,14 +3,14 @@ import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { listJobFiles } from "@/lib/ordering/jobFiles";
 import type { OrderLine, PackFacts, Photo, QuoteItem } from "./build";
 
-/** One row of install_pack_jobs (0086): an install booked from a sold quote, visit still to come. */
+/** One row of install_pack_jobs (0090): an install job with a visit still to come, and its sold quote if it has one. */
 export type InstallJob = {
   job_id: number;
   job_number: string | null;
   job_type: string | null;
   customer_name: string | null;
   job_summary: string | null;
-  estimate_id: number;
+  estimate_id: number | null;
   quote_job_id: number | null;
   appointment_start: string;
   all_visits: string | null;
@@ -42,8 +42,9 @@ type RawEstimate = { name?: string | null; summary?: string | null; soldOn?: str
  */
 export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, PackFacts>> {
   if (!jobs.length) return new Map();
+  const estIds = [...new Set(jobs.flatMap((j) => (j.estimate_id == null ? [] : [j.estimate_id])))];
   const [ests, lines, suppliers] = await Promise.all([
-    sbSelect<{ id: number; raw: RawEstimate }>("st_estimates", [q.select("id,raw"), `id=in.(${[...new Set(jobs.map((j) => j.estimate_id))].join(",")})`].join("&")),
+    estIds.length ? sbSelect<{ id: number; raw: RawEstimate }>("st_estimates", [q.select("id,raw"), `id=in.(${estIds.join(",")})`].join("&")) : Promise.resolve([]),
     sbSelect<{ po_id: number; job_id: number; sku_id: number | null }>("purchase_order_lines", [q.select("po_id,job_id,sku_id"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&")),
     sbSelect<{ id: string; name: string }>("order_suppliers", q.select("id,name")),
   ]);
@@ -58,7 +59,7 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
 
   const out = new Map<number, PackFacts>();
   for (const j of jobs) {
-    const raw = estById.get(j.estimate_id) ?? {};
+    const raw = j.estimate_id == null ? {} : estById.get(j.estimate_id) ?? {};
     const items: QuoteItem[] = (raw.items ?? []).map((i) => ({
       skuId: i.sku?.id != null ? Number(i.sku.id) : null,
       type: i.sku?.type ?? "",
@@ -79,12 +80,11 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
       sitePhone: j.site_phone,
       visits: j.all_visits,
       crew: j.crew,
-      quote: {
+      quote: j.estimate_id == null ? null : {
         id: j.estimate_id,
         name: raw.name ?? null,
         fromJob: j.quote_job_id && j.quote_job_id !== j.job_id ? raw.jobNumber ?? String(j.quote_job_id) : null,
         soldOn: raw.soldOn ?? null,
-        summary: raw.summary ?? null,
       },
       jobSummary: j.job_summary,
       items,

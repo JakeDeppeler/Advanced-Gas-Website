@@ -30,7 +30,7 @@ const facts: PackFacts = {
   sitePhone: "0400 000 000",
   visits: "Fri 30 Oct 7:00am",
   crew: "Chaz Stephens, Jackson Lane, Paddy Fairclough, Ray Kennedy",
-  quote: { id: 301223831, name: "Braemar Dominator Installation Internal", fromJob: "20106", soldOn: "2026-10-05T22:39:43Z", summary: SCOPE },
+  quote: { id: 301223831, name: "Braemar Dominator Installation Internal", fromJob: "20106", soldOn: "2026-10-05T22:39:43Z" },
   jobSummary: `${SCOPE}\n\nRemove existing system. Install fan coil and outdoor unit. Pipework, electrical,\ncommission and hand over. Remove all rubbish from site.`,
   items: [
     { skuId: 301158109, type: "Equipment", code: "Braemar Dominator S2 (Internal)", name: "Braemar Dominator Series 2 - Internal", qty: 1 },
@@ -79,9 +79,8 @@ ok("each line's state matches its words", [...p.units, ...p.materials].every((l)
 ok("the electrician's work order is listed once", p.contractors.length === 1 && p.contractors[0].startsWith("GT Electrics – work order sent"), p.contractors);
 
 console.log("-- wording --");
-ok("the scope is the quote's, word for word", p.scope === SCOPE);
-ok("job notes don't repeat the scope", p.jobNotes?.startsWith("Remove existing system.") === true, p.jobNotes);
-ok("job notes the same as the scope aren't printed", buildPack({ ...facts, jobSummary: SCOPE }).jobNotes === null);
+ok("the scope is the job summary, word for word", p.scope === facts.jobSummary, p.scope);
+ok("an empty job summary is no scope, not the quote's", buildPack({ ...facts, jobSummary: "" }).scope === null);
 ok("HTML becomes plain text", plainText("<div><b>QUOTATION REQUIRED</b></div><div>Arrange install&nbsp;of new split</div>") === "QUOTATION REQUIRED\nArrange install of new split");
 ok("the quote line says which job it came from", p.facts.find(([k]) => k === "Quote")?.[1] === "Braemar Dominator Installation Internal · from job 20106 · sold Tue 6 Oct", p.facts);
 ok("nobody assigned is said, not left blank", buildPack({ ...facts, crew: null }).facts.find(([k]) => k === "Crew")?.[1] === "Nobody assigned yet");
@@ -96,7 +95,15 @@ const moved = packParts({ ...facts, visits: "Mon 2 Nov 7:00am", crew: "Ray Kenne
 ok("a move and a crew change are both named", whatChanged(base, moved, false) === "the booking and the crew changed", whatChanged(base, moved, false));
 ok("photos are named when they're what changed", whatChanged(base, base, true) === "the photos changed");
 ok("a pack from the old layout is redone, and the note says only that", whatChanged({ ...base, layout: undefined, orders: "x" } as Partial<typeof base>, base, false) === "new layout only, nothing about the job changed");
-ok("a different sold quote is the quote changing", whatChanged(base, packParts({ ...facts, quote: { ...facts.quote, id: 1 } }), false) === "the quote changed");
+ok("a different sold quote is the quote changing", whatChanged(base, packParts({ ...facts, quote: { ...facts.quote!, id: 1 } }), false) === "the quote changed");
+ok("an edited job summary is a new version, and named as that", whatChanged(base, packParts({ ...facts, jobSummary: `${facts.jobSummary}\nBring the long ladder.` }), false) === "the job summary changed");
+
+console.log("-- an install booked without a quote --");
+const bare = buildPack({ ...facts, quote: null, items: [] });
+ok("still gets a pack, with the job summary", bare.scope === facts.jobSummary && !bare.quoted);
+ok("says there's no quote, not a blank", bare.facts.find(([k]) => k === "Quote")?.[1] === "No sold quote on this job", bare.facts);
+ok("no lists to show", bare.units.length === 0 && bare.materials.length === 0);
+ok("its fingerprint is stable", fingerprint(packParts({ ...facts, quote: null, items: [] })) === fingerprint(packParts({ ...facts, quote: null, items: [] })));
 
 const [out, ...photos] = process.argv.slice(2);
 (async () => {
