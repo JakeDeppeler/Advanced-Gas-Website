@@ -66,7 +66,11 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
     sbSelect<{ job_id: number }>("st_estimates", [q.select("job_id"), q.gte("created_on", iso(now - LIVE_DAYS * DAY)), "limit=5000"].join("&")),
     sbSelect<{ job_id: number }>("st_estimates", [q.select("job_id"), q.gte("sold_on", iso(now - LIVE_DAYS * DAY)), "limit=5000"].join("&")),
   ]);
-  const quoteVisit = (j: Job) => /^(quotation|site assessment)/i.test((j.job_type ?? "").trim());
+  // Diagnostics count too (Jake, 31 Oct): any that ends without a quote is
+  // tagged Quotation Required, invoiced or not. Of 93 in the 90 days before,
+  // 47 were invoiced with no quote, mostly fixed on the day; the office takes
+  // the tag off those, and it stays off (see above).
+  const quoteVisit = (j: Job) => /^(quotation|site assessment|diagnos)/i.test((j.job_type ?? "").trim());
   const visited = new Set(visits.filter((v) => v.status !== "Canceled").map((v) => Number(v.job_id)));
   const wanted = new Set([...tagged.map((r) => Number(r.id)), ...written.map((r) => Number(r.job_id)), ...sold.map((r) => Number(r.job_id))]);
   const jobs = (await many<Job>("st_jobs", "id,job_number,job_type,status,customer_id,pid:raw->>projectId,tags:raw->tagTypeIds", "id", [...new Set([...wanted, ...visited])].filter((n) => n > 0)))
