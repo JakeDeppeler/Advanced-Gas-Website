@@ -4,16 +4,16 @@ import { JobMargins, MarginKpi, MarginKpiPending } from "@/components/portal/hom
 import type { CrewNow } from "@/lib/portal/home/crewNow";
 import type { TeamRow } from "@/components/portal/home/Overview";
 import type { Metrics } from "@/lib/dashboard/metrics";
-import type { ProfitLoss } from "@/lib/portal/xero";
 import type { YearGoal } from "@/lib/portal/yearGoal";
 import type { NeedLine } from "@/lib/portal/needs";
 import { money } from "@/lib/portal/format";
 import type { Overview as OverviewData } from "@/lib/portal/home/overview";
-import { Overview } from "./Overview";
+import { Overview, type HomeTodo } from "./Overview";
+
+export type { HomeTodo };
 
 type Tone = "good" | "mid" | "bad" | "none";
 type Status = { k: Tone; w: string };
-const SIGN: Record<Tone, string> = { good: "✓", mid: "!", bad: "▼", none: "" };
 
 /**
  * The prototype's status rule. Money and counts go by ratio — at or over goal
@@ -33,23 +33,11 @@ function status(actual: number, goal: number, o: { pts?: boolean } = {}): Status
   return { k, w: k === "good" ? (ahead ? "Ahead" : "On track") : k === "mid" ? "Close" : "Behind" };
 }
 
-function Pill({ st }: { st: Status }) {
-  return (
-    <span className={`ph-st ${st.k}`}>
-      {SIGN[st.k] && <span aria-hidden="true">{SIGN[st.k]}</span>}
-      {st.w}
-    </span>
-  );
-}
-
-const clamp = (f: number) => Math.max(0.02, Math.min(1, f));
 const n0 = (n: number) => Math.round(n).toLocaleString("en-AU");
 const pc = (n: number, dp = 0) => `${n.toFixed(dp)}%`;
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 type Stat = { key: string; name: string; st: Status; fig: string; bar: number; sub: string; href: string };
-
-export type HomeTodo = { id: string; title: string; notes: string | null; who: string | null; due: string; late: boolean };
 
 export type HomeData = {
   first: string;
@@ -60,10 +48,10 @@ export type HomeData = {
   /** Sees the money: the month bar. */
   office: boolean;
   m: Metrics | null;
-  /** Xero's year so far. A promise for the office, so the page doesn't wait on Xero to draw. */
-  profitYear: ProfitLoss | null | Promise<ProfitLoss | null>;
   goal: YearGoal | null;
   todos: HomeTodo[];
+  /** Flagged important on To-do, most urgent first: beside the overview's chart. */
+  important: HomeTodo[];
   overdue: number;
   /** What to look at today. A promise for the office: its counts are the slowest reads on the page. */
   lines: NeedLine[] | Promise<NeedLine[]>;
@@ -73,18 +61,17 @@ export type HomeData = {
 };
 
 /**
- * Home, to the prototype: a welcome with the day in one sentence, the month
- * in one bar, then what to get done and what to look at.
+ * Home, to the prototype: a welcome with the day in one sentence, then what
+ * to get done and what to look at. The office's has the sales overview on
+ * top, with the important to-dos beside its chart.
  *
- * Every figure is one another page shows too, read from the same snapshot and
- * Xero, so Home can't tell a different story from the page it links to. A
- * figure with nothing behind it says so in grey, never a zero it didn't
- * measure. The prototype's fifth figure, weeks of running costs the bank
- * covers, is left out until Cash to operate is built: nothing here works out
- * the weekly running cost yet.
+ * Every figure is one another page shows too, read from the same snapshot,
+ * so Home can't tell a different story from the page it links to. The month
+ * strip under the overview ("October so far") went: the overview's figures
+ * already say how the month's going, and it cost a Xero read on every visit.
  */
-/** The month's four figures: sold, jobs done, net profit (Xero), owed. */
-function monthStats(d: HomeData, profitYear: ProfitLoss | null): Stat[] {
+/** The month's figures for the welcome's one sentence: sold, jobs done, owed. */
+function monthStats(d: HomeData): Stat[] {
   const { m, month } = d;
   const st = m?.pace?.standing.month ?? null;
   const plan = m?.pace?.month ?? null;
@@ -108,14 +95,6 @@ function monthStats(d: HomeData, profitYear: ProfitLoss | null): Stat[] {
     ? { key: "jobs", name: "Jobs done", st: status(done.done, done.byNow), fig: n0(done.done), bar: done.done / done.byNow, sub: `of ${n0(done.byNow)} by now`, href: "/portal/jobs" }
     : { key: "jobs", name: "Jobs done", st: mo?.completed != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.completed != null ? n0(mo.completed) : "", bar: 0, sub: "this month", href: "/portal/jobs" };
 
-  // Net profit: Xero's, for the year so far, against the goal's margin.
-  const py = profitYear;
-  const npPct = py && py.income > 0 ? (py.netProfit / py.income) * 100 : null;
-  const goalPct = d.goal?.profitPct ?? null;
-  const np: Stat = npPct != null && goalPct
-    ? { key: "np", name: "Net profit", st: status(npPct, goalPct, { pts: true }), fig: pc(npPct, 1), bar: npPct / goalPct, sub: `this year · goal ${pc(goalPct)}+`, href: "/portal/finance" }
-    : { key: "np", name: "Net profit", st: { k: "none", w: npPct != null ? "No goal" : "No figures" }, fig: npPct != null ? pc(npPct, 1) : "", bar: 0, sub: npPct != null ? "this year · set a profit goal" : "needs Xero connected", href: "/portal/finance" };
-
   // Owed, overdue: lower is better. With no limit set yet, nothing overdue is
   // on track, a month or less is one to watch, anything older is too high.
   const od = m?.overdueTotal ?? null;
@@ -130,31 +109,7 @@ function monthStats(d: HomeData, profitYear: ProfitLoss | null): Stat[] {
       }
     : { key: "owed", name: "Owed, overdue", st: { k: "none", w: "No figures" }, fig: "", bar: 0, sub: "needs Xero connected", href: "/portal/money" };
 
-  return [sell, jobs, np, owed];
-}
-
-/** The month strip, drawn once Xero's year has come back. */
-async function MonthStrip({ d }: { d: HomeData }) {
-  const stats = monthStats(d, await Promise.resolve(d.profitYear).catch(() => null));
-  return (
-    <section className="ph-card ph-month" aria-label={`${d.month} so far`}>
-      <div className="ph-mb-h">
-        <b>{d.month} so far</b>
-        {d.day && <span>day {d.day.n} of {d.day.of}</span>}
-        {d.day && <div className="ph-mb-track" aria-hidden="true"><i style={{ width: `${(d.day.n / d.day.of) * 100}%` }} /></div>}
-      </div>
-      <div className="ph-mb-stats">
-        {stats.map((s) => (
-          <Link key={s.key} href={s.href} className="ph-mb-s">
-            <span className="ph-mb-l">{s.name}<Pill st={s.st} /></span>
-            <b>{s.fig}</b>
-            <div className={`ph-bar ${s.st.k}`} aria-hidden="true"><i style={{ width: `${(s.st.k === "none" ? 0 : clamp(s.bar)) * 100}%` }} /></div>
-            <span className="ph-ks">{s.sub}</span>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
+  return [sell, jobs, owed];
 }
 
 /** Look at today, drawn once its counts are in. */
@@ -189,9 +144,9 @@ export function Home(d: HomeData) {
   const { month } = d;
   // Only resolved here for the crew, whose lines are cheap and were awaited.
   const look = Array.isArray(d.lines) ? d.lines : null;
-  const stats = d.profitYear instanceof Promise ? null : monthStats(d, d.profitYear);
-  const onTrack = stats ? stats.filter((s) => s.st.k === "good").length : 0;
-  const measured = stats ? stats.filter((s) => s.st.k !== "none").length : 0;
+  const stats = monthStats(d);
+  const onTrack = stats.filter((s) => s.st.k === "good").length;
+  const measured = stats.filter((s) => s.st.k !== "none").length;
 
   return (
     <div className="ph">
@@ -200,7 +155,8 @@ export function Home(d: HomeData) {
       {d.ov && (
         <Overview ov={d.ov.data} span={d.ov.span} first={d.first} when={d.when} closeRate={d.ov.closeRate}
           margin={<Suspense fallback={<MarginKpiPending />}><MarginKpi target={d.goal?.profitPct ?? null} /></Suspense>}
-          yearInvoiced={d.ov.yearInvoiced} yearGoal={d.ov.yearGoal} yearFloor={d.ov.yearFloor} daysLeft={d.ov.daysLeft} team={d.ov.team ?? []} crew={d.ov.crew ?? null} />
+          yearInvoiced={d.ov.yearInvoiced} yearGoal={d.ov.yearGoal} yearFloor={d.ov.yearFloor} daysLeft={d.ov.daysLeft} team={d.ov.team ?? []} crew={d.ov.crew ?? null}
+          important={d.important} />
       )}
       {/* Its own stream: costing jobs is the slowest read on the page, and the rest needn't wait for it. */}
       {d.ov && <Suspense fallback={null}><JobMargins target={d.goal?.profitPct ?? null} /></Suspense>}
@@ -211,14 +167,12 @@ export function Home(d: HomeData) {
           <div className="ph-sub">{d.when}</div>
         </div>
         <p className="ph-say">
-          {d.office && stats && (measured
+          {d.office && (measured
             ? <>{month} is <b>{onTrack} of {measured} on track</b>{d.day ? `, day ${d.day.n} of ${d.day.of}` : ""}. </>
             : <>{month}’s figures aren’t in yet. </>)}
           {plural(d.todos.length, "to-do")} to get done{look ? <> and {plural(look.length, "thing")} to look at today</> : null}.
         </p>
       </div>}
-
-      {d.office && <Suspense fallback={<Pending label={`${month} so far`} />}><MonthStrip d={d} /></Suspense>}
 
       <div className="ph-today">
         <section className="ph-card ph-pad" aria-labelledby="ph-todo">

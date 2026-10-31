@@ -5,7 +5,7 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { needsToday } from "@/lib/portal/needs";
 import { localToday } from "@/lib/portal/xero";
-import { latestBoard, savedGoal, xeroProfit } from "@/lib/portal/office";
+import { latestBoard, savedGoal } from "@/lib/portal/office";
 import { meOf, openTodos, seesAll, teamPeople, todayMelbourne, visibleTo } from "@/lib/todos/store";
 import { byUrgency, dueState, dueWords, firstName } from "@/lib/todos/types";
 import { START_COOKIE, START_PAGES } from "@/lib/portal/businessTypes";
@@ -53,10 +53,9 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   const goalP = office ? savedGoal() : Promise.resolve(null);
   const ovP = office ? goalP.then((g) => overview(g, span)).catch(() => null) : Promise.resolve(null);
   const crewP = office ? crewNow().catch(() => null) : Promise.resolve(null);
-  // Xero's year and the "look at today" counts are the slowest reads on the
-  // page; for the office they're handed down unresolved and stream in under
-  // their own placeholders, so the rest draws without waiting on them.
-  const profitP = office ? xeroProfit().then((p) => p.year).catch(() => null) : Promise.resolve(null);
+  // The "look at today" counts are the slowest read on the page; for the
+  // office they're handed down unresolved and stream in under their own
+  // placeholder, so the rest draws without waiting on them.
   const linesP = needsToday(user).catch(() => []);
   const [board, goal, open, me, all, people, ov, crew] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
@@ -80,11 +79,14 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
     .filter((t) => ["overdue", "today"].includes(dueState(t, today)))
     .sort(byUrgency);
   const nameOf = new Map(people.map((p) => [p.id, firstName(p.name)]));
-  const todos: HomeTodo[] = due.map((t) => ({
+  const toHome = (t: (typeof open)[number]): HomeTodo => ({
     id: t.id, title: t.title, notes: t.notes,
     who: t.assigneeId ? nameOf.get(t.assigneeId) ?? null : null,
     due: dueWords(t, today), late: dueState(t, today) === "overdue",
-  }));
+  });
+  const todos = due.map(toHome);
+  // Flagged important on To-do, whenever they're due: the office's list beside the chart.
+  const important = visibleTo(open, me?.id ?? null, all).filter((t) => t.important).sort(byUrgency).map(toHome);
 
   // Melbourne's date and time, not the server's.
   const now = new Date();
@@ -107,9 +109,9 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
         day={day}
         office={office}
         m={m}
-        profitYear={office ? profitP : null}
         goal={goal}
         todos={todos}
+        important={important}
         overdue={todos.filter((t) => t.late).length}
         lines={lines}
         denied={!!searchParams.denied}
