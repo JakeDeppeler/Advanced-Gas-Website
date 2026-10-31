@@ -30,9 +30,24 @@ export const SEED_TOPICS: Topic[] = [
  * keeps falling on the same Mondays when the page is opened on an off week.
  */
 export type Every = "week" | "fortnight" | "month";
-export type Schedule = { every: Every; day: 1 | 2 | 3 | 4 | 5; start: string };
+/**
+ * `time` is "07:00" or null for no set time; `runBy` the name of whoever
+ * runs it; `expected` the names expected there, none meaning everyone.
+ */
+export type Schedule = { every: Every; day: 1 | 2 | 3 | 4 | 5; start: string; time: string | null; runBy: string | null; expected: string[] };
 export const WEEKDAYS = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
 export const EVERY_WORDS: Record<Every, string> = { week: "Every week", fortnight: "Every fortnight", month: "Once a month" };
+/** The same, in a word, for the settings and the line under the date. */
+export const EVERY_SHORT: Record<Every, string> = { week: "Weekly", fortnight: "Fortnightly", month: "Monthly" };
+
+/** "07:00" as "7 am", "07:30" as "7:30 am". */
+export function timeWords(t: string | null): string {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const ap = h < 12 ? "am" : "pm";
+  const h12 = h % 12 || 12;
+  return m ? `${h12}:${String(m).padStart(2, "0")} ${ap}` : `${h12} ${ap}`;
+}
 
 /** A note on what to talk about, with its heading. */
 export type SessionNote = { id: string; head: string; text: string; by: string | null; at: string };

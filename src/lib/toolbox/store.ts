@@ -29,7 +29,12 @@ export async function loadSchedule(today: string): Promise<Schedule> {
   const p = (await getSettings<Saved>(KEY).catch(() => null))?.plan;
   const every = p?.every === "fortnight" || p?.every === "month" ? p.every : "week";
   const day = p?.day && p.day >= 1 && p.day <= 5 ? p.day : 1;
-  return { every, day, start: typeof p?.start === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.start) ? p.start : onOrAfter(today, day) };
+  return {
+    every, day, start: typeof p?.start === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.start) ? p.start : onOrAfter(today, day),
+    time: typeof p?.time === "string" && /^\d{2}:\d{2}$/.test(p.time) ? p.time : null,
+    runBy: typeof p?.runBy === "string" && p.runBy.trim() ? p.runBy : null,
+    expected: Array.isArray(p?.expected) ? p.expected.filter((x): x is string => typeof x === "string") : [],
+  };
 }
 
 export async function saveSchedule(plan: Schedule) {
