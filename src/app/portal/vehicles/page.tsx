@@ -17,7 +17,7 @@ import { VanLoans } from "@/components/portal/VanLoans";
 import { getGrowth } from "@/lib/portal/growth";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Vehicles · Team portal" };
+export const metadata = { title: "Vans · Team portal" };
 
 const km = (n: number | null) => (n === null ? "" : `${n.toLocaleString("en-AU")} km`);
 
@@ -162,7 +162,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Vehicles" sub={`${vehicles.length} ${vehicles.length === 1 ? "van" : "vans"} · weekly clean and photos are due every Monday morning`} info={[
+        <Head title="Vans" eyebrow={`${vehicles.length} ${vehicles.length === 1 ? "van" : "vans"} · weekly clean and photos are due every Monday morning`} info={[
           ["Weekly clean & photos", "Done once each week, by Monday morning: the van cleaned and photographed from every side."],
           ["Service", "Due within 2,000 km or three weeks shows amber; past it, red."],
           ["Km reading", "The odometer, dated by the last reading. Servicing and running costs hang off it."],
