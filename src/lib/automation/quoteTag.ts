@@ -23,6 +23,10 @@ const many = async <T,>(table: string, cols: string, col: string, xs: (number | 
 const day = (iso: string | null) => (iso ? dayLabel(isoDateMelbourne(new Date(iso))) : "");
 const toEst = (e: EstRow): Est => ({ status: e.status, subtotal: e.subtotal, createdOn: e.created_on, modifiedOn: e.modified, soldOn: e.sold_on });
 
+class NotMade extends Error {
+  constructor() { super("ServiceTitan answered OK but didn't make the change"); }
+}
+
 /**
  * The quote tags follow the quote, as the office moves them by hand:
  * Quotation Required once the visit's done, Awaiting Quote Approval once the
@@ -37,7 +41,7 @@ const toEst = (e: EstRow): Est => ({ status: e.status, subtotal: e.subtotal, cre
  * same reason.
  *
  * Found from the replica, but each job's tags are read fresh from ServiceTitan
- * before the change and read back after it: ServiceTitan replaces the whole
+ * before the change and checked after it: ServiceTitan replaces the whole
  * list on update, so the office's other tags are carried over, and it answers
  * OK to changes it doesn't make.
  */
@@ -161,7 +165,7 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
         if (atStage(cur, stage)) made.set(key, stamp());
         continue;
       }
-      if (looked >= PER_RUN || since(`qtag-fail:${s.j.id}`, 1)) continue;
+      if (looked >= PER_RUN || since(`qtag-fail:${s.j.id}`, 1) || since(`qtag-hold:${s.j.id}`, 7)) continue;
       looked++;
       const label = s.j.job_number ? `Job ${s.j.job_number}` : `Job ${s.j.id}`;
       try {
@@ -179,13 +183,19 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
           continue;
         }
         const reply = await stSend<{ tagTypeIds?: number[] } | null>("PATCH", stTenantPath("jpm", `jobs/${s.j.id}`), { tagTypeIds: plan.tags });
-        const after = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${s.j.id}`));
         const landed = (tags: number[] | undefined) => Array.isArray(tags) && (plan.add == null || tags.includes(plan.add)) && !plan.drop.some((x) => tags.includes(x));
-        if (!landed(after.tagTypeIds)) {
-          // Its own reply tells the two failures apart, as it did for the remover before this.
-          throw new Error(landed(reply?.tagTypeIds)
-            ? "ServiceTitan made the change, then put it straight back: something in ServiceTitan sets this job's tags"
-            : "ServiceTitan answered OK but didn't make the change");
+        // Its reply is the job as saved, and that's the check. A read straight
+        // after can come back from before the change: the first live run logged
+        // 48 changes as failed that the next sync showed had all gone on. So
+        // only without a reply that shows it is the job read again, after a pause.
+        if (!landed(reply?.tagTypeIds)) {
+          let after: number[] | undefined;
+          for (const wait of [1500, 4000]) {
+            await new Promise((r) => setTimeout(r, wait));
+            after = (await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${s.j.id}`))).tagTypeIds;
+            if (landed(after)) break;
+          }
+          if (!landed(after)) throw new NotMade();
         }
         made.set(key, stamp());
         changed++;
@@ -195,7 +205,9 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
         log.push({ at: stamp(), kind: "quote-tag", ok: true, jobId: Number(s.j.id), title: `${label}: ${what}`, detail: why(s, stage) });
       } catch (e) {
         failed++;
-        made.set(`qtag-fail:${s.j.id}`, stamp());
+        // Refused outright, it would be refused again tomorrow: a week. A call
+        // that failed on the way (a timeout, the rate limit) is tried tomorrow.
+        made.set(`${e instanceof NotMade ? "qtag-hold" : "qtag-fail"}:${s.j.id}`, stamp());
         log.push({ at: stamp(), kind: "quote-tag", ok: false, jobId: Number(s.j.id), title: `${label}: couldn't change its quote tag`, detail: (e as Error).message.slice(0, 200) });
       }
     }
