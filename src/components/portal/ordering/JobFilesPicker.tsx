@@ -69,7 +69,7 @@ export function JobFilesPicker({ jobId, jobNumber, picked, onChange, photosGo = 
                 <b>Photos ({photos.length})</b>
                 {!photosGo && <button type="button" className="qp-btn line sm" onClick={() => setPhotos(!allPhotos)}>{allPhotos ? "Untick all photos" : "Tick all photos"}</button>}
               </div>
-              {photosGo && <p className="qp-note">Every photo on the job, and on the quote visit&rsquo;s job, goes with the work order by itself, the newest {photos.length > 20 ? "20" : "ones"} first. Nothing to tick.</p>}
+              {photosGo && <p className="qp-note">Every photo on the job, and on the quote visit&rsquo;s job, goes with the work order by itself, the newest {photos.length > 20 ? "20" : "ones"} first, and so does the tech&rsquo;s Condition Report as a PDF. Nothing to tick.</p>}
               <ul className="wo-photos">
                 {photos.map((f) => (
                   <li key={f.id} className={on.has(f.id) ? "on" : undefined}>

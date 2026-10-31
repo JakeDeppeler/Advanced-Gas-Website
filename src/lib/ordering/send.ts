@@ -210,7 +210,7 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
   if (email && !from) return { ok: false, error: NO_FROM };
   // The job's files picked on a work order, fetched before it's claimed so a
   // file ServiceTitan won't hand over leaves it a draft with the reason.
-  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: true }) : [];
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: true, reports: true }) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
 
@@ -310,7 +310,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
   const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup, note: po.supplier_note });
-  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: true }) : [];
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: true, reports: true }) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
   const err = await sendMarked("TEST", supplier, email, to, settings, all.length ? all : undefined);
@@ -438,8 +438,8 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
   // Whoever the work order's for gets the job's photos with every email about
   // the job, the new day included: the ones added since the work order went
   // are often the ones that matter (the switchboard, where the unit's going).
-  // Photos only, and never what was picked by hand, which went already.
-  const photos = workOrder && po.details ? await jobFilesFor({ ...po.details, files: [] }, { photos: true }) : [];
+  // Photos and Condition Reports only, never what was picked by hand, which went already.
+  const photos = workOrder && po.details ? await jobFilesFor({ ...po.details, files: [] }, { photos: true, reports: true }) : [];
   const attachments = Array.isArray(photos) && photos.length ? { attachments: photos } : {};
   const err = await resend({ from, to: [to], cc: ccList(settings, them, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text, ...attachments });
   if (err) return { ok: false, error: err };
@@ -489,7 +489,7 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
   if (!to) return { ok: false, error: "Who should it go to?" };
   const from = fromAddress();
   if (!from) return { ok: false, error: NO_FROM };
-  const files = await jobFilesFor(po.details, { photos: true });
+  const files = await jobFilesFor(po.details, { photos: true, reports: true });
   if ("error" in files) return { ok: false, error: files.error };
   const err = await resend({
     from, to: [to],
