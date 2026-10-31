@@ -33,7 +33,7 @@ export default async function RatesPage({ searchParams }: { searchParams: { tab?
   if (!can(user, "overhead")) return <Locked user={user} what="Team" forWhom="the office" />;
   const tab = searchParams.tab === "leaders" ? "leaders" : "rates";
   const head = (
-    <Head title="Hourly rate" eyebrow={tab === "rates" ? "Labour rates · from Pricing & costs and the crew’s wages" : "Who sold what this month · ServiceTitan"} info={[
+    <Head title={tab === "leaders" ? "Leaderboard" : "Hourly rate"} eyebrow={tab === "rates" ? "Labour rates · from Pricing & costs and the crew’s wages" : "Who sold what this month · ServiceTitan"} info={[
       ["What the person costs", "Their pay with super and WorkCover, and their own time off the tools, spread over their billable hours."],
       ["Office share", "The office, the vans and every other overhead, spread over the whole team’s billable hours."],
       ["Crew rates", "What we charge for one person in a van, a tech and an apprentice, and a tech with two apprentices, each against what that crew costs a van a year."],
