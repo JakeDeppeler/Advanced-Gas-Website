@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { HeatingComparator } from "./HeatingComparator";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Gas Heater vs Reverse-Cycle Running Cost",
@@ -14,27 +17,12 @@ export const metadata: Metadata = {
 
 export default function HeatingComparatorPage() {
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Gas vs reverse-cycle</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            Gas heater <span className="accent">vs reverse-cycle</span> running cost.
-          </h1>
-          <p className="dp-hero__sub">
-            Compare what a gas ducted heater and a reverse-cycle (heat pump) system will actually cost
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Gas vs reverse-cycle" }]} />
+      <Hero eye="Free tool" title={<>Gas heater <em>vs reverse-cycle</em> running cost.</>} sub={<>Compare what a gas ducted heater and a reverse-cycle (heat pump) system will actually cost
             to run per winter. Enter your home&rsquo;s heat load, the star rating of your current gas
-            heater, the COP of the reverse-cycle system, plus your gas and electricity rates.
-          </p>
-        </div>
-      </section>
+            heater, the COP of the reverse-cycle system, plus your gas and electricity rates.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -74,20 +62,8 @@ export default function HeatingComparatorPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Ready to price the swap?</h2>
-            <p>Send us the current heater. We&rsquo;ll quote the reverse-cycle upgrade with rebate applied.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Ready to price the swap?</>} text={<>Send us the current heater. We&rsquo;ll quote the reverse-cycle upgrade with rebate applied.</>} />
     </div>
   );
 }

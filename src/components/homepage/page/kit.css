@@ -112,3 +112,9 @@
 .ag .kx__chips a:hover{border-color:var(--or2);color:#fff}
 .ag .kx__chips span{color:rgba(255,255,255,.6)}
 @media (max-width:700px){.ag .kxk{grid-template-columns:1fr}}
+
+/* Tools: the hub's cards, and the old tool widgets sitting in the new frame. */
+.ag .kxs--tools{grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr))}
+.ag .kxs--tools .pp__hl li{font-size:14px}
+.ag .kx__tool{background:#fff}
+.ag .kx__tool>section:first-child{padding-top:56px}

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
-import { InstagramCTA } from "@/components/InstagramCTA";
-import "../detail.css";
-import "./tools.css";
-import { PageHero } from "@/components/PageHero";
+import { Crumbs, Hero, Head, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 /**
  * /tools hub — free calculators + reference material that pull organic
@@ -172,68 +171,40 @@ const TOOLS: {
 
 export default function ToolsHubPage() {
   return (
-    <div className="page-detail page-tools">
-      <PageHero
-        crumbs={[{ href: "/", label: "Home" }, { label: "Tools" }]}
-        eyebrow="Free tools"
-        title={<>Aircon &amp; heat pump <span className="accent">tools you can use right now</span>.</>}
-        sub={<>Three free calculators and reference tools we use ourselves on quote day. Work out what size aircon fits your room, what it&rsquo;ll cost to run, or what that flashing fault code on your existing unit actually means.</>}
+    // data-no-reveal: the redesign pages opt out of the old site's scroll reveal.
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools" }]} />
+      <Hero
+        eye="Free tools"
+        title={<>Tools you can use <em>right now.</em></>}
+        sub="The calculators and reference we use ourselves on quote day: what size a room needs, what it'll cost to run, what the rebate is worth, and what a fault code means."
+        ctas={false}
       />
-
-      <section className="tools-grid-sec">
-        <div className="wrap">
-          {TOOL_GROUPS.map((g) => {
-            const inGroup = TOOLS.filter((t) => t.group === g.key);
-            if (inGroup.length === 0) return null;
-            return (
-              <div key={g.key} className="tools-group">
-                <div className="tools-group__head">
-                  <h2 className="tools-group__title">{g.label}</h2>
-                  <p className="tools-group__blurb">{g.blurb}</p>
-                  <span className="tools-group__count">
-                    {inGroup.length} {inGroup.length === 1 ? "tool" : "tools"}
-                  </span>
-                </div>
-                <div className="tools-grid">
-                  {inGroup.map((t) => (
-                    <Link key={t.slug} href={`/tools/${t.slug}`} className="tool-card">
-                      <div className="tool-card__inner">
-                        <div className="tool-card__eyebrow">Free tool</div>
-                        <h3>{t.title}</h3>
-                        <p className="tool-card__tagline">{t.tagline}</p>
-                        <p className="tool-card__blurb">{t.blurb}</p>
-                        <ul className="tool-card__bullets">
-                          {t.bullets.map((b) => <li key={b}>{b}</li>)}
-                        </ul>
-                        <span className="tool-card__cta">{t.ctaLabel}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+      {TOOL_GROUPS.map((g, gi) => {
+        const inGroup = TOOLS.filter((t) => t.group === g.key);
+        if (inGroup.length === 0) return null;
+        return (
+          <section key={g.key} className={`pxs${gi % 2 ? " pxs--cream" : ""}`}>
+            <div className="wrap pp__col">
+              <Head eye={`${inGroup.length} ${inGroup.length === 1 ? "tool" : "tools"}`} h={g.label} lede={g.blurb} />
+              <div className="kxs kxs--tools">
+                {inGroup.map((t) => (
+                  <Link key={t.slug} href={`/tools/${t.slug}`} className="kxs__card">
+                    <span className="kxs__t">
+                      <small>Free tool</small>
+                      <strong>{t.title}</strong>
+                      <span>{t.tagline}</span>
+                      <ul className="pp__hl">{t.bullets.map((b) => <li key={b}><span aria-hidden="true">✓</span>{b}</li>)}</ul>
+                      <em>{t.ctaLabel}</em>
+                    </span>
+                  </Link>
+                ))}
               </div>
-            );
-          })}
-          <InstagramCTA
-            heading="Want to see the work, not just the numbers?"
-            body="Our Instagram is every install we finish, splits, ducted, heat pumps and gas heaters going into real houses across Melbourne's south-east."
-          />
-        </div>
-      </section>
-
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Rather just have us size / quote it?</h2>
-            <p>Send the room dimensions or a photo of the fault code. We&rsquo;ll come back with a written price.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
+        );
+      })}
+      <Cta title="Rather just have us size or quote it?" text="Send the room dimensions or a photo of the fault code and we'll come back with a written price." />
     </div>
   );
 }

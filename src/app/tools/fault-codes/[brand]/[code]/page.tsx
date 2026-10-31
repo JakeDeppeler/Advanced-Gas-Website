@@ -14,6 +14,10 @@ import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../../detail.css";
 import "./fault-detail.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 /**
  * One page per fault code.
@@ -100,43 +104,23 @@ export default function FaultCodePage({ params }: { params: Params }) {
   };
 
   return (
-    <div className="page-detail fault-detail">
+    <div className="ag ag--flat" data-no-reveal>
       <Script id={`ld-fault-crumbs-${params.brand}-${params.code}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
       <Script id={`ld-fault-faq-${params.brand}-${params.code}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools/fault-codes">Fault codes</Link>
-            <span className="sep">/</span>
-            <span className="cur">{f.brand} {f.code}</span>
-          </nav>
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot ds-dot--orange" />
-            {f.brand} · {FAULT_SYSTEM_LABELS[f.system]}
-          </div>
-          <h1>
-            {f.brand} fault code <span className="accent">{f.code}</span>
-          </h1>
-          <p className="dp-hero__sub">{f.meaning}.</p>
-
-          <div className={`fd-sev fd-sev--${f.severity}`}>
-            <strong>{sev.label}</strong>
-            <span>{sev.note}</span>
-          </div>
-
-          <div className="dp-hero__ctas">
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--orange ds-btn--lg">
-              Call {site.phone}
-            </a>
-            <Link href="/quote" className="ds-btn ds-btn--ghost ds-btn--lg">
-              Book a service call →
-            </Link>
-          </div>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Fault codes", href: "/tools/fault-codes" }, { name: `${f.brand} ${f.code}` }]} />
+      <Hero eye={`${f.brand} · ${FAULT_SYSTEM_LABELS[f.system]}`} title={<>{f.brand} fault code <em>{f.code}</em></>} sub={`${f.meaning}.`} ctas={false}>
+        {/* Severity is written out in words as well as coloured, so colour is never the only signal. */}
+        <div className={`fd-sev fd-sev--${f.severity}`}>
+          <strong>{sev.label}</strong>
+          <span>{sev.note}</span>
         </div>
-      </section>
+        <div className="bxh__ctas">
+          <a href={`tel:${site.phoneE164}`} className="abtn abtn--or abtn--flat">Call {site.phone}</a>
+          <Link href="/#quote" className="abtn abtn--line">Book a service call →</Link>
+        </div>
+      </Hero>
+      <div className="page-detail fault-detail kx__tool">
 
       <section className="fd-body">
         <div className="wrap fd-grid">
@@ -241,6 +225,8 @@ export default function FaultCodePage({ params }: { params: Params }) {
           </aside>
         </div>
       </section>
+      </div>
+      <Cta title={`${f.brand} ${f.code} still showing?`} text="Book a service call and we'll diagnose it and quote the repair in writing before touching anything." />
     </div>
   );
 }

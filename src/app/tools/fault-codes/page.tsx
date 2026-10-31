@@ -4,6 +4,10 @@ import { site } from "@/lib/site";
 import { FaultCodeLookup } from "./FaultCodeLookup";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Aircon Fault Code Lookup, Every Major Brand",
@@ -14,28 +18,13 @@ export const metadata: Metadata = {
 
 export default function FaultCodesPage() {
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Fault codes</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free reference</div>
-          <h1>
-            Aircon <span className="accent">fault code lookup</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            Search or filter by brand to decode what a flashing error on your split, ducted or
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Fault codes" }]} />
+      <Hero eye="Free reference" title={<>Aircon <em>fault code lookup</em>.</>} sub={<>Search or filter by brand to decode what a flashing error on your split, ducted or
             multi-head aircon actually means. Each entry lists the likely cause and the first
             thing to check before booking a service call. Covers every major brand we install
-            plus the ones we don&rsquo;t.
-          </p>
-        </div>
-      </section>
+            plus the ones we don&rsquo;t.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -89,20 +78,8 @@ export default function FaultCodesPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Broken unit worth repairing, or time to replace?</h2>
-            <p>We give the honest answer, sometimes a new install with the VEU rebate is cheaper than the repair.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a repair-or-replace quote →</Link>
-            <Link href="/upgrade-or-repair" className="bigcta__phone">
-              or read <strong>the 10-year rule</strong>
-            </Link>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Broken unit worth repairing, or time to replace?</>} text={<>We give the honest answer, sometimes a new install with the VEU rebate is cheaper than the repair.</>} />
     </div>
   );
 }
