@@ -65,3 +65,42 @@ export async function probeEstimates(ids: number[]): Promise<Record<string, { si
   }
   return out;
 }
+
+/**
+ * Does a job's history in ServiceTitan record a quote being sent? The
+ * estimate itself doesn't say (above), so Awaiting Quote Approval is guessed
+ * from a priced quote sitting unchanged for a day, and drafts get it (job
+ * 20527, 31 Oct). This lists what each history-like endpoint returns for a
+ * job: its status, the field names, and the distinct values of the fields
+ * that name an event's kind. No notes, names or contact details.
+ */
+const KIND = /type|event|action|kind/i;
+const HISTORY_PATHS: [string, (id: number) => string][] = [
+  ["jpm", (id) => `jobs/${id}/history`],
+  ["jpm", (id) => `jobs/${id}/notes`],
+];
+
+export async function probeJobHistory(jobIds: number[]): Promise<Record<string, Record<string, { ok: boolean; error?: string; count?: number; fields?: string[]; kinds?: Record<string, string[]> }>>> {
+  const out: Record<string, Record<string, { ok: boolean; error?: string; count?: number; fields?: string[]; kinds?: Record<string, string[]> }>> = {};
+  for (const id of jobIds) {
+    out[String(id)] = {};
+    for (const [module, path] of HISTORY_PATHS) {
+      const label = `${module} ${path(0).replace("/0/", "/{id}/")}`;
+      try {
+        const r = await stFetch<{ data?: Array<Record<string, unknown>>; history?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>>(stTenantPath(module, path(id)), { pageSize: "100" });
+        const rows = Array.isArray(r) ? r : r.data ?? r.history ?? [];
+        const kinds: Record<string, string[]> = {};
+        for (const row of rows) {
+          for (const [k, v] of Object.entries(row)) {
+            if (!KIND.test(k) || typeof v !== "string" || v.length > 60) continue;
+            (kinds[k] ??= []).includes(v) || kinds[k].push(v);
+          }
+        }
+        out[String(id)][label] = { ok: true, count: rows.length, fields: [...new Set(rows.flatMap((x) => paths(x)))], kinds };
+      } catch (e) {
+        out[String(id)][label] = { ok: false, error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+      }
+    }
+  }
+  return out;
+}

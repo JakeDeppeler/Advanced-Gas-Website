@@ -38,7 +38,7 @@ export const LIVE_DAYS = 60;
 export type Est = { status: string | null; subtotal: number | null; createdOn: string | null; modifiedOn: string | null; soldOn: string | null };
 
 export type Facts = {
-  /** A Quotation or Site Assessment job: a visit whose point is a quote. */
+  /** A Quotation, Site Assessment or Diagnostics job: a visit that leads to a quote. */
   quoteVisit: boolean;
   /** An Installation job. A quote on one is an extra on work already sold, not a sale waiting to be booked. */
   install: boolean;

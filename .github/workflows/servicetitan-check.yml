@@ -18,6 +18,10 @@ on:
         description: "Estimate ids, comma-separated (up to five). Instead of the connection check, lists every field ServiceTitan returns for them, to see whether it says a quote is a draft."
         type: string
         required: false
+      job:
+        description: "Job ids (not numbers), comma-separated (up to five). Instead of the connection check, lists the kinds of event in each job's history, to see whether ServiceTitan records a quote being sent."
+        type: string
+        required: false
 
 jobs:
   check:
@@ -29,6 +33,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           URL_OVERRIDE: ${{ inputs.url }}
           ESTIMATE: ${{ inputs.estimate }}
+          JOB: ${{ inputs.job }}
         run: |
           set -euo pipefail
 
@@ -71,6 +76,24 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "--- raw probe ---"
             jq . probe.json
+            exit 0
+          fi
+
+          # The job history probe, the same way: digits and commas only.
+          if [ -n "${JOB:-}" ]; then
+            IDS="$(printf '%s' "$JOB" | tr -cd '0-9,')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?job=${IDS}" > probe.json
+            {
+              echo "## What ServiceTitan's job history holds for jobs ${IDS}"
+              echo
+              echo "Per job and endpoint: whether it answered, how many entries, and the kinds of event (no notes, names or contact details):"
+              echo
+              echo '```json'
+              jq '.jobs | map_values(map_values({ok, error, count, kinds}))' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.jobs | map_values(map_values({ok, error, count, kinds, fields}))' probe.json
             exit 0
           fi
 

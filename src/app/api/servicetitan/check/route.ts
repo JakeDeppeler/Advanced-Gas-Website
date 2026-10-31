@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { checkServiceTitan } from "@/lib/dashboard/stCheck";
-import { probeEstimates } from "@/lib/dashboard/stEstimateProbe";
+import { probeEstimates, probeJobHistory } from "@/lib/dashboard/stEstimateProbe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +22,9 @@ export const maxDuration = 60;
 // ?estimate=<id>,<id> asks instead what ServiceTitan returns for those
 // estimates, field by field (stEstimateProbe): whether the API says a quote
 // is still a draft. Up to five ids, digits only.
+//
+// ?job=<id>,<id> lists the kinds of event in those jobs' history
+// (probeJobHistory): whether ServiceTitan records a quote being sent.
 
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) {
@@ -30,6 +33,8 @@ export async function GET(req: Request) {
 
   const ids = (new URL(req.url).searchParams.get("estimate") ?? "").split(",").map((x) => x.trim()).filter((x) => /^\d{1,12}$/.test(x)).slice(0, 5).map(Number);
   if (ids.length) return NextResponse.json({ estimates: await probeEstimates(ids) });
+  const jobs = (new URL(req.url).searchParams.get("job") ?? "").split(",").map((x) => x.trim()).filter((x) => /^\d{1,12}$/.test(x)).slice(0, 5).map(Number);
+  if (jobs.length) return NextResponse.json({ jobs: await probeJobHistory(jobs) });
 
   const report = await checkServiceTitan();
   return NextResponse.json(report);
