@@ -15,10 +15,10 @@ export function ChromeGate({ children, legacy = false }: { children: React.React
 }
 
 /**
- * Pages built on the homepage redesign, which bring their own header and
- * footer (components/homepage). Homepage only for now, plus the /find product
- * pages that open from it; the rest of the site moves over once Jake has
- * signed the new chrome off. `legacy` marks the old chrome that gives way.
+ * Pages built on the homepage redesign, which bring their own footer
+ * (components/homepage). Homepage only for now, plus the /find product pages
+ * that open from it. They keep the site's own header. `legacy` marks the old
+ * chrome that gives way.
  */
 function ownChrome(pathname: string) {
   return pathname === "/" || pathname.startsWith("/find/");

@@ -8,7 +8,6 @@ import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { allProductParams, findSystem, heroFor, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
-import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { HomeFooter } from "@/components/homepage/HomeFooter";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
 import "@/components/homepage/homepage.css";
@@ -80,10 +79,6 @@ export default function FindProductPage({ params }: { params: Params }) {
 
   return (
     <div className="ag ag--flat" id="top" data-no-reveal>
-      {/* A plain white bar flush to the top that stays put, rather than the
-          homepage's floating one: a product page has no hero behind the bar
-          worth floating over until the photo, which starts under the crumbs. */}
-      <HomeHeader solid />
       <ProductView
         system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
         models={models} brand={brand} hero={heroFor(sys, tier)} tierBadges={badgesFor({}, tier.feats)}

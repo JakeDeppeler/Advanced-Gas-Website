@@ -8,7 +8,7 @@ import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
 import { HOME_FAQS, PHOTO, SERVICES, SHOW_FINANCE } from "@/lib/homepage/data";
 import { areaSuburbs } from "@/lib/homepage/areas";
-import { HomeHeader, PhoneIcon } from "@/components/homepage/HomeHeader";
+import { PhoneIcon } from "@/components/homepage/HomeHeader";
 import { HeroQuote, Svg } from "@/components/homepage/HeroQuote";
 import { Finder } from "@/components/homepage/Finder";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
@@ -67,7 +67,6 @@ export default async function HomePage() {
         {/* A real <img> with priority rather than a CSS background: it is the LCP element. */}
         <Image src={PHOTO.team} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" />
         <div className="ahero__scrim" aria-hidden="true" />
-        <HomeHeader />
         <div className="wrap ahero__in">
           <div className="ahero__copy anim">
             <h1 className="ahero__h1">One standard.<br /><span>Every job.</span></h1>
@@ -89,7 +88,7 @@ export default async function HomePage() {
               <Link href="/rebates"><strong>Up to $2,700 →</strong><small>See if you qualify</small></Link>
             </div>
           </div>
-          <HeroQuote />
+          <HeroQuote rating={rating} count={summary.count} />
         </div>
       </section>
 

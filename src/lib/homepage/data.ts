@@ -597,6 +597,8 @@ export type FormType = {
 };
 export type FormService = {
   t: string; icon: string; bg: string; fg: string; q: string;
+  /** The line under the choice on the form's first step. */
+  s: string;
   /** The `service` the lead is filed under, before a type is picked. */
   service: string;
   types: FormType[];
@@ -622,10 +624,10 @@ const svcT = (label: string, img: string | null, icon: string | null, qs: Questi
  * `service` its own tile used before.
  */
 export const FSVC: FormService[] = [
-  { t: "Cooling", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", q: "Which type of cooling?", service: "split", cat: "air", types: fromSystems(catOf("air")) },
-  { t: "Heating", icon: ICON.flame, bg: "#050A30", fg: "#fff", q: "Which type of heating?", service: "gas-heating", cat: "heat", types: fromSystems(catOf("heat")) },
-  { t: "Hot water", icon: ICON.drop, bg: "#C2521A", fg: "#fff", q: "Which type of hot water?", service: "hp", cat: "hw", types: fromSystems(catOf("hw")) },
-  { t: "Services", icon: ICON.wrench, bg: "#FDEEE6", fg: "#B04711", q: "What do you need?", service: "service", types: [
+  { t: "Cooling", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", q: "Which type of cooling?", s: "Split, multi-head, ducted, evaporative", service: "split", cat: "air", types: fromSystems(catOf("air")) },
+  { t: "Heating", icon: ICON.flame, bg: "#050A30", fg: "#fff", q: "Which type of heating?", s: "Gas ducted, reverse cycle, zoning", service: "gas-heating", cat: "heat", types: fromSystems(catOf("heat")) },
+  { t: "Hot water", icon: ICON.drop, bg: "#C2521A", fg: "#fff", q: "Which type of hot water?", s: "Heat pumps and gas, VEU rebate applied", service: "hp", cat: "hw", types: fromSystems(catOf("hw")) },
+  { t: "Services", icon: ICON.wrench, bg: "#FDEEE6", fg: "#B04711", q: "What do you need?", s: "Repairs, gas & plumbing, commercial", service: "service", types: [
     svcT("Split or multi-head repair", IMG.mitsuSplit, null, SVCQ, "service"), svcT("Ducted aircon repair", IMG.mitsuDucted, null, SVCQ, "service"),
     svcT("Evaporative cooler service", IMG.evapClassic, null, SVCQ, "service"), svcT("Hot water repair", IMG.gasCf, null, SVCQ, "service"),
     svcT("Gas heater service", IMG.brivisWombat, null, SVCQ, "service"),

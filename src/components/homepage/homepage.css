@@ -144,12 +144,12 @@
 @media (max-width:360px){.ag .hquote{display:none}}
 
 /* ===================================================== hero */
-.ag .ahero{position:relative;background:var(--navy);color:#fff;padding-top:100px;min-height:min(100vh,960px);display:flex;flex-direction:column}
+.ag .ahero{position:relative;background:var(--navy);color:#fff;min-height:min(calc(100vh - 140px),860px);display:flex;flex-direction:column}
 .ag .ahero__bg{object-fit:cover;object-position:center 35%}
 /* Darkest behind the headline, lighter across the crew and vans, so the photo
    reads as a photo rather than a navy wash. */
 .ag .ahero__scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,16,52,.80) 0%,rgba(8,16,52,.55) 45%,rgba(8,16,52,.30) 100%),linear-gradient(180deg,rgba(8,16,52,.35) 0%,rgba(8,16,52,0) 30%,rgba(8,16,52,0) 70%,rgba(8,16,52,.55) 100%)}
-.ag .ahero__in{position:relative;flex:1;width:100%;padding-top:72px;padding-bottom:104px;display:flex;flex-wrap:wrap;gap:48px;align-items:center}
+.ag .ahero__in{position:relative;flex:1;width:100%;padding-top:64px;padding-bottom:72px;display:flex;flex-wrap:wrap;gap:48px;align-items:center}
 .ag .ahero__copy{flex:1 1 520px;min-width:0;display:flex;flex-direction:column;gap:20px}
 .ag .ahero__eye{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.92)}
 .ag .ahero__eye span{width:7px;height:7px;border-radius:50%;background:var(--or2);flex:none}
@@ -166,7 +166,7 @@
 .ag .stars{color:#FFB648;letter-spacing:2px;font-size:15px}
 .ag .stars--ink{color:var(--or-ink)}
 .ag .ahero__sep{width:1px;height:28px;background:rgba(255,255,255,.18)}
-@media (max-width:600px){.ag .ahero{padding-top:84px}.ag .ahero__in{padding-top:44px;padding-bottom:48px;gap:32px}.ag .ahero__p{font-size:16.5px}.ag .ahero__sep{display:none}.ag .ahero__trust{gap:14px 20px}}
+@media (max-width:600px){.ag .ahero{min-height:0}.ag .ahero__in{padding-top:44px;padding-bottom:48px;gap:32px}.ag .ahero__p{font-size:16.5px}.ag .ahero__sep{display:none}.ag .ahero__trust{gap:14px 20px}}
 
 /* ===================================================== quote form */
 .ag .qf{flex:1 1 360px;max-width:430px;min-width:0;background:#fff;color:var(--ink);border-radius:12px;padding:28px;box-shadow:0 30px 60px -28px rgba(2,6,26,.65);scroll-margin-top:96px;display:flex;flex-direction:column;gap:20px}
@@ -242,14 +242,16 @@
    phone the form is in the scroll anyway, and a fixed height would only put
    empty card above the fold. */
 @media (min-width:601px){
-  .ag .qf{min-height:680px}
-  /* The first step's four choices grow to fill the card rather than leave half of it empty. */
-  .ag .qf__step--fill{flex:1}
-  .ag .qf__tiles--fill{flex:1;grid-auto-rows:1fr}
-  .ag .qf__tiles--fill .qf__tile{flex-direction:column;justify-content:center;gap:14px;text-align:center;font-size:17px;min-height:0}
-  .ag .qf__tiles--fill .qf__ti{width:52px;height:52px;border-radius:12px}
-  .ag .qf__tiles--fill .qf__ti svg{width:26px;height:26px}
+  .ag .qf{min-height:640px}
 }
+.ag .qf__go{margin-left:auto;color:var(--or);font-size:18px;flex:none}
+.ag .qf__us{display:flex;align-items:center;gap:14px;background:#F6F7F9;border-radius:12px;padding:10px}
+.ag .qf__usimg{position:relative;width:104px;height:68px;border-radius:8px;overflow:hidden;flex:none}
+/* Zoomed onto the six of them; at this size the whole photo is mostly vans. */
+.ag .qf__usimg img{object-fit:cover;transform:scale(2.1);transform-origin:48% 60%}
+.ag .qf__ust{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:13px;color:var(--ink2);line-height:1.35}
+.ag .qf__ust strong{font-family:var(--disp);font-size:15px;color:var(--navy)}
+.ag .qf__ust .stars{font-size:12px;letter-spacing:1px}
 .ag .qf__foot{margin:auto 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3);text-align:center}
 @media (max-width:600px){.ag .qf{padding:22px 18px;min-height:0}.ag .qf__tile{font-size:13px;gap:8px;padding:9px 10px}.ag .qf__ti{width:30px;height:30px}}
 @media (max-width:380px){.ag .qf__row2{grid-template-columns:1fr}}
