@@ -79,18 +79,6 @@ export function HomeHeader({ variant = "pill" }: { variant?: "pill" | "flat" }) 
         <nav className="hnav navx" aria-label="Main">
           {NAV.map((g) => {
             const has = g.items.length > 0;
-            if (g.list) {
-              return (
-                <div key={g.label} className={`hd hd--menu hd--list${shut === g.label ? " is-shut" : ""}`} onMouseLeave={() => shut === g.label && setShut(null)}>
-                  <Link href={g.href} className="hd__top">{g.label}<span className="hd__pm" aria-hidden="true" /></Link>
-                  <div className="hlist">
-                    {g.list.map((l) => (
-                      <Link key={l.href} href={l.href} className="hlist__item" onClick={() => close(g.label)}><strong>{l.t}</strong><span>{l.s}</span></Link>
-                    ))}
-                  </div>
-                </div>
-              );
-            }
             const footHref = g.footHref ?? (g.footFind ? `/?find=${g.footFind}#find` : g.href);
             return (
               <div key={g.label} className={`hd${has ? " hd--menu" : ""}${shut === g.label ? " is-shut" : ""}`} onMouseLeave={() => shut === g.label && setShut(null)}>
@@ -142,11 +130,6 @@ export function HomeHeader({ variant = "pill" }: { variant?: "pill" | "flat" }) 
               <Link href={g.href} className="mmenu__head" onClick={() => close()}>
                 {g.label} <i aria-hidden="true">→</i>
               </Link>
-              {g.list && (
-                <div className="mmenu__list">
-                  {g.list.map((l) => <Link key={l.href} href={l.href} className="mmenu__item" onClick={() => close()}>{l.t}</Link>)}
-                </div>
-              )}
               {g.items.length > 0 && (
                 <div className="mmenu__items">
                   {g.items.map((it) => (

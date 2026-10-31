@@ -157,16 +157,7 @@
 .ag .ahdr--pill .mmenu{top:84px}
 .ag .ahdr--pill + .ahero,.ag .ahdr--pill ~ .ahero{padding-top:84px}
 @media (max-width:600px){.ag .ahdr--pill .hbar{min-height:64px;padding:0 8px 0 14px;transform:translateY(10px)}.ag .ahdr--pill ~ .ahero{padding-top:74px}}
-/* About, Reviews and Areas: one short dropdown under the tab. */
-.ag .hd--list{position:relative}
-.ag .hlist{position:absolute;left:0;top:100%;width:280px;background:#fff;border-radius:12px;padding:8px;border:1px solid var(--line);box-shadow:0 24px 50px -20px rgba(5,10,48,.45);display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility .15s;z-index:5}
-.ag .hd--list:hover .hlist,.ag .hd--list:focus-within .hlist{opacity:1;visibility:visible;transform:none}
-.ag .hd--list.is-shut .hlist{opacity:0;visibility:hidden}
-.ag .hlist__item{display:flex;flex-direction:column;gap:1px;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--navy)}
-.ag .hlist__item:hover{background:#F3F4F7;color:var(--navy)}
-.ag .hlist__item strong{font-size:14.5px}
-.ag .hlist__item span{font-size:12.5px;color:var(--ink3)}
-.ag .mmenu__list{display:flex;flex-direction:column;gap:2px}
+
 
 /* /find pages: a plain white bar flush to the top, stuck there while the page scrolls. */
 .ag .ahdr--flat{position:sticky;padding:0}
@@ -548,11 +539,16 @@
 
 /* ===================================================== tools */
 .ag .htools-sec{padding:96px 0 0;background:#fff}
+/* Navy, like the finder near the top, so the page's two "work it out yourself" sections read as a pair. */
+.ag .htools-box{background:var(--navy);border-radius:12px;padding:44px clamp(22px,4vw,48px) 40px}
+.ag .htools-box .h2{color:#fff}
+.ag .htools-box .htools-sec__p{color:rgba(255,255,255,.78)}
+.ag .htools-box .htools-sec__all{color:var(--or2)}
 .ag .htools-sec__p{margin:0;font-size:16px;line-height:1.6;color:var(--ink2);max-width:34rem}
 .ag .htools-sec__all{font-weight:700;color:var(--or-ink);text-underline-offset:3px}
 .ag .tgrid{margin-top:28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.ag .tcard{display:flex;flex-direction:column;gap:6px;background:#F6F7F9;border-radius:12px;padding:22px 24px;text-decoration:none;color:var(--navy);transition:background .15s,transform .15s}
-.ag .tcard:hover{background:#EEF0F3;transform:translateY(-2px);color:var(--navy)}
+.ag .tcard{display:flex;flex-direction:column;gap:6px;background:#fff;border-radius:12px;padding:22px 24px;text-decoration:none;color:var(--navy);transition:background .15s,transform .15s}
+.ag .tcard:hover{background:#fff;transform:translateY(-3px);box-shadow:0 0 0 2px var(--or2);color:var(--navy)}
 .ag .tcard strong{font-family:var(--disp);font-size:18px;font-weight:800}
 .ag .tcard span{font-size:14.5px;color:var(--ink2)}
 .ag .tcard em{margin-top:6px;font-style:normal;font-weight:700;font-size:14px;color:var(--or-ink)}

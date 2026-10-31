@@ -282,6 +282,7 @@ export default async function HomePage() {
       {/* The calculators, kept out of the header so it stays to the few things people navigate by. */}
       <section id="tools" className="htools-sec">
         <div className="wrap">
+          <div className="htools-box">
           <div className="sechead arv">
             <div className="sechead__t">
               <h2 className="h2">Tools for you</h2>
@@ -297,6 +298,7 @@ export default async function HomePage() {
                 <em>Open →</em>
               </Link>
             ))}
+          </div>
           </div>
         </div>
       </section>

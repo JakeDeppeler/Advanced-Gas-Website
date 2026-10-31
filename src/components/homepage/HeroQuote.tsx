@@ -246,6 +246,24 @@ export function HeroQuote() {
         </div>
       )}
 
+      {cur === "type" && fs && (
+        <div className="qf__step">
+          <div><span className="qf__crumb">{fs.t}</span><h2 className="qf__h">{fs.q}</h2></div>
+          {/* Services has seven; a shorter picture keeps them inside the form's fixed height. */}
+          <div className={`qf__types${fs.types.length > 6 ? " qf__types--many" : ""}`}>
+            {fs.types.map((y, i) => (
+              <button key={y.label} type="button" className="qf__type" style={{ animationDelay: `${i * 0.07}s` }}
+                onClick={() => { setType(i); setAns({}); go(2); }}>
+                <span className="qf__typeimg">
+                  {y.img ? <Image src={y.img} alt="" fill sizes="180px" /> : <Svg d={y.icon ?? ""} size={34} stroke="#0C6F96" width={1.6} />}
+                </span>
+                <span className="qf__typet">{y.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {curQ && (
         <div className="qf__step" key={cur}>
           <div>
