@@ -81,6 +81,7 @@ ok("the electrician's work order is listed once", p.contractors.length === 1 && 
 console.log("-- wording --");
 ok("the scope is the job summary, word for word", p.scope === facts.jobSummary, p.scope);
 ok("an empty job summary is no scope, not the quote's", buildPack({ ...facts, jobSummary: "" }).scope === null);
+ok("a block's start breaks the line too", plainText("<b>ROOM 42 - Kaden 7kw Split System Install</b><div>Attend to install a new split system.</div>") === "ROOM 42 - Kaden 7kw Split System Install\nAttend to install a new split system.");
 ok("HTML becomes plain text", plainText("<div><b>QUOTATION REQUIRED</b></div><div>Arrange install&nbsp;of new split</div>") === "QUOTATION REQUIRED\nArrange install of new split");
 ok("the quote line says which job it came from", p.facts.find(([k]) => k === "Quote")?.[1] === "Braemar Dominator Installation Internal · from job 20106 · sold Tue 6 Oct", p.facts);
 ok("nobody assigned is said, not left blank", buildPack({ ...facts, crew: null }).facts.find(([k]) => k === "Crew")?.[1] === "Nobody assigned yet");

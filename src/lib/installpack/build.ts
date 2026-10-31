@@ -86,7 +86,13 @@ export function plainText(html: string | null | undefined): string | null {
   if (!html) return null;
   const t = html
     .replace(/<\s*br\s*\/?>/gi, "\n")
+    // One block ending where the next begins is one line break, not two.
+    .replace(/<\/\s*(p|div|h\d)\s*>\s*<\s*(p|div|h\d)(\s[^>]*)?>/gi, "\n")
     .replace(/<\/\s*(p|div|li|h\d)\s*>/gi, "\n")
+    // A block's start breaks the line too: ServiceTitan writes a summary as
+    // "<b>ROOM 42 - …Install</b><div>Attend to…</div>", and only breaking at
+    // the end ran the title into the first sentence ("InstallAttend").
+    .replace(/<\s*(p|div|h\d)(\s[^>]*)?>/gi, "\n")
     .replace(/<li[^>]*>/gi, "• ")
     .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ")
@@ -180,8 +186,9 @@ export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "scop
  * job moved up under the scope. 5: the plain style, full logo on white.
  * 6: contractors under the notes, the quote's labour lines left off.
  * 7: the scope is the job summary, not the quote's; the notes section goes.
+ * 8: a summary's title no longer runs into its first sentence.
  */
-export const LAYOUT = "7";
+export const LAYOUT = "8";
 
 const hash = (v: unknown) => createHash("sha1").update(JSON.stringify(v)).digest("hex").slice(0, 16);
 
