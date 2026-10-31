@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   if (!/^\d{3,12}$/.test(job)) return new NextResponse("Give a job number: ?job=20453", { status: 400 });
 
   const j = await installJob(job);
-  if (!j) return new NextResponse(`Job ${job} isn't a booked install with a sold quote and a visit still to come, so it has no install pack.`, { status: 404 });
+  if (!j) return new NextResponse(`Job ${job} isn't an install job with a visit still to come, so it has no install pack.`, { status: 404 });
   const facts = (await packFactsFor([j])).get(j.job_id)!;
   try {
     const built = await buildPackFile(j, facts, 0, Date.now() + 50_000, PREVIEW_PHOTO_BYTES);

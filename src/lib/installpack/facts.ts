@@ -125,3 +125,22 @@ export async function packPhotos(j: InstallJob): Promise<{ photos: Photo[]; notS
   photos.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
   return { photos, notShown };
 }
+
+export type PackStatus = InstallJob & { version: number | null; attached_at: string | null; last_error: string | null; current: boolean };
+
+/**
+ * Every install a pack is due on, soonest first, with where its pack stands,
+ * for To order › Automation. `current` is false while the pack on the job is
+ * from an older layout and waiting its turn to be made again.
+ */
+export async function packStatuses(layout: string): Promise<PackStatus[]> {
+  const jobs = await installJobs();
+  if (!jobs.length) return [];
+  const rows = await sbSelect<{ job_id: number; version: number; attached_at: string | null; last_error: string | null; layout: string | null }>(
+    "install_packs", [q.select("job_id,version,attached_at,last_error,layout:parts->>layout"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&"));
+  const by = new Map(rows.map((r) => [r.job_id, r]));
+  return jobs.map((j) => {
+    const r = by.get(j.job_id);
+    return { ...j, version: r?.attached_at ? r.version : null, attached_at: r?.attached_at ?? null, last_error: r?.last_error ?? null, current: r?.layout === layout };
+  });
+}
