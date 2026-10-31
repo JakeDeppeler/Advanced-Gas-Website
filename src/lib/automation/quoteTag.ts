@@ -10,8 +10,8 @@ import { LIVE_DAYS, planTags, STAGE_TAGS, stageOf, VISIT_DAYS, type Est, type Fa
 /** Jobs looked at in ServiceTitan per run: a backlog clears over a few runs rather than all at once against its rate limit. */
 const PER_RUN = 25;
 const DAY = 86_400_000;
-/** Most pressing first: a sale waiting to be booked, then a quote out, then one to write, then tidying up. */
-const ORDER: Stage[] = ["toBook", "sent", "toQuote", "done"];
+/** Most pressing first: a sale waiting to be booked, then a quote written, then one to write, then tidying up. "sent" is never reached here: the office sets it. */
+const ORDER: Stage[] = ["toBook", "draft", "toQuote", "done"];
 
 type Job = { id: number; job_number: string | null; job_type: string | null; status: string | null; customer_id: number | null; pid: string | null; tags: number[] | null };
 type EstRow = { id: number; job_id: number; customer_id: number | null; status: string | null; subtotal: number | null; created_on: string | null; sold_on: string | null; modified: string | null; active: string | null };
@@ -29,8 +29,9 @@ class NotMade extends Error {
 
 /**
  * The quote tags follow the quote, as the office moves them by hand:
- * Quotation Required once the visit's done, Awaiting Quote Approval once the
- * quote's out, To Be Booked once it sells, and off once the work's booked.
+ * Quotation Required once the visit's done, Quote In Draft once a quote's
+ * written, To Be Booked once it sells, and off once the work's booked.
+ * Awaiting Quote Approval is the office's, put on when they send the quote.
  * Where a job is up to, and why each step is read the way it is, is in
  * quoteStage.ts.
  *
@@ -150,9 +151,9 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
   const why = (s: (typeof staged)[number], stage: Stage): string => {
     const mine = estsBy.get(Number(s.j.id)) ?? [];
     if (stage === "toQuote") return `Quote visit ${day(s.f.lastVisit)} and no quote in ServiceTitan for it yet.`;
-    if (stage === "sent") {
-      const out = mine.filter((e) => e.status === "Open" && Number(e.subtotal) > 0).map((e) => e.modified ?? "").sort().pop() ?? null;
-      return `Its quote has a price on it and hasn't changed since ${day(out)}, so it's counted as sent. ServiceTitan doesn't share its Draft tick: if it's still a draft, put Quotation Required back and the job's left alone until the quote sells.`;
+    if (stage === "draft") {
+      const first = mine.filter((e) => e.status === "Open").map((e) => e.created_on ?? "").sort()[0] ?? null;
+      return `Quote written ${day(first)} and not sold. When it's sent, swap this for Awaiting Quote Approval: ServiceTitan doesn't tell the portal when a quote goes out.`;
     }
     const soldOn = mine.filter((e) => e.status === "Sold").map((e) => e.sold_on ?? "").sort().pop() ?? null;
     if (stage === "toBook") return `Quote sold ${day(soldOn)} and nothing booked from it yet. It comes off once the work's booked.`;
