@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import { site, openingHours } from "@/lib/site";
-import "./about.css";
-import { PageHero } from "@/components/PageHero";
+import { openingHours } from "@/lib/site";
+import { Crumbs, Hero, Head, Tiles, Next, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 import { RATING_TEXT } from "@/lib/reviews";
 
 export const metadata: Metadata = {
@@ -42,199 +43,98 @@ const clients = [
 
 export default function AboutPage() {
   return (
-    <div className="page-about">
-      <PageHero
-        eyebrow="Family owned · Pakenham · Victoria"
+    // data-no-reveal: the old site's scroll reveal hides sections until they animate in; the redesign pages opt out.
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "About" }]} />
+      <Hero
+        eye="Family owned · Pakenham"
         title={<>HVAC, gas &amp; mechanical services, <em>one licensed roof.</em></>}
-        sub={<>Advanced Gas &amp; Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne&rsquo;s south-east and Gippsland with directly employed crews.</>}
+        sub={<>A family-owned business with directly employed crews. The person who quotes your job is the person who stands behind it.</>}
+        img="/team-photo.webp" imgAlt="The Advanced Gas & Airconditioning team at the Pakenham workshop"
+        facts={[{ v: "20+", k: "years' director experience" }, { v: "$20M", k: "public liability cover" }, { v: "AU59557", k: "ARC authorisation" }, { v: "46828", k: "plumbing licence" }]}
       />
 
-      <section className="ab-frame">
-        <div className="wrap">
-          <div className="ab-frame__big" style={{ position: "relative", padding: 0, overflow: "hidden" }}>
-            <Image
-              src="/team-photo.webp"
-              alt="Advanced Gas & Airconditioning team at the Pakenham workshop"
-              fill
-              sizes="(max-width: 1200px) 100vw, 1200px"
-              style={{ objectFit: "cover" }}
-              priority
-            />
+      <section className="pxs">
+        <div className="wrap kx2">
+          <div className="kx__prose">
+            <Head eye="Our story" h="Family-owned. Traditional values. Compliance-first." />
+            <p>Our team are like family to us, and our clients are an extension of that. We build working relationships on trust and experience over time, and we work to traditional values: <strong>under-promise, over-deliver</strong>, and finish on time, on schedule and on budget.</p>
+            <p>We install, repair and maintain heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration, across homes, commercial sites and industrial projects throughout Victoria.</p>
+            <p>The business is headed by Director <strong>Dean Winbanks</strong>, with over 20 years&apos; industrial, commercial and domestic experience. Every member of the team is mentored to the same standard, as though the director had done your job himself.</p>
+          </div>
+          <div className="kx__card">
+            <h3>Specialisations &amp; licensing</h3>
+            <ul className="pp__hl">
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>Mechanical services:</strong> HVAC, central heating, ducted and evaporative cooling, heat pumps; design, install and commissioning.</p></li>
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>Type A gas:</strong> installing, servicing and repairing gas cooktops, heaters and hot water.</p></li>
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>Air balancing &amp; BMS controls:</strong> airflow testing, balancing and full commissioning on commercial sites.</p></li>
+              <li><span aria-hidden="true">✓</span><p className="kx__li"><strong>Refrigeration &amp; heat pump hot water:</strong> splits, multi-heads and rebate-eligible heat pump upgrades.</p></li>
+            </ul>
+            <p><strong>ARC AU59557</strong>: authorised to handle refrigerant gases.</p>
           </div>
         </div>
       </section>
 
-      <section className="ab-stats">
-        <div className="wrap ab-stats__grid">
-          <div className="ab-stats__item"><strong>20+</strong><span>years&rsquo; director experience</span></div>
-          <div className="ab-stats__item"><strong>$20M</strong><span>public liability cover</span></div>
-          <div className="ab-stats__item"><strong>AU59557</strong><span>ARC authorisation</span></div>
-          <div className="ab-stats__item"><strong>46828</strong><span>plumbing licence</span></div>
-        </div>
-      </section>
-
-      <section className="ab-story">
-        <div className="wrap ab-story__grid">
-          <div className="ab-story__copy">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Our story</span>
-            <h2>Family-owned. Traditional values. Compliance-first.</h2>
-            <p>We&rsquo;re based in Pakenham and serve Melbourne&rsquo;s South-East and West Gippsland. Our team are like family to us, and our clients are an extension of that ethos.</p>
-            <p>We value quality working relationships and build them on trust and experience over time. We genuinely care about our clients and their stakeholders, and we operate from traditional values: <strong>under-promise, over-deliver</strong>, and complete work on time, within schedule and within budget.</p>
-            <p>We pride ourselves on top-notch installation, repair and maintenance. We&rsquo;re a leading provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration services, across residential, commercial and industrial projects throughout Victoria, and open to projects across the region and interstate.</p>
-            <p>Headed up by Director <strong>Dean Winbanks</strong>, with over 20 years&rsquo; industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same traditional values and quality of work, as though our director had completed your works personally.</p>
-          </div>
-          <div className="ab-story__side">
-            <div className="ab-spec-card">
-              <h3>Specialisations &amp; licensing</h3>
-              <ul>
-                <li><strong>Mechanical Services</strong>, HVAC, central heating &amp; packaged units, ducted split systems, evap and refrigerated cooling, heat pumps, design, installation and commissioning.</li>
-                <li><strong>Type A Gas Services</strong>, installation, servicing and repair of Type A gas appliances (cooktops, heaters, hot water) with safety, compliance and reliability built in.</li>
-                <li><strong>Air Balancing &amp; BMS Controls</strong>, airflow testing and balancing, BMS integration and full commissioning, measured, efficient performance across commercial sites.</li>
-                <li><strong>Refrigeration &amp; Heat-Pump Hot Water</strong>, split and multi-head systems, high-efficiency heat-pump hot water, including rebate-eligible upgrades under Victorian energy programs.</li>
-              </ul>
-              <p className="ab-spec-card__arc">
-                <span>ARC AU59557</span> Authorised ARC trading authority for the handling of refrigerant gases.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="ab-team">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Leadership</span>
-            <h2>A small, hands-on team, the people who quote it, run it and stand behind it.</h2>
-            <p>Headed up by Director Dean Winbanks, with over 20 years&rsquo; experience across industrial, commercial and domestic work.</p>
-          </div>
-          <div className="team-grid">
+      <section className="pxs pxs--cream">
+        <div className="wrap pp__col">
+          <Head eye="The team" h="The people who quote it, run it and stand behind it." />
+          <div className="kxp">
             {team.map((m) => (
-              <article key={m.name} className="team">
-                <div className="team__photo" style={{ position: "relative", overflow: "hidden" }}>
-                  <Image
-                    src={m.photo}
-                    alt={`${m.name}, ${m.role}`}
-                    fill
-                    sizes="(max-width: 900px) 50vw, 25vw"
-                    style={{ objectFit: "cover", objectPosition: "top" }}
-                  />
-                </div>
-                <div className="team__body">
-                  <h3 className="team__name">{m.name}</h3>
-                  <p className="team__role">{m.role}</p>
-                  <p className="team__bio">{m.bio}</p>
-                </div>
+              <article key={m.name} className="kxp__card">
+                <span className="kxp__img"><Image src={m.photo} alt={`${m.name}, ${m.role}`} fill sizes="(max-width: 1000px) 50vw, 25vw" /></span>
+                <div className="kxp__t"><small>{m.role}</small><h3>{m.name}</h3><p>{m.bio}</p></div>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* The home page carries photography the whole way down; this page had
-          one image at the top and then six thousand pixels of cards. A band
-          between the faces and the claims, so the claims arrive after a
-          picture of the people making them. */}
-      <div className="ab-band">
-        <Image
-          src="/kaden-team-with-chaz.jpg"
-          alt="An Advanced Gas installer unboxing a new Kaden system before fitting"
-          fill
-          sizes="100vw"
-          style={{ objectFit: "cover" }}
-        />
-        <div className="ab-band__cap">
-          <div className="wrap">
-            <b>Genuine gear, fitted by the people who quoted it.</b>
-            <span>Manufacturer warranties on everything we supply</span>
-          </div>
-        </div>
+      <div className="kxb">
+        <Image src="/kaden-team-with-chaz.jpg" alt="An Advanced Gas installer unboxing a new Kaden system before fitting" fill sizes="100vw" />
+        <div className="kxb__cap"><div className="wrap"><b>Genuine gear, fitted by the people who quoted it.</b><span>Manufacturer warranties on everything we supply</span></div></div>
       </div>
 
-      <section className="ab-values">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why choose us</span>
-            <h2>Five things you can count on.</h2>
-          </div>
-          <div className="values-grid">
-            {values.map((v) => (
-              <div key={v.n} className="val">
-                <span className="val__n">/{v.n}</span>
-                <h3>{v.h}</h3>
-                <p>{v.p}</p>
-              </div>
-            ))}
-          </div>
+      <section className="pxs">
+        <div className="wrap pp__col">
+          <Head eye="Why choose us" h="Five things you can count on." />
+          <Tiles items={values.map((v) => ({ t: v.h, d: v.p }))} />
         </div>
       </section>
 
-      <section className="ab-clients">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Track record</span>
-            <h2>Trusted by national brands, tier-one builders and local institutions.</h2>
-            <p>Our collaboration with these quality clients demonstrates our capability to handle large-scale, complex projects with professionalism and excellence.</p>
-          </div>
-          <div className="clients-grid">
-            {clients.map((c) => (
-              <div key={c.name} className="client">
-                <span className="client__name">{c.name}</span>
-                <span className="client__tag">{c.tag}</span>
-              </div>
-            ))}
-          </div>
+      <section className="pxs pxs--navy">
+        <div className="wrap pp__col">
+          <Head dark eye="Track record" h="Trusted by national brands, builders and local institutions." lede="Large, complex jobs, run with the same standard as a bedroom split." />
+          <div className="kxc">{clients.map((c) => <div key={c.name}><strong>{c.name}</strong><small>{c.tag}</small></div>)}</div>
         </div>
       </section>
 
-      <section className="ab-acc">
-        <div className="wrap ab-acc__grid">
-          <div>
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Accreditations &amp; licences</span>
-            <h2>Backed, certified and accountable.</h2>
-            <p>Every job carries our credentials, our compliance paperwork and our name.</p>
-          </div>
-          <div className="acc-list">
-            <div className="acc"><span className="acc__name">Advanced Gas &amp; Airconditioning Services Pty Ltd</span><span className="acc__num">ACN 607 575 280</span></div>
-            <div className="acc"><span className="acc__name">Plumbing Licence</span><span className="acc__num">46828</span></div>
-            <div className="acc"><span className="acc__name">ARC Refrigeration Authorisation</span><span className="acc__num">AU59557</span></div>
-            <div className="acc"><span className="acc__name">Public Liability</span><span className="acc__num">$20M</span></div>
-            <div className="acc"><span className="acc__name">Workmanship warranty</span><span className="acc__num">6 years</span></div>
-            <div className="acc"><span className="acc__name">Address</span><span className="acc__num">1 Sierra Circuit, Pakenham</span></div>
-          </div>
+      <section className="pxs">
+        <div className="wrap kx2">
+          <Head eye="Accreditations & licences" h="Backed, certified and accountable." lede="Every job carries our credentials, our compliance paperwork and our name." />
+          <dl className="kxl">
+            <div><dt>Advanced Gas &amp; Airconditioning Services Pty Ltd</dt><dd>ACN 607 575 280</dd></div>
+            <div><dt>Plumbing licence</dt><dd>46828</dd></div>
+            <div><dt>ARC refrigeration authorisation</dt><dd>AU59557</dd></div>
+            <div><dt>Public liability</dt><dd>$20M</dd></div>
+            <div><dt>Workmanship warranty</dt><dd>6 years</dd></div>
+            <div><dt>Workshop</dt><dd>1 Sierra Circuit, Pakenham</dd></div>
+          </dl>
         </div>
       </section>
 
-      {/* One internal link in the whole page, and it was the quote button. A
-          reader who has just read who we are is deciding whether to believe
-          it; the three pages that answer that are the reviews, the photographs
-          and the licences. */}
-      <section className="ab-next">
-        <div className="wrap">
-          <ul className="ab-nextrow">
-            <li><Link href="/reviews"><strong>What customers said</strong><span>{RATING_TEXT} out of 5 on Google</span></Link></li>
-            <li><Link href="/gallery"><strong>Work we have done</strong><span>Real installs, before and after</span></Link></li>
-            <li><Link href="/services"><strong>What we take on</strong><span>Heating, cooling, gas and hot water</span></Link></li>
-            <li><Link href="/service-areas"><strong>Where we work</strong><span>Every suburb, with drive times</span></Link></li>
-          </ul>
+      <section className="pxs pxs--sky">
+        <div className="wrap pp__col">
+          <Head eye="Where next" h="See for yourself." />
+          <Next items={[
+            { t: "What customers say", s: `${RATING_TEXT} out of 5 on Google`, href: "/reviews" },
+            { t: "Work we've done", s: "Real installs, before and after", href: "/gallery" },
+            { t: "Find your system", s: "Options, prices and how each one works", href: "/#find" },
+            { t: "Where we work", s: "Pakenham and 75 km around", href: "/service-areas" },
+          ]} />
         </div>
       </section>
 
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Talk to the people who set the standard.</h2>
-            {/* "Monday to Saturday" — the ninth hand-written copy of the
-                opening hours, and the third that contradicted the record. */}
-            <p>The person who quotes your job is the person who stands behind it. {openingHours()}, and after hours for emergencies.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a free quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      <Cta title="Talk to the people who set the standard." text={<>The person who quotes your job is the person who stands behind it. {openingHours()}, and after hours for emergencies.</>} />
     </div>
   );
 }

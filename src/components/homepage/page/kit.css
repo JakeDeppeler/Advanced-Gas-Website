@@ -1,0 +1,68 @@
+/* Inside pages built from page/kit.tsx: the extras the brand page doesn't
+   already have (brand.css holds the header, tiles and quote band). */
+
+.ag .bxh--plain .bxh__in{grid-template-columns:minmax(0,1fr)}
+.ag .bxh--plain .bxh__copy{max-width:52rem}
+.ag .kx__h1{font-size:clamp(40px,5vw,80px);text-wrap:balance}
+.ag .kx__h1 em{font-style:normal;color:var(--sky2)}
+
+.ag .kxn{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
+.ag .kxn a{position:relative;display:flex;flex-direction:column;gap:6px;height:100%;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 48px 22px 22px;text-decoration:none;transition:border-color .15s,transform .15s}
+.ag .kxn a:hover{border-color:var(--or);transform:translateY(-2px)}
+.ag .kxn strong{font-family:var(--disp);font-size:18px;color:var(--navy)}
+.ag .kxn span{font-size:14px;line-height:1.5;color:var(--ink2)}
+.ag .kxn i{position:absolute;right:20px;top:22px;font-style:normal;color:var(--or);font-size:18px}
+
+/* People: a photo card per person. */
+.ag .kxp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.ag .kxp__card{background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.ag .kxp__img{position:relative;aspect-ratio:4/5;background:#EEF3F8}
+.ag .kxp__img img{object-fit:cover;object-position:top}
+.ag .kxp__t{display:flex;flex-direction:column;gap:4px;padding:18px 20px 22px}
+.ag .kxp__t h3{font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .kxp__t small{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--or-ink)}
+.ag .kxp__t p{margin:6px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
+
+/* A full-width photo band with a caption across its foot. */
+.ag .kxb{position:relative;height:clamp(280px,36vw,520px);overflow:hidden;background:var(--navy)}
+.ag .kxb img{object-fit:cover}
+.ag .kxb__cap{position:absolute;left:0;right:0;bottom:0;padding:22px 0;background:linear-gradient(180deg,rgba(5,10,48,0),rgba(5,10,48,.8));color:#fff}
+.ag .kxb__cap .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 20px}
+.ag .kxb__cap b{font-family:var(--disp);font-size:20px}
+.ag .kxb__cap span{font-size:14px;color:rgba(255,255,255,.8)}
+
+/* Chips: names with a small tag (clients, suburbs). */
+.ag .kxc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:10px}
+.ag .kxc>*{display:flex;flex-direction:column;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:16px 18px;text-decoration:none;color:#fff;transition:border-color .15s}
+.ag a.kxc__i:hover{border-color:var(--or2);color:#fff}
+.ag .kxc strong{font-family:var(--disp);font-size:16.5px}
+.ag .kxc small{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+.ag .kxc--light>*{background:#fff;border-color:var(--line);color:var(--navy)}
+.ag .kxc--light a.kxc__i:hover{border-color:var(--or);color:var(--navy)}
+.ag .kxc--light small{color:var(--ink3)}
+
+/* A two-column definition list, for licences and hours. */
+.ag .kxl{margin:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.ag .kxl div{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ag .kxl dt{font-size:15px;color:var(--ink2)}
+.ag .kxl dd{margin:0;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--navy);text-align:right}
+
+.ag .kx2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,64px);align-items:start}
+.ag .kx__prose{display:flex;flex-direction:column;gap:14px}
+.ag .kx__prose p{margin:0;font-size:16.5px;line-height:1.7;color:var(--ink2)}
+.ag .kx__card{background:#F4F7FA;border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:14px}
+.ag .kx__card h3{font-family:var(--disp);font-size:20px;font-weight:800;color:var(--navy)}
+.ag .kx__card p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
+.ag .kx__card--alert{background:#FFF1EC;border:1px solid #F3C3AE}
+
+@media (max-width:1000px){
+  .ag .kxp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .kx2{grid-template-columns:1fr}
+}
+@media (max-width:560px){.ag .kxp{grid-template-columns:1fr 1fr;gap:10px}.ag .kxp__t{padding:14px}}
+.ag .kx__stars{display:flex;align-items:baseline;gap:10px;color:rgba(255,255,255,.8);font-size:14px}
+.ag .kx__stars strong{font-family:var(--disp);font-size:26px;color:#fff}
+.ag .kx__big{font-family:var(--disp);font-size:28px;font-weight:900;color:var(--navy);text-decoration:none}
+.ag .kx__card--alert .kx__big{color:var(--or-ink)}
+.ag .page-contact.kx__form{background:transparent}
+.ag .kx__li{margin:0;font-size:15px;line-height:1.5;color:var(--ink)}
