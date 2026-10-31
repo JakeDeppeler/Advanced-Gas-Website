@@ -56,6 +56,12 @@ function melbourneMidnight(year: number, month0: number, day: number): Date {
   return new Date(utc - offsetMs(guess));
 }
 
+/** The instant Melbourne's clock read midnight on "2026-10-26". */
+export function melbourneDayStart(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return melbourneMidnight(y, m - 1, d);
+}
+
 /** The instant at which the Melbourne day containing `d` began. */
 export function startOfDayMelbourne(d: Date = new Date()): Date {
   const p = parts(d);
