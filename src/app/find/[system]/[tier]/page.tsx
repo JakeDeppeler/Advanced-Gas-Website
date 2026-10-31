@@ -10,6 +10,7 @@ import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
 import { HomeFooter } from "@/components/homepage/HomeFooter";
 import { HomeHeader } from "@/components/homepage/HomeHeader";
+import { SiteModeStrip } from "@/components/Header";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
 import "@/components/homepage/homepage.css";
 
@@ -79,6 +80,8 @@ export default function FindProductPage({ params }: { params: Params }) {
   ]);
 
   return (
+    <>
+    <SiteModeStrip />
     <div className="ag ag--flat" id="top" data-no-reveal>
       <HomeHeader />
       <ProductView
@@ -88,5 +91,6 @@ export default function FindProductPage({ params }: { params: Params }) {
       <HomeFooter />
       <Script id="ld-find-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
     </div>
+    </>
   );
 }

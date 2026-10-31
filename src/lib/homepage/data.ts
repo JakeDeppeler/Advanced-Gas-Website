@@ -687,3 +687,15 @@ export const HOME_FAQS: (QA & { finance?: boolean })[] = [
   qa("Do you do emergencies on weekends?", "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to someone on the tools, not an overseas call centre."),
   qa("What's the warranty?", "Manufacturer warranty on the unit (typically 6–10 years on the tank), 6 years on our workmanship, and a compliance certificate emailed within 24 hours of install."),
 ];
+
+/* ------------------------------------------------------------ tools */
+
+/** The calculators, for the homepage's Tools section. */
+export const TOOLS: { t: string; s: string; href: string }[] = [
+  { t: "VEU rebate calculator", s: "What you'd get off a heat pump", href: "/tools/veu-rebate-estimator" },
+  { t: "Aircon sizing calculator", s: "The kW your room needs", href: "/tools/sizing-calculator" },
+  { t: "Running cost calculator", s: "What a system costs to run", href: "/tools/running-cost-calculator" },
+  { t: "Hot water savings", s: "Gas or electric to a heat pump", href: "/tools/hot-water-savings" },
+  { t: "Gas vs reverse-cycle", s: "Which heats your home for less", href: "/tools/heating-comparator" },
+  { t: "Fault code lookup", s: "What the error on the screen means", href: "/tools/fault-codes" },
+];

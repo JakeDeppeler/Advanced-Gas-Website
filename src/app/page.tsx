@@ -9,6 +9,8 @@ import { faqSchema } from "@/lib/schema";
 import { HOME_FAQS, PHOTO, SERVICES, SHOW_FINANCE } from "@/lib/homepage/data";
 import { areaSuburbs } from "@/lib/homepage/areas";
 import { HomeHeader, PhoneIcon } from "@/components/homepage/HomeHeader";
+import { SiteModeStrip } from "@/components/Header";
+import { TOOLS } from "@/lib/homepage/data";
 import { HeroQuote, Svg } from "@/components/homepage/HeroQuote";
 import { Finder } from "@/components/homepage/Finder";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
@@ -61,6 +63,9 @@ export default async function HomePage() {
   const suburbs = areaSuburbs();
 
   return (
+    <>
+    {/* Outside .ag: the strip carries the rest of the site's styles, which .ag's link colours would override. */}
+    <SiteModeStrip />
     <div className="ag" id="top" data-no-reveal>
       <HomeHeader />
       {/* ===== HERO ===== */}
@@ -273,6 +278,29 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ===== TOOLS ===== */}
+      {/* The calculators, kept out of the header so it stays to the few things people navigate by. */}
+      <section id="tools" className="htools-sec">
+        <div className="wrap">
+          <div className="sechead arv">
+            <div className="sechead__t">
+              <h2 className="h2">Tools for you</h2>
+              <p className="htools-sec__p">Free calculators to work out what you need and what it costs to run, before you ring anyone.</p>
+            </div>
+            <Link href="/tools" className="htools-sec__all">All tools →</Link>
+          </div>
+          <div className="tgrid">
+            {TOOLS.map((t) => (
+              <Link key={t.href} href={t.href} className="tcard arv">
+                <strong>{t.t}</strong>
+                <span>{t.s}</span>
+                <em>Open →</em>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ===== CTA ===== */}
       <section className="wrap ctabox">
         <div className="ctabox__in arv">
@@ -299,5 +327,6 @@ export default async function HomePage() {
 
       <Script id="ld-home-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(faqs)) }} />
     </div>
+    </>
   );
 }

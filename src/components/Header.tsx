@@ -379,7 +379,6 @@ function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [activeMega, setActiveMega] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -416,68 +415,10 @@ export function Header() {
 
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
 
-  /**
-   * Crossing between the two sides of the business. The one navigation on the
-   * site that gets a transition, because it is the one where the reader
-   * genuinely changes context. Modified clicks — new tab, new window — are
-   * left alone so the tab still behaves like a link when somebody wants it to.
-   */
-  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    crossTo(() => router.push(href), href === "/commercial" ? "to-commercial" : "to-home");
-  }
 
   return (
     <>
-      {/* Residential and commercial are different readers with different fears,
-          so they get different sites. This says so from the first pixel and
-          lets either one cross over whenever they like, which an interstitial
-          that demands the choice before showing anything cannot do without
-          costing rankings and the visitors who were closest to enquiring. */}
-      <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}`}>
-        {/* No label any more. The two tabs say what they are; a caption in front
-            of them just made the control smaller to fit the row. The switch
-            sits in the corner, and the run of empty strip beside it carries
-            what it is doing outside and whether anyone is in the office. */}
-        <div className="wrap sitemode__row">
-          {/* One strip, not two. The utility bar above this used to carry the
-              location, the hours, the ABN, the emergency line and the phone
-              number, then this strip carried the conditions and the switch,
-              then the header carried the phone again. Three bars before the
-              page started. The ABN and hours live in the footer where
-              procurement looks for them; the phone is in the header; what is
-              left up here is the live stuff and the one link that cannot wait. */}
-          <div className="sitemode__left">
-            <LocalConditions />
-            <span className="sitemode__loc">Pakenham VIC, within 75&nbsp;km</span>
-          </div>
-          <div className="sitemode__right">
-            <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>
-              <span className="sitemode__emergdot" aria-hidden="true" />
-              24/7 emergency gas &amp; hot water
-            </a>
-          <nav className="sitemode__tabs" aria-label="Residential or commercial">
-            <Link
-              href="/"
-              className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
-              aria-current={onCommercial ? undefined : "page"}
-              onClick={(e) => crossOver(e, "/")}
-            >
-              Your home
-            </Link>
-            <Link
-              href="/commercial"
-              className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
-              aria-current={onCommercial ? "page" : undefined}
-              onClick={(e) => crossOver(e, "/commercial")}
-            >
-              Business &amp; commercial
-            </Link>
-          </nav>
-          </div>
-        </div>
-      </div>
+      <SiteModeStrip />
 
     <header className={`hdr${onCommercial ? " hdr--comm" : ""}`}>
       <div className="wrap hdr__row">
@@ -1099,5 +1040,80 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
         </Link>
       </div>
     </div>
+  );
+}
+
+/**
+ * The dark strip above the header: local conditions, the emergency line and
+ * the home / commercial switch. Its own component so the homepage redesign,
+ * which has its own header, can sit under the same strip as every other page.
+ */
+export function SiteModeStrip() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const onCommercial = pathname?.startsWith("/commercial") ?? false;
+  /**
+   * Crossing between the two sides of the business. The one navigation on the
+   * site that gets a transition, because it is the one where the reader
+   * genuinely changes context. Modified clicks — new tab, new window — are
+   * left alone so the tab still behaves like a link when somebody wants it to.
+   */
+  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    crossTo(() => router.push(href), href === "/commercial" ? "to-commercial" : "to-home");
+  }
+
+  return (
+    <>
+    {/* Residential and commercial are different readers with different fears,
+        so they get different sites. This says so from the first pixel and
+        lets either one cross over whenever they like, which an interstitial
+        that demands the choice before showing anything cannot do without
+        costing rankings and the visitors who were closest to enquiring. */}
+    <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}`}>
+      {/* No label any more. The two tabs say what they are; a caption in front
+          of them just made the control smaller to fit the row. The switch
+          sits in the corner, and the run of empty strip beside it carries
+          what it is doing outside and whether anyone is in the office. */}
+      <div className="wrap sitemode__row">
+        {/* One strip, not two. The utility bar above this used to carry the
+            location, the hours, the ABN, the emergency line and the phone
+            number, then this strip carried the conditions and the switch,
+            then the header carried the phone again. Three bars before the
+            page started. The ABN and hours live in the footer where
+            procurement looks for them; the phone is in the header; what is
+            left up here is the live stuff and the one link that cannot wait. */}
+        <div className="sitemode__left">
+          <LocalConditions />
+          <span className="sitemode__loc">Pakenham VIC, within 75&nbsp;km</span>
+        </div>
+        <div className="sitemode__right">
+          <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>
+            <span className="sitemode__emergdot" aria-hidden="true" />
+            24/7 emergency gas &amp; hot water
+          </a>
+        <nav className="sitemode__tabs" aria-label="Residential or commercial">
+          <Link
+            href="/"
+            className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
+            aria-current={onCommercial ? undefined : "page"}
+            onClick={(e) => crossOver(e, "/")}
+          >
+            Your home
+          </Link>
+          <Link
+            href="/commercial"
+            className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
+            aria-current={onCommercial ? "page" : undefined}
+            onClick={(e) => crossOver(e, "/commercial")}
+          >
+            Business &amp; commercial
+          </Link>
+        </nav>
+        </div>
+      </div>
+    </div>
+    </>
   );
 }

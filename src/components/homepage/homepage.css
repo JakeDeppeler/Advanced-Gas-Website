@@ -120,20 +120,7 @@
 .ag .hbar__right{display:flex;align-items:center;gap:10px;flex:none}
 .ag .hphone__t{display:flex;flex-direction:column;line-height:1.1}
 .ag .hphone__t small{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
-.ag .htools{position:relative;display:flex}
-.ag .htools__btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 16px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--navy);font-family:var(--disp);font-weight:700;font-size:15px;cursor:pointer}
-.ag .htools:hover .htools__btn,.ag .htools:focus-within .htools__btn{border-color:var(--navy)}
-.ag .htools__menu{position:absolute;right:0;top:calc(100% + 10px);width:330px;background:#fff;border-radius:12px;padding:8px;box-shadow:0 24px 50px -20px rgba(5,10,48,.45);border:1px solid var(--line);display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility .15s;z-index:5}
-/* A strip of hover bridge so the menu doesn't close crossing the gap. */
-.ag .htools__menu::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
-.ag .htools:hover .htools__menu,.ag .htools:focus-within .htools__menu{opacity:1;visibility:visible;transform:none}
-.ag .htools.is-shut .htools__menu{opacity:0;visibility:hidden}
-.ag .htools__item{display:flex;flex-direction:column;gap:1px;padding:9px 12px;border-radius:8px;text-decoration:none;color:var(--navy)}
-.ag .htools__item:hover{background:#F3F4F7;color:var(--navy)}
-.ag .htools__item strong{font-size:14.5px}
-.ag .htools__item span{font-size:12.5px;color:var(--ink3)}
-.ag .htools__all{margin-top:4px;padding:10px 12px;border-top:1px solid var(--line);font-size:14px;font-weight:700;color:var(--or-ink);text-decoration:none}
-.ag .mmenu__tools{display:flex;flex-direction:column;gap:2px}
+
 .ag .hphone{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;border:1px solid var(--line2);border-radius:10px;padding:0 16px;min-height:48px;transition:border-color .15s}
 .ag .hphone:hover{border-color:var(--navy);color:var(--navy)}
 .ag .hquote{display:inline-flex;align-items:center;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:0;text-transform:none;color:#fff;background:var(--navy);border-radius:10px;padding:0 20px;min-height:48px;text-decoration:none;transition:background .15s;white-space:nowrap}
@@ -151,14 +138,14 @@
 .ag .mmenu__th--ph img{object-fit:cover;padding:0}
 /* The 15px nav needs about 1,450px at full spacing: on mid-size laptops the
    items close up a little, and below 1,360px they fold into the menu button. */
-@media (max-width:1400px){.ag .hd__top{padding:0 10px}.ag .hd__top::after{left:10px;right:10px}.ag .hphone{padding:0 12px}.ag .htools__btn{padding:0 12px}.ag .hquote{padding:0 16px}.ag .hbar{gap:10px}}
-@media (max-width:1280px){.ag .menubtn{display:grid}.ag .navx{display:none !important}}
+@media (max-width:1260px){.ag .hd__top{padding:0 10px}.ag .hd__top::after{left:10px;right:10px}.ag .hphone{padding:0 12px}.ag .hquote{padding:0 16px}.ag .hbar{gap:10px}}
+@media (max-width:1100px){.ag .menubtn{display:grid}.ag .navx{display:none !important}}
 /* On a phone the bar keeps the same proportions at a size that leaves the screen to the page. */
 @media (max-width:600px){.ag .ahdr{padding:10px 12px 0}.ag .hbar{padding:0 10px 0 14px;min-height:72px}.ag .ahdr.is-solid .hbar{padding:0 14px 0 16px}.ag .alogo{height:36px}.ag .hquote{padding:0 14px;font-size:13.5px;min-height:48px}.ag .menubtn{width:48px;height:48px}}
 /* /find pages: a plain white bar flush to the top, stuck there while the page scrolls. */
 .ag .ahdr--flat{position:sticky;padding:0}
-.ag .ahdr--flat .hbar,.ag .ahdr--flat.is-solid .hbar{border-radius:0;border-width:0 0 1px;border-color:var(--line);box-shadow:none;min-height:86px;padding:0 max(24px,calc((100% - 1360px) / 2))}
-.ag .ahdr--flat .hbar::before{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+.ag .ahdr--flat .hbar,.ag .ahdr--flat.is-solid .hbar{border-radius:0;border-width:0 0 1px;border-color:var(--line);box-shadow:none;min-height:86px;padding:0 max(24px,calc((100% - 1216px) / 2))}
+.ag .ahdr--flat .hbar::before,.ag .ahdr--flat.is-solid .hbar::before{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
 @media (max-width:360px){.ag .hquote{display:none}}
 
 /* ===================================================== hero */
@@ -532,6 +519,19 @@
 .ag .glink::after{content:"→";color:var(--or)}
 .ag .glink:hover{color:var(--navy);text-decoration-color:var(--navy)}
 @media (max-width:600px){.ag .afaq summary{font-size:17px;padding:18px 0}.ag .hfaq{padding:72px 0}.ag .hfaq__in{gap:32px}}
+
+/* ===================================================== tools */
+.ag .htools-sec{padding:96px 0 0;background:#fff}
+.ag .htools-sec__p{margin:0;font-size:16px;line-height:1.6;color:var(--ink2);max-width:34rem}
+.ag .htools-sec__all{font-weight:700;color:var(--or-ink);text-underline-offset:3px}
+.ag .tgrid{margin-top:28px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ag .tcard{display:flex;flex-direction:column;gap:6px;background:#F6F7F9;border-radius:12px;padding:22px 24px;text-decoration:none;color:var(--navy);transition:background .15s,transform .15s}
+.ag .tcard:hover{background:#EEF0F3;transform:translateY(-2px);color:var(--navy)}
+.ag .tcard strong{font-family:var(--disp);font-size:18px;font-weight:800}
+.ag .tcard span{font-size:14.5px;color:var(--ink2)}
+.ag .tcard em{margin-top:6px;font-style:normal;font-weight:700;font-size:14px;color:var(--or-ink)}
+@media (max-width:900px){.ag .tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.ag .tgrid{grid-template-columns:1fr}.ag .htools-sec{padding-top:72px}}
 
 /* ===================================================== cta box */
 .ag .ctabox{padding-top:96px;padding-bottom:96px}
