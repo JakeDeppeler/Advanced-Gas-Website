@@ -3759,3 +3759,22 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pt.pn .pk-tile.on .pk-tl > span:first-child, .pt.pn .pk-tile.on .pk-ks { opacity: 1; color: var(--ink2); }
 .pt.pn .pk-tile.on .pk-bar { background: var(--track); }
 .pn .rp-top--left { justify-content: space-between; align-items: flex-end; }
+
+/* ------------------------------------------------- Finance heads and figure strips, to the mocks */
+/* Older heads (pt-head) set at the kit head's size, so a tab change doesn't
+   shift the title. */
+.pn .pt-head h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.04; }
+.pn .pt-head .pk-eyebrow { margin-bottom: 2px; }
+@media (max-width: 640px) { .pn .pt-head h1 { font-size: 30px; } }
+/* The cost pages' short version as four tiles, the last (what an hour must
+   bring in) the dark one, as the mocks have them. */
+.pn .pt-panel.pt-hs { background: none; border: 0; box-shadow: none; padding: 0; }
+.pn .pt-hs__nums { gap: 16px; }
+.pn .pt-hs__nums > div, .pn .pt-hs__nums > div:first-child { padding: 18px 20px; border: 1px solid var(--rp-line); border-radius: 22px; background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 18px 40px -26px rgba(80,40,10,.2); }
+.pn .pt-hs__nums span { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.pn .pt-hs__nums strong { font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.pn .pt-hs__nums em { color: var(--ink2); }
+.pn .pt-hs__nums > .is-charge { background: var(--rp-dark); border-color: transparent; }
+.pn .pt-hs__nums > .is-charge span, .pn .pt-hs__nums > .is-charge em { color: color-mix(in srgb, var(--rp-on-dark) 78%, transparent); }
+.pn .pt-hs__nums > .is-charge strong { color: var(--rp-on-dark); }
+@media (max-width: 900px) { .pn .pt-hs__nums { row-gap: 16px; } .pn .pt-hs__nums > div:nth-child(3) { padding-left: 20px; } }

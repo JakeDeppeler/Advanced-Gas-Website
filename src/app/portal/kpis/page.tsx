@@ -187,7 +187,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     ]} />
   );
   const head = (
-    <Head title="Our KPIs" sub={tab === "overview" || tab === "money" ? `${periodWords(period).charAt(0).toUpperCase()}${periodWords(period).slice(1)} · from Xero` : "This month · ServiceTitan and Xero"} info={[
+    <Head title="Our KPIs" eyebrow={tab === "overview" || tab === "money" ? `${periodWords(period).charAt(0).toUpperCase()}${periodWords(period).slice(1)} · from Xero` : "This month · ServiceTitan and Xero"} info={[
       ["Goal", "What we aim for this year, set in Pricing & costs. Change it there and every page moves with it."],
       ["Benchmark", "What a healthy service trade looks like. Fixed, so it can’t be moved to suit a month."],
       ["No goal yet", "Nobody has set a goal for it, so it isn’t marked good or bad."],

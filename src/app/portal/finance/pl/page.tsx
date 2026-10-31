@@ -49,7 +49,7 @@ export default async function ProfitLossPage({ searchParams }: { searchParams: {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Profit & loss" sub="From Xero · before GST" info={[
+        <Head title="Profit & loss" eyebrow="From Xero · before GST" info={[
           ["Gross profit", "Sales less the cost of doing the jobs: parts, the techs’ time and subbies."],
           ["Overheads", "What it costs to keep the doors open, job or no job."],
           ["Net profit", "What’s left at the end, after every cost."],

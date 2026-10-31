@@ -55,6 +55,7 @@ export default async function PacePage({ searchParams }: { searchParams: { view?
       )}
       <PacePlanner
         goal={{ basis: shown.basis, year: shown.year, revenue: shown.revenue, profitPct: shown.profitPct, shape: shown.shape, weeks: shown.weeks }}
+        lower={shown.floorRevenue}
         sample={sample}
         settings={shown.pace}
         data={snap?.metrics.paceData ?? null}

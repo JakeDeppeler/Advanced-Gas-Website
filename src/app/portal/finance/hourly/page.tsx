@@ -9,7 +9,7 @@ import { theHour } from "@/lib/portal/cover/load";
 import { DAYS_ON_TOOLS, PAID_HRS_YEAR } from "@/lib/portal/cover/hour";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Our hourly rate · Team portal" };
+export const metadata = { title: "How the rate’s built · Team portal" };
 
 const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.abs(Math.round(n)).toLocaleString("en-AU")}`;
 const m2 = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -72,7 +72,7 @@ export default async function HourlyPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Our hourly rate" lede="What the business spends in a year, the hours it bills, and so what an hour on the tools has to bring in." />
+      <FinanceHead title="How the rate’s built" lede="What the business spends in a year, the hours it bills, and so what an hour on the tools has to bring in." />
 
       {!has ? (
         <div className="pt-note pt-note--warn"><strong>There&rsquo;s no tech who bills yet,</strong> so there&rsquo;s no hour to take apart. Set the crew on <Link href="/portal/finance/cover">What an hour must cover</Link>.</div>
