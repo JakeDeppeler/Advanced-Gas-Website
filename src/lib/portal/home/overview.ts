@@ -23,7 +23,6 @@ export type Overview = {
   /** This month so far, and last month to the same day, for "vs last month". */
   mtd: number;
   lastToDate: number;
-  hot: PipeQuote[];
   stages: StageSlice[];
   open: { count: number; value: number };
 };
@@ -74,8 +73,6 @@ export async function overview(goal: YearGoal | null, span: 6 | 12 = 12): Promis
   }
 
   const open = (pipe?.quotes ?? []).filter((x) => x.stage === "new" || x.stage === "due" || x.stage === "waiting");
-  // Newest first, so today's quotes are the ones in front of the office.
-  const hot = [...open].sort((a, b) => b.quotedOn.localeCompare(a.quotedOn) || b.value - a.value).slice(0, 6);
   const LABEL: Record<string, string> = { new: "Just quoted", due: "Follow up today", waiting: "Waiting on them", won: "Sold, last 30 days" };
   const soldRecent = (x: PipeQuote) => isSold(x.stage) && x.soldOn != null && daysBetween(x.soldOn, today) <= 30;
   const stages: StageSlice[] = (["new", "due", "waiting", "won"] as Stage[]).map((k) => {
@@ -91,7 +88,6 @@ export async function overview(goal: YearGoal | null, span: 6 | 12 = 12): Promis
     months,
     mtd: byMonth.get(today.slice(0, 7)) ?? 0,
     lastToDate: lastWhole ? lastToDate : 0,
-    hot,
     stages,
     open: { count: open.length, value: open.reduce((a, x) => a + x.value, 0) },
   };
