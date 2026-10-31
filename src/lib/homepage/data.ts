@@ -659,7 +659,11 @@ export const SERVICES: ServiceCard[] = [
 /* ------------------------------------------------------------ header */
 
 export type NavItem = { t: string; s: string; img: string; photo?: boolean; pos?: string; href: string; find?: string };
-export type NavGroup = { label: string; href: string; head?: string; foot?: string; footHref?: string; footFind?: Category["id"]; items: NavItem[] };
+export type NavGroup = {
+  label: string; href: string; head?: string; foot?: string; footHref?: string; footFind?: Category["id"]; items: NavItem[];
+  /** A short dropdown of plain links, for groups with no products to picture. */
+  list?: { t: string; s: string; href: string }[];
+};
 
 const prod = (t: string, s: string, img: string, slug: string): NavItem => ({ t, s, img, href: `/?find=${slug}#find`, find: slug });
 
@@ -672,9 +676,12 @@ export const NAV: NavGroup[] = [
     items: [prod("Heat pump", "Rebate applied", IMG.reclaimAio, "heat-pump"), prod("Gas continuous flow", "Endless hot water", IMG.gasCf, "gas-continuous-flow"), prod("Gas storage", "Like-for-like swap", IMG.gasStorage, "gas-storage")] },
   { label: "Services", href: "/services", head: "Something broken?", foot: "Call (03) 5947 8000", footHref: "tel:+61359478000",
     items: SERVICES.map((v) => ({ t: v.t, s: v.badge, img: v.photo, photo: true, pos: v.pos, href: v.href })) },
-  { label: "About", href: "/about", items: [] },
-  { label: "Reviews", href: "/reviews", items: [] },
-  { label: "Areas", href: "/service-areas", items: [] },
+  // One tab for the three about-us pages, so the nav is the four things we sell and this.
+  { label: "About", href: "/about", items: [], list: [
+    { t: "About us", s: "The team and how we work", href: "/about" },
+    { t: "Reviews", s: "What local households say", href: "/reviews" },
+    { t: "Areas we cover", s: "Pakenham and 75 km around", href: "/service-areas" },
+  ] },
 ];
 
 /* ------------------------------------------------------------ homepage FAQ */

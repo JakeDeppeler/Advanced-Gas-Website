@@ -81,9 +81,9 @@ export default function FindProductPage({ params }: { params: Params }) {
 
   return (
     <>
-    <SiteModeStrip />
+    <SiteModeStrip tabs={false} />
     <div className="ag ag--flat" id="top" data-no-reveal>
-      <HomeHeader />
+      <HomeHeader variant="flat" />
       <ProductView
         system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
         models={models} brand={brand} hero={heroFor(sys, tier)} tierBadges={badgesFor({}, tier.feats)}

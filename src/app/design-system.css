@@ -3501,6 +3501,15 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .sitemode--comm .sitemode__emerg { color: #fff; }
 .sitemode--comm .sitemode__emergdot { background: #ffd9c6; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22); }
 @media (max-width: 900px) { .sitemode__loc { display: none; } }
+/* Without the home / commercial switch the strip has nothing else to show on a
+   phone, where the conditions and emergency line are hidden: keep the
+   after-hours line and the weather instead of an empty bar. */
+@media (max-width: 760px) {
+  .sitemode--notabs .sitemode__left, .sitemode--notabs .conds { display: flex !important; }
+  .sitemode--notabs .conds__sky { display: none; }
+  .sitemode--notabs .sitemode__row { justify-content: center; min-height: 36px; padding-block: 4px; }
+  .sitemode--notabs .sitemode__right { display: none; }
+}
 @media (max-width: 720px) {
   .sitemode__left, .sitemode__emerg { display: none; }
   .sitemode__right { width: 100%; }

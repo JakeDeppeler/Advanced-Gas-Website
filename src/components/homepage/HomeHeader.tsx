@@ -8,9 +8,7 @@ import { NAV, ICON, type NavGroup, type NavItem } from "@/lib/homepage/data";
 import { sendIntent } from "@/lib/homepage/intent";
 
 /**
- * The header: a plain white bar flush to the top of the page that stays
- * there, like the rest of the site's, with the product dropdowns Jake liked
- * for finding a service. Kept to those, the phone and the quote button: the
+ * The header, with the product dropdowns Jake liked for finding a service. Kept to those, the phone and the quote button: the
  * calculators have their own section near the bottom of the homepage. Homepage and /find
  * pages only for now; the rest of the site keeps components/Header.tsx until Jake has
  * signed this one off.
@@ -36,7 +34,12 @@ export function PhoneIcon({ size = 17, color = "currentColor" }: { size?: number
 }
 
 
-export function HomeHeader() {
+/**
+ * `pill` floats over the homepage hero as a rounded bar the width of the page
+ * content, so the logo sits over the headline and the buttons over the form.
+ * `flat` is the full-width white bar the /find pages use.
+ */
+export function HomeHeader({ variant = "pill" }: { variant?: "pill" | "flat" }) {
   const onHome = usePathname() === "/";
   const [open, setOpen] = useState(false);
   // After a dropdown card is clicked the pointer is still over the menu, so
@@ -68,7 +71,7 @@ export function HomeHeader() {
   const quoteHref = onHome ? "#quote" : "/#quote";
 
   return (
-    <header className="ahdr ahdr--flat is-solid">
+    <header className={variant === "flat" ? "ahdr ahdr--flat is-solid" : "ahdr ahdr--pill"}>
       <div className="hbar">
         <Link href="/" className="hbar__logo" aria-label="Advanced Gas & Aircon home" onClick={() => close()}>
           <AgLogo />
@@ -76,6 +79,18 @@ export function HomeHeader() {
         <nav className="hnav navx" aria-label="Main">
           {NAV.map((g) => {
             const has = g.items.length > 0;
+            if (g.list) {
+              return (
+                <div key={g.label} className={`hd hd--menu hd--list${shut === g.label ? " is-shut" : ""}`} onMouseLeave={() => shut === g.label && setShut(null)}>
+                  <Link href={g.href} className="hd__top">{g.label}<span className="hd__pm" aria-hidden="true" /></Link>
+                  <div className="hlist">
+                    {g.list.map((l) => (
+                      <Link key={l.href} href={l.href} className="hlist__item" onClick={() => close(g.label)}><strong>{l.t}</strong><span>{l.s}</span></Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
             const footHref = g.footHref ?? (g.footFind ? `/?find=${g.footFind}#find` : g.href);
             return (
               <div key={g.label} className={`hd${has ? " hd--menu" : ""}${shut === g.label ? " is-shut" : ""}`} onMouseLeave={() => shut === g.label && setShut(null)}>
@@ -127,6 +142,11 @@ export function HomeHeader() {
               <Link href={g.href} className="mmenu__head" onClick={() => close()}>
                 {g.label} <i aria-hidden="true">→</i>
               </Link>
+              {g.list && (
+                <div className="mmenu__list">
+                  {g.list.map((l) => <Link key={l.href} href={l.href} className="mmenu__item" onClick={() => close()}>{l.t}</Link>)}
+                </div>
+              )}
               {g.items.length > 0 && (
                 <div className="mmenu__items">
                   {g.items.map((it) => (

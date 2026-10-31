@@ -1048,7 +1048,8 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
  * the home / commercial switch. Its own component so the homepage redesign,
  * which has its own header, can sit under the same strip as every other page.
  */
-export function SiteModeStrip() {
+/** `tabs={false}` drops the home / commercial switch, as the homepage redesign does. */
+export function SiteModeStrip({ tabs = true }: { tabs?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
@@ -1071,7 +1072,7 @@ export function SiteModeStrip() {
         lets either one cross over whenever they like, which an interstitial
         that demands the choice before showing anything cannot do without
         costing rankings and the visitors who were closest to enquiring. */}
-    <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}`}>
+    <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}${tabs ? "" : " sitemode--notabs"}`}>
       {/* No label any more. The two tabs say what they are; a caption in front
           of them just made the control smaller to fit the row. The switch
           sits in the corner, and the run of empty strip beside it carries
@@ -1093,7 +1094,7 @@ export function SiteModeStrip() {
             <span className="sitemode__emergdot" aria-hidden="true" />
             24/7 emergency gas &amp; hot water
           </a>
-        <nav className="sitemode__tabs" aria-label="Residential or commercial">
+        {tabs && <nav className="sitemode__tabs" aria-label="Residential or commercial">
           <Link
             href="/"
             className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
@@ -1110,7 +1111,7 @@ export function SiteModeStrip() {
           >
             Business &amp; commercial
           </Link>
-        </nav>
+        </nav>}
         </div>
       </div>
     </div>

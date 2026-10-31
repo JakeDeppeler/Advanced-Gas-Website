@@ -65,7 +65,7 @@ export default async function HomePage() {
   return (
     <>
     {/* Outside .ag: the strip carries the rest of the site's styles, which .ag's link colours would override. */}
-    <SiteModeStrip />
+    <SiteModeStrip tabs={false} />
     <div className="ag" id="top" data-no-reveal>
       <HomeHeader />
       {/* ===== HERO ===== */}

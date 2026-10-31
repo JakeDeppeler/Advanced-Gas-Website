@@ -83,7 +83,7 @@
 .ag .hbar__logo{display:flex;align-items:center;flex:none}
 /* public/advanced-gas-logo-clear.webp: the site logo with its white made
    transparent and trimmed, so it sits on the see-through header. */
-.ag .alogo{display:block;height:44px}
+.ag .alogo{display:block;height:40px}
 .ag .alogo img{display:block;height:100%;width:auto}
 .ag .alogo--sm{height:32px}
 .ag .alogo--ft{height:38px}
@@ -142,6 +142,32 @@
 @media (max-width:1100px){.ag .menubtn{display:grid}.ag .navx{display:none !important}}
 /* On a phone the bar keeps the same proportions at a size that leaves the screen to the page. */
 @media (max-width:600px){.ag .ahdr{padding:10px 12px 0}.ag .hbar{padding:0 10px 0 14px;min-height:72px}.ag .ahdr.is-solid .hbar{padding:0 14px 0 16px}.ag .alogo{height:36px}.ag .hquote{padding:0 14px;font-size:13.5px;min-height:48px}.ag .menubtn{width:48px;height:48px}}
+/* Homepage: a rounded bar floating over the hero, as wide as the page's content
+   plus its own padding, so the logo lines up over the headline and the
+   buttons over the form. The wrapper is sticky with no height: the bar rides
+   down with the page without taking room from the hero under it. */
+.ag .ahdr--pill{position:sticky;top:0;height:0;padding:0}
+/* Pushed down with a transform rather than a margin: a margin collapses
+   through the zero-height wrapper and the bar would stick flush to the top. */
+.ag .ahdr--pill .hbar{width:min(1256px,calc(100% - 24px));margin:0 auto;transform:translateY(12px);min-height:72px;padding:0 20px;border-radius:12px;border:1px solid rgba(255,255,255,.6);box-shadow:0 18px 40px -24px rgba(2,6,26,.55)}
+.ag .ahdr--pill .hbar::before{background:rgba(255,255,255,.88)}
+.ag .ahdr--pill .hd__top::after{bottom:18px}
+.ag .ahdr--pill .hmega{border-radius:0 0 12px 12px}
+/* The wrapper has no height, so the phone menu is placed under the bar itself. */
+.ag .ahdr--pill .mmenu{top:84px}
+.ag .ahdr--pill + .ahero,.ag .ahdr--pill ~ .ahero{padding-top:84px}
+@media (max-width:600px){.ag .ahdr--pill .hbar{min-height:64px;padding:0 8px 0 14px;transform:translateY(10px)}.ag .ahdr--pill ~ .ahero{padding-top:74px}}
+/* About, Reviews and Areas: one short dropdown under the tab. */
+.ag .hd--list{position:relative}
+.ag .hlist{position:absolute;left:0;top:100%;width:280px;background:#fff;border-radius:12px;padding:8px;border:1px solid var(--line);box-shadow:0 24px 50px -20px rgba(5,10,48,.45);display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility .15s;z-index:5}
+.ag .hd--list:hover .hlist,.ag .hd--list:focus-within .hlist{opacity:1;visibility:visible;transform:none}
+.ag .hd--list.is-shut .hlist{opacity:0;visibility:hidden}
+.ag .hlist__item{display:flex;flex-direction:column;gap:1px;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--navy)}
+.ag .hlist__item:hover{background:#F3F4F7;color:var(--navy)}
+.ag .hlist__item strong{font-size:14.5px}
+.ag .hlist__item span{font-size:12.5px;color:var(--ink3)}
+.ag .mmenu__list{display:flex;flex-direction:column;gap:2px}
+
 /* /find pages: a plain white bar flush to the top, stuck there while the page scrolls. */
 .ag .ahdr--flat{position:sticky;padding:0}
 .ag .ahdr--flat .hbar,.ag .ahdr--flat.is-solid .hbar{border-radius:0;border-width:0 0 1px;border-color:var(--line);box-shadow:none;min-height:86px;padding:0 max(24px,calc((100% - 1216px) / 2))}
@@ -159,7 +185,7 @@
 .ag .ahero__eye{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.92)}
 .ag .ahero__eye span{width:7px;height:7px;border-radius:50%;background:var(--or2);flex:none}
 .ag .ahero__h1{font-family:var(--disp);font-size:clamp(48px,5.6vw,80px);font-weight:900;line-height:.98;letter-spacing:-.035em;color:#fff}
-.ag .ahero__h1 span{color:var(--or2)}
+.ag .ahero__h1 span{color:var(--sky2)}
 .ag .ahero__p{margin:0;font-size:18px;line-height:1.55;color:rgba(255,255,255,.9);max-width:34rem}
 .ag .ahero__ctas{display:flex;flex-wrap:wrap;gap:10px}
 .ag .ahero__trust{align-self:flex-start;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:4px}
