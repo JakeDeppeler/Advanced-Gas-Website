@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES, FSVC_SERVICE_INDEX,
+  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES,
   findSystem, answerChips, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
   type Answers,
 } from "@/lib/homepage/data";
@@ -113,7 +113,7 @@ export function Finder() {
                     <CatTileBody photo={k.photo} alt={k.alt} pos={k.pos} fg={k.fg} icon={k.icon} label={k.label} sub={k.sub} />
                   </button>
                 ))}
-                <button type="button" className="atile anim" style={{ animationDelay: "0.21s" }} onClick={() => sendIntent({ kind: "quote", service: FSVC_SERVICE_INDEX }, "quote")}>
+                <button type="button" className="atile anim" style={{ animationDelay: "0.21s" }} onClick={() => sendIntent({ kind: "quote" }, "quote")}>
                   <CatTileBody photo={PHOTO.evapService} alt="Evaporative cooler being serviced on a roof" pos="center 45%" fg="#050A30" icon={ICON.wrench} label="Services" sub="Repairs, gas & plumbing, commercial" />
                 </button>
               </div>

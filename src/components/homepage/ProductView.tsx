@@ -6,9 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
   findSystem, galleryFor, specRows, answersFrom, answersQuery, findHref, bookHref, productHref, money, weekly,
-  isHeatPump, isNewBuildHeatPump, PRODUCT_FAQS, SPEC_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
+  isHeatPump, isNewBuildHeatPump, PRODUCT_FAQS, SPEC_NOTE, SIZE_NOTE, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
   reviewTitle, modelForAnswer, installTime as installTimeOf, type Answers,
 } from "@/lib/homepage/data";
+import { LEARN, BOOKING_STEPS } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
 
@@ -22,6 +23,9 @@ export type PModel = {
   badges: Badge[];
   /** The figures that change between sizes, for the Model card. */
   keys: { label: string; value: string }[];
+  /** The catalogue's own feature and "why we install" lists, where it has them. */
+  features?: string[];
+  why?: string[];
 };
 export type PBrand = { name: string; page?: string; site?: { label: string; href: string } };
 
@@ -95,15 +99,33 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     ? model.keys
     : size ? [{ label: "Typical size", value: size.spec ?? size.label }] : [];
 
-  function showPhoto(i: number) {
-    setGi(i);
-    document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const learn = LEARN[sys.slug];
+  const steps = BOOKING_STEPS(installTimeOf(sys));
+  // A model's own record beats the option's feature list: where the model
+  // states its noise, an option line quoting a different dBA figure goes, so
+  // the page never shows two numbers for the same thing.
+  const statesSound = !!model?.specs.some((x) => /sound/i.test(x.label));
+  const optionLines = feats.filter((f) => !(statesSound && /dBA/.test(f)));
+  const included = [...optionLines, "Free site check and a fixed price in writing", "Installed by our own crew", "Compliance certificate emailed within 24 hours", "6 years on our workmanship"];
+  const whyLines = model?.why?.length ? model.why : model?.features?.length ? model.features : included;
+  // How it works shows one of our installs where there is one; the product shot is already the hero.
+  const howImg = gal.find((x) => x.kind === "c") ?? gal[0];
+  const glance = model ? model.specs.filter((x) => !/warranty|refrigerant/i.test(x.label)).slice(0, 4) : [];
+  const sizeOn = (i: number) => (models.length ? modelForAnswer(models, sys.sizes[i].spec) === mi && !!sys.sizes[i].spec : ans.size === i);
+  const tabs = [
+    ["overview", "Overview"], ...(learn ? [["how", "How it works"], ["fit", "Is it right for you?"]] : []),
+    ["sizes", "Sizes"], ["specs", "Specs"], ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
+  ] as const;
+
+  function pickSize(i: number) {
+    // A row in the size guide picks the model that fits it, the same way the finder's answer does.
+    setSize(i);
+    if (models.length) { setPicked(null); syncUrl({ ...ans, size: i }, null); }
   }
 
   return (
-    <div className="pp" id="product">
+    <div className="pp px" id="product">
       <Suspense fallback={null}><AnswersFromUrl system={system} onAnswers={(a, m) => { setAns(a); if (m && models.some((x) => x.slug === m)) setPicked(m); }} /></Suspense>
-      {/* Breadcrumbs on a light grey bar under the header, as a manufacturer's page has them. */}
       <nav className="ppx__crumbbar" aria-label="Breadcrumb">
         <div className="wrap ppx__crumbin">
           <ol className="pp__crumbs">
@@ -116,55 +138,23 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
         </div>
       </nav>
 
-      <section className="ppx__hero" ref={heroRef}>
-        <div className="ppx__photo">
-          <Image src={hero.src} alt={hero.alt} fill priority sizes="100vw" style={{ objectPosition: hero.pos }} />
-          <span className="ppx__scrim" aria-hidden="true" />
-          {hero.ours && <span className="ppx__cap">One of our installs</span>}
-          <div className="wrap ppx__title">
-            <span className="ppx__brand">{t.brand} · {t.tier} option</span>
-            <h1 className="ppx__h1">{t.model}</h1>
-          </div>
-        </div>
-
-        <div className="wrap ppx__low">
-          <div className="ppx__left">
+      {/* Product on the right, everything needed to choose it on the left:
+          the gallery lives in the hero, so there's no separate photo section. */}
+      <section className="pxh" ref={heroRef}>
+        <div className="wrap pxh__in">
+          <div className="pxh__copy">
+            <span className="pxh__eye"><i style={{ background: TONES[ti] }} />{t.tier} option · {sys.label}</span>
+            <span className="pxh__brand">{t.brand}</span>
+            <h1 className="pxh__h1">{t.model}</h1>
+            <p className="pxh__best">{model?.bestFor ?? sys.sub}</p>
             {badges.length > 0 && (
-              <ul className="ppx__badges" aria-label="At a glance">
-                {badges.map((b) => (
-                  <li key={b.kind} className={`ppx__badge ppx__badge--${b.kind}`}><strong>{b.big}</strong><span>{b.small}</span></li>
-                ))}
+              <ul className="pxh__badges" aria-label="At a glance">
+                {badges.map((b) => <li key={b.kind} className={`pxh__badge pxh__badge--${b.kind}`}><strong>{b.big}</strong> {b.small}</li>)}
               </ul>
             )}
 
-            <div className="ppx__card">
-              {/* The size's own "ideal for" line, so it changes with the tab and
-                  can't contradict the figures in the Model card below. */}
-              <h2 className="ppx__head">{model?.bestFor ?? feats[0] ?? sys.sub}</h2>
-              <p className="ppx__desc">{model?.take ? firstLines(model.take) : `${sys.sub}. ${feats.slice(1).join(". ")}`}</p>
-              <div className="ppx__thumbs">
-                {gal.map((x, i) => (
-                  <button key={x.src} type="button" className={`ppx__thumb${x.kind === "p" ? " ppx__thumb--prod" : ""}`} onClick={() => showPhoto(i)} aria-label={`See photo ${i + 1}: ${x.alt}`}>
-                    <Image src={x.src} alt="" fill sizes="64px" />
-                  </button>
-                ))}
-              </div>
-              <div className="ppx__price">
-                <strong>{known ? `From ${money(t.price!)}` : "Priced at your site check"}</strong>
-                <span>{known ? `installed, includes GST${hp ? " and the VEU rebate" : ""}` : "Free site check, then a fixed price in writing"}</span>
-              </div>
-              {isNewBuildHeatPump(sys, ans) && (
-                <p className="find__veu" style={{ margin: 0 }}>The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
-              )}
-            </div>
-
-            <div className="ppx__model">
-              <div className="ppx__modelhead">
-                <span className="ppx__modellbl" id="pm-size">{models.length ? "Model" : sys.q.replace("?", "")}</span>
-                <dl className="ppx__keys" aria-live="polite">
-                  {modelKeys.map((k) => <div key={k.label}><dt>{k.label}</dt><dd>{k.value}</dd></div>)}
-                </dl>
-              </div>
+            <div className="pxh__pick">
+              <span className="pxh__picklbl" id="pm-size">{models.length ? "Choose a size" : sys.q}</span>
               <div className="ppx__tabs" role="group" aria-labelledby="pm-size">
                 {models.length > 0
                   ? models.map((m, i) => (
@@ -174,39 +164,193 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
                     <button key={z.label} type="button" className={`ppx__tab${i === ans.size ? " ppx__tab--on" : ""}`} onClick={() => setSize(i)} aria-pressed={i === ans.size}>{z.label}</button>
                   ))}
               </div>
-              {model && (
-                <div className="ppx__modelfoot">
-                  <span>{model.code}</span>
-                  <Link href={model.href}>Full {model.code} details →</Link>
-                </div>
+              {modelKeys.length > 0 && (
+                <dl className="pxh__keys" aria-live="polite">
+                  {modelKeys.map((k) => <div key={k.label}><dt>{k.label}</dt><dd>{k.value}</dd></div>)}
+                </dl>
               )}
+            </div>
+
+            <div className="pxh__buy">
+              <div className="pxh__price">
+                <strong>{known ? `From ${money(t.price!)}` : "Priced at your site check"}</strong>
+                <span>{known ? `installed, includes GST${hp ? " and the VEU rebate" : ""}` : "Free site check, then a fixed price in writing"}</span>
+              </div>
+              <div className="pxh__btns">
+                <Link href={book} className="abtn abtn--or abtn--flat">Book this install →</Link>
+                <a href="tel:+61359478000" data-call-from="product-hero" className="abtn abtn--ghost">Call (03) 5947 8000</a>
+              </div>
+              {isNewBuildHeatPump(sys, ans) && (
+                <p className="find__veu" style={{ margin: 0 }}>The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
+              )}
+              <ul className="pxh__promise">
+                <li>Free site check</li><li>Fixed price in writing</li><li>6-yr workmanship warranty</li>
+              </ul>
             </div>
           </div>
 
-          <div className="ppx__acts">
-            <Link href={book} className="ppx__act ppx__act--book">
-              <span className="ppx__actt"><small>Free site check, price in writing</small><strong>Book this install</strong></span>
-              <i aria-hidden="true">→</i>
-            </Link>
-            <a href="tel:+61359478000" data-call-from="product-hero" className="ppx__act">
-              <span className="ppx__actt"><small>Talk to our team</small><strong>Call (03) 5947 8000</strong></span>
-              <i aria-hidden="true">→</i>
-            </a>
+          <div className="pxh__stage">
+            <div className={`pxh__main${cur.kind === "p" ? " pxh__main--prod" : ""}`}>
+              <Image key={cur.src} src={cur.src} alt={cur.alt} fill priority={g === 0} sizes="(max-width: 900px) 100vw, 760px" />
+              {cur.kind === "c" && <span className="pm__cap">One of our installs</span>}
+              {gal.length > 1 && (
+                <>
+                  <span className="pm__count">{g + 1} / {gal.length}</span>
+                  <button type="button" className="pm__nav pm__nav--l" onClick={() => setGi((g - 1 + gal.length) % gal.length)} aria-label="Previous photo">←</button>
+                  <button type="button" className="pm__nav pm__nav--r" onClick={() => setGi((g + 1) % gal.length)} aria-label="Next photo">→</button>
+                </>
+              )}
+            </div>
+            {gal.length > 1 && (
+              <div className="pxh__thumbs">
+                {gal.map((x, i) => (
+                  <button key={x.src} type="button" className={`pxh__th${x.kind === "p" ? " pxh__th--prod" : ""}${i === g ? " pxh__th--on" : ""}`} onClick={() => setGi(i)} aria-label={`Photo ${i + 1}: ${x.alt}`} aria-pressed={i === g}>
+                    <Image src={x.src} alt="" fill sizes="110px" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* What the option includes, and the pay options when finance is on. */}
-      <section className="ppx__inc">
-        <div className="wrap ppx__incin">
-          <ul className="pp__hl">
-            {[...feats, "Free site check and a fixed price in writing"].map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}
-          </ul>
-          <div className="pp__trust">
-            <span><b>6 yrs</b>workmanship warranty</span>
-            <span><b>24 hrs</b>compliance certificate</span>
-            <span><b>Fixed</b>price in writing</span>
+      <nav className="pxt" aria-label="On this page">
+        <div className="wrap pxt__in">
+          {tabs.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+        </div>
+      </nav>
+
+      {/* Overview: our take in our own words, then the numbers behind it. */}
+      <section className="pxs pxo" id="overview">
+        <div className="wrap pxo__in">
+          <div className="pxo__take">
+            <span className="aeye"><i /> Our take</span>
+            <p className="pxo__quote">{model?.take ?? `${sys.sub}. ${optionLines.join(". ")}.`}</p>
+            <span className="pxo__by">The Advanced Gas &amp; Aircon team</span>
           </div>
+          <div className="pxo__why">
+            <h2 className="pxo__h">{model?.why?.length ? "Why we install it" : model?.features?.length ? "Features" : "What's included"}</h2>
+            <ul className="pp__hl">
+              {whyLines.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}
+            </ul>
+          </div>
+        </div>
+        {glance.length > 0 && (
+          <div className="wrap">
+            <dl className="pxg" aria-label={`${model!.code} at a glance`} key={model!.slug}>
+              {glance.map((x) => <div key={x.label}><dd>{x.value}</dd><dt>{x.label}</dt></div>)}
+            </dl>
+          </div>
+        )}
+      </section>
+
+      {learn && (
+        <section className="pxs pxs--cream" id="how">
+          <div className="wrap pxw">
+            <div className="pxw__lead">
+              <span className="aeye"><i /> How it works</span>
+              <h2 className="h2 h2--sm">How a {sys.label.toLowerCase()} works.</h2>
+              <div className={`pxw__img${howImg.kind === "c" ? " pxw__img--photo" : ""}`}>
+                <Image src={howImg.src} alt={howImg.alt} fill sizes="(max-width: 900px) 90vw, 560px" />
+                {howImg.kind === "c" && <span className="pm__cap">One of our installs</span>}
+              </div>
+            </div>
+            <ol className="pxw__steps">
+              {learn.how.map((x, i) => (
+                <li key={x.t}>
+                  <span className="pxw__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <div><h3>{x.t}</h3><p>{x.d}</p></div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+      {learn && (
+        <section className="pxs" id="fit">
+          <div className="wrap pp__col">
+            <div className="pp__lead">
+              <span className="aeye"><i /> Is it right for you?</span>
+              <h2 className="h2 h2--sm">Who this suits.</h2>
+            </div>
+            <div className="pxf">
+              <div className="pxf__card pxf__card--yes">
+                <h3><span aria-hidden="true">✓</span> A good fit if</h3>
+                <ul>{learn.good.map((x) => <li key={x}>{x}</li>)}</ul>
+              </div>
+              <div className="pxf__card pxf__card--alt">
+                <h3><span aria-hidden="true">↔</span> Look at another option if</h3>
+                <ul>
+                  {learn.alt.map((x) => (
+                    <li key={x.if}>
+                      <span>…{x.if}</span>
+                      <Link href={`/?find=${x.go}#find`}>{x.label} →</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="pxs pxs--sky" id="sizes">
+        <div className="wrap pp__two">
+          <div className="pp__lead">
+            <span className="aeye"><i /> Sizes</span>
+            <h2 className="h2 h2--sm">Which size do you need?</h2>
+            {/* A heat-load check is an aircon and heating thing; hot water is sized off the household. */}
+            <p>{cat.id === "hw" ? "A rough guide only. We confirm the right size at the free site check." : SIZE_NOTE}</p>
+          </div>
+          <div className="pxz" role="group" aria-label={sys.q}>
+            {sys.sizes.map((z, i) => (
+              <button key={z.label} type="button" className={`pxz__row${sizeOn(i) ? " pxz__row--on" : ""}`} onClick={() => pickSize(i)} aria-pressed={sizeOn(i)}>
+                {z.n ? (
+                  <span className="qf__bars" aria-hidden="true">{[1, 2, 3].map((b) => <i key={b} className={b <= Math.min(z.n ?? 0, 3) ? "on" : ""} />)}</span>
+                ) : null}
+                <span className="pxz__t"><strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</span>
+                {z.spec && <span className="pxz__spec">{z.spec}</span>}
+                {sizeOn(i) && <span className="pxz__on">Showing</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="pxs" id="specs">
+        <div className="wrap pp__two">
+          <div className="pp__lead">
+            <span className="aeye"><i /> Specifications</span>
+            <h2 className="h2 h2--sm">{model ? model.name : `${t.brand} ${t.model}`}</h2>
+            <p>{model ? `${t.brand}'s published figures for the ${model.code}. The full spec sheet and manuals come with your written quote.` : SPEC_NOTE}</p>
+            <div className="pxr">
+              {model && <Link href={model.href}>Full {model.code} page →</Link>}
+              {brand?.page && <Link href={brand.page}>Why we fit {brand.name} →</Link>}
+              {brand?.site && <a href={brand.site.href} target="_blank" rel="noopener noreferrer">{brand.name} brochures and manuals ↗</a>}
+            </div>
+          </div>
+          <dl className="pp__specs" key={model?.slug ?? "range"}>
+            {(model ? modelRows(model, cat.label, sys.label, installTimeOf(sys), size ? size.label + (size.spec ? ` (${size.spec})` : "") : null) : specRows(cat, sys, t, ans))
+              .map((r) => <div key={r.k} className="pp__row"><dt>{r.k}</dt><dd>{r.v}</dd></div>)}
+          </dl>
+        </div>
+      </section>
+
+      <section className="pxs pxs--navy" id="booking">
+        <div className="wrap pp__col">
+          <div className="pxb__head">
+            <div className="pp__lead">
+              <span className="aeye aeye--dark"><i /> What happens next</span>
+              <h2 className="h2 h2--sm">From booking to running.</h2>
+            </div>
+            <Link href={book} className="abtn abtn--or abtn--flat">Book this install →</Link>
+          </div>
+          <ol className="pxb">
+            {steps.map((x, i) => (
+              <li key={x.t}><span className="pxb__n" aria-hidden="true">{i + 1}</span><h3>{x.t}</h3><p>{x.d}</p></li>
+            ))}
+          </ol>
           {SHOW_FINANCE && (
             <div className="pm__fins">
               {FINS.map((f, i) => (
@@ -222,92 +366,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
         </div>
       </section>
 
-      <section className="pp__sec" id="gallery">
-        <div className="wrap pp__two">
-          <div className="pp__lead">
-            <h2 className="h2 h2--sm">Photos</h2>
-            <p>The {t.brand} {t.model}, and some of the installs we&apos;ve done.</p>
-          </div>
-          <div className="pp__gal">
-            <div className={`pm__main${cur.kind === "p" ? " pm__main--prod" : ""}`}>
-              <Image key={cur.src} src={cur.src} alt={cur.alt} fill sizes="(max-width: 900px) 100vw, 720px" />
-              <span className="pm__count">{g + 1} / {gal.length}</span>
-              {cur.kind === "c" && <span className="pm__cap">One of our installs</span>}
-              {gal.length > 1 && (
-                <>
-                  <button type="button" className="pm__nav pm__nav--l" onClick={() => setGi((g - 1 + gal.length) % gal.length)} aria-label="Previous photo">←</button>
-                  <button type="button" className="pm__nav pm__nav--r" onClick={() => setGi((g + 1) % gal.length)} aria-label="Next photo">→</button>
-                </>
-              )}
-            </div>
-            <div className="pm__thumbs">
-              {gal.map((x, i) => (
-                <button key={x.src} type="button" className={`pm__th${x.kind === "p" ? " pm__th--prod" : ""}${i === g ? " pm__th--on" : ""}`} onClick={() => setGi(i)} aria-label={`Photo ${i + 1}: ${x.alt}`} aria-pressed={i === g}>
-                  <Image src={x.src} alt="" fill sizes="96px" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="pp__sec">
-        <div className="wrap pp__two">
-          <div className="pp__lead">
-            <span className="aeye"><i /> Specifications</span>
-            <h2 className="h2 h2--sm">{model ? model.name : `${t.brand} ${t.model}`}</h2>
-            <p>{model ? `${t.brand}'s published figures for the ${model.code}. The full spec sheet and manuals come with your written quote.` : SPEC_NOTE}</p>
-          </div>
-          <dl className="pp__specs" key={model?.slug ?? "range"}>
-            {(model ? modelRows(model, cat.label, sys.label, installTimeOf(sys), size ? size.label + (size.spec ? ` (${size.spec})` : "") : null) : specRows(cat, sys, t, ans))
-              .map((r) => <div key={r.k} className="pp__row"><dt>{r.k}</dt><dd>{r.v}</dd></div>)}
-          </dl>
-        </div>
-      </section>
-
-      <section className="pp__sec pp__sec--grey">
-        <div className="wrap pp__col">
-          <div className="pp__lead">
-            <span className="aeye"><i /> Resources</span>
-            <h2 className="h2 h2--sm">Everything about this one.</h2>
-          </div>
-          <div className="pres">
-            {model && (
-              <Link href={model.href} className="pres__card">
-                <span className="pres__tag">Model page</span>
-                <strong>{model.name}</strong>
-                <span className="pres__go">Full details and specs <i aria-hidden="true">→</i></span>
-              </Link>
-            )}
-            {brand?.page && (
-              <Link href={brand.page} className="pres__card">
-                <span className="pres__tag">Brand</span>
-                <strong>Why we fit {brand.name}</strong>
-                <span className="pres__go">Our honest take <i aria-hidden="true">→</i></span>
-              </Link>
-            )}
-            {brand?.site && (
-              <a href={brand.site.href} target="_blank" rel="noopener noreferrer" className="pres__card">
-                <span className="pres__tag">Manufacturer</span>
-                <strong>{brand.name} website</strong>
-                <span className="pres__go">Brochures and manuals <i aria-hidden="true">↗</i></span>
-              </a>
-            )}
-            <Link href={book} className="pres__card">
-              <span className="pres__tag">Spec sheet</span>
-              <strong>Spec sheet &amp; manuals</strong>
-              <span className="pres__go">Sent with your written quote <i aria-hidden="true">→</i></span>
-            </Link>
-            <div className="pres__card pres__card--plain">
-              <span className="pres__tag">Warranty</span>
-              <strong>Manufacturer warranty + 6 years on our work</strong>
-              <span className="pres__go">Compliance certificate within 24 hours</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="pp__sec pp__sec--sky">
+      <section className="pxs pxs--sky" id="faqs">
         <div className="wrap pp__two">
           <div className="pp__lead">
             <span className="aeye"><i /> Questions about this one</span>
@@ -320,7 +379,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
         </div>
       </section>
 
-      <section className="pp__sec">
+      <section className="pxs" id="reviews">
         <div className="wrap pp__col">
           <div className="pp__revhead">
             <div className="pp__lead">
@@ -345,23 +404,25 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
         </div>
       </section>
 
-      <section className="pp__sec pp__sec--cream">
-        <div className="wrap pp__col" style={{ gap: 18 }}>
-          <h2 className="h2" style={{ fontSize: "clamp(26px, 2.6vw, 34px)" }}>Compare the other options</h2>
-          <div className="pm__othergrid">
+      <section className="pxs pxs--cream pxc">
+        <div className="wrap pp__col">
+          <div className="pxb__head">
+            <h2 className="h2 h2--sm">The other {sys.label.toLowerCase()} options</h2>
+            <Link href={findHref(sys, ans)} className="ppx__back">← Back to your options</Link>
+          </div>
+          <div className="pxc__grid">
             {others.map(([o, i]) => (
-              <Link key={o.slug} href={productHref(sys, o, ans)} className="pm__other">
-                <span className="pm__otherimg"><Image src={o.img} alt="" fill sizes="72px" /></span>
-                <span className="pm__othert">
+              <Link key={o.slug} href={productHref(sys, o, ans)} className="pxc__card">
+                <span className="pxc__img"><Image src={o.img} alt="" fill sizes="(max-width: 600px) 90vw, 320px" /></span>
+                <span className="pxc__t">
                   <span style={{ color: TONES[i] }}>{o.tier}</span>
                   <strong>{o.brand} {o.model}</strong>
-                  <em>{typeof o.price === "number" ? `${SHOW_FINANCE ? `From $${weekly(o.price, FINANCE_MONTHS)}/wk · ` : "From "}${money(o.price)}` : "At quote"}</em>
+                  <em>{typeof o.price === "number" ? `${SHOW_FINANCE ? `From $${weekly(o.price, FINANCE_MONTHS)}/wk · ` : "From "}${money(o.price)}` : "Priced at your site check"}</em>
                 </span>
                 <i aria-hidden="true">→</i>
               </Link>
             ))}
           </div>
-          <Link href={findHref(sys, ans)} className="pp__back" style={{ alignSelf: "flex-start" }}>← Back to your options</Link>
         </div>
       </section>
 
@@ -400,11 +461,4 @@ function modelRows(m: PModel, catLabel: string, sysLabel: string, install: strin
   if (!has(/warranty/i)) rows.push({ k: "Warranty", v: "Manufacturer warranty on your quote + 6 years on our workmanship" });
   rows.push({ k: "Compliance certificate", v: "Emailed within 24 hours of install" });
   return rows;
-}
-
-/** The first two sentences of our take on a model: the card under the photo has room for two lines. */
-function firstLines(text: string) {
-  // A stop only ends a sentence before a space and a capital, so "2.5 kW" stays whole.
-  const parts = text.match(/[\s\S]*?[.!?](?=\s+[A-Z(]|\s*$)/g) ?? [text];
-  return parts.slice(0, 2).join("").trim();
 }

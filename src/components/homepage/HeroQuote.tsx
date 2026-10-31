@@ -10,8 +10,8 @@ import { onIntent } from "@/lib/homepage/intent";
 import { readUtm, trackLead } from "@/lib/track";
 
 /**
- * The hero quote form: what you need → that system's questions → when →
- * whose home → details → photos.
+ * The hero quote form: what it is → which type → install, service or repair
+ * → that job's questions → when → whose home → details → photos.
  *
  * The lead is saved when they tap Next on their details, before the photo
  * step. Jake's rule: a half-finished enquiry must still reach the team, and
@@ -28,6 +28,7 @@ const MAX_PHOTOS = 4;
 export function HeroQuote() {
   const [svc, setSvc] = useState<number | null>(null);
   const [type, setType] = useState<number | null>(null);
+  const [intent, setIntent] = useState<number | null>(null);
   const [ans, setAns] = useState<Answers>({});
   const [pos, setPos] = useState(0);
   const [booked, setBooked] = useState<Booked | null>(null);
@@ -50,29 +51,31 @@ export function HeroQuote() {
 
   const fs = svc == null ? null : FSVC[svc];
   const ft = fs && type != null ? fs.types[type] : null;
-  const typeQs: Question[] = booked ? [] : ft ? ft.qs : [];
+  const fi = ft && intent != null ? ft.intents[intent] : null;
+  const typeQs: Question[] = booked ? [] : fi ? fi.qs : [];
   const asksUrgent = typeQs.some((q) => q.id === "urgent");
-  const biz = ft?.biz ?? fs?.biz ?? false;
+  const biz = fi?.biz ?? fs?.biz ?? false;
   const tailQs: Question[] = [...(asksUrgent ? [] : [QB.when]), biz ? QB.ownBiz : QB.own];
   const allQs = [...typeQs, ...tailQs];
 
   const steps = useMemo(() => {
-    let s: string[] = booked ? [] : ["svc", ...(fs ? ["type"] : [])];
-    if (booked || ft) s = [...s, ...allQs.map((q) => `q:${q.id}`), "details", "photo", "done"];
+    let s: string[] = booked ? [] : ["svc", ...(fs ? ["type"] : []), ...(ft && ft.intents.length > 1 ? ["intent"] : [])];
+    if (booked || fi) s = [...s, ...allQs.map((q) => `q:${q.id}`), "details", "photo", "done"];
     return s;
-    // allQs is derived from these three.
+    // allQs is derived from these.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [booked, fs, ft]);
+  }, [booked, fs, ft, fi]);
 
   const at = Math.min(pos, Math.max(steps.length - 1, 0));
   const cur = steps[at] ?? "svc";
   const curQ = cur.startsWith("q:") ? allQs.find((q) => `q:${q.id}` === cur) ?? null : null;
-  const known = !!(booked || ft);
+  const known = !!(booked || fi);
   const total = known ? steps.length - 1 : 6;
 
   const label = (q: Question) => (ans[q.id] == null ? null : q.opts[ans[q.id]].label);
-  const chips = [booked?.pick, ...(booked ? [] : [fs?.t, ft?.label]), ...allQs.map(label)].filter((x): x is string => !!x);
-  const summary = booked ? booked.pick : [fs?.t, ft?.label, ft && typeQs[0] ? label(typeQs[0]) : null].filter(Boolean).join(" · ");
+  const job = [fs?.t, ft?.label, ft && ft.intents.length > 1 ? fi?.label : null].filter((x): x is string => !!x);
+  const chips = [booked?.pick, ...(booked ? [] : job), ...allQs.map(label)].filter((x): x is string => !!x);
+  const summary = booked ? booked.pick : [...job, fi && typeQs[0] ? label(typeQs[0]) : null].filter(Boolean).join(" · ");
 
   // Arrivals from the finder ("Book →"), a /find product page, or a card that
   // starts the form at a service.
@@ -87,8 +90,7 @@ export function HeroQuote() {
     }
     if (i.kind === "quote") {
       reset();
-      setSvc(i.service);
-      setPos(1);
+      if (i.service != null) { setSvc(i.service); setPos(1); }
       return true;
     }
     return false;
@@ -96,7 +98,7 @@ export function HeroQuote() {
   }), []);
 
   function reset() {
-    setSvc(null); setType(null); setAns({}); setPos(0); setBooked(null);
+    setSvc(null); setType(null); setIntent(null); setAns({}); setPos(0); setBooked(null);
     setLeadId(null); setPhotos([]); setPhotoErr(null); setPhotosLost(false); setSaveFailed(false); setNudge(false);
   }
 
@@ -115,9 +117,10 @@ export function HeroQuote() {
   /** Which `service` the lead is filed under. Matches the old form's ids where there is one. */
   function service(): string {
     if (booked) return booked.sys.service;
+    if (fi?.service) return fi.service;
     const sys = ft?.system ? findSystem(ft.system) : null;
     if (sys) return sys.sys.service;
-    return ft?.service ?? fs?.service ?? "other";
+    return fs?.service ?? "other";
   }
 
   async function saveLead(e: React.FormEvent) {
@@ -144,7 +147,7 @@ export function HeroQuote() {
           summary: [summary, ...Object.values(answers).filter((v) => !summary.includes(v))].join(" · "),
           details: {
             answers,
-            ...(booked ? { pick: booked.pick, findPage: `/find/${booked.sys.slug}/${booked.tierSlug}${booked.model ? `?model=${booked.model}` : ""}` } : { job: [fs?.t, ft?.label].filter(Boolean).join(" · ") }),
+            ...(booked ? { pick: booked.pick, findPage: `/find/${booked.sys.slug}/${booked.tierSlug}${booked.model ? `?model=${booked.model}` : ""}` } : { job: job.join(" · ") }),
           },
           name: name.trim(), phone: phone.trim(), suburb: suburb.trim(), email: email.trim(),
           timing: when, propertyType: own,
@@ -236,7 +239,7 @@ export function HeroQuote() {
           <div className="qf__opts">
             {FSVC.map((x, i) => (
               <button key={x.t} type="button" className={`qf__opt${svc === i ? " qf__opt--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
-                onClick={() => { setSvc(i); setType(null); setAns({}); setBooked(null); go(1); }}>
+                onClick={() => { setSvc(i); setType(null); setIntent(null); setAns({}); setBooked(null); go(1); }}>
                 <span className="qf__ti" style={{ background: x.bg, color: x.fg }}><Svg d={x.icon} size={18} /></span>
                 <span className="qf__optt"><strong>{x.t}</strong><small>{x.s}</small></span>
                 <span className="qf__go" aria-hidden="true">→</span>
@@ -247,13 +250,12 @@ export function HeroQuote() {
       )}
 
       {cur === "type" && fs && (
-        <div className="qf__step">
+        <div className="qf__step qf__step--fill">
           <div><span className="qf__crumb">{fs.t}</span><h2 className="qf__h">{fs.q}</h2></div>
-          {/* Services has seven; a shorter picture keeps them inside the form's fixed height. */}
-          <div className={`qf__types${fs.types.length > 6 ? " qf__types--many" : ""}`}>
+          <div className={`qf__types${fs.types.length < 4 ? " qf__types--few" : ""}`}>
             {fs.types.map((y, i) => (
-              <button key={y.label} type="button" className="qf__type" style={{ animationDelay: `${i * 0.07}s` }}
-                onClick={() => { setType(i); setAns({}); go(2); }}>
+              <button key={y.label} type="button" className={`qf__type${type === i ? " qf__type--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
+                onClick={() => { setType(i); setIntent(y.intents.length === 1 ? 0 : null); setAns({}); go(2); }}>
                 <span className="qf__typeimg">
                   {y.img ? <Image src={y.img} alt="" fill sizes="180px" /> : <Svg d={y.icon ?? ""} size={34} stroke="#0C6F96" width={1.6} />}
                 </span>
@@ -264,10 +266,26 @@ export function HeroQuote() {
         </div>
       )}
 
+      {cur === "intent" && ft && (
+        <div className="qf__step qf__step--fill">
+          <div><span className="qf__crumb">{[fs?.t, ft.label].join(" · ")}</span><h2 className="qf__h">What do you need?</h2></div>
+          <div className="qf__opts">
+            {ft.intents.map((x, i) => (
+              <button key={x.label} type="button" className={`qf__opt qf__opt--big${intent === i ? " qf__opt--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
+                onClick={() => { setIntent(i); setAns({}); go(at + 1); }}>
+                <span className="qf__ti qf__ti--line"><Svg d={x.icon} size={20} /></span>
+                <span className="qf__optt"><strong>{x.label}</strong><small>{x.sub}</small></span>
+                <span className="qf__go" aria-hidden="true">→</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {curQ && (
-        <div className="qf__step" key={cur}>
+        <div className="qf__step qf__step--fill" key={cur}>
           <div>
-            <span className="qf__crumb">{booked ? `Your pick: ${booked.pick}` : [fs?.t, ft?.label].filter(Boolean).join(" · ")}</span>
+            <span className="qf__crumb">{booked ? `Your pick: ${booked.pick}` : job.join(" · ")}</span>
             <h2 className="qf__h">{curQ.q}</h2>
           </div>
           <div className="qf__opts">
@@ -289,7 +307,7 @@ export function HeroQuote() {
 
       {/* The card holds one height on every step; on the picking steps this
           sits at its foot, so the space under a short list reads as intended. */}
-      {(cur === "svc" || cur === "type" || curQ) && (
+      {(cur === "svc" || cur === "type" || cur === "intent" || curQ) && (
         <p className="qf__foot">Free quote, no obligation. Usually back within 12 business hours.</p>
       )}
 

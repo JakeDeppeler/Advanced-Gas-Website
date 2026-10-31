@@ -79,6 +79,8 @@ export const ICON = {
     "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z",
   home: "M3 11l9-7 9 7M5 10v10h14V10M10 20v-5h4v5",
   shield: "M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9 12l2 2 4-4",
+  plus: "M12 4v16M4 12h16",
+  alert: "M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
 };
 
 /* ------------------------------------------------------------ questions */
@@ -137,14 +139,12 @@ export const QB = {
   vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
   ductSys: { id: "ductsys", q: "What ducted system do you have?", opts: [o("Gas ducted heating"), o("Ducted reverse-cycle"), o("Evaporative cooling")] },
   age: { id: "age", q: "How old is the system?", opts: [o("Under 5 years"), o("5–10 years"), o("Over 10 years"), o("Not sure")] },
-  issue: { id: "issue", q: "What's happening?", opts: [o("Not working", "No heating, cooling or hot water"), o("Noisy, leaking or smells"), o("Error code on the screen"), o("Due for a service", "Clean and health check")] },
-  urgent: { id: "urgent", q: "How urgent is it?", opts: [o("Today, it's urgent", "No heating, cooling or hot water"), o("This week"), o("Just booking a service")] },
-  // What the separate Gas & plumbing and Commercial tiles used to ask by tile, now they sit under Services.
-  gasWhat: { id: "what", q: "What's the gas job for?", opts: [o("Gas heater or cooktop"), o("Gas hot water"), o("New gas line"), o("Leak or safety check", "Smell gas? Call us now")] },
-  site: { id: "site", q: "What kind of site?", opts: [o("Office or shop"), o("Rental property"), o("Strata or multi-unit")] },
-  gasJob: { id: "job", q: "What do you need?", opts: [o("New install", "Something new going in"), o("Repair or replace", "Fix or swap what's there"), o("Safety check", "CO test and leak check")] },
+  issue: { id: "issue", q: "What's happening?", opts: [o("Not working at all"), o("Not working properly", "Weak, slow or uneven"), o("Noisy, leaking or smells"), o("Error code on the screen")] },
+  urgent: { id: "urgent", q: "How urgent is it?", opts: [o("Today, it's urgent", "No heating, cooling or hot water"), o("This week"), o("No rush, whenever suits")] },
+  lastSvc: { id: "last", q: "When was it last serviced?", opts: [o("In the last year"), o("1–2 years ago"), o("Over 2 years ago"), o("Never, or not sure")] },
+  gasAppliance: { id: "what", q: "Which appliance?", opts: [o("Gas heater"), o("Cooktop or oven"), o("Something else")] },
+  gasUrgent: { id: "urgent", q: "Can you smell gas right now?", opts: [o("Yes", "Get everyone outside, then call us on (03) 5947 8000, 24/7"), o("No, I just want it checked")] },
   jobSize: { id: "size", q: "How big is the job?", opts: [{ label: "1–2 units", sub: "A shop or small office", spec: "Small", n: 1 }, { label: "3–10 units", sub: "A bigger site or a few rentals", spec: "Medium", n: 2 }, { label: "10+ units", sub: "Strata blocks and large sites", spec: "Large", n: 3 }] },
-  need: { id: "need", q: "What do you need?", opts: [o("New install"), o("Replace old units"), o("Servicing or a maintenance plan")] },
   when: { id: "when", q: "When do you need it done?", opts: [o("As soon as possible"), o("Within a month"), o("In 1–3 months"), o("Just getting prices")] },
   own: { id: "own", q: "Is this your home?", opts: [o("I own it and live there"), o("I'm a landlord", "For a rental property"), o("I'm renting", "We'll need the owner's OK"), o("Builder or new build")] },
   ownBiz: { id: "own", q: "Who are you?", opts: [o("Business owner"), o("Property or facility manager"), o("Strata manager"), o("Builder")] },
@@ -588,12 +588,18 @@ export const reviewTitle = (k: FaqKey) =>
 
 /* ------------------------------------------------------------ quote form */
 
+/** Install, service or repair: the third tap, which decides the questions that follow. */
+export type FormIntent = {
+  label: string; sub: string; icon: string; qs: Question[];
+  /** Overrides the `service` the lead is filed under; an install of a finder system files under that system. */
+  service?: string; biz?: boolean;
+};
 export type FormType = {
-  label: string; img?: string; icon?: string; qs: Question[];
+  label: string; img?: string; icon?: string;
+  /** One intent skips the step: a gas leak is only ever a leak check. */
+  intents: FormIntent[];
   /** The finder system this type is, when it is one. */
   system?: string;
-  /** Under Services the types file their leads differently: these override the tile's. */
-  service?: string; biz?: boolean;
 };
 export type FormService = {
   t: string; icon: string; bg: string; fg: string; q: string;
@@ -607,35 +613,50 @@ export type FormService = {
   cat?: Category["id"];
 };
 
-const SVCQ = [QB.issue, QB.age, QB.urgent];
-const ft = (label: string, img: string | null, icon: string | null, qs: Question[]): FormType => ({
-  label, ...(img ? { img } : {}), ...(icon ? { icon } : {}), qs,
-});
-const fromSystems = (c: Category): FormType[] => c.systems.map((s) => ({ label: s.label, img: s.img, qs: s.qs, system: s.slug }));
+const install = (qs: Question[], extra?: Partial<FormIntent>): FormIntent =>
+  ({ label: "New install or replacement", sub: "Something new, or swap out the old one", icon: ICON.plus, qs, ...extra });
+const servicing = (qs: Question[], extra?: Partial<FormIntent>): FormIntent =>
+  ({ label: "Service", sub: "A clean and health check", icon: ICON.wrench, qs, service: "service", ...extra });
+const repair = (qs: Question[], extra?: Partial<FormIntent>): FormIntent =>
+  ({ label: "Repair a problem", sub: "Not working, noisy, leaking or an error code", icon: ICON.alert, qs, service: "service", ...extra });
+
+// A finder system's own questions are all about sizing a new one, so only an
+// install asks them; a service or repair asks about the unit that's there.
+const fromSystems = (c: Category): FormType[] => c.systems.map((s) => ({
+  label: s.label, img: s.img, system: s.slug,
+  intents: [install(s.qs), servicing([QB.age, QB.lastSvc]), repair([QB.issue, QB.age, QB.urgent])],
+}));
 
 const catOf = (id: Category["id"]) => CATS.find((c) => c.id === id)!;
-const svcT = (label: string, img: string | null, icon: string | null, qs: Question[], service: string, biz?: boolean): FormType =>
-  ({ ...ft(label, img, icon, qs), service, ...(biz ? { biz } : {}) });
+const GAS = { service: "gas-plumbing" };
+const BIZ = { service: "commercial", biz: true };
+const site = (label: string, icon: string): FormType => ({
+  label, icon,
+  intents: [install([QB.jobSize], BIZ), servicing([QB.jobSize], { ...BIZ, sub: "Servicing or a maintenance plan" }), repair([QB.jobSize, QB.urgent], BIZ)],
+});
 
 /**
- * The quote form's first question: the header menu's four groups, in its
- * order and with its names. Services holds what the menu's Services does:
- * repairs, gas and plumbing, and commercial, each filed under the same
- * `service` its own tile used before.
+ * The quote form: what it is, which type, then install, service or repair,
+ * and only then the questions for that job. Asking the job before the
+ * questions is what lets a repair skip "how big is the room?".
  */
 export const FSVC: FormService[] = [
   { t: "Cooling", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", q: "Which type of cooling?", s: "Split, multi-head, ducted, evaporative", service: "split", cat: "air", types: fromSystems(catOf("air")) },
   { t: "Heating", icon: ICON.flame, bg: "#050A30", fg: "#fff", q: "Which type of heating?", s: "Gas ducted, reverse cycle, zoning", service: "gas-heating", cat: "heat", types: fromSystems(catOf("heat")) },
   { t: "Hot water", icon: ICON.drop, bg: "#C2521A", fg: "#fff", q: "Which type of hot water?", s: "Heat pumps and gas, VEU rebate applied", service: "hp", cat: "hw", types: fromSystems(catOf("hw")) },
-  { t: "Services", icon: ICON.wrench, bg: "#FDEEE6", fg: "#B04711", q: "What do you need?", s: "Repairs, gas & plumbing, commercial", service: "service", types: [
-    svcT("Split or multi-head repair", IMG.mitsuSplit, null, SVCQ, "service"), svcT("Ducted aircon repair", IMG.mitsuDucted, null, SVCQ, "service"),
-    svcT("Evaporative cooler service", IMG.evapClassic, null, SVCQ, "service"), svcT("Hot water repair", IMG.gasCf, null, SVCQ, "service"),
-    svcT("Gas heater service", IMG.brivisWombat, null, SVCQ, "service"),
-    svcT("Gas & plumbing", null, ICON.tap, [QB.gasWhat, QB.gasJob, QB.gasType], "gas-plumbing"),
-    svcT("Commercial & strata", null, ICON.building, [QB.site, QB.jobSize, QB.need], "commercial", true),
+  { t: "Gas & plumbing", icon: ICON.tap, bg: "#FDEEE6", fg: "#B04711", q: "What's the gas job?", s: "Appliances, gas lines, leak checks", service: "gas-plumbing", types: [
+    { label: "Gas appliance", icon: ICON.flame, intents: [
+      install([QB.gasAppliance, QB.gasType], GAS),
+      servicing([QB.gasAppliance, QB.gasType], { ...GAS, label: "Service or safety check", sub: "CO test and leak check" }),
+      repair([QB.gasAppliance, QB.issue, QB.urgent], GAS),
+    ] },
+    { label: "New gas line", icon: ICON.tap, intents: [install([QB.gasType], { ...GAS, label: "New gas line" })] },
+    { label: "Gas leak or smell", icon: ICON.alert, intents: [repair([QB.gasUrgent, QB.gasType], { ...GAS, label: "Leak check" })] },
+  ] },
+  { t: "Commercial & strata", icon: ICON.building, bg: "#E6F5FC", fg: "#0C6F96", q: "What kind of site?", s: "Offices, shops, rentals, strata", service: "commercial", biz: true, types: [
+    site("Office or shop", ICON.building), site("Rental property", ICON.home), site("Strata or multi-unit", ICON.building),
   ] },
 ];
-export const FSVC_SERVICE_INDEX = 3;
 
 export const PHOTO_TIP: Record<Category["id"], string> = {
   air: "A photo of the room and where the outdoor unit could go helps us price it faster.",
