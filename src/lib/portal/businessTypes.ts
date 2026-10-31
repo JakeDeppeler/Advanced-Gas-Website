@@ -71,7 +71,7 @@ export const NAV_COOKIE = "pt_nav";
 export const START_COOKIE = "pt_start";
 export const START_PAGES: { key: string; label: string; href: string; needs?: "office" | "wall" }[] = [
   { key: "home", label: "Home", href: "/portal" },
-  { key: "todo", label: "CRM › To-do", href: "/portal/todo" },
+  { key: "todo", label: "To-do", href: "/portal/todo" },
   { key: "today", label: "CRM › Today", href: "/portal/today", needs: "office" },
   { key: "kpis", label: "Finance › KPIs", href: "/portal/kpis", needs: "office" },
   { key: "pipeline", label: "Pipeline › Quotes", href: "/portal/pipeline", needs: "office" },

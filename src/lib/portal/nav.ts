@@ -213,8 +213,12 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       band: "crew", icon: "box", also: ["sent", "ordered", "purchase order", "po"],
     },
     {
-      href: "/portal/supply/work-orders", label: "Work orders", blurb: "The electrician for any job: find it, send it to GTE",
-      band: "crew", icon: "box", also: ["work order", "electrician", "electrical", "geoff", "gte", "sparky", "switchboard", "circuit"],
+      href: "/portal/supply/work-orders", label: "Work orders", blurb: "Every contractor's work order: the electrician, water balancing and the rest",
+      band: "crew", icon: "box", also: ["work order", "contractor", "subcontractor", "electrician", "electrical", "geoff", "gte", "sparky", "switchboard", "circuit", "ross", "water balancing", "plumber"],
+    },
+    {
+      href: "/portal/supply/automation", label: "Ordering automation", short: "Automation", blurb: "What ordering does by itself, and what it did",
+      band: "crew", icon: "box", also: ["automation", "automatic", "auto", "draft", "work order send", "install pack", "low stock", "tags"],
     },
     {
       href: "/portal/supply/emails", label: "Supplier emails", blurb: "Who orders go to, and the wording",

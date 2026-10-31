@@ -23,7 +23,7 @@ function PutBack({ o }: { o: { id: number; po: string; sentTo: string | null; ki
   );
 }
 
-type Line = { id: number; qty: number; item: string; desc: string | null; job: string | null; customer: string | null; cost: number | null };
+type Line = { id: number; qty: number; item: string; desc: string | null; job: string | null; customer: string | null; cost: number | null; ahead: boolean };
 type Order = { id: number; po: string; supplier: string; kind: "order" | "work_order"; week: string; sentAt: string | null; sentTo: string | null; by: string | null; pickup: boolean; total: number; lines: Line[];
   delivery: { address: string; toSite: boolean; instructions: string; deliverBy: string; note: string } };
 
@@ -74,14 +74,39 @@ const money = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigi
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "Australia/Melbourne" }) : "");
 const qty = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
+/** The Monday a moment falls in, in Melbourne, as YYYY-MM-DD. */
+function mondayOf(iso: string): string {
+  const d = new Date(`${new Date(iso).toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" })}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d.toISOString().slice(0, 10);
+}
+const weekName = (monday: string, thisMonday: string) => {
+  if (monday === thisMonday) return "This week";
+  const last = new Date(`${thisMonday}T12:00:00Z`); last.setUTCDate(last.getUTCDate() - 7);
+  if (monday === last.toISOString().slice(0, 10)) return "Last week";
+  return `Week of ${new Date(`${monday}T12:00:00Z`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }).replace(",", "")}`;
+};
+
+/** What an order was for, in a few words: its jobs, who it was ordered ahead for, or the factory's shelf. */
+function forWhat(o: Order): string {
+  const jobs = [...new Set(o.lines.map((l) => l.job).filter(Boolean))];
+  const who = o.lines.find((l) => l.customer)?.customer;
+  if (jobs.length) return `${jobs.length === 1 ? `Job ${jobs[0]}` : `Jobs ${jobs.join(", ")}`}${who ? ` · ${who}` : ""}`;
+  if (o.lines.some((l) => l.ahead)) return `Ordered ahead${who ? ` for ${who}` : ""}`;
+  return "Factory stock";
+}
+
 /**
- * Every order that's gone: a chip per supplier to narrow it, a search that
- * finds a job number, a customer, an item or a PO, and each order opening to
- * its lines.
+ * Every supplier order that's gone, newest first, a week at a time: chips for
+ * when and for which supplier, a search that finds a job number, a customer,
+ * an item or a PO, and each order opening to its lines, with a way to fix and
+ * resend it or put it back. Work orders are on Work orders, beside the rest
+ * of each contractor's.
  */
 export function SentBoard({ orders }: { orders: Order[] }) {
   const [q, setQ] = useState("");
   const [who, setWho] = useState<string>("all");
+  const [span, setSpan] = useState<"all" | "this" | "last" | "month">("all");
   const [open, setOpen] = useState<number | null>(null);
   const [fixing, setFixing] = useState<number | null>(null);
   const suppliers = useMemo(() => {
@@ -89,71 +114,95 @@ export function SentBoard({ orders }: { orders: Order[] }) {
     for (const o of orders) m.set(o.supplier, (m.get(o.supplier) ?? 0) + 1);
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   }, [orders]);
+  const thisMonday = mondayOf(new Date().toISOString());
+  const lastMonday = (() => { const d = new Date(`${thisMonday}T12:00:00Z`); d.setUTCDate(d.getUTCDate() - 7); return d.toISOString().slice(0, 10); })();
+  const monthAgo = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const inSpan = (o: Order) => {
+    if (span === "all" || !o.sentAt) return span === "all";
+    const m = mondayOf(o.sentAt);
+    return span === "this" ? m === thisMonday : span === "last" ? m === lastMonday : o.sentAt >= monthAgo;
+  };
   const needle = q.trim().toLowerCase();
-  const shown = orders.filter((o) => (who === "all" || o.supplier === who) && (!needle || [o.po, o.supplier, o.sentTo, ...o.lines.flatMap((l) => [l.job, l.customer, l.item, l.desc])].some((x) => x?.toLowerCase().includes(needle))));
-  const groups = new Map<string, Order[]>();
-  for (const o of shown) groups.set(o.supplier, [...(groups.get(o.supplier) ?? []), o]);
+  const shown = orders.filter((o) => (who === "all" || o.supplier === who) && inSpan(o) && (!needle || [o.po, o.supplier, o.sentTo, ...o.lines.flatMap((l) => [l.job, l.customer, l.item, l.desc])].some((x) => x?.toLowerCase().includes(needle))));
+  const weeks = new Map<string, Order[]>();
+  for (const o of [...shown].sort((a, b) => (b.sentAt ?? "").localeCompare(a.sentAt ?? ""))) {
+    const k = o.sentAt ? mondayOf(o.sentAt) : "";
+    weeks.set(k, [...(weeks.get(k) ?? []), o]);
+  }
+  const spans: { key: typeof span; label: string }[] = [
+    { key: "all", label: "Everything" }, { key: "this", label: "This week" }, { key: "last", label: "Last week" }, { key: "month", label: "Last 30 days" },
+  ];
 
   return (
     <div className="sb">
-      <div className="jp-filters">
-        <label className="qp-find jp-find">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-          <input id="sb-find" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a job #, customer, item or PO" aria-label="Find a job number, customer, item or PO" />
-        </label>
-      </div>
-      <div className="qp-people" role="group" aria-label="Supplier">
-        <button type="button" className={`qp-chip${who === "all" ? " on" : ""}`} aria-pressed={who === "all"} onClick={() => setWho("all")}>Every supplier · {orders.length}</button>
-        {suppliers.map(([s, n]) => (
-          <button key={s} type="button" className={`qp-chip${who === s ? " on" : ""}`} aria-pressed={who === s} onClick={() => setWho(s)}>{s} · {n}</button>
+      <section className="pt-panel nw-check sb-panel" aria-label="Sent orders">
+        <div className="wo-filt">
+          <label className="qp-find">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+            <input id="sb-find" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a job #, customer, item or PO" aria-label="Find a job number, customer, item or PO" />
+          </label>
+          <div className="qp-people" role="group" aria-label="When">
+            {spans.map((x) => (
+              <button key={x.key} type="button" className={`qp-chip${span === x.key ? " on" : ""}`} aria-pressed={span === x.key} onClick={() => setSpan(x.key)}>{x.label}</button>
+            ))}
+          </div>
+          {suppliers.length > 1 && (
+            <div className="qp-people" role="group" aria-label="Supplier">
+              <button type="button" className={`qp-chip${who === "all" ? " on" : ""}`} aria-pressed={who === "all"} onClick={() => setWho("all")}>Every supplier · {orders.length}</button>
+              {suppliers.map(([x, n]) => (
+                <button key={x} type="button" className={`qp-chip${who === x ? " on" : ""}`} aria-pressed={who === x} onClick={() => setWho(x)}>{x} · {n}</button>
+              ))}
+            </div>
+          )}
+        </div>
+        {!shown.length && <p className="nw-none">{orders.length ? "Nothing sent matches that." : "Nothing has been sent yet."}</p>}
+        {[...weeks.entries()].map(([monday, list]) => (
+          <div key={monday} className="nw-grp">
+            <div className="nw-gh">
+              <h2>{monday ? weekName(monday, thisMonday) : "No date"}</h2>
+              <span>{list.length} {list.length === 1 ? "order" : "orders"} · {money(list.reduce((t, o) => t + o.total, 0))} ex GST</span>
+            </div>
+            <ul className="sb-rows">
+              {list.map((o) => {
+                const isOpen = open === o.id;
+                return (
+                  <li key={o.id} className={isOpen ? "open" : undefined}>
+                    <button type="button" className="wo-row sb-row2" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : o.id)}>
+                      <span className="nw-task__dot is-done" aria-hidden="true">✓</span>
+                      <span className="wo-row-t">
+                        <b>{o.supplier} · {forWhat(o)}</b>
+                        <span>{[o.po, day(o.sentAt), emailed(o.sentTo) ? `emailed to ${o.sentTo}` : o.sentTo, o.pickup ? "we pick it up" : null].filter(Boolean).join(" · ")}</span>
+                      </span>
+                      <span className="sb-sum">{o.total ? money(o.total) : ""}</span>
+                    </button>
+                    {isOpen && (
+                      <div className="sb-open">
+                        {emailed(o.sentTo) ? (
+                          fixing === o.id
+                            ? <FixAndResend o={o} onDone={() => setFixing(null)} />
+                            : <div className="sb-fixbar"><button type="button" className="qp-btn" onClick={() => setFixing(o.id)}>Wrong address or date? Fix it and resend</button><PutBack o={o} /></div>
+                        ) : <div className="sb-fixbar"><PutBack o={o} /></div>}
+                        <table className="sb-lines">
+                          <tbody>
+                            {o.lines.map((l) => (
+                              <tr key={l.id}>
+                                <td className="n">{qty(l.qty)}</td>
+                                <td><b>{l.item}</b>{l.desc && l.desc !== l.item ? <span>{l.desc}</span> : null}</td>
+                                <td>{l.job ? <><b>{l.job}</b><span>{l.customer ?? ""}</span></> : l.ahead ? <><b>Ahead</b><span>{l.customer ?? ""}</span></> : <span>Stock</span>}</td>
+                                <td className="n">{l.cost == null ? "" : money(l.cost)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         ))}
-      </div>
-      {!shown.length && <p className="qp-empty">{orders.length ? "Nothing sent matches that." : "Nothing has been sent yet."}</p>}
-      {[...groups.entries()].map(([supplier, list]) => (
-        <section key={supplier} className="pk-card sb-group">
-          <header className="sb-gh"><b>{supplier}</b><span>{list.length} {list.length === 1 ? "order" : "orders"} · {money(list.reduce((t, o) => t + o.total, 0))} ex GST</span></header>
-          <ul className="sb-rows">
-            {list.map((o) => {
-              const jobs = [...new Set(o.lines.map((l) => l.job).filter(Boolean))];
-              const isOpen = open === o.id;
-              return (
-                <li key={o.id} className={isOpen ? "open" : undefined}>
-                  <button type="button" className="sb-row" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : o.id)}>
-                    <span className="sb-when">{day(o.sentAt)}</span>
-                    <span className="sb-what">
-                      <b>{o.po}{o.kind === "work_order" ? " · electrician" : ""}</b>
-                      <span>{jobs.length ? `Job${jobs.length > 1 ? "s" : ""} ${jobs.join(", ")}` : "Stock"}{o.lines[0]?.customer ? ` · ${o.lines[0].customer}` : ""}{o.pickup ? " · we pick up" : ""}</span>
-                    </span>
-                    <span className="sb-to">{o.sentTo ?? ""}</span>
-                    <span className="sb-sum">{o.total ? money(o.total) : ""}</span>
-                  </button>
-                  {isOpen && o.kind === "order" && emailed(o.sentTo) && (
-                    fixing === o.id
-                      ? <FixAndResend o={o} onDone={() => setFixing(null)} />
-                      : <div className="sb-fixbar"><button type="button" className="qp-btn" onClick={() => setFixing(o.id)}>Wrong address or date? Fix it and resend</button><PutBack o={o} /></div>
-                  )}
-                  {isOpen && o.kind === "order" && !emailed(o.sentTo) && <div className="sb-fixbar"><PutBack o={o} /></div>}
-                  {isOpen && o.kind === "work_order" && <div className="sb-fixbar"><a className="qp-btn" href="/portal/supply/work-orders">Change it and email the update on Work orders</a><PutBack o={o} /></div>}
-                  {isOpen && (
-                    <table className="sb-lines">
-                      <tbody>
-                        {o.lines.map((l) => (
-                          <tr key={l.id}>
-                            <td className="n">{qty(l.qty)}</td>
-                            <td><b>{l.item}</b>{l.desc && l.desc !== l.item ? <span>{l.desc}</span> : null}</td>
-                            <td>{l.job ? <><b>{l.job}</b><span>{l.customer ?? ""}</span></> : <span>Stock</span>}</td>
-                            <td className="n">{l.cost == null ? "" : money(l.cost)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+      </section>
     </div>
   );
 }

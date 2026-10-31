@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { Card, Empty, Group, Head, Row, Tabs } from "@/components/portal/kit/Kit";
+import { Bad, Card, Empty, Good, Group, Head, Row, Say, Tabs } from "@/components/portal/kit/Kit";
 import { Contractors, type ContractorRow } from "@/components/portal/ordering/Contractors";
 import { WorkOrderForm } from "@/components/portal/ordering/WorkOrderForm";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
@@ -25,10 +25,12 @@ const hhmm = (iso: string) =>
 
 
 /**
- * Orders & stock › Work orders: the electrician for any job. Search a job,
- * say what's needed, send it to GTE. The weekly plan still drafts the
- * installs' work orders on To order; this is for everything else — a
- * switchboard upgrade, a circuit for a job that wasn't quoted with one.
+ * To order › Work orders: every contractor's work order, the electrician's
+ * and anyone else's. The list is the work: what hasn't gone, what's coming
+ * up, what's done. Beside it, finding a job to send a new one (a switchboard
+ * upgrade, water balancing, a circuit for a job that wasn't quoted with one)
+ * and what went by itself. The weekly plan still drafts the installs' work
+ * orders; they go by themselves once booked (To order › Automation).
  */
 export default async function WorkOrdersPage({ searchParams }: { searchParams: { q?: string; job?: string; tab?: string } }) {
   const user = await getPortalUser();
@@ -52,6 +54,10 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
   const auto = autoLog.filter((e) => (e.kind === "workOrderSend" || e.kind === "orderMoves") && Date.now() - Date.parse(e.at) < 14 * 86_400_000).slice(0, 12);
   const sparky = suppliers.find((s) => s.method === "work_order" && s.active);
   const back = `/portal/supply/work-orders${q ? `?q=${encodeURIComponent(q)}` : ""}`;
+  const fortnight = (list ?? []).filter((w) => w.status === "sent" && w.sent_at && Date.now() - Date.parse(w.sent_at) < 14 * 86_400_000).length;
+  const unsent = (list ?? []).filter((w) => w.status !== "sent");
+  const failed = unsent.filter((w) => w.send_error).length;
+  const sparkyTo = sparky ? { name: sparky.name.replace(/\s*\(.*\)\s*$/, "") || sparky.name, email: sparky.email } : null;
   const tomorrow = isoDateMelbourne(new Date(Date.now() + 86400000));
 
   return (
@@ -59,8 +65,18 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
       <div className="pk">
         <Head
           title="Work orders"
-          sub="The electrician, water balancing or anyone else for any job: find it, say what's needed, send it. It's noted on the job in ServiceTitan with the work order attached. Click one below to see where it went."
+          sub="Every contractor's work order: open one to see where it went, or find a job to send a new one"
+          info={[
+            ["On the job", "Each one sent is noted on its job in ServiceTitan with the work order attached."],
+            ["By itself", "A contractor set to Automatic gets theirs once the job's booked. Contractors says who's Automatic and who's By hand."],
+          ]}
         />
+        {list && (
+          <Say>
+            {fortnight} sent in the last two weeks
+            {unsent.length ? <>, <Bad>{unsent.length} not sent yet{failed ? `, ${failed} of them didn't go` : ""}</Bad>.</> : <>. <Good>Nothing waiting.</Good></>}
+          </Say>
+        )}
 
         <div className="pk-btns" style={{ marginBottom: 14 }}>
           <Tabs on={tab} label="Work orders" items={[
@@ -85,84 +101,81 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
               />
             </Card>
           );
-        })() : (<>
-
-        {!job && (
-          <Card title="Find the job" aside="by job number, customer or suburb">
-            <form method="get" action="/portal/supply/work-orders" className="pk-btns" style={{ alignItems: "center" }} role="search">
-              <input id="wo-q" name="q" defaultValue={q} className="pk-in wide" placeholder="e.g. 20257, Smith, Berwick" aria-label="Job number, customer or suburb" autoFocus />
-              <button type="submit" className="pk-btn">Search</button>
-            </form>
-            {q && hits === null && <p className="pk-said bad" style={{ marginTop: 10 }}>The jobs couldn&rsquo;t be read just now. Try again in a moment.</p>}
-            {q && hits && hits.length === 0 && <Empty>No job matches &ldquo;{q}&rdquo;. Jobs come from ServiceTitan every few minutes, so a brand-new one may not be here yet.</Empty>}
-            {hits && hits.length > 0 && (
-              <Group>
-                {hits.map((h) => (
-                  <Row
-                    key={h.id}
-                    href={`/portal/supply/work-orders?q=${encodeURIComponent(q)}&job=${h.id}`}
-                    title={`Job ${h.job_number}${h.customer_name ? ` · ${h.customer_name}` : ""}`}
-                    sub={[h.job_type, h.suburb, h.status, h.next_visit ? `next visit ${dayTimeLabel(h.next_visit)}` : null].filter(Boolean).join(" · ")}
-                  />
-                ))}
-              </Group>
+        })() : (
+        <div className="nw-two">
+          <div className="wo-main">
+            {Number.isInteger(jobId) && jobId > 0 && !job && (
+              <p className="pk-said bad">That job isn&rsquo;t in the synced ServiceTitan jobs. <a href={back}>Search again</a>.</p>
             )}
-          </Card>
-        )}
-
-        {Number.isInteger(jobId) && jobId > 0 && !job && (
-          <p className="pk-said bad">That job isn&rsquo;t in the synced ServiceTitan jobs. <a href={back}>Search again</a>.</p>
-        )}
-
-        {job && (
-          sparky ? (
-            <WorkOrderForm
-              to={{ name: sparky.name.replace(/\s*\(.*\)\s*$/, "") || sparky.name, email: sparky.email }}
-              back={back}
-              contacts={contacts}
-              job={{
-                id: job.id, job_number: job.job_number, job_type: job.job_type,
-                date: job.start_at ? isoDateMelbourne(new Date(job.start_at)) : tomorrow,
-                time: job.start_at ? hhmm(job.start_at) : "",
-                site: job.site_address, customer: job.customer_name ?? "", phone: job.phone ?? "", email: job.email ?? "",
-                crew: job.crew.join(", "),
-              }}
-            />
-          ) : (
-            <p className="pk-said bad">There&rsquo;s no electrician set up to send work orders to, add one under Supplier emails.</p>
-          )
-        )}
-
-        <div style={{ marginTop: 18 }}>
-          <Card title="Sent automatically" aside={`the last two weeks · each one emailed to ${sw?.notifyTo ?? NOTIFY_DEFAULT} as it goes`}>
-            {auto.length ? (
-              <ul className="wo-auto">
-                {auto.map((e, i) => (
-                  <li key={`${e.at}-${i}`} className={e.ok ? undefined : "bad"}>
-                    <span className="wo-auto__k">{e.ok ? (e.kind === "orderMoves" ? "✓ Move passed on" : "✓ Work order sent") : "! Didn't go"}</span>
-                    <span className="wo-auto__t"><b>{e.title}</b>{e.detail && <span>{e.detail}</span>}</span>
-                    <span className="wo-auto__at">{at(e.at)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Empty>Nothing yet. A work order drafted from a booking is sent by itself once the job&rsquo;s booked, and when a booked job moves whoever had it is emailed the new day. Each one shows here and you&rsquo;re emailed to say it went.</Empty>
+            {job && (
+              sparkyTo ? (
+                <WorkOrderForm
+                  to={sparkyTo}
+                  back={back}
+                  contacts={contacts}
+                  job={{
+                    id: job.id, job_number: job.job_number, job_type: job.job_type,
+                    date: job.start_at ? isoDateMelbourne(new Date(job.start_at)) : tomorrow,
+                    time: job.start_at ? hhmm(job.start_at) : "",
+                    site: job.site_address, customer: job.customer_name ?? "", phone: job.phone ?? "", email: job.email ?? "",
+                    crew: job.crew.join(", "),
+                  }}
+                />
+              ) : (
+                <p className="pk-said bad">There&rsquo;s no electrician set up to send work orders to, add one under Supplier emails.</p>
+              )
             )}
-          </Card>
+            <section className="pt-panel nw-check" aria-label="Work orders">
+              {list === null ? (
+                <p className="pk-said bad">The work orders couldn&rsquo;t be read just now.</p>
+              ) : list.length === 0 ? (
+                <Empty>No work orders yet.</Empty>
+              ) : (
+                <WorkOrderList list={list} contacts={contacts} sparky={sparkyTo} />
+              )}
+            </section>
+          </div>
+
+          <aside className="nw-side" aria-label="Send a new one, and what went by itself">
+            {!job && (
+              <Card title="Send a new one" aside="find the job">
+                <form method="get" action="/portal/supply/work-orders" className="wo-findjob" role="search">
+                  <input id="wo-q" name="q" defaultValue={q} className="pk-in" placeholder="Job number, customer or suburb" aria-label="Job number, customer or suburb" />
+                  <button type="submit" className="pk-btn">Find</button>
+                </form>
+                {q && hits === null && <p className="pk-said bad" style={{ marginTop: 10 }}>The jobs couldn&rsquo;t be read just now. Try again in a moment.</p>}
+                {q && hits && hits.length === 0 && <Empty>No job matches &ldquo;{q}&rdquo;. Jobs come from ServiceTitan every few minutes, so a brand-new one may not be here yet.</Empty>}
+                {hits && hits.length > 0 && (
+                  <Group>
+                    {hits.map((h) => (
+                      <Row
+                        key={h.id}
+                        href={`/portal/supply/work-orders?q=${encodeURIComponent(q)}&job=${h.id}`}
+                        title={`Job ${h.job_number}${h.customer_name ? ` · ${h.customer_name}` : ""}`}
+                        sub={[h.job_type, h.suburb, h.status, h.next_visit ? `next visit ${dayTimeLabel(h.next_visit)}` : null].filter(Boolean).join(" · ")}
+                      />
+                    ))}
+                  </Group>
+                )}
+              </Card>
+            )}
+            <Card title="Sent by itself" aside="last two weeks">
+              {auto.length ? (
+                <ul className="wo-auto wo-auto--side">
+                  {auto.map((e, i) => (
+                    <li key={`${e.at}-${i}`} className={e.ok ? undefined : "bad"}>
+                      <span className="wo-auto__k">{e.ok ? (e.kind === "orderMoves" ? "✓ Move passed on" : "✓ Work order sent") : "! Didn't go"} · {at(e.at)}</span>
+                      <span className="wo-auto__t"><b>{e.title}</b>{e.detail && <span>{e.detail}</span>}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Empty>Nothing in the last two weeks. Each one that goes by itself shows here, and {sw?.notifyTo ?? NOTIFY_DEFAULT} is emailed to say it went.</Empty>
+              )}
+            </Card>
+          </aside>
         </div>
-
-        <div style={{ marginTop: 18 }}>
-          <Card title="Work orders" aside="the last two months and coming up">
-            {list === null ? (
-              <p className="pk-said bad">The work orders couldn&rsquo;t be read just now.</p>
-            ) : list.length === 0 ? (
-              <Empty>No work orders yet.</Empty>
-            ) : (
-              <WorkOrderList list={list} contacts={contacts} sparky={sparky ? { name: sparky.name.replace(/\s*\(.*\)\s*$/, "") || sparky.name, email: sparky.email } : null} />
-            )}
-          </Card>
-        </div>
-        </>)}
+        )}
       </div>
     </PortalShell>
   );

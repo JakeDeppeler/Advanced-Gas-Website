@@ -360,8 +360,12 @@ type PastPo = { id: number; supplier_id: string; kind: string; details: { jobs?:
  * swapped, a ticked supplier's note or file missing, or — once purchase orders
  * are set up — no purchase order yet. The ones sent before each of these
  * existed, and any ServiceTitan refused. Every week at once.
+ *
+ * `pos: false` leaves out the ones only behind on their purchase order: the
+ * automatic tag retry can't make one, so counting them had it re-tag the same
+ * orders every sync, a log line each time, for ever.
  */
-export async function ordersToUpdate(): Promise<number[]> {
+export async function ordersToUpdate(opts: { pos?: boolean } = {}): Promise<number[]> {
   const [ticked, pos, poSet] = await Promise.all([
     notedSuppliers(),
     sbSelect<PastPo>("purchase_orders", "select=id,supplier_id,kind,details,st_notes,st_pos&status=eq.sent&order=sent_at.asc"),
@@ -378,7 +382,7 @@ export async function ordersToUpdate(): Promise<number[]> {
     const jobsBehind = jobs.some((j) => !done.some((d) => d.job_id === j && d.tags && (!noted || (d.note && d.file))));
     const groups = new Set(mine.filter((l) => l.sku_id != null).map((l) => l.job_id)).size;
     const made = p.st_pos ?? [];
-    const poBehind = poReady && p.kind === "order" && (groups > made.length || made.some((m) => m.st_id != null && !m.sentTried));
+    const poBehind = opts.pos !== false && poReady && p.kind === "order" && (groups > made.length || made.some((m) => m.st_id != null && !m.sentTried));
     return jobsBehind || poBehind;
   }).map((p) => p.id);
 }
