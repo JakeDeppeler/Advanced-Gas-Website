@@ -142,8 +142,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PageEnter />
         <SiteCross />
         <Reveal />
-        <ChromeGate legacy>
+        {/* One footer for the whole site, the redesign pages included (Jake's
+            call); only the header and the sticky call bar give way there. */}
+        <ChromeGate>
           <Footer />
+        </ChromeGate>
+        <ChromeGate legacy>
           <StickyMobileCTA />
         </ChromeGate>
         <ChromeGate>

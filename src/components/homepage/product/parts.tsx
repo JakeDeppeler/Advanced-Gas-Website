@@ -22,6 +22,8 @@ export type PV = {
   gal: GalItem[];
   /** The header photo for the size showing, and which of the system's sizes that is. */
   room: Hero; roomIdx: number | null;
+  /** The room a model size is for ("Main bedroom or small lounge"), from the size it sits nearest. */
+  roomOf: (chip: string) => string | null;
   book: string; others: (readonly [Tier, number])[];
   learn: Learn | undefined; steps: HowStep[];
   /** The option's own feature lines, minus any the model's record contradicts. */
@@ -56,30 +58,6 @@ export function Badges({ v, cls = "" }: { v: PV; cls?: string }) {
     <ul className={`bdg ${cls}`} aria-label="At a glance">
       {v.badges.map((b) => <li key={b.kind} className={`bdg__i bdg__i--${b.kind}`}><strong>{b.big}</strong> <span>{b.small}</span></li>)}
     </ul>
-  );
-}
-
-/** Size buttons, then the figures for the size picked. */
-export function SizePicker({ v, uid = "pm-size" }: { v: PV; uid?: string }) {
-  const { models, mi, sys, ans } = v;
-  return (
-    <div className="pk">
-      <span className="pk__lbl" id={uid}>{models.length ? "Choose a size" : sys.q}</span>
-      <div className="ppx__tabs" role="group" aria-labelledby={uid}>
-        {models.length > 0
-          ? models.map((m, i) => (
-            <button key={m.slug} type="button" className={`ppx__tab${i === mi ? " ppx__tab--on" : ""}`} onClick={() => v.pickModel(m.slug)} aria-pressed={i === mi}>{m.chip}</button>
-          ))
-          : sys.sizes.map((z, i) => (
-            <button key={z.label} type="button" className={`ppx__tab${i === ans.size ? " ppx__tab--on" : ""}`} onClick={() => v.setSize(i)} aria-pressed={i === ans.size}>{z.label}</button>
-          ))}
-      </div>
-      {v.modelKeys.length > 0 && (
-        <dl className="pk__keys" aria-live="polite">
-          {v.modelKeys.map((k) => <div key={k.label}><dt>{k.label}</dt><dd>{k.value}</dd></div>)}
-        </dl>
-      )}
-    </div>
   );
 }
 
@@ -134,9 +112,12 @@ const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
 /**
  * "Which one suits me?" in two taps: which line sounds like their home, then
- * the size question from the finder. It ends on the button to press, or on
- * the other kind of system that fits better, and never on a size the page
- * can't select.
+ * the size question from the finder. It ends on the size button to press, or
+ * on the other kind of system that fits better.
+ *
+ * Every step is rendered in the same grid cell and only the current one is
+ * visible, so the card is always as tall as its tallest step and never jumps
+ * as they tap through.
  */
 export function FitFinder({ v }: { v: PV }) {
   const { learn, sys, models } = v;
@@ -145,22 +126,29 @@ export function FitFinder({ v }: { v: PV }) {
   const [done, setDone] = useState(false);
   if (!learn) return null;
   const choices = [{ label: cap(learn.good[0]), alt: null }, ...learn.alt.map((a) => ({ label: cap(a.if), alt: a }))];
-  const alt = path != null ? choices[path].alt : null;
-  const button = sz == null ? null : models.length ? models[modelForAnswer(models, sys.sizes[sz].spec)].chip : sys.sizes[sz].label;
+  const step = path == null ? 0 : path === 0 ? (sz == null ? 1 : 2) : 3;
+  const alt = (path != null ? choices[path].alt : null) ?? learn.alt[0];
+  const chipFor = (i: number) => (models.length ? models[modelForAnswer(models, sys.sizes[i].spec)].chip : sys.sizes[i].label);
+  const button = chipFor(sz ?? 0);
   const restart = () => { setPath(null); setSz(null); setDone(false); };
+  // Hidden steps are visibility:hidden, which also takes them out of the tab order.
+  const pane = (n: number) => ({ className: `ff__pane${step === n ? " on" : ""}`, "aria-hidden": step !== n });
 
   return (
-    <div className="ff" aria-live="polite">
-      {path == null && (
-        <>
+    <div className="ff">
+      <div className="ff__head">
+        <span className="ff__n">{step < 2 ? `Step ${step + 1} of 2` : "Your answer"}</span>
+        {/* Always there, hidden on the first step, so the header row keeps its height. */}
+        <button type="button" className="ff__again" onClick={restart} style={step ? undefined : { visibility: "hidden" }}>Start again</button>
+      </div>
+      <div className="ff__body" aria-live="polite">
+        <div {...pane(0)}>
           <span className="ff__q">Which sounds most like your home?</span>
           <div className="ff__opts">
-            {choices.map((c, i) => <button key={c.label} type="button" className="ff__opt" onClick={() => setPath(i)}>{c.label}<i aria-hidden="true">→</i></button>)}
+            {choices.map((c, i) => <button key={c.label} type="button" className="ff__opt" onClick={() => setPath(i)}><span>{c.label}</span><i aria-hidden="true">→</i></button>)}
           </div>
-        </>
-      )}
-      {path === 0 && sz == null && (
-        <>
+        </div>
+        <div {...pane(1)}>
           <span className="ff__q">{sys.q}</span>
           <div className="ff__opts">
             {sys.sizes.map((z, i) => (
@@ -169,49 +157,25 @@ export function FitFinder({ v }: { v: PV }) {
               </button>
             ))}
           </div>
-        </>
-      )}
-      {path === 0 && sz != null && (
-        <div className="ff__res">
-          <span className="ff__tag">Your best fit</span>
-          <p>Press <b className="ff__btn">{button}</b> in the size buttons{done ? ". Done, it's selected." : ", or let us do it."}</p>
-          <div className="ff__acts">
-            {done
-              ? <Link href={v.book} className="abtn abtn--or abtn--flat">Book this install →</Link>
-              : <button type="button" className="abtn abtn--or abtn--flat" onClick={() => { v.pickSize(sz); setDone(true); }}>Select {button}</button>}
-            <button type="button" className="ff__again" onClick={restart}>Start again</button>
+        </div>
+        <div {...pane(2)}>
+          <div className="ff__res">
+            <span className="ff__tag">Your best fit</span>
+            <p>Press <b className="ff__btn">{button}</b> in the size bar at the top{done ? ". Done, it's selected." : ", or let us do it."}</p>
+            <div className="ff__acts">
+              {done
+                ? <Link href={v.book} className="abtn abtn--or abtn--flat">Book this install →</Link>
+                : <button type="button" className="abtn abtn--or abtn--flat" onClick={() => { if (sz != null) v.pickSize(sz); setDone(true); }}>Select {button}</button>}
+            </div>
           </div>
         </div>
-      )}
-      {alt && (
-        <div className="ff__res">
-          <span className="ff__tag">A better fit</span>
-          <p>For that, a <b>{alt.label.toLowerCase()}</b> usually suits better than this one.</p>
-          <div className="ff__acts">
-            <Link href={`/?find=${alt.go}#find`} className="abtn abtn--or abtn--flat">See {alt.label} options →</Link>
-            <button type="button" className="ff__again" onClick={restart}>Start again</button>
+        <div {...pane(3)}>
+          <div className="ff__res">
+            <span className="ff__tag">A better fit</span>
+            <p>For that, a <b>{alt.label.toLowerCase()}</b> usually suits better than this one.</p>
+            <div className="ff__acts"><Link href={`/?find=${alt.go}#find`} className="abtn abtn--or abtn--flat">See {alt.label} options →</Link></div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-export function FitCards({ v }: { v: PV }) {
-  if (!v.learn) return null;
-  return (
-    <div className="pxf">
-      <div className="pxf__card pxf__card--yes">
-        <h3><span aria-hidden="true">✓</span> A good fit if</h3>
-        <ul>{v.learn.good.map((x) => <li key={x}>{x}</li>)}</ul>
-      </div>
-      <div className="pxf__card pxf__card--alt">
-        <h3><span aria-hidden="true">↔</span> Look at another option if</h3>
-        <ul>
-          {v.learn.alt.map((x) => (
-            <li key={x.if}><span>…{x.if}</span><Link href={`/?find=${x.go}#find`}>{x.label} →</Link></li>
-          ))}
-        </ul>
       </div>
     </div>
   );

@@ -98,15 +98,14 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   // Which of the system's sizes is showing: the one picked, or the one
   // nearest the chosen model (a 6.0 kW model has no size row of its own).
   const nums = (x?: string) => (x?.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
-  const roomIdx = model
-    ? (() => {
-      const want = nums(model.chip)[0];
-      if (want == null) return null;
-      let best: number | null = null, gap = Infinity;
-      sys.sizes.forEach((z, i) => nums(z.spec).forEach((n) => { if (Math.abs(n - want) < gap) { gap = Math.abs(n - want); best = i; } }));
-      return best;
-    })()
-    : ans.size ?? null;
+  const sizeOfChip = (chip: string): number | null => {
+    const want = nums(chip)[0];
+    if (want == null) return null;
+    let best: number | null = null, gap = Infinity;
+    sys.sizes.forEach((z, i) => nums(z.spec).forEach((n) => { if (Math.abs(n - want) < gap) { gap = Math.abs(n - want); best = i; } }));
+    return best;
+  };
+  const roomIdx = model ? sizeOfChip(model.chip) : ans.size ?? null;
 
   const v: PV = {
     cat, sys, t, ti, models, model, mi, size, ans,
@@ -115,6 +114,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     // The figures beside the size buttons: the model's own, or the size they picked.
     modelKeys: model ? model.keys : size ? [{ label: "Typical size", value: size.spec ?? size.label }] : [],
     gal, room: roomFor(sys, t, roomIdx), roomIdx,
+    roomOf: (chip) => { const i = sizeOfChip(chip); return i == null ? null : sys.sizes[i].sub ?? null; },
     book: bookHref(sys, t, ans, model?.slug),
     others: sys.tiers.map((x, i) => [x, i] as const).filter(([, i]) => i !== ti),
     learn: LEARN[sys.slug], steps: BOOKING_STEPS(installTimeOf(sys)),

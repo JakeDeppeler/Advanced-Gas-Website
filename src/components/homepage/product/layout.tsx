@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type PV, Crumbs, Badges, SizePicker, Price, BuyButtons, Promise, WhyList, Glance, FitCards, FitFinder,
+  type PV, Crumbs, Badges, Price, BuyButtons, Promise, WhyList, Glance, FitFinder,
   SizeGuide, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 
@@ -48,11 +48,8 @@ export function ProductLayout({ v }: { v: PV }) {
       {learn && (
         <section className="pxs" id="fit">
           <div className="wrap pxfit">
-            <div className="pxfit__l">
-              <Lead eye="Is it right for you?" h="Who this suits."><p>Two quick taps and we&apos;ll tell you which button to press.</p></Lead>
-              <FitFinder v={v} />
-            </div>
-            <FitCards v={v} />
+            <Lead eye="Is it right for you?" h="Who this suits."><p>Two quick taps and we&apos;ll tell you which size button to press, or point you to something that suits you better.</p></Lead>
+            <FitFinder v={v} />
           </div>
         </section>
       )}
@@ -97,44 +94,65 @@ export function ProductLayout({ v }: { v: PV }) {
 }
 
 /**
- * A full-width photo with the name over it, and the size, price and Book bar
- * under it. For room-by-room systems the photo follows the size picked, and
- * the caption says which room that size is for.
+ * A full-width picture with the name over it, and everything needed to pick
+ * and book inside it: the size bar along the bottom and the price card on the
+ * right, so nobody has to scroll to change the size. For room-by-room systems
+ * the picture follows the size picked.
  */
 function Hero({ v }: { v: PV }) {
-  const { t, room, roomIdx, sys } = v;
-  const sized = roomIdx != null ? sys.sizes[roomIdx] : null;
+  const { t, room, sys, models, mi, ans } = v;
   return (
-    <>
-      <section className="pxhero" ref={v.heroRef}>
-        <Image key={room.src} src={room.src} alt={room.alt} fill priority sizes="100vw" className="pxhero__bg" style={{ objectPosition: room.pos }} />
-        <span className="pxhero__scrim" aria-hidden="true" />
-        {room.ours && <span className="pm__cap pxhero__cap">One of our installs</span>}
-        <div className="wrap pxhero__in">
+    <section className="pxhero" ref={v.heroRef}>
+      <Image key={room.src} src={room.src} alt={room.alt} fill priority sizes="100vw" className="pxhero__bg" style={{ objectPosition: room.pos }} />
+      <span className="pxhero__scrim" aria-hidden="true" />
+      {(room.ours || room.mock) && <span className="pm__cap pxhero__cap">{room.mock ? "Illustration" : "One of our installs"}</span>}
+      <div className="wrap pxhero__in">
+        <div className="pxhero__top">
           <div className="pxhero__copy">
             <span className="lk2__eye">{t.brand} · {t.tier} option</span>
             <h1 className="pxhero__h1">{t.model}</h1>
             <p className="pxhero__best">{v.model?.bestFor ?? sys.sub}</p>
             <Badges v={v} cls="bdg--dark" />
-            {sized && (
-              <span className="pxhero__room" aria-live="polite">Sized for <b>{sized.sub ?? sized.label}</b> · {sized.label}</span>
-            )}
           </div>
-          <div className="pxhero__prod">
-            <span className="pxhero__pimg"><Image src={t.img} alt={`${t.brand} ${t.model}`} fill sizes="200px" /></span>
-            <span className="pxhero__pt"><small>{t.brand}</small><strong>{t.model}</strong></span>
+          <div className="pxhero__card">
+            <span className="pxhero__pimg"><Image src={t.img} alt={`${t.brand} ${t.model}`} fill sizes="240px" /></span>
+            <Price v={v} />
+            <BuyButtons v={v} />
+            <Promise />
           </div>
         </div>
-      </section>
-      <section className="lk2__bar">
-        <div className="wrap lk2__barin">
-          <SizePicker v={v} />
-          <div className="lk2__buy"><Price v={v} /><BuyButtons v={v} dark /><Promise /></div>
+
+        <div className="pxhero__bar">
+          <span className="pxhero__barl" id="pm-size">Choose your size</span>
+          <div className="pxhero__sizes" role="group" aria-labelledby="pm-size">
+            {models.length > 0
+              ? models.map((m, i) => {
+                const r = v.roomOf(m.chip);
+                return (
+                  <button key={m.slug} type="button" className={`pxhero__size${i === mi ? " on" : ""}`} onClick={() => v.pickModel(m.slug)} aria-pressed={i === mi}>
+                    <strong>{m.chip}</strong>{r && <small>{shortRoom(r)}</small>}
+                  </button>
+                );
+              })
+              : sys.sizes.map((z, i) => (
+                <button key={z.label} type="button" className={`pxhero__size${i === ans.size ? " on" : ""}`} onClick={() => v.setSize(i)} aria-pressed={i === ans.size}>
+                  <strong>{z.label}</strong>{z.sub && <small>{shortRoom(z.sub)}</small>}
+                </button>
+              ))}
+          </div>
+          {v.modelKeys.length > 0 && (
+            <dl className="pxhero__keys" aria-live="polite">
+              {v.modelKeys.map((k) => <div key={k.label}><dt>{k.label}</dt><dd>{k.value}</dd></div>)}
+            </dl>
+          )}
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
+
+/** "Main bedroom or small lounge" → "Main bedroom": the first room is enough on a button. */
+const shortRoom = (sub: string) => sub.split(/ or |, /)[0];
 
 /** How it works, one step per row with a picture, alternating sides. */
 function Story({ v }: { v: PV }) {

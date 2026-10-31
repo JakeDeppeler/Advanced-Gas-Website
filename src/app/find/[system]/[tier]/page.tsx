@@ -8,7 +8,6 @@ import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { allProductParams, findSystem, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
-import { HomeFooter } from "@/components/homepage/HomeFooter";
 import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
@@ -90,7 +89,6 @@ export default function FindProductPage({ params }: { params: Params }) {
         system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
         models={models} brand={brand} tierBadges={badgesFor({}, tier.feats)}
       />
-      <HomeFooter />
       <Script id="ld-find-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
     </div>
     </>

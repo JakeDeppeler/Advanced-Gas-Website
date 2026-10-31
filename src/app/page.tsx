@@ -14,7 +14,6 @@ import { TOOLS } from "@/lib/homepage/data";
 import { HeroQuote, Svg } from "@/components/homepage/HeroQuote";
 import { Finder } from "@/components/homepage/Finder";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
-import { HomeFooter } from "@/components/homepage/HomeFooter";
 import { IntentFromUrl } from "@/components/homepage/IntentFromUrl";
 import "@/components/homepage/homepage.css";
 
@@ -321,7 +320,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <HomeFooter />
 
       <Suspense fallback={null}>
         <IntentFromUrl />

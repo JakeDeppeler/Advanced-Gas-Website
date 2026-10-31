@@ -373,7 +373,7 @@ const GAL: Record<string, GalItem[]> = {
  * picks the band that survives a wide crop.
  */
 /** `ours` is false for the one manufacturer photo, so it never gets captioned as our install. */
-export type Hero = { src: string; alt: string; pos: string; ours: boolean };
+export type Hero = { src: string; alt: string; pos: string; ours: boolean; mock?: boolean };
 const hero = (src: string, alt: string, pos = "center 45%", ours = true): Hero => ({ src, alt, pos, ours });
 const H = {
   bedroom: hero("/kaden-indoor.webp", "A wall split we installed in a bedroom", "center 32%"),
@@ -400,15 +400,19 @@ const HERO: Record<string, Hero> = {
 export const heroFor = (sys: System, tier: Tier): Hero => HERO[`${sys.slug}.${tier.slug}`] ?? HERO[sys.slug] ?? H.bedroom;
 
 /**
- * The header photo for each size of a room-by-room system, in the order of
- * its sizes, so picking a size shows the kind of room it's for. Our own
- * installs only: a size without one keeps the system's photo rather than
- * borrowing a stock shot. Drop new photos in public/brand-installs and list
- * them here.
+ * The header picture for each size of a room-by-room system, in the order of
+ * its sizes, so picking a size shows the kind of room it's for.
+ *
+ * For now these are drawn mock-ups (public/mock-rooms), captioned as
+ * illustrations, so Jake can judge the idea before there are photos. Swap
+ * each for one of our own installs (public/brand-installs) as they come in;
+ * never a stock shot, since a photo on these pages reads as our work.
  */
+const mock = (file: string, room: string): Hero => ({ src: `/mock-rooms/${file}.svg`, alt: `Illustration of a wall split in a ${room}`, pos: "center", ours: false, mock: true });
+const ROOM_MOCKS = [mock("bedroom", "bedroom or study"), mock("main-bedroom", "main bedroom"), mock("living-room", "living room"), mock("open-plan", "open-plan living area")];
 const ROOMS: Record<string, (Hero | null)[]> = {
-  "split-system": [H.bedroom, null, null, null],
-  "reverse-cycle-split": [H.bedroom, null, null, null],
+  "split-system": ROOM_MOCKS,
+  "reverse-cycle-split": ROOM_MOCKS,
 };
 export const roomFor = (sys: System, tier: Tier, size: number | null): Hero =>
   (size != null ? ROOMS[sys.slug]?.[size] : null) ?? heroFor(sys, tier);
