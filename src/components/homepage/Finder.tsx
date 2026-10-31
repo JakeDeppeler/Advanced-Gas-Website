@@ -75,7 +75,7 @@ export function Finder() {
 
           <div className="find__head">
             <div className="find__intro">
-              <h2 className="find__h">What do you need <span>help with?</span></h2>
+              <h2 className="find__h">Find your <span>system</span></h2>
               <p className="find__p">
                 Pick what you need, answer a few quick questions about your home, and we&apos;ll show you three options side by side
                 {SHOW_FINANCE ? " with the weekly finance figure" : " with installed prices"}. Something stopped working?{" "}
@@ -114,7 +114,7 @@ export function Finder() {
                   </button>
                 ))}
                 <button type="button" className="atile anim" style={{ animationDelay: "0.21s" }} onClick={() => sendIntent({ kind: "quote", service: FSVC_SERVICE_INDEX }, "quote")}>
-                  <CatTileBody photo={PHOTO.evapService} alt="Evaporative cooler being serviced on a roof" pos="center 45%" fg="#050A30" icon={ICON.wrench} label="Service & repairs" sub="Gas, hot water, aircon" />
+                  <CatTileBody photo={PHOTO.evapService} alt="Evaporative cooler being serviced on a roof" pos="center 45%" fg="#050A30" icon={ICON.wrench} label="Services" sub="Repairs, gas & plumbing, commercial" />
                 </button>
               </div>
             </div>

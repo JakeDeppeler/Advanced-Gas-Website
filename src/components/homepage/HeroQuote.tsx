@@ -52,7 +52,8 @@ export function HeroQuote() {
   const ft = fs && type != null ? fs.types[type] : null;
   const typeQs: Question[] = booked ? [] : ft ? ft.qs : [];
   const asksUrgent = typeQs.some((q) => q.id === "urgent");
-  const tailQs: Question[] = [...(asksUrgent ? [] : [QB.when]), fs?.biz ? QB.ownBiz : QB.own];
+  const biz = ft?.biz ?? fs?.biz ?? false;
+  const tailQs: Question[] = [...(asksUrgent ? [] : [QB.when]), biz ? QB.ownBiz : QB.own];
   const allQs = [...typeQs, ...tailQs];
 
   const steps = useMemo(() => {
@@ -116,7 +117,7 @@ export function HeroQuote() {
     if (booked) return booked.sys.service;
     const sys = ft?.system ? findSystem(ft.system) : null;
     if (sys) return sys.sys.service;
-    return fs?.service ?? "other";
+    return ft?.service ?? fs?.service ?? "other";
   }
 
   async function saveLead(e: React.FormEvent) {
@@ -133,7 +134,7 @@ export function HeroQuote() {
       ...answerMap(allQs, ans),
     };
     const when = ans.urgent != null ? QB.urgent.opts[ans.urgent].label : ans.when != null ? QB.when.opts[ans.when].label : undefined;
-    const own = ans.own != null ? (fs?.biz ? QB.ownBiz : QB.own).opts[ans.own].label : undefined;
+    const own = ans.own != null ? (biz ? QB.ownBiz : QB.own).opts[ans.own].label : undefined;
     try {
       const res = await fetch("/api/quote", {
         method: "POST",
@@ -226,12 +227,12 @@ export function HeroQuote() {
       </div>
 
       {cur === "svc" && (
-        <div className="qf__step">
+        <div className="qf__step qf__step--fill">
           <div>
             <h2 className="qf__h">What can we help with?</h2>
-            <p className="qf__sub">A few quick taps, then your details. Free quote, usually back within 12 business hours.</p>
+            <p className="qf__sub">A few quick taps, then your details.</p>
           </div>
-          <div className="qf__tiles">
+          <div className="qf__tiles qf__tiles--fill">
             {FSVC.map((x, i) => (
               <button key={x.t} type="button" className={`qf__tile${svc === i ? " qf__tile--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
                 onClick={() => { setSvc(i); setType(null); setAns({}); setBooked(null); go(1); }}>
@@ -246,7 +247,8 @@ export function HeroQuote() {
       {cur === "type" && fs && (
         <div className="qf__step">
           <div><span className="qf__crumb">{fs.t}</span><h2 className="qf__h">{fs.q}</h2></div>
-          <div className="qf__types">
+          {/* Services has seven; a shorter picture keeps them inside the form's fixed height. */}
+          <div className={`qf__types${fs.types.length > 6 ? " qf__types--many" : ""}`}>
             {fs.types.map((y, i) => (
               <button key={y.label} type="button" className="qf__type" style={{ animationDelay: `${i * 0.07}s` }}
                 onClick={() => { setType(i); setAns({}); go(2); }}>
@@ -281,6 +283,12 @@ export function HeroQuote() {
           </div>
           {curQ.size && <p className="qf__fine qf__fine--l">{SIZE_NOTE}</p>}
         </div>
+      )}
+
+      {/* The card holds one height on every step; on the picking steps this
+          sits at its foot, so the space under a short list reads as intended. */}
+      {(cur === "svc" || cur === "type" || curQ) && (
+        <p className="qf__foot">Free quote, no obligation. Usually back within 12 business hours.</p>
       )}
 
       {cur === "details" && (

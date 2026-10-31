@@ -9,8 +9,8 @@ import { sendIntent } from "@/lib/homepage/intent";
 
 /**
  * The header bar with product dropdowns. On the homepage, a slightly
- * see-through floating bar over the hero that eases into a full-width bar as
- * soon as the page scrolls. With `solid` (the /find product pages), a plain
+ * see-through floating bar over the hero that stays the same size and shape
+ * all the way down the page. With `solid` (the /find product pages), a plain
  * white bar flush to the top of the page that sticks there. Homepage and /find
  * pages only for now; the rest of the site keeps components/Header.tsx until Jake has
  * signed this one off.
@@ -42,15 +42,6 @@ export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
   // :hover would hold it open over the section it just scrolled to.
   const [shut, setShut] = useState<string | null>(null);
 
-  // Floating bar over the hero; a full-width bar once the page moves.
-  const [solid, setSolid] = useState(false);
-  useEffect(() => {
-    const on = () => setSolid(window.scrollY > 24);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, []);
-
   useEffect(() => {
     if (!open) return;
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
@@ -75,8 +66,11 @@ export function HomeHeader({ solid: flat = false }: { solid?: boolean }) {
 
   const quoteHref = onHome ? "#quote" : "/#quote";
 
+  // The same bar the whole way down: it used to widen into a full-width bar
+  // on scroll or with the menu open, and read as the header growing.
+
   return (
-    <header className={`ahdr${flat ? " ahdr--flat is-solid" : solid || open ? " is-solid" : ""}`}>
+    <header className={`ahdr${flat ? " ahdr--flat is-solid" : ""}`}>
       <div className="hbar">
         <Link href="/" className="hbar__logo" aria-label="Advanced Gas & Aircon home" onClick={() => close()}>
           <AgLogo />

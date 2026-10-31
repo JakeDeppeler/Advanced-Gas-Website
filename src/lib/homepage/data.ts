@@ -139,6 +139,9 @@ export const QB = {
   age: { id: "age", q: "How old is the system?", opts: [o("Under 5 years"), o("5–10 years"), o("Over 10 years"), o("Not sure")] },
   issue: { id: "issue", q: "What's happening?", opts: [o("Not working", "No heating, cooling or hot water"), o("Noisy, leaking or smells"), o("Error code on the screen"), o("Due for a service", "Clean and health check")] },
   urgent: { id: "urgent", q: "How urgent is it?", opts: [o("Today, it's urgent", "No heating, cooling or hot water"), o("This week"), o("Just booking a service")] },
+  // What the separate Gas & plumbing and Commercial tiles used to ask by tile, now they sit under Services.
+  gasWhat: { id: "what", q: "What's the gas job for?", opts: [o("Gas heater or cooktop"), o("Gas hot water"), o("New gas line"), o("Leak or safety check", "Smell gas? Call us now")] },
+  site: { id: "site", q: "What kind of site?", opts: [o("Office or shop"), o("Rental property"), o("Strata or multi-unit")] },
   gasJob: { id: "job", q: "What do you need?", opts: [o("New install", "Something new going in"), o("Repair or replace", "Fix or swap what's there"), o("Safety check", "CO test and leak check")] },
   jobSize: { id: "size", q: "How big is the job?", opts: [{ label: "1–2 units", sub: "A shop or small office", spec: "Small", n: 1 }, { label: "3–10 units", sub: "A bigger site or a few rentals", spec: "Medium", n: 2 }, { label: "10+ units", sub: "Strata blocks and large sites", spec: "Large", n: 3 }] },
   need: { id: "need", q: "What do you need?", opts: [o("New install"), o("Replace old units"), o("Servicing or a maintenance plan")] },
@@ -208,9 +211,10 @@ const sys = (d: SystemDef): System => {
   return { ...rest, qs: [{ id: "size", q: d.q, size: true, opts: d.sizes }, ...more] };
 };
 
+/** In the menu's order, Cooling, Heating, Hot water, so the finder and the quote form read the same as the header. */
 export const CATS: Category[] = [
   {
-    id: "air", label: "Air conditioning", sub: "Splits, multi-head, ducted, evap",
+    id: "air", label: "Cooling", sub: "Splits, multi-head, ducted, evap",
     photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 30%", fg: "#0C6F96", icon: ICON.snow,
     systems: [
       sys({ slug: "split-system", label: "Split system", sub: "One room at a time", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor, QB.oldSplit], faq: "split", service: "split" }),
@@ -232,6 +236,23 @@ export const CATS: Category[] = [
     ],
   },
   {
+    id: "heat", label: "Heating", sub: "Gas ducted and reverse cycle",
+    photo: PHOTO.heating, alt: "Ducted gas heater installed in a roof space", pos: "center 55%", fg: "#050A30", icon: ICON.flame,
+    systems: [
+      sys({ slug: "gas-ducted-heating", label: "Gas ducted heating", sub: "Brivis, CO tested", img: IMG.brivisStar, q: "How big is the home?", sizes: HOUSE, faq: "gasheat", service: "gas-heating", more: [QB.storeys, QB.heatNow, QB.vents], tiers: [
+        t("essential", "Brivis", "Classic Wombat 3-star", IMG.brivisWombat, ["Whole-home gas heating", "CO safety test on install", W], null),
+        t("premium", "Brivis", "StarPro 6-star", IMG.brivisStar, ["6-star efficiency", "CO safety test on install", W], null),
+        t("signature", "Brivis", "StarPro 6-star + Zonemate", IMG.zmTouch, ["Heat only the rooms you use", "Zonemate touch and Wi-Fi", "CO safety test on install"], null),
+      ] }),
+      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric heating, one room", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor, QB.oldSplit] }),
+      sys({ slug: "zoning", label: "Zoning & controls", sub: "Heat the rooms you use", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
+        t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
+        t("premium", "Zonemate", "Touch + Wi-Fi", IMG.zmTouch, ["Touchscreen wall controller", "Control from your phone", W], null),
+        t("signature", "Milieu", "Smart zone control", IMG.zmTablet, ["Schedules per room", "Control from your phone", W], null),
+      ] }),
+    ],
+  },
+  {
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
@@ -249,23 +270,6 @@ export const CATS: Category[] = [
         t("essential", "Thermann", "4-star gas storage", IMG.gasStorage, ["Like-for-like swap", "Same-day on common sizes", "Old unit removed"], null),
         t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null),
         t("signature", "iStore", "Switch to a heat pump", IMG.istore, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2150),
-      ] }),
-    ],
-  },
-  {
-    id: "heat", label: "Heating", sub: "Gas ducted and reverse cycle",
-    photo: PHOTO.heating, alt: "Ducted gas heater installed in a roof space", pos: "center 55%", fg: "#050A30", icon: ICON.flame,
-    systems: [
-      sys({ slug: "gas-ducted-heating", label: "Gas ducted heating", sub: "Brivis, CO tested", img: IMG.brivisStar, q: "How big is the home?", sizes: HOUSE, faq: "gasheat", service: "gas-heating", more: [QB.storeys, QB.heatNow, QB.vents], tiers: [
-        t("essential", "Brivis", "Classic Wombat 3-star", IMG.brivisWombat, ["Whole-home gas heating", "CO safety test on install", W], null),
-        t("premium", "Brivis", "StarPro 6-star", IMG.brivisStar, ["6-star efficiency", "CO safety test on install", W], null),
-        t("signature", "Brivis", "StarPro 6-star + Zonemate", IMG.zmTouch, ["Heat only the rooms you use", "Zonemate touch and Wi-Fi", "CO safety test on install"], null),
-      ] }),
-      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric heating, one room", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor, QB.oldSplit] }),
-      sys({ slug: "zoning", label: "Zoning & controls", sub: "Heat the rooms you use", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
-        t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
-        t("premium", "Zonemate", "Touch + Wi-Fi", IMG.zmTouch, ["Touchscreen wall controller", "Control from your phone", W], null),
-        t("signature", "Milieu", "Smart zone control", IMG.zmTablet, ["Schedules per room", "Control from your phone", W], null),
       ] }),
     ],
   },
@@ -584,7 +588,13 @@ export const reviewTitle = (k: FaqKey) =>
 
 /* ------------------------------------------------------------ quote form */
 
-export type FormType = { label: string; img?: string; icon?: string; qs: Question[]; /** The finder system this type is, when it is one. */ system?: string };
+export type FormType = {
+  label: string; img?: string; icon?: string; qs: Question[];
+  /** The finder system this type is, when it is one. */
+  system?: string;
+  /** Under Services the types file their leads differently: these override the tile's. */
+  service?: string; biz?: boolean;
+};
 export type FormService = {
   t: string; icon: string; bg: string; fg: string; q: string;
   /** The `service` the lead is filed under, before a type is picked. */
@@ -601,22 +611,26 @@ const ft = (label: string, img: string | null, icon: string | null, qs: Question
 });
 const fromSystems = (c: Category): FormType[] => c.systems.map((s) => ({ label: s.label, img: s.img, qs: s.qs, system: s.slug }));
 
+const catOf = (id: Category["id"]) => CATS.find((c) => c.id === id)!;
+const svcT = (label: string, img: string | null, icon: string | null, qs: Question[], service: string, biz?: boolean): FormType =>
+  ({ ...ft(label, img, icon, qs), service, ...(biz ? { biz } : {}) });
+
+/**
+ * The quote form's first question: the header menu's four groups, in its
+ * order and with its names. Services holds what the menu's Services does:
+ * repairs, gas and plumbing, and commercial, each filed under the same
+ * `service` its own tile used before.
+ */
 export const FSVC: FormService[] = [
-  { t: "Air conditioning", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", q: "Which type of aircon?", service: "split", cat: "air", types: fromSystems(CATS[0]) },
-  { t: "Hot water", icon: ICON.drop, bg: "#C2521A", fg: "#fff", q: "Which type of hot water?", service: "hp", cat: "hw", types: fromSystems(CATS[1]) },
-  { t: "Heating", icon: ICON.flame, bg: "#050A30", fg: "#fff", q: "Which type of heating?", service: "gas-heating", cat: "heat", types: fromSystems(CATS[2]) },
-  { t: "Service & repairs", icon: ICON.wrench, bg: "#FDEEE6", fg: "#B04711", q: "What needs a look?", service: "service", types: [
-    ft("Split or multi-head", IMG.mitsuSplit, null, SVCQ), ft("Ducted aircon", IMG.mitsuDucted, null, SVCQ),
-    ft("Evaporative cooler", IMG.evapClassic, null, SVCQ), ft("Hot water", IMG.gasCf, null, SVCQ),
-    ft("Gas heater", IMG.brivisWombat, null, SVCQ),
-  ] },
-  { t: "Gas & plumbing", icon: ICON.tap, bg: "#E6F5FC", fg: "#0C6F96", q: "What sort of gas job?", service: "gas-plumbing", types: [
-    ft("Gas heater or cooktop", IMG.brivisWombat, null, [QB.gasJob, QB.gasType]), ft("Gas hot water", IMG.gasStorage, null, [QB.gasJob, QB.gasType]),
-    ft("New gas line", null, ICON.flame, [QB.gasType]), ft("Leak or safety check", null, ICON.shield, [QB.gasType, QB.urgent]),
-  ] },
-  { t: "Commercial", icon: ICON.building, bg: "#F3EFE5", fg: "#050A30", q: "What kind of site?", service: "commercial", biz: true, types: [
-    ft("Office or shop", null, ICON.building, [QB.jobSize, QB.need]), ft("Rental property", null, ICON.home, [QB.jobSize, QB.need]),
-    ft("Strata or multi-unit", null, ICON.building, [QB.jobSize, QB.need]),
+  { t: "Cooling", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", q: "Which type of cooling?", service: "split", cat: "air", types: fromSystems(catOf("air")) },
+  { t: "Heating", icon: ICON.flame, bg: "#050A30", fg: "#fff", q: "Which type of heating?", service: "gas-heating", cat: "heat", types: fromSystems(catOf("heat")) },
+  { t: "Hot water", icon: ICON.drop, bg: "#C2521A", fg: "#fff", q: "Which type of hot water?", service: "hp", cat: "hw", types: fromSystems(catOf("hw")) },
+  { t: "Services", icon: ICON.wrench, bg: "#FDEEE6", fg: "#B04711", q: "What do you need?", service: "service", types: [
+    svcT("Split or multi-head repair", IMG.mitsuSplit, null, SVCQ, "service"), svcT("Ducted aircon repair", IMG.mitsuDucted, null, SVCQ, "service"),
+    svcT("Evaporative cooler service", IMG.evapClassic, null, SVCQ, "service"), svcT("Hot water repair", IMG.gasCf, null, SVCQ, "service"),
+    svcT("Gas heater service", IMG.brivisWombat, null, SVCQ, "service"),
+    svcT("Gas & plumbing", null, ICON.tap, [QB.gasWhat, QB.gasJob, QB.gasType], "gas-plumbing"),
+    svcT("Commercial & strata", null, ICON.building, [QB.site, QB.jobSize, QB.need], "commercial", true),
   ] },
 ];
 export const FSVC_SERVICE_INDEX = 3;

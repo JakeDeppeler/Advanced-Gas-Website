@@ -83,13 +83,13 @@
 .ag .hbar__logo{display:flex;align-items:center;flex:none}
 /* public/advanced-gas-logo-clear.webp: the site logo with its white made
    transparent and trimmed, so it sits on the see-through header. */
-.ag .alogo{display:block;height:52px}
+.ag .alogo{display:block;height:42px}
 .ag .alogo img{display:block;height:100%;width:auto}
 .ag .alogo--sm{height:32px}
 .ag .alogo--ft{height:38px}
 .ag .hnav{display:flex;align-items:stretch}
 .ag .hd{display:flex}
-.ag .hd__top{position:relative;display:flex;align-items:center;gap:8px;padding:0 18px;font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);text-decoration:none;white-space:nowrap}
+.ag .hd__top{position:relative;display:flex;align-items:center;gap:8px;padding:0 18px;font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);text-decoration:none;white-space:nowrap}
 .ag .hd__top:hover{color:var(--navy)}
 .ag .hd__top::after{content:"";position:absolute;left:18px;right:18px;bottom:24px;height:2px;border-radius:2px;background:var(--or);transform:scaleX(0);transform-origin:left;transition:transform .2s}
 .ag .hd:hover .hd__top::after,.ag .hd:focus-within .hd__top::after{transform:scaleX(1)}
@@ -116,9 +116,9 @@
 .ag .mcard--cta i{font-style:normal;color:var(--or2);font-size:20px}
 .ag .mcard__head{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--sky2)}
 .ag .hbar__right{display:flex;align-items:center;gap:10px;flex:none}
-.ag .hphone{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:700;font-size:15px;color:var(--navy);text-decoration:none;border:1px solid var(--line2);border-radius:10px;padding:0 20px;min-height:52px;transition:border-color .15s}
+.ag .hphone{display:inline-flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:600;font-size:15px;color:var(--navy);text-decoration:none;border:1px solid var(--line2);border-radius:10px;padding:0 20px;min-height:52px;transition:border-color .15s}
 .ag .hphone:hover{border-color:var(--navy);color:var(--navy)}
-.ag .hquote{display:inline-flex;align-items:center;font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.03em;text-transform:uppercase;color:#fff;background:var(--or);border-radius:10px;padding:0 24px;min-height:52px;text-decoration:none;transition:background .15s;white-space:nowrap}
+.ag .hquote{display:inline-flex;align-items:center;font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.03em;text-transform:uppercase;color:#fff;background:var(--or);border-radius:10px;padding:0 24px;min-height:52px;text-decoration:none;transition:background .15s;white-space:nowrap}
 .ag .hquote:hover{background:var(--or-h);color:#fff}
 .ag .menubtn{display:none;width:48px;height:48px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--navy);cursor:pointer;place-items:center}
 .ag .mmenu{position:absolute;left:16px;right:16px;top:calc(100% - 6px);z-index:100;background:#fff;color:var(--navy);border-radius:12px;padding:16px;box-shadow:0 30px 60px -20px rgba(2,6,26,.6);display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 120px);overflow:auto;animation:agFadeUp .25s both}
@@ -136,7 +136,7 @@
 @media (max-width:1480px){.ag .hd__top{padding:0 12px}.ag .hd__top::after{left:12px;right:12px}.ag .hphone{padding:0 14px}.ag .hquote{padding:0 18px}.ag .hbar{gap:12px}}
 @media (max-width:1360px){.ag .menubtn{display:grid}.ag .navx{display:none !important}}
 /* On a phone the bar keeps the same proportions at a size that leaves the screen to the page. */
-@media (max-width:600px){.ag .ahdr{padding:10px 12px 0}.ag .hbar{padding:0 10px 0 14px;min-height:72px}.ag .ahdr.is-solid .hbar{padding:0 14px 0 16px}.ag .alogo{height:42px}.ag .hquote{padding:0 14px;font-size:13.5px;min-height:48px}.ag .menubtn{width:48px;height:48px}}
+@media (max-width:600px){.ag .ahdr{padding:10px 12px 0}.ag .hbar{padding:0 10px 0 14px;min-height:72px}.ag .ahdr.is-solid .hbar{padding:0 14px 0 16px}.ag .alogo{height:36px}.ag .hquote{padding:0 14px;font-size:13.5px;min-height:48px}.ag .menubtn{width:48px;height:48px}}
 /* /find pages: a plain white bar flush to the top, stuck there while the page scrolls. */
 .ag .ahdr--flat{position:sticky;padding:0}
 .ag .ahdr--flat .hbar,.ag .ahdr--flat.is-solid .hbar{border-radius:0;border-width:0 0 1px;border-color:var(--line);box-shadow:none}
@@ -144,10 +144,12 @@
 @media (max-width:360px){.ag .hquote{display:none}}
 
 /* ===================================================== hero */
-.ag .ahero{position:relative;background:var(--navy);color:#fff;padding-top:100px}
-.ag .ahero__bg{object-fit:cover;object-position:center 20%}
-.ag .ahero__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(19,36,84,.80) 0%,rgba(15,28,72,.85) 55%,rgba(11,22,60,.92) 100%)}
-.ag .ahero__in{position:relative;padding-top:84px;padding-bottom:80px;display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start}
+.ag .ahero{position:relative;background:var(--navy);color:#fff;padding-top:100px;min-height:min(100vh,960px);display:flex;flex-direction:column}
+.ag .ahero__bg{object-fit:cover;object-position:center 35%}
+/* Darkest behind the headline, lighter across the crew and vans, so the photo
+   reads as a photo rather than a navy wash. */
+.ag .ahero__scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,16,52,.80) 0%,rgba(8,16,52,.55) 45%,rgba(8,16,52,.30) 100%),linear-gradient(180deg,rgba(8,16,52,.35) 0%,rgba(8,16,52,0) 30%,rgba(8,16,52,0) 70%,rgba(8,16,52,.55) 100%)}
+.ag .ahero__in{position:relative;flex:1;width:100%;padding-top:72px;padding-bottom:104px;display:flex;flex-wrap:wrap;gap:48px;align-items:center}
 .ag .ahero__copy{flex:1 1 520px;min-width:0;display:flex;flex-direction:column;gap:20px}
 .ag .ahero__eye{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.92)}
 .ag .ahero__eye span{width:7px;height:7px;border-radius:50%;background:var(--or2);flex:none}
@@ -191,6 +193,9 @@
 .ag .qf__typeimg img{object-fit:contain;padding:8px;transition:transform .3s}
 .ag .qf__type:hover .qf__typeimg img{transform:scale(1.08)}
 .ag .qf__typet{padding:9px 8px 11px;font-family:var(--disp);font-weight:700;font-size:13.5px;color:var(--navy);line-height:1.2}
+.ag .qf__types--many .qf__typeimg{height:56px;padding:4px}
+.ag .qf__types--many .qf__typeimg img{padding:5px}
+.ag .qf__types--many .qf__typet{padding:7px 8px 9px;font-size:13px}
 .ag .qf__opts{display:flex;flex-direction:column;gap:8px}
 .ag .qf__opt{display:flex;align-items:center;gap:14px;text-align:left;background:#fff;border:1px solid var(--line3);border-radius:10px;padding:12px 14px;cursor:pointer;transition:transform .15s,border-color .15s;animation:agFadeUp .4s both;color:var(--ink)}
 .ag .qf__opt:hover{transform:translateX(3px);border-color:var(--or)}
@@ -232,6 +237,20 @@
 .ag .qf__thumb button{position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(5,10,48,.75);color:#fff;font-size:14px;line-height:1;cursor:pointer}
 .ag .qf__done-tick{width:56px;height:56px;border-radius:50%;background:var(--or);display:grid;place-items:center;box-shadow:0 0 0 8px #FEF2EC}
 .ag .qf__hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+/* One height for every step, from "what do you need" to the details, so the
+   card doesn't jump as it goes; the tallest step (details) sets it. On a
+   phone the form is in the scroll anyway, and a fixed height would only put
+   empty card above the fold. */
+@media (min-width:601px){
+  .ag .qf{min-height:680px}
+  /* The first step's four choices grow to fill the card rather than leave half of it empty. */
+  .ag .qf__step--fill{flex:1}
+  .ag .qf__tiles--fill{flex:1;grid-auto-rows:1fr}
+  .ag .qf__tiles--fill .qf__tile{flex-direction:column;justify-content:center;gap:14px;text-align:center;font-size:17px;min-height:0}
+  .ag .qf__tiles--fill .qf__ti{width:52px;height:52px;border-radius:12px}
+  .ag .qf__tiles--fill .qf__ti svg{width:26px;height:26px}
+}
+.ag .qf__foot{margin:auto 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink3);text-align:center}
 @media (max-width:600px){.ag .qf{padding:22px 18px;min-height:0}.ag .qf__tile{font-size:13px;gap:8px;padding:9px 10px}.ag .qf__ti{width:30px;height:30px}}
 @media (max-width:380px){.ag .qf__row2{grid-template-columns:1fr}}
 
@@ -244,14 +263,15 @@
 .ag .hbrands__reece{color:var(--ink2)}
 .ag .hbrands__reece strong{color:var(--navy)}
 .ag .hbrands__all{color:var(--navy);font-weight:700;text-decoration:underline;text-underline-offset:3px}
-.ag .hbrands__grid{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:14px 28px}
+.ag .hbrands__grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}
 /* Seven brands: a fixed count per width, so one never ends up alone on a row. */
-@media (max-width:960px){.ag .hbrands__grid{justify-content:flex-start}}
-@media (max-width:600px){.ag .hbrands__grid{gap:10px 22px}}
-.ag .chipb{display:inline-flex;text-decoration:none;transition:color .15s}
-.ag .chipb:hover strong{color:var(--or)}
-.ag .chipb strong{font-family:var(--disp);font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-.01em;transition:color .15s}
-.ag .chipb span{display:none}
+@media (max-width:960px){.ag .hbrands__grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:600px){.ag .hbrands__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ag .chipb{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;text-decoration:none;transition:border-color .15s,transform .15s,box-shadow .15s}
+.ag .chipb:hover{border-color:var(--line2);transform:translateY(-2px);box-shadow:0 12px 24px -16px rgba(11,20,80,.35)}
+.ag .chipb:hover strong{color:var(--navy)}
+.ag .chipb strong{font-family:var(--disp);font-size:17px;font-weight:800;color:var(--navy)}
+.ag .chipb span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 
 /* ===================================================== find your system */
 .ag .find{padding:56px 0 96px;scroll-margin-top:104px}
@@ -429,6 +449,7 @@
 .ag .amap__attr{position:absolute;right:8px;bottom:6px;font-size:9.5px;color:rgba(255,255,255,.7);background:rgba(5,10,48,.65);padding:2px 6px;border-radius:4px;z-index:5}
 .ag .amap__attr a{color:inherit}
 .ag .aring{position:absolute;border-radius:50%;border:1px dashed rgba(44,197,255,.35);transform:translate(-50%,-50%);aspect-ratio:1}
+.ag .aring--edge{border:1.5px solid rgba(44,197,255,.6)}
 .ag .asweep{position:absolute;width:76%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,rgba(44,197,255,0) 0deg,rgba(44,197,255,0) 300deg,rgba(44,197,255,.22) 360deg);animation:agSweep 6s linear infinite;transition:opacity .3s}
 .ag .amap--hit .asweep{opacity:0}
 .ag .mapdot{position:absolute;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;background:var(--sky2);box-shadow:0 0 0 3px rgba(44,197,255,.22);animation:agPopIn .4s both}
@@ -444,9 +465,9 @@
 .ag .hq::after{animation-delay:1s}
 .ag .hq span{position:relative;z-index:2;display:flex;align-items:center;gap:6px;background:var(--or2);color:var(--navy);font-family:var(--disp);font-weight:800;font-size:12px;border-radius:999px;padding:6px 10px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.4)}
 .ag .aroute{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;overflow:visible}
-.ag .aroute__glow{fill:none;stroke:rgba(255,122,54,.28);stroke-width:26;stroke-linecap:round;opacity:0;animation:agFade .4s 1.4s forwards}
-.ag .aroute__line{fill:none;stroke:var(--or2);stroke-width:9;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:agRouteDraw 1.6s cubic-bezier(.45,0,.2,1) forwards}
-.ag .aroute__dash{fill:none;stroke:#fff;stroke-width:2.5;stroke-dasharray:14 16;stroke-linecap:round;opacity:0;animation:agFade .4s 1.6s forwards}
+.ag .aroute__glow{fill:none;stroke:rgba(255,122,54,.28);stroke-width:26;stroke-linecap:round;opacity:0;animation:agFade .4s 2.9s forwards}
+.ag .aroute__line{fill:none;stroke:var(--or2);stroke-width:9;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:agRouteDraw 3.2s cubic-bezier(.45,0,.2,1) forwards}
+.ag .aroute__dash{fill:none;stroke:#fff;stroke-width:2.5;stroke-dasharray:14 16;stroke-linecap:round;opacity:0;animation:agFade .4s 3.2s forwards}
 @keyframes agRouteDraw{to{stroke-dashoffset:0}}
 /* Hidden for the first frames, before the drive has started and the van is still at the map's corner. */
 .ag .aroute__van{opacity:0;animation:agFade .01s .08s forwards}

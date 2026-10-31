@@ -18,6 +18,16 @@ import { PHOTO } from "@/lib/homepage/data";
 
 export type AreaSuburb = { name: string; slug: string; lat: number; lng: number; page: boolean; dot: 0 | 1 | 2 | null };
 
+/**
+ * How far we go: everything within 50 km is our area; 50 to 75 km is outside
+ * it but we still come; past 75 km we don't.
+ */
+const IN_KM = 50, MAX_KM = 75;
+type Zone = "in" | "near" | "out";
+const zoneOf = (d: number): Zone => (d <= IN_KM ? "in" : d <= MAX_KM ? "near" : "out");
+/** A town found by the geocoder rather than our own list: no page, no dot. */
+type Found = { name: string; slug: string; lat: number; lng: number; page: boolean };
+
 const HQ = { lat: -38.078, lng: 145.487 };
 const W = 1384, H = 962;
 const mY = (la: number) => { const s = Math.sin((la * Math.PI) / 180); return Math.log((1 + s) / (1 - s)); };
@@ -30,7 +40,7 @@ function km(lat: number, lng: number) {
 }
 
 /** A quadratic curve from HQ to the suburb, bowed upward so it reads as a drive, not a ruler line. */
-function routeTo(s: AreaSuburb) {
+function routeTo(s: { lat: number; lng: number }) {
   const x0 = (xPct(HQ.lng) / 100) * W, y0 = (yPct(HQ.lat) / 100) * H;
   const x1 = (xPct(s.lng) / 100) * W, y1 = (yPct(s.lat) / 100) * H;
   const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1, bend = 0.22 * len;
@@ -63,8 +73,39 @@ function Van({ left }: { left: boolean }) {
 export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
-  const hit = useMemo(() => (query.length >= 3 ? suburbs.find((s) => s.name.toLowerCase().startsWith(query)) ?? null : null), [query, suburbs]);
-  const route = hit && hit.slug !== "pakenham" ? routeTo(hit) : null;
+  const local = useMemo(() => (query.length >= 3 ? suburbs.find((s) => s.name.toLowerCase().startsWith(query)) ?? null : null), [query, suburbs]);
+
+  // A town that isn't on our list could be 60 km away or 300, and only its
+  // coordinates say which, so ask the geocoder. Four letters and a pause
+  // first, so "Bal" doesn't come back as somebody's street.
+  const [found, setFound] = useState<Found | null>(null);
+  const [looking, setLooking] = useState(false);
+  useEffect(() => {
+    setFound(null);
+    if (local || query.length < 4) { setLooking(false); return; }
+    setLooking(true);
+    const ctl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(`${query}, VIC`)}`, { signal: ctl.signal });
+        const data: { suggestions?: { display_name: string; lat?: number; lng?: number }[] } = res.ok ? await res.json() : {};
+        const top = (data.suggestions ?? []).find((x) => x.lat != null && x.lng != null && x.display_name.toLowerCase().startsWith(query));
+        if (top) {
+          const name = top.display_name.split(",")[0].trim();
+          setFound({ name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), lat: top.lat!, lng: top.lng!, page: false });
+        }
+      } catch { /* aborted, or offline: falls back to "call us" */ }
+      setLooking(false);
+    }, 450);
+    return () => { clearTimeout(t); ctl.abort(); };
+  }, [query, local]);
+
+  const hit = local ?? found;
+  const dist = hit ? km(hit.lat, hit.lng) : 0;
+  const zone = hit ? zoneOf(dist) : null;
+  // Only drawn where the town is on the map and we'd actually drive there.
+  const onMap = !!hit && hit.lng >= 145.05 && hit.lng <= 146 && hit.lat <= -37.8 && hit.lat >= -38.32;
+  const route = hit && zone !== "out" && onMap && hit.slug !== "pakenham" ? routeTo(hit) : null;
   const hx = xPct(HQ.lng), hy = yPct(HQ.lat);
   // An inline SVG's clock starts with the page, so begin="0s" would mean the
   // drive was over before anyone typed. Start it when the suburb appears.
@@ -83,9 +124,11 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
             <div className="amap__in">
               {/* eslint-disable-next-line @next/next/no-img-element -- sized by the aspect-ratio box around it, which next/image's fill fights */}
               <img className="amap__img" src={PHOTO.map} alt="" aria-hidden="true" loading="lazy" decoding="async" />
-              {[36, 72, 108].map((w) => <span key={w} className="aring" style={{ left: `${hx}%`, top: `${hy}%`, width: `${w}%` }} />)}
+              {/* Ring widths are 2.4% of the map's width per km: 36% is 15 km, 120% is 50 km. */}
+              {[36, 72, 120].map((w) => <span key={w} className={`aring${w === 120 ? " aring--edge" : ""}`} style={{ left: `${hx}%`, top: `${hy}%`, width: `${w}%` }} />)}
               <span className="maptag" style={{ left: `${hx}%`, top: `calc(${hy}% - 13%)` }}>15 km</span>
               <span className="maptag" style={{ left: `${hx}%`, top: `calc(${hy}% - 26%)` }}>30 km</span>
+              <span className="maptag" style={{ left: `${hx}%`, top: `calc(${hy}% - 43.3%)` }}>50 km</span>
               <span className="asweep" aria-hidden="true" style={{ left: `${hx}%`, top: `${hy}%` }} />
               {dots.map((s, i) => {
                 const on = hit?.slug === s.slug;
@@ -93,7 +136,7 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
                 const cls = `mapdot${on ? " mapdot--hit" : s.dot ? " mapdot--lbl" : ""}${s.dot === 2 || (on && x > 78) ? " mapdot--left" : ""}`;
                 return (
                   <span key={s.slug} className={cls} style={{ left: `${x.toFixed(2)}%`, top: `${yPct(s.lat).toFixed(2)}%`, animationDelay: `${(0.3 + i * 0.03).toFixed(2)}s` }}>
-                    <span className="mapdot__lbl">{on ? `${s.name} · ${km(s.lat, s.lng)} km` : s.name}</span>
+                    <span className="mapdot__lbl">{on ? `${s.name} · ${dist} km` : s.name}</span>
                   </span>
                 );
               })}
@@ -107,8 +150,8 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
                   ) : (
                     <g className="aroute__van">
                       <Van left={route.left} />
-                      {/* Drives once, easing in and out, and parks on the suburb. Chrome drops keySplines written without leading zeros, and the van then jumps straight to the end. */}
-                      <animateMotion ref={drive} dur="1.6s" begin="indefinite" fill="freeze" path={route.d} calcMode="spline" keyTimes="0;1" keyPoints="0;1" keySplines="0.45 0 0.2 1" />
+                      {/* Drives once, easing in and out, and parks on the suburb: slow enough to watch it go. Chrome drops keySplines written without leading zeros, and the van then jumps straight to the end. */}
+                      <animateMotion ref={drive} dur="3.2s" begin="indefinite" fill="freeze" path={route.d} calcMode="spline" keyTimes="0;1" keyPoints="0;1" keySplines="0.45 0 0.2 1" />
                     </g>
                   )}
                 </svg>
@@ -125,8 +168,8 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
           </div>
 
           <div className="areatext">
-            <h2 className="h2" style={{ color: "#fff" }}>Every town within <span style={{ color: "#2CC5FF" }}>75 km of Pakenham.</span></h2>
-            <p>From Dandenong to Warragul and up into the Dandenong Ranges. Type your suburb to check.</p>
+            <h2 className="h2" style={{ color: "#fff" }}>Every town within <span style={{ color: "#2CC5FF" }}>50 km of Pakenham.</span></h2>
+            <p>From Dandenong to Warragul and up into the Dandenong Ranges, and we still come out as far as 75 km. Type your suburb to check.</p>
             <label htmlFor="area-q">Your suburb</label>
             <div className="area__q">
               <input id="area-q" className="ainput" type="text" autoComplete="address-level2" placeholder="e.g. Clyde North" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -136,18 +179,33 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
               {query.length < 3 && (
                 <p className="area__hint">Start typing and we&apos;ll draw the drive from our workshop. Or <Link href="/service-areas">see every area we cover →</Link></p>
               )}
-              {hit && (
+              {hit && zone === "in" && (
                 <div className="area__msg area__msg--yes pop">
                   <span style={{ background: "#0C6F96" }}>✓</span>
-                  <span><strong>Yes, we cover {hit.name}.</strong> About {km(hit.lat, hit.lng)} km from our Pakenham workshop.
+                  <span><strong>Yes, we cover {hit.name}.</strong> About {dist} km from our Pakenham workshop.
                     {hit.page && <> <Link href={`/areas/${hit.slug}`}>See our {hit.name} page →</Link></>}
                   </span>
                 </div>
               )}
-              {query.length >= 3 && !hit && (
+              {hit && zone === "near" && (
+                <div className="area__msg area__msg--yes pop">
+                  <span style={{ background: "#0C6F96" }}>✓</span>
+                  <span><strong>{hit.name} is outside our 50 km range, but we&apos;ll still service your area.</strong> It&apos;s about {dist} km from our Pakenham workshop.
+                    {hit.page && <> <Link href={`/areas/${hit.slug}`}>See our {hit.name} page →</Link></>}
+                  </span>
+                </div>
+              )}
+              {hit && zone === "out" && (
+                <div className="area__msg area__msg--no pop">
+                  <span style={{ background: "#C2521A" }}>✕</span>
+                  <span><strong>Sorry, we don&apos;t service {hit.name}.</strong> It&apos;s about {dist} km from our Pakenham workshop, past the 75 km we travel.</span>
+                </div>
+              )}
+              {query.length >= 3 && !hit && looking && <p className="area__hint">Checking {q.trim()}…</p>}
+              {query.length >= 3 && !hit && !looking && (
                 <div className="area__msg area__msg--no pop">
                   <span style={{ background: "#C2521A" }}>?</span>
-                  <span>Not on our list yet. Call <a href="tel:+61359478000" data-call-from="area-checker" style={{ color: "#050A30" }}>(03) 5947 8000</a> and we&apos;ll tell you straight.</span>
+                  <span>We couldn&apos;t find that one. Call <a href="tel:+61359478000" data-call-from="area-checker" style={{ color: "#050A30" }}>(03) 5947 8000</a> and we&apos;ll tell you straight.</span>
                 </div>
               )}
             </div>
