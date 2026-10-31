@@ -5,7 +5,7 @@ import {
   findHref, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, reviewTitle, modelForAnswer,
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
 } from "@/lib/homepage/data";
-import type { HowStep, Learn } from "@/lib/homepage/learn";
+import type { Alt, HowStep, Learn } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
 import type { PModel, PBrand } from "../ProductView";
@@ -30,6 +30,8 @@ export type PV = {
   optionLines: string[];
   whyTitle: string; whyLines: string[]; take: string; glance: { label: string; value: string }[];
   sizeOn: (i: number) => boolean; pickSize: (i: number) => void; pickModel: (slug: string) => void; setSize: (i: number) => void;
+  /** Merge answers from the fit form (size included) into the page, so the size, the figures and Book this install all follow. */
+  applyAnswers: (a: Answers) => void;
   sizeNote: string; specRows: { k: string; v: string }[]; specNote: string;
   reviews: Review[]; rating: string; count: number; brand: PBrand | null;
   heroRef: React.RefObject<HTMLElement>; pastHero: boolean;
@@ -103,7 +105,12 @@ export function Glance({ v, cls = "pxg" }: { v: PV; cls?: string }) {
   if (!v.glance.length) return null;
   return (
     <dl className={cls} aria-label={`${v.model!.code} at a glance`} key={v.model!.slug}>
-      {v.glance.map((x) => <div key={x.label}><dd>{x.value}</dd><dt>{x.label}</dt></div>)}
+      {v.glance.map((x) => {
+        // "up to 25 m²" set as big as the other figures wraps to two lines; the
+        // qualifier goes small in front so every tile reads as one figure.
+        const m = x.value.match(/^(up to|from|over)\s+(.*)$/i);
+        return <div key={x.label}><dd>{m ? <><small>{m[1]}</small>{m[2]}</> : x.value}</dd><dt>{x.label}</dt></div>;
+      })}
     </dl>
   );
 }
@@ -111,9 +118,12 @@ export function Glance({ v, cls = "pxg" }: { v: PV; cls?: string }) {
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
 /**
- * "Which one suits me?" in two taps: which line sounds like their home, then
- * the size question from the finder. It ends on the size button to press, or
- * on the other kind of system that fits better.
+ * "Is it right for you?" as a short form: which line sounds like their home,
+ * then the same questions the finder asks about this system (size first, then
+ * floor, outdoor unit and so on). It ends on the size button to press and
+ * hands every answer to the page, so Book this install arrives at the quote
+ * form already filled in. If another kind of system fits better it says so
+ * after the first tap.
  *
  * Every step is rendered in the same grid cell and only the current one is
  * visible, so the card is always as tall as its tallest step and never jumps
@@ -121,59 +131,76 @@ const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
  */
 export function FitFinder({ v }: { v: PV }) {
   const { learn, sys, models } = v;
-  const [path, setPath] = useState<number | null>(null);
-  const [sz, setSz] = useState<number | null>(null);
+  const [step, setStep] = useState(0);
+  const [a, setA] = useState<Answers>({});
+  const [alt, setAlt] = useState<Alt | null>(null);
   const [done, setDone] = useState(false);
   if (!learn) return null;
-  const choices = [{ label: cap(learn.good[0]), alt: null }, ...learn.alt.map((a) => ({ label: cap(a.if), alt: a }))];
-  const step = path == null ? 0 : path === 0 ? (sz == null ? 1 : 2) : 3;
-  const alt = (path != null ? choices[path].alt : null) ?? learn.alt[0];
-  const chipFor = (i: number) => (models.length ? models[modelForAnswer(models, sys.sizes[i].spec)].chip : sys.sizes[i].label);
-  const button = chipFor(sz ?? 0);
-  const restart = () => { setPath(null); setSz(null); setDone(false); };
+  const choices = [{ label: cap(learn.good[0]), alt: null }, ...learn.alt.map((x) => ({ label: cap(x.if), alt: x }))];
+  const qs = sys.qs;
+  const RESULT = qs.length + 1, ALT = qs.length + 2;
+  const sz = a.size ?? 0;
+  const button = models.length ? models[modelForAnswer(models, sys.sizes[sz].spec)].chip : sys.sizes[sz].label;
+  const picked = qs.filter((q) => a[q.id] != null).map((q) => q.opts[a[q.id]].label);
+  const restart = () => { setStep(0); setA({}); setAlt(null); setDone(false); };
+  const back = () => { setDone(false); setStep(step === ALT ? 0 : step - 1); };
   // Hidden steps are visibility:hidden, which also takes them out of the tab order.
   const pane = (n: number) => ({ className: `ff__pane${step === n ? " on" : ""}`, "aria-hidden": step !== n });
+  const shown = alt ?? learn.alt[0];
 
   return (
     <div className="ff">
       <div className="ff__head">
-        <span className="ff__n">{step < 2 ? `Step ${step + 1} of 2` : "Your answer"}</span>
-        {/* Always there, hidden on the first step, so the header row keeps its height. */}
-        <button type="button" className="ff__again" onClick={restart} style={step ? undefined : { visibility: "hidden" }}>Start again</button>
+        <button type="button" className="ff__again" onClick={back} style={step ? undefined : { visibility: "hidden" }}>← Back</button>
+        <span className="ff__n">{step < RESULT ? `Question ${step + 1} of ${qs.length + 1}` : "Your answer"}</span>
+      </div>
+      <div className="ff__bar" aria-hidden="true">
+        {Array.from({ length: qs.length + 1 }, (_, i) => <span key={i} className={i < step || step >= RESULT ? "on" : ""} />)}
       </div>
       <div className="ff__body" aria-live="polite">
         <div {...pane(0)}>
           <span className="ff__q">Which sounds most like your home?</span>
           <div className="ff__opts">
-            {choices.map((c, i) => <button key={c.label} type="button" className="ff__opt" onClick={() => setPath(i)}><span>{c.label}</span><i aria-hidden="true">→</i></button>)}
-          </div>
-        </div>
-        <div {...pane(1)}>
-          <span className="ff__q">{sys.q}</span>
-          <div className="ff__opts">
-            {sys.sizes.map((z, i) => (
-              <button key={z.label} type="button" className="ff__opt" onClick={() => setSz(i)}>
-                <span><strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</span><i aria-hidden="true">→</i>
+            {choices.map((c) => (
+              <button key={c.label} type="button" className="ff__opt" onClick={() => { if (c.alt) { setAlt(c.alt); setStep(ALT); } else { setAlt(null); setStep(1); } }}>
+                <span>{c.label}</span><i aria-hidden="true">→</i>
               </button>
             ))}
           </div>
         </div>
-        <div {...pane(2)}>
+        {qs.map((q, k) => (
+          <div key={q.id} {...pane(k + 1)}>
+            <span className="ff__q">{q.q}</span>
+            <div className="ff__opts">
+              {q.opts.map((o, i) => (
+                <button key={o.label} type="button" className={`ff__opt${a[q.id] === i ? " ff__opt--on" : ""}`} onClick={() => { setA({ ...a, [q.id]: i }); setStep(k + 2); }}>
+                  <span><strong>{o.label}</strong>{o.sub && <small>{o.sub}</small>}</span><i aria-hidden="true">→</i>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div {...pane(RESULT)}>
           <div className="ff__res">
             <span className="ff__tag">Your best fit</span>
-            <p>Press <b className="ff__btn">{button}</b> in the size bar at the top{done ? ". Done, it's selected." : ", or let us do it."}</p>
+            <p>Press <b className="ff__btn">{button}</b> in the size bar at the top{done ? ". Done, it's selected with your answers." : ", or let us set it all up."}</p>
+            {picked.length > 0 && <div className="ff__chips">{picked.map((x) => <span key={x}>{x}</span>)}</div>}
             <div className="ff__acts">
               {done
                 ? <Link href={v.book} className="abtn abtn--or abtn--flat">Book this install →</Link>
-                : <button type="button" className="abtn abtn--or abtn--flat" onClick={() => { if (sz != null) v.pickSize(sz); setDone(true); }}>Select {button}</button>}
+                : <button type="button" className="abtn abtn--or abtn--flat" onClick={() => { v.applyAnswers(a); setDone(true); }}>Select {button}</button>}
+              <button type="button" className="ff__again" onClick={restart}>Start again</button>
             </div>
           </div>
         </div>
-        <div {...pane(3)}>
+        <div {...pane(ALT)}>
           <div className="ff__res">
             <span className="ff__tag">A better fit</span>
-            <p>For that, a <b>{alt.label.toLowerCase()}</b> usually suits better than this one.</p>
-            <div className="ff__acts"><Link href={`/?find=${alt.go}#find`} className="abtn abtn--or abtn--flat">See {alt.label} options →</Link></div>
+            <p>For that, a <b>{shown.label.toLowerCase()}</b> usually suits better than this one.</p>
+            <div className="ff__acts">
+              <Link href={`/?find=${shown.go}#find`} className="abtn abtn--or abtn--flat">See {shown.label} options →</Link>
+              <button type="button" className="ff__again" onClick={restart}>Start again</button>
+            </div>
           </div>
         </div>
       </div>

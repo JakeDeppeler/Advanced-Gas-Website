@@ -48,7 +48,7 @@ export function ProductLayout({ v }: { v: PV }) {
       {learn && (
         <section className="pxs" id="fit">
           <div className="wrap pxfit">
-            <Lead eye="Is it right for you?" h="Who this suits."><p>Two quick taps and we&apos;ll tell you which size button to press, or point you to something that suits you better.</p></Lead>
+            <Lead eye="Is it right for you?" h="Who this suits."><p>A few quick questions and we&apos;ll tell you which size to choose, or point you to something that suits you better. Your answers carry through to your quote.</p></Lead>
             <FitFinder v={v} />
           </div>
         </section>

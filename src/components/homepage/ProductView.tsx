@@ -125,6 +125,13 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     glance: model ? model.specs.filter((x) => !/warranty|refrigerant/i.test(x.label)).slice(0, 4) : [],
     sizeOn: (i) => (models.length ? modelForAnswer(models, sys.sizes[i].spec) === mi && !!sys.sizes[i].spec : ans.size === i),
     pickSize, pickModel, setSize,
+    applyAnswers: (a) => {
+      const next = { ...ans, ...a };
+      setAns(next);
+      // A size from the form picks the model, the same way the finder's answer does.
+      if (a.size != null) setPicked(null);
+      syncUrl(next, a.size != null ? null : picked);
+    },
     // A heat-load check is an aircon and heating thing; hot water is sized off the household.
     sizeNote: cat.id === "hw" ? "A rough guide only. We confirm the right size at the free site check." : SIZE_NOTE,
     specRows: model ? modelRows(model, cat.label, sys.label, installTimeOf(sys), size ? size.label + (size.spec ? ` (${size.spec})` : "") : null) : specRows(cat, sys, t, ans),
