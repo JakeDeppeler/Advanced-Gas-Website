@@ -199,17 +199,21 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "This week", href: "/portal/pace" },
         { label: "This month", href: "/portal/pace?view=month", gate: "/portal/pace" },
         { label: "This year", href: "/portal/pace?view=year", gate: "/portal/pace" },
-        { label: "KPIs", href: "/portal/kpis" },
         { label: "Year goal", href: "/portal/goal" },
       ] },
-      // What we charge, what it costs us, and what if: set up now and then,
-      // so one shortcut rather than three. Materials markup isn't here: it's
-      // set on each item in ServiceTitan, and a second copy only drifted.
-      { label: "Planning", icon: "tag", group: [
+      // Tabs of their own, as Jake asked: looked at more than the planning
+      // pages they sat among.
+      { label: "KPIs", href: "/portal/kpis", icon: "run" },
+      { label: "Hourly rate", icon: "clock", group: [
         { label: "Hourly rate", href: "/portal/rates" },
         { label: "On site & commercial", href: "/portal/rates/onsite" },
         { label: "How the rate's built", href: "/portal/finance/hourly" },
         { label: "What an hour must cover", href: "/portal/finance/cover" },
+      ] },
+      // What we charge, what it costs us, and what if: set up now and then.
+      // Materials markup isn't here: it's set on each item in ServiceTitan,
+      // and a second copy only drifted.
+      { label: "Planning", icon: "tag", group: [
         { label: "Our prices", href: "/portal/pricing" },
         { label: "Commission", href: "/portal/commission" },
         { label: "Running costs", href: "/portal/finance/running" },
@@ -253,22 +257,27 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "you", label: "Settings", icon: "me", group: 4, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
     pages: [
       { label: "My file", href: "/portal/me", icon: "me" },
+      { label: "Notifications", href: "/portal/notifications", icon: "bell" },
+      // Grouped so the row under the top bar fits: fourteen tabs didn't.
       // The records and the tools that build them (bulk site add lives on
       // Sites), with Messages until a channel is connected to it.
-      { label: "Customers", href: "/portal/customers", icon: "team" },
-      { label: "Sites", href: "/portal/locations", icon: "home" },
-      { label: "Messages", href: "/portal/chats", icon: "chat" },
-      { label: "Notifications", href: "/portal/notifications", icon: "bell" },
-      { label: "Settings", href: "/portal/settings", icon: "cog" },
-      { label: "Automatic", href: "/portal/automatic", icon: "bolt" },
-      { label: "Integrations", href: "/portal/integrations", icon: "numbers" },
-      // Where the wall board's email alert is cleared. In the nav rather than
-      // link-only, because the alert sends somebody looking for it and a page
-      // you can only reach from a banner on a television is not a page.
-      { label: "Email", href: "/portal/email", icon: "send" },
+      { label: "Records", icon: "team", group: [
+        { label: "Customers", href: "/portal/customers" },
+        { label: "Sites", href: "/portal/locations" },
+        { label: "Messages", href: "/portal/chats" },
+      ] },
+      { label: "The portal", icon: "cog", group: [
+        { label: "Settings", href: "/portal/settings" },
+        { label: "Automatic", href: "/portal/automatic" },
+        { label: "Integrations", href: "/portal/integrations" },
+        // Where the wall board's email alert is cleared. In the nav rather than
+        // link-only, because the alert sends somebody looking for it and a page
+        // you can only reach from a banner on a television is not a page.
+        { label: "Email", href: "/portal/email" },
+        // The numbers every page measures against, set now and then: from Finance.
+        { label: "Goals", href: "/portal/numbers" },
+      ] },
       { label: "Admin", href: "/portal/admin", icon: "cog" },
-      // The numbers every page measures against, set now and then: from Finance.
-      { label: "Goals", href: "/portal/numbers", icon: "numbers" },
       // How ordering is set up: who we buy from and what we keep on the shelf.
       { label: "Ordering", icon: "box", group: [
         { label: "Suppliers", href: "/portal/supply" },

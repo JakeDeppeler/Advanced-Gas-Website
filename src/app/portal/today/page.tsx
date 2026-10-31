@@ -15,7 +15,7 @@ import { monthTrack } from "@/lib/portal/run/monthTrack";
 import { personDays } from "@/lib/portal/cover/days";
 import { coverBase } from "@/lib/portal/cover/load";
 import { dbConfigured } from "@/lib/portal/db";
-import { Icon } from "@/components/portal/shell/Sidebar";
+import { Icon } from "@/components/portal/shell/Menu";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Today · Team portal" };

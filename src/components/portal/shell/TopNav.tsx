@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Icon } from "@/components/portal/shell/Sidebar";
+import { Icon } from "@/components/portal/shell/Menu";
 
 export const SEARCH_EVENT = "pn:search";
 

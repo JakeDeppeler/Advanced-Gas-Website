@@ -3217,3 +3217,85 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .tb2-body { margin: 0 0 14px 34px; padding: 14px 16px; border-radius: 18px; background: var(--rp-card); border: 1px solid var(--rp-line); display: flex; flex-direction: column; gap: 10px; }
 @media (max-width: 640px) { .tb2-body { margin-left: 0; } .tb2-for { grid-template-columns: 1fr; } .tb2-th { flex-direction: column; } }
 @media (prefers-reduced-motion: reduce) { .tb2-cv { transition: none; } }
+
+/* ==================================================================
+   The light grey frame, as Jake chose from the mocks (Oct 2026). Over
+   everything above: one top bar with the areas across the middle, the
+   area's pages in a tray under it, then the page in white boxes on a light
+   grey panel. Status reads one way everywhere: red behind, yellow close,
+   green on track, gold ahead; the green and yellow are the year card's.
+   ================================================================== */
+.pt.pn {
+  --ground: #e8e8e7; --app: #f1f1f0; --page: #f1f1f0; --surface: #ffffff; --rp-card: #ffffff;
+  --rp-wash-a: #e8e8e7; --rp-wash-b: #e8e8e7; --rp-wash-c: #e8e8e7;
+  --ink2: #636368; --ink3: #6a6a6f;
+  --good: #2c5a4c; --good-f: #2c5a4c; --good-bg: #e0ece7;
+  --mid: #7a5300; --mid-f: #efc84a; --mid-bg: #fbefcf;
+  --bad: #c40015; --bad-f: #c40015; --bad-bg: #fbe5e6;
+  --ahead: #6f4e00; --ahead-f: linear-gradient(135deg, #b07c12, #e2b84e); --ahead-bg: #f6e7bf;
+  --rp-forest: #2c5a4c; --rp-gold: #efc84a;
+}
+.pt.pn[data-theme="dark"] { --ground: #0f0f10; --app: #18181a; --page: #18181a; --surface: #222224; --rp-card: #222224; --rp-wash-a: #0f0f10; --rp-wash-b: #0f0f10; --rp-wash-c: #0f0f10; }
+@media (prefers-color-scheme: dark) {
+  .pt.pn:not([data-theme]) { --ground: #0f0f10; --app: #18181a; --page: #18181a; --surface: #222224; --rp-card: #222224; --rp-wash-a: #0f0f10; --rp-wash-b: #0f0f10; --rp-wash-c: #0f0f10; }
+}
+.pt.pn { display: block; padding: 20px; background: var(--ground); background-attachment: scroll; }
+.pt.pn .pn-main { max-width: 1480px; margin: 0 auto; min-height: calc(100vh - 40px); border-radius: 32px; background: var(--app); box-shadow: 0 30px 60px -40px rgba(29, 29, 31, 0.18); }
+.pt.pn .pn-content { padding: 16px 22px 40px; max-width: none; }
+
+.pn-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 16px 22px 0; }
+.pn-brand { justify-self: start; display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--ink); text-decoration: none; }
+.pn-brand b { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-bar .pn-logo { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--surface); font-size: 11.5px; font-weight: 700; }
+.pn-areas { display: flex; gap: 4px; padding: 4px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px -18px rgba(29, 29, 31, 0.35); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.pn-area { position: relative; flex: 0 0 auto; min-width: 42px; height: 42px; border-radius: 99px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink2); text-decoration: none; transition: background 0.2s ease; }
+.pn-area:hover { background: var(--quiet); color: var(--ink); }
+.pn-area.on { padding: 0 16px; background: var(--ink); color: var(--surface); font-weight: 600; }
+.pn-area .pn-n { position: absolute; top: 1px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 99px; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; background: var(--quiet); color: var(--ink2); }
+.pn-area .pn-n.r { background: var(--bad-f); color: #fff; }
+.pn-area.on .pn-n { position: static; }
+.pn-right { justify-self: end; display: flex; align-items: center; gap: 8px; }
+.pn-out button { width: 32px; height: 32px; border-radius: 99px; border: 0; background: var(--quiet); color: var(--ink2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.pn-you { position: relative; width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; background: var(--ink); color: var(--surface); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; text-decoration: none; }
+.pn-you.here { box-shadow: 0 0 0 3px var(--app), 0 0 0 5px var(--ink); }
+.pn-cog { position: absolute; right: -3px; bottom: -3px; width: 19px; height: 19px; border-radius: 50%; background: var(--surface); color: var(--ink); border: 1px solid var(--line); display: inline-flex; align-items: center; justify-content: center; }
+.pn-sync { position: absolute; left: -2px; top: -2px; width: 11px; height: 11px; border-radius: 50%; background: var(--mid-f); border: 2px solid var(--app); }
+.pn-sync.good { background: var(--good-f); }
+
+/* The tray: centred under the bar, opening from its middle out both ways. */
+.pn-tray { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: -4px; }
+.pn-tray1 { display: flex; gap: 2px; padding: 4px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 7%, transparent); max-width: 100%; overflow-x: auto; scrollbar-width: none; animation: pn-open 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pn-t { flex: 0 0 auto; height: 36px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; font-size: 13.5px; font-weight: 600; color: var(--ink2); text-decoration: none; white-space: nowrap; transition: color 0.2s ease; }
+.pn-t:hover { color: var(--ink); }
+.pn-t.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 6px 14px -8px rgba(29, 29, 31, 0.3); animation: pn-pop 0.45s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pn-tray2 { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 100%; animation: pn-rise 0.4s 0.15s ease both; }
+.pn-c { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: var(--ink2); border: 1px solid var(--line); background: var(--surface); text-decoration: none; }
+.pn-c:hover { color: var(--ink); }
+.pn-c.on { background: var(--ink); color: var(--surface); border-color: transparent; }
+.pn-tray .pn-n { margin-left: 0; padding: 0 7px; min-width: 18px; height: 18px; border-radius: 99px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink2); }
+.pn-tray .pn-n.r { background: var(--bad-f); color: #fff; }
+@keyframes pn-open { from { clip-path: inset(0 calc(50% - 40px) round 99px); opacity: 0.35; } to { clip-path: inset(0 0 round 99px); opacity: 1; } }
+@keyframes pn-pop { from { transform: scale(0.85); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@keyframes pn-rise { from { transform: translateY(-6px); opacity: 0.3; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pn-tray1, .pn-t.on, .pn-tray2 { animation: none; } }
+
+@media (max-width: 860px) {
+  .pt.pn { padding: 0; }
+  .pt.pn .pn-main { border-radius: 0; min-height: 100vh; }
+  .pt.pn .pn-content { padding: 14px 14px 32px; }
+  .pn-bar { display: flex; flex-wrap: wrap; padding: 12px 14px 0; }
+  .pn-right { margin-left: auto; }
+  .pn-areas { order: 3; width: 100%; }
+  .pn-tray { align-items: stretch; }
+  .pn-tray2 { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; }
+}
+@media (max-width: 420px) { .pn-brand b { display: none; } }
+/* The search as a round button at every width now there's no side bar; its box drops under it. */
+.pn-right .pn-search.pn-spop { display: block; width: auto; position: relative; }
+.pn-right .pn-spop > .pn-round { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.pn-right .pn-spanel { display: none; position: absolute; right: 0; top: calc(100% + 10px); width: min(420px, calc(100vw - 28px)); z-index: 55; padding: 8px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 24px 50px -20px rgba(29, 29, 31, 0.35); }
+.pn-right .pn-spop.open .pn-spanel { display: block; }
+.pn-areas, .pn-tray1, .pn-tray2 { position: relative; }
+.pn-c { flex: 0 0 auto; white-space: nowrap; }
+/* On a small phone the theme button keeps its sun or moon and loses the word. */
+@media (max-width: 520px) { .pn-right .pn-theme { padding: 0 10px; font-size: 0; } .pn-right .pn-theme > span[aria-hidden] { font-size: 14px; } }
