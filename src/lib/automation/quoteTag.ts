@@ -188,7 +188,23 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
           continue;
         }
         if ("stuck" in plan) {
+          // Updating the job replaces its whole tag list, and ServiceTitan
+          // answers OK to an empty one and changes nothing (jobs 20147 and
+          // 20430, Oct). Its bulk "remove tags from jobs" takes tags off
+          // without sending a list, so a job's last tag can come off that
+          // way. Checked by reading the job again, as every change here is.
+          const gone = await stSend("DELETE", stTenantPath("jpm", "jobs/tags"), { jobIds: [Number(s.j.id)], tagTypeIds: plan.stuck })
+            .then(async () => {
+              await new Promise((r) => setTimeout(r, 1500));
+              const after = (await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${s.j.id}`))).tagTypeIds;
+              return Array.isArray(after) && !plan.stuck.some((x) => after.includes(x));
+            }, () => false);
           made.set(key, stamp());
+          if (gone) {
+            changed++;
+            log.push({ at: stamp(), kind: "quote-tag", ok: true, jobId: Number(s.j.id), title: `${label}: "${plan.stuck.map(name).join('" and "')}" off`, detail: why(s, stage) });
+            continue;
+          }
           log.push({ at: stamp(), kind: "quote-tag", ok: false, jobId: Number(s.j.id), title: `${label}: "${plan.stuck.map(name).join('" and "')}" left on`, detail: `${why(s, stage)} ${plan.stuck.length > 1 ? "They're the job's only tags" : "It's the job's only tag"}, and ServiceTitan won't take a job's last tag off from here, so take ${plan.stuck.length > 1 ? "them" : "it"} off in ServiceTitan.` });
           continue;
         }
