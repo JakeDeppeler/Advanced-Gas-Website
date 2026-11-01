@@ -59,7 +59,7 @@ export default async function GoalsPage() {
           ["Benchmarks", "What a healthy service trade looks like. They’re fixed and shown beside these on Our KPIs."],
         ]} />
         <Say>These are the numbers every page is measured against. Change one and Home, Our KPIs, Sales, Pace and the wall board all update.</Say>
-        <GoalsForm months={months} labels={labels} current={current} profitPct={g.profitPct} goals={goals} canSave={can(user, "overhead")} suggest={suggest} />
+        <GoalsForm months={months} labels={labels} current={current} lower={g.floorRevenue} profitPct={g.profitPct} goals={goals} canSave={can(user, "overhead")} suggest={suggest} />
       </div>
     </PortalShell>
   );

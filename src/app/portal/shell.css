@@ -3778,3 +3778,26 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pn .pt-hs__nums > .is-charge span, .pn .pt-hs__nums > .is-charge em { color: color-mix(in srgb, var(--rp-on-dark) 78%, transparent); }
 .pn .pt-hs__nums > .is-charge strong { color: var(--rp-on-dark); }
 @media (max-width: 900px) { .pn .pt-hs__nums { row-gap: 16px; } .pn .pt-hs__nums > div:nth-child(3) { padding-left: 20px; } }
+
+/* ------------------------------------------------- Settings › Overview */
+.so { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start; }
+.pn .pk-card.so-card { margin: 0; padding: 18px 20px 10px; }
+.so-h { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+.so-ic { flex: none; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--rp-line); color: var(--ink); }
+.so-h h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.so-h p { margin: 3px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink2); }
+.so-pages { list-style: none; margin: 0; padding: 0; }
+.so-pages li + li { border-top: 1px solid var(--rp-line); }
+.so-pages a { display: flex; justify-content: space-between; align-items: center; padding: 10px 2px; font-size: 14px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.so-pages a span { color: var(--ink3); font-size: 18px; }
+.so-pages a:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* Goals: the two year goals side by side, the higher one dark. */
+.gf-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 6px 0 12px; }
+.gf-goal { display: grid; gap: 3px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--rp-line); background: var(--surface); }
+.gf-goal.goal { background: var(--rp-dark); color: var(--rp-on-dark); border-color: transparent; }
+.gf-l { font-size: 12px; font-weight: 600; color: var(--ink2); }
+.gf-goal.goal .gf-l, .gf-goal.goal > span:not(.gf-l) { color: color-mix(in srgb, var(--rp-on-dark) 78%, transparent); }
+.gf-goal b { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.gf-goal > span:not(.gf-l) { font-size: 12.5px; color: var(--ink2); }
+.gf-goal a { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+@media (max-width: 640px) { .gf-two { grid-template-columns: minmax(0, 1fr); } }

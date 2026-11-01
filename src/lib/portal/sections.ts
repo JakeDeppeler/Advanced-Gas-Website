@@ -263,6 +263,9 @@ export const SECTION_DEFS: SectionDef[] = [
     // Set up once and looked at rarely, so out of the way at the bottom.
     id: "you", label: "Settings", icon: "me", group: 4, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
     pages: [
+      // The way in, as the mocks have it: every part of Settings on one page.
+      // First, so the initial-and-cog in the corner opens here.
+      { label: "Overview", href: "/portal/you", icon: "cog" },
       { label: "My file", href: "/portal/me", icon: "me" },
       { label: "Notifications", href: "/portal/notifications", icon: "bell" },
       // Grouped so the row under the top bar fits: fourteen tabs didn't.
