@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { Bad, Good, Head, Say } from "@/components/portal/kit/Kit";
 import { Locked } from "@/components/portal/Locked";
 import { NextWeekOrders, type UnbookedSale } from "@/components/portal/NextWeekOrders";
 import {
@@ -119,36 +118,9 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     dbReady = false;
   }
 
-  const live = orders.filter((o) => o.status !== "cancelled");
-  const waiting = live.filter((o) => o.status === "draft");
-  const aheadOpen = unbooked.filter((x) => x.groups.some((g) => !g.ordered && !g.drafted)).length;
-  const soonest = waiting.map((o) => o.kind === "work_order" ? o.details?.date : o.lines.map((l) => l.install_date).filter(Boolean).sort()[0]).filter((d): d is string => !!d).sort()[0];
 
   return (
     <PortalShell user={user}>
-      <div className="pk" style={{ marginBottom: 14 }}>
-        <Head
-          title="To order"
-          sub={`This week and next · ${weekLabel({ start: tw.start, end: nw.end })}`}
-          info={[
-            ["Drafted for you", "Built from the installs booked this week and next, and kept up to date as bookings come in. Next week starts drafting on Wednesday."],
-            ["Nothing goes until it's sent", "No supplier order goes until someone presses its Send button here. A contractor's work order goes by itself once its job is booked, unless To order › Automation says otherwise."],
-            ["Can't order", "A line that can't be ordered, no supplier, no model on the quote, no crew, says why, so it can be fixed in ServiceTitan."],
-          ]}
-        />
-        {dbReady && (
-          <>
-            <Say>
-              {waiting.length
-                ? <><Bad>{waiting.length} {waiting.length === 1 ? "order is" : "orders are"} waiting to be sent</Bad>{soonest ? <>, the first for an install on {dayLabel(soonest)}</> : null}.</>
-                : <Good>Nothing waiting to be sent.</Good>}{" "}
-              {problems.length > 0 ? <Bad>{problems.length} {problems.length === 1 ? "line can't" : "lines can't"} be ordered yet.</Bad> : null}{" "}
-              {aheadOpen > 0 ? <>{aheadOpen} sold {aheadOpen === 1 ? "job" : "jobs"} can be ordered ahead.</> : null}
-            </Say>
-          </>
-        )}
-      </div>
-
       <NextWeekOrders
         dbReady={dbReady}
         appointmentsSynced={synced}

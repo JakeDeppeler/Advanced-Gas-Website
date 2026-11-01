@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, orderAhead, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, orderAhead, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
@@ -366,6 +366,46 @@ export async function orderAheadNow(input: { estimateId: number; supplierId: str
     done();
     return r.ok ? { ok: true, note: r.note } : { ok: false, error: r.error ?? "Couldn't put it on the order." };
   } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/**
+ * One supplier's order, as ticked on its card, sent in one go: the sold,
+ * not-booked jobs ticked are put on the order first, every draft for the
+ * supplier becomes one order, the lines left unticked wait for later (held,
+ * drafted again next week, never lost), and what's left is sent, the same
+ * send as the Send button always was. Nothing goes if the order would be
+ * empty.
+ */
+export async function sendSupplier(input: { supplierId: string; ahead: number[]; leave: number[] }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which supplier?" };
+  const who = me.name || me.email;
+  try {
+    for (const est of (Array.isArray(input.ahead) ? input.ahead : []).filter(isId).slice(0, 40)) {
+      const r = await orderAhead(est, input.supplierId);
+      if (!r.ok) return { ok: false, error: r.error ?? "A sold job couldn't go on the order." };
+    }
+    const drafts = (await Promise.all([listWeekOrders(thisWeek(new Date())), listWeekOrders(nextWeek(new Date()))])).flat()
+      .filter((p) => p.supplier_id === input.supplierId && p.kind === "order" && p.status === "draft");
+    if (!drafts.length) return { ok: false, error: "There's nothing on this supplier's order to send." };
+    const keep = drafts[0];
+    if (drafts.length > 1) {
+      const m = await mergeDrafts(keep.id);
+      if (!m.ok) return { ok: false, error: m.error };
+    }
+    const leave = lineIds(input.leave);
+    if (leave.length) {
+      const h = await holdLines(keep.id, leave, who);
+      if (!h.ok) return { ok: false, error: `Couldn't leave the unticked lines for later: ${h.error ?? "try again"}` };
+    }
+    const r = await approveAndSend(keep.id, who);
+    done();
+    return r;
+  } catch (e) {
+    done();
     return { ok: false, error: (e as Error).message };
   }
 }
