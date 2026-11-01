@@ -81,15 +81,19 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let unbooked: UnbookedSale[] = [];
   try {
     // Everything in one go: each is a round trip to Tokyo.
-    const supP = loadSuppliers();
-    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub] = await Promise.all([
-      listWeekOrders(tw), listWeekOrders(nw), supP, loadWeekInputs(tw), loadWeekInputs(nw), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
-      supP.then((x) => loadJobNoteSuppliers(x)).catch(() => [] as string[]),
+    // Read twice before giving up: these views are heavy, and while the sync
+    // is writing they can run past the database's 8-second limit. One slow
+    // read used to blank the whole page as "the database isn't reachable".
+    const readAll = () => Promise.all([
+      listWeekOrders(tw), listWeekOrders(nw), loadSuppliers(), loadWeekInputs(tw), loadWeekInputs(nw), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
+      loadSuppliers().then((x) => loadJobNoteSuppliers(x)).catch(() => [] as string[]),
       loadStocked().catch(() => []),
       getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null),
       // Its own catch: a failed read of the sold-not-booked list leaves the rest of the page standing.
       loadUnbooked().catch(() => null),
-    ]);
+    ] as const);
+    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub] = await readAll()
+      .catch(() => new Promise<void>((r) => setTimeout(r, 1500)).then(readAll));
     orders = [...oThis, ...oNext];
     if (ub) unbooked = unbookedSales(ub, s, orders.filter((o) => o.status === "draft"), already);
     holds = h;
