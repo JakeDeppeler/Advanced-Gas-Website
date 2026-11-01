@@ -72,19 +72,35 @@ async function requestToken(): Promise<AuthProbe & { value?: string }> {
   const c = reeceConfig();
   if (!c.clientId || !c.clientSecret) return { ok: false, status: 0, detail: "REECE_CLIENT_ID / REECE_CLIENT_SECRET not set" };
 
-  const res = await fetch(c.tokenUrl, {
+  const ask = (scope: string | null) => fetch(c.tokenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Authorization: `Basic ${Buffer.from(`${c.clientId}:${c.clientSecret}`).toString("base64")}`,
     },
-    body: new URLSearchParams({ grant_type: "client_credentials", scope: c.scopes }),
+    body: new URLSearchParams(scope ? { grant_type: "client_credentials", scope } : { grant_type: "client_credentials" }),
     cache: "no-store",
   });
+  // The OAuth error code only ("invalid_client", "invalid_scope"): a fixed
+  // word from the standard, which says what's wrong without the rest of the
+  // body, which, like ServiceTitan's, can carry the client id.
+  const code = async (r: Response) => {
+    const e = ((await r.json().catch(() => null)) as { error?: unknown } | null)?.error;
+    return typeof e === "string" && /^[a-z_]{3,40}$/.test(e) ? e : "";
+  };
+
+  let res = await ask(c.scopes);
+  let why = res.ok ? "" : await code(res);
+  // A login issued for fewer scopes than we ask for is refused outright
+  // (Reece's second login, 1 Nov, answered 400). Asked with no scope, the
+  // auth server grants whatever the login is allowed.
+  if (why === "invalid_scope") {
+    res = await ask(null);
+    why = res.ok ? "" : await code(res);
+  }
 
   if (!res.ok) {
-    // The body is not echoed: like ServiceTitan's, it can carry the client id.
-    return { ok: false, status: res.status, detail: `${res.status} ${res.statusText}` };
+    return { ok: false, status: res.status, detail: `${res.status} ${res.statusText}${why ? ` (${why})` : ""}`.replace(/\s+/g, " ") };
   }
   const json = (await res.json()) as { access_token: string; expires_in?: number };
   const expiresIn = json.expires_in ?? 3600;

@@ -51,7 +51,11 @@ export async function GET(req: Request) {
       status: "failed",
       detail: auth.detail,
       fix:
-        auth.status === 401 || auth.status === 400
+        /invalid_scope/.test(auth.detail)
+          ? "The login isn't allowed the scopes asked for, even with none named. Ask Reece which scopes it carries and set REECE_SCOPES to them."
+          : /unauthorized_client/.test(auth.detail)
+            ? "Reece hasn't enabled this login for the client-credentials sign-in the portal uses. Ask Reece to enable it for API access."
+          : auth.status === 401 || auth.status === 400
           ? "Client id or secret rejected. Check for whitespace from the paste, and that the credentials match REECE_ENV (test credentials only work against the test hosts)."
           : auth.status === 0
             ? "Could not reach the token endpoint — check outbound network access and REECE_AUTH_URL."
