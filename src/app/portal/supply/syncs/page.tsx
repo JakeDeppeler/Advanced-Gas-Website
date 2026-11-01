@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { listSyncRuns, type SyncRun } from "@/lib/pricebook/supply";
 import { Locked } from "@/components/portal/Locked";
 import { Head } from "@/components/portal/kit/Kit";
@@ -42,12 +41,10 @@ export default async function SupplySyncsPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
+      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Sync history" sub={<>Every pricebook run, what it changed, and anything that failed.</>} />
       </div>
-
-      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       {!dbReady ? (
         <section className="pt-panel">

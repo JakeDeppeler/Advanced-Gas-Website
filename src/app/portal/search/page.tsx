@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { Head } from "@/components/portal/kit/Kit";
 import { SearchResults } from "@/components/portal/SearchResults";
 import type { SearchRow } from "@/components/portal/PortalSearch";
 import { buildSearchIndex } from "@/lib/portal/searchIndex";
@@ -47,7 +47,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   return (
     <PortalShell user={user}>
       <div className="pt-narrow">
-        <PortalBack href="/portal" label="Home" />
+        <div className="pk"><Head title="Search" sub="Every page, procedure, handbook topic and video in the portal." /></div>
         <SearchResults rows={rows} initial={searchParams.q ?? ""} />
       </div>
     </PortalShell>

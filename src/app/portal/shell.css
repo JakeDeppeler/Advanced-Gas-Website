@@ -3812,3 +3812,12 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .pt.pn .pt-vstat--bad { background: var(--bad-f); color: #fff; }
 .pt.pn .pt-vstat--bad::before { content: "▼"; }
 .pt.pn .pt-vstat--ok::before, .pt.pn .pt-vstat--warn::before, .pt.pn .pt-vstat--bad::before { margin-right: 4px; }
+
+/* ------------------------------------------------- pages reached by clicking in */
+/* The one way back, small and grey over the title, at every width: "‹ Suppliers". */
+.pt.pn .pt-back.pt-up { display: inline-flex; margin: 0 0 6px; padding: 0; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.pt.pn .pt-back.pt-up:hover { color: var(--ink); }
+/* The older head's line over the title, in the same words-not-capitals style as the rest. */
+.pt.pn .pt-head__eyebrow { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 600; color: var(--ink2); margin-bottom: 2px; }
+.pt.pn .pt-back.pt-up { display: flex; width: fit-content; }
+.pn .pt-narrow > .pk + * { margin-top: 14px; }

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { SupplierEmails } from "@/components/portal/SupplierEmails";
 import { loadOrderingSettings, loadSuppliers } from "@/lib/ordering/db";
@@ -52,11 +51,10 @@ export default async function SupplierEmailsPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/supply" label="Supply" />
+      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Supplier emails" sub={<>Who each order goes to and how the email reads. Change the wording, then send yourself a sample to see it. Orders come from orders@advancedgas.com.au and replies go to {replyTo || "the office"}.</>} />
       </div>
-      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
       <SupplierEmails
         dbReady={dbReady}
         suppliers={suppliers}

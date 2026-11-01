@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { checkServiceTitan, type CheckReport } from "@/lib/dashboard/stCheck";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { Locked } from "@/components/portal/Locked";
@@ -39,12 +38,10 @@ export default async function SupplyHealthPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/supply" label="Supply" />
+      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Is ServiceTitan answering?" sub={<>Run fresh every time you open this page. It walks the stages in order, credentials present, credentials well-formed, token exchange, then one real call per scope, and stops at the first failure, because everything after it would fail for the same reason.</>} />
       </div>
-
-      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       {!configured && (
         <section className="pt-panel">
