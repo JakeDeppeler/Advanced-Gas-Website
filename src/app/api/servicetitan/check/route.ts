@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { checkServiceTitan } from "@/lib/dashboard/stCheck";
-import { probeEstimates, probeForms, probeJobHistory } from "@/lib/dashboard/stEstimateProbe";
+import { probeEstimates, probeForms, probeJobHistory, probeReports } from "@/lib/dashboard/stEstimateProbe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +31,10 @@ export const maxDuration = 60;
 // can carry the job's Condition Report.
 // It also lays out one completed report field by field, answers cut short,
 // and tries filtering the list to one job.
+//
+// ?reports=<name> lists the ServiceTitan reports the portal can read whose
+// name matches, and their columns (probeReports): whether a report can say a
+// quote is a draft, which the estimate API can't.
 
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) {
@@ -43,6 +47,8 @@ export async function GET(req: Request) {
   if (jobs.length) return NextResponse.json({ jobs: await probeJobHistory(jobs) });
   const forms = new URL(req.url).searchParams.get("forms");
   if (forms) return NextResponse.json({ forms: await probeForms(forms) });
+  const reports = new URL(req.url).searchParams.get("reports");
+  if (reports) return NextResponse.json({ reports: await probeReports(reports) });
 
   const report = await checkServiceTitan();
   return NextResponse.json(report);
