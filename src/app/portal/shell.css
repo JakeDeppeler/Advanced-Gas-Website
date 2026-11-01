@@ -3801,3 +3801,14 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .gf-goal > span:not(.gf-l) { font-size: 12.5px; color: var(--ink2); }
 .gf-goal a { font-size: 12.5px; font-weight: 600; color: var(--ink); }
 @media (max-width: 640px) { .gf-two { grid-template-columns: minmax(0, 1fr); } }
+
+/* Small status chips (a post Published, a journal through) solid in the
+   status colours, with their sign, as the mocks have them: the same rule as
+   the kit's pills, so a state reads the same on every page. */
+.pt.pn .pt-vstat--ok { background: var(--good-f); color: #f4f1ea; }
+.pt.pn .pt-vstat--ok::before { content: "✓"; }
+.pt.pn .pt-vstat--warn { background: var(--mid-f); color: #2b2000; }
+.pt.pn .pt-vstat--warn::before { content: "!"; }
+.pt.pn .pt-vstat--bad { background: var(--bad-f); color: #fff; }
+.pt.pn .pt-vstat--bad::before { content: "▼"; }
+.pt.pn .pt-vstat--ok::before, .pt.pn .pt-vstat--warn::before, .pt.pn .pt-vstat--bad::before { margin-right: 4px; }
