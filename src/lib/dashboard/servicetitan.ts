@@ -121,7 +121,7 @@ export async function stFetch<T>(path: string, params?: Record<string, string | 
  * this helper only gets the request there.
  */
 export async function stSend<T>(
-  method: "POST" | "PATCH" | "PUT",
+  method: "POST" | "PATCH" | "PUT" | "DELETE",
   path: string,
   body: unknown,
 ): Promise<T> {
