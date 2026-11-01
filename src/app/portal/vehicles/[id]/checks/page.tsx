@@ -45,8 +45,8 @@ export default async function ChecksPage({ params }: { params: { id: string } })
     <PortalShell user={user}>
       <div className="pt-head">
         <PortalBack href={`/portal/vehicles/${vehicle.id}`} label={vehicle.name} />
-        <div className="pt-head__eyebrow">{vehicle.name}{vehicle.rego ? ` · ${vehicle.rego}` : ""}</div>
-        <h1>Stock &amp; checks.</h1>
+        {vehicle.rego && <div className="pt-head__eyebrow">{vehicle.rego}</div>}
+        <h1>Stock &amp; checks</h1>
         <p>The same sheets that live in the van, counted, ticked and photographed here instead of on paper, so the office sees it the moment it&rsquo;s done.</p>
       </div>
 

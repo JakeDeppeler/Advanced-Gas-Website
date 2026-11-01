@@ -24,7 +24,7 @@ export default async function RunCheckPage({ params }: { params: { id: string; k
       <div className="pt-head">
         <PortalBack href={`/portal/vehicles/${vehicle.id}/checks`} label="Checks" />
         <div className="pt-head__eyebrow">{vehicle.name}{vehicle.rego ? ` · ${vehicle.rego}` : ""}</div>
-        <h1>{def.label}.</h1>
+        <h1>{def.label}</h1>
       </div>
       <VanCheckForm vehicleId={vehicle.id} vehicleName={vehicle.name} kind={def.k as CheckKind} />
     </PortalShell>
