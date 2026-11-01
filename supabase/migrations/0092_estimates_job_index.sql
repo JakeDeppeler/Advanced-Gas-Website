@@ -1,0 +1,11 @@
+-- st_estimates looked up by job.
+--
+-- upcoming_order_lines (and electrician_work_orders and the views that
+-- build on them) find each install job's sold quote with
+--   status = 'Sold' and (job_id = <job> or id = <createdFromEstimateId>)
+-- and with no index on job_id that read every estimate, once per install
+-- job. Alone it ran in a quarter of a second; while the sync was busy it
+-- ran past the 8-second statement limit and was cancelled, which blanked
+-- To order and stopped "Tell the contractor when a job moves" (2 Nov).
+-- With job_id indexed the OR becomes two index lookups.
+create index if not exists st_estimates_job_id_idx on public.st_estimates (job_id);
