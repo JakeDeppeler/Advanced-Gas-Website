@@ -243,6 +243,7 @@ const KPI_ICON: Record<string, string> = {
   sound: "M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14",
   calendar: "M3 5h18v16H3zM16 3v4M8 3v4M3 10h18",
   bolt: "M13 2 3 14h9l-1 8 10-12h-9z",
+  box: "M21 8 12 3 3 8l9 5 9-5ZM3 8v8l9 5 9-5V8M12 13v8",
 };
 export type Kpi = { icon: keyof typeof KPI_ICON | string; fig: ReactNode; label: ReactNode; badge?: ReactNode; tone?: "up" | "down" | "gold"; href?: string };
 
