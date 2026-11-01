@@ -22,6 +22,10 @@ on:
         description: "A form name to look for (e.g. condition). Instead of the connection check, lists ServiceTitan's forms and the shape of the newest submissions of the matching ones: one completed report field by field, answers cut to 60 characters."
         type: string
         required: false
+      reports:
+        description: "A report name to look for (e.g. estimate). Instead of the connection check, lists the ServiceTitan reports the portal can read with that in their name, and their columns, to see whether one says a quote is a draft. Nothing is run."
+        type: string
+        required: false
       job:
         description: "Job ids (not numbers), comma-separated (up to five). Instead of the connection check, lists the kinds of event in each job's history, to see whether ServiceTitan records a quote being sent."
         type: string
@@ -39,6 +43,7 @@ jobs:
           ESTIMATE: ${{ inputs.estimate }}
           JOB: ${{ inputs.job }}
           FORMS: ${{ inputs.forms }}
+          REPORTS: ${{ inputs.reports }}
         run: |
           set -euo pipefail
 
@@ -97,6 +102,22 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "--- raw probe ---"
             jq '.forms' probe.json
+            exit 0
+          fi
+
+          # The reports probe: letters, digits, spaces and | only reach the URL.
+          if [ -n "${REPORTS:-}" ]; then
+            NAME="$(printf '%s' "$REPORTS" | tr -cd 'A-Za-z0-9 |' | sed 's/ /%20/g; s/|/%7C/g')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?reports=${NAME}" > probe.json
+            {
+              echo "## ServiceTitan reports matching \"${REPORTS}\", and their columns"
+              echo
+              echo '```json'
+              jq '.reports' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.reports' probe.json
             exit 0
           fi
 

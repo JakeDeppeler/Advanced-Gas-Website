@@ -228,3 +228,59 @@ export async function probeForms(match: string): Promise<{ forms?: unknown; samp
     return { forms: named, error: `submissions: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
   }
 }
+
+/**
+ * Can a ServiceTitan report say a quote is a draft?
+ *
+ * The estimate API has no draft or sent field (#360) and the job history
+ * records nothing when a quote goes out (#400), so the office swaps Quote In
+ * Draft for Awaiting Quote Approval by hand. The Reporting API runs reports
+ * built in ServiceTitan, which may carry columns the estimate API doesn't.
+ * This lists the report categories, the reports in each whose name matches
+ * (estimate/quote by default), and for each of those its column names and
+ * types, flagging any that look like draft or sent. Names only: no report is
+ * run, so nothing about a customer comes back.
+ */
+export async function probeReports(match: string): Promise<unknown> {
+  const re = new RegExp(match.replace(/[^a-z0-9 |]/gi, "").trim() || "estimate|quote", "i");
+  type Cat = { id?: string; name?: string };
+  type Rep = { id?: number; name?: string; description?: string };
+  type Field = { name?: string; label?: string; dataType?: string };
+  let cats: Cat[];
+  try {
+    cats = (await stFetch<{ data?: Cat[] }>(stTenantPath("reporting", "report-categories"), { pageSize: "100" })).data ?? [];
+  } catch (e) {
+    return { error: `report-categories: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
+  }
+  const out: Record<string, unknown> = { categories: cats.map((c) => c.id ?? c.name) };
+  const found: Array<Record<string, unknown>> = [];
+  const counts: Record<string, number | string> = {};
+  for (const c of cats) {
+    const cat = c.id ?? "";
+    if (!cat) continue;
+    let reps: Rep[];
+    try {
+      reps = (await stFetch<{ data?: Rep[] }>(stTenantPath("reporting", `report-category/${cat}/reports`), { pageSize: "500" })).data ?? [];
+    } catch (e) {
+      counts[cat] = `error: ${(e instanceof Error ? e.message : "failed").slice(0, 80)}`;
+      continue;
+    }
+    counts[cat] = reps.length;
+    for (const r of reps.filter((x) => re.test(`${x.name ?? ""} ${x.description ?? ""}`))) found.push({ category: cat, id: r.id, name: r.name });
+  }
+  out.reportsPerCategory = counts;
+  for (const f of found.slice(0, 12)) {
+    try {
+      const d = await stFetch<{ fields?: Field[]; parameters?: Array<{ name?: string; label?: string; dataType?: string; isRequired?: boolean }> }>(
+        stTenantPath("reporting", `report-category/${f.category}/reports/${f.id}`));
+      const fields = (d.fields ?? []).map((x) => `${x.label ?? x.name} (${x.dataType ?? "?"})`);
+      f.fields = fields;
+      f.draftLike = (d.fields ?? []).filter((x) => /draft|sent|email|present|review|status/i.test(`${x.name ?? ""} ${x.label ?? ""}`)).map((x) => x.label ?? x.name);
+      f.parameters = (d.parameters ?? []).map((p) => `${p.label ?? p.name}${p.isRequired ? " *" : ""} (${p.dataType ?? "?"})`);
+    } catch (e) {
+      f.error = (e instanceof Error ? e.message : "failed").slice(0, 160);
+    }
+  }
+  out.matching = found;
+  return out;
+}
