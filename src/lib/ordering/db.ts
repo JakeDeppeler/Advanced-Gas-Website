@@ -713,6 +713,42 @@ export type UnbookedLine = {
 };
 
 /**
+ * Booked jobs past the two drafted weeks, put on a supplier's draft now
+ * because the office wants to order early. They go on as the office's lines
+ * (manual), carrying the job and the sale, so redrafting keeps them and the
+ * planner skips them when the job comes into the drafted weeks: never ordered
+ * twice. Nothing is sent; it's on the draft until someone presses Send.
+ */
+export async function orderLater(jobIds: number[], supplierId: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+  if (!jobIds.length) return { ok: true };
+  const [rows, suppliers, already, held, fromShelf] = await Promise.all([
+    sbSelect<OrderLine>("upcoming_order_lines", `job_id=in.(${jobIds.join(",")})&supplier_id=eq.${encodeURIComponent(supplierId)}&order=job_id.asc,sku_id.asc.nullslast`),
+    loadSuppliers(), loadAlreadyOrdered(), loadHolds(), loadFromStock().catch(() => []),
+  ]);
+  const supplier = suppliers.find((x) => x.id === supplierId && x.active);
+  if (!supplier || supplier.method === "work_order") return { ok: false, error: "That supplier isn't set up for ordering." };
+  const week = thisWeek(new Date());
+  const drafts = [...await listWeekOrders(week), ...await listWeekOrders(nextWeek(new Date()))].filter((p) => p.status === "draft");
+  const taken = new Set([
+    ...drafts.flatMap((p) => p.lines.flatMap((l) => lineKeys(l))),
+    ...held.map((h) => lineKey(h.job_id, h.sku_id)),
+    ...fromShelf.map((x) => x.key),
+  ]);
+  const fresh = rows.filter((r) => !r.issue && Number(r.qty) > 0 && !lineKeys(r).some((k) => taken.has(k) || already.has(k)));
+  if (!fresh.length) return { ok: true, note: `Already on ${supplier.name}'s order, or ordered.` };
+  const poId = await draftFor(supplierId, week);
+  await sbInsert("purchase_order_lines", fresh.map((r) => lineRow(poId, {
+    job_id: r.job_id, job_number: r.job_number, customer_name: r.customer_name, suburb: r.suburb, install_date: r.install_date, appointment_start: r.appointment_start ?? null,
+    sku_id: r.sku_id, sku_name: r.sku_name, sku_type: r.sku_type, description: r.description,
+    supplier_model: r.supplier_model, supplier_part: r.supplier_part, qty: Number(r.qty), unit_cost: r.unit_cost == null ? null : Number(r.unit_cost),
+    manual: true, estimate_id: r.estimate_id,
+  })) as unknown as Row);
+  await sbUpdate("purchase_orders", `id=eq.${poId}`, { updated_at: new Date().toISOString() });
+  const jobs = new Set(fresh.map((r) => r.job_id)).size;
+  return { ok: true, note: `${jobs === 1 ? "The job is" : `${jobs} jobs are`} on ${supplier.name}'s order now. Send it when you're ready.` };
+}
+
+/**
  * Some of a sold, unbooked sale's gear was bought another way (rung through,
  * a third-party site). Recorded as its own sent order, "Ordered manually",
  * against the sale, the same record a booked job's lines get: it shows on

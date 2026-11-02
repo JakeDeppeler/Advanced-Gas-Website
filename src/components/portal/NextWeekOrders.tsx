@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, unbookedLines, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, reecePreview, reecePlace, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, unbookedLines, orderLaterNow, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, reecePreview, reecePlace, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Preview } from "@/lib/ordering/reeceSend";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
@@ -878,6 +878,12 @@ const firstKey = (po: PoWithLines) => { const f = firstInstall(po); return f ? f
 /** One line of a sold, unbooked sale; `shelf` when we'll take it from the factory rather than order it. */
 export type UnbookedItem = { name: string; qty: number; skuId: number | null; cost: number; shelf: boolean; ordered: string | null };
 
+/** A booked job past the two drafted weeks, for one supplier: shown to order early. */
+export type LaterJob = {
+  supplierId: string; jobId: number; jobNumber: string | null; customer: string | null; suburb: string | null; install: string | null;
+  items: { name: string; qty: number; cost: number }[]; cost: number;
+};
+
 export type UnbookedSale = {
   estimateId: number; customer: string | null; suburb: string | null; what: string | null; soldOn: string | null; total: number | null;
   quoteJob: string | null; issues: string[];
@@ -1167,6 +1173,7 @@ export function NextWeekOrders(props: {
   notedSuppliers?: string[];
   /** Items tagged Factory stock. */
   stocked?: string[];
+  later?: LaterJob[];
   /** Supplier orders still drafts this week and next, to offer making a supplier's into one. */
   allDrafts?: DraftRef[];
   /** Sold quotes with no install booked yet, to order ahead from. */
@@ -1214,7 +1221,7 @@ export function NextWeekOrders(props: {
   // tick, the card's foot the order as it stands.
   const orderDrafts = shown.filter((o) => o.kind === "order");
   const workOrders = shown.filter((o) => o.kind === "work_order");
-  const cards = supplierCards(orderDrafts, props.unbooked ?? [], holds, byId, today);
+  const cards = supplierCards(orderDrafts, props.unbooked ?? [], holds, byId, today, props.later ?? []);
   const installs = cards.reduce((n, c) => n + c.jobs.length, 0);
   const soonCards = cards.filter((c) => c.firstDays != null && c.firstDays <= ALERT_DAYS);
   const aheadN = cards.reduce((n, c) => n + c.ahead.filter((a) => !a.onDraft).length, 0);
@@ -1272,13 +1279,13 @@ type AheadRow = {
   key: string; estimateId: number; customer: string | null; what: string; soldOn: string | null; cost: number; onDraft: boolean; ordered: string | null;
   items: UnbookedItem[]; jobId: number | null; customerId: number | null; quoteJob: string | null;
 };
-type SupCard = { id: string; name: string; supplier: Supplier | undefined; drafts: PoWithLines[]; jobs: JobRow[]; ahead: AheadRow[]; held: Hold[]; stock: PoLine[]; firstDays: number | null };
+type SupCard = { id: string; name: string; supplier: Supplier | undefined; drafts: PoWithLines[]; jobs: JobRow[]; ahead: AheadRow[]; held: Hold[]; later: LaterJob[]; stock: PoLine[]; firstDays: number | null };
 
-function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], holds: Hold[], byId: Map<string, Supplier>, today: string): SupCard[] {
+function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], holds: Hold[], byId: Map<string, Supplier>, today: string, later: LaterJob[] = []): SupCard[] {
   const cards = new Map<string, SupCard>();
   const get = (id: string, name?: string) => {
     let c = cards.get(id);
-    if (!c) { c = { id, name: byId.get(id)?.name ?? name ?? id, supplier: byId.get(id), drafts: [], jobs: [], ahead: [], held: [], stock: [], firstDays: null }; cards.set(id, c); }
+    if (!c) { c = { id, name: byId.get(id)?.name ?? name ?? id, supplier: byId.get(id), drafts: [], jobs: [], ahead: [], held: [], later: [], stock: [], firstDays: null }; cards.set(id, c); }
     return c;
   };
   for (const po of drafts) {
@@ -1312,11 +1319,12 @@ function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], holds: H
   // Held lines sit in their supplier's card, unticked, so a late one can be
   // ticked back onto the order that's going rather than wait for next week.
   for (const h of holds) get(h.supplier_id).held.push(h);
+  for (const l of later) get(l.supplierId).later.push(l);
   for (const c of cards.values()) {
     c.jobs.sort((a, b) => (a.install ?? "9999").localeCompare(b.install ?? "9999"));
     c.firstDays = c.jobs.find((j) => j.days != null)?.days ?? null;
   }
-  return [...cards.values()].filter((c) => c.jobs.length || c.ahead.length || c.stock.length || c.held.length)
+  return [...cards.values()].filter((c) => c.jobs.length || c.ahead.length || c.stock.length || c.held.length || c.later.length)
     .sort((a, b) => (a.firstDays ?? 9999) - (b.firstDays ?? 9999) || a.name.localeCompare(b.name));
 }
 
@@ -1331,7 +1339,7 @@ function Board({ cards, problems, byId, testTo, alwaysCc, delivery, noted, suppl
   cards: SupCard[]; problems: Problem[]; byId: Map<string, Supplier>; testTo: string; alwaysCc: string; delivery: DeliverySettings; noted: Set<string>; suppliers: Supplier[];
 }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const shownCards = cards.filter((c) => filter === "all" || (filter === "send" ? c.jobs.length : c.ahead.length));
+  const shownCards = cards.filter((c) => filter === "all" || (filter === "send" ? c.jobs.length || c.held.length || c.later.length : c.ahead.length));
   return (
     <>
       <div className="to2-bar">
@@ -1552,11 +1560,12 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
   const [off, setOff] = useState<Set<string>>(new Set());
   const [ahead, setAhead] = useState<Set<number>>(new Set());
   const [rel, setRel] = useState<Set<number>>(new Set());
+  const [lat, setLat] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState<Set<string>>(() => new Set(c.jobs.slice(0, 1).map((j) => j.key)));
   const flip = (set: Set<string>, k: string) => { const n = new Set(set); n.has(k) ? n.delete(k) : n.add(k); return n; };
   const ticked = c.jobs.filter((j) => !off.has(j.key));
-  const total = ticked.reduce((t, j) => t + j.cost, 0) + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).reduce((t, a) => t + a.cost, 0) + linesTotal(c.stock);
-  const count = ticked.length + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).length + (c.stock.length ? 1 : 0) + rel.size;
+  const total = c.later.filter((l) => lat.has(l.jobId)).reduce((t, l) => t + l.cost, 0) + ticked.reduce((t, j) => t + j.cost, 0) + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).reduce((t, a) => t + a.cost, 0) + linesTotal(c.stock);
+  const count = ticked.length + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).length + (c.stock.length ? 1 : 0) + rel.size + lat.size;
   const reece = c.supplier?.method === "reece_cart";
   const label = sendLabel(c.supplier);
   const send = () => {
@@ -1564,7 +1573,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
     if (leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off this order and drafted again for next week. Carry on?`)) return;
     start(async () => {
       setMsg(null);
-      const r = await sendSupplier({ supplierId: c.id, ahead: [...ahead], leave, release: [...rel] });
+      const r = await sendSupplier({ supplierId: c.id, ahead: [...ahead], leave, release: [...rel], later: [...lat] });
       setMsg(r.ok ? { ok: true, text: r.note ?? "Sent." } : { ok: false, text: r.error ?? "It didn't send." });
       router.refresh();
     });
@@ -1601,7 +1610,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
         <span className="to2-badge" aria-hidden="true">{initials(c.name)}</span>
         <span className="to2-t">
           <b id={`to2-${c.id}`}>{shortName(c.name)}</b>
-          <span>{[c.jobs.length ? `${c.jobs.length} ${c.jobs.length === 1 ? "install" : "installs"} to send` : null, c.held.length ? `${c.held.length} held` : null, c.ahead.length ? `${c.ahead.length} sold, not booked` : null, c.stock.length ? "factory stock" : null].filter(Boolean).join(" · ")}</span>
+          <span>{[c.jobs.length ? `${c.jobs.length} ${c.jobs.length === 1 ? "install" : "installs"} to send` : null, c.held.length ? `${c.held.length} held` : null, c.later.length ? `${c.later.length} booked further out` : null, c.ahead.length ? `${c.ahead.length} sold, not booked` : null, c.stock.length ? "factory stock" : null].filter(Boolean).join(" · ")}</span>
         </span>
         {c.firstDays != null && <span className={`pt-vstat ${c.firstDays <= ALERT_DAYS ? "pt-vstat--bad" : c.firstDays <= 7 ? "pt-vstat--warn" : "pt-vstat--none"}`}>{c.firstDays <= ALERT_DAYS ? "⚠ " : ""}{inWords(c.firstDays, "First install")}</span>}
       </div>
@@ -1654,6 +1663,41 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
                     ? <span className="pt-vstat pt-vstat--bad">Needed by {dayLabel(due!)}</span>
                     : daysPill(days)}
                 </div></li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {showSend && c.later.length > 0 && (
+        <>
+          <div className="to2-lh">Booked further out · tick to order now</div>
+          <ul className="to2-rows">
+            {c.later.map((l) => {
+              const on = lat.has(l.jobId);
+              const k = `l${l.jobId}`;
+              const days = l.install ? daysTo(l.install, todayMelbourne()) : null;
+              return (
+                <li key={k} className={on ? undefined : "off"}>
+                  <div className="to2-row">
+                    <button type="button" role="checkbox" aria-checked={on} aria-label={`${on ? "Leave off" : "Put on"} the order: ${l.customer ?? `job ${l.jobNumber}`}`} className={`to2-tick${on ? " on" : ""}`}
+                      onClick={() => { const n = new Set(lat); n.has(l.jobId) ? n.delete(l.jobId) : n.add(l.jobId); setLat(n); }} />
+                    <button type="button" className="to2-t to2-open" aria-expanded={open.has(k)} onClick={() => setOpen(flip(open, k))}>
+                      <b>{l.customer ?? "A customer"}</b>
+                      <span>Job {l.jobNumber}{l.suburb ? ` · ${l.suburb}` : ""}{l.install ? ` · install ${dayLabel(l.install)}` : ""} · {l.items.length} {l.items.length === 1 ? "item" : "items"}</span>
+                    </button>
+                    <b className="to2-amt">{money(l.cost)}</b>
+                    {daysPill(days)}
+                    <button type="button" className="pk-btn g to2-b" disabled={busy} onClick={() => quick(() => orderLaterNow({ jobId: l.jobId, supplierId: c.id }))}>Add to order</button>
+                    <span className={`to2-chev${open.has(k) ? " open" : ""}`} aria-hidden="true">›</span>
+                  </div>
+                  {open.has(k) && (
+                    <div className="to2-items">
+                      {l.items.map((i, n) => <div key={n} className="to2-item"><span>{qty(i.qty)} × {i.name}</span><b>{money(i.cost)}</b></div>)}
+                      <div className="to2-quick"><a className="pk-btn g to2-b" href={`https://go.servicetitan.com/#/Job/Index/${l.jobId}`} target="_blank" rel="noreferrer">Job in ServiceTitan ↗</a></div>
+                    </div>
+                  )}
+                </li>
               );
             })}
           </ul>
