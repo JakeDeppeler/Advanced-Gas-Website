@@ -51,7 +51,10 @@ export default async function OrderingAutomationPage({ searchParams }: { searchP
           <Head
             title="Automation"
             sub={<>What ordering does by itself: {on} on, {keys.length + 1 - on} off{looks.length ? <>, <Bad>{looks.length} {looks.length === 1 ? "needs" : "need"} a look</Bad></> : null}.</>}
-            action={<a className="pk-btn g ar-donebtn" href="#done"><Icon name="clock" size={14} />What it&rsquo;s done</a>}
+            action={<span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <a className="pk-btn g ar-donebtn" href="/portal/supply/emails"><Icon name="send" size={14} />What the emails say</a>
+              <a className="pk-btn g ar-donebtn" href="#done"><Icon name="clock" size={14} />What it&rsquo;s done</a>
+            </span>}
           />
         </div>
 

@@ -1733,6 +1733,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
                 <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy}
                   onClick={() => { if (confirm(`Cancel ${po.po_number}? Nothing has been sent.`)) quick(() => cancel(po.id)); }}>Cancel the order</button>
               </span>
+              <p className="pt-nw__muted"><a href={`/portal/supply/emails#sup-${c.id}`}>Change what the email to {shortName(c.name)} says ›</a></p>
               {c.drafts.length > 1 && <p className="pt-nw__muted">Sending puts this week&rsquo;s and next week&rsquo;s {shortName(c.name)} drafts together as one order.</p>}
               {noted && <p className="pt-nw__muted">Once it goes, it&rsquo;s noted on each job in ServiceTitan with the order attached.</p>}
             </div>
