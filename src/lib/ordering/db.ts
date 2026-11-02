@@ -581,6 +581,20 @@ export async function holdLines(poId: number, lineIds: number[], who: string): P
   return { ok: true, note: `Held for next week's order — it'll be drafted on ${dayLabel(until)}.` };
 }
 
+/**
+ * Lines left unticked when an order goes: taken off this draft only, not held.
+ * The caller redrafts after sending, so they're back on a fresh draft straight
+ * away. Holding them (until next Monday) hid jobs whose install came sooner
+ * than that: 20208 and 20294, both Fri 6 Nov, vanished on Mon 2 Nov.
+ */
+export async function setAside(poId: number, lineIds: number[]): Promise<{ ok: boolean; error?: string }> {
+  const got = await draftLines(poId, lineIds);
+  if (!got) return { ok: false, error: "Those lines aren't on a draft any more." };
+  const jobLines = got.lines.filter((l) => l.job_id != null);
+  if (jobLines.length) await sbDelete("purchase_order_lines", `po_id=eq.${got.po.id}&id=in.(${jobLines.map((l) => l.id).join(",")})`);
+  return { ok: true };
+}
+
 /** Release a hold. The caller redrafts, so the line is back on an order straight away. */
 export async function releaseHold(id: number): Promise<boolean> {
   const h = await sbSelectOne<{ id: number }>("order_holds", `select=id&id=eq.${id}`);
