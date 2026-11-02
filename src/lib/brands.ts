@@ -492,9 +492,9 @@ const brandCatalogue: Brand[] = [
         veuEligible: false,
         photo: "/Brivis Wombat Indoor 3 star.jpg",
         photoAlt: "Brivis Classic Wombat 3-star internal gas ducted heater",
-        bestFor: "Like-for-like retrofit into an existing cupboard cavity, done in a day",
+        bestFor: "Like-for-like retrofit into an existing cupboard cavity, usually done in a few hours",
         ourTake:
-          "The Wombat is the straight swap. It shares its footprint with the older Brivis and Braemar units, so the existing ducts, controller wiring and return-air grille all stay where they are and the job is usually done in a day. It's a 3-star heater, which is the right call for a house that's being sold, rented out, or heated a few weeks a year. If you're staying and running it all winter, a Starpro burns less gas doing the same work, and we'll show you both numbers.",
+          "The Wombat is the straight swap. It shares its footprint with the older Brivis and Braemar units, so the existing ducts, controller wiring and return-air grille all stay where they are and the job is usually done in 3–5 hours. It's a 3-star heater, which is the right call for a house that's being sold, rented out, or heated a few weeks a year. If you're staying and running it all winter, a Starpro burns less gas doing the same work, and we'll show you both numbers.",
         specs: [
           { label: "Star rating", value: "3-star" },
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },

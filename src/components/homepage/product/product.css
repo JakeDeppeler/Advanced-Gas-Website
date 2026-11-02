@@ -245,3 +245,6 @@
 .ag .pxhero--studio .pxhero__scrim{display:none}
 @media (max-width:900px){.ag .pxhero--studio .pxhero__bg{padding:24px 0 0 55%;opacity:.35}}
 @media (max-width:700px){.ag .pxhero--studio .pxhero__bg{padding:16px 0 44px;opacity:1}}
+.ag .svx__row > span{display:flex;flex-direction:column;gap:2px}
+.ag .svx__row > span a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.ag .svx__sub{font-size:13px;color:var(--sky2) !important}

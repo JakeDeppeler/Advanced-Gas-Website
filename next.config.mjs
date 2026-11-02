@@ -57,6 +57,10 @@ const nextConfig = {
       { source: "/find/gas-storage/signature", destination: "/find/heat-pump/essential", permanent: true },
       { source: "/find/gas-storage/premium", destination: "/find/gas-continuous-flow/essential", permanent: true },
       { source: "/find/gas-continuous-flow/signature", destination: "/find/heat-pump/premium", permanent: true },
+      // Gas ducted heating went from three tiers to four star ratings (Nov 2026).
+      { source: "/find/gas-ducted-heating/essential", destination: "/find/gas-ducted-heating/3-star", permanent: true },
+      { source: "/find/gas-ducted-heating/premium", destination: "/find/gas-ducted-heating/6-star", permanent: true },
+      { source: "/find/gas-ducted-heating/signature", destination: "/find/gas-ducted-heating/6-star", permanent: true },
       // The blog editor moved out of Marketing into its own section. Not
       // permanent: these are portal addresses, never indexed, and a 308 is
       // cached by the browser for good.

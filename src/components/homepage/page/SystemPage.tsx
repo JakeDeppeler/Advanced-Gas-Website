@@ -1,11 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type Category, type System, galleryFor, heroFor, installTime, productHref, realOption, money, weekly,
+  type Category, type System, heroFor, isHeatPump, installTime, productHref, realOption, money, weekly,
   PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { Crumbs, Hero, Head, Next, Cta } from "./kit";
+import { HowItWorks } from "../how/HowItWorks";
+import { HwSavings } from "../HwSavings";
+import { copFor } from "@/lib/tools/hotWaterSavings";
 
 /**
  * A system's own page (/find/split-system and so on), where the header's
@@ -23,7 +26,6 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
   const pc = SYS_PROS[sys.slug];
   const first = sys.tiers.find((t) => !t.same) ?? sys.tiers[0];
-  const gal = galleryFor(sys, first);
   const hero = heroFor(sys, first);
   const prices = sys.tiers.map((t) => t.price).filter((p): p is number => typeof p === "number");
   const from = prices.length ? Math.min(...prices) : null;
@@ -53,7 +55,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
-          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
         </div>
       </nav>
 
@@ -80,21 +82,20 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       )}
 
       {learn && (
-        <section className="lk2__story" id="how">
-          <div className="wrap">
+        <section className="pxs pxs--sky" id="how">
+          <div className="wrap pp__col">
             <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How a {lower} works.</h2></div>
-            {learn.how.map((x, i) => {
-              const img = gal[i % gal.length];
-              return (
-                <div key={x.t} className={`lk2__row${i % 2 ? " lk2__row--flip" : ""}`}>
-                  <div className={`lk2__rowimg${img.kind === "p" ? " lk2__rowimg--prod" : ""}`}>
-                    <Image src={img.src} alt={img.alt} fill sizes="(max-width: 900px) 100vw, 640px" />
-                    {img.kind === "c" && <span className="pm__cap">One of our installs</span>}
-                  </div>
-                  <div className="lk2__rowt"><span>{String(i + 1).padStart(2, "0")}</span><h3>{x.t}</h3><p>{x.d}</p></div>
-                </div>
-              );
-            })}
+            <HowItWorks kind={learn.diagram} steps={learn.how} />
+          </div>
+        </section>
+      )}
+
+      {isHeatPump(sys) && (
+        <section className="pxs" id="savings">
+          <div className="wrap pp__col">
+            <Head eye="Running costs" h="How much could a heat pump save you?" lede="Two taps: what you have now and how many live there. Here's what each of our heat pumps would cost to run against it." />
+            <HwSavings options={sys.tiers.filter((t) => !t.same).map((t) => ({ label: `${t.brand} ${t.model}`, cop: copFor(t.brand, t.model), // No payback against a stand-in price: it would be a made-up number of years.
+              price: t.mockPrice ? null : t.price, href: productHref(sys, t, {}) }))} />
           </div>
         </section>
       )}
@@ -102,7 +103,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       {pc && (
         <section className="pxs" id="pros">
           <div className="wrap pp__col">
-            <Head eye="Pros & cons" h={`The honest bit about ${lower}s.`} lede="True of every one we install. Each option's own strengths and limits are on its page." />
+            <Head eye="Pros & cons" h="The honest bit." lede="True of every one we install. Each option's own strengths and limits are on its page." />
             <div className="pcx">
               <div className="pcx__col pcx__col--pro"><h3><span aria-hidden="true">+</span> What it does well</h3><ul>{pc.pros.map((x) => <li key={x}>{x}</li>)}</ul></div>
               <div className="pcx__col pcx__col--con"><h3><span aria-hidden="true">−</span> Worth knowing</h3><ul>{pc.cons.map((x) => <li key={x}>{x}</li>)}</ul></div>
@@ -114,7 +115,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       <section className="pxs pxs--navy" id="options">
         <div className="wrap pp__col">
           <Head dark eye="The options" h={`The ${sys.tiers.length} ${lower} options we install.`} lede="Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it." />
-          <div className="sxo">
+          <div className={`sxo${sys.tiers.length > 3 ? " sxo--4" : ""}`}>
             {sys.tiers.map((t, i) => {
               const real = realOption(sys, t);
               const feats = t.feats.filter((f) => f !== WORKMANSHIP);
@@ -157,7 +158,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
       <section className="pxs" id="faqs">
         <div className="wrap pp__two">
-          <Head eye="Questions" h={`About ${lower}s.`} lede={<>Still want a human? <a href="tel:+61359478000" data-call-from="system-faq" style={{ color: "#050A30" }}>Call (03) 5947 8000</a>.</>} />
+          <Head eye="Questions" h={`Questions about ${lower}.`} lede={<>Still want a human? <a href="tel:+61359478000" data-call-from="system-faq" style={{ color: "#050A30" }}>Call (03) 5947 8000</a>.</>} />
           <div className="afaqs">{PRODUCT_FAQS[sys.faq].map((f) => <details key={f.q} className="afaq"><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
         </div>
       </section>

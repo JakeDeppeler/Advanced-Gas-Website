@@ -6,6 +6,7 @@ import {
   type PV, Crumbs, Badges, Price, Finance, BuyButtons, ProsCons, SavingsCalc, isHeatPumpOption, Promise, WhyList, Glance, FitFinder,
   Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
+import { HowItWorks } from "../how/HowItWorks";
 
 /**
  * A /find product page. Chosen from five trial layouts (commit 4a4b7e6 has
@@ -208,26 +209,15 @@ function BrandBit({ v }: { v: PV }) {
   );
 }
 
-/** How it works, one step per row with a picture, alternating sides. */
+/** How it works: a moving diagram of this kind of system, one step at a time. */
 function Story({ v }: { v: PV }) {
-  const { learn, gal, sys } = v;
+  const { learn, sys } = v;
   if (!learn) return null;
   return (
-    <section className="lk2__story" id="how">
-      <div className="wrap">
+    <section className="pxs pxs--sky" id="how">
+      <div className="wrap pp__col">
         <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">{learn.title ?? `How a ${sys.label.toLowerCase()} works.`}</h2></div>
-        {learn.how.map((x, i) => {
-          const img = gal[i % gal.length];
-          return (
-            <div key={x.t} className={`lk2__row${i % 2 ? " lk2__row--flip" : ""}`}>
-              <div className={`lk2__rowimg${img.kind === "p" ? " lk2__rowimg--prod" : ""}`}>
-                <Image src={img.src} alt={img.alt} fill sizes="(max-width: 900px) 100vw, 640px" />
-                {img.kind === "c" && <span className="pm__cap">One of our installs</span>}
-              </div>
-              <div className="lk2__rowt"><span>{String(i + 1).padStart(2, "0")}</span><h3>{x.t}</h3><p>{x.d}</p></div>
-            </div>
-          );
-        })}
+        <HowItWorks kind={learn.diagram} steps={learn.how} />
       </div>
     </section>
   );

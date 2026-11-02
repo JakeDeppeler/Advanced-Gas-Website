@@ -6,7 +6,8 @@ import {
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
 } from "@/lib/homepage/data";
 import { PROS, CHOOSE, type Alt, type HowStep, type Learn } from "@/lib/homepage/learn";
-import { SAVINGS_DEFAULTS, hotWaterRunningCost, type CurrentSystem } from "@/lib/tools/hotWaterSavings";
+import { HwSavings } from "../HwSavings";
+import { copFor } from "@/lib/tools/hotWaterSavings";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
 import type { PModel, PBrand } from "../ProductView";
@@ -251,13 +252,6 @@ export function ProsCons({ v }: { v: PV }) {
   );
 }
 
-/** Rough heat pump efficiency per brand, as the hot water savings tool uses them. */
-const COP: Record<string, number> = { iStore: 3.5, Thermann: 3.8, Reclaim: 4.0 };
-const CURRENT: { id: CurrentSystem; label: string }[] = [
-  { id: "gas-storage", label: "Gas tank" }, { id: "gas-continuous", label: "Gas instant" },
-  { id: "electric-storage", label: "Electric tank" }, { id: "electric-off-peak", label: "Electric, off-peak" },
-];
-
 /** True for an option that is a heat pump, including the "switch to a heat pump" options under gas. */
 export const isHeatPumpOption = (v: PV) => v.sys.slug === "heat-pump" || /heat pump/i.test(v.t.model);
 
@@ -269,33 +263,7 @@ export const isHeatPumpOption = (v: PV) => v.sys.slug === "heat-pump" || /heat p
  * rebate off.
  */
 export function SavingsCalc({ v }: { v: PV }) {
-  const [cur, setCur] = useState<CurrentSystem>("gas-storage");
-  const [people, setPeople] = useState(4);
-  const cop = v.t.model.includes("CO₂") ? 4.5 : COP[v.t.brand] ?? SAVINGS_DEFAULTS.heatPumpCop;
-  const r = hotWaterRunningCost({ ...SAVINGS_DEFAULTS, currentSystem: cur, household: people, heatPumpCop: cop, installCost: v.t.price ?? 0, veuRebate: 0 });
-  const $ = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
-  return (
-    <div className="svx">
-      <div className="svx__form">
-        <span className="svx__q">What hot water do you have now?</span>
-        <div className="svx__opts">
-          {CURRENT.map((c) => <button key={c.id} type="button" className={cur === c.id ? "on" : ""} aria-pressed={cur === c.id} onClick={() => setCur(c.id)}>{c.label}</button>)}
-        </div>
-        <span className="svx__q">How many people live there?</span>
-        <div className="svx__opts svx__opts--n">
-          {[1, 2, 3, 4, 5, 6].map((n) => <button key={n} type="button" className={people === n ? "on" : ""} aria-pressed={people === n} onClick={() => setPeople(n)}>{n === 6 ? "6+" : n}</button>)}
-        </div>
-      </div>
-      <div className="svx__out" aria-live="polite">
-        <div className="svx__row"><span>Now, about</span><strong>{$(r.currentCostYr)}<small>/yr</small></strong></div>
-        <div className="svx__row"><span>With the {v.t.model}</span><strong>{$(r.heatPumpCostYr)}<small>/yr</small></strong></div>
-        <div className="svx__save"><span>You could save around</span><strong>{$(r.savingYr)} a year</strong>
-          {r.savingYr > 0 && v.t.price ? <small>That pays back the {$(v.t.price)} installed price in about {Math.max(1, Math.round(r.paybackYears))} years.</small> : null}
-        </div>
-        <p className="svx__note">An estimate on average Melbourne energy prices and 50 L of hot water per person a day. Your bills, tariff and solar will move it. <Link href="/tools/hot-water-savings">Use your own prices →</Link></p>
-      </div>
-    </div>
-  );
+  return <HwSavings options={[{ label: v.t.model, cop: copFor(v.t.brand, v.t.model), price: v.t.mockPrice ? null : v.t.price }]} />;
 }
 
 /** "system.tier" → that option's page. */

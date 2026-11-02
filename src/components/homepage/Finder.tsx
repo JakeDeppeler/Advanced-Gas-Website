@@ -168,11 +168,11 @@ export function Finder() {
 
           {stage === 4 && sys && size && (
             <div className="find__stage" style={{ gap: 18 }}>
-              <h3 className="find__h3 anim">Your three options</h3>
+              <h3 className="find__h3 anim">Your {sys.tiers.length === 3 ? "three" : sys.tiers.length === 4 ? "four" : sys.tiers.length} options</h3>
               {isNewBuildHeatPump(sys, ans) && (
                 <p className="find__veu pop">The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
               )}
-              <div className="atiers">
+              <div className={`atiers${sys.tiers.length > 3 ? " atiers--4" : ""}`}>
                 {sys.tiers.map((t, i) => {
                   const known = typeof t.price === "number";
                   const href = productHref(sys, t, ans);

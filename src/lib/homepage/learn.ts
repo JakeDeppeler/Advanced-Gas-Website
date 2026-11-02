@@ -11,9 +11,14 @@
 export type HowStep = { t: string; d: string };
 /** "Look elsewhere if…", pointing at the system that answers it. */
 export type Alt = { if: string; go: string; label: string };
-export type Learn = { how: HowStep[]; good: string[]; alt: Alt[]; title?: string };
+/** Which drawing explains it (components/homepage/how). */
+export type DiagramKind =
+  | "split" | "split-heat" | "multi" | "ducted" | "evap" | "gas-ducted" | "zoning"
+  | "hp" | "hp-aio" | "hp-co2" | "gas-cf" | "gas-storage";
+export type Learn = { how: HowStep[]; good: string[]; alt: Alt[]; title?: string; diagram: DiagramKind };
 
 const SPLIT: Learn = {
+  diagram: "split",
   how: [
     { t: "The indoor unit", d: "Mounted high on the wall, it draws room air across a coil and blows it back cooler, or warmer. It treats the air already in the room rather than bringing outside air in." },
     { t: "The pipes between", d: "Two insulated copper pipes carry refrigerant between the indoor and outdoor units, with a drain for the water it pulls out of the air. Back-to-back on the same wall is the shortest, neatest run." },
@@ -34,8 +39,9 @@ const SPLIT: Learn = {
 
 export const LEARN: Record<string, Learn> = {
   "split-system": SPLIT,
-  "reverse-cycle-split": SPLIT,
+  "reverse-cycle-split": { ...SPLIT, diagram: "split-heat" },
   "multi-head": {
+    diagram: "multi",
     how: [
       { t: "One outdoor unit", d: "A single outdoor unit runs two or more indoor heads, so there's one box on the outside wall instead of several." },
       { t: "A head in each room", d: "Every room gets its own indoor unit and its own remote, set to its own temperature." },
@@ -53,6 +59,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   ducted: {
+    diagram: "ducted",
     how: [
       { t: "A unit in the roof", d: "A fan coil sits out of sight in the roof space and pushes conditioned air through insulated ducts." },
       { t: "Vents in each room", d: "Slim ceiling outlets in each room, and a return-air grille that draws air back to the unit to be treated again." },
@@ -70,6 +77,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   evaporative: {
+    diagram: "evap",
     how: [
       { t: "Water-soaked pads", d: "On the roof, water trickles over thick cooling pads." },
       { t: "Air drawn through", d: "A fan pulls outside air through the wet pads. As the water evaporates, the air cools." },
@@ -87,6 +95,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   "heat-pump": {
+    diagram: "hp",
     how: [
       { t: "Heat from the air", d: "A fan draws outside air across a coil of refrigerant, which soaks up heat even on a cool day." },
       { t: "Compressed", d: "The compressor squeezes that refrigerant, which lifts its temperature well above the air it came from." },
@@ -104,6 +113,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   "gas-continuous-flow": {
+    diagram: "gas-cf",
     how: [
       { t: "Turn on a tap", d: "Water starts to flow and a sensor in the unit lights the burner." },
       { t: "Heated as it passes", d: "The water runs through a heat exchanger and comes out at the temperature you've set." },
@@ -121,6 +131,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   "gas-storage": {
+    diagram: "gas-storage",
     how: [
       { t: "An insulated tank", d: "Holds a set amount of hot water, ready to go." },
       { t: "A burner underneath", d: "When the water cools, a gas burner at the base heats it back up." },
@@ -138,6 +149,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   "gas-ducted-heating": {
+    diagram: "gas-ducted",
     how: [
       { t: "The heater", d: "A gas heater sits in the roof, under the floor or outside, and warms air over a heat exchanger." },
       { t: "Ducts and vents", d: "A fan pushes the warm air through ducts to floor or ceiling vents in each room." },
@@ -155,6 +167,7 @@ export const LEARN: Record<string, Learn> = {
     ],
   },
   zoning: {
+    diagram: "zoning",
     how: [
       { t: "Dampers in the ducts", d: "A motorised damper sits in the ductwork for each zone." },
       { t: "A controller", d: "A wall controller opens and closes them, one zone or several at a time." },
@@ -178,7 +191,8 @@ export const LEARN: Record<string, Learn> = {
  * water from the air, but one is a single unit and the other is two, and
  * the page about each has to say which.
  */
-const ALL_IN_ONE: Pick<Learn, "how" | "title"> = {
+const ALL_IN_ONE: Pick<Learn, "how" | "title" | "diagram"> = {
+  diagram: "hp-aio",
   title: "How an all-in-one heat pump works.",
   how: [
     { t: "One unit", d: "The heat pump sits in the top of the same unit as the tank. There's only one thing to place, and it usually goes where the old tank stood." },
@@ -187,10 +201,11 @@ const ALL_IN_ONE: Pick<Learn, "how" | "title"> = {
     { t: "Run when power is cheap", d: "Set it to heat in the middle of the day while your solar panels are producing, or on an off-peak tariff, and the tank carries that hot water through the evening." },
   ],
 };
-export const LEARN_TIER: Record<string, Pick<Learn, "how" | "title">> = {
+export const LEARN_TIER: Record<string, Pick<Learn, "how" | "title" | "diagram">> = {
   "heat-pump.essential": ALL_IN_ONE,
   "heat-pump.premium": ALL_IN_ONE,
   "heat-pump.signature": {
+    diagram: "hp-co2",
     title: "How a CO₂ split heat pump works.",
     how: [
       { t: "Two parts", d: "A slim heat pump unit outside and a separate tank, joined by water pipes. The heat pump can sit away from the tank, so it doesn't have to be under a bedroom window." },
@@ -287,7 +302,7 @@ const SPLIT_CHOOSE: Record<string, Choice> = {
   ] },
   signature: { instead: [
     { go: "premium", label: "The standard MSZ-AP", when: "Winters are mild where you are. It heats well and costs less." },
-    { go: "gas-ducted-heating.premium", label: "Gas ducted heating", when: "It's the whole house you want warm, not one room." },
+    { go: "gas-ducted-heating.5-star", label: "Gas ducted heating", when: "It's the whole house you want warm, not one room." },
   ] },
 };
 const rooms = (n: number) => `${n} rooms off the one outdoor unit.`;
@@ -349,23 +364,34 @@ export const CHOOSE: Record<string, Choice> = {
     sizes: { Advance: "A low-profile cooler from a long-standing local brand." },
     instead: [{ go: "evaporative.premium", label: "Kaden low-profile", when: "The same low look, from Kaden." }],
   },
-  "gas-ducted-heating.essential": {
-    sizes: { Internal: "Goes in the roof space or under the floor, usually where the old heater was." },
+  // Every heater comes in the same outputs; the star rating is what changes.
+  "gas-ducted-heating.3-star": {
+    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
     instead: [
-      { go: "gas-ducted-heating.premium", label: "Brivis StarPro 6-star", when: "You heat a lot of hours each winter: it burns less gas doing it." },
+      { go: "gas-ducted-heating.4-star", label: "Brivis StarPro 4-star", when: "You run the heater most days each winter: it burns less gas doing the same job." },
       { go: "ducted.essential", label: "A ducted split", when: "You want cooling from the same system, or to get off gas." },
     ],
   },
-  "gas-ducted-heating.premium": {
-    sizes: { Internal: "In the roof space or under the floor.", External: "Mounted outside on a wall, when there's no room inside or you'd rather keep it out of the roof." },
+  "gas-ducted-heating.4-star": {
+    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
     instead: [
-      { go: "gas-ducted-heating.signature", label: "StarPro + Zonemate", when: "You only heat part of the house at a time." },
-      { go: "gas-ducted-heating.essential", label: "Brivis Classic Wombat", when: "Cost decides it, or you only heat a few hours a day." },
+      { go: "gas-ducted-heating.5-star", label: "Brivis StarPro 5-star", when: "You heat long hours through a cold winter, or you're staying in the house for years." },
+      { go: "gas-ducted-heating.3-star", label: "Brivis Classic Wombat 3-star", when: "The house is being sold or rented, or the heater only runs a few weeks a year." },
     ],
   },
-  "gas-ducted-heating.signature": {
-    sizes: { Internal: "In the roof space or under the floor.", External: "Mounted outside on a wall, when there's no room inside or you'd rather keep it out of the roof." },
-    instead: [{ go: "gas-ducted-heating.premium", label: "StarPro without zoning", when: "You heat the whole house at once anyway." }],
+  "gas-ducted-heating.5-star": {
+    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
+    instead: [
+      { go: "gas-ducted-heating.6-star", label: "Brivis StarPro 6-star", when: "The heater runs most of the day: its modulating burner holds the temperature with the least gas." },
+      { go: "gas-ducted-heating.4-star", label: "Brivis StarPro 4-star", when: "You heat mornings and evenings rather than all day." },
+    ],
+  },
+  "gas-ducted-heating.6-star": {
+    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
+    instead: [
+      { go: "gas-ducted-heating.5-star", label: "Brivis StarPro 5-star", when: "The heater doesn't run long enough each day for the modulating burner to pay for itself." },
+      { go: "zoning.premium", label: "Add zoning", when: "You only heat part of the house at a time: zones cut the gas whatever the star rating." },
+    ],
   },
   "zoning.essential": { instead: [{ go: "zoning.premium", label: "Zonemate Touch + Wi-Fi", when: "You want a touchscreen on the wall and control from your phone." }] },
   "zoning.premium": {
@@ -501,15 +527,19 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   },
   "Brivis Classic Wombat 3-star": {
     pros: ["The lowest upfront cost for gas ducted heating", "Usually a straight swap into the same spot", "CO safety test on every install"],
-    cons: ["Uses more gas than the 6-star", "Heating only, no cooling"],
+    cons: ["Uses the most gas of the four", "Heating only, no cooling"],
   },
-  "Brivis StarPro 6-star": {
-    pros: ["Uses less gas than a 3-star", "Even warmth through the whole house", "CO safety test on every install"],
+  "Brivis StarPro 4-star": {
+    pros: ["Uses less gas than a 3-star", "Same footprint, so the swap stays simple", "CO safety test on every install"],
     cons: ["Costs more upfront than the 3-star", "Heating only, and still on gas"],
   },
-  "Brivis StarPro 6-star + Zonemate": {
-    pros: ["Heat only the rooms you're using", "Touchscreen and phone control", "6-star efficiency"],
-    cons: ["The most expensive of our gas heating options", "Heating only, and still on gas"],
+  "Brivis StarPro 5-star": {
+    pros: ["Less gas again than the 4-star", "Pays its way in a house heated every day", "CO safety test on every install"],
+    cons: ["Costs more upfront than the 4-star", "Heating only, and still on gas"],
+  },
+  "Brivis StarPro 6-star": {
+    pros: ["The most efficient gas ducted heater Brivis builds", "Modulating burner: steadier warmth, less gas", "CO safety test on every install"],
+    cons: ["The highest upfront cost of the four", "Only earns it back if the heater runs long hours"],
   },
   "Zonemate Zone controller": {
     pros: ["Turn rooms on and off from the wall", "Fits most ducted systems", "The cheapest way to cut a ducted system's running cost"],

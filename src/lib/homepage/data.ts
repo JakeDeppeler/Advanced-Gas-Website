@@ -119,6 +119,11 @@ const PEOPLE: Opt[] = [
   { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2 },
   { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3 },
 ];
+/** Gas ducted heaters come in four outputs; Jake prices them in two bands. */
+const HEATER_KW: Opt[] = [
+  { label: "15–20 kW", sub: "Most smaller and mid-size homes", spec: "15–20 kW", n: 1 },
+  { label: "26–30 kW", sub: "Larger homes, or long duct runs", spec: "26–30 kW", n: 3 },
+];
 /** The same question for a gas tank, with the sizes a gas tank comes in rather than a heat pump's. */
 const GAS_PEOPLE: Opt[] = [
   { label: "1–2 people", sub: "Small household", spec: "135 L", n: 1 },
@@ -169,8 +174,9 @@ export const SIZE_NOTE = "A rough guide only. We confirm the exact size with a h
 /* ------------------------------------------------------------ systems */
 
 export type Tier = {
-  slug: "essential" | "premium" | "signature";
-  tier: "Essential" | "Premium" | "Signature";
+  /** essential / premium / signature for most systems; gas ducted heating is ranked by star rating instead (3-star … 6-star). */
+  slug: string;
+  tier: string;
   brand: string;
   model: string;
   img: string;
@@ -218,8 +224,8 @@ export type Category = {
 };
 
 const W = "6-yr workmanship warranty";
-const t = (slug: Tier["slug"], brand: string, model: string, img: string, feats: string[], price: number | null, same?: string): Tier => ({
-  slug, tier: (slug[0].toUpperCase() + slug.slice(1)) as Tier["tier"], brand, model, img, feats,
+const t = (slug: string, brand: string, model: string, img: string, feats: string[], price: number | null, same?: string): Tier => ({
+  slug, tier: slug[0].toUpperCase() + slug.slice(1), brand, model, img, feats,
   price: price ?? PLACEHOLDER_PRICE, ...(price == null ? { mockPrice: true } : {}), ...(same ? { same } : {}),
 });
 
@@ -263,10 +269,14 @@ export const CATS: Category[] = [
     id: "heat", label: "Heating", sub: "Gas ducted and reverse cycle",
     photo: PHOTO.heating, alt: "Ducted gas heater installed in a roof space", pos: "center 55%", fg: "#050A30", icon: ICON.flame,
     systems: [
-      sys({ slug: "gas-ducted-heating", label: "Gas ducted heating", sub: "Brivis, CO tested", img: IMG.brivisStar, q: "How big is the home?", sizes: HOUSE, faq: "gasheat", service: "gas-heating", more: [QB.storeys, QB.heatNow, QB.vents], tiers: [
-        t("essential", "Brivis", "Classic Wombat 3-star", IMG.brivisWombat, ["Whole-home gas heating", "CO safety test on install", W], null),
-        t("premium", "Brivis", "StarPro 6-star", IMG.brivisStar, ["6-star efficiency", "CO safety test on install", W], null),
-        t("signature", "Brivis", "StarPro 6-star + Zonemate", IMG.zmTouch, ["Heat only the rooms you use", "Zonemate touch and Wi-Fi", "CO safety test on install"], null),
+      // Four options by star rating rather than the usual three tiers, at
+      // Jake's request (Nov 2026): the star rating is how people compare
+      // gas heaters, and Brivis builds one at each.
+      sys({ slug: "gas-ducted-heating", label: "Gas ducted heating", sub: "Brivis, CO tested", img: IMG.brivisStar, q: "What size heater?", sizes: HEATER_KW, faq: "gasheat", service: "gas-heating", more: [QB.storeys, QB.heatNow, QB.vents], tiers: [
+        t("3-star", "Brivis", "Classic Wombat 3-star", IMG.brivisWombat, ["The lowest upfront cost", "CO safety test on install", W], null),
+        t("4-star", "Brivis", "StarPro 4-star", IMG.brivisStar, ["Uses less gas than a 3-star", "CO safety test on install", W], null),
+        t("5-star", "Brivis", "StarPro 5-star", IMG.brivisStar, ["Less gas again for long winters", "CO safety test on install", W], null),
+        t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
       ] }),
       sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric heating, one room", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor, QB.oldSplit] }),
       sys({ slug: "zoning", label: "Zoning & controls", sub: "Heat the rooms you use", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
@@ -300,7 +310,8 @@ export const CATS: Category[] = [
 ];
 
 export const WORKMANSHIP = W;
-export const TONES = ["#0C6F96", "#C2521A", "#050A30"] as const;
+// A fourth for gas ducted heating's four star ratings; the tier name is always written beside it.
+export const TONES = ["#0C6F96", "#C2521A", "#050A30", "#6B4FA0"] as const;
 
 export type SystemRef = { ci: number; si: number; cat: Category; sys: System };
 
@@ -488,7 +499,12 @@ export function galleryFor(sys: System, tier: Tier): GalItem[] {
  * with no entry keeps the room-size picker: nothing here is invented, so a
  * tier without a matching catalogue product simply doesn't get one.
  */
-type ModelRef = [string, string, string];
+/**
+ * [brand slug, product slug, size label, own id]. The id is for when one
+ * catalogue product covers several sizes (a Brivis heater is one record for
+ * 15–30 kW), so each size still has a button of its own.
+ */
+type ModelRef = [string, string, string, string?];
 const MSZ_AP: ModelRef[] = [["mitsubishi-electric", "msz-ap25", "2.5 kW"], ["mitsubishi-electric", "msz-ap35", "3.5 kW"], ["mitsubishi-electric", "msz-ap50", "5.0 kW"], ["mitsubishi-electric", "msz-ap60", "6.0 kW"], ["mitsubishi-electric", "msz-ap71", "7.1 kW"], ["mitsubishi-electric", "msz-ap80", "8.0 kW"]];
 const KSI: ModelRef[] = [["kaden", "kaden-split-25", "2.5 kW"], ["kaden", "kaden-split-35", "3.5 kW"], ["kaden", "kaden-split-5", "5.0 kW"], ["kaden", "kaden-split-7", "7.0 kW"], ["kaden", "kaden-split-8", "8.0 kW"]];
 const PEAD: ModelRef[] = [["mitsubishi-electric", "pead-m", "10–14 kW"], ["mitsubishi-electric", "pead-large", "16–20 kW"]];
@@ -496,7 +512,7 @@ const CF: ModelRef[] = [["thermann", "cf-16", "16 L/min"], ["thermann", "cf-20",
 const ECO: ModelRef[] = [["reclaim", "eco-r290-200", "200 L"], ["reclaim", "eco-r290-300", "285 L"]];
 // istore-270 keeps its old slug so links to it still land; the tank is 275 L.
 const ISTORE: ModelRef[] = [["istore", "istore-180", "180 L"], ["istore", "istore-270", "275 L"]];
-const STARPRO6: ModelRef[] = [["brivis", "brivis-internal-starpro-6", "Internal"], ["brivis", "brivis-external-starpro-6", "External"]];
+const heater = (product: string, id: string): ModelRef[] => [["brivis", product, "15–20 kW", `${id}-15-20`], ["brivis", product, "26–30 kW", `${id}-26-30`]];
 
 export const TIER_MODELS: Record<string, ModelRef[]> = {
   "split-system.essential": KSI, "split-system.premium": MSZ_AP,
@@ -513,8 +529,10 @@ export const TIER_MODELS: Record<string, ModelRef[]> = {
   "heat-pump.signature": [["reclaim", "co2-split-160-glass", "160 L"], ["reclaim", "co2-split-250-glass", "250 L"], ["reclaim", "co2-split-315-glass", "315 L"], ["reclaim", "co2-split-400-glass", "400 L"]],
   "gas-continuous-flow.essential": CF, "gas-continuous-flow.premium": [CF[2], CF[3]],
   "gas-storage.essential": [["thermann", "gas-storage-135", "135 L"], ["thermann", "gas-storage-170", "170 L"]],
-  "gas-ducted-heating.essential": [["brivis", "brivis-internal-wombat-3", "Internal"]],
-  "gas-ducted-heating.premium": STARPRO6, "gas-ducted-heating.signature": STARPRO6,
+  "gas-ducted-heating.3-star": heater("brivis-internal-wombat-3", "wombat-3"),
+  "gas-ducted-heating.4-star": heater("brivis-internal-starpro-45", "starpro-4"),
+  "gas-ducted-heating.5-star": heater("brivis-internal-starpro-45", "starpro-5"),
+  "gas-ducted-heating.6-star": heater("brivis-internal-starpro-6", "starpro-6"),
   "zoning.premium": [["zonemate", "zonemate-touch", "Touch + Wi-Fi"]],
 };
 
@@ -555,6 +573,8 @@ export const isHeatPump = (s: System) => s.slug === "heat-pump";
 export const isNewBuildHeatPump = (s: System, ans: Answers) => isHeatPump(s) && ans.now === 4;
 
 export function installTime(s: System) {
+  if (s.slug === "gas-continuous-flow") return "Usually 2–4 hours";
+  if (s.faq === "gasheat") return "Usually 3–5 hours";
   if (s.faq === "split") return "Usually half a day for a back-to-back install";
   if (s.faq === "multi") return "Usually a full day";
   if (s.faq === "ducted") return "Usually 2–3 days for a retrofit";
@@ -635,6 +655,7 @@ export const PRODUCT_FAQS: Record<FaqKey, QA[]> = {
     qa("What's the warranty?", "The manufacturer's warranty on the unit, 6 years on our workmanship, and a compliance certificate within 24 hours."),
   ],
   gasheat: [
+    qa("How long does the install take?", "Usually 3–5 hours to swap a heater into the same spot. New ducts or moving the heater take longer, and we'll tell you how long at the site check."),
     qa("Do you test for carbon monoxide?", "Yes. Every gas heating install gets a CO safety test before we leave."),
     qa("Can you reuse my existing ducts?", "Often, if they're in good condition. We check them on the site visit and price any replacement in writing."),
     qa("Can I heat only some rooms?", "Yes. Add zoning to heat only the rooms you use."),
@@ -807,9 +828,10 @@ export const TOOLS: { t: string; s: string; href: string }[] = [
  */
 export function productPageFor(brand: string, product: string): string | null {
   for (const [key, refs] of Object.entries(TIER_MODELS)) {
-    if (refs.some(([b, p]) => b === brand && p === product)) {
+    const ref = refs.find(([b, p]) => b === brand && p === product);
+    if (ref) {
       const [sys, tier] = key.split(".");
-      return `/find/${sys}/${tier}?model=${product}`;
+      return `/find/${sys}/${tier}?model=${ref[3] ?? product}`;
     }
   }
   return null;

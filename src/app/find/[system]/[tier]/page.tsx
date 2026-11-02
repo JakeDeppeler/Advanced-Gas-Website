@@ -58,15 +58,23 @@ export default function FindProductPage({ params }: { params: Params }) {
   if (reviews.length < 3) reviews = [...reviews, ...REVIEWS.filter((r) => !reviews.includes(r))];
 
   // Resolved here so the brand catalogue stays out of the browser bundle.
-  const models: PModel[] = tierModels(sys, tier).flatMap(([b, slug, chip]) => {
+  // A product record that covers two star ratings (Brivis StarPro 4 & 5)
+  // says "4-star or 5-star"; on the 4-star page it should just say 4-star.
+  const star = /^(\d)-star$/.exec(tier.slug)?.[1];
+  const models: PModel[] = tierModels(sys, tier).flatMap(([b, slug, chip, id]) => {
     const found = findProduct(b, slug);
     if (!found) return [];
     const p = found.product;
     const room = p.specs?.find((x) => /room size|suits/i.test(x.label))?.value;
+    // The record lists every output (15 · 20 · 26 · 30 kW); each button is one band of them.
+    const specs = (p.specs ?? []).map((x) => (
+      star && /^star rating/i.test(x.label) ? { label: "Star rating", value: `${star}-star` }
+        : star && /^output range/i.test(x.label) ? { label: "Output range", value: chip }
+          : { label: x.label, value: x.value }));
     return [{
-      slug, chip, name: p.name, code: p.model ?? p.name, bestFor: p.bestFor, room,
-      href: `/brands/${b}/${slug}`, specs: (p.specs ?? []).map((x) => ({ label: x.label, value: x.value })),
-      take: p.ourTake, badges: badgesFor(p, tier.feats), keys: keyFigures(p.specs),
+      slug: id ?? slug, chip, name: star ? `${tier.brand} ${tier.model}` : p.name, code: star ? `${tier.model} · ${chip}` : p.model ?? p.name, bestFor: p.bestFor, room,
+      href: `/brands/${b}/${slug}`, specs,
+      take: p.ourTake, badges: badgesFor(star ? { starRating: `${star}-star`, specs } : p, tier.feats), keys: keyFigures(specs),
       features: p.features, why: p.whyWeInstall,
     }];
   });

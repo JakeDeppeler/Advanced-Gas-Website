@@ -2013,7 +2013,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Any gas heater over ten years old wants a carbon monoxide test, whether or not you replace it",
         ],
         faqs: [
-          { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it a one-day job." },
+          { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it to 3–5 hours." },
           { q: "Is a 6-star worth the extra over a 3-star?", a: "On a house you're staying in, generally yes, the efficiency difference shows up every winter. On a house you're selling in two years, probably not. We'll show you where the crossover lands rather than just pushing the dearer one." },
           { q: "How long does a changeover take?", a: "A like-for-like internal swap is usually a single day. External or a first-time install with new ductwork runs longer, and we'll say which at the quote." },
           { q: "How much does it cost to replace a gas ducted heater?", a: "A like-for-like Brivis Wombat replacement starts from $4,800 supplied and installed, and a higher-spec Brivis Buffalo from $5,600, with the old unit removed and a compliance certificate. Ductwork that needs replacing, a gas line that needs upsizing or a move from internal to external adds to that, and we tell you which at the quote rather than on the day." },
@@ -2351,7 +2351,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Puretec", reason: "Australian water filtration. Whole-home on the main, protection on the hot water cold inlet, and under-sink for drinking water.", href: "/water-filtration" },
     ],
     typical: {
-      time: "Ducted heater replacement · 3–4 hrs (same day). Continuous flow swap · 3–5 hrs (same day). Emergency call-out · on-site same day.",
+      time: "Ducted heater replacement · 3–5 hrs (same day). Continuous flow swap · 2–4 hrs (same day). Emergency call-out · on-site same day.",
       warranty: "6-year workmanship + manufacturer heat-exchanger warranty (Brivis 7-yr, Thermann 12-yr from Reece, Rinnai 12-yr).",
       priceRange: "$220 leak test → $6,000+ premium Brivis Buffalo 6-star",
       followUp: "We ring the following week to check controller + temperature settings and that everything's running clean.",

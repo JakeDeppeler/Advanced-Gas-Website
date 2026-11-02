@@ -111,3 +111,11 @@ export function hotWaterRunningCost(form: SavingsForm) {
       tenYearNetSaving,
     };
 }
+
+/**
+ * Rough heat pump efficiency per brand, as the hot water savings tool uses
+ * them; CO₂ runs higher. Here rather than beside the savings form so server
+ * pages can work out each option's figure too.
+ */
+const BRAND_COP: Record<string, number> = { iStore: 3.5, Thermann: 3.8, Reclaim: 4.0 };
+export const copFor = (brand: string, model: string) => (model.includes("CO₂") ? 4.5 : BRAND_COP[brand] ?? SAVINGS_DEFAULTS.heatPumpCop);

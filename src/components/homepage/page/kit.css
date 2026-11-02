@@ -128,6 +128,7 @@
 .ag .sxw__alt a b{color:var(--sky-ink);white-space:nowrap}
 .ag .sxw__alt a:hover b{text-decoration:underline}
 .ag .sxo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .sxo--4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .ag .sxo__card{background:#fff;border-radius:20px;padding:22px 24px 24px;display:flex;flex-direction:column;gap:10px;color:var(--ink)}
 .ag .sxo__tier{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600}
 .ag .sxo__tier i{width:10px;height:10px;border-radius:50%}
@@ -145,7 +146,8 @@
 .ag .sxz__row dt strong{font-size:16.5px;color:var(--navy)}
 .ag .sxz__row dt small{font-size:14px;color:var(--ink3)}
 .ag .sxz__row dd{margin:0;font-family:var(--mono);font-size:13.5px;font-weight:600;color:var(--sky-ink);white-space:nowrap}
-@media (max-width:1000px){.ag .sxo{grid-template-columns:1fr}}
+@media (max-width:1200px){.ag .sxo--4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1000px){.ag .sxo,.ag .sxo--4{grid-template-columns:1fr}}
 
 /* ---------- Quote page: the form in the header, beside the promise */
 .ag .qpg{background:radial-gradient(90% 80% at 75% 30%,#16205a 0%,var(--navy) 70%);color:#fff;padding:48px 0 56px}

@@ -1,0 +1,55 @@
+/* How it works: a diagram that moves, and the steps beside it. */
+.ag .hw{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:40px;align-items:start}
+.ag .hw__fig{position:sticky;top:96px;background:#fff;border-radius:22px;padding:14px;box-shadow:0 24px 50px -36px rgba(5,10,48,.45)}
+.ag .hw__svg{display:block;width:100%;height:auto}
+.ag .hw__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ag .hw__step{display:flex;gap:16px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;cursor:pointer;font:inherit;color:inherit;transition:border-color .2s,box-shadow .2s}
+.ag .hw__step:hover{border-color:var(--navy)}
+.ag .hw__step.on{border:2px solid var(--or,#C2521A);padding:17px 19px;box-shadow:0 14px 30px -20px rgba(5,10,48,.35)}
+.ag .hw__n{flex:none;font-family:var(--disp);font-size:26px;font-weight:900;line-height:1;color:var(--line2);min-width:38px}
+.ag .hw__step.on .hw__n{color:#C2521A}
+.ag .hw__t{display:flex;flex-direction:column;gap:6px}
+.ag .hw__t strong{font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .hw__t span{font-size:15.5px;line-height:1.55;color:var(--ink2)}
+@media (max-width:1000px){
+  .ag .hw{grid-template-columns:1fr;gap:20px}
+  .ag .hw__fig{position:sticky;top:72px;z-index:2;padding:8px}
+}
+@media (max-width:600px){.ag .hw__step{padding:14px 16px}.ag .hw__step.on{padding:13px 15px}.ag .hw__t strong{font-size:17px}}
+
+/* The ring on the part a step is about, with its number. */
+.ag .hw-spot rect{fill:none;stroke:none}
+.ag .hw-spot circle{fill:#fff;stroke:#B8C4D4;stroke-width:2}
+.ag .hw-spot text{font:800 13px var(--disp);fill:#5D6B80}
+.ag .hw-spot.on rect{stroke:#C2521A;stroke-width:3;stroke-dasharray:9 6;animation:hwRing 1.2s linear infinite}
+.ag .hw-spot.on circle{fill:#C2521A;stroke:#C2521A}
+.ag .hw-spot.on text{fill:#fff}
+
+.ag .hw-label{font:700 12.5px var(--body);letter-spacing:.01em}
+.ag .hw-label--big{font:900 22px var(--disp)}
+
+.ag .hw-flow{stroke-dasharray:8 10;animation:hwDash .9s linear infinite}
+.ag .hw-flow--slow{animation-duration:2.2s}
+.ag .hw-spin{animation:hwSpin 1.2s linear infinite}
+.ag .hw-spin--slow{animation-duration:14s}
+.ag .hw-flame{transform-box:fill-box;transform-origin:50% 100%;animation:hwFlick .45s ease-in-out infinite alternate}
+.ag .hw-needle{animation:hwNeedle 3.2s ease-in-out infinite alternate}
+.ag .hw-damper{animation:hwDamper 3s ease-in-out infinite alternate}
+.ag .hw-drip{animation:hwDrip .9s linear infinite}
+.ag .hw-drip--long{animation-duration:1.6s}
+.ag .hw-pulse{animation:hwPulse 1.6s ease-in-out infinite}
+.ag .hw-fill{transform-box:fill-box;transform-origin:50% 100%;animation:hwFill 5s ease-in-out infinite}
+
+@keyframes hwDash{to{stroke-dashoffset:-36}}
+@keyframes hwRing{to{stroke-dashoffset:-30}}
+@keyframes hwSpin{to{transform:rotate(360deg)}}
+@keyframes hwFlick{from{transform:scaleY(.82)}to{transform:scaleY(1.08)}}
+@keyframes hwNeedle{0%{transform:rotate(-70deg)}40%{transform:rotate(55deg)}100%{transform:rotate(-10deg)}}
+@keyframes hwDamper{from{transform:rotate(0)}to{transform:rotate(70deg)}}
+@keyframes hwDrip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(26px);opacity:0}}
+@keyframes hwPulse{50%{opacity:.45}}
+@keyframes hwFill{0%{transform:scaleY(.35)}70%,100%{transform:scaleY(1)}}
+
+@media (prefers-reduced-motion:reduce){
+  .ag .hw-flow,.ag .hw-spin,.ag .hw-flame,.ag .hw-needle,.ag .hw-damper,.ag .hw-drip,.ag .hw-pulse,.ag .hw-fill,.ag .hw-spot.on rect{animation:none}
+}
