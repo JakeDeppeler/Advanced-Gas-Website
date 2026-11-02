@@ -5,13 +5,13 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
-import { NextWeekOrders, type UnbookedSale } from "@/components/portal/NextWeekOrders";
+import { NextWeekOrders, type LaterJob, type UnbookedSale } from "@/components/portal/NextWeekOrders";
 import {
   appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadHolds, loadOrderingSettings, loadSuppliers, loadUnbooked, loadWeekInputs, type Hold,
   type PoWithLines, type UnbookedLine,
 } from "@/lib/ordering/db";
 import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
-import { dayLabel, estKey, lineKeys, nextWeek, planWeek, thisWeek, weekLabel, type OrderedLine, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
+import { dayLabel, estKey, isoAddDays, type OrderLine, lineKeys, nextWeek, planWeek, thisWeek, weekLabel, type OrderedLine, type Problem, type Supplier, lineKey, problemKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
@@ -56,6 +56,34 @@ function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWi
   return [...sales.values()].filter((x) => x.groups.length || x.issues.length);
 }
 
+/** How far past the two drafted weeks the booked jobs are shown: everything booked, in practice. */
+const LATER_DAYS = 180;
+
+/**
+ * Booked jobs past the two drafted weeks, by supplier and job: shown so they
+ * can be ordered early. Reece stays at two weeks: it's ordered into maX by
+ * hand, and a list months long would bury what's due. Anything already
+ * ordered, on a draft, held, or coming from the factory is left out.
+ */
+function laterJobs(lines: OrderLine[], suppliers: Supplier[], taken: Set<string>, already: Map<string, OrderedLine>): LaterJob[] {
+  const byId = new Map(suppliers.map((x) => [x.id, x]));
+  const jobs = new Map<string, LaterJob>();
+  for (const l of lines) {
+    if (l.issue || !l.supplier_id) continue;
+    const sup = byId.get(l.supplier_id);
+    if (!sup || !sup.active || sup.method === "work_order" || sup.method === "reece_cart") continue;
+    const keys = lineKeys(l);
+    if (keys.some((k) => taken.has(k) || already.has(k))) continue;
+    const k = `${sup.id}:${l.job_id}`;
+    const j = jobs.get(k) ?? { supplierId: sup.id, jobId: l.job_id, jobNumber: l.job_number, customer: l.customer_name, suburb: l.suburb, install: l.install_date, items: [], cost: 0 };
+    jobs.set(k, j);
+    const qty = Number(l.qty ?? 1);
+    j.items.push({ name: l.supplier_model ?? l.sku_name ?? "Item", qty, cost: (l.unit_cost ?? 0) * qty });
+    j.cost += (l.unit_cost ?? 0) * qty;
+  }
+  return [...jobs.values()].sort((a, b) => (a.install ?? "").localeCompare(b.install ?? ""));
+}
+
 /**
  * To order › To order: this week's and next week's orders as one checklist,
  * by when each is needed. There used to be a switch between the two weeks,
@@ -86,6 +114,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   // Every supplier order still a draft, this week and next: a card offers to make a supplier's into one bulk order.
   let allDrafts: { id: number; po: string; supplier: string; week: string }[] = [];
   let unbooked: UnbookedSale[] = [];
+  let later: LaterJob[] = [];
   try {
     // Everything in one go: each is a round trip to Tokyo.
     // Read twice before giving up: these views are heavy, and while the sync
@@ -99,8 +128,10 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
       // Its own catch: a failed read of the sold-not-booked list leaves the rest of the page standing.
       loadUnbooked().catch(() => null),
       loadFromStock().catch(() => []),
+      // Its own catch: the jobs further out are extra, not what the page stands on.
+      loadWeekInputs({ start: isoAddDays(nw.end, 1), end: isoAddDays(nw.end, LATER_DAYS) }).catch(() => null),
     ] as const);
-    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub, fs] = await readAll()
+    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub, fs, inLater] = await readAll()
       .catch(() => new Promise<void>((r) => setTimeout(r, 1500)).then(readAll));
     orders = [...oThis, ...oNext];
     if (ub) unbooked = unbookedSales(ub, s, orders.filter((o) => o.status === "draft"), already, new Set(fs.map((x) => x.key)));
@@ -108,6 +139,14 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     // corrected since (20401's heads went from AP35 to AP25), so the live
     // quote's model wins wherever the job is still in the two weeks.
     const live = new Map([...inThis.lines, ...inNext.lines].map((l) => [lineKey(l.job_id, l.sku_id), l.supplier_model]));
+    if (inLater) {
+      const taken = new Set([
+        ...orders.filter((o) => o.status === "draft").flatMap((o) => o.lines.flatMap((l) => lineKeys(l))),
+        ...h.map((x) => lineKey(x.job_id, x.sku_id)),
+        ...fs.map((x) => x.key),
+      ]);
+      later = laterJobs(inLater.lines, s, taken, already);
+    }
     holds = h.map((x) => ({ ...x, sku_name: live.get(lineKey(x.job_id, x.sku_id)) ?? x.sku_name }));
     suppliers = s;
     noted = nt;
@@ -148,6 +187,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         stocked={stocked}
         allDrafts={allDrafts}
         unbooked={unbooked}
+        later={later}
       />
     </PortalShell>
   );

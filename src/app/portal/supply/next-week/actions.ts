@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, markUnbookedOrdered, orderAhead, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, markUnbookedOrdered, orderAhead, orderLater, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
@@ -500,6 +500,20 @@ export async function orderAheadNow(input: { estimateId: number; supplierId: str
   }
 }
 
+/** A job booked past the two weeks, onto this supplier's order now (not sent). */
+export async function orderLaterNow(input: { jobId: number; supplierId: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.jobId) || !/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which job?" };
+  try {
+    const r = await orderLater([input.jobId], input.supplierId);
+    done();
+    return r;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 /**
  * One supplier's order, as ticked on its card, sent in one go: the sold,
  * not-booked jobs ticked are put on the order first, every draft for the
@@ -508,7 +522,7 @@ export async function orderAheadNow(input: { estimateId: number; supplierId: str
  * send as the Send button always was. Nothing goes if the order would be
  * empty.
  */
-export async function sendSupplier(input: { supplierId: string; ahead: number[]; leave: number[]; release?: number[] }): Promise<ActionResult> {
+export async function sendSupplier(input: { supplierId: string; ahead: number[]; leave: number[]; release?: number[]; later?: number[] }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   if (!/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which supplier?" };
@@ -521,6 +535,12 @@ export async function sendSupplier(input: { supplierId: string; ahead: number[];
       for (const id of release) await releaseHold(id);
       await draftWeek(thisWeek(new Date()));
       await draftWeek(nextWeek(new Date()));
+    }
+    // Jobs booked past the two weeks, ticked to go now.
+    const later = (Array.isArray(input.later) ? input.later : []).filter(isId).slice(0, 60);
+    if (later.length) {
+      const r = await orderLater(later, input.supplierId);
+      if (!r.ok) return { ok: false, error: r.error ?? "A later job couldn't go on the order." };
     }
     for (const est of (Array.isArray(input.ahead) ? input.ahead : []).filter(isId).slice(0, 40)) {
       const r = await orderAhead(est, input.supplierId);
