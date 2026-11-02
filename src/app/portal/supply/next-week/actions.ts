@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, markUnbookedOrdered, orderAhead, orderLater, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, setAside, markLinesOrdered, markUnbookedOrdered, orderAhead, orderLater, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
@@ -29,6 +29,14 @@ async function office() {
 }
 
 const done = () => revalidatePath("/portal/supply/next-week");
+
+/** The unticked lines set aside on a send come back on a fresh draft. A failure only delays that to the next draft run. */
+const redraftBoth = async () => {
+  try {
+    await draftWeek(thisWeek(new Date()));
+    await draftWeek(nextWeek(new Date()));
+  } catch { /* the next automatic draft puts them back */ }
+};
 const isId = (n: unknown): n is number => Number.isInteger(n) && (n as number) > 0;
 
 export async function approve(id: number): Promise<ActionResult> {
@@ -475,10 +483,11 @@ export async function reecePlace(input: { poId: number; leave: number[]; fingerp
   try {
     const leave = lineIds(input.leave);
     if (leave.length) {
-      const h = await holdLines(input.poId, leave, who);
+      const h = await setAside(input.poId, leave);
       if (!h.ok) return { ok: false, error: `Couldn't leave the unticked lines for later: ${h.error ?? "try again"}` };
     }
     const r = await placeReece(input.poId, input.fingerprint, who);
+    if (leave.length) await redraftBoth();
     done();
     return r;
   } catch (e) {
@@ -498,6 +507,18 @@ export async function orderAheadNow(input: { estimateId: number; supplierId: str
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
+}
+
+/** Held lines back onto To order now (a job's worth at once), redrafted, nothing sent. */
+export async function releaseHolds(input: { holdIds: number[] }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const ids = lineIds(input.holdIds);
+  if (!ids.length) return { ok: false, error: "Which job?" };
+  for (const id of ids) await releaseHold(id);
+  await redraftBoth();
+  done();
+  return { ok: true, note: "Back on the order to send." };
 }
 
 /** A job booked past the two weeks, onto this supplier's order now (not sent). */
@@ -556,10 +577,11 @@ export async function sendSupplier(input: { supplierId: string; ahead: number[];
     }
     const leave = lineIds(input.leave);
     if (leave.length) {
-      const h = await holdLines(keep.id, leave, who);
+      const h = await setAside(keep.id, leave);
       if (!h.ok) return { ok: false, error: `Couldn't leave the unticked lines for later: ${h.error ?? "try again"}` };
     }
     const r = await approveAndSend(keep.id, who);
+    if (leave.length) await redraftBoth();
     done();
     return r;
   } catch (e) {

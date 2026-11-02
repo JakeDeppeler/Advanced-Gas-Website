@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, unbookedLines, orderLaterNow, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, reecePreview, reecePlace, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, unbookedLines, orderLaterNow, releaseHolds, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, reecePreview, reecePlace, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Preview } from "@/lib/ordering/reeceSend";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
@@ -1281,6 +1281,14 @@ type AheadRow = {
 };
 type SupCard = { id: string; name: string; supplier: Supplier | undefined; drafts: PoWithLines[]; jobs: JobRow[]; ahead: AheadRow[]; held: Hold[]; later: LaterJob[]; stock: PoLine[]; firstDays: number | null };
 
+/** Held lines by job, soonest install first: one row a job, not one a line. */
+function heldJobs(holds: Hold[]): { jobId: number; holds: Hold[] }[] {
+  const by = new Map<number, Hold[]>();
+  for (const h of holds) by.set(h.job_id, [...(by.get(h.job_id) ?? []), h]);
+  return [...by.entries()].map(([jobId, hs]) => ({ jobId, holds: hs }))
+    .sort((a, b) => (a.holds[0].install_date ?? "9999").localeCompare(b.holds[0].install_date ?? "9999"));
+}
+
 function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], holds: Hold[], byId: Map<string, Supplier>, today: string, later: LaterJob[] = []): SupCard[] {
   const cards = new Map<string, SupCard>();
   const get = (id: string, name?: string) => {
@@ -1570,7 +1578,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
   const label = sendLabel(c.supplier);
   const send = () => {
     const leave = c.jobs.filter((j) => off.has(j.key)).flatMap((j) => j.lines.map((l) => l.id));
-    if (leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off this order and drafted again for next week. Carry on?`)) return;
+    if (leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off this order and stay on To order for later. Carry on?`)) return;
     start(async () => {
       setMsg(null);
       const r = await sendSupplier({ supplierId: c.id, ahead: [...ahead], leave, release: [...rel], later: [...lat] });
@@ -1592,7 +1600,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
   };
   const placeReece = () => {
     if (!rp) return;
-    if (rp.leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off and drafted again for next week. Place the rest with Reece?`)) return;
+    if (rp.leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off and stay on To order for later. Place the rest with Reece?`)) return;
     start(async () => {
       setMsg(null);
       const r = await reecePlace({ poId: rp.check.poId, leave: rp.leave, fingerprint: rp.check.fingerprint });
@@ -1610,7 +1618,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
         <span className="to2-badge" aria-hidden="true">{initials(c.name)}</span>
         <span className="to2-t">
           <b id={`to2-${c.id}`}>{shortName(c.name)}</b>
-          <span>{[c.jobs.length ? `${c.jobs.length} ${c.jobs.length === 1 ? "install" : "installs"} to send` : null, c.held.length ? `${c.held.length} held` : null, c.later.length ? `${c.later.length} booked further out` : null, c.ahead.length ? `${c.ahead.length} sold, not booked` : null, c.stock.length ? "factory stock" : null].filter(Boolean).join(" · ")}</span>
+          <span>{[c.jobs.length ? `${c.jobs.length} ${c.jobs.length === 1 ? "install" : "installs"} to send` : null, c.held.length ? `${heldJobs(c.held).length} held` : null, c.later.length ? `${c.later.length} booked further out` : null, c.ahead.length ? `${c.ahead.length} sold, not booked` : null, c.stock.length ? "factory stock" : null].filter(Boolean).join(" · ")}</span>
         </span>
         {c.firstDays != null && <span className={`pt-vstat ${c.firstDays <= ALERT_DAYS ? "pt-vstat--bad" : c.firstDays <= 7 ? "pt-vstat--warn" : "pt-vstat--none"}`}>{c.firstDays <= ALERT_DAYS ? "⚠ " : ""}{inWords(c.firstDays, "First install")}</span>}
       </div>
@@ -1646,30 +1654,41 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
         <>
           <div className="to2-lh">Held for next week · tick to send now</div>
           <ul className="to2-rows">
-            {c.held.map((h) => {
-              const on = rel.has(h.id);
-              const due = h.install_date ? neededBy(h.install_date) : null;
-              const late = !!due && due < h.until;
-              const days = h.install_date ? daysTo(h.install_date, todayMelbourne()) : null;
+            {heldJobs(c.held).map((g) => {
+              const ids = g.holds.map((h) => h.id);
+              const on = ids.every((id) => rel.has(id));
+              const f = g.holds[0];
+              const due = f.install_date ? neededBy(f.install_date) : null;
+              const late = !!due && due < f.until;
+              const days = f.install_date ? daysTo(f.install_date, todayMelbourne()) : null;
+              const k = `h${g.jobId}`;
               return (
-                <li key={`h${h.id}`} className={on ? undefined : "off"}><div className="to2-row">
-                  <button type="button" role="checkbox" aria-checked={on} aria-label={`${on ? "Keep held" : "Send now"}: job ${h.job_number}`} className={`to2-tick${on ? " on" : ""}${late ? " bad" : ""}`}
-                    onClick={() => { const n = new Set(rel); n.has(h.id) ? n.delete(h.id) : n.add(h.id); setRel(n); }} />
-                  <span className="to2-t">
-                    <b>{h.customer_name ?? "A customer"}</b>
-                    <span>Job {h.job_number} · {h.qty != null ? `${qty(Number(h.qty))} × ` : ""}{h.sku_name}{h.install_date ? ` · install ${dayLabel(h.install_date)}` : ""} · held{h.held_by ? ` by ${h.held_by.split(" ")[0]}` : ""} until {dayLabel(h.until)}</span>
-                  </span>
-                  {late
-                    ? <span className="pt-vstat pt-vstat--bad">Needed by {dayLabel(due!)}</span>
-                    : daysPill(days)}
-                </div></li>
+                <li key={k} className={on ? undefined : "off"}>
+                  <div className="to2-row">
+                    <button type="button" role="checkbox" aria-checked={on} aria-label={`${on ? "Keep held" : "Send now"}: job ${f.job_number}`} className={`to2-tick${on ? " on" : ""}${late ? " bad" : ""}`}
+                      onClick={() => { const n = new Set(rel); ids.forEach((id) => (on ? n.delete(id) : n.add(id))); setRel(n); }} />
+                    <button type="button" className="to2-t to2-open" aria-expanded={open.has(k)} onClick={() => setOpen(flip(open, k))}>
+                      <b>{f.customer_name ?? "A customer"}</b>
+                      <span>Job {f.job_number}{f.install_date ? ` · install ${dayLabel(f.install_date)}` : ""} · {g.holds.length} {g.holds.length === 1 ? "item" : "items"} · held{f.held_by ? ` by ${f.held_by.split(" ")[0]}` : ""} until {dayLabel(f.until)}</span>
+                    </button>
+                    {late ? <span className="pt-vstat pt-vstat--bad">Needed by {dayLabel(due!)}</span> : daysPill(days)}
+                    <button type="button" className="pk-btn g to2-b" disabled={busy} title="Back on the order to send, without sending anything"
+                      onClick={() => quick(() => releaseHolds({ holdIds: ids }))}>Put back</button>
+                    <span className={`to2-chev${open.has(k) ? " open" : ""}`} aria-hidden="true">›</span>
+                  </div>
+                  {open.has(k) && (
+                    <div className="to2-items">
+                      {g.holds.map((h) => <div key={h.id} className="to2-item"><span>{h.qty != null ? `${qty(Number(h.qty))} × ` : ""}{h.sku_name}</span></div>)}
+                    </div>
+                  )}
+                </li>
               );
             })}
           </ul>
         </>
       )}
 
-      {showSend && c.later.length > 0 && (
+            {showSend && c.later.length > 0 && (
         <>
           <div className="to2-lh">Booked further out · tick to order now</div>
           <ul className="to2-rows">
