@@ -119,6 +119,12 @@ const PEOPLE: Opt[] = [
   { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2 },
   { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3 },
 ];
+/** The same question for a gas tank, with the sizes a gas tank comes in rather than a heat pump's. */
+const GAS_PEOPLE: Opt[] = [
+  { label: "1–2 people", sub: "Small household", spec: "135 L", n: 1 },
+  { label: "3–4 people", sub: "Family home", spec: "135–170 L", n: 2 },
+  { label: "5+ people", sub: "Big household", spec: "170 L", n: 3 },
+];
 const BATHS: Opt[] = [
   { label: "1 bathroom", sub: "One shower at a time", spec: "1 bath", n: 1 },
   { label: "2 bathrooms", sub: "Two showers at once", spec: "2 baths", n: 2 },
@@ -172,6 +178,13 @@ export type Tier = {
   price: number | null;
   /** True where `price` is PLACEHOLDER_PRICE rather than a confirmed figure. */
   mockPrice?: boolean;
+  /**
+   * "system.tier" of the option this one really is. A gas storage customer is
+   * offered "switch to a heat pump", but that heat pump is the iStore under
+   * Heat pump, and its page has to explain a heat pump, not a gas tank. So the
+   * card links to the real product's page rather than having one of its own.
+   */
+  same?: string;
 };
 
 export type FaqKey = "split" | "multi" | "ducted" | "evap" | "hp" | "gashw" | "gasheat" | "zone";
@@ -205,9 +218,9 @@ export type Category = {
 };
 
 const W = "6-yr workmanship warranty";
-const t = (slug: Tier["slug"], brand: string, model: string, img: string, feats: string[], price: number | null): Tier => ({
+const t = (slug: Tier["slug"], brand: string, model: string, img: string, feats: string[], price: number | null, same?: string): Tier => ({
   slug, tier: (slug[0].toUpperCase() + slug.slice(1)) as Tier["tier"], brand, model, img, feats,
-  price: price ?? PLACEHOLDER_PRICE, ...(price == null ? { mockPrice: true } : {}),
+  price: price ?? PLACEHOLDER_PRICE, ...(price == null ? { mockPrice: true } : {}), ...(same ? { same } : {}),
 });
 
 const SPLIT_TIERS: Tier[] = [
@@ -268,19 +281,19 @@ export const CATS: Category[] = [
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
       sys({ slug: "heat-pump", label: "Heat pump", sub: "VEU rebate applied", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.hwNow, QB.hwWhere, QB.solar], tiers: [
-        t("essential", "iStore", "270 L R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "Old unit removed"], 2150),
+        t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
       ] }),
       sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Endless hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType, QB.hwWhere], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
         t("premium", "Thermann", "G-series, high-flow", IMG.gasCf, ["Two showers running at once", "Endless hot water", W], null),
-        t("signature", "Reclaim", "Switch to a heat pump", IMG.reclaimAio, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2624),
+        t("signature", "Reclaim", "Switch to a heat pump", IMG.reclaimAio, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2624, "heat-pump.premium"),
       ] }),
-      sys({ slug: "gas-storage", label: "Gas storage", sub: "Like-for-like swap", img: IMG.gasStorage, q: "How many people at home?", sizes: PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType, QB.hwWhere], tiers: [
+      sys({ slug: "gas-storage", label: "Gas storage", sub: "Like-for-like swap", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType, QB.hwWhere], tiers: [
         t("essential", "Thermann", "4-star gas storage", IMG.gasStorage, ["Like-for-like swap", "Same-day on common sizes", "Old unit removed"], null),
-        t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null),
-        t("signature", "iStore", "Switch to a heat pump", IMG.istore, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2150),
+        t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null, "gas-continuous-flow.essential"),
+        t("signature", "iStore", "Switch to a heat pump", IMG.istore, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2150, "heat-pump.essential"),
       ] }),
     ],
   },
@@ -299,8 +312,18 @@ export function findSystem(slug: string): SystemRef | null {
   return null;
 }
 
+/** Every option with a page of its own: the ones that are really another option (`same`) don't get one. */
 export function allProductParams() {
-  return CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers.map((tr) => ({ system: s.slug, tier: tr.slug }))));
+  return CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers.filter((tr) => !tr.same).map((tr) => ({ system: s.slug, tier: tr.slug }))));
+}
+
+/** The system and option a card really opens: itself, or the option it's the same as. */
+export function realOption(sys: System, tier: Tier): { sys: System; tier: Tier } {
+  if (!tier.same) return { sys, tier };
+  const [s, t] = tier.same.split(".");
+  const ref = findSystem(s);
+  const real = ref?.sys.tiers.find((x) => x.slug === t);
+  return ref && real ? { sys: ref.sys, tier: real } : { sys, tier };
 }
 
 /* ------------------------------------------------------------ answers in a URL */
@@ -330,9 +353,17 @@ export const answerChips = (sys: System, ans: Answers) =>
   sys.qs.map((q) => (ans[q.id] == null ? null : q.opts[ans[q.id]].label)).filter((x): x is string => !!x);
 
 export const productHref = (sys: System, tier: Tier, ans: Answers) => {
-  const qs = answersQuery(sys, ans);
-  return `/find/${sys.slug}/${tier.slug}${qs ? `?${qs}` : ""}`;
+  const real = realOption(sys, tier);
+  // Answers only carry across when the other system asks the same size
+  // question the same way (people at home → people at home); a gas storage
+  // "how many people" isn't a continuous-flow "how many bathrooms".
+  const same = real.sys === sys || real.sys.sizes.map((o) => o.label).join() === sys.sizes.map((o) => o.label).join();
+  const qs = same ? answersQuery(real.sys, real.sys === sys ? ans : ans.size != null ? { size: ans.size } : {}) : "";
+  return `/find/${real.sys.slug}/${real.tier.slug}${qs ? `?${qs}` : ""}`;
 };
+
+/** A system's own page: what it is, how it works, and its three options. */
+export const systemHref = (slug: string) => `/find/${slug}`;
 
 export const bookHref = (sys: System, tier: Tier, ans: Answers, model?: string) => {
   const qs = answersQuery(sys, ans);
@@ -384,7 +415,7 @@ const GAL: Record<string, GalItem[]> = {
  * picks the band that survives a wide crop.
  */
 /** `ours` is false for the one manufacturer photo, so it never gets captioned as our install. */
-export type Hero = { src: string; alt: string; pos: string; ours: boolean; mock?: boolean };
+export type Hero = { src: string; alt: string; pos: string; ours: boolean; mock?: boolean; studio?: boolean };
 const hero = (src: string, alt: string, pos = "center 45%", ours = true): Hero => ({ src, alt, pos, ours });
 const H = {
   bedroom: hero("/kaden-indoor.webp", "A wall split we installed in a bedroom", "center 32%"),
@@ -397,12 +428,15 @@ const H = {
   thermannCf: hero("/thermann-continuous-flow-back.jpg", "A Thermann continuous flow unit we installed on a brick wall", "center 40%"),
   gasDucted: hero("/gas-ducted-install.jpg", "A gas ducted heater we installed in a roof space", "center 55%"),
   zonemate: hero("/ZoneMate-Touch-Duotone_Living-Room_1.jpg", "A Zonemate touch controller on a living room wall", "center 50%", false),
+  // No install photo of an iStore yet. Its product shot on a plain backdrop,
+  // rather than someone else's unit under an "our install" caption.
+  istore: { src: IMG.istore, alt: "iStore all-in-one heat pump", pos: "center", ours: false, studio: true },
 };
 const HERO: Record<string, Hero> = {
   "split-system": H.bedroom, "reverse-cycle-split": H.bedroom, "multi-head": H.bedroom,
   ducted: H.roofDucted, "ducted.essential": H.kadenOutdoor,
   evaporative: H.evap,
-  "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.changeover,
+  "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.istore,
   "gas-continuous-flow": H.thermannCf, "gas-continuous-flow.signature": H.reclaimAio,
   "gas-storage": H.changeover, "gas-storage.premium": H.thermannCf,
   "gas-ducted-heating": H.gasDucted,
@@ -428,9 +462,19 @@ const ROOMS: Record<string, (Hero | null)[]> = {
 export const roomFor = (sys: System, tier: Tier, size: number | null): Hero =>
   (size != null ? ROOMS[sys.slug]?.[size] : null) ?? heroFor(sys, tier);
 
+/**
+ * Where an option needs its own pictures. The heat pump set is a CO₂ split
+ * and its install; beside "how an all-in-one works" those would show the
+ * wrong kind of unit.
+ */
+const GAL_TIER: Record<string, GalItem[]> = {
+  "heat-pump.essential": [g("/istore-product.png", "iStore all-in-one heat pump", "p", "iStore")],
+  "heat-pump.premium": [g("/ba-hw-after.webp", "A Reclaim ECO all-in-one we installed on a new concrete pad", "c", "Reclaim")],
+};
+
 export function galleryFor(sys: System, tier: Tier): GalItem[] {
   const out: GalItem[] = [g(tier.img, `${tier.brand} ${tier.model}`, "p")];
-  for (const it of GAL[sys.slug] ?? []) {
+  for (const it of GAL_TIER[`${sys.slug}.${tier.slug}`] ?? GAL[sys.slug] ?? []) {
     const fits = !it.brand || it.brand === tier.brand || `${tier.brand} ${tier.model}`.includes(it.brand);
     if (fits && !out.some((x) => x.src === it.src)) out.push(it);
   }
@@ -450,7 +494,8 @@ const KSI: ModelRef[] = [["kaden", "kaden-split-25", "2.5 kW"], ["kaden", "kaden
 const PEAD: ModelRef[] = [["mitsubishi-electric", "pead-m", "10–14 kW"], ["mitsubishi-electric", "pead-large", "16–20 kW"]];
 const CF: ModelRef[] = [["thermann", "cf-16", "16 L/min"], ["thermann", "cf-20", "20 L/min"], ["thermann", "cf-26", "26 L/min"], ["thermann", "cf-32", "32 L/min"]];
 const ECO: ModelRef[] = [["reclaim", "eco-r290-200", "200 L"], ["reclaim", "eco-r290-300", "285 L"]];
-const ISTORE: ModelRef[] = [["istore", "istore-180", "180 L"], ["istore", "istore-270", "270 L"]];
+// istore-270 keeps its old slug so links to it still land; the tank is 275 L.
+const ISTORE: ModelRef[] = [["istore", "istore-180", "180 L"], ["istore", "istore-270", "275 L"]];
 const STARPRO6: ModelRef[] = [["brivis", "brivis-internal-starpro-6", "Internal"], ["brivis", "brivis-external-starpro-6", "External"]];
 
 export const TIER_MODELS: Record<string, ModelRef[]> = {
@@ -466,9 +511,8 @@ export const TIER_MODELS: Record<string, ModelRef[]> = {
   "evaporative.signature": [["brivis", "brivis-evap-advance", "Advance"]],
   "heat-pump.essential": ISTORE, "heat-pump.premium": ECO,
   "heat-pump.signature": [["reclaim", "co2-split-160-glass", "160 L"], ["reclaim", "co2-split-250-glass", "250 L"], ["reclaim", "co2-split-315-glass", "315 L"], ["reclaim", "co2-split-400-glass", "400 L"]],
-  "gas-continuous-flow.essential": CF, "gas-continuous-flow.premium": [CF[2], CF[3]], "gas-continuous-flow.signature": ECO,
+  "gas-continuous-flow.essential": CF, "gas-continuous-flow.premium": [CF[2], CF[3]],
   "gas-storage.essential": [["thermann", "gas-storage-135", "135 L"], ["thermann", "gas-storage-170", "170 L"]],
-  "gas-storage.premium": CF, "gas-storage.signature": ISTORE,
   "gas-ducted-heating.essential": [["brivis", "brivis-internal-wombat-3", "Internal"]],
   "gas-ducted-heating.premium": STARPRO6, "gas-ducted-heating.signature": STARPRO6,
   "zoning.premium": [["zonemate", "zonemate-touch", "Touch + Wi-Fi"]],
@@ -711,7 +755,9 @@ export const SERVICES: ServiceCard[] = [
 export type NavItem = { t: string; s: string; img: string; photo?: boolean; pos?: string; href: string; find?: string };
 export type NavGroup = { label: string; href: string; head?: string; foot?: string; footHref?: string; footFind?: Category["id"]; items: NavItem[] };
 
-const prod = (t: string, s: string, img: string, slug: string): NavItem => ({ t, s, img, href: `/?find=${slug}#find`, find: slug });
+// A product in the menu opens its system page, where people learn what it is
+// before choosing; the "Find your…" card at the end still opens the finder.
+const prod = (t: string, s: string, img: string, slug: string): NavItem => ({ t, s, img, href: systemHref(slug) });
 
 export const NAV: NavGroup[] = [
   { label: "Cooling", href: "/services/air-conditioning-installation", head: "Not sure which?", foot: "Find your cooling", footFind: "air",

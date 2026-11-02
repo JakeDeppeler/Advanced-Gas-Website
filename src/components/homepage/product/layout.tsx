@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   type PV, Crumbs, Badges, Price, Finance, BuyButtons, ProsCons, SavingsCalc, isHeatPumpOption, Promise, WhyList, Glance, FitFinder,
-  SizeGuide, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
+  Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 
 /**
@@ -15,10 +15,12 @@ import {
  */
 export function ProductLayout({ v }: { v: PV }) {
   const { t, learn } = v;
+  // Ordered to teach: what it is and how it works, its strengths and limits,
+  // which size (or which other option), then the details and booking.
   const tabs = [
-    ["overview", "Overview"], ["pros", "Pros & cons"], ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []),
-    ...(learn ? [["how", "How it works"], ["fit", "Is it right for you?"]] : []),
-    ["sizes", "Sizes"], ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
+    ["overview", "Overview"], ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
+    ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []), ...(learn ? [["fit", "Is it right for you?"]] : []),
+    ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
   return (
     <div className="pxp">
@@ -44,10 +46,19 @@ export function ProductLayout({ v }: { v: PV }) {
         <section className="lk2__stats"><div className="wrap"><Glance v={v} cls="lk2__glance" /></div></section>
       )}
 
+      <Story v={v} />
+
       <section className="pxs" id="pros">
         <div className="wrap pp__col">
           <Lead eye="Pros & cons" h="The honest bit." />
           <ProsCons v={v} />
+        </div>
+      </section>
+
+      <section className="pxs pxs--cream" id="choose">
+        <div className="wrap pp__col">
+          <Lead eye="Which one?" h="This size, another size, or something else?"><p>When we&apos;d recommend each one. {v.sizeNote}</p></Lead>
+          <Choose v={v} />
         </div>
       </section>
 
@@ -60,8 +71,6 @@ export function ProductLayout({ v }: { v: PV }) {
         </section>
       )}
 
-      <Story v={v} />
-
       {learn && (
         <section className="pxs" id="fit">
           <div className="wrap pxfit">
@@ -70,10 +79,6 @@ export function ProductLayout({ v }: { v: PV }) {
           </div>
         </section>
       )}
-
-      <section className="pxs pxs--sky" id="sizes">
-        <div className="wrap pp__two"><Lead eye="Sizes" h="Which size do you need?"><p>{v.sizeNote}</p></Lead><SizeGuide v={v} /></div>
-      </section>
 
       <section className="pxs" id="specs">
         <div className="wrap pp__two">
@@ -121,7 +126,7 @@ export function ProductLayout({ v }: { v: PV }) {
 function Hero({ v }: { v: PV }) {
   const { t, room, sys, models, mi, ans } = v;
   return (
-    <section className="pxhero" ref={v.heroRef}>
+    <section className={`pxhero${room.studio ? " pxhero--studio" : ""}`} ref={v.heroRef}>
       <Image key={room.src} src={room.src} alt={room.alt} fill priority sizes="100vw" className="pxhero__bg" style={{ objectPosition: room.pos }} />
       <span className="pxhero__scrim" aria-hidden="true" />
       {(room.ours || room.mock) && <span className="pm__cap pxhero__cap">{room.mock ? "Illustration" : "One of our installs"}</span>}
@@ -210,7 +215,7 @@ function Story({ v }: { v: PV }) {
   return (
     <section className="lk2__story" id="how">
       <div className="wrap">
-        <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How a {sys.label.toLowerCase()} works.</h2></div>
+        <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">{learn.title ?? `How a ${sys.label.toLowerCase()} works.`}</h2></div>
         {learn.how.map((x, i) => {
           const img = gal[i % gal.length];
           return (

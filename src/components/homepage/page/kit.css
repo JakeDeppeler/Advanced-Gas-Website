@@ -120,3 +120,51 @@
 .ag .kx__tool>section:first-child{padding-top:56px}
 /* The quote page: the homepage form on white needs its own edge. */
 .ag .kxq2 .qf{max-width:none;border:1px solid var(--line);box-shadow:0 30px 60px -40px rgba(5,10,48,.4)}
+
+/* ---------- System pages (/find/<system>) */
+.ag .pcx__col .sxw__alt li{padding-left:0}
+.ag .pcx__col .sxw__alt li::before{content:none}
+.ag .sxw__alt a{color:var(--ink);text-decoration:none;font-size:16px;line-height:1.5}
+.ag .sxw__alt a b{color:var(--sky-ink);white-space:nowrap}
+.ag .sxw__alt a:hover b{text-decoration:underline}
+.ag .sxo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .sxo__card{background:#fff;border-radius:20px;padding:22px 24px 24px;display:flex;flex-direction:column;gap:10px;color:var(--ink)}
+.ag .sxo__tier{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.ag .sxo__tier i{width:10px;height:10px;border-radius:50%}
+.ag .sxo__img{position:relative;display:block;height:190px;margin:4px 0 6px}
+.ag .sxo__img img{object-fit:contain}
+.ag .sxo__brand{font-size:14px;font-weight:700;color:var(--sky-ink)}
+.ag .sxo__card h3{margin:0;font-family:var(--disp);font-size:23px;font-weight:800;color:var(--navy);letter-spacing:-.01em}
+.ag .sxo__price{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .sxo__price small{font-family:var(--body);font-size:14px;font-weight:600;color:var(--ink3)}
+.ag .sxo__card .pp__hl{flex:1}
+.ag .sxo__go{align-self:stretch;justify-content:center;text-align:center;margin-top:6px}
+.ag .sxz{margin:0;display:flex;flex-direction:column;gap:8px}
+.ag .sxz__row{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border-radius:12px;padding:16px 20px}
+.ag .sxz__row dt{display:flex;flex-direction:column;gap:2px}
+.ag .sxz__row dt strong{font-size:16.5px;color:var(--navy)}
+.ag .sxz__row dt small{font-size:14px;color:var(--ink3)}
+.ag .sxz__row dd{margin:0;font-family:var(--mono);font-size:13.5px;font-weight:600;color:var(--sky-ink);white-space:nowrap}
+@media (max-width:1000px){.ag .sxo{grid-template-columns:1fr}}
+
+/* ---------- Quote page: the form in the header, beside the promise */
+.ag .qpg{background:radial-gradient(90% 80% at 75% 30%,#16205a 0%,var(--navy) 70%);color:#fff;padding:48px 0 56px}
+.ag .qpg__in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:56px;align-items:start}
+.ag .qpg__copy{display:flex;flex-direction:column;gap:20px;padding-top:8px}
+.ag .qpg__h1{font-family:var(--disp);font-size:clamp(40px,4.4vw,68px);font-weight:900;line-height:.98;letter-spacing:-.035em;color:#fff;margin:0}
+.ag .qpg__h1 em{font-style:normal;color:var(--sky2)}
+.ag .qpg__sub{margin:0;font-size:18px;line-height:1.55;color:rgba(255,255,255,.82);max-width:560px}
+.ag .qpg__list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.ag .qpg__list li{display:flex;gap:12px;align-items:flex-start}
+.ag .qpg__list li > span{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(44,197,255,.16);color:var(--sky2);display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
+.ag .qpg__list p{margin:0;font-size:16px;line-height:1.5;color:rgba(255,255,255,.78)}
+.ag .qpg__list strong{color:#fff}
+.ag .qpg__call{margin:6px 0 0;font-size:15px;line-height:1.55;color:rgba(255,255,255,.7)}
+.ag .qpg__call a{color:#fff;font-weight:700}
+.ag .qpg__form{display:flex}
+.ag .qpg__form .qf{max-width:none;flex:1}
+.ag .qpg__more{margin:0;font-size:16px;color:var(--ink2)}
+.ag .qpg__more a{color:var(--navy);font-weight:700}
+@media (max-width:1000px){.ag .qpg__in{grid-template-columns:1fr;gap:32px}.ag .qpg{padding:32px 0 40px}}
+/* On a phone the four promises would push the form a screen down; the headline and the form are enough. */
+@media (max-width:700px){.ag .qpg__list{display:none}.ag .qpg__h1{font-size:38px}}

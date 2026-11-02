@@ -50,6 +50,13 @@ const nextConfig = {
       // own from price and finance figure on its product page, reached from
       // Find your system.
       { source: "/pricing", destination: "/#find", permanent: true },
+      // Options that are really another option (`same` in lib/homepage/data.ts)
+      // have no page of their own: "switch to a heat pump" from gas storage IS
+      // the iStore, and its page has to teach a heat pump, not a gas tank.
+      // Keep this list in step with `same` there.
+      { source: "/find/gas-storage/signature", destination: "/find/heat-pump/essential", permanent: true },
+      { source: "/find/gas-storage/premium", destination: "/find/gas-continuous-flow/essential", permanent: true },
+      { source: "/find/gas-continuous-flow/signature", destination: "/find/heat-pump/premium", permanent: true },
       // The blog editor moved out of Marketing into its own section. Not
       // permanent: these are portal addresses, never indexed, and a 308 is
       // cached by the browser for good.

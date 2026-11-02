@@ -9,7 +9,7 @@ import {
 } from "@/lib/homepage/data";
 import type { PV } from "./product/parts";
 import { ProductLayout } from "./product/layout";
-import { LEARN, BOOKING_STEPS } from "@/lib/homepage/learn";
+import { learnFor, BOOKING_STEPS } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
 
@@ -81,11 +81,6 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     setPicked(slug);
     syncUrl(ans, slug);
   }
-  function pickSize(i: number) {
-    // A row in the size guide picks the model that fits it, the same way the finder's answer does.
-    setSize(i);
-    if (models.length) { setPicked(null); syncUrl({ ...ans, size: i }, null); }
-  }
 
   const gal = galleryFor(sys, t);
   const size = ans.size != null ? sys.sizes[ans.size] : null;
@@ -122,14 +117,13 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     roomOf: (chip) => { const i = sizeOfChip(chip); return i == null ? null : sys.sizes[i].sub ?? null; },
     book: bookHref(sys, t, ans, model?.slug),
     others: sys.tiers.map((x, i) => [x, i] as const).filter(([, i]) => i !== ti),
-    learn: LEARN[sys.slug], steps: BOOKING_STEPS(installTimeOf(sys)),
+    learn: learnFor(sys.slug, t.slug), steps: BOOKING_STEPS(installTimeOf(sys)),
     optionLines,
     whyTitle: model?.why?.length ? "Why we install it" : model?.features?.length ? "Features" : "What's included",
     whyLines: model?.why?.length ? model.why : model?.features?.length ? model.features : included,
     take: model?.take ?? `${sys.sub}. ${optionLines.join(". ")}.`,
     glance: model ? model.specs.filter((x) => !/warranty|refrigerant/i.test(x.label)).slice(0, 4) : [],
-    sizeOn: (i) => (models.length ? modelForAnswer(models, sys.sizes[i].spec) === mi && !!sys.sizes[i].spec : ans.size === i),
-    pickSize, pickModel, setSize, term, setTerm,
+    pickModel, setSize, term, setTerm,
     applyAnswers: (a) => {
       const next = { ...ans, ...a };
       setAns(next);

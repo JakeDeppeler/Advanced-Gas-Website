@@ -217,3 +217,31 @@
 .ag .svx__note a{color:#fff}
 @media (max-width:900px){.ag .pcx,.ag .svx{grid-template-columns:1fr}}
 @media (max-width:600px){.ag .pcx__col{padding:22px}.ag .svx__opts--n{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ---------- Which one? sizes, then other options */
+.ag .chz{display:flex;flex-direction:column;gap:34px}
+.ag .chz__group{display:flex;flex-direction:column;gap:14px}
+.ag .chz__h{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.ag .chz__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.ag .chz__grid--alt{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.ag .chz__card{background:#fff;border:1px solid var(--line2);border-radius:18px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:10px}
+.ag .chz__card--on{border:2px solid var(--navy);padding:21px 21px 19px;box-shadow:0 10px 30px rgba(5,10,48,.08)}
+.ag .chz__chip{font-family:var(--disp);font-size:24px;font-weight:800;color:var(--navy);letter-spacing:-.01em}
+.ag .chz__card p,.ag .chz__alt p{margin:0;font-size:15.5px;line-height:1.55;color:var(--ink2);flex:1}
+.ag .chz__tag{align-self:flex-start;font-size:13.5px;font-weight:700;color:var(--navy);background:var(--skylt);border-radius:999px;padding:6px 12px}
+.ag .chz__btn{align-self:flex-start;font:inherit;font-size:14px;font-weight:700;color:var(--navy);background:none;border:1px solid var(--line2);border-radius:999px;padding:7px 14px;cursor:pointer}
+.ag .chz__btn:hover,.ag .chz__btn:focus-visible{border-color:var(--navy)}
+.ag .chz__alt{background:var(--navy);color:#fff;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:8px;text-decoration:none;transition:transform .15s}
+.ag .chz__alt:hover{transform:translateY(-2px)}
+.ag .chz__alt strong{font-family:var(--disp);font-size:21px;font-weight:800;color:#fff}
+.ag .chz__alt p{color:rgba(255,255,255,.78)}
+.ag .chz__if{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sky)}
+.ag .chz__go{font-weight:700;font-size:14.5px;color:var(--sky);margin-top:6px}
+@media (max-width:600px){.ag .chz__grid,.ag .chz__grid--alt{grid-template-columns:1fr}}
+
+/* A product shot instead of an install photo: contained on a plain backdrop, clear of the copy and the price card. */
+.ag .pxhero--studio{background:radial-gradient(70% 90% at 55% 40%,#1d2a6e 0%,var(--navy) 70%)}
+.ag .pxhero--studio .pxhero__bg{object-fit:contain;padding:48px 30% 150px 34%}
+.ag .pxhero--studio .pxhero__scrim{display:none}
+@media (max-width:900px){.ag .pxhero--studio .pxhero__bg{padding:24px 0 0 55%;opacity:.35}}
+@media (max-width:700px){.ag .pxhero--studio .pxhero__bg{padding:16px 0 44px;opacity:1}}

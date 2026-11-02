@@ -1096,7 +1096,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       points: [
         { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a unit built for milder conditions spends July running an element it was supposed to replace." },
         { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined costs less up front and does the same job, but somebody has to remember the anode in year five, and nobody does." },
-        { t: "iStore, when the rebate decides it", d: "On the VEU numbers the 270 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
+        { t: "iStore, when the rebate decides it", d: "On the VEU numbers the 275 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
         { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for the $400 Australian-made VEU bonus and means Reece stocks the parts in every Victorian store." },
         { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement, all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
         { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
@@ -1128,7 +1128,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
     photos: [
-      { src: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump hot water system", caption: "iStore 270 L, where the VEU rebate goes furthest" },
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump hot water system", caption: "iStore 275 L, where the VEU rebate goes furthest" },
       { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 AIO, same platform as Thermann Integrated" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split, 15-year stainless tank" },
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, Australian-made by Dux" },
@@ -1291,7 +1291,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           note:
             "An all-in-one is a single unit: tank below, compressor in a shroud on top. It goes back on the slab the old electric or gas tank came off, which is why it is the simplest swap there is. It is taller than what it replaces, and that is the one thing worth checking before the day.",
           photo: "/270L-istore-heatpump.webp",
-          photoAlt: "iStore 270 L all-in-one heat pump",
+          photoAlt: "iStore all-in-one heat pump",
           facts: [
             { v: "~1.8 m tall", k: "On a 270 L, taller than the tank it replaces" },
             { v: "One footprint", k: "Nothing separate to place or plumb" },
@@ -1347,9 +1347,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "200 or 285 litres",
-            line: "Plus iStore at 180 and 270",
+            line: "Plus iStore at 180 and 275",
             detail:
-              "Four sizes across the two platforms. 180–200 L suits one or two people, 270–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
+              "Four sizes across the two platforms. 180–200 L suits one or two people, 275–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
             icon: "ruler",
           },
           {
@@ -1376,7 +1376,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         points: [
           "Reclaim ECO R290 and Thermann ECO R290: same platform, two badges",
-          "iStore 180 L and 270 L, where the VEU rebate reaches furthest",
+          "iStore 180 L and 275 L, where the VEU rebate reaches furthest",
           "200 L and 285 L on the R290 platform",
           "One shell: nothing separate to place or plumb",
           "R290 natural refrigerant, single-digit global-warming potential",
@@ -1449,7 +1449,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "Does a heat pump work in cold Melbourne mornings?", a: "R290 (propane) units drop noticeably below 0 °C. CO₂ heat pumps (Reclaim) hold full capacity down to −10 °C, worth specifying for hills postcodes like Emerald, Gembrook or Cockatoo." },
       { q: "Is it noisy? Where do you put it?", a: "37–48 dBA at 1 m depending on model, Reclaim CO₂ is the quietest at 37 dBA (safe next to a bedroom wall). Ideally sited on the shady side of the house away from bedrooms." },
       { q: "How long does the install take?", a: "AIO into an existing tank position is 3–5 hours, done in one visit. Split heat pump with a new outdoor unit position is 5–7 hours. Both are usually same-day." },
-      { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 6-yr tank + 3-yr compressor. Plus our 6-year workmanship on top of all of them." },
+      { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 5 years on the whole unit. Plus our 6-year workmanship on top of all of them." },
       { q: "Can I combine it with solar PV?", a: "Yes, Reclaim's split range is PV-diverter compatible so the heat pump only runs when your PV is exporting. We can add a diverter kit at install time or later." },
     ],
   },

@@ -36,9 +36,9 @@ export const TANK_SIZES: {
       { label: "Reclaim CO₂ Split 250 L", href: "/brands/reclaim/co2-split-250-glass" },
       { label: "Panasonic CO₂ 6 kW · 250 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-250" },
     ] },
-  { litres: 270, models: "Reclaim CO₂ 270 L · iStore 270 L · Thermann Split 270 L",
+  { litres: 270, models: "Reclaim CO₂ 270 L · iStore 275 L · Thermann Split 270 L",
     picks: [
-      { label: "iStore 270 L Heat Pump", href: "/brands/istore/istore-270" },
+      { label: "iStore 275 L Heat Pump", href: "/brands/istore/istore-270" },
       { label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" },
     ] },
   { litres: 285, models: "Reclaim ECO R290 285 L · Thermann ECO R290 285 L",
@@ -57,7 +57,7 @@ export const TANK_SIZES: {
 ];
 
 /**
- * iStore tops out at 270 L. Past about 310 L it stops being an option at
+ * iStore tops out at 275 L. Past about 310 L it stops being an option at
  * all, so listing it against a bigger recommendation would send someone
  * to a product that can't do the job.
  */
@@ -101,10 +101,10 @@ export const SYSTEMS: SystemPreset[] = [
     note: "4 kW Panasonic. Quieter and cheaper than the 6 kW, and plenty with a long morning-to-evening gap." },
   { id: "thermann-285", name: "Thermann ECO R290 285 L", heatKw: 2.5, tankLitres: 285, cop: 4.0, verified: true,
     note: "Australian-made, 2.5 kW compressor, and the Aus-made VEU bonus on top. Big tank doing the work." },
-  { id: "istore-270", name: "iStore 270 L", heatKw: 4.0, tankLitres: 270, cop: 3.5, verified: true,
+  { id: "istore-270", name: "iStore 275 L", heatKw: 4.0, tankLitres: 275, cop: 3.5, verified: true,
     note: "The 4 kW is what makes this one punch above its size. Boost mode forces a full reheat ahead of a big day." },
   { id: "istore-180", name: "iStore 180 L", heatKw: 2.5, tankLitres: 180, cop: 3.5, verified: true,
-    note: "Smaller tank and the 2.5 kW compressor, not the 4 kW in the 270. Where that shows is the third shower." },
+    note: "Smaller tank and the 2.5 kW compressor, not the 4 kW in the 275. Where that shows is the third shower." },
 ];
 
 /**

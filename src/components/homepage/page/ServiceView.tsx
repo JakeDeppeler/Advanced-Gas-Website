@@ -166,7 +166,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
       >
         {finder && (
           <div className="bxh__ctas">
-            <Link href={`/?find=${finder}#find`} className="abtn abtn--or abtn--flat">See the options and prices →</Link>
+            <Link href={`/find/${finder}`} className="abtn abtn--or abtn--flat">See the options and prices →</Link>
             <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
           </div>
         )}
@@ -228,7 +228,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
         <div className="wrap pp__col">
           <Head eye="Where next" h="Keep going." />
           <Next items={[
-            ...(finder ? [{ t: "Options and prices", s: `Every ${s.label.toLowerCase()} we install, with its from price`, href: `/?find=${finder}#find` }] : []),
+            ...(finder ? [{ t: "Options and prices", s: `Every ${s.label.toLowerCase()} we install, with its from price`, href: `/find/${finder}` }] : []),
             { t: `All ${name.toLowerCase()}`, s: "The other jobs under this service", href: `/services/${slug}` },
             { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
           ]} />

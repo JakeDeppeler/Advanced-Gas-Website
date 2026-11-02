@@ -20,7 +20,8 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
   // with both categories on its card.
   const all = CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers
     .map((t, i) => ({ c, s, t, i }))
-    .filter(({ t }) => BRAND_SLUGS[t.brand] === brand.slug)));
+    // An option that is really another one (`same`) is listed as that one.
+    .filter(({ t }) => BRAND_SLUGS[t.brand] === brand.slug && !t.same)));
   const options = all
     .filter((o, k) => all.findIndex((x) => x.t.model === o.t.model) === k)
     .map((o) => ({ ...o, cats: [...new Set(all.filter((x) => x.t.model === o.t.model).map((x) => x.c.label))] }));

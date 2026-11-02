@@ -89,11 +89,11 @@ const products = [
   },
   {
     brand: "iStore",
-    name: "iStore 270 L heat pump",
+    name: "iStore 275 L heat pump",
     bullets: [
       "Smart Wi-Fi control + scheduling",
       "Australian designed",
-      "6-year tank warranty",
+      "5-year warranty on the whole unit",
       "Best for: solar-paired households",
     ],
     price: "$2,910",

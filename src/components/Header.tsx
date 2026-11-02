@@ -146,7 +146,7 @@ const SERVICES_MEGA: {
           label: "All-in-one heat pump",
           sub: "iStore · Reclaim ECO · Thermann ECO",
           photo: "/270L-istore-heatpump.webp",
-          photoAlt: "iStore 270L all-in-one heat pump hot water system",
+          photoAlt: "iStore all-in-one heat pump hot water system",
         },
         {
           href: "/services/gas-plumbing/continuous-flow",

@@ -2,10 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import {
-  findHref, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, TONES, reviewTitle, modelForAnswer,
+  findHref, findSystem, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, TONES, reviewTitle, modelForAnswer,
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
 } from "@/lib/homepage/data";
-import { PROS, type Alt, type HowStep, type Learn } from "@/lib/homepage/learn";
+import { PROS, CHOOSE, type Alt, type HowStep, type Learn } from "@/lib/homepage/learn";
 import { SAVINGS_DEFAULTS, hotWaterRunningCost, type CurrentSystem } from "@/lib/tools/hotWaterSavings";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
@@ -30,7 +30,7 @@ export type PV = {
   /** The option's own feature lines, minus any the model's record contradicts. */
   optionLines: string[];
   whyTitle: string; whyLines: string[]; take: string; glance: { label: string; value: string }[];
-  sizeOn: (i: number) => boolean; pickSize: (i: number) => void; pickModel: (slug: string) => void; setSize: (i: number) => void;
+  pickModel: (slug: string) => void; setSize: (i: number) => void;
   /** Merge answers from the fit form (size included) into the page, so the size, the figures and Book this install all follow. */
   applyAnswers: (a: Answers) => void;
   /** Finance term in months, for the weekly figure. */
@@ -48,7 +48,7 @@ export function Crumbs({ v }: { v: PV }) {
         <ol className="pp__crumbs">
           <li><Link href="/">Home</Link></li>
           <li><Link href={`/?find=${cat.id}#find`}>{cat.label}</Link></li>
-          <li><Link href={`/?find=${sys.slug}#find`}>{sys.label}</Link></li>
+          <li><Link href={`/find/${sys.slug}`}>{sys.label}</Link></li>
           <li aria-current="page">{t.brand} {t.model}</li>
         </ol>
         <Link href={findHref(sys, ans)} className="ppx__back">← Back to your options</Link>
@@ -223,7 +223,7 @@ export function FitFinder({ v }: { v: PV }) {
             <span className="ff__tag">A better fit</span>
             <p>For that, a <b>{shown.label.toLowerCase()}</b> usually suits better than this one.</p>
             <div className="ff__acts">
-              <Link href={`/?find=${shown.go}#find`} className="abtn abtn--or abtn--flat">See {shown.label} options →</Link>
+              <Link href={`/find/${shown.go}`} className="abtn abtn--or abtn--flat">About {shown.label.toLowerCase()} →</Link>
               <button type="button" className="ff__again" onClick={restart}>Start again</button>
             </div>
           </div>
@@ -298,18 +298,58 @@ export function SavingsCalc({ v }: { v: PV }) {
   );
 }
 
-export function SizeGuide({ v }: { v: PV }) {
-  const { sys } = v;
+/** "system.tier" → that option's page. */
+function optionHref(key: string) {
+  const [s, t] = key.split(".");
+  const ref = findSystem(s);
+  const tier = ref?.sys.tiers.find((x) => x.slug === t);
+  return ref && tier ? productHref(ref.sys, tier, {}) : `/find/${s}`;
+}
+
+/**
+ * "Which one?": when we'd recommend each size of this option, and when we'd
+ * send someone to a different option instead. A size card picks that size,
+ * so the header, figures and Book this install all follow it.
+ */
+export function Choose({ v }: { v: PV }) {
+  const c = CHOOSE[`${v.sys.slug}.${v.t.slug}`];
+  if (!c) return null;
+  const sizes = v.models.length
+    ? v.models.map((m, i) => ({ key: m.slug, chip: m.chip, when: c.sizes?.[m.chip] ?? (v.roomOf(m.chip) ? `${v.roomOf(m.chip)}.` : ""), on: i === v.mi, pick: () => v.pickModel(m.slug) }))
+    : v.sys.sizes.map((z, i) => ({ key: z.label, chip: z.spec ?? z.label, when: c.sizes?.[z.label] ?? `${z.label}${z.sub ? `: ${z.sub.charAt(0).toLowerCase()}${z.sub.slice(1)}` : ""}.`, on: v.ans.size === i, pick: () => v.setSize(i) }));
   return (
-    <div className="pxz" role="group" aria-label={sys.q}>
-      {sys.sizes.map((z, i) => (
-        <button key={z.label} type="button" className={`pxz__row${v.sizeOn(i) ? " pxz__row--on" : ""}`} onClick={() => v.pickSize(i)} aria-pressed={v.sizeOn(i)}>
-          {z.n ? <span className="qf__bars" aria-hidden="true">{[1, 2, 3].map((b) => <i key={b} className={b <= Math.min(z.n ?? 0, 3) ? "on" : ""} />)}</span> : null}
-          <span className="pxz__t"><strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</span>
-          {z.spec && <span className="pxz__spec">{z.spec}</span>}
-          {v.sizeOn(i) && <span className="pxz__on">Showing</span>}
-        </button>
-      ))}
+    <div className="chz">
+      {sizes.length > 0 && (
+        <div className="chz__group">
+          <h3 className="chz__h">{sizes.length > 1 ? "Which size" : "Where it suits"}</h3>
+          <div className="chz__grid">
+            {sizes.map((z) => (
+              <article key={z.key} className={`chz__card${z.on ? " chz__card--on" : ""}`}>
+                <strong className="chz__chip">{z.chip}</strong>
+                {z.when && <p>{z.when}</p>}
+                {sizes.length > 1 && (z.on
+                  ? <span className="chz__tag"><span aria-hidden="true">✓</span> Showing now</span>
+                  : <button type="button" className="chz__btn" onClick={z.pick}>Show the {z.chip}</button>)}
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
+      {c.instead.length > 0 && (
+        <div className="chz__group">
+          <h3 className="chz__h">Or a different option</h3>
+          <div className="chz__grid chz__grid--alt">
+            {c.instead.map((x) => (
+              <Link key={x.go} href={optionHref(x.go)} className="chz__alt">
+                <span className="chz__if">Choose this if</span>
+                <strong>{x.label}</strong>
+                <p>{x.when}</p>
+                <span className="chz__go">Read about it <i aria-hidden="true">→</i></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

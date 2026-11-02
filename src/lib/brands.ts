@@ -2667,13 +2667,13 @@ const brandCatalogue: Brand[] = [
     ourTake:
       "When the VEU rebate is what decides the job, iStore is the answer. Nothing else we fit takes the rebate as far, it goes in with the same crew and the same warranty as anything on the list, and for a household replacing an electric storage tank that is exactly the right call.",
     accreditation: "iStore accredited installer",
-    productLabel: "2 models · 180L + 270L heat pump storage",
+    productLabel: "2 models · 180L + 275L heat pump storage",
     photo: "/270L-istore-heatpump.webp",
     photoFallback: "/reclaim-spit-close-up.webp",
-    photoAlt: "iStore 270L heat pump hot water system",
+    photoAlt: "iStore all-in-one heat pump hot water system",
     accent: "#00A0DF",
     established: "Australian company (Sydney) · manufactured in China to AS/NZS standards",
-    warranty: "6-year cylinder + 3-year compressor + 6-year on our workmanship",
+    warranty: "5-year iStore warranty on the whole unit (tank, heat pump and parts) + 6-year on our workmanship",
     keyFeatures: [
       "Best VEU rebate outcome of any heat pump we install",
       "Built-in PV-diverter compatibility, so the compressor runs when your panels are making power",
@@ -2681,7 +2681,7 @@ const brandCatalogue: Brand[] = [
       "R290 natural refrigerant, high COP",
     ],
     commonInMelbourne:
-      "Hampton Park, Cranbourne North and Doveton are where we install the most iStore, because they are full of the electric storage tanks the VEU rebate was written for. It also does well with solar households through Officer and Clyde North, where the built-in PV diverter puts the compressor on power the house was exporting anyway.",
+      "Most of the iStore we fit replace old electric storage tanks, the job the VEU rebate was written for. It also suits solar households, where the built-in PV diverter puts the compressor on power the house was exporting anyway.",
     support:
       "iStore parts come through their Melbourne distributor. Warranty claims are handled by iStore's Sydney office directly with the homeowner, and we do the on-site swap-out.",
     resources: [
@@ -2694,21 +2694,21 @@ const brandCatalogue: Brand[] = [
       sub: "Of every heat pump we fit, the iStore is the one the VEU rebate stretches furthest, and for a household pulling out an old electric storage tank, that rebate is usually the whole decision. Get the rebate right and the rest of the job follows.",
     },
     verdict:
-      "When the VEU rebate is what decides the job, the iStore is our answer: nothing else we fit takes the rebate as far, and it lands at $2,150 installed with the rebate applied right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew and the same warranty as anything else on our list: 6-year cylinder + 3-year compressor + 6-year on our workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
+      "When the VEU rebate is what decides the job, the iStore is our answer: nothing else we fit takes the rebate as far, and it lands at $2,150 installed with the rebate applied right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew as anything else on our list, with 5 years from iStore on the whole unit and 6 years from us on the workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
     notRightWhen:
       "Staying in the house for the long haul, and it's the coldest mornings that worry you most? The iStore is built to a price the rebate makes sense of, not to outlast everything else on the block. If tank longevity and cold-morning recovery matter to you more than the biggest upfront rebate, we'd point you at a Reclaim instead, and we'd rather tell you that now than have you wish we had in year eight.",
     versus:
       "We fit Reclaim too, and where the house is the one you're staying in and cold-morning performance and a stainless tank matter more than the upfront rebate, that's the one we'd steer you to. The iStore is what goes in when the rebate is what decides it.",
     advisorService: "heat-pump-installation",
     heroSub:
-      "The heat pump we reach for when the VEU rebate is what decides the job, nothing else we fit takes it as far. Two models, 180 L and 270 L, with the PV diverter and the smart app built in rather than sold to you as extras.",
+      "The heat pump we reach for when the VEU rebate is what decides the job, nothing else we fit takes it as far. Two models, 180 L and 275 L, with the PV diverter and the smart app built in rather than sold to you as extras.",
     fitsWhere:
-      "Replacing tired electric storage tanks through Hampton Park, Cranbourne North and Doveton, and running the compressor on solar surplus for the households out through Officer and Clyde North.",
+      "Replacing tired electric storage tanks, and running the compressor on solar surplus for households with panels on the roof.",
     heroFacts: [
       { v: "$2,150", k: "Installed inc GST, VEU rebate applied at the quote" },
-      { v: "2 models", k: "180 L and 270 L, nothing in between to read through" },
+      { v: "2 models", k: "180 L and 275 L, nothing in between to read through" },
       { v: "R290", k: "Natural refrigerant, high COP" },
-      { v: "6 yr · 3 yr · 6 yr", k: "Cylinder, compressor and workmanship warranties, all from install day" },
+      { v: "5 yr & 6 yr", k: "5-yr iStore warranty on the whole unit and 6-yr on our workmanship, both from install day" },
     ],
     benefitsHeading: "Why it's the pick when the rebate decides it.",
     benefitTiles: [
@@ -2723,7 +2723,7 @@ const brandCatalogue: Brand[] = [
         t: "Runs on your solar",
         line: "PV-diverter compatibility built in, not bolted on",
         detail:
-          "The PV diverter is part of the unit, so on a solar home the compressor fires on the surplus your panels are already exporting for a few cents. There's no aftermarket accessory to buy or wire in, which is why we like it through the solar households in Officer and Clyde North, it puts the compressor on power the house was giving away anyway.",
+          "The PV diverter is part of the unit, so on a solar home the compressor fires on the surplus your panels are already exporting for a few cents. There's no aftermarket accessory to buy or wire in, which is why we like it on solar homes: it puts the compressor on power the house was giving away anyway.",
         icon: "wrench",
       },
       {
@@ -2742,23 +2742,23 @@ const brandCatalogue: Brand[] = [
       },
       {
         t: "Two models, sized right",
-        line: "180 L for a couple, 270 L for a family",
+        line: "180 L for a couple, 275 L for a family",
         detail:
-          "There are only two: 180 L on a 2.5 kW compressor for a couple or an apartment, and 270 L on a 4 kW for a family of three or four. We size it to the house rather than up, a 270 heating water nobody uses is just a bigger power bill, and there's no wall of model numbers to wade through to get there.",
+          "There are only two: 180 L on a 2.5 kW compressor for a couple or an apartment, and 275 L on a 4 kW for a family of three or four. We size it to the house rather than up, a 275 heating water nobody uses is just a bigger power bill, and there's no wall of model numbers to wade through to get there.",
         icon: "people",
       },
     ],
     servicing: {
       heading: "Who looks after it after the swap.",
       photo: "/270L-istore-heatpump.webp",
-      photoAlt: "An iStore 270L heat pump hot water system installed outside",
+      photoAlt: "An iStore 275L heat pump hot water system installed outside",
       body:
         "A heat pump is a compressor and a tank, and both carry a warranty worth knowing how to use before you need it. The iStore is an Australian company out of Sydney, its units built in China to AS/NZS standards, and the way a claim runs is worth understanding on install day rather than the day something stops, because who you ring is decided by which part it is.",
       facts: [
-        "Warranty is 6-year cylinder + 3-year compressor + 6-year on our workmanship: the first two are iStore's, the last is ours on the install",
+        "5 years from iStore on the whole unit, tank, heat pump and parts alike, plus 6 years from us on the workmanship",
         "Warranty claims are handled by iStore's Sydney office directly with the homeowner, and we do the on-site swap-out",
         "Parts come through iStore's Melbourne distributor, so a replacement isn't a wait on a container from overseas",
-        "Both models are VEU-eligible, so the rebate applies whether the house needs the 180 L or the 270 L",
+        "Both models are VEU-eligible, so the rebate applies whether the house needs the 180 L or the 275 L",
         "iStore is an Australian company out of Sydney, its units manufactured in China to AS/NZS standards, we'll tell you that straight rather than dress it up",
       ],
     },
@@ -2766,7 +2766,7 @@ const brandCatalogue: Brand[] = [
       {
         title: "Size it and confirm the rebate",
         detail:
-          "We look at what's on the wall now, how many of you there are, and confirm your VEU eligibility, then size it, 180 L for a couple, 270 L for a family. The rebate is worked out and applied at the quote, so the number you sign is the number you pay.",
+          "We look at what's on the wall now, how many of you there are, and confirm your VEU eligibility, then size it, 180 L for a couple, 275 L for a family. The rebate is worked out and applied at the quote, so the number you sign is the number you pay.",
       },
       {
         title: "Check the power point",
@@ -2805,7 +2805,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "Will a heat pump keep up with our showers?",
-        a: "Sized right, yes. The 180 L on a 2.5 kW compressor suits a couple or an apartment; the 270 L on a 4 kW is our most-fitted unit and covers a family of three or four, with enough output to have it back before the evening run. We size it to how many of you actually shower, not to the biggest tank on the shelf.",
+        a: "Sized right, yes. The 180 L on a 2.5 kW compressor suits a couple or an apartment; the 275 L on a 4 kW is our most-fitted unit and covers a family of three or four, with enough output to have it back before the evening run. We size it to how many of you actually shower, not to the biggest tank on the shelf.",
       },
       {
         q: "We've got solar, does that change things?",
@@ -2813,7 +2813,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "What warranty comes with it?",
-        a: "6-year cylinder + 3-year compressor + 6-year on our workmanship. The first two are iStore's, handled through their Sydney office directly with you if you ever need to claim; the last is ours and covers the install: the plumbing, the base, the tempering valve, the things that are our fault if they go wrong. Parts come through iStore's Melbourne distributor, so a replacement isn't a wait on a container.",
+        a: "5 years from iStore on the whole unit: the tank, the heat pump and the parts, not one length for the tank and a shorter one for the compressor. That's handled through their Sydney office directly with you if you ever need to claim. On top of it is our 6 years on the workmanship, which covers the install: the plumbing, the base, the tempering valve, the things that are our fault if they go wrong. Parts come through iStore's Melbourne distributor, so a replacement isn't a wait on a container.",
       },
       {
         q: "Where's it made, and is R290 anything to worry about?",
@@ -2827,7 +2827,7 @@ const brandCatalogue: Brand[] = [
         name: "iStore 180L Heat Pump",
         compressorKw: 2.5,
         tankLitres: 180,
-        model: "iS-HP-180",
+        model: "iStore 180 L",
         category: "heat-pump",
         categoryLabel: "Heat pump hot water",
         capacity: "180 L",
@@ -2837,34 +2837,34 @@ const brandCatalogue: Brand[] = [
         photo: "/270L-istore-heatpump.webp",
         photoAlt: "iStore 180L heat pump, full unit view",
         ourTake:
-          "180 L on a 2.5 kW compressor, the smallest iStore we fit. It's the right size for a couple or an apartment, where a 270 would be paying for water nobody uses. The rebate is applied at the quote, and this is where it goes furthest.",
+          "180 L on a 2.5 kW compressor, the smallest iStore we fit. It's the right size for a couple or an apartment, where a 275 would be paying for water nobody uses. The rebate is applied at the quote, and this is where it goes furthest.",
         specs: [
           { label: "Tank capacity", value: "180 L" },
           { label: "Refrigerant", value: "R290" },
-          { label: "Warranty", value: "6-year cylinder + 3-year compressor" },
+          { label: "Warranty", value: "5 years on the whole unit" },
         ],
         related: ["istore-270", "thermann-eco-r290-200"],
       },
       {
         slug: "istore-270",
-        name: "iStore 270L Heat Pump",
+        name: "iStore 275L Heat Pump",
         compressorKw: 4.0,
-        tankLitres: 270,
-        model: "iS-HP-270",
+        tankLitres: 275,
+        model: "iStore 275 L",
         category: "heat-pump",
         categoryLabel: "Heat pump hot water",
-        capacity: "270 L",
+        capacity: "275 L",
         refrigerant: "R290",
         veuEligible: true,
         bestFor: "Family of three or four, where the rebate is what decides it",
         photo: "/270L-istore-heatpump.webp",
-        photoAlt: "iStore 270L heat pump, installed unit",
+        photoAlt: "iStore 275L heat pump, installed unit",
         ourTake:
-          "270 L on a 4 kW compressor, and that pairing is the point: enough stored for a family of four, and enough output to have it back before the evening run. One of our most-installed units, with the rebate applied at the quote.",
+          "275 L on a 4 kW compressor, and that pairing is the point: enough stored for a family of four, and enough output to have it back before the evening run. One of our most-installed units, with the rebate applied at the quote.",
         specs: [
-          { label: "Tank capacity", value: "270 L" },
+          { label: "Tank capacity", value: "275 L" },
           { label: "Refrigerant", value: "R290" },
-          { label: "Warranty", value: "6-year cylinder + 3-year compressor" },
+          { label: "Warranty", value: "5 years on the whole unit" },
         ],
         related: ["istore-180", "thermann-eco-r290-300"],
       },

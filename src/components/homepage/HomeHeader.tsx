@@ -14,8 +14,8 @@ import { sendIntent } from "@/lib/homepage/intent";
  * signed this one off.
  *
  * The dropdowns open on hover and on focus, in CSS, so they work before
- * hydration and from the keyboard. Picking a product on the homepage opens
- * the finder in place; anywhere else it's an ordinary link to /?find=…
+ * hydration and from the keyboard. A product opens its system page; the
+ * "Find your…" card opens the finder, in place on the homepage.
  */
 export function AgLogo({ size = "md" }: { size?: "md" | "sm" | "ft" }) {
   return (
@@ -62,7 +62,8 @@ export function HomeHeader({ variant = "pill" }: { variant?: "pill" | "flat" }) 
   function pick(e: React.MouseEvent, g: NavGroup, it?: NavItem) {
     if (!onHome) return close();
     const system = it?.find;
-    if (!system && !g.footFind) return close(g.label);
+    // A product card is a link to its page; only the finder cards open in place.
+    if (it ? !system : !g.footFind) return close(g.label);
     e.preventDefault();
     sendIntent(system ? { kind: "find", system } : { kind: "find", cat: g.footFind }, "find");
     close(g.label);
