@@ -531,7 +531,7 @@ async function dropIfEmpty(poId: number) {
  * count as ordered from then on (never drafted again; flagged if the job
  * moves) and the rest of the draft carries on as it was.
  */
-export async function markLinesOrdered(poId: number, lineIds: number[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+export async function markLinesOrdered(poId: number, lineIds: number[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string; id?: number }> {
   const got = await draftLines(poId, lineIds);
   if (!got) return { ok: false, error: "Those lines aren't on a draft any more." };
   const { po, lines } = got;
@@ -545,7 +545,7 @@ export async function markLinesOrdered(poId: number, lineIds: number[], who: str
   });
   await sbUpdate("purchase_order_lines", `po_id=eq.${po.id}&id=in.(${lines.map((l) => l.id).join(",")})`, { po_id: id });
   await dropIfEmpty(po.id);
-  return { ok: true, note: `${lines.length} line${lines.length === 1 ? "" : "s"} marked as ordered (${number}). Nothing was emailed.` };
+  return { ok: true, id, note: `${lines.length} line${lines.length === 1 ? "" : "s"} marked as ordered (${number}). Nothing was emailed.` };
 }
 
 export type Hold = {
@@ -711,6 +711,38 @@ export type UnbookedLine = {
   supplier_model: string | null; supplier_part: string | null;
   quote_job_id: number | null; customer_id: number | null;
 };
+
+/**
+ * Some of a sold, unbooked sale's gear was bought another way (rung through,
+ * a third-party site). Recorded as its own sent order, "Ordered manually",
+ * against the sale, the same record a booked job's lines get: it shows on
+ * Sent, and once the job is booked those lines are never drafted again.
+ */
+export async function markUnbookedOrdered(estimateId: number, supplierId: string, skuIds: (number | null)[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+  const [rows, already] = await Promise.all([
+    sbSelect<UnbookedLine>("sold_unbooked_order_lines", `estimate_id=eq.${estimateId}&supplier_id=eq.${encodeURIComponent(supplierId)}`),
+    loadAlreadyOrdered(),
+  ]);
+  const want = new Set(skuIds.map((x) => x ?? "-"));
+  const pick = rows.filter((r) => !r.issue && want.has(r.sku_id ?? "-") && !already.has(estKey(estimateId, r.sku_id)));
+  if (!pick.length) return { ok: false, error: "Those lines are booked in or recorded as ordered already." };
+  const week = thisWeek(new Date());
+  const stem = poNumber(week, supplierId, 1);
+  const prior = await sbSelect<{ id: number }>("purchase_orders", `select=id&po_number=like.${encodeURIComponent(`${stem}-S*`)}`);
+  const number = `${stem}-S${prior.length + 1}`;
+  const now = new Date().toISOString();
+  const id = await createOrder({
+    po_number: number, supplier_id: supplierId, week_of: week.start, kind: "order", group_key: `sale-${estimateId}-${prior.length + 1}`,
+    status: "sent", approved_by: who, approved_at: now, sent_at: now, sent_to: `Ordered manually${how ? ` — ${how}` : ""}`,
+  });
+  await sbInsert("purchase_order_lines", pick.map((r) => lineRow(id, {
+    job_id: null, job_number: null, customer_name: r.customer_name, suburb: r.suburb, install_date: null, appointment_start: null,
+    sku_id: r.sku_id, sku_name: r.sku_name, sku_type: r.sku_type, description: r.description,
+    supplier_model: r.supplier_model, supplier_part: r.supplier_part, qty: Number(r.qty), unit_cost: r.unit_cost == null ? null : Number(r.unit_cost),
+    manual: true, estimate_id: estimateId,
+  })) as unknown as Row);
+  return { ok: true, note: `${pick.length} line${pick.length === 1 ? "" : "s"} recorded as ordered (${number}). Nothing was emailed.` };
+}
 
 export async function loadUnbooked(): Promise<UnbookedLine[]> {
   const rows = await sbSelect<UnbookedLine>("sold_unbooked_order_lines", "order=sold_on.desc,estimate_id.asc,sku_id.asc.nullslast");

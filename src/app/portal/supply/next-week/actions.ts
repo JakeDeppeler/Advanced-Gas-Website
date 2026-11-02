@@ -8,11 +8,11 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, orderAhead, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, markUnbookedOrdered, orderAhead, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
-import { updateJobs } from "@/lib/ordering/stJobNotes";
+import { noteOnJob, updateJobs, updateJobsFor } from "@/lib/ordering/stJobNotes";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -195,14 +195,39 @@ export async function removeStock(lineId: number): Promise<ActionResult> {
 
 const lineIds = (ids: unknown) => (Array.isArray(ids) ? ids.filter(isId).slice(0, 200) : []);
 
-/** These lines were ordered some other way: they come off the draft and count as ordered. */
-export async function linesOrdered(input: { id: number; lineIds: number[]; how?: string }): Promise<ActionResult> {
+/**
+ * These lines were ordered some other way: they come off the draft and count
+ * as ordered. Bought online from a third party (`online`, with where if said),
+ * each job also gets a note in ServiceTitan, so the tech knows the part is
+ * coming and that it isn't on the supplier's order.
+ */
+export async function linesOrdered(input: { id: number; lineIds: number[]; how?: string; online?: boolean; where?: string }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   const ids = lineIds(input.lineIds);
   if (!isId(input.id) || !ids.length) return { ok: false, error: "Which lines?" };
   try {
-    const r = await markLinesOrdered(input.id, ids, me.name || me.email, String(input.how ?? "").trim().slice(0, 120));
+    const where = String(input.where ?? "").trim().slice(0, 80);
+    const how = input.online ? `ordered online${where ? ` from ${where}` : ""}` : String(input.how ?? "").trim().slice(0, 120);
+    // The lines, read before they move, for the note.
+    const before = input.online ? await getOrder(input.id) : null;
+    const r = await markLinesOrdered(input.id, ids, me.name || me.email, how);
+    if (r.ok && r.id) {
+      let noteErr = "";
+      if (input.online && before) {
+        const want = new Set(ids);
+        const byJob = new Map<number, string[]>();
+        for (const l of before.lines) if (want.has(l.id) && l.job_id != null)
+          byJob.set(l.job_id, [...(byJob.get(l.job_id) ?? []), `${Number.isInteger(l.qty) ? l.qty : l.qty.toFixed(2)} × ${l.supplier_model || l.sku_name || l.description || "item"}`]);
+        for (const [job, items] of byJob) {
+          await noteOnJob(job, `Parts ordered online by the office${where ? ` from ${where}` : ""}: ${items.join("; ")}. They won't be on the supplier's order.`)
+            .catch((e) => { noteErr = (e as Error).message; });
+        }
+      }
+      // The job's tags follow (materials ordered), as they do for a sent order.
+      await updateJobsFor(r.id, { notes: false }).catch(() => undefined);
+      if (noteErr) r.note = `${r.note} The note on the job in ServiceTitan didn't go: ${/\b403\b/.test(noteErr) ? "the portal isn't allowed to add notes to jobs." : "try again from Sent."}`;
+    }
     done();
     return r;
   } catch (e) {
@@ -351,6 +376,35 @@ export async function shelfLine(input: { estimateId: number; skuId: number | nul
   await saveFromStock(input.on ? [...cur, { key, name: String(input.name ?? "").slice(0, 160), by: me.name || me.email, at: new Date().toISOString() }] : cur);
   done();
   return { ok: true, note: input.on ? "From the factory: it won't be ordered." : "Back on the list to order." };
+}
+
+/**
+ * Lines of a sold, not-booked sale, several at once: from the factory, or
+ * bought another way (already ordered, or online). What's left is what still
+ * needs ordering.
+ */
+export async function unbookedLines(input: { estimateId: number; supplierId: string; items: { skuId: number | null; name: string }[]; mark: "stock" | "ordered" | "online"; where?: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.estimateId) || !/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which sale?" };
+  const items = (Array.isArray(input.items) ? input.items : []).filter((i) => i.skuId == null || isId(i.skuId)).slice(0, 100);
+  if (!items.length) return { ok: false, error: "Tick the lines first." };
+  const who = me.name || me.email;
+  try {
+    if (input.mark === "stock") {
+      const keys = new Set(items.map((i) => `est:${input.estimateId}:${i.skuId ?? "-"}`));
+      const cur = (await loadFromStock()).filter((x) => !keys.has(x.key));
+      await saveFromStock([...cur, ...items.map((i) => ({ key: `est:${input.estimateId}:${i.skuId ?? "-"}`, name: String(i.name ?? "").slice(0, 160), by: who, at: new Date().toISOString() }))]);
+      done();
+      return { ok: true, note: `${items.length === 1 ? "It's" : `${items.length} lines are`} coming from the factory, so won't be ordered.` };
+    }
+    const where = String(input.where ?? "").trim().slice(0, 80);
+    const r = await markUnbookedOrdered(input.estimateId, input.supplierId, items.map((i) => i.skuId), who, input.mark === "online" ? `ordered online${where ? ` from ${where}` : ""}` : "");
+    done();
+    return r;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }
 
 /** Take the Factory stock tag off an item: we don't keep it on the shelf any more. */

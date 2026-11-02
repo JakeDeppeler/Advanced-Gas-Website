@@ -43,10 +43,15 @@ function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWi
     const cost = (r.unit_cost ?? 0) * Number(r.qty);
     // From the factory: listed, but not counted in what the order will cost.
     const fromShelf = shelf.has(k);
-    g.items.push({ name: r.supplier_model ?? r.sku_name ?? "Item", qty: Number(r.qty), skuId: r.sku_id, cost, shelf: fromShelf });
-    if (!fromShelf) g.cost += cost;
-    if (already.has(k)) g.ordered = already.get(k)!.po_number;
-    else if (drafted.has(k)) g.drafted = drafted.get(k)!;
+    const ordered = already.get(k)?.po_number ?? null;
+    g.items.push({ name: r.supplier_model ?? r.sku_name ?? "Item", qty: Number(r.qty), skuId: r.sku_id, cost, shelf: fromShelf, ordered });
+    if (!fromShelf && !ordered) g.cost += cost;
+    if (!ordered && drafted.has(k)) g.drafted = drafted.get(k)!;
+  }
+  // A supplier's part of the sale is done once every line is ordered or from the
+  // factory; until then the rest still shows, to be ordered.
+  for (const sale of sales.values()) for (const g of sale.groups) {
+    if (g.items.every((i) => i.ordered || i.shelf) && g.items.some((i) => i.ordered)) g.ordered = g.items.find((i) => i.ordered)!.ordered;
   }
   return [...sales.values()].filter((x) => x.groups.length || x.issues.length);
 }

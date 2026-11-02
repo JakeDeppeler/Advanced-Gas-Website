@@ -3908,3 +3908,14 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .to2-item.to2-shelf .to2-b { padding: 4px 12px; font-size: 12.5px; }
 .to2-item.to2-shelf .to2-b.on { background: #e3efe8; color: #1f5a3c; }
 .to2-item.is-shelf > span { color: var(--ink3, #8a8a86); }
+
+/* A tick on every line of an opened job: mark several in stock, ordered, or ordered online. */
+.to2-tick.sm { width: 18px; height: 18px; border-width: 1.5px; }
+.to2-tick.sm.on::after { font-size: 10px; }
+.to2-item.to2-pick { align-items: center; justify-content: flex-start; padding: 3px 0; }
+.to2-item.to2-pick > span { flex: 1; min-width: 0; cursor: pointer; }
+.to2-item.to2-pick .to2-b { padding: 4px 12px; font-size: 12.5px; }
+.to2-item.to2-pick .to2-b.on { background: #e3efe8; color: #1f5a3c; }
+.to2-tickbar .to2-all { background: none; border: 0; padding: 4px 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink2); text-decoration: underline; cursor: pointer; }
+.to2-where { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1; }
+.to2-where .pk-in { flex: 1 1 220px; min-width: 0; max-width: 340px; }
