@@ -3901,3 +3901,10 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .to2-h > .pt-vstat { margin-left: 58px; }
   .to2-row .to2-chev { display: none; }
 }
+
+/* Sold, not booked: each line can be marked as coming from the factory. */
+.to2-item.to2-shelf { align-items: center; padding: 3px 0; }
+.to2-item.to2-shelf > span { flex: 1; min-width: 0; }
+.to2-item.to2-shelf .to2-b { padding: 4px 12px; font-size: 12.5px; }
+.to2-item.to2-shelf .to2-b.on { background: #e3efe8; color: #1f5a3c; }
+.to2-item.is-shelf > span { color: var(--ink3, #8a8a86); }

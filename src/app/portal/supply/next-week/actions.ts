@@ -2,7 +2,7 @@
 
 import { refreshBoard } from "@/lib/dashboard/refresh";
 import { autoDraft } from "@/lib/ordering/autoDraft";
-import { loadStocked, saveStocked } from "@/lib/ordering/stocked";
+import { loadFromStock, loadStocked, saveFromStock, saveStocked } from "@/lib/ordering/stocked";
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
@@ -337,6 +337,22 @@ export async function fromStock(input: { id: number; lineIds: number[]; items: A
   }
 }
 
+/**
+ * One line of a sold, not-booked sale: we'll take it from the factory rather
+ * than order it, or changed our minds. Kept against the sale, so it holds once
+ * the job is booked and drafted.
+ */
+export async function shelfLine(input: { estimateId: number; skuId: number | null; name: string; on: boolean }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.estimateId) || (input.skuId != null && !isId(input.skuId))) return { ok: false, error: "Which line?" };
+  const key = `est:${input.estimateId}:${input.skuId ?? "-"}`;
+  const cur = (await loadFromStock()).filter((x) => x.key !== key);
+  await saveFromStock(input.on ? [...cur, { key, name: String(input.name ?? "").slice(0, 160), by: me.name || me.email, at: new Date().toISOString() }] : cur);
+  done();
+  return { ok: true, note: input.on ? "From the factory: it won't be ordered." : "Back on the list to order." };
+}
+
 /** Take the Factory stock tag off an item: we don't keep it on the shelf any more. */
 export async function untagStocked(key: string): Promise<ActionResult> {
   const me = await office();
@@ -378,12 +394,20 @@ export async function orderAheadNow(input: { estimateId: number; supplierId: str
  * send as the Send button always was. Nothing goes if the order would be
  * empty.
  */
-export async function sendSupplier(input: { supplierId: string; ahead: number[]; leave: number[] }): Promise<ActionResult> {
+export async function sendSupplier(input: { supplierId: string; ahead: number[]; leave: number[]; release?: number[] }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   if (!/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which supplier?" };
   const who = me.name || me.email;
   try {
+    // Held lines ticked back on: released and drafted again first, both weeks,
+    // so they land on the drafts this send merges into one order.
+    const release = (Array.isArray(input.release) ? input.release : []).filter(isId).slice(0, 60);
+    if (release.length) {
+      for (const id of release) await releaseHold(id);
+      await draftWeek(thisWeek(new Date()));
+      await draftWeek(nextWeek(new Date()));
+    }
     for (const est of (Array.isArray(input.ahead) ? input.ahead : []).filter(isId).slice(0, 40)) {
       const r = await orderAhead(est, input.supplierId);
       if (!r.ok) return { ok: false, error: r.error ?? "A sold job couldn't go on the order." };

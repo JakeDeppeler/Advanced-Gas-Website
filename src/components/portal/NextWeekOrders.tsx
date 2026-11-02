@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, orderHeldNow, pullLatest, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { stockKey } from "@/lib/ordering/stockKey";
@@ -874,10 +874,15 @@ function firstInstall(po: PoWithLines): { appointment_start: string | null; inst
 const firstKey = (po: PoWithLines) => { const f = firstInstall(po); return f ? f.appointment_start ?? f.install_date ?? "~" : "~"; };
 
 /** A sold quote with no install booked, its gear by supplier (page.tsx builds it from sold_unbooked_order_lines). */
+/** One line of a sold, unbooked sale; `shelf` when we'll take it from the factory rather than order it. */
+export type UnbookedItem = { name: string; qty: number; skuId: number | null; cost: number; shelf: boolean };
+
 export type UnbookedSale = {
   estimateId: number; customer: string | null; suburb: string | null; what: string | null; soldOn: string | null; total: number | null;
   quoteJob: string | null; issues: string[];
-  groups: { supplierId: string; supplier: string; items: { name: string; qty: number }[]; cost: number; ordered: string | null; drafted: string | null }[];
+  /** The quote's job in ServiceTitan when it was sold on one; most are sold without, so the customer is the way in. */
+  jobId: number | null; customerId: number | null;
+  groups: { supplierId: string; supplier: string; items: UnbookedItem[]; cost: number; ordered: string | null; drafted: string | null }[];
 };
 
 /**
@@ -1087,34 +1092,6 @@ function ProblemRows({ problems }: { problems: Problem[] }) {
   );
 }
 
-/** Taken off this week's orders on purpose, drafted again next week, with a way to order it now after all. */
-function HeldRows({ holds, byId }: { holds: Hold[]; byId: Map<string, Supplier> }) {
-  const { busy, msg, run } = useAct();
-  // Back onto the order for the week its install is in.
-  const thisEnd = thisWeek(new Date()).end;
-  return (
-    <>
-      {holds.map((h) => {
-        const late = h.install_date && neededBy(h.install_date) < h.until;
-        return (
-          <div key={h.id} className="nw-row">
-            <span className={`nw-task__dot${late ? " is-bad" : ""}`} aria-hidden="true" />
-            <span className="nw-task__t">
-              <b>Job {h.job_number}{h.customer_name ? ` · ${h.customer_name}` : ""}: {h.qty != null ? `${qty(Number(h.qty))} × ` : ""}{h.sku_name}</b>
-              <span>{byId.get(h.supplier_id)?.name ?? h.supplier_id} · drafted again {dayLabel(h.until)}{h.install_date ? ` · install ${dayLabel(h.install_date)}` : ""}</span>
-            </span>
-            {late && <span className="pt-vstat pt-vstat--bad">Needed by {dayLabel(neededBy(h.install_date!))}</span>}
-            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy} onClick={() => run(() => orderHeldNow({ holdId: h.id, which: h.install_date && h.install_date <= thisEnd ? "this" : "next" }))}>
-              Order now
-            </button>
-          </div>
-        );
-      })}
-      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
-    </>
-  );
-}
-
 /**
  * What's already gone for this week's and next week's installs, newest first,
  * narrowed by the week it's for, by supplier, or by a job, customer or PO.
@@ -1236,7 +1213,7 @@ export function NextWeekOrders(props: {
   // tick, the card's foot the order as it stands.
   const orderDrafts = shown.filter((o) => o.kind === "order");
   const workOrders = shown.filter((o) => o.kind === "work_order");
-  const cards = supplierCards(orderDrafts, props.unbooked ?? [], byId, today);
+  const cards = supplierCards(orderDrafts, props.unbooked ?? [], holds, byId, today);
   const installs = cards.reduce((n, c) => n + c.jobs.length, 0);
   const soonCards = cards.filter((c) => c.firstDays != null && c.firstDays <= ALERT_DAYS);
   const aheadN = cards.reduce((n, c) => n + c.ahead.filter((a) => !a.onDraft).length, 0);
@@ -1276,13 +1253,6 @@ export function NextWeekOrders(props: {
         </section>
       )}
 
-      {holds.length > 0 && (
-        <section className="pt-panel nw-check" aria-label="Left for next week">
-          <GroupHead name="Left for next week’s order" n={holds.length} note={`${holds.length} held on purpose`} />
-          <HeldRows holds={holds} byId={byId} />
-        </section>
-      )}
-
       <p className="to2-gone">
         <span>Already sent for this week and next: <b>{gone.length} {gone.length === 1 ? "order" : "orders"}</b>{goneTotal ? ` · ${money(goneTotal)} ex GST` : ""}.</span>
         <a href="/portal/supply/sent">See them on Sent ›</a>
@@ -1297,14 +1267,17 @@ export function NextWeekOrders(props: {
 /* ------------------------------------------------- the board: a card per supplier */
 
 type JobRow = { key: string; jobId: number; jobNumber: string | null; customer: string | null; suburb: string | null; install: string | null; days: number | null; lines: PoLine[]; cost: number; po: PoWithLines };
-type AheadRow = { key: string; estimateId: number; customer: string | null; what: string; soldOn: string | null; cost: number; onDraft: boolean; ordered: string | null };
-type SupCard = { id: string; name: string; supplier: Supplier | undefined; drafts: PoWithLines[]; jobs: JobRow[]; ahead: AheadRow[]; stock: PoLine[]; firstDays: number | null };
+type AheadRow = {
+  key: string; estimateId: number; customer: string | null; what: string; soldOn: string | null; cost: number; onDraft: boolean; ordered: string | null;
+  items: UnbookedItem[]; jobId: number | null; customerId: number | null; quoteJob: string | null;
+};
+type SupCard = { id: string; name: string; supplier: Supplier | undefined; drafts: PoWithLines[]; jobs: JobRow[]; ahead: AheadRow[]; held: Hold[]; stock: PoLine[]; firstDays: number | null };
 
-function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], byId: Map<string, Supplier>, today: string): SupCard[] {
+function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], holds: Hold[], byId: Map<string, Supplier>, today: string): SupCard[] {
   const cards = new Map<string, SupCard>();
   const get = (id: string, name?: string) => {
     let c = cards.get(id);
-    if (!c) { c = { id, name: byId.get(id)?.name ?? name ?? id, supplier: byId.get(id), drafts: [], jobs: [], ahead: [], stock: [], firstDays: null }; cards.set(id, c); }
+    if (!c) { c = { id, name: byId.get(id)?.name ?? name ?? id, supplier: byId.get(id), drafts: [], jobs: [], ahead: [], held: [], stock: [], firstDays: null }; cards.set(id, c); }
     return c;
   };
   for (const po of drafts) {
@@ -1325,17 +1298,24 @@ function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], byId: Ma
   for (const sale of unbooked) for (const g of sale.groups) {
     if (g.ordered) continue;
     const c = get(g.supplierId, g.supplier);
+    const toOrder = g.items.filter((i) => !i.shelf);
     c.ahead.push({
+      items: g.items, jobId: sale.jobId, customerId: sale.customerId, quoteJob: sale.quoteJob,
       key: `a${sale.estimateId}`, estimateId: sale.estimateId, customer: sale.customer,
-      what: g.items.slice(0, 3).map((i) => i.name).join(", ") + (g.items.length > 3 ? ` and ${g.items.length - 3} more` : ""),
+      what: toOrder.length
+        ? toOrder.slice(0, 3).map((i) => i.name).join(", ") + (toOrder.length > 3 ? ` and ${toOrder.length - 3} more` : "") + (toOrder.length < g.items.length ? ` · ${g.items.length - toOrder.length} from the factory` : "")
+        : "All from the factory",
       soldOn: sale.soldOn, cost: g.cost, onDraft: !!g.drafted, ordered: g.ordered,
     });
   }
+  // Held lines sit in their supplier's card, unticked, so a late one can be
+  // ticked back onto the order that's going rather than wait for next week.
+  for (const h of holds) get(h.supplier_id).held.push(h);
   for (const c of cards.values()) {
     c.jobs.sort((a, b) => (a.install ?? "9999").localeCompare(b.install ?? "9999"));
     c.firstDays = c.jobs.find((j) => j.days != null)?.days ?? null;
   }
-  return [...cards.values()].filter((c) => c.jobs.length || c.ahead.length || c.stock.length)
+  return [...cards.values()].filter((c) => c.jobs.length || c.ahead.length || c.stock.length || c.held.length)
     .sort((a, b) => (a.firstDays ?? 9999) - (b.firstDays ?? 9999) || a.name.localeCompare(b.name));
 }
 
@@ -1395,6 +1375,36 @@ function QuickJob({ po, lines, jobId }: { po: PoWithLines; lines: PoLine[]; jobI
   );
 }
 
+/**
+ * A sold, unbooked sale's lines for one supplier, each with whether we order
+ * it or take it from the factory: some gear we keep, some we buy in. Marked
+ * per line, against the sale, so it carries through once the job is booked.
+ */
+function AheadItems({ a }: { a: AheadRow }) {
+  const { busy, msg, run } = useAct();
+  const st = a.jobId ? `https://go.servicetitan.com/#/Job/Index/${a.jobId}` : a.customerId ? `https://go.servicetitan.com/#/Customer/${a.customerId}` : null;
+  return (
+    <div className="to2-items">
+      {a.items.map((i, n) => (
+        <div key={`${i.skuId ?? "x"}-${n}`} className={`to2-item to2-shelf${i.shelf ? " is-shelf" : ""}`}>
+          <span>{qty(i.qty)} × {i.name}{i.shelf ? " · from the factory" : ""}</span>
+          <b>{i.shelf ? "" : money(i.cost)}</b>
+          <button type="button" className={`pk-btn g to2-b${i.shelf ? " on" : ""}`} disabled={busy || a.onDraft} aria-pressed={i.shelf}
+            title={i.shelf ? "Order it after all" : "We have it at the factory: it won't be ordered"}
+            onClick={() => run(() => shelfLine({ estimateId: a.estimateId, skuId: i.skuId, name: i.name, on: !i.shelf }))}>
+            {i.shelf ? "In stock ✓" : "In stock"}
+          </button>
+        </div>
+      ))}
+      <div className="to2-quick">
+        {st && <a className="pk-btn g to2-b" href={st} target="_blank" rel="noreferrer">{a.jobId ? `Job ${a.quoteJob ? `#${a.quoteJob} ` : ""}in ServiceTitan` : "Customer in ServiceTitan"} ↗</a>}
+        {a.onDraft && <span className="pt-nw__muted">On the order already: take it off there to change what goes.</span>}
+        {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+      </div>
+    </div>
+  );
+}
+
 /** Can't be ordered yet: dashed, at the top, each saying what's wrong and what to do. */
 function CantOrder({ problems }: { problems: Problem[] }) {
   const { busy, msg, run } = useAct();
@@ -1424,11 +1434,12 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
   // Every booked install ticked to start; sold-not-booked ones are the office's choice.
   const [off, setOff] = useState<Set<string>>(new Set());
   const [ahead, setAhead] = useState<Set<number>>(new Set());
+  const [rel, setRel] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState<Set<string>>(() => new Set(c.jobs.slice(0, 1).map((j) => j.key)));
   const flip = (set: Set<string>, k: string) => { const n = new Set(set); n.has(k) ? n.delete(k) : n.add(k); return n; };
   const ticked = c.jobs.filter((j) => !off.has(j.key));
   const total = ticked.reduce((t, j) => t + j.cost, 0) + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).reduce((t, a) => t + a.cost, 0) + linesTotal(c.stock);
-  const count = ticked.length + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).length + (c.stock.length ? 1 : 0);
+  const count = ticked.length + c.ahead.filter((a) => a.onDraft || ahead.has(a.estimateId)).length + (c.stock.length ? 1 : 0) + rel.size;
   const reece = c.supplier?.method === "reece_cart";
   const label = sendLabel(c.supplier);
   const send = () => {
@@ -1436,7 +1447,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
     if (leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off this order and drafted again for next week. Carry on?`)) return;
     start(async () => {
       setMsg(null);
-      const r = await sendSupplier({ supplierId: c.id, ahead: [...ahead], leave });
+      const r = await sendSupplier({ supplierId: c.id, ahead: [...ahead], leave, release: [...rel] });
       setMsg(r.ok ? { ok: true, text: r.note ?? "Sent." } : { ok: false, text: r.error ?? "It didn't send." });
       router.refresh();
     });
@@ -1451,7 +1462,7 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
         <span className="to2-badge" aria-hidden="true">{initials(c.name)}</span>
         <span className="to2-t">
           <b id={`to2-${c.id}`}>{shortName(c.name)}</b>
-          <span>{[c.jobs.length ? `${c.jobs.length} ${c.jobs.length === 1 ? "install" : "installs"} to send` : null, c.ahead.length ? `${c.ahead.length} sold, not booked` : null, c.stock.length ? "factory stock" : null].filter(Boolean).join(" · ")}</span>
+          <span>{[c.jobs.length ? `${c.jobs.length} ${c.jobs.length === 1 ? "install" : "installs"} to send` : null, c.held.length ? `${c.held.length} held` : null, c.ahead.length ? `${c.ahead.length} sold, not booked` : null, c.stock.length ? "factory stock" : null].filter(Boolean).join(" · ")}</span>
         </span>
         {c.firstDays != null && <span className={`pt-vstat ${c.firstDays <= ALERT_DAYS ? "pt-vstat--bad" : c.firstDays <= 7 ? "pt-vstat--warn" : "pt-vstat--none"}`}>{c.firstDays <= ALERT_DAYS ? "⚠ " : ""}{inWords(c.firstDays, "First install")}</span>}
       </div>
@@ -1493,6 +1504,33 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
         </>
       )}
 
+      {showSend && c.held.length > 0 && (
+        <>
+          <div className="to2-lh">Held for next week · tick to send now</div>
+          <ul className="to2-rows">
+            {c.held.map((h) => {
+              const on = rel.has(h.id);
+              const due = h.install_date ? neededBy(h.install_date) : null;
+              const late = !!due && due < h.until;
+              const days = h.install_date ? daysTo(h.install_date, todayMelbourne()) : null;
+              return (
+                <li key={`h${h.id}`} className={on ? undefined : "off"}><div className="to2-row">
+                  <button type="button" role="checkbox" aria-checked={on} aria-label={`${on ? "Keep held" : "Send now"}: job ${h.job_number}`} className={`to2-tick${on ? " on" : ""}${late ? " bad" : ""}`}
+                    onClick={() => { const n = new Set(rel); n.has(h.id) ? n.delete(h.id) : n.add(h.id); setRel(n); }} />
+                  <span className="to2-t">
+                    <b>{h.customer_name ?? "A customer"}</b>
+                    <span>Job {h.job_number} · {h.qty != null ? `${qty(Number(h.qty))} × ` : ""}{h.sku_name}{h.install_date ? ` · install ${dayLabel(h.install_date)}` : ""} · held{h.held_by ? ` by ${h.held_by.split(" ")[0]}` : ""} until {dayLabel(h.until)}</span>
+                  </span>
+                  {late
+                    ? <span className="pt-vstat pt-vstat--bad">Needed by {dayLabel(due!)}</span>
+                    : daysPill(days)}
+                </div></li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
       {showSend && c.stock.length > 0 && (
         <>
           <div className="to2-lh">Factory stock</div>
@@ -1519,15 +1557,22 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
                 <li key={a.key}><div className="to2-row">
                   <button type="button" role="checkbox" aria-checked={on} disabled={a.onDraft} aria-label={`${on ? "Leave off" : "Put on"} the order: ${a.customer ?? "a sold job"}`} className={`to2-tick${on ? " on" : ""}`}
                     onClick={() => { const n = new Set(ahead); n.has(a.estimateId) ? n.delete(a.estimateId) : n.add(a.estimateId); setAhead(n); }} />
-                  <span className="to2-t"><b>{a.customer ?? "A customer"}</b><span>{a.what}{a.soldOn ? ` · sold ${dayLabel(a.soldOn)}` : ""}</span></span>
+                  <button type="button" className="to2-t to2-open" aria-expanded={open.has(a.key)} onClick={() => setOpen(flip(open, a.key))}>
+                    <b>{a.customer ?? "A customer"}</b><span>{a.what}{a.soldOn ? ` · sold ${dayLabel(a.soldOn)}` : ""}</span>
+                  </button>
                   <b className="to2-amt">{money(a.cost)}</b>
                   {a.onDraft
                     ? <span className="pt-vstat pt-vstat--ok">On this order</span>
+                    : a.items.every((i) => i.shelf)
+                    ? <span className="pt-vstat pt-vstat--ok">From the factory</span>
                     : <>
                         <span className="pt-vstat pt-vstat--none">Not booked yet</span>
                         <button type="button" className="pk-btn g to2-b" disabled={busy} onClick={() => quick(() => orderAheadNow({ estimateId: a.estimateId, supplierId: c.id }))}>Order ahead</button>
                       </>}
-                </div></li>
+                  <span className={`to2-chev${open.has(a.key) ? " open" : ""}`} aria-hidden="true">›</span>
+                </div>
+                {open.has(a.key) && <AheadItems a={a} />}
+                </li>
               );
             })}
           </ul>
