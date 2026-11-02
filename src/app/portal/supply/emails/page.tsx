@@ -51,7 +51,6 @@ export default async function SupplierEmailsPage() {
 
   return (
     <PortalShell user={user}>
-      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Supplier emails" sub={<>Who each order goes to and how the email reads. Change the wording, then send yourself a sample to see it. Orders come from orders@advancedgas.com.au and replies go to {replyTo || "the office"}.</>} />
       </div>

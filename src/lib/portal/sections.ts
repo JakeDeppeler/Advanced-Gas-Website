@@ -151,6 +151,8 @@ export const SECTION_DEFS: SectionDef[] = [
       // Every contractor's, not just the electrician's: Ross's water balancing goes from here too.
       { label: "Work orders", href: "/portal/supply/work-orders", icon: "jobs" },
       { label: "Automation", href: "/portal/supply/automation", icon: "bolt" },
+      // The wording each supplier gets, a tab away from the orders it goes on.
+      { label: "Supplier emails", href: "/portal/supply/emails", icon: "file" },
     ],
   },
   {
