@@ -268,7 +268,10 @@ export async function reecePriceFile(): Promise<PriceFile> {
     params: { format: c.priceFileFormat, additionalFields: c.priceFileFormat === "MAX_JSON" ? "CATEGORY" : undefined },
     accept: c.priceFileFormat === "MAX_JSON" ? "application/json" : "text/csv, application/json",
   });
-  if (res.status === 204) return { status: "pending" };
+  // 204 is Reece's documented "not built yet". With the second login (1 Nov)
+  // every other gateway answered 200 and this one 404 with an empty body,
+  // which reads as the same thing: no file generated for the account yet.
+  if (res.status === 204 || res.status === 404) return { status: "pending" };
   if (!res.ok) throw new ReeceHttpError(res.status, "price-gateway/price-file", await res.text().catch(() => ""));
   if (c.priceFileFormat === "MAX_JSON") return { status: "ok", format: "MAX_JSON", json: await res.json() };
   return { status: "ok", format: "MAX_CSV", text: await res.text() };

@@ -102,6 +102,8 @@ export async function GET(req: Request) {
           fix:
             res.status === 403 || res.status === 401
               ? "Reece has not enabled this capability for the app, or the customer number is not linked to it. Ask ConnectingCustomers@reece.com.au."
+              : res.status === 404 && p.stage === "price-file"
+                ? "No price file built for the account yet (every other Reece call answers, so the address is right). The nightly Pricebook sync now asks Reece to build one; it lands a night or so later. If it doesn't, choose the price-file setting in maX (Typical)."
               : res.status === 404
                 ? "Endpoint not found on this host — check REECE_API_BASE / REECE_REGION."
                 : "See detail.",
