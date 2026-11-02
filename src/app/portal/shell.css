@@ -3883,6 +3883,15 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .to2-morein { margin-top: 10px; display: grid; gap: 10px; }
 .to2-sum { margin-left: auto; font-size: 13px; color: var(--ink2); }
 .to2-sum b { font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.to2-rx { margin-top: 14px; padding: 14px 16px; border-radius: 16px; background: var(--ground, #ededec); display: grid; gap: 12px; }
+.to2-rxlede { margin: 0; font-size: 13.5px; color: var(--ink2); }
+.to2-rxlede b { color: var(--ink); }
+.to2-rxjob { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--rp-line); }
+.to2-rxjob.bad { border-color: var(--bad); }
+.to2-rxh { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 14px; }
+.to2-rxh span { color: var(--ink2); font-size: 13px; }
+.to2-rxbad { margin: 2px 0 0; font-size: 13px; color: var(--bad); }
+.to2-rx .to2-foot { margin-top: 0; }
 .to2-gone { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 0; padding: 14px 20px; border-radius: 18px; background: var(--surface); border: 1px solid var(--rp-line); font-size: 14px; color: var(--ink2); }
 .to2-gone a { font-weight: 600; color: var(--ink); }
 @media (max-width: 640px) {

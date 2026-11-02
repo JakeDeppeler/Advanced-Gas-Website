@@ -13,6 +13,7 @@ import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
 import { noteOnJob, updateJobs, updateJobsFor } from "@/lib/ordering/stJobNotes";
+import { placeReece, previewReece, type Preview } from "@/lib/ordering/reeceSend";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -427,6 +428,65 @@ export async function mergeIntoBulk(id: number): Promise<ActionResult> {
 }
 
 /** A sold quote's gear for one supplier onto that supplier's draft, before the install is booked (db.orderAhead). */
+/**
+ * Reece's "Order in maX", step one: the order put together exactly as the
+ * send button does (held lines released, sold jobs added, both weeks' drafts
+ * merged), then every job's maX order checked and priced by Reece. Nothing is
+ * bought and nothing is held yet: unticked lines are only left out of the
+ * preview, and held when the order is placed.
+ */
+export async function reecePreview(input: { supplierId: string; ahead: number[]; leave: number[]; release?: number[] }): Promise<Preview> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which supplier?" };
+  try {
+    const release = (Array.isArray(input.release) ? input.release : []).filter(isId).slice(0, 60);
+    if (release.length) {
+      for (const id of release) await releaseHold(id);
+      await draftWeek(thisWeek(new Date()));
+      await draftWeek(nextWeek(new Date()));
+    }
+    for (const est of (Array.isArray(input.ahead) ? input.ahead : []).filter(isId).slice(0, 40)) {
+      const r = await orderAhead(est, input.supplierId);
+      if (!r.ok) return { ok: false, error: r.error ?? "A sold job couldn't go on the order." };
+    }
+    const drafts = (await Promise.all([listWeekOrders(thisWeek(new Date())), listWeekOrders(nextWeek(new Date()))])).flat()
+      .filter((p) => p.supplier_id === input.supplierId && p.kind === "order" && p.status === "draft");
+    if (!drafts.length) return { ok: false, error: "There's nothing on this supplier's order to send." };
+    const keep = drafts[0];
+    if (drafts.length > 1) {
+      const m = await mergeDrafts(keep.id);
+      if (!m.ok) return { ok: false, error: m.error ?? "Couldn't put the drafts together." };
+    }
+    done();
+    return await previewReece(keep.id, lineIds(input.leave), me.name || me.email);
+  } catch (e) {
+    done();
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Step two: the unticked lines held for later, then each job's order placed in maX. */
+export async function reecePlace(input: { poId: number; leave: number[]; fingerprint: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.poId) || typeof input.fingerprint !== "string" || !input.fingerprint) return { ok: false, error: "Which order?" };
+  const who = me.name || me.email;
+  try {
+    const leave = lineIds(input.leave);
+    if (leave.length) {
+      const h = await holdLines(input.poId, leave, who);
+      if (!h.ok) return { ok: false, error: `Couldn't leave the unticked lines for later: ${h.error ?? "try again"}` };
+    }
+    const r = await placeReece(input.poId, input.fingerprint, who);
+    done();
+    return r;
+  } catch (e) {
+    done();
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 export async function orderAheadNow(input: { estimateId: number; supplierId: string }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };

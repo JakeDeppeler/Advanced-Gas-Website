@@ -3,7 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import { KpiHead } from "@/components/portal/kit/Kit";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, unbookedLines, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, mergeIntoBulk, orderAheadNow, sendSupplier, cancel, choosePickup, emailList, findStock, fromStock, holdForNextWeek, linesOrdered, pullLatest, shelfLine, unbookedLines, noteOnJobs, orderedManually, pushToServiceTitan, dismissProblem, removeStock, saveCc, saveDelivery, testSend, reecePreview, reecePlace, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import type { Preview } from "@/lib/ordering/reeceSend";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { stockKey } from "@/lib/ordering/stockKey";
@@ -1501,6 +1502,48 @@ function CantOrder({ problems }: { problems: Problem[] }) {
   );
 }
 
+type ReeceOk = Extract<Preview, { ok: true }>;
+
+/**
+ * What Reece made of the order before anything is bought: one maX order per
+ * job, each line at our account's price, any cartage, and anything Reece
+ * can't take. Placing is a second press, and only of what's shown here.
+ */
+function ReeceCheck({ rp, busy, onPlace, onCancel }: { rp: ReeceOk; busy: boolean; onPlace: () => void; onCancel: () => void }) {
+  const toGo = rp.jobs.filter((j) => !j.placed && j.lines.length);
+  const total = toGo.reduce((t, j) => t + j.totalEx + (j.cartage ?? 0), 0);
+  const needed = (v: string) => (v ? dayLabel(v.slice(0, 10)) : "");
+  return (
+    <div className="to2-rx" role="region" aria-label="Reece's check of the order">
+      <p className="to2-rxlede"><b>Reece has checked and priced it.</b> Nothing is ordered until you press Place. One maX order per job, delivered as set under More.</p>
+      {rp.jobs.map((j) => (
+        <div key={j.key} className={`to2-rxjob${j.problems.length && !j.placed ? " bad" : ""}`}>
+          <div className="to2-rxh">
+            <b>{j.jobNumber ? `Job ${j.jobNumber}` : "Factory stock"}{j.customer ? ` · ${j.customer}` : ""}</b>
+            <span>{j.placed ? `Already in maX${j.placed.reece_id ? `, order #${j.placed.reece_id}` : ""}` : j.requiredBy ? `needed ${needed(j.requiredBy)}` : ""}</span>
+          </div>
+          {!j.placed && j.lines.map((l) => (
+            <div key={l.productId} className="to2-item">
+              <span>{qty(l.quantity)} {l.uom} × {l.name} · Reece # {l.productId}{l.status && l.status !== "OK" ? ` · ${l.status.toLowerCase().replace(/_/g, " ")}` : ""}</span>
+              <b>{l.ex == null ? "" : money(l.ex * l.quantity)}</b>
+            </div>
+          ))}
+          {!j.placed && j.cartage ? <div className="to2-item"><span>Cartage</span><b>{money(j.cartage)}</b></div> : null}
+          {!j.placed && j.problems.map((p) => <p key={p} className="to2-rxbad">✕ {p}</p>)}
+        </div>
+      ))}
+      {rp.blocked && <p className="pt-note pt-note--warn" style={{ margin: 0 }}>{rp.blocked}</p>}
+      <div className="to2-foot">
+        <button type="button" className="pk-btn to2-send" disabled={busy || !!rp.blocked} onClick={onPlace}>
+          {busy ? "Placing…" : `Place ${toGo.length} ${toGo.length === 1 ? "order" : "orders"} with Reece`}
+        </button>
+        <button type="button" className="pk-btn g" disabled={busy} onClick={onCancel}>Not now</button>
+        <span className="to2-sum">Reece&rsquo;s price · <b>{money(total)}</b> ex GST</span>
+      </div>
+    </div>
+  );
+}
+
 function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { c: SupCard; filter: Filter; testTo: string; alwaysCc: string; delivery: DeliverySettings; noted: boolean; byId: Map<string, Supplier> }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -1527,6 +1570,28 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
     });
   };
   const quick = (fn: () => Promise<ActionResult>) => start(async () => { const r = await fn(); setMsg(r.ok ? { ok: true, text: r.note ?? "Done." } : { ok: false, text: r.error ?? "Couldn't do that." }); router.refresh(); });
+  // Reece goes into maX through Reece's API: looked at first, then placed.
+  const [rp, setRp] = useState<{ check: ReeceOk; leave: number[] } | null>(null);
+  const checkReece = () => {
+    const leave = c.jobs.filter((j) => off.has(j.key)).flatMap((j) => j.lines.map((l) => l.id));
+    start(async () => {
+      setMsg(null);
+      const r = await reecePreview({ supplierId: c.id, ahead: [...ahead], leave, release: [...rel] });
+      if (r.ok) setRp({ check: r, leave }); else setMsg({ ok: false, text: r.error });
+      router.refresh();
+    });
+  };
+  const placeReece = () => {
+    if (!rp) return;
+    if (rp.leave.length && !confirm(`${c.jobs.length - ticked.length} unticked ${c.jobs.length - ticked.length === 1 ? "job is" : "jobs are"} left off and drafted again for next week. Place the rest with Reece?`)) return;
+    start(async () => {
+      setMsg(null);
+      const r = await reecePlace({ poId: rp.check.poId, leave: rp.leave, fingerprint: rp.check.fingerprint });
+      setMsg(r.ok ? { ok: true, text: r.note ?? "Ordered in maX." } : { ok: false, text: r.error ?? "It didn't go into maX." });
+      setRp(null);
+      router.refresh();
+    });
+  };
   const po = c.drafts[0];
   const showSend = filter !== "ahead";
   const showAhead = filter !== "send";
@@ -1644,7 +1709,9 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
       )}
 
       <div className="to2-foot">
-        <button type="button" className="pk-btn to2-send" disabled={busy || count === 0} onClick={send}>{busy ? "Sending…" : label.replace(c.name, shortName(c.name))}</button>
+        {reece
+          ? <button type="button" className="pk-btn to2-send" disabled={busy || count === 0 || !!rp} onClick={checkReece}>{busy && !rp ? "Asking Reece…" : "Order in maX"}</button>
+          : <button type="button" className="pk-btn to2-send" disabled={busy || count === 0} onClick={send}>{busy ? "Sending…" : label.replace(c.name, shortName(c.name))}</button>}
         {po && (
           <details className="to2-more">
             <summary className="pk-btn g">More</summary>
@@ -1654,6 +1721,12 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
               <Cc po={po} supplier={c.supplier} alwaysCc={alwaysCc} />
               <span className="pt-nw__actions">
                 {reece && <EmailList po={po} to={c.supplier?.email || testTo} />}
+                {reece && (
+                  <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy || count === 0}
+                    onClick={() => { if (confirm("Mark it ordered without sending anything to Reece? Only if it's already been entered in maX by hand.")) send(); }}>
+                    Already entered in maX by hand
+                  </button>
+                )}
                 {!reece && <OrderedElsewhere po={po} />}
                 <TestSend po={po} testTo={testTo} />
                 <DownloadPdf po={po} />
@@ -1665,8 +1738,9 @@ function SupplierCard({ c, filter, testTo, alwaysCc, delivery, noted, byId }: { 
             </div>
           </details>
         )}
-        <span className="to2-sum">{reece ? "Into maX by hand, then mark it ordered here" : `${c.supplier?.method === "email" || c.supplier?.method === "email_form" ? `Emailed to ${shortName(c.name)}` : "Sent"}`} · <b>{money(total)}</b> ex GST</span>
+        <span className="to2-sum">{reece ? "Into maX through Reece, one order per job" : `${c.supplier?.method === "email" || c.supplier?.method === "email_form" ? `Emailed to ${shortName(c.name)}` : "Sent"}`} · <b>{money(total)}</b> ex GST</span>
       </div>
+      {rp && <ReeceCheck rp={rp.check} busy={busy} onPlace={placeReece} onCancel={() => setRp(null)} />}
       {po?.send_error && <p className="pt-note pt-note--warn" style={{ margin: "8px 0 0" }}><strong>Last try didn&rsquo;t send:</strong> {po.send_error}</p>}
       {msg && <p className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`} role="status">{msg.text}</p>}
     </section>
