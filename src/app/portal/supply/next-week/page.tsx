@@ -1,5 +1,5 @@
 import { getSettings } from "@/lib/portal/db";
-import { loadStocked } from "@/lib/ordering/stocked";
+import { loadFromStock, loadStocked } from "@/lib/ordering/stocked";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -23,7 +23,7 @@ export const metadata = { title: "To order · Team portal" };
  * and for each supplier whether it's on an order already. The electrician
  * isn't offered: he's booked against an install date, and there isn't one.
  */
-function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWithLines[], already: Map<string, OrderedLine>): UnbookedSale[] {
+function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWithLines[], already: Map<string, OrderedLine>, shelf: Set<string>): UnbookedSale[] {
   const byId = new Map(suppliers.map((x) => [x.id, x]));
   const drafted = new Map<string, string>();
   for (const p of drafts) for (const l of p.lines) for (const k of lineKeys(l)) drafted.set(k, p.po_number);
@@ -31,7 +31,7 @@ function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWi
   for (const r of rows) {
     const sale = sales.get(r.estimate_id) ?? {
       estimateId: r.estimate_id, customer: r.customer_name, suburb: r.suburb, what: r.estimate_name, soldOn: r.sold_on ? r.sold_on.slice(0, 10) : null,
-      total: r.total_inc, quoteJob: r.quote_job_number, groups: [], issues: [],
+      total: r.total_inc, quoteJob: r.quote_job_number, jobId: r.quote_job_id, customerId: r.customer_id, groups: [], issues: [],
     };
     sales.set(r.estimate_id, sale);
     if (r.issue) { sale.issues.push(`${r.sku_name ?? "An item"}: ${r.issue.toLowerCase()}`); continue; }
@@ -39,9 +39,12 @@ function unbookedSales(rows: UnbookedLine[], suppliers: Supplier[], drafts: PoWi
     if (!sup || !sup.active || sup.method === "work_order") continue;
     let g = sale.groups.find((x) => x.supplierId === sup.id);
     if (!g) { g = { supplierId: sup.id, supplier: sup.name, items: [], cost: 0, ordered: null, drafted: null }; sale.groups.push(g); }
-    g.items.push({ name: r.supplier_model ?? r.sku_name ?? "Item", qty: Number(r.qty) });
-    g.cost += (r.unit_cost ?? 0) * Number(r.qty);
     const k = estKey(r.estimate_id, r.sku_id);
+    const cost = (r.unit_cost ?? 0) * Number(r.qty);
+    // From the factory: listed, but not counted in what the order will cost.
+    const fromShelf = shelf.has(k);
+    g.items.push({ name: r.supplier_model ?? r.sku_name ?? "Item", qty: Number(r.qty), skuId: r.sku_id, cost, shelf: fromShelf });
+    if (!fromShelf) g.cost += cost;
     if (already.has(k)) g.ordered = already.get(k)!.po_number;
     else if (drafted.has(k)) g.drafted = drafted.get(k)!;
   }
@@ -90,12 +93,17 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
       getSettings<{ keys?: string[] }>("order-problems-dismissed").catch(() => null),
       // Its own catch: a failed read of the sold-not-booked list leaves the rest of the page standing.
       loadUnbooked().catch(() => null),
+      loadFromStock().catch(() => []),
     ] as const);
-    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub] = await readAll()
+    const [oThis, oNext, s, inThis, inNext, already, sy, settings, h, nt, st, dis, ub, fs] = await readAll()
       .catch(() => new Promise<void>((r) => setTimeout(r, 1500)).then(readAll));
     orders = [...oThis, ...oNext];
-    if (ub) unbooked = unbookedSales(ub, s, orders.filter((o) => o.status === "draft"), already);
-    holds = h;
+    if (ub) unbooked = unbookedSales(ub, s, orders.filter((o) => o.status === "draft"), already, new Set(fs.map((x) => x.key)));
+    // A hold keeps the model it was held under; the pricebook may have been
+    // corrected since (20401's heads went from AP35 to AP25), so the live
+    // quote's model wins wherever the job is still in the two weeks.
+    const live = new Map([...inThis.lines, ...inNext.lines].map((l) => [lineKey(l.job_id, l.sku_id), l.supplier_model]));
+    holds = h.map((x) => ({ ...x, sku_name: live.get(lineKey(x.job_id, x.sku_id)) ?? x.sku_name }));
     suppliers = s;
     noted = nt;
     stocked = st.map((x) => x.key);
