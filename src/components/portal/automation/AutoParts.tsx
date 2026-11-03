@@ -53,6 +53,12 @@ export const ACTS: Auto[] = [
   { k: "accountFlow", icon: "check", title: "Won quotes follow through to booking", short: "A quote marked Won waits until ServiceTitan marks it sold, then moves to Jobs to Book.", what: "A quote marked Won on Account to-dos waits on its list until ServiceTitan marks it sold, then moves to Jobs to Book. Once a visit is booked it comes off Jobs to Book, and anything else on that list naming a job that's booked comes off too. When the job's done and not invoiced, it goes on Invoice ready. Lost on the Pipeline ticks it off.", to: "" },
 ];
 
+/** Website enquiries into ServiceTitan, on Settings › Automatic. */
+export const LEAD_ACTS: Auto[] = [
+  { k: "leadBooking", icon: "send", title: "Website enquiries into ServiceTitan’s Bookings", short: "Each quote form goes into ServiceTitan as a booking, with the customer’s details, what they want and their photos.", what: "Within a few minutes of an enquiry coming in, it goes into ServiceTitan as a Booking from the booking provider set below: name, address, phone, email, what they asked for and everything they wrote, with links to their photos. It lands in ServiceTitan’s Bookings inbox for the office to book from, and the job made from it is linked back here by itself. Only enquiries from when this was turned on. Tried three times; a refusal shows under Needs a look with ServiceTitan’s reason.", to: "", offWhy: "Off until ServiceTitan’s set up", note: "Needs, in ServiceTitan: a booking provider for the website (Settings › Integrations › Booking Provider Tags), and CRM › Bookings added to the portal’s API app. Put the provider’s number below, then turn it on." },
+  { k: "leadToJob", icon: "check", title: "Website enquiries onto their job", short: "Once the job’s booked, the enquiry is linked to it and the form and photos go on the job.", what: "Once a job exists for an enquiry, the enquiry is linked to it on Website › Leads and the form (as a PDF) and the photos go into the job’s attachments in ServiceTitan, as linking it by hand did. The job is the one made from its booking, else the first job booked for the same phone or email from the day before the enquiry to 45 days after, as long as the name agrees (a rental’s phone can be the agent’s). A job already completed is linked but left alone. Five uploads a run; a failed one is tried again.", to: "" },
+];
+
 /** Ordering's own, on To order › Automation. */
 export const ORDER_ACTS: Auto[] = [
   { k: "factoryMin", icon: "tag", title: "Low factory stock onto next week’s order", short: "A shelf item at or under its low mark goes onto next week’s draft.", what: "A shelf line at or under its low mark, with nothing already on order, goes onto next week’s draft for the supplier it last came from, the same quantity as last time. It stays a draft until someone approves it. A line never ordered before becomes a to-do for the office instead.", to: "" },
@@ -77,7 +83,7 @@ export const ORDER_KINDS = new Set<string>(["factoryMin", "workOrderSend", "orde
 /** A log entry's kind for a switch: the quote tag logs under its older name. */
 export const kindOf = (k: string) => (k === "quoteTag" ? "quote-tag" : k);
 
-const BY_KIND = new Map<string, Auto>([...TODOS, ...ACTS, ...ORDER_ACTS].map((a) => [kindOf(a.k), a]));
+const BY_KIND = new Map<string, Auto>([...TODOS, ...ACTS, ...LEAD_ACTS, ...ORDER_ACTS].map((a) => [kindOf(a.k), a]));
 
 /* ------------------------------------------------------------ needs a look */
 

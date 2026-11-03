@@ -11,7 +11,22 @@ export async function setAuto(key: AutoKey, on: boolean): Promise<{ ok: boolean;
   const me = await getPortalUser();
   if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
   if (!AUTO_KEYS.includes(key)) return { ok: false, error: "That isn't one of them." };
-  const r = await saveSwitches({ ...(await loadSwitches()), [key]: !!on });
+  const cur = await loadSwitches();
+  // Bookings start from the moment they're turned on: the backlog is already in ServiceTitan by hand.
+  const since = key === "leadBooking" && on && !cur.leadBooking ? { leadBookingSince: new Date().toISOString() } : {};
+  const r = await saveSwitches({ ...cur, [key]: !!on, ...since });
+  revalidatePath("/portal/automatic");
+  return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
+}
+
+/** The ServiceTitan booking provider the website's enquiries are sent in under. */
+export async function setBookingProvider(value: string): Promise<{ ok: boolean; error?: string }> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
+  const t = value.trim();
+  const n = t ? Number(t.replace(/[^\d]/g, "")) : null;
+  if (t && !(n && Number.isInteger(n) && n > 0)) return { ok: false, error: "That's the number ServiceTitan shows for the booking provider." };
+  const r = await saveSwitches({ ...(await loadSwitches()), bookingProvider: n });
   revalidatePath("/portal/automatic");
   return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
 }

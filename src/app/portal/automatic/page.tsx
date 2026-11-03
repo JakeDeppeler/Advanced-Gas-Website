@@ -6,8 +6,8 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Bad, Head } from "@/components/portal/kit/Kit";
 import { Icon } from "@/components/portal/shell/Menu";
-import { OfficeTo } from "@/components/portal/AutoSwitch";
-import { ACTS, AutoGroup, AutoLog, AutoRow, NeedsLook, ORDER_KINDS, SetRow, TODOS, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
+import { BookingProvider, OfficeTo } from "@/components/portal/AutoSwitch";
+import { ACTS, LEAD_ACTS, AutoGroup, AutoLog, AutoRow, NeedsLook, ORDER_KINDS, SetRow, TODOS, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
 import { officeIds, teamPeople } from "@/lib/todos/store";
 import { loadAutoLog, loadSorted, loadSwitches, type AutoKey } from "@/lib/automation/log";
 import { guessedSent } from "@/lib/automation/quoteDrafts";
@@ -44,13 +44,18 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
         <OfficeTo people={people} value={accountsTo || officeTo} canEdit={admin} which="accountsTo" label="Who gets the invoicing to-dos" />
       </SetRow>
     ),
+    leadBooking: (
+      <SetRow title="Booking provider" line={<>The number ServiceTitan gives the website&rsquo;s booking provider.{sw.leadBookingSince ? <> Sending enquiries from {new Date(sw.leadBookingSince).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}.</> : null}</>}>
+        <BookingProvider value={sw.bookingProvider} canEdit={admin} />
+      </SetRow>
+    ),
     overdueInv: <p className="ar-note">Goes to whoever gets Finished but not invoiced, set under that one: <b>{accountsName}</b>.</p>,
   };
   const row = (a: Auto) => {
     const k = a.k as AutoKey;
     return <AutoRow key={k} a={a} on={sw[k]} mine={recent.filter((e) => e.kind === kindOf(k))} looks={looks.filter((l) => l.kind === kindOf(k)).length} admin={admin} settings={settingsFor[k]} />;
   };
-  const every = [...TODOS, ...ACTS];
+  const every = [...TODOS, ...ACTS, ...LEAD_ACTS];
   const on = every.filter((a) => sw[a.k as AutoKey]).length;
   const titleOf = new Map(every.map((a) => [kindOf(a.k), a.title]));
   const shown = searchParams.log && titleOf.has(searchParams.log) ? searchParams.log : null;
@@ -77,6 +82,9 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
           </AutoGroup>
           <AutoGroup title="In ServiceTitan" on={ACTS.filter((a) => sw[a.k as AutoKey]).length} of={ACTS.length}>
             {ACTS.map(row)}
+          </AutoGroup>
+          <AutoGroup title="Website enquiries" on={LEAD_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={LEAD_ACTS.length}>
+            {LEAD_ACTS.map(row)}
           </AutoGroup>
           <AutoGroup title="Ordering">
             <Link className="ar-link" href="/portal/supply/automation">

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { markSorted, setAuto, setNotifyTo, setOfficeTo } from "@/app/portal/automatic/actions";
+import { markSorted, setAuto, setBookingProvider, setNotifyTo, setOfficeTo } from "@/app/portal/automatic/actions";
 import type { AutoKey } from "@/lib/automation/log";
 
 /** On or off, said in words beside the switch. */
@@ -72,6 +72,21 @@ export function NotifyTo({ value, canEdit }: { value: string; canEdit: boolean }
     <form className="au-to au-notify" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await setNotifyTo(v); setMsg(r.ok ? "Saved" : r.error ?? "Couldn't save."); router.refresh(); }); }}>
       <input id="au-notify" type="text" value={v} onChange={(e) => setV(e.target.value)} disabled={!canEdit || pending} aria-label="Who's emailed when it sends something by itself" placeholder="you@advancedgas.com.au" />
       {canEdit && <button type="submit" disabled={pending || v === value}>Save</button>}
+      {msg && <em>{msg}</em>}
+    </form>
+  );
+}
+
+/** The ServiceTitan booking provider website enquiries are sent in under. */
+export function BookingProvider({ value, canEdit }: { value: number | null; canEdit: boolean }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [v, setV] = useState(value ? String(value) : "");
+  const [msg, setMsg] = useState<string | null>(null);
+  return (
+    <form className="au-to au-notify" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await setBookingProvider(v); setMsg(r.ok ? "Saved" : r.error ?? "Couldn't save."); router.refresh(); }); }}>
+      <input id="au-booking-provider" type="text" inputMode="numeric" value={v} onChange={(e) => setV(e.target.value)} disabled={!canEdit || pending} aria-label="ServiceTitan booking provider number" placeholder="e.g. 301234567" />
+      {canEdit && <button type="submit" disabled={pending || v === (value ? String(value) : "")}>Save</button>}
       {msg && <em>{msg}</em>}
     </form>
   );
