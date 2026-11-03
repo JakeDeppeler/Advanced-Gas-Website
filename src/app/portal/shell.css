@@ -3928,3 +3928,11 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .to2-tickbar .to2-all { background: none; border: 0; padding: 4px 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink2); text-decoration: underline; cursor: pointer; }
 .to2-where { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1; }
 .to2-where .pk-in { flex: 1 1 220px; min-width: 0; max-width: 340px; }
+
+/* Sent: resend with corrected prices, the changes shown before it goes. */
+.sb-reprice__box { display: grid; gap: 8px; padding: 10px 14px; border-radius: 12px; background: var(--ground, #ededec); flex-basis: 100%; }
+.sb-reprice__list { display: grid; gap: 2px; font-size: 13.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.sb-reprice__list b { color: var(--ink); }
+.sb-reprice__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.sb-reprice { flex-basis: auto; }
+.sb-reprice:has(.sb-reprice__box) { flex-basis: 100%; }

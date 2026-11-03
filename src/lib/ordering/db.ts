@@ -603,6 +603,39 @@ export async function releaseHold(id: number): Promise<boolean> {
   return true;
 }
 
+/** One line's price on a sent order against the pricebook's supplier cost now. */
+export type PriceChange = { lineId: number; item: string; qty: number; was: number | null; now: number };
+
+/**
+ * A sent order's lines priced again from the pricebook: the primary vendor
+ * cost of each line's item, where it's above $0 (the same rule the ordering
+ * views use since 0094). Lines without a pricebook cost keep theirs.
+ */
+export async function repriceOrder(id: number, apply: boolean): Promise<{ ok: boolean; error?: string; changes: PriceChange[]; total: number }> {
+  const po = await getOrder(id);
+  if (!po || po.kind !== "order") return { ok: false, error: "That order isn't there any more.", changes: [], total: 0 };
+  const ids = [...new Set(po.lines.map((l) => l.sku_id).filter((x): x is number => x != null))];
+  const cost = new Map<number, number>();
+  if (ids.length) {
+    const q = `select=id,cost:raw->primaryVendor->>cost&id=in.(${ids.join(",")})`;
+    const [eq, mat] = await Promise.all([
+      sbSelect<{ id: number; cost: string | null }>("st_pricebook_equipment", q),
+      sbSelect<{ id: number; cost: string | null }>("st_pricebook_materials", q),
+    ]);
+    for (const r of [...mat, ...eq]) { const c = Number(r.cost); if (c > 0) cost.set(r.id, c); }
+  }
+  const changes: PriceChange[] = [];
+  for (const l of po.lines) {
+    const now = l.sku_id != null ? cost.get(l.sku_id) : undefined;
+    if (now != null && Math.abs(now - Number(l.unit_cost ?? 0)) > 0.005)
+      changes.push({ lineId: l.id, item: l.supplier_model || l.sku_name || l.description || "Item", qty: Number(l.qty), was: l.unit_cost == null ? null : Number(l.unit_cost), now });
+  }
+  const priceOf = new Map(changes.map((c) => [c.lineId, c.now]));
+  const total = po.lines.reduce((t, l) => t + (priceOf.get(l.id) ?? Number(l.unit_cost ?? 0)) * Number(l.qty), 0);
+  if (apply) for (const c of changes) await sbUpdate("purchase_order_lines", `id=eq.${c.lineId}&po_id=eq.${id}`, { unit_cost: c.now });
+  return { ok: true, changes, total };
+}
+
 /**
  * Every order that's gone, newest first, with its lines: what the Sent tab
  * lists by supplier and searches by job. Approved counts as gone (it's on its
