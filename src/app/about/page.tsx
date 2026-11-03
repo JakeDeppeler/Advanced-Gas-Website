@@ -34,8 +34,8 @@ const STATS: { v: string; k: string }[] = [
 ];
 
 const HISTORY: { when: string; t: string; d: string }[] = [
-  { when: "2014", t: "The start", d: "Advanced Gas & Airconditioning Services starts trading in Pakenham, headed by Dean Winbanks, a licensed plumber and gas fitter with years already behind him on industrial, commercial and domestic work." },
-  { when: "Growing", t: "Building our own crew", d: "As the work grows across the south-east, we take on our own installers and apprentices rather than handing jobs to subcontractors, and train every one of them to the same standard." },
+  { when: "2014", t: "Dean on his own", d: "Dean Winbanks starts Advanced Gas & Airconditioning Services in Pakenham, working on his own: quoting the jobs, doing the work and signing it off himself." },
+  { when: "Growing", t: "Building our own crew", d: "The work outgrows one person. Instead of handing jobs to subcontractors, Dean takes on his own installers and apprentices and trains them himself, so every job is still done to his standard." },
   { when: "Growing", t: "Heat pumps and rebates", d: "Heat pump hot water becomes a big part of the work, with the Victorian Energy Upgrades rebate applied at the quote so customers never have to claim it back." },
   { when: "Growing", t: "Commercial work", d: "Fit-outs, multi-site service contracts and planned maintenance for national brands, builders and local schools, run to the same standard as a home install." },
   { when: "Today", t: "Two directors, one standard", d: "Jake Deppeler joins Dean as a director. From the workshop at 1 Sierra Circuit, Pakenham, our vans cover Melbourne's south-east and West Gippsland, with a written procedure for every kind of job." },
@@ -99,8 +99,10 @@ export default function AboutPage() {
         <div className="wrap abh">
           <div className="abh__head">
             <span className="aeye"><i /> Our history</span>
-            <h2 className="h2 h2--sm">More than a decade in the south-east.</h2>
-            <p>Since 2014 the business has grown into a team of installers, apprentices and office staff, still based in Pakenham and still holding every job to the standard it started with.</p>
+            <h2 className="h2 h2--sm">It started with one plumber in 2014.</h2>
+            <p>Advanced Gas &amp; Airconditioning began in 2014 with Dean Winbanks on his own. He&apos;d already spent years on industrial, commercial and domestic sites, and he set the business up around the way he worked: under-promise, over-deliver, and finish on time and on budget.</p>
+            <p>As more people heard about the work, it grew past what one person could do. Rather than hand jobs to subcontractors, Dean hired his own installers and apprentices and trained each of them himself, so the standard didn&apos;t change as the team grew.</p>
+            <p>That&apos;s still how we work. The business now has two directors, an office and a crew of its own, but every job is still measured against the standard Dean started with.</p>
             <span className="abh__photo"><Image src="/reclaim-and-mitsubishi.jpg" alt="A heat pump and split system outdoor unit we installed" fill sizes="(max-width: 1000px) 100vw, 480px" /></span>
           </div>
           <ol className="abh__line">

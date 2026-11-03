@@ -41,7 +41,8 @@
 .ag .abh{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:64px;align-items:start}
 .ag .abh__head{position:sticky;top:110px;display:flex;flex-direction:column;gap:14px}
 .ag .abh__head .h2{margin:0}
-.ag .abh__head p{margin:0;font-size:17px;line-height:1.6;color:var(--ink2)}
+.ag .abh__head p{margin:0;font-size:17px;line-height:1.65;color:var(--ink2)}
+.ag .abh__head p + p{margin-top:-2px}
 .ag .abh__photo{position:relative;display:block;aspect-ratio:4/3;border-radius:22px;overflow:hidden;margin-top:10px}
 .ag .abh__photo img{object-fit:cover;object-position:center 40%}
 .ag .abh__line{list-style:none;margin:0;padding:0 0 0 30px;border-left:2px solid var(--line2);display:flex;flex-direction:column;gap:34px}
