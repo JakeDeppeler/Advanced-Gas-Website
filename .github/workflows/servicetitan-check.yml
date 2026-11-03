@@ -22,6 +22,10 @@ on:
         description: "A form name to look for (e.g. condition). Instead of the connection check, lists ServiceTitan's forms and the shape of the newest submissions of the matching ones: one completed report field by field, answers cut to 60 characters."
         type: string
         required: false
+      templates:
+        description: "Tick to list where ServiceTitan keeps proposal and estimate templates and pricebook services (names and field names only), instead of the connection check."
+        type: boolean
+        default: false
       reports:
         description: "A report name to look for (e.g. estimate). Instead of the connection check, lists the ServiceTitan reports the portal can read with that in their name, and their columns, to see whether one says a quote is a draft. Nothing is run."
         type: string
@@ -44,6 +48,7 @@ jobs:
           JOB: ${{ inputs.job }}
           FORMS: ${{ inputs.forms }}
           REPORTS: ${{ inputs.reports }}
+          TEMPLATES: ${{ inputs.templates && '1' || '' }}
         run: |
           set -euo pipefail
 
@@ -102,6 +107,21 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "--- raw probe ---"
             jq '.forms' probe.json
+            exit 0
+          fi
+
+          # The templates probe: no input reaches the URL but the flag.
+          if [ -n "${TEMPLATES:-}" ]; then
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?templates=1" > probe.json
+            {
+              echo "## Where ServiceTitan keeps templates and services"
+              echo
+              echo '```json'
+              jq '.templates' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.templates' probe.json
             exit 0
           fi
 

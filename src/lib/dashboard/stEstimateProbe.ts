@@ -284,3 +284,37 @@ export async function probeReports(match: string): Promise<unknown> {
   out.matching = found;
   return out;
 }
+
+/**
+ * Where ServiceTitan keeps proposal and estimate templates, and the services
+ * side of the pricebook, before auditing the templates against the pricebook
+ * and drafting quotes from them (Jake, 3 Nov). The app has read access to
+ * Estimate Templates, Proposal Templates and Proposal Types, but their
+ * endpoints aren't named anywhere the portal has used yet, so this tries the
+ * likely ones and reports, for each, the status, how many came back, the
+ * field names and up to fifteen names. Nothing about a customer is in these.
+ */
+export async function probeTemplates(): Promise<unknown> {
+  const tries: Array<[string, string]> = [
+    ["sales", "estimates/templates"], ["sales", "estimate-templates"], ["sales", "templates"],
+    ["sales", "proposal-templates"], ["sales", "proposals/templates"], ["sales", "proposal-types"],
+    ["salestech", "proposal-templates"], ["salestech", "estimate-templates"], ["salestech", "templates"],
+    ["pricebook", "services"], ["pricebook", "categories"],
+  ];
+  const out: Record<string, unknown> = {};
+  for (const [mod, res] of tries) {
+    const key = `${mod}/${res}`;
+    try {
+      const r = await stFetch<{ data?: Array<Record<string, unknown>>; totalCount?: number; hasMore?: boolean }>(stTenantPath(mod, res), { pageSize: "50", includeTotal: "true" });
+      const rows = Array.isArray(r?.data) ? r.data : [];
+      out[key] = {
+        ok: true, count: rows.length, total: r?.totalCount ?? null, more: r?.hasMore ?? null,
+        fields: [...new Set(rows.flatMap((x) => paths(x)))].slice(0, 60),
+        names: rows.slice(0, 15).map((x) => x.name ?? x.displayName ?? x.code ?? x.id),
+      };
+    } catch (e) {
+      out[key] = { ok: false, error: (e instanceof Error ? e.message : "failed").replace(/^ServiceTitan \S+ failed: /, "").slice(0, 120) };
+    }
+  }
+  return out;
+}
