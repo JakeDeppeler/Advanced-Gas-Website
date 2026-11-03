@@ -96,3 +96,9 @@
   .ag .abw2__list{grid-template-columns:1fr 1fr}
   .ag .abx__in{grid-template-columns:1fr;gap:20px;padding-top:28px;padding-bottom:40px}.ag .abx__pic{height:62vw;min-height:0}
 }
+
+/* Accreditations, beside the licence table */
+.ag .abq{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ag .abq li{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.ag .abq small{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--sky-ink);font-weight:600}
+.ag .abq strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
