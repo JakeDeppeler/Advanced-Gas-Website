@@ -36,7 +36,7 @@ export function openRunFailures(log: AutoEntry[]): Set<string> {
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack"] as const;
+export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "leadToJob", "leadBooking"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
@@ -49,11 +49,16 @@ export type AutoSwitches = Record<AutoKey, boolean> & {
    * went. Addresses, comma-separated. Null: the owner.
    */
   notifyTo: string | null;
+  /** ServiceTitan's booking provider the website's enquiries come in under (Settings › Integrations › Booking Provider Tags there). */
+  bookingProvider: number | null;
+  /** When sending enquiries in as bookings was turned on: only enquiries from then on go, never the backlog. */
+  leadBookingSince: string | null;
 };
 
 /** Where "it's done" notices go until someone sets the address on To order › Automation. */
 export const NOTIFY_DEFAULT = "jake@advancedgas.com.au";
-const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck"];
+// Bookings need a booking provider made in ServiceTitan and the Bookings scope on the API app first.
+const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "leadBooking"];
 
 const LOG = "automation_log";
 const SW = "automation";
@@ -65,6 +70,8 @@ export async function loadSwitches(): Promise<AutoSwitches> {
     officeTo: typeof s?.officeTo === "string" ? s.officeTo : null,
     accountsTo: typeof s?.accountsTo === "string" ? s.accountsTo : null,
     notifyTo: typeof s?.notifyTo === "string" && s.notifyTo.trim() ? s.notifyTo : null,
+    bookingProvider: Number.isInteger(s?.bookingProvider) && (s?.bookingProvider as number) > 0 ? (s?.bookingProvider as number) : null,
+    leadBookingSince: typeof s?.leadBookingSince === "string" ? s.leadBookingSince : null,
   } as AutoSwitches;
   for (const k of AUTO_KEYS) out[k] = OFF_UNTIL_ASKED.includes(k) ? s?.[k] === true : s?.[k] !== false;
   return out;
