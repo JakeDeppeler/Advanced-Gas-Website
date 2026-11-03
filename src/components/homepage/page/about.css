@@ -1,0 +1,46 @@
+/* About: the team first, then how a job runs and who you deal with at each step. */
+.ag .abt__lead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.ag .abt__leadt{display:flex;flex-direction:column;gap:10px;padding:40px 44px;justify-content:center}
+.ag .abt__leadt small,.ag .abt__t small{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--or-ink);font-weight:600}
+.ag .abt__leadt h3{margin:0;font-family:var(--disp);font-size:clamp(32px,3.2vw,48px);font-weight:900;letter-spacing:-.025em;color:var(--navy)}
+.ag .abt__leadt p{margin:4px 0 0;font-size:17px;line-height:1.6;color:var(--ink2);max-width:560px}
+.ag .abt__chips{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.ag .abt__chips li{font-size:13.5px;font-weight:700;color:var(--navy);background:var(--skylt);border-radius:999px;padding:6px 12px}
+.ag .abt__call{margin-top:6px;font-size:14.5px;font-weight:700;color:var(--sky-ink)}
+.ag .abt__photo{position:relative;display:block;min-height:320px}
+.ag .abt__photo img{object-fit:contain;object-position:center bottom}
+.ag .abt__photo--sky{background:radial-gradient(80% 90% at 50% 100%,#BFE9FB 0%,#EAF6FC 70%)}
+.ag .abt__photo--navy{background:radial-gradient(80% 90% at 50% 100%,#24317a 0%,var(--navy) 75%)}
+.ag .abt__photo--cream{background:radial-gradient(80% 90% at 50% 100%,#FBE3D3 0%,var(--cream) 70%)}
+.ag .abt__lead .abt__photo{min-height:420px}
+.ag .abt__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .abt__card{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.ag .abt__card .abt__photo{min-height:0;aspect-ratio:3/2}
+.ag .abt__t{display:flex;flex-direction:column;gap:6px;padding:22px 24px 24px;flex:1}
+.ag .abt__t h3{margin:0;font-family:var(--disp);font-size:26px;font-weight:900;letter-spacing:-.02em;color:var(--navy)}
+.ag .abt__t p{margin:0;font-size:15.5px;line-height:1.55;color:var(--ink2);flex:1}
+.ag .abt__more{margin:0;font-size:16px;line-height:1.55;color:var(--ink2);max-width:760px}
+
+.ag .abw{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;align-items:start}
+.ag .abw__head{position:sticky;top:110px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.ag .abw__head .h2{color:#fff;margin:0}
+.ag .abw__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;position:relative}
+.ag .abw__steps::before{content:"";position:absolute;left:23px;top:24px;bottom:24px;width:2px;background:rgba(255,255,255,.16)}
+.ag .abw__step{display:flex;gap:22px;padding:0 0 30px;position:relative}
+.ag .abw__step:last-child{padding-bottom:0}
+.ag .abw__n{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--navy);border:2px solid var(--sky2);color:#fff;font-family:var(--disp);font-size:20px;font-weight:900;position:relative}
+.ag .abw__t{display:flex;flex-direction:column;gap:8px;padding-top:8px}
+.ag .abw__t h3{margin:0;font-family:var(--disp);font-size:22px;font-weight:800;color:#fff}
+.ag .abw__t p{margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.78);max-width:620px}
+.ag .abw__who{display:inline-flex;align-items:center;gap:10px;margin-top:4px;font-size:14px;font-weight:700;color:var(--sky2)}
+.ag .abw__who{gap:0}
+.ag .abw__face{width:36px;height:36px;border-radius:50%;overflow:hidden;background:#BFE9FB;border:2px solid var(--navy);display:block;flex:none}
+.ag .abw__face + .abw__face{margin-left:-12px}
+.ag .abw__face + span:not(.abw__face){margin-left:10px}
+.ag .abw__face img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transform:scale(1.6);transform-origin:50% 22%}
+@media (max-width:1000px){
+  .ag .abt__lead{grid-template-columns:1fr}.ag .abt__lead .abt__photo{min-height:0;aspect-ratio:3/2}
+  .ag .abt__leadt{padding:26px 24px 28px}
+  .ag .abt__grid{grid-template-columns:1fr}
+  .ag .abw{grid-template-columns:1fr;gap:32px}.ag .abw__head{position:static}
+}
