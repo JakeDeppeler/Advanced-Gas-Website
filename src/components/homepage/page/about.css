@@ -1,46 +1,56 @@
-/* About: the team first, then how a job runs and who you deal with at each step. */
-.ag .abt__lead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden}
-.ag .abt__leadt{display:flex;flex-direction:column;gap:10px;padding:40px 44px;justify-content:center}
-.ag .abt__leadt small,.ag .abt__t small{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--or-ink);font-weight:600}
-.ag .abt__leadt h3{margin:0;font-family:var(--disp);font-size:clamp(32px,3.2vw,48px);font-weight:900;letter-spacing:-.025em;color:var(--navy)}
-.ag .abt__leadt p{margin:4px 0 0;font-size:17px;line-height:1.6;color:var(--ink2);max-width:560px}
-.ag .abt__chips{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.ag .abt__chips li{font-size:13.5px;font-weight:700;color:var(--navy);background:var(--skylt);border-radius:999px;padding:6px 12px}
-.ag .abt__call{margin-top:6px;font-size:14.5px;font-weight:700;color:var(--sky-ink)}
-.ag .abt__photo{position:relative;display:block;min-height:320px}
-.ag .abt__photo img{object-fit:contain;object-position:center bottom}
-.ag .abt__photo--sky{background:radial-gradient(80% 90% at 50% 100%,#BFE9FB 0%,#EAF6FC 70%)}
-.ag .abt__photo--navy{background:radial-gradient(80% 90% at 50% 100%,#24317a 0%,var(--navy) 75%)}
-.ag .abt__photo--cream{background:radial-gradient(80% 90% at 50% 100%,#FBE3D3 0%,var(--cream) 70%)}
-.ag .abt__lead .abt__photo{min-height:420px}
-.ag .abt__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.ag .abt__card{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
-.ag .abt__card .abt__photo{min-height:0;aspect-ratio:3/2}
-.ag .abt__t{display:flex;flex-direction:column;gap:6px;padding:22px 24px 24px;flex:1}
-.ag .abt__t h3{margin:0;font-family:var(--disp);font-size:26px;font-weight:900;letter-spacing:-.02em;color:var(--navy)}
-.ag .abt__t p{margin:0;font-size:15.5px;line-height:1.55;color:var(--ink2);flex:1}
-.ag .abt__more{margin:0;font-size:16px;line-height:1.55;color:var(--ink2);max-width:760px}
+/* About: a short, photo-led page. The team photo fills the header; the
+   directors side by side; Kellie and the crew; reasons beside a real photo. */
+.ag .abx{background:var(--navy);color:#fff}
+.ag .abx__pic{position:relative;height:min(58vh,560px);min-height:300px}
+.ag .abx__bg{object-fit:cover;object-position:center 50%}
+.ag .abx__in{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:end;padding-top:44px;padding-bottom:56px}
+.ag .abx__side{display:flex;flex-direction:column;gap:20px}
+.ag .abx__h1{margin:10px 0 0;font-family:var(--disp);font-size:clamp(42px,5.4vw,84px);font-weight:900;line-height:.96;letter-spacing:-.04em;color:#fff}
+.ag .abx__h1 em{font-style:normal;color:var(--sky2)}
+.ag .abx__sub{margin:0;font-size:clamp(17px,1.4vw,20px);line-height:1.55;color:rgba(255,255,255,.85)}
 
-.ag .abw{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;align-items:start}
-.ag .abw__head{position:sticky;top:110px;display:flex;flex-direction:column;gap:16px;align-items:flex-start}
-.ag .abw__head .h2{color:#fff;margin:0}
-.ag .abw__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;position:relative}
-.ag .abw__steps::before{content:"";position:absolute;left:23px;top:24px;bottom:24px;width:2px;background:rgba(255,255,255,.16)}
-.ag .abw__step{display:flex;gap:22px;padding:0 0 30px;position:relative}
-.ag .abw__step:last-child{padding-bottom:0}
-.ag .abw__n{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--navy);border:2px solid var(--sky2);color:#fff;font-family:var(--disp);font-size:20px;font-weight:900;position:relative}
-.ag .abw__t{display:flex;flex-direction:column;gap:8px;padding-top:8px}
-.ag .abw__t h3{margin:0;font-family:var(--disp);font-size:22px;font-weight:800;color:#fff}
-.ag .abw__t p{margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.78);max-width:620px}
-.ag .abw__who{display:inline-flex;align-items:center;gap:10px;margin-top:4px;font-size:14px;font-weight:700;color:var(--sky2)}
-.ag .abw__who{gap:0}
-.ag .abw__face{width:36px;height:36px;border-radius:50%;overflow:hidden;background:#BFE9FB;border:2px solid var(--navy);display:block;flex:none}
-.ag .abw__face + .abw__face{margin-left:-12px}
-.ag .abw__face + span:not(.abw__face){margin-left:10px}
-.ag .abw__face img{width:100%;height:100%;object-fit:cover;object-position:50% 20%;transform:scale(1.6);transform-origin:50% 22%}
-@media (max-width:1000px){
-  .ag .abt__lead{grid-template-columns:1fr}.ag .abt__lead .abt__photo{min-height:0;aspect-ratio:3/2}
-  .ag .abt__leadt{padding:26px 24px 28px}
-  .ag .abt__grid{grid-template-columns:1fr}
-  .ag .abw{grid-template-columns:1fr;gap:32px}.ag .abw__head{position:static}
+.ag .abd{display:flex;flex-direction:column;gap:32px}
+.ag .abd__head{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.ag .abd__head .h2{margin:0}
+.ag .abd__head p{margin:0;font-size:17px;line-height:1.55;color:var(--ink2)}
+.ag .abd__pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.ag .abd__card{display:flex;flex-direction:column;gap:20px}
+.ag .abd__photo{position:relative;display:block;aspect-ratio:3/2;border-radius:24px;overflow:hidden;background:radial-gradient(80% 90% at 50% 100%,#BFE9FB 0%,#EAF6FC 70%)}
+.ag .abd__photo img{object-fit:contain;object-position:center bottom}
+.ag .abd__t{display:flex;flex-direction:column;gap:4px}
+.ag .abd__t h3{margin:0;font-family:var(--disp);font-size:clamp(28px,2.6vw,38px);font-weight:900;letter-spacing:-.02em;color:var(--navy)}
+.ag .abd__t small{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--or-ink);font-weight:600}
+.ag .abd__t p{margin:10px 0 0;font-size:17px;line-height:1.6;color:var(--ink2);max-width:560px}
+
+.ag .abk{background:var(--cream);padding:56px 0}
+.ag .abk__in{display:flex;align-items:center;gap:40px}
+.ag .abk__photo{position:relative;flex:none;width:220px;height:220px;border-radius:50%;overflow:hidden;background:radial-gradient(80% 90% at 50% 100%,#FBE3D3 0%,#fff 75%)}
+.ag .abk__photo img{object-fit:cover;object-position:50% 15%;transform:scale(1.35);transform-origin:50% 25%}
+.ag .abk__t{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.ag .abk__t .h2{margin:0}
+.ag .abk__t p{margin:0;font-size:17px;line-height:1.6;color:var(--ink2)}
+
+.ag .abr__in{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:56px;align-items:center}
+.ag .abr__photo{position:relative;aspect-ratio:4/5;border-radius:24px;overflow:hidden;background:var(--soft,#E3E9F2)}
+.ag .abr__photo img{object-fit:cover}
+.ag .abr__t{display:flex;flex-direction:column;gap:14px}
+.ag .abr__t .h2{margin:0}
+.ag .abr__list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
+.ag .abr__list li{display:flex;flex-direction:column;gap:4px;padding:18px 0;border-top:1px solid var(--line)}
+.ag .abr__list li:last-child{border-bottom:1px solid var(--line)}
+.ag .abr__list strong{font-family:var(--disp);font-size:21px;font-weight:800;color:var(--navy)}
+.ag .abr__list span{font-size:16.5px;line-height:1.55;color:var(--ink2)}
+.ag .abr__fine{margin:8px 0 0;font-size:14px;line-height:1.7;color:var(--ink3)}
+.ag .abr__fine a{color:var(--navy);font-weight:700}
+
+.ag .abc{background:var(--navy);color:#fff;padding:72px 0}
+.ag .abc__in{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.ag .abc__in .h2{margin:0;color:#fff}
+.ag .abc__in p{margin:0 0 6px;font-size:17px;color:rgba(255,255,255,.8)}
+
+@media (max-width:900px){
+  .ag .abd__pair,.ag .abr__in{grid-template-columns:1fr}
+  .ag .abr__in{gap:28px}.ag .abr__photo{aspect-ratio:4/3}
+  .ag .abk__in{flex-direction:column;align-items:flex-start;gap:20px}.ag .abk__photo{width:150px;height:150px}
+  .ag .abx__in{grid-template-columns:1fr;gap:20px;padding-top:28px;padding-bottom:40px}.ag .abx__pic{height:62vw;min-height:0}
 }
