@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { checkServiceTitan } from "@/lib/dashboard/stCheck";
-import { probeEstimates, probeForms, probeJobHistory, probeReports } from "@/lib/dashboard/stEstimateProbe";
+import { probeEstimates, probeForms, probeJobHistory, probeReports, probeTemplates } from "@/lib/dashboard/stEstimateProbe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +35,9 @@ export const maxDuration = 60;
 // ?reports=<name> lists the ServiceTitan reports the portal can read whose
 // name matches, and their columns (probeReports): whether a report can say a
 // quote is a draft, which the estimate API can't.
+//
+// ?templates=1 tries the likely endpoints for proposal and estimate templates
+// and pricebook services (probeTemplates): status, count, field names, names.
 
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) {
@@ -47,6 +50,7 @@ export async function GET(req: Request) {
   if (jobs.length) return NextResponse.json({ jobs: await probeJobHistory(jobs) });
   const forms = new URL(req.url).searchParams.get("forms");
   if (forms) return NextResponse.json({ forms: await probeForms(forms) });
+  if (new URL(req.url).searchParams.get("templates")) return NextResponse.json({ templates: await probeTemplates() });
   const reports = new URL(req.url).searchParams.get("reports");
   if (reports) return NextResponse.json({ reports: await probeReports(reports) });
 
