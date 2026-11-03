@@ -6,7 +6,31 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
  * a log of every time it did something, newest first. Kept in settings, a
  * few hundred lines: it's a record to glance at, not an audit trail.
  */
-export type AutoEntry = { at: string; kind: string; title: string; detail?: string; ok: boolean; jobId?: number; po?: string };
+export type AutoEntry = { at: string; kind: string; title: string; detail?: string; ok: boolean; jobId?: number; po?: string; run?: boolean };
+
+/**
+ * A whole step failing ("orderMoves didn't run") is about the step, not a job,
+ * so it's grouped by step and settled by the step running cleanly again. Old
+ * entries carry no flag, so the title marks them too.
+ */
+export const isRunEntry = (e: Pick<AutoEntry, "run" | "title">) => !!e.run || / didn't run$/.test(e.title);
+
+/**
+ * The steps whose latest whole-step entry is a failure: still showing under
+ * Needs a look. When one of them runs cleanly, the runner says so, and that
+ * clears it; most steps only log when they act, so without this a one-off
+ * failure stayed up for a fortnight after the step was working again.
+ */
+export function openRunFailures(log: AutoEntry[]): Set<string> {
+  const seen = new Set<string>();
+  const open = new Set<string>();
+  for (const e of [...log].sort((a, b) => b.at.localeCompare(a.at))) {
+    if (!isRunEntry(e) || seen.has(e.kind)) continue;
+    seen.add(e.kind);
+    if (!e.ok) open.add(e.kind);
+  }
+  return open;
+}
 /**
  * Each automatic job, on or off. All on unless switched off, except the van
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying

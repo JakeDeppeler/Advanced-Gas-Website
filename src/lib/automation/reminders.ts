@@ -21,7 +21,7 @@ import { MAX_LISTS, createAutoTodo, officeIds, openTodos, renameTodoList, saveTo
 import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, isAccountList, jobNumberIn, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, addDays, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
-import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
+import { NOTIFY_DEFAULT, loadAutoLog, loadMade, loadSwitches, logAuto, openRunFailures, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { syncQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
 import { getTodo, updateTodo } from "@/lib/todos/store";
@@ -855,8 +855,13 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
       ran.push(k);
     } catch (e) {
       failed.push(k);
-      ctx.log.push({ at: new Date().toISOString(), kind: k, ok: false, title: `${k} didn't run`, detail: (e as Error).message.slice(0, 200) });
+      ctx.log.push({ at: new Date().toISOString(), kind: k, ok: false, run: true, title: `${k} didn't run`, detail: (e as Error).message.slice(0, 200) });
     }
+  }
+  // A step that failed before and ran cleanly now: said once, which clears it from Needs a look.
+  if (ran.length) {
+    const open = openRunFailures(await loadAutoLog().catch(() => []));
+    for (const k of ran) if (open.has(k)) ctx.log.push({ at: new Date().toISOString(), kind: k, ok: true, run: true, title: "Running cleanly again" });
   }
   await saveSettings(MIRROR, mirrorState).catch(() => undefined);
   await saveMade(ctx.made).catch(() => undefined);

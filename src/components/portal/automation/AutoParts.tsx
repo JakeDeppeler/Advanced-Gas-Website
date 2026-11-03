@@ -85,7 +85,8 @@ const BY_KIND = new Map<string, Auto>([...TODOS, ...ACTS, ...ORDER_ACTS].map((a)
 export type Look = { key: string; kind: string; at: string; title: string; detail?: string; jobId?: number; po?: string; times: number };
 
 /** One job's trouble with one automation, so repeats of it count as one. */
-export const lookKey = (e: AutoEntry) => `${e.kind}|${e.jobId ?? e.po ?? e.title.slice(0, 120).replace(/\|/g, "/")}`;
+// A whole step's failure groups by step ("run"), so the step running cleanly again settles it (see isRunEntry).
+export const lookKey = (e: AutoEntry) => `${e.kind}|${e.run || / didn't run$/.test(e.title) ? "run" : e.jobId ?? e.po ?? e.title.slice(0, 120).replace(/\|/g, "/")}`;
 
 /**
  * Failures in the last fortnight that nothing has put right since: no later
