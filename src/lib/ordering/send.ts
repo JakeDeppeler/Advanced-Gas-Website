@@ -520,7 +520,7 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
  * the supplier works from the corrected one. Only an order that went by
  * email; a work order is changed and resent from Work orders.
  */
-export async function resendOrder(id: number, patch: { toSite: boolean; address: string; instructions: string; deliverBy: string | null; note: string }): Promise<SendResult> {
+export async function resendOrder(id: number, patch: { toSite: boolean; address: string; instructions: string; deliverBy: string | null; note: string }, reason?: string): Promise<SendResult> {
   const cur = await getOrder(id);
   if (!cur) return { ok: false, error: "That order isn't there any more." };
   if (cur.kind !== "order") return { ok: false, error: "Change a work order and email the update from Work orders." };
@@ -536,7 +536,7 @@ export async function resendOrder(id: number, patch: { toSite: boolean; address:
   const b = await build(id);
   if ("error" in b) return { ok: false, error: b.error };
   if (!b.email) return { ok: false, error: "There's no email for this one to send again." };
-  const line = `Updated — this replaces order ${b.po.po_number} we sent earlier. Please go by this one.`;
+  const line = `Updated${reason ? ` (${reason})` : ""} — this replaces order ${b.po.po_number} we sent earlier. Please go by this one.`;
   const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${line}</div>`;
   const err = await resend({
     from, to: [to], cc: ccList(b.settings, b.supplier, b.po, to), reply_to: b.settings.replyTo,
