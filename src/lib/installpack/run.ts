@@ -230,7 +230,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       const shown = `${built.photos} photo${built.photos === 1 ? "" : "s"}${built.notShown ? ` (${built.notShown} more on the job)` : ""}`;
       await stUpload(stTenantPath("forms", `jobs/${j.job_id}/attachments`), built.fileName, built.pdf, "application/pdf");
       const note = version === 1
-        ? `Install pack attached (${built.fileName}): the scope from the job summary, ${f.summary && "ok" in f.summary ? "an installation summary written from the records, " : ""}${f.quote ? "what's going in and every material from the sold quote with where it was ordered" : "no equipment list as there's no sold quote on the job"}${f.visitReports?.length ? `, the Condition Report${f.visitReports.length === 1 ? "" : "s"} from the earlier visit` : ""}, and ${shown}.`
+        ? `Install pack attached (${built.fileName}): ${f.summary && "ok" in f.summary ? "an installation guide written from the records" : "the scope from the job summary"}, ${f.quote ? "what's going in and every material from the sold quote with where it was ordered" : "no equipment list as there's no sold quote on the job"}${f.visitReports?.length ? `, the Condition Report${f.visitReports.length === 1 ? "" : "s"} from the earlier visit` : ""}, and ${shown}.`
         : `Install pack updated to v${version}: ${whatChanged(row?.parts ?? null, parts, photosChanged)}. The new PDF (${built.fileName}) is attached; use it rather than earlier versions.`;
       // The PDF is on the job either way; a refused note shouldn't make the
       // next run upload it again.
