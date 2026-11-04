@@ -73,6 +73,10 @@ function Defs({ p }: { p: string }) {
       <pattern id={id("pad")} width="6" height="6" patternUnits="userSpaceOnUse">
         <rect width="6" height="6" fill="#D9C08A" /><path d="M0 6 L6 0 M-1 1 L1 -1 M5 7 L7 5" stroke="#B89A5E" strokeWidth="1" />
       </pattern>
+      <linearGradient id={id("shade")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3A2A1A" stopOpacity="0" /><stop offset="1" stopColor="#3A2A1A" stopOpacity=".07" /></linearGradient>
+      <linearGradient id={id("floorshade")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3A2A1A" stopOpacity=".22" /><stop offset="1" stopColor="#3A2A1A" stopOpacity="0" /></linearGradient>
+      <linearGradient id={id("plumeHot")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FF8A50" stopOpacity=".38" /><stop offset="1" stopColor="#FF8A50" stopOpacity="0" /></linearGradient>
+      <linearGradient id={id("plumeCold")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3DBBEE" stopOpacity=".34" /><stop offset="1" stopColor="#3DBBEE" stopOpacity="0" /></linearGradient>
       <filter id={id("shadow")} x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#0A1A3A" floodOpacity=".18" /></filter>
       <filter id={id("blur")}><feGaussianBlur stdDeviation="3" /></filter>
     </defs>
@@ -295,18 +299,222 @@ const Ground = () => {
   );
 };
 
-/** A room seen in cutaway: painted wall, cornice, skirting and floorboards. */
-function Room({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+/** Wall colours for the rooms: [back wall, side walls]. */
+const PAINT = {
+  cream: ["#FFFCF6", "#EFE7DA"], blue: ["#F0F5FA", "#DCE5EF"], warm: ["#FCF3E6", "#EEDFC9"], sage: ["#F2F6EE", "#DDE6D6"],
+} as const;
+type Tone = keyof typeof PAINT;
+
+/**
+ * A room seen in cutaway, with depth: a back wall, side walls and a ceiling
+ * running back to it, and the floorboards coming forward. Bathrooms get a
+ * tiled back wall.
+ */
+function Room({ x, y, w, h, d = 14, tone = "cream", tiles = false }: { x: number; y: number; w: number; h: number; d?: number; tone?: Tone; tiles?: boolean }) {
   const u = useU();
+  const [back, side] = PAINT[tone];
+  const bx = x + d, by = y + d * 0.6, bw = w - 2 * d, bh = h - d * 0.6 - d;
   return (
     <g>
-      <rect x={x} y={y} width={w} height={h} fill={u("wall")} />
-      <rect x={x} y={y} width={w} height="5" fill="#E9E1D4" />
-      <rect x={x} y={y + h - 14} width={w} height="14" fill={u("boards")} />
-      <rect x={x} y={y + h - 18} width={w} height="4" fill="#FFFFFF" stroke="#E2D9CB" strokeWidth=".8" />
+      <rect x={x} y={y} width={w} height={h} fill={side} />
+      <polygon points={`${x},${y} ${x + w},${y} ${bx + bw},${by} ${bx},${by}`} fill="#FBF9F5" />
+      <rect x={bx} y={by} width={bw} height={bh} fill={tiles ? u("tiles") : back} />
+      <rect x={bx} y={by} width={bw} height={bh} fill={u("shade")} />
+      <polygon points={`${x},${y} ${bx},${by} ${bx},${by + bh} ${x},${y + h}`} fill={side} />
+      <polygon points={`${x + w},${y} ${bx + bw},${by} ${bx + bw},${by + bh} ${x + w},${y + h}`} fill={side} opacity=".85" />
+      <polygon points={`${x},${y + h} ${x + w},${y + h} ${bx + bw},${by + bh} ${bx},${by + bh}`} fill={u("boards")} />
+      <polygon points={`${x},${y + h} ${x + w},${y + h} ${bx + bw},${by + bh} ${bx},${by + bh}`} fill={u("floorshade")} />
+      {!tiles && <rect x={bx} y={by + bh - 4} width={bw} height="4" fill="#FFFFFF" stroke="#E2D9CB" strokeWidth=".6" />}
+      <path d={`M${bx} ${by} H${bx + bw}`} stroke="#E4DBCD" strokeWidth="1.5" />
     </g>
   );
 }
+
+/** A window in the back wall, with the sky through it and curtains either side. */
+function Window({ x, y, w, h, curtains = false }: { x: number; y: number; w: number; h: number; curtains?: boolean }) {
+  const u = useU();
+  return (
+    <g>
+      <rect x={x - 4} y={y - 4} width={w + 8} height={h + 8} rx="2" fill="#fff" stroke="#D3CCC0" />
+      <rect x={x} y={y} width={w} height={h} fill={u("glass")} />
+      <path d={`M${x} ${y + h * 0.78} q${w * 0.25} -10 ${w * 0.5} -4 t${w * 0.5} 2 V${y + h} H${x}Z`} fill="#A9CF96" opacity=".7" />
+      <path d={`M${x + w / 2} ${y} V${y + h} M${x} ${y + h * 0.45} H${x + w}`} stroke="#fff" strokeWidth="3" />
+      <path d={`M${x + 6} ${y + h - 10} L${x + w * 0.4} ${y + 8}`} stroke="#fff" strokeOpacity=".6" strokeWidth="3" />
+      <rect x={x - 6} y={y + h + 2} width={w + 12} height="5" rx="2" fill="#EDE6DA" />
+      {curtains && (
+        <g>
+          <rect x={x - 12} y={y - 9} width={w + 24} height="3" rx="1.5" fill="#8A7360" />
+          {[x - 11, x + w + 1].map((cx, i) => (
+            <path key={i} d={`M${cx} ${y - 6} h10 v${h + 12} q-5 3 -10 0Z`} fill={i ? "#C9B79C" : "#D4C3A8"} />
+          ))}
+          <path d={`M${x - 8} ${y - 6} v${h + 10} M${x + w + 5} ${y - 6} v${h + 10}`} stroke="#B4A285" strokeWidth="1" />
+        </g>
+      )}
+    </g>
+  );
+}
+
+/** A bathroom vanity: cabinet, basin and tap, with a mirror above. */
+function Vanity({ x, y, w = 56 }: { x: number; y: number; w?: number }) {
+  return (
+    <g>
+      <rect x={x + 6} y={y - 58} width={w - 12} height="40" rx="4" fill="#DDEBF4" stroke="#B9C3CF" />
+      <path d={`M${x + 12} ${y - 26} L${x + 22} ${y - 52}`} stroke="#fff" strokeWidth="3" strokeOpacity=".8" />
+      <rect x={x} y={y} width={w} height="30" rx="3" fill="#F5F1EA" stroke="#D3CCC0" />
+      <path d={`M${x + w / 2} ${y + 4} V${y + 26}`} stroke="#D3CCC0" />
+      <rect x={x - 2} y={y - 4} width={w + 4} height="5" rx="2" fill="#E9E4DC" />
+      <ellipse cx={x + w / 2} cy={y - 4} rx="13" ry="3.5" fill="#fff" stroke="#C3CBD6" />
+      <path d={`M${x + w / 2} ${y - 6} v-8 h6`} stroke="#AEB7C4" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    </g>
+  );
+}
+
+/** A pendant light hanging from the ceiling, lit. */
+function Pendant({ x, y, len = 26 }: { x: number; y: number; len?: number }) {
+  return (
+    <g>
+      <line x1={x} y1={y} x2={x} y2={y + len} stroke="#55607A" strokeWidth="1.2" />
+      <ellipse cx={x} cy={y + len + 10} rx="22" ry="14" fill="#FFE7A8" opacity=".25" />
+      <path d={`M${x - 9} ${y + len + 9} L${x - 4} ${y + len} H${x + 4} L${x + 9} ${y + len + 9}Z`} fill="#2F3A55" />
+      <ellipse cx={x} cy={y + len + 9} rx="4" ry="1.8" fill="#FFF3C4" />
+    </g>
+  );
+}
+
+function Rug({ cx, cy, rx }: { cx: number; cy: number; rx: number }) {
+  return <ellipse cx={cx} cy={cy} rx={rx} ry="6" fill="#D9B79A" opacity=".75" />;
+}
+
+function Chair({ x, y, flip = false }: { x: number; y: number; flip?: boolean }) {
+  const s = flip ? -1 : 1;
+  return (
+    <g>
+      <path d={`M${x} ${y} v26 M${x} ${y + 14} h${12 * s} v12`} stroke="#7B5A3E" strokeWidth="3" fill="none" />
+      <rect x={flip ? x - 12 : x} y={y + 11} width="13" height="4" rx="1" fill="#9A7350" />
+    </g>
+  );
+}
+
+function BedLamp({ x, y }: { x: number; y: number }) {
+  return (
+    <g>
+      <rect x={x} y={y} width="16" height="18" rx="2" fill="#B08A66" />
+      <line x1={x + 8} y1={y} x2={x + 8} y2={y - 10} stroke="#55607A" strokeWidth="1.5" />
+      <path d={`M${x + 2} ${y - 9} L${x + 4} ${y - 17} H${x + 12} L${x + 14} ${y - 9}Z`} fill="#F5E6C8" />
+      <ellipse cx={x + 8} cy={y - 8} rx="14" ry="9" fill="#FFE7A8" opacity=".25" />
+    </g>
+  );
+}
+
+/** A tree behind the house, softened so it sits back. */
+function Tree({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${s})`} opacity=".9">
+      <rect x="-3" y="0" width="6" height="40" fill="#8A6B4E" />
+      <circle cx="0" cy="-12" r="22" fill="#86B575" />
+      <circle cx="-16" cy="2" r="15" fill="#7DAE6B" />
+      <circle cx="15" cy="0" r="16" fill="#76A865" />
+      <circle cx="4" cy="-26" r="13" fill="#93BF82" />
+    </g>
+  );
+}
+
+function Shrub({ x, y }: { x: number; y: number }) {
+  return (
+    <g>
+      <ellipse cx={x} cy={y} rx="18" ry="11" fill="#5E9550" />
+      <ellipse cx={x - 9} cy={y - 4} rx="9" ry="7" fill="#6FA45F" />
+      <ellipse cx={x + 8} cy={y - 5} rx="8" ry="6" fill="#77AC66" />
+    </g>
+  );
+}
+
+/** Ceiling insulation: batts laid between the joists, fluffy side up. */
+function Batts({ x1, x2, y }: { x1: number; x2: number; y: number }) {
+  const n = Math.floor((x2 - x1) / 10);
+  return (
+    <g>
+      <rect x={x1} y={y} width={x2 - x1} height="12" fill="#F2B8A6" />
+      <path d={`M${x1} ${y + 2} ${Array.from({ length: n }, () => "q2.5 -5 5 0 q2.5 4 5 0").join(" ")}`} fill="none" stroke="#F7CDBF" strokeWidth="3" />
+      {Array.from({ length: Math.floor((x2 - x1) / 48) + 1 }, (_, i) => <rect key={i} x={x1 + i * 48} y={y + 3} width="5" height="9" fill="#C9A473" />)}
+    </g>
+  );
+}
+
+/** The roof space: the triangle under the tiles, its trusses, and the foil sarking. */
+function RoofSpace({ l, r, top, eave, space = true }: { l: number; r: number; top: number; eave: number; space?: boolean }) {
+  const u = useU();
+  const mid = (l + r) / 2;
+  const at = (k: number, side: -1 | 1) => [mid + side * (mid - l) * k, top + (eave - top) * k] as const;
+  return (
+    <g>
+      <polygon points={`${l},${eave} ${mid},${top} ${r},${eave}`} fill={space ? u("roofspace") : "#E9DFD0"} />
+      {space && (
+        <g>
+          <polyline points={`${l + 6},${eave - 2} ${mid},${top + 5} ${r - 6},${eave - 2}`} fill="none" stroke="#D9DDE3" strokeWidth="2" />
+          <polyline points={`${l + 10},${eave - 1} ${mid},${top + 9} ${r - 10},${eave - 1}`} fill="none" stroke="#C9A473" strokeWidth="5" strokeLinejoin="round" />
+          <g stroke="#D2B48A" strokeWidth="3.5">
+            <line x1={mid} y1={top + 9} x2={mid} y2={eave} />
+            {([-1, 1] as const).map((s) => {
+              const [ax, ay] = at(0.5, s), [bx, by] = at(0.75, s);
+              return (
+                <g key={s}>
+                  <line x1={mid} y1={eave} x2={ax} y2={ay + 4} />
+                  <line x1={ax} y1={eave} x2={ax} y2={ay + 4} />
+                  <line x1={ax} y1={eave} x2={bx} y2={by + 3} />
+                </g>
+              );
+            })}
+          </g>
+        </g>
+      )}
+    </g>
+  );
+}
+
+/** Terracotta tiles along both slopes, ridge capping, and a gutter at each eave. */
+function RoofTiles({ l, r, top, eave }: { l: number; r: number; top: number; eave: number }) {
+  const mid = (l + r) / 2;
+  const pts = `${l - 8},${eave + 5} ${mid},${top - 5} ${r + 8},${eave + 5}`;
+  return (
+    <g>
+      <polyline points={pts} fill="none" stroke="#7A3A28" strokeWidth="14" strokeLinejoin="round" />
+      <polyline points={pts} fill="none" stroke="#A9573D" strokeWidth="12" strokeLinejoin="round" />
+      <polyline points={pts} fill="none" stroke="#C26A4C" strokeWidth="4" strokeLinejoin="round" transform="translate(0 -3)" />
+      <polyline points={pts} fill="none" stroke="#7A3A28" strokeWidth="12" strokeLinejoin="round" strokeDasharray="1.5 8" />
+      <rect x={mid - 9} y={top - 14} width="18" height="9" rx="4" fill="#8E4630" />
+      {[l - 14, r + 2].map((x) => (
+        <g key={x}>
+          <rect x={x} y={eave + 4} width="12" height="8" fill="#F4F1EC" />
+          <path d={`M${x - 1} ${eave + 10} h14 v4 a7 7 0 0 1 -14 0z`} fill="#B9C0C9" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** The tiled roof whole, for houses where nothing has to pass through it. */
+function Roof(props: { l: number; r: number; top: number; eave: number; space?: boolean }) {
+  return <><RoofSpace {...props} /><RoofTiles {...props} /></>;
+}
+
+/** A round ceiling diffuser, with the soft cone of air it throws into the room. */
+function Diffuser({ x, y, c, on = true }: { x: number; y: number; c: string; on?: boolean }) {
+  const u = useU();
+  return (
+    <g>
+      {on && <path d={`M${x - 14} ${y + 6} L${x - 46} ${y + 92} H${x + 46} L${x + 14} ${y + 6}Z`} fill={u(c === C.hot ? "plumeHot" : "plumeCold")} />}
+      <rect x={x - 9} y={y - 6} width="18" height="7" fill="#B9C2CE" />
+      <ellipse cx={x} cy={y + 3} rx="19" ry="5" fill="#fff" stroke={on ? "#7F8B9C" : C.line} strokeWidth="1.2" />
+      <ellipse cx={x} cy={y + 3} rx="12" ry="3" fill="none" stroke={on ? "#9AA6B5" : C.line} strokeWidth="1" />
+      <ellipse cx={x} cy={y + 3} rx="5" ry="1.4" fill={on ? "#7F8B9C" : C.line} />
+    </g>
+  );
+}
+
+/** A strap from a roof timber holding a duct up. */
+const Strap = ({ x, y1, y2 }: { x: number; y1: number; y2: number }) => <line x1={x} y1={y1} x2={x} y2={y2} stroke="#8A8F99" strokeWidth="1.4" />;
+
 
 const Brick = ({ x, y, w, h }: { x: number; y: number; w: number; h: number }) => {
   const u = useU();
@@ -322,18 +530,6 @@ const Eave = ({ x, y, w }: { x: number; y: number; w: number }) => (
   </g>
 );
 
-function Window({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  const u = useU();
-  return (
-    <g>
-      <rect x={x - 4} y={y - 4} width={w + 8} height={h + 8} rx="3" fill="#fff" stroke="#D3CCC0" />
-      <rect x={x} y={y} width={w} height={h} fill={u("glass")} />
-      <path d={`M${x + w / 2} ${y} V${y + h} M${x} ${y + h * 0.45} H${x + w}`} stroke="#fff" strokeWidth="3" />
-      <path d={`M${x + 6} ${y + h - 10} L${x + w * 0.4} ${y + 8}`} stroke="#fff" strokeOpacity=".7" strokeWidth="3" />
-      <rect x={x - 6} y={y + h + 2} width={w + 12} height="5" rx="2" fill="#EDE6DA" />
-    </g>
-  );
-}
 
 function Sofa({ x, y, w }: { x: number; y: number; w: number }) {
   return (
@@ -376,28 +572,6 @@ function Plant({ x, y }: { x: number; y: number }) {
   );
 }
 
-/** A tiled roof over a roof space, from the left eave to the right eave. */
-function Roof({ l, r, top, eave, space = true }: { l: number; r: number; top: number; eave: number; space?: boolean }) {
-  const u = useU();
-  const mid = (l + r) / 2;
-  return (
-    <g>
-      <polygon points={`${l},${eave} ${mid},${top} ${r},${eave}`} fill={space ? u("roofspace") : "#E9DFD0"} />
-      {space && (
-        <g stroke="#D2B48A" strokeWidth="3">
-          <line x1={mid} y1={top + 6} x2={mid} y2={eave} />
-          <line x1={mid} y1={eave} x2={(l + mid) / 2} y2={(eave + top) / 2 + 4} />
-          <line x1={mid} y1={eave} x2={(r + mid) / 2} y2={(eave + top) / 2 + 4} />
-          <line x1={l + 10} y1={eave - 1} x2={r - 10} y2={eave - 1} />
-        </g>
-      )}
-      <polyline points={`${l - 8},${eave + 5} ${mid},${top - 5} ${r + 8},${eave + 5}`} fill="none" stroke="#9A4F38" strokeWidth="11" strokeLinejoin="round" />
-      <polyline points={`${l - 8},${eave + 5} ${mid},${top - 5} ${r + 8},${eave + 5}`} fill="none" stroke="#7A3A28" strokeWidth="11" strokeLinejoin="round" strokeDasharray="2 9" />
-      <rect x={l - 12} y={eave + 4} width="10" height="7" fill="#fff" />
-      <rect x={r + 2} y={eave + 4} width="10" height="7" fill="#fff" />
-    </g>
-  );
-}
 
 /** A label on a white pill so it reads over anything. */
 function Label({ x, y, children, anchor = "middle", c = C.navy }: { x: number; y: number; children: string; anchor?: "start" | "middle" | "end"; c?: string }) {
@@ -543,7 +717,7 @@ function SplitScene({ heat = false }: { heat?: boolean }) {
       {heat ? <><Cloud x={470} y={60} s={1.2} dark /><Cloud x={560} y={110} s={0.8} dark /></> : <><Sun cx={545} cy={64} /><Cloud x={455} y={120} s={0.8} /></>}
       <Ground />
       <rect x="14" y="28" width="368" height="12" fill="#C9C2B6" />
-      <Room x={24} y={40} w={330} h={312} />
+      <Room x={24} y={40} w={330} h={312} tone="warm" />
       <Window x={40} y={150} w={72} h={92} />
       <Sofa x={64} y={304} w={146} />
       <Plant x={262} y={322} />
@@ -572,9 +746,9 @@ function MultiScene() {
       <Sun cx={548} cy={70} />
       <Ground />
       <rect x="14" y="28" width="368" height="12" fill="#C9C2B6" />
-      <Room x={24} y={40} w={164} h={152} />
-      <Room x={188} y={40} w={166} h={152} />
-      <Room x={24} y={192} w={330} h={160} />
+      <Room x={24} y={40} w={164} h={152} tone="blue" />
+      <Room x={188} y={40} w={166} h={152} tone="sage" />
+      <Room x={24} y={192} w={330} h={160} tone="warm" />
       <path d="M24 192 H354" stroke="#C9C2B6" strokeWidth="8" />
       <path d="M188 40 V192" stroke="#D8D1C5" strokeWidth="6" />
       <Brick x={354} y={40} w={28} h={312} />
@@ -603,69 +777,121 @@ function MultiScene() {
   );
 }
 
-/** Ducted, gas ducted and zoning share a house: a unit in the roof, ducts to three rooms. */
+/**
+ * Ducted, gas ducted and zoning share a house: a single-storey brick-veneer
+ * home cut open, with the unit sitting on boards in the roof, flex duct
+ * strapped to the trusses and running over the ceiling batts to a round
+ * diffuser in each room, and the return air coming back through a grille in
+ * the ceiling.
+ */
 function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
+  const u = useU();
   const warm = kind === "gas";
   const air = warm ? C.hot : C.cold;
   const wide = kind !== "ducted";
-  const R = wide ? 576 : 440;
   const off = kind === "zoning";
-  const u = useU();
+  const R = wide ? 576 : 440;
+  const L = 14, RR = R + 10, TOP = 40, EAVE = 134, MID = (L + RR) / 2;
+  // Where the underside of the roof is at x, for hanging straps from it.
+  const roofY = (x: number) => (x < MID ? EAVE - ((x - L) / (MID - L)) * (EAVE - TOP) : TOP + ((x - MID) / (RR - MID)) * (EAVE - TOP)) + 10;
   const w1 = wide ? 210 : 160, w2 = wide ? 400 : 300;
+  const v2 = wide ? 300 : 220, v3 = wide ? 490 : 380;
+  const rx = wide ? 168 : 138;
+  const runs = [
+    { x: 80, d: "M150 110 H96 Q80 110 80 126 V146", on: true, straps: [118] },
+    { x: v2, d: `M205 130 V134 Q205 138 213 138 H${v2 - 12} Q${v2} 138 ${v2} 146`, on: true, straps: [] as number[] },
+    { x: v3, d: `M284 110 H${v3 - 16} Q${v3} 110 ${v3} 126 V146`, on: !off, straps: wide ? [350, 440] : [330] },
+  ];
   return (
     <>
       <Sky />
-      {warm ? <Cloud x={560} y={40} s={0.9} dark /> : !wide && <Sun cx={540} cy={70} />}
+      {warm ? <><Cloud x={560} y={40} s={0.9} dark /><Cloud x={80} y={30} s={0.7} dark /></> : !wide && <Sun cx={540} cy={70} />}
+      {!wide && <Tree x={548} y={200} s={1.1} />}
       <Ground />
-      <Roof l={14} r={R + 10} top={40} eave={134} />
-      {/* ceiling insulation, then the rooms */}
-      <rect x="24" y="136" width={R - 24} height="14" fill="#F3D77A" />
-      <path d={`M24 143 ${Array.from({ length: Math.floor((R - 24) / 12) }, (_, i) => `q3 -6 6 0 q3 6 6 0`).join(" ")}`} stroke="#E0BC4E" fill="none" strokeWidth="1.5" transform="translate(0 0)" />
-      <Room x={24} y={150} w={w1 - 24} h={202} />
-      <Room x={w1} y={150} w={w2 - w1} h={202} />
-      <Room x={w2} y={150} w={R - w2} h={202} />
-      <path d={`M${w1} 150 V352 M${w2} 150 V352`} stroke="#D8D1C5" strokeWidth="6" />
-      <rect x="20" y="148" width={R - 16} height="4" fill="#C9C2B6" />
-      <Bed x={34} y={316} w={wide ? 120 : 100} />
-      <Sofa x={w1 + 28} y={306} w={wide ? 130 : 100} />
-      <Table x={w2 + 24} y={312} w={wide ? 100 : 80} />
-      {/* the unit in the roof */}
+      <RoofSpace l={L} r={RR} top={TOP} eave={EAVE} />
+      <Batts x1={24} x2={R} y={136} />
+      <rect x="20" y="148" width={R - 16} height="5" fill="#E7E1D7" />
+      {/* the rooms: a bedroom, the living room, the dining room */}
+      <Room x={24} y={152} w={w1 - 24} h={200} tone="blue" />
+      <Room x={w1} y={152} w={w2 - w1} h={200} tone="warm" />
+      <Room x={w2} y={152} w={R - w2} h={200} tone="sage" />
+      <path d={`M${w1} 152 V352 M${w2} 152 V352`} stroke="#D8D1C5" strokeWidth="6" />
+      <Brick x={14} y={134} w={10} h={218} />
+      <Brick x={R} y={134} w={10} h={218} />
+      {wide && <path d={`M${RR + 4} 144 V350`} stroke="#B9C0C9" strokeWidth="5" strokeLinecap="round" />}
+
+      {wide ? <Window x={104} y={182} w={44} h={46} curtains /> : <Window x={92} y={182} w={34} h={42} curtains />}
+      <Bed x={34} y={318} w={wide ? 118 : 96} />
+      {wide && <BedLamp x={160} y={322} />}
+      <Window x={wide ? 330 : 246} y={182} w={wide ? 52 : 40} h={46} curtains />
+      <Rug cx={(w1 + w2) / 2} cy={344} rx={wide ? 82 : 58} />
+      <Sofa x={w1 + 28} y={308} w={wide ? 130 : 100} />
+      <Pendant x={wide ? 252 : 190} y={153} />
+      <Window x={wide ? 516 : 398} y={182} w={wide ? 44 : 30} h={46} curtains />
+      <Pendant x={wide ? 452 : 338} y={153} len={34} />
+      <Chair x={w2 + 18} y={316} />
+      <Table x={w2 + 34} y={314} w={wide ? 92 : 70} />
+      <Chair x={w2 + (wide ? 140 : 118)} y={316} flip />
+      {off && <rect x={w2} y={152} width={R - w2} height={200} fill={C.navy} opacity=".18" />}
+
+      {/* the unit, on boards across the joists, with its plenum box */}
+      <rect x="138" y="130" width="156" height="5" fill="#C9A473" />
       {warm ? (
         <g>
-          <rect x="150" y="92" width="110" height="38" rx="6" fill={u("metal")} stroke="#B9C3CF" strokeWidth="1.5" />
-          <rect x="166" y="100" width="66" height="24" rx="4" fill="#1C2233" />
-          <Flame x={182} y={124} s={0.55} /><Flame x={199} y={124} s={0.55} /><Flame x={216} y={124} s={0.55} />
-          <circle cx="246" cy="104" r="3" fill="#4ADE80" />
-          <path d="M252 92 V30" stroke="#AAB4C2" strokeWidth="9" />
-          <rect x="245" y="24" width="14" height="8" rx="2" fill="#8A97AB" />
-          <Puffs x={252} y={22} />
+          <path d="M252 92 V28" stroke="#AAB4C2" strokeWidth="9" />
+          <rect x="150" y="92" width="110" height="38" rx="5" fill={u("metal")} stroke="#9AA6B5" strokeWidth="1.5" />
+          <rect x="164" y="99" width="66" height="25" rx="3" fill="#1C2233" />
+          <Flame x={180} y={124} s={0.55} /><Flame x={197} y={124} s={0.55} /><Flame x={214} y={124} s={0.55} />
+          {[0, 1, 2, 3].map((i) => <line key={i} x1="236" y1={100 + i * 6} x2="254" y2={100 + i * 6} stroke="#B9C3CF" strokeWidth="2" />)}
+          <circle cx="245" cy="125" r="2.5" fill="#4ADE80" />
         </g>
       ) : (
         <g>
-          <rect x="150" y="92" width="110" height="38" rx="6" fill={u("metal")} stroke="#B9C3CF" strokeWidth="1.5" />
-          <rect x="158" y="99" width="36" height="24" rx="3" fill={u("fins")} />
+          <rect x="150" y="92" width="110" height="38" rx="5" fill={u("metal")} stroke="#9AA6B5" strokeWidth="1.5" />
+          <rect x="157" y="99" width="38" height="25" rx="2" fill={u("fins")} />
           <Fan cx={226} cy={111} r={13} grille={false} />
+          {[[154, 95], [256, 95], [154, 127], [256, 127]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.2" fill="#8A97AB" />)}
         </g>
       )}
-      {/* supply ducts, vents, and the air into each room */}
-      {[
-        { d: "M150 110 H80 V150", vx: 80, on: true },
-        { d: wide ? "M205 130 V138 H300 V150" : "M205 130 V138 H220 V150", vx: wide ? 300 : 220, on: true },
-        { d: `M260 110 H${wide ? 490 : 380} V150`, vx: wide ? 490 : 380, on: !off },
-      ].map((v, i) => (
+      <rect x="260" y="96" width="24" height="32" rx="2" fill={u("duct")} stroke="#9AA6B5" />
+      <path d="M266 96 V128 M278 96 V128" stroke="#9AA6B5" strokeWidth=".8" />
+
+      {/* supply runs to each room, strapped up off the batts */}
+      {runs.map((v, i) => (
         <g key={i}>
+          {v.straps.map((sx) => <Strap key={sx} x={sx} y1={roofY(sx)} y2={104} />)}
           <Duct d={v.d} c={air} on={v.on} />
-          <Vent x={v.vx} y={150} on={v.on} />
-          {v.on ? <Breeze x={v.vx} y={166} dx={0} dy={56} c={air} n={3} gap={14} /> : <Label x={v.vx} y={196} c={C.grey}>Zone off</Label>}
+          <Diffuser x={v.x} y={150} c={air} on={v.on} />
+          {v.on ? <Breeze x={v.x} y={166} dx={0} dy={56} c={air} n={3} gap={14} /> : <Label x={v.x} y={204} c={C.grey}>Zone off</Label>}
         </g>
       ))}
-      {/* return air back to the unit */}
-      <rect x={wide ? 150 : 120} y="150" width="36" height="9" rx="2" fill="#fff" stroke={C.navy} strokeWidth="1.5" />
-      <path d={`M${(wide ? 150 : 120) + 5} 154.5 H${(wide ? 150 : 120) + 31}`} stroke={C.navy} strokeWidth="1" strokeDasharray="2 2" />
-      <Duct d={`M${wide ? 168 : 138} 150 V128 H150`} c={C.grey} w={11} />
-      <Breeze x={wide ? 168 : 138} y={236} dx={0} dy={-66} c={C.grey} n={2} gap={14} />
-      {/* dampers: one per zone */}
+      {/* return air: a grille in the hall ceiling, back up to the unit */}
+      <Duct d={wide ? `M${rx} 150 V132` : `M${rx} 150 V140 Q${rx} 128 ${rx + 12} 128 H150`} c={C.grey} w={14} />
+      <rect x={rx - 18} y="150" width="36" height="9" rx="2" fill="#fff" stroke={C.navy} strokeWidth="1.5" />
+      <path d={`M${rx - 13} 152.5 H${rx + 13} M${rx - 13} 155 H${rx + 13} M${rx - 13} 157.5 H${rx + 13}`} stroke="#9AA6B5" strokeWidth=".8" />
+      <Breeze x={rx} y={236} dx={0} dy={-66} c={C.grey} n={2} gap={14} />
+
       {kind !== "gas" && [[110, 110], [wide ? 270 : 213, 138], [wide ? 420 : 330, 110]].map(([x, y], i) => <Damper key={i} x={x} y={y} shut={i === 2 && off} />)}
+
+      {kind === "ducted" && (
+        <>
+          {/* refrigerant lines out under the eave and down the wall */}
+          <Pipe d="M284 118 H438 Q455 118 455 135 V282 Q455 292 465 292" c={C.cold} w={7} />
+          <OutdoorUnit x={466} y={262} w={106} h={90} fan={{ cx: 524, cy: 304, r: 28 }} />
+          <Breeze x={576} y={304} dx={18} dy={0} c={C.hot} n={3} gap={14} />
+        </>
+      )}
+      <RoofTiles l={L} r={RR} top={TOP} eave={EAVE} />
+      {warm && (
+        <g>
+          <rect x="244" y="20" width="16" height="8" rx="2" fill="#8A97AB" />
+          <rect x="242" y="52" width="20" height="5" fill="#9AA6B5" />
+          <Puffs x={252} y={18} />
+        </g>
+      )}
+      {!wide && <Shrub x={578} y={350} />}
+      {wide && <><Shrub x={6} y={352} /><Shrub x={594} y={352} /></>}
+
       {kind === "zoning" && (
         <g>
           <rect x="238" y="234" width="34" height="46" rx="6" fill={C.navy} />
@@ -681,14 +907,7 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
           <text x="317" y="81" textAnchor="middle" className="hw-meter" fill="#7CF0A6">CO 0 ✓</text>
         </g>
       )}
-      {kind === "ducted" && (
-        <>
-          <Pipe d="M260 100 H452 V290 H462" c={C.cold} w={7} />
-          <OutdoorUnit x={462} y={262} w={110} h={90} fan={{ cx: 522, cy: 304, r: 28 }} />
-          <Breeze x={576} y={304} dx={18} dy={0} c={C.hot} n={3} gap={14} />
-        </>
-      )}
-      <Temp x={wide ? 430 : 330} y={warm ? 236 : 236} t={warm ? "21°" : "22°"} hot={warm} />
+      <Temp x={off ? 300 : wide ? 418 : 318} y={244} t={warm ? "21°" : "22°"} hot={warm} />
       <Label x={warm ? 150 : 205} y={82} anchor={warm ? "start" : "middle"}>{warm ? "Gas heater" : "Unit in the roof"}</Label>
     </>
   );
@@ -702,7 +921,7 @@ function EvapScene() {
       <Sun cx={530} cy={60} />
       <Ground />
       <Roof l={50} r={460} top={56} eave={144} />
-      <Room x={60} y={144} w={390} h={208} />
+      <Room x={60} y={144} w={390} h={208} tone="warm" />
       <Sofa x={150} y={306} w={150} />
       <Plant x={360} y={322} />
       {/* the cooler: wet pads on the sides, a fan blowing down */}
@@ -746,8 +965,8 @@ function AioScene() {
       <Eave x={200} y={114} w={400} />
       <Roof l={14} r={210} top={50} eave={114} space={false} />
       <path d="M58 94 L112 62 L152 86 L98 118Z" fill={u("pv")} stroke="#AFC0E8" strokeWidth="1.5" />
-      <Room x={24} y={114} w={176} h={238} />
-      <rect x="24" y="114" width="176" height="160" fill={u("tiles")} opacity=".9" />
+      <Room x={24} y={114} w={176} h={238} tiles />
+      <Vanity x={40} y={300} />
       <rect x="100" y="140" width="4" height="120" fill="#D7E6F0" opacity=".8" />
       <Shower x={150} y={150} />
       {/* hot out to the house, cold in from the mains */}
@@ -778,7 +997,8 @@ function Co2Scene() {
       <Brick x={174} y={114} w={426} h={238} />
       <Eave x={174} y={114} w={426} />
       <Roof l={14} r={184} top={56} eave={114} space={false} />
-      <Room x={24} y={114} w={150} h={238} />
+      <Room x={24} y={114} w={150} h={238} tiles />
+      <Vanity x={40} y={300} w={50} />
       <Shower x={130} y={150} />
       <Tank x={206} y={104} w={72} h={244} />
       <Pipe d="M206 130 H180 V150 H130" c={C.water} w={7} />
@@ -804,8 +1024,8 @@ function GasCfScene() {
       <Brick x={240} y={40} w={360} h={312} />
       <Eave x={240} y={40} w={360} />
       <rect x="14" y="28" width="236" height="12" fill="#C9C2B6" />
-      <Room x={24} y={40} w={216} h={312} />
-      <rect x="24" y="40" width="216" height="230" fill={u("tiles")} opacity=".9" />
+      <Room x={24} y={40} w={216} h={312} tiles />
+      <Vanity x={44} y={302} w={64} />
       <rect x="96" y="96" width="4" height="170" fill="#D7E6F0" opacity=".8" />
       <Shower x={150} y={110} />
       {/* the unit on the outside wall, cut open: heat exchanger above the burners */}
@@ -840,8 +1060,8 @@ function GasStorageScene() {
       <Brick x={214} y={80} w={386} h={272} />
       <Eave x={214} y={80} w={386} />
       <rect x="14" y="68" width="210" height="12" fill="#C9C2B6" />
-      <Room x={24} y={80} w={190} h={272} />
-      <rect x="24" y="80" width="190" height="200" fill={u("tiles")} opacity=".9" />
+      <Room x={24} y={80} w={190} h={272} tiles />
+      <Vanity x={44} y={302} />
       <Shower x={150} y={120} />
       {/* the flue, the tank, the burner underneath */}
       <rect x="302" y="34" width="16" height="60" fill="#AAB4C2" />
