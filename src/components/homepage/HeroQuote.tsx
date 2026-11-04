@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FSVC, QB, SIZE_NOTE, PHOTO_TIP, findSystem, pickSummary, answerMap,
+  FSVC, QB, SIZE_NOTE, PHOTO_TIP, ICON, findSystem, pickSummary, answerMap,
   type Answers, type Question, type System,
 } from "@/lib/homepage/data";
 import { onIntent } from "@/lib/homepage/intent";
+import { AddressField, type Address } from "./AddressField";
 import { readUtm, trackLead } from "@/lib/track";
 
 /**
@@ -35,7 +36,8 @@ export function HeroQuote() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [suburb, setSuburb] = useState("");
+  // The address box fills all three when a suggestion is picked; typed by hand, only `address`.
+  const [addr, setAddr] = useState<Address>({ label: "", suburb: null, postcode: null });
   const [email, setEmail] = useState("");
   const [hp, setHp] = useState("");
   const [nudge, setNudge] = useState(false);
@@ -55,7 +57,10 @@ export function HeroQuote() {
   const typeQs: Question[] = booked ? [] : fi ? fi.qs : [];
   const asksUrgent = typeQs.some((q) => q.id === "urgent");
   const biz = fi?.biz ?? fs?.biz ?? false;
-  const tailQs: Question[] = [...(asksUrgent ? [] : [QB.when]), biz ? QB.ownBiz : QB.own];
+  // "Is this your home?" was cut (Jake, Nov 2026): it slowed the form and the
+  // site check answers it anyway. Businesses still say who they are, since a
+  // strata or facility manager changes who we quote.
+  const tailQs: Question[] = [...(asksUrgent ? [] : [QB.when]), ...(biz ? [QB.ownBiz] : [])];
   const allQs = [...typeQs, ...tailQs];
 
   const steps = useMemo(() => {
@@ -125,7 +130,7 @@ export function HeroQuote() {
 
   async function saveLead(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !phone.trim() || !suburb.trim() || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+    if (!name.trim() || !phoneOk(phone) || !addr.label.trim() || (email && !emailOk(email))) {
       setNudge(true);
       return;
     }
@@ -137,7 +142,7 @@ export function HeroQuote() {
       ...answerMap(allQs, ans),
     };
     const when = ans.urgent != null ? QB.urgent.opts[ans.urgent].label : ans.when != null ? QB.when.opts[ans.when].label : undefined;
-    const own = ans.own != null ? (biz ? QB.ownBiz : QB.own).opts[ans.own].label : undefined;
+    const own = biz && ans.own != null ? QB.ownBiz.opts[ans.own].label : undefined;
     try {
       const res = await fetch("/api/quote", {
         method: "POST",
@@ -149,7 +154,10 @@ export function HeroQuote() {
             answers,
             ...(booked ? { pick: booked.pick, findPage: `/find/${booked.sys.slug}/${booked.tierSlug}${booked.model ? `?model=${booked.model}` : ""}` } : { job: job.join(" · ") }),
           },
-          name: name.trim(), phone: phone.trim(), suburb: suburb.trim(), email: email.trim(),
+          name: name.trim(), phone: phone.trim(), email: email.trim(),
+          // Picked from the list, the suburb and postcode come with it; typed
+          // by hand, the whole thing goes in as the address for the office to read.
+          address: addr.label.trim(), suburb: addr.suburb ?? undefined, postcode: addr.postcode ?? undefined,
           timing: when, propertyType: own,
           hp,
           pagePath: window.location.pathname,
@@ -216,6 +224,9 @@ export function HeroQuote() {
   const tipCat = fs?.cat ?? (booked ? findSystem(booked.sys.slug)?.cat.id : undefined);
   const tip = (tipCat && PHOTO_TIP[tipCat]) || "A photo of the unit, its label or the problem helps us price it faster. Optional.";
   const err = (v: string) => nudge && !v.trim();
+  /** Australian numbers are ten digits (eleven with +61); anything with eight or more is worth a call back. */
+  const phoneOk = (v: string) => v.replace(/\D/g, "").length >= 8;
+  const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
   return (
     <div id="quote" className="qf anim" ref={ref} style={{ animationDelay: ".12s" }}>
@@ -321,25 +332,30 @@ export function HeroQuote() {
             </div>
           )}
           <input className="qf__hp" tabIndex={-1} autoComplete="off" aria-hidden="true" name="company" value={hp} onChange={(e) => setHp(e.target.value)} />
-          <div className="qf__field">
-            <label htmlFor="q-name">Name</label>
-            <input className="ainput" id="q-name" name="name" type="text" autoComplete="name" required placeholder="First and last name" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={err(name)} />
+          <div className="qf__ins">
+            <label className={`qf__in${err(name) ? " qf__in--bad" : ""}`} htmlFor="q-name">
+              <Ic d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" />
+              <span className="qf__inb"><span className="qf__inl">Your name</span>
+                <input id="q-name" name="name" type="text" autoComplete="name" required placeholder="First and last name" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={err(name)} />
+              </span>
+            </label>
+            <label className={`qf__in${nudge && !phoneOk(phone) ? " qf__in--bad" : ""}${phoneOk(phone) ? " qf__in--ok" : ""}`} htmlFor="q-phone">
+              <Ic d={ICON.phone} />
+              <span className="qf__inb"><span className="qf__inl">Mobile or phone</span>
+                <input id="q-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="04xx xxx xxx" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={nudge && !phoneOk(phone)} />
+              </span>
+              {phoneOk(phone) && <span className="qf__tick" aria-hidden="true">✓</span>}
+            </label>
+            <label className={`qf__in${nudge && !!email && !emailOk(email) ? " qf__in--bad" : ""}${emailOk(email) ? " qf__in--ok" : ""}`} htmlFor="q-email">
+              <Ic d="M3 6h18v12H3zM3 7l9 6 9-6" />
+              <span className="qf__inb"><span className="qf__inl">Email <em>optional, for your written quote</em></span>
+                <input id="q-email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={nudge && !!email && !emailOk(email)} />
+              </span>
+              {emailOk(email) && <span className="qf__tick" aria-hidden="true">✓</span>}
+            </label>
+            <AddressField value={addr.label} onChange={setAddr} invalid={err(addr.label)} icon={<Ic d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />} />
           </div>
-          <div className="qf__row2">
-            <div className="qf__field">
-              <label htmlFor="q-phone">Phone</label>
-              <input className="ainput" id="q-phone" name="phone" type="tel" autoComplete="tel" required placeholder="04xx xxx xxx" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={err(phone)} />
-            </div>
-            <div className="qf__field">
-              <label htmlFor="q-suburb">Suburb</label>
-              <input className="ainput" id="q-suburb" name="suburb" type="text" autoComplete="address-level2" required placeholder="e.g. Officer" value={suburb} onChange={(e) => setSuburb(e.target.value)} aria-invalid={err(suburb)} />
-            </div>
-          </div>
-          <div className="qf__field">
-            <label htmlFor="q-email">Email <span>(optional, for your written quote)</span></label>
-            <input className="ainput" id="q-email" name="email" type="email" autoComplete="email" placeholder="you@email.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={nudge && !!email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)} />
-          </div>
-          {nudge && <p className="qf__err" role="alert">We need your name, phone and suburb to send a quote{email ? ", and that email doesn't look quite right" : ""}.</p>}
+          {nudge && <p className="qf__err" role="alert">We need your name, a phone number and your address to send a quote{email ? ", and that email doesn't look quite right" : ""}.</p>}
           {saveFailed && (
             <p className="qf__err" role="alert">That didn&apos;t go through. Try again, or call <a href="tel:+61359478000" data-call-from="quote-form-error">(03) 5947 8000</a> and we&apos;ll take it over the phone.</p>
           )}
@@ -388,12 +404,15 @@ export function HeroQuote() {
           {photosLost && (
             <p className="qf__err">Your enquiry is in, but the photos didn&apos;t come through. Reply to our email or text them to us when we call.</p>
           )}
-          <button type="button" onClick={() => { reset(); setName(""); setPhone(""); setSuburb(""); setEmail(""); }} className="abtn abtn--ghost" style={{ alignSelf: "flex-start", fontSize: 14, padding: "10px 16px" }}>Start again</button>
+          <button type="button" onClick={() => { reset(); setName(""); setPhone(""); setAddr({ label: "", suburb: null, postcode: null }); setEmail(""); }} className="abtn abtn--ghost" style={{ alignSelf: "flex-start", fontSize: 14, padding: "10px 16px" }}>Start again</button>
         </div>
       )}
     </div>
   );
 }
+
+/** The icon at the front of each contact field. */
+const Ic = ({ d }: { d: string }) => <span className="qf__ic"><Svg d={d} size={18} /></span>;
 
 export function Svg({ d, size = 18, stroke = "currentColor", width = 2 }: { d: string; size?: number; stroke?: string; width?: number }) {
   return (

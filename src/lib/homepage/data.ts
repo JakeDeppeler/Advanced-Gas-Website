@@ -144,12 +144,10 @@ const ZONES: Opt[] = [
 export const QB = {
   floor: { id: "floor", q: "Which floor is the room on?", opts: [o("Ground floor"), o("Upstairs", "Longer pipe run to the outdoor unit")] },
   outdoor: { id: "outdoor", q: "Where can the outdoor unit go?", opts: [o("Straight behind the indoor unit", "Back-to-back on the same wall"), o("Further along the wall or around a corner"), o("On a balcony or the roof"), o("Not sure", "We'll work it out on site")] },
-  oldSplit: { id: "old", q: "Is there an old unit to remove?", opts: [o("No, it's a new install"), o("Yes, an old split system"), o("Yes, a window or wall box unit")] },
   storeys: { id: "storeys", q: "Single or double storey?", opts: [o("Single storey"), o("Double storey"), o("Split level")] },
   roofSpace: { id: "roof", q: "What's the roof space like?", opts: [o("Pitched roof with room to move", "Most houses"), o("Low or tight roof space"), o("Flat roof or no access"), o("Not sure")] },
   ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
   roofType: { id: "rooftype", q: "What type of roof?", opts: [o("Tiled"), o("Colorbond or metal"), o("Flat or low pitch")] },
-  oldEvap: { id: "old", q: "Replacing an old evaporative cooler?", opts: [o("Yes, swap the old one"), o("No, it's a new install")] },
   hwNow: { id: "now", q: "What hot water do you have now?", opts: [o("Gas storage tank"), o("Gas continuous flow"), o("Electric storage tank"), o("Solar hot water"), o("Nothing yet", "New build or extension")] },
   hwWhere: { id: "where", q: "Where does the unit go?", opts: [o("Outside, against a wall"), o("Inside, in a laundry or cupboard"), o("Not sure")] },
   solar: { id: "solar", q: "Do you have solar panels?", opts: [o("Yes", "It can heat your water off your solar during the day"), o("No"), o("Planning to")] },
@@ -165,7 +163,6 @@ export const QB = {
   gasUrgent: { id: "urgent", q: "Can you smell gas right now?", opts: [o("Yes", "Get everyone outside, then call us on (03) 5947 8000, 24/7"), o("No, I just want it checked")] },
   jobSize: { id: "size", q: "How big is the job?", opts: [{ label: "1–2 units", sub: "A shop or small office", spec: "Small", n: 1 }, { label: "3–10 units", sub: "A bigger site or a few rentals", spec: "Medium", n: 2 }, { label: "10+ units", sub: "Strata blocks and large sites", spec: "Large", n: 3 }] },
   when: { id: "when", q: "When do you need it done?", opts: [o("As soon as possible"), o("Within a month"), o("In 1–3 months"), o("Just getting prices")] },
-  own: { id: "own", q: "Is this your home?", opts: [o("I own it and live there"), o("I'm a landlord", "For a rental property"), o("I'm renting", "We'll need the owner's OK"), o("Builder or new build")] },
   ownBiz: { id: "own", q: "Who are you?", opts: [o("Business owner"), o("Property or facility manager"), o("Strata manager"), o("Builder")] },
 } satisfies Record<string, Question>;
 
@@ -247,7 +244,7 @@ export const CATS: Category[] = [
     id: "air", label: "Cooling", sub: "Splits, multi-head, ducted, evap",
     photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 30%", fg: "#0C6F96", icon: ICON.snow,
     systems: [
-      sys({ slug: "split-system", label: "Split system", sub: "One room at a time", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor, QB.oldSplit], faq: "split", service: "split" }),
+      sys({ slug: "split-system", label: "Split system", sub: "One room at a time", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
       sys({ slug: "multi-head", label: "Multi-head", sub: "Several rooms, one outdoor unit", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
         t("essential", "Kaden", "Multi-head system", IMG.kadenMulti, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
         t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuCond, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
@@ -258,7 +255,7 @@ export const CATS: Category[] = [
         t("premium", "Mitsubishi Electric", "PEAD-M ducted", IMG.mitsuDucted, ["Zoned as standard: 4, 6 or 8 zones", "Heat output matches cooling", "Duct design done first"], 12500),
         t("signature", "Mitsubishi Electric", "PEAD-M + Zonemate", IMG.zmTouch, ["Zonemate touch and Wi-Fi control", "Run only the rooms you use", "Duct design done first"], null),
       ] }),
-      sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-mounted, cheap to run", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType, QB.oldEvap], tiers: [
+      sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-mounted, cheap to run", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
         t("essential", "Kaden", "Classic evaporative", IMG.evapClassic, ["Cheap to run on dry days", "Fresh air through the house", "Pre-summer service available"], null),
         t("premium", "Kaden", "Low-profile evaporative", IMG.evapLow, ["Sits low on the roofline", "Cheap to run on dry days", "Pre-summer service available"], null),
         t("signature", "Brivis", "Advance low-profile", IMG.evapLow, ["Brivis low-profile cooler", "Cheap to run on dry days", "Pre-summer service available"], null),
@@ -278,7 +275,7 @@ export const CATS: Category[] = [
         t("5-star", "Brivis", "StarPro 5-star", IMG.brivisStar, ["Less gas again for long winters", "CO safety test on install", W], null),
         t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
       ] }),
-      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric heating, one room", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor, QB.oldSplit] }),
+      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric heating, one room", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
       sys({ slug: "zoning", label: "Zoning & controls", sub: "Heat the rooms you use", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
         t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
         t("premium", "Zonemate", "Touch + Wi-Fi", IMG.zmTouch, ["Touchscreen wall controller", "Control from your phone", W], null),

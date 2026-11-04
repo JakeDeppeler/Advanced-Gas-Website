@@ -65,9 +65,11 @@ export function ProductLayout({ v }: { v: PV }) {
 
       {isHeatPumpOption(v) && (
         <section className="pxs pxs--sky" id="savings">
-          <div className="wrap pp__col">
-            <Lead eye="Running costs" h="How much could you save?"><p>Two taps and we&apos;ll compare what you pay now with what this heat pump costs to run.</p></Lead>
-            <SavingsCalc v={v} />
+          <div className="wrap">
+            <div className="pbox pp__col">
+              <Lead eye="Running costs" h="How much could you save?"><p>Two taps and we&apos;ll compare what you pay now with what this heat pump costs to run.</p></Lead>
+              <SavingsCalc v={v} />
+            </div>
           </div>
         </section>
       )}
@@ -81,10 +83,12 @@ export function ProductLayout({ v }: { v: PV }) {
         </section>
       )}
 
-      <section className="pxs" id="specs">
-        <div className="wrap pp__two">
-          <Lead eye="Specifications" h={v.model ? v.model.name : `${t.brand} ${t.model}`}><p>{v.specNote}</p><SpecLinks v={v} /></Lead>
-          <SpecTable v={v} />
+      <section className="pxs pxs--cream" id="specs">
+        <div className="wrap">
+          <div className="pbox pp__two">
+            <Lead eye="Specifications" h={v.model ? v.model.name : `${t.brand} ${t.model}`}><p>{v.specNote}</p><SpecLinks v={v} /></Lead>
+            <SpecTable v={v} />
+          </div>
         </div>
       </section>
 

@@ -53,3 +53,23 @@
 @media (prefers-reduced-motion:reduce){
   .ag .hw-flow,.ag .hw-spin,.ag .hw-flame,.ag .hw-needle,.ag .hw-damper,.ag .hw-drip,.ag .hw-pulse,.ag .hw-fill,.ag .hw-spot.on rect{animation:none}
 }
+
+/* The camera, the dimming around the part in focus, and the player bar */
+.ag .hw-cam{transform-origin:0 0;transition:transform .9s cubic-bezier(.65,0,.35,1)}
+.ag .hw-dim{fill:#050A30;opacity:.42;animation:hwDimIn .6s ease both}
+@keyframes hwDimIn{from{opacity:0}to{opacity:.42}}
+.ag .hw__fig{display:flex;flex-direction:column;gap:12px}
+.ag .hw__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px}
+.ag .hw__cap{font-size:15px;font-weight:700;color:var(--navy);display:flex;gap:10px;align-items:baseline;min-width:0}
+.ag .hw__cap b{font-family:var(--disp);font-weight:900;color:#C2521A}
+.ag .hw__ctl{display:flex;gap:6px;flex:none}
+.ag .hw__ctl button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:#fff;color:var(--navy);font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.ag .hw__ctl button:hover{border-color:var(--navy)}
+.ag .hw__ctl .hw__play{background:var(--navy);border-color:var(--navy);color:#fff}
+.ag .hw__prog{display:flex;gap:6px;padding:0 6px 4px}
+.ag .hw__prog span{flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.ag .hw__prog i{display:block;height:100%;width:0;background:#C2521A}
+.ag .hw__prog span.done i{width:100%}
+.ag .hw__prog span.run i{animation:hwProg linear forwards}
+@keyframes hwProg{from{width:0}to{width:100%}}
+@media (prefers-reduced-motion:reduce){.ag .hw-cam{transition:none}.ag .hw-dim{animation:none}}

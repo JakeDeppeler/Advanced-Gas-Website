@@ -432,50 +432,132 @@ const SCENES: Record<DiagramKind, { scene: ReactNode; spots: Rect[][]; label: st
   "gas-storage": { scene: <GasStorageScene />, spots: S.gasstorage, label: "Gas storage: a tank heated by a gas burner underneath" },
 };
 
+/** The step's parts as one box, for the camera to frame. */
+function bounds(rects: Rect[]): Rect {
+  const x0 = Math.min(...rects.map((r) => r[0])), y0 = Math.min(...rects.map((r) => r[1]));
+  const x1 = Math.max(...rects.map((r) => r[0] + r[2])), y1 = Math.max(...rects.map((r) => r[1] + r[3]));
+  return [x0, y0, x1 - x0, y1 - y0];
+}
+
+/**
+ * Where the camera sits for a step: zoomed onto its parts with some of the
+ * system still in view around them, never past the edge of the drawing, and
+ * never so close the part loses its context. -1 is the whole system.
+ */
+function camera(spots: Rect[][], active: number) {
+  if (active < 0 || !spots[active]) return { s: 1, tx: 0, ty: 0 };
+  const [x, y, w, h] = bounds(spots[active]);
+  const pad = 46;
+  const s = Math.max(1, Math.min(1.7, 600 / (w + pad * 2), 400 / (h + pad * 2)));
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  const tx = clamp(300 - s * (x + w / 2), 600 - 600 * s, 0);
+  const ty = clamp(200 - s * (y + h / 2), 400 - 400 * s, 0);
+  return { s, tx, ty };
+}
+
 export function HowDiagram({ kind, active }: { kind: DiagramKind; active: number }) {
-  const s = SCENES[kind];
+  const sc = SCENES[kind];
+  const id = useId().replace(/:/g, "");
+  const cam = camera(sc.spots, active);
+  const lit = active >= 0 ? sc.spots[active] : null;
   return (
-    <svg viewBox="0 0 600 400" className="hw__svg" role="img" aria-label={s.label}>
-      <rect x="0" y="0" width="600" height="400" rx="20" fill="#EEF5FB" />
-      {s.scene}
-      {s.spots.map((rects, i) => (
-        <g key={i} className={`hw-spot${i === active ? " on" : ""}`}>
-          {rects.map(([x, y, w, h], k) => <rect key={k} x={x} y={y} width={w} height={h} rx="14" />)}
-          <g transform={`translate(${rects[0][0]} ${rects[0][1]})`}>
-            <circle r="13" />
-            <text y="4.5" textAnchor="middle">{i + 1}</text>
-          </g>
+    <svg viewBox="0 0 600 400" className="hw__svg" role="img" aria-label={sc.label}>
+      <defs>
+        <clipPath id={`hw-clip-${id}`}><rect x="0" y="0" width="600" height="400" rx="20" /></clipPath>
+        {lit && (
+          <mask id={`hw-mask-${id}`}>
+            <rect x="-50" y="-50" width="700" height="500" fill="#fff" />
+            {lit.map(([x, y, w, h], k) => <rect key={k} x={x - 6} y={y - 6} width={w + 12} height={h + 12} rx="18" fill="#000" />)}
+          </mask>
+        )}
+      </defs>
+      <g clipPath={`url(#hw-clip-${id})`}>
+        <rect x="0" y="0" width="600" height="400" fill="#EEF5FB" />
+        {/* The camera: eases from part to part as the steps change. */}
+        <g className="hw-cam" style={{ transform: `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.s})` }}>
+          {sc.scene}
+          {lit && <rect key={active} className="hw-dim" x="-50" y="-50" width="700" height="500" mask={`url(#hw-mask-${id})`} />}
+          {sc.spots.map((rects, i) => (
+            <g key={i} className={`hw-spot${i === active ? " on" : ""}`}>
+              {rects.map(([x, y, w, h], k) => <rect key={k} x={x} y={y} width={w} height={h} rx="14" />)}
+              <g transform={`translate(${rects[0][0]} ${rects[0][1]})`}>
+                <circle r="13" />
+                <text y="4.5" textAnchor="middle">{i + 1}</text>
+              </g>
+            </g>
+          ))}
         </g>
-      ))}
+      </g>
     </svg>
   );
 }
 
+const STEP_MS = 5200;
+const OVERVIEW_MS = 2400;
+
+/**
+ * Plays like a short explainer: the whole system first, then the camera
+ * moves in on each part in turn while the rest dims, then back out to the
+ * whole thing and round again. It runs while it's on screen; picking a step,
+ * or pause, stops it there. With reduced motion asked for it never plays on
+ * its own, and the camera cuts rather than glides.
+ */
 export function HowItWorks({ kind, steps }: { kind: DiagramKind; steps: HowStep[] }) {
-  const [on, setOn] = useState(0);
-  const [held, setHeld] = useState(false);
+  const [on, setOn] = useState(-1);
+  const [playing, setPlaying] = useState(true);
+  const [seen, setSeen] = useState(false);
+  const [still, setStill] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (held || !el || typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting && !timer) timer = setInterval(() => setOn((n) => (n + 1) % steps.length), 4500);
-      if (!e.isIntersecting && timer) { clearInterval(timer); timer = null; }
-    }, { threshold: 0.4 });
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) { setStill(true); setPlaying(false); }
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.35 });
     io.observe(el);
-    return () => { io.disconnect(); if (timer) clearInterval(timer); };
-  }, [held, steps.length]);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!playing || !seen) return;
+    const t = setTimeout(() => setOn((n) => (n + 1 >= steps.length ? -1 : n + 1)), on < 0 ? OVERVIEW_MS : STEP_MS);
+    return () => clearTimeout(t);
+  }, [on, playing, seen, steps.length]);
+
+  const pick = (i: number) => { setOn(i); setPlaying(false); };
+  const step = on >= 0 ? steps[on] : null;
 
   return (
     <div className="hw" ref={ref}>
-      <div className="hw__fig"><HowDiagram kind={kind} active={on} /></div>
+      <div className="hw__fig">
+        <HowDiagram kind={kind} active={on} />
+        <div className="hw__bar">
+          <span className="hw__cap" aria-live="polite">
+            {step ? <><b>{String(on + 1).padStart(2, "0")}</b> {step.t}</> : <><b>All</b> The whole system</>}
+          </span>
+          <div className="hw__ctl">
+            <button type="button" aria-label="Previous step" onClick={() => pick(on <= 0 ? steps.length - 1 : on - 1)}>‹</button>
+            {!still && (
+              <button type="button" className="hw__play" aria-label={playing ? "Pause" : "Play"} onClick={() => setPlaying((p) => !p)}>
+                {playing ? <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.5" height="12" rx="1" fill="currentColor" /><rect x="8.5" y="1" width="3.5" height="12" rx="1" fill="currentColor" /></svg>
+                  : <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z" fill="currentColor" /></svg>}
+              </button>
+            )}
+            <button type="button" aria-label="Next step" onClick={() => pick(on + 1 >= steps.length ? 0 : on + 1)}>›</button>
+          </div>
+        </div>
+        <div className="hw__prog" aria-hidden="true">
+          {steps.map((x, i) => (
+            <span key={x.t} className={i < on ? "done" : i === on ? (playing && seen ? "run" : "done") : undefined}>
+              <i key={`${i}-${on}-${playing}`} style={{ animationDuration: `${STEP_MS}ms` }} />
+            </span>
+          ))}
+        </div>
+      </div>
       <ol className="hw__steps">
         {steps.map((x, i) => (
           <li key={x.t}>
-            <button type="button" className={`hw__step${i === on ? " on" : ""}`} aria-pressed={i === on} onClick={() => { setOn(i); setHeld(true); }}>
+            <button type="button" className={`hw__step${i === on ? " on" : ""}`} aria-pressed={i === on} onClick={() => pick(i)}>
               <span className="hw__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
               <span className="hw__t"><strong>{x.t}</strong><span>{x.d}</span></span>
             </button>
