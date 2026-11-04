@@ -34,7 +34,9 @@ export type SummaryState = { ok: InstallSummary; from: string } | { error: strin
 // steps of its own ("commission in heating and cooling").
 // 3 (4 Nov, Jake): a simple installation guide for the crew — what's there,
 // what's going in and how — and no "to confirm on site" list.
-export const SUMMARY_VERSION = "3";
+// 4 (5 Nov): no remarks about the records themselves — job 20338's guide
+// opened with "there's no condition report from an earlier visit".
+export const SUMMARY_VERSION = "4";
 
 export const SECTIONS = [
   "What's there now", "Indoor unit", "Outdoor unit", "Pipework and drain", "Electrical", "Gas", "Water", "Flue", "Ductwork", "Access",
@@ -72,6 +74,7 @@ Rules:
 - From photos, only what's clearly visible.
 - The Condition Report is about what's there now. If there's an existing unit, say what it is and that it's being replaced or removed; don't describe the old unit as the new one.
 - Overview: two or three sentences. Sections: only those that apply, one to three sentences each.
+- Write about the job, never about the records: don't say a report, photo or detail is missing or wasn't recorded.
 - No selling, no prices, no customer names or phone numbers.`;
 
 const tidy = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();

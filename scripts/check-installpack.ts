@@ -178,6 +178,11 @@ const [out, ...photos] = process.argv.slice(2);
   ok("…and the photo is in it, not skipped", pdf instanceof Uint8Array && pdf.length > jpg.length);
   const full = await packPdf(ps, [], { version: 5, madeAt: new Date(), notShown: 0 }).catch((e: Error) => e);
   ok("a pack with a summary and a Condition Report renders", full instanceof Uint8Array, full instanceof Error ? full.message : "");
+  const words = async (bytes: Uint8Array) => {
+    const { PDFDocument } = await import("pdf-lib");
+    return (await PDFDocument.load(bytes)).getPageCount();
+  };
+  ok("…and a pack without a guide still renders", (await words(await packPdf(buildPack({ ...withSum, summary: null }), [], { version: 5, madeAt: new Date(), notShown: 0 }))) > 0);
   if (out) {
     const pics = photos.map((path, i) => ({ photo: { id: i, name: path.split("/").pop()!, at: "2026-10-12T01:00:00Z", quoteVisit: i % 2 === 0 }, bytes: readFileSync(path) }));
     writeFileSync(out, await packPdf(ps, pics, { version: 2, madeAt: new Date("2026-10-27T23:00:00Z"), notShown: 3 }));

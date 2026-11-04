@@ -201,11 +201,20 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     }
   };
 
-  /* ---- the scope first, under the site: what the job is, before what to bring */
-  open("Scope of works sold");
-  if (pack.scope) para(pack.scope);
-  else { text("No job summary written on this job. Check with the office.", IN, 10, font, GREY); y -= 14; }
-  close();
+  /*
+   * The scope first, under the site: what the job is, before what to bring.
+   * Where there's an installation guide it takes the scope's place (Jake,
+   * 4 Nov): the job summary is mostly stock wording and the guide is written
+   * from it anyway. Without a guide the job summary is all that says what the
+   * job is, so it stays.
+   */
+  const guided = pack.summary != null && "ok" in pack.summary;
+  if (!guided) {
+    open("Scope of works sold");
+    if (pack.scope) para(pack.scope);
+    else { text("No job summary written on this job. Check with the office.", IN, 10, font, GREY); y -= 14; }
+    close();
+  }
 
   /*
    * How the install will go, written from the records (summaryText.ts), under
