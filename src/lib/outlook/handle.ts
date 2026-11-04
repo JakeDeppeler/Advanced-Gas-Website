@@ -1,0 +1,147 @@
+import "server-only";
+import { dashboardDbConfigured, q, sbInsertIfAbsent, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
+import { getChatSettings } from "@/lib/chat/store";
+import { chatSettingsFrom } from "@/lib/chat/chatTypes";
+import { graph, GraphError, userPath } from "./graph";
+import { customerContext } from "./customer";
+import { MailDraftError, writeMailDraft } from "./draft";
+import { addressOf, answeredReason, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
+
+/**
+ * One incoming email, from notification to a draft reply waiting in Outlook.
+ *
+ * The webhook and the sweep both call this, sometimes for the same email at
+ * the same moment, so every email is claimed in mail_drafts first and only the
+ * caller that wins the claim goes on. That row is also the record of what
+ * happened to each email, which is the only way to answer "why didn't this
+ * one get a draft?" after the fact.
+ */
+
+const TABLE = "mail_drafts";
+const MAX_ATTEMPTS = 3;
+/** A claim this old with no outcome is a run that died part way; take it over. */
+const STALE_WORKING_MS = 10 * 60 * 1000;
+/** Before trying a failed one again, so a sweep straight after a failure doesn't hammer a struggling service. */
+const RETRY_AFTER_MS = 5 * 60 * 1000;
+/** Put on the original email when the draft says a person should handle it, so it stands out in the inbox. */
+export const HANDOFF_CATEGORY = "Needs a person";
+
+const MESSAGE_FIELDS = "id,internetMessageId,conversationId,subject,from,sender,toRecipients,ccRecipients,receivedDateTime,sentDateTime,isDraft,hasAttachments,internetMessageHeaders,uniqueBody,categories";
+const THREAD_FIELDS = "id,subject,from,sender,receivedDateTime,sentDateTime,isDraft,hasAttachments,uniqueBody";
+
+type Row = { status: "working" | "drafted" | "skipped" | "failed"; attempts: number; updated_at: string };
+export type Outcome = { status: "drafted" | "skipped" | "failed" | "taken"; reason?: string };
+
+const filter = (mailbox: string, id: string) => [q.eq("mailbox", mailbox), q.eq("message_id", id)];
+
+async function claim(mailbox: string, id: string, now: number): Promise<boolean> {
+  if (await sbInsertIfAbsent(TABLE, { mailbox, message_id: id, status: "working" }, "mailbox,message_id")) return true;
+  const row = await sbSelectOne<Row>(TABLE, [q.select("status,attempts,updated_at"), ...filter(mailbox, id)].join("&"));
+  if (!row) return false;
+  const age = now - Date.parse(row.updated_at);
+  const again = (row.status === "failed" && row.attempts < MAX_ATTEMPTS && age > RETRY_AFTER_MS) || (row.status === "working" && age > STALE_WORKING_MS);
+  if (!again) return false;
+  // Filtered on the values just read, so of two callers racing to take it
+  // over, the second one's PATCH matches nothing.
+  const got = await sbUpdateReturning(TABLE, [...filter(mailbox, id), q.eq("status", row.status), q.eq("attempts", String(row.attempts))].join("&"), {
+    status: "working",
+    attempts: row.attempts + 1,
+    updated_at: new Date(now).toISOString(),
+  });
+  return got.length > 0;
+}
+
+async function finish(mailbox: string, id: string, patch: Record<string, unknown>) {
+  await sbUpdate(TABLE, filter(mailbox, id).join("&"), { ...patch, updated_at: new Date().toISOString() });
+}
+
+const retryable = (e: unknown) =>
+  e instanceof MailDraftError ? e.retry : e instanceof GraphError ? e.status === 429 || e.status >= 500 : true;
+
+export async function handleMessage(mailbox: string, id: string): Promise<Outcome> {
+  if (!dashboardDbConfigured()) return { status: "failed", reason: "database not configured" };
+  if (!(await claim(mailbox, id, Date.now()))) return { status: "taken" };
+
+  const done = async (o: Outcome, extra: Record<string, unknown> = {}) => {
+    await finish(mailbox, id, { status: o.status, reason: o.reason ?? null, ...extra });
+    return o;
+  };
+
+  try {
+    const box = userPath(mailbox);
+    let m: GraphMessage & { categories?: string[] };
+    try {
+      m = await graph(`${box}/messages/${encodeURIComponent(id)}?$select=${MESSAGE_FIELDS}`, { text: true });
+    } catch (e) {
+      if (e instanceof GraphError && e.status === 404) return done({ status: "skipped", reason: "deleted before it could be read" });
+      throw e;
+    }
+
+    const from = addressOf(m.from) || addressOf(m.sender);
+    await finish(mailbox, id, {
+      internet_message_id: m.internetMessageId ?? null,
+      conversation_id: m.conversationId ?? null,
+      received_at: m.receivedDateTime ?? null,
+      from_address: from || null,
+      subject: (m.subject ?? "").slice(0, 300),
+    });
+
+    const skip = skipReason(m, mailbox);
+    if (skip) return done({ status: "skipped", reason: skip });
+
+    // The whole conversation, every folder, so Sent Items show whether it has
+    // been answered. Filtered only: Graph refuses a conversationId filter
+    // combined with an order on another field, so the sort happens here.
+    let thread: GraphMessage[] = [m];
+    if (m.conversationId) {
+      const f = encodeURIComponent(`conversationId eq '${m.conversationId.replace(/'/g, "''")}'`);
+      const got = await graph<{ value: GraphMessage[] }>(`${box}/messages?$filter=${f}&$select=${THREAD_FIELDS}&$top=30`, { text: true }).catch(() => null);
+      if (got?.value?.length) thread = got.value.some((t) => t.id === m.id) ? got.value : [...got.value, m];
+    }
+    const answered = answeredReason(m, thread, mailbox);
+    if (answered) return done({ status: "skipped", reason: answered });
+
+    const [customer, settings] = await Promise.all([
+      customerContext(from, m.subject ?? "").catch(() => ""),
+      getChatSettings().catch(() => chatSettingsFrom(null)),
+    ]);
+
+    const draft = await writeMailDraft({ thread: threadText(thread, mailbox), customer, signoff: signoffFor(mailbox), settings });
+    if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` });
+
+    // createReply makes the draft the way Outlook's Reply button does —
+    // addressed, threaded, the original quoted underneath — and the reply goes
+    // in above the quote. Only Mail.ReadWrite is needed; nothing here sends.
+    const reply = await graph<GraphMessage>(`${box}/messages/${encodeURIComponent(id)}/createReply`, { method: "POST", body: {} });
+    try {
+      const current = reply.body?.content
+        ? reply.body
+        : (await graph<GraphMessage>(`${box}/messages/${encodeURIComponent(reply.id)}?$select=body`)).body;
+      const html = current?.contentType?.toLowerCase() === "html" ? current.content ?? "" : "";
+      await graph(`${box}/messages/${encodeURIComponent(reply.id)}`, {
+        method: "PATCH",
+        body: { body: { contentType: "HTML", content: insertIntoBody(html || "<html><body></body></html>", replyHtml(draft.reply)) } },
+      });
+    } catch (e) {
+      // An empty reply left in the thread would read as "already a draft" on
+      // the retry and the email would never get one.
+      await graph(`${box}/messages/${encodeURIComponent(reply.id)}`, { method: "DELETE" }).catch(() => undefined);
+      throw e;
+    }
+
+    if (draft.handoff) {
+      const cats = m.categories ?? [];
+      if (!cats.includes(HANDOFF_CATEGORY)) {
+        await graph(`${box}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { categories: [...cats, HANDOFF_CATEGORY] } }).catch(() => undefined);
+      }
+    }
+
+    return done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null });
+  } catch (e) {
+    const reason = (e as Error).message.slice(0, 300);
+    // Out of retries, or not the kind that a retry fixes: it stays failed
+    // and the sweep leaves it alone.
+    await finish(mailbox, id, { status: "failed", reason, ...(retryable(e) ? {} : { attempts: MAX_ATTEMPTS }) }).catch(() => undefined);
+    return { status: "failed", reason };
+  }
+}
