@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { buildPack, fingerprint, packParts, plainText, whatChanged, type PackFacts } from "../src/lib/installpack/build";
 import { packPdf } from "../src/lib/installpack/pdf";
-import { listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
+import { SUMMARY_SCHEMA, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -140,20 +140,18 @@ ok("the same records give the same key", summaryInput(structuredClone(facts), [s
 ok("a report turning up is a new key", summaryInput(facts, []).key !== si.key);
 ok("it says what it was written from", listed(si.sources) === "the job summary, the sold quote and the Condition Report from job 20106", listed(si.sources));
 ok("a summary that isn't the right shape is refused", (() => { try { parseSummary(JSON.stringify({ overview: "x" })); return false; } catch { return true; } })());
-ok("an empty section is dropped", parseSummary(JSON.stringify({ overview: " a ", sections: [{ heading: "Pipework", text: " " }, { heading: "Drainage", text: "b" }], confirm: [] })).sections.length === 1);
+ok("an empty section is dropped", parseSummary(JSON.stringify({ overview: " a ", sections: [{ heading: "Pipework and drain", text: " " }, { heading: "Electrical", text: "b" }] })).sections.length === 1);
 
 // What a summary for this job might say: for the layout, not from Claude.
 const SAMPLE: InstallSummary = {
-  overview: "Replace the 24-year-old Brivis Buffalo gas ducted heater in the roof space with a Braemar Dominator Series 2 internal ducted reverse-cycle system, reusing the existing ductwork. A new 400 x 600 return air box goes in.",
+  overview: "There's an old Brivis Buffalo gas ducted heater in the roof space; the tech found \"heat exchanger cracked\". It comes out and a Braemar Dominator Series 2 internal ducted reverse-cycle system goes in, using the existing ductwork, with a new 400 x 600 return air box.",
   sections: [
-    { heading: "Removing the old system", text: "The Brivis Buffalo B20 in the roof space comes out; the Condition Report has its heat exchanger cracked." },
-    { heading: "Indoor unit", text: "The fan coil goes in the roof space above the hallway, on the existing heater platform (per the Condition Report)." },
-    { heading: "Outdoor unit", text: "On a slab beside the laundry, per the tech's notes. No slab or bracket is on the quote." },
-    { heading: "Pipework", text: "About 6 m through the roof per the tech's notes. One 20 m coil of 3/8 x 5/8 copper pair is on the quote." },
-    { heading: "Drainage", text: "No condensate pump on the quote; four 20 mm PVC elbows are." },
-    { heading: "Electrical", text: "GT Electrics are booked for the electrical connection; their work order has gone." },
+    { heading: "What's there now", text: "A 24-year-old Brivis Buffalo B20 in the roof space, \"heat exchanger cracked\". It's being replaced." },
+    { heading: "Indoor unit", text: "The fan coil goes in the roof space above the hallway, on the existing heater platform." },
+    { heading: "Outdoor unit", text: "On a slab beside the laundry." },
+    { heading: "Pipework and drain", text: "About 6 m through the roof. 3/8 x 5/8 copper pair and 20 mm PVC on the quote, no condensate pump." },
+    { heading: "Electrical", text: "GT Electrics are booked for the electrical connection." },
   ],
-  confirm: ["Is there an existing slab beside the laundry, or does one need to go in?", "Is the existing gas supply to be capped at the meter or at the heater?"],
 };
 const withSum: PackFacts = { ...facts, visitReports: [visit], summary: { ok: SAMPLE, from: "the job summary, the sold quote, the Condition Report from job 20106 and 2 photos from the earlier visit" } };
 const ps = buildPack(withSum);
@@ -162,6 +160,7 @@ ok("a summary and a report turning up is a new version, named", whatChanged(base
 const failed = (error: string, at: string) => packParts({ ...withSum, summary: { error, at } });
 ok("a failed summary failing again on retry isn't a new version", fingerprint(failed("a", "1")) === fingerprint(failed("b", "2")));
 ok("drafting off leaves the section out, not saying it failed", buildPack({ ...withSum, summary: null }).summary === null);
+ok("the guide's rules have no confirm list", !/confirm/i.test(JSON.stringify(SUMMARY_SCHEMA)));
 
 const [out, ...photos] = process.argv.slice(2);
 (async () => {
