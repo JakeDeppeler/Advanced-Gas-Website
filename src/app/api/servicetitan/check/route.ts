@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { checkServiceTitan } from "@/lib/dashboard/stCheck";
+import { snapshotCatalog } from "@/lib/proposals/snapshot";
 import { probeEstimates, probeForms, probeJobHistory, probeReports, probeTemplates } from "@/lib/dashboard/stEstimateProbe";
 
 export const runtime = "nodejs";
@@ -50,7 +51,12 @@ export async function GET(req: Request) {
   if (jobs.length) return NextResponse.json({ jobs: await probeJobHistory(jobs) });
   const forms = new URL(req.url).searchParams.get("forms");
   if (forms) return NextResponse.json({ forms: await probeForms(forms) });
-  if (new URL(req.url).searchParams.get("templates")) return NextResponse.json({ templates: await probeTemplates() });
+  // ?templates=1 also saves the whole catalogue (templates, proposals and the
+  // pricebook) for the proposals audit: snapshotCatalog.
+  if (new URL(req.url).searchParams.get("templates")) {
+    const snapshot = await snapshotCatalog().catch((e: Error) => ({ error: e.message.slice(0, 200) }));
+    return NextResponse.json({ templates: { snapshot, ...(await probeTemplates() as object) } });
+  }
   const reports = new URL(req.url).searchParams.get("reports");
   if (reports) return NextResponse.json({ reports: await probeReports(reports) });
 
