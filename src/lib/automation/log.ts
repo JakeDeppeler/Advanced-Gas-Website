@@ -36,7 +36,7 @@ export function openRunFailures(log: AutoEntry[]): Set<string> {
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "leadToJob", "leadBooking"] as const;
+export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "installSummary", "leadToJob", "leadBooking"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
@@ -58,7 +58,9 @@ export type AutoSwitches = Record<AutoKey, boolean> & {
 /** Where "it's done" notices go until someone sets the address on To order › Automation. */
 export const NOTIFY_DEFAULT = "jake@advancedgas.com.au";
 // Bookings need a booking provider made in ServiceTitan and the Bookings scope on the API app first.
-const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "leadBooking"];
+// The install summary is written and kept from the start, but only goes in
+// the packs installers get once someone's read a few and turned it on.
+const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "leadBooking", "installSummary"];
 
 const LOG = "automation_log";
 const SW = "automation";

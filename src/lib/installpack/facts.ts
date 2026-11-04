@@ -2,6 +2,7 @@ import "server-only";
 import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { listJobFiles } from "@/lib/ordering/jobFiles";
 import type { OrderLine, PackFacts, Photo, QuoteItem } from "./build";
+import type { VisitReport } from "./summaryText";
 
 /** One row of install_pack_jobs (0090): an install job with a visit still to come, and its sold quote if it has one. */
 export type InstallJob = {
@@ -105,12 +106,19 @@ const PHOTO = /\.(jpe?g|png|heic|heif|webp|gif)$/i;
 /**
  * The photos on the install job and, when the quote was written on another
  * job, on that one too: the quote visit is where somebody photographed the
- * switchboard, the wall and the old unit. Newest first. Our own install
+ * switchboard, the wall and the old unit. And on the visits the Condition
+ * Reports came from. Newest first. Our own install
  * packs are PDFs, so they never come back round as photos.
  */
-export async function packPhotos(j: InstallJob): Promise<{ photos: Photo[]; notShown: number } | { error: string }> {
-  const jobs = [{ id: j.job_id, quote: false }];
+export async function packPhotos(j: InstallJob, reports: VisitReport[] = []): Promise<{ photos: Photo[]; notShown: number } | { error: string }> {
+  const jobs: { id: number; quote: boolean; label?: string }[] = [{ id: j.job_id, quote: false }];
   if (j.quote_job_id && j.quote_job_id !== j.job_id) jobs.push({ id: j.quote_job_id, quote: true });
+  // The visit a Condition Report came from, when it's a job of its own: its
+  // photos are the ones the report talks about.
+  for (const r of reports) {
+    if (jobs.some((x) => x.id === r.jobId)) continue;
+    jobs.push({ id: r.jobId, quote: false, label: `${(r.jobType ?? "Earlier visit").trim()}, job ${r.jobNumber ?? r.jobId}` });
+  }
   const photos: Photo[] = [];
   let notShown = 0;
   for (const x of jobs) {
@@ -118,7 +126,7 @@ export async function packPhotos(j: InstallJob): Promise<{ photos: Photo[]; notS
     if ("error" in r) return { error: r.error };
     for (const f of r.files) {
       if (!PHOTO.test(f.name)) continue;
-      if (EMBEDDABLE.test(f.name)) photos.push({ id: f.id, name: f.name, at: f.at, quoteVisit: x.quote });
+      if (EMBEDDABLE.test(f.name)) photos.push({ id: f.id, name: f.name, at: f.at, quoteVisit: x.quote, ...(x.label ? { label: x.label } : {}) });
       else notShown++;
     }
   }

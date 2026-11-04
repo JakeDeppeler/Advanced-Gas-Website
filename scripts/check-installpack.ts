@@ -13,6 +13,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { buildPack, fingerprint, packParts, plainText, whatChanged, type PackFacts } from "../src/lib/installpack/build";
 import { packPdf } from "../src/lib/installpack/pdf";
+import { listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -106,6 +107,62 @@ ok("says there's no quote, not a blank", bare.facts.find(([k]) => k === "Quote")
 ok("no lists to show", bare.units.length === 0 && bare.materials.length === 0);
 ok("its fingerprint is stable", fingerprint(packParts({ ...facts, quote: null, items: [] })) === fingerprint(packParts({ ...facts, quote: null, items: [] })));
 
+console.log("-- the install summary --");
+// The quote visit's Condition Report, as the forms API sends one (shape from
+// submission 465, 31 Oct), with made-up words.
+const visit: VisitReport = {
+  jobId: 300000106, jobNumber: "20106", jobType: "Quotation",
+  submission: {
+    id: 501, formName: "Condition Report ", status: "Completed", submittedOn: "2026-10-02T03:10:00Z",
+    owners: [{ type: "Job", id: 300000106 }],
+    units: [
+      { name: "Customer Name", type: "Text", value: "A. Customer" },
+      { name: "Location Address", type: "Text", value: "1 Example Street, Pakenham, VIC 3810" },
+      { name: "Job Number", type: "Text", value: null },
+      { name: "Equipment Manufacturer", type: "Text", value: "Brivis" },
+      { name: "Equipment Model", type: "Text", value: "Buffalo B20" },
+      { name: "Condition", type: "Stoplight", value: 0 },
+      { name: "Indoor unit location", type: "Text", value: "Roof space above hallway, existing heater platform" },
+      { name: "Technician Notes", type: "Text", value: "Existing gas ducted heater in the roof space, 24 years old, heat exchanger cracked. Customer wants a ducted reverse cycle. Ductwork in fair condition, reuse. Outdoor unit on a slab beside the laundry, 6 m pipe run through the roof.", attachments: [{ fileName: "a.jpg" }, { fileName: "b.jpg" }] },
+      { name: "Technician ", type: "Text", value: "A. Technician" },
+      { name: "Signature", type: "Signature", value: null, isRefused: true, refusalReason: "Customer not home" },
+    ],
+  },
+};
+const si = summaryInput(facts, [visit]);
+ok("Claude is given the labour lines, which say the kind of install", si.text.includes("Dominator - Installation") && si.text.includes("Electrical Connection"));
+ok("…not the rebates or the compliance certificate", !/VEEC|Rebates|BPC/i.test(si.text));
+ok("…nor the customer's name, address or phone", !/A\. Customer|Example Street|0400|A\. Technician/.test(si.text));
+ok("…but a field that names where a unit goes", si.text.includes("Indoor unit location: Roof space above hallway"));
+ok("…and the tech's notes", si.text.includes("beside the laundry"));
+ok("…and the electrician booked", si.text.includes("Contractors booked: GT Electrics"));
+ok("the same records give the same key", summaryInput(structuredClone(facts), [structuredClone(visit)]).key === si.key);
+ok("a report turning up is a new key", summaryInput(facts, []).key !== si.key);
+ok("it says what it was written from", listed(si.sources) === "the job summary, the sold quote and the Condition Report from job 20106", listed(si.sources));
+ok("a summary that isn't the right shape is refused", (() => { try { parseSummary(JSON.stringify({ overview: "x" })); return false; } catch { return true; } })());
+ok("an empty section is dropped", parseSummary(JSON.stringify({ overview: " a ", sections: [{ heading: "Pipework", text: " " }, { heading: "Drainage", text: "b" }], confirm: [] })).sections.length === 1);
+
+// What a summary for this job might say: for the layout, not from Claude.
+const SAMPLE: InstallSummary = {
+  overview: "Replace the 24-year-old Brivis Buffalo gas ducted heater in the roof space with a Braemar Dominator Series 2 internal ducted reverse-cycle system, reusing the existing ductwork. A new 400 x 600 return air box goes in.",
+  sections: [
+    { heading: "Removing the old system", text: "The Brivis Buffalo B20 in the roof space comes out; the Condition Report has its heat exchanger cracked." },
+    { heading: "Indoor unit", text: "The fan coil goes in the roof space above the hallway, on the existing heater platform (per the Condition Report)." },
+    { heading: "Outdoor unit", text: "On a slab beside the laundry, per the tech's notes. No slab or bracket is on the quote." },
+    { heading: "Pipework", text: "About 6 m through the roof per the tech's notes. One 20 m coil of 3/8 x 5/8 copper pair is on the quote." },
+    { heading: "Drainage", text: "No condensate pump on the quote; four 20 mm PVC elbows are." },
+    { heading: "Electrical", text: "GT Electrics are booked for the electrical connection; their work order has gone." },
+  ],
+  confirm: ["Is there an existing slab beside the laundry, or does one need to go in?", "Is the existing gas supply to be capped at the meter or at the heater?"],
+};
+const withSum: PackFacts = { ...facts, visitReports: [visit], summary: { ok: SAMPLE, from: "the job summary, the sold quote, the Condition Report from job 20106 and 2 photos from the earlier visit" } };
+const ps = buildPack(withSum);
+ok("the report's blank Job Number is filled from the visit it's on", ps.reports[0]?.jobNumber === "20106", ps.reports[0]?.jobNumber);
+ok("a summary and a report turning up is a new version, named", whatChanged(base, packParts(withSum), false) === "the install summary and the Condition Report changed", whatChanged(base, packParts(withSum), false));
+const failed = (error: string, at: string) => packParts({ ...withSum, summary: { error, at } });
+ok("a failed summary failing again on retry isn't a new version", fingerprint(failed("a", "1")) === fingerprint(failed("b", "2")));
+ok("drafting off leaves the section out, not saying it failed", buildPack({ ...withSum, summary: null }).summary === null);
+
 const [out, ...photos] = process.argv.slice(2);
 (async () => {
   console.log("-- the PDF --");
@@ -120,9 +177,11 @@ const [out, ...photos] = process.argv.slice(2);
     .catch((e: Error) => e);
   ok("a JPEG that's a slice of a bigger buffer still goes in", pdf instanceof Uint8Array, pdf instanceof Error ? pdf.message : "");
   ok("…and the photo is in it, not skipped", pdf instanceof Uint8Array && pdf.length > jpg.length);
+  const full = await packPdf(ps, [], { version: 5, madeAt: new Date(), notShown: 0 }).catch((e: Error) => e);
+  ok("a pack with a summary and a Condition Report renders", full instanceof Uint8Array, full instanceof Error ? full.message : "");
   if (out) {
     const pics = photos.map((path, i) => ({ photo: { id: i, name: path.split("/").pop()!, at: "2026-10-12T01:00:00Z", quoteVisit: i % 2 === 0 }, bytes: readFileSync(path) }));
-    writeFileSync(out, await packPdf(p, pics, { version: 2, madeAt: new Date("2026-10-27T23:00:00Z"), notShown: 3 }));
+    writeFileSync(out, await packPdf(ps, pics, { version: 2, madeAt: new Date("2026-10-27T23:00:00Z"), notShown: 3 }));
     console.log(`wrote ${out}`);
   }
   console.log(bad ? `\n${bad} failed` : "\nall passed");
