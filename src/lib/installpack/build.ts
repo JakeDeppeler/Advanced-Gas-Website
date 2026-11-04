@@ -6,13 +6,18 @@
 // Nothing here is written in our own words about the job. The scope is the
 // job's own summary, the lists are the sold quote's lines, and the ordering
 // status is what Supply › Next week recorded. A pack that paraphrased either
-// could tell an installer something nobody asked for.
+// could tell an installer something nobody asked for. The one exception is
+// the install summary (summaryText.ts), which Jake asked for on 4 Nov: it's
+// written from the records, held to what they say, kept apart from the scope
+// under its own heading, and says what it was written from.
 //
 // The scope is the job summary and not the quote's (Jake, 31 Oct): the quote
 // is written to sell the job to the customer, the job summary is what the
 // office wrote for whoever does it.
 
 import { createHash } from "node:crypto";
+import { toReport, type Report } from "@/lib/conditionReport/report";
+import type { SummaryState, VisitReport } from "./summaryText";
 
 export type QuoteItem = {
   skuId: number | null;
@@ -34,7 +39,11 @@ export type OrderLine = {
   pickup: boolean;
 };
 
-export type Photo = { id: number; name: string; at: string | null; /** Taken on the quote visit, not on this job. */ quoteVisit: boolean };
+export type Photo = {
+  id: number; name: string; at: string | null;
+  /** Taken on the quote visit, not on this job. */ quoteVisit: boolean;
+  /** Where it was taken, when that's neither: "Diagnostic visit, job 20493". */ label?: string;
+};
 
 export type PackFacts = {
   jobId: number;
@@ -55,6 +64,10 @@ export type PackFacts = {
   jobSummary: string | null;
   items: QuoteItem[];
   orders: OrderLine[];
+  /** The Condition Reports from the visits before the install (summary.ts), when they've been looked for. */
+  visitReports?: VisitReport[];
+  /** The install summary written from them, or why there isn't one; null when drafting is off. */
+  summary?: SummaryState | null;
 };
 
 /** state is what ordered says, for the PDF's emphasis; the words carry it either way. */
@@ -76,6 +89,10 @@ export type Pack = {
   scope: string | null;
   /** False when there's no sold quote, so the lists are empty for want of one, not because nothing's needed. */
   quoted: boolean;
+  /** The install summary (summaryText.ts), or why it's missing; null to leave the section off. */
+  summary: SummaryState | null;
+  /** The Condition Reports, to print in full after the gear. */
+  reports: Report[];
 };
 
 /** Rebates are lines on a quote for the customer's benefit, not anything to fit. */
@@ -172,12 +189,18 @@ export function buildPack(f: PackFacts): Pack {
     contractors,
     scope: plainText(f.jobSummary),
     quoted: f.quote != null,
+    summary: f.summary ?? null,
+    // A report whose own Job Number field was left blank still says which job it's from.
+    reports: (f.visitReports ?? []).map((v) => {
+      const r = toReport(v.submission);
+      return { ...r, jobNumber: r.jobNumber ?? v.jobNumber };
+    }),
   };
 }
 
 /* ------------------------------------------------------------ what changed */
 
-export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "scope" | "quote" | "orders", string>;
+export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "scope" | "quote" | "orders" | "summary" | "reports", string>;
 
 /**
  * Bumped when the PDF's design changes, so every pack still to be used is
@@ -187,8 +210,9 @@ export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "scop
  * 6: contractors under the notes, the quote's labour lines left off.
  * 7: the scope is the job summary, not the quote's; the notes section goes.
  * 8: a summary's title no longer runs into its first sentence.
+ * 9: the install summary under the scope, the Condition Reports after the gear.
  */
-export const LAYOUT = "8";
+export const LAYOUT = "9";
 
 const hash = (v: unknown) => createHash("sha1").update(JSON.stringify(v)).digest("hex").slice(0, 16);
 
@@ -210,6 +234,10 @@ export function packParts(f: PackFacts): PackParts {
     // From the orders themselves, not the wording, so rewording the PDF never
     // looks like an order changing.
     orders: hash(f.orders.map((o) => [o.skuId, o.po, o.status, o.pickup, o.kind]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))),
+    // What was written, not when: a failed attempt and its retry that fails
+    // the same way aren't a change worth a new version.
+    summary: hash(f.summary == null ? null : "ok" in f.summary ? f.summary.ok : "failed"),
+    reports: hash((f.visitReports ?? []).map((v) => [v.submission.id, v.submission.submittedOn ?? null])),
   };
 }
 
@@ -223,6 +251,8 @@ const SAYS: Record<keyof PackParts, string> = {
   scope: "the job summary",
   quote: "the quote",
   orders: "what's been ordered",
+  summary: "the install summary",
+  reports: "the Condition Report",
 };
 
 /** "the booking and what's been ordered changed" — for the note on an updated pack. */

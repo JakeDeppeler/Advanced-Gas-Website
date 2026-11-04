@@ -28,7 +28,8 @@ const LIGHT_RGB: Record<Light, ReturnType<typeof rgb>> = {
   2: rgb(30 / 255, 140 / 255, 70 / 255),
 };
 
-export async function reportPdf(r: Report, madeAt: Date): Promise<Uint8Array> {
+/** bare: no footer, for pages copied into an install pack, which puts its own on. */
+export async function reportPdf(r: Report, madeAt: Date, opts: { bare?: boolean } = {}): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(`${r.title}${r.jobNumber ? ` · job ${r.jobNumber}` : ""}`);
   doc.setAuthor("Advanced Gas & Aircon");
@@ -190,6 +191,7 @@ export async function reportPdf(r: Report, madeAt: Date): Promise<Uint8Array> {
   }
 
   /* ---- footer on every page */
+  if (opts.bare) return doc.save();
   const pages = doc.getPages();
   const made = madeAt.toLocaleString("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
   pages.forEach((pg, i) => {

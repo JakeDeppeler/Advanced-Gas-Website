@@ -6,7 +6,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Bad, Head } from "@/components/portal/kit/Kit";
 import { Icon } from "@/components/portal/shell/Menu";
 import { NotifyTo } from "@/components/portal/AutoSwitch";
-import { AutoGroup, AutoLog, AutoRow, DRAFT, NeedsLook, ORDER_ACTS, ORDER_KINDS, RuleSwitch, SetRow, WO_RULES, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
+import { AutoGroup, AutoLog, AutoRow, DRAFT, NeedsLook, ORDER_ACTS, ORDER_KINDS, PACK_RULES, RuleSwitch, SetRow, WO_RULES, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
 import { NOTIFY_DEFAULT, loadAutoLog, loadSorted, loadSwitches, type AutoKey } from "@/lib/automation/log";
 import { packStatuses } from "@/lib/installpack/facts";
 import { LAYOUT } from "@/lib/installpack/build";
@@ -80,7 +80,10 @@ export default async function OrderingAutomationPage({ searchParams }: { searchP
           </AutoGroup>
           <AutoGroup title="In ServiceTitan" on={(sw.orderTags ? 1 : 0) + (sw.installPack ? 1 : 0)} of={2}>
             {row("orderTags")}
-            {row("installPack", { below: packs && <><h3>Upcoming installs</h3><PackList packs={packs} /></> })}
+            {row("installPack", {
+              settings: <>{PACK_RULES.map((r) => <RuleSwitch key={r.k} a={r} on={sw[r.k as AutoKey]} admin={admin} />)}</>,
+              below: packs && <><h3>Upcoming installs</h3><PackList packs={packs} /></>,
+            })}
           </AutoGroup>
         </section>
 

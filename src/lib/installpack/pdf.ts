@@ -11,6 +11,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import type { Pack, PackLine, Photo } from "./build";
 import { LOGO_FULL_JPG, LOGO_FULL_SIZE } from "./logo";
+import { reportPdf } from "@/lib/conditionReport/pdf";
 import { site } from "@/lib/site";
 
 const W = 595.28;
@@ -191,22 +192,61 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     for (const l of wrap(font, 10.5, s, IN_R - IN)) { room(13.5); text(l, IN, 10.5); y -= 13.5; }
   };
 
+  const bullets = (items: string[], color = SKY) => {
+    for (const it of items) {
+      const lines = wrap(font, 10.5, it, IN_R - IN - 16);
+      room(lines.length * 13.5);
+      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color });
+      for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
+    }
+  };
+
   /* ---- the scope first, under the site: what the job is, before what to bring */
   open("Scope of works sold");
   if (pack.scope) para(pack.scope);
   else { text("No job summary written on this job. Check with the office.", IN, 10, font, GREY); y -= 14; }
   close();
+
+  /*
+   * How the install will go, written from the records (summaryText.ts), under
+   * a heading of its own so it's never read as the office's scope. What it
+   * was written from is said under it, and what the records don't settle is
+   * listed to confirm on site.
+   */
+  if (pack.summary) {
+    open("Installation summary", "ok" in pack.summary ? "Written by the portal from the records" : undefined);
+    if ("ok" in pack.summary) {
+      const sm = pack.summary.ok;
+      para(sm.overview);
+      for (const sec of sm.sections) {
+        y -= 6;
+        room(13 + 2 * 13.5);
+        text(sec.heading, IN, 10.5, bold, NAVY);
+        y -= 14;
+        para(sec.text);
+      }
+      if (sm.confirm.length) {
+        y -= 6;
+        room(13 + 2 * 13.5);
+        text("To confirm on site", IN, 10.5, bold, WAITING);
+        y -= 14;
+        bullets(sm.confirm, WAITING);
+      }
+      y -= 6;
+      for (const l of wrap(font, 8, `Written by the portal from ${pack.summary.from}. It says only what those say: if something on site doesn't match, go by the site and tell the office.`, IN_R - IN)) {
+        room(11);
+        text(l, IN, 8, font, GREY);
+        y -= 11;
+      }
+    } else {
+      text(`It couldn't be written this time (${pack.summary.error}).${pack.reports.length ? " The Condition Report is further on." : ""}`, IN, 10, font, GREY);
+      y -= 14;
+    }
+    close();
+  }
   // Who else is on the job and whether they've been told, before the gear
   // (Jake, 28 Oct). The labour lines on the quote are left off: they're the
   // price breakdown, and the scope above already says what the work is.
-  const bullets = (items: string[]) => {
-    for (const it of items) {
-      const lines = wrap(font, 10.5, it, IN_R - IN - 16);
-      room(lines.length * 13.5);
-      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color: SKY });
-      for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
-    }
-  };
   if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
 
   /* ---- equipment and materials: a tick box, qty, the item, and whether it's ordered */
@@ -269,6 +309,15 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     close();
   }
 
+  /* ---- the Condition Reports from the visit before, each as its own pages */
+  // Drawn by reportPdf, the same as the one emailed with a work order, without
+  // its footer: the pack's footer goes on every page below, so the page count
+  // covers them.
+  for (const r of pack.reports) {
+    const src = await PDFDocument.load(await reportPdf(r, meta.madeAt, { bare: true }));
+    for (const pg of await doc.copyPages(src, src.getPageIndices())) doc.addPage(pg);
+  }
+
   /* ---- photos, four to a page */
   const embedded: { img: PDFImage; p: Photo }[] = [];
   let failed = 0;
@@ -314,7 +363,7 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     page.drawImage(img, { x: x0 + (cellW - w) / 2, y: yTop - cellH + (cellH - h) / 2, width: w, height: h });
     y = yTop - cellH - 10;
     const when = p.at ? new Date(p.at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "Australia/Melbourne" }) : null;
-    const cap = wrap(font, 7.5, [p.quoteVisit ? "Quote visit" : "This job", when, p.name].filter(Boolean).join(" · "), cellW)[0] ?? "";
+    const cap = wrap(font, 7.5, [p.label ?? (p.quoteVisit ? "Quote visit" : "This job"), when, p.name].filter(Boolean).join(" · "), cellW)[0] ?? "";
     text(cap, x0, 7.5, font, GREY);
   });
 

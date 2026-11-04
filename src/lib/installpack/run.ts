@@ -5,6 +5,8 @@ import { loadSwitches, logAuto, type AutoEntry } from "@/lib/automation/log";
 import { buildPack, fingerprint, packParts, whatChanged, type PackFacts, type PackParts } from "./build";
 import { installJobs, packFactsFor, packPhotos, type InstallJob } from "./facts";
 import { packPdf, type PackPhoto } from "./pdf";
+import { aiConfigured, visitReports, writeSummary } from "./summary";
+import { summaryInput, type SummaryState, type VisitReport } from "./summaryText";
 
 /**
  * Settings › Automatic › Install pack: put a pack on every install job, and
@@ -32,6 +34,10 @@ type Row = {
   claimed_at?: string | null;
   last_error: string | null;
   last_tried_at: string | null;
+  visit_reports?: VisitReport[] | null;
+  reports_checked_at?: string | null;
+  summary?: SummaryState | null;
+  summary_key?: string | null;
 };
 
 /** Photos are checked against ServiceTitan this often, not every pull: listing them is two API calls a job. */
@@ -63,13 +69,69 @@ const RETRY_MS = 30 * 60_000;
 const MAX_PHOTO_BYTES = 12 * 1048576;
 const MAX_PHOTOS = 16;
 
+/** Condition Reports are looked for again this often: a tech may fill one in after the install's booked. */
+const REPORT_RECHECK_MS = 3 * 3_600_000;
+
+/** What a run may still spend on looking for reports and writing summaries. */
+export type ExtrasBudget = { reportChecks: number; writes: number; deadline: number };
+
+/**
+ * The Condition Reports and the install summary for a job, as stored, looked
+ * for again or written when due and the run has room. Writing a summary takes
+ * Claude most of half a minute, so a run writes one and leaves the rest to
+ * the next pull; "wait" means this job's turn hasn't come. `force` (the
+ * office's preview) does it now whatever the budget.
+ */
+export async function packExtras(j: InstallJob, f: PackFacts, row: Row | null | undefined, budget: ExtrasBudget, force = false, needSummary = true): Promise<{ reports: VisitReport[]; summary: SummaryState | null } | "wait"> {
+  const at = () => new Date().toISOString();
+  let reports = row?.visit_reports ?? null;
+  const stale = !row?.reports_checked_at || Date.now() - Date.parse(row.reports_checked_at) > REPORT_RECHECK_MS;
+  if (stale) {
+    if (force || (budget.reportChecks > 0 && Date.now() < budget.deadline - 25_000)) {
+      budget.reportChecks--;
+      // A failed look keeps what was found before and tries again in a few
+      // hours, rather than holding the pack back for it.
+      reports = await visitReports(j).catch(() => reports);
+      await sbUpsert("install_packs", [{ job_id: j.job_id, visit_reports: reports ?? [], reports_checked_at: at(), updated_at: at() }], "job_id").catch(() => undefined);
+    } else if (reports == null) {
+      return "wait";
+    }
+  }
+  reports ??= [];
+  if (!aiConfigured()) return { reports, summary: null };
+
+  const withReports: PackFacts = { ...f, visitReports: reports };
+  const { key } = summaryInput(withReports, reports);
+  let summary = row?.summary ?? null;
+  const retry = summary != null && "error" in summary && Date.now() - Date.parse(summary.at) > RETRY_MS;
+  if (summary == null || row?.summary_key !== key || retry) {
+    // While the summary isn't going in the PDF, the pack doesn't wait for one.
+    if (!force && (budget.writes <= 0 || Date.now() > budget.deadline - 35_000)) return needSummary ? "wait" : { reports, summary };
+    budget.writes--;
+    try {
+      const w = await writeSummary(j, withReports, reports, budget.deadline - 15_000);
+      summary = { ok: w.summary, from: w.from };
+    } catch (e) {
+      summary = { error: (e as Error).message.slice(0, 200), at: at() };
+    }
+    await sbUpsert("install_packs", [{ job_id: j.job_id, summary, summary_key: key, updated_at: at() }], "job_id").catch(() => undefined);
+  }
+  return { reports, summary };
+}
+
+/** One job's pack row, for the office's preview. */
+export async function packRow(jobId: number): Promise<Row | null> {
+  const rows = await sbSelect<Row>("install_packs", [q.select("job_id,version,fingerprint,parts,photo_ids,attached_at,photos_checked_at,last_error,last_tried_at,visit_reports,reports_checked_at,summary,summary_key"), q.eq("job_id", String(jobId))].join("&"));
+  return rows[0] ?? null;
+}
+
 export type PackOutcome = { job: string; did: "made" | "updated" | "failed"; detail: string };
 
 export type BuiltPack = { pdf: Uint8Array; fileName: string; photoIds: number[]; photos: number; notShown: number; facts: PackFacts };
 
 /** The PDF for one job, with its photos. Nothing written anywhere. */
 export async function buildPackFile(j: InstallJob, facts: PackFacts, version: number, deadline = Infinity, maxPhotoBytes = MAX_PHOTO_BYTES): Promise<BuiltPack> {
-  const listed = await packPhotos(j);
+  const listed = await packPhotos(j, facts.visitReports ?? []);
   const photos: PackPhoto[] = [];
   let notShown = 0;
   let photoIds: number[] = [];
@@ -109,20 +171,30 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
   if (!jobs.length) return { ran: [] };
   const [facts, rows] = await Promise.all([
     packFactsFor(jobs),
-    sbSelect<Row>("install_packs", [q.select("job_id,version,fingerprint,parts,photo_ids,attached_at,photos_checked_at,last_error,last_tried_at"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&")),
+    sbSelect<Row>("install_packs", [q.select("job_id,version,fingerprint,parts,photo_ids,attached_at,photos_checked_at,last_error,last_tried_at,visit_reports,reports_checked_at,summary,summary_key"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&")),
   ]);
   const rowOf = new Map(rows.map((r) => [r.job_id, r]));
   const now = Date.now();
   const ran: PackOutcome[] = [];
   const log: AutoEntry[] = [];
   let photoChecks = 0;
+  const budget: ExtrasBudget = { reportChecks: 3, writes: 1, deadline };
 
   for (const j of jobs) {
     if (ran.length >= max || Date.now() > deadline - 20_000) break;
-    const f = facts.get(j.job_id);
-    if (!f) continue;
+    const base = facts.get(j.job_id);
+    if (!base) continue;
     const row = rowOf.get(j.job_id);
     if (row?.last_error && row.last_tried_at && now - Date.parse(row.last_tried_at) < RETRY_MS) continue;
+
+    const extras = await packExtras(j, base, row, budget, false, sw.installSummary);
+    if (extras === "wait") continue;
+    // A summary just written can leave too little of the minute for the
+    // photos and the upload; the pack follows on the next pull.
+    if (Date.now() > deadline - 25_000) break;
+    // Written either way, so it can be read before it's turned on; in the
+    // PDF only once it is.
+    const f: PackFacts = { ...base, visitReports: extras.reports, summary: sw.installSummary ? extras.summary : null };
 
     const parts = packParts(f);
     const fp = fingerprint(parts);
@@ -133,7 +205,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       // every few hours.
       if (photoChecks >= 1 || (row.photos_checked_at && now - Date.parse(row.photos_checked_at) < PHOTO_RECHECK_MS)) continue;
       photoChecks++;
-      const listed = await packPhotos(j);
+      const listed = await packPhotos(j, f.visitReports ?? []);
       if (!("photos" in listed)) continue;
       if (sameIds(row.photo_ids, listed.photos.map((p) => p.id))) {
         await sbUpsert("install_packs", [{ job_id: j.job_id, photos_checked_at: new Date().toISOString(), updated_at: new Date().toISOString() }], "job_id");
@@ -156,7 +228,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       const shown = `${built.photos} photo${built.photos === 1 ? "" : "s"}${built.notShown ? ` (${built.notShown} more on the job)` : ""}`;
       await stUpload(stTenantPath("forms", `jobs/${j.job_id}/attachments`), built.fileName, built.pdf, "application/pdf");
       const note = version === 1
-        ? `Install pack attached (${built.fileName}): the scope from the job summary, ${f.quote ? "what's going in and every material from the sold quote with where it was ordered" : "no equipment list as there's no sold quote on the job"}, and ${shown}.`
+        ? `Install pack attached (${built.fileName}): the scope from the job summary, ${f.summary && "ok" in f.summary ? "an installation summary written from the records, " : ""}${f.quote ? "what's going in and every material from the sold quote with where it was ordered" : "no equipment list as there's no sold quote on the job"}${f.visitReports?.length ? `, the Condition Report${f.visitReports.length === 1 ? "" : "s"} from the earlier visit` : ""}, and ${shown}.`
         : `Install pack updated to v${version}: ${whatChanged(row?.parts ?? null, parts, photosChanged)}. The new PDF (${built.fileName}) is attached; use it rather than earlier versions.`;
       // The PDF is on the job either way; a refused note shouldn't make the
       // next run upload it again.
