@@ -90,7 +90,7 @@ export default async function HomePage() {
               <span className="ahero__sep" aria-hidden="true" />
               <span><strong>1,200+</strong><small>installs done</small></span>
               <span className="ahero__sep" aria-hidden="true" />
-              <Link href="/rebates"><strong>Up to $2,700 →</strong><small>See if you qualify</small></Link>
+              <Link href="/rebates"><strong>Up to $6,000 →</strong><small>See if you qualify</small></Link>
             </div>
           </div>
           <HeroQuote />
@@ -165,7 +165,9 @@ export default async function HomePage() {
                 <strong className="disp" style={{ fontSize: 22, fontWeight: 800, color: "#050A30", lineHeight: 1.15 }}>Rebate taken off at the quote, not claimed back later.</strong>
                 <Link href="/tools/veu-rebate-estimator" style={{ fontSize: 14, fontWeight: 700, color: "#B04711", textUnderlineOffset: 3 }}>Estimate your rebate →</Link>
               </div>
-              <strong className="disp" style={{ fontSize: "clamp(34px, 3.4vw, 48px)", fontWeight: 900, color: "#C2521A", letterSpacing: "-.03em", whiteSpace: "nowrap" }}>$2,700</strong>
+              <strong className="disp" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", fontSize: "clamp(34px, 3.4vw, 48px)", fontWeight: 900, color: "#C2521A", letterSpacing: "-.03em", whiteSpace: "nowrap", lineHeight: 1 }}>
+                <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: 0, marginBottom: 4 }}>Up to</span>$6,000
+              </strong>
             </div>
             <div className="whycard whycard--white arv">
               <span className="whycard__ico" style={{ background: "#E6F5FC", color: "#0C6F96" }}><Svg d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9 12l2 2 4-4" size={22} width={1.8} /></span>

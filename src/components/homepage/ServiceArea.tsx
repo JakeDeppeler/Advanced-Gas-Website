@@ -30,6 +30,7 @@ type Found = { name: string; slug: string; lat: number; lng: number; page: boole
 
 const HQ = { lat: -38.078, lng: 145.487 };
 const W = 1384, H = 962;
+const AR = W / H;
 const mY = (la: number) => { const s = Math.sin((la * Math.PI) / 180); return Math.log((1 + s) / (1 - s)); };
 const xPct = (lng: number) => ((lng - 145.05) / 0.95) * 100;
 const yPct = (lat: number) => ((mY(-37.8) - mY(lat)) / (mY(-37.8) - mY(-38.32))) * 100;
@@ -70,8 +71,41 @@ function Van({ left }: { left: boolean }) {
   );
 }
 
+/**
+ * Where the map looks. The box crops the image to fill it, so a town near the
+ * edge (Ringwood East sits on the top edge) was off screen with the drive
+ * running out of view. With a town picked, the map pans and, if it has to,
+ * zooms out so the workshop and the town are both in frame.
+ */
+function framing(box: { w: number; h: number } | null, to: { lat: number; lng: number } | null) {
+  if (!box || !to || !box.w || !box.h) return { s: 1, tx: 0, ty: 0 };
+  const iw = Math.max(box.w, box.h * AR), ih = iw / AR;
+  // How much of the image the box shows, in % of the image.
+  const vx = (box.w / iw) * 100, vy = (box.h / ih) * 100;
+  const xs = [xPct(HQ.lng), xPct(to.lng)], ys = [yPct(HQ.lat), yPct(to.lat)];
+  // Room round the two for the HQ badge and the town's label.
+  const padX = 14, padY = 10;
+  const bw = Math.max(...xs) - Math.min(...xs) + padX * 2, bh = Math.max(...ys) - Math.min(...ys) + padY * 2;
+  const s = Math.min(1, vx / bw, vy / bh);
+  // Stay over the picture, but allow a few % past its edge: a town right on
+  // the edge (Ringwood East) would otherwise have its van cut in half.
+  const over = 6;
+  const clamp = (c: number, v: number) => (v / s >= 100 ? 50 : Math.min(100 + over - v / s / 2, Math.max(v / s / 2 - over, c)));
+  const cx = clamp((Math.max(...xs) + Math.min(...xs)) / 2, vx), cy = clamp((Math.max(...ys) + Math.min(...ys)) / 2, vy);
+  return { s, tx: 50 - cx, ty: 50 - cy };
+}
+
 export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
   const [q, setQ] = useState("");
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ w: number; h: number } | null>(null);
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const query = q.trim().toLowerCase();
   const local = useMemo(() => (query.length >= 3 ? suburbs.find((s) => s.name.toLowerCase().startsWith(query)) ?? null : null), [query, suburbs]);
 
@@ -113,15 +147,17 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
   useEffect(() => { drive.current?.beginElement(); }, [hit?.slug]);
   // SMIL ignores prefers-reduced-motion, so the van is parked rather than driven.
   const still = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const dots = suburbs.filter((s) => s.dot != null && s.slug !== "pakenham");
+  const dots = suburbs.filter((s) => s.dot != null && s.slug !== "pakenham" && s.slug !== hit?.slug);
+  const pin = hit && onMap && hit.slug !== "pakenham" ? hit : null;
+  const cam = framing(box, pin);
 
   return (
     <section id="areas" className="areas" data-no-reveal>
       <span className="glow areas__glow" aria-hidden="true" />
       <div className="wrap arv" style={{ position: "relative" }}>
         <div className="areagrid">
-          <div className={`amap${hit ? " amap--hit" : ""}`} role="img" aria-label="Map of the suburbs we service around Pakenham">
-            <div className="amap__in">
+          <div ref={mapRef} className={`amap${hit ? " amap--hit" : ""}`} role="img" aria-label={pin ? `Map showing the drive from our Pakenham workshop to ${pin.name}` : "Map of the suburbs we service around Pakenham"}>
+            <div className="amap__in" style={{ transform: `translate(-50%, -50%) scale(${cam.s.toFixed(3)}) translate(${cam.tx.toFixed(2)}%, ${cam.ty.toFixed(2)}%)` }}>
               {/* eslint-disable-next-line @next/next/no-img-element -- sized by the aspect-ratio box around it, which next/image's fill fights */}
               <img className="amap__img" src={PHOTO.map} alt="" aria-hidden="true" loading="lazy" decoding="async" />
               {/* Ring widths are 2.4% of the map's width per km: 36% is 15 km, 120% is 50 km. */}
@@ -131,15 +167,20 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
               <span className="maptag" style={{ left: `${hx}%`, top: `calc(${hy}% - 43.3%)` }}>50 km</span>
               <span className="asweep" aria-hidden="true" style={{ left: `${hx}%`, top: `${hy}%` }} />
               {dots.map((s, i) => {
-                const on = hit?.slug === s.slug;
                 const x = xPct(s.lng);
-                const cls = `mapdot${on ? " mapdot--hit" : s.dot ? " mapdot--lbl" : ""}${s.dot === 2 || (on && x > 78) ? " mapdot--left" : ""}`;
+                const cls = `mapdot${s.dot ? " mapdot--lbl" : ""}${s.dot === 2 ? " mapdot--left" : ""}`;
                 return (
                   <span key={s.slug} className={cls} style={{ left: `${x.toFixed(2)}%`, top: `${yPct(s.lat).toFixed(2)}%`, animationDelay: `${(0.3 + i * 0.03).toFixed(2)}s` }}>
-                    <span className="mapdot__lbl">{on ? `${s.name} · ${dist} km` : s.name}</span>
+                    <span className="mapdot__lbl">{s.name}</span>
                   </span>
                 );
               })}
+              {/* The town they typed, whether or not it has a dot of its own. */}
+              {pin && (
+                <span key={`pin-${pin.slug}`} className={`mapdot mapdot--hit${xPct(pin.lng) > 78 ? " mapdot--left" : ""}`} style={{ left: `${xPct(pin.lng).toFixed(2)}%`, top: `${yPct(pin.lat).toFixed(2)}%` }}>
+                  <span className="mapdot__lbl">{`${pin.name} · ${dist} km`}</span>
+                </span>
+              )}
               {route && (
                 <svg key={hit!.slug} className="aroute" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
                   <path className="aroute__glow" d={route.d} />
