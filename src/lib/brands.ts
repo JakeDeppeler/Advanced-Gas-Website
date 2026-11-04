@@ -2694,7 +2694,7 @@ const brandCatalogue: Brand[] = [
       sub: "Of every heat pump we fit, the iStore is the one the VEU rebate stretches furthest, and for a household pulling out an old electric storage tank, that rebate is usually the whole decision. Get the rebate right and the rest of the job follows.",
     },
     verdict:
-      "When the VEU rebate is what decides the job, the iStore is our answer: nothing else we fit takes the rebate as far, and it lands at $2,150 installed with the rebate applied right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew as anything else on our list, with 5 years from iStore on the whole unit and 6 years from us on the workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
+      "When the VEU rebate is what decides the job, the iStore is our answer: nothing else we fit takes the rebate as far, and the rebate comes off right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew as anything else on our list, with 5 years from iStore on the whole unit and 6 years from us on the workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
     notRightWhen:
       "Staying in the house for the long haul, and it's the coldest mornings that worry you most? The iStore is built to a price the rebate makes sense of, not to outlast everything else on the block. If tank longevity and cold-morning recovery matter to you more than the biggest upfront rebate, we'd point you at a Reclaim instead, and we'd rather tell you that now than have you wish we had in year eight.",
     versus:
@@ -2705,7 +2705,7 @@ const brandCatalogue: Brand[] = [
     fitsWhere:
       "Replacing tired electric storage tanks, and running the compressor on solar surplus for households with panels on the roof.",
     heroFacts: [
-      { v: "$2,150", k: "Installed inc GST, VEU rebate applied at the quote" },
+      { v: "VEU", k: "Rebate taken off at the quote, not claimed back later" },
       { v: "2 models", k: "180 L and 275 L, nothing in between to read through" },
       { v: "R290", k: "Natural refrigerant, high COP" },
       { v: "5 yr & 6 yr", k: "5-yr iStore warranty on the whole unit and 6-yr on our workmanship, both from install day" },
@@ -2716,7 +2716,7 @@ const brandCatalogue: Brand[] = [
         t: "The rebate goes furthest",
         line: "The best VEU rebate outcome of any heat pump we fit",
         detail:
-          "Of everything on our list, the iStore is the one the VEU rebate stretches furthest, which is what brings it to $2,150 installed with the rebate applied right there at the quote. If the rebate is what makes the job stack up: and pulling out an old electric tank, it usually is, this is the unit that makes the most of it.",
+          "Of everything on our list, the iStore is the one the VEU rebate stretches furthest, and the rebate comes off right there at the quote. If the rebate is what makes the job stack up: and pulling out an old electric tank, it usually is, this is the unit that makes the most of it.",
         icon: "shield",
       },
       {
@@ -2797,7 +2797,7 @@ const brandCatalogue: Brand[] = [
     faqs: [
       {
         q: "Why the iStore and not one of the other heat pumps?",
-        a: "Because of the rebate, mostly. Of everything we fit, the iStore is the one the VEU rebate stretches furthest, which is what brings it to $2,150 installed. It's a solid R290 platform with the PV diverter and the app built in, and for a house pulling out an old electric tank it's the one that makes the numbers work. Where you're staying long-term and cold-morning recovery matters to you more than the upfront rebate, we'd point you at a Reclaim instead, and we'll say so plainly.",
+        a: "Because of the rebate, mostly. Of everything we fit, the iStore is the one the VEU rebate stretches furthest, which is what brings the price down so far. It's a solid R290 platform with the PV diverter and the app built in, and for a house pulling out an old electric tank it's the one that makes the numbers work. Where you're staying long-term and cold-morning recovery matters to you more than the upfront rebate, we'd point you at a Reclaim instead, and we'll say so plainly.",
       },
       {
         q: "What's this $350 electrical charge I've heard about?",

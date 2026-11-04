@@ -6,28 +6,45 @@
  * FAQs read the same here as in the clickable version he signed off.
  *
  * Prices: the ones Jake has confirmed are set on each option. The rest are
- * `null` here and show as PLACEHOLDER_PRICE, at Jake's request, so the
- * preview reads as finished; `mockPrice` marks them so they're easy to find
- * and replace before launch. Don't guess a real figure in their place.
+ * `null` here. None of them show while SHOW_PRICES is off; with it on, the
+ * nulls show as PLACEHOLDER_PRICE and `mockPrice` marks them so they're easy
+ * to find and replace. Don't guess a real figure in their place.
  */
 
 /** Stand-in "from" price for options without a confirmed one (Jake, Oct 2026). */
 export const PLACEHOLDER_PRICE = 999;
 
 /**
- * Finance. On, with MOCK figures at Jake's request (Oct 2026), so the preview
- * shows how weekly pricing reads; no provider is set up yet.
+ * Prices. Off at Jake's request (Nov 2026): every option reads "priced at
+ * your free quote" until the real figures are settled. The confirmed and
+ * placeholder prices stay on each option below, so turning this back on is
+ * the only change needed to show them again.
+ */
+export const SHOW_PRICES = false;
+
+/**
+ * Finance. Off until a provider is set up (Jake, Nov 2026); the site says it
+ * is coming soon instead, and FINANCE_SOON hides that line too when false.
  *
  * The weekly maths below is a plain split with no interest or fees. That is
- * not what any finance provider charges, so before launch it has to be
- * replaced with the provider's real terms, rates and fees, and FINANCE_NOTE
- * with their required wording. Turn this off to hide every finance figure.
+ * not what any finance provider charges, so before this is turned on it has
+ * to be replaced with the provider's real terms, rates and fees, and
+ * FINANCE_NOTE with their required wording.
  */
-export const SHOW_FINANCE = true;
-/** The default term, and the terms a customer can flick between. */
+export const SHOW_FINANCE = false;
+export const FINANCE_SOON = true;
+export const FINANCE_SOON_TEXT = "Finance coming soon";
 export const FINANCE_MONTHS = 36;
 export const FINANCE_TERMS = [12, 24, 36, 48, 60];
 export const FINANCE_NOTE = "Example repayments only, spread evenly with no interest or fees. Finance is subject to approval; real terms are confirmed on your quote.";
+
+/**
+ * An install price written as text elsewhere on the site ("from $2,199
+ * installed"), shown only while SHOW_PRICES is on. Service and call-out fees
+ * ("$190 + GST", "$30/day hire") are fixed rates, not install prices, and
+ * always show.
+ */
+export const quoted = (text: string) => (SHOW_PRICES || /\+ GST|hire/i.test(text) ? text : "Price on quote");
 
 export const weekly = (price: number, months = FINANCE_MONTHS) => Math.ceil(price / ((months * 52) / 12));
 export const money = (n: number) => "$" + n.toLocaleString("en-AU");
@@ -119,10 +136,12 @@ const PEOPLE: Opt[] = [
   { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2 },
   { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3 },
 ];
-/** Gas ducted heaters come in four outputs; Jake prices them in two bands. */
+/** The four outputs a Brivis heater comes in. */
 const HEATER_KW: Opt[] = [
-  { label: "15–20 kW", sub: "Most smaller and mid-size homes", spec: "15–20 kW", n: 1 },
-  { label: "26–30 kW", sub: "Larger homes, or long duct runs", spec: "26–30 kW", n: 3 },
+  { label: "15 kW", sub: "Smaller homes and units", spec: "15 kW", n: 1 },
+  { label: "20 kW", sub: "Most 3–4 bedroom homes", spec: "20 kW", n: 2 },
+  { label: "26 kW", sub: "Larger family homes", spec: "26 kW", n: 3 },
+  { label: "30 kW", sub: "Big homes, or long duct runs", spec: "30 kW", n: 4 },
 ];
 /** The same question for a gas tank, with the sizes a gas tank comes in rather than a heat pump's. */
 const GAS_PEOPLE: Opt[] = [
@@ -149,8 +168,6 @@ export const QB = {
   ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
   roofType: { id: "rooftype", q: "What type of roof?", opts: [o("Tiled"), o("Colorbond or metal"), o("Flat or low pitch")] },
   hwNow: { id: "now", q: "What hot water do you have now?", opts: [o("Gas storage tank"), o("Gas continuous flow"), o("Electric storage tank"), o("Solar hot water"), o("Nothing yet", "New build or extension")] },
-  hwWhere: { id: "where", q: "Where does the unit go?", opts: [o("Outside, against a wall"), o("Inside, in a laundry or cupboard"), o("Not sure")] },
-  solar: { id: "solar", q: "Do you have solar panels?", opts: [o("Yes", "It can heat your water off your solar during the day"), o("No"), o("Planning to")] },
   gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
   heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
   vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
@@ -223,7 +240,8 @@ export type Category = {
 const W = "6-yr workmanship warranty";
 const t = (slug: string, brand: string, model: string, img: string, feats: string[], price: number | null, same?: string): Tier => ({
   slug, tier: slug[0].toUpperCase() + slug.slice(1), brand, model, img, feats,
-  price: price ?? PLACEHOLDER_PRICE, ...(price == null ? { mockPrice: true } : {}), ...(same ? { same } : {}),
+  ...(SHOW_PRICES ? { price: price ?? PLACEHOLDER_PRICE, ...(price == null ? { mockPrice: true } : {}) } : { price: null }),
+  ...(same ? { same } : {}),
 });
 
 const SPLIT_TIERS: Tier[] = [
@@ -287,17 +305,17 @@ export const CATS: Category[] = [
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
-      sys({ slug: "heat-pump", label: "Heat pump", sub: "VEU rebate applied", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.hwNow, QB.hwWhere, QB.solar], tiers: [
+      sys({ slug: "heat-pump", label: "Heat pump", sub: "VEU rebate applied", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.hwNow], tiers: [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
       ] }),
-      sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Endless hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType, QB.hwWhere], tiers: [
+      sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Endless hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
         t("premium", "Thermann", "G-series, high-flow", IMG.gasCf, ["Two showers running at once", "Endless hot water", W], null),
         t("signature", "Reclaim", "Switch to a heat pump", IMG.reclaimAio, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2624, "heat-pump.premium"),
       ] }),
-      sys({ slug: "gas-storage", label: "Gas storage", sub: "Like-for-like swap", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType, QB.hwWhere], tiers: [
+      sys({ slug: "gas-storage", label: "Gas storage", sub: "Like-for-like swap", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType], tiers: [
         t("essential", "Thermann", "4-star gas storage", IMG.gasStorage, ["Like-for-like swap", "Same-day on common sizes", "Old unit removed"], null),
         t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null, "gas-continuous-flow.essential"),
         t("signature", "iStore", "Switch to a heat pump", IMG.istore, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2150, "heat-pump.essential"),
@@ -499,7 +517,7 @@ export function galleryFor(sys: System, tier: Tier): GalItem[] {
 /**
  * [brand slug, product slug, size label, own id]. The id is for when one
  * catalogue product covers several sizes (a Brivis heater is one record for
- * 15–30 kW), so each size still has a button of its own.
+ * 15 to 30 kW), so each size still has a button of its own.
  */
 type ModelRef = [string, string, string, string?];
 const MSZ_AP: ModelRef[] = [["mitsubishi-electric", "msz-ap25", "2.5 kW"], ["mitsubishi-electric", "msz-ap35", "3.5 kW"], ["mitsubishi-electric", "msz-ap50", "5.0 kW"], ["mitsubishi-electric", "msz-ap60", "6.0 kW"], ["mitsubishi-electric", "msz-ap71", "7.1 kW"], ["mitsubishi-electric", "msz-ap80", "8.0 kW"]];
@@ -509,7 +527,7 @@ const CF: ModelRef[] = [["thermann", "cf-16", "16 L/min"], ["thermann", "cf-20",
 const ECO: ModelRef[] = [["reclaim", "eco-r290-200", "200 L"], ["reclaim", "eco-r290-300", "285 L"]];
 // istore-270 keeps its old slug so links to it still land; the tank is 275 L.
 const ISTORE: ModelRef[] = [["istore", "istore-180", "180 L"], ["istore", "istore-270", "275 L"]];
-const heater = (product: string, id: string): ModelRef[] => [["brivis", product, "15–20 kW", `${id}-15-20`], ["brivis", product, "26–30 kW", `${id}-26-30`]];
+const heater = (product: string, id: string): ModelRef[] => ["15", "20", "26", "30"].map((kw) => ["brivis", product, `${kw} kW`, `${id}-${kw}`]);
 
 export const TIER_MODELS: Record<string, ModelRef[]> = {
   "split-system.essential": KSI, "split-system.premium": MSZ_AP,
@@ -760,7 +778,7 @@ export const PHOTO_TIP: Record<Category["id"], string> = {
 export type ServiceCard = { t: string; href: string; s: string; badge: string; photo: string; alt: string; pos: string; icon: string; bg: string; fg: string; cta: string };
 
 export const SERVICES: ServiceCard[] = [
-  { t: "Aircon installation", href: "/services/air-conditioning-installation", s: "Split, multi-head, ducted and evaporative systems, sized to the room rather than the catalogue.", badge: "Splits from $2,199", photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 35%", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", cta: "Aircon installation" },
+  { t: "Aircon installation", href: "/services/air-conditioning-installation", s: "Split, multi-head, ducted and evaporative systems, sized to the room rather than the catalogue.", badge: "Free written quote", photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 35%", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", cta: "Aircon installation" },
   { t: "Heat pump hot water", href: "/services/heat-pump-installation", s: "Swap your old gas or electric unit for a heat pump, with the VEU rebate taken off the quote, not claimed back later.", badge: "Up to $2,700 off", photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", icon: ICON.drop, bg: "#C2521A", fg: "#fff", cta: "Heat pump installs" },
   { t: "Aircon service & repairs", href: "/services/aircon-servicing-repairs", s: "Cleans, health checks and breakdowns on split, ducted and evaporative systems, whoever installed them.", badge: "Book before summer", photo: PHOTO.evapService, alt: "Evaporative cooler being serviced on a roof", pos: "center 45%", icon: ICON.wrench, bg: "#050A30", fg: "#fff", cta: "Servicing & repairs" },
   { t: "Gas & plumbing", href: "/services/gas-plumbing", s: "Gas heating, gas lines, hot water and appliances, with a carbon monoxide safety test on every gas job.", badge: "CO tested", photo: PHOTO.gasLine, alt: "Excavator digging a trench for a new gas line", pos: "center 50%", icon: ICON.flame, bg: "#FDEEE6", fg: "#B04711", cta: "Gas & plumbing" },

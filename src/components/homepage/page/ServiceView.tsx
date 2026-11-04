@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ServiceContent } from "@/lib/serviceContent";
 import type { SystemDetail } from "@/lib/systemDetail";
 import { resolveAsset } from "@/lib/publicAsset";
+import { quoted } from "@/lib/homepage/data";
 
 /** A /public path that exists, trying other extensions; the path as given if none does. */
 const asset = (src: string) => resolveAsset(src) ?? src;
@@ -43,7 +44,7 @@ export function Prices({ rows }: { rows: Row[] }) {
           <div className="kxr__t">
             {r.group && <span className="kxr__g">{r.group}</span>}
             <h3>{r.tier}</h3>
-            <p className="kxr__p"><small>{r.priceKey ?? "Installed"}</small>{r.price}</p>
+            <p className="kxr__p"><small>{r.priceKey ?? "Installed"}</small>{r.priceKey ? r.price : quoted(r.price)}</p>
             <ul>{r.includes.split(/,\s*/).filter(Boolean).map((x) => <li key={x}>{x}</li>)}</ul>
           </div>
         </article>
@@ -100,7 +101,7 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
                   <span className="bxo__t">
                     <strong>{s.label}</strong>
                     <span className="kx__blurb">{s.blurb}</span>
-                    {s.priceFrom && <em>{s.priceFrom}</em>}
+                    {s.priceFrom && <em>{quoted(s.priceFrom)}</em>}
                   </span>
                   <i className="bxo__go" aria-hidden="true">→</i>
                 </Link>

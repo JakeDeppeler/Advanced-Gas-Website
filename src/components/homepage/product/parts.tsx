@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import {
-  findHref, findSystem, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, TONES, reviewTitle, modelForAnswer,
+  findHref, findSystem, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, FINANCE_SOON, FINANCE_SOON_TEXT, TONES, reviewTitle, modelForAnswer,
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
 } from "@/lib/homepage/data";
 import { PROS, CHOOSE, type Alt, type HowStep, type Learn } from "@/lib/homepage/learn";
@@ -71,8 +71,8 @@ export function Price({ v }: { v: PV }) {
   const { known, t, hp } = v;
   return (
     <div className="pr">
-      <strong>{known ? `From ${money(t.price!)}` : "Priced at your site check"}</strong>
-      <span>{known ? `installed, includes GST${hp ? " and the VEU rebate" : ""}` : "Free site check, then a fixed price in writing"}</span>
+      <strong>{known ? `From ${money(t.price!)}` : "Price on quote"}</strong>
+      <span>{known ? `installed, includes GST${hp ? " and the VEU rebate" : ""}` : `Free site check, then a fixed price in writing${hp ? " with the VEU rebate off" : ""}`}</span>
     </div>
   );
 }
@@ -84,7 +84,9 @@ export function Price({ v }: { v: PV }) {
 export function Finance({ v }: { v: PV }) {
   const { known, t, term, setTerm } = v;
   const [open, setOpen] = useState(false);
-  if (!SHOW_FINANCE || !known) return null;
+  if (!SHOW_FINANCE || !known) {
+    return FINANCE_SOON ? <p className="fin fin--soon"><span aria-hidden="true">●</span> {FINANCE_SOON_TEXT}: pay it off over time. Ask us about it.</p> : null;
+  }
   return (
     <div className="fin">
       <p className="fin__line">or <strong>${weekly(t.price!, term)}/wk</strong> over {term} months</p>
@@ -385,7 +387,7 @@ export function Reviews({ v, head = true }: { v: PV; head?: boolean }) {
   );
 }
 
-export const otherPrice = (o: Tier) => (typeof o.price === "number" ? `${SHOW_FINANCE ? `From $${weekly(o.price, FINANCE_MONTHS)}/wk · ` : "From "}${money(o.price)}` : "Priced at your site check");
+export const otherPrice = (o: Tier) => (typeof o.price === "number" ? `${SHOW_FINANCE ? `From $${weekly(o.price, FINANCE_MONTHS)}/wk · ` : "From "}${money(o.price)}` : "Price on quote");
 
 export function Others({ v }: { v: PV }) {
   const { sys, ans } = v;
@@ -414,7 +416,7 @@ export function Sticky({ v }: { v: PV }) {
         <span className="pp__stickyimg"><Image src={t.img} alt="" fill sizes="48px" /></span>
         <span className="pp__stickyt">
           <strong>{t.brand} {t.model}</strong>
-          <span>{known ? `From ${money(t.price!)} installed${SHOW_FINANCE ? ` or $${weekly(t.price!, v.term)}/wk` : ""}` : "Priced after a free site check"}{model ? ` · ${model.chip}` : size ? ` · ${size.label}` : ""}</span>
+          <span>{known ? `From ${money(t.price!)} installed${SHOW_FINANCE ? ` or $${weekly(t.price!, v.term)}/wk` : ""}` : "Price on quote"}{model ? ` · ${model.chip}` : size ? ` · ${size.label}` : ""}</span>
         </span>
         <Link href={book} className="abtn abtn--or">Book this install</Link>
       </div>

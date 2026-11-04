@@ -306,6 +306,14 @@ const SPLIT_CHOOSE: Record<string, Choice> = {
   ] },
 };
 const rooms = (n: number) => `${n} rooms off the one outdoor unit.`;
+/** What each Brivis output suits. The heat load at the site check has the final say. */
+const HEATER_SIZES: Record<string, string> = {
+  "15 kW": "Smaller homes and units, or a heater serving part of a house.",
+  "20 kW": "Most three and four bedroom homes around here.",
+  "26 kW": "Larger family homes, or more rooms on the one heater.",
+  "30 kW": "Big homes, two living areas, or long duct runs.",
+};
+
 export const CHOOSE: Record<string, Choice> = {
   ...Object.fromEntries(["split-system", "reverse-cycle-split"].flatMap((sys) => Object.entries(SPLIT_CHOOSE).map(([tier, c]) => [
     `${sys}.${tier}`, { ...c, instead: c.instead.map((x) => ({ ...x, go: x.go.includes(".") ? x.go : `${sys}.${x.go}` })) },
@@ -366,28 +374,28 @@ export const CHOOSE: Record<string, Choice> = {
   },
   // Every heater comes in the same outputs; the star rating is what changes.
   "gas-ducted-heating.3-star": {
-    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
+    sizes: HEATER_SIZES,
     instead: [
       { go: "gas-ducted-heating.4-star", label: "Brivis StarPro 4-star", when: "You run the heater most days each winter: it burns less gas doing the same job." },
       { go: "ducted.essential", label: "A ducted split", when: "You want cooling from the same system, or to get off gas." },
     ],
   },
   "gas-ducted-heating.4-star": {
-    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
+    sizes: HEATER_SIZES,
     instead: [
       { go: "gas-ducted-heating.5-star", label: "Brivis StarPro 5-star", when: "You heat long hours through a cold winter, or you're staying in the house for years." },
       { go: "gas-ducted-heating.3-star", label: "Brivis Classic Wombat 3-star", when: "The house is being sold or rented, or the heater only runs a few weeks a year." },
     ],
   },
   "gas-ducted-heating.5-star": {
-    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
+    sizes: HEATER_SIZES,
     instead: [
       { go: "gas-ducted-heating.6-star", label: "Brivis StarPro 6-star", when: "The heater runs most of the day: its modulating burner holds the temperature with the least gas." },
       { go: "gas-ducted-heating.4-star", label: "Brivis StarPro 4-star", when: "You heat mornings and evenings rather than all day." },
     ],
   },
   "gas-ducted-heating.6-star": {
-    sizes: { "15–20 kW": "Most smaller and mid-size homes. We confirm it with a room-by-room heat load at the site check.", "26–30 kW": "Larger homes, more rooms on the one heater, or long duct runs." },
+    sizes: HEATER_SIZES,
     instead: [
       { go: "gas-ducted-heating.5-star", label: "Brivis StarPro 5-star", when: "The heater doesn't run long enough each day for the modulating burner to pay for itself." },
       { go: "zoning.premium", label: "Add zoning", when: "You only heat part of the house at a time: zones cut the gas whatever the star rating." },

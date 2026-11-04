@@ -3,6 +3,7 @@ import Image from "next/image";
 import Script from "next/script";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { quoted } from "@/lib/homepage/data";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
 import "../detail.css";
@@ -295,8 +296,8 @@ export default function RebatesPage() {
                   </ul>
                   <div className="rb-prod__foot">
                     <div className="rb-prod__price">
-                      <strong>{p.price}</strong>
-                      <span>fully installed, inc GST</span>
+                      <strong>{quoted(p.price)}</strong>
+                      <span>{quoted(p.price) === p.price ? "fully installed, inc GST" : "Fixed price in writing, inc GST"}</span>
                       <span className="rb-prod__price-rebate">{p.rebate}</span>
                     </div>
                     <span className="rb-prod__pill">{p.pill}</span>

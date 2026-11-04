@@ -3,6 +3,11 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 export type Address = { label: string; suburb: string | null; postcode: string | null };
+type Hit = Address & { id?: string };
+
+/** One per address typed and picked, so Google bills it as one session rather than per keystroke. */
+const newSession = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
 
 /**
  * The quote form's address box: start typing and pick the full address from
@@ -19,12 +24,13 @@ export function AddressField({ value, onChange, invalid, icon }: {
   icon: ReactNode;
 }) {
   const id = useId();
-  const [hits, setHits] = useState<Address[]>([]);
+  const [hits, setHits] = useState<Hit[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [picked, setPicked] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seq = useRef(0);
+  const session = useRef("");
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
@@ -37,8 +43,9 @@ export function AddressField({ value, onChange, invalid, icon }: {
     timer.current = setTimeout(async () => {
       const n = ++seq.current;
       try {
-        const res = await fetch(`/api/address?q=${encodeURIComponent(text.trim())}`);
-        const out = (await res.json()) as { results?: Address[] };
+        if (!session.current) session.current = newSession();
+        const res = await fetch(`/api/address?q=${encodeURIComponent(text.trim())}&s=${session.current}`);
+        const out = (await res.json()) as { results?: Hit[] };
         if (n !== seq.current) return;
         setHits(out.results ?? []);
         setOpen((out.results ?? []).length > 0);
@@ -49,11 +56,22 @@ export function AddressField({ value, onChange, invalid, icon }: {
     }, 250);
   }
 
-  function pick(a: Address) {
-    onChange(a);
+  function pick(a: Hit) {
+    const { id, ...addr } = a;
+    onChange(addr);
     setPicked(true);
     setOpen(false);
     setHits([]);
+    const s = session.current;
+    session.current = "";
+    // Google's suggestions carry no postcode: fetch the full address, and
+    // keep the suggestion as it was if that fails.
+    if (!id) return;
+    const n = ++seq.current;
+    fetch(`/api/address?id=${encodeURIComponent(id)}&s=${s}`)
+      .then((r) => r.json() as Promise<{ results?: Address[] }>)
+      .then((out) => { const full = out.results?.[0]; if (full && n === seq.current) onChange({ label: full.label, suburb: full.suburb, postcode: full.postcode }); })
+      .catch(() => {});
   }
 
   function key(e: React.KeyboardEvent<HTMLInputElement>) {

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   type Category, type System, heroFor, isHeatPump, installTime, productHref, realOption, money, weekly,
-  PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
+  PRODUCT_FAQS, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, TONES, WORKMANSHIP,
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { Crumbs, Hero, Head, Next, Cta } from "./kit";
@@ -41,7 +41,9 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
         eye={`${cat.label} · ${sys.sub}`} title={sys.label} sub={SYS_INTRO[sys.slug] ?? sys.sub}
         img={hero.src} imgAlt={hero.alt} ctas={false}
         facts={[
-          ...(from != null ? [{ v: `From ${money(from)}`, k: SHOW_FINANCE ? `Installed, or $${weekly(from, FINANCE_MONTHS)}/wk` : "Installed, GST included" }] : []),
+          from != null
+            ? { v: `From ${money(from)}`, k: SHOW_FINANCE ? `Installed, or $${weekly(from, FINANCE_MONTHS)}/wk` : "Installed, GST included" }
+            : { v: "Free quote", k: FINANCE_SOON && !SHOW_FINANCE ? `Fixed price in writing · ${FINANCE_SOON_TEXT.toLowerCase()}` : "Fixed price in writing" },
           { v: `${sys.tiers.length} options`, k: brands.join(", ") },
           { v: cap(installTime(sys).replace(/^Usually /, "").replace(/ for a .*$/, "")), k: "Install time" },
           { v: "6 years", k: "On our workmanship" },

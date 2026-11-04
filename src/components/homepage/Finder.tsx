@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_NOTE, TONES,
+  CATS, PHOTO, ICON, SIZE_NOTE, SHOW_PRICES, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, FINANCE_NOTE, TONES,
   findSystem, answerChips, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
   type Answers,
 } from "@/lib/homepage/data";
@@ -78,7 +78,7 @@ export function Finder() {
               <h2 className="find__h">Find your <span>system</span></h2>
               <p className="find__p">
                 Pick what you need, answer a few quick questions about your home, and we&apos;ll show you three options side by side
-                {SHOW_FINANCE ? " with the weekly finance figure" : " with installed prices"}. Something stopped working?{" "}
+                {SHOW_PRICES ? (SHOW_FINANCE ? " with the weekly finance figure" : " with installed prices") : ", then a free written quote for the one you like"}. Something stopped working?{" "}
                 <a href="tel:+61359478000" data-call-from="finder">Call (03) 5947 8000</a>.
               </p>
             </div>
@@ -196,8 +196,9 @@ export function Finder() {
                       </ul>
                       <div className="tier__price">
                         <small>{known ? (SHOW_FINANCE ? "From, with finance" : "Range starts from, installed") : "Installed price"}</small>
-                        <strong>{known ? (SHOW_FINANCE ? `$${weekly(t.price!, FINANCE_MONTHS)}/wk` : money(t.price!)) : "At quote"}</strong>
+                        <strong>{known ? (SHOW_FINANCE ? `$${weekly(t.price!, FINANCE_MONTHS)}/wk` : money(t.price!)) : "Price on quote"}</strong>
                         <em>{known ? (SHOW_FINANCE ? `or ${money(t.price!)} installed` : `Includes GST${isHeatPump(sys) ? " and the VEU rebate" : ""}`) : "Fixed price after a free site check"}</em>
+                        {!SHOW_FINANCE && FINANCE_SOON && <span className="tier__soon">{FINANCE_SOON_TEXT}</span>}
                       </div>
                       <div className="tier__btns">
                         <Link href={href} className="abtn abtn--ghost">View details</Link>
@@ -211,7 +212,9 @@ export function Finder() {
                 })}
               </div>
               <p className="find__fine">
-                Installed prices include GST, with the VEU rebate applied where it&apos;s eligible. &ldquo;Range starts from&rdquo; is the smallest model in that range; your exact size is priced in writing after a free site check.
+                {SHOW_PRICES
+                  ? <>Installed prices include GST, with the VEU rebate applied where it&apos;s eligible. &ldquo;Range starts from&rdquo; is the smallest model in that range; your exact size is priced in writing after a free site check.</>
+                  : <>Every option is priced in writing after a free site check, GST included, with the VEU rebate taken off where it&apos;s eligible.</>}
                 {SHOW_FINANCE ? ` Weekly figures are over ${FINANCE_MONTHS} months. ${FINANCE_NOTE}` : ""}{" "}
                 <Link href="/tools/system-comparison">Compare systems</Link>
               </p>
