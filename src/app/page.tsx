@@ -163,6 +163,8 @@ export default async function HomePage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
                 <span className="whycard__lbl" style={{ color: "#B04711" }}>VEU accredited</span>
                 <strong className="disp" style={{ fontSize: 22, fontWeight: 800, color: "#050A30", lineHeight: 1.15 }}>Rebate taken off at the quote, not claimed back later.</strong>
+                {/* What adds up to $6,000 (Jake, Nov 2026). Hot water on its own is up to $2,700, which is what the heat pump pages say. */}
+                <span style={{ fontSize: 14, lineHeight: 1.5, color: "#3F4A63" }}>Combined rebates: VEECs on reverse-cycle air con, plus VEECs, STCs and Solar Victoria&apos;s rebate and Australian-made bonus on a heat pump. Up to $2,700 of that is on hot water.</span>
                 <Link href="/tools/veu-rebate-estimator" style={{ fontSize: 14, fontWeight: 700, color: "#B04711", textUnderlineOffset: 3 }}>Estimate your rebate →</Link>
               </div>
               <strong className="disp" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", fontSize: "clamp(34px, 3.4vw, 48px)", fontWeight: 900, color: "#C2521A", letterSpacing: "-.03em", whiteSpace: "nowrap", lineHeight: 1 }}>

@@ -38,7 +38,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
     <div className="ag ag--flat" data-no-reveal>
       <Crumbs trail={[{ name: cat.label, href: `/?find=${cat.id}#find` }, { name: sys.label }]} back={{ label: "Find yours in a few taps →", href: `/?find=${sys.slug}#find` }} />
       <Hero
-        eye={`${cat.label} · ${sys.sub}`} title={sys.label} sub={SYS_INTRO[sys.slug] ?? sys.sub}
+        eye={cat.label} title={sys.label} sub={SYS_INTRO[sys.slug] ?? sys.sub}
         img={hero.src} imgAlt={hero.alt} ctas={false}
         facts={[
           from != null
