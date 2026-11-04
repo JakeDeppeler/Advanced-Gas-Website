@@ -98,7 +98,9 @@ export async function packExtras(j: InstallJob, f: PackFacts, row: Row | null | 
     }
   }
   reports ??= [];
-  if (!aiConfigured()) return { reports, summary: null };
+  // A guide only for an install that's sold (Jake, 4 Nov): without a sold
+  // quote there's nothing settled about what's going in.
+  if (!aiConfigured() || !f.quote) return { reports, summary: null };
 
   const withReports: PackFacts = { ...f, visitReports: reports };
   const { key } = summaryInput(withReports, reports);

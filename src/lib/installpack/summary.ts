@@ -99,7 +99,7 @@ export async function writeSummary(j: InstallJob, f: PackFacts, reports: VisitRe
     content.push({ type: "text", text: p.label });
     content.push({ type: "image", source: { type: "base64", media_type: p.mime, data: p.data } });
   }
-  content.push({ type: "text", text: `${input.text}\n\nWrite the installation summary for this job.${photos.length ? "" : " There are no photos."}` });
+  content.push({ type: "text", text: `${input.text}\n\nWrite the installation guide for this job.${photos.length ? "" : " There are no photos."}` });
 
   let res: Anthropic.Beta.BetaMessage;
   try {

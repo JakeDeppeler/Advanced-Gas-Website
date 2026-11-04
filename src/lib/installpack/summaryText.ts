@@ -1,4 +1,4 @@
-// What the install summary is written from, and the shape it comes back in.
+// What the installation guide is written from, and the shape it comes back in.
 // Pure, so scripts/check-installpack.ts can see exactly what Claude is given
 // for a fixture job, and the key that decides when it's written again.
 //
@@ -7,8 +7,9 @@
 // they get there, where the indoor head goes, whether there's a pump, where
 // the pipes run and what the outdoor unit sits on, and nobody writes that
 // down. So it's written from what was recorded, held to saying only what
-// those records say, and anything they don't settle is listed to confirm
-// rather than filled in. The PDF says what it was written from.
+// those records say, and what they don't say is left out rather than filled
+// in. The PDF says what it was written from. Only on an install with a sold
+// quote (Jake): without one there's nothing settled to describe.
 
 import { createHash } from "node:crypto";
 import { answer, toReport, type Submission } from "@/lib/conditionReport/report";
@@ -18,26 +19,25 @@ import { plainText, type PackFacts } from "./build";
 export type VisitReport = { jobId: number; jobNumber: string | null; jobType: string | null; submission: Submission };
 
 export type InstallSummary = {
-  /** Two or three sentences: what's going in, where, replacing what. */
+  /** Two or three sentences: what's there now, what's going in, the kind of install. */
   overview: string;
   sections: { heading: string; text: string }[];
-  /** What the records don't settle, as short questions for site. */
-  confirm: string[];
 };
 
-/** What was written: the summary, or why there isn't one. */
+/** What was written: the guide, or why there isn't one. */
 export type SummaryState = { ok: InstallSummary; from: string } | { error: string; at: string };
 
-/** Bumped when the instructions change, so every summary still to be used is written again. */
+/** Bumped when the instructions change, so every guide still to be used is written again. */
 // 2 (4 Nov): the tech's findings quoted, not reworded — job 20727's "lines
 // with no gas and service valves shut" came back as "the condenser was
 // holding no refrigerant", the opposite of what shut valves mean — and no
 // steps of its own ("commission in heating and cooling").
-export const SUMMARY_VERSION = "2";
+// 3 (4 Nov, Jake): a simple installation guide for the crew — what's there,
+// what's going in and how — and no "to confirm on site" list.
+export const SUMMARY_VERSION = "3";
 
 export const SECTIONS = [
-  "Removing the old system", "Indoor unit", "Outdoor unit", "Pipework", "Drainage", "Electrical", "Gas", "Water",
-  "Flue", "Ductwork", "Controls", "Access and safety", "Commissioning and handover",
+  "What's there now", "Indoor unit", "Outdoor unit", "Pipework and drain", "Electrical", "Gas", "Water", "Flue", "Ductwork", "Access",
 ] as const;
 
 export const SUMMARY_SCHEMA = {
@@ -53,27 +53,26 @@ export const SUMMARY_SCHEMA = {
         additionalProperties: false,
       },
     },
-    confirm: { type: "array", items: { type: "string" } },
   },
-  required: ["overview", "sections", "confirm"],
+  required: ["overview", "sections"],
   additionalProperties: false,
 } as const;
 
-export const SUMMARY_RULES = `You write the "Installation summary" section of an install pack for Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. Installers read it before they arrive on site. It says how this install will go: where each unit goes and what it's mounted on, the pipe run, whether there's a condensate pump, power, gas, water, flue and ductwork, what's being removed, and anything about access.
+export const SUMMARY_RULES = `You write the "Installation guide" in the install pack of Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The installers read it before they arrive, so they know what the job is and how it goes: what's there now and whether it's being replaced, what's going in, where it goes and what it sits on, how the pipes and drain run, and power, gas, water, flue and ductwork where they apply.
 
 You are given the office's job summary, the sold quote's lines (equipment, materials, and the labour lines that name the kind of install), any contractor booked, and the Condition Report and photos from the earlier visit to the site.
 
+Write it simply, the way a supervisor would brief the crew: "There's an old Fujitsu split on the lounge wall that isn't working. It comes out and a new Kaden 5kW goes in back to back, outdoor unit on a slab." Short plain sentences, Australian trade English.
+
 Rules:
-- Say only what those records say or plainly show. Never invent a room, a wall, a distance or a fitting.
-- Quote the technician's findings in their own words, in quotation marks ("unit lines with no gas and service valves shut"). Never restate a technical finding about refrigerant, gas, valves, faults or compliance in other words: a rewording can change what it means.
-- Don't add steps, advice or good practice of your own (commissioning, testing, explaining controls to the customer) unless a record says it. Each sentence must come from a record.
-- A quote line can settle a point when its name makes it plain, and you say that's where it comes from: an install line "Roof Bracket" means the outdoor unit goes on a roof bracket; "Back To Back" means indoor and outdoor units on the two sides of the same wall; "Wall Bracket" (labour or a wall bracket material) means a wall-mounted outdoor unit; a condensate pump on the materials means a pump, and no pump on them is "no condensate pump on the quote", not a promise of a gravity drain; a coil of copper pair is the pipe size, not the run length.
-- From photos, describe only what is clearly visible, and say it's from the photos.
-- Where two records disagree (the job summary says one bracket, the quote another), say so plainly and put it in confirm.
-- Anything an installer needs that the records don't settle (where the indoor head goes, the pipe route and length, where power comes from, roof access) goes in confirm as a short question. Don't pad confirm with things the records do settle.
-- The Condition Report describes the existing equipment at the earlier visit. Use it for what's there now and what's being removed; don't describe the old unit as the new one.
-- Sections: only those that apply, in a sensible order, each one to four short sentences. Overview: two or three sentences.
-- Plain Australian trade English. No selling, no prices, no customer names or phone numbers.`;
+- Say only what the records say or plainly show. Never invent a room, a wall, a distance or a fitting. If something isn't recorded, leave it out; don't guess and don't raise questions.
+- What the tech found is quoted in their own words ("unit lines with no gas and service valves shut"), never reworded: a rewording can change what it means.
+- No steps, advice or good practice of your own (commissioning, testing, explaining controls). Each sentence comes from a record.
+- Read the quote's lines for the kind of install: "Roof Bracket" means the outdoor unit on a roof bracket; "Back To Back" means indoor and outdoor units on the two sides of the same wall; "Wall Bracket" (labour, or a bracket with a quantity) means a wall-mounted outdoor unit; a slab means a ground-mounted outdoor unit; a condensate pump on the materials means a pump goes in. A line with quantity 0 isn't part of the job.
+- From photos, only what's clearly visible.
+- The Condition Report is about what's there now. If there's an existing unit, say what it is and that it's being replaced or removed; don't describe the old unit as the new one.
+- Overview: two or three sentences. Sections: only those that apply, one to three sentences each.
+- No selling, no prices, no customer names or phone numbers.`;
 
 const tidy = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
 const qty = (n: number) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2))));
@@ -127,10 +126,9 @@ export const listed = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join
 /** The answer, held to the schema's shape; anything else is refused rather than half-printed. */
 export function parseSummary(text: string): InstallSummary {
   const v = JSON.parse(text) as InstallSummary;
-  if (typeof v?.overview !== "string" || !Array.isArray(v.sections) || !Array.isArray(v.confirm)) throw new Error("not a summary");
+  if (typeof v?.overview !== "string" || !Array.isArray(v.sections)) throw new Error("not a summary");
   return {
     overview: tidy(v.overview),
     sections: v.sections.filter((s) => s && typeof s.heading === "string" && typeof s.text === "string" && tidy(s.text)).map((s) => ({ heading: tidy(s.heading), text: tidy(s.text) })),
-    confirm: v.confirm.filter((c) => typeof c === "string" && tidy(c)).map(tidy).slice(0, 12),
   };
 }

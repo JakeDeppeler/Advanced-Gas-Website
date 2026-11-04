@@ -209,12 +209,11 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
 
   /*
    * How the install will go, written from the records (summaryText.ts), under
-   * a heading of its own so it's never read as the office's scope. What it
-   * was written from is said under it, and what the records don't settle is
-   * listed to confirm on site.
+   * a heading of its own so it's never read as the office's scope, with what
+   * it was written from said under it.
    */
   if (pack.summary) {
-    open("Installation summary", "ok" in pack.summary ? "Written by the portal from the records" : undefined);
+    open("Installation guide", "ok" in pack.summary ? "Written by the portal from the records" : undefined);
     if ("ok" in pack.summary) {
       const sm = pack.summary.ok;
       para(sm.overview);
@@ -224,13 +223,6 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
         text(sec.heading, IN, 10.5, bold, NAVY);
         y -= 14;
         para(sec.text);
-      }
-      if (sm.confirm.length) {
-        y -= 6;
-        room(13 + 2 * 13.5);
-        text("To confirm on site", IN, 10.5, bold, WAITING);
-        y -= 14;
-        bullets(sm.confirm, WAITING);
       }
       y -= 6;
       for (const l of wrap(font, 8, `Written by the portal from ${pack.summary.from}. It says only what those say: if something on site doesn't match, go by the site and tell the office.`, IN_R - IN)) {
