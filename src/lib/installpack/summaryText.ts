@@ -29,7 +29,11 @@ export type InstallSummary = {
 export type SummaryState = { ok: InstallSummary; from: string } | { error: string; at: string };
 
 /** Bumped when the instructions change, so every summary still to be used is written again. */
-export const SUMMARY_VERSION = "1";
+// 2 (4 Nov): the tech's findings quoted, not reworded — job 20727's "lines
+// with no gas and service valves shut" came back as "the condenser was
+// holding no refrigerant", the opposite of what shut valves mean — and no
+// steps of its own ("commission in heating and cooling").
+export const SUMMARY_VERSION = "2";
 
 export const SECTIONS = [
   "Removing the old system", "Indoor unit", "Outdoor unit", "Pipework", "Drainage", "Electrical", "Gas", "Water",
@@ -61,6 +65,8 @@ You are given the office's job summary, the sold quote's lines (equipment, mater
 
 Rules:
 - Say only what those records say or plainly show. Never invent a room, a wall, a distance or a fitting.
+- Quote the technician's findings in their own words, in quotation marks ("unit lines with no gas and service valves shut"). Never restate a technical finding about refrigerant, gas, valves, faults or compliance in other words: a rewording can change what it means.
+- Don't add steps, advice or good practice of your own (commissioning, testing, explaining controls to the customer) unless a record says it. Each sentence must come from a record.
 - A quote line can settle a point when its name makes it plain, and you say that's where it comes from: an install line "Roof Bracket" means the outdoor unit goes on a roof bracket; "Back To Back" means indoor and outdoor units on the two sides of the same wall; "Wall Bracket" (labour or a wall bracket material) means a wall-mounted outdoor unit; a condensate pump on the materials means a pump, and no pump on them is "no condensate pump on the quote", not a promise of a gravity drain; a coil of copper pair is the pipe size, not the run length.
 - From photos, describe only what is clearly visible, and say it's from the photos.
 - Where two records disagree (the job summary says one bracket, the quote another), say so plainly and put it in confirm.
