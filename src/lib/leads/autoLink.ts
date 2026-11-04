@@ -154,7 +154,10 @@ export async function bookNewLeads(provider: number, since: string): Promise<Ent
     } catch (e) {
       // ServiceTitan's reason, never the request's credentials: stSend's message carries status and body only.
       const error = (e as Error).message.replace(/^ServiceTitan POST \S+ failed: /, "ServiceTitan said ").slice(0, 240);
-      await sbUpdate("portal_leads", `id=eq.${l.id}`, { st_booking: { at: now(), ok: false, tries: tries + 1, error } });
+      // Not allowed yet (the Bookings scope waiting on approval) isn't this enquiry's fault: it doesn't
+      // use up a try, so it goes the moment access is granted rather than being given up on.
+      const denied = /\b(401|403)\b/.test(error);
+      await sbUpdate("portal_leads", `id=eq.${l.id}`, { st_booking: { at: now(), ok: false, tries: denied ? tries : tries + 1, error } });
       out.push({ at: now(), kind: "leadBooking", ok: false, title: `${l.name ?? "A website enquiry"} couldn't be sent to ServiceTitan's Bookings`, detail: /\b403\b/.test(error) ? "ServiceTitan won't let the portal make bookings: add CRM › Bookings (write) to the portal's API app and have it re-authorised." : error });
     }
   }
