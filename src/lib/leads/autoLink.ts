@@ -105,6 +105,36 @@ type LeadRow = {
 
 const TRIES = 3;
 
+/**
+ * The suburb for a booking. The website form asks for one address line and a
+ * postcode, never the suburb, and ServiceTitan refuses a booking with no city
+ * (Jake's test enquiry, 4 Nov). The postcode decides it: the suburb most of
+ * our own customers at that postcode have (3810 is Pakenham for 661 of them),
+ * which also puts right a typed "Pakenaham". A postcode we've never served
+ * falls back to the address line's last word.
+ */
+const cityCache = new Map<string, string | null>();
+async function cityFor(postcode: string | null, address: string | null): Promise<string> {
+  const pc = (postcode ?? "").replace(/\D/g, "");
+  if (/^\d{4}$/.test(pc)) {
+    if (!cityCache.has(pc)) {
+      const rows = await sbSelect<{ city: string | null }>("st_locations", `select=city:raw->address->>city&raw->address->>zip=eq.${pc}&limit=400`).catch(() => []);
+      const tally = new Map<string, { name: string; n: number }>();
+      for (const r of rows) {
+        const name = (r.city ?? "").trim();
+        if (!name) continue;
+        const k = name.toLowerCase();
+        tally.set(k, { name: tally.get(k)?.name ?? name, n: (tally.get(k)?.n ?? 0) + 1 });
+      }
+      cityCache.set(pc, [...tally.values()].sort((a, b) => b.n - a.n)[0]?.name ?? null);
+    }
+    const hit = cityCache.get(pc);
+    if (hit) return hit;
+  }
+  const last = (address ?? "").replace(/\b(vic|victoria|\d{4})\b/gi, "").trim().split(/[\s,]+/).filter(Boolean).pop();
+  return last ? last.charAt(0).toUpperCase() + last.slice(1).toLowerCase() : "Not given";
+}
+
 /** What the office reads in the Bookings inbox: what they want, then everything they wrote. */
 function bookingSummary(l: LeadRow): string {
   return [
@@ -143,7 +173,7 @@ export async function bookNewLeads(provider: number, since: string): Promise<Ent
       customerType: "Residential",
       isFirstTimeClient: true,
       isSendConfirmationEmail: false,
-      address: { street: l.address ?? "", city: l.suburb ?? "", state: "VIC", zip: l.postcode ?? "", country: "Australia" },
+      address: { street: l.address || "Not given", city: l.suburb || await cityFor(l.postcode, l.address), state: "VIC", zip: l.postcode ?? "", country: "Australia" },
       contacts,
       ...(photos.size ? { uploadedImages: [...photos.values()] } : {}),
     };
