@@ -262,18 +262,18 @@ export const CATS: Category[] = [
     id: "air", label: "Cooling", sub: "Splits, multi-head, ducted, evap",
     photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 30%", fg: "#0C6F96", icon: ICON.snow,
     systems: [
-      sys({ slug: "split-system", label: "Split system", sub: "A wall unit that heats and cools one room", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
-      sys({ slug: "multi-head", label: "Multi-head", sub: "A wall unit in each room, one unit outside", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
+      sys({ slug: "split-system", label: "Split system", sub: "Wall air conditioner", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
+      sys({ slug: "multi-head", label: "Multi-head", sub: "Air con for several rooms", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
         t("essential", "Kaden", "Multi-head system", IMG.kadenMulti, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
         t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuCond, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
         t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuCond, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
       ] }),
-      sys({ slug: "ducted", label: "Ducted split", sub: "Heats and cools every room from the roof", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: [
+      sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: [
         t("essential", "Kaden", "KDI ducted system", IMG.kadenDucted, ["Whole-home heating and cooling", "Sized off a room-by-room heat load", W], null),
         t("premium", "Mitsubishi Electric", "PEAD-M ducted", IMG.mitsuDucted, ["Zoned as standard: 4, 6 or 8 zones", "Heat output matches cooling", "Duct design done first"], 12500),
         t("signature", "Mitsubishi Electric", "PEAD-M + Zonemate", IMG.zmTouch, ["Zonemate touch and Wi-Fi control", "Run only the rooms you use", "Duct design done first"], null),
       ] }),
-      sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Cools the home with outside air and water", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
+      sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-top water cooler", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
         t("essential", "Kaden", "Classic evaporative", IMG.evapClassic, ["Cheap to run on dry days", "Fresh air through the house", "Pre-summer service available"], null),
         t("premium", "Kaden", "Low-profile evaporative", IMG.evapLow, ["Sits low on the roofline", "Cheap to run on dry days", "Pre-summer service available"], null),
         t("signature", "Brivis", "Advance low-profile", IMG.evapLow, ["Brivis low-profile cooler", "Cheap to run on dry days", "Pre-summer service available"], null),
@@ -287,14 +287,14 @@ export const CATS: Category[] = [
       // Four options by star rating rather than the usual three tiers, at
       // Jake's request (Nov 2026): the star rating is how people compare
       // gas heaters, and Brivis builds one at each.
-      sys({ slug: "gas-ducted-heating", label: "Gas ducted heating", sub: "A gas heater that warms every room through vents", img: IMG.brivisStar, q: "What size heater?", sizes: HEATER_KW, faq: "gasheat", service: "gas-heating", more: [QB.storeys, QB.heatNow, QB.vents], tiers: [
+      sys({ slug: "gas-ducted-heating", label: "Gas ducted heating", sub: "Whole-home gas heater", img: IMG.brivisStar, q: "What size heater?", sizes: HEATER_KW, faq: "gasheat", service: "gas-heating", more: [QB.storeys, QB.heatNow, QB.vents], tiers: [
         t("3-star", "Brivis", "Classic Wombat 3-star", IMG.brivisWombat, ["The lowest upfront cost", "CO safety test on install", W], null),
         t("4-star", "Brivis", "StarPro 4-star", IMG.brivisStar, ["Uses less gas than a 3-star", "CO safety test on install", W], null),
         t("5-star", "Brivis", "StarPro 5-star", IMG.brivisStar, ["Less gas again for long winters", "CO safety test on install", W], null),
         t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
       ] }),
-      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "A wall unit that heats one room on electricity", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
-      sys({ slug: "zoning", label: "Zoning & controls", sub: "Turn rooms on and off on a ducted system", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
+      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
+      sys({ slug: "zoning", label: "Zoning & controls", sub: "Room-by-room control", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
         t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
         t("premium", "Zonemate", "Touch + Wi-Fi", IMG.zmTouch, ["Touchscreen wall controller", "Control from your phone", W], null),
         t("signature", "Milieu", "Smart zone control", IMG.zmTablet, ["Schedules per room", "Control from your phone", W], null),
@@ -305,17 +305,17 @@ export const CATS: Category[] = [
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
-      sys({ slug: "heat-pump", label: "Heat pump", sub: "Heats water from the air, using far less power", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.hwNow], tiers: [
+      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.hwNow], tiers: [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
       ] }),
-      sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Heats water as you use it, so it never runs out", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
+      sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Instant gas hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
         t("premium", "Thermann", "G-series, high-flow", IMG.gasCf, ["Two showers running at once", "Endless hot water", W], null),
         t("signature", "Reclaim", "Switch to a heat pump", IMG.reclaimAio, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2624, "heat-pump.premium"),
       ] }),
-      sys({ slug: "gas-storage", label: "Gas storage", sub: "A tank of hot water kept heated by gas", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType], tiers: [
+      sys({ slug: "gas-storage", label: "Gas storage", sub: "Gas hot water tank", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType], tiers: [
         t("essential", "Thermann", "4-star gas storage", IMG.gasStorage, ["Like-for-like swap", "Same-day on common sizes", "Old unit removed"], null),
         t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null, "gas-continuous-flow.essential"),
         t("signature", "iStore", "Switch to a heat pump", IMG.istore, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2150, "heat-pump.essential"),
@@ -778,12 +778,12 @@ export const PHOTO_TIP: Record<Category["id"], string> = {
 export type ServiceCard = { t: string; href: string; s: string; plain: string; badge: string; photo: string; alt: string; pos: string; icon: string; bg: string; fg: string; cta: string };
 
 export const SERVICES: ServiceCard[] = [
-  { t: "Aircon installation", plain: "New split, ducted or evaporative systems", href: "/services/air-conditioning-installation", s: "Split, multi-head, ducted and evaporative systems, sized to the room rather than the catalogue.", badge: "Free written quote", photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 35%", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", cta: "Aircon installation" },
-  { t: "Heat pump hot water", plain: "Swap to a heat pump, rebate taken off", href: "/services/heat-pump-installation", s: "Swap your old gas or electric unit for a heat pump, with the VEU rebate taken off the quote, not claimed back later.", badge: "Up to $2,700 off", photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", icon: ICON.drop, bg: "#C2521A", fg: "#fff", cta: "Heat pump installs" },
-  { t: "Aircon service & repairs", plain: "Cleans, check-ups and breakdowns", href: "/services/aircon-servicing-repairs", s: "Cleans, health checks and breakdowns on split, ducted and evaporative systems, whoever installed them.", badge: "Book before summer", photo: PHOTO.evapService, alt: "Evaporative cooler being serviced on a roof", pos: "center 45%", icon: ICON.wrench, bg: "#050A30", fg: "#fff", cta: "Servicing & repairs" },
-  { t: "Gas & plumbing", plain: "Gas heating, gas lines and hot water", href: "/services/gas-plumbing", s: "Gas heating, gas lines, hot water and appliances, with a carbon monoxide safety test on every gas job.", badge: "CO tested", photo: PHOTO.gasLine, alt: "Excavator digging a trench for a new gas line", pos: "center 50%", icon: ICON.flame, bg: "#FDEEE6", fg: "#B04711", cta: "Gas & plumbing" },
-  { t: "Commercial & strata", plain: "Offices, shops, rentals and strata", href: "/commercial", s: "Offices, shops, rentals and strata blocks. Installs, servicing and planned maintenance from the same crew.", badge: "Homes & businesses", photo: PHOTO.commercial, alt: "Technician working in a ceiling space", pos: "center 40%", icon: ICON.building, bg: "#E6F5FC", fg: "#0C6F96", cta: "Commercial work" },
-  { t: "24/7 emergency", plain: "Gas leak, no hot water or no heat", href: "tel:+61359478000", s: "Gas leak, no hot water or no heat. After hours goes to someone on the tools, not a call centre.", badge: "Answered 24/7", photo: PHOTO.vans, alt: "The Advanced Gas team with their service vans", pos: "center 55%", icon: ICON.phone, bg: "#FF7A36", fg: "#050A30", cta: "Call (03) 5947 8000" },
+  { t: "Aircon installation", plain: "New air con", href: "/services/air-conditioning-installation", s: "Split, multi-head, ducted and evaporative systems, sized to the room rather than the catalogue.", badge: "Free written quote", photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 35%", icon: ICON.snow, bg: "#00B0ED", fg: "#050A30", cta: "Aircon installation" },
+  { t: "Heat pump hot water", plain: "Energy-saving hot water", href: "/services/heat-pump-installation", s: "Swap your old gas or electric unit for a heat pump, with the VEU rebate taken off the quote, not claimed back later.", badge: "Up to $2,700 off", photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", icon: ICON.drop, bg: "#C2521A", fg: "#fff", cta: "Heat pump installs" },
+  { t: "Aircon service & repairs", plain: "Fix or service air con", href: "/services/aircon-servicing-repairs", s: "Cleans, health checks and breakdowns on split, ducted and evaporative systems, whoever installed them.", badge: "Book before summer", photo: PHOTO.evapService, alt: "Evaporative cooler being serviced on a roof", pos: "center 45%", icon: ICON.wrench, bg: "#050A30", fg: "#fff", cta: "Servicing & repairs" },
+  { t: "Gas & plumbing", plain: "Gas, heating & hot water", href: "/services/gas-plumbing", s: "Gas heating, gas lines, hot water and appliances, with a carbon monoxide safety test on every gas job.", badge: "CO tested", photo: PHOTO.gasLine, alt: "Excavator digging a trench for a new gas line", pos: "center 50%", icon: ICON.flame, bg: "#FDEEE6", fg: "#B04711", cta: "Gas & plumbing" },
+  { t: "Commercial & strata", plain: "Business & rentals", href: "/commercial", s: "Offices, shops, rentals and strata blocks. Installs, servicing and planned maintenance from the same crew.", badge: "Homes & businesses", photo: PHOTO.commercial, alt: "Technician working in a ceiling space", pos: "center 40%", icon: ICON.building, bg: "#E6F5FC", fg: "#0C6F96", cta: "Commercial work" },
+  { t: "24/7 emergency", plain: "Urgent help, any time", href: "tel:+61359478000", s: "Gas leak, no hot water or no heat. After hours goes to someone on the tools, not a call centre.", badge: "Answered 24/7", photo: PHOTO.vans, alt: "The Advanced Gas team with their service vans", pos: "center 55%", icon: ICON.phone, bg: "#FF7A36", fg: "#050A30", cta: "Call (03) 5947 8000" },
 ];
 
 /* ------------------------------------------------------------ header */
