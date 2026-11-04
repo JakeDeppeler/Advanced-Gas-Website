@@ -15,6 +15,10 @@
     {
       "path": "/api/install-packs",
       "schedule": "15 20 * * 0-4"
+    },
+    {
+      "path": "/api/email/outlook/sweep",
+      "schedule": "40 19 * * *"
     }
   ]
 }
