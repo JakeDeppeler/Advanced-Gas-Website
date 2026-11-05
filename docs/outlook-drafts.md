@@ -117,7 +117,22 @@ admin@ from a personal address, and a draft reply should be in the thread
 within a minute.
 
 Only email that arrives after this point gets a draft. It doesn't go back
-through what is already in the Inbox.
+through what is already in the Inbox, unless you ask for a catch-up.
+
+### Catching up on older email
+
+To draft replies for email already sitting in an Inbox, set a start time for
+that mailbox in `portal_settings`, key `outlook_backfill`:
+
+```json
+{ "admin@advancedgas.com.au": "2026-10-29T00:00:00+11:00" }
+```
+
+Each catch-up run (Dashboard sync, or the daily cron) then works through that
+mailbox's Inbox back to that time, four emails at a time, with the same skip
+rules: nothing already replied to, nothing that already has a draft. When it
+has been through everything, it removes the entry itself. A busy week can
+take a few runs.
 
 ## Turning it off
 
