@@ -123,3 +123,53 @@
 @media (max-width:520px){.ag .zh__zones{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.ag .zh__fan{animation:none}.ag .zh__bar span{transition:none}}
 .ag .zh-wrap{margin-top:56px;display:flex;flex-direction:column;gap:18px}
+
+/* Zoning plan: room text, tags, the fan coil */
+.ag .zh__room-n{font:700 12px var(--body)}
+.ag .zh__room-d{font:500 10.5px var(--body)}
+.ag .zh__tag{font:700 9.5px var(--body)}
+.ag .zh__fc{font:800 9px var(--disp);fill:#fff;letter-spacing:.08em}
+.ag .zh__room{cursor:pointer}
+.ag .zh__room:hover{filter:brightness(.97)}
+.ag .zh__glow{animation:hwPulse 2s ease-in-out infinite}
+.ag .zh--plan{grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr)}
+
+/* The wall controller: a black glass touch screen */
+.ag .mec{background:#0B0C0F;border-radius:22px;padding:18px 18px 12px;box-shadow:0 30px 60px -30px rgba(5,10,48,.6),inset 0 0 0 2px #24272E;color:#fff;max-width:420px;width:100%;margin:0 auto}
+.ag .mec__screen{background:#000;border-radius:12px;padding:16px 14px;min-height:300px;display:flex;flex-direction:column;gap:14px}
+.ag .mec__screen--off .mec__modes,.ag .mec__screen--off .mec__info{opacity:.35}
+.ag .mec button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+.ag .mec button:disabled{cursor:default}
+.ag .mec__top{display:flex;justify-content:space-around}
+.ag .mec__top button{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:13px;color:#E6E8EC}
+.ag .mec__top button span{width:44px;height:44px;border-radius:50%;background:#23262D;display:grid;place-items:center}
+.ag .mec__top button.on span{background:#2E3440;color:#5BC8F5}
+.ag .mec__top button:disabled{opacity:.4}
+.ag .mec__temp{display:flex;align-items:center;justify-content:space-between;padding:0 6px}
+.ag .mec__temp > div{display:flex;align-items:flex-start;font-family:var(--body);line-height:.9;transition:color .3s}
+.ag .mec__temp b{font-weight:300;font-size:76px;letter-spacing:-.04em}
+.ag .mec__temp > div span{display:flex;flex-direction:column;justify-content:space-between;height:68px;margin-left:4px}
+.ag .mec__temp i{font-style:normal;font-size:22px;font-weight:400}
+.ag .mec__temp button{width:40px;height:40px;border-radius:50%;background:#1B1E24;font-size:24px;color:#E6E8EC}
+.ag .mec__temp button:disabled{opacity:.3}
+.ag .mec__modes{display:flex;background:#1B1E24;border-radius:999px;padding:3px}
+.ag .mec__modes button{flex:1;padding:8px 0;border-radius:999px;font-size:13.5px;font-weight:600;color:#E6E8EC}
+.ag .mec__modes button.on{background:#E6E8EC;color:#0B0C0F}
+.ag .mec__info{display:grid;grid-template-columns:1fr 1.3fr;gap:8px}
+.ag .mec__fan,.ag .mec__stat{background:#1B1E24 !important;border-radius:12px !important;padding:10px 12px !important;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left}
+.ag .mec__info small{font-size:12px;color:#C9CDD4}
+.ag .mec__fan span{display:flex;align-items:flex-end;gap:3px;height:22px}
+.ag .mec__fan i{width:9px;background:#3A3F49;border-radius:2px}
+.ag .mec__fan i.on{background:#E6E8EC}
+.ag .mec__stat strong{font-size:20px;font-weight:500}
+.ag .mec__list{display:flex;flex-direction:column;gap:6px}
+.ag .mec__head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.ag .mec__head button{width:32px;height:32px;border-radius:50%;background:#1B1E24;font-size:22px;line-height:1}
+.ag .mec__head strong{font-size:16px;font-weight:600}
+.ag .mec__zone{display:flex;align-items:center;gap:10px;background:#1B1E24 !important;border-radius:10px;padding:11px 12px !important;text-align:left;font-size:14px}
+.ag .mec__zone i{width:10px;height:10px;border-radius:50%;flex:none}
+.ag .mec__zone span{flex:1}
+.ag .mec__zone em{font-style:normal;font-size:12.5px;color:#9AA2AE}
+.ag .mec__zone.on em{color:#5BC8F5;font-weight:700}
+.ag .mec__brand{text-align:center;font:800 10px var(--disp);letter-spacing:.06em;color:#9AA2AE;margin-top:10px;line-height:1}
+@media (max-width:1000px){.ag .zh--plan{grid-template-columns:1fr}}
