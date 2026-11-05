@@ -231,3 +231,42 @@ fix, not a re-pull.
 creates it if absent. If the office already has a Reece vendor under a slightly
 different name, set `vendorName` to that exact name before the first apply, or
 the sync will create a second one.
+
+## Labour pricing
+
+Jake, 5 Nov 2026: installation and servicing are priced for two people (a tech
+and an apprentice), finding and fixing a problem for one. The rates are the
+portal's, on **Pricing & costs › Rates & pricing** (`portal_settings.pricing`:
+`solo` $250, `hourly` $310, `install` $360 at the time), so changing a rate
+there and re-running is how the pricebook follows it.
+
+**Services.** Each listed service's price becomes its own ServiceTitan hours ×
+its crew's rate. The list is by service code in `src/lib/pricebook/labour.ts`;
+a service not on it is never touched, and a listed one with no hours is
+reported, not priced at $0. Electrical connections stay the electrician's price.
+
+**Aircon templates.** The old layout priced the install line to cover labour
+and materials, put the electrician beside it, and left the materials loose at
+$0. Rebuilt, each split, multi-head, ducted and Dominator template has one
+installation header (a ServiceTitan item group) holding:
+
+- the labour, at hours × the two-person rate (multi-heads take their hours
+  from the number of indoor heads, against the *Multi Head Labour (n head)*
+  services);
+- the electrical, at its own price;
+- every material, at its pricebook price.
+
+The internal labour lines that sat beside the install line come off, along
+with a doubled install line or certificate. Rebates, the unit, the certificate
+and add-ons (the ducted zone kits) stay where they are. A template already
+grouped is left alone.
+
+Writing templates needs the app's **Estimate Templates** write scope
+(`tn.sal.estimatetemplates:w`) in the developer portal, then re-approval in
+ServiceTitan, as for the Pricebook scope above.
+
+Actions → **Pricebook labour** → choose *services* or *templates*. Without
+*apply* it's a dry run and the summary tables every change; with it, re-run
+until `remaining` is 0. Each run is a row in `pricebook_sync_runs` with
+`supplier` = `labour-services` or `labour-templates`. `npm run check:labour`
+holds the rules.
