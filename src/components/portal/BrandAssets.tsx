@@ -12,8 +12,11 @@ const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { day: "n
 /** "PDF", "PNG" — what the file is, from its type or its name. */
 const ext = (f: Pick<BrandFile, "mime" | "path">) =>
   (f.mime === "application/pdf" ? "pdf" : f.mime?.startsWith("image/") ? f.mime.slice(6).replace("svg+xml", "svg").replace("jpeg", "jpg") : f.path.split(".").pop() ?? "file").toUpperCase().slice(0, 4);
-const href = (folderId: string | null, archived = false) =>
-  `/portal/materials${folderId ? `?f=${folderId}${archived ? "&v=archived" : ""}` : archived ? "?v=archived" : ""}`;
+/** Each shelf's page, name and wording (0102): the marketing kit, or Team › Resources. */
+const SHELF = {
+  brand: { base: "/portal/materials", root: "Materials", what: "Materials", note: "PDFs, pictures, artwork, up to 25MB each. Nothing here is public." },
+  resources: { base: "/portal/resources", root: "Resources", what: "Resources", note: "Price lists, tech sheets, manuals: PDFs, pictures, spreadsheets, up to 25MB each. Nothing here is public." },
+} as const;
 const fileUrl = (f: BrandFile, download: boolean) =>
   `/api/portal/asset?path=${encodeURIComponent(f.path)}${download ? `&dl=${encodeURIComponent(`${f.label}.${ext(f).toLowerCase()}`)}` : ""}`;
 
@@ -23,9 +26,12 @@ const fileUrl = (f: BrandFile, download: boolean) =>
  * delete — archived things sit on the Archived tab and come back with Restore;
  * only there can a file be deleted for good.
  */
-export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
-  folders: BrandFolder[]; files: BrandFile[]; folderId: string | null; archived: boolean; canEdit: boolean;
+export function BrandAssets({ folders, files, folderId, archived, canEdit, library = "brand" }: {
+  folders: BrandFolder[]; files: BrandFile[]; folderId: string | null; archived: boolean; canEdit: boolean; library?: "brand" | "resources";
 }) {
+  const sh = SHELF[library];
+  const href = (id: string | null, arch = false) => `${sh.base}${id ? `?f=${id}${arch ? "&v=archived" : ""}` : arch ? "?v=archived" : ""}`;
+  const [q, setQ] = useState("");
   const router = useRouter();
   const [busy, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -64,6 +70,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
     if (!list?.length) return;
     const fd = new FormData();
     if (folderId) fd.set("folder", folderId);
+    fd.set("library", library);
     for (const f of Array.from(list)) fd.append("file", f);
     act(async () => {
       const r = await uploadBrandAsset(fd);
@@ -76,7 +83,7 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
     <div className="pk">
       <div className="pk-files-bar">
         <nav className="pk-crumbs" aria-label="Folder">
-          <Link href={href(null, archived)}>Materials</Link>
+          <Link href={href(null, archived)}>{sh.root}</Link>
           {!archived && crumbs.map((c) => <span key={c.id}> › <Link href={href(c.id)}>{c.name}</Link></span>)}
           {archived && <span> › No longer used</span>}
         </nav>
@@ -94,8 +101,8 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
             <>
               <input id="files-newfolder" className="pk-in" style={{ width: 220 }} autoFocus value={name} placeholder="Folder name" aria-label="Folder name"
                 onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") act(async () => { const r = await newFolder({ name, parentId: folderId }); if (r.ok) { setName(""); setNaming(false); } return r; }); }} />
-              <button type="button" className="pk-btn" disabled={busy} onClick={() => act(async () => { const r = await newFolder({ name, parentId: folderId }); if (r.ok) { setName(""); setNaming(false); } return r; })}>Make folder</button>
+                onKeyDown={(e) => { if (e.key === "Enter") act(async () => { const r = await newFolder({ name, parentId: folderId, library }); if (r.ok) { setName(""); setNaming(false); } return r; }); }} />
+              <button type="button" className="pk-btn" disabled={busy} onClick={() => act(async () => { const r = await newFolder({ name, parentId: folderId, library }); if (r.ok) { setName(""); setNaming(false); } return r; })}>Make folder</button>
               <button type="button" className="pk-btn g" onClick={() => { setNaming(false); setName(""); }}>Cancel</button>
             </>
           ) : (
@@ -106,12 +113,43 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
             <input id="files-upload" ref={picker} type="file" multiple hidden onChange={upload}
               accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.gif,.ai,.eps,.psd,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.mp4,.mov" />
           </label>
-          <span className="pk-note">PDFs, pictures, artwork, up to 25MB each. Nothing here is public.</span>
+          <span className="pk-note">{sh.note}</span>
         </div>
       )}
       {msg && <p className={`pk-said${msg.ok ? "" : " bad"}`} role="status">{msg.text}</p>}
 
-      {!archived ? (
+      {!archived && (
+        <input id="files-search" className="pk-in pk-files-q" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+          placeholder={`Find a file in every folder: a model, a brand, “manual”…`} aria-label="Find a file" />
+      )}
+
+      {!archived && q.trim() ? (() => {
+        // Every word has to match, in the file's name or the folders it's in, so "brivis manual" finds it in Manuals › Brivis.
+        const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+        const found = liveFiles.filter((f) => {
+          const hay = `${f.label} ${f.folderId && byId.get(f.folderId) ? path(byId.get(f.folderId)!) : ""}`.toLowerCase();
+          return words.every((w) => hay.includes(w));
+        });
+        return (
+          <section className="pk-card pk-pad">
+            <div className="pk-card-h"><b>Found</b><span>{found.length} file{found.length === 1 ? "" : "s"} for “{q.trim()}”</span></div>
+            {found.length === 0 ? <div className="pk-empty">Nothing by that name. Try fewer words, or the brand on its own.</div> : (
+              <div className="pk-filelist">
+                {found.map((f) => (
+                  <div key={f.id} className="pk-file">
+                    <span className={`pk-filetype t-${ext(f).toLowerCase()}`}>{ext(f)}</span>
+                    <span className="t"><b>{f.label}</b><span>{[f.folderId && byId.get(f.folderId) ? path(byId.get(f.folderId)!) : sh.root, size(f.bytes)].filter(Boolean).join(" · ")}</span></span>
+                    <span className="pk-file-acts">
+                      <a className="pk-btn" href={fileUrl(f, false)} target="_blank" rel="noopener">Open</a>
+                      <a className="pk-btn g" href={fileUrl(f, true)}>Download</a>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })() : !archived ? (
         <>
           {subfolders.length > 0 && (
             <div className="pk-folders">
@@ -146,8 +184,8 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
                       <a className="pk-btn g" href={fileUrl(f, false)} target="_blank" rel="noopener">Open</a>
                       {canEdit && (
                         <select className="pk-in" style={{ width: 150 }} value={f.folderId ?? ""} aria-label={`Move ${f.label} to`} disabled={busy}
-                          onChange={(e) => act(() => moveBrandFile({ id: f.id, folderId: e.target.value || null }), "Moved.")}>
-                          <option value="">Files (top)</option>
+                          onChange={(e) => act(() => moveBrandFile({ id: f.id, folderId: e.target.value || null, library }), "Moved.")}>
+                          <option value="">{sh.root} (top)</option>
                           {allFolders.map((x) => <option key={x.id} value={x.id}>{path(x)}</option>)}
                         </select>
                       )}
@@ -176,13 +214,13 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit }: {
             )}
           </section>
           <section className="pk-card pk-pad">
-            <div className="pk-card-h"><b>Materials no longer used</b><span>kept so you can see what went out before · still downloadable · delete for good only from here</span></div>
+            <div className="pk-card-h"><b>{sh.what} no longer used</b><span>kept so you can see what went out before · still downloadable · delete for good only from here</span></div>
             {archFiles.length === 0 ? <div className="pk-empty">Nothing marked no longer used.</div> : (
               <div className="pk-filelist">
                 {archFiles.map((f) => (
                   <div key={f.id} className="pk-file">
                     <span className={`pk-filetype t-${ext(f).toLowerCase()}`}>{ext(f)}</span>
-                    <span className="t"><b>{f.label} <em className="mk-old">No longer used</em></b><span>{[size(f.bytes), f.folderId && byId.get(f.folderId) ? `in ${path(byId.get(f.folderId)!)}` : "Materials (top)", `stopped using ${day(f.archivedAt!)}`].filter(Boolean).join(" · ")}</span></span>
+                    <span className="t"><b>{f.label} <em className="mk-old">No longer used</em></b><span>{[size(f.bytes), f.folderId && byId.get(f.folderId) ? `in ${path(byId.get(f.folderId)!)}` : `${sh.root} (top)`, `stopped using ${day(f.archivedAt!)}`].filter(Boolean).join(" · ")}</span></span>
                     <span className="pk-file-acts">
                       <a className="pk-btn g" href={fileUrl(f, true)}>Download</a>
                       {canEdit && <button type="button" className="pk-btn g" disabled={busy} onClick={() => act(() => archiveItem({ kind: "file", id: f.id, archived: false }), `${f.label} is back in use.`)}>Back in use</button>}

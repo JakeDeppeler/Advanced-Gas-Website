@@ -266,6 +266,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/sops/edit", label: "Edit processes", short: "Edit SOPs", blurb: "Change what the crew sees", band: "how-we-work", icon: "pen", also: ["edit", "procedure", "publish"] },
   );
   items.push(
+    { href: "/portal/resources", label: "Resources", blurb: "Price lists, tech sheets and manuals", band: "how-we-work", icon: "file", also: ["manual", "manuals", "price list", "spec sheet", "tech sheet", "datasheet", "install guide", "brochure", "product"] },
     { href: "/portal/learning", label: "Learning", blurb: "How-to and method videos", band: "how-we-work", icon: "play", also: ["training", "video", "course"] },
     { href: "/portal/information", label: "Information", short: "Info", blurb: "Prices, licences, contacts", band: "how-we-work", icon: "info", also: ["price list", "licence", "abn", "arc", "contact"] },
     { href: "/portal/me", label: "My file", blurb: "Your leave, goals and reviews", band: "settings", icon: "user", also: ["leave", "holiday", "rdo", "review", "goal"] },

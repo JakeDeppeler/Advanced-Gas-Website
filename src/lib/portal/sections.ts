@@ -252,6 +252,8 @@ export const SECTION_DEFS: SectionDef[] = [
       ] },
       { label: "Trade iPad", href: "/trade", icon: "wall" },
       { label: "Pricebook", href: "/trade/pricebook", icon: "tag" },
+      // Price lists, tech sheets and manuals: beside the pricebook, where the crew look for the same kind of thing.
+      { label: "Resources", href: "/portal/resources", icon: "file" },
       { label: "How we work", icon: "todo", group: [
         { label: "Roles", href: "/portal/roles" },
         { label: "Leading", href: "/portal/leading" },
