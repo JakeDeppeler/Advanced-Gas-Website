@@ -247,7 +247,15 @@ pricebook follows it.
 become their own ServiceTitan hours × their crew's rate. The list is by service
 code in `src/lib/pricebook/labour.ts`; a service not on it is never touched,
 and a listed hourly one with no hours is reported, not priced at $0.
-Electrical connections stay the electrician's price.
+Electrical connections stay the electrician's price. Removing the old unit
+(*Equipment – Decommission & Disposal*) is the two-person rate.
+
+**Refrigerant.** R410A and R32 were $0 a kg. Their cost and the markup live in
+`portal_settings.refrigerant` (`perKg` by material code, `markupPct`), and the
+services run sets each to cost + markup, to the dollar: $106 → $133 and
+$109 → $136 at 25%, the median markup across our priced materials. A material's
+cost only sticks in ServiceTitan through its supplier; the refrigerant has
+none, so if the cost doesn't take, the run says so and the price still goes in.
 
 **Templates.** The old layout priced the install line to cover labour and
 materials, put the electrician beside it, and left the materials loose at $0.
@@ -256,6 +264,9 @@ ServiceTitan item group) holding the electrical and every material at its
 pricebook price.
 
 - Splits: the labour is on the header, at the install service's hours × $310.
+  Each offers add-ons for the office to tick on the day: removing the old
+  unit, a condensate pump, Blygold, and a second coil of the template's own
+  size for runs over 20 m.
 - Multi-heads: a condenser goes out with two heads or five, so the labour
   isn't fixed. *Multi Head Labour (2 head)* to *(6 head)* go on as add-ons at
   hours × $310 and the office ticks the one the job needs, as with rebates.

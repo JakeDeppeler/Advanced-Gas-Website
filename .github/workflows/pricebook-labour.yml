@@ -71,6 +71,10 @@ jobs:
               echo "| Service | Code | Crew | Hours | Before | After |"
               echo "|---|---|---|---|---|---|"
               jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(.hours) | \(.before|m) | \(.after|m) |"' out.json
+              if [ "$(jq -r '.materials // [] | length' out.json)" != "0" ]; then
+                echo; echo "| Refrigerant (per kg) | Cost before → after | Price before → after |"; echo "|---|---|---|"
+                jq -r "${JQ_DEFS}"'.materials[] | "| \(.name|e) | \(.costBefore|m) → \(.cost|m) | \(.before|m) → \(.after|m) |"' out.json
+              fi
               if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
                 echo; echo "| Skipped | Code | Why |"; echo "|---|---|---|"
                 jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.code|e) | \(.reason|e) |"' out.json
@@ -78,9 +82,9 @@ jobs:
             else
               echo "Labour at $(jq -r '.summary.rate|m' out.json) an hour (tech & apprentice). $(jq -r .summary.toRebuild out.json) templates to rebuild, $(jq -r .summary.skipped out.json) skipped."
               echo
-              echo "| Template | Hours | Labour | Electrical | Materials | Lines taken off | Before | After |"
-              echo "|---|---|---|---|---|---|---|---|"
-              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-ons: " + ([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")) else (.header.labour|m) end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
+              echo "| Template | Hours | Labour | Electrical | Materials | Add-ons offered | Lines taken off | Before | After |"
+              echo "|---|---|---|---|---|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-on" else (.header.labour|m) end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")|e) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
               if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
                 echo; echo "| Skipped | Why |"; echo "|---|---|"
                 jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.reason|e) |"' out.json

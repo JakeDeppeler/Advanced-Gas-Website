@@ -7,7 +7,7 @@
  *   npm run check:labour
  */
 import {
-  crewFor, headCount, planServices, planTemplate, templatePatchItems, templateTotal,
+  crewFor, headCount, planRefrigerant, planServices, planTemplate, templatePatchItems, templateTotal,
   type Catalogue, type Template, type TemplateItem,
 } from "../src/lib/pricebook/labour";
 
@@ -53,6 +53,19 @@ ok("an unlisted service is not touched or reported", !by(5) && !sv.skipped.some(
 ok("already at its price counts as unchanged", !by(6) && sv.unchanged === 1);
 ok("inactive services are left alone", !by(7));
 ok("servicing isn't re-priced", !by(10));
+ok("removing the old unit is the two-person install rate", crewFor("DECOMMISSION-DISPOSAL") === "pair");
+
+const gas = planRefrigerant([
+  { id: 1, code: "R410A 1kg", name: "Refrigerant R410A (HFC) 1KG", price: 0, cost: 100 },
+  { id: 2, code: "R32 1kg", name: "Refrigerant R32 (HFC) 1kg", price: 0, cost: 120 },
+  { id: 3, code: "Silent Mini Pump FP3450", name: "Pump", price: 280, cost: 230 },
+  { id: 4, code: "R32 1kg", name: "inactive copy", price: 0, cost: 0, active: false },
+], { markupPct: 25, perKg: { "R410A 1KG": 106, "R32 1KG": 109 } });
+ok("R410A: $106 cost, $133 sell", gas.find((g) => g.id === 1)?.after === 133 && gas.find((g) => g.id === 1)?.cost === 106, gas);
+ok("R32: $109 cost, $136 sell", gas.find((g) => g.id === 2)?.after === 136 && gas.find((g) => g.id === 2)?.cost === 109);
+ok("codes match whatever their case", gas.length === 2);
+ok("no refrigerant settings: nothing changes", planRefrigerant([{ id: 1, code: "R410A 1kg", name: "x", price: 0, cost: 100 }], null).length === 0);
+
 const noRate = planServices([{ id: 1, code: "AC-SPLIT-DIAG", name: "d", hours: 1, price: 0 }], { callout: null, solo: 250, pair: 310, crew3: null });
 ok("no call-out fee in the portal: skipped, not priced at $0", noRate.changes.length === 0 && /call-out/.test(noRate.skipped[0]?.reason ?? ""));
 
@@ -73,6 +86,11 @@ const cat: Catalogue = {
   ]),
   materialPrice: new Map([[M.COIL, 240], [M.BRACKET, 50], [M.HAT, 35], [M.PVC, 20], [M.VEEC, -70], [M.DAMPER, 76], [M.CABLE, 20]]),
   multiHead: new Map([mh(2, S.M2, 5), mh(3, S.M3, 7), mh(4, S.M4, 8), mh(5, S.M5, 12), mh(6, S.M6, 14)]),
+  splitAddOns: [
+    { skuId: 300, skuType: "Service", name: "Remove & dispose of the old unit", price: 310 },
+    { skuId: 301, skuType: "Material", name: "Silent Mini White Cond Pump 45L/h FP3450", price: 280 },
+    { skuId: 302, skuType: "Service", name: "Blygold Corrosion Protection", price: 1100 },
+  ],
 };
 let nextId = 1000;
 const it = (skuType: TemplateItem["skuType"], skuId: number, skuName: string, unitPrice: number, more: Partial<TemplateItem> = {}): TemplateItem =>
@@ -103,11 +121,18 @@ ok("the header keeps the template's group name", head1.itemGroupName === "Split 
 ok("electrical and all four materials sit under the header", group(p1.items, p1.header.itemId).length === 5);
 ok("materials priced from the pricebook: 240 + 50 + 2×35 + 20", p1.materials === 380 && p1.electrical === 400, { m: p1.materials, e: p1.electrical });
 ok("the unit and the certificate stay outside the group", !p1.items.find((i) => i.skuId === E.KADEN35)!.itemGroupParentId && !p1.items.find((i) => i.skuId === S.BPC)!.itemGroupParentId);
-ok("order: unit, header, its group, then the certificate", p1.items.map((i) => i.skuId).join() === [E.KADEN35, S.RTW, S.ELEC, M.COIL, M.BRACKET, M.HAT, M.PVC, S.BPC].join());
+ok("order: unit, header, its group, then the certificate (extras aside)", p1.items.filter((i) => !i.isAddOn).map((i) => i.skuId).join() === [E.KADEN35, S.RTW, S.ELEC, M.COIL, M.BRACKET, M.HAT, M.PVC, S.BPC].join());
 ok("total: 900 + 1670 + 400 + 65 before, 900 + 1240 + 400 + 380 + 65 after", p1.before === 3035 && p1.after === 2985, { before: p1.before, after: p1.after });
-ok("a split gets no labour add-ons", p1.addOns.length === 0 && p1.removed.length === 0);
+ok("nothing doubled, nothing taken off", p1.removed.length === 0);
+const extras = p1.items.filter((i) => i.isAddOn);
+ok("a split offers removal, condensate pump, Blygold and a second coil", extras.length === 4 && extras.map((e) => e.unitPrice).join() === "310,280,1100,240", extras.map((e) => [e.skuName, e.unitPrice]));
+ok("the second coil is the template's own coil, at its pricebook price", extras.some((e) => e.skuId === M.COIL && e.unitPrice === 240));
+ok("extras are optional: not in the total", p1.after === 2985);
+ok("extras are new items, sent without an id", templatePatchItems(p1.items).filter((b) => b.id === null).length === 4);
+const withPump: Template = { ...k35, items: [...k35.items, it("Material", 301, "Silent Mini White Cond Pump", 280, { isAddOn: true })] };
+ok("an extra the template already offers isn't added twice", plan(withPump).items.filter((i) => i.skuId === 301).length === 1);
 const body = templatePatchItems(p1.items);
-ok("every existing item is sent with its own id", body.every((b) => (b.id ?? 0) >= 1000) && body.length === k35.items.length);
+ok("every existing item is sent with its own id", body.filter((b) => b.id !== null).every((b) => (b.id ?? 0) >= 1000) && body.filter((b) => b.id !== null).length === k35.items.length);
 ok("members are sent pointing at the header", body.filter((b) => b.itemGroupParentId === p1.header.itemId).length === 5);
 
 // Kaden 5kW roof-mounted: the install line twice.
