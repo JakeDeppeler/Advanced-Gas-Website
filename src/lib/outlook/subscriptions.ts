@@ -7,7 +7,8 @@ import { graph, GraphError, outlookMailboxes } from "./graph";
 /**
  * Graph's change notifications: Microsoft calls /api/email/outlook the moment
  * an email lands in either Inbox, which is what has the draft there before
- * anybody opens the email, and the moment a reply lands in Sent Items.
+ * anybody opens the email; and when a reply lands in Sent Items or our draft
+ * leaves Drafts, which is what takes Needs a person off.
  *
  * A subscription expires after a few days, and nothing renews it but us, so
  * the sweep calls ensureSubscriptions() every run. A mailbox whose
@@ -26,20 +27,24 @@ const LIFETIME_MIN = 4000;
 const RENEW_BELOW_MS = 40 * 3600 * 1000;
 
 /**
- * Which folder a subscription watches. The Inbox is what gets drafts; Sent
- * Items is how a reply going out is noticed, to take Needs a person off the
- * email it answered. Records made before Sent Items was watched have no
+ * Which folder a subscription watches. The Inbox is what gets drafts. The
+ * other two are how Needs a person comes off: Sent Items for any reply going
+ * out, Drafts for our draft leaving it (sent, or deleted because the email
+ * needed no reply). Records made before the others were watched have no
  * folder and are the Inbox's.
  */
-export type Folder = "inbox" | "sent";
+export type Folder = "inbox" | "sent" | "drafts";
 export type SubRecord = { mailbox: string; clientState: string; folder?: Folder };
 export const folderOf = (r: SubRecord): Folder => r.folder ?? "inbox";
 type SubMap = Record<string, SubRecord>;
 type GraphSub = { id: string; notificationUrl: string; expirationDateTime: string };
 
 export const notificationUrl = () => `${site.url.replace(/\/$/, "")}/api/email/outlook`;
-const FOLDERS: Folder[] = ["inbox", "sent"];
-const resourceFor = (mailbox: string, folder: Folder) => `users/${mailbox}/mailFolders('${folder === "sent" ? "SentItems" : "Inbox"}')/messages`;
+const FOLDERS: Folder[] = ["inbox", "sent", "drafts"];
+const WELL_KNOWN: Record<Folder, string> = { inbox: "Inbox", sent: "SentItems", drafts: "Drafts" };
+const resourceFor = (mailbox: string, folder: Folder) => `users/${mailbox}/mailFolders('${WELL_KNOWN[folder]}')/messages`;
+/** Drafts reports a draft leaving it, by being sent or deleted; the others, mail arriving. */
+export const changeFor = (folder: Folder) => (folder === "drafts" ? "deleted" : "created");
 const expiry = () => new Date(Date.now() + LIFETIME_MIN * 60_000).toISOString();
 
 export async function knownSubscriptions(): Promise<SubMap> {
@@ -86,7 +91,7 @@ export async function ensureSubscriptions(): Promise<SubStatus[]> {
       // so the route must already be deployed and answering.
       const r = await graph<GraphSub>("/subscriptions", {
         method: "POST",
-        body: { changeType: "created", notificationUrl: url, resource: resourceFor(mailbox, folder), expirationDateTime: expiry(), clientState },
+        body: { changeType: changeFor(folder), notificationUrl: url, resource: resourceFor(mailbox, folder), expirationDateTime: expiry(), clientState },
       });
       next[r.id] = { mailbox, clientState, folder };
       out.push({ mailbox, folder, action: "created", expires: r.expirationDateTime });

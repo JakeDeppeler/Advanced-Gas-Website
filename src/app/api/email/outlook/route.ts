@@ -1,9 +1,9 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { outlookConfigured } from "@/lib/outlook/graph";
-import { folderOf, knownSubscriptions } from "@/lib/outlook/subscriptions";
+import { changeFor, folderOf, knownSubscriptions } from "@/lib/outlook/subscriptions";
 import { handleMessage } from "@/lib/outlook/handle";
-import { clearForSent } from "@/lib/outlook/handoff";
+import { clearForDraftGone, clearForSent } from "@/lib/outlook/handoff";
 import { afterResponse } from "@/lib/outlook/waitUntil";
 
 export const runtime = "nodejs";
@@ -14,8 +14,9 @@ export const maxDuration = 60;
 /**
  * Microsoft Graph's change notifications: an email has arrived in admin@'s
  * or jake@'s Inbox, and the reply is drafted and saved into Outlook as an
- * unsent draft (lib/outlook/handle.ts); or a reply has gone out, and Needs a
- * person comes off the email it answered (lib/outlook/handoff.ts). Setup is
+ * unsent draft (lib/outlook/handle.ts); or a reply has gone out, or our draft
+ * was sent or deleted, and Needs a person comes off the email it was for
+ * (lib/outlook/handoff.ts). Setup is
  * in docs/outlook-drafts.md.
  *
  * **The URL is public.** A notification only names a message id; it is acted
@@ -52,10 +53,12 @@ export async function POST(req: Request) {
   for (const n of body.value ?? []) {
     const sub = n.subscriptionId ? known[n.subscriptionId] : undefined;
     const id = n.resourceData?.id;
-    if (!sub || !id || n.changeType !== "created" || !same(n.clientState ?? "", sub.clientState)) continue;
-    // Inbox: draft a reply. Sent Items: a reply went out, so take Needs a
-    // person off the email it answered.
-    work.push(folderOf(sub) === "sent" ? clearForSent(sub.mailbox, id) : handleMessage(sub.mailbox, id));
+    if (!sub || !id || !same(n.clientState ?? "", sub.clientState)) continue;
+    const folder = folderOf(sub);
+    if (n.changeType !== changeFor(folder)) continue;
+    // Inbox: draft a reply. Sent Items: a reply went out. Drafts: our draft
+    // was sent or deleted. The last two take Needs a person off.
+    work.push(folder === "inbox" ? handleMessage(sub.mailbox, id) : folder === "sent" ? clearForSent(sub.mailbox, id) : clearForDraftGone(sub.mailbox, id));
   }
   if (work.length) await afterResponse(Promise.allSettled(work));
   return new NextResponse(null, { status: 202 });
