@@ -1,5 +1,5 @@
 import "server-only";
-import { dashboardDbConfigured, q, sbInsertIfAbsent, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
+import { dashboardDbConfigured, q, sbInsertIfAbsent, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { getChatSettings } from "@/lib/chat/store";
 import { chatSettingsFrom } from "@/lib/chat/chatTypes";
 import { graph, GraphError, userPath } from "./graph";
@@ -7,8 +7,9 @@ import { customerContext } from "./customer";
 import { MailDraftError, writeMailDraft } from "./draft";
 import { retireOlderDrafts } from "./drafts";
 import { draftNote, handleWorkOrder, isManualIn } from "./workOrders";
+import { findJob, putOnJob, type JobMatch } from "./jobLink";
 import { isTeamForward } from "./workOrderTypes";
-import { MAX_AGE_MS, TEAM_DOMAIN, addressOf, answeredReason, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
+import { MAX_AGE_MS, TEAM_DOMAIN, addressOf, answeredReason, plainText, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
 
 /**
  * One incoming email, from notification to a draft reply waiting in Outlook.
@@ -28,6 +29,8 @@ const STALE_WORKING_MS = 10 * 60 * 1000;
 const RETRY_AFTER_MS = 5 * 60 * 1000;
 /** Put on the original email when the draft says a person should handle it, so it stands out in the inbox. */
 export const HANDOFF_CATEGORY = "Needs a person";
+/** Put on an email once it's gone onto its job in ServiceTitan. */
+export const ON_JOB_CATEGORY = "On a job";
 
 const MESSAGE_FIELDS = "id,internetMessageId,conversationId,subject,from,sender,toRecipients,ccRecipients,receivedDateTime,sentDateTime,isDraft,hasAttachments,internetMessageHeaders,uniqueBody,categories";
 const THREAD_FIELDS = "id,subject,from,sender,receivedDateTime,sentDateTime,isDraft,hasAttachments,uniqueBody";
@@ -99,16 +102,43 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     // drafted as usual, the draft told it's in ServiceTitan.
     let workOrder: string | undefined;
     const recent = Date.now() - (Date.parse(m.receivedDateTime ?? "") || 0) < (opts.maxAgeMs ?? MAX_AGE_MS);
-    if (!m.isDraft && recent) {
+    const external = !TEAM_DOMAIN.test(from);
+    const words = plainText(m.uniqueBody);
+
+    // A reply in a thread that's already on a job is about that job: it goes
+    // on the job, and isn't read as a new work order (24 Melzak Way, 5 Nov:
+    // a "Re:" from Tapi became a second job).
+    let onJob: JobMatch | null = null;
+    if (!m.isDraft && external && m.conversationId) onJob = await findJob(mailbox, { ...m, subject: "", uniqueBody: null }, "", "").catch(() => null);
+
+    if (!m.isDraft && recent && !onJob) {
       const forward = isTeamForward(m);
-      if (forward || isManualIn(m) || !TEAM_DOMAIN.test(from)) {
+      if (forward || isManualIn(m) || external) {
         const wo = await handleWorkOrder(mailbox, m, forward ? "forward" : isManualIn(m) ? "category" : "auto")
           .catch((e: Error) => ({ status: "failed" as const, reason: e.message }));
-        if (forward) return done({ status: "skipped", reason: `forwarded by the team: work order ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`.slice(0, 300) });
+        const tie = "jobId" in wo && wo.jobId ? { job_id: wo.jobId, job_number: wo.jobNumber ?? null, job_how: wo.status === "booked" ? "made from this work order" : "a reply about this job", job_linked_at: new Date().toISOString() } : {};
+        if (forward) return done({ status: "skipped", reason: `forwarded by the team: work order ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`.slice(0, 300) }, tie);
         // A work order gets booked, and the tenant emailed; no reply draft
         // (Jake, 5 Nov: "not reply to work orders and just upload them").
-        if ("isWorkOrder" in wo && wo.isWorkOrder) return done({ status: "skipped", reason: `work order: ${wo.status === "booked" ? "booked into ServiceTitan" : wo.status === "duplicate" ? "already booked from an earlier email" : `booking ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`}`.slice(0, 300) });
+        if ("isWorkOrder" in wo && wo.isWorkOrder) return done({ status: "skipped", reason: `work order: ${wo.status === "booked" ? "booked into ServiceTitan" : wo.status === "duplicate" ? (wo.reason ?? "already booked from an earlier email") : `booking ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`}`.slice(0, 300) }, tie);
         workOrder = draftNote(wo);
+      }
+    }
+
+    // An email about a job goes on the job, whatever then happens with the
+    // draft. Not mail from us, or from machines (the skip rules below).
+    if (!m.isDraft && external && !skipReason(m, mailbox, Date.now(), opts.maxAgeMs)) {
+      onJob ??= await findJob(mailbox, m, from, words).catch(() => null);
+      if (onJob) {
+        const match = onJob;
+        await putOnJob(mailbox, m, match.jobId)
+          .then(async () => {
+            await finish(mailbox, id, { job_id: match.jobId, job_number: match.jobNumber, job_how: match.how, job_linked_at: new Date().toISOString() });
+            // So the inbox shows it's on the job without opening ServiceTitan.
+            const cats = m.categories ?? [];
+            if (!cats.includes(ON_JOB_CATEGORY)) await graph(`${box}/messages/${encodeURIComponent(id)}`, { method: "PATCH", body: { categories: [...cats, ON_JOB_CATEGORY] } }).catch(() => undefined);
+          })
+          .catch((e: Error) => finish(mailbox, id, { job_how: `couldn't go on job ${match.jobNumber ?? match.jobId}: ${e.message}`.slice(0, 300) }));
       }
     }
 
@@ -132,7 +162,10 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       getChatSettings().catch(() => chatSettingsFrom(null)),
     ]);
 
-    const draft = await writeMailDraft({ thread: threadText(thread, mailbox), customer, signoff: signoffFor(mailbox), settings, workOrder });
+    // The office's own recent replies, each beside the draft it started from:
+    // how the drafts learn what this office actually sends.
+    const examples = await sbSelect<{ draft_text: string; sent_text: string }>(TABLE, [q.select("draft_text,sent_text"), q.eq("mailbox", mailbox), q.notNull("sent_text"), q.notNull("draft_text"), q.order("sent_at", "desc", "last"), "limit=8"].join("&")).catch(() => []);
+    const draft = await writeMailDraft({ thread: threadText(thread, mailbox), customer, signoff: signoffFor(mailbox), settings, workOrder, examples: examples.map((e) => ({ draft: e.draft_text, sent: e.sent_text })) });
     if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` });
 
     // createReply makes the draft the way Outlook's Reply button does —
@@ -162,7 +195,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       }
     }
 
-    const result = await done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null });
+    const result = await done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null, draft_text: draft.reply });
     // This thread's earlier drafts are out of date now. Recorded first, so a
     // failure here never costs the email its own draft.
     if (m.conversationId) await retireOlderDrafts(mailbox, m.conversationId, id).catch(() => undefined);

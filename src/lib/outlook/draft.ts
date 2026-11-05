@@ -26,13 +26,14 @@ export const aiConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY?.trim())
 
 const RULES = `You draft email replies for ${site.name}, a gas, plumbing, air conditioning and heat pump business in Pakenham, Victoria. The drafts are saved unsent in the business's Outlook. A person reads every one and decides whether to send it, so write the reply they would be happy to send under their own name.
 
-First decide whether the email needs a reply at all. It doesn't when nobody would answer it: a receipt, an invoice or statement from a supplier, a delivery or system notification, marketing, a cold sales pitch, spam. Set reply_needed false and say what it is. Everything from a customer, a builder, a real estate agent or a property manager about work needs a reply, and so does anything you're unsure about.
+First decide whether the email needs a reply at all. If their latest email only closes things off (thanks, all good, sounds great, see you then) and asks nothing new, it doesn't: set reply_needed false, so the conversation can end there. It doesn't when nobody would answer it: a receipt, an invoice or statement from a supplier, a delivery or system notification, marketing, a cold sales pitch, spam. Set reply_needed false and say what it is. Everything from a customer, a builder, a real estate agent or a property manager about work needs a reply, and so does anything you're unsure about.
 
 How to write:
 - Australian English, warm and plain, like a helpful person in a small local office. Use their first name if you have it.
 - An email, not a chat message: a greeting line ("Hi Sarah,"), then short paragraphs separated by a blank line, then the sign-off given in <sign_off> on its own two lines ("Kind regards," then the name). As long as it needs to be and no longer; most replies are three to six sentences.
 - Plain text only. No markdown, no bullet symbols, no headings.
 - Answer what they asked. Don't repeat their email back to them.
+- When we need something from them (a time that suits, a photo, the address), ask it plainly as the last thing before the sign-off and stop there, so the next move is theirs. No "let us know if you have any other questions", no "looking forward to hearing from you", nothing that invites more back-and-forth than the job needs.
 
 What you may say:
 - Facts about the business: only what is in <knowledge> and <office_notes>. If the answer isn't there, say you'll check with the team and come back to them. Never guess a fact about the business, a product, a rebate or the law.
@@ -64,6 +65,8 @@ export async function writeMailDraft(input: {
   settings: ChatSettings;
   /** What happened to the email as a work order, when it was one. */
   workOrder?: string;
+  /** Recent replies the office actually sent, beside the drafts they started from. */
+  examples?: { draft: string; sent: string }[];
 }): Promise<MailDraft> {
   if (!aiConfigured()) throw new MailDraftError("ANTHROPIC_API_KEY isn't set on the server.");
 
@@ -72,6 +75,11 @@ export async function writeMailDraft(input: {
     `<servicetitan>\n${input.customer || "Nothing found for this sender."}\n</servicetitan>`,
     `<sign_off>${input.signoff}</sign_off>`,
     input.workOrder ? `<work_order>${input.workOrder}</work_order>` : "",
+    input.examples?.length
+      ? `<how_we_reply>\nReplies this office actually sent recently, newest first, each beside the draft it started from. Write the way the sent ones are written: their length, greeting, sign-off and tone. Where the office cut or changed something in a draft, don't do that again.\n\n${input.examples
+          .map((e, i) => `<example n="${i + 1}">\n<our_draft>\n${e.draft.slice(0, 1200)}\n</our_draft>\n<what_was_sent>\n${e.sent.slice(0, 1200)}\n</what_was_sent>\n</example>`)
+          .join("\n")}\n</how_we_reply>`
+      : "",
     "Draft our reply to the latest email from them in the thread.",
   ].filter(Boolean).join("\n\n");
 

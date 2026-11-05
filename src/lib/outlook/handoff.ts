@@ -2,7 +2,7 @@ import "server-only";
 import { q, sbSelect, sbUpdate } from "@/lib/dashboard/db";
 import { graph, GraphError, userPath } from "./graph";
 import { HANDOFF_CATEGORY } from "./handle";
-import { repliedSince, type GraphMessage } from "./outlookTypes";
+import { plainText, repliedSince, type GraphMessage } from "./outlookTypes";
 
 /**
  * Taking Needs a person off once the email has been dealt with.
@@ -62,12 +62,21 @@ async function markCleared(mailbox: string, id: string) {
 export async function clearForSent(mailbox: string, sentId: string): Promise<number> {
   let sent: GraphMessage;
   try {
-    sent = await graph<GraphMessage>(`${userPath(mailbox)}/messages/${encodeURIComponent(sentId)}?$select=id,conversationId,sentDateTime,isDraft,from,sender`);
+    sent = await graph<GraphMessage>(`${userPath(mailbox)}/messages/${encodeURIComponent(sentId)}?$select=id,conversationId,sentDateTime,isDraft,from,sender,uniqueBody`, { text: true });
   } catch (e) {
     if (e instanceof GraphError && e.status === 404) return 0;
     throw e;
   }
   if (sent.isDraft || !sent.conversationId) return 0;
+
+  // What was actually sent, beside the draft it answered: the drafts learn
+  // from these (lib/outlook/draft.ts). Kept on the newest drafted email in the
+  // thread that hasn't had a reply recorded yet.
+  const said = plainText(sent.uniqueBody).slice(0, 4000);
+  if (said) {
+    const answered = await sbSelect<{ message_id: string }>(TABLE, [q.select("message_id"), q.eq("mailbox", mailbox), q.eq("conversation_id", sent.conversationId), q.eq("status", "drafted"), q.isNull("sent_text"), q.order("received_at", "desc", "last"), "limit=1"].join("&")).catch(() => []);
+    if (answered[0]) await sbUpdate(TABLE, [q.eq("mailbox", mailbox), q.eq("message_id", answered[0].message_id)].join("&"), { sent_text: said, sent_at: sent.sentDateTime ?? new Date().toISOString() }).catch(() => undefined);
+  }
 
   const rows = await sbSelect<Tagged>(TABLE, [q.select(TAGGED_COLS), ...open(mailbox), q.eq("conversation_id", sent.conversationId)].join("&"));
   let cleared = 0;

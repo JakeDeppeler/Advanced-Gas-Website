@@ -9,6 +9,7 @@ import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
 import { activeJobTypes, findSite, makeJob, type MadeJob } from "./stPlace";
+import { putOnJob } from "./jobLink";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, bookingSummary, dedupeKey, fillTemplate,
   isTeamForward, mightBeWorkOrder, parseWorkOrder, tenantAddress, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
@@ -51,7 +52,7 @@ const api = () => (client ??= new Anthropic());
 
 export type Source = "auto" | "forward" | "category";
 /** isWorkOrder: the email was read as one, whatever then happened (a booking refused is still a work order, and gets no reply draft). */
-export type WorkOrderResult = { status: "booked" | "duplicate" | "not" | "failed" | "needs_agency" | "taken" | "skipped"; reason?: string; bookingId?: string; isWorkOrder?: boolean };
+export type WorkOrderResult = { status: "booked" | "duplicate" | "not" | "failed" | "needs_agency" | "taken" | "skipped"; reason?: string; bookingId?: string; isWorkOrder?: boolean; jobId?: number; jobNumber?: string | null };
 
 type Row = { status: string; attempts: number; updated_at: string; st_booking_id: string | null };
 type FileAtt = { "@odata.type"?: string; id: string; name?: string; contentType?: string; size?: number; isInline?: boolean; contentBytes?: string };
@@ -206,6 +207,19 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       await save(mailbox, m.id, { ...base, dedupe_key: key, status: "needs_agency", reason });
       return { status: "needs_agency", reason, isWorkOrder: true };
     }
+    // A reply ("Re:") about a site with a job from the last month is about
+    // that job, not a new one: the email goes on it instead.
+    if (site.locationId && /^\s*re\s*:/i.test(m.subject ?? "")) {
+      const since30 = new Date(Date.now() - 30 * 86_400_000).toISOString();
+      const recent = await sbSelectOne<{ id: number; job_number: string | null }>("st_jobs", [q.select("id,job_number"), q.eq("location_id", String(site.locationId)), "status=neq.Canceled", q.gte("created_on", since30), q.order("created_on", "desc", "last"), "limit=1"].join("&")).catch(() => null);
+      if (recent) {
+        await putOnJob(mailbox, { ...m, ...full }, recent.id);
+        const reason = `a reply about job ${recent.job_number}: the email went on that job`;
+        await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: recent.id, st_job_number: recent.job_number, st_location_id: site.locationId, st_customer_id: site.customerId });
+        return { status: "duplicate", reason, isWorkOrder: true, jobId: recent.id, jobNumber: recent.job_number };
+      }
+    }
+
     let job: MadeJob | null = null;
     let jobError = "";
     try {
@@ -226,7 +240,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
         .catch((e: Error) => save(mailbox, m.id, { attach_error: e.message.slice(0, 240) }));
       await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
       await emailTenant(mailbox, m.id, w, addressOf(m.from)).catch(() => undefined);
-      return { status: "booked", isWorkOrder: true };
+      return { status: "booked", isWorkOrder: true, jobId: job.jobId, jobNumber: job.jobNumber };
     }
 
     const provider = (await loadSwitches()).bookingProvider;
