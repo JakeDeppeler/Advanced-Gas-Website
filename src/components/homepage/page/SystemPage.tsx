@@ -8,6 +8,7 @@ import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { Crumbs, Hero, Head, Next, Cta } from "./kit";
 import { HowItWorks } from "../how/HowItWorks";
 import { HwSavings } from "../HwSavings";
+import { ZoneHouse } from "../how/ZoneHouse";
 import { copFor } from "@/lib/tools/hotWaterSavings";
 
 /**
@@ -21,6 +22,8 @@ import { copFor } from "@/lib/tools/hotWaterSavings";
  * pages (homepage/data.ts and learn.ts), so the three can't drift apart.
  */
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+/** Systems whose page gets the hands-on zoning house. */
+const ZONED = new Set(["ducted", "zoning"]);
 
 export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
@@ -57,7 +60,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
-          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(ZONED.has(sys.slug) ? [["zones", "Try the zones"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
         </div>
       </nav>
 
@@ -88,6 +91,15 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
           <div className="wrap pp__col">
             <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How a {lower} works.</h2></div>
             <HowItWorks kind={learn.diagram} steps={learn.how} />
+          </div>
+        </section>
+      )}
+
+      {ZONED.has(sys.slug) && (
+        <section className="pxs" id="zones">
+          <div className="wrap pp__col">
+            <Head eye="Try it" h="How zones work." lede="Turn rooms on and off and watch the dampers, the air and the outdoor unit. Tap a room in the house or use the switches." />
+            <ZoneHouse />
           </div>
         </section>
       )}

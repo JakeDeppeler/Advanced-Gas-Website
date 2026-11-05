@@ -7,6 +7,7 @@ import {
   Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 import { HowItWorks } from "../how/HowItWorks";
+import { ZoneHouse } from "../how/ZoneHouse";
 
 /**
  * A /find product page. Chosen from five trial layouts (commit 4a4b7e6 has
@@ -222,6 +223,12 @@ function Story({ v }: { v: PV }) {
       <div className="wrap pp__col">
         <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">{learn.title ?? `How a ${sys.label.toLowerCase()} works.`}</h2></div>
         <HowItWorks kind={learn.diagram} steps={learn.how} />
+        {(sys.slug === "ducted" || sys.slug === "zoning") && (
+          <div className="zh-wrap" id="zones">
+            <div className="lk2__storyhead"><span className="aeye"><i /> Try it</span><h2 className="h2 h2--sm">How zones work.</h2></div>
+            <ZoneHouse />
+          </div>
+        )}
       </div>
     </section>
   );

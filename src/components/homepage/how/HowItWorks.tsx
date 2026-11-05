@@ -707,6 +707,87 @@ function GasMeter({ x, y }: { x: number; y: number }) {
   );
 }
 
+/** A timber paling fence along the back of the yard. */
+function Fence({ x1, x2, y = 352, h = 62 }: { x1: number; x2: number; y?: number; h?: number }) {
+  const n = Math.ceil((x2 - x1) / 11);
+  return (
+    <g>
+      {Array.from({ length: n }, (_, i) => (
+        <path key={i} d={`M${x1 + i * 11} ${y} V${y - h + 5} l5 -5 l5 5 V${y}Z`} fill={i % 2 ? "#B88B60" : "#C49A6E"} />
+      ))}
+      <rect x={x1} y={y - h + 14} width={x2 - x1} height="4" fill="#9C7451" opacity=".7" />
+      <rect x={x1} y={y - 18} width={x2 - x1} height="4" fill="#9C7451" opacity=".7" />
+    </g>
+  );
+}
+
+/** A window in an outside brick wall: soldier course over it, aluminium frame, brick sill. */
+function FacadeWindow({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  const u = useU();
+  return (
+    <g>
+      <rect x={x - 7} y={y - 10} width={w + 14} height="7" fill="#8E4A33" />
+      <rect x={x - 3} y={y - 3} width={w + 6} height={h + 6} fill="#3B4252" />
+      <rect x={x} y={y} width={w} height={h} fill={u("glass")} />
+      <rect x={x + w * 0.62} y={y} width={w * 0.38} height={h} fill="#E9DCC6" opacity=".6" />
+      <path d={`M${x + w / 2} ${y} V${y + h}`} stroke="#3B4252" strokeWidth="3" />
+      <path d={`M${x + 5} ${y + h - 6} L${x + w * 0.35} ${y + 6}`} stroke="#fff" strokeOpacity=".6" strokeWidth="4" />
+      <rect x={x - 8} y={y + h + 3} width={w + 16} height="6" fill="#A5583A" />
+    </g>
+  );
+}
+
+function Downpipe({ x, y1, y2 }: { x: number; y1: number; y2: number }) {
+  return (
+    <g>
+      <path d={`M${x} ${y1} V${y2}`} stroke="#B9C0C9" strokeWidth="7" />
+      <path d={`M${x - 2} ${y1} V${y2}`} stroke="#D5DAE1" strokeWidth="1.5" />
+      {Array.from({ length: Math.floor((y2 - y1) / 70) }, (_, i) => <rect key={i} x={x - 5} y={y1 + 40 + i * 70} width="10" height="3" fill="#8A97AB" />)}
+    </g>
+  );
+}
+
+/** A brass isolation valve on a pipe, lever handle up. */
+function Valve({ x, y, c = "#C9A227" }: { x: number; y: number; c?: string }) {
+  return (
+    <g>
+      <rect x={x - 7} y={y - 6} width="14" height="12" rx="3" fill={c} stroke="#8A6B12" strokeWidth="1" />
+      <path d={`M${x} ${y - 6} V${y - 12} H${x + 12}`} stroke={c === "#C9A227" ? "#C2521A" : "#2B3247"} strokeWidth="3" fill="none" strokeLinecap="round" />
+    </g>
+  );
+}
+
+const Slab = ({ x, w, y = 352 }: { x: number; w: number; y?: number }) => (
+  <g>
+    <rect x={x} y={y - 6} width={w} height="8" rx="1" fill="#D2CEC6" />
+    <rect x={x} y={y - 6} width={w} height="2" fill="#E3E0DA" />
+  </g>
+);
+
+/** The edge of the roof over a room in cutaway: ceiling space, tiles, gutter. */
+function RoofEdge({ x1, x2, y }: { x1: number; x2: number; y: number }) {
+  const d = `M${x1 - 10} ${y - 24} L${x2 + 12} ${y - 10}`;
+  return (
+    <g>
+      <path d={`M${x1} ${y - 18} L${x2} ${y - 10} V${y} H${x1}Z`} fill="#E7DCCB" />
+      <rect x={x1} y={y - 7} width={x2 - x1} height="7" fill="#F2B8A6" />
+      <path d={d} stroke="#7A3A28" strokeWidth="13" />
+      <path d={d} stroke="#A9573D" strokeWidth="11" />
+      <path d={d} stroke="#7A3A28" strokeWidth="11" strokeDasharray="1.5 8" />
+      <rect x={x2 + 6} y={y - 12} width="10" height="8" fill="#F4F1EC" />
+      <path d={`M${x2 + 5} ${y - 6} h14 v4 a7 7 0 0 1 -14 0z`} fill="#B9C0C9" />
+    </g>
+  );
+}
+
+/** A plastic cover the pipes run down the outside wall in, see-through here so the pipes show. */
+const PipeCover = ({ x, y, w, h }: { x: number; y: number; w: number; h: number }) => (
+  <g>
+    <rect x={x} y={y} width={w} height={h} rx="3" fill="#F1ECE1" opacity=".55" stroke="#D3CCC0" />
+    {Array.from({ length: Math.floor(h / 60) }, (_, i) => <rect key={i} x={x - 1} y={y + 50 + i * 60} width={w + 2} height="3" fill="#E3DCCF" />)}
+  </g>
+);
+
 /* ------------------------------------------------------------ scenes */
 
 function SplitScene({ heat = false }: { heat?: boolean }) {
@@ -715,20 +796,29 @@ function SplitScene({ heat = false }: { heat?: boolean }) {
     <>
       <Sky />
       {heat ? <><Cloud x={470} y={60} s={1.2} dark /><Cloud x={560} y={110} s={0.8} dark /></> : <><Sun cx={545} cy={64} /><Cloud x={455} y={120} s={0.8} /></>}
+      <Tree x={572} y={250} s={0.85} />
       <Ground />
-      <rect x="14" y="28" width="368" height="12" fill="#C9C2B6" />
+      <Fence x1={382} x2={600} />
+      <RoofEdge x1={14} x2={382} y={40} />
       <Room x={24} y={40} w={330} h={312} tone="warm" />
-      <Window x={40} y={150} w={72} h={92} />
+      <Window x={40} y={150} w={72} h={92} curtains />
+      <rect x="222" y="190" width="58" height="44" rx="2" fill="#fff" stroke="#C9B79C" strokeWidth="3" />
+      <path d="M226 228 l14 -18 l10 10 l8 -8 l18 16Z" fill="#9CC3DE" />
+      <Rug cx={137} cy={344} rx={92} />
       <Sofa x={64} y={304} w={146} />
-      <Plant x={262} y={322} />
+      <BedLamp x={222} y={326} />
+      <Plant x={272} y={322} />
       <Brick x={354} y={40} w={28} h={312} />
       {/* indoor unit and the air it moves */}
       <IndoorSplit x={110} y={78} w={200} h={54} />
       <Breeze x={210} y={146} dx={-30} dy={106} c={room} n={4} gap={34} />
-      {/* refrigerant: two insulated lines through the wall, the drain beside them */}
+      {/* refrigerant: two insulated lines through the wall and down it in a cover, the drain beside them */}
       <Line d="M296 132 V148 H384 V350" c="#9AA6B5" w={3} flow={C.coldLt} />
       <Pipe d="M310 98 H432 V248" c={heat ? C.hot : C.cold} />
       <Pipe d="M420 248 V110 H310" c={heat ? C.cold : C.hot} />
+      <PipeCover x={382} y={90} w={60} h={28} />
+      <PipeCover x={412} y={118} w={28} h={124} />
+      <Slab x={392} w={186} />
       <OutdoorUnit x={400} y={248} w={170} h={104} fan={{ cx: 520, cy: 298, r: 36 }} cut={{ x: 412, y: 260, w: 52, h: 80, dial: true }} />
       <Breeze x={574} y={298} dx={24} dy={0} c={out} n={3} gap={18} />
       <Temp x={36} y={262} t={heat ? "21°" : "22°"} hot={heat} />
@@ -744,8 +834,10 @@ function MultiScene() {
     <>
       <Sky />
       <Sun cx={548} cy={70} />
+      <Tree x={574} y={262} s={0.8} />
       <Ground />
-      <rect x="14" y="28" width="368" height="12" fill="#C9C2B6" />
+      <Fence x1={382} x2={600} />
+      <RoofEdge x1={14} x2={382} y={40} />
       <Room x={24} y={40} w={164} h={152} tone="blue" />
       <Room x={188} y={40} w={166} h={152} tone="sage" />
       <Room x={24} y={192} w={330} h={160} tone="warm" />
@@ -754,6 +846,9 @@ function MultiScene() {
       <Brick x={354} y={40} w={28} h={312} />
       <Bed x={40} y={160} w={110} />
       <Table x={262} y={154} w={70} />
+      <Chair x={248} y={156} />
+      <Window x={54} y={262} w={56} h={50} curtains />
+      <Rug cx={225} cy={345} rx={90} />
       <Sofa x={150} y={304} w={150} />
       {[[44, 70, 120], [210, 70, 120], [110, 222, 140]].map(([x, y, w], i) => (
         <g key={i}>
@@ -762,9 +857,10 @@ function MultiScene() {
         </g>
       ))}
       {/* each head piped back on its own run */}
-      <Pipe d="M104 70 V30 H430 V248" c={C.cold} w={7} />
+      <Pipe d="M104 70 V34 H430 V248" c={C.cold} w={7} />
       <Pipe d="M330 87 H390 V270 H400" c={C.cold} w={7} />
       <Pipe d="M250 239 H372 V320 H400" c={C.cold} w={7} />
+      <Slab x={392} w={186} />
       <OutdoorUnit x={400} y={248} w={170} h={104} fan={{ cx: 516, cy: 298, r: 36 }} />
       <Breeze x={574} y={298} dx={24} dy={0} c={C.hot} n={3} gap={18} />
       {/* how hard the outdoor unit is working: two of three rooms on */}
@@ -919,27 +1015,45 @@ function EvapScene() {
     <>
       <Sky />
       <Sun cx={530} cy={60} />
+      <Tree x={24} y={300} s={0.75} />
       <Ground />
-      <Roof l={50} r={460} top={56} eave={144} />
-      <Room x={60} y={144} w={390} h={208} tone="warm" />
-      <Sofa x={150} y={306} w={150} />
-      <Plant x={360} y={322} />
-      {/* the cooler: wet pads on the sides, a fan blowing down */}
-      <rect x="208" y="28" width="94" height="10" rx="4" fill="#8A97AB" />
-      <rect x="212" y="36" width="86" height="58" rx="6" fill={u("metal")} stroke="#B9C3CF" strokeWidth="1.5" />
-      <rect x="218" y="44" width="24" height="42" rx="3" fill={u("pad")} />
-      <rect x="268" y="44" width="24" height="42" rx="3" fill={u("pad")} />
+      <Fence x1={470} x2={600} />
+      <RoofSpace l={50} r={460} top={56} eave={144} />
+      <Batts x1={60} x2={450} y={130} />
+      <rect x="56" y="142" width="398" height="5" fill="#E7E1D7" />
+      {/* a living room and a bedroom under the one roof */}
+      <Room x={60} y={146} w={240} h={206} tone="warm" />
+      <Room x={300} y={146} w={150} h={206} tone="blue" />
+      <path d="M300 146 V352" stroke="#D8D1C5" strokeWidth="6" />
+      <Brick x={50} y={144} w={10} h={208} />
+      <Brick x={450} y={144} w={10} h={208} />
+      <Window x={160} y={182} w={46} h={46} curtains />
+      <Rug cx={180} cy={345} rx={90} />
+      <Sofa x={110} y={306} w={140} />
+      <Plant x={276} y={322} />
+      <Bed x={312} y={318} w={100} />
+      {/* the cooler: louvred panels over wet pads, a fan blowing down */}
+      <rect x="208" y="28" width="94" height="10" rx="4" fill="#7F8B9C" />
+      <rect x="212" y="36" width="86" height="58" rx="6" fill={u("metal")} stroke="#9AA6B5" strokeWidth="1.5" />
+      {[218, 268].map((x) => (
+        <g key={x}>
+          <rect x={x} y="44" width="24" height="42" rx="3" fill={u("pad")} />
+          {Array.from({ length: 8 }, (_, i) => <line key={i} x1={x} y1={47 + i * 5} x2={x + 24} y2={47 + i * 5} stroke="#E9EDF2" strokeWidth="1.6" />)}
+        </g>
+      ))}
       <Fan cx={255} cy={66} r={11} grille={false} />
+      <rect x="230" y="94" width="50" height="8" fill="#AEB8C6" />
       {[224, 236, 274, 286].map((x, i) => <line key={x} className="hw-drip hw-drip--long" style={{ animationDelay: `${i * 0.3}s` }} x1={x} y1="44" x2={x} y2="54" stroke={C.cold} strokeWidth="2.5" strokeLinecap="round" />)}
-      {/* hot outside air drawn in, cool air down the duct */}
+      {/* hot outside air drawn in, cool air down the drop duct and out to the rooms */}
       <Breeze x={150} y={62} dx={56} dy={0} c={C.hot} n={2} gap={20} />
       <Breeze x={360} y={62} dx={-56} dy={0} c={C.hot} n={2} gap={20} />
-      <Duct d="M255 94 V132 H110" c={C.cold} w={14} />
-      <Duct d="M255 132 H400" c={C.cold} w={14} />
+      <Duct d="M255 102 V118 Q255 124 247 124 H124 Q110 124 110 136 V142" c={C.cold} w={14} />
+      <Duct d="M255 102 V118 Q255 124 263 124 H386 Q400 124 400 136 V142" c={C.cold} w={14} />
+      <Duct d="M255 102 V142" c={C.cold} w={14} />
       {[110, 255, 400].map((x) => (
         <g key={x}>
-          <Vent x={x} y={144} />
-          <Breeze x={x} y={160} dx={0} dy={52} c={C.cold} n={3} gap={14} />
+          <Diffuser x={x} y={146} c={C.cold} />
+          <Breeze x={x} y={162} dx={0} dy={52} c={C.cold} n={3} gap={14} />
         </g>
       ))}
       {/* an open window lets the warm air out */}
@@ -963,16 +1077,21 @@ function AioScene() {
       <Ground />
       <Brick x={200} y={114} w={400} h={238} />
       <Eave x={200} y={114} w={400} />
+      <FacadeWindow x={412} y={222} w={70} h={56} />
+      <Downpipe x={588} y1={112} y2={350} />
       <Roof l={14} r={210} top={50} eave={114} space={false} />
       <path d="M58 94 L112 62 L152 86 L98 118Z" fill={u("pv")} stroke="#AFC0E8" strokeWidth="1.5" />
       <Room x={24} y={114} w={176} h={238} tiles />
       <Vanity x={40} y={300} />
       <rect x="100" y="140" width="4" height="120" fill="#D7E6F0" opacity=".8" />
       <Shower x={150} y={150} />
-      {/* hot out to the house, cold in from the mains */}
+      {/* hot out to the house through a tempering valve, cold in from the mains through an isolation valve */}
       <Pipe d="M258 176 H230 V150 H150" c={C.water} w={7} />
+      <Valve x={240} y={176} c="#C9A227" />
       <Pipe d="M600 334 H342" c={C.cold} w={7} />
-      {/* the unit: heat pump on top, tank below */}
+      <Valve x={380} y={334} c="#4A90C8" />
+      {/* the unit: heat pump on top, tank below, on a slab */}
+      <Slab x={250} w={100} />
       <Tank x={258} y={150} w={84} h={198} coil />
       <rect x="250" y="84" width="100" height="72" rx="16" fill={u("metalD")} />
       <rect x="250" y="84" width="100" height="72" rx="16" fill={u("cyl")} opacity=".5" />
@@ -996,14 +1115,18 @@ function Co2Scene() {
       <Ground />
       <Brick x={174} y={114} w={426} h={238} />
       <Eave x={174} y={114} w={426} />
+      <FacadeWindow x={300} y={160} w={64} h={54} />
+      <Downpipe x={588} y1={112} y2={350} />
       <Roof l={14} r={184} top={56} eave={114} space={false} />
       <Room x={24} y={114} w={150} h={238} tiles />
       <Vanity x={40} y={300} w={50} />
       <Shower x={130} y={150} />
+      <Slab x={198} w={88} />
       <Tank x={206} y={104} w={72} h={244} />
       <Pipe d="M206 130 H180 V150 H130" c={C.water} w={7} />
       {/* one pass: cold from the bottom of the tank out, hot back into the top */}
       <Pipe d="M278 326 H380" c={C.cold} w={7} />
+      <Valve x={330} y={326} c="#4A90C8" />
       <Pipe d="M400 244 V126 H278" c={C.water} w={7} />
       <OutdoorUnit x={380} y={244} w={180} h={104} fan={{ cx: 504, cy: 294, r: 34 }} cut={{ x: 392, y: 256, w: 56, h: 82, text: "CO₂" }} />
       <Breeze x={562} y={294} dx={26} dy={0} c={C.cold} n={3} gap={16} />
@@ -1023,7 +1146,9 @@ function GasCfScene() {
       <Ground />
       <Brick x={240} y={40} w={360} h={312} />
       <Eave x={240} y={40} w={360} />
-      <rect x="14" y="28" width="236" height="12" fill="#C9C2B6" />
+      <FacadeWindow x={452} y={112} w={76} h={64} />
+      <Downpipe x={588} y1={38} y2={350} />
+      <RoofEdge x1={14} x2={240} y={40} />
       <Room x={24} y={40} w={216} h={312} tiles />
       <Vanity x={44} y={302} w={64} />
       <rect x="96" y="96" width="4" height="170" fill="#D7E6F0" opacity=".8" />
@@ -1037,15 +1162,17 @@ function GasCfScene() {
       <Flame x={330} y={240} s={0.62} /><Flame x={355} y={240} s={0.62} /><Flame x={380} y={240} s={0.62} />
       <rect x="340" y="88" width="30" height="14" rx="3" fill="#8A97AB" />
       <Puffs x={355} y={86} />
-      {/* cold in from the mains, hot out to the shower, gas to the burner */}
+      {/* cold in from the mains, hot out to the shower, gas to the burner, each with its own valve */}
       <Pipe d="M600 300 H340 V260" c={C.cold} w={7} />
+      <Valve x={430} y={300} c="#4A90C8" />
       <Pipe d="M372 100 V80 H150 V110" c={C.water} w={7} />
       <Line d="M600 326 H390 V260" c={C.gas} w={5} flow="#FFE08A" />
+      <Valve x={430} y={326} />
       <GasMeter x={512} y={308} />
       <circle cx="340" cy="282" r="7" fill="#fff" stroke={C.cold} strokeWidth="2.5" className="hw-pulse" />
       <Temp x={36} y={210} t="50°" hot />
       <Label x={326} y={286} anchor="end">Flow sensor</Label>
-      <Label x={470} y={292}>Cold in</Label>
+      <Label x={490} y={292}>Cold in</Label>
       <Label x={470} y={348}>Gas</Label>
     </>
   );
@@ -1059,14 +1186,17 @@ function GasStorageScene() {
       <Ground />
       <Brick x={214} y={80} w={386} h={272} />
       <Eave x={214} y={80} w={386} />
-      <rect x="14" y="68" width="210" height="12" fill="#C9C2B6" />
+      <FacadeWindow x={440} y={130} w={72} h={60} />
+      <Downpipe x={588} y1={78} y2={350} />
+      <RoofEdge x1={14} x2={214} y={80} />
       <Room x={24} y={80} w={190} h={272} tiles />
       <Vanity x={44} y={302} />
       <Shower x={150} y={120} />
-      {/* the flue, the tank, the burner underneath */}
+      {/* the flue, the tank, the burner underneath, on a slab */}
       <rect x="302" y="34" width="16" height="60" fill="#AAB4C2" />
       <rect x="296" y="28" width="28" height="8" rx="2" fill="#8A97AB" />
       <Puffs x={310} y={24} />
+      <Slab x={254} w={112} />
       <Tank x={262} y={90} w={96} h={216} flue />
       <rect x="262" y="306" width="96" height="40" rx="6" fill={u("metalD")} />
       <rect x="276" y="314" width="68" height="26" rx="4" fill="#1C2233" />
@@ -1076,11 +1206,13 @@ function GasStorageScene() {
       <rect x="372" y="106" width="8" height="186" rx="4" fill={C.water} className="hw-fill" />
       <Pipe d="M262 116 H200 V120 H150" c={C.water} w={7} />
       <Pipe d="M600 290 H358" c={C.cold} w={7} />
+      <Valve x={420} y={290} c="#4A90C8" />
       <Line d="M600 330 H358" c={C.gas} w={5} flow="#FFE08A" />
+      <Valve x={420} y={330} />
       <GasMeter x={540} y={312} />
       <Temp x={276} y={252} t="60°" hot />
-      <Label x={480} y={282}>Cold in</Label>
-      <Label x={480} y={322}>Gas</Label>
+      <Label x={490} y={282}>Cold in</Label>
+      <Label x={490} y={322}>Gas</Label>
     </>
   );
 }

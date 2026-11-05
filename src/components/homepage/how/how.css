@@ -86,3 +86,40 @@
 @keyframes hwPuff{0%{opacity:.8;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-26px) scale(1.6)}}
 @keyframes hwShimmer{0%,100%{opacity:.08}50%{opacity:.24}}
 @media (prefers-reduced-motion:reduce){.ag .hw-drift,.ag .hw-puff,.ag .hw-shimmer{animation:none}}
+
+/* Zoning in 3D: the house, and the controls beside it */
+.ag .zh{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:28px;align-items:start}
+.ag .zh__fig{background:#fff;border-radius:22px;padding:10px;box-shadow:0 24px 50px -36px rgba(5,10,48,.45)}
+.ag .zh__svg{display:block;width:100%;height:auto;border-radius:16px}
+.ag .zh__room{cursor:pointer}
+.ag .zh__room:hover polygon:last-child{opacity:.28}
+.ag .zh__lbl{font:700 11.5px var(--body)}
+.ag .zh__fan{animation:hwSpin 1s linear infinite}
+.ag .zh__panel{display:flex;flex-direction:column;gap:16px}
+.ag .zh__mode{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#fff;border:1px solid var(--line2);border-radius:999px;padding:4px}
+.ag .zh__mode button{border:0;background:transparent;border-radius:999px;padding:10px 12px;font:inherit;font-weight:700;color:var(--navy);cursor:pointer}
+.ag .zh__mode button.on{background:var(--navy);color:#fff}
+.ag .zh__zones{border:0;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ag .zh__zones legend{font-size:13px;font-weight:700;color:var(--ink3);margin-bottom:8px;padding:0}
+.ag .zh__zone{display:flex;gap:10px;align-items:center;text-align:left;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px;font:inherit;color:var(--navy);cursor:pointer;transition:border-color .2s}
+.ag .zh__zone:hover{border-color:var(--navy)}
+.ag .zh__zone.on{border:2px solid var(--navy);padding:11px}
+.ag .zh__zone strong{display:block;font-size:14.5px;line-height:1.2}
+.ag .zh__zone small{display:block;font-size:12.5px;color:var(--ink3);margin-top:2px}
+.ag .zh__sw{flex:none;width:34px;height:20px;border-radius:999px;background:#C9D2DE;position:relative;transition:background .2s}
+.ag .zh__sw i{position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.ag .zh__zone.on .zh__sw{background:#0C6F96}
+.ag .zh__zone.on .zh__sw i{transform:translateX(14px)}
+.ag .zh__presets{display:flex;flex-wrap:wrap;gap:6px}
+.ag .zh__presets button{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:8px 13px;font:inherit;font-size:13.5px;font-weight:700;color:var(--navy);cursor:pointer}
+.ag .zh__presets button.on{background:#FDEEE6;border-color:#C2521A;color:#B04711}
+.ag .zh__read{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ag .zh__read p{margin:0;font-size:15px;line-height:1.5;color:var(--ink2)}
+.ag .zh__read strong{color:var(--navy)}
+.ag .zh__note{font-size:13px !important;color:var(--ink3) !important}
+.ag .zh__bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden}
+.ag .zh__bar span{display:block;height:100%;border-radius:8px;transition:width .5s,background .3s}
+@media (max-width:1000px){.ag .zh{grid-template-columns:1fr}}
+@media (max-width:520px){.ag .zh__zones{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.ag .zh__fan{animation:none}.ag .zh__bar span{transition:none}}
+.ag .zh-wrap{margin-top:56px;display:flex;flex-direction:column;gap:18px}
