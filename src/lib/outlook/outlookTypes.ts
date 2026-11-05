@@ -71,7 +71,7 @@ const NO_REPLY_SENDER = /^(no-?reply|do-?not-?reply|donotreply|mailer-daemon|pos
  * RFC asks it to, and replying to one is how two out-of-office messages end
  * up writing to each other all weekend.
  */
-export function skipReason(m: GraphMessage, mailbox: string, now = Date.now()): string | null {
+export function skipReason(m: GraphMessage, mailbox: string, now = Date.now(), maxAgeMs = MAX_AGE_MS): string | null {
   if (m.isDraft) return "a draft";
   const type = m["@odata.type"] ?? "#microsoft.graph.message";
   if (type !== "#microsoft.graph.message") return "a meeting invite or receipt, not an email";
@@ -87,7 +87,7 @@ export function skipReason(m: GraphMessage, mailbox: string, now = Date.now()): 
   if (header(m, "list-unsubscribe") || header(m, "list-id")) return "a mailing list or newsletter";
   if (header(m, "x-autoreply") || header(m, "x-autorespond") || header(m, "x-auto-response-suppress") === "all") return "an automatic message";
   const at = Date.parse(m.receivedDateTime ?? "");
-  if (Number.isFinite(at) && now - at > MAX_AGE_MS) return "older than three days";
+  if (Number.isFinite(at) && now - at > maxAgeMs) return maxAgeMs === MAX_AGE_MS ? "older than three days" : "older than the catch-up reaches";
   return null;
 }
 

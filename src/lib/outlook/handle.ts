@@ -58,7 +58,11 @@ async function finish(mailbox: string, id: string, patch: Record<string, unknown
 const retryable = (e: unknown) =>
   e instanceof MailDraftError ? e.retry : e instanceof GraphError ? e.status === 429 || e.status >= 500 : true;
 
-export async function handleMessage(mailbox: string, id: string): Promise<Outcome> {
+/**
+ * maxAgeMs: how old an email may be and still get a draft. Three days unless
+ * the sweep is working through a catch-up the office asked for.
+ */
+export async function handleMessage(mailbox: string, id: string, opts: { maxAgeMs?: number } = {}): Promise<Outcome> {
   if (!dashboardDbConfigured()) return { status: "failed", reason: "database not configured" };
   if (!(await claim(mailbox, id, Date.now()))) return { status: "taken" };
 
@@ -86,7 +90,7 @@ export async function handleMessage(mailbox: string, id: string): Promise<Outcom
       subject: (m.subject ?? "").slice(0, 300),
     });
 
-    const skip = skipReason(m, mailbox);
+    const skip = skipReason(m, mailbox, Date.now(), opts.maxAgeMs);
     if (skip) return done({ status: "skipped", reason: skip });
 
     // The whole conversation, every folder, so Sent Items show whether it has

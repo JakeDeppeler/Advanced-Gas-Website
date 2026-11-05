@@ -65,6 +65,8 @@ ok("newsletter skipped", skipReason(withHeader("List-Unsubscribe", "<mailto:x@y>
 ok("bulk precedence skipped", skipReason(withHeader("Precedence", "bulk"), BOX, NOW) === "bulk mail");
 ok("x-autoreply skipped", skipReason(withHeader("X-Autoreply", "yes"), BOX, NOW) === "an automatic message");
 ok("four days old is skipped", skipReason(msg({ receivedDateTime: "2026-10-31T00:00:00Z" }), BOX, NOW) === "older than three days");
+ok("catch-up reaches further back", skipReason(msg({ receivedDateTime: "2026-10-31T00:00:00Z" }), BOX, NOW, 8 * 86_400_000) === null);
+ok("but not past its own window", skipReason(msg({ receivedDateTime: "2026-10-20T00:00:00Z" }), BOX, NOW, 8 * 86_400_000) === "older than the catch-up reaches");
 ok("no sender is skipped", skipReason(msg({ from: null, sender: null }), BOX, NOW) === "no sender");
 ok("sender used when from is missing", skipReason(msg({ from: null, sender: from("sarah.k@gmail.com") }), BOX, NOW) === null);
 
