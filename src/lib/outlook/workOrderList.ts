@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { worthListing, workOrderSettingsFrom, type WorkOrderRow, type WorkOrderSettings } from "./workOrderTypes";
 
-const COLS = "id,mailbox,source,status,reason,kind,agency,wo_number,address,subject,from_address,received_at,created_at,st_booking_id,st_job_number,attached_at,attach_error,tenant_email_to,tenant_emailed_at,tenant_email_note,details";
+const COLS = "id,mailbox,source,status,reason,kind,agency,wo_number,address,subject,from_address,received_at,created_at,st_booking_id,st_job_number,attached_at,attach_error,tenant_email_to,tenant_emailed_at,tenant_email_note,details,location_how";
 
 /** The last 30 days, newest first: what the Work orders page lists. */
 export async function listWorkOrders(): Promise<WorkOrderRow[]> {

@@ -20,7 +20,7 @@ import {
   threadText,
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
-import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -195,6 +195,29 @@ ok("on its job", stage({ ...base, attached_at: "x", st_job_number: "20801" }).wo
 ok("refused: not booked yet", stage({ ...base, status: "failed", reason: "ServiceTitan said 400" }).tone === "bad");
 ok("platform email judged not one: listed", worthListing({ status: "not", from_address: "hi@tapihq.com" }));
 ok("a newsletter judged not one: not listed", !worthListing({ status: "not", from_address: "news@meta.com" }));
+
+// --- the site in ServiceTitan: real addresses from 5 Nov against their real locations
+for (const [a, as, b, bs, bu] of [
+  ["11/1-3 Young Road", "HALLAM", "1 Young Road", "Hallam", "Unit 11"],
+  ["33 Willslie Cres", "Berwick VIC 3806", "33 Willslie Crescent", "Berwick", ""],
+  ["16 Kallista Cct", "Officer", "16 Kallista Circuit", "Officer", ""],
+  ["4/11 Reserve St", "Berwick", "11 Reserve Street", "Berwick", "004"],
+  ["Unit 7, 15-17 Lyall St", "Cranbourne", "15-17 Lyall Street", "Cranbourne", "Unit 7"],
+]) ok(`same site: ${a}`, siteKey(a, as) === siteKey(b, bs, bu), [siteKey(a, as), siteKey(b, bs, bu)]);
+ok("unit 10 isn't unit 11", siteKey("10/1-3 Young Road", "Hallam") !== siteKey("1 Young Road", "Hallam", "Unit 11"));
+ok("same street, other suburb isn't", siteKey("5 Young Road", "Hallam") !== siteKey("5 Young Road", "Drouin"));
+ok("searched by the street's name", streetWord("11/1-3 Young Road") === "young" && streetWord("5 Golden Green Street") === "golden");
+ok("agency by name", agencyMatches("Barry Plant Pakenham", "Barry Plant Pakenham 1") && agencyMatches("Stockdale & Leggo Pakenham", "Stockdale & Leggo (Pakenham)"));
+ok("another branch isn't the agency", !agencyMatches("Barry Plant Pakenham", "Barry Plant Berwick - Matavier Pty Ltd"));
+ok("one word is too little to go on", !agencyMatches("Tapi", "Tapi Pty Ltd"));
+const thu = new Date("2026-11-05T05:00:00Z");
+ok("placeholder: next weekday", placeholderDay("", thu) === "2026-11-06" && placeholderDay("", new Date("2026-11-06T05:00:00Z")) === "2026-11-09");
+ok("placeholder: the attend-by date", placeholderDay("2026-11-27", thu) === "2026-11-27");
+ok("placeholder: not a weekend or a past date", placeholderDay("2026-11-28", thu) === "2026-11-06" && placeholderDay("2026-11-04", thu) === "2026-11-06");
+ok("8am Melbourne in daylight time", melbourneInstant("2026-11-06", "08:00") === "2026-11-05T21:00:00.000Z");
+ok("8am Melbourne in winter", melbourneInstant("2026-06-15", "08:00") === "2026-06-14T22:00:00.000Z");
+ok("page: a job on the tenant's site", stage({ ...base, st_booking_id: null, st_job_number: "20850", attached_at: "x", location_how: "existing site" }).word === "Job 20850");
+ok("page: agency not set up", stage({ ...base, status: "needs_agency", reason: "Tapi isn't a customer" }).word === "Agency not set up");
 
 if (bad) {
   console.log(`\n${bad} failed`);
