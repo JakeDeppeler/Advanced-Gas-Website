@@ -3950,3 +3950,6 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .rb-t td.was { color: var(--ink2); }
 .rb-t td.st { text-align: right; white-space: nowrap; }
 .rb-t tr.same td { color: var(--ink3, #8a8a86); }
+
+/* Files library (Materials, Resources): one search across every folder. */
+.pk-files-q { width: 100%; max-width: 520px; margin: 4px 0 12px; }

@@ -10,7 +10,7 @@ import {
 import { uploadPhoto, deletePhoto } from "@/lib/portal/storage";
 import { sbDelete, sbUpsert } from "@/lib/dashboard/db";
 import { cleanEmail } from "@/lib/emailList/types";
-import { createFolder, deleteFileRow, listFolders, moveFile, setFileArchived, setFolderArchived } from "@/lib/portal/brandFiles";
+import { createFolder, deleteFileRow, listFolders, moveFile, setFileArchived, setFolderArchived, type Library } from "@/lib/portal/brandFiles";
 
 export type MarketingResult = { ok: boolean; error?: string };
 
@@ -63,7 +63,14 @@ export async function removeCampaign(input: { id: string }): Promise<MarketingRe
 }
 
 const isUuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);
-const filesDone = () => { revalidatePath("/portal/marketing"); revalidatePath("/portal/materials"); };
+const filesDone = () => { revalidatePath("/portal/marketing"); revalidatePath("/portal/materials"); revalidatePath("/portal/resources"); };
+/** Which shelf of the library: Marketing › Materials, or Team › Resources (0102). */
+const shelf = (v: unknown): Library => (v === "resources" ? "resources" : "brand");
+/** A folder id, only if it's on this shelf: a file can't be put in the other shelf's folder. */
+async function folderOn(library: Library, id: unknown): Promise<string | null> {
+  if (!isUuid(id)) return null;
+  return (await listFolders(library)).some((f) => f.id === id) ? id : null;
+}
 
 /** What kind a file is, from what it is: the kit's four kinds, for filtering. */
 function kindOf(mime: string, name: string): string {
@@ -81,8 +88,8 @@ function kindOf(mime: string, name: string): string {
 export async function uploadBrandAsset(form: FormData): Promise<MarketingResult & { added?: number }> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can add files." };
-  const folder = String(form.get("folder") || "");
-  const folderId = isUuid(folder) ? folder : null;
+  const library = shelf(form.get("library"));
+  const folderId = await folderOn(library, String(form.get("folder") || ""));
   const files = form.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
   if (!files.length) return { ok: false, error: "Pick a file." };
   const big = files.find((f) => f.size > 25 * 1024 * 1024);
@@ -92,11 +99,11 @@ export async function uploadBrandAsset(form: FormData): Promise<MarketingResult 
   let added = 0;
   for (const file of files) {
     const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const path = `brand/${crypto.randomUUID()}.${ext}`;
+    const path = `${library}/${crypto.randomUUID()}.${ext}`;
     const up = await uploadPhoto(path, await file.arrayBuffer(), file.type || "application/octet-stream");
     if (!up.ok) return { ok: false, error: up.error === "not-configured" ? "File storage isn't set up." : `Couldn't upload ${file.name}.`, added };
     const label = (files.length === 1 && given) ? given : file.name.replace(/\.[^.]+$/, "");
-    const row = await createBrandAsset({ label, kind: kindOf(file.type, file.name), path, mime: file.type || null, bytes: file.size, addedBy: me.name, folderId });
+    const row = await createBrandAsset({ label, kind: kindOf(file.type, file.name), path, mime: file.type || null, bytes: file.size, addedBy: me.name, folderId, library });
     if (!row.ok) {
       // Don't leave the file orphaned in the bucket if the row didn't land.
       await deletePhoto(path);
@@ -108,15 +115,16 @@ export async function uploadBrandAsset(form: FormData): Promise<MarketingResult 
   return { ok: true, added };
 }
 
-export async function newFolder(input: { name: string; parentId: string | null }): Promise<MarketingResult> {
+export async function newFolder(input: { name: string; parentId: string | null; library?: Library }): Promise<MarketingResult> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can add folders." };
   const name = input.name.trim().slice(0, 80);
   if (!name) return { ok: false, error: "Give the folder a name." };
-  const parentId = isUuid(input.parentId) ? input.parentId : null;
-  const siblings = (await listFolders()).filter((f) => f.parentId === parentId && !f.archivedAt);
+  const library = shelf(input.library);
+  const parentId = await folderOn(library, input.parentId);
+  const siblings = (await listFolders(library)).filter((f) => f.parentId === parentId && !f.archivedAt);
   if (siblings.some((f) => f.name.toLowerCase() === name.toLowerCase())) return { ok: false, error: `There's already a ${name} folder here.` };
-  try { await createFolder(name, parentId, me.name); } catch { return { ok: false, error: "Couldn't make the folder." }; }
+  try { await createFolder(name, parentId, me.name, library); } catch { return { ok: false, error: "Couldn't make the folder." }; }
   filesDone();
   return { ok: true };
 }
@@ -134,11 +142,11 @@ export async function archiveItem(input: { kind: "file" | "folder"; id: string; 
   return { ok: true };
 }
 
-export async function moveBrandFile(input: { id: string; folderId: string | null }): Promise<MarketingResult> {
+export async function moveBrandFile(input: { id: string; folderId: string | null; library?: Library }): Promise<MarketingResult> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can move files." };
   if (!isUuid(input.id)) return { ok: false, error: "Which file?" };
-  try { await moveFile(input.id, isUuid(input.folderId) ? input.folderId : null); } catch { return { ok: false, error: "Couldn't move it." }; }
+  try { await moveFile(input.id, await folderOn(shelf(input.library), input.folderId)); } catch { return { ok: false, error: "Couldn't move it." }; }
   filesDone();
   return { ok: true };
 }
@@ -147,7 +155,7 @@ export async function moveBrandFile(input: { id: string; folderId: string | null
 export async function removeBrandAsset(input: { id: string; path: string }): Promise<MarketingResult> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can delete a file." };
-  if (!isUuid(input.id) || !input.path.startsWith("brand/")) return { ok: false, error: "Which file?" };
+  if (!isUuid(input.id) || !/^(brand|resources)\//.test(input.path)) return { ok: false, error: "Which file?" };
   try { await deleteFileRow(input.id); } catch { return { ok: false, error: "Couldn't delete it." }; }
   await deletePhoto(input.path);
   filesDone();

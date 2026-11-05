@@ -6,20 +6,24 @@ import { signedUrls } from "@/lib/portal/storage";
 export const dynamic = "force-dynamic";
 
 /**
- * Hand out a brand-kit file, as a short-lived signed link.
+ * Hand out a library file (the brand kit, or Team › Resources), as a short-lived signed link.
  *
  * The bucket is private, so nothing is served straight off a public URL — this
  * checks the session, mints a link that expires, and redirects to it. A path
- * that isn't under `brand/` is refused outright: this route must not become a
+ * that isn't under `brand/` or `resources/` is refused outright: this route must not become a
  * way to read the van photos, which are a different thing behind a different
  * capability.
  */
 export async function GET(req: Request) {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return new NextResponse("Not found", { status: 404 });
+  if (!me) return new NextResponse("Not found", { status: 404 });
 
+  // Team › Resources (price lists, tech sheets, manuals) is for everyone,
+  // crew included: they're the ones on site needing the manual. The
+  // marketing kit stays the office's.
   const path = new URL(req.url).searchParams.get("path") ?? "";
-  if (!path.startsWith("brand/") || path.includes("..")) {
+  const ok = path.startsWith("resources/") || (path.startsWith("brand/") && can(me, "overhead"));
+  if (!ok || path.includes("..")) {
     return new NextResponse("Not found", { status: 404 });
   }
 
