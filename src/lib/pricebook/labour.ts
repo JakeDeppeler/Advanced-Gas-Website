@@ -43,6 +43,8 @@ const PAIR = [
   "AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-3", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-5", "AC-SPLIT-MULTI-6",
   "AC-DUCTED-2DAYS", "AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY", "AC-DOM-LAB",
   "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-EXT",
+  // Taking the old unit out: the same two people, on the install.
+  "DECOMMISSION-DISPOSAL",
   "LAB-HR-2P",
 ];
 const CREW3 = ["LAB-HR-3P"];
@@ -91,6 +93,35 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
   return { changes, unchanged, skipped };
 }
 
+// --- Refrigerant -------------------------------------------------------------------
+//
+// Jake, 5 Nov 2026: R410A costs $106 a kg and R32 $109, ex GST. Both were
+// priced at $0, so every re-gas gave the gas away. The costs and the markup
+// live in `portal_settings.refrigerant` ({ markupPct, perKg: { code: cost } }),
+// and the sell price is cost + markup to the dollar. 25% is the median markup
+// across our priced materials, not a figure picked for refrigerant.
+
+export type RefrigerantSettings = { markupPct: number; perKg: Record<string, number> };
+export type MaterialRow = { id: number; code: string; name: string; price: number | null; cost: number | null; active?: boolean | null };
+export type MaterialChange = { id: number; code: string; name: string; costBefore: number; cost: number; before: number; after: number };
+
+export function planRefrigerant(materials: MaterialRow[], r: RefrigerantSettings | null): MaterialChange[] {
+  if (!r || !r.perKg) return [];
+  const want = new Map(Object.entries(r.perKg).map(([code, cost]) => [normCode(code), Number(cost)]));
+  const out: MaterialChange[] = [];
+  for (const m of materials) {
+    if (m.active === false) continue;
+    const cost = want.get(normCode(m.code));
+    if (cost == null || !(cost > 0)) continue;
+    const after = Math.round(cost * (1 + (Number(r.markupPct) || 0) / 100));
+    const before = Number(m.price) || 0;
+    const costBefore = Number(m.cost) || 0;
+    if (Math.abs(after - before) < 0.005 && Math.abs(cost - costBefore) < 0.005) continue;
+    out.push({ id: m.id, code: normCode(m.code), name: m.name.trim(), costBefore, cost, before, after });
+  }
+  return out;
+}
+
 // --- Templates -------------------------------------------------------------------
 //
 // The aircon templates were laid out as: the unit, an install line priced to
@@ -104,7 +135,9 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
 // template already used, so its customer-facing description is kept.
 //
 // Split systems: the labour is the install service's hours × the two-person
-// rate, on the header.
+// rate, on the header. Each also offers, as add-ons the office ticks on the
+// day: taking the old unit out, a condensate pump, Blygold on the condenser
+// and a second coil of the template's own size for runs over 20 m.
 //
 // Multi-heads (Jake, 5 Nov): one condenser can go out with two heads or five,
 // so the labour can't be fixed on the template. The header holds the
@@ -156,6 +189,11 @@ export type Catalogue = {
   materialPrice: Map<number, number>;
   /** "Multi Head Labour (n head)" by n: its sku and hours. */
   multiHead: Map<number, { skuId: number; hours: number; name: string }>;
+  /**
+   * Optional extras offered on every split template, priced as the pricebook
+   * prices them (old unit removal at its hours × the two-person rate).
+   */
+  splitAddOns: { skuId: number; skuType: TemplateItem["skuType"]; name: string; price: number }[];
 };
 
 /** Marks where the install line sat while the rest of the template is sorted. */
@@ -258,9 +296,23 @@ export function planTemplate(t: Template, cat: Catalogue, pairRate: number): Tem
     out.push(i);
   }
 
-  // Multi-head labour: every head count the pricebook has, as an add-on.
+  // Add-ons: a split's optional extras, or every multi-head labour line.
   const addOnItems: TemplateItem[] = [];
   const addOns: TemplatePlan["addOns"] = [];
+  if (kind === "split") {
+    const has = (skuId: number) => t.items.some((i) => i.isAddOn && i.skuId === skuId);
+    // A long run takes a second coil: the same coil the template already uses.
+    const coil = members.find((x) => x.skuType === "Material" && /pair coil/i.test(x.skuName ?? ""));
+    const extras = [
+      ...cat.splitAddOns,
+      ...(coil ? [{ skuId: coil.skuId, skuType: coil.skuType, name: `${(coil.skuName ?? "Pair coil").trim()} (second coil, runs over 20 m)`, price: coil.unitPrice }] : []),
+    ];
+    for (const x of extras) {
+      if (has(x.skuId) || !(x.price > 0)) continue;
+      addOnItems.push({ id: null, skuId: x.skuId, skuType: x.skuType, skuName: x.name, quantity: 1, unitPrice: x.price, isAddOn: true });
+      addOns.push({ name: x.name, hours: 0, price: x.price, skuId: x.skuId });
+    }
+  }
   if (kind === "multi") {
     for (const n of Array.from(cat.multiHead.keys()).sort((a, b) => a - b)) {
       const svc = cat.multiHead.get(n)!;
@@ -279,7 +331,7 @@ export function planTemplate(t: Template, cat: Catalogue, pairRate: number): Tem
   const grouped = members.map((x) => ({ ...x, itemGroupParentId: headerId }));
 
   // The header goes where the install line was, its group straight after,
-  // then the labour add-ons a multi-head picks from.
+  // then the add-ons the office picks from.
   const items = out.flatMap((i) => (i === HEADER_SLOT ? [header, ...grouped, ...addOnItems] : [i]));
 
   return {

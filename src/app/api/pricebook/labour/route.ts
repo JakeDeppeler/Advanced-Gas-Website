@@ -3,7 +3,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import {
-  applyServicePrices, applyTemplatePrices, planServicePrices, planTemplatePrices, recordLabourRun,
+  applyRefrigerant, applyServicePrices, applyTemplatePrices, planServicePrices, planTemplatePrices, recordLabourRun,
 } from "@/lib/pricebook/labourSync";
 
 export const runtime = "nodejs";
@@ -35,15 +35,19 @@ export async function GET(req: Request) {
 
   try {
     if (what === "services") {
+      // Services, and the refrigerant priced per kg, in one run.
       const plan = await planServicePrices();
-      const summary = { rates: plan.rates, toUpdate: plan.changes.length, unchanged: plan.unchanged, skipped: plan.skipped.length };
+      const summary = { rates: plan.rates, toUpdate: plan.changes.length, unchanged: plan.unchanged, skipped: plan.skipped.length, refrigerant: plan.materialChanges.length };
+      const log = [...plan.changes, ...plan.materialChanges.map((m) => ({ ...m, kind: "refrigerant" }))];
       if (!apply) {
-        const runId = await recordLabourRun("services", "dry-run", summary, plan.changes);
-        return NextResponse.json({ ok: true, what, mode: "dry-run", runId, durationMs: Date.now() - started, summary, changes: plan.changes, skipped: plan.skipped });
+        const runId = await recordLabourRun("services", "dry-run", summary, log);
+        return NextResponse.json({ ok: true, what, mode: "dry-run", runId, durationMs: Date.now() - started, summary, changes: plan.changes, materials: plan.materialChanges, skipped: plan.skipped });
       }
       const result = await applyServicePrices(plan.changes, limit);
-      const runId = await recordLabourRun("services", "apply", summary, plan.changes, result);
-      return NextResponse.json({ ok: result.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, changes: plan.changes.slice(0, limit), ...result });
+      const gas = await applyRefrigerant(plan.materialChanges);
+      const merged = { applied: result.applied + gas.applied, verified: result.verified + gas.verified, failed: [...result.failed, ...gas.failed], remaining: result.remaining };
+      const runId = await recordLabourRun("services", "apply", summary, log, merged);
+      return NextResponse.json({ ok: merged.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, changes: plan.changes.slice(0, limit), materials: plan.materialChanges, ...merged });
     }
 
     const plan = await planTemplatePrices();
