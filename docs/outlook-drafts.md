@@ -151,3 +151,33 @@ completely, delete the app under **App registrations**.
 - **One email got no draft.** Its row in `mail_drafts` has the reason.
 - **A draft says something wrong.** The facts it may use come from the
   website's service pages and **Chats › Settings**; correct them there.
+
+## Work orders into ServiceTitan
+
+Work orders from real estate agencies, property managers and platforms
+(PropertyMe, Tapi) go into ServiceTitan's **Bookings** by themselves, and onto
+the job once the office books it (`lib/outlook/workOrders.ts`).
+
+- **What counts:** a new work order, a request to quote, or a quote accepted
+  and the work to go ahead. Progress updates, invoices, statements and
+  "please confirm" emails don't.
+- **Automatic:** every email arriving in admin@ or jake@ that looks like one
+  (from a known platform, or with words like "work order" or "request for
+  quotation") is read with its PDF, and booked. The email gets the Outlook
+  category **In ServiceTitan**, and its reply draft says it's been received.
+- **By hand, two ways:**
+  - **Forward it** to admin@advancedgas.com.au from any @advancedgas.com.au
+    address. It's read as a work order and booked; a forward gets no draft.
+  - **Mark it** with the Outlook category **Work order** (create the category
+    once in Outlook: Categorize › All categories › New). It's picked up within
+    seconds.
+- **Not twice:** a reminder for a work order already booked (same number,
+  or same address and kind) isn't booked again.
+- **Onto the job:** once the office turns the booking into a job, the work
+  order's PDFs and the email go on the job's attachments. This runs with the
+  catch-up, a few times a day.
+- **Where it goes:** the booking provider set on Settings › Automatic, under
+  Website enquiries, the same one the website enquiries use.
+
+Each email read is a row in `work_orders` with what was read, what happened
+and why.

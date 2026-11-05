@@ -20,6 +20,7 @@ import {
   threadText,
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
+import { addressKey, bookingSummary, dedupeKey, isTeamForward, mightBeWorkOrder, parseWorkOrder } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -127,6 +128,47 @@ ok("sent on behalf of the shared box counts", repliedSince([sent({ from: from(BO
 ok("draft as we left it: untouched", untouched("2026-11-05T00:00:00Z", "2026-11-05T00:00:04Z"));
 ok("draft saved later: edited, kept", !untouched("2026-11-05T00:00:00Z", "2026-11-05T00:20:00Z"));
 ok("dates missing: treated as edited, kept", !untouched(null, "2026-11-05T00:00:04Z"));
+
+// --- work orders: which emails are read for one
+const wo = (address: string, subject: string) => msg({ from: from(address), subject });
+for (const [a, subj] of [
+  ["pakenhamrentals@email.propertyme.com", "Barry Plant Pakenham work order - Job #18943 - 33 Willslie Cres, Berwick VIC 3806"],
+  ["hi@tapihq.com", "Reminder: [TAPI-00819-3] URGENT: New urgent work order at 14 Bellevue Ct, Boronia, VIC"],
+  ["hi@tapihq.com", "Provide a quote for 1/183 High Street, BERWICK, VIC"],
+  ["someone@ljhooker.com.au", "Re: Work order for 5 Owen Court"],
+  ["pm@raywhite.com", "Request for Quotation – 7/12-14 Fairfield St, Cranbourne VIC 3977"],
+]) ok(`read for a work order: ${subj.slice(0, 40)}`, mightBeWorkOrder(wo(a, subj), ""));
+ok("an ordinary customer email isn't", !mightBeWorkOrder(msg(), "Hi, our hot water stopped this morning."));
+ok("a supplier invoice isn't", !mightBeWorkOrder(wo("accounts@rinnai.com.au", "Rinnai Invoice For PO AGA-261102"), "Please find attached your invoice."));
+ok("work order in the body counts", mightBeWorkOrder(wo("pm@agency.com.au", "4 Nanea Path"), "Please find attached work order 17760 for the property."));
+ok("team forward: Fw:", isTeamForward(msg({ from: from("dean@advancedgas.com.au"), subject: "FW: Work order 22 Smith St" })));
+ok("team forward: Fwd:", isTeamForward(msg({ from: from("jake@advancedgas.com.au"), subject: "Fwd: job" })));
+ok("a customer's Fw: isn't a team forward", !isTeamForward(msg({ from: from("tenant@gmail.com"), subject: "Fw: leak" })));
+ok("a team email that isn't a forward isn't", !isTeamForward(msg({ from: from("dean@advancedgas.com.au"), subject: "Work order 22 Smith St" })));
+
+// --- the same work order twice
+ok("address spellings agree", addressKey("16 Kallista Circuit", "Officer") === addressKey("16 Kallista Cct", "OFFICER VIC 3809"));
+ok("units kept apart", addressKey("10/1-3 Young Road", "Hallam") !== addressKey("11/1-3 Young Road", "Hallam"));
+ok("a Tapi reminder is the same work order", dedupeKey("work_order", "TAPI-00819-3", "", "") === dedupeKey("work_order", "TAPI-00819", "", ""));
+ok("Job #18943 and 18943 agree", dedupeKey("work_order", "Job #18943", "", "") === dedupeKey("work_order", "18943", "", ""));
+ok("no number: the address decides", dedupeKey("quote_request", "", "5 Golden Green Street", "Pakenham") === dedupeKey("quote_request", "", "5 Golden Green St", "PAKENHAM"));
+ok("quote request and acceptance are two visits", dedupeKey("quote_request", "", "5 Golden Green St", "Pakenham") !== dedupeKey("quote_accepted", "", "5 Golden Green St", "Pakenham"));
+
+// --- the model's reading, and what the office sees
+const read = parseWorkOrder(JSON.stringify({
+  is_work_order: true, why_not: "", kind: "work_order", is_reminder: false, platform: "PropertyMe", agency: "Barry Plant Pakenham",
+  property_manager: "Kate", pm_email: "pakenhamrentals@email.propertyme.com", pm_phone: "", number: "18943", street: "33 Willslie Cres",
+  suburb: "Berwick", postcode: "3806", tenant_name: "Sam Lee", tenant_phone: "0412 345 678", tenant_email: "", job: "Gas stove burner not lighting",
+  details: "Rear left burner won't light. Call tenant for access.", attend_by: "27/11/2026", urgent: false,
+}));
+ok("work order read", read.isWorkOrder && read.agency === "Barry Plant Pakenham" && read.postcode === "3806");
+const sum = bookingSummary(read);
+ok("booking says what it is and where from", sum.startsWith("Work order 18943 from Barry Plant Pakenham (PropertyMe): Gas stove burner not lighting"));
+ok("booking carries the tenant and the date", sum.includes("Tenant: Sam Lee, 0412 345 678") && sum.includes("Attend by: 27/11/2026"));
+ok("an unknown kind falls back to work order", parseWorkOrder(JSON.stringify({ ...JSON.parse(JSON.stringify({ is_work_order: true, kind: "mystery" })) })).kind === "work_order");
+let woThrew = false;
+try { parseWorkOrder(JSON.stringify({ kind: "work_order" })); } catch { woThrew = true; }
+ok("no decision is refused", woThrew);
 
 if (bad) {
   console.log(`\n${bad} failed`);
