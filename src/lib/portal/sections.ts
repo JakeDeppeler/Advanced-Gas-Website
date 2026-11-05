@@ -242,6 +242,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "team", label: "Team", icon: "van", group: 3, blurb: "The crew, their hours, the vans, and how we work",
     pages: [
       { label: "Team", href: "/portal/team", icon: "team" },
+      { label: "Service manager", href: "/portal/service", icon: "run" },
       { label: "Leaderboard", href: "/portal/rates?tab=leaders", gate: "/portal/rates", icon: "star" },
       { label: "Hours", href: "/portal/hours", icon: "clock" },
       { label: "From the crew", href: "/portal/requests", icon: "chat" },
