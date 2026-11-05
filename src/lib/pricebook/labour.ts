@@ -2,11 +2,15 @@
  * Labour pricing for the ServiceTitan pricebook and the aircon estimate
  * templates: the sums only, no I/O, so `npm run check:labour` can hold them.
  *
- * Jake, 5 Nov 2026: installation and servicing are priced for two people (a
- * tech and an apprentice), finding and fixing a problem for one. The rates are
- * the portal's (Pricing & costs › Rates & pricing, `portal_settings.pricing`),
- * so a rate changed there re-prices the pricebook on the next run instead of
- * being typed into ServiceTitan a second time.
+ * Jake, 5 Nov 2026: installation is priced for two people (a tech and an
+ * apprentice), fixing a problem for one. A diagnostic is the standard
+ * call-out, $200: it's the customer's first contact with us and how the job is
+ * won, so it isn't priced up by the hour. Servicing is left at its own prices
+ * for the same reason: it's where the problems are found.
+ *
+ * The rates are the portal's (Pricing & costs › Rates & pricing,
+ * `portal_settings.pricing`), so a rate changed there re-prices the pricebook
+ * on the next run instead of being typed into ServiceTitan a second time.
  *
  * Services are picked by their ServiceTitan code, listed below, not by
  * guessing from the name: "Continuous Flow Hot Water – Repair" sits in the
@@ -14,27 +18,26 @@
  * plumbing job as aircon. A service not listed here is never touched.
  */
 
-export type Crew = "solo" | "pair" | "crew3";
-export type Rates = { solo: number | null; pair: number | null; crew3: number | null };
+/** `callout` is a flat fee, not an hourly rate: the price is the fee whatever the hours. */
+export type Crew = "callout" | "solo" | "pair" | "crew3";
+export type Rates = { callout: number | null; solo: number | null; pair: number | null; crew3: number | null };
 
-/** What each crew's hour comes from in `portal_settings.pricing`. */
-export function ratesFromPricing(p: { solo: number | null; hourly: number | null; install: number | null }): Rates {
-  return { solo: p.solo, pair: p.hourly, crew3: p.install };
+/** What each one comes from in `portal_settings.pricing`. */
+export function ratesFromPricing(p: { callout: number | null; solo: number | null; hourly: number | null; install: number | null }): Rates {
+  return { callout: p.callout, solo: p.solo, pair: p.hourly, crew3: p.install };
 }
 
-const SOLO = [
-  // Diagnostics: one tech finds the problem.
+const CALLOUT = [
   "AC-SPLIT-DIAG", "AC-MULTI-DIAG", "AC-DUCTED-DIAG", "AC-RAC-DIAG", "AC-ADDON-DIAG",
   "EVAP-DIAG", "HTR-DUCTED-DIAG", "HTR-SPACE-DIAG",
+];
+const SOLO = [
   // Repairs, priced by the hour.
   "AC-SPLIT-REPAIR", "AC-MULTI-REPAIR", "AC-DUCTED-REPAIR", "EVAP-REPAIR", "HTR-DUCTED-REPAIR",
   // The hourly labour line itself.
   "LAB-HR-1P",
 ];
 const PAIR = [
-  // Servicing.
-  "SVC-AS-SPLIT", "AC-SPLIT-DEEPCLEAN", "AC-RAC-SERVICE", "EVAP-MAINT-SS", "EVAP-MAINT-DS",
-  "HTG-DUCT-SVC", "SVC-AS-GAS", "HTG-WALLFURN-SVC",
   // Installation.
   "AC-SPLIT-BTB", "AC-SPLIT-RTR", "AC-SPLIT-RTW",
   "AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-3", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-5", "AC-SPLIT-MULTI-6",
@@ -48,6 +51,7 @@ const CREW3 = ["LAB-HR-3P"];
 export const normCode = (c: unknown) => String(c ?? "").trim().toUpperCase();
 
 const CREW_OF = new Map<string, Crew>([
+  ...CALLOUT.map((c) => [c, "callout"] as const),
   ...SOLO.map((c) => [c, "solo"] as const),
   ...PAIR.map((c) => [c, "pair"] as const),
   ...CREW3.map((c) => [c, "crew3"] as const),
@@ -57,7 +61,7 @@ export function crewFor(code: unknown): Crew | null {
   return CREW_OF.get(normCode(code)) ?? null;
 }
 
-export const CREW_LABEL: Record<Crew, string> = { solo: "one person", pair: "tech & apprentice", crew3: "tech & 2 apprentices" };
+export const CREW_LABEL: Record<Crew, string> = { callout: "call-out fee", solo: "one person", pair: "tech & apprentice", crew3: "tech & 2 apprentices" };
 
 /** Whole cents, so a 2.8-hour job at $310 is $868.00 and not 867.9999. */
 const cents = (n: number) => Math.round(n * 100) / 100;
@@ -66,7 +70,7 @@ export type ServiceRow = { id: number; code: string; name: string; hours: number
 export type ServiceChange = { id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number };
 export type ServiceSkip = { id: number; code: string; name: string; reason: string };
 
-/** Each listed service at its own hours × its crew's rate. */
+/** Each listed service at its own hours × its crew's rate, or the call-out fee. */
 export function planServices(services: ServiceRow[], rates: Rates): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
   const changes: ServiceChange[] = [];
   const skipped: ServiceSkip[] = [];
@@ -77,9 +81,9 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
     if (!crew) continue;
     const rate = rates[crew];
     const hours = Number(s.hours) || 0;
-    if (!rate) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: `no ${CREW_LABEL[crew]} rate set in the portal` }); continue; }
-    if (hours <= 0) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: "no hours on the service" }); continue; }
-    const after = cents(hours * rate);
+    if (!rate) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: `no ${CREW_LABEL[crew]} set in the portal` }); continue; }
+    if (crew !== "callout" && hours <= 0) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: "no hours on the service" }); continue; }
+    const after = crew === "callout" ? cents(rate) : cents(hours * rate);
     const before = Number(s.price) || 0;
     if (Math.abs(after - before) < 0.005) { unchanged++; continue; }
     changes.push({ id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after });
@@ -95,23 +99,31 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
 // the other way, with the materials sitting under the install service.
 //
 // Rebuilt, each one has a single installation header (a ServiceTitan item
-// group) holding the labour at hours × the two-person rate, the electrical
-// where the job has it, and every material at its pricebook price. The header
-// is the install service the template already used, so its customer-facing
-// description is kept. The internal labour lines that sat beside it ("Ducted
-// Split – Labour (Two Days)", "Dominator – Labour (One Day)", "Multi Head
-// Labour (n head)") come off: their hours go into the header, and on the
-// Rinnai 14kW all three head counts were being charged at once.
+// group) holding the labour, the electrical where the job has it, and every
+// material at its pricebook price. The header is the install service the
+// template already used, so its customer-facing description is kept.
+//
+// Split systems: the labour is the install service's hours × the two-person
+// rate, on the header.
+//
+// Multi-heads (Jake, 5 Nov): one condenser can go out with two heads or five,
+// so the labour can't be fixed on the template. The header holds the
+// electrical and materials; "Multi Head Labour (2 head)" to "(6 head)" go on
+// as add-ons at hours × the two-person rate, and the office ticks the one the
+// job needs, as they do the rebates. On the Rinnai 14kW all three head counts
+// were being charged at once.
+//
+// Ducted and the Dominator aren't rebuilt: what they cost turns on the outlets,
+// duct runs and zones of the house, so a template's figure is a guess either
+// way. Those get priced from the job's design instead.
 
-/** Install services that head a template, and where their hours come from. */
-const HEADERS: Record<string, "own" | "heads" | "dominator"> = {
-  "AC-SPLIT-BTB": "own", "AC-SPLIT-RTR": "own", "AC-SPLIT-RTW": "own",
-  "AC-DUCTED-2DAYS": "own",
-  "AC-SPLIT-MULTI": "heads",
-  "AC-DOM-INSTALL": "dominator",
+/** Install services that head a template, and how their labour is set. */
+const HEADERS: Record<string, "split" | "multi" | "ducted"> = {
+  "AC-SPLIT-BTB": "split", "AC-SPLIT-RTR": "split", "AC-SPLIT-RTW": "split",
+  "AC-SPLIT-MULTI": "multi",
+  "AC-DUCTED-2DAYS": "ducted", "AC-DOM-INSTALL": "ducted",
 };
-/** Labour lines folded into the header. */
-const FOLDED = new Set(["AC-DUCTED-LAB", "AC-DOM-LAB", "AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-3", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-5", "AC-SPLIT-MULTI-6"]);
+const MULTI_LABOUR = /^AC-SPLIT-MULTI-(\d)$/;
 /** The electrician's line on each kind of job. Kept at its own price. */
 const ELECTRICAL = new Set(["AC-SPLIT-ELEC", "AC-MULTI-ELEC", "AC-DUCTED-ELE", "DOM-ELEC"]);
 const BPC = "BPC COMPLIANCE CERTIFICATE";
@@ -119,7 +131,8 @@ const BPC = "BPC COMPLIANCE CERTIFICATE";
 const isRebate = (name: string, price: number) => price < 0 || /rebate|veec|\bstc\b|discount/i.test(name);
 
 export type TemplateItem = {
-  id: number;
+  /** Null for an item being added. */
+  id: number | null;
   skuId: number;
   skuType: "Service" | "Material" | "Equipment" | "PriceModifier";
   skuName?: string | null;
@@ -139,12 +152,10 @@ export type Template = { id: number; name: string; active?: boolean; totalPrice?
 
 /** What the rebuild needs from the pricebook, by sku id. */
 export type Catalogue = {
-  service: Map<number, { code: string; hours: number }>;
+  service: Map<number, { code: string; hours: number; name?: string }>;
   materialPrice: Map<number, number>;
-  /** Hours on "Multi Head Labour (n head)", by n. */
-  multiHeadHours: Map<number, number>;
-  /** Hours on "Dominator – Labour (One Day)". */
-  dominatorHours: number | null;
+  /** "Multi Head Labour (n head)" by n: its sku and hours. */
+  multiHead: Map<number, { skuId: number; hours: number; name: string }>;
 };
 
 /** Marks where the install line sat while the rest of the template is sorted. */
@@ -153,10 +164,13 @@ const HEADER_SLOT = { id: -1 } as TemplateItem;
 export type TemplatePlan = {
   id: number;
   name: string;
+  kind: "split" | "multi";
   header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number };
   electrical: number;
   materials: number;
   materialLines: number;
+  /** Labour the office picks per job (multi-heads). */
+  addOns: { name: string; hours: number; price: number; skuId: number }[];
   removed: string[];
   before: number;
   after: number;
@@ -166,7 +180,7 @@ export type TemplateSkip = { id: number; name: string; reason: string };
 
 /** Top-level price: add-ons and anything under an add-on aren't in the total. */
 export function templateTotal(items: TemplateItem[]): number {
-  const addOns = new Set(items.filter((i) => i.isAddOn).map((i) => i.id));
+  const addOns = new Set(items.filter((i) => i.isAddOn && i.id != null).map((i) => i.id));
   return cents(items.filter((i) => !i.isAddOn && !(i.parentItemId != null && addOns.has(i.parentItemId)))
     .reduce((a, i) => a + (Number(i.quantity) || 0) * (Number(i.unitPrice) || 0), 0));
 }
@@ -180,29 +194,28 @@ export function headCount(items: TemplateItem[]): number {
 export function planTemplate(t: Template, cat: Catalogue, pairRate: number): TemplatePlan | TemplateSkip {
   const code = (i: TemplateItem) => (i.skuType === "Service" ? cat.service.get(i.skuId)?.code ?? "" : "");
   const headerItem = t.items.find((i) => !i.isAddOn && HEADERS[code(i)]);
-  if (!headerItem) return { id: t.id, name: t.name, reason: "not an aircon install template" };
-  if (t.items.some((i) => i.itemGroupParentId === headerItem.id)) {
-    // Already rebuilt: re-pricing it again would be fine, but a template the
-    // office regrouped by hand shouldn't be reshuffled under them.
+  if (!headerItem || headerItem.id == null) return { id: t.id, name: t.name, reason: "not an aircon install template" };
+  const headerId = headerItem.id;
+  const kind = HEADERS[code(headerItem)];
+  if (kind === "ducted") return { id: t.id, name: t.name, reason: "ducted: priced from the job's design, not rebuilt" };
+  if (t.items.some((i) => i.itemGroupParentId === headerId)) {
+    // A template the office already grouped by hand isn't reshuffled under them.
     return { id: t.id, name: t.name, reason: "already has an installation group" };
   }
 
-  const kind = HEADERS[code(headerItem)];
   let hours = 0;
-  let heads: number | undefined;
-  if (kind === "own") hours = cat.service.get(headerItem.skuId)?.hours ?? 0;
-  if (kind === "dominator") hours = cat.dominatorHours ?? 0;
-  if (kind === "heads") {
-    heads = headCount(t.items);
-    hours = cat.multiHeadHours.get(Math.max(2, heads)) ?? 0;
-    if (heads > 6) return { id: t.id, name: t.name, reason: `${heads} indoor heads, and the pricebook's multi-head labour stops at 6` };
+  if (kind === "split") {
+    hours = cat.service.get(headerItem.skuId)?.hours ?? 0;
+    if (hours <= 0) return { id: t.id, name: t.name, reason: `no hours on ${headerItem.skuName ?? "the install service"} in the pricebook` };
   }
-  if (hours <= 0) return { id: t.id, name: t.name, reason: `no hours for ${headerItem.skuName ?? "the install service"} in the pricebook` };
+  if (kind === "multi" && cat.multiHead.size === 0) return { id: t.id, name: t.name, reason: "no Multi Head Labour services in the pricebook" };
   const labour = cents(hours * pairRate);
 
   const removed: string[] = [];
   const members: TemplateItem[] = [];
   const out: TemplateItem[] = [];
+  /** Multi-head labour lines already on the template, by head count, to become add-ons. */
+  const labourLines = new Map<number, TemplateItem>();
   let sawBpc = false;
   let electrical = 0;
   let materials = 0;
@@ -214,8 +227,14 @@ export function planTemplate(t: Template, cat: Catalogue, pairRate: number): Tem
     if (i === headerItem) { out.push(HEADER_SLOT); continue; }
     // Children of add-ons (the ducted zone kits) belong to their add-on.
     const underAddOn = i.parentItemId != null && t.items.some((p) => p.id === i.parentItemId && p.isAddOn);
+    const m = MULTI_LABOUR.exec(c);
+    if (kind === "multi" && m) {
+      // Kept (by id) and made an add-on below; a second line for the same head count goes.
+      if (labourLines.has(Number(m[1]))) removed.push(`second ${name} $${i.unitPrice}`);
+      else labourLines.set(Number(m[1]), i);
+      continue;
+    }
     if (i.isAddOn || underAddOn) { out.push(i); continue; }
-    if (FOLDED.has(c)) { removed.push(`${name} $${i.unitPrice}`); continue; }
     if (i.skuType === "Service" && HEADERS[c]) { removed.push(`second ${name} $${i.unitPrice}`); continue; }
     if (i.skuType === "Service" && name.toUpperCase() === BPC) {
       if (sawBpc) { removed.push(`second ${name} $${i.unitPrice}`); continue; }
@@ -239,26 +258,43 @@ export function planTemplate(t: Template, cat: Catalogue, pairRate: number): Tem
     out.push(i);
   }
 
+  // Multi-head labour: every head count the pricebook has, as an add-on.
+  const addOnItems: TemplateItem[] = [];
+  const addOns: TemplatePlan["addOns"] = [];
+  if (kind === "multi") {
+    for (const n of Array.from(cat.multiHead.keys()).sort((a, b) => a - b)) {
+      const svc = cat.multiHead.get(n)!;
+      if (svc.hours <= 0) continue;
+      const price = cents(svc.hours * pairRate);
+      const had = labourLines.get(n);
+      addOnItems.push(had
+        ? { ...had, quantity: 1, unitPrice: price, isAddOn: true, parentItemId: null, itemGroupParentId: null, itemGroupName: null }
+        : { id: null, skuId: svc.skuId, skuType: "Service", skuName: svc.name, quantity: 1, unitPrice: price, isAddOn: true });
+      addOns.push({ name: svc.name, hours: svc.hours, price, skuId: svc.skuId });
+    }
+  }
+
   const groupName = (headerItem.itemGroupName ?? headerItem.skuName ?? "Installation").trim();
   const header: TemplateItem = { ...headerItem, quantity: 1, unitPrice: labour, parentItemId: null, itemGroupParentId: null, itemGroupName: groupName };
-  const grouped = members.map((m) => ({ ...m, itemGroupParentId: headerItem.id }));
+  const grouped = members.map((x) => ({ ...x, itemGroupParentId: headerId }));
 
-  // The header goes where the install line was, with its group straight after.
-  const items = out.flatMap((i) => (i === HEADER_SLOT ? [header, ...grouped] : [i]));
+  // The header goes where the install line was, its group straight after,
+  // then the labour add-ons a multi-head picks from.
+  const items = out.flatMap((i) => (i === HEADER_SLOT ? [header, ...grouped, ...addOnItems] : [i]));
 
   return {
-    id: t.id, name: t.name.trim(),
-    header: { itemId: headerItem.id, name: groupName, hours, rate: pairRate, labour, heads },
-    electrical, materials, materialLines, removed,
+    id: t.id, name: t.name.trim(), kind,
+    header: { itemId: headerId, name: groupName, hours, rate: pairRate, labour, heads: kind === "multi" ? headCount(t.items) : undefined },
+    electrical, materials, materialLines, addOns, removed,
     before: templateTotal(t.items), after: templateTotal(items),
     items,
   };
 }
 
-/** The body ServiceTitan's template PATCH takes: every item, by id, in order. */
+/** The body ServiceTitan's template PATCH takes: every item, in order; new ones without an id. */
 export function templatePatchItems(items: TemplateItem[]) {
   return items.map((i) => ({
-    id: i.id, skuId: i.skuId, skuType: i.skuType, description: i.description ?? null,
+    id: i.id ?? null, skuId: i.skuId, skuType: i.skuType, description: i.description ?? null,
     quantity: i.quantity, unitPrice: i.unitPrice, unitCost: i.unitCost ?? null, isAddOn: i.isAddOn,
     chargeable: i.chargeable ?? null, allowDiscounts: i.allowDiscounts ?? null, memo: i.memo ?? null,
     parentItemId: i.parentItemId ?? null, itemGroupParentId: i.itemGroupParentId ?? null, itemGroupName: i.itemGroupName ?? null,

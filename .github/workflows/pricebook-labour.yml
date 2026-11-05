@@ -1,9 +1,9 @@
 name: Pricebook labour
 
-# Labour pricing → ServiceTitan: services at their hours × the crew's rate
-# (one person for diagnostics and repairs, tech & apprentice for servicing and
-# installation), and the aircon estimate templates rebuilt around one
-# installation header holding the labour, the electrical and the materials.
+# Labour pricing → ServiceTitan: diagnostics at the call-out fee, repairs at
+# one person's hour, installation at the tech & apprentice hour (servicing is
+# left at its own prices), and the split and multi-head templates rebuilt
+# around one installation header holding the labour, electrical and materials.
 # Rates come from the portal (Pricing & costs › Rates & pricing).
 #
 # Actions tab → Pricebook labour → Run workflow. Without "apply" it is a dry
@@ -80,7 +80,7 @@ jobs:
               echo
               echo "| Template | Hours | Labour | Electrical | Materials | Lines taken off | Before | After |"
               echo "|---|---|---|---|---|---|---|---|"
-              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(.header.hours)\(if .header.heads then " (\(.header.heads) heads)" else "" end) | \(.header.labour|m) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
+              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-ons: " + ([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")) else (.header.labour|m) end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
               if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
                 echo; echo "| Skipped | Why |"; echo "|---|---|"
                 jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.reason|e) |"' out.json

@@ -234,32 +234,37 @@ the sync will create a second one.
 
 ## Labour pricing
 
-Jake, 5 Nov 2026: installation and servicing are priced for two people (a tech
-and an apprentice), finding and fixing a problem for one. The rates are the
-portal's, on **Pricing & costs › Rates & pricing** (`portal_settings.pricing`:
-`solo` $250, `hourly` $310, `install` $360 at the time), so changing a rate
-there and re-running is how the pricebook follows it.
+Jake, 5 Nov 2026: installation is priced for two people (a tech and an
+apprentice), fixing a problem for one. A diagnostic is the standard call-out
+($200): it's the customer's first contact and how the job is won. Servicing is
+left at its own prices for the same reason, since it's where problems are
+found. The figures are the portal's, on **Pricing & costs › Rates & pricing**
+(`portal_settings.pricing`: `callout` $200, `solo` $250, `hourly` $310,
+`install` $360 at the time), so changing one there and re-running is how the
+pricebook follows it.
 
-**Services.** Each listed service's price becomes its own ServiceTitan hours ×
-its crew's rate. The list is by service code in `src/lib/pricebook/labour.ts`;
-a service not on it is never touched, and a listed one with no hours is
-reported, not priced at $0. Electrical connections stay the electrician's price.
+**Services.** Diagnostics become the call-out fee; repairs and installation
+become their own ServiceTitan hours × their crew's rate. The list is by service
+code in `src/lib/pricebook/labour.ts`; a service not on it is never touched,
+and a listed hourly one with no hours is reported, not priced at $0.
+Electrical connections stay the electrician's price.
 
-**Aircon templates.** The old layout priced the install line to cover labour
-and materials, put the electrician beside it, and left the materials loose at
-$0. Rebuilt, each split, multi-head, ducted and Dominator template has one
-installation header (a ServiceTitan item group) holding:
+**Templates.** The old layout priced the install line to cover labour and
+materials, put the electrician beside it, and left the materials loose at $0.
+Rebuilt, each split and multi-head template has one installation header (a
+ServiceTitan item group) holding the electrical and every material at its
+pricebook price.
 
-- the labour, at hours × the two-person rate (multi-heads take their hours
-  from the number of indoor heads, against the *Multi Head Labour (n head)*
-  services);
-- the electrical, at its own price;
-- every material, at its pricebook price.
+- Splits: the labour is on the header, at the install service's hours × $310.
+- Multi-heads: a condenser goes out with two heads or five, so the labour
+  isn't fixed. *Multi Head Labour (2 head)* to *(6 head)* go on as add-ons at
+  hours × $310 and the office ticks the one the job needs, as with rebates.
+- Ducted and the Dominator aren't rebuilt: they turn on the house's outlets,
+  duct runs and zones, and get priced from the job's design instead.
 
-The internal labour lines that sat beside the install line come off, along
-with a doubled install line or certificate. Rebates, the unit, the certificate
-and add-ons (the ducted zone kits) stay where they are. A template already
-grouped is left alone.
+A doubled install line or certificate comes off. Rebates, the unit, the
+certificate and add-ons stay where they are. A template already grouped is
+left alone.
 
 Writing templates needs the app's **Estimate Templates** write scope
 (`tn.sal.estimatetemplates:w`) in the developer portal, then re-approval in
