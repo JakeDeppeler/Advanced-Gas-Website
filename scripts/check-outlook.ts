@@ -20,6 +20,7 @@ import {
   threadText,
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
+import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -235,6 +236,33 @@ ok("page: cancellation done", stage({ ...base, status: "not", reason: "cancellat
 ok("page: cancellation to check", stage({ ...base, status: "not", reason: "cancellation: cancellation for job 20772, which is InProgress, so it was left alone" }).tone === "bad");
 ok("page: the cancelled work order", stage({ ...base, cancelled_at: "x", cancel_note: "Cancelled by Ray White by email" }).word === "Cancelled");
 ok("reading: cancellation flag parsed", parseWorkOrder(JSON.stringify({ is_work_order: false, is_cancellation: true })).isCancellation);
+
+console.log("-- call-backs --");
+{
+  const base = { reply_needed: true, why_not: "", reply: "Hi Sarah,\n\nSomeone will give you a call.\n\nKind regards,\nThe Advanced Gas team", handoff: "" };
+  const cb = parseMailDraft(JSON.stringify({ ...base, call_back: { wanted: true, name: "Sarah", phone: "0412 345 678", about: "quote for a heat pump" } }));
+  ok("call-back read", cb.callBack?.phone === "0412 345 678" && cb.callBack?.name === "Sarah", cb.callBack);
+  ok("not wanted: none", parseMailDraft(JSON.stringify({ ...base, call_back: { wanted: false, name: "", phone: "", about: "" } })).callBack === null);
+  ok("missing call_back: none, still parses", parseMailDraft(JSON.stringify(base)).callBack === null);
+}
+
+console.log("-- booking confirmations --");
+{
+  const from = (a: string) => ({ emailAddress: { address: a } });
+  ok("Veolia confirmation", mightConfirmBooking({ from: from("donotreply@anz.veolia.com"), subject: "Your Veolia service booking is confirmed – Ref 02656845" }, ""));
+  ok("Veolia holiday notice: no", !mightConfirmBooking({ from: from("noreply@veolia.com"), subject: "Action required: Update your Veolia waste services for the holiday period" }, "Please update your services over Christmas."));
+  ok("electrician by words", mightConfirmBooking({ from: from("geoff@gtelectrics.com.au"), subject: "Re: Work order for the electrician: Job 20769" }, "All good, booked in for Thursday."));
+  ok("a customer's booking question: no", !mightConfirmBooking({ from: from("sarah@gmail.com"), subject: "Heat pump" }, "Can you confirm the price?"));
+  ok("skip bin from anyone, with booking words", mightConfirmBooking({ from: from("bookings@binsrus.com.au"), subject: "Skip bin booking confirmed" }, "Delivery Thu."));
+  const r = parseBooking(JSON.stringify({ confirms_booking: true, kind: "rubbish_removal", job_number: "20525", street: "3 Surrey Street", suburb: "Box Hill South", when: "Thu 12 Nov" }));
+  ok("read: rubbish removal, job number", r.confirms && r.kind === "rubbish_removal" && r.jobNumber === "20525", r);
+  ok("their own reference isn't our job number", parseBooking(JSON.stringify({ confirms_booking: true, kind: "rubbish_removal", job_number: "02656845", street: "", suburb: "", when: "" })).jobNumber === "");
+  ok("kind other: not a confirmation", !parseBooking(JSON.stringify({ confirms_booking: true, kind: "other", job_number: "", street: "", suburb: "", when: "" })).confirms);
+  ok("swap: not off, booked on, others kept", JSON.stringify(swapTag([1, 2, 3], 2, 9)) === JSON.stringify([1, 3, 9]));
+  ok("swap: already booked, nothing to do", swapTag([1, 9], 2, 9) === null);
+  ok("swap: both on, not comes off", JSON.stringify(swapTag([2, 9], 2, 9)) === JSON.stringify([9]));
+  ok("tag words drop the emoji", bookingWords("Rubbish Removal Booked🗑️") === "rubbish removal booked");
+}
 
 if (bad) {
   console.log(`\n${bad} failed`);

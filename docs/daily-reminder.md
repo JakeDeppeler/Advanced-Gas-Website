@@ -6,6 +6,7 @@ email listing what has to be done today, under headings
 
 | Heading | A job is on it when |
 |---|---|
+| Call back | an email to admin@ or jake@ in the last fortnight asked us to ring them, and its Outlook flag isn't marked complete |
 | Rubbish removal to book | it has **Rubbish Removal Not Booked** and not **Rubbish Removal Booked** |
 | Systems to order | **System Not Ordered** and no "… System Ordered" tag (any brand's counts) |
 | Materials to order | **Materials Not Ordered** and not **Materials Ordered** or **Materials Delivered** |
@@ -23,6 +24,28 @@ email listing what has to be done today, under headings
   assessments aren't counted, nor a visit whose sale is being done as its own
   job. Older unbilled jobs are counted under the heading.
 - A day with nothing to do sends nothing.
+
+## Call-backs
+
+When the email drafting reads an email asking us to phone (lib/outlook/handle.ts),
+the email gets the Outlook category **Call back** and a flag, and goes at the
+top of the next morning's email with the name, number (a link a phone can dial)
+and what it's about. Mark the flag complete in Outlook once the call is made
+and it comes off; taking off both the flag and the category, or deleting the
+email, does the same. After a fortnight unmarked it drops off.
+
+## Bookings that confirm themselves
+
+When the rubbish removal company (Veolia, WasteMate, any skip bin firm) or
+the electrician (GT Electrics) emails to confirm a booking, the email is read
+(lib/outlook/bookingConfirm.ts) and, if exactly one open job waiting on that
+booking fits (its job number, or its address), the job's tag is swapped:
+**Rubbish Removal Not Booked** to **Rubbish Removal Booked**, **GTE Not
+Booked** to **GTE Booked**. A note goes on the job with the email, and the
+email gets the Outlook category **Booking confirmed**. So the job comes off
+the morning email by itself. If the confirmation has no job number and no
+address, or more than one job fits, nothing is changed and the job stays on
+the list to swap by hand.
 
 Run by Vercel's cron (`/api/reminders/daily`, `30 20 * * 0-4` UTC). To see what
 it would send without sending it:

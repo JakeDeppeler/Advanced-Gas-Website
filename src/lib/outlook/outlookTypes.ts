@@ -180,17 +180,31 @@ export function threadText(thread: GraphMessage[], mailbox: string): string {
     .join("\n\n");
 }
 
-export type MailDraft = { replyNeeded: boolean; whyNot: string; reply: string; handoff: string };
+/** A request to ring them back, for the morning to-do email (lib/reminders). */
+export type CallBack = { name: string; phone: string; about: string };
+export type MailDraft = { replyNeeded: boolean; whyNot: string; reply: string; handoff: string; callBack: CallBack | null };
 
 export const MAIL_DRAFT_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["reply_needed", "why_not", "reply", "handoff"],
+  required: ["reply_needed", "why_not", "reply", "handoff", "call_back"],
   properties: {
     reply_needed: { type: "boolean", description: "False when nobody would answer this email: a receipt, an invoice or statement from a supplier, a notification, marketing, spam." },
     why_not: { type: "string", description: "When reply_needed is false, at most eight words on what it is, e.g. 'Supplier invoice'. Otherwise empty." },
     reply: { type: "string", description: "The reply email's text, from the greeting to the sign-off, exactly as it should be sent. Empty when reply_needed is false." },
     handoff: { type: "string", description: "Empty if the reply fully handles it. Otherwise one short sentence telling the office why a person needs to deal with this one." },
+    call_back: {
+      type: "object",
+      additionalProperties: false,
+      required: ["wanted", "name", "phone", "about"],
+      description: "Whether their latest email asks us to phone them.",
+      properties: {
+        wanted: { type: "boolean", description: "True only when their latest email asks us to ring them: 'call me', 'give me a ring', 'can someone call', 'please call back', 'best to call on'. False when they only list a number in a signature, or we already said we'd call and they're just confirming." },
+        name: { type: "string", description: "Who to ask for, as they signed. Empty when not wanted." },
+        phone: { type: "string", description: "The number to ring, as written in their email; if none is in the email, their number from <servicetitan>; empty if neither has one." },
+        about: { type: "string", description: "At most twelve words on what the call is about, e.g. 'quote for a heat pump in Berwick'. Empty when not wanted." },
+      },
+    },
   },
 } as const;
 
@@ -199,7 +213,9 @@ export function parseMailDraft(text: string): MailDraft {
   const o = JSON.parse(text) as Record<string, unknown> | null;
   if (!o || typeof o !== "object" || typeof o.reply_needed !== "boolean") throw new Error("draft had no decision in it");
   const s = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
-  const out: MailDraft = { replyNeeded: o.reply_needed, whyNot: s(o.why_not, 120), reply: s(o.reply, 6000), handoff: s(o.handoff, 300) };
+  const cb = o.call_back as Record<string, unknown> | null | undefined;
+  const callBack = cb && typeof cb === "object" && cb.wanted === true ? { name: s(cb.name, 80), phone: s(cb.phone, 40), about: s(cb.about, 160) } : null;
+  const out: MailDraft = { replyNeeded: o.reply_needed, whyNot: s(o.why_not, 120), reply: s(o.reply, 6000), handoff: s(o.handoff, 300), callBack };
   if (out.replyNeeded && !out.reply) throw new Error("draft said to reply but had no reply in it");
   return out;
 }
