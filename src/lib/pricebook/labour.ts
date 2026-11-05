@@ -3,7 +3,10 @@
  * templates: the sums only, no I/O, so `npm run check:labour` can hold them.
  *
  * Jake, 5 Nov 2026: installation is priced for two people (a tech and an
- * apprentice), fixing a problem for one. A diagnostic is the standard
+ * apprentice), fixing a problem for one. An install done in part of a day (a
+ * split, a heat pump, a cooktop) is at the part-day rate, $350, because the
+ * travel to the next job comes out of it; one that takes the whole day or
+ * more (multi-head, ducted, Dominator) is at the crew rate, $310. A diagnostic is the standard
  * call-out, $200: it's the customer's first contact with us and how the job is
  * won, so it isn't priced up by the hour. Servicing is left at its own prices
  * for the same reason: it's where the problems are found.
@@ -19,12 +22,12 @@
  */
 
 /** `callout` is a flat fee, not an hourly rate: the price is the fee whatever the hours. */
-export type Crew = "callout" | "solo" | "pair" | "crew3";
-export type Rates = { callout: number | null; solo: number | null; pair: number | null; crew3: number | null };
+export type Crew = "callout" | "solo" | "partDay" | "pair" | "crew3";
+export type Rates = { callout: number | null; solo: number | null; partDay: number | null; pair: number | null; crew3: number | null };
 
 /** What each one comes from in `portal_settings.pricing`. */
-export function ratesFromPricing(p: { callout: number | null; solo: number | null; hourly: number | null; install: number | null }): Rates {
-  return { callout: p.callout, solo: p.solo, pair: p.hourly, crew3: p.install };
+export function ratesFromPricing(p: { callout: number | null; solo: number | null; partDay: number | null; hourly: number | null; install: number | null }): Rates {
+  return { callout: p.callout, solo: p.solo, partDay: p.partDay, pair: p.hourly, crew3: p.install };
 }
 
 const CALLOUT = [
@@ -37,14 +40,19 @@ const SOLO = [
   // The hourly labour line itself.
   "LAB-HR-1P",
 ];
-const PAIR = [
-  // Installation.
+const PART_DAY = [
+  // Installs done in part of a day: travel to the next job comes out of them.
   "AC-SPLIT-BTB", "AC-SPLIT-RTR", "AC-SPLIT-RTW",
+  "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-EXT",
+  "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-GAS-STORAGE-INS", "HW-STORAGE-TO-CF",
+  "GAS-COOKTOP-INSTALL",
+  // Taking the old unit out, on one of those installs.
+  "DECOMMISSION-DISPOSAL",
+];
+const PAIR = [
+  // A day or more on one job.
   "AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-3", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-5", "AC-SPLIT-MULTI-6",
   "AC-DUCTED-2DAYS", "AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY", "AC-DOM-LAB",
-  "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-EXT",
-  // Taking the old unit out: the same two people, on the install.
-  "DECOMMISSION-DISPOSAL",
   "LAB-HR-2P",
 ];
 const CREW3 = ["LAB-HR-3P"];
@@ -55,6 +63,7 @@ export const normCode = (c: unknown) => String(c ?? "").trim().toUpperCase();
 const CREW_OF = new Map<string, Crew>([
   ...CALLOUT.map((c) => [c, "callout"] as const),
   ...SOLO.map((c) => [c, "solo"] as const),
+  ...PART_DAY.map((c) => [c, "partDay"] as const),
   ...PAIR.map((c) => [c, "pair"] as const),
   ...CREW3.map((c) => [c, "crew3"] as const),
 ]);
@@ -63,7 +72,7 @@ export function crewFor(code: unknown): Crew | null {
   return CREW_OF.get(normCode(code)) ?? null;
 }
 
-export const CREW_LABEL: Record<Crew, string> = { callout: "call-out fee", solo: "one person", pair: "tech & apprentice", crew3: "tech & 2 apprentices" };
+export const CREW_LABEL: Record<Crew, string> = { callout: "call-out fee", solo: "one person", partDay: "part-day install rate", pair: "tech & apprentice", crew3: "tech & 2 apprentices" };
 
 /** Whole cents, so a 2.8-hour job at $310 is $868.00 and not 867.9999. */
 const cents = (n: number) => Math.round(n * 100) / 100;
@@ -134,7 +143,7 @@ export function planRefrigerant(materials: MaterialRow[], r: RefrigerantSettings
 // material at its pricebook price. The header is the install service the
 // template already used, so its customer-facing description is kept.
 //
-// Split systems: the labour is the install service's hours × the two-person
+// Split systems: the labour is the install service's hours × the part-day
 // rate, on the header. Each also offers, as add-ons the office ticks on the
 // day: taking the old unit out, a condensate pump, Blygold on the condenser
 // and a second coil of the template's own size for runs over 20 m.
@@ -146,19 +155,25 @@ export function planRefrigerant(materials: MaterialRow[], r: RefrigerantSettings
 // job needs, as they do the rebates. On the Rinnai 14kW all three head counts
 // were being charged at once.
 //
+// Hot water and cooktops are laid out the same way, labour on the header at
+// the part-day rate. Their install lines were $0 on the Continuous Flow and
+// Thermann 135L templates; this is what fixes that.
+//
 // Ducted and the Dominator aren't rebuilt: what they cost turns on the outlets,
 // duct runs and zones of the house, so a template's figure is a guess either
 // way. Those get priced from the job's design instead.
 
 /** Install services that head a template, and how their labour is set. */
-const HEADERS: Record<string, "split" | "multi" | "ducted"> = {
+const HEADERS: Record<string, "split" | "day" | "multi" | "ducted"> = {
   "AC-SPLIT-BTB": "split", "AC-SPLIT-RTR": "split", "AC-SPLIT-RTW": "split",
+  "HW-HP-HARD": "day", "HW-HP-PLUG": "day", "HW-HP-SPLIT": "day", "HW-CF-INS": "day",
+  "HW-GAS-STORAGE-INS": "day", "HW-STORAGE-TO-CF": "day", "GAS-COOKTOP-INSTALL": "day",
   "AC-SPLIT-MULTI": "multi",
   "AC-DUCTED-2DAYS": "ducted", "AC-DOM-INSTALL": "ducted",
 };
 const MULTI_LABOUR = /^AC-SPLIT-MULTI-(\d)$/;
 /** The electrician's line on each kind of job. Kept at its own price. */
-const ELECTRICAL = new Set(["AC-SPLIT-ELEC", "AC-MULTI-ELEC", "AC-DUCTED-ELE", "DOM-ELEC"]);
+const ELECTRICAL = new Set(["AC-SPLIT-ELEC", "AC-MULTI-ELEC", "AC-DUCTED-ELE", "DOM-ELEC", "ELEC-HP"]);
 const BPC = "BPC COMPLIANCE CERTIFICATE";
 /** Rebates and discounts are materials with a negative price; they stay where they are. */
 const isRebate = (name: string, price: number) => price < 0 || /rebate|veec|\bstc\b|discount/i.test(name);
@@ -202,7 +217,7 @@ const HEADER_SLOT = { id: -1 } as TemplateItem;
 export type TemplatePlan = {
   id: number;
   name: string;
-  kind: "split" | "multi";
+  kind: "split" | "day" | "multi";
   header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number };
   electrical: number;
   materials: number;
@@ -229,7 +244,11 @@ export function headCount(items: TemplateItem[]): number {
     .reduce((a, i) => a + (Number(i.quantity) || 0), 0);
 }
 
-export function planTemplate(t: Template, cat: Catalogue, pairRate: number): TemplatePlan | TemplateSkip {
+/** The two-person rates a template is built from: `partDay` for a split, hot water or cooktop, `pair` for a multi-head. */
+export type TemplateRates = { partDay: number; pair: number };
+
+export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates): TemplatePlan | TemplateSkip {
+  const pairRate = rates.pair;
   const code = (i: TemplateItem) => (i.skuType === "Service" ? cat.service.get(i.skuId)?.code ?? "" : "");
   const headerItem = t.items.find((i) => !i.isAddOn && HEADERS[code(i)]);
   if (!headerItem || headerItem.id == null) return { id: t.id, name: t.name, reason: "not an aircon install template" };
@@ -242,12 +261,13 @@ export function planTemplate(t: Template, cat: Catalogue, pairRate: number): Tem
   }
 
   let hours = 0;
-  if (kind === "split") {
+  if (kind === "split" || kind === "day") {
     hours = cat.service.get(headerItem.skuId)?.hours ?? 0;
     if (hours <= 0) return { id: t.id, name: t.name, reason: `no hours on ${headerItem.skuName ?? "the install service"} in the pricebook` };
   }
   if (kind === "multi" && cat.multiHead.size === 0) return { id: t.id, name: t.name, reason: "no Multi Head Labour services in the pricebook" };
-  const labour = cents(hours * pairRate);
+  const rate = kind === "multi" ? pairRate : rates.partDay;
+  const labour = cents(hours * rate);
 
   const removed: string[] = [];
   const members: TemplateItem[] = [];
@@ -336,7 +356,7 @@ export function planTemplate(t: Template, cat: Catalogue, pairRate: number): Tem
 
   return {
     id: t.id, name: t.name.trim(), kind,
-    header: { itemId: headerId, name: groupName, hours, rate: pairRate, labour, heads: kind === "multi" ? headCount(t.items) : undefined },
+    header: { itemId: headerId, name: groupName, hours, rate, labour, heads: kind === "multi" ? headCount(t.items) : undefined },
     electrical, materials, materialLines, addOns, removed,
     before: templateTotal(t.items), after: templateTotal(items),
     items,

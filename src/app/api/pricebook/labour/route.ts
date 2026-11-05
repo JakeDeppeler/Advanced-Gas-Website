@@ -52,7 +52,7 @@ export async function GET(req: Request) {
 
     const plan = await planTemplatePrices();
     const rows = plan.plans.map(({ items: _items, ...p }) => p);
-    const summary = { rate: plan.rate, toRebuild: plan.plans.length, skipped: plan.skipped.length };
+    const summary = { rates: plan.rates, toRebuild: plan.plans.length, skipped: plan.skipped.length };
     if (!apply) {
       const runId = await recordLabourRun("templates", "dry-run", summary, rows);
       return NextResponse.json({ ok: true, what, mode: "dry-run", runId, durationMs: Date.now() - started, summary, templates: rows, skipped: plan.skipped });

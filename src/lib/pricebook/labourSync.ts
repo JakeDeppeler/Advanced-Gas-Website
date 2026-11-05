@@ -94,7 +94,7 @@ export async function applyServicePrices(changes: ServiceChange[], limit: number
 
 // --- templates ---------------------------------------------------------------------
 
-async function catalogue(pairRate: number): Promise<Catalogue> {
+async function catalogue(removalRate: number): Promise<Catalogue> {
   const [services, materials] = await Promise.all([
     stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20),
@@ -119,7 +119,7 @@ async function catalogue(pairRate: number): Promise<Catalogue> {
   const mat = (code: string) => materials.find((m) => normCode(m.code) === code);
   const removal = svc("DECOMMISSION-DISPOSAL");
   if (removal && Number(removal.hours) > 0) {
-    splitAddOns.push({ skuId: Number(removal.id), skuType: "Service", name: "Remove & dispose of the old unit", price: Math.round(Number(removal.hours) * pairRate * 100) / 100 });
+    splitAddOns.push({ skuId: Number(removal.id), skuType: "Service", name: "Remove & dispose of the old unit", price: Math.round(Number(removal.hours) * removalRate * 100) / 100 });
   }
   const pump = mat("SILENT MINI PUMP FP3450");
   if (pump && Number(pump.price) > 0) splitAddOns.push({ skuId: Number(pump.id), skuType: "Material", name: String(pump.displayName ?? "Condensate pump").trim(), price: Number(pump.price) });
@@ -129,19 +129,20 @@ async function catalogue(pairRate: number): Promise<Catalogue> {
   return { service, materialPrice, multiHead, splitAddOns };
 }
 
-export async function planTemplatePrices(): Promise<{ rate: number | null; plans: TemplatePlan[]; skipped: TemplateSkip[] }> {
+export async function planTemplatePrices(): Promise<{ rates: { partDay: number | null; pair: number | null }; plans: TemplatePlan[]; skipped: TemplateSkip[] }> {
   const rates = await loadRates();
   const plans: TemplatePlan[] = [];
   const skipped: TemplateSkip[] = [];
-  if (!rates.pair) return { rate: null, plans, skipped: [{ id: 0, name: "all", reason: "no tech & apprentice rate set in the portal" }] };
-  const [cat, templates] = await Promise.all([catalogue(rates.pair), stList<Template>("sales", "estimate-templates", { active: "True" }, 10)]);
+  if (!rates.pair || !rates.partDay) return { rates: { partDay: rates.partDay, pair: rates.pair }, plans, skipped: [{ id: 0, name: "all", reason: "set both the tech & apprentice rate and the part-day install rate in the portal" }] };
+  const partDay = rates.partDay;
+  const [cat, templates] = await Promise.all([catalogue(partDay), stList<Template>("sales", "estimate-templates", { active: "True" }, 10)]);
   for (const t of templates) {
-    const p = planTemplate(t, cat, rates.pair);
+    const p = planTemplate(t, cat, { pair: rates.pair, partDay });
     if ("reason" in p) { if (p.reason !== "not an aircon install template") skipped.push(p); }
     else plans.push(p);
   }
   plans.sort((a, b) => a.name.localeCompare(b.name));
-  return { rate: rates.pair, plans, skipped };
+  return { rates: { partDay, pair: rates.pair }, plans, skipped };
 }
 
 export async function applyTemplatePrices(plans: TemplatePlan[], limit: number): Promise<LabourResult> {
