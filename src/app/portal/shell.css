@@ -3964,3 +3964,21 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .rs-link a:hover b { text-decoration: underline; }
 .rs-add { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .rs-add .pk-in { flex: 1 1 180px; min-width: 0; }
+
+/* Our prices: a shelf's prices over the page. */
+.rs-pop { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 16px; background: rgba(20, 20, 18, .42); }
+.rs-popbox { width: min(720px, 100%); max-height: min(86vh, 900px); display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border-radius: 22px; background: var(--surface, #fff); box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+.rs-pophead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.rs-pophead > span { display: grid; gap: 2px; }
+.rs-pophead b { font-size: 20px; }
+.rs-pophead > span > span { color: var(--ink2); font-size: 13.5px; }
+.rs-x { border: 0; background: var(--ground, #ededec); width: 34px; height: 34px; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; color: var(--ink); flex: none; }
+.rs-popbody { overflow: auto; min-height: 0; }
+.rs-pt { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.rs-pt td { padding: 8px 6px; border-top: 1px solid var(--rp-line, #e2e1dd); vertical-align: top; }
+.rs-pt td.s { color: var(--ink2); white-space: nowrap; }
+.rs-pt td.p { text-align: right; font-weight: 700; white-space: nowrap; }
+.rs-pt td.none { color: var(--ink2); }
+.rs-plh { margin: 14px 0 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.rs-popfoot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.rs-popq { width: 100%; }

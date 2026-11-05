@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { archiveItem, moveBrandFile, newFolder, removeBrandAsset, uploadBrandAsset } from "@/app/portal/marketing/actions";
+import { archiveItem, finishLibraryUpload, moveBrandFile, newFolder, removeBrandAsset, startLibraryUpload } from "@/app/portal/marketing/actions";
 import type { BrandFile, BrandFolder } from "@/lib/portal/brandFiles";
 
 const size = (b: number | null) =>
@@ -59,8 +59,11 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit, libra
     return parts.join(" › ");
   };
 
+  // Anything that throws (a dropped connection, the host refusing a request)
+  // is said on the page: uncaught, it took the whole page down (5 Nov).
   const act = (fn: () => Promise<{ ok: boolean; error?: string }>, ok?: string) => start(async () => {
-    const r = await fn();
+    let r: { ok: boolean; error?: string };
+    try { r = await fn(); } catch (e) { r = { ok: false, error: `That didn’t go through: ${(e as Error).message || "no answer"}. Try again.` }; }
     setMsg(r.ok ? (ok ? { ok: true, text: ok } : null) : { ok: false, text: r.error ?? "Couldn’t do that." });
     if (r.ok) router.refresh();
   });
@@ -68,15 +71,29 @@ export function BrandAssets({ folders, files, folderId, archived, canEdit, libra
   const upload = () => {
     const list = picker.current?.files;
     if (!list?.length) return;
-    const fd = new FormData();
-    if (folderId) fd.set("folder", folderId);
-    fd.set("library", library);
-    for (const f of Array.from(list)) fd.append("file", f);
+    const picked = Array.from(list);
+    // Straight to storage from here, then recorded: a big price file through
+    // the server broke on the host's 4.5MB request limit.
     act(async () => {
-      const r = await uploadBrandAsset(fd);
-      if (picker.current) picker.current.value = "";
-      return r;
-    }, `${list.length} file${list.length === 1 ? "" : "s"} added.`);
+      try {
+        const s = await startLibraryUpload({ library, files: picked.map((f) => ({ name: f.name, size: f.size })) });
+        if (!s.ok || !s.slots) return s;
+        for (const [i, f] of picked.entries()) {
+          setMsg({ ok: true, text: `Uploading ${f.name}${picked.length > 1 ? ` (${i + 1} of ${picked.length})` : ""}…` });
+          const body = new FormData();
+          body.append("cacheControl", "3600");
+          body.append("", f);
+          const res = await fetch(s.slots[i].url, { method: "PUT", body, headers: { "x-upsert": "true" } });
+          if (!res.ok) return { ok: false, error: `${f.name} didn’t upload (${res.status}). Try it again.` };
+        }
+        return await finishLibraryUpload({
+          library, folderId,
+          items: picked.map((f, i) => ({ path: s.slots![i].path, name: f.name, type: f.type, size: f.size })),
+        });
+      } finally {
+        if (picker.current) picker.current.value = "";
+      }
+    }, `${picked.length} file${picked.length === 1 ? "" : "s"} added.`);
   };
 
   return (

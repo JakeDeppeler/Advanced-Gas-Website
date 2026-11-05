@@ -27,7 +27,8 @@ export async function GET(req: Request) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const urls = await signedUrls([path], 300);
+  // The files library has its own bucket (0103).
+  const urls = await signedUrls([path], 300, "library");
   const url = urls.get(path);
   if (!url) return new NextResponse("Not found", { status: 404 });
   // ?dl=Name saves the file under that name instead of opening it in the browser.

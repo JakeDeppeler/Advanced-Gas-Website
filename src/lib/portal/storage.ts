@@ -36,10 +36,10 @@ export async function uploadPhoto(path: string, body: ArrayBuffer | Uint8Array, 
   return { ok: true };
 }
 
-export async function deletePhoto(path: string): Promise<{ ok: boolean }> {
+export async function deletePhoto(path: string, bucket = BUCKET): Promise<{ ok: boolean }> {
   const c = conf();
   if (!c) return { ok: false };
-  const res = await fetch(`${c.url}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, {
+  const res = await fetch(`${c.url}/storage/v1/object/${bucket}/${encodeURI(path)}`, {
     method: "DELETE", headers: auth(c.key), cache: "no-store",
   });
   return { ok: res.ok };
@@ -88,3 +88,28 @@ export async function readObject(path: string, bucket = BUCKET): Promise<{ ok: t
   return { ok: true, body: await res.arrayBuffer(), type: res.headers.get("content-type") || "application/octet-stream" };
 }
 
+
+/**
+ * A one-time link the browser uploads a file to directly. Library files
+ * (price lists, manuals) can be 25MB; sent through a server action they hit
+ * the host's 4.5MB request limit and failed, so the file goes straight to
+ * storage and only its details come to the server. Valid for two hours.
+ */
+export async function signedUploadUrl(path: string, bucket: string): Promise<string | null> {
+  const c = conf();
+  if (!c) return null;
+  const res = await fetch(`${c.url}/storage/v1/object/upload/sign/${bucket}/${encodeURI(path)}`, {
+    method: "POST", headers: { ...auth(c.key), "Content-Type": "application/json" }, body: "{}", cache: "no-store",
+  }).catch(() => null);
+  if (!res?.ok) return null;
+  const j = (await res.json().catch(() => null)) as { url?: string } | null;
+  return j?.url ? `${c.url}/storage/v1${j.url.startsWith("/") ? "" : "/"}${j.url}` : null;
+}
+
+/** Whether a file is in storage: checked before a browser upload is recorded, so a row never points at nothing. */
+export async function objectExists(path: string, bucket: string): Promise<boolean> {
+  const c = conf();
+  if (!c) return false;
+  const res = await fetch(`${c.url}/storage/v1/object/info/${bucket}/${encodeURI(path)}`, { headers: auth(c.key), cache: "no-store" }).catch(() => null);
+  return !!res?.ok;
+}
