@@ -279,6 +279,8 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Customers", href: "/portal/customers" },
         { label: "Sites", href: "/portal/locations" },
         { label: "Messages", href: "/portal/chats" },
+        // Work orders from email into ServiceTitan's Bookings: what came in and where each is up to.
+        { label: "Work orders", href: "/portal/work-orders" },
       ] },
       { label: "The portal", icon: "cog", group: [
         { label: "Settings", href: "/portal/settings" },

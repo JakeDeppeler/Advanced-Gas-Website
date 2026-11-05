@@ -3,11 +3,14 @@ import Anthropic from "@anthropic-ai/sdk";
 import { q, sbInsertIfAbsent, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { loadSwitches } from "@/lib/automation/log";
+import { getSettings } from "@/lib/portal/db";
+import { sendEmail } from "@/lib/email/send";
+import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
 import {
-  BOOKED_CATEGORY, WORK_ORDER_CATEGORY, WORK_ORDER_SCHEMA, bookingSummary, dedupeKey, isTeamForward, mightBeWorkOrder, parseWorkOrder,
-  type WorkOrder,
+  BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, WORK_ORDER_SCHEMA, bookingSummary, dedupeKey, fillTemplate,
+  isTeamForward, mightBeWorkOrder, parseWorkOrder, tenantAddress, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
 /**
@@ -46,7 +49,8 @@ let client: Anthropic | null = null;
 const api = () => (client ??= new Anthropic());
 
 export type Source = "auto" | "forward" | "category";
-export type WorkOrderResult = { status: "booked" | "duplicate" | "not" | "failed" | "taken" | "skipped"; reason?: string; bookingId?: string };
+/** isWorkOrder: the email was read as one, whatever then happened (a booking refused is still a work order, and gets no reply draft). */
+export type WorkOrderResult = { status: "booked" | "duplicate" | "not" | "failed" | "taken" | "skipped"; reason?: string; bookingId?: string; isWorkOrder?: boolean };
 
 type Row = { status: string; attempts: number; updated_at: string; st_booking_id: string | null };
 type FileAtt = { "@odata.type"?: string; id: string; name?: string; contentType?: string; size?: number; isInline?: boolean; contentBytes?: string };
@@ -182,7 +186,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
     const earlier = await sbSelectOne<{ st_booking_id: string | null; message_id: string }>(TABLE, [q.select("st_booking_id,message_id"), q.eq("dedupe_key", key), q.eq("status", "booked"), q.gte("created_at", since)].join("&"));
     if (earlier && earlier.message_id !== m.id) {
       await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason: "already booked from an earlier email", st_booking_id: earlier.st_booking_id });
-      return { status: "duplicate", bookingId: earlier.st_booking_id ?? undefined };
+      return { status: "duplicate", bookingId: earlier.st_booking_id ?? undefined, isWorkOrder: true };
     }
 
     // What was read is kept before the booking is tried, so a refusal leaves
@@ -213,14 +217,58 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
     const bookingId = made?.id != null ? String(made.id) : "sent";
     await save(mailbox, m.id, { ...base, dedupe_key: key, status: "booked", reason: null, st_booking_id: bookingId });
     await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
-    return { status: "booked", bookingId };
+    await emailTenant(mailbox, m.id, w, addressOf(m.from)).catch(() => undefined);
+    return { status: "booked", bookingId, isWorkOrder: true };
   } catch (e) {
     // ServiceTitan's and Graph's messages carry the status and their own
     // reason, never our credentials.
     const reason = (e as Error).message.replace(/^ServiceTitan POST \S+ failed: /, "ServiceTitan said ").slice(0, 300);
     await save(mailbox, m.id, { status: "failed", reason }).catch(() => undefined);
-    return { status: "failed", reason };
+    // Read as a work order before it failed (the details were saved): no reply
+    // draft for it either, and the sweep's retry books it.
+    const read = await sbSelectOne<{ dedupe_key: string | null }>(TABLE, [q.select("dedupe_key"), ...rowFilter(mailbox, m.id)].join("&")).catch(() => null);
+    return { status: "failed", reason, isWorkOrder: Boolean(read?.dedupe_key) };
   }
+}
+
+/**
+ * The tenant asked to ring us, or reply, for a time (Jake, 5 Nov): sent by
+ * itself once the booking is in, from bookings@ with replies to bookings@,
+ * in the wording set on the Work orders page. Once per work order, and only
+ * to an address that is plainly the tenant's (tenantAddress). Every outcome,
+ * including why none was sent, is written on the row for the page to show.
+ */
+async function emailTenant(mailbox: string, id: string, w: WorkOrder, fromAddress: string): Promise<void> {
+  const row = await sbSelectOne<{ id: string; tenant_emailed_at: string | null }>(TABLE, [q.select("id,tenant_emailed_at"), ...rowFilter(mailbox, id)].join("&"));
+  if (!row || row.tenant_emailed_at) return;
+  const note = (tenant_email_note: string) => save(mailbox, id, { tenant_email_note });
+
+  const settings = workOrderSettingsFrom(await getSettings<unknown>("work_orders").catch(() => null));
+  if (!settings.tenantEmail) return note("Tenant email switched off");
+  const to = tenantAddress(w, fromAddress);
+  if (!to) return note(w.tenantEmail ? "Tenant email looked like the agency's, not sent" : "No tenant email in the work order");
+
+  // From our own domain, as the supplier orders are: RESEND_FROM_EMAIL's
+  // domain is the one Resend has verified.
+  const raw = (process.env.RESEND_FROM_EMAIL ?? "").trim();
+  const domain = ((raw.match(/<([^>]+)>/)?.[1] ?? raw).split("@")[1] ?? "").toLowerCase();
+  if (!/^(?:[a-z0-9-]+\.)*advancedgas\.com\.au$/.test(domain)) return note("Not sent: RESEND_FROM_EMAIL isn't an advancedgas.com.au address");
+
+  const subject = fillTemplate(settings.subject, w, site.phone).replace(/\s+/g, " ").trim().slice(0, 200);
+  const text = fillTemplate(settings.body, w, site.phone);
+  const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1d">${text.split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("")}</div>`;
+  const out = await sendEmail("work-order-tenant", {
+    from: `${site.name} <bookings@${domain}>`,
+    to: [to],
+    reply_to: BOOKINGS_ADDRESS,
+    subject,
+    text,
+    html,
+  }, { workOrder: row.id });
+  if (!out.ok) return note(`Didn't send: ${out.error}`.slice(0, 240));
+  await save(mailbox, id, { tenant_email_to: to, tenant_emailed_at: new Date().toISOString(), tenant_email_note: null });
+  await addCategory(mailbox, id, TENANT_CATEGORY).catch(() => undefined);
 }
 
 /** For the reply draft: what happened to the work order, in a line the model can use. */

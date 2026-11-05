@@ -20,7 +20,7 @@ import {
   threadText,
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
-import { addressKey, bookingSummary, dedupeKey, isTeamForward, mightBeWorkOrder, parseWorkOrder } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -169,6 +169,32 @@ ok("an unknown kind falls back to work order", parseWorkOrder(JSON.stringify({ .
 let woThrew = false;
 try { parseWorkOrder(JSON.stringify({ kind: "work_order" })); } catch { woThrew = true; }
 ok("no decision is refused", woThrew);
+
+// --- the email to the tenant
+const filled = fillTemplate(DEFAULT_TENANT_BODY, read, "(03) 5947 8000");
+ok("tenant greeted by first name", filled.startsWith("Hi Sam,"));
+ok("agency, address and job filled in", filled.includes("Barry Plant Pakenham has asked") && filled.includes("33 Willslie Cres, Berwick for: gas stove burner not lighting."));
+ok("no braces left", !/\{\w+\}/.test(filled) && !/\{\w+\}/.test(fillTemplate(DEFAULT_TENANT_SUBJECT, read, "x")));
+ok("no tenant name: 'Hi there'", fillTemplate("Hi {tenant},", { ...read, tenantName: "" }, "x") === "Hi there,");
+ok("an unknown brace is left as typed", fillTemplate("{nope}", read, "x") === "{nope}");
+const agencyFrom = "pakenhamrentals@email.propertyme.com";
+ok("tenant's own email: sent", tenantAddress({ ...read, tenantEmail: "Sam.Lee@gmail.com" }, agencyFrom) === "sam.lee@gmail.com");
+ok("the agent's email in the tenant's place: not sent", tenantAddress({ ...read, tenantEmail: "kate@barryplant.com.au", pmEmail: "kate@barryplant.com.au" }, agencyFrom) === null);
+ok("same domain as the agent: not sent", tenantAddress({ ...read, tenantEmail: "rentals@barryplant.com.au", pmEmail: "kate@barryplant.com.au" }, agencyFrom) === null);
+ok("a platform address: not sent", tenantAddress({ ...read, tenantEmail: "noreply@email.propertyme.com" }, "hi@tapihq.com") === null);
+ok("one of ours: not sent", tenantAddress({ ...read, tenantEmail: "admin@advancedgas.com.au" }, agencyFrom) === null);
+ok("not an address: not sent", tenantAddress({ ...read, tenantEmail: "call tenant" }, agencyFrom) === null);
+ok("agent and tenant both on gmail: still sent", tenantAddress({ ...read, tenantEmail: "sam@gmail.com", pmEmail: "agentkate@gmail.com" }, "agentkate@gmail.com") === "sam@gmail.com");
+ok("settings: on unless switched off", workOrderSettingsFrom(null).tenantEmail && !workOrderSettingsFrom({ tenantEmail: false }).tenantEmail);
+ok("settings: blank wording falls back", workOrderSettingsFrom({ subject: "  ", body: "" }).body === DEFAULT_TENANT_BODY);
+
+// --- what the page says
+const base: WorkOrderRow = { id: "1", mailbox: BOX, source: "auto", status: "booked", reason: null, kind: "work_order", agency: "Barry Plant", wo_number: "18943", address: "33 Willslie Cres, Berwick", subject: null, from_address: agencyFrom, received_at: null, created_at: "2026-11-05T00:00:00Z", st_booking_id: "5551", st_job_number: null, attached_at: null, attach_error: null, tenant_email_to: null, tenant_emailed_at: null, tenant_email_note: null, details: null };
+ok("booked, no job yet: in Bookings", stage(base).word === "In Bookings" && stage(base).line.includes("Booking 5551"));
+ok("on its job", stage({ ...base, attached_at: "x", st_job_number: "20801" }).word === "On job 20801");
+ok("refused: not booked yet", stage({ ...base, status: "failed", reason: "ServiceTitan said 400" }).tone === "bad");
+ok("platform email judged not one: listed", worthListing({ status: "not", from_address: "hi@tapihq.com" }));
+ok("a newsletter judged not one: not listed", !worthListing({ status: "not", from_address: "news@meta.com" }));
 
 if (bad) {
   console.log(`\n${bad} failed`);

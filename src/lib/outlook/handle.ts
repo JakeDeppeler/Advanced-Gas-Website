@@ -105,6 +105,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
         const wo = await handleWorkOrder(mailbox, m, forward ? "forward" : isManualIn(m) ? "category" : "auto")
           .catch((e: Error) => ({ status: "failed" as const, reason: e.message }));
         if (forward) return done({ status: "skipped", reason: `forwarded by the team: work order ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`.slice(0, 300) });
+        // A work order gets booked, and the tenant emailed; no reply draft
+        // (Jake, 5 Nov: "not reply to work orders and just upload them").
+        if ("isWorkOrder" in wo && wo.isWorkOrder) return done({ status: "skipped", reason: `work order: ${wo.status === "booked" ? "booked into ServiceTitan" : wo.status === "duplicate" ? "already booked from an earlier email" : `booking ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`}`.slice(0, 300) });
         workOrder = draftNote(wo);
       }
     }
