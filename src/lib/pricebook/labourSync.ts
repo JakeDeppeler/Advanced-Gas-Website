@@ -61,20 +61,19 @@ async function catalogue(): Promise<Catalogue> {
     stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20),
   ]);
-  const service = new Map<number, { code: string; hours: number }>();
-  const multiHeadHours = new Map<number, number>();
-  let dominatorHours: number | null = null;
+  const service: Catalogue["service"] = new Map();
+  const multiHead: Catalogue["multiHead"] = new Map();
   for (const s of services) {
     const code = normCode(s.code);
     const hours = Number(s.hours) || 0;
-    service.set(Number(s.id), { code, hours });
+    const name = String(s.displayName ?? s.code ?? "").trim();
+    service.set(Number(s.id), { code, hours, name });
     const m = /^AC-SPLIT-MULTI-(\d)$/.exec(code);
-    if (m) multiHeadHours.set(Number(m[1]), hours);
-    if (code === "AC-DOM-LAB") dominatorHours = hours;
+    if (m) multiHead.set(Number(m[1]), { skuId: Number(s.id), hours, name });
   }
   const materialPrice = new Map<number, number>();
   for (const m of materials) if (m.price != null) materialPrice.set(Number(m.id), Number(m.price));
-  return { service, materialPrice, multiHeadHours, dominatorHours };
+  return { service, materialPrice, multiHead };
 }
 
 export async function planTemplatePrices(): Promise<{ rate: number | null; plans: TemplatePlan[]; skipped: TemplateSkip[] }> {
@@ -107,7 +106,10 @@ export async function applyTemplatePrices(plans: TemplatePlan[], limit: number):
       const head = back.items.find((i) => i.id === p.header.itemId);
       const inGroup = back.items.filter((i) => i.itemGroupParentId === p.header.itemId).length;
       const want = p.items.filter((i) => i.itemGroupParentId === p.header.itemId).length;
+      const addOnSkus = new Set(p.addOns.map((a) => a.skuId));
+      const addOnsBack = back.items.filter((i) => i.isAddOn && addOnSkus.has(i.skuId)).length;
       const problems = [
+        addOnsBack !== p.addOns.length ? `${addOnsBack} of ${p.addOns.length} labour add-ons landed` : "",
         !head ? "the installation line is gone" : Math.abs(Number(head.unitPrice) - p.header.labour) >= 0.005 ? `labour kept at $${head.unitPrice}, not $${p.header.labour}` : "",
         inGroup !== want ? `${inGroup} of ${want} lines landed in the installation group` : "",
         back.totalPrice != null && Math.abs(Number(back.totalPrice) - p.after) >= 0.5 ? `total is $${back.totalPrice}, expected $${p.after}` : "",
