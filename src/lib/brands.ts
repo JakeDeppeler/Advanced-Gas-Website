@@ -198,6 +198,10 @@ export type Brand = {
    * Where a brand makes more than one kind of system (Reclaim's split and
    * all-in-one), the kinds side by side, each linking to its product page.
    */
+  /** A real install photo for the hero, with the product shot on a card over it. */
+  heroScene?: { src: string; alt: string; caption: string };
+  /** Photos of the product installed, for the "what it looks like at home" row. */
+  photos?: { src: string; alt: string; caption?: string }[];
   formats?: { heading: string; items: { name: string; img: string; line: string; points: string[]; best: string; href: string }[] };
 
   /** "Choose your system" — the range grouped into the shapes somebody
@@ -1523,6 +1527,13 @@ const brandCatalogue: Brand[] = [
       { v: "8-year", k: "Whole-unit warranty on the all-in-one" },
       { v: "15-year", k: "Parts warranty on a stainless split tank" },
     ],
+    heroScene: { src: "/reclaim-split-stand-back-shot.webp", alt: "A Reclaim CO₂ split heat pump and tank on a brick wall", caption: "Reclaim CO₂ split, installed" },
+    photos: [
+      { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split: tank and outdoor heat pump against a brick wall", caption: "CO₂ split: tank and heat pump side by side" },
+      { src: "/reclaim-and-mitsubishi.jpg", alt: "A Reclaim tank and heat pump beside a Mitsubishi Electric outdoor unit", caption: "Sharing a wall with the aircon" },
+      { src: "/reclaim-split-close-1.jpg", alt: "The base of a Reclaim tank on its slab, with insulated pipework", caption: "Insulated pipework, set on a slab" },
+      { src: "/reclaim-spit-close-up.webp", alt: "Close-up of a Reclaim CO₂ heat pump outdoor unit", caption: "The CO₂ heat pump up close" },
+    ],
     formats: {
       heading: "Two ways to do it: split or all-in-one.",
       items: [
@@ -1591,8 +1602,8 @@ const brandCatalogue: Brand[] = [
     ],
     servicing: {
       heading: "What year fifteen looks like.",
-      photo: "/reclaim-split-back.webp",
-      photoAlt: "A Reclaim CO₂ heat pump and tank installed on a brick wall",
+      photo: "/reclaim-split-close-2.jpg",
+      photoAlt: "A Reclaim CO₂ heat pump on its wall bracket, with the insulated pipework running to it",
       body:
         "Anyone can sell you a heat pump. What decides whether it was the right call is the next fifteen years: whether the tank's still sound, whether the parts still exist, and whether somebody can actually get to the compressor. That last one is settled on install day, not on service day.",
       facts: [

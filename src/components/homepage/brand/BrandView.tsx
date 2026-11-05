@@ -13,6 +13,18 @@ import { CATS, BRAND_SLUGS, TONES, productHref, money, weekly, SHOW_FINANCE, FIN
  * All the words come from the brand's record in lib/brands.ts; this only
  * lays them out.
  */
+/** The tiles' icons, keyed by the `icon` each benefit names. */
+const ICONS: Record<string, string> = {
+  snowflake: "M12 2v20M4.9 6l14.2 12M19.1 6L4.9 18M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5",
+  shield: "M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9 12l2 2 4-4",
+  flame: "M12 3c3 4 6 6.5 6 11a6 6 0 0 1-12 0c0-3 1.5-5 3-6.5 0 2 1 3.5 2.5 3.5C11.5 8 11 5.5 12 3z",
+  people: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 14.5c1.6.8 2.7 2.6 3 5.5",
+  truck: "M2 6h12v10H2zM14 9h4l3 3v4h-7zM6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
+};
+/** Each tile in its own colour, the way the homepage's cards are. */
+const TILE = ["bxt__card--white", "bxt__card--sky", "bxt__card--acc", "bxt__card--navy", "bxt__card--warm", "bxt__card--white"];
+
 export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] }) {
   // The finder's options from this brand, matched the same way a product
   // page finds its brand, so the two always agree. A split appears under
@@ -32,7 +44,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
   ] as const;
 
   return (
-    <div className="bx">
+    <div className="bx" style={{ ["--acc" as string]: brand.accent ?? "#C2521A" }}>
       <nav className="ppx__crumbbar" aria-label="Breadcrumb">
         <div className="wrap ppx__crumbin">
           <ol className="pp__crumbs">
@@ -57,9 +69,17 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
             </div>
           </div>
           {/* A photograph fills the frame; a studio cut-out sits on white, where it reads as the product. */}
-          <div className={`bxh__img${brand.photoScene ? " bxh__img--scene" : ""}`}>
-            <Image src={brand.photo} alt={brand.photoAlt} fill priority sizes="(max-width: 900px) 100vw, 640px" />
-          </div>
+          {brand.heroScene ? (
+            <div className="bxh__img bxh__img--scene bxh__img--photo">
+              <Image src={brand.heroScene.src} alt={brand.heroScene.alt} fill priority sizes="(max-width: 900px) 100vw, 640px" />
+              <span className="bxh__inset"><Image src={brand.photo} alt={brand.photoAlt} fill sizes="160px" /></span>
+              <span className="bxh__chip">{brand.heroScene.caption}</span>
+            </div>
+          ) : (
+            <div className={`bxh__img${brand.photoScene ? " bxh__img--scene" : ""}`}>
+              <Image src={brand.photo} alt={brand.photoAlt} fill priority sizes="(max-width: 900px) 100vw, 640px" />
+            </div>
+          )}
         </div>
         {facts.length > 0 && (
           <div className="wrap">
@@ -72,7 +92,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
         <div className="wrap pxt__in">{tabs.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}</div>
       </nav>
 
-      <section className="pxs pxo" id="why">
+      <section className="pxs pxo bx__why" id="why">
         <div className="wrap pxo__in">
           <div className="pxo__take">
             <span className="aeye"><i /> Our take</span>
@@ -96,8 +116,8 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
               <h2 className="h2 h2--sm">{brand.formats.heading}</h2>
             </div>
             <div className="bxf">
-              {brand.formats.items.map((f) => (
-                <article key={f.name} className="bxf__card">
+              {brand.formats.items.map((f, k) => (
+                <article key={f.name} className={`bxf__card bxf__card--${k % 2 ? "b" : "a"}`}>
                   <span className="bxf__img"><Image src={f.img} alt={`${brand.name} ${f.name}`} fill sizes="(max-width: 700px) 90vw, 260px" /></span>
                   <div className="bxf__t">
                     <h3>{f.name}</h3>
@@ -122,12 +142,36 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
             </div>
             <div className="bxt">
               {brand.benefitTiles.map((b, i) => (
-                <article key={b.t} className="bxt__card">
-                  <span className="bxt__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                <article key={b.t} className={`bxt__card ${TILE[i % TILE.length]}`}>
+                  <span className="bxt__top">
+                    <span className="bxt__ico" aria-hidden="true">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={ICONS[b.icon ?? ""] ?? ICONS.shield} /></svg>
+                    </span>
+                    <span className="bxt__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  </span>
                   <h3>{b.t}</h3>
                   <strong>{b.line}</strong>
                   <p>{b.detail}</p>
                 </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {brand.photos && brand.photos.length > 0 && (
+        <section className="pxs bxp">
+          <div className="wrap pp__col">
+            <div className="pp__lead">
+              <span className="aeye"><i /> On site</span>
+              <h2 className="h2 h2--sm">What it looks like at home.</h2>
+            </div>
+            <div className="bxp__row">
+              {brand.photos.map((ph, i) => (
+                <figure key={ph.src} className={`bxp__ph${i === 0 ? " bxp__ph--big" : ""}`}>
+                  <Image src={ph.src} alt={ph.alt} fill sizes="(max-width: 700px) 80vw, 360px" />
+                  {ph.caption && <figcaption>{ph.caption}</figcaption>}
+                </figure>
               ))}
             </div>
           </div>
@@ -162,7 +206,10 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
       )}
 
       <section className="pxs" id="support">
-        <div className="wrap bxs">
+        <div className={`wrap bxs${brand.servicing?.photo ? " bxs--photo" : ""}`}>
+          {brand.servicing?.photo && (
+            <div className="bxs__img"><Image src={brand.servicing.photo} alt={brand.servicing.photoAlt ?? ""} fill sizes="(max-width: 1000px) 90vw, 480px" /></div>
+          )}
           <div className="bxs__col bxs__col--card">
             <span className="aeye"><i /> Parts &amp; support</span>
             <h2 className="h2 h2--sm">{brand.servicing?.heading ?? "Keeping it running."}</h2>

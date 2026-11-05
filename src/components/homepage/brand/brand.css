@@ -77,3 +77,63 @@
 .ag .bxf__t .abtn{margin-top:auto}
 @media (max-width:1000px){.ag .bxf{grid-template-columns:1fr}}
 @media (max-width:520px){.ag .bxf__card{grid-template-columns:1fr}.ag .bxf__img{min-height:200px}}
+
+/* ---- Colour and feel, from the brand's own accent (--acc), the way the homepage carries colour ---- */
+.ag .bx .bxh{background:radial-gradient(60% 70% at 85% 15%,color-mix(in srgb,var(--acc) 55%,transparent) 0%,transparent 70%),radial-gradient(50% 60% at 0% 100%,rgba(44,197,255,.18) 0%,transparent 70%),var(--navy)}
+.ag .bx .bxh__img--photo{aspect-ratio:4/3.4;background:#0B1240}
+.ag .bxh__inset{position:absolute;left:16px;bottom:16px;width:clamp(110px,22%,150px);aspect-ratio:3/4;background:#fff;border-radius:16px;box-shadow:0 18px 40px -16px rgba(0,0,0,.55)}
+.ag .bxh__inset img{object-fit:contain !important;padding:12px !important}
+.ag .bxh__chip{position:absolute;right:16px;top:16px;background:#fff;color:var(--navy);font-weight:800;font-size:13px;border-radius:999px;padding:8px 14px;box-shadow:0 10px 24px -14px rgba(0,0,0,.5)}
+.ag .bx .bxh__facts{border-top:0;gap:12px}
+.ag .bx .bxh__facts div{border:0;padding:18px 20px;border-radius:16px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.ag .bx .bxh__facts div:first-child{padding-left:20px}
+.ag .bx .bxh__facts dd{color:color-mix(in srgb,var(--acc) 35%,#fff)}
+
+.ag .bx__why{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 7%,#fff),#fff)}
+.ag .bx__why .pxo__take{border-left-color:var(--acc)}
+.ag .bx__why .pxo__why{background:#fff;border-radius:22px;padding:24px 26px;box-shadow:0 22px 50px -36px rgba(5,10,48,.4);border-top:5px solid var(--acc)}
+.ag .bx .pp__hl li > span{color:var(--acc)}
+
+.ag .bxf__card{position:relative;overflow:hidden;padding-top:26px}
+.ag .bxf__card::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:var(--acc)}
+.ag .bxf__card--b::before{background:#0C6F96}
+.ag .bxf__card--a .bxf__img{background:color-mix(in srgb,var(--acc) 10%,#fff)}
+.ag .bxf__card--b .bxf__img{background:#E6F5FC}
+.ag .bxf__card--a .abtn{background:var(--acc);border-color:var(--acc)}
+
+.ag .bxt__top{display:flex;justify-content:space-between;align-items:center}
+.ag .bxt__ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#FDEEE6;color:#B04711}
+.ag .bxt__card--sky{background:#E6F5FC}
+.ag .bxt__card--sky .bxt__ico{background:#fff;color:#0C6F96}
+.ag .bxt__card--sky .bxt__n{color:#0C6F96}
+.ag .bxt__card--acc{background:color-mix(in srgb,var(--acc) 12%,#fff)}
+.ag .bxt__card--acc .bxt__ico{background:var(--acc);color:#fff}
+.ag .bxt__card--acc .bxt__n{color:var(--acc)}
+.ag .bxt__card--navy{background:var(--navy)}
+.ag .bxt__card--navy h3,.ag .bxt__card--navy strong{color:#fff}
+.ag .bxt__card--navy p{color:rgba(255,255,255,.78)}
+.ag .bxt__card--navy .bxt__ico{background:rgba(255,255,255,.1);color:#2CC5FF}
+.ag .bxt__card--navy .bxt__n{color:#2CC5FF}
+.ag .bxt__card--warm{background:#FDEEE6}
+.ag .bxt__card--warm .bxt__ico{background:#C2521A;color:#fff}
+
+.ag .bxp__row{display:grid;grid-template-columns:1.4fr 1fr 1fr;grid-template-rows:220px 220px;gap:12px}
+.ag .bxp__ph{position:relative;margin:0;border-radius:20px;overflow:hidden;background:#E9EDF2}
+.ag .bxp__ph img{object-fit:cover}
+.ag .bxp__ph--big{grid-row:span 2}
+.ag .bxp__ph figcaption{position:absolute;left:12px;bottom:12px;right:12px;background:rgba(5,10,48,.72);color:#fff;font-size:13px;font-weight:600;border-radius:10px;padding:7px 10px;backdrop-filter:blur(4px)}
+.ag .bxp__row .bxp__ph:nth-child(4){grid-column:span 2}
+
+.ag .bx #options{background:radial-gradient(50% 80% at 100% 0%,color-mix(in srgb,var(--acc) 40%,transparent),transparent 70%),var(--navy)}
+.ag .bxs--photo{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px;max-width:none;align-items:stretch}
+.ag .bxs__img{position:relative;border-radius:22px;overflow:hidden;min-height:380px}
+.ag .bxs__img img{object-fit:cover}
+.ag .bx .bxs__col--card{background:color-mix(in srgb,var(--acc) 6%,#F4F7FA)}
+@media (max-width:1000px){
+  .ag .bxs--photo{grid-template-columns:1fr}
+  .ag .bxs__img{min-height:280px}
+  .ag .bxp__row{grid-template-columns:1fr 1fr;grid-template-rows:auto}
+  .ag .bxp__ph{aspect-ratio:3/4}
+  .ag .bxp__ph--big{grid-row:auto}
+  .ag .bxp__row .bxp__ph:nth-child(4){grid-column:auto}
+}
