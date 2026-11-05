@@ -124,6 +124,12 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
   });
 
+  // Priced by whoever writes the quotes.
+  add(office || can(user, "quotes"), {
+    href: "/portal/ducted", label: "Ducted quote", short: "Ducted", blurb: "A ducted system priced from the house's outlets and zones", band: "hidden", icon: "doc",
+    also: ["ducted", "ducted quote", "outlets", "vents", "zones", "duct", "reverse cycle", "builder", "quote builder"],
+  });
+
   // Answered by whoever runs the pipeline, like the pipeline itself.
   add(office || can(user, "quotes"), {
     href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Website, Messenger and Instagram, with drafted replies", band: "customers", icon: "chat",

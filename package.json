@@ -35,7 +35,8 @@
     "check:chat": "npx tsx scripts/check-chat.ts",
     "check:outlook": "npx tsx scripts/check-outlook.ts",
     "check:labour": "npx tsx scripts/check-labour.ts",
-    "check:reminders": "npx tsx scripts/check-reminders.ts"
+    "check:reminders": "npx tsx scripts/check-reminders.ts",
+    "check:ducted": "npx tsx scripts/check-ducted.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",
