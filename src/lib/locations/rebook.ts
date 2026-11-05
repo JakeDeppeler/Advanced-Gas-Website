@@ -31,10 +31,12 @@ export async function loadPlan(customerId: number): Promise<RebookPlan | null> {
 
 type Live = { appointmentId: number; technicianId: number; active?: boolean };
 
-const plain = (e: unknown) => {
+const plain = (e: unknown, step: "time" | "crew") => {
   const m = (e as Error).message;
-  if (/: 403\b/.test(m)) return "ServiceTitan refused: the API app needs write access to Job Planning › Appointments and Dispatch › Appointment assignments";
-  return m.replace(/^ServiceTitan \S+ \S+ failed: /, "").slice(0, 200);
+  if (/: 403\b/.test(m)) return step === "time"
+    ? "ServiceTitan refused the new time: the API app needs write access to Job Planning › Appointments"
+    : "New time done; ServiceTitan refused the crew change: the API app needs write access to Dispatch › Appointment assignments";
+  return `${step === "crew" ? "New time done; the crew change failed: " : ""}${m.replace(/^ServiceTitan \S+ \S+ failed: /, "").slice(0, 200)}`;
 };
 
 /**
@@ -59,20 +61,32 @@ export async function applyMoves(customerId: number, appts: number[]): Promise<{
 
   const results: { appt: number; ok: boolean; detail?: string }[] = [];
   for (const m of moves) {
+    let step: "time" | "crew" = "time";
     try {
       if (m.change === "time" || m.change === "both") {
         await stSend("PATCH", stTenantPath("jpm", `appointments/${m.appt}/reschedule`), {
           start: m.start, end: m.end, arrivalWindowStart: m.aws, arrivalWindowEnd: m.awe,
         });
       }
-      const now = on.get(m.appt) ?? new Set<number>();
+      // A time-only move leaves the crew alone. Working it out from the live
+      // read put techs back on that were already there whenever the read
+      // came back short, and failed 43 moves on 5 Nov that had in fact gone.
+      if (m.change === "time") { results.push({ appt: m.appt, ok: true }); continue; }
+      step = "crew";
+      // Missing from the batch read: asked about on its own before deciding
+      // who comes off, or the old crew would stay on beside the new one.
+      if (!on.has(m.appt)) {
+        const one = await stList<Live>("dispatch", "appointment-assignments", { appointmentIds: String(m.appt), active: "True" });
+        on.set(m.appt, new Set(one.filter((a) => a.active !== false && a.appointmentId === m.appt).map((a) => a.technicianId)));
+      }
+      const now = on.get(m.appt)!;
       const add = m.techs.filter((t) => !now.has(t));
       const drop = [...now].filter((t) => !m.techs.includes(t));
       if (add.length) await stSend("POST", stTenantPath("dispatch", "appointment-assignments/assign-technicians"), { jobAppointmentId: m.appt, technicianIds: add });
       if (drop.length) await stSend("POST", stTenantPath("dispatch", "appointment-assignments/unassign-technicians"), { jobAppointmentId: m.appt, technicianIds: drop });
       results.push({ appt: m.appt, ok: true });
     } catch (e) {
-      results.push({ appt: m.appt, ok: false, detail: plain(e) });
+      results.push({ appt: m.appt, ok: false, detail: plain(e, step) });
     }
   }
 
