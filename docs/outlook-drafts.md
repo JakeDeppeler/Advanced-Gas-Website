@@ -27,10 +27,12 @@ the app has no permission to send mail at all.
 6. If a person should deal with it (a gas smell, a complaint, a bill, a
    booking change), the original email gets the Outlook category
    **Needs a person** as well as the draft.
-7. Once a reply goes out in that thread, from Outlook, a phone or the web,
-   **Needs a person** comes off again. Sent Items is watched for this, so it
-   happens within seconds; the catch-up checks for any it missed. A tag
-   added by hand is never touched.
+7. **Needs a person** comes off again once the email has been dealt with:
+   a reply goes out in that thread (from Outlook, a phone or the web), or
+   the draft is sent, or the draft is deleted because no reply was needed.
+   Sent Items and Drafts are watched for this, so it happens within seconds;
+   the catch-up checks for any it missed. A tag added by hand is never
+   touched.
 
 What happened to each email is recorded in the `mail_drafts` table.
 
