@@ -26,7 +26,7 @@ export default async function WorkOrdersPage() {
   if (!can(user, "overhead") && !can(user, "quotes")) return <Locked user={user} what="Work orders" forWhom="the office" />;
 
   const [rows, settings] = dbConfigured() ? await Promise.all([listWorkOrders().catch(() => []), getWorkOrderSettings()]) : [[], await getWorkOrderSettings()];
-  const booked = rows.filter((r) => r.status === "booked").length;
+  const booked = rows.filter((r) => r.status === "booked" && !r.cancelled_at).length;
   const waiting = rows.filter((r) => r.status === "failed").length;
   const emailed = rows.filter((r) => r.tenant_emailed_at).length;
 

@@ -25,12 +25,12 @@ export function WorkOrderList({ rows }: { rows: WorkOrderRow[] }) {
     <Card flush>
       {rows.map((r) => {
         const st = stage(r);
-        const what = [r.kind ? KIND_SHORT[r.kind] : null, r.wo_number, r.agency ? `· ${r.agency}` : null].filter(Boolean).join(" ");
+        const what = [[r.kind ? KIND_SHORT[r.kind] : null, r.wo_number].filter(Boolean).join(" "), r.agency].filter(Boolean).join(" · ");
         const job = r.details?.job;
         const sub = [
           [when(r.received_at ?? r.created_at), `to ${r.mailbox.split("@")[0]}@`, HOW[r.source]].filter(Boolean).join(" · "),
           [what, job].filter(Boolean).join(": "),
-          st.line,
+          st.line.replace(/^./, (c) => c.toUpperCase()),
           tenantLine(r),
           r.attach_error ? `Attaching to the job failed: ${r.attach_error}` : "",
         ].filter(Boolean);

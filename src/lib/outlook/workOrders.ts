@@ -10,6 +10,7 @@ import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
 import { activeJobTypes, findSite, makeJob, type MadeJob } from "./stPlace";
 import { putOnJob } from "./jobLink";
+import { cancelFromEmail } from "./cancel";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, bookingSummary, dedupeKey, fillTemplate,
   isTeamForward, mightBeWorkOrder, parseWorkOrder, tenantAddress, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
@@ -37,6 +38,10 @@ import {
  */
 
 const TABLE = "work_orders";
+/** Put on a cancellation email once its job has been cancelled. */
+const CANCELLED_CATEGORY = "Job cancelled";
+/** handle.ts's Needs a person, spelt out here: importing it would make the two modules import each other. */
+const HANDOFF_CATEGORY = "Needs a person";
 const MODEL = "claude-opus-5-5";
 const MAX_ATTEMPTS = 3;
 const RETRY_AFTER_MS = 5 * 60_000;
@@ -179,6 +184,15 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       kind: w.kind, platform: w.platform || null, agency: w.agency || null, wo_number: w.number || null,
       address: [w.street, w.suburb, w.postcode].filter(Boolean).join(", ") || null, details: w,
     };
+    // An agency cancelling one: the job comes off (cancel.ts), or a person is
+    // told why it couldn't be.
+    if (w.isCancellation) {
+      const c = await cancelFromEmail(mailbox, { ...m, ...full }, w);
+      const reason = `cancellation: ${c.line}`.slice(0, 300);
+      await save(mailbox, m.id, { ...base, status: "not", reason });
+      await addCategory(mailbox, m.id, c.done ? CANCELLED_CATEGORY : HANDOFF_CATEGORY).catch(() => undefined);
+      return { status: "not", reason, isWorkOrder: true };
+    }
     if (!w.isWorkOrder) {
       await save(mailbox, m.id, { ...base, status: "not", reason: w.whyNot || "not a work order" });
       return { status: "not", reason: w.whyNot };

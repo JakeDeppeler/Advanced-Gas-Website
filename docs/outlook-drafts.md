@@ -39,6 +39,21 @@ the app has no permission to send mail at all.
 
 What happened to each email is recorded in the `mail_drafts` table.
 
+## Cancellations
+
+An agency's email cancelling a work order cancels its job in ServiceTitan
+(`lib/outlook/cancel.ts`), with a note saying who cancelled it and when, and
+the email gets the Outlook category **Job cancelled**. Only when it's safe:
+
+- only a job the portal made from an emailed work order (found by the
+  thread, the work order number or the address), never one booked by hand
+- only while ServiceTitan says the job is still **Scheduled**: one a tech is
+  on, or has finished, is left alone
+- a Booking isn't touched (dismiss it in ServiceTitan)
+
+Anything it won't cancel gets **Needs a person**, and the Work orders page
+says which job and why.
+
 ## Emails about a job go on the job
 
 An email from outside about a job goes onto that job in ServiceTitan as a
