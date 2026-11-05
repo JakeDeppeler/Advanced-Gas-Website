@@ -2,7 +2,7 @@
  * The morning to-do email's rules (src/lib/reminders/dailyTypes.ts), on the
  * office's real tag names as ServiceTitan has them, emoji and stray spaces and all.
  */
-import { billingDays, jobLine, outstanding, spanLabel, subjectFor, visitLabel } from "../src/lib/reminders/dailyTypes";
+import { billingDays, callBackLine, telHref, jobLine, outstanding, spanLabel, subjectFor, visitLabel } from "../src/lib/reminders/dailyTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra = "") => {
@@ -46,6 +46,14 @@ const subj = subjectFor([
   { key: "billing", title: "", jobs: [{} as never, {} as never], later: 0 },
 ]);
 ok("subject", subj === "To do today: 1 rubbish removal to book, 3 materials to order, 2 to bill", subj);
+
+console.log("-- call-backs --");
+const cbl = callBackLine({ at: "2026-11-04T03:15:00Z", name: "Sarah Jones", phone: "0412 345 678", about: "quote for a heat pump", from: "s@x.com", mailbox: "admin@advancedgas.com.au", subject: "Heat pump" }, "2026-11-05");
+ok("call-back line", cbl === "Asked yesterday 2:15pm · Sarah Jones · 0412 345 678 · quote for a heat pump", cbl);
+const cbn = callBackLine({ at: "2026-11-05T01:00:00Z", name: null, phone: null, about: null, from: "s@x.com", mailbox: "admin@", subject: "Call me" }, "2026-11-05");
+ok("no number, no name", cbn === "Asked today 12:00pm · s@x.com · no number given, see the email · Call me", cbn);
+ok("tel link", telHref("0412 345 678") === "tel:0412345678" && telHref("+61 3 5941 0000") === "tel:+61359410000" && telHref("ask for Bob") === null);
+ok("subject with call-backs first", subjectFor([{ key: "materials", title: "", jobs: [{} as never], later: 0 }], 2) === "To do today: 2 to call back, 1 materials to order");
 
 if (bad) { console.log(`\n${bad} failed`); process.exit(1); }
 console.log("\nall passed");

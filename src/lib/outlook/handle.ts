@@ -9,6 +9,8 @@ import { retireOlderDrafts } from "./drafts";
 import { draftNote, handleWorkOrder, isManualIn } from "./workOrders";
 import { findJob, putOnJob, type JobMatch } from "./jobLink";
 import { isTeamForward } from "./workOrderTypes";
+import { confirmBooking } from "./bookingConfirm";
+import { mightConfirmBooking } from "./bookingTypes";
 import { MAX_AGE_MS, TEAM_DOMAIN, addressOf, answeredReason, plainText, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
 
 /**
@@ -31,6 +33,19 @@ const RETRY_AFTER_MS = 5 * 60 * 1000;
 export const HANDOFF_CATEGORY = "Needs a person";
 /** Put on an email once it's gone onto its job in ServiceTitan. */
 export const ON_JOB_CATEGORY = "On a job";
+/** Put on a supplier's booking confirmation once its job's tag has been swapped. */
+export const BOOKING_CATEGORY = "Booking confirmed";
+/** Put on an email asking us to ring them, with a flag; the morning email lists them until the flag is marked complete. */
+export const CALL_BACK_CATEGORY = "Call back";
+
+/** Add categories (and optionally a flag) to the original email, keeping the ones already on it. */
+async function markEmail(box: string, id: string, add: string[], flag = false) {
+  const path = `${box}/messages/${encodeURIComponent(id)}`;
+  const cats = (await graph<{ categories?: string[] }>(`${path}?$select=categories`)).categories ?? [];
+  const want = [...cats, ...add.filter((c) => !cats.includes(c))];
+  if (want.length === cats.length && !flag) return;
+  await graph(path, { method: "PATCH", body: { categories: want, ...(flag ? { flag: { flagStatus: "flagged" } } : {}) } });
+}
 
 const MESSAGE_FIELDS = "id,internetMessageId,conversationId,subject,from,sender,toRecipients,ccRecipients,receivedDateTime,sentDateTime,isDraft,hasAttachments,internetMessageHeaders,uniqueBody,categories";
 const THREAD_FIELDS = "id,subject,from,sender,receivedDateTime,sentDateTime,isDraft,hasAttachments,uniqueBody";
@@ -125,6 +140,18 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       }
     }
 
+    // A trade confirming a booking (the skip bin, the electrician) swaps the
+    // job's "Not Booked" tag, so it comes off the morning to-do email. Before
+    // the skip rules: the rubbish removal company writes from a no-reply address.
+    if (!m.isDraft && recent && external && mightConfirmBooking(m, words)) {
+      const b = await confirmBooking(mailbox, m, words).catch((e: Error) => ({ done: false, line: `booking confirmation not applied: ${e.message}` } as const));
+      if (b?.done) {
+        await markEmail(box, id, [BOOKING_CATEGORY]).catch(() => undefined);
+        return done({ status: "skipped", reason: `booking confirmation: ${b.line}`.slice(0, 300) }, { job_id: b.jobId, job_number: b.jobNumber ?? null, job_how: b.line.slice(0, 300), job_linked_at: new Date().toISOString() });
+      }
+      if (b) await finish(mailbox, id, { job_how: b.line.slice(0, 300) });
+    }
+
     // An email about a job goes on the job, whatever then happens with the
     // draft. Not mail from us, or from machines (the skip rules below).
     if (!m.isDraft && external && !skipReason(m, mailbox, Date.now(), opts.maxAgeMs)) {
@@ -166,7 +193,13 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     // how the drafts learn what this office actually sends.
     const examples = await sbSelect<{ draft_text: string; sent_text: string }>(TABLE, [q.select("draft_text,sent_text"), q.eq("mailbox", mailbox), q.notNull("sent_text"), q.notNull("draft_text"), q.order("sent_at", "desc", "last"), "limit=8"].join("&")).catch(() => []);
     const draft = await writeMailDraft({ thread: threadText(thread, mailbox), customer, signoff: signoffFor(mailbox), settings, workOrder, examples: examples.map((e) => ({ draft: e.draft_text, sent: e.sent_text })) });
-    if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` });
+    // Asked to ring them: on the morning email's call-back list, and flagged in
+    // Outlook. Marking the flag complete takes it off the list.
+    const callBack = draft.callBack
+      ? { callback_at: m.receivedDateTime ?? new Date().toISOString(), callback_name: draft.callBack.name || null, callback_phone: draft.callBack.phone || null, callback_about: draft.callBack.about || null }
+      : {};
+    if (draft.callBack) await markEmail(box, id, [CALL_BACK_CATEGORY], true).catch(() => undefined);
+    if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` }, callBack);
 
     // createReply makes the draft the way Outlook's Reply button does —
     // addressed, threaded, the original quoted underneath — and the reply goes
@@ -195,7 +228,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       }
     }
 
-    const result = await done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null, draft_text: draft.reply });
+    const result = await done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null, draft_text: draft.reply, ...callBack });
     // This thread's earlier drafts are out of date now. Recorded first, so a
     // failure here never costs the email its own draft.
     if (m.conversationId) await retireOlderDrafts(mailbox, m.conversationId, id).catch(() => undefined);

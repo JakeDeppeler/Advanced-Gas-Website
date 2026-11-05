@@ -110,6 +110,7 @@ export function visitLabel(start: string, today: string): string {
   const name =
     day === today ? "Today" :
     day === addDays(today, 1) ? "Tomorrow" :
+    day === addDays(today, -1) ? "Yesterday" :
     new Intl.DateTimeFormat("en-AU", { timeZone: MEL, weekday: "short", day: "numeric", month: "short" }).format(new Date(start)).replace(",", "");
   return `${name} ${time}`;
 }
@@ -139,12 +140,32 @@ export function jobLine(j: ReminderJob, today: string): string {
   return [j.visit ? visitLabel(j.visit, today) : null, `Job ${j.jobNumber ?? j.id}`, who || null, j.jobType].filter(Boolean).join(" · ");
 }
 
+/** An email that asked us to ring them, not yet marked done. */
+export type CallBackItem = { at: string; name: string | null; phone: string | null; about: string | null; from: string | null; mailbox: string; subject: string | null };
+
+/** "Yesterday 2:15pm · Sarah Jones · 0412 345 678 · quote for a heat pump". */
+export function callBackLine(c: CallBackItem, today: string): string {
+  return [
+    `Asked ${visitLabel(c.at, today).replace(/^(Today|Yesterday|Tomorrow)/, (w) => w.toLowerCase())}`,
+    c.name || c.from,
+    c.phone || "no number given, see the email",
+    c.about || c.subject,
+  ].filter(Boolean).join(" · ");
+}
+
+/** A number a phone will dial from a link: digits and a leading +. */
+export const telHref = (phone: string) => {
+  const d = phone.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "");
+  return d.replace(/\D/g, "").length >= 8 ? `tel:${d}` : null;
+};
+
 /** "3 materials to order, 1 rubbish removal to book, 2 to bill". */
-export function subjectFor(groups: ReminderGroup[]): string {
+export function subjectFor(groups: ReminderGroup[], callBacks = 0): string {
   const short: Record<string, string> = {
     rubbish: "rubbish removal to book", system: "systems to order", materials: "materials to order",
     electrician: "electrician to book", billing: "to bill",
   };
   const parts = groups.filter((g) => g.jobs.length).map((g) => `${g.jobs.length} ${short[g.key]}`);
+  if (callBacks) parts.unshift(`${callBacks} to call back`);
   return `To do today: ${parts.join(", ")}`;
 }
