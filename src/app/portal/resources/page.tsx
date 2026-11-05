@@ -6,6 +6,9 @@ import { KpiHead } from "@/components/portal/kit/Kit";
 import { BrandAssets } from "@/components/portal/BrandAssets";
 import { listFiles, listFolders } from "@/lib/portal/brandFiles";
 import { dbConfigured } from "@/lib/portal/db";
+import { PB_CATEGORIES } from "@/lib/portal/installPrices";
+import { OurPrices, SupplierLinks } from "@/components/portal/ResourceLinks";
+import { loadLinks } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Resources · Team portal" };
@@ -21,9 +24,9 @@ export default async function ResourcesPage({ searchParams }: { searchParams: { 
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   const canEdit = can(user, "overhead");
-  const [folders, files] = dbConfigured()
-    ? await Promise.all([listFolders("resources").catch(() => []), listFiles("resources").catch(() => [])])
-    : [[], []];
+  const [folders, files, links] = dbConfigured()
+    ? await Promise.all([listFolders("resources").catch(() => []), listFiles("resources").catch(() => []), loadLinks()])
+    : [[], [], []];
   const open = searchParams.f && folders.some((f) => f.id === searchParams.f) ? searchParams.f : null;
   const current = files.filter((f) => !f.archivedAt).length;
   const priceLists = folders.find((f) => !f.parentId && /price/i.test(f.name));
@@ -42,7 +45,9 @@ export default async function ResourcesPage({ searchParams }: { searchParams: { 
         Price lists, product information, tech and install sheets, and manuals, by brand. Search finds a file in any folder.
         {canEdit ? " Mark an old price list no longer used when the new one comes in, so nobody quotes from it." : ""}
       </p>
+      {searchParams.v !== "archived" && (!open || open === priceLists?.id) && <OurPrices shelves={PB_CATEGORIES.map(({ key, label }) => ({ key, label }))} />}
       <BrandAssets library="resources" folders={folders} files={files} folderId={open} archived={searchParams.v === "archived"} canEdit={canEdit} />
+      {!open && searchParams.v !== "archived" && <SupplierLinks links={links} canEdit={canEdit} />}
     </PortalShell>
   );
 }
