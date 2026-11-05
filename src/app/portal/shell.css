@@ -562,6 +562,39 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-unit { min-width: 150px; font-size: 12px; font-weight: 700; color: var(--ink2); }
 .pk-said { font-size: 13px; color: var(--ink2); }
 .pk-said.bad { color: var(--bad); }
+
+/* Ducted builder: the house on the left, the quote on the right; one column on a phone. */
+.pk-du { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .pk-du { grid-template-columns: minmax(0, 1fr); } }
+.pk-du .pk-card { min-width: 0; }
+.pk-du-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.pk-du-f { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: var(--ink2); }
+.pk-du-f.grow { flex: 1 1 220px; }
+.pk-du-f .pk-in { width: 100%; min-width: 80px; }
+.pk-du-f textarea.pk-in { font-size: 14px; resize: vertical; }
+.pk-du-check { display: flex; gap: 6px; align-items: center; font-size: 14px; font-weight: 700; padding-bottom: 6px; }
+.pk-du-dim { color: var(--ink3); font-weight: 600; }
+.pk-du-h { font-size: 13px; font-weight: 800; margin: 18px 0 6px; }
+.pk-du-tbl td { padding: 5px 6px; }
+.pk-du-tbl .pk-in { width: 100%; min-width: 72px; }
+.pk-du-tbl td:first-child .pk-in { min-width: 120px; }
+.pk-du-m { display: inline-flex; gap: 4px; align-items: center; }
+.pk-du-m .pk-in { width: 64px; min-width: 64px; }
+.pk-du-x { border: 0; background: none; color: var(--ink3); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.pk-du-x:hover, .pk-du-x:focus-visible { color: var(--bad); background: var(--quiet); outline: none; }
+.pk-du-add { margin-top: 8px; padding: 6px 12px; font-size: 13px; }
+.pk-du-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+.pk-du-sum > div { display: grid; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--quiet); }
+.pk-du-sum span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink3); }
+.pk-du-sum b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.pk-du-sum em { font-style: normal; font-size: 13px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.pk-du-sum .tot { background: var(--mark); color: var(--on-mark); }
+.pk-du-sum .tot span, .pk-du-sum .tot em { color: var(--on-mark); opacity: 0.85; }
+@media (max-width: 520px) { .pk-du-sum { grid-template-columns: minmax(0, 1fr); } }
+.pk-du-miss { font-size: 13px; color: var(--bad); margin: 6px 0 10px; }
+.pk-du tr.pk-du-bad td { color: var(--bad); }
+.pk-du tr.pk-du-kid td:first-child { padding-left: 22px; color: var(--ink2); }
+.pk-du-text { font-size: 14px; line-height: 1.55; background: var(--quiet); border-radius: 10px; padding: 12px 14px; margin: 0 0 10px; max-width: none; }
 .pk-months { background: var(--sunken); border-radius: 14px; padding: 14px; margin: 6px 0 4px; }
 .pk-mrow { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 .pk-mon { display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 0; }
