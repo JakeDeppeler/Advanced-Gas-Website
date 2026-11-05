@@ -81,7 +81,13 @@ async function openCallBacks(): Promise<CallBackItem[]> {
 
 export type DailyReminder = { today: string; until: string; callBacks: CallBackItem[]; groups: ReminderGroup[]; liveTags: boolean; billing: { from: string; to: string }; olderUnbilled: number };
 
-export async function buildDailyReminder(now = new Date()): Promise<DailyReminder> {
+/**
+ * live: read the listed jobs' tags from ServiceTitan (the email does; a page
+ * showing the counts can use the copy, ten minutes behind at most).
+ * callBacks: check the open call-backs in Outlook and mark the done ones.
+ */
+export async function buildDailyReminder(now = new Date(), opts: { live?: boolean; callBacks?: boolean } = {}): Promise<DailyReminder> {
+  const { live: readLive = true, callBacks: withCallBacks = true } = opts;
   const today = melDate(now);
   const until = addDays(today, HORIZON_DAYS);
 
@@ -95,8 +101,8 @@ export async function buildDailyReminder(now = new Date()): Promise<DailyReminde
   let candidates = open.map((j) => ({ ...j, keys: groupsOf(tagIds(j.tags)) })).filter((j) => j.keys.length);
 
   // The same jobs, as ServiceTitan has them right now.
-  let liveTags = true;
-  try {
+  let liveTags = readLive;
+  if (readLive) try {
     const live = new Map<number, { jobStatus?: string; tagTypeIds?: number[] }>();
     const ids = candidates.map((j) => j.id);
     for (let i = 0; i < ids.length; i += 50) {
@@ -154,7 +160,7 @@ export async function buildDailyReminder(now = new Date()): Promise<DailyReminde
     jobs: fresh.map((r) => ({ id: r.id, jobNumber: r.jobNumber, customer: r.customer ?? null, where: r.suburb, jobType: r.jobType, visit: null })),
   });
 
-  const callBacks = await openCallBacks().catch(() => []);
+  const callBacks = withCallBacks ? await openCallBacks().catch(() => []) : [];
   return { today, until, callBacks, groups, liveTags, billing, olderUnbilled };
 }
 

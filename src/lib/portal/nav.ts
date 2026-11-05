@@ -247,6 +247,11 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/vehicles/tools", label: "Tools", blurb: "Every tool on every van, and when it's next tested", band: "crew", icon: "wrench", also: ["test and tag", "tag", "calibration", "tool register", "tools due"] },
     { href: "/portal/vehicles/kit", label: "Kit lists", blurb: "New starter tools, van equipment and van stock", band: "crew", icon: "wrench", also: ["kit list", "new starter", "tool bag", "van equipment", "van stock", "what to carry", "starter kit"] },
   );
+  // The Service manager's home: the day's checks and each tech's numbers.
+  add(can(user, "team"), {
+    href: "/portal/service", label: "Service manager", short: "Service", blurb: "Today's checks, each tech's numbers, where the money is made and lost", band: "crew", icon: "people",
+    also: ["service manager", "efficiency", "efficient", "per tech", "scorecard", "losing money", "call back", "callbacks", "rework", "warranty", "on time", "selling", "performance"],
+  });
   add(office,
     { href: "/portal/per-van", label: "Per van, per day", short: "Per van", blurb: "What each van brings in a day it's out", band: "crew", icon: "truck", also: ["revenue per van", "per day", "van a day", "per tech"] },
     { href: "/portal/drive", label: "Drive time", blurb: "How much of the day is on the road", band: "crew", icon: "clock", also: ["driving", "travel", "routing", "on the road"] },
