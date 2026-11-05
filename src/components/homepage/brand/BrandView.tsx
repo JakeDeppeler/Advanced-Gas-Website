@@ -27,7 +27,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
     .map((o) => ({ ...o, cats: [...new Set(all.filter((x) => x.t.model === o.t.model).map((x) => x.c.label))] }));
   const facts = brand.heroFacts ?? [];
   const tabs = [
-    ["why", "Why we fit them"], ...(options.length ? [["options", `${brand.name} options`]] : []),
+    ["why", "Why we fit them"], ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
     ["support", "Parts & support"], ...(brand.faqs?.length ? [["faqs", "FAQs"]] : []), ["reviews", "Reviews"],
   ] as const;
 
@@ -87,6 +87,31 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
           )}
         </div>
       </section>
+
+      {brand.formats && (
+        <section className="pxs" id="types">
+          <div className="wrap pp__col">
+            <div className="pp__lead">
+              <span className="aeye"><i /> Which one</span>
+              <h2 className="h2 h2--sm">{brand.formats.heading}</h2>
+            </div>
+            <div className="bxf">
+              {brand.formats.items.map((f) => (
+                <article key={f.name} className="bxf__card">
+                  <span className="bxf__img"><Image src={f.img} alt={`${brand.name} ${f.name}`} fill sizes="(max-width: 700px) 90vw, 260px" /></span>
+                  <div className="bxf__t">
+                    <h3>{f.name}</h3>
+                    <strong>{f.line}</strong>
+                    <ul className="pp__hl">{f.points.map((p) => <li key={p}><span aria-hidden="true">✓</span>{p}</li>)}</ul>
+                    <p className="bxf__best"><b>Best for:</b> {f.best}</p>
+                    <Link href={f.href} className="abtn abtn--navy abtn--flat">About the {f.name} →</Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {brand.benefitTiles && brand.benefitTiles.length > 0 && (
         <section className="pxs pxs--cream">

@@ -1,31 +1,45 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import "./how.css";
 
 /**
- * Ducted zoning, hands-on: a real floor plan with the ductwork laid over it
- * the way our duct designs are drawn (fan coil in the hall, flex runs out to
- * a ceiling vent in each room, a damper on each zone, return air beside the
- * fan coil), driven by a wall controller laid out like the Mitsubishi
- * Electric touch controller we fit. Turn zones on and off on the controller
- * or by tapping a room, and the dampers, the air and the outdoor unit follow.
+ * Ducted zoning, hands-on: a real floor plan with the ductwork drawn the way
+ * our duct designs are (a ø350 trunk off the fan coil to round branch
+ * take-offs, then ø300/250/200/150 runs to a ceiling diffuser in each room,
+ * a damper on each zone, a ø500 return), driven by a wall controller laid
+ * out like the Mitsubishi Electric touch controller.
  *
- * Plain SVG and CSS: one plan that never moves doesn't need a 3D library.
+ * It behaves like ITC (individual temperature control): every zone has its
+ * own room sensor and set point, and its damper opens wide when the room is
+ * far off and closes down as it gets there. In Auto the system heats when
+ * the rooms are under the set point and cools when they're over it. Room
+ * temperatures move as it runs, so the effect can be watched.
+ *
+ * The numbers are a toy model to show the behaviour, not a heat load.
+ * Plain SVG and CSS; nothing here needs a 3D or charting library.
  */
 
 type ZoneId = 1 | 2 | 3 | 4 | 5;
 type Mode = "Heat" | "Cool" | "Auto" | "Dry" | "Fan";
+type Doing = "heat" | "cool" | "fan" | "idle";
 
-const ZONES: { id: ZoneId; name: string; color: string; tint: string; area: number }[] = [
-  { id: 1, name: "Living", color: "#E3A92E", tint: "#FBEFD6", area: 21.3 },
-  { id: 2, name: "Kitchen & dining", color: "#5DAE45", tint: "#E3F2DC", area: 31.6 },
-  { id: 3, name: "Master", color: "#D9503C", tint: "#F8E1DC", area: 18.1 },
-  { id: 4, name: "Kids' rooms", color: "#4F74CF", tint: "#DEE6F7", area: 33.1 },
-  { id: 5, name: "Study", color: "#E07B24", tint: "#FCE6D2", area: 6.9 },
+const ZONES: { id: ZoneId; name: string; area: number; ls: number }[] = [
+  { id: 1, name: "Living", area: 21.3, ls: 106 },
+  { id: 2, name: "Kitchen & dining", area: 31.6, ls: 158 },
+  { id: 3, name: "Master", area: 18.1, ls: 90 },
+  { id: 4, name: "Kids' rooms", area: 33.1, ls: 165 },
+  { id: 5, name: "Study", area: 6.9, ls: 35 },
 ];
+const IDS = ZONES.map((z) => z.id);
 const TOTAL = ZONES.reduce((s, z) => s + z.area, 0);
 const zoneOf = (id: ZoneId) => ZONES.find((z) => z.id === id)!;
+
+const SEASONS = {
+  summer: { label: "Summer day", out: 32, start: [27.6, 28.3, 25.9, 26.5, 27.1] },
+  winter: { label: "Winter night", out: 9, start: [16.4, 17.1, 15.3, 15.8, 16.6] },
+} as const;
+type Season = keyof typeof SEASONS;
 
 const PRESETS: { label: string; on: ZoneId[] }[] = [
   { label: "Daytime", on: [1, 2] },
@@ -34,9 +48,40 @@ const PRESETS: { label: string; on: ZoneId[] }[] = [
   { label: "Everyone home", on: [1, 2, 3, 4, 5] },
 ];
 
-/* ------------------------------------------------------------ the plan */
+/** Duct sizes, coloured the way the duct design drawings colour them. */
+const SIZE: Record<number, { c: string; w: number }> = {
+  350: { c: "#A3ABB6", w: 13 }, 300: { c: "#6CBF4A", w: 12 }, 250: { c: "#E5BE33", w: 10.5 },
+  200: { c: "#5B7FD6", w: 9 }, 150: { c: "#E2553F", w: 8 },
+};
 
-type Room = { name: string; dims?: string; x: number; y: number; w: number; h: number; zone?: ZoneId; lx?: number; ly?: number };
+type Seg = { d: string; size: number; zone?: ZoneId };
+/** Runs from the fan coil, trunk first. A zone's segments are the ones its damper feeds. */
+const SEGS: Seg[] = [
+  { d: "M385 325 L345 325", size: 350 },
+  { d: "M345 325 L333 300 C312 255 272 196 252 128", size: 250, zone: 1 },
+  { d: "M345 325 L318 336 Q304 341 290 345", size: 300, zone: 2 },
+  { d: "M290 345 C270 335 245 315 228 304", size: 250, zone: 2 },
+  { d: "M290 345 C272 362 252 380 238 390", size: 250, zone: 2 },
+  { d: "M345 325 L345 352 C340 420 280 470 228 486", size: 200, zone: 5 },
+  { d: "M405 296 L410 278 C420 258 440 244 458 234", size: 300, zone: 4 },
+  { d: "M458 234 C440 192 430 152 426 128", size: 200, zone: 4 },
+  { d: "M458 234 C490 200 530 152 543 128", size: 200, zone: 4 },
+  { d: "M458 234 C480 262 505 296 516 310", size: 200, zone: 4 },
+  { d: "M425 340 L440 350 C455 362 466 395 470 420", size: 300, zone: 3 },
+  { d: "M470 420 C480 440 492 455 500 462", size: 250, zone: 3 },
+  { d: "M470 420 C500 412 530 412 552 412", size: 150, zone: 3 },
+];
+/** The branch take-offs: round fittings where a run splits. */
+const BTO: [number, number][] = [[345, 325], [290, 345], [458, 234], [470, 420]];
+/** Each zone's damper: where it sits, and the duct's direction there. */
+const DAMPERS: Record<ZoneId, [number, number, number]> = {
+  1: [339, 312, -116], 2: [331, 331, 158], 3: [432, 345, 34], 4: [407, 287, -74], 5: [345, 339, 90],
+};
+const VENTS: Record<ZoneId, [number, number][]> = {
+  1: [[252, 120]], 2: [[224, 300], [236, 394]], 3: [[504, 466], [560, 412]], 4: [[426, 120], [543, 120], [520, 316]], 5: [[220, 488]],
+};
+const SIZE_TAGS: [number, number, number][] = [[365, 318, 350], [296, 236, 250], [312, 352, 300], [330, 424, 200], [434, 252, 300], [452, 378, 300], [516, 404, 150]];
+
 const ROOMS: Room[] = [
   { name: "Living", dims: "5.0 × 4.3", x: 160, y: 40, w: 200, h: 170, zone: 1 },
   { name: "Bed 4", dims: "3.3 × 3.8", x: 360, y: 40, w: 130, h: 150, zone: 4 },
@@ -50,15 +95,6 @@ const ROOMS: Room[] = [
   { name: "Entry", x: 270, y: 440, w: 110, h: 100 },
 ];
 
-type Run = { zone: ZoneId; d: string; damper: [number, number, number]; vents: [number, number][] };
-// Each run leaves the fan coil in a straight stub (where its damper sits), then bends away in flex.
-const RUNS: Run[] = [
-  { zone: 1, d: "M385 312 L360 300 C322 282 272 200 252 126", damper: [360, 300, 25], vents: [[250, 118]] },
-  { zone: 2, d: "M385 332 L352 336 Q328 338 306 340 M306 340 C272 332 244 312 226 298 M306 340 C276 360 252 380 236 392", damper: [352, 336, 5], vents: [[222, 292], [232, 396]] },
-  { zone: 5, d: "M396 352 L390 382 C372 440 282 480 226 490", damper: [390, 382, 80], vents: [[218, 492]] },
-  { zone: 3, d: "M414 352 L424 382 C440 430 470 455 496 466", damper: [424, 382, 70], vents: [[504, 470]] },
-  { zone: 4, d: "M425 306 L444 290 C454 272 458 252 458 234 M458 234 C440 192 430 152 425 120 M458 234 C490 200 530 152 545 120 M458 234 C480 262 505 300 518 316", damper: [444, 290, -40], vents: [[425, 112], [545, 112], [520, 322]] },
-];
 
 const W = "#3E444D";
 
@@ -104,14 +140,58 @@ function Fittings() {
   );
 }
 
-function Flow({ d, c, dur, n = 4 }: { d: string; c: string; dur: number; n?: number }) {
+
+/* ------------------------------------------------------------ the model */
+
+type Z = { on: boolean; t: number; set: number; open: number };
+type State = Record<ZoneId, Z>;
+
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/** What the system is doing: Auto heats below the set point and cools above it, with a little dead band. */
+function doing(power: boolean, mode: Mode, zs: State, prev: Doing): Doing {
+  if (!power || !IDS.some((id) => zs[id].on)) return "idle";
+  if (mode === "Fan") return "fan";
+  if (mode === "Heat") return "heat";
+  if (mode === "Cool" || mode === "Dry") return "cool";
+  const on = IDS.filter((id) => zs[id].on);
+  const gap = on.reduce((s, id) => s + (zs[id].t - zs[id].set), 0) / on.length;
+  if (gap > 0.5) return "cool";
+  if (gap < -0.5) return "heat";
+  return prev === "fan" ? "idle" : prev;
+}
+
+/** One step: dampers move toward what each room needs, and each room's temperature follows. */
+function step(zs: State, act: Doing, out: number, speed: number): State {
+  const next = { ...zs };
+  for (const id of IDS) {
+    const z = zs[id];
+    let want = 0;
+    if (z.on && act === "fan") want = 1;
+    else if (z.on && (act === "heat" || act === "cool")) {
+      const need = act === "cool" ? z.t - z.set : z.set - z.t;
+      want = need > 0 ? clamp(0.25 + need / 1.6, 0.25, 1) : 0.1;
+    }
+    const open = z.open + (want - z.open) * 0.35;
+    const push = act === "heat" ? 1 : act === "cool" ? -1 : 0;
+    const t = z.t + push * open * 0.11 * (0.55 + speed * 0.15) + (out - z.t) * 0.0035;
+    next[id] = { ...z, open, t };
+  }
+  return next;
+}
+
+/* ------------------------------------------------------------ the plan */
+
+type Room = { name: string; dims?: string; x: number; y: number; w: number; h: number; zone?: ZoneId; lx?: number; ly?: number };
+
+function Flow({ d, c, dur, n = 3 }: { d: string; c: string; dur: number; n?: number }) {
   return (
     <g>
       {Array.from({ length: n }, (_, i) => {
         const begin = `${(-(i * dur) / n).toFixed(2)}s`;
         return (
-          <circle key={i} r="2.6" fill={c} stroke="#fff" strokeWidth="1">
-            <animateMotion dur={`${dur}s`} begin={begin} repeatCount="indefinite" path={d} />
+          <circle key={i} r="2.4" fill="#fff" stroke={c} strokeWidth="1.4">
+            <animateMotion dur={`${dur.toFixed(2)}s`} begin={begin} repeatCount="indefinite" path={d} />
           </circle>
         );
       })}
@@ -119,20 +199,39 @@ function Flow({ d, c, dur, n = 4 }: { d: string; c: string; dur: number; n?: num
   );
 }
 
-function Plan({ on, power, mode, speed, motion, toggle }: { on: Record<ZoneId, boolean>; power: boolean; mode: Mode; speed: number; motion: boolean; toggle: (z: ZoneId) => void }) {
-  const air = mode === "Heat" ? "#F2663A" : mode === "Fan" ? "#8A97AB" : "#1BA7E0";
-  const live = (z: ZoneId) => power && on[z];
-  const dur = [3.4, 2.7, 2.1, 1.6][speed - 1];
-  const share = ZONES.reduce((s, z) => s + (live(z.id) ? z.area : 0), 0) / TOTAL;
-  const outdoor = power && share > 0 && mode !== "Fan";
+/** A 4-way ceiling diffuser, throwing air out of each side when its zone's damper is open. */
+function Diffuser({ x, y, open, air, motion }: { x: number; y: number; open: number; air: string; motion: boolean }) {
+  const lit = open > 0.14;
+  const len = 8 + open * 20;
   return (
-    <svg viewBox="0 0 680 580" className="zh__svg" role="img" aria-label={`Floor plan with ${ZONES.filter((z) => live(z.id)).map((z) => z.name).join(", ") || "no zones"} on.`}>
+    <g>
+      {lit && [0, 90, 180, 270].map((a) => (
+        <g key={a} transform={`rotate(${a} ${x} ${y})`}>
+          <path d={`M${x + 11} ${y} q${len / 2} ${-3} ${len} 0`} stroke={air} strokeWidth="2.2" fill="none" strokeLinecap="round" opacity={0.35 + open * 0.5} className={motion ? "zh__throw" : undefined} />
+          <path d={`M${x + 11} ${y - 5} q${len / 2} ${-6} ${len * 0.8} -6 M${x + 11} ${y + 5} q${len / 2} ${6} ${len * 0.8} 6`} stroke={air} strokeWidth="1.4" fill="none" strokeLinecap="round" opacity={0.25 + open * 0.3} className={motion ? "zh__throw" : undefined} />
+        </g>
+      ))}
+      <rect x={x - 9} y={y - 9} width="18" height="18" rx="2" fill="#fff" stroke={lit ? "#3E444D" : "#B8C0CA"} strokeWidth="1.4" />
+      <rect x={x - 5} y={y - 5} width="10" height="10" fill="none" stroke={lit ? "#3E444D" : "#B8C0CA"} strokeWidth="1" />
+      <path d={`M${x - 9} ${y - 9} L${x + 9} ${y + 9} M${x + 9} ${y - 9} L${x - 9} ${y + 9}`} stroke={lit ? "#3E444D" : "#B8C0CA"} strokeWidth=".8" />
+    </g>
+  );
+}
+
+function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed: number; motion: boolean; toggle: (z: ZoneId) => void }) {
+  const air = act === "heat" ? "#F2663A" : act === "cool" ? "#1BA7E0" : "#8A97AB";
+  const tint = act === "heat" ? "#FCE9DF" : act === "cool" ? "#E1F2FA" : "#EEF3F7";
+  const load = IDS.reduce((s, id) => s + zoneOf(id).area * zs[id].open, 0) / TOTAL;
+  const outdoor = (act === "heat" || act === "cool") && load > 0.02;
+  const trunkOpen = Math.max(...IDS.map((id) => zs[id].open));
+  return (
+    <svg viewBox="0 0 680 600" className="zh__svg" role="img"
+      aria-label={`Floor plan. ${ZONES.filter((z) => zs[z.id].on).map((z) => `${z.name} ${zs[z.id].t.toFixed(1)} degrees, damper ${Math.round(zs[z.id].open * 100)}% open`).join("; ") || "No zones on"}.`}>
       <defs>
         <pattern id="zh-pave" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="#F3F4F6" /><path d="M0 .5H22M.5 0V22" stroke="#DADDE2" /></pattern>
         <pattern id="zh-conc" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#E6E7EA" /><circle cx="2" cy="3" r=".8" fill="#CDD0D5" /><circle cx="6" cy="6" r=".6" fill="#D6D8DC" /></pattern>
       </defs>
-      <rect width="680" height="580" fill="#fff" />
-      {/* outside: paved alfresco and the garage */}
+      <rect width="680" height="600" fill="#fff" />
       <rect x="30" y="40" width="130" height="210" fill="url(#zh-pave)" />
       <text x="95" y="150" textAnchor="middle" className="zh__room-n" fill="#A7AFBA">Alfresco</text>
       <rect x="30" y="250" width="130" height="290" fill="url(#zh-conc)" />
@@ -141,89 +240,104 @@ function Plan({ on, power, mode, speed, motion, toggle }: { on: Record<ZoneId, b
       ))}
       <text x="95" y="430" textAnchor="middle" className="zh__room-n" fill="#A7AFBA">Garage</text>
 
-      {/* rooms: tinted by zone when it's on; tap one to switch it */}
       {ROOMS.map((r) => {
-        const z = r.zone ? zoneOf(r.zone) : null;
+        const z = r.zone ? zs[r.zone] : null;
         return (
           <rect key={r.name} x={r.x} y={r.y} width={r.w} height={r.h}
-            fill={z ? (live(z.id) ? z.tint : "#EEF0F3") : "#F7F8FA"}
-            className={z ? "zh__room" : undefined} style={{ transition: "fill .4s" }}
-            onClick={z ? () => toggle(z.id) : undefined} />
+            fill={z ? (z.on ? tint : "#EEF0F3") : "#F7F8FA"}
+            className={r.zone ? "zh__room" : undefined} style={{ transition: "fill .5s" }}
+            onClick={r.zone ? () => toggle(r.zone!) : undefined} />
         );
       })}
       <Fittings />
-
-      {/* walls: outside thick, inside thin */}
       <g fill="none" stroke={W} strokeLinejoin="miter">
         <path d="M160 40 H600 V540 H160 Z M30 250 H160 M30 250 V540 H160" strokeWidth="6" />
         <path d="M360 40 V190 M490 40 V190 M360 190 H600 M160 210 H360 M380 190 V540 M430 190 V540 M430 270 H600 M430 370 H600 M160 440 H380 M270 440 V540" strokeWidth="3" />
       </g>
-      {/* doorways cut through and swings */}
-      <g stroke="#fff" strokeWidth="5">
-        <path d="M392 190 h26 M380 230 v26 M430 300 v26 M430 400 v26 M380 470 v26 M300 440 h26 M200 440 h26 M400 190 h1" />
-        <path d="M372 190 v-1" />
-      </g>
+      <g stroke="#fff" strokeWidth="5"><path d="M392 190 h26 M380 230 v26 M430 300 v26 M430 400 v26 M380 470 v26 M300 440 h26 M200 440 h26" /></g>
       <Door x={392} y={190} r={24} rot={180} /><Door x={430} y={300} r={24} rot={90} /><Door x={430} y={400} r={24} rot={90} />
       <Door x={200} y={440} r={24} rot={0} /><Door x={300} y={540} r={28} rot={-90} />
-      {/* windows */}
       <Win x={200} y={40} w={80} /><Win x={390} y={40} w={70} /><Win x={515} y={40} w={60} /><Win x={600} y={290} w={60} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v />
 
-      {/* return air in the hall, and the fan coil above it */}
-      <rect x="386" y="392" width="38" height="30" fill="#fff" stroke="#5E6A82" />
-      {[0, 1, 2, 3, 4].map((i) => <path key={i} d={`M390 ${397 + i * 5} h30`} stroke="#5E6A82" strokeWidth="1" />)}
-      <path d="M405 392 V356" stroke="#7B5CC9" strokeWidth="13" strokeLinecap="round" opacity=".85" />
-      {RUNS.map((r) => {
-        const z = zoneOf(r.zone);
-        const lit = live(r.zone);
+      {/* return air: grille in the hall, ø500 back to the fan coil */}
+      <path d="M405 394 V356" stroke="#7B5CC9" strokeWidth="16" strokeLinecap="round" opacity=".9" />
+      <path d="M405 394 V356" stroke="#000" strokeOpacity=".15" strokeWidth="16" strokeDasharray="1.5 4" />
+      {motion && outdoor && <Flow d="M405 420 L405 356" c="#7B5CC9" dur={2.2} n={2} />}
+      <rect x="386" y="394" width="38" height="30" fill="#fff" stroke="#5E6A82" />
+      {[0, 1, 2, 3, 4].map((i) => <path key={i} d={`M390 ${399 + i * 5} h30`} stroke="#5E6A82" strokeWidth="1" />)}
+
+      {/* supply: coloured by duct size, as on the design drawings */}
+      {SEGS.map((s, i) => {
+        const open = s.zone ? zs[s.zone].open : trunkOpen;
+        const { c, w } = SIZE[s.size];
         return (
-          <g key={r.zone} style={{ pointerEvents: "none" }}>
-            <path d={r.d} stroke={lit ? z.color : "#C3CAD3"} strokeWidth="11" fill="none" strokeLinecap="round" style={{ transition: "stroke .4s" }} />
-            <path d={r.d} stroke="#000" strokeOpacity=".14" strokeWidth="11" fill="none" strokeDasharray="1.5 4" />
-            {lit && motion && <Flow d={r.d.split(" M")[0]} c={air} dur={dur} />}
-            {lit && motion && r.d.split(" M").slice(1).map((seg, i) => <Flow key={i} d={`M${seg}`} c={air} dur={dur * 0.8} n={3} />)}
-            {/* the damper: a blade across the duct, shut when the zone is off */}
-            <g transform={`translate(${r.damper[0]} ${r.damper[1]}) rotate(${r.damper[2]})`}>
-              <rect x="-3" y="-9" width="6" height="18" rx="1.5" fill={lit ? "#1F2536" : "#C2521A"} transform={lit ? "rotate(90)" : undefined} style={{ transition: "transform .4s" }} />
-            </g>
-            {r.vents.map(([x, y]) => (
-              <g key={`${x}${y}`}>
-                {lit && <circle cx={x} cy={y} r="22" fill={air} opacity=".18" className="zh__glow" />}
-                <rect x={x - 9} y={y - 9} width="18" height="18" rx="2" fill="#fff" stroke={lit ? "#3E444D" : "#B8C0CA"} strokeWidth="1.4" />
-                <path d={`M${x - 5} ${y - 4} h10 M${x - 5} ${y} h10 M${x - 5} ${y + 4} h10`} stroke={lit ? "#3E444D" : "#B8C0CA"} strokeWidth="1" />
-              </g>
-            ))}
+          <g key={i} style={{ pointerEvents: "none" }}>
+            <path d={s.d} stroke={c} strokeWidth={w} fill="none" strokeLinecap="round" />
+            <path d={s.d} stroke="#000" strokeOpacity=".16" strokeWidth={w} fill="none" strokeDasharray="1.5 4" />
+            {motion && open > 0.08 && act !== "idle" && <Flow d={s.d} c={air} dur={(2.4 / (0.35 + open)) * (1.3 - speed * 0.12)} />}
           </g>
         );
       })}
+      {BTO.map(([x, y]) => <g key={`${x}${y}`}><circle cx={x} cy={y} r="8" fill="#C9CED6" stroke="#6B7480" strokeWidth="1.5" /><circle cx={x} cy={y} r="3.5" fill="#fff" stroke="#6B7480" /></g>)}
+      {IDS.map((id) => {
+        const [x, y, a] = DAMPERS[id];
+        const open = zs[id].open;
+        return (
+          <g key={id} transform={`translate(${x} ${y}) rotate(${a + 90 * (1 - open)})`}>
+            <rect x="-9" y="-2.6" width="18" height="5.2" rx="1.5" fill={open > 0.14 ? "#1F2536" : "#C2521A"} />
+          </g>
+        );
+      })}
+      {IDS.flatMap((id) => VENTS[id].map(([x, y]) => <Diffuser key={`${x}${y}`} x={x} y={y} open={zs[id].open} air={air} motion={motion} />))}
+      {SIZE_TAGS.map(([x, y, s]) => (
+        <g key={`${x}${y}`} style={{ pointerEvents: "none" }}>
+          <rect x={x - 16} y={y - 7} width="32" height="13" rx="3" fill="#fff" stroke="#C9D1DC" />
+          <text x={x} y={y + 3} textAnchor="middle" className="zh__sz">{`ø${s}`}</text>
+        </g>
+      ))}
+
       <rect x="385" y="296" width="40" height="58" rx="3" fill="#111" />
       <text x="405" y="325" textAnchor="middle" transform="rotate(90 405 325)" className="zh__fc">FAN COIL</text>
+      <rect x="388" y="428" width="34" height="13" rx="3" fill="#fff" stroke="#C9D1DC" />
+      <text x="405" y="438" textAnchor="middle" className="zh__sz">RA ø500</text>
 
-      {/* refrigerant out to the outdoor unit */}
+      {/* refrigerant out to the outdoor unit, which works only as hard as the zones ask */}
       <path d="M425 320 H612" stroke="#C98B57" strokeWidth="2" strokeDasharray="5 4" fill="none" />
       <rect x="612" y="298" width="52" height="44" rx="5" fill="#fff" stroke="#5E6A82" strokeWidth="1.5" />
       <circle cx="638" cy="320" r="15" fill="#2B3247" />
-      <g className={outdoor ? "zh__fan" : undefined} style={{ transformOrigin: "638px 320px", animationDuration: `${(1.2 / Math.max(0.3, share)).toFixed(2)}s` }}>
+      <g className={outdoor ? "zh__fan" : undefined} style={{ transformOrigin: "638px 320px", animationDuration: `${(1.1 / Math.max(0.2, load)).toFixed(2)}s` }}>
         {[0, 120, 240].map((a) => <ellipse key={a} cx="638" cy="312" rx="3.5" ry="7" fill="#AEB8C6" transform={`rotate(${a} 638 320)`} />)}
       </g>
       <text x="638" y="358" textAnchor="middle" className="zh__room-n" fill="#3E444D">Outdoor</text>
+      <text x="638" y="372" textAnchor="middle" className="zh__room-d" fill="#8A93A0">{outdoor ? `${Math.round(load * 100)}% output` : "idle"}</text>
 
-      {/* room names, sizes and zone tags, last so nothing covers them */}
       {ROOMS.map((r) => {
-        const z = r.zone ? zoneOf(r.zone) : null;
+        const z = r.zone ? zs[r.zone] : null;
         const x = r.lx ?? r.x + 8, y = r.ly ?? r.y + 18;
         return (
           <g key={r.name} style={{ pointerEvents: "none" }}>
             <text x={x} y={y} textAnchor={r.lx ? "middle" : "start"} className="zh__room-n" fill="#1F2536">{r.name}</text>
             {r.dims && <text x={x} y={y + 14} className="zh__room-d" fill="#8A93A0">{r.dims}</text>}
-            {z && (
-              <g transform={`translate(${x + 62} ${y + 21})`}>
-                <rect x="-62" y="0" width="62" height="18" rx="9" fill={live(z.id) ? z.color : "#fff"} stroke={live(z.id) ? z.color : "#B8C0CA"} />
-                <text x="-31" y="12.5" textAnchor="middle" className="zh__tag" fill={live(z.id) ? "#fff" : "#6B7480"}>{`Zone ${z.id} · ${live(z.id) ? "On" : "Off"}`}</text>
+            {z && r.zone && (
+              <g transform={`translate(${x} ${y + 21})`}>
+                <rect width="84" height="19" rx="9.5" fill={z.on ? "#050A30" : "#fff"} stroke={z.on ? "#050A30" : "#B8C0CA"} />
+                <text x="42" y="13" textAnchor="middle" className="zh__tag" fill={z.on ? "#fff" : "#6B7480"}>{`Zone ${r.zone} · ${z.t.toFixed(1)}°`}</text>
               </g>
             )}
           </g>
         );
       })}
+
+      {/* the key, as on a duct design */}
+      <g transform="translate(160 562)">
+        {[350, 300, 250, 200, 150].map((s, i) => (
+          <g key={s} transform={`translate(${i * 74} 0)`}>
+            <rect width="22" height="8" rx="4" fill={SIZE[s].c} y="-5" />
+            <text x="28" y="2" className="zh__room-d" fill="#5D6B80">{`ø${s}`}</text>
+          </g>
+        ))}
+        <g transform="translate(370 0)"><rect width="18" height="5" rx="1.5" y="-3" fill="#1F2536" /><text x="24" y="2" className="zh__room-d" fill="#5D6B80">Damper</text></g>
+      </g>
     </svg>
   );
 }
@@ -234,13 +348,16 @@ const Ico = ({ d, children }: { d?: string; children?: ReactNode }) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d && <path d={d} />}{children}</svg>
 );
 
-function Controller({ power, setPower, on, toggle, setZones, mode, setMode, temp, setTemp, speed, setSpeed }: {
-  power: boolean; setPower: (p: boolean) => void; on: Record<ZoneId, boolean>; toggle: (z: ZoneId) => void; setZones: (ids: ZoneId[]) => void;
-  mode: Mode; setMode: (m: Mode) => void; temp: number; setTemp: (t: number) => void; speed: number; setSpeed: (s: number) => void;
+function Controller({ power, setPower, zs, toggle, setZone, setAll, setZones, mode, setMode, act, speed, setSpeed }: {
+  power: boolean; setPower: (p: boolean) => void; zs: State; toggle: (z: ZoneId) => void; setZone: (z: ZoneId, set: number) => void;
+  setAll: (set: number) => void; setZones: (ids: ZoneId[]) => void; mode: Mode; setMode: (m: Mode) => void; act: Doing; speed: number; setSpeed: (s: number) => void;
 }) {
   const [screen, setScreen] = useState<"home" | "zones" | "schedule">("home");
-  const tone = mode === "Heat" ? "#FF8A50" : mode === "Fan" ? "#C9D1DC" : "#5BC8F5";
-  const count = ZONES.filter((z) => on[z.id]).length;
+  const tone = act === "heat" ? "#FF8A50" : act === "cool" ? "#5BC8F5" : "#C9D1DC";
+  const on = IDS.filter((id) => zs[id].on);
+  const master = on.length ? zs[on[0]].set : zs[1].set;
+  const avg = on.length ? on.reduce((s, id) => s + zs[id].t, 0) / on.length : null;
+  const state = !power ? "Off" : act === "heat" ? "Heating" : act === "cool" ? "Cooling" : act === "fan" ? "Fan only" : "Holding";
   return (
     <div className="mec" aria-label="Wall controller">
       <div className={`mec__screen${power ? "" : " mec__screen--off"}`}>
@@ -258,11 +375,11 @@ function Controller({ power, setPower, on, toggle, setZones, mode, setMode, temp
               </button>
             </div>
             <div className="mec__temp">
-              <button type="button" aria-label="Lower the set temperature" disabled={!power} onClick={() => setTemp(Math.max(16, temp - 0.5))}>−</button>
+              <button type="button" aria-label="Lower the set temperature" disabled={!power} onClick={() => setAll(Math.max(16, master - 0.5))}>−</button>
               <div aria-live="polite" style={{ color: power ? tone : "#4A5266" }}>
-                <b>{Math.floor(temp)}</b><span><i>°C</i><i>.{temp % 1 ? 5 : 0}</i></span>
+                <b>{Math.floor(master)}</b><span><i>°C</i><i>.{master % 1 ? 5 : 0}</i></span>
               </div>
-              <button type="button" aria-label="Raise the set temperature" disabled={!power} onClick={() => setTemp(Math.min(30, temp + 0.5))}>+</button>
+              <button type="button" aria-label="Raise the set temperature" disabled={!power} onClick={() => setAll(Math.min(30, master + 0.5))}>+</button>
             </div>
             <div className="mec__modes" role="group" aria-label="Mode">
               {(["Heat", "Cool", "Auto", "Dry", "Fan"] as Mode[]).map((m) => (
@@ -275,21 +392,31 @@ function Controller({ power, setPower, on, toggle, setZones, mode, setMode, temp
                 <span>{[1, 2, 3, 4].map((b) => <i key={b} className={b <= speed ? "on" : undefined} style={{ height: 6 + b * 4 }} />)}</span>
               </button>
               <div className="mec__stat">
-                <small>Zones on</small><strong>{power ? `${count} of 5` : "—"}</strong>
+                <small>Avg inside · {mode === "Auto" && power ? `Auto ${state.toLowerCase()}` : state}</small>
+                <strong>{avg != null && power ? `${avg.toFixed(1)}°c` : "—"}</strong>
               </div>
             </div>
           </>
         )}
         {screen === "zones" && (
           <div className="mec__list">
-            <div className="mec__head"><button type="button" onClick={() => setScreen("home")} aria-label="Back">‹</button><strong>Zones</strong></div>
-            {ZONES.map((z) => (
-              <button key={z.id} type="button" aria-pressed={on[z.id]} className={`mec__zone${on[z.id] ? " on" : ""}`} onClick={() => toggle(z.id)}>
-                <i style={{ background: z.color }} aria-hidden="true" />
-                <span>{z.name}</span>
-                <em>{on[z.id] ? "On" : "Off"}</em>
-              </button>
-            ))}
+            <div className="mec__head"><button type="button" onClick={() => setScreen("home")} aria-label="Back">‹</button><strong>Zones</strong><small>ITC: a sensor in every zone</small></div>
+            {ZONES.map((z) => {
+              const s = zs[z.id];
+              return (
+                <div key={z.id} className={`mec__zrow${s.on ? " on" : ""}`}>
+                  <button type="button" aria-pressed={s.on} className="mec__zname" onClick={() => toggle(z.id)}>
+                    <span>{z.name}</span><em>{s.on ? `${Math.round(s.open * 100)}% open` : "Off"}</em>
+                  </button>
+                  <span className="mec__ztemp" aria-label={`${z.name} is ${s.t.toFixed(1)} degrees`}>{s.t.toFixed(1)}°</span>
+                  <span className="mec__zset">
+                    <button type="button" aria-label={`Lower ${z.name} set point`} onClick={() => setZone(z.id, Math.max(16, s.set - 0.5))}>−</button>
+                    <b>{s.set.toFixed(1)}</b>
+                    <button type="button" aria-label={`Raise ${z.name} set point`} onClick={() => setZone(z.id, Math.min(30, s.set + 0.5))}>+</button>
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
         {screen === "schedule" && (
@@ -310,37 +437,68 @@ function Controller({ power, setPower, on, toggle, setZones, mode, setMode, temp
 
 /* ------------------------------------------------------------ together */
 
+const fresh = (season: Season, onIds: ZoneId[], set = 24): State =>
+  Object.fromEntries(IDS.map((id, i) => [id, { on: onIds.includes(id), t: SEASONS[season].start[i], set, open: 0 }])) as State;
+
 export function ZoneHouse() {
-  const [on, setOn] = useState<Record<ZoneId, boolean>>({ 1: true, 2: true, 3: false, 4: false, 5: false });
+  const [season, setSeason] = useState<Season>("summer");
+  const [zs, setZs] = useState<State>(() => fresh("summer", [1, 2]));
   const [power, setPower] = useState(true);
-  const [mode, setMode] = useState<Mode>("Cool");
-  const [temp, setTemp] = useState(24);
+  const [mode, setMode] = useState<Mode>("Auto");
   const [speed, setSpeed] = useState(3);
   const [motion, setMotion] = useState(true);
+  const [act, setAct] = useState<Doing>("idle");
+  const live = useRef({ power, mode, speed, season, act, zs });
+  live.current = { power, mode, speed, season, act, zs };
+
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) setMotion(false);
+    // The rooms keep changing while the page is open, so the dampers can be seen easing off.
+    const t = setInterval(() => {
+      const { power: p, mode: m, speed: s, season: se, act: a, zs: cur } = live.current;
+      const now = doing(p, m, cur, a);
+      setAct(now);
+      setZs(step(cur, now, SEASONS[se].out, s));
+    }, 600);
+    return () => clearInterval(t);
   }, []);
 
-  const toggle = (id: ZoneId) => setOn((o) => ({ ...o, [id]: !o[id] }));
-  const setZones = (ids: ZoneId[]) => setOn({ 1: ids.includes(1), 2: ids.includes(2), 3: ids.includes(3), 4: ids.includes(4), 5: ids.includes(5) });
-  const live = ZONES.filter((z) => power && on[z.id]);
-  const pct = Math.round((live.reduce((s, z) => s + z.area, 0) / TOTAL) * 100);
+  const toggle = (id: ZoneId) => { if (power) setZs((z) => ({ ...z, [id]: { ...z[id], on: !z[id].on } })); };
+  const setZone = (id: ZoneId, set: number) => setZs((z) => ({ ...z, [id]: { ...z[id], set } }));
+  const setAll = (set: number) => setZs((z) => Object.fromEntries(IDS.map((id) => [id, { ...z[id], set }])) as State);
+  const setZones = (ids: ZoneId[]) => setZs((z) => Object.fromEntries(IDS.map((id) => [id, { ...z[id], on: ids.includes(id) }])) as State);
+  const pickSeason = (s: Season) => { setSeason(s); setZs((z) => { const f = fresh(s, IDS.filter((id) => z[id].on), z[1].set); return f; }); };
+
+  const onIds = IDS.filter((id) => power && zs[id].on);
+  const load = Math.round((IDS.reduce((s, id) => s + zoneOf(id).area * zs[id].open, 0) / TOTAL) * 100);
+  const busiest = onIds.slice().sort((a, b) => zs[b].open - zs[a].open)[0];
 
   return (
     <div className="zh zh--plan">
       <div className="zh__fig">
-        <Plan on={on} power={power} mode={mode} speed={speed} motion={motion} toggle={(z) => { if (power) toggle(z); }} />
+        <Plan zs={zs} act={power ? act : "idle"} speed={speed} motion={motion} toggle={toggle} />
       </div>
       <div className="zh__panel">
-        <Controller power={power} setPower={setPower} on={on} toggle={toggle} setZones={setZones} mode={mode} setMode={setMode} temp={temp} setTemp={setTemp} speed={speed} setSpeed={setSpeed} />
+        <Controller power={power} setPower={setPower} zs={zs} toggle={toggle} setZone={setZone} setAll={setAll} setZones={setZones}
+          mode={mode} setMode={setMode} act={power ? act : "idle"} speed={speed} setSpeed={setSpeed} />
+        <div className="zh__season" role="group" aria-label="Weather outside">
+          {(Object.keys(SEASONS) as Season[]).map((s) => (
+            <button key={s} type="button" aria-pressed={season === s} className={season === s ? "on" : undefined} onClick={() => pickSeason(s)}>
+              {SEASONS[s].label} <small>{SEASONS[s].out}° outside</small>
+            </button>
+          ))}
+        </div>
         <div className="zh__read" aria-live="polite">
-          <div className="zh__bar"><span style={{ width: `${pct}%`, background: mode === "Heat" ? "#F2663A" : "#1BA7E0" }} /></div>
+          <div className="zh__bar"><span style={{ width: `${load}%`, background: act === "heat" ? "#F2663A" : "#1BA7E0" }} /></div>
           <p>
             {!power ? <><strong>System off.</strong> Tap on to start it.</>
-              : live.length === 0 ? <><strong>No zones on.</strong> Open Zones on the controller, or tap a room.</>
-                : <><strong>{live.length} of 5 zones on, about {pct}% of the home.</strong> Each zone that&apos;s off has its damper shut, so the air only goes where you are, and the outdoor unit works {pct < 100 ? "less hard and uses less power" : "at full output"}.</>}
+              : onIds.length === 0 ? <><strong>No zones on.</strong> Open Zones on the controller, or tap a room.</>
+                : act === "idle" ? <><strong>Every room is at its set point.</strong> The dampers have closed down and the outdoor unit is resting.</>
+                  : <><strong>{act === "heat" ? "Heating" : act === "cool" ? "Cooling" : "Fan only"}{mode === "Auto" ? " (Auto)" : ""}, outdoor unit at about {load}%.</strong>{" "}
+                    {busiest && `${zoneOf(busiest).name} is ${zs[busiest].t.toFixed(1)}°, set to ${zs[busiest].set.toFixed(1)}°, so its damper is ${Math.round(zs[busiest].open * 100)}% open. `}
+                    Rooms closer to their set point get less air.</>}
           </p>
-          <p className="zh__note">Use the controller (zones, schedule, mode, fan) or tap a room on the plan. An illustration of a typical design: your zones and duct sizes are worked out for your home at the site check.</p>
+          <p className="zh__note">Each zone has its own sensor (ITC) and set point, on the controller&apos;s Zones screen. In Auto it heats when the rooms are below the set point and cools when they&apos;re above it. An illustration of a typical design: your zones and duct sizes are worked out for your home.</p>
         </div>
       </div>
     </div>

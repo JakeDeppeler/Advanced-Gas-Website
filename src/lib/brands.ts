@@ -194,6 +194,11 @@ export type Brand = {
    *  truncates it mid-thought — the panel then just repeats the tile. */
   benefitsHeading?: string;
   benefitTiles?: { t: string; line: string; detail: string; icon?: string }[];
+  /**
+   * Where a brand makes more than one kind of system (Reclaim's split and
+   * all-in-one), the kinds side by side, each linking to its product page.
+   */
+  formats?: { heading: string; items: { name: string; img: string; line: string; points: string[]; best: string; href: string }[] };
 
   /** "Choose your system" — the range grouped into the shapes somebody
    *  actually chooses between, each one linking down to its models. */
@@ -1457,12 +1462,12 @@ const brandCatalogue: Brand[] = [
   {
     slug: "reclaim",
     name: "Reclaim Energy",
-    tagline: "Australian-designed CO₂ (R744) heat pumps.",
+    tagline: "Two kinds of heat pump: the CO₂ split and the ECO R290 all-in-one.",
     origin: "Sydney, Australia",
     intro:
-      "Reclaim runs CO₂ (R744) where almost everyone else runs R290 or R134a. It is a natural refrigerant with zero global-warming potential, and the reason it matters here rather than on a spec sheet is that CO₂ keeps pulling heat out of the air on a cold Pakenham morning, when other heat pumps are working hardest for the least.",
+      "Reclaim makes two kinds of heat pump hot water, and we fit both. The CO₂ split puts a quiet heat pump outside and a separate long-life tank where it suits, and keeps working on the coldest mornings. The ECO R290 all-in-one is a single unit, heat pump and tank together, that goes where the old system stood.",
     ourTake:
-      "Reclaim is the one to pick when you're staying in the house and want to stop thinking about hot water. CO₂ pulls heat out of cold air in a way most refrigerants can't, which matters on a cold winter morning, and the tanks are built to outlast the compressor in front of them. Two designs: the CO₂ SPLIT, an outdoor heat pump plumbed to a separate tank, in glass-lined, stainless, 316 stainless and Earthworks finishes; and the ECO R290 ALL-IN-ONE, everything in one shell, at 200 L and 285 L. It costs more on day one and it's built to still be there in fifteen years.",
+      "Reclaim gives you two good ways to do it. The CO₂ split is the one for the long stay and the cold hills suburbs: CO₂ pulls heat out of cold air in a way most refrigerants can't, and the tank is built to outlast the pump in front of it. The ECO R290 all-in-one is the simple swap: one unit in the old tank's spot, nothing else to mount outside, and eight years on the whole thing. We'll tell you which suits your house at the site check.",
     accreditation: "Reclaim accredited installer · listed on the Reclaim installer locator",
     productLabel: "13 models · CO₂ split heat pumps + ECO R290 all-in-one",
     photo: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png",
@@ -1477,8 +1482,10 @@ const brandCatalogue: Brand[] = [
     warranty:
       "Tank: 10-year parts + 5-year labour (glass-lined) or 15-year parts + 5-year labour (stainless). Heat pump: 10-year parts + labour on the Reclaim EHPE-4550P-A, 7-year parts + labour on the Reclaim/Panasonic HE-UM60AR. Controller: 10-year parts + labour on the Reclaim controller and sensor lead, 7-year on the Reclaim/Panasonic non-Wi-Fi controller. ECO R290 all-in-one: 8-year tank, parts and labour. PTRV and Quickie Kit: 5-year parts + labour. Plus 6-year workmanship from us.",
     keyFeatures: [
-      "CO₂ (R744) natural refrigerant, zero global-warming potential",
-      "Holds heating capacity down to -10°C ambient, which is what Emerald and Gembrook mornings ask for",
+      "Two kinds to choose from: the CO₂ split (outdoor heat pump + separate tank) and the ECO R290 all-in-one (one unit)",
+      "ECO R290 all-in-one: 200 or 285 L, nothing else to mount outside, 8-year warranty on the whole unit",
+      "CO₂ (R744) natural refrigerant on the split, zero global-warming potential",
+      "The split holds heating capacity down to -10°C ambient, which is what Emerald and Gembrook mornings ask for",
       "Stainless tanks have no anode to swap and nothing to rust, and the duplex tank steps up to 2205 duplex / 316-grade for the hardest water",
       "Quiet enough (37 dBA at 1m) to sit next to a bedroom wall",
       "Australian-designed for Australian conditions",
@@ -1497,8 +1504,8 @@ const brandCatalogue: Brand[] = [
     // --- brand-first fields (Reclaim) ---
     advisorService: "heat-pump-installation",
     whyLead: {
-      claim: "Still pulling heat at -10°.",
-      sub: "CO₂ is the reason. Where an R290 or R134a heat pump is working hardest for the least on a cold Pakenham morning, a Reclaim keeps making its hot water, and the stainless tank in front of it is built to outlast the compressor.",
+      claim: "Split or all-in-one, both Reclaim.",
+      sub: "The CO₂ split keeps making hot water at -10° with a tank built to outlast the pump. The ECO R290 all-in-one is one unit in the old tank's spot, with eight years on the whole thing.",
     },
     verdict:
       "Reclaim is what we put in for someone staying in the house, the ten-to-fifteen-year plan, not the flip. CO₂ (R744) pulls heat out of cold air in a way R290 and R134a can't, which is what earns it on an Emerald or Gembrook morning rather than on a spec sheet, and a stainless tank has no anode to swap and nothing in it to rust, so it outlasts the compressor sitting in front of it. Two shapes: the CO₂ SPLIT: an outdoor heat pump plumbed to a separate tank, in glass-lined, stainless, 316 stainless and Earthworker finishes from 160 to 400 L, and the ECO R290 ALL-IN-ONE, the lot in one shell at 200 or 285 L. It costs more on day one, and it's built to still be there in fifteen years. If hot water you never think about is worth paying for once, this is the one.",
@@ -1507,51 +1514,72 @@ const brandCatalogue: Brand[] = [
     versus:
       "We fit iStore and Thermann too, and they win different jobs. When the VEU rebate is what makes the numbers work, best rebate, cheaper up front, an iStore is the sensible call. When same-day parts on the shelf matter more than anything else, a Thermann's pipeline is hard to beat. Reclaim is what goes in when you're staying in the house and want the tank to outlast the compressor, not the rebate to close the gap.",
     heroSub:
-      "The CO₂ heat pump we put in for anyone staying in the house, and the one still making hot water on the morning the others fade. Thirteen models across two families, start with the tank.",
+      "Two ways to heat your water with the air. The CO₂ split: a quiet outdoor heat pump and a separate tank, for the coldest mornings and the longest stay. The ECO R290 all-in-one: one unit, nothing extra outside, for a simple swap.",
     fitsWhere:
       "Pakenham Cameron Park estates on the ten-year plan, Berwick weatherboards coming off gas storage, and Cranbourne and Officer jobs where the stainless tank sits somewhere you walk past every day.",
     heroFacts: [
-      { v: "-10°", k: "Still holds its heating capacity that cold" },
-      { v: "Zero GWP", k: "CO₂ (R744) natural refrigerant" },
-      { v: "15-year", k: "Parts warranty on a stainless tank" },
-      { v: "Since 2007", k: "Designed and assembled in Sydney" },
+      { v: "2 types", k: "CO₂ split and ECO R290 all-in-one" },
+      { v: "-10°", k: "The CO₂ split still heats that cold" },
+      { v: "8-year", k: "Whole-unit warranty on the all-in-one" },
+      { v: "15-year", k: "Parts warranty on a stainless split tank" },
     ],
-    benefitsHeading: "Why it's the one we fit for the long stay.",
+    formats: {
+      heading: "Two ways to do it: split or all-in-one.",
+      items: [
+        {
+          name: "CO₂ split",
+          img: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png",
+          line: "A quiet heat pump outside, the tank where it suits",
+          points: ["Keeps heating down to -10°: the best on cold mornings", "Tank 160, 250, 315 or 400 L, glass-lined or stainless", "37 dBA outdoor unit, fine by a bedroom wall", "PV-diverter kit runs it on your solar"],
+          best: "Staying 10+ years, the colder hills suburbs, bigger households",
+          href: "/find/heat-pump/signature",
+        },
+        {
+          name: "ECO R290 all-in-one",
+          img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
+          line: "Heat pump and tank in one unit",
+          points: ["One unit in the old tank's spot, nothing else outside", "200 L or 285 L", "8-year warranty on the whole unit, parts and labour", "R290 natural refrigerant, VEU rebate at the quote"],
+          best: "A straight swap, townhouses and tight side paths",
+          href: "/find/heat-pump/premium",
+        },
+      ],
+    },
+    benefitsHeading: "What each one does best.",
     benefitTiles: [
       {
-        t: "Heat out of cold air",
+        t: "Split: heat out of cold air",
         line: "Holds its heating capacity down to -10° ambient",
         detail:
           "CO₂ (R744) keeps pulling heat out of the air when an R290 or R134a heat pump is working hardest for the least. On an Emerald or Gembrook morning in July that's the difference between a full tank and a lukewarm one, and it's the whole reason we run the refrigerant most of the market doesn't.",
         icon: "snowflake",
       },
       {
-        t: "The tank outlasts the pump",
+        t: "Split: the tank outlasts the pump",
         line: "Stainless: no anode to swap, nothing to rust",
         detail:
           "A stainless Reclaim tank carries 15-year parts + 5-year labour, and there's no sacrificial anode to replace along the way because there's nothing in there to corrode. On the hardest water the duplex tank steps up to 2205 duplex / 316-grade. It's built to still be holding water after the compressor in front of it has been swapped.",
         icon: "shield",
       },
       {
-        t: "Heats on your own solar",
+        t: "Split: heats on your own solar",
         line: "PV-diverter kit fires the compressor on surplus",
         detail:
           "If you've got panels on the roof, the PV-diverter kit runs the compressor on the power you'd otherwise be exporting for a few cents. The water gets hot on daytime sun instead of grid power, which is the honest way to get the running cost down rather than a claim on a sticker.",
         icon: "flame",
       },
       {
-        t: "Quiet by the bedroom wall",
-        line: "37 dBA at 1 m from the outdoor unit",
+        t: "All-in-one: one unit, one spot",
+        line: "Heat pump and tank together, nothing else outside",
         detail:
-          "The split heat pump sits outside and runs at 37 dBA at a metre, quiet enough to put next to a bedroom or a neighbour's fence line without it being the thing that wakes anyone. Worth knowing before somebody tucks a noisier all-in-one under a window.",
+          "The ECO R290 all-in-one goes where the old tank stood, with no separate outdoor unit to find a place for. That suits townhouses, narrow side paths and anyone who wants a straight swap. 200 L for a smaller household, 285 L for a family of four or five.",
         icon: "people",
       },
       {
-        t: "Parts for every unit sold",
-        line: "Sydney factory stocks the whole field",
+        t: "All-in-one: eight years on everything",
+        line: "8-year whole-unit warranty, parts and labour",
         detail:
-          "Reclaim's Sydney factory holds parts for every unit currently in the field, so a compressor swap-out inside warranty is a booked job rather than a hunt. We carry the common seals, O-rings and PV-diverter controllers on the truck, so the small stuff gets fixed the same visit.",
-        icon: "truck",
+          "One warranty covers the lot: tank, heat pump and controls, parts and labour, for eight years. It runs R290, a natural refrigerant, and like the split it's VEU-eligible, with the rebate taken off at the quote.",
+        icon: "shield",
       },
       {
         t: "Built for the long stay",
@@ -1579,11 +1607,15 @@ const brandCatalogue: Brand[] = [
       { title: "Site visit and tank choice", detail: "We look at where the tank and the outdoor heat pump can go, check your hot-water demand and how hard the water is, and settle the tank: glass-lined or stainless, 160 through 400 L, or an ECO R290 all-in-one where the split won't fit." },
       { title: "Written quote after the VEU rebate", detail: "A written quote: model, tank finish, capacity, warranty position and the total after the VEU rebate is taken off, not a 'from $X'. The rebate is assigned to us and already in the number you see." },
       { title: "Old unit removed", detail: "On the day we drain, disconnect and take away the old gas or electric storage unit, and cap or make good the gas point if you're coming off gas." },
-      { title: "Set the split heat pump and tank", detail: "We stand the tank, mount the outdoor CO₂ heat pump on a level pad or bracket, run the insulated pipework between them and plumb it into the house. Fresh fittings, not whatever was there." },
+      { title: "Set the new system", detail: "For a split, we stand the tank, mount the outdoor CO₂ heat pump on a level pad or bracket and run the insulated pipework between them. For an all-in-one, it stands on the pad where the old tank was. Either way it's plumbed in with fresh fittings, not whatever was there." },
       { title: "Tempering valve and PV diverter", detail: "A tempering valve goes on so the water leaves the tap at a safe temperature, and where you've got solar we fit the PV-diverter kit so the compressor fires on your surplus rather than the grid." },
       { title: "Commission and rebate paperwork", detail: "We fill and run it up, check it's making temperature, register the warranty in your name and lodge the VEU paperwork and compliance certificates so the rebate lands and the record stays clean." },
     ],
     faqs: [
+      {
+        q: "Do I want the split or the ECO R290 all-in-one?",
+        a: "The CO₂ split: outdoor heat pump plumbed to a separate tank: is the one we fit most, in 160 through 400 L, because it's the best cold-weather performer and the tank choice is widest. The ECO R290 all-in-one puts everything in one shell at 200 or 285 L and goes in where there's no room to separate the pump and tank, or where the run between them would be awkward. We'll tell you which your house is at the quote.",
+      },
       {
         q: "Why CO₂ when everyone else runs R290 or R134a?",
         a: "Because CO₂ (R744) keeps pulling heat out of cold air when the other refrigerants are working hardest for the least. Reclaim holds its heating capacity down to -10° ambient, which is exactly the Emerald and Gembrook mornings in July when you want a full tank. It's also a natural refrigerant with zero global-warming potential, but the reason we fit it is the cold-morning performance, not the badge.",
@@ -1591,10 +1623,6 @@ const brandCatalogue: Brand[] = [
       {
         q: "Glass-lined or stainless, is the stainless worth the extra?",
         a: "If you're staying in the house, usually yes. A glass-lined tank carries 10-year parts + 5-year labour and has a sacrificial anode that needs checking over its life; a stainless tank carries 15-year parts + 5-year labour, has no anode to swap and nothing in it to rust. On hard water the duplex tank steps up to 2205 duplex / 316-grade. The stainless tank is built to outlast the compressor in front of it, which is the whole idea.",
-      },
-      {
-        q: "Do I want the split or the ECO R290 all-in-one?",
-        a: "The CO₂ split: outdoor heat pump plumbed to a separate tank: is the one we fit most, in 160 through 400 L, because it's the best cold-weather performer and the tank choice is widest. The ECO R290 all-in-one puts everything in one shell at 200 or 285 L and goes in where there's no room to separate the pump and tank, or where the run between them would be awkward. We'll tell you which your house is at the quote.",
       },
       {
         q: "It costs more than the other heat pumps, is it worth it?",
