@@ -33,6 +33,9 @@ the app has no permission to send mail at all.
    Sent Items and Drafts are watched for this, so it happens within seconds;
    the catch-up checks for any it missed. A tag added by hand is never
    touched.
+8. One draft per thread. When a newer email in a thread gets its draft, the
+   older draft there is deleted, as long as nobody has edited it. An edited
+   draft is always left alone.
 
 What happened to each email is recorded in the `mail_drafts` table.
 

@@ -5,6 +5,7 @@ import { graph, outlookMailboxes, userPath } from "./graph";
 import { handleMessage, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
+import { dedupeDrafts } from "./drafts";
 import { MAX_AGE_MS } from "./outlookTypes";
 
 /**
@@ -42,6 +43,7 @@ export type SweepResult = {
   subscriptions: SubStatus[] | { error: string };
   mailboxes: { mailbox: string; seen: number; left: number; backfill?: string; handled: (Outcome & { id: string })[]; error?: string }[];
   handoffs: { mailbox: string; checked: number; cleared: number; error?: string }[];
+  duplicates: { mailbox: string; threads: number; removed: number; keptEdited: number; error?: string }[];
 };
 
 /** Every Inbox id received since `since`, newest first, page by page. */
@@ -130,10 +132,17 @@ export async function sweep(): Promise<SweepResult> {
 
   // Needs a person off any email whose thread has had a reply the Sent Items
   // notification didn't report. After the drafts, which matter more.
+  // One draft per thread: older ones the webhook's own clean-up missed. Before
+  // the tag check, which then sees those drafts gone.
+  const duplicates: SweepResult["duplicates"] = [];
+  for (const mailbox of outlookMailboxes()) {
+    duplicates.push({ mailbox, ...(await dedupeDrafts(mailbox, started + TAGS_BUDGET_MS)) });
+  }
+
   const handoffs: SweepResult["handoffs"] = [];
   for (const mailbox of outlookMailboxes()) {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, handoffs };
+  return { subscriptions, mailboxes, duplicates, handoffs };
 }

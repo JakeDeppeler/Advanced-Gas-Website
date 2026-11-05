@@ -13,6 +13,7 @@ import {
   parseMailDraft,
   plainText,
   repliedSince,
+  untouched,
   replyHtml,
   signoffFor,
   skipReason,
@@ -121,6 +122,11 @@ ok("only a draft: tag stays", !repliedSince([sent({ isDraft: true })], BOX, tagg
 ok("our reply from before it arrived: tag stays", !repliedSince([sent({ sentDateTime: "2026-11-03T22:00:00Z" })], BOX, tagged));
 ok("the customer writing again: tag stays", !repliedSince([msg({ id: "m2", receivedDateTime: "2026-11-04T02:00:00Z" })], BOX, tagged));
 ok("sent on behalf of the shared box counts", repliedSince([sent({ from: from(BOX), sender: from("jake@advancedgas.com.au") })], BOX, tagged));
+
+// --- an older draft is only deleted if nobody has worked on it
+ok("draft as we left it: untouched", untouched("2026-11-05T00:00:00Z", "2026-11-05T00:00:04Z"));
+ok("draft saved later: edited, kept", !untouched("2026-11-05T00:00:00Z", "2026-11-05T00:20:00Z"));
+ok("dates missing: treated as edited, kept", !untouched(null, "2026-11-05T00:00:04Z"));
 
 if (bad) {
   console.log(`\n${bad} failed`);
