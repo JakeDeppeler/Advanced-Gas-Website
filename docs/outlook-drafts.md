@@ -39,6 +39,34 @@ the app has no permission to send mail at all.
 
 What happened to each email is recorded in the `mail_drafts` table.
 
+## Emails about a job go on the job
+
+An email from outside about a job goes onto that job in ServiceTitan as a
+note, with its files attached, and gets the Outlook category **On a job**
+(`lib/outlook/jobLink.ts`). Only when it's clear:
+
+1. **Same thread:** an earlier email in the thread already went on a job, or
+   a work order in it made one.
+2. **Job number:** one of our job numbers is in the subject or opening, and
+   either the sender is a contact on that job's customer or site, or the
+   email names its street. Agencies quote their own job numbers, so a number
+   alone isn't enough.
+3. **The sender's job:** the sender is a contact on exactly one open job, or
+   on several and the email names the street of exactly one.
+
+A "Re:" work order about a site with a job from the last month goes on that
+job instead of making a new one.
+
+## How the drafts learn
+
+The model isn't retrained. Each time a reply goes out in a thread we drafted
+for, what was actually sent is kept beside the draft. Every new draft is
+written after reading the office's last eight such pairs, so it follows your
+length, tone and sign-off, and stops doing what you keep cutting. It also ends
+a conversation rather than prolonging it: a closing "thanks, see you then"
+gets no draft, and a reply that needs something from the customer asks for
+it last and stops.
+
 ## Connecting it (once, about 20 minutes)
 
 You need to be a Microsoft 365 admin.

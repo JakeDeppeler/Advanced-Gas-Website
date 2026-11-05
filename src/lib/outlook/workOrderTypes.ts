@@ -341,3 +341,14 @@ export function melbourneInstant(dayIso: string, hhmm: string): string {
   if (offset > 720) offset -= 1440;
   return new Date(guess - offset * 60_000).toISOString();
 }
+
+/** Five-digit numbers in an email that could be our job numbers (ours run 20000s); a dollar amount, decimal or date part isn't one. */
+export function jobNumbersIn(text: string): string[] {
+  return [...new Set([...text.matchAll(/(?<![\d$.,/:-])(\d{5})(?![\d,.:/]|\s*(?:kw|kg|mm|l\b))/gi)].map((x) => x[1]))].slice(0, 5);
+}
+
+/** Whether the email names this street (by its name, so "Willslie" finds "33 Willslie Crescent"). */
+export function namesStreet(text: string, street: string): boolean {
+  const w = streetWord(street).replace(/[^a-z]/g, "");
+  return w.length > 2 && new RegExp(`\\b${w}\\b`, "i").test(text);
+}

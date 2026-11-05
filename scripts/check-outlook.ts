@@ -20,7 +20,7 @@ import {
   threadText,
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
-import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -218,6 +218,14 @@ ok("8am Melbourne in daylight time", melbourneInstant("2026-11-06", "08:00") ===
 ok("8am Melbourne in winter", melbourneInstant("2026-06-15", "08:00") === "2026-06-14T22:00:00.000Z");
 ok("page: a job on the tenant's site", stage({ ...base, st_booking_id: null, st_job_number: "20850", attached_at: "x", location_how: "existing site" }).word === "Job 20850");
 ok("page: agency not set up", stage({ ...base, status: "needs_agency", reason: "Tapi isn't a customer" }).word === "Agency not set up");
+
+// --- an email onto its job: the number and the street
+ok("our job number found", JSON.stringify(jobNumbersIn("Re: Job 20772 - aircon")) === JSON.stringify(["20772"]));
+ok("agency's number is found too (and needs backing up)", jobNumbersIn("Barry Plant work order - Job #18943").includes("18943"));
+ok("money, dates, phones and sizes aren't job numbers", jobNumbersIn("Invoice $12345.00 on 12/11/2026, call 0412 345 678, 10000L tank, 24000 kw") .length === 0, jobNumbersIn("Invoice $12345.00 on 12/11/2026, call 0412 345 678, 10000L tank, 24000 kw"));
+ok("postcodes (four digits) aren't", jobNumbersIn("Berwick VIC 3806").length === 0);
+ok("street named", namesStreet("Re: Broken Air Conditioner at 24 Melzak Way, BERWICK", "24 Melzak Way"));
+ok("other street not", !namesStreet("Re: aircon at 5 Golden Green St", "24 Melzak Way"));
 
 if (bad) {
   console.log(`\n${bad} failed`);
