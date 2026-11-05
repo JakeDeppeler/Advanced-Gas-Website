@@ -179,5 +179,20 @@ the job once the office books it (`lib/outlook/workOrders.ts`).
 - **Where it goes:** the booking provider set on Settings › Automatic, under
   Website enquiries, the same one the website enquiries use.
 
+- **No reply draft:** a work order is booked and the tenant emailed; it
+  doesn't also get a drafted reply.
+- **The tenant:** once it's booked, the tenant gets an email asking them to
+  call or reply with times that suit, from bookings@ with replies to
+  **bookings@advancedgas.com.au** (that address has to exist in Microsoft
+  365). Only when the work order gives the tenant's own email; never to an
+  address that looks like the agent's. The wording is set on the portal's
+  **Work orders** page, and can be switched off there. The email gets the
+  Outlook category **Tenant emailed**.
+- **Knowing what happened:** the portal's **Work orders** page (Settings ›
+  Records › Work orders) lists every one and where it's up to; the Outlook
+  categories mark each email; and a summary of the day's work orders is
+  emailed on weekdays at about 5:40pm (to the notify address on Settings ›
+  Automatic, else Jake). A day with none sends nothing.
+
 Each email read is a row in `work_orders` with what was read, what happened
 and why.

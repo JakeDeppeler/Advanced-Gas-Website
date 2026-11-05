@@ -130,6 +130,12 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["message", "messages", "messenger", "instagram", "facebook", "dm", "chat", "website chat", "inbox", "reply", "customer"],
   });
 
+  // The office's view of work orders from email, like the chats.
+  add(office || can(user, "quotes"), {
+    href: "/portal/work-orders", label: "Work orders", blurb: "From email into ServiceTitan's Bookings, and the tenant emailed", band: "customers", icon: "doc",
+    also: ["work order", "work orders", "propertyme", "tapi", "real estate", "agent", "property manager", "tenant", "bookings"],
+  });
+
   add(office,
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
     { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },

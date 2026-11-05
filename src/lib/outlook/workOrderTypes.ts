@@ -137,3 +137,106 @@ export function bookingSummary(w: WorkOrder): string {
     "Read from the email by the portal. The work order and the email go on the job once it's booked.",
   ].filter(Boolean).join("\n\n").slice(0, 4000);
 }
+
+/* ------------------------------------------------------------ the tenant */
+
+/** Put on the work order email once the tenant has been emailed. */
+export const TENANT_CATEGORY = "Tenant emailed";
+/** Where tenants' replies go (Jake, 5 Nov). */
+export const BOOKINGS_ADDRESS = "bookings@advancedgas.com.au";
+
+/** What the office sets on the Work orders page. Stored in portal_settings as 'work_orders'. */
+export type WorkOrderSettings = { tenantEmail: boolean; subject: string; body: string };
+
+export const DEFAULT_TENANT_SUBJECT = "Booking a time for {job} at {address}";
+export const DEFAULT_TENANT_BODY = `Hi {tenant},
+
+{agency} has asked Advanced Gas & Aircon to attend {address} for: {job}.
+
+Please give us a call on {phone}, or reply to this email with a few days and times that suit you, and we'll get you booked in.
+
+Kind regards,
+Advanced Gas & Aircon
+{phone}`;
+
+export function workOrderSettingsFrom(raw: unknown): WorkOrderSettings {
+  const o = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const s = (v: unknown, d: string, max: number) => (typeof v === "string" && v.trim() ? v.slice(0, max) : d);
+  return {
+    // On unless switched off: Jake asked for it to go automatically.
+    tenantEmail: o.tenantEmail !== false,
+    subject: s(o.subject, DEFAULT_TENANT_SUBJECT, 200),
+    body: s(o.body, DEFAULT_TENANT_BODY, 4000),
+  };
+}
+
+/** The words in braces the wording can use, and what fills them. */
+export const PLACEHOLDERS = ["tenant", "agency", "address", "job", "number", "phone"] as const;
+
+export function fillTemplate(tpl: string, w: WorkOrder, phone: string): string {
+  const first = w.tenantName.trim().split(/\s+/)[0] || "there";
+  const address = [w.street, w.suburb].filter(Boolean).join(", ") || "the property";
+  const values: Record<(typeof PLACEHOLDERS)[number], string> = {
+    tenant: first,
+    agency: w.agency || "Your property manager",
+    address,
+    job: (w.job || "a job").replace(/\.$/, "").replace(/^./, (c) => c.toLowerCase()),
+    number: w.number,
+    phone,
+  };
+  return tpl.replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? values[k as keyof typeof values] : m));
+}
+
+const EMAIL = /^[^\s@<>()",;]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
+const PLATFORM_DOMAIN = /(^|\.)(propertyme\.com|tapihq\.com|propertytree\.com)$/i;
+
+/**
+ * The tenant's email, if it's safe to write to. Not one of ours, not the
+ * agency's or the platform's (a reading that put the property manager's
+ * address in the tenant's place would otherwise email the agent asking them
+ * to ring us for a time).
+ */
+export function tenantAddress(w: WorkOrder, fromAddress: string): string | null {
+  const to = w.tenantEmail.trim().toLowerCase();
+  if (!EMAIL.test(to)) return null;
+  const domain = to.split("@")[1];
+  if (TEAM_DOMAIN.test(to) || PLATFORM_DOMAIN.test(domain)) return null;
+  const agencyDomains = [fromAddress, w.pmEmail].map((a) => a.trim().toLowerCase().split("@")[1]).filter(Boolean);
+  if (agencyDomains.includes(domain) && !/^(gmail|hotmail|outlook|live|yahoo|icloud|bigpond|optusnet)\./.test(domain)) return null;
+  if (to === w.pmEmail.trim().toLowerCase() || to === fromAddress.trim().toLowerCase()) return null;
+  return to;
+}
+
+/* ------------------------------------------------------------ the page */
+
+/** One work_orders row as the Work orders page shows it. */
+export type WorkOrderRow = {
+  id: string; mailbox: string; source: "auto" | "forward" | "category"; status: "working" | "booked" | "duplicate" | "not" | "failed";
+  reason: string | null; kind: WorkOrderKind | null; agency: string | null; wo_number: string | null; address: string | null;
+  subject: string | null; from_address: string | null; received_at: string | null; created_at: string;
+  st_booking_id: string | null; st_job_number: string | null; attached_at: string | null; attach_error: string | null;
+  tenant_email_to: string | null; tenant_emailed_at: string | null; tenant_email_note: string | null;
+  details: Partial<WorkOrder> | null;
+};
+
+export const KIND_SHORT: Record<WorkOrderKind, string> = { work_order: "Work order", quote_request: "Quote request", quote_accepted: "Quote accepted" };
+
+/** Which rows the page lists: everything read as a work order, and platform emails judged not to be one, since a miss would hide there. */
+export const PLATFORM_SENDER = /@(?:[\w.-]+\.)?(propertyme\.com|tapihq\.com|propertytree\.com)$/i;
+export const worthListing = (r: Pick<WorkOrderRow, "status" | "from_address">) => r.status !== "not" || PLATFORM_SENDER.test(r.from_address ?? "");
+
+/** Where a work order is up to, in the words the office would use. */
+export function stage(r: WorkOrderRow): { tone: "good" | "mid" | "bad" | "none"; word: string; line: string } {
+  if (r.status === "not") return { tone: "none", word: "Not a work order", line: r.reason ?? "Read and judged not to be one" };
+  if (r.status === "failed") return { tone: "bad", word: "Not booked yet", line: r.reason ?? "ServiceTitan refused it; tried again automatically" };
+  if (r.status === "working") return { tone: "mid", word: "Reading", line: "Being read now" };
+  if (r.status === "duplicate") return { tone: "none", word: "Already booked", line: "A reminder or resend of one booked from an earlier email" };
+  if (r.attached_at) return { tone: "good", word: `On job ${r.st_job_number ?? ""}`.trim(), line: "Work order and email attached to the job" };
+  return { tone: "mid", word: "In Bookings", line: `Booking ${r.st_booking_id ?? ""}: waiting for the office to book the job`.replace(" :", ":") };
+}
+
+export function tenantLine(r: WorkOrderRow): string {
+  if (r.tenant_emailed_at && r.tenant_email_to) return `Tenant emailed (${r.tenant_email_to})`;
+  if (r.tenant_email_note) return r.tenant_email_note;
+  return r.status === "booked" ? "Tenant not emailed" : "";
+}

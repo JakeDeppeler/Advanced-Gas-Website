@@ -1,0 +1,7 @@
+/*
+ * Each line of a work order's row on its own line, the way the office scans
+ * them: when, what, where it's up to, the tenant. The kit styles a row's
+ * sub-line spans as one run of text, so this needs the kit's own depth to win.
+ */
+.pk-row .t .wo-line { display: block; }
+.pk-row .t .wo-line + .wo-line { margin-top: 2px; }

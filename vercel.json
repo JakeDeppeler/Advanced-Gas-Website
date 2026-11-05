@@ -19,6 +19,10 @@
     {
       "path": "/api/email/outlook/sweep",
       "schedule": "40 19 * * *"
+    },
+    {
+      "path": "/api/email/outlook/summary",
+      "schedule": "40 6 * * 1-5"
     }
   ]
 }
