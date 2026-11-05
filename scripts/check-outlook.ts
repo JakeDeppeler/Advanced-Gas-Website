@@ -227,6 +227,15 @@ ok("postcodes (four digits) aren't", jobNumbersIn("Berwick VIC 3806").length ===
 ok("street named", namesStreet("Re: Broken Air Conditioner at 24 Melzak Way, BERWICK", "24 Melzak Way"));
 ok("other street not", !namesStreet("Re: aircon at 5 Golden Green St", "24 Melzak Way"));
 
+// --- cancellations
+ok("an agent's cancellation is read", mightBeWorkOrder(wo("pm@raywhite.com.au", "Please cancel the job at 5 Owen Court"), ""));
+ok("a cancelled-order receipt from a supplier isn't", !mightBeWorkOrder(wo("orders@supplier.com.au", "Your order has been cancelled"), ""));
+ok("a cancellation email is listed", worthListing({ status: "not", from_address: "pm@raywhite.com.au", reason: "cancellation: cancelled job 20772 at 24 Melzak Way" }));
+ok("page: cancellation done", stage({ ...base, status: "not", reason: "cancellation: cancelled job 20772 at 24 Melzak Way" }).word === "Cancellation done");
+ok("page: cancellation to check", stage({ ...base, status: "not", reason: "cancellation: cancellation for job 20772, which is InProgress, so it was left alone" }).tone === "bad");
+ok("page: the cancelled work order", stage({ ...base, cancelled_at: "x", cancel_note: "Cancelled by Ray White by email" }).word === "Cancelled");
+ok("reading: cancellation flag parsed", parseWorkOrder(JSON.stringify({ is_work_order: false, is_cancellation: true })).isCancellation);
+
 if (bad) {
   console.log(`\n${bad} failed`);
   process.exit(1);

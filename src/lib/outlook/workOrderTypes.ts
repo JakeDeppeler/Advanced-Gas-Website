@@ -20,7 +20,7 @@ export type WorkOrderKind = "work_order" | "quote_request" | "quote_accepted";
 
 /** Senders whose mail is mostly work orders: worth the model's look every time. */
 const PLATFORMS = /@(?:[\w.-]+\.)?(propertyme\.com|tapihq\.com|propertytree\.com|rentmanager\.com|ourproperty\.com\.au|console\.com\.au|maintenancemanager\.com\.au)$/i;
-const WORDS = /\b(work\s*order|maintenance\s*(request|order)|job\s*#\s*\d|request\s*for\s*(a\s*)?quot\w*|provide\s*a\s*quote|quote\s*(accepted|approved)|repair\s*request|urgent\s*work)\b/i;
+const WORDS = /\b(cancel(?:led|lation)?\s+(?:the\s+)?(?:work\s*order|job|quote|booking|attendance)|work\s*order|maintenance\s*(request|order)|job\s*#\s*\d|request\s*for\s*(a\s*)?quot\w*|provide\s*a\s*quote|quote\s*(accepted|approved)|repair\s*request|urgent\s*work)\b/i;
 
 /** A forward from one of us: someone sending a work order in by hand. */
 export function isTeamForward(m: GraphMessage): boolean {
@@ -87,13 +87,15 @@ export type WorkOrder = {
   /** One of ServiceTitan's job type names, picked by the reading. */
   jobType: string;
   urgent: boolean;
+  /** The email cancels a work order, quote request or job already sent to us. */
+  isCancellation: boolean;
 };
 
 const str = { type: "string" } as const;
 export const WORK_ORDER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent"],
+  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent", "is_cancellation"],
   properties: {
     is_work_order: { type: "boolean", description: "True only if this asks us to attend a property: a new work order, a request to quote, or a quote accepted and the work to go ahead." },
     why_not: { type: "string", description: "When false, at most eight words on what it is instead, e.g. 'Progress update on an existing job'." },
@@ -112,6 +114,7 @@ export const WORK_ORDER_SCHEMA = {
     attend_by_date: { type: "string", description: "That date as YYYY-MM-DD (Australian dates are day first), else empty." },
     job_type: { type: "string", description: "The ServiceTitan job type for the visit, from the list given. A request to quote is 'Quotation'; a fault is the Diagnostics type for the appliance." },
     urgent: { type: "boolean" },
+    is_cancellation: { type: "boolean", description: "True if this email cancels or withdraws a work order, quote request or job already sent to us (then is_work_order is false). Fill in the address and number of what's being cancelled." },
   },
 } as const;
 
@@ -126,6 +129,7 @@ export function parseWorkOrder(text: string): WorkOrder {
     number: s("number", 40), street: s("street", 160), suburb: s("suburb", 60), postcode: s("postcode", 8),
     tenantName: s("tenant_name", 120), tenantPhone: s("tenant_phone", 40), tenantEmail: s("tenant_email", 120),
     job: s("job", 120), details: s("details", 3000), attendBy: s("attend_by", 60), urgent: o.urgent === true,
+    isCancellation: o.is_cancellation === true,
     attendByDate: /^\d{4}-\d{2}-\d{2}$/.test(s("attend_by_date", 10)) ? s("attend_by_date", 10) : "", jobType: s("job_type", 80),
   };
 }
@@ -230,16 +234,23 @@ export type WorkOrderRow = {
   location_how?: string | null;
   tenant_email_to: string | null; tenant_emailed_at: string | null; tenant_email_note: string | null;
   details: Partial<WorkOrder> | null;
+  cancelled_at?: string | null; cancel_note?: string | null;
 };
 
 export const KIND_SHORT: Record<WorkOrderKind, string> = { work_order: "Work order", quote_request: "Quote request", quote_accepted: "Quote accepted" };
 
 /** Which rows the page lists: everything read as a work order, and platform emails judged not to be one, since a miss would hide there. */
 export const PLATFORM_SENDER = /@(?:[\w.-]+\.)?(propertyme\.com|tapihq\.com|propertytree\.com)$/i;
-export const worthListing = (r: Pick<WorkOrderRow, "status" | "from_address">) => r.status !== "not" || PLATFORM_SENDER.test(r.from_address ?? "");
+export const worthListing = (r: Pick<WorkOrderRow, "status" | "from_address"> & { reason?: string | null }) =>
+  r.status !== "not" || PLATFORM_SENDER.test(r.from_address ?? "") || (r.reason ?? "").startsWith("cancellation");
 
 /** Where a work order is up to, in the words the office would use. */
 export function stage(r: WorkOrderRow): { tone: "good" | "mid" | "bad" | "none"; word: string; line: string } {
+  if (r.cancelled_at) return { tone: "none", word: "Cancelled", line: r.cancel_note ?? "Cancelled by the agency" };
+  if (r.status === "not" && (r.reason ?? "").startsWith("cancellation")) {
+    const done = /^cancellation: cancelled job/.test(r.reason ?? "");
+    return { tone: done ? "good" : "bad", word: done ? "Cancellation done" : "Cancellation to check", line: (r.reason ?? "").replace(/^cancellation: /, "") };
+  }
   if (r.status === "not") return { tone: "none", word: "Not a work order", line: r.reason ?? "Read and judged not to be one" };
   if (r.status === "failed") return { tone: "bad", word: "Not booked yet", line: r.reason ?? "ServiceTitan refused it; tried again automatically" };
   if (r.status === "working") return { tone: "mid", word: "Reading", line: "Being read now" };

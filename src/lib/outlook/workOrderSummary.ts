@@ -34,8 +34,9 @@ export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: nu
   const booked = rows.filter((r) => r.status === "booked");
   const dupes = rows.filter((r) => r.status === "duplicate");
   const failed = rows.filter((r) => r.status === "failed" || r.status === "working" || r.status === "needs_agency");
-  const missed = rows.filter((r) => r.status === "not" && PLATFORM.test(r.from_address ?? ""));
-  const count = booked.length + dupes.length + failed.length + missed.length;
+  const cancels = rows.filter((r) => r.status === "not" && (r.reason ?? "").startsWith("cancellation"));
+  const missed = rows.filter((r) => r.status === "not" && PLATFORM.test(r.from_address ?? "") && !cancels.includes(r));
+  const count = booked.length + dupes.length + failed.length + missed.length + cancels.length;
   if (!count) return { sent: false, count: 0 };
 
   const line = (r: Row) => {
@@ -45,6 +46,7 @@ export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: nu
   const sections: [string, Row[], (r: Row) => string][] = [
     ["Into ServiceTitan", booked, (r) => `${line(r)}. ${r.st_job_number ? `Job ${r.st_job_number}${r.location_how ? ` (${r.location_how})` : ""}, To Be Booked` : `Booking ${r.st_booking_id ?? "made"}`}. ${r.tenant_email_to ? `Tenant emailed (${r.tenant_email_to}).` : r.tenant_email_note ?? "Tenant not emailed."}`],
     ["Already booked (a reminder or resend)", dupes, (r) => `${line(r)}.`],
+    ["Cancellations", cancels, (r) => `${r.address ?? r.subject ?? ""}: ${(r.reason ?? "").replace(/^cancellation: /, "")}.`],
     ["Not in ServiceTitan yet", failed, (r) => `${line(r)}. ${r.reason ?? ""}`],
     ["From a work order platform, read as not a work order: check these", missed, (r) => `${r.subject ?? "(no subject)"}: ${r.reason ?? ""}. Mark it with the Outlook category "Work order" if it is one.`],
   ];
