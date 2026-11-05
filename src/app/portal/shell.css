@@ -3936,3 +3936,17 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .sb-reprice__btns { display: flex; flex-wrap: wrap; gap: 8px; }
 .sb-reprice { flex-basis: auto; }
 .sb-reprice:has(.sb-reprice__box) { flex-basis: 100%; }
+
+/* Sites › a village: rebooking to the office's list, day by day. */
+.rb-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0; }
+.rb-bad { color: var(--bad, #b42318); font-weight: 600; font-size: 13px; }
+.rb-days { display: grid; gap: 6px; margin-top: 8px; }
+.rb-day { border-radius: 12px; background: var(--ground, #ededec); padding: 8px 12px; }
+.rb-day summary { display: flex; justify-content: space-between; gap: 12px; cursor: pointer; font-size: 14px; }
+.rb-day summary span { color: var(--ink2); font-size: 13px; }
+.rb-t { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.rb-t td { padding: 4px 6px; border-top: 1px solid var(--rp-line, #e2e1dd); }
+.rb-t td.t { width: 64px; color: var(--ink2); }
+.rb-t td.was { color: var(--ink2); }
+.rb-t td.st { text-align: right; white-space: nowrap; }
+.rb-t tr.same td { color: var(--ink3, #8a8a86); }

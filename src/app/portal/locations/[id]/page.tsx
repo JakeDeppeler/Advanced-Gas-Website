@@ -12,6 +12,8 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { fetchCustomer, findDoubles, liveView, loadSpec, siteDefaults } from "@/lib/locations/stLocations";
 import { siteVisits } from "@/lib/locations/visits";
+import { loadPlan } from "@/lib/locations/rebook";
+import { RebookPlan } from "@/components/portal/RebookPlan";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -59,9 +61,10 @@ export default async function CustomerLocationsPage({ params }: { params: { id: 
   }
 
   const [spec, prefill] = await Promise.all([loadSpec(id).catch(() => null), siteDefaults(id).catch(() => null)]);
-  const [view, booked] = await Promise.all([
+  const [view, booked, plan] = await Promise.all([
     liveView(id, spec).catch((e: Error) => ({ error: e.message }) as const),
     siteVisits(id).catch(() => null),
+    loadPlan(id).catch(() => null),
   ]);
 
   const active = "error" in view ? [] : view.locations.filter((l) => l.active);
@@ -89,6 +92,11 @@ export default async function CustomerLocationsPage({ params }: { params: { id: 
             .map((l) => ({ id: l.id, name: l.name, status: l.status, tags: l.tags }))
             .sort((a, b) => a.name.localeCompare(b.name, "en-AU", { numeric: true }))}
         />
+      )}
+
+      {plan && (
+        <RebookPlan customerId={id} title={plan.title} done={plan.done}
+          moves={plan.moves.map(({ appt, unit, job, fromStart, fromCrew, start, crew, change }) => ({ appt, unit, job, fromStart, fromCrew, start, crew, change }))} />
       )}
 
       {booked && booked.visits.length > 0 && <TechSwap visits={booked.visits} techs={booked.techs} busy={booked.busy} />}
