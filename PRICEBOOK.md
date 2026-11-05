@@ -235,12 +235,16 @@ the sync will create a second one.
 ## Labour pricing
 
 Jake, 5 Nov 2026: installation is priced for two people (a tech and an
-apprentice), fixing a problem for one. A diagnostic is the standard call-out
+apprentice), fixing a problem for one. An install done in part of a day (a
+split, a heat pump or split hot water, continuous flow, gas storage, a cooktop)
+is at the **part-day** rate, $350, because the drive to the next job comes out
+of it; the all-day jobs (multi-head, ducted, Dominator) are at the crew rate,
+$310. A diagnostic is the standard call-out
 ($200): it's the customer's first contact and how the job is won. Servicing is
 left at its own prices for the same reason, since it's where problems are
 found. The figures are the portal's, on **Pricing & costs › Rates & pricing**
-(`portal_settings.pricing`: `callout` $200, `solo` $250, `hourly` $310,
-`install` $360 at the time), so changing one there and re-running is how the
+(`portal_settings.pricing`: `callout` $200, `solo` $250, `partDay` $350,
+`hourly` $310, `install` $360 at the time), so changing one there and re-running is how the
 pricebook follows it.
 
 **Services.** Diagnostics become the call-out fee; repairs and installation
@@ -263,10 +267,14 @@ Rebuilt, each split and multi-head template has one installation header (a
 ServiceTitan item group) holding the electrical and every material at its
 pricebook price.
 
-- Splits: the labour is on the header, at the install service's hours × $310.
+- Splits: the labour is on the header, at the install service's hours × the
+  part-day $350.
   Each offers add-ons for the office to tick on the day: removing the old
   unit, a condensate pump, Blygold, and a second coil of the template's own
   size for runs over 20 m.
+- Hot water (heat pump, split, continuous flow, gas storage) and cooktops:
+  the same, labour on the header at $350. This is what fixes the $0 install
+  lines on the Continuous Flow and Thermann 135L templates.
 - Multi-heads: a condenser goes out with two heads or five, so the labour
   isn't fixed. *Multi Head Labour (2 head)* to *(6 head)* go on as add-ons at
   hours × $310 and the office ticks the one the job needs, as with rebates.

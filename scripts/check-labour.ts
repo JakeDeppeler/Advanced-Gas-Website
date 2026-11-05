@@ -17,15 +17,18 @@ const ok = (name: string, pass: boolean, extra: unknown = "") => {
   if (!pass) bad++;
 };
 
-const rates = { callout: 200, solo: 250, pair: 310, crew3: 360 };
+const rates = { callout: 200, solo: 250, partDay: 350, pair: 310, crew3: 360 };
+const tr = { partDay: 350, pair: 310 };
 
 // --- services -----------------------------------------------------------------------
 
 ok("split diagnostics is the call-out", crewFor("AC-SPLIT-DIAG") === "callout");
 ok("split repair is one person by the hour", crewFor("AC-SPLIT-REPAIR") === "solo");
 ok("servicing is left at its own price", crewFor("SVC-AS-SPLIT") === null && crewFor("AC-SPLIT-DEEPCLEAN") === null && crewFor("EVAP-MAINT-DS") === null);
-ok("roof-bracket install is two", crewFor("AC-SPLIT-RTR") === "pair");
-ok("codes with stray spaces still match", crewFor(" GAS-DUCT-EXT") === "pair" && crewFor("AC-SPLIT-MULTI-4 ") === "pair");
+ok("a split install is the part-day rate", crewFor("AC-SPLIT-RTR") === "partDay");
+ok("heat pump, split hot water and cooktop installs are part-day", ["HW-HP-HARD", "HW-HP-SPLIT", "GAS-COOKTOP-INSTALL", "HW-CF-INS"].every((c) => crewFor(c) === "partDay"));
+ok("all-day jobs are the crew rate: multi-head, ducted, Dominator", ["AC-SPLIT-MULTI-3", "AC-DUCTED-2DAYS", "AC-DOM-LAB"].every((c) => crewFor(c) === "pair"));
+ok("codes with stray spaces still match", crewFor(" GAS-DUCT-EXT") === "partDay" && crewFor("AC-SPLIT-MULTI-4 ") === "pair");
 ok("a hot water repair filed under Split System – Repair is left alone", crewFor("HW-CF-REPAIR") === null);
 ok("electrical connections are the electrician's price, left alone", crewFor("AC-SPLIT-ELEC") === null);
 ok("the three-person hourly line follows the install rate", crewFor("LAB-HR-3P") === "crew3");
@@ -47,13 +50,13 @@ ok("diagnostics: the $200 call-out", by(1)?.after === 200, by(1));
 ok("a diagnostic with no hours on it is still the call-out", by(8)?.after === 200, by(8));
 ok("repair: 1 hour at $250", by(9)?.after === 250, by(9));
 ok("4-head labour: 8 hours at $310", by(2)?.after === 2480, by(2));
-ok("2.8 hours at $310 is $868 to the cent", by(3)?.after === 868, by(3));
+ok("evap install, 2.8 hours at the part-day $350: $980", by(3)?.after === 980, by(3));
 ok("a listed hourly service with no hours is skipped and says so", sv.skipped.some((s) => s.id === 4 && /hours/.test(s.reason)));
 ok("an unlisted service is not touched or reported", !by(5) && !sv.skipped.some((s) => s.id === 5));
 ok("already at its price counts as unchanged", !by(6) && sv.unchanged === 1);
 ok("inactive services are left alone", !by(7));
 ok("servicing isn't re-priced", !by(10));
-ok("removing the old unit is the two-person install rate", crewFor("DECOMMISSION-DISPOSAL") === "pair");
+ok("removing the old unit goes with the install: part-day", crewFor("DECOMMISSION-DISPOSAL") === "partDay");
 
 const gas = planRefrigerant([
   { id: 1, code: "R410A 1kg", name: "Refrigerant R410A (HFC) 1KG", price: 0, cost: 100 },
@@ -66,12 +69,12 @@ ok("R32: $109 cost, $136 sell", gas.find((g) => g.id === 2)?.after === 136 && ga
 ok("codes match whatever their case", gas.length === 2);
 ok("no refrigerant settings: nothing changes", planRefrigerant([{ id: 1, code: "R410A 1kg", name: "x", price: 0, cost: 100 }], null).length === 0);
 
-const noRate = planServices([{ id: 1, code: "AC-SPLIT-DIAG", name: "d", hours: 1, price: 0 }], { callout: null, solo: 250, pair: 310, crew3: null });
+const noRate = planServices([{ id: 1, code: "AC-SPLIT-DIAG", name: "d", hours: 1, price: 0 }], { callout: null, solo: 250, partDay: 350, pair: 310, crew3: null });
 ok("no call-out fee in the portal: skipped, not priced at $0", noRate.changes.length === 0 && /call-out/.test(noRate.skipped[0]?.reason ?? ""));
 
 // --- templates ----------------------------------------------------------------------
 
-const S = { RTW: 10, RTR: 11, ELEC: 12, BPC: 13, MULTI: 14, M2: 25, M3: 26, M4: 15, M5: 16, M6: 17, MELEC: 18, DUCT: 19, DOM: 27, REBATES: 22, ZONE: 23, HP: 24 };
+const S = { CF: 28, ELECHP: 29, RTW: 10, RTR: 11, ELEC: 12, BPC: 13, MULTI: 14, M2: 25, M3: 26, M4: 15, M5: 16, M6: 17, MELEC: 18, DUCT: 19, DOM: 27, REBATES: 22, ZONE: 23, HP: 24 };
 const M = { COIL: 100, BRACKET: 101, HAT: 102, PVC: 103, VEEC: 104, DAMPER: 105, CABLE: 106 };
 const E = { KADEN35: 200, RINNAI14: 201, RPX25: 202, RPX35: 203, RPX5: 204, RPX7: 205, DUCTED16: 206 };
 const mh = (n: number, skuId: number, hours: number) => [n, { skuId, hours, name: `Multi Head Labour (${n} head)` }] as const;
@@ -82,12 +85,13 @@ const cat: Catalogue = {
     [S.M2, { code: "AC-SPLIT-MULTI-2", hours: 5 }], [S.M3, { code: "AC-SPLIT-MULTI-3", hours: 7 }],
     [S.M4, { code: "AC-SPLIT-MULTI-4", hours: 8 }], [S.M5, { code: "AC-SPLIT-MULTI-5", hours: 12 }], [S.M6, { code: "AC-SPLIT-MULTI-6", hours: 14 }],
     [S.MELEC, { code: "AC-MULTI-ELEC", hours: 0 }], [S.DUCT, { code: "AC-DUCTED-2DAYS", hours: 16 }], [S.DOM, { code: "AC-DOM-INSTALL", hours: 0 }],
+    [S.CF, { code: "HW-CF-INS", hours: 2.8 }], [S.ELECHP, { code: "ELEC-HP", hours: 0 }],
     [S.REBATES, { code: "REBATE-TOTAL", hours: 0 }], [S.ZONE, { code: "ZONE 150MM ADD-ON", hours: 0 }], [S.HP, { code: "HW-HP-SPLIT", hours: 4 }],
   ]),
   materialPrice: new Map([[M.COIL, 240], [M.BRACKET, 50], [M.HAT, 35], [M.PVC, 20], [M.VEEC, -70], [M.DAMPER, 76], [M.CABLE, 20]]),
   multiHead: new Map([mh(2, S.M2, 5), mh(3, S.M3, 7), mh(4, S.M4, 8), mh(5, S.M5, 12), mh(6, S.M6, 14)]),
   splitAddOns: [
-    { skuId: 300, skuType: "Service", name: "Remove & dispose of the old unit", price: 310 },
+    { skuId: 300, skuType: "Service", name: "Remove & dispose of the old unit", price: 350 },
     { skuId: 301, skuType: "Material", name: "Silent Mini White Cond Pump 45L/h FP3450", price: 280 },
     { skuId: 302, skuType: "Service", name: "Blygold Corrosion Protection", price: 1100 },
   ],
@@ -96,7 +100,7 @@ let nextId = 1000;
 const it = (skuType: TemplateItem["skuType"], skuId: number, skuName: string, unitPrice: number, more: Partial<TemplateItem> = {}): TemplateItem =>
   ({ id: nextId++, skuId, skuType, skuName, quantity: 1, unitPrice, isAddOn: false, ...more });
 const plan = (t: Template) => {
-  const p = planTemplate(t, cat, 310);
+  const p = planTemplate(t, cat, tr);
   if ("reason" in p) throw new Error(`${t.name}: ${p.reason}`);
   return p;
 };
@@ -116,18 +120,18 @@ const k35: Template = { id: 1, name: "Kaden 3.5kW Split System - Roof To Wall Br
 ] };
 const p1 = plan(k35);
 const head1 = p1.items.find((i) => i.id === p1.header.itemId)!;
-ok("split labour: 4 hours at $310 on the header", p1.header.labour === 1240 && head1.unitPrice === 1240, p1.header);
+ok("split labour: 4 hours at the part-day $350 on the header", p1.header.labour === 1400 && head1.unitPrice === 1400, p1.header);
 ok("the header keeps the template's group name", head1.itemGroupName === "Split System Install - Roof To Mounted Condenser");
 ok("electrical and all four materials sit under the header", group(p1.items, p1.header.itemId).length === 5);
 ok("materials priced from the pricebook: 240 + 50 + 2×35 + 20", p1.materials === 380 && p1.electrical === 400, { m: p1.materials, e: p1.electrical });
 ok("the unit and the certificate stay outside the group", !p1.items.find((i) => i.skuId === E.KADEN35)!.itemGroupParentId && !p1.items.find((i) => i.skuId === S.BPC)!.itemGroupParentId);
 ok("order: unit, header, its group, then the certificate (extras aside)", p1.items.filter((i) => !i.isAddOn).map((i) => i.skuId).join() === [E.KADEN35, S.RTW, S.ELEC, M.COIL, M.BRACKET, M.HAT, M.PVC, S.BPC].join());
-ok("total: 900 + 1670 + 400 + 65 before, 900 + 1240 + 400 + 380 + 65 after", p1.before === 3035 && p1.after === 2985, { before: p1.before, after: p1.after });
+ok("total: 900 + 1670 + 400 + 65 before, 900 + 1400 + 400 + 380 + 65 after", p1.before === 3035 && p1.after === 3145, { before: p1.before, after: p1.after });
 ok("nothing doubled, nothing taken off", p1.removed.length === 0);
 const extras = p1.items.filter((i) => i.isAddOn);
-ok("a split offers removal, condensate pump, Blygold and a second coil", extras.length === 4 && extras.map((e) => e.unitPrice).join() === "310,280,1100,240", extras.map((e) => [e.skuName, e.unitPrice]));
+ok("a split offers removal, condensate pump, Blygold and a second coil", extras.length === 4 && extras.map((e) => e.unitPrice).join() === "350,280,1100,240", extras.map((e) => [e.skuName, e.unitPrice]));
 ok("the second coil is the template's own coil, at its pricebook price", extras.some((e) => e.skuId === M.COIL && e.unitPrice === 240));
-ok("extras are optional: not in the total", p1.after === 2985);
+ok("extras are optional: not in the total", p1.after === 3145);
 ok("extras are new items, sent without an id", templatePatchItems(p1.items).filter((b) => b.id === null).length === 4);
 const withPump: Template = { ...k35, items: [...k35.items, it("Material", 301, "Silent Mini White Cond Pump", 280, { isAddOn: true })] };
 ok("an extra the template already offers isn't added twice", plan(withPump).items.filter((i) => i.skuId === 301).length === 1);
@@ -187,19 +191,31 @@ const ducted: Template = { id: 5, name: "Mitsubishi Electric Ducted Split 16kw",
   zone,
   it("Material", M.CABLE, "ZoneBoss Blue 24V Cable", 20, { parentItemId: zone.id }),
 ] };
-const skipDucted = planTemplate(ducted, cat, 310);
+const skipDucted = planTemplate(ducted, cat, tr);
 ok("ducted isn't rebuilt", "reason" in skipDucted && /ducted/.test(skipDucted.reason));
 const dom: Template = { id: 7, name: "Braemar Dominator Installation External", items: [it("Service", S.DOM, "Dominator - Installation", 990)] };
-const skipDom = planTemplate(dom, cat, 310);
+const skipDom = planTemplate(dom, cat, tr);
 ok("nor is the Dominator", "reason" in skipDom && /ducted/.test(skipDom.reason));
 ok("add-on kits aren't in a total", templateTotal(ducted.items) === 5800 + 8560);
 
+// Continuous Flow: the install line was $0.
+const cf: Template = { id: 8, name: "Continuous Flow - Installation", items: [
+  it("Equipment", 210, "Thermann G-Series 26L", 1170),
+  it("Service", S.CF, "Continuous Flow - Installation", 0),
+  it("Service", S.BPC, "BPC Compliance Certificate", 65),
+  it("Material", M.PVC, "Fittings", 180),
+] };
+const pcf = plan(cf);
+ok("continuous flow: 2.8 hours at the part-day $350 on the header, not $0", pcf.kind === "day" && pcf.header.labour === 980, pcf.header);
+ok("hot water gets no split extras", pcf.addOns.length === 0);
+ok("its fittings go under the header", group(pcf.items, pcf.header.itemId).length === 1);
+
 // Not aircon, or already rebuilt.
-const hp: Template = { id: 6, name: "Reclaim Split GL 250L V1", items: [it("Service", S.HP, "Heat Pump Split - Installation", 2160)] };
-const skipHp = planTemplate(hp, cat, 310);
-ok("a heat pump template isn't touched", "reason" in skipHp && /not an aircon/.test(skipHp.reason));
+const cook: Template = { id: 6, name: "Gas Cooktop", items: [it("Service", 400, "Something unlisted", 100)] };
+const skipCook = planTemplate(cook, cat, tr);
+ok("a template with no listed install line isn't touched", "reason" in skipCook && /not an aircon/.test(skipCook.reason));
 const rebuilt: Template = { ...k35, items: plan(k35).items };
-const skipAgain = planTemplate(rebuilt, cat, 310);
+const skipAgain = planTemplate(rebuilt, cat, tr);
 ok("a template already grouped is left for the office", "reason" in skipAgain && /already/.test(skipAgain.reason));
 
 console.log(bad ? `\n${bad} failed` : "\nall passed");

@@ -64,7 +64,7 @@ jobs:
             echo "## Pricebook labour — ${WHAT}, $(jq -r .mode out.json)"
             echo
             if [ "$WHAT" = "services" ]; then
-              echo "Rates: one person $(jq -r '.summary.rates.solo|m' out.json), tech & apprentice $(jq -r '.summary.rates.pair|m' out.json), tech & 2 apprentices $(jq -r '.summary.rates.crew3|m' out.json) an hour."
+              echo "Call-out $(jq -r '.summary.rates.callout|m' out.json). An hour: one person $(jq -r '.summary.rates.solo|m' out.json), part-day install $(jq -r '.summary.rates.partDay|m' out.json), tech & apprentice $(jq -r '.summary.rates.pair|m' out.json), tech & 2 apprentices $(jq -r '.summary.rates.crew3|m' out.json)."
               echo
               echo "To update $(jq -r .summary.toUpdate out.json), already right $(jq -r .summary.unchanged out.json), skipped $(jq -r .summary.skipped out.json)."
               echo
@@ -80,7 +80,7 @@ jobs:
                 jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.code|e) | \(.reason|e) |"' out.json
               fi
             else
-              echo "Labour at $(jq -r '.summary.rate|m' out.json) an hour (tech & apprentice). $(jq -r .summary.toRebuild out.json) templates to rebuild, $(jq -r .summary.skipped out.json) skipped."
+              echo "Labour at $(jq -r '.summary.rates.partDay|m' out.json) an hour on part-day installs and $(jq -r '.summary.rates.pair|m' out.json) on multi-heads. $(jq -r .summary.toRebuild out.json) templates to rebuild, $(jq -r .summary.skipped out.json) skipped."
               echo
               echo "| Template | Hours | Labour | Electrical | Materials | Add-ons offered | Lines taken off | Before | After |"
               echo "|---|---|---|---|---|---|---|---|---|"
