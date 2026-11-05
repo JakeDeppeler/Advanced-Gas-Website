@@ -82,6 +82,10 @@ export type WorkOrder = {
   job: string;
   details: string;
   attendBy: string;
+  /** The attend-by date as YYYY-MM-DD, when there is one. */
+  attendByDate: string;
+  /** One of ServiceTitan's job type names, picked by the reading. */
+  jobType: string;
   urgent: boolean;
 };
 
@@ -89,7 +93,7 @@ const str = { type: "string" } as const;
 export const WORK_ORDER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "urgent"],
+  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent"],
   properties: {
     is_work_order: { type: "boolean", description: "True only if this asks us to attend a property: a new work order, a request to quote, or a quote accepted and the work to go ahead." },
     why_not: { type: "string", description: "When false, at most eight words on what it is instead, e.g. 'Progress update on an existing job'." },
@@ -105,6 +109,8 @@ export const WORK_ORDER_SCHEMA = {
     job: { type: "string", description: "What's to be done in at most eight words, e.g. 'Gas stove burner not lighting'." },
     details: { type: "string", description: "Everything the office and tech need, in plain sentences: the problem, access and keys, pets, approval limit, who pays, anything about quoting. No more than the email says." },
     attend_by: { type: "string", description: "The attend-by or due date as written, else empty." },
+    attend_by_date: { type: "string", description: "That date as YYYY-MM-DD (Australian dates are day first), else empty." },
+    job_type: { type: "string", description: "The ServiceTitan job type for the visit, from the list given. A request to quote is 'Quotation'; a fault is the Diagnostics type for the appliance." },
     urgent: { type: "boolean" },
   },
 } as const;
@@ -120,10 +126,16 @@ export function parseWorkOrder(text: string): WorkOrder {
     number: s("number", 40), street: s("street", 160), suburb: s("suburb", 60), postcode: s("postcode", 8),
     tenantName: s("tenant_name", 120), tenantPhone: s("tenant_phone", 40), tenantEmail: s("tenant_email", 120),
     job: s("job", 120), details: s("details", 3000), attendBy: s("attend_by", 60), urgent: o.urgent === true,
+    attendByDate: /^\d{4}-\d{2}-\d{2}$/.test(s("attend_by_date", 10)) ? s("attend_by_date", 10) : "", jobType: s("job_type", 80),
   };
 }
 
 const KIND_LABEL: Record<WorkOrderKind, string> = { work_order: "Work order", quote_request: "Request to quote", quote_accepted: "Quote accepted, go ahead" };
+
+/** The reading's schema with ServiceTitan's own job types as the only choices. */
+export function workOrderSchema(jobTypes: string[]) {
+  return { ...WORK_ORDER_SCHEMA, properties: { ...WORK_ORDER_SCHEMA.properties, job_type: { ...WORK_ORDER_SCHEMA.properties.job_type, ...(jobTypes.length ? { enum: jobTypes } : {}) } } };
+}
 
 /** What the office reads in ServiceTitan's Bookings inbox. */
 export function bookingSummary(w: WorkOrder): string {
@@ -211,10 +223,11 @@ export function tenantAddress(w: WorkOrder, fromAddress: string): string | null 
 
 /** One work_orders row as the Work orders page shows it. */
 export type WorkOrderRow = {
-  id: string; mailbox: string; source: "auto" | "forward" | "category"; status: "working" | "booked" | "duplicate" | "not" | "failed";
+  id: string; mailbox: string; source: "auto" | "forward" | "category"; status: "working" | "booked" | "duplicate" | "not" | "failed" | "needs_agency";
   reason: string | null; kind: WorkOrderKind | null; agency: string | null; wo_number: string | null; address: string | null;
   subject: string | null; from_address: string | null; received_at: string | null; created_at: string;
   st_booking_id: string | null; st_job_number: string | null; attached_at: string | null; attach_error: string | null;
+  location_how?: string | null;
   tenant_email_to: string | null; tenant_emailed_at: string | null; tenant_email_note: string | null;
   details: Partial<WorkOrder> | null;
 };
@@ -231,6 +244,13 @@ export function stage(r: WorkOrderRow): { tone: "good" | "mid" | "bad" | "none";
   if (r.status === "failed") return { tone: "bad", word: "Not booked yet", line: r.reason ?? "ServiceTitan refused it; tried again automatically" };
   if (r.status === "working") return { tone: "mid", word: "Reading", line: "Being read now" };
   if (r.status === "duplicate") return { tone: "none", word: "Already booked", line: "A reminder or resend of one booked from an earlier email" };
+  if (r.status === "needs_agency") return { tone: "bad", word: "Agency not set up", line: `${r.reason ?? "The agency isn't a customer in ServiceTitan"}. Set it up as a customer, then give the email the Outlook category Work order again.` };
+  // A job the portal made itself (no booking): on the site, waiting for the tenant.
+  if (r.st_job_number && !r.st_booking_id) {
+    const site = r.location_how === "existing site" ? "on the site already there" : r.location_how ? "on a new site under the agency" : "";
+    const att = r.attached_at ? "work order and email attached" : r.attach_error ? "attaching the work order failed" : "";
+    return { tone: r.attach_error && !r.attached_at ? "mid" : "good", word: `Job ${r.st_job_number}`, line: ["To be booked: waiting on the tenant to call", site, att].filter(Boolean).join(", ") };
+  }
   if (r.attached_at) return { tone: "good", word: `On job ${r.st_job_number ?? ""}`.trim(), line: "Work order and email attached to the job" };
   return { tone: "mid", word: "In Bookings", line: `Booking ${r.st_booking_id ?? ""}: waiting for the office to book the job`.replace(" :", ":") };
 }
@@ -239,4 +259,85 @@ export function tenantLine(r: WorkOrderRow): string {
   if (r.tenant_emailed_at && r.tenant_email_to) return `Tenant emailed (${r.tenant_email_to})`;
   if (r.tenant_email_note) return r.tenant_email_note;
   return r.status === "booked" ? "Tenant not emailed" : "";
+}
+
+/* ------------------------------------------------------------ the site in ServiceTitan */
+
+/**
+ * One spelling for a property, unit included, whichever way it was written:
+ * "4/11 Reserve St", "Unit 4, 11 Reserve Street" and a ServiceTitan location
+ * with unit "004" and street "11 Reserve Street" are all "4/11 reserve st|berwick".
+ * The suburb is part of it: there's a Main Street in every town.
+ */
+export function siteKey(street: string, suburb: string, unit = ""): string {
+  let s = street.toLowerCase().replace(/,/g, " ").trim();
+  let u = unit.toLowerCase().replace(/[^0-9a-z]/g, "").replace(/^(unit|apt|apartment|flat|shop|suite)/, "").replace(/^0+(?=\d)/, "");
+  const prefixed = /^(?:unit|apt|apartment|flat|shop|suite)\s*([0-9]+[a-z]?)\s+(.*)$/.exec(s);
+  if (prefixed) {
+    u ||= prefixed[1];
+    s = prefixed[2];
+  }
+  const slash = /^([0-9]+[a-z]?)\s*\/\s*(.*)$/.exec(s);
+  if (slash) {
+    u ||= slash[1];
+    s = slash[2];
+  }
+  // A street number range is one property: "1-3 Young Road" is ServiceTitan's
+  // "1 Young Road" (the Hallam units, 5 Nov). The range keeps its first number.
+  s = s.replace(/^([0-9]+[a-z]?)\s*-\s*[0-9]+[a-z]?\b/, "$1");
+  const words = s.replace(/[^a-z0-9\- ]/g, " ").split(/\s+/).filter(Boolean).map((w) => ABBREV[w] ?? w);
+  const city = suburb.toLowerCase().replace(/\b(vic|victoria)\b/g, "").replace(/\d{4}/g, "").replace(/[^a-z ]/g, " ").trim().replace(/\s+/g, " ");
+  return `${u ? `${u}/` : ""}${words.join(" ")}|${city}`;
+}
+
+/** The word to search ServiceTitan's locations by: the street's name, not its number or type. */
+export function streetWord(street: string): string {
+  const words = street.toLowerCase().replace(/^.*\//, "").replace(/[^a-z ]/g, " ").split(/\s+/).filter((w) => w.length > 2 && !(w in ABBREV) && !Object.values(ABBREV).includes(w) && !["unit", "apt", "shop", "flat"].includes(w));
+  return words.sort((a, b) => b.length - a.length)[0] ?? "";
+}
+
+const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
+const agencyWords = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
+
+/**
+ * Whether a ServiceTitan customer's name is this agency: every word of the
+ * agency's own name (less "Real Estate", "Pty Ltd" and the like) is in it.
+ * "Barry Plant Pakenham" is "Barry Plant Pakenham 1", and is not "Barry
+ * Plant Berwick". Only a single customer matching counts; two is a guess.
+ */
+export function agencyMatches(agency: string, customerName: string): boolean {
+  const want = agencyWords(agency);
+  if (want.length < 2) return false;
+  const have = new Set(agencyWords(customerName));
+  return want.every((w) => have.has(w));
+}
+
+/**
+ * The day for the placeholder visit, as YYYY-MM-DD in Melbourne: the
+ * attend-by date if it's a weekday from tomorrow on and within 60 days, else
+ * the next weekday. The visit is only a holder until the tenant rings.
+ */
+export function placeholderDay(attendByIso: string, now = new Date()): string {
+  const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Australia/Melbourne" }).format(d);
+  const today = day(now);
+  const weekday = (iso: string) => ![0, 6].includes(new Date(`${iso}T12:00:00Z`).getUTCDay());
+  if (/^\d{4}-\d{2}-\d{2}$/.test(attendByIso) && attendByIso > today && weekday(attendByIso)) {
+    const days = (Date.parse(`${attendByIso}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000;
+    if (days <= 60) return attendByIso;
+  }
+  let t = Date.parse(`${today}T12:00:00Z`);
+  do t += 86_400_000; while ([0, 6].includes(new Date(t).getUTCDay()));
+  return new Date(t).toISOString().slice(0, 10);
+}
+
+/** A Melbourne wall-clock time on a day, as the UTC instant ServiceTitan wants. */
+export function melbourneInstant(dayIso: string, hhmm: string): string {
+  const guess = Date.parse(`${dayIso}T${hhmm}:00Z`);
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Australia/Melbourne", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(guess);
+  const local = Number(parts.find((p) => p.type === "hour")?.value) * 60 + Number(parts.find((p) => p.type === "minute")?.value);
+  const [h, m] = hhmm.split(":").map(Number);
+  let offset = local - (h * 60 + m);
+  if (offset < -720) offset += 1440;
+  if (offset > 720) offset -= 1440;
+  return new Date(guess - offset * 60_000).toISOString();
 }

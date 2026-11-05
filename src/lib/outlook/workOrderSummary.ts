@@ -18,7 +18,7 @@ import { site } from "@/lib/site";
 type Row = {
   status: string; kind: string | null; agency: string | null; wo_number: string | null; address: string | null; subject: string | null;
   from_address: string | null; reason: string | null; st_booking_id: string | null; tenant_email_to: string | null; tenant_email_note: string | null;
-  details: { job?: string } | null; source: string;
+  details: { job?: string } | null; source: string; st_job_number: string | null; location_how: string | null;
 };
 
 const PLATFORM = /@(?:[\w.-]+\.)?(propertyme\.com|tapihq\.com|propertytree\.com)$/i;
@@ -28,12 +28,12 @@ const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: number; error?: string }> {
   const since = new Date(Date.now() - 24 * 3600_000).toISOString();
   const rows = await sbSelect<Row>("work_orders", [
-    q.select("status,kind,agency,wo_number,address,subject,from_address,reason,st_booking_id,tenant_email_to,tenant_email_note,details,source"),
+    q.select("status,kind,agency,wo_number,address,subject,from_address,reason,st_booking_id,st_job_number,location_how,tenant_email_to,tenant_email_note,details,source"),
     q.gte("created_at", since), q.order("created_at", "asc"),
   ].join("&"));
   const booked = rows.filter((r) => r.status === "booked");
   const dupes = rows.filter((r) => r.status === "duplicate");
-  const failed = rows.filter((r) => r.status === "failed" || r.status === "working");
+  const failed = rows.filter((r) => r.status === "failed" || r.status === "working" || r.status === "needs_agency");
   const missed = rows.filter((r) => r.status === "not" && PLATFORM.test(r.from_address ?? ""));
   const count = booked.length + dupes.length + failed.length + missed.length;
   if (!count) return { sent: false, count: 0 };
@@ -43,9 +43,9 @@ export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: nu
     return `${what}: ${r.address ?? r.subject ?? "no address"}${r.details?.job ? ` (${r.details.job})` : ""}`;
   };
   const sections: [string, Row[], (r: Row) => string][] = [
-    ["Booked into ServiceTitan", booked, (r) => `${line(r)}. Booking ${r.st_booking_id ?? "made"}. ${r.tenant_email_to ? `Tenant emailed (${r.tenant_email_to}).` : r.tenant_email_note ?? "Tenant not emailed."}`],
+    ["Into ServiceTitan", booked, (r) => `${line(r)}. ${r.st_job_number ? `Job ${r.st_job_number}${r.location_how ? ` (${r.location_how})` : ""}, To Be Booked` : `Booking ${r.st_booking_id ?? "made"}`}. ${r.tenant_email_to ? `Tenant emailed (${r.tenant_email_to}).` : r.tenant_email_note ?? "Tenant not emailed."}`],
     ["Already booked (a reminder or resend)", dupes, (r) => `${line(r)}.`],
-    ["Couldn't be booked, will be tried again", failed, (r) => `${line(r)}. ${r.reason ?? ""}`],
+    ["Not in ServiceTitan yet", failed, (r) => `${line(r)}. ${r.reason ?? ""}`],
     ["From a work order platform, read as not a work order: check these", missed, (r) => `${r.subject ?? "(no subject)"}: ${r.reason ?? ""}. Mark it with the Outlook category "Work order" if it is one.`],
   ];
   const used = sections.filter(([, list]) => list.length);

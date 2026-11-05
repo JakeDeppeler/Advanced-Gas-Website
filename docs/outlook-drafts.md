@@ -155,8 +155,27 @@ completely, delete the app under **App registrations**.
 ## Work orders into ServiceTitan
 
 Work orders from real estate agencies, property managers and platforms
-(PropertyMe, Tapi) go into ServiceTitan's **Bookings** by themselves, and onto
-the job once the office books it (`lib/outlook/workOrders.ts`).
+(PropertyMe, Tapi) go into ServiceTitan by themselves as a **job on the
+agency's customer, at the tenant's site** (`lib/outlook/workOrders.ts`,
+`lib/outlook/stPlace.ts`):
+
+- **The site:** a location already at that address (unit and all, "1-3
+  Young Road" being ServiceTitan's "1 Young Road") gets another job on it,
+  never a second location. Otherwise a new location named for the tenant
+  goes under the agency's customer, found by the property manager's email or
+  phone on its contacts, else by its name when exactly one customer matches.
+- **No agency found:** nothing is made. The page shows **Agency not set up**;
+  set it up as a customer in ServiceTitan, then give the email the **Work
+  order** category again.
+- **The job:** the job type the work order calls for (Quotation for a quote,
+  the right Diagnostics type for a fault), the business unit and campaign
+  this office usually uses for it, the work order number as the customer PO,
+  tagged **To Be Booked**, and a placeholder visit at 8am on the attend-by
+  date (or the next weekday) for the office to move when the tenant rings.
+  ServiceTitan won't make a job without a visit. The work order PDF and the
+  email go on the job straight away.
+- If ServiceTitan refuses the job, it goes into **Bookings** instead, as
+  before, with the reason on the page, so nothing is lost.
 
 - **What counts:** a new work order, a request to quote, or a quote accepted
   and the work to go ahead. Progress updates, invoices, statements and
