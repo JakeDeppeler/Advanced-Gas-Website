@@ -6,6 +6,7 @@ import { handleMessage, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
+import { attachBookedJobs, sweepWorkOrders } from "./workOrders";
 import { MAX_AGE_MS } from "./outlookTypes";
 
 /**
@@ -44,6 +45,8 @@ export type SweepResult = {
   mailboxes: { mailbox: string; seen: number; left: number; backfill?: string; handled: (Outcome & { id: string })[]; error?: string }[];
   handoffs: { mailbox: string; checked: number; cleared: number; error?: string }[];
   duplicates: { mailbox: string; threads: number; removed: number; keptEdited: number; error?: string }[];
+  workOrders: { mailbox: string; marked: number; retried: number; error?: string }[];
+  attached: { attached: number; errors: string[] } | { error: string };
 };
 
 /** Every Inbox id received since `since`, newest first, page by page. */
@@ -132,6 +135,15 @@ export async function sweep(): Promise<SweepResult> {
 
   // Needs a person off any email whose thread has had a reply the Sent Items
   // notification didn't report. After the drafts, which matter more.
+  // Work orders: any marked with the category that the change notice missed,
+  // failed ones due another try, then the work order onto any job the office
+  // has made from its booking.
+  const workOrders: SweepResult["workOrders"] = [];
+  for (const mailbox of outlookMailboxes()) {
+    workOrders.push({ mailbox, ...(await sweepWorkOrders(mailbox, started + TAGS_BUDGET_MS)) });
+  }
+  const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
+
   // One draft per thread: older ones the webhook's own clean-up missed. Before
   // the tag check, which then sees those drafts gone.
   const duplicates: SweepResult["duplicates"] = [];
@@ -144,5 +156,5 @@ export async function sweep(): Promise<SweepResult> {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, duplicates, handoffs };
 }

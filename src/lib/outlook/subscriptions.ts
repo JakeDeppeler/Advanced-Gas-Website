@@ -37,14 +37,19 @@ export type Folder = "inbox" | "sent" | "drafts";
 export type SubRecord = { mailbox: string; clientState: string; folder?: Folder };
 export const folderOf = (r: SubRecord): Folder => r.folder ?? "inbox";
 type SubMap = Record<string, SubRecord>;
-type GraphSub = { id: string; notificationUrl: string; expirationDateTime: string };
+type GraphSub = { id: string; notificationUrl: string; expirationDateTime: string; changeType?: string };
 
 export const notificationUrl = () => `${site.url.replace(/\/$/, "")}/api/email/outlook`;
 const FOLDERS: Folder[] = ["inbox", "sent", "drafts"];
 const WELL_KNOWN: Record<Folder, string> = { inbox: "Inbox", sent: "SentItems", drafts: "Drafts" };
 const resourceFor = (mailbox: string, folder: Folder) => `users/${mailbox}/mailFolders('${WELL_KNOWN[folder]}')/messages`;
-/** Drafts reports a draft leaving it, by being sent or deleted; the others, mail arriving. */
-export const changeFor = (folder: Folder) => (folder === "drafts" ? "deleted" : "created");
+/**
+ * What each folder reports. Drafts: a draft leaving it, sent or deleted.
+ * Sent Items: mail arriving. Inbox: mail arriving, and changes to it, which
+ * is how the Work order category being put on an email is noticed.
+ */
+export const changeFor = (folder: Folder) => (folder === "drafts" ? "deleted" : folder === "inbox" ? "created,updated" : "created");
+const sameChange = (a: string | undefined, b: string) => (a ?? "").split(",").map((x) => x.trim()).sort().join(",") === b.split(",").sort().join(",");
 const expiry = () => new Date(Date.now() + LIFETIME_MIN * 60_000).toISOString();
 
 export async function knownSubscriptions(): Promise<SubMap> {
@@ -67,7 +72,11 @@ export async function ensureSubscriptions(): Promise<SubStatus[]> {
     // Matched on our own record of which mailbox and folder each id is for,
     // not on the resource string: Graph may hand that back with the user's id
     // in place of the address it was created with.
-    const mine = live.filter((s) => known[s.id]?.mailbox === mailbox && folderOf(known[s.id]) === folder);
+    // One watching for different changes than this folder now needs (the
+    // Inbox's from before it watched for updates) isn't kept: it's deleted
+    // below and a new one made, as Graph can't change what a subscription
+    // watches.
+    const mine = live.filter((s) => known[s.id]?.mailbox === mailbox && folderOf(known[s.id]) === folder && sameChange(s.changeType, changeFor(folder)));
     const keep = mine.sort((a, b) => Date.parse(b.expirationDateTime) - Date.parse(a.expirationDateTime))[0];
     try {
       if (keep && Date.parse(keep.expirationDateTime) - Date.now() > RENEW_BELOW_MS) {

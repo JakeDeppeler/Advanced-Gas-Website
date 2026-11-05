@@ -4,6 +4,7 @@ import { outlookConfigured } from "@/lib/outlook/graph";
 import { changeFor, folderOf, knownSubscriptions } from "@/lib/outlook/subscriptions";
 import { handleMessage } from "@/lib/outlook/handle";
 import { clearForDraftGone, clearForSent } from "@/lib/outlook/handoff";
+import { checkCategory } from "@/lib/outlook/workOrders";
 import { afterResponse } from "@/lib/outlook/waitUntil";
 
 export const runtime = "nodejs";
@@ -55,10 +56,13 @@ export async function POST(req: Request) {
     const id = n.resourceData?.id;
     if (!sub || !id || !same(n.clientState ?? "", sub.clientState)) continue;
     const folder = folderOf(sub);
-    if (n.changeType !== changeFor(folder)) continue;
-    // Inbox: draft a reply. Sent Items: a reply went out. Drafts: our draft
-    // was sent or deleted. The last two take Needs a person off.
-    work.push(folder === "inbox" ? handleMessage(sub.mailbox, id) : folder === "sent" ? clearForSent(sub.mailbox, id) : clearForDraftGone(sub.mailbox, id));
+    if (!n.changeType || !changeFor(folder).split(",").includes(n.changeType)) continue;
+    // Inbox, new: draft a reply (and book it, if it's a work order). Inbox,
+    // changed: book it if the Work order category was just put on it. Sent
+    // Items: a reply went out. Drafts: our draft was sent or deleted. The
+    // last two take Needs a person off.
+    if (folder === "inbox") work.push(n.changeType === "updated" ? checkCategory(sub.mailbox, id) : handleMessage(sub.mailbox, id));
+    else work.push(folder === "sent" ? clearForSent(sub.mailbox, id) : clearForDraftGone(sub.mailbox, id));
   }
   if (work.length) await afterResponse(Promise.allSettled(work));
   return new NextResponse(null, { status: 202 });

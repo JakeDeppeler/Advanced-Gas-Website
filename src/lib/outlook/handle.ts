@@ -6,7 +6,9 @@ import { graph, GraphError, userPath } from "./graph";
 import { customerContext } from "./customer";
 import { MailDraftError, writeMailDraft } from "./draft";
 import { retireOlderDrafts } from "./drafts";
-import { addressOf, answeredReason, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
+import { draftNote, handleWorkOrder, isManualIn } from "./workOrders";
+import { isTeamForward } from "./workOrderTypes";
+import { MAX_AGE_MS, TEAM_DOMAIN, addressOf, answeredReason, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
 
 /**
  * One incoming email, from notification to a draft reply waiting in Outlook.
@@ -91,6 +93,22 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       subject: (m.subject ?? "").slice(0, 300),
     });
 
+    // Work orders before anything else. A forward from the team is the office
+    // sending one in, and is only that: no draft. One that arrived by itself
+    // (or already carries the Work order category) is booked, and then
+    // drafted as usual, the draft told it's in ServiceTitan.
+    let workOrder: string | undefined;
+    const recent = Date.now() - (Date.parse(m.receivedDateTime ?? "") || 0) < (opts.maxAgeMs ?? MAX_AGE_MS);
+    if (!m.isDraft && recent) {
+      const forward = isTeamForward(m);
+      if (forward || isManualIn(m) || !TEAM_DOMAIN.test(from)) {
+        const wo = await handleWorkOrder(mailbox, m, forward ? "forward" : isManualIn(m) ? "category" : "auto")
+          .catch((e: Error) => ({ status: "failed" as const, reason: e.message }));
+        if (forward) return done({ status: "skipped", reason: `forwarded by the team: work order ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`.slice(0, 300) });
+        workOrder = draftNote(wo);
+      }
+    }
+
     const skip = skipReason(m, mailbox, Date.now(), opts.maxAgeMs);
     if (skip) return done({ status: "skipped", reason: skip });
 
@@ -111,7 +129,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       getChatSettings().catch(() => chatSettingsFrom(null)),
     ]);
 
-    const draft = await writeMailDraft({ thread: threadText(thread, mailbox), customer, signoff: signoffFor(mailbox), settings });
+    const draft = await writeMailDraft({ thread: threadText(thread, mailbox), customer, signoff: signoffFor(mailbox), settings, workOrder });
     if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` });
 
     // createReply makes the draft the way Outlook's Reply button does —
