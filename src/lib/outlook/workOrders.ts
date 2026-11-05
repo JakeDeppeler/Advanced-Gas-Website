@@ -123,6 +123,35 @@ async function addCategory(mailbox: string, id: string, cat: string) {
 }
 
 /**
+ * The postcode for a booking. ServiceTitan refuses one without (a Tapi work
+ * order on 5 Nov gave the suburb only). The email's own postcode if it has
+ * one, else the postcode most of our own sites in that suburb have. If even
+ * that fails, "0000", which the office corrects when it books the job:
+ * refusing the whole work order over it would lose more than it saves.
+ */
+const postcodeCache = new Map<string, string | null>();
+async function postcodeFor(w: WorkOrder): Promise<string> {
+  const given = w.postcode.replace(/\D/g, "");
+  if (/^\d{4}$/.test(given)) return given;
+  const suburb = w.suburb.trim().toLowerCase();
+  if (suburb) {
+    if (!postcodeCache.has(suburb)) {
+      const rows = await sbSelect<{ zip: string | null }>("st_locations", `select=zip:raw->address->>zip&raw->address->>city=ilike.${encodeURIComponent(suburb)}&limit=400`).catch(() => []);
+      const tally = new Map<string, number>();
+      for (const r of rows) {
+        // Some sites are stored with a leading zero ("03806"); Victoria's are four digits.
+        const z = (r.zip ?? "").replace(/\D/g, "").replace(/^0(?=\d{4}$)/, "");
+        if (/^\d{4}$/.test(z)) tally.set(z, (tally.get(z) ?? 0) + 1);
+      }
+      postcodeCache.set(suburb, [...tally.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null);
+    }
+    const hit = postcodeCache.get(suburb);
+    if (hit) return hit;
+  }
+  return "0000";
+}
+
+/**
  * One email, read for a work order and, if it is one, booked. `m` needs at
  * least id, subject, from and receivedDateTime.
  */
@@ -156,6 +185,10 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       return { status: "duplicate", bookingId: earlier.st_booking_id ?? undefined };
     }
 
+    // What was read is kept before the booking is tried, so a refusal leaves
+    // the details to look at, and the retry has them.
+    await save(mailbox, m.id, { ...base, dedupe_key: key });
+
     const provider = (await loadSwitches()).bookingProvider;
     if (!provider) throw new Error("No ServiceTitan booking provider is set (Settings › Automatic, under Website enquiries).");
 
@@ -174,7 +207,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       customerType: "Residential",
       isFirstTimeClient: false,
       isSendConfirmationEmail: false,
-      address: { street: w.street || "Not given", city: w.suburb || "Not given", state: "VIC", zip: w.postcode, country: "Australia" },
+      address: { street: w.street || "Not given", city: w.suburb || "Not given", state: "VIC", zip: await postcodeFor(w), country: "Australia" },
       contacts,
     });
     const bookingId = made?.id != null ? String(made.id) : "sent";
