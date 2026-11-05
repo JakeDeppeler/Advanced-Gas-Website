@@ -4,6 +4,7 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { graph, outlookMailboxes, userPath } from "./graph";
 import { handleMessage, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
+import { sweepHandoffs } from "./handoff";
 import { MAX_AGE_MS } from "./outlookTypes";
 
 /**
@@ -21,9 +22,13 @@ import { MAX_AGE_MS } from "./outlookTypes";
 const LIST = 40;
 /** Drafts are a few seconds each; this keeps a run well inside the function's minute. */
 const BUDGET_MS = 40_000;
+/** The tag check gets what's left after the drafts, up to here: inside the function's minute. */
+const TAGS_BUDGET_MS = 52_000;
 const STARTED_KEY = "outlook_started";
 
-export type SweepResult = { subscriptions: SubStatus[] | { error: string }; mailboxes: { mailbox: string; seen: number; handled: (Outcome & { id: string })[]; error?: string }[] };
+export type SweepResult = { subscriptions: SubStatus[] | { error: string }; mailboxes: { mailbox: string; seen: number; handled: (Outcome & { id: string })[]; error?: string }[];
+  handoffs: { mailbox: string; checked: number; cleared: number; error?: string }[];
+};
 
 export async function sweep(): Promise<SweepResult> {
   const started = Date.now();
@@ -73,5 +78,12 @@ export async function sweep(): Promise<SweepResult> {
     }
   }
 
-  return { subscriptions, mailboxes };
+  // Needs a person off any email whose thread has had a reply the Sent Items
+  // notification didn't report. After the drafts, which matter more.
+  const handoffs: SweepResult["handoffs"] = [];
+  for (const mailbox of outlookMailboxes()) {
+    handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
+  }
+
+  return { subscriptions, mailboxes, handoffs };
 }

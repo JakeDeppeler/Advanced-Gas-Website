@@ -7,7 +7,7 @@ import { graph, GraphError, outlookMailboxes } from "./graph";
 /**
  * Graph's change notifications: Microsoft calls /api/email/outlook the moment
  * an email lands in either Inbox, which is what has the draft there before
- * anybody opens the email.
+ * anybody opens the email, and the moment a reply lands in Sent Items.
  *
  * A subscription expires after a few days, and nothing renews it but us, so
  * the sweep calls ensureSubscriptions() every run. A mailbox whose
@@ -25,19 +25,28 @@ const LIFETIME_MIN = 4000;
 /** Renew when less than this is left, so one missed sweep day doesn't let it lapse. */
 const RENEW_BELOW_MS = 40 * 3600 * 1000;
 
-export type SubRecord = { mailbox: string; clientState: string };
+/**
+ * Which folder a subscription watches. The Inbox is what gets drafts; Sent
+ * Items is how a reply going out is noticed, to take Needs a person off the
+ * email it answered. Records made before Sent Items was watched have no
+ * folder and are the Inbox's.
+ */
+export type Folder = "inbox" | "sent";
+export type SubRecord = { mailbox: string; clientState: string; folder?: Folder };
+export const folderOf = (r: SubRecord): Folder => r.folder ?? "inbox";
 type SubMap = Record<string, SubRecord>;
 type GraphSub = { id: string; notificationUrl: string; expirationDateTime: string };
 
 export const notificationUrl = () => `${site.url.replace(/\/$/, "")}/api/email/outlook`;
-const resourceFor = (mailbox: string) => `users/${mailbox}/mailFolders('Inbox')/messages`;
+const FOLDERS: Folder[] = ["inbox", "sent"];
+const resourceFor = (mailbox: string, folder: Folder) => `users/${mailbox}/mailFolders('${folder === "sent" ? "SentItems" : "Inbox"}')/messages`;
 const expiry = () => new Date(Date.now() + LIFETIME_MIN * 60_000).toISOString();
 
 export async function knownSubscriptions(): Promise<SubMap> {
   return (await getSettings<SubMap>(KEY)) ?? {};
 }
 
-export type SubStatus = { mailbox: string; action: "kept" | "renewed" | "created" | "failed"; expires?: string; error?: string };
+export type SubStatus = { mailbox: string; folder?: Folder; action: "kept" | "renewed" | "created" | "failed"; expires?: string; error?: string };
 
 export async function ensureSubscriptions(): Promise<SubStatus[]> {
   const url = notificationUrl();
@@ -49,23 +58,23 @@ export async function ensureSubscriptions(): Promise<SubStatus[]> {
   const next: SubMap = {};
   const out: SubStatus[] = [];
 
-  for (const mailbox of outlookMailboxes()) {
-    // Matched on our own record of which mailbox each id is for, not on the
-    // resource string: Graph may hand that back with the user's id in place
-    // of the address it was created with.
-    const mine = live.filter((s) => known[s.id]?.mailbox === mailbox);
+  for (const [mailbox, folder] of outlookMailboxes().flatMap((m) => FOLDERS.map((f) => [m, f] as const))) {
+    // Matched on our own record of which mailbox and folder each id is for,
+    // not on the resource string: Graph may hand that back with the user's id
+    // in place of the address it was created with.
+    const mine = live.filter((s) => known[s.id]?.mailbox === mailbox && folderOf(known[s.id]) === folder);
     const keep = mine.sort((a, b) => Date.parse(b.expirationDateTime) - Date.parse(a.expirationDateTime))[0];
     try {
       if (keep && Date.parse(keep.expirationDateTime) - Date.now() > RENEW_BELOW_MS) {
         next[keep.id] = known[keep.id];
-        out.push({ mailbox, action: "kept", expires: keep.expirationDateTime });
+        out.push({ mailbox, folder, action: "kept", expires: keep.expirationDateTime });
         continue;
       }
       if (keep) {
         try {
           const r = await graph<GraphSub>(`/subscriptions/${encodeURIComponent(keep.id)}`, { method: "PATCH", body: { expirationDateTime: expiry() } });
           next[keep.id] = known[keep.id];
-          out.push({ mailbox, action: "renewed", expires: r.expirationDateTime });
+          out.push({ mailbox, folder, action: "renewed", expires: r.expirationDateTime });
           continue;
         } catch (e) {
           // Gone between the list and the renew: make a new one below.
@@ -77,13 +86,13 @@ export async function ensureSubscriptions(): Promise<SubStatus[]> {
       // so the route must already be deployed and answering.
       const r = await graph<GraphSub>("/subscriptions", {
         method: "POST",
-        body: { changeType: "created", notificationUrl: url, resource: resourceFor(mailbox), expirationDateTime: expiry(), clientState },
+        body: { changeType: "created", notificationUrl: url, resource: resourceFor(mailbox, folder), expirationDateTime: expiry(), clientState },
       });
-      next[r.id] = { mailbox, clientState };
-      out.push({ mailbox, action: "created", expires: r.expirationDateTime });
+      next[r.id] = { mailbox, clientState, folder };
+      out.push({ mailbox, folder, action: "created", expires: r.expirationDateTime });
     } catch (e) {
       if (keep && known[keep.id]) next[keep.id] = known[keep.id];
-      out.push({ mailbox, action: "failed", error: (e as Error).message });
+      out.push({ mailbox, folder, action: "failed", error: (e as Error).message });
     }
   }
 

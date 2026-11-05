@@ -1,8 +1,9 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { outlookConfigured } from "@/lib/outlook/graph";
-import { knownSubscriptions } from "@/lib/outlook/subscriptions";
+import { folderOf, knownSubscriptions } from "@/lib/outlook/subscriptions";
 import { handleMessage } from "@/lib/outlook/handle";
+import { clearForSent } from "@/lib/outlook/handoff";
 import { afterResponse } from "@/lib/outlook/waitUntil";
 
 export const runtime = "nodejs";
@@ -12,8 +13,10 @@ export const maxDuration = 60;
 
 /**
  * Microsoft Graph's change notifications: an email has arrived in admin@'s
- * or jake@'s Inbox. The reply is drafted and saved into Outlook as an unsent
- * draft (lib/outlook/handle.ts). Setup is in docs/outlook-drafts.md.
+ * or jake@'s Inbox, and the reply is drafted and saved into Outlook as an
+ * unsent draft (lib/outlook/handle.ts); or a reply has gone out, and Needs a
+ * person comes off the email it answered (lib/outlook/handoff.ts). Setup is
+ * in docs/outlook-drafts.md.
  *
  * **The URL is public.** A notification only names a message id; it is acted
  * on when its clientState matches the secret stored for that subscription.
@@ -50,7 +53,9 @@ export async function POST(req: Request) {
     const sub = n.subscriptionId ? known[n.subscriptionId] : undefined;
     const id = n.resourceData?.id;
     if (!sub || !id || n.changeType !== "created" || !same(n.clientState ?? "", sub.clientState)) continue;
-    work.push(handleMessage(sub.mailbox, id));
+    // Inbox: draft a reply. Sent Items: a reply went out, so take Needs a
+    // person off the email it answered.
+    work.push(folderOf(sub) === "sent" ? clearForSent(sub.mailbox, id) : handleMessage(sub.mailbox, id));
   }
   if (work.length) await afterResponse(Promise.allSettled(work));
   return new NextResponse(null, { status: 202 });

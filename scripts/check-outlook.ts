@@ -12,6 +12,7 @@ import {
   mailboxesFrom,
   parseMailDraft,
   plainText,
+  repliedSince,
   replyHtml,
   signoffFor,
   skipReason,
@@ -108,6 +109,16 @@ const outlook = '<html><head><meta charset="utf-8"></head><body dir="ltr"><div i
 const merged = insertIntoBody(outlook, "<div>REPLY</div>");
 ok("reply goes above the quoted email", merged.indexOf("REPLY") < merged.indexOf("divRplyFwdMsg") && merged.indexOf("REPLY") > merged.indexOf("<body"));
 ok("no body tag: reply goes first", insertIntoBody("<div>q</div>", "R").startsWith("R"));
+
+// --- Needs a person comes off once a reply has gone
+const tagged = "2026-11-04T00:30:00Z";
+ok("no reply yet: tag stays", !repliedSince([msg()], BOX, tagged));
+ok("reply sent after: tag off", repliedSince([msg(), sent({})], BOX, tagged));
+ok("a colleague's reply counts", repliedSince([sent({ from: from("jake@advancedgas.com.au") })], BOX, tagged));
+ok("only a draft: tag stays", !repliedSince([sent({ isDraft: true })], BOX, tagged));
+ok("our reply from before it arrived: tag stays", !repliedSince([sent({ sentDateTime: "2026-11-03T22:00:00Z" })], BOX, tagged));
+ok("the customer writing again: tag stays", !repliedSince([msg({ id: "m2", receivedDateTime: "2026-11-04T02:00:00Z" })], BOX, tagged));
+ok("sent on behalf of the shared box counts", repliedSince([sent({ from: from(BOX), sender: from("jake@advancedgas.com.au") })], BOX, tagged));
 
 if (bad) {
   console.log(`\n${bad} failed`);

@@ -109,6 +109,21 @@ export function answeredReason(m: GraphMessage, thread: GraphMessage[], mailbox:
   return null;
 }
 
+/**
+ * Whether we've sent a reply in the thread since the email that was tagged
+ * Needs a person arrived. A draft doesn't count: the tag is there until
+ * somebody has actually answered, and saving a draft isn't answering.
+ */
+export function repliedSince(thread: GraphMessage[], mailbox: string, receivedAt: string | null | undefined): boolean {
+  const at = Date.parse(receivedAt ?? "") || 0;
+  return thread.some((t) => {
+    if (t.isDraft) return false;
+    const from = addressOf(t.from) || addressOf(t.sender);
+    if (from !== mailbox && !TEAM_DOMAIN.test(from)) return false;
+    return (Date.parse(t.sentDateTime ?? t.receivedDateTime ?? "") || 0) >= at;
+  });
+}
+
 /** Plain text from a message part, whichever kind it came as. */
 export function plainText(part: GraphMessage["uniqueBody"]): string {
   const raw = part?.content ?? "";
