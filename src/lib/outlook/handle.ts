@@ -5,6 +5,7 @@ import { chatSettingsFrom } from "@/lib/chat/chatTypes";
 import { graph, GraphError, userPath } from "./graph";
 import { customerContext } from "./customer";
 import { MailDraftError, writeMailDraft } from "./draft";
+import { retireOlderDrafts } from "./drafts";
 import { addressOf, answeredReason, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
 
 /**
@@ -140,7 +141,11 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       }
     }
 
-    return done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null });
+    const result = await done({ status: "drafted" }, { draft_id: reply.id, handoff: draft.handoff || null });
+    // This thread's earlier drafts are out of date now. Recorded first, so a
+    // failure here never costs the email its own draft.
+    if (m.conversationId) await retireOlderDrafts(mailbox, m.conversationId, id).catch(() => undefined);
+    return result;
   } catch (e) {
     const reason = (e as Error).message.slice(0, 300);
     // Out of retries, or not the kind that a retry fixes: it stays failed

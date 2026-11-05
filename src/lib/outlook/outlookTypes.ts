@@ -124,6 +124,18 @@ export function repliedSince(thread: GraphMessage[], mailbox: string, receivedAt
   });
 }
 
+/**
+ * Whether a draft is still as we wrote it. Ours is created and filled in
+ * within seconds; anything saved to it a couple of minutes later is a person
+ * working on it, and a draft somebody has worked on is never deleted.
+ */
+export function untouched(created: string | null | undefined, modified: string | null | undefined): boolean {
+  const c = Date.parse(created ?? "");
+  const m = Date.parse(modified ?? "");
+  if (!Number.isFinite(c) || !Number.isFinite(m)) return false;
+  return m - c < 120_000;
+}
+
 /** Plain text from a message part, whichever kind it came as. */
 export function plainText(part: GraphMessage["uniqueBody"]): string {
   const raw = part?.content ?? "";
