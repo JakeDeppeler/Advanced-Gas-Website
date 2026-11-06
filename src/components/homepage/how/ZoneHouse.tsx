@@ -36,8 +36,8 @@ const TOTAL = ZONES.reduce((s, z) => s + z.area, 0);
 const zoneOf = (id: ZoneId) => ZONES.find((z) => z.id === id)!;
 
 const SEASONS = {
-  summer: { label: "Summer day", out: 32, start: [27.6, 28.3, 25.9, 26.5, 27.1] },
-  winter: { label: "Winter night", out: 9, start: [16.4, 17.1, 15.3, 15.8, 16.6] },
+  summer: { label: "Summer day", out: 32, start: [25.8, 26.5, 25.4, 25.9, 26.2] },
+  winter: { label: "Winter night", out: 9, start: [21.8, 22.4, 21.3, 21.7, 22.0] },
 } as const;
 type Season = keyof typeof SEASONS;
 
@@ -50,49 +50,53 @@ const PRESETS: { label: string; on: ZoneId[] }[] = [
 
 /** Duct sizes, coloured the way the duct design drawings colour them. */
 const SIZE: Record<number, { c: string; w: number }> = {
-  300: { c: "#6CBF4A", w: 12 }, 250: { c: "#E5BE33", w: 10.5 }, 200: { c: "#5B7FD6", w: 9 }, 150: { c: "#E2553F", w: 8 },
+  350: { c: "#A3ABB6", w: 13 }, 300: { c: "#6CBF4A", w: 12 }, 250: { c: "#E5BE33", w: 10.5 }, 200: { c: "#5B7FD6", w: 9 }, 150: { c: "#E2553F", w: 8 },
 };
 
-type Seg = { d: string; size: number; zone: ZoneId };
+type Seg = { d: string; size: number; zone?: ZoneId };
 /**
- * Each zone leaves the plenum on its own spigot (where its zone motor sits),
- * runs to a branch take-off where it feeds more than one room, and ends at
- * a round diffuser by the window, which is where we put them: the air meets
- * the heat coming in through the glass.
+ * Three outlets off the plenum, no more: a plenum this size only takes
+ * three spigots. The left one is a ø350 trunk to a branch take-off that
+ * splits three ways (living, kitchen/dining, study), each with its own zone
+ * motor; the top one feeds the kids' rooms and the right one the master.
+ * Every run ends at a round diffuser by the window, which is where we put
+ * them: the air meets the heat coming in through the glass.
  */
 const SEGS: Seg[] = [
-  { d: "M366 252 L366 230 C362 176 300 110 264 68", size: 250, zone: 1 },
-  { d: "M352 272 L330 272 C318 276 308 288 300 300", size: 300, zone: 2 },
-  { d: "M300 300 C262 290 222 262 190 240", size: 250, zone: 2 },
-  { d: "M300 300 C284 330 254 368 236 392", size: 250, zone: 2 },
-  { d: "M458 272 L480 272 C490 300 494 340 496 372", size: 300, zone: 3 },
-  { d: "M496 372 C520 410 556 450 575 485", size: 250, zone: 3 },
-  { d: "M496 372 C516 382 536 396 558 408", size: 150, zone: 3 },
-  { d: "M444 252 L444 230 C446 220 456 210 470 205", size: 300, zone: 4 },
+  { d: "M332 274 L296 276", size: 350 },
+  { d: "M296 276 L296 244 C292 190 286 118 264 68", size: 250, zone: 1 },
+  { d: "M296 276 L270 289 C266 294 264 300 262 306", size: 300, zone: 2 },
+  { d: "M262 306 C236 292 206 262 182 238", size: 250, zone: 2 },
+  { d: "M262 306 C256 336 246 368 236 392", size: 250, zone: 2 },
+  { d: "M296 276 L296 310 C292 404 276 480 210 515", size: 200, zone: 5 },
+  { d: "M390 262 L390 236 C394 222 436 210 470 205", size: 300, zone: 4 },
   { d: "M470 205 C456 160 434 112 425 66", size: 200, zone: 4 },
   { d: "M470 205 C494 160 530 112 545 66", size: 200, zone: 4 },
   { d: "M470 205 C520 232 556 276 575 320", size: 200, zone: 4 },
-  { d: "M360 290 L360 312 C356 400 292 478 210 515", size: 200, zone: 5 },
+  { d: "M448 274 L474 274 C490 290 496 330 496 372", size: 300, zone: 3 },
+  { d: "M496 372 C520 410 556 450 575 485", size: 250, zone: 3 },
+  { d: "M496 372 C516 382 536 396 558 408", size: 150, zone: 3 },
 ];
 /** The branch take-offs: round fittings where a run splits. */
-const BTO: [number, number][] = [[300, 300], [470, 205], [496, 372]];
-/** Each zone's motor: where it sits on its spigot, and which way the duct runs there. */
+const BTO: [number, number][] = [[296, 276], [262, 306], [470, 205], [496, 372]];
+/** Each zone's motor: where it sits, and which way the duct runs there. */
 const DAMPERS: Record<ZoneId, [number, number, number]> = {
-  1: [366, 241, -90], 2: [341, 272, 180], 3: [469, 272, 0], 4: [444, 241, -90], 5: [360, 301, 90],
+  1: [296, 256, -90], 2: [283, 282, 153], 3: [461, 274, 0], 4: [390, 247, -90], 5: [296, 298, 90],
 };
 const VENTS: Record<ZoneId, [number, number][]> = {
-  1: [[264, 68]], 2: [[190, 240], [236, 392]], 3: [[575, 485], [558, 408]], 4: [[425, 66], [545, 66], [575, 320]], 5: [[210, 515]],
+  1: [[264, 68]], 2: [[182, 238], [236, 392]], 3: [[575, 485], [558, 408]], 4: [[425, 66], [545, 66], [575, 320]], 5: [[210, 515]],
 };
-const SIZE_TAGS: [number, number, number][] = [[300, 140], [240, 268], [500, 326], [532, 452], [526, 392], [492, 228], [446, 132], [312, 434]].map(([x, y], i) => [x, y, [250, 250, 300, 250, 150, 300, 200, 200][i]]);
+/** Only the trunks are labelled; the key reads the rest. */
+const SIZE_TAGS: [number, number, number][] = [[424, 226, 300], [512, 322, 300]];
 
 const ROOMS: Room[] = [
   { name: "Living", dims: "5.0 × 4.3", x: 160, y: 40, w: 200, h: 170, zone: 1 },
   { name: "Bed 4", dims: "3.3 × 3.8", x: 360, y: 40, w: 130, h: 150, zone: 4 },
   { name: "Bed 3", dims: "2.8 × 3.8", x: 490, y: 40, w: 110, h: 150, zone: 4 },
-  { name: "Kitchen / Dining", dims: "5.5 × 5.8", x: 160, y: 210, w: 220, h: 230, zone: 2, ly: 228, tx: 258 },
-  { name: "Hall", x: 380, y: 190, w: 50, h: 350, lx: 405, ly: 214 },
+  { name: "Kitchen / Dining", dims: "5.5 × 5.8", x: 160, y: 210, w: 220, h: 230, zone: 2, ly: 228, tx: 202 },
+  { name: "Hall", x: 380, y: 190, w: 50, h: 350, lx: 405, ly: 478 },
   { name: "Bath", x: 430, y: 190, w: 170, h: 80, tx: 524 },
-  { name: "Bed 2", dims: "4.3 × 2.5", x: 430, y: 270, w: 170, h: 100, zone: 4 },
+  { name: "Bed 2", dims: "4.3 × 2.5", x: 430, y: 270, w: 170, h: 100, zone: 4, tx: 506 },
   { name: "Master", dims: "4.3 × 4.3", x: 430, y: 370, w: 170, h: 170, zone: 3 },
   { name: "Study", dims: "2.8 × 2.5", x: 160, y: 440, w: 110, h: 100, zone: 5 },
   { name: "Entry", x: 270, y: 440, w: 110, h: 100 },
@@ -115,23 +119,23 @@ const Win = ({ x, y, w, v = false }: { x: number; y: number; w: number; v?: bool
 
 /** Furniture and fittings, drawn as a plan draws them: light outlines. */
 function Fittings() {
-  const f = { fill: "#fff", stroke: "#A7AFBA", strokeWidth: 1 };
+  const f = { fill: "#fff", stroke: "#CBD2DB", strokeWidth: 1 };
   return (
     <g style={{ pointerEvents: "none" }}>
       {/* living */}
       <path d="M180 150 h90 v40 h-20 v-20 h-70z" {...f} /><rect x="300" y="60" width="44" height="14" rx="2" {...f} />
-      <rect x="200" y="96" width="70" height="40" rx="4" fill="#F3E6CF" stroke="#D9C6A5" />
+      <rect x="200" y="96" width="70" height="40" rx="4" fill="#F6EFE3" stroke="#E6DCCB" />
       {/* beds */}
       {[[380, 70, 80, 96], [512, 70, 66, 92], [470, 290, 92, 62], [470, 440, 96, 86]].map(([x, y, w, h], i) => (
         <g key={i}><rect x={x} y={y} width={w} height={h} rx="3" {...f} /><rect x={x + 6} y={y + 5} width={w / 2 - 9} height="14" rx="3" {...f} /><rect x={x + w / 2 + 3} y={y + 5} width={w / 2 - 9} height="14" rx="3" {...f} /></g>
       ))}
-      <path d="M462 190 v-60 M600 130 h-24" stroke="#A7AFBA" strokeDasharray="4 3" />
+      <path d="M462 190 v-60 M600 130 h-24" stroke="#CBD2DB" strokeDasharray="4 3" />
       {/* kitchen: bench, sink, cooktop, island, table */}
       <rect x="166" y="402" width="120" height="32" {...f} /><rect x="182" y="408" width="26" height="18" rx="4" {...f} />
       {[[236, 412], [252, 412], [236, 426], [252, 426]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="5" {...f} />)}
       <rect x="300" y="380" width="60" height="26" rx="2" {...f} />
-      <rect x="196" y="320" width="64" height="40" rx="4" {...f} />
-      {[[204, 314], [232, 314], [204, 360], [232, 360]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="18" height="7" rx="2" {...f} />)}
+      <rect x="200" y="350" width="64" height="34" rx="4" {...f} />
+      {[[208, 344], [236, 344], [208, 384], [236, 384]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="18" height="7" rx="2" {...f} />)}
       {/* bath */}
       <rect x="540" y="198" width="54" height="64" rx="10" {...f} /><rect x="440" y="198" width="44" height="22" rx="3" {...f} /><ellipse cx="505" cy="250" rx="9" ry="12" {...f} />
       {/* ensuite in the master */}
@@ -165,22 +169,37 @@ function doing(power: boolean, mode: Mode, zs: State, prev: Doing): Doing {
   return prev === "fan" ? "idle" : prev;
 }
 
-/** One step: dampers move toward what each room needs, and each room's temperature follows. */
+/** The model runs ten steps a second. */
+const TICK = 0.1;
+/** Fastest a room changes, with its damper wide open: 1° a minute. */
+const RATE = 1 / 60;
+/** How fast the outside creeps back in, per degree of difference, per second. 8° out gives a quarter of RATE. */
+const LEAK = RATE / 32;
+
+/**
+ * One step. ITC works like a thermostat with a valve, not a switch: each
+ * damper sits at the opening that holds its room at the set point (enough
+ * to cancel the heat leaking in from outside), plus more the further off
+ * the room is. So once a room arrives its damper settles and stays put,
+ * rather than flicking open and shut around the set point.
+ */
 function step(zs: State, act: Doing, out: number, speed: number): State {
   const next = { ...zs };
+  const fan = 0.7 + speed * 0.1;
   for (const id of IDS) {
     const z = zs[id];
     let want = 0;
     if (z.on && act === "fan") want = 1;
     else if (z.on && (act === "heat" || act === "cool")) {
       const need = act === "cool" ? z.t - z.set : z.set - z.t;
-      want = need > 0 ? clamp(0.25 + need / 1.6, 0.25, 1) : 0.1;
+      const hold = (act === "cool" ? out - z.set : z.set - out) * LEAK / (RATE * fan);
+      want = clamp(hold + need * 1.2, 0.1, 1);
     }
-    // A zone motor drives at a steady rate rather than snapping, about two seconds end to end.
-    const open = z.open + clamp(want - z.open, -0.05, 0.05);
+    // A zone motor drives at a steady pace, about five seconds end to end.
+    const open = z.open + clamp(want - z.open, -0.02, 0.02);
     const push = act === "heat" ? 1 : act === "cool" ? -1 : 0;
-    const t = z.t + push * open * 0.03 * (0.55 + speed * 0.15) + (out - z.t) * 0.0006;
-    next[id] = { ...z, open, t, mv: Math.abs(open - z.open) > 0.002 };
+    const t = z.t + (push * open * RATE * fan + (out - z.t) * LEAK) * TICK;
+    next[id] = { ...z, open, t, mv: Math.abs(open - z.open) > 0.001 };
   }
   return next;
 }
@@ -200,7 +219,7 @@ function FlowLayer({ live }: { live: MutableRefObject<{ opens: number[]; ret: nu
   const paths = useRef<(SVGPathElement | null)[]>([]);
   const dots = useRef<(SVGCircleElement | null)[][]>([]);
   const fan = useRef<SVGGElement | null>(null);
-  const all = [...SEGS.map((s) => s.d), "M405 422 L405 354"];
+  const all = [...SEGS.map((s) => s.d), "M405 422 L405 338"];
   const N = 4;
   useEffect(() => {
     let raf = 0, last = performance.now(), angle = 0;
@@ -293,7 +312,8 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
   const running = act !== "idle";
   const live = useRef({ opens: [] as number[], ret: 0, fan: 0, speed, air });
   live.current = {
-    opens: SEGS.map((s) => (running ? zs[s.zone].open : 0)),
+    // The ø350 trunk carries whatever its three zones (living, kitchen, study) are drawing.
+    opens: SEGS.map((s) => (!running ? 0 : s.zone ? zs[s.zone].open : Math.min(1, zs[1].open + zs[2].open + zs[5].open))),
     ret: running ? Math.max(0.3, load) : 0,
     fan: outdoor ? Math.max(0.15, load) : 0,
     speed, air,
@@ -335,8 +355,7 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
       <Win x={200} y={40} w={80} /><Win x={390} y={40} w={70} /><Win x={515} y={40} w={60} /><Win x={600} y={290} w={60} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v /><Win x={160} y={214} w={32} v />
 
       {/* return air: grille in the hall, ø500 back up to the fan coil */}
-      <path d="M405 424 V354" stroke="#7B5CC9" strokeWidth="16" strokeLinecap="round" opacity=".9" />
-      <path d="M405 424 V354" stroke="#000" strokeOpacity=".15" strokeWidth="16" strokeDasharray="1.5 4" />
+      <path d="M405 424 V338" stroke="#7B5CC9" strokeWidth="16" strokeLinecap="round" opacity=".85" />
       <rect x="386" y="394" width="38" height="30" fill="#fff" stroke="#5E6A82" />
       {[0, 1, 2, 3, 4].map((i) => <path key={i} d={`M390 ${399 + i * 5} h30`} stroke="#5E6A82" strokeWidth="1" />)}
 
@@ -346,19 +365,17 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
         return (
           <g key={i} style={{ pointerEvents: "none" }}>
             <path d={s.d} stroke={c} strokeWidth={w} fill="none" strokeLinecap="round" />
-            <path d={s.d} stroke="#000" strokeOpacity=".16" strokeWidth={w} fill="none" strokeDasharray="1.5 4" />
           </g>
         );
       })}
       {BTO.map(([x, y]) => <g key={`${x}${y}`}><circle cx={x} cy={y} r="8.5" fill="#C9CED6" stroke="#6B7480" strokeWidth="1.5" /><circle cx={x} cy={y} r="3.5" fill="#fff" stroke="#6B7480" /></g>)}
 
       {/* fan coil, the transition up into the plenum, and the plenum the zones leave from */}
-      <rect x="385" y="300" width="40" height="56" rx="3" fill="#111" />
-      <text x="405" y="328" textAnchor="middle" transform="rotate(90 405 328)" className="zh__fc">FAN COIL</text>
-      <path d="M385 300 L370 290 H440 L425 300 Z" fill="url(#zh-galv)" stroke="#6B7480" strokeWidth="1.2" />
-      <rect x="352" y="252" width="106" height="38" rx="3" fill="url(#zh-galv)" stroke="#6B7480" strokeWidth="1.4" />
-      <path d="M352 262 H458 M352 280 H458" stroke="#9AA6B5" strokeWidth=".8" />
-      <text x="405" y="275" textAnchor="middle" className="zh__sz">PLENUM</text>
+      <rect x="340" y="300" width="100" height="38" rx="3" fill="#111" />
+      <text x="390" y="323" textAnchor="middle" className="zh__fc">FAN COIL</text>
+      <path d="M332 286 H448 L440 300 H340 Z" fill="url(#zh-galv)" stroke="#6B7480" strokeWidth="1" />
+      <rect x="332" y="262" width="116" height="24" rx="2" fill="url(#zh-galv)" stroke="#6B7480" strokeWidth="1.2" />
+      <text x="390" y="278" textAnchor="middle" className="zh__sz">PLENUM</text>
 
       <rect x="612" y="298" width="52" height="44" rx="5" fill="#fff" stroke="#5E6A82" strokeWidth="1.5" />
       <circle cx="638" cy="320" r="15" fill="#2B3247" />
@@ -376,7 +393,7 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
       <text x="405" y="438" textAnchor="middle" className="zh__sz">RA ø500</text>
 
       {/* refrigerant out to the outdoor unit, which works only as hard as the zones ask */}
-      <path d="M425 330 H612" stroke="#C98B57" strokeWidth="2" strokeDasharray="5 4" fill="none" />
+      <path d="M440 320 H612" stroke="#C98B57" strokeWidth="2" strokeDasharray="5 4" fill="none" />
       <circle cx="638" cy="320" r="3" fill="#C9D1DC" />
       <text x="638" y="358" textAnchor="middle" className="zh__room-n" fill="#3E444D">Outdoor</text>
       <text x="638" y="372" textAnchor="middle" className="zh__room-d" fill="#8A93A0">{outdoor ? `${Math.round(load * 100)}% output` : "idle"}</text>
@@ -399,8 +416,8 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
       })}
 
       <g transform="translate(160 562)">
-        {[300, 250, 200, 150].map((s, i) => (
-          <g key={s} transform={`translate(${i * 74} 0)`}>
+        {[350, 300, 250, 200, 150].map((s, i) => (
+          <g key={s} transform={`translate(${i * 60 - 40} 0)`}>
             <rect width="22" height="8" rx="4" fill={SIZE[s].c} y="-5" />
             <text x="28" y="2" className="zh__room-d" fill="#5D6B80">{`ø${s}`}</text>
           </g>

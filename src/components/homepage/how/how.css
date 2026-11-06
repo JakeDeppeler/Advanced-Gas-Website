@@ -125,7 +125,8 @@
 .ag .zh-wrap{margin-top:56px;display:flex;flex-direction:column;gap:18px}
 
 /* Zoning plan: room text, tags, the fan coil */
-.ag .zh__room-n{font:700 12px var(--body)}
+.ag .zh__room-n{font:700 12px var(--body);paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+.ag .zh__room-d{paint-order:stroke;stroke:#fff;stroke-width:3px}
 .ag .zh__room-d{font:500 10.5px var(--body)}
 .ag .zh__tag{font:700 9.5px var(--body)}
 .ag .zh__fc{font:800 9px var(--disp);fill:#fff;letter-spacing:.08em}
