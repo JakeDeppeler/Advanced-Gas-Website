@@ -30,15 +30,64 @@ export type JobForWork = JobHit & {
 // PostgREST's or=() is split on commas and brackets; a search term never needs them.
 const clean = (q: string) => q.replace(/[(),*%\\:"']/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
 
-/** Jobs by number, customer or suburb, open ones and the most recent first. */
+/** Street types as people type them and as ServiceTitan stores them, both read as the long form. */
+const STREET_TYPES: Record<string, string> = {
+  st: "street", rd: "road", ct: "court", crt: "court", ave: "avenue", av: "avenue", dr: "drive", dve: "drive", cres: "crescent", cr: "crescent",
+  pl: "place", cct: "circuit", gr: "grove", gv: "grove", pde: "parade", hwy: "highway", cl: "close", tce: "terrace", bvd: "boulevard",
+  blvd: "boulevard", ln: "lane", wy: "way", sq: "square", esp: "esplanade", rise: "rise", vw: "view",
+};
+const LONG = new Set(Object.values(STREET_TYPES));
+
+/** The words of a search or an address, street types spelled out: "2 Joy Ct" and "2 joy court" read the same. */
+export function searchWords(s: string): string[] {
+  return s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter((w) => w && w !== "vic" && w !== "victoria").map((w) => STREET_TYPES[w] ?? w);
+}
+
+/** The word to look the street up by: the one after the house number, else the longest that isn't a street type. */
+export function streetLookupWord(words: string[]): string | null {
+  const after = words.findIndex((w, i) => i > 0 && /^\d+[a-z]?$/.test(words[i - 1]) && /^[a-z]{2,}$/.test(w) && !LONG.has(w));
+  if (after >= 0) return words[after];
+  const cands = words.filter((w) => /^[a-z]{3,}$/.test(w) && !LONG.has(w)).sort((a, b) => b.length - a.length);
+  return cands[0] ?? null;
+}
+
+/** Every word of the search somewhere in the job's words (a house number must match whole). */
+export const matchesAll = (search: string[], text: string[]) => search.every((w) => (/^\d/.test(w) ? text.includes(w) : text.some((t) => t.startsWith(w))));
+
+/**
+ * Jobs by number, customer, suburb or site address, open ones and the most
+ * recent first. The address is searched word by word, so "2 Joy court narre
+ * warren" finds job 20434 at 2 Joy Court, Narre Warren, which the old search
+ * (one phrase against the number, the customer and the suburb) never could.
+ */
 export async function findJobs(q: string): Promise<JobHit[]> {
   const t = clean(q);
   if (t.length < 2) return [];
   const like = `*${t}*`;
-  const rows = await sbSelect<Omit<JobHit, "next_visit">>(
+  type Row = Omit<JobHit, "next_visit">;
+  const cols = "id,job_number,status,job_type,customer_name,suburb";
+  const direct = sbSelect<Row>(
     "st_jobs",
-    `select=id,job_number,status,job_type,customer_name,suburb&or=(job_number.ilike.${encodeURIComponent(like)},customer_name.ilike.${encodeURIComponent(like)},suburb.ilike.${encodeURIComponent(like)})&status=neq.Canceled&order=modified_on.desc.nullslast&limit=12`,
+    `select=${cols}&or=(job_number.ilike.${encodeURIComponent(like)},customer_name.ilike.${encodeURIComponent(like)},suburb.ilike.${encodeURIComponent(like)})&status=neq.Canceled&order=modified_on.desc.nullslast&limit=12`,
   );
+
+  // By the site: find the street by its name, keep the sites every word of the search fits, then their jobs.
+  const words = searchWords(t);
+  const key = streetLookupWord(words);
+  const bySite = (async (): Promise<Row[]> => {
+    if (!key) return [];
+    const locs = await sbSelect<{ id: number; name: string | null; street: string | null; unit: string | null; city: string | null }>(
+      "st_locations",
+      `select=id,name,street:raw->address->>street,unit:raw->address->>unit,city:raw->address->>city&raw->address->>street=ilike.${encodeURIComponent(`*${key}*`)}&limit=300`,
+    ).catch(() => []);
+    const fit = locs.filter((l) => matchesAll(words, searchWords(`${l.unit ?? ""} ${l.street ?? ""} ${l.city ?? ""} ${l.name ?? ""}`))).map((l) => l.id).slice(0, 40);
+    if (!fit.length) return [];
+    return sbSelect<Row>("st_jobs", `select=${cols}&location_id=in.(${fit.join(",")})&status=neq.Canceled&order=modified_on.desc.nullslast&limit=12`).catch(() => []);
+  })();
+
+  const [a, b] = await Promise.all([direct, bySite]);
+  const seen = new Set<number>();
+  const rows = [...a, ...b].filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true))).slice(0, 12);
   if (!rows.length) return [];
   const visits = await sbSelect<{ job_id: number; start_at: string | null }>("job_next_appointment", `select=job_id,start_at&job_id=in.(${rows.map((r) => r.id).join(",")})`).catch(() => []);
   const at = new Map(visits.map((v) => [v.job_id, v.start_at]));

@@ -88,7 +88,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
     <PortalShell user={user}>
       <div className="pt-head pt-head--split">
         <div>
-          <h1>Sales</h1>
+          <h1>Leads</h1>
           <p>Who&rsquo;s asking, and from where, every enquiry in {monthLabel}, from the website and ServiceTitan.</p>
         </div>
         <nav className="pt-win" aria-label="Month">

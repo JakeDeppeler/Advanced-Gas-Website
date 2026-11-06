@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { installJob, packFactsFor } from "@/lib/installpack/facts";
-import { buildPackFile } from "@/lib/installpack/run";
+import { buildPackFile, packExtras, packRow } from "@/lib/installpack/run";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,10 +25,16 @@ export async function GET(req: NextRequest) {
   if (!/^\d{3,12}$/.test(job)) return new NextResponse("Give a job number: ?job=20453", { status: 400 });
 
   const j = await installJob(job);
-  if (!j) return new NextResponse(`Job ${job} isn't a booked install with a sold quote and a visit still to come, so it has no install pack.`, { status: 404 });
-  const facts = (await packFactsFor([j])).get(j.job_id)!;
+  if (!j) return new NextResponse(`Job ${job} isn't an install job with a visit still to come, so it has no install pack.`, { status: 404 });
+  const base = (await packFactsFor([j])).get(j.job_id)!;
+  const deadline = Date.now() + 52_000;
   try {
-    const built = await buildPackFile(j, facts, 0, Date.now() + 50_000, PREVIEW_PHOTO_BYTES);
+    // The reports and the install summary as the real pack will have them,
+    // looked for or written now if they aren't yet (and kept, so the pack
+    // that goes on the job uses the same).
+    const extras = await packExtras(j, base, await packRow(j.job_id).catch(() => null), { reportChecks: 1, writes: 1, deadline }, true);
+    const facts = extras === "wait" ? base : { ...base, visitReports: extras.reports, summary: extras.summary };
+    const built = await buildPackFile(j, facts, 0, deadline, PREVIEW_PHOTO_BYTES);
     return new NextResponse(Buffer.from(built.pdf), {
       headers: { "Content-Type": "application/pdf", "Content-Disposition": `inline; filename="${built.fileName.replace(/"/g, "")}"`, "Cache-Control": "no-store" },
     });

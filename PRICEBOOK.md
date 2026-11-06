@@ -231,3 +231,100 @@ fix, not a re-pull.
 creates it if absent. If the office already has a Reece vendor under a slightly
 different name, set `vendorName` to that exact name before the first apply, or
 the sync will create a second one.
+
+## Labour pricing
+
+Jake, 5 Nov 2026: installation is priced for two people (a tech and an
+apprentice), fixing a problem for one. An install done in part of a day (a
+split, a heat pump or split hot water, continuous flow, gas storage, a cooktop)
+is at the **part-day** rate, $350, because the drive to the next job comes out
+of it; the all-day jobs (multi-head, ducted, Dominator) are at the crew rate,
+$310. A diagnostic is the standard call-out
+($200): it's the customer's first contact and how the job is won. Servicing is
+left at its own prices for the same reason, since it's where problems are
+found. The figures are the portal's, on **Pricing & costs › Rates & pricing**
+(`portal_settings.pricing`: `callout` $200, `solo` $250, `partDay` $350,
+`hourly` $310, `install` $360 at the time), so changing one there and re-running is how the
+pricebook follows it.
+
+**Services.** Diagnostics become the call-out fee; repairs and installation
+become their own ServiceTitan hours × their crew's rate. The list is by service
+code in `src/lib/pricebook/labour.ts`; a service not on it is never touched,
+and a listed hourly one with no hours is reported, not priced at $0.
+Electrical connections stay the electrician's price. Removing the old unit
+(*Equipment – Decommission & Disposal*) is the two-person rate.
+
+**Refrigerant.** R410A and R32 were $0 a kg. Their cost and the markup live in
+`portal_settings.refrigerant` (`perKg` by material code, `markupPct`), and the
+services run sets each to cost + markup, to the dollar: $106 → $133 and
+$109 → $136 at 25%, the median markup across our priced materials. A material's
+cost only sticks in ServiceTitan through its supplier; the refrigerant has
+none, so if the cost doesn't take, the run says so and the price still goes in.
+
+**Templates.** The old layout priced the install line to cover labour and
+materials, put the electrician beside it, and left the materials loose at $0.
+Rebuilt, each split and multi-head template has one installation header (a
+ServiceTitan item group) holding the electrical and every material at its
+pricebook price.
+
+- Splits: the labour is on the header, at the install service's hours × the
+  part-day $350.
+  Each offers add-ons for the office to tick on the day: removing the old
+  unit, a condensate pump, Blygold, and a second coil of the template's own
+  size for runs over 20 m.
+- Hot water (heat pump, split, continuous flow, gas storage) and cooktops:
+  the same, labour on the header at $350. This is what fixes the $0 install
+  lines on the Continuous Flow and Thermann 135L templates.
+- Multi-heads: a condenser goes out with two heads or five, so the labour
+  isn't fixed. *Multi Head Labour (2 head)* to *(6 head)* go on as add-ons at
+  hours × $310 and the office ticks the one the job needs, as with rebates.
+- Ducted and the Dominator aren't rebuilt: they turn on the house's outlets,
+  duct runs and zones, and get priced from the job's design instead.
+
+A doubled install line or certificate comes off. Rebates, the unit, the
+certificate and add-ons stay where they are. A template already grouped is
+left alone.
+
+Writing templates needs the app's **Estimate Templates** write scope
+(`tn.sal.estimatetemplates:w`) in the developer portal, then re-approval in
+ServiceTitan, as for the Pricebook scope above.
+
+Actions → **Pricebook labour** → choose *services* or *templates*. Without
+*apply* it's a dry run and the summary tables every change; with it, re-run
+until `remaining` is 0. Each run is a row in `pricebook_sync_runs` with
+`supplier` = `labour-services` or `labour-templates`. `npm run check:labour`
+holds the rules.
+
+## Quote wording
+
+Jake, 6 Nov 2026: every template summary and service description reads the
+same way. A summary says what the job is and what it involves, then the brand,
+then how we install it (our own licensed team, the materials actually on the
+template, pressure test and vacuum, sealed penetrations, the clean-up): that's
+where a quote shows why we cost more than the cheapest one. Last, what's
+included and what's quoted separately. It's all in
+`src/lib/pricebook/wording.ts`.
+
+- A template's facts come from its own lines, not its name: the size from the
+  unit on it, internal or external from the heater, wifi from the unit. That's
+  what stopped Kaden quotes saying Mitsubishi Electric and a 250L saying 160L.
+- Product claims are the ones the old wording made, carried over. Anything new
+  is in `NEW_CLAIMS` and gets checked before it goes on a quote.
+- Removing the old unit is part of every install. The removal service is for a
+  visit where nothing goes in. The $200 call-out covers the first hour.
+- Servicing, leak detection, commercial and the deposit keep their wording.
+
+**Internal gas heaters.** The Wombat, Compact Classic and StarPro were quoted
+on *Gas Ducted Heater - External*, whose words put the heater outside. Jake,
+6 Nov: an internal changeover is 3 hours. The *services* run creates *Gas
+Ducted Heater - Internal* (`GAS-DUCT-INT`, 3 h at the part-day rate, $1,050,
+with the external one's category, account and cost). The next *templates* run
+swaps it onto those templates and does only that, because a new line has no id
+to group under until it's saved; the run after groups it like the rest. Both
+heater services head their templates like the hot water ones do.
+
+Actions → **Pricebook labour** → *wording*: a dry run lists every change against
+the live text; *apply* writes the service descriptions, the template summaries
+and the description on each template line that uses a reworded service, and
+reads each back. Template summaries need the Estimate Templates write scope.
+`npm run check:wording` holds it.

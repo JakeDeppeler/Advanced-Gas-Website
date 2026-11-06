@@ -1,6 +1,10 @@
 import "server-only";
+import { q, sbSelect } from "@/lib/dashboard/db";
 import { stDownload, stFetch, stFileOrLink, stTenantPath } from "@/lib/dashboard/servicetitan";
 import type { WorkOrderDetails } from "./plan";
+import { conditionReports } from "@/lib/conditionReport/fetch";
+import { reportPdf } from "@/lib/conditionReport/pdf";
+import { reportFileName, toReport } from "@/lib/conditionReport/report";
 
 /**
  * The files on a job in ServiceTitan — plans, photos, the quote — to send
@@ -31,21 +35,42 @@ export async function listJobFiles(jobId: number): Promise<{ files: JobFile[] } 
 }
 
 const PHOTO = /\.(jpe?g|png|heic|heif|webp|gif)$/i;
-/** Enough to show the switchboard, the run and the wall; a dozen downloads also fits inside a 60 s function. */
-const MAX_PHOTOS = 12;
+/**
+ * Every photo, as far as an email and a 60 s function allow: 25 MB of files
+ * (MAX_TOTAL) is usually the limit first, and four downloads at a time keep
+ * twenty inside the time a send has.
+ */
+const MAX_PHOTOS = 20;
+const AT_ONCE = 4;
+
+/**
+ * The jobs the work order's jobs were quoted on. The quote visit is where the
+ * switchboard, the wall and the old unit were photographed, and it's usually
+ * another job (as the install pack found, 27 Oct).
+ */
+async function quoteJobs(jobIds: number[]): Promise<number[]> {
+  if (!jobIds.length) return [];
+  const jobs = await sbSelect<{ est: string | null }>("st_jobs", [q.select("est:raw->>createdFromEstimateId"), `id=in.(${jobIds.join(",")})`].join("&")).catch(() => []);
+  const ests = jobs.map((j) => Number(j.est)).filter((n) => n > 0);
+  if (!ests.length) return [];
+  const rows = await sbSelect<{ job_id: number | null }>("st_estimates", [q.select("job_id"), `id=in.(${ests.join(",")})`].join("&")).catch(() => []);
+  return [...new Set(rows.map((r) => Number(r.job_id)).filter((n) => n > 0 && !jobIds.includes(n)))];
+}
 
 /**
  * The files picked on a work order, downloaded for the email. Fails whole,
  * naming the file, so nothing half-attached goes out.
  *
- * `photos`: every photo on the work order's jobs goes too, newest first
- * (Jake, 26 Oct: the electrician should get the job's photos without anyone
- * picking them). Photos only, because the reason files are picked by hand
- * still holds for documents: an invoice or signed paperwork can sit on a
+ * `photos`: every photo on the work order's jobs and the jobs they were
+ * quoted on goes too, newest first (Jake, 26 Oct, for the electrician; 31
+ * Oct, every work order). Photos only, because the reason files are picked by
+ * hand still holds for documents: an invoice or signed paperwork can sit on a
  * job. Unlike a picked file, a photo that won't download or won't fit is
  * left off rather than holding the work order back.
+ *
+ * `reports`: the Condition Reports on the same jobs, as PDFs.
  */
-export async function jobFilesFor(d: WorkOrderDetails | null, opts: { photos?: boolean } = {}): Promise<{ filename: string; content: string }[] | { error: string }> {
+export async function jobFilesFor(d: WorkOrderDetails | null, opts: { photos?: boolean; reports?: boolean } = {}): Promise<{ filename: string; content: string }[] | { error: string }> {
   const picked = d?.files ?? [];
   const out: { filename: string; content: string }[] = [];
   let total = 0;
@@ -58,25 +83,53 @@ export async function jobFilesFor(d: WorkOrderDetails | null, opts: { photos?: b
       return { error: `Couldn't attach “${f.name}” from the job: ${(e as Error).message.replace(/^ServiceTitan \S+ failed: /, "")}.` };
     }
   }
-  if (opts.photos && d?.jobs?.length) {
+  const own = d?.jobs?.map((j) => j.job_id) ?? [];
+  const jobs = (opts.photos || opts.reports) && own.length ? [...own, ...(await quoteJobs(own))] : [];
+  // The Condition Reports on the same jobs, each made into a PDF (Jake, 31
+  // Oct). Before the photos, so the 25 MB cap leaves out a photo rather than
+  // a report. Its photos are among the job's files and go as photos. A report
+  // that can't be read or made is left off, as a photo is, rather than holding
+  // the work order back: the forms scope may not be granted, and ServiceTitan
+  // may be slow.
+  if (opts.reports && jobs.length) {
+    const subs = await conditionReports(jobs).catch(() => []);
+    const names = new Set(out.map((o) => o.filename));
+    for (const sub of subs) {
+      try {
+        const r = toReport(sub);
+        const bytes = await reportPdf(r, new Date());
+        if (total + bytes.length > MAX_TOTAL) continue;
+        total += bytes.length;
+        let name = reportFileName(r);
+        if (names.has(name)) name = name.replace(/\.pdf$/, ` (${sub.id}).pdf`);
+        names.add(name);
+        out.push({ filename: name, content: Buffer.from(bytes).toString("base64") });
+      } catch {
+        // Left off; see above.
+      }
+    }
+  }
+  if (opts.photos && jobs.length) {
     const have = new Set(picked.map((f) => f.id));
     const photos: JobFile[] = [];
-    for (const j of d.jobs) {
-      const r = await listJobFiles(j.job_id);
+    for (const id of jobs) {
+      const r = await listJobFiles(id);
       if ("files" in r) photos.push(...r.files.filter((f) => PHOTO.test(f.name) && !have.has(f.id)));
     }
     photos.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
     const names = new Set(out.map((o) => o.filename));
-    for (const f of photos.slice(0, MAX_PHOTOS)) {
-      try {
-        const { bytes } = await stDownload(stTenantPath("forms", `jobs/attachment/${f.id}`), MAX_TOTAL - total);
-        total += bytes.length;
-        // Phones name every photo IMG_0001.jpg; two jobs' worth can clash.
-        const name = names.has(f.name) ? f.name.replace(/(\.[^.]+)$/, `-${f.id}$1`) : f.name;
-        names.add(name);
-        out.push({ filename: name, content: Buffer.from(bytes).toString("base64") });
-      } catch {
+    const take = photos.slice(0, MAX_PHOTOS);
+    for (let i = 0; i < take.length; i += AT_ONCE) {
+      const got = await Promise.all(take.slice(i, i + AT_ONCE).map((f) =>
+        stDownload(stTenantPath("forms", `jobs/attachment/${f.id}`), MAX_TOTAL).then(({ bytes }) => ({ f, bytes }), () => null)));
+      for (const g of got) {
         // Too big for what's left of the email, or ServiceTitan wouldn't hand it over: send without it.
+        if (!g || total + g.bytes.length > MAX_TOTAL) continue;
+        total += g.bytes.length;
+        // Phones name every photo IMG_0001.jpg; two jobs' worth can clash.
+        const name = names.has(g.f.name) ? g.f.name.replace(/(\.[^.]+)$/, `-${g.f.id}$1`) : g.f.name;
+        names.add(name);
+        out.push({ filename: name, content: Buffer.from(g.bytes).toString("base64") });
       }
     }
   }

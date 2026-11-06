@@ -40,7 +40,7 @@ export default async function SpendPage({ searchParams }: { searchParams: { p?: 
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Spending" sub="From Xero · before GST" info={[
+        <Head title="Spending" eyebrow="From Xero · before GST" info={[
           ["Cost of jobs", "Parts, materials, subbies and field wages, what goes up and down with the work."],
           ["Overheads", "What it costs to keep the doors open, job or no job."],
           ["Before", "The same stretch just before it, this month so far against the same days of last month, this financial year against the same point last year, so a part-done month isn’t compared with a whole one."],

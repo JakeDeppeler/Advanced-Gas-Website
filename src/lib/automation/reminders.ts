@@ -21,8 +21,9 @@ import { MAX_LISTS, createAutoTodo, officeIds, openTodos, renameTodoList, saveTo
 import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, isAccountList, jobNumberIn, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, addDays, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
-import { NOTIFY_DEFAULT, loadMade, loadSwitches, logAuto, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
-import { clearApprovedQuoteTags } from "./quoteTag";
+import { bookNewLeads, linkMatchedLeads, retryLeadUploads } from "@/lib/leads/autoLink";
+import { NOTIFY_DEFAULT, loadAutoLog, loadMade, loadSwitches, logAuto, openRunFailures, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
+import { syncQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
 import { getTodo, updateTodo } from "@/lib/todos/store";
 import { isSold } from "@/lib/pipeline/types";
@@ -341,21 +342,21 @@ async function quoteFollow(ctx: Ctx, pipe: PipeQuote[], state: MirrorState) {
 /**
  * Quoting: a quote visit that's been done with no quote written for it. Read
  * off ServiceTitan's jobs: a Quotation job completed in the last 30 days with
- * no estimate on it, on another job in its project, or on the customer since
- * the visit. Comes off once there is one, and Follow up takes it from there.
+ * no estimate on it, on another job in its project, or on the customer at the
+ * same address since the visit. Comes off once there is one, and Follow up takes it from there.
  */
 async function quoteToWrite(ctx: Ctx, state: MirrorState) {
   const list = ctx.lists.find((l) => /quot|sales/i.test(l)) ?? null;
   const since = new Date(Date.now() - 30 * DAY).toISOString();
-  const jobs = await sbSelect<{ id: number; job_number: string | null; customer_name: string | null; completed_on: string | null; pid: string | null; cid: number | null; suburb: string | null }>("st_jobs",
-    `select=id,job_number,customer_name,completed_on,pid:raw->>projectId,cid:customer_id,suburb&job_type=ilike.quotation*&status=eq.Completed&completed_on=gte.${encodeURIComponent(since)}&limit=300`);
+  const jobs = await sbSelect<{ id: number; job_number: string | null; customer_name: string | null; completed_on: string | null; pid: string | null; cid: number | null; loc: number | null; suburb: string | null }>("st_jobs",
+    `select=id,job_number,customer_name,completed_on,pid:raw->>projectId,cid:customer_id,loc:location_id,suburb&job_type=ilike.quotation*&status=eq.Completed&completed_on=gte.${encodeURIComponent(since)}&limit=300`);
   const ids = jobs.map((j) => j.id);
   const pids = [...new Set(jobs.map((j) => j.pid).filter((v): v is string => !!v))];
   const cids = [...new Set(jobs.map((j) => j.cid).filter((v): v is number => v != null))];
   const [onJob, projJobs, onCust] = await Promise.all([
     ids.length ? sbSelect<{ job_id: number }>("st_estimates", `select=job_id&job_id=in.(${ids.join(",")})`) : Promise.resolve([]),
     pids.length ? sbSelect<{ id: number; pid: string }>("st_jobs", `select=id,pid:raw->>projectId&raw->>projectId=in.(${pids.join(",")})`) : Promise.resolve([]),
-    cids.length ? sbSelect<{ customer_id: number; created_on: string | null }>("st_estimates", `select=customer_id,created_on&customer_id=in.(${cids.join(",")})&created_on=gte.${encodeURIComponent(since)}`) : Promise.resolve([]),
+    cids.length ? sbSelect<{ customer_id: number; created_on: string | null; loc: string | null }>("st_estimates", `select=customer_id,created_on,loc:raw->>locationId&customer_id=in.(${cids.join(",")})&created_on=gte.${encodeURIComponent(since)}`) : Promise.resolve([]),
   ]);
   const projIds = projJobs.map((j) => j.id).filter((id) => !ids.includes(id));
   const onProjJob = projIds.length ? await sbSelect<{ job_id: number }>("st_estimates", `select=job_id&job_id=in.(${projIds.join(",")})`) : [];
@@ -364,7 +365,8 @@ async function quoteToWrite(ctx: Ctx, state: MirrorState) {
   const items: MirrorItem[] = jobs.filter((j) => {
     if (quoted.has(Number(j.id)) || (j.pid && projQuoted.has(j.pid))) return false;
     const done = j.completed_on ? Date.parse(j.completed_on) - 3 * DAY : 0;
-    return !onCust.some((e) => Number(e.customer_id) === Number(j.cid) && e.created_on && Date.parse(e.created_on) >= done);
+    // Same address only: an agency's quote for another of its properties isn't this one's (quoteTag.ts).
+    return !onCust.some((e) => Number(e.customer_id) === Number(j.cid) && j.loc != null && Number(e.loc) === Number(j.loc) && e.created_on && Date.parse(e.created_on) >= done);
   }).map((j) => ({
     key: `j${j.id}`,
     title: `Write the quote for ${[j.customer_name ?? `job #${j.job_number ?? j.id}`, j.suburb].filter(Boolean).join(", ")}`,
@@ -812,7 +814,7 @@ export async function runAutomations(): Promise<{ ran: string[]; failed: string[
   try {
     // The quote tags first and inside the same claim: it keeps its own marks
     // in the same "already done" list, which is read fresh after it.
-    const quoteTags = await clearApprovedQuoteTags().catch((e: Error) => ({ removed: 0, failed: 1, skipped: e.message }));
+    const quoteTags = await syncQuoteTags().catch((e: Error) => ({ changed: 0, failed: 1, skipped: e.message }));
     return { ...(await runAll()), quoteTags };
   } finally {
     await release();
@@ -843,6 +845,12 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
     ["orderTags", () => orderTags(ctx)],
     ["orderMoves", () => orderMoves(ctx)],
     ["workOrderSend", () => workOrderSend(ctx)],
+    // Bookings first, so a job made from one this run is matched on it straight after.
+    ["leadBooking", async () => {
+      if (!sw.bookingProvider) throw new Error("Set the ServiceTitan booking provider under Website enquiries into ServiceTitan's Bookings.");
+      ctx.log.push(...await bookNewLeads(sw.bookingProvider, sw.leadBookingSince ?? new Date().toISOString()));
+    }],
+    ["leadToJob", async () => { ctx.log.push(...await linkMatchedLeads(), ...await retryLeadUploads()); }],
     ["accountFlow", () => (pipe ? accountFlow(ctx, pipe).then(() => bookListSweep(ctx, pipe)) : Promise.reject(new Error("The pipeline couldn't be read")))],
   ];
   const ran: string[] = [];
@@ -854,8 +862,13 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
       ran.push(k);
     } catch (e) {
       failed.push(k);
-      ctx.log.push({ at: new Date().toISOString(), kind: k, ok: false, title: `${k} didn't run`, detail: (e as Error).message.slice(0, 200) });
+      ctx.log.push({ at: new Date().toISOString(), kind: k, ok: false, run: true, title: `${k} didn't run`, detail: (e as Error).message.slice(0, 200) });
     }
+  }
+  // A step that failed before and ran cleanly now: said once, which clears it from Needs a look.
+  if (ran.length) {
+    const open = openRunFailures(await loadAutoLog().catch(() => []));
+    for (const k of ran) if (open.has(k)) ctx.log.push({ at: new Date().toISOString(), kind: k, ok: true, run: true, title: "Running cleanly again" });
   }
   await saveSettings(MIRROR, mirrorState).catch(() => undefined);
   await saveMade(ctx.made).catch(() => undefined);

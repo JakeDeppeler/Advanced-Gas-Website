@@ -31,8 +31,9 @@ export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; bl
 export type WebsiteTab = "leads" | "pages" | "dropoff";
 
 export const WEBSITE_TABS: { k: WebsiteTab; label: string; title: string; blurb: string }[] = [
-  { k: "leads", label: "Enquiries", title: "What the website brings in",
-    blurb: "Every quote request and phone tap, where they came from, how far away, and when. No customer details here; the enquiry still goes to the inbox." },
+  // The form itself is here now, with who sent it: it's what gets linked to their job.
+  { k: "leads", label: "Enquiries", title: "Website leads",
+    blurb: "Every form sent from the website, newest first, and where each one is up to in ServiceTitan. The enquiry still goes to the inbox as well." },
   { k: "pages", label: "Pages", title: "Which pages do the work",
     blurb: "Which pages people read, and which of them turn a reader into an enquiry." },
   { k: "dropoff", label: "Drop-off", title: "Where people leave",

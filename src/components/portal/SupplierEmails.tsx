@@ -51,7 +51,7 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
     || signoff !== (s.email_signoff ?? (isWork ? s.work_order_note ?? "" : ""));
 
   return (
-    <section className="pt-panel pt-supem__card">
+    <section className="pt-panel pt-supem__card" id={`sup-${s.id}`}>
       <header className="pt-nw__cardhead">
         <h2 className="pt-panel__h">{s.name}</h2>
         {!emailed && <span className="pt-vstat pt-vstat--none">maX</span>}
@@ -93,7 +93,7 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
           </label>
           <label className="pt-supem__field">
             <span>{isWork ? "Note to Geoff (in bold at the end)" : "Closing"}</span>
-            <textarea className="pt-supem__text" rows={isWork ? 4 : 2} value={signoff} onChange={(e) => setSignoff(e.target.value)}
+            <textarea className="pt-supem__text" rows={4} value={signoff} onChange={(e) => setSignoff(e.target.value)}
               placeholder={isWork ? "" : defaults.orderSignoff} />
           </label>
           <p className="pt-nw__muted pt-supem__hint">

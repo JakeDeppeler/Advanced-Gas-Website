@@ -44,7 +44,7 @@ jobs:
                    else "**Not linked yet.** The first failing stage below says why; everything after it is skipped."
                    end' report.json
             echo
-            echo "Environment: `$(jq -r .environment.env report.json)` · API: `$(jq -r .environment.apiBase report.json)`"
+            echo "Environment: \`$(jq -r .environment.env report.json)\` · API: \`$(jq -r .environment.apiBase report.json)\`"
             echo
             echo "| Stage | Status | Detail | Fix |"
             echo "|---|---|---|---|"

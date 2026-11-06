@@ -19,10 +19,14 @@ function conf() {
 
 const auth = (key: string) => ({ apikey: key, Authorization: `Bearer ${key}` });
 
-export async function uploadPhoto(path: string, body: ArrayBuffer, contentType: string): Promise<{ ok: boolean; error?: string }> {
+/**
+ * `bucket` defaults to the van photos'. The website form's photos have their
+ * own private bucket ("lead-photos", migration 0091), read the same way.
+ */
+export async function uploadPhoto(path: string, body: ArrayBuffer | Uint8Array, contentType: string, bucket = BUCKET): Promise<{ ok: boolean; error?: string }> {
   const c = conf();
   if (!c) return { ok: false, error: "not-configured" };
-  const res = await fetch(`${c.url}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, {
+  const res = await fetch(`${c.url}/storage/v1/object/${bucket}/${encodeURI(path)}`, {
     method: "POST",
     headers: { ...auth(c.key), "Content-Type": contentType, "x-upsert": "true" },
     body,
@@ -32,10 +36,10 @@ export async function uploadPhoto(path: string, body: ArrayBuffer, contentType: 
   return { ok: true };
 }
 
-export async function deletePhoto(path: string): Promise<{ ok: boolean }> {
+export async function deletePhoto(path: string, bucket = BUCKET): Promise<{ ok: boolean }> {
   const c = conf();
   if (!c) return { ok: false };
-  const res = await fetch(`${c.url}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, {
+  const res = await fetch(`${c.url}/storage/v1/object/${bucket}/${encodeURI(path)}`, {
     method: "DELETE", headers: auth(c.key), cache: "no-store",
   });
   return { ok: res.ok };
@@ -45,7 +49,7 @@ export async function deletePhoto(path: string): Promise<{ ok: boolean }> {
  * Signed URLs for a batch of paths in one call. An hour is long enough to look
  * through a check and short enough that a copied link stops working.
  */
-export async function signedUrls(paths: string[], seconds = 3600): Promise<Map<string, string>> {
+export async function signedUrls(paths: string[], seconds = 3600, bucket = BUCKET): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   const c = conf();
   if (!c || paths.length === 0) return out;
@@ -53,7 +57,7 @@ export async function signedUrls(paths: string[], seconds = 3600): Promise<Map<s
   // being wrong, so a storage hiccup costs the thumbnails, never the page.
   let rows: { path?: string; signedURL?: string; error?: string | null }[] = [];
   try {
-    const res = await fetch(`${c.url}/storage/v1/object/sign/${BUCKET}`, {
+    const res = await fetch(`${c.url}/storage/v1/object/sign/${bucket}`, {
       method: "POST",
       headers: { ...auth(c.key), "Content-Type": "application/json" },
       body: JSON.stringify({ expiresIn: seconds, paths }),
@@ -76,11 +80,36 @@ export async function signedUrls(paths: string[], seconds = 3600): Promise<Map<s
  * with its screen token rather than a portal session or a signed URL that
  * would expire on a board left running for weeks.
  */
-export async function readObject(path: string): Promise<{ ok: true; body: ArrayBuffer; type: string } | { ok: false; status: number }> {
+export async function readObject(path: string, bucket = BUCKET): Promise<{ ok: true; body: ArrayBuffer; type: string } | { ok: false; status: number }> {
   const c = conf();
   if (!c) return { ok: false, status: 503 };
-  const res = await fetch(`${c.url}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, { headers: auth(c.key), cache: "no-store" }).catch(() => null);
+  const res = await fetch(`${c.url}/storage/v1/object/${bucket}/${encodeURI(path)}`, { headers: auth(c.key), cache: "no-store" }).catch(() => null);
   if (!res || !res.ok) return { ok: false, status: res?.status ?? 502 };
   return { ok: true, body: await res.arrayBuffer(), type: res.headers.get("content-type") || "application/octet-stream" };
 }
 
+
+/**
+ * A one-time link the browser uploads a file to directly. Library files
+ * (price lists, manuals) can be 25MB; sent through a server action they hit
+ * the host's 4.5MB request limit and failed, so the file goes straight to
+ * storage and only its details come to the server. Valid for two hours.
+ */
+export async function signedUploadUrl(path: string, bucket: string): Promise<string | null> {
+  const c = conf();
+  if (!c) return null;
+  const res = await fetch(`${c.url}/storage/v1/object/upload/sign/${bucket}/${encodeURI(path)}`, {
+    method: "POST", headers: { ...auth(c.key), "Content-Type": "application/json" }, body: "{}", cache: "no-store",
+  }).catch(() => null);
+  if (!res?.ok) return null;
+  const j = (await res.json().catch(() => null)) as { url?: string } | null;
+  return j?.url ? `${c.url}/storage/v1${j.url.startsWith("/") ? "" : "/"}${j.url}` : null;
+}
+
+/** Whether a file is in storage: checked before a browser upload is recorded, so a row never points at nothing. */
+export async function objectExists(path: string, bucket: string): Promise<boolean> {
+  const c = conf();
+  if (!c) return false;
+  const res = await fetch(`${c.url}/storage/v1/object/info/${bucket}/${encodeURI(path)}`, { headers: auth(c.key), cache: "no-store" }).catch(() => null);
+  return !!res?.ok;
+}

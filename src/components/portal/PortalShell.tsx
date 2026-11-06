@@ -1,8 +1,7 @@
 import { cache, Suspense } from "react";
-import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { can, ROLE_LABELS, type PortalUser } from "@/lib/portal/caps";
+import { can, type PortalUser } from "@/lib/portal/caps";
 import { ViewAsBanner } from "@/components/portal/ViewAs";
 import { PortalSearch } from "@/components/portal/PortalSearch";
 import { buildSearchIndex } from "@/lib/portal/searchIndex";
@@ -15,9 +14,9 @@ import { isDue, touchState } from "@/lib/contacts/types";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
-import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
+import { readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
 import { buildSections, flatPages, pathOff, type Count, type Section } from "@/lib/portal/sections";
-import { AreaShortcuts, Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
+import { AreaShortcuts, TopBar, type LiveState } from "@/components/portal/shell/Menu";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 import { SearchPop } from "@/components/portal/shell/TopNav";
 import { FigureCount } from "@/components/portal/shell/FigureCount";
@@ -72,7 +71,7 @@ const liveLine = cache(async (user: PortalUser): Promise<LiveState | null> => {
   return { fresh, text: fresh ? "ServiceTitan · Xero" : `Synced ${ago}`, title: fresh ? `Last synced ${ago}` : `Last synced ${ago}: the sync may have stopped` };
 });
 
-type BarProps = { user: PortalUser; sections: Section[]; biz: Business; small: boolean; foot: React.ReactNode };
+type BarProps = { user: PortalUser; sections: Section[]; biz: Business; tools: React.ReactNode };
 
 /** The open area's shortcuts with their counts, the same counts as the side bar's (cached), streamed in the same way. */
 async function CountedShortcuts({ user, biz }: { user: PortalUser; biz: Business }) {
@@ -81,28 +80,24 @@ async function CountedShortcuts({ user, biz }: { user: PortalUser; biz: Business
   return <AreaShortcuts sections={buildSections(items, biz, office(user), counts)} />;
 }
 
-/** The side bar with its counts, streamed in after the page so the counts never hold a page up. */
-async function CountedSidebar({ user, sections, biz, small, foot }: BarProps) {
+/** The top bar with its counts, streamed in after the page so the counts never hold a page up. */
+async function CountedTopBar({ user, sections, biz, tools }: BarProps) {
   const [counts, live] = await Promise.all([sideCounts(user, sections).catch(() => ({})), liveLine(user).catch(() => null)]);
   const items = portalNav(user);
-  return <Sidebar sections={buildSections(items, biz, office(user), counts)} biz={biz} small={small} foot={foot} live={live} />;
+  return <TopBar sections={buildSections(items, biz, office(user), counts)} biz={biz} initial={user.name.slice(0, 1).toUpperCase()} tools={tools} live={live} />;
 }
 
 /**
- * The portal's chrome: the side bar of areas, a top bar with where you are,
- * the search, the bell and light or dark, then the page.
+ * The portal's chrome, as Jake chose from the light grey mocks: one top bar
+ * with every area across the middle, the search, the bell, light or dark and
+ * your initial (Settings) in the corner; under it the area's pages in a tray;
+ * then the page, on a light grey ground in white boxes.
  *
- * What the side bar offers comes from sections.ts over portalNav, and what the
+ * What the bar offers comes from sections.ts over portalNav, and what the
  * business has (Settings) takes areas and pages away: a business with no wall
  * board has no Wall board pages, and they send you home.
  *
- * The side bar is the menu at every width, the areas only. An area's pages
- * are shortcuts across the top of the page instead of a list that opened
- * under it in the side bar: Jake chose that (dropdown C) so the menu stays
- * short wherever you are. On a phone the side bar is a drawer.
- *
- * The bar's width and the theme are cookies, read here, so the first paint is
- * already right.
+ * The theme is a cookie, read here, so the first paint is already right.
  */
 export async function PortalShell({ user, children, variant }: { user: PortalUser; children: React.ReactNode; variant?: "home" | "wide" | "mid" }) {
   const biz = await getBusiness();
@@ -112,16 +107,14 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
   const items = portalNav(user);
   const sections = buildSections(items, biz, office(user));
   const rows = buildSearchIndex(items);
-  const small = cookies().get(NAV_COOKIE)?.value === "small";
   const theme = readTheme(cookies().get(THEME_COOKIE)?.value);
-  const first = user.name.split(" ")[0];
+  const initial = user.name.slice(0, 1).toUpperCase();
 
-  const foot = (
+  const tools = (
     <>
-      <Link href="/portal/me" className="pn-me" title="My file">
-        <span className="pn-av" aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</span>
-        <span className="pn-met"><b>{first}</b><span>{ROLE_LABELS[user.role]}</span></span>
-      </Link>
+      <SearchPop><PortalSearch rows={rows} placeholder="Search" /></SearchPop>
+      <Bell user={user} href="/portal/notifications" cls="pn-bell" size={18} />
+      <ThemeButton initial={theme} />
       <form action="/api/portal/logout" method="post" className="pn-out">
         <button type="submit" title="Sign out" aria-label="Sign out">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -134,25 +127,11 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
 
   return (
     // data-no-reveal: the site-wide scroll reveal is for the marketing pages.
-    <div className={`pt pn${variant ? ` pt--${variant}` : ""}${small ? " pn--mini" : ""}`} data-no-reveal data-theme={theme === "system" ? undefined : theme}>
-      <Suspense fallback={<Sidebar sections={sections} biz={biz} small={small} foot={foot} />}>
-        <CountedSidebar user={user} sections={sections} biz={biz} small={small} foot={foot} />
-      </Suspense>
-
+    <div className={`pt pn${variant ? ` pt--${variant}` : ""}`} data-no-reveal data-theme={theme === "system" ? undefined : theme}>
       <div className="pn-main">
-        <header className="pn-top">
-          <MenuButton />
-          <Crumb sections={sections} />
-          <div className="pn-tools">
-            <SearchPop><PortalSearch rows={rows} placeholder="Search" /></SearchPop>
-            <Bell user={user} href="/portal/notifications" cls="pn-bell" size={18} />
-            <ThemeButton initial={theme} />
-            <Link href="/portal/me" className="pn-avbtn" title={`${user.name} · My file`}>
-              <span aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</span>
-              <span className="pn-vh">My file</span>
-            </Link>
-          </div>
-        </header>
+        <Suspense fallback={<TopBar sections={sections} biz={biz} initial={initial} tools={tools} />}>
+          <CountedTopBar user={user} sections={sections} biz={biz} tools={tools} />
+        </Suspense>
         <main className="pt__content pn-content">
           {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
           <Suspense fallback={<AreaShortcuts sections={sections} />}>

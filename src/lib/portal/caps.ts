@@ -12,14 +12,14 @@
  * Pure and dependency-free so the Edge middleware can import it too.
  */
 
-export type Role = "admin" | "lead" | "member";
+export type Role = "admin" | "service" | "lead" | "member";
 
-export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write" | "vehicles" | "quotes";
+export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write" | "vehicles" | "quotes" | "team";
 
 /** Per-person overrides. Only keys that differ from the role default are stored. */
 export type CapMap = Partial<Record<Cap, boolean>>;
 
-export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles", "quotes"];
+export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles", "quotes", "team"];
 
 export type PortalUser = {
   id?: string;
@@ -38,17 +38,19 @@ export type PortalUser = {
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: "Admin",
+  service: "Service manager",
   lead: "Lead hand",
   member: "Team member",
 };
 
 export const ROLE_BLURB: Record<Role, string> = {
   admin: "Full access, overhead costing, managing the team, and all reports.",
+  service: "Runs the crew day to day: each tech's jobs, hours, profit, selling and call-backs, the quote pipeline and team reports. No pay, bank or Xero.",
   lead: "Runs the crew, writes and reads team reports, no overhead costing.",
   member: "Everyday access, handbook, learning, information and tools.",
 };
 
-export const ROLES: Role[] = ["member", "lead", "admin"];
+export const ROLES: Role[] = ["member", "lead", "service", "admin"];
 
 export const CAPS: { key: Cap; label: string; desc: string }[] = [
   { key: "overhead", label: "Overhead costing", desc: "See the overhead-cost and charge-out tool." },
@@ -57,12 +59,14 @@ export const CAPS: { key: Cap; label: string; desc: string }[] = [
   { key: "reports_write", label: "Write team reports", desc: "Write notes about team members." },
   { key: "vehicles", label: "Manage vehicles", desc: "Add and edit vehicles and the service schedule (everyone can log fuel, km and damage)." },
   { key: "quotes", label: "Quote pipeline", desc: "See every open quote and log the follow-up calls. No costs or wages." },
+  { key: "team", label: "Team performance", desc: "The Service manager pages: each tech's jobs, hours, profit, selling and call-backs, and where the money is made and lost. No wages." },
 ];
 
 const ROLE_DEFAULTS: Record<Role, Record<Cap, boolean>> = {
-  admin: { overhead: true, manage_users: true, reports_read: true, reports_write: true, vehicles: true, quotes: true },
-  lead: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: false },
-  member: { overhead: false, manage_users: false, reports_read: false, reports_write: false, vehicles: false, quotes: false },
+  admin: { overhead: true, manage_users: true, reports_read: true, reports_write: true, vehicles: true, quotes: true, team: true },
+  service: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: true, team: true },
+  lead: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: false, team: false },
+  member: { overhead: false, manage_users: false, reports_read: false, reports_write: false, vehicles: false, quotes: false, team: false },
 };
 
 export function roleDefault(role: Role, cap: Cap): boolean {
@@ -85,6 +89,7 @@ export function effectiveCaps(user: Pick<PortalUser, "role" | "caps">): Record<C
     reports_write: can(user, "reports_write"),
     vehicles: can(user, "vehicles"),
     quotes: can(user, "quotes"),
+    team: can(user, "team"),
   };
 }
 
@@ -102,7 +107,7 @@ export function overridesFrom(role: Role, desired: Record<Cap, boolean>): CapMap
 }
 
 export function isRole(v: unknown): v is Role {
-  return v === "admin" || v === "lead" || v === "member";
+  return v === "admin" || v === "service" || v === "lead" || v === "member";
 }
 
 /** Report categories — kept in sync with the portal_reports check constraint. */

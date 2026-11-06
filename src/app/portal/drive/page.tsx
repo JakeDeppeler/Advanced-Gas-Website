@@ -59,7 +59,7 @@ export default async function DrivePage() {
     return (
       <PortalShell user={user}>
         <div className="pk">
-          <Head title="Drive time" sub="Last four full weeks · ServiceTitan clock-ins" info={info} />
+          <Head title="Drive time" eyebrow="Last four full weeks · ServiceTitan clock-ins" info={info} />
           <Empty>{riders.length ? "Nobody running their own van" : "Nobody on the tools"} has ten visits with the drive timed in the last four weeks, so there’s no drive time to show yet.</Empty>
         </div>
       </PortalShell>
@@ -77,7 +77,7 @@ export default async function DrivePage() {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Drive time" sub="Last four full weeks · ServiceTitan clock-ins" info={info} />
+        <Head title="Drive time" eyebrow="Last four full weeks · ServiceTitan clock-ins" info={info} />
         <Say>
           <b>{worst.name.split(" ")[0]} spends the most of the day on the road</b>: {Math.round(worst.pct)}%, about {worst.driveDay.toFixed(1)} hours a day.{" "}
           The crew is at {Math.round(fleet)}%{fleet > BENCH.drive.hi

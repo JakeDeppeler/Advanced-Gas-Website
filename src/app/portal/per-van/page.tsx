@@ -41,7 +41,7 @@ export default async function PerVanPage() {
     ["Low number", "Usually one of three things: too much driving, jobs priced low, or not enough work booked. Drive time is the next page."],
   ];
 
-  const head = <Head title="Per van, per day" sub={`Jobs finished this month · ${d.tied} of ${d.done} tied to a tech`} info={info} />;
+  const head = <Head title="Per van, per day" eyebrow={`Jobs finished this month · ${d.tied} of ${d.done} tied to a tech`} info={info} />;
 
   if (!d.done || cover < ENOUGH || !rows.length) {
     return (

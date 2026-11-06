@@ -1,0 +1,9 @@
+/* Plain lists inside the kit's cards and checklist steps: the kit has no list style of its own. */
+.pk .sv-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.pk .sv-list li { line-height: 1.45; }
+/* A figure that's against us: bold and the serious colour, never colour alone (the words say it too). */
+.pk .sv-bad { font-weight: 700; color: var(--bad, #b42318); }
+/* On a phone the scorecard scrolls sideways inside its card; wrapping every cell made each tech a screen tall. */
+@media (max-width: 760px) {
+  .pk .sv-tbl th, .pk .sv-tbl td { white-space: nowrap; }
+}

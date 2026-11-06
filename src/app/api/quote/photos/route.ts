@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
+import { keepPhotos } from "@/lib/portal/leadPhotos";
 
 export const runtime = "nodejs";
 
@@ -55,6 +56,9 @@ export async function POST(req: Request) {
     body: JSON.stringify({ photo_count: photos.length }),
   }).then((r) => (r.ok ? (r.json() as Promise<unknown[]>) : [])).catch(() => [] as unknown[]);
   if (!claimed.length) return new NextResponse("Photos already added", { status: 409 });
+  // Filed under the lead too, as the older forms' photos are, so they can go
+  // onto the customer's job. The email below is the notification.
+  await keepPhotos(id, photos).catch((e) => console.error("Keeping the lead's photos failed", e));
 
   const to = (process.env.LEAD_NOTIFICATION_EMAIL || "").split(",").map((s) => s.trim()).filter(Boolean);
   const recipients = to.length ? to : ["jake@advancedgas.com.au"];
@@ -82,8 +86,8 @@ export async function POST(req: Request) {
     attachments: photos.map((p, i) => ({ filename: safeName(p.name, i), content: p.data })),
   } as Parameters<typeof sendEmail>[1], { lead: id, photos: n });
 
-  // The photos are only ever in this email. If it failed, give the lead its
-  // count back so the customer's retry isn't refused as a duplicate.
+  // If the email failed, give the lead its count back so the customer's retry
+  // isn't refused as a duplicate. The stored copies are overwritten by it.
   if (!out.ok) {
     await fetch(`${url}/rest/v1/portal_leads?id=eq.${id}`, { method: "PATCH", headers: { ...headers, Prefer: "return=minimal" }, body: JSON.stringify({ photo_count: 0 }) }).catch(() => {});
     return new NextResponse("Could not send the photos", { status: 502 });

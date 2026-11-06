@@ -50,6 +50,15 @@ export const SECTION_ICON: Record<string, string> = {
   tag: '<path d="M3 10V3h7l11 11-7 7z"/><path d="M7 7h.01"/>',
   star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
   team: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 13.5a7 7 0 0 1 4 6.5"/>',
+  // Finance's, as Jake asked: a dollar sign rather than a banknote.
+  dollar: '<path d="M12 2v20"/><path d="M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  // The automations' own.
+  alert: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
+  cash: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+  file: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/>',
 };
 
 /**
@@ -111,12 +120,16 @@ export const SECTION_DEFS: SectionDef[] = [
     // board, then the accounts', then marketing's, the order Jake reads
     // them. Account to-dos are the work the portal writes for the office,
     // kept off people's own lists.
-    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists: your own, the accounts', marketing's, and who to keep in touch with",
+    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists, who to keep in touch with, toolbox talks and future plans",
     pages: [
       { label: "Personal", href: "/portal/todo", icon: "me" },
       { label: "Accounts", href: "/portal/todo/accounts", office: true, icon: "pf" },
       { label: "Marketing", href: "/portal/todo/marketing", icon: "mega" },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true, icon: "phone" },
+      // Things to get through rather than to look up, so on the lists with the
+      // rest of the work, not in Team.
+      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
+      { label: "Future planning", href: "/portal/plans", office: true, icon: "grow" },
     ],
   },
   {
@@ -126,6 +139,8 @@ export const SECTION_DEFS: SectionDef[] = [
       // for search and old links.
       { label: "Quotes", href: "/portal/pipeline", icon: "quote" },
       { label: "Leads", href: "/portal/leads", icon: "phone" },
+      // Ducted is priced from the house's layout, not a template.
+      { label: "Ducted quote", href: "/portal/ducted", icon: "quote" },
       // The whole run of a job, of which the quotes are one stretch.
       { label: "Job tracker", href: "/portal/tracker", office: true, icon: "run" },
     ],
@@ -138,6 +153,8 @@ export const SECTION_DEFS: SectionDef[] = [
       // Every contractor's, not just the electrician's: Ross's water balancing goes from here too.
       { label: "Work orders", href: "/portal/supply/work-orders", icon: "jobs" },
       { label: "Automation", href: "/portal/supply/automation", icon: "bolt" },
+      // The wording each supplier gets, a tab away from the orders it goes on.
+      { label: "Supplier emails", href: "/portal/supply/emails", icon: "file" },
     ],
   },
   {
@@ -165,7 +182,7 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "fin", label: "Finance", icon: "pf", group: 3, blurb: "Where the money stands, what to invoice and chase, cash, profit, the goals and what we charge",
+    id: "fin", label: "Finance", icon: "dollar", group: 3, blurb: "Where the money stands, what to invoice and chase, cash, profit, the goals and what we charge",
     // Six shortcuts, down from ten: the overview, then a family for each
     // question (getting paid, cash, profit, pace, and planning what we charge
     // and spend), each family's own pages a second row on the page.
@@ -195,17 +212,21 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "This week", href: "/portal/pace" },
         { label: "This month", href: "/portal/pace?view=month", gate: "/portal/pace" },
         { label: "This year", href: "/portal/pace?view=year", gate: "/portal/pace" },
-        { label: "KPIs", href: "/portal/kpis" },
         { label: "Year goal", href: "/portal/goal" },
       ] },
-      // What we charge, what it costs us, and what if: set up now and then,
-      // so one shortcut rather than three. Materials markup isn't here: it's
-      // set on each item in ServiceTitan, and a second copy only drifted.
-      { label: "Planning", icon: "tag", group: [
+      // Tabs of their own, as Jake asked: looked at more than the planning
+      // pages they sat among.
+      { label: "KPIs", href: "/portal/kpis", icon: "run" },
+      { label: "Hourly rate", icon: "clock", group: [
         { label: "Hourly rate", href: "/portal/rates" },
         { label: "On site & commercial", href: "/portal/rates/onsite" },
         { label: "How the rate's built", href: "/portal/finance/hourly" },
         { label: "What an hour must cover", href: "/portal/finance/cover" },
+      ] },
+      // What we charge, what it costs us, and what if: set up now and then.
+      // Materials markup isn't here: it's set on each item in ServiceTitan,
+      // and a second copy only drifted.
+      { label: "Planning", icon: "tag", group: [
         { label: "Our prices", href: "/portal/pricing" },
         { label: "Commission", href: "/portal/commission" },
         { label: "Running costs", href: "/portal/finance/running" },
@@ -221,6 +242,7 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "team", label: "Team", icon: "van", group: 3, blurb: "The crew, their hours, the vans, and how we work",
     pages: [
       { label: "Team", href: "/portal/team", icon: "team" },
+      { label: "Service manager", href: "/portal/service", icon: "run" },
       { label: "Leaderboard", href: "/portal/rates?tab=leaders", gate: "/portal/rates", icon: "star" },
       { label: "Hours", href: "/portal/hours", icon: "clock" },
       { label: "From the crew", href: "/portal/requests", icon: "chat" },
@@ -233,7 +255,8 @@ export const SECTION_DEFS: SectionDef[] = [
       ] },
       { label: "Trade iPad", href: "/trade", icon: "wall" },
       { label: "Pricebook", href: "/trade/pricebook", icon: "tag" },
-      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
+      // Price lists, tech sheets and manuals: beside the pricebook, where the crew look for the same kind of thing.
+      { label: "Resources", href: "/portal/resources", icon: "file" },
       { label: "How we work", icon: "todo", group: [
         { label: "Roles", href: "/portal/roles" },
         { label: "Leading", href: "/portal/leading" },
@@ -243,30 +266,39 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Information", href: "/portal/information" },
         { label: "Trade tools", href: "/portal/tools/fault-codes" },
       ] },
-      { label: "Future planning", href: "/portal/plans", office: true, icon: "grow" },
     ],
   },
   {
     // Set up once and looked at rarely, so out of the way at the bottom.
     id: "you", label: "Settings", icon: "me", group: 4, blurb: "Your file, customers and sites, alerts, the wall board and how the portal is set up",
     pages: [
+      // The way in, as the mocks have it: every part of Settings on one page.
+      // First, so the initial-and-cog in the corner opens here.
+      { label: "Overview", href: "/portal/you", icon: "cog" },
       { label: "My file", href: "/portal/me", icon: "me" },
+      { label: "Notifications", href: "/portal/notifications", icon: "bell" },
+      // Grouped so the row under the top bar fits: fourteen tabs didn't.
       // The records and the tools that build them (bulk site add lives on
       // Sites), with Messages until a channel is connected to it.
-      { label: "Customers", href: "/portal/customers", icon: "team" },
-      { label: "Sites", href: "/portal/locations", icon: "home" },
-      { label: "Messages", href: "/portal/chats", icon: "chat" },
-      { label: "Notifications", href: "/portal/notifications", icon: "bell" },
-      { label: "Settings", href: "/portal/settings", icon: "cog" },
-      { label: "Automatic", href: "/portal/automatic", icon: "bolt" },
-      { label: "Integrations", href: "/portal/integrations", icon: "numbers" },
-      // Where the wall board's email alert is cleared. In the nav rather than
-      // link-only, because the alert sends somebody looking for it and a page
-      // you can only reach from a banner on a television is not a page.
-      { label: "Email", href: "/portal/email", icon: "send" },
+      { label: "Records", icon: "team", group: [
+        { label: "Customers", href: "/portal/customers" },
+        { label: "Sites", href: "/portal/locations" },
+        { label: "Messages", href: "/portal/chats" },
+        // Work orders from email into ServiceTitan's Bookings: what came in and where each is up to.
+        { label: "Work orders", href: "/portal/work-orders" },
+      ] },
+      { label: "The portal", icon: "cog", group: [
+        { label: "Settings", href: "/portal/settings" },
+        { label: "Automatic", href: "/portal/automatic" },
+        { label: "Integrations", href: "/portal/integrations" },
+        // Where the wall board's email alert is cleared. In the nav rather than
+        // link-only, because the alert sends somebody looking for it and a page
+        // you can only reach from a banner on a television is not a page.
+        { label: "Email", href: "/portal/email" },
+        // The numbers every page measures against, set now and then: from Finance.
+        { label: "Goals", href: "/portal/numbers" },
+      ] },
       { label: "Admin", href: "/portal/admin", icon: "cog" },
-      // The numbers every page measures against, set now and then: from Finance.
-      { label: "Goals", href: "/portal/numbers", icon: "numbers" },
       // How ordering is set up: who we buy from and what we keep on the shelf.
       { label: "Ordering", icon: "box", group: [
         { label: "Suppliers", href: "/portal/supply" },

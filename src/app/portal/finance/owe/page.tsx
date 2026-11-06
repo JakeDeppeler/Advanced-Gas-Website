@@ -53,7 +53,7 @@ export default async function OwePage() {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="We owe" sub="Bills from Xero, and anything added here" info={[
+        <Head title="We owe" eyebrow="Bills from Xero, and anything added here" info={[
           ["Due in the next 7 days", "Every bill due this week, and any already past its date."],
           ["Pay in this order", "Suppliers we can’t trade without first, then by due date. Set who matters most below."],
           ["Added here", "Something owed that Xero has no bill for yet, a tax payment, a private loan."],

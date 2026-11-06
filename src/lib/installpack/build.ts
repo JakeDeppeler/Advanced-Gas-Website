@@ -4,12 +4,20 @@
 // note both read the same answer.
 //
 // Nothing here is written in our own words about the job. The scope is the
-// sold quote's own wording, the lists are the quote's lines, and the ordering
-// status is what Supply › Next week recorded. A pack that paraphrased the
-// quote could tell an installer something the customer didn't buy (Jake,
-// 27 Oct: straight from the quote, nothing invented).
+// job's own summary, the lists are the sold quote's lines, and the ordering
+// status is what Supply › Next week recorded. A pack that paraphrased either
+// could tell an installer something nobody asked for. The one exception is
+// the install summary (summaryText.ts), which Jake asked for on 4 Nov: it's
+// written from the records, held to what they say, kept apart from the scope
+// under its own heading, and says what it was written from.
+//
+// The scope is the job summary and not the quote's (Jake, 31 Oct): the quote
+// is written to sell the job to the customer, the job summary is what the
+// office wrote for whoever does it.
 
 import { createHash } from "node:crypto";
+import { toReport, type Report } from "@/lib/conditionReport/report";
+import type { SummaryState, VisitReport } from "./summaryText";
 
 export type QuoteItem = {
   skuId: number | null;
@@ -31,7 +39,11 @@ export type OrderLine = {
   pickup: boolean;
 };
 
-export type Photo = { id: number; name: string; at: string | null; /** Taken on the quote visit, not on this job. */ quoteVisit: boolean };
+export type Photo = {
+  id: number; name: string; at: string | null;
+  /** Taken on the quote visit, not on this job. */ quoteVisit: boolean;
+  /** Where it was taken, when that's neither: "Diagnostic visit, job 20493". */ label?: string;
+};
 
 export type PackFacts = {
   jobId: number;
@@ -43,11 +55,19 @@ export type PackFacts = {
   /** "Thu 29 Oct 7:00am, Fri 30 Oct 7:00am", as job_next_appointment writes it. */
   visits: string | null;
   crew: string | null;
-  /** fromJob: the quote job's number, when the quote was written on another job (the quote visit). */
-  quote: { id: number; name: string | null; fromJob: string | null; soldOn: string | null; summary: string | null };
+  /**
+   * The sold quote, or null for an install booked without one: the pack still
+   * goes on, with the job summary, the site and the photos, and no lists.
+   * fromJob: the quote job's number, when the quote was written on another job (the quote visit).
+   */
+  quote: { id: number; name: string | null; fromJob: string | null; soldOn: string | null } | null;
   jobSummary: string | null;
   items: QuoteItem[];
   orders: OrderLine[];
+  /** The Condition Reports from the visits before the install (summary.ts), when they've been looked for. */
+  visitReports?: VisitReport[];
+  /** The install summary written from them, or why there isn't one; null when drafting is off. */
+  summary?: SummaryState | null;
 };
 
 /** state is what ordered says, for the PDF's emphasis; the words carry it either way. */
@@ -65,8 +85,14 @@ export type Pack = {
   materials: PackLine[];
   /** Contractors' work orders for the job (the electrician): who, and whether it's gone. */
   contractors: string[];
+  /** The job summary. */
   scope: string | null;
-  jobNotes: string | null;
+  /** False when there's no sold quote, so the lists are empty for want of one, not because nothing's needed. */
+  quoted: boolean;
+  /** The install summary (summaryText.ts), or why it's missing; null to leave the section off. */
+  summary: SummaryState | null;
+  /** The Condition Reports, to print in full after the gear. */
+  reports: Report[];
 };
 
 /** Rebates are lines on a quote for the customer's benefit, not anything to fit. */
@@ -77,7 +103,13 @@ export function plainText(html: string | null | undefined): string | null {
   if (!html) return null;
   const t = html
     .replace(/<\s*br\s*\/?>/gi, "\n")
+    // One block ending where the next begins is one line break, not two.
+    .replace(/<\/\s*(p|div|h\d)\s*>\s*<\s*(p|div|h\d)(\s[^>]*)?>/gi, "\n")
     .replace(/<\/\s*(p|div|li|h\d)\s*>/gi, "\n")
+    // A block's start breaks the line too: ServiceTitan writes a summary as
+    // "<b>ROOM 42 - …Install</b><div>Attend to…</div>", and only breaking at
+    // the end ran the title into the first sentence ("InstallAttend").
+    .replace(/<\s*(p|div|h\d)(\s[^>]*)?>/gi, "\n")
     .replace(/<li[^>]*>/gi, "• ")
     .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ")
@@ -115,20 +147,6 @@ function ordered(lines: OrderLine[]): Pick<PackLine, "ordered" | "state"> {
   return { ordered: live[0].status === "approved" ? "Approved – not sent" : "Draft – not sent", state: "waiting" };
 }
 
-/**
- * The job's own notes, less anything that's the quote's scope again. When a
- * job is booked from a quote, ServiceTitan copies the scope into the job's
- * summary and the office adds the real instructions under it; printing both
- * whole puts the same three paragraphs on the page twice.
- */
-function extraNotes(notes: string | null, scope: string | null): string | null {
-  if (!notes) return null;
-  if (!scope) return notes;
-  if (scope.includes(notes)) return null;
-  const rest = notes.includes(scope) ? notes.replace(scope, "").trim() : notes;
-  return rest || null;
-}
-
 export function buildPack(f: PackFacts): Pack {
   const fitted = f.items.filter((i) => i.qty > 0 && !NOT_FITTED.test(i.code));
   const bySku = new Map<number, OrderLine[]>();
@@ -151,8 +169,6 @@ export function buildPack(f: PackFacts): Pack {
     contractors.push(`${o.supplier} – ${o.status === "sent" ? `work order sent ${day(o.sentAt)}` : "work order not sent yet"}`);
   }
 
-  const scope = plainText(f.quote.summary);
-  const notes = plainText(f.jobSummary);
 
   return {
     title: `Install pack · Job ${f.jobNumber ?? f.jobId}`,
@@ -164,19 +180,27 @@ export function buildPack(f: PackFacts): Pack {
       ["Booked", tidy(f.visits) || "No visit booked"],
       ["Crew", tidy(f.crew) || "Nobody assigned yet"],
       ["Site phone", tidy(f.sitePhone) || "None on file"],
-      ["Quote", [tidy(f.quote.name) || null, f.quote.fromJob ? `from job ${f.quote.fromJob}` : null, f.quote.soldOn ? `sold ${day(f.quote.soldOn)}` : null].filter(Boolean).join(" · ")],
+      ["Quote", f.quote
+        ? [tidy(f.quote.name) || null, f.quote.fromJob ? `from job ${f.quote.fromJob}` : null, f.quote.soldOn ? `sold ${day(f.quote.soldOn)}` : null].filter(Boolean).join(" · ")
+        : "No sold quote on this job"],
     ] as [string, string][]).filter(([, v]) => v),
     units: fitted.filter((i) => i.type === "Equipment").map(line),
     materials: fitted.filter((i) => i.type === "Material").map(line),
     contractors,
-    scope,
-    jobNotes: extraNotes(notes, scope),
+    scope: plainText(f.jobSummary),
+    quoted: f.quote != null,
+    summary: f.summary ?? null,
+    // A report whose own Job Number field was left blank still says which job it's from.
+    reports: (f.visitReports ?? []).map((v) => {
+      const r = toReport(v.submission);
+      return { ...r, jobNumber: r.jobNumber ?? v.jobNumber };
+    }),
   };
 }
 
 /* ------------------------------------------------------------ what changed */
 
-export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "quote" | "orders", string>;
+export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "scope" | "quote" | "orders" | "summary" | "reports", string>;
 
 /**
  * Bumped when the PDF's design changes, so every pack still to be used is
@@ -184,8 +208,11 @@ export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "quot
  * day's boxed sections, with the scope under the site. 4: the notes on the
  * job moved up under the scope. 5: the plain style, full logo on white.
  * 6: contractors under the notes, the quote's labour lines left off.
+ * 7: the scope is the job summary, not the quote's; the notes section goes.
+ * 8: a summary's title no longer runs into its first sentence.
+ * 9: the install summary under the scope, the Condition Reports after the gear.
  */
-export const LAYOUT = "6";
+export const LAYOUT = "9";
 
 const hash = (v: unknown) => createHash("sha1").update(JSON.stringify(v)).digest("hex").slice(0, 16);
 
@@ -202,10 +229,15 @@ export function packParts(f: PackFacts): PackParts {
     booking: hash(p.facts.find(([k]) => k === "Booked")?.[1] ?? ""),
     crew: hash(p.facts.find(([k]) => k === "Crew")?.[1] ?? ""),
     contact: hash([f.siteAddress, f.sitePhone, f.customer]),
-    quote: hash([f.quote.id, p.units.map((l) => [l.qty, l.name]), p.materials.map((l) => [l.qty, l.name]), p.scope, p.jobNotes]),
+    scope: hash(p.scope ?? ""),
+    quote: hash([f.quote?.id ?? null, p.units.map((l) => [l.qty, l.name]), p.materials.map((l) => [l.qty, l.name])]),
     // From the orders themselves, not the wording, so rewording the PDF never
     // looks like an order changing.
     orders: hash(f.orders.map((o) => [o.skuId, o.po, o.status, o.pickup, o.kind]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))),
+    // What was written, not when: a failed attempt and its retry that fails
+    // the same way aren't a change worth a new version.
+    summary: hash(f.summary == null ? null : "ok" in f.summary ? f.summary.ok : "failed"),
+    reports: hash((f.visitReports ?? []).map((v) => [v.submission.id, v.submission.submittedOn ?? null])),
   };
 }
 
@@ -216,8 +248,11 @@ const SAYS: Record<keyof PackParts, string> = {
   booking: "the booking",
   crew: "the crew",
   contact: "the site details",
+  scope: "the job summary",
   quote: "the quote",
   orders: "what's been ordered",
+  summary: "the install summary",
+  reports: "the Condition Report",
 };
 
 /** "the booking and what's been ordered changed" — for the note on an updated pack. */

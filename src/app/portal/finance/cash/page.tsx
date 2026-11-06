@@ -52,7 +52,7 @@ export default async function CashPage({ searchParams }: { searchParams: { tab?:
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title={tab === "flow" ? "Cash flow" : "Cash to operate"} sub="Xero bank feeds" info={tab === "flow" ? [
+        <Head title={tab === "flow" ? "Cash flow" : "Cash to operate"} eyebrow="Xero bank feeds" info={tab === "flow" ? [
           ["Money in", "Cash that hit the bank: paid invoices, deposits."],
           ["Money out", "Everything paid: wages, suppliers, BAS, super, leases."],
           ["Kept", "In less out. Profit isn’t cash until the invoice is paid."],

@@ -64,9 +64,6 @@ export type ThemeChoice = "light" | "dark" | "system";
 export const THEME_COOKIE = "pt_theme";
 export const readTheme = (v: string | undefined): ThemeChoice => (v === "dark" || v === "system" ? v : "light");
 
-/** The side bar open or small. Kept per device. */
-export const NAV_COOKIE = "pt_nav";
-
 /** Where the portal opens. Kept per device, like the theme. */
 export const START_COOKIE = "pt_start";
 export const START_PAGES: { key: string; label: string; href: string; needs?: "office" | "wall" }[] = [

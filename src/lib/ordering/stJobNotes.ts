@@ -408,3 +408,12 @@ export async function updatePastOrders(): Promise<{ done: number; failed: string
   }
   return out;
 }
+
+/**
+ * A plain note on a job for parts bought outside the supplier orders (a
+ * third-party site), so the tech opening the job sees they're coming and
+ * from where. The tag swap and order notes only describe supplier orders.
+ */
+export async function noteOnJob(jobId: number, text: string): Promise<void> {
+  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: text.slice(0, 4000), pinToTop: false });
+}

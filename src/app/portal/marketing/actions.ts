@@ -7,10 +7,10 @@ import {
   createCampaign, updateCampaign, deleteCampaign,
   createBrandAsset,
 } from "@/lib/portal/db";
-import { uploadPhoto, deletePhoto } from "@/lib/portal/storage";
+import { deletePhoto, objectExists, signedUploadUrl } from "@/lib/portal/storage";
 import { sbDelete, sbUpsert } from "@/lib/dashboard/db";
 import { cleanEmail } from "@/lib/emailList/types";
-import { createFolder, deleteFileRow, listFolders, moveFile, setFileArchived, setFolderArchived } from "@/lib/portal/brandFiles";
+import { createFolder, deleteFileRow, listFolders, moveFile, setFileArchived, setFolderArchived, type Library } from "@/lib/portal/brandFiles";
 
 export type MarketingResult = { ok: boolean; error?: string };
 
@@ -63,7 +63,14 @@ export async function removeCampaign(input: { id: string }): Promise<MarketingRe
 }
 
 const isUuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);
-const filesDone = () => { revalidatePath("/portal/marketing"); revalidatePath("/portal/materials"); };
+const filesDone = () => { revalidatePath("/portal/marketing"); revalidatePath("/portal/materials"); revalidatePath("/portal/resources"); };
+/** Which shelf of the library: Marketing › Materials, or Team › Resources (0102). */
+const shelf = (v: unknown): Library => (v === "resources" ? "resources" : "brand");
+/** A folder id, only if it's on this shelf: a file can't be put in the other shelf's folder. */
+async function folderOn(library: Library, id: unknown): Promise<string | null> {
+  if (!isUuid(id)) return null;
+  return (await listFolders(library)).some((f) => f.id === id) ? id : null;
+}
 
 /** What kind a file is, from what it is: the kit's four kinds, for filtering. */
 function kindOf(mime: string, name: string): string {
@@ -73,34 +80,62 @@ function kindOf(mime: string, name: string): string {
   return "other";
 }
 
-/**
- * Files into the kit, into a folder when one's open: one or many at once,
- * each named after itself unless a name is given (only used for a single
- * file). Up to 25MB each; nothing is public, a download is a signed link.
- */
-export async function uploadBrandAsset(form: FormData): Promise<MarketingResult & { added?: number }> {
-  const me = await requireMarketing();
-  if (!me) return { ok: false, error: "Only an admin can add files." };
-  const folder = String(form.get("folder") || "");
-  const folderId = isUuid(folder) ? folder : null;
-  const files = form.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
-  if (!files.length) return { ok: false, error: "Pick a file." };
-  const big = files.find((f) => f.size > 25 * 1024 * 1024);
-  if (big) return { ok: false, error: `${big.name} is over 25MB.` };
-  const given = String(form.get("label") || "").trim();
+/** The bucket the files library keeps its files in (0103): any type, 25MB each. */
+const LIBRARY_BUCKET = "library";
+const MAX_BYTES = 25 * 1024 * 1024;
 
+/**
+ * Step one of adding files to the library: a one-time upload link each. The
+ * browser sends each file straight to storage (a 25MB manual through a server
+ * action broke on the host's 4.5MB request limit), then calls
+ * finishLibraryUpload with what went.
+ */
+export async function startLibraryUpload(input: { library: string; files: { name: string; size: number }[] }): Promise<MarketingResult & { slots?: { path: string; url: string }[] }> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only the office can add files." };
+  const library = shelf(input.library);
+  const files = (Array.isArray(input.files) ? input.files : []).slice(0, 30);
+  if (!files.length) return { ok: false, error: "Pick a file." };
+  const big = files.find((f) => !(Number(f.size) > 0) || Number(f.size) > MAX_BYTES);
+  if (big) return { ok: false, error: `${big.name} is ${Number(big.size) > 0 ? "over 25MB" : "empty"}.` };
+  const slots: { path: string; url: string }[] = [];
+  for (const f of files) {
+    const ext = (String(f.name).split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || "bin";
+    const path = `${library}/${crypto.randomUUID()}.${ext}`;
+    const url = await signedUploadUrl(path, LIBRARY_BUCKET);
+    if (!url) return { ok: false, error: "File storage isn't answering. Try again in a minute." };
+    slots.push({ path, url });
+  }
+  return { ok: true, slots };
+}
+
+/**
+ * Step two: record each file the browser uploaded, after checking it's really
+ * in storage, so a row never points at nothing. Named after the file unless a
+ * name is given for a single one.
+ */
+export async function finishLibraryUpload(input: {
+  library: string; folderId: string | null; label?: string;
+  items: { path: string; name: string; type: string; size: number }[];
+}): Promise<MarketingResult & { added?: number }> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only the office can add files." };
+  const library = shelf(input.library);
+  const folderId = await folderOn(library, input.folderId);
+  const items = (Array.isArray(input.items) ? input.items : []).slice(0, 30);
+  const given = String(input.label ?? "").trim();
   let added = 0;
-  for (const file of files) {
-    const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const path = `brand/${crypto.randomUUID()}.${ext}`;
-    const up = await uploadPhoto(path, await file.arrayBuffer(), file.type || "application/octet-stream");
-    if (!up.ok) return { ok: false, error: up.error === "not-configured" ? "File storage isn't set up." : `Couldn't upload ${file.name}.`, added };
-    const label = (files.length === 1 && given) ? given : file.name.replace(/\.[^.]+$/, "");
-    const row = await createBrandAsset({ label, kind: kindOf(file.type, file.name), path, mime: file.type || null, bytes: file.size, addedBy: me.name, folderId });
+  for (const it of items) {
+    const path = String(it.path ?? "");
+    if (!new RegExp(`^${library}/[0-9a-f-]{36}\\.[a-z0-9]{1,8}$`).test(path)) continue;
+    if (!(await objectExists(path, LIBRARY_BUCKET))) return { ok: false, error: `${it.name} didn't reach storage. Try it again.`, added };
+    const name = String(it.name ?? "file");
+    const type = String(it.type ?? "");
+    const label = (items.length === 1 && given) ? given.slice(0, 160) : name.replace(/\.[^.]+$/, "").slice(0, 160);
+    const row = await createBrandAsset({ label, kind: kindOf(type, name), path, mime: type || null, bytes: Number(it.size) || null, addedBy: me.name, folderId, library });
     if (!row.ok) {
-      // Don't leave the file orphaned in the bucket if the row didn't land.
-      await deletePhoto(path);
-      return { ok: false, error: `Couldn't save ${file.name}.`, added };
+      await deletePhoto(path, LIBRARY_BUCKET);
+      return { ok: false, error: `Couldn't save ${name}.`, added };
     }
     added += 1;
   }
@@ -108,15 +143,16 @@ export async function uploadBrandAsset(form: FormData): Promise<MarketingResult 
   return { ok: true, added };
 }
 
-export async function newFolder(input: { name: string; parentId: string | null }): Promise<MarketingResult> {
+export async function newFolder(input: { name: string; parentId: string | null; library?: Library }): Promise<MarketingResult> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can add folders." };
   const name = input.name.trim().slice(0, 80);
   if (!name) return { ok: false, error: "Give the folder a name." };
-  const parentId = isUuid(input.parentId) ? input.parentId : null;
-  const siblings = (await listFolders()).filter((f) => f.parentId === parentId && !f.archivedAt);
+  const library = shelf(input.library);
+  const parentId = await folderOn(library, input.parentId);
+  const siblings = (await listFolders(library)).filter((f) => f.parentId === parentId && !f.archivedAt);
   if (siblings.some((f) => f.name.toLowerCase() === name.toLowerCase())) return { ok: false, error: `There's already a ${name} folder here.` };
-  try { await createFolder(name, parentId, me.name); } catch { return { ok: false, error: "Couldn't make the folder." }; }
+  try { await createFolder(name, parentId, me.name, library); } catch { return { ok: false, error: "Couldn't make the folder." }; }
   filesDone();
   return { ok: true };
 }
@@ -134,11 +170,11 @@ export async function archiveItem(input: { kind: "file" | "folder"; id: string; 
   return { ok: true };
 }
 
-export async function moveBrandFile(input: { id: string; folderId: string | null }): Promise<MarketingResult> {
+export async function moveBrandFile(input: { id: string; folderId: string | null; library?: Library }): Promise<MarketingResult> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can move files." };
   if (!isUuid(input.id)) return { ok: false, error: "Which file?" };
-  try { await moveFile(input.id, isUuid(input.folderId) ? input.folderId : null); } catch { return { ok: false, error: "Couldn't move it." }; }
+  try { await moveFile(input.id, await folderOn(shelf(input.library), input.folderId)); } catch { return { ok: false, error: "Couldn't move it." }; }
   filesDone();
   return { ok: true };
 }
@@ -147,9 +183,9 @@ export async function moveBrandFile(input: { id: string; folderId: string | null
 export async function removeBrandAsset(input: { id: string; path: string }): Promise<MarketingResult> {
   const me = await requireMarketing();
   if (!me) return { ok: false, error: "Only an admin can delete a file." };
-  if (!isUuid(input.id) || !input.path.startsWith("brand/")) return { ok: false, error: "Which file?" };
+  if (!isUuid(input.id) || !/^(brand|resources)\//.test(input.path)) return { ok: false, error: "Which file?" };
   try { await deleteFileRow(input.id); } catch { return { ok: false, error: "Couldn't delete it." }; }
-  await deletePhoto(input.path);
+  await deletePhoto(input.path, LIBRARY_BUCKET);
   filesDone();
   return { ok: true };
 }

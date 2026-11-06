@@ -10,10 +10,11 @@ import type { ReactNode } from "react";
  * colour is never the only signal.
  */
 
-export type Tone = "good" | "mid" | "bad" | "none";
+/** Red behind, yellow close, green on track, gold ahead: one rule on every page. */
+export type Tone = "good" | "mid" | "bad" | "ahead" | "none";
 /** `s` replaces the tone's sign where the word is a direction: "▲ Up" is bad news for a cost. */
 export type Status = { k: Tone; w: string; s?: string };
-const SIGN: Record<Tone, string> = { good: "✓", mid: "!", bad: "▼", none: "" };
+const SIGN: Record<Tone, string> = { good: "✓", mid: "!", bad: "▼", ahead: "▲", none: "" };
 
 /**
  * The prototype's status rule. Money and counts go by ratio — at or over goal
@@ -31,7 +32,19 @@ export function status(actual: number, goal: number, o: { pts?: boolean; lower?:
   }
   const ahead = !o.pts && !o.lower && goal > 0 && actual / goal >= 1.1;
   const w = k === "good" ? (ahead ? "Ahead" : "On track") : k === "mid" ? (o.lower ? "Watch it" : "Close") : o.lower ? "Too high" : "Behind";
-  return { k, w };
+  return { k: ahead ? "ahead" : k, w };
+}
+
+/**
+ * Against the year's two goals ($2.5M and $3M), each where it should be by
+ * now: under the lower one behind, between the two close, at the higher one
+ * on track, 10% over it ahead.
+ */
+export function status2(actual: number, lower: number | null, goal: number): Status {
+  if (actual >= goal * 1.1) return { k: "ahead", w: "Ahead" };
+  if (actual >= goal) return { k: "good", w: "On track" };
+  if (lower != null && lower < goal ? actual >= lower : actual >= goal * 0.9) return { k: "mid", w: "Close" };
+  return { k: "bad", w: "Behind" };
 }
 export const none = (w = "No goal yet"): Status => ({ k: "none", w });
 
@@ -45,13 +58,20 @@ export function Pill({ st }: { st: Status }) {
 }
 
 /** The page's title and the line under it; "What does this mean?" opens the plain words. */
-export function Head({ title, sub, info }: { title: string; sub?: ReactNode; info?: [string, ReactNode][] }) {
+/**
+ * A page's head. `eyebrow` is the small line over the title the mocks put
+ * when and where-from in ("Friday 30 October · 2:56 pm · ServiceTitan");
+ * `sub` is a line under it.
+ */
+export function Head({ title, sub, info, action, eyebrow }: { title: string; sub?: ReactNode; info?: [string, ReactNode][]; action?: ReactNode; eyebrow?: ReactNode }) {
   return (
     <div className="pk-head">
       <div>
+        {eyebrow && <div className="pk-eyebrow">{eyebrow}</div>}
         {title && <h1>{title}</h1>}
         {sub && <div className="pk-sub">{sub}</div>}
       </div>
+      {action}
       {info && info.length > 0 && (
         <details className="pk-info">
           <summary><span aria-hidden="true">i</span>What does this mean?</summary>
@@ -223,6 +243,7 @@ const KPI_ICON: Record<string, string> = {
   sound: "M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14",
   calendar: "M3 5h18v16H3zM16 3v4M8 3v4M3 10h18",
   bolt: "M13 2 3 14h9l-1 8 10-12h-9z",
+  box: "M21 8 12 3 3 8l9 5 9-5ZM3 8v8l9 5 9-5V8M12 13v8",
 };
 export type Kpi = { icon: keyof typeof KPI_ICON | string; fig: ReactNode; label: ReactNode; badge?: ReactNode; tone?: "up" | "down" | "gold"; href?: string };
 

@@ -1,0 +1,113 @@
+name: Pricebook labour
+
+# Labour pricing → ServiceTitan: diagnostics at the call-out fee, repairs at
+# one person's hour, installation at the tech & apprentice hour (servicing is
+# left at its own prices), and the split and multi-head templates rebuilt
+# around one installation header holding the labour, electrical and materials.
+# Rates come from the portal (Pricing & costs › Rates & pricing).
+#
+# Actions tab → Pricebook labour → Run workflow. Without "apply" it is a dry
+# run and this page tables what would change. With "apply", re-run until
+# remaining is 0. Uses DASHBOARD_SYNC_URL and CRON_SECRET, as the other syncs do.
+
+on:
+  workflow_dispatch:
+    inputs:
+      what:
+        description: "What to price"
+        type: choice
+        options: [services, templates, wording]
+        default: services
+      apply:
+        description: "Write the changes to ServiceTitan"
+        type: boolean
+        default: false
+      limit:
+        description: "Most to write in this run (apply only; blank for the default: 60 services, 15 templates)"
+        type: string
+        required: false
+
+concurrency:
+  group: pricebook-labour
+  cancel-in-progress: false
+
+jobs:
+  labour:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Plan or apply
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          WHAT: ${{ inputs.what }}
+          APPLY: ${{ inputs.apply && '1' || '' }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SYNC_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the DASHBOARD_SYNC_URL and CRON_SECRET repository secrets first."
+            exit 1
+          fi
+          SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          BASE="${SYNC_URL%/api/sync}"; BASE="${BASE%/}"
+          # Only the choice and the flag reach the URL; the limit is digits or nothing.
+          case "$WHAT" in services|templates|wording) ;; *) echo "::error::bad what"; exit 1 ;; esac
+          LIMIT="$(printf '%s' "${LIMIT:-}" | tr -cd '0-9')"
+          url="${BASE}/api/pricebook/labour?what=${WHAT}"
+          [ -n "$APPLY" ] && url="${url}&apply=1"
+          [ -n "$LIMIT" ] && url="${url}&limit=${LIMIT}"
+          curl --fail-with-body -sS --max-time 90 -H "Authorization: Bearer ${CRON_SECRET}" "$url" > out.json || { cat out.json; exit 1; }
+
+          JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/"); def m: if . == null then "" else "$" + (. * 100 | round / 100 | tostring) end;'
+          {
+            echo "## Pricebook labour — ${WHAT}, $(jq -r .mode out.json)"
+            echo
+            if [ "$WHAT" = "wording" ]; then
+              echo "Service descriptions to change $(jq -r .summary.services out.json), template summaries $(jq -r .summary.templates out.json), templates left as they are (servicing, leak detection, commercial, deposit) $(jq -r .summary.untouched out.json)."
+              echo
+              echo "| What | Name | Lines | New wording (start) |"
+              echo "|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.changes[] | "| \(.kind) | \(.name|e) | \(.lines // "") | \(.after[:180]|gsub("\n"; " ")|e)… |"' out.json
+            elif [ "$WHAT" = "services" ]; then
+              echo "Call-out $(jq -r "${JQ_DEFS}"'.summary.rates.callout|m' out.json). An hour: one person $(jq -r "${JQ_DEFS}"'.summary.rates.solo|m' out.json), part-day install $(jq -r "${JQ_DEFS}"'.summary.rates.partDay|m' out.json), tech & apprentice $(jq -r "${JQ_DEFS}"'.summary.rates.pair|m' out.json), tech & 2 apprentices $(jq -r "${JQ_DEFS}"'.summary.rates.crew3|m' out.json)."
+              echo
+              echo "To update $(jq -r .summary.toUpdate out.json), already right $(jq -r .summary.unchanged out.json), skipped $(jq -r .summary.skipped out.json)."
+              echo
+              echo "| Service | Code | Crew | Hours | Before | After | ServiceTitan sets it |"
+              echo "|---|---|---|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(.hours) | \(.before|m) | \(.after|m) | \(.pricing // "" | e) |"' out.json
+              if [ "$(jq -r '.creates // [] | length' out.json)" != "0" ]; then
+                echo; echo "| New service | Code | Hours | Price |"; echo "|---|---|---|---|"
+                jq -r "${JQ_DEFS}"'.creates[] | "| \(.name|e) | \(.code|e) | \(.hours) | \(.price|m) |"' out.json
+              fi
+              if [ "$(jq -r '.materials // [] | length' out.json)" != "0" ]; then
+                echo; echo "| Refrigerant (per kg) | Cost before → after | Price before → after |"; echo "|---|---|---|"
+                jq -r "${JQ_DEFS}"'.materials[] | "| \(.name|e) | \(.costBefore|m) → \(.cost|m) | \(.before|m) → \(.after|m) |"' out.json
+              fi
+              if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
+                echo; echo "| Skipped | Code | Why |"; echo "|---|---|---|"
+                jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.code|e) | \(.reason|e) |"' out.json
+              fi
+            else
+              echo "Labour at $(jq -r "${JQ_DEFS}"'.summary.rates.partDay|m' out.json) an hour on part-day installs and $(jq -r "${JQ_DEFS}"'.summary.rates.pair|m' out.json) on multi-heads. $(jq -r .summary.toRebuild out.json) templates to rebuild, $(jq -r .summary.skipped out.json) skipped."
+              echo
+              echo "| Template | Hours | Labour | Electrical | Materials | Add-ons offered | Lines taken off | Before | After |"
+              echo "|---|---|---|---|---|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-on" else (.header.labour|m) end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")|e) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
+              if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
+                echo; echo "| Skipped | Why |"; echo "|---|---|"
+                jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.reason|e) |"' out.json
+              fi
+            fi
+            if [ -n "$APPLY" ]; then
+              echo
+              echo "**Applied $(jq -r .applied out.json), verified $(jq -r .verified out.json), failed $(jq -r '.failed | length' out.json), remaining $(jq -r .remaining out.json).**"
+              if [ "$(jq -r '.failed | length' out.json)" != "0" ]; then
+                echo; echo "| Failed | Error |"; echo "|---|---|"
+                jq -r "${JQ_DEFS}"'.failed[] | "| \(.name|e) | \(.error|e) |"' out.json
+              fi
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          jq -c '{ok, what, mode, summary, applied, verified, remaining, failed}' out.json
+          [ "$(jq -r .ok out.json)" = "true" ]

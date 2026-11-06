@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { fixAndResend, undoSend } from "@/app/portal/supply/sent/actions";
+import { fixAndResend, priceCheck, resendWithPrices, undoSend } from "@/app/portal/supply/sent/actions";
 
 /**
  * Sent to the wrong place: put it back as a draft, to fix and send again.
@@ -18,6 +18,48 @@ function PutBack({ o }: { o: { id: number; po: string; sentTo: string | null; ki
         onClick={() => { if (confirm(`Put ${o.po} back as a draft?${o.sentTo ? ` It went to ${o.sentTo}; nothing is emailed to them, so let them know if they shouldn't have had it.` : ""} You can fix it and send it again${o.kind === "work_order" ? " from Work orders" : " from To order"}.`)) start(async () => { const r = await undoSend(o.id); setMsg(r.ok ? { ok: true, text: r.note ?? "A draft again." } : { ok: false, text: r.error ?? "Couldn't." }); if (r.ok) router.refresh(); }); }}>
         {busy ? "Putting it back…" : "Undo: put it back as a draft"}
       </button>
+      {msg && <span className={`sb-fix__msg${msg.ok ? "" : " bad"}`} role="status">{msg.text}</span>}
+    </span>
+  );
+}
+
+const aud = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * Wrong prices on an order that's gone: checked against the pricebook first,
+ * the changes shown, then put right and the order emailed again, marked as
+ * replacing the first. Prices already corrected by hand still resend.
+ */
+function ResendPrices({ o }: { o: { id: number; po: string; sentTo: string | null; supplier: string } }) {
+  const router = useRouter();
+  const [busy, start] = useTransition();
+  const [check, setCheck] = useState<{ changes: { lineId: number; item: string; qty: number; was: number | null; now: number }[]; total: number } | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  return (
+    <span className="sb-putback sb-reprice">
+      {!check ? (
+        <button type="button" className="qp-btn line" disabled={busy}
+          onClick={() => start(async () => { setMsg(null); const r = await priceCheck(o.id); if (r.ok) setCheck({ changes: r.changes ?? [], total: r.total ?? 0 }); else setMsg({ ok: false, text: r.error ?? "Couldn't check the prices." }); })}>
+          {busy ? "Checking the prices…" : "Resend with corrected prices"}
+        </button>
+      ) : (
+        <span className="sb-reprice__box">
+          {check.changes.length
+            ? <span className="sb-reprice__list">
+                <b>{check.changes.length} {check.changes.length === 1 ? "price changes" : "prices change"} to the pricebook:</b>
+                {check.changes.map((c) => <span key={c.lineId}>{c.qty} × {c.item}: {c.was == null ? "no price" : aud(c.was)} → <b>{aud(c.now)}</b></span>)}
+                <span>New total {aud(check.total)} ex GST</span>
+              </span>
+            : <span className="sb-reprice__list"><b>The prices already match the pricebook.</b><span>Total {aud(check.total)} ex GST. Resend it as the corrected order?</span></span>}
+          <span className="sb-reprice__btns">
+            <button type="button" className="qp-btn dark" disabled={busy}
+              onClick={() => start(async () => { const r = await resendWithPrices(o.id); setMsg(r.ok ? { ok: true, text: r.note ?? "Sent." } : { ok: false, text: r.error ?? "It didn't send." }); if (r.ok) { setCheck(null); router.refresh(); } })}>
+              {busy ? "Sending…" : `Email ${o.supplier} the corrected order`}
+            </button>
+            <button type="button" className="qp-btn line" disabled={busy} onClick={() => setCheck(null)}>Cancel</button>
+          </span>
+        </span>
+      )}
       {msg && <span className={`sb-fix__msg${msg.ok ? "" : " bad"}`} role="status">{msg.text}</span>}
     </span>
   );
@@ -180,7 +222,7 @@ export function SentBoard({ orders }: { orders: Order[] }) {
                         {emailed(o.sentTo) ? (
                           fixing === o.id
                             ? <FixAndResend o={o} onDone={() => setFixing(null)} />
-                            : <div className="sb-fixbar"><button type="button" className="qp-btn" onClick={() => setFixing(o.id)}>Wrong address or date? Fix it and resend</button><PutBack o={o} /></div>
+                            : <div className="sb-fixbar"><button type="button" className="qp-btn" onClick={() => setFixing(o.id)}>Wrong address or date? Fix it and resend</button>{o.kind === "order" && <ResendPrices o={o} />}<PutBack o={o} /></div>
                         ) : <div className="sb-fixbar"><PutBack o={o} /></div>}
                         <table className="sb-lines">
                           <tbody>

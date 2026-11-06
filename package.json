@@ -30,7 +30,15 @@
     "check:ordering": "npx tsx scripts/check-ordering.ts",
     "check:jobflow": "npx tsx scripts/check-jobflow.ts",
     "check:installpack": "npx tsx scripts/check-installpack.ts",
-    "check:chat": "npx tsx scripts/check-chat.ts"
+    "check:conditionreport": "npx tsx scripts/check-conditionreport.ts",
+    "check:reeceorder": "npx tsx scripts/check-reeceorder.ts",
+    "check:chat": "npx tsx scripts/check-chat.ts",
+    "check:outlook": "npx tsx scripts/check-outlook.ts",
+    "check:labour": "npx tsx scripts/check-labour.ts",
+    "check:reminders": "npx tsx scripts/check-reminders.ts",
+    "check:ducted": "npx tsx scripts/check-ducted.ts",
+    "check:service": "npx tsx scripts/check-service.ts",
+    "check:wording": "npx tsx scripts/check-wording.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

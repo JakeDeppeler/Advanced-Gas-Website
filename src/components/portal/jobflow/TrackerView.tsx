@@ -78,7 +78,7 @@ export function TrackerView({ flow, open, imported }: { flow: JobFlow; open: Ope
 
   return (
     <div className="pk jf">
-      <Head title="Job tracker" sub="Where every job is up to · ServiceTitan" info={INFO} />
+      <Head title="Job tracker" eyebrow="Where every job is up to · ServiceTitan" info={INFO} />
       <Say>
         {lateAll ? <><Bad>{lateAll} {lateAll === 1 ? "job is" : "jobs are"} late</Bad>, the most in <Link href={`/portal/tracker?c=${worst.k}#list`}>{worst.label}</Link>.</> : <>Nothing is late.</>}
         {unread.length > 0 && <> {unread.map((c) => c.label).join(", ")} couldn&rsquo;t be read just now.</>}

@@ -87,12 +87,12 @@ export default async function OwedPage({ searchParams }: { searchParams: { seg?:
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <KpiHead title={<>Owed<br />to us</>} kpis={[
+        <KpiHead hi="ServiceTitan from 17 September · Xero before it" title={<>Owed<br />to us</>} kpis={[
           { icon: "card", fig: m?.paidMonth != null ? money(m.paidMonth) : "", label: "Collected this month" },
           { icon: "doc", fig: money(sum(notDue)), label: "Invoiced, not yet due" },
           { icon: "clock", fig: money(b1 + b2), label: "Overdue", badge: over.length ? `${over.length} late` : undefined, tone: "down" },
         ]} />
-        <Head title="" sub="ServiceTitan from 17 September · Xero before it" info={[
+        <Head title="" info={[
           ["Where it comes from", "Since 17 September ServiceTitan holds the invoices and the payments, and sends Xero a daily journal, so Xero has no invoice to show as owing. Before that date, Xero’s unpaid invoices are the record."],
           ["Work not done yet", "ServiceTitan opens a job's invoice the day it's booked. Until the job is finished, the balance after any deposit isn't owed yet, so it's counted here and never as overdue."],
           ["Overdue", "An invoiced, finished job past the date the customer agreed to pay. The longer it sits, the less likely it gets paid."],

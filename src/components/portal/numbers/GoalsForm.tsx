@@ -36,13 +36,17 @@ const GROUPS: { title: string; rows: Row[] }[] = [
 ];
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
+/** "$2.5M", "$750K": a goal as people say it. */
+const shortMoney = (n: number) => (n >= 1_000_000 ? `$${Math.round(n / 10_000) / 100}M` : n >= 1000 ? `$${Math.round(n / 1000)}K` : money(n));
 
 /**
  * Pricing & costs › Goals: the numbers every page is measured against. The year's
  * sales are the twelve months added up, so they can't disagree. A blank box is
  * "no goal", and the pages that use it say so.
  */
-export function GoalsForm({ months: initialMonths, labels, current, profitPct, goals, canSave, suggest = {} }: {
+export function GoalsForm({ months: initialMonths, labels, current, profitPct, goals, canSave, suggest = {}, lower = null }: {
+  /** The lower year goal ($2.5M under $3M), set on Year goal; shown beside the year it sits under. */
+  lower?: number | null;
   /**
    * What each empty goal would be to hit the year goal, from the Pace plan or
    * the benchmark: filled into the empty boxes, and kept only when saved.
@@ -90,8 +94,22 @@ export function GoalsForm({ months: initialMonths, labels, current, profitPct, g
     <section className="pk-card pk-pad">
       <div className="pk-card-h"><b>Goals</b><span>what every KPI is measured against</span></div>
       <div className="pk-glh">Sales</div>
+      {lower && lower > 0 && lower < total ? (
+        // The two goals side by side, as the mock has them: the lower is the
+        // same months scaled down, so this month's share reads for both.
+        <div className="gf-two">
+          {[{ k: "lower", year: lower }, { k: "goal", year: total }].map((x) => (
+            <div key={x.k} className={`gf-goal ${x.k}`}>
+              <span className="gf-l">{shortMoney(x.year)} goal</span>
+              <b>{money(x.year)}</b>
+              <span>{money(x.year / 12)} a month on average · {labels[current]} {money((months[current] || 0) * (x.year / total))}</span>
+              {x.k === "lower" && <a href="/portal/goal">Set on Year goal ›</a>}
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="pk-kv">
-        <span className="t"><b>Sales this year</b><span>used on Home, Sales, Pace and the wall board · the months below add up to this</span></span>
+        <span className="t"><b>Sales this year</b><span>used on Home, Sales, Pace and the wall board · the months below add up to this{lower && lower < total ? ", the higher goal" : ""}</span></span>
         <span className="v pk-big">{money(total)}</span>
       </div>
       <div className="pk-months">

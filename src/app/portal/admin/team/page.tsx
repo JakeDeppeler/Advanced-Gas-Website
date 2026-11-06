@@ -28,7 +28,7 @@ export default async function TeamPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <PortalBack href="/portal/admin" label="Admin" />
-        <h1>Who&rsquo;s in, and what they see.</h1>
+        <h1>Who&rsquo;s in, and what they see</h1>
         <p>Add the crew, set each person&rsquo;s role, and switch individual things on or off. Changes take effect the next time they load a page.</p>
       </div>
 

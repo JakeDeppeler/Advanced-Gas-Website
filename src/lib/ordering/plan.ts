@@ -39,7 +39,10 @@ export type Supplier = {
  * without any risk of losing what the supplier needs to act on.
  */
 export const DEFAULT_ORDER_INTRO = "Hi team,\n\nPlease supply the following for Advanced Gas & Aircon, order {po}.";
-export const DEFAULT_ORDER_SIGNOFF = "Please confirm the order and expected delivery by replying to this email.";
+// Several orders can be with a supplier at once (this week's and next week's,
+// a top-up); each delivery can carry a fee and a trip to the factory, so every
+// order asks for anything still to go out to come together.
+export const DEFAULT_ORDER_SIGNOFF = "If you have another order of ours that hasn't gone out yet, please send this one with it, all in one delivery.\n\nPlease confirm the order and expected delivery by replying to this email.";
 export const DEFAULT_WORK_INTRO = "Hi Geoff,\n\nPlease book in the electrical for the install below.";
 
 export function fillWording(template: string, vars: { supplier: string; po: string }): string {

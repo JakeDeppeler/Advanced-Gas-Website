@@ -16,6 +16,8 @@ import { pageReport, titleFor } from "@/lib/portal/leadPages";
 import { WEBSITE_TABS, websiteHref, websiteTabDef, windowDays, windowKey, type WebsiteTab } from "@/lib/portal/marketingTabs";
 import { Bars, Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
 import { Locked } from "@/components/portal/Locked";
+import { formLeads, photoLinks, stagesFor } from "@/lib/leads/jobLink";
+import { LeadList, type LeadFilter } from "@/components/portal/website/LeadList";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Website · Team portal" };
@@ -28,7 +30,7 @@ export const metadata = { title: "Website · Team portal" };
  * put out into the world stays there; what the site does with the people it
  * gets is here, beside the Blog.
  */
-export default async function WebsitePage({ searchParams }: { searchParams: { tab?: string; win?: string } }) {
+export default async function WebsitePage({ searchParams }: { searchParams: { tab?: string; win?: string; f?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Website" forWhom="managers" />;
@@ -77,7 +79,7 @@ export default async function WebsitePage({ searchParams }: { searchParams: { ta
         </div>
       )}
 
-      {tab === "leads" && <WebsiteLeads leads={leads} days={days} win={win} />}
+      {tab === "leads" && <WebsiteLeads leads={leads} days={days} win={win} since={since} filter={(["all", "unlinked", "waiting", "quoted", "sold"] as const).find((k) => k === searchParams.f) ?? "all"} />}
       {tab === "pages" && <OnTheSite leads={leads} days={days} views={views} />}
       {tab === "dropoff" && <DropOff />}
     </PortalShell>
@@ -86,10 +88,20 @@ export default async function WebsitePage({ searchParams }: { searchParams: { ta
 
 /* --------------------------------------------------------- Website leads */
 async function WebsiteLeads({
-  leads, days, win,
+  leads, days, win, since, filter,
 }: {
-  leads: Awaited<ReturnType<typeof listWebLeads>>; days: number; win: string;
+  leads: Awaited<ReturnType<typeof listWebLeads>>; days: number; win: string; since: string; filter: LeadFilter;
 }) {
+  // Every form, with the job each one became; the counts below are every enquiry, calls included.
+  const forms = await formLeads(since).catch(() => []);
+  const [stages, urls] = await Promise.all([stagesFor(forms).catch(() => new Map()), photoLinks(forms).catch(() => new Map<string, string>())]);
+  const unlinked = forms.filter((f) => !f.stJobId).length;
+  const hrefFor = (f: LeadFilter) => {
+    const u = new URLSearchParams();
+    if (win !== "30") u.set("win", win);
+    if (f !== "all") u.set("f", f);
+    return `/portal/website${u.toString() ? `?${u}` : ""}`;
+  };
   const quotes = leads.filter((l) => l.kind === "quote").length;
   const calls = leads.filter((l) => l.kind === "call").length;
   const weeks = Math.max(1, days / 7);
@@ -125,6 +137,14 @@ async function WebsiteLeads({
           },
         ]}
       />
+
+      {forms.length > 0 && (
+        <p className="wl-say">
+          {forms.length} {forms.length === 1 ? "form" : "forms"} in this window.{" "}
+          {unlinked ? <span className="wl-bad">{unlinked} {unlinked === 1 ? "isn’t" : "aren’t"} linked to a job yet.</span> : "Every one is linked to a job."}
+        </p>
+      )}
+      <LeadList leads={forms} stages={stages} urls={urls} filter={filter} hrefFor={hrefFor} />
 
       <div className="pt-two">
         <Bars

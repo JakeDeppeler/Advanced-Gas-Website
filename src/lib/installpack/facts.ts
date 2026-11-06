@@ -2,15 +2,16 @@ import "server-only";
 import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { listJobFiles } from "@/lib/ordering/jobFiles";
 import type { OrderLine, PackFacts, Photo, QuoteItem } from "./build";
+import type { VisitReport } from "./summaryText";
 
-/** One row of install_pack_jobs (0086): an install booked from a sold quote, visit still to come. */
+/** One row of install_pack_jobs (0090): an install job with a visit still to come, and its sold quote if it has one. */
 export type InstallJob = {
   job_id: number;
   job_number: string | null;
   job_type: string | null;
   customer_name: string | null;
   job_summary: string | null;
-  estimate_id: number;
+  estimate_id: number | null;
   quote_job_id: number | null;
   appointment_start: string;
   all_visits: string | null;
@@ -42,8 +43,9 @@ type RawEstimate = { name?: string | null; summary?: string | null; soldOn?: str
  */
 export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, PackFacts>> {
   if (!jobs.length) return new Map();
+  const estIds = [...new Set(jobs.flatMap((j) => (j.estimate_id == null ? [] : [j.estimate_id])))];
   const [ests, lines, suppliers] = await Promise.all([
-    sbSelect<{ id: number; raw: RawEstimate }>("st_estimates", [q.select("id,raw"), `id=in.(${[...new Set(jobs.map((j) => j.estimate_id))].join(",")})`].join("&")),
+    estIds.length ? sbSelect<{ id: number; raw: RawEstimate }>("st_estimates", [q.select("id,raw"), `id=in.(${estIds.join(",")})`].join("&")) : Promise.resolve([]),
     sbSelect<{ po_id: number; job_id: number; sku_id: number | null }>("purchase_order_lines", [q.select("po_id,job_id,sku_id"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&")),
     sbSelect<{ id: string; name: string }>("order_suppliers", q.select("id,name")),
   ]);
@@ -58,7 +60,7 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
 
   const out = new Map<number, PackFacts>();
   for (const j of jobs) {
-    const raw = estById.get(j.estimate_id) ?? {};
+    const raw = j.estimate_id == null ? {} : estById.get(j.estimate_id) ?? {};
     const items: QuoteItem[] = (raw.items ?? []).map((i) => ({
       skuId: i.sku?.id != null ? Number(i.sku.id) : null,
       type: i.sku?.type ?? "",
@@ -79,12 +81,11 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
       sitePhone: j.site_phone,
       visits: j.all_visits,
       crew: j.crew,
-      quote: {
+      quote: j.estimate_id == null ? null : {
         id: j.estimate_id,
         name: raw.name ?? null,
         fromJob: j.quote_job_id && j.quote_job_id !== j.job_id ? raw.jobNumber ?? String(j.quote_job_id) : null,
         soldOn: raw.soldOn ?? null,
-        summary: raw.summary ?? null,
       },
       jobSummary: j.job_summary,
       items,
@@ -105,12 +106,19 @@ const PHOTO = /\.(jpe?g|png|heic|heif|webp|gif)$/i;
 /**
  * The photos on the install job and, when the quote was written on another
  * job, on that one too: the quote visit is where somebody photographed the
- * switchboard, the wall and the old unit. Newest first. Our own install
+ * switchboard, the wall and the old unit. And on the visits the Condition
+ * Reports came from. Newest first. Our own install
  * packs are PDFs, so they never come back round as photos.
  */
-export async function packPhotos(j: InstallJob): Promise<{ photos: Photo[]; notShown: number } | { error: string }> {
-  const jobs = [{ id: j.job_id, quote: false }];
+export async function packPhotos(j: InstallJob, reports: VisitReport[] = []): Promise<{ photos: Photo[]; notShown: number } | { error: string }> {
+  const jobs: { id: number; quote: boolean; label?: string }[] = [{ id: j.job_id, quote: false }];
   if (j.quote_job_id && j.quote_job_id !== j.job_id) jobs.push({ id: j.quote_job_id, quote: true });
+  // The visit a Condition Report came from, when it's a job of its own: its
+  // photos are the ones the report talks about.
+  for (const r of reports) {
+    if (jobs.some((x) => x.id === r.jobId)) continue;
+    jobs.push({ id: r.jobId, quote: false, label: `${(r.jobType ?? "Earlier visit").trim()}, job ${r.jobNumber ?? r.jobId}` });
+  }
   const photos: Photo[] = [];
   let notShown = 0;
   for (const x of jobs) {
@@ -118,10 +126,29 @@ export async function packPhotos(j: InstallJob): Promise<{ photos: Photo[]; notS
     if ("error" in r) return { error: r.error };
     for (const f of r.files) {
       if (!PHOTO.test(f.name)) continue;
-      if (EMBEDDABLE.test(f.name)) photos.push({ id: f.id, name: f.name, at: f.at, quoteVisit: x.quote });
+      if (EMBEDDABLE.test(f.name)) photos.push({ id: f.id, name: f.name, at: f.at, quoteVisit: x.quote, ...(x.label ? { label: x.label } : {}) });
       else notShown++;
     }
   }
   photos.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? ""));
   return { photos, notShown };
+}
+
+export type PackStatus = InstallJob & { version: number | null; attached_at: string | null; last_error: string | null; current: boolean };
+
+/**
+ * Every install a pack is due on, soonest first, with where its pack stands,
+ * for To order › Automation. `current` is false while the pack on the job is
+ * from an older layout and waiting its turn to be made again.
+ */
+export async function packStatuses(layout: string): Promise<PackStatus[]> {
+  const jobs = await installJobs();
+  if (!jobs.length) return [];
+  const rows = await sbSelect<{ job_id: number; version: number; attached_at: string | null; last_error: string | null; layout: string | null }>(
+    "install_packs", [q.select("job_id,version,attached_at,last_error,layout:parts->>layout"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&"));
+  const by = new Map(rows.map((r) => [r.job_id, r]));
+  return jobs.map((j) => {
+    const r = by.get(j.job_id);
+    return { ...j, version: r?.attached_at ? r.version : null, attached_at: r?.attached_at ?? null, last_error: r?.last_error ?? null, current: r?.layout === layout };
+  });
 }

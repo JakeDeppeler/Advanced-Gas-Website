@@ -1243,12 +1243,13 @@ export async function listBrandAssets(): Promise<BrandAsset[]> {
 
 export async function createBrandAsset(input: {
   label: string; kind: string; path: string; mime: string | null; bytes: number | null; addedBy: string; folderId?: string | null;
+  library?: "brand" | "resources";
 }): Promise<{ ok: boolean }> {
   const res = await sb("portal_brand_assets", {
     method: "POST", headers: { Prefer: "return=minimal" },
     body: JSON.stringify({
       label: input.label, kind: input.kind, path: input.path,
-      mime: input.mime, bytes: input.bytes, added_by: input.addedBy || null,
+      mime: input.mime, bytes: input.bytes, added_by: input.addedBy || null, library: input.library ?? "brand",
       ...(input.folderId ? { folder_id: input.folderId } : {}),
     }),
   });

@@ -50,11 +50,10 @@ export default async function SupplyPricingPage() {
 
   return (
     <PortalShell user={user}>
+      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Pricing rules" sub={<>The markups that turn our cost into the price in ServiceTitan.</>} />
       </div>
-
-      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       <section className="pt-panel pt-rules">
         <h2 className="pt-panel__h">How Reece&rsquo;s cost becomes a pricebook figure</h2>

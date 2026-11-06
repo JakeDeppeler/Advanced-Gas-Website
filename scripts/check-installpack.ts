@@ -13,6 +13,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { buildPack, fingerprint, packParts, plainText, whatChanged, type PackFacts } from "../src/lib/installpack/build";
 import { packPdf } from "../src/lib/installpack/pdf";
+import { SUMMARY_SCHEMA, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -30,7 +31,7 @@ const facts: PackFacts = {
   sitePhone: "0400 000 000",
   visits: "Fri 30 Oct 7:00am",
   crew: "Chaz Stephens, Jackson Lane, Paddy Fairclough, Ray Kennedy",
-  quote: { id: 301223831, name: "Braemar Dominator Installation Internal", fromJob: "20106", soldOn: "2026-10-05T22:39:43Z", summary: SCOPE },
+  quote: { id: 301223831, name: "Braemar Dominator Installation Internal", fromJob: "20106", soldOn: "2026-10-05T22:39:43Z" },
   jobSummary: `${SCOPE}\n\nRemove existing system. Install fan coil and outdoor unit. Pipework, electrical,\ncommission and hand over. Remove all rubbish from site.`,
   items: [
     { skuId: 301158109, type: "Equipment", code: "Braemar Dominator S2 (Internal)", name: "Braemar Dominator Series 2 - Internal", qty: 1 },
@@ -79,9 +80,9 @@ ok("each line's state matches its words", [...p.units, ...p.materials].every((l)
 ok("the electrician's work order is listed once", p.contractors.length === 1 && p.contractors[0].startsWith("GT Electrics – work order sent"), p.contractors);
 
 console.log("-- wording --");
-ok("the scope is the quote's, word for word", p.scope === SCOPE);
-ok("job notes don't repeat the scope", p.jobNotes?.startsWith("Remove existing system.") === true, p.jobNotes);
-ok("job notes the same as the scope aren't printed", buildPack({ ...facts, jobSummary: SCOPE }).jobNotes === null);
+ok("the scope is the job summary, word for word", p.scope === facts.jobSummary, p.scope);
+ok("an empty job summary is no scope, not the quote's", buildPack({ ...facts, jobSummary: "" }).scope === null);
+ok("a block's start breaks the line too", plainText("<b>ROOM 42 - Kaden 7kw Split System Install</b><div>Attend to install a new split system.</div>") === "ROOM 42 - Kaden 7kw Split System Install\nAttend to install a new split system.");
 ok("HTML becomes plain text", plainText("<div><b>QUOTATION REQUIRED</b></div><div>Arrange install&nbsp;of new split</div>") === "QUOTATION REQUIRED\nArrange install of new split");
 ok("the quote line says which job it came from", p.facts.find(([k]) => k === "Quote")?.[1] === "Braemar Dominator Installation Internal · from job 20106 · sold Tue 6 Oct", p.facts);
 ok("nobody assigned is said, not left blank", buildPack({ ...facts, crew: null }).facts.find(([k]) => k === "Crew")?.[1] === "Nobody assigned yet");
@@ -96,7 +97,70 @@ const moved = packParts({ ...facts, visits: "Mon 2 Nov 7:00am", crew: "Ray Kenne
 ok("a move and a crew change are both named", whatChanged(base, moved, false) === "the booking and the crew changed", whatChanged(base, moved, false));
 ok("photos are named when they're what changed", whatChanged(base, base, true) === "the photos changed");
 ok("a pack from the old layout is redone, and the note says only that", whatChanged({ ...base, layout: undefined, orders: "x" } as Partial<typeof base>, base, false) === "new layout only, nothing about the job changed");
-ok("a different sold quote is the quote changing", whatChanged(base, packParts({ ...facts, quote: { ...facts.quote, id: 1 } }), false) === "the quote changed");
+ok("a different sold quote is the quote changing", whatChanged(base, packParts({ ...facts, quote: { ...facts.quote!, id: 1 } }), false) === "the quote changed");
+ok("an edited job summary is a new version, and named as that", whatChanged(base, packParts({ ...facts, jobSummary: `${facts.jobSummary}\nBring the long ladder.` }), false) === "the job summary changed");
+
+console.log("-- an install booked without a quote --");
+const bare = buildPack({ ...facts, quote: null, items: [] });
+ok("still gets a pack, with the job summary", bare.scope === facts.jobSummary && !bare.quoted);
+ok("says there's no quote, not a blank", bare.facts.find(([k]) => k === "Quote")?.[1] === "No sold quote on this job", bare.facts);
+ok("no lists to show", bare.units.length === 0 && bare.materials.length === 0);
+ok("its fingerprint is stable", fingerprint(packParts({ ...facts, quote: null, items: [] })) === fingerprint(packParts({ ...facts, quote: null, items: [] })));
+
+console.log("-- the install summary --");
+// The quote visit's Condition Report, as the forms API sends one (shape from
+// submission 465, 31 Oct), with made-up words.
+const visit: VisitReport = {
+  jobId: 300000106, jobNumber: "20106", jobType: "Quotation",
+  submission: {
+    id: 501, formName: "Condition Report ", status: "Completed", submittedOn: "2026-10-02T03:10:00Z",
+    owners: [{ type: "Job", id: 300000106 }],
+    units: [
+      { name: "Customer Name", type: "Text", value: "A. Customer" },
+      { name: "Location Address", type: "Text", value: "1 Example Street, Pakenham, VIC 3810" },
+      { name: "Job Number", type: "Text", value: null },
+      { name: "Equipment Manufacturer", type: "Text", value: "Brivis" },
+      { name: "Equipment Model", type: "Text", value: "Buffalo B20" },
+      { name: "Condition", type: "Stoplight", value: 0 },
+      { name: "Indoor unit location", type: "Text", value: "Roof space above hallway, existing heater platform" },
+      { name: "Technician Notes", type: "Text", value: "Existing gas ducted heater in the roof space, 24 years old, heat exchanger cracked. Customer wants a ducted reverse cycle. Ductwork in fair condition, reuse. Outdoor unit on a slab beside the laundry, 6 m pipe run through the roof.", attachments: [{ fileName: "a.jpg" }, { fileName: "b.jpg" }] },
+      { name: "Technician ", type: "Text", value: "A. Technician" },
+      { name: "Signature", type: "Signature", value: null, isRefused: true, refusalReason: "Customer not home" },
+    ],
+  },
+};
+const si = summaryInput(facts, [visit]);
+ok("Claude is given the labour lines, which say the kind of install", si.text.includes("Dominator - Installation") && si.text.includes("Electrical Connection"));
+ok("…not the rebates or the compliance certificate", !/VEEC|Rebates|BPC/i.test(si.text));
+ok("…nor the customer's name, address or phone", !/A\. Customer|Example Street|0400|A\. Technician/.test(si.text));
+ok("…but a field that names where a unit goes", si.text.includes("Indoor unit location: Roof space above hallway"));
+ok("…and the tech's notes", si.text.includes("beside the laundry"));
+ok("…and the electrician booked", si.text.includes("Contractors booked: GT Electrics"));
+ok("the same records give the same key", summaryInput(structuredClone(facts), [structuredClone(visit)]).key === si.key);
+ok("a report turning up is a new key", summaryInput(facts, []).key !== si.key);
+ok("it says what it was written from", listed(si.sources) === "the job summary, the sold quote and the Condition Report from job 20106", listed(si.sources));
+ok("a summary that isn't the right shape is refused", (() => { try { parseSummary(JSON.stringify({ overview: "x" })); return false; } catch { return true; } })());
+ok("an empty section is dropped", parseSummary(JSON.stringify({ overview: " a ", sections: [{ heading: "Pipework and drain", text: " " }, { heading: "Electrical", text: "b" }] })).sections.length === 1);
+
+// What a summary for this job might say: for the layout, not from Claude.
+const SAMPLE: InstallSummary = {
+  overview: "There's an old Brivis Buffalo gas ducted heater in the roof space; the tech found \"heat exchanger cracked\". It comes out and a Braemar Dominator Series 2 internal ducted reverse-cycle system goes in, using the existing ductwork, with a new 400 x 600 return air box.",
+  sections: [
+    { heading: "What's there now", text: "A 24-year-old Brivis Buffalo B20 in the roof space, \"heat exchanger cracked\". It's being replaced." },
+    { heading: "Indoor unit", text: "The fan coil goes in the roof space above the hallway, on the existing heater platform." },
+    { heading: "Outdoor unit", text: "On a slab beside the laundry." },
+    { heading: "Pipework and drain", text: "About 6 m through the roof. 3/8 x 5/8 copper pair and 20 mm PVC on the quote, no condensate pump." },
+    { heading: "Electrical", text: "GT Electrics are booked for the electrical connection." },
+  ],
+};
+const withSum: PackFacts = { ...facts, visitReports: [visit], summary: { ok: SAMPLE, from: "the job summary, the sold quote, the Condition Report from job 20106 and 2 photos from the earlier visit" } };
+const ps = buildPack(withSum);
+ok("the report's blank Job Number is filled from the visit it's on", ps.reports[0]?.jobNumber === "20106", ps.reports[0]?.jobNumber);
+ok("a summary and a report turning up is a new version, named", whatChanged(base, packParts(withSum), false) === "the install summary and the Condition Report changed", whatChanged(base, packParts(withSum), false));
+const failed = (error: string, at: string) => packParts({ ...withSum, summary: { error, at } });
+ok("a failed summary failing again on retry isn't a new version", fingerprint(failed("a", "1")) === fingerprint(failed("b", "2")));
+ok("drafting off leaves the section out, not saying it failed", buildPack({ ...withSum, summary: null }).summary === null);
+ok("the guide's rules have no confirm list", !/confirm/i.test(JSON.stringify(SUMMARY_SCHEMA)));
 
 const [out, ...photos] = process.argv.slice(2);
 (async () => {
@@ -112,9 +176,16 @@ const [out, ...photos] = process.argv.slice(2);
     .catch((e: Error) => e);
   ok("a JPEG that's a slice of a bigger buffer still goes in", pdf instanceof Uint8Array, pdf instanceof Error ? pdf.message : "");
   ok("…and the photo is in it, not skipped", pdf instanceof Uint8Array && pdf.length > jpg.length);
+  const full = await packPdf(ps, [], { version: 5, madeAt: new Date(), notShown: 0 }).catch((e: Error) => e);
+  ok("a pack with a summary and a Condition Report renders", full instanceof Uint8Array, full instanceof Error ? full.message : "");
+  const words = async (bytes: Uint8Array) => {
+    const { PDFDocument } = await import("pdf-lib");
+    return (await PDFDocument.load(bytes)).getPageCount();
+  };
+  ok("…and a pack without a guide still renders", (await words(await packPdf(buildPack({ ...withSum, summary: null }), [], { version: 5, madeAt: new Date(), notShown: 0 }))) > 0);
   if (out) {
     const pics = photos.map((path, i) => ({ photo: { id: i, name: path.split("/").pop()!, at: "2026-10-12T01:00:00Z", quoteVisit: i % 2 === 0 }, bytes: readFileSync(path) }));
-    writeFileSync(out, await packPdf(p, pics, { version: 2, madeAt: new Date("2026-10-27T23:00:00Z"), notShown: 3 }));
+    writeFileSync(out, await packPdf(ps, pics, { version: 2, madeAt: new Date("2026-10-27T23:00:00Z"), notShown: 3 }));
     console.log(`wrote ${out}`);
   }
   console.log(bad ? `\n${bad} failed` : "\nall passed");

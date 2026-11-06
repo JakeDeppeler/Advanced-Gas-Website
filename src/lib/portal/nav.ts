@@ -124,10 +124,22 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
   });
 
+  // Priced by whoever writes the quotes.
+  add(office || can(user, "quotes"), {
+    href: "/portal/ducted", label: "Ducted quote", short: "Ducted", blurb: "A ducted system priced from the house's outlets and zones", band: "hidden", icon: "doc",
+    also: ["ducted", "ducted quote", "outlets", "vents", "zones", "duct", "reverse cycle", "builder", "quote builder"],
+  });
+
   // Answered by whoever runs the pipeline, like the pipeline itself.
   add(office || can(user, "quotes"), {
     href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Website, Messenger and Instagram, with drafted replies", band: "customers", icon: "chat",
     also: ["message", "messages", "messenger", "instagram", "facebook", "dm", "chat", "website chat", "inbox", "reply", "customer"],
+  });
+
+  // The office's view of work orders from email, like the chats.
+  add(office || can(user, "quotes"), {
+    href: "/portal/work-orders", label: "Work orders", blurb: "From email into ServiceTitan's Bookings, and the tenant emailed", band: "customers", icon: "doc",
+    also: ["work order", "work orders", "propertyme", "tapi", "real estate", "agent", "property manager", "tenant", "bookings"],
   });
 
   add(office,
@@ -235,6 +247,11 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/vehicles/tools", label: "Tools", blurb: "Every tool on every van, and when it's next tested", band: "crew", icon: "wrench", also: ["test and tag", "tag", "calibration", "tool register", "tools due"] },
     { href: "/portal/vehicles/kit", label: "Kit lists", blurb: "New starter tools, van equipment and van stock", band: "crew", icon: "wrench", also: ["kit list", "new starter", "tool bag", "van equipment", "van stock", "what to carry", "starter kit"] },
   );
+  // The Service manager's home: the day's checks and each tech's numbers.
+  add(can(user, "team"), {
+    href: "/portal/service", label: "Service manager", short: "Service", blurb: "Today's checks, each tech's numbers, where the money is made and lost", band: "crew", icon: "people",
+    also: ["service manager", "efficiency", "efficient", "per tech", "scorecard", "losing money", "call back", "callbacks", "rework", "warranty", "on time", "selling", "performance"],
+  });
   add(office,
     { href: "/portal/per-van", label: "Per van, per day", short: "Per van", blurb: "What each van brings in a day it's out", band: "crew", icon: "truck", also: ["revenue per van", "per day", "van a day", "per tech"] },
     { href: "/portal/drive", label: "Drive time", blurb: "How much of the day is on the road", band: "crew", icon: "clock", also: ["driving", "travel", "routing", "on the road"] },
@@ -260,6 +277,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/sops/edit", label: "Edit processes", short: "Edit SOPs", blurb: "Change what the crew sees", band: "how-we-work", icon: "pen", also: ["edit", "procedure", "publish"] },
   );
   items.push(
+    { href: "/portal/resources", label: "Resources", blurb: "Price lists, tech sheets and manuals", band: "how-we-work", icon: "file", also: ["manual", "manuals", "price list", "spec sheet", "tech sheet", "datasheet", "install guide", "brochure", "product"] },
     { href: "/portal/learning", label: "Learning", blurb: "How-to and method videos", band: "how-we-work", icon: "play", also: ["training", "video", "course"] },
     { href: "/portal/information", label: "Information", short: "Info", blurb: "Prices, licences, contacts", band: "how-we-work", icon: "info", also: ["price list", "licence", "abn", "arc", "contact"] },
     { href: "/portal/me", label: "My file", blurb: "Your leave, goals and reviews", band: "settings", icon: "user", also: ["leave", "holiday", "rdo", "review", "goal"] },
@@ -336,16 +354,19 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
     { href: "/portal/numbers", label: "Goals", blurb: "Every goal the portal measures against", band: "hidden", icon: "target", also: ["goals", "our numbers", "year goal", "sales goal", "months", "gross margin goal", "win rate goal"] },
     { href: "/portal/finance/capacity", label: "Overheads", blurb: "Every overhead line, add, edit, a year, a week or a month a van", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software", "fuel", "servicing", "add a line"] },
-    { href: "/portal/pricing", label: "Rates & pricing", blurb: "Our hourly rate, call-out and after-hours", band: "hidden", icon: "tag", also: ["hourly rate", "call out", "callout", "after hours", "pricing", "charge out", "profit we want"] },
+    { href: "/portal/pricing", label: "Our prices", blurb: "Our hourly rate, call-out and after-hours", band: "hidden", icon: "tag", also: ["hourly rate", "call out", "callout", "after hours", "pricing", "charge out", "profit we want"] },
     { href: "/portal/finance/capacity?part=vans", label: "Vans & loans", blurb: "What each van owes, and the repayments", band: "hidden", icon: "truck", also: ["van loan", "repayment", "finance", "new van"] },
     { href: "/portal/finance/planning", label: "Future", blurb: "3 vans against 4 or 5, hire someone, and other what-ifs", band: "hidden", icon: "trend", also: ["what if", "hire", "planning", "add a person", "future", "more vans", "fewer vans", "3 vans", "5 vans"] },
     { href: "/portal/marketing?tab=ads", label: "Ads", blurb: "What the ads cost and bring in", band: "hidden", icon: "speaker", also: ["ads", "google ads", "facebook ads"] },
   );
   add(admin, { href: "/portal/commission", label: "Commission", blurb: "The month target and the bonus", band: "hidden", icon: "target", also: ["commission", "bonus", "month target", "incentive"] });
+  items.push({ href: "/portal/you", label: "Settings overview", blurb: "Every part of Settings on one page", band: "hidden", icon: "user", also: ["settings", "overview", "set up", "admin"] });
   items.push({ href: "/portal/settings", label: "Settings", blurb: "How the portal looks, and what the business has", band: "hidden", icon: "user", also: ["settings", "theme", "dark mode", "business name", "start page"] });
   add(office,
     { href: "/portal/automatic", label: "Automatic", blurb: "What the portal does by itself, and a record of every time", band: "hidden", icon: "plug", also: ["automatic", "automation", "auto", "tags", "awaiting quote approval", "log", "history"] },
     { href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece, is each one working", band: "hidden", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection"] },
+    // Without a line here the page dropped out of Settings' tabs, and opened with no tab row at all.
+    { href: "/portal/email", label: "Email that didn't arrive", blurb: "Emails refused or bounced, until each is marked sorted", band: "hidden", icon: "plug", also: ["email", "bounced", "bounce", "didn't arrive", "undelivered", "resend"] },
   );
 
   return items;

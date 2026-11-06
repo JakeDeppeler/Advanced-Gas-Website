@@ -65,3 +65,256 @@ export async function probeEstimates(ids: number[]): Promise<Record<string, { si
   }
   return out;
 }
+
+/**
+ * Does a job's history in ServiceTitan record a quote being sent? The
+ * estimate itself doesn't say (above), so Awaiting Quote Approval is guessed
+ * from a priced quote sitting unchanged for a day, and drafts get it (job
+ * 20527, 31 Oct). This lists what each history-like endpoint returns for a
+ * job: its status, the field names, and the distinct values of the fields
+ * that name an event's kind. No notes, names or contact details.
+ */
+const KIND = /type|event|action|kind/i;
+const HISTORY_PATHS: [string, (id: number) => string][] = [
+  ["jpm", (id) => `jobs/${id}/history`],
+  ["jpm", (id) => `jobs/${id}/notes`],
+];
+
+export async function probeJobHistory(jobIds: number[]): Promise<Record<string, Record<string, { ok: boolean; error?: string; count?: number; fields?: string[]; kinds?: Record<string, string[]> }>>> {
+  const out: Record<string, Record<string, { ok: boolean; error?: string; count?: number; fields?: string[]; kinds?: Record<string, string[]> }>> = {};
+  for (const id of jobIds) {
+    out[String(id)] = {};
+    for (const [module, path] of HISTORY_PATHS) {
+      const label = `${module} ${path(0).replace("/0/", "/{id}/")}`;
+      try {
+        const r = await stFetch<{ data?: Array<Record<string, unknown>>; history?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>>(stTenantPath(module, path(id)), { pageSize: "100" });
+        const rows = Array.isArray(r) ? r : r.data ?? r.history ?? [];
+        const kinds: Record<string, string[]> = {};
+        for (const row of rows) {
+          for (const [k, v] of Object.entries(row)) {
+            if (!KIND.test(k) || typeof v !== "string" || v.length > 60) continue;
+            (kinds[k] ??= []).includes(v) || kinds[k].push(v);
+          }
+        }
+        out[String(id)][label] = { ok: true, count: rows.length, fields: [...new Set(rows.flatMap((x) => paths(x)))], kinds };
+      } catch (e) {
+        out[String(id)][label] = { ok: false, error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Can the portal read a completed form, so a work order can carry the job's
+ * Condition Report (Jake, 31 Oct)? Lists the tenant's forms by name, then the
+ * newest few submissions of those whose name matches: who they belong to,
+ * their status, and the shape of what they hold. Field names and types only,
+ * never the answers, which can be anything a tech wrote about a customer.
+ */
+const cut = (v: unknown) => (typeof v === "string" ? (v.length > 60 ? `${v.slice(0, 60)}…` : v) : v);
+
+/** A submission's units as a tree: names and types whole, answers cut to 60 characters, attachments as their first one's keys. */
+function shapeUnits(v: unknown, depth: number): unknown {
+  if (!Array.isArray(v) || depth > 4) return v == null ? null : typeof v;
+  return v.slice(0, 40).map((u: Record<string, unknown>) => {
+    const att = Array.isArray(u.attachments) ? u.attachments as unknown[] : null;
+    const first = att?.[0];
+    return {
+      name: u.name, type: u.type,
+      value: Array.isArray(u.value) ? (u.value as unknown[]).slice(0, 5).map(cut) : u.value && typeof u.value === "object" ? Object.keys(u.value as object) : cut(u.value),
+      comment: cut(u.comment),
+      attachments: att == null ? null : { count: att.length, first: first && typeof first === "object" ? Object.fromEntries(Object.entries(first as Record<string, unknown>).map(([k, x]) => [k, cut(x)])) : cut(first) },
+      keys: Object.keys(u).filter((k) => !["name", "type", "value", "comment", "attachments", "id", "units"].includes(k)),
+      ...(u.units != null ? { units: shapeUnits(u.units, depth + 1) } : {}),
+    };
+  });
+}
+
+/** Whether the list can be asked for one job's reports, or has to be read whole and sorted here. */
+async function tryOwnerFilter(formIds: string[], done: Record<string, unknown>): Promise<unknown> {
+  const job = (done.owners as Array<{ type?: string; id?: number }> | undefined)?.find((o) => o.type === "Job")?.id;
+  if (!job) return "no job owner";
+  const tries: Record<string, Record<string, string>> = {
+    "owners[0]": { "owners[0].type": "Job", "owners[0].id": String(job) },
+    ownerIds: { ownerType: "Job", ownerIds: String(job) },
+  };
+  const out: Record<string, unknown> = {};
+  for (const [k, extra] of Object.entries(tries)) {
+    try {
+      const r = await stFetch<{ data?: Array<{ owners?: Array<{ type?: string; id?: number }> }> }>(stTenantPath("forms", "submissions"), { formIds: formIds.join(","), pageSize: "50", ...extra });
+      const rows = r.data ?? [];
+      out[k] = { returned: rows.length, allThisJob: rows.every((x) => (x.owners ?? []).some((o) => o.type === "Job" && o.id === job)) };
+    } catch (e) {
+      out[k] = { error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+    }
+  }
+  return out;
+}
+
+/**
+ * The traffic-light answer on recent completed reports, by job number, to
+ * learn which number is green and which is red (1 is amber: job 20721, 31
+ * Oct). Only the light's number and the job number.
+ */
+async function stoplights(formIds: string[]): Promise<unknown> {
+  try {
+    const r = await stFetch<{ data?: Array<{ status?: string; units?: Array<{ name?: string; type?: string; value?: unknown }> }> }>(
+      stTenantPath("forms", "submissions"), { formIds: formIds.join(","), pageSize: "60", status: "Completed" });
+    return (r.data ?? []).filter((x) => x.status === "Completed").map((x) => ({
+      job: x.units?.find((u) => /job number/i.test(u.name ?? ""))?.value ?? null,
+      lights: (x.units ?? []).filter((u) => u.type === "Stoplight").map((u) => u.value),
+    })).filter((x) => x.lights.length);
+  } catch (e) {
+    return { error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+  }
+}
+
+/** Whether a report's photos are also among its job's files (so they already go with a work order), and how the job's files are named. */
+async function formPhotosOnJob(done: Record<string, unknown>): Promise<unknown> {
+  const job = (done.owners as Array<{ type?: string; id?: number }> | undefined)?.find((o) => o.type === "Job")?.id;
+  if (!job) return "no job owner";
+  const formFiles = ((done.units as Array<{ attachments?: Array<{ fileName?: string; originalFileName?: string }> }> | undefined) ?? [])
+    .flatMap((u) => u.attachments ?? []);
+  try {
+    const r = await stFetch<{ data?: Array<{ id?: number; fileName?: string; originalFileName?: string; name?: string }> }>(stTenantPath("forms", `jobs/${job}/attachments`), { pageSize: "200" });
+    const jobFiles = r.data ?? [];
+    const names = new Set(jobFiles.flatMap((f) => [f.fileName, f.originalFileName, f.name].filter(Boolean)));
+    return {
+      formPhotos: formFiles.length,
+      onJob: formFiles.filter((f) => names.has(f.fileName) || names.has(f.originalFileName)).length,
+      jobFiles: jobFiles.length,
+      jobFileExamples: jobFiles.slice(0, 3).map((f) => ({ fileName: f.fileName, originalFileName: f.originalFileName, name: f.name })),
+    };
+  } catch (e) {
+    return { error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+  }
+}
+
+export async function probeForms(match: string): Promise<{ forms?: unknown; sample?: unknown; ownerFilter?: unknown; stoplights?: unknown; photosOnJob?: unknown; submissions?: unknown; error?: string }> {
+  const re = new RegExp(match.replace(/[^a-z0-9 ]/gi, "").trim() || "condition", "i");
+  let forms: Array<Record<string, unknown>>;
+  try {
+    const r = await stFetch<{ data?: Array<Record<string, unknown>> }>(stTenantPath("forms", "forms"), { pageSize: "200" });
+    forms = r.data ?? [];
+  } catch (e) {
+    return { error: `forms: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
+  }
+  const named = forms.map((f) => ({ id: f.id, name: f.name, active: f.active, published: f.published ?? f.status ?? null }));
+  const ids = forms.filter((f) => re.test(String(f.name ?? ""))).map((f) => String(f.id));
+  if (!ids.length) return { forms: named, submissions: "no form name matched" };
+  try {
+    const r = await stFetch<{ data?: Array<Record<string, unknown>>; totalCount?: number }>(stTenantPath("forms", "submissions"), { formIds: ids.join(","), pageSize: "5", includeTotal: "true" });
+    const rows = r.data ?? [];
+    const done = rows.find((x) => x.status === "Completed");
+    return {
+      forms: named,
+      // One completed report laid out field by field, to build the work
+      // order's PDF from: answers cut short, attachments by their keys.
+      sample: done ? { id: done.id, units: shapeUnits(done.units, 0) } : null,
+      ownerFilter: done ? await tryOwnerFilter(ids, done) : null,
+      stoplights: await stoplights(ids),
+      photosOnJob: done ? await formPhotosOnJob(done) : null,
+      submissions: {
+        total: r.totalCount ?? null,
+        fields: [...new Set(rows.flatMap((x) => paths(x)))],
+        each: rows.map((x) => ({
+          id: x.id, formId: x.formId, status: x.status, submittedOn: x.submittedOn ?? x.createdOn ?? null,
+          owners: Array.isArray(x.owners) ? (x.owners as Array<Record<string, unknown>>).map((o) => ({ type: o.type, id: o.id })) : null,
+        })),
+      },
+    };
+  } catch (e) {
+    return { forms: named, error: `submissions: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
+  }
+}
+
+/**
+ * Can a ServiceTitan report say a quote is a draft?
+ *
+ * The estimate API has no draft or sent field (#360) and the job history
+ * records nothing when a quote goes out (#400), so the office swaps Quote In
+ * Draft for Awaiting Quote Approval by hand. The Reporting API runs reports
+ * built in ServiceTitan, which may carry columns the estimate API doesn't.
+ * This lists the report categories, the reports in each whose name matches
+ * (estimate/quote by default), and for each of those its column names and
+ * types, flagging any that look like draft or sent. Names only: no report is
+ * run, so nothing about a customer comes back.
+ */
+export async function probeReports(match: string): Promise<unknown> {
+  const re = new RegExp(match.replace(/[^a-z0-9 |]/gi, "").trim() || "estimate|quote", "i");
+  type Cat = { id?: string; name?: string };
+  type Rep = { id?: number; name?: string; description?: string };
+  type Field = { name?: string; label?: string; dataType?: string };
+  let cats: Cat[];
+  try {
+    cats = (await stFetch<{ data?: Cat[] }>(stTenantPath("reporting", "report-categories"), { pageSize: "100" })).data ?? [];
+  } catch (e) {
+    return { error: `report-categories: ${(e instanceof Error ? e.message : "failed").slice(0, 200)}` };
+  }
+  const out: Record<string, unknown> = { categories: cats.map((c) => c.id ?? c.name) };
+  const found: Array<Record<string, unknown>> = [];
+  const counts: Record<string, number | string> = {};
+  for (const c of cats) {
+    const cat = c.id ?? "";
+    if (!cat) continue;
+    let reps: Rep[];
+    try {
+      reps = (await stFetch<{ data?: Rep[] }>(stTenantPath("reporting", `report-category/${cat}/reports`), { pageSize: "500" })).data ?? [];
+    } catch (e) {
+      counts[cat] = `error: ${(e instanceof Error ? e.message : "failed").slice(0, 80)}`;
+      continue;
+    }
+    counts[cat] = reps.length;
+    for (const r of reps.filter((x) => re.test(`${x.name ?? ""} ${x.description ?? ""}`))) found.push({ category: cat, id: r.id, name: r.name });
+  }
+  out.reportsPerCategory = counts;
+  for (const f of found.slice(0, 12)) {
+    try {
+      const d = await stFetch<{ fields?: Field[]; parameters?: Array<{ name?: string; label?: string; dataType?: string; isRequired?: boolean }> }>(
+        stTenantPath("reporting", `report-category/${f.category}/reports/${f.id}`));
+      const fields = (d.fields ?? []).map((x) => `${x.label ?? x.name} (${x.dataType ?? "?"})`);
+      f.fields = fields;
+      f.draftLike = (d.fields ?? []).filter((x) => /draft|sent|email|present|review|status/i.test(`${x.name ?? ""} ${x.label ?? ""}`)).map((x) => x.label ?? x.name);
+      f.parameters = (d.parameters ?? []).map((p) => `${p.label ?? p.name}${p.isRequired ? " *" : ""} (${p.dataType ?? "?"})`);
+    } catch (e) {
+      f.error = (e instanceof Error ? e.message : "failed").slice(0, 160);
+    }
+  }
+  out.matching = found;
+  return out;
+}
+
+/**
+ * Where ServiceTitan keeps proposal and estimate templates, and the services
+ * side of the pricebook, before auditing the templates against the pricebook
+ * and drafting quotes from them (Jake, 3 Nov). The app has read access to
+ * Estimate Templates, Proposal Templates and Proposal Types, but their
+ * endpoints aren't named anywhere the portal has used yet, so this tries the
+ * likely ones and reports, for each, the status, how many came back, the
+ * field names and up to fifteen names. Nothing about a customer is in these.
+ */
+export async function probeTemplates(): Promise<unknown> {
+  const tries: Array<[string, string]> = [
+    ["sales", "estimates/templates"], ["sales", "estimate-templates"], ["sales", "templates"],
+    ["sales", "proposal-templates"], ["sales", "proposals/templates"], ["sales", "proposal-types"],
+    ["salestech", "proposal-templates"], ["salestech", "estimate-templates"], ["salestech", "templates"],
+    ["pricebook", "services"], ["pricebook", "categories"],
+  ];
+  const out: Record<string, unknown> = {};
+  for (const [mod, res] of tries) {
+    const key = `${mod}/${res}`;
+    try {
+      const r = await stFetch<{ data?: Array<Record<string, unknown>>; totalCount?: number; hasMore?: boolean }>(stTenantPath(mod, res), { pageSize: "50", includeTotal: "true" });
+      const rows = Array.isArray(r?.data) ? r.data : [];
+      out[key] = {
+        ok: true, count: rows.length, total: r?.totalCount ?? null, more: r?.hasMore ?? null,
+        fields: [...new Set(rows.flatMap((x) => paths(x)))].slice(0, 60),
+        names: rows.slice(0, 15).map((x) => x.name ?? x.displayName ?? x.code ?? x.id),
+      };
+    } catch (e) {
+      out[key] = { ok: false, error: (e instanceof Error ? e.message : "failed").replace(/^ServiceTitan \S+ failed: /, "").slice(0, 120) };
+    }
+  }
+  return out;
+}

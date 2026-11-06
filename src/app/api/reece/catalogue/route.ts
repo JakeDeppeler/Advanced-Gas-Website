@@ -52,12 +52,20 @@ export async function GET(req: Request) {
 
     const file = await reecePriceFile();
     if (file.status === "pending") {
+      // Nothing built yet: ask Reece to build one, so it's there on a later
+      // night rather than waiting for someone to tick "regenerate". Once a
+      // night at most, as this runs nightly. Its answer is reported, since a
+      // refusal here says the price file isn't enabled for the account.
+      let askedNow: string | null = null;
+      if (!triggered) {
+        askedNow = await reeceTriggerPriceFile().then(() => "asked Reece to build one", (e: Error) => `asking Reece to build one failed: ${e.message.slice(0, 160)}`);
+      }
       await state({ last_status: "pending", last_error: null });
       return NextResponse.json({
         ok: true,
         status: "pending",
-        triggered,
-        reason: "Reece has not generated a price file for this account yet. Choose the price-file setting in maX (Typical is the right size), then run again with ?trigger=1 and give it a while.",
+        triggered: triggered || askedNow === "asked Reece to build one",
+        reason: `Reece has no price file for this account yet${askedNow ? `; ${askedNow}` : triggered ? "; asked Reece to build one" : ""}. It lands on a later night. If it never does, choose the price-file setting in maX (Typical is the right size).`,
       });
     }
 

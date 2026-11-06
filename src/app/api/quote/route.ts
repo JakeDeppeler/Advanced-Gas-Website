@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email/send";
 import type { EmailKind } from "@/lib/email/eventTypes";
+import { keepPhotos } from "@/lib/portal/leadPhotos";
 
 export const runtime = "nodejs";
 
@@ -117,9 +118,12 @@ export async function POST(req: Request) {
 
   // Everything below can fail, so the lead goes to the database first.
   // Email is a notification; this is the record.
-  const storedId = await storeLead(data, summaryLine, allPhotos.length, data.pagePath, data.utm);
-  const stored = storedId !== false;
-  const id = storedId || undefined;
+  const leadId = await storeLead(data, summaryLine, allPhotos.length, data.pagePath, data.utm);
+  const stored = leadId != null;
+  const id = leadId ?? undefined;
+  // Kept so they can go onto the customer's job once it's linked on Website
+  // leads. Before this they only went out as email attachments.
+  if (leadId) await keepPhotos(leadId, allPhotos).catch((e) => console.error("Keeping the form's photos failed", e));
 
   if (!key) {
     // This used to return ok:true. On a deployment with no key that
@@ -186,15 +190,16 @@ export async function POST(req: Request) {
  * don't need a database to run the form. See
  * supabase/migrations/0019_portal_leads_capture.sql for the table.
  */
-async function storeLead(data: Lead, summary: string, photoCount: number, pagePath?: string, utm?: Record<string, string>): Promise<string | false> {
+async function storeLead(data: Lead, summary: string, photoCount: number, pagePath?: string, utm?: Record<string, string>): Promise<string | null> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     console.warn("Supabase not configured, lead not stored.");
-    return false;
+    return null;
   }
   try {
-    const res = await fetch(`${url}/rest/v1/portal_leads`, {
+    // The row's id comes back so the photos can be filed under it.
+    const res = await fetch(`${url}/rest/v1/portal_leads?select=id`, {
       method: "POST",
       headers: {
         apikey: key,
@@ -229,13 +234,13 @@ async function storeLead(data: Lead, summary: string, photoCount: number, pagePa
     });
     if (!res.ok) {
       console.error(`Supabase insert failed (${res.status}): ${await res.text().catch(() => "")}`);
-      return false;
+      return null;
     }
     const rows = (await res.json().catch(() => [])) as { id?: string }[];
-    return rows[0]?.id ?? "";
+    return rows[0]?.id ?? null;
   } catch (e) {
     console.error("Supabase insert threw", e);
-    return false;
+    return null;
   }
 }
 

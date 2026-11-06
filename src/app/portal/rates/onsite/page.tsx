@@ -79,7 +79,7 @@ export default async function OnsiteRatesPage() {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="On site & commercial" sub="Crew rates for a day on one site · from the same sums as Hourly rate" info={[
+        <Head title="On site & commercial" eyebrow="Crew rates for a day on one site · from the same sums as Hourly rate" info={[
           ["On site all day", `An install that fills the day: the van bills every hour it's paid for instead of ${hrs(i.billPerDay)} of ${hrs(i.dayHrs)}, so each hour carries less of the year's overheads and pay.`],
           ["Commercial", "Commercial work, with its own hours billed and its own profit. Set them to what commercial jobs really run at."],
           ["Domestic", "The Hourly rate tab's figure for the same crew, for comparison: a van doing service calls, losing part of the day to driving."],

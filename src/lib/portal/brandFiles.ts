@@ -5,7 +5,12 @@ import { sbInsert, sbSelect, sbUpdate, sbDelete } from "@/lib/dashboard/db";
  * Marketing › Files: the brand kit as folders. Files and folders are archived
  * rather than deleted, and come back with Restore; only "Delete for good" on
  * an archived file takes it out of storage (migration 0074).
+ *
+ * Two shelves share it (0102): "brand", Marketing › Materials, and
+ * "resources", Team › Resources (price lists, tech sheets, manuals).
  */
+export type Library = "brand" | "resources";
+const lib = (l: Library) => `library=eq.${l}`;
 
 export type BrandFolder = { id: string; name: string; parentId: string | null; archivedAt: string | null; createdBy: string | null; createdAt: string };
 export type BrandFile = {
@@ -16,21 +21,21 @@ export type BrandFile = {
 type FolderRow = { id: string; name: string; parent_id: string | null; archived_at: string | null; created_by: string | null; created_at: string };
 type FileRow = { id: string; label: string; kind: string; path: string; mime: string | null; bytes: number | string | null; folder_id: string | null; archived_at: string | null; added_by: string | null; created_at: string };
 
-export async function listFolders(): Promise<BrandFolder[]> {
-  const rows = await sbSelect<FolderRow>("portal_brand_folders", "select=*&order=name.asc");
+export async function listFolders(library: Library = "brand"): Promise<BrandFolder[]> {
+  const rows = await sbSelect<FolderRow>("portal_brand_folders", `select=*&${lib(library)}&order=name.asc`);
   return rows.map((r) => ({ id: r.id, name: r.name, parentId: r.parent_id, archivedAt: r.archived_at, createdBy: r.created_by, createdAt: r.created_at }));
 }
 
-export async function listFiles(): Promise<BrandFile[]> {
-  const rows = await sbSelect<FileRow>("portal_brand_assets", "select=id,label,kind,path,mime,bytes,folder_id,archived_at,added_by,created_at&order=created_at.desc");
+export async function listFiles(library: Library = "brand"): Promise<BrandFile[]> {
+  const rows = await sbSelect<FileRow>("portal_brand_assets", `select=id,label,kind,path,mime,bytes,folder_id,archived_at,added_by,created_at&${lib(library)}&order=created_at.desc`);
   return rows.map((r) => ({
     id: r.id, label: r.label, kind: r.kind, path: r.path, mime: r.mime, bytes: r.bytes == null ? null : Number(r.bytes),
     folderId: r.folder_id, archivedAt: r.archived_at, addedBy: r.added_by, createdAt: r.created_at,
   }));
 }
 
-export const createFolder = (name: string, parentId: string | null, who: string) =>
-  sbInsert("portal_brand_folders", { name, parent_id: parentId, created_by: who });
+export const createFolder = (name: string, parentId: string | null, who: string, library: Library = "brand") =>
+  sbInsert("portal_brand_folders", { name, parent_id: parentId, created_by: who, library });
 
 const id = (s: string) => `id=eq.${encodeURIComponent(s)}`;
 

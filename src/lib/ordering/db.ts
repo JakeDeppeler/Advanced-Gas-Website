@@ -1,6 +1,7 @@
 import "server-only";
 import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
+import { loadFromStock } from "./stocked";
 import { dayLabel, isoAddDays, lineKey, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderedLine, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan, type WorkOrderDetails, type WorkOrderRow, lineKeys, estKey } from "./plan";
 
 // Reads and writes for Supply › Next week. The logic that decides what goes on
@@ -236,10 +237,11 @@ export async function draftWeek(week: Week, opts: { auto?: boolean; workOnly?: b
   const settings = await loadOrderingSettings();
   const tw = thisWeek(now), nw = nextWeek(now);
   const otherWeeks = [tw, nw].filter((w) => w.start !== week.start);
-  const [allSuppliers, inputs, alreadyOrdered, existing, cancelled, held, ...others] = await Promise.all([
+  const [allSuppliers, inputs, alreadyOrdered, existing, cancelled, held, fromShelf, ...others] = await Promise.all([
     loadSuppliers(), loadWeekInputs(loadRange), loadAlreadyOrdered(), listWeekOrders(week),
     opts.auto ? loadCancelled() : Promise.resolve(new Set<string>()),
     loadHolds(),
+    loadFromStock().catch(() => []),
     ...otherWeeks.map((w) => listWeekOrders(w)),
   ]);
   const otherDrafts = others.flat().filter((p) => p.status === "draft");
@@ -247,7 +249,8 @@ export async function draftWeek(week: Week, opts: { auto?: boolean; workOnly?: b
   // and a sale's lines already on a draft as ordered ahead, so the job made from it
   // doesn't put the same gear on the order twice before that draft goes.
   const ahead = [...existing, ...otherDrafts].filter((p) => p.status === "draft").flatMap((p) => p.lines.filter((l) => l.manual && l.estimate_id != null));
-  const skip = new Set([...cancelled, ...held.map((h) => lineKey(h.job_id, h.sku_id)), ...ahead.flatMap((l) => lineKeys(l))]);
+  // Lines set aside from the shelf while the sale was still unbooked are never drafted.
+  const skip = new Set([...cancelled, ...held.map((h) => lineKey(h.job_id, h.sku_id)), ...ahead.flatMap((l) => lineKeys(l)), ...fromShelf.map((x) => x.key)]);
   // A supplier whose drafts the office made into one bulk order (mergeDrafts)
   // is drafted as one combining across both weeks until that order goes, so
   // the next run doesn't split it back into a week each.
@@ -528,7 +531,7 @@ async function dropIfEmpty(poId: number) {
  * count as ordered from then on (never drafted again; flagged if the job
  * moves) and the rest of the draft carries on as it was.
  */
-export async function markLinesOrdered(poId: number, lineIds: number[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+export async function markLinesOrdered(poId: number, lineIds: number[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string; id?: number }> {
   const got = await draftLines(poId, lineIds);
   if (!got) return { ok: false, error: "Those lines aren't on a draft any more." };
   const { po, lines } = got;
@@ -542,7 +545,7 @@ export async function markLinesOrdered(poId: number, lineIds: number[], who: str
   });
   await sbUpdate("purchase_order_lines", `po_id=eq.${po.id}&id=in.(${lines.map((l) => l.id).join(",")})`, { po_id: id });
   await dropIfEmpty(po.id);
-  return { ok: true, note: `${lines.length} line${lines.length === 1 ? "" : "s"} marked as ordered (${number}). Nothing was emailed.` };
+  return { ok: true, id, note: `${lines.length} line${lines.length === 1 ? "" : "s"} marked as ordered (${number}). Nothing was emailed.` };
 }
 
 export type Hold = {
@@ -578,12 +581,59 @@ export async function holdLines(poId: number, lineIds: number[], who: string): P
   return { ok: true, note: `Held for next week's order — it'll be drafted on ${dayLabel(until)}.` };
 }
 
+/**
+ * Lines left unticked when an order goes: taken off this draft only, not held.
+ * The caller redrafts after sending, so they're back on a fresh draft straight
+ * away. Holding them (until next Monday) hid jobs whose install came sooner
+ * than that: 20208 and 20294, both Fri 6 Nov, vanished on Mon 2 Nov.
+ */
+export async function setAside(poId: number, lineIds: number[]): Promise<{ ok: boolean; error?: string }> {
+  const got = await draftLines(poId, lineIds);
+  if (!got) return { ok: false, error: "Those lines aren't on a draft any more." };
+  const jobLines = got.lines.filter((l) => l.job_id != null);
+  if (jobLines.length) await sbDelete("purchase_order_lines", `po_id=eq.${got.po.id}&id=in.(${jobLines.map((l) => l.id).join(",")})`);
+  return { ok: true };
+}
+
 /** Release a hold. The caller redrafts, so the line is back on an order straight away. */
 export async function releaseHold(id: number): Promise<boolean> {
   const h = await sbSelectOne<{ id: number }>("order_holds", `select=id&id=eq.${id}`);
   if (!h) return false;
   await sbDelete("order_holds", `id=eq.${id}`);
   return true;
+}
+
+/** One line's price on a sent order against the pricebook's supplier cost now. */
+export type PriceChange = { lineId: number; item: string; qty: number; was: number | null; now: number };
+
+/**
+ * A sent order's lines priced again from the pricebook: the primary vendor
+ * cost of each line's item, where it's above $0 (the same rule the ordering
+ * views use since 0094). Lines without a pricebook cost keep theirs.
+ */
+export async function repriceOrder(id: number, apply: boolean): Promise<{ ok: boolean; error?: string; changes: PriceChange[]; total: number }> {
+  const po = await getOrder(id);
+  if (!po || po.kind !== "order") return { ok: false, error: "That order isn't there any more.", changes: [], total: 0 };
+  const ids = [...new Set(po.lines.map((l) => l.sku_id).filter((x): x is number => x != null))];
+  const cost = new Map<number, number>();
+  if (ids.length) {
+    const q = `select=id,cost:raw->primaryVendor->>cost&id=in.(${ids.join(",")})`;
+    const [eq, mat] = await Promise.all([
+      sbSelect<{ id: number; cost: string | null }>("st_pricebook_equipment", q),
+      sbSelect<{ id: number; cost: string | null }>("st_pricebook_materials", q),
+    ]);
+    for (const r of [...mat, ...eq]) { const c = Number(r.cost); if (c > 0) cost.set(r.id, c); }
+  }
+  const changes: PriceChange[] = [];
+  for (const l of po.lines) {
+    const now = l.sku_id != null ? cost.get(l.sku_id) : undefined;
+    if (now != null && Math.abs(now - Number(l.unit_cost ?? 0)) > 0.005)
+      changes.push({ lineId: l.id, item: l.supplier_model || l.sku_name || l.description || "Item", qty: Number(l.qty), was: l.unit_cost == null ? null : Number(l.unit_cost), now });
+  }
+  const priceOf = new Map(changes.map((c) => [c.lineId, c.now]));
+  const total = po.lines.reduce((t, l) => t + (priceOf.get(l.id) ?? Number(l.unit_cost ?? 0)) * Number(l.qty), 0);
+  if (apply) for (const c of changes) await sbUpdate("purchase_order_lines", `id=eq.${c.lineId}&po_id=eq.${id}`, { unit_cost: c.now });
+  return { ok: true, changes, total };
 }
 
 /**
@@ -706,7 +756,76 @@ export type UnbookedLine = {
   sku_id: number | null; sku_name: string | null; description: string | null; sku_type: string | null;
   qty: number; unit_cost: number | null; supplier_id: string | null; issue: string | null;
   supplier_model: string | null; supplier_part: string | null;
+  quote_job_id: number | null; customer_id: number | null;
 };
+
+/**
+ * Booked jobs past the two drafted weeks, put on a supplier's draft now
+ * because the office wants to order early. They go on as the office's lines
+ * (manual), carrying the job and the sale, so redrafting keeps them and the
+ * planner skips them when the job comes into the drafted weeks: never ordered
+ * twice. Nothing is sent; it's on the draft until someone presses Send.
+ */
+export async function orderLater(jobIds: number[], supplierId: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+  if (!jobIds.length) return { ok: true };
+  const [rows, suppliers, already, held, fromShelf] = await Promise.all([
+    sbSelect<OrderLine>("upcoming_order_lines", `job_id=in.(${jobIds.join(",")})&supplier_id=eq.${encodeURIComponent(supplierId)}&order=job_id.asc,sku_id.asc.nullslast`),
+    loadSuppliers(), loadAlreadyOrdered(), loadHolds(), loadFromStock().catch(() => []),
+  ]);
+  const supplier = suppliers.find((x) => x.id === supplierId && x.active);
+  if (!supplier || supplier.method === "work_order") return { ok: false, error: "That supplier isn't set up for ordering." };
+  const week = thisWeek(new Date());
+  const drafts = [...await listWeekOrders(week), ...await listWeekOrders(nextWeek(new Date()))].filter((p) => p.status === "draft");
+  const taken = new Set([
+    ...drafts.flatMap((p) => p.lines.flatMap((l) => lineKeys(l))),
+    ...held.map((h) => lineKey(h.job_id, h.sku_id)),
+    ...fromShelf.map((x) => x.key),
+  ]);
+  const fresh = rows.filter((r) => !r.issue && Number(r.qty) > 0 && !lineKeys(r).some((k) => taken.has(k) || already.has(k)));
+  if (!fresh.length) return { ok: true, note: `Already on ${supplier.name}'s order, or ordered.` };
+  const poId = await draftFor(supplierId, week);
+  await sbInsert("purchase_order_lines", fresh.map((r) => lineRow(poId, {
+    job_id: r.job_id, job_number: r.job_number, customer_name: r.customer_name, suburb: r.suburb, install_date: r.install_date, appointment_start: r.appointment_start ?? null,
+    sku_id: r.sku_id, sku_name: r.sku_name, sku_type: r.sku_type, description: r.description,
+    supplier_model: r.supplier_model, supplier_part: r.supplier_part, qty: Number(r.qty), unit_cost: r.unit_cost == null ? null : Number(r.unit_cost),
+    manual: true, estimate_id: r.estimate_id,
+  })) as unknown as Row);
+  await sbUpdate("purchase_orders", `id=eq.${poId}`, { updated_at: new Date().toISOString() });
+  const jobs = new Set(fresh.map((r) => r.job_id)).size;
+  return { ok: true, note: `${jobs === 1 ? "The job is" : `${jobs} jobs are`} on ${supplier.name}'s order now. Send it when you're ready.` };
+}
+
+/**
+ * Some of a sold, unbooked sale's gear was bought another way (rung through,
+ * a third-party site). Recorded as its own sent order, "Ordered manually",
+ * against the sale, the same record a booked job's lines get: it shows on
+ * Sent, and once the job is booked those lines are never drafted again.
+ */
+export async function markUnbookedOrdered(estimateId: number, supplierId: string, skuIds: (number | null)[], who: string, how: string): Promise<{ ok: boolean; error?: string; note?: string }> {
+  const [rows, already] = await Promise.all([
+    sbSelect<UnbookedLine>("sold_unbooked_order_lines", `estimate_id=eq.${estimateId}&supplier_id=eq.${encodeURIComponent(supplierId)}`),
+    loadAlreadyOrdered(),
+  ]);
+  const want = new Set(skuIds.map((x) => x ?? "-"));
+  const pick = rows.filter((r) => !r.issue && want.has(r.sku_id ?? "-") && !already.has(estKey(estimateId, r.sku_id)));
+  if (!pick.length) return { ok: false, error: "Those lines are booked in or recorded as ordered already." };
+  const week = thisWeek(new Date());
+  const stem = poNumber(week, supplierId, 1);
+  const prior = await sbSelect<{ id: number }>("purchase_orders", `select=id&po_number=like.${encodeURIComponent(`${stem}-S*`)}`);
+  const number = `${stem}-S${prior.length + 1}`;
+  const now = new Date().toISOString();
+  const id = await createOrder({
+    po_number: number, supplier_id: supplierId, week_of: week.start, kind: "order", group_key: `sale-${estimateId}-${prior.length + 1}`,
+    status: "sent", approved_by: who, approved_at: now, sent_at: now, sent_to: `Ordered manually${how ? ` — ${how}` : ""}`,
+  });
+  await sbInsert("purchase_order_lines", pick.map((r) => lineRow(id, {
+    job_id: null, job_number: null, customer_name: r.customer_name, suburb: r.suburb, install_date: null, appointment_start: null,
+    sku_id: r.sku_id, sku_name: r.sku_name, sku_type: r.sku_type, description: r.description,
+    supplier_model: r.supplier_model, supplier_part: r.supplier_part, qty: Number(r.qty), unit_cost: r.unit_cost == null ? null : Number(r.unit_cost),
+    manual: true, estimate_id: estimateId,
+  })) as unknown as Row);
+  return { ok: true, note: `${pick.length} line${pick.length === 1 ? "" : "s"} recorded as ordered (${number}). Nothing was emailed.` };
+}
 
 export async function loadUnbooked(): Promise<UnbookedLine[]> {
   const rows = await sbSelect<UnbookedLine>("sold_unbooked_order_lines", "order=sold_on.desc,estimate_id.asc,sku_id.asc.nullslast");
@@ -722,10 +841,11 @@ export async function loadUnbooked(): Promise<UnbookedLine[]> {
  * a draft like any other until someone presses Send.
  */
 export async function orderAhead(estimateId: number, supplierId: string): Promise<{ ok: boolean; error?: string; note?: string }> {
-  const [rows, suppliers, already] = await Promise.all([
+  const [rows, suppliers, already, fromShelf] = await Promise.all([
     sbSelect<UnbookedLine>("sold_unbooked_order_lines", `estimate_id=eq.${estimateId}&supplier_id=eq.${encodeURIComponent(supplierId)}`),
-    loadSuppliers(), loadAlreadyOrdered(),
+    loadSuppliers(), loadAlreadyOrdered(), loadFromStock().catch(() => []),
   ]);
+  const shelf = new Set(fromShelf.map((x) => x.key));
   const supplier = suppliers.find((x) => x.id === supplierId && x.active);
   if (!supplier) return { ok: false, error: "That supplier isn't set up for ordering." };
   if (supplier.method === "work_order") return { ok: false, error: "The electrician is booked once the install has a date." };
@@ -734,8 +854,8 @@ export async function orderAhead(estimateId: number, supplierId: string): Promis
   // On an order already, or on a draft already: not added a second time.
   const drafts = [...await listWeekOrders(week), ...await listWeekOrders(nextWeek(new Date()))].filter((p) => p.status === "draft");
   const onDraft = new Set(drafts.flatMap((p) => p.lines.flatMap((l) => lineKeys(l))));
-  const fresh = rows.filter((r) => !r.issue && Number(r.qty) > 0 && !already.has(estKey(estimateId, r.sku_id)) && !onDraft.has(estKey(estimateId, r.sku_id)));
-  if (!fresh.length) return { ok: true, note: `Already on ${supplier.name}'s order.` };
+  const fresh = rows.filter((r) => !r.issue && Number(r.qty) > 0 && !already.has(estKey(estimateId, r.sku_id)) && !onDraft.has(estKey(estimateId, r.sku_id)) && !shelf.has(estKey(estimateId, r.sku_id)));
+  if (!fresh.length) return { ok: true, note: `Nothing left to order from ${supplier.name}: it's on the order already, or coming from the factory.` };
   const poId = await draftFor(supplierId, week);
   await sbInsert("purchase_order_lines", fresh.map((r) => lineRow(poId, {
     job_id: null, job_number: null, customer_name: r.customer_name, suburb: r.suburb, install_date: null, appointment_start: null,

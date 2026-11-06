@@ -18,6 +18,22 @@ on:
         description: "Estimate ids, comma-separated (up to five). Instead of the connection check, lists every field ServiceTitan returns for them, to see whether it says a quote is a draft."
         type: string
         required: false
+      forms:
+        description: "A form name to look for (e.g. condition). Instead of the connection check, lists ServiceTitan's forms and the shape of the newest submissions of the matching ones: one completed report field by field, answers cut to 60 characters."
+        type: string
+        required: false
+      templates:
+        description: "Tick to list where ServiceTitan keeps proposal and estimate templates and pricebook services (names and field names only), instead of the connection check."
+        type: boolean
+        default: false
+      reports:
+        description: "A report name to look for (e.g. estimate). Instead of the connection check, lists the ServiceTitan reports the portal can read with that in their name, and their columns, to see whether one says a quote is a draft. Nothing is run."
+        type: string
+        required: false
+      job:
+        description: "Job ids (not numbers), comma-separated (up to five). Instead of the connection check, lists the kinds of event in each job's history, to see whether ServiceTitan records a quote being sent."
+        type: string
+        required: false
 
 jobs:
   check:
@@ -29,6 +45,10 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           URL_OVERRIDE: ${{ inputs.url }}
           ESTIMATE: ${{ inputs.estimate }}
+          JOB: ${{ inputs.job }}
+          FORMS: ${{ inputs.forms }}
+          REPORTS: ${{ inputs.reports }}
+          TEMPLATES: ${{ inputs.templates && '1' || '' }}
         run: |
           set -euo pipefail
 
@@ -71,6 +91,71 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "--- raw probe ---"
             jq . probe.json
+            exit 0
+          fi
+
+          # The forms probe: letters, digits and spaces only reach the URL.
+          if [ -n "${FORMS:-}" ]; then
+            NAME="$(printf '%s' "$FORMS" | tr -cd 'A-Za-z0-9 ' | sed 's/ /%20/g')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?forms=${NAME}" > probe.json
+            {
+              echo "## ServiceTitan forms, and the newest submissions matching \"${FORMS}\""
+              echo
+              echo '```json'
+              jq '.forms' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.forms' probe.json
+            exit 0
+          fi
+
+          # The templates probe: no input reaches the URL but the flag.
+          if [ -n "${TEMPLATES:-}" ]; then
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?templates=1" > probe.json
+            {
+              echo "## Where ServiceTitan keeps templates and services"
+              echo
+              echo '```json'
+              jq '.templates' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.templates' probe.json
+            exit 0
+          fi
+
+          # The reports probe: letters, digits, spaces and | only reach the URL.
+          if [ -n "${REPORTS:-}" ]; then
+            NAME="$(printf '%s' "$REPORTS" | tr -cd 'A-Za-z0-9 |' | sed 's/ /%20/g; s/|/%7C/g')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?reports=${NAME}" > probe.json
+            {
+              echo "## ServiceTitan reports matching \"${REPORTS}\", and their columns"
+              echo
+              echo '```json'
+              jq '.reports' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.reports' probe.json
+            exit 0
+          fi
+
+          # The job history probe, the same way: digits and commas only.
+          if [ -n "${JOB:-}" ]; then
+            IDS="$(printf '%s' "$JOB" | tr -cd '0-9,')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?job=${IDS}" > probe.json
+            {
+              echo "## What ServiceTitan's job history holds for jobs ${IDS}"
+              echo
+              echo "Per job and endpoint: whether it answered, how many entries, and the kinds of event (no notes, names or contact details):"
+              echo
+              echo '```json'
+              jq '.jobs | map_values(map_values({ok, error, count, kinds}))' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.jobs | map_values(map_values({ok, error, count, kinds, fields}))' probe.json
             exit 0
           fi
 

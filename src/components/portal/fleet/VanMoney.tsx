@@ -39,7 +39,7 @@ export async function VanMoney({ van, canEdit }: { van: Vehicle; canEdit: boolea
   const fuel = fuelPerYear(van);
   const tools = await listTools(van.id).catch(() => null);
   const gear = (tools ?? []).map((t) => ({ t, st: gearSt(t, today), s: toolState(t, today) }))
-    .sort((a, b) => ({ bad: 0, mid: 1, none: 2, good: 3 }[a.st.k] - { bad: 0, mid: 1, none: 2, good: 3 }[b.st.k]));
+    .sort((a, b) => ({ bad: 0, mid: 1, none: 2, good: 3, ahead: 4 }[a.st.k] - { bad: 0, mid: 1, none: 2, good: 3, ahead: 4 }[b.st.k]));
   const replace = gear.filter((g) => g.st.k === "bad" || g.st.w.startsWith("Replace"));
 
   const owing = st ? st.owingNow : van.amountOwing;

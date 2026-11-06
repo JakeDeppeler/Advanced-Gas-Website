@@ -6,13 +6,37 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
  * a log of every time it did something, newest first. Kept in settings, a
  * few hundred lines: it's a record to glance at, not an audit trail.
  */
-export type AutoEntry = { at: string; kind: string; title: string; detail?: string; ok: boolean; jobId?: number; po?: string };
+export type AutoEntry = { at: string; kind: string; title: string; detail?: string; ok: boolean; jobId?: number; po?: string; run?: boolean };
+
+/**
+ * A whole step failing ("orderMoves didn't run") is about the step, not a job,
+ * so it's grouped by step and settled by the step running cleanly again. Old
+ * entries carry no flag, so the title marks them too.
+ */
+export const isRunEntry = (e: Pick<AutoEntry, "run" | "title">) => !!e.run || / didn't run$/.test(e.title);
+
+/**
+ * The steps whose latest whole-step entry is a failure: still showing under
+ * Needs a look. When one of them runs cleanly, the runner says so, and that
+ * clears it; most steps only log when they act, so without this a one-off
+ * failure stayed up for a fortnight after the step was working again.
+ */
+export function openRunFailures(log: AutoEntry[]): Set<string> {
+  const seen = new Set<string>();
+  const open = new Set<string>();
+  for (const e of [...log].sort((a, b) => b.at.localeCompare(a.at))) {
+    if (!isRunEntry(e) || seen.has(e.kind)) continue;
+    seen.add(e.kind);
+    if (!e.ok) open.add(e.kind);
+  }
+  return open;
+}
 /**
  * Each automatic job, on or off. All on unless switched off, except the van
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack"] as const;
+export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "installSummary", "leadToJob", "leadBooking"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
@@ -25,11 +49,18 @@ export type AutoSwitches = Record<AutoKey, boolean> & {
    * went. Addresses, comma-separated. Null: the owner.
    */
   notifyTo: string | null;
+  /** ServiceTitan's booking provider the website's enquiries come in under (Settings › Integrations › Booking Provider Tags there). */
+  bookingProvider: number | null;
+  /** When sending enquiries in as bookings was turned on: only enquiries from then on go, never the backlog. */
+  leadBookingSince: string | null;
 };
 
 /** Where "it's done" notices go until someone sets the address on To order › Automation. */
 export const NOTIFY_DEFAULT = "jake@advancedgas.com.au";
-const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck"];
+// Bookings need a booking provider made in ServiceTitan and the Bookings scope on the API app first.
+// The install summary is written and kept from the start, but only goes in
+// the packs installers get once someone's read a few and turned it on.
+const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "leadBooking", "installSummary"];
 
 const LOG = "automation_log";
 const SW = "automation";
@@ -41,6 +72,8 @@ export async function loadSwitches(): Promise<AutoSwitches> {
     officeTo: typeof s?.officeTo === "string" ? s.officeTo : null,
     accountsTo: typeof s?.accountsTo === "string" ? s.accountsTo : null,
     notifyTo: typeof s?.notifyTo === "string" && s.notifyTo.trim() ? s.notifyTo : null,
+    bookingProvider: Number.isInteger(s?.bookingProvider) && (s?.bookingProvider as number) > 0 ? (s?.bookingProvider as number) : null,
+    leadBookingSince: typeof s?.leadBookingSince === "string" ? s.leadBookingSince : null,
   } as AutoSwitches;
   for (const k of AUTO_KEYS) out[k] = OFF_UNTIL_ASKED.includes(k) ? s?.[k] === true : s?.[k] !== false;
   return out;
@@ -59,6 +92,32 @@ export async function logAuto(entries: AutoEntry[]) {
   if (!entries.length) return;
   const cur = await loadAutoLog();
   await saveSettings(LOG, { entries: [...entries, ...cur].slice(0, KEEP) });
+}
+
+/* ------------------------------------------------------- sorted by hand */
+
+/**
+ * Failures someone has dealt with themselves, by the same key the "needs a
+ * look" list groups them under (kind and job), with when. A failure newer
+ * than its mark shows again: sorting one doesn't silence the next. Kept
+ * apart from the log because the sync rewrites the log on every run, and a
+ * mark written into it would race that.
+ */
+const SORTED = "automation_sorted";
+
+export async function loadSorted(): Promise<Record<string, string>> {
+  const s = await getSettings<{ keys?: Record<string, string> }>(SORTED).catch(() => null);
+  return s?.keys && typeof s.keys === "object" ? s.keys : {};
+}
+
+export async function markSortedKeys(keys: string[]) {
+  const cur = await loadSorted();
+  const now = new Date().toISOString();
+  // A fortnight is as far back as the list looks; older marks have nothing left to hide.
+  const cut = new Date(Date.now() - 15 * 86_400_000).toISOString();
+  const kept = Object.fromEntries(Object.entries(cur).filter(([, at]) => at >= cut));
+  for (const k of keys) kept[k] = now;
+  return saveSettings(SORTED, { keys: kept });
 }
 
 /* ----------------------------------------------------- what's been done */

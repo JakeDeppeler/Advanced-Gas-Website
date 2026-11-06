@@ -73,8 +73,11 @@ export function PacePlanner({
   data,
   canSave,
   view = "week",
+  lower = null,
 }: {
   goal: PaceGoal;
+  /** The lower of the two year goals ($2.5M under $3M), named over the title beside it. */
+  lower?: number | null;
   /** No goal is saved: these are the figures asked for, not yet on the wall. */
   sample: boolean;
   settings: PaceSettings;
@@ -146,11 +149,11 @@ export function PacePlanner({
     <div className="pk pt-pace">
       <div className="pk-head">
         <div>
-          <h1>Pace</h1>
-          <div className="pk-sub">
-            {goal.revenue > 0 ? <><b>{short(goal.revenue)}{goal.profitPct ? ` at ${goal.profitPct}%` : ""}</b> · </> : null}
+          <div className="pk-eyebrow">
+            {goal.revenue > 0 ? <>{lower && lower > 0 && lower < goal.revenue ? `${short(lower)} and ${short(goal.revenue)} goals` : short(goal.revenue)}{goal.profitPct ? ` at ${goal.profitPct}%` : ""} · </> : null}
             {view === "week" ? "This week" : view === "month" ? monthName : label}{time?.at ? `, ${time.at}` : ""}{asOf ? ` · as of ${asOf}` : ""} · money includes GST
           </div>
+          <h1>Pace</h1>
         </div>
         <button type="button" className="pt-btn pt-btn--ghost pt-pace__edit" onClick={() => setEditing((e) => !e)} aria-expanded={editing}>
           {editing ? "Done" : "Change the goal"}

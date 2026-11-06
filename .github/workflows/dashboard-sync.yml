@@ -10,6 +10,11 @@ name: Dashboard sync
 # vercel.json, which is the more reliable option:
 #   { "crons": [{ "path": "/api/sync", "schedule": "*/10 * * * *" }] }
 
+# Since 6 Nov the same routes also run every ten minutes from Supabase's own
+# scheduler (pg_cron, migration 0107_pg_cron_sync.sql), because GitHub ran this
+# "every ten minutes" schedule every four to six hours. This stays as a slower
+# second runner and for the manual reset.
+
 on:
   schedule:
     # Every 10 minutes (UTC). GitHub's scheduler is best-effort: runs can be
@@ -103,3 +108,20 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 90 \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "${base%/}/api/install-packs"
+
+      # Outlook reply drafts: keeps Microsoft's subscriptions alive and drafts
+      # any email the webhook missed (docs/outlook-drafts.md). Does nothing
+      # until the mailboxes are connected. Its failure doesn't fail the sync.
+      - name: Outlook drafts catch-up
+        if: ${{ !inputs.reset }}
+        continue-on-error: true
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          base="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          base="${base%/api/sync}"
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${base%/}/api/email/outlook/sweep"

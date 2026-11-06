@@ -60,7 +60,7 @@ export default async function TrackerPage({ searchParams }: { searchParams: { c?
         </>
       ) : (
         <div className="pk">
-          <Head title="Job tracker" sub="Where every job is up to · ServiceTitan" />
+          <Head title="Job tracker" eyebrow="Where every job is up to · ServiceTitan" />
           <Empty>ServiceTitan couldn&rsquo;t be read just now. Try again in a minute.</Empty>
         </div>
       )}

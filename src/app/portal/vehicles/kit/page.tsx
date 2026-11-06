@@ -49,7 +49,7 @@ export default async function KitLists({ searchParams }: { searchParams: { list?
   return (
     <PortalShell user={user}>
       <div className="pk pt-kit">
-        <Head title="Kit lists" sub="What a new starter carries, what every van carries, and the stock every van keeps" info={[
+        <Head title="Kit lists" eyebrow="What a new starter carries, what every van carries, and the stock every van keeps" info={[
           ["Where the lists come from", "Advanced Gas's own van sheets, the same lists the Monday checks count against, so a change to one is a change to both."],
           ["Last count", "Each van's most recent sheet of this kind. A dash is a line nobody counted on it; “Not counted yet” means the van has never done one."],
           ["Tool register", <>Test-and-tag and calibration dates for each tool are on <Link href="/portal/vehicles/tools">Tools</Link>.</>],

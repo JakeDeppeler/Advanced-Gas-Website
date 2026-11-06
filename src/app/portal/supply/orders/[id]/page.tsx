@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { orderRef, STATUS_BLURB, STATUS_LABEL } from "@/lib/pricebook/orders";
 import { getOrder } from "@/lib/pricebook/ordersDb";
 import { money, money2 } from "@/lib/portal/format";
@@ -37,9 +36,8 @@ export default async function SupplyOrderPage({ params }: { params: { id: string
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/supply/orders" label="Orders" />
+      <a href="/portal/supply/orders" className="pt-back pt-up">‹ Orders</a>
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Order</div>
         <h1>{orderRef(order)}</h1>
         <p>
           {when(order.receivedAt)}

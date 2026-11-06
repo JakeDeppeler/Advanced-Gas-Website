@@ -94,12 +94,9 @@ export function GoalPlanner({
     <div className="pt-goal">
       <div className="pt-head pt-head--split">
         <div>
-          <h1>Pace</h1>
-          <p>
-            {g.revenue > 0 ? <><b>{short(g.revenue)}{g.profitPct ? ` at ${g.profitPct}% profit` : ""}</b> · </> : null}
-            How many of each job we need booked every week to get there, and how far off the current mix is.
-            {" "}{periodLabel(g)}.
-          </p>
+          {g.revenue > 0 && <div className="pk-eyebrow">{g.floorRevenue && g.floorRevenue > 0 && g.floorRevenue < g.revenue ? `${short(g.floorRevenue)} and ${short(g.revenue)} goals` : short(g.revenue)}{g.profitPct ? ` at ${g.profitPct}% profit` : ""} · {periodLabel(g)}</div>}
+          <h1>Year goal</h1>
+          <p>How many of each job we need booked every week to get there, and how far off the current mix is.</p>
         </div>
         <button type="button" className="pt-btn pt-btn--ghost pt-goal__edit" onClick={() => setEditing((v) => !v)} aria-expanded={editing}>
           {editing ? "Done" : "Change the goal"}
@@ -133,7 +130,7 @@ export function GoalPlanner({
             </select>
           </label>
           <NumField label="Revenue goal" hint="to invoice across the year" prefix="$" value={g.revenue ? String(g.revenue) : ""} onChange={(v) => set({ revenue: num(v) })} />
-          <NumField label="The floor" hint="the least the year must make, the wall board reads against both" prefix="$" value={g.floorRevenue ? String(g.floorRevenue) : ""} onChange={(v) => set({ floorRevenue: v.trim() === "" ? null : num(v) })} />
+          <NumField label="The lower goal" hint="the least the year must make; the portal and the wall board read against both" prefix="$" value={g.floorRevenue ? String(g.floorRevenue) : ""} onChange={(v) => set({ floorRevenue: v.trim() === "" ? null : num(v) })} />
           <NumField label="Profit to keep" suffix="%" decimal value={g.profitPct == null ? "" : String(g.profitPct)} onChange={(v) => set({ profitPct: v.trim() === "" ? null : num(v) })} />
           <NumField label="Working weeks" hint="a year" value={String(g.weeks)} onChange={(v) => set({ weeks: Math.max(1, Math.min(52, Math.round(num(v)) || 1)) })} />
           <NumField label="Overheads" hint="optional, for The year's overhead line" prefix="$" value={g.overhead == null ? "" : String(g.overhead)} onChange={(v) => set({ overhead: v.trim() === "" ? null : num(v) })} />

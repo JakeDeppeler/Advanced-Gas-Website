@@ -4,7 +4,6 @@ import { sbCount } from "@/lib/dashboard/db";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { searchCatalogue } from "@/lib/pricebook/supply";
 import { reeceConnection, reeceSearch } from "@/lib/pricebook/reece";
 import { money2 } from "@/lib/portal/format";
@@ -67,12 +66,10 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
+      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Item search" sub={<>Look up a Reece product and what it costs us, for quoting.</>} />
       </div>
-
-      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       <form method="get" className="pt-sbox pt-sbox--lg" role="search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>

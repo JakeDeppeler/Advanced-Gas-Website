@@ -34,6 +34,7 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
 
   return (
     <PortalShell user={user}>
+      <a href="/portal/supply" className="pt-back pt-up">‹ Suppliers</a>
       <div className="pk" style={{ marginBottom: 14 }}>
         <Head title="Everything we’ve ordered" sub="Every cart sent through Reece maX, what’s on it, where it’s going and what it came to" />
         {dbReady && orders.length > 0 && (
@@ -45,8 +46,6 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
           </Grid>
         )}
       </div>
-
-      <a href="/portal/supply" className="pt-back">‹ Suppliers</a>
 
       <OrdersBoard orders={orders} dbReady={dbReady} capped={orders.length >= CAP} initialStatus={initialStatus} />
     </PortalShell>

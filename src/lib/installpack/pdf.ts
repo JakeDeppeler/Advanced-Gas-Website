@@ -1,7 +1,7 @@
 // An install pack as a PDF, for the install job in ServiceTitan, in the
 // website's colours: the full logo on white with the job number beside it, an
 // orange rule, the address and booking in a cream box, then the scope of works
-// sold word for word, the notes on the job and the contractors, then the
+// (the job summary, word for word) and the contractors, then the
 // equipment and the materials with a tick box each for loading the van, then
 // the photos four to a page. The plain style Jake picked on 28 Oct from four
 // mock-ups: headings with a short orange underline rather than boxes, and the
@@ -11,6 +11,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
 import type { Pack, PackLine, Photo } from "./build";
 import { LOGO_FULL_JPG, LOGO_FULL_SIZE } from "./logo";
+import { reportPdf } from "@/lib/conditionReport/pdf";
 import { site } from "@/lib/site";
 
 const W = 595.28;
@@ -36,7 +37,7 @@ const MISSING = rgb(194 / 255, 32 / 255, 42 / 255);
  * pasted into it. A character the font can't draw becomes "?" rather than
  * failing the pack.
  */
-function drawable(font: PDFFont, s: string): string {
+export function drawable(font: PDFFont, s: string): string {
   let out = "";
   for (const ch of s.replace(/\t/g, "    ")) {
     try { font.encodeText(ch); out += ch; } catch { out += "?"; }
@@ -44,7 +45,7 @@ function drawable(font: PDFFont, s: string): string {
   return out;
 }
 
-function wrap(font: PDFFont, size: number, text: string, width: number): string[] {
+export function wrap(font: PDFFont, size: number, text: string, width: number): string[] {
   const out: string[] = [];
   // Split before cleaning: a newline isn't in the font, and would print as "?".
   for (const para of text.split("\n").map((t) => drawable(font, t))) {
@@ -77,7 +78,7 @@ export type PackMeta = {
  * else's bytes and stops at "SOI not found in JPEG". On 28 Oct that failed
  * seven packs in a row on the server while every local render passed.
  */
-const own = (bytes: Uint8Array) => (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice());
+export const own = (bytes: Uint8Array) => (bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength ? bytes : bytes.slice());
 
 export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
@@ -191,21 +192,62 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     for (const l of wrap(font, 10.5, s, IN_R - IN)) { room(13.5); text(l, IN, 10.5); y -= 13.5; }
   };
 
-  /* ---- the scope first, under the site: what was sold, before what to bring */
-  if (pack.scope) { open("Scope of works sold"); para(pack.scope); close(); }
-  // The office's own notes next, under the scope they add to (Jake, 28 Oct).
-  if (pack.jobNotes) { open("Notes on the job"); para(pack.jobNotes); close(); }
-  // Who else is on the job and whether they've been told, before the gear
-  // (Jake, 28 Oct). The labour lines on the quote are left off: they're the
-  // price breakdown, and the scope above already says what the work is.
-  const bullets = (items: string[]) => {
+  const bullets = (items: string[], color = SKY) => {
     for (const it of items) {
       const lines = wrap(font, 10.5, it, IN_R - IN - 16);
       room(lines.length * 13.5);
-      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color: SKY });
+      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color });
       for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
     }
   };
+
+  /*
+   * The scope first, under the site: what the job is, before what to bring.
+   * Where there's an installation guide it takes the scope's place (Jake,
+   * 4 Nov): the job summary is mostly stock wording and the guide is written
+   * from it anyway. Without a guide the job summary is all that says what the
+   * job is, so it stays.
+   */
+  const guided = pack.summary != null && "ok" in pack.summary;
+  if (!guided) {
+    open("Scope of works sold");
+    if (pack.scope) para(pack.scope);
+    else { text("No job summary written on this job. Check with the office.", IN, 10, font, GREY); y -= 14; }
+    close();
+  }
+
+  /*
+   * How the install will go, written from the records (summaryText.ts), under
+   * a heading of its own so it's never read as the office's scope, with what
+   * it was written from said under it.
+   */
+  if (pack.summary) {
+    open("Installation guide", "ok" in pack.summary ? "Written by the portal from the records" : undefined);
+    if ("ok" in pack.summary) {
+      const sm = pack.summary.ok;
+      para(sm.overview);
+      for (const sec of sm.sections) {
+        y -= 6;
+        room(13 + 2 * 13.5);
+        text(sec.heading, IN, 10.5, bold, NAVY);
+        y -= 14;
+        para(sec.text);
+      }
+      y -= 6;
+      for (const l of wrap(font, 8, `Written by the portal from ${pack.summary.from}. It says only what those say: if something on site doesn't match, go by the site and tell the office.`, IN_R - IN)) {
+        room(11);
+        text(l, IN, 8, font, GREY);
+        y -= 11;
+      }
+    } else {
+      text(`It couldn't be written this time (${pack.summary.error}).${pack.reports.length ? " The Condition Report is further on." : ""}`, IN, 10, font, GREY);
+      y -= 14;
+    }
+    close();
+  }
+  // Who else is on the job and whether they've been told, before the gear
+  // (Jake, 28 Oct). The labour lines on the quote are left off: they're the
+  // price breakdown, and the scope above already says what the work is.
   if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
 
   /* ---- equipment and materials: a tick box, qty, the item, and whether it's ordered */
@@ -247,17 +289,35 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   // The gear starts a page of its own (Jake, 28 Oct), so the list someone
   // ticks off while loading the van isn't split from its heading by the scope
   // and notes; on most jobs equipment and materials then fit on one sheet.
-  card = null;
-  band(false);
   const tickNote = "Tick each one as it goes in the van";
-  open("Equipment", pack.units.length ? tickNote : undefined);
-  if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
-  close();
+  if (pack.quoted) {
+    card = null;
+    band(false);
+    open("Equipment", pack.units.length ? tickNote : undefined);
+    if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
+    close();
 
-  open("Materials", pack.materials.length ? tickNote : undefined);
-  if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
-  close();
+    open("Materials", pack.materials.length ? tickNote : undefined);
+    if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
+    close();
+  } else {
+    // Without a sold quote there's nothing to list, and empty tables would
+    // read as "nothing needed"; one line on the first page says why instead
+    // of a page of its own.
+    open("Equipment and materials");
+    text("No sold quote on this job, so no list. Check with the office what's going in.", IN, 10, font, GREY);
+    y -= 14;
+    close();
+  }
 
+  /* ---- the Condition Reports from the visit before, each as its own pages */
+  // Drawn by reportPdf, the same as the one emailed with a work order, without
+  // its footer: the pack's footer goes on every page below, so the page count
+  // covers them.
+  for (const r of pack.reports) {
+    const src = await PDFDocument.load(await reportPdf(r, meta.madeAt, { bare: true }));
+    for (const pg of await doc.copyPages(src, src.getPageIndices())) doc.addPage(pg);
+  }
 
   /* ---- photos, four to a page */
   const embedded: { img: PDFImage; p: Photo }[] = [];
@@ -304,7 +364,7 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
     page.drawImage(img, { x: x0 + (cellW - w) / 2, y: yTop - cellH + (cellH - h) / 2, width: w, height: h });
     y = yTop - cellH - 10;
     const when = p.at ? new Date(p.at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "Australia/Melbourne" }) : null;
-    const cap = wrap(font, 7.5, [p.quoteVisit ? "Quote visit" : "This job", when, p.name].filter(Boolean).join(" · "), cellW)[0] ?? "";
+    const cap = wrap(font, 7.5, [p.label ?? (p.quoteVisit ? "Quote visit" : "This job"), when, p.name].filter(Boolean).join(" · "), cellW)[0] ?? "";
     text(cap, x0, 7.5, font, GREY);
   });
 

@@ -8,7 +8,7 @@ import { pushIfAuto } from "./stPurchaseOrders";
 import { jobsAfterSend } from "./stJobNotes";
 import { jobFilesFor } from "./jobFiles";
 import {
-  ccList, dateChangeEmail, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
+  ccList, dateChangeEmail, dayLabel, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
 } from "./plan";
 import { sendEmail } from "@/lib/email/send";
@@ -210,7 +210,7 @@ export async function approveAndSend(id: number, who: string, opts: { to?: strin
   if (email && !from) return { ok: false, error: NO_FROM };
   // The job's files picked on a work order, fetched before it's claimed so a
   // file ServiceTitan won't hand over leaves it a draft with the reason.
-  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: isElectrical(po.details) }) : [];
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: true, reports: true }) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
 
@@ -310,7 +310,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
   const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup, note: po.supplier_note });
-  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: isElectrical(po.details) }) : [];
+  const files = po.kind === "work_order" ? await jobFilesFor(po.details, { photos: true, reports: true }) : [];
   if ("error" in files) return { ok: false, error: files.error };
   const all = [...(attachments ?? []), ...files];
   const err = await sendMarked("TEST", supplier, email, to, settings, all.length ? all : undefined);
@@ -434,13 +434,21 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
   // name, and the electrician's standing copies aren't put on their email.
   const other = workOrder && !isElectrical(po.details);
   const them: Supplier = other ? { ...supplier, name: po.details?.to_name || po.details?.trade || supplier.name, cc_emails: [] } : supplier;
-  const email = dateChangeEmail({ supplier: them, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings, trade: other ? po.details?.trade : null });
-  // The electrician gets the job's photos with every email about the job, the
-  // new day included: the ones added since the work order went are often the
-  // ones that matter (the switchboard, where the unit's going). Photos only,
-  // and never what was picked by hand, which went with the work order already.
-  const photos = workOrder && isElectrical(po.details) && po.details ? await jobFilesFor({ ...po.details, files: [] }, { photos: true }) : [];
+  // A work order that moves goes again IN FULL on its new day: the job, the
+  // site, the contacts, the scope, with a line at the top saying what moved.
+  // A date-only note left the contractor hunting for the first email (Geoff,
+  // 6 Nov: "I can only see the date change"). A supplier order still gets the
+  // short note: only the delivery day matters to them.
+  // With it, everything the first one carried: the job's photos and Condition
+  // Reports as they are now (the ones added since are often the ones that
+  // matter), and the files picked by hand for it, so this email stands alone.
+  const photos = workOrder && po.details ? await jobFilesFor(po.details, { photos: true, reports: true }) : [];
   const attachments = Array.isArray(photos) && photos.length ? { attachments: photos } : {};
+  const moved = workOrder && po.details ? { ...po.details, date: moves[0].to, start_at: null, end_at: null, all_visits: null } : null;
+  const email = moved
+    ? movedWorkOrderEmail(workOrderEmail({ supplier: them, poNumber: po.po_number, details: moved, settings }), moves, Array.isArray(photos) ? photos.length : 0)
+    : dateChangeEmail({ supplier: them, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings, trade: other ? po.details?.trade : null });
+
   const err = await resend({ from, to: [to], cc: ccList(settings, them, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text, ...attachments });
   if (err) return { ok: false, error: err };
   // The order now says the new day, so the next look at the week sees it as in step.
@@ -453,6 +461,18 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
     await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null, moves: [...(po.details.moves ?? []), told].slice(-10), ...(opts.bookedFor ? { booked_for: opts.bookedFor } : {}) }, updated_at: new Date().toISOString() }).catch(() => undefined);
   }
   return { ok: true, to, note: `Told ${them.name} (${to}).` };
+}
+
+/** The full work order again, its subject and a banner saying the day moved and from when. */
+function movedWorkOrderEmail(e: EmailParts, moves: MovedJob[], files: number): EmailParts {
+  const m = moves[0];
+  const line = `Date change: this job has moved from ${dayLabel(m.from)} to ${dayLabel(m.to)}. The full work order is below again${files ? `, with the job's ${files === 1 ? "file" : `${files} files`} attached` : ""}; everything else is as before.`;
+  const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${line}</div>`;
+  return {
+    subject: `Date change: ${e.subject}`,
+    html: e.html.replace("<body style=\"margin:0;background:#f9f8f3;\">", `<body style="margin:0;background:#f9f8f3;">${banner}`),
+    text: `${line}\n\n${e.text}`,
+  };
 }
 
 /**
@@ -489,7 +509,7 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
   if (!to) return { ok: false, error: "Who should it go to?" };
   const from = fromAddress();
   if (!from) return { ok: false, error: NO_FROM };
-  const files = await jobFilesFor(po.details);
+  const files = await jobFilesFor(po.details, { photos: true, reports: true });
   if ("error" in files) return { ok: false, error: files.error };
   const err = await resend({
     from, to: [to],
@@ -520,7 +540,7 @@ export async function resendWorkOrder(id: number, who: string, opts: { to?: stri
  * the supplier works from the corrected one. Only an order that went by
  * email; a work order is changed and resent from Work orders.
  */
-export async function resendOrder(id: number, patch: { toSite: boolean; address: string; instructions: string; deliverBy: string | null; note: string }): Promise<SendResult> {
+export async function resendOrder(id: number, patch: { toSite: boolean; address: string; instructions: string; deliverBy: string | null; note: string }, reason?: string): Promise<SendResult> {
   const cur = await getOrder(id);
   if (!cur) return { ok: false, error: "That order isn't there any more." };
   if (cur.kind !== "order") return { ok: false, error: "Change a work order and email the update from Work orders." };
@@ -536,7 +556,7 @@ export async function resendOrder(id: number, patch: { toSite: boolean; address:
   const b = await build(id);
   if ("error" in b) return { ok: false, error: b.error };
   if (!b.email) return { ok: false, error: "There's no email for this one to send again." };
-  const line = `Updated — this replaces order ${b.po.po_number} we sent earlier. Please go by this one.`;
+  const line = `Updated${reason ? ` (${reason})` : ""} — this replaces order ${b.po.po_number} we sent earlier. Please go by this one.`;
   const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${line}</div>`;
   const err = await resend({
     from, to: [to], cc: ccList(b.settings, b.supplier, b.po, to), reply_to: b.settings.replyTo,

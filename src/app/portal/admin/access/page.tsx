@@ -22,8 +22,7 @@ export default async function AccessPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <PortalBack href="/portal/admin" label="Admin" />
-        <div className="pt-head__eyebrow">Admin · Access levels</div>
-        <h1>Who can see what.</h1>
+        <h1>Who can see what</h1>
         <p>Set what each crew level gets access to. Change someone&rsquo;s level on the Team page and their access follows automatically.</p>
       </div>
       <AccessEditor initial={map as unknown as Record<string, string[]>} />

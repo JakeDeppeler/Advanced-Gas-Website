@@ -18,7 +18,7 @@ const daysTo = (iso: string, today: string) => Math.round((Date.parse(`${iso}T00
 
 /**
  * Crew & vans › Tools: every tool on every van in one register, soonest test,
- * tag or calibration due first. Each van's own list (Vehicles › a van › Tools &
+ * tag or calibration due first. Each van's own list (Vans › a van › Tools &
  * plant) is where tools are added and marked done; this is the fleet's view.
  */
 export default async function ToolRegister({ searchParams }: { searchParams: { van?: string } }) {
@@ -41,10 +41,10 @@ export default async function ToolRegister({ searchParams }: { searchParams: { v
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Tools" sub="Every tool on every van · soonest due first" info={[
+        <Head title="Tools" eyebrow="Every tool on every van · soonest due first" info={[
           ["Test & tag", "Electrical tools that go on site get checked and tagged on a cycle (every 3 months in construction under AS/NZS 3760). Check your own cycle with your safety adviser."],
           ["Calibration", "Gas analysers and leak detectors read wrong if they drift. Once a year, or as the maker says."],
-          ["Adding a tool", "On the van: Vehicles › the van › Tools & plant. That’s also where a test is marked done."],
+          ["Adding a tool", "On the van: Vans › the van › Tools & plant. That’s also where a test is marked done."],
         ]} />
         {tools == null ? <Empty>The tool register can’t be read right now. That isn’t the same as no tools.</Empty> : (tools.length === 0 ? (
           <Empty>No tools on the register yet. Add them on each van, under <Link href="/portal/vehicles">Vehicles</Link> › the van › Tools &amp; plant, with when each was last tested and when it’s next due.</Empty>

@@ -31,7 +31,7 @@ export default async function CommissionPage() {
   return (
     <PortalShell user={user}>
       <div className="pk">
-        <Head title="Commission" sub="The numbers the whole portal is built on · change one here and every page updates" info={[
+        <Head title="Commission" eyebrow="The numbers the whole portal is built on · change one here and every page updates" info={[
           ["The rule", `Sell ${money(c.monthTarget)} in a month and the bonus is ${c.ratePct}% of everything sold that month, not just the part over.`],
           ["Credit", "Goes to whoever wrote the quote. A re-sold quote counts once, on the day it first sold."],
           ["The wall board", "Still shows its own bonus bands until they’re switched over to this rule."],

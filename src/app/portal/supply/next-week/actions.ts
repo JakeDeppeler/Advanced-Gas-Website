@@ -2,17 +2,18 @@
 
 import { refreshBoard } from "@/lib/dashboard/refresh";
 import { autoDraft } from "@/lib/ordering/autoDraft";
-import { loadStocked, saveStocked } from "@/lib/ordering/stocked";
+import { loadFromStock, loadStocked, saveFromStock, saveStocked } from "@/lib/ordering/stocked";
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, mergeDrafts, draftFor, draftWeek, holdLines, markLinesOrdered, orderAhead, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, setAside, markLinesOrdered, markUnbookedOrdered, orderAhead, orderLater, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
-import { updateJobs } from "@/lib/ordering/stJobNotes";
+import { noteOnJob, updateJobs, updateJobsFor } from "@/lib/ordering/stJobNotes";
+import { placeReece, previewReece, type Preview } from "@/lib/ordering/reeceSend";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -28,6 +29,14 @@ async function office() {
 }
 
 const done = () => revalidatePath("/portal/supply/next-week");
+
+/** The unticked lines set aside on a send come back on a fresh draft. A failure only delays that to the next draft run. */
+const redraftBoth = async () => {
+  try {
+    await draftWeek(thisWeek(new Date()));
+    await draftWeek(nextWeek(new Date()));
+  } catch { /* the next automatic draft puts them back */ }
+};
 const isId = (n: unknown): n is number => Number.isInteger(n) && (n as number) > 0;
 
 export async function approve(id: number): Promise<ActionResult> {
@@ -195,14 +204,39 @@ export async function removeStock(lineId: number): Promise<ActionResult> {
 
 const lineIds = (ids: unknown) => (Array.isArray(ids) ? ids.filter(isId).slice(0, 200) : []);
 
-/** These lines were ordered some other way: they come off the draft and count as ordered. */
-export async function linesOrdered(input: { id: number; lineIds: number[]; how?: string }): Promise<ActionResult> {
+/**
+ * These lines were ordered some other way: they come off the draft and count
+ * as ordered. Bought online from a third party (`online`, with where if said),
+ * each job also gets a note in ServiceTitan, so the tech knows the part is
+ * coming and that it isn't on the supplier's order.
+ */
+export async function linesOrdered(input: { id: number; lineIds: number[]; how?: string; online?: boolean; where?: string }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   const ids = lineIds(input.lineIds);
   if (!isId(input.id) || !ids.length) return { ok: false, error: "Which lines?" };
   try {
-    const r = await markLinesOrdered(input.id, ids, me.name || me.email, String(input.how ?? "").trim().slice(0, 120));
+    const where = String(input.where ?? "").trim().slice(0, 80);
+    const how = input.online ? `ordered online${where ? ` from ${where}` : ""}` : String(input.how ?? "").trim().slice(0, 120);
+    // The lines, read before they move, for the note.
+    const before = input.online ? await getOrder(input.id) : null;
+    const r = await markLinesOrdered(input.id, ids, me.name || me.email, how);
+    if (r.ok && r.id) {
+      let noteErr = "";
+      if (input.online && before) {
+        const want = new Set(ids);
+        const byJob = new Map<number, string[]>();
+        for (const l of before.lines) if (want.has(l.id) && l.job_id != null)
+          byJob.set(l.job_id, [...(byJob.get(l.job_id) ?? []), `${Number.isInteger(l.qty) ? l.qty : l.qty.toFixed(2)} × ${l.supplier_model || l.sku_name || l.description || "item"}`]);
+        for (const [job, items] of byJob) {
+          await noteOnJob(job, `Parts ordered online by the office${where ? ` from ${where}` : ""}: ${items.join("; ")}. They won't be on the supplier's order.`)
+            .catch((e) => { noteErr = (e as Error).message; });
+        }
+      }
+      // The job's tags follow (materials ordered), as they do for a sent order.
+      await updateJobsFor(r.id, { notes: false }).catch(() => undefined);
+      if (noteErr) r.note = `${r.note} The note on the job in ServiceTitan didn't go: ${/\b403\b/.test(noteErr) ? "the portal isn't allowed to add notes to jobs." : "try again from Sent."}`;
+    }
     done();
     return r;
   } catch (e) {
@@ -337,6 +371,51 @@ export async function fromStock(input: { id: number; lineIds: number[]; items: A
   }
 }
 
+/**
+ * One line of a sold, not-booked sale: we'll take it from the factory rather
+ * than order it, or changed our minds. Kept against the sale, so it holds once
+ * the job is booked and drafted.
+ */
+export async function shelfLine(input: { estimateId: number; skuId: number | null; name: string; on: boolean }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.estimateId) || (input.skuId != null && !isId(input.skuId))) return { ok: false, error: "Which line?" };
+  const key = `est:${input.estimateId}:${input.skuId ?? "-"}`;
+  const cur = (await loadFromStock()).filter((x) => x.key !== key);
+  await saveFromStock(input.on ? [...cur, { key, name: String(input.name ?? "").slice(0, 160), by: me.name || me.email, at: new Date().toISOString() }] : cur);
+  done();
+  return { ok: true, note: input.on ? "From the factory: it won't be ordered." : "Back on the list to order." };
+}
+
+/**
+ * Lines of a sold, not-booked sale, several at once: from the factory, or
+ * bought another way (already ordered, or online). What's left is what still
+ * needs ordering.
+ */
+export async function unbookedLines(input: { estimateId: number; supplierId: string; items: { skuId: number | null; name: string }[]; mark: "stock" | "ordered" | "online"; where?: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.estimateId) || !/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which sale?" };
+  const items = (Array.isArray(input.items) ? input.items : []).filter((i) => i.skuId == null || isId(i.skuId)).slice(0, 100);
+  if (!items.length) return { ok: false, error: "Tick the lines first." };
+  const who = me.name || me.email;
+  try {
+    if (input.mark === "stock") {
+      const keys = new Set(items.map((i) => `est:${input.estimateId}:${i.skuId ?? "-"}`));
+      const cur = (await loadFromStock()).filter((x) => !keys.has(x.key));
+      await saveFromStock([...cur, ...items.map((i) => ({ key: `est:${input.estimateId}:${i.skuId ?? "-"}`, name: String(i.name ?? "").slice(0, 160), by: who, at: new Date().toISOString() }))]);
+      done();
+      return { ok: true, note: `${items.length === 1 ? "It's" : `${items.length} lines are`} coming from the factory, so won't be ordered.` };
+    }
+    const where = String(input.where ?? "").trim().slice(0, 80);
+    const r = await markUnbookedOrdered(input.estimateId, input.supplierId, items.map((i) => i.skuId), who, input.mark === "online" ? `ordered online${where ? ` from ${where}` : ""}` : "");
+    done();
+    return r;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 /** Take the Factory stock tag off an item: we don't keep it on the shelf any more. */
 export async function untagStocked(key: string): Promise<ActionResult> {
   const me = await office();
@@ -357,6 +436,66 @@ export async function mergeIntoBulk(id: number): Promise<ActionResult> {
 }
 
 /** A sold quote's gear for one supplier onto that supplier's draft, before the install is booked (db.orderAhead). */
+/**
+ * Reece's "Order in maX", step one: the order put together exactly as the
+ * send button does (held lines released, sold jobs added, both weeks' drafts
+ * merged), then every job's maX order checked and priced by Reece. Nothing is
+ * bought and nothing is held yet: unticked lines are only left out of the
+ * preview, and held when the order is placed.
+ */
+export async function reecePreview(input: { supplierId: string; ahead: number[]; leave: number[]; release?: number[] }): Promise<Preview> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which supplier?" };
+  try {
+    const release = (Array.isArray(input.release) ? input.release : []).filter(isId).slice(0, 60);
+    if (release.length) {
+      for (const id of release) await releaseHold(id);
+      await draftWeek(thisWeek(new Date()));
+      await draftWeek(nextWeek(new Date()));
+    }
+    for (const est of (Array.isArray(input.ahead) ? input.ahead : []).filter(isId).slice(0, 40)) {
+      const r = await orderAhead(est, input.supplierId);
+      if (!r.ok) return { ok: false, error: r.error ?? "A sold job couldn't go on the order." };
+    }
+    const drafts = (await Promise.all([listWeekOrders(thisWeek(new Date())), listWeekOrders(nextWeek(new Date()))])).flat()
+      .filter((p) => p.supplier_id === input.supplierId && p.kind === "order" && p.status === "draft");
+    if (!drafts.length) return { ok: false, error: "There's nothing on this supplier's order to send." };
+    const keep = drafts[0];
+    if (drafts.length > 1) {
+      const m = await mergeDrafts(keep.id);
+      if (!m.ok) return { ok: false, error: m.error ?? "Couldn't put the drafts together." };
+    }
+    done();
+    return await previewReece(keep.id, lineIds(input.leave), me.name || me.email);
+  } catch (e) {
+    done();
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Step two: the unticked lines held for later, then each job's order placed in maX. */
+export async function reecePlace(input: { poId: number; leave: number[]; fingerprint: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.poId) || typeof input.fingerprint !== "string" || !input.fingerprint) return { ok: false, error: "Which order?" };
+  const who = me.name || me.email;
+  try {
+    const leave = lineIds(input.leave);
+    if (leave.length) {
+      const h = await setAside(input.poId, leave);
+      if (!h.ok) return { ok: false, error: `Couldn't leave the unticked lines for later: ${h.error ?? "try again"}` };
+    }
+    const r = await placeReece(input.poId, input.fingerprint, who);
+    if (leave.length) await redraftBoth();
+    done();
+    return r;
+  } catch (e) {
+    done();
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
 export async function orderAheadNow(input: { estimateId: number; supplierId: string }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
@@ -366,6 +505,87 @@ export async function orderAheadNow(input: { estimateId: number; supplierId: str
     done();
     return r.ok ? { ok: true, note: r.note } : { ok: false, error: r.error ?? "Couldn't put it on the order." };
   } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Held lines back onto To order now (a job's worth at once), redrafted, nothing sent. */
+export async function releaseHolds(input: { holdIds: number[] }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const ids = lineIds(input.holdIds);
+  if (!ids.length) return { ok: false, error: "Which job?" };
+  for (const id of ids) await releaseHold(id);
+  await redraftBoth();
+  done();
+  return { ok: true, note: "Back on the order to send." };
+}
+
+/** A job booked past the two weeks, onto this supplier's order now (not sent). */
+export async function orderLaterNow(input: { jobId: number; supplierId: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.jobId) || !/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which job?" };
+  try {
+    const r = await orderLater([input.jobId], input.supplierId);
+    done();
+    return r;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/**
+ * One supplier's order, as ticked on its card, sent in one go: the sold,
+ * not-booked jobs ticked are put on the order first, every draft for the
+ * supplier becomes one order, the lines left unticked wait for later (held,
+ * drafted again next week, never lost), and what's left is sent, the same
+ * send as the Send button always was. Nothing goes if the order would be
+ * empty.
+ */
+export async function sendSupplier(input: { supplierId: string; ahead: number[]; leave: number[]; release?: number[]; later?: number[] }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!/^[a-z0-9_]{1,40}$/.test(input.supplierId)) return { ok: false, error: "Which supplier?" };
+  const who = me.name || me.email;
+  try {
+    // Held lines ticked back on: released and drafted again first, both weeks,
+    // so they land on the drafts this send merges into one order.
+    const release = (Array.isArray(input.release) ? input.release : []).filter(isId).slice(0, 60);
+    if (release.length) {
+      for (const id of release) await releaseHold(id);
+      await draftWeek(thisWeek(new Date()));
+      await draftWeek(nextWeek(new Date()));
+    }
+    // Jobs booked past the two weeks, ticked to go now.
+    const later = (Array.isArray(input.later) ? input.later : []).filter(isId).slice(0, 60);
+    if (later.length) {
+      const r = await orderLater(later, input.supplierId);
+      if (!r.ok) return { ok: false, error: r.error ?? "A later job couldn't go on the order." };
+    }
+    for (const est of (Array.isArray(input.ahead) ? input.ahead : []).filter(isId).slice(0, 40)) {
+      const r = await orderAhead(est, input.supplierId);
+      if (!r.ok) return { ok: false, error: r.error ?? "A sold job couldn't go on the order." };
+    }
+    const drafts = (await Promise.all([listWeekOrders(thisWeek(new Date())), listWeekOrders(nextWeek(new Date()))])).flat()
+      .filter((p) => p.supplier_id === input.supplierId && p.kind === "order" && p.status === "draft");
+    if (!drafts.length) return { ok: false, error: "There's nothing on this supplier's order to send." };
+    const keep = drafts[0];
+    if (drafts.length > 1) {
+      const m = await mergeDrafts(keep.id);
+      if (!m.ok) return { ok: false, error: m.error };
+    }
+    const leave = lineIds(input.leave);
+    if (leave.length) {
+      const h = await setAside(keep.id, leave);
+      if (!h.ok) return { ok: false, error: `Couldn't leave the unticked lines for later: ${h.error ?? "try again"}` };
+    }
+    const r = await approveAndSend(keep.id, who);
+    if (leave.length) await redraftBoth();
+    done();
+    return r;
+  } catch (e) {
+    done();
     return { ok: false, error: (e as Error).message };
   }
 }

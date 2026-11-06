@@ -15,9 +15,10 @@ import { sendReadyNotice } from "./send";
  * so a job booked in for two days' time is on an order to approve within
  * minutes rather than when someone remembers to press Draft.
  *
- * This week is drafted every day; next week from Wednesday, the week-before
- * rhythm the orders were built around (combined suppliers reach to the end of
- * next week either way). Nothing goes to a supplier from here: each draft
+ * Both this week and next are drafted every weekday. Next week used to wait
+ * for Wednesday, but a Monday install's gear is due the Thursday before, and
+ * on Monday and Tuesday To order showed neither it nor the job (20732, 9 Nov,
+ * missing on 2 Nov). The office would rather see two weeks out and send early. Nothing goes to a supplier from here: each draft
  * waits for approval on Supply › Next week. Already-ordered lines are never
  * ordered again, even if the job moves; lines on drafts the office cancelled
  * are left out.
@@ -72,7 +73,7 @@ async function release(fingerprint: string) {
 }
 
 /** What a run drafts: change it with the rules (see the fingerprint). */
-const RULES = 2;
+const RULES = 3;
 
 export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {}): Promise<AutoDraftResult> {
   const now = new Date();
@@ -84,9 +85,7 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
     const hour = Number(new Intl.DateTimeFormat("en-AU", { timeZone: TZ, hour: "numeric", hourCycle: "h23" }).format(now));
     if (dow === 0 || dow === 6 || hour < 6 || hour >= 19) return { ok: true, skipped: "outside office hours" };
   }
-  const weeks: Week[] = [thisWeek(now), ...(dow >= 3 || dow === 0 ? [nextWeek(now)] : [])];
-  // Monday and Tuesday: next week's electrician work orders still, the rest of next week on Wednesday.
-  const workOnlyNext = weeks.length === 1;
+  const weeks: Week[] = [thisWeek(now), nextWeek(now)];
 
   // Every ten minutes at most from the sync. Working out whether anything
   // changed reads both ordering views (about 0.7 s), and doing that on every
@@ -108,7 +107,7 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
   // RULES goes up whenever what a run drafts changes, so the first run after
   // that deploy drafts even though no job has: the work-only run for next week
   // sat unused a morning because the inputs hadn't moved since 9:47.
-  const fingerprint = createHash("sha1").update(JSON.stringify({ RULES, today, weeks, workOnlyNext, inputs })).digest("hex");
+  const fingerprint = createHash("sha1").update(JSON.stringify({ RULES, today, weeks, inputs })).digest("hex");
   if (!(await claim(fingerprint, !!opts.force))) return { ok: true, skipped: "no change since the last draft, or a draft is running" };
 
   const runs: { week: Week; r: DraftResult }[] = [];
@@ -116,7 +115,6 @@ export async function autoDraft(opts: { force?: boolean; anyHour?: boolean } = {
     // This week first: a combined supplier's draft then settles on next
     // week's run if both are drafted, the same as pressing Draft on each tab.
     for (const week of weeks) runs.push({ week, r: await draftWeek(week, { auto: true }) });
-    if (workOnlyNext) runs.push({ week: nextWeek(now), r: await draftWeek(nextWeek(now), { auto: true, workOnly: true }) });
   } catch (e) {
     // Not marked done, so the next caller tries again.
     await release("");
