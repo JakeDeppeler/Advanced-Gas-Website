@@ -23,9 +23,24 @@ export async function loadRates(): Promise<Rates> {
   return ratesFromPricing(normalisePricing(await getSettings<unknown>("pricing")));
 }
 
+/**
+ * How ServiceTitan prices a service itself, read with calculatePrices=true.
+ * On 6 Nov every price write was answered 200 and then not kept, except on
+ * four services with no cost, which points at a Dynamic Pricing rule (price
+ * from cost) or the price lock. This names which, per service, so the fix is
+ * made in ServiceTitan's pricebook settings and not guessed at here.
+ */
+export function stPricing(s: Raw): string {
+  const parts: string[] = [];
+  if (s.isPriceLocked === true) parts.push("price locked");
+  if (s.useStaticPrices === false) parts.push(s.calculatedPrice != null ? `dynamic pricing: $${Number(s.calculatedPrice)}` : "dynamic pricing");
+  return parts.join(", ");
+}
+
 const serviceRow = (s: Raw): ServiceRow => ({
   id: Number(s.id), code: String(s.code ?? ""), name: String(s.displayName ?? s.code ?? ""),
   hours: s.hours == null ? null : Number(s.hours), price: s.price == null ? null : Number(s.price), active: (s.active as boolean | null) ?? null,
+  pricing: stPricing(s) || undefined,
 });
 
 export type LabourResult = { applied: number; verified: number; failed: { id: number; name: string; error: string }[]; remaining: number };
@@ -76,7 +91,7 @@ export async function createServices(creates: ServiceCreate[]): Promise<LabourRe
 
 export async function planServicePrices() {
   const [rates, services, materials, refrigerant] = await Promise.all([
-    loadRates(), stList<Raw>("pricebook", "services", { active: "True" }, 10),
+    loadRates(), stList<Raw>("pricebook", "services", { active: "True", calculatePrices: "true" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20), getSettings<RefrigerantSettings>("refrigerant"),
   ]);
   const creates = [planInternalHeater(services, rates)].filter((c): c is ServiceCreate => !!c);
@@ -128,7 +143,12 @@ export async function applyServicePrices(changes: ServiceChange[], limit: number
       out.applied++;
       const back = await stFetch<Raw>(path);
       if (Math.abs(Number(back.price) - c.after) < 0.005) out.verified++;
-      else out.failed.push({ id: c.id, name: c.name, error: `sent $${c.after}, ServiceTitan kept $${back.price}` });
+      else {
+        // Say why, from ServiceTitan's own view of the service.
+        const why = await stFetch<{ data?: Raw[] }>(stTenantPath("pricebook", "services"), { ids: String(c.id), calculatePrices: "true" })
+          .then((r) => stPricing(r.data?.[0] ?? {})).catch(() => "");
+        out.failed.push({ id: c.id, name: c.name, error: `sent $${c.after}, ServiceTitan kept $${back.price}${why ? ` (${why})` : ""}` });
+      }
     } catch (e) {
       out.failed.push({ id: c.id, name: c.name, error: (e as Error).message.slice(0, 300) });
     }

@@ -79,8 +79,9 @@ export const CREW_LABEL: Record<Crew, string> = { callout: "call-out fee", solo:
 /** Whole cents, so a 2.8-hour job at $310 is $868.00 and not 867.9999. */
 const cents = (n: number) => Math.round(n * 100) / 100;
 
-export type ServiceRow = { id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null };
-export type ServiceChange = { id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number };
+/** `pricing` is how ServiceTitan sets the price itself, if it does: a locked price, or a dynamic pricing rule. */
+export type ServiceRow = { id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null; pricing?: string };
+export type ServiceChange = { id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number; pricing?: string };
 export type ServiceSkip = { id: number; code: string; name: string; reason: string };
 
 /** Each listed service at its own hours × its crew's rate, or the call-out fee. */
@@ -99,7 +100,7 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
     const after = crew === "callout" ? cents(rate) : cents(hours * rate);
     const before = Number(s.price) || 0;
     if (Math.abs(after - before) < 0.005) { unchanged++; continue; }
-    changes.push({ id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after });
+    changes.push({ id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, ...(s.pricing ? { pricing: s.pricing } : {}) });
   }
   return { changes, unchanged, skipped };
 }
