@@ -8,7 +8,7 @@ import { pushIfAuto } from "./stPurchaseOrders";
 import { jobsAfterSend } from "./stJobNotes";
 import { jobFilesFor } from "./jobFiles";
 import {
-  ccList, dateChangeEmail, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
+  ccList, dateChangeEmail, dayLabel, deliveryInstructionsFor, isElectrical, workRef, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
 } from "./plan";
 import { sendEmail } from "@/lib/email/send";
@@ -434,13 +434,21 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
   // name, and the electrician's standing copies aren't put on their email.
   const other = workOrder && !isElectrical(po.details);
   const them: Supplier = other ? { ...supplier, name: po.details?.to_name || po.details?.trade || supplier.name, cc_emails: [] } : supplier;
-  const email = dateChangeEmail({ supplier: them, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings, trade: other ? po.details?.trade : null });
-  // Whoever the work order's for gets the job's photos with every email about
-  // the job, the new day included: the ones added since the work order went
-  // are often the ones that matter (the switchboard, where the unit's going).
-  // Photos and Condition Reports only, never what was picked by hand, which went already.
-  const photos = workOrder && po.details ? await jobFilesFor({ ...po.details, files: [] }, { photos: true, reports: true }) : [];
+  // A work order that moves goes again IN FULL on its new day: the job, the
+  // site, the contacts, the scope, with a line at the top saying what moved.
+  // A date-only note left the contractor hunting for the first email (Geoff,
+  // 6 Nov: "I can only see the date change"). A supplier order still gets the
+  // short note: only the delivery day matters to them.
+  // With it, everything the first one carried: the job's photos and Condition
+  // Reports as they are now (the ones added since are often the ones that
+  // matter), and the files picked by hand for it, so this email stands alone.
+  const photos = workOrder && po.details ? await jobFilesFor(po.details, { photos: true, reports: true }) : [];
   const attachments = Array.isArray(photos) && photos.length ? { attachments: photos } : {};
+  const moved = workOrder && po.details ? { ...po.details, date: moves[0].to, start_at: null, end_at: null, all_visits: null } : null;
+  const email = moved
+    ? movedWorkOrderEmail(workOrderEmail({ supplier: them, poNumber: po.po_number, details: moved, settings }), moves, Array.isArray(photos) ? photos.length : 0)
+    : dateChangeEmail({ supplier: them, poNumber: po.po_number, ref: workOrder && po.details ? workRef(po.details) : po.po_number, workOrder, moves, settings, trade: other ? po.details?.trade : null });
+
   const err = await resend({ from, to: [to], cc: ccList(settings, them, po, to), reply_to: settings.replyTo, subject: email.subject, html: email.html, text: email.text, ...attachments });
   if (err) return { ok: false, error: err };
   // The order now says the new day, so the next look at the week sees it as in step.
@@ -453,6 +461,18 @@ export async function emailDateChange(poNumber: string, moves: MovedJob[], opts:
     await sbUpdate("purchase_orders", `id=eq.${po.id}`, { details: { ...po.details, date: moves[0].to, start_at: null, end_at: null, moves: [...(po.details.moves ?? []), told].slice(-10), ...(opts.bookedFor ? { booked_for: opts.bookedFor } : {}) }, updated_at: new Date().toISOString() }).catch(() => undefined);
   }
   return { ok: true, to, note: `Told ${them.name} (${to}).` };
+}
+
+/** The full work order again, its subject and a banner saying the day moved and from when. */
+function movedWorkOrderEmail(e: EmailParts, moves: MovedJob[], files: number): EmailParts {
+  const m = moves[0];
+  const line = `Date change: this job has moved from ${dayLabel(m.from)} to ${dayLabel(m.to)}. The full work order is below again${files ? `, with the job's ${files === 1 ? "file" : `${files} files`} attached` : ""}; everything else is as before.`;
+  const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${line}</div>`;
+  return {
+    subject: `Date change: ${e.subject}`,
+    html: e.html.replace("<body style=\"margin:0;background:#f9f8f3;\">", `<body style="margin:0;background:#f9f8f3;">${banner}`),
+    text: `${line}\n\n${e.text}`,
+  };
 }
 
 /**
