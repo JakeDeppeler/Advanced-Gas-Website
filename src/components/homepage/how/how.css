@@ -133,7 +133,8 @@
 .ag .zh__room{cursor:pointer}
 .ag .zh__room:hover{filter:brightness(.97)}
 .ag .zh__glow{animation:hwPulse 2s ease-in-out infinite}
-.ag .zh--plan{grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr)}
+.ag .zh--plan{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr)}
+.ag .zh--plan .zh__panel{position:sticky;top:90px}
 
 /* The wall controller: a black glass touch screen */
 .ag .mec{background:#0B0C0F;border-radius:22px;padding:18px 18px 12px;box-shadow:0 30px 60px -30px rgba(5,10,48,.6),inset 0 0 0 2px #24272E;color:#fff;max-width:420px;width:100%;margin:0 auto}
@@ -194,3 +195,4 @@
 .ag .zh__ripple{transform-box:fill-box;transform-origin:center;animation:zhRipple 2s ease-out infinite;transition:opacity .4s}
 @keyframes zhRipple{from{transform:scale(1)}to{transform:scale(3.2);stroke-opacity:0}}
 @media (prefers-reduced-motion:reduce){.ag .zh__ripple{animation:none}}
+@media (max-width:1000px){.ag .zh--plan .zh__panel{position:static}}

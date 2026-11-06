@@ -103,51 +103,6 @@ const ROOMS: Room[] = [
 ];
 
 
-const W = "#3E444D";
-
-function Door({ x, y, r, rot = 0 }: { x: number; y: number; r: number; rot?: number }) {
-  return (
-    <g transform={`rotate(${rot} ${x} ${y})`} fill="none" stroke="#9AA3AE" strokeWidth="1">
-      <path d={`M${x} ${y} h${r}`} strokeWidth="1.6" stroke="#6B7480" />
-      <path d={`M${x + r} ${y} A${r} ${r} 0 0 1 ${x} ${y + r}`} strokeDasharray="3 3" />
-    </g>
-  );
-}
-
-const Win = ({ x, y, w, v = false }: { x: number; y: number; w: number; v?: boolean }) =>
-  v ? <rect x={x - 3} y={y} width="6" height={w} fill="#EAF6FD" stroke="#5BA7D9" strokeWidth="1.2" /> : <rect x={x} y={y - 3} width={w} height="6" fill="#EAF6FD" stroke="#5BA7D9" strokeWidth="1.2" />;
-
-/** Furniture and fittings, drawn as a plan draws them: light outlines. */
-function Fittings() {
-  const f = { fill: "#fff", stroke: "#CBD2DB", strokeWidth: 1 };
-  return (
-    <g style={{ pointerEvents: "none" }}>
-      {/* living */}
-      <path d="M180 150 h90 v40 h-20 v-20 h-70z" {...f} /><rect x="300" y="60" width="44" height="14" rx="2" {...f} />
-      <rect x="200" y="96" width="70" height="40" rx="4" fill="#F6EFE3" stroke="#E6DCCB" />
-      {/* beds */}
-      {[[380, 70, 80, 96], [512, 70, 66, 92], [470, 290, 92, 62], [470, 440, 96, 86]].map(([x, y, w, h], i) => (
-        <g key={i}><rect x={x} y={y} width={w} height={h} rx="3" {...f} /><rect x={x + 6} y={y + 5} width={w / 2 - 9} height="14" rx="3" {...f} /><rect x={x + w / 2 + 3} y={y + 5} width={w / 2 - 9} height="14" rx="3" {...f} /></g>
-      ))}
-      <path d="M462 190 v-60 M600 130 h-24" stroke="#CBD2DB" strokeDasharray="4 3" />
-      {/* kitchen: bench, sink, cooktop, island, table */}
-      <rect x="166" y="402" width="120" height="32" {...f} /><rect x="182" y="408" width="26" height="18" rx="4" {...f} />
-      {[[236, 412], [252, 412], [236, 426], [252, 426]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="5" {...f} />)}
-      <rect x="300" y="380" width="60" height="26" rx="2" {...f} />
-      <rect x="200" y="350" width="64" height="34" rx="4" {...f} />
-      {[[208, 344], [236, 344], [208, 384], [236, 384]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="18" height="7" rx="2" {...f} />)}
-      {/* bath */}
-      <rect x="540" y="198" width="54" height="64" rx="10" {...f} /><rect x="440" y="198" width="44" height="22" rx="3" {...f} /><ellipse cx="505" cy="250" rx="9" ry="12" {...f} />
-      {/* ensuite in the master */}
-      <path d="M520 370 v60 h80" fill="none" stroke={W} strokeWidth="3" />
-      <rect x="534" y="380" width="26" height="16" rx="3" {...f} /><ellipse cx="582" cy="392" rx="8" ry="10" {...f} />
-      {/* study desk */}
-      <rect x="170" y="448" width="70" height="26" {...f} /><circle cx="205" cy="488" r="8" {...f} />
-    </g>
-  );
-}
-
-
 /* ------------------------------------------------------------ the model */
 
 /** A zone: on or off, its room temperature and set point, how far open its damper is, and whether the motor is driving. */
@@ -204,22 +159,102 @@ function step(zs: State, act: Doing, out: number, speed: number): State {
   return next;
 }
 
-/* ------------------------------------------------------------ the plan */
-
 /** lx centres the label on a point; tx moves a left-aligned one. */
 type Room = { name: string; dims?: string; x: number; y: number; w: number; h: number; zone?: ZoneId; lx?: number; ly?: number; tx?: number };
 
+/* ------------------------------------------------------------ the 3D view */
+
 /**
- * The air moving through the ducts, and the outdoor fan. Driven frame by
- * frame rather than with SVG/CSS animations: those restart from the top
- * whenever their speed changes, so the flow jerked every time a damper
- * moved. Here each run's air simply speeds up or slows down.
+ * The plan is drawn in 3D by projecting its own coordinates: turned 30° and
+ * tilted, with height going up the screen. The projection is affine, so a
+ * whole flat layer (floors, ducts, the tops of boxes) can be drawn in plan
+ * coordinates inside one transformed group, and only the upright faces of
+ * walls and boxes need working out by hand.
  */
-function FlowLayer({ live }: { live: MutableRefObject<{ opens: number[]; ret: number; fan: number; speed: number; air: string }> }) {
+const P = { a: 0.866, b: 0.31, c: -0.5, d: 0.537 };
+const proj = (x: number, y: number, z: number): [number, number] => [P.a * x + P.c * y, P.b * x + P.d * y - z];
+const pts = (ps: [number, number, number][]) => ps.map(([x, y, z]) => proj(x, y, z).map((n) => n.toFixed(1)).join(",")).join(" ");
+/** A flat layer at height z, drawn in plan coordinates. */
+const plane = (z: number) => `matrix(${P.a} ${P.b} ${P.c} ${P.d} 0 ${-z})`;
+/** An upright face along y = y0, drawn in (x, height) coordinates. */
+const face = (y0: number) => `matrix(${P.a} ${P.b} 0 -1 ${P.c * y0} ${P.d * y0})`;
+
+/** Heights: walls cut low so the rooms show, ducts up in the ceiling space above them. */
+const WALL = 24, INWALL = 20, DUCT = 50, CEIL = 42;
+
+type Solid = { x: number; y: number; z?: number; w: number; d: number; h: number; top: string; glass?: boolean };
+const shade = (hex: string, k: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v * k).toString(16).padStart(2, "0")).join("")}`;
+};
+
+/** A box: its top and the two upright faces that face us. */
+function Box({ s }: { s: Solid }) {
+  const { x, y, w, d, h } = s, z = s.z ?? 0;
+  const o = s.glass ? 0.75 : 1;
+  return (
+    <g opacity={o}>
+      <polygon points={pts([[x, y + d, z], [x + w, y + d, z], [x + w, y + d, z + h], [x, y + d, z + h]])} fill={shade(s.top, 0.9)} />
+      <polygon points={pts([[x + w, y, z], [x + w, y + d, z], [x + w, y + d, z + h], [x + w, y, z + h]])} fill={shade(s.top, 0.8)} />
+      <polygon points={pts([[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]])} fill={s.top} />
+    </g>
+  );
+}
+
+/** A wall run cut into short pieces (so it sorts against the furniture), with windows in glass and doorways left open. */
+function wallRun(axis: "h" | "v", at: number, from: number, to: number, t: number, h: number, wins: [number, number][] = [], gaps: [number, number][] = []): Solid[] {
+  const cuts = new Set([from, to, ...wins.flat(), ...gaps.flat()]);
+  for (let v = from; v < to; v += 50) cuts.add(v);
+  const xs = [...cuts].sort((a, b) => a - b);
+  const out: Solid[] = [];
+  for (let i = 0; i < xs.length - 1; i++) {
+    const a = xs[i], b = xs[i + 1], m = (a + b) / 2;
+    if (gaps.some(([g0, g1]) => m > g0 && m < g1)) continue;
+    const glass = wins.some(([w0, w1]) => m > w0 && m < w1);
+    const s: Solid = axis === "h"
+      ? { x: a, y: at - t / 2, w: b - a, d: t, h, top: glass ? "#BFE3F6" : "#E6E1D8", glass }
+      : { x: at - t / 2, y: a, w: t, d: b - a, h, top: glass ? "#BFE3F6" : "#E6E1D8", glass };
+    out.push(s);
+  }
+  return out;
+}
+
+const WALLS: Solid[] = [
+  ...wallRun("h", 40, 160, 600, 6, WALL, [[200, 280], [390, 460], [515, 575]]),
+  ...wallRun("v", 600, 40, 540, 6, WALL, [[205, 245], [290, 350], [450, 520]]),
+  ...wallRun("h", 540, 160, 600, 6, WALL, [[180, 240]], [[300, 328]]),
+  ...wallRun("v", 160, 40, 540, 6, WALL, [[90, 160], [214, 246]]),
+  ...wallRun("h", 250, 30, 160, 6, WALL), ...wallRun("v", 30, 250, 540, 6, WALL), ...wallRun("h", 540, 30, 160, 6, WALL),
+  ...wallRun("v", 360, 40, 190, 3, INWALL), ...wallRun("v", 490, 40, 190, 3, INWALL),
+  ...wallRun("h", 190, 360, 600, 3, INWALL, [], [[392, 418]]), ...wallRun("h", 210, 160, 360, 3, INWALL),
+  ...wallRun("v", 380, 190, 540, 3, INWALL, [], [[230, 256], [470, 496]]),
+  ...wallRun("v", 430, 190, 540, 3, INWALL, [], [[300, 326], [400, 426]]),
+  ...wallRun("h", 270, 430, 600, 3, INWALL), ...wallRun("h", 370, 430, 600, 3, INWALL),
+  ...wallRun("h", 440, 160, 380, 3, INWALL, [], [[200, 226], [300, 326]]), ...wallRun("v", 270, 440, 540, 3, INWALL),
+  ...wallRun("v", 520, 370, 430, 3, INWALL), ...wallRun("h", 430, 520, 600, 3, INWALL),
+];
+const FURNITURE: Solid[] = [
+  { x: 180, y: 150, w: 70, d: 20, h: 12, top: "#7194C0" }, { x: 250, y: 150, w: 20, d: 40, h: 12, top: "#7194C0" },
+  { x: 300, y: 60, w: 44, d: 12, h: 14, top: "#5E4632" },
+  ...[[380, 70, 80, 96], [512, 70, 66, 92], [470, 290, 92, 62], [470, 440, 96, 86]].map(([x, y, w, d]) => ({ x, y, w, d, h: 11, top: "#FFFFFF" })),
+  { x: 166, y: 402, w: 120, d: 32, h: 22, top: "#F4F1EC" }, { x: 300, y: 380, w: 60, d: 26, h: 22, top: "#F4F1EC" },
+  { x: 200, y: 350, w: 64, d: 34, h: 16, top: "#B08A66" },
+  { x: 540, y: 198, w: 54, d: 64, h: 13, top: "#FFFFFF" }, { x: 440, y: 198, w: 44, d: 22, h: 20, top: "#F4F1EC" },
+  { x: 534, y: 380, w: 26, d: 16, h: 20, top: "#F4F1EC" }, { x: 170, y: 448, w: 70, d: 26, h: 18, top: "#A5774F" },
+  { x: 48, y: 300, w: 44, d: 92, h: 18, top: "#AFC0D6" }, { x: 100, y: 300, w: 44, d: 92, h: 18, top: "#C9CFD8" },
+];
+const depth = (s: Solid) => P.b * (s.x + s.w / 2) + P.d * (s.y + s.d / 2) + (s.z ?? 0) * 0.01;
+const SOLIDS = [...WALLS, ...FURNITURE].sort((a, b) => depth(a) - depth(b));
+
+/**
+ * The air in the ducts and the outdoor fan, moved frame by frame rather than
+ * with SVG/CSS animations: those restart from the top whenever their speed
+ * changes, so the flow jerked every time a damper moved.
+ */
+function FlowLayer({ live, fan }: { live: MutableRefObject<{ opens: number[]; ret: number; fan: number; speed: number; air: string }>; fan: MutableRefObject<SVGGElement | null> }) {
   const paths = useRef<(SVGPathElement | null)[]>([]);
   const dots = useRef<(SVGCircleElement | null)[][]>([]);
-  const fan = useRef<SVGGElement | null>(null);
-  const all = [...SEGS.map((s) => s.d), "M405 422 L405 338"];
+  const all = [...SEGS.map((s) => s.d), "M405 409 L405 340"];
   const N = 4;
   useEffect(() => {
     let raf = 0, last = performance.now(), angle = 0;
@@ -244,7 +279,7 @@ function FlowLayer({ live }: { live: MutableRefObject<{ opens: number[]; ret: nu
         });
       });
       angle = (angle + dt * f * 900) % 360;
-      fan.current?.setAttribute("transform", `rotate(${angle.toFixed(1)} 638 320)`);
+      fan.current?.setAttribute("transform", `rotate(${angle.toFixed(1)} 638 20)`);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -257,49 +292,40 @@ function FlowLayer({ live }: { live: MutableRefObject<{ opens: number[]; ret: nu
         <g key={i}>
           <path ref={(el) => { paths.current[i] = el; }} d={d} fill="none" stroke="none" />
           {Array.from({ length: N }, (_, k) => (
-            <circle key={k} ref={(el) => { (dots.current[i] ??= [])[k] = el; }} r="2.5" fill="#fff" strokeWidth="1.5" opacity="0" />
+            <circle key={k} ref={(el) => { (dots.current[i] ??= [])[k] = el; }} r="3" fill="#fff" strokeWidth="1.6" opacity="0" />
           ))}
         </g>
       ))}
-      <g ref={fan}>{[0, 120, 240].map((a) => <ellipse key={a} cx="638" cy="312" rx="3.5" ry="7" fill="#AEB8C6" transform={`rotate(${a} 638 320)`} />)}</g>
     </g>
   );
 }
 
-/** A round ceiling diffuser by the window, with rings of air spreading out of it as its damper opens. */
-function Diffuser({ x, y, open, air, motion }: { x: number; y: number; open: number; air: string; motion: boolean }) {
-  const lit = open > 0.12;
-  const ink = lit ? "#3E444D" : "#B8C0CA";
+/** A branch take-off: a round fitting standing in the duct run. */
+function Bto({ x, y }: { x: number; y: number }) {
+  const r = 11, [bx, by] = proj(x, y, DUCT - 9), [, ty] = proj(x, y, DUCT + 9);
   return (
     <g>
-      <circle cx={x} cy={y} r={14 + open * 20} fill={air} opacity={lit ? 0.1 + open * 0.14 : 0} style={{ transition: "r .4s, opacity .4s" }} />
-      {motion && [0, 1].map((k) => (
-        <circle key={k} cx={x} cy={y} r="12" fill="none" stroke={air} strokeWidth="2" className="zh__ripple"
-          style={{ opacity: lit ? 0.25 + open * 0.6 : 0, animationDelay: `${k * 0.8}s`, animationDuration: `${(2.4 - open).toFixed(2)}s` }} />
-      ))}
-      <circle cx={x} cy={y} r="11" fill="#fff" stroke={ink} strokeWidth="1.4" />
-      <circle cx={x} cy={y} r="7.5" fill="none" stroke={ink} strokeWidth="1" />
-      <circle cx={x} cy={y} r="4" fill="none" stroke={ink} strokeWidth="1" />
-      <circle cx={x} cy={y} r="1.6" fill={ink} />
+      <g transform={plane(DUCT - 9)}><circle cx={x} cy={y} r={r} fill="#AEB7C3" /></g>
+      <rect x={bx - r} y={ty} width={r * 2} height={by - ty} fill="url(#zh-cyl)" />
+      <g transform={plane(DUCT + 9)}><circle cx={x} cy={y} r={r} fill="#E4E8EE" stroke="#8E99A8" strokeWidth="1.2" /><circle cx={x} cy={y} r={4} fill="#C9D0D9" /></g>
     </g>
   );
 }
 
-/**
- * A zone motor: a collar on the spigot with the damper blade inside it,
- * which turns from across the duct (shut) to along it (open), and the
- * motor box on the side with its light on while it's driving.
- */
+/** A zone motor: a small actuator box on the duct, its light on while it drives, and the damper blade turning beneath. */
 function Motor({ x, y, a, open, moving }: { x: number; y: number; a: number; open: number; moving: boolean }) {
   return (
-    <g transform={`translate(${x} ${y}) rotate(${a})`}>
-      <rect x="-7" y="-8.5" width="14" height="17" rx="2" fill="#E4E8EE" stroke="#6B7480" strokeWidth="1.2" />
-      <g style={{ transform: `rotate(${(90 * (1 - open)).toFixed(1)}deg)`, transition: "transform .25s linear" }}>
-        <rect x="-6.5" y="-1.6" width="13" height="3.2" rx="1" fill={open > 0.12 ? "#1F2536" : "#C2521A"} />
+    <g>
+      <g transform={plane(DUCT + 7)}>
+        <g transform={`translate(${x} ${y}) rotate(${a})`}>
+          <rect x="-8" y="-8" width="16" height="16" rx="2" fill="#E9EDF2" stroke="#7F8B9C" strokeWidth="1.2" />
+          <g style={{ transform: `rotate(${(90 * (1 - open)).toFixed(1)}deg)`, transition: "transform .25s linear" }}>
+            <rect x="-7" y="-1.8" width="14" height="3.6" rx="1" fill={open > 0.12 ? "#1F2536" : "#C2521A"} />
+          </g>
+        </g>
       </g>
-      <circle r="1.5" fill="#6B7480" />
-      <rect x="-6" y="-21" width="12" height="11" rx="2" fill="#1F2536" />
-      <circle cx="0" cy="-15.5" r="1.8" fill={moving ? "#4ADE80" : "#5D6B80"} />
+      <Box s={{ x: x - 5, y: y - 15, z: DUCT + 4, w: 10, d: 8, h: 9, top: "#2B3140" }} />
+      <g transform={plane(DUCT + 13.2)}><circle cx={x} cy={y - 11} r="2" fill={moving ? "#4ADE80" : "#5D6B80"} /></g>
     </g>
   );
 }
@@ -310,6 +336,7 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
   const load = IDS.reduce((s, id) => s + zoneOf(id).area * zs[id].open, 0) / TOTAL;
   const outdoor = (act === "heat" || act === "cool") && load > 0.02;
   const running = act !== "idle";
+  const fanEl = useRef<SVGGElement | null>(null);
   const live = useRef({ opens: [] as number[], ret: 0, fan: 0, speed, air });
   live.current = {
     // The ø350 trunk carries whatever its three zones (living, kitchen, study) are drawing.
@@ -318,112 +345,151 @@ function Plan({ zs, act, speed, motion, toggle }: { zs: State; act: Doing; speed
     fan: outdoor ? Math.max(0.15, load) : 0,
     speed, air,
   };
+  const openOf = (s: Seg) => (s.zone ? zs[s.zone].open : Math.max(zs[1].open, zs[2].open, zs[5].open));
   return (
-    <svg viewBox="0 0 680 600" className="zh__svg" role="img"
-      aria-label={`Floor plan. ${ZONES.filter((z) => zs[z.id].on).map((z) => `${z.name} ${zs[z.id].t.toFixed(1)} degrees, damper ${Math.round(zs[z.id].open * 100)}% open`).join("; ") || "No zones on"}.`}>
+    <svg viewBox="-285 -12 905 482" className="zh__svg" role="img"
+      aria-label={`3D view of the house. ${ZONES.filter((z) => zs[z.id].on).map((z) => `${z.name} ${zs[z.id].t.toFixed(1)} degrees, damper ${Math.round(zs[z.id].open * 100)}% open`).join("; ") || "No zones on"}.`}>
       <defs>
-        <pattern id="zh-pave" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="#F3F4F6" /><path d="M0 .5H22M.5 0V22" stroke="#DADDE2" /></pattern>
-        <pattern id="zh-conc" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#E6E7EA" /><circle cx="2" cy="3" r=".8" fill="#CDD0D5" /><circle cx="6" cy="6" r=".6" fill="#D6D8DC" /></pattern>
-        <linearGradient id="zh-galv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#E9EDF2" /><stop offset=".5" stopColor="#C9D0D9" /><stop offset="1" stopColor="#DDE2E8" /></linearGradient>
+        <linearGradient id="zh-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#EAF4FB" /><stop offset="1" stopColor="#F7FAFC" /></linearGradient>
+        <linearGradient id="zh-cyl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#9AA5B3" /><stop offset=".45" stopColor="#E9EDF2" /><stop offset="1" stopColor="#A9B3C0" /></linearGradient>
+        <linearGradient id="zh-cone-c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3DBBEE" stopOpacity=".38" /><stop offset="1" stopColor="#3DBBEE" stopOpacity="0" /></linearGradient>
+        <linearGradient id="zh-cone-h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FF8A50" stopOpacity=".4" /><stop offset="1" stopColor="#FF8A50" stopOpacity="0" /></linearGradient>
+        <pattern id="zh-pave" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="#EEF0F2" /><path d="M0 .5H22M.5 0V22" stroke="#DADDE2" /></pattern>
+        <pattern id="zh-boards" width="40" height="10" patternUnits="userSpaceOnUse"><rect width="40" height="10" fill="#E9D7BE" /><path d="M0 9.5H40M18 0V10" stroke="#DCC6A6" /></pattern>
       </defs>
-      <rect width="680" height="600" fill="#fff" />
-      <rect x="30" y="40" width="130" height="210" fill="url(#zh-pave)" />
-      <text x="95" y="150" textAnchor="middle" className="zh__room-n" fill="#A7AFBA">Alfresco</text>
-      <rect x="30" y="250" width="130" height="290" fill="url(#zh-conc)" />
-      {[[48, 300], [100, 300]].map(([x, y]) => (
-        <g key={x} fill="none" stroke="#A7AFBA" strokeWidth="1.2"><rect x={x} y={y} width="44" height="92" rx="14" fill="#F7F8FA" /><path d={`M${x + 6} ${y + 26} h32 M${x + 6} ${y + 62} h32`} /></g>
-      ))}
-      <text x="95" y="430" textAnchor="middle" className="zh__room-n" fill="#A7AFBA">Garage</text>
+      <rect x="-285" y="-12" width="905" height="482" fill="url(#zh-sky)" />
 
-      {ROOMS.map((r) => {
-        const z = r.zone ? zs[r.zone] : null;
-        return (
-          <rect key={r.name} x={r.x} y={r.y} width={r.w} height={r.h}
-            fill={z ? (z.on ? tint : "#EEF0F3") : "#F7F8FA"}
-            className={r.zone ? "zh__room" : undefined} style={{ transition: "fill .6s" }}
-            onClick={r.zone ? () => toggle(r.zone!) : undefined} />
-        );
-      })}
-      <Fittings />
-      <g fill="none" stroke={W} strokeLinejoin="miter">
-        <path d="M160 40 H600 V540 H160 Z M30 250 H160 M30 250 V540 H160" strokeWidth="6" />
-        <path d="M360 40 V190 M490 40 V190 M360 190 H600 M160 210 H360 M380 190 V540 M430 190 V540 M430 270 H600 M430 370 H600 M160 440 H380 M270 440 V540" strokeWidth="3" />
+      {/* the block and the slab */}
+      <g transform={plane(0)}>
+        <rect x="-10" y="0" width="720" height="590" fill="#A7CF94" />
+        <rect x="30" y="40" width="130" height="210" fill="url(#zh-pave)" />
+        <rect x="30" y="250" width="130" height="290" fill="#DCDDE0" />
+        <rect x="604" y="290" width="70" height="66" fill="#D2CEC6" />
+        <rect x="290" y="540" width="46" height="50" fill="#D9D4CB" />
+        {ROOMS.map((r) => {
+          const z = r.zone ? zs[r.zone] : null;
+          return (
+            <g key={r.name} className={r.zone ? "zh__room" : undefined} onClick={r.zone ? () => toggle(r.zone!) : undefined}>
+              <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={r.zone && (r.zone === 1 || r.zone === 4 || r.zone === 3) ? "url(#zh-boards)" : "#ECE8E1"} />
+              <rect x={r.x} y={r.y} width={r.w} height={r.h} fill={z ? (z.on ? tint : "#5D6B80") : "#fff"} opacity={z ? (z.on ? 0.55 : 0.16) : 0.3} style={{ transition: "fill .6s, opacity .6s" }} />
+            </g>
+          );
+        })}
+        <rect x="200" y="96" width="70" height="40" rx="4" fill="#E9DCC8" />
+        {/* the ducts' shadows on the floor, so you can see which room each runs over */}
+        {SEGS.map((s, i) => <path key={i} d={s.d} stroke="#0A1A3A" strokeOpacity=".07" strokeWidth={SIZE[s.size].w + 2} fill="none" strokeLinecap="round" />)}
+        {IDS.flatMap((id) => VENTS[id].map(([x, y]) => (
+          <circle key={`${x}${y}`} cx={x} cy={y} r={14 + zs[id].open * 22} fill={air} opacity={running && zs[id].open > 0.12 ? 0.12 + zs[id].open * 0.12 : 0} style={{ transition: "r .5s, opacity .5s" }} />
+        )))}
       </g>
-      <g stroke="#fff" strokeWidth="5"><path d="M392 190 h26 M380 230 v26 M430 300 v26 M430 400 v26 M380 470 v26 M300 440 h26 M200 440 h26" /></g>
-      <Door x={392} y={190} r={24} rot={180} /><Door x={430} y={300} r={24} rot={90} /><Door x={430} y={400} r={24} rot={90} />
-      <Door x={200} y={440} r={24} rot={0} /><Door x={300} y={540} r={28} rot={-90} />
-      <Win x={200} y={40} w={80} /><Win x={390} y={40} w={70} /><Win x={515} y={40} w={60} /><Win x={600} y={290} w={60} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v /><Win x={160} y={214} w={32} v />
 
-      {/* return air: grille in the hall, ø500 back up to the fan coil */}
-      <path d="M405 424 V338" stroke="#7B5CC9" strokeWidth="16" strokeLinecap="round" opacity=".85" />
-      <rect x="386" y="394" width="38" height="30" fill="#fff" stroke="#5E6A82" />
-      {[0, 1, 2, 3, 4].map((i) => <path key={i} d={`M390 ${399 + i * 5} h30`} stroke="#5E6A82" strokeWidth="1" />)}
+      {/* walls, windows and furniture, back to front */}
+      <g style={{ pointerEvents: "none" }}>
+        {SOLIDS.map((s, i) => <Box key={i} s={s} />)}
+        {[[380, 70, 80], [512, 70, 66], [470, 290, 92], [470, 440, 96]].map(([x, y, w]) => (
+          <g key={`${x}${y}`} transform={plane(11.2)}><rect x={x + 4} y={y + 30} width={w - 8} height="52" rx="3" fill="#9DB7D6" opacity=".85" /><rect x={x + 6} y={y + 5} width={w / 2 - 9} height="14" rx="3" fill="#F4F6F9" /><rect x={x + w / 2 + 3} y={y + 5} width={w / 2 - 9} height="14" rx="3" fill="#F4F6F9" /></g>
+        ))}
+        <g transform={plane(22.2)}>{[[236, 412], [252, 412], [236, 426], [252, 426]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="5" fill="none" stroke="#5E6A82" />)}<rect x="182" y="408" width="26" height="18" rx="4" fill="#DDE3EA" /></g>
+      </g>
 
-      {/* supply runs, coloured by size */}
-      {SEGS.map((s, i) => {
-        const { c, w } = SIZE[s.size];
-        return (
-          <g key={i} style={{ pointerEvents: "none" }}>
-            <path d={s.d} stroke={c} strokeWidth={w} fill="none" strokeLinecap="round" />
-          </g>
-        );
-      })}
-      {BTO.map(([x, y]) => <g key={`${x}${y}`}><circle cx={x} cy={y} r="8.5" fill="#C9CED6" stroke="#6B7480" strokeWidth="1.5" /><circle cx={x} cy={y} r="3.5" fill="#fff" stroke="#6B7480" /></g>)}
+      {/* air falling from each vent to the floor */}
+      <g style={{ pointerEvents: "none" }}>
+        {IDS.flatMap((id) => VENTS[id].map(([x, y]) => {
+          const o = running ? zs[id].open : 0;
+          const [tx, ty] = proj(x, y, CEIL), [bx, by] = proj(x, y, 0);
+          return <polygon key={`${x}${y}`} points={`${tx - 10},${ty} ${tx + 10},${ty} ${bx + 20 + o * 22},${by} ${bx - 20 - o * 22},${by}`} fill={`url(#zh-cone-${act === "heat" ? "h" : "c"})`} opacity={o > 0.12 ? 0.4 + o * 0.6 : 0} style={{ transition: "opacity .5s" }} />;
+        }))}
+      </g>
 
-      {/* fan coil, the transition up into the plenum, and the plenum the zones leave from */}
-      <rect x="340" y="300" width="100" height="38" rx="3" fill="#111" />
-      <text x="390" y="323" textAnchor="middle" className="zh__fc">FAN COIL</text>
-      <path d="M332 286 H448 L440 300 H340 Z" fill="url(#zh-galv)" stroke="#6B7480" strokeWidth="1" />
-      <rect x="332" y="262" width="116" height="24" rx="2" fill="url(#zh-galv)" stroke="#6B7480" strokeWidth="1.2" />
-      <text x="390" y="278" textAnchor="middle" className="zh__sz">PLENUM</text>
-
-      <rect x="612" y="298" width="52" height="44" rx="5" fill="#fff" stroke="#5E6A82" strokeWidth="1.5" />
-      <circle cx="638" cy="320" r="15" fill="#2B3247" />
-      {motion && <FlowLayer live={live} />}
-      {!motion && <g>{[0, 120, 240].map((a) => <ellipse key={a} cx="638" cy="312" rx="3.5" ry="7" fill="#AEB8C6" transform={`rotate(${a} 638 320)`} />)}</g>}
-      {IDS.map((id) => { const [x, y, a] = DAMPERS[id]; return <Motor key={id} x={x} y={y} a={a} open={zs[id].open} moving={!!zs[id].mv} />; })}
-      {IDS.flatMap((id) => VENTS[id].map(([x, y]) => <Diffuser key={`${x}${y}`} x={x} y={y} open={running ? zs[id].open : 0} air={air} motion={motion} />))}
-      {SIZE_TAGS.map(([x, y, s]) => (
-        <g key={`${x}${y}`} style={{ pointerEvents: "none" }}>
-          <rect x={x - 16} y={y - 7} width="32" height="13" rx="3" fill="#fff" stroke="#C9D1DC" />
-          <text x={x} y={y + 3} textAnchor="middle" className="zh__sz">{`ø${s}`}</text>
-        </g>
-      ))}
-      <rect x="388" y="428" width="34" height="13" rx="3" fill="#fff" stroke="#C9D1DC" />
-      <text x="405" y="438" textAnchor="middle" className="zh__sz">RA ø500</text>
-
-      {/* refrigerant out to the outdoor unit, which works only as hard as the zones ask */}
-      <path d="M440 320 H612" stroke="#C98B57" strokeWidth="2" strokeDasharray="5 4" fill="none" />
-      <circle cx="638" cy="320" r="3" fill="#C9D1DC" />
-      <text x="638" y="358" textAnchor="middle" className="zh__room-n" fill="#3E444D">Outdoor</text>
-      <text x="638" y="372" textAnchor="middle" className="zh__room-d" fill="#8A93A0">{outdoor ? `${Math.round(load * 100)}% output` : "idle"}</text>
-
-      {ROOMS.map((r) => {
-        const z = r.zone ? zs[r.zone] : null;
-        const x = r.lx ?? r.tx ?? r.x + 8, y = r.ly ?? r.y + 18;
-        return (
-          <g key={r.name} style={{ pointerEvents: "none" }}>
-            <text x={x} y={y} textAnchor={r.lx ? "middle" : "start"} className="zh__room-n" fill="#1F2536">{r.name}</text>
-            {r.dims && <text x={x} y={y + 14} className="zh__room-d" fill="#8A93A0">{r.dims}</text>}
-            {z && r.zone && (
-              <g transform={`translate(${x} ${y + 21})`}>
-                <rect width="84" height="19" rx="9.5" fill={z.on ? "#050A30" : "#fff"} stroke={z.on ? "#050A30" : "#B8C0CA"} />
-                <text x="42" y="13" textAnchor="middle" className="zh__tag" fill={z.on ? "#fff" : "#6B7480"}>{`Zone ${r.zone} · ${z.t.toFixed(1)}°`}</text>
+      {/* the ceiling space: vents, return air, ducts, take-offs, the unit */}
+      <g style={{ pointerEvents: "none" }}>
+        <g transform={plane(CEIL)}>
+          {IDS.flatMap((id) => VENTS[id].map(([x, y]) => {
+            const lit = running && zs[id].open > 0.12;
+            const ink = lit ? "#3E444D" : "#B8C0CA";
+            return (
+              <g key={`${x}${y}`}>
+                <circle cx={x} cy={y} r="13" fill="#fff" stroke={ink} strokeWidth="1.4" />
+                <circle cx={x} cy={y} r="9" fill="none" stroke={ink} strokeWidth="1" />
+                <circle cx={x} cy={y} r="5" fill="none" stroke={ink} strokeWidth="1" />
+                <circle cx={x} cy={y} r="1.8" fill={ink} />
               </g>
-            )}
-          </g>
-        );
-      })}
+            );
+          }))}
+          <rect x="386" y="394" width="38" height="30" fill="#fff" stroke="#5E6A82" />
+          {[0, 1, 2, 3, 4].map((i) => <path key={i} d={`M390 ${399 + i * 5} h30`} stroke="#5E6A82" strokeWidth="1" />)}
+        </g>
+        <g transform={plane(DUCT)}>
+          <path d="M405 409 L405 340" stroke="#5B46A3" strokeWidth="20" strokeLinecap="round" />
+          <path d="M405 409 L405 340" stroke="#7B5CC9" strokeWidth="17" strokeLinecap="round" />
+          {SEGS.map((s, i) => {
+            const { c, w } = SIZE[s.size];
+            return (
+              <g key={i}>
+                <path d={s.d} stroke={shade(c, 0.72)} strokeWidth={w + 3} fill="none" strokeLinecap="round" />
+                <path d={s.d} stroke={c} strokeWidth={w} fill="none" strokeLinecap="round" />
+                <path d={s.d} stroke="#000" strokeOpacity=".1" strokeWidth={w} fill="none" strokeDasharray="1.2 4" />
+              </g>
+            );
+          })}
+        </g>
+        {/* a highlight along the top of each duct, for the round of it */}
+        <g transform={plane(DUCT + 3)}>
+          {SEGS.map((s, i) => <path key={i} d={s.d} stroke="#fff" strokeOpacity={0.35 + openOf(s) * 0} strokeWidth={SIZE[s.size].w * 0.28} fill="none" strokeLinecap="round" />)}
+          <path d="M405 409 L405 340" stroke="#fff" strokeOpacity=".3" strokeWidth="5" strokeLinecap="round" />
+        </g>
+        {motion && <g transform={plane(DUCT + 4)}><FlowLayer live={live} fan={fanEl} /></g>}
+        {BTO.map(([x, y]) => <Bto key={`${x}${y}`} x={x} y={y} />)}
 
-      <g transform="translate(160 562)">
+        {/* fan coil, transition and plenum: wider than deep, the plenum across the supply side */}
+        <Box s={{ x: 340, y: 300, z: DUCT - 12, w: 100, d: 38, h: 26, top: "#2B3140" }} />
+        <g transform={plane(DUCT + 14.2)}><text x="390" y="323" textAnchor="middle" className="zh__fc">FAN COIL</text></g>
+        <Box s={{ x: 340, y: 286, z: DUCT - 8, w: 100, d: 14, h: 18, top: "#C9D0D9" }} />
+        <Box s={{ x: 332, y: 262, z: DUCT - 11, w: 116, d: 24, h: 23, top: "#DDE2E8" }} />
+        <g transform={plane(DUCT + 12.2)}><text x="390" y="278" textAnchor="middle" className="zh__sz">PLENUM</text></g>
+        {IDS.map((id) => { const [x, y, a] = DAMPERS[id]; return <Motor key={id} x={x} y={y} a={a} open={zs[id].open} moving={!!zs[id].mv} />; })}
+
+        {/* refrigerant out to the outdoor unit */}
+        <g transform={plane(DUCT)}><path d="M440 320 L630 320" stroke="#C98B57" strokeWidth="3" fill="none" /></g>
+        {(() => { const [x1, y1] = proj(630, 320, DUCT), [, y2] = proj(630, 320, 40); return <path d={`M${x1} ${y1} V${y2}`} stroke="#C98B57" strokeWidth="3" />; })()}
+        <Box s={{ x: 612, y: 298, w: 52, d: 44, h: 40, top: "#F4F6F9" }} />
+        <g transform={face(342)}>
+          <circle cx="638" cy="20" r="15" fill="#2B3247" />
+          <g ref={fanEl}>{[0, 120, 240].map((a) => <ellipse key={a} cx="638" cy="12" rx="3.5" ry="7" fill="#AEB8C6" transform={`rotate(${a} 638 20)`} />)}</g>
+          <circle cx="638" cy="20" r="15" fill="none" stroke="#E8EDF3" strokeOpacity=".6" />
+        </g>
+      </g>
+
+      {/* labels, upright, last so nothing covers them */}
+      <g style={{ pointerEvents: "none" }}>
+        {ROOMS.map((r) => {
+          const z = r.zone ? zs[r.zone] : null;
+          const [x, y] = proj(r.lx ?? r.tx ?? r.x + 14, r.ly ?? r.y + 24, WALL + 4);
+          return (
+            <g key={r.name}>
+              <text x={x} y={y} textAnchor={r.lx ? "middle" : "start"} className="zh__room-n" fill="#1F2536">{r.name}</text>
+              {z && r.zone && (
+                <g transform={`translate(${x} ${y + 6})`}>
+                  <rect width="84" height="19" rx="9.5" fill={z.on ? "#050A30" : "#fff"} stroke={z.on ? "#050A30" : "#B8C0CA"} />
+                  <text x="42" y="13" textAnchor="middle" className="zh__tag" fill={z.on ? "#fff" : "#6B7480"}>{`Zone ${r.zone} · ${z.t.toFixed(1)}°`}</text>
+                </g>
+              )}
+            </g>
+          );
+        })}
+        {(() => { const [x, y] = proj(638, 352, 0); return <><text x={x + 22} y={y + 4} className="zh__room-n" fill="#3E444D">Outdoor</text><text x={x + 22} y={y + 18} className="zh__room-d" fill="#8A93A0">{outdoor ? `${Math.round(load * 100)}% output` : "idle"}</text></>; })()}
+      </g>
+
+      <g transform="translate(-270 456)">
         {[350, 300, 250, 200, 150].map((s, i) => (
-          <g key={s} transform={`translate(${i * 60 - 40} 0)`}>
+          <g key={s} transform={`translate(${i * 60} 0)`}>
             <rect width="22" height="8" rx="4" fill={SIZE[s].c} y="-5" />
             <text x="28" y="2" className="zh__room-d" fill="#5D6B80">{`ø${s}`}</text>
           </g>
         ))}
-        <g transform="translate(300 0)"><rect x="0" y="-7" width="10" height="13" rx="2" fill="#1F2536" /><text x="16" y="2" className="zh__room-d" fill="#5D6B80">Zone motor</text></g>
-        <g transform="translate(400 0)"><circle cx="5" cy="-1" r="6" fill="#fff" stroke="#3E444D" /><circle cx="5" cy="-1" r="2.5" fill="none" stroke="#3E444D" /><text x="16" y="2" className="zh__room-d" fill="#5D6B80">Round vent</text></g>
+        <g transform="translate(310 0)"><rect x="0" y="-7" width="10" height="13" rx="2" fill="#2B3140" /><text x="16" y="2" className="zh__room-d" fill="#5D6B80">Zone motor</text></g>
+        <g transform="translate(400 0)"><circle cx="5" cy="-1" r="6" fill="#C9D0D9" stroke="#8E99A8" /><text x="16" y="2" className="zh__room-d" fill="#5D6B80">Branch take-off</text></g>
+        <g transform="translate(510 0)"><circle cx="5" cy="-1" r="6" fill="#fff" stroke="#3E444D" /><circle cx="5" cy="-1" r="2.5" fill="none" stroke="#3E444D" /><text x="16" y="2" className="zh__room-d" fill="#5D6B80">Round vent</text></g>
       </g>
     </svg>
   );
