@@ -11,11 +11,12 @@ import "./how.css";
  * system gets one detailed drawing of a real house with everything in it:
  * brick, roof tiles, insulated copper, flex duct, the compressor inside the
  * outdoor unit. Air, water, gas and refrigerant move in the direction they
- * really go, as particles along the pipes, and picking a step moves the
- * camera onto the part it's about.
+ * really go, as particles along the pipes.
  *
  * Steps advance on their own while the diagram is on screen, until someone
- * picks one. With reduced motion asked for, nothing moves or advances.
+ * picks one. The whole drawing stays on screen throughout; a step lights its
+ * part rather than zooming in on it. With reduced motion asked for, nothing
+ * moves or advances.
  */
 
 type Rect = [number, number, number, number];
@@ -1255,26 +1256,9 @@ function bounds(rects: Rect[]): Rect {
   return [x0, y0, x1 - x0, y1 - y0];
 }
 
-/**
- * Where the camera sits for a step: zoomed onto its parts with some of the
- * system still in view around them, never past the edge of the drawing, and
- * never so close the part loses its context. -1 is the whole system.
- */
-function camera(spots: Rect[][], active: number) {
-  if (active < 0 || !spots[active]) return { s: 1, tx: 0, ty: 0 };
-  const [x, y, w, h] = bounds(spots[active]);
-  const pad = 46;
-  const s = Math.max(1, Math.min(1.7, 600 / (w + pad * 2), 400 / (h + pad * 2)));
-  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-  const tx = clamp(300 - s * (x + w / 2), 600 - 600 * s, 0);
-  const ty = clamp(200 - s * (y + h / 2), 400 - 400 * s, 0);
-  return { s, tx, ty };
-}
-
 export function HowDiagram({ kind, active, motion = true }: { kind: DiagramKind; active: number; motion?: boolean }) {
   const sc = SCENES[kind];
   const id = useId().replace(/:/g, "");
-  const cam = camera(sc.spots, active);
   const lit = active >= 0 ? sc.spots[active] : null;
   return (
     <svg viewBox="0 0 600 400" className="hw__svg" role="img" aria-label={sc.label}>
@@ -1290,8 +1274,8 @@ export function HowDiagram({ kind, active, motion = true }: { kind: DiagramKind;
       </defs>
       <g clipPath={`url(#hw-clip-${id})`}>
         <rect x="0" y="0" width="600" height="400" fill="#EEF5FB" />
-        {/* The camera: eases from part to part as the steps change. */}
-        <g className="hw-cam" style={{ transform: `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.s})` }}>
+        {/* The whole system stays in view: each step lights its part and dims the rest, rather than zooming in and losing what it connects to. */}
+        <g>
           <Ctx.Provider value={{ p: `hw-${id}`, motion }}>{sc.scene}</Ctx.Provider>
           {lit && <rect key={active} className="hw-dim" x="-50" y="-50" width="700" height="500" mask={`url(#hw-mask-${id})`} />}
           {sc.spots.map((rects, i) => (
@@ -1313,9 +1297,8 @@ const STEP_MS = 5200;
 const OVERVIEW_MS = 2400;
 
 /**
- * Plays like a short explainer: the whole system first, then the camera
- * moves in on each part in turn while the rest dims, then back out to the
- * whole thing and round again. It runs while it's on screen; picking a step,
+ * Plays like a short explainer: the whole system first, then each part in
+ * turn while the rest dims, then round again. It runs while it's on screen; picking a step,
  * or pause, stops it there. With reduced motion asked for it never plays on
  * its own, and the camera cuts rather than glides.
  */

@@ -20,10 +20,10 @@ export type Learn = { how: HowStep[]; good: string[]; alt: Alt[]; title?: string
 const SPLIT: Learn = {
   diagram: "split",
   how: [
-    { t: "The indoor unit", d: "Mounted high on the wall, it draws room air across a coil and blows it back cooler, or warmer. It treats the air already in the room rather than bringing outside air in." },
-    { t: "The pipes between", d: "Two insulated copper pipes carry refrigerant between the indoor and outdoor units, with a drain for the water it pulls out of the air. Back-to-back on the same wall is the shortest, neatest run." },
-    { t: "The outdoor unit", d: "The compressor and fan live outside. In summer it moves the room's heat outdoors; in winter it runs the other way and pulls heat in from the outside air." },
-    { t: "Inverter control", d: "Instead of switching hard on and off, an inverter compressor speeds up and slows down to hold the temperature. That is what keeps it quiet and cheap to run once the room is there." },
+    { t: "The indoor unit", d: "Sits high on the wall and blows cool or warm air into the room." },
+    { t: "The pipes between", d: "Two copper pipes go through the wall to the outdoor unit, with a small drain beside them." },
+    { t: "The outdoor unit", d: "Moves the heat out of the house in summer, and brings heat in during winter." },
+    { t: "Inverter control", d: "It speeds up and slows down rather than switching on and off, so it's quiet and cheap to run." },
   ],
   good: [
     "One room you use most: a bedroom, study or living area",
@@ -43,10 +43,10 @@ export const LEARN: Record<string, Learn> = {
   "multi-head": {
     diagram: "multi",
     how: [
-      { t: "One outdoor unit", d: "A single outdoor unit runs two or more indoor heads, so there's one box on the outside wall instead of several." },
-      { t: "A head in each room", d: "Every room gets its own indoor unit and its own remote, set to its own temperature." },
-      { t: "Its own pipe run", d: "Each head is piped back to the outdoor unit separately, which is why the site check looks closely at where those pipes can go." },
-      { t: "Sized for how you live", d: "The outdoor unit is sized for the rooms you run together, not for every head flat out at once." },
+      { t: "One outdoor unit", d: "One box outside runs every indoor unit." },
+      { t: "A head in each room", d: "Each room has its own indoor unit and its own remote." },
+      { t: "Its own pipe run", d: "Each indoor unit is piped back to the outdoor unit on its own." },
+      { t: "Sized for how you live", d: "Sized for the rooms you use at the same time, not every room at once." },
     ],
     good: [
       "Two or more rooms that each want their own control",
@@ -61,10 +61,10 @@ export const LEARN: Record<string, Learn> = {
   ducted: {
     diagram: "ducted",
     how: [
-      { t: "A unit in the roof", d: "A fan coil sits out of sight in the roof space and pushes conditioned air through insulated ducts." },
-      { t: "Vents in each room", d: "Slim ceiling outlets in each room, and a return-air grille that draws air back to the unit to be treated again." },
-      { t: "The outdoor unit", d: "Does the same job as a split's: moves heat out of the house in summer and into it in winter." },
-      { t: "Zones", d: "Motorised dampers open and close each zone, so you can run the bedrooms at night and the living areas by day." },
+      { t: "A unit in the roof", d: "Hidden in the roof, it pushes cool or warm air through the ducts." },
+      { t: "Vents in each room", d: "Air comes out of a vent in each ceiling and goes back to the unit through a return grille." },
+      { t: "The outdoor unit", d: "Moves the heat out of the house in summer, and brings heat in during winter." },
+      { t: "Zones", d: "Motors in the ducts open and close each zone, so you only run the rooms you're in." },
     ],
     good: [
       "Whole-home heating and cooling from one system",
@@ -79,10 +79,10 @@ export const LEARN: Record<string, Learn> = {
   evaporative: {
     diagram: "evap",
     how: [
-      { t: "Water-soaked pads", d: "On the roof, water trickles over thick cooling pads." },
-      { t: "Air drawn through", d: "A fan pulls outside air through the wet pads. As the water evaporates, the air cools." },
-      { t: "Through the house", d: "Ducts carry that cooled, fresh air to the rooms." },
-      { t: "A window open", d: "Unlike refrigerated air it needs somewhere to go. Leave a window or door ajar and the hot, stale air is pushed out." },
+      { t: "Water-soaked pads", d: "On the roof, water runs over thick pads." },
+      { t: "Air drawn through", d: "A fan pulls outside air through the wet pads, which cools it." },
+      { t: "Through the house", d: "Ducts carry the cool, fresh air to each room." },
+      { t: "A window open", d: "Leave a window open so the warm air has somewhere to go." },
     ],
     good: [
       "Cooling only, with fresh air all day",
@@ -97,10 +97,10 @@ export const LEARN: Record<string, Learn> = {
   "heat-pump": {
     diagram: "hp",
     how: [
-      { t: "Heat from the air", d: "A fan draws outside air across a coil of refrigerant, which soaks up heat even on a cool day." },
-      { t: "Compressed", d: "The compressor squeezes that refrigerant, which lifts its temperature well above the air it came from." },
-      { t: "Into the tank", d: "That heat is passed into the water in an insulated tank, ready when you turn on a tap." },
-      { t: "Run when power is cheap", d: "Set it to run in the middle of the day off your solar, or on an off-peak tariff." },
+      { t: "Heat from the air", d: "A fan pulls outside air over a coil that soaks up its heat, even on a cool day." },
+      { t: "Compressed", d: "The compressor squeezes that heat up to a much higher temperature." },
+      { t: "Into the tank", d: "The heat goes into the water in the tank, ready for your taps." },
+      { t: "Run when power is cheap", d: "Run it off your solar in the day, or on off-peak power." },
     ],
     good: [
       "Replacing an old gas or electric tank, with the VEU rebate",
@@ -115,10 +115,10 @@ export const LEARN: Record<string, Learn> = {
   "gas-continuous-flow": {
     diagram: "gas-cf",
     how: [
-      { t: "Turn on a tap", d: "Water starts to flow and a sensor in the unit lights the burner." },
-      { t: "Heated as it passes", d: "The water runs through a heat exchanger and comes out at the temperature you've set." },
-      { t: "No tank to run out", d: "It only heats what you use, so it keeps going as long as the tap is on." },
-      { t: "Off when you're done", d: "Turn the tap off and the burner stops. You're not paying to keep a tank hot all day." },
+      { t: "Turn on a tap", d: "Water starts to flow and the burner lights." },
+      { t: "Heated as it passes", d: "The water is heated as it runs through the unit." },
+      { t: "No tank to run out", d: "It only heats what you use, so it doesn't run out." },
+      { t: "Off when you're done", d: "Turn the tap off and the burner goes out." },
     ],
     good: [
       "Busy households with back-to-back showers",
@@ -133,10 +133,10 @@ export const LEARN: Record<string, Learn> = {
   "gas-storage": {
     diagram: "gas-storage",
     how: [
-      { t: "An insulated tank", d: "Holds a set amount of hot water, ready to go." },
-      { t: "A burner underneath", d: "When the water cools, a gas burner at the base heats it back up." },
-      { t: "Recovery", d: "After a big run the tank refills and reheats. How quickly depends on the burner." },
-      { t: "A simple swap", d: "Like for like, it usually reuses the existing gas, water and flue connections." },
+      { t: "An insulated tank", d: "Holds hot water, ready to use." },
+      { t: "A burner underneath", d: "A gas flame under the tank keeps the water hot." },
+      { t: "Recovery", d: "After a lot of use it refills and heats back up." },
+      { t: "A simple swap", d: "A new one usually connects to the same gas, water and flue." },
     ],
     good: [
       "A straight swap for an old gas tank",
@@ -151,10 +151,10 @@ export const LEARN: Record<string, Learn> = {
   "gas-ducted-heating": {
     diagram: "gas-ducted",
     how: [
-      { t: "The heater", d: "A gas heater sits in the roof, under the floor or outside, and warms air over a heat exchanger." },
-      { t: "Ducts and vents", d: "A fan pushes the warm air through ducts to floor or ceiling vents in each room." },
-      { t: "Return air", d: "Air comes back through a large grille to be warmed again, so the whole house heats evenly." },
-      { t: "Safety tested", d: "Every gas heater we fit or service gets a carbon monoxide test before we leave." },
+      { t: "The heater", d: "A gas heater in the roof warms the air." },
+      { t: "Ducts and vents", d: "A fan pushes the warm air through ducts to a vent in each room." },
+      { t: "Return air", d: "Air comes back through a big grille to be warmed again." },
+      { t: "Safety tested", d: "We test for carbon monoxide on every gas heater we fit or service." },
     ],
     good: [
       "Whole-home heating through a Victorian winter",
@@ -169,10 +169,10 @@ export const LEARN: Record<string, Learn> = {
   zoning: {
     diagram: "zoning",
     how: [
-      { t: "Dampers in the ducts", d: "A motorised damper sits in the ductwork for each zone." },
-      { t: "A controller", d: "A wall controller opens and closes them, one zone or several at a time." },
-      { t: "Only the rooms you use", d: "Close the zones you're not in and the system puts its effort into the ones you are." },
-      { t: "On your ducted system", d: "Added to gas ducted heating or a ducted reverse-cycle system." },
+      { t: "Dampers in the ducts", d: "A motor in each duct opens or closes that zone." },
+      { t: "A controller", d: "Turn zones on and off from the wall controller." },
+      { t: "Only the rooms you use", d: "Closed zones get no air, so the open ones get all of it." },
+      { t: "On your ducted system", d: "Works with ducted gas heating or ducted reverse-cycle air." },
     ],
     good: [
       "A ducted system heating the whole house when you use half of it",
@@ -195,10 +195,10 @@ const ALL_IN_ONE: Pick<Learn, "how" | "title" | "diagram"> = {
   diagram: "hp-aio",
   title: "How an all-in-one heat pump works.",
   how: [
-    { t: "One unit", d: "The heat pump sits in the top of the same unit as the tank. There's only one thing to place, and it usually goes where the old tank stood." },
-    { t: "Heat from the air", d: "A fan draws outside air across a coil filled with R290, a natural refrigerant that soaks up heat even on a cool day." },
-    { t: "Into the water", d: "The compressor squeezes the refrigerant, which lifts its temperature well above the air it came from. That heat passes into the water in the tank below." },
-    { t: "Run when power is cheap", d: "Set it to heat in the middle of the day while your solar panels are producing, or on an off-peak tariff, and the tank carries that hot water through the evening." },
+    { t: "One unit", d: "The heat pump sits on top of the tank, all in one." },
+    { t: "Heat from the air", d: "A fan pulls outside air over a coil that soaks up its heat, even on a cool day." },
+    { t: "Into the water", d: "The compressor heats that up and passes it into the water in the tank." },
+    { t: "Run when power is cheap", d: "Run it off your solar in the day, or on off-peak power." },
   ],
 };
 export const LEARN_TIER: Record<string, Pick<Learn, "how" | "title" | "diagram">> = {
@@ -208,10 +208,10 @@ export const LEARN_TIER: Record<string, Pick<Learn, "how" | "title" | "diagram">
     diagram: "hp-co2",
     title: "How a CO₂ split heat pump works.",
     how: [
-      { t: "Two parts", d: "A slim heat pump unit outside and a separate tank, joined by water pipes. The heat pump can sit away from the tank, so it doesn't have to be under a bedroom window." },
-      { t: "CO₂ as the refrigerant", d: "CO₂ keeps pulling heat out of cold air, so it keeps making hot water on frosty mornings when other heat pumps slow down." },
-      { t: "Heated in one pass", d: "Cold water from the bottom of the tank is pumped out to the heat pump, heated to full temperature in one go, and sent back into the top of the tank." },
-      { t: "Run when power is cheap", d: "Set it to heat in the middle of the day off your solar, or on an off-peak tariff. The tank holds that hot water until you need it." },
+      { t: "Two parts", d: "A heat pump outside and a separate tank, joined by water pipes." },
+      { t: "CO₂ as the refrigerant", d: "CO₂ keeps making hot water even on frosty mornings." },
+      { t: "Heated in one pass", d: "Cold water goes out to the heat pump and comes back hot in one go." },
+      { t: "Run when power is cheap", d: "Run it off your solar in the day, or on off-peak power." },
     ],
   },
 };

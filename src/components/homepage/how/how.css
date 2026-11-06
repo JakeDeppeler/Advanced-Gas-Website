@@ -22,7 +22,7 @@
 .ag .hw-spot rect{fill:none;stroke:none}
 .ag .hw-spot circle{fill:#fff;stroke:#B8C4D4;stroke-width:2}
 .ag .hw-spot text{font:800 13px var(--disp);fill:#5D6B80}
-.ag .hw-spot.on rect{stroke:#C2521A;stroke-width:3;stroke-dasharray:9 6;animation:hwRing 1.2s linear infinite}
+.ag .hw-spot.on rect{stroke:#C2521A;stroke-width:3}
 .ag .hw-spot.on circle{fill:#C2521A;stroke:#C2521A}
 .ag .hw-spot.on text{fill:#fff}
 
@@ -42,7 +42,6 @@
 .ag .hw-fill{transform-box:fill-box;transform-origin:50% 100%;animation:hwFill 5s ease-in-out infinite}
 
 @keyframes hwDash{to{stroke-dashoffset:-36}}
-@keyframes hwRing{to{stroke-dashoffset:-30}}
 @keyframes hwSpin{to{transform:rotate(360deg)}}
 @keyframes hwFlick{from{transform:scaleY(.82)}to{transform:scaleY(1.08)}}
 @keyframes hwNeedle{0%{transform:rotate(-70deg)}40%{transform:rotate(55deg)}100%{transform:rotate(-10deg)}}
@@ -52,13 +51,12 @@
 @keyframes hwFill{0%{transform:scaleY(.35)}70%,100%{transform:scaleY(1)}}
 
 @media (prefers-reduced-motion:reduce){
-  .ag .hw-flow,.ag .hw-spin,.ag .hw-flame,.ag .hw-needle,.ag .hw-damper,.ag .hw-drip,.ag .hw-pulse,.ag .hw-fill,.ag .hw-spot.on rect{animation:none}
+  .ag .hw-flow,.ag .hw-spin,.ag .hw-flame,.ag .hw-needle,.ag .hw-damper,.ag .hw-drip,.ag .hw-pulse,.ag .hw-fill{animation:none}
 }
 
 /* The camera, the dimming around the part in focus, and the player bar */
-.ag .hw-cam{transform-origin:0 0;transition:transform .9s cubic-bezier(.65,0,.35,1)}
-.ag .hw-dim{fill:#050A30;opacity:.42;animation:hwDimIn .6s ease both}
-@keyframes hwDimIn{from{opacity:0}to{opacity:.42}}
+.ag .hw-dim{fill:#050A30;opacity:.3;animation:hwDimIn .5s ease both}
+@keyframes hwDimIn{from{opacity:0}to{opacity:.3}}
 .ag .hw__fig{display:flex;flex-direction:column;gap:12px}
 .ag .hw__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px}
 .ag .hw__cap{font-size:15px;font-weight:700;color:var(--navy);display:flex;gap:10px;align-items:baseline;min-width:0}
@@ -73,7 +71,7 @@
 .ag .hw__prog span.done i{width:100%}
 .ag .hw__prog span.run i{animation:hwProg linear forwards}
 @keyframes hwProg{from{width:0}to{width:100%}}
-@media (prefers-reduced-motion:reduce){.ag .hw-cam{transition:none}.ag .hw-dim{animation:none}}
+@media (prefers-reduced-motion:reduce){.ag .hw-dim{animation:none}}
 
 /* The detailed drawings: readouts, clouds, flue gas and water shimmer */
 .ag .hw-temp{font:900 14px var(--disp)}
