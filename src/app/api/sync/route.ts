@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { computeSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
-import { cronAuthorised } from "@/lib/dashboard/screenAuth";
+import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
 import { pipelineChanged } from "@/lib/pipeline/store";
 import { runDueReports } from "@/lib/reports/run";
@@ -24,7 +24,7 @@ export const maxDuration = 60;
 // beginning — needed once after go-live, or if the replica is ever rebuilt.
 
 export async function GET(req: Request) {
-  if (!cronAuthorised(req)) {
+  if (!(await scheduledCallAuthorised(req))) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
   if (!dashboardDbConfigured()) {

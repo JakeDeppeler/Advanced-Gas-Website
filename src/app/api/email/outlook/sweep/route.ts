@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cronAuthorised } from "@/lib/dashboard/screenAuth";
+import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { outlookConfigured } from "@/lib/outlook/graph";
 import { aiConfigured } from "@/lib/outlook/draft";
@@ -19,7 +19,7 @@ export const maxDuration = 60;
  * happened to each email it found.
  */
 export async function GET(req: Request) {
-  if (!cronAuthorised(req)) return new NextResponse("Unauthorized", { status: 401 });
+  if (!(await scheduledCallAuthorised(req))) return new NextResponse("Unauthorized", { status: 401 });
   const missing = [
     !outlookConfigured() && "MS_GRAPH_TENANT_ID, MS_GRAPH_CLIENT_ID, MS_GRAPH_CLIENT_SECRET and OUTLOOK_DRAFT_MAILBOXES",
     !aiConfigured() && "ANTHROPIC_API_KEY",

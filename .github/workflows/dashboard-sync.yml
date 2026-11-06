@@ -10,6 +10,11 @@ name: Dashboard sync
 # vercel.json, which is the more reliable option:
 #   { "crons": [{ "path": "/api/sync", "schedule": "*/10 * * * *" }] }
 
+# Since 6 Nov the same routes also run every ten minutes from Supabase's own
+# scheduler (pg_cron, migration 0107_pg_cron_sync.sql), because GitHub ran this
+# "every ten minutes" schedule every four to six hours. This stays as a slower
+# second runner and for the manual reset.
+
 on:
   schedule:
     # Every 10 minutes (UTC). GitHub's scheduler is best-effort: runs can be
