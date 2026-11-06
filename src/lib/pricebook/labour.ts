@@ -22,7 +22,7 @@
  */
 
 /** `callout` is a flat fee, not an hourly rate: the price is the fee whatever the hours. */
-import { ADDON_COPY } from "@/lib/pricebook/wording";
+import { ADDON_COPY, isInternalHeater, SERVICE_COPY } from "@/lib/pricebook/wording";
 
 export type Crew = "callout" | "solo" | "partDay" | "pair" | "crew3";
 export type Rates = { callout: number | null; solo: number | null; partDay: number | null; pair: number | null; crew3: number | null };
@@ -45,7 +45,7 @@ const SOLO = [
 const PART_DAY = [
   // Installs done in part of a day: travel to the next job comes out of them.
   "AC-SPLIT-BTB", "AC-SPLIT-RTR", "AC-SPLIT-RTW",
-  "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-EXT",
+  "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-EXT", "GAS-DUCT-INT",
   "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-GAS-STORAGE-INS", "HW-STORAGE-TO-CF",
   "GAS-COOKTOP-INSTALL",
   // Taking the old unit out, on one of those installs.
@@ -171,6 +171,8 @@ const HEADERS: Record<string, "split" | "day" | "multi" | "ducted"> = {
   "AC-SPLIT-BTB": "split", "AC-SPLIT-RTR": "split", "AC-SPLIT-RTW": "split",
   "HW-HP-HARD": "day", "HW-HP-PLUG": "day", "HW-HP-SPLIT": "day", "HW-CF-INS": "day",
   "HW-GAS-STORAGE-INS": "day", "HW-STORAGE-TO-CF": "day", "GAS-COOKTOP-INSTALL": "day",
+  // Ducted gas heaters: a changeover done in part of a day, like hot water.
+  "GAS-DUCT-EXT": "day", "GAS-DUCT-INT": "day",
   "AC-SPLIT-MULTI": "multi",
   "AC-DUCTED-2DAYS": "ducted", "AC-DOM-INSTALL": "ducted",
 };
@@ -212,6 +214,8 @@ export type Catalogue = {
    * prices them (old unit removal at its hours × the two-person rate).
    */
   splitAddOns: { skuId: number; skuType: TemplateItem["skuType"]; name: string; price: number }[];
+  /** "Gas Ducted Heater - Internal", once it exists in the pricebook. */
+  internalHeater?: { skuId: number; hours: number; name: string } | null;
 };
 
 /** Marks where the install line sat while the rest of the template is sorted. */
@@ -221,6 +225,13 @@ export type TemplatePlan = {
   id: number;
   name: string;
   kind: "split" | "day" | "multi";
+  /**
+   * An internal heater quoted on the external heater's service: this run swaps
+   * the line to the internal service and does nothing else, because a new
+   * line has no id for the rest of the template to group under until it's
+   * saved. The next run groups it like any other.
+   */
+  swap?: { from: string; to: string; skuId: number };
   header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number };
   electrical: number;
   materials: number;
@@ -258,6 +269,20 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
   const headerId = headerItem.id;
   const kind = HEADERS[code(headerItem)];
   if (kind === "ducted") return { id: t.id, name: t.name, reason: "ducted: priced from the job's design, not rebuilt" };
+  if (code(headerItem) === "GAS-DUCT-EXT" && t.items.some((i) => i.skuType === "Equipment" && isInternalHeater(i.skuName ?? ""))) {
+    const int = cat.internalHeater;
+    if (!int) return { id: t.id, name: t.name, reason: "internal heater on the external service: run services first, which creates the internal one" };
+    const price = cents(int.hours * rates.partDay);
+    const items = t.items.map((i) => (i === headerItem
+      ? { id: null, skuId: int.skuId, skuType: "Service" as const, skuName: int.name, description: SERVICE_COPY["GAS-DUCT-INT"] ?? null, quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: headerItem.itemGroupName ?? null }
+      : i));
+    return {
+      id: t.id, name: t.name.trim(), kind: "day", swap: { from: (headerItem.skuName ?? "").trim(), to: int.name, skuId: int.skuId },
+      header: { itemId: -1, name: int.name, hours: int.hours, rate: rates.partDay, labour: price },
+      electrical: 0, materials: 0, materialLines: 0, addOns: [], removed: [`${(headerItem.skuName ?? "").trim()} $${headerItem.unitPrice}`],
+      before: templateTotal(t.items), after: templateTotal(items), items,
+    };
+  }
   if (t.items.some((i) => i.itemGroupParentId === headerId)) {
     // A template the office already grouped by hand isn't reshuffled under them.
     return { id: t.id, name: t.name, reason: "already has an installation group" };

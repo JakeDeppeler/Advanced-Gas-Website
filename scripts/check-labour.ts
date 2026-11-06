@@ -209,6 +209,30 @@ ok("continuous flow: 2.8 hours at the part-day $350 on the header, not $0", pcf.
 ok("hot water gets no split extras", pcf.addOns.length === 0);
 ok("its fittings go under the header", group(pcf.items, pcf.header.itemId).length === 1);
 
+// Gas heaters: the header at 3 h × $350. An internal heater on the external
+// service is swapped to the internal one first, and only that.
+const HEAT = { EXT: 40, INT: 41 };
+const catH: Catalogue = { ...cat, service: new Map([...cat.service, [HEAT.EXT, { code: "GAS-DUCT-EXT", hours: 3 }], [HEAT.INT, { code: "GAS-DUCT-INT", hours: 3 }]]),
+  internalHeater: { skuId: HEAT.INT, hours: 3, name: "Gas Ducted Heater - Internal" } };
+const buffalo: Template = { id: 9, name: "Brivis Buffalo 5 Star 20kW Ducted Gas Heater", items: [
+  it("Equipment", 220, "Brivis Buffalo 5 Star 20kW", 2400), it("Service", HEAT.EXT, "Gas Ducted Heater - External", 1240),
+  it("Material", M.PVC, "Buffalo base box", 0), it("Service", S.BPC, "BPC Compliance Certificate", 65),
+] };
+const pb = planTemplate(buffalo, catH, tr);
+ok("an external heater gets the header: 3 h at the part-day $350", !("reason" in pb) && pb.kind === "day" && pb.header.labour === 1050 && !pb.swap, pb);
+const wombat: Template = { id: 10, name: "Brivis Wombat 3 Star 15kW Ducted Gas Heater", items: [
+  it("Equipment", 221, "Brivis Classic 2P Wombat 15NG", 1600), it("Service", HEAT.EXT, "Gas Ducted Heater - External", 1190),
+  it("Material", M.PVC, "Flue", 0), it("Service", S.BPC, "BPC Compliance Certificate", 65),
+] };
+const pw = planTemplate(wombat, catH, tr);
+ok("an internal heater on the external service is swapped to the internal one", !("reason" in pw) && pw.swap?.skuId === HEAT.INT && pw.items.some((i) => i.skuId === HEAT.INT && i.id === null && i.unitPrice === 1050) && !pw.items.some((i) => i.skuId === HEAT.EXT), pw);
+ok("the swap does nothing else: no group yet", !("reason" in pw) && !pw.items.some((i) => i.itemGroupParentId));
+const pwNo = planTemplate(wombat, { ...catH, internalHeater: null }, tr);
+ok("no internal service yet: skipped, saying run services first", "reason" in pwNo && /run services first/.test(pwNo.reason));
+const wombat2: Template = { ...wombat, items: wombat.items.map((i) => (i.skuId === HEAT.EXT ? { ...i, skuId: HEAT.INT, skuName: "Gas Ducted Heater - Internal" } : i)) };
+const pw2 = planTemplate(wombat2, catH, tr);
+ok("once swapped, the next run groups it like any other", !("reason" in pw2) && !pw2.swap && pw2.header.labour === 1050 && pw2.items.some((i) => i.itemGroupParentId === pw2.header.itemId));
+
 // Not aircon, or already rebuilt.
 const cook: Template = { id: 6, name: "Gas Cooktop", items: [it("Service", 400, "Something unlisted", 100)] };
 const skipCook = planTemplate(cook, cat, tr);

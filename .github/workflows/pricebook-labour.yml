@@ -77,6 +77,10 @@ jobs:
               echo "| Service | Code | Crew | Hours | Before | After |"
               echo "|---|---|---|---|---|---|"
               jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(.hours) | \(.before|m) | \(.after|m) |"' out.json
+              if [ "$(jq -r '.creates // [] | length' out.json)" != "0" ]; then
+                echo; echo "| New service | Code | Hours | Price |"; echo "|---|---|---|---|"
+                jq -r "${JQ_DEFS}"'.creates[] | "| \(.name|e) | \(.code|e) | \(.hours) | \(.price|m) |"' out.json
+              fi
               if [ "$(jq -r '.materials // [] | length' out.json)" != "0" ]; then
                 echo; echo "| Refrigerant (per kg) | Cost before → after | Price before → after |"; echo "|---|---|---|"
                 jq -r "${JQ_DEFS}"'.materials[] | "| \(.name|e) | \(.costBefore|m) → \(.cost|m) | \(.before|m) → \(.after|m) |"' out.json
