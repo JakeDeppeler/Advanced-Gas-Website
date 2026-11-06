@@ -22,6 +22,8 @@
  */
 
 /** `callout` is a flat fee, not an hourly rate: the price is the fee whatever the hours. */
+import { ADDON_COPY } from "@/lib/pricebook/wording";
+
 export type Crew = "callout" | "solo" | "partDay" | "pair" | "crew3";
 export type Rates = { callout: number | null; solo: number | null; partDay: number | null; pair: number | null; crew3: number | null };
 
@@ -145,8 +147,9 @@ export function planRefrigerant(materials: MaterialRow[], r: RefrigerantSettings
 //
 // Split systems: the labour is the install service's hours × the part-day
 // rate, on the header. Each also offers, as add-ons the office ticks on the
-// day: taking the old unit out, a condensate pump, Blygold on the condenser
-// and a second coil of the template's own size for runs over 20 m.
+// day: a condensate pump, Blygold on the condenser and a second coil of the
+// template's own size for runs over 20 m. Taking the old unit out isn't one:
+// a new install includes it (Jake, 6 Nov).
 //
 // Multi-heads (Jake, 5 Nov): one condenser can go out with two heads or five,
 // so the labour can't be fixed on the template. The header holds the
@@ -329,7 +332,8 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
     ];
     for (const x of extras) {
       if (has(x.skuId) || !(x.price > 0)) continue;
-      addOnItems.push({ id: null, skuId: x.skuId, skuType: x.skuType, skuName: x.name, quantity: 1, unitPrice: x.price, isAddOn: true });
+      const description = x.skuId === coil?.skuId ? ADDON_COPY.coil : /pump/i.test(x.name) ? ADDON_COPY.pump : null;
+      addOnItems.push({ id: null, skuId: x.skuId, skuType: x.skuType, skuName: x.name, description, quantity: 1, unitPrice: x.price, isAddOn: true });
       addOns.push({ name: x.name, hours: 0, price: x.price, skuId: x.skuId });
     }
   }

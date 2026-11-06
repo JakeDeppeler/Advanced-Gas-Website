@@ -3,7 +3,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import {
-  applyRefrigerant, applyServicePrices, applyTemplatePrices, planServicePrices, planTemplatePrices, recordLabourRun,
+  applyRefrigerant, applyServicePrices, applyTemplatePrices, applyWording, planServicePrices, planTemplatePrices, planWording, recordLabourRun,
 } from "@/lib/pricebook/labourSync";
 
 export const runtime = "nodejs";
@@ -26,11 +26,12 @@ export async function GET(req: Request) {
   if (!serviceTitanConfigured()) return NextResponse.json({ ok: false, error: "ServiceTitan credentials not set" }, { status: 503 });
 
   const url = new URL(req.url);
-  const what = url.searchParams.get("what") === "templates" ? "templates" : "services";
+  const w = url.searchParams.get("what");
+  const what = w === "templates" ? "templates" : w === "wording" ? "wording" : "services";
   const apply = url.searchParams.get("apply") === "1";
   // A template is a PATCH and a read-back of a large record; fifteen fits the
   // function's minute with room. Services are small.
-  const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit")) || (what === "templates" ? 15 : 60)));
+  const limit = Math.min(200, Math.max(1, Number(url.searchParams.get("limit")) || (what === "templates" ? 15 : what === "wording" ? 25 : 60)));
   const started = Date.now();
 
   try {
@@ -48,6 +49,20 @@ export async function GET(req: Request) {
       const merged = { applied: result.applied + gas.applied, verified: result.verified + gas.verified, failed: [...result.failed, ...gas.failed], remaining: result.remaining };
       const runId = await recordLabourRun("services", "apply", summary, log, merged);
       return NextResponse.json({ ok: merged.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, changes: plan.changes.slice(0, limit), materials: plan.materialChanges, ...merged });
+    }
+
+    if (what === "wording") {
+      // Service descriptions, template summaries and their lines' descriptions.
+      const plan = await planWording();
+      const summary = { services: plan.changes.filter((c) => c.kind === "service").length, templates: plan.changes.filter((c) => c.kind === "template").length, untouched: plan.untouched.length };
+      const rows = plan.changes.map(({ items: _items, ...c }) => c);
+      if (!apply) {
+        const runId = await recordLabourRun("wording", "dry-run", summary, rows);
+        return NextResponse.json({ ok: true, what, mode: "dry-run", runId, durationMs: Date.now() - started, summary, changes: rows, untouched: plan.untouched });
+      }
+      const result = await applyWording(plan.changes, limit);
+      const runId = await recordLabourRun("wording", "apply", summary, rows, result);
+      return NextResponse.json({ ok: result.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, changes: rows.slice(0, limit), ...result });
     }
 
     const plan = await planTemplatePrices();

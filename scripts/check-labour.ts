@@ -91,7 +91,6 @@ const cat: Catalogue = {
   materialPrice: new Map([[M.COIL, 240], [M.BRACKET, 50], [M.HAT, 35], [M.PVC, 20], [M.VEEC, -70], [M.DAMPER, 76], [M.CABLE, 20]]),
   multiHead: new Map([mh(2, S.M2, 5), mh(3, S.M3, 7), mh(4, S.M4, 8), mh(5, S.M5, 12), mh(6, S.M6, 14)]),
   splitAddOns: [
-    { skuId: 300, skuType: "Service", name: "Remove & dispose of the old unit", price: 350 },
     { skuId: 301, skuType: "Material", name: "Silent Mini White Cond Pump 45L/h FP3450", price: 280 },
     { skuId: 302, skuType: "Service", name: "Blygold Corrosion Protection", price: 1100 },
   ],
@@ -129,10 +128,10 @@ ok("order: unit, header, its group, then the certificate (extras aside)", p1.ite
 ok("total: 900 + 1670 + 400 + 65 before, 900 + 1400 + 400 + 380 + 65 after", p1.before === 3035 && p1.after === 3145, { before: p1.before, after: p1.after });
 ok("nothing doubled, nothing taken off", p1.removed.length === 0);
 const extras = p1.items.filter((i) => i.isAddOn);
-ok("a split offers removal, condensate pump, Blygold and a second coil", extras.length === 4 && extras.map((e) => e.unitPrice).join() === "350,280,1100,240", extras.map((e) => [e.skuName, e.unitPrice]));
+ok("a split offers condensate pump, Blygold and a second coil; removal comes with the install", extras.length === 3 && extras.map((e) => e.unitPrice).join() === "280,1100,240", extras.map((e) => [e.skuName, e.unitPrice]));
 ok("the second coil is the template's own coil, at its pricebook price", extras.some((e) => e.skuId === M.COIL && e.unitPrice === 240));
 ok("extras are optional: not in the total", p1.after === 3145);
-ok("extras are new items, sent without an id", templatePatchItems(p1.items).filter((b) => b.id === null).length === 4);
+ok("extras are new items, sent without an id", templatePatchItems(p1.items).filter((b) => b.id === null).length === 3);
 const withPump: Template = { ...k35, items: [...k35.items, it("Material", 301, "Silent Mini White Cond Pump", 280, { isAddOn: true })] };
 ok("an extra the template already offers isn't added twice", plan(withPump).items.filter((i) => i.skuId === 301).length === 1);
 const body = templatePatchItems(p1.items);

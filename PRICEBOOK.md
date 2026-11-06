@@ -294,3 +294,28 @@ Actions → **Pricebook labour** → choose *services* or *templates*. Without
 until `remaining` is 0. Each run is a row in `pricebook_sync_runs` with
 `supplier` = `labour-services` or `labour-templates`. `npm run check:labour`
 holds the rules.
+
+## Quote wording
+
+Jake, 6 Nov 2026: every template summary and service description reads the
+same way. A summary says what the job is and what it involves, then the brand,
+then how we install it (our own licensed team, the materials actually on the
+template, pressure test and vacuum, sealed penetrations, the clean-up): that's
+where a quote shows why we cost more than the cheapest one. Last, what's
+included and what's quoted separately. It's all in
+`src/lib/pricebook/wording.ts`.
+
+- A template's facts come from its own lines, not its name: the size from the
+  unit on it, internal or external from the heater, wifi from the unit. That's
+  what stopped Kaden quotes saying Mitsubishi Electric and a 250L saying 160L.
+- Product claims are the ones the old wording made, carried over. Anything new
+  is in `NEW_CLAIMS` and gets checked before it goes on a quote.
+- Removing the old unit is part of every install. The removal service is for a
+  visit where nothing goes in. The $200 call-out covers the first hour.
+- Servicing, leak detection, commercial and the deposit keep their wording.
+
+Actions → **Pricebook labour** → *wording*: a dry run lists every change against
+the live text; *apply* writes the service descriptions, the template summaries
+and the description on each template line that uses a reworded service, and
+reads each back. Template summaries need the Estimate Templates write scope.
+`npm run check:wording` holds it.
