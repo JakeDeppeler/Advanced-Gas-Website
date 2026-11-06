@@ -13,7 +13,7 @@ import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, bookingSummary, dedupeKey, fillTemplate,
-  isTeamForward, mightBeWorkOrder, parseWorkOrder, tenantAddress, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
+  isTeamForward, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
 /**
@@ -241,7 +241,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
     } catch (e) {
       // A job ServiceTitan wouldn't make still mustn't be lost: it goes in as
       // a Booking instead, as before, with the reason on the row.
-      jobError = (e as Error).message.replace(/^ServiceTitan POST \S+ failed: /, "ServiceTitan said ").slice(0, 200);
+      jobError = stSaid(e).slice(0, 200);
     }
     if (job) {
       await save(mailbox, m.id, {
@@ -262,10 +262,9 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
 
     const id = (await sbSelectOne<{ id: string }>(TABLE, [q.select("id"), ...rowFilter(mailbox, m.id)].join("&")))?.id ?? m.id;
     const contacts = [
-      ...(w.tenantPhone ? [{ type: "Phone", value: w.tenantPhone, memo: `Tenant${w.tenantName ? `: ${w.tenantName}` : ""}` }] : []),
-      ...(w.tenantEmail ? [{ type: "Email", value: w.tenantEmail, memo: `Tenant${w.tenantName ? `: ${w.tenantName}` : ""}` }] : []),
-      ...(w.pmPhone ? [{ type: "Phone", value: w.pmPhone, memo: `Property manager${w.propertyManager ? `: ${w.propertyManager}` : ""}` }] : []),
-      ...(w.pmEmail ? [{ type: "Email", value: w.pmEmail, memo: `Property manager${w.propertyManager ? `: ${w.propertyManager}` : ""}` }] : []),
+      ...tenantContacts(w, "Phone"),
+      // The property manager split the same way: an agency can list two.
+      ...tenantContacts({ tenantName: w.propertyManager, tenantPhone: w.pmPhone, tenantEmail: w.pmEmail }, "Phone").map((c) => ({ ...c, memo: c.memo.replace(/^Tenant/, "Property manager") })),
     ];
     const made = await stSend<{ id?: number }>("POST", stTenantPath("crm", `booking-provider/${provider}/bookings`), {
       source: w.platform ? `Work order (${w.platform})` : "Work order",
@@ -286,7 +285,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
   } catch (e) {
     // ServiceTitan's and Graph's messages carry the status and their own
     // reason, never our credentials.
-    const reason = (e as Error).message.replace(/^ServiceTitan POST \S+ failed: /, "ServiceTitan said ").slice(0, 300);
+    const reason = stSaid(e).slice(0, 300);
     await save(mailbox, m.id, { status: "failed", reason }).catch(() => undefined);
     // Read as a work order before it failed (the details were saved): no reply
     // draft for it either, and the sweep's retry books it.
@@ -309,8 +308,10 @@ async function emailTenant(mailbox: string, id: string, w: WorkOrder, fromAddres
 
   const settings = workOrderSettingsFrom(await getSettings<unknown>("work_orders").catch(() => null));
   if (!settings.tenantEmail) return note("Tenant email switched off");
-  const to = tenantAddress(w, fromAddress);
-  if (!to) return note(w.tenantEmail ? "Tenant email looked like the agency's, not sent" : "No tenant email in the work order");
+  // Both tenants, when the work order names two.
+  const all = tenantAddresses(w, fromAddress);
+  const to = all.join(", ");
+  if (!all.length) return note(w.tenantEmail ? "Tenant email looked like the agency's, not sent" : "No tenant email in the work order");
 
   // From our own domain, as the supplier orders are: RESEND_FROM_EMAIL's
   // domain is the one Resend has verified.
@@ -324,7 +325,7 @@ async function emailTenant(mailbox: string, id: string, w: WorkOrder, fromAddres
   const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1d">${text.split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("")}</div>`;
   const out = await sendEmail("work-order-tenant", {
     from: `${site.name} <bookings@${domain}>`,
-    to: [to],
+    to: all,
     reply_to: BOOKINGS_ADDRESS,
     subject,
     text,

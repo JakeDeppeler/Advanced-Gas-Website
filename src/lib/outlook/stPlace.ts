@@ -1,7 +1,7 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
-import { agencyMatches, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, type WorkOrder } from "./workOrderTypes";
+import { agencyMatches, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type WorkOrder } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -73,14 +73,11 @@ export async function findSite(w: WorkOrder, fromAddress: string): Promise<Site 
 
 /** A new location for the tenant under the agency's customer. */
 async function createLocation(customerId: number, w: WorkOrder, zip: string): Promise<number> {
-  const contacts = [
-    ...(w.tenantPhone ? [{ type: "MobilePhone", value: w.tenantPhone, memo: "Tenant" }] : []),
-    ...(w.tenantEmail ? [{ type: "Email", value: w.tenantEmail, memo: "Tenant" }] : []),
-  ];
+  const contacts = tenantContacts(w, "MobilePhone");
   const unit = /^([0-9]+[a-z]?)\s*\//i.exec(w.street)?.[1];
   const made = await stSend<{ id?: number }>("POST", stTenantPath("crm", "locations"), {
     customerId,
-    name: (w.tenantName || w.street || "Tenant").slice(0, 100),
+    name: (tenantLabel(w) || w.street || "Tenant").slice(0, 100),
     address: { street: unit ? w.street.replace(/^[^/]+\/\s*/, "") : w.street, ...(unit ? { unit } : {}), city: w.suburb || "Not given", state: "VIC", zip, country: "Australia" },
     contacts,
   });
