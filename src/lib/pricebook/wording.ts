@@ -178,8 +178,9 @@ export const SERVICE_COPY: Record<string, string> = {
   "AC-CONDENSER-REPLACE": "Replacement of the outdoor unit: the old unit's refrigerant recovered and the unit removed, the new unit fitted and connected, pressure-tested, vacuumed, charged and tested.",
   "DECOMMISSION-DISPOSAL": "Disconnection and removal of your old unit, with the refrigerant safely recovered by a licensed technician, and disposal. For a visit where we're taking a system out and not installing a new one; when we install a new system, removing the old one is included.",
   "EVAP-INSTALL": "Changeover of your rooftop evaporative cooler: the old cooler disconnected, removed and disposed of, the new cooler and controller installed, connected to your ducting, water and a new drain, the roof penetration resealed and weatherproofed, and an operational test.",
-  // An internal heater's template still uses the external service (there's no
-  // internal one in the pricebook yet), so its line gets these words instead.
+  // The internal heater's own service (3 hours, Jake 6 Nov), and the words an
+  // internal heater's line gets while its template still uses the external one.
+  "GAS-DUCT-INT": "Changeover of your ducted gas heater to a new internal heater, in the same place as the old one: the old heater removed and disposed of, the new heater connected to your ductwork, gas and flue, a new wall controller, a carbon monoxide safety check, commissioning and testing.",
   "GAS-DUCT-EXT#internal": "Changeover of your ducted gas heater to a new internal heater, in the same place as the old one: the old heater removed and disposed of, the new heater connected to your ductwork, gas and flue, a new wall controller, a carbon monoxide safety check, commissioning and testing.",
   "GAS-DUCT-EXT": "Changeover of your ducted gas heater to a new external heater: the old heater removed and disposed of, the new heater connected to your ductwork and gas, a new wall controller, a carbon monoxide safety check, commissioning and testing.",
   // Hot water and cooking.
@@ -261,9 +262,9 @@ export function templateFacts(name: string, items: { skuType: string; skuName?: 
     const m = /^(.*?\d+L)/i.exec(unit);
     return { name: n, kind: "cf", brand: m ? m[1].trim() : "Thermann", size: null, newGasFeed: codes.has("HW-STORAGE-TO-CF") };
   }
-  if (codes.has("GAS-DUCT-EXT")) {
+  if (codes.has("GAS-DUCT-EXT") || codes.has("GAS-DUCT-INT")) {
     const all = `${n} ${equip.join(" ")}`;
-    const heater = /wombat|compact classic|sp\d+in\b/i.test(all) ? "internal" : /buffalo/i.test(all) ? "external" : undefined;
+    const heater = isInternalHeater(all) ? "internal" : /buffalo/i.test(all) ? "external" : undefined;
     const product = /starpro/i.test(all) ? PRODUCT.starpro : /ecostar/i.test(all) ? PRODUCT.ecostar : /buffalo 5 star/i.test(n) ? PRODUCT.buffalo5 : /brivis/i.test(all) ? PRODUCT.brivis3 : undefined;
     const brand = n.replace(/\s*\d+(?:\.\d+)?kw.*$/i, "").replace(/\s*ducted gas heater.*$/i, "").trim();
     return { name: n, kind: "heater", brand, size: kwOf(n), heater, product };
@@ -284,6 +285,9 @@ export const summaryHtml = (text: string) => text.split(/\n\n+/).map((p) => `<p>
 /** Text for comparing a stored summary or description with ours, whatever markup it was saved with. */
 export const plainText = (html: string | null | undefined) =>
   String(html ?? "").replace(/<\/(p|div)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+
+/** An internal ducted heater, by the unit's name: Wombat, Compact Classic, StarPro "in" models. */
+export const isInternalHeater = (s: string) => /wombat|compact classic|sp\d+in\b/i.test(s);
 
 /** The description a template line should carry, by its service code; internal heaters get their own. */
 export function lineCopy(code: string, facts: TemplateFacts | null): string | null {

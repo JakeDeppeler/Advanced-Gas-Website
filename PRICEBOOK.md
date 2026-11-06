@@ -314,6 +314,15 @@ included and what's quoted separately. It's all in
   visit where nothing goes in. The $200 call-out covers the first hour.
 - Servicing, leak detection, commercial and the deposit keep their wording.
 
+**Internal gas heaters.** The Wombat, Compact Classic and StarPro were quoted
+on *Gas Ducted Heater - External*, whose words put the heater outside. Jake,
+6 Nov: an internal changeover is 3 hours. The *services* run creates *Gas
+Ducted Heater - Internal* (`GAS-DUCT-INT`, 3 h at the part-day rate, $1,050,
+with the external one's category, account and cost). The next *templates* run
+swaps it onto those templates and does only that, because a new line has no id
+to group under until it's saved; the run after groups it like the rest. Both
+heater services head their templates like the hot water ones do.
+
 Actions → **Pricebook labour** → *wording*: a dry run lists every change against
 the live text; *apply* writes the service descriptions, the template summaries
 and the description on each template line that uses a reworded service, and

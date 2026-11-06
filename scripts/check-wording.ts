@@ -53,6 +53,9 @@ ok("hard-wired heat pump: a new circuit and a Certificate of Electrical Safety",
 const wom = sum("Brivis Wombat 3 Star 15kW Ducted Gas Heater", [svc("GAS-DUCT-EXT"), eq("Brivis Classic 2P Wombat 15NG")]);
 ok("Wombat is internal, not an external cabinet", wom.f.heater === "internal" && /internal heater/.test(wom.s) && !/weatherproof cabinet/.test(wom.s), wom.s.slice(0, 140));
 ok("Wombat no longer says Compact Classic", !/Compact Classic/.test(wom.s));
+const womInt = sum("Brivis Wombat 3 Star 20kW Ducted Gas Heater", [svc("GAS-DUCT-INT"), eq("Brivis Classic 2P Wombat 20NG")]);
+ok("a heater on the new internal service reads as internal", womInt.f.heater === "internal" && /internal heater/.test(womInt.s));
+ok("the internal service's own words say internal", /new internal heater/.test(SERVICE_COPY["GAS-DUCT-INT"]) && !/weatherproof cabinet|external/.test(SERVICE_COPY["GAS-DUCT-INT"]));
 const sp = sum("Brivis StarPro 6 Star 15kW Ducted Gas Heater", [svc("GAS-DUCT-EXT"), eq("Brivis Starpro SP615in V4")]);
 ok("StarPro SP615in is internal", sp.f.heater === "internal");
 const buf = sum("Brivis Buffalo 5 Star 20kW Ducted Gas Heater", [svc("GAS-DUCT-EXT"), eq("Brivis Buffalo 5 Star 20kW")]);

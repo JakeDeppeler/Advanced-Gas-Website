@@ -32,16 +32,59 @@ export type LabourResult = { applied: number; verified: number; failed: { id: nu
 
 // --- services ----------------------------------------------------------------------
 
+/**
+ * Jake, 6 Nov: internal ducted heaters were quoted on "Gas Ducted Heater -
+ * External", whose words put the heater outside in a cabinet. An internal
+ * changeover is 3 hours, the same as external; this is its own service, made
+ * from the external one's category, account and cost.
+ */
+export const INTERNAL_HEATER = { code: "GAS-DUCT-INT", name: "Gas Ducted Heater - Internal", hours: 3 } as const;
+export type ServiceCreate = { code: string; name: string; hours: number; price: number; body: Record<string, unknown> };
+
+function planInternalHeater(services: Raw[], rates: Rates): ServiceCreate | null {
+  if (services.some((s) => normCode(s.code) === INTERNAL_HEATER.code)) return null;
+  const ext = services.find((s) => normCode(s.code) === "GAS-DUCT-EXT");
+  if (!ext || !rates.partDay) return null;
+  const price = Math.round(INTERNAL_HEATER.hours * rates.partDay * 100) / 100;
+  const categories = (Array.isArray(ext.categories) ? ext.categories : []).map((c) => Number((c as Raw).id ?? c)).filter((n) => Number.isFinite(n) && n > 0);
+  return {
+    code: INTERNAL_HEATER.code, name: INTERNAL_HEATER.name, hours: INTERNAL_HEATER.hours, price,
+    body: {
+      code: INTERNAL_HEATER.code, displayName: INTERNAL_HEATER.name, description: SERVICE_COPY[INTERNAL_HEATER.code],
+      price, memberPrice: price, addOnPrice: price, addOnMemberPrice: price, hours: INTERNAL_HEATER.hours,
+      cost: ext.cost ?? null, taxable: ext.taxable ?? true, account: ext.account ?? null, categories, isLabor: ext.isLabor ?? null, active: true,
+    },
+  };
+}
+
+export async function createServices(creates: ServiceCreate[]): Promise<LabourResult> {
+  const out: LabourResult = { applied: 0, verified: 0, failed: [], remaining: 0 };
+  for (const c of creates) {
+    try {
+      const made = await stSend<Raw>("POST", stTenantPath("pricebook", "services"), c.body);
+      out.applied++;
+      const id = Number(made?.id);
+      const back = id ? await stFetch<Raw>(stTenantPath("pricebook", `services/${id}`)) : null;
+      if (back && normCode(back.code) === c.code && Math.abs(Number(back.price) - c.price) < 0.005 && Number(back.hours) === c.hours) out.verified++;
+      else out.failed.push({ id: id || 0, name: c.name, error: back ? `made, but reads back $${back.price} for ${back.hours} h` : "ServiceTitan didn't return the new service" });
+    } catch (e) {
+      out.failed.push({ id: 0, name: c.name, error: (e as Error).message.slice(0, 300) });
+    }
+  }
+  return out;
+}
+
 export async function planServicePrices() {
   const [rates, services, materials, refrigerant] = await Promise.all([
     loadRates(), stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20), getSettings<RefrigerantSettings>("refrigerant"),
   ]);
+  const creates = [planInternalHeater(services, rates)].filter((c): c is ServiceCreate => !!c);
   const materialChanges = planRefrigerant(materials.map((m) => ({
     id: Number(m.id), code: String(m.code ?? ""), name: String(m.displayName ?? m.code ?? ""),
     price: m.price == null ? null : Number(m.price), cost: m.cost == null ? null : Number(m.cost), active: (m.active as boolean | null) ?? null,
   })), refrigerant);
-  return { rates, refrigerant, materialChanges, ...planServices(services.map(serviceRow), rates) };
+  return { rates, refrigerant, materialChanges, creates, ...planServices(services.map(serviceRow), rates) };
 }
 
 /**
@@ -125,7 +168,9 @@ async function catalogue(): Promise<Catalogue> {
   const blygold = svc("BLYGOLD");
   if (blygold && Number(blygold.price) > 0) splitAddOns.push({ skuId: Number(blygold.id), skuType: "Service", name: String(blygold.displayName ?? "Blygold").trim(), price: Number(blygold.price) });
 
-  return { service, materialPrice, multiHead, splitAddOns };
+  const int = services.find((s) => normCode(s.code) === INTERNAL_HEATER.code);
+  const internalHeater = int ? { skuId: Number(int.id), hours: Number(int.hours) || 0, name: String(int.displayName ?? int.code).trim() } : null;
+  return { service, materialPrice, multiHead, splitAddOns, internalHeater };
 }
 
 export async function planTemplatePrices(): Promise<{ rates: { partDay: number | null; pair: number | null }; plans: TemplatePlan[]; skipped: TemplateSkip[] }> {
@@ -155,6 +200,12 @@ export async function applyTemplatePrices(plans: TemplatePlan[], limit: number):
       out.applied++;
       // Read back: the header's price, every member in its group, and the total.
       const back = await stFetch<Template>(path);
+      if (p.swap) {
+        const swapped = back.items.some((i) => i.skuId === p.swap!.skuId) && !back.items.some((i) => i.skuType === "Service" && (i.skuName ?? "").trim() === p.swap!.from);
+        if (swapped) out.verified++;
+        else out.failed.push({ id: p.id, name: p.name, error: `the ${p.swap.from} line wasn't swapped for ${p.swap.to}` });
+        continue;
+      }
       const head = back.items.find((i) => i.id === p.header.itemId);
       const inGroup = back.items.filter((i) => i.itemGroupParentId === p.header.itemId).length;
       const want = p.items.filter((i) => i.itemGroupParentId === p.header.itemId).length;
