@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { cronAuthorised } from "@/lib/dashboard/screenAuth";
+import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { runInstallPacks } from "@/lib/installpack/run";
 
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ export const maxDuration = 60;
  * Guarded by CRON_SECRET, which Vercel's cron sends as a bearer token.
  */
 export async function GET(req: Request) {
-  if (!cronAuthorised(req)) return new NextResponse("Unauthorized", { status: 401 });
+  if (!(await scheduledCallAuthorised(req))) return new NextResponse("Unauthorized", { status: 401 });
   if (!dashboardDbConfigured() || !serviceTitanConfigured()) {
     return NextResponse.json({ ok: false, error: "Supabase or ServiceTitan not configured" }, { status: 503 });
   }
