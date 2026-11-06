@@ -21,6 +21,7 @@ import {
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
+import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -262,6 +263,27 @@ console.log("-- booking confirmations --");
   ok("swap: already booked, nothing to do", swapTag([1, 9], 2, 9) === null);
   ok("swap: both on, not comes off", JSON.stringify(swapTag([2, 9], 2, 9)) === JSON.stringify([9]));
   ok("tag words drop the emoji", bookingWords("Rubbish Removal Booked🗑️") === "rubbish removal booked");
+}
+
+console.log("-- two tenants (6 Nov: 4 Kirrilee Ct, 9 Naomi St) --");
+{
+  const two = { tenantName: "Joshua Croucher; Christine Upton", tenantPhone: "0428 946 984; 0417 535 760", tenantEmail: "josh.croucher@yahoo.com; chrisupton34@yahoo.com.au" };
+  const c = tenantContacts(two, "MobilePhone");
+  ok("four contacts, one value each", c.length === 4 && c.every((x) => !x.value.includes(";")), c);
+  ok("each number with its person", c[0].value === "0428 946 984" && c[0].memo === "Tenant: Joshua Croucher" && c[1].memo === "Tenant: Christine Upton", c.slice(0, 2));
+  ok("emails split", c[2].value === "josh.croucher@yahoo.com" && c[3].value === "chrisupton34@yahoo.com.au");
+  ok("site named for both", tenantLabel(two) === "Joshua Croucher & Christine Upton");
+  ok("greeting both", tenantGreeting(two) === "Joshua and Christine");
+  ok("one tenant unchanged", JSON.stringify(tenantContacts({ tenantName: "Sam Lee", tenantPhone: "0412 345 678", tenantEmail: "sam.lee@gmail.com" }, "Phone")) === JSON.stringify([{ type: "Phone", value: "0412 345 678", memo: "Tenant: Sam Lee" }, { type: "Email", value: "sam.lee@gmail.com", memo: "Tenant: Sam Lee" }]));
+  ok("phones split on slash and 'or'", JSON.stringify(tenantPhones({ tenantPhone: "0425277986 / 0437217497 or (03) 5941 2222" })) === JSON.stringify(["0425277986", "0437217497", "(03) 5941 2222"]), tenantPhones({ tenantPhone: "0425277986 / 0437217497 or (03) 5941 2222" }));
+  ok("junk phone dropped", tenantPhones({ tenantPhone: "ask the agent" }).length === 0);
+  ok("one name, two numbers: both 'Tenant: name'", tenantContacts({ tenantName: "Karra Finlayson", tenantPhone: "0425277986; 0437217497", tenantEmail: "" }, "Phone").every((x) => x.memo === "Tenant: Karra Finlayson"));
+  const w = { ...parseWorkOrder(JSON.stringify({ is_work_order: true, kind: "work_order", platform: "", agency: "Barry Plant Pakenham", property_manager: "", pm_email: "pakenhamrentals@barryplant.com.au", pm_phone: "", number: "18965", street: "9 Naomi St", suburb: "Pakenham", postcode: "3810", tenant_name: "Karra Finlayson; Leigh Lombard", tenant_phone: "", tenant_email: "karrafinlayson@outlook.com; leighlombard@hotmail.com", access: "", job: "Ducted heating not working", urgent: false, attend_by: "", job_type: "", is_cancellation: false, why: "" })) };
+  ok("both tenants emailed", JSON.stringify(tenantAddresses(w, "pakenhamrentals@email.propertyme.com")) === JSON.stringify(["karrafinlayson@outlook.com", "leighlombard@hotmail.com"]), tenantAddresses(w, "x@y.com"));
+  const said = stSaid(new Error('ServiceTitan POST jpm/v2/tenant/1/jobs failed: 409 Conflict — {"type":"https://tools.ietf.org/html/rfc7231#section-6.5.8","title":"\\u00220428 946 984; 0417 535 760\\u0022 is not a valid phone number","status":409,"traceId":"a56","errors":{"":["\\u00220428 946 984; 0417 535 760\\u0022 is not a valid phone number"]}}'));
+  ok("refusal in words", said === 'ServiceTitan said 409 Conflict: "0428 946 984; 0417 535 760" is not a valid phone number', said);
+  const cut = stSaid(new Error('ServiceTitan POST x failed: 409 Conflict — {"type":"https://x","title":"\\u0022a; b\\u0022 is not a valid email string","sta'));
+  ok("refusal cut short still read", cut === 'ServiceTitan said 409 Conflict: "a; b" is not a valid email string', cut);
 }
 
 if (bad) {

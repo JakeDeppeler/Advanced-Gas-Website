@@ -189,8 +189,57 @@ export function workOrderSettingsFrom(raw: unknown): WorkOrderSettings {
 /** The words in braces the wording can use, and what fills them. */
 export const PLACEHOLDERS = ["tenant", "agency", "address", "job", "number", "phone"] as const;
 
+/* ------------------------------------------------------------ tenants */
+
+/**
+ * A rental with two tenants comes through as one field each: "Joshua Croucher;
+ * Christine Upton", "0428 946 984; 0417 535 760". ServiceTitan refuses a
+ * contact like that outright ("is not a valid phone number"), which cost two
+ * work orders on 6 Nov, so each person, number and address is split out.
+ */
+const LIST_SPLIT = /\s*(?:;|\||\n|,(?=\s*\S+@)|\s+or\s+|\s+and\s+|\s+&\s+|\s*\/\s*(?=[+0(]?\d{2}))\s*/i;
+const NAME_SPLIT = /\s*(?:;|\||\n|,|\s+and\s+|\s+&\s+|\s*\/\s*)\s*/i;
+
+/** Each tenant's name, as written. */
+export const tenantNames = (w: Pick<WorkOrder, "tenantName">) => w.tenantName.split(NAME_SPLIT).map((x) => x.trim()).filter(Boolean);
+
+/** Each tenant's phone: Australian numbers of 8 to 12 digits, spaces kept as written. */
+export function tenantPhones(w: Pick<WorkOrder, "tenantPhone">): string[] {
+  return [...new Set(w.tenantPhone.split(LIST_SPLIT).map((x) => x.trim()).filter((x) => { const d = x.replace(/\D/g, ""); return d.length >= 8 && d.length <= 12; }))];
+}
+
+/** Each tenant's email that is an email. */
+export function tenantEmails(w: Pick<WorkOrder, "tenantEmail">): string[] {
+  return [...new Set(w.tenantEmail.split(/[\s;,|/]+/).map((x) => x.trim().toLowerCase().replace(/^mailto:/, "")).filter((x) => EMAIL.test(x)))];
+}
+
+/** The tenants as one name, for the site: "Joshua Croucher & Christine Upton". */
+export const tenantLabel = (w: Pick<WorkOrder, "tenantName">) => tenantNames(w).join(" & ");
+
+/**
+ * The tenants as ServiceTitan contacts, one per number and address. The nth
+ * number or email goes with the nth name when the counts line up; otherwise
+ * each is just "Tenant".
+ */
+export function tenantContacts(w: Pick<WorkOrder, "tenantName" | "tenantPhone" | "tenantEmail">, phoneType: string): { type: string; value: string; memo: string }[] {
+  const names = tenantNames(w);
+  const memo = (list: string[], i: number) => (names.length === list.length && names[i] ? `Tenant: ${names[i]}` : names.length === 1 ? `Tenant: ${names[0]}` : "Tenant");
+  const phones = tenantPhones(w), emails = tenantEmails(w);
+  return [
+    ...phones.map((v, i) => ({ type: phoneType, value: v, memo: memo(phones, i).slice(0, 100) })),
+    ...emails.map((v, i) => ({ type: "Email", value: v, memo: memo(emails, i).slice(0, 100) })),
+  ];
+}
+
+/** "Joshua", or "Joshua and Christine". */
+export function tenantGreeting(w: Pick<WorkOrder, "tenantName">): string {
+  const firsts = tenantNames(w).map((n) => n.split(/\s+/)[0]).filter(Boolean);
+  if (!firsts.length) return "there";
+  return firsts.length === 1 ? firsts[0] : `${firsts.slice(0, -1).join(", ")} and ${firsts[firsts.length - 1]}`;
+}
+
 export function fillTemplate(tpl: string, w: WorkOrder, phone: string): string {
-  const first = w.tenantName.trim().split(/\s+/)[0] || "there";
+  const first = tenantGreeting(w);
   const address = [w.street, w.suburb].filter(Boolean).join(", ") || "the property";
   const values: Record<(typeof PLACEHOLDERS)[number], string> = {
     tenant: first,
@@ -212,6 +261,11 @@ const PLATFORM_DOMAIN = /(^|\.)(propertyme\.com|tapihq\.com|propertytree\.com)$/
  * address in the tenant's place would otherwise email the agent asking them
  * to ring us for a time).
  */
+/** Every tenant address that passes tenantAddress's guard. */
+export function tenantAddresses(w: WorkOrder, fromAddress: string): string[] {
+  return tenantEmails(w).map((e) => tenantAddress({ ...w, tenantEmail: e }, fromAddress)).filter((x): x is string => !!x);
+}
+
 export function tenantAddress(w: WorkOrder, fromAddress: string): string | null {
   const to = w.tenantEmail.trim().toLowerCase();
   if (!EMAIL.test(to)) return null;
@@ -362,4 +416,25 @@ export function jobNumbersIn(text: string): string[] {
 export function namesStreet(text: string, street: string): boolean {
   const w = streetWord(street).replace(/[^a-z]/g, "");
   return w.length > 2 && new RegExp(`\\b${w}\\b`, "i").test(text);
+}
+
+/**
+ * A ServiceTitan refusal in words: its own title ("\"0428 946 984; 0417 535 760\"
+ * is not a valid phone number"), not the JSON it came wrapped in, which the
+ * daily summary printed whole.
+ */
+export function stSaid(e: unknown): string {
+  const msg = String((e as Error)?.message ?? e).replace(/^ServiceTitan (?:POST|PATCH|PUT|DELETE)? ?\S+ failed: /, "");
+  const status = /^(\d{3}[^—{]*)/.exec(msg)?.[1]?.trim().replace(/\s*—$/, "") ?? "";
+  const body = msg.slice(msg.indexOf("{"));
+  let detail = "";
+  try {
+    const j = JSON.parse(body) as { title?: string; errors?: Record<string, string[]> };
+    detail = [j.title, ...Object.values(j.errors ?? {}).flat()].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join("; ");
+  } catch {
+    // Cut off or not JSON: the title is still readable out of the text.
+    detail = /"title"\s*:\s*"((?:[^"\\]|\\.)*)/.exec(body)?.[1] ?? (msg.includes("{") ? "" : msg);
+  }
+  detail = detail.replace(/\\u0022|\\"/g, '"').replace(/\\u0027/g, "'");
+  return `ServiceTitan said${status ? ` ${status}` : ""}${detail ? `: ${detail}` : ""}`;
 }

@@ -35,7 +35,10 @@ export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: nu
   const dupes = rows.filter((r) => r.status === "duplicate");
   const failed = rows.filter((r) => r.status === "failed" || r.status === "working" || r.status === "needs_agency");
   const cancels = rows.filter((r) => r.status === "not" && (r.reason ?? "").startsWith("cancellation"));
-  const missed = rows.filter((r) => r.status === "not" && PLATFORM.test(r.from_address ?? "") && !cancels.includes(r));
+  // Statements, invoices and payment notices from the platforms are never work
+  // orders; listing them every day (six on 6 Nov) buried the one worth a look.
+  const PAPERWORK = /\b(statement|invoice|receipt|remittance|payment)s?\b/i;
+  const missed = rows.filter((r) => r.status === "not" && PLATFORM.test(r.from_address ?? "") && !cancels.includes(r) && !PAPERWORK.test(`${r.reason ?? ""} ${r.subject ?? ""}`));
   const count = booked.length + dupes.length + failed.length + missed.length + cancels.length;
   if (!count) return { sent: false, count: 0 };
 
