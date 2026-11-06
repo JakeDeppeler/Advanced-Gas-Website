@@ -9,6 +9,7 @@ import {
   type Catalogue, type MaterialChange, type RefrigerantSettings, type Rates, type ServiceChange, type ServiceRow,
   type Template, type TemplatePlan, type TemplateSkip,
 } from "@/lib/pricebook/labour";
+import { lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "@/lib/pricebook/wording";
 
 // Labour pricing → ServiceTitan, plan then apply, the same shape as the Reece
 // sync (stPricebook.ts): a plan is worked out from the live pricebook every
@@ -94,7 +95,7 @@ export async function applyServicePrices(changes: ServiceChange[], limit: number
 
 // --- templates ---------------------------------------------------------------------
 
-async function catalogue(removalRate: number): Promise<Catalogue> {
+async function catalogue(): Promise<Catalogue> {
   const [services, materials] = await Promise.all([
     stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20),
@@ -117,10 +118,8 @@ async function catalogue(removalRate: number): Promise<Catalogue> {
   const splitAddOns: Catalogue["splitAddOns"] = [];
   const svc = (code: string) => services.find((s) => normCode(s.code) === code);
   const mat = (code: string) => materials.find((m) => normCode(m.code) === code);
-  const removal = svc("DECOMMISSION-DISPOSAL");
-  if (removal && Number(removal.hours) > 0) {
-    splitAddOns.push({ skuId: Number(removal.id), skuType: "Service", name: "Remove & dispose of the old unit", price: Math.round(Number(removal.hours) * removalRate * 100) / 100 });
-  }
+  // Removing the old unit isn't offered here: a new install includes it
+  // (Jake, 6 Nov). The removal service is for a visit where nothing goes in.
   const pump = mat("SILENT MINI PUMP FP3450");
   if (pump && Number(pump.price) > 0) splitAddOns.push({ skuId: Number(pump.id), skuType: "Material", name: String(pump.displayName ?? "Condensate pump").trim(), price: Number(pump.price) });
   const blygold = svc("BLYGOLD");
@@ -135,7 +134,7 @@ export async function planTemplatePrices(): Promise<{ rates: { partDay: number |
   const skipped: TemplateSkip[] = [];
   if (!rates.pair || !rates.partDay) return { rates: { partDay: rates.partDay, pair: rates.pair }, plans, skipped: [{ id: 0, name: "all", reason: "set both the tech & apprentice rate and the part-day install rate in the portal" }] };
   const partDay = rates.partDay;
-  const [cat, templates] = await Promise.all([catalogue(partDay), stList<Template>("sales", "estimate-templates", { active: "True" }, 10)]);
+  const [cat, templates] = await Promise.all([catalogue(), stList<Template>("sales", "estimate-templates", { active: "True" }, 10)]);
   for (const t of templates) {
     const p = planTemplate(t, cat, { pair: rates.pair, partDay });
     if ("reason" in p) { if (p.reason !== "not an aircon install template") skipped.push(p); }
@@ -180,7 +179,7 @@ export async function applyTemplatePrices(plans: TemplatePlan[], limit: number):
 
 /** One row per run in pricebook_sync_runs, as the Reece sync keeps them. */
 export async function recordLabourRun(
-  what: "services" | "templates", mode: "dry-run" | "apply",
+  what: "services" | "templates" | "wording", mode: "dry-run" | "apply",
   summary: Record<string, unknown>, changes: unknown[], result?: LabourResult,
 ): Promise<string | null> {
   const id = randomUUID();
@@ -195,4 +194,90 @@ export async function recordLabourRun(
     return null;
   }
   return id;
+}
+
+// --- wording -------------------------------------------------------------------------
+//
+// Service descriptions, template summaries, and the description on each
+// template line that uses a service with new words (src/lib/pricebook/wording.ts).
+// Same plan → apply → read back as the prices.
+
+export type WordingChange = {
+  kind: "service" | "template";
+  id: number;
+  name: string;
+  before: string;
+  after: string;
+  /** Template lines whose description changes. */
+  lines?: number;
+  items?: Template["items"];
+};
+
+export async function planWording(): Promise<{ changes: WordingChange[]; untouched: string[] }> {
+  const [services, templates] = await Promise.all([
+    stList<Raw>("pricebook", "services", { active: "True" }, 10),
+    stList<Template & { summary?: string | null }>("sales", "estimate-templates", { active: "True" }, 10),
+  ]);
+  const codeOf = new Map(services.map((s) => [Number(s.id), normCode(s.code)]));
+  const changes: WordingChange[] = [];
+  const untouched: string[] = [];
+
+  for (const s of services) {
+    const after = SERVICE_COPY[normCode(s.code)];
+    if (!after) continue;
+    const before = plainText(s.description as string | null);
+    if (before === after) continue;
+    changes.push({ kind: "service", id: Number(s.id), name: String(s.displayName ?? s.code ?? "").trim(), before, after });
+  }
+
+  for (const t of templates) {
+    const items = t.items.map((i) => ({ ...i, code: i.skuType === "Service" ? codeOf.get(i.skuId) ?? "" : "" }));
+    const facts = templateFacts(t.name, items);
+    if (!facts) { untouched.push(t.name.trim()); continue; }
+    const after = templateSummary(facts);
+    const before = plainText(t.summary);
+    let lines = 0;
+    const patched = t.items.map((i, k) => {
+      const want = i.skuType === "Service" ? lineCopy(items[k].code, facts) : null;
+      if (!want || plainText(i.description) === want) return i;
+      lines++;
+      return { ...i, description: want };
+    });
+    if (before === after.replace(/\n\n/g, "\n") && lines === 0) continue;
+    changes.push({ kind: "template", id: t.id, name: t.name.trim(), before, after, lines, items: lines ? patched : undefined });
+  }
+  return { changes, untouched };
+}
+
+export async function applyWording(changes: WordingChange[], limit: number): Promise<LabourResult> {
+  const out: LabourResult = { applied: 0, verified: 0, failed: [], remaining: 0 };
+  const batch = changes.slice(0, limit);
+  out.remaining = changes.length - batch.length;
+  for (const c of batch) {
+    try {
+      if (c.kind === "service") {
+        const path = stTenantPath("pricebook", `services/${c.id}`);
+        await stSend("PATCH", path, { description: c.after });
+        out.applied++;
+        const back = await stFetch<Raw>(path);
+        if (plainText(back.description as string | null) === c.after) out.verified++;
+        else out.failed.push({ id: c.id, name: c.name, error: "the description didn't stick" });
+      } else {
+        const path = stTenantPath("sales", `estimate-templates/${c.id}`);
+        await stSend("PATCH", path, { summary: summaryHtml(c.after), ...(c.items ? { items: templatePatchItems(c.items) } : {}) });
+        out.applied++;
+        const back = await stFetch<Template & { summary?: string | null }>(path);
+        const summaryOk = plainText(back.summary) === c.after.replace(/\n\n/g, "\n");
+        const linesOk = !c.items || c.items.every((i) => {
+          const b = back.items.find((x) => x.id === i.id);
+          return !b || plainText(b.description) === plainText(i.description);
+        });
+        if (summaryOk && linesOk) out.verified++;
+        else out.failed.push({ id: c.id, name: c.name, error: [summaryOk ? "" : "the summary didn't stick", linesOk ? "" : "a line description didn't stick"].filter(Boolean).join("; ") });
+      }
+    } catch (e) {
+      out.failed.push({ id: c.id, name: c.name, error: (e as Error).message.slice(0, 300) });
+    }
+  }
+  return out;
 }

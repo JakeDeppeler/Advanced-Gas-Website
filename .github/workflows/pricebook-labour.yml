@@ -16,7 +16,7 @@ on:
       what:
         description: "What to price"
         type: choice
-        options: [services, templates]
+        options: [services, templates, wording]
         default: services
       apply:
         description: "Write the changes to ServiceTitan"
@@ -52,7 +52,7 @@ jobs:
           SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
           BASE="${SYNC_URL%/api/sync}"; BASE="${BASE%/}"
           # Only the choice and the flag reach the URL; the limit is digits or nothing.
-          case "$WHAT" in services|templates) ;; *) echo "::error::bad what"; exit 1 ;; esac
+          case "$WHAT" in services|templates|wording) ;; *) echo "::error::bad what"; exit 1 ;; esac
           LIMIT="$(printf '%s' "${LIMIT:-}" | tr -cd '0-9')"
           url="${BASE}/api/pricebook/labour?what=${WHAT}"
           [ -n "$APPLY" ] && url="${url}&apply=1"
@@ -63,7 +63,13 @@ jobs:
           {
             echo "## Pricebook labour — ${WHAT}, $(jq -r .mode out.json)"
             echo
-            if [ "$WHAT" = "services" ]; then
+            if [ "$WHAT" = "wording" ]; then
+              echo "Service descriptions to change $(jq -r .summary.services out.json), template summaries $(jq -r .summary.templates out.json), templates left as they are (servicing, leak detection, commercial, deposit) $(jq -r .summary.untouched out.json)."
+              echo
+              echo "| What | Name | Lines | New wording (start) |"
+              echo "|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.changes[] | "| \(.kind) | \(.name|e) | \(.lines // "") | \(.after[:180]|gsub("\n"; " ")|e)… |"' out.json
+            elif [ "$WHAT" = "services" ]; then
               echo "Call-out $(jq -r '.summary.rates.callout|m' out.json). An hour: one person $(jq -r '.summary.rates.solo|m' out.json), part-day install $(jq -r '.summary.rates.partDay|m' out.json), tech & apprentice $(jq -r '.summary.rates.pair|m' out.json), tech & 2 apprentices $(jq -r '.summary.rates.crew3|m' out.json)."
               echo
               echo "To update $(jq -r .summary.toUpdate out.json), already right $(jq -r .summary.unchanged out.json), skipped $(jq -r .summary.skipped out.json)."
