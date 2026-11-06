@@ -11,7 +11,7 @@ import { findJobs, jobForWork, listWorkOrders, loadSparkyAuto, loadWoContacts } 
 import { WorkOrderList } from "@/components/portal/ordering/WorkOrderList";
 import { loadSuppliers } from "@/lib/ordering/db";
 import { dayTimeLabel } from "@/lib/ordering/plan";
-import { loadAutoLog, loadSwitches, NOTIFY_DEFAULT } from "@/lib/automation/log";
+import { isRunEntry, loadAutoLog, loadSwitches, NOTIFY_DEFAULT } from "@/lib/automation/log";
 
 const at = (iso: string) => new Date(iso).toLocaleString("en-AU", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
 
@@ -51,7 +51,10 @@ export default async function WorkOrdersPage({ searchParams }: { searchParams: {
     loadSparkyAuto().catch(() => true),
   ]);
   // What went out by itself in the last fortnight: work orders sent once booked, and moved jobs passed on.
-  const auto = autoLog.filter((e) => (e.kind === "workOrderSend" || e.kind === "orderMoves") && Date.now() - Date.parse(e.at) < 14 * 86_400_000).slice(0, 12);
+  // Work orders that went or didn't, not the step's own health: "orderMoves
+  // didn't run" and "Running cleanly again" are about the automation, and
+  // read here as if they were work orders. They live on Automation.
+  const auto = autoLog.filter((e) => (e.kind === "workOrderSend" || e.kind === "orderMoves") && !isRunEntry(e) && Date.now() - Date.parse(e.at) < 14 * 86_400_000).slice(0, 12);
   const sparky = suppliers.find((s) => s.method === "work_order" && s.active);
   const back = `/portal/supply/work-orders${q ? `?q=${encodeURIComponent(q)}` : ""}`;
   const fortnight = (list ?? []).filter((w) => w.status === "sent" && w.sent_at && Date.now() - Date.parse(w.sent_at) < 14 * 86_400_000).length;
