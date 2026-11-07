@@ -18,6 +18,9 @@ import { Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/mar
 import { Locked } from "@/components/portal/Locked";
 import { EmailListBoard } from "@/components/portal/EmailListBoard";
 import { buildEmailList } from "@/lib/emailList/build";
+import { ReviewRequestForm } from "@/components/portal/ReviewRequestForm";
+import { loadReviewSettings, recentReviewRequests } from "@/lib/reviews/requests";
+import "../chats/chats.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marketing · Team portal" };
@@ -93,7 +96,7 @@ export default async function MarketingPage({
         />
       )}
       {tab === "emails" && <EmailList />}
-      {tab === "reviews" && <Reviews />}
+      {tab === "reviews" && <Reviews canEdit={can(user, "overhead")} />}
       {tab === "ads" && <Ads />}
       {tab === "social" && <Social />}
     </PortalShell>
@@ -130,8 +133,12 @@ async function EmailList() {
 }
 
 /* --------------------------------------------------------------- Reviews */
-async function Reviews() {
-  const payload = await getReviews(12).catch(() => null);
+async function Reviews({ canEdit }: { canEdit: boolean }) {
+  const [payload, settings, asked] = await Promise.all([
+    getReviews(12).catch(() => null),
+    dbConfigured() ? loadReviewSettings().catch(() => null) : Promise.resolve(null),
+    dbConfigured() ? recentReviewRequests() : Promise.resolve([]),
+  ]);
   const reviews = payload?.reviews ?? [];
   const sum = payload?.summary;
   return (
@@ -148,6 +155,38 @@ async function Reviews() {
           { label: "Where from", value: payload?.source === "google" ? "Google" : payload?.source === "curated" ? "Curated" : "Both", sub: "live feed or the stored copy" },
         ]}
       />
+      {settings && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Ask for a review by email</h2>
+          <ReviewRequestForm initial={settings} canEdit={canEdit} linkFromPlaceId={Boolean(process.env.GOOGLE_PLACE_ID)} />
+        </section>
+      )}
+      {settings && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Asked lately</h2>
+          {asked.length === 0 ? (
+            <p className="pt-rep__empty">{settings.on ? "Nobody yet. The first go out the day after a household job is finished and paid." : "Nobody: it's switched off."}</p>
+          ) : (
+            <div className="pk-tbl-wrap">
+              <table className="pk-tbl">
+                <thead><tr><th>Sent</th><th>Customer</th><th>Job</th><th>Tech</th><th>Opened the review link</th></tr></thead>
+                <tbody>
+                  {asked.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.sent_at ? new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short" }).format(new Date(r.sent_at)) : r.status === "failed" ? <b>Didn&rsquo;t send</b> : "Sending"}{r.error ? <div className="ks">{r.error}</div> : null}</td>
+                      <td>{r.customer_name ?? ""}{r.suburb ? <div className="ks">{r.suburb}</div> : null}</td>
+                      <td>{r.job_number ? `#${r.job_number}` : ""}</td>
+                      <td>{r.techs.join(", ") || "—"}</td>
+                      <td>{r.clicks ? `Yes${r.clicks > 1 ? `, ${r.clicks} times` : ""}` : "Not yet"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--pt-mute, #6b6b72)" }}>Google doesn&rsquo;t say who left a review, so this shows who opened the link from the email, which is as close as it can honestly get.</p>
+        </section>
+      )}
       <section className="pt-panel">
         <h2 className="pt-panel__h">What they said</h2>
         {reviews.length === 0 ? (

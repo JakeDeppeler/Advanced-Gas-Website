@@ -29,6 +29,7 @@ export const EMAIL_KINDS = {
   "work-order-tenant": { label: "Work order: tenant asked to book", who: "a tenant" },
   "work-order-summary": { label: "Work orders: daily summary", who: "the office" },
   "daily-reminder": { label: "Morning to-do reminder", who: "the office" },
+  "review-request": { label: "Google review request", who: "a customer" },
   other: { label: "Email", who: "somebody" },
 } as const;
 
