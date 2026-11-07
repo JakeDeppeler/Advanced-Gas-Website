@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { SizingCalculator } from "./SizingCalculator";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Aircon Sizing, What kW Size Do I Need?",
@@ -14,27 +17,12 @@ export const metadata: Metadata = {
 
 export default function SizingCalculatorPage() {
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Sizing calculator</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            Aircon <span className="accent">sizing calculator</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            Work out the right cooling capacity for a single room in seconds. Uses the
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Sizing calculator" }]} />
+      <Hero eye="Free tool" title={<>Aircon <em>sizing calculator</em>.</>} sub={<>Work out the right cooling capacity for a single room in seconds. Uses the
             residential heat-load formula our installers apply on quote day, adjusted for
-            ceiling height, orientation, insulation, glazing and occupants.
-          </p>
-        </div>
-      </section>
+            ceiling height, orientation, insulation, glazing and occupants.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -67,20 +55,8 @@ export default function SizingCalculatorPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Want a properly-sized quote?</h2>
-            <p>Send us the room dimensions. We&rsquo;ll spec the exact model and price it fixed.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Want a properly-sized quote?</>} text={<>Send us the room dimensions. We&rsquo;ll spec the exact model and price it fixed.</>} />
     </div>
   );
 }

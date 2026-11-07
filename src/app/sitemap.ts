@@ -5,6 +5,7 @@ import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 import { detailedCodes, faultSlug } from "@/lib/faultCodes";
 import { publishedPosts } from "@/lib/blogLive";
+import { allProductParams, CATS } from "@/lib/homepage/data";
 
 /**
  * No `lastModified` anywhere in here, deliberately.
@@ -46,8 +47,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/tools/heating-comparator`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/tools/system-comparison`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/heat-pump-compare`, changeFrequency: "monthly", priority: 0.85 },
-    { url: `${base}/brands/reclaim/compare`, changeFrequency: "monthly", priority: 0.75 },
-    { url: `${base}/brands/reclaim/models`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/contact`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/quote`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/service-areas`, changeFrequency: "monthly", priority: 0.7 },
@@ -69,7 +68,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/commercial/about`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/commercial/contact`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/brands`, changeFrequency: "monthly", priority: 0.85 },
-    { url: `${base}/pricing`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/privacy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${base}/terms`, changeFrequency: "yearly", priority: 0.2 },
   ];
@@ -115,19 +113,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }));
 
-  // Brand hubs + individual product pages.
-  const brandUrls: MetadataRoute.Sitemap = brands.flatMap((b) => [
-    {
-      url: `${base}/brands/${b.slug}`,
-      changeFrequency: "monthly" as const,
-      priority: 0.75,
-    },
-    ...b.products.filter((p) => !p.retired).map((p) => ({
-      url: `${base}/brands/${b.slug}/${p.slug}`,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
-  ]);
+  // Brand pages. The per-model pages redirect to /find product pages now,
+  // which are listed instead.
+  const brandUrls: MetadataRoute.Sitemap = brands.map((b) => ({
+    url: `${base}/brands/${b.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  }));
 
   // The blog posts themselves. Only /blog was in here, so fifteen guides — the
   // heat-pump-versus-gas explainer among them — were live, linked from the
@@ -140,6 +132,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.55,
   }));
 
+  // The product pages "Find your system" opens. Without the answers in the
+  // query string; that is the canonical form of each.
+  const findUrls: MetadataRoute.Sitemap = [
+    // A page per kind of system, above its options.
+    ...CATS.flatMap((c) => c.systems).map((sy) => ({ url: `${base}/find/${sy.slug}`, changeFrequency: "monthly" as const, priority: 0.65 })),
+    ...allProductParams().map((p) => ({
+    url: `${base}/find/${p.system}/${p.tier}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  })),
+  ];
+
   return [...staticUrls, ...serviceUrls, ...faultUrls,
-    ...systemUrls, ...suburbUrls, ...brandUrls, ...postUrls];
+    ...systemUrls, ...suburbUrls, ...brandUrls, ...findUrls, ...postUrls];
 }

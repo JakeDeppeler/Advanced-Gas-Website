@@ -8,7 +8,6 @@ import "./not-found.css";
 const GO = [
   { href: "/services", label: "Everything we do", sub: "Aircon, heat pumps, gas and hot water" },
   { href: "/range", label: "The full range", sub: "Every model we fit, with installed prices" },
-  { href: "/pricing", label: "What it costs", sub: "Installed prices and the VEU rebate applied" },
   { href: "/service-areas", label: "Do you come to me?", sub: "Every suburb, with drive times from Pakenham" },
   { href: "/quote", label: "Get a price", sub: "A written quote back inside 12 business hours" },
   { href: "/blog", label: "Guides and advice", sub: "Rebates, sizing and running costs, explained" },

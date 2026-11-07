@@ -55,18 +55,18 @@ export const blogPosts: BlogPost[] = [
         kind: "ul",
         items: [
           "<strong>Smaller household, rental or a tight budget?</strong> Thermann 270L. Cheapest after rebate, stainless tank, simple controls.",
-          "<strong>Got solar PV and want app control?</strong> iStore 270L. Smart scheduling drops your daytime hot water cost to almost zero.",
+          "<strong>Got solar PV and want app control?</strong> iStore 275L. Smart scheduling drops your daytime hot water cost to almost zero.",
           "<strong>Want the quietest, longest-lasting unit money can buy?</strong> Reclaim CO₂. Premium price, premium build, 10-year tank.",
         ],
       },
       { kind: "h2", text: "What you actually get" },
       {
         kind: "table",
-        headers: ["", "Thermann 270L", "iStore 270L", "Reclaim CO₂ 270L"],
+        headers: ["", "Thermann 270L", "iStore 275L", "Reclaim CO₂ 270L"],
         rows: [
           ["After-VEU price*", "~$1,780", "~$2,400", "~$3,500"],
-          ["Refrigerant", "R134a", "R513A", "CO₂ (R744)"],
-          ["Tank warranty", "5 years", "6 years", "10 years"],
+          ["Refrigerant", "R134a", "R290", "CO₂ (R744)"],
+          ["Tank warranty", "5 years", "5 years (whole unit)", "10 years"],
           ["Noise (dB at 1m)", "48", "44", "37"],
           ["Smart controls", "Basic timer", "Wi-Fi + app", "Wi-Fi + app"],
           ["Best for", "2–4 people", "3–5 people, solar homes", "3–6 people, premium"],
@@ -110,7 +110,7 @@ export const blogPosts: BlogPost[] = [
         kind: "ol",
         items: [
           "<strong>Couple, no solar:</strong> Thermann 200L or 270L. Cheap, reliable, gets the rebate.",
-          "<strong>Family of 4, average usage, has solar:</strong> iStore 270L on a daytime schedule. Best dollars-per-comfort.",
+          "<strong>Family of 4, average usage, has solar:</strong> iStore 275L on a daytime schedule. Best dollars-per-comfort.",
           "<strong>Family of 5+, premium build, near a bedroom:</strong> Reclaim CO₂ 270L. Quiet, 10-year tank, sleep easy.",
           "<strong>Investment property:</strong> Thermann 270L. Tenant gets a working unit, you bank most of the rebate.",
         ],
@@ -183,7 +183,7 @@ export const blogPosts: BlogPost[] = [
         kind: "ul",
         items: [
           "<strong>Thermann 270L:</strong> ~$1,780. Best value, 5-year tank.",
-          "<strong>iStore 270L:</strong> ~$2,400. Smart Wi-Fi, 6-year tank.",
+          "<strong>iStore 275L:</strong> ~$2,400. Smart Wi-Fi, 5-year warranty on the whole unit.",
           "<strong>Reclaim CO₂ 270L:</strong> ~$3,500. Premium, 37 dB, 10-year tank.",
         ],
       },
@@ -448,7 +448,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Open the iStore app → Schedule → set a daily window of 10:00 to 15:00. The unit only heats during those hours. If you run low on hot water (rare with a 270L tank), tap \"Boost\" for a manual top-up.",
+          "Open the iStore app → Schedule → set a daily window of 10:00 to 15:00. The unit only heats during those hours. If you run low on hot water (rare with a 275L tank), tap \"Boost\" for a manual top-up.",
       },
       { kind: "h3", text: "Reclaim CO₂" },
       {
@@ -466,7 +466,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "A Pakenham family of four, 6.6 kW solar, iStore 270L on a 10am–3pm schedule:",
+          "A Pakenham family of four, 6.6 kW solar, iStore 275L on a 10am–3pm schedule:",
       },
       {
         kind: "table",

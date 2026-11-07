@@ -3,6 +3,7 @@ import Image from "next/image";
 import Script from "next/script";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { quoted } from "@/lib/homepage/data";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
 import "../detail.css";
@@ -89,11 +90,11 @@ const products = [
   },
   {
     brand: "iStore",
-    name: "iStore 270 L heat pump",
+    name: "iStore 275 L heat pump",
     bullets: [
       "Smart Wi-Fi control + scheduling",
       "Australian designed",
-      "6-year tank warranty",
+      "5-year warranty on the whole unit",
       "Best for: solar-paired households",
     ],
     price: "$2,910",
@@ -295,8 +296,8 @@ export default function RebatesPage() {
                   </ul>
                   <div className="rb-prod__foot">
                     <div className="rb-prod__price">
-                      <strong>{p.price}</strong>
-                      <span>fully installed, inc GST</span>
+                      <strong>{quoted(p.price)}</strong>
+                      <span>{quoted(p.price) === p.price ? "fully installed, inc GST" : "Fixed price in writing, inc GST"}</span>
                       <span className="rb-prod__price-rebate">{p.rebate}</span>
                     </div>
                     <span className="rb-prod__pill">{p.pill}</span>

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { RunningCostCalculator } from "./RunningCostCalculator";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Aircon Running Cost, Per Day, Week and Year",
@@ -14,27 +17,12 @@ export const metadata: Metadata = {
 
 export default function RunningCostCalculatorPage() {
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Running cost calculator</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            Aircon <span className="accent">running cost calculator</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            Estimate what a split, multi-head, ducted or heat pump hot water system will actually
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Running cost calculator" }]} />
+      <Hero eye="Free tool" title={<>Aircon <em>running cost calculator</em>.</>} sub={<>Estimate what a split, multi-head, ducted or heat pump hot water system will actually
             cost to run per day, week and year at your current electricity rate. Works from either
-            the unit&rsquo;s input rating (kW) or its capacity + COP.
-          </p>
-        </div>
-      </section>
+            the unit&rsquo;s input rating (kW) or its capacity + COP.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -67,20 +55,8 @@ export default function RunningCostCalculatorPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Ready to lock in the numbers?</h2>
-            <p>Send us the room and the current unit. We&rsquo;ll quote the swap fixed.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Ready to lock in the numbers?</>} text={<>Send us the room and the current unit. We&rsquo;ll quote the swap fixed.</>} />
     </div>
   );
 }

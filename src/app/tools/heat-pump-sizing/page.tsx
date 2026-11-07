@@ -6,6 +6,10 @@ import { HeatPumpSizing } from "./HeatPumpSizing";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Heat Pump Sizing, What Size Tank Do I Need?",
@@ -45,28 +49,13 @@ export default function HeatPumpSizingPage() {
   ]);
 
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Heat pump sizing</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            What size <span className="accent">heat pump</span> does your home need?
-          </h1>
-          <p className="dp-hero__sub">
-            Most sizing guides just count bedrooms. This one works off what your
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Heat pump sizing" }]} />
+      <Hero eye="Free tool" title={<>What size <em>heat pump</em> does your home need?</>} sub={<>Most sizing guides just count bedrooms. This one works off what your
             household actually draws, shower flow, length and how many
             people go through the bathroom before work, then tells you the
-            tank size, the recovery rate and how long a full reheat takes.
-          </p>
-        </div>
-      </section>
+            tank size, the recovery rate and how long a full reheat takes.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -153,20 +142,8 @@ export default function HeatPumpSizingPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Want us to check the sizing properly?</h2>
-            <p>Free site visit, written quote back in 12 business hours, VEU rebate already applied.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Want us to check the sizing properly?</>} text={<>Free site visit, written quote back in 12 business hours, VEU rebate already applied.</>} />
 
       <Script id="ld-crumbs-hps" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
       <Script id="ld-faq-hps" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />

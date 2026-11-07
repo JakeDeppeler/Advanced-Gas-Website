@@ -1,0 +1,172 @@
+/* Inside pages built from page/kit.tsx: the extras the brand page doesn't
+   already have (brand.css holds the header, tiles and quote band). */
+
+.ag .bxh--plain .bxh__in{grid-template-columns:minmax(0,1fr)}
+.ag .bxh--plain .bxh__copy{max-width:52rem}
+.ag .kx__h1{font-size:clamp(40px,5vw,80px);text-wrap:balance}
+.ag .kx__h1 em{font-style:normal;color:var(--sky2)}
+
+.ag .kxn{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
+.ag .kxn a{position:relative;display:flex;flex-direction:column;gap:6px;height:100%;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 48px 22px 22px;text-decoration:none;transition:border-color .15s,transform .15s}
+.ag .kxn a:hover{border-color:var(--or);transform:translateY(-2px)}
+.ag .kxn strong{font-family:var(--disp);font-size:18px;color:var(--navy)}
+.ag .kxn span{font-size:14px;line-height:1.5;color:var(--ink2)}
+.ag .kxn i{position:absolute;right:20px;top:22px;font-style:normal;color:var(--or);font-size:18px}
+
+/* People: a photo card per person. */
+.ag .kxp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.ag .kxp__card{background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.ag .kxp__img{position:relative;aspect-ratio:4/5;background:#EEF3F8}
+.ag .kxp__img img{object-fit:cover;object-position:top}
+.ag .kxp__t{display:flex;flex-direction:column;gap:4px;padding:18px 20px 22px}
+.ag .kxp__t h3{font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .kxp__t small{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--or-ink)}
+.ag .kxp__t p{margin:6px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
+
+/* A full-width photo band with a caption across its foot. */
+.ag .kxb{position:relative;height:clamp(280px,36vw,520px);overflow:hidden;background:var(--navy)}
+.ag .kxb img{object-fit:cover}
+.ag .kxb__cap{position:absolute;left:0;right:0;bottom:0;padding:22px 0;background:linear-gradient(180deg,rgba(5,10,48,0),rgba(5,10,48,.8));color:#fff}
+.ag .kxb__cap .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 20px}
+.ag .kxb__cap b{font-family:var(--disp);font-size:20px}
+.ag .kxb__cap span{font-size:14px;color:rgba(255,255,255,.8)}
+
+/* Chips: names with a small tag (clients, suburbs). */
+.ag .kxc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:10px}
+.ag .kxc>*{display:flex;flex-direction:column;gap:2px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:16px 18px;text-decoration:none;color:#fff;transition:border-color .15s}
+.ag a.kxc__i:hover{border-color:var(--or2);color:#fff}
+.ag .kxc strong{font-family:var(--disp);font-size:16.5px}
+.ag .kxc small{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+.ag .kxc--light>*{background:#fff;border-color:var(--line);color:var(--navy)}
+.ag .kxc--light a.kxc__i:hover{border-color:var(--or);color:var(--navy)}
+.ag .kxc--light small{color:var(--ink3)}
+
+/* A two-column definition list, for licences and hours. */
+.ag .kxl{margin:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.ag .kxl div{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ag .kxl dt{font-size:15px;color:var(--ink2)}
+.ag .kxl dd{margin:0;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--navy);text-align:right}
+
+.ag .kx2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,64px);align-items:start}
+.ag .kx__prose{display:flex;flex-direction:column;gap:14px}
+.ag .kx__prose p{margin:0;font-size:16.5px;line-height:1.7;color:var(--ink2)}
+.ag .kx__card{background:#F4F7FA;border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:14px}
+.ag .kx__card h3{font-family:var(--disp);font-size:20px;font-weight:800;color:var(--navy)}
+.ag .kx__card p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
+.ag .kx__card--alert{background:#FFF1EC;border:1px solid #F3C3AE}
+
+@media (max-width:1000px){
+  .ag .kxp{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .kx2{grid-template-columns:1fr}
+}
+@media (max-width:560px){.ag .kxp{grid-template-columns:1fr 1fr;gap:10px}.ag .kxp__t{padding:14px}}
+.ag .kx__stars{display:flex;align-items:baseline;gap:10px;color:rgba(255,255,255,.8);font-size:14px}
+.ag .kx__stars strong{font-family:var(--disp);font-size:26px;color:#fff}
+.ag .kx__big{font-family:var(--disp);font-size:28px;font-weight:900;color:var(--navy);text-decoration:none}
+.ag .kx__card--alert .kx__big{color:var(--or-ink)}
+.ag .page-contact.kx__form{background:transparent}
+.ag .kx__li{margin:0;font-size:15px;line-height:1.5;color:var(--ink)}
+
+/* Service cards on /services, and the bits the service pages add. */
+.ag .kxs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ag .kxs__card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;text-decoration:none;transition:border-color .15s,transform .15s}
+.ag .kxs__card:hover{border-color:var(--or);transform:translateY(-2px)}
+.ag .kxs__img{position:relative;aspect-ratio:16/8;background:var(--navy)}
+.ag .kxs__img img{object-fit:cover}
+.ag .kxs__t{display:flex;flex-direction:column;gap:8px;padding:24px 26px 26px}
+.ag .kxs__t strong{font-family:var(--disp);font-size:24px;font-weight:800;color:var(--navy)}
+.ag .kxs__t>span{font-size:15.5px;line-height:1.6;color:var(--ink2)}
+.ag .kxs__t small{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
+.ag .kxs__t em{font-style:normal;font-weight:700;color:var(--or-ink);margin-top:4px}
+.ag .kx__blurb{font-size:13.5px;line-height:1.5;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ag .kx__flip .pxbr__img{order:2}
+.ag .kx__facts{margin:6px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ag .kx__facts div{display:flex;flex-direction:column-reverse;gap:2px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.ag .kx__facts dd{margin:0;font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
+.ag .kx__facts dt{font-size:12.5px;color:var(--ink3)}
+.ag .kx__tl{margin-top:8px}
+.ag .kx__pts{max-width:760px}
+.ag .kxr{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:14px}
+.ag .kxr__card{display:flex;flex-direction:column;background:#fff;border-radius:18px;overflow:hidden}
+.ag .kxr__img{position:relative;height:150px;background:linear-gradient(180deg,#F3F6FA,#fff)}
+.ag .kxr__img img{object-fit:contain;padding:14px}
+.ag .kxr__img--scene img{object-fit:cover;padding:0}
+.ag .kxr__t{display:flex;flex-direction:column;gap:8px;padding:20px 22px 22px}
+.ag .kxr__g{align-self:flex-start;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--sky-ink);background:var(--skylt);border-radius:6px;padding:3px 8px}
+.ag .kxr__t h3{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy);line-height:1.25}
+.ag .kxr__p{margin:0;display:flex;flex-direction:column;font-family:var(--disp);font-size:26px;font-weight:900;color:var(--navy)}
+.ag .kxr__p small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink3)}
+.ag .kxr__t ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.45;color:var(--ink2)}
+@media (max-width:900px){.ag .kxs{grid-template-columns:1fr}.ag .kx__flip .pxbr__img{order:0}}
+
+/* Suburb pages. */
+.ag .kxk{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ag .kxk li{position:relative;background:#fff;border-radius:14px;padding:16px 18px 16px 44px;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.ag .kxk li::before{content:"";position:absolute;left:18px;top:22px;width:10px;height:10px;border-radius:3px;background:var(--or)}
+.ag .kxq{margin:0 auto;max-width:860px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.ag .kxq blockquote{margin:0;font-family:var(--disp);font-size:clamp(22px,2.2vw,30px);font-weight:700;line-height:1.4;color:var(--navy)}
+.ag .kxq figcaption{font-size:14.5px;color:var(--ink3)}
+.ag .kx__sub{font-family:var(--disp);font-size:18px;font-weight:800;color:#fff;margin-top:12px}
+.ag .kx__chips{display:flex;flex-wrap:wrap;gap:8px}
+.ag .kx__chips>*{font-size:14px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 14px;text-decoration:none}
+.ag .kx__chips a:hover{border-color:var(--or2);color:#fff}
+.ag .kx__chips span{color:rgba(255,255,255,.6)}
+@media (max-width:700px){.ag .kxk{grid-template-columns:1fr}}
+
+/* Tools: the hub's cards, and the old tool widgets sitting in the new frame. */
+.ag .kxs--tools{grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr))}
+.ag .kxs--tools .pp__hl li{font-size:14px}
+.ag .kx__tool{background:#fff}
+.ag .kx__tool>section:first-child{padding-top:56px}
+/* The quote page: the homepage form on white needs its own edge. */
+.ag .kxq2 .qf{max-width:none;border:1px solid var(--line);box-shadow:0 30px 60px -40px rgba(5,10,48,.4)}
+
+/* ---------- System pages (/find/<system>) */
+.ag .pcx__col .sxw__alt li{padding-left:0}
+.ag .pcx__col .sxw__alt li::before{content:none}
+.ag .sxw__alt a{color:var(--ink);text-decoration:none;font-size:16px;line-height:1.5}
+.ag .sxw__alt a b{color:var(--sky-ink);white-space:nowrap}
+.ag .sxw__alt a:hover b{text-decoration:underline}
+.ag .sxo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .sxo--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ag .sxo__card{background:#fff;border-radius:20px;padding:22px 24px 24px;display:flex;flex-direction:column;gap:10px;color:var(--ink)}
+.ag .sxo__tier{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.ag .sxo__tier i{width:10px;height:10px;border-radius:50%}
+.ag .sxo__img{position:relative;display:block;height:190px;margin:4px 0 6px}
+.ag .sxo__img img{object-fit:contain}
+.ag .sxo__brand{font-size:14px;font-weight:700;color:var(--sky-ink)}
+.ag .sxo__card h3{margin:0;font-family:var(--disp);font-size:23px;font-weight:800;color:var(--navy);letter-spacing:-.01em}
+.ag .sxo__price{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .sxo__price small{font-family:var(--body);font-size:14px;font-weight:600;color:var(--ink3)}
+.ag .sxo__card .pp__hl{flex:1}
+.ag .sxo__go{align-self:stretch;justify-content:center;text-align:center;margin-top:6px}
+.ag .sxz{margin:0;display:flex;flex-direction:column;gap:8px}
+.ag .sxz__row{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border-radius:12px;padding:16px 20px}
+.ag .sxz__row dt{display:flex;flex-direction:column;gap:2px}
+.ag .sxz__row dt strong{font-size:16.5px;color:var(--navy)}
+.ag .sxz__row dt small{font-size:14px;color:var(--ink3)}
+.ag .sxz__row dd{margin:0;font-family:var(--mono);font-size:13.5px;font-weight:600;color:var(--sky-ink);white-space:nowrap}
+@media (max-width:1200px){.ag .sxo--4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1000px){.ag .sxo,.ag .sxo--4{grid-template-columns:1fr}}
+
+/* ---------- Quote page: the form in the header, beside the promise */
+.ag .qpg{background:radial-gradient(90% 80% at 75% 30%,#16205a 0%,var(--navy) 70%);color:#fff;padding:48px 0 56px}
+.ag .qpg__in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:56px;align-items:start}
+.ag .qpg__copy{display:flex;flex-direction:column;gap:20px;padding-top:8px}
+.ag .qpg__h1{font-family:var(--disp);font-size:clamp(40px,4.4vw,68px);font-weight:900;line-height:.98;letter-spacing:-.035em;color:#fff;margin:0}
+.ag .qpg__h1 em{font-style:normal;color:var(--sky2)}
+.ag .qpg__sub{margin:0;font-size:18px;line-height:1.55;color:rgba(255,255,255,.82);max-width:560px}
+.ag .qpg__list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.ag .qpg__list li{display:flex;gap:12px;align-items:flex-start}
+.ag .qpg__list li > span{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(44,197,255,.16);color:var(--sky2);display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
+.ag .qpg__list p{margin:0;font-size:16px;line-height:1.5;color:rgba(255,255,255,.78)}
+.ag .qpg__list strong{color:#fff}
+.ag .qpg__call{margin:6px 0 0;font-size:15px;line-height:1.55;color:rgba(255,255,255,.7)}
+.ag .qpg__call a{color:#fff;font-weight:700}
+.ag .qpg__form{display:flex}
+.ag .qpg__form .qf{max-width:none;flex:1}
+.ag .qpg__more{margin:0;font-size:16px;color:var(--ink2)}
+.ag .qpg__more a{color:var(--navy);font-weight:700}
+@media (max-width:1000px){.ag .qpg__in{grid-template-columns:1fr;gap:32px}.ag .qpg{padding:32px 0 40px}}
+/* On a phone the four promises would push the form a screen down; the headline and the form are enough. */
+@media (max-width:700px){.ag .qpg__list{display:none}.ag .qpg__h1{font-size:38px}}

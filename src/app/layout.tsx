@@ -11,7 +11,9 @@ import "./globals.css";
 import "./design-system.css";
 import { site } from "@/lib/site";
 import { localBusinessSchema } from "@/lib/schema";
-import { Header } from "@/components/Header";
+import { SiteModeStrip } from "@/components/Header";
+import { HomeHeader } from "@/components/homepage/HomeHeader";
+import "@/components/homepage/homepage.css";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -135,16 +137,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ScrollToTop />
-        <ChromeGate>
-          <Header />
+        {/* The redesign's header on every page, so going live never drops a
+            visitor back into the old navigation. The homepage and /find pages
+            render their own (the homepage's floats over its hero). The .ag
+            wrapper is display:contents: it carries the header's styles
+            without boxing it in, so the sticky header still sticks. */}
+        <ChromeGate legacy>
+          <SiteModeStrip tabs={false} />
+          <div className="ag" style={{ display: "contents" }}>
+            <HomeHeader variant="flat" />
+          </div>
         </ChromeGate>
         <main id="main" className="flex-1">{children}</main>
         <PageEnter />
         <SiteCross />
         <Reveal />
+        {/* One footer for the whole site, the redesign pages included (Jake's
+            call); only the header and the sticky call bar give way there. */}
         <ChromeGate>
           <Footer />
+        </ChromeGate>
+        <ChromeGate legacy>
           <StickyMobileCTA />
+        </ChromeGate>
+        <ChromeGate>
           <ChatWidget />
         </ChromeGate>
         <Script

@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { HotWaterSavings } from "./HotWaterSavings";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "Hot Water Savings, How Much Will I Save?",
@@ -14,27 +17,12 @@ export const metadata: Metadata = {
 
 export default function HotWaterSavingsPage() {
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Hot water savings</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            Hot water <span className="accent">vs heat pump savings</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            See what you&rsquo;ll save each year by swapping an old gas or electric hot water
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Hot water savings" }]} />
+      <Hero eye="Free tool" title={<>Hot water <em>vs heat pump savings</em>.</>} sub={<>See what you&rsquo;ll save each year by swapping an old gas or electric hot water
             system for a modern heat pump. Includes the Victorian VEU rebate at the install-cost
-            end and a payback-period projection over 10&nbsp;years.
-          </p>
-        </div>
-      </section>
+            end and a payback-period projection over 10&nbsp;years.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -71,20 +59,8 @@ export default function HotWaterSavingsPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Ready to lock in the saving?</h2>
-            <p>Send us your current unit. We&rsquo;ll price the swap fixed with the VEU rebate applied.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Quote my heat pump swap →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Ready to lock in the saving?</>} text={<>Send us your current unit. We&rsquo;ll price the swap fixed with the VEU rebate applied.</>} />
     </div>
   );
 }

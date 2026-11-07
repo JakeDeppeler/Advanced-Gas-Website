@@ -25,7 +25,6 @@ export type Hit = {
 /** Pages that exist in their own right rather than coming out of a data file. */
 const PAGES: Hit[] = [
   { title: "Get a quote", path: "/quote", kind: "Page", blurb: "Tell us about the job and we come back in writing inside 12 hours.", terms: "estimate price booking enquire" },
-  { title: "Pricing", path: "/pricing", kind: "Page", blurb: "Installed prices for the systems we fit, with the VEU rebate already off.", terms: "cost how much price list" },
   { title: "VEU rebates", path: "/rebates", kind: "Page", blurb: "The Victorian Energy Upgrades rebate, applied at the quote rather than chased afterwards.", terms: "rebate veu government subsidy solar homes discount" },
   { title: "Hot water: heat pump or gas", path: "/heat-pumps", kind: "Hot water", blurb: "All-in-one, split, gas continuous flow and gas storage, and which suits your place.", terms: "hot water heat pump reclaim istore thermann tank" },
   { title: "Emergency and after hours", path: "/contact#emergency", kind: "Page", blurb: "Gas leak, no hot water, CO alarm. We answer after hours for locals.", terms: "emergency urgent after hours leak no hot water" },

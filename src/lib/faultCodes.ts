@@ -806,7 +806,7 @@ export const FAULT_CODES: FaultCode[] = [
         "Confirm clearances match iStore's install requirements",
       ],
       keepRunning: "Turn it off. You will still have whatever hot water is in the tank, and on most iStore units the electric boost will keep you going while you wait, which is worth knowing if you have a house full of people.",
-      typicalFix: "Usually a coil clean and better clearance around the unit. iStore carry a 6-year tank and 3-year compressor warranty, so a genuine refrigerant-side fault inside that period is a warranty job.",
+      typicalFix: "Usually a coil clean and better clearance around the unit. iStore carry a 5-year warranty on the whole unit, so a genuine refrigerant-side fault inside that period is a warranty job.",
       related: [
         "E8",
         "E7",

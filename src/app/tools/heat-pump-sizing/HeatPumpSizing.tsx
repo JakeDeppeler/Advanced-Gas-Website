@@ -96,7 +96,7 @@ export function HeatPumpSizing() {
           <label htmlFor="kw">Heating capacity (kW)</label>
           <select id="kw" value={form.heatKw} onChange={(e) => set("heatKw", parseFloat(e.target.value))}>
             <option value={2.5}>2.5 kW · standard Reclaim, Thermann, iStore 180</option>
-            <option value={4}>4 kW · iStore 270, Panasonic 4 kW</option>
+            <option value={4}>4 kW · iStore 275, Panasonic 4 kW</option>
             <option value={5}>5 kW · Reclaim 215 / 315</option>
             <option value={6}>6 kW · Panasonic, fastest recovery</option>
           </select>

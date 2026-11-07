@@ -1,0 +1,196 @@
+/* How it works: a diagram that moves, and the steps beside it. */
+.ag .hw{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:40px;align-items:start}
+.ag .hw__fig{position:sticky;top:96px;background:#fff;border-radius:22px;padding:14px;box-shadow:0 24px 50px -36px rgba(5,10,48,.45)}
+.ag .hw__svg{display:block;width:100%;height:auto}
+.ag .hw__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ag .hw__step{display:flex;gap:16px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;cursor:pointer;font:inherit;color:inherit;transition:border-color .2s,box-shadow .2s}
+.ag .hw__step:hover{border-color:var(--navy)}
+.ag .hw__step.on{border:2px solid var(--or,#C2521A);padding:17px 19px;box-shadow:0 14px 30px -20px rgba(5,10,48,.35)}
+.ag .hw__n{flex:none;font-family:var(--disp);font-size:26px;font-weight:900;line-height:1;color:var(--line2);min-width:38px}
+.ag .hw__step.on .hw__n{color:#C2521A}
+.ag .hw__t{display:flex;flex-direction:column;gap:6px}
+.ag .hw__t strong{font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .hw__t span{font-size:15.5px;line-height:1.55;color:var(--ink2)}
+@media (max-width:1000px){
+  .ag .hw{grid-template-columns:1fr;gap:20px}
+  /* Not sticky here: the page's own tab bar sticks to the top and would cover it. */
+  .ag .hw__fig{position:relative;top:auto;padding:8px}
+}
+@media (max-width:600px){.ag .hw__step{padding:14px 16px}.ag .hw__step.on{padding:13px 15px}.ag .hw__t strong{font-size:17px}}
+
+/* The ring on the part a step is about, with its number. */
+.ag .hw-spot rect{fill:none;stroke:none}
+.ag .hw-spot circle{fill:#fff;stroke:#B8C4D4;stroke-width:2}
+.ag .hw-spot text{font:800 13px var(--disp);fill:#5D6B80}
+.ag .hw-spot.on rect{stroke:#C2521A;stroke-width:3}
+.ag .hw-spot.on circle{fill:#C2521A;stroke:#C2521A}
+.ag .hw-spot.on text{fill:#fff}
+
+.ag .hw-label{font:700 12.5px var(--body);letter-spacing:.01em}
+.ag .hw-label--big{font:900 22px var(--disp)}
+
+.ag .hw-flow{stroke-dasharray:8 10;animation:hwDash .9s linear infinite}
+.ag .hw-flow--slow{animation-duration:2.2s}
+.ag .hw-spin{animation:hwSpin 1.2s linear infinite}
+.ag .hw-spin--slow{animation-duration:14s}
+.ag .hw-flame{transform-box:fill-box;transform-origin:50% 100%;animation:hwFlick .45s ease-in-out infinite alternate}
+.ag .hw-needle{animation:hwNeedle 3.2s ease-in-out infinite alternate}
+.ag .hw-damper{animation:hwDamper 3s ease-in-out infinite alternate}
+.ag .hw-drip{animation:hwDrip .9s linear infinite}
+.ag .hw-drip--long{animation-duration:1.6s}
+.ag .hw-pulse{animation:hwPulse 1.6s ease-in-out infinite}
+.ag .hw-fill{transform-box:fill-box;transform-origin:50% 100%;animation:hwFill 5s ease-in-out infinite}
+
+@keyframes hwDash{to{stroke-dashoffset:-36}}
+@keyframes hwSpin{to{transform:rotate(360deg)}}
+@keyframes hwFlick{from{transform:scaleY(.82)}to{transform:scaleY(1.08)}}
+@keyframes hwNeedle{0%{transform:rotate(-70deg)}40%{transform:rotate(55deg)}100%{transform:rotate(-10deg)}}
+@keyframes hwDamper{from{transform:rotate(0)}to{transform:rotate(70deg)}}
+@keyframes hwDrip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(26px);opacity:0}}
+@keyframes hwPulse{50%{opacity:.45}}
+@keyframes hwFill{0%{transform:scaleY(.35)}70%,100%{transform:scaleY(1)}}
+
+@media (prefers-reduced-motion:reduce){
+  .ag .hw-flow,.ag .hw-spin,.ag .hw-flame,.ag .hw-needle,.ag .hw-damper,.ag .hw-drip,.ag .hw-pulse,.ag .hw-fill{animation:none}
+}
+
+/* The camera, the dimming around the part in focus, and the player bar */
+.ag .hw-dim{fill:#050A30;opacity:.3;animation:hwDimIn .5s ease both}
+@keyframes hwDimIn{from{opacity:0}to{opacity:.3}}
+.ag .hw__fig{display:flex;flex-direction:column;gap:12px}
+.ag .hw__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px}
+.ag .hw__cap{font-size:15px;font-weight:700;color:var(--navy);display:flex;gap:10px;align-items:baseline;min-width:0}
+.ag .hw__cap b{font-family:var(--disp);font-weight:900;color:#C2521A}
+.ag .hw__ctl{display:flex;gap:6px;flex:none}
+.ag .hw__ctl button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:#fff;color:var(--navy);font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.ag .hw__ctl button:hover{border-color:var(--navy)}
+.ag .hw__ctl .hw__play{background:var(--navy);border-color:var(--navy);color:#fff}
+.ag .hw__prog{display:flex;gap:6px;padding:0 6px 4px}
+.ag .hw__prog span{flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.ag .hw__prog i{display:block;height:100%;width:0;background:#C2521A}
+.ag .hw__prog span.done i{width:100%}
+.ag .hw__prog span.run i{animation:hwProg linear forwards}
+@keyframes hwProg{from{width:0}to{width:100%}}
+@media (prefers-reduced-motion:reduce){.ag .hw-dim{animation:none}}
+
+/* The detailed drawings: readouts, clouds, flue gas and water shimmer */
+.ag .hw-temp{font:900 14px var(--disp)}
+.ag .hw-meter{font:700 9px ui-monospace,Menlo,monospace;letter-spacing:.04em}
+.ag .hw-brand{font:800 8px var(--disp);letter-spacing:.12em}
+.ag .hw-drift{animation:hwDrift 14s ease-in-out infinite alternate}
+.ag .hw-puff{opacity:0;transform-box:fill-box;transform-origin:center;animation:hwPuff 2.1s ease-out infinite}
+.ag .hw-shimmer{animation:hwShimmer 3.6s ease-in-out infinite}
+@keyframes hwDrift{from{translate:0 0}to{translate:-26px 0}}
+@keyframes hwPuff{0%{opacity:.8;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-26px) scale(1.6)}}
+@keyframes hwShimmer{0%,100%{opacity:.08}50%{opacity:.24}}
+@media (prefers-reduced-motion:reduce){.ag .hw-drift,.ag .hw-puff,.ag .hw-shimmer{animation:none}}
+
+/* Zoning in 3D: the house, and the controls beside it */
+.ag .zh{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:28px;align-items:start}
+.ag .zh__fig{background:#fff;border-radius:22px;padding:10px;box-shadow:0 24px 50px -36px rgba(5,10,48,.45)}
+.ag .zh__svg{display:block;width:100%;height:auto;border-radius:16px}
+.ag .zh__room{cursor:pointer}
+.ag .zh__room:hover polygon:last-child{opacity:.28}
+.ag .zh__lbl{font:700 11.5px var(--body)}
+.ag .zh__fan{animation:hwSpin 1s linear infinite}
+.ag .zh__panel{display:flex;flex-direction:column;gap:16px}
+.ag .zh__mode{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#fff;border:1px solid var(--line2);border-radius:999px;padding:4px}
+.ag .zh__mode button{border:0;background:transparent;border-radius:999px;padding:10px 12px;font:inherit;font-weight:700;color:var(--navy);cursor:pointer}
+.ag .zh__mode button.on{background:var(--navy);color:#fff}
+.ag .zh__zones{border:0;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ag .zh__zones legend{font-size:13px;font-weight:700;color:var(--ink3);margin-bottom:8px;padding:0}
+.ag .zh__zone{display:flex;gap:10px;align-items:center;text-align:left;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px;font:inherit;color:var(--navy);cursor:pointer;transition:border-color .2s}
+.ag .zh__zone:hover{border-color:var(--navy)}
+.ag .zh__zone.on{border:2px solid var(--navy);padding:11px}
+.ag .zh__zone strong{display:block;font-size:14.5px;line-height:1.2}
+.ag .zh__zone small{display:block;font-size:12.5px;color:var(--ink3);margin-top:2px}
+.ag .zh__sw{flex:none;width:34px;height:20px;border-radius:999px;background:#C9D2DE;position:relative;transition:background .2s}
+.ag .zh__sw i{position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.ag .zh__zone.on .zh__sw{background:#0C6F96}
+.ag .zh__zone.on .zh__sw i{transform:translateX(14px)}
+.ag .zh__presets{display:flex;flex-wrap:wrap;gap:6px}
+.ag .zh__presets button{border:1px solid var(--line2);background:#fff;border-radius:999px;padding:8px 13px;font:inherit;font-size:13.5px;font-weight:700;color:var(--navy);cursor:pointer}
+.ag .zh__presets button.on{background:#FDEEE6;border-color:#C2521A;color:#B04711}
+.ag .zh__read{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ag .zh__read p{margin:0;font-size:15px;line-height:1.5;color:var(--ink2)}
+.ag .zh__read strong{color:var(--navy)}
+.ag .zh__note{font-size:13px !important;color:var(--ink3) !important}
+.ag .zh__bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden}
+.ag .zh__bar span{display:block;height:100%;border-radius:8px;transition:width .5s,background .3s}
+@media (max-width:1000px){.ag .zh{grid-template-columns:1fr}}
+@media (max-width:520px){.ag .zh__zones{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.ag .zh__fan{animation:none}.ag .zh__bar span{transition:none}}
+.ag .zh-wrap{margin-top:56px;display:flex;flex-direction:column;gap:18px}
+
+/* Zoning plan: room text, tags, the fan coil */
+.ag .zh__room-n{font:700 12px var(--body);paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+.ag .zh__room-d{paint-order:stroke;stroke:#fff;stroke-width:3px}
+.ag .zh__room-d{font:500 10.5px var(--body)}
+.ag .zh__tag{font:700 9.5px var(--body)}
+.ag .zh__fc{font:800 9px var(--disp);fill:#fff;letter-spacing:.08em}
+.ag .zh__room{cursor:pointer}
+.ag .zh__room:hover{filter:brightness(.97)}
+.ag .zh__glow{animation:hwPulse 2s ease-in-out infinite}
+.ag .zh--plan{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr)}
+.ag .zh--plan .zh__panel{position:sticky;top:90px}
+
+/* The wall controller: a black glass touch screen */
+.ag .mec{background:#0B0C0F;border-radius:22px;padding:18px 18px 12px;box-shadow:0 30px 60px -30px rgba(5,10,48,.6),inset 0 0 0 2px #24272E;color:#fff;max-width:420px;width:100%;margin:0 auto}
+.ag .mec__screen{background:#000;border-radius:12px;padding:16px 14px;min-height:300px;display:flex;flex-direction:column;gap:14px}
+.ag .mec__screen--off .mec__modes,.ag .mec__screen--off .mec__info{opacity:.35}
+.ag .mec button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+.ag .mec button:disabled{cursor:default}
+.ag .mec__top{display:flex;justify-content:space-around}
+.ag .mec__top button{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:13px;color:#E6E8EC}
+.ag .mec__top button span{width:44px;height:44px;border-radius:50%;background:#23262D;display:grid;place-items:center}
+.ag .mec__top button.on span{background:#2E3440;color:#5BC8F5}
+.ag .mec__top button:disabled{opacity:.4}
+.ag .mec__temp{display:flex;align-items:center;justify-content:space-between;padding:0 6px}
+.ag .mec__temp > div{display:flex;align-items:flex-start;font-family:var(--body);line-height:.9;transition:color .3s}
+.ag .mec__temp b{font-weight:300;font-size:76px;letter-spacing:-.04em}
+.ag .mec__temp > div span{display:flex;flex-direction:column;justify-content:space-between;height:68px;margin-left:4px}
+.ag .mec__temp i{font-style:normal;font-size:22px;font-weight:400}
+.ag .mec__temp button{width:40px;height:40px;border-radius:50%;background:#1B1E24;font-size:24px;color:#E6E8EC}
+.ag .mec__temp button:disabled{opacity:.3}
+.ag .mec__modes{display:flex;background:#1B1E24;border-radius:999px;padding:3px}
+.ag .mec__modes button{flex:1;padding:8px 0;border-radius:999px;font-size:13.5px;font-weight:600;color:#E6E8EC}
+.ag .mec__modes button.on{background:#E6E8EC;color:#0B0C0F}
+.ag .mec__info{display:grid;grid-template-columns:1fr 1.3fr;gap:8px}
+.ag .mec__fan,.ag .mec__stat{background:#1B1E24 !important;border-radius:12px !important;padding:10px 12px !important;display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left}
+.ag .mec__info small{font-size:12px;color:#C9CDD4}
+.ag .mec__fan span{display:flex;align-items:flex-end;gap:3px;height:22px}
+.ag .mec__fan i{width:9px;background:#3A3F49;border-radius:2px}
+.ag .mec__fan i.on{background:#E6E8EC}
+.ag .mec__stat strong{font-size:20px;font-weight:500}
+.ag .mec__list{display:flex;flex-direction:column;gap:6px}
+.ag .mec__head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.ag .mec__head button{width:32px;height:32px;border-radius:50%;background:#1B1E24;font-size:22px;line-height:1}
+.ag .mec__head strong{font-size:16px;font-weight:600}
+.ag .mec__zone{display:flex;align-items:center;gap:10px;background:#1B1E24 !important;border-radius:10px;padding:11px 12px !important;text-align:left;font-size:14px}
+.ag .mec__zone i{width:10px;height:10px;border-radius:50%;flex:none}
+.ag .mec__zone span{flex:1}
+.ag .mec__zone em{font-style:normal;font-size:12.5px;color:#9AA2AE}
+.ag .mec__zone.on em{color:#5BC8F5;font-weight:700}
+.ag .mec__brand{text-align:center;font:800 10px var(--disp);letter-spacing:.06em;color:#9AA2AE;margin-top:10px;line-height:1}
+@media (max-width:1000px){.ag .zh--plan{grid-template-columns:1fr}}
+.ag .zh__sz{font:800 8.5px var(--body);fill:#3E444D}
+.ag .zh__throw{stroke-dasharray:4 4;animation:hwDash 1s linear infinite}
+.ag .zh__season{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ag .zh__season button{border:1px solid var(--line2);background:#fff;border-radius:12px;padding:10px;font:inherit;font-weight:700;font-size:14px;color:var(--navy);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ag .zh__season button small{font-weight:500;font-size:12px;color:var(--ink3)}
+.ag .zh__season button.on{border:2px solid var(--navy);padding:9px}
+.ag .mec__head small{margin-left:auto;font-size:11.5px;color:#9AA2AE}
+.ag .mec__zrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;background:#1B1E24;border-radius:10px;padding:6px 8px 6px 10px}
+.ag .mec__zname{display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-width:0}
+.ag .mec__zname span{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ag .mec__zname em{font-style:normal;font-size:11.5px;color:#9AA2AE}
+.ag .mec__zrow.on .mec__zname em{color:#5BC8F5;font-weight:700}
+.ag .mec__zrow:not(.on){opacity:.6}
+.ag .mec__ztemp{font-size:15px;font-weight:500;color:#E6E8EC;min-width:44px;text-align:right}
+.ag .mec__zset{display:flex;align-items:center;gap:4px;background:#0B0C0F;border-radius:999px;padding:2px}
+.ag .mec__zset button{width:26px;height:26px;border-radius:50%;background:#2A2E37 !important;font-size:16px;line-height:1}
+.ag .mec__zset b{font-weight:600;font-size:13px;min-width:30px;text-align:center}
+.ag .zh__ripple{transform-box:fill-box;transform-origin:center;animation:zhRipple 2s ease-out infinite;transition:opacity .4s}
+@keyframes zhRipple{from{transform:scale(1)}to{transform:scale(3.2);stroke-opacity:0}}
+@media (prefers-reduced-motion:reduce){.ag .zh__ripple{animation:none}}
+@media (max-width:1000px){.ag .zh--plan .zh__panel{position:static}}

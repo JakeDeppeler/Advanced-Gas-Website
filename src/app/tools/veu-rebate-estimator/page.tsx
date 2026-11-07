@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { VeuRebateEstimator } from "./VeuRebateEstimator";
 import "../../detail.css";
 import "../tools.css";
+import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
   title: "VEU Rebate Calculator 2026: What Can I Claim?",
@@ -14,28 +17,13 @@ export const metadata: Metadata = {
 
 export default function VeuRebateEstimatorPage() {
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">VEU rebate calculator</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            VEU <span className="accent">rebate calculator</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            The Victorian Energy Upgrades (VEU) scheme knocks up to $2,700 off a heat pump
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "VEU rebate calculator" }]} />
+      <Hero eye="Free tool" title={<>VEU <em>rebate calculator</em>.</>} sub={<>The Victorian Energy Upgrades (VEU) scheme knocks up to $2,700 off a heat pump
             install and up to $4,200 off a gas-to-reverse-cycle switch. Enter your postcode,
             current system and planned upgrade to see the estimated rebate range and your
-            out-of-pocket install cost.
-          </p>
-        </div>
-      </section>
+            out-of-pocket install cost.</>} ctas={false} />
+      <div className="page-detail page-tools kx__tool">
 
       <section className="page-tool">
         <div className="wrap">
@@ -74,20 +62,8 @@ export default function VeuRebateEstimatorPage() {
         </div>
       </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Ready for the exact number?</h2>
-            <p>We&rsquo;ll confirm the rebate on your quote inside 12 business hours.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a rebate-inclusive quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      </div>
+      <Cta title={<>Ready for the exact number?</>} text={<>We&rsquo;ll confirm the rebate on your quote inside 12 business hours.</>} />
     </div>
   );
 }

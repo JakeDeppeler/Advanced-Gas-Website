@@ -68,7 +68,7 @@ export function sectionOf(path: string): SectionKey {
   if (p.startsWith("/tools/fault-codes/")) return "faultcode";
   if (p.startsWith("/tools") || p === "/upgrade-or-repair") return "tool";
   if (p.startsWith("/blog")) return "guide";
-  if (["/quote", "/pricing", "/rebates", "/range", "/contact", "/membership"].includes(p)) return "money";
+  if (["/quote", "/rebates", "/range", "/contact", "/membership"].includes(p)) return "money";
   return "other";
 }
 

@@ -144,7 +144,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Two people, one bathroom: Thermann 200 L or Reclaim R290 200 L. Same price, both plug in, both Australian made. Pick on which one your local Reece stocks." },
       { type: "p", text: "Three or four people, showers split morning and night: Reclaim R290 285 L or Thermann 285 L, $2,610 fully installed. This is the size most Pakenham families land on." },
       { type: "p", text: "Five or more people, or the whole house showers inside an hour: Reclaim CO₂ split 315 L or 400 L. It costs more on the day, and the split layout, the stainless tank and the CO₂ recovery rate are what keep up with that pattern of draw." },
-      { type: "p", text: "Solar on the roof and you want to time the charge: iStore 270 L. The Wi-Fi is built in rather than bolted on, and if you actually use it to run the compressor on your own daytime export it pays for the difference the Australian Made bonus makes." },
+      { type: "p", text: "Solar on the roof and you want to time the charge: iStore 275 L. The Wi-Fi is built in rather than bolted on, and if you actually use it to run the compressor on your own daytime export it pays for the difference the Australian Made bonus makes." },
       { type: "p", text: "Not sure? Book a free site check, we'll size it properly and quote you all three so you can pick." },
     ],
   },
@@ -636,7 +636,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Real numbers for a Cranbourne family we quoted last month:" },
       { type: "ul", items: [
         "Rinnai continuous flow like-for-like replacement: $1,890 installed",
-        "iStore 270 L heat pump after VEU + Solar Homes: the rebate covers most of it, and the balance is on the quote",
+        "iStore 275 L heat pump after VEU + Solar Homes: the rebate covers most of it, and the balance is on the quote",
         "Reclaim 315L stainless heat pump after VEU rebate: $3,190 installed",
       ] },
       { type: "p", text: "Once the rebates were applied the iStore landed under the like-for-like Rinnai on the day, and it saves them about $400 a year to run on top of that. Rebate values move with VEEC prices and eligibility, so the number that matters is the one on your own quote, not this one." },
