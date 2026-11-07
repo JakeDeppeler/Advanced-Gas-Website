@@ -207,6 +207,17 @@ export type Brand = {
   heroProducts?: { src: string; alt: string; label: string }[];
   /** "Why we choose it" as big figures: the number, what it is, and what it means for you. */
   reasons?: { v: string; k: string; d: string }[];
+  /**
+   * "Made better": what's inside that makes it a better system, pinned on
+   * the product shots. `img` and `x`/`y` (percent of the shot) place a
+   * numbered marker; a point without them is listed only.
+   */
+  quality?: {
+    heading: string;
+    intro: string;
+    images: { src: string; alt: string; label: string }[];
+    points: { t: string; d: string; img?: number; x?: number; y?: number }[];
+  };
   /** The company behind the badge, in a few lines and a few dates. */
   story?: { heading: string; body: string; marks: { v: string; k: string }[] };
   /** The heading over `versus`, e.g. "Mitsubishi or Kaden?". */
@@ -781,13 +792,18 @@ const brandCatalogue: Brand[] = [
       { v: "\u221215\u00b0", k: "and still full heat", d: "Hyper Heating holds its rated output on the coldest mornings in the hills." },
       { v: "19 dBA", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to." },
     ],
-    story: {
-      heading: "Engineers first, air conditioners second.",
-      body: "Mitsubishi Electric is a Japanese engineering company. It builds lifts, train systems and satellites, and the same people build the compressor in your wall. That's the feel of the product: nothing flashy, everything over-built, and made to run for years without anyone thinking about it.",
-      marks: [
-        { v: "1921", k: "Founded in Japan" },
-        { v: "1978", k: "Selling in Australia" },
-        { v: "R32", k: "Low-GWP refrigerant across the range" },
+    quality: {
+      heading: "Made better, from the inside.",
+      intro: "Mitsubishi Electric is a Japanese engineering company, founded in 1921, that builds lifts, trains and satellites. In an air conditioner that shows in the parts you never see: it makes the important ones itself.",
+      images: [
+        { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit", label: "Indoor" },
+        { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit", label: "Outdoor" },
+      ],
+      points: [
+        { t: "Its own compressor", d: "The compressor does the work and takes the wear. Mitsubishi Electric designs and builds its own, in its own factory, rather than buying one in.", img: 1, x: 44, y: 72 },
+        { t: "Its own inverter electronics", d: "The inverter that speeds the compressor up and down is Mitsubishi Electric's own power electronics, the same field it supplies to trains. Smooth, efficient and long-lived.", img: 1, x: 68, y: 30 },
+        { t: "A coil that stays clean", d: "Inside the wall unit, the fan and coil are coated so dust and grease don't stick. It keeps its airflow, and its output, between services.", img: 0, x: 50, y: 50 },
+        { t: "Built to be fixed", d: "Parts are on a Melbourne shelf for units well past ten years old, so a repair stays a repair." },
       ],
     },
     versusHeading: "Mitsubishi or Kaden?",
@@ -840,33 +856,6 @@ const brandCatalogue: Brand[] = [
       { v: "16", k: "Models we install and support" },
       { v: "Same day", k: "Common parts from the Melbourne warehouse" },
       { v: "5 yr & 6 yr", k: "5-yr manufacturer and 6-yr workmanship warranties, both from install day" },
-    ],
-
-    // The headline reasons (failure rate, parts, Hyper Heating, quiet) lead
-    // the page as figures in `reasons`; these are the rest of it.
-    benefitsHeading: "What comes with it.",
-    benefitTiles: [
-      {
-        t: "Run it from your phone",
-        line: "MELCloud Wi-Fi on any indoor unit in the range",
-        detail:
-          "A MELCloud module clips into any indoor unit, so scheduling, geofencing and turning the living room on from the car all work without paying for a higher model. It also gives you a usage history, which is the honest way to answer \u201cis it costing me a fortune\u201d.",
-        icon: "phone",
-      },
-      {
-        t: "One brand, five shapes",
-        line: "Wall, multi-head, ducted, console and the controllers",
-        detail:
-          "Because the whole range is one manufacturer, the controller, the app and the service story are the same whichever shape your house needs. Mixed-brand houses are where warranty arguments come from, and this is how you avoid having one.",
-        icon: "wrench",
-      },
-      {
-        t: "A warranty in your name",
-        line: "5 years from Mitsubishi, 6 years from us",
-        detail:
-          "Five years manufacturer parts and labour, registered in your name the day after we install it. On top of that, six years on our own workmanship: brackets, line-set, drainage and penetrations, the parts of the job that are ours.",
-        icon: "shield",
-      },
     ],
 
     systemsHeading: "Five shapes. Start here, not with a model number.",

@@ -41,7 +41,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
     .map((o) => ({ ...o, cats: [...new Set(all.filter((x) => x.t.model === o.t.model).map((x) => x.c.label))] }));
   const facts = brand.heroFacts ?? [];
   const tabs = [
-    ["why", brand.whyLead ? "Why we choose it" : "Why we fit them"], ...(brand.story ? [["brand", "The brand"]] : []), ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
+    ["why", brand.whyLead ? "Why we choose it" : "Why we fit them"], ...(brand.quality ? [["quality", "Made better"]] : []), ...(brand.story ? [["brand", "The brand"]] : []), ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
     ["support", "Parts & support"], ...(brand.faqs?.length ? [["faqs", "FAQs"]] : []), ["reviews", "Reviews"],
   ] as const;
 
@@ -93,7 +93,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
             </div>
           )}
         </div>
-        {facts.length > 0 && (
+        {facts.length > 0 && !brand.reasons && (
           <div className="wrap">
             <dl className="bxh__facts">{facts.map((f) => <div key={f.k}><dd>{f.v}</dd><dt>{f.k}</dt></div>)}</dl>
           </div>
@@ -113,12 +113,6 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
                 <h2 className="bxw__claim">{brand.whyLead.claim}</h2>
                 <p className="bxw__sub">{brand.whyLead.sub}</p>
               </div>
-              {brand.verdict && (
-                <figure className="bxw__verdict">
-                  <blockquote>{brand.verdict}</blockquote>
-                  <figcaption>The Advanced Gas &amp; Aircon team</figcaption>
-                </figure>
-              )}
             </div>
             {brand.reasons && (
               <ul className="bxw__reasons">
@@ -126,12 +120,6 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
                   <li key={r.k}><b>{r.v}</b><span>{r.k}</span><p>{r.d}</p></li>
                 ))}
               </ul>
-            )}
-            {(brand.notRightWhen || brand.versus) && (
-              <div className="bxw__honest">
-                {brand.notRightWhen && <div><h3>When we&apos;d fit something else</h3><p>{brand.notRightWhen}</p></div>}
-                {brand.versus && <div><h3>{brand.versusHeading ?? "Against the others"}</h3><p>{brand.versus}</p></div>}
-              </div>
             )}
           </div>
         </section>
@@ -151,6 +139,34 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
           )}
         </div>
       </section>
+      )}
+
+      {brand.quality && (
+        <section className="pxs bxq" id="quality">
+          <div className="wrap bxq__in">
+            <div className="bxq__copy">
+              <span className="aeye"><i /> Made better</span>
+              <h2 className="h2 h2--sm">{brand.quality.heading}</h2>
+              <p className="bxq__intro">{brand.quality.intro}</p>
+            </div>
+            <div className="bxq__fig">
+              {brand.quality.images.map((im, k) => (
+                <div key={im.src} className="bxq__img">
+                  <Image src={im.src} alt={im.alt} fill sizes="(max-width: 1000px) 90vw, 520px" />
+                  <span className="bxq__lbl">{im.label}</span>
+                  {brand.quality!.points.map((p, n) => p.img === k && p.x != null && p.y != null && (
+                    <span key={p.t} className="bxq__dot" style={{ left: `${p.x}%`, top: `${p.y}%` }} aria-hidden="true">{n + 1}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <ol className="bxq__list">
+              {brand.quality.points.map((p, n) => (
+                <li key={p.t}><b aria-hidden="true">{n + 1}</b><div><h3>{p.t}</h3><p>{p.d}</p></div></li>
+              ))}
+            </ol>
+          </div>
+        </section>
       )}
 
       {brand.story && (
