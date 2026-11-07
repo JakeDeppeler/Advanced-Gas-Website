@@ -38,6 +38,7 @@
     "check:reminders": "npx tsx scripts/check-reminders.ts",
     "check:ducted": "npx tsx scripts/check-ducted.ts",
     "check:service": "npx tsx scripts/check-service.ts",
+    "check:reviews": "npx tsx scripts/check-reviews.ts",
     "check:wording": "npx tsx scripts/check-wording.ts"
   },
   "dependencies": {

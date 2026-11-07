@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { saveSettings } from "@/lib/portal/db";
+import { REVIEW_SETTINGS_KEY, reviewLinkOk, reviewSettingsFrom, type ReviewSettings } from "@/lib/reviews/requestTypes";
+import { sendReviewTest } from "@/lib/reviews/requests";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import {
@@ -222,4 +225,26 @@ export async function optInEmail(raw: string): Promise<MarketingResult> {
   }
   revalidatePath("/portal/marketing");
   return { ok: true };
+}
+
+/* ------------------------------------------------------- review requests */
+
+
+/** The review email's switch, link and wording. Turning it on needs a link that goes to Google. */
+export async function saveReviewSettingsAction(input: ReviewSettings): Promise<MarketingResult> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can change what customers are sent." };
+  const s = reviewSettingsFrom(input);
+  if (s.link && !reviewLinkOk(s.link)) return { ok: false, error: "That link doesn't go to Google. Use the \"Ask for reviews\" link from your Google Business Profile." };
+  if (s.on && !s.link && !process.env.GOOGLE_PLACE_ID) return { ok: false, error: "Put in the Google review link before switching it on." };
+  if (!s.body.includes("{button}")) return { ok: false, error: "The email needs {button} in it, where the review button goes." };
+  await saveSettings(REVIEW_SETTINGS_KEY, s);
+  revalidatePath("/portal/marketing");
+  return { ok: true };
+}
+
+export async function sendReviewTestAction(input: ReviewSettings): Promise<MarketingResult> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can send a test." };
+  return sendReviewTest(me.email, reviewSettingsFrom(input));
 }
