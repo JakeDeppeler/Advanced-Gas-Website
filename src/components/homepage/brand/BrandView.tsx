@@ -21,6 +21,8 @@ const ICONS: Record<string, string> = {
   people: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 14.5c1.6.8 2.7 2.6 3 5.5",
   truck: "M2 6h12v10H2zM14 9h4l3 3v4h-7zM6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
   clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
+  phone: "M8 2.5h8a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 20V4A1.5 1.5 0 0 1 8 2.5zM11 18.5h2",
+  wrench: "M14.7 6.3a4 4 0 0 0-5.4 5.1L3.5 17.2a1.8 1.8 0 0 0 2.6 2.6l5.8-5.8a4 4 0 0 0 5.1-5.4l-2.4 2.4-2.3-.6-.6-2.3z",
 };
 /** Each tile in its own colour, the way the homepage's cards are. */
 const TILE = ["bxt__card--white", "bxt__card--sky", "bxt__card--acc", "bxt__card--navy", "bxt__card--warm", "bxt__card--white"];
@@ -39,7 +41,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
     .map((o) => ({ ...o, cats: [...new Set(all.filter((x) => x.t.model === o.t.model).map((x) => x.c.label))] }));
   const facts = brand.heroFacts ?? [];
   const tabs = [
-    ["why", "Why we fit them"], ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
+    ["why", brand.whyLead ? "Why we choose it" : "Why we fit them"], ...(brand.story ? [["brand", "The brand"]] : []), ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
     ["support", "Parts & support"], ...(brand.faqs?.length ? [["faqs", "FAQs"]] : []), ["reviews", "Reviews"],
   ] as const;
 
@@ -69,7 +71,17 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
             </div>
           </div>
           {/* A photograph fills the frame; a studio cut-out sits on white, where it reads as the product. */}
-          {brand.heroScene ? (
+          {brand.heroProducts ? (
+            // The range on white: each product named, the first one large.
+            <div className="bxh__img bxh__show" role="group" aria-label={`The ${brand.name} range`}>
+              {brand.heroProducts.map((p, i) => (
+                <figure key={p.src} className={`bxh__prod${i === 0 ? " bxh__prod--lead" : ""}`}>
+                  <span className="bxh__pimg"><Image src={p.src} alt={p.alt} fill priority={i === 0} sizes="(max-width: 900px) 70vw, 380px" /></span>
+                  <figcaption><i aria-hidden="true" />{p.label}</figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : brand.heroScene ? (
             <div className="bxh__img bxh__img--scene bxh__img--photo">
               <Image src={brand.heroScene.src} alt={brand.heroScene.alt} fill priority sizes="(max-width: 900px) 100vw, 640px" />
               <span className="bxh__inset"><Image src={brand.photo} alt={brand.photoAlt} fill sizes="160px" /></span>
@@ -92,6 +104,38 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
         <div className="wrap pxt__in">{tabs.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}</div>
       </nav>
 
+      {brand.whyLead ? (
+        <section className="pxs bxw" id="why">
+          <div className="wrap">
+            <div className="bxw__top">
+              <div className="bxw__lead">
+                <span className="aeye"><i /> Why we choose {brand.name}</span>
+                <h2 className="bxw__claim">{brand.whyLead.claim}</h2>
+                <p className="bxw__sub">{brand.whyLead.sub}</p>
+              </div>
+              {brand.verdict && (
+                <figure className="bxw__verdict">
+                  <blockquote>{brand.verdict}</blockquote>
+                  <figcaption>The Advanced Gas &amp; Aircon team</figcaption>
+                </figure>
+              )}
+            </div>
+            {brand.reasons && (
+              <ul className="bxw__reasons">
+                {brand.reasons.map((r) => (
+                  <li key={r.k}><b>{r.v}</b><span>{r.k}</span><p>{r.d}</p></li>
+                ))}
+              </ul>
+            )}
+            {(brand.notRightWhen || brand.versus) && (
+              <div className="bxw__honest">
+                {brand.notRightWhen && <div><h3>When we&apos;d fit something else</h3><p>{brand.notRightWhen}</p></div>}
+                {brand.versus && <div><h3>{brand.versusHeading ?? "Against the others"}</h3><p>{brand.versus}</p></div>}
+              </div>
+            )}
+          </div>
+        </section>
+      ) : (
       <section className="pxs pxo bx__why" id="why">
         <div className="wrap pxo__in">
           <div className="pxo__take">
@@ -107,6 +151,22 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
           )}
         </div>
       </section>
+      )}
+
+      {brand.story && (
+        <section className="bxb" id="brand">
+          <div className="wrap bxb__in">
+            <div>
+              <span className="aeye aeye--dark"><i /> The brand</span>
+              <h2 className="h2 h2--sm">{brand.story.heading}</h2>
+              <p>{brand.story.body}</p>
+            </div>
+            <ul className="bxb__marks">
+              {brand.story.marks.map((m) => <li key={m.k}><b>{m.v}</b><span>{m.k}</span></li>)}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {brand.formats && (
         <section className="pxs" id="types">
@@ -208,7 +268,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
       <section className="pxs" id="support">
         <div className={`wrap bxs${brand.servicing?.photo ? " bxs--photo" : ""}`}>
           {brand.servicing?.photo && (
-            <div className="bxs__img"><Image src={brand.servicing.photo} alt={brand.servicing.photoAlt ?? ""} fill sizes="(max-width: 1000px) 90vw, 480px" /></div>
+            <div className="bxs__img"><Image src={brand.servicing.photo} alt={brand.servicing.photoAlt ?? ""} fill sizes="(max-width: 1000px) 90vw, 480px" style={brand.servicing.photoPos ? { objectPosition: brand.servicing.photoPos } : undefined} /></div>
           )}
           <div className="bxs__col bxs__col--card">
             <span className="aeye"><i /> Parts &amp; support</span>

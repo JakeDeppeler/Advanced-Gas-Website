@@ -198,6 +198,19 @@ export type Brand = {
    * Where a brand makes more than one kind of system (Reclaim's split and
    * all-in-one), the kinds side by side, each linking to its product page.
    */
+  /**
+   * The range as the header's picture: product shots on white, each named.
+   * For a brand whose only install photos don't read as that brand: a
+   * roof-space unit is anybody's, and a photo of the wrong brand under this
+   * one's name is worse than none.
+   */
+  heroProducts?: { src: string; alt: string; label: string }[];
+  /** "Why we choose it" as big figures: the number, what it is, and what it means for you. */
+  reasons?: { v: string; k: string; d: string }[];
+  /** The company behind the badge, in a few lines and a few dates. */
+  story?: { heading: string; body: string; marks: { v: string; k: string }[] };
+  /** The heading over `versus`, e.g. "Mitsubishi or Kaden?". */
+  versusHeading?: string;
   /** A real install photo for the hero, with the product shot on a card over it. */
   heroScene?: { src: string; alt: string; caption: string };
   /** Photos of the product installed, for the "what it looks like at home" row. */
@@ -230,6 +243,8 @@ export type Brand = {
     heading: string;
     photo: string;
     photoAlt: string;
+    /** Where the photo's subject sits, for a crop that keeps it in frame (CSS object-position). */
+    photoPos?: string;
     body: string;
     facts: string[];
   };
@@ -751,13 +766,31 @@ const brandCatalogue: Brand[] = [
     ourTake:
       "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
     productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
-    // A real ducted install in a Melbourne roof space, full-bleed behind
-    // the header copy. The manufacturer cut-out (the white-keyed PUZ) still
-    // reads well as a product, but a scene is what the header wanted.
-    photo: "/ducted-split.webp",
-    photoScene: true,
-    photoFallback: "/reclaim-mitsubishi.webp",
-    photoAlt: "Mitsubishi ducted air conditioning indoor unit installed in a Melbourne roof space",
+    // The product, not an install photo. The roof-space photo this used
+    // (/ducted-split.webp) is a Kaden ducted unit: its rating plate says so.
+    photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+    photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
+    heroProducts: [
+      { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit", label: "MSZ-AP wall split" },
+      { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit", label: "Outdoor unit" },
+      { src: "/mitsubishi-zone-controller-v2.webp", alt: "Mitsubishi Electric touch zone controller", label: "Zone controller" },
+    ],
+    reasons: [
+      { v: "Under 1%", k: "come back to us", d: "Our own call-back book, across everything we've installed. That's the whole argument." },
+      { v: "Year 12", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit." },
+      { v: "\u221215\u00b0", k: "and still full heat", d: "Hyper Heating holds its rated output on the coldest mornings in the hills." },
+      { v: "19 dBA", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to." },
+    ],
+    story: {
+      heading: "Engineers first, air conditioners second.",
+      body: "Mitsubishi Electric is a Japanese engineering company. It builds lifts, train systems and satellites, and the same people build the compressor in your wall. That's the feel of the product: nothing flashy, everything over-built, and made to run for years without anyone thinking about it.",
+      marks: [
+        { v: "1921", k: "Founded in Japan" },
+        { v: "1978", k: "Selling in Australia" },
+        { v: "R32", k: "Low-GWP refrigerant across the range" },
+      ],
+    },
+    versusHeading: "Mitsubishi or Kaden?",
     accent: "#DA1A32",
     established: "Australian sales since 1978 · manufacturing in Thailand",
     warranty: "5-year manufacturer parts + labour, plus 6 years on our workmanship.",
@@ -800,36 +833,19 @@ const brandCatalogue: Brand[] = [
       "The brand we quote first on any air conditioning job, and the one we still get parts for in year twelve. Sixteen models across five shapes. Start with the shape.",
     fitsWhere:
       "Wall splits in weatherboards with no roof space, ducted in the Clyde North and Officer new-builds, Hyper Heating in the hills where the cold mornings are real.",
+    // The failure rate and the dates have their own sections below, so the
+    // header carries what's left: range, size of it, parts and warranty.
     heroFacts: [
-      { v: "Under 1%", k: "Failure rate across our install base" },
+      { v: "5 shapes", k: "Wall, multi-head, ducted, floor console and controls" },
       { v: "16", k: "Models we install and support" },
-      { v: "Since 1978", k: "Selling in Australia" },
+      { v: "Same day", k: "Common parts from the Melbourne warehouse" },
       { v: "5 yr & 6 yr", k: "5-yr manufacturer and 6-yr workmanship warranties, both from install day" },
     ],
 
-    benefitsHeading: "Why it's the one we quote first.",
+    // The headline reasons (failure rate, parts, Hyper Heating, quiet) lead
+    // the page as figures in `reasons`; these are the rest of it.
+    benefitsHeading: "What comes with it.",
     benefitTiles: [
-      {
-        t: "It doesn't break",
-        line: "Under 1% failure rate across everything we've put in",
-        detail:
-          "That number is ours, not a brochure's. It's what our own call-back book says across the units we've installed. It's the whole argument. A unit that never brings us back is worth more to you and to us than a cheaper one that does, and it is the reason Mitsubishi gets quoted before anything else.",
-        icon: "shield",
-      },
-      {
-        t: "Year twelve still has parts",
-        line: "A decade-old MSZ-AP runs to spec and we can still fix it",
-        detail:
-          "We service MSZ-APs we installed more than ten years ago and they still hold their rated output. More to the point, the parts are still on the shelf. Whether a system gets repaired or replaced in year twelve is decided by the parts pipeline, and Mitsubishi's is open in a way most brands' is not.",
-        icon: "clock",
-      },
-      {
-        t: "Hyper Heating for the hills",
-        line: "Rated output held at -15\u00b0 ambient",
-        detail:
-          "Standard splits start to fade on the coldest mornings, right when you want them. The Hyper Heating variant holds its rated heating capacity down to -15\u00b0, which is why we specify it for homes in colder, higher areas.",
-        icon: "flame",
-      },
       {
         t: "Run it from your phone",
         line: "MELCloud Wi-Fi on any indoor unit in the range",
@@ -838,18 +854,18 @@ const brandCatalogue: Brand[] = [
         icon: "phone",
       },
       {
-        t: "Quiet enough for a bedroom",
-        line: "From 19 dBA on the smaller wall splits",
-        detail:
-          "The MSZ-AP25 runs at 19 dBA on low, quieter than a library, and quiet enough that it isn't the thing that wakes you. Worth knowing before somebody talks you into an oversized unit that will short-cycle all night.",
-        icon: "people",
-      },
-      {
         t: "One brand, five shapes",
         line: "Wall, multi-head, ducted, console and the controllers",
         detail:
           "Because the whole range is one manufacturer, the controller, the app and the service story are the same whichever shape your house needs. Mixed-brand houses are where warranty arguments come from, and this is how you avoid having one.",
         icon: "wrench",
+      },
+      {
+        t: "A warranty in your name",
+        line: "5 years from Mitsubishi, 6 years from us",
+        detail:
+          "Five years manufacturer parts and labour, registered in your name the day after we install it. On top of that, six years on our own workmanship: brackets, line-set, drainage and penetrations, the parts of the job that are ours.",
+        icon: "shield",
       },
     ],
 
@@ -941,8 +957,11 @@ const brandCatalogue: Brand[] = [
 
     servicing: {
       heading: "What happens in year ten.",
-      photo: "/duct-work.webp",
-      photoAlt: "Insulated ducted air conditioning runs through a Melbourne roof space",
+      // A real Mitsubishi outdoor unit (the badge is on it). The ductwork
+      // photo this replaced could have been any brand's.
+      photo: "/reclaim-and-mitsubishi.jpg",
+      photoAlt: "A Mitsubishi Electric outdoor unit on a brick wall, beside a Reclaim heat pump",
+      photoPos: "88% 64%",
       body:
         "Anyone can sell you a system. The part that decides whether it was a good decision is what the next fifteen years look like: whether it holds its output, whether the parts still exist, and whether somebody can get to it. That last one is a decision made on install day, not on service day.",
       facts: [
