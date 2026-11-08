@@ -59,6 +59,7 @@ export const IMG = {
   mitsuCond: pub("/mitsubishi-mxz-multi-split-condenser-v2.webp"),
   kadenDucted: pub("/kdi-v2-image_01.webp"),
   mitsuDucted: pub("/mitsubishi-pea-m-ducted-v2-v3.webp"),
+  mitsuZone: pub("/mitsubishi-zone-controller-v2.webp"),
   evapClassic: pub("/classic_evap_product_image.jpg"),
   evapLow: pub("/Kaden low_evap cooler.jpg"),
   istore: pub("/270L-istore-heatpump.webp"),
@@ -247,7 +248,9 @@ const t = (slug: string, brand: string, model: string, img: string, feats: strin
 const SPLIT_TIERS: Tier[] = [
   t("essential", "Kaden", "KSI wall split", IMG.kadenSplit, ["Reverse cycle: heats and cools", "Installed by our own crew", W], null),
   t("premium", "Mitsubishi Electric", "MSZ-AP wall split", IMG.mitsuSplit, ["As quiet as 19 dBA on low", "Back-to-back install in a morning", W], 2199),
-  t("signature", "Mitsubishi Electric", "MSZ-AP Hyper Heating", IMG.mitsuSplit, ["Full rated heat down to −15°", "Built for colder, higher areas", W], null),
+  // Two options, not three: the MSZ-AP is the only Mitsubishi wall split we
+  // fit. A Hyper Heating tier sat here until Jake pointed out we don't
+  // install it (Nov 2026).
 ];
 
 type SystemDef = Omit<System, "qs"> & { more: Question[] };
@@ -271,7 +274,9 @@ export const CATS: Category[] = [
       sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: [
         t("essential", "Kaden", "KDI ducted system", IMG.kadenDucted, ["Whole-home heating and cooling", "Sized off a room-by-room heat load", W], null),
         t("premium", "Mitsubishi Electric", "PEAD-M ducted", IMG.mitsuDucted, ["Zoned as standard: 4, 6 or 8 zones", "Heat output matches cooling", "Duct design done first"], 12500),
-        t("signature", "Mitsubishi Electric", "PEAD-M + Zonemate", IMG.zmTouch, ["Zonemate touch and Wi-Fi control", "Run only the rooms you use", "Duct design done first"], null),
+        // Mitsubishi's own zone controller rather than Zonemate/Milieu on a
+        // Mitsubishi system: one brand end to end is what we push (Jake, Nov 2026).
+        t("signature", "Mitsubishi Electric", "PEAD-M + zone controller", IMG.mitsuZone, ["Mitsubishi Electric's own zone controller", "Run only the rooms you use", "Duct design done first"], null),
       ] }),
       sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-top water cooler", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
         t("essential", "Kaden", "Classic evaporative", IMG.evapClassic, ["Cheap to run on dry days", "Fresh air through the house", "Pre-summer service available"], null),
@@ -403,7 +408,8 @@ export const findHref = (sys: System, ans: Answers) => {
 
 /** The one-line pick the quote form carries, e.g. "Premium · Mitsubishi Electric MSZ-AP wall split · 20–30 m² · Upstairs". */
 export function pickSummary(sys: System, tier: Tier, ans: Answers, model?: string) {
-  const size = model ? tierModels(sys, tier).find((m) => m[1] === model)?.[2] : undefined;
+  // A model is known by its own id where it has one (one catalogue record, several sizes).
+  const size = model ? tierModels(sys, tier).find((m) => (m[3] ?? m[1]) === model)?.[2] : undefined;
   return [tier.tier, `${tier.brand} ${tier.model}${size ? ` (${size})` : ""}`, ...answerChips(sys, ans)].join(" · ");
 }
 
@@ -423,7 +429,7 @@ const g = (src: string, alt: string, kind: "p" | "c", brand?: string): GalItem =
 const GAL: Record<string, GalItem[]> = {
   "split-system": [g(IMG.mitsuCond, "Mitsubishi Electric outdoor unit", "p", "Mitsubishi Electric"), g(PHOTO.splitRoom, "A split system we installed in a bedroom", "c"), g(PHOTO.outdoorUnit, "An outdoor unit we installed", "c")],
   "multi-head": [g(IMG.mitsuCond, "Mitsubishi Electric outdoor unit", "p", "Mitsubishi Electric"), g(PHOTO.outdoorUnit, "An outdoor unit we installed", "c"), g(PHOTO.splitRoom, "An indoor head we installed", "c")],
-  ducted: [g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate"), g(PHOTO.ductedInstall, "A ducted install", "c"), g(PHOTO.commercial, "Our technician in the roof space", "c")],
+  ducted: [g(IMG.mitsuZone, "Mitsubishi Electric zone controller", "p", "Mitsubishi Electric"), g(PHOTO.ductedInstall, "A ducted install", "c"), g(PHOTO.commercial, "Our technician in the roof space", "c")],
   evaporative: [g(IMG.evapClassic, "Kaden classic evaporative cooler", "p", "Kaden"), g(PHOTO.evapService, "An evaporative cooler on a roof", "c")],
   "heat-pump": [g(IMG.reclaimSplit, "Reclaim CO₂ split heat pump", "p", "Reclaim"), g(PHOTO.heatPump, "A Reclaim heat pump we installed", "c"), g(PHOTO.heatPumpInstall, "A heat pump install", "c")],
   "gas-continuous-flow": [g(PHOTO.hotWater1, "A recent hot water install", "c"), g(PHOTO.hotWater2, "A recent hot water install", "c")],
@@ -522,7 +528,11 @@ export function galleryFor(sys: System, tier: Tier): GalItem[] {
 type ModelRef = [string, string, string, string?];
 const MSZ_AP: ModelRef[] = [["mitsubishi-electric", "msz-ap25", "2.5 kW"], ["mitsubishi-electric", "msz-ap35", "3.5 kW"], ["mitsubishi-electric", "msz-ap50", "5.0 kW"], ["mitsubishi-electric", "msz-ap60", "6.0 kW"], ["mitsubishi-electric", "msz-ap71", "7.1 kW"], ["mitsubishi-electric", "msz-ap80", "8.0 kW"]];
 const KSI: ModelRef[] = [["kaden", "kaden-split-25", "2.5 kW"], ["kaden", "kaden-split-35", "3.5 kW"], ["kaden", "kaden-split-5", "5.0 kW"], ["kaden", "kaden-split-7", "7.0 kW"], ["kaden", "kaden-split-8", "8.0 kW"]];
-const PEAD: ModelRef[] = [["mitsubishi-electric", "pead-m", "10–14 kW"], ["mitsubishi-electric", "pead-large", "16–20 kW"]];
+// One button per output (Jake, Nov 2026): 10, 12.5, 14, 16, 18, and 20 kW on three-phase.
+const PEAD: ModelRef[] = [
+  ["mitsubishi-electric", "pead-m", "10 kW", "pead-m-10"], ["mitsubishi-electric", "pead-m", "12.5 kW", "pead-m-12"], ["mitsubishi-electric", "pead-m", "14 kW", "pead-m-14"],
+  ["mitsubishi-electric", "pead-large", "16 kW", "pead-m-16"], ["mitsubishi-electric", "pead-large", "18 kW", "pead-m-18"], ["mitsubishi-electric", "pead-large", "20 kW · 3-phase", "pead-m-20"],
+];
 const CF: ModelRef[] = [["thermann", "cf-16", "16 L/min"], ["thermann", "cf-20", "20 L/min"], ["thermann", "cf-26", "26 L/min"], ["thermann", "cf-32", "32 L/min"]];
 const ECO: ModelRef[] = [["reclaim", "eco-r290-200", "200 L"], ["reclaim", "eco-r290-300", "285 L"]];
 // istore-270 keeps its old slug so links to it still land; the tank is 275 L.

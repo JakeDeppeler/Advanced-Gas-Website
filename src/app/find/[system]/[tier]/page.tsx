@@ -61,18 +61,28 @@ export default function FindProductPage({ params }: { params: Params }) {
   // A product record that covers two star ratings (Brivis StarPro 4 & 5)
   // says "4-star or 5-star"; on the 4-star page it should just say 4-star.
   const star = /^(\d)-star$/.exec(tier.slug)?.[1];
-  const models: PModel[] = tierModels(sys, tier).flatMap(([b, slug, chip, id]) => {
+  const refs = tierModels(sys, tier);
+  const models: PModel[] = refs.flatMap(([b, slug, chip, id]) => {
     const found = findProduct(b, slug);
     if (!found) return [];
     const p = found.product;
     const room = p.specs?.find((x) => /room size|suits/i.test(x.label))?.value;
+    // One record behind several size buttons (the PEA-M is one record for
+    // 10, 12.5 and 14 kW): each button shows its own output, and its own
+    // code from the record's "Model codes" list, taken in the same order.
+    const kin = refs.filter((r) => r[1] === slug);
+    const k = kin.findIndex((r) => r[3] === id);
+    const shared = !star && id != null && kin.length > 1;
+    const ownCode = shared ? p.specs?.find((x) => /^model codes?$/i.test(x.label))?.value.split(" · ")[k] : undefined;
     // The record lists every output (15 · 20 · 26 · 30 kW); each button is one band of them.
     const specs = (p.specs ?? []).map((x) => (
       star && /^star rating/i.test(x.label) ? { label: "Star rating", value: `${star}-star` }
         : star && /^output range/i.test(x.label) ? { label: "Output range", value: chip }
-          : { label: x.label, value: x.value }));
+          : shared && /capacity/i.test(x.label) ? { label: x.label, value: chip }
+            : ownCode && /^model codes?$/i.test(x.label) ? { label: "Model code", value: ownCode }
+              : { label: x.label, value: x.value }));
     return [{
-      slug: id ?? slug, chip, name: star ? `${tier.brand} ${tier.model}` : p.name, code: star ? `${tier.model} · ${chip}` : p.model ?? p.name, bestFor: p.bestFor, room,
+      slug: id ?? slug, chip, name: star ? `${tier.brand} ${tier.model}` : p.name, code: star ? `${tier.model} · ${chip}` : ownCode ?? p.model ?? p.name, bestFor: p.bestFor, room,
       href: `/brands/${b}/${slug}`, specs,
       take: p.ourTake, badges: badgesFor(star ? { starRating: `${star}-star`, specs } : p, tier.feats), keys: keyFigures(specs),
       features: p.features, why: p.whyWeInstall,

@@ -98,9 +98,14 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   // Which of the system's sizes is showing: the one picked, or the one
   // nearest the chosen model (a 6.0 kW model has no size row of its own).
   const nums = (x?: string) => (x?.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
+  const unit = (x?: string) => x?.match(/kW|L\/min|m²|L\b|heads?/)?.[0].replace(/s$/, "");
   const sizeOfChip = (chip: string): number | null => {
     const want = nums(chip)[0];
     if (want == null) return null;
+    // A 16 kW button against "Up to 150 m²" isn't a match: comparing the
+    // bare numbers labelled every ducted size "Usually 3 bedrooms".
+    const u = unit(chip), su = unit(sys.sizes[0]?.spec);
+    if (u && su && u !== su) return null;
     let best: number | null = null, gap = Infinity;
     sys.sizes.forEach((z, i) => nums(z.spec).forEach((n) => { if (Math.abs(n - want) < gap) { gap = Math.abs(n - want); best = i; } }));
     return best;
@@ -122,7 +127,10 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     whyTitle: model?.why?.length ? "Why we install it" : model?.features?.length ? "Features" : "What's included",
     whyLines: model?.why?.length ? model.why : model?.features?.length ? model.features : included,
     take: model?.take ?? `${sys.sub}. ${optionLines.join(". ")}.`,
-    glance: model ? model.specs.filter((x) => !/warranty|refrigerant/i.test(x.label)).slice(0, 4) : [],
+    // Figures only: the band sets each one large on a single line, so a value
+    // written as a sentence ("16 kW · 18 kW · 20 kW (three larger model steps)")
+    // runs into its neighbours. Those stay in the spec table.
+    glance: model ? model.specs.filter((x) => !/warranty|refrigerant/i.test(x.label) && x.value.length <= 18).slice(0, 4) : [],
     pickModel, setSize, term, setTerm,
     applyAnswers: (a) => {
       const next = { ...ans, ...a };

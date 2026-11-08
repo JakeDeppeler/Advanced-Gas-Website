@@ -25,6 +25,9 @@
 .ag .hw-spot.on rect{stroke:#C2521A;stroke-width:3}
 .ag .hw-spot.on circle{fill:#C2521A;stroke:#C2521A}
 .ag .hw-spot.on text{fill:#fff}
+/* Only the step being shown carries its number on the drawing; four numbered circles at once read as clutter. */
+.ag .hw-spot:not(.on) circle,.ag .hw-spot:not(.on) text{opacity:0}
+.ag .hw-spot circle,.ag .hw-spot text{transition:opacity .25s}
 
 .ag .hw-label{font:700 12.5px var(--body);letter-spacing:.01em}
 .ag .hw-label--big{font:900 22px var(--disp)}

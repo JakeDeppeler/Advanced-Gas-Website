@@ -61,10 +61,9 @@ export const LEARN: Record<string, Learn> = {
   ducted: {
     diagram: "ducted",
     how: [
-      { t: "A unit in the roof", d: "Hidden in the roof, it pushes cool or warm air through the ducts." },
-      { t: "Vents in each room", d: "Air comes out of a vent in each ceiling and goes back to the unit through a return grille." },
-      { t: "The outdoor unit", d: "Moves the heat out of the house in summer, and brings heat in during winter." },
-      { t: "Zones", d: "Motors in the ducts open and close each zone, so you only run the rooms you're in." },
+      { t: "The outdoor unit", d: "Makes the heating or the cooling." },
+      { t: "The unit in the roof", d: "Blows that air through the ducts." },
+      { t: "Vents and zones", d: "A vent in each ceiling. Turn each zone on or off from the wall." },
     ],
     good: [
       "Whole-home heating and cooling from one system",
@@ -297,15 +296,20 @@ const SPLIT_CHOOSE: Record<string, Choice> = {
     { go: "multi-head.essential", label: "A multi-head system", when: "Several rooms need one, and there isn't space outside for an outdoor unit each." },
   ] },
   premium: { instead: [
-    { go: "signature", label: "MSZ-AP Hyper Heating", when: "Heating on the coldest mornings is the main job, in a colder, higher area." },
     { go: "essential", label: "Kaden KSI", when: "Cost decides it, or it's a room you only use now and then." },
-  ] },
-  signature: { instead: [
-    { go: "premium", label: "The standard MSZ-AP", when: "Winters are mild where you are. It heats well and costs less." },
-    { go: "gas-ducted-heating.5-star", label: "Gas ducted heating", when: "It's the whole house you want warm, not one room." },
+    { go: "multi-head.premium", label: "Mitsubishi Electric MXZ multi-head", when: "Several rooms need one, and there's only room outside for one outdoor unit." },
   ] },
 };
 const rooms = (n: number) => `${n} rooms off the one outdoor unit.`;
+/** The PEAD-M's six outputs. The heat load at the site check has the final say. */
+const PEAD_SIZES: Record<string, string> = {
+  "10 kW": "Smaller homes, around three bedrooms.",
+  "12.5 kW": "Three to four-bedroom homes.",
+  "14 kW": "Most four-bedroom homes.",
+  "16 kW": "Larger homes, or long duct runs.",
+  "18 kW": "Five bedrooms or more, or a double-storey.",
+  "20 kW · 3-phase": "The biggest homes. Needs three-phase power.",
+};
 /** What each Brivis output suits. The heat load at the site check has the final say. */
 const HEATER_SIZES: Record<string, string> = {
   "15 kW": "Smaller homes and units, or a heater serving part of a house.",
@@ -344,14 +348,14 @@ export const CHOOSE: Record<string, Choice> = {
     ],
   },
   "ducted.premium": {
-    sizes: { "10–14 kW": "Most three and four-bedroom homes.", "16–20 kW": "Larger homes, five bedrooms or more." },
+    sizes: PEAD_SIZES,
     instead: [
-      { go: "ducted.signature", label: "PEAD-M + Zonemate", when: "You want each zone on a touchscreen and the whole system on your phone." },
+      { go: "ducted.signature", label: "PEAD-M + Mitsubishi zone controller", when: "You want every zone on Mitsubishi Electric's own controller, one brand end to end." },
       { go: "ducted.essential", label: "Kaden KDI", when: "Cost decides it, and the home is within the Kaden range." },
     ],
   },
   "ducted.signature": {
-    sizes: { "10–14 kW": "Most three and four-bedroom homes.", "16–20 kW": "Larger homes, five bedrooms or more." },
+    sizes: PEAD_SIZES,
     instead: [{ go: "ducted.premium", label: "PEAD-M with its standard controller", when: "A simple wall controller is all you want." }],
   },
   "evaporative.essential": {
@@ -493,10 +497,6 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     pros: ["Very quiet on low fan, good for bedrooms", "The lowest failure rate of anything we install", "Parts still available many years on"],
     cons: ["Costs more upfront than the Kaden", "One room per unit: several rooms means several outdoor units"],
   },
-  "Mitsubishi Electric MSZ-AP Hyper Heating": {
-    pros: ["Holds its full rated heat down to −15°", "Made for the coldest mornings, when ordinary splits fade", "The same quiet MSZ-AP indoor unit"],
-    cons: ["Costs more than the standard MSZ-AP", "More than you need where winters are mild"],
-  },
   "Kaden Multi-head system": {
     pros: ["One outdoor unit runs several rooms", "Every room gets its own remote", "Costs less than the Mitsubishi multi-head"],
     cons: ["If the outdoor unit stops, every room stops with it", "Each head needs its own pipe run, planned at the site check"],
@@ -517,8 +517,8 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     pros: ["Zoned as standard", "Heating output matches the cooling", "Mitsubishi's reliability, hidden in the roof"],
     cons: ["Costs more than the Kaden ducted", "Needs a usable roof space", "A bigger job: usually two to three days"],
   },
-  "Mitsubishi Electric PEAD-M + Zonemate": {
-    pros: ["Touchscreen and phone control of every zone", "Run only the rooms you're using", "Mitsubishi's ducted system underneath"],
+  "Mitsubishi Electric PEAD-M + zone controller": {
+    pros: ["Mitsubishi Electric's own zone control, not a third-party box", "One brand end to end, so one warranty covers the lot", "Run only the rooms you're using"],
     cons: ["The most expensive of our ducted options", "Needs a usable roof space"],
   },
   "Kaden Classic evaporative": {

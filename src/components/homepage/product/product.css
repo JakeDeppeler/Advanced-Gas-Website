@@ -26,7 +26,7 @@
 .ag .lk2__eye{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--sky2)}
 .ag .lk2__stats{background:var(--navy);padding:64px 0}
 .ag .lk2__glance{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
-.ag .lk2__glance div{display:flex;flex-direction:column-reverse;align-items:center;gap:10px;padding:8px 20px;text-align:center;border-left:1px solid rgba(255,255,255,.14)}
+.ag .lk2__glance div{display:flex;flex-direction:column-reverse;align-items:center;gap:10px;padding:8px 20px;text-align:center;border-left:1px solid rgba(255,255,255,.14);min-width:0;overflow:hidden}
 .ag .lk2__glance div:first-child{border-left:0}
 .ag .lk2__glance dd{margin:0;font-family:var(--disp);font-size:clamp(34px,4vw,60px);font-weight:900;letter-spacing:-.03em;color:#fff;line-height:1;text-wrap:balance}
 .ag .lk2__glance dd{white-space:nowrap}

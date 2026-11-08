@@ -818,7 +818,7 @@ const brandCatalogue: Brand[] = [
     reasons: [
       { v: "Under 1%", k: "failure rate", d: "Across Mitsubishi Electric's whole range. The lowest of anything we install.", img: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor unit" },
       { v: "19 dBA", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to.", img: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
-      { v: "\u221215\u00b0", k: "and still full heat", d: "Hyper Heating holds its rated output on the coldest mornings in the hills.", img: "/PUZ_M140VKA_2-1920x1440-1.webp", alt: "Mitsubishi Electric outdoor unit beside a house", cover: true },
+      { v: "1 brand", k: "unit, controls and zoning", d: "Mitsubishi Electric's own zone controller on its own ducted system, so one warranty covers the lot.", img: "/mitsubishi-zone-controller-v2.webp", alt: "Mitsubishi Electric touch zone controller" },
       { v: "Year 12", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit.", img: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric MXZ outdoor unit" },
     ],
     quality: {
@@ -847,7 +847,7 @@ const brandCatalogue: Brand[] = [
       "MELCloud Wi-Fi module adds phone control to any indoor unit",
     ],
     commonInMelbourne:
-      "In every suburb we work in, and specified for different reasons in each. Berwick, Officer, Clyde North and Cranbourne new-builds go PEAD-M ducted almost by default. Berwick and Pakenham weatherboards, where there is no roof space to run ducts through, get MSZ-AP wall splits. Hills suburbs like Emerald, Gembrook and Cockatoo get the Hyper Heating variant, because it still makes its rated heat on the mornings the others start to fade.",
+      "In every suburb we work in, and specified for different reasons in each. Berwick, Officer, Clyde North and Cranbourne new-builds go PEAD-M ducted almost by default. Berwick and Pakenham weatherboards, where there is no roof space to run ducts through, get MSZ-AP wall splits.",
     support:
       "Mitsubishi's Melbourne parts warehouse is same-day for common indoor/outdoor parts. Manufacturer tech support is genuinely responsive. We rarely wait on a part.",
     resources: [
@@ -885,14 +885,12 @@ const brandCatalogue: Brand[] = [
     picker: {
       steps: [
         { id: "rooms", q: "How much of the house do you want to heat and cool?", opts: [{ v: "one", l: "One room" }, { v: "few", l: "Two to four rooms" }, { v: "all", l: "The whole house" }] },
-        { id: "cold", q: "Do you get frosty mornings where you live?", opts: [{ v: "yes", l: "Yes, we're up in the hills" }, { v: "no", l: "Not really" }], if: { rooms: "one" } },
         { id: "roof", q: "Is there roof space above the rooms?", opts: [{ v: "yes", l: "Yes, room to work up there" }, { v: "no", l: "No, or not much" }], if: { rooms: "all" } },
       ],
       results: [
-        { when: { rooms: "one", cold: "yes" }, model: "MSZ-AP Hyper Heating", why: "It holds its full rated heat down to \u221215\u00b0, so it doesn't fade on the mornings you need it most." },
         { when: { rooms: "one" }, model: "MSZ-AP wall split", why: "One unit on the wall and one outside. Our default for a bedroom or living room, and usually in within half a day." },
         { when: { rooms: "few" }, model: "MXZ multi-head", why: "One outdoor unit runs two to six indoor units, each room on its own remote. One set of holes in the wall, not four." },
-        { when: { rooms: "all", roof: "yes" }, model: "PEAD-M ducted", why: "The unit lives in the roof and vents into every room, zoned so you're not heating empty bedrooms." },
+        { when: { rooms: "all", roof: "yes" }, model: "PEAD-M + zone controller", why: "The unit lives in the roof and vents into every room, and Mitsubishi Electric's own zone controller means you only run the rooms you're using." },
         { when: { rooms: "all" }, model: "MXZ multi-head", why: "With no roof space for ducts, one outdoor unit runs up to six indoor units instead." },
       ],
     },
@@ -910,7 +908,7 @@ const brandCatalogue: Brand[] = [
     heroSub:
       "The brand we quote first on any air conditioning job, and the one we still get parts for in year twelve. Sixteen models across five shapes. Start with the shape.",
     fitsWhere:
-      "Wall splits in weatherboards with no roof space, ducted in the Clyde North and Officer new-builds, Hyper Heating in the hills where the cold mornings are real.",
+      "Wall splits in weatherboards with no roof space, ducted with Mitsubishi's own zone controller in the Clyde North and Officer new-builds.",
     // The failure rate and the dates have their own sections below, so the
     // header carries what's left: range, size of it, parts and warranty.
     heroFacts: [
@@ -936,7 +934,7 @@ const brandCatalogue: Brand[] = [
           { lead: "Six sizes", note: "2.5 kW for a bedroom up to 8.0 kW for large open-plan" },
           { lead: "19 dBA on low", note: "On the AP25, quiet enough to sleep next to" },
           { lead: "One morning", note: "Back-to-back install in three to four hours" },
-          { lead: "Hyper Heating option", note: "Full rated heat down to -15\u00b0 for hills postcodes" },
+          { lead: "Phone control", note: "Add the MELCloud Wi-Fi module to any indoor unit" },
         ],
         models: ["msz-ap25", "msz-ap35", "msz-ap50", "msz-ap60", "msz-ap71", "msz-ap80"],
       },
@@ -1039,8 +1037,8 @@ const brandCatalogue: Brand[] = [
         a: "On a bedroom split the gap is a few hundred dollars, and the honest answer is that it usually pays for itself the first time something goes wrong, or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
       },
       {
-        q: "What's the difference between MSZ-AP and Hyper Heating?",
-        a: "Same wall split, different outdoor unit. A standard AP loses heating capacity as the ambient temperature drops. Hyper Heating holds its full rated output down to -15\u00b0. In Pakenham or Cranbourne that difference rarely shows up. In Emerald, Gembrook or Cockatoo it shows up most mornings in July, which is why we quote it there.",
+        q: "Which Mitsubishi wall split do you install?",
+        a: "The MSZ-AP series, in six sizes from 2.5 kW for a bedroom up to 8.0 kW for a large open-plan room. It's the one we know inside out and keep parts for, so it's the only Mitsubishi wall split we fit.",
       },
       {
         q: "Do I need the ducted zoning, or is it an upsell?",
@@ -1332,7 +1330,7 @@ const brandCatalogue: Brand[] = [
       {
         slug: "pead-m",
         name: "PEA-M100 / M125 / M140 Ducted",
-        model: "PEA-M100/125/140HAA (HAA-VKA Hyper Heating)",
+        model: "PEA-M100/125/140HAA",
         category: "ducted",
         categoryLabel: "Ducted",
         capacity: "10 kW / 12.5 kW / 14 kW cooling · heating parity",
@@ -1342,27 +1340,25 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Mitsubishi Electric PEA-M ducted indoor unit",
         bestFor: "3-4 bed single-storey ducted retrofit or new-build, 4-6 zones",
         ourTake:
-          "The PEA-M is Mitsubishi's default ducted system for a typical Melbourne family home. Three capacity steps (10 / 12.5 / 14 kW) cover most single-storey retrofits, and the HAA-VKA Hyper Heating variant holds capacity down to −15 °C, worth specifying in colder, higher areas. Pairs with the PUZ outdoor and any Zonemate zone controller.",
+          "Our default ducted system for a three or four-bedroom home. Zoned with Mitsubishi Electric's own controller.",
         specs: [
           { label: "Cool / heat capacity", value: "10 kW · 12.5 kW · 14 kW (three model steps)" },
           { label: "Model codes", value: "PEA-M100HAA · PEA-M125HAA · PEA-M140HAA" },
-          { label: "Hyper Heating option", value: "PUZ-M100VKA / VKA2 outdoor (holds capacity to −15 °C)" },
           { label: "Refrigerant", value: "R32 (low GWP)" },
           { label: "External static pressure", value: "Adjustable 50–150 Pa" },
           { label: "Air flow", value: "1,320–2,340 L/s across the three sizes" },
-          { label: "Indoor sound (min)", value: "34–41 dBA depending on fan speed" },
-          { label: "Power supply", value: "1-phase 230 V (M100) · 3-phase 400 V option (M125/M140)" },
-          { label: "Zoning", value: "Zonemate 4 / 6 / 8-zone with damper motors" },
+          { label: "Indoor sound", value: "34–41 dBA" },
+          { label: "Power supply", value: "Single-phase" },
+          { label: "Zoning", value: "Mitsubishi Electric zone controller (PAR-ZC01M-E + PAC-ZC40/ZC80), 4 or 8 zones" },
           { label: "Controller", value: "PAR-40 wired / MA-remote / MELCloud Wi-Fi module" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
           "Three capacity steps (10 / 12.5 / 14 kW), right-size to the actual heat load, not oversized as a habit",
           "Adjustable external static pressure 50–150 Pa suits typical 3-4 zone Melbourne retrofits",
-          "Hyper Heating outdoor option (VKA) holds full heating capacity down to −15 °C for cold-morning hills postcodes",
           "R32 refrigerant across all three sizes, low-GWP, no HFC phase-down risk",
           "MELCloud Wi-Fi module adds phone control to the wired PAR-40 controller",
-          "Zonemate zoning compatible out of the box, no interface adapter required",
+          "Zoned with Mitsubishi Electric's own zone controller: one brand from the outdoor unit to the wall",
           "Inverter compressor + DC fan motor for quiet, efficient part-load running",
           "Made in Thailand at Mitsubishi's dedicated air-conditioning plant",
         ],
@@ -1370,16 +1366,15 @@ const brandCatalogue: Brand[] = [
           "The most reliable ducted platform in our install base, decade-old PEA-M / PEAD-M units still run to spec",
           "Mitsubishi's Melbourne parts warehouse is same-day on virtually every PEA-M part we've ever needed",
           "Under 1% failure rate across the range. It is the unit we are least likely to have to come back to",
-          "Hyper Heating (VKA) holds rated heating output to -15 degrees, which is what a Gembrook or Emerald winter morning actually asks of a ducted system",
           "Right-sizing across three capacity steps means we don't oversize you into a bigger unit that short-cycles and wastes power",
-          "Direct Zonemate integration handles per-room zoning without a third-party control adaptor",
+          "Mitsubishi's own zone controller means one brand end to end, so one warranty covers the lot and there's no argument over whose part failed",
         ],
-        related: ["pead-large", "mfz-kw", "par-41maa", "zonemate-touch"],
+        related: ["pead-large", "me-zone-controller", "par-41maa", "mfz-kw"],
       },
       {
         slug: "pead-large",
         name: "PEA-M160 / M180 / M200 Ducted (Large Homes)",
-        model: "PEA-M160HAA · PEA-M180HAA · PEA-M200HAA (1-phase + 3-phase)",
+        model: "PEA-M160HAA · PEA-M180HAA · PEA-M200HAA",
         category: "ducted",
         categoryLabel: "Ducted",
         capacity: "16 kW / 18 kW / 20 kW cooling · heating parity",
@@ -1389,32 +1384,30 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Mitsubishi Electric PEA-M large-capacity ducted indoor unit",
         bestFor: "Larger single-storey, double-storey or long duct-run family homes needing 16-20 kW output",
         ourTake:
-          "The PEA-M160/180/200 is the large-capacity extension of the PEA-M range, same indoor platform as the M100/125/140, sized up for double-storey homes, 6+ zones, or long ceiling-cavity duct runs. The 20 kW step is offered in both single-phase and three-phase to suit whatever supply the property has. Pairs with the PUZ-M outdoor and the HAA-VKA Hyper Heating variant is available up to M140 for hills postcodes; larger capacities use the standard PUZ.",
+          "The same system, sized up for bigger and double-storey homes. 16 or 18 kW, or 20 kW on three-phase power.",
         specs: [
           { label: "Cool / heat capacity", value: "16 kW · 18 kW · 20 kW (three larger model steps)" },
           { label: "Model codes", value: "PEA-M160HAA · PEA-M180HAA · PEA-M200HAA" },
-          { label: "Power supply · 16 kW / 18 kW", value: "3-phase 400 V standard" },
-          { label: "Power supply · 20 kW", value: "1-phase 230 V OR 3-phase 400 V, spec to suit property supply" },
+          { label: "Power supply", value: "16 & 18 kW single-phase · 20 kW three-phase" },
           { label: "Refrigerant", value: "R32 (low GWP)" },
           { label: "External static pressure", value: "Adjustable 100–200 Pa (higher-static than M100-M140)" },
-          { label: "Zoning", value: "Zonemate 6 / 8-zone with damper motors" },
+          { label: "Zoning", value: "Mitsubishi Electric zone controller (PAR-ZC01M-E + PAC-ZC40/ZC80), up to 8 zones" },
           { label: "Controller", value: "PAR-42MAA wired / MA-remote" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
           "Three larger capacity steps (16 / 18 / 20 kW) extend the PEA-M range for double-storey + long-run installs",
-          "20 kW available in both 1-phase and 3-phase, spec to match whatever supply is at the meter box",
+          "The 20 kW runs on three-phase power",
           "Higher external static pressure (100–200 Pa) delivers rated flow through longer flex-duct runs",
           "Same R32 refrigerant + inverter platform as the M100-M140, so parts + service story is unchanged",
-          "Zonemate 8-zone compatible so bigger homes get proper per-room control",
+          "Mitsubishi Electric's eight-zone controller gives a bigger home proper per-room control",
         ],
         whyWeInstall: [
           "The pick for a two-storey Berwick / Officer / Clyde home where a single M140 would short-cycle in shoulder seasons",
-          "20 kW 1-phase option means we can quote a large-capacity system into a property without paying for a 3-phase upgrade",
           "Same Mitsubishi parts + support platform as the smaller M-series, no separate stocking to worry about",
-          "Zonemate 8-zone + PAR-42MAA gives full per-room control on a home big enough to need it",
+          "Mitsubishi's own eight-zone controller gives full per-room control on a home big enough to need it",
         ],
-        related: ["pead-m", "zonemate-touch", "par-41maa"],
+        related: ["pead-m", "me-zone-controller", "par-41maa"],
       },
       {
         slug: "mfz-kw",
@@ -1466,7 +1459,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Mitsubishi PAR-41MAA standard wired wall controller",
         bestFor: "Ducted or floor-console systems where a physical wall controller is preferred over the handheld remote",
         ourTake:
-          "The PAR-41MAA is Mitsubishi's current-generation standard wired wall controller, the model we fit as standard on every PEA-M and MFZ-KW install. Physical wall control for anyone who'd rather not reach for a phone or handheld remote. Direct interface into Zonemate zoning so one controller drives both temp and zones.",
+          "The PAR-41MAA is Mitsubishi's current-generation standard wired wall controller, the model we fit as standard on every PEA-M and MFZ-KW install. Physical wall control for anyone who'd rather not reach for a phone or handheld remote. On a zoned job it sits alongside Mitsubishi Electric's own zone controller.",
         specs: [
           { label: "Model code", value: "PAR-41MAA (current-generation Standard)" },
           { label: "Compatibility", value: "PEA-M / PEAD-M ducted + MFZ-KW floor console" },
@@ -1479,14 +1472,13 @@ const brandCatalogue: Brand[] = [
           "Current-generation replacement for the PAR-40, same wiring, same footprint, sharper display",
           "7-day schedule with 8 events per day for occupancy-driven control",
           "Built-in room sensor targets the temp at the controller position, not at the return-air grille",
-          "Direct interface for Zonemate 4/6/8-zone systems without third-party adaptor",
+          "Sits alongside Mitsubishi Electric's own zone controller on a zoned ducted system",
         ],
         whyWeInstall: [
           "The controller we fit as standard on every ducted install",
           "Physical wall control ages better than app-based control, no login drift, no OS upgrades to chase",
-          "Direct Zonemate integration means one screen for temp + zones, not two apps",
         ],
-        related: ["me-zone-controller", "pead-m", "zonemate-touch"],
+        related: ["me-zone-controller", "pead-m", "pead-large"],
       },
       {
         slug: "me-zone-controller",
