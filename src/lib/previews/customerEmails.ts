@@ -1,5 +1,6 @@
 import "server-only";
 import { sendEmail } from "@/lib/email/send";
+import { withInlineImages } from "@/lib/email/inline";
 import { site } from "@/lib/site";
 import { emailContext } from "@/lib/email/context";
 import { premiumHtml, premiumText } from "@/lib/email/premium";
@@ -67,7 +68,7 @@ export async function sendCustomerEmailPreviews(): Promise<{ sent: string[]; fai
   const sent: string[] = [];
   const failed: { subject: string; error: string }[] = [];
   for (const m of mails) {
-    const out = await sendEmail(m.kind, { from: m.from, to: [PREVIEW_TO], reply_to: REPLY_TO, subject: m.subject, html: m.html, text: m.text }, { preview: true });
+    const out = await sendEmail(m.kind, await withInlineImages({ from: m.from, to: [PREVIEW_TO], reply_to: REPLY_TO, subject: m.subject, html: m.html, text: m.text }), { preview: true });
     if (out.ok) sent.push(m.subject);
     else failed.push({ subject: m.subject, error: out.error });
   }

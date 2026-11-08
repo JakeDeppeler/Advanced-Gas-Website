@@ -3,6 +3,7 @@ import { q, sbInsertIfAbsent, sbSelect, sbUpdate, sbUpdateReturning } from "@/li
 import { tagIds } from "@/lib/dashboard/onHoldTypes";
 import { getSettings } from "@/lib/portal/db";
 import { sendEmail } from "@/lib/email/send";
+import { withInlineImages } from "@/lib/email/inline";
 import { site } from "@/lib/site";
 import { emailContext } from "@/lib/email/context";
 import {
@@ -162,7 +163,7 @@ export async function runReviewRequests(now = new Date()): Promise<ReviewRun> {
     }
     if (!rowId) continue;
     const mail = reviewEmail(s, { customer: j.customer_name, techs: techs.get(Number(j.id)) ?? [], jobType: j.job_type, suburb: j.suburb, href: `${site.url}/r/${rowId}` }, ctx);
-    const out = await sendEmail("review-request", { from, to: [email], reply_to: reviewReplyTo, subject: mail.subject, text: mail.text, html: mail.html }, { job: j.job_number });
+    const out = await sendEmail("review-request", await withInlineImages({ from, to: [email], reply_to: reviewReplyTo, subject: mail.subject, text: mail.text, html: mail.html }), { job: j.job_number });
     if (out.ok) {
       sent++;
       await sbUpdate(TABLE, `id=eq.${rowId}`, { status: "sent", sent_at: new Date().toISOString() });
@@ -181,7 +182,7 @@ export async function sendReviewTest(to: string, s: ReviewSettings): Promise<{ o
   const link = reviewLink(s, process.env.GOOGLE_PLACE_ID);
   if (!link) return { ok: false, error: "Put in the Google review link first." };
   const mail = reviewEmail(s, { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Service - Split System", suburb: "Berwick", href: link }, emailContext());
-  const out = await sendEmail("review-request", { from, to: [to], reply_to: reviewReplyTo, subject: `[Test] ${mail.subject}`, text: mail.text, html: mail.html }, { test: true });
+  const out = await sendEmail("review-request", await withInlineImages({ from, to: [to], reply_to: reviewReplyTo, subject: `[Test] ${mail.subject}`, text: mail.text, html: mail.html }), { test: true });
   return out.ok ? { ok: true } : { ok: false, error: out.error };
 }
 

@@ -31,7 +31,8 @@ export type ResendMessage = {
   reply_to?: string | string[];
   cc?: string[];
   bcc?: string[];
-  attachments?: Array<{ filename: string; content: string }>;
+  /** content_id makes it an inline image the HTML shows with src="cid:<content_id>". */
+  attachments?: Array<{ filename: string; content: string; content_id?: string; content_type?: string }>;
   headers?: Record<string, string>;
 };
 
