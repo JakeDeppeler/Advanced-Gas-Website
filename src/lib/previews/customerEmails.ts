@@ -3,7 +3,7 @@ import { sendEmail } from "@/lib/email/send";
 import { withInlineImages } from "@/lib/email/inline";
 import { site } from "@/lib/site";
 import { emailContext } from "@/lib/email/context";
-import { premiumHtml, premiumText } from "@/lib/email/premium";
+import { letterHtml, letterText } from "@/lib/email/premium";
 import { SIGNERS } from "@/lib/email/team";
 import { followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
@@ -28,10 +28,7 @@ const withBanner = (html: string, note: string) =>
 
 export function quoteEmailPreviews(): { subject: string; html: string; text: string }[] {
   const ctx = emailContext();
-  const base: Omit<FollowUpInput, "options"> = {
-    first: "Sarah", quoter: "Jake", suburb: "Berwick", phone: site.phone, phoneHref: `tel:${site.phoneE164}`, base: site.url,
-    answer: { yes: site.url, notNow: site.url, question: site.url },
-  };
+  const base: Omit<FollowUpInput, "options"> = { first: "Sarah", quoter: "Jake", quoterSigns: true, phone: site.phone };
   const hp = ["Reclaim Split SS 315L V2", "IStore 270L - Plug", "Thermann 285L - Plug"];
   const sp = ["Mitsubishi Electric 3.5kW Split System - Back to Back", "Kaden 3.5kW Split System - Back to Back"];
   const runs: { options: string[]; step: 1 | 2 | 3; label: string }[] = [
@@ -41,11 +38,11 @@ export function quoteEmailPreviews(): { subject: string; html: string; text: str
     { options: sp, step: 1, label: "Split system 1 of 3, day 2" },
     { options: sp, step: 2, label: "Split system 2 of 3, day 6" },
   ];
-  const note = "Preview of a quote follow-up, written for what's on the quote. Sarah and her quote are made up. Nothing has gone to a customer, and the buttons go to the website for now.";
+  const note = "Preview of a quote follow-up, written as a personal check-in for what's on the quote. Sarah and her quote are made up. Nothing has gone to a customer.";
   return runs.map((r) => {
     const e = followUpEmail(quoteKind(r.options), r.step, { ...base, options: r.options });
-    const mail = { ...ctx, preheader: e.preheader, hero: e.hero, blocks: e.blocks, signer: SIGNERS.jake };
-    return { subject: `[Preview: ${r.label}] ${e.subject}`, html: withBanner(premiumHtml(mail), note), text: `${note}\n\n${premiumText(mail)}` };
+    const mail = { base: ctx.base, footer: ctx.footer, preheader: e.preheader, blocks: e.blocks, signer: SIGNERS.jake };
+    return { subject: `[Preview: ${r.label}] ${e.subject}`, html: withBanner(letterHtml(mail), note), text: `${note}\n\n${letterText(mail)}` };
   });
 }
 

@@ -4,7 +4,7 @@
  */
 import { firstName, holdFor, inSendingHours, jobWords, reviewEmail, reviewHero, reviewLink, reviewLinkOk, reviewSettingsFrom, techWords, whyNot, type Candidate, type EmailContext } from "../src/lib/reviews/requestTypes";
 import { followUpEmail, quoteKind, type FollowUpInput } from "../src/lib/quotes/followUpContent";
-import { premiumHtml, premiumText } from "../src/lib/email/premium";
+import { letterHtml, letterText, premiumHtml } from "../src/lib/email/premium";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
 
@@ -86,19 +86,23 @@ ok("heat pump quote", quoteKind(["Reclaim 300L - Plug", "IStore 270L - Plug"]) =
 ok("panasonic split is hot water", quoteKind(["Panasonic Split SS 315L 6kw"]) === "heat-pump");
 ok("split system quote", quoteKind(["Kaden 7.1kW Split System - Back to Back"]) === "split" && quoteKind(["Rinnai 11kw Multi Head Split System"]) === "split");
 ok("ducted falls back for now", quoteKind(["Braemar Dominator Installation Internal"]) === "general");
-const fin: FollowUpInput = { first: "Sarah", quoter: "Jake", suburb: "Berwick", options: ["Reclaim 300L - Plug", "Thermann 285L - Plug"], phone: "(03) 5947 8000", phoneHref: "tel:+61359478000", answer: { yes: "https://y", notNow: "https://n", question: "https://q" }, base: "https://www.advancedgas.com.au" };
+const fin: FollowUpInput = { first: "Sarah", quoter: "Jake", quoterSigns: true, options: ["Reclaim 300L - Plug", "Thermann 285L - Plug"], phone: "(03) 5947 8000" };
+const signer = { name: "Jake Deppeler", role: "Advanced Gas & Aircon", photo: "/email/tech-jake.jpg" };
 for (const kind of ["heat-pump", "split", "general"] as const) for (const step of [1, 2, 3] as const) {
   const e = followUpEmail(kind, step, fin);
-  const html = premiumHtml({ ...ctx, preheader: e.preheader, hero: e.hero, blocks: e.blocks });
-  const text = premiumText({ ...ctx, preheader: e.preheader, hero: e.hero, blocks: e.blocks });
+  const html = letterHtml({ ...ctx, preheader: e.preheader, blocks: e.blocks, signer });
+  const text = letterText({ ...ctx, preheader: e.preheader, blocks: e.blocks, signer });
+  ok(`${kind} ${step}: reads like a letter (Hi, no headline, asks for a reply)`, e.blocks[0]?.kind === "p" && e.blocks[0].text === "Hi Sarah," && /reply/i.test(text) && !/<h\d|text-transform:uppercase/.test(html));
   ok(`${kind} ${step}: words, no gaps`, !!e.subject && !/\{\w+\}|undefined|  /.test(text), text.slice(0, 80));
   ok(`${kind} ${step}: images exist`, [...html.matchAll(/src="https:\/\/www\.advancedgas\.com\.au(\/[^"]+)"/g)].every((x) => existsSync(`public${decodeURIComponent(x[1])}`)));
 }
-const two = followUpEmail("heat-pump", 1, fin).blocks.find((b) => b.kind === "cards");
-ok("only the brands on the quote", two?.kind === "cards" && two.items.map((c) => c.title).join() === "Reclaim CO₂,Thermann");
+const two = followUpEmail("heat-pump", 1, fin).blocks.find((b) => b.kind === "thumbs");
+ok("only the brands on the quote", two?.kind === "thumbs" && two.items.map((c) => c.caption).join() === "Reclaim CO₂,Thermann");
+ok("two options: not 'dearest of the three'", !letterText({ ...ctx, preheader: "", blocks: followUpEmail("heat-pump", 1, fin).blocks, signer }).includes("of the three"));
+ok("someone else quoted: named", letterText({ ...ctx, preheader: "", blocks: followUpEmail("split", 1, { ...fin, quoter: "Jye", quoterSigns: false }).blocks, signer }).includes("having Jye out"));
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));
-ok("day 13 has the three answers", followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "buttons" && b.items.length === 3));
+ok("day 13 is a check-in, asking for a reply", followUpEmail("split", 3, fin).subject.startsWith("Just checking in") && followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "p" && /just reply/.test(b.text)));
 
 if (bad) { console.log(`\n${bad} failed`); process.exit(1); }
 console.log("\nall passed");
