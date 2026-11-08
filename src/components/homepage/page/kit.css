@@ -114,7 +114,7 @@
 /* The same chips on a light section: the suburb links under a service page. */
 .ag .kx__chips--light>*{color:var(--navy);background:#fff;border-color:var(--line2)}
 .ag .kx__chips--light a:hover{border-color:var(--or);color:var(--navy)}
-.ag .kx__chips--light .kx__chips-all{border-color:transparent;background:none;color:var(--sky-ink);text-decoration:underline;text-underline-offset:3px}
+.ag .kx__chips--light .kx__chips-all{border-color:transparent;background:none;color:var(--acc,#C2521A);text-decoration:underline;text-underline-offset:3px}
 @media (max-width:700px){.ag .kxk{grid-template-columns:1fr}}
 
 /* Tools: the hub's cards, and the old tool widgets sitting in the new frame. */
