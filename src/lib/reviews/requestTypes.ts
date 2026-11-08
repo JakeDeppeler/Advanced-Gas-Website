@@ -165,7 +165,11 @@ export const firstName = (customer: string | null) => {
   return /^[A-Z][a-z'-]{1,}$/.test(w) && !/^(unit|the|mr|mrs|ms|dr)$/i.test(w) ? w : "there";
 };
 
-export type ReviewEmailInput = { customer: string | null; techs: string[]; jobType: string | null; suburb: string | null; href: string };
+export type ReviewEmailInput = {
+  customer: string | null; techs: string[]; jobType: string | null; suburb: string | null; href: string;
+  /** A photo the tech took on the job (jobPhoto.ts), used across the top instead of a stock one. */
+  photo?: string | null;
+};
 
 /** Where the email lives: the site's address and contact line, passed in so this file stays pure. */
 export type EmailContext = Pick<PremiumEmail, "base" | "footer" | "proof">;
@@ -197,7 +201,8 @@ export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailCo
   const where = (i.suburb ?? "").trim();
   const personFor = (name: string): PremiumBlock => ({ kind: "person", name, photo: headshot(name), line: `Looked after your ${values.job}${where ? ` in ${where}` : ""}` });
 
-  const blocks: PremiumBlock[] = [{ kind: "h", text: values.first === "there" ? "A quick favour?" : `A quick favour, ${values.first}?` }];
+  // No headline: it reads as an email from a person, opening "Hi Sarah," (Jake, 8 Nov, didn't like "A quick favour, Sarah?").
+  const blocks: PremiumBlock[] = [];
   const paras = fill(s.body).split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   // After the paragraph that names them; else after the greeting.
   const named = paras.findIndex((p) => techNames.length > 0 && p.includes(values.tech));
@@ -223,6 +228,8 @@ export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailCo
   if (!buttonDone) blocks.push({ kind: "button", label: BUTTON_LABEL, href: i.href });
 
   const signer = SIGNERS[s.signer];
-  const mail: PremiumEmail = { ...ctx, preheader: `How did ${values.tech} go? A minute on Google helps the next family find us.`, hero: reviewHero(i.jobType), blocks, signer };
+  const stock = reviewHero(i.jobType);
+  const hero = i.photo ? { src: i.photo, alt: `Your ${values.job}, photographed by ${values.tech} on the day`, fallback: stock.src } : stock;
+  const mail: PremiumEmail = { ...ctx, preheader: `How did ${values.tech} go? A minute on Google helps the next family find us.`, hero, blocks, signer };
   return { subject, text: premiumText(mail), html: premiumHtml(mail) };
 }
