@@ -253,7 +253,9 @@ export type LetterBlock =
   | { kind: "p"; text: string }
   /** Plain bullets. **bold** works for the thing being described. */
   | { kind: "list"; items: string[] }
-  | { kind: "thumbs"; items: { src: string; alt: string; caption: string }[] };
+  | { kind: "thumbs"; items: { src: string; alt: string; caption: string }[] }
+  /** One photo, as if dropped into the email, with a line under it saying what it is. */
+  | { kind: "photo"; src: string; alt: string; caption: string };
 
 export type LetterEmail = {
   preheader: string;
@@ -269,6 +271,8 @@ function letterBlock(b: LetterBlock, base: string): string {
   if (b.kind === "p") return `<p style="margin:0 0 14px;${LETTER_FONT};color:${INK}">${inline(b.text)}</p>`;
   if (b.kind === "list")
     return `<ul style="margin:0 0 14px;padding:0 0 0 20px">${b.items.map((i) => `<li style="margin:0 0 8px;${LETTER_FONT};color:${INK}">${inline(i)}</li>`).join("")}</ul>`;
+  if (b.kind === "photo")
+    return `<div style="margin:4px 0 18px;max-width:440px"><img src="${esc(abs(base, b.src))}" width="440" alt="${esc(b.alt)}" style="display:block;width:100%;height:auto;border-radius:10px;border:0"><div style="padding-top:6px;font:400 13px/1.45 ${FONT};color:${MUTED}">${esc(b.caption)}</div></div>`;
   const w = Math.floor(100 / b.items.length);
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:2px 0 16px"><tr>${b.items
     .map((i) => `<td width="${w}%" style="padding:0 10px 0 0;vertical-align:top"><img src="${esc(abs(base, i.src))}" width="140" alt="${esc(i.alt)}" style="display:block;width:100%;max-width:140px;height:auto;border-radius:8px;border:0"><div style="padding-top:6px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(i.caption)}</div></td>`)
@@ -297,7 +301,7 @@ ${e.blocks.map((b) => letterBlock(b, e.base)).join("\n")}
 export function letterText(e: LetterEmail): string {
   const plain = (t: string) => t.replace(/\*\*(.+?)\*\*/g, "$1");
   const out = e.blocks.map((b) =>
-    b.kind === "p" ? plain(b.text) : b.kind === "list" ? b.items.map((i) => `- ${plain(i)}`).join("\n") : b.items.map((i) => i.caption).join(" · "));
+    b.kind === "p" ? plain(b.text) : b.kind === "list" ? b.items.map((i) => `- ${plain(i)}`).join("\n") : b.kind === "photo" ? `[Photo: ${b.caption}]` : b.items.map((i) => i.caption).join(" · "));
   out.push(`Cheers,\n${e.signer.name}\n${e.signer.role}\n${e.footer.phone} · ${e.footer.site}`);
   return out.join("\n\n");
 }
