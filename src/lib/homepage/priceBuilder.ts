@@ -4,8 +4,8 @@
  *
  * ⚠️ EVERY DOLLAR FIGURE IN THIS FILE IS A PLACEHOLDER. Jake asked for a
  * mock-up to see how the tool works before he sends the real price list.
- * The tool only renders on preview deployments (see `PRICE_BUILDER_LIVE`),
- * and says "placeholder prices" on its face, so none of these numbers can
+ * The tool renders nowhere, previews included, until `PRICE_BUILDER_LIVE` is
+ * on (Jake asked for all prices off, Nov 2026), so none of these numbers can
  * reach a customer. When the real figures arrive: replace them here, check
  * them against a few real quotes, then flip `PRICE_BUILDER_LIVE`.
  */

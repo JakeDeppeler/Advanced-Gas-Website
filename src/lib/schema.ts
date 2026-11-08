@@ -1,4 +1,5 @@
 import { site, services, publishedSuburbs } from "./site";
+import { SHOW_PRICES } from "./homepage/data";
 
 // Generates JSON-LD blocks for SEO. Embed with <JsonLd data={...} /> from
 // components/JsonLd, never next/script (see that file for why).
@@ -196,7 +197,9 @@ export function productSchema(p: {
   installedPriceFrom?: string;
 }, brandSlug: string) {
   // "$2,538" and "From $2,538" both reduce to the number schema.org wants.
-  const priceNum = p.installedPriceFrom
+  // No offer at all while SHOW_PRICES is off: structured data mustn't carry
+  // a price the page itself no longer shows.
+  const priceNum = SHOW_PRICES && p.installedPriceFrom
     ? Number(p.installedPriceFrom.replace(/[^0-9.]/g, "")) || null
     : null;
 
