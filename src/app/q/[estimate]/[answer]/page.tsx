@@ -54,7 +54,7 @@ export default async function QuoteAnswerPage({ params, searchParams }: Props) {
         <p style={{ marginTop: 28, fontSize: 16, color: "var(--ink-2)" }}>
           Rather talk now? Call us on <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", fontWeight: 700 }}>{site.phone}</a>.
         </p>
-        {estimate === 0 && <p style={{ marginTop: 24, fontSize: 13, color: "var(--ink-3)" }}>This is the preview: nothing is recorded or sent.</p>}
+        {estimate === 0 && <p style={{ marginTop: 24, fontSize: 13, color: "var(--ink-3)" }}>This is the preview: nothing is recorded, and the two emails a tap sends (the customer&rsquo;s message to the office, and what happens next back to them) go to Jake instead.</p>}
       </div>
     </section>
   );
