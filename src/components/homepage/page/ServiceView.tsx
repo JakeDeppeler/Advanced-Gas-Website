@@ -15,7 +15,7 @@ type Sys = NonNullable<ServiceContent["systems"]>[number];
 
 /**
  * Install systems that are also in Find your system, so a service page can
- * send people to the product pages with real options and prices rather than
+ * send people to the product pages with the real options rather than
  * re-listing them.
  */
 export const FINDER_FOR: Record<string, string> = {
@@ -184,7 +184,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
       >
         {finder && (
           <div className="bxh__ctas">
-            <Link href={`/find/${finder}`} className="abtn abtn--or abtn--flat">{SHOW_PRICES ? "See the options and prices →" : "See the options →"}</Link>
+            <Link href={`/find/${finder}`} className="abtn abtn--or abtn--flat">See the options →</Link>
             <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
           </div>
         )}
@@ -246,9 +246,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
         <div className="wrap pp__col">
           <Head eye="Where next" h="Keep going." />
           <Next items={[
-            ...(finder ? [SHOW_PRICES
-              ? { t: "Options and prices", s: `Every ${s.label.toLowerCase()} we install, with its from price`, href: `/find/${finder}` }
-              : { t: "The options", s: `Every ${s.label.toLowerCase()} we install, side by side`, href: `/find/${finder}` }] : []),
+            ...(finder ? [{ t: "The options", s: `Every ${s.label.toLowerCase()} we install, side by side`, href: `/find/${finder}` }] : []),
             { t: `All ${name.toLowerCase()}`, s: "The other jobs under this service", href: `/services/${slug}` },
             { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
           ]} />

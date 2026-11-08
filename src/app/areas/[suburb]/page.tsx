@@ -177,7 +177,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           )}
           <div className="kxc">
             {services.map((s) => <Link key={s.slug} href={`/services/${s.slug}`} className="kxc__i"><strong>{s.short}</strong><small>See the service →</small></Link>)}
-            <Link href="/#find" className="kxc__i"><strong>Find your system</strong><small>Options and prices →</small></Link>
+            <Link href="/#find" className="kxc__i"><strong>Find your system</strong><small>Every system, side by side →</small></Link>
           </div>
           {nearby.length > 0 && (
             <>
