@@ -8,7 +8,7 @@ import { letterHtml, letterText } from "@/lib/email/premium";
 import { SIGNERS } from "@/lib/email/team";
 import { SERIES_DAYS, followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
 import { ANSWERS, optionWords, type Answer } from "@/lib/quotes/answerTypes";
-import { bookedEmail, soldEmail } from "@/lib/quotes/journeyContent";
+import { soldEmail } from "@/lib/quotes/journeyContent";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
 import { loadReviewSettings, sampleJobPhoto } from "@/lib/reviews/requests";
 import { answerEmails, answerUrl, SAMPLE_QUOTE } from "@/lib/quotes/answers";
@@ -21,8 +21,8 @@ import { answerEmails, answerUrl, SAMPLE_QUOTE } from "@/lib/quotes/answers";
  * The review email is the real one, built by the same code customers get.
  * The quote follow-ups use the real wording (lib/quotes/followUpContent.ts)
  * against a made-up quote, since the sending side isn't built yet; so do the
- * two emails a tapped button sends, and the "what happens next" emails for a
- * sale and a booking (lib/quotes/journeyContent.ts).
+ * two emails a tapped button sends, and the "what happens next" email for a
+ * sale made on the phone (lib/quotes/journeyContent.ts).
  */
 
 export const PREVIEW_TO = OWNER_EMAIL;
@@ -34,7 +34,7 @@ export type PreviewSet = (typeof PREVIEW_SETS)[number];
 
 const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const withBanner = (html: string, note: string) =>
-  html.replace(/<body[^>]*>/, (b) => `${b}<div style="max-width:600px;margin:16px auto 0;padding:10px 14px;background:#fff4d6;border-radius:10px;font:13px/1.5 Arial,sans-serif;color:#7a5200">${esc(note)}</div>`);
+  html.replace(/<body[^>]*>/, (b) => `${b}<div style="margin:16px 18px 0;padding:10px 14px;background:#fff4d6;border-radius:10px;font:13px/1.5 Arial,sans-serif;color:#7a5200">${esc(note)}</div>`);
 
 type Mail = { subject: string; html: string; text: string };
 
@@ -73,19 +73,17 @@ export function answerEmailPreviews(): ResendMessage[] {
   });
 }
 
-/** Thanks for going ahead, and you're booked in: wording only, until the triggers that send them are built. */
+/** Thanks for going ahead, for a sale made on the phone: wording only, until the trigger that sends it is built. */
 export function journeyEmailPreviews(): Mail[] {
   const ctx = emailContext();
   const what = optionWords(SAMPLE_QUOTE.option);
   const sold = soldEmail({ first: "Sarah", what, phone: SAMPLE_QUOTE.phone, officePhone: site.phone });
-  const booked = bookedEmail({ first: "Sarah", what, hotWater: true, day: "Thursday 20 November", window: "7 and 8 am", tech: "Jye", officePhone: site.phone });
   const build = (e: { subject: string; preheader: string; blocks: typeof sold.blocks }, label: string, note: string): Mail => {
     const mail = { base: ctx.base, footer: ctx.footer, preheader: e.preheader, blocks: e.blocks, signer: SIGNERS.jake };
     return { subject: `[Preview: ${label}] ${e.subject}`, html: withBanner(letterHtml(mail), note), text: `${note}\n\n${letterText(mail)}` };
   };
   return [
     build(sold, "sold over the phone", "Preview of the email a customer would get when their quote is marked sold in ServiceTitan without tapping a button (sold on the phone or in person). Not sending yet: it needs the sold trigger, which comes once the words are right."),
-    build(booked, "booked in", "Preview of the email a customer would get when their install is booked in ServiceTitan: the day, the arrival window and who's coming, read from the appointment. Not sending yet: it needs the booking trigger, which comes once the words are right."),
   ];
 }
 

@@ -72,17 +72,14 @@ the customer gets]" in the subject. Nothing is recorded for it.
 
 ## After the sale
 
-Two more emails are written and previewed but not yet sent, because each
-needs a trigger reading ServiceTitan:
+**Thanks for going ahead** is written and previewed but not yet sent: the
+same four steps as the yes reply, for a quote sold on the phone or in person
+rather than by the button. It needs a trigger reading ServiceTitan: an
+estimate going to Sold in the sync, where no yes was tapped.
 
-- **Thanks for going ahead**: the same four steps as the yes reply, for a
-  quote sold on the phone or in person rather than by the button. Trigger:
-  an estimate going to Sold in the sync, where no yes was tapped.
-- **You're booked in**: the day, the arrival window and who's coming, read
-  from the appointment, with the handful of things that help on the day
-  (clear a path, someone over 18 home, the hot water will be off for a while
-  on a hot water job, pets). Trigger: the first appointment on a job made from
-  a sold estimate, once a tech is assigned.
+There's no "you're booked in" email from us. ServiceTitan sends its own
+booking confirmation with the day and arrival window, so the steps say one is
+coming rather than sending a second.
 
 ## Previews
 
@@ -91,4 +88,4 @@ curl -H "Authorization: Bearer $CRON_SECRET" "https://www.advancedgas.com.au/api
 ```
 
 `only` takes any of `follow-ups`, `answers`, `journey`, `review`; without it,
-everything goes (seventeen emails). They only ever go to Jake.
+everything goes (sixteen emails). They only ever go to Jake.
