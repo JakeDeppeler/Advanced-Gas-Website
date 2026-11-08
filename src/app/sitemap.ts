@@ -5,7 +5,8 @@ import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 import { detailedCodes, faultSlug } from "@/lib/faultCodes";
 import { publishedPosts } from "@/lib/blogLive";
-import { allProductParams, CATS } from "@/lib/homepage/data";
+import { allProductParams, CATS, findSystem } from "@/lib/homepage/data";
+import { canonicalProductSystem } from "@/lib/homepage/canonical";
 
 /**
  * No `lastModified` anywhere in here, deliberately.
@@ -140,7 +141,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const findUrls: MetadataRoute.Sitemap = [
     // A page per kind of system, above its options.
     ...CATS.flatMap((c) => c.systems).map((sy) => ({ url: `${base}/find/${sy.slug}`, changeFrequency: "monthly" as const, priority: 0.65 })),
-    ...allProductParams().map((p) => ({
+    // Less the ones whose canonical is another system's copy of the same
+    // product (see lib/homepage/canonical): a sitemap URL that canonicals
+    // elsewhere is a mixed signal.
+    ...allProductParams().filter((p) => {
+      const ref = findSystem(p.system);
+      return !ref || canonicalProductSystem(ref.sys).slug === p.system;
+    }).map((p) => ({
     url: `${base}/find/${p.system}/${p.tier}`,
     changeFrequency: "monthly" as const,
     priority: 0.6,
