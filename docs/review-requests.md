@@ -4,14 +4,24 @@ Marketing › Reviews › **Ask for a review by email**. Off until switched on.
 
 - **Who:** a household job (a Domestic business unit) that is finished and
   paid, with something charged. Not real estate, retirement village,
-  commercial or Warranty & Callbacks jobs, not quote visits, not a job tagged
-  **Problem**, never an agency or our own address, and nobody more than once
-  a year. One email per customer even with two jobs that week.
+  commercial or Warranty & Callbacks jobs, not quote visits, never an agency
+  or our own address, and nobody more than once a year. One email per
+  customer even with two jobs that week.
+- **Held, not dropped:** a job tagged **Problem**, or with a warranty or
+  call-back job open at the same address since, waits ("Waiting" in Asked
+  lately) and is asked once that's cleared, or after 21 days regardless.
+  Asking only happy customers isn't allowed: Google's review policy bans
+  selective asking, and the ACCC took Meriton to court for keeping review
+  invitations from guests who'd complained. Fixing it first is the lever.
 - **When:** at least 18 hours after the job was finished and no more than 7
   days after, between 9am and 7pm Monday to Saturday (Melbourne). Checked every
   ten minutes by the scheduled sync (`/api/reviews/run`), a few at a time.
 - **What:** the wording on the page, with the customer's first name, the tech,
-  the job and the suburb filled in, and a **Leave a Google review** button.
+  the job and the suburb filled in, and a **Leave a Google review** button,
+  in the shared customer layout (`lib/email/premium.ts`): a photo of that kind
+  of job across the top, the tech's name and headshot (initials if we have no
+  photo; add one in `lib/email/team.ts`), and the chosen signer's photo at the
+  bottom. Images are JPGs in `public/email/` because Outlook doesn't show WebP.
   Everyone who fits gets the button. Google doesn't allow asking only the
   customers expected to be happy, so the "reply if anything wasn't right" line
   goes to everyone. Sent from reviews@, replies to admin@.

@@ -1,6 +1,10 @@
 import "server-only";
 import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
+import { emailContext } from "@/lib/email/context";
+import { premiumHtml, premiumText } from "@/lib/email/premium";
+import { SIGNERS } from "@/lib/email/team";
+import { followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
 import { loadReviewSettings } from "@/lib/reviews/requests";
 
@@ -10,48 +14,38 @@ import { loadReviewSettings } from "@/lib/reviews/requests";
  *
  * Only ever to PREVIEW_TO: nothing here takes an address from a request.
  * The review email is the real one, built by the same code customers get.
- * The quote follow-ups aren't built yet; these are the worked example from
- * the preview, Sarah Jones made up, to judge the tone and layout by.
+ * The quote follow-ups use the real wording (lib/quotes/followUpContent.ts)
+ * against a made-up quote, since the sending side isn't built yet.
  */
 
 export const PREVIEW_TO = "jake@advancedgas.com.au";
 const REPLY_TO = "admin@advancedgas.com.au";
 
 const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const wrap = (inner: string) => `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1d;max-width:560px">${inner}</div>`;
-const para = (t: string) => `<p style="margin:0 0 14px">${esc(t).replace(/\n/g, "<br>")}</p>`;
-const banner = (t: string) => `<p style="margin:0 0 18px;padding:10px 12px;background:#fff4d6;border-radius:8px;font-size:13px;color:#7a5200">${esc(t)}</p>`;
-const button = (label: string, href: string, solid: boolean) =>
-  `<a href="${esc(href)}" style="display:inline-block;margin:0 8px 8px 0;padding:11px 18px;border-radius:999px;font-weight:bold;font-size:14px;text-decoration:none;${solid ? "background:#1a1a1d;color:#ffffff" : "border:2px solid #1a1a1d;color:#1a1a1d"}">${esc(label)}</a>`;
+const withBanner = (html: string, note: string) =>
+  html.replace(/<body[^>]*>/, (b) => `${b}<div style="max-width:600px;margin:16px auto 0;padding:10px 14px;background:#fff4d6;border-radius:10px;font:13px/1.5 Arial,sans-serif;color:#7a5200">${esc(note)}</div>`);
 
-export function quoteEmails(): { subject: string; html: string; text: string }[] {
-  const note = "Preview of a quote follow-up. Sarah Jones is made up; the real ones are written from each quote. Nothing has gone to a customer.";
-  const sign = "Kind regards,\nThe Advanced Gas team";
-  const one = [
-    "Hi Sarah,",
-    "Just checking the quote Ray put together for your new ducted heater came through okay. It's the one with three options, from the Brivis Buffalo through to the Rinnai Sensation.",
-    `If anything in it isn't clear, or you'd like to talk through which one suits the house, just reply here or ring us on ${site.phone}.`,
-    sign,
+export function quoteEmailPreviews(): { subject: string; html: string; text: string }[] {
+  const ctx = emailContext();
+  const base: Omit<FollowUpInput, "options"> = {
+    first: "Sarah", quoter: "Jake", suburb: "Berwick", phone: site.phone, phoneHref: `tel:${site.phoneE164}`, base: site.url,
+    answer: { yes: site.url, notNow: site.url, question: site.url },
+  };
+  const hp = ["Reclaim Split SS 315L V2", "IStore 270L - Plug", "Thermann 285L - Plug"];
+  const sp = ["Mitsubishi Electric 3.5kW Split System - Back to Back", "Kaden 3.5kW Split System - Back to Back"];
+  const runs: { options: string[]; step: 1 | 2 | 3; label: string }[] = [
+    { options: hp, step: 1, label: "Heat pump 1 of 3, day 2" },
+    { options: hp, step: 2, label: "Heat pump 2 of 3, day 6" },
+    { options: hp, step: 3, label: "Heat pump 3 of 3, day 13" },
+    { options: sp, step: 1, label: "Split system 1 of 3, day 2" },
+    { options: sp, step: 2, label: "Split system 2 of 3, day 6" },
   ];
-  const two = [
-    "Hi Sarah,",
-    "In case it helps you decide, here's how it goes once you say yes: we order the unit (usually 3 to 5 days), book a day that suits you, and the install is done in a day. The old heater is taken away.",
-    "Your quote also qualifies for the Victorian Energy Upgrades discount, which is already taken off the prices in it.",
-    "Happy to answer anything. Just hit reply.",
-    sign,
-  ];
-  const three1 = ["Hi Sarah,", "We haven't heard back about your ducted heating quote, so we wanted to check where you're at. One click lets us know:"];
-  const three2 = ["If it's not the right time, no problem at all. We'll close it off and you won't hear from us about it again.", sign];
-  const btns = `<p style="margin:6px 0 16px">${button("Yes, go ahead", site.url, true)}${button("Not right now", site.url, false)}${button("I have a question", site.url, false)}</p>`;
-  return [
-    { subject: "[Preview 1 of 3, day 2] Your ducted heating quote", html: wrap(banner(note) + one.map(para).join("")), text: `${note}\n\n${one.join("\n\n")}` },
-    { subject: "[Preview 2 of 3, day 6] What happens next with your ducted heater", html: wrap(banner(note) + two.map(para).join("")), text: `${note}\n\n${two.join("\n\n")}` },
-    {
-      subject: "[Preview 3 of 3, day 13] Should we keep your quote open?",
-      html: wrap(banner(`${note} The buttons go to the website in this preview.`) + three1.map(para).join("") + btns + three2.map(para).join("")),
-      text: `${note}\n\n${three1.join("\n\n")}\n\n[Yes, go ahead] [Not right now] [I have a question]\n\n${three2.join("\n\n")}`,
-    },
-  ];
+  const note = "Preview of a quote follow-up, written for what's on the quote. Sarah and her quote are made up. Nothing has gone to a customer, and the buttons go to the website for now.";
+  return runs.map((r) => {
+    const e = followUpEmail(quoteKind(r.options), r.step, { ...base, options: r.options });
+    const mail = { ...ctx, preheader: e.preheader, hero: e.hero, blocks: e.blocks, signer: SIGNERS.jake };
+    return { subject: `[Preview: ${r.label}] ${e.subject}`, html: withBanner(premiumHtml(mail), note), text: `${note}\n\n${premiumText(mail)}` };
+  });
 }
 
 export async function sendCustomerEmailPreviews(): Promise<{ sent: string[]; failed: { subject: string; error: string }[] }> {
@@ -62,12 +56,13 @@ export async function sendCustomerEmailPreviews(): Promise<{ sent: string[]; fai
 
   const s = await loadReviewSettings();
   const link = reviewLink(s, process.env.GOOGLE_PLACE_ID) ?? site.social.google;
-  const review = reviewEmail(s, { customer: "Sarah Jones", techs: ["Ray Kennedy"], jobType: "Service - Split System", suburb: "Berwick", href: link });
-  const reviewNote = s.link || process.env.GOOGLE_PLACE_ID ? "Preview of the Google review email, exactly as customers get it (made-up name). The button goes to your review link." : "Preview of the Google review email, exactly as customers get it (made-up name). No review link is saved yet, so the button goes to your Google profile for now.";
+  // Jye has a headshot, so the preview shows the photo version; a tech without one gets their initials.
+  const review = reviewEmail(s, { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Service - Split System", suburb: "Berwick", href: link }, emailContext());
+  const reviewNote = `Preview of the Google review email, exactly as customers get it (made-up customer). ${s.link || process.env.GOOGLE_PLACE_ID ? "The button goes to your review link." : "No review link is saved yet, so the button goes to your Google profile for now."}`;
 
   const mails = [
-    ...quoteEmails().map((m) => ({ ...m, from: fromAs("quotes"), kind: "other" as const })),
-    { subject: `[Preview] ${review.subject}`, html: review.html.replace(/^<div([^>]*)>/, `<div$1>${banner(reviewNote)}`), text: `${reviewNote}\n\n${review.text}`, from: fromAs("reviews"), kind: "review-request" as const },
+    ...quoteEmailPreviews().map((m) => ({ ...m, from: fromAs("quotes"), kind: "other" as const })),
+    { subject: `[Preview] ${review.subject}`, html: withBanner(review.html, reviewNote), text: `${reviewNote}\n\n${review.text}`, from: fromAs("reviews"), kind: "review-request" as const },
   ];
   const sent: string[] = [];
   const failed: { subject: string; error: string }[] = [];
