@@ -237,3 +237,67 @@ export function premiumText(e: PremiumEmail): string {
   out.push(`${e.footer.name} · ${e.footer.phone} · ${e.footer.site}`);
   return out.join("\n\n");
 }
+
+/* ------------------------------------------------------------ the letter */
+
+/**
+ * An email that looks like someone at the office wrote it: no banner, no
+ * headline, no labels, just a white page, the words and a signature. For the
+ * quote follow-ups (Jake, 8 Nov: "need to look like we are checking in and
+ * giving information they are looking for, not like an ad").
+ *
+ * Photos only where they answer a question: small, side by side, named, as
+ * someone would drop them into an email to show what each unit looks like.
+ */
+export type LetterBlock =
+  | { kind: "p"; text: string }
+  /** Plain bullets. **bold** works for the thing being described. */
+  | { kind: "list"; items: string[] }
+  | { kind: "thumbs"; items: { src: string; alt: string; caption: string }[] };
+
+export type LetterEmail = {
+  preheader: string;
+  blocks: LetterBlock[];
+  signer: { name: string; role: string; photo: string | null };
+  base: string;
+  footer: PremiumEmail["footer"];
+};
+
+const LETTER_FONT = "font:400 15px/1.6 " + FONT;
+
+function letterBlock(b: LetterBlock, base: string): string {
+  if (b.kind === "p") return `<p style="margin:0 0 14px;${LETTER_FONT};color:${INK}">${inline(b.text)}</p>`;
+  if (b.kind === "list")
+    return `<ul style="margin:0 0 14px;padding:0 0 0 20px">${b.items.map((i) => `<li style="margin:0 0 8px;${LETTER_FONT};color:${INK}">${inline(i)}</li>`).join("")}</ul>`;
+  const w = Math.floor(100 / b.items.length);
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:2px 0 16px"><tr>${b.items
+    .map((i) => `<td width="${w}%" style="padding:0 10px 0 0;vertical-align:top"><img src="${esc(abs(base, i.src))}" width="140" alt="${esc(i.alt)}" style="display:block;width:100%;max-width:140px;height:auto;border-radius:8px;border:0"><div style="padding-top:6px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(i.caption)}</div></td>`)
+    .join("")}</tr></table>`;
+}
+
+export function letterHtml(e: LetterEmail): string {
+  const f = e.footer;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
+<style>${DARK_CSS}</style></head>
+<body class="pe-shell" style="margin:0;padding:0;background:#ffffff">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(e.preheader)}&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="pe-shell" style="background:#ffffff"><tr><td style="padding:20px 18px">
+<div style="max-width:600px">
+${e.blocks.map((b) => letterBlock(b, e.base)).join("\n")}
+<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">Cheers,</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:4px"><tr>
+<td style="padding-right:12px;vertical-align:top">${avatar(e.base, e.signer.name, e.signer.photo, 44)}</td>
+<td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:600 15px/1.35 ${FONT};color:${INK}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br><a href="${esc(f.phoneHref)}" style="color:${MUTED};text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${MUTED};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></td>
+</tr></table>
+<p style="margin:22px 0 0;font:400 12px/1.5 ${FONT};color:${MUTED}">${esc(f.name)} &middot; ${esc(f.address)}</p>
+</div></td></tr></table></body></html>`;
+  return darkClasses(html);
+}
+
+export function letterText(e: LetterEmail): string {
+  const plain = (t: string) => t.replace(/\*\*(.+?)\*\*/g, "$1");
+  const out = e.blocks.map((b) =>
+    b.kind === "p" ? plain(b.text) : b.kind === "list" ? b.items.map((i) => `- ${plain(i)}`).join("\n") : b.items.map((i) => i.caption).join(" · "));
+  out.push(`Cheers,\n${e.signer.name}\n${e.signer.role}\n${e.footer.phone} · ${e.footer.site}`);
+  return out.join("\n\n");
+}
