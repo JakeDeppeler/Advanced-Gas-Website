@@ -5,6 +5,7 @@
 
 /* Full-width bands, the homepage's rhythm: white between navy, cream and
    the brand's red, 112px of room in each. Text colour follows the band. */
+.ag .bk{--acc-l:color-mix(in srgb,var(--acc) 58%,#fff)}
 .ag .bk__sec{padding:clamp(64px,8vw,112px) 0;scroll-margin-top:136px}
 .ag .bk__sec--white{background:#fff}
 .ag .bk__sec--cream{background:var(--cream)}
@@ -12,9 +13,8 @@
 .ag .bk__sec--red{background:var(--acc);color:#fff}
 /* Two white bands in a row read as one: the second starts closer */
 .ag .bk__sec--white + .bk__sec--white{padding-top:0}
-.ag .bk__sec--end{padding-top:0}
 .ag .bk .h2 span{color:var(--acc)}
-.ag :is(.bk__sec--navy,.bk__boxed) .h2 span{color:#FF5A6B}
+.ag :is(.bk__sec--navy,.bk__boxed) .h2 span{color:var(--acc-l)}
 .ag .bk__sec--red .h2 span{color:var(--navy)}
 .ag :is(.bk__sec--navy,.bk__sec--red,.bk__boxed) .h2{color:#fff}
 .ag :is(.bk__sec--navy,.bk__sec--red,.bk__boxed) .bk__head p,.ag .bk__sec--navy .bk__txt > p{color:rgba(255,255,255,.84)}
@@ -42,16 +42,48 @@
 .ag .bk__boxh{margin:0;font-family:var(--disp);font-size:clamp(30px,3.4vw,48px);font-weight:900;line-height:1.04;letter-spacing:-.025em;color:#fff;text-wrap:balance}
 .ag .bk__box p{margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.8)}
 
-/* Made better */
-.ag .bk__q{display:flex;flex-direction:column;gap:clamp(24px,3vw,36px)}
-.ag .bk__qbody{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:16px;align-items:stretch}
-.ag .bk__qimg{position:relative;min-height:320px;background:#fff;border-radius:12px;border-top:6px solid var(--acc)}
-.ag .bk__qimg img{object-fit:contain;padding:28px}
-.ag .bk__qlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ag .bk__qlist li{display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:12px;background:#fff;box-shadow:0 18px 36px -30px rgba(5,10,48,.4)}
-.ag .bk__qlist h3{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
-.ag .bk__qlist h3::before{content:"";display:block;width:22px;height:4px;border-radius:2px;background:var(--acc);margin-bottom:12px}
-.ag .bk__qlist p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
+/* Made better: the product in a white panel in the middle, what's inside it
+   numbered either side, each number matching a pin on the photo */
+.ag .bk__q{display:flex;flex-direction:column;gap:clamp(28px,4vw,52px)}
+.ag .bk__head--c{align-items:center;text-align:center;margin:0 auto}
+.ag .bk__qbody{position:relative;z-index:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"l img r";gap:clamp(20px,3vw,44px);align-items:center}
+.ag .bk__qlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:clamp(22px,3vw,40px)}
+.ag .bk__qlist--l{grid-area:l;text-align:right}
+.ag .bk__qlist--r{grid-area:r}
+.ag .bk__qpt{display:flex;flex-direction:column;gap:8px;padding-top:18px;border-top:1px solid rgba(255,255,255,.18)}
+.ag .bk__qlist--l .bk__qpt{align-items:flex-end}
+.ag .bk__qn{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--acc);font-family:var(--disp);font-size:15px;font-weight:900;color:#fff;transition:transform .25s,box-shadow .25s}
+.ag .bk__qpt h3{margin:4px 0 0;font-family:var(--disp);font-size:clamp(19px,1.6vw,22px);font-weight:800;color:#fff}
+.ag .bk__qpt p{margin:0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.78);max-width:36ch}
+.ag .bk__qpt:hover .bk__qn{transform:scale(1.12);box-shadow:0 0 0 6px color-mix(in srgb,var(--acc) 30%,transparent)}
+.ag .bk__qimg{position:relative;grid-area:img;aspect-ratio:1;background:#fff;border-radius:20px;box-shadow:0 40px 80px -40px rgba(0,0,0,.6)}
+.ag .bk__qglow{position:absolute;inset:-14%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--acc) 55%,transparent),transparent);filter:blur(8px);pointer-events:none}
+.ag .bk__qmain,.ag .bk__qinset{position:absolute;left:9%;right:9%}
+.ag .bk__qmain{top:36%;bottom:7%}
+.ag .bk__qimg:not(:has(.bk__qinset)) .bk__qmain{top:8%}
+.ag .bk__qinset{top:8%;height:22%}
+.ag .bk__qmain img,.ag .bk__qinset img{object-fit:contain}
+.ag .bk__qimg--cover{overflow:hidden}
+.ag .bk__qimg--cover .bk__qmain{inset:0}
+.ag .bk__qimg--cover .bk__qmain img{object-fit:cover;animation:none}
+.ag .bk__qpin{position:absolute;display:grid;place-items:center;width:32px;height:32px;margin:-16px 0 0 -16px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 4px #fff,0 8px 18px -6px rgba(0,0,0,.5);font-family:var(--disp);font-size:14px;font-weight:900;color:#fff;transition:transform .25s}
+/* Point at a part and its pin answers */
+.ag .bk__q:has(.bk__qpt[data-n="1"]:hover) .bk__qpin[data-n="1"],
+.ag .bk__q:has(.bk__qpt[data-n="2"]:hover) .bk__qpin[data-n="2"],
+.ag .bk__q:has(.bk__qpt[data-n="3"]:hover) .bk__qpin[data-n="3"],
+.ag .bk__q:has(.bk__qpt[data-n="4"]:hover) .bk__qpin[data-n="4"],
+.ag .bk__q:has(.bk__qpt[data-n="5"]:hover) .bk__qpin[data-n="5"],
+.ag .bk__q:has(.bk__qpt[data-n="6"]:hover) .bk__qpin[data-n="6"]{transform:scale(1.3)}
+@keyframes bkPinPing{0%{box-shadow:0 0 0 4px #fff,0 0 0 4px color-mix(in srgb,var(--acc) 60%,transparent)}100%{box-shadow:0 0 0 4px #fff,0 0 0 18px transparent}}
+.ag .bk__qbody.is-in .bk__qpin{animation:bkPinPing 1.8s ease-out 2;animation-delay:calc(1s + var(--i) * .35s)}
+.ag .bk--motion .bk__qimg{opacity:0;transform:scale(.94);transition:opacity .6s,transform .7s cubic-bezier(.2,.9,.25,1.2)}
+.ag .bk--motion .bk__qpin{transform:scale(0);transition:transform .45s cubic-bezier(.2,.9,.25,1.4);transition-delay:calc(.6s + var(--i) * .35s)}
+.ag .bk--motion .bk__qpt{opacity:0;transition:opacity .5s,transform .6s cubic-bezier(.2,.7,.2,1);transition-delay:calc(.6s + var(--i) * .35s)}
+.ag .bk--motion .bk__qlist--l .bk__qpt{transform:translateX(-24px)}
+.ag .bk--motion .bk__qlist--r .bk__qpt{transform:translateX(24px)}
+.ag .bk--motion .bk__qbody.is-in .bk__qimg{opacity:1;transform:none}
+.ag .bk--motion .bk__qbody.is-in .bk__qpin{transform:none}
+.ag .bk--motion .bk__qbody.is-in .bk__qpt{opacity:1;transform:none}
 
 /* The range: homepage tiles on white */
 .ag .bk__range{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
@@ -91,8 +123,12 @@
 @media (max-width:1000px){
   .ag .bk__reasons{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ag .bk__range,.ag .bk__gal{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ag .bk__qbody,.ag .bk__two{grid-template-columns:1fr}
-  .ag .bk__qimg{min-height:240px}
+  .ag .bk__two{grid-template-columns:1fr}
+  .ag .bk__qbody{grid-template-columns:1fr;grid-template-areas:"img" "l" "r";gap:22px}
+  .ag .bk__qimg{width:min(100%,380px);justify-self:center}
+  .ag .bk__qlist--l{text-align:left}
+  .ag .bk__qlist--l .bk__qpt{align-items:flex-start}
+  .ag .bk__qlist{gap:22px}
 }
 @media (max-width:600px){
   .ag .bk__reasons{gap:10px}
@@ -102,7 +138,6 @@
   .ag .bk__ctxt b{font-size:28px}
   .ag .bk__ctxt strong{font-size:15px}
   .ag .bk__ctxt > span{font-size:13.5px}
-  .ag .bk__qlist{grid-template-columns:1fr}
   .ag .bk__range{gap:10px}
   .ag .bk__tile .atile__img{height:110px}
   .ag .bk__tile .atile__foot{padding:12px}
@@ -143,12 +178,12 @@
 .ag .bk--motion .bk__brand:has(.bk__trip.is-in) .bk__bigmark .bm__d,.ag .bk:not(.bk--motion) .bk__bigmark .bm__d{animation-play-state:running}
 
 /* The route: a track that fills left to right, each stop lighting as the line reaches it */
-.ag .bk__trip{position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-.ag .bk__track{position:absolute;left:12px;right:calc(33.33% - 12px);top:11px;height:3px;border-radius:2px;background:var(--line2)}
-.ag .bk__track i{position:absolute;inset:0;border-radius:2px;background:linear-gradient(90deg,#E60012,#FF7A36);transform-origin:left;transform:scaleX(1)}
+.ag .bk__trip{position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:20px}
+.ag .bk__track{position:absolute;left:12px;right:calc(100% / var(--n,3) - 12px);top:11px;height:3px;border-radius:2px;background:var(--line2)}
+.ag .bk__track i{position:absolute;inset:0;border-radius:2px;background:linear-gradient(90deg,var(--acc),var(--acc-l));transform-origin:left;transform:scaleX(1)}
 .ag .bk__trip li{position:relative;display:flex;flex-direction:column;gap:6px;padding-top:40px}
-.ag .bk__pin{position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 3px #E60012}
-.ag .bk__pin::after{content:"";position:absolute;inset:7px;border-radius:50%;background:#E60012}
+.ag .bk__pin{position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 3px var(--acc)}
+.ag .bk__pin::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--acc)}
 .ag .bk__role{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
 .ag .bk__trip strong{font-family:var(--disp);font-size:clamp(20px,1.8vw,26px);font-weight:800;color:var(--navy)}
 .ag .bk__trip p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2);max-width:30ch}
@@ -156,7 +191,7 @@
 .ag .bk--motion .bk__trip.is-in .bk__track i{transform:scaleX(1)}
 .ag .bk--motion .bk__trip li{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s;transition-delay:calc(.2s + var(--i) * .8s)}
 .ag .bk--motion .bk__trip.is-in li{opacity:1;transform:none}
-@keyframes bkPing{0%{box-shadow:inset 0 0 0 3px #E60012,0 0 0 0 rgba(230,0,18,.55)}100%{box-shadow:inset 0 0 0 3px #E60012,0 0 0 16px rgba(230,0,18,0)}}
+@keyframes bkPing{0%{box-shadow:inset 0 0 0 3px var(--acc),0 0 0 0 color-mix(in srgb,var(--acc) 55%,transparent)}100%{box-shadow:inset 0 0 0 3px var(--acc),0 0 0 16px transparent}}
 .ag .bk__trip.is-in .bk__pin{animation:bkPing 1.6s ease-out 2;animation-delay:calc(.4s + var(--i) * .8s)}
 
 .ag .bk__marks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
@@ -167,17 +202,16 @@
 /* ---- 6. Year ten timeline ---- */
 .ag .bk__time{position:relative}
 .ag .bk__tbar{position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.14);margin:0 8px}
-.ag .bk__tbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#2CC5FF,var(--acc))}
+.ag .bk__tbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,var(--acc-l),var(--acc))}
 .ag .bk__time ol{position:relative;list-style:none;margin:0 8px;padding:0;height:130px}
 .ag .bk__time li{position:absolute;left:var(--x);top:0;display:flex;flex-direction:column;gap:3px;width:150px;padding-top:24px;transform:translateX(-12px)}
-.ag .bk__time li:nth-child(even){top:auto}
 .ag .bk__tdot{position:absolute;left:5px;top:-15px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px var(--navy),0 0 0 6px rgba(255,255,255,.35)}
 .ag .bk__time strong{font-family:var(--disp);font-size:16px;font-weight:800;color:#fff}
 .ag .bk__time li span:last-child{font-size:13.5px;line-height:1.45;color:rgba(255,255,255,.75)}
-/* Year 5 and 6 sit close together: the second drops lower so the two labels don't collide */
+/* A mark close behind another prints its label above the bar, so the two don't collide */
 .ag .bk__time{padding-top:96px}
-.ag .bk__time li:nth-child(3){top:auto;bottom:calc(100% + 30px);padding-top:0}
-.ag .bk__time li:nth-child(3) .bk__tdot{top:auto;bottom:-31px}
+.ag .bk__time li.is-up{top:auto;bottom:calc(100% + 30px);padding-top:0}
+.ag .bk__time li.is-up .bk__tdot{top:auto;bottom:-31px}
 .ag .bk--motion .bk__time .bk__tbar i{clip-path:inset(0 100% 0 0);transition:clip-path 2.2s cubic-bezier(.45,.05,.3,1) .2s}
 .ag .bk--motion .bk__time.is-in .bk__tbar i{clip-path:inset(0 0 0 0)}
 .ag .bk--motion .bk__time li{opacity:0;transition:opacity .45s;transition-delay:calc(.3s + var(--i) * .4s)}
@@ -223,11 +257,11 @@
 .ag .bk--motion [data-anim="pop"]{opacity:0;transform:scale(.94);transition:opacity .6s,transform .7s cubic-bezier(.2,.9,.25,1.2)}
 .ag .bk--motion [data-anim="pop"].is-in{opacity:1;transform:none}
 /* Hover: lift the cards, ease into the photos */
-.ag .bk__card,.ag .bk__qlist li{transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
-.ag .bk__card:hover,.ag .bk__qlist li:hover{transform:translateY(-6px);box-shadow:0 30px 50px -30px rgba(5,10,48,.55)}
+.ag .bk__card{transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
+.ag .bk__card:hover{transform:translateY(-6px);box-shadow:0 30px 50px -30px rgba(5,10,48,.55)}
 .ag .bk__ph img,.ag .bk__team img,.ag .bk__cimg--cover img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .ag .bk__ph:hover img,.ag .bk__team:hover img,.ag .bk__card:hover .bk__cimg--cover img{transform:scale(1.06)}
-.ag .bk__qimg img{animation:agBob 6s ease-in-out infinite}
+.ag .bk__qmain img{animation:agBob 6s ease-in-out infinite}
 
 @media (prefers-reduced-motion:reduce){
   .ag .bk *{animation:none !important;transition:none !important}
@@ -251,8 +285,8 @@
   .ag .bk__tbar{display:none}
   .ag .bk__time ol{height:auto;margin:0;display:flex;flex-direction:column;gap:16px;padding-left:28px;border-left:3px solid rgba(255,255,255,.2)}
   .ag .bk__time{padding-top:0}
-  .ag .bk__time li,.ag .bk__time li:nth-child(3){position:relative;left:auto;bottom:auto;width:auto;padding-top:0;transform:none}
-  .ag .bk__time .bk__tdot,.ag .bk__time li:nth-child(3) .bk__tdot{left:-37px;top:3px;bottom:auto}
+  .ag .bk__time li,.ag .bk__time li.is-up{position:relative;left:auto;bottom:auto;width:auto;padding-top:0;transform:none}
+  .ag .bk__time .bk__tdot,.ag .bk__time li.is-up .bk__tdot{left:-37px;top:3px;bottom:auto}
   .ag .sp__res{grid-template-columns:1fr}
   .ag .sp__img{max-width:220px}
   .ag .bm__mark{width:38px}

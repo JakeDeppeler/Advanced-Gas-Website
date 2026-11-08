@@ -105,9 +105,10 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       )}
 
       {isHeatPump(sys) && (
-        <section className="pxs pxs--cream" id="savings">
-          <div className="wrap"><div className="pbox pp__col">
-            <Head eye="Running costs" h="How much could a heat pump save you?" lede="Two taps: what you have now and how many live there. Here's what each of our heat pumps would cost to run against it." />
+        // The one interactive number on the page, so it gets the hot water colour band to itself.
+        <section className="pxs pxs--hot" id="savings">
+          <div className="wrap"><div className="pp__col">
+            <Head dark eye="Running costs" h={<>How much could a heat pump <span>save you</span>?</>} lede="Two taps: what you have now and how many live there. Here's what each of our heat pumps would cost to run against it." />
             <HwSavings options={sys.tiers.filter((t) => !t.same).map((t) => ({ label: `${t.brand} ${t.model}`, cop: copFor(t.brand, t.model), // No payback against a stand-in price: it would be a made-up number of years.
               price: t.mockPrice ? null : t.price, href: productHref(sys, t, {}) }))} />
           </div></div>

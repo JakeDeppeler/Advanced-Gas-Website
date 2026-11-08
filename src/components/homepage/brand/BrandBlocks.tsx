@@ -35,8 +35,8 @@ const GALLERY = 6;
 function accent(text: string) {
   return text.split(/[{}]/).map((part, i) => (i % 2 ? <span key={i}>{part}</span> : part));
 }
-/** The timeline runs to this year, so year twelve sits short of the end. */
-const SPAN = 15;
+/** The timeline runs this many years past its last mark, so that label has room. */
+const TAIL = 3;
 
 export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[] }) {
   const options = brandOptions(brand);
@@ -61,20 +61,31 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
   });
   const tabs = [
     ...(story ? [["brand", "The brand"]] : []),
-    ...(brand.quality ? [["quality", "Made better"]] : []),
+    ...(brand.quality ? [["quality", brand.quality.tab ?? "Made better"]] : []),
     ["why", "Why we choose it"],
     ...(options.length ? [["range", "The range"]] : []),
     ...(installs.length || slots ? [["installs", "Our installs"]] : []),
-    ["support", "Year ten"],
+    ["support", brand.servicing?.tab ?? "Year ten"],
     ...(picks.length ? [["pick", "Which one?"]] : []),
     ["reviews", "Reviews"],
     ...(brand.faqs?.length ? [["faqs", "FAQs"]] : []),
   ];
   const mark = brand.mark === "three-diamonds";
+  // Made better: the points split either side of the photo, the first half
+  // on the left, keeping their numbers.
+  const quality = brand.quality;
+  const qPts = (quality?.points ?? []).map((p, n) => ({ p, n }));
+  const qLeft = qPts.slice(0, Math.ceil(qPts.length / 2));
+  const qRight = qPts.slice(qLeft.length);
+  const span = Math.max(...timeline.map((t) => t.y + TAIL), 1);
+  // Marks close together would print their labels over each other: one that
+  // follows another by less than a label's width goes above the bar instead.
+  const lifts = timeline.map((t, n) => n > 0 && (t.y - timeline[n - 1].y) / span < 0.13);
+  lifts.forEach((up, n) => { if (up && lifts[n - 1]) lifts[n] = false; });
 
   return (
     // data-no-reveal: BkMotion animates this page; the site-wide Reveal would fade the colour blocks themselves.
-    <div className="bx bk" data-no-reveal style={{ ["--acc" as string]: brand.accent ?? "#C2521A" }}>
+    <div className="bx bk" data-no-reveal style={{ ["--acc" as string]: brand.blockAccent ?? brand.accent ?? "#C2521A", ...(brand.accentLight ? { ["--acc-l" as string]: brand.accentLight } : {}) }}>
       <BkMotion />
       <nav className="ppx__crumbbar" aria-label="Breadcrumb">
         <div className="wrap ppx__crumbin">
@@ -130,7 +141,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
               {mark && <ThreeDiamonds className="bk__bigmark" />}
             </div>
             {story.stops && (
-              <ol className="bk__trip" data-anim="trip">
+              <ol className="bk__trip" data-anim="trip" style={{ ["--n" as string]: story.stops.length }}>
                 <span className="bk__track" aria-hidden="true"><i /></span>
                 {story.stops.map((st, n) => (
                   <li key={st.place} style={{ ["--i" as string]: n }}>
@@ -149,21 +160,36 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </section>
       )}
 
-      {/* 2. Made better: what's inside. */}
-      {brand.quality && (
+      {/* 2. Made better: the product in the middle, what's inside it either
+          side, each numbered to a pin on the photo where the part sits. */}
+      {quality && (
         <section className="bk__sec bk__sec--navy" id="quality">
           <div className="wrap"><div className="bk__blk bk__q">
-            <div className="bk__head">
-              <h2 className="h2">{accent(brand.quality.heading)}</h2>
-              <p>{brand.quality.intro}</p>
+            <div className="bk__head bk__head--c">
+              <h2 className="h2">{accent(quality.heading)}</h2>
+              <p>{quality.intro}</p>
             </div>
-            <div className="bk__qbody">
-              <div className="bk__qimg" data-anim="pop"><Image src={brand.quality.image.src} alt={brand.quality.image.alt} fill sizes="(max-width: 1000px) 90vw, 420px" /></div>
-              <ul className="bk__qlist" data-anim="stagger">
-                {brand.quality.points.map((p) => (
-                  <li key={p.t}><h3>{p.t}</h3><p>{p.d}</p></li>
+            <div className="bk__qbody" data-anim="inside">
+              {[qLeft, qRight].map((side, k) => (
+                <ul key={k} className={`bk__qlist bk__qlist--${k ? "r" : "l"}`}>
+                  {side.map(({ p, n }) => (
+                    <li key={p.t} className="bk__qpt" style={{ ["--i" as string]: n }} data-n={n + 1}>
+                      <span className="bk__qn" aria-hidden="true">{String(n + 1).padStart(2, "0")}</span>
+                      <h3>{p.t}</h3><p>{p.d}</p>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+              <div className={`bk__qimg${quality.image.cover ? " bk__qimg--cover" : ""}`}>
+                <span className="bk__qglow" aria-hidden="true" />
+                {quality.inset && (
+                  <span className="bk__qinset"><Image src={quality.inset.src} alt={quality.inset.alt} fill sizes="(max-width: 1000px) 50vw, 240px" /></span>
+                )}
+                <span className="bk__qmain"><Image src={quality.image.src} alt={quality.image.alt} fill sizes="(max-width: 1000px) 80vw, 440px" /></span>
+                {quality.points.map((p, n) => p.pin && (
+                  <span key={p.t} className="bk__qpin" data-n={n + 1} style={{ left: `${p.pin[0]}%`, top: `${p.pin[1]}%`, ["--i" as string]: n }} aria-hidden="true">{n + 1}</span>
                 ))}
-              </ul>
+              </div>
             </div>
           </div></div>
         </section>
@@ -267,11 +293,11 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
           {timeline.length > 0 && (
             <div className="bk__time" data-anim="time">
               <div className="bk__tbar" aria-hidden="true">
-                <i style={{ width: `${(Math.max(...timeline.map((t) => t.y)) / SPAN) * 100}%` }} />
+                <i style={{ width: `${(Math.max(...timeline.map((t) => t.y)) / span) * 100}%` }} />
               </div>
               <ol>
                 {timeline.map((t, n) => (
-                  <li key={t.t} style={{ ["--x" as string]: `${(t.y / SPAN) * 100}%`, ["--i" as string]: n }}>
+                  <li key={t.t} className={lifts[n] ? "is-up" : undefined} style={{ ["--x" as string]: `${(t.y / span) * 100}%`, ["--i" as string]: n }}>
                     <span className="bk__tdot" aria-hidden="true" />
                     <strong>{t.t}</strong>
                     <span>{t.d}</span>

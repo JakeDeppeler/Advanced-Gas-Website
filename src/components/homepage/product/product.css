@@ -257,3 +257,20 @@
 .ag .pbox .pp__specs{border-top:2px solid var(--navy)}
 .ag .pbox .pp__row:nth-child(even){background:#FAFBFC}
 .ag .pbox .pp__row{padding-left:12px;padding-right:12px}
+
+/* Heat pump savings on the system page: its own colour band, the homepage's
+   heat pump orange, so the calculator reads as the thing to try */
+.ag .pxs--hot{position:relative;overflow:clip;background:radial-gradient(60% 90% at 100% 0%,rgba(255,170,90,.45),transparent 70%),radial-gradient(50% 80% at 0% 100%,rgba(5,10,48,.35),transparent 70%),#C2521A;color:#fff}
+.ag .pxs--hot .h2{color:#fff}
+.ag .pxs--hot .h2 span{color:var(--navy)}
+.ag .pxs--hot .aeye i{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.ag .pxs--hot .svx__form{box-shadow:0 30px 60px -40px rgba(5,10,48,.6)}
+.ag .pxs--hot .svx__opts button.on{background:#C2521A;border-color:#C2521A}
+.ag .pxs--hot .svx__opts button:hover{border-color:#C2521A}
+.ag .pxs--hot .svx__out{box-shadow:0 30px 60px -40px rgba(5,10,48,.7)}
+.ag .pxs--hot .svx__sub{color:#FFB37A !important}
+/* The saving itself on a white strip, the figure in the band's orange */
+.ag .pxs--hot .svx__save{margin-top:6px;padding:16px 18px;border-radius:12px;background:#fff}
+.ag .pxs--hot .svx__save span{color:var(--navy);font-weight:700}
+.ag .pxs--hot .svx__save strong{color:#C2521A}
+.ag .pxs--hot .svx__save small{color:var(--ink2)}

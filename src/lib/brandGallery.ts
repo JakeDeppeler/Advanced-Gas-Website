@@ -35,13 +35,25 @@ export type InstallShot = {
 
 export const BRAND_INSTALLS: Record<string, InstallShot[]> = {
   // ── Reclaim Energy ──────────────────────────────────────────────
-  reclaim: [],
+  reclaim: [
+    { src: "/reclaim-split-stand-back-shot.webp", alt: "A Reclaim CO₂ split heat pump and its tank side by side against a brick wall", caption: "CO₂ split" },
+    { src: "/reclaim-split-back-2.jpg", alt: "A Reclaim tank on its slab with the heat pump beside it, set among garden beds", caption: "CO₂ split" },
+    { src: "/ba-hw-after.webp", alt: "A Reclaim ECO all-in-one heat pump on a new concrete pad", caption: "ECO R290 all-in-one" },
+    { src: "/reclaim-spit-close-up.webp", alt: "The base of a Reclaim tank on a gravel bed, with its insulated pipework", caption: "Set on its slab" },
+    { src: "/reclaim-split-close-1.jpg", alt: "The base of a Reclaim tank on its slab, with insulated pipework", caption: "Insulated pipework" },
+    { src: "/reclaim-and-mitsubishi.jpg", alt: "A Reclaim tank and heat pump beside two Mitsubishi Electric outdoor units", caption: "Beside the aircon" },
+  ],
 
   // ── Brivis ──────────────────────────────────────────────────────
   brivis: [],
 
   // ── Kaden ───────────────────────────────────────────────────────
-  kaden: [],
+  kaden: [
+    // The rating plates on these say Kaden.
+    { src: "/ducted-condenser.webp", alt: "A Kaden outdoor unit on a stand against a brick wall", caption: "Outdoor unit" },
+    { src: "/ducted-split.webp", alt: "A Kaden ducted indoor unit in a roof space, with the ducts running off it", caption: "Ducted, in the roof" },
+    { src: "/4 kadens with chaz.jpg", alt: "One of our installers beside four boxed Kaden systems, ready for a whole-house job", caption: "A whole house in one go" },
+  ],
 
   // ── Mitsubishi Electric ─────────────────────────────────────────
   "mitsubishi-electric": [
@@ -50,7 +62,11 @@ export const BRAND_INSTALLS: Record<string, InstallShot[]> = {
   ],
 
   // ── Thermann ────────────────────────────────────────────────────
-  thermann: [],
+  thermann: [
+    { src: "/thermann-contineues-flow-standing-back.webp", alt: "A Thermann continuous flow gas unit on a brick wall, with its pipework run neatly below", caption: "Continuous flow" },
+    { src: "/thermann-continues-flow-close-up.webp", alt: "Close-up of a Thermann continuous flow unit mounted on brick", caption: "Continuous flow" },
+    { src: "/thermann-heat-pump.webp", alt: "A Thermann all-in-one heat pump on a slab beside a brick wall", caption: "Heat pump" },
+  ],
 
   // ── iStore ──────────────────────────────────────────────────────
   istore: [],

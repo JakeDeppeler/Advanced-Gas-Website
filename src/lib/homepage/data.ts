@@ -60,6 +60,7 @@ export const IMG = {
   kadenDucted: pub("/kdi-v2-image_01.webp"),
   mitsuDucted: pub("/mitsubishi-pea-m-ducted-v2-v3.webp"),
   mitsuZone: pub("/mitsubishi-zone-controller-v2.webp"),
+  mitsuConsole: pub("/mitsubishi-mfz-kw-floor-console-v2.webp"),
   evapClassic: pub("/classic_evap_product_image.jpg"),
   evapLow: pub("/Kaden low_evap cooler.jpg"),
   istore: pub("/270L-istore-heatpump.webp"),
@@ -269,7 +270,7 @@ export const CATS: Category[] = [
       sys({ slug: "multi-head", label: "Multi-head", sub: "Air con for several rooms", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
         t("essential", "Kaden", "Multi-head system", IMG.kadenMulti, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
         t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuCond, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
-        t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuCond, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
+        t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuConsole, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
       ] }),
       sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: [
         t("essential", "Kaden", "KDI ducted system", IMG.kadenDucted, ["Whole-home heating and cooling", "Sized off a room-by-room heat load", W], null),
