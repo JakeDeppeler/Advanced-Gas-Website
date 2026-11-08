@@ -268,13 +268,19 @@ the highest it has seen in `portal_settings.labour_price_floor`, seeded from
 the 8 Nov dry run, and never goes under it. To let a price come down on
 purpose, take that service out of the floor.
 
-The pricebook API can't switch Dynamic Pricing off (its update has no
-`useStaticPrices`), so that's done on each service in ServiceTitan. It only
-needs doing where the new rates go higher than the rule: a service the rule
-already prices at or above them counts as already right and stays on it,
-which keeps it following its linked materials' prices. On 8 Nov that was 21
-of 30; the 9 part-day installs are the ones the $350 rate lifts. A run that
-hits a service still on the rule says so on the failed line.
+**Dynamic Pricing stays on; time is added instead (Jake, 8 Nov).** "The
+dynamic price works, I'd just add more time." A service the rule already
+prices at the target (within its own $10 rounding) counts as already right:
+on 8 Nov, 21 of 30. The part-day installs it prices under get more hours: the
+run works out the rule's hourly rate (all the labour-only services' prices
+over all their hours, about $327), adds the time the difference buys, rounded
+up to three minutes, and reads ServiceTitan's price back. The extra time is
+the drive to the next job that the $350 part-day rate stands for: 3 h becomes
+3.25 h, 4 h becomes 4.3 h. The run records what it added in
+`portal_settings.labour_added_time` ({ base, set } per service) and prices the
+labour on `base` while the service still has the `set` hours, so a second run
+doesn't price the added time and add more. Templates price their header on
+`base` too. Change a service's hours in ServiceTitan and yours count again.
 
 **Refrigerant.** R410A and R32 were $0 a kg. Their cost and the markup live in
 `portal_settings.refrigerant` (`perKg` by material code, `markupPct`), and the

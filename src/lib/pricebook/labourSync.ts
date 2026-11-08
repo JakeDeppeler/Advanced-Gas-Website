@@ -5,7 +5,7 @@ import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/serviceti
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import {
-  normCode, planRefrigerant, planServices, planTemplate, ratesFromPricing, templatePatchItems,
+  crewFor, DYNAMIC_SLACK, normCode, planRefrigerant, planServices, planTemplate, ratesFromPricing, templatePatchItems,
   type Catalogue, type MaterialChange, type RefrigerantSettings, type Rates, type ServiceChange, type ServiceRow,
   type Template, type TemplatePlan, type TemplateSkip,
 } from "@/lib/pricebook/labour";
@@ -43,13 +43,41 @@ function linkedValue(s: Raw, price: Map<number, number>): number {
   return Math.round(lines.reduce((a, l) => a + (Number(l.quantity) || 0) * (price.get(Number(l.skuId)) ?? 0), 0) * 100) / 100;
 }
 
-const serviceRow = (s: Raw, price: Map<number, number> = new Map()): ServiceRow => ({
+const serviceRow = (s: Raw, price: Map<number, number> = new Map(), added: AddedTime = {}): ServiceRow => ({
   id: Number(s.id), code: String(s.code ?? ""), name: String(s.displayName ?? s.code ?? ""),
   hours: s.hours == null ? null : Number(s.hours), price: s.price == null ? null : Number(s.price), active: (s.active as boolean | null) ?? null,
   pricing: stPricing(s) || undefined,
   dynamic: s.useStaticPrices === false, charged: s.calculatedPrice == null ? null : Number(s.calculatedPrice),
   linked: linkedValue(s, price),
+  ...jobHours(s, added),
 });
+
+/**
+ * Time the run has added to a service so Dynamic Pricing reaches the rate, in
+ * `portal_settings.labour_added_time` ({ [serviceId]: { code, base, set } }).
+ * The labour is priced on `base`, the job's own hours, for as long as the
+ * service still has the `set` hours the run gave it; without this every run
+ * would price the added time and add more. Once someone changes the hours in
+ * ServiceTitan, theirs are the job's hours again.
+ */
+type AddedTime = Record<string, { code: string; base: number; set: number }>;
+const ADDED_KEY = "labour_added_time";
+function jobHours(s: Raw, added: AddedTime): { baseHours?: number } {
+  const a = added[String(s.id)];
+  return a && s.hours != null && Math.abs(Number(s.hours) - a.set) < 1e-6 ? { baseHours: a.base } : {};
+}
+
+/**
+ * What ServiceTitan's Dynamic Pricing charges an hour, over the labour-only
+ * services it prices (nothing linked, not a call-out): all their prices over
+ * all their hours, so the long jobs outweigh the $10 rounding on the short
+ * ones. 8 Nov: $330 for 1 h, $980 for 3 h, $5,230 for 16 h, about $327.
+ */
+function dynamicRate(rows: ServiceRow[]): number | null {
+  const r = rows.filter((x) => x.dynamic && x.charged && x.hours && x.hours > 0 && !(x.linked && x.linked > 0) && crewFor(x.code) && crewFor(x.code) !== "callout");
+  const hours = r.reduce((a, x) => a + Number(x.hours), 0);
+  return hours > 0 ? r.reduce((a, x) => a + Number(x.charged), 0) / hours : null;
+}
 
 /**
  * The highest price ServiceTitan has charged for each service, in
@@ -128,14 +156,16 @@ export async function planServicePrices() {
   ]);
   const skuPrice = new Map<number, number>();
   for (const x of [...materials, ...equipment]) if (x.price != null) skuPrice.set(Number(x.id), Number(x.price));
-  const rows = services.map((s) => serviceRow(s, skuPrice));
+  const added = (await getSettings<AddedTime>(ADDED_KEY)) ?? {};
+  const rows = services.map((s) => serviceRow(s, skuPrice, added));
   const floors = await priceFloors(rows);
+  const dynRate = dynamicRate(rows);
   const creates = [planInternalHeater(services, rates)].filter((c): c is ServiceCreate => !!c);
   const materialChanges = planRefrigerant(materials.map((m) => ({
     id: Number(m.id), code: String(m.code ?? ""), name: String(m.displayName ?? m.code ?? ""),
     price: m.price == null ? null : Number(m.price), cost: m.cost == null ? null : Number(m.cost), active: (m.active as boolean | null) ?? null,
   })), refrigerant);
-  return { rates, refrigerant, materialChanges, creates, ...planServices(rows, rates, floors) };
+  return { rates, refrigerant, materialChanges, creates, dynRate, ...planServices(rows, rates, floors, dynRate) };
 }
 
 /**
@@ -172,9 +202,26 @@ export async function applyServicePrices(changes: ServiceChange[], limit: number
   const out: LabourResult = { applied: 0, verified: 0, failed: [], remaining: 0 };
   const batch = changes.slice(0, limit);
   out.remaining = changes.length - batch.length;
+  const added = (await getSettings<AddedTime>(ADDED_KEY)) ?? {};
+  let addedGrew = false;
   for (const c of batch) {
     const path = stTenantPath("pricebook", `services/${c.id}`);
     try {
+      if (c.newHours != null) {
+        // On Dynamic Pricing: more time, and ServiceTitan's own price read back.
+        await stSend("PATCH", path, { hours: c.newHours });
+        out.applied++;
+        const r = await stFetch<{ data?: Raw[] }>(stTenantPath("pricebook", "services"), { ids: String(c.id), calculatePrices: "true" });
+        const back = r.data?.[0] ?? {};
+        const hours = Number(back.hours);
+        const price = back.calculatedPrice == null ? null : Number(back.calculatedPrice);
+        if (Math.abs(hours - c.newHours) >= 1e-6) { out.failed.push({ id: c.id, name: c.name, error: `sent ${c.newHours} h, ServiceTitan kept ${back.hours} h` }); continue; }
+        added[String(c.id)] = { code: c.code, base: c.hours, set: c.newHours };
+        addedGrew = true;
+        if (price == null || price < c.after - DYNAMIC_SLACK) out.failed.push({ id: c.id, name: c.name, error: `${c.newHours} h set, but ServiceTitan prices it at $${price ?? "?"}, not $${c.after}` });
+        else out.verified++;
+        continue;
+      }
       await stSend("PATCH", path, { price: c.after });
       out.applied++;
       const back = await stFetch<Raw>(path);
@@ -192,21 +239,23 @@ export async function applyServicePrices(changes: ServiceChange[], limit: number
       out.failed.push({ id: c.id, name: c.name, error: (e as Error).message.slice(0, 300) });
     }
   }
+  if (addedGrew) await saveSettings(ADDED_KEY, added);
   return out;
 }
 
 // --- templates ---------------------------------------------------------------------
 
 async function catalogue(): Promise<Catalogue> {
-  const [services, materials] = await Promise.all([
+  const [services, materials, added] = await Promise.all([
     stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Raw>("pricebook", "materials", { active: "True" }, 20),
+    getSettings<AddedTime>(ADDED_KEY),
   ]);
   const service: Catalogue["service"] = new Map();
   const multiHead: Catalogue["multiHead"] = new Map();
   for (const s of services) {
     const code = normCode(s.code);
-    const hours = Number(s.hours) || 0;
+    const hours = jobHours(s, added ?? {}).baseHours ?? (Number(s.hours) || 0);
     const name = String(s.displayName ?? s.code ?? "").trim();
     service.set(Number(s.id), { code, hours, name, price: s.price == null ? null : Number(s.price) });
     const m = /^AC-SPLIT-MULTI-(\d)$/.exec(code);

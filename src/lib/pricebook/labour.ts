@@ -88,12 +88,25 @@ const cents = (n: number) => Math.round(n * 100) / 100;
 export type ServiceRow = {
   id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null; pricing?: string;
   dynamic?: boolean; charged?: number | null; linked?: number;
+  /** The job's own hours, when the run has added time to `hours` for Dynamic Pricing to reach the rate. */
+  baseHours?: number;
 };
-/** `before` is what the customer is charged today; `kept` says the price stayed at it because labour + materials came to less. */
+/**
+ * `before` is what the customer is charged today; `kept` says the price stayed
+ * at it because labour + materials came to less. `hours` is the job's own time,
+ * which the labour is priced on. On Dynamic Pricing the price is raised by
+ * giving ServiceTitan more time: `stHours` → `newHours`.
+ */
 export type ServiceChange = {
   id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number; pricing?: string;
-  labour: number; linked: number; kept?: boolean;
+  labour: number; linked: number; kept?: boolean; stHours?: number; newHours?: number;
 };
+
+/**
+ * ServiceTitan's Dynamic Pricing rounds to the dollar ten, so a dynamic price
+ * within this of the target is as close as time can bring it.
+ */
+export const DYNAMIC_SLACK = 10;
 export type ServiceSkip = { id: number; code: string; name: string; reason: string };
 
 /**
@@ -108,7 +121,9 @@ export type ServiceSkip = { id: number; code: string; name: string; reason: stri
  * below `floors`: the highest price we've seen ServiceTitan charge for it,
  * kept because switching a service off Dynamic Pricing loses that figure.
  */
-export function planServices(services: ServiceRow[], rates: Rates, floors: Map<number, number> = new Map()): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
+export function planServices(
+  services: ServiceRow[], rates: Rates, floors: Map<number, number> = new Map(), dynRate: number | null = null,
+): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
   const changes: ServiceChange[] = [];
   const skipped: ServiceSkip[] = [];
   let unchanged = 0;
@@ -117,7 +132,8 @@ export function planServices(services: ServiceRow[], rates: Rates, floors: Map<n
     const crew = crewFor(s.code);
     if (!crew) continue;
     const rate = rates[crew];
-    const hours = Number(s.hours) || 0;
+    const stHours = Number(s.hours) || 0;
+    const hours = s.baseHours ?? stHours;
     if (!rate) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: `no ${CREW_LABEL[crew]} set in the portal` }); continue; }
     if (crew !== "callout" && hours <= 0) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: "no hours on the service" }); continue; }
     const labour = crew === "callout" ? cents(rate) : cents(hours * rate);
@@ -126,15 +142,22 @@ export function planServices(services: ServiceRow[], rates: Rates, floors: Map<n
     const before = s.dynamic && s.charged != null ? Number(s.charged) : Number(s.price) || 0;
     const floor = Math.max(before, floors.get(s.id) ?? 0);
     const after = Math.max(target, floor);
-    // A service on Dynamic Pricing that already charges this much is left on
-    // it (Jake, 8 Nov: why turn it off?). The rule keeps following its linked
-    // materials' prices, and the floor holds if it's ever switched off. Only a
-    // service the new rates would raise needs the rule off, and the run says so.
-    if (s.dynamic && s.charged != null && after <= Number(s.charged) + 0.005) { unchanged++; continue; }
+    // Dynamic Pricing stays on (Jake, 8 Nov: "the dynamic price works, I'd
+    // just add more time"). A service it already prices at the target is
+    // left alone. One it prices under gets more time: ServiceTitan charges
+    // about $327 an hour (`dynRate`), so a part-day install at $350 an hour
+    // needs about 7% more, rounded up to three minutes. The time it carries on
+    // top of the job's own is what the drive to the next job costs.
+    if (s.dynamic && s.charged != null && after <= Number(s.charged) + DYNAMIC_SLACK) { unchanged++; continue; }
     if (!s.dynamic && Math.abs(after - (Number(s.price) || 0)) < 0.005) { unchanged++; continue; }
+    let newHours: number | undefined;
+    if (s.dynamic && s.charged != null && dynRate && dynRate > 0 && crew !== "callout") {
+      newHours = Math.round(Math.ceil((stHours + (after - Number(s.charged)) / dynRate) * 20 - 1e-9)) / 20;
+    }
     changes.push({
       id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, labour, linked,
       ...(after > target ? { kept: true } : {}), ...(s.pricing ? { pricing: s.pricing } : {}),
+      ...(newHours != null ? { stHours, newHours } : {}),
     });
   }
   return { changes, unchanged, skipped };
