@@ -90,4 +90,5 @@ export const SENT_KIND: Record<string, string> = {
   "work-order-tenant": "Booking email",
   "chat-reply": "Chat reply",
   "quote-customer": "Thank-you email",
+  "customer-update": "Update email",
 };
