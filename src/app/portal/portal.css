@@ -5482,6 +5482,11 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nw__addstock.is-open { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--pt-line); border-radius: 12px; }
 .pt-nw__bar .pt-nw__addstock { margin-top: 0; }
 .pt-nw__bar .pt-nw__addstock.is-open { flex-basis: 100%; background: var(--pt-surface); }
+/* Add stock as a pop-up: the box is the dialog's body, not a bordered panel of its own. */
+.pt-nw__stockpop { width: min(640px, 100%); overflow: visible; }
+.pt-nw__stockpop .pt-nw__addstock.is-open, .pt-nw__bar .pt-nw__stockpop .pt-nw__addstock.is-open { margin: 0; padding: 0; border: 0; background: none; overflow: auto; min-height: 0; }
+.pt-nw__stockpop .pt-nw__stockrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.pt-nw__stockpop .pt-nw__stocksearch { flex: 1 1 260px; }
 .pt-nw__stockrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .pt-nw__stocksearch { flex: 1 1 320px; min-width: 0; }
 .pt-nw__qty { width: 84px; }
