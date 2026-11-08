@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
@@ -12,6 +11,7 @@ import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "./filtration.css";
 import { PageHero } from "@/components/PageHero";
+import { JsonLd } from "@/components/JsonLd";
 
 /** The header photo. Same shot the whole-home page leads with, because it
  *  is the one that shows what a tidy install looks like. */
@@ -101,8 +101,8 @@ export default function WaterFiltrationPage() {
 
   return (
     <div className="page-filtration">
-      <Script id="wf-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(HUB_FAQS)) }} />
-      <Script id="wf-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={faqSchema(HUB_FAQS)} />
+      <JsonLd data={crumbs} />
 
       {/* HERO — the display shot full bleed, same as the category pages.
           Copy on a scrim, the figures along the bottom. */}

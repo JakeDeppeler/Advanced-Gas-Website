@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands, categoryPhoto, rangeFilterType, visibleProducts } from "@/lib/brands";
 import { TIERS, SYSTEM_STYLES } from "@/lib/waterFiltration";
@@ -12,6 +11,7 @@ import { RangeFinder } from "@/components/RangeFinder";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../detail.css";
 import "./range.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * The full range, in one filterable list.
@@ -117,7 +117,7 @@ export default function RangePage() {
 
   return (
     <div className="page-detail page-range">
-      <Script id="ld-range-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
 
       <section className="dp-hero">
         <div className="wrap">

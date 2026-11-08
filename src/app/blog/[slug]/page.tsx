@@ -5,10 +5,10 @@ import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { AUTHORS } from "@/lib/blog";
 import { publishedPost, publishedPosts } from "@/lib/blogLive";
-import Script from "next/script";
 import "../../detail.css";
 import "../blog.css";
 import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 
 type Params = { slug: string };
 
@@ -168,11 +168,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
 
       {/* WEB-012 / WEB-013: Article with a real author reference and ISO
           dates, plus a Person for the author. */}
-      <Script
-        id={`ld-article-${post.slug}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+      <JsonLd data={{
             "@context": "https://schema.org",
             "@type": "Article",
             headline: post.title,
@@ -192,9 +188,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
               logo: { "@type": "ImageObject", url: `${site.url}/advanced-gas-logo.webp` },
             },
             mainEntityOfPage: { "@type": "WebPage", "@id": `${site.url}/blog/${post.slug}` },
-          }),
-        }}
-      />
+          }} />
     </div>
   );
 }

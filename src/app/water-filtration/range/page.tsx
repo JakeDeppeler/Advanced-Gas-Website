@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RANGE, CAPABILITIES, TIERS, type CapabilityKey } from "@/lib/waterFiltration";
 import { CtaBand } from "@/components/CtaBand";
 import "../filtration.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * The full range, as a capability matrix.
@@ -85,8 +85,8 @@ export default function RangePage() {
 
   return (
     <div className="page-filtration page-range">
-      <Script id="wr-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
-      <Script id="wr-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={faqSchema(FAQS)} />
+      <JsonLd data={crumbs} />
 
       <section className="wf-hero wf-hero--tier">
         <div className="wrap">

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { RATING_SUMMARY } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
@@ -8,6 +7,7 @@ import { Crumbs, Hero, Head, Next, Cta } from "@/components/homepage/page/kit";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: `Reviews, ${RATING_SUMMARY.value.toFixed(1)}/5 from ${RATING_SUMMARY.count} Google reviews`,
@@ -72,7 +72,7 @@ export default async function ReviewsPage() {
       </section>
 
       <Cta title="Want the same experience?" text="A free, no-obligation quote back within 12 business hours." />
-      <Script id="ld-crumbs-reviews" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
     </div>
   );
 }

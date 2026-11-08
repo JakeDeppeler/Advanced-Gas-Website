@@ -1,7 +1,6 @@
 import { ChromeGate } from "@/components/ChromeGate";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { Analytics } from "@/components/Analytics";
@@ -22,6 +21,7 @@ import { TITLE_SUFFIX } from "@/lib/seo";
 import { PageEnter } from "@/components/PageEnter";
 import { SiteCross } from "@/components/SiteCross";
 import { Reveal } from "@/components/Reveal";
+import { JsonLd } from "@/components/JsonLd";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -163,12 +163,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ChromeGate>
           <ChatWidget />
         </ChromeGate>
-        <Script
-          id="ld-localbusiness"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema()) }}
-        />
+        <JsonLd data={localBusinessSchema()} />
         {/* Vercel Speed Insights — real-user performance metrics from every
             visit. Beacon-based, no impact on TBT or LCP; script only loads
             once the page is idle. Dashboard at

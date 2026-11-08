@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { HeatPumpSizing } from "./HeatPumpSizing";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
 import { ToolPage } from "@/components/homepage/tools/ToolPage";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Heat Pump Sizing, What Size Tank Do I Need?",
@@ -118,8 +118,8 @@ export default function HeatPumpSizingPage() {
       >
         <HeatPumpSizing />
       </ToolPage>
-      <Script id="ld-crumbs-hps" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      <Script id="ld-faq-hps" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
+      <JsonLd data={crumbs} />
+      <JsonLd data={faqSchema(FAQS)} />
     </>
   );
 }

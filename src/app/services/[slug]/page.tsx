@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 import { services, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
@@ -9,6 +8,7 @@ import { ServiceView } from "@/components/homepage/page/ServiceView";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * A service page, in the redesign. All its words, prices and photos come
@@ -67,9 +67,9 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
   return (
     <>
       <ServiceView slug={params.slug} name={svc.short} c={content} choose={CHOOSE_HEAD[params.slug]} />
-      <Script id={`ld-crumbs-${params.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      <Script id={`ld-svc-${params.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema(svc.slug)) }} />
-      {content.faqs.length > 0 && <Script id={`ld-faq-${params.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(content.faqs)) }} />}
+      <JsonLd data={crumbs} />
+      <JsonLd data={serviceSchema(svc.slug)} />
+      {content.faqs.length > 0 && <JsonLd data={faqSchema(content.faqs)} />}
     </>
   );
 }

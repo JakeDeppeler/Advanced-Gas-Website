@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands, findBrand } from "@/lib/brands";
 import { REVIEWS } from "@/lib/reviews";
@@ -9,6 +8,7 @@ import { seoMeta } from "@/lib/seo";
 import { BrandView } from "@/components/homepage/brand/BrandView";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * A brand page, in the redesign: the "why we use them" step after a product
@@ -50,9 +50,9 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
     // data-no-reveal: the site-wide scroll reveal hides sections until they animate in; this page, like /find, doesn't use it.
     <div className="ag ag--flat" data-no-reveal>
       <BrandView brand={brand} reviews={reviews} />
-      <Script id={`ld-crumbs-${brand.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
       {brand.faqs && brand.faqs.length > 0 && (
-        <Script id={`ld-faq-${brand.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(brand.faqs)) }} />
+        <JsonLd data={faqSchema(brand.faqs)} />
       )}
     </div>
   );

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Script from "next/script";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { quoted } from "@/lib/homepage/data";
@@ -9,6 +8,7 @@ import { RebateCalculator } from "@/components/RebateCalculator";
 import "../detail.css";
 import "./rebates.css";
 import { PageHero } from "@/components/PageHero";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title:
@@ -382,16 +382,8 @@ export default function RebatesPage() {
         </div>
       </section>
 
-      <Script
-        id="ld-rebates-faq"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(faqs)) }}
-      />
-      <Script
-        id="ld-rebates-crumbs"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }}
-      />
+      <JsonLd data={faqSchema(faqs)} />
+      <JsonLd data={crumbs} />
     </div>
   );
 }

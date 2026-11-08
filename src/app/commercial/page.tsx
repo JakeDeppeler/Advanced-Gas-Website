@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import {
@@ -21,6 +20,7 @@ import { ProcessTimeline } from "@/components/commercial/ProcessTimeline";
 import { CommGallery } from "@/components/commercial/CommGallery";
 import { CommReveal } from "@/components/commercial/CommReveal";
 import "./cx.css";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical, Melbourne",
@@ -477,11 +477,7 @@ export default function CommercialPage() {
           has decided to hide it. */}
       <CommReveal />
 
-      <Script
-        id="ld-commercial-faq"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(COMM_FAQS)) }}
-      />
+      <JsonLd data={faqSchema(COMM_FAQS)} />
     </div>
   );
 }
