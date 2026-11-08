@@ -822,7 +822,7 @@ const brandCatalogue: Brand[] = [
       { v: "Year 12", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit.", img: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric MXZ outdoor unit" },
     ],
     quality: {
-      heading: "Made better, from the inside.",
+      heading: "Made better, {from the inside}.",
       intro: "The difference is in the parts you never see. Mitsubishi Electric makes the important ones itself.",
       image: { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit" },
       points: [
@@ -857,12 +857,12 @@ const brandCatalogue: Brand[] = [
     /* --- The brand-first layout: identity and our verdict lead, our
        install process is a strip near the bottom. --- */
     whyLead: {
-      claim: "Why we choose Mitsubishi Electric.",
+      claim: "Why we choose {Mitsubishi Electric}.",
       sub: "It costs a little more than a budget brand. This is what the difference buys you.",
     },
     mark: "three-diamonds",
     story: {
-      heading: "A Japanese engineering company, since 1921.",
+      heading: "A Japanese engineering company, {since 1921}.",
       body: "Mitsubishi Electric builds lifts, trains and satellites, and it brings the same engineering to the air conditioner on your wall.",
       marks: [
         { v: "1921", k: "Founded in Tokyo" },
@@ -1007,7 +1007,7 @@ const brandCatalogue: Brand[] = [
     ],
 
     servicing: {
-      heading: "What happens in year ten.",
+      heading: "What happens in {year ten}.",
       // A real Mitsubishi outdoor unit (the badge is on it). The ductwork
       // photo this replaced could have been any brand's.
       photo: "/reclaim-and-mitsubishi.jpg",

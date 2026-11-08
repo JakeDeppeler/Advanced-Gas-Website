@@ -12,8 +12,10 @@ import { SystemPicker, type PickerResult } from "./SystemPicker";
 import "./blocks.css";
 
 /**
- * A brand page laid out like the homepage: each section is its own colour
- * block with white space between, and few words in each. The order is
+ * A brand page laid out like the homepage: full-width bands, white ones
+ * between navy, cream and the brand's red, the range in a navy box the way
+ * the homepage sets "Find your system", and one coloured word in each
+ * heading. No light blue (Jake's call). The order is
  * Jake's: the brand and where it's made, the quality, why we choose it,
  * the range, our installs, year ten, which one is right for you, reviews,
  * FAQs, then the quote.
@@ -25,6 +27,14 @@ import "./blocks.css";
 
 /** How many install photos the gallery is laid out for. */
 const GALLERY = 6;
+
+/**
+ * A heading with one part in colour, the way the homepage sets "Find your
+ * system": the coloured part is written in braces in lib/brands.ts.
+ */
+function accent(text: string) {
+  return text.split(/[{}]/).map((part, i) => (i % 2 ? <span key={i}>{part}</span> : part));
+}
 /** The timeline runs to this year, so year twelve sits short of the end. */
 const SPAN = 15;
 
@@ -110,11 +120,11 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {/* 1. The brand, and the road from Tokyo to a wall here. */}
       {story && (
-        <section className="bk__sec" id="brand">
-          <div className="wrap"><div className="bk__blk bk__blk--navy bk__col bk__brand">
+        <section className="bk__sec bk__sec--white" id="brand">
+          <div className="wrap"><div className="bk__blk bk__col bk__brand">
             <div className="bk__brandtop">
               <div className="bk__head">
-                <h2 className="h2">{story.heading}</h2>
+                <h2 className="h2">{accent(story.heading)}</h2>
                 <p>{story.body}</p>
               </div>
               {mark && <ThreeDiamonds className="bk__bigmark" />}
@@ -141,10 +151,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {/* 2. Made better: what's inside. */}
       {brand.quality && (
-        <section className="bk__sec" id="quality">
-          <div className="wrap"><div className="bk__blk bk__blk--sky bk__q">
+        <section className="bk__sec bk__sec--navy" id="quality">
+          <div className="wrap"><div className="bk__blk bk__q">
             <div className="bk__head">
-              <h2 className="h2">{brand.quality.heading}</h2>
+              <h2 className="h2">{accent(brand.quality.heading)}</h2>
               <p>{brand.quality.intro}</p>
             </div>
             <div className="bk__qbody">
@@ -160,10 +170,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
       )}
 
       {/* 3. Why we choose it: four photo cards, the figures counting up. */}
-      <section className="bk__sec" id="why">
-        <div className="wrap"><div className="bk__blk bk__blk--acc bk__col">
+      <section className="bk__sec bk__sec--white" id="why">
+        <div className="wrap"><div className="bk__blk bk__col">
           <header className="bk__head">
-            <h2 className="h2">{brand.whyLead?.claim ?? `Why we fit ${brand.name}.`}</h2>
+            <h2 className="h2">{accent(brand.whyLead?.claim ?? `Why we fit ${brand.name}.`)}</h2>
             {brand.whyLead?.sub && <p>{brand.whyLead.sub}</p>}
           </header>
           {brand.reasons && (
@@ -189,10 +199,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {/* 4. The range. */}
       {options.length > 0 && (
-        <section className="bk__sec" id="range">
-          <div className="wrap"><div className="bk__blk bk__blk--cream bk__col">
+        <section className="bk__sec bk__sec--white" id="range">
+          <div className="wrap"><div className="bk__blk bk__boxed bk__col">
             <header className="bk__head">
-              <h2 className="h2">The {brand.name} range.</h2>
+              <h2 className="h2">The {brand.name} <span>range</span>.</h2>
               <p>Each one has its own page with sizes, specs and the price installed.</p>
             </header>
             <div className="bk__range" data-anim="stagger">
@@ -218,10 +228,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {/* 5. Our installs. */}
       {(installs.length > 0 || slots > 0) && (
-        <section className="bk__sec" id="installs">
-          <div className="wrap"><div className="bk__blk bk__blk--plain bk__col">
+        <section className="bk__sec bk__sec--cream" id="installs">
+          <div className="wrap"><div className="bk__blk bk__col">
             <header className="bk__head">
-              <h2 className="h2">Our {brand.name} installs.</h2>
+              <h2 className="h2">Our {brand.name} <span>installs</span>.</h2>
               <p>Real jobs by our own crew, around Melbourne&apos;s south-east.</p>
             </header>
             <div className="bk__gal" data-anim="stagger">
@@ -240,11 +250,11 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
       )}
 
       {/* 6. Year ten: the timeline of owning one. */}
-      <section className="bk__sec" id="support">
-        <div className="wrap"><div className="bk__blk bk__blk--navy bk__col">
+      <section className="bk__sec bk__sec--navy" id="support">
+        <div className="wrap"><div className="bk__blk bk__col">
           <div className="bk__two">
             <div className="bk__txt">
-              <h2 className="h2">{brand.servicing?.heading ?? "Keeping it running."}</h2>
+              <h2 className="h2">{accent(brand.servicing?.heading ?? "Keeping it running.")}</h2>
               <p>{brand.servicing?.body ?? brand.support}</p>
               {brand.servicing?.facts && (
                 <ul className="pp__hl">{brand.servicing.facts.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>
@@ -275,10 +285,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {/* 7. Which one is right for you: a few questions and a quote link. */}
       {picks.length > 0 && brand.picker && (
-        <section className="bk__sec" id="pick">
-          <div className="wrap"><div className="bk__blk bk__blk--sky bk__pick">
+        <section className="bk__sec bk__sec--red" id="pick">
+          <div className="wrap"><div className="bk__blk bk__pick">
             <div className="bk__head">
-              <h2 className="h2">Which {brand.name} is right for you?</h2>
+              <h2 className="h2">Which {brand.name} is <span>right for you</span>?</h2>
               <p>Answer a couple of quick questions and we&apos;ll show you the one we&apos;d fit.</p>
               {(brand.versus || brand.notRightWhen) && (
                 <div className="bk__notes">
@@ -292,10 +302,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </section>
       )}
 
-      <section className="bk__sec" id="reviews">
-        <div className="wrap"><div className="bk__blk bk__blk--plain bk__col">
+      <section className="bk__sec bk__sec--white" id="reviews">
+        <div className="wrap"><div className="bk__blk bk__col">
           <div className="pp__revhead">
-            <header className="bk__head"><h2 className="h2">From local households.</h2></header>
+            <header className="bk__head"><h2 className="h2">From local <span>households</span>.</h2></header>
             <Link href="/reviews">Read every review →</Link>
           </div>
           <div className="pp__revs" data-anim="stagger">
@@ -315,10 +325,10 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
       </section>
 
       {brand.faqs && brand.faqs.length > 0 && (
-        <section className="bk__sec" id="faqs">
-          <div className="wrap"><div className="bk__blk bk__blk--cream pp__two">
+        <section className="bk__sec bk__sec--cream" id="faqs">
+          <div className="wrap"><div className="bk__blk pp__two">
             <div className="bk__head">
-              <h2 className="h2">Questions about {brand.name}.</h2>
+              <h2 className="h2">Questions about <span>{brand.name}</span>.</h2>
               <p>Still want a human? <a href="tel:+61359478000" data-call-from="brand-faq">Call (03) 5947 8000</a>.</p>
             </div>
             <div className="afaqs">
@@ -328,12 +338,12 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </section>
       )}
 
-      <section className="bk__sec">
+      <section className="bk__sec bk__sec--white bk__sec--end">
         <div className="wrap">
           <div className="bk__box bk__box--acc bk__cta">
             {mark && <ThreeDiamonds className="bk__ctamark" />}
             <div>
-              <h2 className="bk__boxh">See what {brand.name} would cost.</h2>
+              <h2 className="bk__boxh">See what {brand.name} <span>would cost</span>.</h2>
               <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
             </div>
             <div className="bxh__ctas">

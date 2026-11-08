@@ -1,26 +1,30 @@
 /* The blocks layout for a brand page (BrandBlocks.tsx). Built from the
-   homepage's pieces: colour blocks with white space between them and the
-   homepage's photo tiles. The palette is the homepage's own (sky, cream,
-   navy) plus the brand's accent (--acc). */
+   homepage's pieces: full-width bands and the homepage's photo tiles. The
+   palette is the homepage's navy and cream plus the brand's accent (--acc);
+   no light blue. */
 
-/* Each section is a block of colour inside the page gutter, with white
-   space between, the way the homepage sets its "Find your system" box. */
-.ag .bk__sec{padding:clamp(10px,1.2vw,16px) 0;background:#fff;scroll-margin-top:136px}
-.ag .pxt + .bk__sec{padding-top:clamp(28px,3vw,40px)}
-.ag .bk__sec:last-child{padding-bottom:clamp(40px,5vw,72px)}
-.ag .bk__blk{border-radius:12px;padding:clamp(28px,4vw,56px) clamp(20px,4vw,52px)}
-.ag .bk__blk--plain{padding-inline:0}
-.ag .bk__blk--sky{background:var(--skylt)}
-.ag .bk__blk--cream{background:var(--cream)}
-.ag .bk__blk--navy{background:radial-gradient(55% 80% at 100% 0%,color-mix(in srgb,var(--acc) 28%,transparent),transparent 70%),var(--navy);color:#fff}
-.ag .bk__blk--acc{background:var(--acc);color:#fff}
-.ag :is(.bk__blk--navy,.bk__blk--acc) .h2{color:#fff}
-.ag :is(.bk__blk--navy,.bk__blk--acc) .bk__head p,.ag .bk__blk--navy .bk__txt > p{color:rgba(255,255,255,.82)}
-.ag .bk__blk--navy .pp__hl li{color:rgba(255,255,255,.88)}
+/* Full-width bands, the homepage's rhythm: white between navy, cream and
+   the brand's red, 112px of room in each. Text colour follows the band. */
+.ag .bk__sec{padding:clamp(64px,8vw,112px) 0;scroll-margin-top:136px}
+.ag .bk__sec--white{background:#fff}
+.ag .bk__sec--cream{background:var(--cream)}
+.ag .bk__sec--navy{position:relative;overflow:clip;background:radial-gradient(50% 70% at 100% 0%,color-mix(in srgb,var(--acc) 26%,transparent),transparent 70%),var(--navy);color:#fff}
+.ag .bk__sec--red{background:var(--acc);color:#fff}
+/* Two white bands in a row read as one: the second starts closer */
+.ag .bk__sec--white + .bk__sec--white{padding-top:0}
+.ag .bk__sec--end{padding-top:0}
+.ag .bk .h2 span{color:var(--acc)}
+.ag :is(.bk__sec--navy,.bk__boxed) .h2 span{color:#FF5A6B}
+.ag .bk__sec--red .h2 span{color:var(--navy)}
+.ag :is(.bk__sec--navy,.bk__sec--red,.bk__boxed) .h2{color:#fff}
+.ag :is(.bk__sec--navy,.bk__sec--red,.bk__boxed) .bk__head p,.ag .bk__sec--navy .bk__txt > p{color:rgba(255,255,255,.84)}
+.ag .bk__sec--navy .pp__hl li{color:rgba(255,255,255,.88)}
+/* The range sits in a navy box on white, like the homepage's "Find your system" */
+.ag .bk__boxed{position:relative;overflow:clip;background:radial-gradient(45% 70% at 100% 0%,color-mix(in srgb,var(--acc) 30%,transparent),transparent 70%),var(--navy);color:#fff;border-radius:12px;padding:clamp(28px,4vw,48px) clamp(20px,4vw,48px)}
 .ag .bk__col{display:flex;flex-direction:column;gap:clamp(28px,3vw,40px)}
 .ag .bk__head{display:flex;flex-direction:column;gap:12px;max-width:720px}
 .ag .bk__head p{margin:0;font-size:17px;line-height:1.6;color:var(--ink2)}
-.ag .bk__head a{color:var(--navy);font-weight:700}
+.ag .bk__head a{color:inherit;font-weight:700}
 
 /* Why: four photo cards */
 .ag .bk__reasons{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
@@ -64,7 +68,7 @@
 .ag .bk__ph{position:relative;margin:0;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#EEF1F5}
 .ag .bk__ph img{object-fit:cover}
 .ag .bk__ph figcaption{position:absolute;left:12px;bottom:12px;background:rgba(5,10,48,.78);color:#fff;font-size:13px;font-weight:600;border-radius:8px;padding:6px 10px}
-.ag .bk__ph--slot{display:grid;place-items:center;background:var(--skylt);box-shadow:inset 0 0 0 2px #D9DEE6;border-radius:12px}
+.ag .bk__ph--slot{display:grid;place-items:center;background:#fff;box-shadow:inset 0 0 0 2px #D9DEE6;border-radius:12px}
 .ag .bk__ph--slot span{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
 
 /* Year ten */
@@ -132,22 +136,22 @@
 .ag .bk__show .bxh__prod--lead .bxh__pimg{animation:agBob 5s ease-in-out 1.4s infinite}
 
 /* ---- 1. The brand ---- */
-.ag .bk__brand{position:relative;overflow:clip}
+.ag .bk__brand{position:relative}
 .ag .bk__brandtop{display:flex;justify-content:space-between;align-items:center;gap:24px}
-.ag .bk__bigmark{width:clamp(110px,13vw,170px);height:auto;flex:none;overflow:visible;filter:drop-shadow(0 18px 30px rgba(230,0,18,.35))}
+.ag .bk__bigmark{width:clamp(110px,13vw,170px);height:auto;flex:none;overflow:visible;filter:drop-shadow(0 18px 30px rgba(230,0,18,.25))}
 .ag .bk__bigmark .bm__d{animation-play-state:paused}
 .ag .bk--motion .bk__brand:has(.bk__trip.is-in) .bk__bigmark .bm__d,.ag .bk:not(.bk--motion) .bk__bigmark .bm__d{animation-play-state:running}
 
 /* The route: a track that fills left to right, each stop lighting as the line reaches it */
 .ag .bk__trip{position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-.ag .bk__track{position:absolute;left:12px;right:calc(33.33% - 12px);top:11px;height:3px;border-radius:2px;background:rgba(255,255,255,.16)}
+.ag .bk__track{position:absolute;left:12px;right:calc(33.33% - 12px);top:11px;height:3px;border-radius:2px;background:var(--line2)}
 .ag .bk__track i{position:absolute;inset:0;border-radius:2px;background:linear-gradient(90deg,#E60012,#FF7A36);transform-origin:left;transform:scaleX(1)}
 .ag .bk__trip li{position:relative;display:flex;flex-direction:column;gap:6px;padding-top:40px}
-.ag .bk__pin{position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;background:var(--navy);box-shadow:inset 0 0 0 3px #E60012}
+.ag .bk__pin{position:absolute;left:0;top:0;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 3px #E60012}
 .ag .bk__pin::after{content:"";position:absolute;inset:7px;border-radius:50%;background:#E60012}
-.ag .bk__role{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#FF8A8A}
-.ag .bk__trip strong{font-family:var(--disp);font-size:clamp(20px,1.8vw,26px);font-weight:800;color:#fff}
-.ag .bk__trip p{margin:0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.76);max-width:30ch}
+.ag .bk__role{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+.ag .bk__trip strong{font-family:var(--disp);font-size:clamp(20px,1.8vw,26px);font-weight:800;color:var(--navy)}
+.ag .bk__trip p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2);max-width:30ch}
 .ag .bk--motion .bk__trip .bk__track i{transform:scaleX(0);transition:transform 1.8s cubic-bezier(.45,.05,.3,1) .2s}
 .ag .bk--motion .bk__trip.is-in .bk__track i{transform:scaleX(1)}
 .ag .bk--motion .bk__trip li{opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s;transition-delay:calc(.2s + var(--i) * .8s)}
@@ -156,7 +160,7 @@
 .ag .bk__trip.is-in .bk__pin{animation:bkPing 1.6s ease-out 2;animation-delay:calc(.4s + var(--i) * .8s)}
 
 .ag .bk__marks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.ag .bk__marks li{display:flex;align-items:baseline;gap:14px;padding:16px 20px;border-radius:12px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .bk__marks li{display:flex;align-items:baseline;gap:14px;padding:18px 22px;border-radius:12px;background:var(--navy)}
 .ag .bk__marks b{font-family:var(--disp);font-size:clamp(26px,2.4vw,34px);font-weight:900;letter-spacing:-.03em;color:#fff;white-space:nowrap}
 .ag .bk__marks span{font-size:14px;color:rgba(255,255,255,.8)}
 
@@ -181,9 +185,9 @@
 
 /* ---- 7. Which one is right for you ---- */
 .ag .bk__pick{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,56px);align-items:start}
-.ag .bk__notes{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding-top:16px;border-top:1px solid rgba(12,111,150,.18)}
+.ag .bk__notes{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding-top:16px;border-top:1px solid rgba(255,255,255,.3)}
 .ag .bk__notes p{font-size:14.5px !important;line-height:1.6}
-.ag .bk__notes b{color:var(--navy)}
+.ag .bk__notes b{color:#fff}
 .ag .sp{background:#fff;border-radius:12px;padding:clamp(20px,3vw,32px);box-shadow:0 26px 50px -36px rgba(5,10,48,.45);display:flex;flex-direction:column;gap:20px;min-height:320px}
 .ag .sp__bar{height:4px;border-radius:2px;background:#E8EDF3;overflow:hidden}
 .ag .sp__bar span{display:block;height:100%;background:var(--acc);transition:width .4s cubic-bezier(.2,.7,.2,1)}
