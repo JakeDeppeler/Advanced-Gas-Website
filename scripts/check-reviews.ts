@@ -94,16 +94,16 @@ for (const kind of ["heat-pump", "split", "general"] as const) for (let step = 1
   const text = letterText({ ...ctx, preheader: e.preheader, blocks: e.blocks, signer });
   ok(`${kind} ${step}: reads like a letter (Hi, no headline, asks them to call)`, e.blocks[0]?.kind === "p" && e.blocks[0].text === "Hi Sarah," && /give me a call on \(03\) 5947 8000/i.test(text) && !/<h\d|text-transform:uppercase/.test(html));
   // The closer is just a note from a person, and so is "did it come through"; the rest show our work.
-  if (!e.subject.startsWith("Before I close off") && !(kind === "general" && step === 1) && !e.blocks.some((b) => b.kind === "chart")) ok(`${kind} ${step}: a photo in it`, /<img[^>]+\/email\/(hero|hp|opt|split)/.test(html));
+  if (!e.subject.startsWith("Before I close off") && !(kind === "general" && step === 1) && !e.blocks.some((b) => b.kind === "stats")) ok(`${kind} ${step}: a photo in it`, /<img[^>]+\/email\/(hero|hp|opt|split)/.test(html));
   ok(`${kind} ${step}: the three answer buttons`, (html.match(/\/q\/1\/(yes|question|no)/g) ?? []).length === 3);
   ok(`${kind} ${step}: no captions under photos, no address footer`, !html.includes("Sierra Circuit"));
   ok(`${kind} ${step}: words, no gaps`, !!e.subject && !/\{\w+\}|undefined|  /.test(text), text.slice(0, 80));
   ok(`${kind} ${step}: images exist`, [...html.matchAll(/src="https:\/\/www\.advancedgas\.com\.au(\/[^"]+)"/g)].every((x) => existsSync(`public${decodeURIComponent(x[1])}`)));
 }
-ok("heat pump: check-in, savings (a chart), brands, closer", /checking in/i.test(followUpEmail("heat-pump", 1, fin).subject) && followUpEmail("heat-pump", 2, fin).blocks.some((b) => b.kind === "chart") && /Reclaim/.test(followUpEmail("heat-pump", 3, fin).subject));
+ok("heat pump: check-in, savings (stats), brands, closer", /checking in/i.test(followUpEmail("heat-pump", 1, fin).subject) && followUpEmail("heat-pump", 2, fin).blocks.some((b) => b.kind === "stats") && /Reclaim/.test(followUpEmail("heat-pump", 3, fin).subject));
 const hpBrands = letterText({ ...ctx, preheader: "", blocks: followUpEmail("heat-pump", 3, fin).blocks, signer });
 ok("R290 300 L first, CO₂ split, iStore last, never Thermann", hpBrands.indexOf("R290") < hpBrands.indexOf("iStore") && !/thermann/i.test(hpBrands) && ["heat-pump"].every(() => SERIES_DAYS["heat-pump"].every((_, n) => !/thermann/i.test(letterText({ ...ctx, preheader: "", blocks: followUpEmail("heat-pump", n + 1, fin).blocks, signer })))));
-ok("split: check-in, brands, running costs (a chart), closer", /checking in/i.test(followUpEmail("split", 1, fin).subject) && followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "chart"));
+ok("split: check-in, brands, running costs (stats), closer", /checking in/i.test(followUpEmail("split", 1, fin).subject) && followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "stats"));
 ok("the last one is the closer", ["heat-pump", "split", "general"].every((k) => followUpEmail(k as "split", SERIES_DAYS[k as "split"].length, fin).subject.startsWith("Before I close off")));
 ok("someone else quoted: named", letterText({ ...ctx, preheader: "", blocks: followUpEmail("split", 1, { ...fin, quoter: "Jye", quoterSigns: false }).blocks, signer }).includes("since Jye was out"));
 ok("no capital after a comma", ["heat-pump", "split", "general"].every((k) => SERIES_DAYS[k as "split"].every((_, n) => !/, Give me/.test(letterText({ ...ctx, preheader: "", blocks: followUpEmail(k as "split", n + 1, fin).blocks, signer })))));
