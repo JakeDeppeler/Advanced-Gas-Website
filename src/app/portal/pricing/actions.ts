@@ -5,6 +5,8 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { getCapSettings, saveSettings } from "@/lib/portal/db";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
+import { MARKUP_KEY, normaliseRules } from "@/lib/pricebook/markupRules";
+import { buildPricePlan } from "@/lib/pricebook/equipmentPlan";
 
 /**
  * The rate we charge, the call-out and after-hours, and the profit we want —
@@ -26,4 +28,27 @@ export async function savePricing(v: Record<string, number | null>): Promise<{ o
   }
   for (const path of ["/portal/pricing", "/portal/rates", "/portal/finance/hourly", "/portal/finance/capacity", "/portal/finance/cover"]) revalidatePath(path);
   return { ok: true };
+}
+
+/**
+ * Save the equipment markups and work the price changes out again from them.
+ * Nothing goes to ServiceTitan here: the changes wait on the page for a look
+ * and a press of the button, as before.
+ */
+export async function saveMarkups(raw: unknown): Promise<{ ok: boolean; error?: string; changes?: number }> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Admins only." };
+  const rules = normaliseRules(raw);
+  if (rules.fallback < 0 || rules.fallback > 200 || rules.rules.some((r) => r.markup != null && (r.markup < 0 || r.markup > 200))) {
+    return { ok: false, error: "Markups have to be between 0 and 200%." };
+  }
+  const s = await saveSettings(MARKUP_KEY, rules);
+  if (!s.ok) return { ok: false, error: "Couldn’t save." };
+  try {
+    const plan = await buildPricePlan(rules);
+    revalidatePath("/portal/pricing");
+    return { ok: true, changes: plan.changes.length };
+  } catch (e) {
+    return { ok: false, error: `Saved, but the pricebook couldn’t be read to work out prices: ${(e as Error).message.slice(0, 120)}` };
+  }
 }

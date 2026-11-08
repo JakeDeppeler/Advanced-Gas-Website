@@ -49,6 +49,11 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
         <BookingProvider value={sw.bookingProvider} canEdit={admin} />
       </SetRow>
     ),
+    emailLeads: (
+      <SetRow title="Goes to" line="Who gets the to-do to quote each email enquiry. Unset, it goes to whoever gets the office’s to-dos.">
+        <OfficeTo people={people} value={sw.quoteTo && people.some((p) => p.id === sw.quoteTo) ? sw.quoteTo : officeTo} canEdit={admin} which="quoteTo" label="Who gets the to-do to quote" />
+      </SetRow>
+    ),
     overdueInv: <p className="ar-note">Goes to whoever gets Finished but not invoiced, set under that one: <b>{accountsName}</b>.</p>,
   };
   const row = (a: Auto) => {
@@ -83,7 +88,7 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
           <AutoGroup title="In ServiceTitan" on={ACTS.filter((a) => sw[a.k as AutoKey]).length} of={ACTS.length}>
             {ACTS.map(row)}
           </AutoGroup>
-          <AutoGroup title="Website enquiries" on={LEAD_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={LEAD_ACTS.length}>
+          <AutoGroup title="Enquiries" on={LEAD_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={LEAD_ACTS.length}>
             {LEAD_ACTS.map(row)}
           </AutoGroup>
           <AutoGroup title="Ordering">

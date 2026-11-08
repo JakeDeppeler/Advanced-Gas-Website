@@ -36,13 +36,15 @@ export function openRunFailures(log: AutoEntry[]): Set<string> {
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "installSummary", "leadToJob", "leadBooking"] as const;
+export const AUTO_KEYS = ["quoteTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "installSummary", "leadToJob", "leadBooking", "emailLeads"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
   officeTo: string | null;
   /** Who gets the invoicing and overdue to-dos, on Invoice ready and Invoice overdue. Null: the office's person. */
   accountsTo: string | null;
+  /** Who gets the to-do to quote an enquiry that came in by email. Null: the office's person. */
+  quoteTo: string | null;
   /**
    * Who's emailed when the portal emails a supplier or the electrician by
    * itself (a work order sent, a moved job passed on), so somebody knows it
@@ -71,6 +73,7 @@ export async function loadSwitches(): Promise<AutoSwitches> {
   const out = {
     officeTo: typeof s?.officeTo === "string" ? s.officeTo : null,
     accountsTo: typeof s?.accountsTo === "string" ? s.accountsTo : null,
+    quoteTo: typeof s?.quoteTo === "string" ? s.quoteTo : null,
     notifyTo: typeof s?.notifyTo === "string" && s.notifyTo.trim() ? s.notifyTo : null,
     bookingProvider: Number.isInteger(s?.bookingProvider) && (s?.bookingProvider as number) > 0 ? (s?.bookingProvider as number) : null,
     leadBookingSince: typeof s?.leadBookingSince === "string" ? s.leadBookingSince : null,

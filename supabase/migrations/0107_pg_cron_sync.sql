@@ -66,3 +66,11 @@ select cron.schedule('portal-after-sync', '3-59/10 * * * *', $$
   select public.portal_cron_call('/api/install-packs');
   select public.portal_cron_call('/api/email/outlook/sweep');
 $$);
+
+-- 7 Nov: the Google review emails (lib/reviews/requests.ts) run with the rest.
+select cron.schedule('portal-after-sync', '3-59/10 * * * *', $$
+  select public.portal_cron_call('/api/ordering/draft?mode=refresh');
+  select public.portal_cron_call('/api/install-packs');
+  select public.portal_cron_call('/api/email/outlook/sweep');
+  select public.portal_cron_call('/api/reviews/run');
+$$);

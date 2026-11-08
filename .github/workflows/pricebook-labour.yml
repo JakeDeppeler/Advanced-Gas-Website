@@ -74,9 +74,11 @@ jobs:
               echo
               echo "To update $(jq -r .summary.toUpdate out.json), already right $(jq -r .summary.unchanged out.json), skipped $(jq -r .summary.skipped out.json)."
               echo
-              echo "| Service | Code | Crew | Hours | Before | After | ServiceTitan sets it |"
-              echo "|---|---|---|---|---|---|---|"
-              jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(.hours) | \(.before|m) | \(.after|m) | \(.pricing // "" | e) |"' out.json
+              echo "Never below what a service charges today; linked materials go on top of the labour. Dynamic Pricing stays on: a service it already prices high enough counts as already right, and one it prices under gets more time (hours → new hours) at ServiceTitan's $(jq -r "${JQ_DEFS}"'.summary.dynamicRate|m' out.json) an hour."
+              echo
+              echo "| Service | Code | Crew | Hours | Labour | Linked materials | Charged today | New price | ServiceTitan sets it |"
+              echo "|---|---|---|---|---|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(if .newHours then "\(.stHours) → \(.newHours)" else .hours end) | \(.labour|m) | \(if (.linked // 0) > 0 then (.linked|m) else "" end) | \(.before|m) | \(.after|m)\(if .kept then " (kept)" else "" end) | \(.pricing // "" | e) |"' out.json
               if [ "$(jq -r '.creates // [] | length' out.json)" != "0" ]; then
                 echo; echo "| New service | Code | Hours | Price |"; echo "|---|---|---|---|"
                 jq -r "${JQ_DEFS}"'.creates[] | "| \(.name|e) | \(.code|e) | \(.hours) | \(.price|m) |"' out.json
@@ -94,7 +96,7 @@ jobs:
               echo
               echo "| Template | Hours | Labour | Electrical | Materials | Add-ons offered | Lines taken off | Before | After |"
               echo "|---|---|---|---|---|---|---|---|---|"
-              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-on" else (.header.labour|m) end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")|e) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
+              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-on" else (.header.labour|m) end)\(if .header.pricebook != null and .header.pricebook != .header.labour and .kind != "multi" then " (pricebook " + (.header.pricebook|m) + ")" else "" end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")|e) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
               if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
                 echo; echo "| Skipped | Why |"; echo "|---|---|"
                 jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.reason|e) |"' out.json
@@ -106,6 +108,10 @@ jobs:
               if [ "$(jq -r '.failed | length' out.json)" != "0" ]; then
                 echo; echo "| Failed | Error |"; echo "|---|---|"
                 jq -r "${JQ_DEFS}"'.failed[] | "| \(.name|e) | \(.error|e) |"' out.json
+              fi
+              if [ "$(jq -r '.notes // [] | length' out.json)" != "0" ]; then
+                echo; echo "| Saved, with a note | Note |"; echo "|---|---|"
+                jq -r "${JQ_DEFS}"'.notes[] | "| \(.name|e) | \(.note|e) |"' out.json
               fi
             fi
           } >> "$GITHUB_STEP_SUMMARY"

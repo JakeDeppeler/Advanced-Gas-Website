@@ -82,9 +82,10 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
     );
   }
 
-  const [weeks, follow, pipe] = await Promise.all([soldByWeek(8), followupRate().catch(() => null), loadPipeline({ detail: true }).catch(() => null)]);
+  const weeksP = soldByWeek(8);
   // A failed read leaves the line off rather than drawing a week of zeroes it never measured.
-  const billed = await invoicedByWeek(weeks.map((w) => w.week)).catch(() => null);
+  const billedP = weeksP.then((ws) => invoicedByWeek(ws.map((w) => w.week))).catch(() => null);
+  const [weeks, follow, pipe, billed] = await Promise.all([weeksP, followupRate().catch(() => null), loadPipeline({ detail: true }).catch(() => null), billedP]);
   const soldSum = weeks.reduce((t, w) => t + w.value, 0);
   const billedSum = billed ? billed.reduce((t, v) => t + v, 0) : null;
   // Sold work not finished yet: the honest answer to "are we selling more than we get done".

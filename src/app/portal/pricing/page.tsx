@@ -8,6 +8,11 @@ import { normalisePricing } from "@/lib/portal/pricingTypes";
 import { Btn, Head, Say } from "@/components/portal/kit/Kit";
 import { NumbersForm } from "@/components/portal/numbers/NumbersForm";
 import { savePricing } from "./actions";
+import { loadPricePlan } from "@/lib/pricebook/equipmentPlan";
+import { EquipmentPricePlan } from "@/components/portal/EquipmentPricePlan";
+import { MarkupRulesForm } from "@/components/portal/MarkupRulesForm";
+import { CATEGORIES, MARKUP_KEY, brandOf, normaliseRules } from "@/lib/pricebook/markupRules";
+import { sbSelect } from "@/lib/dashboard/db";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Our prices · Team portal" };
@@ -22,7 +27,14 @@ export default async function PricingPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Rates & pricing" forWhom="the office" />;
-  const [raw, cap] = await Promise.all([getSettings<unknown>("pricing").catch(() => null), getCapSettings().catch(() => null)]);
+  const admin = can(user, "manage_users");
+  const [raw, cap, plan, rulesRaw, pb] = await Promise.all([
+    getSettings<unknown>("pricing").catch(() => null), getCapSettings().catch(() => null),
+    admin ? loadPricePlan() : Promise.resolve(null),
+    admin ? getSettings<unknown>(MARKUP_KEY).catch(() => null) : Promise.resolve(null),
+    admin ? sbSelect<{ name: string | null; manufacturer: string | null }>("st_pricebook_equipment", "select=name,manufacturer&active=is.true&limit=2000").catch(() => []) : Promise.resolve([]),
+  ]);
+  const brands = [...new Set(pb.map((r) => brandOf(r.name ?? "", r.manufacturer)))].filter((b) => b !== "Other").sort((a, b) => a.localeCompare(b));
   const p = normalisePricing(raw);
   return (
     <PortalShell user={user}>
@@ -43,6 +55,8 @@ export default async function PricingPage() {
           { key: "afterHours", label: "After-hours", sub: "times the hourly rate", unit: "× the hourly rate", value: p.afterHours },
           { key: "margin", label: "Profit we want", sub: "of the price, after every cost · used to build every rate", unit: "% of the price", value: cap?.margin ?? null },
         ]} />
+        {admin && <MarkupRulesForm initial={normaliseRules(rulesRaw)} brands={brands} categories={CATEGORIES} />}
+        {plan && <EquipmentPricePlan title={plan.title} changes={plan.changes} done={plan.done} />}
         <div className="pk-btns">
           <Btn href="/portal/finance/hourly">What makes up an hour ›</Btn>
           <Btn href="/portal/finance/capacity?t=rates" quiet>What each crew charges out at ›</Btn>

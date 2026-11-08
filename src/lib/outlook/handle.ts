@@ -1,4 +1,5 @@
 import "server-only";
+import { leadFromEmail } from "@/lib/leads/emailLeads";
 import { dashboardDbConfigured, q, sbInsertIfAbsent, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { getChatSettings } from "@/lib/chat/store";
 import { chatSettingsFrom } from "@/lib/chat/chatTypes";
@@ -35,6 +36,8 @@ export const HANDOFF_CATEGORY = "Needs a person";
 export const ON_JOB_CATEGORY = "On a job";
 /** Put on a supplier's booking confirmation once its job's tag has been swapped. */
 export const BOOKING_CATEGORY = "Booking confirmed";
+/** Put on an email that became a lead, so the inbox shows it's been taken in. */
+export const LEAD_CATEGORY = "New lead";
 /** Put on an email asking us to ring them, with a flag; the morning email lists them until the flag is marked complete. */
 export const CALL_BACK_CATEGORY = "Call back";
 
@@ -199,6 +202,14 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       ? { callback_at: m.receivedDateTime ?? new Date().toISOString(), callback_name: draft.callBack.name || null, callback_phone: draft.callBack.phone || null, callback_about: draft.callBack.about || null }
       : {};
     if (draft.callBack) await markEmail(box, id, [CALL_BACK_CATEGORY], true).catch(() => undefined);
+    // A new enquiry becomes a lead (into ServiceTitan's Bookings with the
+    // website's) and a to-do to quote. Never for an email already on a job or
+    // read as a work order: those have their own way in.
+    if (draft.lead && external && !onJob && !workOrder) {
+      await leadFromEmail({ messageKey: m.internetMessageId || id, mailbox, subject: m.subject ?? "", from, receivedAt: m.receivedDateTime ?? null, lead: draft.lead, words })
+        .then((r) => (r.made ? markEmail(box, id, [LEAD_CATEGORY]) : undefined))
+        .catch(() => undefined);
+    }
     if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` }, callBack);
 
     // createReply makes the draft the way Outlook's Reply button does —

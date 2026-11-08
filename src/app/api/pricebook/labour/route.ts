@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     if (what === "services") {
       // Services, and the refrigerant priced per kg, in one run.
       const plan = await planServicePrices();
-      const summary = { rates: plan.rates, toUpdate: plan.changes.length, unchanged: plan.unchanged, skipped: plan.skipped.length, refrigerant: plan.materialChanges.length, toCreate: plan.creates.length };
+      const summary = { rates: plan.rates, dynamicRate: plan.dynRate, toUpdate: plan.changes.length, unchanged: plan.unchanged, skipped: plan.skipped.length, refrigerant: plan.materialChanges.length, toCreate: plan.creates.length };
       const creates = plan.creates.map(({ body: _body, ...c }) => c);
       const log = [...plan.changes, ...plan.materialChanges.map((m) => ({ ...m, kind: "refrigerant" }))];
       if (!apply) {
@@ -76,7 +76,7 @@ export async function GET(req: Request) {
     }
     const result = await applyTemplatePrices(plan.plans, limit);
     const runId = await recordLabourRun("templates", "apply", summary, rows, result);
-    return NextResponse.json({ ok: result.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, templates: rows.slice(0, limit), ...result });
+    return NextResponse.json({ ok: result.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, templates: rows.slice(0, limit), skipped: plan.skipped, ...result });
   } catch (e) {
     return NextResponse.json({ ok: false, what, error: (e as Error).message.slice(0, 500) }, { status: 502 });
   }

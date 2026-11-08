@@ -43,7 +43,7 @@ export function MarkSorted({ keys, label = "Sorted", what }: { keys: string[]; l
 }
 
 /** Who the office's automatic to-dos go to. */
-export function OfficeTo({ people, value, canEdit, which = "officeTo", label = "Who gets the office's automatic to-dos" }: { people: { id: string; name: string }[]; value: string; canEdit: boolean; which?: "officeTo" | "accountsTo"; label?: string }) {
+export function OfficeTo({ people, value, canEdit, which = "officeTo", label = "Who gets the office's automatic to-dos" }: { people: { id: string; name: string }[]; value: string; canEdit: boolean; which?: "officeTo" | "accountsTo" | "quoteTo"; label?: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [v, setV] = useState(value);

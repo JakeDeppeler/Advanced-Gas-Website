@@ -79,13 +79,51 @@ export const CREW_LABEL: Record<Crew, string> = { callout: "call-out fee", solo:
 /** Whole cents, so a 2.8-hour job at $310 is $868.00 and not 867.9999. */
 const cents = (n: number) => Math.round(n * 100) / 100;
 
-/** `pricing` is how ServiceTitan sets the price itself, if it does: a locked price, or a dynamic pricing rule. */
-export type ServiceRow = { id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null; pricing?: string };
-export type ServiceChange = { id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number; pricing?: string };
+/**
+ * `pricing` is how ServiceTitan sets the price itself, if it does: a locked
+ * price, or a dynamic pricing rule. `charged` is what a dynamic rule puts on
+ * the service now (its static `price` is then unused), and `linked` is the
+ * materials and equipment linked to the service, at their pricebook prices.
+ */
+export type ServiceRow = {
+  id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null; pricing?: string;
+  dynamic?: boolean; charged?: number | null; linked?: number;
+  /** The job's own hours, when the run has added time to `hours` for Dynamic Pricing to reach the rate. */
+  baseHours?: number;
+};
+/**
+ * `before` is what the customer is charged today; `kept` says the price stayed
+ * at it because labour + materials came to less. `hours` is the job's own time,
+ * which the labour is priced on. On Dynamic Pricing the price is raised by
+ * giving ServiceTitan more time: `stHours` → `newHours`.
+ */
+export type ServiceChange = {
+  id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number; pricing?: string;
+  labour: number; linked: number; kept?: boolean; stHours?: number; newHours?: number;
+};
+
+/**
+ * ServiceTitan's Dynamic Pricing rounds to the dollar ten, so a dynamic price
+ * within this of the target is as close as time can bring it.
+ */
+export const DYNAMIC_SLACK = 10;
 export type ServiceSkip = { id: number; code: string; name: string; reason: string };
 
-/** Each listed service at its own hours × its crew's rate, or the call-out fee. */
-export function planServices(services: ServiceRow[], rates: Rates): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
+/**
+ * Each listed service at its own hours × its crew's rate, or the call-out fee,
+ * plus whatever materials and equipment are linked to it (the split heat pump
+ * carries its install kit that way).
+ *
+ * Jake, 8 Nov: nothing goes down. ServiceTitan's Dynamic Pricing had been
+ * charging about $327 an hour on every service, so a repair at one person's
+ * $250 or a multi-head at $310 would have come in under what customers are
+ * quoted now. A service is never priced below what it charges today, or
+ * below `floors`: the highest price we've seen ServiceTitan charge for it,
+ * kept because switching a service off Dynamic Pricing loses that figure.
+ */
+export function planServices(
+  services: ServiceRow[], rates: Rates, floors: Map<number, number> = new Map(), dynRate: number | null = null,
+): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
   const changes: ServiceChange[] = [];
   const skipped: ServiceSkip[] = [];
   let unchanged = 0;
@@ -94,13 +132,33 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
     const crew = crewFor(s.code);
     if (!crew) continue;
     const rate = rates[crew];
-    const hours = Number(s.hours) || 0;
+    const stHours = Number(s.hours) || 0;
+    const hours = s.baseHours ?? stHours;
     if (!rate) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: `no ${CREW_LABEL[crew]} set in the portal` }); continue; }
     if (crew !== "callout" && hours <= 0) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: "no hours on the service" }); continue; }
-    const after = crew === "callout" ? cents(rate) : cents(hours * rate);
-    const before = Number(s.price) || 0;
-    if (Math.abs(after - before) < 0.005) { unchanged++; continue; }
-    changes.push({ id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, ...(s.pricing ? { pricing: s.pricing } : {}) });
+    const labour = crew === "callout" ? cents(rate) : cents(hours * rate);
+    const linked = crew === "callout" ? 0 : cents(Number(s.linked) || 0);
+    const target = cents(labour + linked);
+    const before = s.dynamic && s.charged != null ? Number(s.charged) : Number(s.price) || 0;
+    const floor = Math.max(before, floors.get(s.id) ?? 0);
+    const after = Math.max(target, floor);
+    // Dynamic Pricing stays on (Jake, 8 Nov: "the dynamic price works, I'd
+    // just add more time"). A service it already prices at the target is
+    // left alone. One it prices under gets more time: ServiceTitan charges
+    // about $327 an hour (`dynRate`), so a part-day install at $350 an hour
+    // needs about 7% more, rounded up to three minutes. The time it carries on
+    // top of the job's own is what the drive to the next job costs.
+    if (s.dynamic && s.charged != null && after <= Number(s.charged) + DYNAMIC_SLACK) { unchanged++; continue; }
+    if (!s.dynamic && Math.abs(after - (Number(s.price) || 0)) < 0.005) { unchanged++; continue; }
+    let newHours: number | undefined;
+    if (s.dynamic && s.charged != null && dynRate && dynRate > 0 && crew !== "callout") {
+      newHours = Math.round(Math.ceil((stHours + (after - Number(s.charged)) / dynRate) * 20 - 1e-9)) / 20;
+    }
+    changes.push({
+      id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, labour, linked,
+      ...(after > target ? { kept: true } : {}), ...(s.pricing ? { pricing: s.pricing } : {}),
+      ...(newHours != null ? { stHours, newHours } : {}),
+    });
   }
   return { changes, unchanged, skipped };
 }
@@ -206,7 +264,8 @@ export type Template = { id: number; name: string; active?: boolean; totalPrice?
 
 /** What the rebuild needs from the pricebook, by sku id. */
 export type Catalogue = {
-  service: Map<number, { code: string; hours: number; name?: string }>;
+  /** `price` is the pricebook's own: a template line on the service shows it, whatever the template sends. */
+  service: Map<number, { code: string; hours: number; name?: string; price?: number | null }>;
   materialPrice: Map<number, number>;
   /** "Multi Head Labour (n head)" by n: its sku and hours. */
   multiHead: Map<number, { skuId: number; hours: number; name: string }>;
@@ -232,8 +291,13 @@ export type TemplatePlan = {
    * line has no id for the rest of the template to group under until it's
    * saved. The next run groups it like any other.
    */
-  swap?: { from: string; to: string; skuId: number };
-  header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number };
+  swap?: { from: string; to: string; skuId: number; groupName: string; regroup: number[] };
+  /**
+   * `pricebook` is what ServiceTitan will show on the line: it prices template
+   * lines from the pricebook service, so `labour` only shows once the services
+   * run has set the service to it.
+   */
+  header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number; pricebook?: number | null };
   electrical: number;
   materials: number;
   materialLines: number;
@@ -274,21 +338,22 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
     const int = cat.internalHeater;
     if (!int) return { id: t.id, name: t.name, reason: "internal heater on the external service: run services first, which creates the internal one" };
     const price = cents(int.hours * rates.partDay);
+    // The old line is usually the root of the office's group, and ServiceTitan
+    // refuses a save whose members point at an item no longer in it. A new
+    // line has no id to point at until it's saved, so its members are let go
+    // here and put back under it straight after (applyTemplatePrices).
+    const regroup = t.items.filter((i) => i.itemGroupParentId === headerId && i.id != null).map((i) => i.id as number);
     const items = t.items.map((i) => (i === headerItem
-      ? { id: null, skuId: int.skuId, skuType: "Service" as const, skuName: int.name, description: SERVICE_COPY["GAS-DUCT-INT"] ?? null, quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: headerItem.itemGroupName ?? null }
-      : i));
+      ? { id: null, skuId: int.skuId, skuType: "Service" as const, skuName: int.name, description: SERVICE_COPY["GAS-DUCT-INT"] ?? null, quantity: 1, unitPrice: price, isAddOn: false }
+      : i.itemGroupParentId === headerId ? { ...i, itemGroupParentId: null } : i));
     return {
-      id: t.id, name: t.name.trim(), kind: "day", swap: { from: (headerItem.skuName ?? "").trim(), to: int.name, skuId: int.skuId },
-      header: { itemId: -1, name: int.name, hours: int.hours, rate: rates.partDay, labour: price },
+      id: t.id, name: t.name.trim(), kind: "day",
+      swap: { from: (headerItem.skuName ?? "").trim(), to: int.name, skuId: int.skuId, groupName: (headerItem.itemGroupName ?? int.name).trim(), regroup },
+      header: { itemId: -1, name: int.name, hours: int.hours, rate: rates.partDay, labour: price, pricebook: cat.service.get(int.skuId)?.price ?? null },
       electrical: 0, materials: 0, materialLines: 0, addOns: [], removed: [`${(headerItem.skuName ?? "").trim()} $${headerItem.unitPrice}`],
       before: templateTotal(t.items), after: templateTotal(items), items,
     };
   }
-  if (t.items.some((i) => i.itemGroupParentId === headerId)) {
-    // A template the office already grouped by hand isn't reshuffled under them.
-    return { id: t.id, name: t.name, reason: "already has an installation group" };
-  }
-
   let hours = 0;
   if (kind === "split" || kind === "day") {
     hours = cat.service.get(headerItem.skuId)?.hours ?? 0;
@@ -327,6 +392,13 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
       if (sawBpc) { removed.push(`second ${name} $${i.unitPrice}`); continue; }
       sawBpc = true;
     }
+    // Most templates were grouped by the office already: what's in the group
+    // stays in it, whatever it is, and only loose lines are brought in.
+    const inGroup = i.itemGroupParentId === headerId;
+    // A line other lines are grouped under keeps its own group.
+    const isRoot = i.id != null && t.items.some((x) => x.itemGroupParentId === i.id);
+    if (isRoot && !inGroup) { out.push(i); continue; }
+    if (inGroup && !(i.skuType === "Material" || (i.skuType === "Service" && ELECTRICAL.has(c)))) { members.push(i); continue; }
     if (i.skuType === "Service" && ELECTRICAL.has(c)) {
       electrical = cents(electrical + i.quantity * i.unitPrice);
       members.push({ ...i, parentItemId: null, itemGroupName: null });
@@ -384,9 +456,18 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
   // then the add-ons the office picks from.
   const items = out.flatMap((i) => (i === HEADER_SLOT ? [header, ...grouped, ...addOnItems] : [i]));
 
+  // Nothing to write: the same lines, groups and add-ons. The header's price
+  // doesn't count when it already shows the pricebook's, because that's what
+  // ServiceTitan puts there however often it's sent.
+  const pricebook = cat.service.get(headerItem.skuId)?.price ?? null;
+  const ownsHeader = pricebook != null && Math.abs(Number(headerItem.unitPrice) - pricebook) < 0.005;
+  const shape = (xs: TemplateItem[]) => JSON.stringify(xs.map((i) => [i.id ?? null, i.skuId, i.isAddOn, i.itemGroupParentId ?? null, i.parentItemId ?? null,
+    Number(i.quantity), i.id === headerId && ownsHeader ? "" : cents(Number(i.unitPrice))]));
+  if (shape(items) === shape(t.items)) return { id: t.id, name: t.name, reason: "already rebuilt" };
+
   return {
     id: t.id, name: t.name.trim(), kind,
-    header: { itemId: headerId, name: groupName, hours, rate, labour, heads: kind === "multi" ? headCount(t.items) : undefined },
+    header: { itemId: headerId, name: groupName, hours, rate, labour, heads: kind === "multi" ? headCount(t.items) : undefined, pricebook },
     electrical, materials, materialLines, addOns, removed,
     before: templateTotal(t.items), after: templateTotal(items),
     items,

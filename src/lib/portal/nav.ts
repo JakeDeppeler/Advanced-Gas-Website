@@ -124,11 +124,9 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
   });
 
-  // Priced by whoever writes the quotes.
-  add(office || can(user, "quotes"), {
-    href: "/portal/ducted", label: "Ducted quote", short: "Ducted", blurb: "A ducted system priced from the house's outlets and zones", band: "hidden", icon: "doc",
-    also: ["ducted", "ducted quote", "outlets", "vents", "zones", "duct", "reverse cycle", "builder", "quote builder"],
-  });
+  // Ducted quote (/portal/ducted) is off the menus and search for now (Jake,
+  // 8 Nov): its pricing is being reworked from vents and base cost. The page
+  // is kept, so it comes back by putting this entry and the Pipeline one back.
 
   // Answered by whoever runs the pipeline, like the pipeline itself.
   add(office || can(user, "quotes"), {
@@ -205,6 +203,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/website?tab=dropoff", label: "Drop-off", blurb: "Where people stop", band: "marketing", icon: "funnel", also: ["drop off", "abandon", "form"] },
     { href: "/portal/marketing?tab=emails", label: "Email list", blurb: "Everyone we can email, to export", band: "marketing", icon: "list", also: ["email", "mailing list", "newsletter", "export", "csv", "unsubscribe", "edm"] },
     { href: "/portal/marketing?tab=reviews", label: "Reviews", blurb: "Google reviews to answer", band: "marketing", icon: "star", also: ["google", "review", "rating"] },
+    { href: "/portal/emails", label: "Customer emails", short: "Emails", blurb: "What customers get from us, and the words in them", band: "marketing", icon: "doc", also: ["email", "template", "follow up", "follow-up", "wording", "customer email", "quote email", "reply"] },
     { href: "/portal/materials", label: "Marketing materials", short: "Materials", blurb: "Flyers, logos and artwork, current or no longer used", band: "marketing", icon: "doc", also: ["materials", "flyer", "brochure", "logo", "artwork", "pdf", "png", "files", "brand", "print"] },
     { href: "/portal/marketing?tab=social", label: "Instagram", blurb: "What we're posting", band: "marketing", icon: "globe", also: ["instagram", "social", "posts", "ig"] },
     { href: "/portal/blog", label: "Blog", blurb: "Posts on the website", band: "marketing", icon: "doc", also: ["article", "post", "write", "publish"] },

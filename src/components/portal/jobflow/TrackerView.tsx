@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Head, Say, Bad, Grid, Tile, type Status } from "@/components/portal/kit/Kit";
 import { StageCard } from "./StageCard";
-import type { JobFlow } from "@/lib/jobflow/load";
+import type { FlowRow, JobFlow } from "@/lib/jobflow/load";
 import { COLUMNS, STAGE, type ColumnKey, type FlowStage } from "@/lib/jobflow/types";
+import { QUIET_DAYS, QUIET_STAGES } from "@/lib/jobflow/contactTypes";
 
 /** Where each stage's whole list lives, when it has a page of its own. */
 const MORE: Partial<Record<FlowStage, { href: string; label: string }>> = {
@@ -27,7 +28,7 @@ const DO: Record<ColumnKey, string> = {
 };
 
 /** What's open under the steps: a step's lists, or the old system's jobs. */
-export type Open = ColumnKey | "old" | null;
+export type Open = ColumnKey | "old" | "quiet" | null;
 
 /**
  * How each step is filled, for "What does this mean?". It used to sit under
@@ -38,6 +39,7 @@ const INFO: [string, ReactNode][] = [
     c.label,
     c.stages.length === 1 ? STAGE[c.stages[0]].rule : c.stages.map((k) => `${STAGE[k].label}: ${STAGE[k].rule}`).join(" "),
   ]),
+  ["Gone quiet", `A customer waiting on us or deciding (no visit booked, a quote to write or out with them, sold and not booked, on hold, or owing) who nobody's been in touch with for ${QUIET_DAYS} days or more. In touch = an email either way, a button they tapped, a call logged on the Pipeline, or a visit. A call that isn't logged can't be seen, so log them.`],
   ["Late", "Past the time that step should take. Every list is oldest first, so the top of it is the morning's work."],
   ["Where it comes from", <>ServiceTitan, synced every few minutes: each job&rsquo;s status, its visits, the quotes on it, the invoice and whether it was sent, and the payments. Tags aren&rsquo;t used, so a job nobody tagged still shows up where it&rsquo;s stuck. Owed reads Xero for invoices before 17 September and ServiceTitan after. Values include GST.</>],
 ];
@@ -63,7 +65,10 @@ export function TrackerView({ flow, open, imported }: { flow: JobFlow; open: Ope
   const unread = COLUMNS.filter((c) => !read(c.k));
   const old = s.imported.count;
   const shown: Open = open ?? (lateAll ? worst.k : COLUMNS.find((c) => rows(c.k).length)?.k ?? COLUMNS[0].k);
-  const col = shown !== "old" ? COLUMNS.find((c) => c.k === shown)! : null;
+  const col = shown !== "old" && shown !== "quiet" ? COLUMNS.find((c) => c.k === shown)! : null;
+  // Gone quiet: across the steps, longest first, each saying which step it's in.
+  const quiet: FlowRow[] = QUIET_STAGES.flatMap((k) => (s[k].rows ?? []).filter((r) => r.contact?.quietDays != null).map((r) => ({ ...r, sub: [STAGE[k].label, ...r.sub] })))
+    .sort((a, b) => (b.contact?.quietDays ?? 0) - (a.contact?.quietDays ?? 0));
   // A step that holds two or three kinds (Doing: left open, on hold, booked)
   // lists only the kinds with jobs in them; an empty card saying "none" was
   // most of what the list showed.
@@ -82,6 +87,7 @@ export function TrackerView({ flow, open, imported }: { flow: JobFlow; open: Ope
       <Say>
         {lateAll ? <><Bad>{lateAll} {lateAll === 1 ? "job is" : "jobs are"} late</Bad>, the most in <Link href={`/portal/tracker?c=${worst.k}#list`}>{worst.label}</Link>.</> : <>Nothing is late.</>}
         {unread.length > 0 && <> {unread.map((c) => c.label).join(", ")} couldn&rsquo;t be read just now.</>}
+        {quiet.length > 0 && <> <Link href="/portal/tracker?c=quiet#list" aria-current={shown === "quiet" ? "true" : undefined}>{quiet.length} {quiet.length === 1 ? "customer has" : "customers have"} had no contact on record for a week</Link>.</>}
       </Say>
 
       <Grid>
@@ -95,7 +101,9 @@ export function TrackerView({ flow, open, imported }: { flow: JobFlow; open: Ope
       ) : null}
 
       <div id="list" className="jf-panel">
-        {shown === "old" ? imported : (parts.length ? parts : col!.stages.slice(0, 1)).map((k) => <StageCard key={k} def={STAGE[k]} rows={s[k].rows} note={s[k].note} more={MORE[k]} />)}
+        {shown === "old" ? imported
+          : shown === "quiet" ? <StageCard def={{ label: "Gone quiet", act: `ring or email them: ${QUIET_DAYS} days or more since anyone was in touch. Longest first.` }} rows={quiet} nowMs={flow.nowMs} />
+          : (parts.length ? parts : col!.stages.slice(0, 1)).map((k) => <StageCard key={k} def={STAGE[k]} rows={s[k].rows} note={s[k].note} more={MORE[k]} nowMs={flow.nowMs} />)}
       </div>
     </div>
   );

@@ -32,11 +32,11 @@ export async function setBookingProvider(value: string): Promise<{ ok: boolean; 
 }
 
 /** Who gets the office's automatic to-dos, or the invoicing lists'. */
-export async function setOfficeTo(id: string | null, which: "officeTo" | "accountsTo" = "officeTo"): Promise<{ ok: boolean; error?: string }> {
+export async function setOfficeTo(id: string | null, which: "officeTo" | "accountsTo" | "quoteTo" = "officeTo"): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
   if (id && !(await teamPeople()).some((p) => p.id === id)) return { ok: false, error: "That person isn't on the team list." };
-  const r = await saveSwitches({ ...(await loadSwitches()), [which === "accountsTo" ? "accountsTo" : "officeTo"]: id || null });
+  const r = await saveSwitches({ ...(await loadSwitches()), [which === "accountsTo" || which === "quoteTo" ? which : "officeTo"]: id || null });
   revalidatePath("/portal/automatic");
   return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
 }

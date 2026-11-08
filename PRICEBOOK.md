@@ -254,6 +254,34 @@ and a listed hourly one with no hours is reported, not priced at $0.
 Electrical connections stay the electrician's price. Removing the old unit
 (*Equipment – Decommission & Disposal*) is the two-person rate.
 
+**Nothing goes down, and linked materials are on top (Jake, 8 Nov).** The
+first apply wrote nothing to 30 services: they were on ServiceTitan's
+**Dynamic Pricing**, which priced every one at about $327 an hour and ignores
+a price sent to it. At that rate repairs ($330), multi-heads, ducted and the
+Dominator were already above the new figures, and the heat pumps' price
+included their linked install materials. So a service's price is the larger
+of: its labour plus the materials and equipment linked to it (at pricebook
+prices); and what it charges today. "Today" for a dynamic service is the
+rule's price, not the unused static one. Switching a service to a static
+price in ServiceTitan forgets the rule's figure, so every run first records
+the highest it has seen in `portal_settings.labour_price_floor`, seeded from
+the 8 Nov dry run, and never goes under it. To let a price come down on
+purpose, take that service out of the floor.
+
+**Dynamic Pricing stays on; time is added instead (Jake, 8 Nov).** "The
+dynamic price works, I'd just add more time." A service the rule already
+prices at the target (within its own $10 rounding) counts as already right:
+on 8 Nov, 21 of 30. The part-day installs it prices under get more hours: the
+run works out the rule's hourly rate (all the labour-only services' prices
+over all their hours, about $327), adds the time the difference buys, rounded
+up to three minutes, and reads ServiceTitan's price back. The extra time is
+the drive to the next job that the $350 part-day rate stands for: 3 h becomes
+3.25 h, 4 h becomes 4.3 h. The run records what it added in
+`portal_settings.labour_added_time` ({ base, set } per service) and prices the
+labour on `base` while the service still has the `set` hours, so a second run
+doesn't price the added time and add more. Templates price their header on
+`base` too. Change a service's hours in ServiceTitan and yours count again.
+
 **Refrigerant.** R410A and R32 were $0 a kg. Their cost and the markup live in
 `portal_settings.refrigerant` (`perKg` by material code, `markupPct`), and the
 services run sets each to cost + markup, to the dollar: $106 → $133 and
