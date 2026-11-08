@@ -139,8 +139,6 @@ export const SECTION_DEFS: SectionDef[] = [
       // for search and old links.
       { label: "Quotes", href: "/portal/pipeline", icon: "quote" },
       { label: "Leads", href: "/portal/leads", icon: "phone" },
-      // Ducted is priced from the house's layout, not a template.
-      { label: "Ducted quote", href: "/portal/ducted", icon: "quote" },
       // The whole run of a job, of which the quotes are one stretch.
       { label: "Job tracker", href: "/portal/tracker", office: true, icon: "run" },
     ],
