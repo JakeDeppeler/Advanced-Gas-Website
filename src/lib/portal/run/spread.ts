@@ -42,11 +42,21 @@ const isoMinus = (iso: string, n: number) => new Date(Date.parse(`${iso}T00:00:0
  * detail unchanged when nothing is ticked or the year can't be read — an
  * unspread figure is still a true one, a guessed one isn't.
  */
-export async function spreadDetail(detail: PLDetail, from: string, to: string): Promise<{ detail: PLDetail; notes: SpreadNote[] }> {
-  const names = new Set((await loadSpread()).map(norm));
+/** The span the yearly figures are read over: so a page can fetch it alongside the period itself. */
+export const spreadYearFrom = (to: string) => isoMinus(to, 364);
+
+/**
+ * `pre` takes the ticked accounts and the year when the caller has already
+ * asked for them. Each is its own Xero or database read, and fetched here
+ * they waited on the period's report before starting.
+ */
+export async function spreadDetail(
+  detail: PLDetail, from: string, to: string,
+  pre?: { names: string[]; year: PLDetail | null },
+): Promise<{ detail: PLDetail; notes: SpreadNote[] }> {
+  const names = new Set((pre ? pre.names : await loadSpread()).map(norm));
   if (!names.size) return { detail, notes: [] };
-  const yearFrom = isoMinus(to, 364);
-  const year = await getPLDetail(yearFrom, to).catch(() => null);
+  const year = pre ? pre.year : await getPLDetail(spreadYearFrom(to), to).catch(() => null);
   if (!year) return { detail, notes: [] };
 
   const perDayOf = new Map<string, { label: string; perDay: number; yearly: number; section: string }>();

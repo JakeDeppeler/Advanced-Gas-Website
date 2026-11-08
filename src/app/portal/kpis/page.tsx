@@ -13,7 +13,7 @@ import { followupRate } from "@/lib/portal/run/data";
 import { monthElapsed, money, pc, salesGoal } from "@/lib/portal/run/month";
 import { onTheTools } from "@/lib/portal/onTheTools";
 import { BENCH, benchStatus, type BenchKey } from "@/lib/portal/benchmarks";
-import { loadSpread, spreadDetail } from "@/lib/portal/run/spread";
+import { loadSpread, spreadDetail, spreadYearFrom } from "@/lib/portal/run/spread";
 import { reeceFlags } from "@/lib/finance/reeceCheck";
 import { SpreadForm } from "@/components/portal/SpreadForm";
 import { revenueGoalFor } from "@/lib/portal/yearGoal";
@@ -48,26 +48,36 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const span = periodSpans(period).now;
   const from = span.from, to = span.to;
   const q = (t?: string) => `/portal/kpis${t ? `?tab=${t}` : ""}${period !== "fy" ? `${t ? "&" : "?"}p=${period}` : ""}`;
-  const [board, goals, year, xero, follow, tools] = await Promise.all([
+  // The Xero reads (the period, the year behind it for spreading, Reece's
+  // bills) start the moment Xero is known to be connected, all at once. One
+  // after another they made a cold load of this page wait on four Xero calls.
+  const xeroP = xeroStatus().catch(() => ({ status: "not-configured" as const, tenantName: null }));
+  const xeroReadsP = xeroP.then((x) => x.status !== "connected" ? null : Promise.all([
+    getPLDetail(from, to).catch(() => null),
+    getPLDetail(spreadYearFrom(to), to).catch(() => null),
+    loadSpread().catch(() => [] as string[]),
+    reeceFlags(from, to).catch(() => null),
+  ]));
+  const [board, goals, year, xero, follow, tools, xeroReads] = await Promise.all([
     latestBoard(),
     getGoals(),
     savedGoal(),
-    xeroStatus().catch(() => ({ status: "not-configured" as const, tenantName: null })),
+    xeroP,
     followupRate().catch(() => null),
     onTheTools().catch(() => null),
+    xeroReadsP,
   ]);
-  const booked = xero.status === "connected" ? await getPLDetail(from, to).catch(() => null) : null;
+  const [booked, plYear, spreadOn, reeceRaw] = xeroReads ?? [null, null, [] as string[], null];
   // Once-a-year bills spread across the year (run/spread.ts), so the month the
   // insurance lands isn't read as the month the business went backwards.
-  const spread = booked ? await spreadDetail(booked, from, to).catch(() => ({ detail: booked, notes: [] })) : null;
+  const spread = booked ? await spreadDetail(booked, from, to, { names: spreadOn, year: plYear }).catch(() => ({ detail: booked, notes: [] })) : null;
   const detail = spread?.detail ?? null;
-  const spreadOn = booked ? await loadSpread().catch(() => []) : [];
   // Every overhead account this period, and the ticked ones even when they're not in it.
   const spreadChoices = booked
     ? [...new Set([...spreadOn, ...booked.sections.filter((x) => x.kind === "out" && !/cost of (sales|goods)|direct cost/i.test(x.title)).flatMap((x) => x.lines.filter((l) => Math.abs(l.amount) > 0.5).map((l) => l.label))])].sort((a, b) => a.localeCompare(b))
     : [];
   // A Reece bill that looks like the statement balance, not the month's buying.
-  const reece = booked ? await reeceFlags(from, to).catch(() => null) : null;
+  const reece = booked ? reeceRaw : null;
   const revGoal = year?.revenue ? { byNow: revenueGoalFor(year, from, to), year: shortMoney(year.revenue) } : null;
   const pl: PLSummary | null = detail ? summarisePL(detail) : null;
   const m = board?.metrics ?? null;
