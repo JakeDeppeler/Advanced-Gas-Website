@@ -7,6 +7,9 @@ import { Locked } from "@/components/portal/Locked";
 import { Card, Group, Head, Lh, Row, Say } from "@/components/portal/kit/Kit";
 import { loadTemplates, type StoredTemplate } from "@/lib/email/templates/store";
 import { GROUPS, SERIES } from "@/lib/email/templates/types";
+import { awaitingNow, followUpBoard, type BoardLine } from "@/lib/quotes/followUps";
+import { stJobUrl } from "@/lib/dashboard/toBill";
+import { FollowUpSwitch } from "@/components/portal/emails/FollowUpSwitch";
 import { addSeriesEmail } from "./actions";
 import "./emails.css";
 
@@ -23,7 +26,9 @@ export default async function EmailsPage({ searchParams }: { searchParams: { err
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Customer emails" forWhom="managers" />;
 
-  const { templates, ok } = await loadTemplates();
+  const [{ templates, ok }, board, awaiting] = await Promise.all([loadTemplates(), followUpBoard(), awaitingNow()]);
+  const live = board.lines.filter((l) => l.status === "active");
+  const past = board.lines.filter((l) => l.status !== "active");
   const by = (g: string) => templates.filter((t) => t.group === g);
 
   return (
@@ -43,10 +48,32 @@ export default async function EmailsPage({ searchParams }: { searchParams: { err
         {!ok && <div className="pt-note pt-note--warn">Your saved changes couldn&rsquo;t be read just now, so this shows the standard wording. Nothing&rsquo;s lost; try again in a minute.</div>}
         {searchParams.error && <div className="pt-note pt-note--warn">{searchParams.error}</div>}
         {searchParams.deleted && <div className="pt-note">Deleted. It&rsquo;s in that email&rsquo;s history if you need it back; ask and it can be restored.</div>}
-        <Say>
-          The follow-ups and the &ldquo;thanks for going ahead&rdquo; email aren&rsquo;t going to customers yet: they start once the sender is switched on, and
-          whatever&rsquo;s saved here then is what goes.
-        </Say>
+        <Card title="Sending the follow-ups" aside={board.settings.on ? `On since ${day(board.settings.since)}${board.settings.by ? `, by ${board.settings.by.split(" ")[0]}` : ""}` : "Off"}>
+          <Say>
+            {board.settings.on
+              ? <>On. {live.length ? <><b>{live.length}</b> quote{live.length === 1 ? "" : "s"} getting them now.</> : "No quotes in the series yet."}{board.leftAlone ? <> The {board.leftAlone} already out when it was switched on are left alone.</> : null}</>
+              : <>Off. Nothing goes to customers.{awaiting != null ? <> When it&rsquo;s switched on, the {awaiting} quote{awaiting === 1 ? "" : "s"} tagged Awaiting Quote Approval now {awaiting === 1 ? "is" : "are"} left alone.</> : null}</>}
+          </Say>
+          <ul className="em-rules">
+            <li><b>Which quotes:</b> household quotes on a job, once the office tags the job <b>Awaiting Quote Approval</b> after sending it. The days count from then. A quote written on the customer with no job can&rsquo;t carry the tag, and ServiceTitan doesn&rsquo;t say when a quote&rsquo;s been sent, so those don&rsquo;t get them.</li>
+            <li><b>When:</b> the days set below, between 9am and 7pm Monday to Saturday, never two within two days. From quotes@, signed by whoever quoted it; replies come to admin@.</li>
+            <li><b>Stops when:</b> it sells, they tap a button, they email us, someone logs a call on the Pipeline, it&rsquo;s closed or lost, or the tag comes off. Each one sent is noted on the job in ServiceTitan.</li>
+          </ul>
+          <FollowUpSwitch on={board.settings.on} awaiting={awaiting} />
+          {!board.ok && <p className="em-foot">What&rsquo;s been sent couldn&rsquo;t be read just now.</p>}
+          {live.length > 0 && (
+            <>
+              <Lh>Getting them now</Lh>
+              <Group>{live.map((l) => <BoardRow key={l.key} l={l} />)}</Group>
+            </>
+          )}
+          {past.length > 0 && (
+            <details className="em-past">
+              <summary>Finished or stopped in the last 30 days ({past.length})</summary>
+              <Group>{past.map((l) => <BoardRow key={l.key} l={l} />)}</Group>
+            </details>
+          )}
+        </Card>
 
         <Card title={GROUPS.followup.label} aside={GROUPS.followup.when}>
           {SERIES.map((s) => {
@@ -85,6 +112,23 @@ export default async function EmailsPage({ searchParams }: { searchParams: { err
         </Card>
       </div>
     </PortalShell>
+  );
+}
+
+const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short" }) : "");
+
+function BoardRow({ l }: { l: BoardLine }) {
+  const sent = l.sent.filter((s) => s.status === "sent").length;
+  const failed = l.sent.some((s) => s.status === "failed");
+  const sub = l.status === "active"
+    ? `${sent} of ${l.total} sent${l.next ? ` · next: ${l.next.name}, ${day(l.next.on)}` : ""}${failed ? " · one didn't send, trying again" : ""}`
+    : `${l.reason ?? (l.status === "done" ? "All sent" : "Stopped")}${sent ? ` · ${sent} sent` : ""}`;
+  return (
+    <Row
+      title={<>{l.customer ?? "A customer"}{l.suburb ? <span className="em-sub2">, {l.suburb}</span> : null}</>}
+      sub={<>{l.jobNumber ? `Job ${l.jobNumber} · ` : ""}{sub}</>}
+      href={l.jobId ? stJobUrl(l.jobId) : undefined}
+    />
   );
 }
 

@@ -130,3 +130,11 @@
   .em-stat { grid-template-columns: 100px minmax(0, 1fr) 32px; }
   .em-row2 { grid-template-columns: 130px minmax(0, 1fr); }
 }
+
+/* the sender's card */
+.em-rules { margin: 10px 0 14px; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; color: var(--ink2); line-height: 1.5; }
+.em-rules b { color: var(--ink); }
+.em-switchrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.em-past { margin-top: 12px; }
+.em-past summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink2); margin-bottom: 8px; }
+.em-sub2 { font-weight: 500; color: var(--ink2); }
