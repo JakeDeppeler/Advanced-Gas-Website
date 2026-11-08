@@ -905,7 +905,7 @@ const brandCatalogue: Brand[] = [
       image: { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit" },
       inset: { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall unit" },
       points: [
-        { t: "Its own compressor", d: "The compressor does the work and takes the wear. Mitsubishi Electric designs and builds its own, in its own factory, rather than buying one in.", pin: [45, 74] },
+        { t: "Its own compressor", d: "The compressor does the work and takes the wear. Mitsubishi Electric designs and builds its own, in its own factory, rather than buying one in.", pin: [63, 79] },
         { t: "Its own inverter electronics", d: "The inverter that speeds the compressor up and down is Mitsubishi Electric's own power electronics, the same field it supplies to trains. Smooth, efficient and long-lived.", pin: [62, 52] },
         { t: "A coil that stays clean", d: "Inside the wall unit, the fan and coil are coated so dust and grease don't stick. It keeps its airflow, and its output, between services.", pin: [57, 19] },
         { t: "Built to be fixed", d: "Parts are on a Melbourne shelf for units well past ten years old, so a repair stays a repair." },

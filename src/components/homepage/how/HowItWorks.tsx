@@ -902,7 +902,7 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
   return (
     <>
       <Sky />
-      {warm ? <><Cloud x={560} y={40} s={0.9} dark /><Cloud x={80} y={30} s={0.7} dark /></> : !wide && <Sun cx={540} cy={70} />}
+      {warm && <><Cloud x={560} y={40} s={0.9} dark /><Cloud x={80} y={30} s={0.7} dark /></>}
       {!wide && <Tree x={548} y={200} s={1.1} />}
       <Ground />
       <RoofSpace l={L} r={RR} top={TOP} eave={EAVE} />
@@ -962,16 +962,24 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
           {v.on ? <Breeze x={v.x} y={166} dx={0} dy={56} c={air} n={3} gap={14} /> : <Label x={v.x} y={204} c={C.grey}>Zone off</Label>}
         </g>
       ))}
-      {/* return air: a grille in the hall ceiling, back up to the unit */}
+      {/* return air: a grille in the hall ceiling, back up to the unit. Left off the
+          plain ducted drawing: a fourth duct curling down read as clutter there. */}
+      {kind !== "ducted" && <>
       <Duct d={wide ? `M${rx} 150 V132` : `M${rx} 150 V140 Q${rx} 128 ${rx + 12} 128 H150`} c={C.grey} w={14} />
       <rect x={rx - 18} y="150" width="36" height="9" rx="2" fill="#fff" stroke={C.navy} strokeWidth="1.5" />
       <path d={`M${rx - 13} 152.5 H${rx + 13} M${rx - 13} 155 H${rx + 13} M${rx - 13} 157.5 H${rx + 13}`} stroke="#9AA6B5" strokeWidth=".8" />
       <Breeze x={rx} y={236} dx={0} dy={-66} c={C.grey} n={2} gap={14} />
+      </>}
 
-      {kind !== "gas" && [[110, 110], [wide ? 270 : 213, 138], [wide ? 420 : 330, 110]].map(([x, y], i) => <Damper key={i} x={x} y={y} shut={i === 2 && off} />)}
+      {/* Dampers only on the zoning drawing: drawn small on a plain ducted system they read as no-entry signs. */}
+      {kind === "zoning" && [[110, 110], [wide ? 270 : 213, 138], [wide ? 420 : 330, 110]].map(([x, y], i) => <Damper key={i} x={x} y={y} shut={i === 2 && off} />)}
 
       {kind === "ducted" && (
         <>
+          {/* the zone controller on the living-room wall: where you turn rooms on and off */}
+          <rect x="168" y="238" width="26" height="34" rx="5" fill={C.navy} />
+          <rect x="172" y="242" width="18" height="22" rx="2" fill="#0F1A44" />
+          {[0, 1, 2].map((i) => <rect key={i} x="174" y={245 + i * 6.5} width="14" height="4" rx="1.5" fill={C.cold} className="hw-pulse" />)}
           {/* refrigerant lines out under the eave and down the wall */}
           <Pipe d="M284 118 H438 Q455 118 455 135 V282 Q455 292 465 292" c={C.cold} w={7} />
           <OutdoorUnit x={466} y={262} w={106} h={90} fan={{ cx: 524, cy: 304, r: 28 }} />
@@ -1224,7 +1232,7 @@ const S = {
   split: [[[96, 64, 228, 196]], [[300, 84, 146, 172]], [[474, 240, 114, 120]], [[404, 254, 68, 94]]],
   multi: [[[392, 240, 196, 120]], [[36, 60, 140, 76], [202, 60, 140, 76], [100, 212, 162, 76]], [[94, 20, 346, 20], [372, 80, 24, 250]], [[456, 192, 124, 44]]],
   // Three steps, in the order the air travels: outdoor unit, the unit in the roof, then the vents and the zone dampers.
-  ducted: [[[452, 252, 130, 112]], [[140, 72, 130, 64]], [[54, 140, 350, 96], [96, 96, 28, 28], [199, 124, 28, 28], [316, 96, 28, 28]]],
+  ducted: [[[452, 252, 130, 112]], [[140, 72, 130, 64]], [[54, 140, 350, 96], [160, 230, 42, 50]]],
   gas: [[[140, 40, 130, 96]], [[54, 104, 470, 130]], [[134, 120, 70, 120]], [[278, 52, 78, 50]]],
   zoning: [[[96, 96, 28, 28], [256, 124, 28, 28], [406, 96, 28, 28]], [[228, 226, 54, 80]], [[30, 150, 370, 200]], [[140, 72, 130, 64]]],
   evap: [[[204, 26, 102, 74]], [[140, 40, 76, 44], [294, 40, 76, 44]], [[90, 96, 330, 130]], [[420, 196, 130, 100]]],
