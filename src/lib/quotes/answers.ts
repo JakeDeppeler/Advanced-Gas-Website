@@ -8,7 +8,9 @@ import { fromBox, OWNER_EMAIL } from "@/lib/email/from";
 import { withInlineImages } from "@/lib/email/inline";
 import { letterHtml, letterText } from "@/lib/email/premium";
 import { sendEmail, type ResendMessage } from "@/lib/email/send";
-import { headshot, SIGNERS } from "@/lib/email/team";
+import { resolveSigner } from "@/lib/email/templates/signer";
+import { liveTemplate } from "@/lib/email/templates/store";
+import type { EmailTemplate } from "@/lib/email/templates/types";
 import { closeOffInServiceTitan, noteFollowUp } from "@/lib/pipeline/stLost";
 import { logTouch, setFollow } from "@/lib/pipeline/store";
 import { site } from "@/lib/site";
@@ -106,22 +108,15 @@ export async function quoteFor(estimate: number): Promise<Quote> {
 
 const whenWords = (d = new Date()) => d.toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
-/** The quoter with their photo when we have one, else the team. */
-function signerFor(name: string | null) {
-  const known = Object.values(SIGNERS).find((s) => s.name.toLowerCase() === (name ?? "").trim().toLowerCase());
-  if (known) return known;
-  const photo = headshot(name);
-  return photo && name ? { name, role: SIGNERS.jake.role, photo } : SIGNERS.team;
-}
-
 export type AnswerEmails = { office: ResendMessage; customer: ResendMessage | null };
 
 /**
  * Both emails for a tap, ready to send. `preview` sends them to the owner
  * with a subject saying which is which, in place of the office and the
- * customer.
+ * customer. The customer's is the reply as edited on Marketing › Customer
+ * emails (`tpl`), else the standard wording; the office's is fixed.
  */
-export function answerEmails(a: Answer, qt: Quote, note: string | null, opts: { preview?: boolean; when?: Date } = {}): AnswerEmails {
+export function answerEmails(a: Answer, qt: Quote, note: string | null, opts: { preview?: boolean; when?: Date; tpl?: EmailTemplate | null } = {}): AnswerEmails {
   const ctx = emailContext();
   const c: AnswerContext = { ...qt, when: whenWords(opts.when), note: note?.trim().slice(0, 1000) || null };
   const o = officeMessage(a, c);
@@ -134,8 +129,8 @@ export function answerEmails(a: Answer, qt: Quote, note: string | null, opts: { 
     text: letterText({ base: ctx.base, footer: ctx.footer, preheader: o.preheader, blocks: o.blocks, signer: o.signer }),
   };
   if (!c.email) return { office, customer: null };
-  const r = customerReply(a, c);
-  const signer = signerFor(c.quoterName);
+  const r = customerReply(a, c, opts.tpl ?? undefined);
+  const signer = resolveSigner(opts.tpl?.signer ?? "quoter", c.quoterName);
   const customer: ResendMessage = {
     from: fromBox("quotes"),
     to: [opts.preview ? OWNER_EMAIL : c.email],
@@ -148,7 +143,7 @@ export function answerEmails(a: Answer, qt: Quote, note: string | null, opts: { 
 }
 
 async function sendBoth(a: Answer, qt: Quote, note: string | null, preview: boolean, estimate: number): Promise<void> {
-  const m = answerEmails(a, qt, note, { preview });
+  const m = answerEmails(a, qt, note, { preview, tpl: await liveTemplate(`reply.${a}`) });
   await sendEmail("quote-answer", await withInlineImages(m.office), { estimate, answer: a, preview });
   if (m.customer) await sendEmail("quote-answer-reply", await withInlineImages(m.customer), { estimate, answer: a, preview });
 }

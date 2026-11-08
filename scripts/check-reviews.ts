@@ -6,7 +6,9 @@ import { firstName, holdFor, inSendingHours, jobWords, reviewEmail, reviewHero, 
 import { SERIES_DAYS, followUpEmail, quoteKind, type FollowUpInput } from "../src/lib/quotes/followUpContent";
 import { letterHtml, letterText, premiumHtml, type LetterBlock, type LetterEmail } from "../src/lib/email/premium";
 import { ANSWERS, customerReply, officeMessage, optionWords, type AnswerContext } from "../src/lib/quotes/answerTypes";
-import { soldEmail } from "../src/lib/quotes/journeyContent";
+import { BUILT_IN, KEY } from "../src/lib/email/templates/defaults";
+import { fill, photoUrl, problems, renderTemplate, sampleValues, templateFrom, unknownPlaceholders } from "../src/lib/email/templates/types";
+import { resolveSigner } from "../src/lib/email/templates/signer";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
 
@@ -129,19 +131,39 @@ ok("someone else quoted: addressed to them", asText(officeMessage("yes", { ...ac
 const r = customerReply("yes", actx);
 ok("yes to the customer: what happens next, four steps, nothing to do", r.subject === "Great news, Sarah: here's what happens next" && r.blocks.some((b) => b.kind === "list" && b.items.length === 4) && /We'll give you a call on 0412 345 678/.test(asText(r)) && /We order your Reclaim 300L/.test(asText(r)) && /rebate paperwork/.test(asText(r)) && /Nothing you need to do for now/.test(asText(r)));
 const rq = customerReply("question", { ...actx, note: "Does it fit?" });
-ok("question to the customer: quoted back, we'll call", /I've got your question:\n\n"Does it fit\?"\n\nI'll give you a call on 0412 345 678/.test(asText(rq)), asText(rq).slice(0, 200));
+ok("question to the customer: quoted back, we'll call", /I've got your question\.\n\n“Does it fit\?”\n\nI'll give you a call on 0412 345 678/.test(asText(rq)), asText(rq).slice(0, 200));
+ok("question with nothing typed: no empty quote marks", !/“”|""/.test(asText(customerReply("question", actx))) && /I'll give you a call on 0412 345 678/.test(asText(customerReply("question", actx))));
+ok("no phone for them: 'the number we have'", /on the number we have within/.test(asText(customerReply("yes", { ...actx, phone: null }))));
 const rn = customerReply("no", actx);
-ok("no to the customer: closed off, door open", rn.subject === "No worries, Sarah" && /closed your quote for the Reclaim 300L off/.test(asText(rn)) && /pick it up where we left off/.test(asText(rn)));
+ok("no to the customer: closed off, door open", rn.subject === "No worries, Sarah" && /closed off your quote, so that's the last email/.test(asText(rn)) && /pick it up where we left off/.test(asText(rn)));
 ok("replies carry no buttons and no job links", (["yes", "question", "no"] as const).every((a) => { const h = asHtml(customerReply(a, actx)); return !h.includes("/q/") && !h.includes("servicetitan"); }));
 ok("option words: the fitting code comes off", optionWords("Reclaim 300L - Plug") === "Reclaim 300L" && optionWords("Mitsubishi Electric 3.5kW Split System - Back to Back") === "Mitsubishi Electric 3.5kW Split System" && optionWords("Reclaim Split SS 315L V2") === "Reclaim Split SS 315L V2" && optionWords(null) === null);
 ok("answer pages: yes says an email's coming", /email on its way/.test(ANSWERS.yes.done));
 
 console.log("-- what happens next --");
-const sold = soldEmail({ first: "Sarah", what: "Reclaim 300L", phone: "0412 345 678", officePhone: "(03) 5947 8000" });
+const sold = renderTemplate(BUILT_IN.find((t) => t.key === "sold.thanks")!, { first: "Sarah", option: "Reclaim 300L", mobile: "0412 345 678", phone: "(03) 5947 8000" }, { base: "https://www.advancedgas.com.au" });
 ok("the steps say ServiceTitan's confirmation is coming", /you'll get a confirmation with the day and arrival time/.test(asText(sold)));
 ok("letters run the window's width", !/max-width:600px/.test(asHtml(sold)));
 ok("sold: thanks, the same four steps", sold.subject === "Thanks for going ahead, Sarah: here's what happens next" && sold.blocks.some((b) => b.kind === "list" && b.items.length === 4) && /with the Reclaim 300L\./.test(asText(sold)));
 ok("journey emails: letters with no buttons", [sold].every((e) => e.blocks[0].kind === "p" && e.blocks[0].text === "Hi Sarah," && !asHtml(e).includes("/q/")));
+
+console.log("-- templates --");
+ok("every standard email fills in with its sample words, nothing left in braces", BUILT_IN.every((t) => { const e = renderTemplate(t, sampleValues(t.group), { base: "https://www.advancedgas.com.au", answers: [{ label: "x", href: "#" }] }); const txt = letterText({ ...ctx, preheader: e.preheader, blocks: e.blocks, signer }); return !/[{}]|undefined|null/.test(txt + e.subject) && !!e.subject; }), BUILT_IN.filter((t) => /[{}]/.test(renderTemplate(t, sampleValues(t.group), { base: "" }).subject)).map((t) => t.key));
+ok("every standard email uses only words its kind can fill", BUILT_IN.every((t) => unknownPlaceholders(t).length === 0 && problems(t, BUILT_IN).length === 0), BUILT_IN.map((t) => [t.key, ...problems(t, BUILT_IN)]).filter((x) => x.length > 1));
+ok("the series are the standard days", (["heat-pump", "split", "general"] as const).every((k) => JSON.stringify(BUILT_IN.filter((t) => t.series === k).map((t) => t.day)) === JSON.stringify(SERIES_DAYS[k])));
+ok("fill: a word, a fallback, an empty brace", fill("Hi {first}, on {mobile|the number we have}.", { first: "Sarah" }).text === "Hi Sarah, on the number we have." && fill("Call {mobile} now", {}).text === "Call now");
+ok("fill: a block that's only an empty brace is dropped", fill("“{note}”", { note: "" }).empty && !fill("“{note}”", { note: "Hi" }).empty && !fill("No braces here", {}).empty);
+const rendered = renderTemplate({ ...BUILT_IN.find((t) => t.key === "reply.question")!, blocks: [{ kind: "p", text: "Hi {first}," }, { kind: "p", text: "“{note}”" }, { kind: "list", items: ["{note}", "kept"] }] }, { first: "Sarah" }, { base: "" });
+ok("render: the empty note paragraph and list item go", rendered.blocks.length === 2 && rendered.blocks[1].kind === "list" && (rendered.blocks[1] as { items: string[] }).items.join() === "kept");
+ok("unknown braces are caught", JSON.stringify(unknownPlaceholders({ group: "reply", subject: "Hi {firstname}", preheader: "", blocks: [{ kind: "p", text: "{ first } and {rating}" }] }).sort()) === JSON.stringify([" first ", "firstname", "rating"].sort()));
+const split2 = BUILT_IN.find((t) => t.key === "followup.split.2")!;
+const junk = templateFrom({ key: "followup.evil", group: "sold", builtIn: false, subject: "S".repeat(500), blocks: [{ kind: "script", text: "x" }, { kind: "photo", src: "https://evil.example.com/x.jpg", alt: "x" }, { kind: "photo", src: "/email/hero-team.jpg", alt: "ok", width: 9999 }, { kind: "p", text: "fine" }], day: 99, signer: "nobody" }, split2);
+ok("from the page: key, kind and built-in come from us; unknown blocks and outside photos go; strings clipped", junk.key === split2.key && junk.group === "followup" && junk.builtIn && junk.subject.length === 200 && junk.blocks.length === 2 && junk.blocks[0].kind === "photo" && !("width" in junk.blocks[0]) && junk.day === split2.day && junk.signer === split2.signer);
+ok("an uploaded photo goes through the image optimiser", photoUrl("/api/email-image/0b5c1f7e-1d2a-4c3b-9e8f-112233445566.jpg", "https://www.advancedgas.com.au") === "https://www.advancedgas.com.au/_next/image?url=%2Fapi%2Femail-image%2F0b5c1f7e-1d2a-4c3b-9e8f-112233445566.jpg&w=1200&q=72" && photoUrl("/email/hp-aio.jpg", "x") === "/email/hp-aio.jpg");
+ok("two emails on one day in a series is refused", problems({ ...split2, key: "followup.split.xabcdef", builtIn: false, day: 5 }, BUILT_IN).some((x) => /day 5/.test(x)));
+ok("keys: standard and added only", KEY.test("followup.split.2") && KEY.test("followup.general.x1a2b3c") && KEY.test("reply.yes") && !KEY.test("followup.split.x123") && !KEY.test("../etc"));
+ok("signer: whoever quoted, with a headshot, initials, or the team", resolveSigner("quoter", "Jye Stephens").photo === "/email/tech-jye.jpg" && resolveSigner("quoter", "Ray Kennedy").name === "Ray Kennedy" && resolveSigner("quoter", "Ray Kennedy").photo === null && resolveSigner("quoter", null).name === "The Advanced Gas team" && resolveSigner("dean", "Jye Stephens").name === "Dean Winbanks");
+ok("an edited follow-up is what renders", followUpEmail("heat-pump", 1, fin, { ...BUILT_IN[0], subject: "Edited, {first}" }).subject === "Edited, Sarah");
 
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));
