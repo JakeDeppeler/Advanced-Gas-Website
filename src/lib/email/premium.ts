@@ -45,6 +45,8 @@ const INK = "#16181d";
 const MUTED = "#5b6068";
 const LINE = "#e7e3dc";
 const GROUND = "#f4f1ec";
+/** The panel behind a person inside the white card: GROUND's colour, its own value so dark mode can tell them apart. */
+const TINT = "#f4f1ed";
 const ORANGE = "#c2521a"; // --orange-deep: the shade white text stays readable on
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 const SERIF = "Georgia,'Times New Roman',serif";
@@ -83,7 +85,7 @@ ${b.note ? `<div style="padding-top:10px;font:400 13px/1.5 ${FONT};color:${MUTED
     case "image":
       return `<tr><td class="pe-pad" style="${pad} 22px"><img src="${esc(abs(base, b.src))}" width="520" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:520px;height:auto;border-radius:14px;border:0">${b.caption ? `<div style="padding-top:8px;font:400 13px/1.5 ${FONT};color:${MUTED}">${inline(b.caption)}</div>` : ""}</td></tr>`;
     case "person":
-      return `<tr><td class="pe-pad" style="${pad} 22px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${GROUND};border-radius:16px"><tr>
+      return `<tr><td class="pe-pad" style="${pad} 22px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${TINT};border-radius:16px"><tr>
 <td width="88" style="padding:18px 0 18px 20px;vertical-align:middle">${avatar(base, b.name, b.photo, 64)}</td>
 <td style="padding:18px 20px 18px 14px;vertical-align:middle;font:400 14px/1.5 ${FONT};color:${MUTED}"><div style="font:600 16px/1.3 ${FONT};color:${INK}">${esc(b.name)}</div>${inline(b.line)}</td>
 </tr></table></td></tr>`;
@@ -114,7 +116,48 @@ ${i.tag ? `<div style="padding-top:10px;font:700 10px/1.4 ${FONT};letter-spacing
   }
 }
 
+/*
+ * Dark mode. Outlook, Apple Mail and Gmail repaint a light email in their own
+ * dark colours when the reader's phone or Mac is in dark mode, which turned
+ * the white card into a muddy grey (Jake's Outlook, 8 Nov). These give it a
+ * dark version of its own instead: prefers-color-scheme for Apple Mail and
+ * Outlook for Mac, [data-ogsc]/[data-ogsb] for Outlook.com and new Outlook.
+ * The classes are added by darkClasses() from each element's light colours,
+ * so the blocks above don't each have to remember to.
+ */
+const DARK = { ground: "#111215", shell: "#1c1e22", tint: "#272a30", ink: "#f2eee7", muted: "#a9adb4", line: "#33363c", orange: "#ff8f52" };
+const DARK_RULES = `.pe-ground{background:${DARK.ground}!important}.pe-shell{background:${DARK.shell}!important}.pe-tint{background:${DARK.tint}!important}
+.pe-ink{color:${DARK.ink}!important}.pe-muted{color:${DARK.muted}!important}.pe-orange{color:${DARK.orange}!important}.pe-line{border-color:${DARK.line}!important}
+.pe-btn{background:${DARK.ink}!important;color:#16181d!important;border-color:${DARK.ink}!important}.pe-btn a,a.pe-btn{color:#16181d!important}.pe-ghost{color:${DARK.ink}!important;border-color:${DARK.ink}!important}`;
+const DARK_CSS = `@media (prefers-color-scheme:dark){${DARK_RULES.replace(/\.pe-/g, ":root .pe-")}}
+${DARK_RULES.split("}").filter((r) => r.trim()).map((r) => `[data-ogsc] ${r.trim()}}`).join("\n").replace(/\[data-ogsc\] (\.pe-(?:ground|shell|tint|btn)\{)/g, "[data-ogsb] $1")}`;
+
+function darkClasses(html: string): string {
+  return html.replace(/<(\w+)([^>]*?)\sstyle="([^"]*)"/g, (all, tag: string, attrs: string, style: string) => {
+    const add: string[] = [];
+    const bg = /background:(#[0-9a-f]{6})/i.exec(style)?.[1]?.toLowerCase();
+    const fg = /(?:^|;)color:(#[0-9a-f]{6})/i.exec(style)?.[1]?.toLowerCase();
+    if (bg === GROUND) add.push("pe-ground");
+    else if (bg === TINT) add.push("pe-tint");
+    else if (bg === INK) add.push("pe-btn");
+    if (!add.includes("pe-btn")) {
+      if (fg === INK) add.push(/border:2px solid/.test(style) ? "pe-ghost" : "pe-ink");
+      else if (fg === MUTED) add.push("pe-muted");
+      else if (fg === ORANGE) add.push("pe-orange");
+    }
+    if (style.includes(LINE)) add.push("pe-line");
+    if (!add.length) return all;
+    const cls = /\sclass="([^"]*)"/.exec(attrs);
+    const attrs2 = cls ? attrs.replace(cls[0], ` class="${cls[1]} ${add.join(" ")}"`) : `${attrs} class="${add.join(" ")}"`;
+    return `<${tag}${attrs2} style="${style}"`;
+  });
+}
+
 export function premiumHtml(e: PremiumEmail): string {
+  return darkClasses(premiumHtmlLight(e));
+}
+
+function premiumHtmlLight(e: PremiumEmail): string {
   const { base, footer: f } = e;
   const hero = e.hero
     ? `<tr><td style="padding:0"><img class="pe-hero" src="${esc(abs(base, e.hero.src))}" width="600" alt="${esc(e.hero.alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:20px 20px 0 0"></td></tr>`
@@ -126,23 +169,25 @@ export function premiumHtml(e: PremiumEmail): string {
 </tr></table></td></tr>`
     : `<tr><td style="padding:0 0 18px"></td></tr>`;
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light">
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
 <style>
 @media (max-width:620px){
   .pe-pad{padding-left:22px!important;padding-right:22px!important}
   .pe-card{display:block!important;width:100%!important;padding:0 0 18px!important;overflow:hidden}
   .pe-card img{float:left;width:104px!important;margin:0 16px 0 0}
   .pe-outer{padding:0!important}
+  .pe-head{padding:14px 16px!important}
   .pe-shell{border-radius:0!important}
   .pe-shell img.pe-hero{border-radius:0!important}
 }
+${DARK_CSS}
 </style></head>
 <body style="margin:0;padding:0;background:${GROUND}">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:${GROUND}">${esc(e.preheader)}&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${GROUND}"><tr><td class="pe-outer" align="center" style="padding:28px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px">
-<tr><td style="padding:0 6px 18px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td style="vertical-align:middle"><img src="${esc(abs(base, "/email/logo.jpg"))}" width="150" alt="${esc(f.name)}" style="display:block;width:150px;height:auto;border:0;mix-blend-mode:multiply"></td>
+<tr><td class="pe-head" style="padding:0 6px 18px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td style="vertical-align:middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#ffffff;border-radius:12px;padding:8px 12px"><img src="${esc(abs(base, "/email/logo.jpg"))}" width="140" alt="${esc(f.name)}" style="display:block;width:140px;height:auto;border:0"></td></tr></table></td>
 <td align="right" style="vertical-align:middle;font:600 14px/1 ${FONT}"><a href="${esc(f.phoneHref)}" style="color:${INK};text-decoration:none">${esc(f.phone)}</a></td>
 </tr></table></td></tr>
 <tr><td class="pe-shell" style="background:#ffffff;border-radius:20px">
