@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveReviewSettingsAction, sendReviewTestAction } from "@/app/portal/marketing/actions";
 import { DEFAULT_REVIEW_BODY, DEFAULT_REVIEW_SUBJECT, REVIEW_PLACEHOLDERS, type ReviewSettings } from "@/lib/reviews/requestTypes";
+import { SIGNERS, signerKey } from "@/lib/email/team";
 
 /**
  * The review email's settings: on or off, where the button goes, and the
@@ -35,7 +36,9 @@ export function ReviewRequestForm({ initial, canEdit, linkFromPlaceId }: { initi
           <strong>Email customers for a Google review</strong>
           <em>
             The day after a household job is finished and paid, between 9am and 7pm Monday to Saturday. Not real estate, retirement village,
-            commercial or warranty jobs, not a job tagged Problem, and nobody more than once a year. Replies come to admin@.
+            commercial or warranty jobs, and nobody more than once a year. Replies come to admin@. A job tagged Problem, or with a call-back
+            booked, waits until that&rsquo;s sorted (21 days at most): everyone is asked, because Google and consumer law don&rsquo;t allow
+            asking only the happy ones.
           </em>
         </span>
       </label>
@@ -45,6 +48,19 @@ export function ReviewRequestForm({ initial, canEdit, linkFromPlaceId }: { initi
           Google review link <em>· from your Google Business Profile: Ask for reviews, then copy the link</em>
         </span>
         <input type="url" value={s.link} disabled={!canEdit} maxLength={500} placeholder={linkFromPlaceId ? "Using the review link built from the saved place ID" : "https://g.page/r/…/review"} onChange={(e) => set("link", e.target.value.trim())} />
+      </label>
+
+      <label className="pt-field">
+        <span>
+          Signed by <em>· their name and photo go at the bottom; the tech who did the job is shown near the top</em>
+        </span>
+        <select value={s.signer} disabled={!canEdit} onChange={(e) => set("signer", signerKey(e.target.value))}>
+          {(Object.keys(SIGNERS) as (keyof typeof SIGNERS)[]).map((k) => (
+            <option key={k} value={k}>
+              {SIGNERS[k].label}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label className="pt-field">

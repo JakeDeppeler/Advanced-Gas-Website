@@ -2,7 +2,11 @@
  * Who gets asked for a Google review, when, and what the email says
  * (src/lib/reviews/requestTypes.ts).
  */
-import { firstName, inSendingHours, jobWords, reviewEmail, reviewLink, reviewLinkOk, reviewSettingsFrom, techWords, whyNot, type Candidate } from "../src/lib/reviews/requestTypes";
+import { firstName, holdFor, inSendingHours, jobWords, reviewEmail, reviewHero, reviewLink, reviewLinkOk, reviewSettingsFrom, techWords, whyNot, type Candidate, type EmailContext } from "../src/lib/reviews/requestTypes";
+import { followUpEmail, quoteKind, type FollowUpInput } from "../src/lib/quotes/followUpContent";
+import { premiumHtml, premiumText } from "../src/lib/email/premium";
+import { headshot } from "../src/lib/email/team";
+import { existsSync } from "node:fs";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -22,7 +26,11 @@ ok("warranty & callbacks isn't", whyNot({ ...base, businessUnit: "Warranty & Cal
 ok("a quote visit isn't", whyNot({ ...base, jobType: "Quotation" }, now) === "a quote visit or warranty job");
 ok("$0 isn't", whyNot({ ...base, invoiced: 0 }, now) === "nothing charged");
 ok("still owing isn't", whyNot({ ...base, owing: 99 }, now) === "not paid yet");
-ok("tagged Problem isn't", whyNot({ ...base, tags: ["Dog 🐶", "Problem"] }, now) === "tagged Problem");
+ok("tagged Problem still qualifies (it's held, not dropped)", whyNot({ ...base, tags: ["Dog 🐶", "Problem"] }, now) === null);
+ok("tagged Problem is held", holdFor({ ...base, tags: ["Dog 🐶", "Problem"] })?.startsWith("tagged Problem") === true);
+ok("call-back booked is held", holdFor({ ...base, returnVisitOpen: true })?.startsWith("a return visit") === true);
+ok("nothing open: not held", holdFor(base) === null);
+ok("a held job is still in time at 20 days", whyNot({ ...base, completedOn: "2026-10-18T00:00:00Z" }, now, 7 + 21 + 7) === null);
 ok("finished an hour ago: not yet", whyNot({ ...base, completedOn: "2026-11-06T23:00:00Z" }, now) === "finished too recently");
 ok("finished 9 days ago: too late", whyNot({ ...base, completedOn: "2026-10-29T00:00:00Z" }, now) === "finished too long ago");
 ok("an agency's address isn't theirs", whyNot({ ...base, email: "x@tapihq.com" }, now) === "no email of their own");
@@ -54,14 +62,41 @@ ok("install job", jobWords("Installation - Gas Ducted Heater") === "gas ducted h
 ok("diagnostics", jobWords("Diagnostics - Evaporative") === "evaporative service call");
 ok("first name", firstName("Sarah Jones") === "Sarah" && firstName("Kylie Creelman & Mark Creelman") === "Kylie");
 ok("a site name isn't greeted", firstName("Unit 092") === "there" && firstName("27 Eliza Terrace, Officer 3809") === "there");
-const m = reviewEmail(reviewSettingsFrom({}), { customer: "Sarah Jones", techs: ["Ray Kennedy"], jobType: "Service - Split System", suburb: "Berwick", href: "https://www.advancedgas.com.au/r/abc" });
+const ctx: EmailContext = { base: "https://www.advancedgas.com.au", footer: { name: "Advanced Gas & Aircon", phone: "(03) 5947 8000", phoneHref: "tel:+61359478000", address: "1 Sierra Circuit, Pakenham VIC 3810", site: "https://www.advancedgas.com.au" }, proof: "**★ 4.8** on Google" };
+const m = reviewEmail(reviewSettingsFrom({}), { customer: "Sarah Jones", techs: ["Ray Kennedy"], jobType: "Service - Split System", suburb: "Berwick", href: "https://www.advancedgas.com.au/r/abc" }, ctx);
 ok("subject", m.subject === "How did Ray go, Sarah?", m.subject);
 ok("button in the html, once", (m.html.match(/Leave a Google review/g) ?? []).length === 1 && m.html.includes('href="https://www.advancedgas.com.au/r/abc"'));
-ok("text has the link", m.text.includes("Leave a Google review: https://www.advancedgas.com.au/r/abc"));
+ok("the tech is named in a card, initials without a photo", m.html.includes(">Ray Kennedy<") && m.html.includes(">RK<"));
+const j = reviewEmail(reviewSettingsFrom({ signer: "dean" }), { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Install - Heat Pump", suburb: null, href: "https://x" }, ctx);
+ok("a tech with a headshot gets it", j.html.includes("/email/tech-jye.jpg") && j.html.includes("/email/tech-dean.jpg"));
+ok("hero by job", reviewHero("Service - Split System").src.includes("split") && reviewHero("Installation - Heat Pump").src.includes("heat-pump") && reviewHero("Plumbing - Gas Leak").src.includes("team"));
+ok("images are absolute", !/src="\//.test(j.html));
+ok("every email image exists", [...new Set([...j.html.matchAll(/src="https:\/\/www\.advancedgas\.com\.au(\/[^"]+)"/g)].map((x) => x[1]))].every((p) => existsSync(`public${decodeURIComponent(p)}`)));
+ok("headshot lookup", headshot(" jye  stephens ") === "/email/tech-jye.jpg" && headshot("Ray Kennedy") === null);
+const noBtn = reviewEmail(reviewSettingsFrom({ body: "Hi {first}" }), { customer: "Sarah Jones", techs: [], jobType: null, suburb: null, href: "https://x" }, ctx);
+ok("button added if the words lost it", noBtn.html.includes("Leave a Google review"));
+ok("text has the link", /Leave a Google review[^:\n]*: https:\/\/www\.advancedgas\.com\.au\/r\/abc/.test(m.text));
 ok("no placeholder left", !/\{\w+\}/.test(m.text + m.subject), m.text);
-ok("the reply offer is there for everyone", m.text.includes("If anything wasn't right"));
-const x = reviewEmail(reviewSettingsFrom({}), { customer: "<b>Evil</b>", techs: [], jobType: null, suburb: null, href: "https://x" });
-ok("names can't inject html", !x.html.includes("<b>Evil"));
+ok("the reply offer is there for everyone", /if anything wasn't right, just reply/i.test(m.text));
+const x = reviewEmail(reviewSettingsFrom({}), { customer: "<b>Evil</b>", techs: ["<i>x</i>"], jobType: null, suburb: null, href: "https://x" }, ctx);
+ok("names can't inject html", !x.html.includes("<b>Evil") && !x.html.includes("<i>x"));
+
+console.log("-- quote follow-ups --");
+ok("heat pump quote", quoteKind(["Reclaim 300L - Plug", "IStore 270L - Plug"]) === "heat-pump");
+ok("panasonic split is hot water", quoteKind(["Panasonic Split SS 315L 6kw"]) === "heat-pump");
+ok("split system quote", quoteKind(["Kaden 7.1kW Split System - Back to Back"]) === "split" && quoteKind(["Rinnai 11kw Multi Head Split System"]) === "split");
+ok("ducted falls back for now", quoteKind(["Braemar Dominator Installation Internal"]) === "general");
+const fin: FollowUpInput = { first: "Sarah", quoter: "Jake", suburb: "Berwick", options: ["Reclaim 300L - Plug", "Thermann 285L - Plug"], phone: "(03) 5947 8000", phoneHref: "tel:+61359478000", answer: { yes: "https://y", notNow: "https://n", question: "https://q" }, base: "https://www.advancedgas.com.au" };
+for (const kind of ["heat-pump", "split", "general"] as const) for (const step of [1, 2, 3] as const) {
+  const e = followUpEmail(kind, step, fin);
+  const html = premiumHtml({ ...ctx, preheader: e.preheader, hero: e.hero, blocks: e.blocks });
+  const text = premiumText({ ...ctx, preheader: e.preheader, hero: e.hero, blocks: e.blocks });
+  ok(`${kind} ${step}: words, no gaps`, !!e.subject && !/\{\w+\}|undefined|  /.test(text), text.slice(0, 80));
+  ok(`${kind} ${step}: images exist`, [...html.matchAll(/src="https:\/\/www\.advancedgas\.com\.au(\/[^"]+)"/g)].every((x) => existsSync(`public${decodeURIComponent(x[1])}`)));
+}
+const two = followUpEmail("heat-pump", 1, fin).blocks.find((b) => b.kind === "cards");
+ok("only the brands on the quote", two?.kind === "cards" && two.items.map((c) => c.title).join() === "Reclaim CO₂,Thermann");
+ok("day 13 has the three answers", followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "buttons" && b.items.length === 3));
 
 if (bad) { console.log(`\n${bad} failed`); process.exit(1); }
 console.log("\nall passed");

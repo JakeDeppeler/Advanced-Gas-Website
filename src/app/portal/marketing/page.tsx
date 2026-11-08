@@ -173,7 +173,7 @@ async function Reviews({ canEdit }: { canEdit: boolean }) {
                 <tbody>
                   {asked.map((r) => (
                     <tr key={r.id}>
-                      <td>{r.sent_at ? new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short" }).format(new Date(r.sent_at)) : r.status === "failed" ? <b>Didn&rsquo;t send</b> : "Sending"}{r.error ? <div className="ks">{r.error}</div> : null}</td>
+                      <td>{r.sent_at ? new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", weekday: "short", day: "numeric", month: "short" }).format(new Date(r.sent_at)) : r.status === "failed" ? <b>Didn&rsquo;t send</b> : r.status === "held" ? <b>Waiting</b> : r.status === "dropped" ? "Not sent" : "Sending"}{r.error ? <div className="ks">{r.error}</div> : null}</td>
                       <td>{r.customer_name ?? ""}{r.suburb ? <div className="ks">{r.suburb}</div> : null}</td>
                       <td>{r.job_number ? `#${r.job_number}` : ""}</td>
                       <td>{r.techs.join(", ") || "—"}</td>
