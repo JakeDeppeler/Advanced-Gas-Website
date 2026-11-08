@@ -6,7 +6,7 @@ import { firstName, holdFor, inSendingHours, jobWords, reviewEmail, reviewHero, 
 import { SERIES_DAYS, followUpEmail, quoteKind, type FollowUpInput } from "../src/lib/quotes/followUpContent";
 import { letterHtml, letterText, premiumHtml, type LetterBlock, type LetterEmail } from "../src/lib/email/premium";
 import { ANSWERS, customerReply, officeMessage, optionWords, type AnswerContext } from "../src/lib/quotes/answerTypes";
-import { bookedEmail, soldEmail } from "../src/lib/quotes/journeyContent";
+import { soldEmail } from "../src/lib/quotes/journeyContent";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
 
@@ -138,12 +138,10 @@ ok("answer pages: yes says an email's coming", /email on its way/.test(ANSWERS.y
 
 console.log("-- what happens next --");
 const sold = soldEmail({ first: "Sarah", what: "Reclaim 300L", phone: "0412 345 678", officePhone: "(03) 5947 8000" });
+ok("the steps say ServiceTitan's confirmation is coming", /you'll get a confirmation with the day and arrival time/.test(asText(sold)));
+ok("letters run the window's width", !/max-width:600px/.test(asHtml(sold)));
 ok("sold: thanks, the same four steps", sold.subject === "Thanks for going ahead, Sarah: here's what happens next" && sold.blocks.some((b) => b.kind === "list" && b.items.length === 4) && /with the Reclaim 300L\./.test(asText(sold)));
-const booked = bookedEmail({ first: "Sarah", what: "Reclaim 300L", hotWater: true, day: "Thursday 20 November", window: "7 and 8 am", tech: "Jye", officePhone: "(03) 5947 8000" });
-ok("booked: the day, the window, who's coming, the hot water line", booked.subject === "You're booked in for Thursday 20 November, Sarah" && /booked in for Thursday 20 November, arriving between 7 and 8 am\. Jye will be doing the Reclaim 300L install\./.test(asText(booked)) && /hot water will be off/.test(asText(booked)));
-const bookedSplit = bookedEmail({ first: "Sarah", what: "Mitsubishi Electric 3.5kW Split System", hotWater: false, day: "Thursday 20 November", window: null, tech: null, officePhone: "(03) 5947 8000" });
-ok("booked, a split with no window or tech: no hot water line, no gaps", /booked in for Thursday 20 November\. Our team will be doing the/.test(asText(bookedSplit)) && !/hot water/.test(asText(bookedSplit)) && !/undefined|null|  /.test(asText(bookedSplit)));
-ok("journey emails: letters with no buttons", [sold, booked].every((e) => e.blocks[0].kind === "p" && e.blocks[0].text === "Hi Sarah," && !asHtml(e).includes("/q/")));
+ok("journey emails: letters with no buttons", [sold].every((e) => e.blocks[0].kind === "p" && e.blocks[0].text === "Hi Sarah," && !asHtml(e).includes("/q/")));
 
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));

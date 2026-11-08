@@ -246,6 +246,11 @@ export function premiumText(e: PremiumEmail): string {
  * helps and a signature. Every customer email uses it now (Jake, 8 Nov: "all
  * of these need to look like a real email, not like an automation email").
  *
+ * The words run the full width of the reading pane, as an email typed in
+ * Outlook does (Jake, 8 Nov: "why is the wording not going the full length?").
+ * Capped at 600px it sat in the left half of a wide window, which is what a
+ * template looks like. Photos, figures and buttons keep their own sizes.
+ *
  * White, with the brand's colour in the few places it earns it: the figures,
  * the buttons, bold words and the signature (Jake, 8 Nov: "remove the old
  * gray background and add some colour and clean stats"). It asks to stay
@@ -350,7 +355,7 @@ export function letterHtml(e: LetterEmail): string {
 <body style="margin:0;padding:0;background:#ffffff">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(e.preheader)}&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff"><tr><td style="padding:20px 18px">
-<div style="max-width:600px">
+<div>
 ${e.blocks.map((b) => letterBlock(b, e.base)).join("\n")}
 ${signoff ? `<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">${esc(signoff)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:4px"><tr>
