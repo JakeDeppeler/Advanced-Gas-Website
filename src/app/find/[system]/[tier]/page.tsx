@@ -95,6 +95,15 @@ export default function FindProductPage({ params }: { params: Params }) {
     tagline: b.tagline, sub: b.heroSub, origin: b.origin, photo: b.photo, photoAlt: b.photoAlt, photoScene: b.photoScene,
     features: b.keyFeatures?.slice(0, 3), facts: b.heroFacts?.slice(0, 3),
     warranty: b.warranty,
+    // The brand page's colour, so the bands below the header match it.
+    accent: b.blockAccent ?? b.accent, accentLight: b.accentLight,
+    // Photos of the brand's own kit for the Key features cards: the shots its
+    // brand page already uses, never another maker's.
+    gallery: [
+      ...(b.heroProducts ?? []).map((x) => ({ src: x.src, alt: x.alt })),
+      ...(b.reasons ?? []).flatMap((r) => (r.img ? [{ src: r.img, alt: r.alt ?? "" }] : [])),
+      ...(b.quality ? [b.quality.image, ...(b.quality.inset ? [b.quality.inset] : [])].map((x) => ({ src: x.src, alt: x.alt })) : []),
+    ].filter((x, i, all) => all.findIndex((y) => y.src === x.src) === i),
   } : null;
 
   const crumbs = breadcrumbSchema([

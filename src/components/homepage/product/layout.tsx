@@ -2,19 +2,39 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
-  type PV, Crumbs, ProsCons, SavingsCalc, isHeatPumpOption, WhyList, Glance, FitFinder,
-  Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
+  type PV, Crumbs, ProsCons, SavingsCalc, isHeatPumpOption, WhyList, FitFinder,
+  Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky,
 } from "./parts";
 import { HowItWorks } from "../how/HowItWorks";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { StageHero, KeyFeatures, Resources } from "./stage";
+import { BkMotion } from "../brand/BkMotion";
+import "../brand/blocks.css";
+
+/** A heading with one part in colour, the brand page's way: the coloured part is in braces. */
+function accent(text: string) {
+  return text.split(/[{}]/).map((part, i) => (i % 2 ? <span key={i}>{part}</span> : part));
+}
+
+/** The brand page's section head: the heading, and a line under it. */
+function Head({ h, children }: { h: string; children?: ReactNode }) {
+  return (
+    <header className="bk__head">
+      <h2 className="h2">{accent(h)}</h2>
+      {children && <p>{children}</p>}
+    </header>
+  );
+}
 
 /**
- * A /find product page. Chosen from five trial layouts (commit 4a4b7e6 has
- * them): Showroom's full-width header, key-figure band, picture-led story and
- * booking timeline, with Guide's tab bar and plainer sections for the parts
- * people read closely.
+ * A /find product page. The header, Key features and Resources follow the
+ * mock-up Jake picked; everything under the tab bar is laid out like a brand
+ * page (Jake, Nov 2026): full-width bands, white between navy, cream and the
+ * brand's own colour, one coloured word in each heading, photo cards, and
+ * the quote in a box at the end. The parts inside each band (the size
+ * cards, the spec table, the FAQs) are the ones the page already had.
  */
 export function ProductLayout({ v }: { v: PV }) {
   const { t, learn } = v;
@@ -23,10 +43,14 @@ export function ProductLayout({ v }: { v: PV }) {
   const tabs = [
     ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ["overview", "Overview"], ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
     ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []), ...(learn ? [["fit", "Is it right for you?"]] : []),
-    ["specs", "Specs"], ["resources", "Resources"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
+    ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["resources", "Resources"], ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
+  const name = v.model?.code ?? t.model;
+  const acc = v.brand?.accent ?? "#C2521A";
   return (
-    <div className="pxp">
+    // .bk carries the brand page's band styles; --acc is the brand's colour, as on its brand page.
+    <div className="pxp bk" style={{ ["--acc" as string]: acc, ...(v.brand?.accentLight ? { ["--acc-l" as string]: v.brand.accentLight } : {}) }}>
+      <BkMotion />
       <Crumbs v={v} />
       <StageHero v={v} />
 
@@ -36,91 +60,119 @@ export function ProductLayout({ v }: { v: PV }) {
 
       <KeyFeatures v={v} />
 
-      <section className="pxs pxo" id="overview">
-        <div className="wrap pxo__in">
-          <div className="pxo__take">
-            <span className="aeye"><i /> Our take</span>
-            <p className="pxo__quote">{v.take}</p>
-            <span className="pxo__by">The Advanced Gas &amp; Aircon team</span>
+      <section className="bk__sec bk__sec--navy" id="overview">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <div className="bk__two pxk__over">
+            <div className="bk__txt">
+              <h2 className="h2">Our <span>take</span>.</h2>
+              <p className="pxk__quote">{v.take}</p>
+              <span className="pxk__by">The Advanced Gas &amp; Aircon team</span>
+            </div>
+            <div className="pxk__why"><WhyList v={v} /></div>
           </div>
-          <div className="pxo__why"><WhyList v={v} /></div>
-        </div>
+          {v.glance.length > 0 && (
+            <ul className="bk__marks pxk__marks" data-n={v.glance.length} data-anim="stagger" aria-label={`${name} at a glance`}>
+              {v.glance.map((x) => <li key={x.label}><b>{x.value}</b><span>{x.label}</span></li>)}
+            </ul>
+          )}
+        </div></div>
       </section>
-
-      {v.glance.length > 0 && (
-        <section className="lk2__stats"><div className="wrap"><Glance v={v} cls="lk2__glance" /></div></section>
-      )}
 
       <Story v={v} />
 
-      <section className="pxs" id="pros">
-        <div className="wrap pp__col">
-          <Lead eye="Pros & cons" h="The honest bit." />
+      <section className="bk__sec bk__sec--cream" id="pros">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <Head h="The {honest} bit.">What it does well, and what&apos;s worth knowing before you choose it.</Head>
           <ProsCons v={v} />
-        </div>
+        </div></div>
       </section>
 
-      <section className="pxs pxs--cream" id="choose">
-        <div className="wrap pp__col">
-          <Lead eye="Which one?" h="This size, another size, or something else?"><p>When we&apos;d recommend each one. {v.sizeNote}</p></Lead>
+      <section className="bk__sec bk__sec--white" id="choose">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <Head h="This size, another size, or {something else}?">When we&apos;d recommend each one. {v.sizeNote}</Head>
           <Choose v={v} />
-        </div>
+        </div></div>
       </section>
 
       {isHeatPumpOption(v) && (
-        <section className="pxs pxs--sky" id="savings">
-          <div className="wrap">
-            <div className="pbox pp__col">
-              <Lead eye="Running costs" h="How much could you save?"><p>Two taps and we&apos;ll compare what you pay now with what this heat pump costs to run.</p></Lead>
-              <SavingsCalc v={v} />
-            </div>
-          </div>
+        <section className="bk__sec bk__sec--cream" id="savings">
+          <div className="wrap"><div className="bk__blk bk__col">
+            <Head h="How much could you {save}?">Two taps and we&apos;ll compare what you pay now with what this heat pump costs to run.</Head>
+            <div className="pbox"><SavingsCalc v={v} /></div>
+          </div></div>
         </section>
       )}
 
       {learn && (
-        <section className="pxs" id="fit">
-          <div className="wrap pxfit">
-            <Lead eye="Is it right for you?" h="Who this suits."><p>A few quick questions and we&apos;ll tell you which size to choose, or point you to something that suits you better. Your answers carry through to your quote.</p></Lead>
+        <section className="bk__sec bk__sec--red" id="fit">
+          <div className="wrap"><div className="bk__blk bk__pick">
+            <Head h="Is it {right for you}?">A few quick questions and we&apos;ll tell you which size to choose, or point you to something that suits you better. Your answers carry through to your quote.</Head>
             <FitFinder v={v} />
-          </div>
+          </div></div>
         </section>
       )}
 
-      <section className="pxs pxs--cream" id="specs">
-        <div className="wrap">
-          <div className="pbox pp__two">
-            <Lead eye="Specifications" h={v.model ? v.model.name : `${t.brand} ${t.model}`}><p>{v.specNote}</p><SpecLinks v={v} /></Lead>
-            <SpecTable v={v} />
+      <section className="bk__sec bk__sec--white" id="specs">
+        <div className="wrap"><div className="bk__blk pp__two">
+          <div className="bk__head">
+            <h2 className="h2">The <span>specs</span>.</h2>
+            <p>{v.specNote}</p>
+            <SpecLinks v={v} />
           </div>
-        </div>
+          <SpecTable v={v} />
+        </div></div>
       </section>
-
-      <Resources v={v} />
 
       <BrandBit v={v} />
 
-      <section className="pxs pxs--navy" id="booking">
-        <div className="wrap pp__col">
-          <div className="lk2__center"><span className="aeye aeye--dark"><i /> What happens next</span><h2 className="h2 h2--sm">From booking to running.</h2></div>
+      <Resources v={v} />
+
+      <section className="bk__sec bk__sec--navy" id="booking">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <Head h="From booking to {running}.">What happens after you ask for a quote, and how long each step takes.</Head>
           <BookingSteps v={v} cls="lk2__tl" />
-          <Link href={v.book} className="abtn abtn--or abtn--flat" style={{ alignSelf: "center" }}>Book this install →</Link>
-        </div>
+        </div></div>
       </section>
 
-      <section className="pxs pxs--sky" id="faqs">
-        <div className="wrap pp__two">
-          <Lead eye="Questions about this one" h="Before you book."><p>Still want a human? <a href="tel:+61359478000" data-call-from="product-faq" style={{ color: "#050A30" }}>Call (03) 5947 8000</a>.</p></Lead>
+      <section className="bk__sec bk__sec--white" id="faqs">
+        <div className="wrap"><div className="bk__blk pp__two">
+          <div className="bk__head">
+            <h2 className="h2">Before you <span>book</span>.</h2>
+            <p>Still want a human? <a href="tel:+61359478000" data-call-from="product-faq">Call (03) 5947 8000</a>.</p>
+          </div>
           <Faqs v={v} />
-        </div>
+        </div></div>
       </section>
 
-      <section className="pxs" id="reviews"><div className="wrap pp__col"><Reviews v={v} /></div></section>
+      <section className="bk__sec bk__sec--cream" id="reviews">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <div className="pp__revhead">
+            <Head h="From local {households}." />
+            <Link href="/reviews">{v.rating} / 5 from {v.count} Google reviews · Read all →</Link>
+          </div>
+          <Reviews v={v} head={false} />
+        </div></div>
+      </section>
 
-      <section className="pxs pxs--cream">
-        <div className="wrap pp__col">
-          <h2 className="h2 h2--sm">The other {v.sys.label.toLowerCase()} options</h2>
+      <section className="bk__sec bk__sec--white">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <Head h={`The other ${v.sys.label.toLowerCase()} {options}.`} />
           <Others v={v} />
+        </div></div>
+      </section>
+
+      <section className="bk__sec bk__sec--white bk__sec--end">
+        <div className="wrap">
+          <div className="bk__box bk__box--acc bk__cta">
+            <div>
+              <h2 className="bk__boxh">See what the {t.model} <span>would cost</span>.</h2>
+              <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
+            </div>
+            <div className="bxh__ctas">
+              <Link href={v.book} className="abtn abtn--or abtn--flat">Quote this model →</Link>
+              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="product-cta">Call (03) 5947 8000</a>
+            </div>
+          </div>
         </div>
       </section>
       <Sticky v={v} />
@@ -137,22 +189,24 @@ function BrandBit({ v }: { v: PV }) {
   const b = v.brand;
   if (!b?.tagline) return null;
   return (
-    <section className="pxs pxs--cream" id="brand">
-      <div className="wrap pxbr">
-        {b.photo && (
-          <div className={`pxbr__img${b.photoScene ? " pxbr__img--scene" : ""}`}>
-            <Image src={b.photo} alt={b.photoAlt ?? b.name} fill sizes="(max-width: 900px) 100vw, 560px" />
+    <section className="bk__sec bk__sec--navy" id="brand">
+      <div className="wrap"><div className="bk__blk">
+        <div className="bk__two pxk__brand">
+          <div className="bk__txt">
+            {b.origin && <span className="pxk__eye">{b.origin}</span>}
+            <h2 className="h2">Who makes it: <span>{b.name}</span>.</h2>
+            <p className="pxk__tag">{b.tagline}</p>
+            {b.sub && <p>{b.sub}</p>}
+            {b.features && b.features.length > 0 && <ul className="pp__hl">{b.features.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>}
+            {b.page && <Link href={b.page} className="abtn abtn--or abtn--flat pxk__go">Why we install {b.name} →</Link>}
           </div>
-        )}
-        <div className="pxbr__t">
-          <span className="aeye"><i /> The brand{b.origin ? ` · ${b.origin}` : ""}</span>
-          <h2 className="h2 h2--sm">{b.name}</h2>
-          <p className="pxbr__tag">{b.tagline}</p>
-          {b.sub && <p className="pxbr__sub">{b.sub}</p>}
-          {b.features && b.features.length > 0 && <ul className="pp__hl">{b.features.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>}
-          {b.page && <Link href={b.page} className="abtn abtn--navy abtn--flat pxbr__go">Why we install {b.name} →</Link>}
+          {b.photo && (
+            <div className={`pxk__brimg${b.photoScene ? " pxk__brimg--scene" : ""}`}>
+              <Image src={b.photo} alt={b.photoAlt ?? b.name} fill sizes="(max-width: 1000px) 90vw, 520px" />
+            </div>
+          )}
         </div>
-      </div>
+      </div></div>
     </section>
   );
 }
@@ -161,18 +215,20 @@ function BrandBit({ v }: { v: PV }) {
 function Story({ v }: { v: PV }) {
   const { learn, sys } = v;
   if (!learn) return null;
+  // learn.title reads "How a heat pump works." : the last word goes in colour.
+  const title = (learn.title ?? `How a ${sys.label.toLowerCase()} works.`).replace(/(\S+)\.$/, "{$1}.");
   return (
-    <section className="pxs pxs--sky" id="how">
-      <div className="wrap pp__col">
-        <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">{learn.title ?? `How a ${sys.label.toLowerCase()} works.`}</h2></div>
+    <section className="bk__sec bk__sec--white" id="how">
+      <div className="wrap"><div className="bk__blk bk__col">
+        <Head h={title}>One step at a time. Press a step to see that part of the system.</Head>
         <HowItWorks kind={learn.diagram} steps={learn.how} />
         {(sys.slug === "ducted" || sys.slug === "zoning") && (
-          <div className="zh-wrap" id="zones">
-            <div className="lk2__storyhead"><span className="aeye"><i /> Try it</span><h2 className="h2 h2--sm">How zones work.</h2></div>
+          <div className="zh-wrap bk__col" id="zones">
+            <Head h="How {zones} work.">Tap a room to turn its zone on or off.</Head>
             <ZoneHouse />
           </div>
         )}
-      </div>
+      </div></div>
     </section>
   );
 }

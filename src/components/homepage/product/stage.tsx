@@ -62,58 +62,56 @@ export function StageHero({ v }: { v: PV }) {
           <span className="stg__brand">{t.brand}</span> {t.model}{chip && <> <span className="stg__chip" key={chip}>{chip}</span></>}
         </h1>
 
-        <div className="stg__split">
-          <div className="stg__left">
+        {/* One row of cards under the name, kept short so the tab bar is on the first screen (Jake, Nov 2026). */}
+        <div className="stg__bar">
+          <div className="stg__card stg__about">
             <ul className="stg__tiles" aria-label="At a glance">
               {tiles.map((x, i) => <li key={x.small} style={{ animationDelay: `${0.4 + i * 0.12}s` }}><b>{x.big}</b><span>{x.small}</span></li>)}
             </ul>
+            <h2>{model?.bestFor ?? sys.sub}</h2>
+            <p>{blurb}</p>
+          </div>
 
-            <div className="stg__card stg__about">
-              <h2>{model?.bestFor ?? sys.sub}</h2>
-              <p>{blurb}</p>
-              <span className="stg__code">{model?.code ?? t.model} · {t.tier} option · {cat.label}</span>
+          <div className="stg__card stg__pick">
+            <div className="stg__pickhead">
+              <span id="stg-size">{models.length ? "Model" : "Size"}</span>
+              {v.modelKeys.length > 0 && (
+                <dl aria-live="polite">
+                  {v.modelKeys.slice(0, 2).map((k) => <div key={k.label}><dd>{k.value}</dd><dt>{k.label}</dt></div>)}
+                </dl>
+              )}
             </div>
-
-            <div className="stg__card stg__pick">
-              <div className="stg__pickhead">
-                <span id="stg-size">{models.length ? "Model" : "Size"}</span>
-                {v.modelKeys.length > 0 && (
-                  <dl aria-live="polite">
-                    {v.modelKeys.slice(0, 2).map((k) => <div key={k.label}><dd>{k.value}</dd><dt>{k.label}</dt></div>)}
-                  </dl>
-                )}
-              </div>
-              <div className="stg__sizes" role="group" aria-labelledby="stg-size" style={{ ["--n" as string]: models.length || sys.sizes.length }}>
-                {models.length > 0
-                  ? models.map((m, i) => {
-                    const r = v.roomOf(m.chip);
-                    return (
-                      <button key={m.slug} type="button" className={i === mi ? "on" : ""} onClick={() => v.pickModel(m.slug)} aria-pressed={i === mi}>
-                        <strong>{m.chip}</strong>{r && <small>{shortRoom(r)}</small>}
-                      </button>
-                    );
-                  })
-                  : sys.sizes.map((z, i) => (
-                    <button key={z.label} type="button" className={i === ans.size ? "on" : ""} onClick={() => v.setSize(i)} aria-pressed={i === ans.size}>
-                      <strong>{z.label}</strong>{z.sub && <small>{shortRoom(z.sub)}</small>}
+            <div className="stg__sizes" role="group" aria-labelledby="stg-size" style={{ ["--n" as string]: models.length || sys.sizes.length }}>
+              {models.length > 0
+                ? models.map((m, i) => {
+                  const r = v.roomOf(m.chip);
+                  return (
+                    <button key={m.slug} type="button" className={i === mi ? "on" : ""} onClick={() => v.pickModel(m.slug)} aria-pressed={i === mi}>
+                      <strong>{m.chip}</strong>{r && <small>{shortRoom(r)}</small>}
                     </button>
-                  ))}
-              </div>
-              {v.newBuildHp && <p className="stg__note">The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>}
+                  );
+                })
+                : sys.sizes.map((z, i) => (
+                  <button key={z.label} type="button" className={i === ans.size ? "on" : ""} onClick={() => v.setSize(i)} aria-pressed={i === ans.size}>
+                    <strong>{z.label}</strong>{z.sub && <small>{shortRoom(z.sub)}</small>}
+                  </button>
+                ))}
             </div>
+            <span className="stg__code">{model?.code ?? t.model} · {t.tier} option · {cat.label}</span>
+            {v.newBuildHp && <p className="stg__note">The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>}
           </div>
 
           <div className="stg__right">
-            <Link href="/about" className="stg__side">
-              <span className="stg__ico stg__ico--navy" aria-hidden="true">AGA</span>
-              <span className="stg__st"><small>Supplied &amp; installed by</small><b>Advanced Gas &amp; Aircon</b></span>
-              <span className="stg__plus" aria-hidden="true">+</span>
-            </Link>
-            <Link href={v.book} className="stg__side">
+            <Link href={v.book} className="stg__side stg__side--go">
               <span className="stg__ico stg__ico--or" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v12H8l-4 4z" /></svg>
               </span>
               <span className="stg__st"><small>{v.known ? `From ${money(t.price!)} installed` : "Written quote in 12 hrs"}</small><b>Quote this model</b></span>
+              <span className="stg__plus" aria-hidden="true">+</span>
+            </Link>
+            <Link href="/about" className="stg__side">
+              <span className="stg__ico stg__ico--navy" aria-hidden="true">AGA</span>
+              <span className="stg__st"><small>Supplied &amp; installed by</small><b>Advanced Gas &amp; Aircon</b></span>
               <span className="stg__plus" aria-hidden="true">+</span>
             </Link>
           </div>
@@ -124,26 +122,39 @@ export function StageHero({ v }: { v: PV }) {
   );
 }
 
-/** Up to four of the model's features as picture cards, the title on the card and the detail under it. */
+/**
+ * Up to four of the model's features as photo cards, laid out like the brand
+ * page's "Why we choose it": the photo, then the figure in the brand's
+ * colour where there is one, the title and the detail.
+ */
 export function KeyFeatures({ v }: { v: PV }) {
   const items = v.features.slice(0, 4);
   if (items.length < 3) return null;
+  const name = v.model?.code ?? v.t.model;
   return (
-    <section className="pxs stf" id="features">
-      <div className="wrap stf__in">
-        <h2 className="stg__sh">Key features</h2>
-        <div className="stf__grid" data-n={items.length}>
+    <section className="bk__sec bk__sec--white" id="features">
+      <div className="wrap"><div className="bk__blk bk__col">
+        <header className="bk__head">
+          <h2 className="h2">Key <span>features</span>.</h2>
+          <p>The short version of what the {name} does. The full figures are in the specs further down.</p>
+        </header>
+        <ul className="bk__reasons stf" data-n={items.length} data-anim="stagger">
           {items.map((x, i) => (
-            <article key={x.h} className="stf__card">
-              <div className={`stf__img stf__img--${i % 4}`}>
-                <span className="stf__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-                <h3>{x.h}</h3>
-              </div>
-              {x.p && <p>{x.p}</p>}
-            </article>
+            <li key={x.h} className="bk__card">
+              {x.img && (
+                <span className={`bk__cimg${x.cover ? " bk__cimg--cover" : ""}`}>
+                  <Image src={x.img} alt={x.alt ?? ""} fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 320px" />
+                </span>
+              )}
+              <span className="bk__ctxt">
+                {x.v ? <b>{x.v}</b> : <i className="stf__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</i>}
+                <strong>{x.h}</strong>
+                {x.p && <span>{x.p}</span>}
+              </span>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </div></div>
     </section>
   );
 }
@@ -169,9 +180,12 @@ export function Resources({ v }: { v: PV }) {
   const slots = v.preview && docs.length === 0;
 
   return (
-    <section className="pxs pxs--cream str" id="resources">
-      <div className="wrap str__in">
-        <h2 className="stg__sh">Resources</h2>
+    <section className="bk__sec bk__sec--cream str" id="resources">
+      <div className="wrap"><div className="bk__blk bk__col">
+        <header className="bk__head">
+          <h2 className="h2">Brochures, manuals and <span>warranties</span>.</h2>
+          <p>Where to find the paperwork for the {name}, and what each warranty covers.</p>
+        </header>
         <div className="str__grid" data-n={docs.length + (docs.length === 0 && site ? 1 : 0) + 2 + (maker ? 1 : 0) + (slots ? 2 : 0)}>
           {docs.map((d) => (
             <article key={d.href} className="str__card">
@@ -213,7 +227,7 @@ export function Resources({ v }: { v: PV }) {
             </article>
           ))}
         </div>
-      </div>
+      </div></div>
     </section>
   );
 }

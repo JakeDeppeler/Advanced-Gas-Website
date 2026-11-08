@@ -5,9 +5,9 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import {
   findSystem, galleryFor, specRows, answersFrom, answersQuery, bookHref,
   isHeatPump, isNewBuildHeatPump, SPEC_NOTE, SIZE_NOTE, WORKMANSHIP, FINANCE_MONTHS,
-  modelForAnswer, roomFor, installTime as installTimeOf, type Answers,
+  modelForAnswer, roomFor, installTime as installTimeOf, PHOTO, type Answers,
 } from "@/lib/homepage/data";
-import type { PV } from "./product/parts";
+import type { PV, Feature } from "./product/parts";
 import { ProductLayout } from "./product/layout";
 import { learnFor, BOOKING_STEPS } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
@@ -35,6 +35,10 @@ export type PBrand = {
   features?: string[]; facts?: { v: string; k: string }[];
   /** The brand's warranty line from lib/brands.ts, for the Resources section. */
   warranty?: string;
+  /** The brand page's accent, so the product page's bands match it. */
+  accent?: string; accentLight?: string;
+  /** Product shots of the brand's own kit, for the Key features cards. */
+  gallery?: { src: string; alt: string }[];
 };
 
 /**
@@ -119,6 +123,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   const roomIdx = model ? sizeOfChip(model.chip) : ans.size ?? null;
 
   const feat = keyFeatures(model, optionLines);
+  const ducted = /ducted|zoning/.test(sys.slug);
   const v: PV = {
     cat, sys, t, ti, models, model, mi, size, ans,
     known: typeof t.price === "number", hp: isHeatPump(sys), newBuildHp: isNewBuildHeatPump(sys, ans),
@@ -135,7 +140,11 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     // the features had to borrow it), or what's included.
     whyTitle: model?.why?.length && feat.src !== "why" ? "Why we install it" : "What's included",
     whyLines: model?.why?.length && feat.src !== "why" ? model.why : included,
-    features: feat.items,
+    features: featurePhotos(feat.items, { src: t.img, alt: `${t.brand} ${t.model}` }, 
+      // The split pages' gallery has a ducted condenser in it; on a feature card it reads as this unit's.
+      gal.filter((x) => ducted || !/ducted/i.test(x.src)).map((x) => ({ src: x.src, alt: x.alt, cover: x.kind === "c" })),
+      // Another unit's outdoor half means nothing on an evaporative or gas page, and the brand's ducted kit nothing on a split's.
+      /evaporative|gas/.test(sys.slug) ? [] : (brand?.gallery ?? []).filter((x) => (ducted || !/ducted/i.test(`${x.src} ${x.alt}`)) && (sys.slug === "multi-head" || !/multi/i.test(`${x.src} ${x.alt}`)))),
     docs, preview,
     take: model?.take ?? `${sys.sub}. ${optionLines.join(". ")}.`,
     // Figures only: the band sets each one large on a single line, so a value
@@ -192,7 +201,7 @@ function modelRows(m: PModel, catLabel: string, sysLabel: string, install: strin
 }
 
 /** "Low-profile cabinet, about 30% lower than the Contour" → a title, and the rest as its line. */
-function splitFeature(f: string): { h: string; p?: string } {
+function splitFeature(f: string): Feature {
   const m = f.match(/^(.{6,60}?)(?::\s+|\s+[–—-]\s+|,\s+)(.+)$/);
   return m ? { h: m[1], p: m[2].charAt(0).toUpperCase() + m[2].slice(1) } : { h: f };
 }
@@ -203,26 +212,67 @@ function splitFeature(f: string): { h: string; p?: string } {
  * model's published specs, so a model with no feature list (the MSZ-AP
  * range) still says only what its record states.
  */
-function keyFeatures(m: PModel | null, optionLines: string[]): { src: "features" | "why" | "specs" | "option"; items: { h: string; p?: string }[] } {
+function keyFeatures(m: PModel | null, optionLines: string[]): { src: "features" | "why" | "specs" | "option"; items: Feature[] } {
   if (m?.features && m.features.length >= 3) return { src: "features", items: m.features.map(splitFeature) };
   if (m?.why && m.why.length >= 3) return { src: "why", items: m.why.map(splitFeature) };
   if (m) {
     const get = (re: RegExp) => m.specs.find((x) => re.test(x.label))?.value;
-    const items: { h: string; p?: string }[] = [];
+    const items: Feature[] = [];
     const cool = get(/^cooling capacity/i), heat = get(/^heating capacity/i);
-    if (cool && heat) items.push({ h: `${cool} cooling, ${heat} heating`, p: m.room ? `Sized for rooms ${m.room}.` : undefined });
+    if (cool && heat) items.push({ v: cool, h: `Cooling, ${heat} heating`, p: m.room ? `Sized for rooms ${m.room}.` : undefined });
     const quiet = get(/sound|noise/i);
-    if (quiet) items.push({ h: `As quiet as ${quiet}`, p: "The indoor unit's published sound level on its lowest fan speed." });
+    if (quiet) items.push({ v: quiet, h: "On its quietest setting", p: "The indoor unit's published sound level on its lowest fan speed." });
     const star = get(/star rating/i);
     const n = star?.match(/\d+(?:\.\d+)?/)?.[0];
-    if (n) items.push({ h: `${n}-star energy rating`, p: `Rated ${star}.` });
+    if (n) items.push({ v: `${n}-star`, h: "Energy rating", p: `Rated ${star}.` });
     const wifi = get(/wi-?fi/i);
-    if (wifi) items.push({ h: "Phone control", p: wifi });
+    if (wifi) items.push({ v: "Wi-Fi", h: "Phone control", p: wifi });
     const gas = get(/^refrigerant/i);
-    if (gas) items.push({ h: `${gas} refrigerant`, p: "The refrigerant the system runs on." });
+    if (gas) items.push({ v: gas.split(/\s/)[0], h: "Refrigerant", p: "The refrigerant the system runs on." });
     const yrs = get(/^warranty/i)?.match(/(\d+)[\s-]*year/i)?.[1];
-    if (yrs) items.push({ h: `${yrs}-year manufacturer warranty`, p: "Plus 6 years on our workmanship." });
+    if (yrs) items.push({ v: `${yrs} yrs`, h: "Manufacturer warranty", p: "Plus 6 years on our workmanship." });
     if (items.length >= 3) return { src: "specs", items };
   }
   return { src: "option", items: optionLines.map(splitFeature) };
+}
+
+type Photo = { src: string; alt: string; cover?: boolean };
+/** What a feature is about → the photo that shows it, matched on the photo's description. */
+const FEATURE_PHOTO: [RegExp, RegExp | "product" | "team"][] = [
+  // Only the parts that are us: "install" alone also turns up in product lines ("every ducted install").
+  [/workmanship|our crew|installed by/i, "team"],
+  [/wi-?fi|\bapp\b|phone|controller|zone control|zoning|thermostat|schedul|tablet|touch/i, /control|\bapp\b|phone|tablet|touch/i],
+  [/outdoor|refrigerant|R32|R410|R744|CO₂|star|energy|efficien|COP|inverter|compressor|cold|frost|-\d+\s*°/i, /outdoor|condenser|heat pump/i],
+  [/cooling|heating|room|m²|bedroom|living|sized/i, /installed|install\b|bedroom|room/i],
+  [/quiet|dBA|sound|sleep|indoor|wall|slim|design|filter|air/i, "product"],
+];
+
+/**
+ * A photo for each Key features card, from pictures we already have of this
+ * option: its own product shot and our installs of that kind of system. The
+ * brand's own kit is borrowed for an outdoor unit, or when this option's own
+ * photos have run out and one of the brand's shows the same thing (the
+ * Milieu app for an app line); never as a stand-in otherwise, because its
+ * other shots are other products (a ducted unit on a wall split's page would
+ * be wrong). The warranty card gets the team, because that part is us.
+ */
+function featurePhotos(items: Feature[], product: Photo, local: Photo[], brandKit: Photo[]): Feature[] {
+  const team: Photo = { src: PHOTO.team, alt: "The Advanced Gas & Aircon team with their vans", cover: true };
+  const outdoor = brandKit.filter((x) => /outdoor|condenser/i.test(x.alt));
+  const all = [product, ...local, ...outdoor].filter((x, i, a) => a.findIndex((y) => y.src === x.src) === i);
+  const used = new Set<string>();
+  return items.map((f) => {
+    const text = `${f.v ?? ""} ${f.h} ${f.p ?? ""}`;
+    const want = FEATURE_PHOTO.find(([re]) => re.test(text))?.[1];
+    const fresh = all.filter((x) => !used.has(x.src));
+    const pick = want === "team" ? (used.has(team.src) ? undefined : team)
+      : want === "product" ? fresh.find((x) => x.src === product.src)
+        : want ? fresh.find((x) => want.test(x.alt)) : undefined;
+    // No match: the next photo of this option itself, before any borrowed outdoor shot.
+    const kit = want instanceof RegExp ? brandKit.find((x) => !used.has(x.src) && want.test(x.alt)) : undefined;
+    // A borrowed outdoor shot only where the line is about the outdoor unit; otherwise the product again.
+    const ph = pick ?? fresh.find((x) => !outdoor.includes(x)) ?? kit ?? product;
+    used.add(ph.src);
+    return { ...f, img: ph.src, alt: ph.alt, cover: ph.cover };
+  });
 }

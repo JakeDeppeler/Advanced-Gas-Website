@@ -17,6 +17,9 @@ import type { PModel, PBrand } from "../ProductView";
  * The pieces a product page is built from. Each reads its figures from the
  * one PV object, so no two parts of the page can disagree about a number.
  */
+/** A Key features card: `v` is the figure set large where the card has one, `img` its photo. */
+export type Feature = { h: string; p?: string; v?: string; img?: string; alt?: string; cover?: boolean };
+
 export type PV = {
   cat: Category; sys: System; t: Tier; ti: number;
   models: PModel[]; model: PModel | null; mi: number; size: Opt | null; ans: Answers;
@@ -41,7 +44,7 @@ export type PV = {
   reviews: Review[]; rating: string; count: number; brand: PBrand | null;
   heroRef: React.RefObject<HTMLElement>; pastHero: boolean;
   /** The Key features cards: the model's catalogue features, or the option's own lines. */
-  features: { h: string; p?: string }[];
+  features: Feature[];
   docs: Doc[]; preview: boolean;
 };
 
@@ -393,19 +396,22 @@ export function Reviews({ v, head = true }: { v: PV; head?: boolean }) {
 
 export const otherPrice = (o: Tier) => (typeof o.price === "number" ? `${SHOW_FINANCE ? `From $${weekly(o.price, FINANCE_MONTHS)}/wk · ` : "From "}${money(o.price)}` : "Price on quote");
 
+/** The system's other options as the brand page's range tiles. */
 export function Others({ v }: { v: PV }) {
   const { sys, ans } = v;
   return (
-    <div className="pxc__grid">
+    <div className="bk__range" data-anim="stagger">
       {v.others.map(([o, i]) => (
-        <Link key={o.slug} href={productHref(sys, o, ans)} className="pxc__card">
-          <span className="pxc__img"><Image src={o.img} alt="" fill sizes="(max-width: 600px) 90vw, 320px" /></span>
-          <span className="pxc__t">
-            <span style={{ color: TONES[i] }}>{o.tier}</span>
-            <strong>{o.brand} {o.model}</strong>
-            <em>{otherPrice(o)}</em>
+        <Link key={o.slug} href={productHref(sys, o, ans)} className="atile bk__tile">
+          <span className="atile__img"><Image src={o.img} alt="" fill sizes="(max-width: 600px) 45vw, 340px" /></span>
+          <span className="atile__foot">
+            <span className="atile__txt">
+              <span className="bk__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{o.tier} option</span>
+              <strong>{o.brand} {o.model}</strong>
+              <span className="bk__price">{otherPrice(o)}</span>
+            </span>
+            <span className="atile__go atile__go--sm" aria-hidden="true">→</span>
           </span>
-          <i aria-hidden="true">→</i>
         </Link>
       ))}
     </div>
