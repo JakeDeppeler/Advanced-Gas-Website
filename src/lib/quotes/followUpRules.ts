@@ -31,6 +31,8 @@ export const MIN_GAP_DAYS = 2;
 /** Emails per run. The run is every ten minutes in sending hours, so a busy morning still clears in an hour. */
 export const PER_RUN = 8;
 
+import { personalAddress } from "@/lib/email/ownAddress";
+
 const TEAM_OR_PLATFORM = /@(?:[\w.-]+\.)?(advancedgas\.com\.au|tapihq\.com|propertyme\.com|propertytree\.com|servicetitan\.com|ailo\.io)$/i;
 const EMAIL = /^[^\s@<>()",;]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
 
@@ -40,6 +42,8 @@ export function emailProblem(email: string | null | undefined): string | null {
   if (!e) return "No email for them in ServiceTitan";
   if (!EMAIL.test(e)) return "Their email in ServiceTitan doesn't look right";
   if (TEAM_OR_PLATFORM.test(e)) return "The email on file is ours or an agency platform's, not theirs";
+  // A work or agency address: on a Domestic job it's often the property manager's (ownAddress.ts).
+  if (!personalAddress(e)) return "The email on file is a work or agency address, not their own";
   return null;
 }
 

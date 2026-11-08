@@ -145,11 +145,12 @@ async function findDone(s: AutoSettings, nowMs: number): Promise<Candidate[]> {
 }
 
 async function findInvoices(s: AutoSettings, nowMs: number): Promise<Candidate[]> {
-  type Inv = { id: number; invoice_number: string | null; customer_id: number | null; job_id: number | null; balance: number | string | null; due_date: string | null; business_unit: string | null; sent: string | null };
+  // The customer is in the invoice's raw record: the replica's customer_id column is empty on every invoice (8 Nov).
+  type Inv = { id: number; invoice_number: string | null; customer: string | null; job_id: number | null; balance: number | string | null; due_date: string | null; business_unit: string | null; sent: string | null };
   const since = s.invoice.since ? s.invoice.since.slice(0, 10) : null;
   if (!since) return [];
   const invs = (await sbSelect<Inv>("st_invoices", [
-    q.select("id,invoice_number,customer_id,job_id,balance,due_date,business_unit,sent:raw->>sentStatus"),
+    q.select("id,invoice_number,customer:raw->customer->>id,job_id,balance,due_date,business_unit,sent:raw->>sentStatus"),
     "balance=gt.0.5", q.gte("invoice_date", ST_LEDGER_FROM), q.gte("due_date", since), q.lt("due_date", iso(nowMs).slice(0, 10)), "limit=2000",
   ].join("&"))).filter((i) => householdUnit(i.business_unit) && i.sent !== "NotSent" && i.due_date);
   if (!invs.length) return [];
@@ -160,7 +161,7 @@ async function findInvoices(s: AutoSettings, nowMs: number): Promise<Candidate[]
     if (!step) continue;
     const customer = jobs.find((j) => Number(j.id) === Number(i.job_id))?.customer_name ?? null;
     out.push({
-      kind: "invoice", ref: String(i.id), step, template: step === "first" ? "invoice.first" : "invoice.second", customerId: i.customer_id, customer,
+      kind: "invoice", ref: String(i.id), step, template: step === "first" ? "invoice.first" : "invoice.second", customerId: Number(i.customer) || null, customer,
       values: { first: firstName(customer), number: i.invoice_number ?? String(i.id), amount: money(Number(i.balance)), due: dueWords(i.due_date!), phone: site.phone },
       signerName: null, ...(step === "second" ? { skip: "first" } : {}),
     });
@@ -229,7 +230,7 @@ export async function runAutoEmails(now = new Date(), opts: { dry?: boolean } = 
     let sentHere = 0;
     for (const f of fresh) {
       const email = emailOf(f.customerId);
-      const why = !email ? "No email of their own in ServiceTitan" : null;
+      const why = !email ? "No email of their own in ServiceTitan (none, or only a work or agency address)" : null;
       out.lines?.push({ kind: f.kind, ref: f.ref, step: f.step, customer: f.customer, email, why });
       if (dry || why || !sending || !s[k.k].on || sentHere >= PER_KIND) continue;
       if (f.skip) await sbInsertIfAbsent(TABLE, { kind: f.kind, ref: f.ref, step: f.skip, status: "skipped", email }, "kind,ref,step").catch(() => false);

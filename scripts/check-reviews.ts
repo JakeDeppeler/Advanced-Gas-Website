@@ -11,6 +11,7 @@ import { fill, photoUrl, problems, renderTemplate, sampleValues, templateFrom, u
 import { resolveSigner } from "../src/lib/email/templates/signer";
 import { latest, quietFor, waitingOn, when } from "../src/lib/jobflow/contactTypes";
 import { afterSwitch, AUTO_KINDS, autoSettingsFrom, daysLate, dueWords, invoiceStep, money, monthWords } from "../src/lib/autoEmails/rules";
+import { personalAddress } from "../src/lib/email/ownAddress";
 import { daysSince, emailProblem, householdUnit, inSendingHours as followUpHours, planFor, stopReason, type QuoteFacts, type Sent } from "../src/lib/quotes/followUpRules";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
@@ -225,6 +226,12 @@ ok("days late by Melbourne calendar day", daysLate("2026-11-09", nowA) === 3 && 
 ok("invoice steps: first at 3–9 days, second at 10–25, then the office", invoiceStep(2) === null && invoiceStep(3) === "first" && invoiceStep(9) === "first" && invoiceStep(10) === "second" && invoiceStep(25) === "second" && invoiceStep(26) === null);
 ok("money and dates in words", money(3060.5) === "$3,060.50" && money(1990) === "$1,990" && dueWords("2026-11-03") === "Tue 3 Nov" && monthWords("2026-12-15T02:00:00Z") === "December");
 ok("each kind's emails are standard templates", AUTO_KINDS.every((k) => k.templates.every((t) => BUILT_IN.some((b) => b.key === t))));
+
+console.log("-- their own mailbox only --");
+ok("personal mailboxes: yes", ["sarah@gmail.com", "x@hotmail.com", "x@hotmail.co.uk", "x@outlook.com.au", "x@live.com.au", "x@yahoo.com.au", "x@bigpond.com", "x@bigpond.net.au", "x@optusnet.com.au", "x@icloud.com", "x@internode.on.net", "x@skymesh.com.au"].every(personalAddress));
+ok("agencies, villages, builders, suppliers: no", ["pm@barryplant.com.au", "x@raywhite.com", "x@neilsonpartners.com.au", "x@peakerealestate.com.au", "x@cardiniawaters.com.au", "x@moffat.com.au", "x@reece.com.au", "x@silverleafhomes.com.au", "x@tapi.com.au", ""].every((e) => !personalAddress(e)));
+ok("follow-ups and after-the-quote emails refuse a work or agency address", !!emailProblem("pm@barryplant.com.au") && emailProblem("sarah@gmail.com") === null);
+ok("review emails refuse one too", whyNot({ ...base, email: "pm@raywhite.com" }, now) === "no email of their own");
 
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));
