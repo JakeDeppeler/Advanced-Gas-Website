@@ -17,8 +17,11 @@ const SEV: Record<Severity, Status> = {
   strong: { k: "bad", w: "Strong", s: "!!" },
   moderate: { k: "mid", w: "Moderate", s: "!" },
 };
-const QUIET: Status = { k: "good", w: "Nothing flagged" };
-const NO_FORECAST: Status = { k: "none", w: "No forecast", s: "?" };
+// Quiet is the quietest thing on the page: grey, so the one real flag among
+// twelve zones is what the eye lands on. No forecast is amber, like any failed
+// source in the portal, and says so in words.
+const QUIET: Status = { k: "none", w: "Nothing flagged", s: "✓" };
+const NO_FORECAST: Status = { k: "mid", w: "No forecast", s: "?" };
 const STALE: Status = { k: "none", w: "Forecast stale", s: "?" };
 
 const STATUS_HEAD: Record<Report["status"], { st: Status; title: string }> = {
@@ -42,7 +45,7 @@ function Outlook({ days }: { days: DayWeather[] }) {
     <ol className="wt-days" aria-label="Forecast, max and min">
       {days.slice(0, 6).map((d) => (
         <li key={d.date}>
-          <span>{dayLabel(d.date).split(" ")[0]}</span>
+          <span>{dayLabel(d.date).split(" ")[0].replace(",", "")}</span>
           <b>{d.tmax == null ? "–" : `${Math.round(d.tmax)}°`}</b>
           <small>{d.tmin == null ? "–" : `${Math.round(d.tmin)}°`}</small>
         </li>
@@ -53,7 +56,7 @@ function Outlook({ days }: { days: DayWeather[] }) {
 
 function ZoneCard({ z, flags }: { z: ReportZone; flags: ReportFlag[] }) {
   return (
-    <article className="wt-zone">
+    <article className={`wt-zone${z.weather === "unavailable" ? " is-down" : ""}`}>
       <header>
         <b>{z.name}</b>
         <span>{z.suburbs.length} suburbs · {z.radiusKm} km</span>
@@ -133,9 +136,9 @@ export function WeatherTargets({ report, jsonHref, csvHref }: { report: Report; 
                 {report.flags.map((f) => (
                   <tr key={f.id}>
                     <td><Pill st={SEV[f.severity]} /></td>
-                    <td><b>{f.service}</b><div className="ks">{f.label}</div></td>
+                    <td className="wt-push"><b>{f.service}</b><div className="ks">{f.label}</div></td>
                     <td>{f.zoneName}</td>
-                    <td>{when(f)}</td>
+                    <td className="wt-when">{when(f)}</td>
                     <td className="wt-why">{f.reason}</td>
                     <td className="wt-subs">{f.suburbs.map((s) => `${s.name} ${s.postcode}`).join(", ")}</td>
                   </tr>
