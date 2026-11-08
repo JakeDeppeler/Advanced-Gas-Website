@@ -8,6 +8,7 @@ import { SIGNERS } from "@/lib/email/team";
 import { SERIES_DAYS, followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
 import { loadReviewSettings, sampleJobPhoto } from "@/lib/reviews/requests";
+import { answerUrl } from "@/lib/quotes/answers";
 
 /**
  * Customer emails sent to the owner to look at in a real inbox before they
@@ -28,13 +29,17 @@ const withBanner = (html: string, note: string) =>
 
 export function quoteEmailPreviews(): { subject: string; html: string; text: string }[] {
   const ctx = emailContext();
-  const base: Omit<FollowUpInput, "options"> = { first: "Sarah", quoter: "Jake", quoterSigns: true, phone: site.phone };
-  const hp = ["Reclaim Split SS 315L V2", "IStore 270L - Plug", "Thermann 285L - Plug"];
+  // Estimate 0: the buttons open the real answer pages, which record nothing for it.
+  const base: Omit<FollowUpInput, "options"> = {
+    first: "Sarah", quoter: "Jake", quoterSigns: true, phone: site.phone,
+    answers: { yes: answerUrl(0, "yes"), question: answerUrl(0, "question"), no: answerUrl(0, "no") },
+  };
+  const hp = ["Reclaim 300L - Plug", "Reclaim Split SS 315L V2", "IStore 270L - Plug"];
   const sp = ["Mitsubishi Electric 3.5kW Split System - Back to Back", "Kaden 3.5kW Split System - Back to Back"];
-  const topics = { "heat-pump": ["savings", "common questions", "brands and work", "the closer"], split: ["common questions", "brands and work", "savings", "the closer"] } as const;
+  const topics = { "heat-pump": ["check-in", "savings", "brands and work", "the closer"], split: ["check-in", "brands and work", "running costs", "the closer"] } as const;
   const runs = (["heat-pump", "split"] as const).flatMap((kind) =>
     SERIES_DAYS[kind].map((day, n) => ({ options: kind === "heat-pump" ? hp : sp, step: n + 1, label: `${kind === "heat-pump" ? "Heat pump" : "Split system"} ${n + 1} of ${SERIES_DAYS[kind].length}, day ${day}, ${topics[kind][n]}` })));
-  const note = "Preview of a quote follow-up, written as a personal check-in for what's on the quote. Sarah and her quote are made up. Nothing has gone to a customer.";
+  const note = "Preview of a quote follow-up. Sarah and her quote are made up, nothing has gone to a customer, and the buttons at the bottom open the real pages without recording anything.";
   return runs.map((r) => {
     const e = followUpEmail(quoteKind(r.options), r.step, { ...base, options: r.options });
     const mail = { base: ctx.base, footer: ctx.footer, preheader: e.preheader, blocks: e.blocks, signer: SIGNERS.jake };

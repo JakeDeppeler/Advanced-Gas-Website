@@ -30,6 +30,7 @@ export const EMAIL_KINDS = {
   "work-order-summary": { label: "Work orders: daily summary", who: "the office" },
   "daily-reminder": { label: "Morning to-do reminder", who: "the office" },
   "review-request": { label: "Google review request", who: "a customer" },
+  "quote-answer": { label: "Quote follow-up answer", who: "the office" },
   other: { label: "Email", who: "somebody" },
 } as const;
 

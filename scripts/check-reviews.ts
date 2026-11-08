@@ -66,10 +66,10 @@ const ctx: EmailContext = { base: "https://www.advancedgas.com.au", footer: { na
 const m = reviewEmail(reviewSettingsFrom({}), { customer: "Sarah Jones", techs: ["Ray Kennedy"], jobType: "Service - Split System", suburb: "Berwick", href: "https://www.advancedgas.com.au/r/abc" }, ctx);
 ok("subject", m.subject === "How did Ray go, Sarah?", m.subject);
 ok("button in the html, once", (m.html.match(/Leave a Google review/g) ?? []).length === 1 && m.html.includes('href="https://www.advancedgas.com.au/r/abc"'));
-ok("the tech is named in a card, initials without a photo", m.html.includes(">Ray Kennedy<") && m.html.includes(">RK<"));
+ok("reads like an email: no card, no logo, the tech named in the words", !m.html.includes("/email/logo.jpg") && !m.html.includes(">RK<") && m.text.includes("having Ray out") && !m.text.includes("Cheers,\nJake") );
 const j = reviewEmail(reviewSettingsFrom({ signer: "dean" }), { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Install - Heat Pump", suburb: null, href: "https://x" }, ctx);
-ok("a tech with a headshot gets it", j.html.includes("/email/tech-jye.jpg") && j.html.includes("/email/tech-dean.jpg"));
-ok("hero by job", reviewHero("Service - Split System").src.includes("split") && reviewHero("Installation - Heat Pump").src.includes("heat-pump") && reviewHero("Plumbing - Gas Leak").src.includes("team"));
+ok("the signer's photo, and the job photo when there is one", j.html.includes("/email/tech-dean.jpg") && reviewEmail(reviewSettingsFrom({}), { customer: "Sarah", techs: ["Jye"], jobType: null, suburb: null, href: "https://x", photo: "https://www.advancedgas.com.au/_next/image?url=x" }, ctx).html.includes("data-fallback="));
+ok("stock photo by job, showing the whole system", reviewHero("Service - Split System").src.includes("split") && reviewHero("Installation - Heat Pump").src.includes("hp-aio") && reviewHero("Installation - Heat Pump").width < 400 && reviewHero("Plumbing - Gas Leak").src.includes("team"));
 ok("images are absolute", !/src="\//.test(j.html));
 ok("every email image exists", [...new Set([...j.html.matchAll(/src="https:\/\/www\.advancedgas\.com\.au(\/[^"]+)"/g)].map((x) => x[1]))].every((p) => existsSync(`public${decodeURIComponent(p)}`)));
 ok("headshot lookup", headshot(" jye  stephens ") === "/email/tech-jye.jpg" && headshot("Ray Kennedy") === null);
@@ -86,7 +86,7 @@ ok("heat pump quote", quoteKind(["Reclaim 300L - Plug", "IStore 270L - Plug"]) =
 ok("panasonic split is hot water", quoteKind(["Panasonic Split SS 315L 6kw"]) === "heat-pump");
 ok("split system quote", quoteKind(["Kaden 7.1kW Split System - Back to Back"]) === "split" && quoteKind(["Rinnai 11kw Multi Head Split System"]) === "split");
 ok("ducted falls back for now", quoteKind(["Braemar Dominator Installation Internal"]) === "general");
-const fin: FollowUpInput = { first: "Sarah", quoter: "Jake", quoterSigns: true, options: ["Reclaim 300L - Plug", "Thermann 285L - Plug"], phone: "(03) 5947 8000" };
+const fin: FollowUpInput = { first: "Sarah", quoter: "Jake", quoterSigns: true, options: ["Reclaim 300L - Plug", "IStore 270L - Plug", "Thermann 285L - Plug"], phone: "(03) 5947 8000", answers: { yes: "https://www.advancedgas.com.au/q/1/yes?s=a", question: "https://www.advancedgas.com.au/q/1/question?s=b", no: "https://www.advancedgas.com.au/q/1/no?s=c" } };
 const signer = { name: "Jake Deppeler", role: "Advanced Gas & Aircon", photo: "/email/tech-jake.jpg" };
 for (const kind of ["heat-pump", "split", "general"] as const) for (let step = 1; step <= SERIES_DAYS[kind].length; step++) {
   const e = followUpEmail(kind, step, fin);
@@ -94,14 +94,18 @@ for (const kind of ["heat-pump", "split", "general"] as const) for (let step = 1
   const text = letterText({ ...ctx, preheader: e.preheader, blocks: e.blocks, signer });
   ok(`${kind} ${step}: reads like a letter (Hi, no headline, asks them to call)`, e.blocks[0]?.kind === "p" && e.blocks[0].text === "Hi Sarah," && /give me a call on \(03\) 5947 8000/i.test(text) && !/<h\d|text-transform:uppercase/.test(html));
   // The closer is just a note from a person, and so is "did it come through"; the rest show our work.
-  if (!e.subject.startsWith("Before I close off") && !(kind === "general" && step === 1)) ok(`${kind} ${step}: a photo in it`, /<img[^>]+\/email\/(hero|hp|opt|split)/.test(html));
+  if (!e.subject.startsWith("Before I close off") && !(kind === "general" && step === 1) && !e.blocks.some((b) => b.kind === "chart")) ok(`${kind} ${step}: a photo in it`, /<img[^>]+\/email\/(hero|hp|opt|split)/.test(html));
+  ok(`${kind} ${step}: the three answer buttons`, (html.match(/\/q\/1\/(yes|question|no)/g) ?? []).length === 3);
+  ok(`${kind} ${step}: no captions under photos, no address footer`, !html.includes("Sierra Circuit"));
   ok(`${kind} ${step}: words, no gaps`, !!e.subject && !/\{\w+\}|undefined|  /.test(text), text.slice(0, 80));
   ok(`${kind} ${step}: images exist`, [...html.matchAll(/src="https:\/\/www\.advancedgas\.com\.au(\/[^"]+)"/g)].every((x) => existsSync(`public${decodeURIComponent(x[1])}`)));
 }
-ok("heat pump opens on savings", /save/i.test(followUpEmail("heat-pump", 1, fin).subject) && /questions/.test(followUpEmail("heat-pump", 2, fin).subject));
-ok("split opens on common questions, savings third", /questions/.test(followUpEmail("split", 1, fin).subject) && /costs to run/.test(followUpEmail("split", 3, fin).subject));
+ok("heat pump: check-in, savings (a chart), brands, closer", /checking in/i.test(followUpEmail("heat-pump", 1, fin).subject) && followUpEmail("heat-pump", 2, fin).blocks.some((b) => b.kind === "chart") && /Reclaim/.test(followUpEmail("heat-pump", 3, fin).subject));
+const hpBrands = letterText({ ...ctx, preheader: "", blocks: followUpEmail("heat-pump", 3, fin).blocks, signer });
+ok("R290 300 L first, CO₂ split, iStore last, never Thermann", hpBrands.indexOf("R290") < hpBrands.indexOf("iStore") && !/thermann/i.test(hpBrands) && ["heat-pump"].every(() => SERIES_DAYS["heat-pump"].every((_, n) => !/thermann/i.test(letterText({ ...ctx, preheader: "", blocks: followUpEmail("heat-pump", n + 1, fin).blocks, signer })))));
+ok("split: check-in, brands, running costs (a chart), closer", /checking in/i.test(followUpEmail("split", 1, fin).subject) && followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "chart"));
 ok("the last one is the closer", ["heat-pump", "split", "general"].every((k) => followUpEmail(k as "split", SERIES_DAYS[k as "split"].length, fin).subject.startsWith("Before I close off")));
-ok("someone else quoted: named", letterText({ ...ctx, preheader: "", blocks: followUpEmail("split", 1, { ...fin, quoter: "Jye", quoterSigns: false }).blocks, signer }).includes("having Jye out"));
+ok("someone else quoted: named", letterText({ ...ctx, preheader: "", blocks: followUpEmail("split", 1, { ...fin, quoter: "Jye", quoterSigns: false }).blocks, signer }).includes("since Jye was out"));
 ok("no capital after a comma", ["heat-pump", "split", "general"].every((k) => SERIES_DAYS[k as "split"].every((_, n) => !/, Give me/.test(letterText({ ...ctx, preheader: "", blocks: followUpEmail(k as "split", n + 1, fin).blocks, signer })))));
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));

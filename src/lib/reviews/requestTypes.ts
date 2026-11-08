@@ -21,8 +21,8 @@
  * HOLD_MAX_DAYS regardless. What the office controls is fixing it first.
  */
 
-import { premiumHtml, premiumText, type PremiumBlock, type PremiumEmail } from "@/lib/email/premium";
-import { SIGNERS, headshot, signerKey, type SignerKey } from "@/lib/email/team";
+import { letterHtml, letterText, type LetterBlock, type LetterEmail, type PremiumEmail } from "@/lib/email/premium";
+import { SIGNERS, signerKey, type SignerKey } from "@/lib/email/team";
 
 export const REVIEW_SETTINGS_KEY = "review_requests";
 
@@ -175,15 +175,16 @@ export type ReviewEmailInput = {
 export type EmailContext = Pick<PremiumEmail, "base" | "footer" | "proof">;
 
 /** The photo across the top: the kind of thing they had done, else the team. */
-export function reviewHero(jobType: string | null): { src: string; alt: string } {
+export function reviewHero(jobType: string | null): { src: string; alt: string; width: number } {
+  // Each shows the whole system (Jake, 8 Nov: "always show a photo of the full system"); the tall ones narrower so it all fits.
   const t = (jobType ?? "").toLowerCase();
-  if (/heat pump|hot water|hws|reclaim|istore|thermann/.test(t)) return { src: "/email/hero-heat-pump.jpg", alt: "A heat pump hot water system we installed against a brick wall" };
-  if (/gas ducted|ducted heat|heater|furnace|brivis|braemar|rinnai/.test(t)) return { src: "/email/hero-ducted.jpg", alt: "A ducted unit we installed in a roof space" };
-  if (/split|air ?con|aircon|ducted|cooling|reverse/.test(t)) return { src: "/email/hero-split.jpg", alt: "A split system we installed in a bedroom" };
-  return { src: "/email/hero-team.jpg", alt: "The Advanced Gas team with the vans outside our Pakenham workshop" };
+  if (/heat pump|hot water|hws|reclaim|istore|thermann/.test(t)) return { src: "/email/hp-aio.jpg", alt: "A heat pump hot water system we installed beside a house", width: 300 };
+  if (/gas ducted|ducted heat|heater|furnace|brivis|braemar|rinnai/.test(t)) return { src: "/email/hero-ducted.jpg", alt: "A ducted unit we installed in a roof space", width: 560 };
+  if (/split|air ?con|aircon|ducted|cooling|reverse/.test(t)) return { src: "/email/hero-split.jpg", alt: "A split system we installed in a bedroom", width: 560 };
+  return { src: "/email/hero-team.jpg", alt: "The Advanced Gas team with the vans outside our Pakenham workshop", width: 560 };
 }
 
-const BUTTON_LABEL = "Leave a Google review ★★★★★";
+const BUTTON_LABEL = "Leave a Google review";
 
 export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailContext): { subject: string; text: string; html: string } {
   const values: Record<string, string> = {
@@ -195,41 +196,38 @@ export function reviewEmail(s: ReviewSettings, i: ReviewEmailInput, ctx: EmailCo
   const fill = (tpl: string) => tpl.replace(/\{(\w+)\}/g, (all, k: string) => (k === "button" ? all : values[k] ?? all));
   const subject = fill(s.subject).replace(/\{button\}/g, "").replace(/\s+/g, " ").trim().slice(0, 200);
 
-  // The person who did the job, with their photo when we have one, after the
-  // first paragraph: the email is from someone they met, not a system.
-  const techNames = [...new Set(i.techs.map((t) => t.trim()).filter(Boolean))];
-  const where = (i.suburb ?? "").trim();
-  const personFor = (name: string): PremiumBlock => ({ kind: "person", name, photo: headshot(name), line: `Looked after your ${values.job}${where ? ` in ${where}` : ""}` });
-
-  // No headline: it reads as an email from a person, opening "Hi Sarah," (Jake, 8 Nov, didn't like "A quick favour, Sarah?").
-  const blocks: PremiumBlock[] = [];
+  // A plain email from a person (Jake, 8 Nov: "need to look like a real email,
+  // not like an automation email"): the words, the photo of their job after
+  // the paragraph that names the tech, one button, and a signature.
+  const stock = reviewHero(i.jobType);
+  // A phone photo from the job could be tall or wide: 420 px fits either on screen whole.
+  const photo: LetterBlock = i.photo
+    ? { kind: "photo", src: i.photo, alt: `Your ${values.job}, photographed by ${values.tech} on the day`, fallback: stock.src, width: 420 }
+    : { kind: "photo", src: stock.src, alt: stock.alt, width: stock.width };
+  const blocks: LetterBlock[] = [];
   const paras = fill(s.body).split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
-  // After the paragraph that names them; else after the greeting.
-  const named = paras.findIndex((p) => techNames.length > 0 && p.includes(values.tech));
-  const cardAfter = named >= 0 ? named : Math.min(1, paras.length - 1);
+  const named = paras.findIndex((p) => p.includes(values.tech));
+  const photoAfter = named >= 0 ? named : Math.min(1, paras.length - 1);
   let buttonDone = false;
   paras.forEach((p, n) => {
-    if (p === "{button}") {
-      blocks.push({ kind: "button", label: BUTTON_LABEL, href: i.href, note: "Takes about a minute, on Google." });
+    const [before, ...rest] = p.split("{button}");
+    if (before.trim()) blocks.push({ kind: "p", text: before.trim() });
+    if (rest.length) {
+      blocks.push({ kind: "button", label: BUTTON_LABEL, href: i.href });
       buttonDone = true;
-    } else {
-      const [before, ...rest] = p.split("{button}");
-      if (before.trim()) blocks.push({ kind: "p", text: before.trim() });
-      if (rest.length) {
-        blocks.push({ kind: "button", label: BUTTON_LABEL, href: i.href });
-        buttonDone = true;
-        const after = rest.join(" ").trim();
-        if (after) blocks.push({ kind: "p", text: after });
-      }
+      const after = rest.join(" ").trim();
+      if (after) blocks.push({ kind: "p", text: after });
     }
-    if (n === cardAfter) techNames.slice(0, 2).forEach((t) => blocks.push(personFor(t)));
+    if (n === photoAfter) blocks.push(photo);
   });
   // Someone deleted {button} from the words: the email is pointless without it.
   if (!buttonDone) blocks.push({ kind: "button", label: BUTTON_LABEL, href: i.href });
 
-  const signer = SIGNERS[s.signer];
-  const stock = reviewHero(i.jobType);
-  const hero = i.photo ? { src: i.photo, alt: `Your ${values.job}, photographed by ${values.tech} on the day`, fallback: stock.src } : stock;
-  const mail: PremiumEmail = { ...ctx, preheader: `How did ${values.tech} go? A minute on Google helps the next family find us.`, hero, blocks, signer };
-  return { subject, text: premiumText(mail), html: premiumHtml(mail) };
+  const mail: LetterEmail = {
+    base: ctx.base, footer: ctx.footer, blocks, signer: SIGNERS[s.signer],
+    preheader: `How did ${values.tech} go? A minute on Google helps the next family find us.`,
+    // The words end "Thanks again," already.
+    signoff: /\n\s*(thanks|cheers|regards|kind regards)[^\n]*,?\s*$/i.test(s.body.trim()) || /^(thanks|cheers)/i.test(paras[paras.length - 1] ?? "") ? null : "Cheers,",
+  };
+  return { subject, text: letterText(mail), html: letterHtml(mail) };
 }
