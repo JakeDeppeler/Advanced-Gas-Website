@@ -14,6 +14,8 @@ export type AskReply = {
    * with the phone number first.
    */
   kind: "answer" | "unsure" | "emergency";
+  /** The site's own question the answer was matched to, in the no-model mode. */
+  about?: string;
   /** Who wrote it: Claude from the site's content, or the site's own FAQ text. Never a person. */
   by: "ai" | "site";
 };

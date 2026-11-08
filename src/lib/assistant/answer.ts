@@ -247,6 +247,8 @@ export function rank(question: string, context = ""): Match[] {
   const qw = words(question);
   const cw = words(context).filter((w) => !qw.includes(w));
   const total = qw.reduce((s, w) => s + weight(idf, w), 0) || 1;
+  const nq = normalise(question);
+  const general = !SYSTEM_WORDS.some(([, re]) => re.test(nq));
   const out: Match[] = [];
   for (const r of rows) {
     let got = 0;
@@ -264,7 +266,10 @@ export function rank(question: string, context = ""): Match[] {
       // The homepage FAQ is the general version of questions every system's
       // FAQ also asks (the warranty, how long an install takes). A question
       // naming a system gets that system's answer through its tags anyway.
-      if (r.e.id.startsWith("home.")) score *= 1.25;
+      // The homepage FAQ is the general version of questions every system's
+      // FAQ also asks (the warranty, how long an install takes), so it wins
+      // a question that names no system.
+      if (general && r.e.id.startsWith("home.")) score *= 1.25;
       out.push({ entry: r.e, score, coverage: got / total });
     }
   }
@@ -281,6 +286,20 @@ export function unsure(): AskReply {
   return reply(
     `I'm not sure about that one from what's on our site, and I'd rather not guess. The team can answer it: tap "Talk to the team", or call ${site.phone}.`,
     undefined,
+    "unsure",
+  );
+}
+
+/**
+ * "How soon can you come?" The chat can't see the booking diary, and a
+ * matched FAQ that happens to say "same day" would read as a promise.
+ */
+const WHEN = /\b(?:how soon|how quickly|when can (?:you|someone|somebody)|soonest|available|availability|today|tomorrow|this week|next week|book (?:in|a|me)|booking|appointment)\b/;
+
+export function whenAnswer(): AskReply {
+  return reply(
+    `I can't see the booking diary from here, so I won't guess a day. The team books jobs: tap "Talk to the team" or call ${site.phone}. If it's an emergency (gas leak, no hot water), call now: it's answered 24/7.`,
+    { href: "/quote", label: "Request a quote or booking" },
     "unsure",
   );
 }
@@ -302,6 +321,8 @@ export function localAnswer(question: string, history: AskTurn[] = []): AskReply
   const rebate = REBATE_Q.test(t);
   if (PRICE.test(t) && !rebate && !RUNNING.test(t)) return priceAnswer();
 
+  if (WHEN.test(t)) return whenAnswer();
+
   const area = suburbAnswer(q);
   if (area) return area;
   const brand = brandAnswer(q);
@@ -316,9 +337,12 @@ export function localAnswer(question: string, history: AskTurn[] = []): AskReply
   // A question about the rebate is best answered with the amount the site
   // states, when an answer nearly as close carries it.
   if (rebate && best && !/\$\d/.test(best.entry.a)) {
-    best = ranked.slice(0, 5).find((m) => /rebate/i.test(m.entry.q) && /\$\d/.test(m.entry.a)) ?? best;
+    best = ranked.find((m) => m.coverage >= FLOOR.coverage && /rebate/i.test(m.entry.q) && /\$\d/.test(m.entry.a)) ?? best;
   }
   if (!best || best.coverage < FLOOR.coverage || best.score < FLOOR.score) return unsure();
   const e = best.entry;
-  return reply(e.a, e.href ? { href: e.href, label: e.label ?? "Read more" } : undefined);
+  // The site question it matched goes with it, so a visitor can see at a
+  // glance whether it answers what they asked, and an answer that opens
+  // "Yes, on common models" has the question it says yes to.
+  return { ...reply(e.a, e.href ? { href: e.href, label: e.label ?? "Read more" } : undefined), about: e.q };
 }

@@ -63,7 +63,8 @@ const CASES: Case[] = [
   { q: "is there a call out fee?", kind: "answer", has: /free site check/i },
   { q: "how much hot water do I need for 4 people", has: /./ },
   { q: "do you do commercial work", has: /./ },
-  { q: "how soon can you come out", has: /./ },
+  { q: "how soon can you come out", kind: "unsure", has: /booking diary/ },
+  { q: "can someone come tomorrow to service my split", kind: "unsure" },
   { q: "can you unblock my drain", has: /./ },
   { q: "what's a 6 star gas heater", has: /./ },
   { q: "do you do gas fitting for a new cooktop", has: /./ },
@@ -83,7 +84,7 @@ for (const c of CASES) {
   if (figures.length) problems.push(`price ${figures.join(",")}`);
   if (problems.length) bad++;
   const text = all ? r.text : r.text.length > 150 ? `${r.text.slice(0, 147)}…` : r.text;
-  rows.push(`${problems.length ? "FAIL" : "ok  "} [${r.kind}] ${c.q}\n       → ${text}${r.link ? `  (${r.link.href})` : ""}${problems.length ? `\n       ✗ ${problems.join("; ")}` : ""}`);
+  rows.push(`${problems.length ? "FAIL" : "ok  "} [${r.kind}] ${c.q}${r.about ? `\n       ≈ ${r.about}` : ""}\n       → ${text}${r.link ? `  (${r.link.href})` : ""}${problems.length ? `\n       ✗ ${problems.join("; ")}` : ""}`);
 }
 console.log(rows.join("\n"));
 
