@@ -475,16 +475,33 @@ function AddStock({ po, suppliers }: { po?: PoWithLines; suppliers?: Supplier[] 
     return () => { live = false; clearTimeout(t); };
   }, [text, open, picked]);
 
-  if (!open) {
-    return (
-      <div className="pt-nw__addstock">
-        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>+ Add stock</button>
-      </div>
-    );
-  }
+  // A pop-up rather than a panel that pushed the page down (Jake, 8 Nov): Escape closes it, and the page behind doesn't scroll.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [open]);
+
+  const button = (
+    <div className="pt-nw__addstock">
+      <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>+ Add stock</button>
+    </div>
+  );
+  if (!open) return button;
   const item: StockPick | null = picked ?? (text.trim() ? { sku_id: null, name: text.trim(), model: null, part: null, cost: null, kind: null } : null);
   const reset = () => { setPicked(null); setText(""); setN("1"); setFound([]); };
+  const close = () => { reset(); setOpen(false); };
   return (
+    <>
+    {button}
+    <div className="rs-pop" role="presentation" onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
+    <div className="rs-popbox pt-nw__stockpop" role="dialog" aria-modal="true" aria-labelledby="nw-stock-h">
+    <div className="rs-pophead">
+      <span><b id="nw-stock-h">Add stock</b><span>{po ? "Goes on this order." : "Goes on the supplier's order you pick."} Search the pricebook, or type what you need.</span></span>
+      <button type="button" className="rs-x" aria-label="Close" onClick={close}>×</button>
+    </div>
     <div className="pt-nw__addstock is-open">
       {suppliers && (
         <label className="pt-nw__testlbl">
@@ -523,7 +540,6 @@ function AddStock({ po, suppliers }: { po?: PoWithLines; suppliers?: Supplier[] 
           })}>
           {busy ? "Adding…" : "Add"}
         </button>
-        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => { reset(); setOpen(false); }}>Close</button>
       </div>
       {!picked && found.length > 0 && (
         <ul className="pt-nw__found" role="listbox" aria-label="Pricebook matches">
@@ -542,6 +558,10 @@ function AddStock({ po, suppliers }: { po?: PoWithLines; suppliers?: Supplier[] 
       )}
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
     </div>
+    <div className="rs-popfoot"><button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={close}>Done</button></div>
+    </div>
+    </div>
+    </>
   );
 }
 

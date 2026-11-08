@@ -1,6 +1,8 @@
 import "server-only";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { sbSelect } from "@/lib/dashboard/db";
+import { brandOf, categoryOf, roundPrice, ruleFor, type MarkupRules } from "./markupRules";
 
 // A set of equipment price changes worked out beforehand (each brand's markup
 // on its cost ex GST) and saved, so it can be looked over on Our prices before
@@ -83,4 +85,41 @@ export async function applyPriceChanges(ids: number[]): Promise<{ ok: boolean; e
   for (const r of results) fresh.done[String(r.id)] = { at, ok: r.ok, ...(r.detail ? { detail: r.detail } : {}) };
   await saveSettings(PLAN_KEY, fresh);
   return { ok: true, results };
+}
+
+/* ------------------------------------------------- working out a new plan */
+
+
+type PbRow = { id: number; name: string | null; displayName: string | null; manufacturer: string | null; cost: string | null; price: string | null };
+
+/**
+ * Every active equipment item priced from the rules, against the synced copy
+ * of the pricebook. Only rises are planned: a markup set lower than an item
+ * already sells at leaves it where it is, the way every change so far has
+ * worked, so a rounding or a lighter brand rate never cuts a price without
+ * someone choosing to. A corrected cost is planned even where the price
+ * stays, so the cost still gets fixed.
+ */
+export async function buildPricePlan(rules: MarkupRules): Promise<PricePlan> {
+  const rows = await sbSelect<PbRow>("st_pricebook_equipment",
+    "select=id,name,manufacturer,displayName:raw->>displayName,cost:raw->>cost,price:raw->>price&active=is.true&limit=2000");
+  const changes: PriceChange[] = [];
+  for (const r of rows) {
+    const name = (r.displayName || r.name || "").replace(/\s+/g, " ").trim();
+    const was = Number(r.price);
+    const fix = rules.costFix[String(r.id)];
+    const cost = fix ?? Number(r.cost);
+    if (!name || !(cost > 0) || !Number.isFinite(was)) continue;
+    const brand = brandOf(name, r.manufacturer);
+    const { markup, from } = ruleFor(rules, brand, categoryOf(name));
+    if (markup == null) continue;
+    const price = Math.max(was, roundPrice(cost * (1 + markup / 100), rules.roundTo, rules.roundMode));
+    const costChanges = fix != null && Math.abs(Number(r.cost) - fix) >= 0.005;
+    if (price === was && !costChanges) continue;
+    changes.push({ id: Number(r.id), name, group: from, target: markup, cost, was, price, ...(costChanges ? { setCost: fix } : {}) });
+  }
+  changes.sort((a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name));
+  const plan: PricePlan = { title: `markups on cost ex GST, to the ${rules.roundMode === "up" ? "next" : "nearest"} $${rules.roundTo}`, made: new Date().toISOString(), changes, done: {} };
+  await saveSettings(PLAN_KEY, plan);
+  return plan;
 }
