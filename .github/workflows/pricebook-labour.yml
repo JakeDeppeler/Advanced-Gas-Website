@@ -94,7 +94,7 @@ jobs:
               echo
               echo "| Template | Hours | Labour | Electrical | Materials | Add-ons offered | Lines taken off | Before | After |"
               echo "|---|---|---|---|---|---|---|---|---|"
-              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-on" else (.header.labour|m) end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")|e) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
+              jq -r "${JQ_DEFS}"'.templates[] | "| \(.name|e) | \(if .kind == "multi" then "picked per job" else (.header.hours|tostring) end) | \(if .kind == "multi" then "add-on" else (.header.labour|m) end)\(if .header.pricebook != null and .header.pricebook != .header.labour and .kind != "multi" then " (pricebook " + (.header.pricebook|m) + ")" else "" end) | \(.electrical|m) | \(.materials|m) (\(.materialLines)) | \([.addOns[] | (.name|sub("Multi Head Labour "; "")) + " " + (.price|m)] | join(", ")|e) | \(.removed|join(", ")|e) | \(.before|m) | \(.after|m) |"' out.json
               if [ "$(jq -r '.skipped // [] | length' out.json)" != "0" ]; then
                 echo; echo "| Skipped | Why |"; echo "|---|---|"
                 jq -r "${JQ_DEFS}"'.skipped[] | "| \(.name|e) | \(.reason|e) |"' out.json
@@ -106,6 +106,10 @@ jobs:
               if [ "$(jq -r '.failed | length' out.json)" != "0" ]; then
                 echo; echo "| Failed | Error |"; echo "|---|---|"
                 jq -r "${JQ_DEFS}"'.failed[] | "| \(.name|e) | \(.error|e) |"' out.json
+              fi
+              if [ "$(jq -r '.notes // [] | length' out.json)" != "0" ]; then
+                echo; echo "| Saved, with a note | Note |"; echo "|---|---|"
+                jq -r "${JQ_DEFS}"'.notes[] | "| \(.name|e) | \(.note|e) |"' out.json
               fi
             fi
           } >> "$GITHUB_STEP_SUMMARY"

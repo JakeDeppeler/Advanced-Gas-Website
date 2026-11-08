@@ -43,7 +43,8 @@ const serviceRow = (s: Raw): ServiceRow => ({
   pricing: stPricing(s) || undefined,
 });
 
-export type LabourResult = { applied: number; verified: number; failed: { id: number; name: string; error: string }[]; remaining: number };
+/** `notes`: saved and verified, with something worth saying (a price ServiceTitan set from the pricebook). */
+export type LabourResult = { applied: number; verified: number; failed: { id: number; name: string; error: string }[]; remaining: number; notes?: { id: number; name: string; note: string }[] };
 
 // --- services ----------------------------------------------------------------------
 
@@ -169,7 +170,7 @@ async function catalogue(): Promise<Catalogue> {
     const code = normCode(s.code);
     const hours = Number(s.hours) || 0;
     const name = String(s.displayName ?? s.code ?? "").trim();
-    service.set(Number(s.id), { code, hours, name });
+    service.set(Number(s.id), { code, hours, name, price: s.price == null ? null : Number(s.price) });
     const m = /^AC-SPLIT-MULTI-(\d)$/.exec(code);
     if (m) multiHead.set(Number(m[1]), { skuId: Number(s.id), hours, name });
   }
@@ -210,35 +211,55 @@ export async function planTemplatePrices(): Promise<{ rates: { partDay: number |
 }
 
 export async function applyTemplatePrices(plans: TemplatePlan[], limit: number): Promise<LabourResult> {
-  const out: LabourResult = { applied: 0, verified: 0, failed: [], remaining: 0 };
+  const out: LabourResult = { applied: 0, verified: 0, failed: [], remaining: 0, notes: [] };
   const batch = plans.slice(0, limit);
   out.remaining = plans.length - batch.length;
   for (const p of batch) {
     const path = stTenantPath("sales", `estimate-templates/${p.id}`);
     try {
+      const oldIds = new Set(p.items.map((i) => i.id).filter((id) => id != null));
       await stSend("PATCH", path, { items: templatePatchItems(p.items) });
       out.applied++;
-      // Read back: the header's price, every member in its group, and the total.
-      const back = await stFetch<Template>(path);
+      let back = await stFetch<Template>(path);
       if (p.swap) {
-        const swapped = back.items.some((i) => i.skuId === p.swap!.skuId) && !back.items.some((i) => i.skuType === "Service" && (i.skuName ?? "").trim() === p.swap!.from);
-        if (swapped) out.verified++;
-        else out.failed.push({ id: p.id, name: p.name, error: `the ${p.swap.from} line wasn't swapped for ${p.swap.to}` });
+        const s = p.swap;
+        const line = back.items.find((i) => i.skuId === s.skuId && i.id != null && !oldIds.has(i.id));
+        const gone = !back.items.some((i) => i.skuType === "Service" && (i.skuName ?? "").trim() === s.from);
+        if (!line || !gone) { out.failed.push({ id: p.id, name: p.name, error: `the ${s.from} line wasn't swapped for ${s.to}` }); continue; }
+        // Now the new line has an id: put the group back under it.
+        if (s.regroup.length) {
+          const keep = new Set(s.regroup);
+          const items = back.items.map((i) => (i.id === line.id ? { ...i, itemGroupName: s.groupName }
+            : i.id != null && keep.has(i.id) ? { ...i, itemGroupParentId: line.id } : i));
+          await stSend("PATCH", path, { items: templatePatchItems(items) });
+          back = await stFetch<Template>(path);
+          const n = back.items.filter((i) => i.itemGroupParentId === line.id).length;
+          if (n !== s.regroup.length) { out.failed.push({ id: p.id, name: p.name, error: `swapped to ${s.to}, but ${n} of ${s.regroup.length} lines went back in its group` }); continue; }
+        }
+        out.verified++;
         continue;
       }
+      // Read back: every member in the group and every add-on. Prices are
+      // ServiceTitan's to set from the pricebook, so a different one is said,
+      // not failed: the services run is what moves it.
       const head = back.items.find((i) => i.id === p.header.itemId);
       const inGroup = back.items.filter((i) => i.itemGroupParentId === p.header.itemId).length;
       const want = p.items.filter((i) => i.itemGroupParentId === p.header.itemId).length;
       const addOnSkus = new Set(p.addOns.map((a) => a.skuId));
       const addOnsBack = back.items.filter((i) => i.isAddOn && addOnSkus.has(i.skuId)).length;
       const problems = [
-        addOnsBack !== p.addOns.length ? `${addOnsBack} of ${p.addOns.length} labour add-ons landed` : "",
-        !head ? "the installation line is gone" : Math.abs(Number(head.unitPrice) - p.header.labour) >= 0.005 ? `labour kept at $${head.unitPrice}, not $${p.header.labour}` : "",
+        addOnsBack !== p.addOns.length ? `${addOnsBack} of ${p.addOns.length} add-ons landed` : "",
+        !head ? "the installation line is gone" : "",
         inGroup !== want ? `${inGroup} of ${want} lines landed in the installation group` : "",
-        back.totalPrice != null && Math.abs(Number(back.totalPrice) - p.after) >= 0.5 ? `total is $${back.totalPrice}, expected $${p.after}` : "",
       ].filter(Boolean);
-      if (problems.length) out.failed.push({ id: p.id, name: p.name, error: problems.join("; ") });
-      else out.verified++;
+      if (problems.length) { out.failed.push({ id: p.id, name: p.name, error: problems.join("; ") }); continue; }
+      out.verified++;
+      const sent = new Map(p.items.filter((i) => i.id != null).map((i) => [i.id, i]));
+      const repriced = back.items.flatMap((i) => {
+        const was = sent.get(i.id);
+        return was && Math.abs(Number(was.unitPrice) - Number(i.unitPrice)) >= 0.005 ? [`${(i.skuName ?? "").trim()} $${i.unitPrice} (sent $${was.unitPrice})`] : [];
+      });
+      if (repriced.length) out.notes!.push({ id: p.id, name: p.name, note: `priced from the pricebook: ${repriced.join(", ")}` });
     } catch (e) {
       out.failed.push({ id: p.id, name: p.name, error: (e as Error).message.slice(0, 300) });
     }

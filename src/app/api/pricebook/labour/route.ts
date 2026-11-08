@@ -76,7 +76,7 @@ export async function GET(req: Request) {
     }
     const result = await applyTemplatePrices(plan.plans, limit);
     const runId = await recordLabourRun("templates", "apply", summary, rows, result);
-    return NextResponse.json({ ok: result.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, templates: rows.slice(0, limit), ...result });
+    return NextResponse.json({ ok: result.failed.length === 0, what, mode: "apply", runId, durationMs: Date.now() - started, summary, templates: rows.slice(0, limit), skipped: plan.skipped, ...result });
   } catch (e) {
     return NextResponse.json({ ok: false, what, error: (e as Error).message.slice(0, 500) }, { status: 502 });
   }

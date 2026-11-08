@@ -8,7 +8,7 @@
  */
 import {
   crewFor, headCount, planRefrigerant, planServices, planTemplate, templatePatchItems, templateTotal,
-  type Catalogue, type Template, type TemplateItem,
+  type Catalogue, type Template, type TemplatePlan, type TemplateItem,
 } from "../src/lib/pricebook/labour";
 
 let bad = 0;
@@ -227,6 +227,17 @@ const wombat: Template = { id: 10, name: "Brivis Wombat 3 Star 15kW Ducted Gas H
 const pw = planTemplate(wombat, catH, tr);
 ok("an internal heater on the external service is swapped to the internal one", !("reason" in pw) && pw.swap?.skuId === HEAT.INT && pw.items.some((i) => i.skuId === HEAT.INT && i.id === null && i.unitPrice === 1050) && !pw.items.some((i) => i.skuId === HEAT.EXT), pw);
 ok("the swap does nothing else: no group yet", !("reason" in pw) && !pw.items.some((i) => i.itemGroupParentId));
+// As the office has them: the external line is the root of a group. The swap
+// lets the group go (a new line has no id yet) and names who goes back under it.
+const wombatG: Template = { id: 11, name: "Brivis Wombat 3 Star 20kW Ducted Gas Heater", items: [
+  it("Equipment", 221, "Brivis Classic 2P Wombat 20NG", 1700),
+  it("Service", HEAT.EXT, "Gas Ducted Heater - External", 1190, { id: 501, itemGroupName: "Heater install" }),
+  it("Material", M.PVC, "Flue", 0, { id: 502, itemGroupParentId: 501 }),
+  it("Service", S.BPC, "BPC Compliance Certificate", 65, { id: 503, itemGroupParentId: 501 }),
+] };
+const pwg = planTemplate(wombatG, catH, tr);
+ok("a grouped heater: nothing left pointing at the old line", !("reason" in pwg) && !pwg.items.some((i) => i.itemGroupParentId === 501), pwg);
+ok("and the group's members are named to go back under the new one, with its name", !("reason" in pwg) && pwg.swap?.regroup.join() === "502,503" && pwg.swap.groupName === "Heater install");
 const pwNo = planTemplate(wombat, { ...catH, internalHeater: null }, tr);
 ok("no internal service yet: skipped, saying run services first", "reason" in pwNo && /run services first/.test(pwNo.reason));
 const wombat2: Template = { ...wombat, items: wombat.items.map((i) => (i.skuId === HEAT.EXT ? { ...i, skuId: HEAT.INT, skuName: "Gas Ducted Heater - Internal" } : i)) };
@@ -237,9 +248,36 @@ ok("once swapped, the next run groups it like any other", !("reason" in pw2) && 
 const cook: Template = { id: 6, name: "Gas Cooktop", items: [it("Service", 400, "Something unlisted", 100)] };
 const skipCook = planTemplate(cook, cat, tr);
 ok("a template with no listed install line isn't touched", "reason" in skipCook && /not an aircon/.test(skipCook.reason));
-const rebuilt: Template = { ...k35, items: plan(k35).items };
+const rebuilt: Template = { ...k35, items: plan(k35).items.map((i) => (i.id == null ? { ...i, id: nextId++ } : i)) };
 const skipAgain = planTemplate(rebuilt, cat, tr);
-ok("a template already grouped is left for the office", "reason" in skipAgain && /already/.test(skipAgain.reason));
+ok("a template already rebuilt isn't written again", "reason" in skipAgain && /already rebuilt/.test(skipAgain.reason), skipAgain);
+// ServiceTitan shows the pricebook's price on the header whatever is sent: that alone isn't a change.
+const catP: Catalogue = { ...cat, service: new Map([...cat.service].map(([k, v]) => [k, k === S.RTW ? { ...v, price: 1870 } : v])) };
+const atPricebook: Template = { ...rebuilt, items: rebuilt.items.map((i) => (i.skuId === S.RTW ? { ...i, unitPrice: 1870 } : i)) };
+const skipPb = planTemplate(atPricebook, catP, tr);
+ok("a header at the pricebook's price isn't a change on its own", "reason" in skipPb && /already rebuilt/.test(skipPb.reason), skipPb);
+const pPb = planTemplate(k35, catP, tr);
+ok("the plan says what the pricebook will show on the header", !("reason" in pPb) && pPb.header.pricebook === 1870 && pPb.header.labour === 1400);
+
+// Grouped by the office: what's in the group stays, loose lines join it, the
+// extras are added. Nothing is skipped for having a group.
+const k25: Template = { id: 12, name: "Kaden 2.6kW Split System - Back to Back", items: [
+  it("Equipment", E.KADEN35, "Kaden KSI 2.5kw V3 Split Air Conditioner", 850),
+  it("Service", S.RTW, "Split System Installation - Wall Bracket", 1670, { id: 601, itemGroupName: "Installation" }),
+  it("Equipment", 230, "Wall controller", 0, { id: 602, itemGroupParentId: 601 }),
+  it("Material", M.COIL, "Ardent Copper Pair Coil", 0, { id: 603, itemGroupParentId: 601 }),
+  it("Service", S.ELEC, "Split System - Electrical Connection", 400, { id: 604 }),
+  it("Material", M.BRACKET, "Rodigas Wall Bracket 420mm", 0, { id: 605 }),
+] };
+const pk = planTemplate(k25, cat, tr);
+ok("an office-grouped template is rebuilt, not skipped", !("reason" in pk), pk);
+if (!("reason" in pk)) {
+  const g = group(pk.items, 601).map((i) => i.id).sort().join();
+  ok("its group keeps what the office put in, and takes the loose electrical and bracket", g === "602,603,604,605", g);
+  ok("and it gets the split extras", pk.addOns.length === 3);
+}
+const k25Again: Template = { ...k25, items: (pk as TemplatePlan).items.map((i) => (i.id == null ? { ...i, id: nextId++ } : i)) };
+ok("and the next run leaves it", "reason" in planTemplate(k25Again, cat, tr));
 
 console.log(bad ? `\n${bad} failed` : "\nall passed");
 process.exit(bad ? 1 : 0);
