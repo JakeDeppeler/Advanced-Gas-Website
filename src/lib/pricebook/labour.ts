@@ -206,7 +206,8 @@ export type Template = { id: number; name: string; active?: boolean; totalPrice?
 
 /** What the rebuild needs from the pricebook, by sku id. */
 export type Catalogue = {
-  service: Map<number, { code: string; hours: number; name?: string }>;
+  /** `price` is the pricebook's own: a template line on the service shows it, whatever the template sends. */
+  service: Map<number, { code: string; hours: number; name?: string; price?: number | null }>;
   materialPrice: Map<number, number>;
   /** "Multi Head Labour (n head)" by n: its sku and hours. */
   multiHead: Map<number, { skuId: number; hours: number; name: string }>;
@@ -232,8 +233,13 @@ export type TemplatePlan = {
    * line has no id for the rest of the template to group under until it's
    * saved. The next run groups it like any other.
    */
-  swap?: { from: string; to: string; skuId: number };
-  header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number };
+  swap?: { from: string; to: string; skuId: number; groupName: string; regroup: number[] };
+  /**
+   * `pricebook` is what ServiceTitan will show on the line: it prices template
+   * lines from the pricebook service, so `labour` only shows once the services
+   * run has set the service to it.
+   */
+  header: { itemId: number; name: string; hours: number; rate: number; labour: number; heads?: number; pricebook?: number | null };
   electrical: number;
   materials: number;
   materialLines: number;
@@ -274,21 +280,22 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
     const int = cat.internalHeater;
     if (!int) return { id: t.id, name: t.name, reason: "internal heater on the external service: run services first, which creates the internal one" };
     const price = cents(int.hours * rates.partDay);
+    // The old line is usually the root of the office's group, and ServiceTitan
+    // refuses a save whose members point at an item no longer in it. A new
+    // line has no id to point at until it's saved, so its members are let go
+    // here and put back under it straight after (applyTemplatePrices).
+    const regroup = t.items.filter((i) => i.itemGroupParentId === headerId && i.id != null).map((i) => i.id as number);
     const items = t.items.map((i) => (i === headerItem
-      ? { id: null, skuId: int.skuId, skuType: "Service" as const, skuName: int.name, description: SERVICE_COPY["GAS-DUCT-INT"] ?? null, quantity: 1, unitPrice: price, isAddOn: false, itemGroupName: headerItem.itemGroupName ?? null }
-      : i));
+      ? { id: null, skuId: int.skuId, skuType: "Service" as const, skuName: int.name, description: SERVICE_COPY["GAS-DUCT-INT"] ?? null, quantity: 1, unitPrice: price, isAddOn: false }
+      : i.itemGroupParentId === headerId ? { ...i, itemGroupParentId: null } : i));
     return {
-      id: t.id, name: t.name.trim(), kind: "day", swap: { from: (headerItem.skuName ?? "").trim(), to: int.name, skuId: int.skuId },
-      header: { itemId: -1, name: int.name, hours: int.hours, rate: rates.partDay, labour: price },
+      id: t.id, name: t.name.trim(), kind: "day",
+      swap: { from: (headerItem.skuName ?? "").trim(), to: int.name, skuId: int.skuId, groupName: (headerItem.itemGroupName ?? int.name).trim(), regroup },
+      header: { itemId: -1, name: int.name, hours: int.hours, rate: rates.partDay, labour: price, pricebook: cat.service.get(int.skuId)?.price ?? null },
       electrical: 0, materials: 0, materialLines: 0, addOns: [], removed: [`${(headerItem.skuName ?? "").trim()} $${headerItem.unitPrice}`],
       before: templateTotal(t.items), after: templateTotal(items), items,
     };
   }
-  if (t.items.some((i) => i.itemGroupParentId === headerId)) {
-    // A template the office already grouped by hand isn't reshuffled under them.
-    return { id: t.id, name: t.name, reason: "already has an installation group" };
-  }
-
   let hours = 0;
   if (kind === "split" || kind === "day") {
     hours = cat.service.get(headerItem.skuId)?.hours ?? 0;
@@ -327,6 +334,13 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
       if (sawBpc) { removed.push(`second ${name} $${i.unitPrice}`); continue; }
       sawBpc = true;
     }
+    // Most templates were grouped by the office already: what's in the group
+    // stays in it, whatever it is, and only loose lines are brought in.
+    const inGroup = i.itemGroupParentId === headerId;
+    // A line other lines are grouped under keeps its own group.
+    const isRoot = i.id != null && t.items.some((x) => x.itemGroupParentId === i.id);
+    if (isRoot && !inGroup) { out.push(i); continue; }
+    if (inGroup && !(i.skuType === "Material" || (i.skuType === "Service" && ELECTRICAL.has(c)))) { members.push(i); continue; }
     if (i.skuType === "Service" && ELECTRICAL.has(c)) {
       electrical = cents(electrical + i.quantity * i.unitPrice);
       members.push({ ...i, parentItemId: null, itemGroupName: null });
@@ -384,9 +398,18 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
   // then the add-ons the office picks from.
   const items = out.flatMap((i) => (i === HEADER_SLOT ? [header, ...grouped, ...addOnItems] : [i]));
 
+  // Nothing to write: the same lines, groups and add-ons. The header's price
+  // doesn't count when it already shows the pricebook's, because that's what
+  // ServiceTitan puts there however often it's sent.
+  const pricebook = cat.service.get(headerItem.skuId)?.price ?? null;
+  const ownsHeader = pricebook != null && Math.abs(Number(headerItem.unitPrice) - pricebook) < 0.005;
+  const shape = (xs: TemplateItem[]) => JSON.stringify(xs.map((i) => [i.id ?? null, i.skuId, i.isAddOn, i.itemGroupParentId ?? null, i.parentItemId ?? null,
+    Number(i.quantity), i.id === headerId && ownsHeader ? "" : cents(Number(i.unitPrice))]));
+  if (shape(items) === shape(t.items)) return { id: t.id, name: t.name, reason: "already rebuilt" };
+
   return {
     id: t.id, name: t.name.trim(), kind,
-    header: { itemId: headerId, name: groupName, hours, rate, labour, heads: kind === "multi" ? headCount(t.items) : undefined },
+    header: { itemId: headerId, name: groupName, hours, rate, labour, heads: kind === "multi" ? headCount(t.items) : undefined, pricebook },
     electrical, materials, materialLines, addOns, removed,
     before: templateTotal(t.items), after: templateTotal(items),
     items,
