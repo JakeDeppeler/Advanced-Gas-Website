@@ -12,6 +12,7 @@ import { ProductLayout } from "./product/layout";
 import { learnFor, BOOKING_STEPS } from "@/lib/homepage/learn";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
+import type { Doc } from "@/lib/homepage/docs";
 
 /** A catalogue model behind this option, resolved on the server from lib/brands.ts. */
 export type PModel = {
@@ -32,6 +33,8 @@ export type PBrand = {
   /** For the brand section: a few lines about who makes it, from lib/brands.ts. */
   tagline?: string; sub?: string; origin?: string; photo?: string; photoAlt?: string; photoScene?: boolean;
   features?: string[]; facts?: { v: string; k: string }[];
+  /** The brand's warranty line from lib/brands.ts, for the Resources section. */
+  warranty?: string;
 };
 
 /**
@@ -39,10 +42,13 @@ export type PBrand = {
  * indexed. The answers ride along in the query string (?size=1&floor=0…);
  * the page renders without them too, for anyone who lands here from search.
  */
-export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand, tierBadges }: {
+export function ProductView({ system, tier: tierSlug, reviews, rating, count, models, brand, tierBadges, docs, preview }: {
   system: string; tier: string; reviews: Review[]; rating: string; count: number; models: PModel[]; brand: PBrand | null;
   /** Badges the option states itself (Wi-Fi in its feature list), for options with no catalogue model. */
   tierBadges: Badge[];
+  /** PDFs we host for this option (lib/homepage/docs.ts). */
+  docs: Doc[];
+  preview: boolean;
 }) {
   const ref = findSystem(system)!;
   const { cat, sys } = ref;
@@ -112,6 +118,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   };
   const roomIdx = model ? sizeOfChip(model.chip) : ans.size ?? null;
 
+  const feat = keyFeatures(model, optionLines);
   const v: PV = {
     cat, sys, t, ti, models, model, mi, size, ans,
     known: typeof t.price === "number", hp: isHeatPump(sys), newBuildHp: isNewBuildHeatPump(sys, ans),
@@ -124,8 +131,12 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
     others: sys.tiers.map((x, i) => [x, i] as const).filter(([, i]) => i !== ti),
     learn: learnFor(sys.slug, t.slug), steps: BOOKING_STEPS(installTimeOf(sys)),
     optionLines,
-    whyTitle: model?.why?.length ? "Why we install it" : model?.features?.length ? "Features" : "What's included",
-    whyLines: model?.why?.length ? model.why : model?.features?.length ? model.features : included,
+    // The features have their own section now, so this list is the why (unless
+    // the features had to borrow it), or what's included.
+    whyTitle: model?.why?.length && feat.src !== "why" ? "Why we install it" : "What's included",
+    whyLines: model?.why?.length && feat.src !== "why" ? model.why : included,
+    features: feat.items,
+    docs, preview,
     take: model?.take ?? `${sys.sub}. ${optionLines.join(". ")}.`,
     // Figures only: the band sets each one large on a single line, so a value
     // written as a sentence ("16 kW · 18 kW · 20 kW (three larger model steps)")
@@ -178,4 +189,40 @@ function modelRows(m: PModel, catLabel: string, sysLabel: string, install: strin
   if (!has(/warranty/i)) rows.push({ k: "Warranty", v: "Manufacturer warranty on your quote + 6 years on our workmanship" });
   rows.push({ k: "Compliance certificate", v: "Emailed within 24 hours of install" });
   return rows;
+}
+
+/** "Low-profile cabinet, about 30% lower than the Contour" → a title, and the rest as its line. */
+function splitFeature(f: string): { h: string; p?: string } {
+  const m = f.match(/^(.{6,60}?)(?::\s+|\s+[–—-]\s+|,\s+)(.+)$/);
+  return m ? { h: m[1], p: m[2].charAt(0).toUpperCase() + m[2].slice(1) } : { h: f };
+}
+
+/**
+ * The Key features cards. The catalogue's own feature list where it has
+ * three or more, then its "why we install it", then cards written from the
+ * model's published specs, so a model with no feature list (the MSZ-AP
+ * range) still says only what its record states.
+ */
+function keyFeatures(m: PModel | null, optionLines: string[]): { src: "features" | "why" | "specs" | "option"; items: { h: string; p?: string }[] } {
+  if (m?.features && m.features.length >= 3) return { src: "features", items: m.features.map(splitFeature) };
+  if (m?.why && m.why.length >= 3) return { src: "why", items: m.why.map(splitFeature) };
+  if (m) {
+    const get = (re: RegExp) => m.specs.find((x) => re.test(x.label))?.value;
+    const items: { h: string; p?: string }[] = [];
+    const cool = get(/^cooling capacity/i), heat = get(/^heating capacity/i);
+    if (cool && heat) items.push({ h: `${cool} cooling, ${heat} heating`, p: m.room ? `Sized for rooms ${m.room}.` : undefined });
+    const quiet = get(/sound|noise/i);
+    if (quiet) items.push({ h: `As quiet as ${quiet}`, p: "The indoor unit's published sound level on its lowest fan speed." });
+    const star = get(/star rating/i);
+    const n = star?.match(/\d+(?:\.\d+)?/)?.[0];
+    if (n) items.push({ h: `${n}-star energy rating`, p: `Rated ${star}.` });
+    const wifi = get(/wi-?fi/i);
+    if (wifi) items.push({ h: "Phone control", p: wifi });
+    const gas = get(/^refrigerant/i);
+    if (gas) items.push({ h: `${gas} refrigerant`, p: "The refrigerant the system runs on." });
+    const yrs = get(/^warranty/i)?.match(/(\d+)[\s-]*year/i)?.[1];
+    if (yrs) items.push({ h: `${yrs}-year manufacturer warranty`, p: "Plus 6 years on our workmanship." });
+    if (items.length >= 3) return { src: "specs", items };
+  }
+  return { src: "option", items: optionLines.map(splitFeature) };
 }

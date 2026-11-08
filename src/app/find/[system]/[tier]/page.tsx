@@ -8,6 +8,7 @@ import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { allProductParams, findSystem, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
+import { docsFor } from "@/lib/homepage/docs";
 import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
@@ -93,6 +94,7 @@ export default function FindProductPage({ params }: { params: Params }) {
     name: b.name, page: `/brands/${b.slug}`, site: b.resources?.[0],
     tagline: b.tagline, sub: b.heroSub, origin: b.origin, photo: b.photo, photoAlt: b.photoAlt, photoScene: b.photoScene,
     features: b.keyFeatures?.slice(0, 3), facts: b.heroFacts?.slice(0, 3),
+    warranty: b.warranty,
   } : null;
 
   const crumbs = breadcrumbSchema([
@@ -110,6 +112,9 @@ export default function FindProductPage({ params }: { params: Params }) {
       <ProductView
         system={sys.slug} tier={tier.slug} reviews={reviews.slice(0, 3)} rating={RATING_TEXT} count={RATING_SUMMARY.count}
         models={models} brand={brand} tierBadges={badgesFor({}, tier.feats)}
+        docs={docsFor(sys.slug, tier.slug)}
+        // The empty PDF slots show on previews only, so Jake can see where files would go.
+        preview={process.env.VERCEL_ENV !== "production"}
       />
       <Script id="ld-find-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
     </div>

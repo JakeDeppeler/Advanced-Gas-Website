@@ -10,6 +10,7 @@ import { HwSavings } from "../HwSavings";
 import { copFor } from "@/lib/tools/hotWaterSavings";
 import type { Review } from "@/lib/reviews";
 import type { Badge } from "@/lib/homepage/badges";
+import type { Doc } from "@/lib/homepage/docs";
 import type { PModel, PBrand } from "../ProductView";
 
 /**
@@ -39,6 +40,9 @@ export type PV = {
   sizeNote: string; specRows: { k: string; v: string }[]; specNote: string;
   reviews: Review[]; rating: string; count: number; brand: PBrand | null;
   heroRef: React.RefObject<HTMLElement>; pastHero: boolean;
+  /** The Key features cards: the model's catalogue features, or the option's own lines. */
+  features: { h: string; p?: string }[];
+  docs: Doc[]; preview: boolean;
 };
 
 export function Crumbs({ v }: { v: PV }) {

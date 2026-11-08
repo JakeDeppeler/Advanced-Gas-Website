@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type PV, Crumbs, Badges, Price, Finance, BuyButtons, ProsCons, SavingsCalc, isHeatPumpOption, Promise, WhyList, Glance, FitFinder,
+  type PV, Crumbs, ProsCons, SavingsCalc, isHeatPumpOption, WhyList, Glance, FitFinder,
   Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 import { HowItWorks } from "../how/HowItWorks";
 import { ZoneHouse } from "../how/ZoneHouse";
+import { StageHero, KeyFeatures, Resources } from "./stage";
 
 /**
  * A /find product page. Chosen from five trial layouts (commit 4a4b7e6 has
@@ -20,18 +21,20 @@ export function ProductLayout({ v }: { v: PV }) {
   // Ordered to teach: what it is and how it works, its strengths and limits,
   // which size (or which other option), then the details and booking.
   const tabs = [
-    ["overview", "Overview"], ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
+    ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ["overview", "Overview"], ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
     ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []), ...(learn ? [["fit", "Is it right for you?"]] : []),
-    ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
+    ["specs", "Specs"], ["resources", "Resources"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
   return (
     <div className="pxp">
       <Crumbs v={v} />
-      <Hero v={v} />
+      <StageHero v={v} />
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">{tabs.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}</div>
       </nav>
+
+      <KeyFeatures v={v} />
 
       <section className="pxs pxo" id="overview">
         <div className="wrap pxo__in">
@@ -93,6 +96,8 @@ export function ProductLayout({ v }: { v: PV }) {
         </div>
       </section>
 
+      <Resources v={v} />
+
       <BrandBit v={v} />
 
       <section className="pxs pxs--navy" id="booking">
@@ -122,68 +127,6 @@ export function ProductLayout({ v }: { v: PV }) {
     </div>
   );
 }
-
-/**
- * A full-width picture with the name over it, and everything needed to pick
- * and book inside it: the size bar along the bottom and the price card on the
- * right, so nobody has to scroll to change the size. For room-by-room systems
- * the picture follows the size picked.
- */
-function Hero({ v }: { v: PV }) {
-  const { t, room, sys, models, mi, ans } = v;
-  return (
-    <section className={`pxhero${room.studio ? " pxhero--studio" : ""}`} ref={v.heroRef}>
-      <Image key={room.src} src={room.src} alt={room.alt} fill priority sizes="100vw" className="pxhero__bg" style={{ objectPosition: room.pos }} />
-      <span className="pxhero__scrim" aria-hidden="true" />
-      {(room.ours || room.mock) && <span className="pm__cap pxhero__cap">{room.mock ? "Illustration" : "One of our installs"}</span>}
-      <div className="wrap pxhero__in">
-        <div className="pxhero__top">
-          <div className="pxhero__copy">
-            <span className="lk2__eye">{t.brand} · {t.tier} option</span>
-            <h1 className="pxhero__h1">{t.model}</h1>
-            <p className="pxhero__best">{v.model?.bestFor ?? sys.sub}</p>
-            <Badges v={v} cls="bdg--dark" />
-          </div>
-          <div className="pxhero__card">
-            <span className="pxhero__pimg"><Image src={t.img} alt={`${t.brand} ${t.model}`} fill sizes="240px" /></span>
-            <Price v={v} />
-            <Finance v={v} />
-            <BuyButtons v={v} />
-            <Promise />
-          </div>
-        </div>
-
-        <div className="pxhero__bar">
-          <span className="pxhero__barl" id="pm-size">Choose your size</span>
-          <div className="pxhero__sizes" role="group" aria-labelledby="pm-size">
-            {models.length > 0
-              ? models.map((m, i) => {
-                const r = v.roomOf(m.chip);
-                return (
-                  <button key={m.slug} type="button" className={`pxhero__size${i === mi ? " on" : ""}`} onClick={() => v.pickModel(m.slug)} aria-pressed={i === mi}>
-                    <strong>{m.chip}</strong>{r && <small>{shortRoom(r)}</small>}
-                  </button>
-                );
-              })
-              : sys.sizes.map((z, i) => (
-                <button key={z.label} type="button" className={`pxhero__size${i === ans.size ? " on" : ""}`} onClick={() => v.setSize(i)} aria-pressed={i === ans.size}>
-                  <strong>{z.label}</strong>{z.sub && <small>{shortRoom(z.sub)}</small>}
-                </button>
-              ))}
-          </div>
-          {v.modelKeys.length > 0 && (
-            <dl className="pxhero__keys" aria-live="polite">
-              {v.modelKeys.map((k) => <div key={k.label}><dt>{k.label}</dt><dd>{k.value}</dd></div>)}
-            </dl>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** "Main bedroom or small lounge" → "Main bedroom": the first room is enough on a button. */
-const shortRoom = (sub: string) => sub.split(/ or |, /)[0];
 
 /**
  * A little about who makes it, after the product and before booking, with
