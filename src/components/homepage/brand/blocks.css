@@ -1,12 +1,22 @@
 /* The blocks layout for a brand page (BrandBlocks.tsx). Built from the
-   homepage's pieces: white sections with room between them, a navy block
-   where the page needs one thing to stand out, the homepage's photo tiles.
-   White and navy only; the brand's accent (--acc) is the one colour. */
+   homepage's pieces: colour blocks with white space between them and the
+   homepage's photo tiles. The palette is the homepage's own (sky, cream,
+   navy) plus the brand's accent (--acc). */
 
-.ag .bk__sec{padding:clamp(56px,7vw,96px) 0;background:#fff;scroll-margin-top:136px}
-.ag .bk__sec--tight{padding-top:0}
-.ag .bk__sec--line{border-top:1px solid var(--line)}
-.ag .bk__sec--end{padding-top:0}
+/* Each section is a block of colour inside the page gutter, with white
+   space between, the way the homepage sets its "Find your system" box. */
+.ag .bk__sec{padding:clamp(10px,1.2vw,16px) 0;background:#fff;scroll-margin-top:136px}
+.ag .pxt + .bk__sec{padding-top:clamp(28px,3vw,40px)}
+.ag .bk__sec:last-child{padding-bottom:clamp(40px,5vw,72px)}
+.ag .bk__blk{border-radius:12px;padding:clamp(28px,4vw,56px) clamp(20px,4vw,52px)}
+.ag .bk__blk--plain{padding-inline:0}
+.ag .bk__blk--sky{background:var(--skylt)}
+.ag .bk__blk--cream{background:var(--cream)}
+.ag .bk__blk--navy{background:radial-gradient(55% 80% at 100% 0%,color-mix(in srgb,var(--acc) 28%,transparent),transparent 70%),var(--navy);color:#fff}
+.ag .bk__blk--acc{background:var(--acc);color:#fff}
+.ag :is(.bk__blk--navy,.bk__blk--acc) .h2{color:#fff}
+.ag :is(.bk__blk--navy,.bk__blk--acc) .bk__head p,.ag .bk__blk--navy .bk__txt > p{color:rgba(255,255,255,.82)}
+.ag .bk__blk--navy .pp__hl li{color:rgba(255,255,255,.88)}
 .ag .bk__col{display:flex;flex-direction:column;gap:clamp(28px,3vw,40px)}
 .ag .bk__head{display:flex;flex-direction:column;gap:12px;max-width:720px}
 .ag .bk__head p{margin:0;font-size:17px;line-height:1.6;color:var(--ink2)}
@@ -51,8 +61,8 @@
 
 /* How we install */
 .ag .bk__steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.ag .bk__steps li{display:flex;flex-direction:column;gap:8px;padding:24px;border-radius:12px;background:#F5F7FA}
-.ag .bk__n{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:#fff;font-family:var(--disp);font-weight:800;font-size:16px;margin-bottom:6px}
+.ag .bk__steps li{display:flex;flex-direction:column;gap:8px;padding:24px;border-radius:12px;background:#fff}
+.ag .bk__n{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:#fff;font-family:var(--disp);font-weight:800;font-size:16px;margin-bottom:6px}
 .ag .bk__steps h3{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
 .ag .bk__steps p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
 
@@ -61,7 +71,7 @@
 .ag .bk__ph{position:relative;margin:0;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#EEF1F5}
 .ag .bk__ph img{object-fit:cover}
 .ag .bk__ph figcaption{position:absolute;left:12px;bottom:12px;background:rgba(5,10,48,.78);color:#fff;font-size:13px;font-weight:600;border-radius:8px;padding:6px 10px}
-.ag .bk__ph--slot{display:grid;place-items:center;background:#F5F7FA;box-shadow:inset 0 0 0 2px #D9DEE6;border-radius:12px}
+.ag .bk__ph--slot{display:grid;place-items:center;background:var(--skylt);box-shadow:inset 0 0 0 2px #D9DEE6;border-radius:12px}
 .ag .bk__ph--slot span{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
 
 /* Year ten + warranty */
@@ -70,7 +80,7 @@
 .ag .bk__txt > p{margin:0;font-size:17px;line-height:1.7;color:var(--ink2)}
 .ag .bk .pp__hl li > span{color:var(--acc)}
 .ag .bk__side{display:flex;flex-direction:column;gap:16px}
-.ag .bk__war{display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:12px;background:var(--navy);color:#fff}
+.ag .bk__war{display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:12px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);color:#fff}
 .ag .bk__war h3{margin:0 0 4px;font-family:var(--disp);font-size:22px;font-weight:800;color:#fff}
 .ag .bk__wcard{display:flex;align-items:center;gap:18px;padding:16px 18px;border-radius:10px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
 .ag .bk__wcard b{flex:none;min-width:4.6ch;font-family:var(--disp);font-size:30px;font-weight:900;letter-spacing:-.03em;color:#fff;line-height:1}
@@ -81,17 +91,17 @@
 
 /* Is it for you */
 .ag .bk__fit{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.ag .bk__fit div{display:flex;flex-direction:column;gap:10px;padding:26px 28px;border-radius:12px;background:#F5F7FA}
+.ag .bk__fit div{display:flex;flex-direction:column;gap:10px;padding:26px 28px;border-radius:12px;background:#fff}
 .ag .bk__fit h3{margin:0;font-family:var(--disp);font-size:20px;font-weight:800;color:var(--navy)}
 .ag .bk__fit p{margin:0;font-size:16px;line-height:1.65;color:var(--ink2)}
 
 /* Call to act */
 .ag .bk__cta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px 40px}
 .ag .bk__cta > div:first-child{display:flex;flex-direction:column;gap:10px;max-width:640px}
-.ag .bk .bk__cta .abtn--or{background:var(--acc);border-color:var(--acc)}
+.ag .bk__box--acc{background:var(--acc)}
+.ag .bk .bk__cta .abtn--or{background:var(--navy);border-color:var(--navy)}
+.ag .bk__box--acc p{color:rgba(255,255,255,.9)}
 
-/* The FAQ answers sit on white here, not the sky band the other pages use */
-.ag .bk .afaq{border-bottom-color:var(--line2)}
 
 @media (max-width:1000px){
   .ag .bk__reasons,.ag .bk__steps{grid-template-columns:repeat(2,minmax(0,1fr))}

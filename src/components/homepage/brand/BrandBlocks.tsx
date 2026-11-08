@@ -8,14 +8,13 @@ import { brandOptions } from "./options";
 import "./blocks.css";
 
 /**
- * A brand page laid out like the homepage: white sections with plenty of
- * room between them, navy blocks for the two things that matter most (what
- * makes it better, and the call to act), and few words in each. Jake asked
- * for this after the earlier page read as busy: seven different backgrounds
- * and a paragraph ahead of every point.
+ * A brand page laid out like the homepage: each section is its own colour
+ * block (sky, navy, cream, the brand's accent) with white space between,
+ * and few words in each. Jake asked for the homepage's blocks after the
+ * earlier page read as busy, then for colour after an all-white first cut.
+ * The photo sections stay on white so the photos carry them.
  *
- * Only white and navy, with the brand's accent as the one colour. Each
- * section still hides when its field is missing from lib/brands.ts.
+ * Each section still hides when its field is missing from lib/brands.ts.
  */
 
 /** How many install photos the gallery is laid out for. */
@@ -88,7 +87,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {/* Why: four photo cards, the way the homepage shows its four services. */}
       <section className="bk__sec" id="why">
-        <div className="wrap bk__col">
+        <div className="wrap"><div className="bk__blk bk__blk--sky bk__col">
           <header className="bk__head">
             <h2 className="h2">{brand.whyLead?.claim ?? `Why we fit ${brand.name}.`}</h2>
             {brand.whyLead?.sub && <p>{brand.whyLead.sub}</p>}
@@ -111,12 +110,12 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
               ))}
             </ul>
           )}
-        </div>
+        </div></div>
       </section>
 
       {/* Made better: the one navy block in the body, so the quality case is the thing you can't miss. */}
       {brand.quality && (
-        <section className="bk__sec bk__sec--tight" id="quality">
+        <section className="bk__sec" id="quality">
           <div className="wrap">
             <div className="bk__box bk__q">
               <div className="bk__qhead">
@@ -138,7 +137,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {options.length > 0 && (
         <section className="bk__sec" id="range">
-          <div className="wrap bk__col">
+          <div className="wrap"><div className="bk__blk bk__blk--cream bk__col">
             <header className="bk__head">
               <h2 className="h2">Pick your {brand.name}.</h2>
               <p>Each one has its own page with sizes, specs and the price installed.</p>
@@ -160,13 +159,13 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
                 </Link>
               ))}
             </div>
-          </div>
+          </div></div>
         </section>
       )}
 
       {steps.length > 0 && (
-        <section className="bk__sec bk__sec--line" id="install">
-          <div className="wrap bk__col">
+        <section className="bk__sec" id="install">
+          <div className="wrap"><div className="bk__blk bk__blk--acc bk__col">
             <header className="bk__head">
               <h2 className="h2">How we put it in.</h2>
               <p>The same four steps on every {brand.name} job.</p>
@@ -177,13 +176,13 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
                 <li key={st.t}><span className="bk__n" aria-hidden="true">{n + 1}</span><h3>{st.t}</h3><p>{st.d}</p></li>
               ))}
             </ol>
-          </div>
+          </div></div>
         </section>
       )}
 
       {(installs.length > 0 || slots > 0) && (
-        <section className="bk__sec bk__sec--tight" id="installs">
-          <div className="wrap bk__col">
+        <section className="bk__sec" id="installs">
+          <div className="wrap"><div className="bk__blk bk__blk--plain bk__col">
             <header className="bk__head">
               <h2 className="h2">Our {brand.name} installs.</h2>
               <p>Real jobs by our own crew, around Melbourne&apos;s south-east.</p>
@@ -199,12 +198,12 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
                 <div key={k} className="bk__ph bk__ph--slot" aria-hidden="true"><span>Install photo goes here</span></div>
               ))}
             </div>
-          </div>
+          </div></div>
         </section>
       )}
 
       <section className="bk__sec" id="support">
-        <div className="wrap bk__two">
+        <div className="wrap"><div className="bk__blk bk__blk--navy bk__two">
           <div className="bk__txt">
             <h2 className="h2">{brand.servicing?.heading ?? "Keeping it running."}</h2>
             <p>{brand.servicing?.body ?? brand.support}</p>
@@ -225,23 +224,23 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
               <Image src="/team-photo.webp" alt="The Advanced Gas team with their vans outside the Pakenham workshop" fill sizes="(max-width: 1000px) 90vw, 480px" />
             </div>
           </div>
-        </div>
+        </div></div>
       </section>
 
       {(brand.versus || brand.notRightWhen) && (
-        <section className="bk__sec bk__sec--line" id="fit">
-          <div className="wrap bk__col">
+        <section className="bk__sec" id="fit">
+          <div className="wrap"><div className="bk__blk bk__blk--cream bk__col">
             <header className="bk__head"><h2 className="h2">Is it the right one for you?</h2></header>
             <div className="bk__fit">
               {brand.versus && <div><h3>{brand.versusHeading ?? "Compared with the rest"}</h3><p>{brand.versus}</p></div>}
               {brand.notRightWhen && <div><h3>When we&apos;d say no</h3><p>{brand.notRightWhen}</p></div>}
             </div>
-          </div>
+          </div></div>
         </section>
       )}
 
-      <section className="bk__sec bk__sec--line" id="reviews">
-        <div className="wrap bk__col">
+      <section className="bk__sec" id="reviews">
+        <div className="wrap"><div className="bk__blk bk__blk--plain bk__col">
           <div className="pp__revhead">
             <header className="bk__head"><h2 className="h2">From local households.</h2></header>
             <Link href="/reviews">Read every review →</Link>
@@ -259,12 +258,12 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
               </article>
             ))}
           </div>
-        </div>
+        </div></div>
       </section>
 
       {brand.faqs && brand.faqs.length > 0 && (
-        <section className="bk__sec bk__sec--line" id="faqs">
-          <div className="wrap pp__two">
+        <section className="bk__sec" id="faqs">
+          <div className="wrap"><div className="bk__blk bk__blk--sky pp__two">
             <div className="bk__head">
               <h2 className="h2">Questions about {brand.name}.</h2>
               <p>Still want a human? <a href="tel:+61359478000" data-call-from="brand-faq">Call (03) 5947 8000</a>.</p>
@@ -272,13 +271,13 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
             <div className="afaqs">
               {brand.faqs.map((f) => <details key={f.q} className="afaq"><summary>{f.q}</summary><p>{f.a}</p></details>)}
             </div>
-          </div>
+          </div></div>
         </section>
       )}
 
-      <section className="bk__sec bk__sec--end">
+      <section className="bk__sec">
         <div className="wrap">
-          <div className="bk__box bk__cta">
+          <div className="bk__box bk__box--acc bk__cta">
             <div>
               <h2 className="bk__boxh">See what {brand.name} would cost.</h2>
               <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
