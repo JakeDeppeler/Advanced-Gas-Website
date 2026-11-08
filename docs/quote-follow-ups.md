@@ -139,16 +139,24 @@ real pages, and pressing one sends **both emails to Jake** instead of the
 office and the customer, with "[Preview: what you get]" and "[Preview: what
 the customer gets]" in the subject. Nothing is recorded for it.
 
-## After the sale
+## After the quote
 
-**Thanks for going ahead** is written and previewed but not yet sent: the
-same four steps as the yes reply, for a quote sold on the phone or in person
-rather than by the button. It needs a trigger reading ServiceTitan: an
-estimate going to Sold in the sync, where no yes was tapped.
+Five more emails, each with its own switch on Customer emails, **off until
+switched on** and only from then (`lib/autoEmails/run.ts`, rules in
+`rules.ts`), run every ten minutes in sending hours:
 
-There's no "you're booked in" email from us. ServiceTitan sends its own
-booking confirmation with the day and arrival window, so the steps say one is
-coming rather than sending a second.
+| Email | Goes | Signed by |
+|---|---|---|
+| Thanks for going ahead | the day a household quote is sold, unless they tapped "Let's go ahead" | whoever sold it |
+| Let's pick a day | 5 days after a household sale with nothing booked from it | whoever sold it |
+| All done | the day a household install is completed, with a photo of their job | the tech |
+| Invoice reminders | 3, then 10, days after a household invoice falls due unpaid; never once paid; past 25 days it's the office's | the team, from accounts@ |
+| Service reminder | 11 months after a household install or service, unless they've had a job since | the team |
+
+Each is claimed in `portal_auto_emails` before it goes (migration 0114), so
+it never goes twice. `/api/emails/auto?dry=1` says what each would send now.
+There's no "you're booked in" email: ServiceTitan sends its own booking
+confirmation, so the steps say one is coming.
 
 ## Previews
 

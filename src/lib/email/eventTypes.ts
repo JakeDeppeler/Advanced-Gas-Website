@@ -33,6 +33,7 @@ export const EMAIL_KINDS = {
   "quote-answer": { label: "Quote follow-up answer", who: "the office" },
   "quote-answer-reply": { label: "Quote answer: what happens next", who: "a customer" },
   "quote-followup": { label: "Quote follow-up", who: "a customer" },
+  "customer-update": { label: "Customer email (sold, done, invoice or service)", who: "a customer" },
   other: { label: "Email", who: "somebody" },
 } as const;
 

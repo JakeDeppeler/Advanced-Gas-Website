@@ -140,3 +140,9 @@
 .em-sub2 { font-weight: 500; color: var(--ink2); }
 
 .em-note { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink2); }
+
+/* the after-the-quote emails' switches */
+.em-autos { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.em-auto { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--quiet); }
+.em-auto__t { flex: 1 1 280px; min-width: 0; font-size: 13px; color: var(--ink2); line-height: 1.4; }
+.em-auto__t b { display: block; color: var(--ink); font-size: 14px; }

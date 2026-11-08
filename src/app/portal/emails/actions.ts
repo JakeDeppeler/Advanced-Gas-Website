@@ -16,6 +16,8 @@ import { renderTemplate, sampleValues, SERIES, templateFrom, type QuoteKind } fr
 import { answerButtons } from "@/lib/quotes/followUpContent";
 import { answerUrl } from "@/lib/quotes/answers";
 import { setFollowUps } from "@/lib/quotes/followUps";
+import { setAutoEmail } from "@/lib/autoEmails/run";
+import { AUTO_KINDS, type AutoKind } from "@/lib/autoEmails/rules";
 
 export type EmailResult = { ok: boolean; error?: string; said?: string; src?: string };
 
@@ -151,4 +153,16 @@ export async function setFollowUpsAction(on: boolean): Promise<EmailResult> {
       ? `On. ${r.leftAlone ? `The ${r.leftAlone} quote${r.leftAlone === 1 ? "" : "s"} already out ${r.leftAlone === 1 ? "is" : "are"} left alone; ` : ""}quotes tagged Awaiting Quote Approval from now on get them.`
       : "Off. Nothing more goes; the ones in progress pick up where they were if it's switched back on.",
   };
+}
+
+/** One of the after-the-quote emails on or off (lib/autoEmails/run.ts). On is from now: nothing before it is sent. */
+export async function setAutoEmailAction(kind: AutoKind, on: boolean): Promise<EmailResult> {
+  const me = await editor();
+  if (!me) return NOPE;
+  const k = AUTO_KINDS.find((x) => x.k === kind);
+  if (!k) return { ok: false, error: "That isn't one of the emails." };
+  const r = await setAutoEmail(kind, on === true, me.name);
+  if (!r.ok) return { ok: false, error: r.error };
+  done();
+  return { ok: true, said: on ? `On. “${k.label}” goes ${k.when}, from now on.` : `Off. “${k.label}” won't send.` };
 }

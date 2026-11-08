@@ -10,6 +10,9 @@ import { GROUPS, SERIES } from "@/lib/email/templates/types";
 import { awaitingNow, followUpBoard, type BoardLine } from "@/lib/quotes/followUps";
 import { stJobUrl } from "@/lib/dashboard/toBill";
 import { FollowUpSwitch } from "@/components/portal/emails/FollowUpSwitch";
+import { AutoEmailSwitch } from "@/components/portal/emails/AutoEmailSwitch";
+import { autoSentCounts, loadAutoSettings } from "@/lib/autoEmails/run";
+import { AUTO_KINDS, type AutoKind } from "@/lib/autoEmails/rules";
 import { addSeriesEmail } from "./actions";
 import "./emails.css";
 
@@ -26,7 +29,13 @@ export default async function EmailsPage({ searchParams }: { searchParams: { err
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Customer emails" forWhom="managers" />;
 
-  const [{ templates, ok }, board, awaiting] = await Promise.all([loadTemplates(), followUpBoard(), awaitingNow()]);
+  const [{ templates, ok }, board, awaiting, auto, autoSent] = await Promise.all([loadTemplates(), followUpBoard(), awaitingNow(), loadAutoSettings(), autoSentCounts()]);
+  // Each after-the-quote email's switch, under the card its words are in.
+  const switches = (kinds: AutoKind[]) => (
+    <div className="em-autos">
+      {kinds.map((k) => { const d = AUTO_KINDS.find((x) => x.k === k)!; return <AutoEmailSwitch key={k} kind={k} label={d.label} when={d.when} on={auto[k].on} since={auto[k].since} sent={autoSent[k] ?? 0} />; })}
+    </div>
+  );
   const live = board.lines.filter((l) => l.status === "active");
   const past = board.lines.filter((l) => l.status !== "active");
   const by = (g: string) => templates.filter((t) => t.group === g);
@@ -100,13 +109,14 @@ export default async function EmailsPage({ searchParams }: { searchParams: { err
 
         <Card title={GROUPS.sold.label} aside={GROUPS.sold.when}>
           <Group>{by("sold").map((t) => <TemplateRow key={t.key} t={t} />)}</Group>
+          {switches(["sold", "pickaday"])}
           <p className="em-foot">There&rsquo;s no &ldquo;you&rsquo;re booked in&rdquo; email from us: ServiceTitan sends its own confirmation with the day and arrival time.</p>
         </Card>
 
         {(["done", "invoice", "service"] as const).map((g) => (
           <Card key={g} title={GROUPS[g].label} aside={GROUPS[g].when}>
             <Group>{by(g).map((t) => <TemplateRow key={t.key} t={t} />)}</Group>
-            <p className="em-foot">Written and ready to read. Not sending: it needs its own switch, which comes once you&rsquo;re happy with the words.</p>
+            {switches([g === "done" ? "done" : g === "invoice" ? "invoice" : "service"])}
           </Card>
         ))}
 

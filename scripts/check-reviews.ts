@@ -10,6 +10,7 @@ import { BUILT_IN, KEY } from "../src/lib/email/templates/defaults";
 import { fill, photoUrl, problems, renderTemplate, sampleValues, templateFrom, unknownPlaceholders } from "../src/lib/email/templates/types";
 import { resolveSigner } from "../src/lib/email/templates/signer";
 import { latest, quietFor, waitingOn, when } from "../src/lib/jobflow/contactTypes";
+import { afterSwitch, AUTO_KINDS, autoSettingsFrom, daysLate, dueWords, invoiceStep, money, monthWords } from "../src/lib/autoEmails/rules";
 import { daysSince, emailProblem, householdUnit, inSendingHours as followUpHours, planFor, stopReason, type QuoteFacts, type Sent } from "../src/lib/quotes/followUpRules";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
@@ -214,6 +215,16 @@ const nowC = Date.parse("2026-11-09T01:00:00Z");
 ok("quiet: 7 days in a stage where it matters", quietFor({ at: "2026-11-01T01:00:00Z", what: "Quoted" }, "quoted", nowC) === 8 && quietFor({ at: "2026-11-05T01:00:00Z", what: "x" }, "quoted", nowC) === null);
 ok("never quiet: a booked visit, paperwork stages, or nothing to go by", quietFor({ at: "2026-10-01T00:00:00Z", what: "x" }, "booked", nowC) === null && quietFor({ at: "2026-10-01T00:00:00Z", what: "x" }, "tobill", nowC) === null && quietFor(null, "quoted", nowC) === null);
 ok("when: today, yesterday, a weekday, a date", when("2026-11-09T00:30:00Z", nowC) === "today" && when("2026-11-08T00:30:00Z", nowC) === "yesterday" && when("2026-10-20T00:30:00Z", nowC) === "20 Oct");
+
+console.log("-- the after-the-quote emails --");
+const offAll = autoSettingsFrom({});
+ok("every kind is off until switched on", AUTO_KINDS.every((k) => offAll[k.k].on === false) && autoSettingsFrom({ sold: { on: "yes" } }).sold.on === false && autoSettingsFrom({ sold: { on: true, since: "2026-11-09T00:00:00Z" } }).sold.on === true);
+ok("only from the switch: before it is left alone", !afterSwitch("2026-11-08T00:00:00Z", { on: true, since: "2026-11-09T00:00:00Z", by: null }) && afterSwitch("2026-11-10T00:00:00Z", { on: true, since: "2026-11-09T00:00:00Z", by: null }) && !afterSwitch("2026-11-10T00:00:00Z", { on: true, since: null, by: null }));
+const nowA = Date.parse("2026-11-12T01:00:00Z");
+ok("days late by Melbourne calendar day", daysLate("2026-11-09", nowA) === 3 && daysLate("2026-11-12", nowA) === 0);
+ok("invoice steps: first at 3–9 days, second at 10–25, then the office", invoiceStep(2) === null && invoiceStep(3) === "first" && invoiceStep(9) === "first" && invoiceStep(10) === "second" && invoiceStep(25) === "second" && invoiceStep(26) === null);
+ok("money and dates in words", money(3060.5) === "$3,060.50" && money(1990) === "$1,990" && dueWords("2026-11-03") === "Tue 3 Nov" && monthWords("2026-12-15T02:00:00Z") === "December");
+ok("each kind's emails are standard templates", AUTO_KINDS.every((k) => k.templates.every((t) => BUILT_IN.some((b) => b.key === t))));
 
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));
