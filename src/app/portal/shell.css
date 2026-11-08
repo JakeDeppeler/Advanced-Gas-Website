@@ -4015,3 +4015,7 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .rs-plh { margin: 14px 0 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
 .rs-popfoot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .rs-popq { width: 100%; }
+
+/* Equipment price plan (Our prices): the price never wraps around its arrow. */
+.rb-t td.ep-p { white-space: nowrap; text-align: right; }
+.rb-t td.ep-p .was { font-weight: 400; }
