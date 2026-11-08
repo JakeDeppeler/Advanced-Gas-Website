@@ -273,12 +273,15 @@ export type LetterBlock =
    * number is never the only thing carrying it. Two to a row, or three when
    * there are three.
    */
-  | { kind: "stats"; items: { value: string; label: string }[]; note?: string };
+  | { kind: "stats"; items: { value: string; label: string }[]; note?: string }
+  /** A small muted aside: where a message came from, what the portal did with it. */
+  | { kind: "note"; text: string };
 
 export type LetterEmail = {
   preheader: string;
   blocks: LetterBlock[];
-  signer: { name: string; role: string; photo: string | null };
+  /** `contact`: lines under the name in place of our phone and website, when the message is from a customer. */
+  signer: { name: string; role: string; photo: string | null; contact?: { text: string; href: string }[] };
   /** "Cheers," above the signature; null when the words already sign off. */
   signoff?: string | null;
   base: string;
@@ -328,7 +331,16 @@ function letterBlock(b: LetterBlock, base: string): string {
         .join("")}</div>`;
     case "stats":
       return stats(b);
+    case "note":
+      return `<p style="margin:0 0 14px;font:400 13px/1.5 ${FONT};color:${MUTED}">${letterInline(b.text)}</p>`;
   }
+}
+
+/** Our phone and website under the name; a customer's own mobile and email when the message is theirs. */
+function signatureLinks(e: LetterEmail): string {
+  const f = e.footer;
+  const links = e.signer.contact ?? [{ text: f.phone, href: f.phoneHref }, { text: f.site.replace(/^https?:\/\/(www\.)?/, ""), href: f.site }];
+  return links.map((l, n) => `<a href="${esc(l.href)}" style="color:${n === 0 ? BRAND : MUTED};${n === 0 ? "font-weight:600;" : ""}text-decoration:none">${esc(l.text)}</a>`).join(" &middot; ");
 }
 
 export function letterHtml(e: LetterEmail): string {
@@ -343,7 +355,7 @@ ${e.blocks.map((b) => letterBlock(b, e.base)).join("\n")}
 ${signoff ? `<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">${esc(signoff)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:4px"><tr>
 <td style="padding-right:12px;vertical-align:top">${avatar(e.base, e.signer.name, e.signer.photo, 44)}</td>
-<td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:700 15px/1.35 ${FONT};color:${NAVY}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br><a href="${esc(f.phoneHref)}" style="color:${BRAND};font-weight:600;text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${MUTED};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></td>
+<td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:700 15px/1.35 ${FONT};color:${NAVY}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br>${signatureLinks(e)}</td>
 </tr></table>
 </div></td></tr></table></body></html>`;
 }
@@ -359,9 +371,11 @@ export function letterText(e: LetterEmail): string {
       case "button": return [`${b.label}: ${b.href}`];
       case "choices": return [b.items.map((i) => `${i.label}: ${i.href}`).join("\n")];
       case "stats": return [`${b.items.map((s) => `- ${s.value}: ${s.label}`).join("\n")}${b.note ? `\n${plain(b.note)}` : ""}`];
+      case "note": return [plain(b.text)];
     }
   });
   const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
-  out.push(`${signoff ? `${signoff}\n` : ""}${e.signer.name}\n${e.signer.role}\n${e.footer.phone} · ${e.footer.site}`);
+  const contact = e.signer.contact ? e.signer.contact.map((l) => l.text).join(" · ") : `${e.footer.phone} · ${e.footer.site}`;
+  out.push(`${signoff ? `${signoff}\n` : ""}${e.signer.name}\n${e.signer.role}\n${contact}`);
   return out.join("\n\n");
 }

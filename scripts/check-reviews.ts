@@ -4,7 +4,9 @@
  */
 import { firstName, holdFor, inSendingHours, jobWords, reviewEmail, reviewHero, reviewLink, reviewLinkOk, reviewSettingsFrom, techWords, whyNot, type Candidate, type EmailContext } from "../src/lib/reviews/requestTypes";
 import { SERIES_DAYS, followUpEmail, quoteKind, type FollowUpInput } from "../src/lib/quotes/followUpContent";
-import { letterHtml, letterText, premiumHtml } from "../src/lib/email/premium";
+import { letterHtml, letterText, premiumHtml, type LetterBlock, type LetterEmail } from "../src/lib/email/premium";
+import { ANSWERS, customerReply, officeMessage, optionWords, type AnswerContext } from "../src/lib/quotes/answerTypes";
+import { bookedEmail, soldEmail } from "../src/lib/quotes/journeyContent";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
 
@@ -107,6 +109,42 @@ ok("split: check-in, brands, running costs (stats), closer", /checking in/i.test
 ok("the last one is the closer", ["heat-pump", "split", "general"].every((k) => followUpEmail(k as "split", SERIES_DAYS[k as "split"].length, fin).subject.startsWith("Before I close off")));
 ok("someone else quoted: named", letterText({ ...ctx, preheader: "", blocks: followUpEmail("split", 1, { ...fin, quoter: "Jye", quoterSigns: false }).blocks, signer }).includes("since Jye was out"));
 ok("no capital after a comma", ["heat-pump", "split", "general"].every((k) => SERIES_DAYS[k as "split"].every((_, n) => !/, Give me/.test(letterText({ ...ctx, preheader: "", blocks: followUpEmail(k as "split", n + 1, fin).blocks, signer })))));
+console.log("-- the answers --");
+const actx: AnswerContext = { customer: "Sarah Jones", first: "Sarah", email: "sarah@gmail.com", phone: "0412 345 678", suburb: "Berwick", jobNumber: "20999", option: "Reclaim 300L - Plug", total: 3060.5, quoterName: "Jake Deppeler", jobHref: "https://go.servicetitan.com/#/Job/Index/1", when: "Sat 8 Nov, 2:14 pm", note: null, officePhone: "(03) 5947 8000" };
+const asText = (m: { preheader: string; blocks: LetterBlock[]; signer?: LetterEmail["signer"] }) => letterText({ ...ctx, preheader: m.preheader, blocks: m.blocks, signer: m.signer ?? signer });
+const asHtml = (m: { preheader: string; blocks: LetterBlock[]; signer?: LetterEmail["signer"] }) => letterHtml({ ...ctx, preheader: m.preheader, blocks: m.blocks, signer: m.signer ?? signer });
+const yes = officeMessage("yes", actx);
+ok("yes to the office: subject names them and the option", yes.subject === "Sarah Jones wants to go ahead: Reclaim 300L (job 20999)", yes.subject);
+ok("yes to the office: addressed to the quoter, in the customer's words, with the price and the mobile", /^Hi Jake,\n\nYes please, let's go ahead with the Reclaim 300L \(\$3,060\.50\) at Berwick\.\n\nGive me a call on 0412 345 678, or reply to this email to pick a day\./.test(asText(yes)), asText(yes).slice(0, 160));
+ok("yes to the office: a button to the job, and the note says what to do and where it came from", asHtml(yes).includes("Open job 20999 in ServiceTitan") && /Ring them and book it in\. Written by the portal when Sarah tapped "Let's go ahead"/.test(asText(yes)));
+ok("yes to the office: signed by the customer with their mobile and email, not our number", yes.signer.name === "Sarah Jones" && yes.signer.role === "Berwick · job 20999" && asText(yes).endsWith("0412 345 678 · sarah@gmail.com") && !asHtml(yes).includes("5947 8000"));
+const qn = officeMessage("question", { ...actx, note: "Does it fit beside the meter box?" });
+ok("question to the office: the question quoted, ring them", /I've got a question about the Reclaim 300L at Berwick:\n\n"Does it fit beside the meter box\?"\n\nCould you give me a call on 0412 345 678, or reply to this email\?/.test(asText(qn)), asText(qn).slice(0, 200));
+const no = officeMessage("no", { ...actx, note: "Repairing the old one for now." });
+ok("no to the office: says so, and that nothing's left to do", /not going ahead this time\.\n\n"Repairing the old one for now\."/.test(asText(no)) && /marked lost on the Pipeline\. Nothing else to do\./.test(asText(no)) && no.subject === "Sarah Jones isn't going ahead with Reclaim 300L (job 20999)");
+const noPhone = officeMessage("yes", { ...actx, phone: null, email: null, jobHref: null, jobNumber: null, suburb: null, total: null });
+ok("nothing known about them: still reads", /Yes please, let's go ahead with the Reclaim 300L\.\n\nI'm ready to pick a day\./.test(asText(noPhone)) && noPhone.signer.role === "Customer" && !/undefined|null/.test(asText(noPhone)), asText(noPhone));
+ok("someone else quoted: addressed to them", asText(officeMessage("yes", { ...actx, quoterName: "Jye Stephens" })).startsWith("Hi Jye,") && asText(officeMessage("yes", { ...actx, quoterName: null })).startsWith("Hi team,"));
+
+const r = customerReply("yes", actx);
+ok("yes to the customer: what happens next, four steps, nothing to do", r.subject === "Great news, Sarah: here's what happens next" && r.blocks.some((b) => b.kind === "list" && b.items.length === 4) && /We'll give you a call on 0412 345 678/.test(asText(r)) && /We order your Reclaim 300L/.test(asText(r)) && /rebate paperwork/.test(asText(r)) && /Nothing you need to do for now/.test(asText(r)));
+const rq = customerReply("question", { ...actx, note: "Does it fit?" });
+ok("question to the customer: quoted back, we'll call", /I've got your question:\n\n"Does it fit\?"\n\nI'll give you a call on 0412 345 678/.test(asText(rq)), asText(rq).slice(0, 200));
+const rn = customerReply("no", actx);
+ok("no to the customer: closed off, door open", rn.subject === "No worries, Sarah" && /closed your quote for the Reclaim 300L off/.test(asText(rn)) && /pick it up where we left off/.test(asText(rn)));
+ok("replies carry no buttons and no job links", (["yes", "question", "no"] as const).every((a) => { const h = asHtml(customerReply(a, actx)); return !h.includes("/q/") && !h.includes("servicetitan"); }));
+ok("option words: the fitting code comes off", optionWords("Reclaim 300L - Plug") === "Reclaim 300L" && optionWords("Mitsubishi Electric 3.5kW Split System - Back to Back") === "Mitsubishi Electric 3.5kW Split System" && optionWords("Reclaim Split SS 315L V2") === "Reclaim Split SS 315L V2" && optionWords(null) === null);
+ok("answer pages: yes says an email's coming", /email on its way/.test(ANSWERS.yes.done));
+
+console.log("-- what happens next --");
+const sold = soldEmail({ first: "Sarah", what: "Reclaim 300L", phone: "0412 345 678", officePhone: "(03) 5947 8000" });
+ok("sold: thanks, the same four steps", sold.subject === "Thanks for going ahead, Sarah: here's what happens next" && sold.blocks.some((b) => b.kind === "list" && b.items.length === 4) && /with the Reclaim 300L\./.test(asText(sold)));
+const booked = bookedEmail({ first: "Sarah", what: "Reclaim 300L", hotWater: true, day: "Thursday 20 November", window: "7 and 8 am", tech: "Jye", officePhone: "(03) 5947 8000" });
+ok("booked: the day, the window, who's coming, the hot water line", booked.subject === "You're booked in for Thursday 20 November, Sarah" && /booked in for Thursday 20 November, arriving between 7 and 8 am\. Jye will be doing the Reclaim 300L install\./.test(asText(booked)) && /hot water will be off/.test(asText(booked)));
+const bookedSplit = bookedEmail({ first: "Sarah", what: "Mitsubishi Electric 3.5kW Split System", hotWater: false, day: "Thursday 20 November", window: null, tech: null, officePhone: "(03) 5947 8000" });
+ok("booked, a split with no window or tech: no hot water line, no gaps", /booked in for Thursday 20 November\. Our team will be doing the/.test(asText(bookedSplit)) && !/hot water/.test(asText(bookedSplit)) && !/undefined|null|  /.test(asText(bookedSplit)));
+ok("journey emails: letters with no buttons", [sold, booked].every((e) => e.blocks[0].kind === "p" && e.blocks[0].text === "Hi Sarah," && !asHtml(e).includes("/q/")));
+
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));
 
