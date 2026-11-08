@@ -96,6 +96,8 @@
 .ag .kxr__t h3{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy);line-height:1.25}
 .ag .kxr__p{margin:0;display:flex;flex-direction:column;font-family:var(--disp);font-size:26px;font-weight:900;color:var(--navy)}
 .ag .kxr__p small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink3)}
+/* Words in the figure's place (SHOW_PRICES off) run longer than a price, so a size down. */
+.ag .kxr__p--quote{font-size:20px}
 .ag .kxr__t ul{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.45;color:var(--ink2)}
 @media (max-width:900px){.ag .kxs{grid-template-columns:1fr}.ag .kx__flip .pxbr__img{order:0}}
 

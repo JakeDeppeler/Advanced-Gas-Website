@@ -5,7 +5,7 @@ import { ToolPage } from "@/components/homepage/tools/ToolPage";
 export const metadata: Metadata = {
   title: "Split vs Multi-head vs Ducted vs Gas vs Evap",
   description:
-    "Compare split, multi-head, ducted reverse-cycle, gas ducted and evaporative side by side: install cost, running cost, zoning and who each suits.",
+    "Compare split, multi-head, ducted reverse-cycle, gas ducted and evaporative side by side: running cost, zoning, what each costs to install relative to the others, and who each suits.",
   alternates: { canonical: "/tools/system-comparison" },
 };
 

@@ -30,6 +30,6 @@ export const REBATE_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Does VEU cover servicing or just installation?",
-    a: "VEU is for the new install. We offer annual servicing separately at $280 + GST to keep your warranty intact and bills low.",
+    a: "VEU is for the new install. We offer annual servicing separately, priced in writing, to keep your warranty intact and bills low.",
   },
 ];

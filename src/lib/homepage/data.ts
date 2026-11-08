@@ -39,12 +39,14 @@ export const FINANCE_TERMS = [12, 24, 36, 48, 60];
 export const FINANCE_NOTE = "Example repayments only, spread evenly with no interest or fees. Finance is subject to approval; real terms are confirmed on your quote.";
 
 /**
- * An install price written as text elsewhere on the site ("from $2,199
- * installed"), shown only while SHOW_PRICES is on. Service and call-out fees
- * ("$190 + GST", "$30/day hire") are fixed rates, not install prices, and
- * always show.
+ * A price written as text elsewhere on the site ("from $2,199 installed",
+ * "$190 + GST", "$30/day hire"), shown only while SHOW_PRICES is on.
+ *
+ * Service, call-out and hire fees used to be exempt as fixed rates rather
+ * than install prices. Jake asked for every price off (Nov 2026), fees
+ * included, so every enquiry goes through a site check and a written quote.
  */
-export const quoted = (text: string) => (SHOW_PRICES || /\+ GST|hire/i.test(text) ? text : "Price on quote");
+export const quoted = (text: string) => (SHOW_PRICES ? text : "Price on quote");
 
 export const weekly = (price: number, months = FINANCE_MONTHS) => Math.ceil(price / ((months * 52) / 12));
 export const money = (n: number) => "$" + n.toLocaleString("en-AU");

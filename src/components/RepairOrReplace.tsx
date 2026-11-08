@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { LIFE_EXPECTANCY } from "@/lib/upgradeAngle";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * Repair or replace, with the arithmetic shown.
@@ -18,6 +19,10 @@ import { LIFE_EXPECTANCY } from "@/lib/upgradeAngle";
  * repair more often than a company selling replacements would like.
  *
  * Runs in the browser. Nothing recorded, nothing sent.
+ *
+ * With SHOW_PRICES off (Jake, Nov 2026) the replacement side is the
+ * visitor's own quoted figure rather than our installed price from
+ * upgradeAngle, so the sum never prints a price the site doesn't show.
  */
 
 const AGES = [
@@ -31,10 +36,13 @@ export function RepairOrReplace() {
   const [sysName, setSysName] = useState<string | null>(null);
   const [age, setAge] = useState<number | null>(null);
   const [repair, setRepair] = useState("");
+  const [replace, setReplace] = useState("");
 
   const sys = LIFE_EXPECTANCY.find((l) => l.system === sysName);
   const repairCost = Number(repair.replace(/[^0-9.]/g, ""));
-  const ready = sys && age !== null && repair.trim() !== "" && repairCost > 0;
+  const ownReplace = Number(replace.replace(/[^0-9.]/g, ""));
+  const replaceCost = SHOW_PRICES ? sys?.replaceCost ?? 0 : ownReplace;
+  const ready = sys && age !== null && repair.trim() !== "" && repairCost > 0 && replaceCost > 0;
 
   let verdict: { call: "repair" | "replace" | "borderline"; heading: string; body: string; sums: string[] } | null = null;
 
@@ -45,13 +53,13 @@ export function RepairOrReplace() {
     const yearsLeft = Math.max(1, sys.replaceFrom + 3 - age);
     const perYearRepair = Math.round(repairCost / yearsLeft);
     // A new one over its own design life.
-    const perYearNew = Math.round(sys.replaceCost / (sys.replaceFrom + 3));
-    const share = Math.round((repairCost / sys.replaceCost) * 100);
+    const perYearNew = Math.round(replaceCost / (sys.replaceFrom + 3));
+    const share = Math.round((repairCost / replaceCost) * 100);
 
     const sums = [
       `Repair: $${repairCost.toLocaleString()} ÷ ~${yearsLeft} more year${yearsLeft === 1 ? "" : "s"} = about $${perYearRepair.toLocaleString()} a year`,
-      `Replace: $${sys.replaceCost.toLocaleString()} ÷ ~${sys.replaceFrom + 3} years = about $${perYearNew.toLocaleString()} a year`,
-      `The repair is ${share}% of what a new one costs installed`,
+      `Replace: $${replaceCost.toLocaleString()} ÷ ~${sys.replaceFrom + 3} years = about $${perYearNew.toLocaleString()} a year`,
+      `The repair is ${share}% of ${SHOW_PRICES ? "what a new one costs installed" : "the replacement quote"}`,
     ];
 
     if (age >= sys.replaceFrom && share >= 30) {
@@ -138,6 +146,23 @@ export function RepairOrReplace() {
         </label>
       </fieldset>
 
+      {!SHOW_PRICES && (
+        <fieldset className="ror__q">
+          <legend>And the replacement?</legend>
+          <label className="ror__money">
+            <span aria-hidden="true">$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={replace}
+              onChange={(e) => setReplace(e.target.value)}
+              placeholder="From your quote"
+              aria-label="Quoted replacement price in dollars"
+            />
+          </label>
+        </fieldset>
+      )}
+
       <div className="ror__out" aria-live="polite">
         {verdict && sys ? (
           <div className={`ror__answer ror__answer--${verdict.call}`} key={verdict.heading}>
@@ -154,7 +179,7 @@ export function RepairOrReplace() {
                 </Link>
               ) : (
                 <Link href={sys.replaceHref} className="ds-btn ds-btn--orange">
-                  What a replacement costs →
+                  {SHOW_PRICES ? "What a replacement costs →" : "See the replacements →"}
                 </Link>
               )}
               <Link href="/quote" className="ror__second">Or get both prices side by side</Link>
@@ -166,7 +191,9 @@ export function RepairOrReplace() {
           </div>
         ) : (
           <p className="ror__waiting">
-            Pick the system, the age and the quoted repair, and the sum appears here.
+            {SHOW_PRICES
+              ? "Pick the system, the age and the quoted repair, and the sum appears here."
+              : "Pick the system and the age, add the repair and replacement prices you've been quoted, and the sum appears here. No replacement price yet? We'll quote both after a free site check."}
           </p>
         )}
       </div>

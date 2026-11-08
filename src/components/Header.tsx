@@ -125,7 +125,7 @@ const SERVICES_MEGA: {
         {
           href: "/services/gas-plumbing/gas-service",
           label: "Gas heater service & CO test",
-          sub: "Annual safety check · $280 + GST",
+          sub: "Annual safety check · written report",
           photo: "/gas-ducted-install.webp",
           photoAlt: "Gas ducted heater in a roof space",
         },
@@ -158,7 +158,7 @@ const SERVICES_MEGA: {
         {
           href: "/services/gas-plumbing/temporary-hot-water",
           label: "Temporary hot water hire",
-          sub: "$30/day while you decide",
+          sub: "Hot water tonight while you decide",
           photo: "/gas-hot-water-changeover.webp",
           photoAlt: "Temporary hot water unit connected during a changeover",
         },

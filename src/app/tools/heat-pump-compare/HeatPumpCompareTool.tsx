@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * Cross-brand heat-pump-hot-water comparison. Same UX as the
@@ -10,6 +11,8 @@ import { useState } from "react";
  *
  * Rows here are curated model families we actually install, so each
  * row has a link into our brand hub for the "read more" click.
+ *
+ * Install prices show only while SHOW_PRICES is on, as in SystemComparison.
  */
 
 type Row = {
@@ -327,7 +330,7 @@ export function HeatPumpCompareTool() {
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Capacity</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.capacity}</span></div>
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Tank</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.tank}</span></div>
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Warranty</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.warranty}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{h.installFrom === h.installTo ? h.installFrom : `${h.installFrom} → ${h.installTo}`}</span></div>
+                {SHOW_PRICES && <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{h.installFrom === h.installTo ? h.installFrom : `${h.installFrom} → ${h.installTo}`}</span></div>}
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Made in</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.madeIn}</span></div>
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best for</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.bestFor}</span></div>
               </div>
@@ -372,8 +375,8 @@ export function HeatPumpCompareTool() {
               <Row label="Capacity"      rows={rows.map((h) => h.capacity)} />
               <Row label="Tank"          rows={rows.map((h) => h.tank)} />
               <Row label="Warranty"      rows={rows.map((h) => h.warranty)} wrap />
-              <Row label="Install from"  rows={rows.map((h) => h.installFrom)} />
-              <Row label="Install to"    rows={rows.map((h) => h.installTo)} />
+              {SHOW_PRICES && <Row label="Install from"  rows={rows.map((h) => h.installFrom)} />}
+              {SHOW_PRICES && <Row label="Install to"    rows={rows.map((h) => h.installTo)} />}
               <Row label="Made in"       rows={rows.map((h) => h.madeIn)} wrap />
               <Row label="Best for"      rows={rows.map((h) => h.bestFor)} wrap />
 

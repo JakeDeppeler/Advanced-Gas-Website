@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 import { UPGRADES, VEEC_PRICE_TREND, VEU_DEFAULTS as DEFAULTS, estimateVeu, type VeuForm as FormState } from "@/lib/tools/veuEstimate";
 
 /**
@@ -15,6 +16,9 @@ import { UPGRADES, VEEC_PRICE_TREND, VEU_DEFAULTS as DEFAULTS, estimateVeu, type
  * per upgrade path. Numbers below are ballparks derived from the current
  * ESC Product Class schedule + observed 2025-26 rebate outcomes on our
  * install base. A firm rebate is always confirmed at quote time.
+ *
+ * The install and net-install rows are our ballpark prices, so they only
+ * show while SHOW_PRICES is on (Jake asked for every price off, Nov 2026).
  */
 
 export function VeuRebateEstimator() {
@@ -148,10 +152,12 @@ export function VeuRebateEstimator() {
         </p>
 
         <div className="tool-result__breakdown">
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Typical install cost</span>
-            <span className="tool-result__row-val">{$(result.upgrade.typicalInstall)}</span>
-          </div>
+          {SHOW_PRICES && (
+            <div className="tool-result__row">
+              <span className="tool-result__row-lbl">Typical install cost</span>
+              <span className="tool-result__row-val">{$(result.upgrade.typicalInstall)}</span>
+            </div>
+          )}
           <div className="tool-result__row">
             <span className="tool-result__row-lbl">Rebate (min)</span>
             <span className="tool-result__row-val">– {$(result.minRebate)}</span>
@@ -160,18 +166,27 @@ export function VeuRebateEstimator() {
             <span className="tool-result__row-lbl">Rebate (max)</span>
             <span className="tool-result__row-val">– {$(result.maxRebate)}</span>
           </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Net install (mid)</span>
-            <span className="tool-result__row-val" style={{ color: "var(--orange-ink)" }}>
-              {$(result.netMid)}
-            </span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Net install range</span>
-            <span className="tool-result__row-val">
-              {$(result.netMin)} – {$(result.netMax)}
-            </span>
-          </div>
+          {SHOW_PRICES ? (
+            <>
+              <div className="tool-result__row">
+                <span className="tool-result__row-lbl">Net install (mid)</span>
+                <span className="tool-result__row-val" style={{ color: "var(--orange-ink)" }}>
+                  {$(result.netMid)}
+                </span>
+              </div>
+              <div className="tool-result__row">
+                <span className="tool-result__row-lbl">Net install range</span>
+                <span className="tool-result__row-val">
+                  {$(result.netMin)} – {$(result.netMax)}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="tool-result__row">
+              <span className="tool-result__row-lbl">Installed price</span>
+              <span className="tool-result__row-val">On your written quote, rebate off</span>
+            </div>
+          )}
         </div>
 
         {result.isHotWater && (
@@ -185,11 +200,23 @@ export function VeuRebateEstimator() {
             lineHeight: 1.5,
             color: "var(--navy)",
           }}>
-            <strong>Heat pump net install range:</strong> $2,000 for an iStore or
-            Thermann R290 all-in-one, up to $7,000 for a Reclaim CO₂ split with Wi-Fi
-            and a 316 stainless tank. What moves you along that range is tank size,
-            tank material and whether the compressor sits separately. The number
-            above is the mid-point of your upgrade path.
+            {SHOW_PRICES ? (
+              <>
+                <strong>Heat pump net install range:</strong> $2,000 for an iStore or
+                Thermann R290 all-in-one, up to $7,000 for a Reclaim CO₂ split with Wi-Fi
+                and a 316 stainless tank. What moves you along that range is tank size,
+                tank material and whether the compressor sits separately. The number
+                above is the mid-point of your upgrade path.
+              </>
+            ) : (
+              <>
+                <strong>What moves a heat pump&rsquo;s price:</strong> an iStore or Thermann
+                R290 all-in-one costs the least, a Reclaim CO₂ split with Wi-Fi and a 316
+                stainless tank the most. In between it&rsquo;s tank size, tank material and
+                whether the compressor sits separately. Your written quote is fixed, with
+                the rebate already taken off.
+              </>
+            )}
           </div>
         )}
 

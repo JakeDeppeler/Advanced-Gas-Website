@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeatPumpCompareTool } from "./HeatPumpCompareTool";
 import { ToolPage } from "@/components/homepage/tools/ToolPage";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 export const metadata: Metadata = {
   title: "Heat Pumps Compared, Side by Side",
@@ -39,8 +40,8 @@ export default function HeatPumpComparePage() {
             imported units can be slower.
             </p>
             <p>
-            Prices shown are fully-installed, pre-rebate. <Link href="/tools/veu-rebate-estimator">Run
-            the rebate estimator</Link> for your net out-of-pocket.
+            {SHOW_PRICES ? "Prices shown are fully-installed, pre-rebate. " : "Every one is priced on a fixed written quote after a free site check. "}
+            <Link href="/tools/veu-rebate-estimator">Run the rebate estimator</Link> for what comes off.
             </p>
 
           </>

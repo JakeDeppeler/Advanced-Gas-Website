@@ -198,13 +198,13 @@ export default function RebatesPage() {
               <h2>Am I eligible? Answer 4 things, find out in 30 seconds.</h2>
               <p>
                 The VEU program is open to most Victorian households, owner-occupied, rental, and units.
-                We've designed this rough calculator to give you a real ballpark before you commit to a
-                site visit.
+                We've designed this rough calculator to give you a real ballpark of your rebate before you
+                commit to a site visit.
               </p>
             </div>
             <ul>
               <li>No personal details needed for the estimate</li>
-              <li>Real numbers, not "from $XXX" marketing fluff</li>
+              <li>Real rebate figures, taken off at the quote</li>
               <li>Final figure confirmed at the free 20-min site check</li>
             </ul>
           </div>

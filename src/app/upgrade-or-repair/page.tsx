@@ -67,7 +67,7 @@ const FAQS = [
 const SIGNS = [
   {
     t: "The repair quote is over about a third of a new one",
-    d: "Standard rule of thumb across the trade, and it holds up. Spend $1,400 on a ten-year-old tank and you've bought maybe two years on a system that owes you nothing. Put that toward a replacement with the rebate applied and you've bought fifteen.",
+    d: "Standard rule of thumb across the trade, and it holds up. Spend a third of a new tank repairing a ten-year-old one and you've bought maybe two years on a system that owes you nothing. Put that toward a replacement with the rebate applied and you've bought fifteen.",
   },
   {
     t: "It's the second repair in two years",
@@ -140,7 +140,7 @@ export default function UpgradeOrRepairPage() {
             <li><strong>10 yrs</strong><span>Where hot water tanks stop earning repairs</span></li>
             <li><strong>10 yrs</strong><span>Where a gas heater becomes a safety question</span></li>
             <li><strong>12 yrs</strong><span>Where a refrigerated compressor does</span></li>
-            <li><strong>$120</strong><span>Fixed diagnosis, so you know before you spend</span></li>
+            <li><strong>In writing</strong><span>The repair price, so you know before you spend</span></li>
           </ul>
         </div>
       </section>

@@ -36,10 +36,11 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const brands = [...new Set(sys.tiers.map((t) => t.brand))];
   const others = cat.systems.filter((s) => s.slug !== sys.slug);
   const lower = sys.label.toLowerCase();
-  // Build your price: ducted and multi-head. Until the real price list is in
-  // it shows on preview deployments only, marked as placeholder prices.
+  // Build your price: ducted and multi-head. It used to show on preview
+  // deployments too, as a placeholder mock-up; Jake asked for all prices off
+  // (Nov 2026), previews included, so it renders only once it is switched on.
   const builder = sys.slug === "ducted" ? "ducted" : sys.slug === "multi-head" ? "multi" : null;
-  const showBuilder = builder && (PRICE_BUILDER_LIVE || process.env.VERCEL_ENV !== "production");
+  const showBuilder = builder && PRICE_BUILDER_LIVE;
   const tierOf = (brand: string) => sys.tiers.find((t) => !t.same && t.brand === brand) ?? sys.tiers[0];
   const builderBook = { kaden: bookHref(sys, tierOf("Kaden"), {}), mitsubishi: bookHref(sys, tierOf("Mitsubishi Electric"), {}) };
   const sizedByRoom = cat.id !== "hw" && /room/i.test(sys.q);

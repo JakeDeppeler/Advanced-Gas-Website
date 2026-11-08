@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * Gas heater vs reverse-cycle space-heating cost comparator.
@@ -46,7 +47,10 @@ const DEFAULTS: FormState = {
   gasCentsPerMj: 4.5,
   rcCop: 4.0,
   elecCentsPerKwh: 32,
-  installCost: 12000,
+  // Our ballpark only while prices show. Otherwise blank, for the visitor's
+  // own quoted figure (Jake asked for every price off, Nov 2026), and the
+  // payback lines wait until there is one.
+  installCost: SHOW_PRICES ? 12000 : 0,
   veuRebate: 3400,      // typical gas ducted → RC ducted at current $60-$75 VEEC prices
 };
 
@@ -89,6 +93,7 @@ export function HeatingComparator() {
   }, [form]);
 
   const $ = (n: number) => n === Infinity ? "n/a" : `$${Math.round(n).toLocaleString("en-AU")}`;
+  const hasInstall = form.installCost > 0;
 
   return (
     <div className="page-tool__grid">
@@ -205,10 +210,11 @@ export function HeatingComparator() {
               min="0"
               max="30000"
               step="500"
-              value={form.installCost}
+              value={hasInstall ? form.installCost : ""}
+              placeholder="From your quote"
               onChange={(e) => update("installCost", parseInt(e.target.value) || 0)}
             />
-            <small>Ducted RC retrofit ~$11-14k, multi-head split ~$6-9k.</small>
+            <small>{SHOW_PRICES ? "Ducted RC retrofit ~$11-14k, multi-head split ~$6-9k." : "The price before rebate, from your written quote."}</small>
           </div>
           <div className="tool-field">
             <label htmlFor="veu">VEU rebate ($)</label>
@@ -233,7 +239,7 @@ export function HeatingComparator() {
         <p className="tool-result__sub">
           By switching from a <strong>{form.gasStar}-star gas heater</strong> to a
           <strong> reverse-cycle COP {form.rcCop.toFixed(1)}</strong> system.
-          {result.paybackYears !== Infinity && (
+          {hasInstall && result.paybackYears !== Infinity && (
             <> Payback in <strong>{result.paybackYears.toFixed(1)} years</strong> at
             {" "}<strong>{$(result.netInstall)}</strong> net install cost.</>
           )}
@@ -266,18 +272,27 @@ export function HeatingComparator() {
               {$(result.savingYr)}
             </span>
           </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Payback (net of VEU)</span>
-            <span className="tool-result__row-val">
-              {result.paybackYears === Infinity ? "n/a" : `${result.paybackYears.toFixed(1)} yrs`}
-            </span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">10-year net saving</span>
-            <span className="tool-result__row-val" style={{ color: result.tenYearSaving > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
-              {$(result.tenYearSaving)}
-            </span>
-          </div>
+          {hasInstall ? (
+            <>
+              <div className="tool-result__row">
+                <span className="tool-result__row-lbl">Payback (net of VEU)</span>
+                <span className="tool-result__row-val">
+                  {result.paybackYears === Infinity ? "n/a" : `${result.paybackYears.toFixed(1)} yrs`}
+                </span>
+              </div>
+              <div className="tool-result__row">
+                <span className="tool-result__row-lbl">10-year net saving</span>
+                <span className="tool-result__row-val" style={{ color: result.tenYearSaving > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
+                  {$(result.tenYearSaving)}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="tool-result__row">
+              <span className="tool-result__row-lbl">Payback</span>
+              <span className="tool-result__row-val">Add your install quote</span>
+            </div>
+          )}
         </div>
 
         <div className="tool-result__cta">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { SAVINGS_DEFAULTS as DEFAULTS, hotWaterRunningCost, type CurrentSystem, type SavingsForm as FormState } from "@/lib/tools/hotWaterSavings";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * Hot water vs heat pump savings calculator.
@@ -15,12 +16,16 @@ import { SAVINGS_DEFAULTS as DEFAULTS, hotWaterRunningCost, type CurrentSystem, 
  * at ~50 °C, which requires roughly 2.4 kWh of delivered heat per person.
  * Adjusted by system efficiency (gas ~80%, electric 100%, heat pump COP 4).
  *
- * Then applies the VEU rebate to a $3,500 install ballpark to get the
- * net install cost and payback period.
+ * Then applies the VEU rebate to the install price to get the net install
+ * cost and payback period. With SHOW_PRICES off (Jake, Nov 2026) the install
+ * price starts blank for the visitor to fill in from their own quote, rather
+ * than our ballpark, and payback only shows once there is one. The portal's
+ * running-cost tab shares SAVINGS_DEFAULTS, so the blank lives here.
  */
 
 export function HotWaterSavings() {
-  const [form, setForm] = useState<FormState>(DEFAULTS);
+  const [form, setForm] = useState<FormState>(SHOW_PRICES ? DEFAULTS : { ...DEFAULTS, installCost: 0 });
+  const hasInstall = form.installCost > 0;
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
@@ -129,10 +134,11 @@ export function HotWaterSavings() {
               min="0"
               max="15000"
               step="100"
-              value={form.installCost}
+              value={hasInstall ? form.installCost : ""}
+              placeholder="From your quote"
               onChange={(e) => update("installCost", parseInt(e.target.value) || 0)}
             />
-            <small>Ballpark install price before rebate.</small>
+            <small>{SHOW_PRICES ? "Ballpark install price before rebate." : "The price before rebate, from your written quote."}</small>
           </div>
           <div className="tool-field">
             <label htmlFor="veu">VEU rebate ($)</label>
@@ -154,15 +160,22 @@ export function HotWaterSavings() {
         <h2>Your projected savings</h2>
         <div className="tool-result__lead">Save per year</div>
         <div className="tool-result__big">{$(result.savingYr)}</div>
-        <p className="tool-result__sub">
-          Payback in{" "}
-          <strong>
-            {result.paybackYears === Infinity
-              ? "n/a, no saving in this scenario"
-              : `${result.paybackYears.toFixed(1)} years`}
-          </strong>{" "}
-          on a net install of <strong>{$(result.netInstall)}</strong> after the VEU rebate.
-        </p>
+        {hasInstall ? (
+          <p className="tool-result__sub">
+            Payback in{" "}
+            <strong>
+              {result.paybackYears === Infinity
+                ? "n/a, no saving in this scenario"
+                : `${result.paybackYears.toFixed(1)} years`}
+            </strong>{" "}
+            on a net install of <strong>{$(result.netInstall)}</strong> after the VEU rebate.
+          </p>
+        ) : (
+          <p className="tool-result__sub">
+            Add the install price from your quote to see the payback. No quote yet? We&rsquo;ll give
+            you a fixed one after a free site check.
+          </p>
+        )}
 
         <div className="tool-result__breakdown">
           <div className="tool-result__row">
@@ -185,16 +198,20 @@ export function HotWaterSavings() {
             <span className="tool-result__row-lbl">Annual saving</span>
             <span className="tool-result__row-val">{$(result.savingYr)}</span>
           </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Net install (after VEU)</span>
-            <span className="tool-result__row-val">{$(result.netInstall)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">10-year net saving</span>
-            <span className="tool-result__row-val" style={{ color: result.tenYearNetSaving > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
-              {$(result.tenYearNetSaving)}
-            </span>
-          </div>
+          {hasInstall && (
+            <>
+              <div className="tool-result__row">
+                <span className="tool-result__row-lbl">Net install (after VEU)</span>
+                <span className="tool-result__row-val">{$(result.netInstall)}</span>
+              </div>
+              <div className="tool-result__row">
+                <span className="tool-result__row-lbl">10-year net saving</span>
+                <span className="tool-result__row-val" style={{ color: result.tenYearNetSaving > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
+                  {$(result.tenYearNetSaving)}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="tool-result__cta">

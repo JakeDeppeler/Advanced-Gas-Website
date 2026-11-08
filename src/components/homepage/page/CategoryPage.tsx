@@ -107,7 +107,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
         <div className="wrap"><div className="bk__blk bk__col">
           <header className="bk__head">
             <h2 className="h2">Which {lower} <span>system</span>?</h2>
-            <p>Each one has its own page: how it works, the options we install, sizes and prices.</p>
+            <p>Each one has its own page: how it works, the options we install and the sizes.</p>
           </header>
           <div className={`cx__sys${systems.length === 4 ? " cx__sys--4" : ""}`} data-anim="stagger">
             {systems.map(({ s, from, brands: bs }) => (

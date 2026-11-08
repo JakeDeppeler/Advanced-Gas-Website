@@ -7,7 +7,7 @@ import "./not-found.css";
  *  do you come here, then the two ways to get hold of us. */
 const GO = [
   { href: "/services", label: "Everything we do", sub: "Aircon, heat pumps, gas and hot water" },
-  { href: "/range", label: "The full range", sub: "Every model we fit, with installed prices" },
+  { href: "/range", label: "The full range", sub: "Every model we fit, side by side" },
   { href: "/service-areas", label: "Do you come to me?", sub: "Every suburb, with drive times from Pakenham" },
   { href: "/quote", label: "Get a price", sub: "A written quote back inside 12 business hours" },
   { href: "/blog", label: "Guides and advice", sub: "Rebates, sizing and running costs, explained" },
