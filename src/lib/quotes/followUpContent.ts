@@ -7,8 +7,8 @@
  *  - "need to look like we are checking in and giving information they are
  *    looking for, not like an ad", and "like a real email, not an automation"
  *  - day one is a check-in: how are you going, any questions
- *  - then the quality of our brands and work, and cost and savings (as a
- *    chart), savings before brands for hot water
+ *  - then the quality of our brands and work, and cost and savings (as clean
+ *    stats), savings before brands for hot water
  *  - "a really strong closer to get them to call, maybe if they need more options"
  *  - hot water: push the Reclaim R290 300 L first, the CO₂ split second, iStore
  *    as the budget option, and not Thermann
@@ -25,6 +25,7 @@
  */
 
 import type { LetterBlock } from "@/lib/email/premium";
+import { RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 
 export type QuoteKind = "heat-pump" | "split" | "general";
 
@@ -126,18 +127,17 @@ function heatPump(step: number, i: FollowUpInput): FollowUpEmail {
         p("The question I get asked most is what a heat pump will actually save, so here's the honest version."),
         p("A heat pump doesn't heat the water by burning gas or running an element. It works like a fridge in reverse: it pulls warmth out of the outside air and moves it into the tank. That takes far less energy, so it costs about a quarter as much to run as a gas or electric tank."),
         {
-          kind: "chart",
-          title: "Typical yearly saving with a heat pump",
-          max: 1500,
-          ticks: ["$0", "$750", "$1,500 a year"],
-          rows: [
-            { label: "Swapping from an electric tank", low: 700, high: 1400, value: "$700 to $1,400 a year" },
-            { label: "Swapping from gas storage", low: 400, high: 900, value: "$400 to $900 a year" },
+          kind: "stats",
+          items: [
+            { value: "$400–$900", label: "saved a year, swapping from gas storage" },
+            { value: "$700–$1,400", label: "saved a year, swapping from an electric tank" },
+            { value: "Up to $2,700", label: "VEU rebate, already off your quote" },
+            { value: "~2 years", label: "to pay it back, with the rebate off" },
           ],
           note: "Typical figures. Yours depends on how much hot water the house uses.",
         },
+        p("**The rebate** depends on your address, what you've got now and the size of your household. Yours is already worked out and taken off the prices on the quote, and we do the paperwork."),
         p("**If you've got solar**, set it to heat in the middle of the day and most of the running cost comes off your own panels."),
-        p("**The rebate:** the Victorian Energy Upgrades program takes up to $2,700 off, depending on your address, what you've got now and the size of your household. Yours is already worked out and taken off the prices on the quote, and we do the paperwork. With the rebate off, the saving usually pays the system back in around two years."),
         callMe(i, "If you'd like me to go through the numbers for your place,"),
         ...choices(i),
       ],
@@ -156,6 +156,11 @@ function heatPump(step: number, i: FollowUpInput): FollowUpEmail {
         ...(opts.length > 1 ? [{ kind: "thumbs" as const, items: opts.map((o) => o.thumb) }] : []),
         p("We're accredited installers for both Reclaim and iStore. And how we do the job:"),
         { kind: "list", items: HOW_WE_WORK },
+        { kind: "stats", items: [
+          { value: "15 years", label: "tank warranty on the Reclaim CO₂ stainless" },
+          { value: "6 years", label: "our workmanship warranty, on top" },
+          { value: `${RATING_TEXT} ★`, label: `from ${RATING_SUMMARY.count} Google reviews` },
+        ] },
         p("One customer in Pakenham put it this way on Google: “Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so it came straight off the price. Bloke on the phone is the bloke on the tools.”"),
         callMe(i, "If you'd like to talk through which one suits your place,"),
         ...choices(i),
@@ -201,6 +206,11 @@ function split(step: number, i: FollowUpInput): FollowUpEmail {
         { kind: "photo", src: "/email/split-roof.jpg", alt: "An outdoor unit we mounted on a roof bracket" },
         p("And how we do the job:"),
         { kind: "list", items: [...HOW_WE_WORK.slice(0, 2), "We size it room by room, not off a guess, then put dust sheets down, seal the holes and run the pipe neatly outside.", ...HOW_WE_WORK.slice(2)] },
+        { kind: "stats", items: [
+          brands.includes(mit) ? { value: "Under 1%", label: "failure rate across the Mitsubishi Electric range" } : { value: "5 years", label: "compressor warranty on Kaden" },
+          { value: "6 years", label: "our workmanship warranty, on top" },
+          { value: `${RATING_TEXT} ★`, label: `from ${RATING_SUMMARY.count} Google reviews` },
+        ] },
         p("A customer in Cranbourne wrote on Google: “Bedroom Mitsubishi went in before lunch. Neat pipework, brackets straight, temp checked before they left.”"),
         callMe(i, "If you'd like to talk through the options,"),
         ...choices(i),
@@ -216,12 +226,11 @@ function split(step: number, i: FollowUpInput): FollowUpEmail {
         p("What it'll cost to run is the other thing people ask about, so here's how it works out."),
         p("A reverse-cycle split doesn't burn anything to make heat. It moves warmth from outside to inside, roughly three units of heat for every unit of electricity it uses. In summer it runs the other way and cools."),
         {
-          kind: "chart",
-          title: "Running cost for the same warmth",
-          max: 100,
-          rows: [
-            { label: "Gas heating", low: 0, high: 100, value: "what you'd pay with gas" },
-            { label: "Reverse-cycle", low: 0, high: 33, value: "about a third of that" },
+          kind: "stats",
+          items: [
+            { value: "About ⅓", label: "the running cost of gas heating, for the same warmth" },
+            { value: "3×", label: "the heat out, for every unit of electricity in" },
+            { value: "1 unit", label: "heats in winter and cools in summer" },
           ],
         },
         { kind: "list", items: [

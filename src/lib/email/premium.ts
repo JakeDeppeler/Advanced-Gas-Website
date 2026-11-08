@@ -246,9 +246,12 @@ export function premiumText(e: PremiumEmail): string {
  * helps and a signature. Every customer email uses it now (Jake, 8 Nov: "all
  * of these need to look like a real email, not like an automation email").
  *
- * Photos span the text and carry no caption: the sentence before says what
- * it is, as it would in an email someone typed. The buttons at the bottom
- * are small and plain ("super clean and simple to click").
+ * White, with the brand's colour in the few places it earns it: the figures,
+ * the buttons, bold words and the signature (Jake, 8 Nov: "remove the old
+ * gray background and add some colour and clean stats"). It asks to stay
+ * light: Apple Mail and iPhone honour that, so customers see it as written;
+ * Outlook for Mac in dark mode still repaints it, and its sun button shows
+ * the light version.
  */
 export type LetterBlock =
   | { kind: "p"; text: string }
@@ -266,11 +269,11 @@ export type LetterBlock =
   /** One-tap answers at the bottom: go ahead, a question, not this time. */
   | { kind: "choices"; items: { label: string; href: string; primary?: boolean }[] }
   /**
-   * A small horizontal range chart: one series, so one colour and no legend
-   * (the title names it), each bar labelled with its range in words, which
-   * also carries it for anyone who can't see the colour or the images.
+   * A few big figures, each with what it means underneath in words, so the
+   * number is never the only thing carrying it. Two to a row, or three when
+   * there are three.
    */
-  | { kind: "chart"; title: string; max: number; rows: { label: string; low: number; high: number; value: string }[]; ticks?: [string, string, string]; note?: string };
+  | { kind: "stats"; items: { value: string; label: string }[]; note?: string };
 
 export type LetterEmail = {
   preheader: string;
@@ -282,67 +285,67 @@ export type LetterEmail = {
   footer: PremiumEmail["footer"];
 };
 
+/** --navy and --orange-deep from the site: navy for words that matter, orange-deep where white text sits on it. */
+const NAVY = "#050a30";
+const BRAND = "#c2521a";
+const BRAND_BRIGHT = "#f36722";
 const LETTER_FONT = "font:400 15px/1.6 " + FONT;
 
-function chart(b: Extract<LetterBlock, { kind: "chart" }>): string {
-  const pct = (n: number) => Math.max(0, Math.min(100, Math.round((n / b.max) * 100)));
-  const bar = (w: number, fill: boolean) => `<td width="${w}%" style="${fill ? `background:${ORANGE};border-radius:4px;` : ""}font-size:0;line-height:0;height:14px">&nbsp;</td>`;
-  const rows = b.rows.map((r) => {
-    const a = pct(r.low), w = Math.max(2, pct(r.high) - a), rest = 100 - a - w;
-    return `<tr><td style="padding:0 0 12px;vertical-align:top">
-<div style="font:600 14px/1.4 ${FONT};color:${INK}">${esc(r.label)} <span style="font-weight:400;color:${MUTED}">&middot; ${esc(r.value)}</span></div>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:6px;background:${TINT};border-radius:4px"><tr>${a ? bar(a, false) : ""}${bar(w, true)}${rest > 0 ? bar(rest, false) : ""}</tr></table></td></tr>`;
-  }).join("");
-  const ticks = b.ticks ? b.ticks.map((t, n) => `<td width="${n === 1 ? 34 : 33}%" style="font:400 12px/1.4 ${FONT};color:${MUTED};text-align:${["left", "center", "right"][n]}">${esc(t)}</td>`).join("") : "";
-  return `<div style="margin:6px 0 18px;max-width:520px;border:1px solid ${LINE};border-radius:10px;padding:14px 16px 10px">
-<div style="font:600 14px/1.4 ${FONT};color:${INK};padding-bottom:12px">${esc(b.title)}</div>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">${rows}</table>
-${ticks ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>${ticks}</tr></table>` : ""}
-${b.note ? `<div style="padding-top:8px;font:400 12px/1.45 ${FONT};color:${MUTED}">${inline(b.note)}</div>` : ""}</div>`;
+/** Bold words in navy, so the thing being described stands out without shouting. */
+const letterInline = (t: string) => inline(t).replace(/<strong>/g, `<strong style="color:${NAVY}">`);
+
+function stats(b: Extract<LetterBlock, { kind: "stats" }>): string {
+  const per = b.items.length === 3 ? 3 : 2;
+  const rows: { value: string; label: string }[][] = [];
+  for (let n = 0; n < b.items.length; n += per) rows.push(b.items.slice(n, n + per));
+  const w = Math.floor(100 / per);
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:560px;margin:4px 0 ${b.note ? 6 : 18}px">${rows
+    .map((r) => `<tr>${r
+      .map((s) => `<td width="${w}%" style="padding:0 14px 16px 0;vertical-align:top"><div style="border-top:3px solid ${BRAND_BRIGHT};padding-top:10px"><div style="font:700 24px/1.15 ${FONT};color:${NAVY}">${esc(s.value)}</div><div style="padding-top:4px;font:400 13px/1.45 ${FONT};color:${MUTED}">${esc(s.label)}</div></div></td>`)
+      .join("")}${r.length < per ? `<td width="${w * (per - r.length)}%"></td>` : ""}</tr>`)
+    .join("")}</table>${b.note ? `<p style="margin:0 0 18px;font:400 12px/1.45 ${FONT};color:${MUTED}">${letterInline(b.note)}</p>` : ""}`;
 }
 
 function letterBlock(b: LetterBlock, base: string): string {
   switch (b.kind) {
     case "p":
-      return `<p style="margin:0 0 14px;${LETTER_FONT};color:${INK}">${inline(b.text)}</p>`;
+      return `<p style="margin:0 0 14px;${LETTER_FONT};color:${INK}">${letterInline(b.text)}</p>`;
     case "list":
-      return `<ul style="margin:0 0 14px;padding:0 0 0 20px">${b.items.map((i) => `<li style="margin:0 0 8px;${LETTER_FONT};color:${INK}">${inline(i)}</li>`).join("")}</ul>`;
+      return `<ul style="margin:0 0 14px;padding:0 0 0 20px">${b.items.map((i) => `<li style="margin:0 0 8px;${LETTER_FONT};color:${INK}">${letterInline(i)}</li>`).join("")}</ul>`;
     case "photo":
       return `<div style="margin:4px 0 18px"><img src="${esc(abs(base, b.src))}"${b.fallback ? ` data-fallback="${esc(abs(base, b.fallback))}"` : ""} width="${b.width ?? 560}" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:${b.width ?? 560}px;height:auto;border-radius:8px;border:0"></div>`;
     case "thumbs": {
       const w = Math.floor(100 / b.items.length);
       return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:2px 0 16px"><tr>${b.items
-        .map((i) => `<td width="${w}%" style="padding:0 10px 0 0;vertical-align:top"><img src="${esc(abs(base, i.src))}" width="140" alt="${esc(i.alt)}" style="display:block;width:100%;max-width:140px;height:auto;border-radius:8px;border:0"><div style="padding-top:6px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(i.caption)}</div></td>`)
+        .map((i) => `<td width="${w}%" style="padding:0 10px 0 0;vertical-align:top"><img src="${esc(abs(base, i.src))}" width="140" alt="${esc(i.alt)}" style="display:block;width:100%;max-width:140px;height:auto;border-radius:8px;border:0"><div style="padding-top:6px;font:600 13px/1.4 ${FONT};color:${NAVY}">${esc(i.caption)}</div></td>`)
         .join("")}</tr></table>`;
     }
     case "button":
-      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px"><tr><td style="background:${INK};border-radius:6px"><a href="${esc(b.href)}" style="display:inline-block;padding:12px 22px;font:600 15px/1 ${FONT};color:#ffffff;text-decoration:none;border-radius:6px">${esc(b.label)}</a></td></tr></table>`;
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px"><tr><td style="background:${BRAND};border-radius:6px"><a href="${esc(b.href)}" style="display:inline-block;padding:13px 24px;font:600 15px/1 ${FONT};color:#ffffff;text-decoration:none;border-radius:6px">${esc(b.label)}</a></td></tr></table>`;
     case "choices":
       return `<div style="margin:2px 0 18px">${b.items
-        .map((i) => `<a href="${esc(i.href)}" style="display:inline-block;margin:0 6px 8px 0;padding:10px 16px;border-radius:6px;font:600 14px/1 ${FONT};text-decoration:none;${i.primary ? `background:${INK};color:#ffffff;border:1px solid ${INK}` : `color:${INK};border:1px solid ${INK}`}">${esc(i.label)}</a>`)
+        .map((i) => `<a href="${esc(i.href)}" style="display:inline-block;margin:0 6px 8px 0;padding:11px 16px;border-radius:6px;font:600 14px/1 ${FONT};text-decoration:none;${i.primary ? `background:${BRAND};color:#ffffff;border:1px solid ${BRAND}` : `color:${NAVY};border:1px solid ${NAVY}`}">${esc(i.label)}</a>`)
         .join("")}</div>`;
-    case "chart":
-      return chart(b);
+    case "stats":
+      return stats(b);
   }
 }
 
 export function letterHtml(e: LetterEmail): string {
   const f = e.footer;
   const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
-<style>${DARK_CSS}</style></head>
-<body class="pe-shell" style="margin:0;padding:0;background:#ffffff">
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#ffffff">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${esc(e.preheader)}&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;&#8203;&nbsp;</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="pe-shell" style="background:#ffffff"><tr><td style="padding:20px 18px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff"><tr><td style="padding:20px 18px">
 <div style="max-width:600px">
 ${e.blocks.map((b) => letterBlock(b, e.base)).join("\n")}
 ${signoff ? `<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">${esc(signoff)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:4px"><tr>
 <td style="padding-right:12px;vertical-align:top">${avatar(e.base, e.signer.name, e.signer.photo, 44)}</td>
-<td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:600 15px/1.35 ${FONT};color:${INK}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br><a href="${esc(f.phoneHref)}" style="color:${MUTED};text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${MUTED};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></td>
+<td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:700 15px/1.35 ${FONT};color:${NAVY}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br><a href="${esc(f.phoneHref)}" style="color:${BRAND};font-weight:600;text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${MUTED};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></td>
 </tr></table>
 </div></td></tr></table></body></html>`;
-  return darkClasses(html);
 }
 
 export function letterText(e: LetterEmail): string {
@@ -355,7 +358,7 @@ export function letterText(e: LetterEmail): string {
       case "photo": return [];
       case "button": return [`${b.label}: ${b.href}`];
       case "choices": return [b.items.map((i) => `${i.label}: ${i.href}`).join("\n")];
-      case "chart": return [`${b.title}\n${b.rows.map((r) => `- ${r.label}: ${r.value}`).join("\n")}${b.note ? `\n${plain(b.note)}` : ""}`];
+      case "stats": return [`${b.items.map((s) => `- ${s.value}: ${s.label}`).join("\n")}${b.note ? `\n${plain(b.note)}` : ""}`];
     }
   });
   const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
