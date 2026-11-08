@@ -35,7 +35,7 @@ ok("the three-person hourly line follows the install rate", crewFor("LAB-HR-3P")
 
 const sv = planServices([
   { id: 1, code: "AC-SPLIT-DIAG", name: "Split System – Diagnostics", hours: 1, price: 180 },
-  { id: 2, code: "AC-SPLIT-MULTI-4 ", name: "Multi Head Labour (4 Head)", hours: 8, price: 2600 },
+  { id: 2, code: "AC-SPLIT-MULTI-4 ", name: "Multi Head Labour (4 Head)", hours: 8, price: 2400 },
   { id: 3, code: "EVAP-INSTALL", name: "Evaporative Cooler - Installation", hours: 2.8, price: 0 },
   { id: 4, code: "AC-DUCTED-LAB-1DAY", name: "Ducted Split System – Installation Labour", hours: 0, price: 0 },
   { id: 5, code: "AC-CASSETTE", name: "Cassette Unit - Install", hours: 0, price: 0 },
@@ -56,6 +56,30 @@ ok("an unlisted service is not touched or reported", !by(5) && !sv.skipped.some(
 ok("already at its price counts as unchanged", !by(6) && sv.unchanged === 1);
 ok("inactive services are left alone", !by(7));
 ok("servicing isn't re-priced", !by(10));
+
+// Jake, 8 Nov: nothing goes down, and linked materials go on top of the labour.
+const nd = planServices([
+  // ServiceTitan's Dynamic Pricing at ~$327/h: a repair charged $330 today, its static price $0 unused.
+  { id: 21, code: "AC-SPLIT-REPAIR", name: "Split System – Repair", hours: 1, price: 0, dynamic: true, charged: 330 },
+  // A split at $1,310 today: 4 h × $350 = $1,400 is more, so it goes up.
+  { id: 22, code: "AC-SPLIT-RTW", name: "Split System Installation - Wall Bracket", hours: 4, price: 0, dynamic: true, charged: 1310 },
+  // The split heat pump carries its install kit as linked materials.
+  { id: 23, code: "HW-HP-SPLIT", name: "Heat Pump Split - Installation", hours: 4, price: 616, dynamic: true, charged: 2160, linked: 852 },
+  // Already switched to a static price, which reads $0: the floor remembers the $330.
+  { id: 24, code: "EVAP-REPAIR", name: "Evaporative Cooler – Repair", hours: 1, price: 0 },
+  // A static price above the new one stays.
+  { id: 25, code: "AC-SPLIT-MULTI-2", name: "Multi Head Labour (2 head)", hours: 5, price: 1700 },
+  // Diagnostics: the same $200, but on the dynamic rule the static price still has to be written.
+  { id: 26, code: "EVAP-DIAG", name: "Evaporative Cooler – Diagnostics", hours: 1, price: 0, dynamic: true, charged: 200 },
+], rates, new Map([[24, 330]]));
+const nb = (id: number) => nd.changes.find((c) => c.id === id);
+ok("a repair charged $330 today stays $330, not $250", nb(21)?.after === 330 && nb(21)?.kept === true && nb(21)?.before === 330, nb(21));
+ok("a split charged $1,310 goes up to 4 h × $350", nb(22)?.after === 1400 && !nb(22)?.kept, nb(22));
+ok("the split heat pump: 4 h × $350 + $852 of linked materials", nb(23)?.after === 2252 && nb(23)?.labour === 1400 && nb(23)?.linked === 852, nb(23));
+ok("switched off the dynamic rule, the remembered $330 still holds", nb(24)?.after === 330, nb(24));
+ok("a static price already above stays where it is", !nb(25) && nd.unchanged >= 1);
+ok("diagnostics on the rule get their $200 written as the static price", nb(26)?.after === 200 && nb(26)?.before === 200, nb(26));
+ok("nothing anywhere goes down", nd.changes.every((c) => c.after >= c.before));
 ok("removing the old unit goes with the install: part-day", crewFor("DECOMMISSION-DISPOSAL") === "partDay");
 
 const gas = planRefrigerant([

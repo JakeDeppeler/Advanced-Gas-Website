@@ -254,6 +254,24 @@ and a listed hourly one with no hours is reported, not priced at $0.
 Electrical connections stay the electrician's price. Removing the old unit
 (*Equipment – Decommission & Disposal*) is the two-person rate.
 
+**Nothing goes down, and linked materials are on top (Jake, 8 Nov).** The
+first apply wrote nothing to 30 services: they were on ServiceTitan's
+**Dynamic Pricing**, which priced every one at about $327 an hour and ignores
+a price sent to it. At that rate repairs ($330), multi-heads, ducted and the
+Dominator were already above the new figures, and the heat pumps' price
+included their linked install materials. So a service's price is the larger
+of: its labour plus the materials and equipment linked to it (at pricebook
+prices); and what it charges today. "Today" for a dynamic service is the
+rule's price, not the unused static one. Switching a service to a static
+price in ServiceTitan forgets the rule's figure, so every run first records
+the highest it has seen in `portal_settings.labour_price_floor`, seeded from
+the 8 Nov dry run, and never goes under it. To let a price come down on
+purpose, take that service out of the floor.
+
+The pricebook API can't switch Dynamic Pricing off (its update has no
+`useStaticPrices`), so that's done on each service in ServiceTitan. A run that
+hits a service still on the rule says so on the failed line.
+
 **Refrigerant.** R410A and R32 were $0 a kg. Their cost and the markup live in
 `portal_settings.refrigerant` (`perKg` by material code, `markupPct`), and the
 services run sets each to cost + markup, to the dollar: $106 → $133 and

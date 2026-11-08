@@ -79,13 +79,36 @@ export const CREW_LABEL: Record<Crew, string> = { callout: "call-out fee", solo:
 /** Whole cents, so a 2.8-hour job at $310 is $868.00 and not 867.9999. */
 const cents = (n: number) => Math.round(n * 100) / 100;
 
-/** `pricing` is how ServiceTitan sets the price itself, if it does: a locked price, or a dynamic pricing rule. */
-export type ServiceRow = { id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null; pricing?: string };
-export type ServiceChange = { id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number; pricing?: string };
+/**
+ * `pricing` is how ServiceTitan sets the price itself, if it does: a locked
+ * price, or a dynamic pricing rule. `charged` is what a dynamic rule puts on
+ * the service now (its static `price` is then unused), and `linked` is the
+ * materials and equipment linked to the service, at their pricebook prices.
+ */
+export type ServiceRow = {
+  id: number; code: string; name: string; hours: number | null; price: number | null; active?: boolean | null; pricing?: string;
+  dynamic?: boolean; charged?: number | null; linked?: number;
+};
+/** `before` is what the customer is charged today; `kept` says the price stayed at it because labour + materials came to less. */
+export type ServiceChange = {
+  id: number; code: string; name: string; crew: Crew; hours: number; rate: number; before: number; after: number; pricing?: string;
+  labour: number; linked: number; kept?: boolean;
+};
 export type ServiceSkip = { id: number; code: string; name: string; reason: string };
 
-/** Each listed service at its own hours × its crew's rate, or the call-out fee. */
-export function planServices(services: ServiceRow[], rates: Rates): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
+/**
+ * Each listed service at its own hours × its crew's rate, or the call-out fee,
+ * plus whatever materials and equipment are linked to it (the split heat pump
+ * carries its install kit that way).
+ *
+ * Jake, 8 Nov: nothing goes down. ServiceTitan's Dynamic Pricing had been
+ * charging about $327 an hour on every service, so a repair at one person's
+ * $250 or a multi-head at $310 would have come in under what customers are
+ * quoted now. A service is never priced below what it charges today, or
+ * below `floors`: the highest price we've seen ServiceTitan charge for it,
+ * kept because switching a service off Dynamic Pricing loses that figure.
+ */
+export function planServices(services: ServiceRow[], rates: Rates, floors: Map<number, number> = new Map()): { changes: ServiceChange[]; unchanged: number; skipped: ServiceSkip[] } {
   const changes: ServiceChange[] = [];
   const skipped: ServiceSkip[] = [];
   let unchanged = 0;
@@ -97,10 +120,19 @@ export function planServices(services: ServiceRow[], rates: Rates): { changes: S
     const hours = Number(s.hours) || 0;
     if (!rate) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: `no ${CREW_LABEL[crew]} set in the portal` }); continue; }
     if (crew !== "callout" && hours <= 0) { skipped.push({ id: s.id, code: normCode(s.code), name: s.name, reason: "no hours on the service" }); continue; }
-    const after = crew === "callout" ? cents(rate) : cents(hours * rate);
-    const before = Number(s.price) || 0;
-    if (Math.abs(after - before) < 0.005) { unchanged++; continue; }
-    changes.push({ id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, ...(s.pricing ? { pricing: s.pricing } : {}) });
+    const labour = crew === "callout" ? cents(rate) : cents(hours * rate);
+    const linked = crew === "callout" ? 0 : cents(Number(s.linked) || 0);
+    const target = cents(labour + linked);
+    const before = s.dynamic && s.charged != null ? Number(s.charged) : Number(s.price) || 0;
+    const floor = Math.max(before, floors.get(s.id) ?? 0);
+    const after = Math.max(target, floor);
+    // On a dynamic rule the static price has to be written even when the
+    // figure is the same: it's what stays when the rule is switched off.
+    if (Math.abs(after - (Number(s.price) || 0)) < 0.005) { unchanged++; continue; }
+    changes.push({
+      id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, labour, linked,
+      ...(after > target ? { kept: true } : {}), ...(s.pricing ? { pricing: s.pricing } : {}),
+    });
   }
   return { changes, unchanged, skipped };
 }

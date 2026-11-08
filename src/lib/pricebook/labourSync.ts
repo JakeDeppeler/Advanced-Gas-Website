@@ -2,7 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { sbInsert } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
-import { getSettings } from "@/lib/portal/db";
+import { getSettings, saveSettings } from "@/lib/portal/db";
 import { normalisePricing } from "@/lib/portal/pricingTypes";
 import {
   normCode, planRefrigerant, planServices, planTemplate, ratesFromPricing, templatePatchItems,
@@ -37,11 +37,41 @@ export function stPricing(s: Raw): string {
   return parts.join(", ");
 }
 
-const serviceRow = (s: Raw): ServiceRow => ({
+/** The linked materials and equipment on a service, at their pricebook prices. */
+function linkedValue(s: Raw, price: Map<number, number>): number {
+  const lines = [...(Array.isArray(s.serviceMaterials) ? s.serviceMaterials : []), ...(Array.isArray(s.serviceEquipment) ? s.serviceEquipment : [])] as Raw[];
+  return Math.round(lines.reduce((a, l) => a + (Number(l.quantity) || 0) * (price.get(Number(l.skuId)) ?? 0), 0) * 100) / 100;
+}
+
+const serviceRow = (s: Raw, price: Map<number, number> = new Map()): ServiceRow => ({
   id: Number(s.id), code: String(s.code ?? ""), name: String(s.displayName ?? s.code ?? ""),
   hours: s.hours == null ? null : Number(s.hours), price: s.price == null ? null : Number(s.price), active: (s.active as boolean | null) ?? null,
   pricing: stPricing(s) || undefined,
+  dynamic: s.useStaticPrices === false, charged: s.calculatedPrice == null ? null : Number(s.calculatedPrice),
+  linked: linkedValue(s, price),
 });
+
+/**
+ * The highest price ServiceTitan has charged for each service, in
+ * `portal_settings.labour_price_floor` ({ prices: { [serviceId]: { code, price } } }).
+ * Switching a service off Dynamic Pricing in ServiceTitan forgets its dynamic
+ * price, and Jake's rule is that nothing goes down, so every plan adds what it
+ * sees here first. Seeded from the 8 Nov dry run.
+ */
+type Floors = { asOf?: string; prices: Record<string, { code: string; price: number }> };
+const FLOOR_KEY = "labour_price_floor";
+async function priceFloors(rows: ServiceRow[]): Promise<Map<number, number>> {
+  const saved = (await getSettings<Floors>(FLOOR_KEY)) ?? { prices: {} };
+  const prices = { ...(saved.prices ?? {}) };
+  let grew = false;
+  for (const r of rows) {
+    const now = r.dynamic && r.charged != null ? r.charged : null;
+    if (now == null || !(now > 0)) continue;
+    if ((prices[r.id]?.price ?? 0) < now) { prices[r.id] = { code: normCode(r.code), price: now }; grew = true; }
+  }
+  if (grew) await saveSettings(FLOOR_KEY, { asOf: new Date().toISOString(), prices });
+  return new Map(Object.entries(prices).map(([id, v]) => [Number(id), Number(v.price)]));
+}
 
 /** `notes`: saved and verified, with something worth saying (a price ServiceTitan set from the pricebook). */
 export type LabourResult = { applied: number; verified: number; failed: { id: number; name: string; error: string }[]; remaining: number; notes?: { id: number; name: string; note: string }[] };
@@ -91,16 +121,21 @@ export async function createServices(creates: ServiceCreate[]): Promise<LabourRe
 }
 
 export async function planServicePrices() {
-  const [rates, services, materials, refrigerant] = await Promise.all([
+  const [rates, services, materials, equipment, refrigerant] = await Promise.all([
     loadRates(), stList<Raw>("pricebook", "services", { active: "True", calculatePrices: "true" }, 10),
-    stList<Raw>("pricebook", "materials", { active: "True" }, 20), getSettings<RefrigerantSettings>("refrigerant"),
+    stList<Raw>("pricebook", "materials", { active: "True" }, 20), stList<Raw>("pricebook", "equipment", { active: "True" }, 20),
+    getSettings<RefrigerantSettings>("refrigerant"),
   ]);
+  const skuPrice = new Map<number, number>();
+  for (const x of [...materials, ...equipment]) if (x.price != null) skuPrice.set(Number(x.id), Number(x.price));
+  const rows = services.map((s) => serviceRow(s, skuPrice));
+  const floors = await priceFloors(rows);
   const creates = [planInternalHeater(services, rates)].filter((c): c is ServiceCreate => !!c);
   const materialChanges = planRefrigerant(materials.map((m) => ({
     id: Number(m.id), code: String(m.code ?? ""), name: String(m.displayName ?? m.code ?? ""),
     price: m.price == null ? null : Number(m.price), cost: m.cost == null ? null : Number(m.cost), active: (m.active as boolean | null) ?? null,
   })), refrigerant);
-  return { rates, refrigerant, materialChanges, creates, ...planServices(services.map(serviceRow), rates) };
+  return { rates, refrigerant, materialChanges, creates, ...planServices(rows, rates, floors) };
 }
 
 /**
@@ -148,7 +183,10 @@ export async function applyServicePrices(changes: ServiceChange[], limit: number
         // Say why, from ServiceTitan's own view of the service.
         const why = await stFetch<{ data?: Raw[] }>(stTenantPath("pricebook", "services"), { ids: String(c.id), calculatePrices: "true" })
           .then((r) => stPricing(r.data?.[0] ?? {})).catch(() => "");
-        out.failed.push({ id: c.id, name: c.name, error: `sent $${c.after}, ServiceTitan kept $${back.price}${why ? ` (${why})` : ""}` });
+        // The API has no way to switch a rule off (no useStaticPrices on update):
+        // that's done on the service in ServiceTitan.
+        const fix = /dynamic pricing/.test(why) ? ": switch it to a static price in ServiceTitan, then run again" : "";
+        out.failed.push({ id: c.id, name: c.name, error: `sent $${c.after}, ServiceTitan kept $${back.price}${why ? ` (${why})` : ""}${fix}` });
       }
     } catch (e) {
       out.failed.push({ id: c.id, name: c.name, error: (e as Error).message.slice(0, 300) });

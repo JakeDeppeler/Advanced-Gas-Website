@@ -74,9 +74,11 @@ jobs:
               echo
               echo "To update $(jq -r .summary.toUpdate out.json), already right $(jq -r .summary.unchanged out.json), skipped $(jq -r .summary.skipped out.json)."
               echo
-              echo "| Service | Code | Crew | Hours | Before | After | ServiceTitan sets it |"
-              echo "|---|---|---|---|---|---|---|"
-              jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(.hours) | \(.before|m) | \(.after|m) | \(.pricing // "" | e) |"' out.json
+              echo "Never below what a service charges today; linked materials go on top of the labour. (kept) = labour and materials came to less, so the price stays."
+              echo
+              echo "| Service | Code | Crew | Hours | Labour | Linked materials | Charged today | New price | ServiceTitan sets it |"
+              echo "|---|---|---|---|---|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.changes[] | "| \(.name|e) | \(.code|e) | \(.crew) | \(.hours) | \(.labour|m) | \(if (.linked // 0) > 0 then (.linked|m) else "" end) | \(.before|m) | \(.after|m)\(if .kept then " (kept)" else "" end) | \(.pricing // "" | e) |"' out.json
               if [ "$(jq -r '.creates // [] | length' out.json)" != "0" ]; then
                 echo; echo "| New service | Code | Hours | Price |"; echo "|---|---|---|---|"
                 jq -r "${JQ_DEFS}"'.creates[] | "| \(.name|e) | \(.code|e) | \(.hours) | \(.price|m) |"' out.json
