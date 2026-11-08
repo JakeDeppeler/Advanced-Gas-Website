@@ -830,11 +830,11 @@ export type NavGroup = { label: string; href: string; head?: string; foot?: stri
 const prod = (t: string, img: string, slug: string): NavItem => ({ t, s: findSystem(slug)?.sys.sub ?? "", img, href: systemHref(slug) });
 
 export const NAV: NavGroup[] = [
-  { label: "Cooling", href: "/services/air-conditioning-installation", head: "Not sure which?", foot: "Find your cooling", footFind: "air",
+  { label: "Cooling", href: "/cooling", head: "Not sure which?", foot: "Find your cooling", footFind: "air",
     items: [prod("Split system", IMG.mitsuSplit, "split-system"), prod("Multi-head split", IMG.kadenMulti, "multi-head"), prod("Ducted", IMG.mitsuDucted, "ducted"), prod("Evaporative", IMG.evapClassic, "evaporative")] },
-  { label: "Heating", href: "/services#gas-heating", head: "Not sure which?", foot: "Find your heating", footFind: "heat",
+  { label: "Heating", href: "/heating", head: "Not sure which?", foot: "Find your heating", footFind: "heat",
     items: [prod("Gas ducted heating", IMG.brivisStar, "gas-ducted-heating"), prod("Reverse-cycle split", IMG.kadenSplit, "reverse-cycle-split"), prod("Zoning & controls", IMG.zmTouch, "zoning")] },
-  { label: "Hot water", href: "/heat-pumps", head: "VEU rebate", foot: "Up to $2,700 off a heat pump", footFind: "hw",
+  { label: "Hot water", href: "/hot-water", head: "VEU rebate", foot: "Up to $2,700 off a heat pump", footFind: "hw",
     items: [prod("Heat pump", IMG.reclaimAio, "heat-pump"), prod("Gas continuous flow", IMG.gasCf, "gas-continuous-flow"), prod("Gas storage", IMG.gasStorage, "gas-storage")] },
   { label: "Services", href: "/services", head: "Something broken?", foot: "Call (03) 5947 8000", footHref: "tel:+61359478000",
     items: SERVICES.map((v) => ({ t: v.t, s: v.plain, img: v.photo, photo: true, pos: v.pos, href: v.href })) },
