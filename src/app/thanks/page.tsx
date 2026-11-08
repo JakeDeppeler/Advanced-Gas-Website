@@ -54,10 +54,6 @@ export default function ThanksPage() {
           </a>
           <Link href="/" className="ds-btn ds-btn--ghost ds-btn--lg">Back to home</Link>
         </div>
-        <p style={{ marginTop: 56, fontFamily: "var(--f-mono)", fontSize: 11.5, color: "var(--ink-3)", letterSpacing: "0.04em" }}>
-          {/* Conversion tracking pixels go here, see README. */}
-          tracking pixel placeholder · Google Ads · Meta · GA4
-        </p>
       </div>
     </section>
   );

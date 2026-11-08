@@ -4686,4 +4686,4 @@ html[data-cross-dir="to-commercial"] .cross { background: var(--orange-deep); }
 
 
 /* PageHero's emphasis matches the redesign's headers: sky blue, upright. */
-.phero__h1 em, .phero__h1 .accent { font-style: normal; color: #2CC5FF; }
+.phero__h1 em, .phero__h1 .accent { font-style: normal; color: #FF9A5C; } /* orange, not light blue: Jake's call for every headline (Nov 2026) */

@@ -88,8 +88,8 @@ export function Footer() {
           <aside className="ftr__news">
             <h3>Seasonal service reminders</h3>
             <p>
-              Straight to your inbox. Rebate news, honest maintenance tips,
-              first-in-line pricing. One email a season. Zero spam.
+              Straight to your inbox. Rebate news, honest maintenance tips
+              and a nudge before your service is due. One email a season. Zero spam.
             </p>
             <NewsletterForm />
             <small>By subscribing you agree to our privacy notice. Unsubscribe any time.</small>

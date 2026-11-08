@@ -177,7 +177,9 @@ export function Resources({ v }: { v: PV }) {
   // "5-year manufacturer parts + labour, plus 6 years on our workmanship." → the maker's part only.
   const maker = brand?.warranty?.split(/\s*(?:\+|,? plus)\s*6[- ]year/i)[0].replace(/[.,;]\s*$/, "");
   const name = v.model?.code ?? t.model;
-  const slots = v.preview && docs.length === 0;
+  // The empty PDF frames are off on previews too now (Jake wants no empty
+  // places); real files appear here as soon as they're in lib/homepage/docs.ts.
+  const slots = false;
 
   return (
     <section className="bk__sec bk__sec--cream str" id="resources">

@@ -97,6 +97,10 @@
 
 /* Our installs */
 .ag .bk__gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+/* One or two real photos fill the row rather than leaving gaps */
+.ag .bk__gal[data-n="1"]{grid-template-columns:minmax(0,1fr);max-width:760px}
+.ag .bk__gal[data-n="1"] .bk__ph{aspect-ratio:16/9}
+.ag .bk__gal[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ag .bk__ph{position:relative;margin:0;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#EEF1F5}
 .ag .bk__ph img{object-fit:cover}
 .ag .bk__ph figcaption{position:absolute;left:12px;bottom:12px;background:rgba(5,10,48,.78);color:#fff;font-size:13px;font-weight:600;border-radius:8px;padding:6px 10px}

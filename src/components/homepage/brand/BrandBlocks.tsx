@@ -41,11 +41,10 @@ const TAIL = 3;
 export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[] }) {
   const options = brandOptions(brand);
   const installs = installsFor(brand.slug).slice(0, GALLERY);
-  // On preview deployments the gallery shows where the missing photos go,
-  // so the layout can be judged before they arrive. Never on the live site:
-  // an empty frame there would read as a broken page.
-  const showSlots = process.env.VERCEL_ENV !== "production";
-  const slots = showSlots ? Math.max(0, GALLERY - installs.length) : 0;
+  // No empty "photo goes here" frames, previews included (Jake, Nov 2026:
+  // every place should have a photo). The gallery shows the real installs
+  // there are, laid out for that many, and hides with none.
+  const slots = 0;
   const story = brand.story;
   const timeline = brand.timeline ?? [];
   // Each picker answer resolved to the option it names, with its page and a
@@ -260,7 +259,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
               <h2 className="h2">Our {brand.name} <span>installs</span>.</h2>
               <p>Real jobs by our own crew, around Melbourne&apos;s south-east.</p>
             </header>
-            <div className="bk__gal" data-anim="stagger">
+            <div className="bk__gal" data-n={Math.min(installs.length, 3)} data-anim="stagger">
               {installs.map((ph) => (
                 <figure key={ph.src} className="bk__ph">
                   <Image src={ph.src} alt={ph.alt} fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 380px" />

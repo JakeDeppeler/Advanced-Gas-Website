@@ -41,7 +41,7 @@
   max-width: 16ch;
   text-wrap: balance;
 }
-.wf-hero h1 em { color: var(--sky-2); font-style: normal; }
+.wf-hero h1 em { color: #FF9A5C; font-style: normal; } /* orange, not light blue (Jake, Nov 2026) */
 .wf-hero__sub {
   max-width: 660px;
   font-size: 18px;
