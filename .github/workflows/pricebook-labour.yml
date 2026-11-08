@@ -74,7 +74,7 @@ jobs:
               echo
               echo "To update $(jq -r .summary.toUpdate out.json), already right $(jq -r .summary.unchanged out.json), skipped $(jq -r .summary.skipped out.json)."
               echo
-              echo "Never below what a service charges today; linked materials go on top of the labour. (kept) = labour and materials came to less, so the price stays."
+              echo "Never below what a service charges today; linked materials go on top of the labour. A service on ServiceTitan's Dynamic Pricing that already charges enough counts as already right and stays on it; one listed here with dynamic pricing only takes the new price once that's turned off on it in ServiceTitan."
               echo
               echo "| Service | Code | Crew | Hours | Labour | Linked materials | Charged today | New price | ServiceTitan sets it |"
               echo "|---|---|---|---|---|---|---|---|---|"

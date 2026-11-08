@@ -269,7 +269,11 @@ the 8 Nov dry run, and never goes under it. To let a price come down on
 purpose, take that service out of the floor.
 
 The pricebook API can't switch Dynamic Pricing off (its update has no
-`useStaticPrices`), so that's done on each service in ServiceTitan. A run that
+`useStaticPrices`), so that's done on each service in ServiceTitan. It only
+needs doing where the new rates go higher than the rule: a service the rule
+already prices at or above them counts as already right and stays on it,
+which keeps it following its linked materials' prices. On 8 Nov that was 21
+of 30; the 9 part-day installs are the ones the $350 rate lifts. A run that
 hits a service still on the rule says so on the failed line.
 
 **Refrigerant.** R410A and R32 were $0 a kg. Their cost and the markup live in

@@ -73,12 +73,13 @@ const nd = planServices([
   { id: 26, code: "EVAP-DIAG", name: "Evaporative Cooler – Diagnostics", hours: 1, price: 0, dynamic: true, charged: 200 },
 ], rates, new Map([[24, 330]]));
 const nb = (id: number) => nd.changes.find((c) => c.id === id);
-ok("a repair charged $330 today stays $330, not $250", nb(21)?.after === 330 && nb(21)?.kept === true && nb(21)?.before === 330, nb(21));
+ok("a repair the dynamic rule charges $330 is left on the rule, not written", !nb(21), nb(21));
 ok("a split charged $1,310 goes up to 4 h × $350", nb(22)?.after === 1400 && !nb(22)?.kept, nb(22));
 ok("the split heat pump: 4 h × $350 + $852 of linked materials", nb(23)?.after === 2252 && nb(23)?.labour === 1400 && nb(23)?.linked === 852, nb(23));
-ok("switched off the dynamic rule, the remembered $330 still holds", nb(24)?.after === 330, nb(24));
+ok("switched off the dynamic rule, the remembered $330 still holds", nb(24)?.after === 330 && nb(24)?.kept === true, nb(24));
 ok("a static price already above stays where it is", !nb(25) && nd.unchanged >= 1);
-ok("diagnostics on the rule get their $200 written as the static price", nb(26)?.after === 200 && nb(26)?.before === 200, nb(26));
+ok("diagnostics the rule already charges $200 are left alone", !nb(26), nb(26));
+ok("only what goes up on the rule is listed", nd.changes.filter((c) => c.pricing || [21, 22, 23, 26].includes(c.id)).map((c) => c.id).join() === "22,23");
 ok("nothing anywhere goes down", nd.changes.every((c) => c.after >= c.before));
 ok("removing the old unit goes with the install: part-day", crewFor("DECOMMISSION-DISPOSAL") === "partDay");
 
