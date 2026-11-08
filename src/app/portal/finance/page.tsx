@@ -82,7 +82,17 @@ async function Connected({ period }: { period: PeriodKey }) {
   const spans = periodSpans(period);
   const today = isoDateMelbourne(new Date());
   const monthFrom = `${today.slice(0, 7)}-01`;
-  const [now, before, goals, year, cover, owedList, bills, bank, journals, yearRaw, crew] = await Promise.all([
+  // Profit on every job, over the same stretch where the job page has one;
+  // a year of jobs is too many to cost on an overview, so the longer periods
+  // read the last 90 days and say so.
+  const job = period === "month" ? { w: "month", from: monthFrom, to: today, words: "this month" }
+    : period === "lastmonth" ? { w: "last", from: spans.now.from, to: spans.now.to, words: "last month" }
+      : { w: "90", from: isoDateMelbourne(new Date(Date.now() - 89 * 86_400_000)), to: today, words: "the last 90 days" };
+  const crewP = hourJobCosts().catch(() => null);
+  // Costed with the rest rather than after them: it needs only the crew rate and the goal.
+  const jpP = Promise.all([crewP, savedGoal()]).then(([crew, y]) =>
+    jobProfits(job.from, job.to, crew?.costPerHr ?? null, y?.profitPct ?? null, crew?.crew ?? []).then((r) => r.summary)).catch(() => null);
+  const [now, before, goals, year, cover, owedList, bills, bank, journals, yearRaw, , jp] = await Promise.all([
     getPLDetail(spans.now.from, spans.now.to).catch(() => null),
     getPLDetail(spans.before.from, spans.before.to).catch(() => null),
     getGoals(),
@@ -96,7 +106,8 @@ async function Connected({ period }: { period: PeriodKey }) {
       const g = await savedGoal();
       return g ? { g, raw: await getMonthlyActuals(yearSpans(g.basis, g.year)).catch(() => null) } : null;
     })(),
-    hourJobCosts().catch(() => null),
+    crewP,
+    jpP,
   ]);
   const s = now ? summarisePL(now) : null;
   const sb = before ? summarisePL(before) : null;
@@ -105,13 +116,6 @@ async function Connected({ period }: { period: PeriodKey }) {
 
   if (!s) return <XeroOff state="no-answer" what={`the profit and loss for ${words}`} />;
 
-  // Profit on every job, over the same stretch where the job page has one;
-  // a year of jobs is too many to cost on an overview, so the longer periods
-  // read the last 90 days and say so.
-  const job = period === "month" ? { w: "month", from: monthFrom, to: today, words: "this month" }
-    : period === "lastmonth" ? { w: "last", from: spans.now.from, to: spans.now.to, words: "last month" }
-      : { w: "90", from: isoDateMelbourne(new Date(Date.now() - 89 * 86_400_000)), to: today, words: "the last 90 days" };
-  const jp = await jobProfits(job.from, job.to, crew?.costPerHr ?? null, npGoal, crew?.crew ?? []).then((r) => r.summary).catch(() => null);
 
   const npPct = (s.net / s.revenue) * 100, gmPct = (s.gp / s.revenue) * 100, ohPct = (s.overheads / s.revenue) * 100;
   const npSt: Status = npGoal ? status(npPct, npGoal, { pts: true }) : none();
