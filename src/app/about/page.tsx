@@ -3,9 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { openingHours } from "@/lib/site";
 import { RATING_TEXT, RATING_SUMMARY, REVIEWS } from "@/lib/reviews";
+import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { Crumbs } from "@/components/homepage/page/kit";
+import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import "@/components/homepage/brand/blocks.css";
+import "@/components/homepage/page/category.css";
 import "@/components/homepage/page/about.css";
 
 export const metadata: Metadata = {
@@ -20,7 +25,10 @@ export const metadata: Metadata = {
  * customer trust us enough to ask for a price. So no history; instead the
  * things that earn trust, in the order a wary customer looks for them:
  * what other customers say, who answers for the work, what we guarantee in
- * writing, the licences and cover behind it, and who else trusts us.
+ * writing, who else trusts us, and the licences and cover behind it.
+ *
+ * Laid out in the brand pages' blocks (full-width bands, white between navy,
+ * cream and the page colour) so it reads as the same site.
  *
  * Every claim is one the site already makes elsewhere. Everything about a
  * person is written about them, never as a quote.
@@ -57,44 +65,63 @@ const ACCREDITED: [string, string][] = [
   ["Accredited", "VEU provider"], ["Authorised", "ARC refrigeration"], ["Licensed", "Victorian plumber"], ["Partner", "Reece Trade"],
 ];
 
+const LICENCES: [string, string][] = [
+  ["Advanced Gas & Airconditioning Services Pty Ltd", "ACN 607 575 280"],
+  ["Plumbing licence", "46828"],
+  ["ARC refrigeration authorisation", "AU59557"],
+  ["Public liability", "$20M"],
+  ["Workmanship warranty", "6 years"],
+  ["Workshop", "1 Sierra Circuit, Pakenham"],
+];
+
 export default function AboutPage() {
+  // The "family business" reviews are left off at Jake's request.
+  const reviews = REVIEWS.filter((r) => !/family/i.test(r.title + r.txt)).slice(0, 3);
   return (
     // data-no-reveal: the old site's scroll reveal hides sections until they animate in; the redesign pages opt out.
-    <div className="ag ag--flat" data-no-reveal>
-      {/* The crew photo on its own, then the words under it: over the photo they covered the people. */}
-      <section className="abx">
-        <div className="abx__pic">
-          <Image src="/team-photo.webp" alt="The Advanced Gas & Airconditioning crew and vans outside the Pakenham workshop" fill priority sizes="100vw" className="abx__bg" />
-        </div>
-        <div className="wrap abx__in">
-          <div>
-            <span className="lk2__eye">About Advanced Gas &amp; Airconditioning</span>
-            <h1 className="abx__h1">Licensed, insured and <em>accountable</em> for every job.</h1>
-          </div>
-          <div className="abx__side">
-            <p className="abx__sub">Heating, cooling, gas and hot water for homes and businesses across Melbourne&apos;s south-east and West Gippsland. Our own crew, a fixed price in writing, and two directors who answer for the work.</p>
+    // Two boxes: the blocks styles hang off .bk sitting inside .ag.
+    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx ab3" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
+      <Crumbs trail={[{ name: "About us" }]} back={{ label: "Get a free quote →", href: "/quote" }} />
+
+      <section className="bxh">
+        <div className="wrap bxh__in">
+          <div className="bxh__copy">
+            <span className="lk2__eye cx__eye">About Advanced Gas &amp; Airconditioning</span>
+            <h1 className="bxh__h1 cx__h1">Licensed, insured and <span>accountable</span> for every job.</h1>
+            <p className="bxh__sub">Heating, cooling, gas and hot water for homes and businesses across Melbourne&apos;s south-east and West Gippsland. Our own crew, a fixed price in writing, and two directors who answer for the work.</p>
             <div className="bxh__ctas">
               <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
               <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-hero">Call (03) 5947 8000</a>
             </div>
           </div>
+          <div className="bxh__img bxh__img--scene">
+            <Image src="/team-photo.webp" alt="The Advanced Gas & Airconditioning crew and vans outside the Pakenham workshop" fill priority sizes="(max-width: 900px) 100vw, 640px" />
+          </div>
         </div>
         <div className="wrap">
-          <dl className="abx__stats">{STATS.map((s) => <div key={s.k}><dd>{s.v}</dd><dt>{s.k}</dt></div>)}</dl>
+          <dl className="bxh__facts">{STATS.map((s) => <div key={s.k}><dd>{s.v}</dd><dt>{s.k}</dt></div>)}</dl>
         </div>
       </section>
 
-      <section className="pxs" id="reviews">
-        <div className="wrap pp__col">
+      <nav className="pxt" aria-label="On this page">
+        <div className="wrap pxt__in">
+          {[["reviews", "Reviews"], ["team", "The team"], ["guarantees", "Our guarantees"], ["clients", "Who we work for"], ["licences", "Licences"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+        </div>
+      </nav>
+
+      {/* 1. What customers say */}
+      <section className="bk__sec bk__sec--white" id="reviews">
+        <div className="wrap"><div className="bk__blk bk__col">
           <div className="pp__revhead">
-            <div className="pp__lead">
-              <span className="aeye"><i /> What customers say</span>
-              <h2 className="h2 h2--sm">Rated {RATING_TEXT} out of 5 by {RATING_SUMMARY.count} customers on Google.</h2>
-            </div>
+            <header className="bk__head">
+              <h2 className="h2">Rated {RATING_TEXT} by <span>{RATING_SUMMARY.count} customers</span>.</h2>
+              <p>What local households say once the job&apos;s done and the crew has gone.</p>
+            </header>
             <Link href="/reviews">Read every review →</Link>
           </div>
-          <div className="pp__revs">
-            {REVIEWS.filter((r) => !/family/i.test(r.title + r.txt)).slice(0, 3).map((r) => (
+          <div className="pp__revs" data-anim="stagger">
+            {reviews.map((r) => (
               <article key={r.who + r.title} className="rev">
                 <span className="stars stars--ink" aria-label="5 out of 5 stars">★★★★★</span>
                 <h3>{r.title}</h3>
@@ -106,17 +133,17 @@ export default function AboutPage() {
               </article>
             ))}
           </div>
-        </div>
+        </div></div>
       </section>
 
-      <section className="pxs pxs--cream">
-        <div className="wrap abd">
-          <div className="abd__head">
-            <span className="aeye"><i /> Who answers for the work</span>
-            <h2 className="h2 h2--sm">Two directors, in the business every day.</h2>
+      {/* 2. Who answers for the work */}
+      <section className="bk__sec bk__sec--cream" id="team">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <header className="bk__head">
+            <h2 className="h2">Two directors, <span>in the business every day</span>.</h2>
             <p>Not a call centre or a franchise. If anything about your job isn&apos;t right, you can ask for either director by name.</p>
-          </div>
-          <div className="abd__pair">
+          </header>
+          <div className="abd__pair" data-anim="stagger">
             {DIRECTORS.map((d) => (
               <article key={d.name} className="abd__card">
                 <span className="abd__photo"><Image src={d.photo} alt={`${d.name}, ${d.role}`} fill sizes="(max-width: 900px) 100vw, 600px" /></span>
@@ -135,64 +162,68 @@ export default function AboutPage() {
               <p>Runs bookings, compliance certificates and the paperwork, so every job is scheduled, documented and closed out properly. Behind the office is the crew: our own installers and apprentices, trained to the same written standard.</p>
             </div>
           </div>
-        </div>
+        </div></div>
       </section>
 
-      <section className="pxs pxs--navy">
-        <div className="wrap abw2">
-          <div className="abw2__head">
-            <span className="aeye aeye--dark"><i /> Who we work for</span>
-            <h2 className="h2 h2--sm">Homes, national brands and builders.</h2>
-            <p className="bx__lede">Most of our work is in people&apos;s homes. Alongside that, we install and maintain systems for commercial clients including:</p>
+      {/* 3. What we put in writing */}
+      <section className="bk__sec bk__sec--navy" id="guarantees">
+        <div className="wrap"><div className="bk__blk ab3__g">
+          <div className="ab3__gpic">
+            <Image src="/kaden-team-with-chaz.jpg" alt="One of our installers with a delivery of new units at the workshop" fill sizes="(max-width: 900px) 100vw, 480px" />
           </div>
-          <ul className="abw2__list">{CLIENTS.map((c) => <li key={c}>{c}</li>)}</ul>
-        </div>
+          <div className="bk__col">
+            <header className="bk__head">
+              <h2 className="h2">What we put <span>in writing</span>.</h2>
+              <p>Five things every customer gets, whatever the job and whoever&apos;s on it.</p>
+            </header>
+            <ol className="ab3__list" data-anim="stagger">
+              {STANDARDS.map(([h, p], i) => (
+                <li key={h}><b aria-hidden="true">{String(i + 1).padStart(2, "0")}</b><div><strong>{h}</strong><span>{p}</span></div></li>
+              ))}
+            </ol>
+          </div>
+        </div></div>
       </section>
 
-      <section className="pxs abr">
-        <div className="wrap abr__in">
-          <div className="abr__photo">
-            <Image src="/kaden-team-with-chaz.jpg" alt="One of our installers with a delivery of new units at the workshop" fill sizes="(max-width: 900px) 100vw, 520px" />
+      {/* 4. Who else trusts us */}
+      <section className="bk__sec bk__sec--red" id="clients">
+        <div className="wrap"><div className="bk__blk ab3__c">
+          <div className="bk__head">
+            <h2 className="h2">Homes, national brands <span>and builders</span>.</h2>
+            <p>Most of our work is in people&apos;s homes. Alongside that, we install and maintain systems for commercial clients including:</p>
           </div>
-          <div className="abr__t">
-            <span className="aeye"><i /> Our guarantees</span>
-            <h2 className="h2 h2--sm">What we put in writing.</h2>
-            <ul className="abr__list">
-              {STANDARDS.map(([h, p]) => <li key={h}><strong>{h}</strong><span>{p}</span></li>)}
-            </ul>
-          </div>
-        </div>
+          <ul className="ab3__clients" data-anim="stagger">{CLIENTS.map((c) => <li key={c}>{c}</li>)}</ul>
+        </div></div>
       </section>
 
-      <section className="pxs pxs--sky">
-        <div className="wrap kx2">
-          <div className="pp__lead">
-            <span className="aeye"><i /> Licences &amp; insurance</span>
-            <h2 className="h2 h2--sm">Licensed, insured and on record.</h2>
-            <p>Every number here can be checked. Certificates of currency are available on request.</p>
-            <ul className="abq">{ACCREDITED.map(([k, v]) => <li key={v}><small>{k}</small><strong>{v}</strong></li>)}</ul>
+      {/* 5. Licences and cover */}
+      <section className="bk__sec bk__sec--white" id="licences">
+        <div className="wrap"><div className="bk__blk bk__boxed ab3__lic">
+          <div className="bk__col">
+            <header className="bk__head">
+              <h2 className="h2">Licensed, insured <span>and on record</span>.</h2>
+              <p>Every number here can be checked. Certificates of currency are available on request.</p>
+            </header>
+            <ul className="ab3__acc">{ACCREDITED.map(([k, v]) => <li key={v}><small>{k}</small><strong>{v}</strong></li>)}</ul>
           </div>
-          <dl className="kxl">
-            <div><dt>Advanced Gas &amp; Airconditioning Services Pty Ltd</dt><dd>ACN 607 575 280</dd></div>
-            <div><dt>Plumbing licence</dt><dd>46828</dd></div>
-            <div><dt>ARC refrigeration authorisation</dt><dd>AU59557</dd></div>
-            <div><dt>Public liability</dt><dd>$20M</dd></div>
-            <div><dt>Workmanship warranty</dt><dd>6 years</dd></div>
-            <div><dt>Workshop</dt><dd>1 Sierra Circuit, Pakenham</dd></div>
-          </dl>
-        </div>
+          <dl className="ab3__dl">{LICENCES.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+        </div></div>
       </section>
 
-      <section className="abc">
-        <div className="wrap abc__in">
-          <h2 className="h2 h2--sm">Ready for a price you can trust?</h2>
-          <p>A free site check, then one fixed price in writing. {openingHours()}.</p>
-          <div className="bxh__ctas">
-            <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-            <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-cta">Call (03) 5947 8000</a>
+      <section className="bk__sec bk__sec--white">
+        <div className="wrap">
+          <div className="bk__box bk__box--acc bk__cta">
+            <div>
+              <h2 className="bk__boxh">Ready for a price <span>you can trust</span>?</h2>
+              <p>A free site check, then one fixed price in writing. {openingHours()}.</p>
+            </div>
+            <div className="bxh__ctas">
+              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-cta">Call (03) 5947 8000</a>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </div></div>
   );
 }

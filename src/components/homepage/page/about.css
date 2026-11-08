@@ -102,3 +102,48 @@
 .ag .abq li{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
 .ag .abq small{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--sky-ink);font-weight:600}
 .ag .abq strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
+
+/* ---- About, in the brand pages' blocks (page.tsx .ab3) ---- */
+/* The directors' cut-outs on navy with the page colour behind them, not the old pale blue. */
+.ag .ab3 .abd__photo{border-radius:14px;background:radial-gradient(70% 80% at 50% 100%,color-mix(in srgb,var(--acc) 55%,transparent) 0%,transparent 70%),var(--navy)}
+.ag .ab3 .abd__t small{color:var(--acc)}
+.ag .ab3 .abk{border-radius:14px;box-shadow:0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .ab3 .abk__t h3 small{color:var(--acc)}
+
+/* Guarantees: the photo beside a numbered list */
+.ag .ab3__g{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(28px,5vw,72px);align-items:center}
+.ag .ab3__gpic{position:relative;aspect-ratio:4/5;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.ag .ab3__gpic img{object-fit:cover}
+.ag .ab3__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ag .ab3__list li{display:flex;gap:18px;align-items:flex-start;padding:18px 20px;border-radius:12px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .ab3__list b{flex:none;font-family:var(--disp);font-size:26px;font-weight:900;line-height:1;color:var(--acc-l);min-width:36px}
+.ag .ab3__list div{display:flex;flex-direction:column;gap:4px}
+.ag .ab3__list strong{font-family:var(--disp);font-size:19px;font-weight:800;color:#fff}
+.ag .ab3__list span{font-size:15.5px;line-height:1.55;color:rgba(255,255,255,.8)}
+
+/* Clients, as white tiles on the page colour */
+.ag .ab3__c{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,4vw,64px);align-items:center}
+.ag .ab3__clients{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ag .ab3__clients li{display:flex;align-items:center;min-height:76px;padding:16px 18px;border-radius:12px;background:#fff;font-family:var(--disp);font-size:17px;font-weight:800;line-height:1.2;color:var(--navy);box-shadow:0 20px 40px -30px rgba(5,10,48,.5)}
+
+/* Licences, in the navy box */
+.ag .ab3__lic{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,64px);align-items:start}
+.ag .ab3__acc{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ag .ab3__acc li{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .ab3__acc small{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-l)}
+.ag .ab3__acc strong{font-family:var(--disp);font-size:18px;font-weight:800;color:#fff}
+.ag .ab3__dl{margin:0;display:flex;flex-direction:column;border-radius:12px;background:#fff;padding:4px 22px}
+.ag .ab3__dl div{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)}
+.ag .ab3__dl div:last-child{border-bottom:0}
+.ag .ab3__dl dt{font-size:15px;color:var(--ink2)}
+.ag .ab3__dl dd{margin:0;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--navy);text-align:right}
+
+@media (max-width:1000px){
+  .ag .ab3__g,.ag .ab3__c,.ag .ab3__lic{grid-template-columns:1fr}
+  .ag .ab3__gpic{aspect-ratio:4/3}
+}
+@media (max-width:600px){
+  .ag .ab3__clients{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .ab3__acc{grid-template-columns:1fr}
+  .ag .ab3__dl div{flex-direction:column;gap:2px}.ag .ab3__dl dd{text-align:left}
+}

@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SizingCalculator } from "./SizingCalculator";
-import "../../detail.css";
-import "../tools.css";
-import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
-import "@/components/homepage/product/product.css";
-import "@/components/homepage/brand/brand.css";
-import "@/components/homepage/page/kit.css";
+import { ToolPage } from "@/components/homepage/tools/ToolPage";
 
 export const metadata: Metadata = {
   title: "Aircon Sizing, What kW Size Do I Need?",
@@ -17,46 +12,37 @@ export const metadata: Metadata = {
 
 export default function SizingCalculatorPage() {
   return (
-    <div className="ag ag--flat" data-no-reveal>
-      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Sizing calculator" }]} />
-      <Hero eye="Free tool" title={<>Aircon <em>sizing calculator</em>.</>} sub={<>Work out the right cooling capacity for a single room in seconds. Uses the
-            residential heat-load formula our installers apply on quote day, adjusted for
-            ceiling height, orientation, insulation, glazing and occupants.</>} ctas={false} />
-      <div className="page-detail page-tools kx__tool">
-
-      <section className="page-tool">
-        <div className="wrap">
-          <SizingCalculator />
-
-          <details className="page-tool__how" style={{ marginTop: 32 }}>
-            <summary style={{ cursor: "pointer", fontFamily: "var(--f-display)", fontWeight: 700, color: "var(--navy)", fontSize: 16 }}>
-              How the calculation works
-            </summary>
-            <div style={{ marginTop: 16, fontSize: 14.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
-              <p>
-                We start from a residential base heat-load of <strong>150&nbsp;W per m²</strong> of floor area for
-                a standard 2.4&nbsp;m ceiling in an average Melbourne home, then apply the following adjustments:
-              </p>
-              <ul style={{ paddingLeft: 20 }}>
-                <li><strong>Ceiling height</strong>, anything above 2.7&nbsp;m increases the load by 5% per 0.3&nbsp;m.</li>
-                <li><strong>Orientation</strong>, west-facing rooms take the afternoon sun and need +15% capacity.</li>
-                <li><strong>Insulation</strong>, an uninsulated ceiling or single-glazed windows add 10-20%.</li>
-                <li><strong>Occupants</strong>, every person above 2 adds ~120&nbsp;W of body heat.</li>
-                <li><strong>Glazing</strong>, large expanses of glass (&gt;20% wall area) add 10-25%.</li>
-              </ul>
-              <p>
-                The result is a recommended cooling capacity range. The lower end is the minimum that will
-                cope with an average summer day; the upper end handles heat-wave conditions comfortably.
-                Real-world quotes we produce take room-by-room measurements into account, so numbers may
-                vary, <Link href="/quote" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>send us the room</Link> and we&rsquo;ll spec it exactly.
-              </p>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      </div>
-      <Cta title={<>Want a properly-sized quote?</>} text={<>Send us the room dimensions. We&rsquo;ll spec the exact model and price it fixed.</>} />
-    </div>
+    <ToolPage
+      slug="sizing-calculator"
+      crumb="Sizing calculator"
+      title="What size {aircon} does this room need?"
+      sub="The right cooling capacity for a single room in seconds, using the residential heat-load formula our installers apply on quote day, adjusted for ceiling height, orientation, insulation, glazing and people."
+      how={{
+        h: "How the {sum} works.",
+        body: (
+          <>
+            <p>
+              We start from a residential base heat-load of <strong>150&nbsp;W per m²</strong> of floor area for
+              a standard 2.4&nbsp;m ceiling in an average Melbourne home, then adjust it:
+            </p>
+            <ul>
+              <li><strong>Ceiling height:</strong> anything above 2.7&nbsp;m adds 5% per 0.3&nbsp;m.</li>
+              <li><strong>Orientation:</strong> west-facing rooms take the afternoon sun and need 15% more.</li>
+              <li><strong>Insulation:</strong> an uninsulated ceiling or single-glazed windows add 10 to 20%.</li>
+              <li><strong>People:</strong> every person above two adds about 120&nbsp;W of body heat.</li>
+              <li><strong>Glazing:</strong> large areas of glass (more than 20% of the wall) add 10 to 25%.</li>
+            </ul>
+            <p>
+              The result is a range. The low end copes with an average summer day; the top end handles a
+              heatwave comfortably. Our quotes are measured room by room, so the final number can differ:{" "}
+              <Link href="/quote">send us the room</Link> and we&rsquo;ll spec it exactly.
+            </p>
+          </>
+        ),
+      }}
+      cta={{ h: "Want it sized {properly}?", text: "Send us the room dimensions. We'll spec the exact model and price it fixed, in writing." }}
+    >
+      <SizingCalculator />
+    </ToolPage>
   );
 }
