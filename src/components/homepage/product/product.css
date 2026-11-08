@@ -274,3 +274,37 @@
 .ag .pxs--hot .svx__save span{color:var(--navy);font-weight:700}
 .ag .pxs--hot .svx__save strong{color:#C2521A}
 .ag .pxs--hot .svx__save small{color:var(--ink2)}
+
+/* Build your price (PriceBuilder.tsx): the questions on white, the price on
+   the homepage's orange, on a navy band */
+.ag .pb__hl{color:#FF9A5C}
+.ag .pb{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+.ag .pb__form{display:flex;flex-direction:column;gap:20px;background:#fff;border-radius:18px;padding:clamp(20px,2.6vw,30px)}
+.ag .pb__q{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:10px}
+.ag .pb__q legend{padding:0;margin-bottom:10px;font-family:var(--disp);font-size:17px;font-weight:800;color:var(--navy)}
+.ag .pb__opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ag .pb__opts button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;padding:8px 6px;border:1.5px solid var(--line2);border-radius:10px;background:#fff;color:var(--navy);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.ag .pb__opts button b{font-size:14.5px;font-weight:700;line-height:1.2}
+.ag .pb__opts button small{font-size:12px;color:var(--ink3)}
+.ag .pb__opts button:hover{border-color:var(--navy)}
+.ag .pb__opts button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.ag .pb__opts button.on small{color:rgba(255,255,255,.75)}
+.ag .pb__ticks{display:flex;flex-wrap:wrap;gap:8px}
+.ag .pb__tick{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:8px 16px 8px 10px;border:1.5px solid var(--line2);border-radius:999px;background:#fff;color:var(--navy);font-size:14.5px;font-weight:700;cursor:pointer}
+.ag .pb__tick i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#EEF1F5;font-style:normal;font-size:13px}
+.ag .pb__tick.on{border-color:#C2521A}
+.ag .pb__tick.on i{background:#C2521A;color:#fff}
+.ag :is(.pb__opts button,.pb__tick):focus-visible{outline:3px solid #C2521A;outline-offset:2px}
+.ag .pb__out{position:sticky;top:150px;display:flex;flex-direction:column;gap:10px;background:radial-gradient(70% 60% at 100% 0%,rgba(255,170,90,.45),transparent 70%),#C2521A;color:#fff;border-radius:18px;padding:clamp(20px,2.6vw,30px);box-shadow:0 30px 60px -40px rgba(0,0,0,.7)}
+.ag .pb__flag{align-self:flex-start;padding:5px 10px;border-radius:6px;background:#FFE58A;color:#5A3B00;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.ag .pb__k{font-size:14px;font-weight:700;color:rgba(255,255,255,.85)}
+.ag .pb__price{font-family:var(--disp);font-size:clamp(32px,3.4vw,46px);font-weight:900;line-height:1.05;letter-spacing:-.02em}
+.ag .pb__price span{font-size:.5em;font-weight:700;opacity:.8}
+.ag .pb__wk{font-size:14.5px;color:rgba(255,255,255,.9)}
+.ag .pb__lines{list-style:none;margin:6px 0 4px;padding:12px 0 0;border-top:1px solid rgba(255,255,255,.3);display:flex;flex-direction:column;gap:8px}
+.ag .pb__lines li{display:flex;justify-content:space-between;gap:12px;font-size:14px;color:rgba(255,255,255,.9)}
+.ag .pb__lines b{white-space:nowrap}
+.ag .pb .pb__go{background:var(--navy);border-color:var(--navy);justify-content:center}
+.ag .pb__note{margin:0;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.8)}
+@media (max-width:900px){.ag .pb{grid-template-columns:1fr}.ag .pb__out{position:relative;top:auto}}
+@media (max-width:600px){.ag .pb__opts{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}

@@ -464,6 +464,9 @@ const H = {
   // No install photo of an iStore yet. Its product shot on a plain backdrop,
   // rather than someone else's unit under an "our install" caption.
   istore: { src: IMG.istore, alt: "iStore all-in-one heat pump", pos: "center", ours: false, studio: true },
+  // No install photo of a gas storage tank yet. The changeover photo this used
+  // was a heat pump, which on the gas storage pages said the wrong thing.
+  gasStorage: { src: IMG.gasStorage, alt: "Thermann 4-star gas storage unit", pos: "center", ours: false, studio: true },
 };
 const HERO: Record<string, Hero> = {
   "split-system": H.bedroom, "reverse-cycle-split": H.bedroom, "multi-head": H.bedroom,
@@ -471,11 +474,29 @@ const HERO: Record<string, Hero> = {
   evaporative: H.evap,
   "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.istore,
   "gas-continuous-flow": H.thermannCf, "gas-continuous-flow.signature": H.reclaimAio,
-  "gas-storage": H.changeover, "gas-storage.premium": H.thermannCf,
+  "gas-storage": H.gasStorage, "gas-storage.premium": H.thermannCf,
   "gas-ducted-heating": H.gasDucted,
   zoning: H.zonemate,
 };
 export const heroFor = (sys: System, tier: Tier): Hero => HERO[`${sys.slug}.${tier.slug}`] ?? HERO[sys.slug] ?? H.bedroom;
+/**
+ * A system page's header picture: the system's own, not its cheapest option's.
+ * Taking the first option's gave the ducted page a close-up of a Kaden outdoor
+ * unit and the heat pump page an iStore cut-out cropped to fill the frame.
+ */
+export const heroForSystem = (sys: System): Hero => HERO[sys.slug] ?? H.bedroom;
+/**
+ * Systems with no install photo that reads as the system: the options
+ * themselves, on white, in the header instead. A single tall tank in a wide
+ * frame is mostly empty space.
+ */
+export const HERO_SHOW: Record<string, { src: string; alt: string; label: string }[]> = {
+  "gas-storage": [
+    { src: IMG.gasStorage, alt: "Thermann 4-star gas storage unit", label: "Gas storage" },
+    { src: IMG.gasCf, alt: "Thermann G-series continuous flow unit", label: "Continuous flow" },
+    { src: IMG.istore, alt: "iStore all-in-one heat pump", label: "Heat pump" },
+  ],
+};
 
 /**
  * The header picture for each size of a room-by-room system, in the order of

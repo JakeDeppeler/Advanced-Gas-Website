@@ -308,7 +308,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
             <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
           </div>
           <div className="bxh__ctas">
-            <Link href="/#quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+            <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
             <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="brand-cta">Call (03) 5947 8000</a>
           </div>
         </div>

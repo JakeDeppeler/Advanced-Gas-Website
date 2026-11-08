@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type Category, type System, heroFor, isHeatPump, installTime, productHref, realOption, money, weekly,
+  type Category, type System, heroForSystem, HERO_SHOW, bookHref, isHeatPump, installTime, productHref, realOption, money, weekly,
   PRODUCT_FAQS, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, TONES, WORKMANSHIP,
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { Crumbs, Hero, Head, Next, Cta } from "./kit";
 import { HowItWorks } from "../how/HowItWorks";
+import { PriceBuilder } from "@/components/homepage/PriceBuilder";
+import { PRICE_BUILDER_LIVE } from "@/lib/homepage/priceBuilder";
 import { HwSavings } from "../HwSavings";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { copFor } from "@/lib/tools/hotWaterSavings";
@@ -28,13 +30,18 @@ const ZONED = new Set(["ducted", "zoning"]);
 export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
   const pc = SYS_PROS[sys.slug];
-  const first = sys.tiers.find((t) => !t.same) ?? sys.tiers[0];
-  const hero = heroFor(sys, first);
+  const hero = heroForSystem(sys);
   const prices = sys.tiers.map((t) => t.price).filter((p): p is number => typeof p === "number");
   const from = prices.length ? Math.min(...prices) : null;
   const brands = [...new Set(sys.tiers.map((t) => t.brand))];
   const others = cat.systems.filter((s) => s.slug !== sys.slug);
   const lower = sys.label.toLowerCase();
+  // Build your price: ducted and multi-head. Until the real price list is in
+  // it shows on preview deployments only, marked as placeholder prices.
+  const builder = sys.slug === "ducted" ? "ducted" : sys.slug === "multi-head" ? "multi" : null;
+  const showBuilder = builder && (PRICE_BUILDER_LIVE || process.env.VERCEL_ENV !== "production");
+  const tierOf = (brand: string) => sys.tiers.find((t) => !t.same && t.brand === brand) ?? sys.tiers[0];
+  const builderBook = { kaden: bookHref(sys, tierOf("Kaden"), {}), mitsubishi: bookHref(sys, tierOf("Mitsubishi Electric"), {}) };
   const sizedByRoom = cat.id !== "hw" && /room/i.test(sys.q);
 
   return (
@@ -42,7 +49,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       <Crumbs trail={[{ name: cat.label, href: `/?find=${cat.id}#find` }, { name: sys.label }]} back={{ label: "Find yours in a few taps →", href: `/?find=${sys.slug}#find` }} />
       <Hero
         eye={cat.label} title={sys.label} sub={SYS_INTRO[sys.slug] ?? sys.sub}
-        img={hero.src} imgAlt={hero.alt} ctas={false}
+        img={hero.src} imgAlt={hero.alt} scene={!hero.studio} pos={hero.pos} show={HERO_SHOW[sys.slug]} ctas={false}
         facts={[
           from != null
             ? { v: `From ${money(from)}`, k: SHOW_FINANCE ? `Installed, or $${weekly(from, FINANCE_MONTHS)}/wk` : "Installed, GST included" }
@@ -60,7 +67,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
-          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(ZONED.has(sys.slug) ? [["zones", "Try the zones"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(ZONED.has(sys.slug) ? [["zones", "Try the zones"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(showBuilder ? [["price", "Your price"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
         </div>
       </nav>
 
@@ -112,6 +119,15 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
             <HwSavings options={sys.tiers.filter((t) => !t.same).map((t) => ({ label: `${t.brand} ${t.model}`, cop: copFor(t.brand, t.model), // No payback against a stand-in price: it would be a made-up number of years.
               price: t.mockPrice ? null : t.price, href: productHref(sys, t, {}) }))} />
           </div></div>
+        </section>
+      )}
+
+      {showBuilder && builder && (
+        <section className="pxs pxs--navy" id="price">
+          <div className="wrap pp__col">
+            <Head dark eye="Build your price" h={<>What would yours <span className="pb__hl">cost</span>?</>} lede="Tap through the home and what you'd like in it, and the price range updates as you go." />
+            <PriceBuilder kind={builder} book={builderBook} months={SHOW_FINANCE || !PRICE_BUILDER_LIVE ? FINANCE_MONTHS : undefined} placeholder={!PRICE_BUILDER_LIVE} />
+          </div>
         </section>
       )}
 

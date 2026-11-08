@@ -154,11 +154,11 @@
 .ag .qpg__in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:56px;align-items:start}
 .ag .qpg__copy{display:flex;flex-direction:column;gap:20px;padding-top:8px}
 .ag .qpg__h1{font-family:var(--disp);font-size:clamp(40px,4.4vw,68px);font-weight:900;line-height:.98;letter-spacing:-.035em;color:#fff;margin:0}
-.ag .qpg__h1 em{font-style:normal;color:var(--sky2)}
+.ag .qpg__h1 em{font-style:normal;color:#FF9A5C}
 .ag .qpg__sub{margin:0;font-size:18px;line-height:1.55;color:rgba(255,255,255,.82);max-width:560px}
 .ag .qpg__list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
 .ag .qpg__list li{display:flex;gap:12px;align-items:flex-start}
-.ag .qpg__list li > span{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(44,197,255,.16);color:var(--sky2);display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
+.ag .qpg__list li > span{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(255,154,92,.18);color:#FF9A5C;display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
 .ag .qpg__list p{margin:0;font-size:16px;line-height:1.5;color:rgba(255,255,255,.78)}
 .ag .qpg__list strong{color:#fff}
 .ag .qpg__call{margin:6px 0 0;font-size:15px;line-height:1.55;color:rgba(255,255,255,.7)}
@@ -170,3 +170,14 @@
 @media (max-width:1000px){.ag .qpg__in{grid-template-columns:1fr;gap:32px}.ag .qpg{padding:32px 0 40px}}
 /* On a phone the four promises would push the form a screen down; the headline and the form are enough. */
 @media (max-width:700px){.ag .qpg__list{display:none}.ag .qpg__h1{font-size:38px}}
+
+/* The quote page's steps: four in a row, numbered, on white */
+.ag .qpg__hl{color:#C2521A}
+.ag .qpg__steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;counter-reset:q}
+.ag .qpg__steps li{position:relative;display:flex;flex-direction:column;gap:8px;padding:24px 22px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .qpg__steps li:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:30px;z-index:1;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#C2521A;color:#fff;font-size:13px;font-weight:800}
+.ag .qpg__n{font-family:var(--disp);font-size:30px;font-weight:900;line-height:1;color:#C2521A}
+.ag .qpg__steps h3{margin:4px 0 0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .qpg__steps p{margin:0;font-size:15px;line-height:1.55;color:var(--ink2)}
+@media (max-width:900px){.ag .qpg__steps{grid-template-columns:repeat(2,minmax(0,1fr))}.ag .qpg__steps li::after{display:none}}
+@media (max-width:560px){.ag .qpg__steps{grid-template-columns:1fr}}

@@ -69,7 +69,8 @@ export function HomeHeader({ variant = "pill" }: { variant?: "pill" | "flat" }) 
     close(g.label);
   }
 
-  const quoteHref = onHome ? "#quote" : "/#quote";
+  // Off the homepage the button opens the quote page; on it, the form is in the hero.
+  const quoteHref = onHome ? "#quote" : "/quote";
 
   return (
     <header className={variant === "flat" ? "ahdr ahdr--flat is-solid" : "ahdr ahdr--pill"}>

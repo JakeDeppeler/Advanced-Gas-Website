@@ -74,7 +74,7 @@ export default function AboutPage() {
           <div className="abx__side">
             <p className="abx__sub">Heating, cooling, gas and hot water for homes and businesses across Melbourne&apos;s south-east and West Gippsland. Our own crew, a fixed price in writing, and two directors who answer for the work.</p>
             <div className="bxh__ctas">
-              <Link href="/#quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
               <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-hero">Call (03) 5947 8000</a>
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function AboutPage() {
           <h2 className="h2 h2--sm">Ready for a price you can trust?</h2>
           <p>A free site check, then one fixed price in writing. {openingHours()}.</p>
           <div className="bxh__ctas">
-            <Link href="/#quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+            <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
             <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-cta">Call (03) 5947 8000</a>
           </div>
         </div>

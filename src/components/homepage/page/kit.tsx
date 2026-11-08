@@ -26,12 +26,17 @@ export function Crumbs({ trail, back }: { trail: { name: string; href?: string }
 }
 
 /** The dark page header: words on the left, a picture on the right, figures along the foot. */
-export function Hero({ eye, title, sub, img, imgAlt, scene = true, ctas = true, facts, children }: {
+export function Hero({ eye, title, sub, img, imgAlt, scene = true, ctas = true, facts, show, pos, children }: {
   eye: string; title: ReactNode; sub?: ReactNode; img?: string; imgAlt?: string; scene?: boolean; ctas?: boolean;
-  facts?: { v: string; k: string }[]; children?: ReactNode;
+  facts?: { v: string; k: string }[];
+  /** Product shots on white in place of one photo, each named. */
+  show?: { src: string; alt: string; label: string }[];
+  /** Where a photo's subject sits, for the crop (CSS object-position). */
+  pos?: string;
+  children?: ReactNode;
 }) {
   return (
-    <section className={`bxh${img ? "" : " bxh--plain"}`}>
+    <section className={`bxh${img || show ? "" : " bxh--plain"}`}>
       <div className="wrap bxh__in">
         <div className="bxh__copy">
           <span className="lk2__eye">{eye}</span>
@@ -40,14 +45,23 @@ export function Hero({ eye, title, sub, img, imgAlt, scene = true, ctas = true, 
           {children}
           {ctas && (
             <div className="bxh__ctas">
-              <Link href="/#quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
               <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="page-hero">Call (03) 5947 8000</a>
             </div>
           )}
         </div>
-        {img && (
+        {show ? (
+          <div className="bxh__img bxh__show" role="group" aria-label="The options" style={{ ["--acc" as string]: "#C2521A" }}>
+            {show.map((p, i) => (
+              <figure key={p.src} className={`bxh__prod${i === 0 ? " bxh__prod--lead" : ""}`}>
+                <span className="bxh__pimg"><Image src={p.src} alt={p.alt} fill priority={i === 0} sizes="(max-width: 900px) 70vw, 380px" /></span>
+                <figcaption><i aria-hidden="true" />{p.label}</figcaption>
+              </figure>
+            ))}
+          </div>
+        ) : img && (
           <div className={`bxh__img${scene ? " bxh__img--scene" : ""}`}>
-            <Image src={img} alt={imgAlt ?? ""} fill priority sizes="(max-width: 900px) 100vw, 640px" />
+            <Image src={img} alt={imgAlt ?? ""} fill priority sizes="(max-width: 900px) 100vw, 640px" style={pos ? { objectPosition: pos } : undefined} />
           </div>
         )}
       </div>
@@ -108,7 +122,7 @@ export function Cta({ title, text = "A free site check, then one fixed price in 
           <p>{text}</p>
         </div>
         <div className="bxh__ctas">
-          <Link href="/#quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+          <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
           <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="page-cta">Call (03) 5947 8000</a>
         </div>
       </div>
