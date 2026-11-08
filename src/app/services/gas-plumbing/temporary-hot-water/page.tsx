@@ -24,9 +24,9 @@ const sys = serviceContent[SERVICE]?.systems?.find((x) => x.id === SYSTEM);
 const detail = systemDetail(SERVICE, SYSTEM);
 
 export const metadata: Metadata = {
-  title: absoluteTitle("Temporary Hot Water Hire | $30/day | Advanced Gas & Aircon"),
+  title: absoluteTitle("Temporary Hot Water Hire | Same Day | Advanced Gas & Aircon"),
   description: metaDescription(
-    "Temporary hot water unit connected the same day while you choose a replacement. $30 a day, $350 set-up waived if we do the job. Pakenham, Officer, Berwick and the south-east.",
+    "Temporary hot water unit connected the same day while you choose a replacement. Hired by the day, set-up waived if we do the job. Pakenham, Officer, Berwick and the south-east.",
   ),
   keywords: [
     "temporary hot water hire",

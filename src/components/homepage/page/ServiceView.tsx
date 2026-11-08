@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ServiceContent } from "@/lib/serviceContent";
 import type { SystemDetail } from "@/lib/systemDetail";
 import { resolveAsset } from "@/lib/publicAsset";
-import { quoted } from "@/lib/homepage/data";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /** A /public path that exists, trying other extensions; the path as given if none does. */
 const asset = (src: string) => resolveAsset(src) ?? src;
@@ -30,7 +30,13 @@ export const FINDER_FOR: Record<string, string> = {
   "gas-plumbing/continuous-flow": "gas-continuous-flow",
 };
 
-/** Price cards, grouped under their chip so a page covering three trades still reads as three lists. */
+/**
+ * Price cards, grouped under their chip so a page covering three trades still reads as three lists.
+ *
+ * With SHOW_PRICES off the cards stay, because what each job includes is
+ * still worth reading, but the figure gives way to how it's priced. The
+ * rows keep their prices for the day they are switched back on.
+ */
 export function Prices({ rows }: { rows: Row[] }) {
   if (!rows.length) return null;
   return (
@@ -45,13 +51,21 @@ export function Prices({ rows }: { rows: Row[] }) {
           <div className="kxr__t">
             {r.group && <span className="kxr__g">{r.group}</span>}
             <h3>{r.tier}</h3>
-            <p className="kxr__p"><small>{r.priceKey ?? "Installed"}</small>{r.priceKey ? r.price : quoted(r.price)}</p>
+            {SHOW_PRICES
+              ? <p className="kxr__p"><small>{r.priceKey ?? "Installed"}</small>{r.price}</p>
+              : <p className="kxr__p kxr__p--quote"><small>Price</small>Fixed, in writing</p>}
             <ul>{r.includes.split(/,\s*/).filter(Boolean).map((x) => <li key={x}>{x}</li>)}</ul>
           </div>
         </article>
       ))}
     </div>
   );
+}
+
+function PricesHead() {
+  return SHOW_PRICES
+    ? <Head eye="Prices" h="What it costs." lede="Every price includes GST. Your exact price is confirmed in writing after a free site check." />
+    : <Head eye="Pricing" h="What each job covers." lede="Every job is priced after a free site check, on a fixed written quote including GST. It only changes if the job does, and we tell you before it does." />;
 }
 
 function Faqs({ faqs }: { faqs: { q: string; a: string }[] }) {
@@ -102,7 +116,7 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
                   <span className="bxo__t">
                     <strong>{s.label}</strong>
                     <span className="kx__blurb">{s.blurb}</span>
-                    {s.priceFrom && <em>{quoted(s.priceFrom)}</em>}
+                    {SHOW_PRICES && s.priceFrom && <em>{s.priceFrom}</em>}
                   </span>
                   <i className="bxo__go" aria-hidden="true">→</i>
                 </Link>
@@ -124,7 +138,7 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
       {c.pricing.length > 0 && (
         <section className="pxs pxs--sky" id="prices">
           <div className="wrap pp__col">
-            <Head eye="Prices" h="What it costs." lede="Every price includes GST. Your exact price is confirmed in writing after a free site check." />
+            <PricesHead />
             <Prices rows={c.pricing} />
           </div>
         </section>
@@ -170,7 +184,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
       >
         {finder && (
           <div className="bxh__ctas">
-            <Link href={`/find/${finder}`} className="abtn abtn--or abtn--flat">See the options and prices →</Link>
+            <Link href={`/find/${finder}`} className="abtn abtn--or abtn--flat">{SHOW_PRICES ? "See the options and prices →" : "See the options →"}</Link>
             <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
           </div>
         )}
@@ -202,7 +216,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
       {d?.pricing?.length ? (
         <section className="pxs pxs--sky" id="prices">
           <div className="wrap pp__col">
-            <Head eye="Prices" h="What it costs." lede="Every price includes GST. Your exact price is confirmed in writing after a free site check." />
+            <PricesHead />
             <Prices rows={d.pricing} />
           </div>
         </section>
@@ -232,7 +246,9 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
         <div className="wrap pp__col">
           <Head eye="Where next" h="Keep going." />
           <Next items={[
-            ...(finder ? [{ t: "Options and prices", s: `Every ${s.label.toLowerCase()} we install, with its from price`, href: `/find/${finder}` }] : []),
+            ...(finder ? [SHOW_PRICES
+              ? { t: "Options and prices", s: `Every ${s.label.toLowerCase()} we install, with its from price`, href: `/find/${finder}` }
+              : { t: "The options", s: `Every ${s.label.toLowerCase()} we install, side by side`, href: `/find/${finder}` }] : []),
             { t: `All ${name.toLowerCase()}`, s: "The other jobs under this service", href: `/services/${slug}` },
             { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
           ]} />

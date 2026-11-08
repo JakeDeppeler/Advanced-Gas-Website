@@ -38,7 +38,7 @@ export default function ContactPage() {
             <div className="kx__card kx__card--alert" id="emergency">
               <h3>24/7 emergency</h3>
               <a className="kx__big" href={`tel:${site.phoneE164}`}>{site.phone}</a>
-              <p>Gas leak, no hot water or a CO alarm: we answer after hours for locals. $380 call-out, then $260/hr after.</p>
+              <p>Gas leak, no hot water or a CO alarm: we answer after hours for locals, and tell you the call-out fee on the phone before anyone comes out.</p>
             </div>
             <div className="kx__card">
               <h3>Hours</h3>

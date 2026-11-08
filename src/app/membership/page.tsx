@@ -35,7 +35,7 @@ const tiers: Tier[] = [
     blurb: "The basics, done properly. Annual service done on time, no chasing.",
     features: [
       { label: "1 annual gas appliance service", detail: "incl. CO testing + written report" },
-      { label: "$30 off standard service rate" },
+      { label: "Member discount on the standard service rate" },
       { label: "Reminder before your service is due" },
       { label: "Same-week response on faults" },
     ],
@@ -49,7 +49,7 @@ const tiers: Tier[] = [
     highlight: true,
     blurb: "Most households pick this one, better discounts and priority callbacks.",
     features: [
-      { label: "Annual gas service at member rate $250 + GST" },
+      { label: "Annual gas service at the member rate" },
       { label: "Annual aircon filter clean / inspection" },
       { label: "Priority booking, front of the queue" },
       { label: "10% off parts on any repair" },
@@ -66,7 +66,7 @@ const tiers: Tier[] = [
     features: [
       { label: "Up to 3 annual services (gas, aircon, hot water)" },
       { label: "Member service rates on every job" },
-      { label: "Waived after-hours make-safe fee", detail: "(normally $500 + GST)" },
+      { label: "Waived after-hours make-safe fee" },
       { label: "15% off parts on repairs" },
       { label: "Annual heat pump efficiency check" },
       { label: "A dedicated technician on your account" },
