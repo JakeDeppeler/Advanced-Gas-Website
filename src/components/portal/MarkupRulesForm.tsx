@@ -40,7 +40,7 @@ export function MarkupRulesForm({ initial, brands, categories }: { initial: Mark
       <h2 className="pt-panel__h">Equipment markups</h2>
       <p className="pt-loc__lede">
         On cost ex GST, by brand and kind of system. The closest match wins: brand and kind, then brand, then kind, then everything else.
-        Prices only ever go up from here; a lower markup leaves a dearer price as it is. Anything under $500 rounds to $10.
+        Every price lands on the rounding step, and never goes down: where the nearest step is lower, it goes to the next one up. Anything under $500 rounds to $10.
       </p>
       <table className="mk-t">
         <thead><tr><th>Brand</th><th>Kind of system</th><th>Markup</th><th aria-label="Remove" /></tr></thead>

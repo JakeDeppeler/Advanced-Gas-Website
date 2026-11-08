@@ -104,5 +104,7 @@ export const SMALL_ITEM = 500;
 
 export function roundPrice(v: number, to: number, mode: RoundMode): number {
   const step = v < SMALL_ITEM ? Math.min(to, 10) : to;
-  return (mode === "up" ? Math.ceil(v / step) : Math.round(v / step)) * step;
+  // Two decimals first, so float noise (1740.0000001) doesn't push an exact step up a whole step.
+  const q = Math.round((v / step) * 100) / 100;
+  return (mode === "up" ? Math.ceil(q) : Math.round(q)) * step;
 }

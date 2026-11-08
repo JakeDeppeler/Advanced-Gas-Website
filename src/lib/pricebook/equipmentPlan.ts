@@ -113,7 +113,13 @@ export async function buildPricePlan(rules: MarkupRules): Promise<PricePlan> {
     const brand = brandOf(name, r.manufacturer);
     const { markup, from } = ruleFor(rules, brand, categoryOf(name));
     if (markup == null) continue;
-    const price = Math.max(was, roundPrice(cost * (1 + markup / 100), rules.roundTo, rules.roundMode));
+    // The price itself lands on the step (Jake: "$100 amounts"), not just the
+    // target: an item already dearer than its markup is tidied to the step
+    // too. Rounding never takes it under today's price; if nearest would,
+    // it goes to the next step up instead.
+    const base = Math.max(was, cost * (1 + markup / 100));
+    let price = roundPrice(base, rules.roundTo, rules.roundMode);
+    if (price < was) price = roundPrice(base, rules.roundTo, "up");
     const costChanges = fix != null && Math.abs(Number(r.cost) - fix) >= 0.005;
     if (price === was && !costChanges) continue;
     changes.push({ id: Number(r.id), name, group: from, target: markup, cost, was, price, ...(costChanges ? { setCost: fix } : {}) });
