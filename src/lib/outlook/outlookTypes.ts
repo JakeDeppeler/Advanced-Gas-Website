@@ -182,12 +182,14 @@ export function threadText(thread: GraphMessage[], mailbox: string): string {
 
 /** A request to ring them back, for the morning to-do email (lib/reminders). */
 export type CallBack = { name: string; phone: string; about: string };
-export type MailDraft = { replyNeeded: boolean; whyNot: string; reply: string; handoff: string; callBack: CallBack | null };
+/** A new customer asking for work or a quote, as read from their email. */
+export type NewLead = { name: string; phone: string; email: string; address: string; suburb: string; postcode: string; service: string; summary: string };
+export type MailDraft = { replyNeeded: boolean; whyNot: string; reply: string; handoff: string; callBack: CallBack | null; lead: NewLead | null };
 
 export const MAIL_DRAFT_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["reply_needed", "why_not", "reply", "handoff", "call_back"],
+  required: ["reply_needed", "why_not", "reply", "handoff", "call_back", "new_lead"],
   properties: {
     reply_needed: { type: "boolean", description: "False when nobody would answer this email: a receipt, an invoice or statement from a supplier, a notification, marketing, spam." },
     why_not: { type: "string", description: "When reply_needed is false, at most eight words on what it is, e.g. 'Supplier invoice'. Otherwise empty." },
@@ -205,6 +207,23 @@ export const MAIL_DRAFT_SCHEMA = {
         about: { type: "string", description: "At most twelve words on what the call is about, e.g. 'quote for a heat pump in Berwick'. Empty when not wanted." },
       },
     },
+    new_lead: {
+      type: "object",
+      additionalProperties: false,
+      required: ["is_new", "name", "phone", "email", "address", "suburb", "postcode", "service", "summary"],
+      description: "Whether this email is a new enquiry: someone asking us for a quote, a price, or to come and do work they haven't booked yet. Not when <servicetitan> or the thread shows it's about a job already booked or done, a work order from a real estate agent or property manager, a supplier, a builder's existing project, or anything that isn't asking for new work.",
+      properties: {
+        is_new: { type: "boolean", description: "True only for a new enquiry as described. False for everything else, and when unsure." },
+        name: { type: "string", description: "The customer's name as they signed. Empty when not a new enquiry." },
+        phone: { type: "string", description: "Their phone number as written in the email, else from <servicetitan>; empty if neither." },
+        email: { type: "string", description: "The address to reach them on: the one they ask us to use, else the sender's. Empty when not a new enquiry." },
+        address: { type: "string", description: "The street address of the job (number and street), if they gave one; empty otherwise. Never guess." },
+        suburb: { type: "string", description: "The suburb of the job, if named; empty otherwise." },
+        postcode: { type: "string", description: "The four-digit postcode, if given; empty otherwise." },
+        service: { type: "string", description: "At most eight words on what they want, e.g. 'Quote: 7kW split system, Berwick'. Empty when not a new enquiry." },
+        summary: { type: "string", description: "Everything useful for the person quoting, in plain sentences: what they want, the house and the existing system, timing, anything they asked. At most 600 characters. Empty when not a new enquiry." },
+      },
+    },
   },
 } as const;
 
@@ -215,7 +234,11 @@ export function parseMailDraft(text: string): MailDraft {
   const s = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
   const cb = o.call_back as Record<string, unknown> | null | undefined;
   const callBack = cb && typeof cb === "object" && cb.wanted === true ? { name: s(cb.name, 80), phone: s(cb.phone, 40), about: s(cb.about, 160) } : null;
-  const out: MailDraft = { replyNeeded: o.reply_needed, whyNot: s(o.why_not, 120), reply: s(o.reply, 6000), handoff: s(o.handoff, 300), callBack };
+  const nl = o.new_lead as Record<string, unknown> | null | undefined;
+  const lead = nl && typeof nl === "object" && nl.is_new === true
+    ? { name: s(nl.name, 120), phone: s(nl.phone, 40), email: s(nl.email, 160), address: s(nl.address, 200), suburb: s(nl.suburb, 80), postcode: (s(nl.postcode, 20).match(/\b\d{4}\b/)?.[0] ?? ""), service: s(nl.service, 120), summary: s(nl.summary, 800) }
+    : null;
+  const out: MailDraft = { replyNeeded: o.reply_needed, whyNot: s(o.why_not, 120), reply: s(o.reply, 6000), handoff: s(o.handoff, 300), callBack, lead };
   if (out.replyNeeded && !out.reply) throw new Error("draft said to reply but had no reply in it");
   return out;
 }

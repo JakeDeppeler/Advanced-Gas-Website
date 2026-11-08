@@ -124,11 +124,9 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
   });
 
-  // Priced by whoever writes the quotes.
-  add(office || can(user, "quotes"), {
-    href: "/portal/ducted", label: "Ducted quote", short: "Ducted", blurb: "A ducted system priced from the house's outlets and zones", band: "hidden", icon: "doc",
-    also: ["ducted", "ducted quote", "outlets", "vents", "zones", "duct", "reverse cycle", "builder", "quote builder"],
-  });
+  // Ducted quote (/portal/ducted) is off the menus and search for now (Jake,
+  // 8 Nov): its pricing is being reworked from vents and base cost. The page
+  // is kept, so it comes back by putting this entry and the Pipeline one back.
 
   // Answered by whoever runs the pipeline, like the pipeline itself.
   add(office || can(user, "quotes"), {
