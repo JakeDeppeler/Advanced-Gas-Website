@@ -13,6 +13,8 @@ import {
   daysSince, emailKey, openStage, phoneKeys, unsentOwing, ENQUIRY_DAYS, STAGES,
   type FlowStage,
 } from "./types";
+import { attachContact } from "./contact";
+import type { Contact } from "./contactTypes";
 
 export type Tone = "good" | "mid" | "bad" | "none";
 
@@ -33,6 +35,8 @@ export type FlowRow = {
   stUrl: string | null;
   /** The customer's page: every job, quote and invoice they have, in order. */
   customerUrl: string | null;
+  /** The customer's side: last in touch, next email, who it's waiting on (contact.ts). Absent when it couldn't be read. */
+  contact?: Contact;
 };
 
 export type StageRows = {
@@ -436,6 +440,8 @@ export const loadJobFlow = cache(async (nowMs: number): Promise<JobFlow> => {
   if (send.ok) put("tosend", send.v);
   // One ledger missing is said, not hidden: the count is then only the other's.
   if (late.ok) put("overdue", late.v.rows, late.v.partial ? `${late.v.partial === "xero" ? "Xero" : "ServiceTitan"} didn't answer, so its invoices aren't in this count` : undefined);
+  // The customer's side of each line. A failure here costs the lines their contact, never the tracker.
+  await attachContact(stages, nowMs).catch((e: unknown) => console.error("jobflow contact:", e instanceof Error ? e.message : e));
   return { stages, nowMs };
 });
 

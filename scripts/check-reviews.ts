@@ -9,6 +9,7 @@ import { ANSWERS, customerReply, officeMessage, optionWords, type AnswerContext 
 import { BUILT_IN, KEY } from "../src/lib/email/templates/defaults";
 import { fill, photoUrl, problems, renderTemplate, sampleValues, templateFrom, unknownPlaceholders } from "../src/lib/email/templates/types";
 import { resolveSigner } from "../src/lib/email/templates/signer";
+import { latest, quietFor, waitingOn, when } from "../src/lib/jobflow/contactTypes";
 import { daysSince, emailProblem, householdUnit, inSendingHours as followUpHours, planFor, stopReason, type QuoteFacts, type Sent } from "../src/lib/quotes/followUpRules";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
@@ -203,6 +204,16 @@ const multi = officeMessage("yes", { ...actx, options: [{ name: "Reclaim 300L - 
 ok("the office is told every option and to ask which", /let's go ahead with my quote at Berwick\. The options on it:/.test(asText(multi)) && asText(multi).includes("- Reclaim 300L ($3,060.50)") && asText(multi).includes("- IStore 270L ($1,990)") && asText(multi).includes("Ring them, ask which option") && multi.subject === "Sarah Jones wants to go ahead: their quote (job 20999)", asText(multi).slice(0, 260));
 ok("...and the customer's reply doesn't guess", /We order your system/.test(asText(customerReply("yes", { ...actx, options: [{ name: "A", total: 1 }, { name: "B", total: 2 }] }))));
 ok("one option: named as before", officeMessage("yes", { ...actx, options: [{ name: "Reclaim 300L - Plug", total: 3060.5 }] }).subject === "Sarah Jones wants to go ahead: Reclaim 300L (job 20999)");
+
+console.log("-- the job tracker's contact line --");
+ok("waiting: us, from the 'not' tags, in the office's words", waitingOn(["System Not Ordered", "GTE Not Booked", "Dog 🐶"], "booked") === "us to order the gear and book the electrician");
+ok("waiting: them, from Awaiting Further Instructions", waitingOn(["Awaiting Further Instructions ⏳"], "hold") === "them for further instructions");
+ok("waiting: a quote out is them deciding; owed is them paying; nothing else invented", waitingOn([], "quoted") === "them to decide" && waitingOn([], "overdue") === "them to pay" && waitingOn([], "booked") === null && waitingOn(["Reclaim System Ordered"], "booked") === null);
+ok("latest of several", latest([{ at: "2026-11-01T00:00:00Z", what: "a" }, null, { at: "2026-11-05T00:00:00Z", what: "b" }])?.what === "b" && latest([]) === null);
+const nowC = Date.parse("2026-11-09T01:00:00Z");
+ok("quiet: 7 days in a stage where it matters", quietFor({ at: "2026-11-01T01:00:00Z", what: "Quoted" }, "quoted", nowC) === 8 && quietFor({ at: "2026-11-05T01:00:00Z", what: "x" }, "quoted", nowC) === null);
+ok("never quiet: a booked visit, paperwork stages, or nothing to go by", quietFor({ at: "2026-10-01T00:00:00Z", what: "x" }, "booked", nowC) === null && quietFor({ at: "2026-10-01T00:00:00Z", what: "x" }, "tobill", nowC) === null && quietFor(null, "quoted", nowC) === null);
+ok("when: today, yesterday, a weekday, a date", when("2026-11-09T00:30:00Z", nowC) === "today" && when("2026-11-08T00:30:00Z", nowC) === "yesterday" && when("2026-10-20T00:30:00Z", nowC) === "20 Oct");
 
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));

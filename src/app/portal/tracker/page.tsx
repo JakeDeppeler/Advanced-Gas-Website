@@ -22,6 +22,7 @@ export const metadata = { title: "Job tracker · Team portal" };
  */
 function pick(c: string | undefined, s: string | undefined): Open {
   if (c === "old" || s === "imported") return "old";
+  if (c === "quiet") return "quiet";
   const col = COLUMNS.find((x) => x.k === c);
   if (col) return col.k;
   return s && s in STAGE ? columnOf(s as FlowStage) : null;
