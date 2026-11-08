@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import {
   FAULT_CODES,
@@ -18,6 +17,7 @@ import { Crumbs, Hero, Cta } from "@/components/homepage/page/kit";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * One page per fault code.
@@ -105,8 +105,8 @@ export default function FaultCodePage({ params }: { params: Params }) {
 
   return (
     <div className="ag ag--flat" data-no-reveal>
-      <Script id={`ld-fault-crumbs-${params.brand}-${params.code}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      <Script id={`ld-fault-faq-${params.brand}-${params.code}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <JsonLd data={crumbs} />
+      <JsonLd data={faqSchema} />
 
       <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Fault codes", href: "/tools/fault-codes" }, { name: `${f.brand} ${f.code}` }]} />
       <Hero eye={`${f.brand} · ${FAULT_SYSTEM_LABELS[f.system]}`} title={<>{f.brand} fault code <em>{f.code}</em></>} sub={`${f.meaning}.`} ctas={false}>

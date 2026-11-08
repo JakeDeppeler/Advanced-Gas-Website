@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { RepairOrReplace } from "@/components/RepairOrReplace";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
@@ -8,6 +7,7 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { LIFE_EXPECTANCY, REBATE_FACTS } from "@/lib/upgradeAngle";
 import "./upgrade.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * "Repair it or replace it?" — the question behind most of the calls we
@@ -107,8 +107,8 @@ export default function UpgradeOrRepairPage() {
 
   return (
     <div className="page-upgrade">
-      <Script id="uog-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
-      <Script id="uog-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={faqSchema(FAQS)} />
+      <JsonLd data={crumbs} />
 
       <section className="ug-hero">
         <div className="wrap">

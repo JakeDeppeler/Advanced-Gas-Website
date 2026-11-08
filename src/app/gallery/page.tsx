@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { GALLERY, GALLERY_CATEGORY_LABELS, BEFORE_AFTER, type GalleryCategory } from "@/lib/gallery";
 import { BeforeAfter } from "@/components/BeforeAfter";
@@ -14,6 +13,7 @@ import { brands as allBrands } from "@/lib/brands";
 import "../detail.css";
 import "./gallery.css";
 import Image from "next/image";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Install Gallery, Real Jobs Round Here",
@@ -191,7 +191,7 @@ export default async function GalleryPage() {
         </div>
       </section>
 
-      <Script id="ld-crumbs-gallery" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
     </div>
   );
 }

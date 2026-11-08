@@ -1,6 +1,6 @@
-import Script from "next/script";
 import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * Reviews section + AggregateRating structured data.
@@ -107,11 +107,7 @@ export async function ReviewsBlock({
       </div>
 
       {showSchema && (
-        <Script
-          id="ld-reviews"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
+        <JsonLd data={schema} />
       )}
     </section>
   );

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 import { services, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
-import { breadcrumbSchema, faqSchema } from "@/lib/schema";
+import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/schema";
 import { systemDetail } from "@/lib/systemDetail";
 import { seoMeta } from "@/lib/seo";
 import { SystemView, FINDER_FOR } from "@/components/homepage/page/ServiceView";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * A page per system type — /services/gas-plumbing/gas-ducted and so on.
@@ -70,9 +70,10 @@ export default function SystemPage({ params }: { params: { slug: string; system:
   return (
     <>
       <SystemView slug={svc.slug} name={svc.short} s={system} d={systemDetail(svc.slug, system.id)} finder={FINDER_FOR[`${svc.slug}/${system.id}`]} />
-      <Script id={`ld-crumbs-${svc.slug}-${system.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
+      <JsonLd data={serviceSchema(svc.slug, { id: system.id, label: system.label, blurb: system.blurb })} />
       {system.faqs && system.faqs.length > 0 && (
-        <Script id={`ld-faq-${svc.slug}-${system.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(system.faqs)) }} />
+        <JsonLd data={faqSchema(system.faqs)} />
       )}
     </>
   );

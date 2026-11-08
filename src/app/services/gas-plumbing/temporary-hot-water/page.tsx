@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
@@ -10,6 +9,7 @@ import { SystemView } from "@/components/homepage/page/ServiceView";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * Temporary hot water hire, on its own route so its search title and
@@ -49,8 +49,8 @@ export default function TemporaryHotWaterPage() {
   return (
     <>
       <SystemView slug={SERVICE} name="Gas & Plumbing" s={sys} d={detail} />
-      <Script id="ld-crumbs-hire" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      {sys.faqs?.length ? <Script id="ld-faq-hire" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(sys.faqs)) }} /> : null}
+      <JsonLd data={crumbs} />
+      {sys.faqs?.length ? <JsonLd data={faqSchema(sys.faqs)} /> : null}
     </>
   );
 }

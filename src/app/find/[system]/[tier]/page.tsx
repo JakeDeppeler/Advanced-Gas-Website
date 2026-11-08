@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { seoMeta } from "@/lib/seo";
@@ -9,11 +8,13 @@ import { allProductParams, findSystem, money, PHOTO, REVIEW_MATCH, tierModels, B
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
 import { docsFor } from "@/lib/homepage/docs";
+import { canonicalProductSystem } from "@/lib/homepage/canonical";
 import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import { ProductView, type PModel, type PBrand } from "@/components/homepage/ProductView";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * The product page an option in "Find your system" opens. A real URL rather
@@ -42,7 +43,7 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   return seoMeta({
     title: `${tier.tier} ${sys.label.toLowerCase()}: ${tier.brand} ${tier.model}`,
     description: `${tier.brand} ${tier.model} installed by our own crews across Melbourne's south-east.${price} 6-year workmanship warranty.`,
-    canonical: `/find/${sys.slug}/${tier.slug}`,
+    canonical: `/find/${canonicalProductSystem(sys).slug}/${tier.slug}`,
     image: PHOTO.team,
     // The model is the end of the title and the part that tells these apart.
     absolute: true,
@@ -125,7 +126,7 @@ export default function FindProductPage({ params }: { params: Params }) {
         // The empty PDF slots show on previews only, so Jake can see where files would go.
         preview={process.env.VERCEL_ENV !== "production"}
       />
-      <Script id="ld-find-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
     </div>
     </>
   );

@@ -16,7 +16,7 @@ import "@/components/homepage/page/category.css";
 export const metadata: Metadata = {
   title: "Get a Free Quote, Pakenham VEU-applied",
   description:
-    "Free, no-obligation quote in 60 seconds. Licensed Pakenham aircon and heat pump specialists. A free site check, then one fixed price in writing with the VEU rebate applied.",
+    "Free, no-obligation quote in 60 seconds from licensed Pakenham aircon and heat pump installers. A free site check, then one fixed price in writing.",
   alternates: { canonical: "/quote" },
   robots: { index: true, follow: true },
 };

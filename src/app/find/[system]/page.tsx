@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { seoMeta } from "@/lib/seo";
@@ -13,6 +12,7 @@ import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /** /find/split-system and the rest: a page about the kind of system, above its three product pages. */
 
@@ -51,8 +51,8 @@ export default function FindSystemPage({ params }: { params: Params }) {
       <SiteModeStrip tabs={false} />
       <div className="ag ag--flat" style={{ display: "contents" }}><HomeHeader variant="flat" /></div>
       <SystemPage cat={cat} sys={sys} />
-      <Script id="ld-system-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      <Script id="ld-system-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(PRODUCT_FAQS[sys.faq])) }} />
+      <JsonLd data={crumbs} />
+      <JsonLd data={faqSchema(PRODUCT_FAQS[sys.faq])} />
     </>
   );
 }

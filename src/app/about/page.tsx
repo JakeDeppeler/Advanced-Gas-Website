@@ -14,9 +14,11 @@ import "@/components/homepage/page/category.css";
 import "@/components/homepage/page/about.css";
 
 export const metadata: Metadata = {
-  title: "About us, licensed heating, cooling and gas contractors",
+  // Both cut to what Google shows: this title ran 70 characters with the
+  // suffix and the description 193, so the ends were never read.
+  title: "About us, licensed gas & aircon contractors",
   description:
-    "Advanced Gas & Airconditioning Services: licensed and insured mechanical, gas and refrigeration contractors in Pakenham. Our own crew, a fixed price in writing and six years on our workmanship.",
+    "Licensed and insured gas, plumbing and refrigeration contractors in Pakenham. Our own crew, a fixed price in writing and six years on our workmanship.",
   alternates: { canonical: "/about" },
 };
 

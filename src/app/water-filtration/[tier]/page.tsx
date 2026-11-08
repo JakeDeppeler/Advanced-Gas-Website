@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
@@ -16,6 +15,7 @@ import { FinishPicker } from "@/components/FinishPicker";
 import { FilterWallSelector } from "@/components/FilterWallSelector";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../filtration.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * One page per filtration tier. Same shape each time, but the content is
@@ -57,8 +57,8 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
   return (
     <div className="page-filtration page-filtration--tier">
-      <Script id={`wf-faq-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(t.faqs)) }} />
-      <Script id={`wf-crumbs-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={faqSchema(t.faqs)} />
+      <JsonLd data={crumbs} />
 
       {/* The hero is the photo. Full bleed behind the copy with a navy
           scrim over it, rather than a panel off to one side. Jake wanted

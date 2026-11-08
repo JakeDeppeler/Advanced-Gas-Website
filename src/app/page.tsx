@@ -2,7 +2,6 @@ import { TITLE_SUFFIX } from "@/lib/seo";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import { Suspense } from "react";
 import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
@@ -16,6 +15,7 @@ import { Finder } from "@/components/homepage/Finder";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
 import { IntentFromUrl } from "@/components/homepage/IntentFromUrl";
 import "@/components/homepage/homepage.css";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   // The root page sits beside the layout, so the layout's title
@@ -329,7 +329,7 @@ export default async function HomePage() {
         <IntentFromUrl />
       </Suspense>
 
-      <Script id="ld-home-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(faqs)) }} />
+      <JsonLd data={faqSchema(faqs)} />
     </div>
     </>
   );
