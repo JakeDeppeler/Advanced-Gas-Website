@@ -1,5 +1,9 @@
 import type { LetterBlock } from "@/lib/email/premium";
-import { nextSteps } from "./journeyContent";
+import { site } from "@/lib/site";
+import { builtIn } from "@/lib/email/templates/defaults";
+import { optionWords, renderTemplate, type EmailTemplate, type Values } from "@/lib/email/templates/types";
+
+export { optionWords };
 
 /**
  * The one-tap answers at the bottom of a quote follow-up (Jake, 8 Nov: "super
@@ -52,8 +56,6 @@ export type AnswerMail = { subject: string; preheader: string; blocks: LetterBlo
 
 const p = (text: string): LetterBlock => ({ kind: "p", text });
 const money = (n: number) => new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 }).format(n);
-/** "Reclaim 300L - Plug" → "Reclaim 300L": the option, without the fitting code the office puts after it. */
-export const optionWords = (o: string | null) => (o ?? "").replace(/\s+-\s+(plug|elec|electric|hardwired|standard|b2b|back to back).*$/i, "").trim() || null;
 const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] || null;
 
 /* ------------------------------------------------------------ to the office */
@@ -110,47 +112,20 @@ export function officeMessage(a: Answer, c: AnswerContext): AnswerMail & { signe
 
 /* ---------------------------------------------------------- to the customer */
 
+/** What the braces in a reply are filled with. */
+export function replyValues(c: AnswerContext): Values {
+  return { first: c.first, mobile: c.phone, option: optionWords(c.option), note: c.note, phone: c.officePhone };
+}
+
 /**
- * What the customer gets back, from whoever quoted them. "Yes" is the start
- * of the taken-care-of process Jake asked for (8 Nov): what happens from
- * here, step by step, and that there's nothing they need to do. The other
- * two just close the loop so a tap never goes into silence.
+ * What the customer gets back, from whoever quoted them: `tpl` as edited on
+ * Marketing › Customer emails, else the standard wording (templates/defaults.ts).
+ * "Yes" is the start of the taken-care-of process Jake asked for (8 Nov):
+ * what happens from here, step by step, and that there's nothing they need to
+ * do. The other two close the loop so a tap never goes into silence.
  */
-export function customerReply(a: Answer, c: AnswerContext): AnswerMail {
-  const what = optionWords(c.option);
-  const hi = p(`Hi ${c.first},`);
-  const call = `give me a call on **${c.officePhone}**`;
-  if (a === "yes") {
-    return {
-      subject: `Great news, ${c.first}: here's what happens next`,
-      preheader: "Thanks for going ahead. We'll call you to pick a day, and here's how it runs from there.",
-      blocks: [
-        hi,
-        p("Thanks for letting me know, that's great news. Here's how it runs from here, so you know what to expect:"),
-        { kind: "list", items: nextSteps({ what, phone: c.phone }) },
-        p(`Nothing you need to do for now. If anything comes up before then, ${call} or just reply here.`),
-      ],
-    };
-  }
-  if (a === "question") {
-    return {
-      subject: `Got your question, ${c.first}`,
-      preheader: "I'll give you a call to go through it.",
-      blocks: [
-        hi,
-        p(`Thanks, I've got your question${c.note ? ":" : "."}`),
-        ...(c.note ? [p(`"${c.note}"`)] : []),
-        p(`I'll give you a call${c.phone ? ` on ${c.phone}` : ""} to go through it, usually within the business day. If it's quicker, ${call}, or reply here with anything else you'd like to ask.`),
-      ],
-    };
-  }
-  return {
-    subject: `No worries, ${c.first}`,
-    preheader: "Your quote's closed off, and that's the last email about it.",
-    blocks: [
-      hi,
-      p(`Thanks for letting me know, and no hard feelings at all. I've closed your quote${what ? ` for the ${what}` : ""} off, so that's the last email about it from us.`),
-      p(`If anything changes down the track, just reply here or ${call}, and we'll pick it up where we left off.`),
-    ],
-  };
+export function customerReply(a: Answer, c: AnswerContext, tpl?: EmailTemplate): AnswerMail {
+  const t = tpl ?? builtIn(`reply.${a}`);
+  if (!t) throw new Error(`No standard reply for ${a}`);
+  return renderTemplate(t, replyValues(c), { base: site.url });
 }

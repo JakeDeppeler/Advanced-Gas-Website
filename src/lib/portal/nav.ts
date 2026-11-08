@@ -205,6 +205,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/website?tab=dropoff", label: "Drop-off", blurb: "Where people stop", band: "marketing", icon: "funnel", also: ["drop off", "abandon", "form"] },
     { href: "/portal/marketing?tab=emails", label: "Email list", blurb: "Everyone we can email, to export", band: "marketing", icon: "list", also: ["email", "mailing list", "newsletter", "export", "csv", "unsubscribe", "edm"] },
     { href: "/portal/marketing?tab=reviews", label: "Reviews", blurb: "Google reviews to answer", band: "marketing", icon: "star", also: ["google", "review", "rating"] },
+    { href: "/portal/emails", label: "Customer emails", short: "Emails", blurb: "What customers get from us, and the words in them", band: "marketing", icon: "doc", also: ["email", "template", "follow up", "follow-up", "wording", "customer email", "quote email", "reply"] },
     { href: "/portal/materials", label: "Marketing materials", short: "Materials", blurb: "Flyers, logos and artwork, current or no longer used", band: "marketing", icon: "doc", also: ["materials", "flyer", "brochure", "logo", "artwork", "pdf", "png", "files", "brand", "print"] },
     { href: "/portal/marketing?tab=social", label: "Instagram", blurb: "What we're posting", band: "marketing", icon: "globe", also: ["instagram", "social", "posts", "ig"] },
     { href: "/portal/blog", label: "Blog", blurb: "Posts on the website", band: "marketing", icon: "doc", also: ["article", "post", "write", "publish"] },

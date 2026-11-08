@@ -1,11 +1,44 @@
 # Quote follow-ups and the one-tap answers
 
-What a customer gets after a quote, and what their answer does. The wording
-is in `lib/quotes/followUpContent.ts` (the follow-ups), `answerTypes.ts` (the
-buttons and the two emails a tap sends) and `journeyContent.ts` (what happens
-next after a sale and a booking). The layout every customer email shares is
-`lib/email/premium.ts › letterHtml`: white, no banner, a photo where it helps,
-signed by a person.
+What a customer gets after a quote, and what their answer does. The words
+are templates the office edits on **Marketing › Customer emails**
+(`/portal/emails`); the standard wording is in `lib/email/templates/defaults.ts`.
+The layout every customer email shares is `lib/email/premium.ts › letterHtml`:
+white, no banner, a photo where it helps, signed by a person.
+
+## Editing them (Marketing › Customer emails)
+
+Every email the portal sends customers by itself is listed, grouped by when
+it goes: the three follow-up series with their days, the replies when a
+customer taps a button, and "thanks for going ahead". The review email and the
+work order tenant email are linked; they keep their own editors.
+
+Opening one shows the editor and, beside it, the email as the customer sees
+it, filled in with Sarah's made-up details:
+
+- **Blocks**, top to bottom: paragraphs (`**bold**` with two stars), bullet
+  lists, a photo, photos side by side, figures, and the answer buttons. Each
+  can be moved up or down, removed, or have another added under it.
+- **Words in braces** are filled in when it's sent: `{first}`, `{phone}`,
+  `{option}` and so on; each email lists the ones it can use. What to say
+  when we don't have it goes after a bar: `{mobile|the number we have}`. A
+  paragraph that's only an empty one (`“{note}”` with nothing typed) is left
+  out. A brace it can't fill stops the save, so `{firstname}` can't go out.
+- **Photos** come from our own set (`templates/photos.ts`) or are uploaded:
+  they go into the private `email-images` bucket, are served by
+  `/api/email-image`, and go out through Next's image optimiser at email size.
+- **Send me a test** sends what's on screen, saved or not, to the signed-in
+  person. **Save** keeps the version it replaces; **Earlier versions** puts
+  one back; **Back to the standard wording** deletes the edit (kept in the
+  history too).
+- **Add an email** to a series puts a new one three days after the last,
+  switched off until it's written and turned on. Two emails in one series
+  can't go on the same day.
+
+Only managers (the Marketing capability) can open it. Edits are rows in
+`portal_email_templates`, versions in `portal_email_template_versions`,
+uploaded photos in `portal_email_photos` (migration 0111). If the database
+can't be read, every sender falls back to the standard wording.
 
 ## The follow-ups
 
@@ -23,7 +56,9 @@ you get our quote":
 
 Hot water pushes the Reclaim ECO R290 300 L first, the Reclaim CO₂ split as
 the premium option and iStore as the budget one, never Thermann (Jake, 8 Nov).
-Every figure is one the website already states.
+The split brands email names both Mitsubishi Electric and Kaden, whatever was
+quoted. Every figure is one the website already states. Those are the
+standard days and words; the editor can change either.
 
 **Sending them isn't built yet.** The wording is there and the previews go to
 Jake from Settings; the engine that sends them on the day (and stops on an
