@@ -14,6 +14,7 @@ import type { EmailTemplate } from "@/lib/email/templates/types";
 import { closeOffInServiceTitan, noteFollowUp } from "@/lib/pipeline/stLost";
 import { logTouch, setFollow } from "@/lib/pipeline/store";
 import { site } from "@/lib/site";
+import { personalAddress } from "@/lib/email/ownAddress";
 import { ANSWERS, customerReply, officeMessage, type Answer, type AnswerContext } from "./answerTypes";
 
 /**
@@ -92,7 +93,8 @@ export async function quoteFor(estimate: number): Promise<Quote> {
     ? await sbSelect<{ type: string; value: string }>("st_customer_contacts", [q.select("type,value"), q.eq("customer_id", String(customerId)), "active=not.is.false", "order=modified_on.desc.nullslast"].join("&")).catch(() => [])
     : [];
   const pick = (re: RegExp) => contacts.find((c) => re.test(c.type) && c.value?.trim())?.value.trim() ?? null;
-  const email = contacts.find((c) => c.type === "Email" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value?.trim() ?? ""))?.value.trim().toLowerCase() ?? null;
+  // Their own mailbox only, as the follow-up went to: never an agency's (ownAddress.ts). None: the office is still told, they get no reply.
+  const email = contacts.find((c) => c.type === "Email" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.value?.trim() ?? "") && personalAddress(c.value))?.value.trim().toLowerCase() ?? null;
   const who = job?.customer_name?.trim() || "A customer";
   return {
     customer: who,

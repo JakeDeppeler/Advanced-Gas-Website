@@ -21,6 +21,7 @@
  * HOLD_MAX_DAYS regardless. What the office controls is fixing it first.
  */
 
+import { personalAddress } from "@/lib/email/ownAddress";
 import { letterHtml, letterText, type LetterBlock, type LetterEmail, type PremiumEmail } from "@/lib/email/premium";
 import { SIGNERS, signerKey, type SignerKey } from "@/lib/email/team";
 
@@ -119,7 +120,8 @@ export function whyNot(c: Candidate, now: Date, latestDays = LATEST_DAYS): strin
   if (age < EARLIEST_HOURS * 3600_000) return "finished too recently";
   if (age > latestDays * 86_400_000) return "finished too long ago";
   const email = (c.email ?? "").trim().toLowerCase();
-  if (!EMAIL.test(email) || TEAM_OR_PLATFORM.test(email)) return "no email of their own";
+  // A work or agency address too: a Domestic job billed to an agency carries the property manager's (ownAddress.ts).
+  if (!EMAIL.test(email) || TEAM_OR_PLATFORM.test(email) || !personalAddress(email)) return "no email of their own";
   if (c.lastAsked && now.getTime() - Date.parse(c.lastAsked) < ASK_EVERY_DAYS * 86_400_000) return "asked in the last year";
   return null;
 }
