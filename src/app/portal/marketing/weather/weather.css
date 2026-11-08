@@ -1,0 +1,40 @@
+/* Marketing › Weather targets. Built on the shell's tokens, so dark mode comes free. */
+
+.wt-status { display: flex; align-items: flex-start; gap: 12px; margin: 18px 0 10px; padding: 14px 16px; border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.wt-status > div { display: grid; gap: 2px; min-width: 0; }
+.wt-status b { font-size: 15px; }
+.wt-status span { font-size: 13px; color: var(--ink2); }
+/* A failed or partial forecast gets an edge as well as its pill's colour and word. */
+.wt-status.partial, .wt-status.stale { box-shadow: inset 4px 0 0 var(--mid), var(--shadow); }
+.wt-status.unavailable { box-shadow: inset 4px 0 0 var(--bad), var(--shadow); }
+
+.wt-intro { margin: 0 0 16px; max-width: 72ch; }
+
+.wt-zones { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.wt-zone { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); padding: 14px 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.wt-zone header { display: grid; gap: 2px; }
+.wt-zone header b { font-size: 15px; }
+.wt-zone header span { font-size: 12px; color: var(--ink3); }
+
+.wt-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wt-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.wt-chip em { font-style: normal; font-weight: 500; opacity: 0.85; }
+.wt-chip.strong { color: var(--bad); background: var(--bad-bg); }
+.wt-chip.moderate { color: var(--mid); background: var(--mid-bg); }
+
+.wt-days { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; text-align: center; }
+.wt-days li { display: grid; gap: 1px; padding: 4px 0; border-radius: 8px; background: var(--sunken); }
+.wt-days span { font-size: 10.5px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.04em; }
+.wt-days b { font-size: 13px; font-variant-numeric: tabular-nums; }
+.wt-days small { font-size: 11px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.wt-err { margin: 0; font-size: 12px; color: var(--ink2); }
+
+.wt-tbl td { text-align: left; vertical-align: top; }
+.wt-tbl th { text-align: left; }
+.wt-tbl .ks { font-size: 12px; color: var(--ink3); }
+.wt-why { min-width: 220px; color: var(--ink2); }
+.wt-subs { min-width: 260px; font-size: 12.5px; color: var(--ink2); }
+.wt-empty { margin: 0; padding: 18px 20px; color: var(--ink2); font-size: 14px; }
+.pk-card + .pk-card { margin-top: 14px; }
+.wt-zones + .pk-card, .pk-card .pk-tbl-wrap { margin-top: 0; }
+.pk-card:has(.wt-tbl) .pk-card-h, .pk-card:has(.wt-empty) .pk-card-h { padding: 16px 20px 0; }
