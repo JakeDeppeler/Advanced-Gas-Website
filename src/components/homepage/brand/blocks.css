@@ -1,0 +1,119 @@
+/* The blocks layout for a brand page (BrandBlocks.tsx). Built from the
+   homepage's pieces: white sections with room between them, a navy block
+   where the page needs one thing to stand out, the homepage's photo tiles.
+   White and navy only; the brand's accent (--acc) is the one colour. */
+
+.ag .bk__sec{padding:clamp(56px,7vw,96px) 0;background:#fff;scroll-margin-top:136px}
+.ag .bk__sec--tight{padding-top:0}
+.ag .bk__sec--line{border-top:1px solid var(--line)}
+.ag .bk__sec--end{padding-top:0}
+.ag .bk__col{display:flex;flex-direction:column;gap:clamp(28px,3vw,40px)}
+.ag .bk__head{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.ag .bk__head p{margin:0;font-size:17px;line-height:1.6;color:var(--ink2)}
+.ag .bk__head a{color:var(--navy);font-weight:700}
+
+/* Why: four photo cards */
+.ag .bk__reasons{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.ag .bk__card{display:flex;flex-direction:column;background:#fff;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .bk__cimg{position:relative;height:190px;background:linear-gradient(180deg,#fff,#F3F5F8)}
+.ag .bk__cimg img{object-fit:contain;padding:18px}
+.ag .bk__cimg--cover img{object-fit:cover;padding:0}
+.ag .bk__ctxt{display:flex;flex-direction:column;gap:2px;padding:18px 20px 22px;border-top:1px solid var(--line)}
+.ag .bk__ctxt b{font-family:var(--disp);font-size:clamp(32px,2.8vw,42px);font-weight:900;line-height:1;letter-spacing:-.03em;color:var(--acc)}
+.ag .bk__ctxt strong{font-family:var(--disp);font-size:17px;font-weight:800;color:var(--navy);margin-top:4px}
+.ag .bk__ctxt span{margin-top:6px;font-size:14.5px;line-height:1.55;color:var(--ink2)}
+
+/* The navy blocks: same shape as the homepage's "Find your system" */
+.ag .bk__box{position:relative;overflow:clip;background:radial-gradient(55% 80% at 100% 0%,color-mix(in srgb,var(--acc) 30%,transparent),transparent 70%),var(--navy);color:#fff;border-radius:12px;padding:clamp(28px,4vw,52px) clamp(22px,4vw,52px)}
+.ag .bk__boxh{margin:0;font-family:var(--disp);font-size:clamp(30px,3.4vw,48px);font-weight:900;line-height:1.04;letter-spacing:-.025em;color:#fff;text-wrap:balance}
+.ag .bk__box p{margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,.8)}
+
+/* Made better */
+.ag .bk__q{display:flex;flex-direction:column;gap:clamp(24px,3vw,36px)}
+.ag .bk__qhead{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.ag .bk__qbody{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:16px;align-items:stretch}
+.ag .bk__qimg{position:relative;min-height:320px;background:#fff;border-radius:12px;border-top:6px solid var(--acc)}
+.ag .bk__qimg img{object-fit:contain;padding:28px}
+.ag .bk__qlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ag .bk__qlist li{display:flex;flex-direction:column;gap:8px;padding:22px;border-radius:12px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .bk__qlist h3{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:#fff}
+.ag .bk__qlist h3::before{content:"";display:block;width:22px;height:4px;border-radius:2px;background:var(--acc);margin-bottom:12px}
+.ag .bk__qlist p{font-size:15px;color:rgba(255,255,255,.78)}
+
+/* The range: homepage tiles on white */
+.ag .bk__range{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .bk .bk__tile{box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .bk .bk__tile:hover{box-shadow:0 0 0 3px var(--acc),0 30px 50px -28px rgba(5,10,48,.5)}
+.ag .bk__tile .atile__foot{border-top:1px solid var(--line)}
+.ag .bk__tier{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3) !important}
+.ag .bk__tier i{width:7px;height:7px;border-radius:2px}
+.ag .bk__price{font-weight:700;color:var(--navy) !important}
+
+/* How we install */
+.ag .bk__steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.ag .bk__steps li{display:flex;flex-direction:column;gap:8px;padding:24px;border-radius:12px;background:#F5F7FA}
+.ag .bk__n{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:#fff;font-family:var(--disp);font-weight:800;font-size:16px;margin-bottom:6px}
+.ag .bk__steps h3{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .bk__steps p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
+
+/* Our installs */
+.ag .bk__gal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .bk__ph{position:relative;margin:0;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#EEF1F5}
+.ag .bk__ph img{object-fit:cover}
+.ag .bk__ph figcaption{position:absolute;left:12px;bottom:12px;background:rgba(5,10,48,.78);color:#fff;font-size:13px;font-weight:600;border-radius:8px;padding:6px 10px}
+.ag .bk__ph--slot{display:grid;place-items:center;background:#F5F7FA;box-shadow:inset 0 0 0 2px #D9DEE6;border-radius:12px}
+.ag .bk__ph--slot span{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+
+/* Year ten + warranty */
+.ag .bk__two{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(28px,5vw,72px);align-items:start}
+.ag .bk__txt{display:flex;flex-direction:column;gap:18px}
+.ag .bk__txt > p{margin:0;font-size:17px;line-height:1.7;color:var(--ink2)}
+.ag .bk .pp__hl li > span{color:var(--acc)}
+.ag .bk__side{display:flex;flex-direction:column;gap:16px}
+.ag .bk__war{display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:12px;background:var(--navy);color:#fff}
+.ag .bk__war h3{margin:0 0 4px;font-family:var(--disp);font-size:22px;font-weight:800;color:#fff}
+.ag .bk__wcard{display:flex;align-items:center;gap:18px;padding:16px 18px;border-radius:10px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .bk__wcard b{flex:none;min-width:4.6ch;font-family:var(--disp);font-size:30px;font-weight:900;letter-spacing:-.03em;color:#fff;line-height:1}
+.ag .bk__wcard span{display:flex;flex-direction:column;gap:2px;font-size:14px;color:rgba(255,255,255,.78)}
+.ag .bk__wcard strong{font-size:15px;color:#fff}
+.ag .bk__team{position:relative;aspect-ratio:3/2;border-radius:12px;overflow:hidden}
+.ag .bk__team img{object-fit:cover}
+
+/* Is it for you */
+.ag .bk__fit{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ag .bk__fit div{display:flex;flex-direction:column;gap:10px;padding:26px 28px;border-radius:12px;background:#F5F7FA}
+.ag .bk__fit h3{margin:0;font-family:var(--disp);font-size:20px;font-weight:800;color:var(--navy)}
+.ag .bk__fit p{margin:0;font-size:16px;line-height:1.65;color:var(--ink2)}
+
+/* Call to act */
+.ag .bk__cta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px 40px}
+.ag .bk__cta > div:first-child{display:flex;flex-direction:column;gap:10px;max-width:640px}
+.ag .bk .bk__cta .abtn--or{background:var(--acc);border-color:var(--acc)}
+
+/* The FAQ answers sit on white here, not the sky band the other pages use */
+.ag .bk .afaq{border-bottom-color:var(--line2)}
+
+@media (max-width:1000px){
+  .ag .bk__reasons,.ag .bk__steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .bk__range,.ag .bk__gal{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .bk__qbody,.ag .bk__two{grid-template-columns:1fr}
+  .ag .bk__qimg{min-height:240px}
+}
+@media (max-width:600px){
+  .ag .bk__reasons{gap:10px}
+  .ag .bk__cimg{height:130px}
+  .ag .bk__cimg img{padding:12px}
+  .ag .bk__ctxt{padding:14px 14px 16px}
+  .ag .bk__ctxt b{font-size:28px}
+  .ag .bk__ctxt strong{font-size:15px}
+  .ag .bk__ctxt span{font-size:13.5px}
+  .ag .bk__steps,.ag .bk__qlist,.ag .bk__fit{grid-template-columns:1fr}
+  .ag .bk__range{gap:10px}
+  .ag .bk__tile .atile__img{height:110px}
+  .ag .bk__tile .atile__foot{padding:12px}
+  .ag .bk__tile .atile__txt strong{font-size:15px}
+  .ag .bk__tile .atile__go{display:none}
+  .ag .bk__tier{font-size:9px}
+  .ag .bk__gal{gap:8px}
+  .ag .bk__ph--slot span{font-size:9px;padding:0 8px;text-align:center}
+}

@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Brand } from "@/lib/brands";
 import type { Review } from "@/lib/reviews";
-import { CATS, BRAND_SLUGS, TONES, productHref, money, weekly, SHOW_FINANCE, FINANCE_MONTHS } from "@/lib/homepage/data";
+import { TONES, productHref, money, weekly, SHOW_FINANCE, FINANCE_MONTHS } from "@/lib/homepage/data";
+import { brandOptions } from "./options";
+import { BrandBlocks } from "./BrandBlocks";
 
 /**
  * A brand page in the redesign: why we fit them, what we fit from them, and
@@ -28,20 +30,11 @@ const ICONS: Record<string, string> = {
 const TILE = ["bxt__card--white", "bxt__card--sky", "bxt__card--acc", "bxt__card--navy", "bxt__card--warm", "bxt__card--white"];
 
 export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] }) {
-  // The finder's options from this brand, matched the same way a product
-  // page finds its brand, so the two always agree. A split appears under
-  // Cooling and again under Heating (as a reverse-cycle split); list it once,
-  // with both categories on its card.
-  const all = CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers
-    .map((t, i) => ({ c, s, t, i }))
-    // An option that is really another one (`same`) is listed as that one.
-    .filter(({ t }) => BRAND_SLUGS[t.brand] === brand.slug && !t.same)));
-  const options = all
-    .filter((o, k) => all.findIndex((x) => x.t.model === o.t.model) === k)
-    .map((o) => ({ ...o, cats: [...new Set(all.filter((x) => x.t.model === o.t.model).map((x) => x.c.label))] }));
+  if (brand.layout === "blocks") return <BrandBlocks brand={brand} reviews={reviews} />;
+  const options = brandOptions(brand);
   const facts = brand.heroFacts ?? [];
   const tabs = [
-    ["why", brand.whyLead ? "Why we choose it" : "Why we fit them"], ...(brand.quality ? [["quality", "Made better"]] : []), ...(brand.story ? [["brand", "The brand"]] : []), ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
+    ["why", brand.whyLead ? "Why we choose it" : "Why we fit them"], ...(brand.story ? [["brand", "The brand"]] : []), ...(brand.formats ? [["types", "Which one"]] : []), ...(options.length ? [["options", `${brand.name} options`]] : []),
     ["support", "Parts & support"], ...(brand.faqs?.length ? [["faqs", "FAQs"]] : []), ["reviews", "Reviews"],
   ] as const;
 
@@ -139,34 +132,6 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
           )}
         </div>
       </section>
-      )}
-
-      {brand.quality && (
-        <section className="pxs bxq" id="quality">
-          <div className="wrap bxq__in">
-            <div className="bxq__copy">
-              <span className="aeye"><i /> Made better</span>
-              <h2 className="h2 h2--sm">{brand.quality.heading}</h2>
-              <p className="bxq__intro">{brand.quality.intro}</p>
-            </div>
-            <div className="bxq__fig">
-              {brand.quality.images.map((im, k) => (
-                <div key={im.src} className="bxq__img">
-                  <Image src={im.src} alt={im.alt} fill sizes="(max-width: 1000px) 90vw, 520px" />
-                  <span className="bxq__lbl">{im.label}</span>
-                  {brand.quality!.points.map((p, n) => p.img === k && p.x != null && p.y != null && (
-                    <span key={p.t} className="bxq__dot" style={{ left: `${p.x}%`, top: `${p.y}%` }} aria-hidden="true">{n + 1}</span>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <ol className="bxq__list">
-              {brand.quality.points.map((p, n) => (
-                <li key={p.t}><b aria-hidden="true">{n + 1}</b><div><h3>{p.t}</h3><p>{p.d}</p></div></li>
-              ))}
-            </ol>
-          </div>
-        </section>
       )}
 
       {brand.story && (

@@ -44,7 +44,10 @@ export const BRAND_INSTALLS: Record<string, InstallShot[]> = {
   kaden: [],
 
   // ── Mitsubishi Electric ─────────────────────────────────────────
-  "mitsubishi-electric": [],
+  "mitsubishi-electric": [
+    // Our job (the Reclaim beside them is ours too). More to come from Jake.
+    { src: "/reclaim-and-mitsubishi.jpg", alt: "Two Mitsubishi Electric outdoor units mounted on a brick wall beside a Reclaim heat pump tank", caption: "Outdoor units" },
+  ],
 
   // ── Thermann ────────────────────────────────────────────────────
   thermann: [],

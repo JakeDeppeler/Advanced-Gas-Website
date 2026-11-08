@@ -205,19 +205,30 @@ export type Brand = {
    * one's name is worse than none.
    */
   heroProducts?: { src: string; alt: string; label: string }[];
-  /** "Why we choose it" as big figures: the number, what it is, and what it means for you. */
-  reasons?: { v: string; k: string; d: string }[];
   /**
-   * "Made better": what's inside that makes it a better system, pinned on
-   * the product shots. `img` and `x`/`y` (percent of the shot) place a
-   * numbered marker; a point without them is listed only.
+   * "Why we choose it" as big figures: the number, what it is, and what it
+   * means for you. On the blocks layout each one is a photo card, so it can
+   * carry an image; `cover` marks a photograph (fills the frame) rather than
+   * a studio cut-out (sits on white).
    */
+  reasons?: { v: string; k: string; d: string; img?: string; alt?: string; cover?: boolean; pos?: string }[];
+  /** "Made better": what's inside that makes it a better system, beside one product shot. */
   quality?: {
     heading: string;
     intro: string;
-    images: { src: string; alt: string; label: string }[];
-    points: { t: string; d: string; img?: number; x?: number; y?: number }[];
+    image: { src: string; alt: string };
+    points: { t: string; d: string }[];
   };
+  /**
+   * "blocks": the homepage's layout, a run of white sections and navy
+   * blocks with few words in each. Mitsubishi asked for it; other brands
+   * keep the page below until they're redone the same way.
+   */
+  layout?: "blocks";
+  /** How the job runs, in order, for the blocks layout. */
+  installSteps?: { t: string; d: string }[];
+  /** The two warranties as figures: years, whose, what it covers. */
+  warrantyCards?: { v: string; k: string; d: string }[];
   /** The company behind the badge, in a few lines and a few dates. */
   story?: { heading: string; body: string; marks: { v: string; k: string }[] };
   /** The heading over `versus`, e.g. "Mitsubishi or Kaden?". */
@@ -786,23 +797,24 @@ const brandCatalogue: Brand[] = [
       { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit", label: "Outdoor unit" },
       { src: "/mitsubishi-zone-controller-v2.webp", alt: "Mitsubishi Electric touch zone controller", label: "Zone controller" },
     ],
+    layout: "blocks",
+    // Mitsubishi Electric's own failure rate across its whole range, not
+    // our call-back count: an earlier draft said "come back to us", which
+    // was the wrong claim.
     reasons: [
-      { v: "Under 1%", k: "come back to us", d: "Our own call-back book, across everything we've installed. That's the whole argument." },
-      { v: "Year 12", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit." },
-      { v: "\u221215\u00b0", k: "and still full heat", d: "Hyper Heating holds its rated output on the coldest mornings in the hills." },
-      { v: "19 dBA", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to." },
+      { v: "Under 1%", k: "failure rate", d: "Across Mitsubishi Electric's whole range. The lowest of anything we install.", img: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor unit" },
+      { v: "19 dBA", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to.", img: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
+      { v: "\u221215\u00b0", k: "and still full heat", d: "Hyper Heating holds its rated output on the coldest mornings in the hills.", img: "/PUZ_M140VKA_2-1920x1440-1.webp", alt: "Mitsubishi Electric outdoor unit beside a house", cover: true },
+      { v: "Year 12", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit.", img: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric MXZ outdoor unit" },
     ],
     quality: {
       heading: "Made better, from the inside.",
       intro: "Mitsubishi Electric is a Japanese engineering company, founded in 1921, that builds lifts, trains and satellites. In an air conditioner that shows in the parts you never see: it makes the important ones itself.",
-      images: [
-        { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit", label: "Indoor" },
-        { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit", label: "Outdoor" },
-      ],
+      image: { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit" },
       points: [
-        { t: "Its own compressor", d: "The compressor does the work and takes the wear. Mitsubishi Electric designs and builds its own, in its own factory, rather than buying one in.", img: 1, x: 44, y: 72 },
-        { t: "Its own inverter electronics", d: "The inverter that speeds the compressor up and down is Mitsubishi Electric's own power electronics, the same field it supplies to trains. Smooth, efficient and long-lived.", img: 1, x: 68, y: 30 },
-        { t: "A coil that stays clean", d: "Inside the wall unit, the fan and coil are coated so dust and grease don't stick. It keeps its airflow, and its output, between services.", img: 0, x: 50, y: 50 },
+        { t: "Its own compressor", d: "The compressor does the work and takes the wear. Mitsubishi Electric designs and builds its own, in its own factory, rather than buying one in." },
+        { t: "Its own inverter electronics", d: "The inverter that speeds the compressor up and down is Mitsubishi Electric's own power electronics, the same field it supplies to trains. Smooth, efficient and long-lived." },
+        { t: "A coil that stays clean", d: "Inside the wall unit, the fan and coil are coated so dust and grease don't stick. It keeps its airflow, and its output, between services." },
         { t: "Built to be fixed", d: "Parts are on a Melbourne shelf for units well past ten years old, so a repair stays a repair." },
       ],
     },
@@ -831,9 +843,19 @@ const brandCatalogue: Brand[] = [
     /* --- The brand-first layout: identity and our verdict lead, our
        install process is a strip near the bottom. --- */
     whyLead: {
-      claim: "Under 1% come back to us.",
-      sub: "That failure rate, ours, across everything we've installed, is the whole argument for the brand. Everything else Mitsubishi is known for follows from a unit that simply doesn't need us again.",
+      claim: "Why we choose Mitsubishi Electric.",
+      sub: "It costs a little more than a budget brand. This is what the difference buys you.",
     },
+    installSteps: [
+      { t: "A free site check", d: "We look at the rooms, the walls and where the outdoor unit can go, and size it room by room." },
+      { t: "One price, in writing", d: "It only changes if the job does, and then we stop and ask before going on." },
+      { t: "Our own crew fits it", d: "Directly employed, not subcontracted. A new wall split is usually in within half a day." },
+      { t: "Tested and handed over", d: "We run it, show you the controls, and email the compliance certificate within 24 hours." },
+    ],
+    warrantyCards: [
+      { v: "5 years", k: "Mitsubishi Electric", d: "Parts and labour on the system itself." },
+      { v: "6 years", k: "Advanced Gas", d: "On our workmanship. Both start on install day." },
+    ],
     verdict:
       "Mitsubishi is what we quote first and fit most, and we'd rather be straight about why: it costs a few hundred more than a budget brand on a bedroom split, and that gap buys you a decade where we don't come back. The reliability is real, the parts are on a Melbourne shelf in year twelve, and a decade-old MSZ-AP still makes its rated output, we measure them. If a system you'll own for fifteen years is worth paying for once, this is the one.",
     notRightWhen:
