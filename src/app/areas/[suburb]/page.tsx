@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Script from "next/script";
 import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { services } from "@/lib/site";
-import { breadcrumbSchema } from "@/lib/schema";
+import { breadcrumbSchema, suburbServiceSchema } from "@/lib/schema";
 import { seoMeta } from "@/lib/seo";
+import { suburbJobs, suburbReviews } from "@/lib/suburbJobs";
 import { Crumbs, Hero, Head, Next, Cta } from "@/components/homepage/page/kit";
 // detail.css only for the Leaflet map's frame (.submap__leaflet).
 import "../../detail.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 // Client-only Leaflet map, lazy loaded so the tiles and CSS stay out of the
 // first paint. The placeholder holds the layout while the chunk fetches.
@@ -37,7 +38,11 @@ export function generateMetadata({ params }: { params: { suburb: string } }): Me
   // so the page 404s rather than impersonating the homepage.
   if (!sub) notFound();
   return seoMeta({
-    title: `Air Conditioning & Heating ${sub.name} ${sub.postcode}`,
+    // Hot water is in the title because it's a third of the work and a third
+    // of the searches ("hot water Cranbourne", "heat pump Officer"), and the
+    // old title left it out while the H1 said it. "Aircon" rather than
+    // "Air Conditioning" buys the eleven characters it needs.
+    title: `Aircon, Heating & Hot Water ${sub.name} ${sub.postcode}`,
     description: `Air conditioning, heating and hot water in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, written quotes, 6-year workmanship warranty.`,
     canonical: `/areas/${sub.slug}`,
     // Absolute so the suffix gives way, not the postcode. A long suburb
@@ -64,6 +69,9 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
   const drive = sub.driveMin
     ? sub.driveMin[0] === sub.driveMin[1] ? `${sub.driveMin[0]} min` : `${sub.driveMin[0]}–${sub.driveMin[1]} min`
     : sub.distanceKm === 0 ? "On site" : `${Math.max(10, Math.round(sub.distanceKm * 0.7))}–${Math.max(15, Math.round(sub.distanceKm * 1.1))} min`;
+
+  const jobs = suburbJobs(sub);
+  const localReviews = suburbReviews(sub);
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -130,9 +138,43 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
         </section>
       )}
 
+      {/* Reviews left for jobs in this suburb, from the same Google-sourced
+          list the /reviews page prints. Most suburbs have none yet, and the
+          section simply doesn't render rather than borrowing another
+          suburb's. No Review markup: see ReviewsBlock for why. */}
+      {localReviews.length > 0 && (
+        <section className={`pxs${sub.testimonial ? " pxs--cream" : ""}`}>
+          <div className="wrap pp__col">
+            <Head eye={`Reviews from ${sub.name}`} h={`What ${sub.name} customers said.`} />
+            <div className="pp__revs">
+              {localReviews.map((r) => (
+                <article key={r.who + r.title} className="rev">
+                  <span className="stars stars--ink" aria-label={`${r.rating} out of 5`}>{"★".repeat(r.rating)}</span>
+                  <h3>{r.title}</h3>
+                  <p>&ldquo;{r.txt}&rdquo;</p>
+                  <div className="rev__who">
+                    <span aria-hidden="true">{r.a}</span>
+                    <span className="rev__whot"><strong>{r.who}</strong><small>{r.what}</small></span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="pxs pxs--navy">
         <div className="wrap pp__col">
           <Head dark eye={`Services in ${sub.name}`} h="What we do nearby." />
+          {jobs.length > 0 && (
+            <>
+              <h3 className="kx__sub">Most asked for in {sub.name}</h3>
+              <div className="kxc">
+                {jobs.map((j) => <Link key={j.href} href={j.href} className="kxc__i"><strong>{j.label}</strong><small>How we install it →</small></Link>)}
+              </div>
+              <h3 className="kx__sub">Everything we do</h3>
+            </>
+          )}
           <div className="kxc">
             {services.map((s) => <Link key={s.slug} href={`/services/${s.slug}`} className="kxc__i"><strong>{s.short}</strong><small>See the service →</small></Link>)}
             <Link href="/#find" className="kxc__i"><strong>Find your system</strong><small>Options and prices →</small></Link>
@@ -160,7 +202,8 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
       </section>
 
       <Cta title={`Free quote for ${sub.name}.`} text="Free and no obligation, with a written quote back within 12 business hours." />
-      <Script id={`ld-crumbs-${sub.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      <JsonLd data={crumbs} />
+      <JsonLd data={suburbServiceSchema(sub)} />
     </div>
   );
 }
