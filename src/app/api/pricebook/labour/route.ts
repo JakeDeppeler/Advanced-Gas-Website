@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     if (what === "services") {
       // Services, and the refrigerant priced per kg, in one run.
       const plan = await planServicePrices();
-      const summary = { rates: plan.rates, toUpdate: plan.changes.length, unchanged: plan.unchanged, skipped: plan.skipped.length, refrigerant: plan.materialChanges.length, toCreate: plan.creates.length };
+      const summary = { rates: plan.rates, dynamicRate: plan.dynRate, toUpdate: plan.changes.length, unchanged: plan.unchanged, skipped: plan.skipped.length, refrigerant: plan.materialChanges.length, toCreate: plan.creates.length };
       const creates = plan.creates.map(({ body: _body, ...c }) => c);
       const log = [...plan.changes, ...plan.materialChanges.map((m) => ({ ...m, kind: "refrigerant" }))];
       if (!apply) {

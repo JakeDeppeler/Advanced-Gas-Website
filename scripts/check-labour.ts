@@ -81,6 +81,27 @@ ok("a static price already above stays where it is", !nb(25) && nd.unchanged >= 
 ok("diagnostics the rule already charges $200 are left alone", !nb(26), nb(26));
 ok("only what goes up on the rule is listed", nd.changes.filter((c) => c.pricing || [21, 22, 23, 26].includes(c.id)).map((c) => c.id).join() === "22,23");
 ok("nothing anywhere goes down", nd.changes.every((c) => c.after >= c.before));
+
+// Jake, 8 Nov: keep Dynamic Pricing and add time. ServiceTitan's rule was
+// about $326.67 an hour ($980 for 3 h, $5,230 for 16 h).
+const R = 326.67;
+const dy = planServices([
+  { id: 31, code: "AC-SPLIT-BTB", name: "Split System Install - Back To Back", hours: 3, price: 800, dynamic: true, charged: 980 },
+  { id: 32, code: "AC-SPLIT-RTW", name: "Split System Installation - Wall Bracket", hours: 4, price: 0, dynamic: true, charged: 1310 },
+  { id: 33, code: "DECOMMISSION-DISPOSAL", name: "Equipment – Decommission & Disposal", hours: 1, price: 0, dynamic: true, charged: 330 },
+  // Last run gave it 3.25 h; its own job is still 3 h, and $1,060 is the rate's $1,050.
+  { id: 34, code: "GAS-DUCT-EXT", name: "Gas Ducted Heater - External", hours: 3.25, baseHours: 3, price: 800, dynamic: true, charged: 1060 },
+  // $4 over what the rule charges: inside the rule's own $10 rounding.
+  { id: 35, code: "HW-HP-SPLIT", name: "Heat Pump Split - Installation", hours: 4, price: 616, dynamic: true, charged: 2160, linked: 764 },
+], rates, new Map(), R);
+const dz = (id: number) => dy.changes.find((c) => c.id === id);
+ok("back-to-back: 3 h → 3.25 h, so the rule charges $1,050+", dz(31)?.newHours === 3.25 && dz(31)?.stHours === 3 && dz(31)?.after === 1050, dz(31));
+ok("wall bracket: 4 h → 4.3 h for $1,400", dz(32)?.newHours === 4.3 && dz(32)?.after === 1400, dz(32));
+ok("removal: 1 h → 1.1 h for $350", dz(33)?.newHours === 1.1, dz(33));
+ok("the added time is enough at the rule's rate", dy.changes.every((c) => c.newHours == null || c.newHours * R >= c.after - 5), dy.changes.map((c) => [c.code, c.newHours]));
+ok("time already added isn't priced again: the labour is on the job's 3 h", !dz(34), dz(34));
+ok("within the rule's $10 rounding counts as right", !dz(35));
+ok("without the rule's rate, no time is guessed", planServices([{ id: 31, code: "AC-SPLIT-BTB", name: "b", hours: 3, price: 0, dynamic: true, charged: 980 }], rates).changes[0]?.newHours === undefined);
 ok("removing the old unit goes with the install: part-day", crewFor("DECOMMISSION-DISPOSAL") === "partDay");
 
 const gas = planRefrigerant([
