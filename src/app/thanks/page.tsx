@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site } from "@/lib/site";
+import { openingHours, site } from "@/lib/site";
+import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import "@/components/homepage/homepage.css";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/brand/blocks.css";
+import "@/components/homepage/page/category.css";
+import "@/components/homepage/tools/tools.css";
 
 export const metadata: Metadata = {
   title: "Thanks, your quote request is in",
@@ -8,53 +16,64 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** The same steps the quote page promises, picked up from step two: the form is done. */
+const NEXT = [
+  { when: "Within 12 business hours", t: "We call you back", d: "To ask anything the form didn't and book a time that suits you." },
+  { when: "At your place", t: "A free site check", d: "We look at the space, confirm the size and check for anything that changes the price, before we price it." },
+  { when: "After the visit", t: "Your written quote", d: "One fixed price, with the model, the work and the warranty spelled out. Take your time with it." },
+];
+
+/**
+ * After the quote form. In the redesign's block layout (Nov 2026): what
+ * happens next, in the quote page's own words, and the way to call now.
+ * Not indexed. Conversion tags fire from the form's own submit handler,
+ * not from anything printed here.
+ */
 export default function ThanksPage() {
   return (
-    <section style={{ padding: "120px 0", background: "var(--bg)" }}>
-      <div className="wrap" style={{ maxWidth: 720, textAlign: "center" }}>
-        <div
-          style={{
-            margin: "0 auto",
-            width: 84,
-            height: 84,
-            borderRadius: "50%",
-            background: "var(--orange)",
-            color: "#fff",
-            display: "grid",
-            placeItems: "center",
-            fontSize: 40,
-            fontFamily: "var(--f-display)",
-            fontWeight: 800,
-            boxShadow: "0 8px 0 #c14a13",
-          }}
-        >
-          ✓
+    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx tl" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
+      <section className="bxh tl__hero">
+        <div className="wrap tl__hin">
+          <div className="bxh__copy">
+            <span className="lk2__eye cx__eye">Request received</span>
+            <h1 className="bxh__h1 cx__h1">Got it, <span>we&apos;re on it</span>.</h1>
+            <p className="bxh__sub">Your quote request is in. One of our licensed team will call or text you within 12 business hours to book a free site check, then you get one fixed price in writing.</p>
+            <div className="bxh__ctas">
+              <a href={`tel:${site.phoneE164}`} className="abtn abtn--or abtn--flat" data-call-from="thanks">Or call now, {site.phone}</a>
+              <Link href="/" className="abtn abtn--line">Back to home</Link>
+            </div>
+          </div>
+          <aside className="tl__what" aria-label="While you wait">
+            <small>While you wait</small>
+            <ul>
+              <li><span aria-hidden="true">✓</span>A photo of the room, or of the old unit and its label, helps us price it faster. Reply to our text with it.</li>
+              <li><span aria-hidden="true">✓</span>Office hours are {openingHours()}. After hours goes to someone on the tools.</li>
+            </ul>
+            <p><b>No obligation</b> · The quote is free</p>
+          </aside>
         </div>
-        <h1
-          style={{
-            marginTop: 32,
-            fontFamily: "var(--f-display)",
-            fontWeight: 900,
-            fontSize: "clamp(36px, 4.5vw, 56px)",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.02,
-            color: "var(--navy)",
-            textWrap: "balance",
-          }}
-        >
-          Got it, we&apos;re on it.
-        </h1>
-        <p style={{ marginTop: 18, fontSize: 18, color: "var(--ink-2)", maxWidth: 560, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
-          Your quote request is in. One of our licensed team will text or call you within
-          {" "}<strong style={{ color: "var(--navy)" }}>12 business hours</strong> with a written quote (rebate already applied) and the next available install slot.
-        </p>
-        <div style={{ marginTop: 32, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
-          <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--orange ds-btn--lg">
-            Or call us now, {site.phone}
-          </a>
-          <Link href="/" className="ds-btn ds-btn--ghost ds-btn--lg">Back to home</Link>
-        </div>
-      </div>
-    </section>
+      </section>
+
+      <section className="bk__sec bk__sec--white">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <header className="bk__head">
+            <h2 className="h2">What happens <span>next</span>.</h2>
+            <p>No call centre. Three steps from here to a price you can hold us to.</p>
+          </header>
+          <ol className="qpg__steps qpg__steps--3" data-anim="stagger">
+            {NEXT.map((x, i) => (
+              <li key={x.t}>
+                <span className="qpg__n" aria-hidden="true">{String(i + 2).padStart(2, "0")}</span>
+                <small className="qpg__when">{x.when}</small>
+                <h3>{x.t}</h3>
+                <p>{x.d}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="qpg__more">In the meantime: <Link href="/about">meet the team</Link>, read <Link href="/reviews">what locals say</Link>, or <Link href="/rebates">check the rebate</Link>.</p>
+        </div></div>
+      </section>
+    </div></div>
   );
 }
