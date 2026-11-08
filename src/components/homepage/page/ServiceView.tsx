@@ -8,6 +8,7 @@ import { quoted } from "@/lib/homepage/data";
 /** A /public path that exists, trying other extensions; the path as given if none does. */
 const asset = (src: string) => resolveAsset(src) ?? src;
 import { Crumbs, Hero, Head, Tiles, Next, Cta } from "./kit";
+import { AreasServed } from "./AreasServed";
 
 type Row = { tier: string; price: string; includes: string; group?: string; photo?: string; photoScene?: boolean; priceKey?: string };
 type Sys = NonNullable<ServiceContent["systems"]>[number];
@@ -149,6 +150,8 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
         </section>
       )}
 
+      <AreasServed what={name} tone="cream" />
+
       <Cta title={`Ready to talk about ${name.toLowerCase()}?`} />
     </div>
   );
@@ -235,6 +238,8 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
           ]} />
         </div>
       </section>
+
+      <AreasServed what={s.label} />
 
       <Cta title={`Ready to talk about ${s.label.toLowerCase()}?`} />
     </div>
