@@ -112,9 +112,10 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       )}
 
       {isHeatPump(sys) && (
-        // The one interactive number on the page, so it gets the hot water colour band to itself.
+        // The one interactive number on the page, so it gets a box of its own:
+        // navy with the hot water orange, at Jake's ask (a full orange band was too much).
         <section className="pxs pxs--hot" id="savings">
-          <div className="wrap"><div className="pp__col">
+          <div className="wrap"><div className="pp__col pxs__hotbox">
             <Head dark eye="Running costs" h={<>How much could a heat pump <span>save you</span>?</>} lede="Two taps: what you have now and how many live there. Here's what each of our heat pumps would cost to run against it." />
             <HwSavings options={sys.tiers.filter((t) => !t.same).map((t) => ({ label: `${t.brand} ${t.model}`, cop: copFor(t.brand, t.model), // No payback against a stand-in price: it would be a made-up number of years.
               price: t.mockPrice ? null : t.price, href: productHref(sys, t, {}) }))} />
@@ -146,7 +147,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       <section className="pxs pxs--navy" id="options">
         <div className="wrap pp__col">
           <Head dark eye="The options" h={`The ${sys.tiers.length} ${lower} options we install.`} lede="Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it." />
-          <div className={`sxo${sys.tiers.length > 3 ? " sxo--4" : ""}`}>
+          <div className={`sxo${sys.tiers.length > 3 ? " sxo--4" : sys.tiers.length === 2 ? " sxo--2" : ""}`}>
             {sys.tiers.map((t, i) => {
               const real = realOption(sys, t);
               const feats = t.feats.filter((f) => f !== WORKMANSHIP);

@@ -324,7 +324,7 @@ export const CATS: Category[] = [
       sys({ slug: "gas-storage", label: "Gas storage", sub: "Gas hot water tank", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType], tiers: [
         t("essential", "Thermann", "4-star gas storage", IMG.gasStorage, ["Like-for-like swap", "Same-day on common sizes", "Old unit removed"], null),
         t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null, "gas-continuous-flow.essential"),
-        t("signature", "iStore", "Switch to a heat pump", IMG.istore, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2150, "heat-pump.essential"),
+        // No heat pump option here (Jake, Nov 2026): this page is for people staying on gas.
       ] }),
     ],
   },
@@ -494,7 +494,6 @@ export const HERO_SHOW: Record<string, { src: string; alt: string; label: string
   "gas-storage": [
     { src: IMG.gasStorage, alt: "Thermann 4-star gas storage unit", label: "Gas storage" },
     { src: IMG.gasCf, alt: "Thermann G-series continuous flow unit", label: "Continuous flow" },
-    { src: IMG.istore, alt: "iStore all-in-one heat pump", label: "Heat pump" },
   ],
 };
 
@@ -621,6 +620,7 @@ export const isNewBuildHeatPump = (s: System, ans: Answers) => isHeatPump(s) && 
 
 export function installTime(s: System) {
   if (s.slug === "gas-continuous-flow") return "Usually 2–4 hours";
+  if (s.slug === "gas-storage") return "Usually 3–4 hours";
   if (s.faq === "gasheat") return "Usually 3–5 hours";
   if (s.faq === "split") return "Usually half a day for a back-to-back install";
   if (s.faq === "multi") return "Usually a full day";

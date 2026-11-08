@@ -51,9 +51,9 @@ export function Hero({ eye, title, sub, img, imgAlt, scene = true, ctas = true, 
           )}
         </div>
         {show ? (
-          <div className="bxh__img bxh__show" role="group" aria-label="The options" style={{ ["--acc" as string]: "#C2521A" }}>
+          <div className={`bxh__img bxh__show${show.length === 2 ? " bxh__show--2" : ""}`} role="group" aria-label="The options" style={{ ["--acc" as string]: "#C2521A" }}>
             {show.map((p, i) => (
-              <figure key={p.src} className={`bxh__prod${i === 0 ? " bxh__prod--lead" : ""}`}>
+              <figure key={p.src} className={`bxh__prod${i === 0 && show.length !== 2 ? " bxh__prod--lead" : ""}`}>
                 <span className="bxh__pimg"><Image src={p.src} alt={p.alt} fill priority={i === 0} sizes="(max-width: 900px) 70vw, 380px" /></span>
                 <figcaption><i aria-hidden="true" />{p.label}</figcaption>
               </figure>

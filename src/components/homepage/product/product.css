@@ -258,22 +258,24 @@
 .ag .pbox .pp__row:nth-child(even){background:#FAFBFC}
 .ag .pbox .pp__row{padding-left:12px;padding-right:12px}
 
-/* Heat pump savings on the system page: its own colour band, the homepage's
-   heat pump orange, so the calculator reads as the thing to try */
-.ag .pxs--hot{position:relative;overflow:clip;background:radial-gradient(60% 90% at 100% 0%,rgba(255,170,90,.45),transparent 70%),radial-gradient(50% 80% at 0% 100%,rgba(5,10,48,.35),transparent 70%),#C2521A;color:#fff}
+/* Heat pump savings on the system page: a navy box on white with the hot
+   water orange through it, so the calculator reads as the thing to try */
+.ag .pxs--hot{background:#fff}
+.ag .pxs__hotbox{position:relative;overflow:clip;border-radius:16px;padding:clamp(28px,4vw,56px) clamp(20px,4vw,56px);color:#fff;background:radial-gradient(55% 80% at 100% 0%,rgba(194,82,26,.55),transparent 70%),radial-gradient(45% 70% at 0% 100%,rgba(194,82,26,.22),transparent 70%),var(--navy);box-shadow:0 40px 80px -50px rgba(5,10,48,.7)}
 .ag .pxs--hot .h2{color:#fff}
-.ag .pxs--hot .h2 span{color:var(--navy)}
-.ag .pxs--hot .aeye i{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
-.ag .pxs--hot .svx__form{box-shadow:0 30px 60px -40px rgba(5,10,48,.6)}
+.ag .pxs--hot .h2 span{color:#FF9A5C}
+.ag .pxs--hot .aeye{color:#FF9A5C}
+.ag .pxs--hot .aeye i{background:#FF9A5C;box-shadow:0 0 0 3px rgba(255,154,92,.25)}
+.ag .pxs--hot .svx__form{box-shadow:0 30px 60px -40px rgba(0,0,0,.6)}
 .ag .pxs--hot .svx__opts button.on{background:#C2521A;border-color:#C2521A}
 .ag .pxs--hot .svx__opts button:hover{border-color:#C2521A}
-.ag .pxs--hot .svx__out{box-shadow:0 30px 60px -40px rgba(5,10,48,.7)}
-.ag .pxs--hot .svx__sub{color:#FFB37A !important}
-/* The saving itself on a white strip, the figure in the band's orange */
-.ag .pxs--hot .svx__save{margin-top:6px;padding:16px 18px;border-radius:12px;background:#fff}
-.ag .pxs--hot .svx__save span{color:var(--navy);font-weight:700}
-.ag .pxs--hot .svx__save strong{color:#C2521A}
-.ag .pxs--hot .svx__save small{color:var(--ink2)}
+.ag .pxs--hot .svx__out{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.ag .pxs--hot .svx__sub{color:#FF9A5C !important}
+/* The saving itself in its own orange box */
+.ag .pxs--hot .svx__save{margin-top:6px;padding:18px 20px;border-radius:12px;background:#C2521A;box-shadow:0 20px 40px -24px rgba(194,82,26,.8)}
+.ag .pxs--hot .svx__save span{color:#fff;font-weight:700}
+.ag .pxs--hot .svx__save strong{color:#fff}
+.ag .pxs--hot .svx__save small{color:rgba(255,255,255,.85)}
 
 /* Build your price (PriceBuilder.tsx): the questions on white, the price on
    the homepage's orange, on a navy band */
@@ -308,3 +310,5 @@
 .ag .pb__note{margin:0;font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.8)}
 @media (max-width:900px){.ag .pb{grid-template-columns:1fr}.ag .pb__out{position:relative;top:auto}}
 @media (max-width:600px){.ag .pb__opts{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+/* The rebate line: taken off, so it reads differently from the add-ons, not by colour alone (it carries a minus). */
+.ag .pb__lines li.pb__off{padding:6px 10px;margin:0 -10px;border-radius:8px;background:var(--navy);font-weight:700;color:#fff}

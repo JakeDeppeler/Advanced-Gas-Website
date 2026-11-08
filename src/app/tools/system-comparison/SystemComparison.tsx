@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * System-type comparison tool. Data table + toggleable columns
@@ -215,7 +216,8 @@ export function SystemComparison() {
               <div className="sysc-card__rows">
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Cools?</span><span className="sysc-card__row-val">{yn(s.cools)}</span></div>
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Heats?</span><span className="sysc-card__row-val">{s.heats === "yes" ? "Yes" : s.heats === "hyper" ? "Yes (Hyper)" : "No"}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{s.installFrom} → {s.installTo}</span></div>
+                {/* Install prices follow the site-wide switch, off until Jake's real prices are in. */}
+                {SHOW_PRICES && <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{s.installFrom} → {s.installTo}</span></div>}
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Running</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.runningCost}</span></div>
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Zone control</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.zoneControl}</span></div>
                 <div className="sysc-card__row"><span className="sysc-card__row-lbl">Lifespan</span><span className="sysc-card__row-val">{s.lifespan}</span></div>
@@ -258,8 +260,8 @@ export function SystemComparison() {
             <tbody>
               <ComparisonRow label="Cools?"        rows={rows.map((s) => yn(s.cools))} />
               <ComparisonRow label="Heats?"        rows={rows.map((s) => s.heats === "yes" ? "Yes" : s.heats === "hyper" ? "Yes (Hyper)" : "No")} />
-              <ComparisonRow label="Install from"  rows={rows.map((s) => s.installFrom)} />
-              <ComparisonRow label="Install to"    rows={rows.map((s) => s.installTo)} />
+              {SHOW_PRICES && <ComparisonRow label="Install from"  rows={rows.map((s) => s.installFrom)} />}
+              {SHOW_PRICES && <ComparisonRow label="Install to"    rows={rows.map((s) => s.installTo)} />}
               <ComparisonRow label="Running cost"  rows={rows.map((s) => s.runningCost)} />
               <ComparisonRow label="Zone control"  rows={rows.map((s) => s.zoneControl)} />
               <ComparisonRow label="Lifespan"      rows={rows.map((s) => s.lifespan)} />

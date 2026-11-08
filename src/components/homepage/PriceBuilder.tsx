@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  BRANDS, STOREYS, DUCTED_SIZES, ZONES, ROOMS, RUNS, ductedPrice, multiPrice, range,
+  BRANDS, STOREYS, DUCTED_SIZES, ZONES, POINTS, ROOMS, RUNS, DUCTED_CEILING, REBATE, ductedPrice, multiPrice, range,
   type BrandId, type Opt, type Line,
 } from "@/lib/homepage/priceBuilder";
 
@@ -54,17 +54,21 @@ export function PriceBuilder({ kind, book, months, placeholder }: {
   // Ducted
   const [size, setSize] = useState("14");
   const [zones, setZones] = useState(4);
+  const [points, setPoints] = useState(8);
   const [removal, setRemoval] = useState(false);
+  // Replacing gas ducted heating: the VEU rebate comes off.
+  const [gas, setGas] = useState(false);
   // Multi-head
   const [rooms, setRooms] = useState(3);
   const [consoles, setConsoles] = useState(0);
   const [run, setRun] = useState<"short" | "medium" | "long">("short");
 
   const lines: Line[] = kind === "ducted"
-    ? ductedPrice({ brand, size, storeys, zones, wifi, removal })
-    : multiPrice({ brand, rooms, consoles: Math.min(consoles, rooms), run, storeys, wifi });
+    ? ductedPrice({ brand, size, storeys, zones, points: Math.max(points, zones), wifi, removal, gas })
+    : multiPrice({ brand, rooms, consoles: Math.min(consoles, rooms), run, storeys, wifi, gas });
   const total = lines.reduce((a, b) => a + b.v, 0);
-  const { lo, hi } = range(total);
+  const { lo, hi } = range(total, kind === "ducted" ? DUCTED_CEILING : Infinity);
+  const rebate = kind === "ducted" ? REBATE.ducted : REBATE.multi;
 
   return (
     <div className="pb">
@@ -73,7 +77,8 @@ export function PriceBuilder({ kind, book, months, placeholder }: {
         {kind === "ducted" ? (
           <>
             <Pick q="How big is the home?" opts={DUCTED_SIZES} v={size} set={setSize} cols={3} />
-            <Pick q="How many zones?" opts={ZONES} v={zones} set={setZones} cols={3} />
+            <Pick q="How many zones?" opts={ZONES} v={zones} set={(n) => { setZones(n); setPoints((p) => Math.max(p, n)); }} cols={5} />
+            <Pick q="How many points (outlets in the ceiling)?" opts={POINTS.filter((o) => o.v >= zones)} v={Math.max(points, zones)} set={setPoints} cols={Math.min(POINTS.filter((o) => o.v >= zones).length, 6)} />
           </>
         ) : (
           <>
@@ -88,17 +93,18 @@ export function PriceBuilder({ kind, book, months, placeholder }: {
           <div className="pb__ticks">
             <Tick l="Control it from my phone" on={wifi} set={setWifi} />
             {kind === "ducted" && <Tick l="Take out the old system" on={removal} set={setRemoval} />}
+            {rebate > 0 && <Tick l={`Replacing gas heating (VEU rebate, −${$(rebate)})`} on={gas} set={setGas} />}
           </div>
         </fieldset>
       </div>
 
       <div className="pb__out" aria-live="polite">
         {placeholder && <span className="pb__flag">Placeholder prices · mock-up only</span>}
-        <span className="pb__k">Your price, installed</span>
+        <span className="pb__k">Your price, installed{gas ? ", rebate applied" : ""}</span>
         <strong className="pb__price">{$(lo)} <span>to</span> {$(hi)}</strong>
         {months && <span className="pb__wk">Or a payment plan from about <b>{$(Math.ceil(lo / ((months * 52) / 12)))}/week</b> over {months} months</span>}
         <ul className="pb__lines">
-          {lines.map((x, i) => <li key={x.l}><span>{x.l}</span><b>{i ? `+${$(x.v)}` : $(x.v)}</b></li>)}
+          {lines.map((x, i) => <li key={x.l} className={x.v < 0 ? "pb__off" : undefined}><span>{x.l}</span><b>{x.v < 0 ? `−${$(-x.v)}` : i ? `+${$(x.v)}` : $(x.v)}</b></li>)}
         </ul>
         <Link href={book[brand]} className="abtn abtn--or abtn--flat pb__go">Book a free site check →</Link>
         <p className="pb__note">A guide to start from. We confirm one fixed price in writing after the site check, and it doesn&apos;t move.</p>

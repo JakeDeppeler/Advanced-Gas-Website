@@ -68,7 +68,7 @@ export const TOOL_LIST: ToolInfo[] = [
   {
     slug: "system-comparison", group: "compare", acc: BLUE,
     title: "System comparison", q: "Split, multi-head, ducted, gas or evap?",
-    points: ["Pick any two to five systems", "Install cost, running cost, zoning and lifespan", "Who each one suits, and the brands we fit"],
+    points: ["Pick any two to five systems", "Running cost, zoning and lifespan", "Who each one suits, and the brands we fit"],
     cta: "Compare systems",
   },
   {

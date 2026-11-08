@@ -190,3 +190,5 @@
   .ag .bxw__verdict{padding:22px}
   .ag .bxh__show{padding:14px 14px 12px}
 }
+/* Two products in the header (gas storage): side by side, neither one leads. */
+.ag .bxh__show--2{grid-template-rows:1fr}

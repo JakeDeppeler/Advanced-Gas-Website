@@ -15,7 +15,7 @@ export default function SystemComparisonPage() {
       slug="system-comparison"
       crumb="System comparison"
       title="Which {system} suits your home?"
-      sub={<>Five options for climate-controlling an Australian home, and one is almost always right for your situation. Pick the systems you&rsquo;re considering and see them side-by-side on install cost, running cost, zone control, lifespan and what they&rsquo;re best for.</>}
+      sub={<>Five options for climate-controlling an Australian home, and one is almost always right for your situation. Pick the systems you&rsquo;re considering and see them side by side on running cost, zone control, lifespan and what they&rsquo;re best for.</>}
       cta={{ h: "Still not sure {which one}?", text: <>Send us the room count, orientation and budget. We&rsquo;ll quote three real options from three different system types.</> }}
     >
       <SystemComparison />
