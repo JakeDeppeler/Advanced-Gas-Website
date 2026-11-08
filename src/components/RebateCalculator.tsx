@@ -152,8 +152,8 @@ export function RebateCalculator() {
   return (
     <div className="rb-calc rb-calc--v2">
       <div className="rb-calc__head">
-        <h3>Quick rebate + price estimator</h3>
-        <p className="rb-calc__sub">Indicative, final price and eligibility confirmed at the site check.</p>
+        <h3>{SHOW_PRICES ? "Quick rebate + price estimator" : "Quick rebate estimator"}</h3>
+        <p className="rb-calc__sub">{SHOW_PRICES ? "Indicative, final price and eligibility confirmed at the site check." : "Indicative. Rebate and eligibility are confirmed at the site check, and the price is on your written quote."}</p>
       </div>
 
       {/* Progress */}
