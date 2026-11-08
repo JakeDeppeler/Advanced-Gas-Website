@@ -16,6 +16,7 @@ import "@/components/homepage/homepage.css";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { ChatWidget } from "@/components/ChatWidget";
+import { assistantEnabled } from "@/lib/assistant/types";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
 import { PageEnter } from "@/components/PageEnter";
@@ -161,7 +162,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <StickyMobileCTA />
         </ChromeGate>
         <ChromeGate>
-          <ChatWidget />
+          {/* Instant answers on preview builds only until Jake signs them off (assistantEnabled). */}
+          <ChatWidget assistant={assistantEnabled()} />
         </ChromeGate>
         <JsonLd data={localBusinessSchema()} />
         {/* Vercel Speed Insights — real-user performance metrics from every

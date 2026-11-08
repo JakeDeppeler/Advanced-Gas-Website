@@ -167,6 +167,111 @@
 .agchat__sos { margin: 0; font-size: 12px; line-height: 1.4; color: var(--ink-3, #5d5d64); }
 .agchat__sos a { color: var(--ink, #1a1a1d); font-weight: 700; }
 
+/* ---------------------------------------------------- instant answers */
+
+/* Two modes, as a pair of buttons under the header. The selected one is
+   cream with a navy underline and bold text, so it reads as selected without
+   relying on the colour change alone. */
+.agchat__tabs {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--navy, #050a30);
+  padding: 0 10px;
+  gap: 6px;
+}
+.agchat__tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px 12px 0 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: inset 0 -3px 0 transparent;
+}
+.agchat__tab[aria-pressed="true"] {
+  background: #f3efe5;
+  color: var(--navy, #050a30);
+  font-weight: 800;
+  box-shadow: inset 0 -3px 0 var(--orange-deep, #c2521a);
+}
+.agchat__tab:focus-visible { outline: 2px solid var(--orange, #f36722); outline-offset: -2px; }
+
+.agchat__turn { display: flex; flex-direction: column; gap: 10px; }
+
+/* An instant answer: cream, with a label on every one saying what it is, so
+   nobody mistakes it for the office replying. Staff replies stay white. */
+.agchat__msg.is-bot { align-self: flex-start; max-width: 92%; }
+.agchat__msg.is-bot p { background: #f3efe5; color: var(--navy, #050a30); border: 1px solid #e2dac8; border-bottom-left-radius: 6px; }
+.agchat__by {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #6b5a3e;
+  padding: 0 6px;
+}
+.agchat__about { font-size: 12px; line-height: 1.35; color: var(--ink-3, #5d5d64); padding: 0 6px; font-style: italic; }
+.agchat__msg.is-alert p { background: #fff4ef; border: 2px solid var(--orange-deep, #c2521a); font-weight: 600; }
+.agchat__msg.is-alert .agchat__by { color: #9a3d10; text-transform: uppercase; }
+.agchat__typing { color: var(--ink-3, #5d5d64) !important; font-style: italic; }
+.agchat__more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #9a3d10;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.agchat__next { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 2px; }
+.agchat__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--navy, #050a30);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--navy, #050a30);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.agchat__btn:hover { background: #f3efe5; }
+.agchat__btn:focus-visible { outline: 2px solid var(--orange, #f36722); outline-offset: 2px; }
+.agchat__btn.is-quote,
+.agchat__btn.is-call { background: var(--orange-deep, #c2521a); border-color: var(--orange-deep, #c2521a); color: #fff; }
+.agchat__btn.is-quote:hover,
+.agchat__btn.is-call:hover { background: #a8461a; }
+
+.agchat__starters { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.agchat__starter {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1.5px solid #d6cdb8;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--navy, #050a30);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.agchat__starter:hover { border-color: var(--orange-deep, #c2521a); }
+.agchat__starter:focus-visible { outline: 2px solid var(--orange, #f36722); outline-offset: 2px; }
+.agchat__carry { margin: 0; font-size: 12.5px; line-height: 1.4; color: #6b5a3e; }
+
 @media (prefers-reduced-motion: reduce) {
   .agchat__launch { transition: none; }
 }

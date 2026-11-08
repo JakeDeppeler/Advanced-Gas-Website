@@ -38,7 +38,8 @@
     "check:reminders": "npx tsx scripts/check-reminders.ts",
     "check:ducted": "npx tsx scripts/check-ducted.ts",
     "check:service": "npx tsx scripts/check-service.ts",
-    "check:wording": "npx tsx scripts/check-wording.ts"
+    "check:wording": "npx tsx scripts/check-wording.ts",
+    "check:assistant": "npx sucrase-node scripts/check-assistant.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

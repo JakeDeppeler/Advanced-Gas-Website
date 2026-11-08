@@ -18,7 +18,6 @@ M._resolveFilename = function (req: string, ...rest: unknown[]) {
   return resolve.call(this, req.startsWith("@/") ? path.join(__dirname, "../src", req.slice(2)) : req, ...rest);
 };
 
-/* eslint-disable @typescript-eslint/no-require-imports */
 const { localAnswer } = require("../src/lib/assistant/answer") as typeof import("../src/lib/assistant/answer");
 const { entries, allowedFigures } = require("../src/lib/assistant/knowledge") as typeof import("../src/lib/assistant/knowledge");
 const { dollarFigures, mentionsMoney } = require("../src/lib/assistant/text") as typeof import("../src/lib/assistant/text");
