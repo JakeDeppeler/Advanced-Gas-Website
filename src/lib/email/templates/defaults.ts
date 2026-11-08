@@ -290,6 +290,50 @@ const OTHERS: Other[] = [
     ],
   },
   {
+    key: "done.thanks", group: "done", name: "All done",
+    subject: "All done, {first}: your {job|new system} and what's next",
+    preheader: "A photo of the finished job, your warranty, and who to call.",
+    blocks: [
+      HI,
+      p("Thanks for having us. {tech|The team} finished your {job|job} today, and here's how it looks:"),
+      { kind: "jobphoto", alt: "The finished install", fallback: "/email/hero-team.jpg" },
+      p("**Your warranty.** Six years' workmanship from us, on top of the manufacturer's warranty. Keep this email: it's your record of the day it went in."),
+      p("**Your paperwork.** We'll send through your compliance certificate, and we lodge any rebate paperwork for you."),
+      p("**Using it.** If anything about how it runs isn't clear, or something doesn't seem right, reply here or call **{phone}** and we'll sort it."),
+    ],
+  },
+  {
+    key: "invoice.first", group: "invoice", name: "3 days past due",
+    subject: "A quick reminder about invoice {number}",
+    preheader: "{amount} was due on {due}.",
+    blocks: [
+      HI,
+      p("Just a friendly reminder that invoice {number} for **{amount}** was due on {due}. If it's already on its way, thank you, and please ignore this."),
+      p("You can pay using the details on the invoice. If anything on it doesn't look right, or you'd like to pay it in parts, reply here or call **{phone}** and we'll work it out."),
+    ],
+  },
+  {
+    key: "invoice.second", group: "invoice", name: "10 days past due",
+    subject: "Invoice {number} is now overdue",
+    preheader: "{amount}, due {due}. Can we help sort it?",
+    blocks: [
+      HI,
+      p("Invoice {number} for **{amount}** was due on {due}, and we haven't seen a payment yet. If it's gone through in the last few days, thank you, and please ignore this."),
+      p("If something's holding it up, a question about the work, the amount or the timing, reply here or call **{phone}**. We're happy to help."),
+    ],
+  },
+  {
+    key: "service.reminder", group: "service", name: "Time for a service",
+    subject: "Time for a service, {first}?",
+    preheader: "It's almost a year since we were out.",
+    blocks: [
+      HI,
+      p("It's almost a year since we were out for your {job|last job} in {when|the past year}, so we wanted to check in before the busy season."),
+      p("A yearly service keeps it running efficiently and catches small problems before they turn into a breakdown."),
+      p("If you'd like one booked in, reply with a couple of days that suit or give us a call on **{phone}**."),
+    ],
+  },
+  {
     key: "sold.thanks", group: "sold", name: "Thanks for going ahead",
     subject: "Thanks for going ahead, {first}: here's what happens next",
     preheader: "We'll call you to pick a day. Here's how it runs from there.",
@@ -298,6 +342,17 @@ const OTHERS: Other[] = [
       p("Thanks for going ahead with the {option|work}. Here's how it runs from here, so you know what to expect:"),
       { kind: "list", items: NEXT_STEPS },
       p("Nothing you need to do for now. If anything comes up before then, give me a call on **{phone}** or just reply here."),
+    ],
+  },
+  {
+    key: "sold.pickaday", group: "sold", name: "Sold, nothing booked after 5 days",
+    subject: "Let's get your {option|job} booked in, {first}",
+    preheader: "A couple of days that suit, and we'll lock it in.",
+    blocks: [
+      HI,
+      p("Thanks again for going ahead with the {option|work}. I just wanted to get a day locked in for you."),
+      p("If you reply with a couple of days that suit, or give me a call on **{phone}**, we'll book it in and order everything so it's ready to go."),
+      p("If you'd rather wait for a particular week, that's fine too. Just let me know and I'll pencil it in."),
     ],
   },
 ];
@@ -310,13 +365,14 @@ export const BUILT_IN: EmailTemplate[] = [
   ...(Object.keys(STEPS) as QuoteKind[]).flatMap((kind) => STEPS[kind].map((s, n): EmailTemplate => ({
     key: followUpKey(kind, n + 1), group: "followup", series: kind, day: STANDARD_DAYS[kind][n], active: true, signer: "quoter", builtIn: true, ...s,
   }))),
-  ...OTHERS.map((o): EmailTemplate => ({ ...o, series: null, day: null, active: true, signer: "quoter", builtIn: true })),
+  // Money and service reminders come from the office, not a person: they aren't anyone's quote.
+  ...OTHERS.map((o): EmailTemplate => ({ ...o, series: null, day: null, active: true, signer: o.group === "invoice" || o.group === "service" ? "team" : "quoter", builtIn: true })),
 ];
 
 export const builtIn = (key: string): EmailTemplate | null => BUILT_IN.find((t) => t.key === key) ?? null;
 
 /** A key the page may address: a standard one, or an email added to a series ("followup.split.x3f9a1c"). */
-export const KEY = /^(followup\.(heat-pump|split|general)\.(\d|x[0-9a-f]{6})|reply\.(yes|question|no)|sold\.thanks)$/;
+export const KEY = /^(followup\.(heat-pump|split|general)\.(\d|x[0-9a-f]{6})|reply\.(yes|question|no)|sold\.(thanks|pickaday)|done\.thanks|invoice\.(first|second)|service\.reminder)$/;
 
 /** What a new email added to a series starts as. */
 export function starter(kind: QuoteKind, key: string, day: number): EmailTemplate {

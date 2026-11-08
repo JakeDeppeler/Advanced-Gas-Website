@@ -103,6 +103,13 @@ export default async function EmailsPage({ searchParams }: { searchParams: { err
           <p className="em-foot">There&rsquo;s no &ldquo;you&rsquo;re booked in&rdquo; email from us: ServiceTitan sends its own confirmation with the day and arrival time.</p>
         </Card>
 
+        {(["done", "invoice", "service"] as const).map((g) => (
+          <Card key={g} title={GROUPS[g].label} aside={GROUPS[g].when}>
+            <Group>{by(g).map((t) => <TemplateRow key={t.key} t={t} />)}</Group>
+            <p className="em-foot">Written and ready to read. Not sending: it needs its own switch, which comes once you&rsquo;re happy with the words.</p>
+          </Card>
+        ))}
+
         <Card title="Edited somewhere else">
           <Group>
             <Row title="Google review request" sub="The day after a paid household job. Edited on Marketing › Reviews, with its on/off switch." href="/portal/marketing?tab=reviews" />

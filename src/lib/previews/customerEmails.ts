@@ -9,7 +9,7 @@ import { followUpEmail, type FollowUpInput } from "@/lib/quotes/followUpContent"
 import { ANSWERS, type Answer } from "@/lib/quotes/answerTypes";
 import { resolveSigner } from "@/lib/email/templates/signer";
 import { liveSeries, liveTemplate } from "@/lib/email/templates/store";
-import { optionWords, renderTemplate, SERIES } from "@/lib/email/templates/types";
+import { GROUPS, renderTemplate, sampleValues, SERIES } from "@/lib/email/templates/types";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
 import { loadReviewSettings, sampleJobPhoto } from "@/lib/reviews/requests";
 import { answerEmails, answerUrl, SAMPLE_QUOTE } from "@/lib/quotes/answers";
@@ -84,15 +84,25 @@ export async function answerEmailPreviews(): Promise<ResendMessage[]> {
   return out;
 }
 
-/** Thanks for going ahead, for a sale made on the phone: wording only, until the trigger that sends it is built. */
+/**
+ * The emails after the quote stage, as they stand on Customer emails: after
+ * the sale, when the job's done, invoice reminders, service reminders.
+ * Wording only: none of them sends to a customer until it has a switch and
+ * someone turns it on.
+ */
 export async function journeyEmailPreviews(): Promise<Mail[]> {
   const ctx = emailContext();
-  const t = await liveTemplate("sold.thanks");
-  if (!t) return [];
-  const e = renderTemplate(t, { first: "Sarah", mobile: SAMPLE_QUOTE.phone, option: optionWords(SAMPLE_QUOTE.option), phone: site.phone }, { base: ctx.base });
-  const note = "Preview of the email a customer would get when their quote is marked sold in ServiceTitan without tapping a button (sold on the phone or in person). Not sending yet: it needs the sold trigger, which comes once the words are right.";
-  const mail = { base: ctx.base, footer: ctx.footer, preheader: e.preheader, blocks: e.blocks, signer: resolveSigner(t.signer, "Jake Deppeler") };
-  return [{ subject: `[Preview: sold over the phone] ${e.subject}`, html: withBanner(letterHtml(mail), note), text: `${note}\n\n${letterText(mail)}` }];
+  const keys = ["sold.thanks", "sold.pickaday", "done.thanks", "invoice.first", "invoice.second", "service.reminder"] as const;
+  const out: Mail[] = [];
+  for (const key of keys) {
+    const t = await liveTemplate(key);
+    if (!t) continue;
+    const e = renderTemplate(t, sampleValues(t.group), { base: ctx.base });
+    const note = `Preview of "${t.name}" (${GROUPS[t.group].label.toLowerCase()}: ${GROUPS[t.group].when.toLowerCase()}). Sarah and her job are made up. Not sending to customers: it needs its own switch, which comes once you're happy with the words. Edit it on Marketing › Customer emails.`;
+    const mail = { base: ctx.base, footer: ctx.footer, preheader: e.preheader, blocks: e.blocks, signer: resolveSigner(t.signer, "Jake Deppeler") };
+    out.push({ subject: `[Preview: ${t.name.toLowerCase()}] ${e.subject}`, html: withBanner(letterHtml(mail), note), text: `${note}\n\n${letterText(mail)}` });
+  }
+  return out;
 }
 
 export async function sendCustomerEmailPreviews(only: PreviewSet[] = [...PREVIEW_SETS]): Promise<{ sent: string[]; failed: { subject: string; error: string }[] }> {
