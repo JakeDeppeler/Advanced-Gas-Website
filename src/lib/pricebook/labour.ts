@@ -126,9 +126,12 @@ export function planServices(services: ServiceRow[], rates: Rates, floors: Map<n
     const before = s.dynamic && s.charged != null ? Number(s.charged) : Number(s.price) || 0;
     const floor = Math.max(before, floors.get(s.id) ?? 0);
     const after = Math.max(target, floor);
-    // On a dynamic rule the static price has to be written even when the
-    // figure is the same: it's what stays when the rule is switched off.
-    if (Math.abs(after - (Number(s.price) || 0)) < 0.005) { unchanged++; continue; }
+    // A service on Dynamic Pricing that already charges this much is left on
+    // it (Jake, 8 Nov: why turn it off?). The rule keeps following its linked
+    // materials' prices, and the floor holds if it's ever switched off. Only a
+    // service the new rates would raise needs the rule off, and the run says so.
+    if (s.dynamic && s.charged != null && after <= Number(s.charged) + 0.005) { unchanged++; continue; }
+    if (!s.dynamic && Math.abs(after - (Number(s.price) || 0)) < 0.005) { unchanged++; continue; }
     changes.push({
       id: s.id, code: normCode(s.code), name: s.name.trim(), crew, hours, rate, before, after, labour, linked,
       ...(after > target ? { kept: true } : {}), ...(s.pricing ? { pricing: s.pricing } : {}),
