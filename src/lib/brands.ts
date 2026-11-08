@@ -225,12 +225,26 @@ export type Brand = {
    * keep the page below until they're redone the same way.
    */
   layout?: "blocks";
-  /** How the job runs, in order, for the blocks layout. */
-  installSteps?: { t: string; d: string }[];
-  /** The two warranties as figures: years, whose, what it covers. */
-  warrantyCards?: { v: string; k: string; d: string }[];
-  /** The company behind the badge, in a few lines and a few dates. */
-  story?: { heading: string; body: string; marks: { v: string; k: string }[] };
+  /** Owning one, year by year from install day (year 0), for the year-ten timeline. */
+  timeline?: { y: number; t: string; d: string }[];
+  /**
+   * "Which one is right for you": a few questions that land on one of the
+   * brand's options. A step with `if` is only asked when an earlier answer
+   * matches; the first result whose `when` matches every answer wins, so
+   * list the specific ones first.
+   */
+  picker?: {
+    steps: { id: string; q: string; opts: { v: string; l: string }[]; if?: Record<string, string> }[];
+    results: { when: Record<string, string>; model: string; why: string }[];
+  };
+  /**
+   * The company behind the badge, in a few lines and a few dates. `stops`
+   * is where the system comes from on its way to a wall here (designed,
+   * built, fitted), drawn as a route on the blocks layout.
+   */
+  story?: { heading: string; body: string; marks: { v: string; k: string }[]; stops?: { place: string; role: string; d: string }[] };
+  /** The brand's own mark, drawn in code rather than shipped as an image. */
+  mark?: "three-diamonds";
   /** The heading over `versus`, e.g. "Mitsubishi or Kaden?". */
   versusHeading?: string;
   /** A real install photo for the hero, with the product shot on a card over it. */
@@ -809,7 +823,7 @@ const brandCatalogue: Brand[] = [
     ],
     quality: {
       heading: "Made better, from the inside.",
-      intro: "Mitsubishi Electric is a Japanese engineering company, founded in 1921, that builds lifts, trains and satellites. In an air conditioner that shows in the parts you never see: it makes the important ones itself.",
+      intro: "The difference is in the parts you never see. Mitsubishi Electric makes the important ones itself.",
       image: { src: "/mitsubishi-puz-outdoor-white.webp", alt: "Mitsubishi Electric outdoor unit" },
       points: [
         { t: "Its own compressor", d: "The compressor does the work and takes the wear. Mitsubishi Electric designs and builds its own, in its own factory, rather than buying one in." },
@@ -846,16 +860,42 @@ const brandCatalogue: Brand[] = [
       claim: "Why we choose Mitsubishi Electric.",
       sub: "It costs a little more than a budget brand. This is what the difference buys you.",
     },
-    installSteps: [
-      { t: "A free site check", d: "We look at the rooms, the walls and where the outdoor unit can go, and size it room by room." },
-      { t: "One price, in writing", d: "It only changes if the job does, and then we stop and ask before going on." },
-      { t: "Our own crew fits it", d: "Directly employed, not subcontracted. A new wall split is usually in within half a day." },
-      { t: "Tested and handed over", d: "We run it, show you the controls, and email the compliance certificate within 24 hours." },
+    mark: "three-diamonds",
+    story: {
+      heading: "A Japanese engineering company, since 1921.",
+      body: "Mitsubishi Electric builds lifts, trains and satellites, and it brings the same engineering to the air conditioner on your wall.",
+      marks: [
+        { v: "1921", k: "Founded in Tokyo" },
+        { v: "1978", k: "Selling in Australia" },
+        { v: "Same day", k: "Parts from the Melbourne warehouse" },
+      ],
+      stops: [
+        { place: "Tokyo, Japan", role: "Designed", d: "Engineered by a company that has been building machines since 1921." },
+        { place: "Thailand", role: "Built", d: "Wall splits and outdoor units come off Mitsubishi Electric's own production lines." },
+        { place: "Pakenham, VIC", role: "Fitted", d: "Installed by our own crew, with the parts warehouse a drive away in Melbourne." },
+      ],
+    },
+    timeline: [
+      { y: 0, t: "Install day", d: "Both warranties start." },
+      { y: 5, t: "Year 5", d: "Mitsubishi's parts and labour warranty ends." },
+      { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
+      { y: 10, t: "Year 10", d: "Still making its rated output. We measure them." },
+      { y: 12, t: "Year 12", d: "Parts still on the Melbourne shelf." },
     ],
-    warrantyCards: [
-      { v: "5 years", k: "Mitsubishi Electric", d: "Parts and labour on the system itself." },
-      { v: "6 years", k: "Advanced Gas", d: "On our workmanship. Both start on install day." },
-    ],
+    picker: {
+      steps: [
+        { id: "rooms", q: "How much of the house do you want to heat and cool?", opts: [{ v: "one", l: "One room" }, { v: "few", l: "Two to four rooms" }, { v: "all", l: "The whole house" }] },
+        { id: "cold", q: "Do you get frosty mornings where you live?", opts: [{ v: "yes", l: "Yes, we're up in the hills" }, { v: "no", l: "Not really" }], if: { rooms: "one" } },
+        { id: "roof", q: "Is there roof space above the rooms?", opts: [{ v: "yes", l: "Yes, room to work up there" }, { v: "no", l: "No, or not much" }], if: { rooms: "all" } },
+      ],
+      results: [
+        { when: { rooms: "one", cold: "yes" }, model: "MSZ-AP Hyper Heating", why: "It holds its full rated heat down to \u221215\u00b0, so it doesn't fade on the mornings you need it most." },
+        { when: { rooms: "one" }, model: "MSZ-AP wall split", why: "One unit on the wall and one outside. Our default for a bedroom or living room, and usually in within half a day." },
+        { when: { rooms: "few" }, model: "MXZ multi-head", why: "One outdoor unit runs two to six indoor units, each room on its own remote. One set of holes in the wall, not four." },
+        { when: { rooms: "all", roof: "yes" }, model: "PEAD-M ducted", why: "The unit lives in the roof and vents into every room, zoned so you're not heating empty bedrooms." },
+        { when: { rooms: "all" }, model: "MXZ multi-head", why: "With no roof space for ducts, one outdoor unit runs up to six indoor units instead." },
+      ],
+    },
     verdict:
       "Mitsubishi is what we quote first and fit most, and we'd rather be straight about why: it costs a few hundred more than a budget brand on a bedroom split, and that gap buys you a decade where we don't come back. The reliability is real, the parts are on a Melbourne shelf in year twelve, and a decade-old MSZ-AP still makes its rated output, we measure them. If a system you'll own for fifteen years is worth paying for once, this is the one.",
     notRightWhen:

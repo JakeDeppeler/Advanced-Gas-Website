@@ -3,22 +3,30 @@ import Link from "next/link";
 import type { Brand } from "@/lib/brands";
 import type { Review } from "@/lib/reviews";
 import { installsFor } from "@/lib/brandGallery";
-import { TONES, productHref, money, weekly, SHOW_FINANCE, FINANCE_MONTHS } from "@/lib/homepage/data";
+import { CountUp } from "@/components/CountUp";
+import { TONES, productHref, bookHref, money, weekly, SHOW_FINANCE, FINANCE_MONTHS } from "@/lib/homepage/data";
 import { brandOptions } from "./options";
+import { BrandLockup, ThreeDiamonds } from "./BrandMark";
+import { BkMotion } from "./BkMotion";
+import { SystemPicker, type PickerResult } from "./SystemPicker";
 import "./blocks.css";
 
 /**
  * A brand page laid out like the homepage: each section is its own colour
- * block (sky, navy, cream, the brand's accent) with white space between,
- * and few words in each. Jake asked for the homepage's blocks after the
- * earlier page read as busy, then for colour after an all-white first cut.
- * The photo sections stay on white so the photos carry them.
+ * block with white space between, and few words in each. The order is
+ * Jake's: the brand and where it's made, the quality, why we choose it,
+ * the range, our installs, year ten, which one is right for you, reviews,
+ * FAQs, then the quote.
  *
+ * Motion comes from BkMotion (cards rising in turn, the route drawing, the
+ * timeline filling, the figures counting up), all off for reduced motion.
  * Each section still hides when its field is missing from lib/brands.ts.
  */
 
 /** How many install photos the gallery is laid out for. */
 const GALLERY = 6;
+/** The timeline runs to this year, so year twelve sits short of the end. */
+const SPAN = 15;
 
 export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[] }) {
   const options = brandOptions(brand);
@@ -28,21 +36,36 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
   // an empty frame there would read as a broken page.
   const showSlots = process.env.VERCEL_ENV !== "production";
   const slots = showSlots ? Math.max(0, GALLERY - installs.length) : 0;
-  const steps = brand.installSteps ?? [];
+  const story = brand.story;
+  const timeline = brand.timeline ?? [];
+  // Each picker answer resolved to the option it names, with its page and a
+  // quote link that arrives at the homepage form with that option chosen.
+  const picks: PickerResult[] = (brand.picker?.results ?? []).flatMap((r) => {
+    const o = options.find((x) => x.t.model === r.model);
+    if (!o) return [];
+    return [{
+      when: r.when, why: r.why, model: r.model, img: o.t.img, tier: o.t.tier,
+      price: typeof o.t.price === "number" ? money(o.t.price) : null,
+      href: productHref(o.s, o.t, {}), book: bookHref(o.s, o.t, {}),
+    }];
+  });
   const tabs = [
-    ["why", "Why we choose it"],
+    ...(story ? [["brand", "The brand"]] : []),
     ...(brand.quality ? [["quality", "Made better"]] : []),
+    ["why", "Why we choose it"],
     ...(options.length ? [["range", "The range"]] : []),
-    ...(steps.length ? [["install", "How we install"]] : []),
     ...(installs.length || slots ? [["installs", "Our installs"]] : []),
     ["support", "Year ten"],
-    ...(brand.versus || brand.notRightWhen ? [["fit", "Is it for you?"]] : []),
+    ...(picks.length ? [["pick", "Which one?"]] : []),
     ["reviews", "Reviews"],
     ...(brand.faqs?.length ? [["faqs", "FAQs"]] : []),
   ];
+  const mark = brand.mark === "three-diamonds";
 
   return (
-    <div className="bx bk" style={{ ["--acc" as string]: brand.accent ?? "#C2521A" }}>
+    // data-no-reveal: BkMotion animates this page; the site-wide Reveal would fade the colour blocks themselves.
+    <div className="bx bk" data-no-reveal style={{ ["--acc" as string]: brand.accent ?? "#C2521A" }}>
+      <BkMotion />
       <nav className="ppx__crumbbar" aria-label="Breadcrumb">
         <div className="wrap ppx__crumbin">
           <ol className="pp__crumbs">
@@ -57,8 +80,8 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
       <section className="bxh">
         <div className="wrap bxh__in">
           <div className="bxh__copy">
-            <span className="lk2__eye">{brand.origin}</span>
-            <h1 className="bxh__h1">{brand.name}</h1>
+            {mark ? <BrandLockup tone="light" className="bk__herologo" /> : <span className="lk2__eye">{brand.origin}</span>}
+            <h1 className={`bxh__h1${mark ? " bk__h1" : ""}`}>{brand.name}</h1>
             <p className="bxh__tag">{brand.tagline}</p>
             {brand.heroSub && <p className="bxh__sub">{brand.heroSub}</p>}
             <div className="bxh__ctas">
@@ -67,9 +90,9 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
             </div>
           </div>
           {brand.heroProducts ? (
-            <div className="bxh__img bxh__show" role="group" aria-label={`The ${brand.name} range`}>
+            <div className="bxh__img bxh__show bk__show" role="group" aria-label={`The ${brand.name} range`}>
               {brand.heroProducts.map((p, i) => (
-                <figure key={p.src} className={`bxh__prod${i === 0 ? " bxh__prod--lead" : ""}`}>
+                <figure key={p.src} className={`bxh__prod${i === 0 ? " bxh__prod--lead" : ""}`} style={{ ["--i" as string]: i }}>
                   <span className="bxh__pimg"><Image src={p.src} alt={p.alt} fill priority={i === 0} sizes="(max-width: 900px) 70vw, 380px" /></span>
                   <figcaption><i aria-hidden="true" />{p.label}</figcaption>
                 </figure>
@@ -85,15 +108,66 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         <div className="wrap pxt__in">{tabs.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}</div>
       </nav>
 
-      {/* Why: four photo cards, the way the homepage shows its four services. */}
+      {/* 1. The brand, and the road from Tokyo to a wall here. */}
+      {story && (
+        <section className="bk__sec" id="brand">
+          <div className="wrap"><div className="bk__blk bk__blk--navy bk__col bk__brand">
+            <div className="bk__brandtop">
+              <div className="bk__head">
+                <h2 className="h2">{story.heading}</h2>
+                <p>{story.body}</p>
+              </div>
+              {mark && <ThreeDiamonds className="bk__bigmark" />}
+            </div>
+            {story.stops && (
+              <ol className="bk__trip" data-anim="trip">
+                <span className="bk__track" aria-hidden="true"><i /></span>
+                {story.stops.map((st, n) => (
+                  <li key={st.place} style={{ ["--i" as string]: n }}>
+                    <span className="bk__pin" aria-hidden="true" />
+                    <span className="bk__role">{st.role}</span>
+                    <strong>{st.place}</strong>
+                    <p>{st.d}</p>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <ul className="bk__marks" data-anim="stagger">
+              {story.marks.map((m) => <li key={m.k}><b>{m.v}</b><span>{m.k}</span></li>)}
+            </ul>
+          </div></div>
+        </section>
+      )}
+
+      {/* 2. Made better: what's inside. */}
+      {brand.quality && (
+        <section className="bk__sec" id="quality">
+          <div className="wrap"><div className="bk__blk bk__blk--sky bk__q">
+            <div className="bk__head">
+              <h2 className="h2">{brand.quality.heading}</h2>
+              <p>{brand.quality.intro}</p>
+            </div>
+            <div className="bk__qbody">
+              <div className="bk__qimg" data-anim="pop"><Image src={brand.quality.image.src} alt={brand.quality.image.alt} fill sizes="(max-width: 1000px) 90vw, 420px" /></div>
+              <ul className="bk__qlist" data-anim="stagger">
+                {brand.quality.points.map((p) => (
+                  <li key={p.t}><h3>{p.t}</h3><p>{p.d}</p></li>
+                ))}
+              </ul>
+            </div>
+          </div></div>
+        </section>
+      )}
+
+      {/* 3. Why we choose it: four photo cards, the figures counting up. */}
       <section className="bk__sec" id="why">
-        <div className="wrap"><div className="bk__blk bk__blk--sky bk__col">
+        <div className="wrap"><div className="bk__blk bk__blk--acc bk__col">
           <header className="bk__head">
             <h2 className="h2">{brand.whyLead?.claim ?? `Why we fit ${brand.name}.`}</h2>
             {brand.whyLead?.sub && <p>{brand.whyLead.sub}</p>}
           </header>
           {brand.reasons && (
-            <ul className="bk__reasons">
+            <ul className="bk__reasons" data-anim="stagger">
               {brand.reasons.map((r) => (
                 <li key={r.k} className="bk__card">
                   {r.img && (
@@ -102,7 +176,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
                     </span>
                   )}
                   <span className="bk__ctxt">
-                    <b>{r.v}</b>
+                    <b><CountUp value={r.v} /></b>
                     <strong>{r.k}</strong>
                     <span>{r.d}</span>
                   </span>
@@ -113,39 +187,18 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </div></div>
       </section>
 
-      {/* Made better: the one navy block in the body, so the quality case is the thing you can't miss. */}
-      {brand.quality && (
-        <section className="bk__sec" id="quality">
-          <div className="wrap">
-            <div className="bk__box bk__q">
-              <div className="bk__qhead">
-                <h2 className="bk__boxh">{brand.quality.heading}</h2>
-                <p>{brand.quality.intro}</p>
-              </div>
-              <div className="bk__qbody">
-                <div className="bk__qimg"><Image src={brand.quality.image.src} alt={brand.quality.image.alt} fill sizes="(max-width: 1000px) 90vw, 420px" /></div>
-                <ul className="bk__qlist">
-                  {brand.quality.points.map((p) => (
-                    <li key={p.t}><h3>{p.t}</h3><p>{p.d}</p></li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
+      {/* 4. The range. */}
       {options.length > 0 && (
         <section className="bk__sec" id="range">
           <div className="wrap"><div className="bk__blk bk__blk--cream bk__col">
             <header className="bk__head">
-              <h2 className="h2">Pick your {brand.name}.</h2>
+              <h2 className="h2">The {brand.name} range.</h2>
               <p>Each one has its own page with sizes, specs and the price installed.</p>
             </header>
-            <div className="bk__range">
+            <div className="bk__range" data-anim="stagger">
               {options.map(({ s, t, i, cats }) => (
                 <Link key={`${s.slug}.${t.slug}`} href={productHref(s, t, {})} className="atile bk__tile">
-                  <span className="atile__img"><Image src={t.img} alt="" fill sizes="(max-width: 600px) 90vw, 340px" /></span>
+                  <span className="atile__img"><Image src={t.img} alt="" fill sizes="(max-width: 600px) 45vw, 340px" /></span>
                   <span className="atile__foot">
                     <span className="atile__txt">
                       <span className="bk__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier} · {cats.join(" & ")}</span>
@@ -163,23 +216,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </section>
       )}
 
-      {steps.length > 0 && (
-        <section className="bk__sec" id="install">
-          <div className="wrap"><div className="bk__blk bk__blk--acc bk__col">
-            <header className="bk__head">
-              <h2 className="h2">How we put it in.</h2>
-              <p>The same four steps on every {brand.name} job.</p>
-            </header>
-            {/* Numbered because it is an order: each step happens before the next. */}
-            <ol className="bk__steps">
-              {steps.map((st, n) => (
-                <li key={st.t}><span className="bk__n" aria-hidden="true">{n + 1}</span><h3>{st.t}</h3><p>{st.d}</p></li>
-              ))}
-            </ol>
-          </div></div>
-        </section>
-      )}
-
+      {/* 5. Our installs. */}
       {(installs.length > 0 || slots > 0) && (
         <section className="bk__sec" id="installs">
           <div className="wrap"><div className="bk__blk bk__blk--plain bk__col">
@@ -187,7 +224,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
               <h2 className="h2">Our {brand.name} installs.</h2>
               <p>Real jobs by our own crew, around Melbourne&apos;s south-east.</p>
             </header>
-            <div className="bk__gal">
+            <div className="bk__gal" data-anim="stagger">
               {installs.map((ph) => (
                 <figure key={ph.src} className="bk__ph">
                   <Image src={ph.src} alt={ph.alt} fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 380px" />
@@ -202,39 +239,55 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </section>
       )}
 
+      {/* 6. Year ten: the timeline of owning one. */}
       <section className="bk__sec" id="support">
-        <div className="wrap"><div className="bk__blk bk__blk--navy bk__two">
-          <div className="bk__txt">
-            <h2 className="h2">{brand.servicing?.heading ?? "Keeping it running."}</h2>
-            <p>{brand.servicing?.body ?? brand.support}</p>
-            {brand.servicing?.facts && (
-              <ul className="pp__hl">{brand.servicing.facts.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>
-            )}
-          </div>
-          <div className="bk__side">
-            {brand.warrantyCards && (
-              <div className="bk__war">
-                <h3>Covered twice.</h3>
-                {brand.warrantyCards.map((w) => (
-                  <div key={w.k} className="bk__wcard"><b>{w.v}</b><span><strong>{w.k}</strong>{w.d}</span></div>
-                ))}
-              </div>
-            )}
+        <div className="wrap"><div className="bk__blk bk__blk--navy bk__col">
+          <div className="bk__two">
+            <div className="bk__txt">
+              <h2 className="h2">{brand.servicing?.heading ?? "Keeping it running."}</h2>
+              <p>{brand.servicing?.body ?? brand.support}</p>
+              {brand.servicing?.facts && (
+                <ul className="pp__hl">{brand.servicing.facts.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>
+              )}
+            </div>
             <div className="bk__team">
               <Image src="/team-photo.webp" alt="The Advanced Gas team with their vans outside the Pakenham workshop" fill sizes="(max-width: 1000px) 90vw, 480px" />
             </div>
           </div>
+          {timeline.length > 0 && (
+            <div className="bk__time" data-anim="time">
+              <div className="bk__tbar" aria-hidden="true">
+                <i style={{ width: `${(Math.max(...timeline.map((t) => t.y)) / SPAN) * 100}%` }} />
+              </div>
+              <ol>
+                {timeline.map((t, n) => (
+                  <li key={t.t} style={{ ["--x" as string]: `${(t.y / SPAN) * 100}%`, ["--i" as string]: n }}>
+                    <span className="bk__tdot" aria-hidden="true" />
+                    <strong>{t.t}</strong>
+                    <span>{t.d}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div></div>
       </section>
 
-      {(brand.versus || brand.notRightWhen) && (
-        <section className="bk__sec" id="fit">
-          <div className="wrap"><div className="bk__blk bk__blk--cream bk__col">
-            <header className="bk__head"><h2 className="h2">Is it the right one for you?</h2></header>
-            <div className="bk__fit">
-              {brand.versus && <div><h3>{brand.versusHeading ?? "Compared with the rest"}</h3><p>{brand.versus}</p></div>}
-              {brand.notRightWhen && <div><h3>When we&apos;d say no</h3><p>{brand.notRightWhen}</p></div>}
+      {/* 7. Which one is right for you: a few questions and a quote link. */}
+      {picks.length > 0 && brand.picker && (
+        <section className="bk__sec" id="pick">
+          <div className="wrap"><div className="bk__blk bk__blk--sky bk__pick">
+            <div className="bk__head">
+              <h2 className="h2">Which {brand.name} is right for you?</h2>
+              <p>Answer a couple of quick questions and we&apos;ll show you the one we&apos;d fit.</p>
+              {(brand.versus || brand.notRightWhen) && (
+                <div className="bk__notes">
+                  {brand.versus && <p><b>{brand.versusHeading ?? "Compared with the rest"}</b> {brand.versus}</p>}
+                  {brand.notRightWhen && <p><b>When we&apos;d say no.</b> {brand.notRightWhen}</p>}
+                </div>
+              )}
             </div>
+            <SystemPicker brand={brand.name} steps={brand.picker.steps} results={picks} />
           </div></div>
         </section>
       )}
@@ -245,7 +298,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
             <header className="bk__head"><h2 className="h2">From local households.</h2></header>
             <Link href="/reviews">Read every review →</Link>
           </div>
-          <div className="pp__revs">
+          <div className="pp__revs" data-anim="stagger">
             {reviews.map((r) => (
               <article key={r.who + r.title} className="rev">
                 <span className="stars stars--ink" aria-hidden="true">★★★★★</span>
@@ -263,7 +316,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       {brand.faqs && brand.faqs.length > 0 && (
         <section className="bk__sec" id="faqs">
-          <div className="wrap"><div className="bk__blk bk__blk--sky pp__two">
+          <div className="wrap"><div className="bk__blk bk__blk--cream pp__two">
             <div className="bk__head">
               <h2 className="h2">Questions about {brand.name}.</h2>
               <p>Still want a human? <a href="tel:+61359478000" data-call-from="brand-faq">Call (03) 5947 8000</a>.</p>
@@ -278,6 +331,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
       <section className="bk__sec">
         <div className="wrap">
           <div className="bk__box bk__box--acc bk__cta">
+            {mark && <ThreeDiamonds className="bk__ctamark" />}
             <div>
               <h2 className="bk__boxh">See what {brand.name} would cost.</h2>
               <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
