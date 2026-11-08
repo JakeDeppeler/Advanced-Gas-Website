@@ -304,7 +304,7 @@ export function ChatWidget({ assistant = false }: { assistant?: boolean }) {
         <div className="agchat__panel" role="dialog" aria-label="Chat with Advanced Gas" aria-modal="false">
           <div className="agchat__head">
             <div>
-              <strong>{mode === "ask" ? "Instant answers" : "Chat with the team"}</strong>
+              <strong>{mode === "ask" ? "Ask us anything" : "Chat with the team"}</strong>
               <span>
                 {mode === "ask"
                   ? "Instant answers from our site — for anything else, talk to the team"
@@ -365,7 +365,8 @@ export function ChatWidget({ assistant = false }: { assistant?: boolean }) {
                         </span>
                         {a.reply.about && <span className="agchat__about">Closest question on our site: {a.reply.about}</span>}
                         <p>{a.reply.text}</p>
-                        {a.reply.link && !a.reply.link.href.startsWith("tel:") && (
+                        {/* Not the quote form or the phone: the buttons below already are those. */}
+                        {a.reply.link && !/^(tel:|\/quote$)/.test(a.reply.link.href) && (
                           <a className="agchat__more" href={a.reply.link.href}>
                             {a.reply.link.label} <span aria-hidden="true">→</span>
                           </a>
