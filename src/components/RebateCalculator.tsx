@@ -247,7 +247,7 @@ export function RebateCalculator() {
                         onClick={() => setPower("no")}>No, need a new one</button>
                     </div>
                     <p className="rb-calc__note">
-                      If &ldquo;no&rdquo; we add ~${POWER_ADDON.toLocaleString()} for a new power point (electrical + compliance).
+                      {SHOW_PRICES ? <>If &ldquo;no&rdquo; we add ~${POWER_ADDON.toLocaleString()} for a new power point (electrical + compliance).</> : <>If &ldquo;no&rdquo;, a new power point goes on the quote (electrical + compliance).</>}
                     </p>
                   </div>
                 )}
@@ -303,7 +303,7 @@ export function RebateCalculator() {
                   ) : (
                     <div className="rb-calc__result-row">
                       <span className="rb-calc__result-l">Installed price</span>
-                      <span className="rb-calc__result-l">On your fixed written quote, with the rebate already taken off</span>
+                      <span className="rb-calc__result-l">On your written quote, rebate off</span>
                     </div>
                   )}
                   {SHOW_PRICES && <details className="rb-calc__breakdown">
