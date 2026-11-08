@@ -26,7 +26,9 @@ Warren, Cranbourne & Clyde, Dandenong & Springvale, Western Port, Garfield &
 Bunyip, Drouin & Warragul, Belgrave & Upwey, Emerald & Gembrook, Dandenong
 Ranges, Ferntree Gully & Rowville, Ringwood & Glen Waverley). The split follows
 height and the bay, because that's what changes the weather: on a cold morning
-the ranges sit 4–5 °C under Pakenham.
+the ranges sit 3–4° under Pakenham.
+
+Temperatures are judged in whole degrees, the same as the portal shows them.
 
 | Trigger | Pushes (flag `campaign`) | Fires when | Strong when |
 |---|---|---|---|

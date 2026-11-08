@@ -47,8 +47,12 @@ function parseOne(raw: unknown): ZoneWeather {
   if (!daily || !Array.isArray(time) || !time.length) return { state: "unavailable", error: "No daily forecast in the response" };
   const col = (k: string) => (Array.isArray(daily[k]) ? (daily[k] as unknown[]) : []);
   const [tx, tn, wc, wg, pr] = DAILY.map(col);
+  // Temperatures to whole degrees before any rule sees them. A forecast isn't
+  // good to a tenth, and the page shows whole degrees: judging 2.1° against a
+  // "2° or under" rule while showing "2°" made a page that looked wrong.
+  const deg = (v: unknown) => { const n = num(v); return n == null ? null : Math.round(n); };
   const days: DayWeather[] = time.map((d, i) => ({
-    date: String(d), tmax: num(tx[i]), tmin: num(tn[i]), code: num(wc[i]), gust: num(wg[i]), rain: num(pr[i]),
+    date: String(d), tmax: deg(tx[i]), tmin: deg(tn[i]), code: num(wc[i]), gust: num(wg[i]), rain: num(pr[i]),
   }));
   if (!days.some((d) => d.tmax != null)) return { state: "unavailable", error: "Forecast came back empty" };
   return { state: "ok", days };
@@ -145,7 +149,10 @@ export function buildReport(input: {
     message = `${okCount} of ${out.length} zones checked; ${down} had no forecast and say nothing either way.`;
   } else {
     status = "ok";
-    message = flags.length ? `${flags.length} flag${flags.length === 1 ? "" : "s"} across ${new Set(flags.map((f) => f.zoneId)).size} zones.` : "Every zone checked; nothing in the forecast trips a trigger.";
+    const zoneCount = new Set(flags.map((f) => f.zoneId)).size;
+    message = flags.length
+      ? `${flags.length} flag${flags.length === 1 ? "" : "s"} across ${zoneCount} zone${zoneCount === 1 ? "" : "s"}; every zone checked.`
+      : "Every zone checked; nothing in the forecast trips a trigger.";
   }
 
   const sev = { strong: 0, moderate: 1 } as const;

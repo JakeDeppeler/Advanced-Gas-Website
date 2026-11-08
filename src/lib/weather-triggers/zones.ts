@@ -5,8 +5,8 @@
  * same across a few kilometres of flat ground buys nothing, and the request
  * gets slow. Why not one point for the whole area: the area spans ~0 m on the
  * Koo Wee Rup swamp to ~600 m on the top of the Dandenongs, and that height is
- * the whole story on a cold morning — Olinda routinely sits 4–5 °C under
- * Pakenham. So the cut follows the terrain and the bay first, and the map
+ * the whole story on a cold morning: air cools about 6.5° per 1000 m, so the
+ * ridge sits 3–4° under Pakenham (3.1° on the morning this was written). So the cut follows the terrain and the bay first, and the map
  * second. Twelve zones, one request.
  *
  * Membership is explicit rather than nearest-centroid so a reader can see why
@@ -73,7 +73,7 @@ export const ZONE_DEFS: ZoneDef[] = [
   },
   {
     id: "ranges", name: "Dandenong Ranges",
-    why: "The ridge, 400–600 m up. Coldest part of the area by a distance: first to flag a cold snap.",
+    why: "The ridge, 400–600 m up. Coldest part of the area, and the first to flag a cold snap.",
     slugs: ["olinda", "sassafras", "mount-dandenong", "kallista", "sherbrooke", "monbulk", "silvan", "the-patch"],
   },
   {

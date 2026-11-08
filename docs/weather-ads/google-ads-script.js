@@ -171,7 +171,7 @@ function runWeatherCampaign(name, keys, live, say) {
     }
   });
   existing.forEach(function (e) {
-    if (!e.keep) { e.target.remove(); changed = true; say('"' + name + '": dropped a zone no longer flagged.'); }
+    if (!e.keep) { e.target.remove(); changed = true; say('"' + name + '": removed a location that is not a flagged zone (' + e.radius + ' ' + e.units.toLowerCase() + ' around ' + e.lat.toFixed(3) + ', ' + e.lng.toFixed(3) + ').'); }
   });
   if (!campaign.isEnabled()) { campaign.enable(); say('"' + name + '": ENABLED for ' + wanted.length + ' zone(s).'); changed = true; }
   return changed;
@@ -215,13 +215,22 @@ function resetAll(say) {
     var c = findCampaign(name);
     if (c && c.isEnabled()) { c.pause(); say('"' + name + '": paused.'); }
   });
-  Object.keys(CONFIG.BID_CAMPAIGNS).forEach(function (name) {
+  // Only the zone targets this script made are put back: a radius target you
+  // set by hand on the same campaign keeps its adjustment. The zone list comes
+  // with every report, even one whose forecast failed.
+  var names = Object.keys(CONFIG.BID_CAMPAIGNS);
+  if (!names.length) return;
+  var report = fetchReport(say);
+  if (!report) { say('Could not read the zone list, so bid adjustments were NOT reset. Run again, or set them to +0% by hand.'); return; }
+  names.forEach(function (name) {
     var c = findCampaign(name);
     if (!c) return;
-    proximities(c).forEach(function (e) {
-      if (Math.abs(e.target.getBidModifier() - 1) > 0.001) { e.target.setBidModifier(1); }
+    var existing = proximities(c);
+    report.zones.forEach(function (z) {
+      var hit = matchPoint(existing, { lat: z.lat, lng: z.lng, radius: z.radiusKm });
+      if (hit && Math.abs(hit.target.getBidModifier() - 1) > 0.001) hit.target.setBidModifier(1);
     });
-    say('"' + name + '": every radius target back to +0%.');
+    say('"' + name + '": every weather zone back to +0%.');
   });
 }
 

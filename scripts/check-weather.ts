@@ -137,6 +137,9 @@ let p = parseForecast({ error: true, reason: "Latitude must be in range" }, 3);
 ok(p.length === 3 && p.every((z) => z.state === "unavailable"), "an Open-Meteo error body marks every zone unavailable", p);
 p = parseForecast([{ daily: { time: ["2026-11-08"], temperature_2m_max: [20], temperature_2m_min: [9], weather_code: [3], wind_gusts_10m_max: [30], precipitation_sum: [0] } }], 2);
 ok(p[0].state === "ok" && p[1].state === "unavailable", "a short array leaves the missing zone unavailable", p.map((x) => x.state));
+p = parseForecast([{ daily: { time: ["2026-11-09"], temperature_2m_max: [19.1], temperature_2m_min: [2.1] } }], 1);
+ok(p[0].state === "ok" && p[0].days[0].tmin === 2 && p[0].days[0].tmax === 19, "temperatures are judged in the whole degrees the page shows", p);
+if (p[0].state === "ok") ok(one(run(week(T, { 1: { tmin: p[0].days[0].tmin } })), "cold_snap").length === 1, "so a 2.1° forecast, shown as 2°, is a 2°-or-under cold snap");
 p = parseForecast([{ daily: { time: ["2026-11-08"], temperature_2m_max: [null] } }], 1);
 ok(p[0].state === "unavailable", "all-null temperatures are unavailable, not mild", p);
 
