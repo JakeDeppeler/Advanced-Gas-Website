@@ -1095,7 +1095,7 @@ const brandCatalogue: Brand[] = [
       facts: [
         "A decade-old MSZ-AP still makes its rated output: we measure them on annual services and they hold",
         "Common indoor and outdoor parts come out of the Melbourne warehouse same-day",
-        "Annual service is $220 on a split, $390 on a ducted, and we text you eleven months later so it gets booked",
+        "Annual service, priced in writing, and we text you eleven months later so it gets booked",
         "We lodge the service report with Mitsubishi, so the warranty record stays clean for any future claim",
         "Ducted indoors go on a platform with a clear path to them, because a unit walled in behind cabinetry is a quote, not a service",
       ],
@@ -1113,7 +1113,7 @@ const brandCatalogue: Brand[] = [
     faqs: [
       {
         q: "Is Mitsubishi Electric actually worth the extra over a budget brand?",
-        a: "On a bedroom split the gap is a few hundred dollars, and the honest answer is that it usually pays for itself the first time something goes wrong, or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
+        a: "On a bedroom split the gap is modest, and the honest answer is that it usually pays for itself the first time something goes wrong, or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
       },
       {
         q: "Which Mitsubishi wall split do you install?",
@@ -1137,7 +1137,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "Can you service a Mitsubishi you didn't install?",
-        a: "Yes, and we do a lot of them. $220 for a split, $390 for a ducted, and the service report goes to Mitsubishi so your warranty record stays clean. If we find something we'd have done differently on the install we'll tell you what it is and whether it's worth fixing.",
+        a: "Yes, and we do a lot of them. Split or ducted, the service is priced before we come, and the service report goes to Mitsubishi so your warranty record stays clean. If we find something we'd have done differently on the install we'll tell you what it is and whether it's worth fixing.",
       },
       {
         q: "Do you install Mitsubishi in the eastern suburbs, or just the south-east?",
@@ -3105,7 +3105,7 @@ const brandCatalogue: Brand[] = [
       {
         title: "Check the power point",
         detail:
-          "The iStore runs off a standard power point. If there's one within 2 m of the existing system we use it and there's nothing to add. If there isn't: no nearby circuit, or the point's too far to reach: running one is a $350 electrical add, and we flag that at the quote rather than springing it on you mid-install.",
+          "The iStore runs off a standard power point. If there's one within 2 m of the existing system we use it and there's nothing to add. If there isn't: no nearby circuit, or the point's too far to reach: running one is an electrical add, and we put it on the quote rather than springing it on you mid-install.",
       },
       {
         title: "Drain and disconnect the old tank",
@@ -3134,8 +3134,8 @@ const brandCatalogue: Brand[] = [
         a: "Because of the rebate, mostly. Of everything we fit, the iStore is the one the VEU rebate stretches furthest, which is what brings the price down so far. It's a solid R290 platform with the PV diverter and the app built in, and for a house pulling out an old electric tank it's the one that makes the numbers work. Where you're staying long-term and cold-morning recovery matters to you more than the upfront rebate, we'd point you at a Reclaim instead, and we'll say so plainly.",
       },
       {
-        q: "What's this $350 electrical charge I've heard about?",
-        a: "The iStore runs off a normal power point. If there's one within 2 m of your existing system we just use it and there's nothing extra. If there isn't: no circuit there, or the point's too far away, an electrician has to run one, and that's a $350 add. We check for it at the quote so it's never a surprise on install day.",
+        q: "What's this electrical charge I've heard about?",
+        a: "The iStore runs off a normal power point. If there's one within 2 m of your existing system we just use it and there's nothing extra. If there isn't: no circuit there, or the point's too far away, an electrician has to run one, and that's an extra line on the quote. We check for it on the site visit so it's never a surprise on install day.",
       },
       {
         q: "Will a heat pump keep up with our showers?",

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { site } from "@/lib/site";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * VEU + Solar Homes rebate estimator for Advanced Gas & Aircon.
@@ -19,6 +20,10 @@ import { site } from "@/lib/site";
  * combined household income < $150k, property value < $3M, no prior HW /
  * battery Solar Homes rebate at the address, existing HW system 3+ yrs
  * old). See the tooltip on that step.
+ *
+ * While SHOW_PRICES is off (Jake, Nov 2026) only the rebate side shows: the
+ * unit, install and "you pay" lines are our prices, so they wait for the
+ * written quote. The pricing rule stays so switching back on is one flag.
  */
 
 /* ------- constants ------- */
@@ -288,13 +293,20 @@ export function RebateCalculator() {
                     <span className="rb-calc__result-l">Estimated total rebate</span>
                     <span className="rb-calc__result-num">${calc.rebates.toLocaleString()}</span>
                   </div>
-                  <div className="rb-calc__result-row">
-                    <span className="rb-calc__result-l">Est. fully installed price</span>
-                    <span className="rb-calc__result-num rb-calc__result-num--net">
-                      ${calc.total.toLocaleString()}<small> inc GST</small>
-                    </span>
-                  </div>
-                  <details className="rb-calc__breakdown">
+                  {SHOW_PRICES ? (
+                    <div className="rb-calc__result-row">
+                      <span className="rb-calc__result-l">Est. fully installed price</span>
+                      <span className="rb-calc__result-num rb-calc__result-num--net">
+                        ${calc.total.toLocaleString()}<small> inc GST</small>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="rb-calc__result-row">
+                      <span className="rb-calc__result-l">Installed price</span>
+                      <span className="rb-calc__result-l">On your fixed written quote, with the rebate already taken off</span>
+                    </div>
+                  )}
+                  {SHOW_PRICES && <details className="rb-calc__breakdown">
                     <summary>See the breakdown</summary>
                     <div className="rb-calc__breakdown-inner">
                       <div><span>Unit ({product.name})</span><span>${Math.round(calc.unitIncGST).toLocaleString()}</span></div>
@@ -307,7 +319,19 @@ export function RebateCalculator() {
                       {calc.solarR > 0 && <div className="rb-calc__breakdown-rebate"><span>VIC Solar Homes rebate</span><span>−${calc.solarR.toLocaleString()}</span></div>}
                       <div className="rb-calc__breakdown-total"><span>You pay</span><span>${calc.total.toLocaleString()}</span></div>
                     </div>
-                  </details>
+                  </details>}
+                  {!SHOW_PRICES && (
+                    <details className="rb-calc__breakdown">
+                      <summary>See the breakdown</summary>
+                      <div className="rb-calc__breakdown-inner">
+                        <div className="rb-calc__breakdown-rebate"><span>VEEC rebate</span><span>−${calc.veec.toLocaleString()}</span></div>
+                        <div className="rb-calc__breakdown-rebate"><span>STC rebate</span><span>−${calc.stc.toLocaleString()}</span></div>
+                        {calc.ausMade > 0 && <div className="rb-calc__breakdown-rebate"><span>Australian Made rebate</span><span>−${calc.ausMade.toLocaleString()}</span></div>}
+                        {calc.solarR > 0 && <div className="rb-calc__breakdown-rebate"><span>VIC Solar Homes rebate</span><span>−${calc.solarR.toLocaleString()}</span></div>}
+                        <div className="rb-calc__breakdown-total"><span>Off your quote</span><span>−${calc.rebates.toLocaleString()}</span></div>
+                      </div>
+                    </details>
+                  )}
                   <div className="rb-calc__cta">
                     <a href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Lock this rebate in →</a>
                     <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
