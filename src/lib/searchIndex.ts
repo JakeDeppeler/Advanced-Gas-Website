@@ -26,7 +26,7 @@ export type Hit = {
 const PAGES: Hit[] = [
   { title: "Get a quote", path: "/quote", kind: "Page", blurb: "Tell us about the job and we come back in writing inside 12 hours.", terms: "estimate price booking enquire" },
   { title: "VEU rebates", path: "/rebates", kind: "Page", blurb: "The Victorian Energy Upgrades rebate, applied at the quote rather than chased afterwards.", terms: "rebate veu government subsidy solar homes discount" },
-  { title: "Hot water: heat pump or gas", path: "/heat-pumps", kind: "Hot water", blurb: "All-in-one, split, gas continuous flow and gas storage, and which suits your place.", terms: "hot water heat pump reclaim istore thermann tank" },
+  { title: "Hot water: heat pump or gas", path: "/services/heat-pump-installation", kind: "Hot water", blurb: "All-in-one, split, gas continuous flow and gas storage, and which suits your place.", terms: "hot water heat pump reclaim istore thermann tank" },
   { title: "Emergency and after hours", path: "/contact#emergency", kind: "Page", blurb: "Gas leak, no hot water, CO alarm. We answer after hours for locals.", terms: "emergency urgent after hours leak no hot water" },
   { title: "Service areas", path: "/service-areas", kind: "Page", blurb: "Every suburb we work in, with drive times from Pakenham.", terms: "areas coverage suburbs do you come to" },
   { title: "Commercial and mechanical", path: "/commercial", kind: "Page", blurb: "Fit-outs, plant replacement, maintenance and breakdowns across Melbourne's south-east.", terms: "commercial business shop office builder site fitout" },

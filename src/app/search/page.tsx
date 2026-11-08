@@ -16,7 +16,7 @@ const ORDER: Hit["kind"][] = ["Service", "System", "Hot water", "Page", "Tool", 
 
 /** The things people most often arrive looking for, when they have not searched yet. */
 const COMMON = [
-  { label: "Heat pump hot water", href: "/heat-pumps" },
+  { label: "Heat pump hot water", href: "/services/heat-pump-installation" },
   { label: "Ducted aircon", href: "/services/air-conditioning-installation" },
   { label: "Aircon service", href: "/services/aircon-servicing-repairs" },
   { label: "VEU rebate", href: "/rebates" },

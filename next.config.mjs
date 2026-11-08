@@ -50,6 +50,18 @@ const nextConfig = {
       // own from price and finance figure on its product page, reached from
       // Find your system.
       { source: "/pricing", destination: "/#find", permanent: true },
+      // ---- Old-design pages folded into the redesign (Nov 2026) ----
+      // "Heat pump or gas?" was the hot water fork with the numbers; the
+      // heat pump installation page now teaches the same thing in the new
+      // layout, with the rebate, and the prices came off site-wide.
+      { source: "/heat-pumps", destination: "/services/heat-pump-installation", permanent: true },
+      // The filterable full range: every brand page now carries its range,
+      // and the brands page lists them all, so that's where "show me the
+      // range" lands.
+      { source: "/range", destination: "/brands", permanent: true },
+      // The phone-first homepage mock, superseded by the homepage itself.
+      // Never indexed (robots disallows it), so not permanent.
+      { source: "/preview", destination: "/", permanent: false },
       // Options that are really another option (`same` in lib/homepage/data.ts)
       // have no page of their own: "switch to a heat pump" from gas storage IS
       // the iStore, and its page has to teach a heat pump, not a gas tank.

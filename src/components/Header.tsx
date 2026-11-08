@@ -218,7 +218,7 @@ const SERVICES_MEGA: {
     },
   ],
   popular: [
-    { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
+    { href: "/services/heat-pump-installation", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
     { href: "/pricing", label: "Full price list", sub: "Every model installed price" },
     { href: "/gallery", label: "Recent installs", sub: "Photos from real jobs" },
@@ -517,7 +517,7 @@ export function Header() {
               Residential only — the commercial side sells packages, not
               models. */}
           {!onCommercial && (
-            <Link href="/range" className="ds-btn ds-btn--ghost hdr__range">
+            <Link href="/brands" className="ds-btn ds-btn--ghost hdr__range">
               Our full range
             </Link>
           )}
@@ -665,7 +665,7 @@ function ServicesMega() {
             one by what the thing is and one by who made it. The range is the
             one with the sizes and the prices on it, so it is the one that
             stays. Brands is still its own page, in the footer and in search. */}
-        <Link href="/range" className="megasvc__range">
+        <Link href="/brands" className="megasvc__range">
           <div>
             <b>The full range</b>
             <span>Every model and size, with prices</span>
@@ -808,7 +808,7 @@ const COMPANY_GROUPS: RailGroup[] = [
     label: "Guides & advice",
     items: [
       { href: "/blog", label: "The blog", sub: "Guides, rebates and buying advice", icon: "\u270e" },
-      { href: "/heat-pumps", label: "Heat pump or gas?", sub: "The hot water fork, with the numbers", icon: "\u2668" },
+      { href: "/services/heat-pump-installation", label: "Heat pump or gas?", sub: "The hot water fork, with the numbers", icon: "\u2668" },
       { href: "/upgrade-or-repair", label: "Repair or replace?", sub: "The 10-year rule, and the rebate", icon: "\u21ba" },
     ],
   },
@@ -1032,7 +1032,7 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
         {/* The header's range button is hidden below 1240px, so the drawer
             carries it instead — otherwise the range is only reachable from
             inside a menu on every phone. */}
-        <Link href="/range" onClick={close} className="ds-btn ds-btn--ghost ds-btn--lg" style={{ marginTop: 12, justifyContent: "center" }}>
+        <Link href="/brands" onClick={close} className="ds-btn ds-btn--ghost ds-btn--lg" style={{ marginTop: 12, justifyContent: "center" }}>
           Our full range
         </Link>
         <Link href="/quote" onClick={close} className="ds-btn ds-btn--orange ds-btn--lg" style={{ marginTop: 8, justifyContent: "center" }}>
