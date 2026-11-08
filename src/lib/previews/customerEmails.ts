@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 import { emailContext } from "@/lib/email/context";
 import { letterHtml, letterText } from "@/lib/email/premium";
 import { SIGNERS } from "@/lib/email/team";
-import { followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
+import { SERIES_DAYS, followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
 import { loadReviewSettings, sampleJobPhoto } from "@/lib/reviews/requests";
 
@@ -31,13 +31,9 @@ export function quoteEmailPreviews(): { subject: string; html: string; text: str
   const base: Omit<FollowUpInput, "options"> = { first: "Sarah", quoter: "Jake", quoterSigns: true, phone: site.phone };
   const hp = ["Reclaim Split SS 315L V2", "IStore 270L - Plug", "Thermann 285L - Plug"];
   const sp = ["Mitsubishi Electric 3.5kW Split System - Back to Back", "Kaden 3.5kW Split System - Back to Back"];
-  const runs: { options: string[]; step: 1 | 2 | 3; label: string }[] = [
-    { options: hp, step: 1, label: "Heat pump 1 of 3, day 2" },
-    { options: hp, step: 2, label: "Heat pump 2 of 3, day 6" },
-    { options: hp, step: 3, label: "Heat pump 3 of 3, day 13" },
-    { options: sp, step: 1, label: "Split system 1 of 3, day 2" },
-    { options: sp, step: 2, label: "Split system 2 of 3, day 6" },
-  ];
+  const topics = { "heat-pump": ["savings", "common questions", "brands and work", "the closer"], split: ["common questions", "brands and work", "savings", "the closer"] } as const;
+  const runs = (["heat-pump", "split"] as const).flatMap((kind) =>
+    SERIES_DAYS[kind].map((day, n) => ({ options: kind === "heat-pump" ? hp : sp, step: n + 1, label: `${kind === "heat-pump" ? "Heat pump" : "Split system"} ${n + 1} of ${SERIES_DAYS[kind].length}, day ${day}, ${topics[kind][n]}` })));
   const note = "Preview of a quote follow-up, written as a personal check-in for what's on the quote. Sarah and her quote are made up. Nothing has gone to a customer.";
   return runs.map((r) => {
     const e = followUpEmail(quoteKind(r.options), r.step, { ...base, options: r.options });
@@ -57,7 +53,7 @@ export async function sendCustomerEmailPreviews(): Promise<{ sent: string[]; fai
   // Jye has a headshot, so the preview shows the photo version; a tech without one gets their initials.
   const sample = await sampleJobPhoto();
   const review = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Jye Stephens"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
-  const reviewNote = `Preview of the Google review email, exactly as customers get it (made-up customer). ${sample ? "The photo is the newest one the tech took on a real recent install; each customer gets their own job's. " : "No recent job had a photo, so this shows the stock one. "}${s.link || process.env.GOOGLE_PLACE_ID ? "The button goes to your review link." : "No review link is saved yet, so the button goes to your Google profile for now."}`;
+  const reviewNote = `Preview of the Google review email, exactly as customers get it (made-up customer). ${sample ? "The photo is from a real recent install, picked because it shows the whole system; each customer gets their own job's. " : "None of the recent jobs had a photo of the whole system, so this shows the stock one, as a customer would get. "}${s.link || process.env.GOOGLE_PLACE_ID ? "The button goes to your review link." : "No review link is saved yet, so the button goes to your Google profile for now."}`;
 
   const mails = [
     ...quoteEmailPreviews().map((m) => ({ ...m, from: fromAs("quotes"), kind: "other" as const })),

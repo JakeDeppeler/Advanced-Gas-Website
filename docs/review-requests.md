@@ -18,8 +18,10 @@ Marketing › Reviews › **Ask for a review by email**. Off until switched on.
   ten minutes by the scheduled sync (`/api/reviews/run`), a few at a time.
 - **What:** the wording on the page, with the customer's first name, the tech,
   the job and the suburb filled in, and a **Leave a Google review** button,
-  in the shared customer layout (`lib/email/premium.ts`): the newest photo the
-  tech took on the job across the top (`lib/email/jobPhoto.ts`, shrunk by
+  in the shared customer layout (`lib/email/premium.ts`): a photo the tech took
+  on the job across the top, one that shows the whole finished system:
+  Claude looks at the job's six newest photos and picks one, or none
+  (`lib/email/jobPhoto.ts`, shrunk by
   Next's image optimiser through the signed `/api/email-photo` route, then
   attached to the email), else a stock photo of that kind of job, the tech's name and headshot (initials if we have no
   photo; add one in `lib/email/team.ts`), and the chosen signer's photo at the

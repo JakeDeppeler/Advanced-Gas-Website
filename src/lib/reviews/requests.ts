@@ -163,7 +163,7 @@ export async function runReviewRequests(now = new Date()): Promise<ReviewRun> {
       rowId = (await sbSelect<{ id: string }>(TABLE, [q.select("id"), q.eq("job_id", String(j.id))].join("&")))[0]?.id;
     }
     if (!rowId) continue;
-    const photo = await jobSitePhoto(Number(j.id));
+    const photo = await jobSitePhoto(Number(j.id), j.job_type);
     const mail = reviewEmail(s, { customer: j.customer_name, techs: techs.get(Number(j.id)) ?? [], jobType: j.job_type, suburb: j.suburb, href: `${site.url}/r/${rowId}`, photo }, ctx);
     const out = await sendEmail("review-request", await withInlineImages({ from, to: [email], reply_to: reviewReplyTo, subject: mail.subject, text: mail.text, html: mail.html }), { job: j.job_number });
     if (out.ok) {
@@ -185,10 +185,10 @@ export async function runReviewRequests(now = new Date()): Promise<ReviewRun> {
 export async function sampleJobPhoto(): Promise<{ photo: string; jobType: string | null; tech: string | null } | null> {
   const jobs = await sbSelect<{ id: number; job_type: string | null }>("st_jobs", [
     q.select("id,job_type"), q.eq("status", "Completed"), "business_unit=ilike.Domestic*", "job_type=ilike.*install*",
-    q.gte("completed_on", new Date(Date.now() - 30 * 86_400_000).toISOString()), q.order("completed_on", "desc"), "limit=8",
+    q.gte("completed_on", new Date(Date.now() - 30 * 86_400_000).toISOString()), q.order("completed_on", "desc"), "limit=4",
   ].join("&")).catch(() => []);
   for (const j of jobs) {
-    const photo = await jobSitePhoto(Number(j.id));
+    const photo = await jobSitePhoto(Number(j.id), j.job_type);
     if (!photo) continue;
     const tech = (await sbSelect<{ technician_name: string | null }>("st_appointment_assignments", [q.select("technician_name"), q.eq("job_id", String(j.id)), "limit=1"].join("&")).catch(() => []))[0]?.technician_name ?? null;
     return { photo, jobType: j.job_type, tech };
