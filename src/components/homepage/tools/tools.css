@@ -71,7 +71,7 @@
   .ag .tl__hin,.ag .tl__how{grid-template-columns:1fr}
   .ag .tl__how .bk__head{position:static}
   .ag .tl__rel{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ag .tl__duo{grid-template-columns:1fr}
+  .ag .tl__duo{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:600px){
   .ag .tl__rel{grid-template-columns:1fr}

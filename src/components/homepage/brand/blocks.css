@@ -135,7 +135,8 @@
   .ag .bk__cimg{height:130px}
   .ag .bk__cimg img{padding:12px}
   .ag .bk__ctxt{padding:14px 14px 16px}
-  .ag .bk__ctxt b{font-size:28px}
+  /* Scales with the screen: "12 models" at a flat 28px was wider than its card on a 360px phone */
+  .ag .bk__ctxt b{font-size:min(28px,6.4vw)}
   .ag .bk__ctxt strong{font-size:15px}
   .ag .bk__ctxt > span{font-size:13.5px}
   .ag .bk__range{gap:10px}

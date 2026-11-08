@@ -140,7 +140,8 @@
 .ag .sxo__price{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
 .ag .sxo__price small{font-family:var(--body);font-size:14px;font-weight:600;color:var(--ink3)}
 .ag .sxo__card .pp__hl{flex:1}
-.ag .sxo__go{align-self:stretch;justify-content:center;text-align:center;margin-top:6px}
+.ag .sxo__go{align-self:stretch;justify-content:center;text-align:center;margin-top:6px;white-space:normal;text-wrap:balance}
+/* "About the Thermann G-series continuous flow" is wider than a phone's card: it wraps rather than running out of the button */
 .ag .sxz{margin:0;display:flex;flex-direction:column;gap:8px}
 .ag .sxz__row{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border-radius:12px;padding:16px 20px}
 .ag .sxz__row dt{display:flex;flex-direction:column;gap:2px}
@@ -148,7 +149,8 @@
 .ag .sxz__row dt small{font-size:14px;color:var(--ink3)}
 .ag .sxz__row dd{margin:0;font-family:var(--mono);font-size:13.5px;font-weight:600;color:var(--sky-ink);white-space:nowrap}
 @media (max-width:1200px){.ag .sxo--4{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:1000px){.ag .sxo,.ag .sxo--4,.ag .sxo--2{grid-template-columns:1fr}}
+/* minmax(0,…): a bare 1fr let a long product name push the card past the edge of a phone */
+@media (max-width:1000px){.ag .sxo,.ag .sxo--4,.ag .sxo--2{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- Quote page: the form in the header, beside the promise */
 .ag .qpg{background:radial-gradient(90% 80% at 75% 30%,#16205a 0%,var(--navy) 70%);color:#fff;padding:48px 0 56px}

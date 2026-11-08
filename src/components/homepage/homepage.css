@@ -640,6 +640,8 @@
 .ag .ppx__crumbin{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 20px;min-height:48px;padding-top:10px;padding-bottom:10px}
 .ag .ppx__crumbbar .pp__crumbs{font-family:var(--body);font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink3)}
 .ag .ppx__back{font-size:13.5px;font-weight:700;color:var(--navy);text-underline-offset:3px}
+/* A thumb-sized target without making the grey bar any taller */
+.ag .ppx__back{display:inline-flex;align-items:center;min-height:44px;margin:-12px 0}
 
 
 /* Sits under the sticky header, which is 86px tall at every width. */

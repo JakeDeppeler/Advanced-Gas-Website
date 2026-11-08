@@ -35,6 +35,19 @@
 .ag .cx__tbl tbody th a{font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy);text-decoration:none}
 .ag .cx__tbl tbody th a:hover{color:var(--acc);text-decoration:underline}
 .ag .cx__tbl td:last-child{font-weight:700;color:var(--navy);white-space:nowrap}
+/* On a phone the table stacks into one card per system, rather than a 620px table to swipe sideways with no sign that it scrolls */
+@media (max-width:640px){
+  .ag .cx__tbl{min-width:0}
+  .ag .cx__tbl thead{display:none}
+  .ag .cx__tbl,.ag .cx__tbl tbody,.ag .cx__tbl tr,.ag .cx__tbl tbody th{display:block}
+  .ag .cx__tbl tr{padding:16px 18px;border-bottom:1px solid var(--line)}
+  .ag .cx__tbl tbody tr:last-child{border-bottom:0}
+  .ag .cx__tbl tbody th,.ag .cx__tbl td{padding:0;border:0}
+  .ag .cx__tbl tbody th a{display:inline-flex;align-items:center;min-height:40px;margin:-10px 0}
+  .ag .cx__tbl td{display:inline-block;vertical-align:top;margin:10px 22px 0 0}
+  .ag .cx__tbl td:nth-child(2){display:block;margin-right:0}
+  .ag .cx__tbl td::before{content:attr(data-l);display:block;margin-bottom:2px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+}
 .ag .cx .cx__find{align-self:flex-start}
 
 /* The brands */

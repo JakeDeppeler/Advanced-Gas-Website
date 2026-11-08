@@ -121,8 +121,19 @@
 .ag .pxp .pcx__col--pro h3 span{background:var(--acc);color:#fff}
 .ag .pxp .pcx__col--pro li{color:rgba(255,255,255,.88)}
 .ag .pxp .pcx__col--pro li::before{color:var(--acc-l)}
-/* Six sizes fit one row on a laptop instead of five and an orphan */
-.ag .pxp .chz__grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+/* Six sizes fit one row on a laptop instead of five and an orphan; on a
+   phone two to a row, compact, with the buttons kept on one line. The
+   "different option" cards stay one to a row there (product.css). */
+@media (min-width:601px){.ag .pxp .chz__grid:not(.chz__grid--alt){grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+@media (max-width:600px){
+  .ag .pxp .chz__grid:not(.chz__grid--alt){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ag .pxp .chz__card{padding:16px 14px;border-radius:14px}
+  .ag .pxp .chz__card--on{padding:15px 13px}
+  .ag .pxp .chz__chip{font-size:20px}
+  .ag .pxp .chz__card p{font-size:14px}
+  .ag .pxp .chz__btn{font-size:13px;padding:8px 11px;white-space:nowrap;min-height:40px}
+  .ag .pxp .chz__tag{font-size:12.5px;white-space:nowrap}
+}
 .ag .pxp .bk__sec--red .ff{box-shadow:0 30px 60px -30px rgba(5,10,48,.5)}
 .ag .pxp .bk__sec--navy .lk2__tl{margin-top:4px}
 .ag .pxp .bk__cta .bxh__ctas{gap:10px}
@@ -136,6 +147,8 @@
   .ag .stg__bar{grid-template-columns:1fr}
   .ag .stg__right{flex-direction:row;flex-wrap:wrap}.ag .stg__side{flex:1 1 260px}
   .ag .stf[data-n="3"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* Three cards two to a row: the third takes the whole row instead of sitting alone */
+  .ag .stf[data-n="3"] > :last-child{grid-column:1/-1}
   .ag .str__grid,.ag .str__grid[data-n]{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ag .pxk__marks[data-n]{grid-template-columns:repeat(2,minmax(0,1fr))}
 }

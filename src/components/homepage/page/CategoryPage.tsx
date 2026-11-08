@@ -143,9 +143,10 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
                 {systems.map(({ s, from, time, good }) => (
                   <tr key={s.slug}>
                     <th scope="row"><Link href={systemHref(s.slug)}>{s.label}</Link></th>
-                    <td>{good ?? s.sub}</td>
-                    <td>{time}</td>
-                    <td>{from != null ? `From ${money(from)}` : "Free quote"}</td>
+                    {/* data-l: the column name, shown above each value once the rows stack on a phone */}
+                    <td data-l="Good for">{good ?? s.sub}</td>
+                    <td data-l="Install">{time}</td>
+                    <td data-l="Price">{from != null ? `From ${money(from)}` : "Free quote"}</td>
                   </tr>
                 ))}
               </tbody>
