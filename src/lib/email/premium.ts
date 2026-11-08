@@ -31,7 +31,8 @@ export type PremiumBlock =
 export type PremiumEmail = {
   /** The line inboxes show next to the subject. */
   preheader: string;
-  hero?: { src: string; alt: string };
+  /** `fallback`: the stock photo to use if `src` (a job photo) can't be fetched. */
+  hero?: { src: string; alt: string; fallback?: string };
   blocks: PremiumBlock[];
   signer?: { name: string; role: string; photo: string | null };
   /** Absolute site URL, so images and links work in an inbox. */
@@ -41,15 +42,15 @@ export type PremiumEmail = {
   proof?: string;
 };
 
-const INK = "#16181d";
-const MUTED = "#5b6068";
+const INK = "#111111";
+const MUTED = "#555a60";
 const LINE = "#e7e3dc";
 const GROUND = "#f4f1ec";
 /** The panel behind a person inside the white card: GROUND's colour, its own value so dark mode can tell them apart. */
 const TINT = "#f4f1ed";
 const ORANGE = "#c2521a"; // --orange-deep: the shade white text stays readable on
-const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
-const SERIF = "Georgia,'Times New Roman',serif";
+/** The font Outlook writes in (Aptos, then Segoe/Helvetica/Arial): it should read like an email from a person, not a brochure. */
+const FONT = "Aptos,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 
 export const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -73,7 +74,7 @@ function block(b: PremiumBlock, base: string): string {
     case "eyebrow":
       return `<tr><td class="pe-pad" style="${pad} 8px;font:700 11px/1.4 ${FONT};letter-spacing:.14em;text-transform:uppercase;color:${ORANGE}">${esc(b.text)}</td></tr>`;
     case "h":
-      return `<tr><td class="pe-pad" style="${pad} 14px;font:400 26px/1.25 ${SERIF};color:${INK}">${inline(b.text)}</td></tr>`;
+      return `<tr><td class="pe-pad" style="${pad} 14px;font:700 22px/1.3 ${FONT};color:${INK}">${inline(b.text)}</td></tr>`;
     case "button":
       return `<tr><td class="pe-pad" style="${pad} 24px;padding-top:8px">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-radius:999px;background:${INK}"><a href="${esc(b.href)}" style="display:inline-block;padding:16px 30px;font:700 16px/1 ${FONT};color:#ffffff;text-decoration:none;border-radius:999px">${esc(b.label)}</a></td></tr></table>
@@ -103,14 +104,14 @@ ${i.tag ? `<div style="padding-top:10px;font:700 10px/1.4 ${FONT};letter-spacing
     }
     case "facts":
       return `<tr><td class="pe-pad" style="${pad} 22px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top:1px solid ${LINE};border-bottom:1px solid ${LINE}"><tr>${b.items
-        .map((i) => `<td class="pe-fact" width="${Math.floor(100 / b.items.length)}%" style="padding:18px 6px;vertical-align:top;text-align:center"><div style="font:400 26px/1.1 ${SERIF};color:${INK}">${esc(i.value)}</div><div style="padding-top:6px;font:400 12px/1.4 ${FONT};color:${MUTED}">${esc(i.label)}</div></td>`)
+        .map((i) => `<td class="pe-fact" width="${Math.floor(100 / b.items.length)}%" style="padding:18px 6px;vertical-align:top;text-align:center"><div style="font:700 22px/1.15 ${FONT};color:${INK}">${esc(i.value)}</div><div style="padding-top:6px;font:400 12px/1.4 ${FONT};color:${MUTED}">${esc(i.label)}</div></td>`)
         .join("")}</tr></table></td></tr>`;
     case "list":
       return `<tr><td class="pe-pad" style="${pad} 16px">${b.items
         .map((i) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td width="22" style="vertical-align:top;padding:2px 0 10px;font:700 16px/1.6 ${FONT};color:${ORANGE}">&#10003;</td><td style="padding:0 0 10px;font:400 16px/1.6 ${FONT};color:${INK}">${inline(i)}</td></tr></table>`)
         .join("")}</td></tr>`;
     case "quote":
-      return `<tr><td class="pe-pad" style="${pad} 22px"><div style="border-left:3px solid ${ORANGE};padding:2px 0 2px 18px"><div style="font:italic 400 18px/1.5 ${SERIF};color:${INK}">&ldquo;${inline(b.text)}&rdquo;</div><div style="padding-top:8px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(b.who)}</div></div></td></tr>`;
+      return `<tr><td class="pe-pad" style="${pad} 22px"><div style="border-left:3px solid ${ORANGE};padding:2px 0 2px 18px"><div style="font:italic 400 17px/1.55 ${FONT};color:${INK}">&ldquo;${inline(b.text)}&rdquo;</div><div style="padding-top:8px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(b.who)}</div></div></td></tr>`;
     case "rule":
       return `<tr><td class="pe-pad" style="${pad} 22px"><div style="border-top:1px solid ${LINE};font-size:0;line-height:0">&nbsp;</div></td></tr>`;
   }
@@ -126,11 +127,22 @@ ${i.tag ? `<div style="padding-top:10px;font:700 10px/1.4 ${FONT};letter-spacing
  * so the blocks above don't each have to remember to.
  */
 const DARK = { ground: "#111215", shell: "#1c1e22", tint: "#272a30", ink: "#f2eee7", muted: "#a9adb4", line: "#33363c", orange: "#ff8f52" };
-const DARK_RULES = `.pe-ground{background:${DARK.ground}!important}.pe-shell{background:${DARK.shell}!important}.pe-tint{background:${DARK.tint}!important}
-.pe-ink{color:${DARK.ink}!important}.pe-muted{color:${DARK.muted}!important}.pe-orange{color:${DARK.orange}!important}.pe-line{border-color:${DARK.line}!important}
-.pe-btn{background:${DARK.ink}!important;color:#16181d!important;border-color:${DARK.ink}!important}.pe-btn a,a.pe-btn{color:#16181d!important}.pe-ghost{color:${DARK.ink}!important;border-color:${DARK.ink}!important}`;
-const DARK_CSS = `@media (prefers-color-scheme:dark){${DARK_RULES.replace(/\.pe-/g, ":root .pe-")}}
-${DARK_RULES.split("}").filter((r) => r.trim()).map((r) => `[data-ogsc] ${r.trim()}}`).join("\n").replace(/\[data-ogsc\] (\.pe-(?:ground|shell|tint|btn)\{)/g, "[data-ogsb] $1")}`;
+const DARK_RULES: [string[], string][] = [
+  [[".pe-ground"], `background:${DARK.ground}!important`],
+  [[".pe-shell"], `background:${DARK.shell}!important`],
+  [[".pe-tint"], `background:${DARK.tint}!important`],
+  [[".pe-ink"], `color:${DARK.ink}!important`],
+  [[".pe-muted"], `color:${DARK.muted}!important`],
+  [[".pe-orange"], `color:${DARK.orange}!important`],
+  [[".pe-line"], `border-color:${DARK.line}!important`],
+  [[".pe-btn"], `background:${DARK.ink}!important;color:#16181d!important;border-color:${DARK.ink}!important`],
+  [[".pe-btn a", "a.pe-btn"], "color:#16181d!important"],
+  [[".pe-ghost"], `color:${DARK.ink}!important;border-color:${DARK.ink}!important`],
+];
+/** Every selector in a rule gets the prefix, or "a.pe-btn" would leak into light mode (it did: a black button with black words). */
+const scoped = (prefix: (sel: string, decl: string) => string) => DARK_RULES.map(([sels, decl]) => `${sels.map((x) => prefix(x, decl)).join(",")}{${decl}}`).join("\n");
+const DARK_CSS = `@media (prefers-color-scheme:dark){\n${scoped((x) => `:root ${x}`)}\n}
+${scoped((x, decl) => `${decl.startsWith("background") ? "[data-ogsb]" : "[data-ogsc]"} ${x}`)}`;
 
 function darkClasses(html: string): string {
   return html.replace(/<(\w+)([^>]*?)\sstyle="([^"]*)"/g, (all, tag: string, attrs: string, style: string) => {
@@ -160,7 +172,7 @@ export function premiumHtml(e: PremiumEmail): string {
 function premiumHtmlLight(e: PremiumEmail): string {
   const { base, footer: f } = e;
   const hero = e.hero
-    ? `<tr><td style="padding:0"><img class="pe-hero" src="${esc(abs(base, e.hero.src))}" width="600" alt="${esc(e.hero.alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:20px 20px 0 0"></td></tr>`
+    ? `<tr><td style="padding:0"><img class="pe-hero" src="${esc(abs(base, e.hero.src))}"${e.hero.fallback ? ` data-fallback="${esc(abs(base, e.hero.fallback))}"` : ""} width="600" alt="${esc(e.hero.alt)}" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:20px 20px 0 0"></td></tr>`
     : "";
   const signer = e.signer
     ? `<tr><td class="pe-pad" style="padding:6px 40px 34px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>

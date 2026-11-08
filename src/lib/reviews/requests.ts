@@ -4,6 +4,7 @@ import { tagIds } from "@/lib/dashboard/onHoldTypes";
 import { getSettings } from "@/lib/portal/db";
 import { sendEmail } from "@/lib/email/send";
 import { withInlineImages } from "@/lib/email/inline";
+import { jobSitePhoto } from "@/lib/email/jobPhoto";
 import { site } from "@/lib/site";
 import { emailContext } from "@/lib/email/context";
 import {
@@ -162,7 +163,8 @@ export async function runReviewRequests(now = new Date()): Promise<ReviewRun> {
       rowId = (await sbSelect<{ id: string }>(TABLE, [q.select("id"), q.eq("job_id", String(j.id))].join("&")))[0]?.id;
     }
     if (!rowId) continue;
-    const mail = reviewEmail(s, { customer: j.customer_name, techs: techs.get(Number(j.id)) ?? [], jobType: j.job_type, suburb: j.suburb, href: `${site.url}/r/${rowId}` }, ctx);
+    const photo = await jobSitePhoto(Number(j.id));
+    const mail = reviewEmail(s, { customer: j.customer_name, techs: techs.get(Number(j.id)) ?? [], jobType: j.job_type, suburb: j.suburb, href: `${site.url}/r/${rowId}`, photo }, ctx);
     const out = await sendEmail("review-request", await withInlineImages({ from, to: [email], reply_to: reviewReplyTo, subject: mail.subject, text: mail.text, html: mail.html }), { job: j.job_number });
     if (out.ok) {
       sent++;
@@ -175,13 +177,33 @@ export async function runReviewRequests(now = new Date()): Promise<ReviewRun> {
   return { on: true, sent, failed, held, considered: jobs.length, why };
 }
 
+/**
+ * A real photo from a recent finished household job, so a test or preview
+ * shows what customers will actually see at the top. Null when none of the
+ * last few jobs has one.
+ */
+export async function sampleJobPhoto(): Promise<{ photo: string; jobType: string | null; tech: string | null } | null> {
+  const jobs = await sbSelect<{ id: number; job_type: string | null }>("st_jobs", [
+    q.select("id,job_type"), q.eq("status", "Completed"), "business_unit=ilike.Domestic*", "job_type=ilike.*install*",
+    q.gte("completed_on", new Date(Date.now() - 30 * 86_400_000).toISOString()), q.order("completed_on", "desc"), "limit=8",
+  ].join("&")).catch(() => []);
+  for (const j of jobs) {
+    const photo = await jobSitePhoto(Number(j.id));
+    if (!photo) continue;
+    const tech = (await sbSelect<{ technician_name: string | null }>("st_appointment_assignments", [q.select("technician_name"), q.eq("job_id", String(j.id)), "limit=1"].join("&")).catch(() => []))[0]?.technician_name ?? null;
+    return { photo, jobType: j.job_type, tech };
+  }
+  return null;
+}
+
 /** A test to the person pressing the button, from a real recent job's details, without recording it. */
 export async function sendReviewTest(to: string, s: ReviewSettings): Promise<{ ok: boolean; error?: string }> {
   const from = fromAddress();
   if (!from) return { ok: false, error: "RESEND_FROM_EMAIL isn't an advancedgas.com.au address." };
   const link = reviewLink(s, process.env.GOOGLE_PLACE_ID);
   if (!link) return { ok: false, error: "Put in the Google review link first." };
-  const mail = reviewEmail(s, { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Service - Split System", suburb: "Berwick", href: link }, emailContext());
+  const sample = await sampleJobPhoto();
+  const mail = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Jye Stephens"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
   const out = await sendEmail("review-request", await withInlineImages({ from, to: [to], reply_to: reviewReplyTo, subject: `[Test] ${mail.subject}`, text: mail.text, html: mail.html }), { test: true });
   return out.ok ? { ok: true } : { ok: false, error: out.error };
 }

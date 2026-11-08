@@ -189,17 +189,20 @@ function split(step: 1 | 2 | 3, i: FollowUpInput): FollowUpEmail {
 /* ------------------------------------------------------------ everything else, and day 13 */
 
 function lastStep(i: FollowUpInput, what: string, hero: string, next: string[]): FollowUpEmail {
+  // A friendly check-in, not a chase (Jake, 8 Nov: "Where are you at, Sarah?" read too blunt).
+  const quote = what ? `${what} quote` : "quote";
   return {
-    subject: "Should we keep your quote open?",
-    preheader: "One click to let us know, either way.",
+    subject: `Just checking in on your ${quote}`,
+    preheader: "No rush at all. Happy to help with anything.",
     hero: { src: hero, alt: "The Advanced Gas team with the vans outside our Pakenham workshop" },
     blocks: [
-      { kind: "h", text: `Where are you at, ${i.first}?` },
-      { kind: "p", text: `We haven't heard back about your ${what} quote, so we wanted to check in. If you'd like to go ahead, here's how it runs from here:` },
+      { kind: "p", text: `Hi ${i.first},` },
+      { kind: "p", text: `Hope you're well! Just a friendly check-in on your ${quote}. No rush at all. If you've got a question, or you'd like to change one of the options, we're always happy to help.` },
+      { kind: "p", text: "When you're ready, here's how it goes:" },
       { kind: "list", items: next },
-      { kind: "p", text: "One click lets us know where you're at:" },
-      { kind: "buttons", items: [{ label: "Yes, go ahead", href: i.answer.yes, solid: true }, { label: "Not right now", href: i.answer.notNow }, { label: "I have a question", href: i.answer.question }] },
-      { kind: "p", text: "If it's not the right time, that's fine. We'll close it off and you won't hear from us about it again." },
+      { kind: "p", text: "Just tap whichever fits and we'll take it from there:" },
+      { kind: "buttons", items: [{ label: "Let's go ahead", href: i.answer.yes, solid: true }, { label: "I've got a question", href: i.answer.question }, { label: "Not right now", href: i.answer.notNow }] },
+      { kind: "p", text: "And if now's not the right time, no worries at all. Let us know and we'll pop it on hold, so you won't hear from us about it again." },
     ],
   };
 }
@@ -219,6 +222,5 @@ function general(step: 1 | 2 | 3, i: FollowUpInput): FollowUpEmail {
 
 export function followUpEmail(kind: QuoteKind, step: 1 | 2 | 3, i: FollowUpInput): FollowUpEmail {
   const e = kind === "heat-pump" ? heatPump(step, i) : kind === "split" ? split(step, i) : general(step, i);
-  // The general day-13 email has no product word: tidy the double space it leaves.
-  return { ...e, blocks: e.blocks.map((b) => (b.kind === "p" ? { ...b, text: b.text.replace(/your {2}quote/, "your quote") } : b)) };
+  return e;
 }

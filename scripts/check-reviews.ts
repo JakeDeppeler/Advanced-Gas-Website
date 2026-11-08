@@ -96,6 +96,8 @@ for (const kind of ["heat-pump", "split", "general"] as const) for (const step o
 }
 const two = followUpEmail("heat-pump", 1, fin).blocks.find((b) => b.kind === "cards");
 ok("only the brands on the quote", two?.kind === "cards" && two.items.map((c) => c.title).join() === "Reclaim CO₂,Thermann");
+const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
+ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));
 ok("day 13 has the three answers", followUpEmail("split", 3, fin).blocks.some((b) => b.kind === "buttons" && b.items.length === 3));
 
 if (bad) { console.log(`\n${bad} failed`); process.exit(1); }

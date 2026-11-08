@@ -7,7 +7,7 @@ import { premiumHtml, premiumText } from "@/lib/email/premium";
 import { SIGNERS } from "@/lib/email/team";
 import { followUpEmail, quoteKind, type FollowUpInput } from "@/lib/quotes/followUpContent";
 import { reviewEmail, reviewLink } from "@/lib/reviews/requestTypes";
-import { loadReviewSettings } from "@/lib/reviews/requests";
+import { loadReviewSettings, sampleJobPhoto } from "@/lib/reviews/requests";
 
 /**
  * Customer emails sent to the owner to look at in a real inbox before they
@@ -58,8 +58,9 @@ export async function sendCustomerEmailPreviews(): Promise<{ sent: string[]; fai
   const s = await loadReviewSettings();
   const link = reviewLink(s, process.env.GOOGLE_PLACE_ID) ?? site.social.google;
   // Jye has a headshot, so the preview shows the photo version; a tech without one gets their initials.
-  const review = reviewEmail(s, { customer: "Sarah Jones", techs: ["Jye Stephens"], jobType: "Service - Split System", suburb: "Berwick", href: link }, emailContext());
-  const reviewNote = `Preview of the Google review email, exactly as customers get it (made-up customer). ${s.link || process.env.GOOGLE_PLACE_ID ? "The button goes to your review link." : "No review link is saved yet, so the button goes to your Google profile for now."}`;
+  const sample = await sampleJobPhoto();
+  const review = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Jye Stephens"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
+  const reviewNote = `Preview of the Google review email, exactly as customers get it (made-up customer). ${sample ? "The photo is the newest one the tech took on a real recent install; each customer gets their own job's. " : "No recent job had a photo, so this shows the stock one. "}${s.link || process.env.GOOGLE_PLACE_ID ? "The button goes to your review link." : "No review link is saved yet, so the button goes to your Google profile for now."}`;
 
   const mails = [
     ...quoteEmailPreviews().map((m) => ({ ...m, from: fromAs("quotes"), kind: "other" as const })),
