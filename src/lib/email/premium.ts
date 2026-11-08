@@ -242,45 +242,93 @@ export function premiumText(e: PremiumEmail): string {
 
 /**
  * An email that looks like someone at the office wrote it: no banner, no
- * headline, no labels, just a white page, the words and a signature. For the
- * quote follow-ups (Jake, 8 Nov: "need to look like we are checking in and
- * giving information they are looking for, not like an ad").
+ * headline, no labels, no address footer, just the words, a photo where it
+ * helps and a signature. Every customer email uses it now (Jake, 8 Nov: "all
+ * of these need to look like a real email, not like an automation email").
  *
- * Photos only where they answer a question: small, side by side, named, as
- * someone would drop them into an email to show what each unit looks like.
+ * Photos span the text and carry no caption: the sentence before says what
+ * it is, as it would in an email someone typed. The buttons at the bottom
+ * are small and plain ("super clean and simple to click").
  */
 export type LetterBlock =
   | { kind: "p"; text: string }
   /** Plain bullets. **bold** works for the thing being described. */
   | { kind: "list"; items: string[] }
+  /** Two or three small photos side by side, each named. */
   | { kind: "thumbs"; items: { src: string; alt: string; caption: string }[] }
-  /** One photo, as if dropped into the email, with a line under it saying what it is. */
-  | { kind: "photo"; src: string; alt: string; caption: string };
+  /**
+   * `width`: narrower than the text for a tall photo (a hot water unit, or a
+   * phone photo from the job), so the whole system fits on screen at once.
+   */
+  | { kind: "photo"; src: string; alt: string; fallback?: string; width?: number }
+  /** The one thing to press (the review link). */
+  | { kind: "button"; label: string; href: string }
+  /** One-tap answers at the bottom: go ahead, a question, not this time. */
+  | { kind: "choices"; items: { label: string; href: string; primary?: boolean }[] }
+  /**
+   * A small horizontal range chart: one series, so one colour and no legend
+   * (the title names it), each bar labelled with its range in words, which
+   * also carries it for anyone who can't see the colour or the images.
+   */
+  | { kind: "chart"; title: string; max: number; rows: { label: string; low: number; high: number; value: string }[]; ticks?: [string, string, string]; note?: string };
 
 export type LetterEmail = {
   preheader: string;
   blocks: LetterBlock[];
   signer: { name: string; role: string; photo: string | null };
+  /** "Cheers," above the signature; null when the words already sign off. */
+  signoff?: string | null;
   base: string;
   footer: PremiumEmail["footer"];
 };
 
 const LETTER_FONT = "font:400 15px/1.6 " + FONT;
 
+function chart(b: Extract<LetterBlock, { kind: "chart" }>): string {
+  const pct = (n: number) => Math.max(0, Math.min(100, Math.round((n / b.max) * 100)));
+  const bar = (w: number, fill: boolean) => `<td width="${w}%" style="${fill ? `background:${ORANGE};border-radius:4px;` : ""}font-size:0;line-height:0;height:14px">&nbsp;</td>`;
+  const rows = b.rows.map((r) => {
+    const a = pct(r.low), w = Math.max(2, pct(r.high) - a), rest = 100 - a - w;
+    return `<tr><td style="padding:0 0 12px;vertical-align:top">
+<div style="font:600 14px/1.4 ${FONT};color:${INK}">${esc(r.label)} <span style="font-weight:400;color:${MUTED}">&middot; ${esc(r.value)}</span></div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:6px;background:${TINT};border-radius:4px"><tr>${a ? bar(a, false) : ""}${bar(w, true)}${rest > 0 ? bar(rest, false) : ""}</tr></table></td></tr>`;
+  }).join("");
+  const ticks = b.ticks ? b.ticks.map((t, n) => `<td width="${n === 1 ? 34 : 33}%" style="font:400 12px/1.4 ${FONT};color:${MUTED};text-align:${["left", "center", "right"][n]}">${esc(t)}</td>`).join("") : "";
+  return `<div style="margin:6px 0 18px;max-width:520px;border:1px solid ${LINE};border-radius:10px;padding:14px 16px 10px">
+<div style="font:600 14px/1.4 ${FONT};color:${INK};padding-bottom:12px">${esc(b.title)}</div>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">${rows}</table>
+${ticks ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>${ticks}</tr></table>` : ""}
+${b.note ? `<div style="padding-top:8px;font:400 12px/1.45 ${FONT};color:${MUTED}">${inline(b.note)}</div>` : ""}</div>`;
+}
+
 function letterBlock(b: LetterBlock, base: string): string {
-  if (b.kind === "p") return `<p style="margin:0 0 14px;${LETTER_FONT};color:${INK}">${inline(b.text)}</p>`;
-  if (b.kind === "list")
-    return `<ul style="margin:0 0 14px;padding:0 0 0 20px">${b.items.map((i) => `<li style="margin:0 0 8px;${LETTER_FONT};color:${INK}">${inline(i)}</li>`).join("")}</ul>`;
-  if (b.kind === "photo")
-    return `<div style="margin:4px 0 18px;max-width:440px"><img src="${esc(abs(base, b.src))}" width="440" alt="${esc(b.alt)}" style="display:block;width:100%;height:auto;border-radius:10px;border:0"><div style="padding-top:6px;font:400 13px/1.45 ${FONT};color:${MUTED}">${esc(b.caption)}</div></div>`;
-  const w = Math.floor(100 / b.items.length);
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:2px 0 16px"><tr>${b.items
-    .map((i) => `<td width="${w}%" style="padding:0 10px 0 0;vertical-align:top"><img src="${esc(abs(base, i.src))}" width="140" alt="${esc(i.alt)}" style="display:block;width:100%;max-width:140px;height:auto;border-radius:8px;border:0"><div style="padding-top:6px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(i.caption)}</div></td>`)
-    .join("")}</tr></table>`;
+  switch (b.kind) {
+    case "p":
+      return `<p style="margin:0 0 14px;${LETTER_FONT};color:${INK}">${inline(b.text)}</p>`;
+    case "list":
+      return `<ul style="margin:0 0 14px;padding:0 0 0 20px">${b.items.map((i) => `<li style="margin:0 0 8px;${LETTER_FONT};color:${INK}">${inline(i)}</li>`).join("")}</ul>`;
+    case "photo":
+      return `<div style="margin:4px 0 18px"><img src="${esc(abs(base, b.src))}"${b.fallback ? ` data-fallback="${esc(abs(base, b.fallback))}"` : ""} width="${b.width ?? 560}" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:${b.width ?? 560}px;height:auto;border-radius:8px;border:0"></div>`;
+    case "thumbs": {
+      const w = Math.floor(100 / b.items.length);
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:480px;margin:2px 0 16px"><tr>${b.items
+        .map((i) => `<td width="${w}%" style="padding:0 10px 0 0;vertical-align:top"><img src="${esc(abs(base, i.src))}" width="140" alt="${esc(i.alt)}" style="display:block;width:100%;max-width:140px;height:auto;border-radius:8px;border:0"><div style="padding-top:6px;font:400 13px/1.4 ${FONT};color:${MUTED}">${esc(i.caption)}</div></td>`)
+        .join("")}</tr></table>`;
+    }
+    case "button":
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 18px"><tr><td style="background:${INK};border-radius:6px"><a href="${esc(b.href)}" style="display:inline-block;padding:12px 22px;font:600 15px/1 ${FONT};color:#ffffff;text-decoration:none;border-radius:6px">${esc(b.label)}</a></td></tr></table>`;
+    case "choices":
+      return `<div style="margin:2px 0 18px">${b.items
+        .map((i) => `<a href="${esc(i.href)}" style="display:inline-block;margin:0 6px 8px 0;padding:10px 16px;border-radius:6px;font:600 14px/1 ${FONT};text-decoration:none;${i.primary ? `background:${INK};color:#ffffff;border:1px solid ${INK}` : `color:${INK};border:1px solid ${INK}`}">${esc(i.label)}</a>`)
+        .join("")}</div>`;
+    case "chart":
+      return chart(b);
+  }
 }
 
 export function letterHtml(e: LetterEmail): string {
   const f = e.footer;
+  const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
 <style>${DARK_CSS}</style></head>
 <body class="pe-shell" style="margin:0;padding:0;background:#ffffff">
@@ -288,20 +336,29 @@ export function letterHtml(e: LetterEmail): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="pe-shell" style="background:#ffffff"><tr><td style="padding:20px 18px">
 <div style="max-width:600px">
 ${e.blocks.map((b) => letterBlock(b, e.base)).join("\n")}
-<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">Cheers,</p>
+${signoff ? `<p style="margin:0 0 10px;${LETTER_FONT};color:${INK}">${esc(signoff)}</p>` : ""}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:4px"><tr>
 <td style="padding-right:12px;vertical-align:top">${avatar(e.base, e.signer.name, e.signer.photo, 44)}</td>
 <td style="vertical-align:top;font:400 14px/1.45 ${FONT};color:${MUTED}"><div style="font:600 15px/1.35 ${FONT};color:${INK}">${esc(e.signer.name)}</div>${esc(e.signer.role)}<br><a href="${esc(f.phoneHref)}" style="color:${MUTED};text-decoration:none">${esc(f.phone)}</a> &middot; <a href="${esc(f.site)}" style="color:${MUTED};text-decoration:none">${esc(f.site.replace(/^https?:\/\/(www\.)?/, ""))}</a></td>
 </tr></table>
-<p style="margin:22px 0 0;font:400 12px/1.5 ${FONT};color:${MUTED}">${esc(f.name)} &middot; ${esc(f.address)}</p>
 </div></td></tr></table></body></html>`;
   return darkClasses(html);
 }
 
 export function letterText(e: LetterEmail): string {
   const plain = (t: string) => t.replace(/\*\*(.+?)\*\*/g, "$1");
-  const out = e.blocks.map((b) =>
-    b.kind === "p" ? plain(b.text) : b.kind === "list" ? b.items.map((i) => `- ${plain(i)}`).join("\n") : b.kind === "photo" ? `[Photo: ${b.caption}]` : b.items.map((i) => i.caption).join(" · "));
-  out.push(`Cheers,\n${e.signer.name}\n${e.signer.role}\n${e.footer.phone} · ${e.footer.site}`);
+  const out = e.blocks.flatMap((b): string[] => {
+    switch (b.kind) {
+      case "p": return [plain(b.text)];
+      case "list": return [b.items.map((i) => `- ${plain(i)}`).join("\n")];
+      case "thumbs": return [b.items.map((i) => i.caption).join(" · ")];
+      case "photo": return [];
+      case "button": return [`${b.label}: ${b.href}`];
+      case "choices": return [b.items.map((i) => `${i.label}: ${i.href}`).join("\n")];
+      case "chart": return [`${b.title}\n${b.rows.map((r) => `- ${r.label}: ${r.value}`).join("\n")}${b.note ? `\n${plain(b.note)}` : ""}`];
+    }
+  });
+  const signoff = e.signoff === undefined ? "Cheers," : e.signoff;
+  out.push(`${signoff ? `${signoff}\n` : ""}${e.signer.name}\n${e.signer.role}\n${e.footer.phone} · ${e.footer.site}`);
   return out.join("\n\n");
 }
