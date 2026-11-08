@@ -32,7 +32,9 @@ export type TplBlock =
   | { kind: "thumbs"; items: { src: string; alt: string; caption: string }[] }
   | { kind: "stats"; items: { value: string; label: string }[]; note?: string }
   /** The three one-tap answers (Let's go ahead / I've got a question / Not this time), linked to the quote when it's sent. */
-  | { kind: "answers" };
+  | { kind: "answers" }
+  /** A photo of their own install, picked from the job's photos when it's sent (lib/email/jobPhoto.ts); the stock `fallback` when none shows the whole system. */
+  | { kind: "jobphoto"; alt: string; fallback: string; width?: number };
 
 export type BlockKind = TplBlock["kind"];
 
@@ -43,13 +45,17 @@ export const BLOCK_KINDS: { k: BlockKind; label: string; what: string }[] = [
   { k: "thumbs", label: "Photos side by side", what: "Two or three small photos, each with a name under it." },
   { k: "stats", label: "Figures", what: "Two to four big numbers, each with what it means underneath." },
   { k: "answers", label: "Answer buttons", what: "Let's go ahead · I've got a question · Not this time. Each opens a page to confirm, then you get an email and so do they." },
+  { k: "jobphoto", label: "Photo from the job", what: "A photo of their own install, picked from the job's photos when it's sent: one that shows the whole system. The stock photo chosen here goes when none does." },
 ];
 
-export type TplGroup = "followup" | "reply" | "sold";
+/** Blocks that only make sense in some emails: the buttons need a quote, the job photo a job. */
+export const blockFits = (k: BlockKind, g: TplGroup) => (k === "answers" ? g === "followup" : k === "jobphoto" ? g === "done" : true);
+
+export type TplGroup = "followup" | "reply" | "sold" | "done" | "invoice" | "service";
 
 export type SignerChoice = "quoter" | "jake" | "dean" | "team";
 export const SIGNER_CHOICES: { k: SignerChoice; label: string }[] = [
-  { k: "quoter", label: "Whoever quoted it" },
+  { k: "quoter", label: "Whoever quoted it, or did the job" },
   { k: "jake", label: "Jake Deppeler" },
   { k: "dean", label: "Dean Winbanks" },
   { k: "team", label: "The team (no photo)" },
@@ -76,7 +82,10 @@ export type EmailTemplate = {
 export const GROUPS: Record<TplGroup, { label: string; when: string }> = {
   followup: { label: "Quote follow-ups", when: "Days after the quote, until they answer or it sells" },
   reply: { label: "When they tap a button", when: "Straight after they confirm on the page the button opens" },
-  sold: { label: "After the sale", when: "When a quote is sold in ServiceTitan without them tapping “Let's go ahead”" },
+  sold: { label: "After the sale", when: "When a quote is sold without the go-ahead button, and 5 days on if nothing's booked" },
+  done: { label: "When the job's done", when: "The day a household install is completed" },
+  invoice: { label: "Invoice reminders", when: "3 and 10 days after a household invoice is due and unpaid" },
+  service: { label: "Service reminders", when: "11 months after a household install or service" },
 };
 
 /* -------------------------------------------------------------- the braces */
@@ -102,6 +111,9 @@ export const PLACEHOLDERS: Record<TplGroup, Placeholder[]> = {
   ],
   reply: [P.first, P.mobile, P.option, { key: "note", what: "what they typed on the page, if anything", sample: "Does the 300 litre fit where the old gas unit is? It's a tight spot beside the meter box." }, P.phone],
   sold: [P.first, P.mobile, P.option, P.phone],
+  done: [P.first, { key: "tech", what: "who did the job, first name (“Jye and Dean” for two)", sample: "Jye" }, { key: "job", what: "what we did, in words (“heat pump installation”)", sample: "heat pump installation" }, P.phone],
+  invoice: [P.first, { key: "number", what: "the invoice number", sample: "20999" }, { key: "amount", what: "what's still owing on it", sample: "$3,060.50" }, { key: "due", what: "the day it was due (“Mon 3 Nov”)", sample: "Mon 3 Nov" }, P.phone],
+  service: [P.first, { key: "job", what: "what we did last time, in words (“split system service”)", sample: "split system service" }, { key: "when", what: "the month we were last there (“December”)", sample: "December" }, P.phone],
 };
 
 export type Values = Record<string, string | null | undefined>;
@@ -147,7 +159,7 @@ function textsOf(t: Pick<EmailTemplate, "subject" | "preheader" | "blocks">): st
   for (const b of t.blocks) {
     if (b.kind === "p") out.push(b.text);
     else if (b.kind === "list") out.push(...b.items);
-    else if (b.kind === "photo") out.push(b.alt);
+    else if (b.kind === "photo" || b.kind === "jobphoto") out.push(b.alt);
     else if (b.kind === "thumbs") out.push(...b.items.flatMap((i) => [i.alt, i.caption]));
     else if (b.kind === "stats") out.push(...b.items.flatMap((i) => [i.value, i.label]), b.note ?? "");
   }
@@ -182,7 +194,7 @@ export type Rendered = { subject: string; preheader: string; blocks: LetterBlock
  * `answers` are the three buttons with their links for this quote; without
  * them (a reply, the sold email) the answer block is left out.
  */
-export function renderTemplate(t: EmailTemplate, v: Values, o: { base: string; answers?: AnswerButton[] }): Rendered {
+export function renderTemplate(t: EmailTemplate, v: Values, o: { base: string; answers?: AnswerButton[]; jobPhoto?: string | null }): Rendered {
   const line = (s: string) => fill(s, v).text.replace(/\s+/g, " ").trim();
   const blocks: LetterBlock[] = [];
   for (const b of t.blocks) {
@@ -203,6 +215,11 @@ export function renderTemplate(t: EmailTemplate, v: Values, o: { base: string; a
       if (items.length) blocks.push({ kind: "stats", items, ...(note && !note.empty && note.text ? { note: note.text } : {}) });
     } else if (b.kind === "answers") {
       if (o.answers?.length) blocks.push({ kind: "choices", items: o.answers });
+    } else if (b.kind === "jobphoto") {
+      // Their own photo when the job has one that shows the system; the stock one beside it if it won't load.
+      const fallback = photoOk(b.fallback) ? photoUrl(b.fallback, o.base, b.width) : null;
+      if (o.jobPhoto) blocks.push({ kind: "photo", src: o.jobPhoto, alt: line(b.alt), ...(fallback ? { fallback } : {}), width: b.width ?? 420 });
+      else if (fallback) blocks.push({ kind: "photo", src: fallback, alt: line(b.alt), ...(b.width ? { width: b.width } : {}) });
     }
   }
   return { subject: line(t.subject), preheader: line(t.preheader), blocks };
@@ -243,6 +260,11 @@ function blockFrom(raw: unknown): TplBlock | null {
     }
     case "answers":
       return { kind: "answers" };
+    case "jobphoto": {
+      if (!photoOk(b.fallback)) return null;
+      const width = Number(b.width);
+      return { kind: "jobphoto", alt: str(b.alt, LIMITS.alt), fallback: b.fallback, ...(Number.isFinite(width) && width >= 200 && width < 560 ? { width: Math.round(width) } : {}) };
+    }
     default:
       return null;
   }

@@ -138,3 +138,5 @@
 .em-past { margin-top: 12px; }
 .em-past summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink2); margin-bottom: 8px; }
 .em-sub2 { font-weight: 500; color: var(--ink2); }
+
+.em-note { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink2); }

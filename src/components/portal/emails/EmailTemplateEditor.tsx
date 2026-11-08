@@ -7,7 +7,7 @@ import { emailContext } from "@/lib/email/context";
 import { EMAIL_PHOTOS } from "@/lib/email/templates/photos";
 import { resolveSigner } from "@/lib/email/templates/signer";
 import {
-  BLOCK_KINDS, GROUPS, PLACEHOLDERS, SERIES, SIGNER_CHOICES, UPLOADED, photoUrl, problems, renderTemplate, sampleValues,
+  BLOCK_KINDS, GROUPS, PLACEHOLDERS, blockFits, SERIES, SIGNER_CHOICES, UPLOADED, photoUrl, problems, renderTemplate, sampleValues,
   type BlockKind, type EmailTemplate, type SignerChoice, type TplBlock,
 } from "@/lib/email/templates/types";
 import { ANSWERS } from "@/lib/quotes/answerTypes";
@@ -44,6 +44,7 @@ function fresh(kind: BlockKind): TplBlock {
     case "thumbs": return { kind: "thumbs", items: small.slice(0, 2).map((p) => ({ src: p.src, alt: p.alt, caption: p.label })) };
     case "stats": return { kind: "stats", items: [{ value: "", label: "" }, { value: "", label: "" }] };
     case "answers": return { kind: "answers" };
+    case "jobphoto": return { kind: "jobphoto", alt: "The finished install", fallback: "/email/hero-team.jpg" };
   }
 }
 
@@ -129,7 +130,8 @@ export function EmailTemplateEditor({ initial, versions, uploads, siblings, isNe
     say(r, "Saved.");
   });
 
-  const kinds = BLOCK_KINDS.filter((k) => k.k !== "answers" || (t.group === "followup" && !t.blocks.some((b) => b.kind === "answers")));
+  // One set of buttons and one job photo an email; each only where it fits.
+  const kinds = BLOCK_KINDS.filter((k) => blockFits(k.k, t.group) && !((k.k === "answers" || k.k === "jobphoto") && t.blocks.some((b) => b.kind === k.k)));
   const addMenu = (at: number) => (
     <div className="em-addmenu" role="group" aria-label="Add a block">
       {kinds.map((k) => <button key={k.k} type="button" className="em-chip" title={k.what} onClick={() => add(k.k, at)}>+ {k.label}</button>)}
@@ -382,6 +384,23 @@ function BlockBody({ b, onChange, reg, autoFocus, openPicker }: {
             <span>Small print under them <em>· optional</em></span>
             <input value={b.note ?? ""} maxLength={300} onChange={(e) => onChange({ ...b, note: e.target.value })} {...reg((v) => onChange({ ...b, note: v }))} />
           </label>
+        </div>
+      );
+    case "jobphoto":
+      return (
+        <div className="em-photo">
+          <button type="button" className="em-photo__pick" onClick={() => openPicker(false, (p) => onChange({ ...b, fallback: p.src }))}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={thumbOf(b.fallback)} alt="" />
+            <span>Change stock photo</span>
+          </button>
+          <div className="em-photo__f">
+            <p className="em-note">Their own install goes here, picked from the job&rsquo;s photos when it&rsquo;s sent: one that shows the whole system. This stock photo goes when none does.</p>
+            <label className="pt-field">
+              <span>Describe it <em>· shown when their email hides pictures</em></span>
+              <input value={b.alt} maxLength={200} onChange={(e) => onChange({ ...b, alt: e.target.value })} />
+            </label>
+          </div>
         </div>
       );
     case "answers":
