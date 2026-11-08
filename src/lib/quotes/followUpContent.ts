@@ -45,7 +45,7 @@ export function followUpValues(i: FollowUpInput): Values {
   return {
     first: i.first,
     quoter: i.quoter,
-    since_visit: i.quoterSigns ? "since I was out" : `since ${i.quoter} was out`,
+    since_visit: i.quoterSigns ? "since I was out" : i.quoter ? `since ${i.quoter} was out` : "since we were out",
     phone: i.phone,
     option: optionWords(i.options[0]),
     rating: RATING_TEXT,

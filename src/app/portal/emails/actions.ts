@@ -15,6 +15,7 @@ import { addEmailPhoto, addToSeries, deleteTemplate, EMAIL_IMAGES_BUCKET, loadTe
 import { renderTemplate, sampleValues, SERIES, templateFrom, type QuoteKind } from "@/lib/email/templates/types";
 import { answerButtons } from "@/lib/quotes/followUpContent";
 import { answerUrl } from "@/lib/quotes/answers";
+import { setFollowUps } from "@/lib/quotes/followUps";
 
 export type EmailResult = { ok: boolean; error?: string; said?: string; src?: string };
 
@@ -133,4 +134,21 @@ export async function finishEmailPhotoUpload(input: { path: string; label: strin
   if (!(await objectExists(path, EMAIL_IMAGES_BUCKET))) return { ok: false, error: "The photo didn't reach storage. Try it again." };
   await addEmailPhoto(path, String(input.label ?? "").replace(/\.[^.]+$/, "").trim() || "Uploaded photo", me.name).catch(() => undefined);
   return { ok: true, src: `/api/email-image/${path}` };
+}
+
+/* ------------------------------------------------------------- the sender */
+
+/** The follow-ups on or off (lib/quotes/followUps.ts › setFollowUps). On leaves every quote already out alone. */
+export async function setFollowUpsAction(on: boolean): Promise<EmailResult> {
+  const me = await editor();
+  if (!me) return NOPE;
+  const r = await setFollowUps(on === true, me.name);
+  if (!r.ok) return { ok: false, error: r.error };
+  done();
+  return {
+    ok: true,
+    said: on
+      ? `On. ${r.leftAlone ? `The ${r.leftAlone} quote${r.leftAlone === 1 ? "" : "s"} already out ${r.leftAlone === 1 ? "is" : "are"} left alone; ` : ""}quotes tagged Awaiting Quote Approval from now on get them.`
+      : "Off. Nothing more goes; the ones in progress pick up where they were if it's switched back on.",
+  };
 }

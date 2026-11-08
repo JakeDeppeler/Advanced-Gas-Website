@@ -66,7 +66,7 @@ export type Quote = Omit<AnswerContext, "when" | "note"> & {
 /** A made-up quote for the preview pages and emails: nothing in ServiceTitan is touched, and the emails go to the owner. */
 export const SAMPLE_QUOTE: Quote = {
   customer: "Sarah Jones", first: "Sarah", email: OWNER_EMAIL, phone: "0412 345 678", suburb: "Berwick", jobNumber: "20999",
-  option: "Reclaim 300L - Plug", total: 3060.5, quoterName: "Jake Deppeler", jobHref: null, officePhone: site.phone, jobId: null, key: null,
+  option: "Reclaim 300L - Plug", options: [{ name: "Reclaim 300L - Plug", total: 3060.5 }], total: 3060.5, quoterName: "Jake Deppeler", jobHref: null, officePhone: site.phone, jobId: null, key: null,
 };
 
 const none = (): Quote => ({ customer: "A customer", first: "there", email: null, phone: null, suburb: null, jobNumber: null, option: null, total: null, quoterName: null, jobHref: null, officePhone: site.phone, jobId: null, key: null });
@@ -81,6 +81,13 @@ export async function quoteFor(estimate: number): Promise<Quote> {
   type Job = { job_number: string | null; customer_name: string | null; suburb: string | null; customer_id: number | null };
   const job = est.job_id ? (await sbSelect<Job>("st_jobs", [q.select("job_number,customer_name,suburb,customer_id"), q.eq("id", String(est.job_id))].join("&")).catch(() => []))[0] : undefined;
   const customerId = est.customer_id ?? job?.customer_id ?? null;
+  // The quote's other options: the same job, or for a quote on the customer, the same customer that day.
+  type Opt = { id: number; name: string | null; total_inc: number | string | null; status: string | null; active: string | null };
+  const sib = est.job_id
+    ? [q.eq("job_id", String(est.job_id))]
+    : est.customer_id && est.created_on ? [q.eq("customer_id", String(est.customer_id)), "job_id=is.null", q.gte("created_on", `${est.created_on.slice(0, 10)}T00:00:00Z`), q.lt("created_on", `${est.created_on.slice(0, 10)}T23:59:59Z`)] : [q.eq("id", String(est.id))];
+  const opts = (await sbSelect<Opt>("st_estimates", [q.select("id,name:raw->>name,total_inc,status,active:raw->>active"), ...sib, "order=id.asc"].join("&")).catch(() => [] as Opt[]))
+    .filter((o) => o.active !== "false" && (o.status === "Open" || o.id === est.id));
   const contacts = customerId
     ? await sbSelect<{ type: string; value: string }>("st_customer_contacts", [q.select("type,value"), q.eq("customer_id", String(customerId)), "active=not.is.false", "order=modified_on.desc.nullslast"].join("&")).catch(() => [])
     : [];
@@ -95,6 +102,7 @@ export async function quoteFor(estimate: number): Promise<Quote> {
     suburb: job?.suburb?.trim() || null,
     jobNumber: job?.job_number ?? null,
     option: est.name?.trim() || null,
+    options: (opts.length ? opts : [{ id: est.id, name: est.name, total_inc: est.total_inc, status: "Open", active: null }]).map((o) => ({ name: o.name?.trim() || "Option", total: o.total_inc != null && Number.isFinite(Number(o.total_inc)) ? Number(o.total_inc) : null })),
     total: est.total_inc != null && Number.isFinite(Number(est.total_inc)) ? Number(est.total_inc) : null,
     quoterName: est.created_by?.trim() || est.sold_by?.trim() || null,
     jobHref: est.job_id ? stJobUrl(est.job_id) : null,

@@ -9,6 +9,7 @@ import { ANSWERS, customerReply, officeMessage, optionWords, type AnswerContext 
 import { BUILT_IN, KEY } from "../src/lib/email/templates/defaults";
 import { fill, photoUrl, problems, renderTemplate, sampleValues, templateFrom, unknownPlaceholders } from "../src/lib/email/templates/types";
 import { resolveSigner } from "../src/lib/email/templates/signer";
+import { daysSince, emailProblem, householdUnit, inSendingHours as followUpHours, planFor, stopReason, type QuoteFacts, type Sent } from "../src/lib/quotes/followUpRules";
 import { headshot } from "../src/lib/email/team";
 import { existsSync } from "node:fs";
 
@@ -164,6 +165,44 @@ ok("two emails on one day in a series is refused", problems({ ...split2, key: "f
 ok("keys: standard and added only", KEY.test("followup.split.2") && KEY.test("followup.general.x1a2b3c") && KEY.test("reply.yes") && !KEY.test("followup.split.x123") && !KEY.test("../etc"));
 ok("signer: whoever quoted, with a headshot, initials, or the team", resolveSigner("quoter", "Jye Stephens").photo === "/email/tech-jye.jpg" && resolveSigner("quoter", "Ray Kennedy").name === "Ray Kennedy" && resolveSigner("quoter", "Ray Kennedy").photo === null && resolveSigner("quoter", null).name === "The Advanced Gas team" && resolveSigner("dean", "Jye Stephens").name === "Dean Winbanks");
 ok("an edited follow-up is what renders", followUpEmail("heat-pump", 1, fin, { ...BUILT_IN[0], subject: "Edited, {first}" }).subject === "Edited, Sarah");
+
+console.log("-- the follow-up sender --");
+// Days in Melbourne: tagged Monday 10 Nov 4pm, Wednesday is day 2.
+const tagged = "2026-11-10T05:00:00Z";
+ok("day count in Melbourne", daysSince(tagged, new Date("2026-11-12T00:30:00Z")) === 2 && daysSince(tagged, new Date("2026-11-10T13:30:00Z")) === 1, daysSince(tagged, new Date("2026-11-10T13:30:00Z")));
+const hpSteps = BUILT_IN.filter((t) => t.series === "heat-pump").map((t) => ({ key: t.key, day: t.day! }));
+const at = (iso: string) => new Date(iso);
+const p1 = planFor(hpSteps, tagged, at("2026-11-11T00:00:00Z"), []);
+ok("day 1: nothing yet, day-2 email next", !p1.send && p1.next?.day === 2 && !p1.done);
+const p2 = planFor(hpSteps, tagged, at("2026-11-12T00:00:00Z"), []);
+ok("day 2: the check-in", p2.send?.key === "followup.heat-pump.1" && p2.skip.length === 0);
+const p3 = planFor(hpSteps, tagged, at("2026-11-20T00:00:00Z"), [{ key: "followup.heat-pump.1", status: "sent", at: "2026-11-12T00:00:00Z" }]);
+ok("missed days 5: day 9's goes, day 5's is passed over, never two at once", p3.send?.key === "followup.heat-pump.3" && p3.skip.map((s) => s.key).join() === "followup.heat-pump.2");
+const p4 = planFor(hpSteps, tagged, at("2026-11-15T00:00:00Z"), [{ key: "followup.heat-pump.1", status: "sent", at: "2026-11-14T03:00:00Z" }]);
+ok("never two within two days", !p4.send && !!p4.wait);
+const p5 = planFor(hpSteps, tagged, at("2026-11-15T00:00:00Z"), [{ key: "followup.heat-pump.1", status: "sent", at: "2026-11-12T00:00:00Z" }, { key: "followup.heat-pump.2", status: "failed", at: "2026-11-15T00:00:00Z", attempts: 1 }]);
+ok("a failed send is tried again", p5.send?.key === "followup.heat-pump.2");
+const p6 = planFor(hpSteps, tagged, at("2026-11-15T00:00:00Z"), [{ key: "followup.heat-pump.1", status: "sent", at: "2026-11-12T00:00:00Z" }, { key: "followup.heat-pump.2", status: "failed", at: "2026-11-15T00:00:00Z", attempts: 3 }]);
+ok("...three times, then passed over", !p6.send && p6.next?.day === 9);
+const all: Sent[] = hpSteps.map((s) => ({ key: s.key, status: "sent", at: "2026-11-01T00:00:00Z" }));
+ok("all sent: done", planFor(hpSteps, tagged, at("2026-12-01T00:00:00Z"), all).done);
+ok("a step added on day 20 is picked up", planFor([...hpSteps, { key: "followup.heat-pump.xabcdef", day: 20 }], tagged, at("2026-11-30T00:00:00Z"), all).send?.key === "followup.heat-pump.xabcdef");
+const facts: QuoteFacts = { options: [{ status: "Open" }, { status: "Open" }], jobCancelled: false, tagged: true, lostOnPipeline: false, answered: null, emailedUs: false, officeTouched: false };
+ok("carries on while nothing's happened", stopReason(facts) === null);
+ok("stops: sold", stopReason({ ...facts, options: [{ status: "Sold" }, { status: "Dismissed" }] }) === "Sold");
+ok("stops: they tapped a button", stopReason({ ...facts, answered: "question" }) === "They tapped “I've got a question”");
+ok("stops: closed in ServiceTitan", stopReason({ ...facts, options: [{ status: "Dismissed" }] }) === "Closed off in ServiceTitan");
+ok("stops: lost, emailed us, office in touch, tag off", stopReason({ ...facts, lostOnPipeline: true }) === "Marked lost on the Pipeline" && stopReason({ ...facts, emailedUs: true }) === "They emailed us" && stopReason({ ...facts, officeTouched: true }) === "The office has been in touch" && stopReason({ ...facts, tagged: false }) === "Taken off Awaiting Quote Approval");
+ok("addresses: theirs yes, ours and agencies' no", emailProblem("sarah@gmail.com") === null && !!emailProblem("admin@advancedgas.com.au") && !!emailProblem("x@tapihq.com") && !!emailProblem("") && !!emailProblem("not an email"));
+ok("household only", householdUnit("Domestic - Installation") && !householdUnit("Real Estate - Repairs") && !householdUnit("Commercial Projects"));
+ok("sending hours", followUpHours(new Date("2026-11-09T23:00:00Z")) && !followUpHours(new Date("2026-11-08T00:00:00Z")) && !followUpHours(new Date("2026-11-10T09:00:00Z")));
+ok("nobody named: 'since we were out'", letterText({ ...ctx, preheader: "", blocks: followUpEmail("general", 1, { ...fin, quoter: "", quoterSigns: false }).blocks, signer }).includes("since we were out"));
+
+console.log("-- several options --");
+const multi = officeMessage("yes", { ...actx, options: [{ name: "Reclaim 300L - Plug", total: 3060.5 }, { name: "Reclaim Split SS 315L V2", total: 4890 }, { name: "IStore 270L - Plug", total: 1990 }] });
+ok("the office is told every option and to ask which", /let's go ahead with my quote at Berwick\. The options on it:/.test(asText(multi)) && asText(multi).includes("- Reclaim 300L ($3,060.50)") && asText(multi).includes("- IStore 270L ($1,990)") && asText(multi).includes("Ring them, ask which option") && multi.subject === "Sarah Jones wants to go ahead: their quote (job 20999)", asText(multi).slice(0, 260));
+ok("...and the customer's reply doesn't guess", /We order your system/.test(asText(customerReply("yes", { ...actx, options: [{ name: "A", total: 1 }, { name: "B", total: 2 }] }))));
+ok("one option: named as before", officeMessage("yes", { ...actx, options: [{ name: "Reclaim 300L - Plug", total: 3060.5 }] }).subject === "Sarah Jones wants to go ahead: Reclaim 300L (job 20999)");
 
 const css = premiumHtml({ ...ctx, preheader: "", blocks: [] }).split("<style>")[1].split("</style>")[0];
 ok("dark-mode colours never apply in light mode", css.split(/[{}]/).filter((_, k) => k % 2 === 0).flatMap((sel) => sel.split(",")).map((x) => x.trim()).filter((x) => /pe-(btn|ink|ground|shell|tint|muted|ghost|orange|line)/.test(x)).every((x) => /^(:root|\[data-ogs[bc]\])/.test(x)));

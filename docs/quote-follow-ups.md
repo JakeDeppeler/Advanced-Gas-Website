@@ -60,9 +60,43 @@ The split brands email names both Mitsubishi Electric and Kaden, whatever was
 quoted. Every figure is one the website already states. Those are the
 standard days and words; the editor can change either.
 
-**Sending them isn't built yet.** The wording is there and the previews go to
-Jake from Settings; the engine that sends them on the day (and stops on an
-answer or a sale) is the next piece.
+## Sending them
+
+`lib/quotes/followUps.ts`, rules in `followUpRules.ts`, run every ten minutes
+by pg_cron (`/api/quotes/follow-ups`, with the review emails). Switched on and
+off at the top of **Marketing › Customer emails**; off until someone switches
+it on.
+
+- **Which quotes.** Household (Domestic) quotes on a job, once the office tags
+  the job **Awaiting Quote Approval**, which they do when they send it.
+  ServiceTitan doesn't record a quote going out (no field on the estimate,
+  nothing in the job history), so the tag is the signal, and a quote's days
+  count from the first time the sender sees it. A quote written on the
+  customer with no job can't carry the tag, so it doesn't get them: an email
+  about a draft nobody has seen would be worse than none.
+- **Only from the switch.** Switching on writes down every quote already
+  tagged as already out (status `before`) and leaves it alone (Jake, 8 Nov:
+  "leave the older quotes alone").
+- **When.** Each email in the series on its day, 9am to 7pm Monday to
+  Saturday. Only the latest one due goes; any missed before it (switched off,
+  or a long weekend) are passed over, and never two within two days. A failed
+  send is tried three times.
+- **From and to.** From quotes@ as "Jake from Advanced Gas" (whoever quoted
+  it, or the signer set on the email), to the customer's own email in
+  ServiceTitan, never an agency platform's or ours. Replies go to admin@.
+- **Stops** the moment the customer or the office has it: sold, they tap a
+  button, the job's cancelled, it's closed in ServiceTitan, lost on the
+  Pipeline, an email from their address reaches admin@ or jake@, someone logs a
+  call, visit or email on the Pipeline, or the tag comes off.
+- **On record.** Each email sent is a note on the job in ServiceTitan and on
+  the Pipeline (as a note, so it doesn't count as one of the office's three
+  calls). The page lists the quotes getting them, what's gone and what's next,
+  and those finished or stopped, with why.
+
+Each quote is a row in `portal_quote_followups`; each email is claimed in
+`portal_quote_followup_sends` before it goes, so two runs can't send it twice
+(migration 0112). `?dry=1` on the route says what each quote is up to and what
+would go, without sending or writing anything.
 
 ## The buttons
 

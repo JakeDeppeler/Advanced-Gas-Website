@@ -39,6 +39,12 @@ export type AnswerContext = {
   jobNumber: string | null;
   /** The option the link was in, as ServiceTitan names it ("Reclaim 300L - Plug"). */
   option: string | null;
+  /**
+   * Every option still open on the quote, with its price. A hot water quote
+   * usually has three, and the buttons are for the quote, not one option: with
+   * more than one, the office is told them all and to ask which.
+   */
+  options?: { name: string; total: number | null }[];
   /** The quote's price with GST. */
   total: number | null;
   /** Who quoted it, full name, when ServiceTitan says. */
@@ -68,9 +74,11 @@ const firstName = (name: string | null) => name?.trim().split(/\s+/)[0] || null;
  * what it is: a message from them that the portal wrote down.
  */
 export function officeMessage(a: Answer, c: AnswerContext): AnswerMail & { signer: { name: string; role: string; photo: null; contact: { text: string; href: string }[] } } {
-  const what = optionWords(c.option) ?? "my quote";
-  const label = `${what}${c.jobNumber ? ` (job ${c.jobNumber})` : ""}`;
-  const price = c.total != null ? ` (${money(c.total)})` : "";
+  const several = (c.options?.length ?? 0) > 1;
+  const what = several ? "quote" : optionWords(c.option) ?? "quote";
+  const label = several ? `their quote${c.jobNumber ? ` (job ${c.jobNumber})` : ""}` : `${what}${c.jobNumber ? ` (job ${c.jobNumber})` : ""}`;
+  const price = !several && c.total != null ? ` (${money(c.total)})` : "";
+  const onIt: LetterBlock[] = several ? [{ kind: "list", items: c.options!.map((o) => `${optionWords(o.name) ?? o.name}${o.total != null ? ` (${money(o.total)})` : ""}`) }] : [];
   const where = c.suburb ? ` at ${c.suburb}` : "";
   const ring = c.phone ? `give me a call on **${c.phone}**` : null;
   const reply = c.email ? "reply to this email" : null;
@@ -80,18 +88,19 @@ export function officeMessage(a: Answer, c: AnswerContext): AnswerMail & { signe
   const subject = a === "yes" ? `${c.customer} wants to go ahead: ${label}` : a === "question" ? `${c.customer} has a question about ${label}` : `${c.customer} isn't going ahead with ${label}`;
   const body: LetterBlock[] =
     a === "yes" ? [
-      p(`Yes please, let's go ahead with the **${what}**${price}${where}.`),
+      p(several ? `Yes please, let's go ahead with my quote${where}. The options on it:` : `Yes please, let's go ahead with the **${what}**${price}${where}.`),
+      ...onIt,
       ...said,
       p(ways ? `${cap(ways)} to pick a day.` : "I'm ready to pick a day."),
     ] : a === "question" ? [
-      p(`I've got a question about the **${what}**${where}${c.note ? ":" : "."}`),
+      p(several ? `I've got a question about my quote${where}${c.note ? ":" : "."}` : `I've got a question about the **${what}**${where}${c.note ? ":" : "."}`),
       ...said,
       p(ways ? `Could you ${ways}?` : "Could you get in touch?"),
     ] : [
-      p(`Thanks for the quote on the **${what}**${where}, but I'm not going ahead this time.`),
+      p(several ? `Thanks for the quote${where}, but I'm not going ahead this time.` : `Thanks for the quote on the **${what}**${where}, but I'm not going ahead this time.`),
       ...said,
     ];
-  const todo = a === "yes" ? "Ring them and book it in." : a === "question" ? "Ring them back." : "Their follow-up emails have stopped and the quote is marked lost on the Pipeline. Nothing else to do.";
+  const todo = a === "yes" ? (several ? "Ring them, ask which option, and book it in." : "Ring them and book it in.") : a === "question" ? "Ring them back." : "Their follow-up emails have stopped and the quote is marked lost on the Pipeline. Nothing else to do.";
   return {
     subject,
     preheader: a === "yes" ? `${c.first} tapped "Let's go ahead". ${todo}` : a === "question" ? `${c.first} tapped "I've got a question". ${todo}` : `${c.first} tapped "Not this time".`,
@@ -114,7 +123,8 @@ export function officeMessage(a: Answer, c: AnswerContext): AnswerMail & { signe
 
 /** What the braces in a reply are filled with. */
 export function replyValues(c: AnswerContext): Values {
-  return { first: c.first, mobile: c.phone, option: optionWords(c.option), note: c.note, phone: c.officePhone };
+  // With several options on the quote, the reply doesn't guess which one: "We order your system".
+  return { first: c.first, mobile: c.phone, option: (c.options?.length ?? 0) > 1 ? null : optionWords(c.option), note: c.note, phone: c.officePhone };
 }
 
 /**
