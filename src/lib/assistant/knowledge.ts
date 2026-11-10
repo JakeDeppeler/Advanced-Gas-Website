@@ -8,6 +8,7 @@ import { FAULT_CODES } from "@/lib/faultCodes";
 import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { RADIUS_KM } from "@/lib/suburbCoords";
 import { dollarFigures, lead, withoutPrices } from "./text";
+import { priceLine, servicePrices } from "./servicePrices";
 
 /**
  * What the public instant-answer chat knows: the site's own FAQ, system,
@@ -17,9 +18,10 @@ import { dollarFigures, lead, withoutPrices } from "./text";
  * Not chat/knowledge.ts. That one feeds the office's draft replies, which a
  * person reads before sending, and it carries the published "from" prices and
  * the after-hours rates. This one answers the public with nobody in between,
- * and prices are hidden site-wide on purpose, so every answer here has its
- * price sentences taken out (withoutPrices) and finance answers are dropped
- * while SHOW_FINANCE is off.
+ * and install prices are never given, so every answer here has its price
+ * sentences taken out (withoutPrices) and finance answers are dropped while
+ * SHOW_FINANCE is off. Service and call-out prices are the exception, and
+ * come only from servicePrices.ts, as their own section of the prompt.
  */
 
 export type Entry = {
@@ -159,6 +161,12 @@ export function promptKnowledge(): string {
     `Service area: Pakenham and about ${RADIUS_KM} km around it (${site.primaryRegion}).`,
     `Services: ${services.map((s) => `${s.name}: ${s.blurb}`).join(" ")}`,
     `Brands we install: ${ourBrands().map((b) => `${b.name} (${b.range})`).join("; ")}.`,
+    "",
+    // The only prices the chat gives (see servicePrices.ts). The Q&A below has
+    // its price sentences taken out, so this is the one place a figure is.
+    "# Service and call-out prices",
+    ...servicePrices().map(priceLine),
+    "A repair is priced in writing before any work starts. Install prices are never given: every install is priced at a free site check.",
     "",
     "# Questions and answers from the website",
   ];

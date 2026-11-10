@@ -5,6 +5,7 @@ import { RADIUS_KM } from "@/lib/suburbCoords";
 import { CATS, HOME_FAQS, systemHref } from "@/lib/homepage/data";
 import { SYS_INTRO } from "@/lib/homepage/learn";
 import { entries, ourBrands, type Entry } from "./knowledge";
+import { priceLine, servicePrices, type ServicePrice } from "./servicePrices";
 import { codeKey, lead, normalise, words } from "./text";
 import type { AskReply, AskTurn } from "./types";
 
@@ -16,8 +17,8 @@ import type { AskReply, AskTurn } from "./types";
  * falls back to when the API fails or says something it mustn't, so it has to
  * hold up by itself. A handful of questions are recognised outright because a
  * word-overlap score gets them wrong or dangerous: a gas smell (safety lines,
- * never a matched FAQ), a price (the site hides them, so the honest answer is
- * the same every time), a fault code, a suburb and a brand. Everything else is
+ * never a matched FAQ), a price (install prices are never given, service and
+ * call-out prices are, from the service pages' own tables), a fault code, a suburb and a brand. Everything else is
  * scored by shared words, weighted by how rare each word is across the site's
  * answers, with the question text counting more than the answer text. Below a
  * confidence floor it says it isn't sure rather than offer the nearest miss.
@@ -50,11 +51,51 @@ const REBATE_Q = /\b(?:rebate|rebates|veu|veec|veecs|stc|stcs|solar victoria|vic
 
 const quoteFixed = HOME_FAQS.find((f) => /fixed/i.test(f.q))?.a ?? "";
 
+/** An install price question: never a figure. Every home is different. */
 export function priceAnswer(): AskReply {
   return reply(
-    `We don't put prices on the website: every home is different, so every job is priced at a free site check and you get a fixed written price. ${quoteFixed.split(/(?<=[.!?])\s+/)[0]}`.trim(),
+    `We don't give install prices online: every home is different, so every install is priced at a free site check and you get a fixed written price. ${quoteFixed.split(/(?<=[.!?])\s+/)[0]} Service and call-out prices I can tell you, just ask.`.trim(),
     { href: "/quote", label: "Get a free quote" },
   );
+}
+
+/**
+ * A service, repair or call-out price question. These are the one kind of
+ * price the chat gives (Jake, Nov 2026): the same fee wherever the house is,
+ * read from the service pages' price tables (servicePrices.ts).
+ */
+const SERVICE_Q = /\b(?:service|services|servicing|serviced|tune[- ]?up|clean(?:ing)?|call[- ]?out|callout|come out|visit|leak (?:detection|test|check)|diagnos\w*|repair|repairs|fix|fault|breakdown|after[- ]?hours|emergency)\b/;
+const CALLOUT_Q = /\b(?:call[- ]?out|callout|come out|visit|repair|repairs|fix|fault|breakdown|diagnos\w*|after[- ]?hours|emergency)\b/;
+
+const SERVICE_PAGE: Record<ServicePrice["topic"], { href: string; label: string }> = {
+  aircon: { href: "/services/aircon-servicing-repairs", label: "Aircon servicing & repairs" },
+  callout: { href: "/services/aircon-servicing-repairs", label: "Servicing & repairs" },
+  evap: { href: "/services/aircon-servicing-repairs", label: "Servicing & repairs" },
+  heating: { href: "/services/gas-plumbing", label: "Gas & plumbing" },
+  gas: { href: "/services/gas-plumbing", label: "Gas & plumbing" },
+};
+
+export function servicePriceAnswer(t: string): AskReply | null {
+  const all = servicePrices();
+  if (!all.length) return null;
+  const topics: ServicePrice["topic"][] = [];
+  if (/\bevap/.test(t)) topics.push("evap");
+  if (/\bgas ducted\b|\bducted (?:gas|heating)\b|\bheater\b|\bheating\b|\bfurnace\b/.test(t)) topics.push("heating");
+  else if (/\baircon\b|\bsplit\b|\bmultihead\b|\bducted\b|\breversecycle\b/.test(t)) topics.push("aircon");
+  if (/\bleak\b|\bgas (?:line|fitting|fitter|pipe|check)\b/.test(t)) topics.push("gas");
+  if (CALLOUT_Q.test(t)) topics.push("callout");
+  // A repair or a fault starts with a call-out, so that's the price asked
+  // for; the annual service list would answer a different question.
+  const want = topics.includes("callout") ? topics.filter((x) => x === "callout" || x === "gas") : topics;
+  let rows = all.filter((p) => (want.length ? want.includes(p.topic) : p.topic !== "gas"));
+  // "Ducted service" is the ducted row, not every aircon service.
+  const kind = [/\bducted\b/, /\bmultihead\b/, /\bsplit\b/].find((re) => re.test(t) && !/\bgas ducted\b/.test(t));
+  const named = kind ? rows.filter((p) => p.topic !== "aircon" || kind.test(normalise(p.what))) : rows;
+  if (named.some((p) => p.topic === "aircon")) rows = named;
+  if (!rows.length) return null;
+  const head = rows.every((p) => p.topic === "callout") ? "Our call-out fees" : "Our service prices";
+  const repair = topics.includes("callout") ? " A repair itself is priced in writing before we start, once we've found the fault." : " Anything we find that needs fixing is priced in writing before we touch it.";
+  return reply(`${head}: ${rows.map(priceLine).join("; ")}.${repair}`, SERVICE_PAGE[topics[0] ?? "aircon"]);
 }
 
 /* ------------------------------------------------------------ fault codes */
@@ -139,7 +180,7 @@ function suburbAnswer(q: string): AskReply | null {
   }
   if (/\b(?:do you (?:service|cover|come|go|travel|work)|service area|come out to|travel to)\b/.test(t)) {
     return reply(
-      `We cover Pakenham and about ${RADIUS_KM} km around it, across ${site.primaryRegion}. I couldn't find that suburb on our list, so the team can tell you for sure.`,
+      `We cover Pakenham and about ${RADIUS_KM} km around it, across ${site.primaryRegion}. I couldn't find that suburb on our list, so give us a call on ${site.phone} to check.`,
       { href: "/service-areas", label: "Areas we cover" },
       "unsure",
     );
@@ -172,7 +213,7 @@ function brandAnswer(q: string): AskReply | null {
   const servicing =
     aircon && svc && /all major brands/i.test(svc.blurb)
       ? " We do service and repair all major aircon brands, though, so we can still look after yours."
-      : " For a service or repair on one, ask the team and they'll tell you if we can help.";
+      : ` For a service or repair on one, call ${site.phone} and the office will tell you if we can help.`;
   return reply(`We don't install ${other}. The brands we fit are ${fitNames()}.${servicing}`, { href: "/brands", label: "Brands we install" });
 }
 
@@ -284,7 +325,7 @@ const FLOOR = { coverage: 0.5, score: 0.9 };
 
 export function unsure(): AskReply {
   return reply(
-    `I'm not sure about that one from what's on our site, and I'd rather not guess. The team can answer it: tap "Talk to the team", or call ${site.phone}.`,
+    `I'm not sure about that one from what's on our site, and I'd rather not guess. Give us a call on ${site.phone} and the office can answer it, or send the quote form and we'll come back to you.`,
     undefined,
     "unsure",
   );
@@ -298,7 +339,7 @@ const WHEN = /\b(?:how soon|how quickly|when can (?:you|someone|somebody)|soones
 
 export function whenAnswer(): AskReply {
   return reply(
-    `I can't see the booking diary from here, so I won't guess a day. The team books jobs: tap "Talk to the team" or call ${site.phone}. If it's an emergency (gas leak, no hot water), call now: it's answered 24/7.`,
+    `I can't see the booking diary from here, so I won't guess a day. The office books jobs: call ${site.phone} or send the quote form. If it's an emergency (gas leak, no hot water), call now: it's answered 24/7.`,
     { href: "/quote", label: "Request a quote or booking" },
     "unsure",
   );
@@ -311,7 +352,7 @@ export function localAnswer(question: string, history: AskTurn[] = []): AskReply
   const q = question.trim();
   const t = normalise(q);
   if (GREETING.test(q)) return reply("Hi! Ask me about air con, heating, hot water, gas, rebates or the areas we cover, and I'll answer from what's on our site.");
-  if (THANKS.test(q)) return reply("No worries. If you'd like a price, the free quote is the next step, or the team can take it from here.");
+  if (THANKS.test(q)) return reply(`No worries. If you'd like a price, the free quote is the next step, or call ${site.phone}.`);
   if (isEmergency(q)) return { ...reply(GAS_SAFETY, { href: `tel:${site.phoneE164}`, label: `Call ${site.phone}` }, "emergency") };
 
   const fault = faultAnswer(q);
@@ -319,7 +360,12 @@ export function localAnswer(question: string, history: AskTurn[] = []): AskReply
 
   // Rebates before prices: "how much is the VEU rebate" is a rebate question.
   const rebate = REBATE_Q.test(t);
-  if (PRICE.test(t) && !rebate && !RUNNING.test(t)) return priceAnswer();
+  if (PRICE.test(t) && !rebate && !RUNNING.test(t)) {
+    // Installs never get a figure; a service or a call-out does. A question
+    // that asks about both ("install or service?") gets the install answer.
+    if (SERVICE_Q.test(t) && !/\binstall|\bput in\b|\bnew (?:unit|system)\b|\breplace/.test(t)) return servicePriceAnswer(t) ?? priceAnswer();
+    return priceAnswer();
+  }
 
   if (WHEN.test(t)) return whenAnswer();
 

@@ -10,7 +10,7 @@ export type AskReply = {
   link?: { href: string; label: string };
   /**
    * answer: a real answer. unsure: nothing on the site covers it, so the
-   * visitor is pointed at the team. emergency: the gas safety lines, shown
+   * visitor is pointed at the phone. emergency: the gas safety lines, shown
    * with the phone number first.
    */
   kind: "answer" | "unsure" | "emergency";

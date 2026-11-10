@@ -20,21 +20,13 @@ export function ChatSettingsForm({ initial }: { initial: ChatSettings }) {
         e.preventDefault();
         start(async () => {
           const r = await saveSettingsAction(s);
-          setMsg(r.ok ? { ok: true, text: "Saved. The website picks up the chat switch within a minute." } : { ok: false, text: r.error ?? "Couldn't save." });
+          setMsg(r.ok ? { ok: true, text: "Saved." } : { ok: false, text: r.error ?? "Couldn't save." });
         });
       }}
     >
-      <label className="ch-switch">
-        <input type="checkbox" checked={s.widget} onChange={(e) => set("widget", e.target.checked)} />
-        <span>
-          <strong>Show the chat on the website</strong>
-          <em>
-            Every message needs a person to answer it, and the wall board rings for the first one from each visitor each day. Turn it on when
-            the office is ready to watch the inbox.
-          </em>
-        </span>
-      </label>
-
+      {/* The website chat switch is gone: the site's chat is instant answers
+          only now, with nobody to reply (Jake, Nov 2026), so there is nothing
+          for the office to turn on. The stored value is left as it was. */}
       <label className="pt-field">
         <span>
           Online booking link <em>· ServiceTitan&rsquo;s booking page, once it&rsquo;s set up</em>

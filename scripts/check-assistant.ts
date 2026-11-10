@@ -21,8 +21,9 @@ M._resolveFilename = function (req: string, ...rest: unknown[]) {
 const { localAnswer } = require("../src/lib/assistant/answer") as typeof import("../src/lib/assistant/answer");
 const { entries, allowedFigures } = require("../src/lib/assistant/knowledge") as typeof import("../src/lib/assistant/knowledge");
 const { dollarFigures, mentionsMoney } = require("../src/lib/assistant/text") as typeof import("../src/lib/assistant/text");
+const { serviceFigures } = require("../src/lib/assistant/servicePrices") as typeof import("../src/lib/assistant/servicePrices");
 
-type Case = { q: string; kind?: "answer" | "unsure" | "emergency"; has?: RegExp; link?: RegExp; history?: { q: string; a: string }[] };
+type Case = { q: string; kind?: "answer" | "unsure" | "emergency"; has?: RegExp; link?: RegExp; history?: { q: string; a: string }[]; service?: boolean };
 
 const CASES: Case[] = [
   { q: "how long does a split system install take", kind: "answer", has: /half a day|hours/i },
@@ -59,7 +60,16 @@ const CASES: Case[] = [
   { q: "what's an E1 error", kind: "answer", has: /brand/i },
   { q: "do I need a new power circuit for a split", kind: "answer", has: /switchboard/i },
   { q: "my heater smells like gas", kind: "emergency" },
-  { q: "is there a call out fee?", kind: "answer", has: /free site check/i },
+  // Service and call-out prices are given (Jake, Nov 2026); install prices never are.
+  { q: "is there a call out fee?", kind: "answer", has: /\$120.*waived/i, service: true },
+  { q: "how much is a split system service", kind: "answer", has: /\$220/, service: true },
+  { q: "what does it cost to service ducted aircon", kind: "answer", has: /\$390/, service: true },
+  { q: "how much for an evap service", kind: "answer", has: /\$220 \+ GST/, service: true },
+  { q: "gas heater service price?", kind: "answer", has: /\$280 \+ GST/, service: true },
+  { q: "what's your after-hours call-out fee", kind: "answer", has: /\$220 \+ parts/, service: true },
+  { q: "how much to fix my aircon", kind: "answer", has: /priced in writing/i, service: true },
+  { q: "how much to install and service a split", kind: "answer", has: /free site check/i },
+  { q: "price for a new ducted system", kind: "answer", has: /free site check/i },
   { q: "how much hot water do I need for 4 people", has: /./ },
   { q: "do you do commercial work", has: /./ },
   { q: "how soon can you come out", kind: "unsure", has: /booking diary/ },
@@ -79,7 +89,8 @@ for (const c of CASES) {
   if (c.kind && r.kind !== c.kind) problems.push(`kind ${r.kind}`);
   if (c.has && !c.has.test(r.text)) problems.push("text");
   if (c.link && !c.link.test(r.link?.href ?? "")) problems.push(`link ${r.link?.href ?? "none"}`);
-  const figures = dollarFigures(r.text).filter((f) => !allowedFigures().has(f));
+  // A service or call-out figure only where the case is a service price question.
+  const figures = dollarFigures(r.text).filter((f) => !allowedFigures().has(f) && !(c.service && serviceFigures().has(f)));
   if (figures.length) problems.push(`price ${figures.join(",")}`);
   if (problems.length) bad++;
   const text = all ? r.text : r.text.length > 150 ? `${r.text.slice(0, 147)}…` : r.text;

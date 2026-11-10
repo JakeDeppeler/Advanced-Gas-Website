@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { cleanText } from "@/lib/chat/chatTypes";
+import { cleanText, hashIp } from "@/lib/chat/chatTypes";
 import { isEmergency, localAnswer } from "@/lib/assistant/answer";
 import { askClaude } from "@/lib/assistant/llm";
+import { cleanPage, cleanSession, logAnswer } from "@/lib/assistant/log";
 import { ASK_LIMITS, assistantEnabled, type AskReply, type AskTurn } from "@/lib/assistant/types";
 
 export const runtime = "nodejs";
@@ -10,12 +11,14 @@ export const dynamic = "force-dynamic";
 /**
  * The website chat's instant answers.
  *
- * Public and unauthenticated, but it writes nothing anywhere: no database,
- * no lead, no log of what was asked. A question asked here only reaches the
- * office if the visitor chooses "Talk to the team", which goes through
- * /api/chat with their name and number like any other chat. So the guarding
- * is about cost and abuse, not data: a body cap, a question cap, a per-address
- * rate limit, and generic errors.
+ * Public and unauthenticated. Each question and its answer is written to
+ * chat_answers (lib/assistant/log.ts) so the office can read what people ask
+ * on the portal's Chat answers page; there is no person behind this chat any
+ * more, so that log is how anyone sees it (Jake, Nov 2026). Nothing else is
+ * written: no lead, no thread, and no name or number, because none is asked
+ * for. The address is kept only as a salted hash. The guarding is about cost
+ * and abuse: a body cap, a question cap, a per-address rate limit, and
+ * generic errors.
  *
  * Claude answers when ANTHROPIC_API_KEY is set; otherwise, and whenever the
  * model fails or says something it mustn't (llm.ts), the site's own FAQ
@@ -74,16 +77,29 @@ export async function POST(req: Request) {
 
   const question = cleanText(body.q, ASK_LIMITS.question);
   if (!question) return bad("Type a question first.");
-  if (limited(clientIp(req))) return bad("That's a lot of questions at once. Give it a minute, or talk to the team.", 429);
+  if (limited(clientIp(req))) return bad(`That's a lot of questions at once. Give it a minute, or call us.`, 429);
 
   const history = turns(body.history);
   const local = localAnswer(question, history);
+  // Logged under the widget's id for this tab; a request without one (an old
+  // tab, a script) is still answered and logged on its own.
+  const record = (reply: AskReply) => logAnswer({
+    session: cleanSession(body.session) ?? crypto.randomUUID(),
+    page: cleanPage(body.page),
+    question,
+    reply,
+    ipHash: hashIp(clientIp(req), process.env.SUPABASE_SERVICE_ROLE_KEY ?? "chat"),
+  });
 
   // The gas safety lines are always the fixed ones: a safety message is not
   // something to have reworded.
-  if (isEmergency(question)) return NextResponse.json({ reply: local }, { headers: noStore });
+  if (isEmergency(question)) {
+    await record(local);
+    return NextResponse.json({ reply: local }, { headers: noStore });
+  }
 
   const ai = await askClaude(question, history);
   const reply: AskReply = "text" in ai ? { text: ai.text, link: local.kind === "answer" ? local.link : undefined, kind: "answer", by: "ai" } : local;
+  await record(reply);
   return NextResponse.json({ reply }, { headers: noStore });
 }
