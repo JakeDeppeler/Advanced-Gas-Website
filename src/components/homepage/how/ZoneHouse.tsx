@@ -36,19 +36,19 @@ const PRESETS: { label: string; on: ZoneId[] }[] = [
   { label: "All off", on: [] },
 ];
 
-type Room = { name: string; x: number; y: number; w: number; h: number; zone?: ZoneId; vent?: [number, number]; lx?: number; ly?: number };
+type Room = { name: string; x: number; y: number; w: number; h: number; zone?: ZoneId; vents?: [number, number][]; lx?: number; ly?: number };
 
 /** The plan, in the same coordinates as the walls below. */
 const ROOMS: Room[] = [
-  { name: "Living", x: 160, y: 40, w: 200, h: 170, zone: "living", vent: [312, 128] },
-  { name: "Bed 4", x: 360, y: 40, w: 130, h: 150, zone: "kids", vent: [380, 120] },
-  { name: "Bed 3", x: 490, y: 40, w: 110, h: 150, zone: "kids", vent: [506, 172] },
-  { name: "Kitchen / Dining", x: 160, y: 210, w: 220, h: 230, zone: "kitchen", vent: [272, 292] },
+  { name: "Living", x: 160, y: 40, w: 200, h: 170, zone: "living", vents: [[190, 124], [270, 66]] },
+  { name: "Bed 4", x: 360, y: 40, w: 130, h: 150, zone: "kids", vents: [[466, 64]] },
+  { name: "Bed 3", x: 490, y: 40, w: 110, h: 150, zone: "kids", vents: [[586, 92]] },
+  { name: "Kitchen / Dining", x: 160, y: 210, w: 220, h: 230, zone: "kitchen", vents: [[200, 292], [328, 296]] },
   { name: "Hall", x: 380, y: 190, w: 50, h: 350, lx: 405, ly: 470 },
-  { name: "Bath", x: 430, y: 190, w: 170, h: 80, zone: "bath", vent: [522, 206] },
-  { name: "Bed 2", x: 430, y: 270, w: 170, h: 100, zone: "kids", vent: [460, 346] },
-  { name: "Main bed", x: 430, y: 370, w: 170, h: 170, zone: "master", vent: [455, 455] },
-  { name: "Study", x: 160, y: 440, w: 110, h: 100, zone: "study", vent: [252, 488] },
+  { name: "Bath", x: 430, y: 190, w: 170, h: 80, zone: "bath", vents: [[522, 206]] },
+  { name: "Bed 2", x: 430, y: 270, w: 170, h: 100, zone: "kids", vents: [[460, 346]] },
+  { name: "Main bed", x: 430, y: 370, w: 170, h: 170, zone: "master", vents: [[455, 455]] },
+  { name: "Study", x: 160, y: 440, w: 110, h: 100, zone: "study", vents: [[252, 488]] },
   { name: "Entry", x: 270, y: 440, w: 110, h: 100 },
 ];
 
@@ -179,7 +179,9 @@ export function ZoneHouse() {
           <Door x={200} y={440} r={24} rot={0} /><Door x={300} y={540} r={28} rot={-90} />
           <Win x={200} y={40} w={80} /><Win x={390} y={40} w={70} /><Win x={515} y={40} w={60} /><Win x={600} y={290} w={60} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v />
 
-          {ROOMS.filter((r) => r.vent).map((r) => <Vent key={r.name} x={r.vent![0]} y={r.vent![1]} on={on[r.zone!]} ink={m.ink} />)}
+          {/* Vents by the windows, where the heat comes in or goes out (Jake, Nov
+              2026), and two in the big living and kitchen/dining rooms. */}
+          {ROOMS.flatMap((r) => (r.vents ?? []).map(([x, y]) => <Vent key={`${r.name}${x}`} x={x} y={y} on={on[r.zone!]} ink={m.ink} />))}
 
           {ROOMS.map((r) => {
             const live = r.zone ? on[r.zone] : null;
