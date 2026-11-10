@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./how.css";
 
 /**
  * Zoning, shown simply on a real floor plan: a four-bedroom single storey
  * with its hallway, entry, bathroom, garage and alfresco, and a button for
  * each zone. Turn a zone on and its rooms light up and their ceiling vents
- * blow; turn it off and they go quiet. The hall, bathroom and entry aren't
- * zones, as in most homes, so they stay as they are.
+ * blow and come to the set temperature; turn it off and they drift towards
+ * the weather. Cooling or heating is a switch. The hall and entry aren't
+ * zones, as in most homes; the bathroom is (Jake asked for it).
  *
  * This replaced a full simulator (duct sizes, dampers, set points, a wall
  * controller) and then a plain grid of boxes. Jake asked for "a real floor
@@ -16,7 +17,8 @@ import "./how.css";
  * 2026). Both earlier versions are in git history.
  */
 
-type ZoneId = "living" | "kitchen" | "master" | "kids" | "study";
+type ZoneId = "living" | "kitchen" | "master" | "kids" | "study" | "bath";
+type Mode = "cool" | "heat";
 
 const ZONES: { id: ZoneId; name: string }[] = [
   { id: "living", name: "Living" },
@@ -24,10 +26,11 @@ const ZONES: { id: ZoneId; name: string }[] = [
   { id: "master", name: "Main bedroom" },
   { id: "kids", name: "Kids' bedrooms" },
   { id: "study", name: "Study" },
+  { id: "bath", name: "Bathroom" },
 ];
 
 const PRESETS: { label: string; on: ZoneId[] }[] = [
-  { label: "All on", on: ["living", "kitchen", "master", "kids", "study"] },
+  { label: "All on", on: ["living", "kitchen", "master", "kids", "study", "bath"] },
   { label: "Daytime", on: ["living", "kitchen", "study"] },
   { label: "Night", on: ["master", "kids"] },
   { label: "All off", on: [] },
@@ -42,14 +45,21 @@ const ROOMS: Room[] = [
   { name: "Bed 3", x: 490, y: 40, w: 110, h: 150, zone: "kids", vent: [506, 172] },
   { name: "Kitchen / Dining", x: 160, y: 210, w: 220, h: 230, zone: "kitchen", vent: [272, 292] },
   { name: "Hall", x: 380, y: 190, w: 50, h: 350, lx: 405, ly: 470 },
-  { name: "Bath", x: 430, y: 190, w: 170, h: 80, lx: 518 },
+  { name: "Bath", x: 430, y: 190, w: 170, h: 80, zone: "bath", vent: [522, 206] },
   { name: "Bed 2", x: 430, y: 270, w: 170, h: 100, zone: "kids", vent: [460, 346] },
   { name: "Main bed", x: 430, y: 370, w: 170, h: 170, zone: "master", vent: [455, 455] },
-  { name: "Study", x: 160, y: 440, w: 110, h: 100, zone: "study", vent: [242, 468] },
+  { name: "Study", x: 160, y: 440, w: 110, h: 100, zone: "study", vent: [252, 488] },
   { name: "Entry", x: 270, y: 440, w: 110, h: 100 },
 ];
 
 const WALL = "#2B3140";
+
+/** The set point, and where a room drifts to with its zone off: a 34° day or an 8° night outside. */
+const SET = 22;
+const MODE = {
+  cool: { label: "Cooling", outside: 34, drift: 28, ink: "#1F5FBF", tint: "#E4ECF8" },
+  heat: { label: "Heating", outside: 8, drift: 15, ink: "#C2521A", tint: "#FFEBDC" },
+} as const;
 
 function Door({ x, y, r, rot = 0 }: { x: number; y: number; r: number; rot?: number }) {
   return (
@@ -78,7 +88,7 @@ function Fittings() {
       <rect x="300" y="380" width="60" height="26" rx="2" {...f} />
       <rect x="200" y="350" width="64" height="34" rx="4" {...f} />
       {[[208, 344], [236, 344], [208, 384], [236, 384]].map(([x, y]) => <rect key={`${x}${y}`} x={x} y={y} width="18" height="7" rx="2" {...f} />)}
-      <rect x="540" y="198" width="54" height="64" rx="10" {...f} /><rect x="440" y="198" width="44" height="22" rx="3" {...f} /><ellipse cx="505" cy="250" rx="9" ry="12" {...f} />
+      <rect x="540" y="198" width="54" height="64" rx="10" {...f} /><rect x="440" y="244" width="44" height="22" rx="3" {...f} /><ellipse cx="505" cy="250" rx="9" ry="12" {...f} />
       <path d="M520 370 v60 h80" fill="none" stroke={WALL} strokeWidth="3" />
       <rect x="534" y="380" width="26" height="16" rx="3" {...f} /><ellipse cx="582" cy="392" rx="8" ry="10" {...f} />
       <rect x="172" y="506" width="76" height="26" {...f} />
@@ -87,13 +97,13 @@ function Fittings() {
 }
 
 /** A round ceiling vent, with air rippling out of it while its zone is on. */
-function Vent({ x, y, on }: { x: number; y: number; on: boolean }) {
-  const c = on ? "#C2521A" : "#B4BBC6";
+function Vent({ x, y, on, ink }: { x: number; y: number; on: boolean; ink: string }) {
+  const c = on ? ink : "#B4BBC6";
   return (
     <g style={{ pointerEvents: "none" }}>
       {on && <>
-        <circle className="zs__ring" cx={x} cy={y} r="11" fill="none" stroke="#C2521A" strokeWidth="2" />
-        <circle className="zs__ring zs__ring--2" cx={x} cy={y} r="11" fill="none" stroke="#C2521A" strokeWidth="2" />
+        <circle className="zs__ring" cx={x} cy={y} r="11" fill="none" stroke={ink} strokeWidth="2" />
+        <circle className="zs__ring zs__ring--2" cx={x} cy={y} r="11" fill="none" stroke={ink} strokeWidth="2" />
       </>}
       <circle cx={x} cy={y} r="11" fill="#fff" stroke={c} strokeWidth="2.2" />
       <circle cx={x} cy={y} r="5" fill="none" stroke={c} strokeWidth="1.8" />
@@ -103,9 +113,34 @@ function Vent({ x, y, on }: { x: number; y: number; on: boolean }) {
 
 export function ZoneHouse() {
   // Starts as a weekday afternoon would: the living areas on, the bedrooms off.
-  const [on, setOn] = useState<Record<ZoneId, boolean>>({ living: true, kitchen: true, master: false, kids: false, study: true });
+  const [on, setOn] = useState<Record<ZoneId, boolean>>({ living: true, kitchen: true, master: false, kids: false, study: true, bath: false });
+  const [mode, setMode] = useState<Mode>("cool");
+  const m = MODE[mode];
+  const [temp, setTemp] = useState<Record<ZoneId, number>>(() => Object.fromEntries(ZONES.map((z) => [z.id, on[z.id] ? SET : MODE.cool.drift])) as Record<ZoneId, number>);
   const toggle = (id: ZoneId) => setOn((s) => ({ ...s, [id]: !s[id] }));
   const count = ZONES.filter((z) => on[z.id]).length;
+
+  // Each room walks a degree at a time towards where it's heading, so turning
+  // a zone on shows the room coming to temperature rather than jumping there.
+  // With reduced motion asked for, it simply shows where each room ends up.
+  useEffect(() => {
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const t = setInterval(() => {
+      setTemp((cur) => {
+        let moved = false;
+        const next = { ...cur };
+        for (const z of ZONES) {
+          const goal = on[z.id] ? SET : MODE[mode].drift;
+          if (cur[z.id] !== goal) {
+            moved = true;
+            next[z.id] = still ? goal : cur[z.id] + Math.sign(goal - cur[z.id]);
+          }
+        }
+        return moved ? next : cur;
+      });
+    }, 650);
+    return () => clearInterval(t);
+  }, [on, mode]);
 
   return (
     <div className="zs">
@@ -130,7 +165,7 @@ export function ZoneHouse() {
 
           {ROOMS.map((r) => (
             <rect key={r.name} x={r.x} y={r.y} width={r.w} height={r.h}
-              fill={r.zone ? (on[r.zone] ? "#FFEBDC" : "url(#zs-off)") : "#FAFAFB"}
+              fill={r.zone ? (on[r.zone] ? m.tint : "url(#zs-off)") : "#FAFAFB"}
               className={r.zone ? "zs__hit" : undefined} style={{ transition: "fill .3s" }}
               onClick={r.zone ? () => toggle(r.zone!) : undefined} />
           ))}
@@ -144,7 +179,7 @@ export function ZoneHouse() {
           <Door x={200} y={440} r={24} rot={0} /><Door x={300} y={540} r={28} rot={-90} />
           <Win x={200} y={40} w={80} /><Win x={390} y={40} w={70} /><Win x={515} y={40} w={60} /><Win x={600} y={290} w={60} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v />
 
-          {ROOMS.filter((r) => r.vent).map((r) => <Vent key={r.name} x={r.vent![0]} y={r.vent![1]} on={on[r.zone!]} />)}
+          {ROOMS.filter((r) => r.vent).map((r) => <Vent key={r.name} x={r.vent![0]} y={r.vent![1]} on={on[r.zone!]} ink={m.ink} />)}
 
           {ROOMS.map((r) => {
             const live = r.zone ? on[r.zone] : null;
@@ -155,8 +190,9 @@ export function ZoneHouse() {
                 <text x={x} y={y} textAnchor={mid ? "middle" : "start"} className={`zs__room${r.zone ? "" : " zs__room--plain"}`} opacity={live === false ? 0.6 : 1}>{r.name}</text>
                 {live != null && (
                   <g transform={`translate(${mid ? x - 18 : x} ${y + 8})`}>
-                    <rect width="36" height="18" rx="9" fill={live ? "#C2521A" : "#fff"} stroke={live ? "#C2521A" : "#B4BBC6"} strokeWidth="1.2" />
+                    <rect width="36" height="18" rx="9" fill={live ? m.ink : "#fff"} stroke={live ? m.ink : "#B4BBC6"} strokeWidth="1.2" />
                     <text x="18" y="12.5" textAnchor="middle" className="zs__state" fill={live ? "#fff" : "#5D5D64"}>{live ? "On" : "Off"}</text>
+                    <text x="42" y="13.5" className="zs__temp" fill={live ? m.ink : "#6B7480"}>{`${temp[r.zone!]}°`}</text>
                   </g>
                 )}
               </g>
@@ -168,12 +204,19 @@ export function ZoneHouse() {
       <div className="zs__panel">
         <div className="zs__head">
           <strong>Your zones</strong>
-          <span aria-live="polite">{count} of {ZONES.length} on</span>
+          <span aria-live="polite">{count} of {ZONES.length} on · set to {SET}°</span>
+        </div>
+        <div className="zs__mode" role="group" aria-label="Cooling or heating">
+          {(["cool", "heat"] as const).map((k) => (
+            <button key={k} type="button" className={mode === k ? "on" : ""} aria-pressed={mode === k} onClick={() => setMode(k)}>
+              {MODE[k].label}<small>{MODE[k].outside}° outside</small>
+            </button>
+          ))}
         </div>
         <div className="zs__list">
           {ZONES.map((z) => (
-            <button key={z.id} type="button" className={`zs__btn${on[z.id] ? " on" : ""}`} aria-pressed={on[z.id]} onClick={() => toggle(z.id)}>
-              {z.name}<em aria-hidden="true">{on[z.id] ? "On" : "Off"}</em>
+            <button key={z.id} type="button" className={`zs__btn${on[z.id] ? " on" : ""}`} style={on[z.id] ? { background: m.ink, borderColor: m.ink } : undefined} aria-pressed={on[z.id]} onClick={() => toggle(z.id)}>
+              <span>{z.name}<small>{temp[z.id]}°</small></span><em aria-hidden="true" style={on[z.id] ? { color: m.ink } : undefined}>{on[z.id] ? "On" : "Off"}</em>
             </button>
           ))}
         </div>
@@ -182,7 +225,7 @@ export function ZoneHouse() {
             <button key={p.label} type="button" onClick={() => setOn(Object.fromEntries(ZONES.map((z) => [z.id, p.on.includes(z.id)])) as Record<ZoneId, boolean>)}>{p.label}</button>
           ))}
         </div>
-        <p className="zs__note">Each zone has its own button. Run the rooms you&apos;re using and leave the rest off, from the wall controller, or your phone with a Wi-Fi controller. Halls and bathrooms usually aren&apos;t zoned.</p>
+        <p className="zs__note">Each zone has its own button. Run the rooms you&apos;re using and leave the rest off, from the wall controller, or your phone with a Wi-Fi controller. Rooms that are off drift towards the weather outside; turn one on and it comes back to {SET}°.</p>
       </div>
     </div>
   );
