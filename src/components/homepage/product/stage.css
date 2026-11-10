@@ -138,6 +138,13 @@
 .ag .pxp .bk__sec--navy .lk2__tl{margin-top:4px}
 .ag .pxp .bk__cta .bxh__ctas{gap:10px}
 
+/* The savings calculator in the system page's navy box: its headline span in
+   the hot water orange, not the brand colour the .bk bands give headings */
+.ag .pxp .pxs--hot{scroll-margin-top:136px}
+.ag .pxp .pxs--hot .h2{color:#fff}
+.ag .pxp .pxs--hot .h2 span{color:#FF9A5C}
+.ag .pxp .pxk__hotlede{margin:0;font-size:17px;line-height:1.6;color:rgba(255,255,255,.84)}
+
 @keyframes stgUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes stgPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes stgFlow{0%{stroke-dashoffset:120;opacity:0}20%{opacity:.9}100%{stroke-dashoffset:0;opacity:0}}

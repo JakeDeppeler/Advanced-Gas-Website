@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   type PV, Crumbs, ProsCons, SavingsCalc, isHeatPumpOption, WhyList, FitFinder,
-  Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky,
+  Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
 import { HowItWorks } from "../how/HowItWorks";
 import { ZoneHouse } from "../how/ZoneHouse";
@@ -95,10 +95,15 @@ export function ProductLayout({ v }: { v: PV }) {
       </section>
 
       {isHeatPumpOption(v) && (
-        <section className="bk__sec bk__sec--cream" id="savings">
-          <div className="wrap"><div className="bk__blk bk__col">
-            <Head h="How much could you {save}?">Two taps and we&apos;ll compare what you pay now with what this heat pump costs to run.</Head>
-            <div className="pbox"><SavingsCalc v={v} /></div>
+        // The same navy box with the hot water orange as the heat pump system
+        // page's calculator (Jake, Nov 2026: every savings calculator should
+        // look like that one), rather than a plain band in the brand's colour.
+        <section className="pxs pxs--hot" id="savings">
+          <div className="wrap"><div className="pp__col pxs__hotbox">
+            <Lead dark eye="Running costs" h={<>How much could the {t.model} <span>save you</span>?</>}>
+              <p className="pxk__hotlede">Two taps: what you have now and how many live there. Here&apos;s what it would cost to run against it.</p>
+            </Lead>
+            <SavingsCalc v={v} />
           </div></div>
         </section>
       )}
