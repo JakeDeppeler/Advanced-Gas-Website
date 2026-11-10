@@ -106,7 +106,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       {ZONED.has(sys.slug) && (
         <section className="pxs" id="zones">
           <div className="wrap pp__col">
-            <Head eye="Try it" h="How zones work." lede="Turn rooms on and off and watch the dampers, the air and the outdoor unit. Tap a room in the house or use the switches." />
+            <Head eye="Try it" h="How zones work." lede="Every room gets its own button. Tap a room in the plan, or use the switches beside it." />
             <ZoneHouse />
           </div>
         </section>

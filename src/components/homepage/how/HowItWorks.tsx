@@ -13,6 +13,11 @@ import "./how.css";
  * outdoor unit. Air, water, gas and refrigerant move in the direction they
  * really go, as particles along the pipes.
  *
+ * Kept real but simple (Jake, Nov 2026): the equipment and what moves
+ * through it are drawn as they are; the scenery that was only decoration
+ * (sun, clouds, trees, fences, lamps, rugs, curtains, roof trusses, every
+ * brick) is gone, so the eye lands on the system.
+ *
  * Steps advance on their own while the diagram is on screen, until someone
  * picks one. The whole drawing stays on screen throughout; a step lights its
  * part rather than zooming in on it. With reduced motion asked for, nothing
@@ -37,8 +42,8 @@ function Defs({ p }: { p: string }) {
   const id = (n: string) => `${p}-${n}`;
   return (
     <defs>
-      <linearGradient id={id("sky")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#CFE9FA" /><stop offset="1" stopColor="#F3F9FD" /></linearGradient>
-      <linearGradient id={id("grass")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#9CC98A" /><stop offset="0.25" stopColor="#7DB46B" /><stop offset="1" stopColor="#5E9550" /></linearGradient>
+      <linearGradient id={id("sky")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#EDF2F7" /><stop offset="1" stopColor="#FAFBFD" /></linearGradient>
+      <linearGradient id={id("grass")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#D3DCC9" /><stop offset="1" stopColor="#BFCBB3" /></linearGradient>
       <linearGradient id={id("wall")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FFFDF8" /><stop offset="1" stopColor="#F1EBE1" /></linearGradient>
       <linearGradient id={id("metal")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FFFFFF" /><stop offset="0.7" stopColor="#EEF1F5" /><stop offset="1" stopColor="#D9DFE7" /></linearGradient>
       <linearGradient id={id("metalD")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#4A5470" /><stop offset="1" stopColor="#252C40" /></linearGradient>
@@ -54,13 +59,12 @@ function Defs({ p }: { p: string }) {
       <linearGradient id={id("roofspace")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#E7DCCB" /><stop offset="1" stopColor="#F4EEE4" /></linearGradient>
       <radialGradient id={id("glow")}><stop offset="0" stopColor="#FFB347" stopOpacity=".75" /><stop offset="1" stopColor="#FF7A36" stopOpacity="0" /></radialGradient>
       <radialGradient id={id("sun")}><stop offset="0" stopColor="#FFE58A" /><stop offset="1" stopColor="#FFC229" /></radialGradient>
+      {/* Brick as a flat colour with its courses, not every brick drawn: the wall is there to hold the unit, not to be looked at (Jake, Nov 2026: real but simple). */}
       <pattern id={id("brick")} width="28" height="14" patternUnits="userSpaceOnUse">
-        <rect width="28" height="14" fill="#E6DCCF" />
-        <rect x="0.8" y="0.8" width="12.4" height="5.4" rx="0.8" fill="#C46E47" /><rect x="14.8" y="0.8" width="12.4" height="5.4" rx="0.8" fill="#B9623E" />
-        <rect x="-6.2" y="7.8" width="12.4" height="5.4" rx="0.8" fill="#B9623E" /><rect x="7.8" y="7.8" width="12.4" height="5.4" rx="0.8" fill="#C97852" /><rect x="21.8" y="7.8" width="12.4" height="5.4" rx="0.8" fill="#C46E47" />
+        <rect width="28" height="14" fill="#C9896C" /><path d="M0 0.4 H28 M0 7.4 H28" stroke="#B87657" strokeWidth=".8" />
       </pattern>
       <pattern id={id("boards")} width="46" height="12" patternUnits="userSpaceOnUse">
-        <rect width="46" height="12" fill="#D8B486" /><path d="M0 6 H46 M14 0 V6 M36 6 V12" stroke="#BF9663" strokeWidth="1" />
+        <rect width="46" height="12" fill="#E3CBA8" /><path d="M0 6 H46" stroke="#D6BB95" strokeWidth=".8" />
       </pattern>
       <pattern id={id("tiles")} width="16" height="16" patternUnits="userSpaceOnUse">
         <rect width="16" height="16" fill="#F4F7FA" /><path d="M0 0.5 H16 M0.5 0 V16" stroke="#D6DEE7" strokeWidth="1" />
@@ -200,26 +204,7 @@ function Flame({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   );
 }
 
-function Sun({ cx, cy }: { cx: number; cy: number }) {
-  const u = useU();
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r="40" fill="#FFE27A" opacity=".25" />
-      <g className="hw-spin hw-spin--slow" style={{ transformOrigin: `${cx}px ${cy}px` }}>
-        {Array.from({ length: 12 }, (_, i) => <line key={i} x1={cx} y1={cy - 30} x2={cx} y2={cy - (i % 2 ? 36 : 40)} stroke="#F5B700" strokeWidth="3" strokeLinecap="round" transform={`rotate(${i * 30} ${cx} ${cy})`} />)}
-      </g>
-      <circle cx={cx} cy={cy} r="22" fill={u("sun")} />
-    </g>
-  );
-}
 
-function Cloud({ x, y, s = 1, dark = false }: { x: number; y: number; s?: number; dark?: boolean }) {
-  return (
-    <g className="hw-drift" transform={`translate(${x} ${y}) scale(${s})`}>
-      <path d="M-34 10 a14 14 0 0 1 10-22 a20 20 0 0 1 36-6 a15 15 0 0 1 22 14 a12 12 0 0 1-2 14Z" fill={dark ? "#C3CDD9" : "#fff"} opacity=".95" />
-    </g>
-  );
-}
 
 /** A timer, for a heat pump that runs while the sun is up or power is cheap. */
 function Clock({ cx, cy }: { cx: number; cy: number }) {
@@ -295,14 +280,15 @@ const Ground = () => {
   return (
     <g>
       <rect x="0" y="350" width="600" height="50" fill={u("grass")} />
-      <path d="M0 352 H600" stroke="#B9D8A8" strokeWidth="2" />
+      <path d="M0 351 H600" stroke="#C6D0BB" strokeWidth="1.5" />
     </g>
   );
 };
 
 /** Wall colours for the rooms: [back wall, side walls]. */
 const PAINT = {
-  cream: ["#FFFCF6", "#EFE7DA"], blue: ["#F0F5FA", "#DCE5EF"], warm: ["#FCF3E6", "#EEDFC9"], sage: ["#F2F6EE", "#DDE6D6"],
+  // One quiet off-white for every room: the pastel walls competed with the air and water that are the point.
+  cream: ["#FFFDF9", "#EEE9E0"], blue: ["#FFFDF9", "#EEE9E0"], warm: ["#FFFDF9", "#EEE9E0"], sage: ["#FFFDF9", "#EEE9E0"],
 } as const;
 type Tone = keyof typeof PAINT;
 
@@ -338,19 +324,9 @@ function Window({ x, y, w, h, curtains = false }: { x: number; y: number; w: num
     <g>
       <rect x={x - 4} y={y - 4} width={w + 8} height={h + 8} rx="2" fill="#fff" stroke="#D3CCC0" />
       <rect x={x} y={y} width={w} height={h} fill={u("glass")} />
-      <path d={`M${x} ${y + h * 0.78} q${w * 0.25} -10 ${w * 0.5} -4 t${w * 0.5} 2 V${y + h} H${x}Z`} fill="#A9CF96" opacity=".7" />
       <path d={`M${x + w / 2} ${y} V${y + h} M${x} ${y + h * 0.45} H${x + w}`} stroke="#fff" strokeWidth="3" />
       <path d={`M${x + 6} ${y + h - 10} L${x + w * 0.4} ${y + 8}`} stroke="#fff" strokeOpacity=".6" strokeWidth="3" />
       <rect x={x - 6} y={y + h + 2} width={w + 12} height="5" rx="2" fill="#EDE6DA" />
-      {curtains && (
-        <g>
-          <rect x={x - 12} y={y - 9} width={w + 24} height="3" rx="1.5" fill="#8A7360" />
-          {[x - 11, x + w + 1].map((cx, i) => (
-            <path key={i} d={`M${cx} ${y - 6} h10 v${h + 12} q-5 3 -10 0Z`} fill={i ? "#C9B79C" : "#D4C3A8"} />
-          ))}
-          <path d={`M${x - 8} ${y - 6} v${h + 10} M${x + w + 5} ${y - 6} v${h + 10}`} stroke="#B4A285" strokeWidth="1" />
-        </g>
-      )}
     </g>
   );
 }
@@ -370,105 +346,21 @@ function Vanity({ x, y, w = 56 }: { x: number; y: number; w?: number }) {
   );
 }
 
-/** A pendant light hanging from the ceiling, lit. */
-function Pendant({ x, y, len = 26 }: { x: number; y: number; len?: number }) {
-  return (
-    <g>
-      <line x1={x} y1={y} x2={x} y2={y + len} stroke="#55607A" strokeWidth="1.2" />
-      <ellipse cx={x} cy={y + len + 10} rx="22" ry="14" fill="#FFE7A8" opacity=".25" />
-      <path d={`M${x - 9} ${y + len + 9} L${x - 4} ${y + len} H${x + 4} L${x + 9} ${y + len + 9}Z`} fill="#2F3A55" />
-      <ellipse cx={x} cy={y + len + 9} rx="4" ry="1.8" fill="#FFF3C4" />
-    </g>
-  );
-}
 
-function Rug({ cx, cy, rx }: { cx: number; cy: number; rx: number }) {
-  return <ellipse cx={cx} cy={cy} rx={rx} ry="6" fill="#D9B79A" opacity=".75" />;
-}
 
-function Chair({ x, y, flip = false }: { x: number; y: number; flip?: boolean }) {
-  const s = flip ? -1 : 1;
-  return (
-    <g>
-      <path d={`M${x} ${y} v26 M${x} ${y + 14} h${12 * s} v12`} stroke="#7B5A3E" strokeWidth="3" fill="none" />
-      <rect x={flip ? x - 12 : x} y={y + 11} width="13" height="4" rx="1" fill="#9A7350" />
-    </g>
-  );
-}
 
-function BedLamp({ x, y }: { x: number; y: number }) {
-  return (
-    <g>
-      <rect x={x} y={y} width="16" height="18" rx="2" fill="#B08A66" />
-      <line x1={x + 8} y1={y} x2={x + 8} y2={y - 10} stroke="#55607A" strokeWidth="1.5" />
-      <path d={`M${x + 2} ${y - 9} L${x + 4} ${y - 17} H${x + 12} L${x + 14} ${y - 9}Z`} fill="#F5E6C8" />
-      <ellipse cx={x + 8} cy={y - 8} rx="14" ry="9" fill="#FFE7A8" opacity=".25" />
-    </g>
-  );
-}
 
-/** A tree behind the house, softened so it sits back. */
-function Tree({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${s})`} opacity=".9">
-      <rect x="-3" y="0" width="6" height="40" fill="#8A6B4E" />
-      <circle cx="0" cy="-12" r="22" fill="#86B575" />
-      <circle cx="-16" cy="2" r="15" fill="#7DAE6B" />
-      <circle cx="15" cy="0" r="16" fill="#76A865" />
-      <circle cx="4" cy="-26" r="13" fill="#93BF82" />
-    </g>
-  );
-}
 
-function Shrub({ x, y }: { x: number; y: number }) {
-  return (
-    <g>
-      <ellipse cx={x} cy={y} rx="18" ry="11" fill="#5E9550" />
-      <ellipse cx={x - 9} cy={y - 4} rx="9" ry="7" fill="#6FA45F" />
-      <ellipse cx={x + 8} cy={y - 5} rx="8" ry="6" fill="#77AC66" />
-    </g>
-  );
-}
 
-/** Ceiling insulation: batts laid between the joists, fluffy side up. */
-function Batts({ x1, x2, y }: { x1: number; x2: number; y: number }) {
-  const n = Math.floor((x2 - x1) / 10);
-  return (
-    <g>
-      <rect x={x1} y={y} width={x2 - x1} height="12" fill="#F2B8A6" />
-      <path d={`M${x1} ${y + 2} ${Array.from({ length: n }, () => "q2.5 -5 5 0 q2.5 4 5 0").join(" ")}`} fill="none" stroke="#F7CDBF" strokeWidth="3" />
-      {Array.from({ length: Math.floor((x2 - x1) / 48) + 1 }, (_, i) => <rect key={i} x={x1 + i * 48} y={y + 3} width="5" height="9" fill="#C9A473" />)}
-    </g>
-  );
-}
 
 /** The roof space: the triangle under the tiles, its trusses, and the foil sarking. */
 function RoofSpace({ l, r, top, eave, space = true }: { l: number; r: number; top: number; eave: number; space?: boolean }) {
   const u = useU();
   const mid = (l + r) / 2;
-  const at = (k: number, side: -1 | 1) => [mid + side * (mid - l) * k, top + (eave - top) * k] as const;
   return (
     <g>
       <polygon points={`${l},${eave} ${mid},${top} ${r},${eave}`} fill={space ? u("roofspace") : "#E9DFD0"} />
-      {space && (
-        <g>
-          <polyline points={`${l + 6},${eave - 2} ${mid},${top + 5} ${r - 6},${eave - 2}`} fill="none" stroke="#D9DDE3" strokeWidth="2" />
-          <polyline points={`${l + 10},${eave - 1} ${mid},${top + 9} ${r - 10},${eave - 1}`} fill="none" stroke="#C9A473" strokeWidth="5" strokeLinejoin="round" />
-          <g stroke="#D2B48A" strokeWidth="3.5">
-            <line x1={mid} y1={top + 9} x2={mid} y2={eave} />
-            {([-1, 1] as const).map((s) => {
-              const [ax, ay] = at(0.5, s), [bx, by] = at(0.75, s);
-              return (
-                <g key={s}>
-                  <line x1={mid} y1={eave} x2={ax} y2={ay + 4} />
-                  <line x1={ax} y1={eave} x2={ax} y2={ay + 4} />
-                  <line x1={ax} y1={eave} x2={bx} y2={by + 3} />
-                </g>
-              );
-            })}
-          </g>
-        </g>
-      )}
+      {space && <polyline points={`${l + 8},${eave - 1} ${mid},${top + 7} ${r - 8},${eave - 1}`} fill="none" stroke="#D8C7AE" strokeWidth="3" strokeLinejoin="round" />}
     </g>
   );
 }
@@ -482,7 +374,6 @@ function RoofTiles({ l, r, top, eave }: { l: number; r: number; top: number; eav
       <polyline points={pts} fill="none" stroke="#7A3A28" strokeWidth="14" strokeLinejoin="round" />
       <polyline points={pts} fill="none" stroke="#A9573D" strokeWidth="12" strokeLinejoin="round" />
       <polyline points={pts} fill="none" stroke="#C26A4C" strokeWidth="4" strokeLinejoin="round" transform="translate(0 -3)" />
-      <polyline points={pts} fill="none" stroke="#7A3A28" strokeWidth="12" strokeLinejoin="round" strokeDasharray="1.5 8" />
       <rect x={mid - 9} y={top - 14} width="18" height="9" rx="4" fill="#8E4630" />
       {[l - 14, r + 2].map((x) => (
         <g key={x}>
@@ -513,8 +404,6 @@ function Diffuser({ x, y, c, on = true }: { x: number; y: number; c: string; on?
   );
 }
 
-/** A strap from a roof timber holding a duct up. */
-const Strap = ({ x, y1, y2 }: { x: number; y1: number; y2: number }) => <line x1={x} y1={y1} x2={x} y2={y2} stroke="#8A8F99" strokeWidth="1.4" />;
 
 
 const Brick = ({ x, y, w, h }: { x: number; y: number; w: number; h: number }) => {
@@ -564,14 +453,6 @@ function Table({ x, y, w }: { x: number; y: number; w: number }) {
   );
 }
 
-function Plant({ x, y }: { x: number; y: number }) {
-  return (
-    <g>
-      <path d={`M${x} ${y} c-12-10-14-26-4-34 c2 12 4 20 4 34 c0-14 6-24 16-30 c4 12-4 24-16 30`} fill="#5E9C5A" />
-      <path d={`M${x - 9} ${y} h18 l-3 16 h-12z`} fill="#C97852" />
-    </g>
-  );
-}
 
 
 /** A label on a white pill so it reads over anything. */
@@ -708,19 +589,6 @@ function GasMeter({ x, y }: { x: number; y: number }) {
   );
 }
 
-/** A timber paling fence along the back of the yard. */
-function Fence({ x1, x2, y = 352, h = 62 }: { x1: number; x2: number; y?: number; h?: number }) {
-  const n = Math.ceil((x2 - x1) / 11);
-  return (
-    <g>
-      {Array.from({ length: n }, (_, i) => (
-        <path key={i} d={`M${x1 + i * 11} ${y} V${y - h + 5} l5 -5 l5 5 V${y}Z`} fill={i % 2 ? "#B88B60" : "#C49A6E"} />
-      ))}
-      <rect x={x1} y={y - h + 14} width={x2 - x1} height="4" fill="#9C7451" opacity=".7" />
-      <rect x={x1} y={y - 18} width={x2 - x1} height="4" fill="#9C7451" opacity=".7" />
-    </g>
-  );
-}
 
 /** A window in an outside brick wall: soldier course over it, aluminium frame, brick sill. */
 function FacadeWindow({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
@@ -738,25 +606,7 @@ function FacadeWindow({ x, y, w, h }: { x: number; y: number; w: number; h: numb
   );
 }
 
-function Downpipe({ x, y1, y2 }: { x: number; y1: number; y2: number }) {
-  return (
-    <g>
-      <path d={`M${x} ${y1} V${y2}`} stroke="#B9C0C9" strokeWidth="7" />
-      <path d={`M${x - 2} ${y1} V${y2}`} stroke="#D5DAE1" strokeWidth="1.5" />
-      {Array.from({ length: Math.floor((y2 - y1) / 70) }, (_, i) => <rect key={i} x={x - 5} y={y1 + 40 + i * 70} width="10" height="3" fill="#8A97AB" />)}
-    </g>
-  );
-}
 
-/** A brass isolation valve on a pipe, lever handle up. */
-function Valve({ x, y, c = "#C9A227" }: { x: number; y: number; c?: string }) {
-  return (
-    <g>
-      <rect x={x - 7} y={y - 6} width="14" height="12" rx="3" fill={c} stroke="#8A6B12" strokeWidth="1" />
-      <path d={`M${x} ${y - 6} V${y - 12} H${x + 12}`} stroke={c === "#C9A227" ? "#C2521A" : "#2B3247"} strokeWidth="3" fill="none" strokeLinecap="round" />
-    </g>
-  );
-}
 
 const Slab = ({ x, w, y = 352 }: { x: number; w: number; y?: number }) => (
   <g>
@@ -771,10 +621,8 @@ function RoofEdge({ x1, x2, y }: { x1: number; x2: number; y: number }) {
   return (
     <g>
       <path d={`M${x1} ${y - 18} L${x2} ${y - 10} V${y} H${x1}Z`} fill="#E7DCCB" />
-      <rect x={x1} y={y - 7} width={x2 - x1} height="7" fill="#F2B8A6" />
       <path d={d} stroke="#7A3A28" strokeWidth="13" />
       <path d={d} stroke="#A9573D" strokeWidth="11" />
-      <path d={d} stroke="#7A3A28" strokeWidth="11" strokeDasharray="1.5 8" />
       <rect x={x2 + 6} y={y - 12} width="10" height="8" fill="#F4F1EC" />
       <path d={`M${x2 + 5} ${y - 6} h14 v4 a7 7 0 0 1 -14 0z`} fill="#B9C0C9" />
     </g>
@@ -796,19 +644,11 @@ function SplitScene({ heat = false }: { heat?: boolean }) {
   return (
     <>
       <Sky />
-      {heat ? <><Cloud x={470} y={60} s={1.2} dark /><Cloud x={560} y={110} s={0.8} dark /></> : <><Sun cx={545} cy={64} /><Cloud x={455} y={120} s={0.8} /></>}
-      <Tree x={572} y={250} s={0.85} />
       <Ground />
-      <Fence x1={382} x2={600} />
       <RoofEdge x1={14} x2={382} y={40} />
       <Room x={24} y={40} w={330} h={312} tone="warm" />
       <Window x={40} y={150} w={72} h={92} curtains />
-      <rect x="222" y="190" width="58" height="44" rx="2" fill="#fff" stroke="#C9B79C" strokeWidth="3" />
-      <path d="M226 228 l14 -18 l10 10 l8 -8 l18 16Z" fill="#9CC3DE" />
-      <Rug cx={137} cy={344} rx={92} />
       <Sofa x={64} y={304} w={146} />
-      <BedLamp x={222} y={326} />
-      <Plant x={272} y={322} />
       <Brick x={354} y={40} w={28} h={312} />
       {/* indoor unit and the air it moves */}
       <IndoorSplit x={110} y={78} w={200} h={54} />
@@ -834,10 +674,7 @@ function MultiScene() {
   return (
     <>
       <Sky />
-      <Sun cx={548} cy={70} />
-      <Tree x={574} y={262} s={0.8} />
       <Ground />
-      <Fence x1={382} x2={600} />
       <RoofEdge x1={14} x2={382} y={40} />
       <Room x={24} y={40} w={164} h={152} tone="blue" />
       <Room x={188} y={40} w={166} h={152} tone="sage" />
@@ -847,9 +684,7 @@ function MultiScene() {
       <Brick x={354} y={40} w={28} h={312} />
       <Bed x={40} y={160} w={110} />
       <Table x={262} y={154} w={70} />
-      <Chair x={248} y={156} />
       <Window x={54} y={262} w={56} h={50} curtains />
-      <Rug cx={225} cy={345} rx={90} />
       <Sofa x={150} y={304} w={150} />
       {[[44, 70, 120], [210, 70, 120], [110, 222, 140]].map(([x, y, w], i) => (
         <g key={i}>
@@ -902,11 +737,8 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
   return (
     <>
       <Sky />
-      {warm && <><Cloud x={560} y={40} s={0.9} dark /><Cloud x={80} y={30} s={0.7} dark /></>}
-      {!wide && <Tree x={548} y={200} s={1.1} />}
       <Ground />
       <RoofSpace l={L} r={RR} top={TOP} eave={EAVE} />
-      <Batts x1={24} x2={R} y={136} />
       <rect x="20" y="148" width={R - 16} height="5" fill="#E7E1D7" />
       {/* the rooms: a bedroom, the living room, the dining room */}
       <Room x={24} y={152} w={w1 - 24} h={200} tone="blue" />
@@ -919,16 +751,10 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
 
       {wide ? <Window x={104} y={182} w={44} h={46} curtains /> : <Window x={92} y={182} w={34} h={42} curtains />}
       <Bed x={34} y={318} w={wide ? 118 : 96} />
-      {wide && <BedLamp x={160} y={322} />}
       <Window x={wide ? 330 : 246} y={182} w={wide ? 52 : 40} h={46} curtains />
-      <Rug cx={(w1 + w2) / 2} cy={344} rx={wide ? 82 : 58} />
       <Sofa x={w1 + 28} y={308} w={wide ? 130 : 100} />
-      <Pendant x={wide ? 252 : 190} y={153} />
       <Window x={wide ? 516 : 398} y={182} w={wide ? 44 : 30} h={46} curtains />
-      <Pendant x={wide ? 452 : 338} y={153} len={34} />
-      <Chair x={w2 + 18} y={316} />
       <Table x={w2 + 34} y={314} w={wide ? 92 : 70} />
-      <Chair x={w2 + (wide ? 140 : 118)} y={316} flip />
       {off && <rect x={w2} y={152} width={R - w2} height={200} fill={C.navy} opacity=".18" />}
 
       {/* the unit, on boards across the joists, with its plenum box */}
@@ -956,7 +782,6 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
       {/* supply runs to each room, strapped up off the batts */}
       {runs.map((v, i) => (
         <g key={i}>
-          {v.straps.map((sx) => <Strap key={sx} x={sx} y1={roofY(sx)} y2={104} />)}
           <Duct d={v.d} c={air} on={v.on} />
           <Diffuser x={v.x} y={150} c={air} on={v.on} />
           {v.on ? <Breeze x={v.x} y={166} dx={0} dy={56} c={air} n={3} gap={14} /> : <Label x={v.x} y={204} c={C.grey}>Zone off</Label>}
@@ -994,8 +819,6 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
           <Puffs x={252} y={18} />
         </g>
       )}
-      {!wide && <Shrub x={578} y={350} />}
-      {wide && <><Shrub x={6} y={352} /><Shrub x={594} y={352} /></>}
 
       {kind === "zoning" && (
         <g>
@@ -1023,12 +846,8 @@ function EvapScene() {
   return (
     <>
       <Sky />
-      <Sun cx={530} cy={60} />
-      <Tree x={24} y={300} s={0.75} />
       <Ground />
-      <Fence x1={470} x2={600} />
       <RoofSpace l={50} r={460} top={56} eave={144} />
-      <Batts x1={60} x2={450} y={130} />
       <rect x="56" y="142" width="398" height="5" fill="#E7E1D7" />
       {/* a living room and a bedroom under the one roof */}
       <Room x={60} y={146} w={240} h={206} tone="warm" />
@@ -1037,9 +856,7 @@ function EvapScene() {
       <Brick x={50} y={144} w={10} h={208} />
       <Brick x={450} y={144} w={10} h={208} />
       <Window x={160} y={182} w={46} h={46} curtains />
-      <Rug cx={180} cy={345} rx={90} />
       <Sofa x={110} y={306} w={140} />
-      <Plant x={276} y={322} />
       <Bed x={312} y={318} w={100} />
       {/* the cooler: louvred panels over wet pads, a fan blowing down */}
       <rect x="208" y="28" width="94" height="10" rx="4" fill="#7F8B9C" />
@@ -1082,12 +899,10 @@ function AioScene() {
   return (
     <>
       <Sky />
-      <Sun cx={480} cy={60} />
       <Ground />
       <Brick x={200} y={114} w={400} h={238} />
       <Eave x={200} y={114} w={400} />
       <FacadeWindow x={412} y={222} w={70} h={56} />
-      <Downpipe x={588} y1={112} y2={350} />
       <Roof l={14} r={210} top={50} eave={114} space={false} />
       <path d="M58 94 L112 62 L152 86 L98 118Z" fill={u("pv")} stroke="#AFC0E8" strokeWidth="1.5" />
       <Room x={24} y={114} w={176} h={238} tiles />
@@ -1096,9 +911,7 @@ function AioScene() {
       <Shower x={150} y={150} />
       {/* hot out to the house through a tempering valve, cold in from the mains through an isolation valve */}
       <Pipe d="M258 176 H230 V150 H150" c={C.water} w={7} />
-      <Valve x={240} y={176} c="#C9A227" />
       <Pipe d="M600 334 H342" c={C.cold} w={7} />
-      <Valve x={380} y={334} c="#4A90C8" />
       {/* the unit: heat pump on top, tank below, on a slab */}
       <Slab x={250} w={100} />
       <Tank x={258} y={150} w={84} h={198} coil />
@@ -1120,12 +933,10 @@ function Co2Scene() {
   return (
     <>
       <Sky />
-      <Sun cx={470} cy={62} />
       <Ground />
       <Brick x={174} y={114} w={426} h={238} />
       <Eave x={174} y={114} w={426} />
       <FacadeWindow x={300} y={160} w={64} h={54} />
-      <Downpipe x={588} y1={112} y2={350} />
       <Roof l={14} r={184} top={56} eave={114} space={false} />
       <Room x={24} y={114} w={150} h={238} tiles />
       <Vanity x={40} y={300} w={50} />
@@ -1135,7 +946,6 @@ function Co2Scene() {
       <Pipe d="M206 130 H180 V150 H130" c={C.water} w={7} />
       {/* one pass: cold from the bottom of the tank out, hot back into the top */}
       <Pipe d="M278 326 H380" c={C.cold} w={7} />
-      <Valve x={330} y={326} c="#4A90C8" />
       <Pipe d="M400 244 V126 H278" c={C.water} w={7} />
       <OutdoorUnit x={380} y={244} w={180} h={104} fan={{ cx: 504, cy: 294, r: 34 }} cut={{ x: 392, y: 256, w: 56, h: 82, text: "CO₂" }} />
       <Breeze x={562} y={294} dx={26} dy={0} c={C.cold} n={3} gap={16} />
@@ -1156,7 +966,6 @@ function GasCfScene() {
       <Brick x={240} y={40} w={360} h={312} />
       <Eave x={240} y={40} w={360} />
       <FacadeWindow x={452} y={112} w={76} h={64} />
-      <Downpipe x={588} y1={38} y2={350} />
       <RoofEdge x1={14} x2={240} y={40} />
       <Room x={24} y={40} w={216} h={312} tiles />
       <Vanity x={44} y={302} w={64} />
@@ -1173,10 +982,8 @@ function GasCfScene() {
       <Puffs x={355} y={86} />
       {/* cold in from the mains, hot out to the shower, gas to the burner, each with its own valve */}
       <Pipe d="M600 300 H340 V260" c={C.cold} w={7} />
-      <Valve x={430} y={300} c="#4A90C8" />
       <Pipe d="M372 100 V80 H150 V110" c={C.water} w={7} />
       <Line d="M600 326 H390 V260" c={C.gas} w={5} flow="#FFE08A" />
-      <Valve x={430} y={326} />
       <GasMeter x={512} y={308} />
       <circle cx="340" cy="282" r="7" fill="#fff" stroke={C.cold} strokeWidth="2.5" className="hw-pulse" />
       <Temp x={36} y={210} t="50°" hot />
@@ -1196,7 +1003,6 @@ function GasStorageScene() {
       <Brick x={214} y={80} w={386} h={272} />
       <Eave x={214} y={80} w={386} />
       <FacadeWindow x={440} y={130} w={72} h={60} />
-      <Downpipe x={588} y1={78} y2={350} />
       <RoofEdge x1={14} x2={214} y={80} />
       <Room x={24} y={80} w={190} h={272} tiles />
       <Vanity x={44} y={302} />
@@ -1215,9 +1021,7 @@ function GasStorageScene() {
       <rect x="372" y="106" width="8" height="186" rx="4" fill={C.water} className="hw-fill" />
       <Pipe d="M262 116 H200 V120 H150" c={C.water} w={7} />
       <Pipe d="M600 290 H358" c={C.cold} w={7} />
-      <Valve x={420} y={290} c="#4A90C8" />
       <Line d="M600 330 H358" c={C.gas} w={5} flow="#FFE08A" />
-      <Valve x={420} y={330} />
       <GasMeter x={540} y={312} />
       <Temp x={276} y={252} t="60°" hot />
       <Label x={490} y={282}>Cold in</Label>
