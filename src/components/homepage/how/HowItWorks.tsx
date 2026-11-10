@@ -655,10 +655,16 @@ function SplitScene({ heat = false }: { heat?: boolean }) {
       <Breeze x={210} y={146} dx={-30} dy={106} c={room} n={4} gap={34} />
       {/* refrigerant: two insulated lines through the wall and down it in a cover, the drain beside them */}
       <Line d="M296 132 V148 H384 V350" c="#9AA6B5" w={3} flow={C.coldLt} />
-      <Pipe d="M310 98 H432 V248" c={heat ? C.hot : C.cold} />
-      <Pipe d="M420 248 V110 H310" c={heat ? C.cold : C.hot} />
+      {/* Jake's picture of it (Nov 2026): cooling, cold refrigerant comes in to
+          the head and hot gas leaves it carrying the room's heat; heating is the
+          same pipes the other way round. */}
+      <Pipe d="M420 248 V110 H310" c={heat ? C.hot : C.cold} />
+      <Pipe d="M310 98 H432 V248" c={heat ? C.cold : C.hot} />
       <PipeCover x={382} y={90} w={60} h={28} />
       <PipeCover x={412} y={118} w={28} h={124} />
+      {/* words as well as colour on the two lines, nearest-line order matching the drawing */}
+      <Label x={456} y={146} anchor="start" c={heat ? "#1F5FBF" : "#C2521A"}>{heat ? "Cooled gas out ↓" : "Hot gas out ↓"}</Label>
+      <Label x={456} y={172} anchor="start" c={heat ? "#C2521A" : "#1F5FBF"}>{heat ? "Hot gas in ↑" : "Cold in ↑"}</Label>
       <Slab x={392} w={186} />
       <OutdoorUnit x={400} y={248} w={170} h={104} fan={{ cx: 520, cy: 298, r: 36 }} cut={{ x: 412, y: 260, w: 52, h: 80, dial: true }} />
       <Breeze x={574} y={298} dx={24} dy={0} c={out} n={3} gap={18} />
@@ -692,10 +698,10 @@ function MultiScene() {
           <Breeze x={x + w / 2} y={y + 44} dx={-10} dy={48} c={C.cold} n={3} gap={26} />
         </g>
       ))}
-      {/* each head piped back on its own run */}
-      <Pipe d="M104 70 V34 H430 V248" c={C.cold} w={7} />
-      <Pipe d="M330 87 H390 V270 H400" c={C.cold} w={7} />
-      <Pipe d="M250 239 H372 V320 H400" c={C.cold} w={7} />
+      {/* each head on its own run, cold flowing in to it as on the split */}
+      <Pipe d="M430 248 V34 H104 V70" c={C.cold} w={7} />
+      <Pipe d="M400 270 H390 V87 H330" c={C.cold} w={7} />
+      <Pipe d="M400 320 H372 V239 H250" c={C.cold} w={7} />
       <Slab x={392} w={186} />
       <OutdoorUnit x={400} y={248} w={170} h={104} fan={{ cx: 516, cy: 298, r: 36 }} />
       <Breeze x={574} y={298} dx={24} dy={0} c={C.hot} n={3} gap={18} />
@@ -805,8 +811,8 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
           <rect x="168" y="238" width="26" height="34" rx="5" fill={C.navy} />
           <rect x="172" y="242" width="18" height="22" rx="2" fill="#0F1A44" />
           {[0, 1, 2].map((i) => <rect key={i} x="174" y={245 + i * 6.5} width="14" height="4" rx="1.5" fill={C.cold} className="hw-pulse" />)}
-          {/* refrigerant lines out under the eave and down the wall */}
-          <Pipe d="M284 118 H438 Q455 118 455 135 V282 Q455 292 465 292" c={C.cold} w={7} />
+          {/* refrigerant line up the wall and in under the eave, cold flowing in to the roof unit */}
+          <Pipe d="M465 292 Q455 292 455 282 V135 Q455 118 438 118 H284" c={C.cold} w={7} />
           <OutdoorUnit x={466} y={262} w={106} h={90} fan={{ cx: 524, cy: 304, r: 28 }} />
           <Breeze x={576} y={304} dx={18} dy={0} c={C.hot} n={3} gap={14} />
         </>

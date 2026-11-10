@@ -21,7 +21,7 @@ const SPLIT: Learn = {
   diagram: "split",
   how: [
     { t: "The indoor unit", d: "Sits high on the wall and blows cool or warm air into the room." },
-    { t: "The pipes between", d: "Two copper pipes go through the wall to the outdoor unit, with a small drain beside them." },
+    { t: "The pipes between", d: "Two copper pipes through the wall. Cold refrigerant comes in to the indoor unit along one; the heat it took from the room goes back out to the outdoor unit as hot gas along the other." },
     { t: "The outdoor unit", d: "Moves the heat out of the house in summer, and brings heat in during winter." },
     { t: "Inverter control", d: "It speeds up and slows down rather than switching on and off, so it's quiet and cheap to run." },
   ],
@@ -39,7 +39,12 @@ const SPLIT: Learn = {
 
 export const LEARN: Record<string, Learn> = {
   "split-system": SPLIT,
-  "reverse-cycle-split": { ...SPLIT, diagram: "split-heat" },
+  // Heating runs the same pipes the other way round, so step two says so.
+  "reverse-cycle-split": {
+    ...SPLIT,
+    diagram: "split-heat",
+    how: SPLIT.how.map((x, i) => (i === 1 ? { ...x, d: "Two copper pipes through the wall. In winter it runs backwards: hot gas comes in to the indoor unit to warm the room, and goes back out to the outdoor unit cooled." } : x)),
+  },
   "multi-head": {
     diagram: "multi",
     how: [
