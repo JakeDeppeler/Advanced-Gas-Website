@@ -41,7 +41,7 @@ export function ProductLayout({ v }: { v: PV }) {
   // Ordered to teach: what it is and how it works, its strengths and limits,
   // which size (or which other option), then the details and booking.
   const tabs = [
-    ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ["overview", "Overview"], ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
+    ["overview", "Our take"], ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
     ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []), ...(learn ? [["fit", "Is it right for you?"]] : []),
     ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["resources", "Resources"], ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
@@ -57,8 +57,6 @@ export function ProductLayout({ v }: { v: PV }) {
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">{tabs.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}</div>
       </nav>
-
-      <KeyFeatures v={v} />
 
       <section className="bk__sec bk__sec--navy" id="overview">
         <div className="wrap"><div className="bk__blk bk__col">
@@ -77,6 +75,11 @@ export function ProductLayout({ v }: { v: PV }) {
           )}
         </div></div>
       </section>
+
+      {/* Our take before Key features on every page (Jake, Nov 2026): a model
+          with no feature list had it first and one with a list had it second,
+          so the pages of one range read in a different order. */}
+      <KeyFeatures v={v} />
 
       <Story v={v} />
 

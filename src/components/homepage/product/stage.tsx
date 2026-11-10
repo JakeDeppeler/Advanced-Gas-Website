@@ -31,7 +31,11 @@ export function StageHero({ v }: { v: PV }) {
   const chip = model?.chip ?? (ans.size != null ? sys.sizes[ans.size]?.spec : undefined);
   const install = shortInstall(installTime(sys));
   // The tiles: our warranty, the install time, then what the model's record states (star rating, Wi-Fi).
+  // The maker's warranty leads where the record states one (Jake, Nov 2026:
+  // Kaden's seven years should be seen), with ours beside it.
+  const maker = v.badges.find((b) => b.kind === "warranty");
   const tiles = [
+    ...(maker ? [{ big: maker.big, small: /^(?:(?:parts|[a-z ]*manufacturer) )?warranty$/.test(maker.small) ? "Manufacturer warranty" : cap(maker.small) }] : []),
     { big: "6 yr", small: "Workmanship warranty" },
     ...(install ? [{ big: install, small: "Typical install" }] : []),
     ...v.badges.filter((b) => b.kind !== "warranty").map((b) => ({ big: b.big, small: cap(b.small) })),
@@ -48,12 +52,15 @@ export function StageHero({ v }: { v: PV }) {
         <div className={`stg__unit${air ? "" : " stg__unit--tall"}`}>
           <span className="stg__panel"><Image src={t.img} alt={`${t.brand} ${t.model}`} fill priority sizes="420px" /></span>
           {air && (
-            <svg className="stg__air" viewBox="0 0 420 260" aria-hidden="true">
-              <path d="M70 0 C 50 80, 10 140, -50 210" />
-              <path d="M150 0 C 140 90, 120 160, 90 240" />
-              <path d="M210 0 C 210 100, 210 170, 210 260" />
-              <path d="M270 0 C 280 90, 300 160, 330 240" />
-              <path d="M350 0 C 370 80, 410 140, 470 210" />
+            // Short lines, and the name set below them rather than pulled up
+            // over them: a long name or one that wraps used to run into the
+            // air (Jake, Nov 2026), so the heading now moves with its own size.
+            <svg className="stg__air" viewBox="0 0 420 90" aria-hidden="true">
+              <path d="M70 0 C 56 28, 30 50, -6 76" />
+              <path d="M150 0 C 144 32, 132 56, 116 84" />
+              <path d="M210 0 C 210 34, 210 60, 210 90" />
+              <path d="M270 0 C 276 32, 288 56, 304 84" />
+              <path d="M350 0 C 364 28, 390 50, 426 76" />
             </svg>
           )}
         </div>
@@ -84,7 +91,10 @@ export function StageHero({ v }: { v: PV }) {
             <div className="stg__sizes" role="group" aria-labelledby="stg-size" style={{ ["--n" as string]: models.length || sys.sizes.length }}>
               {models.length > 0
                 ? models.map((m, i) => {
-                  const r = v.roomOf(m.chip);
+                  // Head counts carry no room under them: the nearest band read
+                  // "Four" under the 5 and 6 head buttons, and "Two indoor
+                  // heads" under "2 heads" only says it twice.
+                  const r = sys.slug === "multi-head" ? null : v.roomOf(m.chip);
                   return (
                     <button key={m.slug} type="button" className={i === mi ? "on" : ""} onClick={() => v.pickModel(m.slug)} aria-pressed={i === mi}>
                       <strong>{m.chip}</strong>{r && <small>{shortRoom(r)}</small>}
@@ -131,8 +141,9 @@ export function KeyFeatures({ v }: { v: PV }) {
   const items = v.features.slice(0, 4);
   if (items.length < 3) return null;
   const name = v.model?.code ?? v.t.model;
+  // Cream when the white How it works band follows, so two white bands don't run together.
   return (
-    <section className="bk__sec bk__sec--white" id="features">
+    <section className={`bk__sec bk__sec--${v.learn ? "cream" : "white"}`} id="features">
       <div className="wrap"><div className="bk__blk bk__col">
         <header className="bk__head">
           <h2 className="h2">Key <span>features</span>.</h2>

@@ -15,10 +15,9 @@
 .ag .stg__unit--tall .stg__panel{height:220px}
 .ag .stg__unit--tall .stg__panel img{transform:none;padding:18px}
 .ag .stg__air{width:100%;height:auto;margin-top:-2px;overflow:visible}
-.ag .stg__air path{fill:none;stroke:#9fd8ff;stroke-width:3;stroke-linecap:round;stroke-dasharray:60 60;animation:stgFlow 3.2s ease-in infinite}
+.ag .stg__air path{fill:none;stroke:#9fd8ff;stroke-width:3;stroke-linecap:round;stroke-dasharray:30 30;animation:stgFlow 3.2s ease-in infinite}
 .ag .stg__air path:nth-child(2){animation-delay:.4s}.ag .stg__air path:nth-child(3){animation-delay:.8s}
 .ag .stg__air path:nth-child(4){animation-delay:1.2s}.ag .stg__air path:nth-child(5){animation-delay:1.6s}
-.ag .stg__unit:has(.stg__air) + .stg__h1{margin-top:-150px}
 .ag .stg__h1{position:relative;margin:0;max-width:100%;text-align:center;font-family:var(--disp);font-size:clamp(36px,4.3vw,70px);font-weight:500;line-height:1;letter-spacing:-.045em;color:#fff;text-wrap:balance;animation:stgUp .8s .1s cubic-bezier(.2,.7,.2,1) both}
 .ag .stg__brand{font-weight:800}
 .ag .stg__chip{display:inline-block;color:#FF9A5C;animation:stgSwap .45s cubic-bezier(.2,.7,.2,1) both}
@@ -163,7 +162,6 @@
   .ag .stg__in{padding-top:36px}
   .ag .stg__panel{height:104px}
   .ag .stg__unit--tall .stg__panel{height:180px}
-  .ag .stg__unit:has(.stg__air) + .stg__h1{margin-top:-110px}
   .ag .stf .bk__cimg{height:150px}
   .ag .str__grid,.ag .str__grid[data-n]{grid-template-columns:1fr}
   .ag .stg__sizes{grid-template-columns:repeat(3,minmax(0,1fr))}

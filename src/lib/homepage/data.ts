@@ -56,6 +56,9 @@ const pub = (p: string) => encodeURI(p);
 
 export const IMG = {
   kadenSplit: pub("/ksi_slide_0.jpg"),
+  // The KSI head on its own, cropped from the head-and-condenser shot: a
+  // product page shows the part that goes in the room (Jake, Nov 2026).
+  kadenHead: pub("/kaden-ksi-head.webp"),
   mitsuSplit: pub("/mitsubishi-msz-ap-wall-split-v2-v3.webp"),
   kadenMulti: pub("/Kaden Multi Head.jpg"),
   mitsuCond: pub("/mitsubishi-mxz-multi-split-condenser-v2.webp"),
@@ -249,7 +252,7 @@ const t = (slug: string, brand: string, model: string, img: string, feats: strin
 });
 
 const SPLIT_TIERS: Tier[] = [
-  t("essential", "Kaden", "KSI wall split", IMG.kadenSplit, ["Reverse cycle: heats and cools", "Installed by our own crew", W], null),
+  t("essential", "Kaden", "KSI wall split", IMG.kadenHead, ["Reverse cycle: heats and cools", "Installed by our own crew", W], null),
   t("premium", "Mitsubishi Electric", "MSZ-AP wall split", IMG.mitsuSplit, ["As quiet as 19 dBA on low", "Back-to-back install in a morning", W], 2199),
   // Two options, not three: the MSZ-AP is the only Mitsubishi wall split we
   // fit. A Hyper Heating tier sat here until Jake pointed out we don't
@@ -270,8 +273,8 @@ export const CATS: Category[] = [
     systems: [
       sys({ slug: "split-system", label: "Split system", sub: "Wall air conditioner", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
       sys({ slug: "multi-head", label: "Multi-head", sub: "Air con for several rooms", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
-        t("essential", "Kaden", "Multi-head system", IMG.kadenMulti, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
-        t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuCond, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
+        t("essential", "Kaden", "Multi-head system", IMG.kadenHead, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
+        t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuSplit, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
         t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuConsole, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
       ] }),
       sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: [

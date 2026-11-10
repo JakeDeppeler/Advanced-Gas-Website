@@ -19,17 +19,6 @@ export function BkMotion() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const root = document.querySelector<HTMLElement>(".bk");
     if (!root) return;
-    const els = [...root.querySelectorAll<HTMLElement>("[data-anim]")];
-    // Children of a staggered group come in one after another.
-    els.forEach((el) => {
-      if (el.dataset.anim === "stagger") [...el.children].forEach((c, i) => (c as HTMLElement).style.setProperty("--i", String(i)));
-    });
-    // Anything already on screen when the page opens is shown straight away,
-    // so the first screen never flickers.
-    const fold = window.innerHeight;
-    els.forEach((el) => { if (el.getBoundingClientRect().top < fold * 0.9) el.classList.add("is-in"); });
-    root.classList.add("bk--motion");
-
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => {
         if (!e.isIntersecting) return;
@@ -38,8 +27,27 @@ export function BkMotion() {
       }),
       { rootMargin: "0px 0px -10% 0px", threshold: 0.12 },
     );
-    els.forEach((el) => { if (!el.classList.contains("is-in")) io.observe(el); });
-    return () => io.disconnect();
+    const seen = new WeakSet<HTMLElement>();
+    const take = (els: HTMLElement[], fold: number) => els.forEach((el) => {
+      if (seen.has(el)) return;
+      seen.add(el);
+      // Children of a staggered group come in one after another.
+      if (el.dataset.anim === "stagger") [...el.children].forEach((c, i) => (c as HTMLElement).style.setProperty("--i", String(i)));
+      // Anything already on screen is shown straight away, so the first
+      // screen never flickers.
+      if (el.getBoundingClientRect().top < fold) el.classList.add("is-in");
+      else io.observe(el);
+    });
+    take([...root.querySelectorAll<HTMLElement>("[data-anim]")], window.innerHeight * 0.9);
+    root.classList.add("bk--motion");
+
+    // A block can mount after this has run: a product page's Key features
+    // only exists once a model with a feature list is picked, which happens
+    // after load for ?model= links and on every size button. Without this it
+    // stayed hidden under bk--motion for good.
+    const mo = new MutationObserver(() => take([...root.querySelectorAll<HTMLElement>("[data-anim]")], window.innerHeight * 0.9));
+    mo.observe(root, { childList: true, subtree: true });
+    return () => { io.disconnect(); mo.disconnect(); };
   }, []);
   return null;
 }

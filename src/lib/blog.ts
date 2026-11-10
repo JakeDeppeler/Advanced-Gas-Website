@@ -216,7 +216,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "The right-sized unit runs steadier, dehumidifies properly, uses less power, and lasts longer. So don't let anyone talk you into a 5 kW for a bedroom." },
       { type: "h2", text: "Brand notes" },
       { type: "p", text: "For bedrooms, Mitsubishi Electric's MSZ-AP series runs 19 dB indoor, that's about as quiet as a library. Perfect for kids' rooms and light sleepers. Costs a bit more than Kaden but you notice at 3 am." },
-      { type: "p", text: "For living areas, Kaden gives you the best bang for buck, the KS series has a 5-year warranty and R32 inverter tech at Mitsubishi-lite pricing." },
+      { type: "p", text: "For living areas, Kaden gives you the best bang for buck, the KS series has a 7-year manufacturer warranty and R32 inverter tech at Mitsubishi-lite pricing." },
       { type: "p", text: "Get us to quote you a size we'd actually install ourselves. We'll pick the smaller of two options if it does the job, reputation is worth more than an extra kW in someone's kid's bedroom." },
     ],
   },
@@ -502,7 +502,7 @@ export const posts: BlogPost[] = [
       { type: "ul", items: [
         "Mitsubishi Electric MSZ-AP: our default. Quieter on low fan, under 1% failure rate across the range, and the parts pipeline is still open on units we put in a decade ago.",
         "Mitsubishi Electric MSZ-FH (Hyper Heating): the one for the Dandenong Ranges. It holds rated heating output down to -15 °C where a standard split has already given up about 30% of it.",
-        "Kaden KSI-v3: the one when a family wants three bedrooms done in one visit rather than one a year. Reece-exclusive, so parts are in every store in Victoria, 5-year warranty.",
+        "Kaden KSI-v3: the one when a family wants three bedrooms done in one visit rather than one a year. Reece-exclusive, so parts are in every store in Victoria, 7-year manufacturer warranty.",
         "Everything else: we'll install what you specify, but these are the two ranges we know inside out.",
       ] },
 
