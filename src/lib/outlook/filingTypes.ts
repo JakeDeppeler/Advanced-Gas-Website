@@ -68,6 +68,14 @@ export const DEFAULT_PROTECTED = [
   "letter of demand",
   "final notice",
   "debt collection",
+  // Machine mail that needs doing something about, though nobody replies to it.
+  "action required",
+  "expired",
+  "suspended",
+  "payment failed",
+  "declined",
+  "past due",
+  "overdue",
 ];
 
 /** The people's own folders and the ones that need judgement (Jake's list, 11 Nov). */
@@ -144,7 +152,7 @@ export type FilingFacts = {
   agency: string | null;
 };
 
-const MACHINE = new Set(["from a no-reply address", "a mailing list or newsletter", "bulk mail", "an automatic message", "a meeting invite or receipt, not an email"]);
+const MACHINE = new Set(["from a no-reply address", "a mailing list or newsletter", "bulk mail", "an automatic message"]);
 
 export type Kind = "machine" | "no-reply-needed" | "work-order-done" | "booking-confirmed" | "replied" | "waiting";
 
@@ -159,6 +167,8 @@ export function kindOf(d: DraftRecord): { kind: Kind; why: string } {
   if (d.status === "failed") return { kind: "waiting", why: "the draft failed, so a person should see it" };
   if (d.callback_at && !d.callback_done_at) return { kind: "waiting", why: "they asked us to ring them" };
   if (d.status === "drafted") return d.sent_at || d.handoff_cleared_at ? { kind: "replied", why: "replied to" } : { kind: "waiting", why: d.handoff ? "needs a person" : "a reply is drafted, waiting to be sent" };
+  // An invite somebody has to accept or decline (Jeremy Yates's ServiceTitan calls, 11 Nov).
+  if (r === "a meeting invite or receipt, not an email") return { kind: "waiting", why: "a meeting invite" };
   if (MACHINE.has(r)) return { kind: "machine", why: r };
   if (r.startsWith("no reply needed")) return { kind: "no-reply-needed", why: r };
   if (r.startsWith("booking confirmation:")) return { kind: "booking-confirmed", why: "a booking confirmation, applied to its job" };
@@ -183,7 +193,19 @@ export function waitReason(f: FilingFacts, s: FilingSettings): string | null {
   const k = kindOf(f.draft);
   if (k.kind === "waiting") return k.why;
   if (k.kind === "replied" && !s.fileAfterReply) return "replied to; filing after a reply is off";
+  // "No reply needed" isn't "nothing to do": an invoice still has to be entered,
+  // so it stays for whoever enters it, and they file it as now.
+  if (k.kind !== "replied" && moneyPaperwork(f)) return "supplier paperwork, still to be entered";
+  // Tapi has to be told what's happening by hand, in Tapi (Jake, 11 Nov), so
+  // its work orders stay until somebody has done that.
+  if (k.kind === "work-order-done" && /@tapihq\.com$/i.test(f.from)) return "a Tapi job: Tapi is updated by hand";
   return null;
+}
+
+/** An invoice, statement, remittance, bill or receipt from someone we pay: work for whoever enters them. */
+export function moneyPaperwork(f: Pick<FilingFacts, "subject" | "draft">): boolean {
+  const words = `${f.subject} ${f.draft?.reason ?? ""}`;
+  return /\b(invoices?|tax invoice|statements?|remittance|credit notes?|bills?|receipts?)\b/i.test(words);
 }
 
 /* ------------------------------------------------------------ the folder */
@@ -246,16 +268,16 @@ export function folderForAgency(agency: string, folders: Folder[]): Folder | nul
 
 const byName = (folders: Folder[], name: string) => folders.find((f) => f.name.trim().toLowerCase() === name.toLowerCase()) ?? null;
 
-export type Pick = { folder: Folder | null; create?: string; why: string };
+export type FolderPick = { folder: Folder | null; create?: string; why: string };
 
 /**
  * Where an email that needs nothing goes, in this order: its own lead folder,
  * where this sender's email has always gone, the agency's folder for a work
- * order, where this domain's email goes, then by kind (supplier paperwork to
- * Accounting or Receipts, machine mail to Notifications). Null folder: it
- * stays, because there's no folder for it yet that we can be sure of.
+ * order, where this company's people's email goes, then, for machine mail
+ * only, Notifications. Null folder: it stays, because there's no folder for
+ * it yet that we can be sure of.
  */
-export function pickFolder(f: FilingFacts, ctx: { folders: Folder[]; never: string[]; sender: Home | null; domain: Home | null }): Pick {
+export function pickFolder(f: FilingFacts, ctx: { folders: Folder[]; never: string[]; sender: Home | null; domain: Home | null }): FolderPick {
   const usable = ctx.folders.filter((x) => !isNever(x.path, ctx.never));
   const byId = (id: string) => usable.find((x) => x.id === id) ?? null;
 
@@ -271,22 +293,19 @@ export function pickFolder(f: FilingFacts, ctx: { folders: Folder[]; never: stri
     const home = folderForAgency(f.agency, usable);
     if (home) return { folder: home, why: `the folder for ${f.agency}` };
   }
-  if (strongHome(ctx.domain, DOMAIN_MIN, DOMAIN_SHARE)) {
+  const k = f.draft ? kindOf(f.draft).kind : null;
+  const machine = k === "machine" || k === "booking-confirmed";
+  // A company's people file alike; its machines don't: Rinnai's delivery
+  // advices aren't warranty claims because Rinnai's warranty team writes from
+  // the same domain.
+  if (!machine && strongHome(ctx.domain, DOMAIN_MIN, DOMAIN_SHARE)) {
     const home = byId(ctx.domain!.folderId);
     if (home) return { folder: home, why: `where ${ctx.domain!.n} of ${ctx.domain!.total} filed emails from @${domainOf(f.from)} are` };
   }
-
-  const k = f.draft ? kindOf(f.draft).kind : null;
-  const r = (f.draft?.reason ?? "").toLowerCase();
-  if (k === "no-reply-needed" || k === "machine") {
-    if (/\breceipt/.test(r)) {
-      const receipts = byName(usable, "Receipts");
-      if (receipts) return { folder: receipts, why: "a receipt" };
-    }
-    if (/\b(invoice|statement|remittance|payment|credit note|bill)\b/.test(r)) {
-      const acc = byName(usable, "Accounting");
-      if (acc) return { folder: acc, why: "supplier paperwork" };
-    }
+  // Only mail from a machine goes to Notifications. A person's email that
+  // needed no reply ("Please confirm work at…", a customer's thanks) may still
+  // need doing, so with no folder of its own it stays.
+  if (machine) {
     const note = byName(usable, NOTIFICATIONS_FOLDER);
     return note ? { folder: note, why: "a notification nobody answers" } : { folder: null, create: NOTIFICATIONS_FOLDER, why: "a notification nobody answers" };
   }

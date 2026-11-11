@@ -272,16 +272,21 @@ This does the same, so the Inbox only holds what someone still has to do.
   catch-up (`/api/email/filing`, `?dry=1` to see without writing, `?learn=1`
   to read the folders again).
 - **What moves:** only an email that needs nothing more: machine mail, "no
-  reply needed", a work order already in ServiceTitan, a booking confirmation
-  applied to its job. With **File an email once its reply has gone out** on,
-  an email whose reply has gone out moves too.
+  reply needed" (only to a folder that sender already has), a work order
+  already in ServiceTitan, a booking confirmation applied to its job. With
+  **File an email once its reply has gone out** on, an email whose reply has
+  gone out moves too. "No reply needed" isn't "nothing to do", so supplier
+  invoices, statements and receipts stay to be entered, Tapi jobs stay
+  because Tapi is updated by hand, and meeting invites stay to be answered
+  (the first real run, 11 Nov, would have filed all three).
 - **Which folder:** where that sender's filed email has always gone (at least
   2 of their emails, and 75% of them, in one folder), learned once a day from
   the newest 200 emails of each folder; a work order to its agency's folder
   by name ("Barry Plant Pakenham" to "Barry Plant Ber, Pak, Drouin"); a
-  company domain's folder (85%); supplier paperwork to Accounting or Receipts;
-  machine mail to **Notifications**, made the first time it's needed. No
-  folder it can be sure of: it stays.
+  company's folder, from where its people's email goes (85%; not for its
+  no-reply addresses: Rinnai's delivery advices aren't warranty claims); and
+  machine mail with no folder of its own to **Notifications**, made the
+  first time it's needed. No folder it can be sure of: it stays.
 - **What stays, always:** an email with a **flagged word** in its subject or
   its own text (the list is on the page; phrases, because single words like
   "legal" are in every agency disclaimer), one flagged or given a category by
