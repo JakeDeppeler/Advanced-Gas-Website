@@ -1,4 +1,5 @@
 import "server-only";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
 import { loadFromStock } from "./stocked";
@@ -74,11 +75,43 @@ export async function loadSuppliers(): Promise<Supplier[]> {
 
 const weekFilter = (w: Week) => `install_date=gte.${w.start}&install_date=lte.${w.end}`;
 
+/**
+ * The three order views are the heaviest reads in the portal: two to twelve
+ * seconds each, worked out afresh over every open job and sold quote. They
+ * were read on every To order load (three weeks, two views each) and again by
+ * the ordering cron every ten minutes, and on 11 Nov that load was enough to
+ * stall the database for everyone. What they show only changes when the
+ * ServiceTitan sync brings new jobs or quotes in, so they're kept for a few
+ * minutes and thrown away after each sync (orderViewsChanged, from
+ * /api/sync). What has already been ordered is not in them: that's read
+ * fresh from the orders themselves, so placing an order shows at once.
+ */
+export const ORDER_VIEWS_TAG = "order-views";
+const VIEW_TTL = 300;
+
+export function orderViewsChanged(): void {
+  try {
+    revalidateTag(ORDER_VIEWS_TAG);
+  } catch {
+    // Outside a request (a script): nothing cached to throw away.
+  }
+}
+
+const cachedWeekViews = unstable_cache(
+  async (start: string, end: string) => {
+    const f = weekFilter({ start, end });
+    const [lines, workOrders] = await Promise.all([
+      sbSelect<OrderLine>("upcoming_order_lines", `${f}&order=job_id.asc,sku_id.asc.nullslast`),
+      sbSelect<WorkOrderRow>("electrician_work_orders", `${f}&order=job_id.asc`),
+    ]);
+    return { lines, workOrders };
+  },
+  ["order-week-views"],
+  { tags: [ORDER_VIEWS_TAG], revalidate: VIEW_TTL },
+);
+
 export async function loadWeekInputs(w: Week): Promise<{ lines: OrderLine[]; workOrders: WorkOrderRow[] }> {
-  const [lines, workOrders] = await Promise.all([
-    sbSelect<OrderLine>("upcoming_order_lines", `${weekFilter(w)}&order=job_id.asc,sku_id.asc.nullslast`),
-    sbSelect<WorkOrderRow>("electrician_work_orders", `${weekFilter(w)}&order=job_id.asc`),
-  ]);
+  const { lines, workOrders } = await cachedWeekViews(w.start, w.end);
   const n = (v: unknown) => (v == null ? null : Number(v));
   return {
     // numeric columns arrive from PostgREST as strings
@@ -827,8 +860,14 @@ export async function markUnbookedOrdered(estimateId: number, supplierId: string
   return { ok: true, note: `${pick.length} line${pick.length === 1 ? "" : "s"} recorded as ordered (${number}). Nothing was emailed.` };
 }
 
+const cachedUnbooked = unstable_cache(
+  () => sbSelect<UnbookedLine>("sold_unbooked_order_lines", "order=sold_on.desc,estimate_id.asc,sku_id.asc.nullslast"),
+  ["order-unbooked-view"],
+  { tags: [ORDER_VIEWS_TAG], revalidate: VIEW_TTL },
+);
+
 export async function loadUnbooked(): Promise<UnbookedLine[]> {
-  const rows = await sbSelect<UnbookedLine>("sold_unbooked_order_lines", "order=sold_on.desc,estimate_id.asc,sku_id.asc.nullslast");
+  const rows = await cachedUnbooked();
   const n = (v: unknown) => (v == null ? null : Number(v));
   return rows.map((r) => ({ ...r, qty: Number(r.qty ?? 1), unit_cost: n(r.unit_cost), total_inc: n(r.total_inc) }));
 }

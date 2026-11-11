@@ -4,6 +4,7 @@ import { computeSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
 import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
+import { orderViewsChanged } from "@/lib/ordering/db";
 import { pipelineChanged } from "@/lib/pipeline/store";
 import { runDueReports } from "@/lib/reports/run";
 // The portal owns the Xero refresh loop. This turns it on a schedule, as the
@@ -56,6 +57,8 @@ export async function GET(req: Request) {
   const sync = await syncServiceTitan(reset);
   // New quotes and sales in: the pipeline the portal keeps is out of date.
   pipelineChanged();
+  // New jobs and quotes in: To order's lists are read fresh next time.
+  orderViewsChanged();
   // Settings › Automatic: answered quotes lose their "Awaiting Quote
   // Approval" tag, to-dos from what the sync just brought in, low shelf lines
   // onto next week's order, tags on sent orders. Never fails the sync.
