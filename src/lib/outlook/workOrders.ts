@@ -8,11 +8,11 @@ import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, findSite, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, findSite, jobsAt, makeJob, type MadeJob } from "./stPlace";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
-  BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, bookingSummary, dedupeKey, fillTemplate,
+  BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, bookingSummary, dedupeKey, fillTemplate, followUpFor, followUpHeading,
   isTeamForward, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
@@ -199,6 +199,32 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
     }
 
     const key = dedupeKey(w.kind, w.number, w.street, w.suburb);
+
+    // What was read is kept before the booking is tried, so a refusal leaves
+    // the details to look at, and the retry has them.
+    await save(mailbox, m.id, { ...base, dedupe_key: key });
+
+    // Straight onto the agency's customer and the tenant's site, as a job
+    // (Jake, 5 Nov), on the location already there when there is one.
+    const site = await findSite(w, addressOf(m.from));
+
+    // A follow-up about a job already at the site (the same work order number,
+    // a reply, a reminder) goes on that job as a note, not a second job
+    // (Jake, 12 Nov). followUpFor says which.
+    if (site?.locationId) {
+      const f = followUpFor(w, /^\s*re\s*:/i.test(m.subject ?? ""), await jobsAt(site.locationId).catch(() => []));
+      if (f) {
+        await putOnJob(mailbox, { ...m, ...full }, f.job.id, { heading: followUpHeading(w), pin: w.urgent || w.kind === "quote_accepted" });
+        const reason = `a follow-up, ${f.why}: the email went on that job as a note`.slice(0, 300);
+        await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: f.job.id, st_job_number: f.job.jobNumber, st_location_id: site.locationId, st_customer_id: site.customerId, attached_at: new Date().toISOString() });
+        await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
+        return { status: "duplicate", reason, isWorkOrder: true, jobId: f.job.id, jobNumber: f.job.jobNumber };
+      }
+    }
+
+    // One already in from an earlier email as a Booking (a job ServiceTitan
+    // refused, or before jobs were made), or a resend of the same one: not
+    // booked twice.
     const since = new Date(Date.now() - DEDUPE_DAYS * 86_400_000).toISOString();
     const earlier = await sbSelectOne<{ st_booking_id: string | null; message_id: string }>(TABLE, [q.select("st_booking_id,message_id"), q.eq("dedupe_key", key), q.eq("status", "booked"), q.gte("created_at", since)].join("&"));
     if (earlier && earlier.message_id !== m.id) {
@@ -206,33 +232,14 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       return { status: "duplicate", bookingId: earlier.st_booking_id ?? undefined, isWorkOrder: true };
     }
 
-    // What was read is kept before the booking is tried, so a refusal leaves
-    // the details to look at, and the retry has them.
-    await save(mailbox, m.id, { ...base, dedupe_key: key });
-
-    const zip = await postcodeFor(w);
-
-    // Straight onto the agency's customer and the tenant's site, as a job
-    // (Jake, 5 Nov). No site and no agency we can be sure of is the office's
-    // to set up: nothing is made, and the page says so.
-    const site = await findSite(w, addressOf(m.from));
+    // No site and no agency we can be sure of is the office's to set up:
+    // nothing is made, and the page says so.
     if (!site) {
       const reason = w.agency ? `${w.agency} isn't a customer in ServiceTitan the portal could be sure of, and there's no site at this address yet` : "No agency named, and no site at this address yet";
       await save(mailbox, m.id, { ...base, dedupe_key: key, status: "needs_agency", reason });
       return { status: "needs_agency", reason, isWorkOrder: true };
     }
-    // A reply ("Re:") about a site with a job from the last month is about
-    // that job, not a new one: the email goes on it instead.
-    if (site.locationId && /^\s*re\s*:/i.test(m.subject ?? "")) {
-      const since30 = new Date(Date.now() - 30 * 86_400_000).toISOString();
-      const recent = await sbSelectOne<{ id: number; job_number: string | null }>("st_jobs", [q.select("id,job_number"), q.eq("location_id", String(site.locationId)), "status=neq.Canceled", q.gte("created_on", since30), q.order("created_on", "desc", "last"), "limit=1"].join("&")).catch(() => null);
-      if (recent) {
-        await putOnJob(mailbox, { ...m, ...full }, recent.id);
-        const reason = `a reply about job ${recent.job_number}: the email went on that job`;
-        await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: recent.id, st_job_number: recent.job_number, st_location_id: site.locationId, st_customer_id: site.customerId });
-        return { status: "duplicate", reason, isWorkOrder: true, jobId: recent.id, jobNumber: recent.job_number };
-      }
-    }
+    const zip = await postcodeFor(w);
 
     let job: MadeJob | null = null;
     let jobError = "";
@@ -339,7 +346,7 @@ async function emailTenant(mailbox: string, id: string, w: WorkOrder, fromAddres
 /** For the reply draft: what happened to the work order, in a line the model can use. */
 export function draftNote(r: WorkOrderResult): string | undefined {
   if (r.status === "booked") return "This work order has just gone into ServiceTitan's Bookings by itself. The office will book it in; nobody needs to create it by hand.";
-  if (r.status === "duplicate") return "This is about a work order that's already in ServiceTitan's Bookings from an earlier email.";
+  if (r.status === "duplicate") return r.jobNumber ? `This is a follow-up about job ${r.jobNumber}, already in ServiceTitan; it has been added to that job as a note.` : "This is about a work order that's already in ServiceTitan's Bookings from an earlier email.";
   return undefined;
 }
 

@@ -69,8 +69,8 @@ note, with its files attached, and gets the Outlook category **On a job**
 3. **The sender's job:** the sender is a contact on exactly one open job, or
    on several and the email names the street of exactly one.
 
-A "Re:" work order about a site with a job from the last month goes on that
-job instead of making a new one.
+A work order that follows up a job already at the site goes on that job as a
+note instead of making a new one; see "Follow-ups" under Work orders below.
 
 ## How the drafts learn
 
@@ -204,9 +204,24 @@ agency's customer, at the tenant's site** (`lib/outlook/workOrders.ts`,
 
 - **The site:** a location already at that address (unit and all, "1-3
   Young Road" being ServiceTitan's "1 Young Road") gets another job on it,
-  never a second location. Otherwise a new location named for the tenant
-  goes under the agency's customer, found by the property manager's email or
-  phone on its contacts, else by its name when exactly one customer matches.
+  never a second location. That includes one the portal made minutes earlier
+  that the replica hasn't copied yet, and a site saved with no street number
+  ("Mullaly Close") when it's the only place on that street. Only when none is
+  found does a new location, named for the tenant, go under the agency's
+  customer, found by the property manager's email or phone on its contacts,
+  else by its name when exactly one customer matches. Our own addresses and
+  number never count as a contact: a customer had admin@ saved as their email,
+  and work orders the office forwarded went under that household.
+- **Follow-ups:** an email about a job already at the site goes on that job
+  as a note (pinned when it's urgent or a quote accepted), with its files,
+  and no new job is made (Jake, 12 Nov). It's a follow-up when it carries the
+  same work order number as an open job there, whatever kind it now says (a
+  quote request and then "quote accepted" are one job), or is a reminder of
+  one that's done; when it's a "Re:" about a job there from the last month,
+  even one done; or when it has no number and a job there is open. A new number, or new work after a
+  job is done (the install after the quote visit), is a new job. The note
+  opens "WORK ORDER FOLLOW-UP" and says which work order it is. The page shows
+  it as **Note on job N**.
 - **No agency found:** nothing is made. The page shows **Agency not set up**;
   set it up as a customer in ServiceTitan, then give the email the **Work
   order** category again.

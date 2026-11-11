@@ -1,7 +1,9 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
-import { agencyMatches, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type WorkOrder } from "./workOrderTypes";
+import { site as business } from "@/lib/site";
+import { TEAM_DOMAIN } from "./outlookTypes";
+import { agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -11,6 +13,9 @@ import { agencyMatches, bookingSummary, melbourneInstant, placeholderDay, siteKe
  * "Shelly Davis & Steven Davis"). So:
  *  1. A location already at this address, under any customer, is the site:
  *     another job goes on it, never a second location for the same house.
+ *     That includes one the portal made minutes ago that the replica hasn't
+ *     caught up with, and a site saved with no street number when it's the
+ *     only place on that street.
  *  2. Otherwise the agency's customer — by the property manager's or sender's
  *     email or phone on a customer's contacts, else by name when exactly one
  *     customer's name holds every word of the agency's — gets a new location
@@ -36,8 +41,17 @@ async function locationsOnStreet(word: string): Promise<Loc[]> {
   ].join("&"));
 }
 
+/**
+ * Our own addresses and number are never a customer's. A customer in
+ * ServiceTitan has admin@ saved as their email, so every work order the
+ * office forwarded from admin@ went under that one household (Jake, 12 Nov:
+ * 160 Racecourse Road North and Home Affairs West Melbourne).
+ */
+const OURS = new Set([business.phoneE164.replace(/\D/g, "").slice(-9)]);
+const isOurs = (v: string) => TEAM_DOMAIN.test(v.trim()) || OURS.has(v.replace(/\D/g, "").slice(-9));
+
 async function customerByContact(values: string[]): Promise<number | null> {
-  const keys = [...new Set(values.map((v) => v.trim().toLowerCase()).filter(Boolean).map((v) => (v.includes("@") ? v : v.replace(/\D/g, "").slice(-9))).filter((k) => k.length >= 9 || k.includes("@")))];
+  const keys = [...new Set(values.map((v) => v.trim().toLowerCase()).filter((v) => v && !isOurs(v)).map((v) => (v.includes("@") ? v : v.replace(/\D/g, "").slice(-9))).filter((k) => k.length >= 9 || k.includes("@")))];
   if (!keys.length) return null;
   const rows = await sbSelect<{ customer_id: number }>("st_customer_contacts", [q.select("customer_id"), `match_key=in.(${keys.map((k) => `"${encodeURIComponent(k)}"`).join(",")})`, "limit=20"].join("&")).catch(() => []);
   const ids = [...new Set(rows.map((r) => r.customer_id).filter(Boolean))];
@@ -55,10 +69,31 @@ async function customerByName(agency: string): Promise<number | null> {
   return hits.length === 1 ? hits[0] : null;
 }
 
+/**
+ * A location the portal made for an earlier work order at this address, from
+ * its own record: the replica copies ServiceTitan every few minutes, and a
+ * reminder can land in between.
+ */
+async function siteWeMade(want: string, word: string): Promise<{ customerId: number; locationId: number } | null> {
+  if (!word) return null;
+  const since = new Date(Date.now() - 365 * 86_400_000).toISOString();
+  const rows = await sbSelect<{ st_location_id: number; st_customer_id: number | null; street: string | null; suburb: string | null }>("work_orders", [
+    "select=st_location_id,st_customer_id,street:details->>street,suburb:details->>suburb",
+    q.notNull("st_location_id"), q.notNull("st_customer_id"), q.gte("created_at", since),
+    `address=ilike.*${encodeURIComponent(word)}*`, q.order("created_at", "desc"), "limit=50",
+  ].join("&")).catch(() => []);
+  const hit = rows.find((r) => siteKey(r.street ?? "", r.suburb ?? "") === want);
+  return hit?.st_customer_id ? { customerId: Number(hit.st_customer_id), locationId: Number(hit.st_location_id) } : null;
+}
+
 /** Where this work order belongs, or null when the agency isn't a customer we can be sure of. */
 export async function findSite(w: WorkOrder, fromAddress: string): Promise<Site | null> {
   const want = siteKey(w.street, w.suburb);
-  const candidates = (await locationsOnStreet(streetWord(w.street))).filter((l) => l.active !== "false" && siteKey(l.street ?? "", l.city ?? "", l.unit ?? "") === want);
+  const word = streetWord(w.street);
+  const all = await locationsOnStreet(word);
+  const onStreet = all.filter((l) => l.active !== "false");
+  const keyOf = (l: Loc) => siteKey(l.street ?? "", l.city ?? "", l.unit ?? "");
+  const candidates = onStreet.filter((l) => keyOf(l) === want);
 
   const agency = (await customerByContact([w.pmEmail, w.pmPhone, fromAddress])) ?? (w.agency ? await customerByName(w.agency) : null);
 
@@ -67,8 +102,50 @@ export async function findSite(w: WorkOrder, fromAddress: string): Promise<Site 
     const pick = candidates.find((l) => agency && Number(l.customer_id) === agency) ?? candidates[0];
     return { customerId: Number(pick.customer_id), locationId: pick.id, how: "existing site", locationName: pick.name ?? undefined };
   }
+  // Not one the office has since made inactive (merged into another, say).
+  const made = await siteWeMade(want, word);
+  if (made && !all.some((l) => l.id === made.locationId && l.active === "false")) return { ...made, how: "existing site" };
+  // The only place on that street in that suburb, saved with no number.
+  const bare = bareStreet(want);
+  const city = want.split("|")[1];
+  const sameStreet = bare ? onStreet.filter((l) => keyOf(l).split("|")[1] === city && (keyOf(l) === bare || bareStreet(keyOf(l)) === bare)) : [];
+  if (sameStreet.length === 1 && keyOf(sameStreet[0]) === bare) {
+    const l = sameStreet[0];
+    return { customerId: Number(l.customer_id), locationId: l.id, how: "existing site", locationName: l.name ?? undefined };
+  }
   if (agency) return { customerId: agency, locationId: null, how: "new site under the agency" };
   return null;
+}
+
+/**
+ * The jobs at a site from the last year, for telling a follow-up from new
+ * work: what the replica has, and any the portal made or put a work order on
+ * that it doesn't have yet, each with every work order number it carries.
+ */
+export async function jobsAt(locationId: number): Promise<SiteJob[]> {
+  const since = new Date(Date.now() - 365 * 86_400_000).toISOString();
+  const [jobs, ours, types] = await Promise.all([
+    sbSelect<{ id: number; job_number: string | null; status: string | null; created_on: string | null; po: string | null; jt: string | null }>("st_jobs", [
+      "select=id,job_number,status,created_on,po:raw->>customerPo,jt:raw->>jobTypeId",
+      q.eq("location_id", String(locationId)), q.gte("created_on", since), q.order("created_on", "desc", "last"), "limit=40",
+    ].join("&")),
+    sbSelect<{ st_job_id: number; st_job_number: string | null; wo_number: string | null; kind: string | null; created_at: string }>("work_orders", [
+      q.select("st_job_id,st_job_number,wo_number,kind,created_at"), q.eq("st_location_id", String(locationId)), q.notNull("st_job_id"), q.gte("created_at", since), "limit=60",
+    ].join("&")).catch(() => []),
+    activeJobTypes(),
+  ]);
+  const quoteType = new Set(types.filter((t) => /quot/i.test(t.name)).map((t) => String(t.id)));
+  const out = new Map<number, SiteJob>();
+  for (const j of jobs) {
+    out.set(Number(j.id), { id: Number(j.id), jobNumber: j.job_number, status: j.status, numbers: j.po ? [j.po] : [], isQuote: quoteType.has(String(j.jt ?? "")), createdOn: j.created_on });
+  }
+  for (const r of ours) {
+    const id = Number(r.st_job_id);
+    const had = out.get(id) ?? { id, jobNumber: r.st_job_number, status: null, numbers: [], isQuote: r.kind === "quote_request", createdOn: r.created_at };
+    if (r.wo_number && !had.numbers.includes(r.wo_number)) had.numbers.push(r.wo_number);
+    out.set(id, had);
+  }
+  return [...out.values()];
 }
 
 /** A new location for the tenant under the agency's customer. */

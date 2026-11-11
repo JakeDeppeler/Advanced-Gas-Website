@@ -308,6 +308,7 @@ export function stage(r: WorkOrderRow): { tone: "good" | "mid" | "bad" | "none";
   if (r.status === "not") return { tone: "none", word: "Not a work order", line: r.reason ?? "Read and judged not to be one" };
   if (r.status === "failed") return { tone: "bad", word: "Not booked yet", line: r.reason ?? "ServiceTitan refused it; tried again automatically" };
   if (r.status === "working") return { tone: "mid", word: "Reading", line: "Being read now" };
+  if (r.status === "duplicate" && r.st_job_number) return { tone: "good", word: `Note on job ${r.st_job_number}`, line: `${(r.reason ?? "A follow-up").replace(/^a follow-up, /, "A follow-up: ").replace(/: the email went on that job as a note$/, "")}. Added as a note, not a new job` };
   if (r.status === "duplicate") return { tone: "none", word: "Already booked", line: "A reminder or resend of one booked from an earlier email" };
   if (r.status === "needs_agency") return { tone: "bad", word: "Agency not set up", line: `${r.reason ?? "The agency isn't a customer in ServiceTitan"}. Set it up as a customer, then give the email the Outlook category Work order again.` };
   // A job the portal made itself (no booking): on the site, waiting for the tenant.
@@ -437,4 +438,91 @@ export function stSaid(e: unknown): string {
   }
   detail = detail.replace(/\\u0022|\\"/g, '"').replace(/\\u0027/g, "'");
   return `ServiceTitan said${status ? ` ${status}` : ""}${detail ? `: ${detail}` : ""}`;
+}
+
+/* ------------------------------------------------------------ follow-ups */
+
+/**
+ * A work order's own number, one spelling, for telling whether two emails are
+ * the same work order: "TAPI-023197", "TAPI-23197-1" and "tapi 23197" agree;
+ * "Job #01895" is "1895"; "PO 428520" is "428520". Ailo's WO-1061 and QU-1061
+ * are a work order and a quote, so the letters stay. Empty for no number, or
+ * one too short to mean anything.
+ */
+export function numberKey(number: string): string {
+  const n = (number ?? "").toUpperCase().replace(/\s+/g, "");
+  const tapi = /TAPI-?0*(\d+)/.exec(n);
+  if (tapi) return `TAPI-${tapi[1]}`;
+  const k = n.replace(/^(JOB|PO|NO\.?|#)+/, "").replace(/[^A-Z0-9]/g, "").replace(/\d+/g, (d) => d.replace(/^0+(?=\d)/, ""));
+  return /\d{3,}/.test(k) ? k : "";
+}
+
+/** A job already at the work order's site: from the replica, or one the portal made that the replica hasn't caught up with. */
+export type SiteJob = { id: number; jobNumber: string | null; status: string | null; numbers: string[]; isQuote: boolean; createdOn: string | null };
+export type FollowUp = { job: SiteJob; why: string };
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Whether this work order is a follow-up about a job already at the site, and
+ * so goes on that job as a note rather than making another (Jake, 12 Nov:
+ * "they send a work order follow up and it is currently create a new job each
+ * time, not just add another note to the current file"). In order:
+ *
+ *  1. The same work order number as a job there (its PO, or a work order
+ *     already put on it). An open job takes it, whatever kind it now says:
+ *     Barry Plant's quote request and then "quote accepted" for 4 Bishop Pl
+ *     were one job, and the office cancelled the second. A completed job takes
+ *     only a reminder or a reply; anything else after it is new work (1/19
+ *     Lyall St: the quote done, then the install, a job of its own).
+ *  2. A "Re:" about a job there from the last month, unless the two carry
+ *     different numbers.
+ *  3. No number of its own, and a job open there from the last three months.
+ *
+ * Either way a quote accepted after its quote visit is done is the go-ahead,
+ * a new job. Anything else is a new work order.
+ */
+export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder">, reply: boolean, jobs: SiteJob[], now = Date.now()): FollowUp | null {
+  const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
+  const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
+  const done = (j: SiteJob) => j.status === "Completed";
+  const goAhead = (j: SiteJob) => done(j) && j.isQuote && w.kind !== "quote_request";
+  const name = (j: SiteJob) => `job ${j.jobNumber ?? j.id}`;
+  const keys = (j: SiteJob) => j.numbers.map(numberKey).filter(Boolean);
+  const num = numberKey(w.number);
+
+  const same = num ? live.find((j) => keys(j).includes(num)) : undefined;
+  if (same) {
+    if (!done(same)) return { job: same, why: `the same work order as ${name(same)}` };
+    if ((w.isReminder || reply) && !goAhead(same)) return { job: same, why: `a ${w.isReminder ? "reminder" : "reply"} about ${name(same)}, already done` };
+    return null;
+  }
+  if (reply) {
+    const recent = live.find((j) => now - when(j) <= 30 * DAY_MS && !(num && keys(j).length));
+    if (recent && !goAhead(recent)) return { job: recent, why: `a reply about ${name(recent)}` };
+  }
+  if (!num) {
+    const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS);
+    if (open) return { job: open, why: `no work order number, and ${name(open)} is open at this address` };
+  }
+  return null;
+}
+
+/** The line a follow-up note on a job opens with, so the office can see it's the agency again and not a stray email. */
+export function followUpHeading(w: Pick<WorkOrder, "agency" | "platform" | "kind" | "number" | "urgent" | "isReminder">): string {
+  const what = w.isReminder ? "Reminder" : KIND_SHORT[w.kind];
+  const from = [w.agency, w.platform ? `(${w.platform})` : ""].filter(Boolean).join(" ");
+  return `WORK ORDER FOLLOW-UP${w.urgent ? ", URGENT" : ""}: ${what}${w.number ? ` ${w.number}` : ""}${from ? ` from ${from}` : ""}. Added to this job as a note, not made into a new job.`;
+}
+
+/**
+ * The same address with its number taken off, for a site ServiceTitan holds
+ * with none ("Mullaly Close", West Melbourne: Home Affairs, the only place on
+ * it the office goes). Null when there's a unit or no number to take off: a
+ * unit is one of many, never the whole street.
+ */
+export function bareStreet(key: string): string | null {
+  const [addr, city = ""] = key.split("|");
+  if (addr.includes("/") || !/^\d/.test(addr)) return null;
+  return `${addr.replace(/^\d+[a-z]?\s+/, "")}|${city}`;
 }
