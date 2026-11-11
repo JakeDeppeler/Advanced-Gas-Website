@@ -276,8 +276,9 @@ This does the same, so the Inbox only holds what someone still has to do.
   already in ServiceTitan, a booking confirmation applied to its job. With
   **File an email once its reply has gone out** on, an email whose reply has
   gone out moves too. "No reply needed" isn't "nothing to do", so supplier
-  invoices, statements and receipts stay to be entered, Tapi jobs stay
-  because Tapi is updated by hand, and meeting invites stay to be answered
+  invoices, statements and receipts stay to be entered, nothing from Tapi
+  is filed because Tapi is updated by hand, and meeting invites stay to be
+  answered
   (the first real run, 11 Nov, would have filed all three).
 - **Which folder:** where that sender's filed email has always gone (at least
   2 of their emails, and 75% of them, in one folder), learned once a day from

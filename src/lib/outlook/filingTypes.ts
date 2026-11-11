@@ -196,9 +196,10 @@ export function waitReason(f: FilingFacts, s: FilingSettings): string | null {
   // "No reply needed" isn't "nothing to do": an invoice still has to be entered,
   // so it stays for whoever enters it, and they file it as now.
   if (k.kind !== "replied" && moneyPaperwork(f)) return "supplier paperwork, still to be entered";
-  // Tapi has to be told what's happening by hand, in Tapi (Jake, 11 Nov), so
-  // its work orders stay until somebody has done that.
-  if (k.kind === "work-order-done" && /@tapihq\.com$/i.test(f.from)) return "a Tapi job: Tapi is updated by hand";
+  // Tapi has to be told what's happening by hand, in Tapi (Jake, 11 Nov): a
+  // job booked, "Please confirm work at…", a quote to enter. So nothing from
+  // Tapi is filed until somebody has done that and files it themselves.
+  if (/@tapihq\.com$/i.test(f.from)) return "from Tapi: Tapi is updated by hand";
   return null;
 }
 
@@ -289,7 +290,9 @@ export function pickFolder(f: FilingFacts, ctx: { folders: Folder[]; never: stri
     const home = byId(ctx.sender!.folderId);
     if (home) return { folder: home, why: `where ${ctx.sender!.n} of this sender's ${ctx.sender!.total} filed emails are` };
   }
-  if (f.agency) {
+  // The agency's folder only for a work order that's booked: an email the
+  // work-order reading looked at and turned down may still need doing.
+  if (f.agency && f.draft && kindOf(f.draft).kind === "work-order-done") {
     const home = folderForAgency(f.agency, usable);
     if (home) return { folder: home, why: `the folder for ${f.agency}` };
   }
