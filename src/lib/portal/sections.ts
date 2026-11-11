@@ -284,6 +284,8 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Messages", href: "/portal/chats" },
         // Work orders from email into ServiceTitan's Bookings: what came in and where each is up to.
         { label: "Work orders", href: "/portal/work-orders" },
+        // admin@ filed into its own folders: the switch, the flagged words, where each email went.
+        { label: "Email filing", href: "/portal/email-filing" },
       ] },
       { label: "The portal", icon: "cog", group: [
         { label: "Settings", href: "/portal/settings" },

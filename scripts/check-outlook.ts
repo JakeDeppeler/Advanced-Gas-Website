@@ -22,6 +22,7 @@ import {
 } from "../src/lib/outlook/outlookTypes";
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -296,6 +297,90 @@ console.log("-- two tenants (6 Nov: 4 Kirrilee Ct, 9 Naomi St) --");
   ok("refusal in words", said === 'ServiceTitan said 409 Conflict: "0428 946 984; 0417 535 760" is not a valid phone number', said);
   const cut = stSaid(new Error('ServiceTitan POST x failed: 409 Conflict — {"type":"https://x","title":"\\u0022a; b\\u0022 is not a valid email string","sta'));
   ok("refusal cut short still read", cut === 'ServiceTitan said 409 Conflict: "a; b" is not a valid email string', cut);
+}
+
+{
+  // Filing admin@ into its own folders (lib/outlook/filingTypes.ts).
+  const off = filingSettingsFrom(null);
+  ok("filing off until switched on", off.mode === "off" && !off.fileAfterReply && off.mailboxes.join() === "admin@advancedgas.com.au", off);
+  ok("default never list", off.neverFolders.join("|") === DEFAULT_NEVER.join("|"));
+  ok("default flagged words", off.protectedWords.length === DEFAULT_PROTECTED.length);
+  ok("only our own mailboxes", filingSettingsFrom({ mailboxes: ["someone@gmail.com", "Admin@AdvancedGas.com.au"] }).mailboxes.join() === "admin@advancedgas.com.au");
+  ok("words from the box", wordsFromText("gas leak\n Refund ,\n\nVCAT;x").join("|") === "gas leak|Refund|VCAT");
+
+  ok("flagged word in the text", flaggedWord("Re: heater", "I can smell gas in the laundry", DEFAULT_PROTECTED) === "smell gas");
+  ok("flagged word across a line break", flaggedWord("", "there may be a gas\nleak at the meter", DEFAULT_PROTECTED) === "gas leak");
+  ok("flagged word in the subject, any case", flaggedWord("URGENT: New urgent work order at 9 Swift Dr", "", DEFAULT_PROTECTED) === "urgent");
+  ok("word start, so complaints too", flaggedWord("", "We have had complaints from the tenant", ["complaint"]) === "complaint");
+  ok("not inside another word", flaggedWord("", "Booked for Las Vegas", ["gas"]) === null);
+  ok("a disclaimer isn't flagged", flaggedWord("Statement", "This email is confidential. We accept no liability for any damage caused by viruses.", DEFAULT_PROTECTED) === null);
+
+  const d = (over: Partial<DraftRecord>): DraftRecord => ({ status: "skipped", reason: null, handoff: null, handoff_cleared_at: null, sent_at: null, callback_at: null, callback_done_at: null, ...over });
+  ok("newsletter is done with", kindOf(d({ reason: "a mailing list or newsletter" })).kind === "machine");
+  ok("no reply needed is done with", kindOf(d({ reason: "no reply needed: Supplier invoice from Reclaim Energy" })).kind === "no-reply-needed");
+  ok("booked work order is done with", kindOf(d({ reason: "work order: booked into ServiceTitan" })).kind === "work-order-done");
+  ok("failed work order waits", kindOf(d({ reason: "work order: booking failed (ServiceTitan said 409)" })).kind === "waiting");
+  ok("agency not set up waits", kindOf(d({ reason: "work order: booking needs_agency (O'Brien isn't a customer)" })).kind === "waiting");
+  ok("drafted waits", kindOf(d({ status: "drafted", handoff: "Needs Kellie" })).why === "needs a person");
+  ok("drafted and sent is replied", kindOf(d({ status: "drafted", sent_at: "2026-11-05T01:00:00Z" })).kind === "replied");
+  ok("call back waits", kindOf(d({ reason: "no reply needed: x", callback_at: "2026-11-05T01:00:00Z" })).kind === "waiting");
+  ok("from the team waits", kindOf(d({ reason: "from the team" })).kind === "waiting");
+
+  const facts = (over: Partial<Parameters<typeof waitReason>[0]> = {}) => ({ from: "noreply@cevalogistics.com", subject: "Delivery", categories: [] as string[], flagged: false, draft: d({ reason: "no reply needed: Freight delivery pre-alert" }), agency: null as string | null, ...over });
+  const on = filingSettingsFrom({ mode: "trial" });
+  ok("done with: no reason to wait", waitReason(facts(), on) === null);
+  ok("flagged stays", waitReason(facts({ flagged: true }), on) === "flagged in Outlook");
+  ok("hand category stays", (waitReason(facts({ categories: ["On a job", "Hirotec"] }), on) ?? "").includes("Hirotec"));
+  ok("our category doesn't", waitReason(facts({ categories: ["On a job", "In ServiceTitan"] }), on) === null);
+  ok("not read by the drafts stays", waitReason(facts({ draft: null }), on) === "not read by the drafts yet");
+  ok("replied waits while after-reply is off", waitReason(facts({ draft: d({ reason: "already replied" }) }), on) !== null);
+  ok("replied files once after-reply is on", waitReason(facts({ draft: d({ reason: "already replied" }) }), { ...on, fileAfterReply: true }) === null);
+
+  const F = (id: string, path: string): Folder => ({ id, name: path.split("/").pop()!, path });
+  const folders = [
+    F("bpb", "Barry Plant Bayside"), F("bpp", "Barry Plant Ber, Pak, Drouin"), F("rwb", "Ray White Berwick"), F("rwp", "Ray White Pakenham"),
+    F("ob", "Obrien Real Estate"), F("np", "Neilson Partners"), F("re", "Real Estate Odd Jobs"), F("pk", "Peake RE"), F("lj", "LJ Hooker"),
+    F("acc", "Accounting"), F("rec", "Receipts"), F("leads", "New Leads"), F("kel", "Kellie"), F("adm", "Admin Team"), F("admq", "Admin Team/Quotes"), F("reece", "Reece"),
+  ];
+  const name = (a: string) => folderForAgency(a, folders)?.name ?? null;
+  ok("agency: Barry Plant Pakenham", name("Barry Plant Pakenham") === "Barry Plant Ber, Pak, Drouin", name("Barry Plant Pakenham"));
+  ok("agency: Barry Plant Berwick", name("Barry Plant Berwick") === "Barry Plant Ber, Pak, Drouin");
+  ok("agency: Barry Plant Bayside", name("Barry Plant Bayside") === "Barry Plant Bayside");
+  ok("agency: plain Barry Plant is a tie, so none", name("Barry Plant") === null);
+  ok("agency: Ray White Pakenham", name("Ray White Pakenham") === "Ray White Pakenham");
+  ok("agency: O'Brien with its apostrophe", name("O'Brien Real Estate Cranbourne") === "Obrien Real Estate");
+  ok("agency: First National Neilson Partners", name("First National Neilson Partners") === "Neilson Partners");
+  ok("agency: LJ Hooker Pakenham", name("LJ Hooker Pakenham") === "LJ Hooker");
+  ok("agency: never the catch-all by name", name("Real Estate Odd Jobs") === null, name("Real Estate Odd Jobs"));
+  ok("agency: unknown agency, none", name("Harcourts Packham") === null, name("Harcourts Packham"));
+
+  ok("never: a never folder", isNever("Kellie", DEFAULT_NEVER));
+  ok("never: under a never folder", isNever("Admin Team/Quotes", DEFAULT_NEVER));
+  ok("never: an ordinary one", !isNever("Ray White Pakenham", DEFAULT_NEVER));
+
+  const pick = (over: Parameters<typeof waitReason>[0], sender: { folderId: string; n: number; total: number } | null = null, domain: typeof sender = null) =>
+    pickFolder(over, { folders, never: DEFAULT_NEVER, sender, domain });
+  const pmEmail = facts({ from: "pakenhamrentals@email.propertyme.com", draft: d({ reason: "work order: booked into ServiceTitan" }), agency: "Barry Plant Pakenham" });
+  ok("sender's own folder first", pick(pmEmail, { folderId: "rwp", n: 9, total: 10 }).folder?.id === "rwp");
+  ok("a weak sender history doesn't count", pick(pmEmail, { folderId: "rwp", n: 2, total: 5 }).folder?.id === "bpp");
+  ok("never a never folder, even learned", pick(facts({ from: "x@y.com.au" }), { folderId: "kel", n: 8, total: 8 }).folder?.id !== "kel");
+  ok("domain when the sender is new", pick(facts({ from: "new.person@raywhite.com.au", draft: d({ reason: "no reply needed: FYI" }) }), null, { folderId: "rwb", n: 9, total: 10 }).folder?.id === "rwb");
+  ok("supplier invoice to Accounting", pick(facts({ from: "ar@metalflex.com.au", draft: d({ reason: "no reply needed: Supplier invoice from Metalflex" }) })).folder?.id === "acc");
+  ok("receipt to Receipts", pick(facts({ from: "billing@shop.com", draft: d({ reason: "no reply needed: Payment receipt for order 123" }) })).folder?.id === "rec");
+  const note = pick(facts());
+  ok("machine mail to a new Notifications folder", note.folder === null && note.create === "Notifications", note);
+  ok("a lead to New Leads", pick(facts({ categories: ["New lead"], draft: d({ status: "drafted", sent_at: "x" }) })).folder?.id === "leads");
+  const none = pick(facts({ from: "someone@newco.com.au", draft: d({ status: "drafted", sent_at: "x" }) }));
+  ok("a replied email from a new sender stays", none.folder === null && !none.create, none);
+
+  const homes = learnHomes([
+    { folderId: "rwp", from: "pm@raywhite.com.au" }, { folderId: "rwp", from: "pm@raywhite.com.au" }, { folderId: "rwb", from: "other@raywhite.com.au" },
+    { folderId: "acc", from: "ar@metalflex.com.au" }, { folderId: "acc", from: "kellie@advancedgas.com.au" }, { folderId: "rwp", from: "sarah@gmail.com" },
+  ]);
+  ok("learned: a sender's folder", homes.senders.get("pm@raywhite.com.au")?.folderId === "rwp" && homes.senders.get("pm@raywhite.com.au")?.n === 2);
+  ok("learned: our own mail isn't counted", !homes.senders.has("kellie@advancedgas.com.au"));
+  ok("learned: the domain split across branches", homes.domains.get("raywhite.com.au")?.total === 3 && homes.domains.get("raywhite.com.au")?.n === 2);
+  ok("learned: no domain for gmail", !homes.domains.has("gmail.com"));
 }
 
 if (bad) {
