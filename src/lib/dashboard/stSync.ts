@@ -1,4 +1,4 @@
-import { q, sbRpc, sbRpcRows, sbSelectOne, sbUpsert, type Row } from "./db";
+import { q, sbRpc, sbRpcRows, sbSelect, sbSelectOne, sbUpsert, type Row } from "./db";
 import { checkFields, summarise, type FieldRow } from "./syncShape";
 import { isoDateMelbourne } from "./dates";
 import { serviceTitanConfigured, stExportAll, stList } from "./servicetitan";
@@ -549,11 +549,29 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
   for (const spec of LOOKUPS) {
     const startedAt = new Date().toISOString();
     try {
-      const rows = (await stList<Row>(spec.module, spec.path)).map(spec.map).filter((r) =>
+      const listed = (await stList<Row>(spec.module, spec.path)).map(spec.map).filter((r) =>
         Number.isFinite(r.id),
       );
-      // Chunked as the exports are: the pricebook materials list runs to
-      // thousands of rows with their raw payloads.
+      // Write only what is new or changed since we last stored it. These lists
+      // come back whole every sync, and rewriting all of them (the pricebook is
+      // thousands of rows with their raw payloads) every two minutes was most
+      // of the database's disk writes: by mid-afternoon the disk allowance ran
+      // dry, writes were throttled to a crawl and every page stalled on its
+      // reads (11 Nov). Postgres writes a new row version even for an identical
+      // upsert, so "unchanged" has to be decided here. A row without a
+      // modifiedOn can't be compared and is always written.
+      const seen = new Map(
+        (await sbSelect<{ id: number; modified_on: string | null }>(spec.table, q.select("id,modified_on"))).map(
+          (r) => [Number(r.id), r.modified_on ? Date.parse(r.modified_on) : null],
+        ),
+      );
+      const rows = listed.filter((r) => {
+        const mine = typeof r.modified_on === "string" ? Date.parse(r.modified_on) : null;
+        const stored = seen.get(Number(r.id));
+        return mine === null || stored === undefined || stored !== mine;
+      });
+      // Chunked as the exports are: a first fill of the pricebook runs to
+      // thousands of rows.
       for (let i = 0; i < rows.length; i += 500) {
         await sbUpsert(spec.table, rows.slice(i, i + 500), "id");
       }

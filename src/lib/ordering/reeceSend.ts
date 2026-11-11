@@ -61,7 +61,8 @@ function request(j: JobOrder, c: Ctx): OrderRequest | { error: string } {
   if (!addr) return { error: `Reece needs the delivery address as "street, suburb STATE postcode" and this one can't be read that way: ${po.delivery_address || settings.deliveryAddress || "none set"}.` };
   // Into the factory, maX always says so and when, whatever else the order's
   // own note adds: a note on the order used to replace the factory line.
-  const factory = po.delivery_to_site ? null : `${(settings.factoryInstructions?.trim() || "Deliver to our factory").replace(/[.\s]+$/, "")}, by 3:30 pm`;
+  // Where in the factory too (Jake, 11 Nov): along the wall with the rest of the stock.
+  const factory = po.delivery_to_site ? null : `${(settings.factoryInstructions?.trim() || "Deliver to our factory").replace(/[.\s]+$/, "")}, by 3:30 pm. Leave inside along the wall with the other stock`;
   const own = po.delivery_instructions?.trim() || null;
   const instructions = [...new Set([factory, own && own !== settings.factoryInstructions?.trim() ? own : null, settings.deliveryNote?.trim() || null].filter(Boolean))].map((x) => String(x).replace(/[.\s]+$/, "")).join(". ").replace(/.$/, (c) => `${c}.`);
   const contact = (settings.orderedBy || c.who).slice(0, 50);
