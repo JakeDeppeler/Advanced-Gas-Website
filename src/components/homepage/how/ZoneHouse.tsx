@@ -17,22 +17,26 @@ import "./how.css";
  * 2026). Both earlier versions are in git history.
  */
 
-type ZoneId = "living" | "kitchen" | "master" | "kids" | "study" | "bath";
+type ZoneId = "living" | "kitchen" | "master" | "bed2" | "bed3" | "bed4" | "study" | "bath";
 type Mode = "cool" | "heat";
 
 const ZONES: { id: ZoneId; name: string }[] = [
   { id: "living", name: "Living" },
   { id: "kitchen", name: "Kitchen & dining" },
   { id: "master", name: "Main bedroom" },
-  { id: "kids", name: "Kids' bedrooms" },
+  // Each of the kids' rooms on its own (Jake, Nov 2026): the point of zoning
+  // is that an empty bedroom doesn't get cooled.
+  { id: "bed2", name: "Bed 2" },
+  { id: "bed3", name: "Bed 3" },
+  { id: "bed4", name: "Bed 4" },
   { id: "study", name: "Study" },
   { id: "bath", name: "Bathroom" },
 ];
 
 const PRESETS: { label: string; on: ZoneId[] }[] = [
-  { label: "All on", on: ["living", "kitchen", "master", "kids", "study", "bath"] },
+  { label: "All on", on: ["living", "kitchen", "master", "bed2", "bed3", "bed4", "study", "bath"] },
   { label: "Daytime", on: ["living", "kitchen", "study"] },
-  { label: "Night", on: ["master", "kids"] },
+  { label: "Night", on: ["master", "bed2", "bed3", "bed4"] },
   { label: "All off", on: [] },
 ];
 
@@ -41,14 +45,14 @@ type Room = { name: string; x: number; y: number; w: number; h: number; zone?: Z
 /** The plan, in the same coordinates as the walls below. */
 const ROOMS: Room[] = [
   { name: "Living", x: 160, y: 40, w: 200, h: 170, zone: "living", vents: [[190, 124], [270, 66]] },
-  { name: "Bed 4", x: 360, y: 40, w: 130, h: 150, zone: "kids", vents: [[466, 64]] },
-  { name: "Bed 3", x: 490, y: 40, w: 110, h: 150, zone: "kids", vents: [[586, 92]] },
+  { name: "Bed 4", x: 360, y: 40, w: 130, h: 150, zone: "bed4", vents: [[458, 62]] },
+  { name: "Bed 3", x: 490, y: 40, w: 110, h: 150, zone: "bed3", vents: [[584, 122]] },
   { name: "Kitchen / Dining", x: 160, y: 210, w: 220, h: 230, zone: "kitchen", vents: [[200, 292], [328, 296]] },
   { name: "Hall", x: 380, y: 190, w: 50, h: 350, lx: 405, ly: 470 },
   { name: "Bath", x: 430, y: 190, w: 170, h: 80, zone: "bath", vents: [[522, 206]] },
-  { name: "Bed 2", x: 430, y: 270, w: 170, h: 100, zone: "kids", vents: [[460, 346]] },
-  { name: "Main bed", x: 430, y: 370, w: 170, h: 170, zone: "master", vents: [[455, 455]] },
-  { name: "Study", x: 160, y: 440, w: 110, h: 100, zone: "study", vents: [[252, 488]] },
+  { name: "Bed 2", x: 430, y: 270, w: 170, h: 100, zone: "bed2", vents: [[584, 290]] },
+  { name: "Main bed", x: 430, y: 370, w: 170, h: 170, zone: "master", vents: [[584, 486]] },
+  { name: "Study", x: 160, y: 440, w: 110, h: 100, zone: "study", vents: [[204, 518]] },
   { name: "Entry", x: 270, y: 440, w: 110, h: 100 },
 ];
 
@@ -80,7 +84,7 @@ function Fittings() {
   return (
     <g style={{ pointerEvents: "none" }}>
       <path d="M180 150 h90 v40 h-20 v-20 h-70z" {...f} /><rect x="300" y="60" width="44" height="14" rx="2" {...f} />
-      {[[404, 96, 76, 78], [526, 96, 64, 76], [502, 284, 88, 64], [486, 446, 96, 86]].map(([x, y, w, h], i) => (
+      {[[404, 96, 76, 78], [500, 104, 62, 74], [512, 304, 64, 58], [452, 440, 90, 88]].map(([x, y, w, h], i) => (
         <g key={i}><rect x={x} y={y} width={w} height={h} rx="3" {...f} /><rect x={x + 6} y={y + 5} width={w / 2 - 9} height="14" rx="3" {...f} /><rect x={x + w / 2 + 3} y={y + 5} width={w / 2 - 9} height="14" rx="3" {...f} /></g>
       ))}
       <rect x="166" y="402" width="120" height="32" {...f} /><rect x="182" y="408" width="26" height="18" rx="4" {...f} />
@@ -91,7 +95,7 @@ function Fittings() {
       <rect x="540" y="198" width="54" height="64" rx="10" {...f} /><rect x="440" y="244" width="44" height="22" rx="3" {...f} /><ellipse cx="505" cy="250" rx="9" ry="12" {...f} />
       <path d="M520 370 v60 h80" fill="none" stroke={WALL} strokeWidth="3" />
       <rect x="534" y="380" width="26" height="16" rx="3" {...f} /><ellipse cx="582" cy="392" rx="8" ry="10" {...f} />
-      <rect x="172" y="506" width="76" height="26" {...f} />
+      <rect x="236" y="490" width="28" height="46" {...f} />
     </g>
   );
 }
@@ -113,7 +117,7 @@ function Vent({ x, y, on, ink }: { x: number; y: number; on: boolean; ink: strin
 
 export function ZoneHouse() {
   // Starts as a weekday afternoon would: the living areas on, the bedrooms off.
-  const [on, setOn] = useState<Record<ZoneId, boolean>>({ living: true, kitchen: true, master: false, kids: false, study: true, bath: false });
+  const [on, setOn] = useState<Record<ZoneId, boolean>>({ living: true, kitchen: true, master: false, bed2: false, bed3: false, bed4: false, study: true, bath: false });
   const [mode, setMode] = useState<Mode>("cool");
   const m = MODE[mode];
   const [temp, setTemp] = useState<Record<ZoneId, number>>(() => Object.fromEntries(ZONES.map((z) => [z.id, on[z.id] ? SET : MODE.cool.drift])) as Record<ZoneId, number>);
@@ -177,10 +181,11 @@ export function ZoneHouse() {
           <g stroke="#fff" strokeWidth="5"><path d="M392 190 h26 M380 230 v26 M430 300 v26 M430 400 v26 M380 470 v26 M300 440 h26 M200 440 h26 M430 228 v24" /></g>
           <Door x={392} y={190} r={24} rot={180} /><Door x={430} y={300} r={24} rot={90} /><Door x={430} y={400} r={24} rot={90} />
           <Door x={200} y={440} r={24} rot={0} /><Door x={300} y={540} r={28} rot={-90} />
-          <Win x={200} y={40} w={80} /><Win x={390} y={40} w={70} /><Win x={515} y={40} w={60} /><Win x={600} y={290} w={60} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v />
+          <Win x={200} y={40} w={80} /><Win x={420} y={40} w={64} /><Win x={600} y={92} w={60} v /><Win x={600} y={278} w={58} v /><Win x={600} y={450} w={70} v /><Win x={600} y={205} w={40} v /><Win x={180} y={540} w={60} /><Win x={160} y={90} w={70} v />
 
           {/* Vents by the windows, where the heat comes in or goes out (Jake, Nov
-              2026), and two in the big living and kitchen/dining rooms. */}
+              2026), and two in the big living and kitchen/dining rooms. The
+              beds, desk and a couple of windows moved to make room. */}
           {ROOMS.flatMap((r) => (r.vents ?? []).map(([x, y]) => <Vent key={`${r.name}${x}`} x={x} y={y} on={on[r.zone!]} ink={m.ink} />))}
 
           {ROOMS.map((r) => {

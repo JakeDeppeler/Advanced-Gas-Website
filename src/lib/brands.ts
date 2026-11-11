@@ -3237,7 +3237,7 @@ const brandCatalogue: Brand[] = [
         { t: "Every shape the house needs", d: "A split for a bedroom, a multi-head where there's one spot outside, ducted from 10 kW up, gas ducted and evap." },
         { t: "One remote, one parts list", d: "A whole house on Kaden stays on one app and one parts pipeline. Mixed-brand houses are where warranty arguments start." },
         { t: "Gas ducted that modulates", d: "The 6-star burner ramps up and down instead of running flat-out then off, so a house that heats all winter burns noticeably less gas." },
-        { t: "Backed seven years, and six of ours", d: "Seven years of Kaden's parts and labour on the air conditioner, and six years of ours on the install." },
+        { t: "Backed seven years, and six of ours", d: "Seven years of Kaden's parts and labour on the unit (ten on a gas ducted heater's heat exchanger), and six years of ours on the install." },
       ],
     },
     reasons: [
@@ -3249,7 +3249,8 @@ const brandCatalogue: Brand[] = [
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start." },
       { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
-      { y: 7, t: "Year 7", d: "Kaden's parts and labour warranty on the air conditioner ends." },
+      { y: 7, t: "Year 7", d: "Kaden's parts and labour warranty ends." },
+      { y: 10, t: "Year 10", d: "The heat exchanger warranty on a Kaden gas ducted heater ends." },
     ],
     picker: {
       steps: [
@@ -3337,7 +3338,7 @@ const brandCatalogue: Brand[] = [
         t: "Backed seven years, and six of ours",
         line: "7-year manufacturer parts + labour + 6-year on our workmanship",
         detail:
-          "That is seven years of Kaden's own parts and labour on the air conditioner, and on top of it six years of ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong. Seven years fully backed, registered in your name the day after we fit it.",
+          "That is seven years of Kaden's own parts and labour on the unit, ten on a gas ducted heater's heat exchanger, and on top of it six years of ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong. Seven years fully backed, registered in your name the day after we fit it.",
         icon: "shield",
       },
       {
@@ -3372,7 +3373,7 @@ const brandCatalogue: Brand[] = [
       facts: [
         "Every Reece store in Melbourne stocks the common Kaden parts, same-day pickup for us on almost every job",
         "Warranty claims run through the Reece trade portal, so the paper trail stays in one place",
-        "7-year manufacturer parts and labour on the air conditioner, registered in your name after we install it",
+        "7-year manufacturer parts and labour on the unit, 10 on a gas ducted heat exchanger, registered in your name after we install it",
         "Six years of our own workmanship on top, covering the install rather than the box",
         "Do the whole house in Kaden and it is one remote, one app and one parts list to service, not five",
       ],
@@ -3408,7 +3409,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "What warranty do I get?",
-        a: "7-year manufacturer parts + labour + 6-year on our workmanship. The seven years is Kaden's own cover on the air conditioner, registered in your name the day after we install it; the six years is ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong. So it is seven years fully backed.",
+        a: "7-year manufacturer parts + labour + 6-year on our workmanship. The seven years is Kaden's own cover on the unit (a gas ducted heater's heat exchanger gets ten), registered in your name the day after we install it; the six years is ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong. So it is seven years fully backed.",
       },
     ],
 
@@ -3741,7 +3742,8 @@ const brandCatalogue: Brand[] = [
           { label: "Install position", value: "Internal cupboard" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
-          { label: "Warranty", value: "5-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years" },
         ],
         related: ["kaden-internal-starpro-45", "kaden-external-3", "brivis-internal-wombat-3"],
       },
@@ -3765,7 +3767,8 @@ const brandCatalogue: Brand[] = [
           { label: "Install position", value: "Internal cupboard" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
-          { label: "Warranty", value: "5-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years" },
         ],
         related: ["kaden-internal-3", "kaden-external-starpro-45", "brivis-internal-starpro-45"],
       },
@@ -3789,7 +3792,8 @@ const brandCatalogue: Brand[] = [
           { label: "Install position", value: "External weatherproof cabinet on pad" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
-          { label: "Warranty", value: "5-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years" },
         ],
         related: ["kaden-external-starpro-45", "kaden-internal-3", "brivis-external-buffalo"],
       },
@@ -3813,7 +3817,8 @@ const brandCatalogue: Brand[] = [
           { label: "Install position", value: "External weatherproof cabinet on pad" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
-          { label: "Warranty", value: "5-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years" },
         ],
         related: ["kaden-external-3", "kaden-internal-starpro-45", "brivis-external-starpro-45"],
       },
