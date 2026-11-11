@@ -8,7 +8,8 @@ import { services } from "@/lib/site";
 import { breadcrumbSchema, suburbServiceSchema } from "@/lib/schema";
 import { seoMeta } from "@/lib/seo";
 import { suburbJobs, suburbReviews } from "@/lib/suburbJobs";
-import { Crumbs, Hero, Head, Next, Cta } from "@/components/homepage/page/kit";
+import { Crumbs, Hero, Next } from "@/components/homepage/page/kit";
+import { BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "@/components/homepage/page/bands";
 // detail.css only for the Leaflet map's frame (.submap__leaflet).
 import "../../detail.css";
 import "@/components/homepage/product/product.css";
@@ -79,9 +80,116 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
     { name: sub.name, url: `${site.url}/areas/${sub.slug}` },
   ]);
 
+  // The page in the product pages' bands (Jake, Nov 2026). Each part still
+  // hides when the suburb's record has nothing for it.
+  const bands: Band[] = [
+    {
+      id: "about", tab: `About ${sub.name}`, cls: "kx2",
+      body: (
+        <>
+          <div className="kx__prose">
+            <BkHead h={sub.outerRing ? "What we get called out for {here}." : "What we mostly install {here}."} />
+            <p><strong>Housing:</strong> {cap(sub.housingStock)}.</p>
+            <p><strong>{sub.outerRing ? "Usual jobs" : "Most common install"}:</strong> {cap(sub.commonInstall)}.</p>
+            <p><strong>Council:</strong> {sub.council}. Compliance certificates and permits handled in-house.</p>
+            {sub.whyLocal && <p>{sub.whyLocal}</p>}
+            {sub.knownEstates && <p><strong>Estates we know well:</strong> {sub.knownEstates}</p>}
+          </div>
+          <LeafletSuburbMap slug={sub.slug} name={sub.name} />
+        </>
+      ),
+    },
+    ...(sub.commonProblems?.length ? [{
+      id: "common", tab: "On the tools",
+      body: (
+        <>
+          <BkHead h="What we see on the tools {here}." />
+          <ul className="kxk" data-anim="stagger">{sub.commonProblems.map((p) => <li key={p}>{p}</li>)}</ul>
+        </>
+      ),
+    }] : []),
+    ...(sub.testimonial ? [{
+      body: (
+        <figure className="kxq">
+          <span className="stars stars--ink" aria-hidden="true">★★★★★</span>
+          <blockquote>&ldquo;{sub.testimonial.quote}&rdquo;</blockquote>
+          <figcaption><strong>{sub.testimonial.who}</strong> · {sub.testimonial.what}</figcaption>
+        </figure>
+      ),
+    }] : []),
+    // Reviews left for jobs in this suburb, from the same Google-sourced list
+    // the /reviews page prints. Most suburbs have none yet, and the band
+    // simply doesn't render rather than borrowing another suburb's. No Review
+    // markup: see ReviewsBlock for why.
+    ...(localReviews.length ? [{
+      id: "reviews", tab: "Reviews",
+      body: (
+        <>
+          <BkHead h={`What ${sub.name} customers {said}.`} />
+          <div className="pp__revs" data-anim="stagger">
+            {localReviews.map((r) => (
+              <article key={r.who + r.title} className="rev">
+                <span className="stars stars--ink" aria-label={`${r.rating} out of 5`}>{"★".repeat(r.rating)}</span>
+                <h3>{r.title}</h3>
+                <p>&ldquo;{r.txt}&rdquo;</p>
+                <div className="rev__who">
+                  <span aria-hidden="true">{r.a}</span>
+                  <span className="rev__whot"><strong>{r.who}</strong><small>{r.what}</small></span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      ),
+    }] : []),
+    {
+      id: "services", tab: "Services", navy: true,
+      body: (
+        <>
+          <BkHead h={`What we do {nearby}.`} />
+          {jobs.length > 0 && (
+            <div>
+              <h3 className="kx__sub">Most asked for in {sub.name}</h3>
+              <div className="kxc">
+                {jobs.map((j) => <Link key={j.href} href={j.href} className="kxc__i"><strong>{j.label}</strong><small>How we install it →</small></Link>)}
+              </div>
+            </div>
+          )}
+          <div>
+            {jobs.length > 0 && <h3 className="kx__sub">Everything we do</h3>}
+            <div className="kxc">
+              {services.map((s) => <Link key={s.slug} href={`/services/${s.slug}`} className="kxc__i"><strong>{s.short}</strong><small>See the service →</small></Link>)}
+              <Link href="/#find" className="kxc__i"><strong>Find your system</strong><small>Every system, side by side →</small></Link>
+            </div>
+          </div>
+          {nearby.length > 0 && (
+            <div>
+              <h3 className="kx__sub">Also serving nearby</h3>
+              <div className="kx__chips">
+                {nearby.map((s) => s.published ? <Link key={s.slug} href={`/areas/${s.slug}`}>{s.name}</Link> : <span key={s.slug}>{s.name}</span>)}
+              </div>
+            </div>
+          )}
+        </>
+      ),
+    },
+    {
+      id: "next", tab: "Where next",
+      body: (
+        <>
+          <BkHead h="See the {work}." />
+          <Next items={[
+            { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
+            { t: "Every suburb we cover", s: "Pakenham and 75 km around", href: "/service-areas" },
+            { t: "Who we are", s: "The team and how we work", href: "/about" },
+          ]} />
+        </>
+      ),
+    },
+  ];
+
   return (
-    // data-no-reveal: the redesign pages opt out of the old site's scroll reveal.
-    <div className="ag ag--flat" data-no-reveal>
+    <BandPage>
       <Crumbs trail={[{ name: "Service areas", href: "/service-areas" }, { name: sub.name }]} />
       <Hero
         eye={`${sub.name} · VIC ${sub.postcode} · ${sub.council}`}
@@ -102,108 +210,11 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           { v: "12 hrs", k: "to a written quote" },
         ]}
       />
-
-      <section className="pxs">
-        <div className="wrap kx2">
-          <div className="kx__prose">
-            <Head eye={`About ${sub.name}`} h={sub.outerRing ? "What we get called out for here." : "What we mostly install here."} />
-            <p><strong>Housing:</strong> {cap(sub.housingStock)}.</p>
-            <p><strong>{sub.outerRing ? "Usual jobs" : "Most common install"}:</strong> {cap(sub.commonInstall)}.</p>
-            <p><strong>Council:</strong> {sub.council}. Compliance certificates and permits handled in-house.</p>
-            {sub.whyLocal && <p>{sub.whyLocal}</p>}
-            {sub.knownEstates && <p><strong>Estates we know well:</strong> {sub.knownEstates}</p>}
-          </div>
-          <LeafletSuburbMap slug={sub.slug} name={sub.name} />
-        </div>
-      </section>
-
-      {sub.commonProblems && sub.commonProblems.length > 0 && (
-        <section className="pxs pxs--cream">
-          <div className="wrap pp__col">
-            <Head eye={`Common in ${sub.name}`} h="What we see on the tools here." />
-            <ul className="kxk">{sub.commonProblems.map((p) => <li key={p}>{p}</li>)}</ul>
-          </div>
-        </section>
-      )}
-
-      {sub.testimonial && (
-        <section className="pxs">
-          <div className="wrap">
-            <figure className="kxq">
-              <span className="stars stars--ink" aria-hidden="true">★★★★★</span>
-              <blockquote>&ldquo;{sub.testimonial.quote}&rdquo;</blockquote>
-              <figcaption><strong>{sub.testimonial.who}</strong> · {sub.testimonial.what}</figcaption>
-            </figure>
-          </div>
-        </section>
-      )}
-
-      {/* Reviews left for jobs in this suburb, from the same Google-sourced
-          list the /reviews page prints. Most suburbs have none yet, and the
-          section simply doesn't render rather than borrowing another
-          suburb's. No Review markup: see ReviewsBlock for why. */}
-      {localReviews.length > 0 && (
-        <section className={`pxs${sub.testimonial ? " pxs--cream" : ""}`}>
-          <div className="wrap pp__col">
-            <Head eye={`Reviews from ${sub.name}`} h={`What ${sub.name} customers said.`} />
-            <div className="pp__revs">
-              {localReviews.map((r) => (
-                <article key={r.who + r.title} className="rev">
-                  <span className="stars stars--ink" aria-label={`${r.rating} out of 5`}>{"★".repeat(r.rating)}</span>
-                  <h3>{r.title}</h3>
-                  <p>&ldquo;{r.txt}&rdquo;</p>
-                  <div className="rev__who">
-                    <span aria-hidden="true">{r.a}</span>
-                    <span className="rev__whot"><strong>{r.who}</strong><small>{r.what}</small></span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="pxs pxs--navy">
-        <div className="wrap pp__col">
-          <Head dark eye={`Services in ${sub.name}`} h="What we do nearby." />
-          {jobs.length > 0 && (
-            <>
-              <h3 className="kx__sub">Most asked for in {sub.name}</h3>
-              <div className="kxc">
-                {jobs.map((j) => <Link key={j.href} href={j.href} className="kxc__i"><strong>{j.label}</strong><small>How we install it →</small></Link>)}
-              </div>
-              <h3 className="kx__sub">Everything we do</h3>
-            </>
-          )}
-          <div className="kxc">
-            {services.map((s) => <Link key={s.slug} href={`/services/${s.slug}`} className="kxc__i"><strong>{s.short}</strong><small>See the service →</small></Link>)}
-            <Link href="/#find" className="kxc__i"><strong>Find your system</strong><small>Every system, side by side →</small></Link>
-          </div>
-          {nearby.length > 0 && (
-            <>
-              <h3 className="kx__sub">Also serving nearby</h3>
-              <div className="kx__chips">
-                {nearby.map((s) => s.published ? <Link key={s.slug} href={`/areas/${s.slug}`}>{s.name}</Link> : <span key={s.slug}>{s.name}</span>)}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      <section className="pxs pxs--sky">
-        <div className="wrap pp__col">
-          <Head eye="Where next" h="See the work." />
-          <Next items={[
-            { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
-            { t: "Every suburb we cover", s: "Pakenham and 75 km around", href: "/service-areas" },
-            { t: "Who we are", s: "The team and how we work", href: "/about" },
-          ]} />
-        </div>
-      </section>
-
-      <Cta title={`Free quote for ${sub.name}.`} text="Free and no obligation, with a written quote back within 12 business hours." />
+      <Tabs list={bands} />
+      <Bands list={bands} />
+      <EndCta title={<>Free quote for <span>{sub.name}</span>.</>} text="Free and no obligation, with a written quote back within 12 business hours." from="suburb-cta" />
       <JsonLd data={crumbs} />
       <JsonLd data={suburbServiceSchema(sub)} />
-    </div>
+    </BandPage>
   );
 }

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { publishedSuburbs } from "@/lib/site";
 import { areaSuburbs } from "@/lib/homepage/areas";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
-import { Crumbs, Hero, Head, Cta } from "@/components/homepage/page/kit";
+import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { BkHead, Bands, EndCta, BandPage } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
@@ -17,8 +18,8 @@ export const metadata: Metadata = {
 
 export default function ServiceAreasPage() {
   return (
-    // data-no-reveal: the redesign pages opt out of the old site's scroll reveal.
-    <div className="ag ag--flat" data-no-reveal>
+    // The product pages' bands (Jake, Nov 2026), as the suburb pages under it.
+    <BandPage>
       <Crumbs trail={[{ name: "Service areas" }]} />
       <Hero
         eye="Service areas"
@@ -29,18 +30,22 @@ export default function ServiceAreasPage() {
       {/* The homepage's map and suburb checker, so the two can't disagree about who we reach. */}
       <ServiceArea suburbs={areaSuburbs()} />
 
-      <section className="pxs pxs--navy">
-        <div className="wrap pp__col">
-          <Head dark eye="Suburbs" h="Every suburb with its own page." lede="What we install most there, and how long it takes us to get to you." />
-          <div className="kxc">
-            {publishedSuburbs.map((s) => (
-              <Link key={s.slug} href={`/areas/${s.slug}`} className="kxc__i"><strong>{s.name}</strong><small>VIC {s.postcode}</small></Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Bands list={[{
+        // Light, not navy: the map above is already a navy band.
+        id: "suburbs",
+        body: (
+          <>
+            <BkHead h="Every suburb with {its own page}.">What we install most there, and how long it takes us to get to you.</BkHead>
+            <div className="kxc kxc--light" data-anim="stagger">
+              {publishedSuburbs.map((s) => (
+                <Link key={s.slug} href={`/areas/${s.slug}`} className="kxc__i"><strong>{s.name}</strong><small>VIC {s.postcode}</small></Link>
+              ))}
+            </div>
+          </>
+        ),
+      }]} />
 
-      <Cta title="Free quote, rebate applied." text="A free, no-obligation quote back within 12 business hours." />
-    </div>
+      <EndCta title={<>Free quote, <span>rebate applied</span>.</>} text="A free, no-obligation quote back within 12 business hours." from="areas-cta" />
+    </BandPage>
   );
 }

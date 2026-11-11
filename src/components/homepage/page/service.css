@@ -20,3 +20,10 @@
 .ag .svk .pcx__col--pro li::before{color:var(--acc-l)}
 .ag .svk .kxr__g{color:var(--or-ink);background:var(--cream)}
 .ag .svk .bk__sec--cream .kxr__g{background:#F7E6DA}
+/* The hero's coloured word and label in the accent, not the old sky blue */
+.ag .svk .kx__h1 em{color:var(--or2)}
+.ag .svk .bxh .lk2__eye{color:#FF9A5C}
+/* Suburb pages: the problem list and the subheads, on either light band */
+.ag .svk .kxk li{box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .svk .bk__sec--navy .kx__sub{margin:0 0 12px}
+.ag .svk .kx2{align-items:start}

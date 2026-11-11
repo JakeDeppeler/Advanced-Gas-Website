@@ -10,9 +10,7 @@ import { SHOW_PRICES } from "@/lib/homepage/data";
 const asset = (src: string) => resolveAsset(src) ?? src;
 import { Crumbs, Hero, Tiles, Next } from "./kit";
 import { AreaChips } from "./AreasServed";
-import { BkMotion } from "../brand/BkMotion";
-import "../brand/blocks.css";
-import "./service.css";
+import { accent, lastWord, BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "./bands";
 
 type Row = { tier: string; price: string; includes: string; group?: string; photo?: string; photoScene?: boolean; priceKey?: string };
 type Sys = NonNullable<ServiceContent["systems"]>[number];
@@ -72,24 +70,6 @@ function PricesHead() {
     : <BkHead h="What each job {covers}.">Every job is priced after a free site check, on a fixed written quote including GST. It only changes if the job does, and we tell you before it does.</BkHead>;
 }
 
-/** A heading with one part in colour, as the product and brand pages set them: the coloured part is in braces. */
-function accent(text: string) {
-  return text.split(/[{}]/).map((part, i) => (i % 2 ? <span key={i}>{part}</span> : part));
-}
-
-/** Content headings carry no braces: colour the last word, as the product page's "How it works" does. */
-const lastWord = (h: string) => (/[{}]/.test(h) ? h : h.replace(/(\S+?)([.?!]?)$/, "{$1}$2"));
-
-/** The product page's section head: the heading, and a line under it. */
-function BkHead({ h, children }: { h: string; children?: ReactNode }) {
-  return (
-    <header className="bk__head">
-      <h2 className="h2">{accent(h)}</h2>
-      {children && <p>{children}</p>}
-    </header>
-  );
-}
-
 function Faqs({ faqs }: { faqs: { q: string; a: string }[] }) {
   return <div className="afaqs">{faqs.map((f) => <details key={f.q} className="afaq"><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>;
 }
@@ -118,44 +98,6 @@ function Feature({ f, flip = false }: { f: { heading: string; note?: string; bod
   );
 }
 
-/**
- * One full-width band of the page. Service pages are built from optional
- * parts (one has a "how it looks", another doesn't), so the light bands are
- * toned white and cream in turn as they come, rather than fixed per section:
- * fixed tones put two creams together whenever the white between them was
- * missing. Navy bands are fixed, as they are on the product page.
- */
-type Band = { id?: string; tab?: string; navy?: boolean; cls?: string; body: ReactNode | ((tone: "white" | "cream") => ReactNode) };
-
-function Bands({ list }: { list: Band[] }) {
-  let k = 0;
-  return (
-    <>
-      {list.map((b, i) => {
-        const tone = b.navy ? "navy" : k++ % 2 ? "cream" : "white";
-        return (
-          <section key={b.id ?? i} className={`bk__sec bk__sec--${tone}`} id={b.id}>
-            <div className="wrap"><div className={`bk__blk ${b.cls ?? "bk__col"}`}>
-              {typeof b.body === "function" ? b.body(tone === "navy" ? "white" : tone) : b.body}
-            </div></div>
-          </section>
-        );
-      })}
-    </>
-  );
-}
-
-/** The tabs under the hero, one per band that has one. */
-function Tabs({ list }: { list: Band[] }) {
-  const tabs = list.filter((b) => b.id && b.tab);
-  if (tabs.length < 3) return null;
-  return (
-    <nav className="pxt" aria-label="On this page">
-      <div className="wrap pxt__in">{tabs.map((b) => <a key={b.id} href={`#${b.id}`}>{b.tab}</a>)}</div>
-    </nav>
-  );
-}
-
 /** The suburbs nearest the workshop, as a band of the page. */
 function Areas({ what }: { what: string }) {
   return (
@@ -165,45 +107,6 @@ function Areas({ what }: { what: string }) {
       </BkHead>
       <AreaChips />
     </>
-  );
-}
-
-/** The quote box every product page ends on. */
-function EndCta({ title }: { title: ReactNode }) {
-  return (
-    <section className="bk__sec bk__sec--white bk__sec--end">
-      <div className="wrap">
-        <div className="bk__box bk__box--acc bk__cta">
-          <div>
-            <h2 className="bk__boxh">{title}</h2>
-            <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
-          </div>
-          <div className="bxh__ctas">
-            <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-            <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="page-cta">Call (03) 5947 8000</a>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/**
- * The page root. The product pages' bands (Jake, Nov 2026: the service pages
- * should match them), so .bk for the band styles and BkMotion for the cards
- * rising in turn. The accent is the site's orange: a service has no brand
- * colour of its own.
- */
-function Root({ children }: { children: ReactNode }) {
-  return (
-    // .bk inside .ag, not on it: the band styles are written as ".ag .bk …",
-    // as the product page nests them.
-    <div className="ag ag--flat" data-no-reveal>
-      <div className="bk svk" style={{ ["--acc" as string]: "#C2521A" }}>
-        <BkMotion />
-        {children}
-      </div>
-    </div>
   );
 }
 
@@ -260,13 +163,13 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
     { body: <Areas what={name} /> },
   ];
   return (
-    <Root>
+    <BandPage>
       <Crumbs trail={[{ name: "Services", href: "/services" }, { name }]} />
       <Hero eye={name} title={c.h1} sub={c.intro} img={c.heroPhoto ? asset(c.heroPhoto) : undefined} imgAlt={c.heroPhotoAlt} facts={c.heroFacts} />
       <Tabs list={bands} />
       <Bands list={bands} />
       <EndCta title={<>Ready to talk about <span>{name.toLowerCase()}</span>?</>} />
-    </Root>
+    </BandPage>
   );
 }
 
@@ -326,7 +229,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
     { body: <Areas what={s.label} /> },
   ];
   return (
-    <Root>
+    <BandPage>
       <Crumbs trail={[{ name: "Services", href: "/services" }, { name, href: `/services/${slug}` }, { name: s.label }]} />
       <Hero
         eye={`${name} · ${s.label}`} title={title} sub={s.intro ?? s.blurb}
@@ -342,6 +245,6 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
       <Tabs list={bands} />
       <Bands list={bands} />
       <EndCta title={<>Ready to talk about <span>{label}</span>?</>} />
-    </Root>
+    </BandPage>
   );
 }
