@@ -16,24 +16,25 @@ import { JsonLd } from "@/components/JsonLd";
  * the advisor, Instagram strip and before-and-after) is in git history.
  */
 
+/** The coloured part of each heading is in braces, as on the product pages. */
 const CHOOSE_HEAD: Record<string, { h2: string; lede: string }> = {
   "air-conditioning-installation": {
-    h2: "Four shapes. One of them is your house.",
+    h2: "Four shapes. One of them is {your house}.",
     lede:
       "Before anyone talks model numbers, the choice is what shape the system takes: one room or the whole house, on the wall or in the roof, refrigerated or evaporative. Everything else follows from that.",
   },
   "heat-pump-installation": {
-    h2: "One shell, or two pieces?",
+    h2: "One shell, or {two pieces}?",
     lede:
       "That's genuinely the whole decision. All-in-one is a single unit where the old tank stood. Split puts the compressor outside and the tank against the wall, which is what buys you the cold-weather performance and the tank options.",
   },
   "aircon-servicing-repairs": {
-    h2: "What are we servicing?",
+    h2: "What are we {servicing}?",
     lede:
       "Refrigerated and evaporative are different machines with different service intervals, different consumables and different prices. Pick the one on your roof.",
   },
   "gas-plumbing": {
-    h2: "Heating, hot water, or the gas itself.",
+    h2: "Heating, hot water, or {the gas itself}.",
     lede:
       "Three trades on one licence, so this page covers all of them. Start with the one that brought you here. Each has its own page with the models, the prices and the honest limits.",
   },

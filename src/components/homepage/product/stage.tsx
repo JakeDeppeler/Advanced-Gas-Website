@@ -316,7 +316,7 @@ function RebateCheck({ model, hw }: { model: string; hw: boolean }) {
  */
 const NUM = /\d[\d,]*(?:\.\d+)?/;
 
-function Count({ text }: { text: string }) {
+export function Count({ text }: { text: string }) {
   const m = NUM.exec(text);
   const target = m ? Number(m[0].replace(/,/g, "")) : NaN;
   const shape = m ? text.replace(NUM, "#") : text;

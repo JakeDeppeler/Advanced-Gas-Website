@@ -1,0 +1,22 @@
+/* The service pages in the product pages' bands (ServiceView.tsx). The cards
+   inside were drawn for cream and sky sections, white on a tint with no
+   edge; a band can now be white, so they take the product page's card edge
+   and shadow and read on either. */
+.ag .svk :is(.bxt__card,.kxr__card){box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .svk .kxn a{border-color:var(--line2);box-shadow:0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .svk .bk__sec--white .kx__facts div{background:var(--cream);border-color:transparent}
+.ag .svk .bxt__n{color:var(--acc)}
+/* Headings on navy: the coloured part lightens, as on the product page */
+.ag .svk .bk__sec--navy .bk__head p{color:rgba(255,255,255,.84)}
+.ag .svk .pxbr .h2{margin:0}
+.ag .svk .bk__boxh span{color:var(--navy)}
+/* No light blue in the bands (Jake's rule for the brand and product pages):
+   "A good fit if" goes navy as the product page's Pros do, and the price
+   cards' group chips take the accent. */
+.ag .svk .pcx__col--pro{background:var(--navy)}
+.ag .svk .pcx__col--pro h3{color:#fff}
+.ag .svk .pcx__col--pro h3 span{background:var(--acc);color:#fff}
+.ag .svk .pcx__col--pro li{color:rgba(255,255,255,.88)}
+.ag .svk .pcx__col--pro li::before{color:var(--acc-l)}
+.ag .svk .kxr__g{color:var(--or-ink);background:var(--cream)}
+.ag .svk .bk__sec--cream .kxr__g{background:#F7E6DA}

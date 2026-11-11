@@ -212,3 +212,45 @@
   .ag :is(.stg__panel,.stg__h1,.stg__chip,.stg__tiles li,.stg__card,.stg__right,.stg__air path){animation:none !important}
   .ag .stg__air path{stroke-dasharray:none;opacity:.45}
 }
+
+/* How long are the showers (shower.tsx): the maths on the left, the
+   interactive card on the right. The bar's reheat part is striped and
+   labelled in the key, so it doesn't rest on colour alone. */
+.ag .shw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(28px,5vw,72px);align-items:start}
+.ag .shw__maths{margin:10px 0 0;display:flex;flex-direction:column;border-top:1px solid var(--line2)}
+.ag .shw__maths div{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.ag .shw__maths dt{font-size:15px;color:var(--ink2)}
+.ag .shw__maths dd{margin:0;font-family:var(--disp);font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+.ag .shw__maths div:last-child dd{color:var(--acc)}
+.ag .shw__card{display:flex;flex-direction:column;gap:20px;background:#fff;border-radius:16px;padding:clamp(22px,3vw,34px);box-shadow:inset 0 0 0 1px var(--line2),0 30px 60px -40px rgba(5,10,48,.45)}
+.ag .shw__row{display:flex;flex-direction:column;gap:10px}
+.ag .shw__q{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.ag .shw__opts{display:flex;flex-wrap:wrap;gap:8px}
+.ag .shw__opts button{min-width:48px;height:44px;padding:0 14px;border-radius:10px;border:0;background:var(--cream);box-shadow:inset 0 0 0 1px var(--line2);font:700 15px/1 var(--disp);color:var(--navy);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.ag .shw__opts button:hover{box-shadow:inset 0 0 0 2px var(--navy)}
+.ag .shw__opts button[aria-pressed="true"]{background:var(--navy);color:#fff;box-shadow:none}
+.ag .shw__opts button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.ag .shw__total{display:flex;flex-direction:column;gap:2px}
+.ag .shw__lbl,.ag .shw__sub{font-size:15px;color:var(--ink2)}
+.ag .shw__total b{font-family:var(--disp);font-size:clamp(52px,6vw,76px);font-weight:900;line-height:1;letter-spacing:-.035em;color:var(--navy);font-variant-numeric:tabular-nums}
+.ag .shw__total small{font-size:.42em;letter-spacing:0;color:var(--ink2)}
+.ag .shw__bar{position:relative;height:16px;border-radius:99px;background:var(--cream);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .shw__fill{position:absolute;inset:0 auto 0 0;background:var(--acc);border-radius:99px 0 0 99px;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.ag .shw__more{position:absolute;top:0;bottom:0;right:0;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--acc) 55%,#fff) 0 6px,#fff 6px 11px);transition:left .6s cubic-bezier(.2,.7,.2,1)}
+.ag .shw__key{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:-8px;font-size:13.5px;color:var(--ink2)}
+.ag .shw__key span{display:inline-flex;align-items:center;gap:7px}
+.ag .shw__sw{display:inline-block;width:18px;height:10px;border-radius:3px;background:var(--acc)}
+.ag .shw__sw--more{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--acc) 55%,#fff) 0 3px,#fff 3px 6px);box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .shw__each{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:12px;background:var(--navy);color:#fff}
+.ag .shw__each p{margin:0;font-size:16px;color:rgba(255,255,255,.85)}
+.ag .shw__each b{font-family:var(--disp);font-size:28px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums}
+.ag .shw__ppl{list-style:none;margin:0;padding:0;display:flex;gap:4px;flex:none}
+/* A person: a head over shoulders, drawn in CSS */
+.ag .shw__ppl li{position:relative;width:18px;height:26px;animation:shwIn .35s cubic-bezier(.2,.9,.25,1.3) both}
+.ag .shw__ppl li::before{content:"";position:absolute;left:5px;top:0;width:8px;height:8px;border-radius:50%;background:var(--acc-l,#F0A070)}
+.ag .shw__ppl li::after{content:"";position:absolute;left:1px;top:10px;width:16px;height:16px;border-radius:8px 8px 3px 3px;background:var(--acc-l,#F0A070)}
+@keyframes shwIn{from{opacity:0;transform:translateY(6px) scale(.8)}}
+.ag .shw__note{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink3)}
+@media (max-width:900px){.ag .shw{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.ag .shw__each{flex-direction:column;align-items:flex-start;gap:8px}}
+@media (prefers-reduced-motion:reduce){.ag .shw__fill,.ag .shw__more{transition:none}.ag .shw__ppl li{animation:none}}

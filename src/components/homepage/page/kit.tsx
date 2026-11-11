@@ -86,9 +86,9 @@ export function Head({ eye, h, lede, dark = false }: { eye: string; h: ReactNode
 }
 
 /** Numbered cards, as the brand page's "what you get". */
-export function Tiles({ items }: { items: { t: string; line?: string; d: string }[] }) {
+export function Tiles({ items, anim = false }: { items: { t: string; line?: string; d: string }[]; anim?: boolean }) {
   return (
-    <div className="bxt">
+    <div className="bxt" data-anim={anim ? "stagger" : undefined}>
       {items.map((b, i) => (
         <article key={b.t} className="bxt__card">
           <span className="bxt__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>

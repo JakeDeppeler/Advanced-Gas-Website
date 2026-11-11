@@ -30,13 +30,20 @@ export function AreasServed({ what, tone }: { what: string; tone?: "cream" }) {
           h={<span id="areas-served">{what} in Pakenham and the suburbs around it.</span>}
           lede="Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within about 75 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there."
         />
-        <div className="kx__chips kx__chips--light">
-          {NEAREST.map((s) => (
-            <Link key={s.slug} href={`/areas/${s.slug}`}>{s.name}</Link>
-          ))}
-          <Link href="/service-areas" className="kx__chips-all">All {publishedSuburbs.length} suburbs →</Link>
-        </div>
+        <AreaChips />
       </div>
     </section>
+  );
+}
+
+/** The suburb links alone, for a page that sets its own heading (the service pages' bands). */
+export function AreaChips() {
+  return (
+    <div className="kx__chips kx__chips--light">
+      {NEAREST.map((s) => (
+        <Link key={s.slug} href={`/areas/${s.slug}`}>{s.name}</Link>
+      ))}
+      <Link href="/service-areas" className="kx__chips-all">All {publishedSuburbs.length} suburbs →</Link>
+    </div>
   );
 }

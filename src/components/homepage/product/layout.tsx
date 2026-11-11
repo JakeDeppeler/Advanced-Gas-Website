@@ -10,6 +10,7 @@ import {
 import { HowItWorks } from "../how/HowItWorks";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { StageHero, KeyFeatures, Resources } from "./stage";
+import { ShowerTime, hasTank } from "./shower";
 import { BkMotion } from "../brand/BkMotion";
 import "../brand/blocks.css";
 
@@ -41,7 +42,7 @@ export function ProductLayout({ v }: { v: PV }) {
   // Ordered to teach: what it is and how it works, its strengths and limits,
   // which size (or which other option), then the details and booking.
   const tabs = [
-    ["overview", "Our take"], ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"],
+    ["overview", "Our take"], ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"], ...(hasTank(v) ? [["showers", "Shower time"]] : []),
     ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []), ...(learn ? [["fit", "Is it right for you?"]] : []),
     ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["resources", "Resources"], ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
@@ -96,6 +97,9 @@ export function ProductLayout({ v }: { v: PV }) {
           <Choose v={v} />
         </div></div>
       </section>
+
+      {/* Hot water with a tank: how long the showers last on the size picked. */}
+      <ShowerTime v={v} />
 
       {isHeatPumpOption(v) && (
         // The same navy box with the hot water orange as the heat pump system
