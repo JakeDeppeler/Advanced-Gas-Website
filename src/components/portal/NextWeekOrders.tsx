@@ -1332,7 +1332,10 @@ function supplierCards(drafts: PoWithLines[], unbooked: UnbookedSale[], holds: H
     }
   }
   for (const sale of unbooked) for (const g of sale.groups) {
-    if (g.ordered) continue;
+    // Done for this supplier once every line is ordered or coming from the
+    // factory: an all-factory sale (nothing ordered) sat on as "All sorted"
+    // under Reece (Jake, 11 Nov). Other suppliers' parts of the sale still show.
+    if (g.ordered || g.items.every((i) => i.shelf || i.ordered)) continue;
     const c = get(g.supplierId, g.supplier);
     const toOrder = g.items.filter((i) => !i.shelf && !i.ordered);
     c.ahead.push({
