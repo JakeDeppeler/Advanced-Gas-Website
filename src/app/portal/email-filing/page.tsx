@@ -53,9 +53,9 @@ export default async function EmailFilingPage() {
           title="Email filing"
           sub="admin@ into its own folders, so the Inbox only holds what someone has to do"
           info={[
-            ["What moves", "Only an email that needs nothing more: notifications, supplier paperwork, work orders already in ServiceTitan, and, if it's switched on, an email whose reply has gone out."],
-            ["Which folder", "Where that sender's email has always gone, learned from your folders once a day. A work order goes to its agency's folder; supplier paperwork to Accounting or Receipts; machine mail to Notifications."],
-            ["What stays", "Anything that needs a person, anything flagged or given a category by hand, any email with a flagged word, and anything from a sender with no folder yet."],
+            ["What moves", "Only an email that needs nothing more: machine notifications, work orders already in ServiceTitan, and, if it's switched on, an email whose reply has gone out."],
+            ["Which folder", "Where that sender's email has always gone, learned from your folders once a day. A work order goes to its agency's folder; machine mail with no folder of its own to Notifications."],
+            ["What stays", "Anything that needs a person, anything flagged or given a category by hand, any email with a flagged word, supplier invoices and receipts still to be entered, Tapi jobs (Tapi is updated by hand), meeting invites, and anything from a sender with no folder yet."],
             ["Putting one back", "Drag it back to the Inbox and it's left there for good."],
           ]}
         />
