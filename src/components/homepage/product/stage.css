@@ -31,6 +31,31 @@
 .ag .stg__about{display:flex;flex-direction:column;gap:10px;padding:18px 20px}
 .ag .stg__about h2{text-wrap:balance;margin:4px 0 0;font-family:var(--disp);font-size:19px;font-weight:800;line-height:1.25;letter-spacing:-.02em}
 .ag .stg__about p{margin:0;font-size:15px;line-height:1.55;color:#2b2f45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* The rebate check: a chip that stamps in with a tick, and two yes/no taps
+   under it. The result says Yes / Probably not in words, not just green. */
+.ag .stv{display:flex;flex-direction:column;gap:10px}
+.ag .stv__chip{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 8px;border-radius:999px;border:1.5px solid #1E7F4F;background:#E9F6EF;color:#14532D;font:inherit;text-align:left;cursor:pointer;animation:stvIn .7s .9s cubic-bezier(.2,1.4,.4,1) both}
+.ag .stv__chip:hover{background:#DDF1E6}
+.ag .stv__chip:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
+.ag .stv__chip > span:last-child{display:flex;flex-direction:column;line-height:1.15}
+.ag .stv__chip b{font-size:14px;font-weight:800}
+.ag .stv__chip small{font-size:12px;font-weight:600;color:#1E7F4F;text-decoration:underline;text-underline-offset:2px}
+.ag .stv__tick{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#1E7F4F;color:#fff}
+.ag .stv__tick path{stroke-dasharray:24;stroke-dashoffset:24;animation:stvTick .45s 1.4s ease-out forwards}
+.ag .stv__box{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:12px;background:#f6f1e7;animation:stgUp .35s cubic-bezier(.2,.7,.2,1) both}
+.ag .stv__lede{display:block !important;-webkit-line-clamp:unset !important;font-size:13.5px !important}
+.ag .stv__q{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:700}
+.ag .stv__q div{display:flex;gap:6px}
+.ag .stv__q button{min-width:52px;min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid #c9c2b2;background:#fff;color:#050a30;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.ag .stv__q button[aria-pressed="true"]{background:#050a30;border-color:#050a30;color:#fff}
+.ag .stv__q button:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
+.ag .stv__ans{display:block !important;-webkit-line-clamp:unset !important;margin:0;padding:10px 12px;border-radius:10px;border-left:4px solid #9a6a1a;background:#fff;font-size:13.5px !important;line-height:1.5}
+.ag .stv__ans.is-ok{border-left-color:#1E7F4F}
+.ag .stv__ans b{color:#050a30}
+.ag .stv__ans a{color:#C2521A;font-weight:700;white-space:nowrap}
+@keyframes stvIn{0%{opacity:0;transform:scale(.6) rotate(-6deg)}100%{opacity:1;transform:none}}
+@keyframes stvTick{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.ag .stv__chip,.ag .stv__box{animation:none}.ag .stv__tick path{animation:none;stroke-dashoffset:0}}
 .ag .stg__code{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5d5d64}
 .ag .stg__pick{display:flex;flex-direction:column;gap:12px;padding:18px 20px;animation-delay:.5s}
 .ag .stg__pickhead{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}

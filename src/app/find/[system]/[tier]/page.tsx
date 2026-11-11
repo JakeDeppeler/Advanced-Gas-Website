@@ -87,7 +87,7 @@ export default function FindProductPage({ params }: { params: Params }) {
       slug: id ?? slug, chip, name: star ? `${tier.brand} ${tier.model}` : p.name, code: star ? `${tier.model} · ${chip}` : ownCode ?? p.model ?? p.name, bestFor: p.bestFor, room,
       href: `/brands/${b}/${slug}`, specs,
       take: p.ourTake, badges: badgesFor(star ? { starRating: `${star}-star`, specs } : p, tier.feats), keys: keyFigures(specs),
-      features: p.features, why: p.whyWeInstall,
+      features: p.features, why: p.whyWeInstall, veu: p.veuEligible,
     }];
   });
   const b = BRAND_SLUGS[tier.brand] ? findBrand(BRAND_SLUGS[tier.brand]) : null;

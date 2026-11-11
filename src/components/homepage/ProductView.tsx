@@ -27,6 +27,8 @@ export type PModel = {
   /** The catalogue's own feature and "why we install" lists, where it has them. */
   features?: string[];
   why?: string[];
+  /** On the VEU product register, as the catalogue record states it. Absent means unknown, not "no". */
+  veu?: boolean;
 };
 export type PBrand = {
   name: string; page?: string; site?: { label: string; href: string };

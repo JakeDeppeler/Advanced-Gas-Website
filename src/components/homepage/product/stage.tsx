@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { money, installTime } from "@/lib/homepage/data";
 import type { PV } from "./parts";
 import "./stage.css";
@@ -77,6 +78,7 @@ export function StageHero({ v }: { v: PV }) {
             </ul>
             <h2>{model?.bestFor ?? sys.sub}</h2>
             <p>{blurb}</p>
+            {model?.veu && <RebateCheck key={model.slug} hw={cat.id === "hw"} />}
           </div>
 
           <div className="stg__card stg__pick">
@@ -242,5 +244,59 @@ export function Resources({ v }: { v: PV }) {
         </div>
       </div></div>
     </section>
+  );
+}
+
+/**
+ * "Is it eligible for the rebate?" as a two-tap check (Jake, Nov 2026).
+ *
+ * Shown only where the model's record says it's on the VEU register: the
+ * product is eligible, which is a fact about the unit. Whether this
+ * household gets it is two more facts the page can't know, so it asks them
+ * rather than promising: the home is in Victoria, and the job replaces an
+ * existing system (the rule the rest of the site already states). No dollar
+ * figure here: the rebate is worked out on the quote, and the rebates page
+ * says how.
+ */
+function RebateCheck({ hw }: { hw: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [vic, setVic] = useState<boolean | null>(null);
+  const [swap, setSwap] = useState<boolean | null>(null);
+  const done = vic === false || (vic && swap !== null);
+  const answer =
+    vic === false ? { ok: false, t: "The VEU rebate is a Victorian program, so it only applies to homes in Victoria." }
+      : swap === false ? { ok: false, t: "The rebate is for replacing an existing gas or electric system, so a new build usually won't get it. We'll confirm at the free site check." }
+        : { ok: true, t: "Looks like you'd qualify. We work out the exact rebate and take it straight off your written quote, so you don't pay then claim." };
+  const Q = ({ q, v, set }: { q: string; v: boolean | null; set: (b: boolean) => void }) => (
+    <div className="stv__q">
+      <span>{q}</span>
+      <div role="group" aria-label={q}>
+        {[true, false].map((b) => (
+          <button key={String(b)} type="button" aria-pressed={v === b} onClick={() => set(b)}>{b ? "Yes" : "No"}</button>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div className={`stv${open ? " is-open" : ""}`}>
+      <button type="button" className="stv__chip" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span className="stv__tick" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+        </span>
+        <span><b>VEU rebate eligible</b><small>{open ? "Hide" : "Check if you qualify"}</small></span>
+      </button>
+      {open && (
+        <div className="stv__box">
+          <p className="stv__lede">This model is on the Victorian Energy Upgrades register. Two quick questions:</p>
+          <Q q="Is the home in Victoria?" v={vic} set={(b) => { setVic(b); if (!b) setSwap(null); }} />
+          {vic && <Q q={hw ? "Replacing an existing hot water system?" : "Replacing an existing heater or air con?"} v={swap} set={setSwap} />}
+          {done && (
+            <p className={`stv__ans${answer.ok ? " is-ok" : ""}`} aria-live="polite">
+              <b>{answer.ok ? "Yes" : "Probably not"}</b> {answer.t} <Link href="/rebates">How the rebate works →</Link>
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
