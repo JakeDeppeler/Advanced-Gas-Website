@@ -32,13 +32,13 @@ export function areaSuburbs(): AreaSuburb[] {
     const s = byName.get(name.toLowerCase()) ?? (name === "Upper Beaconsfield" ? byName.get("beaconsfield upper") : undefined);
     const slug = s?.slug ?? slugify(name);
     const c = suburbCoords[slug];
-    out.set(name.toLowerCase(), { name, slug, lat: c?.[0] ?? lat, lng: c?.[1] ?? lng, page: !!s?.published, dot: label });
+    out.set(name.toLowerCase(), { name, slug, lat: c?.[0] ?? lat, lng: c?.[1] ?? lng, page: !!s?.published, dot: label, km: s?.distanceKm });
   }
   // Everything else we have a page or coordinates for is searchable, just not drawn.
   for (const s of suburbs) {
     const c = suburbCoords[s.slug];
     if (!c || out.has(s.name.toLowerCase())) continue;
-    out.set(s.name.toLowerCase(), { name: s.name, slug: s.slug, lat: c[0], lng: c[1], page: s.published, dot: null });
+    out.set(s.name.toLowerCase(), { name: s.name, slug: s.slug, lat: c[0], lng: c[1], page: s.published, dot: null, km: s.distanceKm });
   }
   // Nearest first, so a three-letter prefix finds the town people mean.
   const d = (x: AreaSuburb) => Math.hypot(x.lat + 38.078, (x.lng - 145.487) * 0.79);

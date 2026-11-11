@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { breadcrumbSchema, suburbServiceSchema } from "@/lib/schema";
@@ -12,23 +11,17 @@ import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
 import { HOME_BRANDS, PHOTO, SERVICES } from "@/lib/homepage/data";
 import { HeroQuote } from "@/components/homepage/HeroQuote";
+import { ServiceArea } from "@/components/homepage/ServiceArea";
+import { areaSuburbs } from "@/lib/homepage/areas";
 import { PhoneIcon } from "@/components/homepage/HomeHeader";
 import { Crumbs } from "@/components/homepage/page/kit";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/page/suburb.css";
-// detail.css only for the Leaflet map's frame (.submap__leaflet).
-import "../../detail.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
 import { JsonLd } from "@/components/JsonLd";
 
-// Client-only Leaflet map, lazy loaded so the tiles and CSS stay out of the
-// first paint. The placeholder holds the layout while the chunk fetches.
-const LeafletSuburbMap = dynamic(
-  () => import("@/components/LeafletSuburbMap").then((m) => m.LeafletSuburbMap),
-  { ssr: false, loading: () => <div className="submap__leaflet submap__leaflet--loading" aria-hidden="true" /> }
-);
 
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
@@ -238,7 +231,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
 
       {/* ===== ON THE TOOLS HERE, with the map ===== */}
       <section className="sbx__tools">
-        <div className="wrap sbx__two">
+        <div className={`wrap sbx__two${sub.testimonial || sub.knownEstates ? "" : " sbx__two--one"}`}>
           <div className="sbx__toolst arv">
             <h2 className="h2">{outer ? "What we get called out for in " : "What we see on the tools in "}<span>{sub.name}.</span></h2>
             <p>{cap(sub.housingStock)}.</p>
@@ -248,16 +241,23 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
               </ol>
             ) : null}
           </div>
-          <div className="sbx__map">
-            <LeafletSuburbMap slug={sub.slug} name={sub.name} />
-            {sub.testimonial && (
-              <figure className="sbx__quote">
-                <span className="stars stars--ink" aria-hidden="true">★★★★★</span>
-                <blockquote>&ldquo;{sub.testimonial.quote}&rdquo;</blockquote>
-                <figcaption><strong>{sub.testimonial.who}</strong> · {sub.testimonial.what}</figcaption>
-              </figure>
-            )}
-          </div>
+          {(sub.testimonial || sub.knownEstates) && (
+            <div className="sbx__side">
+              {sub.testimonial && (
+                <figure className="sbx__quote">
+                  <span className="stars stars--ink" aria-hidden="true">★★★★★</span>
+                  <blockquote>&ldquo;{sub.testimonial.quote}&rdquo;</blockquote>
+                  <figcaption><strong>{sub.testimonial.who}</strong> · {sub.testimonial.what}</figcaption>
+                </figure>
+              )}
+              {sub.knownEstates && (
+                <div className="sbx__estates">
+                  <span>Estates we know in {sub.name}</span>
+                  <p>{sub.knownEstates}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -290,6 +290,23 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
           </div>
         </div>
       </section>
+
+      {/* ===== THE MAP: the homepage's, opened on this suburb with the drive drawn ===== */}
+      <ServiceArea
+        suburbs={areaSuburbs()}
+        focus={{
+          slug: sub.slug,
+          km: sub.distanceKm,
+          title: home
+            ? <>Where our workshop is: <span style={{ color: "#2CC5FF" }}>{sub.name}.</span></>
+            : <>From our workshop to <span style={{ color: "#2CC5FF" }}>{sub.name}.</span></>,
+          text: home
+            ? `Sierra Circuit, Pakenham. Most ${sub.name} jobs are ${drive} from the van leaving the yard, and everywhere within 50 km is our area.`
+            : outer
+              ? `${sub.distanceKm} km from Sierra Circuit, about ${drive} each way. Inside our area, but far enough that we come to ${sub.name} for booked work rather than a 2 am emergency.`
+              : `${sub.distanceKm} km from Sierra Circuit, usually ${drive} in the van, ${sub.distanceKm <= 30 ? "well inside" : "inside"} the 50 km we cover.`,
+        }}
+      />
 
       {/* ===== REVIEWS: this suburb's first ===== */}
       <section id="reviews" className="revs">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PHOTO } from "@/lib/homepage/data";
 
 /**
@@ -16,7 +16,8 @@ import { PHOTO } from "@/lib/homepage/data";
  * wrong trade.
  */
 
-export type AreaSuburb = { name: string; slug: string; lat: number; lng: number; page: boolean; dot: 0 | 1 | 2 | null };
+/** km: the road distance from the suburb's record, where it has one; the map's straight line is shorter, and the suburb page says the road figure. */
+export type AreaSuburb = { name: string; slug: string; lat: number; lng: number; page: boolean; dot: 0 | 1 | 2 | null; km?: number };
 
 /**
  * How far we go: everything within 50 km is our area; 50 to 75 km is outside
@@ -95,7 +96,21 @@ function framing(box: { w: number; h: number } | null, to: { lat: number; lng: n
   return { s, tx: 50 - cx, ty: 50 - cy };
 }
 
-export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
+/**
+ * A suburb page's own version (Jake, Nov 2026: the homepage's map, but its
+ * own page): the map opens on that suburb with the drive already drawn, the
+ * van setting off when the map scrolls into view, and the words beside it
+ * about that suburb. The checker still works for anyone who types another.
+ */
+export type AreaFocus = {
+  slug: string;
+  /** The suburb's road distance from its record, shown on the pin in place of the straight line. */
+  km?: number;
+  title: ReactNode;
+  text: ReactNode;
+};
+
+export function ServiceArea({ suburbs, focus }: { suburbs: AreaSuburb[]; focus?: AreaFocus }) {
   const [q, setQ] = useState("");
   const mapRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
@@ -134,8 +149,13 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
     return () => { clearTimeout(t); ctl.abort(); };
   }, [query, local]);
 
-  const hit = local ?? found;
-  const dist = hit ? km(hit.lat, hit.lng) : 0;
+  const focused = useMemo(() => (focus ? suburbs.find((s) => s.slug === focus.slug) ?? null : null), [focus, suburbs]);
+  // Their own suburb until they type another.
+  const typed = query.length >= 3;
+  const hit = local ?? found ?? (typed ? null : focused);
+  const onFocus = !!hit && hit === focused;
+  const road: number | undefined = hit && "km" in hit ? (hit as AreaSuburb).km : undefined;
+  const dist = hit ? Math.max(1, (onFocus ? focus?.km : undefined) ?? road ?? km(hit.lat, hit.lng)) : 0;
   const zone = hit ? zoneOf(dist) : null;
   // Only drawn where the town is on the map and we'd actually drive there.
   const onMap = !!hit && hit.lng >= 145.05 && hit.lng <= 146 && hit.lat <= -37.8 && hit.lat >= -38.32;
@@ -144,7 +164,21 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
   // An inline SVG's clock starts with the page, so begin="0s" would mean the
   // drive was over before anyone typed. Start it when the suburb appears.
   const drive = useRef<SVGAnimateMotionElement>(null);
-  useEffect(() => { drive.current?.beginElement(); }, [hit?.slug]);
+  useEffect(() => { if (!onFocus) drive.current?.beginElement(); }, [hit?.slug, onFocus]);
+  // The page's own suburb is drawn from the start, but the map sits well down
+  // the page: the van waits until the map is on screen, or the drive would be
+  // over before anyone saw it.
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!focused || !el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      drive.current?.beginElement();
+      io.disconnect();
+    }, { threshold: 0.45 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [focused]);
   // SMIL ignores prefers-reduced-motion, so the van is parked rather than driven.
   const still = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const dots = suburbs.filter((s) => s.dot != null && s.slug !== "pakenham" && s.slug !== hit?.slug);
@@ -209,18 +243,30 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
           </div>
 
           <div className="areatext">
-            <h2 className="h2" style={{ color: "#fff" }}>Every town within <span style={{ color: "#2CC5FF" }}>50 km of Pakenham.</span></h2>
-            <p>From Dandenong to Warragul and up into the Dandenong Ranges, and we still come out as far as 75 km. Type your suburb to check.</p>
-            <label htmlFor="area-q">Your suburb</label>
+            {focus ? (
+              <>
+                <h2 className="h2" style={{ color: "#fff" }}>{focus.title}</h2>
+                <p>{focus.text}</p>
+              </>
+            ) : (
+              <>
+                <h2 className="h2" style={{ color: "#fff" }}>Every town within <span style={{ color: "#2CC5FF" }}>50 km of Pakenham.</span></h2>
+                <p>From Dandenong to Warragul and up into the Dandenong Ranges, and we still come out as far as 75 km. Type your suburb to check.</p>
+              </>
+            )}
+            <label htmlFor="area-q">{focus ? "Check another suburb" : "Your suburb"}</label>
             <div className="area__q">
               <input id="area-q" className="ainput" type="text" autoComplete="address-level2" placeholder="e.g. Clyde North" value={q} onChange={(e) => setQ(e.target.value)} />
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5D5D64" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
             </div>
             <div className="area__res" aria-live="polite">
-              {query.length < 3 && (
+              {!typed && !focus && (
                 <p className="area__hint">Start typing and we&apos;ll draw the drive from our workshop. Or <Link href="/service-areas">see every area we cover →</Link></p>
               )}
-              {hit && zone === "in" && (
+              {!typed && focus && (
+                <p className="area__hint">Type a suburb and we&apos;ll draw that drive instead. Or <Link href="/service-areas">see every area we cover →</Link></p>
+              )}
+              {hit && !onFocus && zone === "in" && (
                 <div className="area__msg area__msg--yes pop">
                   <span style={{ background: "#0C6F96" }}>✓</span>
                   <span><strong>Yes, we cover {hit.name}.</strong> About {dist} km from our Pakenham workshop.
@@ -228,7 +274,7 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
                   </span>
                 </div>
               )}
-              {hit && zone === "near" && (
+              {hit && !onFocus && zone === "near" && (
                 <div className="area__msg area__msg--yes pop">
                   <span style={{ background: "#0C6F96" }}>✓</span>
                   <span><strong>{hit.name} is outside our 50 km range, but we&apos;ll still service your area.</strong> It&apos;s about {dist} km from our Pakenham workshop.
@@ -236,7 +282,7 @@ export function ServiceArea({ suburbs }: { suburbs: AreaSuburb[] }) {
                   </span>
                 </div>
               )}
-              {hit && zone === "out" && (
+              {hit && !onFocus && zone === "out" && (
                 <div className="area__msg area__msg--no pop">
                   <span style={{ background: "#C2521A" }}>✕</span>
                   <span><strong>Sorry, we don&apos;t service {hit.name}.</strong> It&apos;s about {dist} km from our Pakenham workshop, past the 75 km we travel.</span>
