@@ -258,3 +258,41 @@ agency's customer, at the tenant's site** (`lib/outlook/workOrders.ts`,
 
 Each email read is a row in `work_orders` with what was read, what happened
 and why.
+
+## Filing admin@ into its own folders
+
+**Settings › Records › Email filing** (`/portal/email-filing`,
+`lib/outlook/filing.ts`, rules in `filingTypes.ts`). The office files by hand
+into about 45 folders under the Inbox, one per agency, client or supplier.
+This does the same, so the Inbox only holds what someone still has to do.
+
+- **Off, Trial, On.** Off by default. Trial works out where each of the last
+  fortnight's Inbox emails would go and lists it on the page; nothing moves.
+  On moves them. Only managers can change it. Runs every ten minutes with the
+  catch-up (`/api/email/filing`, `?dry=1` to see without writing, `?learn=1`
+  to read the folders again).
+- **What moves:** only an email that needs nothing more: machine mail, "no
+  reply needed", a work order already in ServiceTitan, a booking confirmation
+  applied to its job. With **File an email once its reply has gone out** on,
+  an email whose reply has gone out moves too.
+- **Which folder:** where that sender's filed email has always gone (at least
+  2 of their emails, and 75% of them, in one folder), learned once a day from
+  the newest 200 emails of each folder; a work order to its agency's folder
+  by name ("Barry Plant Pakenham" to "Barry Plant Ber, Pak, Drouin"); a
+  company domain's folder (85%); supplier paperwork to Accounting or Receipts;
+  machine mail to **Notifications**, made the first time it's needed. No
+  folder it can be sure of: it stays.
+- **What stays, always:** an email with a **flagged word** in its subject or
+  its own text (the list is on the page; phrases, because single words like
+  "legal" are in every agency disclaimer), one flagged or given a category by
+  hand, one that needs a person or is waiting on its reply, and anything from
+  the team. Nothing is ever filed into, or learned from, a folder on the
+  **never** list (Kellie, Dean, Apprentice, Admin Team, Important,
+  Medical / Workcover, Inactive Folders) or a folder inside one.
+- **Putting one back:** drag it to the Inbox and it's left there for good.
+- Moving keeps the email's id (immutable ids), so drafts, work orders and job
+  links still find it. Nothing is deleted, and the app still can't send.
+
+Each email looked at is a row in `mail_filing`; what's learned is in
+`mail_folder_homes`; the folder list in `portal_settings` (`mail_folders`);
+the switch and lists in `portal_settings` (`mail_filing`). Migration 0117.
