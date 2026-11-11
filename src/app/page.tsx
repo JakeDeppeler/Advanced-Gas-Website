@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
-import { HOME_FAQS, PHOTO, SERVICES, SHOW_FINANCE } from "@/lib/homepage/data";
+import { HOME_BRANDS as BRANDS, HOME_FAQS, PHOTO, SERVICES, SHOW_FINANCE } from "@/lib/homepage/data";
 import { areaSuburbs } from "@/lib/homepage/areas";
 import { HomeHeader, PhoneIcon } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
@@ -39,15 +39,6 @@ export const metadata: Metadata = {
   },
 };
 
-const BRANDS: [string, string, string][] = [
-  ["Reclaim", "Heat pumps", "/brands/reclaim"],
-  ["iStore", "Heat pumps", "/brands/istore"],
-  ["Thermann", "Hot water", "/brands/thermann"],
-  ["Mitsubishi", "Electric aircon", "/brands/mitsubishi-electric"],
-  ["Kaden", "Aircon", "/brands/kaden"],
-  ["Zonemate", "Zoning", "/brands/zonemate"],
-  ["Brivis", "Gas ducted", "/brands/brivis"],
-];
 
 const faqs = HOME_FAQS.filter((f) => SHOW_FINANCE || !f.finance);
 

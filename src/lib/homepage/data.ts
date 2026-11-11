@@ -79,6 +79,17 @@ export const IMG = {
   zmTablet: pub("/Milieu Zonemate tablet.jpg"),
 };
 
+/** The "Authorised installer of" strip under the homepage hero, shared with the suburb pages. */
+export const HOME_BRANDS: [string, string, string][] = [
+  ["Reclaim", "Heat pumps", "/brands/reclaim"],
+  ["iStore", "Heat pumps", "/brands/istore"],
+  ["Thermann", "Hot water", "/brands/thermann"],
+  ["Mitsubishi", "Electric aircon", "/brands/mitsubishi-electric"],
+  ["Kaden", "Aircon", "/brands/kaden"],
+  ["Zonemate", "Zoning", "/brands/zonemate"],
+  ["Brivis", "Gas ducted", "/brands/brivis"],
+];
+
 export const PHOTO = {
   team: "/team-photo.webp",
   teamMobile: "/team-photo-mobile.webp",
