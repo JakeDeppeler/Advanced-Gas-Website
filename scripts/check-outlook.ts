@@ -23,6 +23,7 @@ import {
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
+import { bareStreet, followUpFor, followUpHeading, numberKey, type SiteJob } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -213,6 +214,39 @@ ok("searched by the street's name", streetWord("11/1-3 Young Road") === "young" 
 ok("agency by name", agencyMatches("Barry Plant Pakenham", "Barry Plant Pakenham 1") && agencyMatches("Stockdale & Leggo Pakenham", "Stockdale & Leggo (Pakenham)"));
 ok("another branch isn't the agency", !agencyMatches("Barry Plant Pakenham", "Barry Plant Berwick - Matavier Pty Ltd"));
 ok("one word is too little to go on", !agencyMatches("Tapi", "Tapi Pty Ltd"));
+
+// --- follow-ups go on the job already there (Jake, 12 Nov), from the week's real ones
+ok("Tapi numbers agree", numberKey("TAPI-25643-1") === numberKey("[TAPI-25643] ") && numberKey("TAPI-023197") === numberKey("tapi 23197"));
+ok("Job #01895 is 1895", numberKey("Job #01895") === numberKey("1895") && numberKey("PO 428520") === numberKey("428520"));
+ok("Ailo's work order and quote stay apart", numberKey("WO-1061") !== numberKey("QU-1061"));
+ok("no number, or too short to count", numberKey("") === "" && numberKey("#7") === "");
+const FU_NOW = Date.parse("2026-11-12T00:00:00Z");
+const sj = (o: Partial<SiteJob>): SiteJob => ({ id: 1, jobNumber: "20796", status: "Scheduled", numbers: [], isQuote: false, createdOn: "2026-11-09T00:00:00Z", ...o });
+const wf = (kind: "work_order" | "quote_request" | "quote_accepted", number: string, isReminder = false) => ({ kind, number, isReminder });
+// 4 Bishop Pl: quote request 18969 (job 20796, open), then "quote accepted" 18969 made 20799; the office cancelled 20796.
+const bishop = followUpFor(wf("quote_accepted", "18969"), false, [sj({ numbers: ["18969"], isQuote: true })], FU_NOW);
+ok("same number, job open: onto that job, kind or no", bishop?.job.jobNumber === "20796", bishop);
+// 5 Albany Cres: TAPI-25643-1 accepted (20774), then a reminder for it made 20804, cancelled.
+ok("a reminder for a job already done: onto it", followUpFor(wf("work_order", "TAPI-25643-1", true), false, [sj({ jobNumber: "20774", status: "Completed", numbers: ["TAPI-25643-1"] })], FU_NOW)?.job.jobNumber === "20774");
+// 30 Hackney Cct: "Reminder: [TAPI-023594]" onto 20788, which the replica hasn't got yet (status unknown).
+ok("onto a job the portal made minutes ago", followUpFor(wf("work_order", "TAPI-023594", true), false, [sj({ jobNumber: "20788", status: null, numbers: ["TAPI-023594"] })], FU_NOW)?.job.jobNumber === "20788");
+// 1/19 Lyall St: TAPI-023197 quote (20341, done), then the install for it: a job of its own (20783, kept).
+ok("the go-ahead after the quote's done: a new job", followUpFor(wf("work_order", "TAPI-023197"), false, [sj({ jobNumber: "20341", status: "Completed", isQuote: true, numbers: ["TAPI-023197"], createdOn: "2026-10-14T00:00:00Z" })], FU_NOW) === null);
+ok("same number after a repair's done: new work, a new job", followUpFor(wf("work_order", "18000"), false, [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
+ok("a cancelled job takes nothing", followUpFor(wf("work_order", "18969"), false, [sj({ status: "Canceled", numbers: ["18969"] })], FU_NOW) === null);
+ok("another number at the same house: a new job", followUpFor(wf("work_order", "TAPI-023600"), false, [sj({ numbers: ["TAPI-023594"] })], FU_NOW) === null);
+// 1 Grenaroff Walk: "Re: Split systems" onto 20384, done three weeks before.
+ok("a reply onto last month's job", followUpFor(wf("quote_accepted", ""), true, [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20384");
+ok("a reply after two months: a new job", followUpFor(wf("quote_request", ""), true, [sj({ status: "Completed", createdOn: "2026-09-02T00:00:00Z" })], FU_NOW) === null);
+ok("a reply with another number: a new job", followUpFor(wf("work_order", "TAPI-023539"), true, [sj({ status: "Completed", numbers: ["TAPI-023378"], createdOn: "2026-10-26T00:00:00Z" })], FU_NOW) === null);
+ok("a reply accepting a quote that's done: the go-ahead, a new job", followUpFor(wf("quote_accepted", ""), true, [sj({ status: "Completed", isQuote: true, createdOn: "2026-11-01T00:00:00Z" })], FU_NOW) === null);
+ok("no number, a job open there: onto it", followUpFor(wf("work_order", ""), false, [sj({ jobNumber: "20806" })], FU_NOW)?.job.jobNumber === "20806");
+ok("no number, nothing open: a new job", followUpFor(wf("work_order", ""), false, [sj({ status: "Completed" })], FU_NOW) === null);
+ok("the newest of two with the number", followUpFor(wf("work_order", "18969"), false, [sj({ id: 1, jobNumber: "old", numbers: ["18969"], createdOn: "2026-10-01T00:00:00Z" }), sj({ id: 2, jobNumber: "new", numbers: ["18969"] })], FU_NOW)?.job.jobNumber === "new");
+ok("the note says what it is", /^WORK ORDER FOLLOW-UP, URGENT: Quote accepted 18969 from Barry Plant Pakenham \(PropertyMe\)\./.test(followUpHeading({ agency: "Barry Plant Pakenham", platform: "PropertyMe", kind: "quote_accepted", number: "18969", urgent: true, isReminder: false })));
+ok("no number on the site: the street with it taken off", bareStreet(siteKey("4-10 Mullaly Close", "West Melbourne")) === siteKey("Mullaly Close", "West Melbourne"));
+ok("a unit is never the whole street", bareStreet(siteKey("3/185 Camms Road", "Cranbourne")) === null && bareStreet(siteKey("Mullaly Close", "West Melbourne")) === null);
+ok("follow-up on the page", stage({ ...base, status: "duplicate", st_booking_id: null, st_job_number: "20788", reason: "a follow-up, the same work order as job 20788: the email went on that job as a note" }).word === "Note on job 20788");
 const thu = new Date("2026-11-05T05:00:00Z");
 ok("placeholder: next weekday", placeholderDay("", thu) === "2026-11-06" && placeholderDay("", new Date("2026-11-06T05:00:00Z")) === "2026-11-09");
 ok("placeholder: the attend-by date", placeholderDay("2026-11-27", thu) === "2026-11-27");

@@ -91,12 +91,16 @@ export async function findJob(mailbox: string, m: GraphMessage, from: string, bo
   return null;
 }
 
-/** The email onto the job: a note with its words, and its files. */
-export async function putOnJob(mailbox: string, m: GraphMessage, jobId: number): Promise<void> {
+/**
+ * The email onto the job: a note with its words, and its files. `heading`
+ * opens the note (a work order follow-up says what it is), and `pin` puts it
+ * at the top of the job's notes where the office will see it.
+ */
+export async function putOnJob(mailbox: string, m: GraphMessage, jobId: number, opts: { heading?: string; pin?: boolean } = {}): Promise<void> {
   const when = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", dateStyle: "medium", timeStyle: "short" }).format(Date.parse(m.receivedDateTime ?? "") || Date.now());
   const words = plainText(m.uniqueBody ?? m.body);
-  const note = [`Email from ${m.from?.emailAddress?.name ?? ""} <${addressOf(m.from)}>, ${when}`, `Subject: ${m.subject ?? ""}`, "", words].join("\n");
-  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX)}\n[…the rest is in the email]` : note, pinToTop: false });
+  const note = [...(opts.heading ? [opts.heading, ""] : []), `Email from ${m.from?.emailAddress?.name ?? ""} <${addressOf(m.from)}>, ${when}`, `Subject: ${m.subject ?? ""}`, "", words].join("\n");
+  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX)}\n[…the rest is in the email]` : note, pinToTop: Boolean(opts.pin) });
   if (!m.hasAttachments) return;
   type Att = { "@odata.type"?: string; name?: string; contentType?: string; size?: number; isInline?: boolean; contentBytes?: string };
   const atts = await graph<{ value: Att[] }>(`${userPath(mailbox)}/messages/${encodeURIComponent(m.id)}/attachments`).catch(() => ({ value: [] as Att[] }));
