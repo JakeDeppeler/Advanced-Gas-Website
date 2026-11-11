@@ -4,7 +4,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { ReeceHttpError, reeceConfigured, reeceJson, reeceOrder, type OrderRequest } from "@/lib/pricebook/reece";
 import { site } from "@/lib/site";
 import { getOrder, loadOrderingSettings, type PoWithLines, type PurchaseOrder } from "./db";
-import { fingerprint, parseAddress, planJobs, productId, reeceViolations, requiredBy, type JobOrder, type ReeceUnit } from "./reecePlan";
+import { FACTORY_TIME, SITE_TIME, fingerprint, parseAddress, planJobs, productId, reeceViolations, requiredBy, type JobOrder, type ReeceUnit } from "./reecePlan";
 import { jobsAfterSend } from "./stJobNotes";
 import { pushIfAuto } from "./stPurchaseOrders";
 
@@ -59,7 +59,11 @@ function request(j: JobOrder, c: Ctx): OrderRequest | { error: string } {
   if (po.pickup) return { error: "It's set to pick up, and picking up from a Reece branch isn't set up in the portal yet. Set it to delivered, or enter it in maX." };
   const addr = parseAddress(po.delivery_to_site ? po.delivery_address : po.delivery_address || settings.deliveryAddress);
   if (!addr) return { error: `Reece needs the delivery address as "street, suburb STATE postcode" and this one can't be read that way: ${po.delivery_address || settings.deliveryAddress || "none set"}.` };
-  const instructions = [po.delivery_instructions || (po.delivery_to_site ? null : settings.factoryInstructions), settings.deliveryNote].filter(Boolean).join(". ");
+  // Into the factory, maX always says so and when, whatever else the order's
+  // own note adds: a note on the order used to replace the factory line.
+  const factory = po.delivery_to_site ? null : `${(settings.factoryInstructions?.trim() || "Deliver to our factory").replace(/[.\s]+$/, "")}, by 3:30 pm`;
+  const own = po.delivery_instructions?.trim() || null;
+  const instructions = [...new Set([factory, own && own !== settings.factoryInstructions?.trim() ? own : null, settings.deliveryNote?.trim() || null].filter(Boolean))].map((x) => String(x).replace(/[.\s]+$/, "")).join(". ").replace(/.$/, (c) => `${c}.`);
   const contact = (settings.orderedBy || c.who).slice(0, 50);
   return {
     jobName: (j.jobNumber ? `Job ${j.jobNumber}${j.customer ? ` ${j.customer}` : ""}` : "Factory stock").slice(0, 50),
@@ -68,7 +72,7 @@ function request(j: JobOrder, c: Ctx): OrderRequest | { error: string } {
     orderByPhone: site.phone.slice(0, 20),
     orderByEmail: settings.replyTo?.slice(0, 50) || undefined,
     comment: [po.supplier_note, `Advanced Gas ${po.po_number}${j.jobNumber ? `, job ${j.jobNumber}` : ", stock"}`].filter(Boolean).join(" · ").slice(0, 1000),
-    requiredByDateTime: requiredBy(j.install, po.deliver_by ?? null, c.today),
+    requiredByDateTime: requiredBy(j.install, po.deliver_by ?? null, c.today, po.delivery_to_site ? SITE_TIME : FACTORY_TIME),
     notification: settings.replyTo ? { email: settings.replyTo.slice(0, 50) } : undefined,
     fulfillment: {
       type: "DELIVERY",

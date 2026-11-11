@@ -1551,7 +1551,13 @@ type ReeceOk = Extract<Preview, { ok: true }>;
 function ReeceCheck({ rp, busy, onPlace, onCancel }: { rp: ReeceOk; busy: boolean; onPlace: () => void; onCancel: () => void }) {
   const toGo = rp.jobs.filter((j) => !j.placed && j.lines.length);
   const total = toGo.reduce((t, j) => t + j.totalEx + (j.cartage ?? 0), 0);
-  const needed = (v: string) => (v ? dayLabel(v.slice(0, 10)) : "");
+  // The day and the time maX is told: 3:30 pm into the factory, 7 am to a site.
+  const needed = (v: string) => {
+    if (!v) return "";
+    const [h, m] = v.slice(11, 16).split(":").map(Number);
+    const t = Number.isFinite(h) ? `, ${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""} ${h < 12 ? "am" : "pm"}` : "";
+    return `${dayLabel(v.slice(0, 10))}${t}`;
+  };
   return (
     <div className="to2-rx" role="region" aria-label="Reece's check of the order">
       <p className="to2-rxlede"><b>Reece has checked and priced it.</b> Nothing is ordered until you press Place. One maX order per job, delivered as set under More.</p>
