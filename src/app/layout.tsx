@@ -143,7 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             render their own (the homepage's floats over its hero). The .ag
             wrapper is display:contents: it carries the header's styles
             without boxing it in, so the sticky header still sticks. */}
-        <ChromeGate legacy>
+        <ChromeGate legacy header>
           <SiteModeStrip tabs={false} />
           <div className="ag" style={{ display: "contents" }}>
             <HomeHeader variant="flat" />

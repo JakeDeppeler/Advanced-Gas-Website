@@ -24,7 +24,7 @@ export const CLIENTS = ["Westpac", "Commonwealth Bank", "Reece Group", "Petbarn"
 
 export const STANDARDS: [string, string][] = [
   ["A fixed price in writing", "A free site check, then one price with the model, the work and the warranty spelled out. It only changes if the job does, and we ask you first."],
-  ["Our own crew in your home", "Every installer and apprentice works for us. We don't use labour hire or subcontractors, so you know who's turning up."],
+  ["Our own installers in your home", "Every installer and apprentice works for us, not a labour-hire agency, so you know who's turning up. Where a job needs new electrical work, a licensed electrician does that part."],
   ["Compliance on every job", "A compliance certificate emailed within 24 hours, and every gas job tested for carbon monoxide before we leave."],
   ["Six years on our workmanship", "On top of the manufacturer's warranty. If something we did isn't right, we come back and fix it."],
   ["Rebates handled for you", "Where you're eligible, the VEU rebate comes off the price at the quote. No forms to chase afterwards."],

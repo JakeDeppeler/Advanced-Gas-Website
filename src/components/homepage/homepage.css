@@ -179,11 +179,13 @@
 .ag .ahero__h1 span{color:var(--sky2)}
 .ag .ahero__p{margin:0;font-size:18px;line-height:1.55;color:rgba(255,255,255,.9);max-width:34rem}
 .ag .ahero__ctas{display:flex;flex-wrap:wrap;gap:10px}
-.ag .ahero__trust{align-self:flex-start;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:4px}
+/* In a box (Jake, Nov 2026): on the photo the figures were hard to pick out.
+   A quiet dark panel, not a card: enough to read them, not to compete. */
+.ag .ahero__trust{align-self:flex-start;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:4px;padding:14px 20px;border-radius:12px;background:rgba(5,10,48,.62);border:1px solid rgba(255,255,255,.14);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .ag .ahero__trust > *{display:flex;flex-direction:column;line-height:1.2;color:#fff;text-decoration:none}
 .ag .ahero__trust a:hover{color:#fff}
-.ag .ahero__trust strong{font-size:14px}
-.ag .ahero__trust small{font-size:12px;color:rgba(255,255,255,.72)}
+.ag .ahero__trust strong{font-size:15px}
+.ag .ahero__trust small{font-size:12.5px;color:rgba(255,255,255,.8)}
 .ag .ahero__stars{flex-direction:row !important;align-items:center;gap:10px}
 .ag .stars{color:#FFB648;letter-spacing:2px;font-size:15px}
 .ag .stars--ink{color:var(--or-ink)}

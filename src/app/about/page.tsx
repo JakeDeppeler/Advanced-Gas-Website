@@ -40,7 +40,7 @@ const STATS: { v: string; k: string }[] = [
   { v: `${RATING_TEXT} ★`, k: `From ${RATING_SUMMARY.count} Google reviews` },
   { v: "6 years", k: "Warranty on our workmanship" },
   { v: "$20M", k: "Public liability cover" },
-  { v: "100%", k: "Our own crew, no subcontractors" },
+  { v: "Our own", k: "Installers and apprentices, not labour hire" },
 ];
 
 export default function AboutPage() {

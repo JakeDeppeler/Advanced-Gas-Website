@@ -38,8 +38,8 @@ const ANSWERS: TplBlock[] = [p("Or if it's easier, just tap one:"), { kind: "ans
 
 /** How we do the job: the same everywhere, from the About page and the FAQs. */
 const HOW_WE_WORK = [
-  "Everyone who comes to your place works for us. No subcontractors, and the person who quotes is part of the team that installs.",
-  "We hold the plumbing, gas, refrigeration and electrical licences between us, so nothing gets handed off to someone else halfway through.",
+  "Our installers and apprentices all work for us, and the person who quotes is part of the team that installs.",
+  "We hold the plumbing, gas and refrigeration licences ourselves. Where a job needs new electrical work, a licensed electrician does that part.",
   "A compliance certificate on every job, and we lodge the rebate paperwork for you.",
   "Six years' workmanship warranty from us, on top of the manufacturer's warranty.",
 ];

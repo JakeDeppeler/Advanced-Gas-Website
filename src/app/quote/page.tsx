@@ -71,7 +71,7 @@ const FAQS = [
   { q: "Do you handle the VEU rebate?", a: "Yes. For eligible homes we apply it at the quote, so it comes straight off the price and you never chase it." },
   { q: "How soon can you install?", a: "Most jobs are scheduled within 5 to 7 days of the quote being approved." },
   { q: "What warranty do I get?", a: "The manufacturer's warranty on the unit, plus 6 years on our workmanship, and a compliance certificate on completion." },
-  { q: "Who will come to my home?", a: "Our own crew. Every installer and apprentice works for us; we don't use labour hire or subcontractors." },
+  { q: "Who will come to my home?", a: "Our own installers and apprentices: every one of them works for us, and none comes from labour hire. Where a job needs new electrical work, a licensed electrician does that part." },
 ];
 
 const CREDENTIALS: [string, string][] = [

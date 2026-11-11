@@ -119,3 +119,25 @@
 
 @media (max-width:960px){.ag.sbx .sbx__proof{grid-template-columns:repeat(2,minmax(0,1fr))}.ag.sbx .sbx__jobgrid,.ag.sbx .sbx__people{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:600px){.ag.sbx .sbx__proof,.ag.sbx .sbx__jobgrid,.ag.sbx .sbx__jobgrid--2,.ag.sbx .sbx__people,.ag.sbx .sbx__ways{grid-template-columns:minmax(0,1fr)}.ag.sbx .sbx__jobsec,.ag.sbx .sbx__team{padding:72px 0}.ag.sbx .sbx__yes{padding:40px 0}}
+
+/* The breadcrumb, inside the hero under the pill header */
+.ag.sbx .sbx__crumbs ol{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-wrap:wrap;gap:6px;font-size:13px;color:rgba(255,255,255,.7)}
+.ag.sbx .sbx__crumbs li:not(:last-child)::after{content:"›";margin-left:6px;color:rgba(255,255,255,.45)}
+.ag.sbx .sbx__crumbs a{color:rgba(255,255,255,.82);text-decoration:none}
+.ag.sbx .sbx__crumbs a:hover{color:#fff;text-decoration:underline}
+.ag.sbx .sbx__crumbs [aria-current]{color:#fff}
+
+/* Show all services */
+.ag.sbx .sbx__all{display:flex;flex-direction:column;gap:20px}
+.ag.sbx .sbx__all > summary{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;list-style:none;cursor:pointer;padding:13px 22px;border-radius:999px;background:var(--navy);color:#fff;font-family:var(--disp);font-size:15px;font-weight:800}
+.ag.sbx .sbx__all > summary::-webkit-details-marker{display:none}
+.ag.sbx .sbx__all > summary:hover{background:var(--navy2)}
+.ag.sbx .sbx__all > summary:focus-visible{outline:3px solid #C2521A;outline-offset:3px}
+.ag.sbx .sbx__all > summary i{font-style:normal;transition:transform .2s}
+.ag.sbx .sbx__all[open] > summary i{transform:rotate(180deg)}
+.ag.sbx .sbx__allc{display:none}
+.ag.sbx .sbx__all[open] .sbx__allo{display:none}
+.ag.sbx .sbx__all[open] .sbx__allc{display:inline}
+.ag.sbx .sbx__jobgrid--more .sbx__jobimg{height:180px}
+.ag.sbx .sbx__urgent{margin:0;font-size:15px;color:var(--ink2)}
+.ag.sbx .sbx__urgent a{font-weight:800;color:#B04711;text-underline-offset:3px}

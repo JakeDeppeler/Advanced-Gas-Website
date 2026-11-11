@@ -127,8 +127,8 @@ export default async function HomePage() {
               <Image src={PHOTO.whyBig} alt="" aria-hidden="true" fill sizes="(max-width: 960px) 100vw, 640px" />
               <div className="shade" aria-hidden="true" />
               <div className="body">
-                <span className="whycard__lbl" style={{ color: "#FF7A36" }}>Directly employed</span>
-                <strong className="disp" style={{ fontSize: "clamp(26px, 2.6vw, 36px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-.02em" }}>Our own crews. Never subbies.</strong>
+                <span className="whycard__lbl" style={{ color: "#FF7A36" }}>Our own installers</span>
+                <strong className="disp" style={{ fontSize: "clamp(26px, 2.6vw, 36px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-.02em" }}>The team that quotes it fits it.</strong>
                 <span style={{ fontSize: 15, lineHeight: 1.55, color: "rgba(255,255,255,.85)", maxWidth: "30rem" }}>The person who quotes your job is on the same team as the person who installs it.</span>
               </div>
             </div>
