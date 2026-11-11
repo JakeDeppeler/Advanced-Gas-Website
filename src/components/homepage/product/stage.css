@@ -33,6 +33,21 @@
 .ag .stg__about p{margin:0;font-size:15px;line-height:1.55;color:#2b2f45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* The rebate check: a chip that stamps in with a tick, and two yes/no taps
    under it. The result says Yes / Probably not in words, not just green. */
+/* Fixed slots in the about card: the name of the size at most two lines, the
+   line under it two, the rebate chip's place kept whether it shows or not. Every size of a
+   model then makes the same card, so the tab bar under it never moves. */
+.ag .stg__about h2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ag .stg__about > p{-webkit-line-clamp:2 !important}
+.ag .stv-slot{min-height:46px;margin-top:auto}
+/* Tall enough for the most a card can hold (two-line heading, two-line text,
+   the chip), with any spare room at the bottom rather than under a short heading. */
+.ag .stg__about{min-height:280px}
+@media (max-width:600px){.ag .stg__about{min-height:347px}}
+.ag .stg__chip,.ag .stg__tiles b,.ag .stg__pickhead dd{font-variant-numeric:tabular-nums}
+/* A tile's label always has room for two lines, and the model code one, for the same reason. */
+.ag .stg__tiles span{min-height:2.4em}
+.ag .stg__code{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag .stg__bar > *{min-width:0}
 .ag .stv{display:flex;flex-direction:column;gap:10px}
 .ag .stv__chip{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 8px;border-radius:999px;border:1.5px solid #1E7F4F;background:#E9F6EF;color:#14532D;font:inherit;text-align:left;cursor:pointer;animation:stvIn .7s .9s cubic-bezier(.2,1.4,.4,1) both}
 .ag .stv__chip:hover{background:#DDF1E6}
@@ -150,6 +165,8 @@
    "different option" cards stay one to a row there (product.css). */
 @media (min-width:601px){.ag .pxp .chz__grid:not(.chz__grid--alt){grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
 @media (max-width:600px){
+  /* Two by two on a phone whether there are three tiles or four, so the card is the same height for every size. */
+  .ag .stg__tiles{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(56px,auto))}
   .ag .pxp .chz__grid:not(.chz__grid--alt){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .ag .pxp .chz__card{padding:16px 14px;border-radius:14px}
   .ag .pxp .chz__card--on{padding:15px 13px}

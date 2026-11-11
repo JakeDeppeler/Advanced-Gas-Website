@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { money, installTime } from "@/lib/homepage/data";
 import type { PV } from "./parts";
 import "./stage.css";
@@ -67,18 +67,20 @@ export function StageHero({ v }: { v: PV }) {
         </div>
 
         <h1 className="stg__h1">
-          <span className="stg__brand">{t.brand}</span> {t.model}{chip && <> <span className="stg__chip" key={chip}>{chip}</span></>}
+          <span className="stg__brand">{t.brand}</span> {t.model}{chip && <> <span className="stg__chip"><Count text={chip} /></span></>}
         </h1>
 
         {/* One row of cards under the name, kept short so the tab bar is on the first screen (Jake, Nov 2026). */}
         <div className="stg__bar">
           <div className="stg__card stg__about">
             <ul className="stg__tiles" aria-label="At a glance">
-              {tiles.map((x, i) => <li key={x.small} style={{ animationDelay: `${0.4 + i * 0.12}s` }}><b>{x.big}</b><span>{x.small}</span></li>)}
+              {tiles.map((x, i) => <li key={x.small} style={{ animationDelay: `${0.4 + i * 0.12}s` }}><b><Count text={x.big} /></b><span>{x.small}</span></li>)}
             </ul>
             <h2>{model?.bestFor ?? sys.sub}</h2>
             <p>{blurb}</p>
-            {model?.veu && <RebateCheck key={model.slug} hw={cat.id === "hw"} />}
+            {/* Always the same slot, filled or not, so the cards (and the tab bar
+                under them) stay put as the sizes change (Jake, Nov 2026). */}
+            <div className="stv-slot">{model?.veu && <RebateCheck model={model.slug} hw={cat.id === "hw"} />}</div>
           </div>
 
           <div className="stg__card stg__pick">
@@ -86,7 +88,7 @@ export function StageHero({ v }: { v: PV }) {
               <span id="stg-size">{models.length ? "Model" : "Size"}</span>
               {v.modelKeys.length > 0 && (
                 <dl aria-live="polite">
-                  {v.modelKeys.slice(0, 2).map((k) => <div key={k.label}><dd>{k.value}</dd><dt>{k.label}</dt></div>)}
+                  {v.modelKeys.slice(0, 2).map((k) => <div key={k.label}><dd><Count text={k.value} /></dd><dt>{k.label}</dt></div>)}
                 </dl>
               )}
             </div>
@@ -258,10 +260,13 @@ export function Resources({ v }: { v: PV }) {
  * figure here: the rebate is worked out on the quote, and the rebates page
  * says how.
  */
-function RebateCheck({ hw }: { hw: boolean }) {
+function RebateCheck({ model, hw }: { model: string; hw: boolean }) {
   const [open, setOpen] = useState(false);
   const [vic, setVic] = useState<boolean | null>(null);
   const [swap, setSwap] = useState<boolean | null>(null);
+  // A different size is a different answer, so the questions reset; the chip
+  // itself stays mounted, so it doesn't stamp in again on every size button.
+  useEffect(() => { setOpen(false); setVic(null); setSwap(null); }, [model]);
   const done = vic === false || (vic && swap !== null);
   const answer =
     vic === false ? { ok: false, t: "The VEU rebate is a Victorian program, so it only applies to homes in Victoria." }
@@ -299,4 +304,50 @@ function RebateCheck({ hw }: { hw: boolean }) {
       )}
     </div>
   );
+}
+
+/**
+ * A figure that counts to its new value when the size changes (Jake, Nov
+ * 2026), rather than swapping: "2.5 kW" runs up to "3.5 kW", "up to 25 m²"
+ * to "up to 35 m²". Only the first number moves, and only when the words
+ * around it are the same, so "150–250 m²" turning into "250 m² +" just
+ * changes. Straight to the value with reduced motion, and on first render,
+ * so the server and the browser agree on the text.
+ */
+const NUM = /\d[\d,]*(?:\.\d+)?/;
+
+function Count({ text }: { text: string }) {
+  const m = NUM.exec(text);
+  const target = m ? Number(m[0].replace(/,/g, "")) : NaN;
+  const shape = m ? text.replace(NUM, "#") : text;
+  const places = m?.[0].split(".")[1]?.length ?? 0;
+  const [shown, setShown] = useState(target);
+  const cur = useRef(target);
+  const lastShape = useRef(shape);
+
+  useEffect(() => {
+    const same = lastShape.current === shape;
+    lastShape.current = shape;
+    if (!Number.isFinite(target) || !same || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      cur.current = target;
+      setShown(target);
+      return;
+    }
+    const from = cur.current, start = performance.now();
+    let raf = 0;
+    const step = (t: number) => {
+      const k = Math.min(1, (t - start) / 650);
+      const v = from + (target - from) * (1 - Math.pow(1 - k, 3));
+      cur.current = v;
+      setShown(v);
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, shape]);
+
+  if (!m || !Number.isFinite(shown)) return <>{text}</>;
+  const fig = shown.toFixed(places);
+  const out = /,/.test(m[0]) ? Number(fig).toLocaleString("en-AU", { minimumFractionDigits: places, maximumFractionDigits: places }) : fig;
+  return <>{text.slice(0, m.index)}{out}{text.slice(m.index + m[0].length)}</>;
 }
