@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { openingHours } from "@/lib/site";
 import { RATING_TEXT, RATING_SUMMARY, REVIEWS } from "@/lib/reviews";
+import { DIRECTORS, CLIENTS, STANDARDS, ACCREDITED, LICENCES } from "@/lib/company";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { Crumbs } from "@/components/homepage/page/kit";
 import "@/components/homepage/homepage.css";
@@ -40,40 +41,6 @@ const STATS: { v: string; k: string }[] = [
   { v: "6 years", k: "Warranty on our workmanship" },
   { v: "$20M", k: "Public liability cover" },
   { v: "100%", k: "Our own crew, no subcontractors" },
-];
-
-const DIRECTORS = [
-  {
-    name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", photo: "/dean.webp",
-    about: "Dean has more than 20 years in the trade across industrial, commercial and domestic work. He holds the company's plumbing licence, sets the technical standard every job is measured against, trains the crew to it, and signs off the work.",
-  },
-  {
-    name: "Jake Deppeler", role: "Director", photo: "/jake.webp",
-    about: "Jake looks after estimating, quoting and the running of the business. He makes sure every customer gets one clear price in writing, with any rebate worked in, and that the price quoted is the price paid.",
-  },
-];
-
-const CLIENTS = ["Westpac", "Commonwealth Bank", "Reece Group", "Petbarn", "KFC", "Kane Constructions", "Reliance Worldwide", "Pakenham Springs P.S.", "Retirement Villages Constructions"];
-
-const STANDARDS: [string, string][] = [
-  ["A fixed price in writing", "A free site check, then one price with the model, the work and the warranty spelled out. It only changes if the job does, and we ask you first."],
-  ["Our own crew in your home", "Every installer and apprentice works for us. We don't use labour hire or subcontractors, so you know who's turning up."],
-  ["Compliance on every job", "A compliance certificate emailed within 24 hours, and every gas job tested for carbon monoxide before we leave."],
-  ["Six years on our workmanship", "On top of the manufacturer's warranty. If something we did isn't right, we come back and fix it."],
-  ["Rebates handled for you", "Where you're eligible, the VEU rebate comes off the price at the quote. No forms to chase afterwards."],
-];
-
-const ACCREDITED: [string, string][] = [
-  ["Accredited", "VEU provider"], ["Authorised", "ARC refrigeration"], ["Licensed", "Victorian plumber"], ["Partner", "Reece Trade"],
-];
-
-const LICENCES: [string, string][] = [
-  ["Advanced Gas & Airconditioning Services Pty Ltd", "ACN 607 575 280"],
-  ["Plumbing licence", "46828"],
-  ["ARC refrigeration authorisation", "AU59557"],
-  ["Public liability", "$20M"],
-  ["Workmanship warranty", "6 years"],
-  ["Workshop", "1 Sierra Circuit, Pakenham"],
 ];
 
 export default function AboutPage() {

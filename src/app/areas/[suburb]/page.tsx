@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { breadcrumbSchema, suburbServiceSchema } from "@/lib/schema";
 import { seoMeta } from "@/lib/seo";
@@ -9,7 +8,11 @@ import { suburbJobs, suburbReviews } from "@/lib/suburbJobs";
 import Image from "next/image";
 import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
-import { HOME_BRANDS, PHOTO, SERVICES } from "@/lib/homepage/data";
+import { PHOTO } from "@/lib/homepage/data";
+import { site, openingHours, services } from "@/lib/site";
+import { serviceContent } from "@/lib/serviceContent";
+import { resolveAsset } from "@/lib/publicAsset";
+import { DIRECTORS, OFFICE, ACCREDITED } from "@/lib/company";
 import { HeroQuote } from "@/components/homepage/HeroQuote";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
 import { areaSuburbs } from "@/lib/homepage/areas";
@@ -20,8 +23,8 @@ import "@/components/homepage/page/suburb.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import "@/components/homepage/page/about.css";
 import { JsonLd } from "@/components/JsonLd";
-
 
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
@@ -53,18 +56,36 @@ export function generateMetadata({ params }: { params: { suburb: string } }): Me
   });
 }
 
+/** The photo and one line for a job, from the service page it links to, so the two always agree. */
+function jobCard(href: string): { photo?: string; scene?: boolean; blurb?: string } {
+  const [, , slug, sys] = href.split("/");
+  const c = serviceContent[slug];
+  if (!c) return {};
+  const s = sys ? c.systems?.find((x) => x.id === sys) : undefined;
+  const src = s ? s.photo.src : c.heroPhoto;
+  return { photo: src ? resolveAsset(src) ?? src : undefined, scene: s ? !!s.photo.scene : true, blurb: s?.blurb ?? c.metaDescription };
+}
+
 /**
- * A suburb page, built like the homepage (Jake, Nov 2026: "more personal
- * and more like the home page"): the photo hero with the quote form beside
- * it, the brands strip, the navy "why us" grid, the service photo cards,
- * the scrolling reviews, FAQs and the photo quote box, each one filled from
- * this suburb's record in lib/suburbs.ts rather than the homepage's
- * whole-region lines.
+ * A suburb page, built around the person who lands on it (Jake, Nov 2026:
+ * "they are looking for that person in that area, not just another home
+ * page"). Someone searching "aircon Berwick" wants four things answered,
+ * in this order, and the page is laid out to answer them:
+ *
+ *   1. Do they come here, and how quickly?   the hero and the proof strip
+ *   2. Do they do my job, and know my house? the jobs this suburb calls us
+ *      for, then what we see in its homes
+ *   3. Who are they?                          the people, the promises in
+ *      writing and the licences, from lib/company (the About page's own)
+ *   4. How do I reach them?                   every way in, laid out once,
+ *      with the questions people from here ask
+ *
+ * It keeps the homepage's look (the photo hero with the quote form, the
+ * scrolling reviews, the navy map) so it is plainly the same company.
  *
  * Nothing here is new about a suburb: every fact is a field of its record
- * (drive time, council, what we install there, the estates, the problems),
- * and a field the record doesn't have hides its card or question rather
- * than being filled in. The outer ring keeps its honest wording throughout.
+ * in lib/suburbs.ts, and a field the record doesn't have hides its part
+ * rather than being filled in. The outer ring keeps its honest wording.
  */
 export default async function SuburbPage({ params }: { params: { suburb: string } }) {
   const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
@@ -79,7 +100,11 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
     ? sub.driveMin[0] === sub.driveMin[1] ? `${sub.driveMin[0]} min` : `${sub.driveMin[0]}–${sub.driveMin[1]} min`
     : sub.distanceKm === 0 ? "On site" : `${Math.max(10, Math.round(sub.distanceKm * 0.7))}–${Math.max(15, Math.round(sub.distanceKm * 1.1))} min`;
 
-  const jobs = suburbJobs(sub);
+  const jobs = suburbJobs(sub).slice(0, 3);
+  const jobHrefs = new Set(jobs.map((j) => j.href));
+  // Everything else we do, for the row under the suburb's own jobs.
+  const others = services.filter((s) => !jobHrefs.has(`/services/${s.slug}`));
+
   // This suburb's own reviews lead the scrolling columns, then everyone
   // else's, so a Berwick page opens on Berwick households where it has them.
   const local = suburbReviews(sub);
@@ -90,6 +115,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
   const rating = summary.value.toFixed(1);
   const home = sub.distanceKm === 0;
   const outer = !!sub.outerRing;
+  const hours = openingHours();
 
   // The questions people from here actually ask, answered from the record.
   const faqs = [
@@ -118,7 +144,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
     <div className="ag sbx" data-no-reveal>
       <Crumbs trail={[{ name: "Service areas", href: "/service-areas" }, { name: sub.name }]} />
 
-      {/* ===== HERO: the homepage's, with this suburb in it ===== */}
+      {/* ===== 1. HERO: who we are to them, and the quote form ===== */}
       <section className="ahero">
         <Image src={PHOTO.team} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" />
         <div className="ahero__scrim" aria-hidden="true" />
@@ -132,11 +158,11 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
                   corner. See `outerRing` in lib/suburbs.ts. */}
               {outer
                 ? `We travel to ${sub.name} from Pakenham for booked work, about ${drive} each way. That makes us the right call for a planned install and the wrong one for a 2 am emergency, and we'd rather say so up front.`
-                : `Licensed plumbing and refrigeration team working in ${sub.name} since 2014. You'll usually find us ${sub.landmark}.`}
+                : `A licensed plumbing and refrigeration team working in ${sub.name} since 2014, out of our own workshop ${home ? "here in Pakenham" : `${drive} away in Pakenham`}. You'll usually find us ${sub.landmark}.`}
             </p>
             <div className="ahero__ctas">
-              <a href="#local" className="abtn abtn--or">What we do in {sub.name} →</a>
-              <a href="tel:+61359478000" data-call-from="suburb-hero" className="abtn abtn--line abtn--call"><PhoneIcon />Call (03) 5947 8000</a>
+              <a href="tel:+61359478000" data-call-from="suburb-hero" className="abtn abtn--or abtn--call"><PhoneIcon />Call (03) 5947 8000</a>
+              <a href="#contact" className="abtn abtn--line">Other ways to reach us</a>
             </div>
             <div className="ahero__trust">
               <span className="ahero__stars">
@@ -144,101 +170,81 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
                 <span style={{ display: "flex", flexDirection: "column" }}><strong>{rating} / 5</strong><small>Google reviews</small></span>
               </span>
               <span className="ahero__sep" aria-hidden="true" />
-              <span><strong>{drive}</strong><small>{home ? "from our workshop" : `from our workshop to ${sub.name}`}</small></span>
+              <span><strong>{hours}</strong><small>{outer ? "Booked work" : "24/7 for gas and no hot water"}</small></span>
               <span className="ahero__sep" aria-hidden="true" />
-              <Link href="/rebates"><strong>Up to $6,000 →</strong><small>See if you qualify</small></Link>
+              <span><strong>12 hrs</strong><small>To a written quote</small></span>
             </div>
           </div>
           <HeroQuote />
         </div>
       </section>
 
-      {/* ===== AUTHORISED INSTALLER ===== */}
-      <section className="hbrands">
-        <div className="wrap hbrands__in arv">
-          <div className="hbrands__top">
-            <span>Authorised installer of</span>
-            <span className="hbrands__rule" aria-hidden="true" />
-            <span className="hbrands__reece">Trade partner of <strong>Reece</strong></span>
-            <Link href="/brands" className="hbrands__all">All brands →</Link>
-          </div>
-          <div className="hbrands__grid">
-            {HOME_BRANDS.map(([n, s, h]) => <Link key={n} className="chipb" href={h}><strong>{n}</strong><span>{s}</span></Link>)}
-          </div>
+      {/* ===== 2. YES, WE COME HERE: the four things that settle it ===== */}
+      <section className="sbx__yes" aria-labelledby="sbx-yes">
+        <div className="wrap sbx__yesin">
+          <h2 id="sbx-yes" className="sbx__yesh">
+            {outer ? <>Yes, we come to {sub.name} <span>for booked work.</span></> : home ? <>Your local team, <span>right here in {sub.name}.</span></> : <>Yes, we look after <span>{sub.name}.</span></>}
+          </h2>
+          <ul className="sbx__proof">
+            <li><b>{drive}</b><span>{home ? "From our Sierra Circuit workshop" : `From our workshop to ${sub.name}, ${sub.distanceKm} km`}</span></li>
+            <li><b>Our own crew</b><span>Every installer works for us. No subcontractors, no labour hire.</span></li>
+            <li><b>{local.length ? `${local.length} ${sub.name} review${local.length === 1 ? "" : "s"}` : `${rating} ★`}</b><span>{local.length ? `On Google from ${sub.name} households, and ${rating} ★ across all ${summary.count}` : `From ${summary.count} Google reviews by local households`}</span></li>
+            <li><b>{sub.council.replace(/ (Shire|City)? ?Council$/, "")}</b><span>{sub.council} paperwork and compliance handled in-house</span></li>
+          </ul>
         </div>
       </section>
 
-      {/* ===== YOUR LOCAL CREW: the homepage's "why us" grid, about here ===== */}
-      <section id="local" className="awhy">
-        <div className="wrap awhy__in">
-          <div className="sechead arv">
+      {/* ===== 3. WHAT THIS SUBURB CALLS US FOR ===== */}
+      <section id="services" className="sbx__jobsec">
+        <div className="wrap sbx__col sbx__gap">
+          <div className="svcs__head arv">
             <div className="sechead__t">
-              <h2 className="h2" style={{ color: "#fff" }}>
-                {outer ? <>Booked work in {sub.name}, <span style={{ color: "#FF7A36" }}>done properly.</span></> : <>Your local crew in <span style={{ color: "#FF7A36" }}>{sub.name}.</span></>}
-              </h2>
+              <h2 className="h2">What {sub.name} homes <span style={{ color: "#C2521A" }}>call us for.</span></h2>
             </div>
-            <div className="sechead__btns">
-              <Link href="/about" className="abtn abtn--line">Meet the team</Link>
-              <a href="#quote" className="abtn abtn--or">Get a free quote →</a>
-            </div>
+            <p>{outer ? `The jobs ${sub.name} books us for most, from what we install there.` : `The jobs we do most in ${sub.name}, from what's in its homes. Each has its own page with the options and how we install it.`}</p>
           </div>
-          <div className="whygrid">
-            <div className="whycard whycard--big arv">
-              <Image src={PHOTO.whyBig} alt="" aria-hidden="true" fill sizes="(max-width: 960px) 100vw, 640px" />
-              <div className="shade" aria-hidden="true" />
-              <div className="body">
-                <span className="whycard__lbl" style={{ color: "#FF7A36" }}>{outer ? "Planned installs" : home ? "Home ground" : `Working in ${sub.name} since 2014`}</span>
-                <strong className="disp sbx__bigt">{outer ? "The same crew, wherever the job is." : home ? "Our workshop is here." : `We know ${sub.name}.`}</strong>
-                <span className="sbx__bigp">{sub.whyLocal ?? `You'll usually find us ${sub.landmark}. The person who quotes your job is on the same team as the person who installs it.`}</span>
-              </div>
-            </div>
-            <div className="whycard whycard--or arv">
-              <strong className="whycard__big sbx__fit">{drive}</strong>
-              <span style={{ fontSize: 15, lineHeight: 1.45 }}>{home ? "From our Sierra Circuit workshop to the job." : `From our Pakenham workshop to ${sub.name}, ${sub.distanceKm} km.`}</span>
-            </div>
-            <div className="whycard whycard--sky arv">
-              <strong className="whycard__big">12 hrs</strong>
-              <span style={{ fontSize: 15, lineHeight: 1.45, fontWeight: 600 }}>To a written quote for your {sub.name} job.</span>
-            </div>
-            <div className="whycard whycard--white arv">
-              <span className="whycard__ico"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6" /></svg></span>
-              <div className="sbx__col"><strong className="whycard__t">{sub.council}</strong><span className="whycard__s">Permits and compliance certificates handled in-house.</span></div>
-            </div>
-            <div className="whycard whycard--white arv">
-              <span className="stars stars--ink" style={{ letterSpacing: 3, fontSize: 18 }} aria-hidden="true">★★★★★</span>
-              <div className="sbx__col"><strong className="whycard__t">{rating} on Google</strong><span className="whycard__s">{local.length ? `Including ${sub.name} households, from ${summary.count} reviews.` : `From ${summary.count} reviews by local households.`}</span></div>
-            </div>
-            <div className="whycard whycard--wide arv">
-              <div className="sbx__col" style={{ gap: 6, flex: 1 }}>
-                <span className="whycard__lbl" style={{ color: "#B04711" }}>{outer ? `Usual jobs in ${sub.name}` : `Most common in ${sub.name}`}</span>
-                <strong className="disp sbx__widet">{cap(sub.commonInstall)}.</strong>
-                {jobs.length > 0 && (
-                  <span className="sbx__jobs">{jobs.map((j) => <Link key={j.href} href={j.href}>{j.label}</Link>)}</span>
-                )}
-              </div>
-            </div>
-            <div className="whycard whycard--white arv">
-              <span className="whycard__ico"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></svg></span>
-              <div className="sbx__col"><strong className="whycard__t">Price in writing</strong><span className="whycard__s">It only changes if the job does, and you approve it first.</span></div>
-            </div>
-            <div className="whycard whycard--white arv">
-              <span className="whycard__ico"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9 12l2 2 4-4" /></svg></span>
-              <div className="sbx__col"><strong className="whycard__t">6-year workmanship</strong><span className="whycard__s">On every install, on top of the maker&apos;s warranty.</span></div>
+          <div className={`sbx__jobgrid sbx__jobgrid--${jobs.length}`}>
+            {jobs.map((j, i) => {
+              const c = jobCard(j.href);
+              return (
+                <Link key={j.href} href={j.href} className="sbx__job arv" style={{ animationDelay: `${i * 0.07}s` }}>
+                  <span className={`sbx__jobimg${c.scene ? " sbx__jobimg--scene" : ""}`}>
+                    {c.photo && <Image src={c.photo} alt="" fill sizes="(max-width: 700px) 100vw, 420px" />}
+                  </span>
+                  <span className="sbx__jobt">
+                    <small>{i === 0 ? `Most asked for in ${sub.name}` : `Common in ${sub.name}`}</small>
+                    <strong>{j.label}</strong>
+                    {c.blurb && <span>{c.blurb}</span>}
+                    <em>See how we do it →</em>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="sbx__also">
+            <span>Also in {sub.name}</span>
+            <div>
+              {others.map((s) => <Link key={s.slug} href={`/services/${s.slug}`}>{s.short}</Link>)}
+              {!outer && <a href="tel:+61359478000" data-call-from="suburb-emergency" className="sbx__also--hot">24/7 emergencies: call now</a>}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== ON THE TOOLS HERE, with the map ===== */}
+      {/* ===== 4. WE KNOW THESE HOMES ===== */}
       <section className="sbx__tools">
         <div className={`wrap sbx__two${sub.testimonial || sub.knownEstates ? "" : " sbx__two--one"}`}>
           <div className="sbx__toolst arv">
-            <h2 className="h2">{outer ? "What we get called out for in " : "What we see on the tools in "}<span>{sub.name}.</span></h2>
+            <h2 className="h2">{outer ? "What we get called out for in " : "We know "}<span>{outer ? `${sub.name}.` : `${sub.name} homes.`}</span></h2>
             <p>{cap(sub.housingStock)}.</p>
+            {sub.whyLocal && <p className="sbx__why">{sub.whyLocal}</p>}
             {sub.commonProblems?.length ? (
-              <ol className="sbx__list">
-                {sub.commonProblems.map((p, i) => <li key={p}><b aria-hidden="true">{String(i + 1).padStart(2, "0")}</b><span>{p}</span></li>)}
-              </ol>
+              <>
+                <h3 className="sbx__sub">What we see on the tools here</h3>
+                <ol className="sbx__list">
+                  {sub.commonProblems.map((p, i) => <li key={p}><b aria-hidden="true">{String(i + 1).padStart(2, "0")}</b><span>{p}</span></li>)}
+                </ol>
+              </>
             ) : null}
           </div>
           {(sub.testimonial || sub.knownEstates) && (
@@ -261,59 +267,44 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
         </div>
       </section>
 
-      {/* ===== SERVICES: the homepage's photo cards ===== */}
-      <section id="services" className="svcs">
-        <div className="wrap svcs__in">
-          <div className="svcs__head arv">
+      {/* ===== 5. WHO YOU'LL BE DEALING WITH: the About page's people ===== */}
+      <section id="team" className="sbx__team">
+        <div className="wrap sbx__col sbx__gap">
+          <div className="sechead arv">
             <div className="sechead__t">
-              <h2 className="h2">Everything we do in {sub.name}, <span style={{ color: "#C2521A" }}>under one roof.</span></h2>
+              <h2 className="h2" style={{ color: "#fff" }}>Who you&apos;ll be <span style={{ color: "#FF7A36" }}>dealing with.</span></h2>
+              <p className="sbx__lede">Not a call centre or a franchise. Two directors in the business every day, and our own crew driving out from Sierra Circuit{home ? "" : ` to ${sub.name}`}. If anything about your job isn&apos;t right, ask for either director by name.</p>
             </div>
-            <p>Installs, servicing and repairs. The same crew and the same standard, whichever job it is.</p>
+            <div className="sechead__btns">
+              <Link href="/about" className="abtn abtn--line">More about us</Link>
+            </div>
           </div>
-          <div className="sg">
-            {SERVICES.map((v, i) => {
-              const body = (
-                <>
-                  <Image src={v.photo} alt={v.alt} fill sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 420px" style={{ objectPosition: v.pos }} />
-                  <span className="sg__shade" aria-hidden="true" />
-                  <span className="sg__body">
-                    <strong>{v.t}</strong>
-                    <span className="sg__more"><span>{v.s}</span><em>{v.cta} →</em></span>
-                  </span>
-                </>
-              );
-              const style = { animationDelay: `${i * 0.07}s` };
-              return v.href.startsWith("tel:")
-                ? <a key={v.t} href={v.href} data-call-from="suburb-services-card" className="sg__card arv" style={style}>{body}</a>
-                : <Link key={v.t} href={v.href} className="sg__card arv" style={style}>{body}</Link>;
-            })}
+          <div className="sbx__people">
+            {DIRECTORS.map((d) => (
+              <article key={d.name} className="sbx__person arv">
+                <span className="sbx__pphoto"><Image src={d.photo} alt={`${d.name}, ${d.role}`} fill sizes="(max-width: 700px) 100vw, 380px" /></span>
+                <div><h3>{d.name}</h3><small>{d.role}</small><p>{d.about}</p></div>
+              </article>
+            ))}
+            <article className="sbx__person sbx__person--office arv">
+              <span className="sbx__pphoto"><Image src={OFFICE.photo} alt={`${OFFICE.name}, ${OFFICE.role}`} fill sizes="(max-width: 700px) 100vw, 380px" /></span>
+              <div><h3>{OFFICE.name}</h3><small>{OFFICE.role}</small><p>{OFFICE.about}</p></div>
+            </article>
           </div>
+          <ul className="sbx__creds">
+            {ACCREDITED.map(([k, v]) => <li key={v}><small>{k}</small><strong>{v}</strong></li>)}
+            <li><small>Insured</small><strong>$20M public liability</strong></li>
+            <li><small>Guaranteed</small><strong>6 years on our workmanship</strong></li>
+          </ul>
         </div>
       </section>
 
-      {/* ===== THE MAP: the homepage's, opened on this suburb with the drive drawn ===== */}
-      <ServiceArea
-        suburbs={areaSuburbs()}
-        focus={{
-          slug: sub.slug,
-          km: sub.distanceKm,
-          title: home
-            ? <>Where our workshop is: <span style={{ color: "#2CC5FF" }}>{sub.name}.</span></>
-            : <>From our workshop to <span style={{ color: "#2CC5FF" }}>{sub.name}.</span></>,
-          text: home
-            ? `Sierra Circuit, Pakenham. Most ${sub.name} jobs are ${drive} from the van leaving the yard, and everywhere within 50 km is our area.`
-            : outer
-              ? `${sub.distanceKm} km from Sierra Circuit, about ${drive} each way. Inside our area, but far enough that we come to ${sub.name} for booked work rather than a 2 am emergency.`
-              : `${sub.distanceKm} km from Sierra Circuit, usually ${drive} in the van, ${sub.distanceKm <= 30 ? "well inside" : "inside"} the 50 km we cover.`,
-        }}
-      />
-
-      {/* ===== REVIEWS: this suburb's first ===== */}
+      {/* ===== 6. REVIEWS: this suburb's first ===== */}
       <section id="reviews" className="revs">
         <div className="wrap revs__in">
           <div className="sechead arv" style={{ gap: 24 }}>
             <div className="sechead__t" style={{ gap: 14, maxWidth: 620 }}>
-              <h2 className="h2">{local.length ? `Reviews from ${sub.name} and around it.` : `Reviews from households around ${sub.name}.`}</h2>
+              <h2 className="h2">{local.length ? `What ${sub.name} households say.` : `What households around ${sub.name} say.`}</h2>
             </div>
             <div className="revs__score">
               <span className="stars stars--ink" style={{ letterSpacing: 4 }} aria-hidden="true">★★★★★</span>
@@ -346,29 +337,70 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
         </div>
       </section>
 
-      {/* ===== FAQ: about here ===== */}
-      <section id="faq" className="hfaq">
+      {/* ===== 7. THE MAP: the homepage's, opened on this suburb with the drive drawn ===== */}
+      <ServiceArea
+        suburbs={areaSuburbs()}
+        focus={{
+          slug: sub.slug,
+          km: sub.distanceKm,
+          title: home
+            ? <>Where our workshop is: <span style={{ color: "#2CC5FF" }}>{sub.name}.</span></>
+            : <>From our workshop to <span style={{ color: "#2CC5FF" }}>{sub.name}.</span></>,
+          text: home
+            ? `Sierra Circuit, Pakenham. Most ${sub.name} jobs are ${drive} from the van leaving the yard, and everywhere within 50 km is our area.`
+            : outer
+              ? `${sub.distanceKm} km from Sierra Circuit, about ${drive} each way. Inside our area, but far enough that we come to ${sub.name} for booked work rather than a 2 am emergency.`
+              : `${sub.distanceKm} km from Sierra Circuit, usually ${drive} in the van, ${sub.distanceKm <= 30 ? "well inside" : "inside"} the 50 km we cover.`,
+        }}
+      />
+
+      {/* ===== 8. EVERY WAY TO REACH US, and the questions people from here ask ===== */}
+      <section id="contact" className="hfaq">
         <div className="wrap hfaq__in">
           <div className="hfaq__intro arv">
-            <h2 className="h2">{sub.name} questions, answered.</h2>
-            <p>Still want a human? <a href="tel:+61359478000" data-call-from="suburb-faq" style={{ color: "#050A30", textUnderlineOffset: 2 }}>Call (03) 5947 8000</a>.</p>
+            <h2 className="h2">Talk to us about your <span style={{ color: "#C2521A" }}>{sub.name}</span> job.</h2>
+            <p>Whichever suits you. You&apos;ll get someone who works here, not a call centre.</p>
+            <ul className="sbx__ways">
+              <li>
+                <a href="tel:+61359478000" data-call-from="suburb-contact">
+                  <small>Call</small><strong>(03) 5947 8000</strong><span>{hours}{outer ? "" : ". After hours for gas leaks and no hot water."}</span>
+                </a>
+              </li>
+              <li>
+                <a href="#quote">
+                  <small>Free quote</small><strong>Tell us about the job</strong><span>A written price back within 12 business hours.</span>
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${site.email}?subject=${encodeURIComponent(`A job in ${sub.name}`)}`}>
+                  <small>Email</small><strong>{site.email}</strong><span>Photos of the old unit and its label help us price it.</span>
+                </a>
+              </li>
+              <li>
+                <span className="sbx__waysp">
+                  <small>Workshop</small><strong>1 Sierra Circuit, Pakenham</strong><span>{home ? "Right here in Pakenham." : `${drive} from ${sub.name}.`}</span>
+                </span>
+              </li>
+            </ul>
             {nearby.length > 0 && (
               <div className="sbx__near">
                 <span>Also nearby</span>
                 <div className="hfaq__links">
                   {nearby.map((s) => s.published ? <Link key={s.slug} className="glink" href={`/areas/${s.slug}`}>{s.name}</Link> : <span key={s.slug} className="sbx__plain">{s.name}</span>)}
                 </div>
-                <Link className="glink" href="/service-areas">Every suburb we cover</Link>
               </div>
             )}
           </div>
-          <div className="afaqs">
-            {faqs.map((f, i) => (
-              <details key={f.q} className="afaq" open={i === 0}>
-                <summary>{f.q}</summary>
-                <p>{f.a}</p>
-              </details>
-            ))}
+          <div className="sbx__faqs">
+            <h3 className="sbx__sub">{sub.name} questions, answered</h3>
+            <div className="afaqs">
+              {faqs.map((f, i) => (
+                <details key={f.q} className="afaq" open={i === 0}>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
           </div>
         </div>
       </section>
