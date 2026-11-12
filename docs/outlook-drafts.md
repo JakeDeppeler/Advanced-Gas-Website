@@ -217,19 +217,27 @@ agency's customer, at the tenant's site** (`lib/outlook/workOrders.ts`,
   one with more than a handful of sites. Our own addresses and number never
   count as a contact: a customer had admin@ saved as their email, and work
   orders the office forwarded went under that household.
+- **Quote approved:** never made into a job (Jake, 12 Nov: "we don't want to
+  create another file"). The office books the work by selling the estimate,
+  which makes the job with the quote's items on it. The email goes, pinned,
+  on the job it belongs to (an open job there, else the one with its number,
+  else the latest quote there) under "QUOTE APPROVED", and admin@ gets an
+  email saying who approved what, and on which job. Tapi's install work order
+  under the number of a quote visit already done counts as the approval too;
+  one email to admin per house in two days, as the two land together. The
+  page shows **Approved, on job N**; the daily summary lists them apart.
 - **Follow-ups:** an email about a job already at the site goes on that job
-  as a note (pinned when it's urgent or a quote accepted), with its files,
+  as a note (pinned when it's urgent), with its files,
   and no new job is made (Jake, 12 Nov). It's a follow-up when it carries the
   same work order number as an open job there, whatever kind it now says (a
   quote request and then "quote accepted" are one job); when it's a "Re:"
   about an open job there from the last month; or when it has no number and a
   job there is open. A **completed** job takes only a reminder that it's
-  still to do: anything else after it (a request to quote a new unit, a quote
-  accepted, the install after the quote visit) is new work and a new job,
-  unless an open job made there since, with no other number, already holds it
-  (the office sold the quote, or the acceptance made it a minute before). A
-  note on a finished job is a note nobody reads: in the 12 Nov audit, a quote
-  request and a go-ahead had gone that way. A new number is a new job. The note
+  still to do: anything else after it (a request to quote a new unit, a
+  repair that's back) is new work and a new job, unless an open job made
+  there since, with no other number, already holds it. A note on a finished
+  job is a note nobody reads: in the 12 Nov audit, a request to quote had gone
+  that way and no quote job was made. A new number is a new job. The note
   opens "WORK ORDER FOLLOW-UP" and says which work order it is. The page shows
   it as **Note on job N**.
 - **No agency found:** nothing is made. The page shows **Agency not set up**;

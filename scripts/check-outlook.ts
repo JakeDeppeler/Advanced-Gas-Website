@@ -23,7 +23,7 @@ import {
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
-import { bareStreet, followUpFor, followUpHeading, numberKey, type SiteJob } from "../src/lib/outlook/workOrderTypes";
+import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, type SiteJob } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -224,33 +224,38 @@ const FU_NOW = Date.parse("2026-11-12T00:00:00Z");
 const sj = (o: Partial<SiteJob>): SiteJob => ({ id: 1, jobNumber: "20796", status: "Scheduled", numbers: [], isQuote: false, createdOn: "2026-11-09T00:00:00Z", ...o });
 const wf = (kind: "work_order" | "quote_request" | "quote_accepted", number: string, isReminder = false) => ({ kind, number, isReminder });
 // 4 Bishop Pl: quote request 18969 (job 20796, open), then "quote accepted" 18969 made 20799; the office cancelled 20796.
-const bishop = followUpFor(wf("quote_accepted", "18969"), false, [sj({ numbers: ["18969"], isQuote: true })], FU_NOW);
-ok("same number, job open: onto that job, kind or no", bishop?.job.jobNumber === "20796", bishop);
+const bishop = followUpFor(wf("quote_request", "18969", true), false, [sj({ numbers: ["18969"], isQuote: true })], FU_NOW);
+ok("same number, job open: onto that job", bishop?.job.jobNumber === "20796", bishop);
+// Quote approvals (Jake, 12 Nov): never a job; pinned on the job it belongs to, admin emailed.
+ok("approved, the quote job open: onto it, no new job", approvalFor(wf("quote_accepted", "18969"), [sj({ numbers: ["18969"], isQuote: true })], FU_NOW)?.job?.jobNumber === "20796");
+ok("approved, nothing there: still an approval, no job", (() => { const a = approvalFor(wf("quote_accepted", "TAPI-25643-1"), [], FU_NOW); return a !== null && a.job === null; })());
+ok("not an approval: a work order", approvalFor(wf("work_order", "18000"), [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
+ok("not an approval: a request to quote", approvalFor(wf("quote_request", ""), [], FU_NOW) === null);
+// 1/19 Lyall St: Tapi's install work order under the number of the quote visit done (20341) is the approval.
+ok("a work order under a done quote's number: an approval on that quote", approvalFor(wf("work_order", "TAPI-023197"), [sj({ jobNumber: "20341", status: "Completed", isQuote: true, numbers: ["TAPI-023197"], createdOn: "2026-10-14T00:00:00Z" })], FU_NOW)?.job?.jobNumber === "20341");
+// 1 Grenaroff Walk: the office had sold the quote into 20806 by then.
+ok("approved after the office sold it into a job: onto that job", approvalFor(wf("quote_accepted", ""), [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" }), sj({ jobNumber: "20806", createdOn: "2026-11-10T00:00:00Z" })], FU_NOW)?.job?.jobNumber === "20806");
+ok("approved, no number, the quote done: onto the latest quote", approvalFor(wf("quote_accepted", ""), [sj({ jobNumber: "20498", status: "Completed", isQuote: true, createdOn: "2026-10-24T00:00:00Z" })], FU_NOW)?.job?.jobNumber === "20498");
+ok("approval note says so", /^QUOTE APPROVED 18969 by Barry Plant Pakenham \(PropertyMe\)\. No new job made/.test(approvalHeading({ agency: "Barry Plant Pakenham", platform: "PropertyMe", number: "18969" })));
+ok("approval on the page", stage({ ...base, status: "duplicate", st_booking_id: null, st_job_number: "20796", reason: "quote approved, on job 20796 (job 20796 is open there); admin emailed" }).word === "Approved, on job 20796");
 // 5 Albany Cres: TAPI-25643-1 accepted (20774), then a reminder for it made 20804, cancelled.
 ok("a reminder for a job already done: onto it", followUpFor(wf("work_order", "TAPI-25643-1", true), false, [sj({ jobNumber: "20774", status: "Completed", numbers: ["TAPI-25643-1"] })], FU_NOW)?.job.jobNumber === "20774");
 // 30 Hackney Cct: "Reminder: [TAPI-023594]" onto 20788, which the replica hasn't got yet (status unknown).
 ok("onto a job the portal made minutes ago", followUpFor(wf("work_order", "TAPI-023594", true), false, [sj({ jobNumber: "20788", status: null, numbers: ["TAPI-023594"] })], FU_NOW)?.job.jobNumber === "20788");
 // 1/19 Lyall St: TAPI-023197 quote (20341, done), then the install for it: a job of its own (20783, kept).
-ok("the go-ahead after the quote's done: a new job", followUpFor(wf("work_order", "TAPI-023197"), false, [sj({ jobNumber: "20341", status: "Completed", isQuote: true, numbers: ["TAPI-023197"], createdOn: "2026-10-14T00:00:00Z" })], FU_NOW) === null);
 ok("same number after a repair's done: new work, a new job", followUpFor(wf("work_order", "18000"), false, [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
 ok("a cancelled job takes nothing", followUpFor(wf("work_order", "18969"), false, [sj({ status: "Canceled", numbers: ["18969"] })], FU_NOW) === null);
 ok("another number at the same house: a new job", followUpFor(wf("work_order", "TAPI-023600"), false, [sj({ numbers: ["TAPI-023594"] })], FU_NOW) === null);
-// 1 Grenaroff Walk: Tapi's "Re: Split systems" accepting the quote went on 20384, the service done three weeks
-// before, and no job was made; the office sold the quote into 20806 themselves (audit, 12 Nov).
-ok("a reply accepting a quote, last month's job done: the go-ahead, a new job", followUpFor(wf("quote_accepted", ""), true, [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" })], FU_NOW) === null);
-ok("...and onto the job the office made for it since", followUpFor(wf("quote_accepted", ""), true, [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" }), sj({ jobNumber: "20806", createdOn: "2026-11-10T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20806");
 // 8/21 Pakenham Rd: LJ Hooker's "Re: Work order" WO-0801 asking for a quote to replace the unit went on 20390,
 // the clean done in October, and no quote job was made (audit, 12 Nov).
 ok("a reply asking for more after the job's done: a new job", followUpFor(wf("quote_request", "WO-0801"), true, [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" })], FU_NOW) === null);
 ok("a reply about an open job: onto it", followUpFor(wf("work_order", ""), true, [sj({ jobNumber: "20754", status: "InProgress", isQuote: true, createdOn: "2026-11-02T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20754");
-// 1/19 Lyall St: the "Re:" accepting the quote made the install job, then Tapi's work order for it a minute later.
-const lyall = [sj({ jobNumber: "20341", status: "Completed", isQuote: true, numbers: ["TAPI-023197"], createdOn: "2026-10-14T00:00:00Z" }), sj({ jobNumber: "20783", numbers: [], createdOn: "2026-11-08T22:13:00Z" })];
-ok("the quote's done, the work after it already a job: onto that", followUpFor(wf("work_order", "TAPI-023197"), false, lyall, FU_NOW)?.job.jobNumber === "20783");
-ok("...not one carrying another number", followUpFor(wf("work_order", "TAPI-023197"), false, [lyall[0], sj({ jobNumber: "20790", numbers: ["TAPI-099999"] })], FU_NOW) === null);
-ok("a reminder of an accepted quote, the quote visit done: still the go-ahead", followUpFor(wf("quote_accepted", "TAPI-023197", true), false, [lyall[0]], FU_NOW) === null);
+// New work after a finished job, and the office has made its job since.
+const after = [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" }), sj({ jobNumber: "20830", numbers: [], createdOn: "2026-11-11T22:00:00Z" })];
+ok("the job's done, the work after it already a job: onto that", followUpFor(wf("quote_request", "WO-0801"), true, after, FU_NOW)?.job.jobNumber === "20830");
+ok("...not one carrying another number", followUpFor(wf("quote_request", "WO-0801"), true, [after[0], sj({ jobNumber: "20831", numbers: ["WO-0999"] })], FU_NOW) === null);
 ok("a reply after two months: a new job", followUpFor(wf("quote_request", ""), true, [sj({ status: "Completed", createdOn: "2026-09-02T00:00:00Z" })], FU_NOW) === null);
 ok("a reply with another number: a new job", followUpFor(wf("work_order", "TAPI-023539"), true, [sj({ status: "Completed", numbers: ["TAPI-023378"], createdOn: "2026-10-26T00:00:00Z" })], FU_NOW) === null);
-ok("a reply accepting a quote that's done: the go-ahead, a new job", followUpFor(wf("quote_accepted", ""), true, [sj({ status: "Completed", isQuote: true, createdOn: "2026-11-01T00:00:00Z" })], FU_NOW) === null);
 ok("no number, a job open there: onto it", followUpFor(wf("work_order", ""), false, [sj({ jobNumber: "20806" })], FU_NOW)?.job.jobNumber === "20806");
 ok("no number, nothing open: a new job", followUpFor(wf("work_order", ""), false, [sj({ status: "Completed" })], FU_NOW) === null);
 ok("the newest of two with the number", followUpFor(wf("work_order", "18969"), false, [sj({ id: 1, jobNumber: "old", numbers: ["18969"], createdOn: "2026-10-01T00:00:00Z" }), sj({ id: 2, jobNumber: "new", numbers: ["18969"] })], FU_NOW)?.job.jobNumber === "new");

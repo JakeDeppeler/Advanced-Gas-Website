@@ -32,14 +32,15 @@ export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: nu
     q.gte("created_at", since), q.order("created_at", "asc"),
   ].join("&"));
   const booked = rows.filter((r) => r.status === "booked");
-  const dupes = rows.filter((r) => r.status === "duplicate");
+  const approved = rows.filter((r) => r.status === "duplicate" && (r.reason ?? "").startsWith("quote approved"));
+  const dupes = rows.filter((r) => r.status === "duplicate" && !approved.includes(r));
   const failed = rows.filter((r) => r.status === "failed" || r.status === "working" || r.status === "needs_agency");
   const cancels = rows.filter((r) => r.status === "not" && (r.reason ?? "").startsWith("cancellation"));
   // Statements, invoices and payment notices from the platforms are never work
   // orders; listing them every day (six on 6 Nov) buried the one worth a look.
   const PAPERWORK = /\b(statement|invoice|receipt|remittance|payment)s?\b/i;
   const missed = rows.filter((r) => r.status === "not" && PLATFORM.test(r.from_address ?? "") && !cancels.includes(r) && !PAPERWORK.test(`${r.reason ?? ""} ${r.subject ?? ""}`));
-  const count = booked.length + dupes.length + failed.length + missed.length + cancels.length;
+  const count = booked.length + approved.length + dupes.length + failed.length + missed.length + cancels.length;
   if (!count) return { sent: false, count: 0 };
 
   const line = (r: Row) => {
@@ -48,6 +49,7 @@ export async function sendWorkOrderSummary(): Promise<{ sent: boolean; count: nu
   };
   const sections: [string, Row[], (r: Row) => string][] = [
     ["Into ServiceTitan", booked, (r) => `${line(r)}. ${r.st_job_number ? `Job ${r.st_job_number}${r.location_how ? ` (${r.location_how})` : ""}, To Be Booked` : `Booking ${r.st_booking_id ?? "made"}`}. ${r.tenant_email_to ? `Tenant emailed (${r.tenant_email_to}).` : r.tenant_email_note ?? "Tenant not emailed."}`],
+    ["Quotes approved (no new job: sell the estimate; admin was emailed)", approved, (r) => `${line(r)}.${r.st_job_number ? ` On job ${r.st_job_number}, pinned.` : " No job found for it."}`],
     ["Already in (a follow-up, reminder or resend)", dupes, (r) => `${line(r)}.${r.st_job_number ? ` Added to job ${r.st_job_number} as a note.` : ""}`],
     ["Cancellations", cancels, (r) => `${r.address ?? r.subject ?? ""}: ${(r.reason ?? "").replace(/^cancellation: /, "")}.`],
     ["Not in ServiceTitan yet", failed, (r) => `${line(r)}. ${r.reason ?? ""}`],

@@ -11,6 +11,8 @@
  */
 
 export const NOT_ON_ALITSY = "Not On Alitsy";
+/** The office's tag for a rebate already entered: a job with it never gets Not On Alitsy (job 20801 got both, 12 Nov). */
+export const ON_ALITSY = "On Alitsy";
 
 /** A Rebates tag by its name as tagKey spells it: "Rebates 💰" is "rebates". Any tag the office names that way counts. */
 export const isRebateTag = (key: string) => /^rebates?\b/.test(key);
@@ -23,17 +25,17 @@ export type RebateJob = { id: number; status: string | null; tags: number[] };
 
 /**
  * What to do with one job carrying a Rebates tag:
- *  - "seen": already dealt with, or Not On Alitsy is on it already; keep the
+ *  - "seen": already dealt with, or Not On Alitsy (or On Alitsy) is on it already; keep the
  *    mark fresh (the done list forgets marks after 120 days, and a forgotten
  *    one would put the tag back after the office took it off)
  *  - "leave": a completed job that had the tag before this started; marked, not tagged
  *  - "tag": put Not On Alitsy on
  *  - "skip": cancelled, nothing to enter
  */
-export function rebateStep(j: RebateJob, notOn: number, marked: boolean, firstRun: boolean): "seen" | "leave" | "tag" | "skip" {
+export function rebateStep(j: RebateJob, notOn: number, marked: boolean, firstRun: boolean, on: number | null = null): "seen" | "leave" | "tag" | "skip" {
   if (marked) return "seen";
   if (j.status === "Canceled") return "skip";
-  if (j.tags.includes(notOn)) return "seen";
+  if (j.tags.includes(notOn) || (on != null && j.tags.includes(on))) return "seen";
   if (firstRun && j.status === "Completed") return "leave";
   return "tag";
 }

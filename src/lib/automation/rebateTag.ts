@@ -3,7 +3,7 @@ import { sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { tagKey, tagTypes } from "@/lib/ordering/stJobNotes";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry } from "./log";
-import { NOT_ON_ALITSY, REBATE_STARTED, isRebateTag, rebateMark, rebateStep, type RebateJob } from "./rebateTagRules";
+import { NOT_ON_ALITSY, ON_ALITSY, REBATE_STARTED, isRebateTag, rebateMark, rebateStep, type RebateJob } from "./rebateTagRules";
 
 /** Jobs changed in ServiceTitan per run, as the quote tags: a backlog clears over a few runs. */
 const PER_RUN = 25;
@@ -28,6 +28,7 @@ export async function syncRebateTags(): Promise<{ changed: number; failed: numbe
   if (!rebateIds.length) return { changed: 0, failed: 0, skipped: "no Rebates tag in ServiceTitan" };
   if (found == null) return { changed: 0, failed: 0, skipped: `no "${NOT_ON_ALITSY}" tag in ServiceTitan` };
   const notOn: number = found;
+  const on = t.byName.get(tagKey(ON_ALITSY)) ?? null;
 
   const rows = (await Promise.all(rebateIds.map((id) => sbSelect<{ id: number; job_number: string | null; status: string | null; tags: unknown }>(
     "st_jobs", `select=id,job_number,status,tags:raw->tagTypeIds&raw->tagTypeIds=cs.[${id}]&limit=5000`,
@@ -45,7 +46,7 @@ export async function syncRebateTags(): Promise<{ changed: number; failed: numbe
   let left = 0;
 
   for (const j of jobs.values()) {
-    const step = rebateStep(j, notOn, made.has(rebateMark(j.id)), firstRun);
+    const step = rebateStep(j, notOn, made.has(rebateMark(j.id)), firstRun, on);
     if (step === "seen" || step === "leave") made.set(rebateMark(j.id), stamp());
     if (step === "leave") left++;
     if (step === "tag") todo.push(j);
@@ -62,7 +63,7 @@ export async function syncRebateTags(): Promise<{ changed: number; failed: numbe
       if (!Array.isArray(fresh.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's tags, so they were left alone");
       // The replica was behind: the Rebates tag has come off since. Not marked, so it's looked at again if it goes back on.
       if (!fresh.tagTypeIds.some((x) => rebateIds.includes(x))) continue;
-      if (!fresh.tagTypeIds.includes(notOn)) {
+      if (!fresh.tagTypeIds.includes(notOn) && !(on != null && fresh.tagTypeIds.includes(on))) {
         const want: number[] = [...fresh.tagTypeIds, notOn];
         const reply: { tagTypeIds?: number[] } | null = await stSend<{ tagTypeIds?: number[] } | null>("PATCH", stTenantPath("jpm", `jobs/${j.id}`), { tagTypeIds: want });
         // The reply is the job as saved. Only without one that shows the tag is
