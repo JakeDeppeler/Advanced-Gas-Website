@@ -308,6 +308,7 @@ export function stage(r: WorkOrderRow): { tone: "good" | "mid" | "bad" | "none";
   if (r.status === "not") return { tone: "none", word: "Not a work order", line: r.reason ?? "Read and judged not to be one" };
   if (r.status === "failed") return { tone: "bad", word: "Not booked yet", line: r.reason ?? "ServiceTitan refused it; tried again automatically" };
   if (r.status === "working") return { tone: "mid", word: "Reading", line: "Being read now" };
+  if (r.status === "duplicate" && (r.reason ?? "").startsWith("quote approved")) return { tone: "good", word: r.st_job_number ? `Approved, on job ${r.st_job_number}` : "Approved", line: `${(r.reason ?? "").replace(/^quote approved/, "Quote approved")}. No new job: sell the estimate to book the work` };
   if (r.status === "duplicate" && r.st_job_number) return { tone: "good", word: `Note on job ${r.st_job_number}`, line: `${(r.reason ?? "A follow-up").replace(/^a follow-up, /, "A follow-up: ").replace(/: the email went on that job as a note$/, "")}. Added as a note, not a new job` };
   if (r.status === "duplicate") return { tone: "none", word: "Already booked", line: "A reminder or resend of one booked from an earlier email" };
   if (r.status === "needs_agency") return { tone: "bad", word: "Agency not set up", line: `${r.reason ?? "The agency isn't a customer in ServiceTitan"}. Set it up as a customer, then give the email the Outlook category Work order again.` };
@@ -362,8 +363,8 @@ export function streetWord(street: string): string {
   return words.sort((a, b) => b.length - a.length)[0] ?? "";
 }
 
-const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
-const agencyWords = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
+export const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
+const agencyWords = (s: string) => s.toLowerCase().replace(/['\u2019]/g, "").replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
 
 /**
  * Whether a ServiceTitan customer's name is this agency: every word of the
@@ -420,6 +421,26 @@ export function namesStreet(text: string, street: string): boolean {
 }
 
 /**
+ * Whether the email names this job's address: the street's name with its
+ * number before it ("11 Emerald") or its kind after it ("Emerald Court",
+ * "Emerald Ct"). The name alone isn't enough to put an email on a job: Peake
+ * Real Estate's email about 80 Inglis Road went on job 20050 at 11 Emerald
+ * Court (6 Nov), its job number in the email by chance and "Emerald" a suburb.
+ */
+export function namesSite(text: string, street: string): boolean {
+  const w = streetWord(street).replace(/[^a-z]/g, "");
+  if (w.length <= 2) return false;
+  const bare = street.toLowerCase().replace(/^.*\//, "").trim();
+  const num = /^(\d+[a-z]?)\b/.exec(bare)?.[1].replace(/[a-z]$/, "") ?? "";
+  const last = bare.replace(/[^a-z ]/g, " ").trim().split(/\s+/).pop() ?? "";
+  const full = Object.entries(ABBREV).find(([f, a]) => f === last || a === last);
+  const kinds = full ? [...new Set(full)] : [];
+  const byNumber = num ? new RegExp(`(?<![\\d])${num}[a-z]?\\s+${w}\\b`, "i") : null;
+  const byKind = kinds.length ? new RegExp(`\\b${w}\\s+(?:${kinds.join("|")})\\b`, "i") : null;
+  return Boolean(byNumber?.test(text) || byKind?.test(text));
+}
+
+/**
  * A ServiceTitan refusal in words: its own title ("\"0428 946 984; 0417 535 760\"
  * is not a valid phone number"), not the JSON it came wrapped in, which the
  * daily summary printed whole.
@@ -464,42 +485,89 @@ export type FollowUp = { job: SiteJob; why: string };
 const DAY_MS = 86_400_000;
 
 /**
+ * A quote approved is never made into a job (Jake, 12 Nov: "some of the work
+ * orders say quote approved and then you are thinking it a quote ... we don't
+ * want to create another file, just that it has been approved, and then an
+ * email to admin to say it has"). The office books the work by selling the
+ * estimate in ServiceTitan, which makes the job with the quote's items on it;
+ * a job the portal made beside it was a second file (7 Gatsby Dr and Home
+ * Affairs went in as Quotations).
+ *
+ * It's an approval when it says the quote is accepted, or when it's a work
+ * order carrying the number of a quote visit already done (Tapi sends the
+ * install for 1/19 Lyall St as a work order under the quote's number). The
+ * email goes, pinned, on the job it belongs to: an open job there (the quote
+ * waiting, or the job the office has since sold it into), else the one with
+ * its number, else the latest quote there. None found, it's still an approval:
+ * admin is told and looks for it.
+ */
+export function approvalFor(w: Pick<WorkOrder, "kind" | "number">, jobs: SiteJob[], now = Date.now()): { job: SiteJob | null; why: string } | null {
+  const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
+  const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
+  const done = (j: SiteJob) => j.status === "Completed";
+  const name = (j: SiteJob) => `job ${j.jobNumber ?? j.id}`;
+  const num = numberKey(w.number);
+  const keys = (j: SiteJob) => j.numbers.map(numberKey).filter(Boolean);
+  const same = num ? live.find((j) => keys(j).includes(num)) : undefined;
+  const afterQuote = w.kind === "work_order" && !!same && done(same) && same.isQuote;
+  if (w.kind !== "quote_accepted" && !afterQuote) return null;
+
+  const fits = (j: SiteJob) => !num || !keys(j).length || keys(j).includes(num);
+  const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS && fits(j) && (!same || when(j) >= when(same)));
+  if (open) return { job: open, why: `${name(open)} is open there` };
+  if (same) return { job: same, why: `${name(same)} has its number` };
+  const quote = live.find((j) => j.isQuote && now - when(j) <= 120 * DAY_MS);
+  if (quote) return { job: quote, why: `${name(quote)} is the latest quote there` };
+  return { job: null, why: "no job for it found at this address" };
+}
+
+/** The note an approval opens with on the job. */
+export function approvalHeading(w: Pick<WorkOrder, "agency" | "platform" | "number">): string {
+  const from = [w.agency, w.platform ? `(${w.platform})` : ""].filter(Boolean).join(" ");
+  return `QUOTE APPROVED${w.number ? ` ${w.number}` : ""}${from ? ` by ${from}` : ""}. No new job made: sell the estimate to book the work. Admin has been emailed.`;
+}
+
+/**
  * Whether this work order is a follow-up about a job already at the site, and
  * so goes on that job as a note rather than making another (Jake, 12 Nov:
  * "they send a work order follow up and it is currently create a new job each
- * time, not just add another note to the current file"). In order:
+ * time, not just add another note to the current file"). Approvals are taken
+ * out first (approvalFor). In order:
  *
  *  1. The same work order number as a job there (its PO, or a work order
- *     already put on it). An open job takes it, whatever kind it now says:
- *     Barry Plant's quote request and then "quote accepted" for 4 Bishop Pl
- *     were one job, and the office cancelled the second. A completed job takes
- *     only a reminder or a reply; anything else after it is new work (1/19
- *     Lyall St: the quote done, then the install, a job of its own).
- *  2. A "Re:" about a job there from the last month, unless the two carry
- *     different numbers.
+ *     already put on it). An open job takes it, whatever kind it now says.
+ *  2. A "Re:" about an open job there from the last month, unless the two
+ *     carry different numbers.
  *  3. No number of its own, and a job open there from the last three months.
  *
- * Either way a quote accepted after its quote visit is done is the go-ahead,
- * a new job. Anything else is a new work order.
+ * A completed job takes only a reminder that it's still to do. Anything else
+ * about it asks for something new, and a note on a finished job is a note
+ * nobody reads (the audit, 12 Nov: LJ Hooker's request to quote a new split
+ * system at 8/21 Pakenham Rd, "Re: Work order", went on the clean done three
+ * weeks before, and no quote job was made). That new work may already have
+ * its job, made by the office since: an open job there newer than the
+ * finished one, with no other number, takes it.
  */
 export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder">, reply: boolean, jobs: SiteJob[], now = Date.now()): FollowUp | null {
   const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
   const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
   const done = (j: SiteJob) => j.status === "Completed";
-  const goAhead = (j: SiteJob) => done(j) && j.isQuote && w.kind !== "quote_request";
+  const takes = (j: SiteJob) => !done(j) || w.isReminder;
   const name = (j: SiteJob) => `job ${j.jobNumber ?? j.id}`;
   const keys = (j: SiteJob) => j.numbers.map(numberKey).filter(Boolean);
   const num = numberKey(w.number);
+  const fits = (j: SiteJob) => !num || !keys(j).length || keys(j).includes(num);
+  const since = (j: SiteJob) => live.find((o) => o !== j && !done(o) && when(o) >= when(j) && now - when(o) <= 14 * DAY_MS && fits(o));
 
   const same = num ? live.find((j) => keys(j).includes(num)) : undefined;
   if (same) {
-    if (!done(same)) return { job: same, why: `the same work order as ${name(same)}` };
-    if ((w.isReminder || reply) && !goAhead(same)) return { job: same, why: `a ${w.isReminder ? "reminder" : "reply"} about ${name(same)}, already done` };
-    return null;
+    if (takes(same)) return { job: same, why: done(same) ? `a reminder about ${name(same)}, already done` : `the same work order as ${name(same)}` };
+    const newer = since(same);
+    return newer ? { job: newer, why: `${name(same)} is done, and the work after it is ${name(newer)}` } : null;
   }
   if (reply) {
     const recent = live.find((j) => now - when(j) <= 30 * DAY_MS && !(num && keys(j).length));
-    if (recent && !goAhead(recent)) return { job: recent, why: `a reply about ${name(recent)}` };
+    if (recent && takes(recent)) return { job: recent, why: `a reply about ${name(recent)}` };
   }
   if (!num) {
     const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS);

@@ -32,6 +32,9 @@ ok("later, scheduled: tagged", rebateStep(job("Scheduled"), NOT_ON, false, false
 // Once only: the office takes it off when the rebate's on Alitsy, and it stays off.
 ok("already dealt with: left as the office has it", rebateStep(job("Completed", [REBATE]), NOT_ON, true, false) === "seen");
 ok("already on (put on by hand): just remembered", rebateStep(job("Scheduled", [REBATE, NOT_ON]), NOT_ON, false, false) === "seen");
+// Job 20801 was On Alitsy already and got Not On Alitsy as well (12 Nov).
+const ON = 303186656;
+ok("already On Alitsy: never Not On Alitsy", rebateStep(job("Scheduled", [REBATE, ON]), NOT_ON, false, true, ON) === "seen" && rebateStep(job("Completed", [REBATE, ON]), NOT_ON, false, false, ON) === "seen");
 
 if (bad) {
   console.log(`\n${bad} failed`);
