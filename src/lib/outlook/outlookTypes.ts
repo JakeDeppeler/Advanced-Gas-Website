@@ -183,6 +183,11 @@ export function threadText(thread: GraphMessage[], mailbox: string): string {
 /** A request to ring them back, for the morning to-do email (lib/reminders). */
 export type CallBack = { name: string; phone: string; about: string };
 /** A new customer asking for work or a quote, as read from their email. */
+/** The subject an enquiry keeps through its replies and forwards, so a "Re:" isn't a second enquiry (leads/emailLeads.ts). */
+export function enquirySubject(subject: string): string {
+  return subject.toLowerCase().replace(/^(\s*(re|fw|fwd|aw)\s*:\s*)+/i, "").replace(/\s+/g, " ").trim();
+}
+
 export type NewLead = { name: string; phone: string; email: string; address: string; suburb: string; postcode: string; service: string; summary: string };
 export type MailDraft = { replyNeeded: boolean; whyNot: string; reply: string; handoff: string; callBack: CallBack | null; lead: NewLead | null };
 

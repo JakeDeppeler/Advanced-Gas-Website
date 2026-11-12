@@ -99,7 +99,7 @@ export async function retryLeadUploads(): Promise<Entry[]> {
 type LeadRow = {
   id: string; created_at: string; name: string | null; phone: string | null; email: string | null;
   address: string | null; suburb: string | null; postcode: string | null;
-  service: string | null; headline: string | null; summary: string | null; notes: string | null;
+  service: string | null; headline: string | null; summary: string | null; notes: string | null; source: string | null;
   page_path: string | null; photo_paths: string[] | null; st_booking: { tries?: number; error?: string } | null;
 };
 
@@ -135,10 +135,45 @@ async function cityFor(postcode: string | null, address: string | null): Promise
   return last ? last.charAt(0).toUpperCase() + last.slice(1).toLowerCase() : "Not given";
 }
 
+/**
+ * The postcode for a booking, which ServiceTitan won't take without
+ * ("Address.Zip"). An enquiry by email often names only the suburb (Ray
+ * White's 2 Butterfields Walk, Officer; Whytehall's Mulgrave, 12 Nov: each
+ * tried three times and given up on), so the suburb decides it: the postcode
+ * most of our own sites there have. A suburb typed in the postcode box ("Hampton
+ * Park") counts as the suburb.
+ */
+const zipCache = new Map<string, string | null>();
+async function zipFor(postcode: string | null, suburb: string | null, address: string | null): Promise<string> {
+  const pc = (postcode ?? "").replace(/\D/g, "");
+  if (/^\d{4}$/.test(pc)) return pc;
+  // One written at the end of the address ("..., Lysterfield VIC 3156"), not a street number.
+  const inAddress = /(?:^|[\s,])(3\d{3})\s*$/.exec(address ?? "")?.[1];
+  if (inAddress) return inAddress;
+  const place = (suburb || (/[a-z]/i.test(postcode ?? "") ? postcode : "") || "").trim().toLowerCase();
+  if (place) {
+    if (!zipCache.has(place)) {
+      const rows = await sbSelect<{ zip: string | null }>("st_locations", `select=zip:raw->address->>zip&raw->address->>city=ilike.${encodeURIComponent(place)}&limit=400`).catch(() => []);
+      const tally = new Map<string, number>();
+      for (const r of rows) {
+        // Some sites are saved with a leading zero ("03806"); Victoria's are four digits.
+        const z = (r.zip ?? "").replace(/\D/g, "").replace(/^0(?=\d{4}$)/, "");
+        if (/^\d{4}$/.test(z)) tally.set(z, (tally.get(z) ?? 0) + 1);
+      }
+      zipCache.set(place, [...tally.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null);
+    }
+    const hit = zipCache.get(place);
+    if (hit) return hit;
+  }
+  // Not one we know: a placeholder ServiceTitan accepts, for the office to correct.
+  return "0000";
+}
+
 /** What the office reads in the Bookings inbox: what they want, then everything they wrote. */
 function bookingSummary(l: LeadRow): string {
+  const what = l.source === "Email" ? "Email enquiry" : "Website enquiry";
   return [
-    l.headline || l.service ? `Website enquiry: ${l.headline ?? l.service}` : "Website enquiry",
+    l.headline || l.service ? `${what}: ${l.headline ?? l.service}` : what,
     l.summary, l.notes ? `Their notes: ${l.notes}` : null,
     l.photo_paths?.length ? `${l.photo_paths.length} photo${l.photo_paths.length === 1 ? "" : "s"} attached in the portal; they go on the job once it's booked.` : null,
     l.page_path ? `Sent from ${l.page_path}` : null,
@@ -153,7 +188,7 @@ function bookingSummary(l: LeadRow): string {
  */
 export async function bookNewLeads(provider: number, since: string): Promise<Entry[]> {
   const rows = await sbSelect<LeadRow>("portal_leads", [
-    q.select("id,created_at,name,phone,email,address,suburb,postcode,service,headline,summary,notes,page_path,photo_paths,st_booking"),
+    q.select("id,created_at,name,phone,email,address,suburb,postcode,service,headline,summary,notes,source,page_path,photo_paths,st_booking"),
     "kind=eq.quote", "st_booking_id=is.null", "st_job_id=is.null", q.gte("created_at", since), "order=created_at.asc", "limit=10",
   ].join("&"));
   const out: Entry[] = [];
@@ -162,8 +197,8 @@ export async function bookNewLeads(provider: number, since: string): Promise<Ent
     if (tries >= TRIES) continue;
     const photos = l.photo_paths?.length ? await signedUrls(l.photo_paths, 7 * 86_400, "lead-photos").catch(() => new Map<string, string>()) : new Map<string, string>();
     const contacts = [
-      ...(l.phone ? [{ type: "Phone", value: l.phone, memo: "From the website form" }] : []),
-      ...(l.email ? [{ type: "Email", value: l.email, memo: "From the website form" }] : []),
+      ...(l.phone ? [{ type: "Phone", value: l.phone, memo: l.source === "Email" ? "From their email" : "From the website form" }] : []),
+      ...(l.email ? [{ type: "Email", value: l.email, memo: l.source === "Email" ? "From their email" : "From the website form" }] : []),
     ];
     const body = {
       source: "Website",
@@ -173,7 +208,11 @@ export async function bookNewLeads(provider: number, since: string): Promise<Ent
       customerType: "Residential",
       isFirstTimeClient: true,
       isSendConfirmationEmail: false,
-      address: { street: l.address || "Not given", city: l.suburb || await cityFor(l.postcode, l.address), state: "VIC", zip: l.postcode ?? "", country: "Australia" },
+      address: {
+        street: l.address || "Not given",
+        city: l.suburb || (/[a-z]/i.test(l.postcode ?? "") ? (l.postcode ?? "").trim() : await cityFor(l.postcode, l.address)),
+        state: "VIC", zip: await zipFor(l.postcode, l.suburb, l.address), country: "Australia",
+      },
       contacts,
       ...(photos.size ? { uploadedImages: [...photos.values()] } : {}),
     };
