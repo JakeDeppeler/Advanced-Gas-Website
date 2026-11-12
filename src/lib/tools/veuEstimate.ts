@@ -29,7 +29,7 @@ export const UPGRADES: UpgradePath[] = [
     minRebate: 2000, maxRebate: 2400, typicalInstall: 4800,
     notes: "Continuous flow gas is more efficient than storage, so the rebate is slightly smaller." },
   { key: "electric-storage::heat-pump", label: "Electric storage → Heat pump hot water",
-    minRebate: 2200, maxRebate: 2600, typicalInstall: 4800,
+    minRebate: 2200, maxRebate: 2700, typicalInstall: 4800,
     notes: "Strong rebate, displacing peak-rate electric with a heat pump saves 60-70% of the running cost." },
   { key: "off-peak-electric::heat-pump", label: "Off-peak electric → Heat pump hot water",
     minRebate: 1400, maxRebate: 1800, typicalInstall: 4800,

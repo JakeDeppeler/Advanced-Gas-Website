@@ -188,6 +188,9 @@ export const QB = {
   ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
   roofType: { id: "rooftype", q: "What type of roof?", opts: [o("Tiled"), o("Colorbond or metal"), o("Flat or low pitch")] },
   hwNow: { id: "now", q: "What hot water do you have now?", opts: [o("Gas storage tank"), o("Gas continuous flow"), o("Electric storage tank"), o("Solar hot water"), o("Nothing yet", "New build or extension")] },
+  // How long the showers run, for the shower-time check (Jake, Nov 2026).
+  // The minutes behind each answer are SHOWER_MINUTES in lib/homepage/hotWater.
+  showers: { id: "shw", q: "How long are the showers?", opts: [o("Quick", "About 5 minutes"), o("Average", "About 8 minutes"), o("Long", "10 minutes or more")] },
   gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
   heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
   vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
@@ -343,7 +346,7 @@ export const CATS: Category[] = [
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
-      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.hwNow], tiers: [
+      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hwNow], tiers: [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
@@ -353,7 +356,7 @@ export const CATS: Category[] = [
         t("premium", "Thermann", "G-series, high-flow", IMG.gasCf, ["Two showers running at once", "Endless hot water", W], null),
         t("signature", "Reclaim", "Switch to a heat pump", IMG.reclaimAio, ["VEU rebate applied at the quote", "Cuts hot water energy use by up to 75%", "Old unit removed"], 2624, "heat-pump.premium"),
       ] }),
-      sys({ slug: "gas-storage", label: "Gas storage", sub: "Gas hot water tank", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.gasType], tiers: [
+      sys({ slug: "gas-storage", label: "Gas storage", sub: "Gas hot water tank", img: IMG.gasStorage, q: "How many people at home?", sizes: GAS_PEOPLE, faq: "gashw", service: "gas-hot-water", more: [QB.showers, QB.gasType], tiers: [
         t("essential", "Thermann", "4-star gas storage", IMG.gasStorage, ["Like-for-like swap", "Same-day on common sizes", "Old unit removed"], null),
         t("premium", "Thermann", "Upgrade to continuous flow", IMG.gasCf, ["Endless hot water", "No tank to reheat", W], null, "gas-continuous-flow.essential"),
         // No heat pump option here (Jake, Nov 2026): this page is for people staying on gas.
@@ -422,7 +425,11 @@ export const productHref = (sys: System, tier: Tier, ans: Answers) => {
   // question the same way (people at home → people at home); a gas storage
   // "how many people" isn't a continuous-flow "how many bathrooms".
   const same = real.sys === sys || real.sys.sizes.map((o) => o.label).join() === sys.sizes.map((o) => o.label).join();
-  const qs = same ? answersQuery(real.sys, real.sys === sys ? ans : ans.size != null ? { size: ans.size } : {}) : "";
+  // The shower length rides along too: it means the same on any tank.
+  const carried: Answers = {};
+  if (ans.size != null) carried.size = ans.size;
+  if (ans.shw != null) carried.shw = ans.shw;
+  const qs = same ? answersQuery(real.sys, real.sys === sys ? ans : carried) : "";
   return `/find/${real.sys.slug}/${real.tier.slug}${qs ? `?${qs}` : ""}`;
 };
 
@@ -582,7 +589,7 @@ export function galleryFor(sys: System, tier: Tier): GalItem[] {
  * catalogue product covers several sizes (a Brivis heater is one record for
  * 15 to 30 kW), so each size still has a button of its own.
  */
-type ModelRef = [string, string, string, string?];
+export type ModelRef = [string, string, string, string?];
 const MSZ_AP: ModelRef[] = [["mitsubishi-electric", "msz-ap25", "2.5 kW"], ["mitsubishi-electric", "msz-ap35", "3.5 kW"], ["mitsubishi-electric", "msz-ap50", "5.0 kW"], ["mitsubishi-electric", "msz-ap60", "6.0 kW"], ["mitsubishi-electric", "msz-ap71", "7.1 kW"], ["mitsubishi-electric", "msz-ap80", "8.0 kW"]];
 const KSI: ModelRef[] = [["kaden", "kaden-split-25", "2.5 kW"], ["kaden", "kaden-split-35", "3.5 kW"], ["kaden", "kaden-split-5", "5.0 kW"], ["kaden", "kaden-split-7", "7.0 kW"], ["kaden", "kaden-split-8", "8.0 kW"]];
 // One button per output (Jake, Nov 2026): 10, 12.5, 14, 16, 18, and 20 kW on three-phase.
@@ -907,6 +914,7 @@ export const HOME_FAQS: (QA & { finance?: boolean })[] = [
 
 /** The calculators, for the homepage's Tools section. */
 export const TOOLS: { t: string; s: string; href: string }[] = [
+  { t: "Hot water size", s: "The tank that covers your showers", href: "/hot-water#size" },
   { t: "VEU rebate calculator", s: "What you'd get off a heat pump", href: "/tools/veu-rebate-estimator" },
   { t: "Aircon sizing calculator", s: "The kW your room needs", href: "/tools/sizing-calculator" },
   { t: "Running cost calculator", s: "What a system costs to run", href: "/tools/running-cost-calculator" },

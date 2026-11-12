@@ -518,14 +518,14 @@ export const blogPosts: BlogPost[] = [
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
     metaTitle: "Failed Hot Water Tank. Replace Gas or Upgrade to Heat Pump?",
     metaDescription:
-      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,600 VEU rebate question.",
+      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,700 VEU rebate question.",
     category: "Hot water",
     categoryShort: "Hot water",
     date: "25 Mar 2026",
     iso: "2026-03-25",
     readingMinutes: 5,
     excerpt:
-      "When the gas tank goes you've got 48 hours to decide. Here's the maths: including the $2,600 rebate question.",
+      "When the gas tank goes you've got 48 hours to decide. Here's the maths: including the $2,700 rebate question.",
     photo: "/gas-hot-water-change-over.png",
     photoAlt: "Same-day hot water swap in progress",
     body: [

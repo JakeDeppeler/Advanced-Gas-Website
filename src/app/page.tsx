@@ -108,6 +108,18 @@ export default async function HomePage() {
       {/* ===== FIND YOUR SYSTEM ===== */}
       <Finder />
 
+      {/* Hot water size, a tap from the finder (Jake, Nov 2026): people and
+          shower length in, the tank that covers them out. */}
+      <section className="hwstrip">
+        <div className="wrap">
+          <Link href="/hot-water#size" className="hwstrip__in">
+            <span className="hwstrip__drop" aria-hidden="true">💧</span>
+            <span className="hwstrip__t"><strong>How much hot water do you need?</strong><small>Tell us how many people shower and for how long, and see the tank size that covers you.</small></span>
+            <span className="abtn abtn--or abtn--flat">Check your size →</span>
+          </Link>
+        </div>
+      </section>
+
       {/* ===== WHY CHOOSE US ===== */}
       <section id="why" className="awhy">
         <span className="glow awhy__glow1" aria-hidden="true" />

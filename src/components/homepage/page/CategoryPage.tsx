@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { HwSizeCheck } from "../hw/HwSizeCheck";
 import { findBrand } from "@/lib/brands";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import {
@@ -98,7 +99,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
-          {[["systems", "The systems"], ["compare", "Side by side"], ["brands", "Brands"], ["why", "Why us"], ...(tools.length ? [["tools", "Tools"]] : []), ["reviews", "Reviews"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+          {[["systems", "The systems"], ...(cat.id === "hw" ? [["size", "Hot water size"]] : []), ["compare", "Side by side"], ["brands", "Brands"], ["why", "Why us"], ...(tools.length ? [["tools", "Tools"]] : []), ["reviews", "Reviews"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
         </div>
       </nav>
 
@@ -128,6 +129,19 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
           </div>
         </div></div>
       </section>
+
+      {/* Hot water only: how big a tank, from people and shower length (Jake, Nov 2026). */}
+      {cat.id === "hw" && (
+        <section className="bk__sec bk__sec--cream" id="size">
+          <div className="wrap"><div className="bk__blk bk__col">
+            <header className="bk__head">
+              <h2 className="h2">How much hot water do you <span>need</span>?</h2>
+              <p>Tell us how many people shower and for how long. Every tank we fit, at the size that covers you, and how long it lasts.</p>
+            </header>
+            <HwSizeCheck />
+          </div></div>
+        </section>
+      )}
 
       {/* 2. Side by side */}
       <section className="bk__sec bk__sec--white" id="compare">

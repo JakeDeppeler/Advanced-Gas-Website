@@ -255,3 +255,12 @@
 @media (max-width:900px){.ag .shw{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:420px){.ag .shw__each{flex-direction:column;align-items:flex-start;gap:8px}}
 @media (prefers-reduced-motion:reduce){.ag .shw__fill,.ag .shw__more{transition:none}.ag .shw__ppl li{animation:none}}
+/* The verdict for the household: a mark that differs in shape (✓ ≈ !) and the words, so colour is never the only signal. */
+.ag .shw__fit{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--cream);box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .shw__fit i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:800 15px/1 var(--disp);font-style:normal;color:#fff;background:#1F7A4D}
+.ag .shw__fit--reheat i{background:#B7791F}
+.ag .shw__fit--short i{background:#B42318}
+.ag .shw__fit p{margin:0;font-size:15px;line-height:1.5;color:var(--ink,#1a1f3a)}
+.ag .shw__fit b{color:var(--navy)}
+.ag .shw__swap--in{margin:0;display:inline}
+.ag .shw__all{display:inline-block;margin:4px 0 14px;font-weight:700;font-size:15px;color:var(--acc,#C2521A);text-decoration:underline;text-underline-offset:3px}

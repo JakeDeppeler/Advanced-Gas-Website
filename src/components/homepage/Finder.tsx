@@ -10,6 +10,7 @@ import {
 } from "@/lib/homepage/data";
 import { onIntent, sendIntent, scrollToId } from "@/lib/homepage/intent";
 import { Svg } from "./HeroQuote";
+import { SHOWER_MINUTES, peopleIn, tankForAnswer, tanksOf, FIT_TEXT } from "@/lib/homepage/hotWater";
 
 /**
  * "What do you need help with?": Type → System → a few questions about the
@@ -34,6 +35,10 @@ export function Finder() {
   const chips = sys ? answerChips(sys, ans) : [];
   const crumbs = [cat?.label, sys?.label, ...chips].filter((x): x is string => !!x);
   const size = sys && ans.size != null ? sys.sizes[ans.size] : null;
+  // The shower check, for a tank system once its people and shower length
+  // are in: everyone back to back, at Jake's 5 L of hot a minute.
+  const showerQ = !!sys?.qs.some((q) => q.id === "shw");
+  const need = showerQ && size && ans.shw != null ? peopleIn(size.label) * SHOWER_MINUTES[ans.shw] : null;
 
   useEffect(() => onIntent((i) => {
     if (i.kind !== "find") return false;
@@ -63,8 +68,8 @@ export function Finder() {
   }
 
   const steps = ["Type", "System", "Your home", "Options"];
-  const toolHref = cat?.id === "air" ? "/tools/sizing-calculator" : cat?.id === "hw" ? "/tools/veu-rebate-estimator" : "/tools/heating-comparator";
-  const toolText = cat?.id === "air" ? "Not sure? Try our sizing calculator" : cat?.id === "hw" ? "Estimate your VEU rebate" : "Gas vs reverse-cycle running costs";
+  const toolHref = cat?.id === "air" ? "/tools/sizing-calculator" : cat?.id === "hw" ? "/hot-water#size" : "/tools/heating-comparator";
+  const toolText = cat?.id === "air" ? "Not sure? Try our sizing calculator" : cat?.id === "hw" ? "Not sure? Check the size your showers need" : "Gas vs reverse-cycle running costs";
 
   return (
     <section id="find" className="find" data-no-reveal>
@@ -172,6 +177,12 @@ export function Finder() {
               {isNewBuildHeatPump(sys, ans) && (
                 <p className="find__veu pop">The VEU rebate is for replacing an existing gas or electric system, so it usually won&apos;t apply to a new build. We&apos;ll confirm at the site check.</p>
               )}
+              {need != null && (
+                <p className="find__shw pop">
+                  <b>{peopleIn(size.label)} people × {SHOWER_MINUTES[ans.shw!]} min showers = {need} min</b> of hot water back to back.
+                  Under each option: how long its tank lasts at your size.
+                </p>
+              )}
               <div className={`atiers${sys.tiers.length > 3 ? " atiers--4" : ""}`}>
                 {sys.tiers.map((t, i) => {
                   const known = typeof t.price === "number";
@@ -191,6 +202,17 @@ export function Finder() {
                         <strong>{t.model}</strong>
                         <em>{sys.label} · {size.spec}</em>
                       </Link>
+                      {need != null && (() => {
+                        const real = t.same ? t.same.split(".") : [sys.slug, t.slug];
+                        const tk = tankForAnswer(real[0], real[1], size.spec, need);
+                        if (!tk) return tanksOf(real[0], real[1]).length ? null : <p className="tier__shw tier__shw--plenty"><i aria-hidden="true">✓</i><span><b>No tank to run out</b>Heats as it flows</span></p>;
+                        return (
+                          <p className={`tier__shw tier__shw--${tk.fit}`}>
+                            <i aria-hidden="true">{tk.fit === "plenty" ? "✓" : tk.fit === "reheat" ? "≈" : "!"}</i>
+                            <span><b>{tk.chip}: {tk.m.low}–{tk.m.high} min of showers</b>{FIT_TEXT[tk.fit]}{tk.up ? `; the ${tk.up.chip} covers it` : ""}</span>
+                          </p>
+                        );
+                      })()}
                       <ul className="ticks">
                         {t.feats.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}
                       </ul>

@@ -1,33 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { PV } from "./parts";
 import { Count } from "./stage";
+import { HOT_PER_MIN, SHOWER_MINUTES, tankMinutes, fitOf, FIT_TEXT } from "@/lib/homepage/hotWater";
 
 /**
- * How long the showers last on this tank, worked the way Jake works it out
- * for customers (Nov 2026):
- *
- *   a 9 L/min shower head draws about 5 L cold and 4 L hot,
- *   plus about 1 L a minute lost as heat on the way (pipes, the tank cooling),
- *   so the tank gives up 5 L of hot water a minute in the shower.
- *   200 L / 5 = 40 minutes, and the tank reheating while it's in use (and
- *   boost, where the model has it) stretches that to about 50.
- *
- * Kept to his figures rather than a flow-and-temperature model: they are the
- * numbers the team quotes on the phone, so the page and the call agree.
- *
- * The top of the range is the tank plus what goes back in while the showers
- * run. A gas tank's burner puts back its rated recovery (Thermann's 170 L:
- * 145 L/h at a 45° rise, about 2.4 L a minute), so the tank drains at 5 less
- * that. Heat pumps reheat far slower, but every one we sell has a boost
- * element (Jake, Nov 2026), and his allowance for the two together is a
- * quarter on top (40 → 50). Showers only: the kitchen tap, dishwasher and
- * washing machine all come out of the same tank and aren't counted, which the
- * page says.
+ * How long the showers last on this tank. The maths (Jake's 5 L of hot a
+ * minute, the reheat allowance, a gas burner's recovery) lives in
+ * lib/homepage/hotWater so the finder and the size check agree with it.
  */
-const HOT_PER_MIN = 4 + 1;
-const REHEAT = 1.25;
 /** A typical shower, for the "that's about N showers" line. */
 const TYPICAL = 8;
 const MAX_PEOPLE = 6;
@@ -75,6 +58,8 @@ export function ShowerTime({ v }: { v: PV }) {
   const own = () => Math.max(0, tanks.findIndex((t) => t.litres === tanksOf(v.model?.specs)[0]));
   const [pick, setPick] = useState(own);
   const [people, setPeople] = useState(() => peopleOf(v.size?.label));
+  // The finder's "How long are the showers?", average if it wasn't asked.
+  const [len, setLen] = useState(() => v.ans.shw ?? 1);
   // A new model is a new tank: show its size again.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setPick(own()), [v.model?.slug]);
@@ -82,10 +67,14 @@ export function ShowerTime({ v }: { v: PV }) {
 
   const tank = tanks[Math.min(pick, tanks.length - 1)];
   const litres = tank.litres;
-  const low = Math.round(litres / HOT_PER_MIN);
+  const { low, high } = tankMinutes(litres, tank.rec);
   // Litres a minute the burner puts back, when the record gives a recovery rate.
   const back = tank.rec ? tank.rec / 60 : null;
-  const high = back && back < HOT_PER_MIN ? Math.round(litres / (HOT_PER_MIN - back)) : Math.round(low * REHEAT);
+  const mins = SHOWER_MINUTES[len];
+  const need = people * mins;
+  const fit = fitOf(need, { low, high });
+  // The smallest size in the range that covers them, when this one doesn't.
+  const better = fit === "short" ? tanks.find((t) => fitOf(need, tankMinutes(t.litres, t.rec)) !== "short") : undefined;
   const eachLow = Math.floor(low / people);
   const eachHigh = Math.floor(high / people);
   const showers = Math.floor(low / TYPICAL);
@@ -102,6 +91,7 @@ export function ShowerTime({ v }: { v: PV }) {
             A 9 L a minute shower head runs about 5 L cold and 4 L hot. Add a litre a minute lost as heat
             on the way, and the tank gives up about 5 L of hot water for every minute someone&apos;s in the shower.
           </p>
+          <Link href="/hot-water#size" className="shw__all">Compare every hot water option for your household →</Link>
           <dl className="shw__maths" aria-label="The maths">
             <div><dt>Tank</dt><dd>{litres} L</dd></div>
             <div><dt>÷ hot water a minute</dt><dd>{HOT_PER_MIN} L</dd></div>
@@ -150,6 +140,25 @@ export function ShowerTime({ v }: { v: PV }) {
                 <button key={n} type="button" aria-pressed={n === people} onClick={() => setPeople(n)}>{n}{n === MAX_PEOPLE ? "+" : ""}</button>
               ))}
             </div>
+          </div>
+
+          <div className="shw__row">
+            <span className="shw__q" id="shw-len">How long are the showers?</span>
+            <div className="shw__opts" role="group" aria-labelledby="shw-len">
+              {["Quick", "Average", "Long"].map((l, i) => (
+                <button key={l} type="button" aria-pressed={i === len} onClick={() => setLen(i)}>{l} · {SHOWER_MINUTES[i]} min</button>
+              ))}
+            </div>
+          </div>
+
+          {/* The verdict for this household, in words, with a mark that differs by shape as well as colour. */}
+          <div className={`shw__fit shw__fit--${fit}`} aria-live="polite">
+            <i aria-hidden="true">{fit === "plenty" ? "✓" : fit === "reheat" ? "≈" : "!"}</i>
+            <p>
+              <b>{FIT_TEXT[fit]}.</b>{" "}
+              {people} {people === 1 ? "person" : "people"} × {mins} min is {need} min of showering; this {litres} L tank gives {low}–{high}.
+              {better && <> The <button type="button" className="shw__swap shw__swap--in" onClick={() => setPick(tanks.indexOf(better))}>{better.litres} L</button> covers it.</>}
+            </p>
           </div>
 
           <div className="shw__each" aria-live="polite">

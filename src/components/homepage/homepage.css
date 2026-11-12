@@ -733,3 +733,21 @@ body:has(> main > .ag){padding-bottom:0 !important}
 .ag .qf__sugg li svg{flex:none;color:var(--sky-ink)}
 .ag .qf__sugg li:hover,.ag .qf__sugg li.on{background:var(--skylt)}
 .ag .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* Finder: the shower check for hot water tanks. Shape (✓ ≈ !) and words carry the verdict, not colour alone. */
+.ag .find__shw{margin:0;font-size:15px;line-height:1.5;color:rgba(255,255,255,.86)}
+.ag .find__shw b{color:#fff}
+.ag .tier__shw{display:flex;gap:10px;align-items:flex-start;margin:0;padding:10px 12px;border-radius:10px;background:#F4F1EA}
+.ag .tier__shw i{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font:800 12px/1 var(--disp);font-style:normal;color:#fff;background:#1F7A4D}
+.ag .tier__shw--reheat i{background:#B7791F}
+.ag .tier__shw--short i{background:#B42318}
+.ag .tier__shw span{display:flex;flex-direction:column;gap:2px;font-size:13px;line-height:1.35;color:var(--ink3)}
+.ag .tier__shw b{font-size:14px;color:var(--navy)}
+/* Homepage: the hot water size strip under the finder. */
+.ag .hwstrip{padding:8px 0 40px}
+.ag .hwstrip__in{display:flex;align-items:center;gap:18px;padding:18px 22px;border-radius:16px;background:#fff;box-shadow:0 10px 30px -18px rgba(5,10,48,.35),inset 0 0 0 1px #E7E2D6;text-decoration:none;transition:box-shadow .2s,transform .2s}
+.ag .hwstrip__in:hover{transform:translateY(-1px);box-shadow:0 14px 34px -16px rgba(5,10,48,.4),inset 0 0 0 1px #C2521A}
+.ag .hwstrip__drop{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#FCEFE6;font-size:24px}
+.ag .hwstrip__t{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.ag .hwstrip__t strong{font:800 19px/1.2 var(--disp);color:var(--navy)}
+.ag .hwstrip__t small{font-size:14.5px;line-height:1.45;color:var(--ink3)}
+@media (max-width:700px){.ag .hwstrip__in{flex-wrap:wrap}.ag .hwstrip__in .abtn{width:100%;justify-content:center}}

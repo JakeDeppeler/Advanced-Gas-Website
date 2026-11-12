@@ -282,7 +282,7 @@ export default function RebatesPage() {
         imgAlt="A Reclaim split heat pump we installed under the VEU rebate, tank and compressor against a brick wall"
         ctas={false}
         facts={[
-          { v: "up to $2,600", k: "heat pump hot water" },
+          { v: "up to $2,700", k: "heat pump hot water" },
           { v: "up to $5,000", k: "split & ducted aircon" },
           { v: "~73%", k: "cut to running costs" },
           { v: "$0 chase", k: "we apply it at the quote" },
