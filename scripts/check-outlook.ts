@@ -15,6 +15,7 @@ import {
   repliedSince,
   untouched,
   replyHtml,
+  enquirySubject,
   signoffFor,
   skipReason,
   threadText,
@@ -309,6 +310,7 @@ console.log("-- new leads --");
   const nl = (o: Record<string, unknown>) => ({ is_new: true, name: "Sam Lee", phone: "0400 111 222", email: "sam@example.com", address: "12 Main St", suburb: "Berwick", postcode: "3806", service: "Quote: 7kW split", summary: "Wants a split in the lounge.", ...o });
   const a = parseMailDraft(JSON.stringify({ ...base, new_lead: nl({}) }));
   ok("lead read", a.lead?.name === "Sam Lee" && a.lead?.postcode === "3806" && a.lead?.suburb === "Berwick", a.lead);
+  ok("a reply is the same enquiry", enquirySubject("Re: RE: RFQ - WBC Mulgrave BBC - Refurbishment") === enquirySubject("RFQ - WBC Mulgrave BBC  - Refurbishment") && enquirySubject("Re: RFQ - Store Development - Durks Cafe") !== enquirySubject("RFQ - WBC Mulgrave BBC - Refurbishment"));
   ok("postcode found inside text", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ postcode: "VIC 3810" }) })).lead?.postcode === "3810");
   ok("postcode that isn't one is dropped", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ postcode: "38" }) })).lead?.postcode === "");
   ok("not new: none", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ is_new: false }) })).lead === null);
