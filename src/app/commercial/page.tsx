@@ -361,8 +361,8 @@ export default function CommercialPage() {
           </div>
 
           <p className="cx-behind cx-rv">
-            Behind us: directly employed installers and apprentices, in our own vans. No labour hire, and the
-            same crew on your site from the first week to the last.
+            Behind us: our crew, in our own vans, with every part of the job run under us. No labour hire, and
+            the same crew on your site from the first week to the last.
           </p>
         </div>
       </section>

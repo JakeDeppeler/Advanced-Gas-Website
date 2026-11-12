@@ -15,11 +15,16 @@ import { Count } from "./stage";
  *   boost, where the model has it) stretches that to about 50.
  *
  * Kept to his figures rather than a flow-and-temperature model: they are the
- * numbers the team quotes on the phone, so the page and the call agree. The
- * reheat allowance is a quarter on top (40 → 50) for every size, because the
- * reheat runs for as long as the showers do. Showers only: the kitchen tap,
- * dishwasher and washing machine all come out of the same tank and aren't
- * counted, which the page says.
+ * numbers the team quotes on the phone, so the page and the call agree.
+ *
+ * The top of the range is the tank plus what goes back in while the showers
+ * run. A gas tank's burner puts back its rated recovery (Thermann's 170 L:
+ * 145 L/h at a 45° rise, about 2.4 L a minute), so the tank drains at 5 less
+ * that. Heat pumps reheat far slower, but every one we sell has a boost
+ * element (Jake, Nov 2026), and his allowance for the two together is a
+ * quarter on top (40 → 50). Showers only: the kitchen tap, dishwasher and
+ * washing machine all come out of the same tank and aren't counted, which the
+ * page says.
  */
 const HOT_PER_MIN = 4 + 1;
 const REHEAT = 1.25;
@@ -40,26 +45,52 @@ function peopleOf(label?: string): number {
   return ns.length ? Math.min(MAX_PEOPLE, Math.max(...ns)) : 4;
 }
 
+/** "145 L/h at a 45°C rise" → 145; absent for anything without a burner. */
+function recoveryOf(specs: { label: string; value: string }[] | undefined): number | null {
+  const row = specs?.find((s) => /^recovery/i.test(s.label));
+  const n = Number(row?.value.match(/\d+/)?.[0]);
+  return n > 0 ? n : null;
+}
+
+type Tank = { litres: number; rec: number | null; slug: string };
+
+/**
+ * Every tank size on offer for this option, not just the model showing, so
+ * someone on the 135 L page can see what the 170 L would give them without
+ * leaving the section.
+ */
+function tanksFor(v: PV): Tank[] {
+  const all = (v.models.length ? v.models : v.model ? [v.model] : []).flatMap((m) =>
+    tanksOf(m.specs).map((litres) => ({ litres, rec: recoveryOf(m.specs), slug: m.slug })));
+  const seen = new Set<number>();
+  return all.filter((t) => !seen.has(t.litres) && seen.add(t.litres)).sort((a, b) => a.litres - b.litres);
+}
+
 export function hasTank(v: PV): boolean {
   return tanksOf(v.model?.specs).length > 0;
 }
 
 export function ShowerTime({ v }: { v: PV }) {
-  const tanks = tanksOf(v.model?.specs);
-  const [pick, setPick] = useState(0);
+  const tanks = tanksFor(v);
+  const own = () => Math.max(0, tanks.findIndex((t) => t.litres === tanksOf(v.model?.specs)[0]));
+  const [pick, setPick] = useState(own);
   const [people, setPeople] = useState(() => peopleOf(v.size?.label));
-  // A new model is a new tank: start from its first size again.
-  useEffect(() => setPick(0), [v.model?.slug]);
-  if (!tanks.length) return null;
+  // A new model is a new tank: show its size again.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setPick(own()), [v.model?.slug]);
+  if (!hasTank(v) || !tanks.length) return null;
 
-  const litres = tanks[Math.min(pick, tanks.length - 1)];
+  const tank = tanks[Math.min(pick, tanks.length - 1)];
+  const litres = tank.litres;
   const low = Math.round(litres / HOT_PER_MIN);
-  const high = Math.round(low * REHEAT);
+  // Litres a minute the burner puts back, when the record gives a recovery rate.
+  const back = tank.rec ? tank.rec / 60 : null;
+  const high = back && back < HOT_PER_MIN ? Math.round(litres / (HOT_PER_MIN - back)) : Math.round(low * REHEAT);
   const eachLow = Math.floor(low / people);
   const eachHigh = Math.floor(high / people);
   const showers = Math.floor(low / TYPICAL);
   const heatPump = v.sys.slug === "heat-pump";
-  const extra = heatPump ? "reheat and boost" : "reheat";
+  const extra = heatPump ? "reheat and boost" : "the burner reheating";
   const pct = Math.round((low / high) * 100);
 
   return (
@@ -75,6 +106,7 @@ export function ShowerTime({ v }: { v: PV }) {
             <div><dt>Tank</dt><dd>{litres} L</dd></div>
             <div><dt>÷ hot water a minute</dt><dd>{HOT_PER_MIN} L</dd></div>
             <div><dt>= minutes from a full tank</dt><dd>{low} min</dd></div>
+            {back && <div><dt>+ burner reheat ({tank.rec} L an hour)</dt><dd>{back.toFixed(1)} L/min back</dd></div>}
             <div><dt>with {extra}</dt><dd>up to {high} min</dd></div>
           </dl>
         </header>
@@ -84,10 +116,15 @@ export function ShowerTime({ v }: { v: PV }) {
             <div className="shw__row">
               <span className="shw__q" id="shw-tank">Tank size</span>
               <div className="shw__opts" role="group" aria-labelledby="shw-tank">
-                {tanks.map((n, i) => (
-                  <button key={n} type="button" aria-pressed={i === pick} onClick={() => setPick(i)}>{n} L</button>
+                {tanks.map((t, i) => (
+                  <button key={t.litres} type="button" aria-pressed={i === pick} onClick={() => setPick(i)}>{t.litres} L</button>
                 ))}
               </div>
+              {v.model && tank.slug !== v.model.slug && (
+                <button type="button" className="shw__swap" onClick={() => v.pickModel(tank.slug)}>
+                  Show the {v.models.find((m) => m.slug === tank.slug)?.chip ?? `${litres} L`} model →
+                </button>
+              )}
             </div>
           )}
 

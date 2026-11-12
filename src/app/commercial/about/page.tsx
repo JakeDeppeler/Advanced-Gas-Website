@@ -84,7 +84,7 @@ export default function CommercialAboutPage() {
                 industrial projects throughout Victoria, and open to projects across the region and interstate.
               </p>
               <p>
-                Directly employed installers and apprentices, in our own vans. No labour hire, and the
+                Our crew, in our own vans, with every part of the job run under us. No labour hire, and the
                 same crew on your site from the first week to the last.
               </p>
             </div>

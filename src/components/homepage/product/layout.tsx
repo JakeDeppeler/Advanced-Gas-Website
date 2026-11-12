@@ -168,7 +168,10 @@ export function ProductLayout({ v }: { v: PV }) {
 
       <section className="bk__sec bk__sec--white">
         <div className="wrap"><div className="bk__blk bk__col">
-          <Head h={`The other ${v.sys.label.toLowerCase()} {options}.`} />
+          {/* A tier that is really another system (gas storage's "upgrade to
+              continuous flow") isn't a gas storage option, so the heading only
+              names the system when every tile is one. */}
+          <Head h={v.others.some(([o]) => o.same) ? "Other {options} to consider." : `The other ${v.sys.label.toLowerCase()} {options}.`} />
           <Others v={v} />
         </div></div>
       </section>

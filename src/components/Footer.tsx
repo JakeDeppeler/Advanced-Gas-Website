@@ -120,9 +120,6 @@ export function Footer() {
               <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
               <li><Link href="/upgrade-or-repair">Repair or replace? The 10-year rule</Link></li>
-              <li><Link href="/water-filtration">Water filtration</Link></li>
-              <li><Link href="/water-filtration/range">Full filtration range compared</Link></li>
-              <li><Link href="/water-filtration/rainwater-uv">Tank &amp; rainwater filtration</Link></li>
               <li><Link href="/services/heat-pump-installation">Heat pump vs gas</Link></li>
               <li><Link href="/tools/veu-rebate-estimator">VEU rebate calculator</Link></li>
               <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>

@@ -2348,7 +2348,6 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },
       { brand: "Kaden Gas Ducted", reason: "3 to 6 star, internal and external, on a universal footprint that drops into a Brivis or Braemar cavity so the ducts and wiring reuse.", href: "/brands/kaden" },
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
-      { brand: "Puretec", reason: "Australian water filtration. Whole-home on the main, protection on the hot water cold inlet, and under-sink for drinking water.", href: "/water-filtration" },
     ],
     typical: {
       time: "Ducted heater replacement · 3–5 hrs (same day). Continuous flow swap · 2–4 hrs (same day). Emergency call-out · on-site same day.",
@@ -2378,7 +2377,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement reuses your existing ducts and controller wiring, which is what keeps it a one-day job rather than a rebuild." },
       { q: "Can I move from gas to reverse-cycle at the same time?", a: "Yes. We're licensed refrigeration + gas so we can decommission the gas and install a reverse-cycle ducted or splits in the same visit. Usually the cleanest way to do a full swap." },
       { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, call the emergency gas line (1800 427 532) then call us. We'll be on-site same-day to leak-test and repair." },
-      { q: "Do you install water filters?", a: "Yes, Puretec. Whole-home on the incoming main so every tap and appliance runs on filtered water, a protection filter on the cold inlet to your hot water system, and under-sink units for drinking water. Which one is right depends entirely on what you've noticed, so tell us that first and we'll point you at the one that fixes it. There's a full write-up of all three at /water-filtration, including what a filter does not do." },
+      { q: "Do you install water filters?", a: "Yes, Puretec. Whole-home on the incoming main so every tap and appliance runs on filtered water, a protection filter on the cold inlet to your hot water system, and under-sink units for drinking water. Which one is right depends entirely on what you've noticed, so tell us that first and we'll point you at the one that fixes it." },
     ],
   },
 };

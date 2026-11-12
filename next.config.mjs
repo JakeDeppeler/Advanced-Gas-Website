@@ -50,6 +50,10 @@ const nextConfig = {
       // own from price and finance figure on its product page, reached from
       // Find your system.
       { source: "/pricing", destination: "/#find", permanent: true },
+      // Water filtration came off the site (Jake, Nov 2026). Its pages were
+      // indexed, so they land on the services list rather than a 404.
+      { source: "/water-filtration", destination: "/services", permanent: true },
+      { source: "/water-filtration/:path*", destination: "/services", permanent: true },
       // ---- Old-design pages folded into the redesign (Nov 2026) ----
       // "Heat pump or gas?" was the hot water fork with the numbers; the
       // heat pump installation page now teaches the same thing in the new

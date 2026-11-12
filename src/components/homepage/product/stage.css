@@ -228,6 +228,7 @@
 .ag .shw__opts{display:flex;flex-wrap:wrap;gap:8px}
 .ag .shw__opts button{min-width:48px;height:44px;padding:0 14px;border-radius:10px;border:0;background:var(--cream);box-shadow:inset 0 0 0 1px var(--line2);font:700 15px/1 var(--disp);color:var(--navy);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
 .ag .shw__opts button:hover{box-shadow:inset 0 0 0 2px var(--navy)}
+.ag .shw__swap{margin-top:10px;padding:0;border:0;background:none;font:700 14px/1.3 var(--sans,inherit);color:var(--acc,#C2521A);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .ag .shw__opts button[aria-pressed="true"]{background:var(--navy);color:#fff;box-shadow:none}
 .ag .shw__opts button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 .ag .shw__total{display:flex;flex-direction:column;gap:2px}

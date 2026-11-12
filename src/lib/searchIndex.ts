@@ -2,7 +2,6 @@ import { services, suburbs } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { brands } from "@/lib/brands";
 import { posts as BUILT_IN_POSTS, type BlogPost } from "@/lib/blog";
-import { TIERS } from "@/lib/waterFiltration";
 
 /**
  * Everything on the site, as one flat list for the search page.
@@ -41,7 +40,6 @@ const PAGES: Hit[] = [
   { title: "VEU rebate calculator", path: "/tools/veu-rebate-estimator", kind: "Tool", blurb: "Roughly what the rebate is worth on your job.", terms: "rebate estimator calculator veu" },
   { title: "Heat pump compare", path: "/tools/heat-pump-compare", kind: "Tool", blurb: "Reclaim, iStore and Thermann side by side.", terms: "compare brands heat pump which" },
   { title: "Upgrade or repair", path: "/upgrade-or-repair", kind: "Tool", blurb: "Whether it is worth fixing or worth replacing.", terms: "repair replace worth fixing old unit" },
-  { title: "Water filtration", path: "/water-filtration", kind: "Filtration", blurb: "Whole house, under sink, hot water and rainwater UV.", terms: "water filter filtration puretec bwt rainwater uv" },
 ];
 
 let cache: Hit[] | null = null;
@@ -106,15 +104,6 @@ export function searchCorpus(posts: BlogPost[] = BUILT_IN_POSTS): Hit[] {
     out.push({ title: p.title, path: `/blog/${p.slug}`, kind: "Guide", blurb: p.blurb, terms: p.cat });
   }
 
-  for (const t of TIERS) {
-    out.push({
-      title: t.label,
-      path: `/water-filtration/${t.slug}`,
-      kind: "Filtration",
-      blurb: t.tagline,
-      terms: t.fitsWhere,
-    });
-  }
 
   if (isDefault) cache = out;
   return out;
