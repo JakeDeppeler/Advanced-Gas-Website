@@ -362,8 +362,8 @@ export function streetWord(street: string): string {
   return words.sort((a, b) => b.length - a.length)[0] ?? "";
 }
 
-const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
-const agencyWords = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
+export const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
+const agencyWords = (s: string) => s.toLowerCase().replace(/['\u2019]/g, "").replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
 
 /**
  * Whether a ServiceTitan customer's name is this agency: every word of the
@@ -420,6 +420,26 @@ export function namesStreet(text: string, street: string): boolean {
 }
 
 /**
+ * Whether the email names this job's address: the street's name with its
+ * number before it ("11 Emerald") or its kind after it ("Emerald Court",
+ * "Emerald Ct"). The name alone isn't enough to put an email on a job: Peake
+ * Real Estate's email about 80 Inglis Road went on job 20050 at 11 Emerald
+ * Court (6 Nov), its job number in the email by chance and "Emerald" a suburb.
+ */
+export function namesSite(text: string, street: string): boolean {
+  const w = streetWord(street).replace(/[^a-z]/g, "");
+  if (w.length <= 2) return false;
+  const bare = street.toLowerCase().replace(/^.*\//, "").trim();
+  const num = /^(\d+[a-z]?)\b/.exec(bare)?.[1].replace(/[a-z]$/, "") ?? "";
+  const last = bare.replace(/[^a-z ]/g, " ").trim().split(/\s+/).pop() ?? "";
+  const full = Object.entries(ABBREV).find(([f, a]) => f === last || a === last);
+  const kinds = full ? [...new Set(full)] : [];
+  const byNumber = num ? new RegExp(`(?<![\\d])${num}[a-z]?\\s+${w}\\b`, "i") : null;
+  const byKind = kinds.length ? new RegExp(`\\b${w}\\s+(?:${kinds.join("|")})\\b`, "i") : null;
+  return Boolean(byNumber?.test(text) || byKind?.test(text));
+}
+
+/**
  * A ServiceTitan refusal in words: its own title ("\"0428 946 984; 0417 535 760\"
  * is not a valid phone number"), not the JSON it came wrapped in, which the
  * daily summary printed whole.
@@ -472,34 +492,45 @@ const DAY_MS = 86_400_000;
  *  1. The same work order number as a job there (its PO, or a work order
  *     already put on it). An open job takes it, whatever kind it now says:
  *     Barry Plant's quote request and then "quote accepted" for 4 Bishop Pl
- *     were one job, and the office cancelled the second. A completed job takes
- *     only a reminder or a reply; anything else after it is new work (1/19
- *     Lyall St: the quote done, then the install, a job of its own).
+ *     were one job, and the office cancelled the second.
  *  2. A "Re:" about a job there from the last month, unless the two carry
  *     different numbers.
  *  3. No number of its own, and a job open there from the last three months.
  *
- * Either way a quote accepted after its quote visit is done is the go-ahead,
- * a new job. Anything else is a new work order.
+ * A completed job takes only a reminder that it's still to do, and never a
+ * go-ahead. Anything else about it asks for something new, and a note on a
+ * finished job is a note nobody reads (the audit, 12 Nov: LJ Hooker's request
+ * to quote a new split system at 8/21 Pakenham Rd, "Re: Work order", went on
+ * the clean done three weeks before, and no quote job was made; Tapi's "go
+ * ahead" for 1 Grenaroff Walk went on its finished service, and the office
+ * found it themselves). That new work may already have its job, made since
+ * from an earlier email or by the office selling the quote: an open job there
+ * newer than the finished one, with no other number, takes it (1/19 Lyall St:
+ * the "Re:" accepting the quote, then Tapi's install work order a minute later,
+ * is one job).
  */
 export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder">, reply: boolean, jobs: SiteJob[], now = Date.now()): FollowUp | null {
   const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
   const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
   const done = (j: SiteJob) => j.status === "Completed";
-  const goAhead = (j: SiteJob) => done(j) && j.isQuote && w.kind !== "quote_request";
+  // The go-ahead: a quote accepted, or a work order after a quote visit.
+  const goAhead = (j: SiteJob) => done(j) && (w.kind === "quote_accepted" || (j.isQuote && w.kind !== "quote_request"));
+  const takes = (j: SiteJob) => !done(j) || (w.isReminder && !goAhead(j));
   const name = (j: SiteJob) => `job ${j.jobNumber ?? j.id}`;
   const keys = (j: SiteJob) => j.numbers.map(numberKey).filter(Boolean);
   const num = numberKey(w.number);
+  const fits = (j: SiteJob) => !num || !keys(j).length || keys(j).includes(num);
+  const since = (j: SiteJob) => live.find((o) => o !== j && !done(o) && when(o) >= when(j) && now - when(o) <= 14 * DAY_MS && fits(o));
 
   const same = num ? live.find((j) => keys(j).includes(num)) : undefined;
   if (same) {
-    if (!done(same)) return { job: same, why: `the same work order as ${name(same)}` };
-    if ((w.isReminder || reply) && !goAhead(same)) return { job: same, why: `a ${w.isReminder ? "reminder" : "reply"} about ${name(same)}, already done` };
-    return null;
+    if (takes(same)) return { job: same, why: done(same) ? `a reminder about ${name(same)}, already done` : `the same work order as ${name(same)}` };
+    const newer = since(same);
+    return newer ? { job: newer, why: `${name(same)} is done, and the work after it is ${name(newer)}` } : null;
   }
   if (reply) {
     const recent = live.find((j) => now - when(j) <= 30 * DAY_MS && !(num && keys(j).length));
-    if (recent && !goAhead(recent)) return { job: recent, why: `a reply about ${name(recent)}` };
+    if (recent && takes(recent)) return { job: recent, why: `a reply about ${name(recent)}` };
   }
   if (!num) {
     const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS);

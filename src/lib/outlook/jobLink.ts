@@ -3,7 +3,7 @@ import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { graph, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { jobNumbersIn, namesStreet } from "./workOrderTypes";
+import { jobNumbersIn, namesSite } from "./workOrderTypes";
 
 /**
  * An email about a job goes onto the job (Jake, 5 Nov: "if they are talking
@@ -15,7 +15,8 @@ import { jobNumbersIn, namesStreet } from "./workOrderTypes";
  *     one, or a work order in it made one. A reply belongs to the same job.
  *  2. Our job number is in the subject or the opening of the email, and
  *     something else agrees: the sender is a contact on that job's customer
- *     or site, or the site's street is named. Agencies quote their own job
+ *     or site, or the site's address is named (number and street, or street
+ *     and its kind). Agencies quote their own job
  *     numbers (Barry Plant's "Job #18943"), which can collide with ours, so a
  *     number alone is never enough.
  *  3. The sender is a contact on exactly one customer or site with exactly
@@ -50,7 +51,8 @@ async function contactsOf(email: string): Promise<{ customers: number[]; locatio
   return { customers: [...new Set(c.map((r) => r.customer_id).filter(Boolean))], locations: [...new Set(l.map((r) => r.location_id).filter(Boolean))] };
 }
 
-const mentions = namesStreet;
+// The street with its number or its kind, not its name alone: see namesSite.
+const mentions = namesSite;
 
 export async function findJob(mailbox: string, m: GraphMessage, from: string, body: string): Promise<JobMatch | null> {
   const subject = m.subject ?? "";

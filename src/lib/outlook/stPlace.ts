@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
-import { agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder } from "./workOrderTypes";
+import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -50,23 +50,75 @@ async function locationsOnStreet(word: string): Promise<Loc[]> {
 const OURS = new Set([business.phoneE164.replace(/\D/g, "").slice(-9)]);
 const isOurs = (v: string) => TEAM_DOMAIN.test(v.trim()) || OURS.has(v.replace(/\D/g, "").slice(-9));
 
-async function customerByContact(values: string[]): Promise<number | null> {
+/**
+ * The agency whose contacts hold the property manager's or sender's email or
+ * phone. Those turn up on other customers too: Barry Plant Berwick's bdppm7@
+ * and its manager's mobile are also on her own family's record, and O'Brien
+ * Cranbourne's office number on an empty copy of the agency from the August
+ * import, and with two customers the portal gave up (3/185 Camms Rd and 6
+ * Flinders Park Dr, 9 and 10 Nov). The agency is the one named like it, or
+ * else the only one with more than a handful of sites: an agency has dozens,
+ * a household one.
+ */
+async function customerByContact(values: string[], agency: string): Promise<number | null> {
   const keys = [...new Set(values.map((v) => v.trim().toLowerCase()).filter((v) => v && !isOurs(v)).map((v) => (v.includes("@") ? v : v.replace(/\D/g, "").slice(-9))).filter((k) => k.length >= 9 || k.includes("@")))];
   if (!keys.length) return null;
   const rows = await sbSelect<{ customer_id: number }>("st_customer_contacts", [q.select("customer_id"), `match_key=in.(${keys.map((k) => `"${encodeURIComponent(k)}"`).join(",")})`, "limit=20"].join("&")).catch(() => []);
-  const ids = [...new Set(rows.map((r) => r.customer_id).filter(Boolean))];
-  return ids.length === 1 ? ids[0] : null;
+  const ids = [...new Set(rows.map((r) => Number(r.customer_id)).filter(Boolean))];
+  if (ids.length <= 1) return ids[0] ?? null;
+  const names = await customerNames(ids);
+  const named = ids.filter((id) => agency && (names.get(id) ?? []).some((n) => agencyMatches(agency, n)));
+  return named.length === 1 ? named[0] : theAgency(named.length ? named : ids);
+}
+
+/** Of several customers, the only one with more than a handful of sites: the agency, not a household or an empty copy. */
+async function theAgency(ids: number[]): Promise<number | null> {
+  if (ids.length <= 1) return ids[0] ?? null;
+  const sites = await Promise.all(ids.map((id) => sbSelect<{ id: number }>("st_locations", [q.select("id"), q.eq("customer_id", String(id)), "limit=6"].join("&")).then((r) => r.length).catch(() => 0)));
+  const big = ids.filter((_, i) => sites[i] > 5);
+  return big.length === 1 ? big[0] : null;
+}
+
+/**
+ * What a customer is called. The replica has no customers table, and a job's
+ * customer_name is the site's name (the tenant), so the agency's own name is
+ * read off its invoices, with its jobs' names for one that hasn't any yet.
+ */
+async function customerNames(ids: number[]): Promise<Map<number, string[]>> {
+  const out = new Map<number, string[]>();
+  const add = (id: unknown, name: unknown) => {
+    const n = String(name ?? "").trim();
+    if (!n) return;
+    const list = out.get(Number(id)) ?? [];
+    if (!list.includes(n)) out.set(Number(id), [...list, n]);
+  };
+  // One customer at a time: Barry Plant Berwick's 871 invoices would crowd out the rest.
+  await Promise.all(ids.slice(0, 6).map(async (id) => {
+    const [inv, jobs] = await Promise.all([
+      sbSelect<{ name: string }>("st_invoices", ["select=name:raw->customer->>name", `raw->customer->>id=eq.${id}`, "limit=1"].join("&")).catch(() => []),
+      sbSelect<{ name: string }>("st_jobs", ["select=name:customer_name", q.eq("customer_id", String(id)), "limit=50"].join("&")).catch(() => []),
+    ]);
+    for (const r of [...inv, ...jobs]) add(id, r.name);
+  }));
+  return out;
 }
 
 async function customerByName(agency: string): Promise<number | null> {
-  const first = agency.trim().split(/\s+/)[0];
-  if (!first) return null;
-  // Customer names live on their jobs in the replica (there's no customers table).
-  const rows = await sbSelect<{ customer_id: number; customer_name: string }>("st_jobs", [q.select("customer_id,customer_name"), `customer_name=ilike.*${encodeURIComponent(first)}*`, "limit=1000"].join("&")).catch(() => []);
-  const names = new Map<number, string>();
-  for (const r of rows) if (r.customer_id && r.customer_name) names.set(r.customer_id, r.customer_name);
-  const hits = [...names.entries()].filter(([, n]) => agencyMatches(agency, n)).map(([id]) => id);
-  return hits.length === 1 ? hits[0] : null;
+  // Every word of the agency's name in order, an apostrophe matching anything:
+  // "O'Brien Real Estate Cranbourne" finds "OBrien Real Estate (Cranbourne)".
+  const words = agency.toLowerCase().replace(/['\u2019]/g, "*").split(/[^a-z0-9*]+/).filter((w) => w.replace(/\*/g, "") && !AGENCY_FILLER.has(w.replace(/\*/g, "")));
+  if (!words.length) return null;
+  const like = (ws: string[]) => `ilike.*${ws.map((w) => encodeURIComponent(w)).join("*")}*`;
+  // The agency's own name is on its invoices; a job's customer_name is the
+  // site's (the tenant), kept as before for an agency with no invoice yet.
+  const [inv, jobs] = await Promise.all([
+    sbSelect<{ id: string; name: string }>("st_invoices", ["select=id:raw->customer->>id,name:raw->customer->>name", `raw->customer->>name=${like(words)}`, "limit=1000"].join("&")).catch(() => []),
+    sbSelect<{ id: number; name: string }>("st_jobs", ["select=id:customer_id,name:customer_name", `customer_name=${like(words.slice(0, 1))}`, "limit=1000"].join("&")).catch(() => []),
+  ]);
+  const hits = new Set<number>();
+  for (const r of [...inv, ...jobs]) if (r.id && r.name && agencyMatches(agency, r.name)) hits.add(Number(r.id));
+  // First National Neilson has an empty copy of itself from the August import.
+  return theAgency([...hits].slice(0, 4));
 }
 
 /**
@@ -95,7 +147,7 @@ export async function findSite(w: WorkOrder, fromAddress: string): Promise<Site 
   const keyOf = (l: Loc) => siteKey(l.street ?? "", l.city ?? "", l.unit ?? "");
   const candidates = onStreet.filter((l) => keyOf(l) === want);
 
-  const agency = (await customerByContact([w.pmEmail, w.pmPhone, fromAddress])) ?? (w.agency ? await customerByName(w.agency) : null);
+  const agency = (await customerByContact([w.pmEmail, w.pmPhone, fromAddress], w.agency)) ?? (w.agency ? await customerByName(w.agency) : null);
 
   if (candidates.length) {
     // The agency's own location for it first, if there's more than one.

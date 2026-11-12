@@ -24,7 +24,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { bareStreet, followUpFor, followUpHeading, numberKey, type SiteJob } from "../src/lib/outlook/workOrderTypes";
-import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -235,8 +235,19 @@ ok("the go-ahead after the quote's done: a new job", followUpFor(wf("work_order"
 ok("same number after a repair's done: new work, a new job", followUpFor(wf("work_order", "18000"), false, [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
 ok("a cancelled job takes nothing", followUpFor(wf("work_order", "18969"), false, [sj({ status: "Canceled", numbers: ["18969"] })], FU_NOW) === null);
 ok("another number at the same house: a new job", followUpFor(wf("work_order", "TAPI-023600"), false, [sj({ numbers: ["TAPI-023594"] })], FU_NOW) === null);
-// 1 Grenaroff Walk: "Re: Split systems" onto 20384, done three weeks before.
-ok("a reply onto last month's job", followUpFor(wf("quote_accepted", ""), true, [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20384");
+// 1 Grenaroff Walk: Tapi's "Re: Split systems" accepting the quote went on 20384, the service done three weeks
+// before, and no job was made; the office sold the quote into 20806 themselves (audit, 12 Nov).
+ok("a reply accepting a quote, last month's job done: the go-ahead, a new job", followUpFor(wf("quote_accepted", ""), true, [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" })], FU_NOW) === null);
+ok("...and onto the job the office made for it since", followUpFor(wf("quote_accepted", ""), true, [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" }), sj({ jobNumber: "20806", createdOn: "2026-11-10T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20806");
+// 8/21 Pakenham Rd: LJ Hooker's "Re: Work order" WO-0801 asking for a quote to replace the unit went on 20390,
+// the clean done in October, and no quote job was made (audit, 12 Nov).
+ok("a reply asking for more after the job's done: a new job", followUpFor(wf("quote_request", "WO-0801"), true, [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" })], FU_NOW) === null);
+ok("a reply about an open job: onto it", followUpFor(wf("work_order", ""), true, [sj({ jobNumber: "20754", status: "InProgress", isQuote: true, createdOn: "2026-11-02T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20754");
+// 1/19 Lyall St: the "Re:" accepting the quote made the install job, then Tapi's work order for it a minute later.
+const lyall = [sj({ jobNumber: "20341", status: "Completed", isQuote: true, numbers: ["TAPI-023197"], createdOn: "2026-10-14T00:00:00Z" }), sj({ jobNumber: "20783", numbers: [], createdOn: "2026-11-08T22:13:00Z" })];
+ok("the quote's done, the work after it already a job: onto that", followUpFor(wf("work_order", "TAPI-023197"), false, lyall, FU_NOW)?.job.jobNumber === "20783");
+ok("...not one carrying another number", followUpFor(wf("work_order", "TAPI-023197"), false, [lyall[0], sj({ jobNumber: "20790", numbers: ["TAPI-099999"] })], FU_NOW) === null);
+ok("a reminder of an accepted quote, the quote visit done: still the go-ahead", followUpFor(wf("quote_accepted", "TAPI-023197", true), false, [lyall[0]], FU_NOW) === null);
 ok("a reply after two months: a new job", followUpFor(wf("quote_request", ""), true, [sj({ status: "Completed", createdOn: "2026-09-02T00:00:00Z" })], FU_NOW) === null);
 ok("a reply with another number: a new job", followUpFor(wf("work_order", "TAPI-023539"), true, [sj({ status: "Completed", numbers: ["TAPI-023378"], createdOn: "2026-10-26T00:00:00Z" })], FU_NOW) === null);
 ok("a reply accepting a quote that's done: the go-ahead, a new job", followUpFor(wf("quote_accepted", ""), true, [sj({ status: "Completed", isQuote: true, createdOn: "2026-11-01T00:00:00Z" })], FU_NOW) === null);
@@ -263,6 +274,11 @@ ok("money, dates, phones and sizes aren't job numbers", jobNumbersIn("Invoice $1
 ok("postcodes (four digits) aren't", jobNumbersIn("Berwick VIC 3806").length === 0);
 ok("street named", namesStreet("Re: Broken Air Conditioner at 24 Melzak Way, BERWICK", "24 Melzak Way"));
 ok("other street not", !namesStreet("Re: aircon at 5 Golden Green St", "24 Melzak Way"));
+ok("an email onto a job: the street with its number", namesSite("Re: Broken Air Conditioner at 24 Melzak Way, BERWICK", "24 Melzak Way") && namesSite("RE: 4/40 Army Road", "40 Army Road"));
+ok("...or with its kind", namesSite("the unit at Emerald Ct", "11 Emerald Court") && namesSite("33 Willslie Cres", "33 Willslie Crescent"));
+// Peake's email about 80 Inglis Road, with "Emerald" (a suburb) in it, went on job 20050 at 11 Emerald Court.
+ok("...not the name alone", !namesSite("RE: 80 Inglis Road Unit 1, Berwick. Peake Real Estate, Berwick | Emerald", "11 Emerald Court"));
+ok("O'Brien is OBrien", agencyMatches("O'Brien Real Estate Cranbourne", "OBrien Real Estate (Cranbourne)"));
 
 // --- cancellations
 ok("an agent's cancellation is read", mightBeWorkOrder(wo("pm@raywhite.com.au", "Please cancel the job at 5 Owen Court"), ""));
