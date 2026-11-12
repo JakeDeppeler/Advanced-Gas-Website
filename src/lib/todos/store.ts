@@ -226,5 +226,23 @@ export async function setDone(id: string, done: boolean, byName: string): Promis
 
 /** Off the list. Stamped, not deleted, so it can be found again. */
 export async function removeTodo(id: string): Promise<void> {
-  await sbUpdate(T, `${q.eq("id", id)}&removed_at=is.null`, { removed_at: new Date().toISOString() });
+  // Stamped too, so a board open elsewhere sees it go (todosStamp).
+  const now = new Date().toISOString();
+  await sbUpdate(T, `${q.eq("id", id)}&removed_at=is.null`, { removed_at: now, updated_at: now });
+}
+
+/**
+ * A fingerprint of the whole to-do board: the latest change to any to-do,
+ * the newest one made, and the lists. Two people with the board open each
+ * check it every few seconds and redraw only when it moves (Jake, 12 Nov:
+ * Kellie ticking things off didn't show on his screen until he reloaded).
+ * Three one-row reads, not the board.
+ */
+export async function todosStamp(): Promise<string> {
+  const [u, c, l] = await Promise.all([
+    sbSelect<{ updated_at: string | null }>(T, "select=updated_at&order=updated_at.desc.nullslast&limit=1"),
+    sbSelect<{ created_at: string | null }>(T, "select=created_at&order=created_at.desc&limit=1"),
+    sbSelect<{ updated_at: string | null }>("portal_settings", `select=updated_at&${q.eq("key", LISTS)}&limit=1`),
+  ]);
+  return [u[0]?.updated_at, c[0]?.created_at, l[0]?.updated_at].map((x) => x ?? "").join("|");
 }
