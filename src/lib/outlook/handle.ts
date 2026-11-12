@@ -268,11 +268,30 @@ export async function secondLookForQuotes(mailbox: string, deadline: number): Pr
   const out = { looked: 0, linked: 0 } as { looked: number; linked: number; error?: string };
   try {
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
-    const rows = await sbSelect<{ message_id: string; from_address: string | null }>(TABLE, [
+    const all = await sbSelect<{ message_id: string; from_address: string | null }>(TABLE, [
       q.select("message_id,from_address"), q.eq("mailbox", mailbox), "job_id=is.null", "job_how=is.null",
       q.gte("received_at", since), `received_at=lt.${SECOND_LOOK_BEFORE}`, "from_address=not.ilike.*@advancedgas.com.au",
-      q.order("received_at", "asc"), "limit=25",
+      q.order("received_at", "asc"), "limit=300",
     ].join("&"));
+    // Only a customer's or site's own contact can have a quote waiting on
+    // them; the rest (suppliers, newsletters, agencies' platforms) are marked
+    // looked at in one go, so the pass is over in a run or two, not a day.
+    const senders = [...new Set(all.map((r) => (r.from_address ?? "").trim().toLowerCase()).filter((a) => a.includes("@")))];
+    const known = new Set<string>();
+    for (let i = 0; i < senders.length; i += 40) {
+      const list = senders.slice(i, i + 40).map((a) => `"${encodeURIComponent(a)}"`).join(",");
+      const [c, l] = await Promise.all([
+        sbSelect<{ match_key: string }>("st_customer_contacts", [q.select("match_key"), `match_key=in.(${list})`, "limit=400"].join("&")).catch(() => []),
+        sbSelect<{ match_key: string }>("st_location_contacts", [q.select("match_key"), `match_key=in.(${list})`, "limit=400"].join("&")).catch(() => []),
+      ]);
+      for (const r of [...c, ...l]) known.add(r.match_key);
+    }
+    const strangers = all.filter((r) => !known.has((r.from_address ?? "").trim().toLowerCase())).map((r) => r.message_id);
+    for (let i = 0; i < strangers.length; i += 40) {
+      const ids = strangers.slice(i, i + 40).map((x) => `"${encodeURIComponent(x)}"`).join(",");
+      await sbUpdate(TABLE, [q.eq("mailbox", mailbox), `message_id=in.(${ids})`, "job_how=is.null"].join("&"), { job_how: SECOND_LOOK }).catch(() => undefined);
+    }
+    const rows = all.filter((r) => known.has((r.from_address ?? "").trim().toLowerCase())).slice(0, 25);
     for (const r of rows) {
       if (Date.now() > deadline) break;
       // Claimed by marking it, so two sweeps can't both put it on a job.
