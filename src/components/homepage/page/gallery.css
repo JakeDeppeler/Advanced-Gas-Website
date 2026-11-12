@@ -1,0 +1,47 @@
+/* /gallery in the bands (Jake, Nov 2026: the inside pages match the product
+   pages). Cards take the product page's edge and shadow so they read on a
+   white band or a cream one. */
+
+/* ---- Before and after ---- */
+.ag .glx__ba{display:grid;gap:24px}
+.ag .glx__baitem{display:grid;grid-template-columns:minmax(0,400px) 1fr;gap:36px;align-items:center;padding:22px;border-radius:18px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .glx__bacopy h3{margin:0 0 12px;font-family:var(--disp);font-size:clamp(21px,2.2vw,28px);font-weight:800;line-height:1.15;letter-spacing:-.015em;color:var(--navy)}
+.ag .glx__bacopy p{margin:0 0 18px;max-width:56ch;font-size:16px;line-height:1.65;color:var(--ink2)}
+.ag .glx__meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px;padding:0;list-style:none}
+.ag .glx__meta li{padding:7px 12px;border-radius:999px;background:var(--cream);font:600 12px/1.2 var(--mono);color:var(--navy)}
+.ag .glx__balink{padding:12px 18px;font-size:15px}
+
+/* ---- The jobs, by kind ---- */
+.ag .glx__jump{display:flex;flex-wrap:wrap;gap:10px;margin:-6px 0 8px}
+.ag .glx__jump a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2);font:700 14px/1 var(--disp);color:var(--navy);text-decoration:none;transition:box-shadow .2s}
+.ag .glx__jump a:hover{box-shadow:inset 0 0 0 2px var(--navy)}
+.ag .glx__jump b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--acc);color:#fff;font:700 11px/1 var(--mono)}
+.ag .glx__group{scroll-margin-top:140px}
+.ag .glx__group + .glx__group{margin-top:20px}
+.ag .glx__gt{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line2);font-family:var(--disp);font-size:clamp(20px,2vw,24px);font-weight:800;letter-spacing:-.012em;color:var(--navy)}
+.ag .glx__count{font:600 12px/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
+.ag .glx__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.ag .glx__cell{margin:0;overflow:hidden;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
+.ag .glx__img{position:relative;display:block;aspect-ratio:4/3;background:var(--cream)}
+.ag .glx__img img{object-fit:cover}
+.ag .glx__cell figcaption{display:flex;flex-direction:column;gap:6px;padding:14px 16px 16px;font-size:14.5px;line-height:1.5;color:var(--ink)}
+.ag .glx__suburb{font:600 11px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--acc)}
+.ag .glx__ig{margin-top:12px}
+
+/* The live Instagram feed keeps its own section; give it the bands' cream. */
+.ag .glx__feed .igf{background:var(--cream)}
+
+@media (max-width:1000px){
+  .ag .glx__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .ag .glx__baitem{grid-template-columns:1fr;gap:20px;padding:14px}
+  .ag .glx__bamedia{width:100%;max-width:380px;margin:0 auto}
+}
+/* Two across on a phone: eighteen photos one under another is a long scroll. */
+@media (max-width:560px){
+  .ag .glx__grid{gap:10px}
+  .ag .glx__cell{border-radius:12px}
+  .ag .glx__cell figcaption{padding:10px 11px 12px;font-size:13px;line-height:1.45}
+  .ag .glx__jump a{font-size:13px;padding:0 14px}
+}
