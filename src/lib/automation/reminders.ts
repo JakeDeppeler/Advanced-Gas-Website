@@ -24,6 +24,7 @@ import { FOLLOW_UPS, addDays, followUps, ruleNext, type PipeQuote } from "@/lib/
 import { bookNewLeads, linkMatchedLeads, linkQuotedLeads, retryLeadUploads } from "@/lib/leads/autoLink";
 import { NOTIFY_DEFAULT, loadAutoLog, loadMade, loadSwitches, logAuto, openRunFailures, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { syncQuoteTags } from "./quoteTag";
+import { syncRebateTags } from "./rebateTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
 import { getTodo, updateTodo } from "@/lib/todos/store";
 import { isSold } from "@/lib/pipeline/types";
@@ -809,13 +810,14 @@ const release = () => sbUpdateReturning("portal_settings", `key=eq.${LOCK}`, { v
  * Every switched-on job, after each ServiceTitan sync. One job failing is
  * logged and the rest still run; nothing here ever fails the sync.
  */
-export async function runAutomations(): Promise<{ ran: string[]; failed: string[]; skipped?: string; quoteTags?: unknown }> {
+export async function runAutomations(): Promise<{ ran: string[]; failed: string[]; skipped?: string; quoteTags?: unknown; rebateTags?: unknown }> {
   if (!(await claim())) return { ran: [], failed: [], skipped: "already running" };
   try {
-    // The quote tags first and inside the same claim: it keeps its own marks
-    // in the same "already done" list, which is read fresh after it.
+    // The tags first and inside the same claim: they keep their own marks in
+    // the same "already done" list, which is read fresh after each.
     const quoteTags = await syncQuoteTags().catch((e: Error) => ({ changed: 0, failed: 1, skipped: e.message }));
-    return { ...(await runAll()), quoteTags };
+    const rebateTags = await syncRebateTags().catch((e: Error) => ({ changed: 0, failed: 1, skipped: e.message }));
+    return { ...(await runAll()), quoteTags, rebateTags };
   } finally {
     await release();
   }

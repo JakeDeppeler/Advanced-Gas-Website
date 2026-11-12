@@ -64,13 +64,14 @@ note, with its files attached, and gets the Outlook category **On a job**
    a work order in it made one.
 2. **Job number:** one of our job numbers is in the subject or opening, and
    either the sender is a contact on that job's customer or site, or the
-   email names its street. Agencies quote their own job numbers, so a number
-   alone isn't enough.
+   email names its address: the street with its number ("11 Emerald") or its
+   kind ("Emerald Court"), not the name alone ("Emerald" is a suburb too).
+   Agencies quote their own job numbers, so a number alone isn't enough.
 3. **The sender's job:** the sender is a contact on exactly one open job, or
-   on several and the email names the street of exactly one.
+   on several and the email names the address of exactly one.
 
-A "Re:" work order about a site with a job from the last month goes on that
-job instead of making a new one.
+A work order that follows up a job already at the site goes on that job as a
+note instead of making a new one; see "Follow-ups" under Work orders below.
 
 ## How the drafts learn
 
@@ -204,9 +205,41 @@ agency's customer, at the tenant's site** (`lib/outlook/workOrders.ts`,
 
 - **The site:** a location already at that address (unit and all, "1-3
   Young Road" being ServiceTitan's "1 Young Road") gets another job on it,
-  never a second location. Otherwise a new location named for the tenant
-  goes under the agency's customer, found by the property manager's email or
-  phone on its contacts, else by its name when exactly one customer matches.
+  never a second location. That includes one the portal made minutes earlier
+  that the replica hasn't copied yet, and a site saved with no street number
+  ("Mullaly Close") when it's the only place on that street. Only when none is
+  found does a new location, named for the tenant, go under the agency's
+  customer, found by the property manager's email or phone on its contacts,
+  else by its name (as on its invoices, "O'Brien" being "OBrien") when exactly
+  one customer matches. When a contact is on more than one customer (a
+  manager's email on her family's own record, an empty copy of the agency
+  from the August import), the agency is the one named like it, else the only
+  one with more than a handful of sites. Our own addresses and number never
+  count as a contact: a customer had admin@ saved as their email, and work
+  orders the office forwarded went under that household.
+- **Quote approved:** never made into a job (Jake, 12 Nov: "we don't want to
+  create another file"). The office books the work by selling the estimate,
+  which makes the job with the quote's items on it. The email goes, pinned,
+  on the job it belongs to (an open job there, else the one with its number,
+  else the latest quote there) under "QUOTE APPROVED", and admin@ gets an
+  email saying who approved what, and on which job. Tapi's install work order
+  under the number of a quote visit already done counts as the approval too;
+  one email to admin per house in two days, as the two land together. The
+  page shows **Approved, on job N**; the daily summary lists them apart.
+- **Follow-ups:** an email about a job already at the site goes on that job
+  as a note (pinned when it's urgent), with its files,
+  and no new job is made (Jake, 12 Nov). It's a follow-up when it carries the
+  same work order number as an open job there, whatever kind it now says (a
+  quote request and then "quote accepted" are one job); when it's a "Re:"
+  about an open job there from the last month; or when it has no number and a
+  job there is open. A **completed** job takes only a reminder that it's
+  still to do: anything else after it (a request to quote a new unit, a
+  repair that's back) is new work and a new job, unless an open job made
+  there since, with no other number, already holds it. A note on a finished
+  job is a note nobody reads: in the 12 Nov audit, a request to quote had gone
+  that way and no quote job was made. A new number is a new job. The note
+  opens "WORK ORDER FOLLOW-UP" and says which work order it is. The page shows
+  it as **Note on job N**.
 - **No agency found:** nothing is made. The page shows **Agency not set up**;
   set it up as a customer in ServiceTitan, then give the email the **Work
   order** category again.
@@ -258,3 +291,47 @@ agency's customer, at the tenant's site** (`lib/outlook/workOrders.ts`,
 
 Each email read is a row in `work_orders` with what was read, what happened
 and why.
+
+## Filing admin@ into its own folders
+
+**Settings › Records › Email filing** (`/portal/email-filing`,
+`lib/outlook/filing.ts`, rules in `filingTypes.ts`). The office files by hand
+into about 45 folders under the Inbox, one per agency, client or supplier.
+This does the same, so the Inbox only holds what someone still has to do.
+
+- **Off, Trial, On.** Off by default. Trial works out where each of the last
+  fortnight's Inbox emails would go and lists it on the page; nothing moves.
+  On moves them. Only managers can change it. Runs every ten minutes with the
+  catch-up (`/api/email/filing`, `?dry=1` to see without writing, `?learn=1`
+  to read the folders again).
+- **What moves:** only an email that needs nothing more: machine mail, "no
+  reply needed" (only to a folder that sender already has), a work order
+  already in ServiceTitan, a booking confirmation applied to its job. With
+  **File an email once its reply has gone out** on, an email whose reply has
+  gone out moves too. "No reply needed" isn't "nothing to do", so supplier
+  invoices, statements and receipts stay to be entered, nothing from Tapi
+  is filed because Tapi is updated by hand, and meeting invites stay to be
+  answered
+  (the first real run, 11 Nov, would have filed all three).
+- **Which folder:** where that sender's filed email has always gone (at least
+  2 of their emails, and 75% of them, in one folder), learned once a day from
+  the newest 200 emails of each folder; a work order to its agency's folder
+  by name ("Barry Plant Pakenham" to "Barry Plant Ber, Pak, Drouin"); a
+  company's folder, from where its people's email goes (85%; not for its
+  no-reply addresses: Rinnai's delivery advices aren't warranty claims); and
+  machine mail with no folder of its own to **Notifications**, made the
+  first time it's needed. No folder it can be sure of: it stays.
+- **What stays, always:** an email with a **flagged word** in its subject or
+  its own text (the list is on the page; phrases, because single words like
+  "legal" are in every agency disclaimer), one flagged or given a category by
+  hand, one that needs a person or is waiting on its reply, and anything from
+  the team. Nothing is ever filed into, or learned from, a folder on the
+  **never** list (Kellie, Dean, Apprentice, Admin Team, Important,
+  Medical / Workcover, Inactive Folders) or a folder inside one.
+- **Putting one back:** drag it to the Inbox and it's left there for good.
+- Moving keeps the email's id (immutable ids), so drafts, work orders and job
+  links still find it. Nothing is deleted, and the app still can't send.
+
+Each email looked at is a row in `mail_filing`; what's learned is in
+`mail_folder_homes`; the folder list in `portal_settings` (`mail_folders`);
+the switch and lists in `portal_settings` (`mail_filing`). Migration 0117.

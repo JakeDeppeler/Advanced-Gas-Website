@@ -3,7 +3,7 @@ import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { graph, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { jobNumbersIn, namesStreet } from "./workOrderTypes";
+import { jobNumbersIn, namesSite } from "./workOrderTypes";
 
 /**
  * An email about a job goes onto the job (Jake, 5 Nov: "if they are talking
@@ -15,7 +15,8 @@ import { jobNumbersIn, namesStreet } from "./workOrderTypes";
  *     one, or a work order in it made one. A reply belongs to the same job.
  *  2. Our job number is in the subject or the opening of the email, and
  *     something else agrees: the sender is a contact on that job's customer
- *     or site, or the site's street is named. Agencies quote their own job
+ *     or site, or the site's address is named (number and street, or street
+ *     and its kind). Agencies quote their own job
  *     numbers (Barry Plant's "Job #18943"), which can collide with ours, so a
  *     number alone is never enough.
  *  3. The sender is a contact on exactly one customer or site with exactly
@@ -50,7 +51,8 @@ async function contactsOf(email: string): Promise<{ customers: number[]; locatio
   return { customers: [...new Set(c.map((r) => r.customer_id).filter(Boolean))], locations: [...new Set(l.map((r) => r.location_id).filter(Boolean))] };
 }
 
-const mentions = namesStreet;
+// The street with its number or its kind, not its name alone: see namesSite.
+const mentions = namesSite;
 
 export async function findJob(mailbox: string, m: GraphMessage, from: string, body: string): Promise<JobMatch | null> {
   const subject = m.subject ?? "";
@@ -91,12 +93,16 @@ export async function findJob(mailbox: string, m: GraphMessage, from: string, bo
   return null;
 }
 
-/** The email onto the job: a note with its words, and its files. */
-export async function putOnJob(mailbox: string, m: GraphMessage, jobId: number): Promise<void> {
+/**
+ * The email onto the job: a note with its words, and its files. `heading`
+ * opens the note (a work order follow-up says what it is), and `pin` puts it
+ * at the top of the job's notes where the office will see it.
+ */
+export async function putOnJob(mailbox: string, m: GraphMessage, jobId: number, opts: { heading?: string; pin?: boolean } = {}): Promise<void> {
   const when = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", dateStyle: "medium", timeStyle: "short" }).format(Date.parse(m.receivedDateTime ?? "") || Date.now());
   const words = plainText(m.uniqueBody ?? m.body);
-  const note = [`Email from ${m.from?.emailAddress?.name ?? ""} <${addressOf(m.from)}>, ${when}`, `Subject: ${m.subject ?? ""}`, "", words].join("\n");
-  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX)}\n[…the rest is in the email]` : note, pinToTop: false });
+  const note = [...(opts.heading ? [opts.heading, ""] : []), `Email from ${m.from?.emailAddress?.name ?? ""} <${addressOf(m.from)}>, ${when}`, `Subject: ${m.subject ?? ""}`, "", words].join("\n");
+  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX)}\n[…the rest is in the email]` : note, pinToTop: Boolean(opts.pin) });
   if (!m.hasAttachments) return;
   type Att = { "@odata.type"?: string; name?: string; contentType?: string; size?: number; isInline?: boolean; contentBytes?: string };
   const atts = await graph<{ value: Att[] }>(`${userPath(mailbox)}/messages/${encodeURIComponent(m.id)}/attachments`).catch(() => ({ value: [] as Att[] }));

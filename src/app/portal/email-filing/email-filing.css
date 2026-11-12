@@ -1,0 +1,31 @@
+/*
+ * Email filing: the switch's three choices, the folder checkboxes, and the
+ * lists. Each line of an email's row on its own line, as the work orders do:
+ * the kit styles a row's sub-line spans as one run of text.
+ */
+.pk-row .t .ef-line { display: block; }
+.pk-row .t .ef-line + .ef-line { margin-top: 2px; }
+
+.ef-modes, .ef-never { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.ef-modes legend, .ef-never legend { padding: 0; margin-bottom: 4px; font-size: 13px; font-weight: 700; color: var(--pt-ink-2); }
+
+.ef-never__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; }
+.ef-never__grid label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--pt-ink); }
+.ef-never__grid input { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--pt-navy-2); }
+
+.ef-folders { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 20px; }
+.ef-folders li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--pt-line, rgba(0, 0, 0, 0.08)); font-size: 14px; color: var(--pt-ink); }
+.ef-folders b { font-variant-numeric: tabular-nums; }
+
+/* A list's heading sits above its card, the same as the folded "Stays in the Inbox" one. */
+.ef-h { display: flex; align-items: baseline; gap: 10px; margin: 8px 0 0; padding: 0 2px; font-size: 15px; font-weight: 700; color: var(--pt-ink); }
+.ef-h b, .ef-more > summary b { font-variant-numeric: tabular-nums; color: var(--pt-ink-2); }
+
+.ef-more { margin-top: 4px; }
+.ef-more > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 10px 2px; font-size: 15px; font-weight: 700; color: var(--pt-ink); }
+.ef-more > summary span { font-size: 13px; font-weight: 400; color: var(--pt-ink-3); }
+
+.ef-learned { list-style: none; margin: 0; padding: 4px 16px; }
+.ef-learned li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; padding: 8px 0; border-bottom: 1px solid var(--pt-line, rgba(0, 0, 0, 0.08)); font-size: 14px; }
+.ef-learned li:last-child { border-bottom: 0; }
+.ef-learned em { font-style: normal; color: var(--pt-ink-3); font-size: 13px; }

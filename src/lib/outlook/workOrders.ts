@@ -8,11 +8,11 @@ import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, findSite, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, findSite, jobsAt, makeJob, type MadeJob } from "./stPlace";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
-  BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, bookingSummary, dedupeKey, fillTemplate,
+  BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, approvalFor, approvalHeading, bookingSummary, dedupeKey, fillTemplate, followUpFor, followUpHeading,
   isTeamForward, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
@@ -199,6 +199,49 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
     }
 
     const key = dedupeKey(w.kind, w.number, w.street, w.suburb);
+
+    // What was read is kept before the booking is tried, so a refusal leaves
+    // the details to look at, and the retry has them.
+    await save(mailbox, m.id, { ...base, dedupe_key: key });
+
+    // Straight onto the agency's customer and the tenant's site, as a job
+    // (Jake, 5 Nov), on the location already there when there is one.
+    const site = await findSite(w, addressOf(m.from));
+
+    const jobs = site?.locationId ? await jobsAt(site.locationId).catch(() => []) : [];
+
+    // A quote approved: no job made, the email pinned on the job it belongs
+    // to, and admin told (Jake, 12 Nov). approvalFor says which.
+    const a = approvalFor(w, jobs);
+    if (a) {
+      if (a.job) await putOnJob(mailbox, { ...m, ...full }, a.job.id, { heading: approvalHeading(w), pin: true });
+      const told = await emailAdminApproved(w, a.job, site, { ...m, ...full });
+      const reason = `quote approved, ${a.job ? `on job ${a.job.jobNumber ?? a.job.id} (${a.why})` : a.why}; ${told}`.slice(0, 300);
+      await save(mailbox, m.id, {
+        ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: a.job?.id ?? null, st_job_number: a.job?.jobNumber ?? null,
+        st_location_id: site?.locationId ?? null, st_customer_id: site?.customerId ?? null, attached_at: a.job ? new Date().toISOString() : null,
+      });
+      await addCategory(mailbox, m.id, a.job ? BOOKED_CATEGORY : HANDOFF_CATEGORY).catch(() => undefined);
+      return { status: "duplicate", reason, isWorkOrder: true, jobId: a.job?.id, jobNumber: a.job?.jobNumber ?? null };
+    }
+
+    // A follow-up about a job already at the site (the same work order number,
+    // a reply, a reminder) goes on that job as a note, not a second job
+    // (Jake, 12 Nov). followUpFor says which.
+    if (site?.locationId) {
+      const f = followUpFor(w, /^\s*re\s*:/i.test(m.subject ?? ""), jobs);
+      if (f) {
+        await putOnJob(mailbox, { ...m, ...full }, f.job.id, { heading: followUpHeading(w), pin: w.urgent });
+        const reason = `a follow-up, ${f.why}: the email went on that job as a note`.slice(0, 300);
+        await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: f.job.id, st_job_number: f.job.jobNumber, st_location_id: site.locationId, st_customer_id: site.customerId, attached_at: new Date().toISOString() });
+        await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
+        return { status: "duplicate", reason, isWorkOrder: true, jobId: f.job.id, jobNumber: f.job.jobNumber };
+      }
+    }
+
+    // One already in from an earlier email as a Booking (a job ServiceTitan
+    // refused, or before jobs were made), or a resend of the same one: not
+    // booked twice.
     const since = new Date(Date.now() - DEDUPE_DAYS * 86_400_000).toISOString();
     const earlier = await sbSelectOne<{ st_booking_id: string | null; message_id: string }>(TABLE, [q.select("st_booking_id,message_id"), q.eq("dedupe_key", key), q.eq("status", "booked"), q.gte("created_at", since)].join("&"));
     if (earlier && earlier.message_id !== m.id) {
@@ -206,33 +249,14 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       return { status: "duplicate", bookingId: earlier.st_booking_id ?? undefined, isWorkOrder: true };
     }
 
-    // What was read is kept before the booking is tried, so a refusal leaves
-    // the details to look at, and the retry has them.
-    await save(mailbox, m.id, { ...base, dedupe_key: key });
-
-    const zip = await postcodeFor(w);
-
-    // Straight onto the agency's customer and the tenant's site, as a job
-    // (Jake, 5 Nov). No site and no agency we can be sure of is the office's
-    // to set up: nothing is made, and the page says so.
-    const site = await findSite(w, addressOf(m.from));
+    // No site and no agency we can be sure of is the office's to set up:
+    // nothing is made, and the page says so.
     if (!site) {
       const reason = w.agency ? `${w.agency} isn't a customer in ServiceTitan the portal could be sure of, and there's no site at this address yet` : "No agency named, and no site at this address yet";
       await save(mailbox, m.id, { ...base, dedupe_key: key, status: "needs_agency", reason });
       return { status: "needs_agency", reason, isWorkOrder: true };
     }
-    // A reply ("Re:") about a site with a job from the last month is about
-    // that job, not a new one: the email goes on it instead.
-    if (site.locationId && /^\s*re\s*:/i.test(m.subject ?? "")) {
-      const since30 = new Date(Date.now() - 30 * 86_400_000).toISOString();
-      const recent = await sbSelectOne<{ id: number; job_number: string | null }>("st_jobs", [q.select("id,job_number"), q.eq("location_id", String(site.locationId)), "status=neq.Canceled", q.gte("created_on", since30), q.order("created_on", "desc", "last"), "limit=1"].join("&")).catch(() => null);
-      if (recent) {
-        await putOnJob(mailbox, { ...m, ...full }, recent.id);
-        const reason = `a reply about job ${recent.job_number}: the email went on that job`;
-        await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: recent.id, st_job_number: recent.job_number, st_location_id: site.locationId, st_customer_id: site.customerId });
-        return { status: "duplicate", reason, isWorkOrder: true, jobId: recent.id, jobNumber: recent.job_number };
-      }
-    }
+    const zip = await postcodeFor(w);
 
     let job: MadeJob | null = null;
     let jobError = "";
@@ -294,6 +318,46 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
   }
 }
 
+const ADMIN_ADDRESS = "admin@advancedgas.com.au";
+
+/**
+ * Admin told a quote's been approved (Jake, 12 Nov), so someone sells the
+ * estimate and books the work. Once for the house in two days: Tapi's
+ * acceptance and its install work order land a minute apart, and both are
+ * the same approval. Says on the row what happened.
+ */
+async function emailAdminApproved(w: WorkOrder, job: { id: number; jobNumber: string | null } | null, place: { locationId: number | null } | null, m: GraphMessage): Promise<string> {
+  const address = [w.street, w.suburb].filter(Boolean).join(", ");
+  const since = new Date(Date.now() - 2 * 86_400_000).toISOString();
+  const where = place?.locationId ? q.eq("st_location_id", String(place.locationId)) : `address=ilike.${encodeURIComponent(`${w.street}*`)}`;
+  const earlier = w.street || place?.locationId
+    ? await sbSelectOne<{ id: string }>(TABLE, [q.select("id"), where, "reason=like.quote%20approved*admin%20emailed*", q.gte("created_at", since), "limit=1"].join("&")).catch(() => null)
+    : null;
+  if (earlier) return "admin already emailed about it";
+
+  const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const who = [w.propertyManager, w.agency].filter(Boolean).join(", ") || addressOf(m.from) || "The agency";
+  const when = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", dateStyle: "medium", timeStyle: "short" }).format(Date.parse(m.receivedDateTime ?? "") || Date.now());
+  const lines = [
+    `${who} approved the quote${w.number ? ` ${w.number}` : ""} for ${address || "the property"}${w.platform ? ` (${w.platform})` : ""}.`,
+    w.job || w.details ? `The work: ${[w.job, w.details].filter(Boolean).join(". ")}` : "",
+    job
+      ? `It's on job ${job.jobNumber ?? job.id} in ServiceTitan, pinned as a note. No new job was made: sell the estimate to book the work.`
+      : "The portal couldn't find the job it belongs to, and made none: find the quote in ServiceTitan and sell it to book the work.",
+    `The email: "${m.subject ?? ""}" from ${addressOf(m.from)}, ${when}.`,
+  ].filter(Boolean);
+  const text = [...lines, `Work orders: ${site.url}/portal/work-orders`].join("\n\n");
+  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#1a1a1d">${lines.map((l) => `<p>${esc(l)}</p>`).join("")}<p><a href="${esc(site.url)}/portal/work-orders">Work orders in the portal</a></p></div>`;
+  const out = await sendEmail("work-order-approved", {
+    from: process.env.RESEND_FROM_EMAIL || "Advanced Gas Website <onboarding@resend.dev>",
+    to: [ADMIN_ADDRESS],
+    subject: `Quote approved: ${address || w.agency || "a work order"}${job ? ` (job ${job.jobNumber ?? job.id})` : ""}`.slice(0, 200),
+    text,
+    html,
+  });
+  return out.ok ? "admin emailed" : `admin not emailed: ${out.error}`.slice(0, 120);
+}
+
 /**
  * The tenant asked to ring us, or reply, for a time (Jake, 5 Nov): sent by
  * itself once the booking is in, from bookings@ with replies to bookings@,
@@ -339,7 +403,7 @@ async function emailTenant(mailbox: string, id: string, w: WorkOrder, fromAddres
 /** For the reply draft: what happened to the work order, in a line the model can use. */
 export function draftNote(r: WorkOrderResult): string | undefined {
   if (r.status === "booked") return "This work order has just gone into ServiceTitan's Bookings by itself. The office will book it in; nobody needs to create it by hand.";
-  if (r.status === "duplicate") return "This is about a work order that's already in ServiceTitan's Bookings from an earlier email.";
+  if (r.status === "duplicate") return r.jobNumber ? `This is a follow-up about job ${r.jobNumber}, already in ServiceTitan; it has been added to that job as a note.` : "This is about a work order that's already in ServiceTitan's Bookings from an earlier email.";
   return undefined;
 }
 

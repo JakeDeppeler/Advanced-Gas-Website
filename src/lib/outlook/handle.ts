@@ -134,7 +134,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       if (forward || isManualIn(m) || external) {
         const wo = await handleWorkOrder(mailbox, m, forward ? "forward" : isManualIn(m) ? "category" : "auto")
           .catch((e: Error) => ({ status: "failed" as const, reason: e.message }));
-        const tie = "jobId" in wo && wo.jobId ? { job_id: wo.jobId, job_number: wo.jobNumber ?? null, job_how: wo.status === "booked" ? "made from this work order" : "a reply about this job", job_linked_at: new Date().toISOString() } : {};
+        const tie = "jobId" in wo && wo.jobId ? { job_id: wo.jobId, job_number: wo.jobNumber ?? null, job_how: wo.status === "booked" ? "made from this work order" : (wo.reason ?? "a follow-up about this job").slice(0, 300), job_linked_at: new Date().toISOString() } : {};
         if (forward) return done({ status: "skipped", reason: `forwarded by the team: work order ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`.slice(0, 300) }, tie);
         // A work order gets booked, and the tenant emailed; no reply draft
         // (Jake, 5 Nov: "not reply to work orders and just upload them").
