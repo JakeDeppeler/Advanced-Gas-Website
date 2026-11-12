@@ -78,9 +78,15 @@ export async function saveOfficeIds(ids: string[]): Promise<{ ok: boolean }> {
 /* -------------------------------------------------------------- the lists */
 
 const LISTS = "todo-lists";
-/** Five across the page at most: past that a list of lists stops being a board. */
-/** Five on people's own board, and room beside them for the account lists. */
-export const MAX_LISTS = 8;
+/**
+ * Five on people's own board: past that a list of lists stops being a board.
+ * They share one stored row with the Accounts and Marketing lists, so the cap
+ * on the row is higher. It used to be one shared limit of eight, and with five
+ * account and marketing lists that left room for only three of your own
+ * (Jake, 12 Nov).
+ */
+export const MAX_PERSONAL_LISTS = 5;
+export const MAX_LISTS = 16;
 
 /** A list renamed: its name in the settings and on every to-do that's on it. */
 export async function renameTodoList(from: string, to: string): Promise<void> {

@@ -21,7 +21,7 @@ import { MAX_LISTS, createAutoTodo, officeIds, openTodos, renameTodoList, saveTo
 import { FINANCE_LIST, FOLLOW_UP_LIST, OVERDUE_LIST, READY_LIST, isAccountList, jobNumberIn, type Person } from "@/lib/todos/types";
 import { getSettings, latestChecksForVans, listVehicles, saveSettings } from "@/lib/portal/db";
 import { FOLLOW_UPS, addDays, followUps, ruleNext, type PipeQuote } from "@/lib/pipeline/types";
-import { bookNewLeads, linkMatchedLeads, retryLeadUploads } from "@/lib/leads/autoLink";
+import { bookNewLeads, linkMatchedLeads, linkQuotedLeads, retryLeadUploads } from "@/lib/leads/autoLink";
 import { NOTIFY_DEFAULT, loadAutoLog, loadMade, loadSwitches, logAuto, openRunFailures, saveMade, type AutoEntry, type AutoKey, type AutoSwitches } from "./log";
 import { syncQuoteTags } from "./quoteTag";
 import { loadFlow, saveFlow, type FlowEntry } from "@/lib/todos/flow";
@@ -850,7 +850,7 @@ async function runAll(): Promise<{ ran: string[]; failed: string[] }> {
       if (!sw.bookingProvider) throw new Error("Set the ServiceTitan booking provider under Website enquiries into ServiceTitan's Bookings.");
       ctx.log.push(...await bookNewLeads(sw.bookingProvider, sw.leadBookingSince ?? new Date().toISOString()));
     }],
-    ["leadToJob", async () => { ctx.log.push(...await linkMatchedLeads(), ...await retryLeadUploads()); }],
+    ["leadToJob", async () => { ctx.log.push(...await linkMatchedLeads(), ...await linkQuotedLeads(), ...await retryLeadUploads()); }],
     ["accountFlow", () => (pipe ? accountFlow(ctx, pipe).then(() => bookListSweep(ctx, pipe)) : Promise.reject(new Error("The pipeline couldn't be read")))],
   ];
   const ran: string[] = [];

@@ -74,6 +74,33 @@ export async function linkMatchedLeads(): Promise<Entry[]> {
   return out;
 }
 
+/**
+ * Quoted without a job (0118): the office makes the customer and writes the
+ * quote straight on them, so there's no job for linkMatchedLeads to find. The
+ * lead links to that customer and its stage follows their quotes. Same name
+ * check as a contact match: an agent's shared number mustn't tie one tenant's
+ * enquiry to another's quote.
+ */
+export async function linkQuotedLeads(): Promise<Entry[]> {
+  const matches = await sbSelect<{ lead_id: string; customer_id: number; quotes: number }>("lead_quote_matches", "select=lead_id,customer_id,quotes&limit=200");
+  if (!matches.length) return [];
+  const [leads, sites] = await Promise.all([
+    sbSelect<LeadName>("portal_leads", [q.select("id,name"), `id=in.(${matches.map((m) => m.lead_id).join(",")})`].join("&")),
+    sbSelect<{ customer_id: number | null; name: string | null }>("st_locations", [q.select("customer_id,name"), `customer_id=in.(${[...new Set(matches.map((m) => m.customer_id))].join(",")})`].join("&")).catch(() => []),
+  ]);
+  const leadName = new Map(leads.map((l) => [l.id, l.name]));
+  const out: Entry[] = [];
+  for (const m of matches) {
+    const names = sites.filter((x) => x.customer_id === m.customer_id).map((x) => x.name);
+    if (names.length && !names.some((n) => namesAgree(leadName.get(m.lead_id) ?? null, n))) continue;
+    await sbUpdate("portal_leads", `id=eq.${m.lead_id}&st_job_id=is.null&st_customer_id=is.null`, {
+      st_customer_id: m.customer_id, linked_at: now(), linked_by: "Automatic", link_how: "quote",
+    });
+    out.push({ at: now(), kind: "leadToJob", ok: true, title: `${leadName.get(m.lead_id) ?? "A website enquiry"} linked to their quote${m.quotes === 1 ? "" : "s"} in ServiceTitan (no job)` });
+  }
+  return out;
+}
+
 /** Linked earlier, upload failed or skipped for the per-run cap: tried again, a few a run. */
 export async function retryLeadUploads(): Promise<Entry[]> {
   const rows = await sbSelect<{ id: string; name: string | null; st_job_id: number; st_job_number: string | null; st_upload: { ok?: boolean; jobId?: number } | null }>(
