@@ -261,7 +261,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
  * only a match on the waiting quote, or a reply in a thread that has since
  * gone on one: anything else stays as the first look left it.
  */
-const SECOND_LOOK_BEFORE = "2026-11-12T06:00:00Z";
+const SECOND_LOOK_BEFORE = "2026-11-12T08:00:00Z";
 const SECOND_LOOK = "looked at again for a waiting quote";
 
 export async function secondLookForQuotes(mailbox: string, deadline: number): Promise<{ looked: number; linked: number; error?: string }> {
