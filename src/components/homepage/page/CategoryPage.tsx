@@ -119,9 +119,9 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
                   <span className="cx__intro">{SYS_INTRO[s.slug] ?? ""}</span>
                   <span className="cx__meta">
                     <b>{from != null ? `From ${money(from)}` : "Free quote"}</b>
-                    <span>{s.tiers.length} options · {bs.join(", ")}</span>
+                    <span>{s.tiers.length === 1 ? "One option" : `${s.tiers.length} options`} · {bs.join(", ")}</span>
                   </span>
-                  <span className="cx__go">See the {s.label.toLowerCase()} options <i aria-hidden="true">→</i></span>
+                  <span className="cx__go">{s.tiers.length === 1 ? `See the ${s.label}` : `See the ${s.label.toLowerCase()} options`} <i aria-hidden="true">→</i></span>
                 </span>
               </Link>
             ))}

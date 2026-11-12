@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   type Category, type System, heroForSystem, HERO_SHOW, bookHref, isHeatPump, installTime, productHref, realOption, money, weekly,
   PRODUCT_FAQS, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, TONES, WORKMANSHIP,
+  lowerLabel,
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { Crumbs, Hero, Head, Next, Cta } from "./kit";
@@ -25,7 +26,7 @@ import { copFor } from "@/lib/tools/hotWaterSavings";
  */
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 /** Systems whose page gets the hands-on zoning house. */
-const ZONED = new Set(["ducted", "zoning"]);
+const ZONED = new Set(["ducted", "reverse-cycle-ducted", "dominator", "zoning"]);
 
 export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
@@ -35,11 +36,11 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const from = prices.length ? Math.min(...prices) : null;
   const brands = [...new Set(sys.tiers.map((t) => t.brand))];
   const others = cat.systems.filter((s) => s.slug !== sys.slug);
-  const lower = sys.label.toLowerCase();
+  const lower = lowerLabel(sys.label);
   // Build your price: ducted and multi-head. It used to show on preview
   // deployments too, as a placeholder mock-up; Jake asked for all prices off
   // (Nov 2026), previews included, so it renders only once it is switched on.
-  const builder = sys.slug === "ducted" ? "ducted" : sys.slug === "multi-head" ? "multi" : null;
+  const builder = sys.slug === "ducted" || sys.slug === "reverse-cycle-ducted" ? "ducted" : sys.slug === "multi-head" ? "multi" : null;
   const showBuilder = builder && PRICE_BUILDER_LIVE;
   const tierOf = (brand: string) => sys.tiers.find((t) => !t.same && t.brand === brand) ?? sys.tiers[0];
   const builderBook = { kaden: bookHref(sys, tierOf("Kaden"), {}), mitsubishi: bookHref(sys, tierOf("Mitsubishi Electric"), {}) };
@@ -85,7 +86,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
                 <div className="pcx__col pcx__col--con">
                   <h3><span aria-hidden="true">→</span> Look elsewhere if</h3>
                   <ul className="sxw__alt">
-                    {learn.alt.map((a) => <li key={a.if}><Link href={`/find/${a.go}`}>{cap(a.if)}: <b>{a.label.toLowerCase()} →</b></Link></li>)}
+                    {learn.alt.map((a) => <li key={a.if}><Link href={`/find/${a.go}`}>{cap(a.if)}: <b>{lowerLabel(a.label)} →</b></Link></li>)}
                   </ul>
                 </div>
               )}

@@ -39,6 +39,26 @@ const SPLIT: Learn = {
 
 export const LEARN: Record<string, Learn> = {
   "split-system": SPLIT,
+  // The Dominator: a ducted reverse-cycle unit built for a gas heater's spot.
+  // The return-air box and the duct check come from our own quote wording.
+  dominator: {
+    diagram: "ducted",
+    how: [
+      { t: "Out with the gas heater", d: "The old gas ducted heater comes out, and the gas to it is capped off." },
+      { t: "In the same spot", d: "The Dominator goes where the heater was, on the ducts and vents already in the house." },
+      { t: "An outdoor unit", d: "A new outdoor unit does the heating in winter and the cooling in summer." },
+      { t: "A new return air box", d: "It moves more air than a gas heater, so we fit a new return air box and grille." },
+    ],
+    good: [
+      "You have gas ducted heating and want to get off gas",
+      "The ducts and vents in the roof are in good condition",
+      "You want cooling as well as heating, from one system",
+    ],
+    alt: [
+      { if: "the ducts are tired, damaged or too small", go: "reverse-cycle-ducted", label: "Ducted split" },
+      { if: "you'd rather stay on gas", go: "gas-ducted-heating", label: "Gas ducted heating" },
+    ],
+  },
   // Heating runs the same pipes the other way round, so step two says so.
   "reverse-cycle-split": {
     ...SPLIT,
@@ -166,7 +186,8 @@ export const LEARN: Record<string, Learn> = {
       "Fast, even warmth in every room",
     ],
     alt: [
-      { if: "you want cooling from the same system", go: "ducted", label: "Ducted split" },
+      { if: "you want cooling from the same system", go: "reverse-cycle-ducted", label: "Ducted split" },
+      { if: "you want off gas but to keep these ducts", go: "dominator", label: "Braemar Dominator" },
       { if: "only one room needs heating", go: "reverse-cycle-split", label: "Reverse-cycle split" },
     ],
   },
@@ -187,6 +208,12 @@ export const LEARN: Record<string, Learn> = {
       { if: "you don't have a ducted system yet", go: "ducted", label: "Ducted split" },
     ],
   },
+};
+
+// The ducted split under Heating is the same system as under Cooling.
+LEARN["reverse-cycle-ducted"] = {
+  ...LEARN.ducted,
+  alt: [{ if: "you have gas ducted now and the ducts are sound", go: "dominator", label: "Braemar Dominator" }, ...LEARN.ducted.alt],
 };
 
 /**
@@ -233,6 +260,8 @@ export const SYS_INTRO: Record<string, string> = {
   "reverse-cycle-split": "A reverse-cycle split is a split system doing the heating. It pulls warmth out of the outside air and brings it into the room, so it heats a room for a fraction of the power a plug-in heater uses, and cools it in summer too.",
   "multi-head": "A multi-head system runs two or more indoor units off one outdoor unit. Each room gets its own head and its own remote, with only one box on the outside wall.",
   ducted: "A ducted split heats and cools the whole house from one unit hidden in the roof. Air comes out of slim vents in the ceiling, and zones let you run only the rooms you're using.",
+  "reverse-cycle-ducted": "A ducted split heats the whole house in winter and cools it in summer, from one unit hidden in the roof. It takes its heat from the outside air, so there's no gas, and zones let you run only the rooms you're using.",
+  dominator: "The Braemar Dominator is a ducted reverse-cycle system made to go where a gas ducted heater sits now, on the same ducts and vents. The gas comes off, and the house gets heating and cooling from one all-electric system, usually in a day.",
   evaporative: "An evaporative cooler sits on the roof and cools the house with outside air drawn through water-soaked pads. It's the cheapest way to cool a whole home on dry, hot days.",
   "gas-ducted-heating": "Gas ducted heating warms the whole house from one heater, pushing warm air through ducts to a vent in each room. It's quick, even warmth through a Victorian winter.",
   zoning: "Zoning splits a ducted system into areas you can turn on and off, so you heat or cool the rooms you're in instead of the whole house.",
@@ -262,6 +291,14 @@ export const SYS_PROS: Record<string, { pros: string[]; cons: string[] }> = {
   evaporative: {
     pros: ["The cheapest whole-home cooling to run", "Fresh outside air through the house", "Works well through dry summer heat"],
     cons: ["Cooling only, no heating", "Less effective on humid days", "A window or door has to be open", "Best serviced before each summer"],
+  },
+  "reverse-cycle-ducted": {
+    pros: ["Heats in winter and cools in summer", "No gas: heat taken from the outside air", "Hidden in the roof: only slim vents show", "Zones let you heat only the rooms you use"],
+    cons: ["Needs a usable roof space", "Costs more upfront than a gas heater", "Usually two to three days to install"],
+  },
+  dominator: {
+    pros: ["Off gas, onto one electric system", "Reuses the ducts and vents you already have", "Heats and cools", "Usually a one-day changeover"],
+    cons: ["Only suits ducts that are sound and the right size, so we check them first", "Needs room outside for an outdoor unit", "Costs more upfront than another gas heater"],
   },
   "gas-ducted-heating": {
     pros: ["Fast, even warmth in every room", "Strong on the coldest nights", "Usually reuses the ducts and vents already there"],
@@ -324,6 +361,12 @@ const HEATER_SIZES: Record<string, string> = {
 };
 
 export const CHOOSE: Record<string, Choice> = {
+  "dominator.essential": {
+    instead: [
+      { go: "reverse-cycle-ducted.essential", label: "A new ducted split", when: "The ducts are tired, damaged or too small to reuse, or the house has none." },
+      { go: "gas-ducted-heating.4-star", label: "Another gas ducted heater", when: "You'd rather stay on gas, or only need heating." },
+    ],
+  },
   ...Object.fromEntries(["split-system", "reverse-cycle-split"].flatMap((sys) => Object.entries(SPLIT_CHOOSE).map(([tier, c]) => [
     `${sys}.${tier}`, { ...c, instead: c.instead.map((x) => ({ ...x, go: x.go.includes(".") ? x.go : `${sys}.${x.go}` })) },
   ]))),
@@ -479,6 +522,13 @@ export const CHOOSE: Record<string, Choice> = {
   },
 };
 
+// The heating menu's ducted split reads the cooling one's advice, pointing
+// at its own pages rather than sending people back to Cooling.
+for (const [k, c] of Object.entries(CHOOSE)) {
+  if (!k.startsWith("ducted.")) continue;
+  CHOOSE[`reverse-cycle-${k}`] = { ...c, instead: c.instead.map((x) => ({ ...x, go: x.go.startsWith("ducted.") ? `reverse-cycle-${x.go}` : x.go })) };
+}
+
 /** What happens after "Book this install". Every line is a promise the site already makes. */
 export const BOOKING_STEPS = (install: string): HowStep[] => [
   { t: "Free site check", d: "We look at the room, the walls and where everything can go, and confirm the size." },
@@ -537,6 +587,10 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   "Brivis Advance low-profile": {
     pros: ["A low-profile cabinet from a long-standing local brand", "Cheap to run on dry, hot days", "Fresh air through the house"],
     cons: ["Cooling only, no heating", "Less effective on humid days"],
+  },
+  "Braemar Dominator Series": {
+    pros: ["Goes where the gas heater was, on the same ducts", "Heating and cooling from one electric system", "Usually done in a day"],
+    cons: ["The ducts have to be sound and sized right to reuse", "Costs more upfront than a gas heater swap"],
   },
   "Brivis Classic Wombat 3-star": {
     pros: ["The lowest upfront cost for gas ducted heating", "Usually a straight swap into the same spot", "CO safety test on every install"],

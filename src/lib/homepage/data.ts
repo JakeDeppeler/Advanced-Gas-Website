@@ -63,6 +63,8 @@ export const IMG = {
   kadenMulti: pub("/Kaden Multi Head.jpg"),
   mitsuCond: pub("/mitsubishi-mxz-multi-split-condenser-v2.webp"),
   kadenDucted: pub("/kdi-v2-image_01.webp"),
+  // No photo of a Dominator yet: the ductwork it reuses, until there's one of ours.
+  dominator: pub("/duct-work.webp"),
   mitsuDucted: pub("/mitsubishi-pea-m-ducted-v2-v3.webp"),
   mitsuZone: pub("/mitsubishi-zone-controller-v2.webp"),
   mitsuConsole: pub("/mitsubishi-mfz-kw-floor-console-v2.webp"),
@@ -270,6 +272,19 @@ const SPLIT_TIERS: Tier[] = [
   // install it (Nov 2026).
 ];
 
+/**
+ * One list for the ducted split under Cooling and under Heating (Jake, Nov
+ * 2026: it does both, so it belongs in both menus). Shared by reference, so
+ * canonicalProductSystem points the heating copies at the cooling ones.
+ */
+const DUCTED_TIERS: Tier[] = [
+  t("essential", "Kaden", "KDI ducted system", IMG.kadenDucted, ["Whole-home heating and cooling", "Sized off a room-by-room heat load", W], null),
+  t("premium", "Mitsubishi Electric", "PEAD-M ducted", IMG.mitsuDucted, ["Zoned as standard: 4, 6 or 8 zones", "Heat output matches cooling", "Duct design done first"], 12500),
+  // Mitsubishi's own zone controller rather than Zonemate/Milieu on a
+  // Mitsubishi system: one brand end to end is what we push (Jake, Nov 2026).
+  t("signature", "Mitsubishi Electric", "PEAD-M + zone controller", IMG.mitsuZone, ["Mitsubishi Electric's own zone controller", "Run only the rooms you use", "Duct design done first"], null),
+];
+
 type SystemDef = Omit<System, "qs"> & { more: Question[] };
 const sys = (d: SystemDef): System => {
   const { more, ...rest } = d;
@@ -288,13 +303,7 @@ export const CATS: Category[] = [
         t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuSplit, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
         t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuConsole, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
       ] }),
-      sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: [
-        t("essential", "Kaden", "KDI ducted system", IMG.kadenDucted, ["Whole-home heating and cooling", "Sized off a room-by-room heat load", W], null),
-        t("premium", "Mitsubishi Electric", "PEAD-M ducted", IMG.mitsuDucted, ["Zoned as standard: 4, 6 or 8 zones", "Heat output matches cooling", "Duct design done first"], 12500),
-        // Mitsubishi's own zone controller rather than Zonemate/Milieu on a
-        // Mitsubishi system: one brand end to end is what we push (Jake, Nov 2026).
-        t("signature", "Mitsubishi Electric", "PEAD-M + zone controller", IMG.mitsuZone, ["Mitsubishi Electric's own zone controller", "Run only the rooms you use", "Duct design done first"], null),
-      ] }),
+      sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
       sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-top water cooler", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
         t("essential", "Kaden", "Classic evaporative", IMG.evapClassic, ["Cheap to run on dry days", "Fresh air through the house", "Pre-summer service available"], null),
         t("premium", "Kaden", "Low-profile evaporative", IMG.evapLow, ["Sits low on the roofline", "Cheap to run on dry days", "Pre-summer service available"], null),
@@ -303,7 +312,7 @@ export const CATS: Category[] = [
     ],
   },
   {
-    id: "heat", label: "Heating", sub: "Gas ducted and reverse cycle",
+    id: "heat", label: "Heating", sub: "Gas ducted, ducted and split reverse cycle",
     photo: PHOTO.heating, alt: "Ducted gas heater installed in a roof space", pos: "center 55%", fg: "#050A30", icon: ICON.flame,
     systems: [
       // Four options by star rating rather than the usual three tiers, at
@@ -314,6 +323,13 @@ export const CATS: Category[] = [
         t("4-star", "Brivis", "StarPro 4-star", IMG.brivisStar, ["Uses less gas than a 3-star", "CO safety test on install", W], null),
         t("5-star", "Brivis", "StarPro 5-star", IMG.brivisStar, ["Less gas again for long winters", "CO safety test on install", W], null),
         t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
+      ] }),
+      sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
+      // Gas ducted out, reverse cycle in, through the ducts already there
+      // (Jake, Nov 2026). One option, so it's a page of its own rather than
+      // a tier squeezed in beside the Brivis star ratings.
+      sys({ slug: "dominator", label: "Braemar Dominator", sub: "Gas ducted swapped to reverse cycle", img: IMG.dominator, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.vents], tiers: [
+        t("essential", "Braemar", "Dominator Series", IMG.dominator, ["Goes where your gas ducted heater is now", "Keeps your existing ducts and vents", "Heats and cools, all electric"], null),
       ] }),
       sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
       sys({ slug: "zoning", label: "Zoning & controls", sub: "Room-by-room control", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
@@ -452,6 +468,8 @@ const GAL: Record<string, GalItem[]> = {
   "gas-continuous-flow": [g(PHOTO.hotWater1, "A recent hot water install", "c"), g(PHOTO.hotWater2, "A recent hot water install", "c")],
   "gas-storage": [g(PHOTO.hotWater1, "A recent hot water install", "c"), g(PHOTO.hotWater2, "A recent hot water install", "c")],
   "gas-ducted-heating": [g(IMG.brivisWombat, "Brivis gas ducted heater", "p", "Brivis"), g(PHOTO.heating, "A ducted gas heater in a roof space", "c"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate")],
+  "reverse-cycle-ducted": [g(IMG.mitsuZone, "Mitsubishi Electric zone controller", "p", "Mitsubishi Electric"), g(PHOTO.ductedInstall, "A ducted install", "c"), g(PHOTO.commercial, "Our technician in the roof space", "c")],
+  dominator: [g(IMG.dominator, "Ductwork in a roof space, the kind a Dominator reuses", "c"), g(PHOTO.heating, "A gas ducted heater in a roof space, the kind a Dominator replaces", "c")],
   "reverse-cycle-split": [g(IMG.mitsuCond, "Mitsubishi Electric outdoor unit", "p", "Mitsubishi Electric"), g(PHOTO.splitRoom, "A split system we installed", "c"), g(PHOTO.outdoorUnit, "An outdoor unit we installed", "c")],
   zoning: [g(IMG.zmTablet, "Zonemate tablet", "p", "Zonemate"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate"), g(PHOTO.ductedInstall, "A ducted install", "c")],
 };
@@ -487,6 +505,8 @@ const H = {
 const HERO: Record<string, Hero> = {
   "split-system": H.bedroom, "reverse-cycle-split": H.bedroom, "multi-head": H.bedroom,
   ducted: H.roofDucted, "ducted.essential": H.kadenOutdoor,
+  "reverse-cycle-ducted": H.roofDucted, "reverse-cycle-ducted.essential": H.kadenOutdoor,
+  dominator: hero("/duct-work.webp", "Ductwork in a roof space, the kind a Dominator reuses", "center 40%"),
   evaporative: H.evap,
   "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.istore,
   "gas-continuous-flow": H.thermannCf, "gas-continuous-flow.signature": H.reclaimAio,
@@ -583,7 +603,9 @@ export const TIER_MODELS: Record<string, ModelRef[]> = {
   "multi-head.premium": [["mitsubishi-electric", "mxz-2f", "2 heads"], ["mitsubishi-electric", "mxz-3f", "3 heads"], ["mitsubishi-electric", "mxz-4f", "4 heads"], ["mitsubishi-electric", "mxz-5f", "5 heads"], ["mitsubishi-electric", "mxz-6c", "6 heads"]],
   "multi-head.signature": [["mitsubishi-electric", "mfz-kw", "Floor console"]],
   "ducted.essential": [["kaden", "kaden-ducted-10", "10 kW"], ["kaden", "kaden-ducted-12", "12.5 kW"], ["kaden", "kaden-ducted-14", "14 kW"], ["kaden", "kaden-ducted-17", "17 kW"]],
+  "reverse-cycle-ducted.essential": [["kaden", "kaden-ducted-10", "10 kW"], ["kaden", "kaden-ducted-12", "12.5 kW"], ["kaden", "kaden-ducted-14", "14 kW"], ["kaden", "kaden-ducted-17", "17 kW"]],
   "ducted.premium": PEAD, "ducted.signature": PEAD,
+  "reverse-cycle-ducted.premium": PEAD, "reverse-cycle-ducted.signature": PEAD,
   "evaporative.essential": [["kaden", "kaden-evaporative-classic", "Classic"]],
   "evaporative.premium": [["kaden", "kaden-evaporative-low", "Low-profile"]],
   "evaporative.signature": [["brivis", "brivis-evap-advance", "Advance"]],
@@ -634,12 +656,20 @@ export const isHeatPump = (s: System) => s.slug === "heat-pump";
 /** "Nothing yet (new build)" is the fifth answer to the heat pump's "what do you have now?". */
 export const isNewBuildHeatPump = (s: System, ans: Answers) => isHeatPump(s) && ans.now === 4;
 
+/**
+ * A system's name mid-sentence. Lowercased like any common noun ("the ducted
+ * split options"), except a brand-named one, which keeps its capitals.
+ */
+export const lowerLabel = (label: string) => (/^Braemar\b/.test(label) ? label : label.toLowerCase());
+
 export function installTime(s: System) {
   if (s.slug === "gas-continuous-flow") return "Usually 2–4 hours";
   if (s.slug === "gas-storage") return "Usually 3–4 hours";
   if (s.faq === "gasheat") return "Usually 3–5 hours";
   if (s.faq === "split") return "Usually half a day for a back-to-back install";
   if (s.faq === "multi") return "Usually a full day";
+  // Two technicians, one day, on the ducts already there (our quote wording).
+  if (s.slug === "dominator") return "Usually one day for a changeover on your existing ducts";
   if (s.faq === "ducted") return "Usually 2–3 days for a retrofit";
   if (s.faq === "hp") return "Usually one day for a like-for-like swap";
   if (s.faq === "gashw") return "Same day on common models";
@@ -849,7 +879,7 @@ export const NAV: NavGroup[] = [
   { label: "Cooling", href: "/cooling", head: "Not sure which?", foot: "Find your cooling", footFind: "air",
     items: [prod("Split system", IMG.mitsuSplit, "split-system"), prod("Multi-head split", IMG.kadenMulti, "multi-head"), prod("Ducted", IMG.mitsuDucted, "ducted"), prod("Evaporative", IMG.evapClassic, "evaporative")] },
   { label: "Heating", href: "/heating", head: "Not sure which?", foot: "Find your heating", footFind: "heat",
-    items: [prod("Gas ducted heating", IMG.brivisStar, "gas-ducted-heating"), prod("Reverse-cycle split", IMG.kadenSplit, "reverse-cycle-split"), prod("Zoning & controls", IMG.zmTouch, "zoning")] },
+    items: [prod("Gas ducted heating", IMG.brivisStar, "gas-ducted-heating"), prod("Ducted split", IMG.mitsuDucted, "reverse-cycle-ducted"), prod("Braemar Dominator", IMG.dominator, "dominator"), prod("Reverse-cycle split", IMG.kadenSplit, "reverse-cycle-split"), prod("Zoning & controls", IMG.zmTouch, "zoning")] },
   { label: "Hot water", href: "/hot-water", head: "VEU rebate", foot: "Up to $2,700 off a heat pump", footFind: "hw",
     items: [prod("Heat pump", IMG.reclaimAio, "heat-pump"), prod("Gas continuous flow", IMG.gasCf, "gas-continuous-flow"), prod("Gas storage", IMG.gasStorage, "gas-storage")] },
   { label: "Services", href: "/services", head: "Something broken?", foot: "Call (03) 5947 8000", footHref: "tel:+61359478000",

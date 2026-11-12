@@ -1,3 +1,4 @@
+import { suburbCoords, distanceKm } from "@/lib/suburbCoords";
 /**
  * Who we are as a company: the people, what we put in writing, and the
  * licences and cover behind it. Written for the About page (Jake, Nov 2026)
@@ -49,3 +50,29 @@ export const OFFICE = {
   name: "Kellie", role: "Office & scheduling", photo: "/kellie.webp",
   about: "Runs bookings, compliance certificates and the paperwork, so every job is scheduled, documented and closed out properly.",
 };
+
+/**
+ * Where the installers live (Jake, Nov 2026). Suburb pages use it to say
+ * how close the nearest of them is, which is a truer "we're local" than the
+ * workshop's address alone for anyone out past Pakenham.
+ */
+export const CREW_TOWNS: { slug: string; name: string }[] = [
+  { slug: "berwick", name: "Berwick" },
+  { slug: "pakenham", name: "Pakenham" },
+  { slug: "drouin", name: "Drouin" },
+  { slug: "warragul", name: "Warragul" },
+];
+
+/** The crew town nearest a suburb, straight-line, or null without coordinates. */
+export function nearestCrew(slug: string): { name: string; km: number; here: boolean } | null {
+  const at = suburbCoords[slug];
+  if (!at) return null;
+  let best: { name: string; km: number; here: boolean } | null = null;
+  for (const t of CREW_TOWNS) {
+    const c = suburbCoords[t.slug];
+    if (!c) continue;
+    const km = t.slug === slug ? 0 : Math.round(distanceKm(at, c));
+    if (!best || km < best.km) best = { name: t.name, km, here: t.slug === slug };
+  }
+  return best;
+}

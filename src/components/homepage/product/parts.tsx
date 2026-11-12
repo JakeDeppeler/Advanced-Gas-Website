@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import {
   findHref, findSystem, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, FINANCE_SOON, FINANCE_SOON_TEXT, TONES, reviewTitle, modelForAnswer,
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
+  lowerLabel,
 } from "@/lib/homepage/data";
 import { PROS, CHOOSE, type Alt, type HowStep, type Learn } from "@/lib/homepage/learn";
 import { HwSavings } from "../HwSavings";
@@ -231,9 +232,9 @@ export function FitFinder({ v }: { v: PV }) {
         <div {...pane(ALT)}>
           <div className="ff__res">
             <span className="ff__tag">A better fit</span>
-            <p>For that, a <b>{shown.label.toLowerCase()}</b> usually suits better than this one.</p>
+            <p>For that, a <b>{lowerLabel(shown.label)}</b> usually suits better than this one.</p>
             <div className="ff__acts">
-              <Link href={`/find/${shown.go}`} className="abtn abtn--or abtn--flat">About {shown.label.toLowerCase()} →</Link>
+              <Link href={`/find/${shown.go}`} className="abtn abtn--or abtn--flat">About {lowerLabel(shown.label)} →</Link>
               <button type="button" className="ff__again" onClick={restart}>Start again</button>
             </div>
           </div>

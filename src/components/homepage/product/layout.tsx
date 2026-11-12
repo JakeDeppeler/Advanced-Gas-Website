@@ -7,6 +7,7 @@ import {
   type PV, Crumbs, ProsCons, SavingsCalc, isHeatPumpOption, WhyList, FitFinder,
   Choose, SpecTable, SpecLinks, BookingSteps, Faqs, Reviews, Others, Sticky, Lead,
 } from "./parts";
+import { lowerLabel } from "@/lib/homepage/data";
 import { HowItWorks } from "../how/HowItWorks";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { StageHero, KeyFeatures, Resources } from "./stage";
@@ -166,15 +167,15 @@ export function ProductLayout({ v }: { v: PV }) {
         </div></div>
       </section>
 
-      <section className="bk__sec bk__sec--white">
+      {v.others.length > 0 && <section className="bk__sec bk__sec--white">
         <div className="wrap"><div className="bk__blk bk__col">
           {/* A tier that is really another system (gas storage's "upgrade to
               continuous flow") isn't a gas storage option, so the heading only
               names the system when every tile is one. */}
-          <Head h={v.others.some(([o]) => o.same) ? "Other {options} to consider." : `The other ${v.sys.label.toLowerCase()} {options}.`} />
+          <Head h={v.others.some(([o]) => o.same) ? "Other {options} to consider." : `The other ${lowerLabel(v.sys.label)} {options}.`} />
           <Others v={v} />
         </div></div>
-      </section>
+      </section>}
 
       <section className="bk__sec bk__sec--white bk__sec--end">
         <div className="wrap">
@@ -231,7 +232,7 @@ function Story({ v }: { v: PV }) {
   const { learn, sys } = v;
   if (!learn) return null;
   // learn.title reads "How a heat pump works." : the last word goes in colour.
-  const title = (learn.title ?? `How a ${sys.label.toLowerCase()} works.`).replace(/(\S+)\.$/, "{$1}.");
+  const title = (learn.title ?? `How a ${lowerLabel(sys.label)} works.`).replace(/(\S+)\.$/, "{$1}.");
   return (
     <section className="bk__sec bk__sec--white" id="how">
       <div className="wrap"><div className="bk__blk bk__col">

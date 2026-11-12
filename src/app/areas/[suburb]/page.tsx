@@ -12,7 +12,7 @@ import { PHOTO } from "@/lib/homepage/data";
 import { site, openingHours } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { resolveAsset } from "@/lib/publicAsset";
-import { DIRECTORS, OFFICE, ACCREDITED } from "@/lib/company";
+import { DIRECTORS, OFFICE, ACCREDITED, CREW_TOWNS, nearestCrew } from "@/lib/company";
 import { HeroQuote } from "@/components/homepage/HeroQuote";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
 import { areaSuburbs } from "@/lib/homepage/areas";
@@ -177,6 +177,11 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
   const rating = summary.value.toFixed(1);
   const home = sub.distanceKm === 0;
   const outer = !!sub.outerRing;
+  // Close enough to count as local: a crew member lives in the suburb or a
+  // short drive from it. Past that the workshop distance says it better.
+  const crew = nearestCrew(sub.slug);
+  const crewNear = crew && crew.km <= 15 ? crew : null;
+  const crewList = CREW_TOWNS.map((t) => t.name).join(", ").replace(/, ([^,]*)$/, " and $1");
   const hours = openingHours();
 
   // The questions people from here actually ask, answered from the record.
@@ -265,7 +270,9 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
             <li><b>{drive}</b><span>{home ? "From our Sierra Circuit workshop" : `From our workshop to ${sub.name}, ${sub.distanceKm} km`}</span></li>
             <li><b>6 years</b><span>On our workmanship, on top of the maker&apos;s warranty</span></li>
             <li><b>{local.length ? `${local.length} ${sub.name} review${local.length === 1 ? "" : "s"}` : `${rating} ★`}</b><span>{local.length ? `On Google from ${sub.name} households, and ${rating} ★ across all ${summary.count}` : `From ${summary.count} Google reviews by local households`}</span></li>
-            <li><b>{sub.council.replace(/ (Shire|City)? ?Council$/, "")}</b><span>{sub.council} paperwork and compliance handled in-house</span></li>
+            {crewNear
+              ? <li><b>{crewNear.here ? "Locals" : crewNear.name}</b><span>{crewNear.here ? `Some of our installers live here in ${sub.name}` : `Some of our installers live about ${Math.max(2, crewNear.km)} km away`}</span></li>
+              : <li><b>{sub.council.replace(/ (Shire|City)? ?Council$/, "")}</b><span>{sub.council} paperwork and compliance handled in-house</span></li>}
           </ul>
         </div>
       </section>
@@ -342,7 +349,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
           <div className="sechead arv">
             <div className="sechead__t">
               <h2 className="h2" style={{ color: "#fff" }}>Who you&apos;ll be <span style={{ color: "#FF7A36" }}>dealing with.</span></h2>
-              <p className="sbx__lede">Not a call centre or a franchise. Two directors in the business every day, and a team driving out from Sierra Circuit{home ? "" : ` to ${sub.name}`}. If anything about your job isn&apos;t right, ask for either director by name.</p>
+              <p className="sbx__lede">Not a call centre or a franchise. Two directors in the business every day, and installers who live in {crewList}. If anything about your job isn&apos;t right, ask for either director by name.</p>
             </div>
             <div className="sechead__btns">
               <Link href="/about" className="abtn abtn--line">More about us</Link>
