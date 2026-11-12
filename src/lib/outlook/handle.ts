@@ -252,3 +252,50 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     return { status: "failed", reason };
   }
 }
+
+/**
+ * One pass back over the last month for emails about a quote waiting on the
+ * customer, which went on no job until findJob counted those (12 Nov: Dr
+ * Govindarajah's seven emails about job 20284, and sixteen like them). Only
+ * emails from before the change, each looked at once (job_how says so), and
+ * only a match on the waiting quote, or a reply in a thread that has since
+ * gone on one: anything else stays as the first look left it.
+ */
+const SECOND_LOOK_BEFORE = "2026-11-12T06:00:00Z";
+const SECOND_LOOK = "looked at again for a waiting quote";
+
+export async function secondLookForQuotes(mailbox: string, deadline: number): Promise<{ looked: number; linked: number; error?: string }> {
+  const out = { looked: 0, linked: 0 } as { looked: number; linked: number; error?: string };
+  try {
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const rows = await sbSelect<{ message_id: string; from_address: string | null }>(TABLE, [
+      q.select("message_id,from_address"), q.eq("mailbox", mailbox), "job_id=is.null", "job_how=is.null",
+      q.gte("received_at", since), `received_at=lt.${SECOND_LOOK_BEFORE}`, "from_address=not.ilike.*@advancedgas.com.au",
+      q.order("received_at", "asc"), "limit=25",
+    ].join("&"));
+    for (const r of rows) {
+      if (Date.now() > deadline) break;
+      // Claimed by marking it, so two sweeps can't both put it on a job.
+      const got = await sbUpdateReturning(TABLE, [...filter(mailbox, r.message_id), "job_how=is.null"].join("&"), { job_how: SECOND_LOOK });
+      if (!got.length) continue;
+      out.looked++;
+      const m = await graph<GraphMessage & { categories?: string[] }>(`${userPath(mailbox)}/messages/${encodeURIComponent(r.message_id)}?$select=${MESSAGE_FIELDS}`, { text: true }).catch(() => null);
+      if (!m || skipReason(m, mailbox, Date.now(), 31 * 86_400_000)) continue;
+      const from = addressOf(m.from) || addressOf(m.sender);
+      const match = await findJob(mailbox, m, from, plainText(m.uniqueBody)).catch(() => null);
+      if (!match || !/quote, waiting on them|same thread/.test(match.how)) continue;
+      const put = await putOnJob(mailbox, m, match.jobId).then(() => null, (e: Error) => e.message);
+      if (put) {
+        await finish(mailbox, r.message_id, { job_how: `couldn't go on job ${match.jobNumber ?? match.jobId}: ${put}`.slice(0, 300) });
+        continue;
+      }
+      await finish(mailbox, r.message_id, { job_id: match.jobId, job_number: match.jobNumber, job_how: `${match.how} (on a second look, 12 Nov)`, job_linked_at: new Date().toISOString() });
+      const cats = m.categories ?? [];
+      if (!cats.includes(ON_JOB_CATEGORY)) await graph(`${userPath(mailbox)}/messages/${encodeURIComponent(r.message_id)}`, { method: "PATCH", body: { categories: [...cats, ON_JOB_CATEGORY] } }).catch(() => undefined);
+      out.linked++;
+    }
+  } catch (e) {
+    out.error = (e as Error).message;
+  }
+  return out;
+}

@@ -68,7 +68,11 @@ note, with its files attached, and gets the Outlook category **On a job**
    kind ("Emerald Court"), not the name alone ("Emerald" is a suburb too).
    Agencies quote their own job numbers, so a number alone isn't enough.
 3. **The sender's job:** the sender is a contact on exactly one open job, or
-   on several and the email names the address of exactly one.
+   on several and the email names the address of exactly one. A quote visit
+   that's completed with its quote still open counts as theirs: a reply to
+   "Your quote from Advanced Gas & Aircon" goes on the quote job, even with
+   one other job of theirs open (12 Nov: Dr Govindarajah's emails about job
+   20284 had gone on nothing).
 
 A work order that follows up a job already at the site goes on that job as a
 note instead of making a new one; see "Follow-ups" under Work orders below.
