@@ -20,8 +20,9 @@ import { jobNumbersIn, namesSite } from "./workOrderTypes";
  *     numbers (Barry Plant's "Job #18943"), which can collide with ours, so a
  *     number alone is never enough.
  *  3. The sender is a contact on exactly one customer or site with exactly
- *     one live job (not completed or cancelled). An agency's address has
- *     dozens; then only a job whose street the email names will do.
+ *     one job in play: open, or completed with a quote still open (the quote
+ *     waiting on them). An agency's address has dozens; then only a job whose
+ *     address the email names will do.
  * Anything less certain is left alone. The email goes on as a job note (who,
  * when, the subject and its own words), with its files as attachments.
  */
@@ -83,8 +84,24 @@ export async function findJob(mailbox: string, m: GraphMessage, from: string, bo
     who.customers.length ? `customer_id.in.(${who.customers.join(",")})` : null,
     who.locations.length ? `location_id.in.(${who.locations.join(",")})` : null,
   ].filter(Boolean);
-  const live = await sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `or=(${filters.join(",")})`, `status=in.(${LIVE.join(",")})`, q.gte("created_on", since), "limit=60"].join("&")).catch(() => []);
-  if (live.length === 1) return { jobId: live[0].id, jobNumber: live[0].job_number, how: "the sender's only open job" };
+  const [open, done] = await Promise.all([
+    sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `or=(${filters.join(",")})`, `status=in.(${LIVE.join(",")})`, q.gte("created_on", since), "limit=60"].join("&")).catch(() => []),
+    sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `or=(${filters.join(",")})`, "status=eq.Completed", q.gte("created_on", since), "limit=60"].join("&")).catch(() => []),
+  ]);
+  // A quote visit is completed the day it's done, and the quote then waits on
+  // the customer: that job is still theirs to write about. Every email from Dr
+  // Govindarajah about his ducted quote (job 20284, both estimates open) went
+  // on nothing (12 Nov).
+  const quoted = done.length
+    ? new Set((await sbSelect<{ job_id: number }>("st_estimates", [q.select("job_id"), `job_id=in.(${done.map((j) => j.id).join(",")})`, "status=eq.Open", "limit=200"].join("&")).catch(() => [])).map((e) => Number(e.job_id)))
+    : new Set<number>();
+  const waiting = done.filter((j) => quoted.has(Number(j.id)));
+  // A reply to the quote email ("Your quote from Advanced Gas & Aircon") is
+  // about the quote, even with one other job of theirs open. Not an agency's:
+  // with dozens open, only the address will do.
+  if (waiting.length === 1 && (!open.length || (open.length === 1 && /\bquote\b/i.test(subject)))) return { jobId: waiting[0].id, jobNumber: waiting[0].job_number, how: "the sender's quote, waiting on them" };
+  const live = [...open, ...waiting];
+  if (open.length === 1) return { jobId: open[0].id, jobNumber: open[0].job_number, how: "the sender's only open job" };
   if (live.length > 1) {
     const named = [];
     for (const j of live) if (mentions(text, await streetOf(j.location_id))) named.push(j);

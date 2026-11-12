@@ -2,7 +2,7 @@ import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { graph, outlookMailboxes, userPath } from "./graph";
-import { handleMessage, type Outcome } from "./handle";
+import { handleMessage, secondLookForQuotes, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
@@ -47,6 +47,7 @@ export type SweepResult = {
   duplicates: { mailbox: string; threads: number; removed: number; keptEdited: number; error?: string }[];
   workOrders: { mailbox: string; marked: number; retried: number; error?: string }[];
   attached: { attached: number; errors: string[] } | { error: string };
+  secondLook: { mailbox: string; looked: number; linked: number; error?: string }[];
 };
 
 /** Every Inbox id received since `since`, newest first, page by page. */
@@ -144,6 +145,13 @@ export async function sweep(): Promise<SweepResult> {
   }
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
 
+  // Emails about a quote waiting on the customer that went on no job before
+  // findJob counted those: once each, then nothing left to do.
+  const secondLook: { mailbox: string; looked: number; linked: number; error?: string }[] = [];
+  for (const mailbox of outlookMailboxes()) {
+    secondLook.push({ mailbox, ...(await secondLookForQuotes(mailbox, started + TAGS_BUDGET_MS)) });
+  }
+
   // One draft per thread: older ones the webhook's own clean-up missed. Before
   // the tag check, which then sees those drafts gone.
   const duplicates: SweepResult["duplicates"] = [];
@@ -156,5 +164,5 @@ export async function sweep(): Promise<SweepResult> {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, workOrders, attached, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, secondLook, duplicates, handoffs };
 }
