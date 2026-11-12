@@ -3713,7 +3713,7 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .wl-lines { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 1px; }
 .wl-said { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink2); }
 .wl-said.bad { color: var(--bad); font-weight: 600; }
-.wl-right { position: absolute; top: 14px; right: 0; display: flex; justify-content: flex-end; }
+.wl-right { position: absolute; top: 14px; right: 0; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
 .wl-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--surface); font-size: 13px; font-weight: 600; }
 .wl-link { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; max-width: 270px; }
 .wl-link input { width: 160px; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--rp-line); background: var(--surface); font: inherit; font-size: 13.5px; color: var(--ink); }

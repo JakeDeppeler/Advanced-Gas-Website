@@ -9,7 +9,7 @@ import { sbSelect } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { HOW_LABEL, LOST_REASONS, isHow } from "@/lib/pipeline/types";
 import { markLost, saveFollowUp } from "@/app/portal/pipeline/actions";
-import { MAX_LISTS, createTodo, getTodo, meOf, removeTodo, renameTodoList, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, todoLists, updateTodo } from "@/lib/todos/store";
+import { MAX_LISTS, MAX_PERSONAL_LISTS, createTodo, getTodo, meOf, removeTodo, renameTodoList, saveOfficeIds, saveTodoLists, seesAll, setDone, teamPeople, todoLists, updateTodo } from "@/lib/todos/store";
 
 export type TodoResult = { ok: boolean; error?: string };
 
@@ -125,6 +125,7 @@ export async function saveLists(names: string[]): Promise<TodoResult> {
   // People's own board only shows its own lists: the account and marketing
   // lists it doesn't show stay where they were, after them.
   const kept = (await todoLists()).filter((l) => (isAccountList(l) || isMarketingList(l)) && !clean.includes(l));
+  if (clean.length > MAX_PERSONAL_LISTS) return { ok: false, error: `${MAX_PERSONAL_LISTS} lists is as many as fit across the board. Take one away first.` };
   if (clean.length + kept.length > MAX_LISTS) return { ok: false, error: "That's as many lists as there's room for. Take one away first." };
   const res = await saveTodoLists([...clean, ...kept]);
   if (!res.ok) return { ok: false, error: "Couldn't save the lists." };

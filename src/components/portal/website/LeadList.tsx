@@ -6,6 +6,7 @@ import { LeadButtons, LinkJob, RetryInline } from "./LeadActions";
 export type LeadFilter = "all" | "unlinked" | "waiting" | "quoted" | "sold";
 
 const ST_JOB = (id: number) => `https://go.servicetitan.com/#/Job/Index/${id}`;
+const ST_CUSTOMER = (id: number) => `https://go.servicetitan.com/#/Customer/${id}`;
 const when = (iso: string) => {
   const d = new Date(iso);
   const day = (x: Date) => x.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
@@ -27,10 +28,10 @@ export const inFilter = (f: LeadFilter, s: LeadStage | undefined) =>
  * a job, quoted, sold. Each step is written out with a tick, or a "!" when
  * the quote is late, so the bar never rests on its colour alone.
  */
-function Steps({ s }: { s: LeadStage }) {
+function Steps({ s, customer }: { s: LeadStage; customer?: boolean }) {
   const steps: { w: string; on: boolean; late?: boolean }[] = [
     { w: "Form in", on: true },
-    { w: "Job linked", on: s.linked },
+    { w: customer ? "Customer linked" : "Job linked", on: s.linked },
     { w: s.lateBy != null ? "Quoted: late" : "Quoted", on: s.quoted, late: s.lateBy != null },
     { w: "Sold", on: s.sold },
   ];
@@ -111,7 +112,7 @@ export function LeadList({ leads, stages, urls, filter, hrefFor }: {
             <Thumbs l={l} urls={urls} />
             {s.linked && (
               <span className="wl-track">
-                <Steps s={s} />
+                <Steps s={s} customer={!l.stJobId && !!l.stCustomerId} />
                 <span className="wl-lines">
                   {s.lateBy != null && <span className="wl-said bad"><Icon name="alert" size={13} /> No quote {s.lateBy} days after the visit</span>}
                   <UploadLine l={l} />
@@ -132,7 +133,8 @@ export function LeadList({ leads, stages, urls, filter, hrefFor }: {
               {!l.photoPaths.length && l.photoCount > 0 && <p className="wl-note">These came in before the portal kept the form&rsquo;s photos: they&rsquo;re in the office inbox, on the email for this enquiry.</p>}
               <span className="wl-acts">
                 {l.stJobId && <a className="pk-btn g" href={ST_JOB(l.stJobId)} target="_blank" rel="noreferrer">Job {l.stJobNumber} in ServiceTitan ↗</a>}
-                {l.stJobId && <LeadButtons id={l.id} unlink retry={false} />}
+                {!l.stJobId && l.stCustomerId && <a className="pk-btn g" href={ST_CUSTOMER(l.stCustomerId)} target="_blank" rel="noreferrer">Customer and quotes in ServiceTitan ↗</a>}
+                {(l.stJobId || l.stCustomerId) && <LeadButtons id={l.id} unlink retry={false} />}
               </span>
             </div>
           </div>
@@ -140,7 +142,11 @@ export function LeadList({ leads, stages, urls, filter, hrefFor }: {
         <div className="wl-right">
           {l.stJobId
             ? <span className="wl-chip"><Icon name="tag" size={13} />Job {l.stJobNumber}</span>
-            : <LinkJob id={l.id} who={l.name ?? "this enquiry"} />}
+            : <>
+                {/* Quoted with no job: the customer is linked, and a job can still be added once one exists. */}
+                {l.stCustomerId && <a className="wl-chip" href={ST_CUSTOMER(l.stCustomerId)} target="_blank" rel="noreferrer"><Icon name="tag" size={13} />Quoted, no job</a>}
+                <LinkJob id={l.id} who={l.name ?? "this enquiry"} />
+              </>}
         </div>
       </li>
     );
