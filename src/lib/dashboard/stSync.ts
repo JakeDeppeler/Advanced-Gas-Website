@@ -1,4 +1,4 @@
-import { q, sbRpc, sbRpcRows, sbSelect, sbSelectOne, sbUpsert, type Row } from "./db";
+import { q, sbRpc, sbRpcRows, sbSelect, sbSelectOne, sbUpdate, sbUpsert, type Row } from "./db";
 import { checkFields, summarise, type FieldRow } from "./syncShape";
 import { isoDateMelbourne } from "./dates";
 import { serviceTitanConfigured, stExportAll, stList } from "./servicetitan";
@@ -560,20 +560,32 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
       // reads (11 Nov). Postgres writes a new row version even for an identical
       // upsert, so "unchanged" has to be decided here. A row without a
       // modifiedOn can't be compared and is always written.
-      const seen = new Map(
-        (await sbSelect<{ id: number; modified_on: string | null }>(spec.table, q.select("id,modified_on"))).map(
-          (r) => [Number(r.id), r.modified_on ? Date.parse(r.modified_on) : null],
-        ),
-      );
+      const stored = await sbSelect<{ id: number; modified_on: string | null; active: boolean | null }>(spec.table, q.select("id,modified_on,active"));
+      const seen = new Map(stored.map((r) => [Number(r.id), r.modified_on ? Date.parse(r.modified_on) : null]));
+      const off = new Set(stored.filter((r) => r.active === false).map((r) => Number(r.id)));
       const rows = listed.filter((r) => {
         const mine = typeof r.modified_on === "string" ? Date.parse(r.modified_on) : null;
-        const stored = seen.get(Number(r.id));
-        return mine === null || stored === undefined || stored !== mine;
+        const was = seen.get(Number(r.id));
+        // Switched back on: listed again, so active again here.
+        return mine === null || was === undefined || was !== mine || off.has(Number(r.id));
       });
       // Chunked as the exports are: a first fill of the pricebook runs to
       // thousands of rows.
       for (let i = 0; i < rows.length; i += 500) {
         await sbUpsert(spec.table, rows.slice(i, i + 500), "id");
+      }
+      // ServiceTitan lists only what's active, so one switched off there just
+      // drops out of the list, and stayed "active" here for good: Service -
+      // Multi-Head was still offered after the office had removed it (Jake, 13
+      // Nov: "I can not see one"). Gone from a whole list = switched off. Not
+      // on an empty list, or one at stList's page cap that may have been cut
+      // short: a hiccup there would switch everything off.
+      const listedIds = new Set(listed.map((r) => Number(r.id)));
+      const gone = stored.filter((r) => r.active !== false && !listedIds.has(Number(r.id))).map((r) => Number(r.id));
+      if (listed.length && listed.length < 2000 && gone.length) {
+        for (let i = 0; i < gone.length; i += 200) {
+          await sbUpdate(spec.table, `id=in.(${gone.slice(i, i + 200).join(",")})`, { active: false });
+        }
       }
       await recordLookup(spec.resource, startedAt, rows.length, null);
       report.push({ resource: spec.resource, status: "ok", records: rows.length, exhausted: true });
