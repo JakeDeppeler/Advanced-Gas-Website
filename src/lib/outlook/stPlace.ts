@@ -220,8 +220,10 @@ let jobTypes: JobType[] | null = null;
 /** The active job types, for the reading to choose from and for their ids. */
 export async function activeJobTypes(): Promise<JobType[]> {
   if (jobTypes) return jobTypes;
-  const rows = await sbSelect<{ id: number; name: string; active: string | null; bus: number[] | null }>("st_job_types", "select=id,name:raw->>name,active:raw->>active,bus:raw->businessUnitIds").catch(() => []);
-  jobTypes = rows.filter((r) => r.active !== "false" && r.name).map((r) => ({ id: r.id, name: r.name, bus: Array.isArray(r.bus) ? r.bus : [] }));
+  // The column, not raw: the sync marks a type switched off in ServiceTitan
+  // there, while its raw copy still says what it said when last listed.
+  const rows = await sbSelect<{ id: number; name: string; active: boolean | null; bus: number[] | null }>("st_job_types", "select=id,name,active,bus:raw->businessUnitIds").catch(() => []);
+  jobTypes = rows.filter((r) => r.active !== false && r.name).map((r) => ({ id: r.id, name: r.name, bus: Array.isArray(r.bus) ? r.bus : [] }));
   return jobTypes;
 }
 
