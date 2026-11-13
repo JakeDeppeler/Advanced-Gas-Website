@@ -56,7 +56,7 @@ export function ToolPage({ slug, crumb, title, sub, children, how, more, faqs, c
       <section className="bxh tl__hero">
         <div className="wrap tl__hin">
           <div className="bxh__copy">
-            <span className="lk2__eye cx__eye">Free tool{tool ? ` · ${tool.q}` : ""}</span>
+            <span className="lk2__eye cx__eye">Free tool</span>
             <h1 className="bxh__h1 cx__h1">{accent(title)}</h1>
             <p className="bxh__sub">{sub}</p>
             <div className="bxh__ctas">

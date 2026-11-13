@@ -98,3 +98,23 @@
 @media (max-width:600px){.ag .tl__grid{grid-template-columns:1fr}}
 /* On the blue tools the navy bands' heading would go pale blue; keep the site's orange. */
 .ag .tl .bk__sec--navy .h2 span{color:#FF9A5C}
+
+/* A compact header (Jake, Nov 2026: "the header is too large"). A tool page
+   is for using the tool, so the question sits in a short band and the tool
+   starts straight under it; on a phone the "what it does" box goes, since
+   the tool itself shows what it does a thumb-scroll later. */
+.ag .bxh.tl__hero{padding:40px 0 40px}
+.ag .tl__hero .bxh__h1{font-size:clamp(34px,4.2vw,60px);line-height:1;letter-spacing:-.035em}
+.ag .tl__hero .bxh__copy{gap:14px}
+.ag .tl__hero .bxh__sub{font-size:16px;line-height:1.55}
+.ag .tl__hero .tl__what{padding:20px 22px 18px;gap:10px}
+.ag .tl__hero .tl__what li{font-size:14.5px}
+@media (max-width:700px){
+  .ag .bxh.tl__hero{padding:22px 0 26px}
+  .ag .tl__hero .bxh__h1{font-size:clamp(28px,8.4vw,36px);line-height:1.05}
+  .ag .tl__hero .bxh__sub{font-size:15px;line-height:1.5}
+  .ag .tl__hero .tl__what{display:none}
+  .ag .tl__hero .bxh__ctas{gap:8px}
+  .ag .tl__hero .bxh__ctas .abtn{min-height:44px;padding:0 16px;font-size:15px}
+  .ag .tl__sec{padding-top:24px}
+}
