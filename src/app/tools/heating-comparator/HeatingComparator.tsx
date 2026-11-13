@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { SHOW_PRICES } from "@/lib/homepage/data";
+import { Num } from "@/app/tools/hot-water-savings/HotWaterSavings";
+import "@/components/homepage/tools/calc-b.css";
 
 /**
  * Gas heater vs reverse-cycle space-heating cost comparator.
@@ -54,6 +56,20 @@ const DEFAULTS: FormState = {
   veuRebate: 3400,      // typical gas ducted → RC ducted at current $60-$75 VEEC prices
 };
 
+/** The star ratings, with the notes the old drop-down carried. */
+const STARS: { v: FormState["gasStar"]; s?: string }[] = [
+  { v: "3", s: "Typical pre-2010" },
+  { v: "4" },
+  { v: "5", s: "Typical current" },
+  { v: "6", s: "Top efficiency" },
+];
+/** One-tap heat loads from the hint's own bands (small unit 2-3, 3-bed 6-10, big double-storey 12-18). */
+const LOADS: { v: number; t: string }[] = [
+  { v: 2.5, t: "Small unit" },
+  { v: 8, t: "3-bed home" },
+  { v: 15, t: "Big double-storey" },
+];
+
 export function HeatingComparator() {
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -94,213 +110,131 @@ export function HeatingComparator() {
 
   const $ = (n: number) => n === Infinity ? "n/a" : `$${Math.round(n).toLocaleString("en-AU")}`;
   const hasInstall = form.installCost > 0;
+  const top = Math.max(result.gasCostYr, result.rcCostYr, 1);
+  const rcCheaper = result.savingYr > 0;
 
   return (
-    <div className="page-tool__grid">
-      <div className="page-tool__form">
-        <h2>Home &amp; usage</h2>
+    <div className="cb">
+      <div className="cb__card">
+        <a href="#hc-result" className="cb__peek" aria-hidden="true" tabIndex={-1}>
+          <span>Save per winter</span><b>{$(result.savingYr)}</b><em>See the sum ↓</em>
+        </a>
+        <h2 className="cb__h">Home &amp; usage</h2>
 
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="hl">Heat load (kW)</label>
-            <input
-              id="hl"
-              type="number"
-              min="1"
-              max="40"
-              step="0.5"
-              value={form.heatLoadKw}
-              onChange={(e) => update("heatLoadKw", parseFloat(e.target.value) || 0)}
-            />
-            <small>Small unit 2-3, 3-bed 6-10, big double-storey 12-18 kW.</small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="hpd">Hours per day</label>
-            <input
-              id="hpd"
-              type="number"
-              min="0"
-              max="24"
-              step="0.5"
-              value={form.hoursPerDay}
-              onChange={(e) => update("hoursPerDay", parseFloat(e.target.value) || 0)}
-            />
+        <div className="cb__f">
+          <Num id="hl" label="Heat load" unit="kW" value={form.heatLoadKw} min={1} max={40} step={0.5}
+            onChange={(v) => update("heatLoadKw", v || 0)} hint="Small unit 2-3, 3-bed 6-10, big double-storey 12-18 kW." />
+          <div className="cb__opts" role="group" aria-label="Heat load presets">
+            {LOADS.map((l) => (
+              <button key={l.v} type="button" aria-pressed={form.heatLoadKw === l.v} onClick={() => update("heatLoadKw", l.v)}>
+                {l.t}<small>{l.v} kW</small>
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="dpy">Winter days per year in use</label>
-          <input
-            id="dpy"
-            type="number"
-            min="1"
-            max="200"
-            step="1"
-            value={form.daysPerYear}
-            onChange={(e) => update("daysPerYear", parseInt(e.target.value) || 0)}
-          />
-          <small>Melbourne average ≈ 120-150 (real winter + shoulder days).</small>
+        <div className="cb__pair">
+          <Num id="hpd" label="Hours per day" unit="hrs" value={form.hoursPerDay} min={0} max={24} step={0.5}
+            onChange={(v) => update("hoursPerDay", v || 0)} />
+          <Num id="dpy" label="Winter days in use" unit="days" value={form.daysPerYear} min={1} max={200} step={1} int
+            onChange={(v) => update("daysPerYear", v || 0)} hint="Melbourne average ≈ 120-150 (real winter + shoulder days)." />
         </div>
 
-        <h2 style={{ marginTop: 24 }}>Gas heater</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="star">Star rating</label>
-            <select
-              id="star"
-              value={form.gasStar}
-              onChange={(e) => update("gasStar", e.target.value as FormState["gasStar"])}
-            >
-              <option value="3">3-star (typical pre-2010 unit)</option>
-              <option value="4">4-star</option>
-              <option value="5">5-star (typical current model)</option>
-              <option value="6">6-star (top efficiency)</option>
-            </select>
+        <div className="cb__group">
+          <h3 className="cb__h">Gas heater</h3>
+          <div className="cb__f">
+            <span className="cb__lbl" id="hc-star">Star rating</span>
+            <div className="cb__opts" role="group" aria-labelledby="hc-star">
+              {STARS.map((o) => (
+                <button key={o.v} type="button" aria-pressed={form.gasStar === o.v} onClick={() => update("gasStar", o.v)}>
+                  {o.v}-star{o.s && <small>{o.s}</small>}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="tool-field">
-            <label htmlFor="gp">Gas price (c / MJ)</label>
-            <input
-              id="gp"
-              type="number"
-              min="1"
-              max="20"
-              step="0.1"
-              value={form.gasCentsPerMj}
-              onChange={(e) => update("gasCentsPerMj", parseFloat(e.target.value) || 0)}
-            />
-          </div>
+          <Num id="gp" label="Gas price" unit="c/MJ" value={form.gasCentsPerMj} min={1} max={20} step={0.1}
+            onChange={(v) => update("gasCentsPerMj", v || 0)} />
         </div>
 
-        <h2 style={{ marginTop: 24 }}>Reverse-cycle system</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="cop">COP (heating)</label>
-            <input
-              id="cop"
-              type="number"
-              min="1.5"
-              max="6"
-              step="0.1"
-              value={form.rcCop}
-              onChange={(e) => update("rcCop", parseFloat(e.target.value) || 1)}
-            />
-            <small>Modern inverter ≈ 4.0. Mitsubishi Hyper Heating (hills) ≈ 3.8 at -5 °C.</small>
+        <div className="cb__group">
+          <h3 className="cb__h">Reverse-cycle system</h3>
+          <div className="cb__pair">
+            <Num id="cop" label="COP (heating)" value={form.rcCop} min={1.5} max={6} step={0.1}
+              onChange={(v) => update("rcCop", v || 1)} />
+            <Num id="ep" label="Electric" unit="c/kWh" value={form.elecCentsPerKwh} min={1} max={200} step={0.1}
+              onChange={(v) => update("elecCentsPerKwh", v || 0)} />
           </div>
-          <div className="tool-field">
-            <label htmlFor="ep">Electric (c / kWh)</label>
-            <input
-              id="ep"
-              type="number"
-              min="1"
-              max="200"
-              step="0.1"
-              value={form.elecCentsPerKwh}
-              onChange={(e) => update("elecCentsPerKwh", parseFloat(e.target.value) || 0)}
-            />
-          </div>
+          <p className="cb__hint">Modern inverter ≈ 4.0. Mitsubishi Hyper Heating (hills) ≈ 3.8 at -5 °C.</p>
         </div>
 
-        <h2 style={{ marginTop: 24 }}>Install &amp; rebate (for payback)</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="ic">Install cost ($)</label>
-            <input
-              id="ic"
-              type="number"
-              min="0"
-              max="30000"
-              step="500"
-              value={hasInstall ? form.installCost : ""}
-              placeholder="From your quote"
-              onChange={(e) => update("installCost", parseInt(e.target.value) || 0)}
-            />
-            <small>{SHOW_PRICES ? "Ducted RC retrofit ~$11-14k, multi-head split ~$6-9k." : "The price before rebate, from your written quote."}</small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="veu">VEU rebate ($)</label>
-            <input
-              id="veu"
-              type="number"
-              min="0"
-              max="6000"
-              step="100"
-              value={form.veuRebate}
-              onChange={(e) => update("veuRebate", parseInt(e.target.value) || 0)}
-            />
-            <small>Gas ducted → RC ducted typically $2,800-$4,200 at current VEEC prices.</small>
+        <div className="cb__group">
+          <h3 className="cb__h">Install &amp; rebate (for payback)</h3>
+          <div className="cb__pair">
+            <Num id="ic" label="Install cost" unit="$" value={form.installCost} min={0} max={30000} step={500} int blank="From your quote"
+              onChange={(v) => update("installCost", v || 0)}
+              hint={SHOW_PRICES ? "Ducted RC retrofit ~$11-14k, multi-head split ~$6-9k." : "The price before rebate, from your written quote."} />
+            <Num id="veu" label="VEU rebate" unit="$" value={form.veuRebate} min={0} max={6000} step={100} int
+              onChange={(v) => update("veuRebate", v || 0)} hint="Gas ducted → RC ducted typically $2,800-$4,200 at current VEEC prices." />
           </div>
         </div>
       </div>
 
-      <div className="page-tool__result">
-        <h2>Which is cheaper to run?</h2>
-        <div className="tool-result__lead">Save per winter</div>
-        <div className="tool-result__big">{$(result.savingYr)}</div>
-        <p className="tool-result__sub">
-          By switching from a <strong>{form.gasStar}-star gas heater</strong> to a
-          <strong> reverse-cycle COP {form.rcCop.toFixed(1)}</strong> system.
-          {hasInstall && result.paybackYears !== Infinity && (
-            <> Payback in <strong>{result.paybackYears.toFixed(1)} years</strong> at
-            {" "}<strong>{$(result.netInstall)}</strong> net install cost.</>
-          )}
-        </p>
+      <div className="cb__card cb__res" id="hc-result" aria-live="polite">
+        <h2 className="cb__h">Which is cheaper to run?</h2>
+        <div className="cb__top">
+          <span className="cb__lead">Save per winter</span>
+          <b className="cb__big">{$(result.savingYr)}</b>
+          <p className="cb__sub">
+            By switching from a <strong>{form.gasStar}-star gas heater</strong> to a
+            <strong> reverse-cycle COP {form.rcCop.toFixed(1)}</strong> system.
+            {hasInstall && result.paybackYears !== Infinity && (
+              <> Payback in <strong>{result.paybackYears.toFixed(1)} years</strong> at
+              {" "}<strong>{$(result.netInstall)}</strong> net install cost.</>
+            )}
+          </p>
+        </div>
 
-        <div className="tool-result__breakdown">
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Delivered heat / yr</span>
-            <span className="tool-result__row-val">{Math.round(result.deliveredKwhYr).toLocaleString()} kWh</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Gas input / yr</span>
-            <span className="tool-result__row-val">{Math.round(result.gasInputMj).toLocaleString()} MJ</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Gas cost / yr</span>
-            <span className="tool-result__row-val">{$(result.gasCostYr)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">RC input / yr</span>
-            <span className="tool-result__row-val">{Math.round(result.rcInputKwh).toLocaleString()} kWh</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Reverse-cycle cost / yr</span>
-            <span className="tool-result__row-val">{$(result.rcCostYr)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Annual saving</span>
-            <span className="tool-result__row-val" style={{ color: result.savingYr > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
-              {$(result.savingYr)}
-            </span>
-          </div>
+        <ul className="cb__bars" aria-label="Running cost a year">
+          <li>
+            <span>Gas cost / yr <b>{$(result.gasCostYr)}</b></span>
+            <i><em style={{ width: `${(result.gasCostYr / top) * 100}%` }} /></i>
+          </li>
+          <li className="cb__bar--new">
+            <span>Reverse-cycle cost / yr <b>{$(result.rcCostYr)}</b></span>
+            <i><em style={{ width: `${(result.rcCostYr / top) * 100}%` }} /></i>
+          </li>
+        </ul>
+
+        <div className={`cb__fit${rcCheaper ? "" : " cb__fit--short"}`}>
+          <i aria-hidden="true">{rcCheaper ? "✓" : "!"}</i>
+          <p>{rcCheaper
+            ? <><b>Reverse cycle is cheaper to run</b> on these numbers, by {$(result.savingYr)} a winter.</>
+            : <><b>Gas is cheaper to run</b> on these numbers.</>}</p>
+        </div>
+
+        <dl className="cb__rows">
+          <div><dt>Delivered heat / yr</dt><dd>{Math.round(result.deliveredKwhYr).toLocaleString()} kWh</dd></div>
+          <div><dt>Gas input / yr</dt><dd>{Math.round(result.gasInputMj).toLocaleString()} MJ</dd></div>
+          <div><dt>Gas cost / yr</dt><dd>{$(result.gasCostYr)}</dd></div>
+          <div><dt>RC input / yr</dt><dd>{Math.round(result.rcInputKwh).toLocaleString()} kWh</dd></div>
+          <div><dt>Reverse-cycle cost / yr</dt><dd>{$(result.rcCostYr)}</dd></div>
+          <div className={result.savingYr > 0 ? "cb__good" : undefined}><dt>Annual saving</dt><dd>{$(result.savingYr)}</dd></div>
           {hasInstall ? (
             <>
-              <div className="tool-result__row">
-                <span className="tool-result__row-lbl">Payback (net of VEU)</span>
-                <span className="tool-result__row-val">
-                  {result.paybackYears === Infinity ? "n/a" : `${result.paybackYears.toFixed(1)} yrs`}
-                </span>
-              </div>
-              <div className="tool-result__row">
-                <span className="tool-result__row-lbl">10-year net saving</span>
-                <span className="tool-result__row-val" style={{ color: result.tenYearSaving > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
-                  {$(result.tenYearSaving)}
-                </span>
-              </div>
+              <div><dt>Payback (net of VEU)</dt><dd>{result.paybackYears === Infinity ? "n/a" : `${result.paybackYears.toFixed(1)} yrs`}</dd></div>
+              <div className={result.tenYearSaving > 0 ? "cb__good" : undefined}><dt>10-year net saving</dt><dd>{$(result.tenYearSaving)}</dd></div>
             </>
           ) : (
-            <div className="tool-result__row">
-              <span className="tool-result__row-lbl">Payback</span>
-              <span className="tool-result__row-val">Add your install quote</span>
-            </div>
+            <div><dt>Payback</dt><dd>Add your install quote</dd></div>
           )}
+        </dl>
+
+        <div className="cb__ctas">
+          <Link href="/quote" className="abtn abtn--or abtn--flat cb__btn cb__btn--or">Quote my heating swap →</Link>
+          <Link href="/tools/veu-rebate-estimator" className="abtn abtn--line cb__btn cb__btn--line">Check my rebate first →</Link>
         </div>
 
-        <div className="tool-result__cta">
-          <Link href="/quote" className="ds-btn ds-btn--orange">Quote my heating swap →</Link>
-          <Link href="/tools/veu-rebate-estimator" className="ds-btn ds-btn--ghost">Check my rebate first →</Link>
-        </div>
-
-        <p className="tool-result__note">
+        <p className="cb__note">
           Estimate only, real running cost varies with outdoor temperature, thermostat setpoint, house
           insulation and how many zones are running. RC systems in Melbourne hills (Emerald, Gembrook)
           should use the Mitsubishi FH Hyper Heating COP (~3.8 at -5 °C), not a standard 4.0 rating.

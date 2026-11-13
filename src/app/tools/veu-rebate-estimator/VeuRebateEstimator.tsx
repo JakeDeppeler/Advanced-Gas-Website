@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import "@/components/homepage/tools/calc-a.css";
 import { SHOW_PRICES } from "@/lib/homepage/data";
 import { UPGRADES, VEEC_PRICE_TREND, VEU_DEFAULTS as DEFAULTS, estimateVeu, type VeuForm as FormState } from "@/lib/tools/veuEstimate";
 
@@ -21,6 +22,27 @@ import { UPGRADES, VEEC_PRICE_TREND, VEU_DEFAULTS as DEFAULTS, estimateVeu, type
  * show while SHOW_PRICES is on (Jake asked for every price off, Nov 2026).
  */
 
+/** − value +, for a number the user may also type. */
+function Stepper({ id, value, min, max, onChange, unit }: {
+  id: string; value: number; min: number; max: number; unit?: string; onChange: (v: number) => void;
+}) {
+  const clamp = (v: number) => Math.min(max, Math.max(min, v));
+  return (
+    <div className="ca__step">
+      <button type="button" aria-label={`Less${unit ? `, ${unit}` : ""}`} disabled={value <= min} onClick={() => onChange(clamp(value - 1))}>−</button>
+      <input id={id} type="number" inputMode="numeric" min={min} max={max} step={1} value={value}
+        onChange={(e) => onChange(parseInt(e.target.value) || 1)} />
+      <button type="button" aria-label={`More${unit ? `, ${unit}` : ""}`} disabled={value >= max} onClick={() => onChange(clamp(value + 1))}>+</button>
+    </div>
+  );
+}
+
+/** "Gas storage → Heat pump hot water" as its two halves, for a choice row. */
+const halves = (label: string) => {
+  const [from, to] = label.split(" → ");
+  return { from, to: to ?? "" };
+};
+
 export function VeuRebateEstimator() {
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
@@ -30,176 +52,110 @@ export function VeuRebateEstimator() {
 
   const $ = (n: number) => `$${n.toLocaleString("en-AU")}`;
 
-  return (
-    <div className="page-tool__grid">
-      <div className="page-tool__form">
-        <h2>Your upgrade</h2>
+  const groups = [
+    { label: "Hot water", items: UPGRADES.filter((u) => u.key.endsWith("::heat-pump")) },
+    { label: "Space heating / cooling", items: UPGRADES.filter((u) => !u.key.endsWith("::heat-pump")) },
+  ];
 
-        <div className="tool-field">
-          <label htmlFor="pc">Victorian postcode</label>
-          <input
-            id="pc"
-            type="text"
-            inputMode="numeric"
-            maxLength={4}
-            value={form.postcode}
-            onChange={(e) => update("postcode", e.target.value.replace(/[^0-9]/g, ""))}
-          />
-          <small>
+  return (
+    <div className="ca">
+      <div className="ca__card ca__in">
+        <h2 className="ca__h">Your upgrade</h2>
+
+        <div className="ca__row">
+          <label className="ca__q" htmlFor="pc">Victorian postcode</label>
+          <div className="ca__field" style={{ maxWidth: 200 }}>
+            <input
+              id="pc"
+              type="text"
+              inputMode="numeric"
+              maxLength={4}
+              value={form.postcode}
+              onChange={(e) => update("postcode", e.target.value.replace(/[^0-9]/g, ""))}
+            />
+          </div>
+          <p className="ca__hint">
             {result.validPostcode
-              ? "Valid VIC postcode, rebate applies."
-              : "Must be a 4-digit VIC postcode (starts with 3)."}
-          </small>
+              ? "✓ Valid VIC postcode, rebate applies."
+              : "! Must be a 4-digit VIC postcode (starts with 3)."}
+          </p>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="up">Current → planned upgrade</label>
-          <select
-            id="up"
-            value={form.upgradeKey}
-            onChange={(e) => update("upgradeKey", e.target.value)}
-          >
-            <optgroup label="Hot water">
-              {UPGRADES.filter((u) => u.key.endsWith("::heat-pump")).map((u) => (
-                <option key={u.key} value={u.key}>{u.label}</option>
-              ))}
-            </optgroup>
-            <optgroup label="Space heating / cooling">
-              {UPGRADES.filter((u) => !u.key.endsWith("::heat-pump")).map((u) => (
-                <option key={u.key} value={u.key}>{u.label}</option>
-              ))}
-            </optgroup>
-          </select>
+        <div className="ca__row">
+          <span className="ca__q" id="up">Current → planned upgrade</span>
+          <div className="ca__choices" role="group" aria-labelledby="up">
+            {groups.map((g) => (
+              <div key={g.label} className="ca__choices">
+                <p className="ca__group">{g.label}</p>
+                {g.items.map((u) => {
+                  const h = halves(u.label);
+                  return (
+                    <button key={u.key} type="button" className="ca__choice" aria-pressed={form.upgradeKey === u.key} aria-label={u.label} onClick={() => update("upgradeKey", u.key)}>
+                      <i aria-hidden="true" /><span><strong>{h.to}</strong><small>From: {h.from}</small></span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
 
         {result.isHotWater && (
           <>
-            <div className="tool-field">
-              <label htmlFor="ppl">Household size</label>
-              <input
-                id="ppl"
-                type="number"
-                min="1"
-                max="10"
-                step="1"
-                value={form.household}
-                onChange={(e) => update("household", parseInt(e.target.value) || 1)}
-              />
-              <small>Larger households = bigger tank = slightly higher rebate.</small>
+            <div className="ca__row">
+              <label className="ca__q" htmlFor="ppl">Household size</label>
+              <Stepper id="ppl" value={form.household} min={1} max={10} unit="people" onChange={(v) => update("household", v)} />
+              <p className="ca__hint">Larger households = bigger tank = slightly higher rebate.</p>
             </div>
 
-            <div className="tool-field">
-              <label>Rooftop solar PV</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => update("hasSolar", false)}
-                  className="ds-btn"
-                  style={{
-                    flex: 1,
-                    background: !form.hasSolar ? "var(--navy)" : "transparent",
-                    color: !form.hasSolar ? "#fff" : "var(--navy)",
-                    border: `1px solid ${!form.hasSolar ? "var(--navy)" : "var(--line)"}`,
-                    fontSize: 13.5, padding: "10px 12px",
-                  }}
-                >
-                  No solar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => update("hasSolar", true)}
-                  className="ds-btn"
-                  style={{
-                    flex: 1,
-                    background: form.hasSolar ? "var(--navy)" : "transparent",
-                    color: form.hasSolar ? "#fff" : "var(--navy)",
-                    border: `1px solid ${form.hasSolar ? "var(--navy)" : "var(--line)"}`,
-                    fontSize: 13.5, padding: "10px 12px",
-                  }}
-                >
-                  Have solar
-                </button>
+            <div className="ca__row">
+              <span className="ca__q" id="pv">Rooftop solar PV</span>
+              <div className="ca__opts" role="group" aria-labelledby="pv">
+                <button type="button" aria-pressed={!form.hasSolar} onClick={() => update("hasSolar", false)}>No solar</button>
+                <button type="button" aria-pressed={form.hasSolar} onClick={() => update("hasSolar", true)}>Have solar</button>
               </div>
-              <small>Solar households often schedule the heat pump midday to run off surplus PV.</small>
+              <p className="ca__hint">Solar households often schedule the heat pump midday to run off surplus PV.</p>
             </div>
           </>
         )}
 
-        <div style={{
-          marginTop: 12,
-          padding: "12px 14px",
-          background: "var(--bg-2)",
-          borderRadius: 8,
-          fontSize: 12.5,
-          lineHeight: 1.5,
-          color: "var(--ink-3)",
-        }}>
-          <strong style={{ color: "var(--navy)" }}>{result.upgrade.label}</strong>
+        <p className="ca__box">
+          <strong>{result.upgrade.label}</strong>
           <br />
           {result.upgrade.notes}
-        </div>
+        </p>
       </div>
 
-      <div className="page-tool__result">
-        <h2>Estimated VEU rebate</h2>
-        <div className="tool-result__lead">Rebate range</div>
-        <div className="tool-result__big">
-          {$(result.minRebate)}–{$(result.maxRebate)}
-        </div>
-        <p className="tool-result__sub">
+      <div className="ca__card ca__sum" aria-live="polite">
+        <span className="ca__lbl">Estimated VEU rebate</span>
+        <div className="ca__big">{$(result.minRebate)}–{$(result.maxRebate)}</div>
+        <p className="ca__tag">Typically around <b>{$(result.midRebate)}</b></p>
+      </div>
+
+      <div className="ca__card ca__det">
+        <p className="ca__sub">
           At the current VEEC price of <strong>{VEEC_PRICE_TREND}</strong>, this upgrade typically
           generates a rebate around <strong>{$(result.midRebate)}</strong>.
         </p>
 
-        <div className="tool-result__breakdown">
+        <dl className="ca__maths" aria-label="The rebate">
           {SHOW_PRICES && (
-            <div className="tool-result__row">
-              <span className="tool-result__row-lbl">Typical install cost</span>
-              <span className="tool-result__row-val">{$(result.upgrade.typicalInstall)}</span>
-            </div>
+            <div><dt>Typical install cost</dt><dd>{$(result.upgrade.typicalInstall)}</dd></div>
           )}
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Rebate (min)</span>
-            <span className="tool-result__row-val">– {$(result.minRebate)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Rebate (max)</span>
-            <span className="tool-result__row-val">– {$(result.maxRebate)}</span>
-          </div>
+          <div><dt>Rebate (min)</dt><dd>– {$(result.minRebate)}</dd></div>
+          <div><dt>Rebate (max)</dt><dd>– {$(result.maxRebate)}</dd></div>
           {SHOW_PRICES ? (
             <>
-              <div className="tool-result__row">
-                <span className="tool-result__row-lbl">Net install (mid)</span>
-                <span className="tool-result__row-val" style={{ color: "var(--orange-ink)" }}>
-                  {$(result.netMid)}
-                </span>
-              </div>
-              <div className="tool-result__row">
-                <span className="tool-result__row-lbl">Net install range</span>
-                <span className="tool-result__row-val">
-                  {$(result.netMin)} – {$(result.netMax)}
-                </span>
-              </div>
+              <div className="ca__total"><dt>Net install (mid)</dt><dd>{$(result.netMid)}</dd></div>
+              <div><dt>Net install range</dt><dd>{$(result.netMin)} – {$(result.netMax)}</dd></div>
             </>
           ) : (
-            <div className="tool-result__row">
-              <span className="tool-result__row-lbl">Installed price</span>
-              <span className="tool-result__row-val">On your written quote, rebate off</span>
-            </div>
+            <div><dt>Installed price</dt><dd>On your written quote, rebate off</dd></div>
           )}
-        </div>
+        </dl>
 
         {result.isHotWater && (
-          <div style={{
-            marginTop: 16,
-            padding: "12px 14px",
-            background: "rgba(243,103,34,0.08)",
-            border: "1px solid rgba(243,103,34,0.18)",
-            borderRadius: 8,
-            fontSize: 13,
-            lineHeight: 1.5,
-            color: "var(--navy)",
-          }}>
+          <p className="ca__box">
             {SHOW_PRICES ? (
               <>
                 <strong>Heat pump net install range:</strong> $2,000 for an iStore or
@@ -217,15 +173,15 @@ export function VeuRebateEstimator() {
                 the rebate already taken off.
               </>
             )}
-          </div>
+          </p>
         )}
 
-        <div className="tool-result__cta">
-          <Link href="/quote" className="ds-btn ds-btn--orange">Lock in a rebate-inclusive quote →</Link>
-          <Link href="/tools/hot-water-savings" className="ds-btn ds-btn--ghost">See annual saving after install →</Link>
+        <div className="ca__ctas">
+          <Link href="/quote" className="abtn abtn--or abtn--flat">Lock in a rebate-inclusive quote →</Link>
+          <Link href="/tools/hot-water-savings" className="abtn abtn--ghost">See annual saving after install →</Link>
         </div>
 
-        <p className="tool-result__note">
+        <p className="ca__note">
           Estimates only. The exact rebate depends on the certified deemed abatement of the specific
           product being installed, the current VEEC market price, and site-specific factors. We
           confirm the firm number at quote time and apply it to your bill up-front, you never pay

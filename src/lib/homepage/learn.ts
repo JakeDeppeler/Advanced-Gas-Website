@@ -235,6 +235,7 @@ const ALL_IN_ONE: Pick<Learn, "how" | "title" | "diagram"> = {
 export const LEARN_TIER: Record<string, Pick<Learn, "how" | "title" | "diagram">> = {
   "heat-pump.essential": ALL_IN_ONE,
   "heat-pump.premium": ALL_IN_ONE,
+  "heat-pump.german": ALL_IN_ONE,
   "heat-pump.signature": {
     diagram: "hp-co2",
     title: "How a CO₂ split heat pump works.",
@@ -482,6 +483,17 @@ export const CHOOSE: Record<string, Choice> = {
       { go: "heat-pump.essential", label: "iStore all-in-one", when: "The upfront price is what matters most: it's the lowest of our heat pumps." },
     ],
   },
+  "heat-pump.german": {
+    sizes: {
+      "200 L": "Up to four people, by Viessmann's own sizing guide.",
+      "270 L": "Up to six people. It's 1830 mm tall, so we check the spot first.",
+    },
+    instead: [
+      { go: "heat-pump.essential", label: "iStore all-in-one", when: "The upfront price matters most, or you want the VEU rebate to go as far as it can." },
+      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd rather have an Australian-made unit." },
+      { go: "heat-pump.signature", label: "Reclaim CO₂ split", when: "You want the compressor away from the tank, or a size over 270 L." },
+    ],
+  },
   "heat-pump.signature": {
     sizes: {
       "160 L": "One or two people.",
@@ -627,6 +639,10 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   "Reclaim ECO R290 all-in-one": {
     pros: ["Australian made", "VEU rebate taken off at the quote", "One unit: nothing else to place outside"],
     cons: ["Costs more than the iStore", "The compressor is in the same shell, so it hums near the house"],
+  },
+  "Viessmann Vitocal 161-A all-in-one": {
+    pros: ["A German brand, making heating equipment since 1917", "Hot water down to −7 °C, and −15 °C on its 1.8 kW element", "Rated 43 dB(A), with Wi-Fi and a touch screen", "5 years from Viessmann on parts and labour"],
+    cons: ["The compressor is in the same shell, so it hums near the house", "Two sizes only: 200 L and 270 L", "VEU eligibility confirmed at the quote"],
   },
   "Reclaim CO₂ split heat pump": {
     pros: ["The compressor sits away from the tank, so it's quieter", "CO₂ keeps making hot water on cold mornings", "Stainless tank option for harder water"],

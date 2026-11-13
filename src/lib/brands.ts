@@ -3216,6 +3216,199 @@ const brandCatalogue: Brand[] = [
     ],
   },
 
+  // ================== VIESSMANN ==================
+  // Added Nov 2026 (Jake): a German option among the heat pumps. Every figure
+  // here is from Viessmann Australia's Vitocal 161-A product page; nothing
+  // about where it's built, VEU listing or parts supply is claimed, because
+  // that page doesn't say.
+  {
+    slug: "viessmann",
+    layout: "blocks",
+    blockAccent: "#D93A14",
+    story: {
+      heading: "A German name, {since 1917}.",
+      body: "Viessmann started as a heating manufacturer in Germany in 1917 and is now part of Carrier. The Vitocal 161-A is its all-in-one hot water heat pump for Australia.",
+      marks: [
+        { v: "1917", k: "Founded in Germany as a heating manufacturer" },
+        { v: "2", k: "Sizes: 200 L and 270 L" },
+        { v: "5 years", k: "All parts and labour, from Viessmann" },
+      ],
+      stops: [
+        { place: "Germany", role: "Brand", d: "A German heating company since 1917, now part of Carrier." },
+        { place: "Australia", role: "Supported", d: "Viessmann Australia handles the warranty registration and claims." },
+        { place: "Pakenham, VIC", role: "Fitted", d: "Installed by our own installers, with six years from us on the workmanship." },
+      ],
+    },
+    quality: {
+      tab: "Built in",
+      heading: "Built for {Australian conditions}.",
+      intro: "What the Vitocal 161-A brings, from Viessmann's own figures.",
+      image: { src: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A all-in-one heat pump" },
+      points: [
+        { t: "Cold mornings covered", d: "Makes hot water from the air down to −7 °C, and down to −15 °C with its built-in 1.8 kW element." },
+        { t: "Quiet", d: "43 dB(A), rated." },
+        { t: "Wi-Fi and a colour touch screen", d: "An integrated Wi-Fi timer with a phone app, and a touch-screen controller on the unit." },
+        { t: "R290", d: "A natural refrigerant with a very low global warming potential." },
+      ],
+    },
+    reasons: [
+      { v: "German", k: "since 1917", d: "A heating manufacturer for over a century, now part of Carrier.", img: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A beside a house", cover: true },
+      { v: "−7 °C", k: "heat pump only", d: "And −15 °C on the element, so a frosty morning still has hot water.", img: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A" },
+      { v: "43 dB", k: "rated noise", d: "A quiet unit for a side passage near a bedroom window.", img: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A" },
+      { v: "5 years", k: "parts and labour", d: "From Viessmann, plus six years from us on the workmanship.", img: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A installed outside", cover: true },
+    ],
+    timeline: [
+      { y: 0, t: "Install day", d: "Both warranties start." },
+      { y: 5, t: "Year 5", d: "Viessmann's parts and labour warranty ends." },
+      { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
+    ],
+    name: "Viessmann",
+    tagline: "The German option.",
+    origin: "Germany",
+    intro:
+      "Viessmann is a German heating company, founded in 1917 and now part of Carrier. The Vitocal 161-A is its all-in-one hot water heat pump, in 200 L and 270 L.",
+    ourTake:
+      "For the household that wants a German name on the unit, the Vitocal 161-A is a straightforward all-in-one: R290, Wi-Fi, a backup element for the coldest mornings, and five years from Viessmann on parts and labour. It goes in with the same crew and the same six-year workmanship warranty as everything else we fit.",
+    productLabel: "2 models · 200L + 270L heat pump",
+    photo: "/viessmann-vitocal-161a.webp",
+    photoAlt: "Viessmann Vitocal 161-A all-in-one heat pump hot water system",
+    accent: "#FF4419",
+    established: "German company, founded 1917 · now part of Carrier",
+    warranty: "5-year Viessmann warranty on all parts and labour + 6-year on our workmanship",
+    keyFeatures: [
+      "German brand, a heating manufacturer since 1917",
+      "Hot water down to −7 °C on the heat pump, −15 °C with the 1.8 kW element",
+      "43 dB(A) rated, integrated Wi-Fi timer and app",
+      "R290 natural refrigerant",
+    ],
+    commonInMelbourne:
+      "It suits a household replacing an old electric or gas tank that wants a German brand and a quiet unit, in a 200 L for up to four people or a 270 L for up to six.",
+    support:
+      "Warranty registration and claims go through Viessmann Australia, and we do the on-site work.",
+    resources: [
+      { label: "Viessmann Australia · Vitocal 161-A", href: "https://www.viessmann.com.au/en/products/heat-pump/vitocal-161-a.html" },
+    ],
+    whyLead: {
+      claim: "Why we fit {Viessmann}.",
+      sub: "A German heating name since 1917, in an all-in-one heat pump with a backup element for the coldest mornings.",
+    },
+    verdict:
+      "The Vitocal 161-A is the heat pump for the household that wants a German brand on it. It's an all-in-one on R290, with Wi-Fi and a touch screen, rated at 43 dB(A), and it makes hot water down to −7 °C before the element takes over. Five years from Viessmann on parts and labour, six from us on the workmanship.",
+    notRightWhen:
+      "If the rebate is what decides it, or you want the compressor split away from the tank, we'd point you at an iStore or a Reclaim CO₂ split instead, and we'll show you the difference at the quote.",
+    versus:
+      "We fit iStore, Reclaim and Viessmann. iStore is the pick when the rebate decides it, Reclaim when you want Australian made or a CO₂ split, and Viessmann when you want the German name.",
+    advisorService: "heat-pump-installation",
+    heroSub:
+      "A German heating name since 1917. The Vitocal 161-A all-in-one heat pump, in 200 L and 270 L, with Wi-Fi, a backup element and five years on parts and labour.",
+    fitsWhere:
+      "Replacing an old electric or gas tank, for a household that wants a German brand and a quiet unit.",
+    heroFacts: [
+      { v: "Since 1917", k: "A German heating manufacturer, now part of Carrier" },
+      { v: "2 sizes", k: "200 L for up to 4 people, 270 L for up to 6" },
+      { v: "43 dB(A)", k: "Rated noise level" },
+      { v: "5 yr & 6 yr", k: "5 years from Viessmann on parts and labour, 6 from us on the workmanship" },
+    ],
+    benefitsHeading: "What you get with the Vitocal 161-A.",
+    benefitTiles: [
+      { t: "A German name", line: "A heating manufacturer since 1917", detail: "Viessmann has made heating equipment in Germany since 1917 and is now part of Carrier.", icon: "shield" },
+      { t: "Cold mornings", line: "−7 °C on the heat pump, −15 °C on the element", detail: "Below −7 °C the built-in 1.8 kW element carries it, so there's still hot water on a frosty morning.", icon: "snowflake" },
+      { t: "Run it from your phone", line: "Integrated Wi-Fi timer and app", detail: "Set it to heat in the middle of the day when your solar is running, and check it from the app.", icon: "phone" },
+      { t: "Two sizes", line: "200 L or 270 L", detail: "Viessmann sizes the 200 L for up to four people and the 270 L for up to six. We size it to how many of you shower.", icon: "people" },
+    ],
+    servicing: {
+      tab: "After the swap",
+      heading: "Who looks after it {after the swap}.",
+      photo: "/viessmann-vitocal-161a-scene.webp",
+      photoAlt: "A Viessmann Vitocal 161-A heat pump outside a house",
+      body:
+        "Five years from Viessmann on all parts and labour, and six from us on the workmanship. Viessmann Australia handles the warranty registration and claims, and we do the work on site.",
+      facts: [
+        "5 years from Viessmann on all parts and labour, plus 6 years from us on the workmanship",
+        "Warranty registration and claims through Viessmann Australia",
+        "10 amp plug fitted: runs off a standard power point",
+        "A built-in 1.8 kW element for the coldest mornings",
+      ],
+    },
+    steps: [
+      { title: "Size it", detail: "How many of you shower and for how long: 200 L for up to four people, 270 L for up to six." },
+      { title: "Check the power point", detail: "It comes with a 10 amp plug. If there's no point near the old system, running one is an electrical add, and it's on the quote." },
+      { title: "Out with the old tank", detail: "We isolate the water and power, drain the old tank and take it away." },
+      { title: "In with the Vitocal", detail: "On a level base with air around it, plumbed in with a tempering valve on the outlet." },
+      { title: "Set up the app", detail: "Connected to your Wi-Fi so you can time the heat-up, then commissioned and checked before we leave." },
+    ],
+    faqs: [
+      { q: "Is it German made?", a: "Viessmann is a German company, founded in 1917 and now part of Carrier. Viessmann Australia's page calls it a German brand but doesn't say where the Vitocal 161-A is built, so we won't either. Ask us at the quote and we'll find out." },
+      { q: "Will it keep up in winter?", a: "It makes hot water from the air down to −7 °C, and its built-in 1.8 kW element carries it down to −15 °C, so a frosty morning still has hot water." },
+      { q: "Which size do we need?", a: "Viessmann sizes the 200 L for up to four people and the 270 L for up to six. Our hot water size check works it out from how many of you shower and for how long." },
+      { q: "What warranty comes with it?", a: "Five years from Viessmann on all parts and labour, and six years from us on the workmanship." },
+    ],
+    products: [
+      {
+        slug: "vitocal-161a-200",
+        name: "Viessmann Vitocal 161-A · 200L",
+        compressorKw: 2.78,
+        tankLitres: 200,
+        model: "Vitocal 161-A (200 L)",
+        category: "heat-pump",
+        categoryLabel: "Heat pump hot water",
+        capacity: "200 L",
+        refrigerant: "R290",
+        veuEligible: false,
+        bestFor: "Up to four people, by Viessmann's sizing guide",
+        photo: "/viessmann-vitocal-161a.webp",
+        photoAlt: "Viessmann Vitocal 161-A 200L heat pump",
+        ourTake:
+          "The 200 L Vitocal for up to four people. Same R290 heat pump, element and warranty as the 270, in a shorter tank: 1518 mm tall against 1830.",
+        specs: [
+          { label: "Tank capacity", value: "200 L" },
+          { label: "Suits", value: "Up to 4 people" },
+          { label: "Refrigerant", value: "R290 / 400 g" },
+          { label: "Heating capacity", value: "2.78 kW" },
+          { label: "COP", value: "4.15 (A20/15, W15-55)" },
+          { label: "Backup element", value: "1.8 kW" },
+          { label: "Noise", value: "43 dB(A)" },
+          { label: "Operating range", value: "−7 °C to 43 °C (−15 °C with the element)" },
+          { label: "Size", value: "620 mm wide, 1518 mm tall, 120 kg empty" },
+          { label: "Power", value: "10 amp plug fitted" },
+          { label: "Warranty", value: "5 years parts and labour + 6-year workmanship" },
+        ],
+        related: ["vitocal-161a-270", "istore-180"],
+      },
+      {
+        slug: "vitocal-161a-270",
+        name: "Viessmann Vitocal 161-A · 270L",
+        compressorKw: 2.78,
+        tankLitres: 270,
+        model: "Vitocal 161-A (270 L)",
+        category: "heat-pump",
+        categoryLabel: "Heat pump hot water",
+        capacity: "270 L",
+        refrigerant: "R290",
+        veuEligible: false,
+        bestFor: "Up to six people, by Viessmann's sizing guide",
+        photo: "/viessmann-vitocal-161a.webp",
+        photoAlt: "Viessmann Vitocal 161-A 270L heat pump",
+        ourTake:
+          "The 270 L Vitocal for up to six people, the one for a family. 1830 mm tall, so we check the spot before we order it.",
+        specs: [
+          { label: "Tank capacity", value: "270 L" },
+          { label: "Suits", value: "Up to 6 people" },
+          { label: "Refrigerant", value: "R290 / 380 g" },
+          { label: "Heating capacity", value: "2.78 kW" },
+          { label: "COP", value: "4.15 (A20/15, W15-55)" },
+          { label: "Backup element", value: "1.8 kW" },
+          { label: "Noise", value: "43 dB(A)" },
+          { label: "Operating range", value: "−7 °C to 43 °C (−15 °C with the element)" },
+          { label: "Size", value: "620 mm wide, 1830 mm tall, 136 kg empty" },
+          { label: "Power", value: "10 amp plug fitted" },
+          { label: "Warranty", value: "5 years parts and labour + 6-year workmanship" },
+        ],
+        related: ["vitocal-161a-200", "istore-270"],
+      },
+    ],
+  },
+
   // ================== KADEN ==================
   {
     slug: "kaden",

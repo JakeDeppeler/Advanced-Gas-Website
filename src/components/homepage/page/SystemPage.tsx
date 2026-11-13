@@ -11,6 +11,7 @@ import { HowItWorks } from "../how/HowItWorks";
 import { PriceBuilder } from "@/components/homepage/PriceBuilder";
 import { PRICE_BUILDER_LIVE } from "@/lib/homepage/priceBuilder";
 import { HwSavings } from "../HwSavings";
+import { HpFinder } from "../hw/HpFinder";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { copFor } from "@/lib/tools/hotWaterSavings";
 
@@ -62,16 +63,29 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
         ]}
       >
         <div className="bxh__ctas">
-          <a href="#options" className="abtn abtn--or abtn--flat">See the {sys.tiers.length} options ↓</a>
+          {isHeatPump(sys)
+            ? <a href="#pick" className="abtn abtn--or abtn--flat">Find the one for you ↓</a>
+            : <a href="#options" className="abtn abtn--or abtn--flat">See the {sys.tiers.length} options ↓</a>}
           <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
         </div>
       </Hero>
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
-          {[...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(ZONED.has(sys.slug) ? [["zones", "Try the zones"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(showBuilder ? [["price", "Your price"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+          {[...(isHeatPump(sys) ? [["pick", "Which one?"]] : []), ...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(ZONED.has(sys.slug) ? [["zones", "Try the zones"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(showBuilder ? [["price", "Your price"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
         </div>
       </nav>
+
+      {/* Heat pumps only: four questions to the one we'd fit, at the size
+          that covers the household (Jake, Nov 2026: "a lot of different options"). */}
+      {isHeatPump(sys) && (
+        <section className="pxs pxs--sky" id="pick">
+          <div className="wrap pp__col">
+            <Head eye="Which heat pump?" h="Find the one for your home." />
+            <HpFinder />
+          </div>
+        </section>
+      )}
 
       {learn && (
         <section className="pxs" id="fit">

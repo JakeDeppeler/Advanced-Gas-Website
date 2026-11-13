@@ -63,6 +63,7 @@ export const IMG = {
   kadenMulti: pub("/Kaden Multi Head.jpg"),
   mitsuCond: pub("/mitsubishi-mxz-multi-split-condenser-v2.webp"),
   kadenDucted: pub("/kdi-v2-image_01.webp"),
+  viessmann: pub("/viessmann-vitocal-161a.webp"),
   // No photo of a Dominator yet: the ductwork it reuses, until there's one of ours.
   dominator: pub("/duct-work.webp"),
   mitsuDucted: pub("/mitsubishi-pea-m-ducted-v2-v3.webp"),
@@ -350,6 +351,9 @@ export const CATS: Category[] = [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
+        // The German option (Jake, Nov 2026). Its lines are Viessmann
+        // Australia's own figures; no VEU line until we know it's listed.
+        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "Hot water down to −7 °C, −15 °C on the element", "5 years on parts and labour"], null),
       ] }),
       sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Instant gas hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
@@ -516,6 +520,8 @@ const HERO: Record<string, Hero> = {
   dominator: hero("/duct-work.webp", "Ductwork in a roof space, the kind a Dominator reuses", "center 40%"),
   evaporative: H.evap,
   "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.istore,
+  // Viessmann's own image, not one of our installs, so it isn't captioned as ours.
+  "heat-pump.german": { src: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A beside a house", pos: "center 45%", ours: false },
   "gas-continuous-flow": H.thermannCf, "gas-continuous-flow.signature": H.reclaimAio,
   "gas-storage": H.gasStorage, "gas-storage.premium": H.thermannCf,
   "gas-ducted-heating": H.gasDucted,
@@ -565,6 +571,7 @@ export const roomFor = (sys: System, tier: Tier, size: number | null): Hero =>
  */
 const GAL_TIER: Record<string, GalItem[]> = {
   "heat-pump.essential": [g("/istore-product.png", "iStore all-in-one heat pump", "p", "iStore")],
+  "heat-pump.german": [g("/viessmann-vitocal-161a.webp", "Viessmann Vitocal 161-A", "p", "Viessmann"), g("/viessmann-vitocal-161a-scene.webp", "Viessmann Vitocal 161-A beside a house (Viessmann's image)", "p", "Viessmann")],
   "heat-pump.premium": [g("/ba-hw-after.webp", "A Reclaim ECO all-in-one we installed on a new concrete pad", "c", "Reclaim")],
 };
 
@@ -617,6 +624,7 @@ export const TIER_MODELS: Record<string, ModelRef[]> = {
   "evaporative.premium": [["kaden", "kaden-evaporative-low", "Low-profile"]],
   "evaporative.signature": [["brivis", "brivis-evap-advance", "Advance"]],
   "heat-pump.essential": ISTORE, "heat-pump.premium": ECO,
+  "heat-pump.german": [["viessmann", "vitocal-161a-200", "200 L"], ["viessmann", "vitocal-161a-270", "270 L"]],
   "heat-pump.signature": [["reclaim", "co2-split-160-glass", "160 L"], ["reclaim", "co2-split-250-glass", "250 L"], ["reclaim", "co2-split-315-glass", "315 L"], ["reclaim", "co2-split-400-glass", "400 L"]],
   "gas-continuous-flow.essential": CF, "gas-continuous-flow.premium": [CF[2], CF[3]],
   "gas-storage.essential": [["thermann", "gas-storage-135", "135 L"], ["thermann", "gas-storage-170", "170 L"]],
@@ -650,7 +658,7 @@ export function modelForAnswer(models: { chip: string }[], answerSpec: string | 
 
 export const BRAND_SLUGS: Record<string, string> = {
   "Mitsubishi Electric": "mitsubishi-electric", Kaden: "kaden", Brivis: "brivis", Reclaim: "reclaim",
-  Thermann: "thermann", iStore: "istore", Zonemate: "zonemate",
+  Thermann: "thermann", iStore: "istore", Zonemate: "zonemate", Viessmann: "viessmann",
 };
 
 export const BRAND_PAGES: Record<string, string> = {

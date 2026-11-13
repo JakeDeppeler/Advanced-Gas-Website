@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Num } from "@/app/tools/hot-water-savings/HotWaterSavings";
+import "@/components/homepage/tools/calc-b.css";
 
 /**
  * Aircon running-cost calculator. Client-only, live-updating.
@@ -68,191 +70,82 @@ export function RunningCostCalculator() {
   const $ = (n: number) => `$${n.toFixed(2)}`;
 
   return (
-    <div className="page-tool__grid">
-      <div className="page-tool__form">
-        <h2>Unit &amp; usage</h2>
+    <div className="cb">
+      <div className="cb__card">
+        <a href="#rc-result" className="cb__peek" aria-hidden="true" tabIndex={-1}>
+          <span>Per year</span><b>{$(result.yearlyCost)}</b><em>See the sum ↓</em>
+        </a>
+        <h2 className="cb__h">Unit &amp; usage</h2>
 
-        <div className="tool-field">
-          <label>Input method</label>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => update("mode", "capacity")}
-              className="ds-btn"
-              style={{
-                flex: 1,
-                background: form.mode === "capacity" ? "var(--navy)" : "transparent",
-                color: form.mode === "capacity" ? "#fff" : "var(--navy)",
-                border: `1px solid ${form.mode === "capacity" ? "var(--navy)" : "var(--line)"}`,
-                fontSize: 13.5,
-                padding: "10px 12px",
-              }}
-            >
-              Capacity + COP
-            </button>
-            <button
-              type="button"
-              onClick={() => update("mode", "input")}
-              className="ds-btn"
-              style={{
-                flex: 1,
-                background: form.mode === "input" ? "var(--navy)" : "transparent",
-                color: form.mode === "input" ? "#fff" : "var(--navy)",
-                border: `1px solid ${form.mode === "input" ? "var(--navy)" : "var(--line)"}`,
-                fontSize: 13.5,
-                padding: "10px 12px",
-              }}
-            >
-              Input kW directly
-            </button>
+        <div className="cb__f">
+          <span className="cb__lbl" id="rc-mode">Input method</span>
+          <div className="cb__opts cb__opts--fill" role="group" aria-labelledby="rc-mode">
+            <button type="button" aria-pressed={form.mode === "capacity"} onClick={() => update("mode", "capacity")}>Capacity + COP</button>
+            <button type="button" aria-pressed={form.mode === "input"} onClick={() => update("mode", "input")}>Input kW directly</button>
           </div>
-          <small>
+          <p className="cb__hint">
             The capacity is the cooling/heating output (usually on the model badge). The
             input is what the unit draws from the wall, divide capacity by COP to get it.
-          </small>
+          </p>
         </div>
 
         {form.mode === "capacity" ? (
-          <div className="tool-field__row">
-            <div className="tool-field">
-              <label htmlFor="cap">Capacity (kW)</label>
-              <input
-                id="cap"
-                type="number"
-                min="0.5"
-                max="30"
-                step="0.1"
-                value={form.capacityKw}
-                onChange={(e) => update("capacityKw", parseFloat(e.target.value) || 0)}
-              />
-              <small>e.g. Mitsubishi MSZ-AP50 = 5.0 kW</small>
-            </div>
-            <div className="tool-field">
-              <label htmlFor="cop">COP</label>
-              <input
-                id="cop"
-                type="number"
-                min="1"
-                max="7"
-                step="0.1"
-                value={form.cop}
-                onChange={(e) => update("cop", parseFloat(e.target.value) || 1)}
-              />
-              <small>Inverter splits ≈ 4.0-5.0</small>
-            </div>
+          <div className="cb__pair">
+            <Num id="cap" label="Capacity" unit="kW" value={form.capacityKw} min={0.5} max={30} step={0.1}
+              onChange={(v) => update("capacityKw", v || 0)} hint="e.g. Mitsubishi MSZ-AP50 = 5.0 kW" />
+            <Num id="cop" label="COP" value={form.cop} min={1} max={7} step={0.1}
+              onChange={(v) => update("cop", v || 1)} hint="Inverter splits ≈ 4.0-5.0" />
           </div>
         ) : (
-          <div className="tool-field">
-            <label htmlFor="inp">Input power (kW)</label>
-            <input
-              id="inp"
-              type="number"
-              min="0.1"
-              max="15"
-              step="0.05"
-              value={form.inputKw}
-              onChange={(e) => update("inputKw", parseFloat(e.target.value) || 0)}
-            />
-            <small>Directly from the unit&rsquo;s spec sheet or nameplate.</small>
-          </div>
+          <Num id="inp" label="Input power" unit="kW" value={form.inputKw} min={0.1} max={15} step={0.05}
+            onChange={(v) => update("inputKw", v || 0)} hint="Directly from the unit’s spec sheet or nameplate." />
         )}
 
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="hrs">Hours per day</label>
-            <input
-              id="hrs"
-              type="number"
-              min="0"
-              max="24"
-              step="0.5"
-              value={form.hoursPerDay}
-              onChange={(e) => update("hoursPerDay", parseFloat(e.target.value) || 0)}
-            />
+        <div className="cb__group">
+          <Num id="hrs" label="Hours per day" unit="hrs" value={form.hoursPerDay} min={0} max={24} step={0.5}
+            onChange={(v) => update("hoursPerDay", v || 0)} />
+          <div className="cb__f">
+            <span className="cb__lbl" id="rc-days">Days per week</span>
+            <div className="cb__opts" role="group" aria-labelledby="rc-days">
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                <button key={d} type="button" aria-pressed={form.daysPerWeek === d} onClick={() => update("daysPerWeek", d)}>{d}</button>
+              ))}
+            </div>
           </div>
-          <div className="tool-field">
-            <label htmlFor="days">Days per week</label>
-            <input
-              id="days"
-              type="number"
-              min="1"
-              max="7"
-              step="1"
-              value={form.daysPerWeek}
-              onChange={(e) => update("daysPerWeek", parseInt(e.target.value) || 1)}
-            />
+          <div className="cb__pair">
+            <Num id="dpy" label="Days per year in use" unit="days" value={form.daysPerYear} min={1} max={365} step={1} int
+              onChange={(v) => update("daysPerYear", v || 0)} hint="Melbourne average ≈ 180-220 days (summer heat + winter warm-up)." />
+            <Num id="rate" label="Electricity rate" unit="c/kWh" value={form.rateCents} min={1} max={200} step={0.1}
+              onChange={(v) => update("rateCents", v || 0)} hint="Peak retail rate, check the “usage” line on your last bill." />
           </div>
-        </div>
-
-        <div className="tool-field">
-          <label htmlFor="dpy">Days per year in use</label>
-          <input
-            id="dpy"
-            type="number"
-            min="1"
-            max="365"
-            step="1"
-            value={form.daysPerYear}
-            onChange={(e) => update("daysPerYear", parseInt(e.target.value) || 0)}
-          />
-          <small>Melbourne average ≈ 180-220 days (summer heat + winter warm-up).</small>
-        </div>
-
-        <div className="tool-field">
-          <label htmlFor="rate">Electricity rate (c / kWh)</label>
-          <input
-            id="rate"
-            type="number"
-            min="1"
-            max="200"
-            step="0.1"
-            value={form.rateCents}
-            onChange={(e) => update("rateCents", parseFloat(e.target.value) || 0)}
-          />
-          <small>Peak retail rate, check the &ldquo;usage&rdquo; line on your last bill.</small>
         </div>
       </div>
 
-      <div className="page-tool__result">
-        <h2>Estimated cost</h2>
-        <div className="tool-result__lead">Per year</div>
-        <div className="tool-result__big">
-          {$(result.yearlyCost)}
-        </div>
-        <p className="tool-result__sub">
-          At <strong>{result.inputKw.toFixed(2)}&nbsp;kW</strong> input × {form.hoursPerDay}&nbsp;hr / day
-          × {form.daysPerYear}&nbsp;days / yr × {form.rateCents}&nbsp;c/kWh.
-        </p>
-
-        <div className="tool-result__breakdown">
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Per day</span>
-            <span className="tool-result__row-val">{$(result.dailyCost)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Per week</span>
-            <span className="tool-result__row-val">{$(result.weeklyCost)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Per year</span>
-            <span className="tool-result__row-val">{$(result.yearlyCost)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Energy used / day</span>
-            <span className="tool-result__row-val">{result.dailyKwh.toFixed(2)} kWh</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Input power</span>
-            <span className="tool-result__row-val">{result.inputKw.toFixed(2)} kW</span>
-          </div>
+      <div className="cb__card cb__res" id="rc-result" aria-live="polite">
+        <h2 className="cb__h">Estimated cost</h2>
+        <div className="cb__top">
+          <span className="cb__lead">Per year</span>
+          <b className="cb__big">{$(result.yearlyCost)}</b>
+          <p className="cb__sub">
+            At <strong>{result.inputKw.toFixed(2)}&nbsp;kW</strong> input × {form.hoursPerDay}&nbsp;hr / day
+            × {form.daysPerYear}&nbsp;days / yr × {form.rateCents}&nbsp;c/kWh.
+          </p>
         </div>
 
-        <div className="tool-result__cta">
-          <Link href="/quote" className="ds-btn ds-btn--orange">Quote a more-efficient upgrade →</Link>
-          <Link href="/rebates" className="ds-btn ds-btn--ghost">See VEU rebate savings →</Link>
+        <dl className="cb__rows">
+          <div><dt>Per day</dt><dd>{$(result.dailyCost)}</dd></div>
+          <div><dt>Per week</dt><dd>{$(result.weeklyCost)}</dd></div>
+          <div><dt>Per year</dt><dd>{$(result.yearlyCost)}</dd></div>
+          <div><dt>Energy used / day</dt><dd>{result.dailyKwh.toFixed(2)} kWh</dd></div>
+          <div><dt>Input power</dt><dd>{result.inputKw.toFixed(2)} kW</dd></div>
+        </dl>
+
+        <div className="cb__ctas">
+          <Link href="/quote" className="abtn abtn--or abtn--flat cb__btn cb__btn--or">Quote a more-efficient upgrade →</Link>
+          <Link href="/rebates" className="abtn abtn--line cb__btn cb__btn--line">See VEU rebate savings →</Link>
         </div>
 
-        <p className="tool-result__note">
+        <p className="cb__note">
           Estimate only. Real usage varies with outdoor temperature, thermostat setpoint and how
           well-sealed the room is. Old (2005-and-earlier) non-inverter units may draw 30-50% more
           than the spec sheet under high load.

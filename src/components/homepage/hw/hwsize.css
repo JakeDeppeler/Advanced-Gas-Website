@@ -29,3 +29,32 @@
   .ag .hws__fit{grid-column:2/-1}
   .ag .hws__go{grid-column:2/-1}
 }
+
+/* Which heat pump? The answers on the left, the pick on the right. */
+.ag .hpf{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:start}
+.ag .hws__opts--big button{height:auto;min-height:56px;padding:10px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.ag .hws__opts--big button small{font:500 12.5px/1.3 var(--sans,inherit);color:var(--ink3,#5b6078)}
+.ag .hws__opts--big button[aria-pressed="true"] small{color:rgba(255,255,255,.75)}
+.ag .hpf__out{display:flex;flex-direction:column;gap:12px}
+.ag .hpf__wait{padding:28px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6)}
+.ag .hpf__wait b{font:800 22px/1.2 var(--disp);color:var(--navy,#050A30)}
+.ag .hpf__wait p{margin:8px 0 0;color:var(--ink3,#5b6078);line-height:1.5}
+.ag .hpf__top{display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;padding:22px;border-radius:16px;background:#fff;box-shadow:0 14px 34px -18px rgba(5,10,48,.4),inset 0 0 0 2px var(--navy,#050A30)}
+.ag .hpf__img{position:relative;display:block;aspect-ratio:3/4;border-radius:12px;background:#F7F5F0;overflow:hidden}
+.ag .hpf__img img{object-fit:contain;padding:10px}
+.ag .hpf__txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ag .hpf__txt > small{font:700 11px/1 var(--mono,ui-monospace,monospace);letter-spacing:.1em;text-transform:uppercase;color:var(--acc,#C2521A)}
+.ag .hpf__txt > strong{font:900 24px/1.1 var(--disp);color:var(--navy,#050A30);letter-spacing:-.01em}
+.ag .hpf__size{margin:0;font-size:15px;color:var(--ink2,#2b3050)}
+.ag .hpf__size b{font:800 17px var(--disp);color:var(--navy,#050A30)}
+.ag .hpf__fit{display:flex;gap:8px;align-items:center;margin:0;font-weight:700;font-size:14.5px;color:var(--navy,#050A30)}
+.ag .hpf__fit i{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font:800 12px/1 var(--disp);font-style:normal;color:#fff;background:#1F7A4D}
+.ag .hws__opt--reheat .hpf__fit i{background:#B7791F}
+.ag .hws__opt--short .hpf__fit i{background:#B42318}
+.ag .hpf__solar{margin:0;padding:10px 12px;border-radius:10px;background:#FFF7E6;font-size:14px;line-height:1.45;color:#5c4400}
+.ag .hpf__btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.ag .hpf__btns .abtn--line{color:var(--navy,#050A30);box-shadow:inset 0 0 0 1.5px var(--navy,#050A30)}
+@media (max-width:900px){
+  .ag .hpf{grid-template-columns:1fr}
+  .ag .hpf__top{grid-template-columns:96px minmax(0,1fr);padding:16px;gap:14px}
+}

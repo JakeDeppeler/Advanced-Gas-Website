@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import "@/components/homepage/tools/calc-a.css";
 import { SIZING_DEFAULTS as DEFAULTS, SYSTEMS, sizeHousehold, type SizingForm as Form } from "@/lib/tools/hotWaterSizing";
 
 /**
@@ -45,6 +46,45 @@ import { SIZING_DEFAULTS as DEFAULTS, SYSTEMS, sizeHousehold, type SizingForm as
  * tight.
  */
 
+const HEAT_KW: { v: number; l: string; s: string }[] = [
+  { v: 2.5, l: "2.5 kW", s: "Standard Reclaim, Thermann, iStore 180" },
+  { v: 4, l: "4 kW", s: "iStore 275, Panasonic 4 kW" },
+  { v: 5, l: "5 kW", s: "Reclaim 215 / 315" },
+  { v: 6, l: "6 kW", s: "Panasonic, fastest recovery" },
+];
+
+/** − value +, for a number the user may also type. */
+function Stepper({ id, value, step, min, max, onChange, unit }: {
+  id: string; value: number; step: number; min: number; max: number; unit?: string; onChange: (v: number) => void;
+}) {
+  const clamp = (v: number) => Math.min(max, Math.max(min, v));
+  return (
+    <div className="ca__step">
+      <button type="button" aria-label={`Less${unit ? `, ${unit}` : ""}`} disabled={value <= min} onClick={() => onChange(clamp(value - step))}>−</button>
+      <input id={id} type="number" inputMode="numeric" min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))} />
+      <button type="button" aria-label={`More${unit ? `, ${unit}` : ""}`} disabled={value >= max} onClick={() => onChange(clamp(value + step))}>+</button>
+    </div>
+  );
+}
+
+/** A rounded number field for the advanced settings. */
+function Field({ id, label, hint, value, min, max, step, fallback, unit, onChange }: {
+  id: string; label: string; hint: string; value: number; min: number; max: number; step: number; fallback: number; unit: string; onChange: (v: number) => void;
+}) {
+  return (
+    <div className="ca__row">
+      <label className="ca__q" htmlFor={id}>{label}</label>
+      <div className="ca__field">
+        <input id={id} type="number" inputMode="decimal" min={min} max={max} step={step} value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value) || fallback)} />
+        <em>{unit}</em>
+      </div>
+      <p className="ca__hint">{hint}</p>
+    </div>
+  );
+}
+
 export function HeatPumpSizing() {
   const [form, setForm] = useState<Form>(DEFAULTS);
   const set = <K extends keyof Form>(k: K, v: Form[K]) =>
@@ -57,148 +97,111 @@ export function HeatPumpSizing() {
   const hrs = (v: number) => (v < 1 ? `${n(v * 60)} min` : `${n(v, 1)} hrs`);
 
   return (
-    <div className="page-tool__grid">
-      <div className="page-tool__form">
-        <h2>Your household</h2>
+    <div className="ca">
+      <div className="ca__card ca__in">
+        <h2 className="ca__h">Your household</h2>
 
-        <div className="tool-field">
-          <label htmlFor="am">
-            Showering in the morning: <strong>{form.morningPeople}</strong>
-          </label>
-          <input id="am" type="range" min="0" max="8" step="1"
-            value={form.morningPeople}
-            onChange={(e) => set("morningPeople", parseInt(e.target.value))} />
-          <small>People showering inside a {r.runHours} hour window before work.</small>
+        <div className="ca__pair">
+          <div className="ca__row">
+            <label className="ca__q" htmlFor="am">Showering in the morning</label>
+            <Stepper id="am" value={form.morningPeople} step={1} min={0} max={8} unit="people" onChange={(v) => set("morningPeople", Number.isFinite(v) ? Math.round(v) : 0)} />
+          </div>
+          <div className="ca__row">
+            <label className="ca__q" htmlFor="pm">Showering in the evening</label>
+            <Stepper id="pm" value={form.eveningPeople} step={1} min={0} max={8} unit="people" onChange={(v) => set("eveningPeople", Number.isFinite(v) ? Math.round(v) : 0)} />
+          </div>
         </div>
+        <p className="ca__hint" style={{ marginTop: -10 }}>People showering inside a {r.runHours} hour window before work, and after it.</p>
 
-        <div className="tool-field">
-          <label htmlFor="pm">
-            Showering in the evening: <strong>{form.eveningPeople}</strong>
-          </label>
-          <input id="pm" type="range" min="0" max="8" step="1"
-            value={form.eveningPeople}
-            onChange={(e) => set("eveningPeople", parseInt(e.target.value))} />
-          <small>People showering inside a {r.runHours} hour window after work.</small>
-        </div>
-
-        <div className="tool-field">
-          <label htmlFor="mins">Shower length (min)</label>
-          <input id="mins" type="number" min="5" max="30" step="1"
-            value={form.showerMinutes}
-            onChange={(e) => set("showerMinutes", parseFloat(e.target.value) || 15)} />
-          <small>
+        <div className="ca__row">
+          <label className="ca__q" htmlFor="mins">Shower length (min)</label>
+          <Stepper id="mins" value={form.showerMinutes} step={1} min={5} max={30} unit="minutes" onChange={(v) => set("showerMinutes", v || 15)} />
+          <p className="ca__hint">
             10 minutes is the working number. Set it higher if your household
             runs long ones, it changes the tank size fast.
-          </small>
+          </p>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="kw">Heating capacity (kW)</label>
-          <select id="kw" value={form.heatKw} onChange={(e) => set("heatKw", parseFloat(e.target.value))}>
-            <option value={2.5}>2.5 kW · standard Reclaim, Thermann, iStore 180</option>
-            <option value={4}>4 kW · iStore 275, Panasonic 4 kW</option>
-            <option value={5}>5 kW · Reclaim 215 / 315</option>
-            <option value={6}>6 kW · Panasonic, fastest recovery</option>
-          </select>
-          <small>
+        <div className="ca__row">
+          <span className="ca__q" id="kw">Heating capacity (kW)</span>
+          <div className="ca__choices" role="group" aria-labelledby="kw">
+            {HEAT_KW.map((o) => (
+              <button key={o.v} type="button" className="ca__choice" aria-pressed={form.heatKw === o.v} onClick={() => set("heatKw", o.v)}>
+                <i aria-hidden="true" /><span><strong>{o.l}</strong><small>{o.s}</small></span>
+              </button>
+            ))}
+          </div>
+          <p className="ca__hint">
             This changes the tank size as much as your household does. The
             compressor is running while people shower, so a stronger one
             needs less stored water behind it.
-          </small>
+          </p>
         </div>
 
-        <h2 style={{ marginTop: 24 }}>Compare two systems</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="sysA">System A</label>
-            <select id="sysA" value={form.systemA} onChange={(e) => set("systemA", e.target.value)}>
-              {SYSTEMS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-            </select>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="sysB">System B</label>
-            <select id="sysB" value={form.systemB} onChange={(e) => set("systemB", e.target.value)}>
-              {SYSTEMS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-            </select>
+        <div className="ca__sec">
+          <h3>Compare two systems</h3>
+          <div className="ca__pair">
+            <div className="ca__row">
+              <label className="ca__q" htmlFor="sysA">System A</label>
+              <div className="ca__field">
+                <select id="sysA" value={form.systemA} onChange={(e) => set("systemA", e.target.value)}>
+                  {SYSTEMS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="ca__row">
+              <label className="ca__q" htmlFor="sysB">System B</label>
+              <div className="ca__field">
+                <select id="sysB" value={form.systemB} onChange={(e) => set("systemB", e.target.value)}>
+                  {SYSTEMS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        <details className="tool-adv">
+        <details className="ca__adv">
           <summary>Advanced settings</summary>
-          <p className="tool-adv__note">
-            Defaults are what we&rsquo;d quote on. Change them if you know your
-            own numbers, mains runs colder in the hills, and COP moves with
-            the unit.
-          </p>
-
-          <div className="tool-field__row">
-            <div className="tool-field">
-              <label htmlFor="mains">Cold mains inlet (°C)</label>
-              <input id="mains" type="number" min="5" max="25" step="1"
-                value={form.mainsTempC}
-                onChange={(e) => set("mainsTempC", parseFloat(e.target.value) || 15)} />
-              <small>Melbourne winter sits 12-15. Summer 18-22.</small>
+          <div className="ca__advin">
+            <p className="ca__hint">
+              Defaults are what we&rsquo;d quote on. Change them if you know your
+              own numbers, mains runs colder in the hills, and COP moves with
+              the unit.
+            </p>
+            <div className="ca__pair">
+              <Field id="mains" label="Cold mains inlet" unit="°C" value={form.mainsTempC} min={5} max={25} step={1} fallback={15}
+                hint="Melbourne winter sits 12-15. Summer 18-22." onChange={(v) => set("mainsTempC", v)} />
+              <Field id="tank" label="Tank setpoint" unit="°C" value={form.tankTempC} min={50} max={70} step={1} fallback={60}
+                hint="60 minimum by law, Legionella control." onChange={(v) => set("tankTempC", v)} />
             </div>
-            <div className="tool-field">
-              <label htmlFor="tank">Tank setpoint (°C)</label>
-              <input id="tank" type="number" min="50" max="70" step="1"
-                value={form.tankTempC}
-                onChange={(e) => set("tankTempC", parseFloat(e.target.value) || 60)} />
-              <small>60 minimum by law, Legionella control.</small>
+            <div className="ca__pair">
+              <Field id="mixed" label="Shower temp" unit="°C" value={form.mixedTempC} min={35} max={50} step={0.5} fallback={41}
+                hint="Comfortable is 40-42." onChange={(v) => set("mixedTempC", v)} />
+              <Field id="flow" label="Shower flow" unit="L/min" value={form.showerFlowLpm} min={4} max={20} step={0.5} fallback={9}
+                hint="3-star head ≈ 9. Old unrestricted heads hit 15-20." onChange={(v) => set("showerFlowLpm", v)} />
             </div>
+            <div className="ca__pair">
+              <Field id="other" label="Other hot water / day" unit="L" value={form.otherLitresPerDay} min={0} max={200} step={5} fallback={0}
+                hint="Basins, kitchen, laundry." onChange={(v) => set("otherLitresPerDay", v)} />
+              <Field id="gap" label="Hours between runs" unit="hrs" value={form.gapHours} min={2} max={16} step={1} fallback={9}
+                hint="Morning to evening, the tank’s reheat window." onChange={(v) => set("gapHours", v)} />
+            </div>
+            <p className="ca__hint">
+              COP is set per system in the comparison below rather than here, so
+              each unit is judged on its own figure instead of one shared guess.
+            </p>
           </div>
-
-          <div className="tool-field__row">
-            <div className="tool-field">
-              <label htmlFor="mixed">Shower temp (°C)</label>
-              <input id="mixed" type="number" min="35" max="50" step="0.5"
-                value={form.mixedTempC}
-                onChange={(e) => set("mixedTempC", parseFloat(e.target.value) || 41)} />
-              <small>Comfortable is 40-42.</small>
-            </div>
-            <div className="tool-field">
-              <label htmlFor="flow">Shower flow (L/min)</label>
-              <input id="flow" type="number" min="4" max="20" step="0.5"
-                value={form.showerFlowLpm}
-                onChange={(e) => set("showerFlowLpm", parseFloat(e.target.value) || 9)} />
-              <small>3-star head ≈ 9. Old unrestricted heads hit 15-20.</small>
-            </div>
-          </div>
-
-          <div className="tool-field__row">
-            <div className="tool-field">
-              <label htmlFor="other">Other hot water / day (L)</label>
-              <input id="other" type="number" min="0" max="200" step="5"
-                value={form.otherLitresPerDay}
-                onChange={(e) => set("otherLitresPerDay", parseFloat(e.target.value) || 0)} />
-              <small>Basins, kitchen, laundry.</small>
-            </div>
-            <div className="tool-field">
-              <label htmlFor="gap">Hours between runs</label>
-              <input id="gap" type="number" min="2" max="16" step="1"
-                value={form.gapHours}
-                onChange={(e) => set("gapHours", parseFloat(e.target.value) || 9)} />
-              <small>Morning to evening, the tank&rsquo;s reheat window.</small>
-            </div>
-          </div>
-
-          <p className="tool-adv__note">
-            COP is set per system in the comparison below rather than here, so
-            each unit is judged on its own figure instead of one shared guess.
-          </p>
         </details>
       </div>
 
-      <div className="page-tool__result">
-        <h2>Tank size you need</h2>
-        <div className="tool-rec">
-          <div className="tool-rec__lead">Recommended heat pump</div>
-          <div className="tool-rec__big">
-            {r.recommended.litres} L <span className="tool-rec__kw">+ {form.heatKw} kW</span>
-          </div>
-          <div className="tool-rec__models">{r.recommended.models}</div>
-        </div>
-        <p className="tool-result__sub">
+      <div className="ca__card ca__sum" aria-live="polite">
+        <span className="ca__lbl">Tank size you need · recommended heat pump</span>
+        <div className="ca__big">{r.recommended.litres}<small> L + {form.heatKw} kW</small></div>
+        <p className="ca__tag">{r.recommended.models}</p>
+      </div>
+
+      <div className="ca__card ca__det">
+        <p className="ca__sub">
           Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong> over about{" "}
           {n(r.drawHours * 60)} minutes. The {form.heatKw} kW compressor makes{" "}
           <strong>{n(r.madeDuringRun)} L</strong> of that while people are still
@@ -208,17 +211,31 @@ export function HeatPumpSizing() {
           {r.recommended.litres} L on the wall.
         </p>
 
-        <div className="tool-pair">
-          <div className="tool-pair__lbl">Tank and compressor trade off</div>
-          <div className="tool-pair__row">
+        {r.exceedsRange && (
+          <div className="ca__fit ca__fit--tight">
+            <i aria-hidden="true">!</i>
+            <p>
+              <strong>Bigger than one tank</strong>
+              That run needs about {n(r.requiredLitres)} L of storage, more than the
+              largest single tank we install. The usual answer is two tanks plumbed
+              in series, or staggering the showers so the run splits in two. Worth a
+              call rather than a calculator.
+            </p>
+          </div>
+        )}
+
+        <div className="ca__sec">
+          <span className="ca__q">Tank and compressor trade off</span>
+          <div className="ca__cells">
             {r.pairings.map((p) => (
-              <div key={p.kw} className={`tool-pair__cell${p.kw === form.heatKw ? " is-active" : ""}`}>
+              <div key={p.kw} className={`ca__cell${p.kw === form.heatKw ? " is-on" : ""}`}>
+                {p.kw === form.heatKw && <em>Your pick</em>}
                 <strong>{p.kw} kW</strong>
                 <span>{p.tank ? `${p.tank} L` : "over 400 L"}</span>
               </div>
             ))}
           </div>
-          <p className="tool-pair__note">
+          <p className="ca__hint">
             Same household either way. A bigger compressor puts water back
             faster, so it needs less stored behind it; a bigger tank lets a
             smaller compressor keep up. Which one is better value depends on
@@ -226,27 +243,15 @@ export function HeatPumpSizing() {
           </p>
         </div>
 
-        {r.exceedsRange && (
-          <div className="hps-verdict is-tight" style={{ marginTop: 14 }}>
-            <strong>Bigger than one tank</strong>
-            <span>
-              That run needs about {n(r.requiredLitres)} L of storage, more than the
-              largest single tank we install. The usual answer is two tanks plumbed
-              in series, or staggering the showers so the run splits in two. Worth a
-              call rather than a calculator.
-            </span>
-          </div>
-        )}
-
-        <div className="hps-picks">
-          <div className="hps-picks__lbl">Systems we install at this size</div>
-          <div className="hps-picks__row">
+        <div className="ca__sec">
+          <span className="ca__q">Systems we install at this size</span>
+          <div className="ca__links">
             {r.picks.map((pk) => (
-              <Link key={pk.href} href={pk.href} className="hps-pick">{pk.label} →</Link>
+              <Link key={pk.href} href={pk.href}>{pk.label} →</Link>
             ))}
           </div>
           {r.alsoFine && (
-            <p className="hps-picks__also">
+            <p className="ca__hint">
               A <Link href={r.alsoFine.href}>{r.alsoFine.label}</Link> also covers this
               comfortably. 285 and 270 are one rung apart, and 15 litres isn&rsquo;t worth
               buying up a size for.
@@ -254,39 +259,38 @@ export function HeatPumpSizing() {
           )}
         </div>
 
-        <div className="hps-delivery">
-          <div className="hps-delivery__lbl">What that actually delivers</div>
-          <div className="hps-delivery__big">
-            {n(r.showersFromTank, 1)} showers <span>back to back, before any reheat</span>
+        <div className="ca__sec">
+          <span className="ca__q">What that actually delivers</span>
+          <div className="ca__big" style={{ fontSize: "clamp(34px,4vw,48px)" }}>
+            {n(r.showersFromTank, 1)}<small> showers back to back, before any reheat</small>
           </div>
-          <p className="hps-delivery__note">
+          <p className="ca__hint">
             {n(r.usableCapacity)} L of usable 60 °C water blends with about{" "}
             <strong>{n(r.coldBlendedIn)} L</strong> of cold to make{" "}
             <strong>{n(r.deliveredMixed)} L</strong> at shower temperature. Each{" "}
-            {form.showerMinutes} minute shower takes {n(r.hotPerShower)} L out of the tank
-, {n(r.hotLpm, 1)} L a minute hot, {n(r.coldLpm, 1)} L cold.
+            {form.showerMinutes} minute shower takes {n(r.hotPerShower)} L out of the tank, {n(r.hotLpm, 1)} L a minute hot, {n(r.coldLpm, 1)} L cold.
           </p>
         </div>
 
-        <div className="hps-sessions">
-          <div className="hps-sessions__grid">
-            <div className="hps-session">
-              <span className="hps-session__when">Morning</span>
+        <div className="ca__sec">
+          <div className="ca__cells ca__cells--3">
+            <div className="ca__cell">
+              <em>Morning</em>
               <strong>{n(r.morningHot)} L</strong>
-              <span className="hps-session__sub">{form.morningPeople} showers</span>
+              <span>{form.morningPeople} showers</span>
             </div>
-            <div className="hps-session hps-session--gap">
-              <span className="hps-session__when">{r.gapHours} hr gap</span>
+            <div className="ca__cell ca__cell--gap">
+              <em>{r.gapHours} hr gap</em>
               <strong>reheat</strong>
-              <span className="hps-session__sub">tank refills</span>
+              <span>tank refills</span>
             </div>
-            <div className="hps-session">
-              <span className="hps-session__when">Evening</span>
+            <div className="ca__cell">
+              <em>Evening</em>
               <strong>{n(r.eveningHot)} L</strong>
-              <span className="hps-session__sub">{form.eveningPeople} showers</span>
+              <span>{form.eveningPeople} showers</span>
             </div>
           </div>
-          <p className="hps-sessions__note">
+          <p className="ca__hint">
             Sizing runs off the bigger run, not the {n(r.totalHotPerDay)} L daily total.
             The gap between them is long enough for the tank to come all the way
             back, which is why a house of four doesn&rsquo;t need a tank that holds
@@ -294,16 +298,16 @@ export function HeatPumpSizing() {
           </p>
         </div>
 
-        <div className="hps-vs">
-          <div className="hps-vs__lbl">Head to head, on your numbers</div>
-          <div className="hps-vs__grid">
+        <div className="ca__sec">
+          <span className="ca__q">Head to head, on your numbers</span>
+          <div className="ca__vs">
             {r.compare.map((c, i) => (
-              <div key={`${c.id}-${i}`} className={`hps-vs__card${c.keepsUp ? " is-ok" : " is-tight"}`}>
+              <div key={`${c.id}-${i}`} className="ca__vsc">
                 <h3>{c.name}</h3>
-                <div className={`hps-vs__badge${c.keepsUp ? " is-ok" : " is-tight"}`}>
-                  {c.keepsUp ? "Keeps up" : "Struggles"}
-                </div>
-                <dl className="hps-vs__rows">
+                <span className={`ca__badge${c.keepsUp ? "" : " ca__badge--tight"}`}>
+                  <i aria-hidden="true">{c.keepsUp ? "✓" : "!"}</i>{c.keepsUp ? "Keeps up" : "Struggles"}
+                </span>
+                <dl className="ca__maths">
                   <div><dt>Showers on tap</dt><dd>{n(c.showers, 1)}</dd></div>
                   <div><dt>Recovery</dt><dd>{n(c.litresPerHour)} L/hr</dd></div>
                   <div><dt>Full reheat</dt><dd>{hrs(c.fullReheatHrs)}</dd></div>
@@ -311,9 +315,9 @@ export function HeatPumpSizing() {
                   <div><dt>Busiest run</dt><dd>{c.handlesPeak ? "covered" : "short"}</dd></div>
                   <div><dt>Ready by evening</dt><dd>{c.readyPm ? "yes" : "no"}</dd></div>
                 </dl>
-                <p className="hps-vs__note">{c.note}</p>
+                <p className="ca__hint">{c.note}</p>
                 {!c.verified && (
-                  <p className="hps-vs__unverified">
+                  <p className="ca__note">
                     Heat output is a working estimate, confirm against the datasheet
                     before quoting off it.
                   </p>
@@ -321,7 +325,7 @@ export function HeatPumpSizing() {
               </div>
             ))}
           </div>
-          <p className="hps-vs__foot">
+          <p className="ca__hint">
             Compressor size is a recovery-speed decision, not a capacity one. A 6 kW
             Panasonic reheats in roughly half the time of the 4 kW, which only matters
             when the gap between runs is short, with a long morning-to-evening gap the
@@ -331,14 +335,12 @@ export function HeatPumpSizing() {
           </p>
         </div>
 
-        <div className="tool-result__cta">
-          <Link href="/quote" className="ds-btn ds-btn--orange">Quote me this size →</Link>
-          <Link href="/tools/hot-water-savings" className="ds-btn ds-btn--ghost">
-            Now work out the savings →
-          </Link>
+        <div className="ca__ctas">
+          <Link href="/quote" className="abtn abtn--or abtn--flat">Quote me this size →</Link>
+          <Link href="/tools/hot-water-savings" className="abtn abtn--ghost">Now work out the savings →</Link>
         </div>
 
-        <p className="tool-result__note">
+        <p className="ca__note">
           Estimate only. Real sizing also depends on whether you have a bath, two
           showers running at once, pipe runs, and how cold the mains actually runs
           at your address in July. We check all of it on the site visit.
