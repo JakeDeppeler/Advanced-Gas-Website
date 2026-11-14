@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   CATS, PHOTO, ICON, SIZE_NOTE, SHOW_PRICES, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, FINANCE_NOTE, TONES,
-  findSystem, answerChips, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
+  findSystem, answerChips, HP_WANT_TIER, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
   type Answers,
 } from "@/lib/homepage/data";
 import { onIntent, sendIntent, scrollToId } from "@/lib/homepage/intent";
@@ -19,9 +19,15 @@ import { SHOWER_MINUTES, peopleIn, tankForAnswer, tanksOf, FIT_TEXT } from "@/li
  * Back undoes one answer at a time, and every answer so far shows as a chip,
  * so nobody has to start again to change one thing.
  */
-export function Finder() {
-  const [ci, setCi] = useState<number | null>(null);
-  const [si, setSi] = useState<number | null>(null);
+/**
+ * `only` opens it on one system's questions, for that system's own page (the
+ * heat pump page, Jake, Nov 2026): the same finder as the homepage's, without
+ * the type and system steps.
+ */
+export function Finder({ only }: { only?: string } = {}) {
+  const fixed = only ? findSystem(only) : null;
+  const [ci, setCi] = useState<number | null>(fixed?.ci ?? null);
+  const [si, setSi] = useState<number | null>(fixed?.si ?? null);
   const [ans, setAns] = useState<Answers>({});
   const boxRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +39,9 @@ export function Finder() {
   const curQ = qList[qIdx] ?? null;
   const stage = ci == null ? 1 : si == null ? 2 : curQ ? 3 : 4;
   const chips = sys ? answerChips(sys, ans) : [];
-  const crumbs = [cat?.label, sys?.label, ...chips].filter((x): x is string => !!x);
+  const crumbs = (fixed ? chips : [cat?.label, sys?.label, ...chips]).filter((x): x is string => !!x);
+  // "What matters most?" marks the option it points to as our pick, in place of "Most popular".
+  const pickTier = sys?.qs.some((q) => q.id === "want") && ans.want != null ? HP_WANT_TIER[ans.want] : null;
   const size = sys && ans.size != null ? sys.sizes[ans.size] : null;
   // The shower check, for a tank system once its people and shower length
   // are in: everyone back to back, at Jake's 5 L of hot a minute.
@@ -41,7 +49,7 @@ export function Finder() {
   const need = showerQ && size && ans.shw != null ? peopleIn(size.label) * SHOWER_MINUTES[ans.shw] : null;
 
   useEffect(() => onIntent((i) => {
-    if (i.kind !== "find") return false;
+    if (i.kind !== "find" || only) return false;
     if (i.system) {
       const ref = findSystem(i.system);
       if (ref) { setCi(ref.ci); setSi(ref.si); setAns(i.answers ?? {}); return true; }
@@ -49,7 +57,7 @@ export function Finder() {
     const c = CATS.findIndex((x) => x.id === (i.cat ?? i.system));
     setCi(c >= 0 ? c : null); setSi(null); setAns({});
     return true;
-  }), []);
+  }), [only]);
 
   // A new screen of choices: keep its top in view on a phone, where the
   // previous screen's tiles can run well past the fold.
@@ -63,11 +71,14 @@ export function Finder() {
     if (stage === 4 || qIdx > 0) {
       const last = qList[(stage === 4 ? qList.length : qIdx) - 1];
       setAns((a) => { const n = { ...a }; delete n[last.id]; return n; });
-    } else if (si != null) { setSi(null); setAns({}); }
+    } else if (fixed) return;
+    else if (si != null) { setSi(null); setAns({}); }
     else setCi(null);
   }
 
-  const steps = ["Type", "System", "Your home", "Options"];
+  const steps = fixed ? ["Your home", "Options"] : ["Type", "System", "Your home", "Options"];
+  // With the first two steps skipped, the step shown is two behind.
+  const shown = fixed ? stage - 2 : stage;
   const toolHref = cat?.id === "air" ? "/tools/sizing-calculator" : cat?.id === "hw" ? "/hot-water#size" : "/tools/heating-comparator";
   const toolText = cat?.id === "air" ? "Not sure? Try our sizing calculator" : cat?.id === "hw" ? "Not sure? Check the size your showers need" : "Gas vs reverse-cycle running costs";
 
@@ -80,32 +91,32 @@ export function Finder() {
 
           <div className="find__head">
             <div className="find__intro">
-              <h2 className="find__h">Find your <span>system</span></h2>
+              <h2 className="find__h">Find your <span>{fixed ? fixed.sys.label.toLowerCase() : "system"}</span></h2>
               <p className="find__p">
-                Pick what you need, answer a few quick questions about your home, and we&apos;ll show you three options side by side
-                {SHOW_PRICES ? (SHOW_FINANCE ? " with the weekly finance figure" : " with installed prices") : ", then a free written quote for the one you like"}. Something stopped working?{" "}
+                {fixed ? "Answer a few quick questions and we'll show you every option side by side, with the one we'd pick for you, at the size that covers your showers" : "Pick what you need, answer a few quick questions about your home, and we'll show you three options side by side"}
+                {fixed ? "" : SHOW_PRICES ? (SHOW_FINANCE ? " with the weekly finance figure" : " with installed prices") : ", then a free written quote for the one you like"}. Something stopped working?{" "}
                 <a href="tel:+61359478000" data-call-from="finder">Call (03) 5947 8000</a>.
               </p>
             </div>
             <ol className="find__steps" aria-label="Steps">
               {steps.map((n, i) => {
-                const st = i + 1 === stage ? " fstep--on" : i + 1 < stage ? " fstep--done" : "";
+                const st = i + 1 === shown ? " fstep--on" : i + 1 < shown ? " fstep--done" : "";
                 return (
-                  <li key={n} className={`fstep${st}`} aria-current={i + 1 === stage ? "step" : undefined}>
-                    <b>{i < stage - 1 ? "✓" : i + 1}</b>{n}
+                  <li key={n} className={`fstep${st}`} aria-current={i + 1 === shown ? "step" : undefined}>
+                    <b>{i < shown - 1 ? "✓" : i + 1}</b>{n}
                   </li>
                 );
               })}
             </ol>
           </div>
 
-          <div className="find__bar" aria-hidden="true"><span style={{ width: `${stage * 25}%` }} /></div>
+          <div className="find__bar" aria-hidden="true"><span style={{ width: `${(shown / steps.length) * 100}%` }} /></div>
 
           {crumbs.length > 0 && (
             <div className="find__crumbs">
-              <button type="button" onClick={back} className="abtn abtn--line find__back">← Back</button>
+              {!(fixed && stage === 3 && qIdx === 0) && <button type="button" onClick={back} className="abtn abtn--line find__back">← Back</button>}
               {crumbs.map((c, i) => <span key={`${i}-${c}`} className="crumbp pop">{c}</span>)}
-              <button type="button" className="find__reset" onClick={() => { setCi(null); setSi(null); setAns({}); }}>Start over</button>
+              <button type="button" className="find__reset" onClick={() => { setCi(fixed?.ci ?? null); setSi(fixed?.si ?? null); setAns({}); }}>Start over</button>
             </div>
           )}
 
@@ -189,8 +200,8 @@ export function Finder() {
                   const href = productHref(sys, t, ans);
                   const nPhotos = galleryFor(sys, t).length;
                   return (
-                    <article key={t.slug} className={`tier${i === 1 ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
-                      {i === 1 && <span className="tier__badge pop">Most popular</span>}
+                    <article key={t.slug} className={`tier${(pickTier ? t.slug === pickTier : i === 1) ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
+                      {(pickTier ? t.slug === pickTier : i === 1) && <span className="tier__badge pop">{pickTier ? "Our pick for you" : "Most popular"}</span>}
                       <span className="tier__tier" style={{ color: TONES[i] }}>{t.tier}</span>
                       <Link href={href} className="tier__img" aria-label={`View ${t.brand} ${t.model}`}>
                         <Image src={t.img} alt={`${t.brand} ${t.model}`} fill sizes="(max-width: 600px) 80vw, 340px" />
@@ -224,7 +235,7 @@ export function Finder() {
                       </div>
                       <div className="tier__btns">
                         <Link href={href} className="abtn abtn--ghost">View details</Link>
-                        <a href={bookHref(sys, t, ans)} className={`abtn ${i === 1 ? "abtn--or" : "abtn--navy"}`}
+                        <a href={bookHref(sys, t, ans)} className={`abtn ${(pickTier ? t.slug === pickTier : i === 1) ? "abtn--or" : "abtn--navy"}`}
                           onClick={(e) => { e.preventDefault(); sendIntent({ kind: "book", system: sys.slug, tier: t.slug, answers: ans }, "quote"); }}>
                           Book →
                         </a>

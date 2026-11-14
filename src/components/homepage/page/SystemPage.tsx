@@ -11,7 +11,7 @@ import { HowItWorks } from "../how/HowItWorks";
 import { PriceBuilder } from "@/components/homepage/PriceBuilder";
 import { PRICE_BUILDER_LIVE } from "@/lib/homepage/priceBuilder";
 import { HwSavings } from "../HwSavings";
-import { HpFinder } from "../hw/HpFinder";
+import { Finder } from "../Finder";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { copFor } from "@/lib/tools/hotWaterSavings";
 
@@ -76,16 +76,10 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
         </div>
       </nav>
 
-      {/* Heat pumps only: four questions to the one we'd fit, at the size
-          that covers the household (Jake, Nov 2026: "a lot of different options"). */}
-      {isHeatPump(sys) && (
-        <section className="pxs pxs--sky" id="pick">
-          <div className="wrap pp__col">
-            <Head eye="Which heat pump?" h="Find the one for your home." />
-            <HpFinder />
-          </div>
-        </section>
-      )}
+      {/* Heat pumps only: the homepage's Find your system, opened on heat pumps
+          (Jake, Nov 2026: "a lot of different options", and it should look
+          like the home page's). */}
+      {isHeatPump(sys) && <div id="pick"><Finder only="heat-pump" /></div>}
 
       {learn && (
         <section className="pxs" id="fit">

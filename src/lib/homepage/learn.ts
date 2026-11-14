@@ -641,8 +641,8 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     cons: ["Costs more than the iStore", "The compressor is in the same shell, so it hums near the house"],
   },
   "Viessmann Vitocal 161-A all-in-one": {
-    pros: ["A German brand, making heating equipment since 1917", "Hot water down to −7 °C, and −15 °C on its 1.8 kW element", "Rated 43 dB(A), with Wi-Fi and a touch screen", "5 years from Viessmann on parts and labour"],
-    cons: ["The compressor is in the same shell, so it hums near the house", "Two sizes only: 200 L and 270 L", "VEU eligibility confirmed at the quote"],
+    pros: ["A German brand, making heating equipment since 1917", "VEU rebate taken off at the quote", "Hot water down to −7 °C, and −15 °C on its 1.8 kW element", "5 years from Viessmann on parts and labour"],
+    cons: ["The compressor is in the same shell, so it hums near the house", "Two sizes only: 200 L and 270 L"],
   },
   "Reclaim CO₂ split heat pump": {
     pros: ["The compressor sits away from the tank, so it's quieter", "CO₂ keeps making hot water on cold mornings", "Stainless tank option for harder water"],

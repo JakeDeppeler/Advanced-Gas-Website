@@ -192,6 +192,9 @@ export const QB = {
   // How long the showers run, for the shower-time check (Jake, Nov 2026).
   // The minutes behind each answer are SHOWER_MINUTES in lib/homepage/hotWater.
   showers: { id: "shw", q: "How long are the showers?", opts: [o("Quick", "About 5 minutes"), o("Average", "About 8 minutes"), o("Long", "10 minutes or more")] },
+  // Heat pumps: the one thing each option is our pick for (Jake, Nov 2026).
+  // HP_WANT_TIER maps each answer to the option the finder marks "Our pick".
+  hpWant: { id: "want", q: "What matters most to you?", opts: [o("The lowest price", "And the rebate going furthest"), o("Australian made", "Reclaim, designed and assembled in Sydney"), o("A German brand", "Viessmann, since 1917"), o("Quiet, and frosty mornings", "The compressor away from the tank")] },
   gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
   heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
   vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
@@ -347,13 +350,13 @@ export const CATS: Category[] = [
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
-      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hwNow], tiers: [
+      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hpWant, QB.hwNow], tiers: [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
-        // The German option (Jake, Nov 2026). Its lines are Viessmann
-        // Australia's own figures; no VEU line until we know it's listed.
-        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "Hot water down to −7 °C, −15 °C on the element", "5 years on parts and labour"], null),
+        // The German option (Jake, Nov 2026), on the VEU list. Its other lines
+        // are Viessmann Australia's own figures.
+        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "VEU rebate applied at the quote", "5 years on parts and labour"], null),
       ] }),
       sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Instant gas hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
@@ -370,6 +373,8 @@ export const CATS: Category[] = [
 ];
 
 export const WORKMANSHIP = W;
+/** The heat pump option each "What matters most?" answer points to, in answer order. */
+export const HP_WANT_TIER = ["essential", "premium", "german", "signature"];
 // A fourth for gas ducted heating's four star ratings; the tier name is always written beside it.
 export const TONES = ["#0C6F96", "#C2521A", "#050A30", "#6B4FA0"] as const;
 

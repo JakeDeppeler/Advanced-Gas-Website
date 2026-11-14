@@ -3219,8 +3219,8 @@ const brandCatalogue: Brand[] = [
   // ================== VIESSMANN ==================
   // Added Nov 2026 (Jake): a German option among the heat pumps. Every figure
   // here is from Viessmann Australia's Vitocal 161-A product page; nothing
-  // about where it's built, VEU listing or parts supply is claimed, because
-  // that page doesn't say.
+  // about where it's built or parts supply is claimed, because that page
+  // doesn't say. On the VEU list (Jake, Nov 2026).
   {
     slug: "viessmann",
     layout: "blocks",
@@ -3231,7 +3231,7 @@ const brandCatalogue: Brand[] = [
       marks: [
         { v: "1917", k: "Founded in Germany as a heating manufacturer" },
         { v: "2", k: "Sizes: 200 L and 270 L" },
-        { v: "5 years", k: "All parts and labour, from Viessmann" },
+        { v: "VEU", k: "On the list: the rebate comes off at the quote" },
       ],
       stops: [
         { place: "Germany", role: "Brand", d: "A German heating company since 1917, now part of Carrier." },
@@ -3280,6 +3280,7 @@ const brandCatalogue: Brand[] = [
       "Hot water down to −7 °C on the heat pump, −15 °C with the 1.8 kW element",
       "43 dB(A) rated, integrated Wi-Fi timer and app",
       "R290 natural refrigerant",
+      "On the VEU list, with the rebate taken off at the quote",
     ],
     commonInMelbourne:
       "It suits a household replacing an old electric or gas tank that wants a German brand and a quiet unit, in a 200 L for up to four people or a 270 L for up to six.",
@@ -3306,7 +3307,7 @@ const brandCatalogue: Brand[] = [
     heroFacts: [
       { v: "Since 1917", k: "A German heating manufacturer, now part of Carrier" },
       { v: "2 sizes", k: "200 L for up to 4 people, 270 L for up to 6" },
-      { v: "43 dB(A)", k: "Rated noise level" },
+      { v: "VEU", k: "Rebate taken off at the quote, not claimed back later" },
       { v: "5 yr & 6 yr", k: "5 years from Viessmann on parts and labour, 6 from us on the workmanship" },
     ],
     benefitsHeading: "What you get with the Vitocal 161-A.",
@@ -3328,6 +3329,7 @@ const brandCatalogue: Brand[] = [
         "Warranty registration and claims through Viessmann Australia",
         "10 amp plug fitted: runs off a standard power point",
         "A built-in 1.8 kW element for the coldest mornings",
+        "On the VEU list, so the rebate applies to both sizes",
       ],
     },
     steps: [
@@ -3341,6 +3343,7 @@ const brandCatalogue: Brand[] = [
       { q: "Is it German made?", a: "Viessmann is a German company, founded in 1917 and now part of Carrier. Viessmann Australia's page calls it a German brand but doesn't say where the Vitocal 161-A is built, so we won't either. Ask us at the quote and we'll find out." },
       { q: "Will it keep up in winter?", a: "It makes hot water from the air down to −7 °C, and its built-in 1.8 kW element carries it down to −15 °C, so a frosty morning still has hot water." },
       { q: "Which size do we need?", a: "Viessmann sizes the 200 L for up to four people and the 270 L for up to six. Our hot water size check works it out from how many of you shower and for how long." },
+      { q: "Does the VEU rebate apply?", a: "Yes. The Vitocal 161-A is on the VEU list, so when it replaces an eligible gas or electric system the rebate comes off at the quote." },
       { q: "What warranty comes with it?", a: "Five years from Viessmann on all parts and labour, and six years from us on the workmanship." },
     ],
     products: [
@@ -3354,7 +3357,7 @@ const brandCatalogue: Brand[] = [
         categoryLabel: "Heat pump hot water",
         capacity: "200 L",
         refrigerant: "R290",
-        veuEligible: false,
+        veuEligible: true,
         bestFor: "Up to four people, by Viessmann's sizing guide",
         photo: "/viessmann-vitocal-161a.webp",
         photoAlt: "Viessmann Vitocal 161-A 200L heat pump",
@@ -3385,7 +3388,7 @@ const brandCatalogue: Brand[] = [
         categoryLabel: "Heat pump hot water",
         capacity: "270 L",
         refrigerant: "R290",
-        veuEligible: false,
+        veuEligible: true,
         bestFor: "Up to six people, by Viessmann's sizing guide",
         photo: "/viessmann-vitocal-161a.webp",
         photoAlt: "Viessmann Vitocal 161-A 270L heat pump",
