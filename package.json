@@ -39,7 +39,8 @@
     "check:ducted": "npx tsx scripts/check-ducted.ts",
     "check:service": "npx tsx scripts/check-service.ts",
     "check:reviews": "npx tsx scripts/check-reviews.ts",
-    "check:wording": "npx tsx scripts/check-wording.ts"
+    "check:wording": "npx tsx scripts/check-wording.ts",
+    "check:weather": "npx tsx scripts/check-weather.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",
