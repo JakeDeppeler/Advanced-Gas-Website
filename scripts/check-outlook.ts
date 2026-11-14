@@ -24,7 +24,7 @@ import {
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
-import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, type SiteJob } from "../src/lib/outlook/workOrderTypes";
+import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -251,6 +251,12 @@ ok("another number at the same house: a new job", followUpFor(wf("work_order", "
 // the clean done in October, and no quote job was made (audit, 12 Nov).
 ok("a reply asking for more after the job's done: a new job", followUpFor(wf("quote_request", "WO-0801"), true, [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" })], FU_NOW) === null);
 ok("a reply about an open job: onto it", followUpFor(wf("work_order", ""), true, [sj({ jobNumber: "20754", status: "InProgress", isQuote: true, createdOn: "2026-11-02T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20754");
+// A quote sold, and the work made a job of its own (Govindarajah: quote 20284 sold 14 Nov 15:11, install 20873 at 16:32).
+const q20284 = { id: 20284, created: "2026-10-07T07:36:00Z", soldOn: "2026-11-14T04:11:00Z" };
+ok("the quote sold, the install made after: the thread follows it", workAfterQuote(q20284, [{ id: 20873, created: "2026-11-14T05:32:00Z", estimateBefore: false }]) === 20873);
+ok("...not a job made before the sale", workAfterQuote(q20284, [{ id: 20800, created: "2026-11-01T00:00:00Z", estimateBefore: false }]) === null);
+ok("...not with the quote unsold, unless the new job holds an estimate from before it", workAfterQuote({ ...q20284, soldOn: null }, [{ id: 20873, created: "2026-11-14T05:32:00Z", estimateBefore: false }]) === null && workAfterQuote({ ...q20284, soldOn: null }, [{ id: 20806, created: "2026-11-10T00:00:00Z", estimateBefore: true }]) === 20806);
+ok("...not two candidates", workAfterQuote(q20284, [{ id: 1, created: "2026-11-14T05:32:00Z", estimateBefore: false }, { id: 2, created: "2026-11-14T06:00:00Z", estimateBefore: false }]) === null);
 // New work after a finished job, and the office has made its job since.
 const after = [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" }), sj({ jobNumber: "20830", numbers: [], createdOn: "2026-11-11T22:00:00Z" })];
 ok("the job's done, the work after it already a job: onto that", followUpFor(wf("quote_request", "WO-0801"), true, after, FU_NOW)?.job.jobNumber === "20830");

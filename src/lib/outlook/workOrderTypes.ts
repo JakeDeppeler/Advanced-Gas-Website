@@ -594,3 +594,23 @@ export function bareStreet(key: string): string | null {
   if (addr.includes("/") || !/^\d/.test(addr)) return null;
   return `${addr.replace(/^\d+[a-z]?\s+/, "")}|${city}`;
 }
+
+/**
+ * The job a quote turned into, once it's sold (Jake, 14 Nov: Dr Govindarajah's
+ * ducted quote on job 20284 was sold and the install made as job 20873, while
+ * every email about it, and every one after, stayed on the quote job). The
+ * only open job at the quote's address made since, with a sale to show for it:
+ * the quote's estimate sold no later than a day after the new job was made,
+ * or the new job holding an estimate written before it existed (ServiceTitan
+ * moves a sold estimate onto the job it makes). Two such jobs is a guess, so
+ * none.
+ */
+export type QuoteJob = { id: number; created: string | null; soldOn: string | null };
+export type LaterJob = { id: number; created: string | null; estimateBefore: boolean };
+export function workAfterQuote(quote: QuoteJob, later: LaterJob[]): number | null {
+  const at = (s: string | null) => Date.parse(s ?? "") || 0;
+  const sold = quote.soldOn ? at(quote.soldOn) : null;
+  const fits = later.filter((j) => j.id !== quote.id && at(j.created) >= at(quote.created)
+    && (j.estimateBefore || (sold !== null && sold <= at(j.created) + DAY_MS)));
+  return fits.length === 1 ? fits[0].id : null;
+}
