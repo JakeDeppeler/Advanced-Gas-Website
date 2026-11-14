@@ -7,6 +7,7 @@ import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
 import { attachBookedJobs, sweepWorkOrders } from "./workOrders";
+import { carryQuoteEmails } from "./jobLink";
 import { MAX_AGE_MS } from "./outlookTypes";
 
 /**
@@ -48,6 +49,7 @@ export type SweepResult = {
   workOrders: { mailbox: string; marked: number; retried: number; error?: string }[];
   attached: { attached: number; errors: string[] } | { error: string };
   secondLook: { mailbox: string; looked: number; linked: number; error?: string }[];
+  carried: { carried: number; error?: string };
 };
 
 /** Every Inbox id received since `since`, newest first, page by page. */
@@ -145,6 +147,9 @@ export async function sweep(): Promise<SweepResult> {
   }
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
 
+  // A quote sold and made into a job: its emails go on that job too, once.
+  const carried = await carryQuoteEmails(started + TAGS_BUDGET_MS).catch((e: Error) => ({ carried: 0, error: e.message }));
+
   // Emails about a quote waiting on the customer that went on no job before
   // findJob counted those: once each, then nothing left to do.
   const secondLook: { mailbox: string; looked: number; linked: number; error?: string }[] = [];
@@ -164,5 +169,5 @@ export async function sweep(): Promise<SweepResult> {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, workOrders, attached, secondLook, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, carried, secondLook, duplicates, handoffs };
 }

@@ -61,7 +61,11 @@ note, with its files attached, and gets the Outlook category **On a job**
 (`lib/outlook/jobLink.ts`). Only when it's clear:
 
 1. **Same thread:** an earlier email in the thread already went on a job, or
-   a work order in it made one.
+   a work order in it made one. Once that job's quote is sold and the work is
+   made a job of its own (the only open job at the address made since the
+   sale), the thread follows the new job; and the quote's emails, ours
+   included, are copied onto it once, oldest first (14 Nov: job 20873 had none
+   of the conversation that agreed it).
 2. **Job number:** one of our job numbers is in the subject or opening, and
    either the sender is a contact on that job's customer or site, or the
    email names its address: the street with its number ("11 Emerald") or its
