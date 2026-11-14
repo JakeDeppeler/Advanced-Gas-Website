@@ -163,3 +163,15 @@
 @keyframes isPullUp{0%{opacity:0;transform:translateY(12px)}40%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
 @media (max-width:860px){.ag .is__grid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.ag .is-flow,.ag .is-puff path,.ag .is-pull circle{animation:none}.ag .is-puff path,.ag .is-pull circle{opacity:1}}
+
+/* The Dominator drawing: the gas heater out, the Dominator in, on a loop. With motion off it shows the Dominator. */
+.ag .hw-swap-old{animation:hwSwapOld 9s ease-in-out infinite}
+.ag .hw-swap-new{animation:hwSwapNew 9s ease-in-out infinite}
+@keyframes hwSwapOld{0%,28%{opacity:1}40%,92%{opacity:0}100%{opacity:1}}
+@keyframes hwSwapNew{0%,28%{opacity:0}40%,92%{opacity:1}100%{opacity:0}}
+/* The two labels hand over rather than crossfade: overlapping, the words smudge into each other. */
+.ag .hw-swap-old.hw-swap--word{animation-name:hwWordOld}
+.ag .hw-swap-new.hw-swap--word{animation-name:hwWordNew}
+@keyframes hwWordOld{0%,30%{opacity:1}33%,96%{opacity:0}100%{opacity:1}}
+@keyframes hwWordNew{0%,35%{opacity:0}38%,92%{opacity:1}95%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.ag .hw-swap-old,.ag .hw-swap-old.hw-swap--word{animation:none;opacity:0}.ag .hw-swap-new,.ag .hw-swap-new.hw-swap--word{animation:none;opacity:1}}

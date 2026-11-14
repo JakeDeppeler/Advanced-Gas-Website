@@ -722,11 +722,16 @@ function MultiScene() {
  * diffuser in each room, and the return air coming back through a grille in
  * the ceiling.
  */
-function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
+function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" | "dominator" }) {
   const u = useU();
   const warm = kind === "gas";
-  const air = warm ? C.hot : C.cold;
-  const wide = kind !== "ducted";
+  // The Dominator: the same house, the gas heater swapping out for it in the
+  // same spot on the same ducts (Jake, Nov 2026: "suit the style and design
+  // of the Dominator"), Braemar's two-fan outdoor unit, and warm air, since
+  // it is replacing a heater.
+  const dom = kind === "dominator";
+  const air = warm || dom ? C.hot : C.cold;
+  const wide = kind === "gas" || kind === "zoning";
   const off = kind === "zoning";
   const R = wide ? 576 : 440;
   const L = 14, RR = R + 10, TOP = 40, EAVE = 134, MID = (L + RR) / 2;
@@ -765,7 +770,27 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
 
       {/* the unit, on boards across the joists, with its plenum box */}
       <rect x="138" y="130" width="156" height="5" fill="#C9A473" />
-      {warm ? (
+      {dom ? (
+        <>
+          {/* the old gas heater and its flue fade out; the Dominator fades in where it sat */}
+          <g className="hw-swap-old">
+            <path d="M252 92 V28" stroke="#AAB4C2" strokeWidth="9" />
+            <rect x="150" y="92" width="110" height="38" rx="5" fill={u("metal")} stroke="#9AA6B5" strokeWidth="1.5" />
+            <rect x="164" y="99" width="66" height="25" rx="3" fill="#1C2233" />
+            <Flame x={180} y={124} s={0.55} /><Flame x={197} y={124} s={0.55} /><Flame x={214} y={124} s={0.55} />
+          </g>
+          <g className="hw-swap-new">
+            <rect x="150" y="90" width="110" height="40" rx="3" fill="#EEF0F3" stroke="#9AA6B5" strokeWidth="1.5" />
+            <rect x="214" y="94" width="1.4" height="32" fill="#C9D1DC" />
+            <Fan cx={182} cy={110} r={14} grille={false} />
+            <rect x="224" y="96" width="28" height="4" rx="1" fill="#C8102E" />
+            {[0, 1, 2, 3].map((i) => <line key={i} x1="224" y1={106 + i * 5} x2="252" y2={106 + i * 5} stroke="#C9D1DC" strokeWidth="1.6" />)}
+          </g>
+          {/* the gas line, capped off where it fed the heater */}
+          <path d="M150 122 H128 V134" stroke={C.gas} strokeWidth="5" fill="none" />
+          <rect x="144" y="117" width="8" height="10" rx="1.5" fill="#C9CED6" stroke="#8A97AB" />
+        </>
+      ) : warm ? (
         <g>
           <path d="M252 92 V28" stroke="#AAB4C2" strokeWidth="9" />
           <rect x="150" y="92" width="110" height="38" rx="5" fill={u("metal")} stroke="#9AA6B5" strokeWidth="1.5" />
@@ -805,6 +830,20 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
       {/* Dampers only on the zoning drawing: drawn small on a plain ducted system they read as no-entry signs. */}
       {kind === "zoning" && [[110, 110], [wide ? 270 : 213, 138], [wide ? 420 : 330, 110]].map(([x, y], i) => <Damper key={i} x={x} y={y} shut={i === 2 && off} />)}
 
+      {dom && (
+        <>
+          {/* the XE7C wall controller, Wi-Fi built in */}
+          <rect x="170" y="238" width="30" height="34" rx="5" fill="#F4F6F8" stroke="#B9C3CF" />
+          <rect x="174" y="242" width="22" height="20" rx="2" fill="#0F1A44" />
+          <circle cx="185" cy="252" r="6" fill="none" stroke={C.hot} strokeWidth="2" className="hw-pulse" />
+          {/* refrigerant up the wall and in under the eave, warm flowing in to the unit in the roof */}
+          <Pipe d="M466 292 Q455 292 455 282 V135 Q455 118 438 118 H284" c={C.hot} w={7} />
+          {/* Braemar's outdoor unit: tall, two fans */}
+          <OutdoorUnit x={466} y={230} w={84} h={122} fan={{ cx: 506, cy: 260, r: 20 }} />
+          <Fan cx={506} cy={312} r={20} />
+          <Breeze x={556} y={286} dx={18} dy={0} c={C.cold} n={3} gap={14} />
+        </>
+      )}
       {kind === "ducted" && (
         <>
           {/* the zone controller on the living-room wall: where you turn rooms on and off */}
@@ -818,6 +857,12 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
         </>
       )}
       <RoofTiles l={L} r={RR} top={TOP} eave={EAVE} />
+      {dom && (
+        <g className="hw-swap-old">
+          <rect x="244" y="20" width="16" height="8" rx="2" fill="#8A97AB" />
+          <Puffs x={252} y={18} />
+        </g>
+      )}
       {warm && (
         <g>
           <rect x="244" y="20" width="16" height="8" rx="2" fill="#8A97AB" />
@@ -841,8 +886,13 @@ function DuctHouse({ kind }: { kind: "ducted" | "gas" | "zoning" }) {
           <text x="317" y="81" textAnchor="middle" className="hw-meter" fill="#7CF0A6">CO 0 ✓</text>
         </g>
       )}
-      <Temp x={off ? 300 : wide ? 418 : 318} y={244} t={warm ? "21°" : "22°"} hot={warm} />
-      <Label x={warm ? 150 : 205} y={82} anchor={warm ? "start" : "middle"}>{warm ? "Gas heater" : "Unit in the roof"}</Label>
+      <Temp x={off ? 300 : wide ? 418 : 318} y={244} t={warm ? "21°" : "22°"} hot={warm || dom} />
+      {dom ? (
+        <>
+          <g className="hw-swap-old hw-swap--word"><Label x={150} y={82} anchor="start">Old gas heater</Label></g>
+          <g className="hw-swap-new hw-swap--word"><Label x={150} y={82} anchor="start">Dominator, same spot</Label></g>
+        </>
+      ) : <Label x={warm ? 150 : 205} y={82} anchor={warm ? "start" : "middle"}>{warm ? "Gas heater" : "Unit in the roof"}</Label>}
     </>
   );
 }
@@ -1185,6 +1235,8 @@ const S = {
   // Three steps, in the order the air travels: outdoor unit, the unit in the roof, then the vents and the zone dampers.
   ducted: [[[452, 252, 130, 112]], [[140, 72, 130, 64]], [[54, 140, 350, 96], [160, 230, 42, 50]]],
   gas: [[[140, 40, 130, 96]], [[54, 104, 470, 130]], [[134, 120, 70, 120]], [[278, 52, 78, 50]]],
+  // The Dominator's four steps: the heater coming out, the unit on the same ducts, the outdoor unit, the return air grille.
+  dominator: [[[124, 16, 146, 120]], [[140, 86, 150, 50], [54, 104, 350, 60]], [[440, 110, 124, 250]], [[114, 140, 48, 100]]],
   zoning: [[[96, 96, 28, 28], [256, 124, 28, 28], [406, 96, 28, 28]], [[228, 226, 54, 80]], [[30, 150, 370, 200]], [[140, 72, 130, 64]]],
   evap: [[[204, 26, 102, 74]], [[140, 40, 76, 44], [294, 40, 76, 44]], [[90, 96, 330, 130]], [[420, 196, 130, 100]]],
   // On the drawn cutaway beside the house: the whole unit, the head with the air in and out, the tank and the pipe to the taps, then the clock and the solar.
@@ -1201,6 +1253,7 @@ const SCENES: Record<DiagramKind, { scene: ReactNode; spots: Rect[][]; label: st
   multi: { scene: <MultiScene />, spots: S.multi, label: "A multi-head system: three indoor heads piped to one outdoor unit" },
   ducted: { scene: <DuctHouse kind="ducted" />, spots: S.ducted, label: "A ducted system: unit in the roof, ducts to ceiling vents, outdoor unit" },
   "gas-ducted": { scene: <DuctHouse kind="gas" />, spots: S.gas, label: "Gas ducted heating: heater in the roof, warm air to each room, return air back" },
+  dominator: { scene: <DuctHouse kind="dominator" />, spots: S.dominator, label: "A Braemar Dominator: the gas heater swapped out for it in the same spot, on the same ducts, with an outdoor unit" },
   zoning: { scene: <DuctHouse kind="zoning" />, spots: S.zoning, label: "Zoning: dampers in each duct and a wall controller, one zone turned off" },
   evap: { scene: <EvapScene />, spots: S.evap, label: "An evaporative cooler: air drawn through wet pads on the roof and down into the house" },
   hp: { scene: <AioScene />, spots: S.hp, label: "A heat pump: heat taken from the air, compressed and passed into a tank of water" },

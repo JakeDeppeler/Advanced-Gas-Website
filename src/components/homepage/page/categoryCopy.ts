@@ -17,9 +17,9 @@ export const CATEGORY_COPY: Record<"air" | "heat" | "hw", CategoryCopy & { title
   heat: {
     path: "/heating",
     title: "Heating Installation, Gas Ducted & Reverse Cycle, Pakenham",
-    description: "Gas ducted heating, ducted and split reverse cycle, the Braemar Dominator gas-to-electric swap, and zoning. A carbon monoxide test on every gas job.",
+    description: "Gas ducted heating, reverse-cycle split, multi-head and ducted, and the Braemar Dominator gas-to-electric swap. A carbon monoxide test on every gas job.",
     h1: "Heating for a {Melbourne winter}.",
-    sub: "Gas ducted heating, ducted and split reverse cycle, and the Braemar Dominator to take a gas ducted house electric. Every gas job gets a carbon monoxide test.",
+    sub: "Gas ducted heating, reverse-cycle split, multi-head and ducted, and the Braemar Dominator to take a gas ducted house electric. Every gas job gets a carbon monoxide test.",
     acc: "#C83A2B",
     tools: ["/tools/heating-comparator", "/tools/running-cost-calculator"],
     toolsHead: "Gas or {reverse cycle}?",

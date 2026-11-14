@@ -53,7 +53,7 @@ export function Finder({ only }: { only?: string } = {}) {
     if (i.kind !== "find" || only) return false;
     if (i.system) {
       const ref = findSystem(i.system);
-      if (ref) { setCi(ref.ci); setSi(ref.si); setAns(i.answers ?? {}); return true; }
+      if (ref && ref.si >= 0) { setCi(ref.ci); setSi(ref.si); setAns(i.answers ?? {}); return true; }
     }
     const c = CATS.findIndex((x) => x.id === (i.cat ?? i.system));
     setCi(c >= 0 ? c : null); setSi(null); setAns({});

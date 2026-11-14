@@ -73,7 +73,8 @@ export function entries(): Entry[] {
   /* Each system in the finder: what it is, how long, its pros and cons, the brands, its FAQ. */
   const faqDone = new Set<FaqKey>();
   for (const cat of CATS) {
-    for (const s of cat.systems) {
+    // Unlisted options (zoning) still have pages, so the assistant still knows them.
+    for (const s of [...cat.systems, ...(cat.unlisted ?? [])]) {
       const href = systemHref(s.slug);
       const label = s.label;
       const sharing = CATS.flatMap((c) => c.systems).filter((o) => o.faq === s.faq);

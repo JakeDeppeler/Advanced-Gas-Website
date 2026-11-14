@@ -8,7 +8,8 @@ import { CATS, BRAND_SLUGS } from "@/lib/homepage/data";
  * with both categories on its card.
  */
 export function brandOptions(brand: Brand) {
-  const all = CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers
+  // Unlisted options (zoning) still have pages, so a brand's range still shows them.
+  const all = CATS.flatMap((c) => [...c.systems, ...(c.unlisted ?? [])].flatMap((s) => s.tiers
     .map((t, i) => ({ c, s, t, i }))
     // An option that is really another one (`same`) is listed as that one.
     .filter(({ t }) => BRAND_SLUGS[t.brand] === brand.slug && !t.same)));

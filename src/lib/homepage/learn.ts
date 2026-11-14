@@ -13,7 +13,7 @@ export type HowStep = { t: string; d: string };
 export type Alt = { if: string; go: string; label: string };
 /** Which drawing explains it (components/homepage/how). */
 export type DiagramKind =
-  | "split" | "split-heat" | "multi" | "ducted" | "evap" | "gas-ducted" | "zoning"
+  | "split" | "split-heat" | "multi" | "ducted" | "evap" | "gas-ducted" | "zoning" | "dominator"
   | "hp" | "hp-aio" | "hp-co2" | "gas-cf" | "gas-storage";
 export type Learn = { how: HowStep[]; good: string[]; alt: Alt[]; title?: string; diagram: DiagramKind };
 
@@ -44,7 +44,7 @@ export const LEARN: Record<string, Learn> = {
   // the gas heater's own position, keeps the ducts and vents where they're
   // sound, needs a return air grille, and can go in in a day.
   dominator: {
-    diagram: "ducted",
+    diagram: "dominator",
     how: [
       { t: "Out with the gas heater", d: "The old gas ducted heater comes out of the roof, from under the floor or off the outside wall, and the gas to it is capped off." },
       { t: "In the same spot, on the same ducts", d: "The Dominator indoor unit goes where the heater was and connects to the ducts and vents already in the house. No new ductwork through the roof." },

@@ -14,6 +14,7 @@ import { ZoneHouse } from "../how/ZoneHouse";
 import { StageHero, KeyFeatures, Resources } from "./stage";
 import { ShowerTime, hasTank } from "./shower";
 import { BkMotion } from "../brand/BkMotion";
+import { ThreeDiamonds } from "../brand/BrandMark";
 import "../brand/blocks.css";
 
 /** A heading with one part in colour, the brand page's way: the coloured part is in braces. */
@@ -180,7 +181,14 @@ export function ProductLayout({ v }: { v: PV }) {
 
       <section className="bk__sec bk__sec--white bk__sec--end">
         <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
+          {/* The brand's mark in the box, as on its brand page (Jake, Nov 2026). */}
+          <div className={`bk__box bk__box--acc bk__cta${!v.brand?.mark && v.brand?.logo ? " bk__cta--logo" : ""}`}>
+            {v.brand?.mark && <ThreeDiamonds className="bk__ctamark" />}
+            {!v.brand?.mark && v.brand?.logo && (
+              <span className="bk__ctalogo" aria-hidden="true">
+                <Image src={v.brand.logo} alt="" fill sizes="280px" unoptimized={v.brand.logo.endsWith(".svg")} />
+              </span>
+            )}
             <div>
               <h2 className="bk__boxh">See what the {t.model} <span>would cost</span>.</h2>
               <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>

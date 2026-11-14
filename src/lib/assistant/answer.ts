@@ -238,7 +238,7 @@ const SYSTEM_WORDS: [string, RegExp][] = [
   ["gas-storage", /\b(?:gas )?storage(?: tank)?\b|\btank\b/],
 ];
 const COMPARE = /\b(?:difference|differ|vs|versus|compare|comparison|better|or|which)\b/;
-const systemsBySlug = new Map(CATS.flatMap((c) => c.systems).map((s) => [s.slug, s]));
+const systemsBySlug = new Map(CATS.flatMap((c) => [...c.systems, ...(c.unlisted ?? [])]).map((s) => [s.slug, s]));
 
 function compareAnswer(q: string): AskReply | null {
   let t = normalise(q);

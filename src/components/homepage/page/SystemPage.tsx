@@ -127,6 +127,8 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
           <div className="wrap pp__col">
             <Head eye="Try it" h="How zones work." lede="Each zone gets its own button. Tap a room in the plan, or use the buttons beside it." />
             <ZoneHouse />
+            {/* Zoning sits under the ducted split now, not as a heating option of its own (Jake, Nov 2026). */}
+            {sys.slug !== "zoning" && <Link href="/find/zoning" className="abtn abtn--ghost" style={{ alignSelf: "flex-start" }}>The zone controllers we fit →</Link>}
           </div>
         </section>
       )}

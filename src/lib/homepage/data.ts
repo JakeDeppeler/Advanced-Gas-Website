@@ -292,6 +292,13 @@ export type System = {
 
 export type Category = {
   id: "air" | "hw" | "heat";
+  /**
+   * Options with a page under this category that aren't listed in it: in the
+   * menu, the category page, the finder or the quote form. Zoning (Jake, Nov
+   * 2026: "remove the zoning controller as this will be under the ducted
+   * split"); its page stays, for the Zonemate range and anyone linking to it.
+   */
+  unlisted?: System[];
   label: string;
   sub: string;
   photo: string;
@@ -352,6 +359,16 @@ const DOMINATOR: System = sys({ slug: "dominator", home: "heat", label: "Braemar
     t("essential", "Braemar", "Dominator Series 3", IMG.dominator, ["Keeps your existing ducts and vents", "Heats and cools, all electric", "VEU rebate for coming off gas"], null),
   ] });
 
+/**
+ * Multi-head heats as well as cools, so it's listed under both (Jake, Nov
+ * 2026); its page sits under Cooling, where it started.
+ */
+const MULTI: System = sys({ slug: "multi-head", home: "air", label: "Multi-head", sub: "Several rooms, one outdoor unit", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
+        t("essential", "Kaden", "Multi-head system", IMG.kadenHead, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
+        t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuSplit, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
+        t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuConsole, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
+      ] });
+
 /** In the menu's order, Cooling, Heating, Hot water, so the finder and the quote form read the same as the header. */
 export const CATS: Category[] = [
   {
@@ -359,11 +376,7 @@ export const CATS: Category[] = [
     photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 30%", fg: "#0C6F96", icon: ICON.snow,
     systems: [
       sys({ slug: "split-system", label: "Split system", sub: "Wall air conditioner", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
-      sys({ slug: "multi-head", label: "Multi-head", sub: "Air con for several rooms", img: IMG.kadenMulti, q: "How many rooms?", sizes: HEADS, faq: "multi", service: "split", more: [QB.storeys, QB.outdoor], tiers: [
-        t("essential", "Kaden", "Multi-head system", IMG.kadenHead, ["One outdoor unit, several rooms", "Each room its own remote", W], null),
-        t("premium", "Mitsubishi Electric", "MXZ multi-head", IMG.mitsuSplit, ["2 to 6 heads off one outdoor unit", "Mix wall and floor console heads", W], 6500),
-        t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuConsole, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
-      ] }),
+      MULTI,
       sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,
       sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-top water cooler", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
@@ -374,7 +387,7 @@ export const CATS: Category[] = [
     ],
   },
   {
-    id: "heat", label: "Heating", sub: "Gas ducted, ducted and split reverse cycle",
+    id: "heat", label: "Heating", sub: "Gas ducted, split, multi-head and ducted reverse cycle",
     photo: PHOTO.heating, alt: "Ducted gas heater installed in a roof space", pos: "center 55%", fg: "#050A30", icon: ICON.flame,
     systems: [
       // Four options by star rating rather than the usual three tiers, at
@@ -386,9 +399,13 @@ export const CATS: Category[] = [
         t("5-star", "Brivis", "StarPro 5-star", IMG.brivisStar, ["Less gas again for long winters", "CO safety test on install", W], null),
         t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
       ] }),
+      // Gas heater, split, multi-head, ducted, then the Dominator (Jake, Nov 2026).
+      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
+      MULTI,
       sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,
-      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
+    ],
+    unlisted: [
       sys({ slug: "zoning", label: "Zoning & controls", sub: "Room-by-room control", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
         t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
         t("premium", "Zonemate", "Touch + Wi-Fi", IMG.zmTouch, ["Touchscreen wall controller", "Control from your phone", W], null),
@@ -458,11 +475,17 @@ export function findSystem(slug: string): SystemRef | null {
     if (!ref.sys.home || ref.sys.home === ref.cat.id) return ref;
     first ??= ref;
   }
-  return first;
+  if (first) return first;
+  // Not listed anywhere: its page still sits under its category. si is -1, so nothing lists it.
+  for (let ci = 0; ci < CATS.length; ci++) {
+    const sys = CATS[ci].unlisted?.find((s) => s.slug === slug);
+    if (sys) return { ci, si: -1, cat: CATS[ci], sys };
+  }
+  return null;
 }
 
 /** Every system once, though some are listed under two categories. */
-export const ALL_SYSTEMS = (): System[] => [...new Map(CATS.flatMap((c) => c.systems).map((s) => [s.slug, s])).values()];
+export const ALL_SYSTEMS = (): System[] => [...new Map(CATS.flatMap((c) => [...c.systems, ...(c.unlisted ?? [])]).map((s) => [s.slug, s])).values()];
 
 /** Every option with a page of its own: the ones that are really another option (`same`) don't get one. */
 export function allProductParams() {
@@ -980,7 +1003,7 @@ export const NAV: NavGroup[] = [
   { label: "Cooling", href: "/cooling", head: "Not sure which?", foot: "Find your cooling", footFind: "air",
     items: [prod("Split system", IMG.mitsuSplit, "split-system"), prod("Multi-head split", IMG.kadenMulti, "multi-head"), prod("Ducted", IMG.mitsuDucted, "ducted"), prod("Braemar Dominator", IMG.dominator, "dominator"), prod("Evaporative", IMG.evapClassic, "evaporative")] },
   { label: "Heating", href: "/heating", head: "Not sure which?", foot: "Find your heating", footFind: "heat",
-    items: [prod("Gas ducted heating", IMG.brivisStar, "gas-ducted-heating"), prod("Ducted split", IMG.mitsuDucted, "reverse-cycle-ducted"), prod("Braemar Dominator", IMG.dominator, "dominator"), prod("Reverse-cycle split", IMG.kadenSplit, "reverse-cycle-split"), prod("Zoning & controls", IMG.zmTouch, "zoning")] },
+    items: [prod("Gas ducted heating", IMG.brivisStar, "gas-ducted-heating"), prod("Reverse-cycle split", IMG.kadenSplit, "reverse-cycle-split"), prod("Multi-head split", IMG.kadenMulti, "multi-head"), prod("Ducted split", IMG.mitsuDucted, "reverse-cycle-ducted"), prod("Braemar Dominator", IMG.dominator, "dominator")] },
   { label: "Hot water", href: "/hot-water", head: "VEU rebate", foot: "Up to $2,700 off a heat pump", footFind: "hw",
     items: [prod("Heat pump", IMG.reclaimAio, "heat-pump"), prod("Gas continuous flow", IMG.gasCf, "gas-continuous-flow"), prod("Gas storage", IMG.gasStorage, "gas-storage")] },
   { label: "Services", href: "/services", head: "Something broken?", foot: "Call (03) 5947 8000", footHref: "tel:+61359478000",

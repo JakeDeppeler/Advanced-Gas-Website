@@ -94,6 +94,9 @@
 .ag .bk .bk__tile{box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
 .ag .bk .bk__tile:hover{box-shadow:0 0 0 3px var(--acc),0 30px 50px -28px rgba(5,10,48,.5)}
 .ag .bk__tile .atile__foot{border-top:1px solid var(--line)}
+.ag .bk__ricon{display:flex;align-items:center;justify-content:center;color:var(--acc);background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--acc) 14%,#fff) 0 50px,color-mix(in srgb,var(--acc) 5%,#fff) 51px)}
+.ag .bk__ricon svg{width:72px;height:72px;transition:transform .3s}
+.ag .bk__tile:hover .bk__ricon svg{transform:scale(1.08)}
 .ag .bk__tier{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3) !important}
 .ag .bk__tier i{width:7px;height:7px;border-radius:2px}
 .ag .bk__price{font-weight:700;color:var(--navy) !important}
@@ -151,6 +154,8 @@
   .ag .bk__ctxt > span{font-size:13.5px}
   .ag .bk__range{gap:10px}
   .ag .bk__tile .atile__img{height:110px}
+  .ag .bk__ricon{background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--acc) 14%,#fff) 0 36px,color-mix(in srgb,var(--acc) 5%,#fff) 37px)}
+  .ag .bk__ricon svg{width:52px;height:52px}
   .ag .bk__tile .atile__foot{padding:12px}
   .ag .bk__tile .atile__txt strong{font-size:15px}
   .ag .bk__tile .atile__go{display:none}

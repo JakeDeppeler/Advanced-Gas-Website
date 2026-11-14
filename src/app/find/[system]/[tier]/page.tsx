@@ -98,6 +98,7 @@ export default function FindProductPage({ params }: { params: Params }) {
     warranty: b.warranty,
     // The brand page's colour, so the bands below the header match it.
     accent: b.blockAccent ?? b.accent, accentLight: b.accentLight,
+    mark: b.mark, logo: b.logo,
     // Photos of the brand's own kit for the Key features cards: the shots its
     // brand page already uses, never another maker's.
     gallery: [

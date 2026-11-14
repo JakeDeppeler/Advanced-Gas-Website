@@ -39,6 +39,8 @@ export type PBrand = {
   warranty?: string;
   /** The brand page's accent, so the product page's bands match it. */
   accent?: string; accentLight?: string;
+  /** The brand's mark for the closing quote box, as on its brand page: Mitsubishi's diamonds drawn in code, or a logo file. */
+  mark?: "three-diamonds"; logo?: string;
   /** Product shots of the brand's own kit, for the Key features cards. */
   gallery?: { src: string; alt: string }[];
 };
