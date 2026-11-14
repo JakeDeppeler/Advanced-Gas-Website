@@ -900,37 +900,17 @@ function EvapScene() {
 }
 
 /** An all-in-one heat pump beside the house: heat pump on top, tank below, solar and a timer. */
+/**
+ * The all-in-one heat pump: a manufacturer's cutaway in place of a drawing
+ * (Jake, Nov 2026). Air in on the right, cooled air out on the left, the
+ * compressor on top and the coil down through the tank. 600×633 source,
+ * scaled to 380 high and centred; the spots in S.aio and S.hp follow it.
+ */
 function AioScene() {
-  const u = useU();
   return (
     <>
-      <Sky />
-      <Ground />
-      <Brick x={200} y={114} w={400} h={238} />
-      <Eave x={200} y={114} w={400} />
-      <FacadeWindow x={412} y={222} w={70} h={56} />
-      <Roof l={14} r={210} top={50} eave={114} space={false} />
-      <path d="M58 94 L112 62 L152 86 L98 118Z" fill={u("pv")} stroke="#AFC0E8" strokeWidth="1.5" />
-      <Room x={24} y={114} w={176} h={238} tiles />
-      <Vanity x={40} y={300} />
-      <rect x="100" y="140" width="4" height="120" fill="#D7E6F0" opacity=".8" />
-      <Shower x={150} y={150} />
-      {/* hot out to the house through a tempering valve, cold in from the mains through an isolation valve */}
-      <Pipe d="M258 176 H230 V150 H150" c={C.water} w={7} />
-      <Pipe d="M600 334 H342" c={C.cold} w={7} />
-      {/* the unit: heat pump on top, tank below, on a slab */}
-      <Slab x={250} w={100} />
-      <Tank x={258} y={150} w={84} h={198} coil />
-      <rect x="250" y="84" width="100" height="72" rx="16" fill={u("metalD")} />
-      <rect x="250" y="84" width="100" height="72" rx="16" fill={u("cyl")} opacity=".5" />
-      <Fan cx={290} cy={120} r={24} />
-      <rect x="320" y="100" width="22" height="40" rx="4" fill="#1C2233" />
-      <Dial cx={331} cy={128} />
-      <Breeze x={420} y={110} dx={-62} dy={0} c={C.cold} n={2} gap={20} />
-      <Clock cx={540} cy={180} />
-      <Temp x={268} y={290} t="60°" hot />
-      <Label x={300} y={72}>Heat pump</Label>
-      <Label x={300} y={378}>Tank</Label>
+      <rect x="0" y="0" width="600" height="400" fill="#F4F8FC" />
+      <image href="/heat-pump-cutaway.webp" x="120" y="10" width="360" height="380" preserveAspectRatio="xMidYMid meet" />
     </>
   );
 }
@@ -1046,8 +1026,9 @@ const S = {
   gas: [[[140, 40, 130, 96]], [[54, 104, 470, 130]], [[134, 120, 70, 120]], [[278, 52, 78, 50]]],
   zoning: [[[96, 96, 28, 28], [256, 124, 28, 28], [406, 96, 28, 28]], [[228, 226, 54, 80]], [[30, 150, 370, 200]], [[140, 72, 130, 64]]],
   evap: [[[204, 26, 102, 74]], [[140, 40, 76, 44], [294, 40, 76, 44]], [[90, 96, 330, 130]], [[420, 196, 130, 100]]],
-  aio: [[[242, 76, 116, 276]], [[242, 76, 186, 84]], [[250, 144, 100, 208]], [[440, 18, 128, 192], [52, 52, 104, 70]]],
-  hp: [[[242, 76, 186, 84]], [[312, 92, 38, 54]], [[250, 144, 100, 208]], [[440, 18, 128, 192], [52, 52, 104, 70]]],
+  // On the cutaway: the whole unit, the heat pump on top with the air in and out, the tank, the controls.
+  aio: [[[252, 42, 95, 332]], [[252, 42, 95, 68], [146, 57, 101, 38], [358, 57, 94, 38]], [[252, 110, 95, 264]], [[252, 42, 95, 68]]],
+  hp: [[[358, 57, 94, 38], [146, 57, 101, 38]], [[278, 47, 37, 58]], [[252, 110, 95, 264]], [[252, 42, 95, 68]]],
   co2: [[[198, 96, 88, 260], [372, 236, 196, 120]], [[372, 236, 196, 120]], [[270, 112, 140, 226]], [[430, 18, 140, 160]]],
   gascf: [[[100, 100, 70, 60]], [[292, 92, 126, 176]], [[110, 66, 280, 52]], [[310, 210, 96, 50]]],
   gasstorage: [[[254, 82, 112, 232]], [[254, 298, 112, 56]], [[364, 96, 26, 206]], [[294, 28, 32, 72], [354, 280, 70, 20], [354, 320, 70, 20], [196, 106, 70, 22]]],
