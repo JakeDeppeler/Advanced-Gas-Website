@@ -28,7 +28,8 @@ import { copFor } from "@/lib/tools/hotWaterSavings";
  */
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 /** Systems whose page gets the hands-on zoning house. */
-const ZONED = new Set(["ducted", "reverse-cycle-ducted", "dominator", "zoning"]);
+// No zones section on the Dominator's page (Jake, Nov 2026): it reuses whatever ducts the house has.
+const ZONED = new Set(["ducted", "reverse-cycle-ducted", "zoning"]);
 
 export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
@@ -39,6 +40,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const brands = [...new Set(sys.tiers.map((t) => t.brand))];
   const others = cat.systems.filter((s) => s.slug !== sys.slug);
   const lower = lowerLabel(sys.label);
+  const one = sys.tiers.length === 1;
   // Build your price: ducted and multi-head. It used to show on preview
   // deployments too, as a placeholder mock-up; Jake asked for all prices off
   // (Nov 2026), previews included, so it renders only once it is switched on.
@@ -58,7 +60,8 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
           from != null
             ? { v: `From ${money(from)}`, k: SHOW_FINANCE ? `Installed, or $${weekly(from, FINANCE_MONTHS)}/wk` : "Installed, GST included" }
             : { v: "Free quote", k: FINANCE_SOON && !SHOW_FINANCE ? `Fixed price in writing · ${FINANCE_SOON_TEXT.toLowerCase()}` : "Fixed price in writing" },
-          { v: `${sys.tiers.length} options`, k: brands.join(", ") },
+          // One option (the Dominator) is counted in its sizes, not as "1 options" (Jake, Nov 2026).
+          one ? { v: `${sys.sizes.length} sizes`, k: sys.sizes.map((z) => z.spec ?? z.label).join(" or ") } : { v: `${sys.tiers.length} options`, k: brands.join(", ") },
           { v: cap(installTime(sys).replace(/^Usually /, "").replace(/ for a .*$/, "")), k: "Install time" },
           { v: "6 years", k: "On our workmanship" },
         ]}
@@ -66,7 +69,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
         <div className="bxh__ctas">
           {isHeatPump(sys)
             ? <a href="#pick" className="abtn abtn--or abtn--flat">Find the one for you ↓</a>
-            : <a href="#options" className="abtn abtn--or abtn--flat">See the {sys.tiers.length} options ↓</a>}
+            : <a href="#options" className="abtn abtn--or abtn--flat">{one ? `See the ${sys.label}` : `See the ${sys.tiers.length} options`} ↓</a>}
           <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
         </div>
       </Hero>
@@ -168,7 +171,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
       <section className="pxs pxs--navy" id="options">
         <div className="wrap pp__col">
-          <Head dark eye="The options" h={`The ${sys.tiers.length} ${lower} options we install.`} lede="Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it." />
+          <Head dark eye="The options" h={one ? `The ${sys.label}, in ${sys.sizes.length} sizes.` : `The ${sys.tiers.length} ${lower} options we install.`} lede={one ? `${sys.sizes.map((z) => `${z.spec ?? z.label} for a ${z.label.toLowerCase()}`).join(" and ")}. Its page has how it works, the specs and the brand behind it.` : "Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it."} />
           <div className={`sxo${sys.tiers.length > 3 ? " sxo--4" : sys.tiers.length === 2 ? " sxo--2" : ""}`}>
             {sys.tiers.map((t, i) => {
               const real = realOption(sys, t);

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ReasonIcon, rangeIcon } from "./ReasonIcon";
+import { ReasonIcon } from "./ReasonIcon";
 import Link from "next/link";
 import type { Brand } from "@/lib/brands";
 import type { Review } from "@/lib/reviews";
@@ -236,8 +236,8 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
             <div className="bk__range" data-anim="stagger">
               {options.map(({ s, t, i, cats }) => (
                 <Link key={`${s.slug}.${t.slug}`} href={productHref(s, t, {})} className="atile bk__tile">
-                  {/* A drawing of the kind of unit, like the "Why we choose" cards (Jake, Nov 2026); the photos are on its page. */}
-                  <span className="atile__img bk__ricon"><ReasonIcon name={rangeIcon(s.slug, t.model)} /></span>
+                  {/* The product's photo (Jake, Nov 2026: photos where we have them; drawings only for the reasons). */}
+                  <span className="atile__img"><Image src={t.img} alt="" fill sizes="(max-width: 600px) 45vw, 340px" /></span>
                   <span className="atile__foot">
                     <span className="atile__txt">
                       <span className="bk__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier} · {cats.join(" & ")}</span>

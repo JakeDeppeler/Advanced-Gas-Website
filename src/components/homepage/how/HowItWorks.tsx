@@ -1320,6 +1320,9 @@ export function HowItWorks({ kind, steps }: { kind: DiagramKind; steps: HowStep[
   const [on, setOn] = useState(-1);
   const [playing, setPlaying] = useState(true);
   const [seen, setSeen] = useState(false);
+  // Once it has been on screen: one-off changes, such as the Dominator taking
+  // the gas heater's place, play then and stay done.
+  const [met, setMet] = useState(false);
   const [still, setStill] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -1327,7 +1330,7 @@ export function HowItWorks({ kind, steps }: { kind: DiagramKind; steps: HowStep[
     const el = ref.current;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) { setStill(true); setPlaying(false); }
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold: 0.35 });
+    const io = new IntersectionObserver(([e]) => { setSeen(e.isIntersecting); if (e.isIntersecting) setMet(true); }, { threshold: 0.35 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -1342,7 +1345,7 @@ export function HowItWorks({ kind, steps }: { kind: DiagramKind; steps: HowStep[
   const step = on >= 0 ? steps[on] : null;
 
   return (
-    <div className="hw" ref={ref}>
+    <div className={`hw${met ? " hw--met" : ""}`} ref={ref}>
       <div className="hw__fig">
         <HowDiagram kind={kind} active={on} motion={!still} />
         <div className="hw__bar">

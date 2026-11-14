@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HwSizeCheck } from "../hw/HwSizeCheck";
-import { ReasonIcon, type ReasonIconName } from "@/components/homepage/brand/ReasonIcon";
 import { findBrand } from "@/lib/brands";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import {
@@ -40,20 +39,6 @@ export type CategoryCopy = {
 /** System pictures that are photographs, not cut-outs: they fill the frame. */
 const SCENE = /Milieu|ZM-Touch|ZoneMate-Touch/;
 
-/**
- * Hot water's system cards as drawings in the finder tiles' style (Jake, Nov
- * 2026, overhauling the page): three product cut-outs on white said less
- * than a heat pump, a wall unit and a tank, each against the house.
- */
-const HW_DRAWING: Record<string, string> = {
-  "heat-pump": "/finder/hw-heat-pump.svg",
-  "gas-continuous-flow": "/finder/now-gas-cf.svg",
-  "gas-storage": "/finder/now-gas-storage.svg",
-};
-
-/** Why us, drawn: the same icons as the brand pages' "Why we choose" cards. */
-const WHY_ICON: ReasonIconName[] = ["heritage", "shield", "rebate", "star"];
-
 function accent(text: string) {
   return text.split(/[{}]/).map((part, i) => (i % 2 ? <span key={i}>{part}</span> : part));
 }
@@ -80,7 +65,6 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
   // Two questions from each system, the first time each is asked.
   const faqs = [...new Map(cat.systems.flatMap((s) => (PRODUCT_FAQS[s.faq] ?? []).slice(0, 2)).map((f) => [f.q, f])).values()].slice(0, 8);
   const lower = cat.label.toLowerCase();
-  const hw = cat.id === "hw";
 
   return (
     // Two boxes: the blocks styles hang off .bk sitting inside .ag, as on the brand pages.
@@ -143,11 +127,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
           <div className={`cx__sys${systems.length === 4 ? " cx__sys--4" : ""}`} data-anim="stagger">
             {systems.map(({ s, from, brands: bs }) => (
               <Link key={s.slug} href={systemHref(s.slug)} className="cx__card">
-                {hw && HW_DRAWING[s.slug] ? (
-                  <span className="cx__img cx__img--draw"><Image src={HW_DRAWING[s.slug]} alt="" fill unoptimized sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 340px" /></span>
-                ) : (
-                  <span className={`cx__img${SCENE.test(s.img) ? " cx__img--cover" : ""}`}><Image src={s.img} alt="" fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 340px" /></span>
-                )}
+                <span className={`cx__img${SCENE.test(s.img) ? " cx__img--cover" : ""}`}><Image src={s.img} alt="" fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 340px" /></span>
                 <span className="cx__txt">
                   <span className="cx__tag">{s.sub}</span>
                   <strong>{s.label}</strong>
@@ -222,11 +202,11 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
             <h2 className="h2">The same crew, <span>every job</span>.</h2>
             <p>The person who quotes your job is on the same team as the person who installs it.</p>
           </header>
-          <ul className={`cx__why${hw ? " cx__why--icons" : ""}`} data-anim="stagger">
-            <li>{hw && <WhyIcon i={0} />}<b>12 yrs</b><strong>On the tools</strong><span>Across Pakenham and the south-east.</span></li>
-            <li>{hw && <WhyIcon i={1} />}<b>6 yrs</b><strong>Workmanship warranty</strong><span>On every install, on top of the manufacturer&apos;s.</span></li>
-            <li>{hw && <WhyIcon i={2} />}<b>In writing</b><strong>One fixed price</strong><span>It only changes if the job does, and you approve it first.</span></li>
-            <li>{hw && <WhyIcon i={3} />}<b>{RATING_TEXT}</b><strong>On Google</strong><span>From {RATING_SUMMARY.count} reviews by local households.</span></li>
+          <ul className="cx__why" data-anim="stagger">
+            <li><b>12 yrs</b><strong>On the tools</strong><span>Across Pakenham and the south-east.</span></li>
+            <li><b>6 yrs</b><strong>Workmanship warranty</strong><span>On every install, on top of the manufacturer&apos;s.</span></li>
+            <li><b>In writing</b><strong>One fixed price</strong><span>It only changes if the job does, and you approve it first.</span></li>
+            <li><b>{RATING_TEXT}</b><strong>On Google</strong><span>From {RATING_SUMMARY.count} reviews by local households.</span></li>
           </ul>
         </div></div>
       </section>
@@ -302,8 +282,4 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
       </section>
     </div></div>
   );
-}
-
-function WhyIcon({ i }: { i: number }) {
-  return <span className="cx__wico"><ReasonIcon name={WHY_ICON[i]} /></span>;
 }
