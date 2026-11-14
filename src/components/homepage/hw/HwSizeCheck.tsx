@@ -77,8 +77,8 @@ export function HwSizeCheck() {
         )}
       </ul>
       <p className="hws__note">
-        Showers only. The kitchen tap, dishwasher and washing machine use the same hot water, so if they run at shower time,
-        go a size up. We confirm the size at the free site check.
+        Each size allows a quarter on top of the showers for the kitchen tap, dishwasher and washing machine, which use the
+        same hot water. We confirm the size at the free site check.
       </p>
     </div>
   );

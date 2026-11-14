@@ -131,7 +131,8 @@ export const ICON = {
 
 /* ------------------------------------------------------------ questions */
 
-export type Opt = { label: string; sub?: string; spec?: string; n?: number };
+/** `img` puts a photo on the finder's tile for the answer (the heat pump questions, Jake, Nov 2026). */
+export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string };
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
@@ -152,10 +153,11 @@ const HOUSE: Opt[] = [
   { label: "Family home", sub: "Usually 4 bedrooms", spec: "150–250 m²", n: 2 },
   { label: "Large home", sub: "5 bedrooms or more", spec: "250 m² +", n: 3 },
 ];
+// The tank photo on each tile is drawn bigger as the household grows.
 const PEOPLE: Opt[] = [
-  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1 },
-  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2 },
-  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3 },
+  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
+  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2, img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
+  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
 ];
 /** The four outputs a Brivis heater comes in. */
 const HEATER_KW: Opt[] = [
@@ -194,7 +196,16 @@ export const QB = {
   showers: { id: "shw", q: "How long are the showers?", opts: [o("Quick", "About 5 minutes"), o("Average", "About 8 minutes"), o("Long", "10 minutes or more")] },
   // Heat pumps: the one thing each option is our pick for (Jake, Nov 2026).
   // HP_WANT_TIER maps each answer to the option the finder marks "Our pick".
-  hpWant: { id: "want", q: "What matters most to you?", opts: [o("The lowest price", "And the rebate going furthest"), o("Australian made", "Reclaim, designed and assembled in Sydney"), o("A German brand", "Viessmann, since 1917"), o("Quiet, and frosty mornings", "The compressor away from the tank")] },
+  hpWant: { id: "want", q: "What matters most to you?", opts: [
+    { label: "The lowest price", sub: "And the rebate going furthest", img: "/istore-product.png" },
+    { label: "Australian made", sub: "Reclaim, designed and assembled in Sydney", img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
+    { label: "A German brand", sub: "Viessmann, since 1917", img: "/viessmann-vitocal-161a.webp" },
+    { label: "Quiet, and frosty mornings", sub: "The compressor away from the tank", img: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png" },
+  ] },
+  // Where it goes decides between one unit and a split; solar, whether the
+  // iStore's built-in PV diverter earns its place. See hpPick.
+  hpPlace: { id: "place", q: "Where will it go?", opts: [o("Where the old tank is", "One unit, against the house"), o("Near a bedroom window", "Quiet matters"), o("Not sure yet", "We'll work it out on site")] },
+  solar: { id: "solar", q: "Solar panels on the roof?", opts: [o("Yes"), o("No"), o("Getting them soon")] },
   gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
   heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
   vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
@@ -350,7 +361,7 @@ export const CATS: Category[] = [
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
-      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hpWant, QB.hwNow], tiers: [
+      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hpPlace, QB.solar, QB.hpWant, QB.hwNow], tiers: [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
@@ -375,6 +386,23 @@ export const CATS: Category[] = [
 export const WORKMANSHIP = W;
 /** The heat pump option each "What matters most?" answer points to, in answer order. */
 export const HP_WANT_TIER = ["essential", "premium", "german", "signature"];
+
+/**
+ * The heat pump we'd fit, from the finder's answers, and the reason in a
+ * line. What matters most leads; where it goes can move it between the one
+ * unit and the CO₂ split, both Reclaim: near a bedroom, the split's
+ * compressor sits away from the tank; with room for one unit only, the
+ * all-in-one. Solar adds the iStore's diverter to the reason, never more.
+ */
+export function hpPick(ans: Answers): { tier: string; why: string } | null {
+  if (ans.want == null) return null;
+  let tier = HP_WANT_TIER[ans.want];
+  const why: string[] = [["the lowest price, with the rebate going furthest", "Australian made", "a German brand", "quiet, and hot water on frosty mornings"][ans.want]];
+  if (ans.place === 1 && tier === "premium") { tier = "signature"; why.push("quiet near a bedroom, with the compressor away from the tank"); }
+  if (ans.place === 0 && tier === "signature") { tier = "premium"; why.push("one unit where the old tank stood"); }
+  if (ans.solar != null && ans.solar !== 1 && tier === "essential") why.push("its built-in PV diverter runs it on your solar");
+  return { tier, why: why.join(", and ") };
+}
 // A fourth for gas ducted heating's four star ratings; the tier name is always written beside it.
 export const TONES = ["#0C6F96", "#C2521A", "#050A30", "#6B4FA0"] as const;
 

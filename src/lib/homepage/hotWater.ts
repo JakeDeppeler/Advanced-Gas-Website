@@ -63,11 +63,19 @@ export function tanksOf(sysSlug: string, tierSlug: string): Tank[] {
   });
 }
 
-/** The smallest of an option's tanks that covers the need, or its biggest if none does. */
+/**
+ * The tank we'd recommend from an option: the smallest that covers the
+ * showers from a full tank with a quarter to spare, since the kitchen,
+ * dishwasher and laundry draw on it too; failing that the smallest that
+ * covers them with the reheat; failing that its biggest. A family of four
+ * on 8-minute showers is 32 minutes, and a 160 L tank's 32 would leave
+ * nothing for the rest of the house.
+ */
+export const SPARE = 1.25;
 export function tankFor(sysSlug: string, tierSlug: string, need: number): (Tank & { m: { low: number; high: number }; fit: Fit }) | null {
   const all = tanksOf(sysSlug, tierSlug).map((t) => { const m = tankMinutes(t.litres, t.rec); return { ...t, m, fit: fitOf(need, m) }; });
   if (!all.length) return null;
-  return all.find((t) => t.fit !== "short") ?? all[all.length - 1];
+  return all.find((t) => t.m.low >= need * SPARE) ?? all.find((t) => t.fit !== "short") ?? all[all.length - 1];
 }
 
 /** The hot water systems that keep a tank, for the size check. */

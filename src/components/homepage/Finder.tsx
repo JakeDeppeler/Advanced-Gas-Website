@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   CATS, PHOTO, ICON, SIZE_NOTE, SHOW_PRICES, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, FINANCE_NOTE, TONES,
-  findSystem, answerChips, HP_WANT_TIER, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
+  findSystem, answerChips, hpPick, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
   type Answers,
 } from "@/lib/homepage/data";
 import { onIntent, sendIntent, scrollToId } from "@/lib/homepage/intent";
 import { Svg } from "./HeroQuote";
-import { SHOWER_MINUTES, peopleIn, tankForAnswer, tanksOf, FIT_TEXT } from "@/lib/homepage/hotWater";
+import { SHOWER_MINUTES, peopleIn, tankFor, tanksOf, FIT_TEXT } from "@/lib/homepage/hotWater";
 
 /**
  * "What do you need help with?": Type → System → a few questions about the
@@ -41,7 +41,8 @@ export function Finder({ only }: { only?: string } = {}) {
   const chips = sys ? answerChips(sys, ans) : [];
   const crumbs = (fixed ? chips : [cat?.label, sys?.label, ...chips]).filter((x): x is string => !!x);
   // "What matters most?" marks the option it points to as our pick, in place of "Most popular".
-  const pickTier = sys?.qs.some((q) => q.id === "want") && ans.want != null ? HP_WANT_TIER[ans.want] : null;
+  const pick = sys?.qs.some((q) => q.id === "want") ? hpPick(ans) : null;
+  const pickTier = pick?.tier ?? null;
   const size = sys && ans.size != null ? sys.sizes[ans.size] : null;
   // The shower check, for a tank system once its people and shower length
   // are in: everyone back to back, at Jake's 5 L of hot a minute.
@@ -163,7 +164,12 @@ export function Finder({ only }: { only?: string } = {}) {
                 {curQ.opts.map((z, i) => (
                   <button key={z.label} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }}
                     onClick={() => stepTo(() => setAns((a) => ({ ...a, [curQ.id]: i })))}>
-                    {z.n ? (
+                    {z.img ? (
+                      // A photo on the tile; on a size answer the tank grows with the household.
+                      <span className={`atile__pic${z.n ? " atile__pic--size" : ""}`} aria-hidden="true">
+                        <Image src={z.img} alt="" width={160} height={240} style={z.n ? { height: 58 + z.n * 30 } : undefined} />
+                      </span>
+                    ) : z.n ? (
                       <span className="atile__bars" aria-hidden="true">
                         {Array.from({ length: z.n + 1 }, (_, b) => (
                           <span key={b} style={{ width: 26 + b * 4, height: 30 + b * 16, background: b === z.n ? "#0C6F96" : "#9FD9F0", animationDelay: `${0.1 + b * 0.08}s` }} />
@@ -194,10 +200,24 @@ export function Finder({ only }: { only?: string } = {}) {
                   Under each option: how long its tank lasts at your size.
                 </p>
               )}
+              {pick && (() => {
+                const t = sys.tiers.find((x) => x.slug === pick.tier);
+                const real = t?.same ? t.same.split(".") : [sys.slug, pick.tier];
+                const tk = need != null ? tankFor(real[0], real[1], need) : null;
+                return t && (
+                  <p className="find__why pop">
+                    <b>Our pick: {t.brand} {t.model}{tk ? `, ${tk.chip}` : ""}.</b> For {pick.why}.
+                  </p>
+                );
+              })()}
               <div className={`atiers${sys.tiers.length > 3 ? " atiers--4" : ""}`}>
                 {sys.tiers.map((t, i) => {
                   const known = typeof t.price === "number";
-                  const href = productHref(sys, t, ans);
+                  // The exact model: the smallest tank in the option that covers the showers.
+                  const real = t.same ? t.same.split(".") : [sys.slug, t.slug];
+                  const exact = need != null ? tankFor(real[0], real[1], need) : null;
+                  const base = productHref(sys, t, ans);
+                  const href = exact ? `${base}${base.includes("?") ? "&" : "?"}model=${exact.id}` : base;
                   const nPhotos = galleryFor(sys, t).length;
                   return (
                     <article key={t.slug} className={`tier${(pickTier ? t.slug === pickTier : i === 1) ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
@@ -211,16 +231,15 @@ export function Finder({ only }: { only?: string } = {}) {
                       <Link href={href} className="tier__name">
                         <span>{t.brand}</span>
                         <strong>{t.model}</strong>
-                        <em>{sys.label} · {size.spec}</em>
+                        <em>{sys.label} · {exact ? exact.chip : size.spec}</em>
                       </Link>
                       {need != null && (() => {
-                        const real = t.same ? t.same.split(".") : [sys.slug, t.slug];
-                        const tk = tankForAnswer(real[0], real[1], size.spec, need);
+                        const tk = exact;
                         if (!tk) return tanksOf(real[0], real[1]).length ? null : <p className="tier__shw tier__shw--plenty"><i aria-hidden="true">✓</i><span><b>No tank to run out</b>Heats as it flows</span></p>;
                         return (
                           <p className={`tier__shw tier__shw--${tk.fit}`}>
                             <i aria-hidden="true">{tk.fit === "plenty" ? "✓" : tk.fit === "reheat" ? "≈" : "!"}</i>
-                            <span><b>{tk.chip}: {tk.m.low}–{tk.m.high} min of showers</b>{FIT_TEXT[tk.fit]}{tk.up ? `; the ${tk.up.chip} covers it` : ""}</span>
+                            <span><b>{tk.chip}: {tk.m.low}–{tk.m.high} min of showers</b>{tk.fit === "short" ? "Short even at its biggest size" : FIT_TEXT[tk.fit]}</span>
                           </p>
                         );
                       })()}
@@ -235,7 +254,7 @@ export function Finder({ only }: { only?: string } = {}) {
                       </div>
                       <div className="tier__btns">
                         <Link href={href} className="abtn abtn--ghost">View details</Link>
-                        <a href={bookHref(sys, t, ans)} className={`abtn ${(pickTier ? t.slug === pickTier : i === 1) ? "abtn--or" : "abtn--navy"}`}
+                        <a href={bookHref(sys, t, ans, exact?.id)} className={`abtn ${(pickTier ? t.slug === pickTier : i === 1) ? "abtn--or" : "abtn--navy"}`}
                           onClick={(e) => { e.preventDefault(); sendIntent({ kind: "book", system: sys.slug, tier: t.slug, answers: ans }, "quote"); }}>
                           Book →
                         </a>
