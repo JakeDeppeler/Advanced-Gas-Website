@@ -1,3 +1,4 @@
+import type { ReasonIconName } from "@/components/homepage/brand/ReasonIcon";
 /**
  * Brand + product catalogue for /brands/[brand] and /brands/[brand]/[product]
  * pages. Each product page targets exact-model long-tail search intent
@@ -211,7 +212,8 @@ export type Brand = {
    * carry an image; `cover` marks a photograph (fills the frame) rather than
    * a studio cut-out (sits on white).
    */
-  reasons?: { v: string; k: string; d: string; img?: string; alt?: string; cover?: boolean; pos?: string }[];
+  // `icon` is the drawing on the card; `img` still feeds the product pages' galleries.
+  reasons?: { v: string; icon?: ReasonIconName; k: string; d: string; img?: string; alt?: string; cover?: boolean; pos?: string }[];
   /**
    * "Made better": what's inside that makes it a better system, numbered
    * either side of one product shot. `pin` puts the point's number on the
@@ -456,10 +458,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "Same day", k: "warm again", d: "A like-for-like swap reuses the ducts and wiring, so the house is heated the day we start.", img: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Classic Wombat internal gas ducted heater" },
-      { v: "1971", k: "a Melbourne brand", d: "The heater more homes in this corridor were built with than any other.", img: "/Brivis Compact Classic Indoor Gas Heater.jpg", alt: "Brivis Compact Classic internal gas ducted heater" },
-      { v: "6-star", k: "modulating burner", d: "The most efficient StarPro varies its output instead of cycling on and off.", img: "/Brivis Starpro 6 star indoor and outdoor gas ducted heater.jpg", alt: "Brivis StarPro gas ducted heaters" },
-      { v: "Year 15", k: "and still fixable", d: "Rinnai holds Brivis parts for every unit still in the field, so most are fixed in one visit.", img: "/Brivis Buffalo Outdorr.jpg", alt: "Brivis Buffalo external gas ducted heater" },
+      { v: "Same day", icon: "clock", k: "warm again", d: "A like-for-like swap reuses the ducts and wiring, so the house is heated the day we start.", img: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Classic Wombat internal gas ducted heater" },
+      { v: "1971", icon: "heritage", k: "a Melbourne brand", d: "The heater more homes in this corridor were built with than any other.", img: "/Brivis Compact Classic Indoor Gas Heater.jpg", alt: "Brivis Compact Classic internal gas ducted heater" },
+      { v: "6-star", icon: "star", k: "modulating burner", d: "The most efficient StarPro varies its output instead of cycling on and off.", img: "/Brivis Starpro 6 star indoor and outdoor gas ducted heater.jpg", alt: "Brivis StarPro gas ducted heaters" },
+      { v: "Year 15", icon: "wrench", k: "and still fixable", d: "Rinnai holds Brivis parts for every unit still in the field, so most are fixed in one visit.", img: "/Brivis Buffalo Outdorr.jpg", alt: "Brivis Buffalo external gas ducted heater" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start. CO tested." },
@@ -901,10 +903,10 @@ const brandCatalogue: Brand[] = [
     // our call-back count: an earlier draft said "come back to us", which
     // was the wrong claim.
     reasons: [
-      { v: "Under 1%", k: "failure rate", d: "Across Mitsubishi Electric's whole range. The lowest of anything we install.", img: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor unit" },
-      { v: "19 dBA", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to.", img: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
-      { v: "1 brand", k: "unit, controls and zoning", d: "Mitsubishi Electric's own zone controller on its own ducted system, so one warranty covers the lot.", img: "/mitsubishi-zone-controller-v2.webp", alt: "Mitsubishi Electric touch zone controller" },
-      { v: "Year 12", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit.", img: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric MXZ outdoor unit" },
+      { v: "Under 1%", icon: "check", k: "failure rate", d: "Across Mitsubishi Electric's whole range. The lowest of anything we install.", img: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor unit" },
+      { v: "19 dBA", icon: "quiet", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to.", img: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
+      { v: "1 brand", icon: "controller", k: "unit, controls and zoning", d: "Mitsubishi Electric's own zone controller on its own ducted system, so one warranty covers the lot.", img: "/mitsubishi-zone-controller-v2.webp", alt: "Mitsubishi Electric touch zone controller" },
+      { v: "Year 12", icon: "wrench", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit.", img: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric MXZ outdoor unit" },
     ],
     quality: {
       heading: "Made better, {from the inside}.",
@@ -1639,10 +1641,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "-10°", k: "and still heating", d: "The CO₂ split keeps making hot water on an Emerald or Gembrook morning.", img: "/reclaim-split-stand-back-shot.webp", alt: "A Reclaim CO₂ split we installed against a brick wall", cover: true, pos: "50% 60%" },
-      { v: "15 years", k: "on a stainless tank", d: "Parts warranty on the tank, with no anode to replace along the way.", img: "/Reclaim Glass lined and stainless v2.webp", alt: "Reclaim tank and heat pump" },
-      { v: "37 dBA", k: "outside", d: "Quiet enough to sit next to a bedroom wall.", img: "/reclaim-split-back-2.jpg", alt: "A Reclaim tank and heat pump we installed against a brick wall", cover: true },
-      { v: "8 years", k: "on the all-in-one", d: "The ECO R290's warranty covers the whole unit, parts and labour.", img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 all-in-one" },
+      { v: "-10°", icon: "cold", k: "and still heating", d: "The CO₂ split keeps making hot water on an Emerald or Gembrook morning.", img: "/reclaim-split-stand-back-shot.webp", alt: "A Reclaim CO₂ split we installed against a brick wall", cover: true, pos: "50% 60%" },
+      { v: "15 years", icon: "tank", k: "on a stainless tank", d: "Parts warranty on the tank, with no anode to replace along the way.", img: "/Reclaim Glass lined and stainless v2.webp", alt: "Reclaim tank and heat pump" },
+      { v: "37 dBA", icon: "quiet", k: "outside", d: "Quiet enough to sit next to a bedroom wall.", img: "/reclaim-split-back-2.jpg", alt: "A Reclaim tank and heat pump we installed against a brick wall", cover: true },
+      { v: "8 years", icon: "shield", k: "on the all-in-one", d: "The ECO R290's warranty covers the whole unit, parts and labour.", img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 all-in-one" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Warranties registered in your name." },
@@ -2452,10 +2454,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "Same day", k: "most faults fixed", d: "We pull the common spares over the counter at any Reece store in Victoria.", img: "/thermann-heat-pump.webp", alt: "A Thermann heat pump we installed", cover: true, pos: "50% 45%" },
-      { v: "Aus-made", k: "VEU bonus", d: "Built by Dux in NSW, so the Australian-made bonus comes off on top of the rebate.", img: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump" },
-      { v: "R290", k: "natural refrigerant", d: "The same refrigerant across the heat pump range, nothing exotic to track down later.", img: "/Thermann-Split-heat-pump.jpg", alt: "Thermann split heat pump" },
-      { v: "5 years", k: "on the cylinder", d: "Plus six years on our workmanship. Dux handles cylinder and compressor claims directly.", img: "/thermann-contineues-flow-standing-back.webp", alt: "A Thermann continuous flow unit we installed on a brick wall", cover: true },
+      { v: "Same day", icon: "clock", k: "most faults fixed", d: "We pull the common spares over the counter at any Reece store in Victoria.", img: "/thermann-heat-pump.webp", alt: "A Thermann heat pump we installed", cover: true, pos: "50% 45%" },
+      { v: "Aus-made", icon: "aus", k: "VEU bonus", d: "Built by Dux in NSW, so the Australian-made bonus comes off on top of the rebate.", img: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump" },
+      { v: "R290", icon: "leaf", k: "natural refrigerant", d: "The same refrigerant across the heat pump range, nothing exotic to track down later.", img: "/Thermann-Split-heat-pump.jpg", alt: "Thermann split heat pump" },
+      { v: "5 years", icon: "shield", k: "on the cylinder", d: "Plus six years on our workmanship. Dux handles cylinder and compressor claims directly.", img: "/thermann-contineues-flow-standing-back.webp", alt: "A Thermann continuous flow unit we installed on a brick wall", cover: true },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "All warranties start." },
@@ -2992,10 +2994,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "VEU", k: "the rebate goes furthest", d: "Of every heat pump we fit, the iStore is the one the rebate stretches furthest, off at the quote.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
-      { v: "R290", k: "high COP", d: "For a house coming off an electric tank, that's the running-cost drop doing the work.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
-      { v: "2 sizes", k: "180 L and 275 L", d: "Sized to the house, not up. A bigger tank heating water nobody uses is just a bigger bill.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
-      { v: "5 years", k: "on the whole unit", d: "Tank, heat pump and parts alike, plus six years from us on the workmanship.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
+      { v: "VEU", icon: "rebate", k: "the rebate goes furthest", d: "Of every heat pump we fit, the iStore is the one the rebate stretches furthest, off at the quote.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
+      { v: "R290", icon: "bolt", k: "high COP", d: "For a house coming off an electric tank, that's the running-cost drop doing the work.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
+      { v: "2 sizes", icon: "tank", k: "180 L and 275 L", d: "Sized to the house, not up. A bigger tank heating water nobody uses is just a bigger bill.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
+      { v: "5 years", icon: "shield", k: "on the whole unit", d: "Tank, heat pump and parts alike, plus six years from us on the workmanship.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start." },
@@ -3251,10 +3253,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "German", k: "since 1917", d: "A heating manufacturer for over a century, now part of Carrier.", img: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A beside a house", cover: true },
-      { v: "−7 °C", k: "heat pump only", d: "And −15 °C on the element, so a frosty morning still has hot water.", img: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A" },
-      { v: "43 dB", k: "rated noise", d: "A quiet unit for a side passage near a bedroom window.", img: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A" },
-      { v: "5 years", k: "parts and labour", d: "From Viessmann, plus six years from us on the workmanship.", img: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A installed outside", cover: true },
+      { v: "German", icon: "heritage", k: "since 1917", d: "A heating manufacturer for over a century, now part of Carrier.", img: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A beside a house", cover: true },
+      { v: "−7 °C", icon: "cold", k: "heat pump only", d: "And −15 °C on the element, so a frosty morning still has hot water.", img: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A" },
+      { v: "43 dB", icon: "quiet", k: "rated noise", d: "A quiet unit for a side passage near a bedroom window.", img: "/viessmann-vitocal-161a.webp", alt: "Viessmann Vitocal 161-A" },
+      { v: "5 years", icon: "shield", k: "parts and labour", d: "From Viessmann, plus six years from us on the workmanship.", img: "/viessmann-vitocal-161a-scene.webp", alt: "Viessmann Vitocal 161-A installed outside", cover: true },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start." },
@@ -3289,7 +3291,7 @@ const brandCatalogue: Brand[] = [
       { label: "Viessmann Australia · Vitocal 161-A", href: "https://www.viessmann.com.au/en/products/heat-pump/vitocal-161-a.html" },
     ],
     whyLead: {
-      claim: "Why we fit {Viessmann}.",
+      claim: "Why we choose {Viessmann}.",
       sub: "A German heating name since 1917, in an all-in-one heat pump with a backup element for the coldest mornings.",
     },
     verdict:
@@ -3434,10 +3436,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "Your ducts", k: "kept", d: "The only system we fit that reuses the ductwork and vents a gas ducted house already has.", img: "/dominator-indoor.webp", alt: "Braemar Dominator Series 3 indoor unit" },
-      { v: "1 day", k: "as little as", d: "Braemar's figure for a changeover, with fewer trades through the house than pulling the ducts out.", img: "/dominator-system.webp", alt: "Braemar Dominator Series 3 indoor and outdoor units" },
-      { v: "Heats + cools", k: "one system", d: "Reverse cycle, all electric, with the gas capped off and the VEU rebate for making the switch.", img: "/dominator-outdoor.webp", alt: "Braemar Dominator Series 3 outdoor unit" },
-      { v: "5 years", k: "comprehensive", d: "Braemar's manufacturer's warranty, plus six years from us on the workmanship.", img: "/dominator-controller.webp", alt: "Braemar XE7C wall controller" },
+      { v: "Your ducts", icon: "duct", k: "kept", d: "The only system we fit that reuses the ductwork and vents a gas ducted house already has.", img: "/dominator-indoor.webp", alt: "Braemar Dominator Series 3 indoor unit" },
+      { v: "1 day", icon: "clock", k: "as little as", d: "Braemar's figure for a changeover, with fewer trades through the house than pulling the ducts out.", img: "/dominator-system.webp", alt: "Braemar Dominator Series 3 indoor and outdoor units" },
+      { v: "Heats + cools", icon: "heatcool", k: "one system", d: "Reverse cycle, all electric, with the gas capped off and the VEU rebate for making the switch.", img: "/dominator-outdoor.webp", alt: "Braemar Dominator Series 3 outdoor unit" },
+      { v: "5 years", icon: "shield", k: "comprehensive", d: "Braemar's manufacturer's warranty, plus six years from us on the workmanship.", img: "/dominator-controller.webp", alt: "Braemar XE7C wall controller" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start." },
@@ -3473,7 +3475,7 @@ const brandCatalogue: Brand[] = [
       { label: "Dominator Series 3 technical data (PDF)", href: "/docs/braemar-dominator-series-3-tech-data.pdf" },
     ],
     whyLead: {
-      claim: "Why we fit the {Dominator}.",
+      claim: "Why we choose {Braemar}.",
       sub: "It's the only way we know to go from gas ducted to reverse cycle and keep the ducts.",
     },
     verdict:
@@ -3607,10 +3609,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "Same day", k: "parts from Reece", d: "The common Kaden parts sit in every Reece store in Victoria, so a fault rarely means a wait.", img: "/Kaden Condesnser.jpg", alt: "A Kaden outdoor unit on a roof", cover: true },
-      { v: "12 models", k: "one parts list", d: "Wall splits, multi-head, ducted, gas ducted and evap, all from one brand.", img: "/Kaden Multi Head.jpg", alt: "Kaden multi-head system: one outdoor unit and several indoor units" },
-      { v: "6-star", k: "gas ducted", d: "A modulating burner that matches its output to the house, instead of cycling on and off.", img: "/kaden_internal_ducted_heater_star pro 4 and 5  star.jpg", alt: "Kaden gas ducted heater" },
-      { v: "6 years", k: "on our workmanship", d: "On top of Kaden's seven years on the unit, registered in your name the day after we fit it.", img: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI wall split" },
+      { v: "Same day", icon: "wrench", k: "parts from Reece", d: "The common Kaden parts sit in every Reece store in Victoria, so a fault rarely means a wait.", img: "/Kaden Condesnser.jpg", alt: "A Kaden outdoor unit on a roof", cover: true },
+      { v: "12 models", icon: "range", k: "one parts list", d: "Wall splits, multi-head, ducted, gas ducted and evap, all from one brand.", img: "/Kaden Multi Head.jpg", alt: "Kaden multi-head system: one outdoor unit and several indoor units" },
+      { v: "6-star", icon: "star", k: "gas ducted", d: "A modulating burner that matches its output to the house, instead of cycling on and off.", img: "/kaden_internal_ducted_heater_star pro 4 and 5  star.jpg", alt: "Kaden gas ducted heater" },
+      { v: "6 years", icon: "shield", k: "on our workmanship", d: "On top of Kaden's seven years on the unit, registered in your name the day after we fit it.", img: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI wall split" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start." },
@@ -4290,10 +4292,10 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "30–40%", k: "off the running bill", d: "What shutting the rooms nobody's in does to an always-on ducted system.", img: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg", alt: "A Zonemate touch controller in a living room", cover: true },
-      { v: "0–100%", k: "airflow per zone", d: "Not just open or shut, so it's quieter and more even.", img: "/ZoneMate-Smart-Sensor-Residential_8-1.jpg", alt: "A Zonemate smart sensor on a wall", cover: true },
-      { v: "12 zones", k: "on one board", d: "Covers nearly every home, with room to add a zone later.", img: "/Milieu Zonemate tablet.jpg", alt: "Zonemate Milieu tablet", cover: true },
-      { v: "1 tablet", k: "for two systems", d: "Two ducted units, one screen on the wall and one app.", img: "/Zonemate milieu app main screen.jpg", alt: "The Milieu app on a phone", cover: true },
+      { v: "30–40%", icon: "rebate", k: "off the running bill", d: "What shutting the rooms nobody's in does to an always-on ducted system.", img: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg", alt: "A Zonemate touch controller in a living room", cover: true },
+      { v: "0–100%", icon: "fan", k: "airflow per zone", d: "Not just open or shut, so it's quieter and more even.", img: "/ZoneMate-Smart-Sensor-Residential_8-1.jpg", alt: "A Zonemate smart sensor on a wall", cover: true },
+      { v: "12 zones", icon: "zones", k: "on one board", d: "Covers nearly every home, with room to add a zone later.", img: "/Milieu Zonemate tablet.jpg", alt: "Zonemate Milieu tablet", cover: true },
+      { v: "1 tablet", icon: "controller", k: "for two systems", d: "Two ducted units, one screen on the wall and one app.", img: "/Zonemate milieu app main screen.jpg", alt: "The Milieu app on a phone", cover: true },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "All three warranties start." },
@@ -4341,7 +4343,7 @@ const brandCatalogue: Brand[] = [
 
     // --- brand-first fields (Zonemate) ---
     whyLead: {
-      claim: "Why we fit {Zonemate}.",
+      claim: "Why we choose {Zonemate}.",
       sub: "Shutting the rooms nobody's in takes 30–40% off what a ducted system costs to run. It's the biggest number on the whole job.",
     },
     verdict:

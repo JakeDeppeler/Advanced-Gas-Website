@@ -135,3 +135,31 @@
 /* The plan shrinks with the screen, so its words are set larger on a phone to stay readable */
 @media (max-width:600px){.ag .zs__fig{padding:6px}}
 @media (prefers-reduced-motion:reduce){.ag .zs__ring{animation:none;opacity:0}}
+
+/* ---- Where a Dominator goes (InstallSpots): three cut-away houses ---- */
+.ag .is{display:flex;flex-direction:column;gap:18px}
+.ag .is__bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.ag .is__modes{display:inline-flex;padding:4px;border-radius:999px;background:#EEF2F7;gap:4px}
+.ag .is__mode{border:0;background:transparent;border-radius:999px;padding:9px 18px;font:700 14px var(--body);color:var(--navy);cursor:pointer}
+.ag .is__mode.is-on{background:var(--navy);color:#fff}
+.ag .is__key{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0;list-style:none;font-size:14px;color:#33405A}
+.ag .is__key li{display:flex;align-items:center;gap:8px}
+.ag .is__key svg{width:34px;height:8px}
+.ag .is__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.ag .is__card{margin:0;background:#fff;border:1px solid #E3E9F2;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.ag .is__card svg{display:block;width:100%;height:auto}
+.ag .is__card figcaption{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px}
+.ag .is__card h3{margin:0;font:900 20px var(--disp);color:var(--navy)}
+.ag .is__card p{margin:0;font-size:15px;line-height:1.5;color:#33405A}
+.ag .is-flow{stroke-dasharray:10 8;animation:hwDash .9s linear infinite}
+.ag .is-flow--ret{stroke-dasharray:1 8;animation-duration:1.4s}
+.ag .is-puff path{animation:isPuffUp 1.6s ease-out infinite;opacity:0}
+.ag .is-puff--down path{animation-name:isPuffDown}
+.ag .is-pull circle{animation:isPullDown 1.6s ease-in infinite;opacity:0}
+.ag .is-pull--up circle{animation-name:isPullUp}
+@keyframes isPuffUp{0%{opacity:0;transform:translateY(8px)}30%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+@keyframes isPuffDown{0%{opacity:0;transform:translateY(-8px)}30%{opacity:1}100%{opacity:0;transform:translateY(10px)}}
+@keyframes isPullDown{0%{opacity:0;transform:translateY(-12px)}40%{opacity:1}100%{opacity:0;transform:translateY(12px)}}
+@keyframes isPullUp{0%{opacity:0;transform:translateY(12px)}40%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+@media (max-width:860px){.ag .is__grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.ag .is-flow,.ag .is-puff path,.ag .is-pull circle{animation:none}.ag .is-puff path,.ag .is-pull circle{opacity:1}}

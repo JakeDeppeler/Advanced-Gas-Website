@@ -8,6 +8,7 @@ import {
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { Crumbs, Hero, Head, Next, Cta } from "./kit";
 import { HowItWorks } from "../how/HowItWorks";
+import { InstallSpots } from "../how/InstallSpots";
 import { PriceBuilder } from "@/components/homepage/PriceBuilder";
 import { PRICE_BUILDER_LIVE } from "@/lib/homepage/priceBuilder";
 import { HwSavings } from "../HwSavings";
@@ -108,6 +109,15 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
           <div className="wrap pp__col">
             <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How a {lower} works.</h2></div>
             <HowItWorks kind={learn.diagram} steps={learn.how} />
+          </div>
+        </section>
+      )}
+
+      {sys.slug === "dominator" && (
+        <section className="pxs" id="where">
+          <div className="wrap pp__col">
+            <Head eye="In, under or out" h="Goes where your gas heater is." lede="In the roof, under the floor or outside: the Dominator comes as an internal and an external model, made to go in the gas heater's own spot, on the ducts that are already there." />
+            <InstallSpots />
           </div>
         </section>
       )}

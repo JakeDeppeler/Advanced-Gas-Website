@@ -9,6 +9,7 @@ import {
 } from "./parts";
 import { lowerLabel } from "@/lib/homepage/data";
 import { HowItWorks } from "../how/HowItWorks";
+import { InstallSpots } from "../how/InstallSpots";
 import { ZoneHouse } from "../how/ZoneHouse";
 import { StageHero, KeyFeatures, Resources } from "./stage";
 import { ShowerTime, hasTank } from "./shower";
@@ -238,6 +239,12 @@ function Story({ v }: { v: PV }) {
       <div className="wrap"><div className="bk__blk bk__col">
         <Head h={title}>One step at a time. Press a step to see that part of the system.</Head>
         <HowItWorks kind={learn.diagram} steps={learn.how} />
+        {sys.slug === "dominator" && (
+          <div className="zh-wrap bk__col" id="where">
+            <Head h="Goes where your {gas heater} is.">In the roof, under the floor or outside: the Dominator comes as an internal and an external model, made to go in the gas heater&apos;s own spot, on the ducts that are already there.</Head>
+            <InstallSpots />
+          </div>
+        )}
         {(sys.slug === "ducted" || sys.slug === "zoning") && (
           <div className="zh-wrap bk__col" id="zones">
             <Head h="How {zones} work.">Tap a room to turn its zone on or off.</Head>

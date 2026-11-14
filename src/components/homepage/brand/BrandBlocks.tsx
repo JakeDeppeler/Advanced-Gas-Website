@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ReasonIcon } from "./ReasonIcon";
 import Link from "next/link";
 import type { Brand } from "@/lib/brands";
 import type { Review } from "@/lib/reviews";
@@ -194,18 +195,20 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         </section>
       )}
 
-      {/* 3. Why we choose it: four photo cards, the figures counting up. */}
+      {/* 3. Why we choose it: four cards, each with a drawing of the reason, the figures counting up. */}
       <section className="bk__sec bk__sec--white" id="why">
         <div className="wrap"><div className="bk__blk bk__col">
           <header className="bk__head">
-            <h2 className="h2">{accent(brand.whyLead?.claim ?? `Why we fit ${brand.name}.`)}</h2>
+            <h2 className="h2">{accent(brand.whyLead?.claim ?? `Why we choose {${brand.name}}.`)}</h2>
             {brand.whyLead?.sub && <p>{brand.whyLead.sub}</p>}
           </header>
           {brand.reasons && (
             <ul className="bk__reasons" data-anim="stagger">
               {brand.reasons.map((r) => (
-                <li key={r.k} className="bk__card">
-                  {r.img && (
+                <li key={r.k} className={`bk__card${r.icon ? " bk__card--icon" : ""}`}>
+                  {r.icon ? (
+                    <span className="bk__cicon"><ReasonIcon name={r.icon} /></span>
+                  ) : r.img && (
                     <span className={`bk__cimg${r.cover ? " bk__cimg--cover" : ""}`}>
                       <Image src={r.img} alt={r.alt ?? ""} fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 280px" style={r.pos ? { objectPosition: r.pos } : undefined} />
                     </span>
