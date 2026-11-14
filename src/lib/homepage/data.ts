@@ -132,11 +132,12 @@ export const ICON = {
 /* ------------------------------------------------------------ questions */
 
 /**
- * `img` puts a photo across the top of the finder's tile for the answer (the
- * heat pump questions, Jake, Nov 2026); `fit: "contain"` for a product shot
- * on white rather than a scene, `pos` for where a scene's subject sits.
+ * `img` puts a picture across the top of the finder's tile for the answer:
+ * for the heat pump questions, a drawing from public/finder (Jake, Nov 2026).
+ * `fit: "contain"` is for a product shot on white rather than a scene, `pos`
+ * for where a scene's subject sits. `min` is a size answer's floor in litres.
  */
-export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain" | "whole"; pos?: string };
+export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number };
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
@@ -157,14 +158,15 @@ const HOUSE: Opt[] = [
   { label: "Family home", sub: "Usually 4 bedrooms", spec: "150–250 m²", n: 2 },
   { label: "Large home", sub: "5 bedrooms or more", spec: "250 m² +", n: 3 },
 ];
-// A photo for each household size with that many people in it (Jake: "a
-// better photo that matches the question"): two in the garden, four on the
-// couch, and six across two Braemar brochure shots, there being no one
-// photo of a household that big. The finder lays a figure per person over each.
+// Every tile in the heat pump finder is a drawing in one style (Jake, Nov
+// 2026), after photos that never quite matched the answer: here, a house
+// with that many people outside it, who pop up one by one.
 const PEOPLE: Opt[] = [
-  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/hp-family-garden.webp", pos: "30% 55%" },
-  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2, img: "/hp-family-lounge.webp", pos: "center 62%" },
-  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, img: "/hp-people-big.webp", pos: "center 40%" },
+  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/finder/people-2.svg" },
+  // A 4-bedroom home gets 270–300 L (Jake, Nov 2026), whatever the shower
+  // maths alone would allow; `min` is that floor, and 5+ holds to its label.
+  { label: "3–4 people", sub: "Most 4-bedroom homes", spec: "270–300 L", n: 2, min: 270, img: "/finder/people-4.svg" },
+  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, min: 300, img: "/finder/people-6.svg" },
 ];
 /** The four outputs a Brivis heater comes in. */
 const HEATER_KW: Opt[] = [
@@ -197,12 +199,10 @@ export const QB = {
   roofSpace: { id: "roof", q: "What's the roof space like?", opts: [o("Pitched roof with room to move", "Most houses"), o("Low or tight roof space"), o("Flat roof or no access"), o("Not sure")] },
   ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
   roofType: { id: "rooftype", q: "What type of roof?", opts: [o("Tiled"), o("Colorbond or metal"), o("Flat or low pitch")] },
-  // Product shots for the three kinds of unit; drawings where no photo would
-  // read at tile size (roof collectors, a house still in its frame).
   hwNow: { id: "now", q: "What hot water do you have now?", opts: [
-    { label: "Gas storage tank", img: "/finder/gas-storage.webp", fit: "contain" },
-    { label: "Gas continuous flow", img: "/G-Series_Front_On_View_1200x900.jpg", fit: "contain" },
-    { label: "Electric storage tank", img: "/Thermann-Smart_Hot_Water_System-315L.webp", fit: "contain" },
+    { label: "Gas storage tank", img: "/finder/now-gas-storage.svg" },
+    { label: "Gas continuous flow", img: "/finder/now-gas-cf.svg" },
+    { label: "Electric storage tank", img: "/finder/now-electric.svg" },
     { label: "Solar hot water", img: "/finder/solar-hot-water.svg" },
     { label: "Nothing yet", sub: "New build or extension", img: "/finder/new-build.svg" },
   ] },
@@ -214,17 +214,17 @@ export const QB = {
   // answer to the option the finder marks "Our pick", in the options' order:
   // iStore, Viessmann, Reclaim all-in-one, the split.
   hpWant: { id: "want", q: "What matters most to you?", opts: [
-    { label: "The lowest price", sub: "The rebate goes furthest", img: "/270L-istore-heatpump.webp", fit: "contain" },
-    { label: "Good value", sub: "A proven name, 5 years on parts and labour", img: "/viessmann-vitocal-161a.webp", fit: "contain" },
-    { label: "Built to last", sub: "Australian made", img: "/hp-reclaim-eco-outdoor.webp", pos: "center 35%" },
-    { label: "The highest quality", sub: "The quietest, and best on frosty mornings", img: "/reclaim-split-back-1.jpg", fit: "whole" },
+    { label: "The lowest price", sub: "The rebate goes furthest", img: "/finder/want-price.svg" },
+    { label: "Good value", sub: "A proven name, 5 years on parts and labour", img: "/finder/want-value.svg" },
+    { label: "Built to last", sub: "Australian made", img: "/finder/want-last.svg" },
+    { label: "The highest quality", sub: "The quietest, and best on frosty mornings", img: "/finder/want-quality.svg" },
   ] },
   // Where it goes decides between one unit and a split; solar, whether the
   // iStore's built-in PV diverter earns its place. See hpPick.
   hpPlace: { id: "place", q: "Where will it go?", opts: [
-    { label: "Where the old tank is", sub: "One unit, against the house", img: "/ba-hw-before.webp", fit: "whole" },
-    { label: "Near a bedroom window", sub: "Quiet matters", img: "/thermann-heat-pump.webp", fit: "whole" },
-    { label: "Not sure yet", sub: "We'll work it out on site", img: "/hp-technician.webp", pos: "center 35%" },
+    { label: "Where the old tank is", sub: "One unit, against the house", img: "/finder/place-old-tank.svg" },
+    { label: "Near a bedroom window", sub: "Quiet matters", img: "/finder/place-bedroom.svg" },
+    { label: "Not sure yet", sub: "We'll work it out on site", img: "/finder/place-not-sure.svg" },
   ] },
   solar: { id: "solar", q: "Solar panels on the roof?", opts: [
     { label: "Yes", img: "/finder/solar-yes.svg" },

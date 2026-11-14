@@ -72,9 +72,13 @@ export function tanksOf(sysSlug: string, tierSlug: string): Tank[] {
  * nothing for the rest of the house.
  */
 export const SPARE = 1.25;
-export function tankFor(sysSlug: string, tierSlug: string, need: number): (Tank & { m: { low: number; high: number }; fit: Fit }) | null {
-  const all = tanksOf(sysSlug, tierSlug).map((t) => { const m = tankMinutes(t.litres, t.rec); return { ...t, m, fit: fitOf(need, m) }; });
-  if (!all.length) return null;
+export function tankFor(sysSlug: string, tierSlug: string, need: number, min = 0): (Tank & { m: { low: number; high: number }; fit: Fit }) | null {
+  const every = tanksOf(sysSlug, tierSlug).map((t) => { const m = tankMinutes(t.litres, t.rec); return { ...t, m, fit: fitOf(need, m) }; });
+  if (!every.length) return null;
+  // `min` is a floor in litres for the household size (a 4-bedroom home gets
+  // 270–300 L), so the shower maths can only push the size up from it.
+  const big = every.filter((t) => t.litres >= min);
+  const all = big.length ? big : every.slice(-1);
   return all.find((t) => t.m.low >= need * SPARE) ?? all.find((t) => t.fit !== "short") ?? all[all.length - 1];
 }
 

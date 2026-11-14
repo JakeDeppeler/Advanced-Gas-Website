@@ -167,12 +167,11 @@ export function Finder({ only }: { only?: string } = {}) {
                     {z.img ? (
                       // A photo across the top of the tile. On the household question, a
                       // figure per person pops in over it; product shots sit on white.
-                      // A tall photo that would lose its top and bottom to the crop
-                      // ("whole") sits uncropped over a blurred copy of itself.
-                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : z.fit === "whole" ? " atile__photo--whole" : ""}`} aria-hidden="true">
-                        {z.fit === "whole" && <Image src={z.img} alt="" fill sizes="120px" className="atile__blur" style={{ objectFit: "cover" }} />}
-                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" style={{ objectFit: z.fit === "whole" ? "contain" : z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
-                        {curQ.size && z.n ? (
+                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : ""}`} aria-hidden="true">
+                        {/* A drawing goes through as is: the image optimiser refuses SVGs. */}
+                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" unoptimized={z.img.endsWith(".svg")} style={{ objectFit: z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
+                        {/* Over a photo, a figure per person; a drawing has its people in it already. */}
+                        {curQ.size && z.n && !z.img.endsWith(".svg") ? (
                           <span className="atile__ppl">
                             {Array.from({ length: z.n * 2 }, (_, k) => (
                               <svg key={k} viewBox="0 0 12 20" width="12" height="20" style={{ animationDelay: `${0.25 + k * 0.09}s` }}>
@@ -228,7 +227,7 @@ export function Finder({ only }: { only?: string } = {}) {
               {pick && (() => {
                 const t = sys.tiers.find((x) => x.slug === pick.tier);
                 const real = t?.same ? t.same.split(".") : [sys.slug, pick.tier];
-                const tk = need != null ? tankFor(real[0], real[1], need) : null;
+                const tk = need != null ? tankFor(real[0], real[1], need, size.min) : null;
                 return t && (
                   <p className="find__why pop">
                     <b>Our pick: {t.brand} {t.model}{tk ? `, ${tk.chip}` : ""}.</b> For {pick.why}.
@@ -240,7 +239,7 @@ export function Finder({ only }: { only?: string } = {}) {
                   const known = typeof t.price === "number";
                   // The exact model: the smallest tank in the option that covers the showers.
                   const real = t.same ? t.same.split(".") : [sys.slug, t.slug];
-                  const exact = need != null ? tankFor(real[0], real[1], need) : null;
+                  const exact = need != null ? tankFor(real[0], real[1], need, size.min) : null;
                   const base = productHref(sys, t, ans);
                   const href = exact ? `${base}${base.includes("?") ? "&" : "?"}model=${exact.id}` : base;
                   const nPhotos = galleryFor(sys, t).length;

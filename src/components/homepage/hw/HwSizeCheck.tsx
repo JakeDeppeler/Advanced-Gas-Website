@@ -26,7 +26,9 @@ export function HwSizeCheck() {
   const size = people <= 2 ? 0 : people <= 4 ? 1 : 2;
 
   const rows = TANK_SYSTEMS().flatMap((sys) => sys.tiers.filter((t) => !t.same).map((t) => {
-    const tk = tankFor(sys.slug, t.slug, need);
+    // The heat pump's size floors (a 4-bedroom home gets 270–300 L) apply
+    // here too, so this and the finder name the same tank.
+    const tk = tankFor(sys.slug, t.slug, need, sys.slug === "heat-pump" ? sys.sizes[size]?.min : 0);
     return tk ? { sys, t, tk } : null;
   })).filter((r): r is NonNullable<typeof r> => !!r);
   const cf = findSystem("gas-continuous-flow");

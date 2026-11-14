@@ -757,9 +757,6 @@ body:has(> main > .ag){padding-bottom:0 !important}
 .ag .atile:hover .atile__photo img{transform:scale(1.06)}
 .ag .atile__photo--prod{background:linear-gradient(180deg,#F3F8FC,#fff)}
 .ag .atile__photo--prod img{padding:14px;mix-blend-mode:multiply}
-.ag .atile__photo--whole{background:#1d2433}
-.ag .atile__photo--whole .atile__blur{filter:blur(16px) brightness(.85);transform:scale(1.15)}
-.ag .atile:hover .atile__photo--whole .atile__blur{transform:scale(1.15)}
 .ag .atile__ppl{position:absolute;left:12px;bottom:12px;display:flex;gap:4px;padding:7px 10px;border-radius:999px;background:rgba(5,10,48,.72);backdrop-filter:blur(6px)}
 .ag .atile__ppl svg{display:block;opacity:0;transform:translateY(6px) scale(.6);animation:pplPop .45s cubic-bezier(.3,1.5,.5,1) forwards}
 @keyframes pplPop{to{opacity:1;transform:none}}
