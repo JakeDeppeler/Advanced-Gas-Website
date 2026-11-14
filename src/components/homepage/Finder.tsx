@@ -165,9 +165,31 @@ export function Finder({ only }: { only?: string } = {}) {
                   <button key={z.label} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }}
                     onClick={() => stepTo(() => setAns((a) => ({ ...a, [curQ.id]: i })))}>
                     {z.img ? (
-                      // A photo on the tile; on a size answer the tank grows with the household.
-                      <span className={`atile__pic${z.n ? " atile__pic--size" : ""}`} aria-hidden="true">
-                        <Image src={z.img} alt="" width={160} height={240} style={z.n ? { height: 58 + z.n * 30 } : undefined} />
+                      // A photo across the top of the tile. On the household question, a
+                      // figure per person pops in over it; product shots sit on white.
+                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : ""}`} aria-hidden="true">
+                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" style={{ objectFit: z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
+                        {curQ.size && z.n ? (
+                          <span className="atile__ppl">
+                            {Array.from({ length: z.n * 2 }, (_, k) => (
+                              <svg key={k} viewBox="0 0 12 20" width="12" height="20" style={{ animationDelay: `${0.25 + k * 0.09}s` }}>
+                                <circle cx="6" cy="4" r="3.4" fill="#fff" />
+                                <path d="M1.2 19 V12.5 C1.2 9.6 3.2 8.4 6 8.4 S10.8 9.6 10.8 12.5 V19 Z" fill="#fff" />
+                              </svg>
+                            ))}
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : curQ.id === "shw" ? (
+                      // How long each answer is, as a timer that runs round to it.
+                      <span className="atile__timer" aria-hidden="true">
+                        <svg viewBox="0 0 80 80" width="92" height="92">
+                          <circle cx="40" cy="40" r="32" fill="none" stroke="#DCEEF8" strokeWidth="8" />
+                          <circle cx="40" cy="40" r="32" fill="none" stroke="#0C6F96" strokeWidth="8" strokeLinecap="round" pathLength="100"
+                            strokeDasharray={`${(SHOWER_MINUTES[i] / 15) * 100} 100`} transform="rotate(-90 40 40)" className="atile__run" />
+                          <text x="40" y="45" textAnchor="middle" className="atile__min">{SHOWER_MINUTES[i]}</text>
+                        </svg>
+                        <small>min</small>
                       </span>
                     ) : z.n ? (
                       <span className="atile__bars" aria-hidden="true">

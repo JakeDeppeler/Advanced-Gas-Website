@@ -751,12 +751,23 @@ body:has(> main > .ag){padding-bottom:0 !important}
 .ag .hwstrip__t strong{font:800 19px/1.2 var(--disp);color:var(--navy)}
 .ag .hwstrip__t small{font-size:14.5px;line-height:1.45;color:var(--ink3)}
 @media (max-width:700px){.ag .hwstrip__in{flex-wrap:wrap}.ag .hwstrip__in .abtn{width:100%;justify-content:center}}
-/* Finder: photos on answer tiles (heat pump questions) and the pick line. */
-.ag .atile__pic{display:flex;align-items:flex-end;justify-content:center;height:170px;padding:14px 10px 0;background:linear-gradient(180deg,#EAF6FD,#fff)}
-.ag .atile__pic img{width:auto;height:150px;max-width:100%;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(5,10,48,.18))}
-.ag .atile__pic--size img{transition:height .3s}
+/* Finder: photo tiles, figures per person, the shower timer (heat pump questions, Jake, Nov 2026). */
+.ag .atile__photo{position:relative;display:block;height:190px;overflow:hidden;background:#EAF3FA}
+.ag .atile__photo img{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.ag .atile:hover .atile__photo img{transform:scale(1.06)}
+.ag .atile__photo--prod{background:linear-gradient(180deg,#F3F8FC,#fff)}
+.ag .atile__photo--prod img{padding:14px;mix-blend-mode:multiply}
+.ag .atile__ppl{position:absolute;left:12px;bottom:12px;display:flex;gap:4px;padding:7px 10px;border-radius:999px;background:rgba(5,10,48,.72);backdrop-filter:blur(6px)}
+.ag .atile__ppl svg{display:block;opacity:0;transform:translateY(6px) scale(.6);animation:pplPop .45s cubic-bezier(.3,1.5,.5,1) forwards}
+@keyframes pplPop{to{opacity:1;transform:none}}
+.ag .atile__timer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;height:150px;background:linear-gradient(180deg,#EAF6FD,#fff)}
+.ag .atile__run{stroke-dashoffset:0;animation:timerRun 1.1s cubic-bezier(.3,.7,.3,1) both}
+@keyframes timerRun{from{stroke-dasharray:0 100}}
+.ag .atile__min{font:900 26px var(--disp);fill:#050A30}
+.ag .atile__timer small{margin-top:-6px;font:700 11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#0C6F96}
+@media (prefers-reduced-motion:reduce){.ag .atile__ppl svg{animation:none;opacity:1;transform:none}.ag .atile__run{animation:none}.ag .atile:hover .atile__photo img{transform:none}}
+@media (max-width:600px){.ag .atile__photo{height:150px}}
 .ag .find__why{margin:0;padding:12px 16px;border-radius:12px;background:rgba(255,122,54,.14);box-shadow:inset 0 0 0 1px rgba(255,122,54,.4);font-size:15px;line-height:1.5;color:rgba(255,255,255,.9)}
 .ag .find__why b{color:#fff}
-@media (max-width:600px){.ag .atile__pic{height:130px}.ag .atile__pic img{height:112px}}
 /* Product shots on a white backdrop sit into the tile rather than as a white box. */
-.ag .atile__pic img,.ag .tier__img img{mix-blend-mode:multiply}
+.ag .tier__img img{mix-blend-mode:multiply}

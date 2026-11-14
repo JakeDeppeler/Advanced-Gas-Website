@@ -131,8 +131,12 @@ export const ICON = {
 
 /* ------------------------------------------------------------ questions */
 
-/** `img` puts a photo on the finder's tile for the answer (the heat pump questions, Jake, Nov 2026). */
-export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string };
+/**
+ * `img` puts a photo across the top of the finder's tile for the answer (the
+ * heat pump questions, Jake, Nov 2026); `fit: "contain"` for a product shot
+ * on white rather than a scene, `pos` for where a scene's subject sits.
+ */
+export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string };
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
@@ -153,11 +157,12 @@ const HOUSE: Opt[] = [
   { label: "Family home", sub: "Usually 4 bedrooms", spec: "150–250 m²", n: 2 },
   { label: "Large home", sub: "5 bedrooms or more", spec: "250 m² +", n: 3 },
 ];
-// The tank photo on each tile is drawn bigger as the household grows.
+// Scenes for the household sizes (Reclaim's own images); the finder lays
+// figures over each, one per person.
 const PEOPLE: Opt[] = [
-  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
-  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2, img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
-  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
+  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/hp-reclaim-eco-outdoor.webp", pos: "center 40%" },
+  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2, img: "/hp-family-garden.webp", pos: "center 55%" },
+  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, img: "/hp-family-lounge.webp", pos: "center 60%" },
 ];
 /** The four outputs a Brivis heater comes in. */
 const HEATER_KW: Opt[] = [
@@ -196,15 +201,20 @@ export const QB = {
   showers: { id: "shw", q: "How long are the showers?", opts: [o("Quick", "About 5 minutes"), o("Average", "About 8 minutes"), o("Long", "10 minutes or more")] },
   // Heat pumps: the one thing each option is our pick for (Jake, Nov 2026).
   // HP_WANT_TIER maps each answer to the option the finder marks "Our pick".
+  // In the options' order (Jake, Nov 2026): iStore, Viessmann, Reclaim all-in-one, the split.
   hpWant: { id: "want", q: "What matters most to you?", opts: [
-    { label: "The lowest price", sub: "And the rebate going furthest", img: "/istore-product.png" },
-    { label: "Australian made", sub: "Reclaim, designed and assembled in Sydney", img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
-    { label: "A German brand", sub: "Viessmann, since 1917", img: "/viessmann-vitocal-161a.webp" },
-    { label: "Quiet, and frosty mornings", sub: "The compressor away from the tank", img: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png" },
+    { label: "The lowest price", sub: "iStore, with the rebate going furthest", img: "/270L-istore-heatpump.webp", fit: "contain" },
+    { label: "A German brand", sub: "Viessmann, since 1917", img: "/viessmann-vitocal-161a.webp", fit: "contain" },
+    { label: "Australian made", sub: "Reclaim, designed and assembled in Sydney", img: "/hp-reclaim-eco-outdoor.webp", pos: "center 35%" },
+    { label: "Quiet, and frosty mornings", sub: "Reclaim CO₂, compressor away from the tank", img: "/reclaim-split-back-1.jpg", pos: "center 60%" },
   ] },
   // Where it goes decides between one unit and a split; solar, whether the
   // iStore's built-in PV diverter earns its place. See hpPick.
-  hpPlace: { id: "place", q: "Where will it go?", opts: [o("Where the old tank is", "One unit, against the house"), o("Near a bedroom window", "Quiet matters"), o("Not sure yet", "We'll work it out on site")] },
+  hpPlace: { id: "place", q: "Where will it go?", opts: [
+    { label: "Where the old tank is", sub: "One unit, against the house", img: "/ba-hw-after.webp", pos: "center 60%" },
+    { label: "Near a bedroom window", sub: "Quiet matters", img: "/viessmann-vitocal-161a-scene.webp", pos: "center 45%" },
+    { label: "Not sure yet", sub: "We'll work it out on site", img: "/hp-technician.webp", pos: "center 35%" },
+  ] },
   solar: { id: "solar", q: "Solar panels on the roof?", opts: [o("Yes"), o("No"), o("Getting them soon")] },
   gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
   heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
@@ -363,11 +373,12 @@ export const CATS: Category[] = [
     systems: [
       sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hpPlace, QB.solar, QB.hpWant, QB.hwNow], tiers: [
         t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
+        // Shown iStore, Viessmann, Reclaim all-in-one, then the split (Jake, Nov
+        // 2026). Viessmann is the German option, on the VEU list; its other
+        // lines are Viessmann Australia's own figures.
+        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "VEU rebate applied at the quote", "5 years on parts and labour"], null),
         t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["Australian made", "VEU rebate applied at the quote", "Old unit removed"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
-        // The German option (Jake, Nov 2026), on the VEU list. Its other lines
-        // are Viessmann Australia's own figures.
-        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "VEU rebate applied at the quote", "5 years on parts and labour"], null),
       ] }),
       sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Instant gas hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
@@ -385,7 +396,7 @@ export const CATS: Category[] = [
 
 export const WORKMANSHIP = W;
 /** The heat pump option each "What matters most?" answer points to, in answer order. */
-export const HP_WANT_TIER = ["essential", "premium", "german", "signature"];
+export const HP_WANT_TIER = ["essential", "german", "premium", "signature"];
 
 /**
  * The heat pump we'd fit, from the finder's answers, and the reason in a
@@ -397,7 +408,7 @@ export const HP_WANT_TIER = ["essential", "premium", "german", "signature"];
 export function hpPick(ans: Answers): { tier: string; why: string } | null {
   if (ans.want == null) return null;
   let tier = HP_WANT_TIER[ans.want];
-  const why: string[] = [["the lowest price, with the rebate going furthest", "Australian made", "a German brand", "quiet, and hot water on frosty mornings"][ans.want]];
+  const why: string[] = [["the lowest price, with the rebate going furthest", "a German brand", "Australian made", "quiet, and hot water on frosty mornings"][ans.want]];
   if (ans.place === 1 && tier === "premium") { tier = "signature"; why.push("quiet near a bedroom, with the compressor away from the tank"); }
   if (ans.place === 0 && tier === "signature") { tier = "premium"; why.push("one unit where the old tank stood"); }
   if (ans.solar != null && ans.solar !== 1 && tier === "essential") why.push("its built-in PV diverter runs it on your solar");
