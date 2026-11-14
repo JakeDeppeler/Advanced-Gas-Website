@@ -262,6 +262,13 @@ export type Brand = {
   story?: { heading: string; body: string; marks: { v: string; k: string }[]; stops?: { place: string; role: string; d: string }[] };
   /** The brand's own mark, drawn in code rather than shipped as an image. */
   mark?: "three-diamonds";
+  /**
+   * The brand's logo file in /public, for brands without a mark drawn in
+   * code: shown as the faint watermark in the closing quote box, the way
+   * Mitsubishi's diamonds are (Jake, Nov 2026). Needs a transparent PNG or
+   * an SVG; it is drawn as a white silhouette over the box's colour.
+   */
+  logo?: string;
   /** The heading over `versus`, e.g. "Mitsubishi or Kaden?". */
   versusHeading?: string;
   /** A real install photo for the hero, with the product shot on a card over it. */
@@ -1396,19 +1403,8 @@ const brandCatalogue: Brand[] = [
           { label: "Indoor compatibility", value: "MSZ-AP wall splits · MFZ-KW floor console · cassette" },
           { label: "Warranty", value: "5-year Mitsubishi manufacturer + 6-year workmanship" },
         ],
-        features: [
-          "12 kW combined capacity from a single condenser, one outdoor unit for the whole home",
-          "6 indoor heads, mix wall splits, floor consoles and cassettes on one refrigerant loop",
-          "R32 refrigerant + inverter compressor, modern efficiency at large capacity",
-          "1-phase power supply, no 3-phase upgrade required at the meter box",
-          "One condenser to service instead of six separate outdoor units",
-        ],
-        whyWeInstall: [
-          "The pick when a family wants per-room control across 5-6 rooms without going ducted",
-          "One outdoor unit instead of six splits, cleaner externally, quieter for neighbours",
-          "Same MSZ-AP indoor units as our single-split installs, so interior finish stays consistent",
-          "Backed by 5-year Mitsubishi manufacturer + our 6-year workmanship",
-        ],
+        // No features or why-we-install list, like the 2F to 5F (Jake, Nov 2026):
+        // either one put a Key features section on the 6-head page alone.
         related: ["mxz-5f", "msz-ap50", "pead-m"],
       },
       {
@@ -1611,6 +1607,7 @@ const brandCatalogue: Brand[] = [
   // ================== RECLAIM ENERGY ==================
   {
     slug: "reclaim",
+    logo: "/logos/reclaim.svg",
     layout: "blocks",
     heroProducts: [
       { src: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png", alt: "Reclaim CO₂ split: outdoor heat pump, tank and controller", label: "CO₂ split" },
@@ -2421,6 +2418,7 @@ const brandCatalogue: Brand[] = [
   // ================== THERMANN (Rheem) ==================
   {
     slug: "thermann",
+    logo: "/logos/thermann.svg",
     layout: "blocks",
     heroProducts: [
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump", label: "Heat pump" },
@@ -2962,6 +2960,7 @@ const brandCatalogue: Brand[] = [
   // ================== iSTORE ==================
   {
     slug: "istore",
+    logo: "/logos/istore.png",
     layout: "blocks",
     // iStore's sky blue is too light for a band of its own; a deeper blue from the same family.
     blockAccent: "#0A78B8",
@@ -3408,6 +3407,166 @@ const brandCatalogue: Brand[] = [
           { label: "Warranty", value: "5 years parts and labour + 6-year workmanship" },
         ],
         related: ["vitocal-161a-200", "istore-270"],
+      },
+    ],
+  },
+
+  // ================== BRAEMAR ==================
+  // The Dominator Series 3 only. Every figure is from Braemar's brochure and
+  // technical data (ES E275-A), both in /public/docs (Jake, Nov 2026).
+  {
+    slug: "braemar",
+    logo: "/logos/braemar.svg",
+    layout: "blocks",
+    blockAccent: "#0756A5",
+    story: {
+      heading: "Gas ducted out, {reverse cycle in}.",
+      body: "Braemar is Seeley International's heating and cooling brand: Australian designed, made and owned. The Dominator Series 3 is built to go where a ducted gas heater sits now, on the ducts the house already has.",
+      marks: [
+        { v: "2", k: "Sizes: 12.1 kW and 17.9 kW heating" },
+        { v: "1 day", k: "A changeover can be done in as little as a day" },
+        { v: "5 yr", k: "Comprehensive manufacturer's warranty" },
+      ],
+      stops: [
+        { place: "Australia", role: "Made", d: "Designed, made and owned in Australia by Seeley International." },
+        { place: "Your roof or underfloor", role: "Fits", d: "In the gas heater's own spot: internal models in the ceiling or under the floor, or an external model." },
+        { place: "Pakenham, VIC", role: "Fitted", d: "Installed by our own crew, with six years from us on the workmanship." },
+      ],
+    },
+    reasons: [
+      { v: "Your ducts", k: "kept", d: "The only system we fit that reuses the ductwork and vents a gas ducted house already has.", img: "/dominator-indoor.webp", alt: "Braemar Dominator Series 3 indoor unit" },
+      { v: "1 day", k: "as little as", d: "Braemar's figure for a changeover, with fewer trades through the house than pulling the ducts out.", img: "/dominator-system.webp", alt: "Braemar Dominator Series 3 indoor and outdoor units" },
+      { v: "Heats + cools", k: "one system", d: "Reverse cycle, all electric, with the gas capped off and the VEU rebate for making the switch.", img: "/dominator-outdoor.webp", alt: "Braemar Dominator Series 3 outdoor unit" },
+      { v: "5 years", k: "comprehensive", d: "Braemar's manufacturer's warranty, plus six years from us on the workmanship.", img: "/dominator-controller.webp", alt: "Braemar XE7C wall controller" },
+    ],
+    timeline: [
+      { y: 0, t: "Install day", d: "Both warranties start." },
+      { y: 5, t: "Year 5", d: "Braemar's comprehensive warranty ends." },
+      { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
+    ],
+    name: "Braemar",
+    tagline: "Off gas, on the ducts you have.",
+    origin: "Australia",
+    intro:
+      "Braemar is Seeley International's heating and cooling brand, Australian designed, made and owned. We fit its Dominator Series 3: reverse-cycle ducted heating and cooling that replaces a ducted gas heater in the same spot.",
+    ourTake:
+      "The Dominator is the one system we fit that keeps the ductwork a gas ducted house already has. A ducted split means pulling the old ductwork out, inside and out, and running new; the Dominator goes in where the gas heater was, on the same ducts and vents where they're sound, with a return air grille added. Less work in the house, heating and cooling from one electric system, and the VEU rebate for coming off gas.",
+    productLabel: "2 models · 12.1 kW + 17.9 kW",
+    photo: "/dominator-system.webp",
+    photoAlt: "Braemar Dominator Series 3 indoor and outdoor units",
+    accent: "#01ACCD",
+    established: "Seeley International · Australian designed, made and owned",
+    warranty: "5-year Braemar comprehensive warranty + 6-year on our workmanship",
+    keyFeatures: [
+      "Replaces a ducted gas heater in the same position, on the existing ducts and vents",
+      "Reverse-cycle heating and cooling, all electric",
+      "Internal (ceiling or under-floor) and external models",
+      "XE7C wall controller with Wi-Fi built in; zoning up to 8 zones",
+      "Australian designed, made and owned",
+    ],
+    commonInMelbourne:
+      "It suits the many Melbourne homes on gas ducted heating that want cooling and to get off gas, without pulling the ducts out of the roof or from under the floor.",
+    support:
+      "Warranty claims go through Braemar, and we do the work on site.",
+    resources: [
+      { label: "Dominator Series 3 brochure (PDF)", href: "/docs/braemar-dominator-series-3-brochure.pdf" },
+      { label: "Dominator Series 3 technical data (PDF)", href: "/docs/braemar-dominator-series-3-tech-data.pdf" },
+    ],
+    whyLead: {
+      claim: "Why we fit the {Dominator}.",
+      sub: "It's the only way we know to go from gas ducted to reverse cycle and keep the ducts.",
+    },
+    verdict:
+      "If you have gas ducted heating and sound ducts, the Dominator is the least invasive way off gas: it goes where the heater was, keeps the ducts and vents, and gives you cooling too. We check the ducts first; if they're damaged or too small, a ducted split is the honest answer.",
+    notRightWhen:
+      "If the ducts are failing or undersized, or there's no gas ducted system to replace, we'd quote a ducted split instead.",
+    versus:
+      "We fit the Dominator, Mitsubishi Electric and Kaden ducted. The Dominator is the pick when a gas ducted system is there to replace and the ducts are worth keeping; a ducted split when they aren't.",
+    advisorService: "air-conditioning-installation",
+    heroSub:
+      "Reverse-cycle ducted heating and cooling that replaces your gas heater in the same spot and keeps the ducts and vents. In 12.1 kW and 17.9 kW, with five years from Braemar.",
+    fitsWhere:
+      "A home on gas ducted heating, with ducts that are sound, that wants cooling and to get off gas.",
+    heroFacts: [
+      { v: "Your ducts", k: "Kept: it goes where the gas heater was" },
+      { v: "2 sizes", k: "12.1 kW and 17.9 kW heating" },
+      { v: "1 day", k: "A changeover in as little as a day" },
+      { v: "5 yr & 6 yr", k: "5 years from Braemar, 6 from us on the workmanship" },
+    ],
+    steps: [
+      { title: "Check the ducts", detail: "We look at the gas heater, the ducts and the vents, and size it off what's there." },
+      { title: "Out with the gas heater", detail: "The old heater comes out and the gas to it is capped off." },
+      { title: "In with the Dominator", detail: "The indoor unit goes in the same position, on the same ducts, with a return air grille fitted." },
+      { title: "The outdoor unit", detail: "Set outside and piped to the indoor unit." },
+      { title: "Commission it", detail: "The XE7C controller set up on your Wi-Fi, and the system checked in heating and cooling before we leave." },
+    ],
+    faqs: [
+      { q: "Can I really keep my ducts?", a: "Often, yes. Braemar says the existing ductwork and vents can often be retained, with changes where they're needed. We check them at the site visit before we commit to them." },
+      { q: "Why not a ducted split?", a: "A ducted split means taking the old ductwork out, inside and out, and running new. The Dominator goes on the ducts you have, so there's less work in the house." },
+      { q: "Does it replace my brand of gas heater?", a: "Braemar designed it to replace any brand of ducted gas heater, in the same position." },
+      { q: "Does it cool as well?", a: "Yes. It's reverse cycle: 11.6 kW or 16.5 kW of cooling, depending on the model." },
+      { q: "What warranty comes with it?", a: "Five years from Braemar, comprehensive, and six years from us on the workmanship." },
+    ],
+    products: [
+      {
+        slug: "dominator-12",
+        name: "Braemar Dominator Series 3 · 12.1 kW",
+        model: "KGDB145A1S indoor / KCDB145D1B outdoor",
+        category: "ducted",
+        categoryLabel: "Ducted reverse cycle, replaces a gas heater",
+        capacity: "12.1 kW heating · 11.6 kW cooling",
+        refrigerant: "R32",
+        veuEligible: true,
+        bestFor: "A smaller home on a smaller gas ducted heater",
+        photo: "/dominator-system.webp",
+        photoAlt: "Braemar Dominator Series 3 12.1 kW indoor and outdoor units",
+        ourTake:
+          "The smaller Dominator, 600 L/s through the ducts. We size it off the heater and ducts you have at the site check.",
+        specs: [
+          { label: "Heating", value: "12.1 kW (range 2.7–14.2)" },
+          { label: "Heating at 2 °C", value: "9.25 kW" },
+          { label: "Cooling", value: "11.6 kW (range 3.8–13.1)" },
+          { label: "Airflow", value: "600 L/s" },
+          { label: "ACOP / AEER", value: "3.87 / 3.36" },
+          { label: "Outdoor unit", value: "940 × 370 × 820 mm, 64 kg" },
+          { label: "Power", value: "230 V single phase, 32 A breaker" },
+          { label: "Refrigerant", value: "R32" },
+          { label: "Indoor unit", value: "1148 × 530 × 802 mm, 62 kg, drain pump built in" },
+          { label: "Runs in", value: "−15 °C to 24 °C heating, −15 °C to 52 °C cooling" },
+          { label: "Controller", value: "XE7C wall controller, Wi-Fi built in" },
+          { label: "Warranty", value: "5-year Braemar comprehensive + 6-year workmanship" },
+        ],
+        related: ["dominator-18"],
+      },
+      {
+        slug: "dominator-18",
+        name: "Braemar Dominator Series 3 · 17.9 kW",
+        model: "KGDB195A1S indoor / KCDB195D1B outdoor",
+        category: "ducted",
+        categoryLabel: "Ducted reverse cycle, replaces a gas heater",
+        capacity: "17.9 kW heating · 16.5 kW cooling",
+        refrigerant: "R32",
+        veuEligible: true,
+        bestFor: "A larger home, or a bigger gas ducted heater",
+        photo: "/dominator-system.webp",
+        photoAlt: "Braemar Dominator Series 3 17.9 kW indoor and outdoor units",
+        ourTake:
+          "The bigger Dominator, 950 L/s through the ducts, with a taller two-fan outdoor unit. We size it off the heater and ducts you have at the site check.",
+        specs: [
+          { label: "Heating", value: "17.9 kW (range 4.6–19.0)" },
+          { label: "Heating at 2 °C", value: "13.7 kW" },
+          { label: "Cooling", value: "16.5 kW (range 4.5–17.7)" },
+          { label: "Airflow", value: "950 L/s" },
+          { label: "ACOP / AEER", value: "3.28 / 3.25" },
+          { label: "Outdoor unit", value: "900 × 340 × 1260 mm, 94 kg, two fans" },
+          { label: "Power", value: "230 V single phase, 32 A breaker" },
+          { label: "Refrigerant", value: "R32" },
+          { label: "Indoor unit", value: "1148 × 530 × 802 mm, 62 kg, drain pump built in" },
+          { label: "Runs in", value: "−15 °C to 24 °C heating, −15 °C to 52 °C cooling" },
+          { label: "Controller", value: "XE7C wall controller, Wi-Fi built in" },
+          { label: "Warranty", value: "5-year Braemar comprehensive + 6-year workmanship" },
+        ],
+        related: ["dominator-12"],
       },
     ],
   },

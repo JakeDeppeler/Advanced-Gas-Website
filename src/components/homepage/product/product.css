@@ -312,3 +312,12 @@
 @media (max-width:600px){.ag .pb__opts{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
 /* The rebate line: taken off, so it reads differently from the add-ons, not by colour alone (it carries a minus). */
 .ag .pb__lines li.pb__off{padding:6px 10px;margin:0 -10px;border-radius:8px;background:var(--navy);font-weight:700;color:#fff}
+
+/* Savings with several heat pumps: the saving big on each row, the running cost small under the name. */
+.ag .svx__now{margin:0;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.12);font-size:15px;color:rgba(255,255,255,.8)}
+.ag .svx__now b{color:#fff}
+.ag .svx__row--save{align-items:center}
+.ag .svx__row--save > span small{font-size:13px;font-weight:500;color:rgba(255,255,255,.7)}
+.ag .svx__row--save strong{display:flex;flex-direction:column;align-items:flex-end;gap:0;font-size:clamp(24px,2.2vw,30px);line-height:1;color:#FF9A5C;text-align:right}
+.ag .svx__row--save strong small{margin-top:4px;white-space:nowrap;font-family:var(--sans,inherit);font-size:12px;font-weight:600;color:rgba(255,255,255,.7)}
+.ag .svx__row--save .svx__none{font-size:16px;color:rgba(255,255,255,.7)}

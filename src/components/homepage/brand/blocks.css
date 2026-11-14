@@ -254,7 +254,15 @@
 .ag .bk__cta{position:relative}
 .ag .bk__ctamark{position:absolute;right:-30px;bottom:-60px;width:260px;height:auto;opacity:.14;pointer-events:none}
 .ag .bk__ctamark .bm__d{fill:#fff}
-.ag .bk__cta > *:not(.bk__ctamark){position:relative}
+.ag .bk__cta > *:not(.bk__ctamark):not(.bk__ctalogo){position:relative}
+/* A logo file in the same place as Mitsubishi's diamonds: a faint white silhouette. */
+/* A wordmark is wide, so the buttons go under the heading, as on Mitsubishi's
+   box, and the logo gets the right-hand side to itself instead of sitting
+   behind the Call button. */
+.ag .bk__cta--logo{flex-direction:column;align-items:flex-start;padding-right:360px}
+.ag .bk__ctalogo{position:absolute;right:44px;top:50%;transform:translateY(-50%);width:280px;height:110px;opacity:.2;pointer-events:none}
+.ag .bk__ctalogo img{object-fit:contain;object-position:right center;filter:brightness(0) invert(1)}
+@media (max-width:900px){.ag .bk__cta--logo{padding-right:clamp(22px,4vw,52px);padding-bottom:96px}.ag .bk__ctalogo{top:auto;transform:none;bottom:22px;right:22px;width:180px;height:56px}}
 
 /* ---- Scroll motion (BkMotion): cards rise in turn, photos settle ---- */
 .ag .bk--motion [data-anim="stagger"] > *{opacity:0;transform:translateY(22px);transition:opacity .55s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1);transition-delay:calc(var(--i,0) * 90ms)}

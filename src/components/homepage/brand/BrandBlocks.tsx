@@ -365,8 +365,14 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
 
       <section className="bk__sec bk__sec--white bk__sec--end">
         <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
+          <div className={`bk__box bk__box--acc bk__cta${!mark && brand.logo ? " bk__cta--logo" : ""}`}>
             {mark && <ThreeDiamonds className="bk__ctamark" />}
+            {!mark && brand.logo && (
+              <span className="bk__ctalogo" aria-hidden="true">
+                {/* An SVG logo goes through as is: the image optimiser refuses SVGs. */}
+                <Image src={brand.logo} alt="" fill sizes="280px" unoptimized={brand.logo.endsWith(".svg")} />
+              </span>
+            )}
             <div>
               <h2 className="bk__boxh">See what {brand.name} <span>would cost</span>.</h2>
               <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>

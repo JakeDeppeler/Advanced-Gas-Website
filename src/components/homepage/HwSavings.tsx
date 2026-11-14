@@ -42,13 +42,35 @@ export function HwSavings({ options }: { options: SavingsOption[] }) {
         </div>
       </div>
       <div className="svx__out" aria-live="polite">
-        <div className="svx__row"><span>Now, about</span><strong>{$(now)}<small>/yr</small></strong></div>
-        {rs.map(({ o, r }) => (
-          <div key={o.label} className="svx__row">
-            <span>{o.href ? <Link href={o.href}>With the {o.label}</Link> : <>With the {o.label}</>}{!one && r.savingYr > 0 && <small className="svx__sub">Saves {$(r.savingYr)} a year{o.price ? `, pays back in about ${Math.max(1, Math.round(r.paybackYears))} yrs` : ""}</small>}</span>
-            <strong>{$(r.heatPumpCostYr)}<small>/yr</small></strong>
-          </div>
-        ))}
+        {one ? (
+          <>
+            <div className="svx__row"><span>Now, about</span><strong>{$(now)}<small>/yr</small></strong></div>
+            {rs.map(({ o, r }) => (
+              <div key={o.label} className="svx__row">
+                <span>{o.href ? <Link href={o.href}>With the {o.label}</Link> : <>With the {o.label}</>}</span>
+                <strong>{$(r.heatPumpCostYr)}<small>/yr</small></strong>
+              </div>
+            ))}
+          </>
+        ) : (
+          // Several heat pumps (the system page): the saving is the big number
+          // on each row and what it costs to run the small one under the name
+          // (Jake, Nov 2026), the same way round as the product page's box.
+          <>
+            <p className="svx__now">Now, about <b>{$(now)} a year</b> to run.</p>
+            {rs.map(({ o, r }) => (
+              <div key={o.label} className="svx__row svx__row--save">
+                <span>
+                  {o.href ? <Link href={o.href}>{o.label}</Link> : o.label}
+                  <small>Costs about {$(r.heatPumpCostYr)} a year to run{r.savingYr > 0 && o.price ? `, pays back in about ${Math.max(1, Math.round(r.paybackYears))} yrs` : ""}</small>
+                </span>
+                {r.savingYr > 0
+                  ? <strong>{$(r.savingYr)}<small>saved a year</small></strong>
+                  : <strong className="svx__none">No saving</strong>}
+              </div>
+            ))}
+          </>
+        )}
         {best && (
           <div className="svx__save"><span>You could save {one ? "around" : "up to"}</span><strong>{$(best.r.savingYr)} a year</strong>
             {one && best.r.savingYr > 0 && best.o.price ? <small>That pays back the {$(best.o.price)} installed price in about {Math.max(1, Math.round(best.r.paybackYears))} years.</small> : null}

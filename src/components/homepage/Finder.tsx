@@ -167,8 +167,11 @@ export function Finder({ only }: { only?: string } = {}) {
                     {z.img ? (
                       // A photo across the top of the tile. On the household question, a
                       // figure per person pops in over it; product shots sit on white.
-                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : ""}`} aria-hidden="true">
-                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" style={{ objectFit: z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
+                      // A tall photo that would lose its top and bottom to the crop
+                      // ("whole") sits uncropped over a blurred copy of itself.
+                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : z.fit === "whole" ? " atile__photo--whole" : ""}`} aria-hidden="true">
+                        {z.fit === "whole" && <Image src={z.img} alt="" fill sizes="120px" className="atile__blur" style={{ objectFit: "cover" }} />}
+                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" style={{ objectFit: z.fit === "whole" ? "contain" : z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
                         {curQ.size && z.n ? (
                           <span className="atile__ppl">
                             {Array.from({ length: z.n * 2 }, (_, k) => (

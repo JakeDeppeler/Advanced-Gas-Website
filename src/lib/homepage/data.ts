@@ -64,8 +64,8 @@ export const IMG = {
   mitsuCond: pub("/mitsubishi-mxz-multi-split-condenser-v2.webp"),
   kadenDucted: pub("/kdi-v2-image_01.webp"),
   viessmann: pub("/viessmann-vitocal-161a.webp"),
-  // No photo of a Dominator yet: the ductwork it reuses, until there's one of ours.
-  dominator: pub("/duct-work.webp"),
+  // Braemar's own shots, from the Dominator Series 3 brochure (Jake, Nov 2026).
+  dominator: pub("/dominator-system.webp"),
   mitsuDucted: pub("/mitsubishi-pea-m-ducted-v2-v3.webp"),
   mitsuZone: pub("/mitsubishi-zone-controller-v2.webp"),
   mitsuConsole: pub("/mitsubishi-mfz-kw-floor-console-v2.webp"),
@@ -136,7 +136,7 @@ export const ICON = {
  * heat pump questions, Jake, Nov 2026); `fit: "contain"` for a product shot
  * on white rather than a scene, `pos` for where a scene's subject sits.
  */
-export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string };
+export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain" | "whole"; pos?: string };
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
@@ -157,12 +157,14 @@ const HOUSE: Opt[] = [
   { label: "Family home", sub: "Usually 4 bedrooms", spec: "150–250 m²", n: 2 },
   { label: "Large home", sub: "5 bedrooms or more", spec: "250 m² +", n: 3 },
 ];
-// Scenes for the household sizes (Reclaim's own images); the finder lays
-// figures over each, one per person.
+// A photo for each household size with that many people in it (Jake: "a
+// better photo that matches the question"): two in the garden, four on the
+// couch, and six across two Braemar brochure shots, there being no one
+// photo of a household that big. The finder lays a figure per person over each.
 const PEOPLE: Opt[] = [
-  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/hp-reclaim-eco-outdoor.webp", pos: "center 40%" },
-  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2, img: "/hp-family-garden.webp", pos: "center 55%" },
-  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, img: "/hp-family-lounge.webp", pos: "center 60%" },
+  { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/hp-family-garden.webp", pos: "30% 55%" },
+  { label: "3–4 people", sub: "Family home", spec: "250–270 L", n: 2, img: "/hp-family-lounge.webp", pos: "center 62%" },
+  { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, img: "/hp-people-big.webp", pos: "center 40%" },
 ];
 /** The four outputs a Brivis heater comes in. */
 const HEATER_KW: Opt[] = [
@@ -195,27 +197,40 @@ export const QB = {
   roofSpace: { id: "roof", q: "What's the roof space like?", opts: [o("Pitched roof with room to move", "Most houses"), o("Low or tight roof space"), o("Flat roof or no access"), o("Not sure")] },
   ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
   roofType: { id: "rooftype", q: "What type of roof?", opts: [o("Tiled"), o("Colorbond or metal"), o("Flat or low pitch")] },
-  hwNow: { id: "now", q: "What hot water do you have now?", opts: [o("Gas storage tank"), o("Gas continuous flow"), o("Electric storage tank"), o("Solar hot water"), o("Nothing yet", "New build or extension")] },
+  // Product shots for the three kinds of unit; drawings where no photo would
+  // read at tile size (roof collectors, a house still in its frame).
+  hwNow: { id: "now", q: "What hot water do you have now?", opts: [
+    { label: "Gas storage tank", img: "/finder/gas-storage.webp", fit: "contain" },
+    { label: "Gas continuous flow", img: "/G-Series_Front_On_View_1200x900.jpg", fit: "contain" },
+    { label: "Electric storage tank", img: "/Thermann-Smart_Hot_Water_System-315L.webp", fit: "contain" },
+    { label: "Solar hot water", img: "/finder/solar-hot-water.svg" },
+    { label: "Nothing yet", sub: "New build or extension", img: "/finder/new-build.svg" },
+  ] },
   // How long the showers run, for the shower-time check (Jake, Nov 2026).
   // The minutes behind each answer are SHOWER_MINUTES in lib/homepage/hotWater.
   showers: { id: "shw", q: "How long are the showers?", opts: [o("Quick", "About 5 minutes"), o("Average", "About 8 minutes"), o("Long", "10 minutes or more")] },
-  // Heat pumps: the one thing each option is our pick for (Jake, Nov 2026).
-  // HP_WANT_TIER maps each answer to the option the finder marks "Our pick".
-  // In the options' order (Jake, Nov 2026): iStore, Viessmann, Reclaim all-in-one, the split.
+  // Heat pumps: price to quality, one step per option (Jake, Nov 2026: "lowest
+  // price, highest quality etc", not a brand per answer). HP_WANT_TIER maps each
+  // answer to the option the finder marks "Our pick", in the options' order:
+  // iStore, Viessmann, Reclaim all-in-one, the split.
   hpWant: { id: "want", q: "What matters most to you?", opts: [
-    { label: "The lowest price", sub: "iStore, with the rebate going furthest", img: "/270L-istore-heatpump.webp", fit: "contain" },
-    { label: "A German brand", sub: "Viessmann, since 1917", img: "/viessmann-vitocal-161a.webp", fit: "contain" },
-    { label: "Australian made", sub: "Reclaim, designed and assembled in Sydney", img: "/hp-reclaim-eco-outdoor.webp", pos: "center 35%" },
-    { label: "Quiet, and frosty mornings", sub: "Reclaim CO₂, compressor away from the tank", img: "/reclaim-split-back-1.jpg", pos: "center 60%" },
+    { label: "The lowest price", sub: "The rebate goes furthest", img: "/270L-istore-heatpump.webp", fit: "contain" },
+    { label: "Good value", sub: "A proven name, 5 years on parts and labour", img: "/viessmann-vitocal-161a.webp", fit: "contain" },
+    { label: "Built to last", sub: "Australian made", img: "/hp-reclaim-eco-outdoor.webp", pos: "center 35%" },
+    { label: "The highest quality", sub: "The quietest, and best on frosty mornings", img: "/reclaim-split-back-1.jpg", fit: "whole" },
   ] },
   // Where it goes decides between one unit and a split; solar, whether the
   // iStore's built-in PV diverter earns its place. See hpPick.
   hpPlace: { id: "place", q: "Where will it go?", opts: [
-    { label: "Where the old tank is", sub: "One unit, against the house", img: "/ba-hw-after.webp", pos: "center 60%" },
-    { label: "Near a bedroom window", sub: "Quiet matters", img: "/viessmann-vitocal-161a-scene.webp", pos: "center 45%" },
+    { label: "Where the old tank is", sub: "One unit, against the house", img: "/ba-hw-before.webp", fit: "whole" },
+    { label: "Near a bedroom window", sub: "Quiet matters", img: "/thermann-heat-pump.webp", fit: "whole" },
     { label: "Not sure yet", sub: "We'll work it out on site", img: "/hp-technician.webp", pos: "center 35%" },
   ] },
-  solar: { id: "solar", q: "Solar panels on the roof?", opts: [o("Yes"), o("No"), o("Getting them soon")] },
+  solar: { id: "solar", q: "Solar panels on the roof?", opts: [
+    { label: "Yes", img: "/finder/solar-yes.svg" },
+    { label: "No", img: "/finder/solar-no.svg" },
+    { label: "Getting them soon", img: "/finder/solar-soon.svg" },
+  ] },
   gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
   heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
   vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
@@ -259,6 +274,8 @@ export type FaqKey = "split" | "multi" | "ducted" | "evap" | "hp" | "gashw" | "g
 
 export type System = {
   slug: string;
+  /** For a system listed under two categories (the Dominator heats and cools), the one its page sits in. */
+  home?: Category["id"];
   label: string;
   sub: string;
   img: string;
@@ -319,6 +336,22 @@ const sys = (d: SystemDef): System => {
   return { ...rest, qs: [{ id: "size", q: d.q, size: true, opts: d.sizes }, ...more] };
 };
 
+/**
+ * The Braemar Dominator Series 3: gas ducted out, reverse cycle in, in the
+ * heater's own spot on the ducts already there (Jake, Nov 2026). It heats
+ * and cools, so it's listed under Heating and Cooling; its page sits under
+ * Heating, since replacing a gas heater is what it's for. Sized by the two
+ * models in Braemar's tech data (12.1 and 17.9 kW heating); the site check
+ * settles which one the heater and ducts suit.
+ */
+const DOMINATOR: System = sys({ slug: "dominator", home: "heat", label: "Braemar Dominator", sub: "Gas ducted to reverse cycle, on your ducts", img: IMG.dominator,
+  q: "How big is the home?", sizes: [
+    { label: "Smaller home", sub: "Usually 3 bedrooms", spec: "12.1 kW", n: 1 },
+    { label: "Larger home", sub: "4 bedrooms or more", spec: "17.9 kW", n: 2 },
+  ], faq: "ducted", service: "ducted", more: [QB.storeys, QB.vents], tiers: [
+    t("essential", "Braemar", "Dominator Series 3", IMG.dominator, ["Keeps your existing ducts and vents", "Heats and cools, all electric", "VEU rebate for coming off gas"], null),
+  ] });
+
 /** In the menu's order, Cooling, Heating, Hot water, so the finder and the quote form read the same as the header. */
 export const CATS: Category[] = [
   {
@@ -332,6 +365,7 @@ export const CATS: Category[] = [
         t("signature", "Mitsubishi Electric", "MXZ with floor consoles", IMG.mitsuConsole, ["Heat at floor level, where it counts", "Nothing mounted high on feature walls", W], null),
       ] }),
       sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
+      DOMINATOR,
       sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-top water cooler", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
         t("essential", "Kaden", "Classic evaporative", IMG.evapClassic, ["Cheap to run on dry days", "Fresh air through the house", "Pre-summer service available"], null),
         t("premium", "Kaden", "Low-profile evaporative", IMG.evapLow, ["Sits low on the roofline", "Cheap to run on dry days", "Pre-summer service available"], null),
@@ -353,12 +387,7 @@ export const CATS: Category[] = [
         t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
       ] }),
       sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
-      // Gas ducted out, reverse cycle in, through the ducts already there
-      // (Jake, Nov 2026). One option, so it's a page of its own rather than
-      // a tier squeezed in beside the Brivis star ratings.
-      sys({ slug: "dominator", label: "Braemar Dominator", sub: "Gas ducted swapped to reverse cycle", img: IMG.dominator, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.vents], tiers: [
-        t("essential", "Braemar", "Dominator Series", IMG.dominator, ["Goes where your gas ducted heater is now", "Keeps your existing ducts and vents", "Heats and cools, all electric"], null),
-      ] }),
+      DOMINATOR,
       sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
       sys({ slug: "zoning", label: "Zoning & controls", sub: "Room-by-room control", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
         t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
@@ -408,7 +437,7 @@ export const HP_WANT_TIER = ["essential", "german", "premium", "signature"];
 export function hpPick(ans: Answers): { tier: string; why: string } | null {
   if (ans.want == null) return null;
   let tier = HP_WANT_TIER[ans.want];
-  const why: string[] = [["the lowest price, with the rebate going furthest", "a German brand", "Australian made", "quiet, and hot water on frosty mornings"][ans.want]];
+  const why: string[] = [["the lowest price, with the rebate going furthest", "good value from a proven name, with 5 years on parts and labour", "built to last, and Australian made", "the highest quality: the quietest, and the best on frosty mornings"][ans.want]];
   if (ans.place === 1 && tier === "premium") { tier = "signature"; why.push("quiet near a bedroom, with the compressor away from the tank"); }
   if (ans.place === 0 && tier === "signature") { tier = "premium"; why.push("one unit where the old tank stood"); }
   if (ans.solar != null && ans.solar !== 1 && tier === "essential") why.push("its built-in PV diverter runs it on your solar");
@@ -420,16 +449,24 @@ export const TONES = ["#0C6F96", "#C2521A", "#050A30", "#6B4FA0"] as const;
 export type SystemRef = { ci: number; si: number; cat: Category; sys: System };
 
 export function findSystem(slug: string): SystemRef | null {
+  let first: SystemRef | null = null;
   for (let ci = 0; ci < CATS.length; ci++) {
     const si = CATS[ci].systems.findIndex((s) => s.slug === slug);
-    if (si >= 0) return { ci, si, cat: CATS[ci], sys: CATS[ci].systems[si] };
+    if (si < 0) continue;
+    const ref = { ci, si, cat: CATS[ci], sys: CATS[ci].systems[si] };
+    // Listed twice: its page belongs to its home category.
+    if (!ref.sys.home || ref.sys.home === ref.cat.id) return ref;
+    first ??= ref;
   }
-  return null;
+  return first;
 }
+
+/** Every system once, though some are listed under two categories. */
+export const ALL_SYSTEMS = (): System[] => [...new Map(CATS.flatMap((c) => c.systems).map((s) => [s.slug, s])).values()];
 
 /** Every option with a page of its own: the ones that are really another option (`same`) don't get one. */
 export function allProductParams() {
-  return CATS.flatMap((c) => c.systems.flatMap((s) => s.tiers.filter((tr) => !tr.same).map((tr) => ({ system: s.slug, tier: tr.slug }))));
+  return ALL_SYSTEMS().flatMap((s) => s.tiers.filter((tr) => !tr.same).map((tr) => ({ system: s.slug, tier: tr.slug })));
 }
 
 /** The system and option a card really opens: itself, or the option it's the same as. */
@@ -524,7 +561,7 @@ const GAL: Record<string, GalItem[]> = {
   "gas-storage": [g(PHOTO.hotWater1, "A recent hot water install", "c"), g(PHOTO.hotWater2, "A recent hot water install", "c")],
   "gas-ducted-heating": [g(IMG.brivisWombat, "Brivis gas ducted heater", "p", "Brivis"), g(PHOTO.heating, "A ducted gas heater in a roof space", "c"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate")],
   "reverse-cycle-ducted": [g(IMG.mitsuZone, "Mitsubishi Electric zone controller", "p", "Mitsubishi Electric"), g(PHOTO.ductedInstall, "A ducted install", "c"), g(PHOTO.commercial, "Our technician in the roof space", "c")],
-  dominator: [g(IMG.dominator, "Ductwork in a roof space, the kind a Dominator reuses", "c"), g(PHOTO.heating, "A gas ducted heater in a roof space, the kind a Dominator replaces", "c")],
+  dominator: [g("/dominator-indoor.webp", "Braemar Dominator Series 3 indoor unit", "p", "Braemar"), g("/dominator-outdoor.webp", "Braemar Dominator Series 3 outdoor unit", "p", "Braemar"), g("/dominator-controller.webp", "Braemar XE7C wall controller", "p", "Braemar"), g(PHOTO.heating, "A gas ducted heater in a roof space, the kind a Dominator replaces", "c")],
   "reverse-cycle-split": [g(IMG.mitsuCond, "Mitsubishi Electric outdoor unit", "p", "Mitsubishi Electric"), g(PHOTO.splitRoom, "A split system we installed", "c"), g(PHOTO.outdoorUnit, "An outdoor unit we installed", "c")],
   zoning: [g(IMG.zmTablet, "Zonemate tablet", "p", "Zonemate"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate"), g(PHOTO.ductedInstall, "A ducted install", "c")],
 };
@@ -561,7 +598,7 @@ const HERO: Record<string, Hero> = {
   "split-system": H.bedroom, "reverse-cycle-split": H.bedroom, "multi-head": H.bedroom,
   ducted: H.roofDucted, "ducted.essential": H.kadenOutdoor,
   "reverse-cycle-ducted": H.roofDucted, "reverse-cycle-ducted.essential": H.kadenOutdoor,
-  dominator: hero("/duct-work.webp", "Ductwork in a roof space, the kind a Dominator reuses", "center 40%"),
+  dominator: { src: "/dominator-system.webp", alt: "Braemar Dominator Series 3 outdoor and indoor units", pos: "center", ours: false, studio: true },
   evaporative: H.evap,
   "heat-pump": H.reclaimSplit, "heat-pump.premium": H.reclaimAio, "heat-pump.essential": H.istore,
   // Viessmann's own image, not one of our installs, so it isn't captioned as ours.
@@ -584,6 +621,10 @@ export const heroForSystem = (sys: System): Hero => HERO[sys.slug] ?? H.bedroom;
  * frame is mostly empty space.
  */
 export const HERO_SHOW: Record<string, { src: string; alt: string; label: string }[]> = {
+  dominator: [
+    { src: "/dominator-indoor.webp", alt: "Braemar Dominator Series 3 indoor unit", label: "Indoor unit: where the gas heater was" },
+    { src: "/dominator-outdoor.webp", alt: "Braemar Dominator Series 3 outdoor unit", label: "Outdoor unit" },
+  ],
   "gas-storage": [
     { src: IMG.gasStorage, alt: "Thermann 4-star gas storage unit", label: "Gas storage" },
     { src: IMG.gasCf, alt: "Thermann G-series continuous flow unit", label: "Continuous flow" },
@@ -669,6 +710,7 @@ export const TIER_MODELS: Record<string, ModelRef[]> = {
   "evaporative.signature": [["brivis", "brivis-evap-advance", "Advance"]],
   "heat-pump.essential": ISTORE, "heat-pump.premium": ECO,
   "heat-pump.german": [["viessmann", "vitocal-161a-200", "200 L"], ["viessmann", "vitocal-161a-270", "270 L"]],
+  "dominator.essential": [["braemar", "dominator-12", "12.1 kW"], ["braemar", "dominator-18", "17.9 kW"]],
   "heat-pump.signature": [["reclaim", "co2-split-160-glass", "160 L"], ["reclaim", "co2-split-250-glass", "250 L"], ["reclaim", "co2-split-315-glass", "315 L"], ["reclaim", "co2-split-400-glass", "400 L"]],
   "gas-continuous-flow.essential": CF, "gas-continuous-flow.premium": [CF[2], CF[3]],
   "gas-storage.essential": [["thermann", "gas-storage-135", "135 L"], ["thermann", "gas-storage-170", "170 L"]],
@@ -702,7 +744,7 @@ export function modelForAnswer(models: { chip: string }[], answerSpec: string | 
 
 export const BRAND_SLUGS: Record<string, string> = {
   "Mitsubishi Electric": "mitsubishi-electric", Kaden: "kaden", Brivis: "brivis", Reclaim: "reclaim",
-  Thermann: "thermann", iStore: "istore", Zonemate: "zonemate", Viessmann: "viessmann",
+  Thermann: "thermann", iStore: "istore", Zonemate: "zonemate", Viessmann: "viessmann", Braemar: "braemar",
 };
 
 export const BRAND_PAGES: Record<string, string> = {
@@ -936,7 +978,7 @@ const prod = (t: string, img: string, slug: string): NavItem => ({ t, s: findSys
 
 export const NAV: NavGroup[] = [
   { label: "Cooling", href: "/cooling", head: "Not sure which?", foot: "Find your cooling", footFind: "air",
-    items: [prod("Split system", IMG.mitsuSplit, "split-system"), prod("Multi-head split", IMG.kadenMulti, "multi-head"), prod("Ducted", IMG.mitsuDucted, "ducted"), prod("Evaporative", IMG.evapClassic, "evaporative")] },
+    items: [prod("Split system", IMG.mitsuSplit, "split-system"), prod("Multi-head split", IMG.kadenMulti, "multi-head"), prod("Ducted", IMG.mitsuDucted, "ducted"), prod("Braemar Dominator", IMG.dominator, "dominator"), prod("Evaporative", IMG.evapClassic, "evaporative")] },
   { label: "Heating", href: "/heating", head: "Not sure which?", foot: "Find your heating", footFind: "heat",
     items: [prod("Gas ducted heating", IMG.brivisStar, "gas-ducted-heating"), prod("Ducted split", IMG.mitsuDucted, "reverse-cycle-ducted"), prod("Braemar Dominator", IMG.dominator, "dominator"), prod("Reverse-cycle split", IMG.kadenSplit, "reverse-cycle-split"), prod("Zoning & controls", IMG.zmTouch, "zoning")] },
   { label: "Hot water", href: "/hot-water", head: "VEU rebate", foot: "Up to $2,700 off a heat pump", footFind: "hw",

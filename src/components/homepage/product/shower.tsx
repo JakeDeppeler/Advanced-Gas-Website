@@ -58,8 +58,10 @@ export function ShowerTime({ v }: { v: PV }) {
   const own = () => Math.max(0, tanks.findIndex((t) => t.litres === tanksOf(v.model?.specs)[0]));
   const [pick, setPick] = useState(own);
   const [people, setPeople] = useState(() => peopleOf(v.size?.label));
-  // The finder's "How long are the showers?", average if it wasn't asked.
-  const [len, setLen] = useState(() => v.ans.shw ?? 1);
+  // The finder's "How long are the showers?", average if it wasn't asked. No
+  // control of its own here (Jake, Nov 2026): the minutes each person gets
+  // already answers it.
+  const len = v.ans.shw ?? 1;
   // A new model is a new tank: show its size again.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setPick(own()), [v.model?.slug]);
@@ -138,15 +140,6 @@ export function ShowerTime({ v }: { v: PV }) {
             <div className="shw__opts" role="group" aria-labelledby="shw-people">
               {Array.from({ length: MAX_PEOPLE }, (_, i) => i + 1).map((n) => (
                 <button key={n} type="button" aria-pressed={n === people} onClick={() => setPeople(n)}>{n}{n === MAX_PEOPLE ? "+" : ""}</button>
-              ))}
-            </div>
-          </div>
-
-          <div className="shw__row">
-            <span className="shw__q" id="shw-len">How long are the showers?</span>
-            <div className="shw__opts" role="group" aria-labelledby="shw-len">
-              {["Quick", "Average", "Long"].map((l, i) => (
-                <button key={l} type="button" aria-pressed={i === len} onClick={() => setLen(i)}>{l} · {SHOWER_MINUTES[i]} min</button>
               ))}
             </div>
           </div>

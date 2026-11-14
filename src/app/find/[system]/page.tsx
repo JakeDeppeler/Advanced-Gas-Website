@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { seoMeta } from "@/lib/seo";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
-import { CATS, findSystem, money, PRODUCT_FAQS } from "@/lib/homepage/data";
+import { ALL_SYSTEMS, findSystem, money, PRODUCT_FAQS } from "@/lib/homepage/data";
 import { SYS_INTRO } from "@/lib/homepage/learn";
 import { SystemPage } from "@/components/homepage/page/SystemPage";
 import { HomeHeader } from "@/components/homepage/HomeHeader";
@@ -20,7 +20,7 @@ type Params = { system: string };
 
 export const dynamicParams = false;
 export function generateStaticParams() {
-  return CATS.flatMap((c) => c.systems.map((s) => ({ system: s.slug })));
+  return ALL_SYSTEMS().map((s) => ({ system: s.slug }));
 }
 
 export function generateMetadata({ params }: { params: Params }): Metadata {

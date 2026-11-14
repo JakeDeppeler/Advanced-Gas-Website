@@ -5,7 +5,7 @@ import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 import { detailedCodes, faultSlug } from "@/lib/faultCodes";
 import { publishedPosts } from "@/lib/blogLive";
-import { allProductParams, CATS, findSystem } from "@/lib/homepage/data";
+import { allProductParams, ALL_SYSTEMS, findSystem } from "@/lib/homepage/data";
 import { canonicalProductSystem } from "@/lib/homepage/canonical";
 
 /**
@@ -132,7 +132,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // query string; that is the canonical form of each.
   const findUrls: MetadataRoute.Sitemap = [
     // A page per kind of system, above its options.
-    ...CATS.flatMap((c) => c.systems).map((sy) => ({ url: `${base}/find/${sy.slug}`, changeFrequency: "monthly" as const, priority: 0.65 })),
+    ...ALL_SYSTEMS().map((sy) => ({ url: `${base}/find/${sy.slug}`, changeFrequency: "monthly" as const, priority: 0.65 })),
     // Less the ones whose canonical is another system's copy of the same
     // product (see lib/homepage/canonical): a sitemap URL that canonicals
     // elsewhere is a mixed signal.

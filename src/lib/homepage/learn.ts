@@ -39,26 +39,30 @@ const SPLIT: Learn = {
 
 export const LEARN: Record<string, Learn> = {
   "split-system": SPLIT,
-  // The Dominator: a ducted reverse-cycle unit built for a gas heater's spot.
-  // The return-air box and the duct check come from our own quote wording.
+  // The Dominator (Jake, Nov 2026): the one system we fit that keeps the
+  // ductwork a gas ducted house already has. Braemar's brochure: it goes in
+  // the gas heater's own position, keeps the ducts and vents where they're
+  // sound, needs a return air grille, and can go in in a day.
   dominator: {
     diagram: "ducted",
     how: [
-      { t: "Out with the gas heater", d: "The old gas ducted heater comes out, and the gas to it is capped off." },
-      { t: "In the same spot", d: "The Dominator goes where the heater was, on the ducts and vents already in the house." },
-      { t: "An outdoor unit", d: "A new outdoor unit does the heating in winter and the cooling in summer." },
-      { t: "A new return air box", d: "It moves more air than a gas heater, so we fit a new return air box and grille." },
+      { t: "Out with the gas heater", d: "The old gas ducted heater comes out of the roof, from under the floor or off the outside wall, and the gas to it is capped off." },
+      { t: "In the same spot, on the same ducts", d: "The Dominator indoor unit goes where the heater was and connects to the ducts and vents already in the house. No new ductwork through the roof." },
+      { t: "An outdoor unit", d: "A Braemar outdoor unit does the heating in winter and the cooling in summer: reverse cycle, all electric, R32." },
+      { t: "A return air grille", d: "It moves more air than a gas heater, so a return air grille is fitted, and we check the ducts are sound before we commit to them." },
     ],
     good: [
       "You have gas ducted heating and want to get off gas",
-      "The ducts and vents in the roof are in good condition",
+      "You'd rather keep the ducts and vents than pull them all out",
       "You want cooling as well as heating, from one system",
+      "You have an evaporative cooler: the two work together",
     ],
     alt: [
-      { if: "the ducts are tired, damaged or too small", go: "reverse-cycle-ducted", label: "Ducted split" },
+      { if: "the ducts are damaged or too small to reuse", go: "reverse-cycle-ducted", label: "Ducted split" },
       { if: "you'd rather stay on gas", go: "gas-ducted-heating", label: "Gas ducted heating" },
     ],
   },
+
   // Heating runs the same pipes the other way round, so step two says so.
   "reverse-cycle-split": {
     ...SPLIT,
@@ -262,7 +266,7 @@ export const SYS_INTRO: Record<string, string> = {
   "multi-head": "A multi-head system runs two or more indoor units off one outdoor unit. Each room gets its own head and its own remote, with only one box on the outside wall.",
   ducted: "A ducted split heats and cools the whole house from one unit hidden in the roof. Air comes out of slim vents in the ceiling, and zones let you run only the rooms you're using.",
   "reverse-cycle-ducted": "A ducted split heats the whole house in winter and cools it in summer, from one unit hidden in the roof. It takes its heat from the outside air, so there's no gas, and zones let you run only the rooms you're using.",
-  dominator: "The Braemar Dominator is a ducted reverse-cycle system made to go where a gas ducted heater sits now, on the same ducts and vents. The gas comes off, and the house gets heating and cooling from one all-electric system, usually in a day.",
+  dominator: "The Braemar Dominator is the one system we fit that keeps the ductwork your gas ducted heating already has. It goes in the gas heater's own spot, on the same ducts and vents, and gives the house reverse-cycle heating and cooling, all electric, usually in a day. A ducted split means pulling the old ductwork out, inside and out, and running new.",
   evaporative: "An evaporative cooler sits on the roof and cools the house with outside air drawn through water-soaked pads. It's the cheapest way to cool a whole home on dry, hot days.",
   "gas-ducted-heating": "Gas ducted heating warms the whole house from one heater, pushing warm air through ducts to a vent in each room. It's quick, even warmth through a Victorian winter.",
   zoning: "Zoning splits a ducted system into areas you can turn on and off, so you heat or cool the rooms you're in instead of the whole house.",
@@ -295,10 +299,10 @@ export const SYS_PROS: Record<string, { pros: string[]; cons: string[] }> = {
   },
   "reverse-cycle-ducted": {
     pros: ["Heats in winter and cools in summer", "No gas: heat taken from the outside air", "Hidden in the roof: only slim vents show", "Zones let you heat only the rooms you use"],
-    cons: ["Needs a usable roof space", "Costs more upfront than a gas heater", "Usually two to three days to install"],
+    cons: ["Replacing gas ducted? The old ductwork comes out, inside and out, and new goes in", "Needs a usable roof space", "Usually two to three days to install"],
   },
   dominator: {
-    pros: ["Off gas, onto one electric system", "Reuses the ducts and vents you already have", "Heats and cools", "Usually a one-day changeover"],
+    pros: ["Keeps the ducts and vents you already have: no new ductwork", "Off gas, with the VEU rebate for making the switch", "Heats and cools from one system", "Less work in the house: usually a one-day changeover"],
     cons: ["Only suits ducts that are sound and the right size, so we check them first", "Needs room outside for an outdoor unit", "Costs more upfront than another gas heater"],
   },
   "gas-ducted-heating": {
@@ -363,6 +367,10 @@ const HEATER_SIZES: Record<string, string> = {
 
 export const CHOOSE: Record<string, Choice> = {
   "dominator.essential": {
+    sizes: {
+      "Smaller home": "The 12.1 kW model (11.6 kW cooling), for a smaller house on a smaller heater. We size it off your heater and ducts at the site check.",
+      "Larger home": "The 17.9 kW model (16.5 kW cooling), for a bigger house or a bigger heater. We size it off your heater and ducts at the site check.",
+    },
     instead: [
       { go: "reverse-cycle-ducted.essential", label: "A new ducted split", when: "The ducts are tired, damaged or too small to reuse, or the house has none." },
       { go: "gas-ducted-heating.4-star", label: "Another gas ducted heater", when: "You'd rather stay on gas, or only need heating." },
@@ -600,8 +608,8 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     pros: ["A low-profile cabinet from a long-standing local brand", "Cheap to run on dry, hot days", "Fresh air through the house"],
     cons: ["Cooling only, no heating", "Less effective on humid days"],
   },
-  "Braemar Dominator Series": {
-    pros: ["Goes where the gas heater was, on the same ducts", "Heating and cooling from one electric system", "Usually done in a day"],
+  "Braemar Dominator Series 3": {
+    pros: ["Keeps your existing ducts and vents: the only system we fit that does", "Heating and cooling from one electric system, with the VEU rebate", "Australian designed, made and owned (Seeley International)", "Usually done in a day"],
     cons: ["The ducts have to be sound and sized right to reuse", "Costs more upfront than a gas heater swap"],
   },
   "Brivis Classic Wombat 3-star": {

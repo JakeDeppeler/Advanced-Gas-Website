@@ -899,16 +899,25 @@ function EvapScene() {
   );
 }
 
-/** An all-in-one heat pump beside the house: heat pump on top, tank below, solar and a timer. */
 /**
  * The all-in-one heat pump, drawn after the manufacturer's cutaway Jake
  * chose (Nov 2026) so it can still move, and set beside the house it serves
- * (the bathroom, the shower and the basin tap) as he asked: warm air pulled
- * in on the right, cooled air out on the left, the fan and compressor in the
- * head, heat carried down a copper coil into a tank that runs from cold blue
- * at the bottom to hot at the top, and hot water piped across to the taps.
- * The spots in S.aio and S.hp follow this layout.
+ * (the bathroom, the shower and the basin tap): warm air drawn in on the
+ * right and cooled air blown out on the left as moving airflow rather than
+ * arrows, the fan and compressor in the head, heat carried down a copper
+ * coil into a tank that runs from cold blue at the bottom to hot at the top,
+ * and hot water piped across to the taps.
+ *
+ * "Run when power is cheap" is a day going round (Jake): the sun rises, arcs
+ * over and sets, then night falls. In the day it runs on the panels' power;
+ * at night the airflow and the coil go quiet and it's off, or on off-peak.
+ * One 12-second loop, every part on the same key times. With motion off it
+ * holds a still midday. The spots in S.aio and S.hp follow this layout.
  */
+const DAY = 12;
+// dawn → full day → sunset → night → dawn, as fractions of the loop.
+const DAY_T = "0;0.06;0.5;0.58;0.94;1";
+
 function AioScene() {
   const { p, motion } = useContext(Ctx);
   const u = useU();
@@ -922,7 +931,20 @@ function AioScene() {
   const back = Array.from({ length: turns }, (_, k) => `M${cx + rw} ${top + k * step + step * 0.5} Q${cx} ${top + k * step + step * 0.2} ${cx - rw} ${top + (k + 1) * step}`).join(" ");
   const coilPath = `M${cx} ${tankY - 4} V${top} ${Array.from({ length: turns }, (_, k) => `L${cx + (k % 2 ? -rw : rw)} ${top + (k + 0.5) * step}`).join(" ")} L${cx} ${bottom}`;
   const ay = headY + 29;
-  const arrow = (x0: number, x1: number) => `M${x0} ${ay - 8} Q${(x0 + x1) / 2 + 10} ${ay - 12} ${x1 + 26} ${ay - 9} L${x1 + 26} ${ay - 22} L${x1} ${ay} L${x1 + 26} ${ay + 22} L${x1 + 26} ${ay + 9} Q${(x0 + x1) / 2 + 10} ${ay + 12} ${x0} ${ay + 8} Z`;
+  // Airflow: three ribbons drawn in from the right into the head's fins, three
+  // blown out of the fan side to the left, fanning as they go.
+  const warm = [50, 90, 130].map((y0, i) => `M598 ${y0} C548 ${y0} 506 ${ay - 12 + i * 12} ${X + W + 2} ${ay - 12 + i * 12}`);
+  const cool = [58, 96, 134].map((y1, i) => `M${X - 2} ${ay - 12 + i * 12} C${X - 46} ${ay - 12 + i * 12} 268 ${y1} 206 ${y1}`);
+  // The sun's arc: up from behind the wall, over the head, down behind it again.
+  const arc = "M250 132 Q420 -92 590 132";
+  // Fan blades, turned by SMIL so they can stop at night with everything else.
+  const fx = X + 24, fr = 16;
+  const blade = `M${fx} ${ay} C${fx + fr * 0.18} ${ay - fr * 0.35} ${fx + fr * 0.42} ${ay - fr * 0.86} ${fx + fr * 0.05} ${ay - fr * 0.92} C${fx - fr * 0.32} ${ay - fr * 0.88} ${fx - fr * 0.24} ${ay - fr * 0.34} ${fx} ${ay}Z`;
+  const cycle = (values: string) => (motion ? <animate attributeName="opacity" values={values} keyTimes={DAY_T} dur={`${DAY}s`} repeatCount="indefinite" /> : null);
+  // The two chips hand over rather than crossfade: their words differ in
+  // length, and overlapping they read as a smudge.
+  const chip = (values: string, keyTimes: string) => (motion ? <animate attributeName="opacity" values={values} keyTimes={keyTimes} dur={`${DAY}s`} repeatCount="indefinite" /> : null);
+  const stars: [number, number, number][] = [[250, 22, 1.4], [292, 54, 1.1], [338, 18, 1.6], [372, 44, 1], [474, 16, 1.3], [508, 58, 1], [566, 24, 1.5], [596, 70, 1.1], [228, 70, 1]];
   return (
     <>
       <defs>
@@ -933,18 +955,47 @@ function AioScene() {
           </stop>
           <stop offset="1" stopColor="#2CC4F5" />
         </linearGradient>
-        <linearGradient id={id("in")} x1="1" y1="0" x2="0" y2="0"><stop offset="0" stopColor="#FF6FB5" /><stop offset="1" stopColor="#E0258A" /></linearGradient>
-        <linearGradient id={id("out")} x1="1" y1="0" x2="0" y2="0"><stop offset="0" stopColor="#3FB6F2" /><stop offset="1" stopColor="#8FD8FA" /></linearGradient>
+        <linearGradient id={id("warm")} gradientUnits="userSpaceOnUse" x1="598" y1="0" x2={X + W} y2="0"><stop offset="0" stopColor="#FFB070" /><stop offset="1" stopColor="#F04FA6" /></linearGradient>
+        <linearGradient id={id("cool")} gradientUnits="userSpaceOnUse" x1={X} y1="0" x2="206" y2="0"><stop offset="0" stopColor="#1FA9E6" /><stop offset="1" stopColor="#A9E4FB" /></linearGradient>
         <linearGradient id={id("shell")} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#D9DEE6" /><stop offset=".5" stopColor="#F7F9FB" /><stop offset="1" stopColor="#C9D0DA" /></linearGradient>
+        <linearGradient id={id("night")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0A1240" /><stop offset="1" stopColor="#24346E" /></linearGradient>
+        <radialGradient id={id("sunGlow")}><stop offset="0" stopColor="#FFD65A" stopOpacity=".55" /><stop offset="1" stopColor="#FFD65A" stopOpacity="0" /></radialGradient>
       </defs>
 
-      {/* the house: the bathroom with its shower and basin, solar on the roof */}
+      {/* the sky through the day: the sun's arc, then night with the moon and stars */}
       <Sky />
+      <rect x="0" y="0" width="600" height="352" fill={`url(#${id("night")})`} opacity={motion ? 0.35 : 0}>{cycle(".35;0;0;.88;.88;.35")}</rect>
+      <g opacity="0">
+        {cycle("0;0;0;1;1;0")}
+        {stars.map(([sx, sy, r]) => <circle key={`${sx}-${sy}`} cx={sx} cy={sy} r={r} fill="#fff" />)}
+        <circle cx="446" cy="26" r="11" fill="#F4F1DE" />
+        <circle cx="451" cy="22" r="10" fill={`url(#${id("night")})`} />
+      </g>
+      {motion ? (
+        <g>
+          <circle r="30" fill={`url(#${id("sunGlow")})`} />
+          <circle r="13" fill={u("sun")} />
+          <animateMotion dur={`${DAY}s`} repeatCount="indefinite" path={arc} keyPoints="0;1;1" keyTimes="0;0.54;1" calcMode="linear" />
+        </g>
+      ) : (
+        <g transform="translate(420 20)">
+          <circle r="30" fill={`url(#${id("sunGlow")})`} />
+          <circle r="13" fill={u("sun")} />
+        </g>
+      )}
+
+      {/* the house: the bathroom with its shower and basin, solar on the roof */}
       <Ground />
       <Brick x={200} y={114} w={400} h={238} />
       <Eave x={200} y={114} w={400} />
       <Roof l={14} r={210} top={50} eave={114} space={false} />
       <path d="M58 94 L112 62 L152 86 L98 118Z" fill={u("pv")} stroke="#AFC0E8" strokeWidth="1.5" />
+      {/* the panels catch the sun in the day */}
+      <g opacity={motion ? 0 : 1}>
+        {cycle("0;1;1;0;0;0")}
+        <path d="M58 94 L112 62 L152 86 L98 118Z" fill="#CFE2FF" opacity=".28" />
+        <path d="M58 94 L112 62 L152 86 L98 118Z" fill="none" stroke="#FFC229" strokeWidth="3" strokeLinejoin="round" />
+      </g>
       <Room x={24} y={114} w={176} h={238} tiles />
       <Vanity x={40} y={300} />
       <rect x="100" y="140" width="4" height="120" fill="#D7E6F0" opacity=".8" />
@@ -955,11 +1006,24 @@ function AioScene() {
       <Pipe d="M232 156 V236 H72 V246" c={C.water} w={6} n={4} />
       <Pipe d={`M600 336 H${X + W}`} c={C.cold} w={7} />
 
-      {/* warm air in on the right, cooled air out on the left */}
-      <path d={arrow(572, X + W + 4)} fill={`url(#${id("in")})`} opacity=".94" />
-      <path d={arrow(X - 4, 212)} fill={`url(#${id("out")})`} opacity=".94" />
-      <Stream d={`M586 ${ay} H${X + W + 14}`} c="#fff" n={4} dur={1.6} r={2.2} />
-      <Stream d={`M${X - 6} ${ay} H226`} c="#fff" n={4} dur={1.6} r={2.2} />
+      {/* airflow: warm air drawn in on the right, cooled air blown out on the left; it goes quiet at night */}
+      <g opacity="1">
+        {cycle(".25;1;1;.12;.12;.25")}
+        {warm.map((d, i) => (
+          <g key={`w${i}`}>
+            <path d={d} stroke={`url(#${id("warm")})`} strokeOpacity=".2" strokeWidth="15" fill="none" strokeLinecap="round" />
+            <path d={d} className="hw-flow" stroke={`url(#${id("warm")})`} strokeWidth="3" fill="none" strokeLinecap="round" />
+            <Stream d={d} c="#FFE0EE" n={3} dur={1.9 + i * 0.2} r={2.4} />
+          </g>
+        ))}
+        {cool.map((d, i) => (
+          <g key={`c${i}`}>
+            <path d={d} stroke={`url(#${id("cool")})`} strokeOpacity=".2" strokeWidth="15" fill="none" strokeLinecap="round" />
+            <path d={d} className="hw-flow" stroke={`url(#${id("cool")})`} strokeWidth="3" fill="none" strokeLinecap="round" />
+            <Stream d={d} c="#E3F6FE" n={3} dur={1.9 + i * 0.2} r={2.4} />
+          </g>
+        ))}
+      </g>
 
       {/* the tank: shell, then the cut-away water and coil */}
       <rect x={X} y={tankY} width={W} height={tankB - tankY} rx="10" fill={`url(#${id("shell")})`} stroke="#AEB7C4" strokeWidth="1.5" />
@@ -967,21 +1031,45 @@ function AioScene() {
       <rect x={X + 9} y={tankY + 10} width={W - 18} height={tankB - tankY - 20} rx="28" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="2" />
       <path d={back} stroke="#8A4A1E" strokeWidth="3" fill="none" strokeLinecap="round" opacity=".7" />
       <path d={front} stroke="#D98543" strokeWidth="3.4" fill="none" strokeLinecap="round" />
-      <Stream d={coilPath} c="#FFE2C4" n={6} dur={4.5} r={2.4} />
+      <g>
+        {cycle("0;1;1;0;0;0")}
+        <Stream d={coilPath} c="#FFE2C4" n={6} dur={4.5} r={2.4} />
+      </g>
 
       {/* the head: fan, compressor and fins */}
       <rect x={X} y={headY} width={W} height={tankY - headY + 2} rx="8" fill="#252A35" />
       <rect x={X} y={headY} width={W} height={tankY - headY + 2} rx="8" fill="none" stroke="#3A4152" strokeWidth="2" />
-      <Fan cx={X + 24} cy={ay} r={16} grille={false} />
+      <circle cx={fx} cy={ay} r={fr + 3} fill="#1F2536" />
+      <circle cx={fx} cy={ay} r={fr} fill="#30384E" />
+      <g>
+        {[0, 120, 240].map((a) => <path key={a} d={blade} fill="#9AA6B8" transform={`rotate(${a} ${fx} ${ay})`} />)}
+        {motion && <animateTransform attributeName="transform" type="rotate" values={`0 ${fx} ${ay};0 ${fx} ${ay};1800 ${fx} ${ay};1800 ${fx} ${ay}`} keyTimes="0;0.04;0.52;1" dur={`${DAY}s`} repeatCount="indefinite" />}
+      </g>
+      <circle cx={fx} cy={ay} r={fr * 0.16} fill="#C9D1DC" stroke="#5D6B80" strokeWidth="1.5" />
       <rect x={X + 44} y={headY + 9} width="20" height="40" rx="9" fill="#B9C2CE" />
       <rect x={X + 44} y={headY + 9} width="20" height="9" rx="4.5" fill="#DDE3EA" />
       <path d={`M${X + 64} ${headY + 16} H${X + 72} V${tankY - 4}`} stroke="#D98543" strokeWidth="2.6" fill="none" />
       <g stroke="#C98B57" strokeWidth="1.6">{Array.from({ length: 6 }, (_, k) => <line key={k} x1={X + 75 + k * 2.4} y1={headY + 6} x2={X + 75 + k * 2.4} y2={tankY - 4} />)}</g>
 
-      <Clock cx={540} cy={214} />
+      {/* what it's running on: the panels by day, off or off-peak by night */}
+      <g opacity={motion ? 0 : 1}>
+        {chip("0;0;1;1;0;0", "0;0.03;0.06;0.52;0.55;1")}
+        <rect x="34" y="12" width="166" height="26" rx="13" fill="#FFF3C4" stroke="#F2B705" strokeWidth="1.5" />
+        <circle cx="52" cy="25" r="6" fill="#F2B705" />
+        <text x="64" y="29.5" className="hw-label" fill={C.navy}>Running on your solar</text>
+      </g>
+      {motion && (
+        <g opacity="0">
+          {chip("1;0;0;0;1;1", "0;0.03;0.52;0.55;0.58;1")}
+          <rect x="34" y="12" width="166" height="26" rx="13" fill="#1B2559" stroke="#5B6BB0" strokeWidth="1.5" />
+          <path d="M55 19 A7 7 0 1 0 55 31 A5.5 5.5 0 1 1 55 19Z" fill="#F4F1DE" />
+          <text x="64" y="29.5" className="hw-label" fill="#fff">Off, or on off-peak</text>
+        </g>
+      )}
+
       <Label x={cx} y={56}>Heat pump</Label>
-      <Label x={520} y={138}>Warm air in</Label>
-      <Label x={286} y={138}>Cooled air out</Label>
+      <Label x={534} y={36}>Warm air in</Label>
+      <Label x={282} y={36}>Cooled air out</Label>
       <Label x={296} y={186}>Hot to the taps</Label>
       <Label x={540} y={322}>Cold mains in</Label>
     </>
@@ -1100,8 +1188,8 @@ const S = {
   zoning: [[[96, 96, 28, 28], [256, 124, 28, 28], [406, 96, 28, 28]], [[228, 226, 54, 80]], [[30, 150, 370, 200]], [[140, 72, 130, 64]]],
   evap: [[[204, 26, 102, 74]], [[140, 40, 76, 44], [294, 40, 76, 44]], [[90, 96, 330, 130]], [[420, 196, 130, 100]]],
   // On the drawn cutaway beside the house: the whole unit, the head with the air in and out, the tank and the pipe to the taps, then the clock and the solar.
-  aio: [[[362, 66, 94, 288]], [[362, 66, 94, 58], [212, 73, 146, 44], [460, 73, 112, 44]], [[362, 122, 94, 230], [150, 146, 212, 16]], [[516, 190, 48, 48], [52, 52, 104, 70]]],
-  hp: [[[460, 73, 112, 44], [212, 73, 146, 44]], [[404, 74, 24, 42]], [[362, 122, 94, 230]], [[516, 190, 48, 48], [52, 52, 104, 70]]],
+  aio: [[[362, 66, 94, 288]], [[362, 66, 94, 58], [204, 52, 160, 90], [456, 44, 144, 94]], [[362, 122, 94, 230], [150, 146, 212, 16]], [[30, 8, 174, 114], [222, 4, 376, 58]]],
+  hp: [[[456, 44, 144, 94], [204, 52, 160, 90]], [[404, 74, 24, 42]], [[362, 122, 94, 230]], [[30, 8, 174, 114], [222, 4, 376, 58]]],
   co2: [[[198, 96, 88, 260], [372, 236, 196, 120]], [[372, 236, 196, 120]], [[270, 112, 140, 226]], [[430, 18, 140, 160]]],
   gascf: [[[100, 100, 70, 60]], [[292, 92, 126, 176]], [[110, 66, 280, 52]], [[310, 210, 96, 50]]],
   gasstorage: [[[254, 82, 112, 232]], [[254, 298, 112, 56]], [[364, 96, 26, 206]], [[294, 28, 32, 72], [354, 280, 70, 20], [354, 320, 70, 20], [196, 106, 70, 22]]],
