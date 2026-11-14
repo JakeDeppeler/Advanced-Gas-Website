@@ -52,6 +52,28 @@ export function HwSizeCheck() {
             ))}
           </div>
         </div>
+        {/* The showers one after another, a person each: what the total is made
+            of, drawn. It also fills the card down to the bottom of the list
+            beside it, where there used to be a blank gap. */}
+        <div className="hws__run" aria-hidden="true">
+          <span className="hws__runh">Back to back</span>
+          <ol key={`${people}-${len}`} style={{ ["--n" as string]: Math.max(people, 3) }}>
+            {Array.from({ length: people }, (_, i) => (
+              <li key={i} style={{ animationDelay: `${i * 0.08}s` }}>
+                <svg viewBox="0 0 40 48">
+                  <path d="M8 6 H22 Q28 6 28 12 V14" fill="none" stroke="#8A97AB" strokeWidth="2.6" strokeLinecap="round" />
+                  <path d="M21 14 H35 L33 18 H23 Z" fill="#8A97AB" />
+                  <g stroke="#1BA7E0" strokeWidth="2" strokeLinecap="round" className="hws__drops">
+                    <path d="M25 21 V25" /><path d="M29 21 V27" /><path d="M33 21 V25" />
+                  </g>
+                  <circle cx="20" cy="30" r="4.6" fill="#050A30" />
+                  <path d="M12.5 48 V42 C12.5 38.5 15.6 36.6 20 36.6 S27.5 38.5 27.5 42 V48 Z" fill="#050A30" />
+                </svg>
+                <b>{SHOWER_MINUTES[len]} min</b>
+              </li>
+            ))}
+          </ol>
+        </div>
         <p className="hws__need" aria-live="polite">
           <b>{need} min</b> of hot showers, one after another
           <small>{people} {people === 1 ? "person" : "people"} × {SHOWER_MINUTES[len]} min. At about 5 L of hot water a minute, that&apos;s around {need * 5} L.</small>

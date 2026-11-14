@@ -15,6 +15,9 @@
 .ag .cx__img img{object-fit:contain;padding:20px;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .ag .cx__card:hover .cx__img img{transform:scale(1.05)}
 .ag .cx__img--cover img{object-fit:cover;padding:0}
+/* Hot water: a drawing against the house fills the frame, as on the finder tiles */
+.ag .cx__img--draw{background:#EAF3FA}
+.ag .cx__img--draw img{object-fit:cover;padding:0}
 .ag .cx__txt{display:flex;flex-direction:column;gap:6px;padding:18px 20px 20px;flex:1}
 .ag .cx__tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--acc)}
 .ag .cx__txt strong{font-family:var(--disp);font-size:22px;font-weight:900;letter-spacing:-.01em;color:var(--navy)}
@@ -67,6 +70,9 @@
 .ag .cx__why b{font-family:var(--disp);font-size:clamp(30px,2.8vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--acc-l)}
 .ag .cx__why strong{font-family:var(--disp);font-size:18px;font-weight:800;color:#fff;margin-top:6px}
 .ag .cx__why span{font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.78)}
+/* Hot water: the brand pages' drawn icons, on white so their navy lines show on the navy band */
+.ag .cx__why .cx__wico{display:grid;place-items:center;width:64px;height:64px;margin-bottom:10px;border-radius:50%;background:#fff;color:var(--acc)}
+.ag .cx__why .cx__wico svg{width:40px;height:40px}
 
 /* The tools, on the category's colour */
 .ag .cx__tools{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,56px);align-items:center}
