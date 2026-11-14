@@ -1,0 +1,236 @@
+import Image from "next/image";
+import Link from "next/link";
+import {
+  type Category, type System, heroForSystem, HERO_SHOW, bookHref, isHeatPump, installTime, productHref, realOption, money, weekly,
+  PRODUCT_FAQS, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, TONES, WORKMANSHIP,
+  lowerLabel,
+} from "@/lib/homepage/data";
+import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
+import { Crumbs, Hero, Head, Next, Cta } from "./kit";
+import { HowItWorks } from "../how/HowItWorks";
+import { InstallSpots } from "../how/InstallSpots";
+import { PriceBuilder } from "@/components/homepage/PriceBuilder";
+import { PRICE_BUILDER_LIVE } from "@/lib/homepage/priceBuilder";
+import { HwSavings } from "../HwSavings";
+import { Finder } from "../Finder";
+import { ZoneHouse } from "../how/ZoneHouse";
+import { copFor } from "@/lib/tools/hotWaterSavings";
+
+/**
+ * A system's own page (/find/split-system and so on), where the header's
+ * product links land: what this kind of system is, how it works, what it's
+ * good and bad at, then the three options we install, each opening its
+ * product page. Choosing comes after understanding, which is the order the
+ * finder can't give on its own.
+ *
+ * Everything here reads from the same records as the finder and the product
+ * pages (homepage/data.ts and learn.ts), so the three can't drift apart.
+ */
+const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+/** Systems whose page gets the hands-on zoning house. */
+// No zones section on the Dominator's page (Jake, Nov 2026): it reuses whatever ducts the house has.
+const ZONED = new Set(["ducted", "reverse-cycle-ducted", "zoning"]);
+
+export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
+  const learn = LEARN[sys.slug];
+  const pc = SYS_PROS[sys.slug];
+  const hero = heroForSystem(sys);
+  const prices = sys.tiers.map((t) => t.price).filter((p): p is number => typeof p === "number");
+  const from = prices.length ? Math.min(...prices) : null;
+  const brands = [...new Set(sys.tiers.map((t) => t.brand))];
+  const others = cat.systems.filter((s) => s.slug !== sys.slug);
+  const lower = lowerLabel(sys.label);
+  const one = sys.tiers.length === 1;
+  // Build your price: ducted and multi-head. It used to show on preview
+  // deployments too, as a placeholder mock-up; Jake asked for all prices off
+  // (Nov 2026), previews included, so it renders only once it is switched on.
+  const builder = sys.slug === "ducted" || sys.slug === "reverse-cycle-ducted" ? "ducted" : sys.slug === "multi-head" ? "multi" : null;
+  const showBuilder = builder && PRICE_BUILDER_LIVE;
+  const tierOf = (brand: string) => sys.tiers.find((t) => !t.same && t.brand === brand) ?? sys.tiers[0];
+  const builderBook = { kaden: bookHref(sys, tierOf("Kaden"), {}), mitsubishi: bookHref(sys, tierOf("Mitsubishi Electric"), {}) };
+  const sizedByRoom = cat.id !== "hw" && /room/i.test(sys.q);
+
+  return (
+    <div className="ag ag--flat" data-no-reveal>
+      <Crumbs trail={[{ name: cat.label, href: `/?find=${cat.id}#find` }, { name: sys.label }]} back={{ label: "Find yours in a few taps →", href: `/?find=${sys.slug}#find` }} />
+      <Hero
+        eye={cat.label} title={sys.label} sub={SYS_INTRO[sys.slug] ?? sys.sub}
+        img={hero.src} imgAlt={hero.alt} scene={!hero.studio} pos={hero.pos} show={HERO_SHOW[sys.slug]} ctas={false}
+        facts={[
+          from != null
+            ? { v: `From ${money(from)}`, k: SHOW_FINANCE ? `Installed, or $${weekly(from, FINANCE_MONTHS)}/wk` : "Installed, GST included" }
+            : { v: "Free quote", k: FINANCE_SOON && !SHOW_FINANCE ? `Fixed price in writing · ${FINANCE_SOON_TEXT.toLowerCase()}` : "Fixed price in writing" },
+          // One option (the Dominator) is counted in its sizes, not as "1 options" (Jake, Nov 2026).
+          one ? { v: `${sys.sizes.length} sizes`, k: sys.sizes.map((z) => z.spec ?? z.label).join(" or ") } : { v: `${sys.tiers.length} options`, k: brands.join(", ") },
+          { v: cap(installTime(sys).replace(/^Usually /, "").replace(/ for a .*$/, "")), k: "Install time" },
+          { v: "6 years", k: "On our workmanship" },
+        ]}
+      >
+        <div className="bxh__ctas">
+          {isHeatPump(sys)
+            ? <a href="#pick" className="abtn abtn--or abtn--flat">Find the one for you ↓</a>
+            : <a href="#options" className="abtn abtn--or abtn--flat">{one ? `See the ${sys.label}` : `See the ${sys.tiers.length} options`} ↓</a>}
+          <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
+        </div>
+      </Hero>
+
+      <nav className="pxt" aria-label="On this page">
+        <div className="wrap pxt__in">
+          {[...(isHeatPump(sys) ? [["pick", "Which one?"]] : []), ...(learn ? [["fit", "Who it suits"], ["how", "How it works"]] : []), ...(ZONED.has(sys.slug) ? [["zones", "Try the zones"]] : []), ...(isHeatPump(sys) ? [["savings", "Savings"]] : []), ...(showBuilder ? [["price", "Your price"]] : []), ...(pc ? [["pros", "Pros & cons"]] : []), ["options", "The options"], ["sizes", "Sizes"], ["faqs", "FAQs"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+        </div>
+      </nav>
+
+      {/* Heat pumps only: the homepage's Find your system, opened on heat pumps
+          (Jake, Nov 2026: "a lot of different options", and it should look
+          like the home page's). */}
+      {isHeatPump(sys) && <div id="pick"><Finder only="heat-pump" /></div>}
+
+      {learn && (
+        <section className="pxs" id="fit">
+          <div className="wrap pp__col">
+            <Head eye="Is it right for you?" h={`Who a ${lower} suits.`} />
+            <div className="pcx">
+              <div className="pcx__col pcx__col--pro">
+                <h3><span aria-hidden="true">✓</span> A good fit if</h3>
+                <ul>{learn.good.map((g) => <li key={g}>{g}</li>)}</ul>
+              </div>
+              {learn.alt.length > 0 && (
+                <div className="pcx__col pcx__col--con">
+                  <h3><span aria-hidden="true">→</span> Look elsewhere if</h3>
+                  <ul className="sxw__alt">
+                    {learn.alt.map((a) => <li key={a.if}><Link href={`/find/${a.go}`}>{cap(a.if)}: <b>{lowerLabel(a.label)} →</b></Link></li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {learn && (
+        <section className="pxs pxs--sky" id="how">
+          <div className="wrap pp__col">
+            <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How a {lower} works.</h2></div>
+            <HowItWorks kind={learn.diagram} steps={learn.how} />
+          </div>
+        </section>
+      )}
+
+      {sys.slug === "dominator" && (
+        <section className="pxs" id="where">
+          <div className="wrap pp__col">
+            <Head eye="In, under or out" h="Goes where your gas heater is." lede="In the roof, under the floor or outside: the Dominator comes as an internal and an external model, made to go in the gas heater's own spot, on the ducts that are already there." />
+            <InstallSpots />
+          </div>
+        </section>
+      )}
+
+      {ZONED.has(sys.slug) && (
+        <section className="pxs" id="zones">
+          <div className="wrap pp__col">
+            <Head eye="Try it" h="How zones work." lede="Each zone gets its own button. Tap a room in the plan, or use the buttons beside it." />
+            <ZoneHouse />
+            {/* Zoning sits under the ducted split now, not as a heating option of its own (Jake, Nov 2026). */}
+            {sys.slug !== "zoning" && <Link href="/find/zoning" className="abtn abtn--ghost" style={{ alignSelf: "flex-start" }}>The zone controllers we fit →</Link>}
+          </div>
+        </section>
+      )}
+
+      {isHeatPump(sys) && (
+        // The one interactive number on the page, so it gets a box of its own:
+        // navy with the hot water orange, at Jake's ask (a full orange band was too much).
+        <section className="pxs pxs--hot" id="savings">
+          <div className="wrap"><div className="pp__col pxs__hotbox">
+            <Head dark eye="Running costs" h={<>How much could a heat pump <span>save you</span>?</>} lede="Two taps: what you have now and how many live there. Here's what each of our heat pumps would cost to run against it." />
+            <HwSavings options={sys.tiers.filter((t) => !t.same).map((t) => ({ label: `${t.brand} ${t.model}`, cop: copFor(t.brand, t.model), // No payback against a stand-in price: it would be a made-up number of years.
+              price: t.mockPrice ? null : t.price, href: productHref(sys, t, {}) }))} />
+          </div></div>
+        </section>
+      )}
+
+      {showBuilder && builder && (
+        <section className="pxs pxs--navy" id="price">
+          <div className="wrap pp__col">
+            <Head dark eye="Build your price" h={<>What would yours <span className="pb__hl">cost</span>?</>} lede="Tap through the home and what you'd like in it, and the price range updates as you go." />
+            <PriceBuilder kind={builder} book={builderBook} months={SHOW_FINANCE || !PRICE_BUILDER_LIVE ? FINANCE_MONTHS : undefined} placeholder={!PRICE_BUILDER_LIVE} />
+          </div>
+        </section>
+      )}
+
+      {pc && (
+        <section className="pxs" id="pros">
+          <div className="wrap pp__col">
+            <Head eye="Pros & cons" h="The honest bit." lede="True of every one we install. Each option's own strengths and limits are on its page." />
+            <div className="pcx">
+              <div className="pcx__col pcx__col--pro"><h3><span aria-hidden="true">+</span> What it does well</h3><ul>{pc.pros.map((x) => <li key={x}>{x}</li>)}</ul></div>
+              <div className="pcx__col pcx__col--con"><h3><span aria-hidden="true">−</span> Worth knowing</h3><ul>{pc.cons.map((x) => <li key={x}>{x}</li>)}</ul></div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="pxs pxs--navy" id="options">
+        <div className="wrap pp__col">
+          <Head dark eye="The options" h={one ? `The ${sys.label}, in ${sys.sizes.length} sizes.` : `The ${sys.tiers.length} ${lower} options we install.`} lede={one ? `${sys.sizes.map((z) => `${z.spec ?? z.label} for a ${z.label.toLowerCase()}`).join(" and ")}. Its page has how it works, the specs and the brand behind it.` : "Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it."} />
+          <div className={`sxo${sys.tiers.length > 3 ? " sxo--4" : sys.tiers.length === 2 ? " sxo--2" : ""}`}>
+            {sys.tiers.map((t, i) => {
+              const real = realOption(sys, t);
+              const feats = t.feats.filter((f) => f !== WORKMANSHIP);
+              return (
+                <article key={t.slug} className="sxo__card">
+                  <span className="sxo__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier}</span>
+                  <span className="sxo__img"><Image src={t.img} alt="" fill sizes="(max-width: 900px) 90vw, 400px" /></span>
+                  <span className="sxo__brand">{t.brand}</span>
+                  <h3>{t.model}</h3>
+                  {typeof t.price === "number" && (
+                    <p className="sxo__price">From {money(t.price)}{SHOW_FINANCE && <small> or ${weekly(t.price, FINANCE_MONTHS)}/wk</small>}</p>
+                  )}
+                  <ul className="pp__hl">{feats.map((f) => <li key={f}><span aria-hidden="true">✓</span>{f}</li>)}</ul>
+                  <Link href={productHref(sys, t, {})} className="abtn abtn--or abtn--flat sxo__go">
+                    {real.tier !== t ? `About the ${real.tier.brand} ${real.tier.model}` : `About the ${t.model}`} →
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="pxs pxs--sky" id="sizes">
+        <div className="wrap pp__two">
+          <Head
+            eye="Sizes" h="What size do you need?"
+            lede={<>{sizedByRoom ? "Sized to the room, not the catalogue. " : ""}A rough guide only: we confirm the size at the free site check{sizedByRoom ? <>, or <Link href="/tools/sizing-calculator" style={{ color: "#050A30" }}>work it out yourself</Link></> : ""}.</>}
+          />
+          <dl className="sxz">
+            {sys.sizes.map((z) => (
+              <div key={z.label} className="sxz__row">
+                <dt><strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</dt>
+                {z.spec && <dd>{z.spec}</dd>}
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      <section className="pxs" id="faqs">
+        <div className="wrap pp__two">
+          <Head eye="Questions" h={`Questions about ${lower}.`} lede={<>Still want a human? <a href="tel:+61359478000" data-call-from="system-faq" style={{ color: "#050A30" }}>Call (03) 5947 8000</a>.</>} />
+          <div className="afaqs">{PRODUCT_FAQS[sys.faq].map((f) => <details key={f.q} className="afaq"><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+        </div>
+      </section>
+
+      <section className="pxs pxs--cream">
+        <div className="wrap pp__col">
+          <Head eye="Where next" h="Keep going." />
+          <Next items={[
+            { t: "Find the right one for your home", s: "A few quick questions, then your options side by side", href: `/?find=${sys.slug}#find` },
+            ...others.map((o) => ({ t: o.label, s: o.sub, href: `/find/${o.slug}` })),
+          ]} />
+        </div>
+      </section>
+
+      <Cta title={`Ready to talk about a ${lower}?`} />
+    </div>
+  );
+}

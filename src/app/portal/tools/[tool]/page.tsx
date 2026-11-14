@@ -57,7 +57,7 @@ export default async function PortalToolPage({ params }: { params: { tool: strin
               </Link>
             );
           })}
-          <a href="/pricing" target="_blank" rel="noopener" className="pt-tab">Price list ↗</a>
+          <a href="/#find" target="_blank" rel="noopener" className="pt-tab">Products &amp; prices ↗</a>
         </nav>
 
         {t.el}

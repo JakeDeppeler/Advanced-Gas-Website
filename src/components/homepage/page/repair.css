@@ -1,0 +1,50 @@
+/* "Repair it, or replace it?" in the product pages' bands
+   (app/upgrade-or-repair/page.tsx). The calculator keeps its own orange card
+   from app/upgrade-or-repair/upgrade.css, scoped to .page-upgrade. */
+
+/* The scope wrapper paints the old page's background; in a band it's clear */
+.ag .bk .rpx__tool{background:none;min-width:0}
+
+/* Design-life table: a card on the band, rows on mobile */
+.ag .bk .rpx__tablewrap{border-radius:18px;overflow:hidden;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 24px 50px -34px rgba(5,10,48,.5)}
+.ag .bk .rpx__table{width:100%;border-collapse:collapse;font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.ag .bk .rpx__table thead th{background:var(--navy);color:#fff;text-align:left;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:14px 18px}
+.ag .bk .rpx__table tbody th{text-align:left;font-family:var(--disp);font-size:15.5px;font-weight:800;color:var(--navy);padding:18px;vertical-align:top;width:16%}
+.ag .bk .rpx__table td{padding:18px;vertical-align:top;border-top:1px solid var(--line2)}
+.ag .bk .rpx__table tbody th{border-top:1px solid var(--line2)}
+.ag .bk .rpx__table tbody tr:first-child :is(th,td){border-top:0}
+.ag .bk .rpx__num{white-space:nowrap;font-weight:700;color:var(--navy)}
+.ag .bk .rpx__age{display:inline-block;background:var(--acc);color:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:800}
+@media (max-width:820px){
+  .ag .bk .rpx__table thead{display:none}
+  .ag .bk .rpx__table,.ag .bk .rpx__table tbody,.ag .bk .rpx__table tr,.ag .bk .rpx__table th,.ag .bk .rpx__table td{display:block;width:auto}
+  .ag .bk .rpx__table tr{padding:18px;border-top:1px solid var(--line2)}
+  .ag .bk .rpx__table tbody tr:first-child{border-top:0}
+  .ag .bk .rpx__table tbody th{padding:0 0 10px;border:0;width:auto}
+  .ag .bk .rpx__table td{padding:6px 0;border:0;white-space:normal}
+  .ag .bk .rpx__table td::before{content:attr(data-k);display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+}
+
+/* Two columns: the argument, then its list or its figures */
+.ag .bk .rpx__two{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(28px,4vw,56px);align-items:start}
+.ag .bk .rpx__copy{display:flex;flex-direction:column;gap:16px}
+.ag .bk .rpx__copy .bk__head{margin:0 0 4px}
+.ag .bk .rpx__copy p{margin:0;font-size:16px;line-height:1.65;color:var(--ink2)}
+.ag .bk .rpx__copy strong{color:var(--navy)}
+.ag .bk .rpx__note{padding-left:16px;border-left:3px solid var(--acc);font-weight:600;color:var(--navy) !important}
+.ag .bk .rpx__links{display:flex;flex-wrap:wrap;gap:10px 22px}
+.ag .bk .rpx__links a{font-weight:700;color:var(--acc);text-decoration:none}
+.ag .bk .rpx__links a:hover{text-decoration:underline}
+.ag .bk .rpx__list{border-radius:18px;padding:26px 26px 28px}
+.ag .bk .rpx__list ul{margin:12px 0 0}
+.ag .bk .rpx__nums{grid-template-columns:1fr 1fr;margin:0}
+@media (max-width:980px){.ag .bk .rpx__two{grid-template-columns:1fr}}
+@media (max-width:480px){.ag .bk .rpx__nums{grid-template-columns:1fr}}
+
+/* The rebate figures: the number large, its meaning under it */
+.ag .bk .rpx__nums div{display:flex;flex-direction:column;justify-content:flex-start;gap:6px;background:#fff;border-radius:16px;padding:20px 20px 22px;box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .bk .rpx__nums dd{margin:0;font-family:var(--disp);font-size:clamp(28px,3vw,38px);font-weight:900;line-height:1;color:var(--navy)}
+.ag .bk .rpx__nums div:last-child dd{color:var(--acc)}
+.ag .bk .rpx__nums dt{font-size:13.5px;line-height:1.45;color:var(--ink2)}
+/* The reviews band follows a white FAQ band: cream, so the two don't run together */
+.ag .bk .revs{background:var(--cream)}

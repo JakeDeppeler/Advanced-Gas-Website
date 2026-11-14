@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import "./membership.css";
-import { PageHero } from "@/components/PageHero";
+import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { BkHead, Bands, BandPage, type Band } from "@/components/homepage/page/bands";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/page/membership.css";
 
 export const metadata: Metadata = {
   title: "Membership, discounted servicing & priority response",
@@ -35,7 +39,7 @@ const tiers: Tier[] = [
     blurb: "The basics, done properly. Annual service done on time, no chasing.",
     features: [
       { label: "1 annual gas appliance service", detail: "incl. CO testing + written report" },
-      { label: "$30 off standard service rate" },
+      { label: "Member discount on the standard service rate" },
       { label: "Reminder before your service is due" },
       { label: "Same-week response on faults" },
     ],
@@ -49,7 +53,7 @@ const tiers: Tier[] = [
     highlight: true,
     blurb: "Most households pick this one, better discounts and priority callbacks.",
     features: [
-      { label: "Annual gas service at member rate $250 + GST" },
+      { label: "Annual gas service at the member rate" },
       { label: "Annual aircon filter clean / inspection" },
       { label: "Priority booking, front of the queue" },
       { label: "10% off parts on any repair" },
@@ -66,7 +70,7 @@ const tiers: Tier[] = [
     features: [
       { label: "Up to 3 annual services (gas, aircon, hot water)" },
       { label: "Member service rates on every job" },
-      { label: "Waived after-hours make-safe fee", detail: "(normally $500 + GST)" },
+      { label: "Waived after-hours make-safe fee" },
       { label: "15% off parts on repairs" },
       { label: "Annual heat pump efficiency check" },
       { label: "A dedicated technician on your account" },
@@ -95,84 +99,85 @@ const faqs = [
 ];
 
 export default function MembershipPage() {
-  return (
-    <div className="page-membership">
-      <PageHero
-        dot="orange"
-        eyebrow="Membership"
-        title={<>Servicing done <em>before</em> it becomes a problem.</>}
-        sub={<>Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay.</>}
-      />
-
-      <section className="mb-tiers">
-        <div className="wrap">
-          <div className="mb-grid">
+  const bands: Band[] = [
+    {
+      id: "tiers",
+      body: (
+        <>
+          <BkHead h="Pick your {tier}." />
+          <div className="mbx__grid" data-anim="stagger">
             {tiers.map((t) => (
-              <article key={t.id} className={`mb-tier${t.highlight ? " mb-tier--feature" : ""}`}>
-                {t.highlight && <span className="mb-tier__flag">Most popular</span>}
-                <h2 className="mb-tier__name">{t.name}</h2>
-                <div className="mb-tier__price">
-                  <strong>{t.price}</strong>
-                  <span>{t.cadence}</span>
-                </div>
-                <p className="mb-tier__blurb">{t.blurb}</p>
-                <ul className="mb-tier__features">
+              <article key={t.id} className={`mbx__tier${t.highlight ? " mbx__tier--feature" : ""}`}>
+                {t.highlight && <span className="mbx__flag">Most popular</span>}
+                <h3 className="mbx__name">{t.name}</h3>
+                <p className="mbx__price"><strong>{t.price}</strong><span>{t.cadence}</span></p>
+                <p className="mbx__blurb">{t.blurb}</p>
+                <ul className="mbx__list">
                   {t.features.map((f) => (
                     <li key={f.label}>
-                      <span className="mb-tier__tick">✓</span>
-                      <span>
-                        {f.label}
-                        {f.detail && (
-                          <span className="mb-tier__detail"> {f.detail}</span>
-                        )}
-                      </span>
+                      <span className="mbx__tick" aria-hidden="true">✓</span>
+                      <span>{f.label}{f.detail && <span className="mbx__detail"> {f.detail}</span>}</span>
                     </li>
                   ))}
                 </ul>
-                <Link href={t.cta.href} className="ds-btn ds-btn--orange ds-btn--lg mb-tier__cta">
-                  {t.cta.label} →
-                </Link>
+                <Link href={t.cta.href} className={`abtn ${t.highlight ? "abtn--or" : "abtn--navy"} abtn--flat mbx__cta`}>{t.cta.label} →</Link>
               </article>
             ))}
           </div>
-          <p className="mb-finep">
+          <p className="mbx__fine">
             Pricing on this page is illustrative while we finalise tier costs. Call <a href={`tel:${site.phoneE164}`}>{site.phone}</a> for the current rate sheet.
           </p>
-        </div>
-      </section>
-
-      <section className="mb-faq">
-        <div className="wrap mb-faq__grid">
-          <div className="mb-faq__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Membership FAQ</span>
-            <h2>How it works.</h2>
-            <p>Short answers to the questions we get most often.</p>
-          </div>
-          <div className="mb-faq__right">
+        </>
+      ),
+    },
+    {
+      id: "faqs", cls: "pp__two",
+      body: (
+        <>
+          <BkHead h="How it {works}.">Short answers to the questions we get most often.</BkHead>
+          <div className="afaqs">
             {faqs.map((f, i) => (
-              <details key={f.q} name="membership-faq" {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} className="afaq" name="membership-faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
             ))}
           </div>
-        </div>
-      </section>
+        </>
+      ),
+    },
+  ];
 
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Want to join? It&apos;s a 5-minute call.</h2>
-            <p>We&apos;ll size the right tier for your gear and lock in your first service date.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/contact" className="ds-btn ds-btn--orange ds-btn--xl">Become a member →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
+  return (
+    <BandPage>
+      <Crumbs trail={[{ name: "Membership" }]} />
+      <Hero
+        eye="Membership"
+        title={<>Servicing done <em>before</em> it becomes a problem.</>}
+        sub={<>Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay.</>}
+        ctas={false}
+      >
+        {/* Joining is a conversation, not a quote, so the buttons go to contact. */}
+        <div className="bxh__ctas">
+          <Link href="/contact" className="abtn abtn--or abtn--flat">Become a member →</Link>
+          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="membership-hero">Call {site.phone}</a>
+        </div>
+      </Hero>
+      <Bands list={bands} />
+      <section className="bk__sec bk__sec--white bk__sec--end">
+        <div className="wrap">
+          <div className="bk__box bk__box--acc bk__cta">
+            <div>
+              <h2 className="bk__boxh">Want to join? It&apos;s a <span>5-minute call</span>.</h2>
+              <p>We&apos;ll size the right tier for your gear and lock in your first service date.</p>
+            </div>
+            <div className="bxh__ctas">
+              <Link href="/contact" className="abtn abtn--or abtn--flat">Become a member →</Link>
+              <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="membership-cta">Call {site.phone}</a>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </BandPage>
   );
 }

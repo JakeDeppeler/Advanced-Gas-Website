@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { brands, visibleProducts } from "@/lib/brands";
-import { SafeImg } from "@/components/SafeImg";
-import "../detail.css";
-import "./[brand]/brand.css";
-import "./brands-hub.css";
-import { PageHero } from "@/components/PageHero";
+import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { Crumbs } from "@/components/homepage/page/kit";
+import "@/components/homepage/homepage.css";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/brand/blocks.css";
+import "@/components/homepage/page/category.css";
+import "@/components/homepage/tools/tools.css";
+import "@/components/homepage/brand/hub.css";
 
 export const metadata: Metadata = {
   title: "Brands We Install, and Why We Install Them",
@@ -78,11 +84,11 @@ const BRAND_PITCH: Record<string, {
   "mitsubishi-electric": {
     positioning: "Premium default · lowest failure rate in our install base",
     standoutStat: { value: "10+", label: "years typical service life without a callback" },
-    bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than shaving $600 up-front",
+    bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than the lowest up-front price",
   },
   "kaden": {
     positioning: "Reece-exclusive · same-day parts anywhere in Victoria",
-    standoutStat: { value: "~30%", label: "cheaper than Mitsubishi equivalents, installed" },
+    standoutStat: { value: "Same day", label: "parts from Reece stores across Victoria" },
     bestFor: "3+ bedroom fitouts where every room gets done in one visit rather than one a year",
   },
   "reclaim": {
@@ -114,128 +120,92 @@ const BRAND_PITCH: Record<string, {
 
 export default function BrandsIndex() {
   const totalModels = brands.reduce((sum, b) => sum + visibleProducts(b).length, 0);
+  const groups = BRAND_GROUPS.map((g) => ({
+    ...g,
+    list: g.brandSlugs.map((sl) => brands.find((b) => b.slug === sl)).filter((b): b is NonNullable<typeof b> => Boolean(b)),
+  })).filter((g) => g.list.length > 0);
 
   return (
-    <div className="page-detail page-brand page-brand-hub">
-      <PageHero
-        crumbs={[{ href: "/", label: "Home" }, { label: "Brands" }]}
-        eyebrow="Brands we install"
-        title={<>{brands.length} brands, <span className="accent">{totalModels} models</span> · every one we install.</>}
-        sub={<>We install what works, not what we&rsquo;re paid to install. Every brand below is one we&rsquo;ve put into enough Melbourne homes to have a real opinion on. Tap a brand for the full range and our take on each individual model.</>}
-      />
+    // The redesign's block layout (Nov 2026), like the tools hub: the old
+    // card grid is in git history. Two boxes because the blocks styles hang
+    // off .bk sitting inside .ag. /range redirects here.
+    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx tl bh" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
+      <Crumbs trail={[{ name: "Brands" }]} back={{ label: "Get a free quote →", href: "/quote" }} />
 
-      {BRAND_GROUPS.map((group) => {
-        const groupBrands = group.brandSlugs
-          .map((sl) => brands.find((b) => b.slug === sl))
-          .filter((b): b is NonNullable<typeof b> => Boolean(b));
-        if (groupBrands.length === 0) return null;
-        return (
-          <section key={group.slug} className="brands-hub-group" id={group.slug}>
-            <div className="wrap">
-              <div className="brands-hub-group__head">
-                <span className="ds-eyebrow"><span className="ds-dot" /> {group.label}</span>
-                <p className="brands-hub-group__blurb">{group.blurb}</p>
-              </div>
-              <div className="brands-hub__grid">
-                {groupBrands.map((b) => {
-                  const pitch = BRAND_PITCH[b.slug];
-                  // Category chips derived from the actual catalogue rather
-                  // than hand-maintained — so a brand picking up a new
-                  // product type shows it here automatically.
-                  const categories = Array.from(
-                    new Set(visibleProducts(b).map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel)),
-                  ).slice(0, 5);
-                  return (
-                    <Link
-                      key={b.slug}
-                      href={`/brands/${b.slug}`}
-                      className="bhc"
-                      style={{ ["--card-accent" as string]: b.accent }}
-                    >
-                      {/* Accent rail carries the brand colour down the card */}
-                      <span className="bhc__rail" aria-hidden="true" />
-
-                      <div className="bhc__top">
-                        <div className="bhc__id">
-                          <h2>{b.name}</h2>
-                          <span className="bhc__origin">{b.origin}</span>
-                        </div>
-                        <div className="bhc__pic">
-                          <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="400" height="300" />
-                        </div>
-                      </div>
-
-                      <p className="bhc__tagline">{b.tagline}</p>
-
-                      {pitch && (
-                        <div className="bhc__stat">
-                          <strong>{pitch.standoutStat.value}</strong>
-                          <span>{pitch.standoutStat.label}</span>
-                        </div>
-                      )}
-
-                      {categories.length > 0 && (
-                        <ul className="bhc__cats" aria-label={`${b.name} product types`}>
-                          {categories.map((c) => <li key={c}>{c}</li>)}
-                        </ul>
-                      )}
-
-                      {pitch && (
-                        <p className="bhc__bestfor">
-                          <b>Best for</b> {pitch.bestFor}
-                        </p>
-                      )}
-
-                      <div className="bhc__foot">
-                        <span className="bhc__count">
-                          {visibleProducts(b).length} model{visibleProducts(b).length === 1 ? "" : "s"}
-                        </span>
-                        <span className="bhc__cta">View full range →</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+      <section className="bxh tl__hero">
+        <div className="wrap tl__hin">
+          <div className="bxh__copy">
+            <span className="lk2__eye cx__eye">Brands we install</span>
+            <h1 className="bxh__h1 cx__h1">{brands.length} brands, <span>{totalModels} models</span>.</h1>
+            <p className="bxh__sub">We install what works, not what we&apos;re paid to push. Every brand here is one we&apos;ve put into enough Melbourne homes to have a real opinion on, and each has its own page with the range and our take.</p>
+            <div className="bxh__ctas">
+              <a href="#aircon" className="abtn abtn--or abtn--flat">See the brands ↓</a>
+              <Link href="/#find" className="abtn abtn--line">Or find your system</Link>
             </div>
-          </section>
-        );
-      })}
-
-      <section className="brands-hub-help">
-        <div className="wrap brands-hub-help__grid">
-          <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Compare or ask</span>
-            <h2>Two ways to narrow it down.</h2>
-            <p>
-              Open any brand page and use the <strong>Compare</strong> tick to line up 2-4 models
-              side by side. Or skip that and tell us the room, the household and the budget, we&rsquo;ll
-              come back with three real options from three different brands rather than pushing whatever
-              carries the biggest margin.
-            </p>
           </div>
-          <div className="brands-hub-help__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get honest brand advice →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-              Or call {site.phone}
-            </a>
-          </div>
+          <aside className="bh__logos" aria-label="The brands">
+            {brands.map((b) => (
+              <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__logo">
+                <span className="bh__limg"><Image src={b.photo} alt="" fill sizes="120px" /></span>
+                <b>{b.name}</b>
+              </Link>
+            ))}
+          </aside>
         </div>
       </section>
 
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Not sure which brand suits your job?</h2>
-            <p>Give us the room, the household, and the budget · we&rsquo;ll quote three real options.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get honest advice →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
+      <nav className="pxt" aria-label="On this page">
+        <div className="wrap pxt__in">{groups.map((g) => <a key={g.slug} href={`#${g.slug}`}>{g.label}</a>)}</div>
+      </nav>
+
+      {groups.map((g, gi) => (
+        <section key={g.slug} className={`bk__sec ${gi % 2 ? "bk__sec--cream" : "bk__sec--white"}`} id={g.slug}>
+          <div className="wrap"><div className="bk__blk bk__col">
+            <header className="bk__head">
+              <h2 className="h2">{g.label}<span>.</span></h2>
+              <p>{g.blurb}</p>
+            </header>
+            <div className="bh__grid" data-anim="stagger">
+              {g.list.map((b) => {
+                const pitch = BRAND_PITCH[b.slug];
+                const models = visibleProducts(b).length;
+                // From the catalogue, so a brand picking up a new kind of product shows it here without anyone remembering to.
+                const cats = Array.from(new Set(visibleProducts(b).map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel))).slice(0, 5);
+                return (
+                  <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__card" style={{ ["--c" as string]: b.blockAccent ?? b.accent }}>
+                    <span className="bh__img"><Image src={b.photo} alt={b.photoAlt} fill sizes="(max-width: 600px) 90vw, 420px" /></span>
+                    <span className="bh__t">
+                      <small>{b.origin}</small>
+                      <strong>{b.name}</strong>
+                      <span className="bh__tag">{b.tagline}</span>
+                      {pitch && <span className="bh__stat"><b>{pitch.standoutStat.value}</b> {pitch.standoutStat.label}</span>}
+                      {cats.length > 0 && <span className="bh__cats" aria-label={`${b.name} product types`}>{cats.map((c) => <i key={c}>{c}</i>)}</span>}
+                      {pitch && <span className="bh__best"><b>Best for</b> {pitch.bestFor}</span>}
+                      <em>{models} model{models === 1 ? "" : "s"} · Why we fit {b.name} <i aria-hidden="true">→</i></em>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div></div>
+        </section>
+      ))}
+
+      <section className="bk__sec bk__sec--white bk__sec--end">
+        <div className="wrap">
+          <div className="bk__box bk__box--acc bk__cta">
+            <div>
+              <h2 className="bk__boxh">Not sure which brand <span>suits the job</span>?</h2>
+              <p>Tell us the room, the household and what matters most. We&apos;ll come back with real options from more than one brand, each on a fixed written quote.</p>
+            </div>
+            <div className="bxh__ctas">
+              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+              <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="brands-hub">Call {site.phone}</a>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </div></div>
   );
 }

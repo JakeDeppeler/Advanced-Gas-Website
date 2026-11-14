@@ -1,0 +1,178 @@
+/* How it works: a diagram that moves, and the steps beside it. */
+.ag .hw{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:40px;align-items:start}
+.ag .hw__fig{position:sticky;top:96px;background:#fff;border-radius:22px;padding:14px;box-shadow:0 24px 50px -36px rgba(5,10,48,.45)}
+.ag .hw__svg{display:block;width:100%;height:auto}
+.ag .hw__steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ag .hw__step{display:flex;gap:16px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:1px solid var(--line2);border-radius:16px;padding:18px 20px;cursor:pointer;font:inherit;color:inherit;transition:border-color .2s,box-shadow .2s}
+.ag .hw__step:hover{border-color:var(--navy)}
+.ag .hw__step.on{border:2px solid var(--or,#C2521A);padding:17px 19px;box-shadow:0 14px 30px -20px rgba(5,10,48,.35)}
+.ag .hw__n{flex:none;font-family:var(--disp);font-size:26px;font-weight:900;line-height:1;color:var(--line2);min-width:38px}
+.ag .hw__step.on .hw__n{color:#C2521A}
+.ag .hw__t{display:flex;flex-direction:column;gap:6px}
+.ag .hw__t strong{font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag .hw__t span{font-size:15.5px;line-height:1.55;color:var(--ink2)}
+@media (max-width:1000px){
+  .ag .hw{grid-template-columns:1fr;gap:20px}
+  /* Not sticky here: the page's own tab bar sticks to the top and would cover it. */
+  .ag .hw__fig{position:relative;top:auto;padding:8px}
+}
+@media (max-width:600px){.ag .hw__step{padding:14px 16px}.ag .hw__step.on{padding:13px 15px}.ag .hw__t strong{font-size:17px}}
+
+/* The ring on the part a step is about, with its number. */
+.ag .hw-spot rect{fill:none;stroke:none}
+.ag .hw-spot circle{fill:#fff;stroke:#B8C4D4;stroke-width:2}
+.ag .hw-spot text{font:800 13px var(--disp);fill:#5D6B80}
+.ag .hw-spot.on rect{stroke:#C2521A;stroke-width:3}
+.ag .hw-spot.on circle{fill:#C2521A;stroke:#C2521A}
+.ag .hw-spot.on text{fill:#fff}
+/* Only the step being shown carries its number on the drawing; four numbered circles at once read as clutter. */
+.ag .hw-spot:not(.on) circle,.ag .hw-spot:not(.on) text{opacity:0}
+.ag .hw-spot circle,.ag .hw-spot text{transition:opacity .25s}
+
+.ag .hw-label{font:700 12.5px var(--body);letter-spacing:.01em}
+.ag .hw-label--big{font:900 22px var(--disp)}
+
+.ag .hw-flow{stroke-dasharray:8 10;animation:hwDash .9s linear infinite}
+.ag .hw-flow--slow{animation-duration:2.2s}
+.ag .hw-spin{animation:hwSpin 1.2s linear infinite}
+.ag .hw-spin--slow{animation-duration:14s}
+.ag .hw-flame{transform-box:fill-box;transform-origin:50% 100%;animation:hwFlick .45s ease-in-out infinite alternate}
+.ag .hw-needle{animation:hwNeedle 3.2s ease-in-out infinite alternate}
+.ag .hw-damper{animation:hwDamper 3s ease-in-out infinite alternate}
+.ag .hw-drip{animation:hwDrip .9s linear infinite}
+.ag .hw-drip--long{animation-duration:1.6s}
+.ag .hw-pulse{animation:hwPulse 1.6s ease-in-out infinite}
+.ag .hw-fill{transform-box:fill-box;transform-origin:50% 100%;animation:hwFill 5s ease-in-out infinite}
+
+@keyframes hwDash{to{stroke-dashoffset:-36}}
+@keyframes hwSpin{to{transform:rotate(360deg)}}
+@keyframes hwFlick{from{transform:scaleY(.82)}to{transform:scaleY(1.08)}}
+@keyframes hwNeedle{0%{transform:rotate(-70deg)}40%{transform:rotate(55deg)}100%{transform:rotate(-10deg)}}
+@keyframes hwDamper{from{transform:rotate(0)}to{transform:rotate(70deg)}}
+@keyframes hwDrip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(26px);opacity:0}}
+@keyframes hwPulse{50%{opacity:.45}}
+@keyframes hwFill{0%{transform:scaleY(.35)}70%,100%{transform:scaleY(1)}}
+
+@media (prefers-reduced-motion:reduce){
+  .ag .hw-flow,.ag .hw-spin,.ag .hw-flame,.ag .hw-needle,.ag .hw-damper,.ag .hw-drip,.ag .hw-pulse,.ag .hw-fill{animation:none}
+}
+
+/* The camera, the dimming around the part in focus, and the player bar */
+.ag .hw-dim{fill:#050A30;opacity:.3;animation:hwDimIn .5s ease both}
+@keyframes hwDimIn{from{opacity:0}to{opacity:.3}}
+.ag .hw__fig{display:flex;flex-direction:column;gap:12px}
+.ag .hw__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px}
+.ag .hw__cap{font-size:15px;font-weight:700;color:var(--navy);display:flex;gap:10px;align-items:baseline;min-width:0}
+.ag .hw__cap b{font-family:var(--disp);font-weight:900;color:#C2521A}
+.ag .hw__ctl{display:flex;gap:6px;flex:none}
+.ag .hw__ctl button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line2);background:#fff;color:var(--navy);font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.ag .hw__ctl button:hover{border-color:var(--navy)}
+.ag .hw__ctl .hw__play{background:var(--navy);border-color:var(--navy);color:#fff}
+.ag .hw__prog{display:flex;gap:6px;padding:0 6px 4px}
+.ag .hw__prog span{flex:1;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.ag .hw__prog i{display:block;height:100%;width:0;background:#C2521A}
+.ag .hw__prog span.done i{width:100%}
+.ag .hw__prog span.run i{animation:hwProg linear forwards}
+@keyframes hwProg{from{width:0}to{width:100%}}
+@media (prefers-reduced-motion:reduce){.ag .hw-dim{animation:none}}
+
+/* The detailed drawings: readouts, clouds, flue gas and water shimmer */
+.ag .hw-temp{font:900 14px var(--disp)}
+.ag .hw-meter{font:700 9px ui-monospace,Menlo,monospace;letter-spacing:.04em}
+.ag .hw-brand{font:800 8px var(--disp);letter-spacing:.12em}
+.ag .hw-drift{animation:hwDrift 14s ease-in-out infinite alternate}
+.ag .hw-puff{opacity:0;transform-box:fill-box;transform-origin:center;animation:hwPuff 2.1s ease-out infinite}
+.ag .hw-shimmer{animation:hwShimmer 3.6s ease-in-out infinite}
+@keyframes hwDrift{from{translate:0 0}to{translate:-26px 0}}
+@keyframes hwPuff{0%{opacity:.8;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-26px) scale(1.6)}}
+@keyframes hwShimmer{0%,100%{opacity:.08}50%{opacity:.24}}
+@media (prefers-reduced-motion:reduce){.ag .hw-drift,.ag .hw-puff,.ag .hw-shimmer{animation:none}}
+
+/* Zoning demo (ZoneHouse): a plain floor plan and one switch per room.
+   Jake asked for it back to basics (Nov 2026): no duct sizes, dampers or
+   temperatures, just "each room has its own button". On is the brand
+   orange with the word On; off is grey, hatched, with the word Off. */
+.ag .zh-wrap{margin-top:56px;display:flex;flex-direction:column;gap:18px}
+.ag .zs{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:24px;align-items:stretch}
+.ag .zs__fig{background:#fff;border-radius:18px;padding:14px;box-shadow:inset 0 0 0 1px var(--line2),0 24px 50px -36px rgba(5,10,48,.45)}
+.ag .zs__svg{display:block;width:100%;height:auto}
+.ag .zs__hit{cursor:pointer}
+.ag .zs__hit:hover{filter:brightness(.97)}
+.ag .zs__room{font:800 14px var(--disp);fill:var(--navy)}
+.ag .zs__room--plain{font-weight:600;font-size:12.5px;fill:#6B7480}
+.ag .zs__room--out{font-weight:600;font-size:13px;fill:#A0A8B3}
+.ag .zs__state{font:700 11px var(--body)}
+.ag .zs__temp{font:800 13px var(--disp)}
+.ag .zs__mode{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:rgba(255,255,255,.08)}
+.ag .zs__mode button{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;padding:8px;border:0;border-radius:10px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.ag .zs__mode button small{font-size:12px;font-weight:500;color:rgba(255,255,255,.7)}
+.ag .zs__mode button.on{background:#fff;color:var(--navy)}
+.ag .zs__mode button.on small{color:var(--ink3)}
+.ag .zs__mode button:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
+.ag .zs__btn > span{display:flex;flex-direction:column;gap:2px}
+.ag .zs__btn small{font-family:var(--disp);font-size:13px;font-weight:800;opacity:.8}
+.ag .zs__ring{transform-box:fill-box;transform-origin:center;animation:zsRing 2.2s ease-out infinite}
+.ag .zs__ring--2{animation-delay:1.1s}
+@keyframes zsRing{from{transform:scale(1);stroke-opacity:.9}to{transform:scale(3.4);stroke-opacity:0}}
+.ag .zs__panel{display:flex;flex-direction:column;gap:14px;padding:22px;border-radius:18px;background:var(--navy);color:#fff}
+.ag .zs__head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ag .zs__head strong{font-family:var(--disp);font-size:20px;font-weight:800}
+.ag .zs__head span{font-size:14px;color:rgba(255,255,255,.75)}
+.ag .zs__list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ag .zs__btn{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-weight:700;font-size:15px;text-align:left;cursor:pointer;transition:background .2s,border-color .2s}
+.ag .zs__btn:hover{border-color:rgba(255,255,255,.5)}
+.ag .zs__btn.on{background:#C2521A;border-color:#C2521A}
+.ag .zs__btn em{flex:none;font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.14)}
+.ag .zs__btn.on em{background:#fff;color:#C2521A}
+.ag .zs__btn:focus-visible,.ag .zs__presets button:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
+.ag .zs__presets{display:flex;flex-wrap:wrap;gap:6px;padding-top:14px;border-top:1px solid rgba(255,255,255,.16)}
+.ag .zs__presets button{min-height:40px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.ag .zs__presets button:hover{background:rgba(255,255,255,.12)}
+.ag .zs__note{margin:auto 0 0;font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.8)}
+@media (max-width:900px){.ag .zs{grid-template-columns:1fr}}
+/* Two to a row even on a phone: eight zones one per row ran a screen and a half. */
+@media (max-width:400px){.ag .zs__btn{min-height:50px;padding:8px 10px;font-size:14px}.ag .zs__btn em{padding:3px 6px}}
+/* The plan shrinks with the screen, so its words are set larger on a phone to stay readable */
+@media (max-width:600px){.ag .zs__fig{padding:6px}}
+@media (prefers-reduced-motion:reduce){.ag .zs__ring{animation:none;opacity:0}}
+
+/* ---- Where a Dominator goes (InstallSpots): three cut-away houses ---- */
+.ag .is{display:flex;flex-direction:column;gap:18px}
+.ag .is__bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px}
+.ag .is__modes{display:inline-flex;padding:4px;border-radius:999px;background:#EEF2F7;gap:4px}
+.ag .is__mode{border:0;background:transparent;border-radius:999px;padding:9px 18px;font:700 14px var(--body);color:var(--navy);cursor:pointer}
+.ag .is__mode.is-on{background:var(--navy);color:#fff}
+.ag .is__key{display:flex;flex-wrap:wrap;gap:8px 20px;margin:0;padding:0;list-style:none;font-size:14px;color:#33405A}
+.ag .is__key li{display:flex;align-items:center;gap:8px}
+.ag .is__key svg{width:34px;height:8px}
+.ag .is__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.ag .is__card{margin:0;background:#fff;border:1px solid #E3E9F2;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.ag .is__card svg{display:block;width:100%;height:auto}
+.ag .is__card figcaption{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px}
+.ag .is__card h3{margin:0;font:900 20px var(--disp);color:var(--navy)}
+.ag .is__card p{margin:0;font-size:15px;line-height:1.5;color:#33405A}
+.ag .is-flow{stroke-dasharray:10 8;animation:hwDash .9s linear infinite}
+.ag .is-flow--ret{stroke-dasharray:1 8;animation-duration:1.4s}
+.ag .is-puff path{animation:isPuffUp 1.6s ease-out infinite;opacity:0}
+.ag .is-puff--down path{animation-name:isPuffDown}
+.ag .is-pull circle{animation:isPullDown 1.6s ease-in infinite;opacity:0}
+.ag .is-pull--up circle{animation-name:isPullUp}
+@keyframes isPuffUp{0%{opacity:0;transform:translateY(8px)}30%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+@keyframes isPuffDown{0%{opacity:0;transform:translateY(-8px)}30%{opacity:1}100%{opacity:0;transform:translateY(10px)}}
+@keyframes isPullDown{0%{opacity:0;transform:translateY(-12px)}40%{opacity:1}100%{opacity:0;transform:translateY(12px)}}
+@keyframes isPullUp{0%{opacity:0;transform:translateY(12px)}40%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+@media (max-width:860px){.ag .is__grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.ag .is-flow,.ag .is-puff path,.ag .is-pull circle{animation:none}.ag .is-puff path,.ag .is-pull circle{opacity:1}}
+
+/* The Dominator drawing: the gas heater out and the Dominator in, once, the
+   first time the drawing is on screen (Jake, Nov 2026: "should change once").
+   The labels hand over rather than crossfade, so the words never overlap.
+   With motion off it shows the Dominator from the start. */
+.ag .hw-swap-new{opacity:0}
+.ag .hw--met .hw-swap-old{animation:hwOutOnce 1.4s ease-in-out 1.4s both}
+.ag .hw--met .hw-swap-new{animation:hwInOnce 1.4s ease-in-out 1.4s both}
+.ag .hw--met .hw-swap-old.hw-swap--word{animation:hwOutOnce .4s ease 1.4s both}
+.ag .hw--met .hw-swap-new.hw-swap--word{animation:hwInOnce .4s ease 2.4s both}
+@keyframes hwOutOnce{from{opacity:1}to{opacity:0}}
+@keyframes hwInOnce{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ag .hw-swap-old,.ag .hw--met .hw-swap-old,.ag .hw--met .hw-swap-old.hw-swap--word{animation:none;opacity:0}.ag .hw-swap-new,.ag .hw--met .hw-swap-new,.ag .hw--met .hw-swap-new.hw-swap--word{animation:none;opacity:1}}

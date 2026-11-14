@@ -14,7 +14,7 @@ export const runtime = "nodejs";
  *      the server so we can set the header correctly.
  *
  * Response shape (normalised for the frontend):
- *   { suggestions: Array<{ display_name: string; postcode?: string }> }
+ *   { suggestions: Array<{ display_name: string; postcode?: string; lat?: number; lng?: number }> }
  */
 
 const PAKENHAM_LAT = -38.078;
@@ -42,7 +42,9 @@ export async function GET(req: Request) {
   return NextResponse.json({ suggestions });
 }
 
-type Suggestion = { display_name: string; postcode?: string };
+/** lat/lng ride along so the homepage suburb checker can measure the drive to
+ *  a town that isn't on our own list. The address field ignores them. */
+type Suggestion = { display_name: string; postcode?: string; lat?: number; lng?: number };
 
 async function mapboxLookup(q: string, token: string): Promise<Suggestion[]> {
   const url =
@@ -57,10 +59,12 @@ async function mapboxLookup(q: string, token: string): Promise<Suggestion[]> {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) return [];
   const data = await res.json();
-  const feats: Array<{ place_name: string; context?: Array<{ id: string; text: string }> }> = data.features || [];
+  const feats: Array<{ place_name: string; center?: [number, number]; context?: Array<{ id: string; text: string }> }> = data.features || [];
   return feats.map((f) => ({
     display_name: f.place_name,
     postcode: f.context?.find((c) => c.id.startsWith("postcode"))?.text,
+    lat: f.center?.[1],
+    lng: f.center?.[0],
   }));
 }
 
@@ -86,9 +90,11 @@ async function nominatimLookup(q: string): Promise<Suggestion[]> {
   });
   if (!res.ok) return [];
   const data = await res.json();
-  const arr: Array<{ display_name: string; address?: { postcode?: string } }> = Array.isArray(data) ? data : [];
+  const arr: Array<{ display_name: string; lat?: string; lon?: string; address?: { postcode?: string } }> = Array.isArray(data) ? data : [];
   return arr.map((r) => ({
     display_name: r.display_name,
     postcode: r.address?.postcode,
+    lat: r.lat ? Number(r.lat) : undefined,
+    lng: r.lon ? Number(r.lon) : undefined,
   }));
 }

@@ -1,0 +1,266 @@
+/* The /find product page's header, Key features and Resources (stage.tsx),
+   after Jake's mock-up: values taken from it, in the site's own tokens. */
+
+/* ---- Header: the unit on a navy stage ---- */
+.ag .stg{position:relative;overflow:hidden;color:#fff;background:radial-gradient(120% 90% at 70% 20%,#1b234e 0%,#0b1450 45%,#050a30 100%)}
+.ag .stg__bg{object-fit:cover;opacity:.22}
+.ag .stg__shade{position:absolute;inset:0;background:radial-gradient(60% 50% at 50% 18%,rgba(11,20,80,.2),rgba(5,10,48,.75) 80%),linear-gradient(180deg,rgba(5,10,48,0) 50%,rgba(5,10,48,.9) 100%)}
+.ag .stg__in{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:36px;padding-bottom:32px}
+.ag .stg__unit{position:relative;width:min(360px,78vw);display:flex;flex-direction:column;align-items:center}
+.ag .stg__panel{position:relative;display:block;width:100%;height:124px;border-radius:16px;background:#fff;box-shadow:0 40px 80px -30px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.6);animation:stgUp .8s cubic-bezier(.2,.7,.2,1) both}
+.ag .stg__panel{overflow:hidden}
+.ag .stg__panel img{object-fit:contain;padding:8px 14px;transform:scale(1.45)}
+/* Tanks are tall: an upright panel, and no air coming off them. */
+.ag .stg__unit--tall{width:min(190px,50vw)}
+.ag .stg__unit--tall .stg__panel{height:220px}
+.ag .stg__unit--tall .stg__panel img{transform:none;padding:18px}
+.ag .stg__air{width:100%;height:auto;margin-top:-2px;overflow:visible}
+.ag .stg__air path{fill:none;stroke:#9fd8ff;stroke-width:3;stroke-linecap:round;stroke-dasharray:30 30;animation:stgFlow 3.2s ease-in infinite}
+.ag .stg__air path:nth-child(2){animation-delay:.4s}.ag .stg__air path:nth-child(3){animation-delay:.8s}
+.ag .stg__air path:nth-child(4){animation-delay:1.2s}.ag .stg__air path:nth-child(5){animation-delay:1.6s}
+.ag .stg__h1{position:relative;margin:0;max-width:100%;text-align:center;font-family:var(--disp);font-size:clamp(36px,4.3vw,70px);font-weight:500;line-height:1;letter-spacing:-.045em;color:#fff;text-wrap:balance;animation:stgUp .8s .1s cubic-bezier(.2,.7,.2,1) both}
+.ag .stg__brand{font-weight:800}
+.ag .stg__chip{display:inline-block;color:#FF9A5C;animation:stgSwap .45s cubic-bezier(.2,.7,.2,1) both}
+
+.ag .stg__bar{align-self:stretch;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.3fr) minmax(0,.75fr);gap:14px;align-items:stretch;padding-top:14px}
+.ag .stg__tiles{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.ag .stg__tiles li{flex:1 1 0;min-width:76px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px 12px;border-radius:10px;background:#f6f1e7;animation:stgPop .6s cubic-bezier(.2,1.4,.4,1) both}
+.ag .stg__tiles b{font-family:var(--disp);font-size:19px;font-weight:900;line-height:1;color:#C2521A;white-space:nowrap}
+.ag .stg__tiles span{font-size:11px;font-weight:700;line-height:1.2;color:#050a30}
+.ag .stg__card{background:#fff;border-radius:14px;box-shadow:0 30px 60px -30px rgba(5,10,48,.5);color:#050a30;animation:stgUp .8s .4s cubic-bezier(.2,.7,.2,1) both}
+.ag .stg__about{display:flex;flex-direction:column;gap:10px;padding:18px 20px}
+.ag .stg__about h2{text-wrap:balance;margin:4px 0 0;font-family:var(--disp);font-size:19px;font-weight:800;line-height:1.25;letter-spacing:-.02em}
+.ag .stg__about p{margin:0;font-size:15px;line-height:1.55;color:#2b2f45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* The rebate check: a chip that stamps in with a tick, and two yes/no taps
+   under it. The result says Yes / Probably not in words, not just green. */
+/* Fixed slots in the about card: the name of the size at most two lines, the
+   line under it two, the rebate chip's place kept whether it shows or not. Every size of a
+   model then makes the same card, so the tab bar under it never moves. */
+.ag .stg__about h2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ag .stg__about > p{-webkit-line-clamp:2 !important}
+.ag .stv-slot{min-height:46px;margin-top:auto}
+/* Tall enough for the most a card can hold (two-line heading, two-line text,
+   the chip), with any spare room at the bottom rather than under a short heading. */
+.ag .stg__about{min-height:280px}
+@media (max-width:600px){.ag .stg__about{min-height:347px}}
+.ag .stg__chip,.ag .stg__tiles b,.ag .stg__pickhead dd{font-variant-numeric:tabular-nums}
+/* A tile's label always has room for two lines, and the model code one, for the same reason. */
+.ag .stg__tiles span{min-height:2.4em}
+.ag .stg__code{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag .stg__bar > *{min-width:0}
+.ag .stv{display:flex;flex-direction:column;gap:10px}
+.ag .stv__chip{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 8px;border-radius:999px;border:1.5px solid #1E7F4F;background:#E9F6EF;color:#14532D;font:inherit;text-align:left;cursor:pointer;animation:stvIn .7s .9s cubic-bezier(.2,1.4,.4,1) both}
+.ag .stv__chip:hover{background:#DDF1E6}
+.ag .stv__chip:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
+.ag .stv__chip > span:last-child{display:flex;flex-direction:column;line-height:1.15}
+.ag .stv__chip b{font-size:14px;font-weight:800}
+.ag .stv__chip small{font-size:12px;font-weight:600;color:#1E7F4F;text-decoration:underline;text-underline-offset:2px}
+.ag .stv__tick{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#1E7F4F;color:#fff}
+.ag .stv__tick path{stroke-dasharray:24;stroke-dashoffset:24;animation:stvTick .45s 1.4s ease-out forwards}
+.ag .stv__box{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:12px;background:#f6f1e7;animation:stgUp .35s cubic-bezier(.2,.7,.2,1) both}
+.ag .stv__lede{display:block !important;-webkit-line-clamp:unset !important;font-size:13.5px !important}
+.ag .stv__q{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:700}
+.ag .stv__q div{display:flex;gap:6px}
+.ag .stv__q button{min-width:52px;min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid #c9c2b2;background:#fff;color:#050a30;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.ag .stv__q button[aria-pressed="true"]{background:#050a30;border-color:#050a30;color:#fff}
+.ag .stv__q button:focus-visible{outline:3px solid #FF9A5C;outline-offset:2px}
+.ag .stv__ans{display:block !important;-webkit-line-clamp:unset !important;margin:0;padding:10px 12px;border-radius:10px;border-left:4px solid #9a6a1a;background:#fff;font-size:13.5px !important;line-height:1.5}
+.ag .stv__ans.is-ok{border-left-color:#1E7F4F}
+.ag .stv__ans b{color:#050a30}
+.ag .stv__ans a{color:#C2521A;font-weight:700;white-space:nowrap}
+@keyframes stvIn{0%{opacity:0;transform:scale(.6) rotate(-6deg)}100%{opacity:1;transform:none}}
+@keyframes stvTick{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.ag .stv__chip,.ag .stv__box{animation:none}.ag .stv__tick path{animation:none;stroke-dashoffset:0}}
+.ag .stg__code{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5d5d64}
+.ag .stg__pick{display:flex;flex-direction:column;gap:12px;padding:18px 20px;animation-delay:.5s}
+.ag .stg__pickhead{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.ag .stg__pickhead > span{font-size:15px;font-weight:600;color:#5d5d64}
+.ag .stg__pickhead dl{margin:0;display:flex;gap:20px}
+.ag .stg__pickhead dl div{display:flex;flex-direction:column;align-items:flex-end}
+.ag .stg__pickhead dd{margin:0;font-family:var(--mono);font-size:15px;font-weight:700;color:#050a30}
+.ag .stg__pickhead dt{font-size:12px;color:#5d5d64}
+.ag .stg__sizes{display:grid;grid-template-columns:repeat(min(var(--n,5),6),minmax(0,1fr));gap:8px}
+.ag .stg__sizes button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;padding:8px 6px;border-radius:10px;border:1px solid #d8d2c1;background:#fff;font:inherit;color:#050a30;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s,transform .2s}
+.ag .stg__sizes button:hover{border-color:#050a30;transform:translateY(-2px)}
+.ag .stg__sizes button strong{font-family:var(--disp);font-size:15px;font-weight:700;line-height:1.1}
+.ag .stg__sizes button small{font-size:11px;line-height:1.2;color:#5d5d64;text-align:center}
+.ag .stg__sizes button.on{background:#C2521A;border-color:#C2521A;color:#fff}
+.ag .stg__sizes button.on small{color:rgba(255,255,255,.85)}
+.ag .stg__sizes button:focus-visible,.ag .stg__side:focus-visible{outline:3px solid #f36722;outline-offset:3px}
+.ag .stg__note{margin:0;font-size:13px;line-height:1.5;color:#5d5d64}
+
+.ag .stg__right{display:flex;flex-direction:column;gap:14px;animation:stgUp .8s .55s cubic-bezier(.2,.7,.2,1) both}
+.ag .stg__side{flex:1;display:flex;align-items:center;gap:14px;padding:14px 16px;background:#fff;border-radius:14px;box-shadow:0 30px 60px -30px rgba(5,10,48,.5);color:#050a30;text-decoration:none;transition:transform .2s}
+.ag .stg__side:hover{transform:translateY(-3px);color:#050a30}
+.ag .stg__side--go{background:#C2521A;color:#fff}
+.ag .stg__side--go:hover{color:#fff}
+.ag .stg__side--go .stg__st small{color:rgba(255,255,255,.85)}
+.ag .stg__side--go .stg__ico--or{background:rgba(255,255,255,.16);color:#fff}
+.ag .stg__side--go .stg__plus{background:#050a30}
+.ag .stg__ico{flex:none;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:10px}
+.ag .stg__ico--navy{background:#050a30;color:#fff;font-family:var(--disp);font-size:13px;font-weight:900}
+.ag .stg__ico--or{background:#fdeee2;color:#C2521A}
+.ag .stg__st{display:flex;flex-direction:column;gap:4px}
+.ag .stg__st small{font-size:12px;font-weight:500;color:#5d5d64}
+.ag .stg__st b{font-size:15px;font-weight:700}
+.ag .stg__plus{flex:none;display:flex;align-items:center;justify-content:center;width:28px;height:28px;margin-left:auto;border-radius:999px;background:#C2521A;color:#fff;font-weight:800;transition:transform .3s}
+.ag .stg__side:hover .stg__plus{transform:rotate(90deg)}
+.ag .stg__cap{position:absolute;right:24px;bottom:18px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:rgba(255,255,255,.5)}
+
+/* ---- Key features: the brand page's photo cards (blocks.css), a number where there's no figure ---- */
+.ag .stf[data-n="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ag .stf .bk__cimg{height:220px}
+.ag .stf__n{font-family:var(--mono);font-size:13px;font-style:normal;font-weight:700;letter-spacing:.08em;color:var(--acc)}
+.ag .stf .bk__ctxt strong{text-wrap:balance}
+
+/* ---- Resources ---- */
+.ag .str__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.ag .str__grid:is([data-n="3"],[data-n="5"],[data-n="6"]){grid-template-columns:repeat(3,minmax(0,1fr))}
+.ag .str__card{display:flex;flex-direction:column;gap:20px;padding:24px;border-radius:14px;background:#fff;transition:transform .2s,box-shadow .2s}
+.ag .str__card:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(11,20,80,.1)}
+.ag .str__top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ag .str__tag{padding:5px 10px;border-radius:6px;background:#f3efe5;font-size:12px;font-weight:600;line-height:1;color:#5d5d64}
+.ag .str__fmt{font-family:var(--mono);font-size:11px;font-weight:600;color:#C2521A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag .str__card h3{margin:0;min-height:48px;font-family:var(--disp);font-size:18px;font-weight:700;line-height:1.33;letter-spacing:-.01em;color:#050a30}
+.ag .str__dl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding:14px 16px;border-radius:10px;background:#f3efe5;font-size:14px;font-weight:600;line-height:1.2;color:#050a30;text-decoration:none}
+.ag a.str__dl:hover{background:#ebe6d8}
+.ag .str__dl svg{flex:none;color:#C2521A;transition:transform .2s}
+.ag a.str__dl:hover svg{transform:translateY(2px)}
+.ag .str__card--navy{background:#050a30}
+.ag .str__card--navy .str__tag{background:rgba(255,255,255,.1);color:#fff}
+.ag .str__card--navy h3{color:#fff}
+.ag .str__card--navy .str__dl{background:rgba(255,255,255,.08);color:#fff}
+.ag .str__card--navy .str__dl svg{color:#ff7a36}
+.ag .str__card--slot{background:transparent;box-shadow:inset 0 0 0 2px #d8d2c1;border:0}
+.ag .str__card--slot:hover{transform:none;box-shadow:inset 0 0 0 2px #d8d2c1}
+.ag .str__card--slot .str__dl{background:transparent;border:1px dashed #c9c2ae;color:#5d5d64;font-weight:500}
+
+/* ---- Under the tabs: the brand page's bands (blocks.css) holding the product page's own parts ---- */
+.ag .pxp .bk__sec{scroll-margin-top:136px}
+/* No light blue below the header (Jake): the product page's parts that use the
+   sky tokens take the brand's colour instead, as everything on its brand page does */
+.ag .pxp .bk__sec{--sky:var(--acc-l);--sky2:var(--acc-l);--sky-ink:var(--acc);--skylt:color-mix(in srgb,var(--acc) 8%,#fff)}
+.ag .pxk__over{align-items:center}
+.ag .bk__sec--navy .bk__txt > .pxk__quote{margin:0;font-family:var(--disp);font-size:clamp(20px,1.8vw,26px);font-weight:600;line-height:1.45;letter-spacing:-.01em;color:#fff}
+.ag .pxk__by,.ag .pxk__eye{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc-l)}
+.ag .pxk__why{padding:clamp(22px,3vw,32px);border-radius:12px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .pxk__why .wl__h{margin:0 0 16px;font-family:var(--disp);font-size:20px;font-weight:800;color:#fff}
+.ag .pxk__marks[data-n="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ag .pxk__marks[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ag .pxk__marks li{flex-direction:column;gap:6px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.ag .pxk__brand{align-items:center}
+.ag .bk__sec--navy .bk__txt > .pxk__tag{font-family:var(--disp);font-size:clamp(19px,1.6vw,22px);font-weight:700;line-height:1.4;color:#fff}
+.ag .pxk__go{align-self:flex-start}
+.ag .pxk__brimg{position:relative;aspect-ratio:4/3;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 40px 80px -40px rgba(0,0,0,.6)}
+.ag .pxk__brimg img{object-fit:contain;padding:28px}
+.ag .pxk__brimg--scene img{object-fit:cover;padding:0}
+/* No light blue (Jake): the pros sit navy on the cream band, in the brand's colour */
+.ag .pxp .pcx__col--pro{background:var(--navy)}
+.ag .pxp .pcx__col--pro h3{color:#fff}
+.ag .pxp .pcx__col--pro h3 span{background:var(--acc);color:#fff}
+.ag .pxp .pcx__col--pro li{color:rgba(255,255,255,.88)}
+.ag .pxp .pcx__col--pro li::before{color:var(--acc-l)}
+/* Six sizes fit one row on a laptop instead of five and an orphan; on a
+   phone two to a row, compact, with the buttons kept on one line. The
+   "different option" cards stay one to a row there (product.css). */
+@media (min-width:601px){.ag .pxp .chz__grid:not(.chz__grid--alt){grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+@media (max-width:600px){
+  /* Two by two on a phone whether there are three tiles or four, so the card is the same height for every size. */
+  .ag .stg__tiles{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(56px,auto))}
+  .ag .pxp .chz__grid:not(.chz__grid--alt){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .ag .pxp .chz__card{padding:16px 14px;border-radius:14px}
+  .ag .pxp .chz__card--on{padding:15px 13px}
+  .ag .pxp .chz__chip{font-size:20px}
+  .ag .pxp .chz__card p{font-size:14px}
+  .ag .pxp .chz__btn{font-size:13px;padding:8px 11px;white-space:nowrap;min-height:40px}
+  .ag .pxp .chz__tag{font-size:12.5px;white-space:nowrap}
+}
+.ag .pxp .bk__sec--red .ff{box-shadow:0 30px 60px -30px rgba(5,10,48,.5)}
+.ag .pxp .bk__sec--navy .lk2__tl{margin-top:4px}
+.ag .pxp .bk__cta .bxh__ctas{gap:10px}
+
+/* The savings calculator in the system page's navy box: its headline span in
+   the hot water orange, not the brand colour the .bk bands give headings */
+.ag .pxp .pxs--hot{scroll-margin-top:136px}
+.ag .pxp .pxs--hot .h2{color:#fff}
+.ag .pxp .pxs--hot .h2 span{color:#FF9A5C}
+.ag .pxp .pxk__hotlede{margin:0;font-size:17px;line-height:1.6;color:rgba(255,255,255,.84)}
+
+@keyframes stgUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes stgPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes stgFlow{0%{stroke-dashoffset:120;opacity:0}20%{opacity:.9}100%{stroke-dashoffset:0;opacity:0}}
+@keyframes stgSwap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+@media (max-width:1000px){
+  .ag .stg__bar{grid-template-columns:1fr}
+  .ag .stg__right{flex-direction:row;flex-wrap:wrap}.ag .stg__side{flex:1 1 260px}
+  .ag .stf[data-n="3"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  /* Three cards two to a row: the third takes the whole row instead of sitting alone */
+  .ag .stf[data-n="3"] > :last-child{grid-column:1/-1}
+  .ag .str__grid,.ag .str__grid[data-n]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .pxk__marks[data-n]{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  .ag .stg__in{padding-top:36px}
+  .ag .stg__panel{height:104px}
+  .ag .stg__unit--tall .stg__panel{height:180px}
+  .ag .stf .bk__cimg{height:150px}
+  .ag .str__grid,.ag .str__grid[data-n]{grid-template-columns:1fr}
+  .ag .stg__sizes{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){
+  .ag :is(.stg__panel,.stg__h1,.stg__chip,.stg__tiles li,.stg__card,.stg__right,.stg__air path){animation:none !important}
+  .ag .stg__air path{stroke-dasharray:none;opacity:.45}
+}
+
+/* How long are the showers (shower.tsx): the maths on the left, the
+   interactive card on the right. The bar's reheat part is striped and
+   labelled in the key, so it doesn't rest on colour alone. */
+.ag .shw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(28px,5vw,72px);align-items:start}
+.ag .shw__maths{margin:10px 0 0;display:flex;flex-direction:column;border-top:1px solid var(--line2)}
+.ag .shw__maths div{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.ag .shw__maths dt{font-size:15px;color:var(--ink2)}
+.ag .shw__maths dd{margin:0;font-family:var(--disp);font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums}
+.ag .shw__maths div:last-child dd{color:var(--acc)}
+.ag .shw__card{display:flex;flex-direction:column;gap:20px;background:#fff;border-radius:16px;padding:clamp(22px,3vw,34px);box-shadow:inset 0 0 0 1px var(--line2),0 30px 60px -40px rgba(5,10,48,.45)}
+.ag .shw__row{display:flex;flex-direction:column;gap:10px}
+.ag .shw__q{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.ag .shw__opts{display:flex;flex-wrap:wrap;gap:8px}
+.ag .shw__opts button{min-width:48px;height:44px;padding:0 14px;border-radius:10px;border:0;background:var(--cream);box-shadow:inset 0 0 0 1px var(--line2);font:700 15px/1 var(--disp);color:var(--navy);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.ag .shw__opts button:hover{box-shadow:inset 0 0 0 2px var(--navy)}
+.ag .shw__swap{align-self:flex-start;justify-self:start;margin-top:10px;padding:0;border:0;background:none;font:700 14px/1.3 var(--sans,inherit);color:var(--acc,#C2521A);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ag .shw__opts button[aria-pressed="true"]{background:var(--navy);color:#fff;box-shadow:none}
+.ag .shw__opts button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.ag .shw__total{display:flex;flex-direction:column;gap:2px}
+.ag .shw__lbl,.ag .shw__sub{font-size:15px;color:var(--ink2)}
+.ag .shw__total b{font-family:var(--disp);font-size:clamp(52px,6vw,76px);font-weight:900;line-height:1;letter-spacing:-.035em;color:var(--navy);font-variant-numeric:tabular-nums}
+.ag .shw__total small{font-size:.42em;letter-spacing:0;color:var(--ink2)}
+.ag .shw__bar{position:relative;height:16px;border-radius:99px;background:var(--cream);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .shw__fill{position:absolute;inset:0 auto 0 0;background:var(--acc);border-radius:99px 0 0 99px;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.ag .shw__more{position:absolute;top:0;bottom:0;right:0;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--acc) 55%,#fff) 0 6px,#fff 6px 11px);transition:left .6s cubic-bezier(.2,.7,.2,1)}
+.ag .shw__key{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:-8px;font-size:13.5px;color:var(--ink2)}
+.ag .shw__key span{display:inline-flex;align-items:center;gap:7px}
+.ag .shw__sw{display:inline-block;width:18px;height:10px;border-radius:3px;background:var(--acc)}
+.ag .shw__sw--more{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--acc) 55%,#fff) 0 3px,#fff 3px 6px);box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .shw__each{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:12px;background:var(--navy);color:#fff}
+.ag .shw__each p{margin:0;font-size:16px;color:rgba(255,255,255,.85)}
+.ag .shw__each b{font-family:var(--disp);font-size:28px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums}
+.ag .shw__ppl{list-style:none;margin:0;padding:0;display:flex;gap:4px;flex:none}
+/* A person: a head over shoulders, drawn in CSS */
+.ag .shw__ppl li{position:relative;width:18px;height:26px;animation:shwIn .35s cubic-bezier(.2,.9,.25,1.3) both}
+.ag .shw__ppl li::before{content:"";position:absolute;left:5px;top:0;width:8px;height:8px;border-radius:50%;background:var(--acc-l,#F0A070)}
+.ag .shw__ppl li::after{content:"";position:absolute;left:1px;top:10px;width:16px;height:16px;border-radius:8px 8px 3px 3px;background:var(--acc-l,#F0A070)}
+@keyframes shwIn{from{opacity:0;transform:translateY(6px) scale(.8)}}
+.ag .shw__note{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink3)}
+@media (max-width:900px){.ag .shw{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.ag .shw__each{flex-direction:column;align-items:flex-start;gap:8px}}
+@media (prefers-reduced-motion:reduce){.ag .shw__fill,.ag .shw__more{transition:none}.ag .shw__ppl li{animation:none}}
+/* The verdict for the household: a mark that differs in shape (✓ ≈ !) and the words, so colour is never the only signal. */
+.ag .shw__fit{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--cream);box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .shw__fit i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:800 15px/1 var(--disp);font-style:normal;color:#fff;background:#1F7A4D}
+.ag .shw__fit--reheat i{background:#B7791F}
+.ag .shw__fit--short i{background:#B42318}
+.ag .shw__fit p{margin:0;font-size:15px;line-height:1.5;color:var(--ink,#1a1f3a)}
+.ag .shw__fit b{color:var(--navy)}
+.ag .shw__swap--in{margin:0;display:inline}
+.ag .shw__all{display:inline-block;margin:4px 0 14px;font-weight:700;font-size:15px;color:var(--acc,#C2521A);text-decoration:underline;text-underline-offset:3px}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import "@/components/homepage/tools/calc-a.css";
 
 /**
  * Residential aircon-sizing calculator. Client-only — the inputs
@@ -60,6 +61,42 @@ const DEFAULTS: FormState = {
   occupants: 2,
 };
 
+const ORIENTATIONS: { v: FormState["orientation"]; l: string; hint: string }[] = [
+  { v: "N", l: "North", hint: "North (moderate sun)" },
+  { v: "NE", l: "NE", hint: "North-east" },
+  { v: "E", l: "East", hint: "East (morning sun)" },
+  { v: "SE", l: "SE", hint: "South-east" },
+  { v: "S", l: "South", hint: "South (coolest)" },
+  { v: "SW", l: "SW", hint: "South-west" },
+  { v: "W", l: "West", hint: "West (harsh afternoon sun)" },
+  { v: "NW", l: "NW", hint: "North-west" },
+];
+const INSULATIONS: { v: FormState["insulation"]; l: string; s: string }[] = [
+  { v: "well", l: "Well insulated", s: "New build, double-glazed" },
+  { v: "standard", l: "Standard", s: "90s brick veneer, single glaze" },
+  { v: "poor", l: "Poorly insulated", s: "Older weatherboard, no ceiling batts" },
+];
+const GLAZINGS: { v: FormState["glazing"]; l: string; s: string }[] = [
+  { v: "small", l: "Small windows", s: "Less than 10% of walls" },
+  { v: "medium", l: "Standard windows", s: "10-20%" },
+  { v: "large", l: "Large windows / sliding doors", s: "More than 20%" },
+];
+
+/** − value +, for a number the user may also type. */
+function Stepper({ id, value, step, min, max, dp = 0, onChange, unit }: {
+  id: string; value: number; step: number; min: number; max: number; dp?: number; unit?: string; onChange: (v: number) => void;
+}) {
+  const clamp = (v: number) => Math.min(max, Math.max(min, Math.round(v / step) * step));
+  return (
+    <div className="ca__step">
+      <button type="button" aria-label={`Less${unit ? `, ${unit}` : ""}`} disabled={value <= min} onClick={() => onChange(+clamp(value - step).toFixed(dp))}>−</button>
+      <input id={id} type="number" inputMode="decimal" min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value) || 0)} />
+      <button type="button" aria-label={`More${unit ? `, ${unit}` : ""}`} disabled={value >= max} onClick={() => onChange(+clamp(value + step).toFixed(dp))}>+</button>
+    </div>
+  );
+}
+
 export function SizingCalculator() {
   const [form, setForm] = useState<FormState>(DEFAULTS);
 
@@ -100,159 +137,98 @@ export function SizingCalculator() {
     };
   }, [form]);
 
+  const ori = ORIENTATIONS.find((o) => o.v === form.orientation);
+  const kw = result.recommended.toString().replace(".0", "");
+
   return (
-    <div className="page-tool__grid">
-      <div className="page-tool__form">
-        <h2>Room details</h2>
+    <div className="ca">
+      <div className="ca__card ca__in">
+        <h2 className="ca__h">Room details</h2>
 
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="len">Length (m)</label>
-            <input
-              id="len"
-              type="number"
-              min="1"
-              max="30"
-              step="0.1"
-              value={form.length}
-              onChange={(e) => update("length", parseFloat(e.target.value) || 0)}
-            />
+        <div className="ca__pair">
+          <div className="ca__row">
+            <label className="ca__q" htmlFor="len">Length (m)</label>
+            <Stepper id="len" value={form.length} step={0.5} min={1} max={30} dp={1} unit="metres" onChange={(v) => update("length", v)} />
           </div>
-          <div className="tool-field">
-            <label htmlFor="wid">Width (m)</label>
-            <input
-              id="wid"
-              type="number"
-              min="1"
-              max="30"
-              step="0.1"
-              value={form.width}
-              onChange={(e) => update("width", parseFloat(e.target.value) || 0)}
-            />
+          <div className="ca__row">
+            <label className="ca__q" htmlFor="wid">Width (m)</label>
+            <Stepper id="wid" value={form.width} step={0.5} min={1} max={30} dp={1} unit="metres" onChange={(v) => update("width", v)} />
           </div>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="ceil">Ceiling height (m)</label>
-          <input
-            id="ceil"
-            type="number"
-            min="2"
-            max="6"
-            step="0.1"
-            value={form.ceiling}
-            onChange={(e) => update("ceiling", parseFloat(e.target.value) || 2.4)}
-          />
-          <small>Standard 2.4 m. Rake ceilings and double-height rooms need more.</small>
+        <div className="ca__row">
+          <label className="ca__q" htmlFor="ceil">Ceiling height (m)</label>
+          <Stepper id="ceil" value={form.ceiling} step={0.1} min={2} max={6} dp={1} unit="metres" onChange={(v) => update("ceiling", v || 2.4)} />
+          <p className="ca__hint">Standard 2.4 m. Rake ceilings and double-height rooms need more.</p>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="ori">Orientation (main window)</label>
-          <select
-            id="ori"
-            value={form.orientation}
-            onChange={(e) => update("orientation", e.target.value as FormState["orientation"])}
-          >
-            <option value="N">North (moderate sun)</option>
-            <option value="NE">North-east</option>
-            <option value="E">East (morning sun)</option>
-            <option value="SE">South-east</option>
-            <option value="S">South (coolest)</option>
-            <option value="SW">South-west</option>
-            <option value="W">West (harsh afternoon sun)</option>
-            <option value="NW">North-west</option>
-          </select>
+        <div className="ca__row">
+          <span className="ca__q" id="ori">Orientation (main window)</span>
+          <div className="ca__opts" role="group" aria-labelledby="ori">
+            {ORIENTATIONS.map((o) => (
+              <button key={o.v} type="button" aria-pressed={form.orientation === o.v} aria-label={o.hint} onClick={() => update("orientation", o.v)}>{o.l}</button>
+            ))}
+          </div>
+          <p className="ca__hint">{ori?.hint}</p>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="ins">Insulation</label>
-          <select
-            id="ins"
-            value={form.insulation}
-            onChange={(e) => update("insulation", e.target.value as FormState["insulation"])}
-          >
-            <option value="well">Well insulated (new build, double-glazed)</option>
-            <option value="standard">Standard (90s brick veneer, single glaze)</option>
-            <option value="poor">Poorly insulated (older weatherboard, no ceiling batts)</option>
-          </select>
+        <div className="ca__row">
+          <span className="ca__q" id="ins">Insulation</span>
+          <div className="ca__choices" role="group" aria-labelledby="ins">
+            {INSULATIONS.map((o) => (
+              <button key={o.v} type="button" className="ca__choice" aria-pressed={form.insulation === o.v} onClick={() => update("insulation", o.v)}>
+                <i aria-hidden="true" /><span><strong>{o.l}</strong><small>{o.s}</small></span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="glz">Window area vs wall area</label>
-          <select
-            id="glz"
-            value={form.glazing}
-            onChange={(e) => update("glazing", e.target.value as FormState["glazing"])}
-          >
-            <option value="small">Small windows (&lt;10% of walls)</option>
-            <option value="medium">Standard windows (10-20%)</option>
-            <option value="large">Large windows / sliding doors (&gt;20%)</option>
-          </select>
+        <div className="ca__row">
+          <span className="ca__q" id="glz">Window area vs wall area</span>
+          <div className="ca__choices" role="group" aria-labelledby="glz">
+            {GLAZINGS.map((o) => (
+              <button key={o.v} type="button" className="ca__choice" aria-pressed={form.glazing === o.v} onClick={() => update("glazing", o.v)}>
+                <i aria-hidden="true" /><span><strong>{o.l}</strong><small>{o.s}</small></span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="tool-field">
-          <label htmlFor="occ">Typical occupants</label>
-          <input
-            id="occ"
-            type="number"
-            min="1"
-            max="20"
-            step="1"
-            value={form.occupants}
-            onChange={(e) => update("occupants", parseInt(e.target.value) || 1)}
-          />
-          <small>Each person above 2 adds ~120 W of body heat.</small>
+        <div className="ca__row">
+          <label className="ca__q" htmlFor="occ">Typical occupants</label>
+          <Stepper id="occ" value={form.occupants} step={1} min={1} max={20} unit="people" onChange={(v) => update("occupants", Math.round(v) || 1)} />
+          <p className="ca__hint">Each person above 2 adds ~120 W of body heat.</p>
         </div>
       </div>
 
-      <div className="page-tool__result">
-        <h2>Recommended size</h2>
-        <div className="tool-result__lead">Cooling capacity</div>
-        <div className="tool-result__big">
-          {result.minKw.toFixed(1)}–{result.maxKw.toFixed(1)} kW
-        </div>
-        <p className="tool-result__sub">
+      <div className="ca__card ca__sum" aria-live="polite">
+        <span className="ca__lbl">Recommended size · cooling capacity</span>
+        <div className="ca__big">{result.minKw.toFixed(1)}–{result.maxKw.toFixed(1)}<small> kW</small></div>
+        <p className="ca__tag">Closest standard model: <b>{kw}&nbsp;kW</b> split system</p>
+      </div>
+
+      <div className="ca__card ca__det">
+        <p className="ca__sub">
           For a <strong>{result.area.toFixed(1)}&nbsp;m²</strong> room, the closest standard model size is a
-          <strong> {result.recommended.toString().replace(".0", "")}&nbsp;kW</strong> split system.
+          <strong> {kw}&nbsp;kW</strong> split system.
         </p>
 
-        <div className="tool-result__breakdown">
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Base heat load</span>
-            <span className="tool-result__row-val">{Math.round(result.area * BASE_LOAD_W_PER_M2)} W</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Ceiling adj.</span>
-            <span className="tool-result__row-val">×{result.ceilingBoost.toFixed(2)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Orientation adj.</span>
-            <span className="tool-result__row-val">×{result.orientation.toFixed(2)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Insulation adj.</span>
-            <span className="tool-result__row-val">×{result.insulation.toFixed(2)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Glazing adj.</span>
-            <span className="tool-result__row-val">×{result.glazing.toFixed(2)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Occupant boost</span>
-            <span className="tool-result__row-val">+{result.occupantsExtraW} W</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Design load</span>
-            <span className="tool-result__row-val">{result.totalKw.toFixed(2)} kW</span>
-          </div>
+        <dl className="ca__maths" aria-label="How it's worked out">
+          <div><dt>Base heat load</dt><dd>{Math.round(result.area * BASE_LOAD_W_PER_M2)} W</dd></div>
+          <div><dt>Ceiling adj.</dt><dd>×{result.ceilingBoost.toFixed(2)}</dd></div>
+          <div><dt>Orientation adj.</dt><dd>×{result.orientation.toFixed(2)}</dd></div>
+          <div><dt>Insulation adj.</dt><dd>×{result.insulation.toFixed(2)}</dd></div>
+          <div><dt>Glazing adj.</dt><dd>×{result.glazing.toFixed(2)}</dd></div>
+          <div><dt>Occupant boost</dt><dd>+{result.occupantsExtraW} W</dd></div>
+          <div className="ca__total"><dt>Design load</dt><dd>{result.totalKw.toFixed(2)} kW</dd></div>
+        </dl>
+
+        <div className="ca__ctas">
+          <Link href="/quote" className="abtn abtn--or abtn--flat">Get a quote for this room →</Link>
+          <Link href="/brands" className="abtn abtn--ghost">See models at {result.recommended}&nbsp;kW →</Link>
         </div>
 
-        <div className="tool-result__cta">
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote for this room →</Link>
-          <Link href="/brands" className="ds-btn ds-btn--ghost">See models at {result.recommended}&nbsp;kW →</Link>
-        </div>
-
-        <p className="tool-result__note">
+        <p className="ca__note">
           Heads-up: this is a residential heat-load estimator for a single room. Multi-head, ducted
           and commercial spaces need a room-by-room load calc, we do those on quote day.
         </p>

@@ -23,7 +23,7 @@ export default async function ChatSettingsPage() {
         <PortalBack href="/portal/chats" label="Customer chats" />
         <h1>Chat settings</h1>
         <p>
-          Whether the website shows the chat, and what the assistant works from. It already knows everything on the website: services, published
+          What the assistant drafting Messenger and Instagram replies works from. It already knows everything on the website: services, published
           prices, the FAQs, suburbs and hours. Add here only what the website doesn&rsquo;t say.
         </p>
       </div>

@@ -1,7 +1,6 @@
 import { ChromeGate } from "@/components/ChromeGate";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { Analytics } from "@/components/Analytics";
@@ -11,15 +10,19 @@ import "./globals.css";
 import "./design-system.css";
 import { site } from "@/lib/site";
 import { localBusinessSchema } from "@/lib/schema";
-import { Header } from "@/components/Header";
+import { SiteModeStrip } from "@/components/Header";
+import { HomeHeader } from "@/components/homepage/HomeHeader";
+import "@/components/homepage/homepage.css";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { ChatWidget } from "@/components/ChatWidget";
+import { assistantEnabled } from "@/lib/assistant/types";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
 import { PageEnter } from "@/components/PageEnter";
 import { SiteCross } from "@/components/SiteCross";
 import { Reveal } from "@/components/Reveal";
+import { JsonLd } from "@/components/JsonLd";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -135,24 +138,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ScrollToTop />
-        <ChromeGate>
-          <Header />
+        {/* The redesign's header on every page, so going live never drops a
+            visitor back into the old navigation. The homepage and /find pages
+            render their own (the homepage's floats over its hero). The .ag
+            wrapper is display:contents: it carries the header's styles
+            without boxing it in, so the sticky header still sticks. */}
+        <ChromeGate legacy header>
+          <SiteModeStrip tabs={false} />
+          <div className="ag" style={{ display: "contents" }}>
+            <HomeHeader variant="flat" />
+          </div>
         </ChromeGate>
         <main id="main" className="flex-1">{children}</main>
         <PageEnter />
         <SiteCross />
         <Reveal />
+        {/* One footer for the whole site, the redesign pages included (Jake's
+            call); only the header and the sticky call bar give way there. */}
         <ChromeGate>
           <Footer />
-          <StickyMobileCTA />
-          <ChatWidget />
         </ChromeGate>
-        <Script
-          id="ld-localbusiness"
-          type="application/ld+json"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema()) }}
-        />
+        <ChromeGate legacy>
+          <StickyMobileCTA />
+        </ChromeGate>
+        <ChromeGate>
+          {/* Instant answers on preview builds only until Jake signs them off (assistantEnabled). */}
+          <ChatWidget assistant={assistantEnabled()} />
+        </ChromeGate>
+        <JsonLd data={localBusinessSchema()} />
         {/* Vercel Speed Insights — real-user performance metrics from every
             visit. Beacon-based, no impact on TBT or LCP; script only loads
             once the page is idle. Dashboard at

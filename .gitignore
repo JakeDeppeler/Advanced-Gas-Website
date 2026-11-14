@@ -11,3 +11,6 @@ tsconfig.tsbuildinfo
 
 # Reece price files (trade pricing — keep out of git)
 data/
+
+# Temporary git worktrees made by Claude Code helper agents; never committed.
+.claude/worktrees/

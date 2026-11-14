@@ -310,7 +310,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "Almost every January call-out we get is a filthy coil, a blocked filter or a clogged condensate drain on a system nobody has touched since it went in. None of those are faults. All of them look like faults on the hottest day of the year, and all of them are an afternoon rather than a new system.",
       facts: [
-        { v: "$220 a year", k: "or $140 each for three or more at one address" },
+        { v: "Once a year", k: "the manufacturer minimum to keep the warranty in force" },
         { v: "Sept \u2013 Nov", k: "booked before the heatwave, not during it" },
         { v: "Lodged for you", k: "the report goes to the manufacturer, not a drawer" },
       ],
@@ -367,7 +367,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     steps: [
       { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed, a 5 kW room quote sizes to a 5 kW unit, not a 7." },
-      { title: "Written quote in 12 hrs", detail: "Back to you inside 12 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. No 'from $X' bait." },
+      { title: "Written quote in 12 hrs", detail: "Back to you inside 12 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. One fixed figure, not a 'from' price." },
       { title: "Order stock, book install day", detail: "Mitsubishi warehouse in Melbourne is same-day on common stock. We confirm your install day the moment the unit lands with us." },
       { title: "Install day, usually one visit", detail: "Single-split back-to-back is 3-4 hours on site. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside." },
       { title: "Test, commission, walk-through", detail: "We run it up, check refrigerant pressures, walk you through the remote and MELCloud Wi-Fi setup. You sign the job card when you're satisfied, not before." },
@@ -452,7 +452,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           { q: "Split or ducted: which do I need?", a: "A split heats and cools the room it's in, so it's the answer for a bedroom, a living room or a granny flat. Ducted puts one system in the roof and vents every room, zoned so you're not paying to condition empty bedrooms. Three or four rooms without going ducted is where a multi-head fits. We size it to your house at the quote." },
           { q: "Does it actually heat in a cold Melbourne winter?", a: "Yes. Modern reverse-cycle systems hold their rated heating output down to around 2 °C and keep working well below that, the Mitsubishi Hyper Heating range in particular is built for it. For the frost pockets up in the hills we spec the cold-climate models rather than a standard unit." },
           { q: "Is reverse cycle eligible for the VEU rebate?", a: "In most cases, yes. Reverse-cycle upgrades are a core Victorian Energy Upgrades activity, especially replacing an old gas or electric heater. Where your property qualifies we handle the paperwork and take the rebate straight off the installed price at the quote." },
-          { q: "How much does a reverse-cycle system cost?", a: "A single split starts from around $2,199 installed; a whole-home ducted system is a bigger job. Because the range is so wide we quote it to your house rather than a 'from' number, and the VEU rebate comes off where it applies. The written quote is the number you pay." },
+          { q: "How much does a reverse-cycle system cost?", a: "It ranges from a single split to a whole-home ducted system, and because the range is so wide we quote it to your house rather than a 'from' number, and the VEU rebate comes off where it applies. The written quote is the number you pay." },
         ],
       },
       {
@@ -479,7 +479,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A split that gets serviced once a year runs at its rated output for fifteen years. One that doesn't loses capacity quietly, and the first anyone notices is the afternoon it can't hold the room. That is not a fault, it's a filter and a coil.",
           facts: [
-            { v: "$220 a year", k: "or $140 each for three or more at one address" },
+            { v: "Once a year", k: "the manufacturer minimum to keep the warranty in force" },
             { v: "Sept \u2013 Nov", k: "before the first heatwave, not during it" },
             { v: "5 + 6 years", k: "manufacturer on the unit, ours on the install" },
           ],
@@ -621,7 +621,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "The saving on a multi-head shows up again at service time: one outdoor unit to clean rather than four. The indoor heads still each need doing, which is why the bundle rate exists. There is no sense charging a full call-out per head when we are already standing in the house.",
           facts: [
-            { v: "$220 then $140", k: "the first unit, then each one after it that day" },
+            { v: "One visit", k: "every head done the same day, not a call-out each" },
             { v: "One coil clean", k: "the outdoor unit covers every head running off it" },
             { v: "Blocked drains", k: "the most common call, and a fifteen-minute fix" },
           ],
@@ -743,7 +743,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A ducted indoor unit sits in a roof cavity for fifteen years, and the single thing that decides whether servicing it is an hour or a quote is whether somebody left a path to it. We put ours on a platform with clear access. Not everyone does, and we have crawled far enough to have opinions about it.",
           facts: [
-            { v: "$390 a year", k: "filter, coils, gas pressures, zone motors, controller" },
+            { v: "Once a year", k: "filter, coils, gas pressures, zone motors, controller" },
             { v: "On a platform", k: "with a clear path, so a service is an hour" },
             { v: "Return-air", k: "the most-skipped filter, and the usual reason it's weak" },
           ],
@@ -865,7 +865,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "Evaporative coolers sit on a roof through a Melbourne winter doing nothing, and the pump is the part that decides whether they wake up. The first thirty-degree day is the worst possible time to find out it seized in July, which is why the pre-summer service exists.",
           facts: [
-            { v: "$220 + GST", k: "booked September to November" },
+            { v: "Pre-summer", k: "booked September to November" },
             { v: "3 \u2013 5 years", k: "how long a set of pads usually lasts" },
             { v: "Under load", k: "the pump tested running, not just switched on" },
           ],
@@ -994,7 +994,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     excluded: [
       "Line-set runs beyond the included metres (charged per additional metre in the quote)",
-      "Condensate pump if the indoor is above the outdoor and there's no gravity drain (~$220 typical)",
+      "Condensate pump if the indoor is above the outdoor and there's no gravity drain (itemised on the quote if needed)",
       "Structural rework, ceiling patching or painting after ductwork",
       "LPG bottle relocation for gas-adjacent installs",
     ],
@@ -1096,7 +1096,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       points: [
         { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a unit built for milder conditions spends July running an element it was supposed to replace." },
         { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined costs less up front and does the same job, but somebody has to remember the anode in year five, and nobody does." },
-        { t: "iStore, when the rebate decides it", d: "On the VEU numbers the 270 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
+        { t: "iStore, when the rebate decides it", d: "On the VEU numbers the 275 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
         { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for the $400 Australian-made VEU bonus and means Reece stocks the parts in every Victorian store." },
         { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement, all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
         { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
@@ -1116,19 +1116,19 @@ export const serviceContent: Record<string, ServiceContent> = {
      * lib/systemDetail.ts, and the cards in "Choose your system" render
      * them. The five rows that used to live here restated the same
      * products less precisely and disagreed with those rows on the
-     * iStore; that is settled — $2,150 inc GST, confirmed 27 Aug.
+     * iStore price; that one is settled in systemDetail, confirmed 27 Aug.
      */
     pricing: [],
     steps: [
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
-      { title: "Written quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from $X', the number on the quote is the number on the invoice." },
+      { title: "Written quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from' price, the number on the quote is the number on the invoice." },
       { title: "We lodge the VEU application", detail: "Approved accredited-provider paperwork submitted the day you accept the quote. The rebate is applied to your invoice, not something you chase back six months later." },
       { title: "Install day, usually same-day swap", detail: "AIO swap into an existing electric or gas storage tank position is 3–5 hours. Split heat pump with a new tank position is 5–7 hours. Old tank drained, disconnected, loaded up." },
       { title: "Commission, temper, hand over", detail: "Tempering valve to AS/NZS 3500, isolation valves in, dedicated circuit tested. We wait for hot water at the tap, then walk you through the controller and timer settings." },
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
     photos: [
-      { src: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump hot water system", caption: "iStore 270 L, where the VEU rebate goes furthest" },
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump hot water system", caption: "iStore 275 L, where the VEU rebate goes furthest" },
       { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 AIO, same platform as Thermann Integrated" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split, 15-year stainless tank" },
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, Australian-made by Dux" },
@@ -1291,7 +1291,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           note:
             "An all-in-one is a single unit: tank below, compressor in a shroud on top. It goes back on the slab the old electric or gas tank came off, which is why it is the simplest swap there is. It is taller than what it replaces, and that is the one thing worth checking before the day.",
           photo: "/270L-istore-heatpump.webp",
-          photoAlt: "iStore 270 L all-in-one heat pump",
+          photoAlt: "iStore all-in-one heat pump",
           facts: [
             { v: "~1.8 m tall", k: "On a 270 L, taller than the tank it replaces" },
             { v: "One footprint", k: "Nothing separate to place or plumb" },
@@ -1347,9 +1347,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "200 or 285 litres",
-            line: "Plus iStore at 180 and 270",
+            line: "Plus iStore at 180 and 275",
             detail:
-              "Four sizes across the two platforms. 180–200 L suits one or two people, 270–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
+              "Four sizes across the two platforms. 180–200 L suits one or two people, 275–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
             icon: "ruler",
           },
           {
@@ -1376,7 +1376,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         points: [
           "Reclaim ECO R290 and Thermann ECO R290: same platform, two badges",
-          "iStore 180 L and 270 L, where the VEU rebate reaches furthest",
+          "iStore 180 L and 275 L, where the VEU rebate reaches furthest",
           "200 L and 285 L on the R290 platform",
           "One shell: nothing separate to place or plumb",
           "R290 natural refrigerant, single-digit global-warming potential",
@@ -1437,9 +1437,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Manufacturer tank + heat-pump warranty registered in your name",
     ],
     excluded: [
-      "Slab / concrete work if the old tank position needs a new pad (~$400)",
+      "Slab / concrete work if the old tank position needs a new pad (itemised on the quote if needed)",
       "Relocation of the tank to a new position >2 m from the existing site (charged per metre of pipe rework)",
-      "LPG bottle relocation or gas capping (typically ~$220)",
+      "LPG bottle relocation or gas capping (itemised on the quote if needed)",
       "Repair to underlying pipework where the old tank has been leaking for months",
       "Solar PV integration (see our PV-diverter kit as an add-on)",
     ],
@@ -1449,7 +1449,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "Does a heat pump work in cold Melbourne mornings?", a: "R290 (propane) units drop noticeably below 0 °C. CO₂ heat pumps (Reclaim) hold full capacity down to −10 °C, worth specifying for hills postcodes like Emerald, Gembrook or Cockatoo." },
       { q: "Is it noisy? Where do you put it?", a: "37–48 dBA at 1 m depending on model, Reclaim CO₂ is the quietest at 37 dBA (safe next to a bedroom wall). Ideally sited on the shady side of the house away from bedrooms." },
       { q: "How long does the install take?", a: "AIO into an existing tank position is 3–5 hours, done in one visit. Split heat pump with a new outdoor unit position is 5–7 hours. Both are usually same-day." },
-      { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 6-yr tank + 3-yr compressor. Plus our 6-year workmanship on top of all of them." },
+      { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 5 years on the whole unit. Plus our 6-year workmanship on top of all of them." },
       { q: "Can I combine it with solar PV?", a: "Yes, Reclaim's split range is PV-diverter compatible so the heat pump only runs when your PV is exporting. We can add a diverter kit at install time or later." },
     ],
   },
@@ -1533,7 +1533,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     steps: [
       { title: "Book the visit, one call, no menu", detail: "Call and book with the person you'll see, Chaz or Jake picks up, quotes the service fee, and books a window that suits you. No press-1 hold music, no third-party dispatcher." },
-      { title: "We arrive with the parts", detail: "Common consumables, capacitors, thermistors, PCB relays, refrigerant, filters, live on the truck. Most service jobs are one-visit fixes because we're not driving back for a $12 part." },
+      { title: "We arrive with the parts", detail: "Common consumables, capacitors, thermistors, PCB relays, refrigerant, filters, live on the truck. Most service jobs are one-visit fixes because we're not driving back for a small part." },
       { title: "Service on the day", detail: "Filter clean, coil chemical clean (indoor + outdoor), refrigerant pressure check, capacitor + fan motor test, drain flush, thermistor calibration. Written service report before we leave." },
       { title: "Diagnose + written quote for any repair", detail: "If a component needs replacing we quote it in writing before we touch it. Pricing in writing, no hourly creep. Fee is waived if you accept the repair the same day." },
       { title: "Service record lodged with the manufacturer", detail: "We upload the service report direct to Mitsubishi, Daikin, Fujitsu etc so your warranty record stays clean and any future claim goes through without a fight." },
@@ -1778,7 +1778,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     excluded: [
       "Replacement parts (capacitors, PCBs, fan motors, sensors, quoted in writing before we touch them)",
       "Refrigerant refill beyond 200 g (indicates a leak, leak-find + repair quoted separately)",
-      "Roof-scaffold hire for two-storey ducted returns (~$300 typical)",
+      "Roof-scaffold hire for two-storey ducted returns (itemised on the quote if needed)",
       "Access to a unit walled-in behind cabinetry that needs demolishing to reach",
     ],
     faqs: [
@@ -1813,7 +1813,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "A cracked heat exchanger puts carbon monoxide into the air your house is breathing, and it does it silently. There is no smell, no alarm on most homes, and the early symptoms read as a bad night's sleep. This is the single reason we will not let a gas heater over ten years old go unserviced without saying something about it.",
       facts: [
-        { v: "$280 + GST", k: "a full service with a calibrated CO analyser" },
+        { v: "CO tested", k: "a full service with a calibrated CO analyser" },
         { v: "Every 2 years", k: "and annually once it is past ten" },
         { v: "Real readings", k: "on a written report, not a sticker saying it passed" },
       ],
@@ -1870,7 +1870,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for a gas leak or a CO alarm, No hot water sorted the same day where we can, Diagnosis and a written repair quote on the spot", group: "Emergency", priceKey: "Call-out fee" },
     ],
     steps: [
-      { title: "Same-day emergency? Call first", detail: "Gas leak, no hot water, CO alarm, call and we'll be on-site same-day. Standard call-out $120 in-hours, $220 after-hours. Fee waived if repair goes ahead on the day." },
+      { title: "Same-day emergency? Call first", detail: "Gas leak, no hot water, CO alarm, call and we'll be on-site same-day. The call-out fee is confirmed on the phone before we come, and waived if the repair goes ahead on the day." },
       { title: "Planned job? Written quote in 12 hrs", detail: "Send a photo of the existing unit and we'll come back the same business day with the replacement model, capacity, star rating and installed price. Includes VEU eligibility check for the swap." },
       { title: "Old unit assessed on site", detail: "Ducted heater, is the cavity + ductwork reusable? (Usually yes on a like-for-like retrofit.) Hot water, is the existing pad + pipework good, or does it need rework? We tell you before we touch anything." },
       { title: "Install day", detail: "Brivis ducted replacement, 3-4 hours if the ducts + controller wiring reuse cleanly. Continuous flow hot water swap, 3-5 hours. Same-day for both. Old unit off the pad and loaded up." },
@@ -1902,7 +1902,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A cracked heat exchanger puts carbon monoxide into the air the house is breathing, silently. No smell, no alarm in most homes, and early symptoms that read as a bad night's sleep. It is the one reason we will not quietly let a heater past ten years go unserviced.",
           facts: [
-            { v: "$280 + GST", k: "a full service with a calibrated CO analyser" },
+            { v: "CO tested", k: "a full service with a calibrated CO analyser" },
             { v: "Every 2 years", k: "and annually once it is past ten" },
             { v: "Condemned", k: "on the spot if the exchanger is cracked, that's the law" },
           ],
@@ -2013,10 +2013,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Any gas heater over ten years old wants a carbon monoxide test, whether or not you replace it",
         ],
         faqs: [
-          { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it a one-day job." },
+          { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it to 3–5 hours." },
           { q: "Is a 6-star worth the extra over a 3-star?", a: "On a house you're staying in, generally yes, the efficiency difference shows up every winter. On a house you're selling in two years, probably not. We'll show you where the crossover lands rather than just pushing the dearer one." },
           { q: "How long does a changeover take?", a: "A like-for-like internal swap is usually a single day. External or a first-time install with new ductwork runs longer, and we'll say which at the quote." },
-          { q: "How much does it cost to replace a gas ducted heater?", a: "A like-for-like Brivis Wombat replacement starts from $4,800 supplied and installed, and a higher-spec Brivis Buffalo from $5,600, with the old unit removed and a compliance certificate. Ductwork that needs replacing, a gas line that needs upsizing or a move from internal to external adds to that, and we tell you which at the quote rather than on the day." },
+          { q: "How much does it cost to replace a gas ducted heater?", a: "It depends on the size, the star rating and what the house needs, so we price it in writing after a free site check, with the old unit removed and a compliance certificate included. Ductwork that needs replacing, a gas line that needs upsizing or a move from internal to external adds to that, and we tell you which at the quote rather than on the day." },
           { q: "Should I replace my gas ducted heater with reverse cycle instead?", a: "If you also want cooling, price both. Reverse-cycle ducted heats and cools from one system, and the VEU rebate can take up to $4,200 off a gas-to-reverse-cycle switch, which narrows the gap a lot. If the house only needs heating and the ducts are sound, a like-for-like gas swap is still the cheaper job on the day. We'll quote both side by side if you ask." },
         ],
       },
@@ -2165,9 +2165,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "That interval is not ours. It is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
           facts: [
-            { v: "$280 + GST", k: "with the combustion analysis included, not extra" },
+            { v: "Combustion analysis", k: "included in the service, not extra" },
             { v: "AS/NZS 5601", k: "the standard the pressure and spillage test is to" },
-            { v: "$120 call-out", k: "waived if the repair goes ahead the same day" },
+            { v: "Priced in writing", k: "before any repair goes ahead" },
           ],
         },
         brands: ["Brivis", "Kaden"],
@@ -2254,15 +2254,15 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "A unit on the ground and a hose to the house.",
           note:
-            "A temporary unit is not pretty and does not pretend to be. It sits near where the old system was, plumbed into the house hot water line, and it runs the whole house rather than one tap. It is there so you are not choosing a five-thousand-dollar system in a panic on a Tuesday.",
+            "A temporary unit is not pretty and does not pretend to be. It sits near where the old system was, plumbed into the house hot water line, and it runs the whole house rather than one tap. It is there so you are not choosing a new system in a panic on a Tuesday.",
           photo: "/gas hot water change over same day.webp",
           photoAlt: "Hot water changeover completed the same day",
           photoScene: true,
           facts: [
             { v: "Same day", k: "Connected on the day in most cases" },
             { v: "Whole house", k: "Not one tap, every outlet works" },
-            { v: "$30 / day", k: "While it is on site" },
-            { v: "$350", k: "Set-up and removal, waived if we do the job" },
+            { v: "By the day", k: "Hired only for the days it is on site" },
+            { v: "No obligation", k: "To use us for the replacement" },
           ],
         },
         servicing: {
@@ -2274,18 +2274,18 @@ export const serviceContent: Record<string, ServiceContent> = {
           facts: [
             { v: "No charge", k: "if it faults while it's on site, we fix or swap it" },
             { v: "Same day", k: "disconnected and collected when the new one goes in" },
-            { v: "$350 waived", k: "entirely, if we install the replacement" },
+            { v: "Set-up waived", k: "entirely, if we install the replacement" },
           ],
         },
         brands: ["Thermann"],
         label: "Temporary hot water hire",
         blurb:
-          "A temporary unit plumbed in the same day so the house has hot water while you decide what to replace the old one with. $30 a day, and the $350 set-up and removal is waived if we do the replacement.",
+          "A temporary unit plumbed in the same day so the house has hot water while you decide what to replace the old one with. Hired by the day, and the set-up and removal fee is waived if we do the replacement.",
         photo: { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover on site" , scene: true },
         points: [
           "Connected the same day in most cases",
-          "$30 per day while it's on site",
-          "$350 set-up and removal, waived if we do the replacement",
+          "Hired by the day, priced in writing before it goes in",
+          "Set-up and removal waived if we do the replacement",
           "Buys you time to compare quotes instead of deciding in a panic",
           "Runs the whole house, not just one tap",
           "Disconnected and taken away on the day the new system goes in",
@@ -2294,7 +2294,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "$30/day hire",
         intro:
-          "When a tank dies you are suddenly being asked to make a three or four thousand dollar decision, today, with cold showers as the deadline. That is the worst possible way to buy a hot water system, and it is exactly how most people end up with the wrong one. A temporary unit takes the deadline off the table: the house has hot water tonight, and you get to choose the replacement properly, at a normal pace, with real quotes in front of you.",
+          "When a tank dies you are suddenly being asked to make a big decision, today, with cold showers as the deadline. That is the worst possible way to buy a hot water system, and it is exactly how most people end up with the wrong one. A temporary unit takes the deadline off the table: the house has hot water tonight, and you get to choose the replacement properly, at a normal pace, with real quotes in front of you.",
         bestFor: [
           "A tank that has failed and a replacement decision you don't want to rush",
           "Households with kids, shift workers, or anyone who cannot go a day without hot water",
@@ -2311,11 +2311,11 @@ export const serviceContent: Record<string, ServiceContent> = {
         faqs: [
           {
             q: "How much does temporary hot water cost?",
-            a: "$30 a day while it's on site, plus a $350 set-up and removal fee. If we end up doing the replacement, the $350 is waived, so the only thing you pay for is the days you actually used it.",
+            a: "A daily hire rate while it's on site, plus a one-off set-up and removal fee, and you get both in writing before it goes in. If we end up doing the replacement, the set-up fee is waived, so the only thing you pay for is the days you actually used it.",
           },
           {
             q: "Do I have to use you for the new system?",
-            a: "No. The hire stands on its own and you're free to go elsewhere for the replacement. You'd pay the $350 in that case, which covers the two trips and the gear. We'd rather you had hot water and chose properly than felt cornered into a decision.",
+            a: "No. The hire stands on its own and you're free to go elsewhere for the replacement. You'd pay the set-up and removal fee in that case, which covers the two trips and the gear. We'd rather you had hot water and chose properly than felt cornered into a decision.",
           },
           {
             q: "How fast can you get one connected?",
@@ -2348,10 +2348,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },
       { brand: "Kaden Gas Ducted", reason: "3 to 6 star, internal and external, on a universal footprint that drops into a Brivis or Braemar cavity so the ducts and wiring reuse.", href: "/brands/kaden" },
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
-      { brand: "Puretec", reason: "Australian water filtration. Whole-home on the main, protection on the hot water cold inlet, and under-sink for drinking water.", href: "/water-filtration" },
     ],
     typical: {
-      time: "Ducted heater replacement · 3–4 hrs (same day). Continuous flow swap · 3–5 hrs (same day). Emergency call-out · on-site same day.",
+      time: "Ducted heater replacement · 3–5 hrs (same day). Continuous flow swap · 2–4 hrs (same day). Emergency call-out · on-site same day.",
       warranty: "6-year workmanship + manufacturer heat-exchanger warranty (Brivis 7-yr, Thermann 12-yr from Reece, Rinnai 12-yr).",
       priceRange: "$220 leak test → $6,000+ premium Brivis Buffalo 6-star",
       followUp: "We ring the following week to check controller + temperature settings and that everything's running clean.",
@@ -2365,20 +2364,20 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Manufacturer warranty registered in your name",
     ],
     excluded: [
-      "Duct rework or new duct runs (~$180 per metre of new flex duct)",
+      "Duct rework or new duct runs (priced per metre on the quote)",
       "New gas main run to the appliance if the existing line is undersized",
-      "LPG bottle relocation (~$220) or gas capping of a decommissioned appliance",
+      "LPG bottle relocation or gas capping of a decommissioned appliance",
       "Structural rework, cavity re-lining or painting after cutout adjustments",
       "Slab / concrete pad re-pour if the existing pad has failed",
     ],
     faqs: [
       { q: "Do I need a gas-safe certificate?", a: "Yes, every new gas appliance install or replacement in Victoria requires a Type-A compliance certificate from a licensed gas fitter. We issue this on every job and email it to you inside 24 hours." },
-      { q: "Can you do same-day emergency call-outs?", a: "Yes, for gas leaks, burst pipes, no hot water and CO alarms across the corridor. Standard call-out is $120 in-hours, $220 after-hours. Fee waived if you accept the repair the same day." },
+      { q: "Can you do same-day emergency call-outs?", a: "Yes, for gas leaks, burst pipes, no hot water and CO alarms across the corridor. The call-out fee is confirmed on the phone before we come out, and waived if you accept the repair the same day." },
       { q: "Should I replace my gas hot water with a heat pump?", a: "If the gas unit is over 10 years old, a heat pump often pays back in 2–4 years through energy savings + the VEU rebate. We'll quote both side-by-side so you can see the net-of-rebate numbers before deciding." },
       { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement reuses your existing ducts and controller wiring, which is what keeps it a one-day job rather than a rebuild." },
       { q: "Can I move from gas to reverse-cycle at the same time?", a: "Yes. We're licensed refrigeration + gas so we can decommission the gas and install a reverse-cycle ducted or splits in the same visit. Usually the cleanest way to do a full swap." },
       { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, call the emergency gas line (1800 427 532) then call us. We'll be on-site same-day to leak-test and repair." },
-      { q: "Do you install water filters?", a: "Yes, Puretec. Whole-home on the incoming main so every tap and appliance runs on filtered water, a protection filter on the cold inlet to your hot water system, and under-sink units for drinking water. Which one is right depends entirely on what you've noticed, so tell us that first and we'll point you at the one that fixes it. There's a full write-up of all three at /water-filtration, including what a filter does not do." },
+      { q: "Do you install water filters?", a: "Yes, Puretec. Whole-home on the incoming main so every tap and appliance runs on filtered water, a protection filter on the cold inlet to your hot water system, and under-sink units for drinking water. Which one is right depends entirely on what you've noticed, so tell us that first and we'll point you at the one that fixes it." },
     ],
   },
 };

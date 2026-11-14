@@ -197,7 +197,7 @@ export const CAPABILITY: { group: string; rows: [string, string, boolean?][] }[]
   {
     group: "Capacity",
     rows: [
-      ["Workforce", "Directly employed installers and apprentices, not subcontracted"],
+      ["Workforce", "Our crew, with every part of the job run under us. No labour hire"],
       ["Base", `${site.address.suburb}, VIC`],
       ["Service area", "Melbourne's south-east and Gippsland, and further for contract work"],
       ["Response", "Priority attendance on contracted sites, after hours available"],
@@ -397,7 +397,7 @@ export const COMM_FACTS: { n: string; k: string; p: string }[] = [
   { n: "12", k: "years trading", p: "Same family, same name, same base in Pakenham since 2014." },
   { n: "$20M", k: "public liability", p: "Certificate of currency back the same day you ask for it." },
   { n: "Before site", k: "paperwork returned", p: "SWMS, certificates of currency and site inductions land before anyone turns up. If they are not back, we are not on site." },
-  { n: "100%", k: "directly employed", p: "Our own installers and apprentices. No labour hire, no rotating subcontractors." },
+  { n: "One", k: "crew, all under us", p: "Our crew runs every part of the job, start to finish. No labour hire." },
 ];
 
 

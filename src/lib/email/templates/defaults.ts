@@ -38,8 +38,8 @@ const ANSWERS: TplBlock[] = [p("Or if it's easier, just tap one:"), { kind: "ans
 
 /** How we do the job: the same everywhere, from the About page and the FAQs. */
 const HOW_WE_WORK = [
-  "Everyone who comes to your place works for us. No subcontractors, and the person who quotes is part of the team that installs.",
-  "We hold the plumbing, gas, refrigeration and electrical licences between us, so nothing gets handed off to someone else halfway through.",
+  "Our installers and apprentices all work for us, and the person who quotes is part of the team that installs.",
+  "We hold the plumbing, gas and refrigeration licences ourselves. Where a job needs new electrical work, a licensed electrician does that part.",
   "A compliance certificate on every job, and we lodge the rebate paperwork for you.",
   "Six years' workmanship warranty from us, on top of the manufacturer's warranty.",
 ];
@@ -167,7 +167,7 @@ const SPLIT: Step[] = [
       p("Who puts it in matters as much as what goes in, so here's a bit about the brands we fit and how we do the work."),
       { kind: "list", items: [
         "**Mitsubishi Electric**: the brand we quote first, because of its reliability record across the systems we've put in. Its failure rate is under 1% across the range, and parts are still easy to get for units ten years old.",
-        "**Kaden**: sold only through Reece, so parts are on the shelf in every store in Victoria, with a five-year compressor warranty. Good value when you're doing a few rooms at once.",
+        "**Kaden**: sold only through Reece, so parts are on the shelf in every store in Victoria, with a seven-year manufacturer warranty. Good value when you're doing a few rooms at once.",
       ] },
       { kind: "photo", src: "/email/split-roof.jpg", alt: "An outdoor unit we mounted on a roof bracket" },
       p("And how we do the job:"),

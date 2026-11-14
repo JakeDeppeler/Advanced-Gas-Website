@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { HEAT_PUMP_PRICE_NOTE, HEAT_PUMP_UNITS, type HeatPumpUnit } from "@/lib/heatPumpUnits";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /* ============================================================
    Side-by-side heat pump comparator.
@@ -28,7 +29,7 @@ export function HeatPumpComparator() {
   const visibleUnits = showAll ? UNITS : UNITS.slice(0, 6);
 
   const bestPrice = useMemo(() => {
-    if (selectedUnits.length === 0) return null;
+    if (selectedUnits.length === 0 || !SHOW_PRICES) return null;
     return Math.min(...selectedUnits.map((u) => u.price));
   }, [selectedUnits]);
 
@@ -78,7 +79,7 @@ export function HeatPumpComparator() {
               <div className="hpc__tile-body">
                 <div className="hpc__tile-brand">{u.brand}</div>
                 <div className="hpc__tile-model">{u.model}</div>
-                <div className="hpc__tile-price">{u.priceLabel} <small>inc GST</small></div>
+                <div className="hpc__tile-price">{SHOW_PRICES ? <>{u.priceLabel} <small>inc GST</small></> : "Price on quote"}</div>
               </div>
               <div className="hpc__tile-tick" aria-hidden="true">
                 {isOn ? "✓ Selected" : "+ Add to compare"}
@@ -132,8 +133,8 @@ export function HeatPumpComparator() {
               </div>
 
               <div className={`hpc__price ${u.price === bestPrice ? "is-best" : ""}`}>
-                <span className="hpc__price-num">{u.priceLabel}</span>
-                <span className="hpc__price-lbl">fully installed, inc GST</span>
+                <span className="hpc__price-num">{SHOW_PRICES ? u.priceLabel : "Price on quote"}</span>
+                <span className="hpc__price-lbl">{SHOW_PRICES ? "fully installed, inc GST" : "Fixed price in writing after a free site check"}</span>
                 {u.price === bestPrice && <span className="hpc__win">★ Cheapest</span>}
               </div>
 
@@ -189,7 +190,7 @@ export function HeatPumpComparator() {
             ← Start over
           </button>
           <p className="hpc__disclaimer">
-            {HEAT_PUMP_PRICE_NOTE}
+            {SHOW_PRICES ? HEAT_PUMP_PRICE_NOTE : "Every unit is priced in writing after a free site check, GST included, with the VEU rebate taken off where you're eligible."}
           </p>
         </div>
       )}

@@ -66,7 +66,9 @@
 }
 
 /* container */
-.wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+/* Same column as the redesign pages (homepage.css .ag .wrap), so the shared
+   header and footer line up with the content on every page. */
+.wrap { max-width: 1480px; margin: 0 auto; padding: 0 32px; }
 
 /* ============== UTILITY BAR ============== */
 @keyframes pulseDot { 50% { box-shadow: 0 0 0 8px rgba(236,28,34,0); } }
@@ -3501,6 +3503,15 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .sitemode--comm .sitemode__emerg { color: #fff; }
 .sitemode--comm .sitemode__emergdot { background: #ffd9c6; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22); }
 @media (max-width: 900px) { .sitemode__loc { display: none; } }
+/* Without the home / commercial switch the strip has nothing else to show on a
+   phone, where the conditions and emergency line are hidden: keep the
+   after-hours line and the weather instead of an empty bar. */
+@media (max-width: 760px) {
+  .sitemode--notabs .sitemode__left, .sitemode--notabs .conds { display: flex !important; }
+  .sitemode--notabs .conds__sky { display: none; }
+  .sitemode--notabs .sitemode__row { justify-content: center; min-height: 36px; padding-block: 4px; }
+  .sitemode--notabs .sitemode__right { display: none; }
+}
 @media (max-width: 720px) {
   .sitemode__left, .sitemode__emerg { display: none; }
   .sitemode__right { width: 100%; }
@@ -4672,3 +4683,7 @@ html[data-cross-dir="to-commercial"] .cross { background: var(--orange-deep); }
 
 /* Already deep enough; only its copy was translucent. */
 .bentile__line { color: #fff; }
+
+
+/* PageHero's emphasis matches the redesign's headers: sky blue, upright. */
+.phero__h1 em, .phero__h1 .accent { font-style: normal; color: #FF9A5C; } /* orange, not light blue: Jake's call for every headline (Nov 2026) */

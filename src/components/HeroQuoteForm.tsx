@@ -69,7 +69,7 @@ const HP_SIZE_RANGES: SizeRange[] = [
 ];
 
 const HP_MATERIALS = [
-  { id: "stainless", t: "Stainless steel", s: "15-year warranty · ~$1,000 premium · will outlast the warranty" },
+  { id: "stainless", t: "Stainless steel", s: "15-year warranty · costs more · will outlast the warranty" },
   { id: "glass",     t: "Glass lined",     s: "Standard build · more affordable · anode swapped at annual service" },
 ];
 

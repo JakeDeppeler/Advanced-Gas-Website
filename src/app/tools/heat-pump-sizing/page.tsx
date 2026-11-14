@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import { HeatPumpSizing } from "./HeatPumpSizing";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
-import "../../detail.css";
-import "../tools.css";
+import { ToolPage } from "@/components/homepage/tools/ToolPage";
+import { JsonLd } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Heat Pump Sizing, What Size Tank Do I Need?",
@@ -45,131 +44,82 @@ export default function HeatPumpSizingPage() {
   ]);
 
   return (
-    <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools">Tools</Link>
-            <span className="sep">/</span>
-            <span className="cur">Heat pump sizing</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
-          <h1>
-            What size <span className="accent">heat pump</span> does your home need?
-          </h1>
-          <p className="dp-hero__sub">
-            Most sizing guides just count bedrooms. This one works off what your
-            household actually draws, shower flow, length and how many
-            people go through the bathroom before work, then tells you the
-            tank size, the recovery rate and how long a full reheat takes.
-          </p>
-        </div>
-      </section>
+    <>
+      <ToolPage
+        slug="heat-pump-sizing"
+        crumb="Heat pump sizing"
+        title="What size {heat pump} does your home need?"
+        sub={<>Most sizing guides just count bedrooms. This one works off what your household actually draws: shower flow, length and how many people go through the bathroom before work. Then it gives you the tank size, the recovery rate and how long a full reheat takes.</>}
+        how={{
+          h: "How the {maths} works.",
+          body: (
+            <>
 
-      <section className="page-tool">
-        <div className="wrap">
-          <HeatPumpSizing />
-
-          <div className="hps-explain">
-            <h2>How the maths works</h2>
-            <div className="hps-explain__grid">
-              <div>
-                <h3>Only part of your shower comes from the tank</h3>
-                <p>
-                  Hot water has to be stored at 60 °C to control Legionella, but
-                  nobody showers at 60 °C. A tempering valve blends stored hot
-                  with cold mains down to about 41 °C at the head.
-                </p>
-                <p>
-                  So the hot fraction of the flow is{" "}
-                  <code>(shower&nbsp;−&nbsp;mains) ÷ (tank&nbsp;−&nbsp;mains)</code>.
-                  At 41 °C from a 60 °C tank and 15 °C mains that&rsquo;s
-                  (41−15) ÷ (60−15) = <strong>0.58</strong>, so a 9 L/min
-                  head pulls about <strong>5.2 L of hot</strong> and 3.8 L of cold
-                  every minute.
-                </p>
-              </div>
-              <div>
-                <h3>You can&rsquo;t use the whole tank</h3>
-                <p>
-                  Water stratifies. The hot sits on top, cold mains fills from
-                  the bottom, and once you&rsquo;re into the last fifth the outlet
-                  temperature has fallen away. We size on <strong>80% usable</strong>,
-                  which is the accepted figure.
-                </p>
-                <h3>Reheat time</h3>
-                <p>
-                  Energy to heat a tank is{" "}
-                  <code>litres&nbsp;×&nbsp;4.186&nbsp;×&nbsp;ΔT&nbsp;÷&nbsp;3600</code> kWh.
-                  Divide by the heat pump&rsquo;s <em>heat output</em> (input kW ×
-                  COP, not input alone) and you get hours. A 1 kW unit at COP 4.5
-                  is putting out 4.5 kW of heat.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="hps-cta-note">
-            <h2>Where this stops and we start</h2>
+            <h3>Only part of your shower comes from the tank</h3>
             <p>
-              This gets you in the right ballpark before anyone quotes you, which
-              is the point. It&rsquo;s hard to tell whether a salesperson has
-              oversized you if you have no reference. What it can&rsquo;t account
-              for is pipe run length and dead-leg volume, whether you have a bath
-              to fill, simultaneous draw-off from two bathrooms, and how cold your
-              mains genuinely runs in July at your address. We check all of that
-              on the site visit.
+            Hot water has to be stored at 60 °C to control Legionella, but
+            nobody showers at 60 °C. A tempering valve blends stored hot
+            with cold mains down to about 41 °C at the head.
             </p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
-              <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
-              <Link href="/tools/heat-pump-compare" className="ds-btn ds-btn--ghost">
-                Compare heat pump brands →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="dp-faq">
-        <div className="wrap dp-faq__grid">
-          <div className="dp-faq__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Common questions</span>
-            <h2>Sizing questions we get asked.</h2>
             <p>
-              If yours isn&rsquo;t here, call us on{" "}
-              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)" }}>{site.phone}</a>.
+            So the hot fraction of the flow is{" "}
+            <code>(shower&nbsp;−&nbsp;mains) ÷ (tank&nbsp;−&nbsp;mains)</code>.
+            At 41 °C from a 60 °C tank and 15 °C mains that&rsquo;s
+            (41−15) ÷ (60−15) = <strong>0.58</strong>, so a 9 L/min
+            head pulls about <strong>5.2 L of hot</strong> and 3.8 L of cold
+            every minute.
             </p>
-          </div>
-          <div className="dp-faq__right">
-            {FAQS.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
-                <summary>{f.q}</summary>
-                <p>{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="bigcta" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Want us to check the sizing properly?</h2>
-            <p>Free site visit, written quote back in 12 business hours, VEU rebate already applied.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
 
-      <Script id="ld-crumbs-hps" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      <Script id="ld-faq-hps" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(FAQS)) }} />
-    </div>
+            <h3>You can&rsquo;t use the whole tank</h3>
+            <p>
+            Water stratifies. The hot sits on top, cold mains fills from
+            the bottom, and once you&rsquo;re into the last fifth the outlet
+            temperature has fallen away. We size on <strong>80% usable</strong>,
+            which is the accepted figure.
+            </p>
+            <h3>Reheat time</h3>
+            <p>
+            Energy to heat a tank is{" "}
+            <code>litres&nbsp;×&nbsp;4.186&nbsp;×&nbsp;ΔT&nbsp;÷&nbsp;3600</code> kWh.
+            Divide by the heat pump&rsquo;s <em>heat output</em> (input kW ×
+            COP, not input alone) and you get hours. A 1 kW unit at COP 4.5
+            is putting out 4.5 kW of heat.
+            </p>
+
+
+            </>
+          ),
+        }}
+        more={
+          <section className="bk__sec bk__sec--white" id="limits">
+            <div className="wrap"><div className="bk__blk">
+              <div className="tl__note tl__note--navy">
+                <h2>Where this stops and we start</h2>
+                <p>
+                This gets you in the right ballpark before anyone quotes you, which
+                is the point. It&rsquo;s hard to tell whether a salesperson has
+                oversized you if you have no reference. What it can&rsquo;t account
+                for is pipe run length and dead-leg volume, whether you have a bath
+                to fill, simultaneous draw-off from two bathrooms, and how cold your
+                mains genuinely runs in July at your address. We check all of that
+                on the site visit.
+                </p>
+                <div className="bxh__ctas">
+                  <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+                  <Link href="/tools/heat-pump-compare" className="abtn abtn--line">Compare heat pump brands →</Link>
+                </div>
+              </div>
+            </div></div>
+          </section>
+        }
+        faqs={FAQS}
+        cta={{ h: "Want us to check {the sizing}?", text: "A free site check, a written quote back within 12 business hours, VEU rebate already applied." }}
+      >
+        <HeatPumpSizing />
+      </ToolPage>
+      <JsonLd data={crumbs} />
+      <JsonLd data={faqSchema(FAQS)} />
+    </>
   );
 }

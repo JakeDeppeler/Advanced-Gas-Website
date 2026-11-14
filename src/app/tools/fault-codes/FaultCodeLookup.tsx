@@ -9,6 +9,7 @@ import {
   faultSlug,
   type FaultSystem,
 } from "@/lib/faultCodes";
+import "@/components/homepage/tools/calc-c.css";
 
 /**
  * Searchable + brand-filterable + system-type-filterable fault-code
@@ -58,98 +59,100 @@ export function FaultCodeLookup() {
   }, []);
 
   return (
-    <>
-      {/* System-type chip row */}
-      <div className="faults-systems" role="tablist" aria-label="Filter by system type">
-        {SYSTEM_ORDER.map((sys) => {
-          const label = sys === "all" ? "All systems" : FAULT_SYSTEM_LABELS[sys];
-          const active = system === sys;
-          return (
-            <button
-              key={sys}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              className={`faults-systemchip${active ? " is-active" : ""}`}
-              onClick={() => {
-                setSystem(sys);
-                setBrand("all");
-              }}
-            >
-              {label}
-              <span className="faults-systemchip__count">{counts[sys] ?? 0}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="faults-controls">
-        <input
-          type="search"
-          placeholder="Search by code (e.g. E6, P8, U0) or keyword…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search fault codes"
-        />
-        <select value={brand} onChange={(e) => setBrand(e.target.value)} aria-label="Filter by brand">
-          <option value="all">All brands ({availableBrands.length})</option>
-          {availableBrands.map((b) => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="faults-empty">
-          No fault codes matched. Try a shorter search term or clear the filters.
+    <div className="cc">
+      <div className="cc-card cc-pick">
+        {/* System-type chip row */}
+        <span className="cc-lbl">What&apos;s showing the code?</span>
+        <div className="cc-chips cc-chips--scroll" role="tablist" aria-label="Filter by system type">
+          {SYSTEM_ORDER.map((sys) => {
+            const label = sys === "all" ? "All systems" : FAULT_SYSTEM_LABELS[sys];
+            const active = system === sys;
+            return (
+              <button
+                key={sys}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className="cc-chip"
+                onClick={() => {
+                  setSystem(sys);
+                  setBrand("all");
+                }}
+              >
+                {label}
+                <b>{counts[sys] ?? 0}</b>
+              </button>
+            );
+          })}
         </div>
-      ) : (
-        <table className="faults-table" aria-label="Aircon fault codes">
-          <thead>
-            <tr>
-              <th style={{ width: 130 }}>Brand</th>
-              <th style={{ width: 100 }}>System</th>
-              <th style={{ width: 90 }}>Code</th>
-              <th>Likely meaning</th>
-              <th className="faults-th--check">First check</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((f) => (
-              <tr key={`${f.brand}-${f.code}`}>
-                <td><span className="fault-brand">{f.brand}</span></td>
-                <td><span className={`fault-system fault-system--${f.system}`}>{FAULT_SYSTEM_LABELS[f.system]}</span></td>
-                <td>
-                  {/* Codes with a written-up page link to it. The rest are
-                      plain text, because a link to a page that doesn't
-                      exist helps nobody. */}
-                  {f.detail ? (
-                    <Link
-                      href={`/tools/fault-codes/${faultSlug(f.brand)}/${faultSlug(f.code)}`}
-                      className="fault-code fault-code--link"
-                    >
-                      {f.code}
-                    </Link>
-                  ) : (
-                    <span className="fault-code">{f.code}</span>
-                  )}
-                </td>
-                <td>
-                  <strong style={{ color: "var(--navy)" }}>{f.meaning}</strong>
-                </td>
-                <td className="faults-td--check">{f.firstCheck}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
 
-      <div className="faults-count">
-        Showing {filtered.length} of {FAULT_CODES.length} codes
+        <div className="cc-find">
+          <div className="cc-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+            <input
+              type="search"
+              placeholder="Search by code (e.g. E6, P8, U0) or keyword…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search fault codes"
+            />
+            {query && (
+              <button type="button" className="cc-clear" onClick={() => setQuery("")} aria-label="Clear the search">✕</button>
+            )}
+          </div>
+          <div className="cc-select">
+            <select value={brand} onChange={(e) => setBrand(e.target.value)} aria-label="Filter by brand">
+              <option value="all">All brands ({availableBrands.length})</option>
+              {availableBrands.map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <p className="cc-count" aria-live="polite">
+        Showing <b>{filtered.length}</b> of {FAULT_CODES.length} codes
         {system !== "all" && ` · ${FAULT_SYSTEM_LABELS[system]} only`}
         {brand !== "all" && ` · ${brand}`}
         {query && ` · matching "${query}"`}
-      </div>
-    </>
+      </p>
+
+      {filtered.length === 0 ? (
+        <div className="cc-empty">
+          No fault codes matched. Try a shorter search term or clear the filters.
+        </div>
+      ) : (
+        <ul className="cc-faults" aria-label="Aircon fault codes">
+          {filtered.map((f) => {
+            const href = `/tools/fault-codes/${faultSlug(f.brand)}/${faultSlug(f.code)}`;
+            return (
+              <li key={`${f.brand}-${f.code}`} className="cc-card cc-fault">
+                {/* Codes with a written-up page link to it. The rest are
+                    plain text, because a link to a page that doesn't
+                    exist helps nobody. */}
+                {f.detail ? (
+                  <Link href={href} className="cc-code" aria-label={`${f.brand} ${f.code}: read more`}>{f.code}</Link>
+                ) : (
+                  <span className="cc-code cc-code--plain">{f.code}</span>
+                )}
+                <div className="cc-fmain">
+                  <strong>{f.meaning}</strong>
+                  <span className="cc-ftags">
+                    <span className="cc-tag">{f.brand}</span>
+                    <span className="cc-tag">{FAULT_SYSTEM_LABELS[f.system]}</span>
+                  </span>
+                  {f.detail && <Link href={href} className="cc-fmore">What it means and what to check →</Link>}
+                </div>
+                <div className="cc-fcheck">
+                  <span className="cc-lbl">First check</span>
+                  {f.firstCheck}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }

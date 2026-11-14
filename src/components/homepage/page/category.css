@@ -1,0 +1,110 @@
+/* The Cooling, Heating and Hot water pages (CategoryPage.tsx), on top of
+   the brand pages' blocks.css. */
+
+.ag .cx .cx__eye{color:#FF9A5C}
+.ag .cx .bxh__h1.cx__h1 span{color:#FF9A5C}
+.ag .cx .bk__boxh span{color:var(--navy)}
+
+/* The systems: a card each, the product on white above what it is */
+.ag .cx__sys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .cx__sys--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ag .cx__card{display:flex;flex-direction:column;background:#fff;border-radius:14px;overflow:hidden;color:inherit;text-decoration:none;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
+.ag .cx__card:hover{transform:translateY(-6px);box-shadow:0 0 0 3px var(--acc),0 30px 50px -28px rgba(5,10,48,.5)}
+.ag .cx__card:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.ag .cx__img{position:relative;height:200px;background:linear-gradient(180deg,#fff,#F3F5F8);border-bottom:1px solid var(--line)}
+.ag .cx__img img{object-fit:contain;padding:20px;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.ag .cx__card:hover .cx__img img{transform:scale(1.05)}
+.ag .cx__img--cover img{object-fit:cover;padding:0}
+.ag .cx__txt{display:flex;flex-direction:column;gap:6px;padding:18px 20px 20px;flex:1}
+.ag .cx__tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--acc)}
+.ag .cx__txt strong{font-family:var(--disp);font-size:22px;font-weight:900;letter-spacing:-.01em;color:var(--navy)}
+.ag .cx__intro{font-size:14.5px;line-height:1.55;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ag .cx__meta{display:flex;flex-direction:column;gap:2px;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.ag .cx__meta b{font-size:16px;color:var(--navy)}
+.ag .cx__meta span{font-size:13px;color:var(--ink3)}
+.ag .cx__go{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:14.5px;font-weight:700;color:var(--acc)}
+.ag .cx__go i{font-style:normal;transition:transform .2s}
+.ag .cx__card:hover .cx__go i{transform:translateX(4px)}
+
+/* Side by side, in the navy box */
+.ag .cx__tblwrap{overflow-x:auto;border-radius:12px;background:#fff}
+.ag .cx__tbl{width:100%;border-collapse:collapse;font-size:15px;color:var(--ink2);min-width:620px}
+.ag .cx__tbl th,.ag .cx__tbl td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.ag .cx__tbl thead th{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:#F6F8FB}
+.ag .cx__tbl tbody tr:last-child > *{border-bottom:0}
+.ag .cx__tbl tbody th a{font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy);text-decoration:none}
+.ag .cx__tbl tbody th a:hover{color:var(--acc);text-decoration:underline}
+.ag .cx__tbl td:last-child{font-weight:700;color:var(--navy);white-space:nowrap}
+/* On a phone the table stacks into one card per system, rather than a 620px table to swipe sideways with no sign that it scrolls */
+@media (max-width:640px){
+  .ag .cx__tbl{min-width:0}
+  .ag .cx__tbl thead{display:none}
+  .ag .cx__tbl,.ag .cx__tbl tbody,.ag .cx__tbl tr,.ag .cx__tbl tbody th{display:block}
+  .ag .cx__tbl tr{padding:16px 18px;border-bottom:1px solid var(--line)}
+  .ag .cx__tbl tbody tr:last-child{border-bottom:0}
+  .ag .cx__tbl tbody th,.ag .cx__tbl td{padding:0;border:0}
+  .ag .cx__tbl tbody th a{display:inline-flex;align-items:center;min-height:40px;margin:-10px 0}
+  .ag .cx__tbl td{display:inline-block;vertical-align:top;margin:10px 22px 0 0}
+  .ag .cx__tbl td:nth-child(2){display:block;margin-right:0}
+  .ag .cx__tbl td::before{content:attr(data-l);display:block;margin-bottom:2px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+}
+.ag .cx .cx__find{align-self:flex-start}
+
+/* The brands */
+.ag .cx__brands{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.ag .cx__brand{display:flex;gap:16px;align-items:center;padding:16px;border-radius:14px;background:#fff;color:inherit;text-decoration:none;border-top:5px solid var(--b);box-shadow:0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s,box-shadow .25s}
+.ag .cx__brand:hover{transform:translateY(-4px);box-shadow:0 30px 50px -30px rgba(5,10,48,.55)}
+.ag .cx__bimg{position:relative;flex:none;width:96px;height:96px;border-radius:10px;background:#F3F5F8}
+.ag .cx__bimg img{object-fit:contain;padding:8px}
+.ag .cx__btxt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ag .cx__btxt strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
+.ag .cx__btxt span{font-size:14px;line-height:1.45;color:var(--ink2)}
+.ag .cx__btxt em{font-style:normal;font-size:13.5px;font-weight:700;color:var(--b)}
+
+/* Why us */
+.ag .cx__why{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.ag .cx__why li{display:flex;flex-direction:column;gap:6px;padding:24px 22px;border-radius:14px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.ag .cx__why b{font-family:var(--disp);font-size:clamp(30px,2.8vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--acc-l)}
+.ag .cx__why strong{font-family:var(--disp);font-size:18px;font-weight:800;color:#fff;margin-top:6px}
+.ag .cx__why span{font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.78)}
+
+/* The tools, on the category's colour */
+.ag .cx__tools{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,56px);align-items:center}
+.ag .cx__tlist{display:flex;flex-direction:column;gap:10px}
+.ag .cx__tool{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:16px;align-items:center;padding:18px 22px;border-radius:12px;background:#fff;color:inherit;text-decoration:none;box-shadow:0 20px 40px -30px rgba(5,10,48,.5);transition:transform .2s}
+.ag .cx__tool:hover{transform:translateX(4px)}
+.ag .cx__tool strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
+.ag .cx__tool span{grid-row:2;font-size:14.5px;color:var(--ink2)}
+.ag .cx__tool i{grid-row:1/3;grid-column:2;font-style:normal;font-size:20px;color:var(--acc)}
+
+@media (max-width:1000px){
+  .ag .cx__sys,.ag .cx__sys--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .cx__why{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .cx__tools{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .ag .cx__sys,.ag .cx__sys--4{grid-template-columns:1fr}
+  .ag .cx__img{height:160px}
+  .ag .cx__why{grid-template-columns:1fr}
+}
+
+/* The services hub: the three categories as big photo cards */
+.ag .sv__cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag .sv__cat{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;background:#fff;color:inherit;text-decoration:none;border-top:6px solid var(--c);box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s,box-shadow .25s}
+.ag .sv__cat:hover{transform:translateY(-6px);box-shadow:0 0 0 3px var(--c),0 30px 50px -28px rgba(5,10,48,.5)}
+.ag .sv__cimg{position:relative;height:220px;overflow:hidden}
+.ag .sv__cimg img{object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.ag .sv__cat:hover .sv__cimg img{transform:scale(1.06)}
+.ag .sv__ctxt{display:flex;flex-direction:column;gap:6px;padding:20px 22px 22px}
+.ag .sv__ctxt strong{font-family:var(--disp);font-size:26px;font-weight:900;color:var(--navy)}
+.ag .sv__ctxt span{font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.ag .sv__ctxt em{display:flex;justify-content:space-between;margin-top:8px;font-style:normal;font-size:15px;font-weight:700;color:var(--c)}
+.ag .sv__ctxt i{font-style:normal;transition:transform .2s}
+.ag .sv__cat:hover .sv__ctxt i{transform:translateX(4px)}
+/* The emergency line: the number as the button */
+.ag .sv__sos{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px 48px}
+.ag .sv__call{display:flex;flex-direction:column;gap:2px;padding:18px 30px;border-radius:14px;background:#fff;color:var(--navy);text-decoration:none;box-shadow:0 26px 50px -30px rgba(5,10,48,.6);transition:transform .2s}
+.ag .sv__call:hover{transform:translateY(-3px)}
+.ag .sv__call small{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc)}
+.ag .sv__call strong{font-family:var(--disp);font-size:clamp(28px,3vw,40px);font-weight:900;letter-spacing:-.02em}
+@media (max-width:900px){.ag .sv__cats{grid-template-columns:1fr}.ag .sv__cimg{height:200px}}

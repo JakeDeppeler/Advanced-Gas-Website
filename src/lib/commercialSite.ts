@@ -324,7 +324,7 @@ export const COMM_HOW_WE_WORK: { n: string; h: string; p: string }[] = [
   {
     n: "01",
     h: "One point of contact",
-    p: "Quote, schedule and sign-off through one accountable team. No call centres, no subcontractor run-around.",
+    p: "Quote, schedule and sign-off through one accountable team. No call centres, no run-around.",
   },
   {
     n: "02",
