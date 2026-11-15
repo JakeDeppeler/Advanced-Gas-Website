@@ -86,7 +86,8 @@ export function ShowerTime({ v }: { v: PV }) {
 
   return (
     <section className="bk__sec bk__sec--cream" id="showers">
-      <div className="wrap"><div className="bk__blk shw">
+      {/* In the navy box, as the hot water page's size check is (Jake, Nov 2026) */}
+      <div className="wrap"><div className="bk__blk bk__boxed shw">
         <header className="bk__head shw__head">
           <h2 className="h2">How long are the <span>showers</span>?</h2>
           <p>

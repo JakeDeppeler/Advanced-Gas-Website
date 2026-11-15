@@ -264,7 +264,7 @@ export const learnFor = (sys: string, tier: string): Learn | undefined => {
 /** The opening paragraph of a system's own page: what it is, in plain words. */
 export const SYS_INTRO: Record<string, string> = {
   "split-system": "A split system is an indoor unit on the wall and an outdoor unit outside, joined by two copper pipes. It heats and cools one room, and it's the cheapest way to make one room comfortable all year.",
-  "reverse-cycle-split": "A reverse-cycle split is a split system doing the heating. It pulls warmth out of the outside air and brings it into the room, so it heats a room for a fraction of the power a plug-in heater uses, and cools it in summer too.",
+  "reverse-cycle-split": "A reverse-cycle split is a split system doing the heating. It pulls warmth out of the outside air and brings it into the room, so it heats a room cheaply, with no gas, and cools it in summer too.",
   "multi-head": "A multi-head system runs two or more indoor units off one outdoor unit. Each room gets its own head and its own remote, with only one box on the outside wall.",
   ducted: "A ducted split heats and cools the whole house from one unit hidden in the roof. Air comes out of slim vents in the ceiling, and zones let you run only the rooms you're using.",
   "reverse-cycle-ducted": "A ducted split heats the whole house in winter and cools it in summer, from one unit hidden in the roof. It takes its heat from the outside air, so there's no gas, and zones let you run only the rooms you're using.",
@@ -284,8 +284,9 @@ export const SYS_PROS: Record<string, { pros: string[]; cons: string[] }> = {
     cons: ["One room per indoor unit", "An indoor unit on the wall and an outdoor unit outside", "Several rooms means several systems, or a multi-head"],
   },
   "reverse-cycle-split": {
-    pros: ["Heats for a fraction of the power of a plug-in heater", "Cools the same room in summer", "No gas connection needed", "Usually installed in half a day"],
-    cons: ["Heats one room, not the house", "Warm air comes from high on the wall", "Ordinary models lose some heat on the coldest mornings"],
+    // Jake, Nov 2026: no comparison with a plug-in heater; say no gas.
+    pros: ["Cheap to run: it draws its heat from the outside air", "No gas: all electric", "Cools the same room in summer", "Usually installed in half a day"],
+    cons: ["Heats one room, not the house", "Warm air comes from high on the wall"],
   },
   "multi-head": {
     pros: ["One outdoor unit for several rooms", "Every room set to its own temperature", "Less clutter on the outside wall"],
@@ -293,7 +294,8 @@ export const SYS_PROS: Record<string, { pros: string[]; cons: string[] }> = {
   },
   ducted: {
     pros: ["Heats and cools the whole home", "Hidden in the roof: only slim vents show", "Zones let you run only the rooms you use"],
-    cons: ["Needs a usable roof space", "The biggest upfront cost of our cooling", "Usually two to three days to install"],
+    // Jake, Nov 2026: the cost, the space it needs and the install time.
+    cons: ["Costs more upfront than split systems", "Needs space in the roof or under the floor", "Usually two to three days to install"],
   },
   evaporative: {
     pros: ["The cheapest whole-home cooling to run", "Fresh outside air through the house", "Works well through dry summer heat"],
@@ -301,7 +303,7 @@ export const SYS_PROS: Record<string, { pros: string[]; cons: string[] }> = {
   },
   "reverse-cycle-ducted": {
     pros: ["Heats in winter and cools in summer", "No gas: heat taken from the outside air", "Hidden in the roof: only slim vents show", "Zones let you heat only the rooms you use"],
-    cons: ["Replacing gas ducted? The old ductwork comes out, inside and out, and new goes in", "Needs a usable roof space", "Usually two to three days to install"],
+    cons: ["Costs more upfront than split systems", "Needs space in the roof or under the floor", "Usually two to three days to install"],
   },
   dominator: {
     pros: ["Keeps the ducts and vents you already have: no new ductwork", "Off gas, with the VEU rebate for making the switch", "Heats and cools from one system, and zones like any ducted split", "Less work in the house: usually a one-day changeover"],

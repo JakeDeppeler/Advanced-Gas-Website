@@ -264,3 +264,9 @@
 .ag .shw__fit b{color:var(--navy)}
 .ag .shw__swap--in{margin:0;display:inline}
 .ag .shw__all{display:inline-block;margin:4px 0 14px;font-weight:700;font-size:15px;color:var(--acc,#C2521A);text-decoration:underline;text-underline-offset:3px}
+/* Inside the navy box: the maths and the link go light; the card stays white */
+.ag .bk__boxed.shw .shw__maths{border-top-color:rgba(255,255,255,.18)}
+.ag .bk__boxed.shw .shw__maths div{border-bottom-color:rgba(255,255,255,.18)}
+.ag .bk__boxed.shw .shw__maths dt{color:rgba(255,255,255,.78)}
+.ag .bk__boxed.shw .shw__maths dd{color:#fff}
+.ag .bk__boxed.shw .shw__maths div:last-child dd,.ag .bk__boxed.shw .shw__all{color:var(--acc-l,#FF9A5C)}

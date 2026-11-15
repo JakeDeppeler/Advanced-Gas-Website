@@ -332,6 +332,9 @@
 .ag .bk__tctain{padding:clamp(40px,5vw,72px) clamp(24px,5.5vw,80px);align-items:flex-end}
 .ag .bk__tctain > div:first-child{gap:16px}
 .ag .bk__tcta .bk__boxh{font-size:clamp(32px,3.9vw,56px);line-height:1.02;letter-spacing:-.03em}
-.ag .bk__tcta .bk__boxh span{color:var(--navy)}
+/* The coloured word in gold, not navy: navy on the orange read as black
+   (Jake, Nov 2026). 3.8:1 on the tint at this size; the .cx form outranks
+   the category pages' own navy rule for their boxes. */
+.ag .bk__tcta .bk__boxh span,.ag .cx .bk__tcta .bk__boxh span{color:#FFD98E}
 .ag .bk__tcta p{margin:0;font-size:16px;line-height:1.6;color:#fff}
 @media (max-width:600px){.ag .bk__tctain{padding:40px 22px}.ag .bk__tcta .bxh__ctas .abtn{flex:1 1 100%}}
