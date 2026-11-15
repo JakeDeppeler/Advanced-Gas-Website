@@ -626,6 +626,8 @@ export type Metrics = {
    * still renders. See crew.ts.
    */
   crew?: Crew | null;
+  /** The same, over today alone: the Daily pace page. See crew.ts. */
+  crewToday?: Crew | null;
   /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
@@ -2662,8 +2664,16 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const sectors = crew == null
     ? previous?.metrics.sectors ?? null
     : await computeSectors(now, crew.costPerHr, goal?.profitPct ?? null, crew.crew).catch(() => previous?.metrics.sectors ?? null);
-  // Carried forward on failure like the sectors above it.
-  const crewDays = await computeCrew(now).catch(() => previous?.metrics.crew ?? null);
+  /*
+   * Two windows of the one arithmetic: the year behind the Crew page, and today
+   * behind Daily pace. The second is a small read — one day of timesheets — and
+   * having both come out of the same function is what stops the two pages
+   * meaning different things by "in the time sold".
+   */
+  const [crewDays, crewToday] = await Promise.all([
+    computeCrew(now).catch(() => previous?.metrics.crew ?? null),
+    computeCrew(now, startOfDayMelbourne(now)).catch(() => previous?.metrics.crewToday ?? null),
+  ]);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
   // Carried forward like the journals beside it: a failed read leaves the
   // last reading standing rather than clearing an alert nobody has acted on.
@@ -2726,6 +2736,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobProfitRecent,
       sectors,
       crew: crewDays,
+      crewToday,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,

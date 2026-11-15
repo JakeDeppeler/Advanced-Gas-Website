@@ -25,19 +25,26 @@
  */
 
 import { q, sbSelect } from "./db";
-import { isoDateMelbourne } from "./dates";
-import { GST_RATE, jobClass } from "./pace";
+import { isoDateMelbourne, melbourneDayStart } from "./dates";
+import { getSettings } from "@/lib/portal/db";
+import { GST_RATE } from "./pace";
 import { sectorOf, FOLLOW_DAYS } from "./sectors";
 import {
-  BILL_SETTLE_DAYS,
   CREW_DAYS,
+  DAY_END_HOUR,
+  DAY_START_HOUR,
   LONGEST_DRIVE_HOURS,
   LONGEST_SPAN_HOURS,
+  MIN_IDLE_DAYS,
   MIN_SPAN_HOURS,
+  VAN_TECHS,
+  VAN_TECHS_KEY,
   crewTeam,
-  isMainTech,
+  isVanTech,
+  normaliseVans,
   techKpi,
   type Crew,
+  type CrewDay,
   type CrewSector,
   type CrewVisit,
   type TechKpi,
@@ -86,8 +93,16 @@ const chunk = <T,>(list: T[], n: number): T[][] => {
   return out;
 };
 
-export async function computeCrew(now: Date = new Date()): Promise<Crew | null> {
-  const since = new Date(now.getTime() - CREW_DAYS * DAY);
+/**
+ * `from` is the start of the window. The board asks for two: the year, which is
+ * the Crew page, and today, which is Daily pace — the same arithmetic over a
+ * different slice, so the two pages cannot disagree about what a figure means.
+ */
+export async function computeCrew(
+  now: Date = new Date(),
+  from: Date = new Date(now.getTime() - CREW_DAYS * DAY),
+): Promise<Crew | null> {
+  const since = from;
   const sheets = await sbSelect<Sheet>(
     "st_timesheets",
     [
@@ -103,7 +118,7 @@ export async function computeCrew(now: Date = new Date()): Promise<Crew | null> 
   const techIds = [...new Set(live.map((s) => Number(s.technician_id)))];
   const jobIds = [...new Set(live.map((s) => Number(s.job_id)))];
 
-  const [names, jobRows, invoiceRows, booked] = await Promise.all([
+  const [names, jobRows, invoiceRows, booked, vanSetting] = await Promise.all([
     sbSelect<{ id: number; name: string | null }>(
       "st_technicians",
       [q.select("id,name"), `id=in.(${techIds.join(",")})`].join("&"),
@@ -134,7 +149,9 @@ export async function computeCrew(now: Date = new Date()): Promise<Crew | null> 
         "limit=20000",
       ].join("&"),
     ),
+    getSettings<unknown>(VAN_TECHS_KEY).catch(() => null),
   ]);
+  const vans = normaliseVans(vanSetting ?? VAN_TECHS);
 
   const techName = new Map(names.map((t) => [Number(t.id), t.name ?? null]));
   const job = new Map(jobRows.map((j) => [Number(j.id), j]));
@@ -228,10 +245,11 @@ export async function computeCrew(now: Date = new Date()): Promise<Crew | null> 
     const had = seen.get(jid);
     if (had) {
       if (h != null) had.hours = (had.hours ?? 0) + h;
-      had.drive.of += 1;
+      // A second trip to the same job adds its drive to the job's; the job is
+      // still one job, because the figure on the wall is per job, not per trip.
       if (d != null) {
         had.drive.hours += d;
-        had.drive.trips += 1;
+        had.drive.recorded = true;
       }
       byTech.set(t, seen);
       continue;
@@ -240,11 +258,6 @@ export async function computeCrew(now: Date = new Date()): Promise<Crew | null> 
     const inv = invByJob.get(jid);
     const price = j?.status === "Completed" ? inv?.price ?? 0 : 0;
     const sector: CrewSector = (j ? sectorOf(j.job_type) : null) ?? "other";
-    const quoteVisit = jobClass(j?.job_type ?? null) === "quote";
-    const settled =
-      j?.status === "Completed" &&
-      !!j.completed_on &&
-      now.getTime() - Date.parse(j.completed_on) > BILL_SETTLE_DAYS * DAY;
     const canFind = j?.status === "Completed" && (sector === "maintenance" || sector === "breakdown");
 
     seen.set(jid, {
@@ -255,42 +268,101 @@ export async function computeCrew(now: Date = new Date()): Promise<Crew | null> 
       sold: inv && inv.sold > 0 ? inv.sold : null,
       billed: price,
       share: 0, // filled in below, once every tech on the job is known
-      nonBillable: (inv?.price ?? 0) <= 0.5 && (quoteVisit || settled),
-      quoteVisit,
       canFind,
       quoted: canFind && quotedJobs.has(jid),
       ledInstall: canFind && !!j && ledInstall(j),
-      drive: { hours: d ?? 0, trips: d == null ? 0 : 1, of: 1 },
+      drive: { hours: d ?? 0, recorded: d != null },
     });
     byTech.set(t, seen);
   }
 
   /*
-   * Each job's money split by each tech's share of the hours clocked on it, so
-   * a two-man install is not counted twice over and the shares still add to the
-   * job. Where nobody's stamps gave a span, it is split by heads: the money was
-   * earned by whoever was there, and crediting it to nobody would quietly lose
-   * it out of the column.
+   * Each job's money split between the **vans** on it, by their share of the
+   * hours clocked, so a two-van install is not counted twice over and the
+   * shares still add to the job. A passenger's hours do not take a cut: Ray
+   * rode there in Jackson's van, so the job is that van's money. Where no van's
+   * stamps gave a span it is split by heads, because crediting it to nobody
+   * would quietly lose it out of the column.
    */
-  const hoursOn = new Map<number, { total: number; heads: number }>();
-  for (const [, visits] of byTech) {
+  const vanOn = new Map<number, { total: number; heads: number }>();
+  for (const [id, visits] of byTech) {
+    if (!isVanTech(techName.get(id) ?? "", vans)) continue;
     for (const [jid, v] of visits) {
-      const got = hoursOn.get(jid) ?? { total: 0, heads: 0 };
+      const got = vanOn.get(jid) ?? { total: 0, heads: 0 };
       got.total += v.hours ?? 0;
       got.heads += 1;
-      hoursOn.set(jid, got);
+      vanOn.set(jid, got);
     }
   }
-  for (const [, visits] of byTech) {
+  for (const [id, visits] of byTech) {
+    const van = isVanTech(techName.get(id) ?? "", vans);
     for (const [jid, v] of visits) {
-      const got = hoursOn.get(jid);
-      if (!got) continue;
-      v.share = got.total > 0 ? (v.hours ?? 0) / got.total : 1 / Math.max(1, got.heads);
+      const got = van ? vanOn.get(jid) : null;
+      v.share = got ? (got.total > 0 ? (v.hours ?? 0) / got.total : 1 / Math.max(1, got.heads)) : 0;
     }
   }
 
+  /*
+   * The days each tech worked, and what they spent inside the paid day.
+   *
+   * Jake's definition (15 Nov): non-billable is any time between 7:00 and 15:30
+   * not on a job and not driving to one. So each timesheet row contributes the
+   * interval from dispatch — when they set off — to done, those intervals are
+   * unioned per day so two overlapping jobs are not counted twice, and the
+   * union is clipped to the window: a job that ran to six o'clock fills the
+   * rest of the day and no more, and one that started at six in the morning
+   * counts from seven.
+   *
+   * Only days they clocked something are counted, so a day off is not eight and
+   * a half hours of idleness. A visit with no finish stamped contributes its
+   * drive and nothing after, which overstates the idle time — the page says how
+   * many visits that is, in the column beside it.
+   */
+  type DayWork = { spans: Array<[number, number]>; full: boolean };
+  const daysByTech = new Map<number, Map<string, DayWork>>();
+  for (const s of live) {
+    const t = Number(s.technician_id);
+    const arrived = Date.parse(s.arrived_on as string);
+    const from = s.dispatched_on ? Math.min(Date.parse(s.dispatched_on), arrived) : arrived;
+    const to = s.done_on ? Date.parse(s.done_on) : arrived;
+    const day = isoDateMelbourne(new Date(arrived));
+    const start = melbourneDayStart(day).getTime();
+    const open = start + DAY_START_HOUR * HOUR;
+    const close = start + DAY_END_HOUR * HOUR;
+
+    const have = daysByTech.get(t) ?? new Map<string, DayWork>();
+    const got = have.get(day) ?? { spans: [], full: true };
+    // A day can only answer "what was the rest of it" if every job on it was
+    // stamped both ways. See MIN_IDLE_DAYS.
+    if (span(s) == null || drive(s) == null) got.full = false;
+    const lo = Math.max(from, open);
+    const hi = Math.min(to, close);
+    if (to >= from && hi > lo) got.spans.push([lo, hi]);
+    have.set(day, got);
+    daysByTech.set(t, have);
+  }
+  const crewDays = (id: number): CrewDay[] =>
+    [...(daysByTech.get(id) ?? new Map<string, DayWork>()).entries()].map(([day, { spans, full }]) => {
+      if (spans.length === 0) return { day, busy: 0, full };
+      const sorted = [...spans].sort((a, b) => a[0] - b[0]);
+      let busy = 0;
+      let [s0, e0] = sorted[0];
+      for (const [s1, e1] of sorted.slice(1)) {
+        if (s1 <= e0) e0 = Math.max(e0, e1);
+        else {
+          busy += e0 - s0;
+          [s0, e0] = [s1, e1];
+        }
+      }
+      busy += e0 - s0;
+      return { day, busy: busy / HOUR, full };
+    });
+
+  // Over a single day the five-day floor would blank the figure every time, so
+  // the day page asks for one. Over the year it asks for five.
+  const minDays = now.getTime() - since.getTime() <= 2 * DAY ? 1 : MIN_IDLE_DAYS;
   const all: TechKpi[] = [...byTech.entries()].map(([id, visits]) =>
-    techKpi(techName.get(id) ?? "Unknown", [...visits.values()]),
+    techKpi(techName.get(id) ?? "Unknown", [...visits.values()], crewDays(id), minDays),
   );
   /*
    * Most jobs first, and no rank number.
@@ -300,16 +372,16 @@ export async function computeCrew(now: Date = new Date()): Promise<Crew | null> 
    * and the columns measure different things on purpose. Volume is the one
    * ordering nobody reads as a judgement.
    */
-  const techs = all.filter(isMainTech).sort((a, b) => b.jobs - a.jobs || b.hours - a.hours);
-  const omitted = all.filter((t) => !isMainTech(t)).map((t) => t.tech);
+  const techs = all.filter((t) => isVanTech(t.tech, vans)).sort((a, b) => b.jobs - a.jobs || b.hours - a.hours);
+  const passengers = all.filter((t) => !isVanTech(t.tech, vans)).map((t) => t.tech);
 
   return {
     from: isoDateMelbourne(since),
     to: isoDateMelbourne(now),
-    days: CREW_DAYS,
+    days: Math.max(1, Math.round((now.getTime() - since.getTime()) / DAY)),
     followDays: FOLLOW_DAYS,
     techs,
-    omitted,
+    passengers,
     team: crewTeam(techs),
   };
 }

@@ -4,10 +4,14 @@
  * measurement, or rate a man off four jobs.
  */
 import {
+  DAY_HOURS,
   GRACE_HOURS,
+  MIN_IDLE_DAYS,
   MIN_TIMED,
+  VAN_TECHS,
   crewTeam,
-  isMainTech,
+  isVanTech,
+  normaliseVans,
   techKpi,
   type CrewVisit,
 } from "../src/lib/dashboard/crewTypes";
@@ -26,12 +30,10 @@ const visit = (p: Partial<CrewVisit> & { jobId: number }): CrewVisit => ({
   sold: null,
   billed: 0,
   share: 1,
-  nonBillable: false,
-  quoteVisit: false,
   canFind: false,
   quoted: false,
   ledInstall: false,
-  drive: { hours: 0, trips: 0, of: 1 },
+  drive: { hours: 0, recorded: false },
   ...p,
 });
 
@@ -81,30 +83,52 @@ const enough = techKpi("E", Array.from({ length: MIN_TIMED }, (_, i) =>
 ok(`${MIN_TIMED} is a rate`, near(enough.inTimeRate, 6 / MIN_TIMED));
 ok("and the index is sold over time on site", near(enough.timeIndex, MIN_TIMED / (6 * 1 + 2 * 2)));
 
-console.log("\n-- drive time is the average over the trips that recorded one --");
+console.log("\n-- drive time is per job, over the jobs that recorded one --");
 const drove = techKpi("F", [
-  visit({ jobId: 1, drive: { hours: 0.5, trips: 1, of: 1 } }),
+  visit({ jobId: 1, drive: { hours: 0.5, recorded: true } }),
   // Arrival stamped at the dispatch moment: a trip that happened, not a trip of
   // no minutes. It belongs in the denominator of "recorded", not in the average.
-  visit({ jobId: 2, drive: { hours: 0, trips: 0, of: 1 } }),
-  visit({ jobId: 3, drive: { hours: 0.25, trips: 1, of: 1 } }),
+  visit({ jobId: 2, drive: { hours: 0, recorded: false } }),
+  visit({ jobId: 3, drive: { hours: 0.25, recorded: true } }),
 ]);
 ok("the hours are what was recorded", near(drove.drive.hours, 0.75));
-ok("the average is over those trips only", near(drove.drive.avgMins, 22.5), String(drove.drive.avgMins));
-ok("and the page can say how many said nothing", drove.drive.trips === 2 && drove.drive.of === 3);
-const noDrive = techKpi("G", [visit({ jobId: 1, drive: { hours: 0, trips: 0, of: 2 } })]);
-ok("no recorded trip is no average, not zero minutes", noDrive.drive.avgMins === null);
+ok("the average is over those jobs only", near(drove.drive.avgMins, 22.5), String(drove.drive.avgMins));
+ok("and the page can say how many said nothing", drove.drive.jobs === 2 && drove.drive.of === 3);
+const noDrive = techKpi("G", [visit({ jobId: 1, drive: { hours: 0, recorded: false } })]);
+ok("no recorded drive is no average, not zero minutes", noDrive.drive.avgMins === null);
 
-console.log("\n-- billable and not --");
-const mix = techKpi("H", [
-  visit({ jobId: 1, hours: 2, billed: 800 }),
-  visit({ jobId: 2, hours: 1, nonBillable: true, quoteVisit: true }),
-  visit({ jobId: 3, hours: 1, nonBillable: true }),
-]);
+console.log("\n-- what the day was paid for, and what it did --");
+/*
+ * Jake's definition (15 Nov): non-billable is any time between 7:00 and 15:30
+ * not on a job and not driving to one. Two days, 8.5 hours each: six and a
+ * half busy on the first, four on the second.
+ */
+const mix = techKpi(
+  "H",
+  [visit({ jobId: 1, hours: 2, billed: 800 }), visit({ jobId: 2, hours: 2 })],
+  [
+    { day: "2026-11-13", busy: 6.5, full: true },
+    { day: "2026-11-14", busy: 4, full: true },
+    // Somebody forgot to tap done on one job: this day cannot say what the rest
+    // of it was, so it is left out rather than counted as four hours idle.
+    { day: "2026-11-12", busy: 4.5, full: false },
+  ],
+  2,
+);
+ok("the paid day is 8.5 hours", DAY_HOURS === 8.5);
+ok("what is left over is the non-billable time", near(mix.idle.hours, 2 * DAY_HOURS - 10.5));
+ok("counted over the days every job was stamped", mix.idle.days === 2);
+ok("and the share is of what the business paid for on those days", near(mix.idle.share, 6.5 / 17));
+ok("a day with a job unstamped is left out of both halves",
+   !near(mix.idle.hours, 3 * DAY_HOURS - 15));
+ok("a day worked past knock-off never goes negative",
+   techKpi("X", [], [{ day: "d", busy: 11, full: true }], 1).idle.hours === 0);
+ok("no days worked is no share, not nought per cent", techKpi("Y", []).idle.share === null);
+ok(`fewer than ${MIN_IDLE_DAYS} days that can answer is no share either`,
+   techKpi("Z", [], [{ day: "d", busy: 4, full: true }]).idle.share === null);
+ok("but the days it has are still counted, so the page can say how few",
+   techKpi("Z", [], [{ day: "d", busy: 4, full: true }]).idle.days === 1);
 ok("the clock is every measured hour", near(mix.hours, 4));
-ok("the unbillable ones are named", near(mix.nonBillableHours, 2));
-ok("quoting is called out inside that", near(mix.quoteHours, 1));
-ok("and the share is of the clock", near(mix.nonBillableShare, 0.5));
 ok("what was billed is the share of the job", near(mix.billed, 800));
 ok("per hour is over every hour on the clock", near(mix.perHour, 200));
 const blink = techKpi("I", [visit({ jobId: 1, hours: 0.2, billed: 800 })]);
@@ -123,18 +147,27 @@ ok("the mix counts every job by its kind",
    found.mix.breakdown === 1 && found.mix.maintenance === 1 && found.mix.install === 1);
 
 console.log("\n-- who the page is about --");
-ok("twenty hours and ten jobs is a tech on the tools",
-   isMainTech(techKpi("K", Array.from({ length: 10 }, (_, i) => visit({ jobId: i + 1, hours: 2 })))));
-ok("the same hours over nine jobs is not",
-   !isMainTech(techKpi("L", Array.from({ length: 9 }, (_, i) => visit({ jobId: i + 1, hours: 2.3 })))));
-ok("nor are sixty jobs with two hours on the clock between them",
-   !isMainTech(techKpi("M", Array.from({ length: 60 }, (_, i) =>
-     visit({ jobId: i + 1, hours: i < 2 ? 1 : null })))));
+/*
+ * The vans, and nobody else: a passenger's hours are already inside a van's
+ * day, so a row of their own would count the same work twice.
+ */
+ok("a van is on the page", isVanTech("Dean Winbanks"));
+ok("however it was typed", isVanTech("  dean winbanks "));
+ok("and a passenger is not", !isVanTech("Ray Kennedy"));
+ok("the stored list wins where there is one", isVanTech("Someone Else", ["Someone Else"]));
+ok("an empty stored list falls back rather than emptying the page",
+   normaliseVans([]).length === VAN_TECHS.length);
+ok("and so does anything that is not a list", normaliseVans("Dean").length === VAN_TECHS.length);
 
 console.log("\n-- the team line --");
 const team = crewTeam([dean, chaz, half]);
 ok("adds the jobs", team.jobs === 5);
 ok("adds the hours", near(team.hours, 3.4 + 3.1 + 3.25));
+ok("and the non-billable share is over the team's days, not an average of averages",
+   crewTeam([
+     techKpi("A", [], [{ day: "1", busy: 8.5, full: true }], 1),
+     techKpi("B", [], [{ day: "1", busy: 0, full: true }, { day: "2", busy: 0, full: true }], 1),
+   ]).idle.share === 17 / (3 * DAY_HOURS));
 ok("adds both halves of the rate", team.inTime.of === 3 && team.inTime.within === 0);
 ok("and rates the team on the whole of it, below MIN_TIMED", team.inTimeRate === null);
 

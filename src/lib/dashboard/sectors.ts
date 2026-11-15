@@ -100,8 +100,14 @@ export type Sectors = {
 export const SETTLE_DAYS = 14;
 /** How long after a visit a booked install or repair is still credited to it. */
 export const FOLLOW_DAYS = 60;
-/** The longest look back: past this, prices and the crew have moved on. */
-const WINDOW_DAYS = 90;
+/**
+ * The whole year (Jake, 15 Nov). It was ninety days, on the reasoning that
+ * prices and the crew move on — but ServiceTitan has only been the ledger
+ * since September, so ninety days and a year are very nearly the same window
+ * today, and a year is the one the question is asked in. ST_LEDGER_FROM still
+ * clamps the start, so the page never counts money from before the system.
+ */
+const WINDOW_DAYS = 365;
 
 const empty = (): SectorFigures => ({ jobs: 0, revenue: 0, costed: 0, profit: 0, margin: null });
 const emptyOut = (): VisitOutcomes => ({ visits: 0, install: 0, repair: 0, quoted: 0, quotedAll: 0, only: 0, ownRevenue: 0, ownProfit: 0, ledRevenue: 0, ledProfit: 0, ledUnbilled: 0, ledBilled: 0 });
