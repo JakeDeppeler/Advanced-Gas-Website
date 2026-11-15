@@ -4175,3 +4175,40 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .ds-fix { padding: 12px 16px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); font-size: 14px; line-height: 1.5; }
 .ds-fix ol { margin: 6px 0 0; padding-left: 22px; list-style: decimal; display: grid; gap: 4px; max-width: 100ch; }
 @media (max-width: 640px) { .ds { padding: 16px; } }
+
+/* ------------------------------------------------- KPIs: this month vs last */
+.kc-t tbody.kc-kpi th[scope="row"] { text-align: left; font-size: 14px; font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: normal; white-space: normal; padding: 12px 8px 4px; border-top: 1px solid var(--line); vertical-align: top; min-width: 190px; }
+.kc-t tbody.kc-kpi th[scope="row"] a { color: inherit; text-decoration: none; }
+.kc-t tbody.kc-kpi th[scope="row"] a:hover { text-decoration: underline; }
+.kc-t tbody.kc-kpi th[scope="row"] span { display: block; font-size: 12.5px; font-weight: 400; color: var(--ink3); white-space: normal; text-transform: none; letter-spacing: normal; }
+.kc-t tbody.kc-kpi td { padding: 12px 8px 4px; vertical-align: top; white-space: nowrap; }
+.kc-t .kc-base { font-weight: 700; }
+.kc-t .kc-dim { color: var(--ink3); font-weight: 400; }
+.kc-t .kc-chg { display: block; font-size: 13px; color: var(--ink2); margin-bottom: 4px; }
+.kc-t tr.kc-tip td { border-top: 0; padding: 0 8px 14px; text-align: left; white-space: normal; font-size: 13px; line-height: 1.5; color: var(--ink2); }
+.kc-t tr.kc-tip td b { color: var(--ink); font-weight: 700; }
+
+/* ------------------------------------------------- to-do: repeated work */
+.rp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 16px; align-items: start; }
+.rp-list .pk-card { margin: 0; }
+.rp-what { margin: 0 0 10px; font-size: 13.5px; color: var(--ink2); line-height: 1.45; }
+.rp-facts { margin: 0 0 12px; display: grid; gap: 4px; font-size: 13.5px; }
+.rp-facts > div { display: flex; gap: 10px; }
+.rp-facts dt { flex: 0 0 64px; color: var(--ink3); }
+.rp-facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+.rp-fix { padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); font-size: 13.5px; line-height: 1.5; }
+.rp-fix ol { margin: 4px 0 0; padding-left: 20px; list-style: decimal; display: grid; gap: 4px; }
+.rp-eg { margin: 10px 0 0; font-size: 12.5px; color: var(--ink3); overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .kc-t, .kc-t tbody, .kc-t tr, .kc-t th, .kc-t td { display: block; }
+  .kc-t thead { display: none; }
+  .kc-t tbody.kc-kpi { border-top: 1px solid var(--line); padding: 12px 0; }
+  .kc-t tbody.kc-kpi tr:first-child { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .kc-t tbody.kc-kpi th[scope="row"] { grid-column: 1 / -1; border-top: 0; padding: 0; min-width: 0; }
+  .kc-t tbody.kc-kpi td { padding: 0; text-align: left; white-space: normal; }
+  .kc-t tbody.kc-kpi td::before { content: attr(data-l); display: block; font-size: 11.5px; color: var(--ink3); font-weight: 400; }
+  .kc-t tbody.kc-kpi td.kc-v { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .kc-t tbody.kc-kpi td.kc-v::before { flex: 1 1 100%; }
+  .kc-t .kc-chg { display: inline; margin: 0; }
+  .kc-t tr.kc-tip td { padding: 10px 0 0; }
+}
