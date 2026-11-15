@@ -1,6 +1,6 @@
 "use client";
 
-import { CREW_SECTORS, MIN_HOURS, MIN_TIMED, type CrewSector, type TechKpi } from "@/lib/dashboard/crewTypes";
+import { CREW_SECTORS, DAY_END_HOUR, DAY_START_HOUR, MIN_IDLE_DAYS, MIN_TIMED, type CrewSector, type TechKpi } from "@/lib/dashboard/crewTypes";
 import type { SectorKey, VisitOutcomes } from "@/lib/dashboard/sectors";
 import { Fragment, type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
@@ -110,10 +110,10 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // page about people has to lead with what it did not measure.
   Crew: (m) => {
     const c = m.crew;
-    if (!c) return "Each tech's last sixty days";
+    if (!c) return "Each van, this year";
     const t = c.team.timed;
-    return `Each tech over ${c.days} days · ${t.with} of ${t.of} visits have a start and finish clocked${
-      c.omitted.length > 0 ? ` · ${c.omitted.length} not shown, under ${MIN_HOURS}h on the clock` : ""
+    return `Each van, last ${c.days} days · ${t.with} of ${t.of} visits have a start and finish clocked${
+      c.passengers.length > 0 ? ` · ${c.passengers.length} riding with them` : ""
     }`;
   },
   // Names whose job it is, because the page is a work list rather than a score:
@@ -135,22 +135,15 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `Each kind of work, and what it leads to · jobs billed ${shortDay(s.from)} to today, before GST`;
   },
   Areas: () => "Where the work is · last 60 days",
-  // Says whose day it is and what the dials measure, because the first dial is
-  // time against a quote and the room has to know that is what it is seeing.
+  // Says what the second line of every cell is, because a page of pairs is
+  // unreadable until you know which half is today.
   "Daily pace": (m) => {
-    const d = m.daily;
-    if (!d) return "Each tech's day on the tools";
-    const cover = d.team.quotedCover;
-    const gap = cover.of - cover.with;
-    // Five cards fit, and the sixth tech used to come off the page without the
-    // page saying so — which on a day the whole crew worked made the team line
-    // ("6 techs") disagree with what was above it.
-    const shown = d.techs.length > 5 ? ` · 5 of ${d.techs.length} techs shown` : "";
-    // The three dials now carry their own labels, so the line no longer lists
-    // them: with the two notes on the end it ran off the header at 1920x1200.
-    return `each tech's day on the tools${
-      gap > 0 ? ` · ${gap} of ${cover.of} jobs have no quoted time` : ""
-    }${shown}`;
+    const d = m.crewToday;
+    if (!d) return "Each van's day, against its year";
+    const t = d.team.timed;
+    return `Today against the year · ${t.with} of ${t.of} visits clocked${
+      d.passengers.length > 0 ? ` · ${d.passengers.length} riding with them` : ""
+    }`;
   },
 };
 
@@ -680,7 +673,7 @@ export function ScreenBoard({
         {name === "Pace" && <PacePage m={m} live={live} now={now} />}
         {name === "Quotes" && <QuotesPage m={m} live={live} />}
         {name === "Invoices" && <InvoicesPage m={m} live={live} />}
-        {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
+        {name === "Daily pace" && <DailyPacePage m={m} live={live} />}
         {name === "Crew" && <CrewPage m={m} live={live} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
         {name === "Performance" && <PerformancePage m={m} live={live} />}
@@ -1859,203 +1852,196 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
  * room should be able to see the denominator it is being judged against.
  */
 /**
- * Each tech's day on the tools.
+ * Today, in the Crew page's shape, with the year beside it (Jake, 15 Nov:
+ * "unless we make it like the crew style but just track it daily vs over the
+ * year").
  *
- * The only page the crew are the subject of, which sets how it behaves: worst
- * first, so the card the room should look at is the leftmost one, and nobody is
- * scored against a number that was never set.
+ * It replaced five gauge cards per tech. Those read well for one day and could
+ * not be read against anything: a dial at 96% told the room nothing about
+ * whether 96% was this man's normal. Every figure here carries the same figure
+ * over the year underneath it, which is the comparison the page is for — and
+ * it is the same arithmetic over a different window, from the same function,
+ * so the two pages cannot mean different things by "in the time sold".
  *
- * **The first dial is quoted ÷ taken, not the other way round.** Taking longer
- * than the job was priced for is the bad outcome, and the board's zones run
- * low-is-behind — so a day quoted at 4h and taken in 6 reads 67%, in the red
- * band, where 6h quoted and 5.5h taken reads 109% and sits on track. One
- * palette, no inverted dial, and "over time" lands in the colour the rest of
- * the board uses for trouble.
- *
- * **A job with no quoted time is not scored.** Most service work is billed
- * without a labour line, so only 76 of 268 timesheet spans over thirty days
- * carried quoted hours; a standard time per job type, set in the portal, fills
- * the rest in as it gets filled in. Until then those jobs show their hours
- * taken, the dial is drawn flat, and the card says how many of the day's jobs
- * had nothing to measure against. That is the whole reason the header carries
- * the caveat too: a figure the room cannot check is one it stops trusting.
+ * Nothing is status-coloured, for the reason the Crew page isn't: no target is
+ * set for any of it, and a green figure would be the board inventing one.
  */
-function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
-  const d = m.daily;
-  const hrs = (n: number) => `${Math.round(n * 10) / 10}h`;
-  /** "0.5h under" / "1.2h over" — the gap in the unit the crew talk in. */
-  const gap = (quoted: number, taken: number) => {
-    const diff = Math.round(Math.abs(quoted - taken) * 10) / 10;
-    if (diff < 0.1) return "on the quote";
-    return `${diff}h ${taken > quoted ? "over" : "under"}`;
-  };
-  /** The band's word. The four verdicts, said the way a day is said. */
-  const BAND: Record<Verdict, string> = {
-    ahead: "Under time",
-    track: "On time",
-    close: "Running over",
-    behind: "Over time",
-  };
-
+function DailyPacePage({ m, live }: { m: Metrics; live: Live }) {
+  const d = m.crewToday;
+  const year = m.crew;
   if (!live.st || !d || d.techs.length === 0) {
     return (
-      <div className="tile c12 dp__empty">
-          <span className="tile__label">Nobody on the tools yet</span>
-        <span className="dp__emptysub">
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Nobody on the tools yet</span>
+        <span className="tile__sub">
           {live.st ? "The first job of the day fills this page." : "Waiting on ServiceTitan."}
         </span>
       </div>
     );
   }
-
   const t = d.team;
-  const teamIndex = t.hoursQuoted != null && t.hoursTakenQuoted > 0 ? t.hoursQuoted / t.hoursTakenQuoted : null;
+  const y = year?.team ?? null;
+  /** The year's figure per day worked, which is what a day can be read against. */
+  const perDay = (total: number | undefined, days: number | undefined) =>
+    total != null && days != null && days > 0 ? total / days : null;
+  const dayLabel = (n: number | null) => (n != null ? `${hrs(n)} on a usual day` : "no year to compare");
+  const yearTech = new Map((year?.techs ?? []).map((p) => [p.tech, p]));
 
   return (
     <>
-      <div className="dp__row">
-        {d.techs.slice(0, 5).map((p, i) => {
-          // Over the quoted jobs only, both halves. See hoursTakenQuoted.
-          const index = p.hoursQuoted != null && p.hoursTakenQuoted > 0 ? p.hoursQuoted / p.hoursTakenQuoted : null;
-          const v = verdictOf(index);
-          const jobsIdx = paceIndex(p.jobsDone, p.jobsTotal);
-          const billIdx = paceIndex(p.billedCount, Math.max(1, p.jobsDone));
-          const noQuote = p.quotedCover.of - p.quotedCover.with;
-          return (
-            <div className="dp__card" key={p.tech}>
-              <span className={`dp__band ${v ? `status--${v}` : "dp__band--none"}`}>
-                <b>{v ? BAND[v] : "No quoted time"}</b>
-                <em>
-                  {index != null && p.hoursQuoted != null
-                    ? `${Math.round(index * 100)}% · ${gap(p.hoursQuoted, p.hoursTakenQuoted)}`
-                    : `${hrs(p.hoursTaken)} taken`}
-                </em>
+      <HeadCard
+        label="Time on the tools"
+        value={hrs(t.hours)}
+        foot={`${count(t.jobs)} jobs · ${t.timed.with} of ${t.timed.of} clocked${
+          y ? ` · ${dayLabel(perDay(y.hours, y.daysWorked))}` : ""
+        }`}
+      />
+      <HeadCard
+        label="Not billable"
+        value={t.idle.share != null ? hrs(t.idle.hours) : NA}
+        // Short: at 2560x1440 a longer line wrapped out of the card. The van
+        // count has to stay — "0h" off one van of four reads as nobody idle.
+        foot={`${
+          t.idle.share != null
+            ? `${pct(t.idle.share)} of the day · ${t.idle.days} of ${t.daysWorked} vans`
+            : "no van fully stamped yet"
+        }${y?.idle.share != null ? ` · ${pct(y.idle.share)} this year` : ""}`}
+      />
+      <HeadCard
+        label="Drive time"
+        value={t.drive.avgMins != null ? String(Math.round(t.drive.avgMins)) : NA}
+        suffix={t.drive.avgMins != null ? "min a job" : undefined}
+        foot={`${hrs(t.drive.hours)} · ${t.drive.jobs} of ${t.drive.of} jobs${
+          y?.drive.avgMins != null ? ` · ${Math.round(y.drive.avgMins)} min this year` : ""
+        }`}
+      />
+      <HeadCard
+        navy
+        label="In the time sold"
+        value={t.inTime.of > 0 ? `${t.inTime.within} of ${t.inTime.of}` : NA}
+        foot={`${t.inTime.of > 0 ? "jobs with a sold time" : "no job today has a sold time"}${
+          y?.inTimeRate != null ? ` · ${pct(y.inTimeRate)} this year` : ""
+        }`}
+      />
+
+      <div className="tile c12" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">Today</span>
+          <span className="tile__sub">each figure against the same figure over the year</span>
+          <span className="crew__legend">
+            {CREW_SECTORS.map((k) => (
+              <span className="crew__key" key={k}>
+                <i className={`mix--${k}`} aria-hidden="true" />
+                {SECTOR_WORD[k]}
               </span>
-
-              <span className="dp__who">
-                <i aria-hidden>{i + 1}</i>
-                {p.tech}
-              </span>
-
-              {/* The label belongs to the cell, not the dial: `bare` drops the
-                  Gauge's own heading so it can sit inside a card that already
-                  has one, and three unlabelled dials in a column are three
-                  numbers nobody can name. */}
-              <div className="dp__cell">
-                <span className="dp__glabel">On time · hours vs quoted</span>
-                <Gauge
-                  bare
-                  index={index}
-                  verdict={v}
-                  figure={hrs(index != null ? p.hoursTakenQuoted : p.hoursTaken)}
-                  of={p.hoursQuoted != null ? `of ${hrs(p.hoursQuoted)} ${p.jobs.some((j) => j.quotedFrom === "typical") ? "allowed" : "quoted"}` : "taken"}
-                  status={
-                    index != null
-                      ? verdictText(index, v)
-                      : /* Never "0%". Nothing was quoted, so there is nothing to be
-                           behind, and a red dial here would blame somebody for a
-                           missing setting. */
-                        "nothing quoted to measure"
-                  }
-                  foot={
-                    p.untimed > 0
-                      ? `${p.untimed} ${p.untimed === 1 ? "job" : "jobs"} not clocked${noQuote > 0 ? ` · ${noQuote} not quoted` : ""}`
-                      : noQuote > 0
-                      ? `${noQuote} of ${p.quotedCover.of} not quoted · ${hrs(p.hoursTaken)} all up`
-                      : p.jobs.some((j) => j.quotedFrom === "typical")
-                        ? `${p.jobs.filter((j) => j.quotedFrom === "typical").length} at the usual time for the job type`
-                        : undefined
-                  }
-                />
-              </div>
-
-              <div className="dp__cell">
-                <span className="dp__glabel">Jobs done off the list</span>
-                <Gauge
-                  bare
-                  index={jobsIdx}
-                  verdict={verdictOf(jobsIdx)}
-                  figure={`${p.jobsDone} of ${p.jobsTotal}`}
-                  status={verdictText(jobsIdx, verdictOf(jobsIdx))}
-                  foot={p.jobsDone >= p.jobsTotal ? "list done" : `${p.jobsTotal - p.jobsDone} still to go`}
-                />
-              </div>
-
-              <div className="dp__cell">
-                <span className="dp__glabel">Billed</span>
-                <Gauge
-                  bare
-                  index={p.jobsDone > 0 ? billIdx : null}
-                  verdict={p.jobsDone > 0 ? verdictOf(billIdx) : null}
-                  figure={`${p.billedCount} of ${p.jobsDone}`}
-                  status={p.jobsDone > 0 ? verdictText(billIdx, verdictOf(billIdx)) : "nothing finished yet"}
-                  foot={p.billedValue > 0 ? `${money(p.billedValue)} billed today` : "nothing billed yet"}
-                />
-              </div>
-
-              <span className="dp__foot">
-                {p.onNow ? (
-                  <b>
-                    Now · {p.onNow.what}
-                    {p.onNow.where ? `, ${p.onNow.where}` : ""} · {p.onNow.taken != null ? hrs(p.onNow.taken) : "not clocked"}
-                    {p.onNow.quoted != null ? ` of ${hrs(p.onNow.quoted)}` : ""}
-                  </b>
-                ) : (
-                  <b>{p.jobsDone >= p.jobsTotal ? "List done" : "Between jobs"}</b>
-                )}
-                <span>
-                  {p.toBillCount > 0
-                    ? `${p.toBillCount} ${p.toBillCount === 1 ? "job" : "jobs"} waiting to bill`
-                    : "Nothing waiting to bill"}
-                </span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* The day in one line, in the same navy the Pace page's year band uses. */}
-      <div className="year dp__team">
-        <div className="year__main">
-          <span className="year__nums">
-            <b className="year__gap">{hrs(t.hoursTaken)} taken</b>
-            <em className={`year__vs ${teamIndex != null && teamIndex < 1 ? "is-behind" : "is-ahead"}`}>
-              {/* Named as the subset it is. "16.2h taken, 6h quoted, 10.2h over"
-                  was the whole day's hours against four jobs' quotes, which is
-                  not a comparison — it is two different days put next to each
-                  other with a minus sign between them. */}
-              {t.hoursQuoted != null
-                ? `${hrs(t.hoursTakenQuoted)} of that on ${t.quotedCover.with} quoted ${
-                    t.quotedCover.with === 1 ? "job" : "jobs"
-                  } · ${gap(t.hoursQuoted, t.hoursTakenQuoted)}`
-                : "no quoted time on today's jobs"}
-            </em>
+            ))}
           </span>
         </div>
-        <div className="dp__teamstats">
-          <span>
-            <em>Jobs done</em>
-            <b>
-              {t.jobsDone} <i>of {t.jobsTotal}</i>
-            </b>
-          </span>
-          <span>
-            <em>Billed</em>
-            <b>
-              {t.billedCount} <i>of {t.billableCount} done</i>
-            </b>
-          </span>
-          <span>
-            <em>On the tools</em>
-            <b>
-              {d.techs.length} <i>{d.techs.length === 1 ? "tech" : "techs"}</i>
-            </b>
-          </span>
+        <div className="crew">
+          <div className="crew__head">
+            <span>Tech</span>
+            <span>Work</span>
+            <span>On the tools</span>
+            <span>Not billable</span>
+            <span>Drive</span>
+            <span>In the time sold</span>
+            <span>Billed</span>
+            <span>Work found on a visit</span>
+          </div>
+          {d.techs.map((p) => (
+            <DayRow key={p.tech} p={p} year={yearTech.get(p.tech) ?? null} />
+          ))}
         </div>
       </div>
     </>
   );
 }
+
+/** One tech's day, with their year under each figure. */
+function DayRow({ p, year }: { p: TechKpi; year: TechKpi | null }) {
+  const mix = CREW_SECTORS.filter((k) => p.mix[k] > 0);
+  const usualDay = year && year.daysWorked > 0 ? year.hours / year.daysWorked : null;
+  return (
+    <div className="crew__row">
+      <span className="crew__name">
+        {p.tech}
+        <em>
+          {count(p.jobs)} {p.jobs === 1 ? "job" : "jobs"}
+        </em>
+      </span>
+
+      <span className="crew__mix">
+        <span className="crew__bar" aria-hidden="true">
+          {mix.map((k) => (
+            <span key={k} className={`crew__seg mix--${k}`} style={{ flexGrow: p.mix[k] }} />
+          ))}
+        </span>
+        <span className="crew__mixnums">
+          {mix.length > 0 ? mix.map((k) => `${p.mix[k]} ${SECTOR_SHORT[k]}`).join(" · ") : "nothing yet"}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{hrs(p.hours)}</b>
+        <span>{usualDay != null ? `${hrs(usualDay)} on a usual day` : "no year to compare"}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.idle.share != null ? hrs(p.idle.hours) : NA}</b>
+        <span>
+          {p.idle.share != null ? `${pct(p.idle.share)} of the day` : "a job not stamped"}
+          {year?.idle.share != null ? ` · ${pct(year.idle.share)} usually` : ""}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.drive.avgMins != null ? `${Math.round(p.drive.avgMins)} min` : NA}</b>
+        <span>
+          {year?.drive.avgMins != null
+            ? `${Math.round(year.drive.avgMins)} min usually`
+            : `${p.drive.jobs} of ${p.drive.of} jobs`}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.inTime.of > 0 ? `${p.inTime.within} of ${p.inTime.of}` : NA}</b>
+        <span>
+          {p.inTime.of === 0
+            ? "none sold by the hour"
+            : year?.inTimeRate != null
+              ? `${pct(year.inTimeRate)} of them usually`
+              : "jobs with a sold time"}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{compact(p.billed)}</b>
+        {/* A day with nothing invoiced on it yet is most days until the office
+            catches up, so the line falls back to what an hour usually makes
+            rather than reading "$0 an hour". */}
+        <span>
+          {p.billed > 0 && p.perHour != null
+            ? `${compact(p.perHour)} an hour`
+            : year?.perHour != null
+              ? `${compact(year.perHour)} an hour usually`
+              : "nothing billed yet"}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>
+          {count(p.found.quoted)} {p.found.quoted === 1 ? "quote" : "quotes"}
+        </b>
+        <span>
+          {p.found.visits > 0
+            ? `off ${p.found.visits} service ${p.found.visits === 1 ? "call" : "calls"}`
+            : "no service calls today"}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 
 function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="who has sold what" />;
@@ -2383,6 +2369,7 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
   const next = r.sold + r.toNextTier;
   return next > 0 ? Math.max(2, Math.min(100, (r.sold / next) * 100)) : 0;
 }
+
 
 /* ------------------------------------------------------------ /05 Performance */
 /**
@@ -2840,6 +2827,9 @@ const SECTOR_SHORT: Record<CrewSector, string> = {
   other: "other",
 };
 
+/** "7–3:30", the day non-billable time is measured against. */
+const dayWindow = `${DAY_START_HOUR}\u2013${Math.floor(DAY_END_HOUR)}:${String(Math.round((DAY_END_HOUR % 1) * 60)).padStart(2, "0")}`;
+
 /** "166h", "0.5h" — the unit the crew talk in. */
 const hrs = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n * 10) / 10}h`);
 /** Whole hours, for a figure read from across the room. */
@@ -2873,12 +2863,12 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st || !c || c.techs.length === 0) {
     return (
       <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
-        <span className="tile__title">Each tech&rsquo;s last sixty days</span>
+        <span className="tile__title">Each van, this year</span>
         <span className="tile__sub">
           {!live.st
             ? "ServiceTitan isn’t connected."
             : c && c.techs.length === 0
-              ? "Nobody has twenty hours on the clock in the window yet."
+              ? "None of the vans has clocked a job in the window yet."
               : "Worked out on the next sync."}
         </span>
       </div>
@@ -2893,21 +2883,23 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
         value={bigHrs(t.hours)}
         foot={`${count(t.jobs)} jobs · ${t.timed.with} of ${t.timed.of} visits clocked`}
       />
+      {/* Not on a job and not driving to one, inside the day the business pays
+          for. Jake's definition, 15 Nov. */}
       <HeadCard
         label="Not billable"
-        value={bigHrs(t.nonBillableHours)}
+        value={t.idle.share != null ? bigHrs(t.idle.hours) : NA}
         foot={
-          t.nonBillableShare != null
-            ? `${pct(t.nonBillableShare)} of the clock · ${hrs(t.quoteHours)} of it quoting`
-            : "nothing on the clock yet"
+          t.idle.share != null
+            ? `${pct(t.idle.share)} of the ${dayWindow} day · over ${count(t.idle.days)} days`
+            : `only ${count(t.idle.days)} days fully stamped`
         }
       />
       <HeadCard
         label="Drive time"
         value={t.drive.avgMins != null ? String(Math.round(t.drive.avgMins)) : NA}
-        suffix={t.drive.avgMins != null ? "min a trip" : undefined}
+        suffix={t.drive.avgMins != null ? "min a job" : undefined}
         // Short enough to hold one line at 1600x900, where the longer wording wrapped.
-        foot={`${hrs(t.drive.hours)} · ${t.drive.trips} of ${t.drive.of} trips recorded`}
+        foot={`${hrs(t.drive.hours)} · ${t.drive.jobs} of ${t.drive.of} jobs recorded`}
       />
       {/* Navy, not a status colour: it is the page's headline question and
           nothing sets a target for it. See the note above. */}
@@ -2924,7 +2916,7 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
 
       <div className="tile c12" style={{ gridRow: 2 }}>
         <div className="tile__head">
-          <span className="tile__title">Each tech</span>
+          <span className="tile__title">Each van</span>
           <span className="tile__sub">
             work found: a quote written on a maintenance or breakdown call, or an install booked at
             that address within {c.followDays} days
@@ -2988,21 +2980,24 @@ function CrewRow({ p }: { p: TechKpi }) {
         <span>{`${p.timed.with} of ${p.timed.of} clocked`}</span>
       </span>
 
+      {/* Only the days every job was stamped can say what the rest of the day
+          was. Below the floor it says how few, rather than putting an hour and
+          a half a day on a man for not tapping his phone. */}
       <span className="crew__fig">
-        <b>{p.nonBillableHours >= 0.05 ? hrs(p.nonBillableHours) : "none"}</b>
+        <b>{p.idle.share != null ? hrs(p.idle.hours) : NA}</b>
         <span>
-          {p.nonBillableShare != null && p.nonBillableHours >= 0.05
-            ? `${pct(p.nonBillableShare)} of the clock`
-            : "all billable"}
+          {p.idle.share != null
+            ? `${pct(p.idle.share)} over ${count(p.idle.days)} days`
+            : `${p.idle.days} of ${MIN_IDLE_DAYS} days stamped`}
         </span>
       </span>
 
       <span className="crew__fig">
         <b>{p.drive.avgMins != null ? `${Math.round(p.drive.avgMins)} min` : NA}</b>
         <span>
-          {p.drive.trips > 0
-            ? `${hrs(p.drive.hours)} · ${p.drive.trips} of ${p.drive.of} trips`
-            : `none of ${p.drive.of} trips recorded`}
+          {p.drive.jobs > 0
+            ? `${hrs(p.drive.hours)} · ${p.drive.jobs} of ${p.drive.of} jobs`
+            : `none of ${p.drive.of} jobs recorded`}
         </span>
       </span>
 

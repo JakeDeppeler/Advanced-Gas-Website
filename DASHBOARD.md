@@ -2370,83 +2370,39 @@ one.
 out: with one to nine sales each per month, a single job moves somebody's number
 by twenty points on a wall the whole office reads.
 
-## Daily pace — each tech's day on the tools
+## Daily pace — today, against the year
 
-Fifth in the rotation, between Invoices and Crew. Five cards across, one per
-technician, worst first: the point is the person who needs a hand, not a
-leaderboard, so the card the room should look at is the leftmost one. On a day
-more than five were on the tools the subtitle says so ("5 of 6 techs shown") —
-it used to drop the sixth silently while the team line underneath still counted
-them.
+Fifth in the rotation, between Invoices and Crew, and the same table as
+[Crew](#crew-each-van-over-the-year) over one day: the same columns, the same
+arithmetic, out of the same function — `computeCrew` takes the start of its
+window, and the board asks it for the year and for today. That is what stops the
+two pages meaning different things by "in the time sold".
 
-**Two wrong numbers came off this page on 15 November**, both found by rendering
-it against a real day (Friday the 13th) rather than against today, which was a
-Sunday with nobody on the tools.
+**Every figure carries the same figure over the year underneath it**, because
+that is the comparison the page is for. "6h on the tools" says nothing on its
+own; "6h, 3.5h on a usual day" says Jye had a big day. Likewise "29 min to a
+job · 34 min usually", "1 of 1 in the sold time · 62% of them usually".
 
-*A forgotten "done" tap is not a day's work.* One diagnostic was stamped arrived
-at 1pm and done the next morning: a 24.8-hour span, which put 30.7 hours on
-Chaz's card and scored him 60% behind for it. A span longer than
-`LONGEST_SPAN_HOURS` (12) is now not a measurement: the job stays on the list
-and still counts as done, carries no hours, and is out of both halves of the
-comparison. The card names it — "1 job not clocked" — because a figure nobody
-recorded is worse than an empty one. The day read 63.8 hours; it was 39.
+It replaced five gauge cards per tech — a dial for time against quoted, one for
+jobs off the list, one for billed. They read well for a single day and could not
+be read against anything, and two of their three figures were wrong in ways only
+a real day showed up:
+
+*A forgotten "done" tap is not a day's work.* One diagnostic on 13 November was
+stamped arrived at 1pm and done the next morning: a 24.8-hour span, which put
+30.7 hours on Chaz's card and scored him 60% behind for it, and read the day as
+63.8 hours when it was 39. A span longer than twelve hours is not a measurement
+anywhere on the board now.
 
 *A job three men were on is one job's allowance.* The ducted install at Garfield
-was sold at 17 hours with three on it, and each man was being scored against the
-whole 17 — so all three read "▲ Ahead · 204%" off a job the crew was 5.5 hours
-over on. The quoted time is the crew's allowance for the job, so it is now split
-between whoever was on it, and the shares add back to the job's quote. The same
-three now read 68% and 69% behind and 96% on track. Only an invoice's sold hours
-and a sold estimate are divided: a job type's standard time is the length of the
-slot and a measured typical time is wall clock, and neither shrinks because two
-men turned up. (The Crew page judges the same situation differently — the job
-once, on its time on site, with everyone on it carrying the verdict — because it
-is scoring sixty days of jobs rather than splitting one day's hours between
-people. Both exist to stop one job being charged in full to each man on it.)
+was sold at 17 hours with three on it, and each man was scored against the whole
+17 — so all three read "▲ Ahead · 204%" off a job the crew was 5.5 hours over
+on. The Crew page's answer is the one that stands: the job is judged once, on
+its time on site, and everyone on it carries that verdict.
 
-**Where the data comes from.** `st_jobs` carries no technician and no
-appointment — ServiceTitan's job export sends neither — so every figure is built
-from `st_timesheets`, which has one row per technician per appointment with
-`arrived_on` and `done_on`, joined out to the job.
-
-**The first dial is quoted ÷ taken, not taken ÷ quoted.** Running over is the
-bad outcome, and the board's zones run low-is-behind, so a day quoted at 4h and
-taken in 6 reads 67% and lands in the red band the rest of the board uses for
-trouble; 6h quoted and 5.5h taken reads 109% and sits on track. One palette, no
-inverted dial.
-
-**Both halves of that dial cover the same jobs.** This is the trap and it was
-shipped wrong once before being caught in a render: summing a tech's whole day
-against the quoted hours of the two jobs that had quotes gave Ray "4.2h taken,
-3h quoted, 1.2h over" — 72%, in the red — when his third job was never quoted at
-all. Over the same two jobs it is 3.5h against 3h, 86%, close. `hoursTakenQuoted`
-exists for exactly this and `npm run check:daily` asserts it.
-
-**A job with no quoted time is not scored.** Quoted hours come from the labour
-lines on an invoice, and most service work is billed without one: over thirty
-days only **76 of 268** timesheet spans had them. Those cards show hours taken,
-draw the dial flat, and say "nothing quoted to measure" — never 0%, which would
-be blaming somebody for a missing setting. The card foot says how many of the
-day's jobs had nothing to measure against, and so does the page header.
-
-**Standard times fill the gap.** `/portal/board/times` sets an expected time per
-job type, busiest first, and any job whose invoice carries no hours falls back
-to it. A real quote still wins where there is one — it is the figure the
-customer was given. A type left unset stays unset; zero means "not set", not
-"takes no time". As the list is filled in, more of the page becomes measurable
-without another build.
-
-**Not built, for want of a rule:** the mockup's "plumbing cert + VEU form first"
-on the to-bill line. The paperwork rule has never been defined, so the cards say
-how many jobs are waiting to bill and leave the reason off.
-
-### The page list is keyed by name
-
-Both the page switch and the grid-proportions class used to be arrays indexed by
-page number. Inserting Daily pace at position five silently gave Team the
-Performance layout, Performance the Areas layout, and the new page Team's — all
-of which typechecked, built, and showed up only as three pages spilling in a
-render. Both are keyed by name now.
+The gauge version lives on in `dailyPace.ts`, which the portal's Jobs › Today
+tab still reads; the fixes above are in that module and the portal gets them
+too. Code: `DailyPacePage` and `DayRow` in `ScreenBoard.tsx`.
 
 ## The board says it paints its own colours
 
@@ -2866,7 +2822,7 @@ $1.6M against a goal set in jobs. On the Team tab the month's sales goal is
 shared evenly across everyone who has quoted; the team line decides the
 sentence, so one person ahead covering another behind is the team on track.
 
-## Crew: each tech's last sixty days
+## Crew: each van, over the year
 
 The sixth page, beside Daily pace. Jake asked (15 Nov) for "an overview of each
 main tech so we can see how many installs, repairs, break down and mataince, how
@@ -2874,6 +2830,19 @@ on time they are, if they got the job done within the time frame, if they were
 late and other KPI we can use to see who is standing out vs who is not", and
 then for "time on tool per person as well as a stat, and how much non billable
 time we have, and also drive time per person".
+
+**It is one row per van, not per person.** Dean, Jackson, Chaz, Jye and Paddy
+drive; Ray, Kayden, Thomas and Jake ride with them, so their hours are already
+inside a van's day and a row of their own would count the same work twice. The
+list is in `VAN_TECHS` rather than worked out from the data, because nothing in
+ServiceTitan says who drives — `portal_settings` under `crew-vans` overrides it
+without a deploy. The page says how many are riding along.
+
+**The money follows the van, not the head.** A job Jackson did with Ray on the
+other end of it is Jackson's van's money, because Ray got there in it; where two
+vans were on one job it splits between them by the hours they clocked. So the
+Billed column adds up to what the work billed, rather than losing a passenger's
+share off the side of the page.
 
 Everything here is built from `st_timesheets` — one row per technician per
 appointment, with `dispatched_on`, `arrived_on` and `done_on` — joined out to
@@ -2894,8 +2863,8 @@ above; this page's clocked count is the honest version of the same question.
 |---|---|
 | Work | The job mix by [sector](#sectors-maintenance-breakdowns-repairs-and-installs), as a bar and in words: `30 maint · 34 break · 8 rep · 20 inst · 16 other`. |
 | On the tools | Hours clocked, and how many of their visits were clocked at all. |
-| Not billable | Of those hours, the ones that will never be billed, and the share of the clock. |
-| Drive | Average minutes a trip over the trips that recorded one, with the hours and the count beside it. |
+| Not billable | Of the 7:00–15:30 day, the part spent neither on a job nor driving to one. |
+| Drive | Average minutes a job over the jobs that recorded a drive, with the hours and the count beside it. |
 | In the time sold | Of the jobs with both a measured time on site and labour hours sold, the share that came in within a quarter hour of the sold time. |
 | Billed | Their share of what those jobs billed, before GST, and per hour on the clock. |
 | Work found on a visit | Quotes written on their maintenance and breakdown calls, and how many of those addresses had an install booked within 60 days. |
@@ -2930,23 +2899,41 @@ green 71% would be the board inventing a target and marking a man against it.
 Ordering by any one column would make that column the score and the rest
 decoration, so the rows run by jobs attended, which nobody reads as a judgement.
 
-**Who appears**: 20 hours on the clock and 10 jobs in the window. That is what
-separates a tech on the tools from a name on a job — Jake is on 67 jobs with
-2 hours clocked between them. The count left off is in the page's subtitle, not
-their names. A rate needs 8 judged jobs; below that the cell says how many it
-has.
+**The window is the last 365 days.** It was sixty; Jake asked for the year
+(15 Nov) and the Sectors page moved with it. ServiceTitan's timesheets only
+start in June, so the two are closer than they sound, and every column prints
+the count it was measured over. A rate needs 8 judged jobs; below that the cell
+says how many it has.
 
 **Money** is each job's price before GST (`subtotal`, else the total less GST,
-the same as [job profit](#profit-on-every-job)), split between the techs on it
-by their share of the hours clocked, and counted only once the job is Completed.
-Split by heads when nobody's stamps gave a span, so it is never quietly lost.
-**Not billable** is a finished job that billed nothing, once it is a week old —
-the office bills in batches and a job closed on Friday is not lost time on
-Monday — plus every quote visit, which never bills by design and is called out
-separately in the team card.
+the same as [job profit](#profit-on-every-job)), split between the vans on it by
+their share of the hours clocked, and counted only once the job is Completed.
+Split by heads when no van's stamps gave a span, so it is never quietly lost.
+
+**Non-billable time is the rest of the paid day.** Jake's definition (15 Nov):
+"any time from 7am to 3:30pm not doing a job or dispatch to a job". So each
+timesheet row contributes the interval from dispatch — when they set off — to
+done; those are unioned per day so two overlapping jobs are not counted twice,
+and the union is clipped to the window, so a job that ran to six o'clock fills
+the rest of the day and no more.
+
+**It is counted only on days where every job was stamped both ways**, and this
+matters more than anything else on the page. Over every day worked, Dean's day
+comes out 4.24 hours idle; over the days everything was stamped, 2.71. Ray's
+2.43 against 1.07. The gap is work nobody recorded, and counting it as idleness
+would put an hour and a half a day on a man for not tapping his phone. Days that
+cannot answer are left out, the column says how many answered, and below five of
+them it shows a dash instead of a figure — which is why Jye's reads "3 of 5 days
+stamped" rather than 48%.
+
+That definition replaced an earlier one — a finished job that billed nothing,
+once it was a week old — which measured something real but not what was asked
+for, and said nothing about the hours between jobs.
 
 Code: `src/lib/dashboard/crew.ts`, `crewTypes.ts` (pure, tested by
-`npm run check:crew`), `CrewPage` in `ScreenBoard.tsx`.
+`npm run check:crew`), `CrewPage` in `ScreenBoard.tsx`. `computeCrew` takes the
+start of its window, and the board asks for two: the year, and today — which is
+the Daily pace page below.
 
 ## Sectors: maintenance, breakdowns, repairs and installs
 
