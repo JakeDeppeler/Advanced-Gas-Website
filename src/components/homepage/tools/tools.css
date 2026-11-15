@@ -118,3 +118,19 @@
   .ag .tl__hero .bxh__ctas .abtn{min-height:44px;padding:0 16px;font-size:15px}
   .ag .tl__sec{padding-top:24px}
 }
+
+/* ---- /tools: every tool in the homepage's navy tools box ----
+   The same box and cards as "Tools for you" on the homepage (.htools-box,
+   .tcard in homepage.css), with a little more on each card: the job it does
+   (written, not colour-coded), the question it answers and what it covers. */
+.ag .tlh .h2 span{color:var(--or2)}
+.ag .tlh__grid{list-style:none;padding:0;margin-bottom:0}
+.ag .tlh__grid > li{display:flex;min-width:0}
+.ag .tlh__card{flex:1;gap:8px}
+.ag .tlh__card .tlh__grp{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--or-ink)}
+.ag .tlh__card .tlh__q{font-size:15px;line-height:1.45;color:var(--navy);font-weight:600}
+.ag .tlh__pts{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.ag .tlh__pts li{position:relative;padding-left:18px;font-size:14px;line-height:1.45;color:var(--ink2)}
+.ag .tlh__pts li::before{content:"✓";position:absolute;left:0;top:0;font-weight:800;color:var(--or-ink)}
+.ag .tlh__card em{margin-top:auto;padding-top:10px}
+@media (prefers-reduced-motion:reduce){.ag .tlh__card,.ag .tlh__card:hover{transition:none;transform:none}}

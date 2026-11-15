@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import "../legal/legal.css";
+import { LegalPage } from "../legal/LegalPage";
 
 /**
  * Privacy notice.
@@ -25,14 +25,24 @@ export const metadata: Metadata = {
 
 const UPDATED = "12 August 2026";
 
+const TOC: [string, string][] = [
+  ["collect", "What we collect"],
+  ["who", "Who else sees it"],
+  ["keep", "How long we keep it"],
+  ["cookies", "Cookies"],
+  ["access", "Getting it, correcting it, or having it deleted"],
+  ["complaints", "Complaints"],
+];
+
 export default function PrivacyPage() {
   return (
-    <div className="legal">
-      <div className="wrap legal__wrap">
-        <span className="legal__eyebrow">Legal</span>
-        <h1>Privacy notice</h1>
-        <p className="legal__updated">Last updated {UPDATED}</p>
-
+    <LegalPage
+      crumb="Privacy notice"
+      title={<>Privacy <em>notice</em>.</>}
+      updated={UPDATED}
+      toc={TOC}
+      end={{ title: <>Rather <span>talk it through</span>?</>, from: "privacy-cta" }}
+    >
         <p>
           This explains what {site.legalName}, trading as {site.name}, does with
           your information. We are a family HVAC business in Pakenham, not a
@@ -41,7 +51,7 @@ export default function PrivacyPage() {
           process your rebate, and we don&rsquo;t sell any of it to anyone.
         </p>
 
-        <h2>What we collect</h2>
+        <h2 id="collect">What we collect</h2>
         <ul>
           <li>
             <strong>When you ask for a quote:</strong> your name, phone number,
@@ -65,7 +75,7 @@ export default function PrivacyPage() {
           </li>
         </ul>
 
-        <h2>Who else sees it</h2>
+        <h2 id="who">Who else sees it</h2>
         <p>
           Only where the job requires it, and only the part they need:
         </p>
@@ -96,7 +106,7 @@ export default function PrivacyPage() {
           hand it to anyone for marketing.
         </p>
 
-        <h2>How long we keep it</h2>
+        <h2 id="keep">How long we keep it</h2>
         <p>
           Quotes that don&rsquo;t become jobs are kept for two years, because
           people come back. Job records, compliance certificates and warranty
@@ -105,7 +115,7 @@ export default function PrivacyPage() {
           to have if you ever needed to make a claim.
         </p>
 
-        <h2>Cookies</h2>
+        <h2 id="cookies">Cookies</h2>
         <p>
           The site sets no advertising or profiling cookies. It records
           anonymous page-speed measurements so we can tell whether a page is
@@ -113,7 +123,7 @@ export default function PrivacyPage() {
           reason we look at it.
         </p>
 
-        <h2>Getting it, correcting it, or having it deleted</h2>
+        <h2 id="access">Getting it, correcting it, or having it deleted</h2>
         <p>
           Email{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a> or call{" "}
@@ -128,8 +138,8 @@ export default function PrivacyPage() {
           they are.
         </p>
 
-        <div className="legal__box">
-          <h2>Complaints</h2>
+        <div className="lg__box">
+          <h2 id="complaints">Complaints</h2>
           <p>
             If you think we have mishandled your information, tell us first,
             at <a href={`mailto:${site.email}`}>{site.email}</a>. We will look
@@ -145,12 +155,11 @@ export default function PrivacyPage() {
           </p>
         </div>
 
-        <p style={{ marginTop: "2rem" }}>
+        <p className="lg__foot">
           {site.legalName} · ABN {site.abn} · Plumbing Licence 46828 ·{" "}
           <Link href="/contact">Contact us</Link> ·{" "}
           <Link href="/terms">Terms of service</Link>
         </p>
-      </div>
-    </div>
+    </LegalPage>
   );
 }

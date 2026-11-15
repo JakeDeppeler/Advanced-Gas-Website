@@ -3,7 +3,8 @@ import { site } from "@/lib/site";
 import { RATING_SUMMARY } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
 import { breadcrumbSchema } from "@/lib/schema";
-import { Crumbs, Hero, Head, Next, Cta } from "@/components/homepage/page/kit";
+import { Crumbs, Hero, Head, Next } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
@@ -71,7 +72,8 @@ export default async function ReviewsPage() {
         </div>
       </section>
 
-      <Cta title="Want the same experience?" text="A free, no-obligation quote back within 12 business hours." />
+      {/* The homepage's closing box rather than a full-width orange band: every inside page ends on it. */}
+      <EndCta title={<>Want the same <span>experience</span>?</>} text="A free, no-obligation quote back within 12 business hours." />
       <JsonLd data={crumbs} />
     </div>
   );

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { site, openingHoursShort } from "@/lib/site";
+import { EndCta } from "@/components/homepage/page/bands";
+// The closing box's button row (.bxh__ctas) is styled with the brand pages.
+import "@/components/homepage/brand/brand.css";
 import "./not-found.css";
 
 /** The six routes a wrong URL is nearly always aiming at. Ordered the way
  *  somebody who has just hit a dead end reads: what you do, what it costs,
- *  do you come here, then the two ways to get hold of us. */
+ *  do you come here, then the two ways to get hold of us, then the guides.
+ *  There were five, which left an empty cell at the end of the grid's
+ *  second row; the contact page is the second way to get hold of us. */
 const GO = [
   { href: "/services", label: "Everything we do", sub: "Aircon, heat pumps, gas and hot water" },
   { href: "/range", label: "The full range", sub: "Every model we fit, side by side" },
   { href: "/service-areas", label: "Do you come to me?", sub: "Every suburb, with drive times from Pakenham" },
   { href: "/quote", label: "Get a price", sub: "A written quote back inside 12 business hours" },
+  { href: "/contact", label: "Contact us", sub: "Phone, email, hours and the 24/7 emergency line" },
   { href: "/blog", label: "Guides and advice", sub: "Rebates, sizing and running costs, explained" },
 ];
 
@@ -59,6 +65,13 @@ export default function NotFound() {
           </ul>
         </div>
       </section>
+
+      {/* The homepage's closing box, as every inside page ends. It needs .ag
+          around it for the redesign's styles; data-no-reveal keeps the old
+          scroll reveal off it, as on the other redesign pages. */}
+      <div className="ag" data-no-reveal>
+        <EndCta title={<>Rather just <span>ask us</span>?</>} text="A free, no-obligation quote back within 12 business hours." from="404-cta" />
+      </div>
     </>
   );
 }

@@ -8,10 +8,29 @@
 .ag .bh__limg img{object-fit:contain;padding:4px}
 .ag .bh__logo b{font-family:var(--disp);font-size:15px;font-weight:800;line-height:1.2}
 
-.ag .bh__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:16px}
-.ag .bh__grid:has(> :only-child){max-width:720px}
-.ag .bh__card{display:flex;flex-direction:column;border-radius:14px;background:#fff;overflow:hidden;color:inherit;text-decoration:none;box-shadow:inset 0 6px 0 var(--c),inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
-.ag .bh__card:hover{transform:translateY(-6px);box-shadow:inset 0 6px 0 var(--c),0 0 0 3px var(--c),0 30px 50px -28px rgba(5,10,48,.5)}
+/* Columns follow the group's size (bh__grid--n from the page), so every row
+   is full: auto-fit put a fourth hot water brand on a row of its own, and a
+   group of one sat half-empty at 720px wide. Two to four cards share the row;
+   below 1100px four go two by two. */
+.ag .bh__grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:16px}
+.ag .bh__grid--3{--cols:3}
+.ag .bh__grid--4{--cols:4}
+@media (max-width:1100px){.ag .bh__grid--3,.ag .bh__grid--4{--cols:2}.ag .bh__grid--3 > :last-child{grid-column:1/-1}}
+@media (max-width:700px){.ag .bh__grid{--cols:1}.ag .bh__grid--3 > :last-child{grid-column:auto}}
+/* A group of one is laid out across the row, picture beside words, so it
+   reads as a whole section rather than half of one. */
+.ag .bh__grid--1{--cols:1}
+.ag .bh__grid--1 .bh__card{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+.ag .bh__grid--1 .bh__img{height:auto;min-height:280px;margin-top:6px;border-bottom:0;border-right:1px solid var(--line)}
+.ag .bh__grid--1 .bh__t{padding:28px 32px 26px}
+@media (max-width:700px){
+  .ag .bh__grid--1 .bh__card{display:flex}
+  .ag .bh__grid--1 .bh__img{min-height:0;height:160px;border-right:0;border-bottom:1px solid var(--line)}
+  .ag .bh__grid--1 .bh__t{padding:20px 22px}
+}
+.ag .bh__card{display:flex;flex-direction:column;border-radius:14px;background:#fff;overflow:hidden;color:inherit;text-decoration:none;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
+/* No colour strip along the top (Jake, Nov 2026, on the hot water page's brand cards); the brand's colour shows on hover */
+.ag .bh__card:hover{transform:translateY(-6px);box-shadow:0 0 0 3px var(--c),0 30px 50px -28px rgba(5,10,48,.5)}
 .ag .bh__card:focus-visible{outline:3px solid var(--c);outline-offset:3px}
 .ag .bh__img{position:relative;height:200px;margin-top:6px;background:linear-gradient(180deg,#fff,#F3F5F8);border-bottom:1px solid var(--line)}
 .ag .bh__img img{object-fit:contain;padding:20px}
@@ -32,3 +51,4 @@
   .ag .bh__img{height:160px}
   .ag .bh__logo b{font-size:13.5px}
 }
+@media (prefers-reduced-motion:reduce){.ag .bh__card,.ag .bh__card:hover,.ag .bh__card:hover em i{transition:none;transform:none}}

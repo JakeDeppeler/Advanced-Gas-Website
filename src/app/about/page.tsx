@@ -6,6 +6,7 @@ import { RATING_TEXT, RATING_SUMMARY, REVIEWS } from "@/lib/reviews";
 import { DIRECTORS, CLIENTS, STANDARDS, ACCREDITED, LICENCES } from "@/lib/company";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { Crumbs } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -154,9 +155,12 @@ export default function AboutPage() {
         </div></div>
       </section>
 
-      {/* 4. Who else trusts us */}
-      <section className="bk__sec bk__sec--red" id="clients">
-        <div className="wrap"><div className="bk__blk ab3__c">
+      {/* 4. Who else trusts us. A navy rounded box on cream, the homepage's
+          "Tools for you" shape, with the names as white cards. It was a
+          full-width orange band, and the homepage never uses its orange as a
+          section background: orange is the closing box's colour. */}
+      <section className="bk__sec bk__sec--cream" id="clients">
+        <div className="wrap"><div className="bk__blk bk__boxed ab3__c">
           <div className="bk__head">
             <h2 className="h2">Homes, national brands <span>and builders</span>.</h2>
             <p>Most of our work is in people&apos;s homes. Alongside that, we install and maintain systems for commercial clients including:</p>
@@ -179,20 +183,13 @@ export default function AboutPage() {
         </div></div>
       </section>
 
-      <section className="bk__sec bk__sec--white">
-        <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
-            <div>
-              <h2 className="bk__boxh">Ready for a price <span>you can trust</span>?</h2>
-              <p>A free site check, then one fixed price in writing. {openingHours()}.</p>
-            </div>
-            <div className="bxh__ctas">
-              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-cta">Call (03) 5947 8000</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* The homepage's closing box, the team and the vans behind the orange,
+          as every inside page ends. It was a flat orange box here. */}
+      <EndCta
+        title={<>Ready for a price <span>you can trust</span>?</>}
+        text={`A free site check, then one fixed price in writing. ${openingHours()}.`}
+        from="about-cta"
+      />
     </div></div>
   );
 }

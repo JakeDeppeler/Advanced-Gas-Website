@@ -5,6 +5,7 @@ import { openingHours } from "@/lib/site";
 import { HeroQuote } from "@/components/homepage/HeroQuote";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { Crumbs } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
@@ -12,6 +13,7 @@ import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
 import "@/components/homepage/brand/blocks.css";
 import "@/components/homepage/page/category.css";
+import "./quote.css";
 
 export const metadata: Metadata = {
   title: "Get a Free Quote, Pakenham VEU-applied",
@@ -193,9 +195,12 @@ export default function QuotePage() {
         </div></div>
       </section>
 
-      {/* 4. The promise about the price */}
-      <section className="bk__sec bk__sec--red" id="promise">
-        <div className="wrap"><div className="bk__blk bk__col">
+      {/* 4. The promise about the price. A navy rounded box with the three
+          promises as white cards, the homepage's "Tools for you" shape. It
+          was a full-width orange band; on the homepage orange is only ever
+          the closing box. */}
+      <section className="bk__sec bk__sec--white" id="promise">
+        <div className="wrap"><div className="bk__blk bk__boxed bk__col qx__pbox">
           <header className="bk__head">
             <h2 className="h2">Our promise <span>on price</span>.</h2>
             <p>Three things that hold for every quote we write.</p>
@@ -261,20 +266,13 @@ export default function QuotePage() {
         </div></div>
       </section>
 
-      <section className="bk__sec bk__sec--white">
-        <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
-            <div>
-              <h2 className="bk__boxh">Ready? It takes <span>about a minute</span>.</h2>
-              <p>Free, no obligation, and a written price you can hold us to.</p>
-            </div>
-            <div className="bxh__ctas">
-              <a href="#form" className="abtn abtn--or abtn--flat">Start my free quote ↑</a>
-              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="quote-cta">Call (03) 5947 8000</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* The homepage's closing box, sending people back up to the form rather than to this same page. */}
+      <EndCta
+        title={<>Ready? It takes <span>about a minute</span>.</>}
+        text="Free, no obligation, and a written price you can hold us to."
+        from="quote-cta"
+        cta={{ href: "#form", label: "Start my free quote ↑" }}
+      />
     </div></div>
   );
 }

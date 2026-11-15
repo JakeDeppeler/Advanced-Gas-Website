@@ -6,7 +6,8 @@ import {
   lowerLabel,
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
-import { Crumbs, Hero, Head, Next, Cta } from "./kit";
+import { Crumbs, Hero, Head, Next } from "./kit";
+import { EndCta } from "./bands";
 import { HowItWorks } from "../how/HowItWorks";
 import { InstallSpots } from "../how/InstallSpots";
 import { PriceBuilder } from "@/components/homepage/PriceBuilder";
@@ -27,6 +28,15 @@ import { copFor } from "@/lib/tools/hotWaterSavings";
  * pages (homepage/data.ts and learn.ts), so the three can't drift apart.
  */
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+/**
+ * The page title with its last word in the accent, as every other page header
+ * sets one word apart (the homepage's "Every job."). "Split system" reads
+ * "Split *system*"; a one-word name is coloured whole.
+ */
+function accentLast(label: string) {
+  const i = label.lastIndexOf(" ");
+  return i < 0 ? <em>{label}</em> : <>{label.slice(0, i + 1)}<em>{label.slice(i + 1)}</em></>;
+}
 /** Systems whose page gets the hands-on zoning house. */
 // No zones section on the Dominator's page (Jake, Nov 2026): it reuses whatever ducts the house has.
 const ZONED = new Set(["ducted", "reverse-cycle-ducted", "zoning"]);
@@ -54,7 +64,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
     <div className="ag ag--flat" data-no-reveal>
       <Crumbs trail={[{ name: cat.label, href: `/?find=${cat.id}#find` }, { name: sys.label }]} back={{ label: "Find yours in a few taps →", href: `/?find=${sys.slug}#find` }} />
       <Hero
-        eye={cat.label} title={sys.label} sub={SYS_INTRO[sys.slug] ?? sys.sub}
+        eye={cat.label} title={accentLast(sys.label)} sub={SYS_INTRO[sys.slug] ?? sys.sub}
         img={hero.src} imgAlt={hero.alt} scene={!hero.studio} pos={hero.pos} show={HERO_SHOW[sys.slug]} ctas={false}
         facts={[
           from != null
@@ -230,7 +240,8 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
         </div>
       </section>
 
-      <Cta title={`Ready to talk about a ${lower}?`} />
+      {/* The homepage's closing box, as every inside page ends: it was a full-width flat orange band. */}
+      <EndCta title={<>Ready to talk about a <span>{lower}</span>?</>} />
     </div>
   );
 }

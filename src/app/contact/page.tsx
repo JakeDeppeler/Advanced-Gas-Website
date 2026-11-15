@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { site, openingHoursShort } from "@/lib/site";
 import { ContactForm } from "@/components/ContactForm";
 import { Crumbs, Hero, Head, Next } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
@@ -67,6 +68,15 @@ export default function ContactPage() {
           ]} />
         </div>
       </section>
+
+      {/* The homepage's closing box. The quote form is already on this page,
+          so its main button goes back up to the form rather than off to /quote. */}
+      <EndCta
+        title={<>Rather we <span>call you</span>?</>}
+        text="Leave your number on the form and we'll come back within 12 business hours, with the VEU rebate worked in where it applies."
+        from="contact-cta"
+        cta={{ href: "#form", label: "Back to the form ↑" }}
+      />
     </div>
   );
 }

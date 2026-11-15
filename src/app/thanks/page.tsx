@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { openingHours, site } from "@/lib/site";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -74,6 +75,15 @@ export default function ThanksPage() {
           <p className="qpg__more">In the meantime: <Link href="/about">meet the team</Link>, read <Link href="/reviews">what locals say</Link>, or <Link href="/rebates">check the rebate</Link>.</p>
         </div></div>
       </section>
+
+      {/* The homepage's closing box, as every inside page ends. The request is
+          already in, so it offers the team rather than another quote. */}
+      <EndCta
+        title={<>Rather talk it <span>through now</span>?</>}
+        text={`Office hours are ${openingHours()}. After hours goes to someone on the tools.`}
+        from="thanks-cta"
+        cta={{ href: "/about", label: "Meet the team →" }}
+      />
     </div></div>
   );
 }
