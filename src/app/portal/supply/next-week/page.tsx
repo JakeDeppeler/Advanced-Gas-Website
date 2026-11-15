@@ -2,7 +2,7 @@ import { getSettings } from "@/lib/portal/db";
 import { loadFromStock, loadStocked } from "@/lib/ordering/stocked";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { NextWeekOrders, type LaterJob, type UnbookedSale } from "@/components/portal/NextWeekOrders";
@@ -94,7 +94,7 @@ function laterJobs(lines: OrderLine[], suppliers: Supplier[], taken: Set<string>
 export default async function NextWeekPage({ searchParams }: { searchParams: { week?: string; tab?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Supply" forWhom="the office" />;
 
   // Sent is its own tab now, every order that's gone, by supplier.
   if (searchParams?.tab === "sent") redirect("/portal/supply/sent");

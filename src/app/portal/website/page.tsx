@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { dbConfigured, listWebLeads, pageViews, type PageViews } from "@/lib/portal/db";
@@ -33,7 +33,7 @@ export const metadata = { title: "Website · Team portal" };
 export default async function WebsitePage({ searchParams }: { searchParams: { tab?: string; win?: string; f?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Website" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Website" forWhom="the office" />;
 
   const def = websiteTabDef(searchParams.tab);
   const tab: WebsiteTab = def.k;
