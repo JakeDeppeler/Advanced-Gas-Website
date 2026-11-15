@@ -67,9 +67,15 @@ export function tanksOf(sysSlug: string, tierSlug: string): Tank[] {
  * The tank we'd recommend from an option: the smallest that covers the
  * showers from a full tank with a quarter to spare, since the kitchen,
  * dishwasher and laundry draw on it too; failing that the smallest that
- * covers them with the reheat; failing that its biggest. A family of four
- * on 8-minute showers is 32 minutes, and a 160 L tank's 32 would leave
- * nothing for the rest of the house.
+ * covers them from a full tank alone; then the smallest that covers them
+ * with the reheat; failing that its biggest. A family of four on 8-minute
+ * showers is 32 minutes, and a 160 L tank's 32 would leave nothing for the
+ * rest of the house.
+ *
+ * The full-tank step comes before the reheat one so a range that has a
+ * bigger tank shows it (Jake, Nov 2026): six people on long showers is 72
+ * minutes, which the Reclaim split's 315 L only reaches with the reheat
+ * running and its 400 L covers from full.
  */
 export const SPARE = 1.25;
 export function tankFor(sysSlug: string, tierSlug: string, need: number, min = 0): (Tank & { m: { low: number; high: number }; fit: Fit }) | null {
@@ -79,7 +85,7 @@ export function tankFor(sysSlug: string, tierSlug: string, need: number, min = 0
   // 270–300 L), so the shower maths can only push the size up from it.
   const big = every.filter((t) => t.litres >= min);
   const all = big.length ? big : every.slice(-1);
-  return all.find((t) => t.m.low >= need * SPARE) ?? all.find((t) => t.fit !== "short") ?? all[all.length - 1];
+  return all.find((t) => t.m.low >= need * SPARE) ?? all.find((t) => t.fit === "plenty") ?? all.find((t) => t.fit === "reheat") ?? all[all.length - 1];
 }
 
 /** The hot water systems that keep a tank, for the size check. */

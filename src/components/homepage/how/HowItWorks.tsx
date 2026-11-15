@@ -953,14 +953,19 @@ function EvapScene() {
  * The all-in-one heat pump at home (Jake, Nov 2026: "the heat pump need to be
  * small compared to the house and the house need to be a house"): a whole
  * single-storey house, its bathroom cut away to show the shower and basin,
- * and the heat pump beside it at its real size, a little under door height,
- * on a slab. Warm air is drawn in on the right and cooled air blown out on
- * the left as moving airflow; heat goes down a copper coil into a tank that
- * runs from cold blue at the bottom to hot at the top; hot water is piped
- * across to the taps and cold mains come in at the bottom.
+ * and the heat pump at its real size, a little under door height, on a slab.
+ *
+ * Then (Jake, Nov 2026: "make the water pipe come from the room and put the
+ * heat pump next to the house") the bathroom moved to the end wall and the
+ * heat pump up against it, so the hot water leaves the tank straight through
+ * the wall into the room rather than crossing the yard and the brickwork.
+ * With the house hard against its left side, the cooled air goes up out of
+ * the top and away; warm air is still drawn in from the right. Heat goes
+ * down a copper coil into a tank that runs from cold blue at the bottom to
+ * hot at the top, and cold mains come in at the bottom.
  *
  * The sun powers it: by day the panels on the roof light up and power runs
- * down the wall, through the inverter, to the heat pump. "Run when power is
+ * down the roof to the inverter on the end wall, and across to the heat pump. "Run when power is
  * cheap" is a day going round: the sun rises, arcs over and sets, then night
  * falls; the power stops, the airflow and the coil go quiet, and it's off, or
  * on off-peak. One 12-second loop, every part on the same key times. With
@@ -975,7 +980,7 @@ function AioScene() {
   const u = useU();
   const id = (n: string) => `${p}-aio-${n}`;
   // The unit, to the house's scale: 88 tall against a 96 door, on a slab at the ground.
-  const X = 484, W = 38, headY = 258, tankY = 282, tankB = 346;
+  const X = 400, W = 38, headY = 258, tankY = 282, tankB = 346;
   const cx = X + W / 2;
   // The coil: a helix down the middle of the tank, front strands over back.
   const turns = 6, top = tankY + 8, bottom = tankB - 10, rw = 6;
@@ -985,10 +990,10 @@ function AioScene() {
   const coilPath = `M${cx} ${tankY - 2} V${top} ${Array.from({ length: turns }, (_, k) => `L${cx + (k % 2 ? -rw : rw)} ${top + (k + 0.5) * step}`).join(" ")} L${cx} ${bottom}`;
   const ay = headY + 12;
   // Airflow, sized to the small unit: three ribbons drawn in from the right
-  // into the head's fins, three blown out of the fan side into the gap
-  // between the unit and the house, fanning up as they go.
+  // into the head's fins, and three blown up out of the top. They start
+  // right of the gutter's end (x 410) so they clear the eaves.
   const warm = [246, 266, 286].map((y0, i) => `M598 ${y0} C562 ${y0} 548 ${ay - 6 + i * 6} ${X + W + 1} ${ay - 6 + i * 6}`);
-  const cool = [236, 252, 268].map((y1, i) => `M${X - 1} ${ay - 6 + i * 6} C${X - 22} ${ay - 6 + i * 6} 440 ${y1} 408 ${y1}`);
+  const cool = [[412, 202, 468], [420, 216, 478], [428, 230, 488]].map(([x0, y1, x1], i) => `M${x0} ${headY - 1} C${x0 + i} ${headY - 23 + i * 9} ${x0 + 20 + i * 4} ${y1 + 10} ${x1} ${y1}`);
   // The sun's arc: up from behind the house, over the roof, and down off the right.
   const arc = "M-40 240 Q300 -160 640 240";
   // The roof: a hip seen from the front, eaves at 236, ridge at 150; its two edges at height y.
@@ -996,7 +1001,7 @@ function AioScene() {
   // Solar panels on the roof, two rows of four, and the line the power takes:
   // down the roof and the wall to the inverter, then along to the heat pump.
   const panels = [160, 186].flatMap((py) => [0, 1, 2, 3].map((k) => [238 + k * 26, py] as const));
-  const power = ["M340 208 H352 L372 236 V312", `M364 336 V340 H${X}`];
+  const power = ["M340 208 H352 L377 236 V250", `M386 266 H${X}`];
   // Fan blades, turned by SMIL so they can stop at night with everything else.
   const fx = X + 11, fr = 7.5;
   const blade = `M${fx} ${ay} C${fx + fr * 0.18} ${ay - fr * 0.35} ${fx + fr * 0.42} ${ay - fr * 0.86} ${fx + fr * 0.05} ${ay - fr * 0.92} C${fx - fr * 0.32} ${ay - fr * 0.88} ${fx - fr * 0.24} ${ay - fr * 0.34} ${fx} ${ay}Z`;
@@ -1016,7 +1021,7 @@ function AioScene() {
           <stop offset="1" stopColor="#2CC4F5" />
         </linearGradient>
         <linearGradient id={id("warm")} gradientUnits="userSpaceOnUse" x1="598" y1="0" x2={X + W} y2="0"><stop offset="0" stopColor="#FFB070" /><stop offset="1" stopColor="#F04FA6" /></linearGradient>
-        <linearGradient id={id("cool")} gradientUnits="userSpaceOnUse" x1={X} y1="0" x2="408" y2="0"><stop offset="0" stopColor="#1FA9E6" /><stop offset="1" stopColor="#A9E4FB" /></linearGradient>
+        <linearGradient id={id("cool")} gradientUnits="userSpaceOnUse" x1="0" y1={headY} x2="0" y2="200"><stop offset="0" stopColor="#1FA9E6" /><stop offset="1" stopColor="#A9E4FB" /></linearGradient>
         <linearGradient id={id("shell")} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#D9DEE6" /><stop offset=".5" stopColor="#F7F9FB" /><stop offset="1" stopColor="#C9D0DA" /></linearGradient>
         <linearGradient id={id("night")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0A1240" /><stop offset="1" stopColor="#24346E" /></linearGradient>
         <radialGradient id={id("sunGlow")}><stop offset="0" stopColor="#FFD65A" stopOpacity=".55" /><stop offset="1" stopColor="#FFD65A" stopOpacity="0" /></radialGradient>
@@ -1058,10 +1063,10 @@ function AioScene() {
       <rect x="133" y="302" width="26" height="40" rx="2" fill="#8C5A3C" />
       <circle cx="157" cy="304" r="2.2" fill="#F2C46B" />
       <rect x="120" y="347" width="52" height="5" rx="1" fill="#D2CEC6" />
-      <Room x={206} y={240} w={124} h={110} tiles />
-      <rect x="204.5" y="238.5" width="127" height="111.5" fill="none" stroke="#8A5A44" strokeWidth="3" />
-      <Vanity x={222} y={306} />
-      <Shower x={318} y={254} />
+      <Room x={232} y={240} w={128} h={110} tiles />
+      <rect x="230.5" y="238.5" width="131" height="111.5" fill="none" stroke="#8A5A44" strokeWidth="3" />
+      <Vanity x={246} y={306} />
+      <Shower x={352} y={254} />
 
       {/* the roof: tiles, the ridge, the gutter, and the panels on it */}
       <path d="M14 236 L92 150 H336 L406 236 Z" fill="#A9573D" />
@@ -1076,7 +1081,7 @@ function AioScene() {
         {panels.map(([px, py]) => <rect key={`${px}-${py}`} x={px} y={py} width="24" height="22" rx="1.5" fill="#CFE2FF" fillOpacity=".25" stroke="#FFC229" strokeWidth="2" />)}
       </g>
 
-      {/* the power: down the roof and the wall to the inverter, then along to the heat pump; it flows by day */}
+      {/* the power: down the roof to the inverter on the end wall, then across to the heat pump; it flows by day */}
       {power.map((d) => <path key={d} d={d} stroke="#8A97AB" strokeWidth="2.5" fill="none" strokeLinejoin="round" />)}
       <g opacity={motion ? 0 : 1}>
         {cycle("0;1;1;0;0;0")}
@@ -1088,12 +1093,12 @@ function AioScene() {
           </g>
         ))}
       </g>
-      <rect x="354" y="312" width="22" height="26" rx="3" fill="#F4F4F2" stroke="#B9BEC5" strokeWidth="1.4" />
-      <path d="M366 316 L359 326 H365 L363 334 L371 323 H365 Z" fill="#F2B705" />
+      <rect x="366" y="250" width="20" height="24" rx="3" fill="#F4F4F2" stroke="#B9BEC5" strokeWidth="1.4" />
+      <path d="M377 253 L370 263 H376 L374 271 L382 260 H376 Z" fill="#F2B705" />
 
-      {/* hot water across to the shower and the basin tap; cold mains in at the bottom */}
-      <Pipe d={`M${X} 300 H318 V254`} c={C.water} w={6} />
-      <Pipe d="M318 300 H258 V294" c={C.water} w={5} n={3} />
+      {/* hot water out of the tank, through the wall into the bathroom, to the shower and the basin tap; cold mains in at the bottom */}
+      <Pipe d={`M${X} 300 H352 V254`} c={C.water} w={6} />
+      <Pipe d="M352 300 H282 V294" c={C.water} w={5} n={3} />
       <Pipe d={`M600 340 H${X + W}`} c={C.cold} w={6} />
 
       {/* airflow: warm air drawn in on the right, cooled air blown out on the left; it goes quiet at night */}
@@ -1156,10 +1161,10 @@ function AioScene() {
         </g>
       )}
 
-      <Label x={cx} y={236}>Heat pump</Label>
-      <Label x={590} y={206} anchor="end">Warm air in</Label>
-      <Label x={444} y={202}>Cooled air out</Label>
-      <Label x={414} y={290}>Hot to the taps</Label>
+      <Label x={X + W + 10} y={322} anchor="start">Heat pump</Label>
+      <Label x={590} y={230} anchor="end">Warm air in</Label>
+      <Label x={472} y={186}>Cooled air out</Label>
+      <Label x={296} y={376}>Hot to the taps</Label>
       <Label x={588} y={372} anchor="end">Cold mains in</Label>
     </>
   );
@@ -1282,8 +1287,8 @@ const S = {
   // On the house with the heat pump beside it: the whole unit, the head with the air in and out,
   // the tank and the pipe to the taps, then the solar: the chip, the panels and the power line down to the unit.
   // The first box of each step carries its number, so it's the one clear of the labels.
-  aio: [[[478, 254, 50, 98]], [[402, 228, 84, 50], [482, 254, 42, 30], [522, 238, 78, 52]], [[314, 292, 170, 16], [482, 280, 42, 68]], [[30, 8, 174, 34], [232, 102, 116, 110], [350, 226, 136, 122]]],
-  hp: [[[402, 228, 84, 50], [522, 238, 78, 52]], [[482, 254, 42, 30]], [[482, 280, 42, 68]], [[30, 8, 174, 34], [232, 102, 116, 110], [350, 226, 136, 122]]],
+  aio: [[[394, 254, 50, 98]], [[404, 192, 96, 66], [398, 254, 42, 30], [440, 238, 160, 56]], [[276, 290, 126, 18], [398, 280, 42, 68]], [[30, 8, 174, 34], [233, 155, 110, 58], [336, 198, 70, 84]]],
+  hp: [[[404, 192, 96, 66], [440, 238, 160, 56]], [[398, 254, 42, 30]], [[398, 280, 42, 68]], [[30, 8, 174, 34], [233, 155, 110, 58], [336, 198, 70, 84]]],
   co2: [[[198, 96, 88, 260], [372, 236, 196, 120]], [[372, 236, 196, 120]], [[270, 112, 140, 226]], [[430, 18, 140, 160]]],
   gascf: [[[100, 100, 70, 60]], [[292, 92, 126, 176]], [[110, 66, 280, 52]], [[310, 210, 96, 50]]],
   gasstorage: [[[254, 82, 112, 232]], [[254, 298, 112, 56]], [[364, 96, 26, 206]], [[294, 28, 32, 72], [354, 280, 70, 20], [354, 320, 70, 20], [196, 106, 70, 22]]],

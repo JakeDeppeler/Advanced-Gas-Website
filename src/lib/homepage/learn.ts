@@ -59,6 +59,8 @@ export const LEARN: Record<string, Learn> = {
     ],
     alt: [
       { if: "the ducts are damaged or too small to reuse", go: "reverse-cycle-ducted", label: "Ducted split" },
+      // Zoned, a Dominator needs six vents open at once (Jake, Nov 2026); a standard ducted split runs down to one.
+      { if: "you want to run a single room on its own", go: "reverse-cycle-ducted", label: "Ducted split" },
       { if: "you'd rather stay on gas", go: "gas-ducted-heating", label: "Gas ducted heating" },
     ],
   },
@@ -266,7 +268,7 @@ export const SYS_INTRO: Record<string, string> = {
   "multi-head": "A multi-head system runs two or more indoor units off one outdoor unit. Each room gets its own head and its own remote, with only one box on the outside wall.",
   ducted: "A ducted split heats and cools the whole house from one unit hidden in the roof. Air comes out of slim vents in the ceiling, and zones let you run only the rooms you're using.",
   "reverse-cycle-ducted": "A ducted split heats the whole house in winter and cools it in summer, from one unit hidden in the roof. It takes its heat from the outside air, so there's no gas, and zones let you run only the rooms you're using.",
-  dominator: "The Braemar Dominator is the one system we fit that keeps the ductwork your gas ducted heating already has. It goes in the gas heater's own spot, on the same ducts and vents, and gives the house reverse-cycle heating and cooling, all electric, usually in a day. A ducted split means pulling the old ductwork out, inside and out, and running new.",
+  dominator: "The Braemar Dominator is a ducted split in a different form: the one system we fit that keeps the ductwork your gas ducted heating already has. It goes in the gas heater's own spot, on the same ducts and vents, and gives the house reverse-cycle heating and cooling, all electric, usually in a day. A standard ducted split means pulling the old ductwork out, inside and out, and running new.",
   evaporative: "An evaporative cooler sits on the roof and cools the house with outside air drawn through water-soaked pads. It's the cheapest way to cool a whole home on dry, hot days.",
   "gas-ducted-heating": "Gas ducted heating warms the whole house from one heater, pushing warm air through ducts to a vent in each room. It's quick, even warmth through a Victorian winter.",
   zoning: "Zoning splits a ducted system into areas you can turn on and off, so you heat or cool the rooms you're in instead of the whole house.",
@@ -302,8 +304,8 @@ export const SYS_PROS: Record<string, { pros: string[]; cons: string[] }> = {
     cons: ["Replacing gas ducted? The old ductwork comes out, inside and out, and new goes in", "Needs a usable roof space", "Usually two to three days to install"],
   },
   dominator: {
-    pros: ["Keeps the ducts and vents you already have: no new ductwork", "Off gas, with the VEU rebate for making the switch", "Heats and cools from one system", "Less work in the house: usually a one-day changeover"],
-    cons: ["Only suits ducts that are sound and the right size, so we check them first", "Needs room outside for an outdoor unit", "Costs more upfront than another gas heater"],
+    pros: ["Keeps the ducts and vents you already have: no new ductwork", "Off gas, with the VEU rebate for making the switch", "Heats and cools from one system, and zones like any ducted split", "Less work in the house: usually a one-day changeover"],
+    cons: ["Only suits ducts that are sound and the right size, so we check them first", "Zoned, it needs at least six vents open at a time; a standard ducted split can run just one", "Needs room outside for an outdoor unit", "Costs more upfront than another gas heater"],
   },
   "gas-ducted-heating": {
     pros: ["Fast, even warmth in every room", "Strong on the coldest nights", "Usually reuses the ducts and vents already there"],
@@ -610,7 +612,7 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   },
   "Braemar Dominator Series 3": {
     pros: ["Keeps your existing ducts and vents: the only system we fit that does", "Heating and cooling from one electric system, with the VEU rebate", "Australian designed, made and owned (Seeley International)", "Usually done in a day"],
-    cons: ["The ducts have to be sound and sized right to reuse", "Costs more upfront than a gas heater swap"],
+    cons: ["The ducts have to be sound and sized right to reuse", "Zoned, it needs at least six vents open at a time; a standard ducted split can run just one", "Costs more upfront than a gas heater swap"],
   },
   "Brivis Classic Wombat 3-star": {
     pros: ["The lowest upfront cost for gas ducted heating", "Usually a straight swap into the same spot", "CO safety test on every install"],

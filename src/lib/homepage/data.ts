@@ -270,7 +270,7 @@ export type Tier = {
   same?: string;
 };
 
-export type FaqKey = "split" | "multi" | "ducted" | "evap" | "hp" | "gashw" | "gasheat" | "zone";
+export type FaqKey = "split" | "multi" | "ducted" | "dominator" | "evap" | "hp" | "gashw" | "gasheat" | "zone";
 
 export type System = {
   slug: string;
@@ -355,7 +355,7 @@ const DOMINATOR: System = sys({ slug: "dominator", home: "heat", label: "Braemar
   q: "How big is the home?", sizes: [
     { label: "Smaller home", sub: "Usually 3 bedrooms", spec: "12.1 kW", n: 1 },
     { label: "Larger home", sub: "4 bedrooms or more", spec: "17.9 kW", n: 2 },
-  ], faq: "ducted", service: "ducted", more: [QB.storeys, QB.vents], tiers: [
+  ], faq: "dominator", service: "ducted", more: [QB.storeys, QB.vents], tiers: [
     t("essential", "Braemar", "Dominator Series 3", IMG.dominator, ["Keeps your existing ducts and vents", "Heats and cools, all electric", "VEU rebate for coming off gas"], null),
   ] });
 
@@ -795,7 +795,10 @@ export function installTime(s: System) {
   // Two technicians, one day, on the ducts already there (our quote wording).
   if (s.slug === "dominator") return "Usually one day for a changeover on your existing ducts";
   if (s.faq === "ducted") return "Usually 2–3 days for a retrofit";
-  if (s.faq === "hp") return "Usually one day for a like-for-like swap";
+  // Jake, Nov 2026: any change-over to a heat pump is 2–4 hours on site; an
+  // old electric tank up in the roof takes 4–6. The tiles keep the part
+  // before "for", so they read "2–4 hrs" and the exception goes in full text.
+  if (s.faq === "hp") return "Usually 2–4 hours for a swap (4–6 hours from an old electric tank in the roof)";
   if (s.faq === "gashw") return "Same day on common models";
   return "Confirmed at your free site check";
 }
@@ -847,6 +850,14 @@ export const PRODUCT_FAQS: Record<FaqKey, QA[]> = {
     qa("How long does the install take?", "Usually a full day, depending on how many rooms and how far the pipe runs go."),
     qa("What's the warranty?", "The manufacturer's warranty on the unit, 6 years on our workmanship, and a compliance certificate within 24 hours."),
   ],
+  // Its own, not the ducted split's: a changeover on the ducts already there
+  // is a day, not a 2–3 day retrofit, and zoned it needs six vents open.
+  dominator: [
+    qa("How long does the install take?", "Usually one day for a changeover on your existing ducts, once we've checked them at the site visit."),
+    qa("Can I keep my ducts?", "Often, yes. Braemar says the existing ductwork and vents can often be kept, with changes where they're needed. We check them at the site visit before we commit to them."),
+    qa("Can I heat or cool only some rooms?", "Yes. It's a ducted split in a different version, and it can be zoned like one. The difference is that a zoned Dominator needs at least six vents open at a time, where a standard ducted split can run a single vent."),
+    qa("What's the warranty?", "Five years from Braemar, comprehensive, 6 years from us on the workmanship, and a compliance certificate within 24 hours."),
+  ],
   ducted: [
     qa("How long does the install take?", "A full ducted retrofit is usually 2–3 days. We design the duct layout first, room by room."),
     qa("What if my roof space is tight?", "We look at it on the site visit. Low or flat roofs can change the unit and duct options, and we'll tell you straight if something won't fit."),
@@ -861,7 +872,7 @@ export const PRODUCT_FAQS: Record<FaqKey, QA[]> = {
   ],
   hp: [
     qa("How much is the VEU rebate, really?", "It depends on your existing hot water unit, your home and the new unit going in. We apply it at the quote stage so you don't pay it then claim it back."),
-    qa("How long does the install take?", "A like-for-like heat pump swap is usually one day, with the old unit removed."),
+    qa("How long does the install take?", "Usually 2–4 hours on site to swap to a heat pump, from gas or electric, with the old unit taken away. Replacing an old electric tank that sits in the roof takes longer, usually 4–6 hours."),
     qa("Can it run off my solar?", "Yes. Most heat pumps can be set to heat during the day while your panels are producing."),
     qa("What's the warranty?", "The manufacturer's warranty on the unit (typically 6–10 years on the tank), 6 years on our workmanship, and a compliance certificate within 24 hours."),
   ],
@@ -888,7 +899,7 @@ export const PRODUCT_FAQS: Record<FaqKey, QA[]> = {
 
 /** Which reviews read as being about this kind of job. */
 export const REVIEW_MATCH: Record<FaqKey, RegExp> = {
-  split: /split/i, multi: /split|multi/i, ducted: /ducted/i, evap: /ducted|split/i,
+  split: /split/i, multi: /split|multi/i, ducted: /ducted/i, dominator: /ducted/i, evap: /ducted|split/i,
   hp: /heat pump/i, gashw: /hot water|heat pump/i, gasheat: /ducted/i, zone: /ducted/i,
 };
 
@@ -1022,7 +1033,7 @@ export const HOME_FAQS: (QA & { finance?: boolean })[] = [
   qa("How much is the VEU rebate, really?", "It depends on your existing hot water unit, your home and the new unit going in. We apply it at the quote stage so you don't pay it then claim it back, and give you the exact number after a 20-minute site check."),
   qa("Is the quote fixed?", "It's in writing, and it only changes if the job does. If we open a wall or a roof space and find something the site check couldn't show, we stop, price the difference and get your approval before going on."),
   { ...qa("Can I pay it off?", "Yes. Finance is available, subject to approval, over terms from 12 to 60 months. We'll show you the weekly figure alongside the installed price on your quote."), finance: true },
-  qa("How long does an install actually take?", "A like-for-like heat pump swap is usually one day. A new split is half a day. A full ducted retrofit is 2–3 days."),
+  qa("How long does an install actually take?", "A heat pump swap is usually 2–4 hours, or 4–6 from an old electric tank in the roof. A new split is half a day. A full ducted retrofit is 2–3 days."),
   qa("Do you do emergencies on weekends?", "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to someone on the tools, not an overseas call centre."),
   qa("What's the warranty?", "Manufacturer warranty on the unit (typically 6–10 years on the tank), 6 years on our workmanship, and a compliance certificate emailed within 24 hours of install."),
 ];

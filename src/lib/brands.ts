@@ -3463,7 +3463,7 @@ const brandCatalogue: Brand[] = [
       "Replaces a ducted gas heater in the same position, on the existing ducts and vents",
       "Reverse-cycle heating and cooling, all electric",
       "Internal (ceiling or under-floor) and external models",
-      "XE7C wall controller with Wi-Fi built in; zoning up to 8 zones",
+      "XE7C wall controller with Wi-Fi built in; zoning up to 8 zones, with at least six vents open at a time",
       "Australian designed, made and owned",
     ],
     commonInMelbourne:
@@ -3504,7 +3504,7 @@ const brandCatalogue: Brand[] = [
     ],
     faqs: [
       { q: "Can I really keep my ducts?", a: "Often, yes. Braemar says the existing ductwork and vents can often be retained, with changes where they're needed. We check them at the site visit before we commit to them." },
-      { q: "Why not a ducted split?", a: "A ducted split means taking the old ductwork out, inside and out, and running new. The Dominator goes on the ducts you have, so there's less work in the house." },
+      { q: "Isn't it just a ducted split?", a: "It is a ducted split, in a different version: built to go on the ducts a gas ducted house already has. A standard ducted split means taking the old ductwork out, inside and out, and running new, so the Dominator is less work in the house. Both can be zoned. The difference is that a zoned Dominator needs at least six vents open at a time, where a standard ducted split can run a single vent." },
       { q: "Does it replace my brand of gas heater?", a: "Braemar designed it to replace any brand of ducted gas heater, in the same position." },
       { q: "Does it cool as well?", a: "Yes. It's reverse cycle: 11.6 kW or 16.5 kW of cooling, depending on the model." },
       { q: "What warranty comes with it?", a: "Five years from Braemar, comprehensive, and six years from us on the workmanship." },
