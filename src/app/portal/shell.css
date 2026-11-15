@@ -4052,3 +4052,61 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .mk-fall td:first-child { grid-column: 1 / 3; }
   .mk-round { margin-left: 0; }
 }
+
+/* ------------------------------------------------- today: what needs fixing, and how */
+.pk-fix { margin-top: 16px; }
+.pk-fix-list { list-style: none; margin: 0; padding: 0; }
+.pk-fix-list > li { border-top: 1px solid var(--line); }
+.pk-fix-list > li:first-child { border-top: 0; }
+.pk-fix details > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 12px 0; cursor: pointer; }
+.pk-fix details > summary::-webkit-details-marker { display: none; }
+.pk-fix details > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.pk-fix details > summary .pk-st { flex: 0 0 auto; min-width: 104px; justify-content: center; }
+.pk-fix-t { flex: 1; min-width: 0; line-height: 1.3; }
+.pk-fix-t b { display: block; font-weight: 700; text-wrap: balance; }
+.pk-fix-t span { display: block; font-size: 12.5px; color: var(--ink3); }
+.pk-fix-chev { color: var(--ink3); font-size: 18px; transition: transform .15s; }
+.pk-fix details[open] .pk-fix-chev { transform: rotate(90deg); }
+.pk-fix-body { padding: 0 0 14px 116px; display: grid; gap: 8px; font-size: 14px; line-height: 1.5; color: var(--ink2); max-width: 92ch; }
+.pk-fix-body p { margin: 0; }
+.pk-fix-body ol { margin: 0; padding-left: 22px; list-style: decimal; color: var(--ink); display: grid; gap: 4px; }
+.pk-fix-body ol li::marker { color: var(--ink3); font-weight: 700; }
+.pk-fix-go { justify-self: start; font-weight: 700; font-size: 13.5px; color: var(--accent); text-decoration: none; }
+.pk-fix-go:hover { text-decoration: underline; }
+@media (prefers-reduced-motion: reduce) { .pk-fix-chev { transition: none; } }
+@media (max-width: 640px) {
+  .pk-fix details > summary { flex-wrap: wrap; gap: 6px 10px; }
+  .pk-fix details > summary .pk-st { min-width: 0; }
+  .pk-fix-t { flex-basis: calc(100% - 30px); order: 2; }
+  .pk-fix-chev { order: 1; margin-left: auto; }
+  .pk-fix-body { padding-left: 0; }
+}
+
+/* ------------------------------------------------- hours: where the day goes */
+.ds { padding: 20px 22px; display: grid; gap: 10px; }
+.ds { --ds-on: color-mix(in srgb, var(--ink) 86%, transparent); --ds-drive: color-mix(in srgb, var(--ink) 52%, transparent); --ds-gap: color-mix(in srgb, var(--ink) 24%, transparent); --ds-off: var(--quiet); }
+.ds-key { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12.5px; color: var(--ink2); }
+.ds-key > span { display: inline-flex; align-items: center; gap: 6px; }
+.ds-key i { width: 16px; height: 10px; border-radius: 3px; display: block; }
+.ds-on { background: var(--ds-on); }
+.ds-drive { background: var(--ds-drive); }
+.ds-gap { background: var(--ds-gap); }
+.ds-off { background: repeating-linear-gradient(135deg, var(--ds-off) 0 4px, transparent 4px 7px); box-shadow: inset 0 0 0 1px var(--line); }
+.ds-key .ds-aimkey { width: 2px; height: 14px; border-radius: 0; background: var(--accent); }
+.ds-t { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ds-t th, .ds-t td { padding: 10px 10px; text-align: right; border-top: 1px solid var(--rp-line); white-space: nowrap; }
+.ds-t thead th { border-top: 0; font-size: 11.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink2); }
+.ds-t th:first-child, .ds-t td:nth-child(2), .ds-t thead th:nth-child(2) { text-align: left; }
+.ds-t tbody th { font-weight: 600; }
+.ds-t tbody th span { display: block; font-size: 12px; font-weight: 400; color: var(--ink3); }
+.ds-t .ds-wide { width: 34%; min-width: 220px; text-align: left; }
+.ds-crew th, .ds-crew td { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.ds-flag { display: block; font-size: 11.5px; font-weight: 700; color: var(--mid); }
+.ds-bar { position: relative; display: flex; height: 16px; border-radius: 4px; overflow: visible; background: transparent; }
+.ds-bar > i { display: block; height: 100%; }
+.ds-bar > i:first-child { border-radius: 4px 0 0 4px; }
+.ds-bar > i:last-of-type { border-radius: 0 4px 4px 0; }
+.ds-aim { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--accent); }
+.ds-fix { padding: 12px 16px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 4%, transparent); font-size: 14px; line-height: 1.5; }
+.ds-fix ol { margin: 6px 0 0; padding-left: 22px; list-style: decimal; display: grid; gap: 4px; max-width: 100ch; }
+@media (max-width: 640px) { .ds { padding: 16px; } }

@@ -16,6 +16,8 @@ import { personDays } from "@/lib/portal/cover/days";
 import { coverBase } from "@/lib/portal/cover/load";
 import { dbConfigured } from "@/lib/portal/db";
 import { Icon } from "@/components/portal/shell/Menu";
+import { fixesNow } from "@/lib/portal/fixes";
+import { FixList } from "@/components/portal/FixList";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Today · Team portal" };
@@ -52,7 +54,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
   if (searchParams.tab === "team") redirect("/portal/jobs");
   const tab = searchParams.tab === "calls" ? "calls" : "overview";
   const isoMonth = new Date(Date.now() + 10 * 3_600_000).toISOString().slice(0, 7);
-  const [board, lines, points, calls, track, crew, hour] = await Promise.all([
+  const [board, lines, points, calls, track, crew, hour, fixes] = await Promise.all([
     latestBoard(),
     needsToday(user).catch(() => []),
     tab === "overview" ? soldTodayPoints() : Promise.resolve([] as [number, number][]),
@@ -62,6 +64,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
     // How the crew worked this week: billed work a day against the hours we bill on.
     tab === "overview" && dbConfigured() ? personDays(7, 8).catch(() => null) : Promise.resolve(null),
     tab === "overview" ? coverBase().catch(() => null) : Promise.resolve(null),
+    tab === "overview" && dbConfigured() ? fixesNow().catch(() => []) : Promise.resolve([]),
   ]);
   const m = board?.metrics ?? null;
   const now = melNow();
@@ -220,6 +223,7 @@ export default async function TodayPage({ searchParams }: { searchParams: { tab?
             ) : <><Lh>Needs someone</Lh><Empty>Nothing waiting on anyone.</Empty></>}
           </div>
         </Two>
+        <FixList fixes={fixes} />
       </div>
     </PortalShell>
   );
