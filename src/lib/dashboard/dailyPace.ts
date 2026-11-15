@@ -27,6 +27,7 @@ import { startOfDayMelbourne } from "./dates";
 import { jobClass } from "./pace";
 import { getSettings } from "@/lib/portal/db";
 import {
+  LONGEST_SPAN_HOURS,
   STANDARD_HOURS_KEY,
   normaliseStandardHours,
   techDay,
@@ -46,8 +47,16 @@ type Sheet = {
   canceled_on: string | null;
 };
 
-const hoursBetween = (from: string, to: Date) =>
-  Math.max(0, (to.getTime() - Date.parse(from)) / 3_600_000);
+/**
+ * The hours between arriving and finishing, or null when that is not a
+ * measurement. See LONGEST_SPAN_HOURS: a tech who forgets to tap done leaves a
+ * span of a day and a half, and the page would rather say nothing.
+ */
+const hoursBetween = (from: string, to: Date): number | null => {
+  const h = (to.getTime() - Date.parse(from)) / 3_600_000;
+  if (!(h >= 0) || h > LONGEST_SPAN_HOURS) return null;
+  return h;
+};
 
 
 /**
@@ -118,6 +127,18 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
    * back has two. The hours add up; the job counts must not, or a return visit
    * would read as two jobs on the list.
    */
+  /*
+   * How many techs were on each job today, so the quoted time can be split
+   * between them rather than charged to each of them in full. See PaceJob.crew.
+   */
+  const crewOn = new Map<number, Set<number>>();
+  for (const s of live) {
+    const k = Number(s.job_id);
+    const seen = crewOn.get(k) ?? new Set<number>();
+    seen.add(Number(s.technician_id));
+    crewOn.set(k, seen);
+  }
+
   const byTech = new Map<number, Map<number, PaceJob>>();
   for (const s of live) {
     const t = Number(s.technician_id);
@@ -131,11 +152,14 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
     const usual = j?.job_type ? typical.get(j.job_type) ?? null : null;
     const onNow = !s.done_on;
     const taken = hoursBetween(s.arrived_on as string, s.done_on ? new Date(s.done_on) : now);
+    const crew = Math.max(1, crewOn.get(jid)?.size ?? 1);
 
     const seen = byTech.get(t) ?? new Map<number, PaceJob>();
     const had = seen.get(jid);
     if (had) {
-      had.taken += taken;
+      // Two spans on one job: the measured ones add up, and a span that was not
+      // a measurement cannot make the ones that were into one.
+      if (taken != null) had.taken = (had.taken ?? 0) + taken;
       had.onNow = had.onNow || onNow;
       had.done = had.done && !onNow;
     } else {
@@ -144,8 +168,13 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
         what: j?.job_type ?? "Job",
         where: j?.suburb ?? null,
         taken,
-        quoted: soldHours ?? std ?? usual,
+        // The crew's allowance, split between the crew — but only where it is an
+        // allowance. A job type's standard time is the length of the slot, and a
+        // measured typical time is wall clock: neither shrinks because two men
+        // turned up, so neither is divided.
+        quoted: soldHours != null ? soldHours / crew : std ?? usual,
         quotedFrom: invHours != null ? "invoice" : est != null ? "estimate" : std != null ? "standard" : usual != null ? "typical" : null,
+        crew,
         // Done means this visit finished, not that ServiceTitan has closed the
         // job: the board is read at 5pm, and a job finished at 4 is done for
         // the day whatever its status says in the morning.
@@ -174,16 +203,16 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
   techDays.sort((a, b) => score(a) - score(b) || b.hoursTaken - a.hoursTaken);
 
   const all = techDays.flatMap((t) => t.jobs);
-  const quotedAll = all.filter((x) => x.quoted != null);
+  const quotedAll = all.filter((x) => x.quoted != null && x.taken != null);
   const doneAll = all.filter((x) => x.done);
 
   return {
     day: startOfDayMelbourne(now).toISOString().slice(0, 10),
     techs: techDays,
     team: {
-      hoursTaken: all.reduce((a, x) => a + x.taken, 0),
+      hoursTaken: all.reduce((a, x) => a + (x.taken ?? 0), 0),
       hoursQuoted: quotedAll.length ? quotedAll.reduce((a, x) => a + (x.quoted as number), 0) : null,
-      hoursTakenQuoted: quotedAll.reduce((a, x) => a + x.taken, 0),
+      hoursTakenQuoted: quotedAll.reduce((a, x) => a + (x.taken as number), 0),
       jobsDone: doneAll.length,
       jobsTotal: all.length,
       billedCount: doneAll.filter((x) => x.billed > 0).length,
@@ -191,7 +220,8 @@ export async function dailyPace(now: Date = new Date()): Promise<DailyPace | nul
       billedValue: all.reduce((a, x) => a + x.billed, 0),
       toBillValue: 0,
       toBillCount: doneAll.filter((x) => x.billed <= 0).length,
-      quotedCover: { with: quotedAll.length, of: all.length },
+      // Quoted at all, like TechDay's — see the note there.
+      quotedCover: { with: all.filter((x) => x.quoted != null).length, of: all.length },
     },
   };
 }

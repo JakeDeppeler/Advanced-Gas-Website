@@ -11,7 +11,7 @@ const ok = (name: string, pass: boolean, extra = "") => {
 };
 const job = (p: Partial<PaceJob> & { jobId: number }): PaceJob => ({
   what: "Job", where: null, taken: 1, quoted: null, quotedFrom: null,
-  done: true, billed: 0, onNow: false, ...p,
+  done: true, billed: 0, onNow: false, crew: 1, ...p,
 });
 
 console.log("-- like against like --");
@@ -56,6 +56,42 @@ const none = techDay("Nobody", []);
 ok("no quoted hours", none.hoursQuoted === null);
 ok("no division by zero", none.hoursTakenQuoted === 0 && none.jobsTotal === 0);
 ok("and nothing shown as in progress", none.onNow === null);
+
+console.log("\n-- a forgotten done tap is not a day's work --");
+/*
+ * The real one: a diagnostic on 13 November stamped arrived at one in the
+ * afternoon and done the next morning. The span is 24.8 hours, which put 30.7
+ * hours on one tech's card and scored him 60% behind for it.
+ */
+const forgot = techDay("Chaz", [
+  job({ jobId: 1, taken: 5.9, quoted: 5.67, quotedFrom: "invoice", crew: 3 }),
+  job({ jobId: 2, taken: null, quoted: 1.5, quotedFrom: "standard" }),
+]);
+ok("the unmeasured job carries no hours", Math.abs(forgot.hoursTaken - 5.9) < 0.001, String(forgot.hoursTaken));
+ok("and is named rather than hidden", forgot.untimed === 1);
+ok("it is still on the list and still done", forgot.jobsTotal === 2 && forgot.jobsDone === 2);
+ok("and it is out of the comparison, both halves",
+   forgot.hoursQuoted === 5.67 && Math.abs(forgot.hoursTakenQuoted - 5.9) < 0.001);
+ok("so the dial reads 96%, not the 30% the 24-hour span gave",
+   Math.round((forgot.hoursQuoted! / forgot.hoursTakenQuoted) * 100) === 96);
+
+console.log("\n-- a job three men were on is one job's allowance --");
+/*
+ * The ducted install at Garfield: seventeen hours sold, three men on it. Each
+ * man used to be scored against the whole seventeen, so all three read "Ahead ·
+ * 204%" off a job the crew was in fact over on. dailyPace divides an invoice's
+ * sold hours by the crew; these are the shares it hands out.
+ */
+const shared = [8.35, 5.9, 8.25].map((t, i) => techDay(`T${i}`, [
+  job({ jobId: 301329548, taken: t, quoted: 17 / 3, quotedFrom: "invoice", crew: 3 }),
+]));
+ok("each man is measured against his share", shared.every((t) => Math.abs(t.hoursQuoted! - 5.667) < 0.01));
+ok("so all three read over, where all three used to read 204% ahead",
+   shared.every((t) => t.hoursQuoted! < t.hoursTakenQuoted));
+ok("and the shares add back to the job's quote",
+   Math.abs(shared.reduce((a, t) => a + t.hoursQuoted!, 0) - 17) < 0.001);
+ok("against 22.5 hours the crew actually put in",
+   Math.abs(shared.reduce((a, t) => a + t.hoursTakenQuoted, 0) - 22.5) < 0.001);
 
 console.log("\n-- the standard times the office sets --");
 ok("a sensible number is kept", normaliseStandardHours({ "Service - X": 1.5 })["Service - X"] === 1.5);

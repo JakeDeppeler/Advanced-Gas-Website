@@ -2372,9 +2372,37 @@ by twenty points on a wall the whole office reads.
 
 ## Daily pace — each tech's day on the tools
 
-Fifth in the rotation, between Invoices and Team. Five cards across, one per
+Fifth in the rotation, between Invoices and Crew. Five cards across, one per
 technician, worst first: the point is the person who needs a hand, not a
-leaderboard, so the card the room should look at is the leftmost one.
+leaderboard, so the card the room should look at is the leftmost one. On a day
+more than five were on the tools the subtitle says so ("5 of 6 techs shown") —
+it used to drop the sixth silently while the team line underneath still counted
+them.
+
+**Two wrong numbers came off this page on 15 November**, both found by rendering
+it against a real day (Friday the 13th) rather than against today, which was a
+Sunday with nobody on the tools.
+
+*A forgotten "done" tap is not a day's work.* One diagnostic was stamped arrived
+at 1pm and done the next morning: a 24.8-hour span, which put 30.7 hours on
+Chaz's card and scored him 60% behind for it. A span longer than
+`LONGEST_SPAN_HOURS` (12) is now not a measurement: the job stays on the list
+and still counts as done, carries no hours, and is out of both halves of the
+comparison. The card names it — "1 job not clocked" — because a figure nobody
+recorded is worse than an empty one. The day read 63.8 hours; it was 39.
+
+*A job three men were on is one job's allowance.* The ducted install at Garfield
+was sold at 17 hours with three on it, and each man was being scored against the
+whole 17 — so all three read "▲ Ahead · 204%" off a job the crew was 5.5 hours
+over on. The quoted time is the crew's allowance for the job, so it is now split
+between whoever was on it, and the shares add back to the job's quote. The same
+three now read 68% and 69% behind and 96% on track. Only an invoice's sold hours
+and a sold estimate are divided: a job type's standard time is the length of the
+slot and a measured typical time is wall clock, and neither shrinks because two
+men turned up. (The Crew page judges the same situation differently — the job
+once, on its time on site, with everyone on it carrying the verdict — because it
+is scoring sixty days of jobs rather than splitting one day's hours between
+people. Both exist to stop one job being charged in full to each man on it.)
 
 **Where the data comes from.** `st_jobs` carries no technician and no
 appointment — ServiceTitan's job export sends neither — so every figure is built

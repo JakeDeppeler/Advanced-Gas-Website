@@ -142,9 +142,15 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     if (!d) return "Each tech's day on the tools";
     const cover = d.team.quotedCover;
     const gap = cover.of - cover.with;
-    return `each tech's day on the tools: on time vs quoted, jobs done, billed${
+    // Five cards fit, and the sixth tech used to come off the page without the
+    // page saying so — which on a day the whole crew worked made the team line
+    // ("6 techs") disagree with what was above it.
+    const shown = d.techs.length > 5 ? ` · 5 of ${d.techs.length} techs shown` : "";
+    // The three dials now carry their own labels, so the line no longer lists
+    // them: with the two notes on the end it ran off the header at 1920x1200.
+    return `each tech's day on the tools${
       gap > 0 ? ` · ${gap} of ${cover.of} jobs have no quoted time` : ""
-    }`;
+    }${shown}`;
   },
 };
 
@@ -1952,7 +1958,9 @@ function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) 
                         "nothing quoted to measure"
                   }
                   foot={
-                    noQuote > 0
+                    p.untimed > 0
+                      ? `${p.untimed} ${p.untimed === 1 ? "job" : "jobs"} not clocked${noQuote > 0 ? ` · ${noQuote} not quoted` : ""}`
+                      : noQuote > 0
                       ? `${noQuote} of ${p.quotedCover.of} not quoted · ${hrs(p.hoursTaken)} all up`
                       : p.jobs.some((j) => j.quotedFrom === "typical")
                         ? `${p.jobs.filter((j) => j.quotedFrom === "typical").length} at the usual time for the job type`
@@ -1989,7 +1997,7 @@ function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) 
                 {p.onNow ? (
                   <b>
                     Now · {p.onNow.what}
-                    {p.onNow.where ? `, ${p.onNow.where}` : ""} · {hrs(p.onNow.taken)}
+                    {p.onNow.where ? `, ${p.onNow.where}` : ""} · {p.onNow.taken != null ? hrs(p.onNow.taken) : "not clocked"}
                     {p.onNow.quoted != null ? ` of ${hrs(p.onNow.quoted)}` : ""}
                   </b>
                 ) : (
