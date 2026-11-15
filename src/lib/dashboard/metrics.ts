@@ -1,3 +1,4 @@
+import { computeSectors, type Sectors } from "./sectors";
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
 import { arReport } from "@/lib/portal/ar";
@@ -611,6 +612,12 @@ export type Metrics = {
    * matters from here on, as coverage builds up behind it.
    */
   jobProfitRecent?: ProfitSummary | null;
+  /**
+   * Maintenance, breakdowns, repairs and installs side by side, and what a
+   * maintenance visit or a breakdown led to. Optional so a snapshot written
+   * before it existed still renders. See sectors.ts.
+   */
+  sectors?: Sectors | null;
   /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
@@ -2643,6 +2650,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    */
   const jobProfitRecent = await profitOver(isoDateMelbourne(new Date(now.getTime() - 30 * 86_400_000)))
     .catch(() => previous?.metrics.jobProfitRecent ?? null);
+  // Carried forward on failure like the job margin beside it.
+  const sectors = crew == null
+    ? previous?.metrics.sectors ?? null
+    : await computeSectors(now, crew.costPerHr, goal?.profitPct ?? null, crew.crew).catch(() => previous?.metrics.sectors ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
   // Carried forward like the journals beside it: a failed read leaves the
   // last reading standing rather than clearing an alert nobody has acted on.
@@ -2703,6 +2714,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       paceSettings,
       goalLevels: goal?.revenue ? { goal: goal.revenue, floor: Number((goal as { floorRevenue?: unknown }).floorRevenue) > 0 ? Number((goal as { floorRevenue?: unknown }).floorRevenue) : null } : null,
       jobProfitRecent,
+      sectors,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,

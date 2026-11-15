@@ -1,5 +1,6 @@
 "use client";
 
+import type { SectorKey, VisitOutcomes } from "@/lib/dashboard/sectors";
 import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
@@ -56,6 +57,7 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   "Daily pace": "screen__grid--daily",
   Team: "screen__grid--team",
   Performance: "screen__grid--perf",
+  Sectors: "screen__grid--sectors",
   Areas: "screen__grid--areas",
 };
 
@@ -114,6 +116,11 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // Says which population the page counts, because it was read as jobs twice
   // and it is invoices — a job can carry more than one.
   Performance: () => `${monthName(new Date())} so far · booked and invoiced, by job type`,
+  Sectors: (m) => {
+    const s = m.sectors;
+    if (!s) return "Maintenance, breakdowns, repairs and installs";
+    return `Each kind of work, and what it leads to · jobs billed ${shortDay(s.from)} to today, before GST`;
+  },
   Areas: () => "Where the work is · last 60 days",
   // Says whose day it is and what the dials measure, because the first dial is
   // time against a quote and the room has to know that is what it is seeing.
@@ -657,6 +664,7 @@ export function ScreenBoard({
         {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
         {name === "Performance" && <PerformancePage m={m} live={live} />}
+        {name === "Sectors" && <SectorsPage m={m} live={live} />}
         {name === "Areas" && <AreasPage m={m} live={live} />}
         </TickerScope.Provider>
       </div>
@@ -2792,6 +2800,144 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
 }
 
 
+
+/* ------------------------------------------------------------------ sectors */
+
+const SECTOR_NAMES: Array<[SectorKey, string]> = [
+  ["maintenance", "Maintenance"],
+  ["breakdown", "Breakdowns"],
+  ["repair", "Repairs"],
+  ["install", "Installs"],
+];
+
+/** "17 Sep", for the page's line. */
+function shortDay(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+}
+
+/**
+ * The four kinds of work side by side, and what the two kinds of visit lead to.
+ *
+ * Jake's question (15 Nov): is maintenance or breakdown work worth pushing for
+ * the installs it brings, not just for itself? So each visit is valued twice:
+ * what it billed, and what it billed plus the installs and repairs booked at
+ * the same address in the 60 days after it. The second figure is the one the
+ * question is about, and it sits in the navy card.
+ *
+ * The outcome bars use the navy family, not the status palette: an install is
+ * not "good" and a plain service is not "bad" in the board's colour language,
+ * and every segment is written out in words with its count beside it.
+ */
+function SectorsPage({ m, live }: { m: Metrics; live: Live }) {
+  const s = m.sectors;
+  if (!live.st || !s) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Maintenance, breakdowns, repairs and installs</span>
+        <span className="tile__sub">{!live.st ? "ServiceTitan isn’t connected." : "Worked out on the next sync."}</span>
+      </div>
+    );
+  }
+  const goal = m.marginGoal;
+  const visits: Array<[string, VisitOutcomes]> = [["Breakdowns", s.breakdown], ["Maintenance", s.maintenance]];
+  const per = (o: VisitOutcomes) => (o.visits > 0 ? (o.ownRevenue + o.ledRevenue) / o.visits : null);
+  const perOwn = (o: VisitOutcomes) => (o.visits > 0 ? o.ownRevenue / o.visits : null);
+  const perProfit = (o: VisitOutcomes) => (o.visits > 0 ? (o.ownProfit + o.ledProfit) / o.visits : null);
+  const b = per(s.breakdown);
+  const mt = per(s.maintenance);
+  // Too few visits and the comparison is one install either way.
+  const enough = s.breakdown.visits >= 10 && s.maintenance.visits >= 10;
+  const lead = enough && b != null && mt != null && mt > 0 && b > 0
+    ? b >= mt
+      ? `A breakdown has brought in ${(b / mt).toFixed(1)}× a maintenance visit`
+      : `A maintenance visit has brought in ${(mt / b).toFixed(1)}× a breakdown`
+    : "Not enough visits yet to compare";
+
+  return (
+    <>
+      {SECTOR_NAMES.map(([k, name]) => {
+        const f = s.bySector[k];
+        const avg = f.jobs > 0 ? f.revenue / f.jobs : null;
+        // Over or under the goal's margin, in words. The pace scale ("Ahead · 197%")
+        // is margin as a share of the goal, which on a wall reads as nonsense.
+        const verdict = f.margin != null && goal != null
+          ? f.margin >= goal ? { verdict: "ahead", text: `▲ Over ${pct(goal)}` } : { verdict: "behind", text: `▼ Under ${pct(goal)}` }
+          : null;
+        return (
+          <div className="tile tile--sector c3" key={k} style={{ gridRow: 1 }}>
+            <span className="tile__labelrow">
+              <span className="tile__label">{name}</span>
+              {verdict ? <span className={`tile__verdict status status--${verdict.verdict}`}>{verdict.text}</span> : null}
+            </span>
+            <span className="sector__fig">
+              <span className={vcls(f.jobs ? money(f.revenue) : NA)}>
+                <Ticker id={`Sector ${name}`} text={f.jobs ? money(f.revenue) : NA} />
+              </span>
+              <span className="tile__sub">billed</span>
+            </span>
+            <div className="rows">
+              <span className="rows__one"><span className="rows__k">Jobs · average</span><span className="rows__v">{count(f.jobs)} · {plain(avg)}</span></span>
+              <span className="rows__one"><span className="rows__k">Profit</span><span className="rows__v">{f.costed ? money(f.profit) : NA}</span></span>
+              <span className="rows__one">
+                <span className="rows__k">Margin{goal != null ? ` · goal ${pct(goal)}` : ""}</span>
+                <span className="rows__v">{f.margin == null ? (f.costed ? `${f.costed} costed, too few` : NA) : pct(f.margin)}</span>
+              </span>
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="tile c8" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">What the visit led to</span>
+          <span className="tile__sub">same address, within {s.followDays} days · visits at least {s.settleDays} days old</span>
+        </div>
+        <div className="led">
+          {visits.map(([name, o]) => {
+            const parts: Array<[string, number, string]> = [
+              ["Install", o.install, "led--install"],
+              ["Repair", o.repair, "led--repair"],
+              ["Quoted, nothing booked", o.quoted, "led--quoted"],
+              ["Just the visit", o.only, "led--only"],
+            ];
+            return (
+              <div className="led__row" key={name}>
+                <span className="led__name">{name}<em>{count(o.visits)} visits</em></span>
+                <span className="led__bar" aria-hidden="true">
+                  {o.visits > 0 && parts.filter(([, n]) => n > 0).map(([w, n, c]) => (
+                    <span key={w} className={`led__seg ${c}`} style={{ flexGrow: n }} />
+                  ))}
+                </span>
+                <span className="led__key">
+                  {parts.map(([w, n, c]) => (
+                    <span key={w} className="led__k">
+                      <i className={c} aria-hidden="true" />
+                      {w} <b>{count(n)}</b>{o.visits > 0 ? <em>{pct(n / o.visits)}</em> : null}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="tile tile--navy c4" style={{ gridRow: 2 }}>
+        <span className="tile__label">Each visit is worth, with what it led to</span>
+        <div className="rows">
+          {visits.map(([name, o]) => (
+            <span className="rows__one" key={name}>
+              <span className="rows__k">{name}<br /><small>{plain(perOwn(o))} the visit alone · {plain(perProfit(o))} profit all in</small></span>
+              <span className="rows__v rows__v--big">{plain(per(o))}</span>
+            </span>
+          ))}
+        </div>
+        <span className="tile__sub"><b>{lead}</b>{visits.some(([, o]) => o.ledUnbilled > 0) ? ` · ${count(s.breakdown.ledUnbilled + s.maintenance.ledUnbilled)} follow‑on jobs not billed yet` : ""}</span>
+      </div>
+    </>
+  );
+}
 
 /* ------------------------------------------------------------------- pieces */
 /**
