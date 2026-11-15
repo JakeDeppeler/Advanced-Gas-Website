@@ -133,7 +133,8 @@ export const ICON = {
 
 /**
  * `img` puts a picture across the top of the finder's tile for the answer:
- * for the heat pump questions, a drawing from public/finder (Jake, Nov 2026).
+ * for the heat pump and split system questions, a drawing from public/finder
+ * (Jake, Nov 2026).
  * `fit: "contain"` is for a product shot on white rather than a scene, `pos`
  * for where a scene's subject sits. `min` is a size answer's floor in litres.
  */
@@ -142,11 +143,13 @@ export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
 
+// A room of each size, cut open, its head's air moving. The furniture and
+// ceiling are one scale across all four, so the room's width is what grows.
 const ROOM: Opt[] = [
-  { label: "Up to 20 m²", sub: "Bedroom or study", spec: "2.5 kW", n: 1 },
-  { label: "20–30 m²", sub: "Main bedroom or small lounge", spec: "3.5 kW", n: 2 },
-  { label: "30–45 m²", sub: "Living room", spec: "5.0 kW", n: 3 },
-  { label: "45 m² +", sub: "Open-plan living", spec: "7.1–8.0 kW", n: 4 },
+  { label: "Up to 20 m²", sub: "Bedroom or study", spec: "2.5 kW", n: 1, img: "/finder/room-bedroom.svg" },
+  { label: "20–30 m²", sub: "Main bedroom or small lounge", spec: "3.5 kW", n: 2, img: "/finder/room-main-bedroom.svg" },
+  { label: "30–45 m²", sub: "Living room", spec: "5.0 kW", n: 3, img: "/finder/room-living.svg" },
+  { label: "45 m² +", sub: "Open-plan living", spec: "7.1–8.0 kW", n: 4, img: "/finder/room-open-plan.svg" },
 ];
 const HEADS: Opt[] = [
   { label: "2 rooms", sub: "Two indoor heads", spec: "2 heads", n: 1 },
@@ -160,7 +163,10 @@ const HOUSE: Opt[] = [
 ];
 // Every tile in the heat pump finder is a drawing in one style (Jake, Nov
 // 2026), after photos that never quite matched the answer: here, a house
-// with that many people outside it, who pop up one by one.
+// with that many people outside it, who pop up one by one. The split
+// system's room, floor and outdoor unit questions are drawn the same way
+// (Jake, Nov 2026: "can this be an animation show the rooms"), with the air,
+// the pipe run and the outdoor fan moving; each stills for reduced motion.
 const PEOPLE: Opt[] = [
   { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/finder/people-2.svg" },
   // A 4-bedroom home gets 270–300 L (Jake, Nov 2026), whatever the shower
@@ -193,8 +199,21 @@ const ZONES: Opt[] = [
 ];
 
 export const QB = {
-  floor: { id: "floor", q: "Which floor is the room on?", opts: [o("Ground floor"), o("Upstairs", "Longer pipe run to the outdoor unit")] },
-  outdoor: { id: "outdoor", q: "Where can the outdoor unit go?", opts: [o("Straight behind the indoor unit", "Back-to-back on the same wall"), o("Further along the wall or around a corner"), o("On a balcony or the roof"), o("Not sure", "We'll work it out on site")] },
+  // The same house in both, so what changes is which floor is open and how far
+  // the pipe comes down to the outdoor unit. Two answers make tiles twice as
+  // wide, which crop a drawing's top and bottom: these keep to the middle.
+  floor: { id: "floor", q: "Which floor is the room on?", opts: [
+    { label: "Ground floor", img: "/finder/floor-ground.svg" },
+    { label: "Upstairs", sub: "Longer pipe run to the outdoor unit", img: "/finder/floor-upstairs.svg" },
+  ] },
+  // The room's wall from outside, broken away to show the head behind it: the
+  // outdoor unit moves between answers, the head stays put.
+  outdoor: { id: "outdoor", q: "Where can the outdoor unit go?", opts: [
+    { label: "Straight behind the indoor unit", sub: "Back-to-back on the same wall", img: "/finder/outdoor-behind.svg" },
+    { label: "Further along the wall or around a corner", img: "/finder/outdoor-along.svg" },
+    { label: "On a balcony or the roof", img: "/finder/outdoor-balcony.svg" },
+    { label: "Not sure", sub: "We'll work it out on site", img: "/finder/outdoor-not-sure.svg" },
+  ] },
   storeys: { id: "storeys", q: "Single or double storey?", opts: [o("Single storey"), o("Double storey"), o("Split level")] },
   roofSpace: { id: "roof", q: "What's the roof space like?", opts: [o("Pitched roof with room to move", "Most houses"), o("Low or tight roof space"), o("Flat roof or no access"), o("Not sure")] },
   ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
