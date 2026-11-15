@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { brands, visibleProducts } from "@/lib/brands";
+import { brands, visibleProducts, type Brand } from "@/lib/brands";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { BrandLockup } from "@/components/homepage/brand/BrandMark";
 import { PageHero, HeroCard } from "@/components/homepage/page/PageHero";
 import { SiteModeStrip } from "@/components/Header";
 import { PHOTO } from "@/lib/homepage/data";
-import { EndCta } from "@/components/homepage/page/bands";
+import { EndCta, accent } from "@/components/homepage/page/bands";
 import "@/components/homepage/homepage.css";
-import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
-import "@/components/homepage/page/kit.css";
 import "@/components/homepage/brand/blocks.css";
 import "@/components/homepage/page/category.css";
-import "@/components/homepage/tools/tools.css";
-import "@/components/homepage/brand/hub.css";
+import "./brands.css";
 
 export const metadata: Metadata = {
   title: "Brands We Install, and Why We Install Them",
@@ -23,9 +21,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/brands" },
 };
 
-/** Grouping the brand hub by category so a customer thinking
- *  "heat pump" or "aircon" can jump directly to the right shelf,
- *  rather than scanning a flat list of nine brand cards. */
 /** Group order follows the brand order: air conditioning first because
  *  it is the bigger half of the business, then ducted heating, then
  *  zoning, then hot water. Within each group the brands are listed in the
@@ -35,186 +30,240 @@ export const metadata: Metadata = {
  *  were counted in "9 brands" and listed in the hero but had no card below.
  *  Braemar's Dominator replaces a gas ducted heater on the same ducts, so it
  *  sits beside Brivis, the heater it most often replaces; that also gives
- *  the heating group a pair rather than one card on its own. */
-const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: string }[] = [
+ *  the heating group a pair rather than one card on its own.
+ *
+ *  `h` is the heading with its coloured part in braces, as the brand pages
+ *  set theirs. The slugs are the page's anchors: the hero links to #aircon,
+ *  and other pages may link to the rest. */
+const BRAND_GROUPS: { label: string; h: string; slug: string; brandSlugs: string[]; blurb: string }[] = [
   {
     label: "Air conditioning",
+    h: "Air {conditioning}.",
     slug: "aircon",
     brandSlugs: ["mitsubishi-electric", "kaden"],
     blurb: "Split, multi-head and ducted. Mitsubishi Electric is what we quote first; Kaden is what we reach for when a whole house needs doing at once.",
   },
   {
     label: "Ducted heating",
+    h: "Ducted {heating}.",
     slug: "gas",
     brandSlugs: ["brivis", "braemar"],
     blurb: "Like-for-like Brivis replacements, the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring. Or off gas altogether: the Braemar Dominator goes in where the gas heater was, on the ducts you have.",
   },
   {
     label: "Zoning & control",
+    h: "Zoning & {control}.",
     slug: "zoning",
     brandSlugs: ["zonemate"],
     blurb: "Zone controllers and smart room sensors that turn a ducted system from 'on or off' into 'the room you're in, at the temp you want'.",
   },
   {
     label: "Heat pump hot water",
+    h: "Heat pump {hot water}.",
     slug: "heat-pump",
     brandSlugs: ["reclaim", "thermann", "istore", "viessmann"],
     blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, iStore when the rebate is what decides it, Viessmann when you want a German name on the unit.",
   },
 ];
 
-/** Per-brand one-liner pitched at a "why would I pick this over the others"
- *  question — the info that's genuinely useful when comparing brands rather
- *  than restating the tagline / intro that already sits on the brand hub. */
-/** Short chip labels per product category for the hub cards. */
-const CATEGORY_CHIP: Record<string, string> = {
-  "split-system": "Splits",
-  "multi-head": "Multi-head",
-  "ducted": "Ducted",
-  "cassette": "Cassette",
-  "floor-console": "Floor console",
-  "heat-pump": "Heat pump HW",
-  "gas-continuous-flow": "Continuous flow",
-  "gas-storage": "Gas storage",
-  "electric-storage": "Electric storage",
-  "solar-hot-water": "Solar HW",
-  "controller": "Controllers",
-  "zoning": "Zoning",
-  "damper": "Dampers",
-  "accessory": "Accessories",
+/**
+ * Who each brand suits, in a line: the "why would I pick this over the
+ * others" answer, which the brand pages spread across a whole section.
+ *
+ * This used to carry a hand-written headline figure per brand as well. Two
+ * of them couldn't be stood behind: Zonemate's "20-30%" contradicted the
+ * 30–40% its own page states, and Mitsubishi's "10+ years without a
+ * callback" appears nowhere else on the site. The card's figure now comes
+ * from the brand's own data (its first "why we choose it" reason), so the
+ * hub never says a number the brand page doesn't.
+ */
+const BEST_FOR: Record<string, string> = {
+  "mitsubishi-electric": "Family homes where reliability, quiet operation and long-term serviceability matter more than the lowest up-front price",
+  "kaden": "3+ bedroom fitouts where every room gets done in one visit rather than one a year",
+  "reclaim": "Long-term owners, hills postcodes, homes with rooftop solar for the PV-diverter payback",
+  "istore": "Rebate-maximisers, tight budgets, straightforward like-for-like electric tank swaps",
+  "thermann": "Households that want an Australian-made brand and prefer the integrated tank+heat-pump form factor",
+  "zonemate": "Ducted homes where one room bakes and another stays cold, or apps-and-Alexa-loving owners",
+  "viessmann": "Households replacing an old electric or gas tank that want a German brand and a quiet unit",
+  "braemar": "Gas ducted homes that want cooling and to get off gas, without pulling the ducts out",
+  "brivis": "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
 };
 
-const BRAND_PITCH: Record<string, {
-  positioning: string;
-  standoutStat: { value: string; label: string };
-  bestFor: string;
-}> = {
-  "mitsubishi-electric": {
-    positioning: "Premium default · lowest failure rate in our install base",
-    standoutStat: { value: "10+", label: "years typical service life without a callback" },
-    bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than the lowest up-front price",
-  },
-  "kaden": {
-    positioning: "Reece-exclusive · same-day parts anywhere in Victoria",
-    standoutStat: { value: "Same day", label: "parts from Reece stores across Victoria" },
-    bestFor: "3+ bedroom fitouts where every room gets done in one visit rather than one a year",
-  },
-  "reclaim": {
-    positioning: "Premium heat pump · CO₂ refrigerant, 15-year stainless tank option",
-    standoutStat: { value: "-10°C", label: "still holds full heating capacity, unlike R290 rivals" },
-    bestFor: "Long-term owners, hills postcodes, homes with rooftop solar for the PV-diverter payback",
-  },
-  "istore": {
-    positioning: "Best-value heat pump · maximum VEU rebate outcome",
-    standoutStat: { value: "Best rebate", label: "outcome of any heat pump we install" },
-    bestFor: "Rebate-maximisers, tight budgets, straightforward like-for-like electric tank swaps",
-  },
-  "thermann": {
-    positioning: "Australian-made by Dux · all-in-one heat pump + G-series continuous flow",
-    standoutStat: { value: "200/300 L", label: "all-in-one integrated tanks, no split system to plumb" },
-    bestFor: "Households that want an Australian-made brand and prefer the integrated tank+heat-pump form factor",
-  },
-  "zonemate": {
-    positioning: "Zoning + control · Wi-Fi tablet, per-room sensors, retrofit-friendly",
-    standoutStat: { value: "20-30%", label: "running-cost drop with proper zoning tuning" },
-    bestFor: "Ducted homes where one room bakes and another stays cold, or apps-and-Alexa-loving owners",
-  },
-  // Viessmann and Braemar: every figure is one their own brand pages already
-  // state (lib/brands.ts), so the hub says nothing the brand page doesn't.
-  "viessmann": {
-    positioning: "German heating brand since 1917 · all-in-one R290 heat pump",
-    standoutStat: { value: "−7 °C", label: "hot water on the heat pump alone, −15 °C with its element" },
-    bestFor: "Households replacing an old electric or gas tank that want a German brand and a quiet unit",
-  },
-  "braemar": {
-    positioning: "Off gas, on the ducts you have · reverse-cycle Dominator",
-    standoutStat: { value: "1 day", label: "Braemar's figure for a changeover, on the ducts you already have" },
-    bestFor: "Gas ducted homes that want cooling and to get off gas, without pulling the ducts out",
-  },
-  "brivis": {
-    positioning: "Retrofit incumbent · same-footprint into most existing ducted heater cavities",
-    standoutStat: { value: "3-6 star", label: "output ratings across every kW size, 15/20/26/30" },
-    bestFor: "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
-  },
-};
+/**
+ * A photograph of the brand's equipment in place, where its own page
+ * already shows one under its name (Jake: "if we have photo use those"):
+ * the header scene, else the first "why" reason marked as a photograph,
+ * else the year-ten photo, as long as that isn't the studio shot again.
+ * Read from the data rather than listed here, so a brand that gains an
+ * install photo gets it on this page without anyone remembering to.
+ *
+ * Two brands (Braemar, iStore) have none yet, and show the studio cut-out
+ * on white instead; a photo of somebody else's unit under their name would
+ * be worse than no photo.
+ */
+function scenePhoto(b: Brand): { src: string; alt: string; pos?: string } | undefined {
+  if (b.heroScene) return { src: b.heroScene.src, alt: b.heroScene.alt };
+  const r = b.reasons?.find((x) => x.cover && x.img);
+  if (r?.img) return { src: r.img, alt: r.alt ?? b.photoAlt, pos: r.pos };
+  if (b.servicing && b.servicing.photo !== b.photo) return { src: b.servicing.photo, alt: b.servicing.photoAlt, pos: b.servicing.photoPos };
+  return undefined;
+}
+
+/** The maker's own logo where we have one (its alt carries the name), the name set in type where we don't, as the category pages do. */
+function BrandName({ b }: { b: Brand }) {
+  if (b.mark) return <BrandLockup tone="dark" />;
+  if (b.logo) {
+    // The SVGs carry the makers' colours; the raster one (iStore's) is drawn white for the quote box, so it goes dark here.
+    const svg = b.logo.endsWith(".svg");
+    return <span className={`bi__logo${svg ? "" : " bi__logo--mono"}`}><Image src={b.logo} alt={b.name} fill sizes="170px" unoptimized={svg} /></span>;
+  }
+  return <>{b.name}</>;
+}
+
+function BrandCard({ b, sizes }: { b: Brand; sizes: string }) {
+  const scene = scenePhoto(b);
+  const lead = b.reasons?.[0];
+  const models = visibleProducts(b).length;
+  const best = BEST_FOR[b.slug];
+  return (
+    <Link href={`/brands/${b.slug}`} className="bi__card" style={{ ["--c" as string]: b.blockAccent ?? b.accent }}>
+      <span className={`bi__ph${scene ? "" : " bi__ph--cut"}`}>
+        <Image src={scene?.src ?? b.photo} alt={scene?.alt ?? b.photoAlt} fill sizes={sizes} style={scene?.pos ? { objectPosition: scene.pos } : undefined} />
+      </span>
+      {/* Divs, not spans, from here: the name is a heading, and a heading can't sit in a span. */}
+      <div className="bi__body">
+        <div className="bi__top">
+          <h3 className="bi__name"><BrandName b={b} /></h3>
+          <span className="bi__count">{models} model{models === 1 ? "" : "s"}</span>
+        </div>
+        <small className="bi__origin">{b.origin}</small>
+        <span className="bi__tag">{b.tagline}</span>
+        {lead && (
+          <span className="bi__fig">
+            <b>{lead.v}</b>
+            <span><strong>{lead.k}</strong> {lead.d}</span>
+          </span>
+        )}
+        {best && <span className="bi__best"><b>Best for</b> {best}</span>}
+        <em className="bi__go">Why we fit {b.name} <i aria-hidden="true">→</i></em>
+      </div>
+    </Link>
+  );
+}
+
+type Group = (typeof BRAND_GROUPS)[number] & { list: Brand[]; models: number };
+
+function GroupHead({ g, id }: { g: Group; id?: string }) {
+  return (
+    <header className="bi__head" id={id}>
+      <h2 className="h2">{accent(g.h)}</h2>
+      <p>{g.blurb}</p>
+    </header>
+  );
+}
+
+/** The group's own figures, counted rather than written, so they can't drift from the cards. Words, not a colour, carry them. */
+function GroupMeta({ g }: { g: Group }) {
+  return <span className="bi__meta"><b>{g.list.length}</b> brand{g.list.length === 1 ? "" : "s"} · <b>{g.models}</b> models</span>;
+}
+
+/** The cards for one group. The group's size sets the columns (bi__grid--n), so a row is never left with one card in it. */
+function Cards({ g, sizes }: { g: Group; sizes: string }) {
+  return (
+    <div className={`bi__grid bi__grid--${g.list.length}`} data-anim="stagger">
+      {g.list.map((b) => <BrandCard key={b.slug} b={b} sizes={sizes} />)}
+    </div>
+  );
+}
+
+/** One group in the homepage's navy box ("Find your system", "Tools for you"), the cards white inside it. */
+function BoxGroup({ g, sizes }: { g: Group; sizes: string }) {
+  return (
+    <section className="bk__sec bk__sec--white bi__sec" id={g.slug}>
+      <div className="wrap">
+        <div className="bi__box">
+          <div className="bi__boxhead">
+            <GroupHead g={g} />
+            <GroupMeta g={g} />
+          </div>
+          <Cards g={g} sizes={sizes} />
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function BrandsIndex() {
   const totalModels = brands.reduce((sum, b) => sum + visibleProducts(b).length, 0);
-  const groups = BRAND_GROUPS.map((g) => ({
-    ...g,
-    list: g.brandSlugs.map((sl) => brands.find((b) => b.slug === sl)).filter((b): b is NonNullable<typeof b> => Boolean(b)),
-  })).filter((g) => g.list.length > 0);
+  const groups: Group[] = BRAND_GROUPS.map((g) => {
+    const list = g.brandSlugs.map((sl) => brands.find((b) => b.slug === sl)).filter((b): b is Brand => Boolean(b));
+    return { ...g, list, models: list.reduce((n, b) => n + visibleProducts(b).length, 0) };
+  }).filter((g) => g.list.length > 0);
+  const by = (slug: string) => groups.find((g) => g.slug === slug);
+  const air = by("aircon");
+  const gas = by("gas");
+  const zone = by("zoning");
+  const hw = by("heat-pump");
 
   return (
-    // The redesign's block layout (Nov 2026), like the tools hub: the old
-    // card grid is in git history. Two boxes because the blocks styles hang
-    // off .bk sitting inside .ag. /range redirects here.
+    // Built from the homepage's own pieces (Jake, Nov 2026: he didn't like
+    // the catalogue look, and every inside page should "resemble the home
+    // page more"): its photo hero, its navy boxes of white photo cards, and
+    // its cream band. The old bands of product cut-outs are in git history.
+    // Two boxes because the blocks styles hang off .bk sitting inside .ag.
+    // /range redirects here.
     <>
     <SiteModeStrip tabs={false} />
     <div className="ag ag--flat" data-no-reveal>
-      {/* The homepage's top (PageHero), over a Kaden outdoor unit we installed;
-          the card on the right is the brands themselves, each opening its page. */}
+      {/* No label over the headline, as on the homepage; the card on the
+          right was a grid of thumbnails too small to tell one unit from
+          another, and is now the page's shelves, each with its brands. */}
       <PageHero
         crumbs={[{ name: "Brands" }]}
-        eye="Brands we install"
         title={`${brands.length} brands, {${totalModels} models}.`}
         sub="We install what works, not what we're paid to push. Every brand here is one we've put into enough Melbourne homes to have a real opinion on, and each has its own page with the range and our take."
         photo={PHOTO.outdoorUnit} pos="center 40%"
         ctas={<><a href="#aircon" className="abtn abtn--or">See the brands ↓</a><Link href="/#find" className="abtn abtn--line">Or find your system</Link></>}
         trust={[{ v: "Reece", k: "Trade partner" }]}
         card={
-          <HeroCard label="The brands">
-            <div className="bh__logos">
-              {brands.map((b) => (
-                <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__logo">
-                  <span className="bh__limg"><Image src={b.photo} alt="" fill sizes="120px" /></span>
-                  <b>{b.name}</b>
-                </Link>
+          <HeroCard label="Start with the job">
+            <ul className="phx__rows">
+              {groups.map((g) => (
+                <li key={g.slug}>
+                  <a href={`#${g.slug}`}>
+                    <strong>{g.label} <i className="bi__rowgo" aria-hidden="true">↓</i></strong>
+                    <span>{g.list.map((b) => b.name).join(" · ")}</span>
+                  </a>
+                </li>
               ))}
-            </div>
+            </ul>
           </HeroCard>
         }
       />
-      <div className="bx bk cx tl bh" style={{ ["--acc" as string]: "#C2521A" }}>
+      <div className="bk cx bi" style={{ ["--acc" as string]: "#C2521A" }}>
       <BkMotion />
 
-      <nav className="pxt" aria-label="On this page">
-        <div className="wrap pxt__in">{groups.map((g) => <a key={g.slug} href={`#${g.slug}`}>{g.label}</a>)}</div>
-      </nav>
+      {air && <BoxGroup g={air} sizes="(max-width: 700px) 90vw, 680px" />}
 
-      {groups.map((g, gi) => (
-        <section key={g.slug} className={`bk__sec ${gi % 2 ? "bk__sec--cream" : "bk__sec--white"}`} id={g.slug}>
-          <div className="wrap"><div className="bk__blk bk__col">
-            <header className="bk__head">
-              <h2 className="h2">{g.label}<span>.</span></h2>
-              <p>{g.blurb}</p>
-            </header>
-            {/* The group's size sets the columns (bh__grid--n), so a row is never left with one card in it. */}
-            <div className={`bh__grid bh__grid--${g.list.length}`} data-anim="stagger">
-              {g.list.map((b) => {
-                const pitch = BRAND_PITCH[b.slug];
-                const models = visibleProducts(b).length;
-                // From the catalogue, so a brand picking up a new kind of product shows it here without anyone remembering to.
-                const cats = Array.from(new Set(visibleProducts(b).map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel))).slice(0, 5);
-                return (
-                  <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__card" style={{ ["--c" as string]: b.blockAccent ?? b.accent }}>
-                    <span className="bh__img"><Image src={b.photo} alt={b.photoAlt} fill sizes="(max-width: 600px) 90vw, 420px" /></span>
-                    <span className="bh__t">
-                      <small>{b.origin}</small>
-                      <strong>{b.name}</strong>
-                      <span className="bh__tag">{b.tagline}</span>
-                      {pitch && <span className="bh__stat"><b>{pitch.standoutStat.value}</b> {pitch.standoutStat.label}</span>}
-                      {cats.length > 0 && <span className="bh__cats" aria-label={`${b.name} product types`}>{cats.map((c) => <i key={c}>{c}</i>)}</span>}
-                      {pitch && <span className="bh__best"><b>Best for</b> {pitch.bestFor}</span>}
-                      <em>{models} model{models === 1 ? "" : "s"} · Why we fit {b.name} <i aria-hidden="true">→</i></em>
-                    </span>
-                  </Link>
-                );
-              })}
+      {/* Heating and zoning share a cream band, the homepage's services
+          band, as a bento: both are about the ducts, and the zoning group is
+          one brand, which on a band of its own sat as a lone card. Each
+          heading carries its group's anchor. The parts are in reading order
+          in the markup (heading, its cards, next heading, its cards) and
+          placed by grid area, so a screen reader and the tab key meet them
+          the way the eye does. */}
+      {(gas || zone) && (
+        <section className="bk__sec bk__sec--cream bi__sec">
+          <div className="wrap">
+            <div className={`bi__duo${gas && zone ? "" : " bi__duo--one"}`}>
+              {gas && <><div className="bi__duo-gh"><GroupHead g={gas} id={gas.slug} /></div><div className="bi__duo-gc"><Cards g={gas} sizes="(max-width: 700px) 90vw, 470px" /></div></>}
+              {zone && <><div className="bi__duo-zh"><GroupHead g={zone} id={zone.slug} /></div><div className="bi__duo-zc"><Cards g={zone} sizes="(max-width: 700px) 90vw, 470px" /></div></>}
             </div>
-          </div></div>
+          </div>
         </section>
-      ))}
+      )}
+
+      {hw && <BoxGroup g={hw} sizes="(max-width: 700px) 90vw, (max-width: 1100px) 45vw, 340px" />}
 
       {/* The homepage's closing box, the team behind the orange, as every inside page ends. */}
       <EndCta

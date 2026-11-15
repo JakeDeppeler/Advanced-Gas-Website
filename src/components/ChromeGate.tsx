@@ -35,6 +35,8 @@ const PAGE_HERO = new Set([
   "/cooling", "/heating", "/hot-water",
   "/about", "/reviews", "/contact", "/brands", "/tools", "/service-areas",
   "/gallery", "/blog", "/rebates", "/membership", "/upgrade-or-repair",
+  // Both drawn by app/legal/LegalPage.tsx.
+  "/privacy", "/terms",
 ]);
 
 /**
