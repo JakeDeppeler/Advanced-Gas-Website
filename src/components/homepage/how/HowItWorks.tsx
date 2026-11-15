@@ -1021,7 +1021,9 @@ function AioScene() {
           <stop offset="1" stopColor="#2CC4F5" />
         </linearGradient>
         <linearGradient id={id("warm")} gradientUnits="userSpaceOnUse" x1="598" y1="0" x2={X + W} y2="0"><stop offset="0" stopColor="#FFB070" /><stop offset="1" stopColor="#F04FA6" /></linearGradient>
-        <linearGradient id={id("cool")} gradientUnits="userSpaceOnUse" x1="0" y1={headY} x2="0" y2="200"><stop offset="0" stopColor="#1FA9E6" /><stop offset="1" stopColor="#A9E4FB" /></linearGradient>
+        {/* Deep blues: the pale ones vanished into the daytime sky */}
+        <linearGradient id={id("cool")} gradientUnits="userSpaceOnUse" x1="0" y1={headY} x2="0" y2="200"><stop offset="0" stopColor="#0B5FA5" /><stop offset="1" stopColor="#2B8FD6" /></linearGradient>
+        <linearGradient id={id("day")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5DB7EE" /><stop offset=".7" stopColor="#A8DAF7" /><stop offset="1" stopColor="#D4EDFB" /></linearGradient>
         <linearGradient id={id("shell")} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#D9DEE6" /><stop offset=".5" stopColor="#F7F9FB" /><stop offset="1" stopColor="#C9D0DA" /></linearGradient>
         <linearGradient id={id("night")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0A1240" /><stop offset="1" stopColor="#24346E" /></linearGradient>
         <radialGradient id={id("sunGlow")}><stop offset="0" stopColor="#FFD65A" stopOpacity=".55" /><stop offset="1" stopColor="#FFD65A" stopOpacity="0" /></radialGradient>
@@ -1029,6 +1031,8 @@ function AioScene() {
 
       {/* the sky through the day: the sun's arc, then night with the moon and stars */}
       <Sky />
+      {/* A blue sky while the sun is out (Jake, Nov 2026), fading at dusk and back at dawn */}
+      <rect x="0" y="0" width="600" height="352" fill={`url(#${id("day")})`} opacity="1">{cycle(".4;1;1;0;0;.4")}</rect>
       <rect x="0" y="0" width="600" height="352" fill={`url(#${id("night")})`} opacity={motion ? 0.35 : 0}>{cycle(".35;0;0;.88;.88;.35")}</rect>
       <g opacity="0">
         {cycle("0;0;0;1;1;0")}

@@ -6,7 +6,7 @@ import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import {
   type Category, BRAND_SLUGS, PRODUCT_FAQS, TOOLS, installTime, money, systemHref,
 } from "@/lib/homepage/data";
-import { LEARN, SYS_INTRO } from "@/lib/homepage/learn";
+import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { BrandLockup } from "@/components/homepage/brand/BrandMark";
 import { findTool } from "@/components/homepage/tools/toolList";
@@ -55,6 +55,8 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
       brands: [...new Set(s.tiers.filter((t) => !t.same).map((t) => t.brand))],
       time: ((x) => x[0].toUpperCase() + x.slice(1))(installTime(s).replace(/^Usually /, "")),
       good: LEARN[s.slug]?.good[0],
+      // The system page's own pros and cons, three of each, for Side by side.
+      pc: SYS_PROS[s.slug] ? { pros: SYS_PROS[s.slug].pros.slice(0, 3), cons: SYS_PROS[s.slug].cons.slice(0, 3) } : null,
     };
   });
   const brandNames = [...new Set(systems.flatMap((x) => x.brands))];
@@ -161,10 +163,12 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
           </header>
           {/* A card per system rather than a table: the picture is what people
               recognise. Every value keeps its label (a dt), and on a wide
-              screen the cards share their rows (subgrid), so "Install" and
-              "Price" line up across and still compare at a glance. */}
+              screen the cards share their rows (subgrid), so the pros, the
+              cons, "Install" and "Price" line up across and compare at a
+              glance. Pros and cons are ticks and crosses (Jake, Nov 2026),
+              each list labelled in words too, so colour isn't the signal. */}
           <ul className={`cx__cmp${systems.length > 5 ? " cx__cmp--rows" : ""}`} style={{ ["--n" as string]: systems.length }} role="list" data-anim="stagger">
-            {systems.map(({ s, from, time, good }) => (
+            {systems.map(({ s, from, time, good, pc }) => (
               <li key={s.slug} className="cx__cc">
                 <span className={`cx__ccimg${SCENE.test(s.img) ? " cx__ccimg--cover" : ""}`}><Image src={s.img} alt="" fill sizes="(max-width: 900px) 120px, 260px" /></span>
                 <span className="cx__cchd">
@@ -173,7 +177,12 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
                   <h3><Link href={systemHref(s.slug)}>{s.label}</Link></h3>
                 </span>
                 <dl className="cx__ccdl">
-                  <div><dt>Good for</dt><dd>{good ?? s.sub}</dd></div>
+                  {pc ? (
+                    <>
+                      <div><dt>Pros</dt><dd><ul className="cx__pc">{pc.pros.map((x) => <li key={x}><i className="cx__pcy" aria-hidden="true" />{x}</li>)}</ul></dd></div>
+                      <div><dt>Cons</dt><dd><ul className="cx__pc">{pc.cons.map((x) => <li key={x}><i className="cx__pcn" aria-hidden="true" />{x}</li>)}</ul></dd></div>
+                    </>
+                  ) : <div><dt>Good for</dt><dd>{good ?? s.sub}</dd></div>}
                   <div><dt>Install</dt><dd>{time}</dd></div>
                   <div className="cx__ccprice"><dt>Price</dt><dd>{from != null ? `From ${money(from)}` : "Free quote"}</dd></div>
                 </dl>

@@ -54,25 +54,34 @@
 .ag .cx__cc h3{margin:0;font-family:var(--disp);font-size:21px;font-weight:900;line-height:1.15;letter-spacing:-.01em}
 .ag .cx__cc h3 a{color:var(--navy);text-decoration:none}
 .ag .cx__cc h3 a::after{content:"";position:absolute;inset:0;z-index:1;border-radius:12px}
-.ag .cx__ccdl{grid-column:2;grid-row:2;margin:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) max-content;gap:18px}
+.ag .cx__ccdl{grid-column:2;grid-row:2;margin:0;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1.4fr) minmax(0,.8fr) max-content;gap:18px}
 .ag .cx__ccdl > div{display:flex;flex-direction:column;gap:3px;min-width:0}
 .ag .cx__ccdl dt{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
 .ag .cx__ccdl dd{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink2)}
 .ag .cx__ccprice dd{font-family:var(--disp);font-size:17px;font-weight:800;color:var(--navy);white-space:nowrap}
+/* Pros and cons: a green tick and a red cross in a round badge */
+.ag .cx__pc{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+.ag .cx__pc li{display:flex;gap:8px;align-items:flex-start;font-size:14px;line-height:1.4}
+.ag .cx__pcy,.ag .cx__pcn{flex:none;position:relative;width:18px;height:18px;margin-top:1px;border-radius:50%}
+.ag .cx__pcy{background:#1E8E4E}
+.ag .cx__pcy::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:9px;border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(45deg)}
+.ag .cx__pcn{background:#C83A2B}
+.ag .cx__pcn::before,.ag .cx__pcn::after{content:"";position:absolute;left:8px;top:4px;width:2.2px;height:10px;border-radius:1px;background:#fff;transform:rotate(45deg)}
+.ag .cx__pcn::after{transform:rotate(-45deg)}
 .ag .cx__ccgo{grid-column:3;grid-row:1/3;display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:var(--acc);white-space:nowrap}
 .ag .cx__ccgo i{font-style:normal;transition:transform .2s}
 .ag .cx__cc:hover .cx__ccgo i{transform:translateX(4px)}
 /* Six or more would be too narrow side by side, so they stay as rows */
 @media (min-width:1180px){
   .ag .cx__cmp:not(.cx__cmp--rows){grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:0 14px}
-  .ag .cx__cmp:not(.cx__cmp--rows) .cx__cc{grid-row:span 6;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;gap:0;align-items:stretch;padding:0 0 20px;overflow:hidden}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__cc{grid-row:span 7;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;gap:0;align-items:stretch;padding:0 0 20px;overflow:hidden}
   .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccimg{grid-column:1;grid-row:1;height:170px;border-radius:0;border-bottom:1px solid var(--line)}
   .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccimg img{padding:18px}
   .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccimg--cover img{padding:0}
   .ag .cx__cmp:not(.cx__cmp--rows) .cx__cchd{grid-column:1;grid-row:2;padding:18px 20px 14px}
-  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccdl{grid-column:1;grid-row:3/6;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;gap:0}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccdl{grid-column:1;grid-row:3/7;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;gap:0}
   .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccdl > div{padding:12px 20px;border-top:1px solid var(--line)}
-  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccgo{grid-column:1;grid-row:6;align-self:end;padding:8px 20px 0}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccgo{grid-column:1;grid-row:7;align-self:end;padding:8px 20px 0}
 }
 /* A phone: the picture beside the name, the values under both */
 @media (max-width:640px){
@@ -81,6 +90,7 @@
   .ag .cx__cc h3{font-size:19px}
   .ag .cx__ccdl{grid-column:1/-1;grid-row:2;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;padding-top:12px;border-top:1px solid var(--line)}
   .ag .cx__ccdl > div:first-child{grid-column:1/-1}
+  .ag .cx__ccdl > div:has(.cx__pc){grid-column:1/-1}
   .ag .cx__ccgo{grid-column:1/-1;grid-row:3}
 }
 .ag .cx .cx__find{align-self:flex-start}

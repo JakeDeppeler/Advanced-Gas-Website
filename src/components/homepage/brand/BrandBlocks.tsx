@@ -5,7 +5,7 @@ import type { Brand } from "@/lib/brands";
 import type { Review } from "@/lib/reviews";
 import { installsFor } from "@/lib/brandGallery";
 import { CountUp } from "@/components/CountUp";
-import { TONES, productHref, bookHref, money, weekly, SHOW_FINANCE, FINANCE_MONTHS } from "@/lib/homepage/data";
+import { TONES, TIER_MODELS, productHref, bookHref, money, weekly, SHOW_FINANCE, FINANCE_MONTHS } from "@/lib/homepage/data";
 import { brandOptions } from "./options";
 import { BrandLockup, ThreeDiamonds } from "./BrandMark";
 import { BkMotion } from "./BkMotion";
@@ -242,6 +242,12 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
                     <span className="atile__txt">
                       <span className="bk__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier} · {cats.join(" & ")}</span>
                       <strong>{t.model}</strong>
+                      {/* The sizes it comes in (Jake, Nov 2026: "the Viessmann range, they have a
+                          200L and 270L"), from the model list its page picks from. */}
+                      {(() => {
+                        const sizes = [...new Set((TIER_MODELS[`${s.slug}.${t.slug}`] ?? []).map((m) => m[2]))];
+                        return sizes.length > 1 ? <span className="bk__sizes">{sizes.length} sizes: {sizes.join(" · ")}</span> : null;
+                      })()}
                       {typeof t.price === "number" && (
                         <span className="bk__price">From {money(t.price)}{SHOW_FINANCE ? ` or $${weekly(t.price, FINANCE_MONTHS)}/wk` : ""}</span>
                       )}
