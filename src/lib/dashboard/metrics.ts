@@ -1,3 +1,4 @@
+import { computeCrew, type Crew } from "./crew";
 import { computeSectors, type Sectors } from "./sectors";
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
@@ -618,6 +619,13 @@ export type Metrics = {
    * before it existed still renders. See sectors.ts.
    */
   sectors?: Sectors | null;
+  /**
+   * Each tech's last sixty days: the mix of work, time on the tools, what of it
+   * is not billable, drive time, the jobs that came in inside the time sold,
+   * and the work they found. Optional so a snapshot written before it existed
+   * still renders. See crew.ts.
+   */
+  crew?: Crew | null;
   /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
@@ -2654,6 +2662,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const sectors = crew == null
     ? previous?.metrics.sectors ?? null
     : await computeSectors(now, crew.costPerHr, goal?.profitPct ?? null, crew.crew).catch(() => previous?.metrics.sectors ?? null);
+  // Carried forward on failure like the sectors above it.
+  const crewDays = await computeCrew(now).catch(() => previous?.metrics.crew ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
   // Carried forward like the journals beside it: a failed read leaves the
   // last reading standing rather than clearing an alert nobody has acted on.
@@ -2715,6 +2725,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       goalLevels: goal?.revenue ? { goal: goal.revenue, floor: Number((goal as { floorRevenue?: unknown }).floorRevenue) > 0 ? Number((goal as { floorRevenue?: unknown }).floorRevenue) : null } : null,
       jobProfitRecent,
       sectors,
+      crew: crewDays,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,

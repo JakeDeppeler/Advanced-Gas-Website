@@ -64,6 +64,13 @@ export type VisitOutcomes = {
   repair: number;
   /** Quoted on the visit and nothing booked since. */
   quoted: number;
+  /**
+   * Quoted on the visit at all, whether or not anything was booked after.
+   * The pipeline's second stage: `quoted` above is the stage's leftovers, which
+   * is the wrong figure to put on a funnel. Optional so a snapshot written
+   * before it existed still renders — the stage drops out rather than reading 0.
+   */
+  quotedAll?: number;
   /** Nothing quoted, nothing booked: the visit was the job. */
   only: number;
   /** What those visits billed themselves, before GST. */
@@ -74,6 +81,8 @@ export type VisitOutcomes = {
   ledProfit: number;
   /** Follow-on installs and repairs booked but not billed yet. */
   ledUnbilled: number;
+  /** Of the follow-on jobs, how many have billed. Optional like quotedAll. */
+  ledBilled?: number;
 };
 
 export type Sectors = {
@@ -95,7 +104,7 @@ export const FOLLOW_DAYS = 60;
 const WINDOW_DAYS = 90;
 
 const empty = (): SectorFigures => ({ jobs: 0, revenue: 0, costed: 0, profit: 0, margin: null });
-const emptyOut = (): VisitOutcomes => ({ visits: 0, install: 0, repair: 0, quoted: 0, only: 0, ownRevenue: 0, ownProfit: 0, ledRevenue: 0, ledProfit: 0, ledUnbilled: 0 });
+const emptyOut = (): VisitOutcomes => ({ visits: 0, install: 0, repair: 0, quoted: 0, quotedAll: 0, only: 0, ownRevenue: 0, ownProfit: 0, ledRevenue: 0, ledProfit: 0, ledUnbilled: 0, ledBilled: 0 });
 const DAY = 86_400_000;
 
 type JobRow = { id: number; job_type: string | null; location_id: number | null; status: string | null; created_on: string | null; completed_on: string | null };
@@ -187,6 +196,7 @@ export async function computeSectors(
   for (const v of visits) {
     const out = sectorOf(v.job_type) === "maintenance" ? maintenance : breakdown;
     out.visits++;
+    if (quotedJobs.has(v.id)) out.quotedAll = (out.quotedAll ?? 0) + 1;
     const own = byJob.get(v.id);
     if (own) { out.ownRevenue += own.price; out.ownProfit += own.profit ?? 0; }
     const next = led.get(v.id) ?? [];
@@ -196,7 +206,7 @@ export async function computeSectors(
     else out.only++;
     for (const f of next) {
       const billed = byJob.get(f.id);
-      if (billed) { out.ledRevenue += billed.price; out.ledProfit += billed.profit ?? 0; }
+      if (billed) { out.ledRevenue += billed.price; out.ledProfit += billed.profit ?? 0; out.ledBilled = (out.ledBilled ?? 0) + 1; }
       else out.ledUnbilled++;
     }
   }

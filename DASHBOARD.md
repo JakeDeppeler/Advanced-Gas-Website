@@ -1079,31 +1079,41 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
-**The Money page is gone.** Jake asked for it off the rotation, so the board is
-eight pages: Today, Pace, Quotes, Invoices, Daily pace, Team, Performance,
-Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
+**The Money page is gone.** Jake asked for it off the rotation. With Crew and
+Sectors since added, the board is ten pages: Today, Pace, Quotes, Invoices,
+Daily pace, Crew, Team, Performance, Sectors, Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
 still has it, arrangements and all. The payables read itself is left in place —
 `fetchXeroPayables`, the ageing and the on-terms split still run every five
 minutes and still reconcile — so the page is one revert away rather than a
 rebuild, at the cost of one Xero call nothing currently renders.
 
 **Lateness to a job cannot be measured yet, so there is no tile for it.** The
-third cut on these grounds, and the clearest. `st_appointments` carries the slot
-and the arrival window, `st_timesheets` carries `arrived_on` per technician, and
-the join works — but of the 558 visits in the last sixty days, **365 (65%) have
-`arrived_on` stamped at exactly the scheduled start, to the second**, and
-another 188 at exactly the dispatch moment. Those are defaults, not
-measurements: a real arrival is never exactly on the second. Strip them and 122
-visits are genuinely recorded, which is 22% of the work, spread one to
-thirty-one per technician — Jye has 1, Jake 4, Kayden 9. On that sample Kayden
-reads 78% late off nine visits. Naming a person on a wall off nine visits, with
-four in five of their jobs unmeasured and the measured ones self-selected, is
-the worst version of a confidently wrong number: it is wrong *about somebody*.
+third cut on these grounds, and the clearest. Asked for twice — a late count per
+person (14 Nov), then again inside the Crew page's KPIs (15 Nov) — and refused
+twice for the same reason. `st_appointments` carries the slot and the arrival
+window, `st_timesheets` carries `arrived_on` per technician, and the join on
+`appointment_id` is exact. But of the **715 visits in the last sixty days, 576
+have `arrived_on` stamped either at the scheduled start to the second or at the
+dispatch moment** — defaults, not measurements; a real arrival is never exactly
+on the second. Strip them and 139 visits are genuinely recorded, 19% of the
+work, from 0 to 34 per technician: Jake 0 of 67, Thomas 2 of 18, Jye 9 of 69.
+On that sample Kayden reads 4 late off 14 recorded visits. Naming a person on a
+wall off fourteen visits, with four in five of their jobs unmeasured and the
+measured ones self-selected, is the worst version of a confidently wrong
+number: it is wrong *about somebody*.
+
+Worse, the remnant is not even consistent. Averaged against the arrival window,
+the recorded visits give Paddy +2,034 minutes and Chaz −618: there are arrivals
+stamped days away from the appointment they belong to. There is no threshold
+that makes a figure out of this.
 
 What unlocks it is not code. It is technicians tapping **On my way / Arrived**
 in the ServiceTitan app so `arrived_on` is a real timestamp rather than a
-default. Once coverage is up the tile is a day's work — the fields, the join and
-the honest denominator are already worked out and in this file.
+default. Until then the Crew page carries the honest version of the same
+question in its *On the tools* column — "93 of 108 clocked" — which measures how
+much of each person's work has a real stamp at all, and is the thing that has to
+move first. Once coverage is up the tile is a day's work: the fields, the join
+and the honest denominator are worked out here.
 
 **The board is reconciled against the database, not trusted.**
 `scripts/audit-board.sql` recomputes every published figure straight from the
@@ -2828,9 +2838,91 @@ $1.6M against a goal set in jobs. On the Team tab the month's sales goal is
 shared evenly across everyone who has quoted; the team line decides the
 sentence, so one person ahead covering another behind is the team on track.
 
+## Crew: each tech's last sixty days
+
+The sixth page, beside Daily pace. Jake asked (15 Nov) for "an overview of each
+main tech so we can see how many installs, repairs, break down and mataince, how
+on time they are, if they got the job done within the time frame, if they were
+late and other KPI we can use to see who is standing out vs who is not", and
+then for "time on tool per person as well as a stat, and how much non billable
+time we have, and also drive time per person".
+
+Everything here is built from `st_timesheets` — one row per technician per
+appointment, with `dispatched_on`, `arrived_on` and `done_on` — joined out to
+the job. `st_jobs` carries no technician at all; ServiceTitan's job export sends
+none.
+
+**Three of the four stamps are often defaults, and each is handled separately.**
+Of 715 rows in the last sixty days: 158 have done stamped within a minute of
+arrived, 289 have arrived stamped at the dispatch moment to the second. So a row
+counts as **a job attended** always — dispatch is not in doubt — as **time on
+the tools** only where the two stamps are a real span apart (15 minutes to 12
+hours), and as **a drive** only where dispatch and arrival are (1 minute to 3
+hours). Every column says what it measured out of what it could have: "93 of 108
+clocked", "72 of 117 trips". **Lateness is left out** for the reason set out
+above; this page's clocked count is the honest version of the same question.
+
+| Column | What it is |
+|---|---|
+| Work | The job mix by [sector](#sectors-maintenance-breakdowns-repairs-and-installs), as a bar and in words: `30 maint · 34 break · 8 rep · 20 inst · 16 other`. |
+| On the tools | Hours clocked, and how many of their visits were clocked at all. |
+| Not billable | Of those hours, the ones that will never be billed, and the share of the clock. |
+| Drive | Average minutes a trip over the trips that recorded one, with the hours and the count beside it. |
+| In the time sold | Of the jobs with both a measured time on site and labour hours sold, the share that came in within a quarter hour of the sold time. |
+| Billed | Their share of what those jobs billed, before GST, and per hour on the clock. |
+| Work found on a visit | Quotes written on their maintenance and breakdown calls, and how many of those addresses had an install booked within 60 days. |
+
+**The time comparison is the job's, not the man's, and this is the whole point
+of the page.** Sold labour hours do not scale with the crew: a service call is
+sold at an hour and an install at three whether one man goes or two. Summing the
+crew's man-hours against them puts the median two-man install at 2.0× its sold
+time and the median two-man service at 1.8× — every two-man job permanently in
+the red. Measured as time *on site*, first arrival to last done, the same jobs
+come in at 1.11× and 1.00×. So the job is judged once, on its time on site, and
+every tech who was on it carries that verdict. Nothing in the data separates two
+men on one install, and pretending otherwise is how you blame one of them.
+
+**Only the sold hours are used as the yardstick, never the job type's standard
+duration.** Both are available and they measure different things: against the
+invoice's sold hours the jobs come in at a median 0.82× with 62% inside, against
+ServiceTitan's job-type duration at 0.30× with 83% inside. Mixing them makes a
+tech's score depend on how many of their jobs happened to be invoiced with
+labour lines rather than on anything they did. That halves the coverage — 225 of
+418 completed jobs carry sold hours — and the column prints its denominator for
+exactly that reason. The way to widen it is labour lines on service invoices,
+not a second yardstick. (The Daily pace page still falls back to the standard
+time for its live dial, where blanking three techs in five for the day would be
+worse; it says which source each job used.)
+
+**Nothing on this page is status-coloured, and the rows carry no rank.** The
+status palette says where a figure sits against something that measures it, and
+nothing here is measured against anything anybody set — no target for hours on
+the tools, for drive time, or for the share of jobs inside the sold time. A
+green 71% would be the board inventing a target and marking a man against it.
+Ordering by any one column would make that column the score and the rest
+decoration, so the rows run by jobs attended, which nobody reads as a judgement.
+
+**Who appears**: 20 hours on the clock and 10 jobs in the window. That is what
+separates a tech on the tools from a name on a job — Jake is on 67 jobs with
+2 hours clocked between them. The count left off is in the page's subtitle, not
+their names. A rate needs 8 judged jobs; below that the cell says how many it
+has.
+
+**Money** is each job's price before GST (`subtotal`, else the total less GST,
+the same as [job profit](#profit-on-every-job)), split between the techs on it
+by their share of the hours clocked, and counted only once the job is Completed.
+Split by heads when nobody's stamps gave a span, so it is never quietly lost.
+**Not billable** is a finished job that billed nothing, once it is a week old —
+the office bills in batches and a job closed on Friday is not lost time on
+Monday — plus every quote visit, which never bills by design and is called out
+separately in the team card.
+
+Code: `src/lib/dashboard/crew.ts`, `crewTypes.ts` (pure, tested by
+`npm run check:crew`), `CrewPage` in `ScreenBoard.tsx`.
+
 ## Sectors: maintenance, breakdowns, repairs and installs
 
-The eighth page. Jake asked (15 Nov) whether maintenance and breakdown work earns
+The ninth page. Jake asked (15 Nov) whether maintenance and breakdown work earns
 its keep through the installs it leads to, and so which of the two to push.
 
 **The four cards** are the per-job figures from [Profit on every job](#profit-on-every-job)
@@ -2851,7 +2943,27 @@ percentage, worded "Over 20%" / "Under 20%". The pace scale ("Ahead · 197%")
 is margin as a share of the goal and read as nonsense on a margin. A margin
 needs five costed jobs; fewer and it says so.
 
-**What the visit led to** follows the address, not the quote. Of the first 76
+**What a visit turns into** is a pipeline (Jake, 15 Nov: "for the sector can we
+have this as a pipe line style"). Four stages, each one a subset of the one
+before: visits → quoted there → booked back → installs. Breakdowns run 68 → 34 →
+23 → 19, maintenance 68 → 14 → 8 → 6, so the drop-off is the gap you can see and
+the two kinds of visit are compared down the same four steps.
+
+It replaced a stacked bar of the four outcomes a visit *ended* at — an install,
+a repair, quoted with nothing booked, just the visit. Same data, different
+question, and it took reading the key to work out that "install" and "quoted,
+nothing booked" were not two steps of one thing.
+
+The stage boxes are equal and the bar inside each carries the share. Sizing the
+boxes by the count was the first attempt: at nineteen installs out of sixty-eight
+visits the last box came out too narrow for its own label, and once every box had
+a floor under it they were all the same width anyway — a funnel that didn't
+narrow. "Quoted there" counts every visit that was quoted on, not the ones where
+nothing came of it (`quotedAll`, not `quoted`): a funnel stage is what got that
+far, and the old field is the leftovers. On a snapshot written before
+`quotedAll` existed the stage drops out rather than drawing a zero.
+
+**Which visit gets the credit** follows the address, not the quote. Of the first 76
 breakdowns, 37 were quoted on the visit and 7 of those quotes were sold through
 a job made from them, but 22 of the addresses had an install booked within 60
 days: the office books the install as a new job at the site as often as it
