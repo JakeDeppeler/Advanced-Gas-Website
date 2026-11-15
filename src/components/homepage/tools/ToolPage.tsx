@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { Crumbs } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
 import { TOOL_LIST, findTool } from "./toolList";
 import "@/app/detail.css";
 import "@/app/tools/tools.css";
@@ -130,20 +131,7 @@ export function ToolPage({ slug, crumb, title, sub, children, how, more, faqs, c
         </div></div>
       </section>
 
-      <section className="bk__sec bk__sec--white">
-        <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
-            <div>
-              <h2 className="bk__boxh">{accent(cta.h)}</h2>
-              <p>{cta.text}</p>
-            </div>
-            <div className="bxh__ctas">
-              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from={`tool-${slug}`}>Call (03) 5947 8000</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <EndCta title={accent(cta.h)} text={cta.text} from={`tool-${slug}`} />
     </div></div>
   );
 }

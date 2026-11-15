@@ -311,3 +311,26 @@
   .ag .bm__mark{width:38px}
   .ag .bm__word{font-size:13px}
 }
+
+/* ---- The closing quote box with the team behind it (EndCta) ----
+   The homepage's closing box: the team and the vans, grey and darkened,
+   under the site's orange (Jake, Nov 2026). The photo is darker than the
+   homepage's (.55, not .75): at .75 the white vans behind the text bring
+   the small print down to 4.2:1, and .6 still dipped under 4.5:1 where a
+   tablet layout put a line over a van. At .55 even a pure white pixel
+   leaves white text at 4.57:1 on the tint, whatever sits behind it. */
+.ag .bk__sec--tcta{padding:clamp(48px,6vw,88px) 0}
+/* After a cream band the box carries on in cream, straight under it. A new
+   white band started with a full band's padding, so the end of the page
+   read as an empty cream strip and then a white gap (Jake, Nov 2026).
+   After a white band, the white-on-white rule above does the same. */
+.ag .bk__sec--cream + .bk__sec--tcta{background:var(--cream);padding-top:0}
+.ag .bk__tcta{position:relative;isolation:isolate;overflow:hidden;border-radius:12px;background:var(--or);color:#fff}
+.ag .bk__tcta > img{z-index:-2;object-fit:cover;object-position:center 55%;filter:grayscale(1) brightness(.55)}
+.ag .bk__tcta::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(194,82,26,.86)}
+.ag .bk__tctain{padding:clamp(40px,5vw,72px) clamp(24px,5.5vw,80px);align-items:flex-end}
+.ag .bk__tctain > div:first-child{gap:16px}
+.ag .bk__tcta .bk__boxh{font-size:clamp(32px,3.9vw,56px);line-height:1.02;letter-spacing:-.03em}
+.ag .bk__tcta .bk__boxh span{color:var(--navy)}
+.ag .bk__tcta p{margin:0;font-size:16px;line-height:1.6;color:#fff}
+@media (max-width:600px){.ag .bk__tctain{padding:40px 22px}.ag .bk__tcta .bxh__ctas .abtn{flex:1 1 100%}}

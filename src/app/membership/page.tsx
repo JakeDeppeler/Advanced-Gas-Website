@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { Crumbs, Hero } from "@/components/homepage/page/kit";
-import { BkHead, Bands, BandPage, type Band } from "@/components/homepage/page/bands";
+import { BkHead, Bands, BandPage, EndCta, type Band } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
@@ -164,20 +164,12 @@ export default function MembershipPage() {
         </div>
       </Hero>
       <Bands list={bands} />
-      <section className="bk__sec bk__sec--white bk__sec--end">
-        <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
-            <div>
-              <h2 className="bk__boxh">Want to join? It&apos;s a <span>5-minute call</span>.</h2>
-              <p>We&apos;ll size the right tier for your gear and lock in your first service date.</p>
-            </div>
-            <div className="bxh__ctas">
-              <Link href="/contact" className="abtn abtn--or abtn--flat">Become a member →</Link>
-              <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="membership-cta">Call {site.phone}</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <EndCta
+        title={<>Want to join? It&apos;s a <span>5-minute call</span>.</>}
+        text={<>We&apos;ll size the right tier for your gear and lock in your first service date.</>}
+        from="membership-cta"
+        cta={{ href: "/contact", label: "Become a member →" }}
+      />
     </BandPage>
   );
 }

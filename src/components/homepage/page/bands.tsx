@@ -1,5 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PHOTO } from "@/lib/homepage/data";
+import { site } from "@/lib/site";
 import { BkMotion } from "../brand/BkMotion";
 import "../brand/blocks.css";
 import "./service.css";
@@ -64,19 +67,34 @@ export function Tabs({ list }: { list: Band[] }) {
   );
 }
 
-/** The quote box every product page ends on. */
-export function EndCta({ title, text = "A free site check, then one fixed price in writing. Six years on our workmanship.", from = "page-cta" }: { title: ReactNode; text?: ReactNode; from?: string }) {
+/**
+ * The quote box the inside pages end on: the homepage's closing box, the
+ * team with the vans behind the site's orange (Jake, Nov 2026: "like the
+ * home page, with us as the background"). Category, service, tool, rebate,
+ * blog and search pages all end on this one. The brand and product pages
+ * keep their own box, which carries the maker's logo.
+ */
+export function EndCta({ title, text = "A free site check, then one fixed price in writing. Six years on our workmanship.", from = "page-cta", cta = { href: "/quote", label: "Get a free quote →" } }: {
+  title: ReactNode;
+  text?: ReactNode;
+  from?: string;
+  /** The main button: a quote, unless the page asks for something else (joining a membership starts on the contact page). */
+  cta?: { href: string; label: string };
+}) {
   return (
-    <section className="bk__sec bk__sec--white bk__sec--end">
+    <section className="bk__sec bk__sec--white bk__sec--end bk__sec--tcta">
       <div className="wrap">
-        <div className="bk__box bk__box--acc bk__cta">
-          <div>
-            <h2 className="bk__boxh">{title}</h2>
-            <p>{text}</p>
-          </div>
-          <div className="bxh__ctas">
-            <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-            <a href="tel:+61359478000" className="abtn abtn--line" data-call-from={from}>Call (03) 5947 8000</a>
+        <div className="bk__tcta">
+          <Image src={PHOTO.vans} alt="" fill sizes="(max-width: 1480px) 100vw, 1416px" />
+          <div className="bk__cta bk__tctain">
+            <div>
+              <h2 className="bk__boxh">{title}</h2>
+              <p>{text}</p>
+            </div>
+            <div className="bxh__ctas">
+              <Link href={cta.href} className="abtn abtn--navy">{cta.label}</Link>
+              <a href={`tel:${site.phoneE164}`} className="abtn abtn--white" data-call-from={from}>Call {site.phone}</a>
+            </div>
           </div>
         </div>
       </div>
@@ -89,11 +107,16 @@ export function EndCta({ title, text = "A free site check, then one fixed price 
  * written as ".ag .bk …", as the product page nests them. BkMotion brings
  * the cards in turn. The accent is the site's orange: these pages have no
  * brand colour of their own.
+ *
+ * `cls` adds to the root. The service pages pass "bx" for the category
+ * pages' header (the orange glow and the boxed figures), so a service page
+ * opened from /hot-water doesn't drop back to the plainer one; the other
+ * pages on this frame keep theirs.
  */
-export function BandPage({ children }: { children: ReactNode }) {
+export function BandPage({ children, cls }: { children: ReactNode; cls?: string }) {
   return (
     <div className="ag ag--flat" data-no-reveal>
-      <div className="bk svk" style={{ ["--acc" as string]: "#C2521A" }}>
+      <div className={`bk svk${cls ? ` ${cls}` : ""}`} style={{ ["--acc" as string]: "#C2521A" }}>
         <BkMotion />
         {children}
       </div>

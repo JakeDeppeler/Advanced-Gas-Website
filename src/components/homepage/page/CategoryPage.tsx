@@ -8,7 +8,10 @@ import {
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO } from "@/lib/homepage/learn";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { BrandLockup } from "@/components/homepage/brand/BrandMark";
+import { findTool } from "@/components/homepage/tools/toolList";
 import { Crumbs } from "./kit";
+import { EndCta } from "./bands";
 import "@/components/homepage/brand/blocks.css";
 import "./category.css";
 
@@ -59,7 +62,9 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
     const b = BRAND_SLUGS[n] ? findBrand(BRAND_SLUGS[n]) : undefined;
     return b ? [b] : [];
   });
-  const tools = copy.tools.flatMap((h) => TOOLS.filter((t) => t.href === h));
+  // Each tool's question, what it works out and its button, from the tool
+  // pages' own list, so the box says what the tool page says.
+  const tools = copy.tools.flatMap((h) => TOOLS.filter((t) => t.href === h)).map((t) => ({ ...t, info: findTool(t.href.split("/").pop() ?? "") }));
   const named = REVIEWS.filter((r) => copy.reviewWord.test(`${r.txt} ${r.what} ${r.title}`));
   const reviews = [...named, ...REVIEWS.filter((r) => !named.includes(r))].slice(0, 3);
   // Two questions from each system, the first time each is asked.
@@ -104,10 +109,13 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
         </div>
       </nav>
 
-      {/* Hot water only: how big a tank, from people and shower length (Jake, Nov 2026). */}
+      {/* Hot water only: how big a tank, from people and shower length (Jake,
+          Nov 2026). In the navy box Side by side and the homepage's finder
+          use, so it reads as one thing to work through rather than a heading
+          and some cards loose on the band. */}
       {cat.id === "hw" && (
         <section className="bk__sec bk__sec--cream" id="size">
-          <div className="wrap"><div className="bk__blk bk__col">
+          <div className="wrap"><div className="bk__blk bk__boxed bk__col cx__size">
             <header className="bk__head">
               <h2 className="h2">How much hot water do you <span>need</span>?</h2>
               <p>Tell us how many people shower and for how long. Every tank we fit, at the size that covers you, and how long it lasts.</p>
@@ -151,22 +159,28 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
             <h2 className="h2">Side by <span>side</span>.</h2>
             <p>Still not sure? The finder asks about your home and narrows it to three options.</p>
           </header>
-          <div className="cx__tblwrap">
-            <table className="cx__tbl">
-              <thead><tr><th scope="col">System</th><th scope="col">Good for</th><th scope="col">Install</th><th scope="col">Price</th></tr></thead>
-              <tbody>
-                {systems.map(({ s, from, time, good }) => (
-                  <tr key={s.slug}>
-                    <th scope="row"><Link href={systemHref(s.slug)}>{s.label}</Link></th>
-                    {/* data-l: the column name, shown above each value once the rows stack on a phone */}
-                    <td data-l="Good for">{good ?? s.sub}</td>
-                    <td data-l="Install">{time}</td>
-                    <td data-l="Price">{from != null ? `From ${money(from)}` : "Free quote"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* A card per system rather than a table: the picture is what people
+              recognise. Every value keeps its label (a dt), and on a wide
+              screen the cards share their rows (subgrid), so "Install" and
+              "Price" line up across and still compare at a glance. */}
+          <ul className={`cx__cmp${systems.length > 5 ? " cx__cmp--rows" : ""}`} style={{ ["--n" as string]: systems.length }} role="list" data-anim="stagger">
+            {systems.map(({ s, from, time, good }) => (
+              <li key={s.slug} className="cx__cc">
+                <span className={`cx__ccimg${SCENE.test(s.img) ? " cx__ccimg--cover" : ""}`}><Image src={s.img} alt="" fill sizes="(max-width: 900px) 120px, 260px" /></span>
+                <span className="cx__cchd">
+                  <span className="cx__tag">{s.sub}</span>
+                  {/* The one link; it stretches over the whole card */}
+                  <h3><Link href={systemHref(s.slug)}>{s.label}</Link></h3>
+                </span>
+                <dl className="cx__ccdl">
+                  <div><dt>Good for</dt><dd>{good ?? s.sub}</dd></div>
+                  <div><dt>Install</dt><dd>{time}</dd></div>
+                  <div className="cx__ccprice"><dt>Price</dt><dd>{from != null ? `From ${money(from)}` : "Free quote"}</dd></div>
+                </dl>
+                <span className="cx__ccgo" aria-hidden="true">See it <i>→</i></span>
+              </li>
+            ))}
+          </ul>
           <Link href={`/?find=${cat.id}#find`} className="abtn abtn--or abtn--flat cx__find">Find your {lower} in a few taps →</Link>
         </div></div>
       </section>
@@ -181,12 +195,18 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
             </header>
             <div className="cx__brands" data-anim="stagger">
               {brands.map((b) => (
-                <Link key={b.slug} href={`/brands/${b.slug}`} className="cx__brand" style={{ ["--b" as string]: b.blockAccent ?? b.accent }}>
-                  <span className="cx__bimg"><Image src={b.heroProducts?.[0]?.src ?? b.photo} alt="" fill sizes="(max-width: 600px) 40vw, 200px" /></span>
+                <Link key={b.slug} href={`/brands/${b.slug}`} className="cx__brand">
+                  <span className="cx__bimg"><Image src={b.heroProducts?.[0]?.src ?? b.photo} alt="" fill sizes="(max-width: 600px) 30vw, 300px" /></span>
                   <span className="cx__btxt">
-                    <strong>{b.name}</strong>
-                    <span>{b.tagline}</span>
-                    <em>Why we choose {b.name} →</em>
+                    {/* The maker's own logo where we have one (alt carries the name);
+                        the name set in type where we don't. */}
+                    <span className="cx__blogo">
+                      {b.mark ? <BrandLockup tone="dark" />
+                        : b.logo ? <span className={`cx__blimg${b.logo.endsWith(".svg") ? "" : " cx__blimg--mono"}`}><Image src={b.logo} alt={b.name} fill sizes="160px" unoptimized={b.logo.endsWith(".svg")} /></span>
+                        : <strong>{b.name}</strong>}
+                    </span>
+                    <span className="cx__btag">{b.tagline}</span>
+                    <em>Why we choose {b.name} <i aria-hidden="true">→</i></em>
                   </span>
                 </Link>
               ))}
@@ -212,18 +232,28 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
       </section>
 
       {/* 5. The tools for this category */}
+      {/* A box in the category's colour on white, like the homepage's tools
+          box, rather than a full-width band (Jake, Nov 2026). */}
       {tools.length > 0 && (
-        <section className="bk__sec bk__sec--red" id="tools">
-          <div className="wrap"><div className="bk__blk cx__tools">
-            <div className="bk__head">
+        <section className="bk__sec bk__sec--white" id="tools">
+          <div className="wrap"><div className="bk__blk cx__tbox">
+            <div className="bk__head cx__thead">
+              <span className="cx__teye">Free tools</span>
               <h2 className="h2">{accent(copy.toolsHead)}</h2>
               <p>{copy.toolsSub}</p>
+              <p className="cx__tfree"><b>Free</b> · No sign-up · No email needed</p>
             </div>
-            <div className="cx__tlist">
+            <ul className="cx__tcards" role="list" data-anim="stagger">
               {tools.map((t) => (
-                <Link key={t.href} href={t.href} className="cx__tool"><strong>{t.t}</strong><span>{t.s}</span><i aria-hidden="true">→</i></Link>
+                <li key={t.href} className="cx__tcard">
+                  <small>{t.t}</small>
+                  {/* The one link; it stretches over the whole card */}
+                  <h3><Link href={t.href}>{t.info?.q ?? t.s}</Link></h3>
+                  {t.info && <ul className="cx__tpts">{t.info.points.map((p) => <li key={p}>{p}</li>)}</ul>}
+                  <span className="cx__tgo" aria-hidden="true">{t.info?.cta ?? "Open"} <i>→</i></span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div></div>
         </section>
       )}
@@ -266,20 +296,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
         </section>
       )}
 
-      <section className="bk__sec bk__sec--white">
-        <div className="wrap">
-          <div className="bk__box bk__box--acc bk__cta">
-            <div>
-              <h2 className="bk__boxh">Get a price for your <span>{lower}</span>.</h2>
-              <p>A free site check, then one fixed price in writing. Six years on our workmanship.</p>
-            </div>
-            <div className="bxh__ctas">
-              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="category-cta">Call (03) 5947 8000</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <EndCta title={<>Get a price for your <span>{lower}</span>.</>} from="category-cta" />
     </div></div>
   );
 }

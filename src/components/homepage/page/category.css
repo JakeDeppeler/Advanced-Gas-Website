@@ -26,40 +26,104 @@
 .ag .cx__go i{font-style:normal;transition:transform .2s}
 .ag .cx__card:hover .cx__go i{transform:translateX(4px)}
 
-/* Side by side, in the navy box */
-.ag .cx__tblwrap{overflow-x:auto;border-radius:12px;background:#fff}
-.ag .cx__tbl{width:100%;border-collapse:collapse;font-size:15px;color:var(--ink2);min-width:620px}
-.ag .cx__tbl th,.ag .cx__tbl td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-.ag .cx__tbl thead th{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:#F6F8FB}
-.ag .cx__tbl tbody tr:last-child > *{border-bottom:0}
-.ag .cx__tbl tbody th a{font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy);text-decoration:none}
-.ag .cx__tbl tbody th a:hover{color:var(--acc);text-decoration:underline}
-.ag .cx__tbl td:last-child{font-weight:700;color:var(--navy);white-space:nowrap}
-/* On a phone the table stacks into one card per system, rather than a 620px table to swipe sideways with no sign that it scrolls */
+/* Tank size (hot water), in the navy box: the checker's cards are white
+   already; only the note under them needs to turn light. */
+.ag .cx__size .hws__note{color:rgba(255,255,255,.78)}
+/* On a phone the box's own padding would squeeze the checker: the cards
+   take more of the width, the words keep the box's inset. */
+@media (max-width:600px){
+  .ag .cx__size{padding-left:12px;padding-right:12px}
+  .ag .cx__size :is(.bk__head,.hws__note){padding:0 8px}
+}
+
+/* Side by side, in the navy box: a white card per system. Narrower than
+   five columns fit, each card is a row (picture, name, the three values);
+   wide, they stand side by side and share rows (subgrid), so each value
+   lines up with the same value in the next card. */
+.ag .cx__cmp{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.ag .cx__cc{position:relative;display:grid;grid-template-columns:132px minmax(0,1fr) auto;column-gap:24px;row-gap:12px;align-items:center;padding:14px 24px 14px 14px;border-radius:12px;background:#fff;color:var(--ink2);transition:box-shadow .2s}
+.ag .cx__cc:hover{box-shadow:0 0 0 3px var(--acc-l)}
+/* The name is the card's one link; its focus ring goes round the whole card */
+.ag .cx__cc:has(h3 a:focus-visible){outline:3px solid #fff;outline-offset:3px}
+.ag .cx__cc h3 a:focus-visible{outline:none}
+.ag .cx__ccimg{grid-column:1;grid-row:1/3;position:relative;height:108px;border-radius:8px;overflow:hidden;background:#fff}
+.ag .cx__ccimg img{object-fit:contain;padding:6px;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.ag .cx__ccimg--cover img{object-fit:cover;padding:0}
+.ag .cx__cc:hover .cx__ccimg img{transform:scale(1.05)}
+.ag .cx__cchd{grid-column:2;grid-row:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ag .cx__cc h3{margin:0;font-family:var(--disp);font-size:21px;font-weight:900;line-height:1.15;letter-spacing:-.01em}
+.ag .cx__cc h3 a{color:var(--navy);text-decoration:none}
+.ag .cx__cc h3 a::after{content:"";position:absolute;inset:0;z-index:1;border-radius:12px}
+.ag .cx__ccdl{grid-column:2;grid-row:2;margin:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) max-content;gap:18px}
+.ag .cx__ccdl > div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ag .cx__ccdl dt{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.ag .cx__ccdl dd{margin:0;font-size:14.5px;line-height:1.45;color:var(--ink2)}
+.ag .cx__ccprice dd{font-family:var(--disp);font-size:17px;font-weight:800;color:var(--navy);white-space:nowrap}
+.ag .cx__ccgo{grid-column:3;grid-row:1/3;display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:var(--acc);white-space:nowrap}
+.ag .cx__ccgo i{font-style:normal;transition:transform .2s}
+.ag .cx__cc:hover .cx__ccgo i{transform:translateX(4px)}
+/* Six or more would be too narrow side by side, so they stay as rows */
+@media (min-width:1180px){
+  .ag .cx__cmp:not(.cx__cmp--rows){grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:0 14px}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__cc{grid-row:span 6;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;gap:0;align-items:stretch;padding:0 0 20px;overflow:hidden}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccimg{grid-column:1;grid-row:1;height:170px;border-radius:0;border-bottom:1px solid var(--line)}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccimg img{padding:18px}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccimg--cover img{padding:0}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__cchd{grid-column:1;grid-row:2;padding:18px 20px 14px}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccdl{grid-column:1;grid-row:3/6;grid-template-columns:minmax(0,1fr);grid-template-rows:subgrid;gap:0}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccdl > div{padding:12px 20px;border-top:1px solid var(--line)}
+  .ag .cx__cmp:not(.cx__cmp--rows) .cx__ccgo{grid-column:1;grid-row:6;align-self:end;padding:8px 20px 0}
+}
+/* A phone: the picture beside the name, the values under both */
 @media (max-width:640px){
-  .ag .cx__tbl{min-width:0}
-  .ag .cx__tbl thead{display:none}
-  .ag .cx__tbl,.ag .cx__tbl tbody,.ag .cx__tbl tr,.ag .cx__tbl tbody th{display:block}
-  .ag .cx__tbl tr{padding:16px 18px;border-bottom:1px solid var(--line)}
-  .ag .cx__tbl tbody tr:last-child{border-bottom:0}
-  .ag .cx__tbl tbody th,.ag .cx__tbl td{padding:0;border:0}
-  .ag .cx__tbl tbody th a{display:inline-flex;align-items:center;min-height:40px;margin:-10px 0}
-  .ag .cx__tbl td{display:inline-block;vertical-align:top;margin:10px 22px 0 0}
-  .ag .cx__tbl td:nth-child(2){display:block;margin-right:0}
-  .ag .cx__tbl td::before{content:attr(data-l);display:block;margin-bottom:2px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+  .ag .cx__cc{grid-template-columns:80px minmax(0,1fr);column-gap:14px;padding:12px}
+  .ag .cx__ccimg{grid-row:1;height:80px}
+  .ag .cx__cc h3{font-size:19px}
+  .ag .cx__ccdl{grid-column:1/-1;grid-row:2;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;padding-top:12px;border-top:1px solid var(--line)}
+  .ag .cx__ccdl > div:first-child{grid-column:1/-1}
+  .ag .cx__ccgo{grid-column:1/-1;grid-row:3}
 }
 .ag .cx .cx__find{align-self:flex-start}
 
-/* The brands */
-.ag .cx__brands{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.ag .cx__brand{display:flex;gap:16px;align-items:center;padding:16px;border-radius:14px;background:#fff;color:inherit;text-decoration:none;border-top:5px solid var(--b);box-shadow:0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s,box-shadow .25s}
-.ag .cx__brand:hover{transform:translateY(-4px);box-shadow:0 30px 50px -30px rgba(5,10,48,.55)}
-.ag .cx__bimg{position:relative;flex:none;width:96px;height:96px;border-radius:10px;background:#F3F5F8}
-.ag .cx__bimg img{object-fit:contain;padding:8px}
-.ag .cx__btxt{display:flex;flex-direction:column;gap:4px;min-width:0}
-.ag .cx__btxt strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
-.ag .cx__btxt span{font-size:14px;line-height:1.45;color:var(--ink2)}
-.ag .cx__btxt em{font-style:normal;font-size:13.5px;font-weight:700;color:var(--b)}
+/* The brands: the product on white above the maker's logo. No colour bar
+   along the top (Jake, Nov 2026); the logo says whose it is. */
+.ag .cx__brands{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.ag .cx__brand{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;background:#fff;color:inherit;text-decoration:none;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45);transition:box-shadow .25s}
+.ag .cx__brand:hover{box-shadow:0 0 0 3px var(--acc),0 30px 50px -28px rgba(5,10,48,.5)}
+.ag .cx__brand:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+/* White, not a grey panel: most product shots are on white, and a grey
+   panel showed each one as a white rectangle */
+.ag .cx__bimg{position:relative;height:190px;background:#fff;border-bottom:1px solid var(--line)}
+.ag .cx__bimg img{object-fit:contain;padding:20px;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.ag .cx__brand:hover .cx__bimg img{transform:scale(1.05)}
+.ag .cx__btxt{display:flex;flex-direction:column;gap:10px;padding:18px 20px 20px;flex:1;min-width:0}
+.ag .cx__blogo{display:flex;align-items:center;height:42px}
+.ag .cx__blimg{position:relative;display:block;width:150px;height:38px}
+.ag .cx__blimg img{object-fit:contain;object-position:left center}
+/* The logo files are drawn for the brand pages' quote box, as white
+   silhouettes on colour. The SVGs carry the makers' own colours and read on
+   white as they are; a raster one (iStore's) is white only, so it goes dark. */
+.ag .cx__blimg--mono img{filter:brightness(0)}
+.ag .cx__blimg--mono{height:30px}
+.ag .cx__blogo strong{font-family:var(--disp);font-size:25px;font-weight:900;letter-spacing:-.02em;color:var(--navy)}
+.ag .cx__blogo .bm__mark{width:40px}
+.ag .cx__blogo .bm__word{font-size:13px}
+.ag .cx__btag{font-size:14.5px;line-height:1.5;color:var(--ink2)}
+.ag .cx__btxt em{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-style:normal;font-size:14px;font-weight:700;color:var(--acc)}
+.ag .cx__btxt em i{font-style:normal;transition:transform .2s}
+.ag .cx__brand:hover .cx__btxt em i{transform:translateX(4px)}
+/* A phone: the picture to the side, so four brands aren't four screens */
+@media (max-width:600px){
+  .ag .cx__brands{gap:12px}
+  .ag .cx__brand{flex-direction:row}
+  .ag .cx__bimg{flex:none;width:112px;height:auto;min-height:150px;border-bottom:0;border-right:1px solid var(--line)}
+  .ag .cx__bimg img{padding:12px}
+  .ag .cx__btxt{padding:14px 16px 16px;gap:8px}
+  .ag .cx__blogo{height:34px}
+  .ag .cx__blimg{width:120px;height:30px}
+  .ag .cx__blogo strong{font-size:21px}
+  .ag .cx__btag{font-size:14px}
+}
 
 /* Why us */
 .ag .cx__why{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
@@ -68,19 +132,36 @@
 .ag .cx__why strong{font-family:var(--disp);font-size:18px;font-weight:800;color:#fff;margin-top:6px}
 .ag .cx__why span{font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.78)}
 
-/* The tools, on the category's colour */
-.ag .cx__tools{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,56px);align-items:center}
-.ag .cx__tlist{display:flex;flex-direction:column;gap:10px}
-.ag .cx__tool{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:16px;align-items:center;padding:18px 22px;border-radius:12px;background:#fff;color:inherit;text-decoration:none;box-shadow:0 20px 40px -30px rgba(5,10,48,.5);transition:transform .2s}
-.ag .cx__tool:hover{transform:translateX(4px)}
-.ag .cx__tool strong{font-family:var(--disp);font-size:18px;font-weight:800;color:var(--navy)}
-.ag .cx__tool span{grid-row:2;font-size:14.5px;color:var(--ink2)}
-.ag .cx__tool i{grid-row:1/3;grid-column:2;font-style:normal;font-size:20px;color:var(--acc)}
+/* The tools: a box in the category's colour, the question each tool
+   answers on a white card, with what it works out and its button. White
+   text only on the plain colour (no light wash behind it), which keeps the
+   lightest of the three, hot water's orange, at 4.6:1. */
+.ag .cx__tbox{position:relative;overflow:clip;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,4vw,56px);align-items:center;padding:clamp(28px,4vw,56px) clamp(22px,4vw,56px);border-radius:16px;color:#fff;background:radial-gradient(55% 90% at 100% 100%,color-mix(in srgb,var(--navy) 32%,transparent),transparent 70%),var(--acc)}
+.ag .cx__tbox .h2{color:#fff}
+.ag .cx__tbox .h2 span{color:var(--navy)}
+.ag .cx__tbox .bk__head p{color:#fff}
+.ag .cx__teye{align-self:flex-start;padding:6px 12px;border-radius:999px;background:rgba(5,10,48,.24);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+.ag .cx__tbox .bk__head .cx__tfree{margin-top:6px;font-size:14.5px}
+.ag .cx__tcards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.ag .cx__tcard{position:relative;display:flex;flex-direction:column;gap:10px;padding:22px 22px 20px;border-radius:12px;background:#fff;box-shadow:0 26px 50px -30px rgba(5,10,48,.6);transition:box-shadow .2s}
+.ag .cx__tcard:hover{box-shadow:0 0 0 3px var(--navy),0 26px 50px -30px rgba(5,10,48,.6)}
+.ag .cx__tcard:has(h3 a:focus-visible){outline:3px solid #fff;outline-offset:3px}
+.ag .cx__tcard h3 a:focus-visible{outline:none}
+.ag .cx__tcard small{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--acc)}
+.ag .cx__tcard h3{margin:0;font-family:var(--disp);font-size:clamp(19px,1.6vw,22px);font-weight:800;line-height:1.2;color:var(--navy);text-wrap:balance}
+.ag .cx__tcard h3 a{color:inherit;text-decoration:none}
+.ag .cx__tcard h3 a::after{content:"";position:absolute;inset:0;z-index:1;border-radius:12px}
+.ag .cx__tpts{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:7px}
+.ag .cx__tpts li{position:relative;padding-left:22px;font-size:14px;line-height:1.45;color:var(--ink2)}
+.ag .cx__tpts li::before{content:"✓";position:absolute;left:0;top:0;font-weight:800;color:var(--acc)}
+.ag .cx__tgo{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;min-height:46px;padding:0 16px;border-radius:10px;background:var(--navy);font-family:var(--disp);font-size:15px;font-weight:700;color:#fff}
+.ag .cx__tgo i{font-style:normal;transition:transform .2s}
+.ag .cx__tcard:hover .cx__tgo i{transform:translateX(4px)}
 
 @media (max-width:1000px){
   .ag .cx__sys,.ag .cx__sys--4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ag .cx__why{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ag .cx__tools{grid-template-columns:1fr}
+  .ag .cx__tbox{grid-template-columns:1fr}
 }
 @media (max-width:600px){
   .ag .cx__sys,.ag .cx__sys--4{grid-template-columns:1fr}

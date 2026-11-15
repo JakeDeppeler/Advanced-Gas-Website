@@ -6,6 +6,7 @@ import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { CATEGORY_COPY } from "@/components/homepage/page/categoryCopy";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { Crumbs } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -164,20 +165,7 @@ export default function ServicesPage() {
           </div></div>
         </section>
 
-        <section className="bk__sec bk__sec--white">
-          <div className="wrap">
-            <div className="bk__box bk__box--acc bk__cta">
-              <div>
-                <h2 className="bk__boxh">Not sure which one <span>you need</span>?</h2>
-                <p>Tell us what&apos;s going on and we&apos;ll point you at the right job, with a fixed price in writing.</p>
-              </div>
-              <div className="bxh__ctas">
-                <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-                <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="services-cta">Call (03) 5947 8000</a>
-              </div>
-            </div>
-          </div>
-        </section>
+        <EndCta title={<>Not sure which one <span>you need</span>?</>} text={<>Tell us what&apos;s going on and we&apos;ll point you at the right job, with a fixed price in writing.</>} from="services-cta" />
       </div>
     </div>
   );
