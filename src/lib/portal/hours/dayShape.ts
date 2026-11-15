@@ -3,7 +3,7 @@ import { cache } from "react";
 import { listUsers, dbConfigured } from "@/lib/portal/db";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { LEVEL_BILLABLE } from "@/lib/portal/crew";
-import { isoDateMelbourne } from "@/lib/dashboard/dates";
+import { isoDateMelbourne, melbourneDayStart } from "@/lib/dashboard/dates";
 import { MAX_VISIT_HRS } from "@/lib/portal/onTheTools";
 
 /**
@@ -88,8 +88,13 @@ const isWeekday = (iso: string) => { const d = new Date(`${iso}T12:00:00Z`).getU
 
 /** The four weeks up to yesterday, by default: today is never finished. */
 export const dayShape = cache(async (days = 28): Promise<DayShape> => {
-  const end = new Date(`${isoDateMelbourne(new Date())}T00:00:00+10:00`);
-  const start = new Date(end.getTime() - days * 86_400_000);
+  const end = melbourneDayStart(isoDateMelbourne(new Date()));
+  return shapeBetween(new Date(end.getTime() - days * 86_400_000).toISOString(), end.toISOString());
+});
+
+/** Any span, as instants: `startIso` inclusive, `endIso` exclusive. The KPIs compare months with it. */
+export const shapeBetween = cache(async (startIso: string, endIso: string): Promise<DayShape> => {
+  const start = new Date(startIso), end = new Date(endIso);
   const from = isoDateMelbourne(start);
   const to = isoDateMelbourne(new Date(end.getTime() - 1));
   if (!dbConfigured()) return { from, to, people: [], crew: null };

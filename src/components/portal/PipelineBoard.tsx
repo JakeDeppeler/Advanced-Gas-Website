@@ -7,6 +7,7 @@ import {
   FIRST_CALL_DAYS, FOLLOW_UPS, GIVE_UP_AFTER, HOW_LABEL, LOST_REASONS, STAGES, addDays, daysBetween, nextGap, ruleNext,
   type PipeQuote, type Stage, type TouchHow,
 } from "@/lib/pipeline/types";
+import { CUST_STAGES, MILESTONES, custOrder, groupCustomers, type CustStage, type PipeCustomer } from "@/lib/pipeline/customers";
 
 const m0 = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 const k1 = (n: number) => (n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(2)}M` : n >= 10_000 ? `$${(n / 1000).toFixed(1)}K` : m0(n));
@@ -74,7 +75,10 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   const [who, setWho] = useState<string>("all");
   const [find, setFind] = useState("");
   const [open, setOpen] = useState<string | null>(null);
-  const [view, setView] = useState<"board" | "list">("board");
+  // Customers first (Jake, 15 Nov): one card a customer, quoted to paid. The
+  // quote board is a click away for working quote by quote.
+  const [view, setView] = useState<"customers" | "board" | "list">("customers");
+  const [cust, setCust] = useState<string | null>(null);
   const [fold, setFold] = useState<"lost" | "stale" | "booked" | "billed" | null>(null);
   const foldRef = useRef<HTMLElement>(null);
   const router = useRouter();
@@ -89,15 +93,25 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 5000); return () => clearTimeout(t); }, [toast]);
   const live = useMemo(() => quotes.map((q) => (moved[q.key] ? { ...q, ...moved[q.key] } : q)), [quotes, moved]);
 
-  const shown = useMemo(() => {
+  const matches = useMemo(() => {
     const needle = find.trim().toLowerCase();
-    return live.filter((q) => {
+    return (q: PipeQuote) => {
       if (who === "none" && q.owner) return false;
       if (who !== "all" && who !== "none" && q.owner !== who) return false;
       if (needle && ![q.customer, q.suburb, q.what, q.jobNumber, q.phone].some((x) => x?.toLowerCase().includes(needle))) return false;
       return true;
-    });
-  }, [live, who, find]);
+    };
+  }, [who, find]);
+  const shown = useMemo(() => live.filter(matches), [live, matches]);
+
+  // A customer is on the filtered board when any quote of theirs matches, and
+  // then with all their quotes: "Mine" shows my customers whole, not just the
+  // one quote of theirs I'm chasing.
+  const custs = useMemo(() => {
+    const g = groupCustomers(live);
+    return { live: g.live.filter((c) => c.quotes.some(matches)), lost: g.lost.filter((c) => c.quotes.some(matches)) };
+  }, [live, matches]);
+  const custCol = (s: CustStage) => custs.live.filter((c) => c.stage === s).sort(custOrder(s));
 
   // Each column can be put in date order, newest or oldest first, by its own button.
   const [sortBy, setSortBy] = useState<Partial<Record<Stage, "new" | "old">>>({});
@@ -131,10 +145,11 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
     const el = cols.current;
     const due = el?.querySelector<HTMLElement>(".qp-col.s-due");
     if (el && due && dueN > 0 && el.scrollWidth > el.clientWidth + 40) el.scrollLeft = due.offsetLeft - 16;
-  }, [dueN]);
+  }, [dueN, view]);
   useEffect(() => { if (fold) foldRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [fold]);
 
   const sel = [...live, ...stale].find((q) => q.key === open) ?? null;
+  const selCust = cust ? [...custs.live, ...custs.lost].find((c) => c.key === cust) ?? null : null;
 
   /*
    * Dragging a card is booking its next call, the one thing the columns
@@ -210,7 +225,8 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
           ))}
         </div>
         <div className="qp-view" role="group" aria-label="Show as">
-          <button type="button" className={view === "board" ? "on" : undefined} aria-pressed={view === "board"} onClick={() => setView("board")}>Board</button>
+          <button type="button" className={view === "customers" ? "on" : undefined} aria-pressed={view === "customers"} onClick={() => setView("customers")}>Customers</button>
+          <button type="button" className={view === "board" ? "on" : undefined} aria-pressed={view === "board"} onClick={() => setView("board")}>Quotes</button>
           <button type="button" className={view === "list" ? "on" : undefined} aria-pressed={view === "list"} onClick={() => setView("list")}>List</button>
         </div>
         <button type="button" className="qp-dl" onClick={download} aria-label="Download the board as a spreadsheet" title="Download as a spreadsheet">
@@ -218,7 +234,42 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
         </button>
       </div>
 
-      {view === "board" ? (
+      {view === "customers" ? (
+        <div className="qp-board qp-cust" ref={cols}>
+          {CUST_STAGES.map((s, ci) => {
+            const list = custCol(s.k);
+            const sum = list.reduce((n, c) => n + c.value, 0);
+            return (
+              <section key={s.k} className={`qp-col s-${s.k}`} aria-labelledby={`cust-${s.k}`} style={{ ["--i" as string]: ci }}>
+                <header className="qp-colh">
+                  <i className="qp-dot" aria-hidden="true" />
+                  <h2 id={`cust-${s.k}`} title={s.blurb}>{s.label}</h2>
+                  <span className="qp-n">{list.length}</span>
+                  <span className="qp-sum">{list.length ? k1(sum) : ""}</span>
+                </header>
+                <ul className="qp-list">
+                  {list.map((c, i) => <CustCard key={c.key} c={c} today={today} i={i} onOpen={() => setCust(c.key)} />)}
+                  {!list.length && <li className="qp-empty">{s.k === "due" ? "Nobody to ring. Nice." : s.k === "won" ? "Every sale has a job booked." : "Nobody here."}</li>}
+                </ul>
+              </section>
+            );
+          })}
+          <div className="qp-rail">
+            <button type="button" className={`qp-drop${fold === "lost" ? " on" : ""}`} onClick={() => setFold(fold === "lost" ? null : "lost")} aria-expanded={fold === "lost"}>
+              <span className="qp-dropi x" aria-hidden="true">×</span>
+              <b>Lost</b>
+              <span>{custs.lost.length ? <>{plural(custs.lost.length, "customer")} in 30 days · {k1(custs.lost.reduce((n, c) => n + c.value, 0))}</> : "None in 30 days"}</span>
+            </button>
+            <button type="button" className={`qp-drop${fold === "stale" ? " on" : ""}`} onClick={() => setFold(fold === "stale" ? null : "stale")} aria-expanded={fold === "stale"} disabled={!stale.length}>
+              <span className="qp-dropi" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+              </span>
+              <b>Too old</b>
+              <span>{stale.length ? <>{plural(stale.length, "quote")} over 60 days · {k1(staleSum)}</> : "None over 60 days"}</span>
+            </button>
+          </div>
+        </div>
+      ) : view === "board" ? (
         <div className="qp-board" ref={cols}>
           {STAGES.map((s, ci) => {
             const list = col(s.k);
@@ -309,6 +360,20 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
           {fold === "stale" && <p className="qp-note">Too old to chase. Mark each one lost here, and it&rsquo;s dismissed in ServiceTitan too, or it keeps counting as out.</p>}
           {fold === "booked" && <p className="qp-note">Sold and booked in ServiceTitan. They move to Completed by themselves once the job is done.</p>}
           {fold === "billed" && <p className="qp-note">The job&rsquo;s done and the money isn&rsquo;t all in. Paid in full, they leave the board.</p>}
+          {view === "customers" && fold === "lost" ? (
+            <ul className="qp-rows">
+              {custs.lost.map((c) => (
+                <li key={c.key}>
+                  <button type="button" onClick={() => setCust(c.key)}>
+                    <b>{c.customer ?? c.lead.what ?? "Customer"}{c.suburb ? <small> · {c.suburb}</small> : null}</b>
+                    <span>{c.quotes.length > 1 ? `${c.quotes.length} quotes · ` : ""}{c.lead.lostReason ?? (c.lead.dismissed ? "Dismissed in ServiceTitan" : "Lost")}</span>
+                    <em>{m0(c.value)}</em>
+                  </button>
+                </li>
+              ))}
+              {!custs.lost.length && <li className="qp-empty">Nobody lost in the last 30 days.</li>}
+            </ul>
+          ) : (
           <ul className="qp-rows">
             {(fold === "lost" ? lost : fold === "booked" ? booked : fold === "billed" ? billed : stale).map((q) => (
               <li key={q.key}>
@@ -325,10 +390,12 @@ export function PipelineBoard({ quotes, stale, today, office, me, canCustomer }:
             {fold === "booked" && !booked.length && <li className="qp-empty">Nothing booked in.</li>}
             {fold === "billed" && !billed.length && <li className="qp-empty">Nothing waiting on money.</li>}
           </ul>
+          )}
         </section>
       )}
 
-      {sel && <Panel key={sel.key} q={sel} today={today} owners={owners} me={me} name={pill} canCustomer={canCustomer} startLost={lostFor === sel.key} onClose={() => { setOpen(null); setLostFor(null); }} />}
+      {sel ? <Panel key={sel.key} q={sel} today={today} owners={owners} me={me} name={pill} canCustomer={canCustomer} startLost={lostFor === sel.key} back={selCust ? selCust.customer ?? "the customer" : null} onClose={() => { setOpen(null); setLostFor(null); }} />
+        : selCust ? <CustPanel key={selCust.key} c={selCust} today={today} canCustomer={canCustomer} onQuote={(k) => setOpen(k)} onClose={() => setCust(null)} /> : null}
       {toast && <p className="qp-toast" role="status">{toast}</p>}
     </div>
   );
@@ -413,8 +480,10 @@ function Card({ q, today, i, onOpen, dragging, onDrag, canCustomer }: { q: PipeQ
   );
 }
 
-function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: {
-  q: PipeQuote; today: string; owners: string[]; me: string; name: (o: string) => string; canCustomer: boolean; startLost?: boolean; onClose: () => void;
+function Panel({ q, today, owners, me, name, canCustomer, startLost, back, onClose }: {
+  q: PipeQuote; today: string; owners: string[]; me: string; name: (o: string) => string; canCustomer: boolean; startLost?: boolean;
+  /** Opened from a customer's panel: closing goes back to it, and the header says so. */
+  back?: string | null; onClose: () => void;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -471,8 +540,8 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
     <div className="qp-scrim" onClick={onClose}>
       <div className="qp-panel" role="dialog" aria-modal="true" aria-labelledby="pipe-panel-h" tabIndex={-1} ref={ref} onClick={(e) => e.stopPropagation()}>
         <div className="qp-ph">
-          <span>Quote{q.jobNumber ? ` · Job ${q.jobNumber}` : ""}</span>
-          <button type="button" className="qp-x" onClick={onClose} aria-label="Close">×</button>
+          {back ? <button type="button" className="qp-back" onClick={onClose}>‹ Back to {back}</button> : <span>Quote{q.jobNumber ? ` · Job ${q.jobNumber}` : ""}</span>}
+          <button type="button" className="qp-x" onClick={onClose} aria-label={back ? `Back to ${back}` : "Close"}>×</button>
         </div>
 
         <div className={`qp-card qp-big s-${q.stage}${w.late ? " late" : ""}`}>
@@ -610,6 +679,157 @@ function Panel({ q, today, owners, me, name, canCustomer, startLost, onClose }: 
               ))}
             </ol>
           ) : <p className="qp-note">Nobody has followed this one up yet.</p>}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/** The six milestones as dots, with the furthest one in words, so the dots are never the only signal. */
+function Track({ c }: { c: PipeCustomer }) {
+  const last = [...c.journey].reverse().find((j) => j.reached) ?? c.journey[0];
+  return (
+    <span className="qp-track" title={c.journey.map((j) => `${j.m}: ${j.reached ? "yes" : "not yet"}`).join(" · ")}>
+      <span className="qp-tdots" aria-hidden="true">{c.journey.map((j) => <i key={j.m} className={j.reached ? "on" : undefined} />)}</span>
+      <span className="qp-tword">{last.m} <span className="qp-tof">· {c.reached} of {MILESTONES.length}</span></span>
+    </span>
+  );
+}
+
+const isOpenStage = (s: Stage) => s === "new" || s === "due" || s === "waiting";
+const isSoldStage = (s: Stage) => s === "won" || s === "booked" || s === "billed";
+
+/** What a customer's quotes come to, in words: "3 quotes · 1 sold", or the one quote's own name. */
+function quotesWords(c: PipeCustomer): string {
+  if (c.quotes.length === 1) return c.lead.what ?? (c.lead.jobNumber ? `Job ${c.lead.jobNumber}` : "1 quote");
+  const sold = c.quotes.filter((q) => isSoldStage(q.stage)).length;
+  const lost = c.quotes.filter((q) => q.stage === "lost").length;
+  return [plural(c.quotes.length, "quote"), sold ? `${sold} sold` : null, lost ? `${lost} lost` : null].filter(Boolean).join(" · ");
+}
+
+/**
+ * One customer on the customer board. The header is the next step for the
+ * quote that put them in this column, the same words its quote card would
+ * carry; the dots are how far along they are overall.
+ */
+function CustCard({ c, today, i, onOpen }: { c: PipeCustomer; today: string; i: number; onOpen: () => void }) {
+  const w = when(c.lead, today);
+  const tries = c.lead.touches.filter((t) => t.how !== "note").length;
+  const openN = c.quotes.filter((q) => isOpenStage(q.stage)).length;
+  return (
+    <li style={{ ["--i" as string]: Math.min(i, 8) }}>
+      <div
+        role="button" tabIndex={0}
+        className={`qp-card qp-ccard s-${c.stage}${w.late ? " late" : ""}`} onClick={onOpen}
+        onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(); } }}
+      >
+        <span className="qp-ct">
+          {/* "1st call of 3" kept on one line: the column is narrow and a lone "3" reads as nothing. */}
+          <span>{w.late ? <b aria-hidden="true">! </b> : null}{w.text}{(c.stage === "due" || c.stage === "waiting") ? ` · ${(tries < FOLLOW_UPS ? `${ORD[tries]} of ${FOLLOW_UPS}` : "all calls done").replace(/ /g, " ")}` : ""}</span>
+        </span>
+        <span className="qp-title">{c.customer ?? c.lead.what ?? "Customer"}</span>
+        {c.suburb && <span className="qp-sub">{c.suburb}</span>}
+        <span className="qp-sub qp-quoted">{quotesWords(c)}</span>
+        <Track c={c} />
+        <span className="qp-cf">
+          <span className="qp-val">{m0(c.value)}<small>{openN && c.soldValue ? `+ ${k1(c.soldValue)} sold` : !openN && c.soldValue ? "sold" : openN > 1 ? `${openN} quotes out` : ""}</small></span>
+          <span className="qp-avs">{c.people.slice(0, 3).map((p) => <Av key={p} name={p} title={p === c.lead.owner ? `${p} is chasing them` : p} />)}</span>
+        </span>
+      </div>
+    </li>
+  );
+}
+
+/**
+ * A customer, whole: where they're up to from first quote to paid, with the
+ * day each step happened, and every quote of theirs. A quote opens its own
+ * panel, the one the quote board uses, where the calls get logged; closing
+ * it comes back here.
+ */
+function CustPanel({ c, today, canCustomer, onQuote, onClose }: {
+  c: PipeCustomer; today: string; canCustomer: boolean; onQuote: (key: string) => void; onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.focus();
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [onClose]);
+  const w = when(c.lead, today);
+  const tel = c.phone?.replace(/[^\d+]/g, "");
+  const lostOnly = c.quotes.every((q) => q.stage === "lost");
+  const stageLabel = lostOnly ? "Lost" : CUST_STAGES.find((s) => s.k === c.stage)?.label ?? "";
+  const at = c.journey.map((j) => j.reached).lastIndexOf(true);
+  const openN = c.quotes.filter((q) => isOpenStage(q.stage)).length;
+  const order = (q: PipeQuote) => (isOpenStage(q.stage) ? 0 : isSoldStage(q.stage) ? 1 : 2);
+  const quotes = [...c.quotes].sort((a, b) => order(a) - order(b) || b.quotedOn.localeCompare(a.quotedOn));
+
+  return (
+    <div className="qp-scrim" onClick={onClose}>
+      <div className="qp-panel" role="dialog" aria-modal="true" aria-labelledby="cust-panel-h" tabIndex={-1} ref={ref} onClick={(e) => e.stopPropagation()}>
+        <div className="qp-ph">
+          <span>Customer · {plural(c.quotes.length, "quote")}</span>
+          <button type="button" className="qp-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+
+        <div className={`qp-card qp-big s-${lostOnly ? "lost" : c.stage}${w.late && !lostOnly ? " late" : ""}`}>
+          <span className="qp-ct">
+            <span>{lostOnly ? c.lead.lostReason ?? "Lost" : <>{w.late ? <b aria-hidden="true">! </b> : null}{w.text}</>}</span>
+            <span className="qp-stage">{stageLabel}</span>
+          </span>
+          <span className="qp-title" id="cust-panel-h">{c.customer ?? "No customer name"}</span>
+          <span className="qp-sub">{[c.suburb, c.journey[0].on ? `first quoted ${shortDay(c.journey[0].on)}` : null].filter(Boolean).join(" · ")}</span>
+          <span className="qp-cf">
+            <span className="qp-val">{m0(c.value)}<small>{lostOnly ? "lost" : openN ? `${plural(openN, "quote")} out${c.soldValue ? ` · ${m0(c.soldValue)} sold` : ""}` : "sold"}</small></span>
+            <span className="qp-avs">{c.people.map((p) => <Av key={p} name={p} />)}</span>
+          </span>
+        </div>
+
+        <ol className="qp-journey" aria-label="Where they're up to">
+          {c.journey.map((j, i) => (
+            <li key={j.m} className={`${j.reached ? "done" : ""}${i === at ? " now" : ""}`} aria-current={i === at ? "step" : undefined}>
+              <i aria-hidden="true" />
+              <b>{j.m}</b>
+              {/* Booked's day is the visit's, which is often still to come. */}
+              <span>{j.reached ? (j.on ? `${j.m === "Booked" ? "for " : ""}${shortDay(j.on)}` : j.m === "Paid" ? "In full" : "Yes") : "Not yet"}</span>
+            </li>
+          ))}
+        </ol>
+
+        <div className="qp-contact">
+          <Av name={c.customer ?? "?"} />
+          <span>
+            <b>{c.customer ?? "No customer name"}</b>
+            <span>{tel ? c.phone : "No phone number in ServiceTitan"}{c.suburb ? ` · ${c.suburb}` : ""}</span>
+          </span>
+        </div>
+        <div className="qp-links">
+          {tel && <a className="qp-btn dark" href={`tel:${tel}`}>Call {c.phone}</a>}
+          {c.customerId ? (
+            canCustomer
+              ? <a className="qp-btn" href={`/portal/customers/${c.customerId}`}>Everything for this customer</a>
+              : <a className="qp-btn" href={`https://go.servicetitan.com/#/Customer/${c.customerId}`} target="_blank" rel="noreferrer">Open in ServiceTitan</a>
+          ) : null}
+        </div>
+
+        <section className="qp-cq" aria-labelledby="cust-q-h">
+          <h3 id="cust-q-h">Their quotes</h3>
+          <ul className="qp-rows">
+            {quotes.map((q) => (
+              <li key={q.key}>
+                <button type="button" onClick={() => onQuote(q.key)}>
+                  <b>{q.what ?? (q.jobNumber ? `Job ${q.jobNumber}` : "Quote")}<small>Quoted {shortDay(q.quotedOn)}</small></b>
+                  <span className="qp-cqst">
+                    <span className={`qp-tag s-${q.stage}`}><i aria-hidden="true" />{SHORT[q.stage]}</span>
+                    <span>{q.stage === "lost" ? q.lostReason ?? (q.dismissed ? "Dismissed in ServiceTitan" : "") : when(q, today).text}</span>
+                  </span>
+                  <em>{m0(q.value)}</em>
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="qp-note">Open a quote to log a call, book the next one or mark it lost.</p>
         </section>
       </div>
     </div>

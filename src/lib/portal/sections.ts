@@ -125,6 +125,8 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Personal", href: "/portal/todo", icon: "me" },
       { label: "Accounts", href: "/portal/todo/accounts", office: true, icon: "pf" },
       { label: "Marketing", href: "/portal/todo/marketing", icon: "mega" },
+      // What keeps coming back, and what would take it off the lists.
+      { label: "Repeats", href: "/portal/todo/repeats", office: true, icon: "todo" },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true, icon: "phone" },
       // Things to get through rather than to look up, so on the lists with the
       // rest of the work, not in Team.

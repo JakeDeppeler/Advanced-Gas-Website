@@ -19,6 +19,8 @@ import { SpreadForm } from "@/components/portal/SpreadForm";
 import { revenueGoalFor } from "@/lib/portal/yearGoal";
 import { Bad, Card, Empty, Good, Head, PeriodTabs, Pill, Say, Tabs, none, status, type Status } from "@/components/portal/kit/Kit";
 import { PERIODS, periodItems, periodSpans, periodWords, readPeriod } from "@/lib/portal/run/period";
+import { monthCompare } from "@/lib/portal/run/monthCompare";
+import { MonthCompareTable } from "@/components/portal/MonthCompareTable";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Our KPIs · Team portal" };
@@ -28,7 +30,7 @@ const cap = (t: string, first: boolean) => (first ? t.charAt(0).toUpperCase() + 
 
 /** `pl`: the name is plural ("Overheads are"), for the sentence. */
 type Kpi = { name: string; means: string; value: string; goal: string; st: Status; href?: string; pl?: boolean };
-type TabKey = "overview" | "sell" | "work" | "paid" | "money" | "team";
+type TabKey = "compare" | "overview" | "sell" | "work" | "paid" | "money" | "team";
 
 /**
  * Run the company › Our KPIs: every number the business is measured by,
@@ -40,8 +42,11 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Our KPIs" forWhom="the office" />;
-  // Making money was the overview over again, so it went; an old link to it lands on the overview.
-  const tab = (["sell", "work", "paid", "team"].includes(searchParams.tab ?? "") ? searchParams.tab : "overview") as TabKey;
+  // This month against last opens the page (Jake, 15 Nov: "kpi for this and
+  // last month, how do we improve this"); the profit and loss from Xero is the
+  // next tab. Making money was the overview over again, so it went; an old
+  // link to it lands on the overview.
+  const tab = (["overview", "sell", "work", "paid", "team"].includes(searchParams.tab ?? "") ? searchParams.tab : searchParams.tab === "money" ? "overview" : "compare") as TabKey;
 
   // The money tabs read Xero for the period picked; the rest are this month.
   const period = readPeriod(searchParams.p);
@@ -58,7 +63,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     loadSpread().catch(() => [] as string[]),
     reeceFlags(from, to).catch(() => null),
   ]));
-  const [board, goals, year, xero, follow, tools, xeroReads] = await Promise.all([
+  const [board, goals, year, xero, follow, tools, xeroReads, compare] = await Promise.all([
     latestBoard(),
     getGoals(),
     savedGoal(),
@@ -66,6 +71,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     followupRate().catch(() => null),
     onTheTools().catch(() => null),
     xeroReadsP,
+    tab === "compare" ? monthCompare().catch(() => null) : Promise.resolve(null),
   ]);
   const [booked, plYear, spreadOn, reeceRaw] = xeroReads ?? [null, null, [] as string[], null];
   // Once-a-year bills spread across the year (run/spread.ts), so the month the
@@ -189,7 +195,8 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const red = (ks: Kpi[]) => ks.filter((k) => k.st.k === "bad").length;
   const tabs = (
     <Tabs on={tab} items={[
-      { key: "overview", label: "Overview", href: q() },
+      { key: "compare", label: "This month vs last", href: q() },
+      { key: "overview", label: "Profit & loss", href: q("overview") },
       { key: "sell", label: "Selling", href: q("sell"), count: red(sell) || undefined, red: true },
       { key: "work", label: "Doing the work", href: q("work"), count: red(work) || undefined, red: true },
       { key: "paid", label: "Getting paid", href: q("paid"), count: red(paid) || undefined, red: true },
@@ -197,7 +204,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     ]} />
   );
   const head = (
-    <Head title="Our KPIs" eyebrow={tab === "overview" || tab === "money" ? `${periodWords(period).charAt(0).toUpperCase()}${periodWords(period).slice(1)} · from Xero` : "This month · ServiceTitan and Xero"} info={[
+    <Head title="Our KPIs" eyebrow={tab === "compare" ? "This month against last · ServiceTitan" : tab === "overview" || tab === "money" ? `${periodWords(period).charAt(0).toUpperCase()}${periodWords(period).slice(1)} · from Xero` : "This month · ServiceTitan and Xero"} info={[
       ["Goal", "What we aim for this year, set in Pricing & costs. Change it there and every page moves with it."],
       ["Benchmark", "What a healthy service trade looks like. Fixed, so it can’t be moved to suit a month."],
       ["No goal yet", "Nobody has set a goal for it, so it isn’t marked good or bad."],
@@ -227,7 +234,9 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   );
 
   let body: React.ReactNode;
-  if (tab === "overview") {
+  if (tab === "compare") {
+    body = compare ? <MonthCompareTable c={compare} /> : <Empty>The month couldn&rsquo;t be worked out just now. Try again in a minute.</Empty>;
+  } else if (tab === "overview") {
     const bench: [string, BenchKey, number, boolean][] = pl ? [
       ["Gross margin", "gm", share(pl.gp), false],
       ["Overheads", "ovh", share(pl.overheads), true],
@@ -322,7 +331,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
       <div className="pk">
         {head}
         {tabs}
-        {(tab === "overview" || tab === "money") && <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/kpis${tab === "money" ? "?tab=money" : ""}${k !== "fy" ? `${tab === "money" ? "&" : "?"}p=${k}` : ""}`} />}
+        {(tab === "overview" || tab === "money") && <PeriodTabs on={period} items={periodItems()} href={(k) => `/portal/kpis?tab=overview${k !== "fy" ? `&p=${k}` : ""}`} />}
         {body}
       </div>
     </PortalShell>
