@@ -69,6 +69,15 @@ const hwPriced = pricedItems(hw.lines, new Map(hw.lines.map((l) => [l.skuId, { p
 ok("a line the office put in at $0 stays at $0", hwPriced.items.filter((_, k) => hw.lines[k].unitPrice === 0).every((i) => i.unitPrice === 0));
 ok("an item gone from the pricebook is named", pricedItems(hw.lines, new Map()).missing.length === hw.lines.length);
 
+// The labour items switched off and renamed to junk ("frfvd") after the quotes were written.
+const retired = [1309, 148186526, 209601318, 209601882, 301175242, 301359168, 301368653];
+ok("no template on a retired labour item", !all.some((t) => t.lines.some((l) => retired.includes(l.skuId))),
+  all.filter((t) => t.lines.some((l) => retired.includes(l.skuId))).map((t) => t.code));
+const kun = OTHER_TEMPLATES.find((t) => t.code === "GAS-KADEN-KUN320")!;
+ok("the Kaden internal heaters on the internal install, found by code", kun.lines[1].code === "GAS-DUCT-INT" && kun.lines[1].skuId === 0);
+ok("an item waited on by code says which", pricedItems(kun.lines, new Map()).missing.includes("GAS-DUCT-INT"));
+ok("no frost valve template until we know the system", !all.some((t) => /frost/i.test(t.name)));
+
 console.log("\nTemplates, at the prices quoted by hand:");
 for (const t of OTHER_TEMPLATES) console.log(`  ${t.code.padEnd(26)} $${lineTotal(t.lines).toFixed(0).padStart(5)}  ${t.name}`);
 console.log(`  + ${evap.length} Brivis evaporative replacements`);
