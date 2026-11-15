@@ -173,7 +173,9 @@ export async function addQuoteTemplates(budgetMs = 10_000): Promise<{ units: str
       }
       try {
         const made = await stSend<{ id?: number } | null>("POST", stTenantPath("sales", "estimate-templates"), {
-          name: s.name, internalName: s.code, summary: summaryHtml(s.summary), active: true, items,
+          // ServiceTitan refuses a create without a mode (400, "Required property
+          // 'mode'"). Every template already there is Dynamic, so these are too.
+          name: s.name, internalName: s.code, mode: "Dynamic", summary: summaryHtml(s.summary), active: true, items,
         });
         if (!made?.id) throw new Error("ServiceTitan answered without the new template's id");
         p.templates[s.code] = made.id;
