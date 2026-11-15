@@ -517,6 +517,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     specs: [
       { label: "Refrigerant", value: "CO₂ (R744)" },
       { label: "Tank sizes", value: "160 – 400 L" },
+      // Jake, Nov 2026: any swap to a heat pump is 2–4 hours; an old electric tank in the roof is 4–6.
+      { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Holds to", value: "-10 °C ambient" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
@@ -541,7 +543,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     specs: [
       { label: "Refrigerant", value: "R290 propane" },
       { label: "Tank sizes", value: "180 – 285 L" },
-      { label: "Time on site", value: "3 – 5 hrs" },
+      { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
     steps: [

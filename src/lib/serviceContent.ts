@@ -380,7 +380,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Reverse cycle air conditioning",
         blurb:
           "One machine that both heats and cools, a heat pump on the wall or in the roof. It's the cheapest way to heat a Melbourne home, it's now VEU-rebate eligible, and it comes in three shapes: a split for a room, multi-head for a few, ducted for the whole house.",
-        photo: { src: "/Kaden Indoor.jpg", alt: "A reverse-cycle wall split heating and cooling a living room", scene: true },
+        photo: { src: "/Kaden KSI V3 wall split system.jpg", alt: "A Kaden reverse-cycle wall split: the indoor head and its outdoor unit" },
         brands: ["Mitsubishi Electric", "Kaden"],
         priceFrom: "from $2,199 installed",
         intro:
@@ -1013,8 +1013,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       heading: "What it looks like against the house.",
       note:
         "An all-in-one is one tall cylinder standing where the old tank stood, with the compressor in a shroud on top. A split is a slimmer tank against the wall and a compressor about the size of an aircon outdoor unit beside it. Neither is invisible, and anyone telling you otherwise has not carried one.",
-      photo: "/reclaim-split-stand-back-shot.webp",
-      photoAlt: "Reclaim CO₂ split heat pump, tank and compressor against a brick wall",
+      photo: "/reclaim-and-mitsubishi.jpg",
+      photoAlt: "A Reclaim tank and heat pump beside two Mitsubishi Electric outdoor units",
       photoScene: true,
       facts: [
         { v: "~1.8 m tall", k: "A 270 L all-in-one, on the old tank's slab" },
@@ -1043,7 +1043,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     heroPhotoAlt: "Reclaim CO2 split heat pump installed against a brick wall",
     heroFacts: [
       { v: "Up to $2,700", k: "VEU rebate, applied at the quote" },
-      { v: "3–7 hours", k: "On site, and usually the same day" },
+      { v: "2–4 hours", k: "On site, or 4–6 from an old electric tank in the roof" },
       { v: "Three brands", k: "iStore, Reclaim and Thermann, for three different jobs" },
       { v: "6-year", k: "Workmanship, plus the tank and compressor cover" },
     ],
@@ -1062,10 +1062,10 @@ export const serviceContent: Record<string, ServiceContent> = {
       shots: [
         { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, tank and outdoor unit against a brick wall", caption: "Reclaim CO₂ split: tank and outdoor unit, separate" },
         { src: "/reclaim-spit-close-up.webp", alt: "Close-up of a Reclaim CO₂ heat pump tank base and pipework on a concrete pad", caption: "New pad poured, pipework re-run and lagged" },
-        { src: "/reclaim-split-back.webp", alt: "Reclaim heat pump tank and outdoor unit installed beside a brick wall", caption: "Tight side access, unit still gets its airflow" },
+        { src: "/reclaim-split-close-2.jpg", alt: "A Reclaim CO₂ heat pump on its wall bracket, with the insulated pipework running to it", caption: "Heat pump on its bracket, pipework lagged" },
         { src: "/reclaim-split-stand-back-shot-left-side.webp", alt: "Reclaim CO₂ split heat pump viewed from the left side of the house", caption: "Same job, from the other side" },
         { src: "/thermann-heat-pump.webp", alt: "Thermann heat pump hot water system installed on a paved area", caption: "Thermann integrated, all-in-one" },
-        { src: "/gas hot water change over same day.webp", alt: "Hot water changeover completed the same day", caption: "Old unit out, new one running, same day" },
+        { src: "/ba-hw-after.webp", alt: "A Reclaim ECO all-in-one heat pump on a new concrete pad", caption: "Reclaim ECO all-in-one, on a new pad" },
       ],
     },
     whyFirst: {
@@ -1123,7 +1123,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
       { title: "Written quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from' price, the number on the quote is the number on the invoice." },
       { title: "We lodge the VEU application", detail: "Approved accredited-provider paperwork submitted the day you accept the quote. The rebate is applied to your invoice, not something you chase back six months later." },
-      { title: "Install day, usually same-day swap", detail: "AIO swap into an existing electric or gas storage tank position is 3–5 hours. Split heat pump with a new tank position is 5–7 hours. Old tank drained, disconnected, loaded up." },
+      { title: "Install day, usually same-day swap", detail: "Swapping to a heat pump, all-in-one or split, from gas or electric, is 2–4 hours on site. Replacing an old electric tank that sits in the roof is 4–6 hours. Old tank drained, disconnected, loaded up." },
       { title: "Commission, temper, hand over", detail: "Tempering valve to AS/NZS 3500, isolation valves in, dedicated circuit tested. We wait for hot water at the tap, then walk you through the controller and timer settings." },
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
@@ -1179,7 +1179,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split heat pump hot water",
         blurb:
           "Compressor outside, tank against the wall, a pair of lines between them. It is the better performer in the cold and the one with the tank options: stainless or glass-lined, 160 to 400 litres, because the tank isn't carrying a compressor on top of it.",
-        photo: { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, compressor and tank against a brick wall", scene: true },
+        photo: { src: "/reclaim-split-stand-back-shot-left-side.webp", alt: "Reclaim CO₂ split heat pump, the tank in front and the compressor beside it against a brick wall", scene: true },
         brands: ["Reclaim Energy"],
         benefitTiles: [
           {
@@ -1360,7 +1360,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             icon: "clock",
           },
           {
-            t: "3–5 hours, usually same day",
+            t: "2–4 hours, usually same day",
             line: "A straight swap in a morning",
             detail:
               "An all-in-one replacing an existing tank in the same spot is usually a same-day job, so you're not without hot water overnight.",
@@ -1380,7 +1380,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "200 L and 285 L on the R290 platform",
           "One shell: nothing separate to place or plumb",
           "R290 natural refrigerant, single-digit global-warming potential",
-          "3–5 hours on site, usually same day on a like-for-like swap",
+          "2–4 hours on site, usually same day; 4–6 from an old electric tank in the roof",
           "Timer set to the cheap tariff or to your solar before we leave",
           "Old unit drained, disconnected and taken to a metal recycler",
         ],
@@ -1410,7 +1410,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "How long does it take?",
-            a: "Three to five hours for a straight swap in the same spot, and usually the same day. If it's moving position or needs an electrical circuit run, that's a longer job and it's on the quote before we start.",
+            a: "Two to four hours for a straight swap, and usually the same day. Replacing an old electric tank that sits in the roof is four to six. If it's moving position or needs an electrical circuit run, that's a longer job and it's on the quote before we start.",
           },
         ],
       },
@@ -1422,7 +1422,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Thermann", reason: "Australian-made by Dux (Moss Vale). Reece distribution means same-day parts state-wide.", href: "/brands/thermann" },
     ],
     typical: {
-      time: "AIO swap · 3–5 hrs. Split heat pump · 5–7 hrs (usually same-day).",
+      time: "Heat pump, all-in-one or split · 2–4 hrs. From an old electric tank in the roof · 4–6 hrs (usually same-day).",
       warranty: "6-year workmanship + manufacturer tank/compressor cover (varies by model: 6–15 yr tank, 3–10 yr heat pump).",
       priceRange: "$2,150 inc GST (iStore) → $6,000+ (Reclaim CO₂ Split Stainless 400 L).",
       followUp: "We call at the 4-week mark to check nothing's tripped and the timer's set the way you wanted.",
@@ -1448,7 +1448,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "How much will I save on my energy bill?", a: "A gas-storage → heat pump swap typically saves $400–$900 a year. Electric storage → heat pump saves $700–$1,400. Payback after the VEU rebate is usually under 2 years." },
       { q: "Does a heat pump work in cold Melbourne mornings?", a: "R290 (propane) units drop noticeably below 0 °C. CO₂ heat pumps (Reclaim) hold full capacity down to −10 °C, worth specifying for hills postcodes like Emerald, Gembrook or Cockatoo." },
       { q: "Is it noisy? Where do you put it?", a: "37–48 dBA at 1 m depending on model, Reclaim CO₂ is the quietest at 37 dBA (safe next to a bedroom wall). Ideally sited on the shady side of the house away from bedrooms." },
-      { q: "How long does the install take?", a: "AIO into an existing tank position is 3–5 hours, done in one visit. Split heat pump with a new outdoor unit position is 5–7 hours. Both are usually same-day." },
+      { q: "How long does the install take?", a: "Usually 2–4 hours on site to swap to a heat pump, all-in-one or split, from gas or electric, done in one visit. Replacing an old electric tank that sits in the roof takes longer, usually 4–6 hours. Both are usually same-day." },
       { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 5 years on the whole unit. Plus our 6-year workmanship on top of all of them." },
       { q: "Can I combine it with solar PV?", a: "Yes, Reclaim's split range is PV-diverter compatible so the heat pump only runs when your PV is exporting. We can add a diverter kit at install time or later." },
     ],
@@ -1858,9 +1858,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." , line: "Tested and made safe, not sniffed at", icon: "alarm" },
       { t: "Emergency call-outs, someone on the tools", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." , line: "Nights and weekends, a real person", icon: "phone" },
       { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow, off the pad and to the metal recycler on install day. No hard-rubbish wait." , line: "Disconnected, removed and gone", icon: "truck" },
-      { t: "Puretec water filtration", d: "Whole-home on the incoming main, a protection filter on the hot water cold inlet, or an under-sink unit for drinking water. Fitted by a licensed plumber, not a handyman." , line: "Whole house, under sink, softeners and tank", icon: "tap" },
     ],
-    brands: ["Brivis", "Kaden", "Thermann", "Puretec", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
+    brands: ["Brivis", "Kaden", "Thermann", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
     pricing: [
       { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal", group: "Gas ducted heating", photo: "/Brivis Wombat Indoor 3 star.jpg" },
       { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "Everything in the Wombat replacement, A quieter fan, A longer service life", group: "Gas ducted heating", photo: "/Brivis Buffalo Outdorr.jpg" },
@@ -2377,7 +2376,6 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement reuses your existing ducts and controller wiring, which is what keeps it a one-day job rather than a rebuild." },
       { q: "Can I move from gas to reverse-cycle at the same time?", a: "Yes. We're licensed refrigeration + gas so we can decommission the gas and install a reverse-cycle ducted or splits in the same visit. Usually the cleanest way to do a full swap." },
       { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, call the emergency gas line (1800 427 532) then call us. We'll be on-site same-day to leak-test and repair." },
-      { q: "Do you install water filters?", a: "Yes, Puretec. Whole-home on the incoming main so every tap and appliance runs on filtered water, a protection filter on the cold inlet to your hot water system, and under-sink units for drinking water. Which one is right depends entirely on what you've noticed, so tell us that first and we'll point you at the one that fixes it." },
     ],
   },
 };
