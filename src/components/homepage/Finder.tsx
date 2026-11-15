@@ -162,8 +162,11 @@ export function Finder({ only }: { only?: string } = {}) {
               </div>
               <div className={`fqgrid${curQ.size ? " fqgrid--size" : ""}`}>
                 {curQ.opts.map((z, i) => (
-                  <button key={z.label} type="button" className="atile anim" style={{ animationDelay: `${i * 0.07}s` }}
+                  <button key={z.label} type="button" className={`atile anim${z.tag ? " atile--tag" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
                     onClick={() => stepTo(() => setAns((a) => ({ ...a, [curQ.id]: i })))}>
+                    {/* The answer we steer people to, in words over its picture. Outside the
+                        picture's aria-hidden, so a screen reader hears it with the label. */}
+                    {z.tag && <span className="atile__tag">{z.tag}</span>}
                     {z.img ? (
                       // A photo across the top of the tile. On the household question, a
                       // figure per person pops in over it; product shots sit on white.

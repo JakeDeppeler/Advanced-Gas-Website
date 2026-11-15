@@ -133,12 +133,13 @@ export const ICON = {
 
 /**
  * `img` puts a picture across the top of the finder's tile for the answer:
- * for the heat pump and split system questions, a drawing from public/finder
- * (Jake, Nov 2026).
+ * on every question the finder asks, a drawing from public/finder (Jake, Nov
+ * 2026).
  * `fit: "contain"` is for a product shot on white rather than a scene, `pos`
  * for where a scene's subject sits. `min` is a size answer's floor in litres.
+ * `tag` sits over the picture, for the answer we'd steer people towards.
  */
-export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number };
+export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number; tag?: string };
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
@@ -151,22 +152,27 @@ const ROOM: Opt[] = [
   { label: "30–45 m²", sub: "Living room", spec: "5.0 kW", n: 3, img: "/finder/room-living.svg" },
   { label: "45 m² +", sub: "Open-plan living", spec: "7.1–8.0 kW", n: 4, img: "/finder/room-open-plan.svg" },
 ];
+// The same house each time, with that many of its rooms lit and piped to the
+// one outdoor unit.
 const HEADS: Opt[] = [
-  { label: "2 rooms", sub: "Two indoor heads", spec: "2 heads", n: 1 },
-  { label: "3 rooms", sub: "Three indoor heads", spec: "3 heads", n: 2 },
-  { label: "4–5 rooms", sub: "Four or five heads", spec: "4–5 heads", n: 3 },
+  { label: "2 rooms", sub: "Two indoor heads", spec: "2 heads", n: 1, img: "/finder/heads-2.svg" },
+  { label: "3 rooms", sub: "Three indoor heads", spec: "3 heads", n: 2, img: "/finder/heads-3.svg" },
+  { label: "4–5 rooms", sub: "Four or five heads", spec: "4–5 heads", n: 3, img: "/finder/heads-5.svg" },
 ];
+// The house widens and a window lights for each bedroom the answer usually means.
 const HOUSE: Opt[] = [
-  { label: "Smaller home", sub: "Usually 3 bedrooms", spec: "Up to 150 m²", n: 1 },
-  { label: "Family home", sub: "Usually 4 bedrooms", spec: "150–250 m²", n: 2 },
-  { label: "Large home", sub: "5 bedrooms or more", spec: "250 m² +", n: 3 },
+  { label: "Smaller home", sub: "Usually 3 bedrooms", spec: "Up to 150 m²", n: 1, img: "/finder/house-small.svg" },
+  { label: "Family home", sub: "Usually 4 bedrooms", spec: "150–250 m²", n: 2, img: "/finder/house-family.svg" },
+  { label: "Large home", sub: "5 bedrooms or more", spec: "250 m² +", n: 3, img: "/finder/house-large.svg" },
 ];
 // Every tile in the heat pump finder is a drawing in one style (Jake, Nov
 // 2026), after photos that never quite matched the answer: here, a house
 // with that many people outside it, who pop up one by one. The split
 // system's room, floor and outdoor unit questions are drawn the same way
 // (Jake, Nov 2026: "can this be an animation show the rooms"), with the air,
-// the pipe run and the outdoor fan moving; each stills for reduced motion.
+// the pipe run and the outdoor fan moving, and then every other question in
+// the finder (Jake, Nov 2026: "put an animation photo on pages like How many
+// rooms? Single or double storey?"). Each stills for reduced motion.
 const PEOPLE: Opt[] = [
   { label: "1–2 people", sub: "Small household", spec: "160–200 L", n: 1, img: "/finder/people-2.svg" },
   // A 4-bedroom home gets 270–300 L (Jake, Nov 2026), whatever the shower
@@ -174,28 +180,36 @@ const PEOPLE: Opt[] = [
   { label: "3–4 people", sub: "Most 4-bedroom homes", spec: "270–300 L", n: 2, min: 270, img: "/finder/people-4.svg" },
   { label: "5+ people", sub: "Big household", spec: "300–400 L", n: 3, min: 300, img: "/finder/people-6.svg" },
 ];
-/** The four outputs a Brivis heater comes in. */
+/**
+ * The four outputs a Brivis heater comes in. Drawn as a heater in the roof
+ * warming a house of three, four, five then six rooms: the house is what
+ * grows, which is what the answers describe.
+ */
 const HEATER_KW: Opt[] = [
-  { label: "15 kW", sub: "Smaller homes and units", spec: "15 kW", n: 1 },
-  { label: "20 kW", sub: "Most 3–4 bedroom homes", spec: "20 kW", n: 2 },
-  { label: "26 kW", sub: "Larger family homes", spec: "26 kW", n: 3 },
-  { label: "30 kW", sub: "Big homes, or long duct runs", spec: "30 kW", n: 4 },
+  { label: "15 kW", sub: "Smaller homes and units", spec: "15 kW", n: 1, img: "/finder/heater-15.svg" },
+  { label: "20 kW", sub: "Most 3–4 bedroom homes", spec: "20 kW", n: 2, img: "/finder/heater-20.svg" },
+  { label: "26 kW", sub: "Larger family homes", spec: "26 kW", n: 3, img: "/finder/heater-26.svg" },
+  { label: "30 kW", sub: "Big homes, or long duct runs", spec: "30 kW", n: 4, img: "/finder/heater-30.svg" },
 ];
 /** The same question for a gas tank, with the sizes a gas tank comes in rather than a heat pump's. */
 const GAS_PEOPLE: Opt[] = [
-  { label: "1–2 people", sub: "Small household", spec: "135 L", n: 1 },
-  { label: "3–4 people", sub: "Family home", spec: "135–170 L", n: 2 },
-  { label: "5+ people", sub: "Big household", spec: "170 L", n: 3 },
+  { label: "1–2 people", sub: "Small household", spec: "135 L", n: 1, img: "/finder/people-2.svg" },
+  { label: "3–4 people", sub: "Family home", spec: "135–170 L", n: 2, img: "/finder/people-4.svg" },
+  { label: "5+ people", sub: "Big household", spec: "170 L", n: 3, img: "/finder/people-6.svg" },
 ];
+// A two-storey house cut open, each bathroom's shower running at once off the
+// continuous flow unit on the outside wall.
 const BATHS: Opt[] = [
-  { label: "1 bathroom", sub: "One shower at a time", spec: "1 bath", n: 1 },
-  { label: "2 bathrooms", sub: "Two showers at once", spec: "2 baths", n: 2 },
-  { label: "3+ bathrooms", sub: "Big family home", spec: "3+ baths", n: 3 },
+  { label: "1 bathroom", sub: "One shower at a time", spec: "1 bath", n: 1, img: "/finder/baths-1.svg" },
+  { label: "2 bathrooms", sub: "Two showers at once", spec: "2 baths", n: 2, img: "/finder/baths-2.svg" },
+  { label: "3+ bathrooms", sub: "Big family home", spec: "3+ baths", n: 3, img: "/finder/baths-3.svg" },
 ];
+// The house from above, each zone its own colour, hatching and switch, turning
+// on and off by itself. The same plans draw QB.zoning's answers.
 const ZONES: Opt[] = [
-  { label: "2–3 zones", sub: "Living and sleeping", spec: "2–3 zones", n: 1 },
-  { label: "4–6 zones", sub: "Most family homes", spec: "4–6 zones", n: 2 },
-  { label: "7–8 zones", sub: "Every room its own", spec: "7–8 zones", n: 3 },
+  { label: "2–3 zones", sub: "Living and sleeping", spec: "2–3 zones", n: 1, img: "/finder/zones-groups.svg" },
+  { label: "4–6 zones", sub: "Most family homes", spec: "4–6 zones", n: 2, img: "/finder/zones-some.svg" },
+  { label: "7–8 zones", sub: "Every room its own", spec: "7–8 zones", n: 3, img: "/finder/zones-every.svg" },
 ];
 
 export const QB = {
@@ -207,17 +221,51 @@ export const QB = {
     { label: "Upstairs", sub: "Longer pipe run to the outdoor unit", img: "/finder/floor-upstairs.svg" },
   ] },
   // The room's wall from outside, broken away to show the head behind it: the
-  // outdoor unit moves between answers, the head stays put.
+  // outdoor unit moves between answers, the head stays put. The roof is its
+  // own answer (Jake, Nov 2026: "need an on the roof option for the split").
+  // Answers travel by index in links (outdoor=3), so a link made before the
+  // roof was split out reads its "Not sure" as "On the roof".
   outdoor: { id: "outdoor", q: "Where can the outdoor unit go?", opts: [
     { label: "Straight behind the indoor unit", sub: "Back-to-back on the same wall", img: "/finder/outdoor-behind.svg" },
     { label: "Further along the wall or around a corner", img: "/finder/outdoor-along.svg" },
-    { label: "On a balcony or the roof", img: "/finder/outdoor-balcony.svg" },
+    { label: "On a balcony", img: "/finder/outdoor-balcony.svg" },
+    { label: "On the roof", sub: "On a stand, piped down to the room", img: "/finder/outdoor-roof.svg" },
     { label: "Not sure", sub: "We'll work it out on site", img: "/finder/outdoor-not-sure.svg" },
   ] },
-  storeys: { id: "storeys", q: "Single or double storey?", opts: [o("Single storey"), o("Double storey"), o("Split level")] },
-  roofSpace: { id: "roof", q: "What's the roof space like?", opts: [o("Pitched roof with room to move", "Most houses"), o("Low or tight roof space"), o("Flat roof or no access"), o("Not sure")] },
-  ductedNow: { id: "now", q: "What's there now?", opts: [o("Nothing, it's a new system"), o("Old ducted aircon to replace"), o("Gas ducted heating", "Add cooling or replace it")] },
-  roofType: { id: "rooftype", q: "What type of roof?", opts: [o("Tiled"), o("Colorbond or metal"), o("Flat or low pitch")] },
+  // The house cut through, each level dropping into place.
+  storeys: { id: "storeys", q: "Single or double storey?", opts: [
+    { label: "Single storey", img: "/finder/storeys-single.svg" },
+    { label: "Double storey", img: "/finder/storeys-double.svg" },
+    { label: "Split level", img: "/finder/storeys-split.svg" },
+  ] },
+  // The roof cut through, one of our crew up there with a torch.
+  roofSpace: { id: "roof", q: "What's the roof space like?", opts: [
+    { label: "Pitched roof with room to move", sub: "Most houses", img: "/finder/roof-room.svg" },
+    { label: "Low or tight roof space", img: "/finder/roof-low.svg" },
+    { label: "Flat roof or no access", img: "/finder/roof-flat.svg" },
+    { label: "Not sure", img: "/finder/roof-not-sure.svg" },
+  ] },
+  // Ducted splits: full-home zoning first and tagged, as the one we push (Jake,
+  // Nov 2026: "push the full home as it gives more control").
+  zoning: { id: "zones", q: "How do you want it zoned?", opts: [
+    { label: "Every room on its own zone", sub: "Full-home zoning: the most control", tag: "Most control", img: "/finder/zones-every.svg" },
+    { label: "Rooms in groups", sub: "Say, living areas and bedrooms", img: "/finder/zones-groups.svg" },
+    { label: "One open-plan area", sub: "No zones: the whole system runs together", img: "/finder/zones-one.svg" },
+    { label: "Not sure", sub: "We'll work it out on site", img: "/finder/zones-not-sure.svg" },
+  ] },
+  // A house cut through to its roof space, and what's up there now. The same
+  // three drawings answer heatNow and ductSys.
+  ductedNow: { id: "now", q: "What's there now?", opts: [
+    { label: "Nothing, it's a new system", img: "/finder/duct-none.svg" },
+    { label: "Old ducted aircon to replace", img: "/finder/duct-aircon.svg" },
+    { label: "Gas ducted heating", sub: "Add cooling or replace it", img: "/finder/duct-gas.svg" },
+  ] },
+  // An evaporative cooler sits on the roof, so the roof is the picture.
+  roofType: { id: "rooftype", q: "What type of roof?", opts: [
+    { label: "Tiled", img: "/finder/rooftype-tiled.svg" },
+    { label: "Colorbond or metal", img: "/finder/rooftype-metal.svg" },
+    { label: "Flat or low pitch", img: "/finder/rooftype-flat.svg" },
+  ] },
   hwNow: { id: "now", q: "What hot water do you have now?", opts: [
     { label: "Gas storage tank", img: "/finder/now-gas-storage.svg" },
     { label: "Gas continuous flow", img: "/finder/now-gas-cf.svg" },
@@ -226,8 +274,13 @@ export const QB = {
     { label: "Nothing yet", sub: "New build or extension", img: "/finder/new-build.svg" },
   ] },
   // How long the showers run, for the shower-time check (Jake, Nov 2026).
-  // The minutes behind each answer are SHOWER_MINUTES in lib/homepage/hotWater.
-  showers: { id: "shw", q: "How long are the showers?", opts: [o("Quick", "About 5 minutes"), o("Average", "About 8 minutes"), o("Long", "10 minutes or more")] },
+  // The minutes behind each answer are SHOWER_MINUTES in lib/homepage/hotWater;
+  // each drawing's timer fills to those minutes out of fifteen.
+  showers: { id: "shw", q: "How long are the showers?", opts: [
+    { label: "Quick", sub: "About 5 minutes", img: "/finder/shower-quick.svg" },
+    { label: "Average", sub: "About 8 minutes", img: "/finder/shower-average.svg" },
+    { label: "Long", sub: "10 minutes or more", img: "/finder/shower-long.svg" },
+  ] },
   // Heat pumps: price to quality, one step per option (Jake, Nov 2026: "lowest
   // price, highest quality etc", not a brand per answer). HP_WANT_TIER maps each
   // answer to the option the finder marks "Our pick", in the options' order:
@@ -250,11 +303,35 @@ export const QB = {
     { label: "No", img: "/finder/solar-no.svg" },
     { label: "Getting them soon", img: "/finder/solar-soon.svg" },
   ] },
-  gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [o("Natural gas", "Mains gas meter"), o("LPG bottles"), o("Not sure")] },
-  heatNow: { id: "now", q: "What heating do you have now?", opts: [o("Old ducted heater to replace"), o("Wall furnace or space heater"), o("Nothing, it's a new install")] },
-  vents: { id: "vents", q: "Where are the vents?", opts: [o("In the floor"), o("In the ceiling"), o("No vents yet"), o("Not sure")] },
-  ductSys: { id: "ductsys", q: "What ducted system do you have?", opts: [o("Gas ducted heating"), o("Ducted reverse-cycle"), o("Evaporative cooling")] },
-  age: { id: "age", q: "How old is the system?", opts: [o("Under 5 years"), o("5–10 years"), o("Over 10 years"), o("Not sure")] },
+  gasType: { id: "gas", q: "Natural gas or LPG bottles?", opts: [
+    { label: "Natural gas", sub: "Mains gas meter", img: "/finder/gas-natural.svg" },
+    { label: "LPG bottles", img: "/finder/gas-lpg.svg" },
+    { label: "Not sure", img: "/finder/gas-not-sure.svg" },
+  ] },
+  heatNow: { id: "now", q: "What heating do you have now?", opts: [
+    { label: "Old ducted heater to replace", img: "/finder/duct-gas.svg" },
+    { label: "Wall furnace or space heater", img: "/finder/heat-wall.svg" },
+    { label: "Nothing, it's a new install", img: "/finder/duct-none.svg" },
+  ] },
+  vents: { id: "vents", q: "Where are the vents?", opts: [
+    { label: "In the floor", img: "/finder/vent-floor.svg" },
+    { label: "In the ceiling", img: "/finder/vent-ceiling.svg" },
+    { label: "No vents yet", img: "/finder/vent-none.svg" },
+    { label: "Not sure", img: "/finder/vent-not-sure.svg" },
+  ] },
+  ductSys: { id: "ductsys", q: "What ducted system do you have?", opts: [
+    { label: "Gas ducted heating", img: "/finder/duct-gas.svg" },
+    { label: "Ducted reverse-cycle", img: "/finder/duct-aircon.svg" },
+    { label: "Evaporative cooling", img: "/finder/duct-evap.svg" },
+  ] },
+  // The ducted unit in its roof space getting older. The service and repair
+  // forms ask this too; they show the words only.
+  age: { id: "age", q: "How old is the system?", opts: [
+    { label: "Under 5 years", img: "/finder/age-new.svg" },
+    { label: "5–10 years", img: "/finder/age-mid.svg" },
+    { label: "Over 10 years", img: "/finder/age-old.svg" },
+    { label: "Not sure", img: "/finder/age-not-sure.svg" },
+  ] },
   issue: { id: "issue", q: "What's happening?", opts: [o("Not working at all"), o("Not working properly", "Weak, slow or uneven"), o("Noisy, leaking or smells"), o("Error code on the screen")] },
   urgent: { id: "urgent", q: "How urgent is it?", opts: [o("Today, it's urgent", "No heating, cooling or hot water"), o("This week"), o("No rush, whenever suits")] },
   lastSvc: { id: "last", q: "When was it last serviced?", opts: [o("In the last year"), o("1–2 years ago"), o("Over 2 years ago"), o("Never, or not sure")] },
@@ -372,8 +449,8 @@ const sys = (d: SystemDef): System => {
  */
 const DOMINATOR: System = sys({ slug: "dominator", home: "heat", label: "Braemar Dominator", sub: "Gas ducted to reverse cycle, on your ducts", img: IMG.dominator,
   q: "How big is the home?", sizes: [
-    { label: "Smaller home", sub: "Usually 3 bedrooms", spec: "12.1 kW", n: 1 },
-    { label: "Larger home", sub: "4 bedrooms or more", spec: "17.9 kW", n: 2 },
+    { label: "Smaller home", sub: "Usually 3 bedrooms", spec: "12.1 kW", n: 1, img: "/finder/house-small.svg" },
+    { label: "Larger home", sub: "4 bedrooms or more", spec: "17.9 kW", n: 2, img: "/finder/house-family.svg" },
   ], faq: "dominator", service: "ducted", more: [QB.storeys, QB.vents], tiers: [
     t("essential", "Braemar", "Dominator Series 3", IMG.dominator, ["Keeps your existing ducts and vents", "Heats and cools, all electric", "VEU rebate for coming off gas"], null),
   ] });
@@ -396,7 +473,7 @@ export const CATS: Category[] = [
     systems: [
       sys({ slug: "split-system", label: "Split system", sub: "Wall air conditioner", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
       MULTI,
-      sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
+      sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.zoning, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,
       sys({ slug: "evaporative", label: "Evaporative cooler", sub: "Roof-top water cooler", img: IMG.evapClassic, q: "How big is the home?", sizes: HOUSE, faq: "evap", service: "evaporative-cooling", more: [QB.storeys, QB.roofType], tiers: [
         t("essential", "Kaden", "Classic evaporative", IMG.evapClassic, ["Cheap to run on dry days", "Fresh air through the house", "Pre-summer service available"], null),
@@ -421,7 +498,7 @@ export const CATS: Category[] = [
       // Gas heater, split, multi-head, ducted, then the Dominator (Jake, Nov 2026).
       sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
       MULTI,
-      sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.ductedNow], tiers: DUCTED_TIERS }),
+      sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.zoning, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,
     ],
     unlisted: [

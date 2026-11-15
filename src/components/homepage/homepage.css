@@ -760,6 +760,10 @@ body:has(> main > .ag){padding-bottom:0 !important}
 .ag .atile__ppl{position:absolute;left:12px;bottom:12px;display:flex;gap:4px;padding:7px 10px;border-radius:999px;background:rgba(5,10,48,.72);backdrop-filter:blur(6px)}
 .ag .atile__ppl svg{display:block;opacity:0;transform:translateY(6px) scale(.6);animation:pplPop .45s cubic-bezier(.3,1.5,.5,1) forwards}
 @keyframes pplPop{to{opacity:1;transform:none}}
+/* An answer we steer people to, named over its picture (e.g. "Most control"):
+   the site's orange, with white text at 4.6:1. */
+.ag .atile--tag{position:relative}
+.ag .atile__tag{position:absolute;top:12px;left:12px;z-index:2;font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--or);padding:7px 11px;border-radius:999px;box-shadow:0 6px 14px -6px rgba(5,10,48,.6)}
 .ag .atile__timer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;height:150px;background:linear-gradient(180deg,#EAF6FD,#fff)}
 .ag .atile__run{stroke-dashoffset:0;animation:timerRun 1.1s cubic-bezier(.3,.7,.3,1) both}
 @keyframes timerRun{from{stroke-dasharray:0 100}}
