@@ -2898,7 +2898,8 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
         label="Drive time"
         value={t.drive.avgMins != null ? String(Math.round(t.drive.avgMins)) : NA}
         suffix={t.drive.avgMins != null ? "min a trip" : undefined}
-        foot={`${hrs(t.drive.hours)} over the ${t.drive.trips} of ${t.drive.of} trips that recorded one`}
+        // Short enough to hold one line at 1600x900, where the longer wording wrapped.
+        foot={`${hrs(t.drive.hours)} · ${t.drive.trips} of ${t.drive.of} trips recorded`}
       />
       {/* Navy, not a status colour: it is the page's headline question and
           nothing sets a target for it. See the note above. */}
@@ -3060,6 +3061,23 @@ function pipeStages(o: VisitOutcomes): Array<{ label: string; n: number; tint: C
 }
 
 /**
+ * Where a visit ended up: four outcomes, exclusive, adding up to the visits.
+ *
+ * Not the same thing as the pipeline above it, which is cumulative — "quoted
+ * there" counts every visit that was quoted on, and this one counts the visits
+ * where that is all that happened. Both are on the tile because they answer
+ * different questions: how far the work got, and where it stopped.
+ */
+function endedAt(o: VisitOutcomes): Array<[string, number, CrewSector]> {
+  return [
+    ["Install", o.install, "install"],
+    ["Repair", o.repair, "repair"],
+    ["Quoted, nothing booked", o.quoted, "maintenance"],
+    ["Just the visit", o.only, "other"],
+  ];
+}
+
+/**
  * The four kinds of work side by side, and what the two kinds of visit lead to.
  *
  * Jake's question (15 Nov): is maintenance or breakdown work worth pushing for
@@ -3182,6 +3200,31 @@ function SectorsPage({ m, live }: { m: Metrics; live: Live }) {
                   </Fragment>
                 ))}
               </span>
+              {/* Where the visit ended up, under how far it got. Two different
+                  questions off the same visits, and Jake wanted both: the
+                  stages are cumulative and each contains the one after it,
+                  these four are exclusive and add up to the visits. The lead-in
+                  word is what keeps them from being read as one list. */}
+              <span className="pipe__out">
+                <span className="pipe__bar" aria-hidden="true">
+                  {o.visits > 0 &&
+                    endedAt(o)
+                      .filter(([, n]) => n > 0)
+                      .map(([w, n, c]) => (
+                        <span key={w} className={`pipe__seg mix--${c}`} style={{ flexGrow: n }} />
+                      ))}
+                </span>
+                <span className="pipe__key">
+                  <em className="pipe__kcap">ended at</em>
+                  {endedAt(o).map(([w, n, c]) => (
+                    <span key={w} className="pipe__k">
+                      <i className={`mix--${c}`} aria-hidden="true" />
+                      {w} <b>{count(n)}</b>
+                      {o.visits > 0 ? <em>{pct(n / o.visits)}</em> : null}
+                    </span>
+                  ))}
+                </span>
+              </span>
             </div>
           ))}
         </div>
@@ -3189,12 +3232,21 @@ function SectorsPage({ m, live }: { m: Metrics; live: Live }) {
 
       <div className="tile tile--navy c4" style={{ gridRow: 2 }}>
         <span className="tile__label">Each visit is worth, with what it led to</span>
-        <div className="rows">
+        {/* The two figures are the answer to the page's question, so they are
+            the size of an answer. They were a right-hand column in a two-row
+            list at a third of this, which put the money at the same weight as
+            the labels beside it in a tile with room to spare. */}
+        <div className="worth">
           {visits.map(([name, o]) => (
-            <span className="rows__one" key={name}>
-              <span className="rows__k">{name}<br /><small>{plain(perOwn(o))} the visit alone · {plain(perProfit(o))} profit all in</small></span>
-              <span className="rows__v rows__v--big">{plain(per(o))}</span>
-            </span>
+            <div className="worth__one" key={name}>
+              <span className="worth__name">{name}</span>
+              <span className="worth__fig">
+                <Ticker id={`Worth ${name}`} text={plain(per(o))} />
+              </span>
+              <span className="worth__sub">
+                {plain(perOwn(o))} the visit alone · {plain(perProfit(o))} profit all in
+              </span>
+            </div>
           ))}
         </div>
         <span className="tile__sub">
