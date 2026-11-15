@@ -1,27 +1,39 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { site } from "@/lib/site";
 import { brands, visibleProducts } from "@/lib/brands";
-import { SafeImg } from "@/components/SafeImg";
-import "../detail.css";
-import "./[brand]/brand.css";
-import "./brands-hub.css";
-import { PageHero } from "@/components/PageHero";
+import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import { Crumbs } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
+import "@/components/homepage/homepage.css";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/brand/blocks.css";
+import "@/components/homepage/page/category.css";
+import "@/components/homepage/tools/tools.css";
+import "@/components/homepage/brand/hub.css";
 
 export const metadata: Metadata = {
   title: "Brands We Install, and Why We Install Them",
   description:
-    "Every brand we install across Melbourne's south-east: Mitsubishi Electric, Kaden, Brivis, Zonemate, Reclaim, Thermann and iStore, with our take on each.",
+    "Every brand we install across Melbourne's south-east, from Mitsubishi Electric, Kaden and Brivis to Reclaim, iStore and Viessmann, with our take on each.",
   alternates: { canonical: "/brands" },
 };
 
 /** Grouping the brand hub by category so a customer thinking
  *  "heat pump" or "aircon" can jump directly to the right shelf,
- *  rather than scanning a flat list of seven brand cards. */
+ *  rather than scanning a flat list of nine brand cards. */
 /** Group order follows the brand order: air conditioning first because
- *  it is the bigger half of the business, then gas, then zoning, then
- *  hot water. Within each group the brands are listed in the same
- *  order they appear everywhere else on the site. */
+ *  it is the bigger half of the business, then ducted heating, then
+ *  zoning, then hot water. Within each group the brands are listed in the
+ *  same order they appear everywhere else on the site.
+ *
+ *  Every brand the hero counts has a card (Nov 2026): Viessmann and Braemar
+ *  were counted in "9 brands" and listed in the hero but had no card below.
+ *  Braemar's Dominator replaces a gas ducted heater on the same ducts, so it
+ *  sits beside Brivis, the heater it most often replaces; that also gives
+ *  the heating group a pair rather than one card on its own. */
 const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: string }[] = [
   {
     label: "Air conditioning",
@@ -30,10 +42,10 @@ const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: 
     blurb: "Split, multi-head and ducted. Mitsubishi Electric is what we quote first; Kaden is what we reach for when a whole house needs doing at once.",
   },
   {
-    label: "Gas heating",
+    label: "Ducted heating",
     slug: "gas",
-    brandSlugs: ["brivis"],
-    blurb: "Like-for-like Brivis replacements, the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring.",
+    brandSlugs: ["brivis", "braemar"],
+    blurb: "Like-for-like Brivis replacements, the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring. Or off gas altogether: the Braemar Dominator goes in where the gas heater was, on the ducts you have.",
   },
   {
     label: "Zoning & control",
@@ -44,8 +56,8 @@ const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: 
   {
     label: "Heat pump hot water",
     slug: "heat-pump",
-    brandSlugs: ["reclaim", "thermann", "istore"],
-    blurb: "Three brands answering three different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, iStore when the rebate is what decides it.",
+    brandSlugs: ["reclaim", "thermann", "istore", "viessmann"],
+    blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, iStore when the rebate is what decides it, Viessmann when you want a German name on the unit.",
   },
 ];
 
@@ -78,11 +90,11 @@ const BRAND_PITCH: Record<string, {
   "mitsubishi-electric": {
     positioning: "Premium default · lowest failure rate in our install base",
     standoutStat: { value: "10+", label: "years typical service life without a callback" },
-    bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than shaving $600 up-front",
+    bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than the lowest up-front price",
   },
   "kaden": {
     positioning: "Reece-exclusive · same-day parts anywhere in Victoria",
-    standoutStat: { value: "~30%", label: "cheaper than Mitsubishi equivalents, installed" },
+    standoutStat: { value: "Same day", label: "parts from Reece stores across Victoria" },
     bestFor: "3+ bedroom fitouts where every room gets done in one visit rather than one a year",
   },
   "reclaim": {
@@ -105,6 +117,18 @@ const BRAND_PITCH: Record<string, {
     standoutStat: { value: "20-30%", label: "running-cost drop with proper zoning tuning" },
     bestFor: "Ducted homes where one room bakes and another stays cold, or apps-and-Alexa-loving owners",
   },
+  // Viessmann and Braemar: every figure is one their own brand pages already
+  // state (lib/brands.ts), so the hub says nothing the brand page doesn't.
+  "viessmann": {
+    positioning: "German heating brand since 1917 · all-in-one R290 heat pump",
+    standoutStat: { value: "−7 °C", label: "hot water on the heat pump alone, −15 °C with its element" },
+    bestFor: "Households replacing an old electric or gas tank that want a German brand and a quiet unit",
+  },
+  "braemar": {
+    positioning: "Off gas, on the ducts you have · reverse-cycle Dominator",
+    standoutStat: { value: "1 day", label: "Braemar's figure for a changeover, on the ducts you already have" },
+    bestFor: "Gas ducted homes that want cooling and to get off gas, without pulling the ducts out",
+  },
   "brivis": {
     positioning: "Retrofit incumbent · same-footprint into most existing ducted heater cavities",
     standoutStat: { value: "3-6 star", label: "output ratings across every kW size, 15/20/26/30" },
@@ -114,128 +138,85 @@ const BRAND_PITCH: Record<string, {
 
 export default function BrandsIndex() {
   const totalModels = brands.reduce((sum, b) => sum + visibleProducts(b).length, 0);
+  const groups = BRAND_GROUPS.map((g) => ({
+    ...g,
+    list: g.brandSlugs.map((sl) => brands.find((b) => b.slug === sl)).filter((b): b is NonNullable<typeof b> => Boolean(b)),
+  })).filter((g) => g.list.length > 0);
 
   return (
-    <div className="page-detail page-brand page-brand-hub">
-      <PageHero
-        crumbs={[{ href: "/", label: "Home" }, { label: "Brands" }]}
-        eyebrow="Brands we install"
-        title={<>{brands.length} brands, <span className="accent">{totalModels} models</span> · every one we install.</>}
-        sub={<>We install what works, not what we&rsquo;re paid to install. Every brand below is one we&rsquo;ve put into enough Melbourne homes to have a real opinion on. Tap a brand for the full range and our take on each individual model.</>}
-      />
+    // The redesign's block layout (Nov 2026), like the tools hub: the old
+    // card grid is in git history. Two boxes because the blocks styles hang
+    // off .bk sitting inside .ag. /range redirects here.
+    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx tl bh" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
+      <Crumbs trail={[{ name: "Brands" }]} back={{ label: "Get a free quote →", href: "/quote" }} />
 
-      {BRAND_GROUPS.map((group) => {
-        const groupBrands = group.brandSlugs
-          .map((sl) => brands.find((b) => b.slug === sl))
-          .filter((b): b is NonNullable<typeof b> => Boolean(b));
-        if (groupBrands.length === 0) return null;
-        return (
-          <section key={group.slug} className="brands-hub-group" id={group.slug}>
-            <div className="wrap">
-              <div className="brands-hub-group__head">
-                <span className="ds-eyebrow"><span className="ds-dot" /> {group.label}</span>
-                <p className="brands-hub-group__blurb">{group.blurb}</p>
-              </div>
-              <div className="brands-hub__grid">
-                {groupBrands.map((b) => {
-                  const pitch = BRAND_PITCH[b.slug];
-                  // Category chips derived from the actual catalogue rather
-                  // than hand-maintained — so a brand picking up a new
-                  // product type shows it here automatically.
-                  const categories = Array.from(
-                    new Set(visibleProducts(b).map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel)),
-                  ).slice(0, 5);
-                  return (
-                    <Link
-                      key={b.slug}
-                      href={`/brands/${b.slug}`}
-                      className="bhc"
-                      style={{ ["--card-accent" as string]: b.accent }}
-                    >
-                      {/* Accent rail carries the brand colour down the card */}
-                      <span className="bhc__rail" aria-hidden="true" />
-
-                      <div className="bhc__top">
-                        <div className="bhc__id">
-                          <h2>{b.name}</h2>
-                          <span className="bhc__origin">{b.origin}</span>
-                        </div>
-                        <div className="bhc__pic">
-                          <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="400" height="300" />
-                        </div>
-                      </div>
-
-                      <p className="bhc__tagline">{b.tagline}</p>
-
-                      {pitch && (
-                        <div className="bhc__stat">
-                          <strong>{pitch.standoutStat.value}</strong>
-                          <span>{pitch.standoutStat.label}</span>
-                        </div>
-                      )}
-
-                      {categories.length > 0 && (
-                        <ul className="bhc__cats" aria-label={`${b.name} product types`}>
-                          {categories.map((c) => <li key={c}>{c}</li>)}
-                        </ul>
-                      )}
-
-                      {pitch && (
-                        <p className="bhc__bestfor">
-                          <b>Best for</b> {pitch.bestFor}
-                        </p>
-                      )}
-
-                      <div className="bhc__foot">
-                        <span className="bhc__count">
-                          {visibleProducts(b).length} model{visibleProducts(b).length === 1 ? "" : "s"}
-                        </span>
-                        <span className="bhc__cta">View full range →</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+      <section className="bxh tl__hero">
+        <div className="wrap tl__hin">
+          <div className="bxh__copy">
+            <span className="lk2__eye cx__eye">Brands we install</span>
+            <h1 className="bxh__h1 cx__h1">{brands.length} brands, <span>{totalModels} models</span>.</h1>
+            <p className="bxh__sub">We install what works, not what we&apos;re paid to push. Every brand here is one we&apos;ve put into enough Melbourne homes to have a real opinion on, and each has its own page with the range and our take.</p>
+            <div className="bxh__ctas">
+              <a href="#aircon" className="abtn abtn--or abtn--flat">See the brands ↓</a>
+              <Link href="/#find" className="abtn abtn--line">Or find your system</Link>
             </div>
-          </section>
-        );
-      })}
-
-      <section className="brands-hub-help">
-        <div className="wrap brands-hub-help__grid">
-          <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Compare or ask</span>
-            <h2>Two ways to narrow it down.</h2>
-            <p>
-              Open any brand page and use the <strong>Compare</strong> tick to line up 2-4 models
-              side by side. Or skip that and tell us the room, the household and the budget, we&rsquo;ll
-              come back with three real options from three different brands rather than pushing whatever
-              carries the biggest margin.
-            </p>
           </div>
-          <div className="brands-hub-help__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get honest brand advice →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-              Or call {site.phone}
-            </a>
-          </div>
+          <aside className="bh__logos" aria-label="The brands">
+            {brands.map((b) => (
+              <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__logo">
+                <span className="bh__limg"><Image src={b.photo} alt="" fill sizes="120px" /></span>
+                <b>{b.name}</b>
+              </Link>
+            ))}
+          </aside>
         </div>
       </section>
 
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Not sure which brand suits your job?</h2>
-            <p>Give us the room, the household, and the budget · we&rsquo;ll quote three real options.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get honest advice →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
-    </div>
+      <nav className="pxt" aria-label="On this page">
+        <div className="wrap pxt__in">{groups.map((g) => <a key={g.slug} href={`#${g.slug}`}>{g.label}</a>)}</div>
+      </nav>
+
+      {groups.map((g, gi) => (
+        <section key={g.slug} className={`bk__sec ${gi % 2 ? "bk__sec--cream" : "bk__sec--white"}`} id={g.slug}>
+          <div className="wrap"><div className="bk__blk bk__col">
+            <header className="bk__head">
+              <h2 className="h2">{g.label}<span>.</span></h2>
+              <p>{g.blurb}</p>
+            </header>
+            {/* The group's size sets the columns (bh__grid--n), so a row is never left with one card in it. */}
+            <div className={`bh__grid bh__grid--${g.list.length}`} data-anim="stagger">
+              {g.list.map((b) => {
+                const pitch = BRAND_PITCH[b.slug];
+                const models = visibleProducts(b).length;
+                // From the catalogue, so a brand picking up a new kind of product shows it here without anyone remembering to.
+                const cats = Array.from(new Set(visibleProducts(b).map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel))).slice(0, 5);
+                return (
+                  <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__card" style={{ ["--c" as string]: b.blockAccent ?? b.accent }}>
+                    <span className="bh__img"><Image src={b.photo} alt={b.photoAlt} fill sizes="(max-width: 600px) 90vw, 420px" /></span>
+                    <span className="bh__t">
+                      <small>{b.origin}</small>
+                      <strong>{b.name}</strong>
+                      <span className="bh__tag">{b.tagline}</span>
+                      {pitch && <span className="bh__stat"><b>{pitch.standoutStat.value}</b> {pitch.standoutStat.label}</span>}
+                      {cats.length > 0 && <span className="bh__cats" aria-label={`${b.name} product types`}>{cats.map((c) => <i key={c}>{c}</i>)}</span>}
+                      {pitch && <span className="bh__best"><b>Best for</b> {pitch.bestFor}</span>}
+                      <em>{models} model{models === 1 ? "" : "s"} · Why we fit {b.name} <i aria-hidden="true">→</i></em>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div></div>
+        </section>
+      ))}
+
+      {/* The homepage's closing box, the team behind the orange, as every inside page ends. */}
+      <EndCta
+        title={<>Not sure which brand <span>suits the job</span>?</>}
+        text="Tell us the room, the household and what matters most. We'll come back with real options from more than one brand, each on a fixed written quote."
+        from="brands-hub"
+      />
+    </div></div>
   );
 }

@@ -1,6 +1,8 @@
 // Blog post content store.
 // Each post renders through src/app/blog/[slug]/page.tsx.
 // `html` fields are author-trusted; we render them with dangerouslySetInnerHTML.
+// Not read by the public site (blogLive.ts reads blog.ts). Prices taken out
+// all the same (Nov 2026), so nothing here can bring them back if it is wired up.
 
 export type BlogPostBlock =
   | { kind: "p"; html: string }
@@ -55,18 +57,18 @@ export const blogPosts: BlogPost[] = [
         kind: "ul",
         items: [
           "<strong>Smaller household, rental or a tight budget?</strong> Thermann 270L. Cheapest after rebate, stainless tank, simple controls.",
-          "<strong>Got solar PV and want app control?</strong> iStore 270L. Smart scheduling drops your daytime hot water cost to almost zero.",
+          "<strong>Got solar PV and want app control?</strong> iStore 275L. Smart scheduling drops your daytime hot water cost to almost zero.",
           "<strong>Want the quietest, longest-lasting unit money can buy?</strong> Reclaim CO₂. Premium price, premium build, 10-year tank.",
         ],
       },
       { kind: "h2", text: "What you actually get" },
       {
         kind: "table",
-        headers: ["", "Thermann 270L", "iStore 270L", "Reclaim CO₂ 270L"],
+        headers: ["", "Thermann 270L", "iStore 275L", "Reclaim CO₂ 270L"],
         rows: [
-          ["After-VEU price*", "~$1,780", "~$2,400", "~$3,500"],
-          ["Refrigerant", "R134a", "R513A", "CO₂ (R744)"],
-          ["Tank warranty", "5 years", "6 years", "10 years"],
+          ["After-VEU price*", "Lowest", "Middle", "Highest"],
+          ["Refrigerant", "R134a", "R290", "CO₂ (R744)"],
+          ["Tank warranty", "5 years", "5 years (whole unit)", "10 years"],
           ["Noise (dB at 1m)", "48", "44", "37"],
           ["Smart controls", "Basic timer", "Wi-Fi + app", "Wi-Fi + app"],
           ["Best for", "2–4 people", "3–5 people, solar homes", "3–6 people, premium"],
@@ -75,13 +77,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "*Approximate cost after VEU rebate has been applied at quote. Final figure depends on your existing unit, household size and certificate price at the time of install.",
+          "*Relative to each other, after the VEU rebate. Your fixed figure is on the written quote and depends on your existing unit, household size and certificate price at the time of install.",
       },
       { kind: "h2", text: "Sizing: don't overspend" },
       {
         kind: "p",
         html:
-          "Tank size matters more than brand. A 270L unit handles 3–5 people comfortably. Two people? You can usually drop to a 200L and save another $300. Six-plus? Step up to 285L or 300L for back-to-back showers.",
+          "Tank size matters more than brand. A 270L unit handles 3–5 people comfortably. Two people? You can usually drop to a 200L and save a little more. Six-plus? Step up to 285L or 300L for back-to-back showers.",
       },
       {
         kind: "p",
@@ -110,7 +112,7 @@ export const blogPosts: BlogPost[] = [
         kind: "ol",
         items: [
           "<strong>Couple, no solar:</strong> Thermann 200L or 270L. Cheap, reliable, gets the rebate.",
-          "<strong>Family of 4, average usage, has solar:</strong> iStore 270L on a daytime schedule. Best dollars-per-comfort.",
+          "<strong>Family of 4, average usage, has solar:</strong> iStore 275L on a daytime schedule. Best dollars-per-comfort.",
           "<strong>Family of 5+, premium build, near a bedroom:</strong> Reclaim CO₂ 270L. Quiet, 10-year tank, sleep easy.",
           "<strong>Investment property:</strong> Thermann 270L. Tenant gets a working unit, you bank most of the rebate.",
         ],
@@ -134,57 +136,56 @@ export const blogPosts: BlogPost[] = [
   {
     slug: "heat-pump-cost-veu-rebate-2026",
     title: "What does a heat pump actually cost after the VEU rebate in 2026?",
-    metaTitle: "Heat Pump Cost After VEU Rebate 2026. Real Pakenham Numbers",
+    metaTitle: "Heat Pump Cost After VEU Rebate 2026, Explained",
     metaDescription:
-      "Real, indicative 2026 pricing for a 270L Thermann, iStore and Reclaim heat pump installed in Pakenham, with the Victorian Energy Upgrades (VEU) rebate already applied.",
+      "What goes into the price of a 270L Thermann, iStore or Reclaim heat pump installed in Pakenham, and how the Victorian Energy Upgrades (VEU) rebate comes off it.",
     category: "Costs & savings",
     categoryShort: "Costs",
     date: "28 Apr 2026",
     iso: "2026-04-28",
     readingMinutes: 7,
     excerpt:
-      "Real numbers: not \"from $XXX\" marketing: for a 270L Thermann install in Pakenham, with the rebate applied.",
+      "What a 270L Thermann install in Pakenham is made of, line by line, with the rebate applied.",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "Heat pump hot water unit installed against an exterior wall",
     body: [
       {
         kind: "p",
         html:
-          "Heat pump pricing is the most-asked, most-misunderstood number in the trade. Every installer's website says <em>\"from $XXX\"</em>: but the asterisk hides whether that's after rebate, before rebate, eligible household, or just plain marketing fiction. Here's the unvarnished version for a typical Pakenham install in 2026.",
+          "Heat pump pricing is the most-asked, most-misunderstood number in the trade. Every installer's website says <em>\"from\"</em> a number: but the asterisk hides whether that's after rebate, before rebate, eligible household, or just plain marketing fiction. Here's the unvarnished version for a typical Pakenham install in 2026.",
       },
-      { kind: "h2", text: "A real 270L Thermann quote, line by line" },
+      { kind: "h2", text: "A 270L Thermann quote, line by line" },
       {
         kind: "table",
-        headers: ["Item", "Price"],
+        headers: ["Item", "On the quote"],
         rows: [
-          ["Thermann 270L heat pump", "$2,200"],
-          ["Installation & commissioning", "$700"],
-          ["Electrical", "$350"],
-          ["Parts & fittings", "$350"],
+          ["Thermann 270L heat pump", "The biggest line"],
+          ["Installation & commissioning", "Fixed"],
+          ["Electrical", "Only if a circuit is needed"],
+          ["Parts & fittings", "Fixed"],
           ["Compliance certificate & VEU paperwork", "incl."],
-          ["Sub-total", "$3,600"],
-          ["VEU rebate (applied at quote)", "−$1,820"],
-          ["<strong>You pay (ex GST)</strong>", "<strong>$1,780</strong>"],
+          ["VEU rebate (applied at quote)", "Taken off"],
+          ["<strong>You pay</strong>", "<strong>The figure at the bottom</strong>"],
         ],
       },
       {
         kind: "p",
         html:
-          "That's the number for an eligible household, typically an existing gas or electric storage tank being swapped for a Thermann 270L heat pump in Pakenham 3810. Take that as a reference; your number moves based on the existing system, how far the new unit lives from the cylinder pad, and the price of certificates the week we lodge.",
+          "That's the shape of it for an eligible household, typically an existing gas or electric storage tank being swapped for a Thermann 270L heat pump in Pakenham 3810. Your number moves based on the existing system, how far the new unit lives from the cylinder pad, and the price of certificates the week we lodge.",
       },
-      { kind: "h2", text: "Why \"from $33\" claims are dodgy" },
+      { kind: "h2", text: "Why rock-bottom \"from\" claims are dodgy" },
       {
         kind: "p",
         html:
-          "You'll see a lot of <em>from $33</em> ads. That figure exists only at the absolute edge of eligibility: usually electric storage swap, concession card holder, maximum certificate count, and a backyard installer cutting their margin to win the lead. <strong>It's not the typical number.</strong> The Pakenham median sits between $1,500 and $3,500 after rebate, depending on brand.",
+          "You'll see a lot of <em>from $33</em> ads. That figure exists only at the absolute edge of eligibility: usually electric storage swap, concession card holder, maximum certificate count, and a backyard installer cutting their margin to win the lead. <strong>It's not the typical number.</strong> Most Pakenham households pay a good deal more than that after rebate, and brand is the biggest swing.",
       },
       { kind: "h2", text: "Brand-by-brand after-rebate range" },
       {
         kind: "ul",
         items: [
-          "<strong>Thermann 270L:</strong> ~$1,780. Best value, 5-year tank.",
-          "<strong>iStore 270L:</strong> ~$2,400. Smart Wi-Fi, 6-year tank.",
-          "<strong>Reclaim CO₂ 270L:</strong> ~$3,500. Premium, 37 dB, 10-year tank.",
+          "<strong>Thermann 270L:</strong> the cheapest of the three. Best value, 5-year tank.",
+          "<strong>iStore 275L:</strong> in the middle. Smart Wi-Fi, 5-year warranty on the whole unit.",
+          "<strong>Reclaim CO₂ 270L:</strong> the dearest. Premium, 37 dB, 10-year tank.",
         ],
       },
       { kind: "h2", text: "What the rebate actually covers" },
@@ -306,7 +307,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "For Pakenham, Officer and Berwick bedrooms our default recommendation is the <strong>3.5 kW Kaden KS35</strong> or <strong>Mitsubishi MSZ-AP35</strong>. Quiet on low fan, R32 inverter, ARC-licensed install, $1,899–$2,499 supplied and fitted depending on pipe run.",
+          "For Pakenham, Officer and Berwick bedrooms our default recommendation is the <strong>3.5 kW Kaden KS35</strong> or <strong>Mitsubishi MSZ-AP35</strong>. Quiet on low fan, R32 inverter, ARC-licensed install, priced in writing, and the pipe run is what moves it.",
       },
       {
         kind: "p",
@@ -389,11 +390,11 @@ export const blogPosts: BlogPost[] = [
         html:
           "Any of those? Stop using the heater and ring us, or any licensed gas fitter. Same-day callout if the symptoms are active.",
       },
-      { kind: "h2", text: "Our service rate" },
+      { kind: "h2", text: "What the service includes" },
       {
         kind: "p",
         html:
-          "Flat <strong>$280 + GST</strong> for an annual gas heater service across SE Melbourne (or <strong>$250 + GST</strong> for members). Includes the full CO test, written report with photos, gas pressure check and combustion analysis, everything an insurance assessor or property manager will ask for.",
+          "An annual gas heater service across SE Melbourne, priced in writing before we come (members get the member rate). Includes the full CO test, written report with photos, gas pressure check and combustion analysis, everything an insurance assessor or property manager will ask for.",
       },
     ],
     faqs: [
@@ -448,7 +449,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Open the iStore app → Schedule → set a daily window of 10:00 to 15:00. The unit only heats during those hours. If you run low on hot water (rare with a 270L tank), tap \"Boost\" for a manual top-up.",
+          "Open the iStore app → Schedule → set a daily window of 10:00 to 15:00. The unit only heats during those hours. If you run low on hot water (rare with a 275L tank), tap \"Boost\" for a manual top-up.",
       },
       { kind: "h3", text: "Reclaim CO₂" },
       {
@@ -460,13 +461,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Thermann's basic controller doesn't have a clock timer built in. The cheap workaround: a <strong>Sonoff smart switch</strong> on the dedicated heat pump circuit (your electrician needs to add it). $40 in parts. We do this on request as an add-on.",
+          "Thermann's basic controller doesn't have a clock timer built in. The cheap workaround: a <strong>Sonoff smart switch</strong> on the dedicated heat pump circuit (your electrician needs to add it). Cheap parts. We do this on request as an add-on.",
       },
       { kind: "h2", text: "Real Pakenham numbers" },
       {
         kind: "p",
         html:
-          "A Pakenham family of four, 6.6 kW solar, iStore 270L on a 10am–3pm schedule:",
+          "A Pakenham family of four, 6.6 kW solar, iStore 275L on a 10am–3pm schedule:",
       },
       {
         kind: "table",
@@ -481,7 +482,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "After a $1,780 Thermann or $2,400 iStore install, the payback is roughly 2 years. After that the savings are pure gravy. <strong>Twenty-year lifetime saving:</strong> $17,000+.",
+          "After a Thermann or iStore install with the rebate off, the payback is roughly 2 years. After that the savings are pure gravy. <strong>Twenty-year lifetime saving:</strong> $17,000+.",
       },
       { kind: "h2", text: "Common questions" },
       { kind: "h3", text: "What about cold winter days when solar is weak?" },
@@ -517,14 +518,14 @@ export const blogPosts: BlogPost[] = [
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
     metaTitle: "Failed Hot Water Tank. Replace Gas or Upgrade to Heat Pump?",
     metaDescription:
-      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,600 VEU rebate question.",
+      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,700 VEU rebate question.",
     category: "Hot water",
     categoryShort: "Hot water",
     date: "25 Mar 2026",
     iso: "2026-03-25",
     readingMinutes: 5,
     excerpt:
-      "When the gas tank goes you've got 48 hours to decide. Here's the maths: including the $2,600 rebate question.",
+      "When the gas tank goes you've got 48 hours to decide. Here's the maths: including the $2,700 rebate question.",
     photo: "/gas-hot-water-change-over.png",
     photoAlt: "Same-day hot water swap in progress",
     body: [
@@ -550,12 +551,12 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Like-for-like 135L or 175L gas tank replacement: roughly <strong>$1,800–$2,300</strong> installed. No rebate, no STCs. You're back to the same annual gas + standby loss costs as before.",
+          "Like-for-like 135L or 175L gas tank replacement: no rebate, no STCs. You're back to the same annual gas + standby loss costs as before.",
       },
       {
         kind: "p",
         html:
-          "Heat pump 270L upgrade with VEU applied: roughly <strong>$1,780–$3,500</strong> installed (Thermann–Reclaim range). Plus you save $400–$900/year on energy. Payback is 2–4 years.",
+          "Heat pump 270L upgrade with VEU applied: often close to the gas tank once the rebate is off, more for a Reclaim. Plus you save $400–$900/year on energy. Payback is 2–4 years.",
       },
       {
         kind: "p",
@@ -577,11 +578,11 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Do I lose my rebate if I do the gas swap first?",
-        a: "No. VEU eligibility applies whenever you eventually upgrade. But you'll have spent ~$2k on a gas tank you're then replacing in a few years.",
+        a: "No. VEU eligibility applies whenever you eventually upgrade. But you'll have paid for a gas tank you're then replacing in a few years.",
       },
       {
         q: "How long does a temporary hot water setup last?",
-        a: "We can fit a small electric storage unit or rent a portable instantaneous for 5–7 days while heat pump stock arrives. About $150–$250 extra. Removes the pressure.",
+        a: "We can fit a small electric storage unit or rent a portable instantaneous for 5–7 days while heat pump stock arrives, priced in writing. Removes the pressure.",
       },
       {
         q: "Will my gas bill drop if I switch?",
@@ -656,7 +657,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Install cost: typically <strong>$10,500–$14,000</strong> for a 12–16 kW ducted system installed, before rebate. After up to $5,000 VEU, you're looking at <strong>$5,500–$9,000 net</strong>. Payback: <strong>4–6 years</strong>, depending on solar.",
+          "Install cost: a 12–16 kW ducted system is a big job, and the VEU rebate takes up to $5,000 off it at the quote. Payback: <strong>4–6 years</strong>, depending on solar.",
       },
       { kind: "h2", text: "Things people forget to ask" },
       { kind: "h3", text: "Can I keep the existing ductwork?" },
@@ -870,7 +871,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "An annual professional service ($189 for a single split, $329 for ducted) catches the things you can't reach: gas pressure, electrical connections, deep coil clean. We do it every year on most customer systems alongside the quarterly DIY you can do yourself.",
+          "An annual professional service catches the things you can't reach: gas pressure, electrical connections, deep coil clean. We do it every year on most customer systems alongside the quarterly DIY you can do yourself.",
       },
     ],
     faqs: [

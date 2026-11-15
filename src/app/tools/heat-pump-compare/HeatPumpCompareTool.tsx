@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import "@/components/homepage/tools/calc-c.css";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * Cross-brand heat-pump-hot-water comparison. Same UX as the
@@ -10,6 +12,8 @@ import { useState } from "react";
  *
  * Rows here are curated model families we actually install, so each
  * row has a link into our brand hub for the "read more" click.
+ *
+ * Install prices show only while SHOW_PRICES is on, as in SystemComparison.
  */
 
 type Row = {
@@ -116,13 +120,13 @@ const HEAT_PUMPS: Row[] = [
     key: "istore-270",
     brand: "iStore",
     model: "iS-HP-270",
-    eyebrow: "All-in-one · R290 · 180/270 L",
+    eyebrow: "All-in-one · R290 · 180/275 L",
     refrigerant: "R290 (propane) · natural",
     cop: "~3.5",
-    capacity: "180 / 270 L",
+    capacity: "180 / 275 L",
     form: "All-in-one",
     tank: "Enamel-lined steel",
-    warranty: "6-yr cylinder + 3-yr compressor",
+    warranty: "5 years on the whole unit",
     installFrom: "$2,144",
     installTo: "$2,144",
     madeIn: "Australian company · manufactured in China (AS/NZS)",
@@ -288,164 +292,148 @@ export function HeatPumpCompareTool() {
   };
 
   const rows = HEAT_PUMPS.filter((h) => selected.has(h.key));
+  const install = (h: Row) => (h.installFrom === h.installTo ? h.installFrom : `${h.installFrom} → ${h.installTo}`);
 
   return (
-    <>
-      <div className="sysc-chips" role="group" aria-label="Select heat pumps to compare">
-        {HEAT_PUMPS.map((h) => (
-          <button
-            key={h.key}
-            type="button"
-            className={`sysc-chip${selected.has(h.key) ? " is-active" : ""}`}
-            onClick={() => toggle(h.key)}
-            aria-pressed={selected.has(h.key)}
-          >
-            {h.brand} · {h.model}
-          </button>
-        ))}
+    <div className="cc">
+      {/* Selector chips: the mark turns from + to ✓, so picked isn't shown by colour alone. */}
+      <div className="cc-card cc-pick">
+        <span className="cc-lbl">Heat pumps to compare</span>
+        <div className="cc-chips cc-chips--scroll" role="group" aria-label="Select heat pumps to compare">
+          {HEAT_PUMPS.map((h) => {
+            const on = selected.has(h.key);
+            return (
+              <button key={h.key} type="button" className="cc-chip" onClick={() => toggle(h.key)} aria-pressed={on}>
+                <i aria-hidden="true">{on ? "✓" : "+"}</i>{h.brand} · {h.model}
+              </button>
+            );
+          })}
+        </div>
+        <p className="cc-hint">
+          Pick 2-5 heat pumps. Currently comparing <strong>{rows.length}</strong>.
+        </p>
       </div>
-      <p className="sysc-selectionhint">
-        Pick 2-5 heat pumps. Currently comparing <strong>{rows.length}</strong>.
-      </p>
 
       {rows.length === 0 ? (
-        <div className="faults-empty">Pick at least one heat pump above to see the comparison.</div>
+        <div className="cc-empty">Pick at least one heat pump above to see the comparison.</div>
       ) : (
         <>
-        {/* Mobile: stacked card per selected heat pump (hidden ≥640 px). */}
-        <div className="sysc-cards">
+        {/* Phone: a card per selected heat pump. */}
+        <div className="cc-cards">
           {rows.map((h) => (
-            <div key={h.key} className="sysc-card">
-              <div className="sysc-card__head">
-                <div className="sysc-card__name">{h.brand} · {h.model}</div>
-                <div className="sysc-card__eyebrow">{h.eyebrow}</div>
+            <article key={h.key} className="cc-card cc-card--sys">
+              <header className="cc-cardhead">
+                <span className="cc-sysname">{h.brand} · {h.model}</span>
+                <span className="cc-syseye">{h.eyebrow}</span>
+              </header>
+              <dl className="cc-rows">
+                <div><dt>Form</dt><dd>{h.form}</dd></div>
+                <div><dt>Refrigerant</dt><dd>{h.refrigerant}</dd></div>
+                <div><dt>COP</dt><dd>{h.cop}</dd></div>
+                <div><dt>Capacity</dt><dd>{h.capacity}</dd></div>
+                <div><dt>Tank</dt><dd>{h.tank}</dd></div>
+                <div><dt>Warranty</dt><dd>{h.warranty}</dd></div>
+                {SHOW_PRICES && <div><dt>Install</dt><dd>{install(h)}</dd></div>}
+                <div><dt>Made in</dt><dd>{h.madeIn}</dd></div>
+                <div><dt>Best for</dt><dd>{h.bestFor}</dd></div>
+              </dl>
+              <div className="cc-block">
+                <span className="cc-lbl">Pros</span>
+                <ul className="cc-list cc-list--pro">{h.pros.map((p) => <li key={p}>{p}</li>)}</ul>
               </div>
-              <div className="sysc-card__rows">
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Form</span><span className="sysc-card__row-val">{h.form}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Refrigerant</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.refrigerant}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">COP</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.cop}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Capacity</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.capacity}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Tank</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.tank}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Warranty</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.warranty}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{h.installFrom === h.installTo ? h.installFrom : `${h.installFrom} → ${h.installTo}`}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Made in</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.madeIn}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best for</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.bestFor}</span></div>
+              <div className="cc-block">
+                <span className="cc-lbl">Cons</span>
+                <ul className="cc-list cc-list--con">{h.cons.map((c) => <li key={c}>{c}</li>)}</ul>
               </div>
-              <div className="sysc-card__block">
-                <div className="sysc-card__block-lbl">Pros</div>
-                <ul className="sysc-list sysc-list--pros">{h.pros.map((p) => <li key={p}>{p}</li>)}</ul>
-              </div>
-              <div className="sysc-card__block">
-                <div className="sysc-card__block-lbl">Cons</div>
-                <ul className="sysc-list sysc-list--cons">{h.cons.map((c) => <li key={c}>{c}</li>)}</ul>
-              </div>
-              <div className="sysc-card__cta">
+              <div className="cc-cardcta">
                 {h.brandHref ? (
-                  <Link href={h.brandHref} className="ds-btn ds-btn--ghost">See our range →</Link>
+                  <Link href={h.brandHref} className="abtn abtn--ghost">See our range →</Link>
                 ) : (
-                  <span style={{ fontSize: 12, color: "var(--ink-3)" }}>Not currently stocked</span>
+                  <span className="cc-muted">Not currently stocked</span>
                 )}
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
-        <div className="sysc-scroll">
-          <table className="sysc-table">
-            <thead>
-              <tr>
-                <th className="sysc-th--rowhead" />
-                {rows.map((h) => (
-                  <th key={h.key} className="sysc-th--sys">
-                    <div className="sysc-sys">
-                      <div className="sysc-sys__name">{h.brand} · {h.model}</div>
-                      <div className="sysc-sys__eyebrow">{h.eyebrow}</div>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <Row label="Form"          rows={rows.map((h) => h.form)} />
-              <Row label="Refrigerant"   rows={rows.map((h) => h.refrigerant)} />
-              <Row label="COP"           rows={rows.map((h) => h.cop)} />
-              <Row label="Capacity"      rows={rows.map((h) => h.capacity)} />
-              <Row label="Tank"          rows={rows.map((h) => h.tank)} />
-              <Row label="Warranty"      rows={rows.map((h) => h.warranty)} wrap />
-              <Row label="Install from"  rows={rows.map((h) => h.installFrom)} />
-              <Row label="Install to"    rows={rows.map((h) => h.installTo)} />
-              <Row label="Made in"       rows={rows.map((h) => h.madeIn)} wrap />
-              <Row label="Best for"      rows={rows.map((h) => h.bestFor)} wrap />
-
-              <tr>
-                <th scope="row" className="sysc-th--rowhead">Pros</th>
-                {rows.map((h) => (
-                  <td key={h.key} className="sysc-td">
-                    <ul className="sysc-list sysc-list--pros">
-                      {h.pros.map((p) => <li key={p}>{p}</li>)}
-                    </ul>
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <th scope="row" className="sysc-th--rowhead">Cons</th>
-                {rows.map((h) => (
-                  <td key={h.key} className="sysc-td">
-                    <ul className="sysc-list sysc-list--cons">
-                      {h.cons.map((c) => <li key={c}>{c}</li>)}
-                    </ul>
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <th scope="row" className="sysc-th--rowhead">&nbsp;</th>
-                {rows.map((h) => (
-                  <td key={h.key} className="sysc-td sysc-td--cta">
-                    {h.brandHref ? (
-                      <Link href={h.brandHref} className="ds-btn ds-btn--ghost ds-btn--sm">
-                        See our range →
-                      </Link>
-                    ) : (
-                      <span style={{ fontSize: 12, color: "var(--ink-3)" }}>Not currently stocked</span>
-                    )}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+        {/* Wider screens: side by side. */}
+        <div className="cc-card cc-tablewrap">
+          <div className="cc-scroll">
+            <table className="cc-table">
+              <thead>
+                <tr>
+                  <th className="cc-rowh"><span className="sr-only">Compare</span></th>
+                  {rows.map((h) => (
+                    <th key={h.key} scope="col">
+                      <span className="cc-sysname">{h.brand} · {h.model}</span>
+                      <span className="cc-syseye">{h.eyebrow}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <SpecRow label="Form" rows={rows.map((h) => h.form)} />
+                <SpecRow label="Refrigerant" rows={rows.map((h) => h.refrigerant)} />
+                <SpecRow label="COP" rows={rows.map((h) => h.cop)} />
+                <SpecRow label="Capacity" rows={rows.map((h) => h.capacity)} />
+                <SpecRow label="Tank" rows={rows.map((h) => h.tank)} />
+                <SpecRow label="Warranty" rows={rows.map((h) => h.warranty)} wrap />
+                {SHOW_PRICES && <SpecRow label="Install from" rows={rows.map((h) => h.installFrom)} />}
+                {SHOW_PRICES && <SpecRow label="Install to" rows={rows.map((h) => h.installTo)} />}
+                <SpecRow label="Made in" rows={rows.map((h) => h.madeIn)} wrap />
+                <SpecRow label="Best for" rows={rows.map((h) => h.bestFor)} wrap />
+                <tr>
+                  <th scope="row" className="cc-rowh">Pros</th>
+                  {rows.map((h) => (
+                    <td key={h.key} className="cc-wrap"><ul className="cc-list cc-list--pro">{h.pros.map((p) => <li key={p}>{p}</li>)}</ul></td>
+                  ))}
+                </tr>
+                <tr>
+                  <th scope="row" className="cc-rowh">Cons</th>
+                  {rows.map((h) => (
+                    <td key={h.key} className="cc-wrap"><ul className="cc-list cc-list--con">{h.cons.map((c) => <li key={c}>{c}</li>)}</ul></td>
+                  ))}
+                </tr>
+                <tr>
+                  <th scope="row" className="cc-rowh"><span className="sr-only">Range</span></th>
+                  {rows.map((h) => (
+                    <td key={h.key} className="cc-ctacell">
+                      {h.brandHref ? (
+                        <Link href={h.brandHref} className="abtn abtn--ghost">See our range →</Link>
+                      ) : (
+                        <span className="cc-muted">Not currently stocked</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         </>
       )}
 
-      <div style={{
-        marginTop: 40,
-        padding: "24px 26px",
-        background: "var(--paper)",
-        border: "1px solid var(--line)",
-        borderLeft: "4px solid var(--orange)",
-        borderRadius: 12,
-      }}>
-        <h2 style={{ fontFamily: "var(--f-display)", fontSize: 20, fontWeight: 800, letterSpacing: -0.01, color: "var(--navy)", margin: "0 0 8px" }}>
-          Our default recommendations
-        </h2>
-        <ul style={{ fontSize: 14.5, lineHeight: 1.65, color: "var(--ink-2)", margin: 0, paddingLeft: 20 }}>
-          <li><strong>When the rebate is what decides it:</strong> iStore 270 L, it takes the VEU further than anything else we fit.</li>
+      <aside className="cc-tips">
+        <span className="cc-lbl">What we&apos;d pick</span>
+        <h2>Our default recommendations</h2>
+        <ul>
+          <li><strong>When the rebate is what decides it:</strong> iStore 275 L, it takes the VEU further than anything else we fit.</li>
           <li><strong>Best long-term:</strong> Reclaim CO₂ Split Stainless 315L (15-year tank).</li>
           <li><strong>Hills / cold-climate suburbs:</strong> Reclaim CO₂ (holds capacity to -10 °C).</li>
           <li><strong>Straight swap for old storage tank:</strong> Reclaim ECO R290 All-in-One.</li>
           <li><strong>When you want parts in every Reece store:</strong> Thermann Integrated, Australian made by Dux.</li>
         </ul>
-      </div>
-    </>
+      </aside>
+    </div>
   );
 }
 
-function Row({ label, rows, wrap }: { label: string; rows: string[]; wrap?: boolean }) {
+function SpecRow({ label, rows, wrap }: { label: string; rows: string[]; wrap?: boolean }) {
   return (
     <tr>
-      <th scope="row" className="sysc-th--rowhead">{label}</th>
+      <th scope="row" className="cc-rowh">{label}</th>
       {rows.map((v, i) => (
-        <td key={i} className={wrap ? "sysc-td sysc-td--wrap" : "sysc-td"}>{v}</td>
+        <td key={i} className={wrap ? "cc-wrap" : undefined}>{v}</td>
       ))}
     </tr>
   );

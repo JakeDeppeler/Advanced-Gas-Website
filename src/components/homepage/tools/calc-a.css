@@ -1,0 +1,137 @@
+/* The aircon sizing, heat pump sizing and VEU rebate calculators, in the
+   product pages' calculator style (the shower-time card and the hot water
+   size check): white rounded cards, chip buttons for choices, a big navy
+   figure, hairline breakdown rows. The old .page-tool look (boxed fields,
+   drop-downs, underlined panel headings) stays for any tool not moved yet.
+
+   Layout: inputs on the left, the answer on the right. On a phone the
+   answer's headline figure comes first and sticks under the header while
+   the inputs below it change, so nobody has to scroll back up to see what
+   their tap did. Verdicts carry a mark of a different shape (✓ ! ≈) and
+   the words, never colour alone. */
+
+.ag .ca{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-areas:"in sum" "in det";grid-template-rows:auto 1fr;gap:20px 24px;align-items:start}
+.ag .ca__in{grid-area:in}
+.ag .ca__sum{grid-area:sum}
+.ag .ca__det{grid-area:det}
+
+.ag .ca__card{display:flex;flex-direction:column;gap:20px;background:#fff;border-radius:16px;padding:clamp(22px,2.6vw,32px);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6),0 30px 60px -40px rgba(5,10,48,.45)}
+
+/* Panel headings: plain, no underline bar (the old tool style's h2 had one). */
+.ag .tl .page-tool .ca h2.ca__h,.ag .ca h2.ca__h{margin:0;padding:0;border:0;font:900 22px/1.15 var(--disp);letter-spacing:-.015em;color:var(--navy,#050A30)}
+.ag .tl .page-tool .ca h2.ca__h::after,.ag .ca h2.ca__h::after{content:none;display:none}
+.ag .tl .page-tool .ca h3,.ag .ca h3{margin:0;font:800 17px/1.2 var(--disp);color:var(--navy,#050A30)}
+
+.ag .ca__row{display:flex;flex-direction:column;gap:10px}
+.ag .ca__q{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3,#5b6078)}
+.ag .ca__q b{font-family:var(--disp);font-size:13px;letter-spacing:0;text-transform:none;color:var(--navy,#050A30)}
+.ag .ca__hint{margin:0;font-size:13.5px;line-height:1.45;color:var(--ink3,#5b6078)}
+.ag .ca__pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* Chips: a short pick from a few options. */
+.ag .ca__opts{display:flex;flex-wrap:wrap;gap:8px}
+.ag .ca__opts button{min-width:48px;height:44px;padding:0 14px;border-radius:10px;border:0;background:var(--cream,#F4F1EA);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6);font:700 15px/1 var(--disp);color:var(--navy,#050A30);cursor:pointer;transition:background .2s,color .2s,box-shadow .2s}
+.ag .ca__opts button:hover{box-shadow:inset 0 0 0 2px var(--navy,#050A30)}
+.ag .ca__opts button[aria-pressed="true"]{background:var(--navy,#050A30);color:#fff;box-shadow:none}
+
+/* Choice rows: a pick whose options need a line of explanation each. */
+.ag .ca__choices{display:flex;flex-direction:column;gap:8px}
+.ag .ca__choice{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:10px 14px;border:0;border-radius:12px;background:var(--cream,#F4F1EA);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6);text-align:left;cursor:pointer;transition:background .2s,box-shadow .2s}
+.ag .ca__choice:hover{box-shadow:inset 0 0 0 2px var(--navy,#050A30)}
+.ag .ca__choice i{flex:none;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--line2,#cfc9bb);background:#fff;font-style:normal}
+.ag .ca__choice span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ag .ca__choice strong{font:700 15px/1.25 var(--disp);color:var(--navy,#050A30)}
+.ag .ca__choice small{font-size:13px;line-height:1.35;color:var(--ink3,#5b6078)}
+.ag .ca__choice[aria-pressed="true"]{background:#fff;box-shadow:inset 0 0 0 2px var(--navy,#050A30)}
+/* The picked one's ring fills in: shape changes, not just colour. */
+.ag .ca__choice[aria-pressed="true"] i{background:var(--navy,#050A30);box-shadow:inset 0 0 0 4px #fff,0 0 0 2px var(--navy,#050A30)}
+.ag .ca__group{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3,#5b6078);margin:6px 0 0}
+
+/* Numbers: a stepper, or a rounded field where any value goes. */
+.ag .ca__step{display:flex;align-items:stretch;height:48px;border-radius:12px;background:var(--cream,#F4F1EA);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6);overflow:hidden;max-width:240px}
+.ag .ca__step button{flex:none;width:48px;border:0;background:none;font:800 20px/1 var(--disp);color:var(--navy,#050A30);cursor:pointer}
+.ag .ca__step button:hover:not(:disabled){background:rgba(5,10,48,.06)}
+.ag .ca__step button:disabled{opacity:.35;cursor:default}
+.ag .ca__step input{flex:1;min-width:0;width:100%;border:0;background:#fff;text-align:center;font:800 17px/1 var(--disp);color:var(--navy,#050A30);box-shadow:inset 1px 0 0 var(--line2,#E7E2D6),inset -1px 0 0 var(--line2,#E7E2D6);-moz-appearance:textfield;appearance:textfield}
+.ag .ca__step input::-webkit-outer-spin-button,.ag .ca__step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ag .ca__field{display:flex;align-items:center;height:48px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6);padding:0 14px;gap:8px}
+.ag .ca__field input,.ag .ca__field select{flex:1;min-width:0;width:100%;height:100%;border:0;background:none;font:700 16px/1 var(--disp);color:var(--navy,#050A30);outline:none}
+.ag .ca__field em{font-style:normal;font-size:13px;font-weight:600;color:var(--ink3,#5b6078)}
+.ag .ca__field:focus-within,.ag .ca__step:focus-within{box-shadow:inset 0 0 0 2px var(--acc,#C2521A)}
+.ag .ca__opts button:focus-visible,.ag .ca__choice:focus-visible,.ag .ca__step button:focus-visible{outline:3px solid var(--acc,#C2521A);outline-offset:2px}
+
+/* The answer's headline. */
+.ag .ca__sum{gap:6px}
+.ag .ca__lbl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3,#5b6078)}
+.ag .ca__big{font-family:var(--disp);font-size:clamp(46px,5.4vw,72px);font-weight:900;line-height:1;letter-spacing:-.035em;color:var(--navy,#050A30);font-variant-numeric:tabular-nums}
+.ag .ca__big small{font-size:.4em;letter-spacing:0;font-weight:800;color:var(--ink2,#2b3050)}
+.ag .ca__tag{margin:4px 0 0;font-size:15.5px;line-height:1.45;color:var(--ink2,#2b3050)}
+.ag .ca__tag b{color:var(--navy,#050A30)}
+.ag .ca__sub{margin:0;font-size:15.5px;line-height:1.6;color:var(--ink2,#2b3050)}
+.ag .ca__sub strong{color:var(--navy,#050A30)}
+
+/* Breakdown rows. */
+.ag .ca__maths{margin:0;display:flex;flex-direction:column;border-top:1px solid var(--line2,#E7E2D6)}
+.ag .ca__maths div{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:11px 0;border-bottom:1px solid var(--line2,#E7E2D6)}
+.ag .ca__maths dt{font-size:15px;color:var(--ink2,#2b3050)}
+.ag .ca__maths dd{margin:0;font-family:var(--disp);font-weight:800;color:var(--navy,#050A30);font-variant-numeric:tabular-nums;text-align:right}
+.ag .ca__maths .ca__total dt{font-weight:700;color:var(--navy,#050A30)}
+.ag .ca__maths .ca__total dd{color:var(--acc,#C2521A)}
+
+/* Verdicts. */
+.ag .ca__fit{display:flex;gap:12px;align-items:flex-start;margin:0;padding:14px 16px;border-radius:12px;background:var(--cream,#F4F1EA);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6)}
+.ag .ca__fit > i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:800 15px/1 var(--disp);font-style:normal;color:#fff;background:#1F7A4D}
+.ag .ca__fit--tight > i{background:#B42318}
+.ag .ca__fit--mid > i{background:#B7791F}
+.ag .ca__fit p,.ag .ca__fit span{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink2,#2b3050)}
+.ag .ca__fit strong{display:block;color:var(--navy,#050A30)}
+
+.ag .ca__box{margin:0;padding:14px 16px;border-radius:12px;background:var(--cream,#F4F1EA);font-size:14px;line-height:1.55;color:var(--ink2,#2b3050)}
+.ag .ca__box strong{color:var(--navy,#050A30)}
+.ag .ca__ctas{display:flex;flex-wrap:wrap;gap:10px}
+.ag .ca__note{margin:0;font-size:13px;line-height:1.55;color:var(--ink3,#5b6078)}
+.ag .ca__sec{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--line2,#E7E2D6)}
+
+/* Advanced settings, folded away. */
+.ag .ca__adv{border-radius:12px;background:var(--cream,#F4F1EA);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6)}
+.ag .ca__adv summary{list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:0 16px;cursor:pointer;font:700 15px/1.2 var(--disp);color:var(--navy,#050A30)}
+.ag .ca__adv summary::-webkit-details-marker{display:none}
+.ag .ca__adv summary::after{content:"+";font-size:20px;color:var(--acc,#C2521A)}
+.ag .ca__adv[open] summary::after{content:"–"}
+.ag .ca__advin{display:flex;flex-direction:column;gap:16px;padding:4px 16px 18px}
+
+/* Heat pump sizing: compressor/tank pairs, the day's two runs, head to head. */
+.ag .ca__cells{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ag .ca__cell{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:12px;background:var(--cream,#F4F1EA);box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6)}
+.ag .ca__cell strong{font:800 17px/1.1 var(--disp);color:var(--navy,#050A30)}
+.ag .ca__cell span{font-size:13.5px;color:var(--ink2,#2b3050)}
+.ag .ca__cell em{font-style:normal;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--acc,#C2521A)}
+.ag .ca__cell.is-on{background:#fff;box-shadow:inset 0 0 0 2px var(--navy,#050A30)}
+.ag .ca__cells--3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ag .ca__cell--gap{background:none;box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6);border-style:dashed}
+.ag .ca__links{display:flex;flex-wrap:wrap;gap:8px}
+.ag .ca__links a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6);font:700 14px/1 var(--disp);color:var(--navy,#050A30);text-decoration:none}
+.ag .ca__links a:hover{box-shadow:inset 0 0 0 2px var(--navy,#050A30)}
+.ag .ca__vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ag .ca__vsc{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6)}
+.ag .ca__vsc .ca__maths dt,.ag .ca__vsc .ca__maths dd{font-size:14px}
+.ag .ca__vsc .ca__maths div{padding:8px 0}
+.ag .ca__badge{display:inline-flex;align-items:center;gap:8px;font:800 14px/1 var(--disp);color:var(--navy,#050A30)}
+.ag .ca__badge i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-style:normal;font-size:12px;color:#fff;background:#1F7A4D}
+.ag .ca__badge--tight i{background:#B42318}
+
+@media (max-width:900px){
+  .ag .ca{grid-template-columns:minmax(0,1fr);grid-template-areas:"sum" "in" "det";grid-template-rows:auto}
+  /* The headline figure rides under the sticky site header while the inputs scroll past. */
+  .ag .ca__sum{position:sticky;top:86px;z-index:3;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:14px 18px;box-shadow:inset 0 0 0 1px var(--line2,#E7E2D6),0 14px 30px -18px rgba(5,10,48,.5)}
+  .ag .ca__sum .ca__lbl{flex-basis:100%}
+  .ag .ca__sum .ca__big{font-size:clamp(32px,9vw,44px)}
+  .ag .ca__sum .ca__tag{margin:0;font-size:14px}
+  .ag .ca__vs{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .ag .ca__pair{grid-template-columns:1fr}
+  .ag .ca__cells{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag .ca__cells--3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .ag .ca__ctas .abtn{width:100%;justify-content:center}
+}

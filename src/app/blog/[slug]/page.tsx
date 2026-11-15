@@ -5,10 +5,14 @@ import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
 import { AUTHORS } from "@/lib/blog";
 import { publishedPost, publishedPosts } from "@/lib/blogLive";
-import Script from "next/script";
-import "../../detail.css";
-import "../blog.css";
-import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
+import { seoMeta } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
+import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { BkHead, Bands, EndCta, BandPage } from "@/components/homepage/page/bands";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import "@/components/homepage/page/articles.css";
 
 type Params = { slug: string };
 
@@ -68,111 +72,93 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   const suggested = [...sameCat, ...rest].slice(0, 3);
 
   return (
-    <div className="page-blog page-detail">
-      <article className="bl-post">
-        <section className="bl-post__hero">
-          <div className="wrap">
-            <Link href="/blog" className="bl-post__back">← All articles</Link>
-            <span className="bl-post__cat">{post.cat}</span>
-            <h1>{post.title}</h1>
-            <p className="bl-post__lede">{post.blurb}</p>
-            <div className="bl-post__meta">
-              <span>{post.read}</span>
-              <span aria-hidden="true">·</span>
-              <span>{shownDate}</span>
-              <span aria-hidden="true">·</span>
-              <span>By {author.name}</span>
-            </div>
-          </div>
-        </section>
+    // The product pages' bands (Jake, Nov 2026). The article sits in a
+    // reading-width column with who wrote it beside it.
+    <BandPage>
+      <Crumbs trail={[{ name: "Guides & articles", href: "/blog" }, { name: post.cat }]} back={{ label: "← All articles", href: "/blog" }} />
+      <div className="art-post">
+        <Hero eye={post.cat} title={post.title} sub={post.blurb} img={post.photo} imgAlt={post.photoAlt} ctas={false}>
+          <p className="art-post__meta">
+            <span>{post.read}</span>
+            <span aria-hidden="true">·</span>
+            <span>{shownDate}</span>
+            <span aria-hidden="true">·</span>
+            <span>By {author.name}</span>
+          </p>
+        </Hero>
+      </div>
 
-        <div className="wrap bl-post__frame">
-          <div className="bl-post__hero-photo">
-            <Image
-              src={post.photo}
-              alt={post.photoAlt}
-              fill
-              sizes="(max-width: 900px) 100vw, 900px"
-              style={{ objectFit: "cover" }}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className="wrap bl-post__body">
-          {post.content.map((s, i) => {
-            if (s.type === "h2") return <h2 key={i}>{s.text}</h2>;
-            if (s.type === "ul") {
-              return (
-                <ul key={i}>
-                  {s.items.map((it, j) => <li key={j}>{it}</li>)}
-                </ul>
-              );
-            }
-            return <p key={i}>{s.text}</p>;
-          })}
-
-          <div className="bl-post__cta">
-            <div>
-              <span className="bl-post__cta-eye">Ready for a quote?</span>
-              <h3>In writing, no obligation, VEU rebate applied at the quote.</h3>
-              <p>We usually reply within 12 hours. Free 20-minute site check for bigger jobs.</p>
-            </div>
-            <div className="bl-post__cta-btns">
-              <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a free quote →</Link>
-              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
-                Or call {site.phone}
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {suggested.length > 0 && (
-          <div className="wrap bl-post__related">
-            <h3>More like this</h3>
-            <div className="bl-post__related-grid">
-              {suggested.map((r) => (
-                <Link key={r.slug} href={`/blog/${r.slug}`} className="bl-post__related-card">
-                  <div className="bl-post__related-photo">
-                    <Image
-                      src={r.photo}
-                      alt={r.photoAlt}
-                      fill
-                      sizes="(max-width: 900px) 100vw, 300px"
-                      style={{ objectFit: "cover" }}
-                    />
+      <Bands list={[
+        {
+          id: "article",
+          cls: "art-read",
+          body: (
+            <>
+              <article className="art-body">
+                {post.content.map((s, i) => {
+                  if (s.type === "h2") return <h2 key={i}>{s.text}</h2>;
+                  if (s.type === "ul") {
+                    return (
+                      <ul key={i}>
+                        {s.items.map((it, j) => <li key={j}>{it}</li>)}
+                      </ul>
+                    );
+                  }
+                  return <p key={i}>{s.text}</p>;
+                })}
+              </article>
+              <aside className="art-side">
+                {/* WEB-012: a named, credentialed author, not "the team". */}
+                <div className="art-author">
+                  <span className="art-author__pic"><Image src={author.photo} alt={author.name} width={64} height={64} /></span>
+                  <div>
+                    <small>Written by</small>
+                    <h3>{author.name}</h3>
+                    <span className="art-author__cred">{author.role} · {author.credential}</span>
                   </div>
-                  <div className="bl-post__related-body">
-                    <span className="bl-post__related-cat">{r.cat}</span>
-                    <h4>{r.title}</h4>
-                    <span className="bl-post__related-meta">{r.read}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-        {/* WEB-012: a named, credentialed author, not "the team". */}
-        <div className="wrap bl-post__author">
-          <div className="bl-post__author-pic">
-            <Image src={author.photo} alt={author.name} width={72} height={72} />
-          </div>
-          <div>
-            <span className="bl-post__author-role">Written by</span>
-            <h3>{author.name}</h3>
-            <span className="bl-post__author-cred">{author.role} · {author.credential}</span>
-            <p>{author.bio}</p>
-          </div>
-        </div>
-      </article>
+                  <p>{author.bio}</p>
+                </div>
+                <div className="art-ask">
+                  <small>Ready for a quote?</small>
+                  <h3>In writing, no obligation, VEU rebate applied at the quote.</h3>
+                  <p>We usually reply within 12 hours. Free 20-minute site check for bigger jobs.</p>
+                  <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
+                  <a href={`tel:${site.phoneE164}`} data-call-from="blog-side">Or call {site.phone}</a>
+                </div>
+              </aside>
+            </>
+          ),
+        },
+        ...(suggested.length > 0 ? [{
+          id: "more",
+          body: (
+            <>
+              <BkHead h="More {like this}.">Same topic first, then the rest of the guides.</BkHead>
+              <div className="art-grid" data-anim="stagger">
+                {suggested.map((r) => (
+                  <Link key={r.slug} href={`/blog/${r.slug}`} className="art-card">
+                    <span className="art-card__img">
+                      <Image src={r.photo} alt={r.photoAlt} fill sizes="(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 400px" />
+                      <span className="art-card__tag">{r.cat}</span>
+                    </span>
+                    <span className="art-card__body">
+                      <span className="art-card__meta">{r.read}</span>
+                      <strong className="art-card__t">{r.title}</strong>
+                      <span className="art-card__foot"><span className="art-card__go">Read article <i aria-hidden="true">→</i></span></span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          ),
+        }] : []),
+      ]} />
+
+      <EndCta title={<>Free quote, <span>in writing</span>.</>} text="VEU rebate applied at the quote where it applies. We usually reply within 12 hours." from="blog-post-cta" />
 
       {/* WEB-012 / WEB-013: Article with a real author reference and ISO
           dates, plus a Person for the author. */}
-      <Script
-        id={`ld-article-${post.slug}`}
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+      <JsonLd data={{
             "@context": "https://schema.org",
             "@type": "Article",
             headline: post.title,
@@ -192,9 +178,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
               logo: { "@type": "ImageObject", url: `${site.url}/advanced-gas-logo.webp` },
             },
             mainEntityOfPage: { "@type": "WebPage", "@id": `${site.url}/blog/${post.slug}` },
-          }),
-        }}
-      />
-    </div>
+          }} />
+    </BandPage>
   );
 }

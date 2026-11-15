@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Script from "next/script";
 import { site } from "@/lib/site";
 import {
   FAULT_CODES,
@@ -12,8 +11,17 @@ import {
 } from "@/lib/faultCodes";
 import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/schema";
-import "../../../../detail.css";
 import "./fault-detail.css";
+import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { EndCta } from "@/components/homepage/page/bands";
+import { BkMotion } from "@/components/homepage/brand/BkMotion";
+import "@/components/homepage/brand/blocks.css";
+import "@/components/homepage/page/service.css";
+import "@/components/homepage/tools/calc-c.css";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+import { JsonLd } from "@/components/JsonLd";
 
 /**
  * One page per fault code.
@@ -100,147 +108,160 @@ export default function FaultCodePage({ params }: { params: Params }) {
   };
 
   return (
-    <div className="page-detail fault-detail">
-      <Script id={`ld-fault-crumbs-${params.brand}-${params.code}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
-      <Script id={`ld-fault-faq-${params.brand}-${params.code}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+    // Two boxes: the band styles hang off .bk sitting inside .ag, as on the service pages.
+    <div className="ag ag--flat" data-no-reveal><div className="bk svk" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
+      <JsonLd data={crumbs} />
+      <JsonLd data={faqSchema} />
 
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/tools/fault-codes">Fault codes</Link>
-            <span className="sep">/</span>
-            <span className="cur">{f.brand} {f.code}</span>
-          </nav>
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot ds-dot--orange" />
-            {f.brand} · {FAULT_SYSTEM_LABELS[f.system]}
-          </div>
-          <h1>
-            {f.brand} fault code <span className="accent">{f.code}</span>
-          </h1>
-          <p className="dp-hero__sub">{f.meaning}.</p>
-
-          <div className={`fd-sev fd-sev--${f.severity}`}>
+      <Crumbs trail={[{ name: "Tools", href: "/tools" }, { name: "Fault codes", href: "/tools/fault-codes" }, { name: `${f.brand} ${f.code}` }]} />
+      <Hero eye={`${f.brand} · ${FAULT_SYSTEM_LABELS[f.system]}`} title={<>{f.brand} fault code <em>{f.code}</em></>} sub={`${f.meaning}.`} ctas={false}>
+        {/* Severity is written out in words, with a mark that differs by shape, so colour is never the only signal. */}
+        <div className={`fd-sev fd-sev--${f.severity}`}>
+          <i aria-hidden="true">{f.severity === "info" ? "i" : f.severity === "critical" ? "✕" : "!"}</i>
+          <span className="fd-sev__t">
             <strong>{sev.label}</strong>
             <span>{sev.note}</span>
-          </div>
-
-          <div className="dp-hero__ctas">
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--orange ds-btn--lg">
-              Call {site.phone}
-            </a>
-            <Link href="/quote" className="ds-btn ds-btn--ghost ds-btn--lg">
-              Book a service call →
-            </Link>
-          </div>
+          </span>
         </div>
+        <div className="bxh__ctas">
+          <a href={`tel:${site.phoneE164}`} className="abtn abtn--or abtn--flat">Call {site.phone}</a>
+          <Link href="/#quote" className="abtn abtn--line">Book a service call →</Link>
+        </div>
+      </Hero>
+
+      {/* 1. What it means, beside the call */}
+      <section className="bk__sec bk__sec--white" id="means">
+        <div className="wrap"><div className="bk__blk cc-two">
+          <div className="bk__col">
+            <header className="bk__head"><h2 className="h2">What {f.code} actually <span>means</span>.</h2></header>
+            <div className="cc-prose"><p>{d.whatItMeans}</p></div>
+          </div>
+          <div className="cc-now">
+            <h3>Got this code right now?</h3>
+            <p>
+              We service every major brand, including ones we don&rsquo;t install.
+              Same-day across Pakenham, Officer, Berwick, Beaconsfield, Narre Warren
+              and Cranbourne.
+            </p>
+            <a href={`tel:${site.phoneE164}`} className="abtn abtn--or abtn--flat">Call {site.phone}</a>
+            <p className="cc-fine">
+              Written quoted in writing before we touch anything. Call-out waived
+              if the repair goes ahead the same day.
+            </p>
+          </div>
+        </div></div>
       </section>
 
-      <section className="fd-body">
-        <div className="wrap fd-grid">
-          <div className="fd-main">
-            <h2>What {f.code} actually means</h2>
-            <p>{d.whatItMeans}</p>
+      {/* 2. Causes, most likely first */}
+      <section className="bk__sec bk__sec--cream" id="causes">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <header className="bk__head">
+            <h2 className="h2">What <span>causes</span> it.</h2>
+            <p>Most likely first. That order is from what we actually find on site, not from the manual.</p>
+          </header>
+          <ol className="cc-causes" data-anim="stagger">
+            {d.causes.map((c) => <li key={c} className="cc-card">{c}</li>)}
+          </ol>
+        </div></div>
+      </section>
 
-            <h2>What causes it</h2>
-            <ol className="fd-causes">
-              {d.causes.map((c) => <li key={c}>{c}</li>)}
-            </ol>
-            <p className="fd-note">Most likely first. That order is from what we actually find on site, not from the manual.</p>
-
-            <div className="fd-checks">
-              <div className="fd-checks__col fd-checks__col--diy">
-                <h3>Safe to check yourself</h3>
-                <p>No tools, no covers off, nothing to do with gas, refrigerant or wiring.</p>
-                <ul>{d.diyChecks.map((c) => <li key={c}>{c}</li>)}</ul>
-              </div>
-              <div className="fd-checks__col fd-checks__col--tech">
-                <h3>What we check on site</h3>
-                <p>So you know what you&rsquo;re paying for.</p>
-                <ul>{d.techChecks.map((c) => <li key={c}>{c}</li>)}</ul>
-              </div>
+      {/* 3. What you can check, and what we check */}
+      <section className="bk__sec bk__sec--white" id="checks">
+        <div className="wrap"><div className="bk__blk bk__col">
+          <header className="bk__head"><h2 className="h2">Check it yourself, or <span>call us</span>.</h2></header>
+          <div className="cc-checks">
+            <div className="cc-card cc-check cc-check--diy">
+              <h3><i aria-hidden="true">✓</i>Safe to check yourself</h3>
+              <p>No tools, no covers off, nothing to do with gas, refrigerant or wiring.</p>
+              <ul>{d.diyChecks.map((c) => <li key={c}>{c}</li>)}</ul>
             </div>
+            <div className="cc-card cc-check cc-check--tech">
+              <h3><i aria-hidden="true">⚙</i>What we check on site</h3>
+              <p>So you know what you&rsquo;re paying for.</p>
+              <ul>{d.techChecks.map((c) => <li key={c}>{c}</li>)}</ul>
+            </div>
+          </div>
+        </div></div>
+      </section>
 
-            <h2>Can you keep using it?</h2>
+      {/* 4. Keep using it, and the fix */}
+      <section className="bk__sec bk__sec--cream" id="fix">
+        <div className="wrap"><div className="bk__blk cc-pair">
+          <div className="cc-card">
+            <span className="cc-lbl">Right now</span>
+            <h3>Can you keep using it?</h3>
             <p>{d.keepRunning}</p>
-
-            <h2>What the fix usually involves</h2>
-            <p>{d.typicalFix}</p>
-
-            {/* The question that follows every fault code, so it lives
-                here rather than in the Tools menu. Someone reading this
-                has already decided something is wrong; the next thing
-                they want to know is whether it's worth fixing. */}
-            <h2>Is it worth fixing?</h2>
-            <p>
-              That depends almost entirely on how old the unit is. Past about ten years on
-              hot water and gas heating, and twelve on aircon, a significant repair usually
-              costs more per remaining year than a replacement does, and it&rsquo;s the same
-              point at which the VEU rebate is worth the most, because old inefficient
-              appliances are exactly what the scheme pays to remove. If yours is young and
-              the fault is a component, we&rsquo;ll fix it and say so.
-            </p>
-            <p>
-              <Link href="/upgrade-or-repair" className="fd-inline-link">
-                Repair or replace? The 10-year rule, and what the rebate is worth →
-              </Link>
-            </p>
           </div>
-
-          <aside className="fd-side">
-            <div className="fd-card">
-              <h3>Got this code right now?</h3>
-              <p>
-                We service every major brand, including ones we don&rsquo;t install.
-                Same-day across Pakenham, Officer, Berwick, Beaconsfield, Narre Warren
-                and Cranbourne.
-              </p>
-              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--orange ds-btn--sm">
-                Call {site.phone}
-              </a>
-              <p className="fd-card__fine">
-                Written quoted in writing before we touch anything. Call-out waived
-                if the repair goes ahead the same day.
-              </p>
-            </div>
-
-            {more.length > 0 && (
-              <div className="fd-card fd-card--plain">
-                <h3>Other {f.brand} codes</h3>
-                <ul className="fd-more">
-                  {more.map((m) => (
-                    <li key={m.code}>
-                      {m.detail ? (
-                        <Link href={`/tools/fault-codes/${faultSlug(m.brand)}/${faultSlug(m.code)}`}>
-                          <strong>{m.code}</strong> {m.meaning}
-                        </Link>
-                      ) : (
-                        <span><strong>{m.code}</strong> {m.meaning}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/tools/fault-codes" className="fd-more__all">
-                  Every fault code we have →
-                </Link>
-              </div>
-            )}
-
-            <div className="fd-card fd-card--plain">
-              <h3>Fix it or replace it?</h3>
-              <p>
-                How long these systems actually last, the six signs it&rsquo;s replacement
-                time, and when we&rsquo;d tell you to repair instead.
-              </p>
-              <Link href="/upgrade-or-repair" className="fd-more__all">
-                The 10-year rule →
-              </Link>
-            </div>
-          </aside>
-        </div>
+          <div className="cc-card">
+            <span className="cc-lbl">The repair</span>
+            <h3>What the fix usually involves</h3>
+            <p>{d.typicalFix}</p>
+          </div>
+        </div></div>
       </section>
-    </div>
+
+      {/* 5. Worth fixing? The question that follows every fault code, so it
+          lives here rather than in the Tools menu. Someone reading this has
+          already decided something is wrong; the next thing they want to
+          know is whether it's worth fixing. */}
+      <section className="bk__sec bk__sec--white" id="worth">
+        <div className="wrap"><div className="bk__blk cc-two">
+          <div className="bk__col">
+            <header className="bk__head"><h2 className="h2">Is it worth <span>fixing</span>?</h2></header>
+            <div className="cc-prose">
+              <p>
+                That depends almost entirely on how old the unit is. Past about ten years on
+                hot water and gas heating, and twelve on aircon, a significant repair usually
+                costs more per remaining year than a replacement does, and it&rsquo;s the same
+                point at which the VEU rebate is worth the most, because old inefficient
+                appliances are exactly what the scheme pays to remove. If yours is young and
+                the fault is a component, we&rsquo;ll fix it and say so.
+              </p>
+              <p>
+                <Link href="/upgrade-or-repair" className="cc-allcodes">
+                  Repair or replace? The 10-year rule, and what the rebate is worth →
+                </Link>
+              </p>
+            </div>
+          </div>
+          <div className="cc-card cc-side">
+            <h3>Fix it or replace it?</h3>
+            <p>
+              How long these systems actually last, the six signs it&rsquo;s replacement
+              time, and when we&rsquo;d tell you to repair instead.
+            </p>
+            <Link href="/upgrade-or-repair" className="abtn abtn--ghost">The 10-year rule →</Link>
+          </div>
+        </div></div>
+      </section>
+
+      {/* 6. Other codes from the same brand and system */}
+      {more.length > 0 && (
+        <section className="bk__sec bk__sec--cream" id="more">
+          <div className="wrap"><div className="bk__blk bk__col">
+            <header className="bk__head"><h2 className="h2">Other {f.brand} <span>codes</span>.</h2></header>
+            <ul className="cc-codes" data-anim="stagger">
+              {more.map((m) => (
+                <li key={m.code}>
+                  {m.detail ? (
+                    <Link href={`/tools/fault-codes/${faultSlug(m.brand)}/${faultSlug(m.code)}`}>
+                      <b>{m.code}</b> {m.meaning}
+                    </Link>
+                  ) : (
+                    <span><b>{m.code}</b> {m.meaning}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <Link href="/tools/fault-codes" className="cc-allcodes">
+              Every fault code we have →
+            </Link>
+          </div></div>
+        </section>
+      )}
+
+      <EndCta title={`${f.brand} ${f.code} still showing?`} text="Book a service call and we'll diagnose it and quote the repair in writing before touching anything." from="fault-code" />
+    </div></div>
   );
 }

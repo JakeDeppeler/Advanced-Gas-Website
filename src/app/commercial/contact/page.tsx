@@ -12,7 +12,7 @@ import "../cx.css";
 export const metadata: Metadata = {
   title: "Contact Us, Commercial Mechanical Pakenham",
   description:
-    "Submit a scope, book a service, ask for a home quote or request certificates of currency and SWMS. Based in Pakenham, on site within 75 km and further for contract work.",
+    "Submit a scope, book a service or request certificates of currency and SWMS. Based in Pakenham, on site within 75 km and further for contract work.",
   alternates: { canonical: "/commercial/contact" },
 };
 

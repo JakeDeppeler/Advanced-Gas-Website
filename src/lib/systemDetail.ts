@@ -291,8 +291,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
    * ---------------------------------------------------------------- */
   "aircon-servicing-repairs/aircon-service": {
     specs: [
-      { label: "Split system", value: "$220" },
-      { label: "Ducted", value: "$390" },
+      { label: "How often", value: "Once a year" },
+      { label: "Price", value: "Fixed, in writing" },
       { label: "Time on site", value: "60 – 90 minutes" },
       { label: "Best booked", value: "Sept – Nov, before the rush" },
       { label: "You get", value: "A written service report" },
@@ -473,7 +473,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
 
   "gas-plumbing/gas-service": {
     specs: [
-      { label: "Price", value: "$280 + GST" },
+      { label: "Price", value: "Fixed, in writing" },
       { label: "How often", value: "Every 2 years, annually past 10" },
       { label: "Time on site", value: "60 – 90 minutes" },
       { label: "Includes", value: "Calibrated CO analyser test" },
@@ -517,6 +517,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     specs: [
       { label: "Refrigerant", value: "CO₂ (R744)" },
       { label: "Tank sizes", value: "160 – 400 L" },
+      // Jake, Nov 2026: any swap to a heat pump is 2–4 hours; an old electric tank in the roof is 4–6.
+      { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Holds to", value: "-10 °C ambient" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
@@ -541,7 +543,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     specs: [
       { label: "Refrigerant", value: "R290 propane" },
       { label: "Tank sizes", value: "180 – 285 L" },
-      { label: "Time on site", value: "3 – 5 hrs" },
+      { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
     steps: [
@@ -558,19 +560,19 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { tier: "Thermann ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, The same platform as the Reclaim ECO, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg", priceKey: "Inc GST" },
     ],
     pricingNote:
-      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it and that is $350. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are the same platform: what differs is supply, not spec.",
+      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are the same platform: what differs is supply, not spec.",
   },
   "gas-plumbing/temporary-hot-water": {
     specs: [
-      { label: "Daily rate", value: "$30 per day" },
-      { label: "Set-up + removal", value: "$350, waived if we do the job" },
+      { label: "Hire", value: "By the day" },
+      { label: "Set-up + removal", value: "Waived if we do the job" },
       { label: "Connected", value: "Usually same day" },
       { label: "Covers", value: "The whole house" },
       { label: "Obligation", value: "None" },
     ],
     spotlight: {
       eyebrow: "What it actually buys you",
-      heading: "It takes the deadline off a four thousand dollar decision.",
+      heading: "It takes the deadline off a big decision.",
       blurb:
         "When a tank dies you're suddenly being asked to spend serious money today, with cold showers as the deadline. That's the worst possible way to buy a hot water system and it's exactly how people end up with the wrong one. Here's how the week goes instead.",
       layout: "steps",
@@ -579,8 +581,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         { t: "Day 0: temporary unit connected", d: "Same visit, in most cases. It plumbs into the existing hot water line where the old unit was, so every outlet in the house works normally again. Hot showers tonight." },
         { t: "Days 1–3: you actually compare", d: "Three real quotes, read properly, at a normal pace. Heat pump versus gas, what the VEU rebate is worth on each, what your roof and your household actually suit. The comparison you'd never make standing in a cold bathroom." },
         { t: "Days 3–7: the right unit, not the available one", d: "This is the bit the hire really pays for. Without it you take whoever can come today with whatever is on the truck. With it you can wait for the unit that suits the house, or for a rebate approval to come through." },
-        { t: "Install day, temporary unit goes with us", d: "Disconnected and taken away the same day the new system goes in. If we're doing the replacement, the $350 set-up and removal is waived, so all you've paid is the days you actually used." },
-        { t: "If you go elsewhere", d: "You pay the $350, which covers the two trips and the gear, and we take it away with no hard feelings. We'd rather you had hot water and chose properly than felt cornered." },
+        { t: "Install day, temporary unit goes with us", d: "Disconnected and taken away the same day the new system goes in. If we're doing the replacement, the set-up and removal fee is waived, so all you've paid is the days you actually used." },
+        { t: "If you go elsewhere", d: "You pay the set-up and removal fee, which covers the two trips and the gear, and we take it away with no hard feelings. We'd rather you had hot water and chose properly than felt cornered." },
       ],
       note:
         "The daily rate keeps running until the new system goes in, so this buys time rather than replacing the decision. If your existing system can be repaired for less than the hire will cost, we'll tell you that instead, it happens more often than you'd think.",

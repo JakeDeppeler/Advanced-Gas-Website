@@ -1,0 +1,7 @@
+/* The price promise now sits in a navy rounded box (the homepage's
+   "Tools for you" shape) instead of on an orange band. The pull quote under
+   the cards was drawn for orange: a navy rule and navy stars, which vanish on
+   navy. Here they take the homepage's own colours on dark: the bright orange
+   for the rule and the hero's gold for the stars. */
+.ag .qx__pbox .qx__pull{border-left-color:var(--or2)}
+.ag .qx__pbox .qx__pull .stars{color:#FFB648}

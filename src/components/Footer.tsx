@@ -88,8 +88,8 @@ export function Footer() {
           <aside className="ftr__news">
             <h3>Seasonal service reminders</h3>
             <p>
-              Straight to your inbox. Rebate news, honest maintenance tips,
-              first-in-line pricing. One email a season. Zero spam.
+              Straight to your inbox. Rebate news, honest maintenance tips
+              and a nudge before your service is due. One email a season. Zero spam.
             </p>
             <NewsletterForm />
             <small>By subscribing you agree to our privacy notice. Unsubscribe any time.</small>
@@ -108,7 +108,6 @@ export function Footer() {
               ))}
               <li><Link href="/services#commercial">Commercial &amp; strata</Link></li>
               <li><Link href="/contact#emergency">24/7 emergency</Link></li>
-              <li><Link href="/pricing"><strong>Full price list</strong></Link></li>
             </ul>
           </div>
 
@@ -121,10 +120,7 @@ export function Footer() {
               <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
               <li><Link href="/upgrade-or-repair">Repair or replace? The 10-year rule</Link></li>
-              <li><Link href="/water-filtration">Water filtration</Link></li>
-              <li><Link href="/water-filtration/range">Full filtration range compared</Link></li>
-              <li><Link href="/water-filtration/rainwater-uv">Tank &amp; rainwater filtration</Link></li>
-              <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
+              <li><Link href="/services/heat-pump-installation">Heat pump vs gas</Link></li>
               <li><Link href="/tools/veu-rebate-estimator">VEU rebate calculator</Link></li>
               <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>
               <li><Link href="/tools/running-cost-calculator">Running cost calculator</Link></li>

@@ -1,6 +1,7 @@
 import { openingHours, publishedSuburbs, services, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { TIERS } from "@/lib/waterFiltration";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 import type { ChatSettings } from "./chatTypes";
 
 /**
@@ -12,8 +13,8 @@ import type { ChatSettings } from "./chatTypes";
  * from serviceContent means the assistant says what the service page says,
  * and changes when it does.
  *
- * Only what is published. The pricing here is the "from" figures already on
- * the public pages; nothing from the pricebook, the job calculator or Xero
+ * Only what is published. The pricing here is the "from" figures on the
+ * public pages, and only while those pages show them (SHOW_PRICES); nothing from the pricebook, the job calculator or Xero
  * goes anywhere near a model that writes to the public.
  */
 export function knowledge(): string {
@@ -25,7 +26,7 @@ export function knowledge(): string {
     `Phone ${site.phone} · email ${site.email} · website ${site.url}`,
     `Licences: ${site.licences.plumbing}; ${site.licences.refrigeration}.`,
     `Hours: ${openingHours()}. Weekends and public holidays: emergencies only.`,
-    `24/7 emergency line is the same number, ${site.phone}: gas leak, no hot water, CO alarm. After hours we answer for locals only: $380 call-out, then $260/hr.`,
+    `24/7 emergency line is the same number, ${site.phone}: gas leak, no hot water, CO alarm. After hours we answer for locals only; the call-out fee is confirmed on the phone before anyone comes out.`,
     `Service area: Pakenham and within 75 km (${site.primaryRegion}). We don't quote outside that radius.`,
     `Every quote is written; the written quote is the price you pay. VEU (Victorian Energy Upgrades) rebates are applied at the quote where the property qualifies. 6-year workmanship warranty on installs.`,
     "",
@@ -39,7 +40,9 @@ export function knowledge(): string {
       continue;
     }
     if (c.brands?.length) out.push(`Brands: ${c.brands.join(", ")}.`);
-    if (c.pricing?.length) {
+    // Prices are off site-wide (SHOW_PRICES), and a drafted reply mustn't
+    // quote a figure the website no longer shows: every price is on a quote.
+    if (SHOW_PRICES && c.pricing?.length) {
       out.push(`Published prices (indicative, "from"):`);
       for (const p of c.pricing) out.push(`- ${p.group ? `${p.group}: ` : ""}${p.tier}: ${p.price}. Includes ${p.includes}.`);
     }

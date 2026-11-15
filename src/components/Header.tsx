@@ -125,7 +125,7 @@ const SERVICES_MEGA: {
         {
           href: "/services/gas-plumbing/gas-service",
           label: "Gas heater service & CO test",
-          sub: "Annual safety check · $280 + GST",
+          sub: "Annual safety check · written report",
           photo: "/gas-ducted-install.webp",
           photoAlt: "Gas ducted heater in a roof space",
         },
@@ -146,7 +146,7 @@ const SERVICES_MEGA: {
           label: "All-in-one heat pump",
           sub: "iStore · Reclaim ECO · Thermann ECO",
           photo: "/270L-istore-heatpump.webp",
-          photoAlt: "iStore 270L all-in-one heat pump hot water system",
+          photoAlt: "iStore all-in-one heat pump hot water system",
         },
         {
           href: "/services/gas-plumbing/continuous-flow",
@@ -158,7 +158,7 @@ const SERVICES_MEGA: {
         {
           href: "/services/gas-plumbing/temporary-hot-water",
           label: "Temporary hot water hire",
-          sub: "$30/day while you decide",
+          sub: "Hot water tonight while you decide",
           photo: "/gas-hot-water-changeover.webp",
           photoAlt: "Temporary hot water unit connected during a changeover",
         },
@@ -218,7 +218,7 @@ const SERVICES_MEGA: {
     },
   ],
   popular: [
-    { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
+    { href: "/services/heat-pump-installation", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
     { href: "/pricing", label: "Full price list", sub: "Every model installed price" },
     { href: "/gallery", label: "Recent installs", sub: "Photos from real jobs" },
@@ -379,7 +379,6 @@ function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [activeMega, setActiveMega] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -416,68 +415,10 @@ export function Header() {
 
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
 
-  /**
-   * Crossing between the two sides of the business. The one navigation on the
-   * site that gets a transition, because it is the one where the reader
-   * genuinely changes context. Modified clicks — new tab, new window — are
-   * left alone so the tab still behaves like a link when somebody wants it to.
-   */
-  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    crossTo(() => router.push(href), href === "/commercial" ? "to-commercial" : "to-home");
-  }
 
   return (
     <>
-      {/* Residential and commercial are different readers with different fears,
-          so they get different sites. This says so from the first pixel and
-          lets either one cross over whenever they like, which an interstitial
-          that demands the choice before showing anything cannot do without
-          costing rankings and the visitors who were closest to enquiring. */}
-      <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}`}>
-        {/* No label any more. The two tabs say what they are; a caption in front
-            of them just made the control smaller to fit the row. The switch
-            sits in the corner, and the run of empty strip beside it carries
-            what it is doing outside and whether anyone is in the office. */}
-        <div className="wrap sitemode__row">
-          {/* One strip, not two. The utility bar above this used to carry the
-              location, the hours, the ABN, the emergency line and the phone
-              number, then this strip carried the conditions and the switch,
-              then the header carried the phone again. Three bars before the
-              page started. The ABN and hours live in the footer where
-              procurement looks for them; the phone is in the header; what is
-              left up here is the live stuff and the one link that cannot wait. */}
-          <div className="sitemode__left">
-            <LocalConditions />
-            <span className="sitemode__loc">Pakenham VIC, within 75&nbsp;km</span>
-          </div>
-          <div className="sitemode__right">
-            <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>
-              <span className="sitemode__emergdot" aria-hidden="true" />
-              24/7 emergency gas &amp; hot water
-            </a>
-          <nav className="sitemode__tabs" aria-label="Residential or commercial">
-            <Link
-              href="/"
-              className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
-              aria-current={onCommercial ? undefined : "page"}
-              onClick={(e) => crossOver(e, "/")}
-            >
-              Your home
-            </Link>
-            <Link
-              href="/commercial"
-              className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
-              aria-current={onCommercial ? "page" : undefined}
-              onClick={(e) => crossOver(e, "/commercial")}
-            >
-              Business &amp; commercial
-            </Link>
-          </nav>
-          </div>
-        </div>
-      </div>
+      <SiteModeStrip />
 
     <header className={`hdr${onCommercial ? " hdr--comm" : ""}`}>
       <div className="wrap hdr__row">
@@ -576,7 +517,7 @@ export function Header() {
               Residential only — the commercial side sells packages, not
               models. */}
           {!onCommercial && (
-            <Link href="/range" className="ds-btn ds-btn--ghost hdr__range">
+            <Link href="/brands" className="ds-btn ds-btn--ghost hdr__range">
               Our full range
             </Link>
           )}
@@ -724,7 +665,7 @@ function ServicesMega() {
             one by what the thing is and one by who made it. The range is the
             one with the sizes and the prices on it, so it is the one that
             stays. Brands is still its own page, in the footer and in search. */}
-        <Link href="/range" className="megasvc__range">
+        <Link href="/brands" className="megasvc__range">
           <div>
             <b>The full range</b>
             <span>Every model and size, with prices</span>
@@ -867,7 +808,7 @@ const COMPANY_GROUPS: RailGroup[] = [
     label: "Guides & advice",
     items: [
       { href: "/blog", label: "The blog", sub: "Guides, rebates and buying advice", icon: "\u270e" },
-      { href: "/heat-pumps", label: "Heat pump or gas?", sub: "The hot water fork, with the numbers", icon: "\u2668" },
+      { href: "/services/heat-pump-installation", label: "Heat pump or gas?", sub: "The hot water fork, with the numbers", icon: "\u2668" },
       { href: "/upgrade-or-repair", label: "Repair or replace?", sub: "The 10-year rule, and the rebate", icon: "\u21ba" },
     ],
   },
@@ -1091,7 +1032,7 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
         {/* The header's range button is hidden below 1240px, so the drawer
             carries it instead — otherwise the range is only reachable from
             inside a menu on every phone. */}
-        <Link href="/range" onClick={close} className="ds-btn ds-btn--ghost ds-btn--lg" style={{ marginTop: 12, justifyContent: "center" }}>
+        <Link href="/brands" onClick={close} className="ds-btn ds-btn--ghost ds-btn--lg" style={{ marginTop: 12, justifyContent: "center" }}>
           Our full range
         </Link>
         <Link href="/quote" onClick={close} className="ds-btn ds-btn--orange ds-btn--lg" style={{ marginTop: 8, justifyContent: "center" }}>
@@ -1099,5 +1040,81 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
         </Link>
       </div>
     </div>
+  );
+}
+
+/**
+ * The dark strip above the header: local conditions, the emergency line and
+ * the home / commercial switch. Its own component so the homepage redesign,
+ * which has its own header, can sit under the same strip as every other page.
+ */
+/** `tabs={false}` drops the home / commercial switch, as the homepage redesign does. */
+export function SiteModeStrip({ tabs = true }: { tabs?: boolean }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const onCommercial = pathname?.startsWith("/commercial") ?? false;
+  /**
+   * Crossing between the two sides of the business. The one navigation on the
+   * site that gets a transition, because it is the one where the reader
+   * genuinely changes context. Modified clicks — new tab, new window — are
+   * left alone so the tab still behaves like a link when somebody wants it to.
+   */
+  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    crossTo(() => router.push(href), href === "/commercial" ? "to-commercial" : "to-home");
+  }
+
+  return (
+    <>
+    {/* Residential and commercial are different readers with different fears,
+        so they get different sites. This says so from the first pixel and
+        lets either one cross over whenever they like, which an interstitial
+        that demands the choice before showing anything cannot do without
+        costing rankings and the visitors who were closest to enquiring. */}
+    <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}${tabs ? "" : " sitemode--notabs"}`}>
+      {/* No label any more. The two tabs say what they are; a caption in front
+          of them just made the control smaller to fit the row. The switch
+          sits in the corner, and the run of empty strip beside it carries
+          what it is doing outside and whether anyone is in the office. */}
+      <div className="wrap sitemode__row">
+        {/* One strip, not two. The utility bar above this used to carry the
+            location, the hours, the ABN, the emergency line and the phone
+            number, then this strip carried the conditions and the switch,
+            then the header carried the phone again. Three bars before the
+            page started. The ABN and hours live in the footer where
+            procurement looks for them; the phone is in the header; what is
+            left up here is the live stuff and the one link that cannot wait. */}
+        <div className="sitemode__left">
+          <LocalConditions />
+          <span className="sitemode__loc">Pakenham VIC, within 75&nbsp;km</span>
+        </div>
+        <div className="sitemode__right">
+          <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>
+            <span className="sitemode__emergdot" aria-hidden="true" />
+            24/7 emergency gas &amp; hot water
+          </a>
+        {tabs && <nav className="sitemode__tabs" aria-label="Residential or commercial">
+          <Link
+            href="/"
+            className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
+            aria-current={onCommercial ? undefined : "page"}
+            onClick={(e) => crossOver(e, "/")}
+          >
+            Your home
+          </Link>
+          <Link
+            href="/commercial"
+            className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
+            aria-current={onCommercial ? "page" : undefined}
+            onClick={(e) => crossOver(e, "/commercial")}
+          >
+            Business &amp; commercial
+          </Link>
+        </nav>}
+        </div>
+      </div>
+    </div>
+    </>
   );
 }

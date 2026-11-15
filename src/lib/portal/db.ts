@@ -1377,10 +1377,16 @@ const toStoredPost = (r: PostRow): StoredPost => ({
 /** The tag the public blog's read is cached under, revalidated on publish. */
 export const BLOG_TAG = "blog-posts";
 
-export async function listStoredPosts(): Promise<StoredPost[]> {
+export async function listStoredPosts(opts: { timeoutMs?: number } = {}): Promise<StoredPost[]> {
   // Tagged rather than no-store: /blog and /blog/[slug] are prerendered and
   // a no-store read inside them turns the page dynamic and 500s it.
-  const res = await sb("portal_posts?select=*&order=published_on.desc.nullslast,updated_at.desc", { cached: BLOG_TAG });
+  const res = await sb("portal_posts?select=*&order=published_on.desc.nullslast,updated_at.desc", {
+    cached: BLOG_TAG,
+    // A time limit only when the caller asks for one (the public blog does,
+    // see blogLive.ts). The portal editor doesn't: there a read that gave up
+    // and came back empty would look like the post didn't exist.
+    ...(opts.timeoutMs ? { signal: AbortSignal.timeout(opts.timeoutMs) } : {}),
+  });
   if (!res || !res.ok) return [];
   return ((await res.json()) as PostRow[]).map(toStoredPost);
 }

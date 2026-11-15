@@ -6,9 +6,9 @@ import { COMM_CLIENTS } from "@/lib/commercial";
 import {
   CAPABILITY_STATEMENT,
   COMM_AREA_NEAR,
-  COMM_COMMUNITY,
   COMM_DISCIPLINES,
   COMM_LEADERSHIP,
+  communityPhotos,
   COMM_LICENCE_CLASSES,
   COMM_REGISTRATION_CLASSES,
   COMM_TRADE_QUALIFICATIONS,
@@ -57,6 +57,7 @@ const CREDS: { k: string; v: string }[] = [
 ];
 
 export default function CapabilityPage() {
+  const photos = communityPhotos();
   return (
     <div className="page-cx" data-no-reveal>
       <CxSubHero
@@ -296,7 +297,7 @@ export default function CapabilityPage() {
       {/* ======================== 07 · COMMUNITY ======================== */}
       <section className="cx-sec cx-sec--navy" id="community">
         <div className="wrap">
-          <div className="cx-comm">
+          <div className={`cx-comm${photos.length ? "" : " cx-comm--solo"}`}>
             <div className="cx-rv">
               <span className="cx-eye cx-eye--sky">07 · Giving back</span>
               <h2>Community involvement.</h2>
@@ -305,16 +306,22 @@ export default function CapabilityPage() {
                 financial contributions and through time and hands-on effort on a voluntary basis.
               </p>
             </div>
-            <ul className="cx-comm__g">
-              {COMM_COMMUNITY.map((c, i) => (
-                <li key={c.cap}>
-                  <figure className="cx-rv" style={{ ["--i" as string]: String(i) }}>
-                    <div className="cx-comm__slot">Photo to come</div>
-                    <figcaption>{c.cap}</figcaption>
-                  </figure>
-                </li>
-              ))}
-            </ul>
+            {/* The clubs' photographs once there is one for every club; until then
+                the paragraph stands alone, rather than beside "Photo to come" frames. */}
+            {photos.length > 0 && (
+              <ul className="cx-comm__g">
+                {photos.map((c, i) => (
+                  <li key={c.cap}>
+                    <figure className="cx-rv" style={{ ["--i" as string]: String(i) }}>
+                      <div className="cx-comm__slot cx-comm__slot--photo">
+                        <Image src={c.photo} alt={`${c.cap}: a club we support`} fill sizes="(max-width: 900px) 33vw, 240px" />
+                      </div>
+                      <figcaption>{c.cap}</figcaption>
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>

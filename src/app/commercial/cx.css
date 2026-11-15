@@ -1666,3 +1666,9 @@
   .page-cx .cx-z { transition: none; }
   .page-cx .cx-pband img { transform: none !important; }
 }
+
+/* Community, before the clubs' photographs exist: the paragraph on its own,
+   at a reading width, instead of beside three "Photo to come" frames. */
+.page-cx .cx-comm--solo { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+.page-cx .cx-comm__slot--photo { padding: 0; border: 0; }
+.page-cx .cx-comm__slot--photo img { object-fit: cover; }

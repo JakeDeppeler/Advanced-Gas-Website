@@ -2,7 +2,6 @@ import { services, suburbs } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { brands } from "@/lib/brands";
 import { posts as BUILT_IN_POSTS, type BlogPost } from "@/lib/blog";
-import { TIERS } from "@/lib/waterFiltration";
 
 /**
  * Everything on the site, as one flat list for the search page.
@@ -25,9 +24,8 @@ export type Hit = {
 /** Pages that exist in their own right rather than coming out of a data file. */
 const PAGES: Hit[] = [
   { title: "Get a quote", path: "/quote", kind: "Page", blurb: "Tell us about the job and we come back in writing inside 12 hours.", terms: "estimate price booking enquire" },
-  { title: "Pricing", path: "/pricing", kind: "Page", blurb: "Installed prices for the systems we fit, with the VEU rebate already off.", terms: "cost how much price list" },
   { title: "VEU rebates", path: "/rebates", kind: "Page", blurb: "The Victorian Energy Upgrades rebate, applied at the quote rather than chased afterwards.", terms: "rebate veu government subsidy solar homes discount" },
-  { title: "Hot water: heat pump or gas", path: "/heat-pumps", kind: "Hot water", blurb: "All-in-one, split, gas continuous flow and gas storage, and which suits your place.", terms: "hot water heat pump reclaim istore thermann tank" },
+  { title: "Hot water: heat pump or gas", path: "/services/heat-pump-installation", kind: "Hot water", blurb: "All-in-one, split, gas continuous flow and gas storage, and which suits your place.", terms: "hot water heat pump reclaim istore thermann tank" },
   { title: "Emergency and after hours", path: "/contact#emergency", kind: "Page", blurb: "Gas leak, no hot water, CO alarm. We answer after hours for locals.", terms: "emergency urgent after hours leak no hot water" },
   { title: "Service areas", path: "/service-areas", kind: "Page", blurb: "Every suburb we work in, with drive times from Pakenham.", terms: "areas coverage suburbs do you come to" },
   { title: "Commercial and mechanical", path: "/commercial", kind: "Page", blurb: "Fit-outs, plant replacement, maintenance and breakdowns across Melbourne's south-east.", terms: "commercial business shop office builder site fitout" },
@@ -42,7 +40,6 @@ const PAGES: Hit[] = [
   { title: "VEU rebate calculator", path: "/tools/veu-rebate-estimator", kind: "Tool", blurb: "Roughly what the rebate is worth on your job.", terms: "rebate estimator calculator veu" },
   { title: "Heat pump compare", path: "/tools/heat-pump-compare", kind: "Tool", blurb: "Reclaim, iStore and Thermann side by side.", terms: "compare brands heat pump which" },
   { title: "Upgrade or repair", path: "/upgrade-or-repair", kind: "Tool", blurb: "Whether it is worth fixing or worth replacing.", terms: "repair replace worth fixing old unit" },
-  { title: "Water filtration", path: "/water-filtration", kind: "Filtration", blurb: "Whole house, under sink, hot water and rainwater UV.", terms: "water filter filtration puretec bwt rainwater uv" },
 ];
 
 let cache: Hit[] | null = null;
@@ -107,15 +104,6 @@ export function searchCorpus(posts: BlogPost[] = BUILT_IN_POSTS): Hit[] {
     out.push({ title: p.title, path: `/blog/${p.slug}`, kind: "Guide", blurb: p.blurb, terms: p.cat });
   }
 
-  for (const t of TIERS) {
-    out.push({
-      title: t.label,
-      path: `/water-filtration/${t.slug}`,
-      kind: "Filtration",
-      blurb: t.tagline,
-      terms: t.fitsWhere,
-    });
-  }
 
   if (isDefault) cache = out;
   return out;

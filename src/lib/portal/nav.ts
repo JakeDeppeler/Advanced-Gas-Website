@@ -130,8 +130,15 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
 
   // Answered by whoever runs the pipeline, like the pipeline itself.
   add(office || can(user, "quotes"), {
-    href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Website, Messenger and Instagram, with drafted replies", band: "customers", icon: "chat",
-    also: ["message", "messages", "messenger", "instagram", "facebook", "dm", "chat", "website chat", "inbox", "reply", "customer"],
+    href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Messenger and Instagram, with drafted replies", band: "customers", icon: "chat",
+    also: ["message", "messages", "messenger", "instagram", "facebook", "dm", "chat", "inbox", "reply", "customer"],
+  });
+
+  // What the website's instant answers were asked. Nobody replies to them, so
+  // this is the only place anyone sees them (Jake, Nov 2026).
+  add(office || can(user, "quotes"), {
+    href: "/portal/chats/answers", label: "Chat answers", short: "Answers", blurb: "What people ask the website chat, and what it said", band: "customers", icon: "chat",
+    also: ["ask us anything", "website chat", "chatbot", "bot", "instant answers", "questions", "faq", "what people ask"],
   });
 
   // The office's view of work orders from email, like the chats.

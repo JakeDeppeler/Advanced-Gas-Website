@@ -1,67 +1,66 @@
-/* ---------- Privacy and Terms ---------- */
+/* ---------- Privacy and Terms (LegalPage.tsx) ----------
+   Scoped under .ag like the rest of the redesign: App Router keeps a page's
+   CSS loaded after navigating away, so an unscoped rule here would restyle
+   the next page visited. Tokens (--navy, --disp, --ink2 …) come from .ag in
+   homepage.css. */
 
-.legal {
-  padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem);
-  background: var(--paper, #fff);
+/* A short navy header in the inside pages' gradient: the same family as the
+   tall page headers, kept low because nobody needs a picture to read terms. */
+.ag .lg__top{background:radial-gradient(90% 140% at 80% 0%,#16205a 0%,var(--navy) 70%);color:#fff;padding:clamp(44px,6vw,76px) 0 clamp(36px,4.5vw,56px)}
+.ag .lg__topin{display:flex;flex-direction:column;gap:14px}
+.ag .lg__eye{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#FF9A5C}
+.ag .lg__h1{font-family:var(--disp);font-size:clamp(42px,5.4vw,80px);font-weight:900;line-height:.96;letter-spacing:-.04em;color:#fff;text-wrap:balance}
+/* The coloured word in the homepage hero's sky blue, as the other plain page headers do. */
+.ag .lg__h1 em{font-style:normal;color:var(--sky2)}
+.ag .lg__meta{margin:0;font-size:15px;line-height:1.5;color:rgba(255,255,255,.78)}
+
+/* The document: one column at a reading measure, lined up under the title,
+   with the section list beside it on the right. The list comes first in the
+   markup so a phone shows it above the text. */
+.ag .lg__doc{background:#fff;padding:clamp(44px,6vw,88px) 0 clamp(8px,2vw,24px)}
+.ag .lg__grid{display:grid;grid-template-columns:minmax(0,70ch) minmax(240px,320px);justify-content:start;gap:clamp(40px,8vw,128px);align-items:start}
+.ag .lg__body{grid-column:1;grid-row:1}
+.ag .lg__toc{grid-column:2;grid-row:1;position:sticky;top:110px;display:flex;flex-direction:column;gap:12px;padding:20px 22px;border-radius:12px;background:var(--cream);box-shadow:inset 0 0 0 1px var(--line2)}
+.ag .lg__tocl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.ag .lg__toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;counter-reset:lg}
+.ag .lg__toc li{counter-increment:lg}
+/* Numbered as well as linked, so the list reads as an order without relying on colour. */
+.ag .lg__toc ol a{display:flex;gap:10px;padding:6px 0;font-family:var(--disp);font-size:15px;font-weight:700;line-height:1.3;color:var(--navy);text-decoration:none}
+.ag .lg__toc ol a::before{content:counter(lg,decimal-leading-zero);flex:none;width:22px;font-family:var(--mono);font-size:11.5px;font-weight:500;line-height:1.75;color:var(--or-ink)}
+.ag .lg__toc ol a:hover{color:var(--or-ink);text-decoration:underline;text-underline-offset:3px}
+.ag .lg__ask{margin:4px 0 0;padding-top:14px;border-top:1px solid var(--line2);font-size:14px;line-height:1.55;color:var(--ink2)}
+.ag .lg__ask a{font-weight:700;color:var(--navy);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(5,10,48,.3);overflow-wrap:anywhere}
+
+.ag .lg__body{min-width:0;font-size:17px;line-height:1.7;color:var(--ink2)}
+.ag .lg__body > :first-child{margin-top:0}
+.ag .lg__body p{margin:0 0 1.05em}
+/* The opening paragraph is the plain-English summary: set larger, the way a page header's sub line is. */
+.ag .lg__body > p:first-child{font-size:clamp(18px,1.5vw,20px);line-height:1.6;color:var(--ink)}
+.ag .lg__body h2{margin:2.2em 0 .6em;scroll-margin-top:120px;font-family:var(--disp);font-size:clamp(26px,2.4vw,34px);font-weight:900;line-height:1.1;letter-spacing:-.02em;color:var(--navy);text-wrap:balance}
+.ag .lg__body h3{margin:1.6em 0 .4em;font-family:var(--disp);font-size:20px;font-weight:800;line-height:1.25;color:var(--navy)}
+.ag .lg__body strong{color:var(--navy);font-weight:700}
+.ag .lg__body ul{list-style:none;margin:0 0 1.25em;padding:0;display:flex;flex-direction:column;gap:.7em}
+.ag .lg__body li{position:relative;padding-left:24px}
+/* A small square rather than a dot: the site's bullets elsewhere are drawn, not typed. */
+.ag .lg__body li::before{content:"";position:absolute;left:4px;top:.72em;width:7px;height:7px;border-radius:2px;background:var(--or)}
+/* Links underlined at rest, not shown by colour alone. */
+.ag .lg__body a{font-weight:700;color:var(--or-ink);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;overflow-wrap:anywhere}
+.ag .lg__body a:hover{color:var(--navy);text-decoration-thickness:2px}
+
+/* The boxed passages (complaints, consumer rights): the homepage's rounded
+   card, with a navy rule down the side. */
+.ag .lg__box{margin:2.4em 0 0;padding:clamp(22px,3vw,32px);border-radius:12px;background:var(--cream);box-shadow:inset 4px 0 0 var(--navy),inset 0 0 0 1px var(--line2)}
+.ag .lg__box h2{margin-top:0}
+.ag .lg__box p:last-child{margin-bottom:0}
+
+.ag .lg__foot{margin:3em 0 0;padding-top:20px;border-top:1px solid var(--line2);font-size:14px;line-height:1.6;color:var(--ink3)}
+.ag .lg__body .lg__foot a{font-weight:600}
+
+@media (max-width:900px){
+  .ag .lg__grid{grid-template-columns:minmax(0,1fr)}
+  /* On a phone the list sits above the text and stops following it down. */
+  .ag .lg__toc{grid-column:1;grid-row:auto;position:static}
+  .ag .lg__body{grid-row:auto}
+  .ag .lg__toc ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));column-gap:16px}
+  .ag .lg__body{font-size:16.5px}
 }
-
-.legal__wrap {
-  max-width: 74ch;
-  margin: 0 auto;
-}
-
-.legal__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin: 0 0 0.5rem;
-}
-
-.legal h1 {
-  margin: 0 0 0.5rem;
-  color: var(--navy);
-}
-
-.legal__updated {
-  margin: 0 0 2rem;
-  font-size: 0.85rem;
-  color: var(--ink-2);
-}
-
-.legal h2 {
-  margin: 2.25rem 0 0.6rem;
-  font-size: clamp(1.15rem, 2.6vw, 1.4rem);
-  color: var(--navy);
-}
-
-.legal p,
-.legal li {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--ink-2);
-}
-
-.legal p { margin: 0 0 1rem; }
-
-.legal ul {
-  margin: 0 0 1.25rem;
-  padding-left: 1.15rem;
-}
-.legal li { margin: 0 0 0.5rem; }
-
-.legal__box {
-  margin: 2rem 0 0;
-  padding: 1.25rem 1.4rem;
-  border-left: 4px solid var(--orange);
-  border-radius: 0 12px 12px 0;
-  background: color-mix(in srgb, var(--orange) 7%, #fff);
-}
-.legal__box h2 { margin-top: 0; }
-.legal__box p:last-child { margin-bottom: 0; }
-
-.legal a { color: var(--orange); font-weight: 600; }

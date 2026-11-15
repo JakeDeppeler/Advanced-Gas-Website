@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import "@/components/homepage/tools/calc-c.css";
+import { SHOW_PRICES } from "@/lib/homepage/data";
 
 /**
  * System-type comparison tool. Data table + toggleable columns
@@ -179,142 +181,126 @@ export function SystemComparison() {
   };
 
   const rows = SYSTEMS.filter((s) => selected.has(s.key));
+  const heats = (s: SystemRow) => (s.heats === "yes" ? "Yes" : s.heats === "hyper" ? "Yes (Hyper)" : "No");
 
   return (
-    <>
-      {/* Selector chip row */}
-      <div className="sysc-chips" role="group" aria-label="Select systems to compare">
-        {SYSTEMS.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            className={`sysc-chip${selected.has(s.key) ? " is-active" : ""}`}
-            onClick={() => toggle(s.key)}
-            aria-pressed={selected.has(s.key)}
-          >
-            {s.name}
-          </button>
-        ))}
+    <div className="cc">
+      {/* Selector chips: the mark turns from + to ✓, so picked isn't shown by colour alone. */}
+      <div className="cc-card cc-pick">
+        <span className="cc-lbl">Systems to compare</span>
+        <div className="cc-chips cc-chips--scroll" role="group" aria-label="Select systems to compare">
+          {SYSTEMS.map((s) => {
+            const on = selected.has(s.key);
+            return (
+              <button key={s.key} type="button" className="cc-chip" onClick={() => toggle(s.key)} aria-pressed={on}>
+                <i aria-hidden="true">{on ? "✓" : "+"}</i>{s.name}
+              </button>
+            );
+          })}
+        </div>
+        <p className="cc-hint">
+          Pick 2-5 systems to compare. Currently comparing <strong>{rows.length}</strong>.
+        </p>
       </div>
-      <p className="sysc-selectionhint">
-        Pick 2-5 systems to compare. Currently comparing <strong>{rows.length}</strong>.
-      </p>
 
       {rows.length === 0 ? (
-        <div className="faults-empty">Pick at least one system above to see the comparison.</div>
+        <div className="cc-empty">Pick at least one system above to see the comparison.</div>
       ) : (
         <>
-        {/* Mobile: stacked card per selected system (hidden ≥640 px). */}
-        <div className="sysc-cards">
+        {/* Phone: a card per selected system. */}
+        <div className="cc-cards">
           {rows.map((s) => (
-            <div key={s.key} className="sysc-card">
-              <div className="sysc-card__head">
-                <div className="sysc-card__name">{s.name}</div>
-                <div className="sysc-card__eyebrow">{s.eyebrow}</div>
+            <article key={s.key} className="cc-card cc-card--sys">
+              <header className="cc-cardhead">
+                <span className="cc-sysname">{s.name}</span>
+                <span className="cc-syseye">{s.eyebrow}</span>
+              </header>
+              <dl className="cc-rows">
+                <div><dt>Cools?</dt><dd><YesNo v={s.cools ? "Yes" : "No"} /></dd></div>
+                <div><dt>Heats?</dt><dd><YesNo v={heats(s)} /></dd></div>
+                {/* Install prices follow the site-wide switch, off until Jake's real prices are in. */}
+                {SHOW_PRICES && <div><dt>Install</dt><dd>{s.installFrom} → {s.installTo}</dd></div>}
+                <div><dt>Running</dt><dd>{s.runningCost}</dd></div>
+                <div><dt>Zone control</dt><dd>{s.zoneControl}</dd></div>
+                <div><dt>Lifespan</dt><dd>{s.lifespan}</dd></div>
+                <div><dt>Best for</dt><dd>{s.bestFor}</dd></div>
+                <div><dt>Best in</dt><dd>{s.bestSuburbs}</dd></div>
+                <div><dt>Brands</dt><dd>{s.brandsWeInstall}</dd></div>
+              </dl>
+              <div className="cc-block">
+                <span className="cc-lbl">Pros</span>
+                <ul className="cc-list cc-list--pro">{s.pros.map((p) => <li key={p}>{p}</li>)}</ul>
               </div>
-              <div className="sysc-card__rows">
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Cools?</span><span className="sysc-card__row-val">{yn(s.cools)}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Heats?</span><span className="sysc-card__row-val">{s.heats === "yes" ? "Yes" : s.heats === "hyper" ? "Yes (Hyper)" : "No"}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{s.installFrom} → {s.installTo}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Running</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.runningCost}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Zone control</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.zoneControl}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Lifespan</span><span className="sysc-card__row-val">{s.lifespan}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best for</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.bestFor}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best in</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.bestSuburbs}</span></div>
-                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Brands</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.brandsWeInstall}</span></div>
-              </div>
-              <div className="sysc-card__block">
-                <div className="sysc-card__block-lbl">Pros</div>
-                <ul className="sysc-list sysc-list--pros">{s.pros.map((p) => <li key={p}>{p}</li>)}</ul>
-              </div>
-              <div className="sysc-card__block">
-                <div className="sysc-card__block-lbl">Cons</div>
-                <ul className="sysc-list sysc-list--cons">{s.cons.map((c) => <li key={c}>{c}</li>)}</ul>
+              <div className="cc-block">
+                <span className="cc-lbl">Cons</span>
+                <ul className="cc-list cc-list--con">{s.cons.map((c) => <li key={c}>{c}</li>)}</ul>
               </div>
               {s.brandHref && (
-                <div className="sysc-card__cta">
-                  <Link href={s.brandHref} className="ds-btn ds-btn--ghost">See our range →</Link>
+                <div className="cc-cardcta">
+                  <Link href={s.brandHref} className="abtn abtn--ghost">See our range →</Link>
                 </div>
               )}
-            </div>
+            </article>
           ))}
         </div>
 
-        <div className="sysc-scroll">
-          <table className="sysc-table">
-            <thead>
-              <tr>
-                <th className="sysc-th--rowhead" />
-                {rows.map((s) => (
-                  <th key={s.key} className="sysc-th--sys">
-                    <div className="sysc-sys">
-                      <div className="sysc-sys__name">{s.name}</div>
-                      <div className="sysc-sys__eyebrow">{s.eyebrow}</div>
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <ComparisonRow label="Cools?"        rows={rows.map((s) => yn(s.cools))} />
-              <ComparisonRow label="Heats?"        rows={rows.map((s) => s.heats === "yes" ? "Yes" : s.heats === "hyper" ? "Yes (Hyper)" : "No")} />
-              <ComparisonRow label="Install from"  rows={rows.map((s) => s.installFrom)} />
-              <ComparisonRow label="Install to"    rows={rows.map((s) => s.installTo)} />
-              <ComparisonRow label="Running cost"  rows={rows.map((s) => s.runningCost)} />
-              <ComparisonRow label="Zone control"  rows={rows.map((s) => s.zoneControl)} />
-              <ComparisonRow label="Lifespan"      rows={rows.map((s) => s.lifespan)} />
-              <ComparisonRow label="Best for"      rows={rows.map((s) => s.bestFor)} wrap />
-              <ComparisonRow label="Best in"       rows={rows.map((s) => s.bestSuburbs)} wrap />
-              <ComparisonRow label="Brands we install" rows={rows.map((s) => s.brandsWeInstall)} wrap />
-
-              <tr>
-                <th scope="row" className="sysc-th--rowhead">Pros</th>
-                {rows.map((s) => (
-                  <td key={s.key} className="sysc-td">
-                    <ul className="sysc-list sysc-list--pros">
-                      {s.pros.map((p) => <li key={p}>{p}</li>)}
-                    </ul>
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <th scope="row" className="sysc-th--rowhead">Cons</th>
-                {rows.map((s) => (
-                  <td key={s.key} className="sysc-td">
-                    <ul className="sysc-list sysc-list--cons">
-                      {s.cons.map((c) => <li key={c}>{c}</li>)}
-                    </ul>
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <th scope="row" className="sysc-th--rowhead">&nbsp;</th>
-                {rows.map((s) => (
-                  <td key={s.key} className="sysc-td sysc-td--cta">
-                    {s.brandHref && (
-                      <Link href={s.brandHref} className="ds-btn ds-btn--ghost ds-btn--sm">See our range →</Link>
-                    )}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+        {/* Wider screens: side by side. */}
+        <div className="cc-card cc-tablewrap">
+          <div className="cc-scroll">
+            <table className="cc-table">
+              <thead>
+                <tr>
+                  <th className="cc-rowh"><span className="sr-only">Compare</span></th>
+                  {rows.map((s) => (
+                    <th key={s.key} scope="col">
+                      <span className="cc-sysname">{s.name}</span>
+                      <span className="cc-syseye">{s.eyebrow}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <ComparisonRow label="Cools?" rows={rows.map((s) => <YesNo key={s.key} v={s.cools ? "Yes" : "No"} />)} />
+                <ComparisonRow label="Heats?" rows={rows.map((s) => <YesNo key={s.key} v={heats(s)} />)} />
+                {SHOW_PRICES && <ComparisonRow label="Install from" rows={rows.map((s) => s.installFrom)} />}
+                {SHOW_PRICES && <ComparisonRow label="Install to" rows={rows.map((s) => s.installTo)} />}
+                <ComparisonRow label="Running cost" rows={rows.map((s) => s.runningCost)} />
+                <ComparisonRow label="Zone control" rows={rows.map((s) => s.zoneControl)} />
+                <ComparisonRow label="Lifespan" rows={rows.map((s) => s.lifespan)} />
+                <ComparisonRow label="Best for" rows={rows.map((s) => s.bestFor)} wrap />
+                <ComparisonRow label="Best in" rows={rows.map((s) => s.bestSuburbs)} wrap />
+                <ComparisonRow label="Brands we install" rows={rows.map((s) => s.brandsWeInstall)} wrap />
+                <tr>
+                  <th scope="row" className="cc-rowh">Pros</th>
+                  {rows.map((s) => (
+                    <td key={s.key} className="cc-wrap"><ul className="cc-list cc-list--pro">{s.pros.map((p) => <li key={p}>{p}</li>)}</ul></td>
+                  ))}
+                </tr>
+                <tr>
+                  <th scope="row" className="cc-rowh">Cons</th>
+                  {rows.map((s) => (
+                    <td key={s.key} className="cc-wrap"><ul className="cc-list cc-list--con">{s.cons.map((c) => <li key={c}>{c}</li>)}</ul></td>
+                  ))}
+                </tr>
+                <tr>
+                  <th scope="row" className="cc-rowh"><span className="sr-only">Range</span></th>
+                  {rows.map((s) => (
+                    <td key={s.key} className="cc-ctacell">
+                      {s.brandHref && <Link href={s.brandHref} className="abtn abtn--ghost">See our range →</Link>}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
         </>
       )}
 
-      <div style={{
-        marginTop: 40,
-        padding: "24px 26px",
-        background: "var(--paper)",
-        border: "1px solid var(--line)",
-        borderLeft: "4px solid var(--orange)",
-        borderRadius: 12,
-      }}>
-        <h2 style={{ fontFamily: "var(--f-display)", fontSize: 20, fontWeight: 800, letterSpacing: -0.01, color: "var(--navy)", margin: "0 0 8px" }}>
-          Rule-of-thumb picks
-        </h2>
-        <ul style={{ fontSize: 14.5, lineHeight: 1.65, color: "var(--ink-2)", margin: 0, paddingLeft: 20 }}>
+      <aside className="cc-tips">
+        <span className="cc-lbl">Rule of thumb</span>
+        <h2>Rule-of-thumb picks</h2>
+        <ul>
           <li><strong>One or two bedrooms:</strong> Wall splits are the cheapest and most flexible.</li>
           <li><strong>3-4 rooms, no ceiling space:</strong> Multi-head split with 4 heads.</li>
           <li><strong>3+ bed family home, has attic:</strong> Ducted reverse-cycle with 4-6 Zonemate zones.</li>
@@ -322,21 +308,22 @@ export function SystemComparison() {
           <li><strong>Cranbourne / Clyde new-build on the flat:</strong> Ducted RC OR evap + gas ducted combo.</li>
           <li><strong>Rental / short-term:</strong> Wall split in the main room, smallest capex.</li>
         </ul>
-      </div>
-    </>
+      </aside>
+    </div>
   );
 }
 
-function yn(v: boolean) {
-  return v ? "Yes" : "No";
+/** Yes or No with a ✓ or ✕ beside it, so the answer reads without colour. */
+function YesNo({ v }: { v: string }) {
+  return <span className={/^yes/i.test(v) ? "cc-yes" : "cc-no"}>{v}</span>;
 }
 
-function ComparisonRow({ label, rows, wrap }: { label: string; rows: string[]; wrap?: boolean }) {
+function ComparisonRow({ label, rows, wrap }: { label: string; rows: ReactNode[]; wrap?: boolean }) {
   return (
     <tr>
-      <th scope="row" className="sysc-th--rowhead">{label}</th>
+      <th scope="row" className="cc-rowh">{label}</th>
       {rows.map((v, i) => (
-        <td key={i} className={wrap ? "sysc-td sysc-td--wrap" : "sysc-td"}>{v}</td>
+        <td key={i} className={wrap ? "cc-wrap" : undefined}>{v}</td>
       ))}
     </tr>
   );

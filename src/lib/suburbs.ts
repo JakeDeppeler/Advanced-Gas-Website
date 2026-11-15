@@ -298,7 +298,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "80s and 90s Ryan Homes estates, mostly brick veneer on standard 500-600m² blocks, with original hot water and heating still in place on a lot of them",
     commonInstall:
-      "iStore 270L heat pumps replacing original electric-storage tanks. This is the max-VEU-rebate postcode, where the rebate and trade-in do the most work on the price",
+      "iStore 275L heat pumps replacing original electric-storage tanks. This is the max-VEU-rebate postcode, where the rebate and trade-in do the most work on the price",
     localHooks: [
       "Hampton Park Secondary",
       "Coral Park Primary",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import "../legal/legal.css";
+import { LegalPage } from "../legal/LegalPage";
 
 /**
  * Terms of service.
@@ -26,13 +26,27 @@ export const metadata: Metadata = {
 
 const UPDATED = "12 August 2026";
 
+const TOC: [string, string][] = [
+  ["quotes", "Quotes"],
+  ["rebates", "Rebates"],
+  ["payment", "Deposits and payment"],
+  ["access", "Access and site conditions"],
+  ["warranty", "Warranty"],
+  ["cancelling", "Cancelling"],
+  ["liability", "Liability"],
+  ["rights", "Your consumer rights"],
+  ["else", "Anything else"],
+];
+
 export default function TermsPage() {
   return (
-    <div className="legal">
-      <div className="wrap legal__wrap">
-        <span className="legal__eyebrow">Legal</span>
-        <h1>Terms of service</h1>
-        <p className="legal__updated">Last updated {UPDATED}</p>
+    <LegalPage
+      crumb="Terms of service"
+      title={<>Terms of <em>service</em>.</>}
+      updated={UPDATED}
+      toc={TOC}
+      end={{ title: <>Want it <span>in writing</span>?</>, from: "terms-cta" }}
+    >
 
         <p>
           These are the terms {site.legalName}, trading as {site.name}, works
@@ -40,7 +54,7 @@ export default function TermsPage() {
           be read, not to be survived.
         </p>
 
-        <h2>Quotes</h2>
+        <h2 id="quotes">Quotes</h2>
         <p>
           A written quote is fixed for 30 days and the number on it is the
           number on the invoice. If something on site turns out to be different
@@ -53,7 +67,7 @@ export default function TermsPage() {
           roughly where you stand. The quote is the price.
         </p>
 
-        <h2>Rebates</h2>
+        <h2 id="rebates">Rebates</h2>
         <p>
           Where a job is eligible under Victorian Energy Upgrades or Solar
           Homes, we apply the rebate at the quote and lodge the paperwork
@@ -67,7 +81,7 @@ export default function TermsPage() {
           difference is payable.
         </p>
 
-        <h2>Deposits and payment</h2>
+        <h2 id="payment">Deposits and payment</h2>
         <p>
           Most residential jobs are paid on completion. Where a job needs
           equipment ordered in specially, we ask for a deposit to cover the
@@ -76,7 +90,7 @@ export default function TermsPage() {
           writing.
         </p>
 
-        <h2>Access and site conditions</h2>
+        <h2 id="access">Access and site conditions</h2>
         <p>
           We need safe access to the work area, the switchboard and the meter on
           the day. If a roof is unsafe to walk, if the weather makes roof work
@@ -90,7 +104,7 @@ export default function TermsPage() {
           will tell you before charging it.
         </p>
 
-        <h2>Warranty</h2>
+        <h2 id="warranty">Warranty</h2>
         <ul>
           <li>
             <strong>Our workmanship: 6 years.</strong> If something we did
@@ -114,14 +128,14 @@ export default function TermsPage() {
           handover and the reminder is free.
         </p>
 
-        <h2>Cancelling</h2>
+        <h2 id="cancelling">Cancelling</h2>
         <p>
           You can cancel before we order equipment and we will refund any
           deposit in full. After stock is ordered specially for your job, we
           keep the cost of that stock and refund the rest.
         </p>
 
-        <h2>Liability</h2>
+        <h2 id="liability">Liability</h2>
         <p>
           We carry $20 million public liability insurance. We are responsible
           for the work we do and the damage we cause. We are not responsible for
@@ -129,8 +143,8 @@ export default function TermsPage() {
           lost income, beyond what the law requires of us.
         </p>
 
-        <div className="legal__box">
-          <h2>Your consumer rights</h2>
+        <div className="lg__box">
+          <h2 id="rights">Your consumer rights</h2>
           <p>
             Nothing on this page limits your rights under the Australian
             Consumer Law. Our goods and services come with guarantees that
@@ -141,7 +155,7 @@ export default function TermsPage() {
           </p>
         </div>
 
-        <h2>Anything else</h2>
+        <h2 id="else">Anything else</h2>
         <p>
           These terms are governed by the law of Victoria, Australia. If a
           dispute comes up, call us first, on{" "}
@@ -149,12 +163,11 @@ export default function TermsPage() {
           almost everything has been sorted out on the phone.
         </p>
 
-        <p style={{ marginTop: "2rem" }}>
+        <p className="lg__foot">
           {site.legalName} · ABN {site.abn} · Plumbing Licence 46828 ·{" "}
           <Link href="/contact">Contact us</Link> ·{" "}
           <Link href="/privacy">Privacy notice</Link>
         </p>
-      </div>
-    </div>
+    </LegalPage>
   );
 }

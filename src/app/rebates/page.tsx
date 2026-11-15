@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Script from "next/script";
-import Link from "next/link";
 import { site } from "@/lib/site";
+import { quoted } from "@/lib/homepage/data";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
-import "../detail.css";
+import { JsonLd } from "@/components/JsonLd";
+import { REBATE_FAQS as faqs } from "@/lib/rebates";
+import { Crumbs, Hero, Next } from "@/components/homepage/page/kit";
+import { BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "@/components/homepage/page/bands";
+import "@/components/homepage/product/product.css";
+import "@/components/homepage/brand/brand.css";
+import "@/components/homepage/page/kit.css";
+// The calculator's own styles live with the route; the bands around it are new.
 import "./rebates.css";
-import { PageHero } from "@/components/PageHero";
+import "@/components/homepage/page/rebates.css";
 
 export const metadata: Metadata = {
   title:
@@ -25,37 +31,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/rebates" },
 };
 
-const faqs = [
-  {
-    q: "Who actually pays for the VEU rebate?",
-    a: "Energy retailers in Victoria are required by law to fund energy-efficiency upgrades, that's the VEU program. We claim and apply the certificates on your behalf, which is why you don't pay then chase.",
-  },
-  {
-    q: "Is the rebate guaranteed at the amount you quote?",
-    a: "The rebate value can fluctuate slightly based on certificate prices, but we lock in the quoted figure once you sign, so the price you see is the price you pay. We carry any market movement, not you.",
-  },
-  {
-    q: "Can I use VEU with solar?",
-    a: "Absolutely, heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. Most of our customers see hot water bills drop to almost zero after a daytime-charge install.",
-  },
-  {
-    q: "I rent, can my landlord do this?",
-    a: "Yes. VEU is open to rental properties, many landlords love it because the upgrade adds property value with most of the cost offset by the rebate. We can speak to them directly if it helps.",
-  },
-  {
-    q: "What if my old unit still works?",
-    a: "Still eligible. VEU doesn't require failure, it rewards the energy-efficiency improvement. Swapping a working but inefficient gas tank or old aircon is exactly what the program is designed for.",
-  },
-  {
-    q: "Are concession card holders eligible for more?",
-    a: "Yes, concession card holders (pensioner, healthcare, etc.) can stack with additional Victorian Government top-up rebates in some cases. Worth a quick call to confirm what applies to your situation.",
-  },
-  {
-    q: "Does VEU cover servicing or just installation?",
-    a: "VEU is for the new install. We offer annual servicing separately at $280 + GST to keep your warranty intact and bills low.",
-  },
-];
-
+/** `scene` is an install photo, cropped to fill; the rest are product shots on white. */
 const products = [
   {
     brand: "Reclaim · CO₂ Split",
@@ -71,6 +47,7 @@ const products = [
     pill: "long-life tank",
     photo: "/reclaim-split-back.webp",
     photoAlt: "Reclaim CO₂ split heat pump install",
+    scene: true,
   },
   {
     brand: "Reclaim · R290 AIO",
@@ -84,23 +61,25 @@ const products = [
     price: "$2,610",
     rebate: "$2,605 VEU rebate applied",
     pill: "nothing outside",
-    photo: "/thermann-heat-pump.webp",
-    photoAlt: "Reclaim R290 all-in-one heat pump",
+    // Was the Thermann install photo; this is the Reclaim unit itself.
+    photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
+    photoAlt: "Reclaim ECO R290 all-in-one heat pumps",
   },
   {
     brand: "iStore",
-    name: "iStore 270 L heat pump",
+    name: "iStore 275 L heat pump",
     bullets: [
       "Smart Wi-Fi control + scheduling",
       "Australian designed",
-      "6-year tank warranty",
+      "5-year warranty on the whole unit",
       "Best for: solar-paired households",
     ],
     price: "$2,910",
     rebate: "$2,205 VEU rebate applied",
     pill: "rebate goes furthest",
-    photo: "/thermann-heat-pump.webp",
-    photoAlt: "iStore heat pump install",
+    // Was the Thermann install photo; this is the iStore.
+    photo: "/270L-istore-heatpump.webp",
+    photoAlt: "iStore heat pump",
   },
   {
     brand: "Thermann · R290",
@@ -116,6 +95,7 @@ const products = [
     pill: "Australian made",
     photo: "/thermann-heat-pump.webp",
     photoAlt: "Thermann 285 L R290 heat pump",
+    scene: true,
   },
   {
     brand: "Mitsubishi Electric",
@@ -146,6 +126,7 @@ const products = [
     pill: "whole house at once",
     photo: "/kaden-indoor.webp",
     photoAlt: "Kaden split system indoor head install",
+    scene: true,
   },
   {
     brand: "Mitsubishi / Kaden",
@@ -161,27 +142,24 @@ const products = [
     pill: "whole home",
     photo: "/ducted-condenser.webp",
     photoAlt: "Ducted aircon condenser install",
+    scene: true,
   },
 ];
 
 const steps = [
   {
-    n: 1,
     t: "You request a quote",
     d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can, speeds things up.",
   },
   {
-    n: 2,
     t: "We assess eligibility",
     d: "Free 20-minute site visit. We check your existing system, hot water usage, electrical & gas setup against VEU rules.",
   },
   {
-    n: 3,
     t: "We apply the rebate",
     d: "Your quote arrives with the rebate already deducted. You sign off, no separate claim, no waiting weeks for refund.",
   },
   {
-    n: 4,
     t: "We install & certify",
     d: "One-day install on most jobs. Old gear removed, compliance certificate emailed within 24 hours.",
   },
@@ -193,204 +171,137 @@ export default function RebatesPage() {
     { name: "VEU Rebates", url: `${site.url}/rebates` },
   ]);
 
-  return (
-    <div className="page-detail page-rebates">
-      {/* HERO — the shared navy detail-page header */}
-      <PageHero
-        variant="sell"
-        photo="/reclaim-split-back.webp"
-        photoAlt="A Reclaim split heat pump we installed under the VEU rebate, tank and compressor against a brick wall"
-        eyebrow="Victorian Energy Upgrades · Accredited installer"
-        title={<>The VEU rebate is real. <span className="accent">We do the paperwork.</span> You get the hot water.</>}
-        sub={<>The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}
-        ctas={
-          <>
-            <a href="#calc" className="ds-btn ds-btn--orange ds-btn--lg">Check my rebate &rarr;</a>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">Or talk to a human</a>
-          </>
-        }
-        facts={[
-          { v: "up to $2,600", k: "heat pump hot water" },
-          { v: "up to $5,000", k: "split & ducted aircon" },
-          { v: "~73%", k: "cut to running costs" },
-          { v: "$0 chase", k: "we apply it at the quote" },
-        ]}
-      />
-
-      {/* ELIGIBILITY + CALC */}
-      <section className="rb-tool" id="calc">
-        <div className="wrap rb-tool__grid">
-          <div className="rb-tool__copy">
-            <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Eligibility check</span>
-              <h2>Am I eligible? Answer 4 things, find out in 30 seconds.</h2>
-              <p>
-                The VEU program is open to most Victorian households, owner-occupied, rental, and units.
-                We've designed this rough calculator to give you a real ballpark before you commit to a
-                site visit.
-              </p>
-            </div>
-            <ul>
+  const bands: Band[] = [
+    {
+      // The calculator is why most people land here, so it comes first.
+      id: "calc", tab: "Check my rebate", cls: "rbx__tool",
+      body: (
+        <>
+          <div className="rbx__copy">
+            <BkHead h="Am I eligible? Answer 4 things, {find out in 30 seconds}.">
+              The VEU program is open to most Victorian households, owner-occupied, rental, and units.
+              This rough calculator gives you a real ballpark of your rebate before you commit to a site visit.
+            </BkHead>
+            <ul className="rbx__ticks">
               <li>No personal details needed for the estimate</li>
-              <li>Real numbers, not "from $XXX" marketing fluff</li>
+              <li>Real rebate figures, taken off at the quote</li>
               <li>Final figure confirmed at the free 20-min site check</li>
             </ul>
           </div>
-
-          <RebateCalculator />
-        </div>
-      </section>
-
-      {/* HOW VEU WORKS — the shared navy numbered process band */}
-      <section className="process">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How VEU works</span>
-            <h2 className="ds-h--on-dark">Four steps from &ldquo;thinking about it&rdquo; to rebate-applied install.</h2>
-          </div>
-          <ol className="steps">
-            {steps.map((s) => (
-              <li key={s.n} className="step">
-                <span className="step__num">{s.n}</span>
-                <h3>{s.t}</h3>
-                <p>{s.d}</p>
-              </li>
-            ))}
+          {/* The calculator's styles are scoped to .page-rebates in ./rebates.css. */}
+          <div className="page-rebates rbx__calc"><RebateCalculator /></div>
+        </>
+      ),
+    },
+    {
+      id: "how", tab: "How VEU works", navy: true,
+      body: (
+        <>
+          <BkHead h="Four steps from “thinking about it” to {rebate applied}." />
+          <ol className="lk2__tl kx__tl">
+            {steps.map((s, i) => <li key={s.t}><span className="pxb__n" aria-hidden="true">{i + 1}</span><h3>{s.t}</h3><p>{s.d}</p></li>)}
           </ol>
-        </div>
-      </section>
-
-      {/* ELIGIBLE PRODUCTS */}
-      <section className="rb-prods">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Eligible products</span>
-            <h2>Heat pumps &amp; aircon we install under the VEU program.</h2>
-            <p>
-              Each of these is VEU-listed, in stock through our Reece partnership, and proven across
-              hundreds of south-east installs. Pricing shown is the indicative VEU rebate range, your
-              actual figure depends on your old unit and home.
-            </p>
-          </div>
-
-          <div className="rb-prodgrid">
+        </>
+      ),
+    },
+    {
+      id: "products", tab: "Eligible products",
+      body: (
+        <>
+          <BkHead h="Heat pumps & aircon we install {under the VEU program}.">
+            Each of these is VEU-listed, in stock through our Reece partnership, and proven across hundreds of
+            south-east installs. The rebate shown is the indicative range; your actual figure depends on your old unit and home.
+          </BkHead>
+          <div className="kxr rbx__prods" data-anim="stagger">
             {products.map((p) => (
-              <article key={p.name} className="rb-prod">
-                <div className="rb-prod__photo" style={{ position: "relative" }}>
-                  <Image
-                    src={p.photo}
-                    alt={p.photoAlt}
-                    fill
-                    sizes="(max-width: 900px) 100vw, 33vw"
-                    style={{ objectFit: "contain", padding: "16px" }}
-                  />
-                </div>
-                <div className="rb-prod__body">
-                  <span className="rb-prod__brand">{p.brand}</span>
+              <article key={p.name} className="kxr__card">
+                <span className={`kxr__img${p.scene ? " kxr__img--scene" : ""}`}>
+                  <Image src={p.photo} alt={p.photoAlt} fill sizes="(max-width: 600px) 90vw, 380px" />
+                </span>
+                <div className="kxr__t">
+                  <span className="kxr__g">{p.brand}</span>
                   <h3>{p.name}</h3>
-                  <ul className="rb-prod__bullets">
-                    {p.bullets.map((b) => (
-                      <li key={b}>{b}</li>
-                    ))}
-                  </ul>
-                  <div className="rb-prod__foot">
-                    <div className="rb-prod__price">
-                      <strong>{p.price}</strong>
-                      <span>fully installed, inc GST</span>
-                      <span className="rb-prod__price-rebate">{p.rebate}</span>
-                    </div>
-                    <span className="rb-prod__pill">{p.pill}</span>
+                  <p className="rbx__rebate">{p.rebate}</p>
+                  <ul>{p.bullets.map((b) => <li key={b}>{b}</li>)}</ul>
+                  <div className="rbx__foot">
+                    <span className="rbx__price">
+                      <strong>{quoted(p.price)}</strong>
+                      <small>{quoted(p.price) === p.price ? "fully installed, inc GST" : "Fixed price in writing, inc GST"}</small>
+                    </span>
+                    <span className="rbx__pill">{p.pill}</span>
                   </div>
                 </div>
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* FAQ — the shared two-column detail-page FAQ */}
-      <section className="dp-faq faq" id="faq">
-        <div className="wrap faq__grid">
-          <div className="faq__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Common rebate questions</span>
-            <h2>The fine print, in plain English.</h2>
-            <p>If your question isn&rsquo;t here, call us. We&rsquo;ve handled hundreds of VEU jobs and seen the curly cases.</p>
-          </div>
-          <div className="faq__right">
+        </>
+      ),
+    },
+    {
+      id: "faq", tab: "FAQs", cls: "pp__two",
+      body: (
+        <>
+          <BkHead h="The fine print, {in plain English}.">
+            If your question isn&rsquo;t here, <a href={`tel:${site.phoneE164}`} data-call-from="rebates-faq">call us on {site.phone}</a>. We&rsquo;ve handled hundreds of VEU jobs and seen the curly cases.
+          </BkHead>
+          <div className="afaqs">
             {faqs.map((f, i) => (
-              <details key={f.q} name="faq" open={i === 0}>
-                <summary>{f.q}</summary>
-                <p>{f.a}</p>
-              </details>
+              <details key={f.q} className="afaq" open={i === 0}><summary>{f.q}</summary><p>{f.a}</p></details>
             ))}
           </div>
-        </div>
-      </section>
+        </>
+      ),
+    },
+    {
+      // A reader who has just worked out they qualify needs somewhere to go
+      // besides the quote form: what it buys, their own postcode, the case
+      // for a heat pump, and what it saves.
+      id: "next", tab: "Where next",
+      body: (
+        <>
+          <BkHead h="Now you know {it applies}." />
+          <Next items={[
+            { t: "See what it buys", s: "Every model and size we install, brand by brand.", href: "/brands" },
+            { t: "Check your postcode", s: "The rebate moves with where you live and what you are replacing.", href: "/tools/veu-rebate-estimator" },
+            { t: "Heat pump or gas?", s: "How a heat pump makes hot water, and which suits your place.", href: "/services/heat-pump-installation" },
+            { t: "What you get back", s: "Your current bill against a heat pump, and how long it takes to pay for itself.", href: "/tools/hot-water-savings" },
+          ]} />
+        </>
+      ),
+    },
+  ];
 
-      {/* BIG CTA */}
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>We come out, we put it in writing, and the rebate is already off it.</h2>
-            <p>A free site visit, a written quote inside 12 business hours, and the number on it is the number you pay.</p>
-          </div>
-          <div className="bigcta__btns">
-            <a href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
+  return (
+    <BandPage>
+      <Crumbs trail={[{ name: "VEU rebates" }]} />
+      <Hero
+        eye="Victorian Energy Upgrades · Accredited installer"
+        title={<>The VEU rebate is real. <em>We do the paperwork.</em></>}
+        sub={<>The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}
+        img="/reclaim-split-back.webp"
+        imgAlt="A Reclaim split heat pump we installed under the VEU rebate, tank and compressor against a brick wall"
+        ctas={false}
+        facts={[
+          { v: "up to $2,700", k: "heat pump hot water" },
+          { v: "up to $5,000", k: "split & ducted aircon" },
+          { v: "~73%", k: "cut to running costs" },
+          { v: "$0 chase", k: "we apply it at the quote" },
+        ]}
+      >
+        <div className="bxh__ctas">
+          <a href="#calc" className="abtn abtn--or abtn--flat">Check my rebate →</a>
+          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="rebates-hero">Or talk to a human</a>
         </div>
-      </section>
-
-      {/* WHERE TO GO NEXT
-          This page had exactly one internal link in its whole body, and it
-          ranks and converts. A reader who has just worked out they qualify had
-          nowhere to go except the quote form — no way to see what the rebate
-          actually buys, no way to check their own postcode, no way to read the
-          argument for a heat pump over gas. Link equity aside, that is a
-          reader left holding a decision with nothing to make it on. */}
-      <section className="rb-next">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Next</span>
-            <h2>Now you know it applies.</h2>
-          </div>
-          <div className="rb-nextgrid">
-            <Link href="/range" className="rb-nextcard">
-              <strong>See what it buys</strong>
-              <span>Every model and size we install, with the rebate already off the price.</span>
-              <em>The full range &rarr;</em>
-            </Link>
-            <Link href="/tools/veu-rebate-estimator" className="rb-nextcard">
-              <strong>Check your postcode</strong>
-              <span>The rebate moves with where you live and what you are replacing.</span>
-              <em>Rebate estimator &rarr;</em>
-            </Link>
-            <Link href="/heat-pumps" className="rb-nextcard">
-              <strong>Heat pump or gas?</strong>
-              <span>The four ways to make hot water, and which suits your place.</span>
-              <em>Compare them &rarr;</em>
-            </Link>
-            <Link href="/tools/hot-water-savings" className="rb-nextcard">
-              <strong>What you get back</strong>
-              <span>Your current bill against a heat pump, and how long it takes to pay for itself.</span>
-              <em>Savings calculator &rarr;</em>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <Script
-        id="ld-rebates-faq"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(faqs)) }}
+      </Hero>
+      <Tabs list={bands} />
+      <Bands list={bands} />
+      <EndCta
+        title={<>We put it in writing, and the rebate is <span>already off it</span>.</>}
+        text="A free site visit, a written quote inside 12 business hours, and the number on it is the number you pay."
+        from="rebates-cta"
       />
-      <Script
-        id="ld-rebates-crumbs"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }}
-      />
-    </div>
+      <JsonLd data={faqSchema(faqs)} />
+      <JsonLd data={crumbs} />
+    </BandPage>
   );
 }

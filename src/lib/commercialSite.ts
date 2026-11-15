@@ -12,6 +12,7 @@
  */
 
 import { site } from "./site";
+import { OFFICE } from "./company";
 
 /* ========================= WHAT WE DO ========================= */
 
@@ -284,8 +285,11 @@ export const CAPABILITY_TICKS: { k: string; v: string }[] = [
  *
  * Dean signs the works and Jake prices them, which is what a builder asks.
  * Kellie is who they will actually deal with most weeks, and leaving her off
- * would misrepresent the company. Her photograph has not been taken yet, so
- * she gets a lettered card rather than a stock face or an empty frame.
+ * would misrepresent the company. Her photograph is the one the residential
+ * About and suburb pages use (OFFICE in company.ts), so it is read from there
+ * rather than copied: until Nov 2026 this card showed a lettered "K" while the
+ * rest of the site already had her photo. `initial` stays for anyone added
+ * before their photograph is taken.
  */
 export const COMM_LEADERSHIP: {
   name: string;
@@ -315,7 +319,7 @@ export const COMM_LEADERSHIP: {
     role: "Office & scheduling",
     cred: site.email,
     bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.",
-    initial: "K",
+    photo: OFFICE.photo,
   },
 ];
 
@@ -324,7 +328,7 @@ export const COMM_HOW_WE_WORK: { n: string; h: string; p: string }[] = [
   {
     n: "01",
     h: "One point of contact",
-    p: "Quote, schedule and sign-off through one accountable team. No call centres, no subcontractor run-around.",
+    p: "Quote, schedule and sign-off through one accountable team. No call centres, no run-around.",
   },
   {
     n: "02",
@@ -347,16 +351,21 @@ export const COMM_HOW_WE_WORK: { n: string; h: string; p: string }[] = [
  * The community photographs.
  *
  * Three real clubs the crew turn out for. The photographs have not been
- * supplied yet, so each slot renders as a labelled frame rather than
- * disappearing — an empty section would read as a claim with nothing behind
- * it, and a stock photograph of somebody else's football club would be
- * worse than that.
+ * supplied yet. Until Nov 2026 each rendered as a "Photo to come" frame,
+ * which read as an unfinished page; now the pages show the photographs only
+ * once every club has one (communityPhotos below), and the paragraph about
+ * the clubs stands on its own until then. A stock photograph of somebody
+ * else's football club would still be worse than none.
  */
-export const COMM_COMMUNITY: { cap: string }[] = [
+export const COMM_COMMUNITY: { cap: string; photo?: string }[] = [
   { cap: "Local football" },
   { cap: "Basketball" },
   { cap: "Netball" },
 ];
+
+/** The community photographs to show: none until every club has one, so the grid is never part-empty. */
+export const communityPhotos = (): { cap: string; photo: string }[] =>
+  COMM_COMMUNITY.every((c) => c.photo) ? COMM_COMMUNITY.map((c) => ({ cap: c.cap, photo: c.photo as string })) : [];
 
 /* =========================== WHERE WE WORK =========================== */
 

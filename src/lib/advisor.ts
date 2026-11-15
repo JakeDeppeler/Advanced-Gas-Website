@@ -187,10 +187,10 @@ const HOT_WATER: AdvisorConfig = {
       answer: {
         heading: "Hire a unit first, then choose properly.",
         body:
-          "A dead tank turns a four thousand dollar decision into an ultimatum with cold showers as the deadline, and that is how people end up with the wrong system. Thirty dollars a day buys the house hot water tonight and you the time to compare properly.",
+          "A dead tank turns a big decision into an ultimatum with cold showers as the deadline, and that is how people end up with the wrong system. A hire unit by the day buys the house hot water tonight and you the time to compare properly.",
         href: "/services/gas-plumbing/temporary-hot-water",
         cta: "Temporary hot water hire",
-        note: "The $350 set-up is waived if we end up doing the replacement.",
+        note: "The set-up fee is waived if we end up doing the replacement.",
       },
     },
     {
@@ -334,7 +334,7 @@ const GAS: AdvisorConfig = {
     {
       when: ["appliance", null, null],
       answer: {
-        heading: "A gas fitting job, from $349.",
+        heading: "A gas fitting job, priced in writing.",
         body:
           "Connection, pressure test and a compliance certificate. If the existing line won't carry the appliance we'll tell you at the quote rather than on the day, because a new main run is the thing that changes the number.",
         href: "/services/gas-plumbing",
