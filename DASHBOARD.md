@@ -2949,10 +2949,19 @@ before: visits → quoted there → booked back → installs. Breakdowns run 68 
 23 → 19, maintenance 68 → 14 → 8 → 6, so the drop-off is the gap you can see and
 the two kinds of visit are compared down the same four steps.
 
-It replaced a stacked bar of the four outcomes a visit *ended* at — an install,
-a repair, quoted with nothing booked, just the visit. Same data, different
-question, and it took reading the key to work out that "install" and "quoted,
-nothing booked" were not two steps of one thing.
+**Underneath each row is where the visit ended up** — an install, a repair,
+quoted with nothing booked, just the visit — as the stacked bar that was there
+before the pipeline. It was going to be replaced; Jake asked for both (15 Nov),
+and they are not the same figure. The stages are cumulative and each contains
+the one after it, so "quoted there" counts every visit that was quoted on; the
+four outcomes are exclusive and add up to the visits, so "quoted, nothing
+booked" counts only the ones where that was the end of it. A lead-in word,
+*ended at*, is what stops the two rows being read as one list.
+
+**Each visit is worth** carries the tile's answer, so the two figures are set at
+four times the body size (Jake, 15 Nov: "the numbers need to be larger"). They
+were a right-hand column in a two-row list at a third of that, which put the
+money at the same weight as the labels beside it in a tile with room to spare.
 
 The stage boxes are equal and the bar inside each carries the share. Sizing the
 boxes by the count was the first attempt: at nineteen installs out of sixty-eight
