@@ -125,13 +125,11 @@ export const SKU = {
   evapServiceSS: { skuId: 301220633, skuType: "Service" }, // EVAP-MAINT-SS
   evapServiceDS: { skuId: 301220979, skuType: "Service" }, // EVAP-SERVICE-DS
   evapRepair: { skuId: 301618481, skuType: "Service" }, // EVAP-REPAIR
-  generalWork: { skuId: 301175242, skuType: "Service" }, // GEN-WORK
   seeleySolenoid: { skuId: 301621837, skuType: "Material" },
   seeleyDumpValve: { skuId: 301204625, skuType: "Material" },
   evapFanMotor: { skuId: 301571078, skuType: "Material" },
   evapCapacitor: { skuId: 301216390, skuType: "Material" },
   kadenKC32: { skuId: 301637887, skuType: "Equipment" },
-  leakRegas: { skuId: 301359168, skuType: "Service" }, // AC-LEAK-REGAS
   r410a: { skuId: 301358552, skuType: "Material" },
   splitRepair: { skuId: 301620463, skuType: "Service" }, // AC-SPLIT-REPAIR
   runCap: { skuId: 301267743, skuType: "Material" },
@@ -143,12 +141,13 @@ export const SKU = {
   racInstall: { skuId: 301630471, skuType: "Service" }, // AC-RAC-INSTALL
   kadenRac27: { skuId: 301644829, skuType: "Equipment" },
   rac4kw: { skuId: 301588673, skuType: "Equipment" },
-  heaterChange: { skuId: 148186526, skuType: "Service" }, // HTG-DUCT-CHANGE
+  // Made by the 6 Nov labour run, after the catalogue these ids were read from,
+  // so it is found by its code when the template is made.
+  heaterInternal: { skuId: 0, skuType: "Service", code: "GAS-DUCT-INT" },
   heaterKit: { skuId: 301123586, skuType: "Material" }, // DH-SM
   kadenKUN320: { skuId: 301154353, skuType: "Equipment" },
   kadenKN315: { skuId: 301122867, skuType: "Equipment" },
   heaterService: { skuId: 148186656, skuType: "Service" }, // HTG-DUCT-SVC
-  heaterAddOnService: { skuId: 301368653, skuType: "Service" }, // HTG-ADDC-DUCT-SVC
   elecHwInstall: { skuId: 209601872, skuType: "Service" }, // HWS-ELEC-INSTALLATION
   gasStorageInstall: { skuId: 209601308, skuType: "Service" }, // HW-GAS-STORAGE-INS
   thermannElec125: { skuId: 303110429, skuType: "Equipment" },
@@ -163,20 +162,18 @@ export const SKU = {
   elbow: { skuId: 148186722, skuType: "Material" },
   tee: { skuId: 301143015, skuType: "Material" },
   ptrValve: { skuId: 301190051, skuType: "Material" },
-  minorService: { skuId: 1309, skuType: "Service" }, // SVC-MINOR
-  hwRepair: { skuId: 209601318, skuType: "Service" }, // HWS-REP
-  frostValve: { skuId: 301279457, skuType: "Material" },
+  gasStorageRepair: { skuId: 301619049, skuType: "Service" }, // HW-GAS-STORAGE-REPAIR
   cooktopInstallCS: { skuId: 303045968, skuType: "Service" }, // GAS-COOKTOP-INSTALL-CS
-  cooktopInstall: { skuId: 209601882, skuType: "Service" }, // GAS-COOKTOP
+  cookingInstall: { skuId: 301638479, skuType: "Service" }, // GAS-COOKTOP-INSTALL
   cookerElectrical: { skuId: 301188404, skuType: "Service" }, // ELEC-COOKER
   rangehoodInstall: { skuId: 303114773, skuType: "Service" }, // RANGEHOOD
   boschRangehood53: { skuId: 303112237, skuType: "Equipment" },
 } as const;
 
-export type Line = { skuId: number; skuType: string; quantity: number; unitPrice: number };
+export type Line = { skuId: number; skuType: string; quantity: number; unitPrice: number; code?: string };
 export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[] };
 
-const L = (s: { skuId: number; skuType: string }, unitPrice: number, quantity = 1): Line => ({ ...s, quantity, unitPrice });
+const L = (s: { skuId: number; skuType: string; code?: string }, unitPrice: number, quantity = 1): Line => ({ ...s, quantity, unitPrice });
 
 const FITTED = "Includes removal and disposal of the old cooler, supply and installation of the new unit on your existing roof dropper and ducting, connection to the existing water, power and controller, a full operational test, and a compliance certificate on completion.";
 /** A Brivis unit's replacement template: the unit, the install, the compliance certificate. */
@@ -194,7 +191,13 @@ const hw = (what: string, fuel: "gas" | "water and power") =>
 const heater = (unit: string) =>
   `Replacement of your existing ducted gas heater with a new ${unit}, fully installed.\n\nIncludes removal and disposal of the old heater, installation of the new unit and its connection to your existing gas, flue, ducting and controller, a full operational and safety test, and a compliance certificate on completion.`;
 
-/** Everything else, from the quotes the office built by hand (Sept to Nov). */
+/**
+ * Everything else, from the quotes the office built by hand (Sept to Nov).
+ * Seven of those quotes were on labour items since switched off and renamed
+ * to junk ("frfvd"); each line here is on the active item that does that job
+ * now, at the price quoted. The frost valve quote waits on which system it's
+ * for: its job was a ducted heater diagnostic, and the repair line differs.
+ */
 export const OTHER_TEMPLATES: TemplateSpec[] = [
   { name: "Kaden KC32 Evaporative Cooler (Charcoal) - Replacement", code: "EVAP-KADEN-KC32-CHAR",
     summary: `Replacement of your existing evaporative cooler with a new Kaden KC32 in Charcoal, fully installed.\n\n${FITTED}`,
@@ -216,10 +219,10 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     lines: [L(SKU.evapServiceSS, 300), L(SKU.seeleyDumpValve, 250)] },
   { name: "Evaporative Cooler - Fan Motor Replacement", code: "EVAP-REP-FANMOTOR",
     summary: "Replacement of the fan motor and its capacitor on your evaporative cooler, with the cooler tested on completion.",
-    lines: [L(SKU.generalWork, 350), L(SKU.evapFanMotor, 550), L(SKU.evapCapacitor, 91)] },
+    lines: [L(SKU.evapRepair, 350), L(SKU.evapFanMotor, 550), L(SKU.evapCapacitor, 91)] },
   { name: "Split System - Leak Detection & Regas", code: "AC-SPLIT-LEAK-REGAS",
     summary: "Finding the refrigerant leak on your split system, then regassing it and testing that it heats and cools as it should.",
-    lines: [L(SKU.leakRegas, 1280), L(SKU.r410a, 0, 2.5)] },
+    lines: [L(SKU.splitRepair, 1280), L(SKU.r410a, 0, 2.5)] },
   { name: "Split System - Capacitor Replacement", code: "AC-SPLIT-REP-CAPACITOR",
     summary: "Replacement of the run capacitor on your split system, with the system tested on completion.",
     lines: [L(SKU.splitRepair, 280), L(SKU.runCap, 0)] },
@@ -243,16 +246,16 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     lines: [L(SKU.rac4kw, 950), L(SKU.racInstall, 800), L(SKU.compliance, 65)] },
   { name: "Kaden KUN320 Ducted Gas Heater - Replacement", code: "GAS-KADEN-KUN320",
     summary: heater("Kaden KUN320"),
-    lines: [L(SKU.kadenKUN320, 1650), L(SKU.heaterChange, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
+    lines: [L(SKU.kadenKUN320, 1650), L(SKU.heaterInternal, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
   { name: "Kaden KN315 Ducted Gas Heater - Replacement", code: "GAS-KADEN-KN315",
     summary: heater("Kaden KN315"),
-    lines: [L(SKU.kadenKN315, 1600), L(SKU.heaterChange, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
+    lines: [L(SKU.kadenKN315, 1600), L(SKU.heaterInternal, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
   { name: "Ducted Heater Service", code: "GAS-HTR-SVC",
     summary: "A full service and safety check of your ducted gas heater. What's included is set out below.",
     lines: [L(SKU.heaterService, 250)] },
   { name: "Ducted Heater & Add-on Cooling Service", code: "GAS-HTR-ADDC-SVC",
     summary: "A full service and safety check of your ducted gas heater, and a service of its add-on cooling. What's included is set out below.",
-    lines: [L(SKU.heaterAddOnService, 290)] },
+    lines: [L(SKU.heaterService, 290)] },
   { name: "Thermann Smart Electric Storage 125L 3kW - Replacement", code: "HW-THERMANN-125-ELEC",
     summary: hw("Thermann Smart Electric 125L 3kW storage hot water system", "water and power"),
     lines: [L(SKU.thermannElec125, 1300), L(SKU.elecHwInstall, 1210), L(SKU.compliance, 65), L(SKU.valveKit, 0), L(SKU.slab600, 0), L(SKU.insulation, 0), L(SKU.copper15, 0)] },
@@ -262,12 +265,9 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
   { name: "Thermann 170L Gas Storage", code: "HW-THERMANN-170-GAS",
     summary: hw("Thermann 170L 4 Star gas storage hot water system", "gas"),
     lines: [L(SKU.thermannGas170, 1500), L(SKU.gasStorageInstall, 1210), L(SKU.compliance, 65), L(SKU.duoValve, 0), L(SKU.tempValve, 0), L(SKU.copper15, 0, 2), L(SKU.elbow, 0, 2), L(SKU.insulation, 0, 4), L(SKU.tee, 0)] },
-  { name: "Hot Water - Tempering & Relief Valve Replacement", code: "HW-REP-TEMP-PTR",
+  { name: "Gas Storage Hot Water - Tempering & Relief Valve Replacement", code: "HW-REP-TEMP-PTR",
     summary: "Replacement of the tempering valve and the pressure and temperature relief valve on your hot water system, with the system tested on completion.",
-    lines: [L(SKU.minorService, 200), L(SKU.tempValve, 92), L(SKU.ptrValve, 98)] },
-  { name: "Hot Water - Frost Valve Replacement", code: "HW-REP-FROST",
-    summary: "Replacement of the two frost valves on your hot water system, with the system tested on completion.",
-    lines: [L(SKU.hwRepair, 380), L(SKU.frostValve, 170, 2)] },
+    lines: [L(SKU.gasStorageRepair, 200), L(SKU.tempValve, 92), L(SKU.ptrValve, 98)] },
   { name: "Gas Cooktop - Installation (Customer Supplied)", code: "GAS-COOKTOP-INSTALL-CS",
     summary: "Installation of the gas cooktop you've supplied, including its connection to the existing gas supply and a full test.",
     lines: [L(SKU.cooktopInstallCS, 600)] },
@@ -276,7 +276,7 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     lines: [L(SKU.boschRangehood53, 850), L(SKU.rangehoodInstall, 450)] },
   { name: "Upright Cooker - Install Only", code: "COOKER-UPRIGHT-INSTALL",
     summary: "Installation of the upright cooker you've supplied, including its gas and electrical connections, a full test and a compliance certificate on completion.",
-    lines: [L(SKU.cooktopInstall, 550), L(SKU.cookerElectrical, 350), L(SKU.compliance, 65)] },
+    lines: [L(SKU.cookingInstall, 550), L(SKU.cookerElectrical, 350), L(SKU.compliance, 65)] },
 ];
 
 /** A pricebook item as ServiceTitan has it today. */
@@ -289,7 +289,7 @@ export type LiveSku = { price: number | null; cost: number | null; description: 
  * would not price.
  */
 export function pricedItems(lines: Line[], live: Map<number, LiveSku>) {
-  const missing = lines.filter((l) => !live.has(l.skuId)).map((l) => l.skuId);
+  const missing = lines.filter((l) => !live.has(l.skuId)).map((l) => (l.skuId ? String(l.skuId) : l.code ?? "?"));
   const items = lines.map((l) => {
     const sku = live.get(l.skuId);
     return {
