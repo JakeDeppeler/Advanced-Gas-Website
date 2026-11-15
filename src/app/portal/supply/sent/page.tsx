@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Head, Say } from "@/components/portal/kit/Kit";
@@ -19,7 +19,7 @@ export const metadata = { title: "Sent orders · Team portal" };
 export default async function SentPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Supply" forWhom="the office" />;
   let orders: PoWithLines[] = [];
   let suppliers: Supplier[] = [];
   let ready = true;

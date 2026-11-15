@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { installJob, packFactsFor } from "@/lib/installpack/facts";
 import { buildPackFile, packExtras, packRow } from "@/lib/installpack/run";
 
@@ -20,7 +20,7 @@ const PREVIEW_PHOTO_BYTES = 3 * 1048576;
 
 export async function GET(req: NextRequest) {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return NextResponse.redirect(new URL("/portal?denied=1", req.url));
+  if (!me || !officeWork(me)) return NextResponse.redirect(new URL("/portal?denied=1", req.url));
   const job = (req.nextUrl.searchParams.get("job") ?? "").trim();
   if (!/^\d{3,12}$/.test(job)) return new NextResponse("Give a job number: ?job=20453", { status: 400 });
 

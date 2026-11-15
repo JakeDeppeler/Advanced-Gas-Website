@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { linkLead, pushLeadToJob, unlinkLead, type LinkResult } from "@/lib/leads/jobLink";
 
 /**
@@ -12,7 +12,7 @@ import { linkLead, pushLeadToJob, unlinkLead, type LinkResult } from "@/lib/lead
  */
 async function office() {
   const me = await getPortalUser();
-  return me && can(me, "overhead") ? me : null;
+  return me && officeWork(me) ? me : null;
 }
 
 export async function linkLeadToJob(input: { id: string; job: string }): Promise<LinkResult> {

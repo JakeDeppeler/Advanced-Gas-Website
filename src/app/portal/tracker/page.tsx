@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Card, Empty, Head } from "@/components/portal/kit/Kit";
@@ -39,7 +39,7 @@ function pick(c: string | undefined, s: string | undefined): Open {
 export default async function TrackerPage({ searchParams }: { searchParams: { c?: string; s?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="The job tracker" forWhom="the office" />;
+  if (!officeWork(user)) return <Locked user={user} what="The job tracker" forWhom="the office" />;
 
   const nowMs = Date.now();
   const flow = dbConfigured() ? await loadJobFlow(nowMs).catch(() => null) : null;

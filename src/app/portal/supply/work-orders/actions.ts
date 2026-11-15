@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { createAndSendWorkOrder, dropWorkOrderDraft, editWorkOrder, findJobs, jobForWork, loadWoContacts, moveWorkOrder, saveWoContacts, type JobHit, type WoContact } from "@/lib/ordering/workOrders";
 import { approveAndSend, resendWorkOrder } from "@/lib/ordering/send";
 import { listJobFiles, type JobFile } from "@/lib/ordering/jobFiles";
@@ -32,7 +32,7 @@ export async function sendWorkOrder(input: {
   trade?: string; toName?: string; files?: Picked[];
 }): Promise<ActionResult> {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
+  if (!me || !officeWork(me)) return { ok: false, error: "Not allowed." };
   if (!Number.isInteger(input.jobId) || input.jobId <= 0) return { ok: false, error: "Which job?" };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) return { ok: false, error: "Pick the day you want the electrician there." };
   if (input.time && !/^\d{2}:\d{2}$/.test(input.time)) return { ok: false, error: "That time doesn't read as a time." };
@@ -61,7 +61,7 @@ export async function sendWorkOrder(input: {
 
 async function office() {
   const me = await getPortalUser();
-  return me && can(me, "overhead") ? me : null;
+  return me && officeWork(me) ? me : null;
 }
 
 /**

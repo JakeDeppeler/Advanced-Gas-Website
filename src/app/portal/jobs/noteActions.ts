@@ -1,7 +1,7 @@
 "use server";
 
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { q, sbSelectOne } from "@/lib/dashboard/db";
 import { serviceTitanConfigured, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 
@@ -12,7 +12,7 @@ import { serviceTitanConfigured, stSend, stTenantPath } from "@/lib/dashboard/se
  */
 export async function addOfficeJobNote(jobNumber: string, text: string): Promise<{ ok: boolean; error?: string; said?: string }> {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return { ok: false, error: "That's for the office." };
+  if (!me || !officeWork(me)) return { ok: false, error: "That's for the office." };
   const num = String(jobNumber ?? "").replace(/[^\d]/g, "");
   const body = String(text ?? "").trim();
   if (!num) return { ok: false, error: "Which job? Put the job number in." };

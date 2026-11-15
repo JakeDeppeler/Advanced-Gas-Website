@@ -14,12 +14,12 @@
 
 export type Role = "admin" | "service" | "lead" | "member";
 
-export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write" | "vehicles" | "quotes" | "team";
+export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write" | "vehicles" | "quotes" | "team" | "office_work";
 
 /** Per-person overrides. Only keys that differ from the role default are stored. */
 export type CapMap = Partial<Record<Cap, boolean>>;
 
-export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles", "quotes", "team"];
+export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles", "quotes", "team", "office_work"];
 
 export type PortalUser = {
   id?: string;
@@ -60,13 +60,14 @@ export const CAPS: { key: Cap; label: string; desc: string }[] = [
   { key: "vehicles", label: "Manage vehicles", desc: "Add and edit vehicles and the service schedule (everyone can log fuel, km and damage)." },
   { key: "quotes", label: "Quote pipeline", desc: "See every open quote and log the follow-up calls. No costs or wages." },
   { key: "team", label: "Team performance", desc: "The Service manager pages: each tech's jobs, hours, profit, selling and call-backs, and where the money is made and lost. No wages." },
+  { key: "office_work", label: "Office work", desc: "Leads and enquiries, one customer, jobs today, not billed, the job tracker, account to-dos, and the orders and factory stock. No profit, margins, wages, Xero or KPIs." },
 ];
 
 const ROLE_DEFAULTS: Record<Role, Record<Cap, boolean>> = {
-  admin: { overhead: true, manage_users: true, reports_read: true, reports_write: true, vehicles: true, quotes: true, team: true },
-  service: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: true, team: true },
-  lead: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: false, team: false },
-  member: { overhead: false, manage_users: false, reports_read: false, reports_write: false, vehicles: false, quotes: false, team: false },
+  admin: { overhead: true, manage_users: true, reports_read: true, reports_write: true, vehicles: true, quotes: true, team: true, office_work: true },
+  service: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: true, team: true, office_work: false },
+  lead: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: false, team: false, office_work: false },
+  member: { overhead: false, manage_users: false, reports_read: false, reports_write: false, vehicles: false, quotes: false, team: false, office_work: false },
 };
 
 export function roleDefault(role: Role, cap: Cap): boolean {
@@ -90,7 +91,22 @@ export function effectiveCaps(user: Pick<PortalUser, "role" | "caps">): Record<C
     vehicles: can(user, "vehicles"),
     quotes: can(user, "quotes"),
     team: can(user, "team"),
+    office_work: can(user, "office_work"),
   };
+}
+
+/**
+ * The office's working pages: leads, one customer, jobs and billing, the job
+ * tracker, orders and stock (Jake, 15 Nov: an Admin hire gets "their own
+ * little mini access, not the full amount like what we have").
+ *
+ * "overhead" opened all of it along with every figure the business is run
+ * on, so an office level that couldn't see the money couldn't book a job or
+ * check an order either. Office work is those pages alone. Anyone with
+ * overhead keeps them, so nothing anyone has today changes.
+ */
+export function officeWork(user: Pick<PortalUser, "role" | "caps">): boolean {
+  return can(user, "overhead") || can(user, "office_work");
 }
 
 /**

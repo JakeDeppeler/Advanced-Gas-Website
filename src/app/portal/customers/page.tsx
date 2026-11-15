@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
@@ -26,7 +26,7 @@ const day = (iso: string | null) =>
 export default async function CustomersPage({ searchParams }: { searchParams: { q?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Customers" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Customers" forWhom="the office" />;
 
   const term = (searchParams?.q ?? "").trim().replace(/^#/, "");
   const ready = dbConfigured();

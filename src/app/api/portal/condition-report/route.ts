@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { conditionReports } from "@/lib/conditionReport/fetch";
 import { reportPdf } from "@/lib/conditionReport/pdf";
@@ -17,7 +17,7 @@ export const maxDuration = 30;
  */
 export async function GET(req: NextRequest) {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return NextResponse.redirect(new URL("/portal?denied=1", req.url));
+  if (!me || !officeWork(me)) return NextResponse.redirect(new URL("/portal?denied=1", req.url));
   const job = (req.nextUrl.searchParams.get("job") ?? "").trim();
   if (!/^\d{3,12}$/.test(job)) return new NextResponse("Give a job number: ?job=20721", { status: 400 });
   const n = Math.max(1, Math.min(6, Number(req.nextUrl.searchParams.get("n")) || 1));

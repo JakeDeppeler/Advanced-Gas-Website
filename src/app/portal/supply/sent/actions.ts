@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { resendOrder } from "@/lib/ordering/send";
 import { getOrder, putBackToDraft, repriceOrder, type PriceChange } from "@/lib/ordering/db";
 import { holdFromAutoSend, logAuto } from "@/lib/automation/log";
@@ -11,7 +11,7 @@ import { sbSelectOne } from "@/lib/dashboard/db";
 /** Fix a sent order's delivery and email it again, marked as replacing the first. */
 export async function fixAndResend(input: { id: number; toSite: boolean; address: string; instructions: string; deliverBy: string; note: string; pickup: boolean }): Promise<{ ok: boolean; error?: string; note?: string }> {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
+  if (!me || !officeWork(me)) return { ok: false, error: "Not allowed." };
   if (!Number.isInteger(input.id) || input.id <= 0) return { ok: false, error: "Which order?" };
   const address = input.address.trim().slice(0, 200);
   if (!address && !input.pickup) return { ok: false, error: "Where should it go?" };
@@ -25,7 +25,7 @@ export async function fixAndResend(input: { id: number; toSite: boolean; address
 /** Put an order or work order that went back as a draft, to fix and send again. Nothing is emailed. */
 export async function undoSend(id: number): Promise<{ ok: boolean; error?: string; note?: string }> {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
+  if (!me || !officeWork(me)) return { ok: false, error: "Not allowed." };
   if (!Number.isInteger(id) || id <= 0) return { ok: false, error: "Which order?" };
   const r = await putBackToDraft(id).catch((e: Error) => ({ ok: false as const, error: e.message, was: undefined, folded: undefined }));
   if (!r.ok) return { ok: false, error: r.error };
@@ -41,7 +41,7 @@ export async function undoSend(id: number): Promise<{ ok: boolean; error?: strin
 /** What re-pricing a sent order from the pricebook would change, before anything is sent. */
 export async function priceCheck(id: number): Promise<{ ok: boolean; error?: string; changes?: PriceChange[]; total?: number }> {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
+  if (!me || !officeWork(me)) return { ok: false, error: "Not allowed." };
   if (!Number.isInteger(id) || id <= 0) return { ok: false, error: "Which order?" };
   const r = await repriceOrder(id, false);
   return r.ok ? { ok: true, changes: r.changes, total: r.total } : { ok: false, error: r.error };
@@ -54,7 +54,7 @@ export async function priceCheck(id: number): Promise<{ ok: boolean; error?: str
  */
 export async function resendWithPrices(id: number): Promise<{ ok: boolean; error?: string; note?: string }> {
   const me = await getPortalUser();
-  if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
+  if (!me || !officeWork(me)) return { ok: false, error: "Not allowed." };
   if (!Number.isInteger(id) || id <= 0) return { ok: false, error: "Which order?" };
   const po = await getOrder(id);
   if (!po) return { ok: false, error: "That order isn't there any more." };

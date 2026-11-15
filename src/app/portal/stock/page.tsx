@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { can, officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
@@ -61,7 +61,7 @@ const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { timeZon
 export default async function StockPage({ searchParams }: { searchParams: { s?: string; v?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Factory stock" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Factory stock" forWhom="the office" />;
 
   const section: StockSection = isSection(searchParams.s) ? searchParams.s : "materials";
   // On the shelf, To order and Sent, like the orders themselves: what's here,

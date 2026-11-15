@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { can, officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
@@ -49,8 +49,12 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   const office = can(user, "overhead");
-  if (!office && !can(user, "quotes")) return <Locked user={user} what="Jobs" forWhom="the office" />;
-  const tab = (["profit", "notbilled", "list"].includes(searchParams.tab ?? "") ? searchParams.tab : office ? "today" : "notbilled") as "today" | "profit" | "notbilled" | "list";
+  const work = officeWork(user);
+  if (!work && !can(user, "quotes")) return <Locked user={user} what="Jobs" forWhom="the office" />;
+  // Job profit is the money, so it's only for whoever sees the money: an old
+  // link to it from anyone else opens the jobs they can work instead.
+  const asked = ["notbilled", "list", ...(office ? ["profit"] : [])].includes(searchParams.tab ?? "") ? searchParams.tab : null;
+  const tab = (asked ?? (work ? "today" : "notbilled")) as "today" | "profit" | "notbilled" | "list";
 
   const [board, certs, toBill] = await Promise.all([
     latestBoard(),
