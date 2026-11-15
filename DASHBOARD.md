@@ -123,7 +123,7 @@ invoices had their lines touched in bulk — so it can't carry the year.
 
 ## The pages
 
-The board cycles every 30 seconds through nine pages. Past about eight tiles
+The board cycles every 30 seconds through its pages. Past about eight tiles
 nothing on a 1080p panel stays readable from four metres, so it rotates rather
 than shrinks.
 
@@ -2827,6 +2827,52 @@ then counted the plan's way, each job once — counted per option they read
 $1.6M against a goal set in jobs. On the Team tab the month's sales goal is
 shared evenly across everyone who has quoted; the team line decides the
 sentence, so one person ahead covering another behind is the team on track.
+
+## Sectors: maintenance, breakdowns, repairs and installs
+
+The eighth page. Jake asked (15 Nov) whether maintenance and breakdown work earns
+its keep through the installs it leads to, and so which of the two to push.
+
+**The four cards** are the per-job figures from [Profit on every job](#profit-on-every-job)
+grouped by ServiceTitan job type, over jobs billed from 17 September (the day
+ServiceTitan became the ledger) or the last 90 days, whichever is shorter:
+
+| Sector | Job types |
+|---|---|
+| Maintenance | `Service -`, `Commercial – Maintenance`, `Commercial – Service`, `Gas Safety Check` |
+| Breakdowns | `Diagnostics -` |
+| Repairs | `Repair -`, `Commercial – Repair` |
+| Installs | `Installation -`, `Commercial – Installation` |
+
+Quote visits, warranty, return visits and commissioning belong to none of them
+and are left out rather than padding one. Each card shows what was billed
+(before GST), jobs and the average, profit, and margin against the goal's
+percentage, worded "Over 20%" / "Under 20%". The pace scale ("Ahead · 197%")
+is margin as a share of the goal and read as nonsense on a margin. A margin
+needs five costed jobs; fewer and it says so.
+
+**What the visit led to** follows the address, not the quote. Of the first 76
+breakdowns, 37 were quoted on the visit and 7 of those quotes were sold through
+a job made from them, but 22 of the addresses had an install booked within 60
+days: the office books the install as a new job at the site as often as it
+converts the quote. So each install or repair job is credited to the most recent
+maintenance or breakdown visit at the same address in the 60 days before it was
+booked, once. A visit is only counted once it is 14 days old, so a call from
+yesterday isn't read as "just the visit" before anyone has rung back. Outcomes,
+first match wins: an install; a repair; quoted on the visit with nothing booked;
+just the visit.
+
+**Each visit is worth** (navy) is what the visits billed plus what the installs
+and repairs they led to have billed so far, divided by the visits. The profit
+beside it is the same, all in. Follow-on jobs booked but not billed yet are
+counted beside it and add nothing until they are billed, so the figure only ever
+understates. The comparison line needs ten visits of each kind.
+
+The segments use the navy family, not the status palette: an install isn't
+"good" and a plain service isn't "bad", and every segment is written out with
+its count and share.
+
+Code: `src/lib/dashboard/sectors.ts`, `SectorsPage` in `ScreenBoard.tsx`.
 
 ## Things worth knowing
 
