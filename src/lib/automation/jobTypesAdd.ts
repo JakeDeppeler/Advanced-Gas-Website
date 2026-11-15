@@ -1,6 +1,6 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
-import { stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "./log";
 
@@ -34,19 +34,30 @@ const WANTED: { name: string; like: string }[] = [
   { name: "Diagnostics - Pool / Spa Heater", like: "Diagnostics - Heat Pump" },
   { name: "Repair - Pool / Spa Heater", like: "Repair - Gas Line" },
   { name: "Service - Pool / Spa Heater", like: "Service - Gas Ducted Heater" },
+  // Jake, 15 Nov: "we don't install gas logs, we will repair them though".
+  { name: "Repair - Gas Space Heater / Log Fire", like: "Repair - Gas Heater" },
 ];
+
+/**
+ * Made on the 15th and not wanted after all (Jake, 15 Nov: "remove the water
+ * filtration, we don't install gas log"). Switched off once, not deleted:
+ * ServiceTitan keeps job types, and a switched-off one can be turned back on.
+ */
+const SWITCH_OFF = ["Installation - Water Filtration", "Service - Water Filtration", "Installation - Gas Space Heater / Log Fire"];
 
 type TypeRow = { id: number; name: string | null; active: boolean | null; raw: Record<string, unknown> | null };
 const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-export async function addMissingJobTypes(): Promise<{ made: string[]; failed: string[]; skipped?: string }> {
-  const saved = await getSettings<{ names?: Record<string, number | string>; fails?: Record<string, number> }>(ADDED).catch(() => null);
+export async function addMissingJobTypes(): Promise<{ made: string[]; failed: string[]; switchedOff?: string[]; skipped?: string }> {
+  const saved = await getSettings<{ names?: Record<string, number | string>; fails?: Record<string, number>; off?: Record<string, string> }>(ADDED).catch(() => null);
   const done = saved?.names ?? {};
   const fails = saved?.fails ?? {};
+  const off = saved?.off ?? {};
   // A refusal three times over is ServiceTitan's answer, not a hiccup: left
   // for a person, and not tried again every ten minutes.
   const todo = WANTED.filter((w) => !(w.name in done) && (fails[w.name] ?? 0) < 3);
-  if (!todo.length) return { made: [], failed: [], skipped: "all added" };
+  const offTodo = SWITCH_OFF.filter((n) => typeof done[n] === "number" && !(n in off) && (fails[`off:${n}`] ?? 0) < 3);
+  if (!todo.length && !offTodo.length) return { made: [], failed: [], skipped: "all done" };
 
   const types = await sbSelect<TypeRow>("st_job_types", q.select("id,name,active,raw"));
   const byName = new Map(types.filter((t) => t.name).map((t) => [key(t.name as string), t]));
@@ -89,7 +100,24 @@ export async function addMissingJobTypes(): Promise<{ made: string[]; failed: st
       log.push({ at: at(), kind: "jobTypes", ok: false, title: `Job type "${w.name}" couldn't be added`, detail: (e as Error).message.slice(0, 200) });
     }
   }
-  await saveSettings(ADDED, { names: done, fails });
+  const switchedOff: string[] = [];
+  for (const n of offTodo) {
+    const id = done[n] as number;
+    try {
+      await stSend("PATCH", stTenantPath("jpm", `job-types/${id}`), { active: false });
+      // Read back: ServiceTitan can answer OK and keep a field as it was.
+      const back = await stFetch<{ active?: boolean }>(stTenantPath("jpm", `job-types/${id}`));
+      if (back.active !== false) throw new Error("ServiceTitan answered OK but kept it switched on: switch it off in Settings › Job Types");
+      off[n] = at();
+      switchedOff.push(n);
+      log.push({ at: at(), kind: "jobTypes", ok: true, title: `Job type "${n}" switched off in ServiceTitan` });
+    } catch (e) {
+      failed.push(n);
+      fails[`off:${n}`] = (fails[`off:${n}`] ?? 0) + 1;
+      log.push({ at: at(), kind: "jobTypes", ok: false, title: `Job type "${n}" couldn't be switched off`, detail: (e as Error).message.slice(0, 200) });
+    }
+  }
+  await saveSettings(ADDED, { names: done, fails, off });
   await logAuto(log).catch(() => undefined);
-  return { made, failed };
+  return { made, failed, switchedOff };
 }
