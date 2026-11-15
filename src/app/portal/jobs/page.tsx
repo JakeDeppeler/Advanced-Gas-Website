@@ -140,9 +140,13 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
     );
   } else if (tab === "today") {
     const done = jobsToday.filter((j) => j.done).length;
-    const over = jobsToday.filter((j) => j.quoted != null && j.taken > j.quoted + 0.25);
+    // A job whose stamps gave no usable span is not running over; it is not
+    // measured. See PaceJob.taken.
+    const isOver = (j: (typeof jobsToday)[number]) =>
+      j.quoted != null && j.taken != null && j.taken > j.quoted + 0.25;
+    const over = jobsToday.filter(isOver);
     const st = (j: (typeof jobsToday)[number]): Status =>
-      j.quoted != null && j.taken > j.quoted + 0.25 ? { k: "bad", w: "Running over" } : j.done ? { k: "good", w: "Done" } : j.onNow ? { k: "mid", w: "On site" } : none("Next");
+      isOver(j) ? { k: "bad", w: "Running over" } : j.done ? { k: "good", w: "Done" } : j.onNow ? { k: "mid", w: "On site" } : none("Next");
     body = (
       <>
         <Say>
@@ -160,7 +164,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
                       <td><b>{j.what}</b></td>
                       <td className="l">{j.where ?? ""}</td>
                       <td className="l"><span className="pk-who"><Av name={j.who} />{j.who.split(" ")[0]}</span></td>
-                      <td>{j.taken.toFixed(1)}{j.quoted != null ? ` of ${j.quoted.toFixed(1)}` : ""}</td>
+                      <td>{j.taken != null ? j.taken.toFixed(1) : "—"}{j.quoted != null ? ` of ${j.quoted.toFixed(1)}` : ""}</td>
                       <td><Pill st={st(j)} /></td>
                     </tr>
                   ))}
