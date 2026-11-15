@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { PageHero, HeroCard, CallButton } from "@/components/homepage/page/PageHero";
+import { PHOTO } from "@/lib/homepage/data";
 import { BkHead, Bands, BandPage, EndCta, type Band } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -149,20 +150,29 @@ export default function MembershipPage() {
   ];
 
   return (
-    <BandPage>
-      <Crumbs trail={[{ name: "Membership" }]} />
-      <Hero
+    // The homepage's top (PageHero), behind it one of our service visits. Joining
+    // is a conversation, not a quote, so the buttons go to contact and the card
+    // on the right is the three tiers rather than the quote form.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "Membership" }]}
         eye="Membership"
-        title={<>Servicing done <em>before</em> it becomes a problem.</>}
+        title="Servicing done {before} it becomes a problem."
         sub={<>Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay.</>}
-        ctas={false}
-      >
-        {/* Joining is a conversation, not a quote, so the buttons go to contact. */}
-        <div className="bxh__ctas">
-          <Link href="/contact" className="abtn abtn--or abtn--flat">Become a member →</Link>
-          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="membership-hero">Call {site.phone}</a>
-        </div>
-      </Hero>
+        photo={PHOTO.evapService} pos="center 45%"
+        ctas={<><Link href="/contact" className="abtn abtn--or">Become a member →</Link><CallButton from="membership-hero" /></>}
+        trust={[]}
+        card={
+          <HeroCard label="Three tiers">
+            <ul className="phx__rows">
+              {tiers.map((t) => (
+                <li key={t.id}><a href="#tiers"><strong>{t.name}{t.highlight && <em>Most popular</em>}</strong><span>{t.blurb}</span></a></li>
+              ))}
+            </ul>
+          </HeroCard>
+        }
+      />
+    }>
       <Bands list={bands} />
       <EndCta
         title={<>Want to join? It&apos;s a <span>5-minute call</span>.</>}

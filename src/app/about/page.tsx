@@ -5,7 +5,9 @@ import { openingHours } from "@/lib/site";
 import { RATING_TEXT, RATING_SUMMARY, REVIEWS } from "@/lib/reviews";
 import { DIRECTORS, CLIENTS, STANDARDS, ACCREDITED, LICENCES } from "@/lib/company";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
-import { Crumbs } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { SiteModeStrip } from "@/components/Header";
+import { PHOTO } from "@/lib/homepage/data";
 import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
@@ -50,29 +52,21 @@ export default function AboutPage() {
   return (
     // data-no-reveal: the old site's scroll reveal hides sections until they animate in; the redesign pages opt out.
     // Two boxes: the blocks styles hang off .bk sitting inside .ag.
-    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx ab3" style={{ ["--acc" as string]: "#C2521A" }}>
+    <>
+    <SiteModeStrip tabs={false} />
+    <div className="ag ag--flat" data-no-reveal>
+      {/* The homepage's top (PageHero), over the same photo of the crew it opens on. */}
+      <PageHero
+        crumbs={[{ name: "About us" }]}
+        eye="About Advanced Gas & Airconditioning"
+        title="Licensed, insured and {accountable} for every job."
+        sub="Heating, cooling, gas and hot water for homes and businesses across Melbourne's south-east and West Gippsland. Our own crew, a fixed price in writing, and two directors who answer for the work."
+        photo={PHOTO.team} from="about-hero"
+        rating={{ value: RATING_TEXT, label: `From ${RATING_SUMMARY.count} Google reviews` }}
+        trust={STATS.slice(1, 3)}
+      />
+      <div className="bx bk cx ab3" style={{ ["--acc" as string]: "#C2521A" }}>
       <BkMotion />
-      <Crumbs trail={[{ name: "About us" }]} back={{ label: "Get a free quote →", href: "/quote" }} />
-
-      <section className="bxh">
-        <div className="wrap bxh__in">
-          <div className="bxh__copy">
-            <span className="lk2__eye cx__eye">About Advanced Gas &amp; Airconditioning</span>
-            <h1 className="bxh__h1 cx__h1">Licensed, insured and <span>accountable</span> for every job.</h1>
-            <p className="bxh__sub">Heating, cooling, gas and hot water for homes and businesses across Melbourne&apos;s south-east and West Gippsland. Our own crew, a fixed price in writing, and two directors who answer for the work.</p>
-            <div className="bxh__ctas">
-              <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
-              <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="about-hero">Call (03) 5947 8000</a>
-            </div>
-          </div>
-          <div className="bxh__img bxh__img--scene">
-            <Image src="/team-photo.webp" alt="The Advanced Gas & Airconditioning crew and vans outside the Pakenham workshop" fill priority sizes="(max-width: 900px) 100vw, 640px" />
-          </div>
-        </div>
-        <div className="wrap">
-          <dl className="bxh__facts">{STATS.map((s) => <div key={s.k}><dd>{s.v}</dd><dt>{s.k}</dt></div>)}</dl>
-        </div>
-      </section>
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
@@ -191,5 +185,6 @@ export default function AboutPage() {
         from="about-cta"
       />
     </div></div>
+    </>
   );
 }

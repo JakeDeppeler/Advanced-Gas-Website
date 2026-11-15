@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import { Crumbs, Hero, Tiles } from "@/components/homepage/page/kit";
+import { Tiles } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { PhoneIcon } from "@/components/homepage/HomeHeader";
+import { PHOTO } from "@/lib/homepage/data";
 import { BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -242,27 +245,26 @@ export default async function UpgradeOrRepairPage() {
   ];
 
   return (
-    <BandPage>
-      <JsonLd data={faqSchema(FAQS)} />
-      <JsonLd data={crumbs} />
-      <Crumbs trail={[{ name: "Repair or replace" }]} />
-      <Hero
+    // The homepage's top (PageHero), behind it a hot water changeover we did.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "Repair or replace" }]}
         eye="The question behind most of our call-outs"
-        title={<>Repair it, or <em>replace it?</em></>}
+        title="Repair it, or {replace it?}"
         sub={<>Ten years is usually where the answer changes. Nobody in this trade wants to say out loud that sometimes the right answer is &ldquo;fix it and keep going&rdquo;, because there&rsquo;s no invoice in it. So here&rsquo;s the whole argument in public: how long these things actually last, where repair spend stops earning its keep, when we&rsquo;d tell you to repair instead, and why the VEU rebate is worth the most at exactly the moment your system hits the line.</>}
-        ctas={false}
-        facts={[
+        photo={PHOTO.hotWater1} pos="center 40%"
+        ctas={<>
+          <a href="#quote" className="abtn abtn--or">Get both prices side by side →</a>
+          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line abtn--call" data-call-from="repair-hero"><PhoneIcon />Or just ask us</a>
+        </>}
+        trust={[
           { v: "10 yrs", k: "Where hot water tanks stop earning repairs" },
-          { v: "10 yrs", k: "Where a gas heater becomes a safety question" },
-          { v: "12 yrs", k: "Where a refrigerated compressor does" },
           { v: "In writing", k: "The repair price, so you know before you spend" },
         ]}
-      >
-        <div className="bxh__ctas">
-          <Link href="/quote" className="abtn abtn--or abtn--flat">Get both prices side by side →</Link>
-          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="repair-hero">Or just ask us</a>
-        </div>
-      </Hero>
+      />
+    }>
+      <JsonLd data={faqSchema(FAQS)} />
+      <JsonLd data={crumbs} />
       <Tabs list={bands} />
       <Bands list={bands} />
       {reviews.length > 0 && (

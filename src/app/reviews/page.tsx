@@ -3,7 +3,10 @@ import { site } from "@/lib/site";
 import { RATING_SUMMARY } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
 import { breadcrumbSchema } from "@/lib/schema";
-import { Crumbs, Hero, Head, Next } from "@/components/homepage/page/kit";
+import { Head, Next } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { SiteModeStrip } from "@/components/Header";
+import { PHOTO } from "@/lib/homepage/data";
 import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -27,20 +30,21 @@ export default async function ReviewsPage() {
   ]);
 
   return (
+    // The homepage's top (PageHero), behind it a finished job of ours: a
+    // Reclaim heat pump beside two Mitsubishi outdoor units.
     // data-no-reveal: the redesign pages opt out of the old site's scroll reveal.
+    <>
+    <SiteModeStrip tabs={false} />
     <div className="ag ag--flat" data-no-reveal>
-      <Crumbs trail={[{ name: "Reviews" }]} />
-      <Hero
+      <PageHero
+        crumbs={[{ name: "Reviews" }]}
         eye={`${summary.value.toFixed(1)} / 5 on Google`}
-        title={<>What our <em>customers</em> say.</>}
+        title="What our {customers} say."
         sub="Every review here is from a real job. No paid placements and no filtered feedback: if a job goes wrong we'd rather fix it than bury the review."
-      >
-        <div className="kx__stars" aria-label={`${summary.value.toFixed(1)} out of 5`}>
-          <span className="stars" aria-hidden="true">★★★★★</span>
-          <strong>{summary.value.toFixed(1)}</strong>
-          {summary.verifiedCount && <span>from {summary.count} Google reviews</span>}
-        </div>
-      </Hero>
+        photo={PHOTO.heatPumpInstall} pos="center 55%" from="reviews-hero"
+        rating={{ value: summary.value.toFixed(1), label: summary.verifiedCount ? `From ${summary.count} Google reviews` : "Google reviews" }}
+        trust={[]}
+      />
 
       <section className="pxs">
         <div className="wrap pp__col">
@@ -76,5 +80,6 @@ export default async function ReviewsPage() {
       <EndCta title={<>Want the same <span>experience</span>?</>} text="A free, no-obligation quote back within 12 business hours." />
       <JsonLd data={crumbs} />
     </div>
+    </>
   );
 }

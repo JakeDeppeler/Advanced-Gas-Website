@@ -3,7 +3,8 @@ import Link from "next/link";
 import { publishedSuburbs } from "@/lib/site";
 import { areaSuburbs } from "@/lib/homepage/areas";
 import { ServiceArea } from "@/components/homepage/ServiceArea";
-import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { PHOTO } from "@/lib/homepage/data";
 import { BkHead, Bands, EndCta, BandPage } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -19,13 +20,20 @@ export const metadata: Metadata = {
 export default function ServiceAreasPage() {
   return (
     // The product pages' bands (Jake, Nov 2026), as the suburb pages under it.
-    <BandPage>
-      <Crumbs trail={[{ name: "Service areas" }]} />
-      <Hero
+    // The homepage's top (PageHero): our crew and vans, the ones that drive out to these suburbs.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "Service areas" }]}
         eye="Service areas"
-        title={<>Pakenham &amp; <em>75 km around.</em></>}
+        title="Pakenham & {75 km around.}"
         sub="Our own crews, out of one Pakenham workshop. Type your suburb into the map to see how far it is and whether we come to you."
+        photo={PHOTO.vans} pos="center 60%" from="areas-hero"
+        trust={[
+          { v: String(publishedSuburbs.length), k: "Suburbs with their own page" },
+          { v: "12 hrs", k: "To a written quote" },
+        ]}
       />
+    }>
 
       {/* The homepage's map and suburb checker, so the two can't disagree about who we reach. */}
       <ServiceArea suburbs={areaSuburbs()} />

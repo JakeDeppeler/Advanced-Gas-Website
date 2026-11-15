@@ -10,7 +10,8 @@ import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { BrandLockup } from "@/components/homepage/brand/BrandMark";
 import { findTool } from "@/components/homepage/tools/toolList";
-import { Crumbs } from "./kit";
+import { PageHero, CallButton } from "./PageHero";
+import { SiteModeStrip } from "@/components/Header";
 import { EndCta } from "./bands";
 import "@/components/homepage/brand/blocks.css";
 import "./category.css";
@@ -74,36 +75,23 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
   const lower = cat.label.toLowerCase();
 
   return (
+    // The homepage's top (PageHero): the category's photo of our work, the
+    // quote card opened at this category, then everything below as it was.
     // Two boxes: the blocks styles hang off .bk sitting inside .ag, as on the brand pages.
-    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx" style={{ ["--acc" as string]: copy.acc }}>
+    <>
+    <SiteModeStrip tabs={false} />
+    <div className="ag ag--flat" data-no-reveal>
+      <PageHero
+        crumbs={[{ name: cat.label }]}
+        eye={cat.label} title={copy.h1} sub={copy.sub}
+        photo={cat.photo} pos={cat.pos} from="category-hero"
+        // Hot water leads with the tank size check (Jake, Nov 2026); the quote is the card beside it.
+        ctas={cat.id === "hw" ? <><a href="#size" className="abtn abtn--or">Check your tank size ↓</a><CallButton from="category-hero" /></> : undefined}
+        trust={[{ v: `${systems.length} systems`, k: cat.sub }, { v: "6 years", k: "On our workmanship" }]}
+        quote={cat.label}
+      />
+      <div className="bx bk cx" style={{ ["--acc" as string]: copy.acc }}>
       <BkMotion />
-      <Crumbs trail={[{ name: cat.label }]} back={{ label: "Find yours in a few taps →", href: `/?find=${cat.id}#find` }} />
-
-      <section className="bxh">
-        <div className="wrap bxh__in">
-          <div className="bxh__copy">
-            <span className="lk2__eye cx__eye">{cat.label}</span>
-            <h1 className="bxh__h1 cx__h1">{accent(copy.h1)}</h1>
-            <p className="bxh__sub">{copy.sub}</p>
-            <div className="bxh__ctas">
-              {cat.id === "hw" && <a href="#size" className="abtn abtn--or abtn--flat">Check your tank size ↓</a>}
-              <Link href="/quote" className={`abtn ${cat.id === "hw" ? "abtn--line" : "abtn--or abtn--flat"}`}>Get a free quote →</Link>
-              {cat.id !== "hw" && <Link href={`/?find=${cat.id}#find`} className="abtn abtn--line">Find yours in a few taps</Link>}
-            </div>
-          </div>
-          <div className="bxh__img bxh__img--scene">
-            <Image src={cat.photo} alt={cat.alt} fill priority sizes="(max-width: 900px) 100vw, 640px" style={{ objectPosition: cat.pos }} />
-          </div>
-        </div>
-        <div className="wrap">
-          <dl className="bxh__facts">
-            <div><dd>{systems.length} systems</dd><dt>{systems.map((x) => x.s.label).join(", ")}</dt></div>
-            <div><dd>{brands.length} brands</dd><dt>{brands.map((b) => b.name).join(", ")}</dt></div>
-            <div><dd>Free quote</dd><dt>One fixed price, in writing</dt></div>
-            <div><dd>6 years</dd><dt>On our workmanship</dt></div>
-          </dl>
-        </div>
-      </section>
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">
@@ -307,5 +295,6 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
 
       <EndCta title={<>Get a price for your <span>{lower}</span>.</>} from="category-cta" />
     </div></div>
+    </>
   );
 }

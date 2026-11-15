@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  type Category, type System, heroForSystem, HERO_SHOW, bookHref, isHeatPump, installTime, productHref, realOption, money, weekly,
-  PRODUCT_FAQS, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, TONES, WORKMANSHIP,
-  lowerLabel,
+  type Category, type System, heroForSystem, bookHref, isHeatPump, installTime, productHref, realOption, money, weekly,
+  PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, TONES, WORKMANSHIP,
+  lowerLabel, PHOTO,
 } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
-import { Crumbs, Hero, Head, Next } from "./kit";
+import { Head, Next } from "./kit";
+import { PageHero, CallButton } from "./PageHero";
 import { EndCta } from "./bands";
 import { HowItWorks } from "../how/HowItWorks";
 import { InstallSpots } from "../how/InstallSpots";
@@ -28,15 +29,23 @@ import { copFor } from "@/lib/tools/hotWaterSavings";
  * pages (homepage/data.ts and learn.ts), so the three can't drift apart.
  */
 const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
-/**
- * The page title with its last word in the accent, as every other page header
- * sets one word apart (the homepage's "Every job."). "Split system" reads
- * "Split *system*"; a one-word name is coloured whole.
- */
-function accentLast(label: string) {
+/** The name with its last word in the hero's colour, on the same line: a system's name is short. */
+function inlineLast(label: string) {
   const i = label.lastIndexOf(" ");
-  return i < 0 ? <em>{label}</em> : <>{label.slice(0, i + 1)}<em>{label.slice(i + 1)}</em></>;
+  return i < 0 ? <span>{label}</span> : <>{label.slice(0, i + 1)}<span>{label.slice(i + 1)}</span></>;
 }
+
+/**
+ * The hero photo, full width under the scrim, so it has to be one of our
+ * own jobs: the system's own where it is one, else one that still fits
+ * (zoning runs on a ducted system; the rest get the team).
+ */
+function heroPhoto(sys: System) {
+  const h = heroForSystem(sys);
+  if (h.ours && !h.studio) return { src: h.src, pos: h.pos };
+  return sys.slug === "zoning" ? { src: PHOTO.ductedInstall, pos: "center 55%" } : { src: PHOTO.team, pos: "center 35%" };
+}
+
 /** Systems whose page gets the hands-on zoning house. */
 // No zones section on the Dominator's page (Jake, Nov 2026): it reuses whatever ducts the house has.
 const ZONED = new Set(["ducted", "reverse-cycle-ducted", "zoning"]);
@@ -44,9 +53,7 @@ const ZONED = new Set(["ducted", "reverse-cycle-ducted", "zoning"]);
 export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
   const pc = SYS_PROS[sys.slug];
-  const hero = heroForSystem(sys);
-  const prices = sys.tiers.map((t) => t.price).filter((p): p is number => typeof p === "number");
-  const from = prices.length ? Math.min(...prices) : null;
+  const photo = heroPhoto(sys);
   const brands = [...new Set(sys.tiers.map((t) => t.brand))];
   const others = cat.systems.filter((s) => s.slug !== sys.slug);
   const lower = lowerLabel(sys.label);
@@ -62,27 +69,25 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
   return (
     <div className="ag ag--flat" data-no-reveal>
-      <Crumbs trail={[{ name: cat.label, href: `/?find=${cat.id}#find` }, { name: sys.label }]} back={{ label: "Find yours in a few taps →", href: `/?find=${sys.slug}#find` }} />
-      <Hero
-        eye={cat.label} title={accentLast(sys.label)} sub={SYS_INTRO[sys.slug] ?? sys.sub}
-        img={hero.src} imgAlt={hero.alt} scene={!hero.studio} pos={hero.pos} show={HERO_SHOW[sys.slug]} ctas={false}
-        facts={[
-          from != null
-            ? { v: `From ${money(from)}`, k: SHOW_FINANCE ? `Installed, or $${weekly(from, FINANCE_MONTHS)}/wk` : "Installed, GST included" }
-            : { v: "Free quote", k: FINANCE_SOON && !SHOW_FINANCE ? `Fixed price in writing · ${FINANCE_SOON_TEXT.toLowerCase()}` : "Fixed price in writing" },
+      {/* The homepage's top (PageHero): one of our installs of this kind of
+          system under the scrim, and the quote card opened at its category. */}
+      <PageHero
+        crumbs={[{ name: cat.label, href: `/?find=${cat.id}#find` }, { name: sys.label }]}
+        eye={cat.label} title={inlineLast(sys.label)} sub={SYS_INTRO[sys.slug] ?? sys.sub}
+        photo={photo.src} pos={photo.pos} from="system-hero"
+        ctas={<>
+          {isHeatPump(sys)
+            ? <a href="#pick" className="abtn abtn--or">Find the one for you ↓</a>
+            : <a href="#options" className="abtn abtn--or">{one ? `See the ${sys.label}` : `See the ${sys.tiers.length} options`} ↓</a>}
+          <CallButton from="system-hero" />
+        </>}
+        trust={[
           // One option (the Dominator) is counted in its sizes, not as "1 options" (Jake, Nov 2026).
           one ? { v: `${sys.sizes.length} sizes`, k: sys.sizes.map((z) => z.spec ?? z.label).join(" or ") } : { v: `${sys.tiers.length} options`, k: brands.join(", ") },
           { v: cap(installTime(sys).replace(/^Usually /, "").replace(/ for a .*$/, "")), k: "Install time" },
-          { v: "6 years", k: "On our workmanship" },
         ]}
-      >
-        <div className="bxh__ctas">
-          {isHeatPump(sys)
-            ? <a href="#pick" className="abtn abtn--or abtn--flat">Find the one for you ↓</a>
-            : <a href="#options" className="abtn abtn--or abtn--flat">{one ? `See the ${sys.label}` : `See the ${sys.tiers.length} options`} ↓</a>}
-          <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
-        </div>
-      </Hero>
+        quote={cat.label}
+      />
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">

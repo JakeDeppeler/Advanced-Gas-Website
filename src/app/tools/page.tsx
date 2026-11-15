@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
-import { Crumbs } from "@/components/homepage/page/kit";
+import { PageHero, HeroCard } from "@/components/homepage/page/PageHero";
+import { SiteModeStrip } from "@/components/Header";
+import { PHOTO } from "@/lib/homepage/data";
 import { EndCta } from "@/components/homepage/page/bands";
 import { TOOL_GROUPS, TOOL_LIST } from "@/components/homepage/tools/toolList";
 import "@/components/homepage/homepage.css";
@@ -35,28 +37,29 @@ export default function ToolsHubPage() {
   const groupLabel = Object.fromEntries(TOOL_GROUPS.map((g) => [g.key, g.label])) as Record<string, string>;
   return (
     // Two boxes: the blocks styles hang off .bk sitting inside .ag.
-    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx tl" style={{ ["--acc" as string]: "#C2521A" }}>
+    <>
+    <SiteModeStrip tabs={false} />
+    <div className="ag ag--flat" data-no-reveal>
+      {/* The homepage's top (PageHero), over a ducted unit we put in a roof;
+          the card on the right is the questions the tools answer. */}
+      <PageHero
+        crumbs={[{ name: "Tools" }]}
+        eye="Free tools"
+        title="The tools we use {on quote day}."
+        sub="What size a room needs, what it'll cost to run, what the rebate is worth, which system suits, and what a fault code means. Free, and no sign-up."
+        photo={PHOTO.ductedInstall} pos="center 50%"
+        ctas={<><a href="#tools" className="abtn abtn--or">Pick a tool ↓</a><Link href="/quote" className="abtn abtn--line">Or get a free quote</Link></>}
+        trust={[{ v: `${TOOL_LIST.length} free tools`, k: "No sign-up · No email needed" }]}
+        card={
+          <HeroCard label="Answers in a minute">
+            <ul className="phx__rows">
+              {TOOL_LIST.slice(0, 5).map((t) => <li key={t.slug}><Link href={`/tools/${t.slug}`}><strong>{t.q}</strong><span>{t.title}</span></Link></li>)}
+            </ul>
+          </HeroCard>
+        }
+      />
+      <div className="bx bk cx tl" style={{ ["--acc" as string]: "#C2521A" }}>
       <BkMotion />
-      <Crumbs trail={[{ name: "Tools" }]} back={{ label: "Get a free quote →", href: "/quote" }} />
-
-      <section className="bxh tl__hero">
-        <div className="wrap tl__hin">
-          <div className="bxh__copy">
-            <span className="lk2__eye cx__eye">Free tools</span>
-            <h1 className="bxh__h1 cx__h1">The tools we use <span>on quote day</span>.</h1>
-            <p className="bxh__sub">What size a room needs, what it&apos;ll cost to run, what the rebate is worth, which system suits, and what a fault code means. Free, and no sign-up.</p>
-            <div className="bxh__ctas">
-              <a href="#tools" className="abtn abtn--or abtn--flat">Pick a tool ↓</a>
-              <Link href="/quote" className="abtn abtn--line">Or get a free quote</Link>
-            </div>
-          </div>
-          <aside className="tl__what" aria-label="The questions these tools answer">
-            <small>Answers in a minute</small>
-            <ul>{TOOL_LIST.slice(0, 5).map((t) => <li key={t.slug}><span aria-hidden="true">?</span><Link href={`/tools/${t.slug}`} className="tl__qlink">{t.q}</Link></li>)}</ul>
-            <p><b>{TOOL_LIST.length} free tools</b> · No sign-up · No email needed</p>
-          </aside>
-        </div>
-      </section>
 
       {/* Every tool in one navy rounded box of white cards, the homepage's
           "Tools for you" (.htools-box, .tcard). It was four bands of cards
@@ -95,5 +98,6 @@ export default function ToolsHubPage() {
         from="tools-hub"
       />
     </div></div>
+    </>
   );
 }

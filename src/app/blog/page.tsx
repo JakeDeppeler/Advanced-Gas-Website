@@ -4,7 +4,8 @@ import Link from "next/link";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { AUTHORS, type BlogPost } from "@/lib/blog";
 import { publishedPosts } from "@/lib/blogLive";
-import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { PHOTO } from "@/lib/homepage/data";
 import { BkHead, Bands, EndCta, BandPage } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -57,20 +58,20 @@ export default async function BlogPage() {
 
   return (
     // The product pages' bands (Jake, Nov 2026), like the rest of the inside pages.
-    <BandPage>
-      <Crumbs trail={[{ name: "Guides & articles" }]} />
-      <Hero
+    // The homepage's top (PageHero), behind it one of the people on the tools who write these.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "Guides & articles" }]}
         eye="Guides & articles"
-        title={<>Plain-English answers, <em>written by the people on the tools.</em></>}
+        title="Plain-English answers, {written by the people on the tools.}"
         sub={<>Real questions we get on jobs, written up properly. No fluff, actual answers from people who&rsquo;ve fitted the gear.</>}
-        ctas={false}
-        facts={[
+        photo={PHOTO.whyBig} pos="center 40%" from="blog-hero"
+        trust={[
           { v: String(posts.length), k: posts.length === 1 ? "Guide" : "Guides" },
-          { v: String(topics), k: topics === 1 ? "Topic" : "Topics" },
-          ...(writers.length ? [{ v: writers.join(" & "), k: "Who writes them" }] : []),
-          { v: "12 hrs", k: "To answer a quote request" },
+          writers.length ? { v: writers.join(" & "), k: "Who writes them" } : { v: String(topics), k: topics === 1 ? "Topic" : "Topics" },
         ]}
       />
+    }>
 
       <Bands list={[
         {

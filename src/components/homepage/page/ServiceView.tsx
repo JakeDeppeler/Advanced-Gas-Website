@@ -5,17 +5,14 @@ import type { ServiceContent } from "@/lib/serviceContent";
 import type { SystemDetail, SystemSpotlight } from "@/lib/systemDetail";
 import { resolveAsset } from "@/lib/publicAsset";
 import { getReviews } from "@/lib/googleReviews";
-import { RATING_TEXT } from "@/lib/reviews";
 import { HOME_BRANDS, PHOTO, SHOW_PRICES, TOOLS, findSystem, lowerLabel, systemHref } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, learnFor } from "@/lib/homepage/learn";
-import { HeroQuote } from "../HeroQuote";
-import { HomeHeader, PhoneIcon } from "../HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import { HowItWorks } from "../how/HowItWorks";
 import { ReasonIcon, type ReasonIconName } from "../brand/ReasonIcon";
 import { AreaChips } from "./AreasServed";
 import { EndCta } from "./bands";
-import { QuotePreset } from "./QuotePreset";
+import { PageHero, CallButton } from "./PageHero";
 import "../homepage.css";
 import "./service.css";
 
@@ -297,53 +294,6 @@ function Sections({ list, above = "white" }: { list: Sec[]; above?: Tone }) {
     </>
   );
 }
-
-/** The homepage's hero: our photo under the navy scrim, the headline, the trust row, the quote form. */
-function Hero({ crumbs, eye, title, sub, photo, pos, ctas, trust, quote }: {
-  crumbs: { name: string; href?: string }[];
-  eye: string; title: ReactNode; sub: string; photo: string; pos?: string;
-  ctas: ReactNode; trust: Fact[]; quote?: string;
-}) {
-  return (
-    <section className="ahero svh">
-      <Image src={photo} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" style={pos ? { objectPosition: pos } : undefined} />
-      <div className="ahero__scrim" aria-hidden="true" />
-      <div className="wrap ahero__in">
-        <div className="ahero__copy anim">
-          <nav aria-label="Breadcrumb" className="svh__crumbs">
-            <ol>
-              <li><Link href="/">Home</Link></li>
-              {crumbs.map((c) => <li key={c.name} aria-current={c.href ? undefined : "page"}>{c.href ? <Link href={c.href}>{c.name}</Link> : c.name}</li>)}
-            </ol>
-          </nav>
-          <span className="svh__eye">{eye}</span>
-          <h1 className="ahero__h1 svh__h1">{title}</h1>
-          <p className="ahero__p">{sub}</p>
-          <div className="ahero__ctas">{ctas}</div>
-          <div className="ahero__trust">
-            <span className="ahero__stars">
-              <span className="stars" aria-hidden="true">★★★★★</span>
-              <span style={{ display: "flex", flexDirection: "column" }}><strong>{RATING_TEXT} / 5</strong><small>Google reviews</small></span>
-            </span>
-            {trust.map((f) => (
-              <Fragment key={f.k}>
-                <span className="ahero__sep" aria-hidden="true" />
-                <span className="svh__fact"><strong>{f.v}</strong><small>{f.k}</small></span>
-              </Fragment>
-            ))}
-          </div>
-        </div>
-        <HeroQuote />
-        {quote && <QuotePreset service={quote} />}
-      </div>
-    </section>
-  );
-}
-
-/** The call button, as the homepage hero's. */
-const Call = ({ from, cls = "abtn--line" }: { from: string; cls?: string }) => (
-  <a href="tel:+61359478000" data-call-from={from} className={`abtn ${cls} abtn--call`}><PhoneIcon />Call (03) 5947 8000</a>
-);
 
 /** The homepage's "Authorised installer of" chips, for the makers this page fits. */
 function BrandStrip({ chips, label }: { chips: { name: string; line: string; href: string }[]; label: string }) {
@@ -736,7 +686,8 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
   const fresh = (c.installPhotos?.shots ?? []).filter((x) => !shown.has(x.src));
   const shots = fresh.length >= 3 ? fresh.slice(0, fresh.length - (fresh.length % 3)) : [];
   const i = c.h1.lastIndexOf(", ");
-  const title = i < 0 ? c.h1 : <>{c.h1.slice(0, i + 1)} <span>{c.h1.slice(i + 2)}</span></>;
+  // The part after the last comma is the coloured second line ("…installation, / Pakenham & SE Melbourne").
+  const title = i < 0 ? c.h1 : `${c.h1.slice(0, i + 1)} {${c.h1.slice(i + 2)}}`;
 
   const list: Sec[] = [
     ...(systems.length ? [{
@@ -799,12 +750,10 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
         it (ChromeGate's ownHeader drops the site's flat one here). */}
     <SiteModeStrip tabs={false} />
     <div className="ag svpg" data-no-reveal>
-      <HomeHeader />
-      <Hero
+      <PageHero
         crumbs={[{ name: "Services", href: "/services" }, { name }]}
         eye={name} title={title} sub={c.intro} photo={asset(hero.src)} pos={hero.pos}
-        ctas={<><a href="#quote" className="abtn abtn--or">Get a free quote →</a><Call from="service-hero" /></>}
-        trust={facts.slice(0, 2)} quote={QUOTE_FOR[slug]}
+        from="service-hero" trust={facts.slice(0, 2)} quote={QUOTE_FOR[slug]}
       />
       <BrandStrip label="The brands we fit" chips={(c.brandPods ?? []).filter((p) => p.href).map((p) => chip(slug, p.href!, p.brand))} />
       <Sections list={list} />
@@ -894,7 +843,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
   const parent = HERO_PHOTO[slug];
   // A product shot on white can't stand under the scrim; those pages use their service's photo.
   const photo = s.photo.scene ? { src: s.photo.src, pos: "center 50%" } : parent ?? { src: PHOTO.team };
-  const title = s.h1 ? <>{s.h1.lead} <span>{s.h1.accent}</span></> : s.label;
+  const title = s.h1 ? `${s.h1.lead} {${s.h1.accent}}` : s.label;
   const items = s.benefitTiles?.length
     ? s.benefitTiles.map((b) => ({ t: b.t, line: b.line, d: b.detail, icon: b.icon }))
     : s.points.map((p) => ({ t: p, d: "" }));
@@ -975,14 +924,11 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
         it (ChromeGate's ownHeader drops the site's flat one here). */}
     <SiteModeStrip tabs={false} />
     <div className="ag svpg" data-no-reveal>
-      <HomeHeader />
-      <Hero
+      <PageHero
         crumbs={[{ name: "Services", href: "/services" }, { name, href: `/services/${slug}` }, { name: s.label }]}
         eye={`${name} · ${s.label}`} title={title} sub={s.intro ?? s.blurb} photo={asset(photo.src)} pos={photo.pos}
-        ctas={finder
-          ? <><Link href={`/find/${finder}`} className="abtn abtn--or">See the options →</Link><Call from="system-hero" /></>
-          : <><a href="#quote" className="abtn abtn--or">Get a free quote →</a><Call from="system-hero" /></>}
-        trust={specs.slice(0, 2)} quote={QUOTE_FOR[key] ?? QUOTE_FOR[slug]}
+        ctas={finder ? <><Link href={`/find/${finder}`} className="abtn abtn--or">See the options →</Link><CallButton from="system-hero" /></> : undefined}
+        from="system-hero" trust={specs.slice(0, 2)} quote={QUOTE_FOR[key] ?? QUOTE_FOR[slug]}
       />
       <BrandStrip label="The brands we fit" chips={brands} />
       <Sections list={list} above={brands.length ? "white" : "navy"} />

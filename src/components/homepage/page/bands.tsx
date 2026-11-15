@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PHOTO } from "@/lib/homepage/data";
 import { site } from "@/lib/site";
+import { SiteModeStrip } from "@/components/Header";
 import { BkMotion } from "../brand/BkMotion";
 import "../brand/blocks.css";
 import "./service.css";
@@ -109,14 +110,23 @@ export function EndCta({ title, text = "A free site check, then one fixed price 
  * brand colour of their own.
  *
  * `cls` adds a class to the root, for a page that needs its own variant.
+ *
+ * `hero` is the page's PageHero: it goes straight inside .ag, ahead of the
+ * bands, so the pill header it brings rides down the whole page, with the
+ * site strip above .ag as the homepage has it. (The page's path also goes in
+ * ownHeader() in components/ChromeGate.tsx.)
  */
-export function BandPage({ children, cls }: { children: ReactNode; cls?: string }) {
+export function BandPage({ children, cls, hero }: { children: ReactNode; cls?: string; hero?: ReactNode }) {
   return (
-    <div className="ag ag--flat" data-no-reveal>
-      <div className={`bk svk${cls ? ` ${cls}` : ""}`} style={{ ["--acc" as string]: "#C2521A" }}>
-        <BkMotion />
-        {children}
+    <>
+      {hero && <SiteModeStrip tabs={false} />}
+      <div className="ag ag--flat" data-no-reveal>
+        {hero}
+        <div className={`bk svk${cls ? ` ${cls}` : ""}`} style={{ ["--acc" as string]: "#C2521A" }}>
+          <BkMotion />
+          {children}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

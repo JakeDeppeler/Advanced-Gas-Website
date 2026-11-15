@@ -12,7 +12,8 @@ import { ALBUMS } from "@/lib/albums";
 import { AlbumGrid } from "@/components/AlbumGrid";
 import { brands as allBrands } from "@/lib/brands";
 import { JsonLd } from "@/components/JsonLd";
-import { Crumbs, Hero } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { PHOTO } from "@/lib/homepage/data";
 import { BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -129,20 +130,20 @@ export default async function GalleryPage() {
   ];
 
   return (
-    <BandPage>
-      <Crumbs trail={[{ name: "Gallery" }]} />
-      <Hero
+    // The homepage's top (PageHero), behind it the first of the jobs below.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "Gallery" }]}
         eye="Our work, not catalogue shots"
-        title={<>Real installs across <em>Melbourne&rsquo;s south-east</em>.</>}
+        title="Real installs across {Melbourne’s south-east}."
         sub={<>Every photo below is one of our own jobs, shot on site, on the day. Product photography elsewhere on the site is manufacturer imagery so you can see exactly which unit we&rsquo;re quoting; this page is the actual work.</>}
-        img={lead ? encodeURI(lead.src) : undefined}
-        imgAlt={lead?.alt}
-        facts={[
+        photo={lead ? encodeURI(lead.src) : PHOTO.team} from="gallery-hero"
+        trust={[
           { v: String(GALLERY.length), k: "Photos of our own jobs" },
           { v: String(grouped.length), k: "Kinds of job" },
-          ...(BEFORE_AFTER.length ? [{ v: String(BEFORE_AFTER.length), k: "Before and after" }] : []),
         ]}
       />
+    }>
       <Tabs list={bands} />
       <Bands list={bands} />
       <div className="glx__feed">

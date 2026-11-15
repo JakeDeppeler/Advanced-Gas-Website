@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { brands, visibleProducts } from "@/lib/brands";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
-import { Crumbs } from "@/components/homepage/page/kit";
+import { PageHero, HeroCard } from "@/components/homepage/page/PageHero";
+import { SiteModeStrip } from "@/components/Header";
+import { PHOTO } from "@/lib/homepage/data";
 import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
@@ -147,31 +149,34 @@ export default function BrandsIndex() {
     // The redesign's block layout (Nov 2026), like the tools hub: the old
     // card grid is in git history. Two boxes because the blocks styles hang
     // off .bk sitting inside .ag. /range redirects here.
-    <div className="ag ag--flat" data-no-reveal><div className="bx bk cx tl bh" style={{ ["--acc" as string]: "#C2521A" }}>
-      <BkMotion />
-      <Crumbs trail={[{ name: "Brands" }]} back={{ label: "Get a free quote →", href: "/quote" }} />
-
-      <section className="bxh tl__hero">
-        <div className="wrap tl__hin">
-          <div className="bxh__copy">
-            <span className="lk2__eye cx__eye">Brands we install</span>
-            <h1 className="bxh__h1 cx__h1">{brands.length} brands, <span>{totalModels} models</span>.</h1>
-            <p className="bxh__sub">We install what works, not what we&apos;re paid to push. Every brand here is one we&apos;ve put into enough Melbourne homes to have a real opinion on, and each has its own page with the range and our take.</p>
-            <div className="bxh__ctas">
-              <a href="#aircon" className="abtn abtn--or abtn--flat">See the brands ↓</a>
-              <Link href="/#find" className="abtn abtn--line">Or find your system</Link>
+    <>
+    <SiteModeStrip tabs={false} />
+    <div className="ag ag--flat" data-no-reveal>
+      {/* The homepage's top (PageHero), over a Kaden outdoor unit we installed;
+          the card on the right is the brands themselves, each opening its page. */}
+      <PageHero
+        crumbs={[{ name: "Brands" }]}
+        eye="Brands we install"
+        title={`${brands.length} brands, {${totalModels} models}.`}
+        sub="We install what works, not what we're paid to push. Every brand here is one we've put into enough Melbourne homes to have a real opinion on, and each has its own page with the range and our take."
+        photo={PHOTO.outdoorUnit} pos="center 40%"
+        ctas={<><a href="#aircon" className="abtn abtn--or">See the brands ↓</a><Link href="/#find" className="abtn abtn--line">Or find your system</Link></>}
+        trust={[{ v: "Reece", k: "Trade partner" }]}
+        card={
+          <HeroCard label="The brands">
+            <div className="bh__logos">
+              {brands.map((b) => (
+                <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__logo">
+                  <span className="bh__limg"><Image src={b.photo} alt="" fill sizes="120px" /></span>
+                  <b>{b.name}</b>
+                </Link>
+              ))}
             </div>
-          </div>
-          <aside className="bh__logos" aria-label="The brands">
-            {brands.map((b) => (
-              <Link key={b.slug} href={`/brands/${b.slug}`} className="bh__logo">
-                <span className="bh__limg"><Image src={b.photo} alt="" fill sizes="120px" /></span>
-                <b>{b.name}</b>
-              </Link>
-            ))}
-          </aside>
-        </div>
-      </section>
+          </HeroCard>
+        }
+      />
+      <div className="bx bk cx tl bh" style={{ ["--acc" as string]: "#C2521A" }}>
+      <BkMotion />
 
       <nav className="pxt" aria-label="On this page">
         <div className="wrap pxt__in">{groups.map((g) => <a key={g.slug} href={`#${g.slug}`}>{g.label}</a>)}</div>
@@ -218,5 +223,6 @@ export default function BrandsIndex() {
         from="brands-hub"
       />
     </div></div>
+    </>
   );
 }

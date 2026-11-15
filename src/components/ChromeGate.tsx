@@ -23,9 +23,19 @@ export function ChromeGate({ children, legacy = false, header = false }: { child
  */
 function ownHeader(pathname: string) {
   // The service pages joined them once rebuilt from the homepage's own
-  // sections (Jake, Nov 2026: "they need to resemble the home page more").
-  return pathname.startsWith("/areas/") || pathname.startsWith("/services/");
+  // sections (Jake, Nov 2026: "they need to resemble the home page more"),
+  // then the other inside pages with the homepage's hero (PageHero.tsx).
+  // Exact paths: a page's children (/brands/<brand>, /tools/<tool>,
+  // /blog/<post>) keep the flat header until they move too.
+  return pathname.startsWith("/areas/") || pathname.startsWith("/services/") || PAGE_HERO.has(pathname.replace(/\/$/, ""));
 }
+
+/** Pages whose top is PageHero, with the pill header over its photo. */
+const PAGE_HERO = new Set([
+  "/cooling", "/heating", "/hot-water",
+  "/about", "/reviews", "/contact", "/brands", "/tools", "/service-areas",
+  "/gallery", "/blog", "/rebates", "/membership", "/upgrade-or-repair",
+]);
 
 /**
  * Pages built on the homepage redesign, which bring their own header

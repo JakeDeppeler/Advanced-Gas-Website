@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { site, openingHoursShort } from "@/lib/site";
 import { ContactForm } from "@/components/ContactForm";
-import { Crumbs, Hero, Head, Next } from "@/components/homepage/page/kit";
+import { Head, Next } from "@/components/homepage/page/kit";
+import { PageHero, CallButton } from "@/components/homepage/page/PageHero";
+import { SiteModeStrip } from "@/components/Header";
+import { PHOTO } from "@/lib/homepage/data";
 import { EndCta } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -17,14 +20,20 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
+    // The homepage's top (PageHero), shorter and with no card: the form right
+    // under it is the page, and a second form beside it would be one too many.
     // data-no-reveal: the redesign pages opt out of the old site's scroll reveal.
+    <>
+    <SiteModeStrip tabs={false} />
     <div className="ag ag--flat" data-no-reveal>
-      <Crumbs trail={[{ name: "Contact" }]} />
-      <Hero
+      <PageHero
+        crumbs={[{ name: "Contact" }]}
         eye="Contact us"
-        title={<>Tell us what you need. <em>We&apos;ll come back within 12 hours.</em></>}
+        title="Tell us what you need. {We'll come back within 12 hours.}"
         sub="A free, no-obligation quote with the VEU rebate already worked in where it applies. The person who quotes it is the person who installs it."
-        ctas={false}
+        photo={PHOTO.team} pos="center 40%" short card={false}
+        ctas={<><a href="#form" className="abtn abtn--or">To the form ↓</a><CallButton from="contact-hero" /></>}
+        trust={[{ v: openingHoursShort(), k: "Mon – Fri" }, { v: "24/7", k: "Emergency" }]}
       />
 
       <section className="pxs" id="form">
@@ -78,5 +87,6 @@ export default function ContactPage() {
         cta={{ href: "#form", label: "Back to the form ↑" }}
       />
     </div>
+    </>
   );
 }

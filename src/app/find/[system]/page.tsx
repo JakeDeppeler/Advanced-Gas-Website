@@ -6,7 +6,6 @@ import { breadcrumbSchema, faqSchema } from "@/lib/schema";
 import { ALL_SYSTEMS, findSystem, money, PRODUCT_FAQS } from "@/lib/homepage/data";
 import { SYS_INTRO } from "@/lib/homepage/learn";
 import { SystemPage } from "@/components/homepage/page/SystemPage";
-import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { SiteModeStrip } from "@/components/Header";
 import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
@@ -47,9 +46,10 @@ export default function FindSystemPage({ params }: { params: Params }) {
   ]);
   return (
     <>
-      {/* /find/* draws its own header: the layout's is held back for the homepage and product pages. */}
+      {/* /find/* draws its own header: the layout's is held back for the homepage
+          and product pages. Here it is the homepage's pill, which SystemPage's
+          hero (PageHero) brings with it over the photo. */}
       <SiteModeStrip tabs={false} />
-      <div className="ag ag--flat" style={{ display: "contents" }}><HomeHeader variant="flat" /></div>
       <SystemPage cat={cat} sys={sys} />
       <JsonLd data={crumbs} />
       <JsonLd data={faqSchema(PRODUCT_FAQS[sys.faq])} />

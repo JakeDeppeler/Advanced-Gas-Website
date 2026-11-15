@@ -6,7 +6,9 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
 import { JsonLd } from "@/components/JsonLd";
 import { REBATE_FAQS as faqs } from "@/lib/rebates";
-import { Crumbs, Hero, Next } from "@/components/homepage/page/kit";
+import { Next } from "@/components/homepage/page/kit";
+import { PageHero } from "@/components/homepage/page/PageHero";
+import { PhoneIcon } from "@/components/homepage/HomeHeader";
 import { BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "@/components/homepage/page/bands";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
@@ -272,27 +274,24 @@ export default function RebatesPage() {
   ];
 
   return (
-    <BandPage>
-      <Crumbs trail={[{ name: "VEU rebates" }]} />
-      <Hero
+    // The homepage's top (PageHero), behind it a Reclaim split we installed under the rebate.
+    <BandPage hero={
+      <PageHero
+        crumbs={[{ name: "VEU rebates" }]}
         eye="Victorian Energy Upgrades · Accredited installer"
-        title={<>The VEU rebate is real. <em>We do the paperwork.</em></>}
+        title="The VEU rebate is real. {We do the paperwork.}"
         sub={<>The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}
-        img="/reclaim-split-back.webp"
-        imgAlt="A Reclaim split heat pump we installed under the VEU rebate, tank and compressor against a brick wall"
-        ctas={false}
-        facts={[
+        photo="/reclaim-split-back.webp" pos="center 45%"
+        ctas={<>
+          <a href="#calc" className="abtn abtn--or">Check my rebate →</a>
+          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line abtn--call" data-call-from="rebates-hero"><PhoneIcon />Or talk to a human</a>
+        </>}
+        trust={[
           { v: "up to $2,700", k: "heat pump hot water" },
           { v: "up to $5,000", k: "split & ducted aircon" },
-          { v: "~73%", k: "cut to running costs" },
-          { v: "$0 chase", k: "we apply it at the quote" },
         ]}
-      >
-        <div className="bxh__ctas">
-          <a href="#calc" className="abtn abtn--or abtn--flat">Check my rebate →</a>
-          <a href={`tel:${site.phoneE164}`} className="abtn abtn--line" data-call-from="rebates-hero">Or talk to a human</a>
-        </div>
-      </Hero>
+      />
+    }>
       <Tabs list={bands} />
       <Bands list={bands} />
       <EndCta
