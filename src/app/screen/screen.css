@@ -328,6 +328,8 @@ body:has(.screen) .utilbar {
 .screen__grid--perf { grid-template-rows: 0.52fr 2fr; }
 .screen__grid--areas { grid-template-rows: 0.85fr 0.85fr 1.6fr; }
 .screen__grid--sectors { grid-template-rows: 1fr 1.15fr; }
+/* Four team figures, then a row per tech. */
+.screen__grid--crew { grid-template-rows: 0.52fr 2fr; }
 
 /* Sectors: what a breakdown or a maintenance visit led to. The navy family, not
    the status palette: an install isn't "good" and a plain service isn't "bad",
@@ -335,23 +337,150 @@ body:has(.screen) .utilbar {
 .tile--sector { justify-content: space-between; }
 .tile--sector .rows { flex: 0 0 auto; }
 .sector__fig { display: flex; flex-direction: column; gap: calc(0.35 * var(--u)); }
-.led { display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: calc(1.2 * var(--u)); }
-.led__row { display: grid; grid-template-columns: calc(11 * var(--u)) 1fr; grid-template-rows: auto auto; column-gap: calc(1.2 * var(--u)); row-gap: calc(0.6 * var(--u)); align-items: center; }
-.led__name { grid-row: 1 / span 2; display: flex; flex-direction: column; font-size: calc(1.3 * var(--u)); font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
-.led__name em { font-style: normal; font-weight: 500; font-size: calc(0.92 * var(--u)); color: var(--ink-muted); }
-.led__bar { display: flex; gap: 3px; height: calc(1.6 * var(--u)); border-radius: calc(0.4 * var(--u)); overflow: hidden; background: var(--track); }
-.led__seg { flex-basis: 0; min-width: 4px; }
-.led--install { background: var(--navy); }
-.led--repair { background: #4a5a9c; }
-.led--quoted { background: #a7b0d6; }
-.led--only { background: #dcd8cb; }
-.led__key { display: flex; flex-wrap: wrap; gap: calc(0.4 * var(--u)) calc(1.4 * var(--u)); font-size: calc(0.95 * var(--u)); color: var(--ink-2); }
-.led__k { display: inline-flex; align-items: baseline; gap: calc(0.35 * var(--u)); white-space: nowrap; }
-.led__k i { width: calc(0.8 * var(--u)); height: calc(0.8 * var(--u)); border-radius: 2px; display: inline-block; align-self: center; }
-.led__k b { color: var(--navy); font-weight: 800; }
-.led__k em { font-style: normal; color: var(--ink-muted); }
+/* The pipeline. Cumulative stages, each a subset of the one before, so the row
+   narrows left to right and the drop-off is the gap you can see. Replaced a
+   stacked bar of the four outcomes a visit ended at — the same data, answering
+   a different question, and it took reading a key to tell that "install" and
+   "quoted, nothing booked" were not two steps of one thing. */
+.pipe { display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: calc(1.1 * var(--u)); }
+.pipe__row {
+  display: grid;
+  grid-template-columns: calc(10 * var(--u)) 1fr;
+  column-gap: calc(1 * var(--u));
+  align-items: center;
+}
+.pipe__name {
+  display: flex;
+  flex-direction: column;
+  font-size: calc(1.3 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.pipe__name em { font-style: normal; font-weight: 500; font-size: calc(0.92 * var(--u)); color: var(--ink-muted); }
+.pipe__flow { display: flex; align-items: stretch; gap: calc(0.3 * var(--u)); }
+.pipe__stage {
+  /* Equal boxes; the bar inside carries the share. See the note in the JSX. */
+  flex: 1 1 0;
+  box-sizing: border-box;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.1 * var(--u));
+  padding: calc(0.5 * var(--u)) calc(0.7 * var(--u));
+  border: 1px solid var(--hairline);
+  border-radius: calc(0.5 * var(--u));
+  background: var(--plane);
+  overflow: hidden;
+}
+/* The ramp is a second signal, never the only one: every stage is named and
+   counted in words beside it. */
+/* The share of the visits that got this far, drawn against the box it sits in.
+   Never the only signal: the count and the share are written underneath. */
+.pipe__tint {
+  display: block;
+  height: calc(0.45 * var(--u));
+  border-radius: 999px;
+  margin-bottom: calc(0.25 * var(--u));
+}
+.pipe__stage b {
+  font-size: calc(1.9 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1;
+}
+.pipe__stage u {
+  text-decoration: none;
+  font-size: calc(0.92 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pipe__stage em { font-style: normal; font-size: calc(0.82 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+.pipe__arrow { display: flex; align-items: center; flex: 0 0 auto; font-size: calc(1.6 * var(--u)); color: var(--ink-muted); }
 .rows__v--big { font-size: calc(2.1 * var(--u)); letter-spacing: -0.03em; }
 .rows__k small { font-size: calc(0.8 * var(--u)); opacity: 0.85; }
+
+
+/* --------------------------------------------------------------------- crew */
+/* Each tech's sixty days. Every figure carries its denominator underneath, and
+   nothing on the page is status-coloured: no target is set for hours on the
+   tools or for the share of jobs that come in inside the sold time, so a green
+   figure here would be the board inventing a target and marking a man against
+   it. See CrewPage in ScreenBoard.tsx. */
+.crew { display: flex; flex-direction: column; flex: 1; }
+.crew__head,
+.crew__row {
+  display: grid;
+  /* Name, the mix bar on the free space, then five columns of figures. The
+     figure columns are fixed: they are read down against the person above, not
+     across against each other, and sharing the free space between them put
+     each one a different distance from its heading. */
+  grid-template-columns:
+    calc(11 * var(--u)) 1fr calc(8.5 * var(--u)) calc(8.5 * var(--u))
+    calc(9 * var(--u)) calc(9 * var(--u)) calc(8 * var(--u)) calc(13 * var(--u));
+  align-items: center;
+  gap: calc(0.8 * var(--u));
+  padding: calc(0.35 * var(--u)) calc(0.6 * var(--u));
+}
+.crew__head { font-size: calc(0.9 * var(--u)); color: var(--ink-2); }
+.crew__row { flex: 1; border-top: 1px solid var(--hairline); border-radius: calc(0.6 * var(--u)); }
+.crew__name {
+  display: flex;
+  flex-direction: column;
+  font-size: calc(1.2 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.crew__name em { font-style: normal; font-weight: 500; font-size: calc(0.82 * var(--u)); color: var(--ink-muted); }
+.crew__fig { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); min-width: 0; }
+.crew__fig b {
+  font-size: calc(1.32 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.1;
+}
+.crew__fig span { font-size: calc(0.8 * var(--u)); color: var(--ink-muted); line-height: 1.25; }
+.crew__mix { display: flex; flex-direction: column; gap: calc(0.35 * var(--u)); min-width: 0; }
+.crew__bar {
+  display: flex;
+  gap: 2px;
+  height: calc(1.1 * var(--u));
+  border-radius: calc(0.3 * var(--u));
+  overflow: hidden;
+  background: var(--track);
+}
+.crew__seg { flex-basis: 0; min-width: 3px; }
+/* Wraps rather than ellipses: on a narrow panel the five counts are the point
+   of the bar above them, and half of "16 other" says nothing. */
+.crew__mixnums { font-size: calc(0.8 * var(--u)); color: var(--ink-2); line-height: 1.25; }
+.crew__legend { display: flex; gap: calc(0.9 * var(--u)); font-size: calc(0.82 * var(--u)); color: var(--ink-muted); }
+.crew__key { display: inline-flex; align-items: center; gap: calc(0.3 * var(--u)); white-space: nowrap; }
+.crew__key i { width: calc(0.7 * var(--u)); height: calc(0.7 * var(--u)); border-radius: 2px; display: inline-block; }
+
+/* The navy family in one order, lightest to darkest, with "other" in the cream
+   the Sectors bars use. Not the status palette: an install is not "good" and a
+   maintenance call is not "bad", and the words are written out beside every
+   bar because nobody reads a shade of navy from four metres. */
+.mix--maintenance { background: #a7b0d6; }
+.mix--breakdown { background: #7c87bf; }
+.mix--repair { background: #4a5a9c; }
+.mix--install { background: #050a30; }
+.mix--other { background: #dcd8cb; }
+/* Dark mode: the same ramp, turned over, because #050a30 on a #17171a panel is
+   a hole in the bar rather than a segment. */
+.screen--dark .mix--maintenance { background: #3c4675; }
+.screen--dark .mix--breakdown { background: #5c68a8; }
+.screen--dark .mix--repair { background: #8b97d4; }
+.screen--dark .mix--install { background: #cdd5f5; }
+.screen--dark .mix--other { background: #4a483f; }
 
 /**
  * How a page arrives.

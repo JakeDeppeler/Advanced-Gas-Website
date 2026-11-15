@@ -1,7 +1,8 @@
 "use client";
 
+import { CREW_SECTORS, MIN_HOURS, MIN_TIMED, type CrewSector, type TechKpi } from "@/lib/dashboard/crewTypes";
 import type { SectorKey, VisitOutcomes } from "@/lib/dashboard/sectors";
-import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
@@ -55,6 +56,7 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   Quotes: "screen__grid--quotes",
   Invoices: "screen__grid--invoices",
   "Daily pace": "screen__grid--daily",
+  Crew: "screen__grid--crew",
   Team: "screen__grid--team",
   Performance: "screen__grid--perf",
   Sectors: "screen__grid--sectors",
@@ -103,6 +105,17 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `What the ${goal} goal needs of every step${rateNote(m)}${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
+  // Says the window and, in the same breath, how much of the clock it is built
+  // from: a tech's hours are the visits whose stamps gave a real span, and a
+  // page about people has to lead with what it did not measure.
+  Crew: (m) => {
+    const c = m.crew;
+    if (!c) return "Each tech's last sixty days";
+    const t = c.team.timed;
+    return `Each tech over ${c.days} days · ${t.with} of ${t.of} visits have a start and finish clocked${
+      c.omitted.length > 0 ? ` · ${c.omitted.length} not shown, under ${MIN_HOURS}h on the clock` : ""
+    }`;
+  },
   // Names whose job it is, because the page is a work list rather than a score:
   // everything on it is something one person in the office does next.
   Invoices: () => "Money to bill, money owed to us, and what's overdue · one person's job",
@@ -662,6 +675,7 @@ export function ScreenBoard({
         {name === "Quotes" && <QuotesPage m={m} live={live} />}
         {name === "Invoices" && <InvoicesPage m={m} live={live} />}
         {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
+        {name === "Crew" && <CrewPage m={m} live={live} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
         {name === "Performance" && <PerformancePage m={m} live={live} />}
         {name === "Sectors" && <SectorsPage m={m} live={live} />}
@@ -2801,6 +2815,216 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
 
 
 
+/* --------------------------------------------------------------------- crew */
+
+const SECTOR_WORD: Record<CrewSector, string> = {
+  maintenance: "maintenance",
+  breakdown: "breakdowns",
+  repair: "repairs",
+  install: "installs",
+  other: "other",
+};
+const SECTOR_SHORT: Record<CrewSector, string> = {
+  maintenance: "maint",
+  breakdown: "break",
+  repair: "rep",
+  install: "inst",
+  other: "other",
+};
+
+/** "166h", "0.5h" — the unit the crew talk in. */
+const hrs = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n * 10) / 10}h`);
+/** Whole hours, for a figure read from across the room. */
+const bigHrs = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n)}h`);
+
+/**
+ * Each tech's last sixty days.
+ *
+ * Jake asked (15 Nov) for the mix of work per person, time on the tools, how
+ * much of it is not billable, drive time, whether jobs came in inside the time
+ * they were sold for, and "other KPI we can use to see who is standing out vs
+ * who is not".
+ *
+ * **Nothing on this page carries a verdict colour**, and that is deliberate.
+ * The board's status palette says where a figure sits against something that
+ * measures it, and nothing here is measured against anything anybody has set:
+ * there is no configured target for hours on the tools, for drive time, or for
+ * the share of jobs that come in inside the sold time. A green 71% would be the
+ * board inventing a target and then marking a man against it. The figures sit
+ * in ink with their denominators written beside them, and the room does the
+ * judging — which is also why the rows are ordered by jobs attended and carry
+ * no rank.
+ *
+ * **Lateness to a job is not here.** The arrival stamp is a default on 576 of
+ * the last 715 visits, so a late count would rank the crew on who taps the app.
+ * The first line of the page says how much of the clock is real instead, and
+ * the per-tech column says it again per person. See DASHBOARD.md.
+ */
+function CrewPage({ m, live }: { m: Metrics; live: Live }) {
+  const c = m.crew;
+  if (!live.st || !c || c.techs.length === 0) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Each tech&rsquo;s last sixty days</span>
+        <span className="tile__sub">
+          {!live.st
+            ? "ServiceTitan isn’t connected."
+            : c && c.techs.length === 0
+              ? "Nobody has twenty hours on the clock in the window yet."
+              : "Worked out on the next sync."}
+        </span>
+      </div>
+    );
+  }
+  const t = c.team;
+
+  return (
+    <>
+      <HeadCard
+        label="Time on the tools"
+        value={bigHrs(t.hours)}
+        foot={`${count(t.jobs)} jobs · ${t.timed.with} of ${t.timed.of} visits clocked`}
+      />
+      <HeadCard
+        label="Not billable"
+        value={bigHrs(t.nonBillableHours)}
+        foot={
+          t.nonBillableShare != null
+            ? `${pct(t.nonBillableShare)} of the clock · ${hrs(t.quoteHours)} of it quoting`
+            : "nothing on the clock yet"
+        }
+      />
+      <HeadCard
+        label="Drive time"
+        value={t.drive.avgMins != null ? String(Math.round(t.drive.avgMins)) : NA}
+        suffix={t.drive.avgMins != null ? "min a trip" : undefined}
+        foot={`${hrs(t.drive.hours)} over the ${t.drive.trips} of ${t.drive.of} trips that recorded one`}
+      />
+      {/* Navy, not a status colour: it is the page's headline question and
+          nothing sets a target for it. See the note above. */}
+      <HeadCard
+        navy
+        label="In the time sold"
+        value={t.inTimeRate != null ? pct(t.inTimeRate) : NA}
+        foot={
+          t.inTimeRate != null
+            ? `${t.inTime.within} of ${t.inTime.of} jobs with a sold time`
+            : `${t.inTime.of} jobs with a sold time · too few to rate`
+        }
+      />
+
+      <div className="tile c12" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">Each tech</span>
+          <span className="tile__sub">
+            work found: a quote written on a maintenance or breakdown call, or an install booked at
+            that address within {c.followDays} days
+          </span>
+          <span className="crew__legend">
+            {CREW_SECTORS.map((k) => (
+              <span className="crew__key" key={k}>
+                <i className={`mix--${k}`} aria-hidden="true" />
+                {SECTOR_WORD[k]}
+              </span>
+            ))}
+          </span>
+        </div>
+        <div className="crew">
+          <div className="crew__head">
+            <span>Tech</span>
+            <span>Work</span>
+            <span>On the tools</span>
+            <span>Not billable</span>
+            <span>Drive</span>
+            <span>In the time sold</span>
+            <span>Billed</span>
+            <span>Work found on a visit</span>
+          </div>
+          {c.techs.map((p) => (
+            <CrewRow key={p.tech} p={p} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CrewRow({ p }: { p: TechKpi }) {
+  const mix = CREW_SECTORS.filter((k) => p.mix[k] > 0);
+  return (
+    <div className="crew__row">
+      <span className="crew__name">
+        {p.tech}
+        <em>{count(p.jobs)} jobs</em>
+      </span>
+
+      <span className="crew__mix">
+        <span className="crew__bar" aria-hidden="true">
+          {mix.map((k) => (
+            <span key={k} className={`crew__seg mix--${k}`} style={{ flexGrow: p.mix[k] }} />
+          ))}
+        </span>
+        {/* The words, not just the colours: the segments are five shades of the
+            one navy family and nobody reads a shade from four metres. */}
+        <span className="crew__mixnums">
+          {mix.map((k) => `${p.mix[k]} ${SECTOR_SHORT[k]}`).join(" · ")}
+        </span>
+      </span>
+
+      {/* The clock, and how much of it was measured at all. A tech's hours are
+          only the visits whose stamps gave a real span, so the denominator goes
+          under the figure rather than in a footnote nobody reads. */}
+      <span className="crew__fig">
+        <b>{bigHrs(p.hours)}</b>
+        <span>{`${p.timed.with} of ${p.timed.of} clocked`}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.nonBillableHours >= 0.05 ? hrs(p.nonBillableHours) : "none"}</b>
+        <span>
+          {p.nonBillableShare != null && p.nonBillableHours >= 0.05
+            ? `${pct(p.nonBillableShare)} of the clock`
+            : "all billable"}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.drive.avgMins != null ? `${Math.round(p.drive.avgMins)} min` : NA}</b>
+        <span>
+          {p.drive.trips > 0
+            ? `${hrs(p.drive.hours)} · ${p.drive.trips} of ${p.drive.of} trips`
+            : `none of ${p.drive.of} trips recorded`}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.inTimeRate != null ? pct(p.inTimeRate) : NA}</b>
+        <span>
+          {p.inTimeRate != null
+            ? `${p.inTime.within} of ${p.inTime.of} jobs`
+            : `${p.inTime.of} jobs · ${MIN_TIMED} needed to rate`}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{compact(p.billed)}</b>
+        <span>{p.perHour != null ? `${compact(p.perHour)} an hour` : "no hours clocked"}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>
+          {count(p.found.quoted)} {p.found.quoted === 1 ? "quote" : "quotes"}
+        </b>
+        <span>
+          {p.found.visits > 0
+            ? `${p.found.install} led to an install · of ${p.found.visits} calls`
+            : "no service calls in the window"}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ sectors */
 
 const SECTOR_NAMES: Array<[SectorKey, string]> = [
@@ -2814,6 +3038,25 @@ const SECTOR_NAMES: Array<[SectorKey, string]> = [
 function shortDay(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+}
+
+/**
+ * The pipeline's stages: each one a subset of the one before it.
+ *
+ * "Quoted on the visit" is every visit that was quoted on, not the ones where
+ * nothing came of it — a funnel stage is a count of what got that far, and
+ * `quoted` in VisitOutcomes is the leftovers. Dropped entirely on a snapshot
+ * written before `quotedAll` existed, rather than drawn as a zero.
+ */
+function pipeStages(o: VisitOutcomes): Array<{ label: string; n: number; tint: CrewSector }> {
+  return [
+    { label: "Visits", n: o.visits, tint: "maintenance" as CrewSector },
+    ...(o.quotedAll != null
+      ? [{ label: "Quoted there", n: o.quotedAll, tint: "breakdown" as CrewSector }]
+      : []),
+    { label: "Booked back", n: o.install + o.repair, tint: "repair" as CrewSector },
+    { label: "Installs", n: o.install, tint: "install" as CrewSector },
+  ];
 }
 
 /**
@@ -2890,36 +3133,57 @@ function SectorsPage({ m, live }: { m: Metrics; live: Live }) {
 
       <div className="tile c8" style={{ gridRow: 2 }}>
         <div className="tile__head">
-          <span className="tile__title">What the visit led to</span>
-          <span className="tile__sub">same address, within {s.followDays} days · visits at least {s.settleDays} days old</span>
+          <span className="tile__title">What a visit turns into</span>
+          <span className="tile__sub">
+            same address, within {s.followDays} days · visits at least {s.settleDays} days old
+          </span>
         </div>
-        <div className="led">
-          {visits.map(([name, o]) => {
-            const parts: Array<[string, number, string]> = [
-              ["Install", o.install, "led--install"],
-              ["Repair", o.repair, "led--repair"],
-              ["Quoted, nothing booked", o.quoted, "led--quoted"],
-              ["Just the visit", o.only, "led--only"],
-            ];
-            return (
-              <div className="led__row" key={name}>
-                <span className="led__name">{name}<em>{count(o.visits)} visits</em></span>
-                <span className="led__bar" aria-hidden="true">
-                  {o.visits > 0 && parts.filter(([, n]) => n > 0).map(([w, n, c]) => (
-                    <span key={w} className={`led__seg ${c}`} style={{ flexGrow: n }} />
-                  ))}
-                </span>
-                <span className="led__key">
-                  {parts.map(([w, n, c]) => (
-                    <span key={w} className="led__k">
-                      <i className={c} aria-hidden="true" />
-                      {w} <b>{count(n)}</b>{o.visits > 0 ? <em>{pct(n / o.visits)}</em> : null}
+        {/* A pipeline rather than a stacked bar (Jake, 15 Nov). The stages are
+            cumulative and each one is a subset of the one before it, so the row
+            narrows left to right and the drop-off is the gap you can see. The
+            stacked bar it replaced showed the four outcomes a visit *ended* at,
+            which is the same data and answers a different question: it took
+            reading the key to work out that "install" and "quoted, nothing
+            booked" were not two steps of one thing. */}
+        <div className="pipe">
+          {visits.map(([name, o]) => (
+            <div className="pipe__row" key={name}>
+              <span className="pipe__name">
+                {name}
+                <em>{count(o.visits)} visits</em>
+              </span>
+              <span className="pipe__flow">
+                {pipeStages(o).map((st, i) => (
+                  <Fragment key={st.label}>
+                    {i > 0 ? (
+                      <span className="pipe__arrow" aria-hidden="true">
+                        &rsaquo;
+                      </span>
+                    ) : null}
+                    {/*
+                      Equal boxes, and the bar inside each one carries the
+                      share. Sizing the boxes themselves by the count was the
+                      first try: at nineteen installs out of sixty-eight visits
+                      the last box came out too narrow for its own label, and
+                      once every box had a floor under it they were all the same
+                      width anyway — a funnel that did not narrow. The bar does
+                      narrow, and the text stays the size it needs to be.
+                    */}
+                    <span className="pipe__stage">
+                      <i
+                        className={`pipe__tint mix--${st.tint}`}
+                        aria-hidden="true"
+                        style={{ width: o.visits > 0 ? `${Math.max(3, (st.n / o.visits) * 100)}%` : "100%" }}
+                      />
+                      <b>{count(st.n)}</b>
+                      <u>{st.label}</u>
+                      <em>{o.visits > 0 ? `${pct(st.n / o.visits)} of visits` : ""}</em>
                     </span>
-                  ))}
-                </span>
-              </div>
-            );
-          })}
+                  </Fragment>
+                ))}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -2933,7 +3197,12 @@ function SectorsPage({ m, live }: { m: Metrics; live: Live }) {
             </span>
           ))}
         </div>
-        <span className="tile__sub"><b>{lead}</b>{visits.some(([, o]) => o.ledUnbilled > 0) ? ` · ${count(s.breakdown.ledUnbilled + s.maintenance.ledUnbilled)} follow‑on jobs not billed yet` : ""}</span>
+        <span className="tile__sub">
+          <b>{lead}</b>
+          {visits.some(([, o]) => o.ledUnbilled > 0)
+            ? ` · ${count(s.breakdown.ledUnbilled + s.maintenance.ledUnbilled)} follow‑on jobs not billed yet`
+            : ""}
+        </span>
       </div>
     </>
   );
