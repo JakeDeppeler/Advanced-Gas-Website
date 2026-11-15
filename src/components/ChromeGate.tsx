@@ -22,7 +22,9 @@ export function ChromeGate({ children, legacy = false, header = false }: { child
  * local on the phone is what those pages are for.
  */
 function ownHeader(pathname: string) {
-  return pathname.startsWith("/areas/");
+  // The service pages joined them once rebuilt from the homepage's own
+  // sections (Jake, Nov 2026: "they need to resemble the home page more").
+  return pathname.startsWith("/areas/") || pathname.startsWith("/services/");
 }
 
 /**

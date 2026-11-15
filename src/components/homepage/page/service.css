@@ -28,197 +28,283 @@
 .ag .svk .bk__sec--navy .kx__sub{margin:0 0 12px}
 .ag .svk .kx2{align-items:start}
 
-/* ---------- Service and service-system pages (ServiceView.tsx), Nov 2026:
-   up to the category pages' standard. The classes are new (sv*, and sjx for the
-   system cards, as product.css already has an .svx) so the suburb pages,
-   which share .svk, are untouched. */
+/* ---------- The service pages and their system pages (ServiceView.tsx),
+   Nov 2026: built from the homepage's sections (Jake: "they need to resemble
+   the home page more"). The homepage's classes do the work (ahero, hbrands,
+   sg, awhy, revs, hfaq, htools-box, tgrid); these rules only add what a
+   service page has that the homepage doesn't, and are scoped to the page
+   root (.ag.svpg) so no other page that loads this file picks them up. */
 
-/* The systems under a service, in the category pages' card (category.css
-   .cx__card, mirrored rather than shared because that file belongs to the
-   category pages). The title's link covers the card; the finder link sits
-   above it so both can be clicked. */
-.ag .sjx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.ag .sjx--2,.ag .sjx--4{grid-template-columns:repeat(2,minmax(0,1fr))}
-/* Five: two wide, then three, so no row ends in a gap */
-.ag .sjx--5{grid-template-columns:repeat(6,minmax(0,1fr))}
-.ag .sjx--5>:nth-child(-n+2){grid-column:span 3}
-.ag .sjx--5>:nth-child(n+3){grid-column:span 2}
-.ag .sjx__card{position:relative;display:flex;flex-direction:column;background:#fff;border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45);transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
-.ag .sjx__card:hover{transform:translateY(-6px);box-shadow:0 0 0 3px var(--acc),0 30px 50px -28px rgba(5,10,48,.5)}
-.ag .sjx__card:has(:focus-visible){outline:3px solid var(--acc);outline-offset:3px}
-.ag .sjx__img{position:relative;height:220px;overflow:hidden;background:linear-gradient(180deg,#fff,#F3F5F8)}
-.ag .sjx--2 .sjx__img,.ag .sjx--5>:nth-child(-n+2) .sjx__img{height:280px}
-.ag .sjx__img img{object-fit:cover;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-/* A cut-out on white carries its own white box: the panel goes white to match */
-.ag .sjx__img--cut{background:#fff;border-bottom:1px solid var(--line)}
-.ag .sjx__img--cut img{object-fit:contain;padding:20px}
-.ag .sjx__card:hover .sjx__img img{transform:scale(1.05)}
-.ag .sjx__txt{display:flex;flex-direction:column;gap:6px;padding:18px 20px 20px;flex:1}
-.ag .sjx__tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--acc)}
-.ag .sjx__txt h3{margin:0;font-family:var(--disp);font-size:22px;font-weight:900;line-height:1.15;letter-spacing:-.01em;color:var(--navy)}
-.ag .sjx__txt h3 a{color:inherit;text-decoration:none;outline:0}
-.ag .sjx__txt h3 a::after{content:"";position:absolute;inset:0;z-index:1}
-.ag .sjx__txt p{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
-.ag .sjx__foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 16px;margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
-.ag .sjx__txt>p{margin-bottom:8px}
-.ag .sjx__go{font-size:14.5px;font-weight:700;color:var(--acc)}
-.ag .sjx__go i{font-style:normal;display:inline-block;transition:transform .2s}
-.ag .sjx__card:hover .sjx__go i{transform:translateX(4px)}
-.ag .sjx__opt{position:relative;z-index:2;font-size:13.5px;font-weight:700;color:var(--navy);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:6px 12px;transition:border-color .15s,background .15s}
-.ag .sjx__opt:hover{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,#fff);color:var(--navy)}
+/* Sections: the homepage's padding, toned white and cream in turn (ServiceView's Sections) */
+.ag.svpg .svq{position:relative;padding:112px 0;scroll-margin-top:96px}
+.ag.svpg .svq--white{background:#fff}
+.ag.svpg .svq--cream{background:var(--cream)}
+.ag.svpg .svq--navy{background:var(--navy)}
+.ag.svpg .svq--sky{background:var(--skylt)}
+/* Two of a tone that meet run on as one band */
+.ag.svpg section.svq--join{padding-top:0}
+.ag.svpg .svq__in{display:flex;flex-direction:column;gap:32px}
+/* Headings: the coloured part in the homepage's orange, lighter on navy */
+.ag.svpg .h2 span{color:var(--or)}
+.ag.svpg .svbox .h2 span{color:var(--or2)}
+.ag.svpg .svhd p{max-width:34rem}
 
-/* What you get: a drawing per point, the brand pages' icon in a compact card */
-.ag .svi{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.ag .svi--4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.ag .svi li{display:flex;flex-direction:column;gap:6px;padding:24px 24px 26px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
-.ag .svi__ico{display:grid;place-items:center;flex:none;width:64px;height:64px;margin-bottom:10px;border-radius:50%;color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,#fff)}
-.ag .svi__ico svg{width:38px;height:38px}
-.ag .svi h3{margin:0;font-family:var(--disp);font-size:19px;font-weight:800;line-height:1.2;color:var(--navy)}
-.ag .svi strong{font-size:14.5px;font-weight:700;line-height:1.4;color:var(--navy)}
-.ag .svi p{margin:4px 0 0;font-size:14.5px;line-height:1.55;color:var(--ink2)}
+/* Hero: the breadcrumb and a label above the homepage's headline, which runs
+   a size down because a service name is longer than "One standard." */
+.ag.svpg .svh__crumbs ol{list-style:none;margin:0 0 -4px;padding:0;display:flex;flex-wrap:wrap;gap:6px;font-size:13px;color:rgba(255,255,255,.7)}
+.ag.svpg .svh__crumbs li:not(:last-child)::after{content:"›";margin-left:6px;color:rgba(255,255,255,.45)}
+.ag.svpg .svh__crumbs a{color:rgba(255,255,255,.82);text-decoration:none}
+.ag.svpg .svh__crumbs a:hover{color:#fff;text-decoration:underline}
+.ag.svpg .svh__crumbs [aria-current]{color:#fff}
+.ag.svpg .svh__eye{margin-bottom:-8px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#FF9A5C}
+.ag.svpg .svh__h1{font-size:clamp(40px,4.6vw,66px)}
+.ag.svpg .svh__fact{max-width:15rem}
 
-/* The brands use the category pages' card (cx__brand in category.css) */
+/* The brand chips: as many columns as there are makers, so a short row still fills the line */
+.ag.svpg .svb{padding:56px 0}
+.ag.svpg .svb .hbrands__grid{grid-template-columns:repeat(var(--n),minmax(0,1fr))}
 
-/* Pricing: white cards in the navy box, one per trade, a photo per job */
-/* Columns by count: four in a row left each job too narrow for its photo, so four go two by two */
-.ag .svp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.ag .svp--1{grid-template-columns:minmax(0,1fr)}
-.ag .svp--2,.ag .svp--4{grid-template-columns:repeat(2,minmax(0,1fr))}
-.ag .svp__card{display:flex;flex-direction:column;background:#fff;border-radius:12px;color:var(--ink);overflow:hidden}
-.ag .svp__head{margin:0;padding:18px 20px 14px;border-bottom:1px solid var(--line);font-family:var(--disp);font-size:20px;font-weight:900;color:var(--navy)}
-.ag .svp__go{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 20px;border-top:1px solid var(--line);font-size:14.5px;font-weight:700;color:var(--acc);text-decoration:none}
-.ag .svp__go i{font-style:normal;transition:transform .2s}
-.ag .svp__go:hover i{transform:translateX(4px)}
-.ag .svp__rows{list-style:none;margin:0;padding:0}
-/* One trade on its own: its jobs side by side across the card, not a column down the left of it */
-.ag .svp--1 .svp__rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
-.ag .svp__rows>li{display:grid;grid-template-columns:88px minmax(0,1fr);gap:16px;align-items:start;padding:16px 20px;border-top:1px solid var(--line)}
-.ag .svp__rows>li:first-child{border-top:0}
-.ag .svp--1 .svp__rows>li{border-top:0}
-.ag .svp__img{position:relative;width:88px;height:88px;border-radius:10px;overflow:hidden;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
-.ag .svp__img img{object-fit:contain;padding:6px}
-.ag .svp__img--scene img{object-fit:cover;padding:0}
-.ag .svp__img--ico{display:grid;place-items:center;color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,#fff);box-shadow:none}
-.ag .svp__img--ico svg{width:44px;height:44px}
-.ag .svp__t{display:flex;flex-direction:column;gap:6px;min-width:0}
-.ag .svp__t strong{font-family:var(--disp);font-size:16.5px;font-weight:800;line-height:1.25;color:var(--navy)}
-.ag .svp__t em{font-style:normal;font-family:var(--disp);font-size:20px;font-weight:900;color:var(--navy)}
-.ag .svp__t em small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink3)}
-.ag .svp__t ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
-.ag .svp__t ul li{position:relative;padding-left:18px;font-size:14px;line-height:1.45;color:var(--ink2)}
+/* The system cards: the homepage's "Everything we do" card, with the options pill in the corner */
+.ag.svpg .svsg[data-n="2"],.ag.svpg .svsg[data-n="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Five: two wide, then three, so no row ends in a gap. Desktop only: the spans would add columns to the narrower grids. */
+@media (min-width:961px){
+  .ag.svpg .svsg[data-n="5"]{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .ag.svpg .svsg[data-n="5"]>:nth-child(-n+2){grid-column:span 3}
+  .ag.svpg .svsg[data-n="5"]>:nth-child(n+3){grid-column:span 2}
+}
+@media (hover:hover){.ag.svpg .svsg[data-n="2"] .sg__card{height:440px}}
+.ag.svpg .svsg__card img{object-position:center 45%}
+/* The whole card opens the system's page; the title and blurb sit over it but let the click through */
+.ag.svpg .svsg__hit{position:absolute;inset:0;z-index:1;border-radius:inherit}
+.ag.svpg .svsg__hit:focus-visible{outline:3px solid var(--or2);outline-offset:-3px}
+.ag.svpg .svsg__card .sg__body{z-index:2;pointer-events:none}
+.ag.svpg .svsg__card .sg__more{transition:max-height .35s ease,opacity .25s}
+.ag.svpg .svsg__card:hover .sg__more,.ag.svpg .svsg__card:focus-within .sg__more{max-height:200px;opacity:1}
+.ag.svpg .svsg__tag{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--or2)}
+.ag.svpg .svsg__opt{position:absolute;top:16px;right:16px;z-index:3;display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:999px;background:#fff;font-family:var(--disp);font-size:13.5px;font-weight:800;color:var(--navy);text-decoration:none;box-shadow:0 10px 24px -12px rgba(2,6,26,.6);transition:background .15s,color .15s}
+.ag.svpg .svsg__opt:hover,.ag.svpg .svsg__opt:focus-visible{background:var(--or);color:#fff}
+/* A product shot on white (no install photo of ours for it yet) sits on a light panel above the shade */
+.ag.svpg .svsg__card--prod{background:linear-gradient(180deg,#fff 0%,#E9EEF4 100%)}
+.ag.svpg .svsg__card--prod img{object-fit:contain;padding:36px 32px 128px;mix-blend-mode:multiply}
+.ag.svpg .svsg__card--prod .sg__shade{background:linear-gradient(180deg,rgba(5,10,48,0) 50%,rgba(5,10,48,.92) 100%)}
+
+/* What you get: the homepage's bento, with a drawing and a line on each point */
+.ag.svpg .svw__bigt{font-size:clamp(26px,2.6vw,36px);font-weight:900;line-height:1.05;letter-spacing:-.02em}
+.ag.svpg .svw__bigs{font-size:15px;line-height:1.55;color:rgba(255,255,255,.85);max-width:30rem}
+.ag.svpg .svw__fig--long{font-size:40px;line-height:1;letter-spacing:-.03em}
+.ag.svpg .svw__figk{font-size:15px;line-height:1.45}
+.ag.svpg .whycard--sky .svw__figk{font-weight:600}
+.ag.svpg .svw__item{justify-content:flex-start;gap:18px}
+.ag.svpg .whycard .svw__ico{width:52px;height:52px;color:var(--or) !important}
+.ag.svpg .svw__ico svg{width:34px;height:34px}
+.ag.svpg .svw__t{display:flex;flex-direction:column;gap:5px}
+.ag.svpg .svw__line{font-size:14px;font-weight:700;line-height:1.4;color:var(--navy)}
+
+/* How it looks / keeping it working: a photo of ours beside the words and figures */
+.ag.svpg .svft{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,64px);align-items:center}
+.ag.svpg .svft--flip .svft__img{order:2}
+.ag.svpg .svft__img{position:relative;aspect-ratio:4/3.2;border-radius:12px;overflow:hidden;background:var(--navy)}
+.ag.svpg .svft__img img{object-fit:cover}
+.ag.svpg .svft__t{display:flex;flex-direction:column;gap:16px}
+.ag.svpg .svft__t>p{margin:0;font-size:16px;line-height:1.65;color:var(--ink2);max-width:36rem}
+.ag.svpg .svft__facts{margin:6px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ag.svpg .svft__facts div{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:12px;background:#fff}
+.ag.svpg .svq--white .svft__facts div{background:#F6F7F9}
+.ag.svpg .svft__facts dd{margin:0;font-family:var(--disp);font-size:20px;font-weight:800;line-height:1.15;color:var(--navy)}
+.ag.svpg .svft__facts dt{font-size:13.5px;line-height:1.4;color:var(--ink2)}
+
+/* Two lists: what's in the job and what isn't, or who a system suits. Marks and headings carry the meaning. */
+.ag.svpg .svin{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:14px}
+.ag.svpg .svin__col{display:flex;flex-direction:column;gap:16px;padding:28px 30px;border-radius:12px}
+.ag.svpg .svin__col--in{background:var(--navy);color:#fff}
+.ag.svpg .svin__col--out{background:#fff}
+.ag.svpg .svq--white .svin__col--out{background:#F6F7F9}
+.ag.svpg .svin__col h3{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-size:21px;font-weight:800;color:var(--navy)}
+.ag.svpg .svin__col--in h3{color:#fff}
+.ag.svpg .svin__col h3 span{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;font-size:19px;color:#fff;background:var(--navy)}
+.ag.svpg .svin__col--in h3 span{background:var(--or)}
+.ag.svpg .svin__col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.ag.svpg .svin__col li{position:relative;padding-left:24px;font-size:15.5px;line-height:1.5;color:var(--ink)}
+.ag.svpg .svin__col--in li{color:rgba(255,255,255,.88)}
+.ag.svpg .svin__col li::before{position:absolute;left:2px;font-weight:800}
+.ag.svpg .svin__col--in li::before{content:"+";color:var(--or2)}
+.ag.svpg .svin__col--out li::before{content:"−";color:var(--ink3)}
+
+/* The homepage's navy box (Tools for you) holding the steps, the prices, the options and a table */
+.ag.svpg .svbox{position:relative;overflow:clip}
+.ag.svpg .svbox > * + *{margin-top:28px}
+.ag.svpg .svbox .tgrid{margin-top:28px}
+.ag.svpg .svbox .sechead__t{max-width:720px}
+
+/* How it runs: a numbered card per step */
+.ag.svpg .svst{list-style:none;padding:0}
+.ag.svpg .svst__card:hover{transform:none;box-shadow:none}
+.ag.svpg .svst__card b{display:grid;place-items:center;width:36px;height:36px;margin-bottom:8px;border-radius:50%;background:var(--or);font-family:var(--disp);font-size:15px;font-weight:800;color:#fff}
+.ag.svpg .svst__card span{font-size:14.5px;line-height:1.55}
+
+/* Price cards: one per trade, a photo per job */
+.ag.svpg .svp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ag.svpg .svp--1{grid-template-columns:minmax(0,1fr)}
+.ag.svpg .svp--2,.ag.svpg .svp--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ag.svpg .svp__card{display:flex;flex-direction:column;overflow:hidden;border-radius:12px;background:#fff;color:var(--ink)}
+.ag.svpg .svp__head{margin:0;padding:18px 22px 14px;border-bottom:1px solid var(--line);font-family:var(--disp);font-size:19px;font-weight:800;color:var(--navy)}
+.ag.svpg .svp__rows{list-style:none;margin:0;padding:0}
+/* One trade on its own: its jobs side by side across the card */
+.ag.svpg .svp--1 .svp__rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.ag.svpg .svp__rows>li{display:grid;grid-template-columns:80px minmax(0,1fr);gap:16px;align-items:start;padding:16px 22px;border-top:1px solid var(--line)}
+.ag.svpg .svp__rows>li:first-child,.ag.svpg .svp--1 .svp__rows>li{border-top:0}
+.ag.svpg .svp__img{position:relative;width:80px;height:80px;overflow:hidden;border-radius:10px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.ag.svpg .svp__img img{object-fit:contain;padding:6px}
+.ag.svpg .svp__img--scene img{object-fit:cover;padding:0}
+.ag.svpg .svp__img--ico{display:grid;place-items:center;background:#F3F4F7;box-shadow:none;color:var(--or)}
+.ag.svpg .svp__img--ico svg{width:42px;height:42px}
+.ag.svpg .svp__t{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ag.svpg .svp__t strong{font-family:var(--disp);font-size:16.5px;font-weight:800;line-height:1.25;color:var(--navy)}
+.ag.svpg .svp__t em{font-style:normal;font-family:var(--disp);font-size:20px;font-weight:900;color:var(--navy)}
+.ag.svpg .svp__t em small{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink3)}
+.ag.svpg .svp__t ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.ag.svpg .svp__t ul li{position:relative;padding-left:18px;font-size:14px;line-height:1.45;color:var(--ink2)}
 /* The includes are split off one comma list ("Supply, install, …"): each starts a line, so each takes a capital */
-.ag .svp__t ul li::first-letter{text-transform:uppercase}
-.ag .svp__t ul li::before{content:"✓";position:absolute;left:0;top:0;font-size:12px;font-weight:800;color:var(--acc)}
-.ag .svp__note{margin:0;max-width:820px;font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.8)}
+.ag.svpg .svp__t ul li::first-letter{text-transform:uppercase}
+.ag.svpg .svp__t ul li::before{content:"✓";position:absolute;left:0;top:0;font-size:12px;font-weight:800;color:var(--or)}
+
+/* A note set apart from the cards: the honest caveat */
+.ag.svpg .svnote{margin:0;max-width:860px;padding:16px 20px;border-left:4px solid var(--or);border-radius:0 12px 12px 0;background:#fff;font-size:15.5px;line-height:1.6;color:var(--ink)}
+.ag.svpg .svq--white .svnote{background:var(--cream)}
+.ag.svpg .svnote.svnote--dark{background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);border-left-color:var(--or2)}
+
+/* Our installs: photo tiles with their captions */
+.ag.svpg .svgl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ag.svpg .svgl__ph{position:relative;margin:0;height:360px;overflow:hidden;border-radius:12px;background:var(--navy)}
+.ag.svpg .svgl__ph img{object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.ag.svpg .svgl__ph:hover img{transform:scale(1.05)}
+.ag.svpg .svgl__ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,10,48,0) 50%,rgba(5,10,48,.88) 100%);pointer-events:none}
+.ag.svpg .svgl__ph figcaption{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:18px 20px;font-family:var(--disp);font-size:17px;font-weight:800;line-height:1.25;color:#fff}
 
 /* A system's own point (systemDetail's spotlight) */
-.ag .svs__cards{list-style:none;margin:0;padding:0;counter-reset:svs;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.ag .svs__cards--4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.ag .svs__cards li,.ag .svs__steps li,.ag .svs__list li{counter-increment:svs;position:relative;display:flex;flex-direction:column;gap:8px}
-.ag .svs__cards li{padding:24px 24px 26px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
-.ag .svs__cards li::before{content:counter(svs,decimal-leading-zero);font-family:var(--disp);font-size:30px;font-weight:900;line-height:1;color:var(--acc)}
-.ag .svs__cards h3,.ag .svs__steps h3,.ag .svs__list h3{margin:0;font-family:var(--disp);font-size:18.5px;font-weight:800;line-height:1.25;color:var(--navy)}
-.ag .svs__cards p,.ag .svs__steps p,.ag .svs__list p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
-/* Steps: in order, numbered down a line */
-.ag .svs__steps{list-style:none;margin:0;padding:0;counter-reset:svs;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 40px}
-.ag .svs__steps li{padding:0 0 0 62px;min-height:44px}
-.ag .svs__steps li::before{content:counter(svs);position:absolute;left:0;top:-4px;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--navy);font-family:var(--disp);font-size:17px;font-weight:900;color:#fff}
-/* Split: the product beside the list */
-.ag .svs__split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,4vw,56px);align-items:start}
-.ag .svs__img{position:sticky;top:160px;display:block;aspect-ratio:1;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--line2),0 20px 40px -32px rgba(5,10,48,.45)}
-.ag .svs__img img{object-fit:contain;padding:10%}
-.ag .svs__list{list-style:none;margin:0;padding:0;counter-reset:svs;display:flex;flex-direction:column}
-.ag .svs__list li{padding:20px 0 20px 62px;border-top:1px solid var(--line2)}
-.ag .svs__list li:first-child{border-top:0;padding-top:4px}
-.ag .svs__list li::before{content:counter(svs);position:absolute;left:0;top:18px;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--acc);font-family:var(--disp);font-size:17px;font-weight:900;color:#fff}
-.ag .svs__list li:first-child::before{top:2px}
-/* Table: two columns side by side, in the navy box, as the category pages' "Side by side" */
-.ag .svs__tblwrap{overflow-x:auto;border-radius:12px;background:#fff}
-.ag .svs__tbl{width:100%;border-collapse:collapse;font-size:15px;line-height:1.55;color:var(--ink2)}
-.ag .svs__tbl th,.ag .svs__tbl td{padding:16px 20px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
-.ag .svs__tbl thead th{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:#F6F8FB}
-.ag .svs__tbl tbody th{width:22%;font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy)}
-.ag .svs__tbl tbody tr:last-child>*{border-bottom:0}
-/* The closing note: the honest caveat, set apart from the cards */
-.ag .svs__note{margin:0;max-width:860px;padding:16px 20px;border-left:4px solid var(--acc);border-radius:0 10px 10px 0;background:color-mix(in srgb,var(--acc) 7%,#fff);font-size:15.5px;line-height:1.6;color:var(--ink)}
-.ag .bk__boxed .svs__note{background:rgba(255,255,255,.07);color:rgba(255,255,255,.88)}
+.ag.svpg .svs__cards,.ag.svpg .svs__steps,.ag.svpg .svs__list{list-style:none;margin:0;padding:0;counter-reset:svs}
+.ag.svpg .svs__cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.ag.svpg .svs__cards--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ag.svpg .svs__cards li,.ag.svpg .svs__steps li,.ag.svpg .svs__list li{counter-increment:svs;position:relative;display:flex;flex-direction:column;gap:8px}
+.ag.svpg .svs__cards li{padding:24px;border-radius:12px;background:#fff}
+.ag.svpg .svq--white .svs__cards li{background:#F6F7F9}
+.ag.svpg .svs__cards li::before{content:counter(svs,decimal-leading-zero);font-family:var(--disp);font-size:30px;font-weight:900;line-height:1;color:var(--or)}
+.ag.svpg .svs__cards h3,.ag.svpg .svs__steps h3,.ag.svpg .svs__list h3{font-family:var(--disp);font-size:18.5px;font-weight:800;line-height:1.25;color:var(--navy)}
+.ag.svpg .svs__cards p,.ag.svpg .svs__steps p,.ag.svpg .svs__list p{margin:0;font-size:15px;line-height:1.6;color:var(--ink2)}
+.ag.svpg .svs__steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 40px}
+.ag.svpg .svs__steps li{min-height:44px;padding-left:62px}
+.ag.svpg .svs__steps li::before,.ag.svpg .svs__list li::before{content:counter(svs);position:absolute;left:0;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-family:var(--disp);font-size:17px;font-weight:900;color:#fff}
+.ag.svpg .svs__steps li::before{top:-4px;background:var(--navy)}
+.ag.svpg .svs__split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,4vw,56px);align-items:start}
+.ag.svpg .svs__img{position:sticky;top:120px;display:block;aspect-ratio:1;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.ag.svpg .svs__img img{object-fit:contain;padding:10%;mix-blend-mode:multiply}
+.ag.svpg .svs__list{display:flex;flex-direction:column}
+.ag.svpg .svs__list li{padding:20px 0 20px 62px;border-top:1px solid var(--line2)}
+.ag.svpg .svs__list li:first-child{padding-top:4px;border-top:0}
+.ag.svpg .svs__list li::before{top:18px;background:var(--or)}
+.ag.svpg .svs__list li:first-child::before{top:2px}
+/* The table: two columns side by side, white in the navy box */
+.ag.svpg .svs__tblwrap{overflow-x:auto;border-radius:12px;background:#fff}
+.ag.svpg .svs__tbl{width:100%;border-collapse:collapse;font-size:15px;line-height:1.55;color:var(--ink2)}
+.ag.svpg .svs__tbl th,.ag.svpg .svs__tbl td{padding:16px 20px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.ag.svpg .svs__tbl thead th{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);background:#F6F7F9}
+.ag.svpg .svs__tbl tbody th{width:22%;font-family:var(--disp);font-size:16px;font-weight:800;color:var(--navy)}
+.ag.svpg .svs__tbl tbody tr:last-child>*{border-bottom:0}
 
-/* The options, on the finder's own page: one card in the navy box */
-.ag .svo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#fff;border-radius:14px;overflow:hidden;color:inherit;text-decoration:none;transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s}
-.ag .svo:hover{transform:translateY(-4px);box-shadow:0 0 0 3px var(--acc-l),0 30px 50px -28px rgba(0,0,0,.5)}
-.ag .svo:focus-visible{outline:3px solid var(--acc-l);outline-offset:3px}
-/* White, not the cards' grey fade: the cut-outs come on white boxes of their own */
-.ag .svo__img{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;min-height:260px;padding:20px;background:#fff;border-right:1px solid var(--line)}
-.ag .svo__img>span{position:relative}
-.ag .svo__img img{object-fit:contain;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-.ag .svo:hover .svo__img img{transform:scale(1.04)}
-.ag .svo__txt{display:flex;flex-direction:column;gap:8px;padding:28px 30px}
-.ag .svo__txt strong{font-family:var(--disp);font-size:clamp(24px,2.2vw,30px);font-weight:900;letter-spacing:-.015em;color:var(--navy)}
-.ag .svo__intro{font-size:15.5px;line-height:1.6;color:var(--ink2)}
-.ag .svo__meta{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--ink3)}
-.ag .svo__meta b{color:var(--navy)}
-.ag .svo__go{display:flex;justify-content:space-between;align-items:center;font-size:15.5px;font-weight:700;color:var(--acc)}
-.ag .svo__go i{font-style:normal;transition:transform .2s}
-.ag .svo:hover .svo__go i{transform:translateX(4px)}
+/* The options, on the finder's own page: one white card in the navy box */
+.ag.svpg .svo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);overflow:hidden;border-radius:12px;background:#fff;color:inherit;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.ag.svpg .svo:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--or2)}
+.ag.svpg .svo:focus-visible{outline:3px solid var(--or2);outline-offset:3px}
+.ag.svpg .svo__img{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;min-height:260px;padding:20px;background:#fff;border-right:1px solid var(--line)}
+.ag.svpg .svo__img>span{position:relative}
+.ag.svpg .svo__img img{object-fit:contain;mix-blend-mode:multiply}
+.ag.svpg .svo__txt{display:flex;flex-direction:column;gap:8px;padding:28px 30px}
+.ag.svpg .svo__txt small{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--or)}
+.ag.svpg .svo__txt strong{font-family:var(--disp);font-size:clamp(24px,2.2vw,30px);font-weight:900;letter-spacing:-.015em;color:var(--navy)}
+.ag.svpg .svo__intro{font-size:15.5px;line-height:1.6;color:var(--ink2)}
+.ag.svpg .svo__meta{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--ink3)}
+.ag.svpg .svo__meta b{color:var(--navy)}
+.ag.svpg .svo__go{display:flex;justify-content:space-between;align-items:center;font-family:var(--disp);font-size:15.5px;font-weight:700;color:var(--or-ink)}
+.ag.svpg .svo__go i{font-style:normal;transition:transform .2s}
+.ag.svpg .svo:hover .svo__go i{transform:translateX(4px)}
 
-/* How it works sits on a light band here, where the system pages put it on sky */
-.ag .svk .hw{margin-top:4px}
+/* The nearest suburbs, as the homepage's chips */
+.ag.svpg .svar .kx__chips{display:flex;flex-wrap:wrap;gap:10px;margin:0}
+.ag.svpg .svar .kx__chips a{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:#fff;border:1px solid var(--line2);font-family:var(--disp);font-size:15px;font-weight:700;color:var(--navy);text-decoration:none;transition:border-color .15s,transform .15s}
+.ag.svpg .svar .kx__chips a:hover{border-color:var(--navy);transform:translateY(-2px)}
+.ag.svpg .svar .kx__chips .kx__chips-all{background:var(--or);border-color:var(--or);color:#fff}
+.ag.svpg .svar .kx__chips .kx__chips-all:hover{background:var(--or-h);border-color:var(--or-h)}
 
 @media (max-width:1100px){
-  .ag .svi--4,.ag .svs__cards--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag.svpg .svs__cards--4{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media (max-width:1000px){
-  .ag .svp--3,.ag .svp--4{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ag .svp--3>:last-child{grid-column:1/-1}
-  .ag .sjx,.ag .sjx--5{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ag .sjx--5>*{grid-column:auto}
-  .ag .sjx--5>:last-child{grid-column:1/-1}
-  .ag .svi,.ag .svs__cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ag .svs__split{grid-template-columns:1fr}
-  .ag .svs__img{position:relative;top:0;width:min(100%,320px);aspect-ratio:4/3}
-  .ag .svo{grid-template-columns:1fr}
-  .ag .svo__img{min-height:200px;border-right:0;border-bottom:1px solid var(--line)}
+@media (max-width:960px){
+  .ag.svpg .svsg[data-n="5"]>:last-child{grid-column:1/-1}
+  .ag.svpg .svft,.ag.svpg .svs__split,.ag.svpg .svo{grid-template-columns:minmax(0,1fr)}
+  .ag.svpg .svft--flip .svft__img{order:0}
+  .ag.svpg .svgl,.ag.svpg .svs__cards,.ag.svpg .svp--3,.ag.svpg .svp--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag.svpg .svp--3>:last-child{grid-column:1/-1}
+  .ag.svpg .svs__img{position:relative;top:0;width:min(100%,340px);aspect-ratio:4/3}
+  .ag.svpg .svo__img{min-height:200px;border-right:0;border-bottom:1px solid var(--line)}
+  .ag.svpg .svb .hbrands__grid{grid-template-columns:repeat(min(var(--n),4),minmax(0,1fr))}
 }
 @media (max-width:700px){
-  .ag .svp--2,.ag .svp--3,.ag .svp--4{grid-template-columns:minmax(0,1fr)}
-  .ag .svs__steps{grid-template-columns:1fr}
+  .ag.svpg .svp--2,.ag.svpg .svp--3,.ag.svpg .svp--4,.ag.svpg .svs__steps{grid-template-columns:minmax(0,1fr)}
   /* The two-column table stacks into a card per row on a phone, the label above each value */
-  .ag .svs__tbl thead{display:none}
-  .ag .svs__tbl,.ag .svs__tbl tbody,.ag .svs__tbl tr,.ag .svs__tbl tbody th,.ag .svs__tbl td{display:block;width:auto}
-  .ag .svs__tbl tr{padding:16px 18px;border-bottom:1px solid var(--line)}
-  .ag .svs__tbl tbody tr:last-child{border-bottom:0}
-  .ag .svs__tbl tbody th,.ag .svs__tbl td{padding:0;border:0}
-  .ag .svs__tbl td{margin-top:10px}
-  .ag .svs__tbl td::before{content:attr(data-l);display:block;margin-bottom:2px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+  .ag.svpg .svs__tbl thead{display:none}
+  .ag.svpg .svs__tbl,.ag.svpg .svs__tbl tbody,.ag.svpg .svs__tbl tr,.ag.svpg .svs__tbl tbody th,.ag.svpg .svs__tbl td{display:block;width:auto}
+  .ag.svpg .svs__tbl tr{padding:16px 18px;border-bottom:1px solid var(--line)}
+  .ag.svpg .svs__tbl tbody tr:last-child{border-bottom:0}
+  .ag.svpg .svs__tbl tbody th,.ag.svpg .svs__tbl td{padding:0;border:0}
+  .ag.svpg .svs__tbl td{margin-top:10px}
+  .ag.svpg .svs__tbl td::before{content:attr(data-l);display:block;margin-bottom:2px;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
 }
 @media (max-width:600px){
-  .ag .sjx,.ag .sjx--2,.ag .sjx--4,.ag .sjx--5{grid-template-columns:1fr}
-  .ag .sjx__img,.ag .sjx--2 .sjx__img,.ag .sjx--5>:nth-child(-n+2) .sjx__img{height:190px}
-  .ag .sjx__txt h3{font-size:20px}
-  /* On a phone each point is a row, the drawing beside its heading, so six of them aren't six screens */
-  .ag .svi,.ag .svi--4,.ag .svs__cards,.ag .svs__cards--4{grid-template-columns:1fr;gap:10px}
-  .ag .svi li{display:grid;grid-template-columns:48px minmax(0,1fr);column-gap:14px;row-gap:3px;align-items:start;padding:16px 16px 18px}
-  .ag .svi__ico{grid-row:span 3;width:48px;height:48px;margin:0}
-  .ag .svi__ico svg{width:30px;height:30px}
-  .ag .svi h3{font-size:17px}
-  .ag .svi strong,.ag .svi p{grid-column:2}
-  .ag .svs__cards li{padding:18px}
-  .ag .svs__cards li::before{font-size:24px}
-  .ag .svp__rows>li{grid-template-columns:64px minmax(0,1fr);gap:12px;padding:14px 16px}
-  .ag .svp__img{width:64px;height:64px}
-  .ag .svp__head{padding:16px}
-  .ag .svo__img{min-height:150px;padding:14px}
-  .ag .svo__txt{padding:20px}
+  .ag.svpg .svq{padding:72px 0}
+  .ag.svpg section.svq--join{padding-top:0}
+  .ag.svpg .svb{padding:40px 0}
+  .ag.svpg .svb .hbrands__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ag.svpg .svsg,.ag.svpg .svsg[data-n]{grid-template-columns:minmax(0,1fr)}
+  .ag.svpg .svsg[data-n="5"]>:last-child{grid-column:auto}
+  .ag.svpg .svgl,.ag.svpg .svs__cards,.ag.svpg .svs__cards--4{grid-template-columns:minmax(0,1fr);gap:10px}
+  .ag.svpg .svgl__ph{height:300px}
+  .ag.svpg .svs__cards li{padding:18px}
+  .ag.svpg .svft__facts dd{font-size:17px}
+  .ag.svpg .svin__col{padding:22px 20px}
+  .ag.svpg .svp__rows>li{grid-template-columns:64px minmax(0,1fr);gap:12px;padding:14px 16px}
+  .ag.svpg .svp__img{width:64px;height:64px}
+  .ag.svpg .svp__head{padding:16px}
+  .ag.svpg .svo__img{min-height:150px;padding:14px}
+  .ag.svpg .svo__txt{padding:20px}
+  .ag.svpg .whycard .svw__ico{width:48px;height:48px}
+  .ag.svpg .svw__fig--long{font-size:36px}
 }
-/* Our installs: the captions here are sentences, not the brand page's two words, so on a phone the photo goes taller and the caption smaller rather than covering it */
-@media (max-width:600px){
-  .ag .svgal .bk__ph{aspect-ratio:3/4}
-  .ag .svgal .bk__ph figcaption{left:6px;right:6px;bottom:6px;font-size:11.5px;line-height:1.35;padding:5px 7px}
-  /* A system page's figures are its specs, some of them phrases ("Internal cupboard or external slab"): a size down so they stay figures */
-  .ag .svk .bxh__facts dd{font-size:19px;overflow-wrap:anywhere}
+/* Touch screens: the blurb is always shown (the homepage's rule). These
+   blurbs run longer than the homepage's, and over the photo they covered it,
+   so the photo takes the top of the card and the words sit under it on navy. */
+@media (hover:none){
+  .ag.svpg .svsg__card{display:flex;flex-direction:column;height:auto;padding-top:210px}
+  .ag.svpg .svsg__card > img{height:230px !important;bottom:auto !important}
+  .ag.svpg .svsg__card .sg__shade{background:linear-gradient(180deg,rgba(5,10,48,0) 0,rgba(5,10,48,0) 120px,var(--navy) 230px)}
+  .ag.svpg .svsg__card .sg__body{position:relative;width:100%}
+  .ag.svpg .svsg__card .sg__more{max-height:none;opacity:1}
+  .ag.svpg .svsg__card:hover img{transform:none}
+  /* A product shot keeps its white panel, behind the photo only */
+  .ag.svpg .svsg__card--prod{background:var(--navy)}
+  .ag.svpg .svsg__card--prod::before{content:"";position:absolute;left:0;right:0;top:0;height:230px;background:linear-gradient(180deg,#fff,#E9EEF4)}
+  .ag.svpg .svsg__card--prod img{padding:24px 24px 56px}
+  .ag.svpg .svsg__opt{top:14px;right:14px}
 }
 @media (prefers-reduced-motion:reduce){
-  .ag .sjx__card,.ag .sjx__img img,.ag .svo,.ag .svo__img img{transition:none}
-  .ag .sjx__card:hover,.ag .svo:hover{transform:none}
-  .ag .sjx__card:hover .sjx__img img,.ag .svo:hover .svo__img img{transform:none}
+  .ag.svpg .sg__card img,.ag.svpg .svgl__ph img,.ag.svpg .svo,.ag.svpg .svo__go i,.ag.svpg .svar .kx__chips a{transition:none}
+  .ag.svpg .sg__card:hover img,.ag.svpg .svgl__ph:hover img,.ag.svpg .svo:hover,.ag.svpg .svar .kx__chips a:hover{transform:none}
+  .ag.svpg .svo:hover .svo__go i{transform:none}
 }
+/* A note under a table or the prices in the navy box: the box's own gap above it */
+.ag.svpg .svbox > .svnote{margin-top:24px}
+/* The bento's last point fills what's left of its row (ServiceView's Why) */
+@media (min-width:961px){.ag.svpg .svw__last{grid-column:span var(--s4,1)}}
+@media (min-width:601px) and (max-width:960px){.ag.svpg .svw__last{grid-column:span var(--s2,1)}}
+@media (min-width:601px) and (max-width:960px){.ag.svpg .svsg[data-n="3"]>:last-child{grid-column:1/-1}}
+.ag.svpg .svft__img--prod{background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.ag.svpg .svft__img--prod img{object-fit:contain;padding:8%;mix-blend-mode:multiply}

@@ -1,24 +1,43 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment, type ReactNode } from "react";
 import type { ServiceContent } from "@/lib/serviceContent";
 import type { SystemDetail, SystemSpotlight } from "@/lib/systemDetail";
 import { resolveAsset } from "@/lib/publicAsset";
-import { findBrand } from "@/lib/brands";
-import { SHOW_PRICES, findSystem, lowerLabel, systemHref } from "@/lib/homepage/data";
+import { getReviews } from "@/lib/googleReviews";
+import { RATING_TEXT } from "@/lib/reviews";
+import { HOME_BRANDS, PHOTO, SHOW_PRICES, TOOLS, findSystem, lowerLabel, systemHref } from "@/lib/homepage/data";
 import { LEARN, SYS_INTRO, learnFor } from "@/lib/homepage/learn";
+import { HeroQuote } from "../HeroQuote";
+import { HomeHeader, PhoneIcon } from "../HomeHeader";
+import { SiteModeStrip } from "@/components/Header";
 import { HowItWorks } from "../how/HowItWorks";
 import { ReasonIcon, type ReasonIconName } from "../brand/ReasonIcon";
-import { BrandLockup } from "../brand/BrandMark";
-import "./category.css";
-import { Crumbs, Hero, Next } from "./kit";
 import { AreaChips } from "./AreasServed";
-import { accent, lastWord, BkHead, Bands, Tabs, EndCta, BandPage, type Band } from "./bands";
+import { EndCta } from "./bands";
+import { QuotePreset } from "./QuotePreset";
+import "../homepage.css";
+import "./service.css";
+
+/**
+ * The service pages (/services/<slug>) and their system pages
+ * (/services/<slug>/<system>), built from the homepage's own sections
+ * (Jake, Nov 2026: "they need to resemble the home page more"), so someone
+ * arriving from the homepage stays on the same page family: the photo hero
+ * with the quote form, the brand chips, the photo cards, the navy bento,
+ * the scrolling reviews, the FAQ block, the tools box and the closing box.
+ *
+ * Every word, figure and photo is the page's own, from lib/serviceContent
+ * and lib/systemDetail; the homepage's classes only lay them out. A part a
+ * page has no content for is left out rather than filled in.
+ */
 
 /** A /public path that exists, trying other extensions; the path as given if none does. */
 const asset = (src: string) => resolveAsset(src) ?? src;
 
 type Row = { tier: string; price: string; includes: string; group?: string; photo?: string; photoScene?: boolean; priceKey?: string };
 type Sys = NonNullable<ServiceContent["systems"]>[number];
+type Fact = { v: string; k: string };
 
 /**
  * Install systems that are also in Find your system, so a service page can
@@ -50,20 +69,104 @@ const HOW_TIER: Record<string, string> = {
 /** A service page's own drawing, where the page opens on why at all (the heat pump one). */
 const SERVICE_HOW: Record<string, string> = { "heat-pump-installation": "heat-pump" };
 
-/** Price-card groups that are a system in the finder: the group links to it. */
-const GROUP_FINDER: Record<string, string> = {
-  "Split system": "split-system",
-  "Multi-head": "multi-head",
-  "Ducted reverse-cycle": "ducted",
-  "Gas ducted heating": "gas-ducted-heating",
-  "Gas hot water": "gas-continuous-flow",
+/**
+ * The hero photo, full width under the navy scrim as the homepage's team
+ * photo is: one of our own jobs, and one the page doesn't show again lower
+ * down (the system cards and "how it looks" have the rest). A service not
+ * listed uses its content's hero photo.
+ */
+const HERO_PHOTO: Record<string, { src: string; pos?: string }> = {
+  // An installer of ours with a whole house of Kaden systems, ready to go in
+  "air-conditioning-installation": { src: "/kaden-team-with-chaz.jpg", pos: "center 62%" },
+  // A Reclaim split on its slab among the garden beds, a shot no card uses
+  "heat-pump-installation": { src: "/reclaim-split-back-2.jpg", pos: "center 60%" },
+  "aircon-servicing-repairs": { src: "/evap-cooler-service.webp", pos: "center 55%" },
+  // The homepage's own: the trenching photo would be the obvious one, but the
+  // page already shows it (gas-line-safe.webp is the same file) further down.
+  "gas-plumbing": { src: PHOTO.team, pos: "center 35%" },
 };
+
+/**
+ * The bento's big photo tile: the homepage's (an installer with a whole
+ * house of systems), unless the page's hero already is that photo, when it
+ * takes the team in front of the vans instead.
+ */
+const bentoPhoto = (hero: string) => (hero === PHOTO.whyBig ? PHOTO.team : PHOTO.whyBig);
+
+/**
+ * Which of the hero quote form's services it opens on, by the form's own
+ * label. Gas & plumbing spans heating, hot water and gas fitting, so its form
+ * starts at the first question, as the homepage's does.
+ */
+const QUOTE_FOR: Record<string, string> = {
+  "air-conditioning-installation": "Cooling",
+  "heat-pump-installation": "Hot water",
+  "aircon-servicing-repairs": "Cooling",
+  "gas-plumbing/gas-ducted": "Heating",
+  "gas-plumbing/continuous-flow": "Hot water",
+  "gas-plumbing/gas-service": "Gas & plumbing",
+  "gas-plumbing/temporary-hot-water": "Hot water",
+};
+
+/**
+ * Reviews that mention the job lead the scrolling columns, the rest follow,
+ * as the category pages pick theirs. A system without its own words uses
+ * its service's.
+ */
+const REVIEW_WORD: Record<string, RegExp> = {
+  "air-conditioning-installation": /air ?con|split|ducted|cool|mitsubishi|kaden|evap/i,
+  "air-conditioning-installation/split": /split|mitsubishi|kaden/i,
+  "air-conditioning-installation/reverse-cycle": /split|reverse|ducted/i,
+  "air-conditioning-installation/multi": /split|multi/i,
+  "air-conditioning-installation/ducted": /ducted|zon/i,
+  "air-conditioning-installation/evap": /evap|cool/i,
+  "heat-pump-installation": /heat pump|hot water|reclaim|thermann|istore|veu/i,
+  "aircon-servicing-repairs": /servic|repair|clean|follow-up|air ?con|split|ducted/i,
+  "gas-plumbing": /gas|heater|hot water|brivis|emergency/i,
+  "gas-plumbing/gas-ducted": /ducted|heater|brivis|gas/i,
+  "gas-plumbing/continuous-flow": /hot water|gas|thermann/i,
+  "gas-plumbing/temporary-hot-water": /hot water|emergency|loaner/i,
+};
+
+/** The homepage's calculators that belong with each service, in the order they're most use there. */
+const TOOLS_FOR: Record<string, string[]> = {
+  "air-conditioning-installation": ["/tools/sizing-calculator", "/tools/running-cost-calculator", "/tools/heating-comparator"],
+  "heat-pump-installation": ["/hot-water#size", "/tools/veu-rebate-estimator", "/tools/hot-water-savings"],
+  "aircon-servicing-repairs": ["/tools/fault-codes", "/tools/running-cost-calculator", "/tools/sizing-calculator"],
+  "gas-plumbing": ["/tools/heating-comparator", "/tools/hot-water-savings", "/hot-water#size"],
+};
+
+/** The links under the FAQ heading, as the homepage's "VEU rebate explained · Repair or replace? · Blog". */
+const READ_MORE: Record<string, [string, string][]> = {
+  "air-conditioning-installation": [["Cooling options", "/cooling"], ["Repair or replace?", "/upgrade-or-repair"], ["Blog & guides", "/blog"]],
+  "heat-pump-installation": [["VEU rebate explained", "/rebates"], ["Hot water options", "/hot-water"], ["Blog & guides", "/blog"]],
+  "aircon-servicing-repairs": [["Repair or replace?", "/upgrade-or-repair"], ["Fault code lookup", "/tools/fault-codes"], ["Blog & guides", "/blog"]],
+  "gas-plumbing": [["Heating options", "/heating"], ["Hot water options", "/hot-water"], ["Blog & guides", "/blog"]],
+};
+
+/**
+ * Pages that list their jobs without prices. Aircon installation (Jake, Nov
+ * 2026: "just keep the system cards"): every job on it is a system in the
+ * finder, and the system cards already go to its options.
+ */
+const NO_PRICE_CARDS = new Set(["air-conditioning-installation"]);
 
 /** What a system card's link says: "install" is wrong for a service or a hire. */
 const GO: Record<string, string> = {
   "aircon-servicing-repairs": "What the service covers",
   "gas-plumbing/gas-service": "What the service covers",
   "gas-plumbing/temporary-hot-water": "How the hire works",
+};
+
+/**
+ * The brand chips under the hero use the homepage's own chip line for each
+ * maker, except where this page fits the maker for something else: Brivis
+ * is here for its evaporative coolers, Kaden on the gas page for gas ducted.
+ */
+const CHIP_LINE: Record<string, Record<string, string>> = {
+  "air-conditioning-installation": { "/brands/brivis": "Evaporative" },
+  "aircon-servicing-repairs": { "/brands/brivis": "Evaporative" },
+  "gas-plumbing": { "/brands/kaden": "Gas ducted" },
 };
 
 /* ------------------------------------------------------------------ icons */
@@ -118,59 +221,325 @@ const BY_WORD: [RegExp, IconKey][] = [
   [/\bleak/i, "wrench"],
   [/both seasons|heats and cools/i, "heatcool"],
 ];
+/**
+ * For a point with no icon field at all (a system page with a plain list of
+ * points, like temporary hot water), a drawing from its words, so a row of
+ * them isn't the same tick eight times.
+ */
+const POINT_WORD: [RegExp, IconKey][] = [
+  [/same day|hours?|time to/i, "clock"],
+  [/priced|price|waived|by the day/i, "rebate"],
+  [/taken away|disconnected/i, "truck"],
+  [/whole house|whole home/i, "tank"],
+  [/rental|tenant|complian/i, "shield"],
+];
 const iconFor = (b: { t: string; line?: string; icon?: string }): IconKey =>
-  BY_WORD.find(([re]) => re.test(`${b.t} ${b.line ?? ""}`))?.[1] ?? FROM_FIELD[b.icon ?? ""] ?? "check";
+  BY_WORD.find(([re]) => re.test(`${b.t} ${b.line ?? ""}`))?.[1]
+  ?? FROM_FIELD[b.icon ?? ""]
+  ?? (b.icon ? undefined : POINT_WORD.find(([re]) => re.test(b.t))?.[1])
+  ?? "check";
 
-/* ------------------------------------------------------------- the parts */
+/* --------------------------------------------------------------- helpers */
 
-/** What you get: a drawing per point, as the brand pages' "Why we choose". */
-function Points({ items }: { items: { t: string; line?: string; d: string; icon?: string }[] }) {
+/**
+ * A heading with its coloured part in a span, the way the homepage sets
+ * them ("Everything we do, <span>under one roof.</span>"): the part in braces
+ * where the content marks one, else the part after the last comma, else the
+ * last word.
+ */
+function head(h: string): ReactNode {
+  if (h.startsWith("=")) return h.slice(1);
+  if (/[{}]/.test(h)) return h.split(/[{}]/).map((p, i) => (i % 2 ? <span key={i}>{p}</span> : p));
+  const c = h.lastIndexOf(", ");
+  if (c > 0 && c < h.length - 4) return <>{h.slice(0, c + 1)} <span>{h.slice(c + 2)}</span></>;
+  const m = h.match(/^(.*\s)(\S+?[.?!]?)$/);
+  return m ? <>{m[1]}<span>{m[2]}</span></> : h;
+}
+
+/** "A split system", "an evaporative cooler", but "gas ducted heating" with no article. */
+const howHead = (label: string) => {
+  const l = lowerLabel(label);
+  return `How ${/^gas /.test(l) ? "" : /^[aeiou]/.test(l) ? "an " : "a "}${l} {works}.`;
+};
+
+/** Short figures first: the hero's trust row and the bento's figure tiles are set large. */
+function shortFirst(facts: Fact[]) {
+  const short = (x: Fact) => x.v.length <= 18;
+  return [...facts.filter(short), ...facts.filter((x) => !short(x))];
+}
+
+/* ------------------------------------------------------- page sections */
+
+type Tone = "white" | "cream" | "navy" | "sky";
+type Sec = { key: string; tone?: Tone; render: (cls: string) => ReactNode };
+
+/**
+ * The page's sections in order, toned the way the homepage's are: navy
+ * bento, white reviews, sky-blue FAQ fixed; the rest white and cream in turn.
+ * The pages are built from optional parts, so the turn is worked out from the
+ * fixed sections up, and two of a tone that still meet run on as one band
+ * (no gap between them) rather than leaving a doubled gap.
+ */
+function Sections({ list, above = "white" }: { list: Sec[]; above?: Tone }) {
+  const tones: Tone[] = new Array(list.length);
+  let next: Tone = "white"; // the closing box under the last section is white
+  for (let i = list.length - 1; i >= 0; i--) {
+    tones[i] = list[i].tone ?? (next === "white" ? "cream" : "white");
+    next = tones[i];
+  }
   return (
-    <ul className={`svi${items.length % 4 === 0 ? " svi--4" : ""}`} data-anim="stagger">
-      {items.map((b) => (
-        <li key={b.t}>
-          <span className="svi__ico"><Icon name={iconFor(b)} /></span>
-          <h3>{b.t}</h3>
-          {b.line && <strong>{b.line}</strong>}
-          <p>{b.d}</p>
-        </li>
-      ))}
-    </ul>
+    <>
+      {list.map((s, i) => {
+        const prev = i === 0 ? above : tones[i - 1];
+        const join = tones[i] === prev && tones[i] !== "navy";
+        return <Fragment key={s.key}>{s.render(`svq svq--${tones[i]}${join ? " svq--join" : ""}`)}</Fragment>;
+      })}
+    </>
   );
 }
 
-/**
- * The kinds of job under a service, in the category pages' card: a photo of
- * one of ours, what it is, and two ways on. The card opens the system's
- * install page; where the finder has the same system, a second link goes
- * straight to its options rather than this page listing them again.
- */
-function Systems({ slug, systems }: { slug: string; systems: Sys[] }) {
-  const n = systems.length;
+/** The homepage's hero: our photo under the navy scrim, the headline, the trust row, the quote form. */
+function Hero({ crumbs, eye, title, sub, photo, pos, ctas, trust, quote }: {
+  crumbs: { name: string; href?: string }[];
+  eye: string; title: ReactNode; sub: string; photo: string; pos?: string;
+  ctas: ReactNode; trust: Fact[]; quote?: string;
+}) {
   return (
-    <div className={`sjx${n === 2 || n === 4 || n === 5 ? ` sjx--${n}` : ""}`} data-anim="stagger">
-      {systems.map((s) => {
-        const key = `${slug}/${s.id}`;
-        const finder = FINDER_FOR[key];
-        const sys = finder ? findSystem(finder)?.sys : undefined;
-        return (
-          <article key={s.id} className="sjx__card">
-            <span className={`sjx__img${s.photo.scene ? "" : " sjx__img--cut"}`}>
-              <Image src={asset(s.photo.src)} alt="" fill sizes="(max-width: 600px) 92vw, (max-width: 1000px) 46vw, 460px" />
+    <section className="ahero svh">
+      <Image src={photo} alt="" aria-hidden="true" fill priority sizes="100vw" className="ahero__bg" style={pos ? { objectPosition: pos } : undefined} />
+      <div className="ahero__scrim" aria-hidden="true" />
+      <div className="wrap ahero__in">
+        <div className="ahero__copy anim">
+          <nav aria-label="Breadcrumb" className="svh__crumbs">
+            <ol>
+              <li><Link href="/">Home</Link></li>
+              {crumbs.map((c) => <li key={c.name} aria-current={c.href ? undefined : "page"}>{c.href ? <Link href={c.href}>{c.name}</Link> : c.name}</li>)}
+            </ol>
+          </nav>
+          <span className="svh__eye">{eye}</span>
+          <h1 className="ahero__h1 svh__h1">{title}</h1>
+          <p className="ahero__p">{sub}</p>
+          <div className="ahero__ctas">{ctas}</div>
+          <div className="ahero__trust">
+            <span className="ahero__stars">
+              <span className="stars" aria-hidden="true">★★★★★</span>
+              <span style={{ display: "flex", flexDirection: "column" }}><strong>{RATING_TEXT} / 5</strong><small>Google reviews</small></span>
             </span>
-            <div className="sjx__txt">
-              {s.brands?.length ? <span className="sjx__tag">{s.brands.join(" · ")}</span> : null}
-              <h3><Link href={`/services/${slug}/${s.id}`}>{s.label}</Link></h3>
-              <p>{s.blurb}</p>
-              <div className="sjx__foot">
-                <span className="sjx__go">{GO[key] ?? GO[slug] ?? "How we install it"} <i aria-hidden="true">→</i></span>
-                {sys && <Link href={systemHref(sys.slug)} className="sjx__opt">{sys.tiers.length === 1 ? "The option" : `The ${sys.tiers.length} options`} →</Link>}
-              </div>
-            </div>
+            {trust.map((f) => (
+              <Fragment key={f.k}>
+                <span className="ahero__sep" aria-hidden="true" />
+                <span className="svh__fact"><strong>{f.v}</strong><small>{f.k}</small></span>
+              </Fragment>
+            ))}
+          </div>
+        </div>
+        <HeroQuote />
+        {quote && <QuotePreset service={quote} />}
+      </div>
+    </section>
+  );
+}
+
+/** The call button, as the homepage hero's. */
+const Call = ({ from, cls = "abtn--line" }: { from: string; cls?: string }) => (
+  <a href="tel:+61359478000" data-call-from={from} className={`abtn ${cls} abtn--call`}><PhoneIcon />Call (03) 5947 8000</a>
+);
+
+/** The homepage's "Authorised installer of" chips, for the makers this page fits. */
+function BrandStrip({ chips, label }: { chips: { name: string; line: string; href: string }[]; label: string }) {
+  if (!chips.length) return null;
+  return (
+    <section className="hbrands svb">
+      <div className="wrap hbrands__in arv">
+        <div className="hbrands__top">
+          <span>{label}</span>
+          <span className="hbrands__rule" aria-hidden="true" />
+          <span className="hbrands__reece">Trade partner of <strong>Reece</strong></span>
+          <Link href="/brands" className="hbrands__all">All brands →</Link>
+        </div>
+        <div className="hbrands__grid" style={{ ["--n" as string]: chips.length }}>
+          {chips.map((c) => <Link key={c.href} className="chipb" href={c.href}><strong>{c.name}</strong><span>{c.line}</span></Link>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** A maker's chip: the homepage's own name and line for it, where the homepage has one. */
+function chip(slug: string, href: string, brand: string) {
+  const home = HOME_BRANDS.find(([, , h]) => h === href);
+  return { name: home?.[0] ?? brand.replace(/\s*\(.*\)$/, ""), line: CHIP_LINE[slug]?.[href] ?? home?.[1] ?? "", href };
+}
+
+/**
+ * The kinds of job under a service, as the homepage's "Everything we do"
+ * cards: one of our photos, the name, and on hover what it is. The card opens
+ * the system's own page; where the finder has the same system, the pill in
+ * the corner goes straight to its options.
+ */
+function SystemCards({ slug, systems }: { slug: string; systems: Sys[] }) {
+  return (
+    <div className="sg svsg" data-n={systems.length}>
+      {systems.map((s, i) => {
+        const key = `${slug}/${s.id}`;
+        const sys = FINDER_FOR[key] ? findSystem(FINDER_FOR[key])?.sys : undefined;
+        const go = GO[key] ?? GO[slug] ?? "How we install it";
+        return (
+          <article key={s.id} className={`sg__card svsg__card arv${s.photo.scene ? "" : " svsg__card--prod"}`} style={{ animationDelay: `${i * 0.07}s` }}>
+            <Image src={asset(s.photo.src)} alt={s.photo.alt} fill sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 700px" />
+            <span className="sg__shade" aria-hidden="true" />
+            <Link href={`/services/${slug}/${s.id}`} className="svsg__hit"><span className="asr">{s.label}: {go}</span></Link>
+            {sys && (
+              <Link href={systemHref(sys.slug)} className="svsg__opt">
+                {sys.tiers.length === 1 ? "The option" : `The ${sys.tiers.length} options`} →
+              </Link>
+            )}
+            <span className="sg__body" aria-hidden="true">
+              {s.brands?.length ? <small className="svsg__tag">{s.brands.join(" · ")}</small> : null}
+              <strong>{s.label}</strong>
+              <span className="sg__more"><span>{s.blurb}</span><em>{go} →</em></span>
+            </span>
           </article>
         );
       })}
     </div>
+  );
+}
+
+/**
+ * What you get, as the homepage's navy bento: our team in the big photo
+ * tile, two figures in the orange and white tiles, then a tile per point with
+ * its drawing. Figure tiles only fill what the points leave of the last row.
+ */
+function Why({ cls, items, facts, photo }: { cls: string; items: { t: string; line?: string; d: string; icon?: string }[]; facts: Fact[]; photo: string }) {
+  // A figure that only repeats a point's own title ("Three brands") gives way to the point, which says more.
+  const own = facts.filter((f) => !items.some((b) => b.t.toLowerCase().startsWith(f.v.toLowerCase())));
+  const figs = own.slice(0, (4 - (items.length % 4)) % 4);
+  // Whatever the figures leave of the last row, the last point stretches
+  // across: worked out for the four-column grid and for the two-column one
+  // tablets get (the big photo takes two by two in both). A phone's single
+  // column needs neither.
+  const n = figs.length + items.length;
+  const span4 = 1 + (4 - (n % 4)) % 4, span2 = 1 + (n % 2);
+  return (
+    <section id="why" className={`awhy ${cls}`}>
+      <div className="wrap awhy__in">
+        <div className="sechead arv">
+          <div className="sechead__t">
+            <h2 className="h2" style={{ color: "#fff" }}>What you get <span style={{ color: "#FF7A36" }}>from us.</span></h2>
+          </div>
+          <div className="sechead__btns">
+            <Link href="/about" className="abtn abtn--line">Meet the team</Link>
+            <a href="#quote" className="abtn abtn--or">Get a free quote →</a>
+          </div>
+        </div>
+        <div className="whygrid svw">
+          <div className="whycard whycard--big arv">
+            <Image src={photo} alt="" aria-hidden="true" fill sizes="(max-width: 960px) 100vw, 700px" />
+            <div className="shade" aria-hidden="true" />
+            <div className="body">
+              <span className="whycard__lbl" style={{ color: "#FF7A36" }}>Our own installers</span>
+              <strong className="disp svw__bigt">The team who quotes it does the work.</strong>
+              <span className="svw__bigs">The person who quotes your job is on the same team as the person who installs it.</span>
+            </div>
+          </div>
+          {figs.map((f, i) => (
+            <div key={f.k} className={`whycard ${i === 0 ? "whycard--or" : "whycard--sky"} arv`}>
+              <strong className={`whycard__big${f.v.length > 8 ? " svw__fig--long" : ""}`}>{f.v}</strong>
+              <span className="svw__figk">{f.k}</span>
+            </div>
+          ))}
+          {items.map((b, i) => (
+            <div key={b.t} className={`whycard whycard--white svw__item arv${i === items.length - 1 ? " svw__last" : ""}`}
+              style={i === items.length - 1 ? { ["--s4" as string]: span4, ["--s2" as string]: span2 } : undefined}>
+              <span className="whycard__ico svw__ico"><Icon name={iconFor(b)} /></span>
+              <div className="svw__t">
+                <strong className="whycard__t">{b.t}</strong>
+                {b.line && <span className="svw__line">{b.line}</span>}
+                {b.d && <span className="whycard__s">{b.d}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** A section's head, as the homepage's: the heading, and a line beside it. */
+function SecHead({ h, p, dark = false }: { h: string; p?: ReactNode; dark?: boolean }) {
+  return (
+    <div className={`svcs__head svhd${dark ? " svhd--dark" : ""} arv`}>
+      <div className="sechead__t"><h2 className="h2">{head(h)}</h2></div>
+      {p && <p>{p}</p>}
+    </div>
+  );
+}
+
+/** A photo one side, words and figures the other: "how it looks" and "keeping it working". */
+function Feature({ cls, id, f, flip = false }: { cls: string; id: string; f: { heading: string; note?: string; body?: string; photo: string; photoAlt: string; photoScene?: boolean; facts: Fact[] }; flip?: boolean }) {
+  return (
+    <section id={id} className={cls}>
+      <div className={`wrap svft${flip ? " svft--flip" : ""}`}>
+        {/* A product shot on white (photoScene unset) is shown whole on white, not cropped like a photo */}
+        <div className={`svft__img${f.photoScene ? "" : " svft__img--prod"} arv`}><Image src={asset(f.photo)} alt={f.photoAlt} fill sizes="(max-width: 960px) 100vw, 680px" /></div>
+        <div className="svft__t arv">
+          <h2 className="h2">{head(f.heading)}</h2>
+          <p>{f.note ?? f.body}</p>
+          <dl className="svft__facts">{f.facts.map((x) => <div key={x.k}><dd>{x.v}</dd><dt>{x.k}</dt></div>)}</dl>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Two lists side by side, the first in navy: what's in the job and what isn't, or who a system suits. */
+function TwoLists({ cls, id, h, p, a, b }: { cls: string; id: string; h: string; p?: string; a: { t: string; list: string[] }; b: { t: string; list: string[] } }) {
+  return (
+    <section id={id} className={cls}>
+      <div className="wrap svq__in">
+        <SecHead h={h} p={p} />
+        <div className="svin">
+          {a.list.length > 0 && <div className="svin__col svin__col--in arv"><h3><span aria-hidden="true">+</span> {a.t}</h3><ul>{a.list.map((x) => <li key={x}>{x}</li>)}</ul></div>}
+          {b.list.length > 0 && <div className="svin__col svin__col--out arv"><h3><span aria-hidden="true">−</span> {b.t}</h3><ul>{b.list.map((x) => <li key={x}>{x}</li>)}</ul></div>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The homepage's navy box (Find your system, Tools for you), for the steps, the prices and the options. */
+function NavyBox({ cls, id, h, p, aside, children }: { cls: string; id: string; h: string; p?: ReactNode; aside?: ReactNode; children: ReactNode }) {
+  return (
+    <section id={id} className={cls}>
+      <div className="wrap">
+        <div className="htools-box svbox">
+          <div className="sechead arv">
+            <div className="sechead__t">
+              <h2 className="h2">{head(h)}</h2>
+              {p && <p className="htools-sec__p">{p}</p>}
+            </div>
+            {aside}
+          </div>
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** How the job runs, a numbered card per step. */
+function Steps({ steps }: { steps: { title: string; detail: string }[] }) {
+  return (
+    <ol className="tgrid svst">
+      {steps.map((s, i) => (
+        <li key={s.title} className="tcard svst__card arv">
+          <b aria-hidden="true">{i + 1}</b>
+          <strong>{s.title}</strong>
+          <span>{s.detail}</span>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -180,238 +549,268 @@ function Systems({ slug, systems }: { slug: string; systems: Sys[] }) {
  *
  * With SHOW_PRICES off the figure is gone and said once in the heading
  * ("fixed, in writing") rather than on every card; what each job includes
- * stays, because that is still worth reading. A group that is a system in
- * the finder links to its options there.
+ * stays, because that is still worth reading.
  */
-export function Prices({ rows }: { rows: Row[] }) {
-  if (!rows.length) return null;
+function Prices({ rows }: { rows: Row[] }) {
   const groups = [...new Set(rows.map((r) => r.group ?? ""))].map((g) => ({ g, list: rows.filter((r) => (r.group ?? "") === g) }));
   return (
-    <div className={`svp svp--${Math.min(groups.length, 4)}`} data-anim="stagger">
-      {groups.map(({ g, list }) => {
-        const sys = GROUP_FINDER[g] ? findSystem(GROUP_FINDER[g])?.sys : undefined;
-        return (
-          <article key={g} className="svp__card">
-            <h3 className="svp__head">{g || "The jobs"}</h3>
-            <ul className="svp__rows">
-              {list.map((r) => (
-                <li key={r.tier}>
-                  {r.photo ? (
-                    <span className={`svp__img${r.photoScene ? " svp__img--scene" : ""}`}>
-                      <Image src={asset(r.photo)} alt="" fill sizes="88px" />
-                    </span>
-                  ) : (
-                    // A call-out has nothing to photograph: a drawing stands in.
-                    <span className="svp__img svp__img--ico"><Icon name={/emergency/i.test(r.tier) ? "alarm" : "wrench"} /></span>
-                  )}
-                  <div className="svp__t">
-                    <strong>{r.tier}</strong>
-                    {SHOW_PRICES && <em>{r.price} <small>{r.priceKey ?? "installed"}</small></em>}
-                    <ul>{r.includes.split(/,\s*/).filter(Boolean).map((x) => <li key={x}>{x}</li>)}</ul>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            {/* At the foot, so cards of one row end level however many jobs each lists */}
-            {sys && <Link href={systemHref(sys.slug)} className="svp__go">See the {lowerLabel(sys.label)} options <i aria-hidden="true">→</i></Link>}
-          </article>
-        );
-      })}
+    <div className={`svp svp--${Math.min(groups.length, 4)}`}>
+      {groups.map(({ g, list }) => (
+        <article key={g} className="svp__card arv">
+          <h3 className="svp__head">{g || "The jobs"}</h3>
+          <ul className="svp__rows">
+            {list.map((r) => (
+              <li key={r.tier}>
+                {r.photo ? (
+                  <span className={`svp__img${r.photoScene ? " svp__img--scene" : ""}`}><Image src={asset(r.photo)} alt="" fill sizes="88px" /></span>
+                ) : (
+                  // A call-out has nothing to photograph: a drawing stands in.
+                  <span className="svp__img svp__img--ico"><Icon name={/emergency/i.test(r.tier) ? "alarm" : "wrench"} /></span>
+                )}
+                <div className="svp__t">
+                  <strong>{r.tier}</strong>
+                  {SHOW_PRICES && <em>{r.price} <small>{r.priceKey ?? "installed"}</small></em>}
+                  <ul>{r.includes.split(/,\s*/).filter(Boolean).map((x) => <li key={x}>{x}</li>)}</ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </article>
+      ))}
     </div>
   );
 }
 
-function PricesHead() {
-  return SHOW_PRICES
-    ? <BkHead h="What it {costs}.">Every price includes GST. Your exact price is confirmed in writing after a free site check.</BkHead>
-    : <BkHead h="What each job {covers}.">Every job is priced after a free site check, on a fixed written quote including GST. It only changes if the job does, and we tell you before it does.</BkHead>;
-}
+const PRICE_HEAD = SHOW_PRICES
+  ? { h: "What it {costs}.", p: "Every price includes GST. Your exact price is confirmed in writing after a free site check." }
+  : { h: "What each job {covers}.", p: "Every job is priced after a free site check, on a fixed written quote including GST. It only changes if the job does, and we tell you before it does." };
 
-function Faqs({ faqs }: { faqs: { q: string; a: string }[] }) {
-  return <div className="afaqs">{faqs.map((f) => <details key={f.q} className="afaq"><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>;
-}
-
-function Steps({ steps }: { steps: { title: string; detail: string }[] }) {
+/** Our own jobs, as photo tiles with their captions. */
+function Installs({ cls, h, p, shots }: { cls: string; h: string; p: string; shots: { src: string; alt: string; caption?: string }[] }) {
   return (
-    <ol className="lk2__tl kx__tl">
-      {steps.slice(0, 4).map((s, i) => <li key={s.title}><span className="pxb__n" aria-hidden="true">{i + 1}</span><h3>{s.title}</h3><p>{s.detail}</p></li>)}
-    </ol>
+    <section id="installs" className={cls}>
+      <div className="wrap svq__in">
+        <SecHead h={h} p={p} />
+        <div className="svgl">
+          {shots.map((s, i) => (
+            <figure key={s.src} className="svgl__ph arv" style={{ animationDelay: `${(i % 3) * 0.07}s` }}>
+              <Image src={asset(s.src)} alt={s.alt} fill sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 470px" />
+              {s.caption && <figcaption>{s.caption}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
-/** A photo one side, words and figures the other: "how it looks" and "keeping it working". */
-function Feature({ f, flip = false }: { f: { heading: string; note?: string; body?: string; photo: string; photoAlt: string; photoScene?: boolean; facts: { v: string; k: string }[] }; flip?: boolean }) {
+/** The homepage's scrolling review columns, the ones that mention this job first. */
+async function Reviews({ cls, word }: { cls: string; word?: RegExp }) {
+  const { reviews, summary } = await getReviews(12);
+  const named = word ? reviews.filter((r) => word.test(`${r.txt} ${r.what} ${r.title}`)) : [];
+  const list = [...named, ...reviews.filter((r) => !named.includes(r))];
+  const cols = [0, 1, 2].map((c) => list.filter((_, i) => i % 3 === c));
   return (
-    <div className={`pxbr${flip ? " kx__flip" : ""}`}>
-      <div className={`pxbr__img${f.photoScene ? " pxbr__img--scene" : ""}`}>
-        <Image src={asset(f.photo)} alt={f.photoAlt} fill sizes="(max-width: 1000px) 100vw, 640px" />
+    <section id="reviews" className={`revs ${cls}`}>
+      <div className="wrap revs__in">
+        <div className="sechead arv" style={{ gap: 24 }}>
+          <div className="sechead__t" style={{ gap: 14, maxWidth: 620 }}>
+            <h2 className="h2">Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
+          </div>
+          <div className="revs__score">
+            <span className="stars stars--ink" style={{ letterSpacing: 4 }} aria-hidden="true">★★★★★</span>
+            <span><strong>{summary.value.toFixed(1)} / 5</strong> from {summary.count} Google reviews</span>
+            <Link href="/reviews">Read all reviews →</Link>
+          </div>
+        </div>
+        <div className="revs__cols">
+          {cols.map((col, c) => (
+            <div key={c} className="arevcol">
+              {/* Doubled so the upward scroll loops without a seam. The copy is hidden from screen readers. */}
+              <div className={`revtrack revtrack--${c}`}>
+                {[...col, ...col].map((r, i) => (
+                  <article key={i} className="rev" aria-hidden={i >= col.length ? true : undefined}>
+                    <span className="stars stars--ink" aria-hidden="true">★★★★★</span>
+                    <h3>{r.title}</h3>
+                    <p>&ldquo;{r.txt}&rdquo;</p>
+                    <div className="rev__who">
+                      <span aria-hidden="true">{r.a}</span>
+                      <span className="rev__whot"><strong>{r.who}</strong><small>{r.what}</small></span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="revs__fade revs__fade--t" aria-hidden="true" />
+          <div className="revs__fade revs__fade--b" aria-hidden="true" />
+        </div>
       </div>
-      <div className="pxbr__t">
-        <h2 className="h2">{accent(lastWord(f.heading))}</h2>
-        <p className="pxbr__sub">{f.note ?? f.body}</p>
-        <dl className="kx__facts" data-anim="stagger">{f.facts.map((x) => <div key={x.k}><dd>{x.v}</dd><dt>{x.k}</dt></div>)}</dl>
+    </section>
+  );
+}
+
+/** The homepage's FAQ block: the heading and a way to a person on the left, the questions on the right. */
+function Faq({ cls, h, faqs, links, from }: { cls: string; h: string; faqs: { q: string; a: string }[]; links: [string, string][]; from: string }) {
+  return (
+    <section id="faq" className={`hfaq ${cls}`}>
+      <div className="wrap hfaq__in">
+        <div className="hfaq__intro arv">
+          <h2 className="h2">{head(h)}</h2>
+          <p>Quick honest answers. Still want a human? <a href="tel:+61359478000" data-call-from={from} style={{ color: "#050A30", textUnderlineOffset: 2 }}>Call (03) 5947 8000</a>.</p>
+          {links.length > 0 && <div className="hfaq__links">{links.map(([t, href]) => <Link key={href} className="glink" href={href}>{t}</Link>)}</div>}
+        </div>
+        <div className="afaqs">
+          {faqs.map((f, i) => (
+            <details key={f.q} className="afaq" open={i === 0}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
       </div>
+    </section>
+  );
+}
+
+/** Link cards in the homepage's tools box. */
+function Cards({ items }: { items: { t: string; s: string; href: string; cta?: string }[] }) {
+  return (
+    <div className="tgrid">
+      {items.map((t) => (
+        <Link key={t.href} href={t.href} className="tcard arv">
+          <strong>{t.t}</strong>
+          <span>{t.s}</span>
+          <em>{t.cta ?? "Open"} →</em>
+        </Link>
+      ))}
     </div>
   );
 }
 
-/**
- * The makers we fit, in the category pages' brand card (product on white,
- * then the maker's logo, no colour bar: Jake, Nov 2026), each opening its
- * brand page. The line under the logo is this service's reason, not the
- * brand's tagline.
- */
-function Brands({ pods }: { pods: { brand: string; reason: string; href?: string }[] }) {
-  return (
-    <div className="cx__brands" data-anim="stagger">
-      {pods.map((p) => {
-        const b = p.href ? findBrand(p.href.split("/").pop() ?? "") : undefined;
-        const img = b?.heroProducts?.[0]?.src ?? b?.photo;
-        const body = (
-          <>
-            {img && <span className="cx__bimg"><Image src={img} alt="" fill sizes="(max-width: 600px) 30vw, 300px" /></span>}
-            <span className="cx__btxt">
-              <span className="cx__blogo">
-                {b?.mark ? <BrandLockup tone="dark" />
-                  : b?.logo ? <span className={`cx__blimg${b.logo.endsWith(".svg") ? "" : " cx__blimg--mono"}`}><Image src={b.logo} alt={b.name} fill sizes="160px" unoptimized={b.logo.endsWith(".svg")} /></span>
-                  : <strong>{p.brand}</strong>}
-              </span>
-              <span className="cx__btag">{p.reason}</span>
-              {b && <em>Why we choose {b.name} <i aria-hidden="true">→</i></em>}
-            </span>
-          </>
-        );
-        return p.href
-          ? <Link key={p.brand} href={p.href} className="cx__brand">{body}</Link>
-          : <div key={p.brand} className="cx__brand">{body}</div>;
-      })}
-    </div>
-  );
-}
+const toolsFor = (slug: string) => (TOOLS_FOR[slug] ?? []).map((h) => TOOLS.find((t) => t.href === h)).filter((t): t is (typeof TOOLS)[number] => !!t);
 
-/** What's in the job and what isn't, so the boundary is read before the quote, not argued after it. */
-function InOut({ inc, exc }: { inc: string[]; exc: string[] }) {
+/** The suburbs nearest the workshop, each linked to its page. */
+function Areas({ cls, what }: { cls: string; what: string }) {
   return (
-    <>
-      <BkHead h="What's in the job, and {what isn't}.">One fixed price in writing. It only changes if the job does, and we tell you before it does.</BkHead>
-      <div className="pcx">
-        {inc.length > 0 && <div className="pcx__col pcx__col--pro"><h3><span aria-hidden="true">+</span> Included</h3><ul>{inc.map((x) => <li key={x}>{x}</li>)}</ul></div>}
-        {exc.length > 0 && <div className="pcx__col pcx__col--con"><h3><span aria-hidden="true">−</span> Not included</h3><ul>{exc.map((x) => <li key={x}>{x}</li>)}</ul></div>}
+    <section id="areas" className={cls}>
+      <div className="wrap svq__in svar">
+        <SecHead
+          h={`${what.charAt(0)}${what.slice(1).toLowerCase()} in Pakenham and {the suburbs around it.}`}
+          p="Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within about 75 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there."
+        />
+        <AreaChips />
       </div>
-    </>
+    </section>
   );
 }
 
-/** "A split system", "an evaporative cooler", but "gas ducted heating" with no article. */
-const howHead = (label: string) => {
-  const l = lowerLabel(label);
-  return `How ${/^gas /.test(l) ? "" : /^[aeiou]/.test(l) ? "an " : "a "}${l} {works}.`;
-};
-
-/** The suburbs nearest the workshop, as a band of the page. */
-function Areas({ what }: { what: string }) {
+/** The how-it-works drawing, under its heading. */
+function How({ cls, h, p, kind, steps, note }: { cls: string; h: string; p?: string; kind: Parameters<typeof HowItWorks>[0]["kind"]; steps: Parameters<typeof HowItWorks>[0]["steps"]; note?: string }) {
   return (
-    <>
-      <BkHead h={`${what} in Pakenham and {the suburbs around it}.`}>
-        Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within about 75 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there.
-      </BkHead>
-      <AreaChips />
-    </>
+    <section id="how" className={cls}>
+      <div className="wrap svq__in">
+        <SecHead h={h} p={p} />
+        <HowItWorks kind={kind} steps={steps} />
+        {note && <p className="svnote">{note}</p>}
+      </div>
+    </section>
   );
 }
 
-/** The part of a heading after its last comma is the coloured part, as the system pages' own lead and accent split it. */
-function heroTitle(h1: string) {
-  const i = h1.lastIndexOf(",");
-  return i < 0 ? h1 : <>{h1.slice(0, i + 1)} <em>{h1.slice(i + 1).trim()}</em></>;
-}
+/* ------------------------------------------------------------ the pages */
 
-/** A service: what we do, the kinds of job under it, what it costs, how it runs. */
+/** A service: what we do, the kinds of job under it, what we bring to it, how it runs. */
 export function ServiceView({ slug, name, c, choose }: { slug: string; name: string; c: ServiceContent; choose?: { h2: string; lede: string } }) {
   const systems = c.systems ?? [];
   const howSlug = SERVICE_HOW[slug];
   const how = howSlug ? LEARN[howSlug] : undefined;
-  const bands: Band[] = [
+  const facts = shortFirst(c.heroFacts ?? []);
+  const hero = HERO_PHOTO[slug] ?? { src: c.heroPhoto ?? PHOTO.team };
+  const prices = NO_PRICE_CARDS.has(slug) ? [] : c.pricing;
+  const tools = toolsFor(slug);
+  // The install gallery leaves out the photos the page already shows (the
+  // system cards, how it looks, servicing), so no job appears twice; three
+  // or more to a row, or none.
+  const shown = new Set([hero.src, ...systems.map((x) => x.photo.src), c.looks?.photo, c.servicing?.photo].filter(Boolean));
+  const fresh = (c.installPhotos?.shots ?? []).filter((x) => !shown.has(x.src));
+  const shots = fresh.length >= 3 ? fresh.slice(0, fresh.length - (fresh.length % 3)) : [];
+  const i = c.h1.lastIndexOf(", ");
+  const title = i < 0 ? c.h1 : <>{c.h1.slice(0, i + 1)} <span>{c.h1.slice(i + 2)}</span></>;
+
+  const list: Sec[] = [
     ...(systems.length ? [{
-      id: "systems", tab: "The systems",
-      body: (
-        <>
-          <BkHead h={choose?.h2 ?? "Start with the one that {brought you here}."}>{choose?.lede}</BkHead>
-          <Systems slug={slug} systems={systems} />
-        </>
+      key: "systems", tone: "cream" as Tone,
+      render: (cls: string) => (
+        <section id="systems" className={cls}>
+          <div className="wrap svq__in">
+            <SecHead h={choose?.h2 ?? "Start with the one that {brought you here}."} p={choose?.lede} />
+            <SystemCards slug={slug} systems={systems} />
+          </div>
+        </section>
       ),
     }] : []),
     ...(how ? [{
-      id: "how", tab: "How it works",
-      body: (
-        <>
-          <BkHead h={lastWord(c.whyFirst?.heading ?? howHead(findSystem(howSlug)?.sys.label ?? name))}>{c.whyFirst?.blurb}</BkHead>
-          <HowItWorks kind={how.diagram} steps={how.how} />
-          {c.whyFirst?.caveat && <p className="svs__note">{c.whyFirst.caveat}</p>}
-        </>
+      key: "how",
+      render: (cls: string) => (
+        <How cls={cls} h={c.whyFirst?.heading ?? howHead(findSystem(howSlug)?.sys.label ?? name)} p={c.whyFirst?.blurb}
+          kind={how.diagram} steps={how.how} note={c.whyFirst?.caveat} />
       ),
     }] : []),
-    {
-      id: "included", tab: "What you get",
-      body: (
-        <>
-          <BkHead h="What you {get} from us." />
-          <Points items={c.benefits} />
-        </>
-      ),
-    },
-    ...(c.brandPods?.length ? [{
-      id: "brands", tab: "Brands",
-      body: (
-        <>
-          <BkHead h={slug === "aircon-servicing-repairs" ? "The brands {we fit and service}." : "The brands {we fit}."}>Each one is here for a reason, and each has a page on why we choose it and when we wouldn&apos;t.</BkHead>
-          <Brands pods={c.brandPods} />
-        </>
+    { key: "why", tone: "navy", render: (cls) => <Why cls={cls} items={c.benefits} facts={facts.slice(2)} photo={bentoPhoto(hero.src)} /> },
+    ...(shots.length ? [{
+      key: "installs",
+      render: (cls: string) => <Installs cls={cls} h={c.installPhotos!.heading} p={c.installPhotos!.blurb} shots={shots} />,
+    }] : []),
+    ...(c.looks ? [{ key: "looks", render: (cls: string) => <Feature cls={cls} id="looks" f={c.looks!} /> }] : []),
+    ...(prices.length ? [{
+      key: "prices",
+      render: (cls: string) => <NavyBox cls={cls} id="prices" h={PRICE_HEAD.h} p={PRICE_HEAD.p}><Prices rows={prices} /></NavyBox>,
+    }] : []),
+    ...(c.included?.length || c.excluded?.length ? [{
+      key: "in-price",
+      render: (cls: string) => (
+        <TwoLists cls={cls} id="in-price" h="What's in the job, {and what isn't.}" p="One fixed price in writing. It only changes if the job does, and we tell you before it does."
+          a={{ t: "Included", list: c.included ?? [] }} b={{ t: "Not included", list: c.excluded ?? [] }} />
       ),
     }] : []),
-    ...(c.installPhotos?.shots.length ? [{
-      id: "installs", tab: "Our installs",
-      body: (
-        <>
-          <BkHead h={lastWord(c.installPhotos.heading)}>{c.installPhotos.blurb}</BkHead>
-          <div className="bk__gal svgal" data-n={Math.min(c.installPhotos.shots.length, 3)} data-anim="stagger">
-            {c.installPhotos.shots.map((p) => (
-              <figure key={p.src} className="bk__ph">
-                <Image src={asset(p.src)} alt={p.alt} fill sizes="(max-width: 1000px) 50vw, 460px" />
-                {p.caption && <figcaption>{p.caption}</figcaption>}
-              </figure>
-            ))}
-          </div>
-        </>
-      ),
-    }] : []),
-    ...(c.looks ? [{ id: "looks", tab: "How it looks", cls: "", body: <Feature f={c.looks} /> }] : []),
-    ...(c.pricing.length ? [{ id: "prices", tab: "Pricing", cls: "bk__boxed bk__col", body: <><PricesHead /><Prices rows={c.pricing} /></> }] : []),
-    ...(c.included?.length || c.excluded?.length ? [{ id: "in-price", tab: "In the price", body: <InOut inc={c.included ?? []} exc={c.excluded ?? []} /> }] : []),
     ...(c.steps?.length ? [{
-      id: "process", tab: "How it runs", navy: true,
-      body: <><BkHead h="From the first call to {done}." /><Steps steps={c.steps} /></>,
+      key: "process",
+      render: (cls: string) => <NavyBox cls={cls} id="process" h="From the first call {to done.}" aside={<a href="#quote" className="abtn abtn--or">Get a free quote →</a>}><Steps steps={c.steps!} /></NavyBox>,
     }] : []),
-    ...(c.servicing ? [{ id: "servicing", tab: "Servicing", cls: "", body: <Feature f={c.servicing} flip /> }] : []),
-    ...(c.faqs.length ? [{
-      id: "faqs", tab: "FAQs", cls: "pp__two",
-      body: (
-        <>
-          <BkHead h="Before you {book}.">Still want a human? <a href="tel:+61359478000" data-call-from="service-faq">Call (03) 5947 8000</a>.</BkHead>
-          <Faqs faqs={c.faqs} />
-        </>
+    ...(c.servicing ? [{ key: "servicing", render: (cls: string) => <Feature cls={cls} id="servicing" f={c.servicing!} flip /> }] : []),
+    { key: "reviews", tone: "white", render: (cls) => <Reviews cls={cls} word={REVIEW_WORD[slug]} /> },
+    ...(c.faqs.length ? [{ key: "faq", tone: "sky" as Tone, render: (cls: string) => <Faq cls={cls} h="Before you {book.}" faqs={c.faqs} links={READ_MORE[slug] ?? []} from="service-faq" /> }] : []),
+    ...(tools.length ? [{
+      key: "tools", tone: "white" as Tone,
+      render: (cls: string) => (
+        <NavyBox cls={cls} id="tools" h="=Tools for you" p="Free calculators to work out what you need and what it costs to run, before you ring anyone."
+          aside={<Link href="/tools" className="htools-sec__all">All tools →</Link>}>
+          <Cards items={tools} />
+        </NavyBox>
       ),
     }] : []),
-    { body: <Areas what={name} /> },
+    { key: "areas", tone: "cream", render: (cls) => <Areas cls={cls} what={name} /> },
   ];
+
   return (
-    <BandPage cls="bx">
-      <Crumbs trail={[{ name: "Services", href: "/services" }, { name }]} />
-      <Hero eye={name} title={heroTitle(c.h1)} sub={c.intro} img={c.heroPhoto ? asset(c.heroPhoto) : undefined} imgAlt={c.heroPhotoAlt} facts={c.heroFacts} />
-      <Tabs list={bands} />
-      <Bands list={bands} />
+    <>
+    {/* The home page's floating header over the photo, as the suburb pages have
+        it (ChromeGate's ownHeader drops the site's flat one here). */}
+    <SiteModeStrip tabs={false} />
+    <div className="ag svpg" data-no-reveal>
+      <HomeHeader />
+      <Hero
+        crumbs={[{ name: "Services", href: "/services" }, { name }]}
+        eye={name} title={title} sub={c.intro} photo={asset(hero.src)} pos={hero.pos}
+        ctas={<><a href="#quote" className="abtn abtn--or">Get a free quote →</a><Call from="service-hero" /></>}
+        trust={facts.slice(0, 2)} quote={QUOTE_FOR[slug]}
+      />
+      <BrandStrip label="The brands we fit" chips={(c.brandPods ?? []).filter((p) => p.href).map((p) => chip(slug, p.href!, p.brand))} />
+      <Sections list={list} />
       <EndCta title={<>Ready to talk about <span>{name.toLowerCase()}</span>?</>} />
-    </BandPage>
+    </div>
+    </>
   );
 }
 
@@ -421,40 +820,40 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
  * beside a list, two columns side by side, or steps in order.
  */
 function Spotlight({ sp }: { sp: SystemSpotlight }) {
+  if (sp.layout === "table" && sp.columns) {
+    return (
+      <div className="svs__tblwrap arv">
+        <table className="svs__tbl">
+          <thead><tr><th scope="col"><span className="asr">What</span></th><th scope="col">{sp.columns[0]}</th><th scope="col">{sp.columns[1]}</th></tr></thead>
+          <tbody>
+            {sp.items.map((x) => {
+              const [a, b] = x.d.split("||").map((v) => v.trim());
+              return (
+                <tr key={x.t}>
+                  <th scope="row">{x.t}</th>
+                  {/* data-l: the column name, shown above each value once the rows stack on a phone */}
+                  <td data-l={sp.columns?.[0]}>{a}</td>
+                  <td data-l={sp.columns?.[1]}>{b}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  if (sp.layout === "split" && sp.photo) {
+    return (
+      <div className="svs__split">
+        <span className="svs__img arv"><Image src={asset(sp.photo.src)} alt={sp.photo.alt} fill sizes="(max-width: 960px) 90vw, 520px" /></span>
+        <ol className="svs__list">{sp.items.map((x) => <li key={x.t} className="arv"><h3>{x.t}</h3><p>{x.d}</p></li>)}</ol>
+      </div>
+    );
+  }
   return (
-    <>
-      <BkHead h={lastWord(sp.heading)}>{sp.blurb}</BkHead>
-      {sp.layout === "table" && sp.columns ? (
-        <div className="svs__tblwrap">
-          <table className="svs__tbl">
-            <thead><tr><th scope="col"><span className="sr-only">What</span></th><th scope="col">{sp.columns[0]}</th><th scope="col">{sp.columns[1]}</th></tr></thead>
-            <tbody>
-              {sp.items.map((x) => {
-                const [a, b] = x.d.split("||").map((v) => v.trim());
-                return (
-                  <tr key={x.t}>
-                    <th scope="row">{x.t}</th>
-                    {/* data-l: the column name, shown above each value once the rows stack on a phone */}
-                    <td data-l={sp.columns?.[0]}>{a}</td>
-                    <td data-l={sp.columns?.[1]}>{b}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : sp.layout === "split" && sp.photo ? (
-        <div className="svs__split">
-          <span className="svs__img"><Image src={asset(sp.photo.src)} alt={sp.photo.alt} fill sizes="(max-width: 1000px) 90vw, 460px" /></span>
-          <ol className="svs__list">{sp.items.map((x) => <li key={x.t}><h3>{x.t}</h3><p>{x.d}</p></li>)}</ol>
-        </div>
-      ) : sp.layout === "steps" ? (
-        <ol className="svs__steps" data-anim="stagger">{sp.items.map((x) => <li key={x.t}><h3>{x.t}</h3><p>{x.d}</p></li>)}</ol>
-      ) : (
-        <ol className={`svs__cards${sp.items.length % 4 === 0 ? " svs__cards--4" : ""}`} data-anim="stagger">{sp.items.map((x) => <li key={x.t}><h3>{x.t}</h3><p>{x.d}</p></li>)}</ol>
-      )}
-      {sp.note && <p className="svs__note">{sp.note}</p>}
-    </>
+    <ol className={sp.layout === "steps" ? "svs__steps" : `svs__cards${sp.items.length % 4 === 0 ? " svs__cards--4" : ""}`}>
+      {sp.items.map((x) => <li key={x.t} className="arv"><h3>{x.t}</h3><p>{x.d}</p></li>)}
+    </ol>
   );
 }
 
@@ -470,12 +869,12 @@ function Options({ finder }: { finder: string }) {
   const brands = [...new Set(tiers.map((t) => t.brand))];
   const one = sys.tiers.length === 1;
   return (
-    <Link href={systemHref(sys.slug)} className="svo">
-      <span className={`svo__img svo__img--${Math.min(tiers.length, 4)}`}>
-        {tiers.slice(0, 4).map((t) => <span key={t.slug}><Image src={t.img} alt="" fill sizes="(max-width: 1000px) 40vw, 200px" /></span>)}
+    <Link href={systemHref(sys.slug)} className="svo arv">
+      <span className="svo__img">
+        {tiers.slice(0, 4).map((t) => <span key={t.slug}><Image src={t.img} alt="" fill sizes="(max-width: 960px) 40vw, 200px" /></span>)}
       </span>
       <span className="svo__txt">
-        <span className="sjx__tag">{sys.sub}</span>
+        <small>{sys.sub}</small>
         <strong>{sys.label}</strong>
         <span className="svo__intro">{SYS_INTRO[sys.slug] ?? ""}</span>
         <span className="svo__meta"><b>{one ? "One option" : `${sys.tiers.length} options`}</b> · {brands.join(", ")}</span>
@@ -485,119 +884,110 @@ function Options({ finder }: { finder: string }) {
   );
 }
 
-/**
- * Four of the system's specs for the header's figures. The figures are set
- * large, so a long value ("5-yr manufacturer + 6-yr workmanship") broke out
- * of its box on a phone; the short ones go first and the long ones only make
- * up the numbers.
- */
-function heroSpecs(specs?: { label: string; value: string }[]) {
-  if (!specs?.length) return undefined;
-  const short = (x: { value: string }) => x.value.length <= 24;
-  return [...specs.filter(short), ...specs.filter((x) => !short(x))].slice(0, 4).map((x) => ({ v: x.value, k: x.label }));
-}
-
 /** One system under a service: who it suits, how it works, what sets it apart, how we fit it. */
 export function SystemView({ slug, name, s, d, finder }: { slug: string; name: string; s: Sys; d?: SystemDetail; finder?: string }) {
-  const title = s.h1 ? <>{s.h1.lead} <em>{s.h1.accent}</em></> : s.label;
-  const steps = d?.steps;
+  const key = `${slug}/${s.id}`;
   const label = s.label.toLowerCase();
-  const learn = finder ? learnFor(finder, HOW_TIER[`${slug}/${s.id}`] ?? "") : undefined;
+  const learn = finder ? learnFor(finder, HOW_TIER[key] ?? "") : undefined;
   const finderSys = finder ? findSystem(finder)?.sys : undefined;
-  const bands: Band[] = [
+  const specs = shortFirst((d?.specs ?? []).map((x) => ({ v: x.value, k: x.label })));
+  const parent = HERO_PHOTO[slug];
+  // A product shot on white can't stand under the scrim; those pages use their service's photo.
+  const photo = s.photo.scene ? { src: s.photo.src, pos: "center 50%" } : parent ?? { src: PHOTO.team };
+  const title = s.h1 ? <>{s.h1.lead} <span>{s.h1.accent}</span></> : s.label;
+  const items = s.benefitTiles?.length
+    ? s.benefitTiles.map((b) => ({ t: b.t, line: b.line, d: b.detail, icon: b.icon }))
+    : s.points.map((p) => ({ t: p, d: "" }));
+  const brands = (s.brands ?? [])
+    .map((b) => HOME_BRANDS.find(([n]) => b.toLowerCase().startsWith(n.toLowerCase())))
+    .filter((b): b is [string, string, string] => !!b)
+    .map(([n, line, href]) => ({ name: n, line: CHIP_LINE[slug]?.[href] ?? line, href }));
+  const parentTools = toolsFor(slug);
+  const next = [
+    ...(finder ? [{ t: "The options", s: `Every ${label} we install, side by side`, href: `/find/${finder}`, cta: "See them" }] : []),
+    { t: `All ${name.toLowerCase()}`, s: "The other jobs under this service", href: `/services/${slug}`, cta: "Have a look" },
+    { t: "What customers say", s: "Reviews from real jobs", href: "/reviews", cta: "Read them" },
+    ...parentTools,
+  ].slice(0, 6);
+
+  const list: Sec[] = [
     ...(s.bestFor?.length || s.watchOut?.length ? [{
-      id: "fit", tab: "Who it suits",
-      body: (
-        <>
-          <BkHead h="Who it {suits}." />
-          <div className="pcx">
-            {s.bestFor?.length ? <div className="pcx__col pcx__col--pro"><h3><span aria-hidden="true">+</span> A good fit if</h3><ul>{s.bestFor.map((x) => <li key={x}>{x}</li>)}</ul></div> : null}
-            {s.watchOut?.length ? <div className="pcx__col pcx__col--con"><h3><span aria-hidden="true">−</span> Worth knowing</h3><ul>{s.watchOut.map((x) => <li key={x}>{x}</li>)}</ul></div> : null}
-          </div>
-        </>
-      ),
+      key: "fit",
+      render: (cls: string) => <TwoLists cls={cls} id="fit" h="Who it {suits.}" a={{ t: "A good fit if", list: s.bestFor ?? [] }} b={{ t: "Worth knowing", list: s.watchOut ?? [] }} />,
     }] : []),
     ...(learn ? [{
-      id: "how", tab: "How it works",
-      body: (
-        <>
-          <BkHead h={learn.title ? lastWord(learn.title) : howHead(finderSys?.label ?? s.label)} />
-          <HowItWorks kind={learn.diagram} steps={learn.how} />
-        </>
-      ),
+      key: "how",
+      render: (cls: string) => <How cls={cls} h={learn.title ?? howHead(finderSys?.label ?? s.label)} kind={learn.diagram} steps={learn.how} />,
     }] : []),
     ...(d?.spotlight ? [{
-      // The eyebrow ("The part that decides the job") is too long for a tab.
-      id: "spotlight", tab: "The detail",
-      cls: d.spotlight.layout === "table" ? "bk__boxed bk__col" : undefined,
-      body: <Spotlight sp={d.spotlight} />,
+      key: "spotlight",
+      render: (cls: string) => d.spotlight!.layout === "table"
+        ? <NavyBox cls={cls} id="detail" h={d.spotlight!.heading} p={d.spotlight!.blurb}><Spotlight sp={d.spotlight!} />{d.spotlight!.note && <p className="svnote svnote--dark">{d.spotlight!.note}</p>}</NavyBox>
+        : (
+          <section id="detail" className={cls}>
+            <div className="wrap svq__in">
+              <SecHead h={d.spotlight!.heading} p={d.spotlight!.blurb} />
+              <Spotlight sp={d.spotlight!} />
+              {d.spotlight!.note && <p className="svnote">{d.spotlight!.note}</p>}
+            </div>
+          </section>
+        ),
     }] : []),
-    {
-      id: "included", tab: "What you get",
-      body: (
-        <>
-          <BkHead h="What you {get} from us." />
-          {s.benefitTiles?.length
-            ? <Points items={s.benefitTiles.map((b) => ({ t: b.t, line: b.line, d: b.detail, icon: b.icon }))} />
-            : <ul className="pp__hl kx__pts">{s.points.map((p) => <li key={p}><span aria-hidden="true">✓</span>{p}</li>)}</ul>}
-        </>
-      ),
-    },
-    ...(s.looks ? [{ id: "looks", tab: "How it looks", cls: "", body: <Feature f={s.looks} /> }] : []),
+    { key: "why", tone: "navy", render: (cls) => <Why cls={cls} items={items} facts={specs.slice(2)} photo={bentoPhoto(photo.src)} /> },
+    ...(s.looks ? [{ key: "looks", render: (cls: string) => <Feature cls={cls} id="looks" f={s.looks!} /> }] : []),
     ...(finder ? [{
-      id: "range", tab: "The options", cls: "bk__boxed bk__col",
-      body: (
-        <>
-          <BkHead h="The options, {side by side}.">Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it.</BkHead>
+      key: "options",
+      render: (cls: string) => (
+        <NavyBox cls={cls} id="options" h="The options, {side by side.}" p="Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it.">
           <Options finder={finder} />
-        </>
+        </NavyBox>
       ),
     }] : d?.pricing?.length ? [{
-      id: "prices", tab: "Pricing", cls: "bk__boxed bk__col",
-      body: <><PricesHead /><Prices rows={d.pricing} />{d.pricingNote && <p className="svp__note">{d.pricingNote}</p>}</>,
+      key: "prices",
+      render: (cls: string) => (
+        <NavyBox cls={cls} id="prices" h={PRICE_HEAD.h} p={PRICE_HEAD.p}>
+          <Prices rows={d.pricing!} />
+          {d.pricingNote && <p className="svnote svnote--dark">{d.pricingNote}</p>}
+        </NavyBox>
+      ),
     }] : []),
-    ...(steps?.length ? [{
-      id: "process", tab: "How it runs", navy: true,
-      body: <><BkHead h="From the first call to {done}." /><Steps steps={steps} /></>,
+    ...(d?.steps?.length ? [{
+      key: "process",
+      render: (cls: string) => <NavyBox cls={cls} id="process" h="From the first call {to done.}" aside={<a href="#quote" className="abtn abtn--or">Get a free quote →</a>}><Steps steps={d.steps!} /></NavyBox>,
     }] : []),
-    ...(s.servicing ? [{ id: "servicing", tab: "Servicing", cls: "", body: <Feature f={s.servicing} flip /> }] : []),
-    ...(s.faqs?.length ? [{
-      id: "faqs", tab: "FAQs", cls: "pp__two",
-      body: <><BkHead h={`About ${label}, {before you book}.`}>Still want a human? <a href="tel:+61359478000" data-call-from="system-faq">Call (03) 5947 8000</a>.</BkHead><Faqs faqs={s.faqs} /></>,
-    }] : []),
+    ...(s.servicing ? [{ key: "servicing", render: (cls: string) => <Feature cls={cls} id="servicing" f={s.servicing!} flip /> }] : []),
+    { key: "reviews", tone: "white", render: (cls) => <Reviews cls={cls} word={REVIEW_WORD[key] ?? REVIEW_WORD[slug]} /> },
+    ...(s.faqs?.length ? [{ key: "faq", tone: "sky" as Tone, render: (cls: string) => <Faq cls={cls} h={`About ${label}, {before you book.}`} faqs={s.faqs!} links={READ_MORE[slug] ?? []} from="system-faq" /> }] : []),
     {
-      id: "next", tab: "Where next",
-      body: (
-        <>
-          <BkHead h="Keep {going}." />
-          <Next items={[
-            ...(finder ? [{ t: "The options", s: `Every ${label} we install, side by side`, href: `/find/${finder}` }] : []),
-            { t: `All ${name.toLowerCase()}`, s: "The other jobs under this service", href: `/services/${slug}` },
-            { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
-          ]} />
-        </>
+      key: "next", tone: "white",
+      render: (cls) => (
+        <NavyBox cls={cls} id="next" h="=Keep going" p="The options, the rest of the service, what customers say, and the calculators that go with it.">
+          <Cards items={next} />
+        </NavyBox>
       ),
     },
-    { body: <Areas what={s.label} /> },
+    { key: "areas", tone: "cream", render: (cls) => <Areas cls={cls} what={s.label} /> },
   ];
+
   return (
-    <BandPage cls="bx">
-      <Crumbs trail={[{ name: "Services", href: "/services" }, { name, href: `/services/${slug}` }, { name: s.label }]} />
+    <>
+    {/* The home page's floating header over the photo, as the suburb pages have
+        it (ChromeGate's ownHeader drops the site's flat one here). */}
+    <SiteModeStrip tabs={false} />
+    <div className="ag svpg" data-no-reveal>
+      <HomeHeader />
       <Hero
-        eye={`${name} · ${s.label}`} title={title} sub={s.intro ?? s.blurb}
-        img={asset(s.photo.src)} imgAlt={s.photo.alt} scene={!!s.photo.scene} ctas={!finder}
-        facts={heroSpecs(d?.specs)}
-      >
-        {finder && (
-          <div className="bxh__ctas">
-            <Link href={`/find/${finder}`} className="abtn abtn--or abtn--flat">See the options →</Link>
-            <a href="tel:+61359478000" className="abtn abtn--line" data-call-from="system-hero">Call (03) 5947 8000</a>
-          </div>
-        )}
-      </Hero>
-      <Tabs list={bands} />
-      <Bands list={bands} />
+        crumbs={[{ name: "Services", href: "/services" }, { name, href: `/services/${slug}` }, { name: s.label }]}
+        eye={`${name} · ${s.label}`} title={title} sub={s.intro ?? s.blurb} photo={asset(photo.src)} pos={photo.pos}
+        ctas={finder
+          ? <><Link href={`/find/${finder}`} className="abtn abtn--or">See the options →</Link><Call from="system-hero" /></>
+          : <><a href="#quote" className="abtn abtn--or">Get a free quote →</a><Call from="system-hero" /></>}
+        trust={specs.slice(0, 2)} quote={QUOTE_FOR[key] ?? QUOTE_FOR[slug]}
+      />
+      <BrandStrip label="The brands we fit" chips={brands} />
+      <Sections list={list} above={brands.length ? "white" : "navy"} />
       <EndCta title={<>Ready to talk about <span>{label}</span>?</>} />
-    </BandPage>
+    </div>
+    </>
   );
 }

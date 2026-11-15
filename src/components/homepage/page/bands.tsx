@@ -108,10 +108,7 @@ export function EndCta({ title, text = "A free site check, then one fixed price 
  * the cards in turn. The accent is the site's orange: these pages have no
  * brand colour of their own.
  *
- * `cls` adds to the root. The service pages pass "bx" for the category
- * pages' header (the orange glow and the boxed figures), so a service page
- * opened from /hot-water doesn't drop back to the plainer one; the other
- * pages on this frame keep theirs.
+ * `cls` adds a class to the root, for a page that needs its own variant.
  */
 export function BandPage({ children, cls }: { children: ReactNode; cls?: string }) {
   return (
