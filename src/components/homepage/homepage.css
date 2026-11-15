@@ -744,6 +744,10 @@ body:has(> main > .ag){padding-bottom:0 !important}
 .ag .tier__shw b{font-size:14px;color:var(--navy)}
 /* Homepage: the hot water size strip under the finder. */
 .ag .hwstrip{padding:8px 0 40px}
+/* Straight under the finder on the home page, its 96px of bottom room plus
+   this strip's own left a band of empty white between the two boxes (Jake,
+   Nov 2026). Pulled up so they read as a pair. */
+.ag .find + .hwstrip{margin-top:-60px}
 .ag .hwstrip__in{display:flex;align-items:center;gap:18px;padding:18px 22px;border-radius:16px;background:#fff;box-shadow:0 10px 30px -18px rgba(5,10,48,.35),inset 0 0 0 1px #E7E2D6;text-decoration:none;transition:box-shadow .2s,transform .2s}
 .ag .hwstrip__in:hover{transform:translateY(-1px);box-shadow:0 14px 34px -16px rgba(5,10,48,.4),inset 0 0 0 1px #C2521A}
 .ag .hwstrip__drop{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#FCEFE6;font-size:24px}
@@ -762,8 +766,7 @@ body:has(> main > .ag){padding-bottom:0 !important}
 @keyframes pplPop{to{opacity:1;transform:none}}
 /* An answer we steer people to, named over its picture (e.g. "Most control"):
    the site's orange, with white text at 4.6:1. */
-.ag .atile--tag{position:relative}
-.ag .atile__tag{position:absolute;top:12px;left:12px;z-index:2;font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--or);padding:7px 11px;border-radius:999px;box-shadow:0 6px 14px -6px rgba(5,10,48,.6)}
+.ag .atile__tag{align-self:flex-start;margin-bottom:4px;font:700 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--or);padding:7px 11px;border-radius:999px;box-shadow:0 6px 14px -6px rgba(5,10,48,.6)}
 .ag .atile__timer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;height:150px;background:linear-gradient(180deg,#EAF6FD,#fff)}
 .ag .atile__run{stroke-dashoffset:0;animation:timerRun 1.1s cubic-bezier(.3,.7,.3,1) both}
 @keyframes timerRun{from{stroke-dasharray:0 100}}
@@ -771,6 +774,10 @@ body:has(> main > .ag){padding-bottom:0 !important}
 .ag .atile__timer small{margin-top:-6px;font:700 11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;color:#0C6F96}
 @media (prefers-reduced-motion:reduce){.ag .atile__ppl svg{animation:none;opacity:1;transform:none}.ag .atile__run{animation:none}.ag .atile:hover .atile__photo img{transform:none}}
 @media (max-width:600px){.ag .atile__photo{height:150px}}
+/* A finder drawing is a whole scene, drawn 360 by 190: framed to its own
+   shape it shows every edge, where the photo tiles' fixed height cropped its
+   sides (the outdoor unit cut off at the edge, Jake, Nov 2026). */
+.ag .atile__photo.atile__photo--draw{height:auto;aspect-ratio:360/190;background:#fff}
 .ag .find__why{margin:0;padding:12px 16px;border-radius:12px;background:rgba(255,122,54,.14);box-shadow:inset 0 0 0 1px rgba(255,122,54,.4);font-size:15px;line-height:1.5;color:rgba(255,255,255,.9)}
 .ag .find__why b{color:#fff}
 /* Product shots on a white backdrop sit into the tile rather than as a white box. */

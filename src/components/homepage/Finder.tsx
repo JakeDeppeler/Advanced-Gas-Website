@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   CATS, PHOTO, ICON, SIZE_NOTE, SHOW_PRICES, SHOW_FINANCE, FINANCE_SOON, FINANCE_SOON_TEXT, FINANCE_MONTHS, FINANCE_NOTE, TONES,
-  findSystem, answerChips, hpPick, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
+  findSystem, answerChips, shownOpts, hpPick, galleryFor, isHeatPump, isNewBuildHeatPump, productHref, bookHref, money, weekly,
   type Answers,
 } from "@/lib/homepage/data";
 import { onIntent, sendIntent, scrollToId } from "@/lib/homepage/intent";
@@ -161,18 +161,15 @@ export function Finder({ only }: { only?: string } = {}) {
                 {curQ.size && <Link href={toolHref} className="find__tool">{toolText} →</Link>}
               </div>
               <div className={`fqgrid${curQ.size ? " fqgrid--size" : ""}`}>
-                {curQ.opts.map((z, i) => (
-                  <button key={z.label} type="button" className={`atile anim${z.tag ? " atile--tag" : ""}`} style={{ animationDelay: `${i * 0.07}s` }}
+                {shownOpts(curQ, ans).map(({ o: z, i }, k) => (
+                  <button key={z.label} type="button" className="atile anim" style={{ animationDelay: `${k * 0.07}s` }}
                     onClick={() => stepTo(() => setAns((a) => ({ ...a, [curQ.id]: i })))}>
-                    {/* The answer we steer people to, in words over its picture. Outside the
-                        picture's aria-hidden, so a screen reader hears it with the label. */}
-                    {z.tag && <span className="atile__tag">{z.tag}</span>}
                     {z.img ? (
                       // A photo across the top of the tile. On the household question, a
                       // figure per person pops in over it; product shots sit on white.
-                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : ""}`} aria-hidden="true">
+                      <span className={`atile__photo${z.fit === "contain" ? " atile__photo--prod" : ""}${z.img.endsWith(".svg") ? " atile__photo--draw" : ""}`} aria-hidden="true">
                         {/* A drawing goes through as is: the image optimiser refuses SVGs. */}
-                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" unoptimized={z.img.endsWith(".svg")} style={{ objectFit: z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
+                        <Image src={z.img} alt="" fill sizes="(max-width: 600px) 90vw, 360px" unoptimized={z.img.endsWith(".svg")} style={{ objectFit: z.img.endsWith(".svg") ? "contain" : z.fit ?? "cover", objectPosition: z.pos ?? "center" }} />
                         {/* Over a photo, a figure per person; a drawing has its people in it already. */}
                         {curQ.size && z.n && !z.img.endsWith(".svg") ? (
                           <span className="atile__ppl">
@@ -204,7 +201,9 @@ export function Finder({ only }: { only?: string } = {}) {
                       </span>
                     ) : null}
                     <span className={`fqrow${z.n ? " fqrow--size" : ""}`}>
-                      <span className="fqrow__t"><strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</span>
+                      {/* The answer we steer people to, in words above its label: over the
+                          picture it covered a room's switch in the zoning plan. */}
+                      <span className="fqrow__t">{z.tag && <span className="atile__tag">{z.tag}</span>}<strong>{z.label}</strong>{z.sub && <small>{z.sub}</small>}</span>
                       {z.spec && <span className="fqrow__spec">{z.spec}</span>}
                       {!z.n && <span aria-hidden="true" className="atile__go atile__go--sm">→</span>}
                     </span>

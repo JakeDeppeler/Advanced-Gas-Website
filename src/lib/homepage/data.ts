@@ -138,11 +138,22 @@ export const ICON = {
  * `fit: "contain"` is for a product shot on white rather than a scene, `pos`
  * for where a scene's subject sits. `min` is a size answer's floor in litres.
  * `tag` sits over the picture, for the answer we'd steer people towards.
+ * `unless` drops the answer when an earlier one rules it out, keyed by
+ * question id and answer index: "Straight behind the indoor unit" can't
+ * follow an inside wall, which only has another room behind it.
  */
-export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number; tag?: string };
+export type Opt = { label: string; sub?: string; spec?: string; n?: number; img?: string; fit?: "contain"; pos?: string; min?: number; tag?: string; unless?: Record<string, number> };
 export type Question = { id: string; q: string; opts: Opt[]; size?: boolean };
 
 const o = (label: string, sub?: string): Opt => (sub ? { label, sub } : { label });
+
+/**
+ * The answers to show for a question given the ones already picked, each with
+ * its index in `q.opts`. Answers are stored and sent by that index, so a
+ * dropped answer must not shift the ones after it.
+ */
+export const shownOpts = (q: Question, ans: Record<string, number>): { o: Opt; i: number }[] =>
+  q.opts.flatMap((o, i) => (o.unless && Object.entries(o.unless).some(([k, v]) => ans[k] === v) ? [] : [{ o, i }]));
 
 // A room of each size, cut open, its head's air moving. The furniture and
 // ceiling are one scale across all four, so the room's width is what grows.
@@ -204,8 +215,10 @@ const BATHS: Opt[] = [
   { label: "2 bathrooms", sub: "Two showers at once", spec: "2 baths", n: 2, img: "/finder/baths-2.svg" },
   { label: "3+ bathrooms", sub: "Big family home", spec: "3+ baths", n: 3, img: "/finder/baths-3.svg" },
 ];
-// The house from above, each zone its own colour, hatching and switch, turning
-// on and off by itself. The same plans draw QB.zoning's answers.
+// The house from above in the look of the zoning plan on the ducted pages
+// (ZoneHouse): a room lit blue with its vents blowing while its zone is on,
+// hatched grey while it's off, a switch per zone, each zone on its own clock.
+// The same plans draw QB.zoning's answers.
 const ZONES: Opt[] = [
   { label: "2–3 zones", sub: "Living and sleeping", spec: "2–3 zones", n: 1, img: "/finder/zones-groups.svg" },
   { label: "4–6 zones", sub: "Most family homes", spec: "4–6 zones", n: 2, img: "/finder/zones-some.svg" },
@@ -220,13 +233,23 @@ export const QB = {
     { label: "Ground floor", img: "/finder/floor-ground.svg" },
     { label: "Upstairs", sub: "Longer pipe run to the outdoor unit", img: "/finder/floor-upstairs.svg" },
   ] },
+  // Which side of the wall the head goes on decides the pipe run (Jake, Nov
+  // 2026: "we need to know if its on an internal or external wall"). An
+  // outside wall can pipe straight through to a unit behind it; an inside wall
+  // has another room behind it, so the pipes go up into the roof and out.
+  // Asked before the outdoor unit, which drops "Straight behind" for it.
+  wall: { id: "wall", q: "Which wall is the indoor unit going on?", opts: [
+    { label: "An outside wall", sub: "Piped straight through the wall", img: "/finder/wall-outside.svg" },
+    { label: "An inside wall", sub: "A longer pipe run, usually up through the roof", img: "/finder/wall-inside.svg" },
+    { label: "Not sure", sub: "We'll work it out on site", img: "/finder/wall-not-sure.svg" },
+  ] },
   // The room's wall from outside, broken away to show the head behind it: the
   // outdoor unit moves between answers, the head stays put. The roof is its
   // own answer (Jake, Nov 2026: "need an on the roof option for the split").
   // Answers travel by index in links (outdoor=3), so a link made before the
   // roof was split out reads its "Not sure" as "On the roof".
   outdoor: { id: "outdoor", q: "Where can the outdoor unit go?", opts: [
-    { label: "Straight behind the indoor unit", sub: "Back-to-back on the same wall", img: "/finder/outdoor-behind.svg" },
+    { label: "Straight behind the indoor unit", sub: "Back-to-back on the same wall", img: "/finder/outdoor-behind.svg", unless: { wall: 1 } },
     { label: "Further along the wall or around a corner", img: "/finder/outdoor-along.svg" },
     { label: "On a balcony", img: "/finder/outdoor-balcony.svg" },
     { label: "On the roof", sub: "On a stand, piped down to the room", img: "/finder/outdoor-roof.svg" },
@@ -471,7 +494,7 @@ export const CATS: Category[] = [
     id: "air", label: "Cooling", sub: "Splits, multi-head, ducted, evap",
     photo: PHOTO.splitRoom, alt: "Split system installed in a bedroom", pos: "center 30%", fg: "#0C6F96", icon: ICON.snow,
     systems: [
-      sys({ slug: "split-system", label: "Split system", sub: "Wall air conditioner", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.outdoor], faq: "split", service: "split" }),
+      sys({ slug: "split-system", label: "Split system", sub: "Wall air conditioner", img: IMG.mitsuSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, more: [QB.floor, QB.wall, QB.outdoor], faq: "split", service: "split" }),
       MULTI,
       sys({ slug: "ducted", label: "Ducted split", sub: "Whole-home air con", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.zoning, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,
@@ -496,7 +519,7 @@ export const CATS: Category[] = [
         t("6-star", "Brivis", "StarPro 6-star", IMG.brivisStar, ["Modulating burner: the most efficient", "CO safety test on install", W], null),
       ] }),
       // Gas heater, split, multi-head, ducted, then the Dominator (Jake, Nov 2026).
-      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.outdoor] }),
+      sys({ slug: "reverse-cycle-split", label: "Reverse-cycle split", sub: "Electric wall heater", img: IMG.kadenSplit, q: "How big is the room?", sizes: ROOM, tiers: SPLIT_TIERS, faq: "split", service: "split", more: [QB.floor, QB.wall, QB.outdoor] }),
       MULTI,
       sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.zoning, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import {
-  findHref, findSystem, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, FINANCE_SOON, FINANCE_SOON_TEXT, TONES, reviewTitle, modelForAnswer,
+  findHref, findSystem, productHref, money, weekly, PRODUCT_FAQS, SHOW_FINANCE, FINANCE_MONTHS, FINANCE_TERMS, FINANCE_NOTE, FINANCE_SOON, FINANCE_SOON_TEXT, TONES, reviewTitle, modelForAnswer, shownOpts,
   type Category, type System, type Tier, type Answers, type Opt, type GalItem, type Hero,
   lowerLabel,
 } from "@/lib/homepage/data";
@@ -208,7 +208,7 @@ export function FitFinder({ v }: { v: PV }) {
           <div key={q.id} {...pane(k + 1)}>
             <span className="ff__q">{q.q}</span>
             <div className="ff__opts">
-              {q.opts.map((o, i) => (
+              {shownOpts(q, a).map(({ o, i }) => (
                 <button key={o.label} type="button" className={`ff__opt${a[q.id] === i ? " ff__opt--on" : ""}`} onClick={() => { setA({ ...a, [q.id]: i }); setStep(k + 2); }}>
                   <span><strong>{o.label}</strong>{o.sub && <small>{o.sub}</small>}</span><i aria-hidden="true">→</i>
                 </button>

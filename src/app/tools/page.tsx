@@ -31,6 +31,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools" },
 };
 
+/** A tool's line icon on its tile; the card's words carry the meaning, so it's hidden from screen readers. */
+function ToolIcon({ d, size }: { d: string; size: number }) {
+  return (
+    <span className="tlh__ico" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
+    </span>
+  );
+}
+
 export default function ToolsHubPage() {
   // In the groups' order, so the set still reads size, cost, compare, look up.
   const tools = TOOL_GROUPS.flatMap((g) => TOOL_LIST.filter((t) => t.group === g.key));
@@ -52,8 +61,10 @@ export default function ToolsHubPage() {
         trust={[{ v: `${TOOL_LIST.length} free tools`, k: "No sign-up · No email needed" }]}
         card={
           <HeroCard label="Answers in a minute">
-            <ul className="phx__rows">
-              {TOOL_LIST.slice(0, 5).map((t) => <li key={t.slug}><Link href={`/tools/${t.slug}`}><strong>{t.q}</strong><span>{t.title}</span></Link></li>)}
+            <ul className="phx__rows phx__rows--ico">
+              {TOOL_LIST.slice(0, 5).map((t) => (
+                <li key={t.slug}><Link href={`/tools/${t.slug}`}><ToolIcon d={t.icon} size={20} /><span><strong>{t.q}</strong><span>{t.title}</span></span></Link></li>
+              ))}
             </ul>
           </HeroCard>
         }
@@ -79,8 +90,12 @@ export default function ToolsHubPage() {
               {tools.map((t) => (
                 <li key={t.slug}>
                   <Link href={`/tools/${t.slug}`} className="tcard tlh__card">
-                    <small className="tlh__grp">{groupLabel[t.group]}</small>
-                    <strong>{t.title}</strong>
+                    {/* A big title beside its icon, as the card's header (Jake, Nov
+                        2026: "the header should be large and have icons"). */}
+                    <span className="tlh__top">
+                      <ToolIcon d={t.icon} size={28} />
+                      <span className="tlh__name"><small className="tlh__grp">{groupLabel[t.group]}</small><strong>{t.title}</strong></span>
+                    </span>
                     <span className="tlh__q">{t.q}</span>
                     <ul className="tlh__pts">{t.points.map((p) => <li key={p}>{p}</li>)}</ul>
                     <em>{t.cta} →</em>

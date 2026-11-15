@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FSVC, QB, SIZE_NOTE, PHOTO_TIP, ICON, findSystem, pickSummary, answerMap,
+  FSVC, QB, SIZE_NOTE, PHOTO_TIP, ICON, findSystem, pickSummary, answerMap, shownOpts,
   type Answers, type Question, type System,
 } from "@/lib/homepage/data";
 import { onIntent } from "@/lib/homepage/intent";
@@ -300,8 +300,8 @@ export function HeroQuote() {
             <h2 className="qf__h">{curQ.q}</h2>
           </div>
           <div className="qf__opts">
-            {curQ.opts.map((z, i) => (
-              <button key={z.label} type="button" className={`qf__opt${ans[curQ.id] === i ? " qf__opt--on" : ""}`} style={{ animationDelay: `${i * 0.07}s` }} onClick={() => pickAnswer(curQ, i)}>
+            {shownOpts(curQ, ans).map(({ o: z, i }, k) => (
+              <button key={z.label} type="button" className={`qf__opt${ans[curQ.id] === i ? " qf__opt--on" : ""}`} style={{ animationDelay: `${k * 0.07}s` }} onClick={() => pickAnswer(curQ, i)}>
                 {z.n ? (
                   <span className="qf__bars" aria-hidden="true">
                     {[1, 2, 3].map((b) => <i key={b} className={b <= Math.min(z.n ?? 0, 3) ? "on" : ""} />)}
