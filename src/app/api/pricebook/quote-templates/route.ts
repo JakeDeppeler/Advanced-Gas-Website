@@ -6,6 +6,7 @@ import { addQuoteTemplates } from "@/lib/pricebook/quoteTemplatesAdd";
 import { setUpServices } from "@/lib/pricebook/serviceSetup";
 import { splitRebateHeaders } from "@/lib/pricebook/rebateHeaders";
 import { addEvapProposals } from "@/lib/pricebook/evapProposals";
+import { syncTemplateSummaries } from "@/lib/pricebook/templateSummaries";
 import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
 import type { TemplateItem } from "@/lib/pricebook/labour";
 
@@ -42,9 +43,10 @@ export async function GET(req: Request) {
     let lineUp: Awaited<ReturnType<typeof lineUpFixes>> | null = null;
     let rebates: Awaited<ReturnType<typeof splitRebateHeaders>> | null = null;
     let proposals: Awaited<ReturnType<typeof addEvapProposals>> | null = null;
+    let summaries: Awaited<ReturnType<typeof syncTemplateSummaries>> | null = null;
     if (Date.now() < until) {
       // One read of the templates for both steps: the regroup changes lines, the renames names.
-      const all = await stList<{ id: number; name?: string; internalName?: string | null; totalPrice?: number; items?: TemplateItem[] }>(
+      const all = await stList<{ id: number; name?: string; internalName?: string | null; totalPrice?: number; summary?: string | null; items?: TemplateItem[] }>(
         "sales", "estimate-templates", { active: "True" }, 5);
       group = await groupQuoteTemplates(until, all);
       // The line-up fixes before the renames: they check each template's name as the review found it.
@@ -53,9 +55,11 @@ export async function GET(req: Request) {
       // Jake, 16 Nov: the rebate totals for hot water and heating & cooling, then the evap proposals.
       if (Date.now() < until) rebates = await splitRebateHeaders(until, all);
       if (Date.now() < until) proposals = await addEvapProposals(until);
+      // The summaries kept to quoteTemplateSpecs.ts: the Brivis comparison, Jake 16 Nov.
+      if (Date.now() < until) summaries = await syncTemplateSummaries(until, all);
     }
-    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? [])];
-    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals });
+    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(summaries?.failed ?? [])];
+    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, summaries });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }

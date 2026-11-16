@@ -284,7 +284,7 @@ export function templateFacts(name: string, items: { skuType: string; skuName?: 
 export const summaryHtml = (text: string) => text.split(/\n\n+/).map((p) => `<p>${p.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`).join("");
 /** Text for comparing a stored summary or description with ours, whatever markup it was saved with. */
 export const plainText = (html: string | null | undefined) =>
-  String(html ?? "").replace(/<\/(p|div)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+  String(html ?? "").replace(/<\/(p|div)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&#0?39;|&#x27;|&apos;/gi, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
 
 /** An internal ducted heater, by the unit's name: Wombat, Compact Classic, StarPro "in" models. */
 export const isInternalHeater = (s: string) => /wombat|compact classic|sp\d+in\b/i.test(s);

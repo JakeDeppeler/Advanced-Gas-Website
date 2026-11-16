@@ -183,17 +183,58 @@ export type Line = { skuId: number; skuType: string; quantity: number; unitPrice
  * price). A discount inside a group is folded into the header and shows at
  * $0, and the point of the line is that the customer sees it.
  */
-export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[]; flat?: boolean };
+/**
+ * `was`: summaries this template has been made with before. templateSummaries.ts
+ * writes a changed summary only over one of these (or the last it wrote), never
+ * over words the office has put on the template since.
+ */
+export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[]; flat?: boolean; was?: string[] };
 
 const L = (s: { skuId: number; skuType: string; code?: string }, unitPrice: number, quantity = 1): Line => ({ ...s, quantity, unitPrice });
 
 const FITTED = "Includes removal and disposal of the old cooler, supply and installation of the new unit on your existing roof dropper and ducting, connection to the existing water, power and controller, a full operational test, and a compliance certificate on completion.";
+
+/**
+ * What tells the three Brivis ranges apart on a quote, side by side in the evap
+ * proposals (Jake, 16 Nov: "speak about the difference between them and then
+ * the reason people should choose each model").
+ *
+ * Only what Rinnai says: its Brivis brochure (RA85.06.22, Aug 2022, the
+ * feature table and each range's page) and its Climate price list (1 Apr 2026:
+ * "Advance Series (All With Motorised Winter Seal)", "All Brivis Contour
+ * Series Include AquaSave and ServoSeal", a winter seal among the Promina's
+ * accessories). What all three have (AutoRefresh, pre-wet, FreshStart, the
+ * quiet fan, Australian made) is said once, the same on each, so it never
+ * reads as one range's advantage. "Best value" and "the top" are the
+ * pricebook's order, Advance under Promina under Contour at every size (16 Nov).
+ * The Balaero isn't in the proposals and keeps the plain summary.
+ */
+export const EVAP_SERIES_COPY: Partial<Record<EvapUnit["series"], { compares: string; choose: string }>> = {
+  Advance: {
+    compares: "How it compares: of the three Brivis ranges we fit (Advance, Promina and Contour), the Advance is the best value. It's the traditional shape, where the Promina and Contour are slimline and sit lower on the roof. It has a motorised winter seal built in, which closes when the cooler is off to stop cold draughts and heat escaping through it in winter, and a large cooling pad area that moves plenty of air.",
+    choose: "Choose the Advance if you want a dependable Brivis at the lowest price and don't mind a traditional-looking cooler on the roof.",
+  },
+  Promina: {
+    compares: "How it compares: of the three Brivis ranges we fit (Advance, Promina and Contour), the Promina is the middle one. It's slimline: its low-profile sloping base lets it sit lower on the roof than the traditional-shaped Advance, for a neater look. Unlike the Advance and Contour, it doesn't come with a winter seal. One can be added to stop cold draughts and heat escaping through it in winter; ask us if you'd like it included.",
+    choose: "Choose the Promina if you want the slimline look on your roof without paying for the Contour's water saving and built-in winter seal.",
+  },
+  Contour: {
+    compares: "How it compares: of the three Brivis ranges we fit (Advance, Promina and Contour), the Contour is the top. It has the same slimline, low-profile sloping base as the Promina, and adds two things the Promina doesn't have. AquaSave water management keeps the water clean while using up to 45% less water than a conventional cooler that bleeds water off, and its small reservoir means less water is dumped when it's turned off. And a motorised winter seal is built in, closing when the cooler is off to stop cold draughts and heat escaping through it in winter.",
+    choose: "Choose the Contour if you want the best of the three: the slimline look, the lowest water use, and a winter seal that looks after itself.",
+  },
+};
+const EVAP_SHARED = "Like the other two, it's Australian made, with a quiet fan, AutoRefresh water management that flushes the tank and refills it with clean water after a set number of fills, a pre-wet cycle that soaks the pads before the fan starts, and FreshStart, which clears stagnant water and sediment once cooling is switched off.";
+
 /** A Brivis unit's replacement template: the unit, the install, the compliance certificate. */
 export function evapTemplate(u: EvapUnit, unitSkuId: number, unitPrice: number): TemplateSpec {
+  const opening = `Replacement of your existing evaporative cooler with a new Brivis ${u.series} ${u.model} in ${u.colour}, fully installed.`;
+  const series = EVAP_SERIES_COPY[u.series];
   return {
     name: `Brivis ${u.series} ${u.model} Evaporative Cooler (${u.colour}) - Replacement`,
     code: `EVAP-BRIVIS-${u.series.toUpperCase()}-${u.model}-${COLOUR_CODE[u.colour]}`,
-    summary: `Replacement of your existing evaporative cooler with a new Brivis ${u.series} ${u.model} in ${u.colour}, fully installed.\n\n${FITTED}`,
+    summary: [opening, ...(series ? [series.compares, EVAP_SHARED, series.choose] : []), FITTED].join("\n\n"),
+    // As made on 15 Nov, before the comparison.
+    was: series ? [[opening, FITTED].join("\n\n")] : undefined,
     lines: [{ skuId: unitSkuId, skuType: "Equipment", quantity: 1, unitPrice }, L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)],
   };
 }
