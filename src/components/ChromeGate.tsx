@@ -37,6 +37,8 @@ const PAGE_HERO = new Set([
   "/gallery", "/blog", "/rebates", "/membership", "/upgrade-or-repair",
   // Both drawn by app/legal/LegalPage.tsx.
   "/privacy", "/terms",
+  // The commercial front page; its four sub-pages keep the flat header.
+  "/commercial",
 ]);
 
 /**

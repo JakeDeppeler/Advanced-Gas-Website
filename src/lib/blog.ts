@@ -691,7 +691,7 @@ export const posts: BlogPost[] = [
         "Get everyone outside",
         "Ring us and, if the smell is strong, ring 000",
       ] },
-      { type: "p", text: "We respond to gas smell calls day or night inside the Pakenham + 75km radius. On-call tradie, not overseas call centre." },
+      { type: "p", text: "We respond to gas smell calls day or night inside the Pakenham + 50 km radius. On-call tradie, not overseas call centre." },
 
       { type: "h2", text: "Carbon monoxide alarm, take it seriously" },
       { type: "p", text: "CO is colourless, odourless, and kills. If your CO detector alarms:" },

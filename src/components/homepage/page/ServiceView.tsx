@@ -647,7 +647,7 @@ function Areas({ cls, what }: { cls: string; what: string }) {
       <div className="wrap svq__in svar">
         <SecHead
           h={`${what.charAt(0)}${what.slice(1).toLowerCase()} in Pakenham and {the suburbs around it.}`}
-          p="Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within about 75 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there."
+          p="Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within 50 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there."
         />
         <AreaChips />
       </div>

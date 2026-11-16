@@ -8,7 +8,7 @@ import { site } from "@/lib/site";
  * "Check your suburb" — a search box over the whole service area on the home
  * page. Type a suburb and the list filters to it; type something we don't
  * cover and it says so honestly with a call prompt. The full list is every
- * town inside the 75 km radius (sourced from the suburb dataset), so it
+ * town inside the 50 km area (sourced from the suburb dataset), so it
  * browses collapsed to the nearest handful and expands on request — the
  * search always looks across all of them regardless.
  */

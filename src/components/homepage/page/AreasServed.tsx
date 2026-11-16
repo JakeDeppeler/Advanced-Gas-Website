@@ -28,7 +28,7 @@ export function AreasServed({ what, tone }: { what: string; tone?: "cream" }) {
         <Head
           eye="Where we work"
           h={<span id="areas-served">{what} in Pakenham and the suburbs around it.</span>}
-          lede="Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within about 75 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there."
+          lede="Our own crews, out of the Sierra Circuit workshop in Pakenham, cover everywhere within 50 km. These are the suburbs nearest it; each page has the drive time and the jobs we usually do there."
         />
         <AreaChips />
       </div>

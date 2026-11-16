@@ -97,8 +97,8 @@ export type ServiceSlug = (typeof services)[number]["slug"];
 // Suburb data moved to src/lib/suburbs.ts (rich per-suburb hooks). Re-exported
 // here so existing imports (`import { suburbs } from "@/lib/site"`) keep working.
 // The old list included Korumburra, Leongatha, Wonthaggi, Phillip Island and
-// Inverloch — all >75 km from Pakenham and outside our stated service radius,
-// so they've been dropped in favour of the tighter, denser 75 km catchment.
+// Inverloch — all >75 km from Pakenham, past the furthest we travel, so
+// they've been dropped. The stated area is 50 km; 50 to 75 km we still come.
 /**
  * The opening hours as a person reads them, from the one record above.
  *

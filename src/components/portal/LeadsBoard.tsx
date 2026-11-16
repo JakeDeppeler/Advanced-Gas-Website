@@ -437,7 +437,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
             <p className="pt-panel__sub">
               In drive time, not kilometres. A radius is a circle and Melbourne is not: thirty-six kilometres
               south-east is half an hour down the highway, and thirty-six north-west is an hour in traffic. The site
-              advertises 75&nbsp;km, which reaches past the city, so this is the honest read of how far the van
+              advertises 50&nbsp;km and still travels to 75, which reaches past the city, so this is the honest read of how far the van
               actually goes.
             </p>
 

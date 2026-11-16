@@ -14,7 +14,7 @@ import "./contact.css";
 
 export const metadata: Metadata = {
   title: "Contact, Free quote in 12 hours",
-  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 75 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
+  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 50 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
   alternates: { canonical: "/contact" },
 };
 
@@ -72,7 +72,7 @@ export default function ContactPage() {
           <Head eye="Where next" h="Or go straight to it." />
           <Next items={[
             { t: "Find your system", s: "Options, prices and how each one works", href: "/#find" },
-            { t: "Do you come to me?", s: "Pakenham and 75 km around", href: "/service-areas" },
+            { t: "Do you come to me?", s: "Pakenham and 50 km around", href: "/service-areas" },
             { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
           ]} />
         </div>

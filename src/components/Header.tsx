@@ -862,7 +862,7 @@ function AreasMega() {
         </div>
       ))}
       <div className="mega__cta">
-        <div className="mega__cta-sub">Every postcode within 75&nbsp;km of Pakenham.</div>
+        <div className="mega__cta-sub">Every postcode within 50&nbsp;km of Pakenham.</div>
         <Link href="/service-areas" className="ds-btn ds-btn--orange">See all 46 suburbs →</Link>
       </div>
     </div>
@@ -1080,7 +1080,7 @@ export function SiteModeStrip({ tabs = true }: { tabs?: boolean }) {
             left up here is the live stuff and the one link that cannot wait. */}
         <div className="sitemode__left">
           <LocalConditions />
-          <span className="sitemode__loc">Pakenham VIC, within 75&nbsp;km</span>
+          <span className="sitemode__loc">Pakenham VIC, within 50&nbsp;km</span>
         </div>
         <div className="sitemode__right">
           <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>

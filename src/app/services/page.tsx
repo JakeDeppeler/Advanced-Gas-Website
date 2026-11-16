@@ -17,7 +17,7 @@ import "@/components/homepage/page/category.css";
 export const metadata: Metadata = {
   title: "Services, Heat Pumps, Aircon, Gas & Hot Water",
   description:
-    "Heat pump hot water, split and ducted aircon, gas heating, servicing and commercial fit-outs. Pakenham VIC, servicing within 75 km. Free quote.",
+    "Heat pump hot water, split and ducted aircon, gas heating, servicing and commercial fit-outs. Pakenham VIC, servicing within 50 km. Free quote.",
   alternates: { canonical: "/services" },
 };
 

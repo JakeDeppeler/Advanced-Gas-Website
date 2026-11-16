@@ -6,7 +6,7 @@ import { brands } from "@/lib/brands";
 import { REBATE_FAQS } from "@/lib/rebates";
 import { FAULT_CODES } from "@/lib/faultCodes";
 import { publishedSuburbs, suburbs } from "@/lib/suburbs";
-import { RADIUS_KM } from "@/lib/suburbCoords";
+import { MAX_KM, RADIUS_KM } from "@/lib/suburbCoords";
 import { dollarFigures, lead, withoutPrices } from "./text";
 import { priceLine, servicePrices } from "./servicePrices";
 
@@ -54,7 +54,7 @@ export function entries(): Entry[] {
   add({ id: "site.contact", q: "How do I contact you? What's your phone number and email?", tags: "call ring phone email contact reach", a: `Call ${site.phone} or email ${site.email}. For a price, the quote form is the quickest way in.`, href: "/contact", label: "Contact us" });
   add({ id: "site.address", q: "Where are you based? What's your address?", tags: "location workshop located address pakenham", a: `We're based in ${site.address.suburb}: ${site.address.street}, ${site.address.suburb} ${site.address.state} ${site.address.postcode}.`, href: "/contact", label: "Contact us" });
   add({ id: "site.licences", q: "Are you licensed? What are your licence numbers?", tags: "licence license licensed registered arc arctick plumber gasfitter qualified insured", a: `Yes. ${site.licences.plumbing}, and ${site.licences.refrigeration} for air conditioning and refrigeration work.`, href: "/about", label: "About us" });
-  add({ id: "site.area", q: "What areas do you cover? Which suburbs do you service?", tags: "area suburb travel come cover region", a: `Pakenham and about ${RADIUS_KM} km around it, across ${site.primaryRegion}.`, href: "/service-areas", label: "Areas we cover" });
+  add({ id: "site.area", q: "What areas do you cover? Which suburbs do you service?", tags: "area suburb travel come cover region", a: `Pakenham and ${RADIUS_KM} km around it, across ${site.primaryRegion}. We still come out as far as ${MAX_KM} km.`, href: "/service-areas", label: "Areas we cover" });
   add({ id: "site.services", q: "What services do you offer? What do you do?", tags: "service offer work job", a: `${services.map((s) => s.name).join(", ")}, for homes and businesses.`, href: "/services", label: "Our services" });
 
   /* What we do, from the homepage's service cards. */
@@ -159,7 +159,7 @@ export function promptKnowledge(): string {
     `${site.name}, ${site.address.street}, ${site.address.suburb} ${site.address.state} ${site.address.postcode}. Phone ${site.phone}, email ${site.email}.`,
     `Licences: ${site.licences.plumbing}; ${site.licences.refrigeration}.`,
     `Office hours ${openingHours()}. The main number is answered 24/7 for emergencies.`,
-    `Service area: Pakenham and about ${RADIUS_KM} km around it (${site.primaryRegion}).`,
+    `Service area: Pakenham and ${RADIUS_KM} km around it (${site.primaryRegion}); we still come out as far as ${MAX_KM} km, and not past that.`,
     `Services: ${services.map((s) => `${s.name}: ${s.blurb}`).join(" ")}`,
     `Brands we install: ${ourBrands().map((b) => `${b.name} (${b.range})`).join("; ")}.`,
     "",

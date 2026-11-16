@@ -8,7 +8,7 @@
  * chip list — so no two pages produce the same body copy.
  *
  * `published: true` gates which suburbs land in generateStaticParams +
- * sitemap. As of SEO Wave 2, all 42 postcodes within 75 km of Pakenham
+ * sitemap. As of SEO Wave 2, all 42 postcodes within 50 km of Pakenham
  * are enriched and published. Draft any new additions with published:false.
  */
 
@@ -47,7 +47,7 @@ export type Suburb = {
    *
    * Everything in the core corridor is within about half an hour of the
    * Pakenham workshop and we work there constantly. The outer ring is
-   * different: still inside the 75 km radius, still genuinely serviceable,
+   * different: still inside the 50 km area, still genuinely serviceable,
    * but 45 minutes to an hour away and not somewhere we can claim a decade
    * of local jobs.
    *
@@ -1528,7 +1528,7 @@ export const suburbs: Suburb[] = [
   /* ---------------------------------------------------------------
    * Outer ring — the eastern suburbs.
    *
-   * Inside the 75 km radius, outside the corridor we live in. These
+   * Inside the 50 km area, outside the corridor we live in. These
    * are booked-install suburbs rather than same-day-emergency ones and
    * the pages say so, because a Ringwood homeowner can see how far
    * Pakenham is on a map and pretending otherwise costs more trust

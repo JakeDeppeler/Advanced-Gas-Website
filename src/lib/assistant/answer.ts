@@ -1,7 +1,7 @@
 import { site, services } from "@/lib/site";
 import { FAULT_CODES, faultSlug, type FaultCode } from "@/lib/faultCodes";
 import { suburbs } from "@/lib/suburbs";
-import { RADIUS_KM } from "@/lib/suburbCoords";
+import { MAX_KM, RADIUS_KM } from "@/lib/suburbCoords";
 import { CATS, HOME_FAQS, systemHref } from "@/lib/homepage/data";
 import { SYS_INTRO } from "@/lib/homepage/learn";
 import { entries, ourBrands, type Entry } from "./knowledge";
@@ -180,7 +180,7 @@ function suburbAnswer(q: string): AskReply | null {
   }
   if (/\b(?:do you (?:service|cover|come|go|travel|work)|service area|come out to|travel to)\b/.test(t)) {
     return reply(
-      `We cover Pakenham and about ${RADIUS_KM} km around it, across ${site.primaryRegion}. I couldn't find that suburb on our list, so give us a call on ${site.phone} to check.`,
+      `We cover Pakenham and ${RADIUS_KM} km around it, across ${site.primaryRegion}, and still come out as far as ${MAX_KM} km. I couldn't find that suburb on our list, so give us a call on ${site.phone} to check.`,
       { href: "/service-areas", label: "Areas we cover" },
       "unsure",
     );

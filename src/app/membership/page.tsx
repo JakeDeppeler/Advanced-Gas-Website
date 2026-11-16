@@ -12,7 +12,7 @@ import "@/components/homepage/page/membership.css";
 export const metadata: Metadata = {
   title: "Membership, discounted servicing & priority response",
   description:
-    "Become a member for discounted annual servicing, priority same-week response, and waived call-out fees across Pakenham and within 75 km.",
+    "Become a member for discounted annual servicing, priority same-week response, and waived call-out fees across Pakenham and within 50 km.",
   alternates: { canonical: "/membership" },
   // Placeholder pricing ($TBC on all three tiers). Take this out with the
   // real numbers — and add the page to sitemap.ts at the same time.

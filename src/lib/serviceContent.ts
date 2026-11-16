@@ -334,7 +334,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     heroPhotoAlt: "A Kaden ducted condenser we installed on a stand against a brick wall",
     h1: "Air conditioning installation, Pakenham & SE Melbourne",
     intro:
-      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
+      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 50 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {
       heading: "Why these two brands, and which one is yours.",
       blurb:
@@ -1052,7 +1052,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     installPhotos: {
       heading: "Heat pumps we've put in.",
       blurb:
-        "Real jobs across the corridor, not catalogue renders. Every one of these is a house within 75 km of the workshop.",
+        "Real jobs across the corridor, not catalogue renders. Every one of these is a house within 50 km of the workshop.",
       // ------------------------------------------------------------------
       // ADD MORE HERE. One line per photo: file in /public, an alt that
       // describes what's actually in the frame, and a caption if there's
@@ -1500,7 +1500,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Aircon service, repair and breakdowns",
     intro:
-      "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and written quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
+      "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 50 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and written quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
     whyThese: {
       heading: "Why we service brands we'd never sell you.",
       blurb:
@@ -1836,7 +1836,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Gas heating, hot water & plumbing",
     intro:
-      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, written quotes on planned work back in 12 business hours, and full compliance certificates on every job.",
+      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 50 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, written quotes on planned work back in 12 business hours, and full compliance certificates on every job.",
     whyThese: {
       heading: "Why Brivis and Kaden for gas, and why the star rating matters more than the price.",
       blurb:

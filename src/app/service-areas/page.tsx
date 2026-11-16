@@ -11,9 +11,9 @@ import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
 
 export const metadata: Metadata = {
-  title: "Service Areas, Pakenham + 75 km",
+  title: "Service Areas, Pakenham + 50 km",
   description:
-    "Aircon, heat pump and gas plumbing across Pakenham and within 75 km: Berwick, Officer, Cranbourne, Narre Warren, Dandenong, Drouin, Warragul and between.",
+    "Aircon, heat pump and gas plumbing across Pakenham and within 50 km: Berwick, Officer, Cranbourne, Narre Warren, Dandenong, Drouin, Warragul and between.",
   alternates: { canonical: "/service-areas" },
 };
 
@@ -25,7 +25,7 @@ export default function ServiceAreasPage() {
       <PageHero
         crumbs={[{ name: "Service areas" }]}
         eye="Service areas"
-        title="Pakenham & {75 km around.}"
+        title="Pakenham & {50 km around.}"
         sub="Our own crews, out of one Pakenham workshop. Type your suburb into the map to see how far it is and whether we come to you."
         photo={PHOTO.vans} pos="center 60%" from="areas-hero"
         trust={[

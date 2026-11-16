@@ -1117,7 +1117,7 @@ export const NAV: NavGroup[] = [
   { label: "About", href: "/about", head: "Rather talk?", foot: "Call (03) 5947 8000", footHref: "tel:+61359478000", items: [
     { t: "About us", s: "The team and how we work", img: PHOTO.team, photo: true, pos: "center 55%", href: "/about" },
     { t: "Reviews", s: "What local households say", img: PHOTO.splitRoom, photo: true, pos: "center 30%", href: "/reviews" },
-    { t: "Areas we cover", s: "Pakenham and 75 km around", img: PHOTO.map, photo: true, pos: "center", href: "/service-areas" },
+    { t: "Areas we cover", s: "Pakenham and 50 km around", img: PHOTO.map, photo: true, pos: "center", href: "/service-areas" },
   ] },
 ];
 

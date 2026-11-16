@@ -12,7 +12,7 @@ import "../cx.css";
 export const metadata: Metadata = {
   title: "Contact Us, Commercial Mechanical Pakenham",
   description:
-    "Submit a scope, book a service or request certificates of currency and SWMS. Based in Pakenham, on site within 75 km and further for contract work.",
+    "Submit a scope, book a service or request certificates of currency and SWMS. Based in Pakenham, on site within 50 km and further for contract work.",
   alternates: { canonical: "/commercial/contact" },
 };
 
@@ -108,7 +108,7 @@ export default function CommercialContactPage() {
             <div className="cx-rv">
               <span className="cx-eye cx-eye--sky">Service area</span>
               <h2>Melbourne&rsquo;s south-east &amp; Gippsland.</h2>
-              <p>Based in {site.address.suburb} and servicing within 75 km, and further for contract work.</p>
+              <p>Based in {site.address.suburb} and servicing within 50 km, and further for contract work.</p>
               <ul className="cx-chips">
                 {COMM_AREA_TOWNS.map((t) => <li key={t}>{t}</li>)}
               </ul>

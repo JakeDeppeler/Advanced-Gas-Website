@@ -41,7 +41,7 @@ const CASES: Case[] = [
   { q: "do you install Daikin?", kind: "answer", has: /don't install Daikin/ },
   { q: "can you fix my Rinnai hot water", kind: "answer" },
   { q: "do you come out to Warragul", kind: "answer", has: /Warragul/ },
-  { q: "do you cover Geelong", kind: "unsure", has: /75 km/ },
+  { q: "do you cover Geelong", kind: "unsure", has: /50 km/ },
   { q: "can a heat pump run off my solar panels", kind: "answer", has: /solar|panels/i },
   { q: "is the quote fixed", kind: "answer", has: /writing/i },
   { q: "what warranty do you give", kind: "answer", has: /6 years|six years/i },

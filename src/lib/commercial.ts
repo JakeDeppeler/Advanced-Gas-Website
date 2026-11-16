@@ -373,7 +373,7 @@ export const COMM_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How far do you travel?",
-    a: "The standard service area is 75 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work. The Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
+    a: "The standard service area is 50 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work. The Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
   },
   {
     q: "Will you take a one-off job, or is it contract work only?",

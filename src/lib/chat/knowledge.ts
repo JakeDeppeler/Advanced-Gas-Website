@@ -27,7 +27,7 @@ export function knowledge(): string {
     `Licences: ${site.licences.plumbing}; ${site.licences.refrigeration}.`,
     `Hours: ${openingHours()}. Weekends and public holidays: emergencies only.`,
     `24/7 emergency line is the same number, ${site.phone}: gas leak, no hot water, CO alarm. After hours we answer for locals only; the call-out fee is confirmed on the phone before anyone comes out.`,
-    `Service area: Pakenham and within 75 km (${site.primaryRegion}). We don't quote outside that radius.`,
+    `Service area: Pakenham and within 50 km (${site.primaryRegion}). Between 50 and 75 km we still come out; past 75 km we don't quote.`,
     `Every quote is written; the written quote is the price you pay. VEU (Victorian Energy Upgrades) rebates are applied at the quote where the property qualifies. 6-year workmanship warranty on installs.`,
     "",
   );

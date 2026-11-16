@@ -245,7 +245,7 @@ export const INFO: InfoBlock[] = [
       { k: "Compliance cert", v: "Emailed within 24 hours of install" },
       { k: "After-hours call-out", v: "$380 call-out, then $260/hr after" },
       { k: "Standard split service", v: "$220 (or $140 ea for 3+ at one address)" },
-      { k: "Service area", v: "Pakenham + 75 km" },
+      { k: "Service area", v: "Pakenham + 50 km (we still go out to 75 km)" },
     ],
   },
   {

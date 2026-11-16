@@ -2971,7 +2971,7 @@ const brandCatalogue: Brand[] = [
       heading: "An Australian company, {built to AS/NZS}.",
       body: "iStore is an Australian company out of Sydney. Its units are made in China to AS/NZS standards, and we'd rather tell you that straight.",
       marks: [
-        { v: "VEU", k: "The best rebate outcome of any heat pump we fit" },
+        { v: "Cheapest", k: "The lowest-priced heat pump we offer, with the VEU rebate off at the quote" },
         { v: "2", k: "Models: 180 L and 275 L" },
         { v: "5 years", k: "On the whole unit" },
       ],
@@ -2995,7 +2995,11 @@ const brandCatalogue: Brand[] = [
       ],
     },
     reasons: [
-      { v: "VEU", icon: "rebate", k: "the rebate goes furthest", d: "Of every heat pump we fit, the iStore is the one the rebate stretches furthest, off at the quote.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
+      // First, because it leads the card on /brands as well as this page: price is
+      // what iStore is for (Jake, Nov 2026: "the main thing would be cheapest
+      // option we offer"). It is the lowest heat pump price in the tiers
+      // (homepage/data.ts), under the Reclaim ECO.
+      { v: "Cheapest", icon: "rebate", k: "heat pump we offer", d: "The lowest price on our list, and the VEU rebate comes off that at the quote.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
       { v: "R290", icon: "bolt", k: "high COP", d: "For a house coming off an electric tank, that's the running-cost drop doing the work.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
       { v: "2 sizes", icon: "tank", k: "180 L and 275 L", d: "Sized to the house, not up. A bigger tank heating water nobody uses is just a bigger bill.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
       { v: "5 years", icon: "shield", k: "on the whole unit", d: "Tank, heat pump and parts alike, plus six years from us on the workmanship.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
@@ -3006,10 +3010,10 @@ const brandCatalogue: Brand[] = [
       { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
     ],
     name: "iStore",
-    tagline: "The one to pick when the rebate decides it.",
+    tagline: "The cheapest heat pump we offer.",
     origin: "Australia",
     intro:
-      "iStore is the one to pick when the rebate decides it. Solid heat pump platform, and the built-in PV diverter means it plays well with solar homes without needing an aftermarket accessory.",
+      "iStore is the cheapest heat pump we offer, with the VEU rebate off at the quote. Solid heat pump platform, and the built-in PV diverter means it plays well with solar homes without needing an aftermarket accessory.",
     ourTake:
       "When the VEU rebate is what decides the job, iStore is the answer. Nothing else we fit takes the rebate as far, it goes in with the same crew and the same warranty as anything on the list, and for a household replacing an electric storage tank that is exactly the right call.",
     accreditation: "iStore accredited installer",
@@ -3037,7 +3041,7 @@ const brandCatalogue: Brand[] = [
     // --- brand-first fields (iStore) ---
     whyLead: {
       claim: "Why we choose {iStore}.",
-      sub: "Of every heat pump we fit, the iStore is the one the VEU rebate stretches furthest, and for a household pulling out an old electric tank, that's usually the whole decision.",
+      sub: "The cheapest heat pump we offer, and the one the VEU rebate stretches furthest. For a household pulling out an old electric tank, that's usually the whole decision.",
     },
     verdict:
       "When the VEU rebate is what decides the job, the iStore is our answer: nothing else we fit takes the rebate as far, and the rebate comes off right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew as anything else on our list, with 5 years from iStore on the whole unit and 6 years from us on the workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
@@ -3047,22 +3051,22 @@ const brandCatalogue: Brand[] = [
       "We fit Reclaim too, and where the house is the one you're staying in and cold-morning performance and a stainless tank matter more than the upfront rebate, that's the one we'd steer you to. The iStore is what goes in when the rebate is what decides it.",
     advisorService: "heat-pump-installation",
     heroSub:
-      "The heat pump we reach for when the VEU rebate is what decides the job, nothing else we fit takes it as far. Two models, 180 L and 275 L, with the PV diverter and the smart app built in rather than sold to you as extras.",
+      "The VEU rebate stretches furthest on it and comes off at the quote. Two models, 180 L and 275 L, with the PV diverter and the smart app built in rather than sold to you as extras.",
     fitsWhere:
       "Replacing tired electric storage tanks, and running the compressor on solar surplus for households with panels on the roof.",
     heroFacts: [
-      { v: "VEU", k: "Rebate taken off at the quote, not claimed back later" },
+      { v: "Cheapest", k: "The lowest-priced heat pump we offer, rebate taken off at the quote" },
       { v: "2 models", k: "180 L and 275 L, nothing in between to read through" },
       { v: "R290", k: "Natural refrigerant, high COP" },
       { v: "5 yr & 6 yr", k: "5-yr iStore warranty on the whole unit and 6-yr on our workmanship, both from install day" },
     ],
-    benefitsHeading: "Why it's the pick when the rebate decides it.",
+    benefitsHeading: "Why it's the pick when price decides it.",
     benefitTiles: [
       {
-        t: "The rebate goes furthest",
-        line: "The best VEU rebate outcome of any heat pump we fit",
+        t: "The cheapest we offer",
+        line: "The lowest-priced heat pump on our list",
         detail:
-          "Of everything on our list, the iStore is the one the VEU rebate stretches furthest, and the rebate comes off right there at the quote. If the rebate is what makes the job stack up: and pulling out an old electric tank, it usually is, this is the unit that makes the most of it.",
+          "Of every heat pump we fit, the iStore costs the least, the VEU rebate stretches furthest on it, and the rebate comes off right there at the quote. Pulling out an old electric tank on a budget, this is the unit that makes the numbers work.",
         icon: "shield",
       },
       {
