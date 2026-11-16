@@ -291,7 +291,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
    * ---------------------------------------------------------------- */
   "aircon-servicing-repairs/aircon-service": {
     specs: [
-      { label: "Split system", value: "$220" },
+      { label: "Split system", value: "$250 + GST" },
       { label: "Ducted", value: "$390" },
       { label: "Time on site", value: "60 – 90 minutes" },
       { label: "Best booked", value: "Sept – Nov, before the rush" },
@@ -323,8 +323,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Report, and honest advice", detail: "You get the report and a straight answer about where the system is in its life. If it's twelve years old and the compressor is drawing high, we'll say that rather than book you in again next year." },
     ],
     pricing: [
-      { tier: "Split system · annual service", price: "$220", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
-      { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Everything in the split system service, Charged per extra unit at the same address, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per extra unit" },
+      { tier: "Split system · annual service", price: "$250 + GST", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
+      { tier: "Two or more splits at one address", price: "$180 + GST", includes: "Everything in the split system service, Every split at the address at this rate, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per split" },
+      { tier: "Split system · deep clean", price: "$350 + GST", includes: "Indoor unit taken apart, Coil and fan washed through rather than wiped, Drain tray and line flushed, Run and tested once it is back together", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per unit" },
       { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", photoScene: true, priceKey: "Per visit" },
       { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
     ],
@@ -332,7 +333,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
 
   "aircon-servicing-repairs/evap": {
     pricing: [
-      { tier: "Evaporative cooler · pre-summer service", price: "$220 + GST", includes: "Pads checked and replaced where needed, Tray drained and flushed, Pump and float tested under load, Distributor lines cleared, Written service report", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit" },
+      { tier: "Evaporative cooler · pre-summer service, single storey", price: "$300 + GST", includes: "Pads checked and replaced where needed, Tray drained and flushed, Pump and float tested under load, Distributor lines cleared, Written service report", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit" },
+      { tier: "Evaporative cooler · pre-summer service, double storey", price: "$400 + GST", includes: "Everything in the single-storey service, On a two-storey roof, with the extra access and safety gear that needs", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit" },
+      { tier: "Evap cooler and gas ducted heater, same visit", price: "10% off", includes: "Both serviced at the one visit, $495 + GST on a single storey, $585 + GST on a double storey", group: "Annual service", priceKey: "Both together" },
     ],
     specs: [
       { label: "Best booked", value: "Sept – Nov" },
@@ -473,7 +476,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
 
   "gas-plumbing/gas-service": {
     specs: [
-      { label: "Price", value: "$280 + GST" },
+      { label: "Price", value: "$250 + GST" },
       { label: "How often", value: "Every 2 years, annually past 10" },
       { label: "Time on site", value: "60 – 90 minutes" },
       { label: "Includes", value: "Calibrated CO analyser test" },
@@ -507,7 +510,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Report emailed", detail: "Readings, what was done, and anything we'd watch. Useful at sale time, and useful for a landlord who needs to show the heater has been maintained." },
     ],
     pricing: [
-      { tier: "Gas ducted heater service + CO test", price: "$280 + GST", includes: "Full service, gas pressure test, combustion analysis with calibrated analyser, spillage test, safety controls, written report", group: "Annual service", photo: "/gas-ducted-install.webp", photoScene: true, priceKey: "Per visit" },
+      { tier: "Gas ducted heater service + CO test", price: "$250 + GST", includes: "Full service, gas pressure test, combustion analysis with calibrated analyser, spillage test, safety controls, written report", group: "Annual service", photo: "/gas-ducted-install.webp", photoScene: true, priceKey: "Per visit" },
       { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
       { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for a gas leak or a CO alarm, No heat sorted the same day where we can, Diagnosis and a written repair quote on the spot", group: "Emergency", priceKey: "Call-out fee" },
     ],

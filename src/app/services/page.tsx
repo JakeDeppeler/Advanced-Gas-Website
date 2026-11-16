@@ -93,7 +93,7 @@ const services: Service[] = [
     eyebrow: "04 · Gas & ducted gas heating",
     h2: "Install, replace, service, Brivis, Kaden, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
-    specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service", "$280 + GST"], ["CO test", "included"]],
+    specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service", "$250 + GST"], ["CO test", "included"]],
     bullets: [
       "Licensed gas fitter on every job",
       "Carbon monoxide testing on every service",
@@ -110,9 +110,9 @@ const services: Service[] = [
     num: "05",
     eyebrow: "05 · Service & safety",
     eyebrowOrange: true,
-    h2: "Annual gas appliance servicing + CO testing, $280 + GST.",
+    h2: "Annual gas appliance servicing + CO testing, $250 + GST.",
     lede: "The work that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
-    specs: [["Price", "$280 + GST"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
+    specs: [["Price", "$250 + GST"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
     bullets: [
       "Visual inspection & safety check",
       "Burner clean, flue check, gas pressure test",

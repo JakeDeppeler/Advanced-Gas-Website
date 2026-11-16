@@ -8,6 +8,7 @@ import {
   type EquipRow, type EvapUnit, type LiveSku, type TemplateSpec,
 } from "./quoteTemplateSpecs";
 import { summaryHtml } from "./wording";
+import { madeServiceItems } from "./serviceSetup";
 
 /**
  * The 15 Nov quote templates made in ServiceTitan (Jake: "go ahead and make
@@ -155,9 +156,16 @@ export async function addQuoteTemplates(budgetMs = 10_000): Promise<{ units: str
   if (templatesOn && batch.length && timeLeft()) {
     // A line named by its code (a service made after the ids were read) gets
     // its id from the live pricebook; one not there stays 0 and is waited on.
+    // The items serviceSetup.ts made (a service or a discount line) are known by the
+    // code it recorded; anything else by code is a service, looked up live.
     if (batch.some((s) => s.lines.some((l) => l.code && !l.skuId))) {
-      const byCode = new Map((await stList<Raw>("pricebook", "services", { active: "True" }, 5))
-        .map((r) => [String(r.code ?? "").trim().toUpperCase(), Number(r.id)] as const));
+      const byCode = new Map(Object.entries(await madeServiceItems()).map(([c, id]) => [c.toUpperCase(), id] as const));
+      if (batch.some((s) => s.lines.some((l) => l.code && !l.skuId && !byCode.has(l.code.toUpperCase())))) {
+        for (const r of await stList<Raw>("pricebook", "services", { active: "True" }, 5)) {
+          const c = String(r.code ?? "").trim().toUpperCase();
+          if (!byCode.has(c)) byCode.set(c, Number(r.id));
+        }
+      }
       batch = batch.map((s) => ({ ...s, lines: s.lines.map((l) => (l.code && !l.skuId ? { ...l, skuId: byCode.get(l.code.toUpperCase()) ?? 0 } : l)) }));
     }
     const [live, existing] = await Promise.all([

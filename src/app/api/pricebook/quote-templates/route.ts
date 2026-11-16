@@ -3,6 +3,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured, stList } from "@/lib/dashboard/servicetitan";
 import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { addQuoteTemplates } from "@/lib/pricebook/quoteTemplatesAdd";
+import { setUpServices } from "@/lib/pricebook/serviceSetup";
 import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
 import type { TemplateItem } from "@/lib/pricebook/labour";
 
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * The 15 Nov quote templates into ServiceTitan, then laid out the way Jake
+ * Jake's 16 Nov service prices into the pricebook (serviceSetup.ts), then the
+ * 15 Nov quote templates into ServiceTitan, then laid out the way Jake
  * lays a quote out, then the template names put to the pattern — as much as
  * fits a call. See src/lib/pricebook/quoteTemplatesAdd.ts and
  * quoteTemplatesFix.ts. Called by the after-sync schedule, not the sync
@@ -30,6 +32,8 @@ export async function GET(req: Request) {
   try {
     if (new URL(req.url).searchParams.get("look")) return NextResponse.json({ ok: true, look: await lookAtTemplates() });
     const until = Date.now() + 40_000;
+    // Jake's 16 Nov service prices and the items the service templates are built on, first.
+    const services = await setUpServices(until - 25_000);
     const add = await addQuoteTemplates(until - Date.now());
     let group: Awaited<ReturnType<typeof groupQuoteTemplates>> | null = null;
     let tidy: Awaited<ReturnType<typeof tidyTemplateNames>> | null = null;
@@ -43,8 +47,8 @@ export async function GET(req: Request) {
       lineUp = await lineUpFixes(until, all);
       tidy = await tidyTemplateNames(until, all);
     }
-    const failed = [...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? [])];
-    return NextResponse.json({ ok: failed.length === 0, add, group, tidy, lineUp });
+    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? [])];
+    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }

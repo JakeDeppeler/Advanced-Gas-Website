@@ -139,7 +139,7 @@ export default function PreviewPage() {
               </button>
               <button type="button" className="pv-qopt">
                 <strong>Service</strong>
-                <em>$280 + GST</em>
+                <em>$250 + GST</em>
               </button>
             </div>
             <Link href="/quote" className="pv-qcard__next">Next → the specifics</Link>
@@ -244,7 +244,7 @@ export default function PreviewPage() {
             <Link href="/services#service" className="pv-sv-tile">
               <span className="pv-sv-ico pv-sv-ico--orange">🛠</span>
               <span className="pv-sv-t">Service &amp; CO test</span>
-              <span className="pv-sv-s">$280 + GST annual.</span>
+              <span className="pv-sv-s">$250 + GST annual.</span>
             </Link>
             <Link href="/services#hotwater" className="pv-sv-tile pv-sv-tile--dark">
               <span className="pv-sv-ico">💧</span>
