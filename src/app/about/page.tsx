@@ -5,6 +5,7 @@ import { site, openingHours } from "@/lib/site";
 import "./about.css";
 import { PageHero } from "@/components/PageHero";
 import { RATING_TEXT } from "@/lib/reviews";
+import { TEAM } from "@/lib/team";
 
 export const metadata: Metadata = {
   title: "About, Family-Owned Pakenham HVAC Specialists",
@@ -13,12 +14,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-const team = [
-  { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.webp" },
-  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.webp" },
-  { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.webp" },
-  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.webp" },
-];
+const team = TEAM;
 
 const values = [
   { n: "01", h: "One accountable team", p: "Directly employed installers and apprentices, not a revolving door of subcontractors. The same trusted faces, holding the same standard, on every visit." },
