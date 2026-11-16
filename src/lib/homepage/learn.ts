@@ -634,8 +634,13 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     pros: ["A German brand, making heating equipment since 1917", "VEU rebate taken off at the quote", "Hot water down to −7 °C, and −15 °C on its 1.8 kW element", "5 years from Viessmann on parts and labour"],
     cons: ["The compressor is in the same shell, so it hums near the house", "Two sizes only: 200 L and 270 L"],
   },
+  // Quality and the warranty lead, as they're what the hot water page's Side by
+  // side shows (its first three; Jake, Nov 2026). Jake asked for "15 year for
+  // the heat pump and 10 for steel"; Reclaim's own warranty (Issue 13, Jan
+  // 2025) puts the 15 years on the stainless tank and 10 on the glass-lined
+  // steel one, with the heat pump itself on 10, so it says that.
   "Reclaim CO₂ split heat pump": {
-    pros: ["The compressor sits away from the tank, so it's quieter", "CO₂ keeps making hot water on cold mornings", "Stainless tank option for harder water"],
+    pros: ["The highest-quality hot water we fit", "15-year warranty on a stainless tank, 10 on glass-lined steel", "The compressor sits away from the tank, so it's quieter", "CO₂ keeps making hot water on cold mornings", "Stainless tank option for harder water"],
     cons: ["The highest upfront cost of our hot water options", "Two units to place, and more install work"],
   },
   "Thermann G-series continuous flow": {

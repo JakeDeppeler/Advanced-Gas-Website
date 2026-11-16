@@ -659,13 +659,16 @@
    negative margin is its own height), so before it sticks it floats over the
    top of the band under the hero rather than adding a white strip there; the
    transform sets it 12px clear of the hero, and moves the stuck bar the same. */
-.ag .ahdr--pill ~ * .pxt{top:80px;margin-bottom:-50px;transform:translateY(12px);background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;pointer-events:none}
+/* Both places a page puts the bar: inside a band after the hero, or (the
+   system pages, About) straight after it. Only the first used to match, so
+   the second kept the full-width white strip either side of the pill. */
+.ag .ahdr--pill ~ * .pxt,.ag .ahdr--pill ~ .pxt{top:80px;margin-bottom:-50px;transform:translateY(12px);background:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;pointer-events:none}
 .ag .ahdr--pill ~ * .pxt__in{pointer-events:auto;box-sizing:border-box;width:min(1456px,calc(100% - 24px));max-width:none;height:50px;margin:0 auto;padding:0 12px;align-items:stretch;background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(5,10,48,.08);border-radius:12px;box-shadow:0 18px 40px -24px rgba(2,6,26,.55)}
 /* The header's hover mark: a short orange bar under the word, not a rule along the bar's edge. */
 .ag .ahdr--pill ~ * .pxt a{position:relative;display:flex;align-items:center;padding:0 14px;border-bottom:0}
 .ag .ahdr--pill ~ * .pxt a::after{content:"";position:absolute;left:14px;right:14px;bottom:10px;height:2px;border-radius:2px;background:var(--or);transform:scaleX(0);transform-origin:left;transition:transform .2s}
 .ag .ahdr--pill ~ * .pxt a:hover::after,.ag .ahdr--pill ~ * .pxt a:focus-visible::after{transform:scaleX(1)}
-@media (max-width:600px){.ag .ahdr--pill ~ * .pxt{top:68px}}
+@media (max-width:600px){.ag .ahdr--pill ~ * .pxt,.ag .ahdr--pill ~ .pxt{top:68px}}
 @media (prefers-reduced-motion:reduce){.ag .ahdr--pill ~ * .pxt a::after{transition:none}}
 
 .ag .pxs{padding:96px 0;scroll-margin-top:136px}
