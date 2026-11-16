@@ -29,6 +29,8 @@ type Progress = {
 };
 
 const at = () => new Date().toISOString();
+/** "Default Replenishment Vendor", which the VEU, STC and Solar Victoria rebate lines are on. */
+const DEFAULT_VENDOR = 639;
 const ids = (v: unknown) => (Array.isArray(v) ? v : []).map((c) => Number((c as Raw)?.id ?? c)).filter((n) => Number.isFinite(n) && n > 0);
 
 /** The items this has made, by code, for the templates built on them. */
@@ -178,6 +180,10 @@ export async function setUpServices(until: number): Promise<{ priced: string[]; 
           price: d.price, memberPrice: d.price, addOnPrice: d.price, addOnMemberPrice: d.price, cost: 0,
           active: true, taxable: heater?.taxable ?? true, account: heater?.account ?? veec?.account ?? null,
           categories: ids(veec?.categories), isInventory: false, hours: 0,
+          // ServiceTitan refuses a material without exactly one supplier (400,
+          // "PrimaryVendor"). The rebate lines are on the Default Replenishment
+          // Vendor, so these are too, at no cost.
+          primaryVendor: { vendorId: Number((veec?.primaryVendor as Raw | null)?.vendorId ?? DEFAULT_VENDOR), vendorPart: d.code, cost: 0, active: true },
         });
         const id = Number(created?.id);
         if (!id) throw new Error("ServiceTitan answered without the new item's id");
