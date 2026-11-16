@@ -38,7 +38,9 @@ export async function addEvapProposals(until: number): Promise<{ made: string[];
     try {
       const created = await stSend<Raw | null>("POST", stTenantPath("sales", "proposal-templates"), {
         name: s.name, description: "", proposalTypeId: BASIC_PREMIUM.typeId, active: true, status: "Publish", businessUnitIds: [],
-        options: s.options.map((o) => ({ order: o.order, estimateTemplateId: templates[o.templateCode], proposalTypeOptionId: BASIC_PREMIUM.optionIds[o.order] })),
+        // A read gives the options as `options`; a create takes them as `estimateAssignments`
+        // (400 "Required property 'estimateAssignments'", 16 Nov).
+        estimateAssignments: s.options.map((o) => ({ order: o.order, estimateTemplateId: templates[o.templateCode], proposalTypeOptionId: BASIC_PREMIUM.optionIds[o.order] })),
       });
       const id = Number(created?.id);
       if (!id) throw new Error("ServiceTitan answered without the new proposal's id");
