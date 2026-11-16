@@ -8,6 +8,8 @@
 import {
   EVAP_UNITS, OTHER_TEMPLATES, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
 } from "../src/lib/pricebook/quoteTemplateSpecs";
+import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
+import type { TemplateItem } from "../src/lib/pricebook/labour";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -77,6 +79,44 @@ const kun = OTHER_TEMPLATES.find((t) => t.code === "GAS-KADEN-KUN320")!;
 ok("the Kaden internal heaters on the internal install, found by code", kun.lines[1].code === "GAS-DUCT-INT" && kun.lines[1].skuId === 0);
 ok("an item waited on by code says which", pricedItems(kun.lines, new Map()).missing.includes("GAS-DUCT-INT"));
 ok("no frost valve template until we know the system", !all.some((t) => /frost/i.test(t.name)));
+
+// The layout Jake asked for on 16 Nov: equipment as its own group, the labour
+// header holding electrical and materials at one price, then the BPC.
+const it = (id: number, skuType: TemplateItem["skuType"], skuName: string, unitPrice: number, more: Partial<TemplateItem> = {}): TemplateItem =>
+  ({ id, skuId: id, skuType, skuName, quantity: 1, unitPrice, isAddOn: false, parentItemId: null, itemGroupParentId: null, itemGroupName: null, ...more });
+const flat = [
+  it(1, "Equipment", "Thermann Smart Electric Storage 125L 3kw", 1410),
+  it(2, "Service", "Electric HWS - Changeover ", 1210),
+  it(3, "Service", "BPC Compliance Certificate", 65),
+  it(4, "Material", "Tomson Turbo 15mm Valve Kit", 0),
+  it(5, "Material", "Concrete Slab 600", 0),
+];
+const g = groupedItems(flat)!;
+ok("equipment first, as its own group", g[0].id === 1 && g[0].itemGroupName === "Thermann Smart Electric Storage 125L 3kw" && g[0].itemGroupParentId === null);
+ok("then the labour header, named for its service", g[1].id === 2 && g[1].itemGroupName === "Electric HWS - Changeover" && g[1].itemGroupParentId === null);
+ok("materials under the header", g.filter((i) => i.skuType === "Material").every((i) => i.itemGroupParentId === 2), g.map((i) => [i.id, i.itemGroupParentId]));
+ok("BPC last, on its own", g[g.length - 1].id === 3 && g[g.length - 1].itemGroupParentId === null);
+ok("no price moves", g.reduce((a, i) => a + i.unitPrice, 0) === flat.reduce((a, i) => a + i.unitPrice, 0));
+ok("the read-back test passes on it", isGrouped(g) && !isGrouped(flat));
+ok("a grouped template is left alone", groupedItems(g) === null);
+const cooker = groupedItems([it(10, "Service", "Gas Cooktop – Installation", 550), it(11, "Service", "Cooker - Electrical Connection ", 350), it(12, "Service", "BPC Compliance Certificate", 65)])!;
+ok("the electrician's line rides under the header", cooker[1].id === 11 && cooker[1].itemGroupParentId === 10);
+const motor = groupedItems([it(20, "Service", "Evaporative Cooler – Repair", 350), it(21, "Material", "FAN MOTOR - EVAP", 550), it(22, "Material", "Capacitor", 91)])!;
+ok("a repair: parts under the labour, one price", motor[0].id === 20 && motor.slice(1).every((i) => i.itemGroupParentId === 20));
+ok("an add-on stays an add-on", groupedItems([it(30, "Service", "Install", 900), it(31, "Material", "Coil", 0), it(32, "Service", "Extra", 100, { isAddOn: true })])!.find((i) => i.id === 32)?.itemGroupParentId === null);
+
+// Names and codes the review listed.
+ok("comma decimal", tidyName("Mitsubishi Electric 7,1kW Split System - Back to Back") === "Mitsubishi Electric 7.1kW Split System - Back to Back");
+ok("stray spaces", tidyName(" Mitsubishi Electric 7.1kW Split System - Roof Mounted ") === "Mitsubishi Electric 7.1kW Split System - Roof Mounted");
+ok("kw to kW", tidyName("Rinnai 14kw Multi Head Split System ") === "Rinnai 14kW Multi Head Split System");
+ok("the Kaden 2.6 that is a 2.5", tidyName("Kaden 2.6kW Split System - Roof Mounted") === "Kaden 2.5kW Split System - Roof Mounted");
+ok("the 315 missing its L", tidyName("Reclaim Split GL 315 V2") === "Reclaim Split GL 315L V2");
+ok("Panasonic says heat pump", tidyName("Panasonic Split SS 315L 4kw\u2028") === "Panasonic Heat Pump Split SS 315L 4kW", tidyName("Panasonic Split SS 315L 4kw\u2028"));
+ok("a good name is untouched", tidyName("Kaden 5kW Split System - Back to Back") === "Kaden 5kW Split System - Back to Back");
+ok("codes: no spaces, capitals", tidyCode("  AC-SPLIT-RTR-MITELEC-6") === "AC-SPLIT-RTR-MITELEC-6" && tidyCode("GAS-BUFFALO-3-STAR-20kW ") === "GAS-BUFFALO-3-STAR-20KW");
+ok("codes: the Reclaim typo and the 285L", tidyCode("HW-REClAIM-400-GL-SPLIT-V1") === "HW-RECLAIM-400-GL-SPLIT-V1" && tidyCode("HW-THERMANN-300-HP-PLUG") === "HW-THERMANN-285-HP-PLUG");
+ok("test templates left alone", isTestTemplate("fefefefefefefefe", "") && isTestTemplate("Mitsubishi Electric 2.6kw rewrewrewrewreSystem", "Mitsubishi ew eewe System"));
+ok("real ones aren't taken for tests", !isTestTemplate("Brivis Buffalo 3 Star 20kW Ducted Gas Heater ", "GAS-BUFFALO-3-STAR-20kW ") && !isTestTemplate("Reclaim Split GL 315 V2", "HW-RECLAIM-315-GL-SPLIT-V2"));
 
 console.log("\nTemplates, at the prices quoted by hand:");
 for (const t of OTHER_TEMPLATES) console.log(`  ${t.code.padEnd(26)} $${lineTotal(t.lines).toFixed(0).padStart(5)}  ${t.name}`);
