@@ -21,6 +21,9 @@ export const SERVICE_PRICES = [
   { skuId: 301220633, name: "Evaporative Cooler – Maintenance (Single Storey)", price: 300 },
   { skuId: 301220979, name: "Evaporative Cooler – Maintenance (Double Storey)", price: 400 },
   { skuId: 148186656, name: "Gas Ducted Heater - General Maintenance", price: 250 },
+  // Later the same day: "a evap install should be $900 for labour to install them".
+  // Taken out of the labour run (labour.ts), which priced it at 2.8 h × $350.
+  { skuId: 209601267, name: "Evaporative Cooler - Installation", price: 900 },
 ] as const;
 
 export const priceOf = (skuId: number): number => {

@@ -50,7 +50,7 @@ ok("diagnostics: the $200 call-out", by(1)?.after === 200, by(1));
 ok("a diagnostic with no hours on it is still the call-out", by(8)?.after === 200, by(8));
 ok("repair: 1 hour at $250", by(9)?.after === 250, by(9));
 ok("4-head labour: 8 hours at $310", by(2)?.after === 2480, by(2));
-ok("evap install, 2.8 hours at the part-day $350: $980", by(3)?.after === 980, by(3));
+ok("evap install is Jake's flat $900, not hours (16 Nov): left alone here", !by(3));
 ok("a listed hourly service with no hours is skipped and says so", sv.skipped.some((s) => s.id === 4 && /hours/.test(s.reason)));
 ok("an unlisted service is not touched or reported", !by(5) && !sv.skipped.some((s) => s.id === 5));
 ok("already at its price counts as unchanged", !by(6) && sv.unchanged === 1);

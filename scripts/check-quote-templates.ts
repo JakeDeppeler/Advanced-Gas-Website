@@ -10,6 +10,8 @@ import {
 } from "../src/lib/pricebook/quoteTemplateSpecs";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
 import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, sameName } from "../src/lib/pricebook/servicePricing";
+import { GENERIC_REBATE_HEADER, REBATE_HEADERS, rebateGroup, swapHeader } from "../src/lib/pricebook/rebateSpecs";
+import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
 
 let bad = 0;
@@ -53,13 +55,33 @@ ok("no 10kW ducted until it's priced", !all.some((t) => /10 ?kw/i.test(t.name)))
 ok("every template has lines and a summary", all.every((t) => t.lines.length > 0 && t.summary.length > 40));
 
 // Jake, 16 Nov: service prices ex GST; two or more splits $180 each; 10% off a heater and evap together.
-ok("service prices as Jake gave them", SERVICE_PRICES.map((s) => s.price).join(",") === "250,350,300,400,250");
+ok("service prices as Jake gave them, and the evap install at $900", SERVICE_PRICES.map((s) => s.price).join(",") === "250,350,300,400,250,900");
 ok("the 10% off heater + evap: $55 single storey, $65 double", HEATER_EVAP_DISCOUNTS.map((d) => d.price).join(",") === "-55,-65");
 const total = (code: string) => lineTotal(OTHER_TEMPLATES.find((t) => t.code === code)!.lines);
 ok("2, 3 and 4 splits at $180 each", [total("AC-SPLIT-SVC-2"), total("AC-SPLIT-SVC-3"), total("AC-SPLIT-SVC-4")].join(",") === "360,540,720");
 ok("heater + evap: $495 single storey, $585 double", total("SVC-HTR-EVAP-SS") === 495 && total("SVC-HTR-EVAP-DS") === 585, [total("SVC-HTR-EVAP-SS"), total("SVC-HTR-EVAP-DS")]);
 ok("heater + evap kept as plain lines, so the discount shows", OTHER_TEMPLATES.filter((t) => t.flat).map((t) => t.code).join(",") === "SVC-HTR-EVAP-SS,SVC-HTR-EVAP-DS");
 ok("the deep clean in the condensate pump template at $350", total("AC-SPLIT-REP-CONDPUMP") === 630);
+// Jake, 16 Nov: a rebate total for hot water (with its conditions) and one for heating & cooling.
+const item = (id: number, skuId: number, under: number | null, price = 0): TemplateItem =>
+  ({ id, skuId, skuType: skuId === GENERIC_REBATE_HEADER ? "Service" : "Material", quantity: 1, unitPrice: price, isAddOn: false, itemGroupParentId: under, itemGroupName: under ? null : "Total Government Rebates Applied" } as TemplateItem);
+const hwT = [item(1, 999, null), item(2, GENERIC_REBATE_HEADER, null), item(3, 301034179, 2, -35), item(4, 301034820, 2, -70), item(5, 301034190, 2, -909.09)];
+const hcT = [item(1, 999, null), item(2, GENERIC_REBATE_HEADER, null), item(4, 301034820, 2, -70)];
+ok("a template with STC or Solar Victoria under the total is hot water", rebateGroup(hwT)?.kind === "hotWater" && rebateGroup(hwT)?.members.length === 3);
+ok("VEU alone is heating & cooling", rebateGroup(hcT)?.kind === "heatingCooling");
+ok("no generic header, nothing to do", rebateGroup([item(1, 999, null)]) === null);
+const sw = swapHeader(hwT, hwT[1], 777, "d");
+ok("swapped in place: same line, new item, the rebates still under it", sw[1].id === 2 && sw[1].skuId === 777 && sw.filter((i) => i.itemGroupParentId === 2).length === 3);
+const sw2 = swapHeader(hwT, hwT[1], 777, "d", 50);
+ok("swapped in two steps: the new line's id, the rebates moved under it", sw2[1].id === 50 && sw2.filter((i) => i.itemGroupParentId === 50).length === 3 && !sw2.some((i) => i.id === 2));
+ok("the hot water wording has the 1 July 2026 income cap; heating & cooling only the gas heater", /\$150,000/.test(REBATE_HEADERS.hotWater.description) && /gas heater is decommissioned and removed/.test(REBATE_HEADERS.heatingCooling.description));
+
+// Jake, 16 Nov: evap proposals, Advance / Promina / Contour, one per size and colour.
+const props = evapProposals();
+ok("15 evap proposals: 5 sizes in 3 colours", props.length === 15, props.length);
+ok("36 to 66 offer all three ranges in order", props.filter((p) => !/ 76 /.test(p.name)).every((p) => p.options.map((o) => o.templateCode.split("-")[2]).join() === "ADVANCE,PROMINA,CONTOUR"));
+ok("the 76 has no Advance: Premium and Premium Plus", props.filter((p) => / 76 /.test(p.name)).every((p) => p.options.map((o) => o.order).join() === "2,3"));
+ok("each option is a template that's made", props.every((p) => p.options.every((o) => evap.some((t) => t.code === o.templateCode))));
 ok("names match through ServiceTitan's dashes", sameName("Evaporative Cooler - Maintenance (Single Storey)", "Evaporative Cooler – Maintenance (Single Storey)") && !sameName("Split System - Deep Clean", "Split System - Clean & Service"));
 ok("an evap replacement is unit, install, compliance", evap.every((t) => t.lines.map((l) => l.skuType).join() === "Equipment,Service,Service"));
 ok("names say size and colour", evap[0].name === "Brivis Contour L36 Evaporative Cooler (Beige) - Replacement", evap[0].name);
@@ -72,7 +94,7 @@ const live = new Map<number, LiveSku>([
   [209621211, { price: 65, cost: 50, description: null, name: "BPC Compliance Certificate" }],
 ]);
 const priced = pricedItems(evap[0].lines, live);
-ok("the unit takes today's price, labour the quoted one", priced.items.map((i) => i.unitPrice).join() === "2450,800,65", priced.items.map((i) => i.unitPrice));
+ok("the unit takes today's price, the install Jake's $900", priced.items.map((i) => i.unitPrice).join() === "2450,900,65", priced.items.map((i) => i.unitPrice));
 const kc = OTHER_TEMPLATES.find((t) => t.code === "EVAP-KADEN-KC32-CHAR")!;
 ok("the KC32 at its 8 Nov price, not the $2,200 quoted", pricedItems(kc.lines, new Map(kc.lines.map((l) => [l.skuId, { price: 2420, cost: 1, description: "d", name: "n" }]))).items[0].unitPrice === 2420);
 ok("a line with no description takes the item's name", priced.items[2].description === "BPC Compliance Certificate");

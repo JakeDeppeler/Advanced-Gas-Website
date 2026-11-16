@@ -12,9 +12,9 @@ import { HEATER_EVAP_DISCOUNTS, MULTI_SPLIT, SERVICE_PRICES, sameName } from "./
  * the templates in api/pricebook/quote-templates, a call's worth at a time,
  * every write read back.
  *
- * Once, ever: when everything is in, `done` is set and later runs do nothing,
- * so a price the office changes in ServiceTitan afterwards is theirs and is
- * never put back. Three refusals of a kind stop that kind, left for a person.
+ * Once per price: when everything is in, `done` is set and later runs do
+ * nothing, so a price the office changes in ServiceTitan afterwards is theirs
+ * and is never put back. A price added to the list later is set on its own. Three refusals of a kind stop that kind, left for a person.
  */
 const KEY = "service_prices";
 type Raw = Record<string, unknown>;
@@ -91,7 +91,8 @@ async function priceService(id: number, target: number): Promise<{ ok: boolean; 
 
 export async function setUpServices(until: number): Promise<{ priced: string[]; made: string[]; failed: string[]; skipped?: string }> {
   const p: Progress = (await getSettings<Progress>(KEY).catch(() => null)) ?? {};
-  if (p.done) return { priced: [], made: [], failed: [], skipped: "all done" };
+  // Done, unless a price has been added to the list since: then just that one.
+  if (p.done && SERVICE_PRICES.every((t) => p.priced?.[t.skuId])) return { priced: [], made: [], failed: [], skipped: "all done" };
   const made = (p.made ??= {}), priced = (p.priced ??= {}), fails = (p.fails ??= {}), notes = (p.notes ??= {});
   const log: AutoEntry[] = [], done: string[] = [], madeNow: string[] = [], failed: string[] = [];
   const save = () => saveSettings(KEY, p);

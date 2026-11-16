@@ -45,7 +45,8 @@ const SOLO = [
 const PART_DAY = [
   // Installs done in part of a day: travel to the next job comes out of them.
   "AC-SPLIT-BTB", "AC-SPLIT-RTR", "AC-SPLIT-RTW",
-  "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-EXT", "GAS-DUCT-INT",
+  // Not EVAP-INSTALL: Jake, 16 Nov, "$900 for labour" whatever the hours (servicePricing.ts).
+  "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "GAS-DUCT-EXT", "GAS-DUCT-INT",
   "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-GAS-STORAGE-INS", "HW-STORAGE-TO-CF",
   "GAS-COOKTOP-INSTALL",
   // Taking the old unit out, on one of those installs.

@@ -194,7 +194,7 @@ export function evapTemplate(u: EvapUnit, unitSkuId: number, unitPrice: number):
     name: `Brivis ${u.series} ${u.model} Evaporative Cooler (${u.colour}) - Replacement`,
     code: `EVAP-BRIVIS-${u.series.toUpperCase()}-${u.model}-${COLOUR_CODE[u.colour]}`,
     summary: `Replacement of your existing evaporative cooler with a new Brivis ${u.series} ${u.model} in ${u.colour}, fully installed.\n\n${FITTED}`,
-    lines: [{ skuId: unitSkuId, skuType: "Equipment", quantity: 1, unitPrice }, L(SKU.evapInstall, 800), L(SKU.compliance, 65)],
+    lines: [{ skuId: unitSkuId, skuType: "Equipment", quantity: 1, unitPrice }, L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)],
   };
 }
 
@@ -213,10 +213,10 @@ const heater = (unit: string) =>
 export const OTHER_TEMPLATES: TemplateSpec[] = [
   { name: "Kaden KC32 Evaporative Cooler (Charcoal) - Replacement", code: "EVAP-KADEN-KC32-CHAR",
     summary: `Replacement of your existing evaporative cooler with a new Kaden KC32 in Charcoal, fully installed.\n\n${FITTED}`,
-    lines: [L(SKU.kadenKC32, 2200), L(SKU.evapInstall, 800), L(SKU.compliance, 65)] },
+    lines: [L(SKU.kadenKC32, 2200), L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)] },
   { name: "Evaporative Cooler - Replacement (Add Unit)", code: "EVAP-REPLACE-ADD-UNIT",
     summary: `Replacement of your existing evaporative cooler with a new unit, fully installed.\n\n${FITTED}`,
-    lines: [L(SKU.evapInstall, 800), L(SKU.compliance, 65)] },
+    lines: [L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)] },
   { name: "Evaporative Cooler Service - Single Storey", code: "EVAP-SVC-SS",
     summary: "A full service of the evaporative cooler on a single-storey home, to keep it running well through summer. What's included is set out below.",
     lines: [L(SKU.evapServiceSS, 300)] },
