@@ -2989,15 +2989,23 @@ which kind of service — because "installs take 3.8 hours" has averaged a
 four-hour split system with a twenty-hour ducted job and said nothing about
 either.
 
-**It is four panels, two by two, not one ranked table.** Jake, 16 Nov: "it
-should be service then a list below of all of the job types, so service split —
-how many we have done, how much we bill and how much work that turn into, and
-the same for the breakdown, and installation and repairs". A ranked table put
-Service - Split System next to Installation - Ducted Refrigerated and invited
-the room to read one against the other; grouped, every row's neighbours are the
-rows it is comparable to. Each panel heads with its sector's own totals, lists
-its four commonest types, and folds the rest into one labelled row that still
-counts into the heading.
+**It is five columns, not one ranked table.** Jake, 16 Nov: "it should be
+service then a list below of all of the job types, so service split — how many
+we have done, how much we bill and how much work that turn into, and the same
+for the breakdown, and installation and repairs". A ranked table put Service -
+Split System next to Installation - Ducted Refrigerated and invited the room to
+read one against the other; grouped, every row's neighbours are the rows it is
+comparable to. Each column heads with its sector's own totals and its share
+turned into work, lists its four commonest types, and folds the rest into one
+labelled row that still counts into the heading.
+
+**The columns run the long way across the panel rather than two by two** (Jake,
+16 Nov). Two by two gave wider rows, but it put Repairs below the fold on a
+768-high panel and made the eye travel back up the page to compare two sectors.
+Side by side, every sector's "28% turned into work" line sits on the same
+baseline as every other and the comparison is one sweep. The columns are narrow,
+so a row stacks rather than spreading: the name and the count, the money, the
+slot, then what it turned into.
 
 | Column | What it is |
 |---|---|
@@ -3036,12 +3044,18 @@ little as a result.
   measured against. It still carries its 14 jobs, its 8.2 hours on site and its
   $12K a job, and the cell says "booked across days".
 
-**Quote visits are not on a panel.** Jake named four sectors and the page has
-four; `Quotation` and the warranty, site-assessment and return-visit types fall
-outside all of them. They are counted in the head cards and named there ("78
-quote visits and the like"), rather than being quietly missing. It is worth
-knowing that the 58 quote visits led to 10 installs between them — if that
-wants a panel of its own, it is one more entry in `PANEL_SECTORS`.
+**The fifth column is "Quotes & other", and the figures argued it onto the
+page.** ServiceTitan's job types put quote visits, warranty calls, site
+assessments and return visits in none of the four sectors Jake named, so they
+were counted in the head cards and named there — until the live snapshot showed
+those 78 visits led to **13 installs worth $90,224**, which is more follow-on
+money than breakdowns ($64,716) and service ($26,097) put together. The biggest
+source of work on the page is not something to leave off it.
+
+It is named for what is mostly in it and honest about the rest: 60 of the 78 are
+quote visits, and the column's own rows show what the others are. Every job is
+now in exactly one column, so the head cards and the columns add to the same
+number.
 
 **The population is every job somebody was sent to**, vans and passengers
 alike — the page is about the work, not about who did it, and dropping a job
@@ -3060,7 +3074,8 @@ is the count on its own, which is a fact either way.
 
 Code: `jobTypeKpis` and `rollUpTypes` in `crewTypes.ts` (pure, tested by
 `npm run check:crew`), grouped in `crew.ts` off the same jobs the Crew page
-reads, `JobTypesPage`, `SectorPanel` and `TypeRow` in `ScreenBoard.tsx`.
+reads, `JobTypesPage`, `PANEL_SECTORS`, `SectorPanel` and `TypeRow` in
+`ScreenBoard.tsx`.
 
 ## Sectors: maintenance, breakdowns, repairs and installs
 
