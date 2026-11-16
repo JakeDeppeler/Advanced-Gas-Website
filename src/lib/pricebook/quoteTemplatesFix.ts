@@ -124,3 +124,90 @@ export async function tidyTemplateNames(until: number, all?: Live[]): Promise<{ 
   await logAuto(log).catch(() => undefined);
   return { renamed: done, failed };
 }
+
+/**
+ * The review's "where they don't line up" fixes still open on 16 Nov, each on
+ * the one template it names and only if that template still looks as the
+ * review found it. The rest of that list (both Continuous Flow installs and
+ * the Thermann 135L at $0, the Kaden 5kW roof install in twice) the 6 Nov
+ * labour run had already put right. Once each; switched off, never deleted.
+ */
+type LineUp = { id: number; name: string; what: string } & (
+  | { drop: (items: TemplateItem[]) => TemplateItem[] | null }
+  | { off: true }
+  | { rename: string }
+);
+const named = (re: RegExp) => (i: TemplateItem) => re.test((i.skuName ?? "").trim());
+const LINE_UP: LineUp[] = [
+  {
+    id: 301078336, name: "Mitsubishi Electric 5kW Split System - Roof Mounted", what: "second compliance certificate removed",
+    drop: (items) => {
+      const bpc = items.filter(named(/^BPC Compliance Certificate$/i));
+      return bpc.length === 2 ? items.filter((i) => i !== bpc[1]) : null;
+    },
+  },
+  {
+    // Four indoor units on it, so the four-head labour; the 5 and 6 head lines were left in.
+    id: 301146356, name: "Rinnai 14kW Multi Head Split System", what: "5 and 6 head labour lines removed; the 4 head line stays",
+    drop: (items) => {
+      const heads = items.filter((i) => i.skuType === "Equipment" && /indoor/i.test(i.skuName ?? "")).length;
+      const extra = items.filter(named(/^Multi Head Labour \((5|6) Head\)$/i));
+      return heads === 4 && extra.length === 2 && items.some(named(/^Multi Head Labour \(4 Head\)$/i)) ? items.filter((i) => !extra.includes(i)) : null;
+    },
+  },
+  // Only the refrigerant, at $0; "Split System - Leak Detection & Regas" (15 Nov) does the job.
+  { id: 301387892, name: "Split System Leak Detection", what: "switched off: the new Leak Detection & Regas template replaces it", off: true },
+  // No unit and the install only; the 59 Brivis templates and "Evaporative Cooler - Replacement (Add Unit)" replace it.
+  { id: 301355120, name: "Brivis Contour L36 - Changeover", what: "switched off: the new Brivis and Add Unit templates replace it", off: true },
+  { id: 301365843, name: "Continuous Flow - Installation", what: "names its unit", rename: "Thermann G-Series 26L Continuous Flow - Installation" },
+  { id: 301354538, name: "Continuous Flow - Installation (New Gas Feed)", what: "names its unit", rename: "Thermann G-Series 26L Continuous Flow - Installation (New Gas Feed)" },
+];
+
+export async function lineUpFixes(until: number, all: Live[]): Promise<{ fixed: string[]; failed: string[] }> {
+  type WithLineUp = Progress & { lineUp?: Record<string, string> };
+  const p = ((await getSettings<WithLineUp>(KEY).catch(() => null)) ?? {}) as WithLineUp;
+  const fails = (p.fails ??= {});
+  const lineUp = (p.lineUp ??= {});
+  if ((fails.lineUp ?? 0) >= 3) return { fixed: [], failed: [] };
+  const byId = new Map(all.map((t) => [t.id, t]));
+  const fixed: string[] = [], failed: string[] = [], log: AutoEntry[] = [];
+  for (const f of LINE_UP) {
+    if (Date.now() > until) break;
+    if (lineUp[String(f.id)]) continue;
+    const t = byId.get(f.id);
+    if (!t || (t.name ?? "").trim() !== f.name) {
+      lineUp[String(f.id)] = `skipped: not as the review found it (${t ? `now "${(t.name ?? "").trim()}"` : "not active"})`;
+      continue;
+    }
+    const path = stTenantPath("sales", `estimate-templates/${f.id}`);
+    try {
+      if ("drop" in f) {
+        const items = f.drop(t.items ?? []);
+        if (!items) { lineUp[String(f.id)] = "skipped: its lines have changed since the review"; continue; }
+        await stSend("PATCH", path, { items: templatePatchItems(items) });
+        const back = await stFetch<Live>(path);
+        if ((back.items?.length ?? 0) !== items.length) throw new Error(`ServiceTitan answered OK but has ${back.items?.length ?? 0} lines, not ${items.length}`);
+        lineUp[String(f.id)] = `${f.what}: $${t.totalPrice} → $${back.totalPrice}`;
+      } else if ("off" in f) {
+        await stSend("PATCH", path, { active: false });
+        const back = await stFetch<Live & { active?: boolean }>(path);
+        if (back.active !== false) throw new Error("ServiceTitan answered OK but kept it switched on: switch it off in Pricebook › Estimate Templates");
+        lineUp[String(f.id)] = f.what;
+      } else {
+        await stSend("PATCH", path, { name: f.rename });
+        const back = await stFetch<Live>(path);
+        if (back.name !== f.rename) throw new Error(`ServiceTitan answered OK but kept "${back.name}"`);
+        lineUp[String(f.id)] = `renamed "${f.rename}"`;
+      }
+      fixed.push(`${f.name}: ${lineUp[String(f.id)]}`);
+    } catch (e) {
+      fails.lineUp = (fails.lineUp ?? 0) + 1;
+      failed.push(f.name);
+      log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: false, title: `Quote template "${f.name}" couldn't be fixed`, detail: (e as Error).message.slice(0, 300) });
+    }
+  }
+  if (fixed.length) log.push({ at: new Date().toISOString(), kind: "quoteTemplates", ok: true, title: `${fixed.length} quote template${fixed.length === 1 ? "" : "s"} lined up`, detail: fixed.join("; ").slice(0, 600) });
+  await saveSettings(KEY, p);
+  await logAuto(log).catch(() => undefined);
+  return { fixed, failed };
+}
