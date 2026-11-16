@@ -745,7 +745,32 @@ body:has(.screen) .utilbar {
   line-height: 1.05;
 }
 .halves__value.is-na { font-size: calc(1.6 * var(--u)); color: var(--muted-fig); }
-.halves__sub { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+/* Wraps. It was `nowrap`, which is safe only while every sub line is short,
+   and "Booked" carries the longest on the board: "from 12 leads · 5 in the
+   next 7 days" is 36 characters in a half about 280px wide at 1920. With
+   Manrope it just fits; with the fallback the browser uses before the font
+   arrives it does not, and the line was cut on every size in both themes —
+   the whole board's only fallback-font failure. Two-digit lead counts would
+   have got there on their own.
+
+   A second line is what a sub line is for. The half is `min-width: 0` in a
+   grid and the card centres its content, so the wrap grows into space the
+   tile already has. */
+.halves__sub {
+  font-size: calc(0.86 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.25;
+  /* Breaks between words, never inside one: "in the next 7 d / ays" is worse
+     than the cut it replaced. */
+  overflow-wrap: break-word;
+  /* Room for the second line whether or not it is used. `.halves` centres each
+     half on its own content, so a sub that wrapped on one side and not the
+     other dropped "Booked 8" ten pixels above "Completed 0" — two figures
+     abreast at different heights, which is the kind of thing a wall board gets
+     noticed for. Reserving the line costs nothing on a card that has the room
+     and keeps the pair level in every case. */
+  min-height: 2.5em;
+}
 
 /* Two figures abreast, the second one quieter: leads today against leads this
    week, where the first is the one being acted on. */

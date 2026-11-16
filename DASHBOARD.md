@@ -1792,6 +1792,29 @@ on cancellations too — this week's figure was 18 where 16 jobs were actually
 completed. Both now filter on `status = 'Completed'`, the same fix the billing
 queue needed.
 
+## The longest line on Today wraps, because it was being cut
+
+"Jobs today → Booked" carries the longest sub line on the board: `from 3 leads
+· 62 in the next 7 days`, in a half about 280px wide at 1920. `.halves__sub`
+was `white-space: nowrap`, which is safe only while every sub line is short.
+
+**It was cut on the live board**, not hypothetically: with Manrope loaded and
+the production figures of 16 November — 3 leads, 62 scheduled — the line
+overflowed its half at every panel size in both themes. It had passed every
+check until then because the test fixture read `from 0 leads · 0 in the next 7
+days`, and two characters was the whole margin.
+
+A fallback font made it worse rather than causing it. Rendering the board with
+`fonts.googleapis.com` and `fonts.gstatic.com` blocked is a reproducible way to
+test that, because it is what the TV sees for the first moments after a cold
+start, and it found this line and nothing else on all ten pages.
+
+So the line wraps now, breaking between words. And `.halves__sub` reserves two
+lines whether or not it uses them: `.halves` centres each half on its own
+content, so a sub that wrapped on one side and not the other dropped "Booked 8"
+ten pixels above "Completed 0" — two figures abreast at different heights,
+which is the kind of thing a wall board gets noticed for.
+
 ## Figures count up
 
 `src/components/screen/Ticker.tsx`. A number that is replaced the instant a new
