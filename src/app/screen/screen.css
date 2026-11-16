@@ -1397,10 +1397,19 @@ body:has(.screen) .utilbar {
 }
 .jtp__bar > span { flex-basis: 0; min-width: 0; }
 .jtp__ledwords { font-size: calc(0.78 * var(--u)); color: var(--ink-2); line-height: 1.15; font-weight: 600; }
-/* The third segment is "nothing came of it", so it is the track colour rather
-   than a fifth tint — an absence should not read as a category. */
+/* The third segment is "nothing came of it", so it is a shade of the track
+   rather than a fifth tint — an absence should not read as a category. It
+   still has to read as a *filled* segment: a row where nothing came of the
+   work is a full bar of "just the job", and a bar that looks empty says the
+   figure is missing instead.
+
+   Dark needs its own pair. The row tint is `--track`, so at the light theme's
+   relationship the segment and the row it sits on were the same colour and
+   every "just the job" row read as an empty rail. The bar takes a background
+   a step off the row, and the segment a step off that. */
 .jtp__none { background: #dcd8cb; }
-.screen--dark .jtp__none { background: #3a3a3f; }
+.screen--dark .jtp__bar { background: #313138; }
+.screen--dark .jtp__none { background: #55555f; }
 
 /* ------------------------------------------------------- head & hero cards */
 .tile--head { justify-content: center; gap: calc(0.3 * var(--u)); }

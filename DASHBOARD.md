@@ -3064,6 +3064,14 @@ type:
 | The muted line | What those jobs billed before GST, the average over the ones that billed anything, and the time they take against the slot they are booked into. |
 | The bar and its words | An install or a repair booked at that address within 60 days, as a three-part bar and in words, with what the follow-on work has billed. |
 
+**Dark mode needed its own pair of greys for the outcome bar.** The row tint
+is `--track`, so at the light theme's relationship the "just the job" segment
+and the row it sat on were the same colour, and every row where nothing came of
+the work read as an empty rail — which says the figure is missing, not that the
+answer is none. The bar takes a background a step off the row and the segment a
+step off that, so a full bar of "just the job" reads as full. The light pair was
+already right and is unchanged.
+
 **A row is a block, not four lines above a hairline** (Jake, 16 Nov: "is there
 a way we can make this easier to read"). Twenty-eight muted lines in a column
 separated by rules read as one list, and the eye lost which money belonged to
