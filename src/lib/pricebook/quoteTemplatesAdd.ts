@@ -81,7 +81,8 @@ export async function addQuoteTemplates(budgetMs = 10_000): Promise<{ units: str
   const until = Date.now() + budgetMs;
   const timeLeft = () => Date.now() < until;
   const saved = await getSettings<Partial<Progress>>(KEY).catch(() => null);
-  const p: Progress = { units: saved?.units ?? {}, templates: saved?.templates ?? {}, fails: saved?.fails ?? {}, notes: saved?.notes ?? {} };
+  // Spread first: the regroup and the renames keep their progress in the same record.
+  const p: Progress = { ...(saved ?? {}), units: saved?.units ?? {}, templates: saved?.templates ?? {}, fails: saved?.fails ?? {}, notes: saved?.notes ?? {} };
   const otherLeft = OTHER_TEMPLATES.filter((t) => !(t.code in p.templates));
   const evapLeft = EVAP_UNITS.filter((u) => !(evapCode(u) in p.templates));
   const unitsOn = (p.fails.equipment ?? 0) < 3, templatesOn = (p.fails.template ?? 0) < 3;
