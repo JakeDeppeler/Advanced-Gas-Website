@@ -11,7 +11,8 @@ import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "./t
  * the labour, electrical and materials at one price, then the BPC; and the
  * names the review found off the pattern put right. Run after each sync by
  * api/pricebook/quote-templates, a call's worth at a time, each template read
- * back. Prices are never changed here.
+ * back. The one price change is templateShape's: an install's materials to $0
+ * inside the group, as the office's own templates have them.
  */
 
 type Live = { id: number; name?: string; internalName?: string | null; mode?: string; totalPrice?: number; items?: TemplateItem[] };

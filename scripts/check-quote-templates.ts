@@ -88,21 +88,25 @@ const flat = [
   it(1, "Equipment", "Thermann Smart Electric Storage 125L 3kw", 1410),
   it(2, "Service", "Electric HWS - Changeover ", 1210),
   it(3, "Service", "BPC Compliance Certificate", 65),
-  it(4, "Material", "Tomson Turbo 15mm Valve Kit", 0),
-  it(5, "Material", "Concrete Slab 600", 0),
+  it(4, "Material", "Tomson Turbo 15mm Valve Kit", 220),
+  it(5, "Material", "Concrete Slab 600", 35),
+  it(6, "Material", "Small-scale Technology Certificate", -35),
 ];
 const g = groupedItems(flat)!;
 ok("equipment first, as its own group", g[0].id === 1 && g[0].itemGroupName === "Thermann Smart Electric Storage 125L 3kw" && g[0].itemGroupParentId === null);
 ok("then the labour header, named for its service", g[1].id === 2 && g[1].itemGroupName === "Electric HWS - Changeover" && g[1].itemGroupParentId === null);
 ok("materials under the header", g.filter((i) => i.skuType === "Material").every((i) => i.itemGroupParentId === 2), g.map((i) => [i.id, i.itemGroupParentId]));
 ok("BPC last, on its own", g[g.length - 1].id === 3 && g[g.length - 1].itemGroupParentId === null);
-ok("no price moves", g.reduce((a, i) => a + i.unitPrice, 0) === flat.reduce((a, i) => a + i.unitPrice, 0));
+ok("an install's materials go to $0 inside the group, as the office's templates have them", g.filter((i) => i.skuType === "Material" && i.unitPrice >= 0).every((i) => i.unitPrice === 0));
+ok("a rebate keeps its value", g.find((i) => i.id === 6)?.unitPrice === -35);
+ok("the unit, labour and BPC keep theirs", [1410, 1210, 65].every((v, k) => g.find((i) => i.id === [1, 2, 3][k])?.unitPrice === v));
 ok("the read-back test passes on it", isGrouped(g) && !isGrouped(flat));
 ok("a grouped template is left alone", groupedItems(g) === null);
 const cooker = groupedItems([it(10, "Service", "Gas Cooktop – Installation", 550), it(11, "Service", "Cooker - Electrical Connection ", 350), it(12, "Service", "BPC Compliance Certificate", 65)])!;
 ok("the electrician's line rides under the header", cooker[1].id === 11 && cooker[1].itemGroupParentId === 10);
 const motor = groupedItems([it(20, "Service", "Evaporative Cooler – Repair", 350), it(21, "Material", "FAN MOTOR - EVAP", 550), it(22, "Material", "Capacitor", 91)])!;
 ok("a repair: parts under the labour, one price", motor[0].id === 20 && motor.slice(1).every((i) => i.itemGroupParentId === 20));
+ok("a repair keeps its parts' prices: labour plus parts", motor.reduce((a, i) => a + i.unitPrice, 0) === 991);
 ok("an add-on stays an add-on", groupedItems([it(30, "Service", "Install", 900), it(31, "Material", "Coil", 0), it(32, "Service", "Extra", 100, { isAddOn: true })])!.find((i) => i.id === 32)?.itemGroupParentId === null);
 
 // Names and codes the review listed.
