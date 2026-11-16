@@ -12,10 +12,17 @@ import type { TemplateItem } from "./labour";
  * $0, carried by the install price; the electrician's line keeps its price.
  * On a repair or service (no equipment) the part is what the job is, so it
  * keeps its price inside the group and the one price is labour plus parts.
- * ServiceTitan shows a Dynamic template's materials at today's pricebook
- * price whatever was saved, and its stored total leaves them out, so setting
- * an install's materials to $0 moves no total; it makes the lines agree with
- * it. Rebates (negative lines) are never touched.
+ * Rebates (negative lines) are never touched.
+ *
+ * What ServiceTitan then does with it (read back 16 Nov): a header on a
+ * dynamically priced service takes the materials into its own price and
+ * shows them at $0 (the Thermann 125L install went from $820 to $1,210, the
+ * fan motor's repair line to $980); a header on a fixed-price service keeps
+ * its price and the materials show at their pricebook price inside the group
+ * (the dump valve, $250 under the $300 service). Either way an estimate made
+ * from the template charges every line, so the group's one price is labour,
+ * electrical and materials. The template's own stored total leaves out
+ * materials priced inside a group: it is not what the estimate comes to.
  */
 
 const isBpc = (i: TemplateItem) => i.skuType === "Service" && /bpc compliance/i.test(i.skuName ?? "");
