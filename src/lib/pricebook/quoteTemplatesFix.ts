@@ -138,12 +138,6 @@ type LineUp = { id: number; name: string; what: string } & (
   | { rename: string }
 );
 const named = (re: RegExp) => (i: TemplateItem) => re.test((i.skuName ?? "").trim());
-/** The one priced material matching `re`, out of the header's group and onto a line of its own. */
-function ownLine(items: TemplateItem[], re: RegExp): TemplateItem[] | null {
-  const part = items.filter((i) => i.skuType === "Material" && named(re)(i));
-  if (part.length !== 1 || !part[0].itemGroupParentId || !(Number(part[0].unitPrice) > 0)) return null;
-  return items.map((i) => (i === part[0] ? { ...i, itemGroupParentId: null, parentItemId: null, itemGroupName: (i.skuName ?? "").trim() } : i));
-}
 const LINE_UP: LineUp[] = [
   {
     id: 301078336, name: "Mitsubishi Electric 5kW Split System - Roof Mounted", what: "second compliance certificate removed",
@@ -165,19 +159,6 @@ const LINE_UP: LineUp[] = [
   { id: 301387892, name: "Split System Leak Detection", what: "switched off: the new Leak Detection & Regas template replaces it", off: true },
   // No unit and the install only; the 59 Brivis templates and "Evaporative Cooler - Replacement (Add Unit)" replace it.
   { id: 301355120, name: "Brivis Contour L36 - Changeover", what: "switched off: the new Brivis and Add Unit templates replace it", off: true },
-  // A fixed-price service doesn't take in the parts grouped under it (a dynamic
-  // one does: the fan motor's repair line went to $980 with them), so on these
-  // two the part was in the group but not in the price. On a repair the part
-  // is the job: it goes on its own line, and the quote comes to what the
-  // office charged by hand ($550, $580).
-  {
-    id: 303258050, name: "Evaporative Cooler - Dump Valve Replacement & Service", what: "the dump valve charged on its own line",
-    drop: (items) => ownLine(items, /dump valve/i),
-  },
-  {
-    id: 303258056, name: "Split System - Condensate Pump Replacement & Deep Clean", what: "the condensate pump charged on its own line",
-    drop: (items) => ownLine(items, /cond pump/i),
-  },
   { id: 301365843, name: "Continuous Flow - Installation", what: "names its unit", rename: "Thermann G-Series 26L Continuous Flow - Installation" },
   { id: 301354538, name: "Continuous Flow - Installation (New Gas Feed)", what: "names its unit", rename: "Thermann G-Series 26L Continuous Flow - Installation (New Gas Feed)" },
 ];
