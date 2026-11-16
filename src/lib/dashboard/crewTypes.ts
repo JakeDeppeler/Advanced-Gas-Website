@@ -317,6 +317,17 @@ export type JobTypeKpi = {
 export type Crew = {
   from: string;
   to: string;
+  /**
+   * The first day anybody actually clocked something in the window.
+   *
+   * `from` is what was asked for — a year back — and for most of this window
+   * there was no ServiceTitan to ask: the first job and the first timesheet
+   * are both 22 June 2026. A page that says "last 365 days" over five months
+   * of data is telling the room something that is not true, so the header
+   * chip reads this instead. Optional, so a snapshot written before it existed
+   * falls back to the window.
+   */
+  firstDay?: string;
   days: number;
   /** How long after a visit an install at the address is still credited to it. */
   followDays: number;
