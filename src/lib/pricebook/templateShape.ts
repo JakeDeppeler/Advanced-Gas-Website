@@ -7,9 +7,15 @@ import type { TemplateItem } from "./labour";
  * that way (labour.ts planTemplate); this is the same shape for any template,
  * so the ones made from the hand-built quotes match them.
  *
- * Only the grouping changes. Every line keeps the price it has: a material
- * the office put in at $0 stays at $0 inside the group, so the group's one
- * price is what the quote already came to.
+ * Prices, as the office's own templates have them (Buffalo, Compact Classic,
+ * IStore, read 16 Nov): on an install, the materials sit inside the group at
+ * $0, carried by the install price; the electrician's line keeps its price.
+ * On a repair or service (no equipment) the part is what the job is, so it
+ * keeps its price inside the group and the one price is labour plus parts.
+ * ServiceTitan shows a Dynamic template's materials at today's pricebook
+ * price whatever was saved, and its stored total leaves them out, so setting
+ * an install's materials to $0 moves no total; it makes the lines agree with
+ * it. Rebates (negative lines) are never touched.
  */
 
 const isBpc = (i: TemplateItem) => i.skuType === "Service" && /bpc compliance/i.test(i.skuName ?? "");
@@ -23,14 +29,18 @@ export function groupedItems(items: TemplateItem[]): TemplateItem[] | null {
   if (!header || header.id == null) return null;
   const root = (i: TemplateItem): TemplateItem => ({ ...i, itemGroupName: label(i), itemGroupParentId: null, parentItemId: null });
   const equipment = live.filter((i) => i.skuType === "Equipment").map(root);
+  const install = equipment.length > 0;
   const members = live
     .filter((i) => i !== header && !isBpc(i) && (i.skuType === "Material" || i.skuType === "Service"))
-    .map((i) => ({ ...i, itemGroupName: null, itemGroupParentId: header.id, parentItemId: null }));
+    .map((i) => ({
+      ...i, itemGroupName: null, itemGroupParentId: header.id, parentItemId: null,
+      ...(install && i.skuType === "Material" && Number(i.unitPrice) > 0 ? { unitPrice: 0 } : {}),
+    }));
   const bpc = live.filter(isBpc).map(root);
   // Add-ons and anything that isn't equipment, a service or a material stay as they are, after.
   const rest = items.filter((i) => i.isAddOn || !["Equipment", "Material", "Service"].includes(i.skuType));
   const out = [...equipment, root(header), ...members, ...bpc, ...rest];
-  const shape = (xs: TemplateItem[]) => JSON.stringify(xs.map((i) => [i.id, i.itemGroupParentId ?? null, i.itemGroupName ? 1 : 0]));
+  const shape = (xs: TemplateItem[]) => JSON.stringify(xs.map((i) => [i.id, i.itemGroupParentId ?? null, i.itemGroupName ? 1 : 0, Number(i.unitPrice)]));
   return shape(out) === shape(items) ? null : out;
 }
 
