@@ -259,7 +259,21 @@ export type TypedJob = {
   allowed: number | null;
   elapsed: number | null;
   billed: number;
+  /**
+   * What the job turned into: an install booked at the address afterwards, a
+   * repair, or nothing (Jake, 16 Nov — "how many problem turn into a repair,
+   * install or just a problem").
+   *
+   * An install outranks a repair where both followed, because the install is
+   * the outcome the question is about. Credited to one job only — see the
+   * follow-on rule in crew.ts.
+   */
+  outcome: TypeOutcome;
+  /** What those follow-on jobs have billed so far, before GST. */
+  ledBilled: number;
 };
+
+export type TypeOutcome = "install" | "repair" | "none";
 
 /**
  * The fewest judged jobs a job type needs before its rate is a rate.
@@ -290,6 +304,14 @@ export type JobTypeKpi = {
   billed: number;
   billedJobs: number;
   avgBilled: number | null;
+  /**
+   * What this kind of work turned into: how many led to an install, how many
+   * to a repair, how many to neither, and what the follow-ons have billed.
+   *
+   * `none` is the rest of `jobs`, so the three add up to the row — a bar drawn
+   * from them is a whole bar.
+   */
+  led: { install: number; repair: number; none: number; billed: number };
 };
 
 export type Crew = {
@@ -493,6 +515,12 @@ export function jobTypeKpis(jobs: TypedJob[]): JobTypeKpi[] {
       // quote visit and a warranty call bill nothing by design, and averaging
       // their zeroes in reads as the work being worth less than it is.
       avgBilled: paid.length > 0 ? billed / paid.length : null,
+      led: {
+        install: list.filter((j) => j.outcome === "install").length,
+        repair: list.filter((j) => j.outcome === "repair").length,
+        none: list.filter((j) => j.outcome === "none").length,
+        billed: list.reduce((a, j) => a + j.ledBilled, 0),
+      },
     };
   });
 
@@ -530,5 +558,11 @@ export function rollUpTypes(rows: JobTypeKpi[], label: string, sector: CrewSecto
     billed,
     billedJobs,
     avgBilled: billedJobs > 0 ? billed / billedJobs : null,
+    led: {
+      install: sum((r) => r.led.install),
+      repair: sum((r) => r.led.repair),
+      none: sum((r) => r.led.none),
+      billed: sum((r) => r.led.billed),
+    },
   };
 }

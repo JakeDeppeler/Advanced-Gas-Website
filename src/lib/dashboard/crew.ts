@@ -233,23 +233,69 @@ export async function computeCrew(
     for (const e of ests) if (e.job_id != null) quotedJobs.add(Number(e.job_id));
   }
 
-  // Installs booked at each address, for the same credit rule the Sectors page
-  // uses: an install at the address inside the follow-on window after the visit.
-  const installsAt = new Map<number, number[]>();
+  /*
+   * What each job turned into: the installs and repairs booked at its address
+   * afterwards, **credited to one job only**.
+   *
+   * Jake, 16 Nov: "how many problem turn into a repair, install or just a
+   * problem". Same rule as the Sectors page, which is the one that has to hold:
+   * each follow-on goes to the most recent completed job at that address before
+   * it was booked, so one install is never counted as the fruit of two visits.
+   * This used to credit every job at the address inside the window, which
+   * double-counted an install that followed two visits to the same house.
+   *
+   * A day's grace at the front, because the install is often booked the morning
+   * the tech rings it in — before the visit's own completed stamp lands.
+   */
+  const doneAt = new Map<number, Job[]>();
+  for (const j of jobRows) {
+    if (j.status !== "Completed" || !j.completed_on || j.location_id == null) continue;
+    const k = Number(j.location_id);
+    doneAt.set(k, [...(doneAt.get(k) ?? []), j]);
+  }
+  type Follow = { id: number; kind: "install" | "repair" };
+  const ledTo = new Map<number, Follow[]>();
   for (const b of booked) {
     if (b.location_id == null || !b.created_on || b.status === "Canceled") continue;
-    if (sectorOf(b.job_type) !== "install") continue;
-    const k = Number(b.location_id);
-    installsAt.set(k, [...(installsAt.get(k) ?? []), Date.parse(b.created_on)]);
+    const kind = sectorOf(b.job_type);
+    if (kind !== "install" && kind !== "repair") continue;
+    const at = Date.parse(b.created_on);
+    const prior = (doneAt.get(Number(b.location_id)) ?? [])
+      .filter((v) => {
+        if (Number(v.id) === Number(b.id)) return false;
+        const done = Date.parse(v.completed_on as string);
+        return at >= done - DAY && at <= done + FOLLOW_DAYS * DAY;
+      })
+      .sort((x, y) => Date.parse(y.completed_on as string) - Date.parse(x.completed_on as string))[0];
+    if (!prior) continue;
+    ledTo.set(Number(prior.id), [...(ledTo.get(Number(prior.id)) ?? []), { id: Number(b.id), kind }]);
   }
-  const ledInstall = (j: Job): boolean => {
-    if (j.location_id == null || !j.completed_on) return false;
-    const done = Date.parse(j.completed_on);
-    // A day's grace: the install is often booked the morning the tech rings it in.
-    return (installsAt.get(Number(j.location_id)) ?? []).some(
-      (at) => at >= done - DAY && at <= done + FOLLOW_DAYS * DAY,
-    );
-  };
+  const ledInstall = (j: Job): boolean =>
+    (ledTo.get(Number(j.id)) ?? []).some((f) => f.kind === "install");
+
+  /*
+   * What the follow-on work has billed. Most follow-ons were attended too, so
+   * their price is already in `invByJob`; this fetches only the ones that were
+   * not — an install booked at the address and done by somebody whose
+   * timesheet is not in this window, which still counts as work the visit
+   * turned into.
+   */
+  const followIds = [
+    ...new Set([...ledTo.values()].flat().map((f) => f.id).filter((id) => !invByJob.has(id))),
+  ];
+  for (const ids of chunk(followIds, 200)) {
+    const rows = await sbSelect<{ job_id: number | null; subtotal: number | null; total: number | null }>(
+      "st_invoices",
+      [q.select("job_id,subtotal,total"), `job_id=in.(${ids.join(",")})`].join("&"),
+    ).catch(() => []);
+    for (const i of rows) {
+      if (i.job_id == null) continue;
+      const k = Number(i.job_id);
+      const got = invByJob.get(k) ?? { sold: 0, price: 0 };
+      got.price += i.subtotal != null ? Number(i.subtotal) : Number(i.total ?? 0) / (1 + GST_RATE);
+      invByJob.set(k, got);
+    }
+  }
 
   /*
    * One row per technician per appointment, so a tech who left a job and came
@@ -415,6 +461,7 @@ export async function computeCrew(
       if (typed.has(jid)) continue;
       const name = job.get(jid)?.job_type?.trim();
       if (!name) continue;
+      const next = ledTo.get(jid) ?? [];
       typed.set(jid, {
         jobId: jid,
         type: name,
@@ -422,6 +469,14 @@ export async function computeCrew(
         allowed: v.allowed,
         elapsed: v.elapsed,
         billed: v.billed,
+        // An install outranks a repair where both followed: the install is the
+        // outcome the question is about.
+        outcome: next.some((f) => f.kind === "install")
+          ? "install"
+          : next.length > 0
+            ? "repair"
+            : "none",
+        ledBilled: next.reduce((a, f) => a + (invByJob.get(f.id)?.price ?? 0), 0),
       });
     }
   }

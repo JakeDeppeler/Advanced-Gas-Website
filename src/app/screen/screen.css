@@ -473,24 +473,6 @@ body:has(.screen) .utilbar {
     calc(11 * var(--u)) 1fr calc(8.5 * var(--u)) calc(8.5 * var(--u))
     calc(9.5 * var(--u)) calc(12 * var(--u)) calc(13 * var(--u));
 }
-/* Job types: one row per kind of work, so the name column is wider (job types
-   are sentences, not first names) and the share bar takes the free space. Ten
-   rows rather than five, so the name sits on one line with its count beside it
-   rather than above it. */
-.crew--types .crew__head,
-.crew--types .crew__row {
-  grid-template-columns:
-    calc(17 * var(--u)) 1fr calc(8 * var(--u)) calc(8.5 * var(--u))
-    calc(9.5 * var(--u)) calc(8.5 * var(--u));
-}
-/* Ten rows in the space the Crew page gives five, so the row loses the padding
-   it does not need. Without this the tenth row — the folded tail, which is
-   forty job types and a third of the year — fell off the bottom of the tile. */
-.crew--types .crew__head,
-.crew--types .crew__row { padding-block: calc(0.15 * var(--u)); }
-.crew--types .crew__name { font-size: calc(1.02 * var(--u)); }
-.crew--types .crew__fig b { font-size: calc(1.2 * var(--u)); }
-.crew--types .crew__bar { height: calc(0.8 * var(--u)); }
 .crew__head { font-size: calc(0.9 * var(--u)); color: var(--ink-2); }
 .crew__row { flex: 1; border-top: 1px solid var(--hairline); border-radius: calc(0.6 * var(--u)); }
 .crew__name {
@@ -1299,6 +1281,101 @@ body:has(.screen) .utilbar {
 .screen--dark .heat__ramp { background: linear-gradient(90deg, #3a2a20, #ff9a62); }
 
 
+
+/* ------------------------------------------------- /07 the job-type panels */
+/* Four sectors, two by two, each with its own job types under it. One ranked
+   table put Service - Split System next to Installation - Ducted Refrigerated
+   and invited the room to read one against the other; grouped, every row's
+   neighbours are the rows it is comparable to. See JobTypesPage. */
+.jtp {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: calc(0.6 * var(--u)) calc(1.6 * var(--u));
+}
+.jtp__sec { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.jtp__head {
+  display: flex;
+  align-items: baseline;
+  gap: calc(0.7 * var(--u));
+  padding-bottom: calc(0.2 * var(--u));
+  border-bottom: 2px solid var(--hairline);
+}
+.jtp__name {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: calc(1.5 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  line-height: 1.1;
+}
+.jtp__tot { font-size: calc(0.92 * var(--u)); color: var(--ink-2); white-space: nowrap; }
+.jtp__empty { font-size: calc(0.9 * var(--u)); color: var(--ink-muted); padding-top: calc(0.5 * var(--u)); }
+.jtp__rows { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.jtp__row {
+  display: grid;
+  /* Name on the free space, then the count with its volume bar, the money, and
+     what the work turned into — which gets the most room, because it carries a
+     bar and its words. */
+  grid-template-columns: 1fr calc(4.6 * var(--u)) calc(6 * var(--u)) calc(11 * var(--u));
+  align-items: center;
+  gap: calc(0.6 * var(--u));
+  flex: 1;
+  border-top: 1px solid var(--hairline);
+  padding: calc(0.12 * var(--u)) 0;
+}
+.jtp__row:first-child { border-top: 0; }
+.jtp__type {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: calc(1.08 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+/* The slot and the verdict, under the name. Wraps rather than ellipses: half
+   of "3.7h of 4h · 15 of 21 on it" says the wrong thing rather than less. */
+.jtp__type em {
+  font-style: normal;
+  font-weight: 500;
+  font-size: calc(0.78 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.2;
+}
+.jtp__n { display: flex; flex-direction: column; gap: calc(0.18 * var(--u)); min-width: 0; }
+.jtp__n b,
+.jtp__fig b {
+  font-size: calc(1.2 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.jtp__fig { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); min-width: 0; }
+.jtp__fig span { font-size: calc(0.76 * var(--u)); color: var(--ink-muted); line-height: 1.2; }
+.jtp__vol,
+.jtp__bar {
+  display: flex;
+  gap: 1px;
+  height: calc(0.45 * var(--u));
+  border-radius: calc(0.25 * var(--u));
+  overflow: hidden;
+  background: var(--track);
+}
+.jtp__bar { height: calc(0.6 * var(--u)); }
+.jtp__vol > span,
+.jtp__bar > span { flex-basis: 0; min-width: 0; }
+.jtp__led { display: flex; flex-direction: column; gap: calc(0.18 * var(--u)); min-width: 0; }
+.jtp__ledwords { font-size: calc(0.78 * var(--u)); color: var(--ink-2); line-height: 1.2; }
+/* The third segment is "nothing came of it", so it is the track colour rather
+   than a fifth tint — an absence should not read as a category. */
+.jtp__none { background: #dcd8cb; }
+.screen--dark .jtp__none { background: #3a3a3f; }
 
 /* ------------------------------------------------------- head & hero cards */
 .tile--head { justify-content: center; gap: calc(0.3 * var(--u)); }

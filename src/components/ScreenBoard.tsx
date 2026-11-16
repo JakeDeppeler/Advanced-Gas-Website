@@ -123,8 +123,8 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // work.
   "Job types": (m) =>
     m.crew
-      ? `Every kind of work, last ${m.crew.days} days · the slot it is booked for against the time it takes`
-      : "Every kind of work · the slot it is booked for against the time it takes",
+      ? `Each sector and the job types under it, last ${m.crew.days} days · what each one turns into`
+      : "Each sector and the job types under it · what each one turns into",
   Sectors: (m) => {
     const s = m.sectors;
     if (!s) return "Maintenance, breakdowns, repairs and installs";
@@ -2383,15 +2383,44 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
  * as twice over. See the note on CrewVisit in crewTypes.ts.
  */
 
-/** How many types get a row of their own before the tail is folded into one. */
-const TYPE_ROWS = 9;
+/**
+ * The four sectors, each with its own job types under it, and what each kind of
+ * work turns into (Jake, 16 Nov): "service then a list below of all of the job
+ * types, so service split — how many we have done, how much we bill and how
+ * much work that turn into... like how many problem turn into a repair, install
+ * or just a problem".
+ *
+ * So the page is four panels rather than one ranked table. A ranked table put
+ * Service - Split System next to Installation - Ducted Refrigerated and invited
+ * the room to read one against the other; grouped, every row's neighbours are
+ * the rows it is actually comparable to.
+ */
+const PANEL_SECTORS: Array<[CrewSector, string]> = [
+  ["maintenance", "Service"],
+  ["breakdown", "Breakdowns"],
+  ["install", "Installs"],
+  ["repair", "Repairs"],
+];
+
+/** Types with a row of their own in a panel, before the tail is folded into one. */
+const TYPES_PER_SECTOR = 4;
+
+/**
+ * The job type without the sector already written above it: "Service - Split
+ * System" under a panel headed Service is three words of which two are noise,
+ * and the noise is the two the eye reads first.
+ */
+function shortType(name: string): string {
+  const cut = name.replace(/^(service|diagnostics|installation|repair|commercial\s*[–-]\s*\w+)\s*[–-]\s*/i, "");
+  return cut.trim() || name;
+}
 
 /** Why a type carries no verdict, in the words that say which problem it is. */
 function unjudged(t: JobTypeKpi): string {
-  if (t.timed === 0) return "none clocked yet";
-  if (t.allowed == null) return "no slot set on the type";
+  if (t.timed === 0) return "none clocked";
+  if (t.allowed == null) return "no slot set";
   if (t.allowed > LONGEST_ALLOWED_HOURS) return "booked across days";
-  return `${MIN_TYPE_TIMED} needed to rate`;
+  return `${MIN_TYPE_TIMED} to rate`;
 }
 
 function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
@@ -2412,34 +2441,50 @@ function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
     );
   }
 
-  const shown = all.slice(0, TYPE_ROWS);
-  const tail = all.slice(TYPE_ROWS);
-  // The tail is folded rather than dropped: thirty job types with one job each
-  // are a third of the year between them, and a table that quietly leaves them
-  // out is a table that doesn't add up.
-  const rest = tail.length > 0 ? rollUpTypes(tail, `${tail.length} other kinds`) : null;
   const total = rollUpTypes(all, "All work");
-  // Every bar is a share of the commonest job, so the rows read down as volume.
-  const most = Math.max(1, ...all.map((t) => t.jobs));
+  const panels = PANEL_SECTORS.map(([key, label]) => {
+    const rows = all.filter((t) => t.sector === key);
+    const head = rollUpTypes(rows, label, key);
+    const shown = rows.slice(0, TYPES_PER_SECTOR);
+    const tail = rows.slice(TYPES_PER_SECTOR);
+    return {
+      key,
+      label,
+      head,
+      shown,
+      // Folded rather than dropped: the tail of a sector is a dozen job types
+      // with a handful of jobs each, and a panel that leaves them out is a
+      // panel whose rows do not add up to its own heading.
+      rest: tail.length > 0 ? rollUpTypes(tail, `${tail.length} other kinds`, key) : null,
+      most: Math.max(1, ...rows.map((t) => t.jobs)),
+    };
+  });
+  // Quote visits, warranty calls, site assessments and the like. Counted in the
+  // head cards and named here rather than silently missing off the panels.
+  const offPanel = total.jobs - panels.reduce((a, p) => a + p.head.jobs, 0);
+  const ledJobs = total.led.install + total.led.repair;
 
   return (
     <>
       <HeadCard
         label="Jobs"
         value={count(total.jobs)}
-        foot={`${count(all.length)} kinds of work · ${count(total.timed)} clocked`}
+        foot={`${count(all.length)} kinds of work${offPanel > 0 ? ` · ${count(offPanel)} quote visits and the like` : ""}`}
       />
+      {/* Jake's question, at the top of the page it is asked on. */}
       <HeadCard
-        label="Booked for"
-        value={bigHrs(total.slotHours.allowed)}
-        foot={`${hrs(total.slotHours.taken)} used · over ${count(total.inTime.of)} jobs`}
+        label="Turned into work"
+        value={`${count(ledJobs)} of ${count(total.jobs)}`}
+        foot={`${count(total.led.install)} led to an install · ${count(total.led.repair)} to a repair${
+          total.led.billed > 0 ? ` · ${compact(total.led.billed)} billed` : ""
+        }`}
       />
       <HeadCard
         label="Billed"
         value={compact(total.billed)}
         /* `money` rather than `compact` on the per-job figure: compact rounds
-            to the nearest thousand, and $1,559 a job reading "$2K a job" is a
-            quarter out on the one number here somebody would repeat. */
+           to the nearest thousand, and $1,559 a job reading "$2K a job" is a
+           quarter out on the one number here somebody would repeat. */
         foot={
           total.avgBilled != null
             ? `${money(total.avgBilled)} a job · ${count(total.billedJobs)} billed`
@@ -2462,84 +2507,125 @@ function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
 
       <div className="tile c12" style={{ gridRow: 2 }}>
         <div className="tile__head">
-          <span className="tile__title">Every kind of work</span>
+          <span className="tile__title">Each kind of work</span>
           <span className="tile__sub">
-            booked for: the slot on the dispatch board · takes: first arrival to last done on site
+            turned into: an install or repair booked at that address within {c?.followDays ?? 60} days
           </span>
           <span className="crew__legend">
-            {CREW_SECTORS.map((k) => (
-              <span className="crew__key" key={k}>
-                <i className={`mix--${k}`} aria-hidden="true" />
-                {SECTOR_WORD[k]}
-              </span>
-            ))}
+            <span className="crew__key">
+              <i className="mix--install" aria-hidden="true" />
+              led to an install
+            </span>
+            <span className="crew__key">
+              <i className="mix--repair" aria-hidden="true" />
+              led to a repair
+            </span>
+            <span className="crew__key">
+              <i className="jtp__none" aria-hidden="true" />
+              just the job
+            </span>
           </span>
         </div>
-        <div className="crew crew--types">
-          <div className="crew__head">
-            <span>Job type</span>
-            <span>Share of the work</span>
-            <span>Booked for</span>
-            <span>Takes</span>
-            <span>In the time</span>
-            <span>Billed</span>
-          </div>
-          {shown.map((t) => (
-            <TypeRow key={t.type} t={t} most={most} />
+        <div className="jtp">
+          {panels.map(({ key, ...p }) => (
+            <SectorPanel key={key} {...p} />
           ))}
-          {rest && <TypeRow t={rest} most={most} folded />}
         </div>
       </div>
     </>
   );
 }
 
-/** One job type, or the folded tail of them. */
-function TypeRow({ t, most, folded }: { t: JobTypeKpi; most: number; folded?: boolean }) {
+function SectorPanel({
+  label,
+  head,
+  shown,
+  rest,
+  most,
+}: {
+  label: string;
+  head: JobTypeKpi;
+  shown: JobTypeKpi[];
+  rest: JobTypeKpi | null;
+  most: number;
+}) {
+  const led = head.led.install + head.led.repair;
   return (
-    <div className="crew__row">
-      <span className="crew__name">
-        {t.type}
+    <div className="jtp__sec">
+      <div className="jtp__head">
+        <span className="jtp__name">{label}</span>
+        <span className="jtp__tot">
+          {count(head.jobs)} jobs · {compact(head.billed)}
+          {head.jobs > 0 ? ` · ${pct(led / head.jobs)} turned into work` : ""}
+        </span>
+      </div>
+      {head.jobs === 0 ? (
+        <span className="jtp__empty">Nothing of this kind in the window.</span>
+      ) : (
+        <div className="jtp__rows">
+          {shown.map((t) => (
+            <TypeRow key={t.type} t={t} most={most} />
+          ))}
+          {rest && <TypeRow t={rest} most={most} folded />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** One job type inside its sector's panel, or the folded tail of them. */
+function TypeRow({ t, most, folded }: { t: JobTypeKpi; most: number; folded?: boolean }) {
+  const led = t.led.install + t.led.repair;
+  return (
+    <div className="jtp__row">
+      <span className="jtp__type">
+        {folded ? t.type : shortType(t.type)}
         <em>
-          {count(t.jobs)} {t.jobs === 1 ? "job" : "jobs"}
-          {folded ? "" : ` · ${SECTOR_WORD[t.sector]}`}
+          {t.allowed != null
+            ? `${hrs(t.avgTaken)} of ${hrs(t.allowed)} · ${
+                t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)} on it` : unjudged(t)
+              }`
+            : folded
+              ? "several slots"
+              : unjudged(t)}
         </em>
       </span>
 
-      <span className="crew__mix">
-        <span className="crew__bar" aria-hidden="true">
-          <span className={`crew__seg mix--${t.sector}`} style={{ flexGrow: t.jobs }} />
-          {/* The rest of the track, so every bar is drawn to the same scale. */}
+      <span className="jtp__n">
+        <b>{count(t.jobs)}</b>
+        {/* Every row's bar is a share of the biggest in its own panel, so the
+            panel reads down as volume without the rows competing across it. */}
+        <span className="jtp__vol" aria-hidden="true">
+          <span className={`mix--${t.sector}`} style={{ flexGrow: t.jobs }} />
           <span style={{ flexGrow: Math.max(0, most - t.jobs), flexBasis: 0 }} />
         </span>
-        <span className="crew__mixnums">{`${count(t.timed)} of ${count(t.jobs)} clocked`}</span>
       </span>
 
-      {/* A folded row covers several slots, and several slots are not a slot. */}
-      <span className="crew__fig">
-        <b>{t.allowed != null ? hrs(t.allowed) : NA}</b>
-        <span>{t.allowed != null ? "on the board" : folded ? "several slots" : "no slot set"}</span>
-      </span>
-
-      <span className="crew__fig">
-        <b>{hrs(t.avgTaken)}</b>
-        <span>
-          {t.avgTaken != null && t.allowed != null && t.allowed <= LONGEST_ALLOWED_HOURS
-            ? `${pct(t.avgTaken / t.allowed)} of the slot`
-            : t.timed > 0
-              ? "on site, on average"
-              : "none clocked"}
-        </span>
-      </span>
-
-      <span className="crew__fig">
-        <b>{t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)}` : NA}</b>
-        <span>{t.rate != null ? `${pct(t.rate)} came in on it` : unjudged(t)}</span>
-      </span>
-
-      <span className="crew__fig">
+      <span className="jtp__fig">
         <b>{compact(t.billed)}</b>
-        <span>{t.avgBilled != null ? `${money(t.avgBilled)} a job` : "nothing billed"}</span>
+        <span>{t.avgBilled != null ? `${money(t.avgBilled)} each` : "nothing billed"}</span>
+      </span>
+
+      <span className="jtp__led">
+        {/* Three segments that add to the row, so the bar is a whole bar. The
+            words are beside it: these are three shades and nobody reads a shade
+            from four metres. */}
+        <span className="jtp__bar" aria-hidden="true">
+          <span className="mix--install" style={{ flexGrow: t.led.install }} />
+          <span className="mix--repair" style={{ flexGrow: t.led.repair }} />
+          <span className="jtp__none" style={{ flexGrow: t.led.none }} />
+        </span>
+        <span className="jtp__ledwords">
+          {led === 0
+            ? "just the job"
+            : [
+                t.led.install > 0 ? `${t.led.install} install` : null,
+                t.led.repair > 0 ? `${t.led.repair} repair` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+          {t.led.billed > 0 ? ` · ${compact(t.led.billed)}` : ""}
+        </span>
       </span>
     </div>
   );
