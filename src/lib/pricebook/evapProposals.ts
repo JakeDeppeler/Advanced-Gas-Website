@@ -38,8 +38,7 @@ export async function addEvapProposals(until: number): Promise<{ made: string[];
     try {
       const created = await stSend<Raw | null>("POST", stTenantPath("sales", "proposal-templates"), {
         name: s.name, description: "", proposalTypeId: BASIC_PREMIUM.typeId, active: true, status: "Publish", businessUnitIds: [],
-        // A read gives the options as `options`; a create takes them as `estimateAssignments`
-        // (400 "Required property 'estimateAssignments'", 16 Nov).
+        // ServiceTitan's field for the options (400 "Required property 'estimateAssignments'" without it).
         estimateAssignments: s.options.map((o) => ({ order: o.order, estimateTemplateId: templates[o.templateCode], proposalTypeOptionId: BASIC_PREMIUM.optionIds[o.order] })),
       });
       const id = Number(created?.id);
@@ -48,7 +47,8 @@ export async function addEvapProposals(until: number): Promise<{ made: string[];
       out.made.push(s.name);
       await saveSettings(KEY, p);
       const back = await stFetch<Raw>(stTenantPath("sales", `proposal-templates/${id}`)).catch(() => null);
-      const opts = Array.isArray(back?.options) ? back.options.length : null;
+      const list = back?.estimateAssignments ?? back?.options;
+      const opts = Array.isArray(list) ? list.length : null;
       if (opts == null) notes[s.key] = "made, couldn't be read back";
       else if (opts !== s.options.length) notes[s.key] = `made with ${opts} of ${s.options.length} options`;
       else delete notes[s.key];

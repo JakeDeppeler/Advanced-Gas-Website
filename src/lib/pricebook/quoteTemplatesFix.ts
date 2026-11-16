@@ -38,7 +38,8 @@ export async function lookAtTemplates(): Promise<{ templates: number; proposals:
   const look = {
     proposals: proposals.map((p) => ({
       id: p.id, name: p.name, active: p.active ?? null, type: p.proposalTypeName ?? null,
-      options: (Array.isArray(p.options) ? p.options : []).map((o: Record<string, unknown>) => ({ order: o.order, templateId: o.estimateTemplateId, template: o.estimateTemplateName ?? null, optionId: o.proposalTypeOptionId })),
+      // ServiceTitan's field is estimateAssignments, read and write alike.
+      options: (Array.isArray(p.estimateAssignments) ? p.estimateAssignments : Array.isArray(p.options) ? p.options : []).map((o: Record<string, unknown>) => ({ order: o.order, templateId: o.estimateTemplateId, template: o.estimateTemplateName ?? null, optionId: o.proposalTypeOptionId })),
     })),
     at: new Date().toISOString(),
     templates: all.map((t) => ({
