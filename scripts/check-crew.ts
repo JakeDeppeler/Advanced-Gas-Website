@@ -235,6 +235,8 @@ const tj = (p: Partial<TypedJob> & { jobId: number; type: string }): TypedJob =>
   allowed: 1.5,
   elapsed: 1,
   billed: 0,
+  outcome: "none",
+  ledBilled: 0,
   ...p,
 });
 const types = jobTypeKpis([
@@ -261,6 +263,30 @@ ok("and has no slot of its own, because several slots are not a slot", rest.allo
 ok("its average is weighted by the jobs behind each row",
    near(rest.avgTaken, (1 + 2 + 1 + 3.5) / 4), `${rest.avgTaken}`);
 ok("and its price is over what actually billed", near(rest.avgBilled, 9800 / 3));
+
+console.log("\n-- what each kind of work turns into --");
+/*
+ * Jake, 16 Nov: "how many problem turn into a repair, install or just a
+ * problem". Three buckets that add to the row, so a bar drawn from them is a
+ * whole bar.
+ */
+const outcomes = jobTypeKpis([
+  tj({ jobId: 1, type: "Diagnostics - Split System", sector: "breakdown", outcome: "install", ledBilled: 9000 }),
+  tj({ jobId: 2, type: "Diagnostics - Split System", sector: "breakdown", outcome: "repair", ledBilled: 400 }),
+  tj({ jobId: 3, type: "Diagnostics - Split System", sector: "breakdown" }),
+  tj({ jobId: 4, type: "Diagnostics - Split System", sector: "breakdown" }),
+])[0];
+ok("the installs it led to are counted", outcomes.led.install === 1);
+ok("so are the repairs", outcomes.led.repair === 1);
+ok("and the ones that were just the job", outcomes.led.none === 2);
+ok("the three add up to the row, so the bar is a whole bar",
+   outcomes.led.install + outcomes.led.repair + outcomes.led.none === outcomes.jobs);
+ok("what the follow-on work billed comes with it", near(outcomes.led.billed, 9400));
+const rolled = rollUpTypes([outcomes, types[1]], "all");
+ok("a rolled-up row adds the outcomes too",
+   rolled.led.install === 1 + types[1].led.install && rolled.led.none === 2 + types[1].led.none);
+ok("and a rolled-up row still adds to its own jobs",
+   rolled.led.install + rolled.led.repair + rolled.led.none === rolled.jobs);
 
 console.log(bad === 0 ? "\nall good" : `\n${bad} failed`);
 process.exit(bad === 0 ? 0 : 1);

@@ -2989,14 +2989,59 @@ which kind of service — because "installs take 3.8 hours" has averaged a
 four-hour split system with a twenty-hour ducted job and said nothing about
 either.
 
+**It is four panels, two by two, not one ranked table.** Jake, 16 Nov: "it
+should be service then a list below of all of the job types, so service split —
+how many we have done, how much we bill and how much work that turn into, and
+the same for the breakdown, and installation and repairs". A ranked table put
+Service - Split System next to Installation - Ducted Refrigerated and invited
+the room to read one against the other; grouped, every row's neighbours are the
+rows it is comparable to. Each panel heads with its sector's own totals, lists
+its four commonest types, and folds the rest into one labelled row that still
+counts into the heading.
+
 | Column | What it is |
 |---|---|
-| Job type | ServiceTitan's own job type name, with its sector and the jobs attended. |
-| Share of the work | Jobs of this type as a share of the commonest one, tinted by sector, with how many were clocked at all. |
-| Booked for | The slot the type is booked into — `duration` on `st_job_types`, in seconds. |
-| Takes | Time on site averaged over the jobs that were clocked, and what share of the slot that is. |
-| In the time | Of the jobs with both, how many came in within a quarter hour of the slot. |
+| Job type | The name with its sector stripped — "Split System" under a panel headed *Service* — over the slot, the time it takes, and how often it came in. |
+| Jobs | Jobs of this type somebody was sent to, with a bar for its share of the panel's commonest type. |
 | Billed | What those jobs billed before GST, and the average over the ones that billed anything. |
+| Turned into | An install or a repair booked at that address within 60 days, as a three-part bar and in words, with what the follow-on work has billed. |
+
+**"Turned into" is Jake's second question** (16 Nov): "how many problem turn
+into a repair, install or just a problem". So three buckets that add to the row:
+led to an install, led to a repair, or just the job. An install outranks a
+repair where both followed, because the install is the outcome the question is
+about.
+
+**Each follow-on is credited to one job only** — the most recent completed job
+at that address before it was booked, inside the 60 days, with a day's grace at
+the front because the install is often booked the morning the tech rings it in.
+This is the Sectors page's rule and it now runs in `crew.ts` for both pages.
+The Crew page's "work found" column used to credit *every* visit at the address
+inside the window, which counted one install as the fruit of two visits to the
+same house; that is fixed in the same change, and its numbers move down a
+little as a result.
+
+**What it is already saying.** Over the year to 16 November:
+
+- **A breakdown turns into work 28% of the time; a service visit 8%.** 116
+  diagnostics produced 25 installs and 8 repairs; 114 service calls produced 6
+  and 3. That is the Sectors page's finding, now with the job type beside it:
+  Diagnostics - Split System and Diagnostics - Gas Ducted Heater between them
+  account for 17 of the 25.
+- **"Installation - AIO Heat Pump (Plug)" is booked for 3 hours, takes 3.3, and
+  comes in 8 times out of 18** — the one row on the page where the booking is
+  wrong rather than the crew. Every other install type beats its slot.
+- **"Installation - Ducted Refrigerated" shows no verdict at all**: a 20-hour
+  slot run over two or three days, which one continuous stretch cannot be
+  measured against. It still carries its 14 jobs, its 8.2 hours on site and its
+  $12K a job, and the cell says "booked across days".
+
+**Quote visits are not on a panel.** Jake named four sectors and the page has
+four; `Quotation` and the warranty, site-assessment and return-visit types fall
+outside all of them. They are counted in the head cards and named there ("78
+quote visits and the like"), rather than being quietly missing. It is worth
+knowing that the 58 quote visits led to 10 installs between them — if that
+wants a panel of its own, it is one more entry in `PANEL_SECTORS`.
 
 **The population is every job somebody was sent to**, vans and passengers
 alike — the page is about the work, not about who did it, and dropping a job
@@ -3010,25 +3055,12 @@ their zeroes in reads as the work being worth less than it is. It also prints in
 full digits rather than compacted: $1,559 a job reading "$2K a job" is a quarter
 out on the one number here somebody would repeat.
 
-**Nine types get a row and the rest are folded into one**, labelled with how
-many and counted into the totals. Forty job types with a handful of jobs each
-are a third of the year between them, and a table that quietly leaves them out
-is a table that does not add up. A folded row shows no slot — several slots are
-not a slot — and its average time is re-weighted by the jobs behind each row
-rather than being an average of averages.
-
-**What it is already saying.** Over the year to 16 November: a split-system
-service is booked for 1.5 hours and takes 1.1, coming in 36 times out of 42; a
-split install is booked for 4 and takes 3.7, 15 of 21; but **"Installation - AIO
-Heat Pump (Plug)" is booked for 3 hours, takes 3.3, and comes in 8 times out of
-18** — the one row on the page where the booking is wrong rather than the crew.
-
 A type needs five judged jobs before it shows a percentage; below that the cell
 is the count on its own, which is a fact either way.
 
 Code: `jobTypeKpis` and `rollUpTypes` in `crewTypes.ts` (pure, tested by
 `npm run check:crew`), grouped in `crew.ts` off the same jobs the Crew page
-reads, `JobTypesPage` and `TypeRow` in `ScreenBoard.tsx`.
+reads, `JobTypesPage`, `SectorPanel` and `TypeRow` in `ScreenBoard.tsx`.
 
 ## Sectors: maintenance, breakdowns, repairs and installs
 
