@@ -241,7 +241,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Ducted gas heaters accumulate dust and lint in the burner over time, spider webs form in the flue draft diverter, and heat exchangers develop micro-cracks from thermal cycling. All three fail slowly, you don't notice degradation until it's dangerous." },
       { type: "p", text: "The Australian Gas Association recommends CO testing every 2 years. Insurance companies increasingly ask for the CO test report on rental properties. And the difference between a 25-year-old ducted heater that's safe and one that's leaking CO into the house is often just one skipped service." },
       { type: "h2", text: "What we charge" },
-      { type: "p", text: "$280 + GST for a full gas heater service with CO test. Includes:" },
+      { type: "p", text: "$250 + GST for a full gas heater service with CO test. Includes:" },
       { type: "ul", items: [
         "Visual inspection of the unit, ductwork and flue",
         "Burner clean, ignition check, gas pressure test",
@@ -397,8 +397,8 @@ export const posts: BlogPost[] = [
       { type: "h2", text: "5. Run it in heat for 10 minutes at the start of every season" },
       { type: "p", text: "Even in summer, kicks the reversing valve, keeps the compressor oil circulating. Same in winter for cool. Prevents seals drying out from disuse." },
       { type: "h2", text: "What we do that you can't" },
-      { type: "p", text: "Every 2-3 years we recommend a professional service, deep clean of the evaporator coil, gas pressure check, thermistor calibration, drain flush. $280 + GST. Extends life another 3-5 years and keeps efficiency at spec." },
-      { type: "p", text: "Book a service any time, we bundle multiple units at the same address if you've got splits in bedrooms plus a living-room unit." },
+      { type: "p", text: "Every 2-3 years we recommend a professional service, deep clean of the evaporator coil, gas pressure check, thermistor calibration, drain flush. $350 + GST. Extends life another 3-5 years and keeps efficiency at spec." },
+      { type: "p", text: "Book a service any time, we bundle multiple units at the same address if you've got splits in bedrooms plus a living-room unit: two or more are $180 + GST each for a standard service." },
     ],
   },
 
@@ -627,7 +627,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "The first two are the ones that trigger the repair-vs-replace-vs-switch decision every few years. We'll take them in turn." },
 
       { type: "h2", text: "Ducted gas heater, repair, replace, or switch to reverse cycle?" },
-      { type: "p", text: "If your ducted gas heater is under 10 years old and just needs a service or a burner replacement, repair it. Straightforward, and done in a morning. Typical service $220, ignition unit swap ~$580." },
+      { type: "p", text: "If your ducted gas heater is under 10 years old and just needs a service or a burner replacement, repair it. Straightforward, and done in a morning. Typical service $250 + GST, ignition unit swap ~$580." },
       { type: "p", text: "If it's 10-15 years old and the heat exchanger has cracked (we test for this, carbon monoxide leaks kill people every winter), that's a like-for-like replacement or a switch to reverse-cycle. Like-for-like Brivis-to-Brivis replacement runs $4,500-$6,500 depending on system size. Switching to reverse-cycle ducted uses your existing ducts if they're sound, $9,000-$12,000 but the running cost is roughly 60% lower and you get cooling in summer as a bonus." },
       { type: "p", text: "If it's 15+ years old, even if it's still running, the payback on switching to reverse-cycle is usually 6-8 years even without a rebate. If you're planning to stay in the house that long, switch." },
 

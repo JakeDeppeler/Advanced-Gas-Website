@@ -4,6 +4,10 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "./templateShape";
+import { OTHER_TEMPLATES } from "./quoteTemplateSpecs";
+
+/** Templates kept as plain lines: the heater-and-evap discount has to show (quoteTemplateSpecs.ts › flat). */
+const FLAT = new Set(OTHER_TEMPLATES.filter((t) => t.flat).map((t) => t.code));
 
 /**
  * After the 15 Nov templates were made (quoteTemplatesAdd.ts), Jake on 16 Nov:
@@ -57,6 +61,7 @@ export async function groupQuoteTemplates(until: number, all?: Live[]): Promise<
   const done: string[] = [], failed: string[] = [], log: AutoEntry[] = [];
   for (const [code, id] of todo) {
     if (Date.now() > until) break;
+    if (FLAT.has(code)) { grouped[code] = "flat"; continue; }
     const t = byId.get(id);
     if (!t?.items) { notes[`group:${code}`] = "not in ServiceTitan's active templates"; continue; }
     const items = groupedItems(t.items);

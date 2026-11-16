@@ -9,6 +9,7 @@ import {
   EVAP_UNITS, OTHER_TEMPLATES, evapSellPrice, evapTemplate, evapUnitPrice, findUnit, lineTotal, pricedItems, type LiveSku,
 } from "../src/lib/pricebook/quoteTemplateSpecs";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../src/lib/pricebook/templateShape";
+import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, sameName } from "../src/lib/pricebook/servicePricing";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
 
 let bad = 0;
@@ -50,6 +51,16 @@ ok("every template name once", new Set(all.map((t) => t.name.toLowerCase())).siz
 ok("no 2 x split templates (Jake: rare)", !all.some((t) => /2 ?x/i.test(t.name)));
 ok("no 10kW ducted until it's priced", !all.some((t) => /10 ?kw/i.test(t.name)));
 ok("every template has lines and a summary", all.every((t) => t.lines.length > 0 && t.summary.length > 40));
+
+// Jake, 16 Nov: service prices ex GST; two or more splits $180 each; 10% off a heater and evap together.
+ok("service prices as Jake gave them", SERVICE_PRICES.map((s) => s.price).join(",") === "250,350,300,400,250");
+ok("the 10% off heater + evap: $55 single storey, $65 double", HEATER_EVAP_DISCOUNTS.map((d) => d.price).join(",") === "-55,-65");
+const total = (code: string) => lineTotal(OTHER_TEMPLATES.find((t) => t.code === code)!.lines);
+ok("2, 3 and 4 splits at $180 each", [total("AC-SPLIT-SVC-2"), total("AC-SPLIT-SVC-3"), total("AC-SPLIT-SVC-4")].join(",") === "360,540,720");
+ok("heater + evap: $495 single storey, $585 double", total("SVC-HTR-EVAP-SS") === 495 && total("SVC-HTR-EVAP-DS") === 585, [total("SVC-HTR-EVAP-SS"), total("SVC-HTR-EVAP-DS")]);
+ok("heater + evap kept as plain lines, so the discount shows", OTHER_TEMPLATES.filter((t) => t.flat).map((t) => t.code).join(",") === "SVC-HTR-EVAP-SS,SVC-HTR-EVAP-DS");
+ok("the deep clean in the condensate pump template at $350", total("AC-SPLIT-REP-CONDPUMP") === 630);
+ok("names match through ServiceTitan's dashes", sameName("Evaporative Cooler - Maintenance (Single Storey)", "Evaporative Cooler – Maintenance (Single Storey)") && !sameName("Split System - Deep Clean", "Split System - Clean & Service"));
 ok("an evap replacement is unit, install, compliance", evap.every((t) => t.lines.map((l) => l.skuType).join() === "Equipment,Service,Service"));
 ok("names say size and colour", evap[0].name === "Brivis Contour L36 Evaporative Cooler (Beige) - Replacement", evap[0].name);
 ok("the summary names the unit and colour", /new Brivis Contour L36 in Beige/.test(evap[0].summary));

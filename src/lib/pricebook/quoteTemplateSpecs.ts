@@ -16,6 +16,8 @@
  * scripts/check-quote-templates.ts can check it.
  */
 
+import { HEATER_EVAP_DISCOUNTS, MULTI_SPLIT, priceOf } from "./servicePricing";
+
 export type Colour = "Beige" | "Charcoal" | "Terra Red";
 export type EvapUnit = { series: "Contour" | "Promina" | "Advance" | "Balaero"; model: string; colour: Colour; part: string; cost: number };
 
@@ -168,10 +170,20 @@ export const SKU = {
   cookerElectrical: { skuId: 301188404, skuType: "Service" }, // ELEC-COOKER
   rangehoodInstall: { skuId: 303114773, skuType: "Service" }, // RANGEHOOD
   boschRangehood53: { skuId: 303112237, skuType: "Equipment" },
+  splitService: { skuId: 148186510, skuType: "Service" }, // Split System - Clean & Service
+  // Made by serviceSetup.ts on 16 Nov, so found by code when the template is made.
+  splitServiceMulti: { skuId: 0, skuType: "Service", code: MULTI_SPLIT.code },
+  discHeaterEvapSS: { skuId: 0, skuType: "Material", code: "DISC-HTR-EVAP-SS" },
+  discHeaterEvapDS: { skuId: 0, skuType: "Material", code: "DISC-HTR-EVAP-DS" },
 } as const;
 
 export type Line = { skuId: number; skuType: string; quantity: number; unitPrice: number; code?: string };
-export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[] };
+/**
+ * `flat`: left out of Jake's layout (one header holding everything at one
+ * price). A discount inside a group is folded into the header and shows at
+ * $0, and the point of the line is that the customer sees it.
+ */
+export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[]; flat?: boolean };
 
 const L = (s: { skuId: number; skuType: string; code?: string }, unitPrice: number, quantity = 1): Line => ({ ...s, quantity, unitPrice });
 
@@ -231,7 +243,7 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     lines: [L(SKU.splitRepair, 250)] },
   { name: "Split System - Condensate Pump Replacement & Deep Clean", code: "AC-SPLIT-REP-CONDPUMP",
     summary: "A deep clean of your split system and replacement of its condensate pump, with the system tested on completion.",
-    lines: [L(SKU.splitDeepClean, 300), L(SKU.condensatePump, 280)] },
+    lines: [L(SKU.splitDeepClean, priceOf(SKU.splitDeepClean.skuId)), L(SKU.condensatePump, 280)] },
   { name: "Split System - Diagnostics", code: "AC-SPLIT-DIAGNOSTICS",
     summary: "A visit to find the fault with your split system. We'll explain what we find and quote any repair before going ahead.",
     lines: [L(SKU.splitDiag, 180)] },
@@ -252,7 +264,7 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     lines: [L(SKU.kadenKN315, 1600), L(SKU.heaterInternal, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
   { name: "Ducted Heater Service", code: "GAS-HTR-SVC",
     summary: "A full service and safety check of your ducted gas heater. What's included is set out below.",
-    lines: [L(SKU.heaterService, 250)] },
+    lines: [L(SKU.heaterService, priceOf(SKU.heaterService.skuId))] },
   { name: "Ducted Heater & Add-on Cooling Service", code: "GAS-HTR-ADDC-SVC",
     summary: "A full service and safety check of your ducted gas heater, and a service of its add-on cooling. What's included is set out below.",
     lines: [L(SKU.heaterService, 290)] },
@@ -277,6 +289,25 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
   { name: "Upright Cooker - Install Only", code: "COOKER-UPRIGHT-INSTALL",
     summary: "Installation of the upright cooker you've supplied, including its gas and electrical connections, a full test and a compliance certificate on completion.",
     lines: [L(SKU.cookingInstall, 550), L(SKU.cookerElectrical, 350), L(SKU.compliance, 65)] },
+  // Jake, 16 Nov: two or more splits at one home are $180 each. The office
+  // changes the quantity for five or more.
+  ...[2, 3, 4].map((n): TemplateSpec => ({
+    name: `Split System Clean & Service - ${n} Splits`, code: `AC-SPLIT-SVC-${n}`,
+    summary: `A clean and service of ${n} split systems at your home, at the rate for two or more. What's included is set out below.`,
+    lines: [L(SKU.splitServiceMulti, MULTI_SPLIT.price, n)],
+  })),
+  // And 10% off a heater and an evap cooler serviced together.
+  ...(["Single", "Double"] as const).map((storey): TemplateSpec => {
+    const evap = storey === "Single" ? SKU.evapServiceSS : SKU.evapServiceDS;
+    const disc = storey === "Single" ? SKU.discHeaterEvapSS : SKU.discHeaterEvapDS;
+    const d = HEATER_EVAP_DISCOUNTS.find((x) => x.code === disc.code)!;
+    return {
+      name: `Ducted Heater & Evaporative Cooler Service - ${storey} Storey`, code: `SVC-HTR-EVAP-${storey === "Single" ? "SS" : "DS"}`,
+      summary: `A full service and safety check of your ducted gas heater, and a service of the evaporative cooler on a ${storey.toLowerCase()}-storey home, at the same visit, with 10% off for having both done together. What's included is set out below.`,
+      lines: [L(SKU.heaterService, priceOf(SKU.heaterService.skuId)), L(evap, priceOf(evap.skuId)), L(disc, d.price)],
+      flat: true,
+    };
+  }),
 ];
 
 /** A pricebook item as ServiceTitan has it today. */

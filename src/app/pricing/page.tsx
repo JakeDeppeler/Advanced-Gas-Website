@@ -286,7 +286,7 @@ export default function PricingPage() {
                 <h2>Service, repair &amp; call-out fees</h2>
                 <p>Standard rates for planned service and emergency call-outs.</p>
               </div>
-              <span className="pricing-block__count">7 items</span>
+              <span className="pricing-block__count">11 items</span>
             </div>
             <div className="pricing-block__tablewrap">
               <table className="pricing-block__table">
@@ -297,12 +297,17 @@ export default function PricingPage() {
                   <tr>
                     <td><strong>Split system service</strong></td>
                     <td>Coil clean, gas pressure check, filter clean, drain flush, thermistor calibration. Per unit.</td>
-                    <td className="pricing-block__pricecell"><strong>$220</strong></td>
+                    <td className="pricing-block__pricecell"><strong>$275</strong></td>
                   </tr>
                   <tr>
-                    <td><strong>Multi-unit bundle service</strong></td>
-                    <td>Same as above for 3+ splits at the same address, per additional unit.</td>
-                    <td className="pricing-block__pricecell"><strong>$140</strong> ea</td>
+                    <td><strong>Two or more splits</strong></td>
+                    <td>Same as above for two or more splits at the same address, every one of them at this rate.</td>
+                    <td className="pricing-block__pricecell"><strong>$198</strong> ea</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Split system deep clean</strong></td>
+                    <td>Indoor unit taken apart, coil and fan washed through rather than wiped, drain tray and line flushed, run and tested. Per unit.</td>
+                    <td className="pricing-block__pricecell"><strong>$385</strong></td>
                   </tr>
                   <tr>
                     <td><strong>Ducted aircon service</strong></td>
@@ -312,7 +317,22 @@ export default function PricingPage() {
                   <tr>
                     <td><strong>Gas ducted heater service + CO test</strong></td>
                     <td>Burner clean, heat-exchanger inspection, CO analyser test, filter, gas pressure. Legally required every 2 years.</td>
-                    <td className="pricing-block__pricecell"><strong>$220</strong></td>
+                    <td className="pricing-block__pricecell"><strong>$275</strong></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Evaporative cooler service, single storey</strong></td>
+                    <td>Pads checked, tray drained and flushed, pump and float tested under load, distributor lines cleared.</td>
+                    <td className="pricing-block__pricecell"><strong>$330</strong></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Evaporative cooler service, double storey</strong></td>
+                    <td>As above, on a two-storey roof.</td>
+                    <td className="pricing-block__pricecell"><strong>$440</strong></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Evap cooler and gas heater, same visit</strong></td>
+                    <td>Both serviced at the one visit: $544.50 on a single storey, $643.50 on a double storey.</td>
+                    <td className="pricing-block__pricecell"><strong>10% off</strong></td>
                   </tr>
                   <tr>
                     <td><strong>Heat pump hot water service</strong></td>

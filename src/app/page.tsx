@@ -530,7 +530,7 @@ export default async function HomePage() {
                 <span className="bcard__num">05</span>
                 <h3>Service &amp; safety check</h3>
                 <p>Annual gas appliance servicing &amp; CO testing. Stay safe, stay covered.</p>
-                <span className="bcard__pill">$280 + GST</span>
+                <span className="bcard__pill">$250 + GST</span>
               </div>
             </Link>
 
