@@ -162,7 +162,7 @@ export const HANDBOOK: Shelf[] = [
     blurb: "The paper. Print it, fill it, put it back.",
     items: [
       { title: "Estimate templates", note: "Good/Better/Best for the top ten jobs", status: "write", gap: "Built in ServiceTitan as part of the build, link each one here" },
-      { title: "Van kit & stock checklist", status: "write", gap: "Jake + Jye to build the list" },
+      { title: "Van kit & stock checklist", status: "write", gap: "Jake to build the list" },
       { title: "Front-door card", note: "The greeting and the menu", status: "have" },
       { title: "Vehicle condition check form", status: "write", gap: "The form itself: walk-around points, photo prompts, damage log, sign-off" },
       { title: "Before-go-live checklist", status: "have" },
@@ -371,9 +371,8 @@ export const INFO_SECTIONS: InfoSection[] = [
         span: "full",
         people: [
           { name: "Dean Winbanks", role: "Director", detail: "Plumbing Lic. 46828 · signs off the works" },
-          { name: "Jake", role: "Estimating & quotes", detail: "Pricing, rebates, the numbers" },
+          { name: "Jake", role: "Director", detail: "Estimating and quotes: pricing, rebates, the numbers" },
           { name: "Kellie", role: "Office & scheduling", detail: "Bookings, compliance certs, paperwork" },
-          { name: "Jye", role: "Installer", detail: "Same face, same standard, every job" },
         ],
       },
       {
