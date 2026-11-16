@@ -3,7 +3,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured, stList } from "@/lib/dashboard/servicetitan";
 import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { addQuoteTemplates } from "@/lib/pricebook/quoteTemplatesAdd";
-import { groupQuoteTemplates, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
+import { groupQuoteTemplates, lineUpFixes, lookAtTemplates, tidyTemplateNames } from "@/lib/pricebook/quoteTemplatesFix";
 import type { TemplateItem } from "@/lib/pricebook/labour";
 
 export const runtime = "nodejs";
@@ -33,15 +33,18 @@ export async function GET(req: Request) {
     const add = await addQuoteTemplates(until - Date.now());
     let group: Awaited<ReturnType<typeof groupQuoteTemplates>> | null = null;
     let tidy: Awaited<ReturnType<typeof tidyTemplateNames>> | null = null;
+    let lineUp: Awaited<ReturnType<typeof lineUpFixes>> | null = null;
     if (Date.now() < until) {
       // One read of the templates for both steps: the regroup changes lines, the renames names.
       const all = await stList<{ id: number; name?: string; internalName?: string | null; totalPrice?: number; items?: TemplateItem[] }>(
         "sales", "estimate-templates", { active: "True" }, 5);
       group = await groupQuoteTemplates(until, all);
+      // The line-up fixes before the renames: they check each template's name as the review found it.
+      lineUp = await lineUpFixes(until, all);
       tidy = await tidyTemplateNames(until, all);
     }
-    const failed = [...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? [])];
-    return NextResponse.json({ ok: failed.length === 0, add, group, tidy });
+    const failed = [...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? [])];
+    return NextResponse.json({ ok: failed.length === 0, add, group, tidy, lineUp });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
