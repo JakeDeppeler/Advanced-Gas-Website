@@ -37,18 +37,17 @@ function inlineLast(label: string) {
 
 /**
  * The hero photo, full width under the scrim, so it has to be one of our
- * own jobs: the system's own where it is one, else one that still fits
- * (zoning runs on a ducted system; the rest get the team).
+ * own jobs: the system's own where it is one, else the team.
  */
 function heroPhoto(sys: System) {
   const h = heroForSystem(sys);
   if (h.ours && !h.studio) return { src: h.src, pos: h.pos };
-  return sys.slug === "zoning" ? { src: PHOTO.ductedInstall, pos: "center 55%" } : { src: PHOTO.team, pos: "center 35%" };
+  return { src: PHOTO.team, pos: "center 35%" };
 }
 
 /** Systems whose page gets the hands-on zoning house. */
 // No zones section on the Dominator's page (Jake, Nov 2026): it reuses whatever ducts the house has.
-const ZONED = new Set(["ducted", "reverse-cycle-ducted", "zoning"]);
+const ZONED = new Set(["ducted", "reverse-cycle-ducted"]);
 
 export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const learn = LEARN[sys.slug];
@@ -145,8 +144,9 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
           <div className="wrap pp__col">
             <Head eye="Try it" h="How zones work." lede="Each zone gets its own button. Tap a room in the plan, or use the buttons beside it." />
             <ZoneHouse />
-            {/* Zoning sits under the ducted split now, not as a heating option of its own (Jake, Nov 2026). */}
-            {sys.slug !== "zoning" && <Link href="/find/zoning" className="abtn abtn--ghost" style={{ alignSelf: "flex-start" }}>The zone controllers we fit →</Link>}
+            {/* Zoning sits under the ducted split now, not as a heating option of its own (Jake, Nov 2026),
+                and since Zonemate came off the site Mitsubishi's own controller is the one we show. */}
+            <Link href="/find/ducted/signature" className="abtn abtn--ghost" style={{ alignSelf: "flex-start" }}>The zone controller we fit →</Link>
           </div>
         </section>
       )}

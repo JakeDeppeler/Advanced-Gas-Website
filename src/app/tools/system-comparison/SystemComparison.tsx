@@ -95,11 +95,11 @@ const SYSTEMS: SystemRow[] = [
     installFrom: "$9,500",
     installTo: "$18,000",
     runningCost: "$800-$2,500 / yr",
-    zoneControl: "Yes, Zonemate 4-8 zones",
+    zoneControl: "Yes, 4-8 zones",
     lifespan: "15-20 years",
     bestFor: "Whole-home solution for 3+ bed family homes with attic space",
     bestSuburbs: "Officer, Berwick, Clyde, Cranbourne, new-build estates",
-    brandsWeInstall: "Mitsubishi PEAD-M, Kaden ducted, Zonemate zoning",
+    brandsWeInstall: "Mitsubishi PEAD-M, Kaden ducted",
     pros: [
       "Seamless, no visible indoor units",
       "One system handles cooling AND heating for the whole home",
@@ -303,7 +303,7 @@ export function SystemComparison() {
         <ul>
           <li><strong>One or two bedrooms:</strong> Wall splits are the cheapest and most flexible.</li>
           <li><strong>3-4 rooms, no ceiling space:</strong> Multi-head split with 4 heads.</li>
-          <li><strong>3+ bed family home, has attic:</strong> Ducted reverse-cycle with 4-6 Zonemate zones.</li>
+          <li><strong>3+ bed family home, has attic:</strong> Ducted reverse-cycle with 4-6 zones.</li>
           <li><strong>Hills postcode, mains gas on street:</strong> Gas ducted heater + a couple of splits for summer.</li>
           <li><strong>Cranbourne / Clyde new-build on the flat:</strong> Ducted RC OR evap + gas ducted combo.</li>
           <li><strong>Rental / short-term:</strong> Wall split in the main room, smallest capex.</li>

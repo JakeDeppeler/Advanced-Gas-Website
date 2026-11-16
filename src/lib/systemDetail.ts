@@ -239,7 +239,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Commission, balance and set the zones up", detail: "Airflow balanced across the outlets so the far bedroom gets what it's supposed to. Controller programmed, each zone tested, and we walk you through the schedule so it's running your way before we leave." },
     ],
     pricing: [
-      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
+      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4 zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
     ],
     pricingNote:
       "Additional zones, longer duct runs and difficult roof access are the three variables. A double-storey with a second system upstairs is a different quote again, and we'll price both options if that's the honest answer.",

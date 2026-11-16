@@ -116,13 +116,6 @@ const SERVICES_MEGA: {
           photoAlt: "Brivis gas ducted heater",
         },
         {
-          href: "/brands/zonemate",
-          label: "Zoning & smart control",
-          sub: "Zonemate touch + Wi-Fi",
-          photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
-          photoAlt: "Zonemate touch controller in a living room",
-        },
-        {
           href: "/services/gas-plumbing/gas-service",
           label: "Gas heater service & CO test",
           sub: "Annual safety check · written report",

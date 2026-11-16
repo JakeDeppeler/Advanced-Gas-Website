@@ -343,7 +343,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         { t: "Under 1% failure rate", d: "That's Mitsubishi Electric across the whole range, and it's the number that decides what goes in a customer's wall. We're the ones who have to come back if it fails, so a unit that never needs us is worth more than the margin on a cheaper one." },
         { t: "Parts you can actually get", d: "Mitsubishi's Melbourne warehouse still stocks parts for units we put in ten years ago. Plenty of cheap brands are unsupportable by year five, the unit isn't broken, it's just unfixable." },
         { t: "Kaden, when the job wants it", d: "Reece-exclusive, so parts sit in every store in Victoria. It is what we quote when a family wants three or four rooms done in one visit rather than one a year, and it goes in with the same crew, the same finish and the same 6-year workmanship as anything else we fit." },
-        { t: "Zoned properly from day one", d: "Every ducted job gets Zonemate zoning as standard, not as an upsell. Zoning added in year three means pulling the ceiling apart twice." },
+        { t: "Zoned properly from day one", d: "Every ducted job gets zoning as standard, not as an upsell. Zoning added in year three means pulling the ceiling apart twice." },
         { t: "Sized on a heat load, not a guess", d: "Room by room, allowing for ceiling height, window aspect and insulation. Oversizing is the lazy way out, the unit short-cycles, never dehumidifies properly, and costs about 20% more to run forever." },
         { t: "We'd rather quote the smaller unit", d: "If a 5 kW does the room, we quote a 5 kW. Selling someone a 7 they didn't need is how you get one job instead of a family's worth of them." },
       ],
@@ -352,18 +352,18 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "ARCtick-licensed refrigeration", d: "All refrigerant handling by ARC-certified technicians. Legally required, and we hold the ticket." , line: "Legally required, and we hold it", icon: "shield" },
       { t: "Mitsubishi Electric default", d: "Under 1% failure rate across the range. We put it in our own homes, which is the only recommendation that really counts." , line: "Under 1% failure rate, and it's what we fit at home", icon: "snowflake" },
       { t: "Right-sized, not oversized", d: "Room-by-room heat-load calc before we quote. Oversized units cycle constantly and cost 20% more to run." , line: "Room-by-room heat load, before a size is quoted", icon: "ruler" },
-      { t: "Zonemate zoning for ducted", d: "We install ducted with Zonemate 4/6/8-zone controllers by default. No re-work in year 3 when you want to zone a spare bedroom." , line: "Room by room, on a schedule you set", icon: "clock" },
+      { t: "Zoning for ducted", d: "We install ducted with 4/6/8-zone controllers by default. No re-work in year 3 when you want to zone a spare bedroom." , line: "Room by room, on a schedule you set", icon: "clock" },
       { t: "Colour-matched conduit + tidy exit", d: "Drop sheets on the floor, dust extraction in the wall, conduit outside colour-matched to your cladding. It's the details clients remember." , line: "The pipework you'll be looking at for a decade", icon: "ruler" },
       { t: "Compliance cert emailed in 24 hrs", d: "Electrical + refrigeration compliance docs into your inbox the day after we leave, not chased weeks later." , line: "In your inbox inside a day, not chased", icon: "shield" },
     ],
-    brands: ["Mitsubishi Electric", "Kaden", "Brivis (evap)", "Zonemate"],
+    brands: ["Mitsubishi Electric", "Kaden", "Brivis (evap)"],
     pricing: [
       { tier: "Single split system (2.5 kW · bedroom)", price: "from $2,199", includes: "Supply, back-to-back install, up to 3 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp" },
       { tier: "Single split system (5.0 kW · living)", price: "from $2,899", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/Kaden KSI V3 wall split system.jpg" },
       { tier: "Single split system (7.1 kW · large open-plan)", price: "from $3,299", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-series-v2-v3.webp" },
       { tier: "Multi-head 2-indoor (Mitsubishi MXZ-2F)", price: "from $6,500", includes: "One outdoor, two indoor heads, up to 15 m combined line-set", group: "Multi-head", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp" },
       { tier: "Multi-head 4-indoor (Mitsubishi MXZ-4F)", price: "from $11,500", includes: "One outdoor, four indoor heads, up to 30 m combined line-set", group: "Multi-head", photo: "/Kaden Multi Head.jpg" },
-      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
+      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4 zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
     ],
     steps: [
       { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed, a 5 kW room quote sizes to a 5 kW unit, not a 7." },
@@ -748,7 +748,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             { v: "Return-air", k: "the most-skipped filter, and the usual reason it's weak" },
           ],
         },
-        brands: ["Mitsubishi Electric", "Kaden", "Zonemate"],
+        brands: ["Mitsubishi Electric", "Kaden"],
         benefitTiles: [
           {
             t: "The duct design first",
@@ -766,7 +766,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "Zoning as standard",
-            line: "Zonemate 4, 6 or 8 zone, fitted by default",
+            line: "4, 6 or 8 zones, fitted by default",
             detail:
               "Zoning is not an upsell here. Conditioning the whole house to run one room is the single biggest waste in a ducted system, so the controller goes in as part of the job.",
             icon: "remote",
@@ -813,7 +813,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         photo: { src: "/duct-work.webp", alt: "Insulated flex ductwork run through a roof space", scene: true },
         points: [
           "Mitsubishi PEAD-M / PEA-M indoor with PUZ outdoor",
-          "Zonemate 4, 6 and 8-zone control fitted by default",
+          "4, 6 and 8-zone control fitted by default",
           "Full duct design. We size the trunk and branches, not just the unit",
           "Retrofit into an existing roof cavity where there's access",
           "New insulated flexible duct throughout, sized per branch",
@@ -837,7 +837,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         faqs: [
           { q: "Can ducted go into an existing house?", a: "Usually, if there's roof access and enough clearance for the indoor unit and the trunk duct. We check that on the site visit before quoting. It's the one thing that genuinely rules the job out." },
-          { q: "How many zones do I need?", a: "Four covers most homes: bedrooms, living, kitchen/meals and a spare. We fit Zonemate as standard so adding a zone later doesn't mean pulling the ceiling apart." },
+          { q: "How many zones do I need?", a: "Four covers most homes: bedrooms, living, kitchen/meals and a spare. We fit zoning as standard so adding a zone later doesn't mean pulling the ceiling apart." },
           { q: "Is ducted more expensive to run than splits?", a: "Zoned properly, no. Unzoned it can be, because you're conditioning the whole house to serve one room, which is exactly why we don't install it unzoned." },
         ],
       },
@@ -975,7 +975,6 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base, and parts still available for the ones we fitted ten years ago.", href: "/brands/mitsubishi-electric" },
       { brand: "Kaden", reason: "Splits, ducted, gas ducted and evap under one brand, so a whole house runs on one parts list. Same 6-year warranty as everything else we fit.", href: "/brands/kaden" },
       { brand: "Brivis (evap)", reason: "The default evap brand in the corridor, Contour + Advance roof units for dry-summer suburbs like Cranbourne, Clyde and Officer.", href: "/brands/brivis" },
-      { brand: "Zonemate", reason: "Our default ducted controller, 4/6/8-zone Touch panel with Wi-Fi and per-room temp sensors.", href: "/brands/zonemate" },
     ],
     typical: {
       time: "Single split · same day. Multi-head · 1 day. Ducted · 1–2 days.",

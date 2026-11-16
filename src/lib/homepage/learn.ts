@@ -463,18 +463,8 @@ export const CHOOSE: Record<string, Choice> = {
     sizes: HEATER_SIZES,
     instead: [
       { go: "gas-ducted-heating.5-star", label: "Brivis StarPro 5-star", when: "The heater doesn't run long enough each day for the modulating burner to pay for itself." },
-      { go: "zoning.premium", label: "Add zoning", when: "You only heat part of the house at a time: zones cut the gas whatever the star rating." },
     ],
   },
-  "zoning.essential": { instead: [{ go: "zoning.premium", label: "Zonemate Touch + Wi-Fi", when: "You want a touchscreen on the wall and control from your phone." }] },
-  "zoning.premium": {
-    sizes: { "Touch + Wi-Fi": "Any ducted system you'd like to run from a touchscreen and your phone." },
-    instead: [
-      { go: "zoning.signature", label: "Milieu smart zone control", when: "You want a schedule for every room." },
-      { go: "zoning.essential", label: "Zonemate zone controller", when: "Turning rooms on and off from the wall is all you need." },
-    ],
-  },
-  "zoning.signature": { instead: [{ go: "zoning.premium", label: "Zonemate Touch + Wi-Fi", when: "Touchscreen and phone control without per-room schedules." }] },
   "heat-pump.essential": {
     sizes: {
       "180 L": "One or two people with one bathroom, or an apartment. A smaller tank isn't keeping water hot that nobody uses.",
@@ -631,18 +621,6 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   "Brivis StarPro 6-star": {
     pros: ["The most efficient gas ducted heater Brivis builds", "Modulating burner: steadier warmth, less gas", "CO safety test on every install"],
     cons: ["The highest upfront cost of the four", "Only earns it back if the heater runs long hours"],
-  },
-  "Zonemate Zone controller": {
-    pros: ["Turn rooms on and off from the wall", "Fits most ducted systems", "The cheapest way to cut a ducted system's running cost"],
-    cons: ["No phone control", "No per-room schedules"],
-  },
-  "Zonemate Touch + Wi-Fi": {
-    pros: ["A touchscreen wall controller", "Control every zone from your phone"],
-    cons: ["Costs more than the basic controller", "Phone control needs home Wi-Fi"],
-  },
-  "Milieu Smart zone control": {
-    pros: ["A schedule for every room", "Control from your phone"],
-    cons: ["The most expensive zoning option", "Needs home Wi-Fi, and a little setting up"],
   },
   "iStore R290 all-in-one": {
     pros: ["The lowest price of our heat pumps, with the VEU rebate taken off at the quote", "Solar diverter and Wi-Fi built in", "One unit: nothing else to place outside", "5-year warranty on the whole unit"],

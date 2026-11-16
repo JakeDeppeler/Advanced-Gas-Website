@@ -21,10 +21,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/brands" },
 };
 
-/** Group order follows the brand order: air conditioning first because
- *  it is the bigger half of the business, then ducted heating, then
- *  zoning, then hot water. Within each group the brands are listed in the
- *  same order they appear everywhere else on the site.
+/** Group order: air conditioning first because it is the bigger half of
+ *  the business, then ducted heating, then hot water, so the page runs navy,
+ *  cream, navy. Within each group the brands are listed in Jake's brand
+ *  order (Nov 2026), the same as everywhere else on the site.
  *
  *  Every brand the hero counts has a card (Nov 2026): Viessmann and Braemar
  *  were counted in "9 brands" and listed in the hero but had no card below.
@@ -51,18 +51,11 @@ const BRAND_GROUPS: { label: string; h: string; slug: string; brandSlugs: string
     blurb: "Like-for-like Brivis replacements, the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring. Or off gas altogether: the Braemar Dominator goes in where the gas heater was, on the ducts you have.",
   },
   {
-    label: "Zoning & control",
-    h: "Zoning & {control}.",
-    slug: "zoning",
-    brandSlugs: ["zonemate"],
-    blurb: "Zone controllers and smart room sensors that turn a ducted system from 'on or off' into 'the room you're in, at the temp you want'.",
-  },
-  {
     label: "Heat pump hot water",
     h: "Heat pump {hot water}.",
     slug: "heat-pump",
-    brandSlugs: ["reclaim", "thermann", "istore", "viessmann"],
-    blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, iStore when the rebate is what decides it, Viessmann when you want a German name on the unit.",
+    brandSlugs: ["reclaim", "thermann", "viessmann", "istore"],
+    blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, Viessmann when you want a German name on the unit, iStore when the rebate is what decides it.",
   },
 ];
 
@@ -71,9 +64,9 @@ const BRAND_GROUPS: { label: string; h: string; slug: string; brandSlugs: string
  * others" answer, which the brand pages spread across a whole section.
  *
  * This used to carry a hand-written headline figure per brand as well. Two
- * of them couldn't be stood behind: Zonemate's "20-30%" contradicted the
- * 30–40% its own page states, and Mitsubishi's "10+ years without a
- * callback" appears nowhere else on the site. The card's figure now comes
+ * of them couldn't be stood behind: one contradicted the figure on its own
+ * brand page, and Mitsubishi's "10+ years without a callback" appears
+ * nowhere else on the site. The card's figure now comes
  * from the brand's own data (its first "why we choose it" reason), so the
  * hub never says a number the brand page doesn't.
  */
@@ -83,7 +76,6 @@ const BEST_FOR: Record<string, string> = {
   "reclaim": "Long-term owners, hills postcodes, homes with rooftop solar for the PV-diverter payback",
   "istore": "Rebate-maximisers, tight budgets, straightforward like-for-like electric tank swaps",
   "thermann": "Households that want an Australian-made brand and prefer the integrated tank+heat-pump form factor",
-  "zonemate": "Ducted homes where one room bakes and another stays cold, or apps-and-Alexa-loving owners",
   "viessmann": "Households replacing an old electric or gas tank that want a German brand and a quiet unit",
   "braemar": "Gas ducted homes that want cooling and to get off gas, without pulling the ducts out",
   "brivis": "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
@@ -193,6 +185,21 @@ function BoxGroup({ g, sizes }: { g: Group; sizes: string }) {
   );
 }
 
+/** One group on the homepage's cream services band, between the two navy boxes. */
+function CreamGroup({ g, sizes }: { g: Group; sizes: string }) {
+  return (
+    <section className="bk__sec bk__sec--cream bi__sec" id={g.slug}>
+      <div className="wrap bi__plain">
+        <div className="bi__boxhead">
+          <GroupHead g={g} />
+          <GroupMeta g={g} />
+        </div>
+        <Cards g={g} sizes={sizes} />
+      </div>
+    </section>
+  );
+}
+
 export default function BrandsIndex() {
   const totalModels = brands.reduce((sum, b) => sum + visibleProducts(b).length, 0);
   const groups: Group[] = BRAND_GROUPS.map((g) => {
@@ -202,7 +209,6 @@ export default function BrandsIndex() {
   const by = (slug: string) => groups.find((g) => g.slug === slug);
   const air = by("aircon");
   const gas = by("gas");
-  const zone = by("zoning");
   const hw = by("heat-pump");
 
   return (
@@ -245,23 +251,7 @@ export default function BrandsIndex() {
 
       {air && <BoxGroup g={air} sizes="(max-width: 700px) 90vw, 680px" />}
 
-      {/* Heating and zoning share a cream band, the homepage's services
-          band, as a bento: both are about the ducts, and the zoning group is
-          one brand, which on a band of its own sat as a lone card. Each
-          heading carries its group's anchor. The parts are in reading order
-          in the markup (heading, its cards, next heading, its cards) and
-          placed by grid area, so a screen reader and the tab key meet them
-          the way the eye does. */}
-      {(gas || zone) && (
-        <section className="bk__sec bk__sec--cream bi__sec">
-          <div className="wrap">
-            <div className={`bi__duo${gas && zone ? "" : " bi__duo--one"}`}>
-              {gas && <><div className="bi__duo-gh"><GroupHead g={gas} id={gas.slug} /></div><div className="bi__duo-gc"><Cards g={gas} sizes="(max-width: 700px) 90vw, 470px" /></div></>}
-              {zone && <><div className="bi__duo-zh"><GroupHead g={zone} id={zone.slug} /></div><div className="bi__duo-zc"><Cards g={zone} sizes="(max-width: 700px) 90vw, 470px" /></div></>}
-            </div>
-          </div>
-        </section>
-      )}
+      {gas && <CreamGroup g={gas} sizes="(max-width: 700px) 90vw, 680px" />}
 
       {hw && <BoxGroup g={hw} sizes="(max-width: 700px) 90vw, (max-width: 1100px) 45vw, 340px" />}
 

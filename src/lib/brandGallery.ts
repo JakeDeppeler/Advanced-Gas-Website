@@ -70,9 +70,6 @@ export const BRAND_INSTALLS: Record<string, InstallShot[]> = {
 
   // ── iStore ──────────────────────────────────────────────────────
   istore: [],
-
-  // ── Zonemate ────────────────────────────────────────────────────
-  zonemate: [],
 };
 
 /** Install shots for a brand, or an empty array if none are wired yet. */

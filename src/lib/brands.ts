@@ -372,8 +372,6 @@ export type Brand = {
  *    /thermann-integrated-heat-pump.webp · Thermann integrated HP
  *    /thermann-continuous-flow.webp   · Thermann G-series CF
  *    /thermann-electric-storage.webp  · Thermann electric storage tank
- *    /zonemate-touch-controller.webp  · Zonemate wall tablet
- *    /zonemate-app.webp               · Zonemate app on phone
  */
 export const categoryPhoto: Record<ProductCategory, { src: string; fallback: string; alt: string }> = {
   "split-system":       { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",                 fallback: "/kaden-indoor.webp",              alt: "Mitsubishi MSZ-AP wall split system" },
@@ -386,9 +384,10 @@ export const categoryPhoto: Record<ProductCategory, { src: string; fallback: str
   "gas-storage":        { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", fallback: "/gas-hot-water-changeover.webp", alt: "Thermann gas storage hot water tank" },
   "electric-storage":   { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", fallback: "/gas-hot-water-changeover.webp", alt: "Thermann electric storage hot water tank" },
   "solar-hot-water":    { src: "/reclaim-mitsubishi.webp",                          fallback: "/reclaim-spit-close-up.webp",     alt: "Heat pump hot water system on a brick wall" },
-  "controller":         { src: "/Individual-Temps-Family_Mobile.webp",               fallback: "/Milieu Zonemate tablet.jpg",     alt: "Zonemate Wi-Fi controller app on phone" },
-  "zoning":             { src: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",         fallback: "/duct-work.webp",                 alt: "Zonemate touch controller for ducted zoning" },
-  "damper":             { src: "/ZoneMate-Smart-Sensor-Residential_8-1.jpg",        fallback: "/duct-work.webp",                 alt: "Zonemate smart sensor" },
+  // Mitsubishi's own controllers since Zonemate came off the site (Nov 2026).
+  "controller":         { src: "/mitsubishi-par-41maa-controller-v2.webp",          fallback: "/duct-work.webp",                 alt: "Mitsubishi Electric wired wall controller" },
+  "zoning":             { src: "/mitsubishi-zone-controller-v2.webp",               fallback: "/duct-work.webp",                 alt: "Mitsubishi Electric touch zone controller" },
+  "damper":             { src: "/duct-work.webp",                                   fallback: "/duct-work.webp",                 alt: "Ductwork and zone dampers in a roof space" },
   "accessory":          { src: "/duct-work.webp",                                   fallback: "/duct-work.webp",                 alt: "Ductwork and fittings in a roof space" },
 };
 
@@ -404,18 +403,21 @@ export function productPhoto(p: Product, brand?: Brand): { src: string; fallback
   return { src: cat.src, fallback: brandFallback, alt: cat.alt };
 }
 
-/** Display order for the brand hub, the nav and every "our brands" strip.
- *  Air conditioning first because it is the bigger half of the business,
- *  then zoning, then hot water. The array below stays grouped the way it
- *  was written; this is what decides what the customer sees. */
+/** Display order for the brand hub, the nav and every "our brands" strip:
+ *  Jake's order (Nov 2026), aircon, then hot water, then ducted heating.
+ *  The array below stays grouped the way it was written; this is what
+ *  decides what the customer sees. Viessmann and Braemar were missing, and
+ *  indexOf's -1 sorted them ahead of everything. Zonemate came off the site
+ *  in the same change; its old URLs redirect in next.config. */
 const BRAND_ORDER = [
   "mitsubishi-electric",
   "kaden",
-  "brivis",
-  "zonemate",
   "reclaim",
   "thermann",
+  "viessmann",
   "istore",
+  "brivis",
+  "braemar",
 ];
 
 const brandCatalogue: Brand[] = [
@@ -1576,7 +1578,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Mitsubishi Electric PAR-ZC01M-E zone controller, white glass touch screen with occupancy sensor",
         bestFor: "PEA-M and PEAD-M ducted installs where you want the whole system, zoning included, on one badge",
         ourTake:
-          "The PAR-ZC01M-E is the glass touch controller on the wall, and behind it sits a PAC-ZC interface board driving the dampers: PAC-ZC40 for four zones, PAC-ZC80 for eight, in an L version for 24 V damper motors and an H version for 240 V. The part people notice is the occupancy sensor built into the controller itself. It watches the room it is in, and when nobody has been there for a while the system can drop that zone back rather than keep conditioning an empty study. Everything is Mitsubishi end to end, which means one warranty channel and one support number for the indoor unit, the outdoor unit and the zoning. Zonemate goes on instead when a job wants more than eight zones, or more than one indoor unit driven from a single tablet. Both are on the van.",
+          "The PAR-ZC01M-E is the glass touch controller on the wall, and behind it sits a PAC-ZC interface board driving the dampers: PAC-ZC40 for four zones, PAC-ZC80 for eight, in an L version for 24 V damper motors and an H version for 240 V. The part people notice is the occupancy sensor built into the controller itself. It watches the room it is in, and when nobody has been there for a while the system can drop that zone back rather than keep conditioning an empty study. Everything is Mitsubishi end to end, which means one warranty channel and one support number for the indoor unit, the outdoor unit and the zoning.",
         specs: [
           { label: "Wall controller", value: "PAR-ZC01M-E, backlit touch screen, built-in temp sensor" },
           { label: "Occupancy sensing", value: "PIR sensor built into the controller, four user-set energy-save responses" },
@@ -1598,7 +1600,6 @@ const brandCatalogue: Brand[] = [
           "The pick when you want indoor, outdoor and zoning all on one badge and one support line",
           "The occupancy sensor is the feature that actually saves money, because the zone nobody remembered to shut gets shut anyway",
           "Native integration means fewer wiring points between the indoor unit and the dampers",
-          "Zonemate goes on instead when a job wants more than eight zones, or more than one indoor unit on a single tablet. Both are on the van",
           "Backed by our 6-year workmanship + Mitsubishi's 5-year manufacturer cover",
         ],
         related: ["pead-m", "par-41maa", "pead-large"],
@@ -4257,242 +4258,6 @@ const brandCatalogue: Brand[] = [
           "Emerson parts pipeline, quick Melbourne warranty turnaround",
         ],
         related: ["kaden-evaporative-classic", "brivis-evap-advance", "kaden-internal-3"],
-      },
-    ],
-  },
-
-  // ================== ZONEMATE ==================
-  {
-    slug: "zonemate",
-    layout: "blocks",
-    story: {
-      heading: "Australian-designed, {for Australian ducts}.",
-      body: "Zonemate is designed and made for the local ducted market, to the wiring standards Australian installers work to, and it fits the ducted systems we install.",
-      marks: [
-        { v: "Up to 24", k: "Zones on one control" },
-        { v: "0–100%", k: "Airflow in each zone" },
-        { v: "Within the hour", k: "Zonemate's Melbourne office on the phone" },
-      ],
-      stops: [
-        { place: "Australia", role: "Designed", d: "Designed and made for the Australian ducted market." },
-        { place: "Melbourne", role: "Backed", d: "The Melbourne office picks up within the hour, and parts are held locally." },
-        { place: "Pakenham, VIC", role: "Fitted", d: "Wired in by our own crew as part of the ducted install." },
-      ],
-    },
-    quality: {
-      tab: "Room by room",
-      heading: "Room by room, {not all or nothing}.",
-      intro: "Cheap zoning is a damper that's open or shut. This is what Zonemate does instead.",
-      image: { src: "/Milieu Zonemate tablet.jpg", alt: "Zonemate Milieu tablet on a living room wall", cover: true },
-      points: [
-        { t: "Dampers that ease back", d: "Variable-speed dampers ramp airflow anywhere from 0 to 100%, so a room near temperature eases off instead of slamming shut." },
-        { t: "Twelve zones on one board", d: "Room to add a study or a converted bedroom later. A second board takes it to 24." },
-        { t: "One tablet, two systems", d: "A double-storey with two ducted units runs both from the one Milieu tablet." },
-        { t: "The same screen on your phone", d: "The Milieu app on iOS and Android is the tablet again, so you learn it once." },
-      ],
-    },
-    reasons: [
-      { v: "30–40%", icon: "rebate", k: "off the running bill", d: "What shutting the rooms nobody's in does to an always-on ducted system.", img: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg", alt: "A Zonemate touch controller in a living room", cover: true },
-      { v: "0–100%", icon: "fan", k: "airflow per zone", d: "Not just open or shut, so it's quieter and more even.", img: "/ZoneMate-Smart-Sensor-Residential_8-1.jpg", alt: "A Zonemate smart sensor on a wall", cover: true },
-      { v: "12 zones", icon: "zones", k: "on one board", d: "Covers nearly every home, with room to add a zone later.", img: "/Milieu Zonemate tablet.jpg", alt: "Zonemate Milieu tablet", cover: true },
-      { v: "1 tablet", icon: "controller", k: "for two systems", d: "Two ducted units, one screen on the wall and one app.", img: "/Zonemate milieu app main screen.jpg", alt: "The Milieu app on a phone", cover: true },
-    ],
-    timeline: [
-      { y: 0, t: "Install day", d: "All three warranties start." },
-      { y: 3, t: "Any year", d: "Add a zone on the same board." },
-      { y: 5, t: "Year 5", d: "Controller and damper warranties end." },
-      { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
-    ],
-    picker: {
-      steps: [
-        { id: "phone", q: "Do you want to run it from your phone?", opts: [{ v: "yes", l: "Yes, from my phone too" }, { v: "no", l: "A controller on the wall is fine" }] },
-      ],
-      results: [
-        { when: { phone: "yes" }, model: "Touch + Wi-Fi", why: "A touchscreen on the wall and the same controls in the app, so you can turn zones on before you get home." },
-        { when: { phone: "no" }, model: "Zone controller", why: "Turn rooms on and off from the wall. It fits most ducted systems." },
-      ],
-    },
-    name: "Zonemate",
-    tagline: "Zoning controllers for ducted systems.",
-    origin: "Australia",
-    intro:
-      "Zonemate is what turns a single-motor ducted system into something you can run room by room. Every ducted install we quote has one in it as standard rather than as an extra, because shutting off the rooms nobody is in cuts running cost 30 to 40% against an always-on ducted, and that is the biggest number on the whole job.",
-    ourTake:
-      "Zoning is the single biggest efficiency win on a ducted system. Zonemate's touch controllers are the ones we specify because they're built for Australian installer wiring standards and the ranges of dampers they support cover every ducted brand we install.",
-    productLabel: "1 product · Milieu Touch zoning (up to 24 zones, multi-unit)",
-    photo: "/Milieu Zonemate tablet.jpg",
-    photoFallback: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
-    photoAlt: "Zonemate Milieu wall tablet zoning control",
-    photoScene: true,
-    accent: "#1E8E4E",
-    established: "Australian-designed and manufactured for the local ducted market",
-    warranty: "5-year controller + 5-year dampers + 6-year on our workmanship",
-    keyFeatures: [
-      "Up to 12 zones on a single control board, covers virtually every residential ducted install",
-      "Second control board doubles capacity to 24 zones, large homes and commercial fitouts",
-      "Runs multiple ducted units off one Milieu tablet, a single interface for a two-system home",
-      "Variable-speed dampers modulate airflow 0-100% per zone (proper comfort, not just on/off)",
-    ],
-    commonInMelbourne:
-      "Every ducted job we quote has a Zonemate Milieu in it as standard. Zoning is the biggest single lever on a ducted system's running cost, and shutting off unused rooms takes 30 to 40% off it. Twelve zones on one board covers a larger home without an expansion board, and running more than one indoor unit from a single tablet is what makes the Clyde North and Officer double-storeys with two ducted systems workable.",
-    support:
-      "Zonemate's Melbourne office is on the phone within the hour when we hit a wiring issue. Controllers and dampers are held locally by our supplier network, so warranty replacements land the same day rather than the following week.",
-    resources: [
-      { label: "Zonemate zoning systems", href: "https://zonemate.com.au/" },
-    ],
-
-    // --- brand-first fields (Zonemate) ---
-    whyLead: {
-      claim: "Why we choose {Zonemate}.",
-      sub: "Shutting the rooms nobody's in takes 30–40% off what a ducted system costs to run. It's the biggest number on the whole job.",
-    },
-    verdict:
-      "Zoning is the single biggest lever there is on what a ducted system costs to run, and it's the one part of a ducted job we won't quote as an optional line item, every system we put in has a Zonemate Milieu in it as standard. Shutting off the rooms nobody's in takes 30–40% off the bill, which on a ducted system is real money every quarter, not a rounding error. It's the only zoning brand we fit, because the wiring standard is built for how Australian installers actually work and it plays with every ducted unit we install, no bridge or third-party box needed.",
-    notRightWhen:
-      "If you're only ever conditioning one open-plan living zone and nothing else, there's nothing to shut off, zoning can't claw back money the system was never spending. Same story with a system small enough that it's really only doing one part of the house already. On a genuine multi-room ducted job the 30–40% pays the controller back quickly; on a single-zone home it just adds a tablet you don't need, and we'll tell you that rather than fit it.",
-    heroSub:
-      "The zoning control that turns a single-motor ducted system into one you run room by room. Australian-designed, and wired in as part of the ducted install, not sold as an add-on.",
-    fitsWhere:
-      "Every ducted install we quote, from a 4-zone single-storey through to the Clyde North and Officer double-storeys running two ducted systems off the one tablet.",
-    heroFacts: [
-      { v: "30–40%", k: "Off an always-on ducted's running bill" },
-      { v: "Up to 24", k: "Zones on one control, second board added" },
-      { v: "0–100%", k: "Airflow per zone, not just on/off" },
-      { v: "5 yr · 5 yr · 6 yr", k: "Controller, dampers and workmanship warranties, all from install day" },
-    ],
-    benefitsHeading: "Why it goes in every ducted job we quote.",
-    benefitTiles: [
-      {
-        t: "The biggest number on the job",
-        line: "Shutting unused rooms cuts running cost 30–40%",
-        detail:
-          "An unzoned ducted system conditions the whole house every time it runs, including four bedrooms nobody's in at seven at night. Zoning is the single biggest lever on what that costs, and 30–40% off the quarterly bill is why we fit it by default rather than dangling it as an extra to make a headline price look smaller.",
-        icon: "flame",
-      },
-      {
-        t: "Room by room, not all or nothing",
-        line: "Variable-speed dampers modulate airflow 0–100% per zone",
-        detail:
-          "Cheap zoning is just a damper that's either open or shut. Zonemate's variable-speed dampers ramp airflow anywhere from 0 to 100%, so a zone that's nearly at temperature eases back instead of slamming closed: proper comfort, and none of the pressure spikes that make a badly zoned system noisy.",
-        icon: "snowflake",
-      },
-      {
-        t: "Twelve zones on one board",
-        line: "Room to add a zone in year three without a new controller",
-        detail:
-          "One control board handles up to 12 zones, which covers virtually every residential ducted install with headroom to spare. Add a study or a converted bedroom later and the wiring's already there. A second board doubles it to 24 for a large home or a commercial fitout.",
-        icon: "wrench",
-      },
-      {
-        t: "One tablet for the whole house",
-        line: "Runs multiple ducted units off a single Milieu control",
-        detail:
-          "A two-system double-storey normally means a separate controller per unit. The Milieu tablet drives more than one ducted unit from the same wall interface, and the Milieu app on iOS and Android is the same screen again: so the household learns it once, not twice.",
-        icon: "phone",
-      },
-      {
-        t: "Melbourne-made, Melbourne-backed",
-        line: "Parts on a local shelf, support on the phone within the hour",
-        detail:
-          "Zonemate is Australian-designed and built for the local ducted market, and its Melbourne office picks up inside the hour when we've got a wiring question on your job. Controllers and dampers are held locally by our supplier network, so a warranty replacement lands same-day rather than the following week.",
-        icon: "truck",
-      },
-    ],
-    servicing: {
-      tab: "After the sale",
-      heading: "The part that only matters {after the sale}.",
-      photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
-      photoAlt: "A Zonemate touch controller mounted in a living area",
-      body:
-        "A zoning controller earns its keep every quarter for the whole life of the ducted system, so the questions that decide whether it was a good call aren't about install day. They're whether somebody picks up when there's a fault, whether the part still exists, and whether you can grow the system without replacing the box: and all three come down to who backs it, not the brochure.",
-      facts: [
-        "Zonemate's Melbourne office is on the phone within the hour when we hit a wiring question on your job",
-        "Controllers and dampers are held locally by our supplier network, so a warranty replacement lands same-day rather than the following week",
-        "5-year controller + 5-year dampers + 6-year on our workmanship, better than six years covered end to end",
-        "Twelve zones of headroom on one board means a study or spare-room zone can be added later without ripping out the controller",
-      ],
-    },
-    steps: [
-      { title: "Zone plan off the room-by-room load", detail: "Before any hardware, we take the ducted heat load room by room and decide the zones: which rooms share one, which stand alone, and which barely get used and only ever need to be open or shut. The plan is what makes the 30–40% real, so it's done properly, not to a template." },
-      { title: "Damper type per branch", detail: "Variable-speed dampers go on the living areas that need to modulate 0–100% for comfort; constant-speed on the spare bedrooms that only ever need to be open or closed. Right damper on the right branch keeps the cost sensible without giving up control where it matters." },
-      { title: "Sensor placement", detail: "Where a zone needs to hit a real room temperature rather than just return-air, we place an optional Zonemate Smart Sensor in it. That's how a bedroom targets 21° in the bedroom, not 21° at the unit in the roof." },
-      { title: "Control board and Milieu tablet", detail: "Up to 12 zones land on one board, a second board goes in when a large home or fitout needs 24, and where there's more than one ducted unit we wire them back to a single Milieu tablet instead of a controller each." },
-      { title: "Commission every zone", detail: "We run the system up and drive each zone through its range: 0 to 100% on the variable dampers, full open and shut on the constant-speed ones, and confirm every zone opens, closes and holds airflow to the plan before you ever touch it." },
-      { title: "Walk you through the tablet and app", detail: "We set up the schedules with you on the wall tablet, load the Milieu app on your phone: same screen, no learning curve, and hand it over once you're happy running it, not before." },
-    ],
-    faqs: [
-      {
-        q: "Do I actually need zoning, or is it an upsell?",
-        a: "You need it. An unzoned ducted system conditions the whole house every time it runs, bedrooms included, and zoning is the single biggest lever on what that costs, 30–40% off the running bill. That's why every ducted job we quote has zoning in it as standard rather than as an extra we tack on to lift the price.",
-      },
-      {
-        q: "How many zones do I need?",
-        a: "It's sized to the house, not sold by the zone. Around 6 zones suits most family homes, 12 covers a double-storey and all fit on one control board. Only a large home or a commercial fitout needs the second board that takes it to 24. We work the number off your room-by-room load, not off a package.",
-      },
-      {
-        q: "What's the difference between variable-speed and constant-speed dampers?",
-        a: "A constant-speed damper is either open or shut, fine for a spare bedroom that only ever needs to be on or off. A variable-speed damper modulates airflow anywhere from 0 to 100%, so a living zone eases back as it nears temperature instead of slamming closed. We put variable-speed where comfort matters and constant-speed where it doesn't, so you're not paying for modulation on a room that never needs it.",
-      },
-      {
-        q: "Will it work with my ducted brand?",
-        a: "Yes. The Milieu works with the ducted brands we install, Kaden ducted and the rest, with no bridge or third-party interface bolted on. On a Mitsubishi Electric ducted system we'd normally fit Mitsubishi's own zone controller instead, so the whole system sits under one manufacturer's warranty.",
-      },
-      {
-        q: "Can one tablet run two ducted systems?",
-        a: "Yes, and it's the reason we specify it on the bigger jobs. The Milieu tablet runs more than one ducted indoor unit off the same wall interface, so a two-system double-storey in Clyde North or Officer gets one screen for the whole house instead of a separate controller for each unit, and the phone app is the same UI again.",
-      },
-      {
-        q: "What warranty do I get on the zoning?",
-        a: "5-year controller + 5-year dampers + 6-year on our workmanship. The parts warranty covers the Zonemate hardware; our six years covers the install: the wiring, the damper fit, the sensor placement, the things that are our fault if they go wrong. Better than six years of it is covered end to end.",
-      },
-    ],
-
-    products: [
-      {
-        slug: "zonemate-touch",
-        name: "Zonemate Touch Zoning System",
-        model: "Zonemate Milieu · up to 12 zones / one board (24 with second board)",
-        category: "zoning",
-        categoryLabel: "Ducted zoning system",
-        capacity: "Up to 12 zones on one control board · up to 24 with a second board · runs multiple ducted units off a single control",
-        veuEligible: false,
-        photo: "/Milieu Zonemate tablet.jpg",
-        photoAlt: "Zonemate Milieu wall tablet, up to 12 zones + multi-unit control",
-        bestFor: "Every ducted install, from a 4-zone single-storey through to a 24-zone commercial fitout with multiple ducted units run off one control",
-        ourTake:
-          "Zoning is the biggest single lever on a ducted system's running cost. Shutting off the rooms nobody is in cuts it 30 to 40%, which is why every ducted job we quote has zoning in it rather than as an extra. The Milieu control handles up to 12 zones on one board, and a second board takes it to 24. It will also drive more than one ducted indoor unit from the same wall tablet, so a large home or a commercial fitout gets one interface instead of one per system. Sized to the house: 6 zones for most family homes, 12 for a double-storey, 24 with the expansion board when a warehouse fitout calls for it.",
-        specs: [
-          { label: "Zones per control board", value: "Up to 12 zones (single board)" },
-          { label: "Max zones with expansion", value: "Up to 24 zones (add a second control board)" },
-          { label: "Multi-unit control", value: "Runs multiple ducted units off the one Milieu tablet" },
-          { label: "Wall interface", value: "Zonemate Milieu touch tablet (Wi-Fi + app control included)" },
-          { label: "Damper options", value: "Variable-speed (0-100% modulation) or constant-speed (on/off)" },
-          { label: "Compatibility", value: "Mitsubishi PEA-M / PEAD-M, Kaden KCI, and every ducted brand we install" },
-          { label: "Room sensors", value: "Optional Zonemate Smart Sensors per zone for true room-temp targeting" },
-          { label: "App control", value: "Milieu app on iOS + Android, same UI as the wall tablet" },
-          { label: "Controller warranty", value: "5-year parts + labour" },
-          { label: "Damper warranty", value: "5-year parts + labour" },
-          { label: "Workmanship", value: "6-year on our install" },
-        ],
-        features: [
-          "Up to 12 zones on a single control board, covers virtually every residential ducted install without expansion",
-          "Second control board doubles capacity to 24 zones, for large homes or commercial fitouts",
-          "Runs multiple ducted units off the one Milieu tablet, no separate controller per system",
-          "Milieu app on iOS + Android, same UI as the wall tablet, no learning curve for the household",
-          "Variable-speed dampers modulate 0-100% per zone so airflow ramps rather than slams open/shut",
-          "Constant-speed dampers where a room only ever needs to be open or shut, which is most spare bedrooms",
-          "Room-by-room Smart Sensors give true room-temp targeting instead of just return-air temp",
-          "Australian-designed and Melbourne-supported, parts warehouse on the phone within an hour",
-          "Plays with every ducted brand we install, no bridge or third-party interface needed",
-        ],
-        whyWeInstall: [
-          "The single biggest efficiency lever on a ducted system, shutting off unused rooms cuts running cost 30-40%",
-          "12-zones-on-one-board headroom means we can add a bedroom / study zone in year 3 without ripping out the controller",
-          "Multi-unit-from-one-control is unique in the residential zoning market, genuinely handy for larger homes with a second ducted system",
-          "Only zoning brand we quote, the wiring standard is built for how Australian installers work",
-          "Melbourne parts + support means warranty replacements land same-day, not weeks later",
-          "Backed by 5-year parts + our 6-year workmanship, 6+ years fully covered end-to-end",
-        ],
       },
     ],
   },

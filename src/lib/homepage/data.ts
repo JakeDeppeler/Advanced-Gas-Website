@@ -78,19 +78,22 @@ export const IMG = {
   gasStorage: pub("/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg"),
   brivisWombat: pub("/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg"),
   brivisStar: pub("/Brivis Starpro 6 star indoor and outdoor gas ducted heater.jpg"),
-  zmTouch: pub("/ZM-Touch-App_Hero_1.jpg"),
-  zmTablet: pub("/Milieu Zonemate tablet.jpg"),
 };
 
-/** The "Authorised installer of" strip under the homepage hero, shared with the suburb pages. */
+/**
+ * The "Authorised installer of" strip under the homepage hero, shared with the
+ * suburb pages. Jake's order (Nov 2026): aircon, then hot water, then ducted
+ * heating. Zonemate came off the site at the same time.
+ */
 export const HOME_BRANDS: [string, string, string][] = [
-  ["Reclaim", "Heat pumps", "/brands/reclaim"],
-  ["iStore", "Heat pumps", "/brands/istore"],
-  ["Thermann", "Hot water", "/brands/thermann"],
   ["Mitsubishi", "Electric aircon", "/brands/mitsubishi-electric"],
   ["Kaden", "Aircon", "/brands/kaden"],
-  ["Zonemate", "Zoning", "/brands/zonemate"],
+  ["Reclaim", "Heat pumps", "/brands/reclaim"],
+  ["Thermann", "Hot water", "/brands/thermann"],
+  ["Viessmann", "Heat pumps", "/brands/viessmann"],
+  ["iStore", "Heat pumps", "/brands/istore"],
   ["Brivis", "Gas ducted", "/brands/brivis"],
+  ["Braemar", "Reverse cycle", "/brands/braemar"],
 ];
 
 export const PHOTO = {
@@ -215,15 +218,6 @@ const BATHS: Opt[] = [
   { label: "2 bathrooms", sub: "Two showers at once", spec: "2 baths", n: 2, img: "/finder/baths-2.svg" },
   { label: "3+ bathrooms", sub: "Big family home", spec: "3+ baths", n: 3, img: "/finder/baths-3.svg" },
 ];
-// The house from above in the look of the zoning plan on the ducted pages
-// (ZoneHouse): a room lit blue with its vents blowing while its zone is on,
-// hatched grey while it's off, a switch per zone, each zone on its own clock.
-// The same plans draw QB.zoning's answers.
-const ZONES: Opt[] = [
-  { label: "2–3 zones", sub: "Living and sleeping", spec: "2–3 zones", n: 1, img: "/finder/zones-groups.svg" },
-  { label: "4–6 zones", sub: "Most family homes", spec: "4–6 zones", n: 2, img: "/finder/zones-some.svg" },
-  { label: "7–8 zones", sub: "Every room its own", spec: "7–8 zones", n: 3, img: "/finder/zones-every.svg" },
-];
 
 export const QB = {
   // The same house in both, so what changes is which floor is open and how far
@@ -269,7 +263,10 @@ export const QB = {
     { label: "Not sure", img: "/finder/roof-not-sure.svg" },
   ] },
   // Ducted splits: full-home zoning first and tagged, as the one we push (Jake,
-  // Nov 2026: "push the full home as it gives more control").
+  // Nov 2026: "push the full home as it gives more control"). Each answer is
+  // the house from above in the look of the zoning plan on the ducted pages
+  // (ZoneHouse): a room lit blue with its vents blowing while its zone is on,
+  // hatched grey while it's off, a switch per zone, each zone on its own clock.
   zoning: { id: "zones", q: "How do you want it zoned?", opts: [
     { label: "Every room on its own zone", sub: "Full-home zoning: the most control", tag: "Most control", img: "/finder/zones-every.svg" },
     { label: "Rooms in groups", sub: "Say, living areas and bedrooms", img: "/finder/zones-groups.svg" },
@@ -277,7 +274,7 @@ export const QB = {
     { label: "Not sure", sub: "We'll work it out on site", img: "/finder/zones-not-sure.svg" },
   ] },
   // A house cut through to its roof space, and what's up there now. The same
-  // three drawings answer heatNow and ductSys.
+  // drawings answer heatNow.
   ductedNow: { id: "now", q: "What's there now?", opts: [
     { label: "Nothing, it's a new system", img: "/finder/duct-none.svg" },
     { label: "Old ducted aircon to replace", img: "/finder/duct-aircon.svg" },
@@ -342,11 +339,6 @@ export const QB = {
     { label: "No vents yet", img: "/finder/vent-none.svg" },
     { label: "Not sure", img: "/finder/vent-not-sure.svg" },
   ] },
-  ductSys: { id: "ductsys", q: "What ducted system do you have?", opts: [
-    { label: "Gas ducted heating", img: "/finder/duct-gas.svg" },
-    { label: "Ducted reverse-cycle", img: "/finder/duct-aircon.svg" },
-    { label: "Evaporative cooling", img: "/finder/duct-evap.svg" },
-  ] },
   // The ducted unit in its roof space getting older. The service and repair
   // forms ask this too; they show the words only.
   age: { id: "age", q: "How old is the system?", opts: [
@@ -389,7 +381,7 @@ export type Tier = {
   same?: string;
 };
 
-export type FaqKey = "split" | "multi" | "ducted" | "dominator" | "evap" | "hp" | "gashw" | "gasheat" | "zone";
+export type FaqKey = "split" | "multi" | "ducted" | "dominator" | "evap" | "hp" | "gashw" | "gasheat";
 
 export type System = {
   slug: string;
@@ -413,9 +405,10 @@ export type Category = {
   id: "air" | "hw" | "heat";
   /**
    * Options with a page under this category that aren't listed in it: in the
-   * menu, the category page, the finder or the quote form. Zoning (Jake, Nov
-   * 2026: "remove the zoning controller as this will be under the ducted
-   * split"); its page stays, for the Zonemate range and anyone linking to it.
+   * menu, the category page, the finder or the quote form. None at present:
+   * zoning was the one (Jake, Nov 2026: "remove the zoning controller as this
+   * will be under the ducted split"), and its page went when Zonemate came off
+   * the site; /find/zoning redirects to the ducted split.
    */
   unlisted?: System[];
   label: string;
@@ -523,13 +516,6 @@ export const CATS: Category[] = [
       MULTI,
       sys({ slug: "reverse-cycle-ducted", label: "Ducted split", sub: "Heats and cools the whole home", img: IMG.kadenDucted, q: "How big is the home?", sizes: HOUSE, faq: "ducted", service: "ducted", more: [QB.storeys, QB.roofSpace, QB.zoning, QB.ductedNow], tiers: DUCTED_TIERS }),
       DOMINATOR,
-    ],
-    unlisted: [
-      sys({ slug: "zoning", label: "Zoning & controls", sub: "Room-by-room control", img: IMG.zmTablet, q: "How many zones?", sizes: ZONES, faq: "zone", service: "zoning", more: [QB.ductSys, QB.age], tiers: [
-        t("essential", "Zonemate", "Zone controller", IMG.zmTablet, ["Turn rooms on and off", "Fits most ducted systems", W], null),
-        t("premium", "Zonemate", "Touch + Wi-Fi", IMG.zmTouch, ["Touchscreen wall controller", "Control from your phone", W], null),
-        t("signature", "Milieu", "Smart zone control", IMG.zmTablet, ["Schedules per room", "Control from your phone", W], null),
-      ] }),
     ],
   },
   {
@@ -701,18 +687,16 @@ const GAL: Record<string, GalItem[]> = {
   "heat-pump": [g(IMG.reclaimSplit, "Reclaim CO₂ split heat pump", "p", "Reclaim"), g(PHOTO.heatPump, "A Reclaim heat pump we installed", "c"), g(PHOTO.heatPumpInstall, "A heat pump install", "c")],
   "gas-continuous-flow": [g(PHOTO.hotWater1, "A recent hot water install", "c"), g(PHOTO.hotWater2, "A recent hot water install", "c")],
   "gas-storage": [g(PHOTO.hotWater1, "A recent hot water install", "c"), g(PHOTO.hotWater2, "A recent hot water install", "c")],
-  "gas-ducted-heating": [g(IMG.brivisWombat, "Brivis gas ducted heater", "p", "Brivis"), g(PHOTO.heating, "A ducted gas heater in a roof space", "c"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate")],
+  "gas-ducted-heating": [g(IMG.brivisWombat, "Brivis gas ducted heater", "p", "Brivis"), g(PHOTO.heating, "A ducted gas heater in a roof space", "c")],
   "reverse-cycle-ducted": [g(IMG.mitsuZone, "Mitsubishi Electric zone controller", "p", "Mitsubishi Electric"), g(PHOTO.ductedInstall, "A ducted install", "c"), g(PHOTO.commercial, "Our technician in the roof space", "c")],
   dominator: [g("/dominator-indoor.webp", "Braemar Dominator Series 3 indoor unit", "p", "Braemar"), g("/dominator-outdoor.webp", "Braemar Dominator Series 3 outdoor unit", "p", "Braemar"), g("/dominator-controller.webp", "Braemar XE7C wall controller", "p", "Braemar"), g(PHOTO.heating, "A gas ducted heater in a roof space, the kind a Dominator replaces", "c")],
   "reverse-cycle-split": [g(IMG.mitsuCond, "Mitsubishi Electric outdoor unit", "p", "Mitsubishi Electric"), g(PHOTO.splitRoom, "A split system we installed", "c"), g(PHOTO.outdoorUnit, "An outdoor unit we installed", "c")],
-  zoning: [g(IMG.zmTablet, "Zonemate tablet", "p", "Zonemate"), g(IMG.zmTouch, "Zonemate touch controller", "p", "Zonemate"), g(PHOTO.ductedInstall, "A ducted install", "c")],
 };
 
 /**
  * The full-width photo behind a product page's hero: one of our own installs
  * of that kind of system, matched to the brand where we have one. None of
- * these are manufacturer lifestyle shots except Zonemate's living room, which
- * is a file we already had. Every install photo here is portrait, so `pos`
+ * these are manufacturer lifestyle shots. Every install photo here is portrait, so `pos`
  * picks the band that survives a wide crop.
  */
 /** `ours` is false for the one manufacturer photo, so it never gets captioned as our install. */
@@ -728,7 +712,6 @@ const H = {
   changeover: hero("/gas-hot-water-changeover.webp", "A hot water changeover we did", "center 40%"),
   thermannCf: hero("/thermann-continuous-flow-back.jpg", "A Thermann continuous flow unit we installed on a brick wall", "center 40%"),
   gasDucted: hero("/gas-ducted-install.jpg", "A gas ducted heater we installed in a roof space", "center 55%"),
-  zonemate: hero("/ZoneMate-Touch-Duotone_Living-Room_1.jpg", "A Zonemate touch controller on a living room wall", "center 50%", false),
   // No install photo of an iStore yet. Its product shot on a plain backdrop,
   // rather than someone else's unit under an "our install" caption.
   istore: { src: IMG.istore, alt: "iStore all-in-one heat pump", pos: "center", ours: false, studio: true },
@@ -748,7 +731,6 @@ const HERO: Record<string, Hero> = {
   "gas-continuous-flow": H.thermannCf, "gas-continuous-flow.signature": H.reclaimAio,
   "gas-storage": H.gasStorage, "gas-storage.premium": H.thermannCf,
   "gas-ducted-heating": H.gasDucted,
-  zoning: H.zonemate,
 };
 export const heroFor = (sys: System, tier: Tier): Hero => HERO[`${sys.slug}.${tier.slug}`] ?? HERO[sys.slug] ?? H.bedroom;
 /**
@@ -860,7 +842,6 @@ export const TIER_MODELS: Record<string, ModelRef[]> = {
   "gas-ducted-heating.4-star": heater("brivis-internal-starpro-45", "starpro-4"),
   "gas-ducted-heating.5-star": heater("brivis-internal-starpro-45", "starpro-5"),
   "gas-ducted-heating.6-star": heater("brivis-internal-starpro-6", "starpro-6"),
-  "zoning.premium": [["zonemate", "zonemate-touch", "Touch + Wi-Fi"]],
 };
 
 export const tierModels = (sys: System, tier: Tier) => TIER_MODELS[`${sys.slug}.${tier.slug}`] ?? [];
@@ -886,7 +867,7 @@ export function modelForAnswer(models: { chip: string }[], answerSpec: string | 
 
 export const BRAND_SLUGS: Record<string, string> = {
   "Mitsubishi Electric": "mitsubishi-electric", Kaden: "kaden", Brivis: "brivis", Reclaim: "reclaim",
-  Thermann: "thermann", iStore: "istore", Zonemate: "zonemate", Viessmann: "viessmann", Braemar: "braemar",
+  Thermann: "thermann", iStore: "istore", Viessmann: "viessmann", Braemar: "braemar",
 };
 
 export const BRAND_PAGES: Record<string, string> = {
@@ -1008,18 +989,12 @@ export const PRODUCT_FAQS: Record<FaqKey, QA[]> = {
     qa("Can I heat only some rooms?", "Yes. Add zoning to heat only the rooms you use."),
     qa("What's the warranty?", "The manufacturer's warranty on the heater, 6 years on our workmanship, and a compliance certificate within 24 hours."),
   ],
-  zone: [
-    qa("Will it work with my system?", "Zone controllers fit most ducted systems. Tell us what you have and we'll confirm on the site visit."),
-    qa("Can I control it from my phone?", "Yes, with the Wi-Fi controllers."),
-    qa("How long does it take to fit?", "Usually a day, depending on how many zones and how easy the roof space is to get around."),
-    qa("What's the warranty?", "The manufacturer's warranty and 6 years on our workmanship."),
-  ],
 };
 
 /** Which reviews read as being about this kind of job. */
 export const REVIEW_MATCH: Record<FaqKey, RegExp> = {
   split: /split/i, multi: /split|multi/i, ducted: /ducted/i, dominator: /ducted/i, evap: /ducted|split/i,
-  hp: /heat pump/i, gashw: /hot water|heat pump/i, gasheat: /ducted/i, zone: /ducted/i,
+  hp: /heat pump/i, gashw: /hot water|heat pump/i, gasheat: /ducted/i,
 };
 
 export const reviewTitle = (k: FaqKey) =>

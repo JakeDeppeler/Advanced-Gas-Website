@@ -6,7 +6,7 @@ import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import {
   type Category, BRAND_SLUGS, PRODUCT_FAQS, TOOLS, installTime, money, systemHref,
 } from "@/lib/homepage/data";
-import { LEARN, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
+import { LEARN, PROS, SYS_INTRO, SYS_PROS } from "@/lib/homepage/learn";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { BrandLockup } from "@/components/homepage/brand/BrandMark";
 import { findTool } from "@/components/homepage/tools/toolList";
@@ -40,8 +40,25 @@ export type CategoryCopy = {
   reviewWord: RegExp;
 };
 
-/** System pictures that are photographs, not cut-outs: they fill the frame. */
-const SCENE = /Milieu|ZM-Touch|ZoneMate-Touch/;
+/**
+ * Systems that Side by side shows as more than one card (Jake, Nov 2026: "can
+ * we also add the heat pump split option"). A heat pump is one system in two
+ * shapes, one unit or two, and they differ on just what the cards compare:
+ * noise near the house, cold mornings, price and the work to fit. Each card
+ * takes its own options' prices; a card with `pros` takes that option's pros
+ * and cons (PROS, the option pages' own), the rest keep the system's.
+ */
+const CMP_SPLIT: Record<string, { tiers: string[]; label: string; tag: string; pros?: string }[]> = {
+  "heat-pump": [
+    { tiers: ["essential", "premium", "german"], label: "Heat pump all-in-one", tag: "Tank and heat pump in one" },
+    { tiers: ["signature"], label: "Heat pump split", tag: "Heat pump apart from the tank", pros: "Reclaim CO₂ split heat pump" },
+  ],
+};
+
+const minPrice = (ts: { price: number | null }[]) => {
+  const p = ts.map((t) => t.price).filter((x): x is number => typeof x === "number");
+  return p.length ? Math.min(...p) : null;
+};
 
 function accent(text: string) {
   return text.split(/[{}]/).map((part, i) => (i % 2 ? <span key={i}>{part}</span> : part));
@@ -59,6 +76,24 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
       // The system page's own pros and cons, three of each, for Side by side.
       pc: SYS_PROS[s.slug] ? { pros: SYS_PROS[s.slug].pros.slice(0, 3), cons: SYS_PROS[s.slug].cons.slice(0, 3) } : null,
     };
+  });
+  // Side by side's cards: a card per system, or per shape where CMP_SPLIT has one.
+  const compare = systems.flatMap(({ s, from, time, good, pc }) => {
+    const parts = CMP_SPLIT[s.slug];
+    if (!parts) return [{ key: s.slug, img: s.img, tag: s.sub, label: s.label, href: systemHref(s.slug), from, time, good, pc }];
+    return parts.map((v) => {
+      const ts = s.tiers.filter((t) => v.tiers.includes(t.slug) && !t.same);
+      const own = v.pros ? PROS[v.pros] : undefined;
+      return {
+        key: `${s.slug}-${v.tiers.join("-")}`,
+        // The option's own picture when the card is one option, so the split card shows a split.
+        img: ts.length === 1 ? ts[0].img : s.img,
+        tag: v.tag, label: v.label,
+        href: ts.length === 1 ? `${systemHref(s.slug)}/${ts[0].slug}` : systemHref(s.slug),
+        from: minPrice(ts), time, good,
+        pc: own ? { pros: own.pros.slice(0, 3), cons: own.cons.slice(0, 3) } : pc,
+      };
+    });
   });
   const brandNames = [...new Set(systems.flatMap((x) => x.brands))];
   const brands = brandNames.flatMap((n) => {
@@ -125,7 +160,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
           <div className={`cx__sys${systems.length === 4 ? " cx__sys--4" : ""}`} data-anim="stagger">
             {systems.map(({ s, from, brands: bs }) => (
               <Link key={s.slug} href={systemHref(s.slug)} className="cx__card">
-                <span className={`cx__img${SCENE.test(s.img) ? " cx__img--cover" : ""}`}><Image src={s.img} alt="" fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 340px" /></span>
+                <span className="cx__img"><Image src={s.img} alt="" fill sizes="(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 340px" /></span>
                 <span className="cx__txt">
                   <span className="cx__tag">{s.sub}</span>
                   <strong>{s.label}</strong>
@@ -155,14 +190,14 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
               cons, "Install" and "Price" line up across and compare at a
               glance. Pros and cons are ticks and crosses (Jake, Nov 2026),
               each list labelled in words too, so colour isn't the signal. */}
-          <ul className={`cx__cmp${systems.length > 5 ? " cx__cmp--rows" : ""}`} style={{ ["--n" as string]: systems.length }} role="list" data-anim="stagger">
-            {systems.map(({ s, from, time, good, pc }) => (
-              <li key={s.slug} className="cx__cc">
-                <span className={`cx__ccimg${SCENE.test(s.img) ? " cx__ccimg--cover" : ""}`}><Image src={s.img} alt="" fill sizes="(max-width: 900px) 120px, 260px" /></span>
+          <ul className={`cx__cmp${compare.length > 5 ? " cx__cmp--rows" : ""}`} style={{ ["--n" as string]: compare.length }} role="list" data-anim="stagger">
+            {compare.map(({ key, img, tag, label, href, from, time, good, pc }) => (
+              <li key={key} className="cx__cc">
+                <span className="cx__ccimg"><Image src={img} alt="" fill sizes="(max-width: 900px) 120px, 260px" /></span>
                 <span className="cx__cchd">
-                  <span className="cx__tag">{s.sub}</span>
+                  <span className="cx__tag">{tag}</span>
                   {/* The one link; it stretches over the whole card */}
-                  <h3><Link href={systemHref(s.slug)}>{s.label}</Link></h3>
+                  <h3><Link href={href}>{label}</Link></h3>
                 </span>
                 <dl className="cx__ccdl">
                   {pc ? (
@@ -170,7 +205,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
                       <div><dt>Pros</dt><dd><ul className="cx__pc">{pc.pros.map((x) => <li key={x}><i className="cx__pcy" aria-hidden="true" />{x}</li>)}</ul></dd></div>
                       <div><dt>Cons</dt><dd><ul className="cx__pc">{pc.cons.map((x) => <li key={x}><i className="cx__pcn" aria-hidden="true" />{x}</li>)}</ul></dd></div>
                     </>
-                  ) : <div><dt>Good for</dt><dd>{good ?? s.sub}</dd></div>}
+                  ) : <div><dt>Good for</dt><dd>{good ?? tag}</dd></div>}
                   <div><dt>Install</dt><dd>{time}</dd></div>
                   <div className="cx__ccprice"><dt>Price</dt><dd>{from != null ? `From ${money(from)}` : "Free quote"}</dd></div>
                 </dl>

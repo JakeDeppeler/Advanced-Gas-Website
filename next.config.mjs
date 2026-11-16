@@ -77,6 +77,13 @@ const nextConfig = {
       { source: "/find/gas-ducted-heating/essential", destination: "/find/gas-ducted-heating/3-star", permanent: true },
       { source: "/find/gas-ducted-heating/premium", destination: "/find/gas-ducted-heating/6-star", permanent: true },
       { source: "/find/gas-ducted-heating/signature", destination: "/find/gas-ducted-heating/6-star", permanent: true },
+      // Zonemate came off the site (Jake, Nov 2026), and with it the zoning
+      // page built from its range. Zoning lives on the ducted split page now,
+      // where the zone plan and Mitsubishi's own controller are.
+      { source: "/brands/zonemate", destination: "/find/ducted", permanent: true },
+      { source: "/brands/zonemate/:path*", destination: "/find/ducted", permanent: true },
+      { source: "/find/zoning", destination: "/find/ducted", permanent: true },
+      { source: "/find/zoning/:path*", destination: "/find/ducted", permanent: true },
       // The blog editor moved out of Marketing into its own section. Not
       // permanent: these are portal addresses, never indexed, and a 308 is
       // cached by the browser for good.

@@ -232,7 +232,6 @@ const SYSTEM_WORDS: [string, RegExp][] = [
   ["multi-head", /\bmultihead\b/],
   ["split-system", /\bsplit\b/],
   ["evaporative", /\bevap\w*\b/],
-  ["zoning", /\bzon(?:e|es|ing)\b/],
   ["heat-pump", /\bheatpump\b/],
   ["gas-continuous-flow", /\bcontinuousflow\b/],
   ["gas-storage", /\b(?:gas )?storage(?: tank)?\b|\btank\b/],

@@ -169,7 +169,6 @@ export const COMM_BRANDS_ALL: { name: string; what: string }[] = [
   { name: "Rheem", what: "Hot water" },
   { name: "Thermann", what: "Hot water" },
   { name: "Reclaim", what: "Heat pumps" },
-  { name: "Milieu", what: "Controls" },
 ];
 
 /* ======================= CAPABILITY STATEMENT ======================= */

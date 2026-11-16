@@ -253,7 +253,7 @@ function Story({ v }: { v: PV }) {
             <InstallSpots />
           </div>
         )}
-        {(sys.slug === "ducted" || sys.slug === "zoning") && (
+        {sys.slug === "ducted" && (
           <div className="zh-wrap bk__col" id="zones">
             <Head h="How {zones} work.">Tap a room to turn its zone on or off.</Head>
             <ZoneHouse />

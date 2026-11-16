@@ -256,7 +256,7 @@ const FEATURE_PHOTO: [RegExp, RegExp | "product" | "team"][] = [
  * option: its own product shot and our installs of that kind of system. The
  * brand's own kit is borrowed for an outdoor unit, or when this option's own
  * photos have run out and one of the brand's shows the same thing (the
- * Milieu app for an app line); never as a stand-in otherwise, because its
+ * app on a phone for an app line); never as a stand-in otherwise, because its
  * other shots are other products (a ducted unit on a wall split's page would
  * be wrong). The warranty card gets the team, because that part is us.
  */

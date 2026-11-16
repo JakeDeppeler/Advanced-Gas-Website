@@ -130,7 +130,7 @@ export const suburbs: Suburb[] = [
     commonProblems: [
       "Developer-installed 4-zone ducted systems missing zone balancing, one bedroom gets 30% of the airflow instead of its share",
       "Original electric-storage hot water tanks starting to fail at 8-10 years across Arcadia and Timbertop",
-      "Ducted controllers running default fan speeds too high, chewing power (proper Zonemate tuning drops running cost 20-30%)",
+      "Ducted controllers running default fan speeds too high, chewing power (proper zone tuning drops running cost 20-30%)",
       "Beacon Hills homes on the ridge get more sun exposure, living-zone splits often need to upsize from 5 kW to 6-7.1 kW",
     ],
     knownEstates:
@@ -357,7 +357,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "almost all post-2018 new builds, big double-storey family homes with ducted heating and cooling roughed in from day one",
     commonInstall:
-      "Zonemate zoning upgrades on 4-zone ducted systems that came with the estate build, plus VEU heat pump hot water swaps as owners hit their first tank replacement",
+      "Zoning upgrades on 4-zone ducted systems that came with the estate build, plus VEU heat pump hot water swaps as owners hit their first tank replacement",
     localHooks: [
       "Clyde Primary School",
       "Meridian Shopping Centre",
@@ -370,7 +370,7 @@ export const suburbs: Suburb[] = [
     whyLocal:
       "Clyde North is the newest part of our patch and it has filled up fast. Our job records show work at 42 different Clyde North properties since late 2023, nearly every one a different household. It is about twenty-five minutes from the Pakenham workshop, closer to thirty-five at school pick-up, so we group Clyde North jobs into the same days to keep install dates close to the quote.",
     commonProblems: [
-      "Most homes here came with ducted heating and cooling already in, set up the way the builder left it. Zones that were wired but never properly commissioned are common, so the house runs as one big zone, costs more to run and never gets the bedrooms right. Zonemate zoning usually fixes it for less than people expect.",
+      "Most homes here came with ducted heating and cooling already in, set up the way the builder left it. Zones that were wired but never properly commissioned are common, so the house runs as one big zone, costs more to run and never gets the bedrooms right. Proper zoning usually fixes it for less than people expect.",
       "Upstairs bedrooms in the double-storeys run hot when one system is sized and balanced for the ground floor. Rebalancing and zoning sorts most of them; a few need a split upstairs.",
       "Systems that have run since handover without a single service are the norm. Filters, coils and condensate drains are most of what we find on a first service, and it is an afternoon rather than a replacement.",
       "The hot water that came with the build is reaching its first replacement in the older stages. We price a VEU-rebated heat pump alongside like-for-like, and on narrow blocks we check where the heat pump can actually sit before we quote it.",
@@ -452,7 +452,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "post-2015 new-build family homes, most already have ducted cooling from the developer, so what breaks first is usually the hot water",
     commonInstall:
-      "clean ducted aircon tune-ups and Zonemate zoning upgrades, plus VEU heat pump swaps as the original 315L electric tanks that came with the build hit end-of-life",
+      "clean ducted aircon tune-ups and zoning upgrades, plus VEU heat pump swaps as the original 315L electric tanks that came with the build hit end-of-life",
     localHooks: [
       "St Brigid's Catholic Primary",
       "Arena Shopping Centre",
@@ -464,7 +464,7 @@ export const suburbs: Suburb[] = [
       "Officer South is almost entirely post-2015, which makes it the most predictable suburb we work in. Nearly every house came with ducted cooling already in it, so we are rarely installing from scratch here. What we get called for is the hot water reaching end of life, zoning that was never set up properly, and first services on systems that have been running since handover without anyone touching a filter. Eight kilometres from the workshop, straight down the highway, so it is an easy same-day suburb.",
     commonProblems: [
       "The electric storage tanks that came with the original builds are now hitting end of life across whole streets at once. They are the single best VEU rebate candidate there is, because an old electric tank is exactly what the scheme was written to replace.",
-      "A lot of the developer-fitted ducted systems went in without zoning, or with zone motors that were wired but never properly commissioned. The house conditions as one big zone, which costs a fortune to run and never gets the bedrooms right. Adding Zonemate is usually cheaper than people expect.",
+      "A lot of the developer-fitted ducted systems went in without zoning, or with zone motors that were wired but never properly commissioned. The house conditions as one big zone, which costs a fortune to run and never gets the bedrooms right. Adding zoning is usually cheaper than people expect.",
       "New-estate blocks are narrow and the side setbacks are tight, so where an outdoor unit can legally and sensibly go is genuinely constrained. Easements and the neighbour's bedroom window decide more Officer South installs than capacity does.",
       "Systems that came with the house often reach five or six years old without a single service, because nobody thinks of it as their equipment. Filters, coils and condensate drains are most of what we find, and it is an afternoon rather than a replacement.",
     ],
@@ -542,7 +542,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "2000s Marriott Waters estate homes with ducted cooling from build, laid out around the man-made lake, mostly double-storey brick veneer",
     commonInstall:
-      "Zonemate zoning controller upgrades on the original 4-zone ducted systems, plus VEU heat pump hot water swaps as the developer-installed tanks reach end-of-life",
+      "Zoning controller upgrades on the original 4-zone ducted systems, plus VEU heat pump hot water swaps as the developer-installed tanks reach end-of-life",
     localHooks: [
       "Lynbrook Station",
       "Marriott Waters lake",
@@ -562,7 +562,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "new estates carved out east of Thompsons Road through the 2010s, most homes fully ducted from day one with electric-storage hot water",
     commonInstall:
-      "ducted rebalance and Zonemate upgrades, and iStore or Thermann heat pump swaps to unlock the VEU rebate on the original electric tanks",
+      "ducted rebalance and zoning upgrades, and iStore or Thermann heat pump swaps to unlock the VEU rebate on the original electric tanks",
     localHooks: [
       "Lyndhurst Primary",
       "Marriott Waters wetland",
@@ -623,7 +623,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "Somerfield estate on the east side (2010s new builds, ducted from day one) and older Keysborough South weatherboards and brick veneer nearer Cheltenham Road",
     commonInstall:
-      "ducted retrofit balancing and Zonemate upgrades in Somerfield, and VEU heat pump hot water swaps replacing the aging electric-storage tanks in Keysborough South",
+      "ducted retrofit balancing and zoning upgrades in Somerfield, and VEU heat pump hot water swaps replacing the aging electric-storage tanks in Keysborough South",
     localHooks: [
       "Parkmore Shopping Centre",
       "Somerfield estate lakes",
@@ -683,7 +683,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "predominantly new-build family homes, Livingston, Hunt Club, and Cascades estates, most with ducted cooling from developer handover",
     commonInstall:
-      "Zonemate zoning upgrades on 4-zone systems, ducted rebalancing after developer defects, and VEU-eligible heat pump swaps",
+      "Zoning upgrades on 4-zone systems, ducted rebalancing after developer defects, and VEU-eligible heat pump swaps",
     localHooks: [
       "Cranbourne East Secondary",
       "Livingston Boulevard",
@@ -742,7 +742,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "new-build Selandra Rise family homes, most planned around the Community Hub and the Selandra Boulevard spine, all ducted from day one",
     commonInstall:
-      "ducted rebalance and Zonemate upgrades on the original 4-zone systems, plus iStore heat pump swaps as the developer-installed tanks reach end-of-life",
+      "ducted rebalance and zoning upgrades on the original 4-zone systems, plus iStore heat pump swaps as the developer-installed tanks reach end-of-life",
     localHooks: [
       "Selandra Rise Community Hub",
       "Selandra Boulevard",
@@ -762,7 +762,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "the fastest-growing corridor in the south-east, new estate builds through the 2020s, almost all with developer-installed ducted cooling from the moment keys are handed over",
     commonInstall:
-      "Zonemate zoning tune-ups on ducted-from-day-one homes, VEU heat pump swaps on the developer-installed electric tanks, and Mitsubishi splits added to homes that skipped bedroom cooling",
+      "Zoning tune-ups on ducted-from-day-one homes, VEU heat pump swaps on the developer-installed electric tanks, and Mitsubishi splits added to homes that skipped bedroom cooling",
     localHooks: [
       "Clyde Recreation Reserve",
       "Berwick Springs estate edge",

@@ -336,7 +336,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Your ductwork is unusable. If the existing ducts are galvanised (30+ years old), flexible ducting with tears, or wildly wrong-sized for reverse-cycle airflow, we need to replace them. That's a real addition to the job, and it's itemised on the quote." },
       { type: "p", text: "You have no gas bill above ~$1,800/year for heating. Below that, the payback stretches to 8-10 years and you might be better waiting for the next generation of ducted heat pumps." },
       { type: "h2", text: "Real numbers" },
-      { type: "p", text: "An 18 kW Mitsubishi Electric ducted with Milieu Lab controller and up to 12 zones is a big job and a big number, even after the VEU rebate. But the running-cost savings mean it pays back in 6-8 years and you get 15-20 years out of the equipment." },
+      { type: "p", text: "An 18 kW Mitsubishi Electric ducted with a zone controller is a big job and a big number, even after the VEU rebate. But the running-cost savings mean it pays back in 6-8 years and you get 15-20 years out of the equipment." },
       { type: "p", text: "Kaden and Rinnai do the same capacity for less, on the same ductwork and the same zoning. Worth pricing both if getting the whole house done in one go is what matters." },
       { type: "p", text: "We do a full roof-cavity survey before quoting, no surprises on the day. Book a site check and we'll price it properly." },
     ],
@@ -546,7 +546,7 @@ export const posts: BlogPost[] = [
     cat: "Ducted aircon",
     read: "14 min read",
     title: "Ducted aircon Melbourne, cost, install, and what to spec in 2026",
-    blurb: "Sizing a ducted system for a Melbourne family home, retrofit vs new-build install, zoning with Zonemate, and what a ducted quote should actually get you.",
+    blurb: "Sizing a ducted system for a Melbourne family home, retrofit vs new-build install, zoning, and what a ducted quote should actually get you.",
     photo: "/duct-work.webp",
     photoAlt: "Ducted aircon installation in a Melbourne home ceiling void",
     content: [
@@ -568,12 +568,12 @@ export const posts: BlogPost[] = [
       { type: "p", text: "We do a proper heat-load calc on any job over 14 kW, measures the glass area, insulation R-value, and orientation. Skip this and either you get an oversized system that cycles constantly (expensive to run, hard on the compressor) or an undersized one that can't hold setpoint on 35°C+ days." },
 
       { type: "h2", text: "Zoning, the single biggest efficiency win" },
-      { type: "p", text: "Never install a ducted system without zoning. Non-negotiable. A 4-zone Zonemate controller lets you shut off unused rooms, kids' bedrooms during the day, living zones at night, and cuts running cost by 30-40% over an always-on ducted setup." },
+      { type: "p", text: "Never install a ducted system without zoning. Non-negotiable. A 4-zone controller lets you shut off unused rooms, kids' bedrooms during the day, living zones at night, and cuts running cost by 30-40% over an always-on ducted setup." },
       { type: "p", text: "Our default recommendations by house size:" },
       { type: "ul", items: [
-        "3-bed single-storey: Zonemate 4-zone (living, master, kids, study/bathroom)",
-        "4-5 bed single-storey: Zonemate 6-zone",
-        "Double-storey: Zonemate 8-zone (per bedroom + living zones, upstairs/downstairs split)",
+        "3-bed single-storey: 4 zones (living, master, kids, study/bathroom)",
+        "4-5 bed single-storey: 6 zones",
+        "Double-storey: 8 zones (per bedroom + living zones, upstairs/downstairs split)",
       ] },
       { type: "p", text: "Variable-speed dampers (VSD) are worth the small extra per zone if you want proportional airflow rather than just on/off. Nicer comfort in less-used zones, 30% airflow to the study, 100% to living, all controlled from your phone." },
 
@@ -581,7 +581,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Mitsubishi Electric PEAD-M is our default mid-static indoor unit. Long duct runs or 6-plus zones want the PEA-RP high-static instead, because static pressure rather than capacity is what starves the far bedroom. Shallow ceiling voids get the SEZ-KD slim-line. Kaden Ducted is the other route, on the same ductwork and the same zoning, and it's what makes a whole-house job happen in one visit rather than in stages." },
 
       { type: "h2", text: "What a Melbourne ducted install costs" },
-      { type: "p", text: "Our ducted quotes are fully installed: indoor + outdoor unit, all ducting to the zones, Zonemate controller and dampers, compliance certificate, warranty registration. What moves the figure:" },
+      { type: "p", text: "Our ducted quotes are fully installed: indoor + outdoor unit, all ducting to the zones, zone controller and dampers, compliance certificate, warranty registration. What moves the figure:" },
       { type: "ul", items: [
         "Capacity: 10 kW for a smaller home up to 18 kW for a big one",
         "Brand: Kaden Ducted comes in under Mitsubishi Electric at the same size",
