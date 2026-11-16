@@ -15,9 +15,8 @@ export const metadata: Metadata = {
 
 const team = [
   { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.webp" },
-  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.webp" },
+  { name: "Jake",           role: "Director · Estimating & Quotes", bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.webp" },
   { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.webp" },
-  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.webp" },
 ];
 
 const values = [
@@ -115,7 +114,7 @@ export default function AboutPage() {
                     src={m.photo}
                     alt={`${m.name}, ${m.role}`}
                     fill
-                    sizes="(max-width: 900px) 50vw, 25vw"
+                    sizes="(max-width: 760px) 100vw, 320px"
                     style={{ objectFit: "cover", objectPosition: "top" }}
                   />
                 </div>

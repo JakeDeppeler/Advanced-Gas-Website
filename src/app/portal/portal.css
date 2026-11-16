@@ -2499,7 +2499,7 @@ button.pt-inline:hover { color: var(--pt-accent); }
 .pt-fleet__sub { display: block; font-size: 12.5px; color: var(--pt-ink-2); }
 /* A three-word note under a figure was wrapping to three lines and making
    every row in the table twice as tall as it needed to be. */
-/* The fleet's sub-line is a short label like "28 Sept · Jye" and reads
+/* The fleet's sub-line is a short label like "28 Sept · Dean" and reads
    better on one line. A table that puts a sentence there says so, rather
    than inheriting a nowrap that makes one column as wide as the page. */
 .pt-fleet td .pt-fleet__sub { white-space: nowrap; }
@@ -4848,7 +4848,7 @@ a.pt-fig:hover { transform: translateY(-2px); }
 
 /* One card a person: the name, what it comes to, and how many of those are
    there because somebody moved them. A card is a filter as well as a figure —
-   the list under it is long, and "show me Jye's" is the next thing anybody
+   the list under it is long, and "show me Dean's" is the next thing anybody
    asks after reading this. */
 .pt-credit__who { display: flex; flex-wrap: wrap; gap: 10px; }
 .pt-credit__card {

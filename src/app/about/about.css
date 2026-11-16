@@ -62,7 +62,10 @@
 .page-about .ab-timeline p { font-size: 15px; color: var(--ink-2); margin: 0; max-width: 480px; }
 
 .page-about .ab-team { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.page-about .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 48px; }
+/* Three people since Jye left (Nov 2026). They stay on one row down to the
+   phone break: two columns would strand the third card on a row of its own,
+   and the cap keeps three portraits from growing to the full page width. */
+.page-about .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 980px; margin: 48px auto 0; }
 .page-about .team { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .page-about .team__photo {
   aspect-ratio: 4/5;
@@ -223,7 +226,6 @@
 @media (max-width: 1100px) {
   .page-about .ab-story__grid { grid-template-columns: 1fr; gap: 40px; }
   .page-about .ab-stats__grid { grid-template-columns: repeat(2, 1fr); }
-  .page-about .team-grid { grid-template-columns: repeat(2, 1fr); }
   .page-about .values-grid { grid-template-columns: 1fr 1fr; }
   .page-about .clients-grid { grid-template-columns: repeat(2, 1fr); }
   .page-about .ab-acc__grid { grid-template-columns: 1fr; gap: 32px; }

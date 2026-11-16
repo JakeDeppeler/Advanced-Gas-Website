@@ -203,7 +203,7 @@ export async function sendReviewTest(to: string, s: ReviewSettings): Promise<{ o
   const link = reviewLink(s, process.env.GOOGLE_PLACE_ID);
   if (!link) return { ok: false, error: "Put in the Google review link first." };
   const sample = await sampleJobPhoto();
-  const mail = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Jye Stephens"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
+  const mail = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Dean Winbanks"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
   const out = await sendEmail("review-request", await withInlineImages({ from, to: [to], reply_to: reviewReplyTo, subject: `[Test] ${mail.subject}`, text: mail.text, html: mail.html }), { test: true });
   return out.ok ? { ok: true } : { ok: false, error: out.error };
 }
