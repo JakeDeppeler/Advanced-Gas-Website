@@ -81,8 +81,9 @@ ok("the hot water wording has the 1 July 2026 income cap; heating & cooling only
 // Jake, 16 Nov: evap proposals, Advance / Promina / Contour, one per size and colour.
 const props = evapProposals();
 ok("15 evap proposals: 5 sizes in 3 colours", props.length === 15, props.length);
-ok("36 to 66 offer all three ranges in order", props.filter((p) => !/ 76 /.test(p.name)).every((p) => p.options.map((o) => o.templateCode.split("-")[2]).join() === "ADVANCE,PROMINA,CONTOUR"));
-ok("the 76 has no Advance: Premium and Premium Plus", props.filter((p) => / 76 /.test(p.name)).every((p) => p.options.map((o) => o.order).join() === "2,3"));
+ok("every size offers all three ranges in order", props.every((p) => p.options.map((o) => `${o.order}${o.templateCode.split("-")[2]}`).join() === "1ADVANCE,2PROMINA,3CONTOUR"));
+ok("36 to 66: the same size in each", props.filter((p) => !/ 76 /.test(p.name)).every((p) => new Set(p.options.map((o) => o.templateCode.split("-")[3].replace(/\D/g, ""))).size === 1));
+ok("the 76: Advance F86DS (no Advance 76), Promina P76, Contour L76, in its colour", props.filter((p) => / 76 /.test(p.name)).every((p) => p.options.map((o) => o.templateCode.split("-")[3]).join() === "F86DS,P76,L76" && p.options.every((o) => o.templateCode.endsWith(p.key.split("-")[2].replace("TERRARED", "TERRA").replace("CHARCOAL", "CHAR")))), props.filter((p) => / 76 /.test(p.name)).map((p) => [p.key, p.options.map((o) => o.templateCode)]));
 ok("each option is a template that's made", props.every((p) => p.options.every((o) => evap.some((t) => t.code === o.templateCode))));
 ok("names match through ServiceTitan's dashes", sameName("Evaporative Cooler - Maintenance (Single Storey)", "Evaporative Cooler – Maintenance (Single Storey)") && !sameName("Split System - Deep Clean", "Split System - Clean & Service"));
 ok("an evap replacement is unit, install, compliance", evap.every((t) => t.lines.map((l) => l.skuType).join() === "Equipment,Service,Service"));
