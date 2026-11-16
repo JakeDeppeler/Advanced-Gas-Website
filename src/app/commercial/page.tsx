@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { Fragment } from "react";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import {
@@ -18,18 +19,13 @@ import { DuctDivider } from "@/components/commercial/DuctDivider";
 import { ProcessTimeline } from "@/components/commercial/ProcessTimeline";
 import { CommGallery } from "@/components/commercial/CommGallery";
 import { SiteModeStrip } from "@/components/Header";
+import { HomeHeader } from "@/components/homepage/HomeHeader";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
-import { PageHero } from "@/components/homepage/page/PageHero";
-import { BkHead } from "@/components/homepage/page/bands";
 import { JsonLd } from "@/components/JsonLd";
 import "@/components/homepage/homepage.css";
-import "@/components/homepage/product/product.css";
-import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/brand/blocks.css";
-import "@/components/homepage/page/kit.css";
-import "@/components/homepage/page/about.css";
 import "./cx.css";
-import "./cxh.css";
+import "./cxd.css";
 
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical, Melbourne",
@@ -39,323 +35,365 @@ export const metadata: Metadata = {
 };
 
 /**
- * The Business & commercial front page, on the homepage's look (Jake, Nov
- * 2026: "update the commercial page but still keep the crane and the air flow
- * animation"). It was a separate design with its own type, colours and
- * header; now it opens on the same photo hero and pill header as every
- * inside page, and its sections are the homepage's bands, white tiles, navy
- * bands and closing box.
+ * The Business & commercial front page, drawn as a set of mechanical drawings
+ * (Jake, Nov 2026: "I don't like the commercial page at all", then "start
+ * again, new look").
  *
- * Kept from the old page, because they are what made it the commercial side:
- *  · the crane (CraneRig), now the card in the hero where the quote form sits
- *    on the household pages. A builder submits a scope rather than a quick
- *    quote, and the form for that is at the foot of the page;
- *  · the duct runs between sections (DuctDivider), the airflow animation;
- *  · the job timeline and the fit-out gallery, which have no homepage
- *    equivalent and earn their place.
- * Their styles stay in cx.css, scoped to the old root or this one (.cxh), so
- * the four sub-pages still using the old root keep working.
+ * The version before this one was the household pages' kit (photo hero,
+ * quote-card slot, white tiles, cream bands) with the crane dropped into the
+ * card. It read as the household site with a different headline, and a
+ * builder or a facility manager is not shopping the way a household is. So
+ * this page takes its look from the documents that reader already works in:
+ * blueprint sheets (navy, with a faint grid) and drafting paper (cream, with
+ * a fainter one), each section labelled like a drawing (C-01, M-01 …).
  *
- * The reader is still a builder, a facility manager or a building owner
- * deciding whether to put us on a site, so the content and its order are as
- * they were: the numbers first, then named jobs, what we do, proof, the
- * people, the paperwork, and a scope form.
+ *  · The hero is the crane, drawn large on the blueprint rather than boxed
+ *    in a card, with the six numbers procurement asks for set underneath as
+ *    a drawing's title block.
+ *  · What we do is a mechanical schedule, a table with a tag per row, because
+ *    that is how a package is listed on a set of drawings, and ten cards of
+ *    the same size said nothing about which ones matter.
+ *  · The named jobs are a register, the same way.
+ *  · The duct runs (DuctDivider) carry supply and return air between sheets.
+ *  · The two people are the drawing's approval block: who approves, who prices.
+ *
+ * Kept as they were: the crane, the ducts, the timeline and the gallery, all
+ * styled in cx.css under :is(.page-cx, .cxh). The root carries .cxh for them;
+ * this page's own styles are cxd.css. The pill header and the section bar
+ * stay, so it is still plainly the same site.
  */
 
-/** The six rows procurement asks for before site access. */
-const CREDS: { k: string; v: string }[] = [
+/** The numbers procurement asks for before site access, as the title block. */
+const TITLE_BLOCK: { k: string; v: string }[] = [
+  { k: "Contractor", v: site.name },
   { k: "Public liability", v: "$20M" },
   { k: "Refrigerant", v: site.licences.refrigeration },
-  { k: "Plumbing licence", v: site.licences.plumbing.replace(/^plumbing licence\s*/i, "") },
+  { k: "Plumbing", v: site.licences.plumbing.replace(/^plumbing licence\s*/i, "Lic. ") },
   { k: "ABN", v: site.abn },
   { k: "Trading since", v: "2014" },
   { k: "Base", v: `${site.address.suburb} VIC` },
 ];
 
 const TABS: [string, string][] = [
-  ["jobs", "The jobs"],
   ["services", "What we do"],
-  ["gallery", "On the tools"],
-  ["why", "Why us"],
+  ["sites", "The sites"],
   ["process", "How it runs"],
-  ["team", "The people"],
+  ["standard", "The standard"],
   ["details", "Our details"],
   ["faq", "Questions"],
   ["scope", "Submit a scope"],
 ];
 
-/** The two people a builder deals with, written about rather than quoted. */
-const PEOPLE = [
+/**
+ * The approval block: who signs it off and who prices it. Written about, not
+ * quoted, and each with the licence that lets them do it.
+ */
+const SIGNED = [
   {
+    role: "Approved",
     name: "Dean Winbanks",
-    role: "Director · Licensed Plumber",
+    title: "Director · Licensed Plumber",
     lic: site.licences.plumbing,
     photo: "/dean.webp",
     bio: "Over twenty years across industrial, commercial and domestic work. He sets the standard every job is measured against, and he signs off every compliance certificate we issue.",
   },
   {
+    role: "Priced",
     name: "Jake Deppeler",
-    role: "Estimating & install",
+    title: "Estimating & install",
     lic: site.licences.refrigeration,
     photo: "/jake.webp",
     bio: "Reads every commercial enquiry himself and prices it off the drawings rather than off a square metre rate. If we have quoted it, he has been on the roof.",
   },
 ];
 
+/** A section's sheet label, the way a drawing names itself. */
+function Sheet({ no, name }: { no: string; name: string }) {
+  return (
+    <span className="cxd-sheet">
+      <b>{no}</b>
+      <span>{name}</span>
+    </span>
+  );
+}
+
+/** A heading with its coloured part in braces, as everywhere else on the site. */
+function H2({ text, id }: { text: string; id?: string }) {
+  const parts = text.split(/[{}]/);
+  return <h2 className="cxd-h2" id={id}>{parts.map((p, i) => (i % 2 ? <span key={i}>{p}</span> : <Fragment key={i}>{p}</Fragment>))}</h2>;
+}
+
 export default function CommercialPage() {
   return (
     <>
       <SiteModeStrip tabs={false} />
-      {/* data-no-reveal: the old site's scroll reveal fades whole sections; the redesign brings its own (BkMotion). */}
+      {/* data-no-reveal: the site-wide scroll reveal fades whole sections; BkMotion does this page's. */}
       <div className="ag ag--flat" data-no-reveal>
-        <PageHero
-          crumbs={[{ name: "Business & commercial" }]}
-          eye="Commercial & industrial mechanical services"
-          title="One standard. {Every site.}"
-          sub="Mechanical services, Type A gas and commercial hot water across Melbourne's south-east and Gippsland. Directly employed crews, a written standard, and one person accountable for the package."
-          photo="/comm/lift.jpg"
-          pos="70% 30%"
-          from="commercial-hero"
-          ctas={
-            <>
-              <a href="#scope" className="abtn abtn--or">Submit a scope →</a>
-              <Link href="/commercial/capability" className="abtn abtn--line">Capability statement</Link>
-            </>
-          }
-          rating={false}
-          trust={[
-            { v: "$20M", k: "Public liability" },
-            { v: "12 yrs", k: "Trading from Pakenham" },
-            { v: "Same day", k: "SWMS & certificates" },
-          ]}
-          card={
-            // The crane where the household pages put the quote form: the
-            // whole argument of the page in one drawing, plant craned onto a
-            // building that kept trading.
-            <div className="cxh cxh__rig anim" style={{ animationDelay: ".12s" }}>
-              <CraneRig />
-            </div>
-          }
-        />
+        <HomeHeader />
 
-        <div className="bk cxh" style={{ ["--acc" as string]: "#C2521A" }}>
+        <div className="bk cxh cxd">
           <BkMotion />
 
+          {/* ---------- C-01: the crane on the blueprint ---------- */}
+          <section className="cxd-hero cxd-blue" aria-labelledby="cxd-h1">
+            <div className="wrap cxd-hero__in">
+              <div className="cxd-hero__copy">
+                <nav aria-label="Breadcrumb" className="cxd-crumbs">
+                  <ol>
+                    <li><Link href="/">Home</Link></li>
+                    <li aria-current="page">Business &amp; commercial</li>
+                  </ol>
+                </nav>
+                <span className="cxd-eye">Commercial HVAC · Type A gas · Hot water</span>
+                <h1 id="cxd-h1" className="cxd-h1">Plant craned in. <span>Doors stayed open.</span></h1>
+                <p className="cxd-lede">
+                  Mechanical services, Type A gas and commercial hot water across Melbourne&apos;s south-east and Gippsland. Our own crew, a written standard, and one person accountable for the package.
+                </p>
+                <div className="cxd-ctas">
+                  <a href="#scope" className="abtn abtn--or">Submit a scope →</a>
+                  <Link href="/commercial/capability" className="abtn abtn--line">Capability statement</Link>
+                </div>
+                <p className="cxd-down">
+                  <span className="cxd-down__dot" aria-hidden="true" />
+                  Plant down on a contracted site?{" "}
+                  <a href={`tel:${site.phoneE164}`} data-call-from="commercial-hero">Call {site.phone}</a>
+                </p>
+              </div>
+
+              {/* The drawing itself, in a sheet frame with its corner marks
+                  and its own label, rather than in a card. */}
+              <div className="cxd-hero__dwg">
+                <div className="cxd-frame">
+                  <i className="cxd-frame__c cxd-frame__c--tl" aria-hidden="true" />
+                  <i className="cxd-frame__c cxd-frame__c--tr" aria-hidden="true" />
+                  <i className="cxd-frame__c cxd-frame__c--bl" aria-hidden="true" />
+                  <i className="cxd-frame__c cxd-frame__c--br" aria-hidden="true" />
+                  <span className="cxd-frame__tag" aria-hidden="true">DWG C-01 · Rooftop plant · NTS</span>
+                  <CraneRig />
+                </div>
+              </div>
+            </div>
+
+            {/* The title block: the first thing asked for, so it sits on the
+                first screen rather than three scrolls down. */}
+            <div className="wrap">
+              <dl className="cxd-tb" aria-label="Our details">
+                {TITLE_BLOCK.map((c) => (
+                  <div key={c.k} className="cxd-tb__c">
+                    <dt>{c.k}</dt>
+                    <dd>{c.v}</dd>
+                  </div>
+                ))}
+                <div className="cxd-tb__c cxd-tb__c--rev">
+                  <dt>Paperwork</dt>
+                  <dd>SWMS &amp; certificates back the same day</dd>
+                </div>
+              </dl>
+            </div>
+          </section>
+
+          <DuctDivider on="navy" label="supply air" />
+
+          {/* After the duct, not before it: the bar floats over whatever
+              follows until it sticks, and over the duct it hid the airflow. */}
           <nav className="pxt" aria-label="On this page">
             <div className="wrap pxt__in">
               {TABS.map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
             </div>
           </nav>
 
-          {/* The six numbers, straight under the hero in the homepage's
-              brand-strip tiles: they are the first thing asked for, so the
-              reader should not have to scroll for them. */}
-          <section className="hbrands cxh__creds" aria-label="Our numbers">
-            <div className="wrap hbrands__in">
-              <div className="hbrands__top">
-                <span>Before site access</span>
-                <span className="hbrands__rule" aria-hidden="true" />
-                <span className="hbrands__reece">SWMS &amp; certificates <strong>back the same day</strong></span>
+          {/* ---------- M-01: what we do, as a mechanical schedule ---------- */}
+          <section className="cxd-sec cxd-blue" id="services" aria-labelledby="cxd-svc">
+            <div className="wrap">
+              <header className="cxd-head">
+                <Sheet no="M-01" name="Mechanical schedule" />
+                <H2 id="cxd-svc" text="What we {take on}." />
+                <p>Ten packages. A combination of them is normal, and it is still one price against one written scope.</p>
+              </header>
+
+              <div className="cxd-sched" role="table" aria-label="What we do">
+                <div className="cxd-sched__hd" role="row">
+                  <span role="columnheader">Tag</span>
+                  <span role="columnheader">Package</span>
+                  <span role="columnheader">Scope</span>
+                  <span role="columnheader">Suits</span>
+                  <span role="columnheader"><span className="sr-only">Link</span></span>
+                </div>
+                <div data-anim="stagger" className="cxd-sched__body" role="rowgroup">
+                  {COMM_SCOPES.map((s) => {
+                    const call = s.slug === "breakdowns";
+                    return (
+                      <div key={s.slug} role="row" className={`cxd-sched__r${call ? " cxd-sched__r--call" : ""}`}>
+                        <span role="cell" className="cxd-tag">M-{s.n}</span>
+                        <span role="cell" className="cxd-sched__t">
+                          <Link href={`/commercial/what-we-do#${s.slug}`}>{s.title}</Link>
+                        </span>
+                        <span role="cell" className="cxd-sched__p">{s.lede}</span>
+                        <span role="cell" className="cxd-sched__s"><b className="cxd-sched__lbl">Suits </b>{s.suits}</span>
+                        <span role="cell" className="cxd-sched__go">
+                          {call ? (
+                            // The one package somebody rings rather than emails.
+                            <a className="abtn abtn--or cxd-callbtn" href={`tel:${site.phoneE164}`} data-call-from="commercial-breakdowns">Call {site.phone}</a>
+                          ) : (
+                            <Link href={`/commercial/what-we-do#${s.slug}`} aria-label={`What's included: ${s.title}`} tabIndex={-1}>Included →</Link>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <dl className="cxh__credgrid" data-anim="stagger">
-                {CREDS.map((c) => (
-                  <div key={c.k} className="cxh__cred">
-                    <dt>{c.k}</dt>
-                    <dd>{c.v}</dd>
-                  </div>
-                ))}
-              </dl>
+
+              <div className="cxd-equip">
+                <span className="cxd-equip__k">Licensed and equipped for</span>
+                <ul>{COMM_CAPABILITIES.map((c) => <li key={c}>{c}</li>)}</ul>
+              </div>
             </div>
           </section>
 
-          {/* The jobs */}
-          <section className="bk__sec bk__sec--cream" id="jobs">
-            <div className="wrap"><div className="bk__blk bk__col">
-              <BkHead h="The jobs {we've done}.">
-                Named, with the job and the location against each. A reference you can ring is worth more than a logo you can&apos;t.
-              </BkHead>
-              <ol className="cxh__jobs" data-anim="stagger">
-                {COMM_CLIENTS.map((c, i) => (
-                  <li key={c.name} className="cxh__job">
-                    <span className="cxh__n">{String(i + 1).padStart(2, "0")}</span>
-                    <h3>{c.name}</h3>
-                    <p>{c.what}</p>
-                    <div className="cxh__jobfoot">
-                      {/* The sector is written on the pill, so its colour only groups them. */}
-                      <span className={`cxh__tag cxh__tag--${c.tone}`}>{c.sector}</span>
-                      <span className="cxh__loc">{c.where}</span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div></div>
-          </section>
-
-          <DuctDivider on="navy" label="supply air" />
-
-          {/* What we can do */}
-          <section className="bk__sec bk__sec--navy cxh__svcsec" id="services">
-            <div className="wrap"><div className="bk__blk bk__col">
-              <BkHead h="What {we can do}.">
-                Ten packages. A combination of them is normal, and still one price against one written scope.
-              </BkHead>
-              <ol className="cxh__svc" data-anim="stagger">
-                {COMM_SCOPES.map((s, i) => {
-                  const call = s.slug === "breakdowns";
-                  return (
-                    <li
-                      key={s.slug}
-                      /* The fit-out and the breakdown line take two columns:
-                         the fit-out because it is what most readers came for,
-                         the breakdown line because it is the one somebody
-                         rings instead of emailing. */
-                      className={`cxh__svci${i === 0 ? " cxh__svci--lead" : ""}${call ? " cxh__svci--call" : ""}`}
-                    >
-                      <span className="cxh__n">{s.n}</span>
-                      <h3><Link href={`/commercial/what-we-do#${s.slug}`}>{s.title}</Link></h3>
-                      <p>{s.lede}</p>
-                      <p className="cxh__suits"><b>Suits</b> {s.suits}</p>
-                      {call ? (
-                        <a className="abtn abtn--or cxh__callbtn" href={`tel:${site.phoneE164}`} data-call-from="commercial-breakdowns">Call {site.phone} →</a>
-                      ) : (
-                        <Link className="cxh__more" href={`/commercial/what-we-do#${s.slug}`}>What&apos;s included →</Link>
-                      )}
+          {/* ---------- A-01: the sites, as a register, and the photos ---------- */}
+          <section className="cxd-sec cxd-paper" id="sites" aria-labelledby="cxd-sites">
+            <div className="wrap">
+              <div className="cxd-split">
+                <header className="cxd-head cxd-head--side">
+                  <Sheet no="A-01" name="Register of sites" />
+                  <H2 id="cxd-sites" text="Named, {not logos}." />
+                  <p>The job and the location against each. A reference you can ring is worth more than a logo you can&apos;t.</p>
+                </header>
+                <ol className="cxd-reg" data-anim="stagger">
+                  {COMM_CLIENTS.map((c, i) => (
+                    <li key={c.name} className="cxd-reg__r">
+                      <span className="cxd-reg__n">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="cxd-reg__name">{c.name}</span>
+                      <span className="cxd-reg__what">{c.what}</span>
+                      {/* The sector is written out; its colour only groups the four kinds. */}
+                      <span className={`cxd-reg__sec cxd-reg__sec--${c.tone}`}>{c.sector}</span>
+                      <span className="cxd-reg__where">{c.where}</span>
                     </li>
-                  );
-                })}
-              </ol>
-              <div className="cxh__equip">
-                <span>Licensed and equipped for</span>
-                <ul>{COMM_CAPABILITIES.map((c) => <li key={c}>{c}</li>)}</ul>
+                  ))}
+                </ol>
               </div>
-            </div></div>
-          </section>
 
-          {/* On the tools: the one proof here a reader can check for themselves. */}
-          <section className="bk__sec bk__sec--white" id="gallery">
-            <div className="wrap"><div className="bk__blk bk__col">
-              <div className="cxh__galhead">
-                <BkHead h="From a recent {commercial fit-out}.">Our own crew, from the lift to the ceiling closing.</BkHead>
-                <span className="cxh__hint">Tap a photo to enlarge</span>
+              <div className="cxd-galhead">
+                <Sheet no="A-02" name="Site photos" />
+                <h3 className="cxd-h3">From a recent commercial fit-out. <span>Our own crew, from the lift to the ceiling closing.</span></h3>
+                <span className="cxd-hint">Tap a photo to enlarge</span>
               </div>
               <CommGallery />
-            </div></div>
-          </section>
-
-          {/* Brands, in the homepage's strip */}
-          <section className="hbrands cxh__brands" aria-label="Brands we install">
-            <div className="wrap hbrands__in">
-              <div className="hbrands__top">
-                <span>Authorised installer of</span>
-                <span className="hbrands__rule" aria-hidden="true" />
-                <span className="hbrands__reece">Trade partner of <strong>Reece</strong></span>
-              </div>
-              <div className="hbrands__grid cxh__brandgrid">
-                {COMM_BRANDS.map((b) => <span key={b.name} className="chipb"><strong>{b.name}</strong><span>{b.what}</span></span>)}
-              </div>
-              <p className="cxh__brandnote">Direct supply means real stock, real warranties and no margin-stacking middlemen between you and the gear.</p>
             </div>
           </section>
 
           <DuctDivider on="cream" label="return air" />
 
-          {/* Why people choose us */}
-          <section className="bk__sec bk__sec--white" id="why">
-            <div className="wrap"><div className="bk__blk bk__col">
-              <BkHead h="Why people choose us, {and keep us on}.">
-                Nobody rings back about the ductwork. They ring back because the job never made work for them.
-              </BkHead>
-              <ul className="cxh__why" data-anim="stagger">
+          {/* ---------- P-01: how the job runs ---------- */}
+          <section className="cxd-sec cxd-blue" id="process" aria-labelledby="cxd-proc">
+            <div className="wrap">
+              <header className="cxd-head">
+                <Sheet no="P-01" name="Sequence of works" />
+                <H2 id="cxd-proc" text="Start to finish, {in order}." />
+              </header>
+              <ProcessTimeline />
+            </div>
+          </section>
+
+          {/* ---------- S-01: the standard, and who signs it ---------- */}
+          <section className="cxd-sec cxd-paper" id="standard" aria-labelledby="cxd-std">
+            <div className="wrap">
+              <header className="cxd-head">
+                <Sheet no="S-01" name="Specification" />
+                <H2 id="cxd-std" text="The standard, {written down}." />
+                <p>Nobody rings back about the ductwork. They ring back because the job never made work for them.</p>
+              </header>
+              <ol className="cxd-spec" data-anim="stagger">
                 {COMM_STANDARD.map((s) => (
                   <li key={s.n}>
-                    <b aria-hidden="true">{s.n}</b>
-                    <h3>{s.h}</h3>
-                    <p>{s.p}</p>
+                    <span className="cxd-spec__n">1.{s.n}</span>
+                    <div>
+                      <h3>{s.h}</h3>
+                      <p>{s.p}</p>
+                    </div>
                   </li>
                 ))}
-              </ul>
-            </div></div>
-          </section>
+              </ol>
 
-          {/* How the job runs */}
-          <section className="bk__sec bk__sec--navy" id="process">
-            <div className="wrap"><div className="bk__blk bk__col">
-              <BkHead h="What that looks like, {start to finish}." />
-              <ProcessTimeline />
-            </div></div>
-          </section>
-
-          {/* The people */}
-          <section className="bk__sec bk__sec--cream" id="team">
-            <div className="wrap"><div className="bk__blk bk__col">
-              <BkHead h="Who you're {actually dealing with}.">
-                A family business in Pakenham since 2014. Whoever prices your package is who you ring about it.
-              </BkHead>
-              <div className="abd__pair" data-anim="stagger">
-                {PEOPLE.map((p) => (
-                  <article key={p.name} className="abd__card">
-                    <span className="abd__photo"><Image src={p.photo} alt={p.name} fill sizes="(max-width: 900px) 100vw, 600px" /></span>
-                    <div className="abd__t">
+              {/* The approval block on a drawing: who approves it, who prices it. */}
+              <div className="cxd-sign" data-anim="stagger">
+                {SIGNED.map((p) => (
+                  <article key={p.name} className="cxd-sign__c">
+                    <span className="cxd-sign__role">{p.role}</span>
+                    <span className="cxd-sign__ph"><Image src={p.photo} alt={p.name} fill sizes="(max-width: 700px) 30vw, 180px" /></span>
+                    <div className="cxd-sign__t">
                       <h3>{p.name}</h3>
-                      <small>{p.role}</small>
-                      <span className="cxh__lic">{p.lic}</span>
+                      <small>{p.title}</small>
+                      <span className="cxd-sign__lic">{p.lic}</span>
                       <p>{p.bio}</p>
                     </div>
                   </article>
                 ))}
               </div>
-              <p className="cxh__behind">
+              <p className="cxd-behind">
                 Behind us: our crew, in our own vans, with every part of the job run under us. No labour hire, and the same crew on your site from the first week to the last.
               </p>
-            </div></div>
+            </div>
           </section>
 
-          {/* Our details */}
-          <section className="bk__sec bk__sec--white" id="details">
-            <div className="wrap"><div className="bk__blk cxh__spec">
-              <div className="cxh__specside">
-                <BkHead h="Our details, {before you ask for them}.">
-                  Certificates of currency and SWMS go out the same day you ask. The capability statement has the lot on one page.
-                </BkHead>
-                <Link className="abtn abtn--or" href="/commercial/capability">Capability statement →</Link>
-              </div>
-              <div className="cxh__tables" data-anim="stagger">
-                {CAPABILITY.map((g) => (
-                  <section key={g.group} className={`cxh__tbl${g.group === "Capacity" ? " cxh__tbl--wide" : ""}`}>
-                    <h3>{g.group}</h3>
+          {/* ---------- D-01: our details, as a data sheet ---------- */}
+          <section className="cxd-sec cxd-white" id="details" aria-labelledby="cxd-det">
+            <div className="wrap">
+              <div className="cxd-split cxd-split--det">
+                <header className="cxd-head cxd-head--side">
+                  <Sheet no="D-01" name="Data sheet" />
+                  <H2 id="cxd-det" text="Our details, {before you ask}." />
+                  <p>Certificates of currency and SWMS go out the same day you ask. The capability statement has the lot on one page.</p>
+                  <Link className="abtn abtn--navy" href="/commercial/capability">Capability statement →</Link>
+                </header>
+                <div className="cxd-data" data-anim="stagger">
+                  {CAPABILITY.map((g) => (
+                    <section key={g.group} className="cxd-data__g">
+                      <h3>{g.group}</h3>
+                      <dl>
+                        {g.rows.map(([k, v, mono]) => (
+                          <div key={k}>
+                            <dt>{k}</dt>
+                            <dd className={mono ? "is-mono" : undefined}>{v}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </section>
+                  ))}
+                  <section className="cxd-data__g">
+                    <h3>Equipment we&apos;re authorised for</h3>
                     <dl>
-                      {g.rows.map(([k, v, mono]) => (
-                        <div key={k}>
-                          <dt>{k}</dt>
-                          <dd className={mono ? "is-mono" : undefined}>{v}</dd>
-                        </div>
+                      {COMM_BRANDS.map((b) => (
+                        <div key={b.name}><dt>{b.name}</dt><dd>{b.what}</dd></div>
                       ))}
                     </dl>
+                    <p className="cxd-data__note">Trade partner of Reece. Direct supply means real stock and real warranties, with no middlemen between you and the gear.</p>
                   </section>
-                ))}
-              </div>
-            </div></div>
-          </section>
-
-          {/* The questions, in the homepage's FAQ */}
-          <section id="faq" className="hfaq">
-            <div className="wrap hfaq__in">
-              <div className="hfaq__intro">
-                <h2 className="h2">The questions that arrive before a first job.</h2>
-                <p>
-                  Plant down on a contracted site?{" "}
-                  <a href={`tel:${site.phoneE164}`} data-call-from="commercial-faq" style={{ color: "#050A30", textUnderlineOffset: 2 }}>Call {site.phone}</a>. After hours goes to someone on the tools.
-                </p>
-                <div className="hfaq__links">
-                  <Link className="glink" href="/commercial/capability">Capability statement</Link>
-                  <Link className="glink" href="/commercial/what-we-do">What we do</Link>
-                  <Link className="glink" href="/commercial/contact">Contact</Link>
                 </div>
               </div>
-              <div className="afaqs">
+            </div>
+          </section>
+
+          {/* ---------- Q-01: the questions ---------- */}
+          <section className="cxd-sec cxd-paper" id="faq" aria-labelledby="cxd-faq">
+            <div className="wrap cxd-split">
+              <header className="cxd-head cxd-head--side">
+                <Sheet no="Q-01" name="Requests for information" />
+                <H2 id="cxd-faq" text="Asked before {a first job}." />
+                <p>
+                  Plant down on a contracted site?{" "}
+                  <a href={`tel:${site.phoneE164}`} data-call-from="commercial-faq">Call {site.phone}</a>. After hours goes to someone on the tools.
+                </p>
+              </header>
+              <div className="cxd-faqs">
                 {COMM_FAQS.map((f, i) => (
-                  <details key={f.q} className="afaq" open={i === 0}>
-                    <summary>{f.q}</summary>
+                  <details key={f.q} className="cxd-faq" open={i === 0}>
+                    <summary>
+                      <span className="cxd-faq__n">RFI {String(i + 1).padStart(2, "0")}</span>
+                      <span className="cxd-faq__q">{f.q}</span>
+                      <i aria-hidden="true" />
+                    </summary>
                     <p>{f.a}</p>
                   </details>
                 ))}
@@ -363,35 +401,31 @@ export default function CommercialPage() {
             </div>
           </section>
 
-          {/* Submit a scope: the homepage's closing box (the crew and the vans
-              behind the orange) with the scope form in it, since a scope is
-              what a commercial reader sends rather than a quick quote. */}
-          <section className="bk__sec bk__sec--white bk__sec--end" id="scope">
-            <div className="wrap">
-              <div className="cxh__scope">
-                <Image src="/comm/team-vans.webp" alt="" fill sizes="(max-width: 1480px) 100vw, 1416px" />
-                <div className="cxh__scopecopy">
-                  <span className="cxh__scopeeye">Priced against a written scope</span>
-                  <h2 className="bk__boxh">Tell us what you&apos;re <span>not being told.</span></h2>
-                  <p>
-                    Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another, and whoever notices last pays for it. We find the gap and put it in the scope, in writing, before anyone signs.
-                  </p>
-                  <ul className="cxh__checks">
-                    <li>One price against one written scope</li>
-                    <li>Exclusions stated, not buried</li>
-                    <li>Variations approved before the work, not with the invoice</li>
-                    <li>SWMS and certificates back before anyone turns up</li>
-                    <li>Jake reads every commercial enquiry himself</li>
-                  </ul>
-                  <dl className="cxh__after">
-                    <dt>Today</dt><dd>Read by the person who will price it, not a queue.</dd>
-                    <dt>Inside a day</dt><dd>Questions back if the scope has a gap in it.</dd>
-                    <dt>Then</dt><dd>One price against one written scope, exclusions stated.</dd>
-                  </dl>
-                </div>
-                <div className="cxh__scopeform">
-                  <CommercialScopeForm badge="Read by the person who prices it" />
-                </div>
+          <DuctDivider on="cream" label="supply air" />
+
+          {/* ---------- T-01: submit a scope ---------- */}
+          <section className="cxd-sec cxd-blue cxd-scope" id="scope" aria-labelledby="cxd-scope">
+            <div className="wrap cxd-scope__in">
+              <div className="cxd-scope__copy">
+                <Sheet no="T-01" name="Transmittal" />
+                <H2 id="cxd-scope" text="Tell us what you're {not being told}." />
+                <p className="cxd-scope__p">
+                  Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another, and whoever notices last pays for it. We find the gap and put it in the scope, in writing, before anyone signs.
+                </p>
+                <ul className="cxd-checks">
+                  <li>One price against one written scope</li>
+                  <li>Exclusions stated, not buried</li>
+                  <li>Variations approved before the work, not with the invoice</li>
+                  <li>SWMS and certificates back before anyone turns up</li>
+                </ul>
+                <ol className="cxd-after">
+                  <li><b>Today</b><span>Read by the person who will price it, not a queue.</span></li>
+                  <li><b>Inside a day</b><span>Questions back if the scope has a gap in it.</span></li>
+                  <li><b>Then</b><span>One price against one written scope, exclusions stated.</span></li>
+                </ol>
+              </div>
+              <div className="cxd-scope__form">
+                <CommercialScopeForm badge="Read by the person who prices it" />
               </div>
             </div>
           </section>
