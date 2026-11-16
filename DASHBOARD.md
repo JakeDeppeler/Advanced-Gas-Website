@@ -192,7 +192,7 @@ Eleven tiles became six. The page had grown a tile per available number, and at
 that density nothing on it was bigger than anything else — which is the one
 thing a wall needs. Nothing real was lost: jobs completed is the line under
 Invoiced, the lead count is the line under Jobs booked, quotes out has a page
-of its own, and the service mix is the job-type table on Performance.
+of its own, and the service mix is the table on Job types.
 
 **Pace** is the year goal worked back through every step the money moves
 through — booked, quoted, quote value, sold, completed, invoiced — in three
@@ -395,24 +395,17 @@ absent, so the fix is to lead with sold and say on the page how much of the
 month it accounts for — the totals row does, whenever the named sales come to
 less than 90% of the month.
 
-**Performance** is four figures with job margin as the navy one — booked,
-invoiced, paid, and what was left of it — over one table of job types: jobs booked, invoices, revenue, and a bar.
+**Job types** is the row underneath Sectors: which kind of install, which kind
+of service, how long each is booked for and how long it really takes. See
+[Job types](#job-types-what-each-kind-of-work-is-booked-for-and-what-it-takes).
 
-The margin tile is the **per-job** figure — price before GST, less equipment and
-materials, less the hours at what an hour of the crew costs (see
-`src/lib/dashboard/jobProfit.ts`) — against the year goal's profit percentage,
-with the jobs it could cost said underneath, so a margin off four jobs never
-passes as a margin off the month. It used to come off `st_invoices.cost`, which
-is null on all 5,415 rows in the replica, so it read "—" on every day it was up.
-
-The table's bar is still that invoice-level margin, and **when no invoice
-carries a cost it is each type's share of the month instead.** The column was
-five empty grey tracks and a column of dashes, which from four metres reads as a
-broken chart rather than as missing data. A column that has never once held a
-figure is not holding a place, it is taking one. Share of the month's invoicing
-is measured, and it answers what the table is actually read for — where the
-month's money came from. The margin comes back on its own the day ServiceTitan
-starts sending a cost.
+It replaced **Performance**, which by then was three things that live better
+elsewhere — jobs booked is the Today page's own figure, time on the tools is the
+Crew page's, and the month's invoiced and paid totals are on Today and Pace —
+over a job-type table ranked by a month of invoices, whose margin column came
+off `st_invoices.cost` and has never once been populated (0 of 5,415 rows). The
+per-job margin those cards carried is the year's, on
+[Pace](#the-years-margin-is-the-years-not-the-months) and on Sectors.
 
 **Areas** is where the work is over the last 60 days, on a real map. Tiles are
 CARTO's light basemap — a full-colour one fights the orange heat sitting on it —
@@ -1081,7 +1074,7 @@ shows where the work is, over 90 days. The lead figures keep their own tile.
 
 **The Money page is gone.** Jake asked for it off the rotation. With Crew and
 Sectors since added, the board is ten pages: Today, Pace, Quotes, Invoices,
-Daily pace, Crew, Team, Performance, Sectors, Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
+Daily pace, Crew, Team, Job types, Sectors, Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
 still has it, arrangements and all. The payables read itself is left in place —
 `fetchXeroPayables`, the ageing and the on-terms split still run every five
 minutes and still reconcile — so the page is one revert away rather than a
@@ -1718,8 +1711,8 @@ the card, next to the only big number anybody had in mind — the $3.2M year goa
 So the day cards on **Today** and **Quotes** no longer carry a pace chip. They
 say what the day asks for instead: *$4,054 · of $11,093 today · 1 job sold*.
 That figure only goes up through the day, means the same thing at 9am and at
-5pm, and carries its own denominator. Judging is left to **Pace** and
-**Performance**, which measure the week and the month.
+5pm, and carries its own denominator. Judging is left to **Pace**, which
+measures the week and the month.
 
 Two things deliberately left alone:
 
@@ -1754,8 +1747,8 @@ against the same by-now, so the two pages cannot disagree about whether the day
 is going well.
 
 `Verdict` is one component and `headVerdictOf` is one function, used by the
-Today cards, the Quotes tiles and the Performance head cards, because four
-places each deciding what "on track" means is four chances to drift.
+Today cards and the Quotes tiles, because three places each deciding what "on
+track" means is three chances to drift.
 
 **Sold's by-now is computed, not read from `standing`.** The `sold` step there
 counts jobs, so its `byNow` is in jobs — the same unit trap that once put
@@ -1823,13 +1816,13 @@ being readable across the room, which costs more than the seventh card is worth.
 The header says "top 6 of 7" when somebody is not shown, so six never reads as
 everybody, and the team strip still counts them all.
 
-**The Performance head cards carry their verdict**, each against the thing that
-measures it: jobs booked and invoiced against the month's pace, margin against
-the margin goal itself (a rate is not something you accumulate half of by
-mid-month), and paid against the *same plan as invoiced* rather than against
-what we happened to invoice — the goal is revenue, and revenue is not revenue
-until it is banked. Paid will read behind invoiced most months because cash lags
-billing, and that gap is the thing worth seeing.
+**No page carries a verdict beside its name any more.** Performance did — the
+`completed` step of Pace, repeated — and the Job types page that replaced it is
+about which kind of job takes how long. Nothing sets a target for that, and
+borrowing Pace's month-completed verdict to sit beside a table of job types
+would be the board answering a question nobody asked on that page. The hook is
+written down in `ScreenBoard.tsx` where the function used to be, for the day a
+page earns one.
 
 ## The Team page
 
@@ -2049,16 +2042,19 @@ writing.
 
 ## Time on the tools, and the margin that isn't there
 
-The Performance page carries **Time on the tools**: hours the quote allowed
-against hours the crew clocked, over the jobs that carry both. It is the one
-figure on that page about doing the work rather than selling it, and it is
-blunt — 91.5 allowed against 141.7 taken this financial year, 55% over, 17 of 37
-jobs past their quoted time. A job priced at four hours that takes nine was sold
-at a margin it never had.
+Performance used to carry a **Time on the tools** card: hours the quote allowed
+against hours the crew clocked, over the jobs that carry both — 91.5 allowed
+against 141.7 taken in the financial year, 55% over, 17 of 37 jobs past their
+quoted time. A job priced at four hours that takes nine was sold at a margin it
+never had.
 
-Its population is narrower than the costed one and deliberately so: a job needs
-sold hours on the invoice **and** a timesheet, where costing takes hours from
-either. The job count is on the card for the same reason the margin's is.
+That comparison is now the Crew page's, per van rather than for the firm, and
+its denominator is wider: the Crew and Job types pages lead on the **time
+allowed** — the slot the job is booked into, which 458 of 490 attended jobs
+carry — and keep the sold-hours verdict beneath it, where 238 do. It also uses
+time on site rather than summed man-hours, which the old card did not, and which
+is the difference between a two-man install reading 2.0× its sold time and
+1.11×. See [Crew](#crew-each-van-over-the-year).
 
 **Quoted margin against achieved margin is not on the board, and this is why.**
 The estimate line items do carry a cost — `totalCost` and `unitCost` on each item
@@ -2328,7 +2324,7 @@ has to be looked at.**
 The Team band carries **Margin · sold**: what the month's sales were sold at,
 price against cost, ex-GST.
 
-**It is not the Job margin from the Performance page and must not be read as the
+**It is not the Job margin on the Pace strip and must not be read as the
 same number moving.** Job margin is what finished work actually made — invoice
 revenue less materials and the crew's hours — and it arrives weeks late, because
 a job sold in October is often installed and billed in December. Margin · sold
@@ -2376,12 +2372,32 @@ Fifth in the rotation, between Invoices and Crew, and the same table as
 [Crew](#crew-each-van-over-the-year) over one day: the same columns, the same
 arithmetic, out of the same function — `computeCrew` takes the start of its
 window, and the board asks it for the year and for today. That is what stops the
-two pages meaning different things by "in the time sold".
+two pages meaning different things by "in the time allowed".
 
 **Every figure carries the same figure over the year underneath it**, because
 that is the comparison the page is for. "6h on the tools" says nothing on its
-own; "6h, 3.5h on a usual day" says Jye had a big day. Likewise "29 min to a
-job · 34 min usually", "1 of 1 in the sold time · 62% of them usually".
+own; "6h, 3.5h on a usual day" says Jye had a big day. Likewise "29 min a job ·
+34 min usually", "3 of 3 · 82% usually".
+
+**Three things make it a day page rather than the Crew page with a shorter
+window** (Jake, 16 Nov):
+
+*It is judged on the time allowed, never on the time sold.* Nothing is invoiced
+until the office has been through the day, so a day page built on sold hours is
+empty on the day somebody reads it. The slot is on the job the moment it is
+booked. See the Crew section above for both yardsticks and their coverage.
+
+*Drive time is the day's total, with the average per job underneath.* "Add up
+all of their driving time for the day and then show the avg for each job" — the
+total is the figure a day is read by, four hours in the van being four hours,
+and the average is what makes two days of different length comparable. The Crew
+page leads on the average instead, because a year's total tells you nothing.
+
+*Billed came off.* It read "$0 · nothing billed yet" on every row until late
+afternoon, which is a measurement of the office's paperwork wearing a tech's
+name. The column is still on Crew, where a year has caught up with itself. That
+leaves seven columns rather than eight, and the space went to the slot
+comparison, which carries two figures on its second line.
 
 It replaced five gauge cards per tech — a dial for time against quoted, one for
 jobs off the list, one for billed. They read well for a single day and could not
@@ -2865,7 +2881,7 @@ above; this page's clocked count is the honest version of the same question.
 | On the tools | Hours clocked, and how many of their visits were clocked at all. |
 | Not billable | Of the 7:00–15:30 day, the part spent neither on a job nor driving to one. |
 | Drive | Average minutes a job over the jobs that recorded a drive, with the hours and the count beside it. |
-| In the time sold | Of the jobs with both a measured time on site and labour hours sold, the share that came in within a quarter hour of the sold time. |
+| In the time allowed | Of the jobs with both a measured time on site and a booked slot, the share that came in within a quarter hour of it — with the same figure against the invoice's sold hours underneath. |
 | Billed | Their share of what those jobs billed, before GST, and per hour on the clock. |
 | Work found on a visit | Quotes written on their maintenance and breakdown calls, and how many of those addresses had an install booked within 60 days. |
 
@@ -2879,17 +2895,34 @@ come in at 1.11× and 1.00×. So the job is judged once, on its time on site, an
 every tech who was on it carries that verdict. Nothing in the data separates two
 men on one install, and pretending otherwise is how you blame one of them.
 
-**Only the sold hours are used as the yardstick, never the job type's standard
-duration.** Both are available and they measure different things: against the
-invoice's sold hours the jobs come in at a median 0.82× with 62% inside, against
-ServiceTitan's job-type duration at 0.30× with 83% inside. Mixing them makes a
-tech's score depend on how many of their jobs happened to be invoiced with
-labour lines rather than on anything they did. That halves the coverage — 225 of
-418 completed jobs carry sold hours — and the column prints its denominator for
-exactly that reason. The way to widen it is labour lines on service invoices,
-not a second yardstick. (The Daily pace page still falls back to the standard
-time for its live dial, where blanking three techs in five for the day would be
-worse; it says which source each job used.)
+**The column leads on the time allowed, and carries the sold time underneath.**
+Two yardsticks exist and they measure different things, so the page shows both
+rather than mixing them — mixing them would make a tech's score depend on which
+of their jobs happened to be invoiced with labour lines.
+
+*Time allowed* is the slot ServiceTitan books the job type into, kept as
+`duration` (in seconds) on `st_job_types` and joined back through
+`job_type_id`: 1.5 hours for a split-system service, 4 for a split install, 20
+for a ducted one. It exists on the morning of the job and **458 of 490 attended
+jobs in the year carry one**. *Sold hours* arrive with the invoice, days later
+and only on what was billed by the hour: **238 do**. That is why the slot leads.
+
+They are not the same strictness and the page does not pretend they are: on the
+median, a job uses **0.62 of its slot** and **0.90 of its sold time**. Read the
+two figures in a cell as two different questions — "did it fit the booking" and
+"did it fit what the customer paid for" — not as one number disagreeing with
+itself. The gap is the booking being generous, which is worth knowing on its
+own and is what the [Job types](#job-types-what-each-kind-of-work-is-booked-for-and-what-it-takes)
+page is for.
+
+**A job booked for longer than the paid day is not judged against either.**
+"Installation - Ducted Refrigerated" is a twenty-hour slot run over two or three
+days; time on site is one continuous stretch, so a twenty-hour slot can only
+ever come in under. Those jobs are counted and timed like any other and left out
+of the rate, and the Job types page says so in the cell.
+
+Jake asked for this on 16 November, off the dispatch board: "it should more be
+time allow vs time sold as like break down you can sell it untill after".
 
 **Nothing on this page is status-coloured, and the rows carry no rank.** The
 status palette says where a figure sits against something that measures it, and
@@ -2917,6 +2950,14 @@ done; those are unioned per day so two overlapping jobs are not counted twice,
 and the union is clipped to the window, so a job that ran to six o'clock fills
 the rest of the day and no more.
 
+**Half an hour a day is a break, not idleness** (Jake, 16 Nov). It comes off
+each day's own gap, not off the window's total: a man who worked straight
+through on Tuesday does not bank Tuesday's half hour against Wednesday, and a
+day already full cannot go below nought idle because of it. The denominator
+stays the whole 8.5-hour day — the break is an allowance against what was idle,
+not an hour the business stopped paying for — so the card says "20% of the
+7–15:30 day · after a 30 min break".
+
 **It is counted only on days where every job was stamped both ways**, and this
 matters more than anything else on the page. Over every day worked, Dean's day
 comes out 4.24 hours idle; over the days everything was stamped, 2.71. Ray's
@@ -2934,6 +2975,60 @@ Code: `src/lib/dashboard/crew.ts`, `crewTypes.ts` (pure, tested by
 `npm run check:crew`), `CrewPage` in `ScreenBoard.tsx`. `computeCrew` takes the
 start of its window, and the board asks for two: the year, and today — which is
 the Daily pace page below.
+
+## Job types: what each kind of work is booked for, and what it takes
+
+The eighth page, where Performance was. Jake asked for it on 16 November: "the
+thing we could turn it into is like the job type, so if it is an install what
+type, and if it a matinace is a split or a ducted ect, and make it look like the
+crew type".
+
+It is the row underneath [Sectors](#sectors-maintenance-breakdowns-repairs-and-installs).
+Sectors answers the four kinds of work; this answers which kind of install and
+which kind of service — because "installs take 3.8 hours" has averaged a
+four-hour split system with a twenty-hour ducted job and said nothing about
+either.
+
+| Column | What it is |
+|---|---|
+| Job type | ServiceTitan's own job type name, with its sector and the jobs attended. |
+| Share of the work | Jobs of this type as a share of the commonest one, tinted by sector, with how many were clocked at all. |
+| Booked for | The slot the type is booked into — `duration` on `st_job_types`, in seconds. |
+| Takes | Time on site averaged over the jobs that were clocked, and what share of the slot that is. |
+| In the time | Of the jobs with both, how many came in within a quarter hour of the slot. |
+| Billed | What those jobs billed before GST, and the average over the ones that billed anything. |
+
+**The population is every job somebody was sent to**, vans and passengers
+alike — the page is about the work, not about who did it, and dropping a job
+because only a passenger was timesheeted on it would quietly shrink a job type.
+One row per job, so a return visit does not count the type twice, and the money
+is the job's whole price rather than anybody's share of it.
+
+**The average price is over the jobs that billed something, not over all of
+them.** A quote visit and a warranty call bill nothing by design, and averaging
+their zeroes in reads as the work being worth less than it is. It also prints in
+full digits rather than compacted: $1,559 a job reading "$2K a job" is a quarter
+out on the one number here somebody would repeat.
+
+**Nine types get a row and the rest are folded into one**, labelled with how
+many and counted into the totals. Forty job types with a handful of jobs each
+are a third of the year between them, and a table that quietly leaves them out
+is a table that does not add up. A folded row shows no slot — several slots are
+not a slot — and its average time is re-weighted by the jobs behind each row
+rather than being an average of averages.
+
+**What it is already saying.** Over the year to 16 November: a split-system
+service is booked for 1.5 hours and takes 1.1, coming in 36 times out of 42; a
+split install is booked for 4 and takes 3.7, 15 of 21; but **"Installation - AIO
+Heat Pump (Plug)" is booked for 3 hours, takes 3.3, and comes in 8 times out of
+18** — the one row on the page where the booking is wrong rather than the crew.
+
+A type needs five judged jobs before it shows a percentage; below that the cell
+is the count on its own, which is a fact either way.
+
+Code: `jobTypeKpis` and `rollUpTypes` in `crewTypes.ts` (pure, tested by
+`npm run check:crew`), grouped in `crew.ts` off the same jobs the Crew page
+reads, `JobTypesPage` and `TypeRow` in `ScreenBoard.tsx`.
 
 ## Sectors: maintenance, breakdowns, repairs and installs
 

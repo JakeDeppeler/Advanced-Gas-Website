@@ -1,6 +1,6 @@
 "use client";
 
-import { CREW_SECTORS, DAY_END_HOUR, DAY_START_HOUR, MIN_IDLE_DAYS, MIN_TIMED, type CrewSector, type TechKpi } from "@/lib/dashboard/crewTypes";
+import { BREAK_HOURS, CREW_SECTORS, DAY_END_HOUR, DAY_START_HOUR, LONGEST_ALLOWED_HOURS, MIN_IDLE_DAYS, MIN_TIMED, MIN_TYPE_TIMED, rollUpTypes, type CrewSector, type JobTypeKpi, type TechKpi } from "@/lib/dashboard/crewTypes";
 import type { SectorKey, VisitOutcomes } from "@/lib/dashboard/sectors";
 import { Fragment, type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
@@ -58,7 +58,7 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   "Daily pace": "screen__grid--daily",
   Crew: "screen__grid--crew",
   Team: "screen__grid--team",
-  Performance: "screen__grid--perf",
+  "Job types": "screen__grid--crew",
   Sectors: "screen__grid--sectors",
   Areas: "screen__grid--areas",
 };
@@ -69,25 +69,15 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
  * Pace names where its targets came from, because "63%" on a wall invites the
  * question and the answer is the whole point of the board.
  */
-/**
- * The badge beside a page's name: is this page's own measure on track?
+/*
+ * No page carries a badge beside its name any more.
  *
- * Only Performance carries one so far. Its headline question is whether the
- * month's work is getting done, so the badge is the `completed` step of Pace —
- * the same figure the Pace page's Completed dial shows, on the same done ÷
- * by-now scale as every other verdict on the board and as the footer's key. A
- * second scale invented for this one badge is how a board starts disagreeing
- * with itself.
+ * Performance carried one — the `completed` step of Pace, repeated — and the
+ * page that replaced it is about which kind of job takes how long. Nothing
+ * sets a target for that, and borrowing Pace's month-completed verdict to sit
+ * beside a table of job types would be the board answering a question nobody
+ * asked on that page. If a page earns one, it goes back here.
  */
-function headVerdict(name: (typeof PAGES)[number], m: Metrics): { verdict: string; text: string } | null {
-  if (name !== "Performance") return null;
-  const s = m.pace?.standing.month.completed;
-  if (!s || s.need == null) return null;
-  const index = paceIndex(s.done, s.byNow);
-  const verdict = verdictOf(index);
-  if (!verdict) return null;
-  return { verdict, text: verdictText(index, verdict) };
-}
 
 const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Today: () => "",
@@ -128,7 +118,13 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
       : "Who has sold what",
   // Says which population the page counts, because it was read as jobs twice
   // and it is invoices — a job can carry more than one.
-  Performance: () => `${monthName(new Date())} so far · booked and invoiced, by job type`,
+  // Says the window and what the two time figures are, because "4h" against
+  // "3.8h" is unreadable until you know which is the booking and which is the
+  // work.
+  "Job types": (m) =>
+    m.crew
+      ? `Every kind of work, last ${m.crew.days} days · the slot it is booked for against the time it takes`
+      : "Every kind of work · the slot it is booked for against the time it takes",
   Sectors: (m) => {
     const s = m.sectors;
     if (!s) return "Maintenance, breakdowns, repairs and installs";
@@ -556,15 +552,6 @@ export function ScreenBoard({
             thirty seconds, and re-running the animation for a changed minute
             would make the header twitch on its own. */}
         <span className="screen__title" key={name}>{name}</span>
-        {/* Whether the page's own headline measure is behind, close, on track
-            or ahead, right beside its name — so the room gets the answer before
-            reading any of the figures under it. The word is written out: this
-            is the board's status palette and it is never carried by hue alone. */}
-        {headVerdict(name, m) && (
-          <span className={`screen__verdict status status--${headVerdict(name, m)!.verdict}`}>
-            {headVerdict(name, m)!.text}
-          </span>
-        )}
         <span className="screen__subtitle">
           {name === "Today"
             ? `${now.toLocaleDateString("en-AU", {
@@ -676,7 +663,7 @@ export function ScreenBoard({
         {name === "Daily pace" && <DailyPacePage m={m} live={live} />}
         {name === "Crew" && <CrewPage m={m} live={live} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
-        {name === "Performance" && <PerformancePage m={m} live={live} />}
+        {name === "Job types" && <JobTypesPage m={m} live={live} />}
         {name === "Sectors" && <SectorsPage m={m} live={live} />}
         {name === "Areas" && <AreasPage m={m} live={live} />}
         </TickerScope.Provider>
@@ -1907,27 +1894,37 @@ function DailyPacePage({ m, live }: { m: Metrics; live: Live }) {
             : "no van fully stamped yet"
         }${y?.idle.share != null ? ` · ${pct(y.idle.share)} this year` : ""}`}
       />
+      {/* The day's driving added up, with the per-job average under it (Jake,
+          16 Nov). The total is the figure a day is read by — four hours in the
+          van is four hours — and the average is what makes two days of
+          different length comparable, so both are here and the total leads. */}
       <HeadCard
         label="Drive time"
-        value={t.drive.avgMins != null ? String(Math.round(t.drive.avgMins)) : NA}
-        suffix={t.drive.avgMins != null ? "min a job" : undefined}
-        foot={`${hrs(t.drive.hours)} · ${t.drive.jobs} of ${t.drive.of} jobs${
-          y?.drive.avgMins != null ? ` · ${Math.round(y.drive.avgMins)} min this year` : ""
+        value={hrs(t.drive.hours)}
+        foot={`${
+          t.drive.avgMins != null ? `${Math.round(t.drive.avgMins)} min a job` : "none recorded"
+        } · ${t.drive.jobs} of ${t.drive.of} jobs${
+          y?.drive.avgMins != null ? ` · ${Math.round(y.drive.avgMins)} min usually` : ""
         }`}
       />
+      {/* Against the slot the office booked, not against the invoice: nothing
+          is sold until after the day is over, so a day page built on sold
+          hours is mostly empty on the day somebody reads it. Jake, 16 Nov. */}
       <HeadCard
         navy
-        label="In the time sold"
-        value={t.inTime.of > 0 ? `${t.inTime.within} of ${t.inTime.of}` : NA}
-        foot={`${t.inTime.of > 0 ? "jobs with a sold time" : "no job today has a sold time"}${
-          y?.inTimeRate != null ? ` · ${pct(y.inTimeRate)} this year` : ""
-        }`}
+        label="In the time allowed"
+        value={t.allow.of > 0 ? `${t.allow.within} of ${t.allow.of}` : NA}
+        foot={`${
+          t.allow.of > 0
+            ? `${hrs(t.allow.allowed)} booked · ${hrs(t.allow.taken)} used`
+            : "no job today is booked by the hour"
+        }${y?.inAllowedRate != null ? ` · ${pct(y.inAllowedRate)} usually` : ""}`}
       />
 
       <div className="tile c12" style={{ gridRow: 2 }}>
         <div className="tile__head">
           <span className="tile__title">Today</span>
-          <span className="tile__sub">each figure against the same figure over the year</span>
+          <span className="tile__sub">each figure against the same figure over the year · judged on the slot each job is booked for</span>
           <span className="crew__legend">
             {CREW_SECTORS.map((k) => (
               <span className="crew__key" key={k}>
@@ -1937,15 +1934,19 @@ function DailyPacePage({ m, live }: { m: Metrics; live: Live }) {
             ))}
           </span>
         </div>
-        <div className="crew">
+        {/* Seven columns, not the Crew page's eight: Billed came off. Nothing
+            is invoiced until the office has been through the day, so the
+            column read "$0 · nothing billed yet" on every row until late
+            afternoon — a measurement of the office's paperwork wearing a
+            tech's name. Jake, 16 Nov. */}
+        <div className="crew crew--day">
           <div className="crew__head">
             <span>Tech</span>
             <span>Work</span>
             <span>On the tools</span>
             <span>Not billable</span>
             <span>Drive</span>
-            <span>In the time sold</span>
-            <span>Billed</span>
+            <span>In the time allowed</span>
             <span>Work found on a visit</span>
           </div>
           {d.techs.map((p) => (
@@ -1994,37 +1995,24 @@ function DayRow({ p, year }: { p: TechKpi; year: TechKpi | null }) {
         </span>
       </span>
 
+      {/* The day's driving added up, the average per job under it. */}
       <span className="crew__fig">
-        <b>{p.drive.avgMins != null ? `${Math.round(p.drive.avgMins)} min` : NA}</b>
+        <b>{hrs(p.drive.hours)}</b>
         <span>
-          {year?.drive.avgMins != null
-            ? `${Math.round(year.drive.avgMins)} min usually`
-            : `${p.drive.jobs} of ${p.drive.of} jobs`}
+          {p.drive.avgMins != null
+            ? `${Math.round(p.drive.avgMins)} min a job`
+            : `none of ${p.drive.of} recorded`}
+          {year?.drive.avgMins != null ? ` · ${Math.round(year.drive.avgMins)} min usually` : ""}
         </span>
       </span>
 
+      {/* The slot, not the invoice — see the head card above. */}
       <span className="crew__fig">
-        <b>{p.inTime.of > 0 ? `${p.inTime.within} of ${p.inTime.of}` : NA}</b>
+        <b>{p.allow.of > 0 ? `${p.allow.within} of ${p.allow.of}` : NA}</b>
         <span>
-          {p.inTime.of === 0
-            ? "none sold by the hour"
-            : year?.inTimeRate != null
-              ? `${pct(year.inTimeRate)} of them usually`
-              : "jobs with a sold time"}
-        </span>
-      </span>
-
-      <span className="crew__fig">
-        <b>{compact(p.billed)}</b>
-        {/* A day with nothing invoiced on it yet is most days until the office
-            catches up, so the line falls back to what an hour usually makes
-            rather than reading "$0 an hour". */}
-        <span>
-          {p.billed > 0 && p.perHour != null
-            ? `${compact(p.perHour)} an hour`
-            : year?.perHour != null
-              ? `${compact(year.perHour)} an hour usually`
-              : "nothing billed yet"}
+          {p.allow.of === 0
+            ? "none booked by the hour"
+            : `${hrs(p.allow.allowed)} booked · ${hrs(p.allow.taken)} used`}
         </span>
       </span>
 
@@ -2371,305 +2359,189 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
 }
 
 
-/* ------------------------------------------------------------ /05 Performance */
+/* ------------------------------------------------------------- /05 Job types */
 /**
- * Performance: what the month's work was worth, by the kind of job it was.
+ * Job types: the row underneath Sectors.
  *
- * One table, not two panels. The second panel here used to be top suburbs by
- * website lead, which is a different question on a page about job profitability
- * and is answered properly by the heat map on Areas — off thousands of jobs
- * rather than the thirty-odd rows the web form has ever produced.
+ * Sectors answers the four kinds of work. This answers the question Jake asked
+ * next (16 Nov): "if it is an install what type and if it a maintenance is a
+ * split or a ducted ect" — because "installs take 3.8 hours" has averaged a
+ * four-hour split system with a twenty-hour ducted job and said nothing about
+ * either.
  *
- * The goal line on each margin bar is the year goal's profit percentage. No
- * percentage set means no line, rather than a line at a number nobody chose.
+ * It replaced the Performance page, which had become three things that live
+ * better elsewhere: jobs booked is the Today page's own figure, time on the
+ * tools is the Crew page's, and the month's invoiced and paid totals are on
+ * Today and Pace. What was left was a job-type table ranked by a month of
+ * invoices, with a margin column off `st_invoices.cost` that has never once
+ * been populated.
+ *
+ * **Booked for** is the slot ServiceTitan books the type into — the width of
+ * the block on the dispatch board. **Takes** is time on site: first arrival to
+ * last done, over everyone who went. Not man-hours: the slot is the same four
+ * hours whether one turns up or two, so man-hours would read every two-man job
+ * as twice over. See the note on CrewVisit in crewTypes.ts.
  */
-/**
- * What the quote allowed against what the crew actually clocked.
- *
- * The one comparison on this page that is about doing the work rather than
- * selling it, and the one the office asked for: a job priced at four hours that
- * takes nine was sold at a margin it never had.
- *
- * It counts only jobs carrying *both* numbers — sold hours on the invoice and a
- * timesheet against the job — which is a narrower set than the costed one and a
- * small one either way. The count goes on the card, because thirty-seven jobs'
- * over-run is a different statement from the month's and the room has to be
- * able to see which it is being shown.
- *
- * Over the year rather than the month, alone among this page's cards: October
- * carries six such jobs and the year carries thirty-seven. Six jobs is a
- * fortnight's weather, so the card's sub line says which period it means.
- *
- * Quoted margin against achieved margin, the other half of what was asked for,
- * is not here: the estimate line items do carry a cost, but only seven jobs in
- * the year have both a quoted cost and a billed one, and seven is an anecdote.
- * See DASHBOARD.md.
- */
-function TimeCard({ jp, live }: { jp: Metrics["jobProfitMonth"]; live: Live }) {
-  const n = jp?.timeJobs ?? 0;
-  const allowed = jp?.timeAllowed ?? 0;
-  const actual = jp?.timeActual ?? 0;
-  // Over-run as a share of what was allowed: 91.5 allowed and 141.7 taken is
-  // 55% over, not 155%.
-  const over = n > 0 && allowed > 0 ? actual / allowed - 1 : null;
-  const hrs = (h: number) => `${h >= 100 ? Math.round(h) : h.toFixed(1)} hrs`;
-  // Under the quote is good, over is not. The same four-step palette as
-  // everything else, read in the direction that matters here.
-  const verdict = over == null ? null : over <= 0 ? "ahead" : over <= 0.1 ? "track" : over <= 0.3 ? "close" : "behind";
 
-  return (
-    <div className="tile c3">
-      <div className="tile__head">
-        <span className="tile__title">Time on the tools</span>
-        {/* The one card on a month page that isn't the month, and it says so.
-            October holds six jobs with both a quoted time and a timesheet; the
-            year holds thirty-seven. Six is not an over-run, it is a fortnight.
-            Just the period: "allowed vs taken" alongside it wrapped the title
-            onto two lines in a quarter-width card, and the two rows below
-            already name both halves. */}
-        <span className="tile__sub">last 30 days</span>
-      </div>
-      {!live.st || n === 0 ? (
-        <span className="tile__sub tile__sub--body">
-          {st.sub("No job this month carries both a quoted time and a timesheet", live)}
-        </span>
-      ) : (
-        <div className="timecard">
-          <span className={`timecard__fig status--${verdict}`}>
-            {over == null ? NA : `${over > 0 ? "+" : ""}${Math.round(over * 100)}%`}
-          </span>
-          <span className="timecard__say">{over != null && over > 0 ? "over the quote" : "inside the quote"}</span>
-          {/* Both bars scaled against the longer of the two, so the overhang is
-              the over-run drawn to scale rather than a percentage read twice. */}
-          <div className="timecard__bars">
-            <span className="timecard__row">
-              <span className="timecard__k">Allowed</span>
-              <b>{hrs(allowed)}</b>
-            </span>
-            <span className="timecard__bar">
-              <i className="is-allowed" style={{ width: `${(allowed / Math.max(allowed, actual)) * 100}%` }} />
-            </span>
-            <span className="timecard__row">
-              <span className="timecard__k">Taken</span>
-              <b>{hrs(actual)}</b>
-            </span>
-            <span className="timecard__bar">
-              <i
-                className={`is-actual status--${verdict}`}
-                style={{ width: `${(actual / Math.max(allowed, actual)) * 100}%` }}
-              />
-            </span>
-          </div>
-          <span className="tile__sub">
-            {count(jp?.timeOver ?? 0)} of {count(n)} {n === 1 ? "job" : "jobs"} ran over
-          </span>
-        </div>
-      )}
-    </div>
-  );
+/** How many types get a row of their own before the tail is folded into one. */
+const TYPE_ROWS = 9;
+
+/** Why a type carries no verdict, in the words that say which problem it is. */
+function unjudged(t: JobTypeKpi): string {
+  if (t.timed === 0) return "none clocked yet";
+  if (t.allowed == null) return "no slot set on the type";
+  if (t.allowed > LONGEST_ALLOWED_HOURS) return "booked across days";
+  return `${MIN_TYPE_TIMED} needed to rate`;
 }
 
-function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
-  const goal = m.marginGoal;
+function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
+  const c = m.crew;
+  const all = c?.jobTypes ?? [];
+  if (!live.st || all.length === 0) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Every kind of work</span>
+        <span className="tile__sub">
+          {!live.st
+            ? "ServiceTitan isn’t connected."
+            : c
+              ? "No job in the window has anybody timesheeted against it."
+              : "Worked out on the next sync."}
+        </span>
+      </div>
+    );
+  }
 
-  const rows = m.topJobTypes.map((t) => ({
-    ...t,
-    margin: t.profit != null && t.revenue > 0 ? t.profit / t.revenue : null,
-  }));
-
-  /**
-   * Margin, or — when there is none to show — each type's share of the month.
-   *
-   * The job-type table's margin comes off `st_invoices.cost`, and not one
-   * invoice in the replica carries one: 0 of 5,415. So the column was five empty
-   * grey tracks and a column of dashes, which from four metres reads as a broken
-   * chart rather than as missing data, and Jake asked why the line was grey.
-   *
-   * A column that has never once held a figure is not holding a place, it is
-   * taking one. Share of the month's invoicing goes there instead — measured,
-   * and it answers what the table is actually read for, which is where the
-   * month's money came from. The navy tile above still carries a real margin,
-   * worked per job from equipment cost and hours (see jobProfit.ts), and this
-   * column comes back on its own the day ServiceTitan starts sending a cost.
-   */
-  const anyMargin = rows.some((t) => t.margin != null);
-  const share = (revenue: number) => (m.revenueInvoicedMtd > 0 ? revenue / m.revenueInvoicedMtd : null);
-
-  // The tile's margin is the job-level one, not the invoice column's: the
-  // invoice column has never once been populated, so a tile built on it read
-  // "—" on every single day it has been up.
-  // The rolling thirty days. The month and year fields are only still read so a
-  // snapshot written before jobProfitRecent existed renders rather than blanks.
-  const jp = m.jobProfitRecent ?? m.jobProfitYear ?? m.jobProfitMonth;
+  const shown = all.slice(0, TYPE_ROWS);
+  const tail = all.slice(TYPE_ROWS);
+  // The tail is folded rather than dropped: thirty job types with one job each
+  // are a third of the year between them, and a table that quietly leaves them
+  // out is a table that doesn't add up.
+  const rest = tail.length > 0 ? rollUpTypes(tail, `${tail.length} other kinds`) : null;
+  const total = rollUpTypes(all, "All work");
+  // Every bar is a share of the commonest job, so the rows read down as volume.
+  const most = Math.max(1, ...all.map((t) => t.jobs));
 
   return (
     <>
-      {/* Three cards, and each says which population it counts. Jobs booked is
-          jobs created this month; everything else on this page is invoices, and
-          the two differ — 29 invoices against 20 jobs booked and 11 completed in
-          the same month, because ServiceTitan bills a job when it is billed and
-          one job can carry more than one invoice. The page was read as job
-          counts twice; now it says.
-
-          The foot names the work rather than the date, because the date was
-          never the interesting half. This counted every job created, installs
-          among them, and an install is not a booking — it exists because
-          something was already sold, so it was counted on the way in and again
-          at Sold and Completed. It was also judged against a target built from
-          quote visits and service calls, which made 78 look ahead of a plan
-          that had asked for 62. Same definition as the Pace funnel now, so one
-          word means one thing across the board. */}
       <HeadCard
-        label="Jobs booked"
-        value={st.count(m.bookingsMonth, live)}
-        verdict={headVerdictOf(m.bookingsMonth, m.pace?.standing.month.booked.byNow)}
-        foot="quote, repair and service jobs"
+        label="Jobs"
+        value={count(total.jobs)}
+        foot={`${count(all.length)} kinds of work · ${count(total.timed)} clocked`}
       />
       <HeadCard
-        label="Invoiced"
-        value={st.money(m.revenueInvoicedMtd, live)}
-        verdict={headVerdictOf(m.revenueInvoicedMtd, m.pace?.standing.month.invoiced.byNow)}
-        foot={live.st ? `${count(m.invoiceCountMonth)} invoices raised` : undefined}
+        label="Booked for"
+        value={bigHrs(total.slotHours.allowed)}
+        foot={`${hrs(total.slotHours.taken)} used · over ${count(total.inTime.of)} jobs`}
       />
-      {/* What turned up against what was asked for. The row was three cards in a
-          space built for four, with a quarter of it empty since profit came
-          off, and this is the figure that was missing from the story: booked,
-          invoiced, paid, and what was left of it. */}
-      {/* Measured against the same plan as Invoiced, not against what we
-          happened to invoice: the goal is revenue, and revenue is not revenue
-          until it is banked. It will read behind Invoiced most months, because
-          cash lags billing — that gap is the thing worth seeing. */}
       <HeadCard
-        label="Paid"
-        value={m.paidMonth == null ? NA : money(m.paidMonth)}
-        verdict={headVerdictOf(m.paidMonth, m.pace?.standing.month.invoiced.byNow)}
+        label="Billed"
+        value={compact(total.billed)}
+        /* `money` rather than `compact` on the per-job figure: compact rounds
+            to the nearest thousand, and $1,559 a job reading "$2K a job" is a
+            quarter out on the one number here somebody would repeat. */
         foot={
-          m.paidMonth == null
-            ? "payments not synced yet"
-            : m.revenueInvoicedMtd > 0
-              ? `${pct(m.paidMonth / m.revenueInvoicedMtd)} of what was invoiced`
-              : "banked this month"
+          total.avgBilled != null
+            ? `${money(total.avgBilled)} a job · ${count(total.billedJobs)} billed`
+            : "nothing billed in the window"
         }
       />
-      {/* Profit came off: it read "—" on every single day, because no invoice in
-          the tenant carries a cost. Margin stays because Jake asked for it, and
-          it is now the per-job figure — price before GST, less equipment and
-          materials, less the hours at what an hour of the crew costs — with the
-          jobs it could cost said underneath, so a margin off four jobs never
-          passes as a margin off the month. */}
+      {/* Navy, not a status colour: nothing sets a target for how often a job
+          should come in on its slot, so a green figure here would be the board
+          inventing one. Same rule as the Crew page. */}
       <HeadCard
         navy
-        label="Job margin"
-        value={live.st ? pct(jp?.margin ?? null) : NA}
-        /* Against the goal itself, not against a by-now share of it: a margin
-           is a rate, and a rate is not something you accumulate half of by the
-           middle of the month. */
-        verdict={headVerdictOf(jp?.margin ?? null, goal)}
-        suffix={goal != null && jp?.margin != null ? `of ${pct(goal)}` : undefined}
+        label="In the time allowed"
+        value={total.rate != null ? pct(total.rate) : NA}
         foot={
-          !live.st
-            ? undefined
-            : jp == null || jp.costed === 0
-              ? "no job costed this month yet"
-              : `over ${count(jp.costed)} of ${count(jp.jobs)} jobs billed · last 30 days`
+          total.inTime.of > 0
+            ? `${count(total.inTime.within)} of ${count(total.inTime.of)} jobs booked by the hour`
+            : "no job booked by the hour yet"
         }
       />
 
-      <TimeCard jp={jp} live={live} />
-
-      <div className="tile c9">
+      <div className="tile c12" style={{ gridRow: 2 }}>
         <div className="tile__head">
-          <span className="tile__title">Job types</span>
-          {/* The set-aside count is on the wall, not buried: a ranking that
-              quietly omits most of the invoices is a ranking you can't trust. */}
+          <span className="tile__title">Every kind of work</span>
           <span className="tile__sub">
-            this month
-            {m.jobTypeUnclassified > 0 ? ` · ${count(m.jobTypeUnclassified)} untyped` : ""}
+            booked for: the slot on the dispatch board · takes: first arrival to last done on site
+          </span>
+          <span className="crew__legend">
+            {CREW_SECTORS.map((k) => (
+              <span className="crew__key" key={k}>
+                <i className={`mix--${k}`} aria-hidden="true" />
+                {SECTOR_WORD[k]}
+              </span>
+            ))}
           </span>
         </div>
-        {rows.length === 0 ? (
-          <span className="tile__sub">{st.sub("No invoiced work in the this month", live)}</span>
-        ) : (
-          <div className="jt">
-            <div className="jt__head">
-              <span />
-              {/* Invoices, not jobs: the table is grouped from st_invoices, and
-                  a job can carry more than one. 29 invoices against 11 jobs
-                  completed this month is the kind of gap a wrong column heading
-                  turns into an argument. */}
-              {/* Booked leads invoiced: a month that takes a lot on and bills
-                  little of it reads as quiet on the invoice column alone. */}
-              <span>Booked</span>
-              <span>Invoices</span>
-              <span>Revenue</span>
-              <span className="jt__marginhead">
-                {anyMargin ? `Margin${goal != null ? ` · line is the ${pct(goal)} goal` : ""}` : "Share of the month"}
-              </span>
-              <span />
-            </div>
-            {rows.map((t) => {
-              const under = goal != null && t.margin != null && t.margin < goal;
-              const part = anyMargin ? null : share(t.revenue);
-              return (
-                <div className="jt__row" key={t.jobType}>
-                  <span className="jt__name">{t.jobType}</span>
-                  <span className="jt__n">{t.booked == null ? NA : count(t.booked)}</span>
-                  <span className="jt__n">{count(t.jobs)}</span>
-                  <span className="jt__n">{money(t.revenue)}</span>
-                  <span className="jt__bar">
-                    {anyMargin ? (
-                      t.margin == null ? null : (
-                        <>
-                          {/* Scaled to twice the goal, so a bar at the goal sits
-                              mid-track and the line has somewhere to be. Without
-                              a goal the scale is the best margin on the page. */}
-                          <span
-                            className={`jt__fill ${under ? "is-under" : "is-over"}`}
-                            style={{
-                              width: `${Math.min(100, (t.margin / (goal != null ? goal * 2 : Math.max(0.01, ...rows.map((r) => r.margin ?? 0)))) * 100)}%`,
-                            }}
-                          />
-                          {goal != null && <span className="jt__goal" />}
-                        </>
-                      )
-                    ) : part == null ? null : (
-                      // Share of the whole month, so the bars sit against the
-                      // figure in the tile above rather than against each other
-                      // — the top row is not automatically a full track.
-                      <span className="jt__fill" style={{ width: `${Math.min(100, part * 100)}%` }} />
-                    )}
-                  </span>
-                  <span className={`jt__pct ${anyMargin ? (t.margin == null ? "" : under ? "is-under" : "is-over") : "jt__pct--quiet"}`}>
-                    {anyMargin ? (t.margin == null ? NA : pct(t.margin)) : part == null ? NA : pct(part)}
-                  </span>
-                </div>
-              );
-            })}
-            {/* The five rows are a ranking, not the month. Jake asked for the
-                month's own totals under them because the obvious reading of a
-                table is that it adds up, and these five came to a third of the
-                invoiced figure in the tile above. Counted over every invoice,
-                untyped ones included, so this line and "Invoiced" agree. */}
-            <div className="jt__row jt__row--total">
-              <span className="jt__name">All work this month</span>
-              <span className="jt__n">{count(m.bookingsMonth)}</span>
-              <span className="jt__n">{count(m.invoiceCountMonth)}</span>
-              {/* Full digits, not $21K: this is the figure of the page and it
-                  gets read off the wall and repeated. */}
-              <span className="jt__n">{plain(m.revenueInvoicedMtd)}</span>
-              <span />
-              <span
-                className={`jt__pct ${
-                  anyMargin ? (m.marginPct == null ? "" : goal != null && m.marginPct < goal ? "is-under" : "is-over") : "jt__pct--quiet"
-                }`}
-              >
-                {anyMargin ? (m.marginPct == null ? NA : pct(m.marginPct)) : "100%"}
-              </span>
-            </div>
+        <div className="crew crew--types">
+          <div className="crew__head">
+            <span>Job type</span>
+            <span>Share of the work</span>
+            <span>Booked for</span>
+            <span>Takes</span>
+            <span>In the time</span>
+            <span>Billed</span>
           </div>
-        )}
+          {shown.map((t) => (
+            <TypeRow key={t.type} t={t} most={most} />
+          ))}
+          {rest && <TypeRow t={rest} most={most} folded />}
+        </div>
       </div>
     </>
+  );
+}
+
+/** One job type, or the folded tail of them. */
+function TypeRow({ t, most, folded }: { t: JobTypeKpi; most: number; folded?: boolean }) {
+  return (
+    <div className="crew__row">
+      <span className="crew__name">
+        {t.type}
+        <em>
+          {count(t.jobs)} {t.jobs === 1 ? "job" : "jobs"}
+          {folded ? "" : ` · ${SECTOR_WORD[t.sector]}`}
+        </em>
+      </span>
+
+      <span className="crew__mix">
+        <span className="crew__bar" aria-hidden="true">
+          <span className={`crew__seg mix--${t.sector}`} style={{ flexGrow: t.jobs }} />
+          {/* The rest of the track, so every bar is drawn to the same scale. */}
+          <span style={{ flexGrow: Math.max(0, most - t.jobs), flexBasis: 0 }} />
+        </span>
+        <span className="crew__mixnums">{`${count(t.timed)} of ${count(t.jobs)} clocked`}</span>
+      </span>
+
+      {/* A folded row covers several slots, and several slots are not a slot. */}
+      <span className="crew__fig">
+        <b>{t.allowed != null ? hrs(t.allowed) : NA}</b>
+        <span>{t.allowed != null ? "on the board" : folded ? "several slots" : "no slot set"}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{hrs(t.avgTaken)}</b>
+        <span>
+          {t.avgTaken != null && t.allowed != null && t.allowed <= LONGEST_ALLOWED_HOURS
+            ? `${pct(t.avgTaken / t.allowed)} of the slot`
+            : t.timed > 0
+              ? "on site, on average"
+              : "none clocked"}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)}` : NA}</b>
+        <span>{t.rate != null ? `${pct(t.rate)} came in on it` : unjudged(t)}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{compact(t.billed)}</b>
+        <span>{t.avgBilled != null ? `${money(t.avgBilled)} a job` : "nothing billed"}</span>
+      </span>
+    </div>
   );
 }
 
@@ -2819,9 +2691,13 @@ const SECTOR_WORD: Record<CrewSector, string> = {
   install: "installs",
   other: "other",
 };
+/* "break" was the short word for a breakdown until the Daily pace page started
+   allowing half an hour a day for a break: "1 break · 1 rep" beside a column
+   headed Not billable reads as a tea break. Diagnostics is what the job type
+   is actually called. */
 const SECTOR_SHORT: Record<CrewSector, string> = {
   maintenance: "maint",
-  breakdown: "break",
+  breakdown: "diag",
   repair: "rep",
   install: "inst",
   other: "other",
@@ -2890,7 +2766,7 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
         value={t.idle.share != null ? bigHrs(t.idle.hours) : NA}
         foot={
           t.idle.share != null
-            ? `${pct(t.idle.share)} of the ${dayWindow} day · over ${count(t.idle.days)} days`
+            ? `${pct(t.idle.share)} of the ${dayWindow} day · after a ${Math.round(BREAK_HOURS * 60)} min break`
             : `only ${count(t.idle.days)} days fully stamped`
         }
       />
@@ -2903,14 +2779,20 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
       />
       {/* Navy, not a status colour: it is the page's headline question and
           nothing sets a target for it. See the note above. */}
+      {/* Against the booked slot, with the invoice's own verdict beneath it.
+          Over the year 458 of 490 attended jobs carry a slot and 238 carry a
+          sold time, so the slot is the one that can speak for the whole crew;
+          the sold time stays because it is what the customer paid for. */}
       <HeadCard
         navy
-        label="In the time sold"
-        value={t.inTimeRate != null ? pct(t.inTimeRate) : NA}
+        label="In the time allowed"
+        value={t.inAllowedRate != null ? pct(t.inAllowedRate) : NA}
         foot={
-          t.inTimeRate != null
-            ? `${t.inTime.within} of ${t.inTime.of} jobs with a sold time`
-            : `${t.inTime.of} jobs with a sold time · too few to rate`
+          t.inAllowedRate != null
+            ? `${t.allow.within} of ${t.allow.of} jobs${
+                t.inTimeRate != null ? ` · ${pct(t.inTimeRate)} of the time sold` : ""
+              }`
+            : `${t.allow.of} jobs booked by the hour · too few to rate`
         }
       />
 
@@ -2937,7 +2819,7 @@ function CrewPage({ m, live }: { m: Metrics; live: Live }) {
             <span>On the tools</span>
             <span>Not billable</span>
             <span>Drive</span>
-            <span>In the time sold</span>
+            <span>In the time allowed</span>
             <span>Billed</span>
             <span>Work found on a visit</span>
           </div>
@@ -3001,12 +2883,17 @@ function CrewRow({ p }: { p: TechKpi }) {
         </span>
       </span>
 
+      {/* The slot leads and the sold time follows: see the head card. A man
+          with too few jobs booked by the hour to rate still gets the count,
+          because "3 of 4" is a fact and "—" is not. */}
       <span className="crew__fig">
-        <b>{p.inTimeRate != null ? pct(p.inTimeRate) : NA}</b>
+        <b>{p.inAllowedRate != null ? pct(p.inAllowedRate) : NA}</b>
         <span>
-          {p.inTimeRate != null
-            ? `${p.inTime.within} of ${p.inTime.of} jobs`
-            : `${p.inTime.of} jobs · ${MIN_TIMED} needed to rate`}
+          {p.inAllowedRate != null
+            ? `${p.allow.within} of ${p.allow.of} · ${
+                p.inTimeRate != null ? `sold ${pct(p.inTimeRate)}` : "booked by the hour"
+              }`
+            : `${p.allow.of} jobs · ${MIN_TIMED} needed to rate`}
         </span>
       </span>
 

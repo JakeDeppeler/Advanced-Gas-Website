@@ -41,6 +41,7 @@ import {
   VAN_TECHS_KEY,
   crewTeam,
   isVanTech,
+  jobTypeKpis,
   normaliseVans,
   techKpi,
   type Crew,
@@ -48,6 +49,7 @@ import {
   type CrewSector,
   type CrewVisit,
   type TechKpi,
+  type TypedJob,
 } from "./crewTypes";
 
 export * from "./crewTypes";
@@ -66,6 +68,7 @@ type Sheet = {
 type Job = {
   id: number;
   job_type: string | null;
+  job_type_id: number | null;
   status: string | null;
   location_id: number | null;
   completed_on: string | null;
@@ -118,7 +121,7 @@ export async function computeCrew(
   const techIds = [...new Set(live.map((s) => Number(s.technician_id)))];
   const jobIds = [...new Set(live.map((s) => Number(s.job_id)))];
 
-  const [names, jobRows, invoiceRows, booked, vanSetting] = await Promise.all([
+  const [names, jobRows, invoiceRows, booked, slots, vanSetting] = await Promise.all([
     sbSelect<{ id: number; name: string | null }>(
       "st_technicians",
       [q.select("id,name"), `id=in.(${techIds.join(",")})`].join("&"),
@@ -127,7 +130,7 @@ export async function computeCrew(
       chunk(jobIds, 200).map((ids) =>
         sbSelect<Job>(
           "st_jobs",
-          [q.select("id,job_type,status,location_id,completed_on"), `id=in.(${ids.join(",")})`].join("&"),
+          [q.select("id,job_type,job_type_id,status,location_id,completed_on"), `id=in.(${ids.join(",")})`].join("&"),
         ),
       ),
     ).then((pages) => pages.flat()),
@@ -149,9 +152,29 @@ export async function computeCrew(
         "limit=20000",
       ].join("&"),
     ),
+    /*
+     * How long each kind of job is booked for — the width of the block on the
+     * dispatch board. ServiceTitan keeps it on the job type as `duration`, in
+     * seconds, and sends nothing of it on the job itself, so it has to be
+     * joined back through `job_type_id`. Small table, read whole.
+     *
+     * This is the half of "did it come in on time" that exists before the job
+     * does. See the note on CrewVisit.allowed.
+     */
+    sbSelect<{ id: number; name: string | null; raw: { duration?: number | null } | null }>(
+      "st_job_types",
+      [q.select("id,name,raw"), "limit=1000"].join("&"),
+    ).catch(() => []),
     getSettings<unknown>(VAN_TECHS_KEY).catch(() => null),
   ]);
   const vans = normaliseVans(vanSetting ?? VAN_TECHS);
+
+  /** Job type id to the hours it is booked for. A zero duration is "not set". */
+  const slotOf = new Map<number, number>();
+  for (const t of slots) {
+    const secs = Number(t.raw?.duration ?? 0);
+    if (Number.isFinite(secs) && secs > 0) slotOf.set(Number(t.id), secs / 3600);
+  }
 
   const techName = new Map(names.map((t) => [Number(t.id), t.name ?? null]));
   const job = new Map(jobRows.map((j) => [Number(j.id), j]));
@@ -266,6 +289,7 @@ export async function computeCrew(
       hours: h,
       elapsed: elapsedOf(jid),
       sold: inv && inv.sold > 0 ? inv.sold : null,
+      allowed: j?.job_type_id != null ? slotOf.get(Number(j.job_type_id)) ?? null : null,
       billed: price,
       share: 0, // filled in below, once every tech on the job is known
       canFind,
@@ -375,6 +399,33 @@ export async function computeCrew(
   const techs = all.filter((t) => isVanTech(t.tech, vans)).sort((a, b) => b.jobs - a.jobs || b.hours - a.hours);
   const passengers = all.filter((t) => !isVanTech(t.tech, vans)).map((t) => t.tech);
 
+  /*
+   * The same jobs again, grouped by what kind of job they were rather than who
+   * went — the Job types page (Jake, 16 Nov).
+   *
+   * Counted over every job somebody was sent to, vans and passengers alike:
+   * this page is about the work, not about who did it, and dropping a job
+   * because only a passenger was timesheeted on it would quietly shrink a job
+   * type. One row per job, so a return visit does not count the type twice, and
+   * the money is the job's whole price rather than anybody's share of it.
+   */
+  const typed = new Map<number, TypedJob>();
+  for (const visits of byTech.values()) {
+    for (const [jid, v] of visits) {
+      if (typed.has(jid)) continue;
+      const name = job.get(jid)?.job_type?.trim();
+      if (!name) continue;
+      typed.set(jid, {
+        jobId: jid,
+        type: name,
+        sector: v.sector,
+        allowed: v.allowed,
+        elapsed: v.elapsed,
+        billed: v.billed,
+      });
+    }
+  }
+
   return {
     from: isoDateMelbourne(since),
     to: isoDateMelbourne(now),
@@ -383,5 +434,6 @@ export async function computeCrew(
     techs,
     passengers,
     team: crewTeam(techs),
+    jobTypes: jobTypeKpis([...typed.values()]),
   };
 }
