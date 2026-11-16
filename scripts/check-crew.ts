@@ -4,16 +4,22 @@
  * measurement, or rate a man off four jobs.
  */
 import {
+  BREAK_HOURS,
   DAY_HOURS,
   GRACE_HOURS,
+  LONGEST_ALLOWED_HOURS,
   MIN_IDLE_DAYS,
   MIN_TIMED,
+  MIN_TYPE_TIMED,
   VAN_TECHS,
   crewTeam,
   isVanTech,
+  jobTypeKpis,
   normaliseVans,
+  rollUpTypes,
   techKpi,
   type CrewVisit,
+  type TypedJob,
 } from "../src/lib/dashboard/crewTypes";
 
 let bad = 0;
@@ -28,6 +34,7 @@ const visit = (p: Partial<CrewVisit> & { jobId: number }): CrewVisit => ({
   hours: 1,
   elapsed: 1,
   sold: null,
+  allowed: null,
   billed: 0,
   share: 1,
   canFind: false,
@@ -116,9 +123,24 @@ const mix = techKpi(
   2,
 );
 ok("the paid day is 8.5 hours", DAY_HOURS === 8.5);
-ok("what is left over is the non-billable time", near(mix.idle.hours, 2 * DAY_HOURS - 10.5));
+ok("half an hour a day is a break, not idleness", BREAK_HOURS === 0.5);
+ok("what is left over, after the break, is the non-billable time",
+   near(mix.idle.hours, 2 * (DAY_HOURS - BREAK_HOURS) - 10.5), `${mix.idle.hours}`);
 ok("counted over the days every job was stamped", mix.idle.days === 2);
-ok("and the share is of what the business paid for on those days", near(mix.idle.share, 6.5 / 17));
+// The denominator stays the whole paid day: the break is an allowance against
+// what was idle, not an hour the business stopped paying for.
+ok("and the share is of what the business paid for on those days", near(mix.idle.share, 5.5 / 17));
+/*
+ * The break is per day and cannot be banked. Two days half an hour short of
+ * full are nothing idle; one day an hour short is half an hour idle. Taking an
+ * hour off the window total instead would score the first pair at nought and
+ * the second at nought too, and they are not the same day.
+ */
+const banked = techKpi("Br", [],
+  [{ day: "1", busy: DAY_HOURS - 0.5, full: true }, { day: "2", busy: DAY_HOURS - 0.5, full: true }], 1);
+ok("a half-hour gap on each of two days is the break, twice over", banked.idle.hours === 0);
+ok("an hour short on one day is half an hour over the break",
+   near(techKpi("Br2", [], [{ day: "1", busy: DAY_HOURS - 1, full: true }], 1).idle.hours, 0.5));
 ok("a day with a job unstamped is left out of both halves",
    !near(mix.idle.hours, 3 * DAY_HOURS - 15));
 ok("a day worked past knock-off never goes negative",
@@ -167,9 +189,78 @@ ok("and the non-billable share is over the team's days, not an average of averag
    crewTeam([
      techKpi("A", [], [{ day: "1", busy: 8.5, full: true }], 1),
      techKpi("B", [], [{ day: "1", busy: 0, full: true }, { day: "2", busy: 0, full: true }], 1),
-   ]).idle.share === 17 / (3 * DAY_HOURS));
+   ]).idle.share === 2 * (DAY_HOURS - BREAK_HOURS) / (3 * DAY_HOURS));
 ok("adds both halves of the rate", team.inTime.of === 3 && team.inTime.within === 0);
 ok("and rates the team on the whole of it, below MIN_TIMED", team.inTimeRate === null);
+
+
+
+console.log("\n-- the time allowed: the slot, not the invoice --");
+/*
+ * The slot is the job's, like the sold time: a four-hour install done by two
+ * men in three and a half hours came in on it, and both men carry that. The
+ * point of it is coverage — it exists on the morning of the job, where the sold
+ * hours arrive days later and only on what was billed by the hour.
+ */
+const slot = techKpi("S", [
+  visit({ jobId: 1, elapsed: 3.5, allowed: 4 }),
+  visit({ jobId: 2, elapsed: 2.0, allowed: 1.5 }),
+  // Sold nothing, so the invoice half cannot judge it. The slot still can.
+  visit({ jobId: 3, elapsed: 1.0, allowed: 1.5 }),
+]);
+ok("every job with a slot and a clock is judged", slot.allow.of === 3);
+ok("and the ones that came in are counted", slot.allow.within === 2, `${slot.allow.within}`);
+ok("the hours allowed and the hours used are both there",
+   near(slot.allow.allowed, 7) && near(slot.allow.taken, 6.5));
+ok("none of it needs an invoice", slot.inTime.of === 0);
+ok("the grace is the same quarter hour",
+   techKpi("S2", [visit({ jobId: 1, elapsed: 1.5 + GRACE_HOURS, allowed: 1.5 })]).allow.within === 1);
+/*
+ * A ducted install is booked for twenty hours and done over two or three days.
+ * Time on site is one continuous stretch, so a slot that long can only ever
+ * come in under. Left out of the rate rather than counted as a win.
+ */
+const ducted = techKpi("S3", [visit({ jobId: 1, elapsed: 7.5, allowed: 20 })]);
+ok("a slot longer than the paid day is not judged against one visit", ducted.allow.of === 0);
+ok("and the paid day is where that line is drawn", LONGEST_ALLOWED_HOURS === DAY_HOURS);
+ok("a job type with no slot set is not judged either",
+   techKpi("S4", [visit({ jobId: 1, elapsed: 2, allowed: null })]).allow.of === 0);
+ok("nor is one nobody clocked",
+   techKpi("S5", [visit({ jobId: 1, elapsed: null, allowed: 1.5 })]).allow.of === 0);
+ok(`below ${MIN_TIMED} judged jobs there is no rate`, slot.inAllowedRate === null);
+
+console.log("\n-- the job types --");
+const tj = (p: Partial<TypedJob> & { jobId: number; type: string }): TypedJob => ({
+  sector: "maintenance",
+  allowed: 1.5,
+  elapsed: 1,
+  billed: 0,
+  ...p,
+});
+const types = jobTypeKpis([
+  tj({ jobId: 1, type: "Service - Split System", billed: 300 }),
+  tj({ jobId: 2, type: "Service - Split System", elapsed: 2, billed: 500 }),
+  // Billed nothing: a quote visit or a warranty call. It is a job of this type
+  // and counts as one, but it must not drag the average price down.
+  tj({ jobId: 3, type: "Service - Split System", billed: 0 }),
+  tj({ jobId: 4, type: "Installation - Split System", sector: "install", allowed: 4, elapsed: 3.5, billed: 9000 }),
+]);
+ok("one row per job type, most jobs first", types.length === 2 && types[0].jobs === 3);
+ok("the slot is the type's own", types[0].allowed === 1.5 && types[1].allowed === 4);
+ok("the average is over the jobs that were timed", near(types[0].avgTaken, (1 + 2 + 1) / 3));
+ok("two of the three came in on the slot", types[0].inTime.of === 3 && types[0].inTime.within === 2);
+ok("the money is the whole job's", near(types[0].billed, 800));
+ok("and the average price is over the jobs that billed, not over all of them",
+   near(types[0].avgBilled, 400), `${types[0].avgBilled}`);
+ok(`below ${MIN_TYPE_TIMED} judged jobs a type shows no rate`, types[0].rate === null);
+ok("the sector comes with the row", types[1].sector === "install");
+
+const rest = rollUpTypes(types, "Everything else");
+ok("a rolled-up row adds the jobs", rest.jobs === 4);
+ok("and has no slot of its own, because several slots are not a slot", rest.allowed === null);
+ok("its average is weighted by the jobs behind each row",
+   near(rest.avgTaken, (1 + 2 + 1 + 3.5) / 4), `${rest.avgTaken}`);
+ok("and its price is over what actually billed", near(rest.avgBilled, 9800 / 3));
 
 console.log(bad === 0 ? "\nall good" : `\n${bad} failed`);
 process.exit(bad === 0 ? 0 : 1);

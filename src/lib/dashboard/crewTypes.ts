@@ -84,6 +84,28 @@ export const DAY_END_HOUR = 15.5;
 export const DAY_HOURS = DAY_END_HOUR - DAY_START_HOUR;
 
 /**
+ * Half an hour a day for a break is not idleness (Jake, 16 Nov).
+ *
+ * Deducted per day, not per window: the allowance is a break, and a man who
+ * worked straight through on Tuesday does not bank Tuesday's half hour against
+ * Wednesday. It is an allowance rather than a deduction — a day already full
+ * of work cannot go below zero idle because of it.
+ */
+export const BREAK_HOURS = 0.5;
+
+/**
+ * The longest slot a single visit can be judged against.
+ *
+ * ServiceTitan books "Installation - Ducted Refrigerated" for twenty hours,
+ * which is two or three days on site. Time on site is first arrival to last
+ * done inside one measurable stretch, so a twenty-hour slot can only ever come
+ * in under — the comparison is not a comparison. Anything booked longer than
+ * the paid day is counted and timed like any other job, and left out of the
+ * in-the-time rate with the page saying so.
+ */
+export const LONGEST_ALLOWED_HOURS = DAY_HOURS;
+
+/**
  * Non-billable time is counted **only on days where every job was fully
  * stamped** — a real span on each, and a recorded drive to each.
  *
@@ -119,6 +141,19 @@ export type CrewVisit = {
   elapsed: number | null;
   /** Labour hours sold on the job's invoice, or null when none were. */
   sold: number | null;
+  /**
+   * The slot ServiceTitan books this kind of job for, in hours — the width of
+   * the block on the dispatch board — or null where the job type sets none.
+   *
+   * This is the half of the comparison that exists on the morning of the job.
+   * Sold hours arrive with the invoice, days later and only on the jobs that
+   * were billed by the hour: over the year 458 of 490 attended jobs carry a
+   * slot and 238 carry a sold time, so a day page built on what was sold is
+   * mostly empty on the day it is read. Like the sold time it belongs to the
+   * job, not the man: the slot is the same four hours whether one turns up or
+   * two, so it is read against time on site, never against man-hours.
+   */
+  allowed: number | null;
   /**
    * The job's price before GST, and this tech's share of it.
    *
@@ -186,6 +221,16 @@ export type TechKpi = {
   inTime: { of: number; within: number };
   /** within ÷ of. Null below MIN_TIMED judged jobs. */
   inTimeRate: number | null;
+  /**
+   * The same question against the booked slot rather than the invoice: jobs
+   * judged, jobs that came in, and the two sides of it in hours.
+   *
+   * `allowed` and `taken` are summed over the judged jobs only, so the pair is
+   * a comparison — the hours a day was given against the hours it used.
+   */
+  allow: { of: number; within: number; allowed: number; taken: number };
+  /** within ÷ of over the slot. Null below MIN_TIMED judged jobs. */
+  inAllowedRate: number | null;
   /** Sold hours over time on site across those jobs. Above 1 is inside the time. */
   timeIndex: number | null;
   /** Their share of what those jobs billed, before GST. */
@@ -198,6 +243,55 @@ export type TechKpi = {
 
 export type CrewTeam = Omit<TechKpi, "tech">;
 
+/**
+ * One job, reduced to what the Job types page counts.
+ *
+ * Jake, 16 Nov: "if it is an install what type and if it a maintenance is a
+ * split or a ducted ect". The Sectors page answers the four kinds of work; this
+ * is the row below it — the actual job types inside each, with the slot each
+ * one is booked for against the time it really takes.
+ */
+export type TypedJob = {
+  jobId: number;
+  /** ServiceTitan's own job type name, as the office books it. */
+  type: string;
+  sector: CrewSector;
+  allowed: number | null;
+  elapsed: number | null;
+  billed: number;
+};
+
+/**
+ * The fewest judged jobs a job type needs before its rate is a rate.
+ *
+ * Lower than MIN_TIMED, which guards a person's score: a thin job type reads
+ * "3 of 4" either way, and the figure in front of it is a count rather than a
+ * percentage, so the floor is only deciding whether a percentage is added.
+ */
+export const MIN_TYPE_TIMED = 5;
+
+export type JobTypeKpi = {
+  type: string;
+  sector: CrewSector;
+  /** Jobs of this type somebody was sent to in the window. */
+  jobs: number;
+  /** The slot it is booked for. Null on a rolled-up row: several slots are not a slot. */
+  allowed: number | null;
+  /** Jobs with a measured time on site, and the average of it. */
+  timed: number;
+  avgTaken: number | null;
+  /** Judged against the slot, and how many came in. */
+  inTime: { of: number; within: number };
+  /** Over those judged jobs: the hours the slots allowed, and the hours used. */
+  slotHours: { allowed: number; taken: number };
+  /** within ÷ of. Null below MIN_TYPE_TIMED. */
+  rate: number | null;
+  /** What those jobs billed before GST, over how many billed anything. */
+  billed: number;
+  billedJobs: number;
+  avgBilled: number | null;
+};
+
 export type Crew = {
   from: string;
   to: string;
@@ -209,6 +303,11 @@ export type Crew = {
   /** Everyone who rode with them, so the page can say who is not on it. */
   passengers: string[];
   team: CrewTeam;
+  /**
+   * Every job type attended in the window, most jobs first. Optional so a
+   * snapshot written before the page existed still renders.
+   */
+  jobTypes?: JobTypeKpi[];
 };
 
 const noMix = (): Record<CrewSector, number> =>
@@ -236,6 +335,13 @@ export function techKpi(
   const within = judged.filter((v) => (v.elapsed as number) <= (v.sold as number) + GRACE_HOURS).length;
   const soldSum = judged.reduce((a, v) => a + (v.sold as number), 0);
   const onSite = judged.reduce((a, v) => a + (v.elapsed as number), 0);
+
+  // The same comparison against the slot the office booked. See LONGEST_ALLOWED_HOURS
+  // for why a job booked longer than the paid day is not judged here.
+  const slotted = visits.filter(
+    (v) => v.elapsed != null && v.allowed != null && v.allowed > 0 && v.allowed <= LONGEST_ALLOWED_HOURS,
+  );
+  const inSlot = slotted.filter((v) => (v.elapsed as number) <= (v.allowed as number) + GRACE_HOURS).length;
   const hours = timed.reduce((a, v) => a + (v.hours as number), 0);
   const find = visits.filter((v) => v.canFind);
   const billed = visits.reduce((a, v) => a + v.billed * v.share, 0);
@@ -246,7 +352,10 @@ export function techKpi(
   const told = days.filter((d) => d.full);
   const paid = told.length * DAY_HOURS;
   const busy = told.reduce((a, d) => a + d.busy, 0);
-  const idleHours = Math.max(0, paid - busy);
+  // Day by day, each with its own half hour for a break. Taking the break off
+  // the window total instead would let a flat-out Tuesday pay for a quiet
+  // Wednesday, which is not what an allowance is. See BREAK_HOURS.
+  const idleHours = told.reduce((a, d) => a + Math.max(0, DAY_HOURS - d.busy - BREAK_HOURS), 0);
 
   return {
     tech,
@@ -270,6 +379,13 @@ export function techKpi(
     },
     inTime: { of: judged.length, within },
     inTimeRate: judged.length >= MIN_TIMED ? within / judged.length : null,
+    allow: {
+      of: slotted.length,
+      within: inSlot,
+      allowed: slotted.reduce((a, v) => a + (v.allowed as number), 0),
+      taken: slotted.reduce((a, v) => a + (v.elapsed as number), 0),
+    },
+    inAllowedRate: slotted.length >= MIN_TIMED ? inSlot / slotted.length : null,
     timeIndex: judged.length >= MIN_TIMED && onSite > 0 ? soldSum / onSite : null,
     billed,
     // An hour is the floor: $403 an hour off twelve minutes on the clock is the
@@ -313,6 +429,13 @@ export function crewTeam(techs: TechKpi[]): CrewTeam {
     },
     inTime: { of, within },
     inTimeRate: of >= MIN_TIMED ? within / of : null,
+    allow: {
+      of: sum((t) => t.allow.of),
+      within: sum((t) => t.allow.within),
+      allowed: sum((t) => t.allow.allowed),
+      taken: sum((t) => t.allow.taken),
+    },
+    inAllowedRate: sum((t) => t.allow.of) >= MIN_TIMED ? sum((t) => t.allow.within) / sum((t) => t.allow.of) : null,
     timeIndex: null,
     billed,
     perHour: hours >= 1 ? billed / hours : null,
@@ -321,5 +444,91 @@ export function crewTeam(techs: TechKpi[]): CrewTeam {
       quoted: sum((t) => t.found.quoted),
       install: sum((t) => t.found.install),
     },
+  };
+}
+
+/**
+ * Each job type's window, from the jobs attended. Pure, like `techKpi`.
+ *
+ * One row per job type rather than per sector, because the question is which
+ * kind of install or which kind of service — a page that says "installs take
+ * 3.8 hours" has averaged a four-hour split system with a twenty-hour ducted
+ * job and answered nothing.
+ */
+export function jobTypeKpis(jobs: TypedJob[]): JobTypeKpi[] {
+  const by = new Map<string, TypedJob[]>();
+  for (const j of jobs) by.set(j.type, [...(by.get(j.type) ?? []), j]);
+
+  const rows = [...by.entries()].map(([type, list]) => {
+    const timed = list.filter((j) => j.elapsed != null);
+    const slotted = list.filter(
+      (j) => j.elapsed != null && j.allowed != null && j.allowed > 0 && j.allowed <= LONGEST_ALLOWED_HOURS,
+    );
+    const within = slotted.filter((j) => (j.elapsed as number) <= (j.allowed as number) + GRACE_HOURS).length;
+    const paid = list.filter((j) => j.billed > 0);
+    const billed = paid.reduce((a, j) => a + j.billed, 0);
+    // The slot is a property of the type, so any job of it carries the same
+    // one. Taking the max rather than the first guards a job whose type was
+    // renamed into this row with no duration of its own.
+    const allowed = list.reduce<number | null>(
+      (a, j) => (j.allowed != null && j.allowed > 0 ? Math.max(a ?? 0, j.allowed) : a),
+      null,
+    );
+    return {
+      type,
+      sector: list[0].sector,
+      jobs: list.length,
+      allowed,
+      timed: timed.length,
+      avgTaken: timed.length > 0 ? timed.reduce((a, j) => a + (j.elapsed as number), 0) / timed.length : null,
+      inTime: { of: slotted.length, within },
+      slotHours: {
+        allowed: slotted.reduce((a, j) => a + (j.allowed as number), 0),
+        taken: slotted.reduce((a, j) => a + (j.elapsed as number), 0),
+      },
+      rate: slotted.length >= MIN_TYPE_TIMED ? within / slotted.length : null,
+      billed,
+      billedJobs: paid.length,
+      // Over the jobs that billed something, not over every job attended: a
+      // quote visit and a warranty call bill nothing by design, and averaging
+      // their zeroes in reads as the work being worth less than it is.
+      avgBilled: paid.length > 0 ? billed / paid.length : null,
+    };
+  });
+
+  return rows.sort((a, b) => b.jobs - a.jobs || b.billed - a.billed);
+}
+
+/**
+ * Several job-type rows folded into one, for the tail of the table and its
+ * total line. `allowed` goes null: a row covering a four-hour install and a
+ * ninety-minute service has no slot of its own, and a number there would be
+ * read as one.
+ */
+export function rollUpTypes(rows: JobTypeKpi[], label: string, sector: CrewSector = "other"): JobTypeKpi {
+  const sum = (f: (r: JobTypeKpi) => number) => rows.reduce((a, r) => a + f(r), 0);
+  const timed = sum((r) => r.timed);
+  const of = sum((r) => r.inTime.of);
+  const within = sum((r) => r.inTime.within);
+  const billed = sum((r) => r.billed);
+  const billedJobs = sum((r) => r.billedJobs);
+  return {
+    type: label,
+    sector,
+    jobs: sum((r) => r.jobs),
+    allowed: null,
+    timed,
+    // Re-weighted by the jobs behind each row, not an average of averages: a
+    // type with two jobs would otherwise pull as hard as one with sixty.
+    avgTaken: timed > 0 ? sum((r) => (r.avgTaken ?? 0) * r.timed) / timed : null,
+    inTime: { of, within },
+    slotHours: {
+      allowed: sum((r) => r.slotHours.allowed),
+      taken: sum((r) => r.slotHours.taken),
+    },
+    rate: of >= MIN_TYPE_TIMED ? within / of : null,
+    billed,
+    billedJobs,
+    avgBilled: billedJobs > 0 ? billed / billedJobs : null,
   };
 }
