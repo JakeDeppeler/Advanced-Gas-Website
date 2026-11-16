@@ -2390,16 +2390,35 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
  * much work that turn into... like how many problem turn into a repair, install
  * or just a problem".
  *
- * So the page is four panels rather than one ranked table. A ranked table put
+ * So the page is five columns rather than one ranked table. A ranked table put
  * Service - Split System next to Installation - Ducted Refrigerated and invited
  * the room to read one against the other; grouped, every row's neighbours are
  * the rows it is actually comparable to.
+ *
+ * The columns run the long way across the panel rather than two by two (Jake,
+ * 16 Nov). Each is narrow, so a row stacks instead of spreading: the name and
+ * the count on top, then the money, then the slot, then what it turned into.
+ * Two by two gave wider rows but put Repairs below the fold on a 768-high
+ * panel, and the eye had to travel back up the page to compare two sectors.
  */
 const PANEL_SECTORS: Array<[CrewSector, string]> = [
   ["maintenance", "Service"],
   ["breakdown", "Breakdowns"],
   ["install", "Installs"],
   ["repair", "Repairs"],
+  /*
+   * The fifth panel, added once the figures argued for it (Jake, 16 Nov).
+   * ServiceTitan's job types put quote visits, warranty calls, site
+   * assessments and return visits in none of the four sectors, so they were
+   * counted in the head cards and named there — until the live snapshot showed
+   * those 78 visits led to 13 installs worth $90K, which is more follow-on
+   * money than breakdowns and service put together. The biggest source of work
+   * on the page is not something to leave off it.
+   *
+   * Named for what is mostly in it and honest about the rest: 60 of the 78 are
+   * quote visits, and the panel's own rows show what the others are.
+   */
+  ["other", "Quotes & other"],
 ];
 
 /** Types with a row of their own in a panel, before the tail is folded into one. */
@@ -2411,7 +2430,10 @@ const TYPES_PER_SECTOR = 4;
  * and the noise is the two the eye reads first.
  */
 function shortType(name: string): string {
-  const cut = name.replace(/^(service|diagnostics|installation|repair|commercial\s*[–-]\s*\w+)\s*[–-]\s*/i, "");
+  const cut = name.replace(
+    /^(service|diagnostics|installation|repair|quotation|commercial\s*[–-]\s*\w+)\s*[–-]\s*/i,
+    "",
+  );
   return cut.trim() || name;
 }
 
@@ -2456,7 +2478,6 @@ function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
       // with a handful of jobs each, and a panel that leaves them out is a
       // panel whose rows do not add up to its own heading.
       rest: tail.length > 0 ? rollUpTypes(tail, `${tail.length} other kinds`, key) : null,
-      most: Math.max(1, ...rows.map((t) => t.jobs)),
     };
   });
   // Quote visits, warranty calls, site assessments and the like. Counted in the
@@ -2541,13 +2562,11 @@ function SectorPanel({
   head,
   shown,
   rest,
-  most,
 }: {
   label: string;
   head: JobTypeKpi;
   shown: JobTypeKpi[];
   rest: JobTypeKpi | null;
-  most: number;
 }) {
   const led = head.led.install + head.led.repair;
   return (
@@ -2556,7 +2575,11 @@ function SectorPanel({
         <span className="jtp__name">{label}</span>
         <span className="jtp__tot">
           {count(head.jobs)} jobs · {compact(head.billed)}
-          {head.jobs > 0 ? ` · ${pct(led / head.jobs)} turned into work` : ""}
+        </span>
+        {/* The sector's own answer to the page's question, on its own line so
+            it is the second thing read in the column rather than the fourth. */}
+        <span className="jtp__led1">
+          {head.jobs > 0 ? `${pct(led / head.jobs)} turned into work` : "nothing yet"}
         </span>
       </div>
       {head.jobs === 0 ? (
@@ -2564,9 +2587,9 @@ function SectorPanel({
       ) : (
         <div className="jtp__rows">
           {shown.map((t) => (
-            <TypeRow key={t.type} t={t} most={most} />
+            <TypeRow key={t.type} t={t} />
           ))}
-          {rest && <TypeRow t={rest} most={most} folded />}
+          {rest && <TypeRow t={rest} folded />}
         </div>
       )}
     </div>
@@ -2574,58 +2597,48 @@ function SectorPanel({
 }
 
 /** One job type inside its sector's panel, or the folded tail of them. */
-function TypeRow({ t, most, folded }: { t: JobTypeKpi; most: number; folded?: boolean }) {
+function TypeRow({ t, folded }: { t: JobTypeKpi; folded?: boolean }) {
   const led = t.led.install + t.led.repair;
   return (
     <div className="jtp__row">
-      <span className="jtp__type">
-        {folded ? t.type : shortType(t.type)}
-        <em>
-          {t.allowed != null
-            ? `${hrs(t.avgTaken)} of ${hrs(t.allowed)} · ${
-                t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)} on it` : unjudged(t)
-              }`
-            : folded
-              ? "several slots"
-              : unjudged(t)}
-        </em>
+      <span className="jtp__top">
+        <span className="jtp__type">{folded ? t.type : shortType(t.type)}</span>
+        <b className="jtp__jobs">{count(t.jobs)}</b>
       </span>
 
-      <span className="jtp__n">
-        <b>{count(t.jobs)}</b>
-        {/* Every row's bar is a share of the biggest in its own panel, so the
-            panel reads down as volume without the rows competing across it. */}
-        <span className="jtp__vol" aria-hidden="true">
-          <span className={`mix--${t.sector}`} style={{ flexGrow: t.jobs }} />
-          <span style={{ flexGrow: Math.max(0, most - t.jobs), flexBasis: 0 }} />
-        </span>
+      <span className="jtp__meta">
+        {compact(t.billed)}
+        {t.avgBilled != null ? ` · ${money(t.avgBilled)} each` : " · nothing billed"}
       </span>
 
-      <span className="jtp__fig">
-        <b>{compact(t.billed)}</b>
-        <span>{t.avgBilled != null ? `${money(t.avgBilled)} each` : "nothing billed"}</span>
+      <span className="jtp__meta">
+        {t.allowed != null
+          ? `${hrs(t.avgTaken)} of ${hrs(t.allowed)} · ${
+              t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)} on it` : unjudged(t)
+            }`
+          : folded
+            ? "several slots"
+            : unjudged(t)}
       </span>
 
-      <span className="jtp__led">
-        {/* Three segments that add to the row, so the bar is a whole bar. The
-            words are beside it: these are three shades and nobody reads a shade
-            from four metres. */}
-        <span className="jtp__bar" aria-hidden="true">
-          <span className="mix--install" style={{ flexGrow: t.led.install }} />
-          <span className="mix--repair" style={{ flexGrow: t.led.repair }} />
-          <span className="jtp__none" style={{ flexGrow: t.led.none }} />
-        </span>
-        <span className="jtp__ledwords">
-          {led === 0
-            ? "just the job"
-            : [
-                t.led.install > 0 ? `${t.led.install} install` : null,
-                t.led.repair > 0 ? `${t.led.repair} repair` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-          {t.led.billed > 0 ? ` · ${compact(t.led.billed)}` : ""}
-        </span>
+      {/* Three segments that add to the row, so the bar is a whole bar. The
+          words are under it: these are three shades and nobody reads a shade
+          from four metres. */}
+      <span className="jtp__bar" aria-hidden="true">
+        <span className="mix--install" style={{ flexGrow: t.led.install }} />
+        <span className="mix--repair" style={{ flexGrow: t.led.repair }} />
+        <span className="jtp__none" style={{ flexGrow: t.led.none }} />
+      </span>
+      <span className="jtp__ledwords">
+        {led === 0
+          ? "just the job"
+          : [
+              t.led.install > 0 ? `${t.led.install} install` : null,
+              t.led.repair > 0 ? `${t.led.repair} repair` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+        {t.led.billed > 0 ? ` · ${compact(t.led.billed)}` : ""}
       </span>
     </div>
   );
