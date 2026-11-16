@@ -868,6 +868,36 @@ screen is what the quote is built from), weekly finance figures in the
 pricebook (no finance product or rate is written down anywhere), and jobs per
 day on the timesheet (ServiceTitan's job assignments aren't synced).
 
+## Every page says the period it measures
+
+A chip beside each page's name, in the same place on all ten, saying the window
+that page's figures cover: `today`, `this week and month`, `22 June – today ·
+5 months`, `17 Sept – today · 2 months`.
+
+Jake asked for it (16 Nov) and he asked because he had just been caught by it:
+"is the sectors is this per year?" **Sectors is not a year.** It asks for 365
+days and is then clamped to `ST_LEDGER_FROM`, the day ServiceTitan became the
+ledger, so it covers two months. Crew and Job types ask for the same 365 days
+and get five, because the first job and the first timesheet are both 22 June
+2026. Ten pages measuring ten different periods, with the period named in the
+prose of some of them, is how a room compares two figures that were never
+comparable.
+
+**The chip says what is true, not what was asked for.** `Crew.firstDay` is the
+earliest stamp actually in the window, so the chip reads "22 June – today"
+rather than "last 365 days", which would be a sentence about an intention. The
+span is spelled out beside the date — "· 5 months" — because "since 22 June"
+needs a calendar and four metres is too far to do arithmetic. Days below sixty,
+months above, so a new tenant never reads "0 months".
+
+It is quiet on purpose: a hairline outline and the muted ink, at the weight of
+a label rather than a figure. It is on every page, and at the title's weight it
+would be the second thing read nine times a rotation.
+
+Where a page named its own window in its subtitle, that text came out — the
+chip is the one place, so the two can never drift apart. Code: `WINDOWS` and
+`since()` in `ScreenBoard.tsx`, `.screen__when` in `screen.css`.
+
 ## Pace: what the goal needs of every step
 
 Set on the portal's **Pace** page (`/portal/pace`), which writes the same
@@ -3024,12 +3054,24 @@ what the room compares is the five sector headings against each other. The
 describes; it was the page subtitle until the subtitle ran past the panel edge
 at 1920.
 
-| Column | What it is |
+Each column heads with four lines — its jobs and money, its share turned into
+work, and how often its work comes in on the slot — and then one block per job
+type:
+
+| Line | What it is |
 |---|---|
-| Job type | The name with its sector stripped — "Split System" under a panel headed *Service* — over the slot, the time it takes, and how often it came in. |
-| Jobs | Jobs of this type somebody was sent to, with a bar for its share of the panel's commonest type. |
-| Billed | What those jobs billed before GST, and the average over the ones that billed anything. |
-| Turned into | An install or a repair booked at that address within 60 days, as a three-part bar and in words, with what the follow-on work has billed. |
+| Name and count | The name with its sector stripped — "Split System" under a column headed *Service* — and the jobs somebody was sent to. |
+| The muted line | What those jobs billed before GST, the average over the ones that billed anything, and the time they take against the slot they are booked into. |
+| The bar and its words | An install or a repair booked at that address within 60 days, as a three-part bar and in words, with what the follow-on work has billed. |
+
+**A row is a block, not four lines above a hairline** (Jake, 16 Nov: "is there
+a way we can make this easier to read"). Twenty-eight muted lines in a column
+separated by rules read as one list, and the eye lost which money belonged to
+which name; alternating tint, rounded corners and a gap do what the rules were
+failing to. The row also lost a line to buy the padding: "36 of 42 on it" was a
+column of denominators nobody reads downwards, and it moved to the column head
+as one figure for the sector. The row still carries "1.1h of 1.5h", which says
+over or under at a glance without arithmetic.
 
 **"Turned into" is Jake's second question** (16 Nov): "how many problem turn
 into a repair, install or just a problem". So three buckets that add to the row:

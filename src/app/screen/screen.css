@@ -148,6 +148,21 @@ body:has(.screen) .utilbar {
   line-height: 1;
 }
 
+/* The window each page measures, between its name and the line describing it.
+   Quiet on purpose: it is a label, not a figure, and it is on every page — at
+   the weight of the title it would be the second thing read nine times a
+   rotation. See WINDOWS in ScreenBoard.tsx. */
+.screen__when {
+  flex: none;
+  padding: calc(0.1 * var(--u)) calc(0.6 * var(--u));
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  font-size: calc(0.92 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
 .screen__subtitle {
   font-size: calc(1.02 * var(--u));
   color: var(--ink-2);
@@ -1326,7 +1341,7 @@ body:has(.screen) .utilbar {
 .jtp__tot { font-size: calc(0.86 * var(--u)); color: var(--ink-2); }
 .jtp__led1 { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); font-weight: 700; }
 .jtp__empty { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); padding-top: calc(0.5 * var(--u)); }
-.jtp__rows { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.jtp__rows { display: flex; flex-direction: column; flex: 1; min-height: 0; padding-top: calc(0.25 * var(--u)); }
 /* A narrow column, so the row stacks: name and count, the money, the slot,
    then what it turned into. */
 .jtp__row {
@@ -1336,12 +1351,16 @@ body:has(.screen) .utilbar {
   flex: 1;
   justify-content: center;
   min-width: 0;
-  border-top: 1px solid var(--hairline);
-  /* Tight: five rows of four lines each have to clear the tile, and at 1600x900
-     the last row's "4 install · $19K" was sitting under the bottom edge. */
-  padding: calc(0.1 * var(--u)) 0;
+  /* Each row is its own block rather than four lines above a hairline: a
+     column of twenty-eight muted lines separated by rules reads as one list,
+     and the eye loses which money belongs to which name. Alternating tint and
+     a gap do what the rules were failing to. */
+  border-radius: calc(0.5 * var(--u));
+  padding: calc(0.3 * var(--u)) calc(0.45 * var(--u));
+  margin-bottom: calc(0.18 * var(--u));
 }
-.jtp__row:first-child { border-top: 0; }
+.jtp__row:nth-child(odd) { background: var(--track); }
+.jtp__row:last-child { margin-bottom: 0; }
 .jtp__top { display: flex; align-items: baseline; gap: calc(0.4 * var(--u)); min-width: 0; }
 .jtp__type {
   flex: 1;

@@ -481,8 +481,15 @@ export async function computeCrew(
     }
   }
 
+  // The earliest stamp in the window, for the header chip. See Crew.firstDay.
+  const firstStamp = live.reduce<number>(
+    (a, s) => Math.min(a, Date.parse(s.arrived_on as string)),
+    Number.POSITIVE_INFINITY,
+  );
+
   return {
     from: isoDateMelbourne(since),
+    firstDay: Number.isFinite(firstStamp) ? isoDateMelbourne(new Date(firstStamp)) : undefined,
     to: isoDateMelbourne(now),
     days: Math.max(1, Math.round((now.getTime() - since.getTime()) / DAY)),
     followDays: FOLLOW_DAYS,

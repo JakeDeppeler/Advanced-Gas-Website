@@ -70,14 +70,61 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
  * question and the answer is the whole point of the board.
  */
 /*
- * No page carries a badge beside its name any more.
+ * No page carries a *verdict* badge beside its name any more.
  *
  * Performance carried one — the `completed` step of Pace, repeated — and the
  * page that replaced it is about which kind of job takes how long. Nothing
  * sets a target for that, and borrowing Pace's month-completed verdict to sit
  * beside a table of job types would be the board answering a question nobody
  * asked on that page. If a page earns one, it goes back here.
+ *
+ * What every page does carry is the window it measures, below.
  */
+
+/**
+ * The period each page is measuring, in the same place on every page.
+ *
+ * Jake asked for it (16 Nov: "at the top of each tab have the time frame that
+ * it is measuring so it's more clear"), and he asked because he had just been
+ * caught out by it: Sectors reads as a year and is in fact clamped to the day
+ * ServiceTitan became the ledger, which is two months. Nine pages measuring
+ * nine different periods with the period named in the prose of some of them is
+ * how a room compares two figures that were never comparable.
+ *
+ * It says what is true rather than what was asked for. Crew and Job types ask
+ * for 365 days and get what exists, which starts the day ServiceTitan did — so
+ * the chip reads "22 Jun – today", not "last 365 days". See Crew.firstDay.
+ */
+const WINDOWS: Record<(typeof PAGES)[number], (m: Metrics) => string | null> = {
+  Today: () => "today",
+  Pace: () => "this week, month and year",
+  Quotes: () => "today, and everything still out",
+  Invoices: () => "everything owed, now",
+  "Daily pace": () => "today",
+  Crew: (m) => since(m.crew?.firstDay ?? m.crew?.from),
+  Team: () => "this week and month",
+  "Job types": (m) => since(m.crew?.firstDay ?? m.crew?.from),
+  Sectors: (m) => since(m.sectors?.from),
+  Areas: () => "last 60 days",
+};
+
+/**
+ * "22 Jun – today · 5 months", from an ISO date.
+ *
+ * The span is spelled out beside the date because "since 22 Jun" needs a
+ * calendar and four metres is too far to do arithmetic. Months once there are
+ * two, days before that — "0 months" on a new tenant would be worse than the
+ * number it replaced.
+ */
+function since(from: string | null | undefined): string | null {
+  if (!from) return null;
+  const start = new Date(`${from}T00:00:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  const days = Math.max(0, Math.round((Date.now() - start.getTime()) / 86_400_000));
+  const months = Math.round(days / 30.4);
+  const span = days < 60 ? `${days} days` : `${months} months`;
+  return `${shortDay(from)} – today · ${span}`;
+}
 
 const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Today: () => "",
@@ -100,9 +147,9 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // page about people has to lead with what it did not measure.
   Crew: (m) => {
     const c = m.crew;
-    if (!c) return "Each van, this year";
+    if (!c) return "Each van";
     const t = c.team.timed;
-    return `Each van, last ${c.days} days · ${t.with} of ${t.of} visits have a start and finish clocked${
+    return `Each van · ${t.with} of ${t.of} visits have a start and finish clocked${
       c.passengers.length > 0 ? ` · ${c.passengers.length} riding with them` : ""
     }`;
   },
@@ -123,21 +170,21 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // work.
   "Job types": (m) =>
     m.crew
-      ? `Each sector and the job types under it, last ${m.crew.days} days`
+      ? "Each sector and the job types under it"
       : "Each sector and the job types under it",
   Sectors: (m) => {
     const s = m.sectors;
     if (!s) return "Maintenance, breakdowns, repairs and installs";
-    return `Each kind of work, and what it leads to · jobs billed ${shortDay(s.from)} to today, before GST`;
+    return "Each kind of work, and what it leads to · jobs billed in the window, before GST";
   },
-  Areas: () => "Where the work is · last 60 days",
+  Areas: () => "Where the work is, on the corridor",
   // Says what the second line of every cell is, because a page of pairs is
   // unreadable until you know which half is today.
   "Daily pace": (m) => {
     const d = m.crewToday;
     if (!d) return "Each van's day, against its year";
     const t = d.team.timed;
-    return `Today against the year · ${t.with} of ${t.of} visits clocked${
+    return `Each figure against the same figure over the year · ${t.with} of ${t.of} visits clocked${
       d.passengers.length > 0 ? ` · ${d.passengers.length} riding with them` : ""
     }`;
   },
@@ -552,6 +599,9 @@ export function ScreenBoard({
             thirty seconds, and re-running the animation for a changed minute
             would make the header twitch on its own. */}
         <span className="screen__title" key={name}>{name}</span>
+        {/* The period this page measures, in the same place on every page, so
+            two pages are never silently compared over different ones. */}
+        {WINDOWS[name](m) && <span className="screen__when">{WINDOWS[name](m)}</span>}
         <span className="screen__subtitle">
           {name === "Today"
             ? `${now.toLocaleDateString("en-AU", {
@@ -2442,6 +2492,19 @@ function shortType(name: string): string {
   return cut.trim() || name;
 }
 
+/**
+ * The time half of a row's one muted line: what it takes against what it is
+ * booked for, or why neither can be said.
+ *
+ * "— of 1h · none clocked" was two ways of saying the same absence, so a type
+ * nobody has clocked leads with the slot instead.
+ */
+function slotLine(t: JobTypeKpi, folded?: boolean): string {
+  if (t.allowed == null) return folded ? "several slots" : unjudged(t);
+  if (t.avgTaken == null) return `booked for ${hrs(t.allowed)} · none clocked`;
+  return `${hrs(t.avgTaken)} of ${hrs(t.allowed)}`;
+}
+
 /** Why a type carries no verdict, in the words that say which problem it is. */
 function unjudged(t: JobTypeKpi): string {
   if (t.timed === 0) return "none clocked";
@@ -2565,6 +2628,18 @@ function SectorPanel({
         <span className="jtp__led1">
           {head.jobs > 0 ? `${pct(led / head.jobs)} turned into work` : "nothing yet"}
         </span>
+        {/* And how often this sector comes in on its slot. It was a fourth line
+            on every row — "36 of 42 on it" — which is a column of denominators
+            nobody reads across. Once per sector is where it belongs; the row
+            still shows its own "1.1h of 1.5h", which says over or under at a
+            glance without arithmetic. */}
+        <span className="jtp__tot">
+          {head.rate != null
+            ? `${pct(head.rate)} in the time allowed`
+            : head.inTime.of > 0
+              ? `${count(head.inTime.within)} of ${count(head.inTime.of)} in the time allowed`
+              : "none booked by the hour"}
+        </span>
       </div>
       {head.jobs === 0 ? (
         <span className="jtp__empty">Nothing of this kind in the window.</span>
@@ -2590,23 +2665,12 @@ function TypeRow({ t, folded }: { t: JobTypeKpi; folded?: boolean }) {
         <b className="jtp__jobs">{count(t.jobs)}</b>
       </span>
 
+      {/* Money and time on one line. They were two, and four lines of muted
+          grey under every name is what made a column hard to read from across
+          the room. */}
       <span className="jtp__meta">
-        {compact(t.billed)}
-        {t.avgBilled != null ? ` · ${money(t.avgBilled)} each` : " · nothing billed"}
-      </span>
-
-      <span className="jtp__meta">
-        {/* "— of 1h · none clocked" is two ways of saying the same absence, so
-            a type nobody has clocked leads with the slot instead. */}
-        {t.allowed == null
-          ? folded
-            ? "several slots"
-            : unjudged(t)
-          : t.avgTaken == null
-            ? `booked for ${hrs(t.allowed)} · none clocked`
-            : `${hrs(t.avgTaken)} of ${hrs(t.allowed)} · ${
-                t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)} on it` : unjudged(t)
-              }`}
+        {t.avgBilled != null ? `${compact(t.billed)} · ${money(t.avgBilled)} each` : "nothing billed"}
+        {` · ${slotLine(t, folded)}`}
       </span>
 
       {/* Three segments that add to the row, so the bar is a whole bar. The
