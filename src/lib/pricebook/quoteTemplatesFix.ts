@@ -5,6 +5,7 @@ import { logAuto, type AutoEntry } from "@/lib/automation/log";
 import { templatePatchItems, type TemplateItem } from "./labour";
 import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "./templateShape";
 import { OTHER_TEMPLATES } from "./quoteTemplateSpecs";
+import { plainText } from "./wording";
 
 /** Templates kept as plain lines: the heater-and-evap discount has to show (quoteTemplateSpecs.ts › flat). */
 const FLAT = new Set(OTHER_TEMPLATES.filter((t) => t.flat).map((t) => t.code));
@@ -19,7 +20,7 @@ const FLAT = new Set(OTHER_TEMPLATES.filter((t) => t.flat).map((t) => t.code));
  * inside the group, as the office's own templates have them.
  */
 
-type Live = { id: number; name?: string; internalName?: string | null; mode?: string; totalPrice?: number; items?: TemplateItem[] };
+type Live = { id: number; name?: string; internalName?: string | null; mode?: string; totalPrice?: number; summary?: string | null; items?: TemplateItem[] };
 const KEY = "quote_templates_added";
 const LOOK = "quote_templates_look";
 
@@ -43,7 +44,7 @@ export async function lookAtTemplates(): Promise<{ templates: number; proposals:
     })),
     at: new Date().toISOString(),
     templates: all.map((t) => ({
-      id: t.id, name: t.name, code: t.internalName ?? null, mode: t.mode ?? null, total: t.totalPrice ?? null,
+      id: t.id, name: t.name, code: t.internalName ?? null, mode: t.mode ?? null, total: t.totalPrice ?? null, summary: plainText(t.summary),
       items: (t.items ?? []).map((i) => ({
         id: i.id, skuId: i.skuId, type: i.skuType, name: (i.skuName ?? "").trim(), qty: i.quantity, price: i.unitPrice, cost: i.unitCost ?? null,
         addOn: i.isAddOn, group: i.itemGroupName ?? null, under: i.itemGroupParentId ?? null, parent: i.parentItemId ?? null,
