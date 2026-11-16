@@ -3007,6 +3007,23 @@ baseline as every other and the comparison is one sweep. The columns are narrow,
 so a row stacks rather than spreading: the name and the count, the money, the
 slot, then what it turned into.
 
+**There are no head cards, and this is the one page on the board without them**
+(Jake, 16 Nov: "do we remove the top header like the jobs and billed to make
+more room"). Every figure the four cards carried is already in the page — each
+column heads with its own jobs, money and share turned into work — so they were
+buying a fifth of the height to repeat the sum of what was underneath them. The
+page totals go on one line in the tile's head instead, and the room went into
+rows: four job types a column became six, which stopped the install column
+folding Evaporative Cooler, Commercial – Installation and Split Heat Pump into
+"12 other kinds".
+
+It is also the one page with no navy card. Nothing here is measured against a
+target anybody set, so the navy was carrying emphasis rather than meaning, and
+what the room compares is the five sector headings against each other. The
+60-day rule moved to the front of the legend, where it sits beside the bar it
+describes; it was the page subtitle until the subtitle ran past the panel edge
+at 1920.
+
 | Column | What it is |
 |---|---|
 | Job type | The name with its sector stripped — "Split System" under a panel headed *Service* — over the slot, the time it takes, and how often it came in. |

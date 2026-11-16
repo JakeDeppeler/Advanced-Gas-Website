@@ -123,8 +123,8 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // work.
   "Job types": (m) =>
     m.crew
-      ? `Each sector and the job types under it, last ${m.crew.days} days · what each one turns into`
-      : "Each sector and the job types under it · what each one turns into",
+      ? `Each sector and the job types under it, last ${m.crew.days} days`
+      : "Each sector and the job types under it",
   Sectors: (m) => {
     const s = m.sectors;
     if (!s) return "Maintenance, breakdowns, repairs and installs";
@@ -2421,8 +2421,13 @@ const PANEL_SECTORS: Array<[CrewSector, string]> = [
   ["other", "Quotes & other"],
 ];
 
-/** Types with a row of their own in a panel, before the tail is folded into one. */
-const TYPES_PER_SECTOR = 4;
+/**
+ * Types with a row of their own in a column, before the tail is folded into
+ * one. Six since the head cards came off and the columns took the whole tile:
+ * at four, the install column was folding Installation - Evaporative Cooler
+ * and Installation - Split Heat Pump into "12 other kinds".
+ */
+const TYPES_PER_SECTOR = 6;
 
 /**
  * The job type without the sector already written above it: "Service - Split
@@ -2480,59 +2485,38 @@ function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
       rest: tail.length > 0 ? rollUpTypes(tail, `${tail.length} other kinds`, key) : null,
     };
   });
-  // Quote visits, warranty calls, site assessments and the like. Counted in the
-  // head cards and named here rather than silently missing off the panels.
-  const offPanel = total.jobs - panels.reduce((a, p) => a + p.head.jobs, 0);
   const ledJobs = total.led.install + total.led.repair;
 
+  /*
+   * No head cards: the five columns get the whole tile (Jake, 16 Nov).
+   *
+   * Every figure the cards carried is already in the page — each column heads
+   * with its own jobs, money and share turned into work — so four cards of
+   * totals were buying a fifth of the height to repeat the sum of what was
+   * underneath them. The page totals go on one line in the tile's head
+   * instead, which is where the room went: four job types a column became six,
+   * and the install column stopped folding its fifth-biggest type away.
+   *
+   * It is the one page on the board with no navy card. Nothing here is
+   * measured against a target anybody set, so the navy was carrying emphasis
+   * rather than meaning, and what the room actually compares is the five
+   * sector headings against each other.
+   */
   return (
     <>
-      <HeadCard
-        label="Jobs"
-        value={count(total.jobs)}
-        foot={`${count(all.length)} kinds of work${offPanel > 0 ? ` · ${count(offPanel)} quote visits and the like` : ""}`}
-      />
-      {/* Jake's question, at the top of the page it is asked on. */}
-      <HeadCard
-        label="Turned into work"
-        value={`${count(ledJobs)} of ${count(total.jobs)}`}
-        foot={`${count(total.led.install)} led to an install · ${count(total.led.repair)} to a repair${
-          total.led.billed > 0 ? ` · ${compact(total.led.billed)} billed` : ""
-        }`}
-      />
-      <HeadCard
-        label="Billed"
-        value={compact(total.billed)}
-        /* `money` rather than `compact` on the per-job figure: compact rounds
-           to the nearest thousand, and $1,559 a job reading "$2K a job" is a
-           quarter out on the one number here somebody would repeat. */
-        foot={
-          total.avgBilled != null
-            ? `${money(total.avgBilled)} a job · ${count(total.billedJobs)} billed`
-            : "nothing billed in the window"
-        }
-      />
-      {/* Navy, not a status colour: nothing sets a target for how often a job
-          should come in on its slot, so a green figure here would be the board
-          inventing one. Same rule as the Crew page. */}
-      <HeadCard
-        navy
-        label="In the time allowed"
-        value={total.rate != null ? pct(total.rate) : NA}
-        foot={
-          total.inTime.of > 0
-            ? `${count(total.inTime.within)} of ${count(total.inTime.of)} jobs booked by the hour`
-            : "no job booked by the hour yet"
-        }
-      />
-
-      <div className="tile c12" style={{ gridRow: 2 }}>
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
         <div className="tile__head">
           <span className="tile__title">Each kind of work</span>
+          {/* What the four head cards used to say, on one line. */}
           <span className="tile__sub">
-            turned into: an install or repair booked at that address within {c?.followDays ?? 60} days
+            {`${count(total.jobs)} jobs · ${compact(total.billed)} · ${count(ledJobs)} turned into work`}
+            {total.rate != null ? ` · ${pct(total.rate)} in the time allowed` : ""}
           </span>
           <span className="crew__legend">
+            {/* The rule, in front of the three keys it qualifies — it was the
+                page subtitle until the subtitle ran past the panel edge at
+                1920, and it belongs next to the bar it describes anyway. */}
+            <span className="crew__key">within {c?.followDays ?? 60} days:</span>
             <span className="crew__key">
               <i className="mix--install" aria-hidden="true" />
               led to an install
@@ -2612,13 +2596,17 @@ function TypeRow({ t, folded }: { t: JobTypeKpi; folded?: boolean }) {
       </span>
 
       <span className="jtp__meta">
-        {t.allowed != null
-          ? `${hrs(t.avgTaken)} of ${hrs(t.allowed)} · ${
-              t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)} on it` : unjudged(t)
-            }`
-          : folded
+        {/* "— of 1h · none clocked" is two ways of saying the same absence, so
+            a type nobody has clocked leads with the slot instead. */}
+        {t.allowed == null
+          ? folded
             ? "several slots"
-            : unjudged(t)}
+            : unjudged(t)
+          : t.avgTaken == null
+            ? `booked for ${hrs(t.allowed)} · none clocked`
+            : `${hrs(t.avgTaken)} of ${hrs(t.allowed)} · ${
+                t.inTime.of > 0 ? `${count(t.inTime.within)} of ${count(t.inTime.of)} on it` : unjudged(t)
+              }`}
       </span>
 
       {/* Three segments that add to the row, so the bar is a whole bar. The
