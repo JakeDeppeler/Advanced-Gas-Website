@@ -31,9 +31,15 @@ type Progress = { templates?: Record<string, number>; grouped?: Record<string, s
  * a template really charges (ServiceTitan prices a template's service lines
  * from the pricebook, whatever was sent) before anything is changed.
  */
-export async function lookAtTemplates(): Promise<{ templates: number; saved: boolean }> {
+export async function lookAtTemplates(): Promise<{ templates: number; proposals: number; saved: boolean }> {
   const all = await stList<Live>("sales", "estimate-templates", { active: "True" }, 5);
+  // The proposals too, with the templates each offers: a proposal can't be read back by its id.
+  const proposals = await stList<Record<string, unknown>>("sales", "proposal-templates", {}, 5).catch(() => [] as Record<string, unknown>[]);
   const look = {
+    proposals: proposals.map((p) => ({
+      id: p.id, name: p.name, active: p.active ?? null, type: p.proposalTypeName ?? null,
+      options: (Array.isArray(p.options) ? p.options : []).map((o: Record<string, unknown>) => ({ order: o.order, templateId: o.estimateTemplateId, template: o.estimateTemplateName ?? null, optionId: o.proposalTypeOptionId })),
+    })),
     at: new Date().toISOString(),
     templates: all.map((t) => ({
       id: t.id, name: t.name, code: t.internalName ?? null, mode: t.mode ?? null, total: t.totalPrice ?? null,
@@ -44,7 +50,7 @@ export async function lookAtTemplates(): Promise<{ templates: number; saved: boo
     })),
   };
   const saved = await saveSettings(LOOK, look);
-  return { templates: look.templates.length, saved: saved.ok };
+  return { templates: look.templates.length, proposals: look.proposals.length, saved: saved.ok };
 }
 
 /** The 15 Nov templates, grouped as Jake lays a quote out. */
