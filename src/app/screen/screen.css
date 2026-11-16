@@ -1332,7 +1332,7 @@ body:has(.screen) .utilbar {
 .jtp__row {
   display: flex;
   flex-direction: column;
-  gap: calc(0.1 * var(--u));
+  gap: calc(0.07 * var(--u));
   flex: 1;
   justify-content: center;
   min-width: 0;
@@ -1346,13 +1346,15 @@ body:has(.screen) .utilbar {
 .jtp__type {
   flex: 1;
   min-width: 0;
-  font-size: calc(1.02 * var(--u));
+  /* Small enough that most type names hold one line in a fifth of the panel.
+     At 1.02u, three of them wrapped and the seventh row fell off the bottom. */
+  font-size: calc(0.95 * var(--u));
   font-weight: 800;
   color: var(--navy);
   letter-spacing: -0.02em;
   line-height: 1.15;
-  /* Wraps rather than ellipses: "AIO Heat Pump (Pl…" is the wrong half of the
-     name, and the row has the height for a second line. */
+  /* Wraps rather than ellipses where it still must: "AIO Heat Pump (Pl…" is
+     the wrong half of the name, and the row has the height for a second. */
   overflow-wrap: anywhere;
 }
 .jtp__jobs {
@@ -1364,18 +1366,18 @@ body:has(.screen) .utilbar {
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
-.jtp__meta { font-size: calc(0.78 * var(--u)); color: var(--ink-muted); line-height: 1.2; }
+.jtp__meta { font-size: calc(0.76 * var(--u)); color: var(--ink-muted); line-height: 1.15; }
 .jtp__bar {
   display: flex;
   gap: 1px;
-  height: calc(0.5 * var(--u));
+  height: calc(0.45 * var(--u));
   border-radius: calc(0.25 * var(--u));
   overflow: hidden;
   background: var(--track);
   margin-top: calc(0.08 * var(--u));
 }
 .jtp__bar > span { flex-basis: 0; min-width: 0; }
-.jtp__ledwords { font-size: calc(0.8 * var(--u)); color: var(--ink-2); line-height: 1.2; font-weight: 600; }
+.jtp__ledwords { font-size: calc(0.78 * var(--u)); color: var(--ink-2); line-height: 1.15; font-weight: 600; }
 /* The third segment is "nothing came of it", so it is the track colour rather
    than a fifth tint — an absence should not read as a category. */
 .jtp__none { background: #dcd8cb; }
