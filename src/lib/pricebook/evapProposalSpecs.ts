@@ -5,14 +5,17 @@ import { EVAP_UNITS, evapTemplate, type Colour, type EvapUnit } from "./quoteTem
  * Brivis Advance, Premium = Promina, Premium Plus = Contour, the same size in
  * each; one set per colour, since each option is a template for one unit in
  * one colour. On the office's own "Basic, Premium, Premium Plus" proposal
- * type, as the heat pump and gas heater proposals are. Advance stops at 66
- * (its next size is the 86), so the 76 offers Promina and Contour.
- * Pure, for scripts/check-quote-templates.ts.
+ * type, as the heat pump and gas heater proposals are.
+ *
+ * The Advance isn't made in a 76 (Rinnai's 1 Apr 2026 price list goes 66 then
+ * 86), so the 76's Basic is the F86DS, the next size up (Jake, 16 Nov: "use
+ * the Advance F86DS for the 76"). It still sells under the P76 ($2,710 to
+ * $2,820), so the three stay in price order. Pure, for scripts/check-quote-templates.ts.
  */
 export const BASIC_PREMIUM = { typeId: 1813, optionIds: { 1: 1814, 2: 1815, 3: 1816 } as Record<number, number> };
 
 const RANGES: { series: EvapUnit["series"]; model: (size: string) => string }[] = [
-  { series: "Advance", model: (s) => `F${s}DS` },
+  { series: "Advance", model: (s) => (s === "76" ? "F86DS" : `F${s}DS`) },
   { series: "Promina", model: (s) => `P${s}` },
   { series: "Contour", model: (s) => `L${s}` },
 ];
