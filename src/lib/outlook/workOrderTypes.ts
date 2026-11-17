@@ -121,7 +121,7 @@ export const WORK_ORDER_SCHEMA = {
     job_type: { type: "string", description: "The ServiceTitan job type for the visit, from the list given. A request to quote is 'Quotation'; a fault is the Diagnostics type for the appliance." },
     urgent: { type: "boolean" },
     is_cancellation: { type: "boolean", description: "True if this email cancels or withdraws a work order, quote request or job already sent to us (then is_work_order is false). Fill in the address and number of what's being cancelled." },
-    owner: { type: "string", description: "The property owner the work order is issued for, as written, e.g. 'Tie Hong Tang' from 'issued on behalf of the owner - Tie Hong Tang (Owner)'. Empty if it doesn't say." },
+    owner: { type: "string", description: "The property owner the work order is issued for, as written, e.g. 'Tie Hong Tang' from 'issued on behalf of the owner - Tie Hong Tang (Owner)', or on a Tapi page the 'Invoice to' name before 'c/o' the agency. Empty if it doesn't say." },
     is_real_estate: { type: "boolean", description: "True when it comes from a real estate agency, property manager or their maintenance platform about a rental. False for a builder, developer, body corporate, business or homeowner." },
     work_kind: { type: "string", enum: ["Maintenance", "Diagnostics"], description: "Maintenance for a routine service, safety or compliance check, or other planned work on something that works. Diagnostics when something is faulty, broken, leaking or disconnected and needs finding, fixing or quoting." },
   },
@@ -645,3 +645,36 @@ export function propertyTypeFrom(text: string): string | null {
 
 /** Which Real Estate business unit a work order goes under, by name. Null when it isn't a rental's. */
 export const realEstateUnitName = (w: Pick<WorkOrder, "isRealEstate" | "workKind">) => (w.isRealEstate ? `Real Estate - ${w.workKind}` : null);
+
+/** A visit's end: the job type's own length, an hour and a half when it has none, never under half an hour. */
+export function visitEnd(startIso: string, durationSeconds: number | null): string {
+  const secs = durationSeconds && durationSeconds >= 1800 && durationSeconds <= 12 * 3600 ? durationSeconds : 5400;
+  return new Date(Date.parse(startIso) + secs * 1000).toISOString();
+}
+
+/* ------------------------------------------------------------ Tapi */
+
+/**
+ * Tapi's emails say little ("Kim sent a message", "Full details are in the
+ * Tapi work order"); the page their link opens, without signing in, has the
+ * tenant, key number, owner ("Invoice to"), property manager and the full
+ * description (Jake, 18 Nov). Only a link of exactly this shape is opened.
+ */
+export const TAPI_LINK = /https:\/\/tapi\.app\/issue\/[0-9a-f-]{36}\/t\/[0-9a-f-]{36}\?s=[A-Za-z0-9]{4,40}/;
+
+export const tapiLinkIn = (text: string) => TAPI_LINK.exec(text.replace(/&amp;/g, "&"))?.[0] ?? null;
+
+/** Lines that are the page's buttons and dialogs, not the work order. */
+const TAPI_CHROME = /^(×|-->|Cancel|Delete|Previous|\/|Next|View document|Download file|Loading file …|Delete photo|Delete attachment|Are you sure .*|Close|Send message|New message|To:|Message:|Enter a message\.|Print|·|View as myself|Help|Log in|About Tapi|Tapi|Optional\.|Open in Google Maps|Show more)$/;
+
+/** The page's words, without its scripts, buttons and the dialogs after the work order. */
+export function tapiPageText(html: string): string {
+  const words = html
+    .replace(/<(script|style|svg|noscript|template)[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]+>/g, "\n")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&#x27;/g, "'").replace(/&[a-z]+;|&#\d+;/gi, " ");
+  const lines = words.split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter((l) => l && !TAPI_CHROME.test(l));
+  // Everything after the job's own health & safety section is Tapi's dialogs.
+  const end = lines.findIndex((l, i) => i > 10 && /^Health & safety information for this property$/.test(l));
+  return (end > 0 ? lines.slice(0, end) : lines).join("\n").slice(0, 8000);
+}

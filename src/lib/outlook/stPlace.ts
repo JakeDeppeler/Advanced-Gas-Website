@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
-import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, realEstateUnitName } from "./workOrderTypes";
+import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, realEstateUnitName, visitEnd } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -214,7 +214,8 @@ async function createLocation(customerId: number, w: WorkOrder, zip: string): Pr
   return made.id;
 }
 
-type JobType = { id: number; name: string; bus: number[] };
+/** duration: ServiceTitan's own for the type, in seconds (most are 5400, an hour and a half). */
+type JobType = { id: number; name: string; bus: number[]; duration: number | null };
 let jobTypes: JobType[] | null = null;
 
 /** The active job types, for the reading to choose from and for their ids. */
@@ -222,8 +223,8 @@ export async function activeJobTypes(): Promise<JobType[]> {
   if (jobTypes) return jobTypes;
   // The column, not raw: the sync marks a type switched off in ServiceTitan
   // there, while its raw copy still says what it said when last listed.
-  const rows = await sbSelect<{ id: number; name: string; active: boolean | null; bus: number[] | null }>("st_job_types", "select=id,name,active,bus:raw->businessUnitIds").catch(() => []);
-  jobTypes = rows.filter((r) => r.active !== false && r.name).map((r) => ({ id: r.id, name: r.name, bus: Array.isArray(r.bus) ? r.bus : [] }));
+  const rows = await sbSelect<{ id: number; name: string; active: boolean | null; bus: number[] | null; duration: number | null }>("st_job_types", "select=id,name,active,bus:raw->businessUnitIds,duration:raw->duration").catch(() => []);
+  jobTypes = rows.filter((r) => r.active !== false && r.name).map((r) => ({ id: r.id, name: r.name, bus: Array.isArray(r.bus) ? r.bus : [], duration: Number(r.duration) > 0 ? Number(r.duration) : null }));
   return jobTypes;
 }
 
@@ -273,6 +274,11 @@ export async function makeJob(w: WorkOrder, site: Site, zip: string, jobTypeName
   const tag = await sbSelect<{ id: number }>("st_job_tags", [q.select("id"), q.eq("name", TO_BE_BOOKED)].join("&")).catch(() => []);
 
   const day = placeholderDay(w.attendByDate);
+  // As long as ServiceTitan books this job type for (Jake, 18 Nov: they came
+  // in at half an hour, where the type says an hour and a half). Drive time
+  // isn't in it: Dispatch Pro adds its own between visits.
+  const start = melbourneInstant(day, "08:00");
+  const end = visitEnd(start, jt.duration);
   const made = await stSend<{ id?: number; jobNumber?: string }>("POST", stTenantPath("jpm", "jobs"), {
     customerId: site.customerId,
     locationId,
@@ -280,7 +286,7 @@ export async function makeJob(w: WorkOrder, site: Site, zip: string, jobTypeName
     jobTypeId: jt.id,
     priority: w.urgent ? "Urgent" : "Normal",
     campaignId: campaign,
-    appointments: [{ start: melbourneInstant(day, "08:00"), end: melbourneInstant(day, "08:30"), arrivalWindowStart: melbourneInstant(day, "08:00"), arrivalWindowEnd: melbourneInstant(day, "08:30") }],
+    appointments: [{ start, end, arrivalWindowStart: start, arrivalWindowEnd: melbourneInstant(day, "08:30") }],
     summary: `TO BE BOOKED: waiting on the tenant to call. The visit on ${day} is a placeholder.\n\n${bookingSummary(w)}`.slice(0, 4000),
     ...(w.number ? { customerPo: w.number.slice(0, 50) } : {}),
     ...(tag[0]?.id ? { tagTypeIds: [tag[0].id] } : {}),
