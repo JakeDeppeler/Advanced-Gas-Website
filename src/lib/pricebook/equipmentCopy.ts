@@ -205,8 +205,223 @@ const BOSCH_RANGEHOOD: Family = {
   }),
 };
 
+// --- Air conditioning: Mitsubishi Electric, Kaden, Rinnai, ZoneMate ---------------------
+// mitsubishielectric.com.au (MSZ-AP, MXZ-F multi kits flyer 2025, PEA-M), kadenair.com.au
+// (KSI V3, multi brochure v2, KDI, KW; 7-year warranty for units bought from 1 Jan 2026),
+// rinnai.com.au (RPX, MON), zonemate.com.au; star ratings are the Zoned Energy Rating
+// Label's cold zone, which is Melbourne's. Checked 17 Nov 2026.
+const kwKey = (u: Unit, re: RegExp) => String(Number(grab(u, re)));
+const ZERL = "in Melbourne's cold zone on the Zoned Energy Rating Label";
+const MITSU_WARRANTY = "Mitsubishi Electric: 5 years parts and labour on the indoor and outdoor units from installation, for home use. Licensed installation and clean filters, coils and drains are required.";
+const KADEN_WARRANTY = "Kaden: 7 years parts, labour and compressor for home use, on units bought from 1 January 2026. Licensed installation, clean filters and a clear drain are required.";
+const RINNAI_WARRANTY = "Rinnai: 7 years parts and labour for home use from installation (wifi devices 1 year). It needs a qualified installer and servicing as the owner's manual sets out.";
+
+const MSZ: Record<string, { cool: string; heat: string; cs: string; hs: string; vs: string }> = {
+  "2.5": { cool: "2.5", heat: "3.2", cs: "6", hs: "3", vs: "Compared with Kaden's 2.5kW, our value option, it rates a star higher for cooling (6 against 5) and gives more heat (3.2 against 2.8kW)." },
+  "3.5": { cool: "3.5", heat: "3.7", cs: "5", hs: "3", vs: "Compared with Kaden's 3.5kW, our value option, it rates half a star higher for heating (3 against 2.5)." },
+  "5": { cool: "5.0", heat: "6.0", cs: "4.5", hs: "2", vs: "Compared with Kaden's 5kW, our value option, it gives more heat (6.0 against 5.5kW) for the same star ratings." },
+  "6": { cool: "6.0", heat: "6.8", cs: "4.5", hs: "2.5", vs: "Kaden, our value option, doesn't make a 6kW split, and this size rates half a star higher for heating than Kaden's 5 and 7kW." },
+  "7.1": { cool: "7.1", heat: "8.0", cs: "3.5", hs: "2", vs: "Compared with Kaden's 7kW, our value option, it gives more heat (8.0 against 7.5kW)." },
+};
+const MITSU_SPLIT: Family = {
+  key: "mitsubishi-msz-ap-split",
+  matches: has(/mitsubishi electric\s+[\d.]+\s*kw\s+split system/i),
+  copy: (u) => {
+    const k = kwKey(u, /([\d.]+)\s*kw/i), m = MSZ[k] ?? MSZ["3.5"];
+    return {
+      title: `Mitsubishi Electric MSZ-AP ${m.cool}kW reverse cycle split system.`,
+      saves: `An inverter system rated ${m.cs} stars for cooling and ${m.hs} for heating ${ZERL}. Econo Cool raises the cooling set point 2°C without the room feeling any warmer.`,
+      features: `${m.cool}kW cooling, ${m.heat}kW heating. Built-in wifi. Dual Barrier Coating keeps the indoor coil cleaner, and Blue Fin coating protects the outdoor coil from corrosion. Heats down to -15°C outside.`,
+      choose: `${m.vs} You also have Mitsubishi Electric's own Australian service and parts support behind it.`,
+      warranty: MITSU_WARRANTY,
+    };
+  },
+};
+const MSZ_HEAD_DB: Record<string, string> = { "2.5": "19", "3.5": "19", "5": "28", "7.1": "30" };
+const MITSU_HEAD: Family = {
+  key: "mitsubishi-msz-ap-head",
+  matches: has(/mitsubishi electric\s+[\d.]+\s*kw\s+indoor head/i),
+  copy: (u) => {
+    const k = kwKey(u, /([\d.]+)\s*kw/i);
+    return {
+      title: `Mitsubishi Electric MSZ-AP ${k}kW wall-mounted indoor unit for a multi-split system.`,
+      saves: "Each room has its own remote and app control, so you run only the rooms you're using. Econo Cool raises the cooling set point 2°C without the room feeling any warmer.",
+      features: `${k}kW nominal cooling (the actual output depends on the other units on the system). Built-in wifi. Dual Barrier Coating keeps the coil cleaner. Anti-allergy filter.${MSZ_HEAD_DB[k] ? ` From ${MSZ_HEAD_DB[k]} dB(A) on low fan.` : ""}`,
+      choose: "It's the same MSZ-AP unit Mitsubishi sells as a single split, so every room matches, and Mitsubishi's MXZ outdoor units rate more efficient for heating than the Kaden and Rinnai multis we fit.",
+      warranty: MITSU_WARRANTY,
+    };
+  },
+};
+const MXZ: Record<string, { rooms: string; cool: string; heat: string; cop: string; vs: string }> = {
+  "8": { rooms: "4", cool: "8.0", heat: "8.8", cop: "5.2", vs: "It rates more efficient for heating than the comparable Kaden and Rinnai multis we fit." },
+  "10": { rooms: "5", cool: "10.0", heat: "10.0", cop: "4.8", vs: "It rates more efficient for heating than the comparable Kaden and Rinnai multis we fit." },
+  "12": { rooms: "6", cool: "12.0", heat: "13.2", cop: "4.4", vs: "It rates more efficient for heating and cooling than the comparable Kaden and Rinnai six-room multis we fit." },
+};
+const MITSU_MULTI: Family = {
+  key: "mitsubishi-mxz-multi",
+  matches: has(/mitsubishi electric\s+\d+\s*kw\s+multi condenser/i),
+  copy: (u) => {
+    const k = kwKey(u, /(\d+)\s*kw/i), m = MXZ[k] ?? MXZ["10"];
+    return {
+      title: `Mitsubishi Electric MXZ ${m.cool}kW multi-split outdoor unit, for up to ${m.rooms} rooms.`,
+      saves: `Each room is controlled separately, so you run only the rooms in use. In Mitsubishi's standard heating test (7°C outside) it makes about ${m.cop}kW of heat for every kW of power it uses.`,
+      features: `${m.cool}kW cooling and ${m.heat}kW heating across up to ${m.rooms} indoor units. Inverter, R32 refrigerant.`,
+      choose: `Compared with separate splits, there's one outdoor unit instead of ${m.rooms}. ${m.vs}`,
+      warranty: MITSU_WARRANTY,
+    };
+  },
+};
+const PEA: Record<string, { cool: string; heat: string; cop: string; db: string; pa: string; vs: string }> = {
+  "12": { cool: "12.5", heat: "14.0", cop: "4.6", db: "35", pa: "150", vs: "it rates more efficient for heating and cooling than Kaden's 12.5kW ducted" },
+  "16": { cool: "16.0", heat: "18.0", cop: "4.0", db: "35", pa: "150", vs: "it matches Kaden's 17kW ducted for heating efficiency and beats it for cooling" },
+  "18": { cool: "18.0", heat: "20.0", cop: "4.1", db: "30", pa: "250", vs: "it's bigger than Kaden's largest ducted (17kW) and a little more efficient for heating" },
+};
+const MITSU_DUCTED: Family = {
+  key: "mitsubishi-pea-m-ducted",
+  matches: has(/mitsubishi electric\s+\d+\s*kw\s+ducted/i),
+  copy: (u) => {
+    const k = kwKey(u, /(\d+)\s*kw/i), m = PEA[k] ?? PEA["16"];
+    return {
+      title: `Mitsubishi Electric PEA-M ${m.cool}kW ducted reverse cycle system, single phase.`,
+      saves: `A Power Inverter outdoor unit that, in Mitsubishi's standard heating test (7°C outside), makes about ${m.cop}kW of heat for every kW of power it uses. With zoning you heat and cool only the rooms in use.`,
+      features: `${m.cool}kW cooling, ${m.heat}kW heating. Indoor unit from ${m.db} dB(A). Fan pressure up to ${m.pa} Pa for long duct runs. Two-piece indoor unit to fit tight roof spaces. Heats down to -20°C outside.`,
+      choose: `Compared with Kaden's ducted, our value option, ${m.vs}. It's also quieter on low fan, and keeps heating down to -20°C outside against Kaden's -15°C.`,
+      warranty: MITSU_WARRANTY,
+    };
+  },
+};
+const KSI: Record<string, { cool: string; heat: string; cs: string; hs: string }> = {
+  "2.5": { cool: "2.5", heat: "2.8", cs: "5", hs: "3" },
+  "3.5": { cool: "3.5", heat: "4.0", cs: "5", hs: "2.5" },
+  "5": { cool: "5.0", heat: "5.5", cs: "4.5", hs: "2" },
+  "7": { cool: "7.0", heat: "7.5", cs: "4", hs: "2" },
+};
+const KADEN_VALUE = "Kaden is the value range we fit: it costs less than Mitsubishi Electric and carries a longer warranty (7 years against 5), with star ratings within a star of Mitsubishi's at every size.";
+const KADEN_SPLIT: Family = {
+  key: "kaden-ksi-v3-split",
+  matches: has(/kaden ksi\s+[\d.]+\s*kw\s+v3/i),
+  copy: (u) => {
+    const k = kwKey(u, /ksi\s+([\d.]+)\s*kw/i), m = KSI[k] ?? KSI["3.5"];
+    return {
+      title: `Kaden KSI V3 ${m.cool}kW reverse cycle split system.`,
+      saves: `An inverter system rated ${m.cs} stars for cooling and ${m.hs} for heating ${ZERL}. Kaden says ECO mode uses up to 60% less energy than normal running, for 8 hours at a time.`,
+      features: `${m.cool}kW cooling, ${m.heat}kW heating. Built-in wifi and voice control. Anti-corrosion gold-fin coating, self-clean mode and a three-in-one filter. Heats down to -15°C outside.`,
+      choose: `${KADEN_VALUE} Kaden is Reece's own brand, so an Australian company stands behind the warranty.`,
+      warranty: KADEN_WARRANTY,
+    };
+  },
+};
+const KADEN_HEAD: Family = {
+  key: "kaden-ksi-head",
+  matches: has(/kaden ksi\s+[\d.]+\s*kw\s+indoor/i),
+  copy: (u) => {
+    const k = grab(u, /ksi\s+([\d.]+)\s*kw/i);
+    return {
+      title: `Kaden KSI ${k}kW wall-mounted indoor unit for a Kaden multi-split system.`,
+      saves: "Each room has its own controls, so you run only the rooms you're using. Kaden says ECO mode uses up to 60% less energy than normal running, for 8 hours at a time.",
+      features: `${k}kW nominal cooling (the actual output depends on the rest of the system). Wifi included. Gold-fin coating, self-clean mode and a three-in-one filter.`,
+      choose: "Compared with Mitsubishi Electric's multi heads, it costs less and the warranty is longer (7 years against 5), and Kaden's outdoor units go up to 17.5kW across six rooms.",
+      warranty: KADEN_WARRANTY,
+    };
+  },
+};
+const KM: Record<string, { model: string; rooms: string; cool: string; heat: string; cs: string; hs: string; vs: string }> = {
+  KM48: { model: "KM48", rooms: "5", cool: "13.0", heat: "13.5", cs: "3.5", hs: "2.5", vs: "it has more capacity for five rooms (13 against 10kW)" },
+  KM60: { model: "KM60", rooms: "6", cool: "17.5", heat: "19.5", cs: "3.5", hs: "2", vs: "it has more capacity for six rooms (17.5 against 12kW)" },
+};
+const KADEN_MULTI: Family = {
+  key: "kaden-km-multi",
+  matches: has(/\bKM(48|60)\b|kaden\s+13\s*kw\s+multi/i),
+  copy: (u) => {
+    const m = /KM60/i.test(u.all) ? KM.KM60 : KM.KM48;
+    return {
+      title: `Kaden ${m.model} ${m.cool}kW multi-split outdoor unit, for up to ${m.rooms} rooms.`,
+      saves: `An inverter system rated ${m.cs} stars for cooling and ${m.hs} for heating ${ZERL}, and you run only the rooms in use.`,
+      features: `${m.cool}kW cooling and ${m.heat}kW heating across up to ${m.rooms} wall, ducted or cassette indoor units. Heats down to -15°C outside. R32 refrigerant.`,
+      choose: `Compared with separate splits, there's one outdoor unit instead of ${m.rooms}. Compared with Mitsubishi Electric's multis, ${m.vs}, with a longer warranty (7 years against 5).`,
+      warranty: KADEN_WARRANTY,
+    };
+  },
+};
+const KADEN_DUCTED: Family = {
+  key: "kaden-kdi-ducted",
+  matches: has(/KDI-17|kaden ducted split 17/i),
+  copy: () => ({
+    title: "Kaden KDI V2 17kW ducted reverse cycle system, single phase.",
+    saves: `An inverter system rated 3.5 stars for cooling and 2 for heating ${ZERL}. With zoning you heat and cool only the rooms in use.`,
+    features: "17.0kW cooling, 18.0kW heating. Built-in wifi. Splittable indoor unit for tight roof spaces. Built-in drain pump and weekly timer. Heats down to -15°C outside. R32 refrigerant.",
+    choose: "Compared with Mitsubishi Electric's 16 to 18kW ducted, it costs less, has wifi built in and a longer warranty (7 years against 5).",
+    warranty: KADEN_WARRANTY,
+  }),
+};
+const KADEN_WINDOW: Family = {
+  key: "kaden-kw-window",
+  matches: has(/kaden window air conditioner/i),
+  copy: (u) => {
+    const big = /kw12/i.test(u.all);
+    const m = big ? { model: "KW12", cool: "3.9", heat: "3.6", split: "5 for cooling and 2.5 for heating" } : { model: "KW09", cool: "2.75", heat: "2.45", split: "5 for cooling and 3 for heating" };
+    return {
+      title: `Kaden ${m.model} ${m.cool}kW reverse cycle window/wall air conditioner.`,
+      saves: `It heats or cools just the one room, and you can switch it off from your phone. It's rated 1.5 stars for cooling and 0.5 for heating ${ZERL}, so it's best for a room you use now and then.`,
+      features: `${m.cool}kW cooling, ${m.heat}kW heating. One self-contained unit that plugs into a power point. Wifi. Silver-ion filter. Anti-corrosion Blue Fin coating. Heats down to -7°C outside.`,
+      choose: `Compared with a split system, there's nothing to mount outside and it fits the existing opening. A split is quieter and costs less to run: Kaden's equivalent split rates ${m.split}.`,
+      warranty: "Kaden: 5 years parts and labour for home use, from the date of purchase. It needs a licensed installer and clean filters.",
+    };
+  },
+};
+const RPX: Record<string, { cool: string; heat: string }> = { "2.5": { cool: "2.6", heat: "3.25" }, "3.5": { cool: "3.5", heat: "3.8" }, "5": { cool: "5.0", heat: "6.0" }, "7": { cool: "7.0", heat: "7.7" } };
+const RINNAI_HEAD: Family = {
+  key: "rinnai-rpx-head",
+  matches: has(/rinnai rpx\s+[\d.]+\s*kw\s+indoor|HINRPX/i),
+  copy: (u) => {
+    const k = kwKey(u, /rpx\s+([\d.]+)\s*kw/i), m = RPX[k] ?? RPX["3.5"];
+    return {
+      title: `Rinnai RPX ${m.cool}kW wall-mounted indoor unit for a Rinnai multi-split system.`,
+      saves: "You run only the rooms in use. A built-in presence sensor saves energy when the room is empty, and ECO+ fine-tunes cooling for efficiency.",
+      features: `${m.cool}kW cooling, ${m.heat}kW heating, nominal (the actual output depends on the rest of the system). Wifi app and voice control. Turbo+ shifts the temperature by up to 6°C in 10 minutes. HEPA filter. Adjustable humidity. Anti-corrosion coil coating.`,
+      choose: "Compared with the Kaden heads we also fit, it adds a presence sensor and a HEPA filter. Compared with Mitsubishi Electric's, the warranty is longer (7 years against 5).",
+      warranty: RINNAI_WARRANTY,
+    };
+  },
+};
+const MON: Record<string, { rooms?: string; cool?: string; heat?: string; acop?: string; vs: string }> = {
+  "5": { rooms: "2", cool: "5.4", heat: "5.4", acop: "4.0", vs: "It suits two rooms where only one outdoor unit will fit." },
+  // The pricebook's part (MON4H11B1LA) isn't one Rinnai lists, so no figures until it's confirmed.
+  "11": { vs: "" },
+  "14": { rooms: "5", cool: "13.5", heat: "14.0", acop: "4.2", vs: "It rates a little more efficient for heating than Kaden's 13kW, and it's bigger than any Mitsubishi five-room unit." },
+  "19": { rooms: "6", cool: "19.0", heat: "21.5", acop: "4.2", vs: "It's bigger and more efficient for heating than Kaden's six-room 17.5kW, and Mitsubishi's largest multi is 12kW." },
+};
+const RINNAI_MULTI: Family = {
+  key: "rinnai-mon-multi",
+  matches: has(/rinnai multi condenser|MON\dH\d\d/i),
+  copy: (u) => {
+    const k = kwKey(u, /condenser\s+(\d+)\s*kw/i), m = MON[k] ?? MON["14"];
+    return {
+      title: `Rinnai ${m.cool ?? k}kW multi-split outdoor unit${m.rooms ? `, for up to ${m.rooms} rooms` : ""}.`,
+      saves: `An inverter system, and you run only the rooms in use.${m.acop ? ` In Rinnai's standard test it rates ${m.acop} for heating efficiency (ACOP: the higher, the better).` : ""}`,
+      features: `${m.cool ? `${m.cool}kW cooling and ${m.heat}kW heating, across` : "Runs"} wall, slim ducted, cassette or floor-console indoor units. Heats down to -15°C outside. Single phase, R32 refrigerant.`,
+      choose: `Compared with separate splits, there's one outdoor unit instead of several.${m.vs ? ` ${m.vs}` : ""} Rinnai Australia is based in Braeside, Melbourne.`,
+      warranty: RINNAI_WARRANTY,
+    };
+  },
+};
+const ZONEMATE: Family = {
+  key: "zonemate-touch-pro",
+  matches: has(/zonemate/i),
+  copy: () => ({
+    title: "ZoneMate Touch Pro ducted zone controller, with 4 wireless room sensors.",
+    saves: "You heat or cool only the zones in use. Each sensor reads its own room, so a zone eases off when that room reaches temperature, and schedules stop the system running when nobody's home.",
+    features: "Wall touchscreen and phone app. Up to 12 zones. Airflow to each zone adjustable in 1% steps. Google Home and Alexa voice control. Works with Mitsubishi Electric and Kaden ducted systems.",
+    choose: "A standard ducted controller reads one temperature and switches zones on or off. ZoneMate measures each room and trims the airflow to suit it.",
+    warranty: "ZoneMate: a 2-year limited warranty.",
+  }),
+};
+
 /** In order: the first match wins, so the Contour 7 comes before the Contour. */
 const FAMILIES: Family[] = [
+  MITSU_SPLIT, MITSU_HEAD, MITSU_MULTI, MITSU_DUCTED,
+  KADEN_SPLIT, KADEN_HEAD, KADEN_MULTI, KADEN_DUCTED, KADEN_WINDOW,
+  RINNAI_HEAD, RINNAI_MULTI, ZONEMATE,
   THERMANN_GAS, THERMANN_SMART, THERMANN_CF,
   BRIVIS_ADVANCE, BRIVIS_PROMINA, BRIVIS_CONTOUR_7, BRIVIS_CONTOUR, BRIVIS_BALAERO, KADEN_KC32,
   BOSCH_COOKTOP, BEKO_COOKTOP, WESTINGHOUSE_COOKTOP, BOSCH_RANGEHOOD,
