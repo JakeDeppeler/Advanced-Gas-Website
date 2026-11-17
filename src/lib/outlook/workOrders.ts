@@ -316,7 +316,13 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       // The site's job reference, owner and property type, as the office
       // fills them by hand. Never at the cost of the job: a miss is logged.
       const site_ = job;
-      await fillSiteDetails(site_.locationId, w, () => lookUpPropertyType(w.street, w.suburb, zip))
+      // A lookup that fails (rather than isn't sure) is said, so a blank
+      // Property Type can be told apart from one the web couldn't settle.
+      const lookUp = () => lookUpPropertyType(w.street, w.suburb, zip).catch(async (e: Error) => {
+        await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the property type couldn't be looked up`, detail: e.message.slice(0, 200) }]).catch(() => undefined);
+        return null;
+      });
+      await fillSiteDetails(site_.locationId, w, lookUp)
         .catch(async (e: Error) => {
           await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the site's job reference, owner or property type couldn't be filled in`, detail: stSaid(e).slice(0, 200) }]).catch(() => undefined);
         });
