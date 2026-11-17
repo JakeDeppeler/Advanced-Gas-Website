@@ -89,13 +89,19 @@ export type WorkOrder = {
   urgent: boolean;
   /** The email cancels a work order, quote request or job already sent to us. */
   isCancellation: boolean;
+  /** The owner the work order is issued for, as written: the location's Owners Details. */
+  owner: string;
+  /** From a real estate agency or property manager for a rental: the job goes under Real Estate (Jake, 18 Nov). */
+  isRealEstate: boolean;
+  /** Which Real Estate business unit: a service or check is Maintenance, anything wrong is Diagnostics. */
+  workKind: "Maintenance" | "Diagnostics";
 };
 
 const str = { type: "string" } as const;
 export const WORK_ORDER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent", "is_cancellation"],
+  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent", "is_cancellation", "owner", "is_real_estate", "work_kind"],
   properties: {
     is_work_order: { type: "boolean", description: "True only if this asks us to attend a property: a new work order, a request to quote, or a quote accepted and the work to go ahead." },
     why_not: { type: "string", description: "When false, at most eight words on what it is instead, e.g. 'Progress update on an existing job'." },
@@ -115,6 +121,9 @@ export const WORK_ORDER_SCHEMA = {
     job_type: { type: "string", description: "The ServiceTitan job type for the visit, from the list given. A request to quote is 'Quotation'; a fault is the Diagnostics type for the appliance." },
     urgent: { type: "boolean" },
     is_cancellation: { type: "boolean", description: "True if this email cancels or withdraws a work order, quote request or job already sent to us (then is_work_order is false). Fill in the address and number of what's being cancelled." },
+    owner: { type: "string", description: "The property owner the work order is issued for, as written, e.g. 'Tie Hong Tang' from 'issued on behalf of the owner - Tie Hong Tang (Owner)'. Empty if it doesn't say." },
+    is_real_estate: { type: "boolean", description: "True when it comes from a real estate agency, property manager or their maintenance platform about a rental. False for a builder, developer, body corporate, business or homeowner." },
+    work_kind: { type: "string", enum: ["Maintenance", "Diagnostics"], description: "Maintenance for a routine service, safety or compliance check, or other planned work on something that works. Diagnostics when something is faulty, broken, leaking or disconnected and needs finding, fixing or quoting." },
   },
 } as const;
 
@@ -131,6 +140,7 @@ export function parseWorkOrder(text: string): WorkOrder {
     job: s("job", 120), details: s("details", 3000), attendBy: s("attend_by", 60), urgent: o.urgent === true,
     isCancellation: o.is_cancellation === true,
     attendByDate: /^\d{4}-\d{2}-\d{2}$/.test(s("attend_by_date", 10)) ? s("attend_by_date", 10) : "", jobType: s("job_type", 80),
+    owner: s("owner", 160), isRealEstate: o.is_real_estate === true, workKind: o.work_kind === "Maintenance" ? "Maintenance" : "Diagnostics",
   };
 }
 
@@ -614,3 +624,24 @@ export function workAfterQuote(quote: QuoteJob, later: LaterJob[]): number | nul
     && (j.estimateBefore || (sold !== null && sold <= at(j.created) + DAY_MS)));
   return fits.length === 1 ? fits[0].id : null;
 }
+
+/* ------------------------------------------------------------ the site's details */
+
+/** The Property Type values the office uses on a site; anything else is left for them. */
+export const PROPERTY_TYPES = ["House - Single Storey", "House - Double Storey", "Townhouse"] as const;
+
+/** "JOB NO. 20426" for an agency's plain number, as the office writes it; a Tapi number as it is. */
+export const jobReference = (n: string) => (/^\d+$/.test(n.trim()) ? `JOB NO. ${n.trim()}` : n.trim());
+
+/** A unit, flat or lot: none of the office's three property types, so never looked up. */
+export const isUnitAddress = (street: string) => /^\s*(unit|apt|apartment|flat|shop|suite|lot)\b|^\s*\d+[a-z]?\s*\//i.test(street);
+
+/** The lookup's last "ANSWER:" line as one of PROPERTY_TYPES, else null (Unknown included). */
+export function propertyTypeFrom(text: string): string | null {
+  const lines = [...text.matchAll(/ANSWER:\s*([^\n]+)/gi)];
+  const said = lines.at(-1)?.[1]?.trim().replace(/[.*`]+$/g, "") ?? "";
+  return (PROPERTY_TYPES as readonly string[]).find((t) => t.toLowerCase() === said.toLowerCase()) ?? null;
+}
+
+/** Which Real Estate business unit a work order goes under, by name. Null when it isn't a rental's. */
+export const realEstateUnitName = (w: Pick<WorkOrder, "isRealEstate" | "workKind">) => (w.isRealEstate ? `Real Estate - ${w.workKind}` : null);

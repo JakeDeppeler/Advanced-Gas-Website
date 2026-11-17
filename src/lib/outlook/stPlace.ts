@@ -1,9 +1,9 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
-import { stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
-import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder } from "./workOrderTypes";
+import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, realEstateUnitName } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -258,7 +258,14 @@ export async function makeJob(w: WorkOrder, site: Site, zip: string, jobTypeName
   // list that changed in between; a quote request can still go as Quotation.
   const jt = types.find((t) => t.name === jobTypeName) ?? (w.kind === "quote_request" ? types.find((t) => t.name === "Quotation") : undefined);
   if (!jt) throw new Error(`No job type "${jobTypeName}" in ServiceTitan`);
-  const { bu, campaign } = await usual(jt.id, site.customerId, jt.bus);
+  const usualFor = await usual(jt.id, site.customerId, jt.bus);
+  // A rental's work order goes under Real Estate, Maintenance or Diagnostics
+  // as the reading says (Jake, 18 Nov), not under whatever this job type
+  // usually gets (quote requests landed in Domestic - Installation).
+  const unitName = realEstateUnitName(w);
+  const realEstate = unitName ? await realEstateUnit(unitName, jt.bus) : null;
+  const bu = realEstate ?? usualFor.bu;
+  const campaign = usualFor.campaign;
   if (!bu) throw new Error(`No business unit for job type ${jt.name}`);
   if (!campaign) throw new Error("No campaign to put the job under");
 
@@ -291,6 +298,14 @@ async function holdReasonToUse(): Promise<{ id: number; name: string } | null> {
   return holdReason;
 }
 
+/** "Real Estate - Maintenance" or "Real Estate - Diagnostics", when the job type allows it. */
+async function realEstateUnit(name: string, allowed: number[]): Promise<number | null> {
+  const rows = await sbSelect<{ id: number; name: string }>("st_business_units", "select=id,name&active=is.true").catch(() => []);
+  const want = name.toLowerCase();
+  const hit = rows.find((r) => r.name.trim().toLowerCase() === want);
+  return hit && (!allowed.length || allowed.includes(hit.id)) ? hit.id : null;
+}
+
 /**
  * A work order's job on hold as soon as it's made (Jake, 17 Nov), so Dispatch
  * Pro leaves its placeholder visit alone: the office books it once they've
@@ -301,6 +316,43 @@ async function holdReasonToUse(): Promise<{ id: number; name: string } | null> {
 export async function holdForTenant(jobId: number): Promise<string> {
   const reason = await holdReasonToUse();
   if (!reason) throw new Error("ServiceTitan has no job hold reasons to use (Settings › Operations › Job hold reasons there)");
-  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/hold`), { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." });
+  await stSend("PUT", stTenantPath("jpm", `jobs/${jobId}/hold`), { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." });
   return reason.name;
+}
+
+/* ------------------------------------------------------------ the site's details */
+
+/**
+ * The location's own custom fields in ServiceTitan, as the office fills them
+ * by hand (Jake, 18 Nov): the type ids are the ones on every site they've
+ * done, e.g. 18 Leonie Court. "Property Type " has a trailing space there.
+ */
+const FIELD = { jobRef: 209604015, owner: 209602958, propertyType: 209599952 } as const;
+
+/**
+ * The work order's number and owner onto the site, and its property type
+ * when the site has none. The number and owner are this work order's, so
+ * they replace what's there; a property type someone has set is kept.
+ * Returns what changed, in words, or "" for nothing.
+ */
+export async function fillSiteDetails(locationId: number, w: WorkOrder, propertyType: () => Promise<string | null>): Promise<string> {
+  const path = stTenantPath("crm", `locations/${locationId}`);
+  const loc = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(path);
+  const have = new Map((loc.customFields ?? []).map((f) => [f.typeId, (f.value ?? "").trim()]));
+  const set = new Map<number, string>();
+  if (w.number) set.set(FIELD.jobRef, jobReference(w.number).slice(0, 100));
+  if (w.owner) set.set(FIELD.owner, w.owner.slice(0, 160));
+  if (!have.get(FIELD.propertyType)) {
+    const t = await propertyType().catch(() => null);
+    if (t) set.set(FIELD.propertyType, t);
+  }
+  const changed = [...set].filter(([id, v]) => have.get(id) !== v);
+  if (!changed.length) return "";
+  // Every field the site has, with these over the top: an update that sent
+  // only these could take the others off.
+  const all = new Map(have);
+  for (const [id, v] of changed) all.set(id, v);
+  await stSend("PATCH", path, { customFields: [...all].filter(([, v]) => v).map(([typeId, value]) => ({ typeId, value })) });
+  const said: Record<number, string> = { [FIELD.jobRef]: "job reference", [FIELD.owner]: "owner", [FIELD.propertyType]: "property type" };
+  return changed.map(([id, v]) => `${said[id]} ${v}`).join(", ");
 }
