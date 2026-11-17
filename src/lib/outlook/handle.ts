@@ -11,6 +11,7 @@ import { draftNote, handleWorkOrder, isManualIn } from "./workOrders";
 import { findJob, putOnJob, type JobMatch } from "./jobLink";
 import { isTeamForward } from "./workOrderTypes";
 import { confirmBooking } from "./bookingConfirm";
+import { loadSwitches } from "@/lib/automation/log";
 import { mightConfirmBooking } from "./bookingTypes";
 import { MAX_AGE_MS, TEAM_DOMAIN, addressOf, answeredReason, plainText, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
 
@@ -106,6 +107,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     }
 
     const from = addressOf(m.from) || addressOf(m.sender);
+    // Settings › Automatic. Off unless read as on: a database that won't
+    // answer leaves ServiceTitan alone rather than writing to it.
+    const sw = await loadSwitches();
     await finish(mailbox, id, {
       internet_message_id: m.internetMessageId ?? null,
       conversation_id: m.conversationId ?? null,
@@ -146,7 +150,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     // A trade confirming a booking (the skip bin, the electrician) swaps the
     // job's "Not Booked" tag, so it comes off the morning to-do email. Before
     // the skip rules: the rubbish removal company writes from a no-reply address.
-    if (!m.isDraft && recent && external && mightConfirmBooking(m, words)) {
+    if (sw.emailToJob && !m.isDraft && recent && external && mightConfirmBooking(m, words)) {
       const b = await confirmBooking(mailbox, m, words).catch((e: Error) => ({ done: false, line: `booking confirmation not applied: ${e.message}` } as const));
       if (b?.done) {
         await markEmail(box, id, [BOOKING_CATEGORY]).catch(() => undefined);
@@ -157,9 +161,10 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
 
     // An email about a job goes on the job, whatever then happens with the
     // draft. Not mail from us, or from machines (the skip rules below).
+    // Still looked for when that's off: an email about a job isn't a new lead.
     if (!m.isDraft && external && !skipReason(m, mailbox, Date.now(), opts.maxAgeMs)) {
       onJob ??= await findJob(mailbox, m, from, words).catch(() => null);
-      if (onJob) {
+      if (onJob && sw.emailToJob) {
         const match = onJob;
         await putOnJob(mailbox, m, match.jobId)
           .then(async () => {
@@ -266,6 +271,7 @@ const SECOND_LOOK = "looked at again for a waiting quote";
 
 export async function secondLookForQuotes(mailbox: string, deadline: number): Promise<{ looked: number; linked: number; error?: string }> {
   const out = { looked: 0, linked: 0 } as { looked: number; linked: number; error?: string };
+  if (!(await loadSwitches()).emailToJob) return out;
   try {
     const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
     const all = await sbSelect<{ message_id: string; from_address: string | null }>(TABLE, [

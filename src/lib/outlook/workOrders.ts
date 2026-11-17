@@ -169,6 +169,10 @@ async function postcodeFor(w: WorkOrder): Promise<string> {
  */
 export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: Source): Promise<WorkOrderResult> {
   const force = source !== "auto";
+  // Reading every email for one is Settings › Automatic's to switch (off since
+  // Jake's 17 Nov). The office forwarding one in, or giving it the Work order
+  // category, is a person asking, so those still go.
+  if (!force && !(await loadSwitches()).workOrderBook) return { status: "not", reason: "work orders by themselves are off" };
   if (!(await claim(mailbox, m.id, source, force))) return { status: "taken" };
   try {
     const full = await graph<GraphMessage>(`${userPath(mailbox)}/messages/${encodeURIComponent(m.id)}?$select=body,hasAttachments`, { text: true });

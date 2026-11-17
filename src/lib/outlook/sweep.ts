@@ -8,6 +8,7 @@ import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
 import { attachBookedJobs, sweepWorkOrders } from "./workOrders";
 import { carryQuoteEmails } from "./jobLink";
+import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
 
 /**
@@ -148,7 +149,9 @@ export async function sweep(): Promise<SweepResult> {
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
 
   // A quote sold and made into a job: its emails go on that job too, once.
-  const carried = await carryQuoteEmails(started + TAGS_BUDGET_MS).catch((e: Error) => ({ carried: 0, error: e.message }));
+  const carried = (await loadSwitches()).emailToJob
+    ? await carryQuoteEmails(started + TAGS_BUDGET_MS).catch((e: Error) => ({ carried: 0, error: e.message }))
+    : { carried: 0 };
 
   // Emails about a quote waiting on the customer that went on no job before
   // findJob counted those: once each, then nothing left to do.
