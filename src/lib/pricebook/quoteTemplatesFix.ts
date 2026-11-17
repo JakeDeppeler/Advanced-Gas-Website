@@ -48,6 +48,8 @@ export async function lookAtTemplates(): Promise<{ templates: number; proposals:
       items: (t.items ?? []).map((i) => ({
         id: i.id, skuId: i.skuId, type: i.skuType, name: (i.skuName ?? "").trim(), qty: i.quantity, price: i.unitPrice, cost: i.unitCost ?? null,
         addOn: i.isAddOn, group: i.itemGroupName ?? null, under: i.itemGroupParentId ?? null, parent: i.parentItemId ?? null,
+        // The start of what the line says: enough to see the 17 Nov wording landed.
+        desc: plainText(i.description).slice(0, 160),
       })),
     })),
   };

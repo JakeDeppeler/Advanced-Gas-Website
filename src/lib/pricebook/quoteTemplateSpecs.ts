@@ -17,6 +17,7 @@
  */
 
 import { HEATER_EVAP_DISCOUNTS, MULTI_SPLIT, priceOf } from "./servicePricing";
+import { templateSummary, type TemplateFacts } from "./wording";
 
 export type Colour = "Beige" | "Charcoal" | "Terra Red";
 export type EvapUnit = { series: "Contour" | "Promina" | "Advance" | "Balaero"; model: string; colour: Colour; part: string; cost: number };
@@ -183,66 +184,28 @@ export type Line = { skuId: number; skuType: string; quantity: number; unitPrice
  * price). A discount inside a group is folded into the header and shows at
  * $0, and the point of the line is that the customer sees it.
  */
-/**
- * `was`: summaries this template has been made with before. templateSummaries.ts
- * writes a changed summary only over one of these (or the last it wrote), never
- * over words the office has put on the template since.
- */
-export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[]; flat?: boolean; was?: string[] };
+export type TemplateSpec = { name: string; code: string; summary: string; lines: Line[]; flat?: boolean };
 
 const L = (s: { skuId: number; skuType: string; code?: string }, unitPrice: number, quantity = 1): Line => ({ ...s, quantity, unitPrice });
 
-const FITTED = "Includes removal and disposal of the old cooler, supply and installation of the new unit on your existing roof dropper and ducting, connection to the existing water, power and controller, a full operational test, and a compliance certificate on completion.";
-
 /**
- * What tells the three Brivis ranges apart on a quote, side by side in the evap
- * proposals (Jake, 16 Nov: "speak about the difference between them and then
- * the reason people should choose each model").
- *
- * Only what Rinnai says: its Brivis brochure (RA85.06.22, Aug 2022, the
- * feature table and each range's page) and its Climate price list (1 Apr 2026:
- * "Advance Series (All With Motorised Winter Seal)", "All Brivis Contour
- * Series Include AquaSave and ServoSeal", a winter seal among the Promina's
- * accessories). What all three have (AutoRefresh, pre-wet, FreshStart, the
- * quiet fan, Australian made) is said once, the same on each, so it never
- * reads as one range's advantage. "Best value" and "the top" are the
- * pricebook's order, Advance under Promina under Contour at every size (16 Nov).
- * The Balaero isn't in the proposals and keeps the plain summary.
+ * An install template's summary, in the four parts every install summary has
+ * (wording.ts): the same words the office's own templates get, so a template
+ * made here reads like the rest. What sells the unit is on its equipment line
+ * (equipmentCopy.ts), not here.
  */
-export const EVAP_SERIES_COPY: Partial<Record<EvapUnit["series"], { compares: string; choose: string }>> = {
-  Advance: {
-    compares: "How it compares: of the three Brivis ranges we fit (Advance, Promina and Contour), the Advance is the best value. It's the traditional shape, where the Promina and Contour are slimline and sit lower on the roof. It has a motorised winter seal built in, which closes when the cooler is off to stop cold draughts and heat escaping through it in winter, and a large cooling pad area that moves plenty of air.",
-    choose: "Choose the Advance if you want a dependable Brivis at the lowest price and don't mind a traditional-looking cooler on the roof.",
-  },
-  Promina: {
-    compares: "How it compares: of the three Brivis ranges we fit (Advance, Promina and Contour), the Promina is the middle one. It's slimline: its low-profile sloping base lets it sit lower on the roof than the traditional-shaped Advance, for a neater look. Unlike the Advance and Contour, it doesn't come with a winter seal. One can be added to stop cold draughts and heat escaping through it in winter; ask us if you'd like it included.",
-    choose: "Choose the Promina if you want the slimline look on your roof without paying for the Contour's water saving and built-in winter seal.",
-  },
-  Contour: {
-    compares: "How it compares: of the three Brivis ranges we fit (Advance, Promina and Contour), the Contour is the top. It has the same slimline, low-profile sloping base as the Promina, and adds two things the Promina doesn't have. AquaSave water management keeps the water clean while using up to 45% less water than a conventional cooler that bleeds water off, and its small reservoir means less water is dumped when it's turned off. And a motorised winter seal is built in, closing when the cooler is off to stop cold draughts and heat escaping through it in winter.",
-    choose: "Choose the Contour if you want the best of the three: the slimline look, the lowest water use, and a winter seal that looks after itself.",
-  },
-};
-const EVAP_SHARED = "Like the other two, it's Australian made, with a quiet fan, AutoRefresh water management that flushes the tank and refills it with clean water after a set number of fills, a pre-wet cycle that soaks the pads before the fan starts, and FreshStart, which clears stagnant water and sediment once cooling is switched off.";
+const install = (name: string, f: Omit<TemplateFacts, "name">) => templateSummary({ name, ...f });
 
 /** A Brivis unit's replacement template: the unit, the install, the compliance certificate. */
 export function evapTemplate(u: EvapUnit, unitSkuId: number, unitPrice: number): TemplateSpec {
-  const opening = `Replacement of your existing evaporative cooler with a new Brivis ${u.series} ${u.model} in ${u.colour}, fully installed.`;
-  const series = EVAP_SERIES_COPY[u.series];
+  const name = `Brivis ${u.series} ${u.model} Evaporative Cooler (${u.colour}) - Replacement`;
   return {
-    name: `Brivis ${u.series} ${u.model} Evaporative Cooler (${u.colour}) - Replacement`,
+    name,
     code: `EVAP-BRIVIS-${u.series.toUpperCase()}-${u.model}-${COLOUR_CODE[u.colour]}`,
-    summary: [opening, ...(series ? [series.compares, EVAP_SHARED, series.choose] : []), FITTED].join("\n\n"),
-    // As made on 15 Nov, before the comparison.
-    was: series ? [[opening, FITTED].join("\n\n")] : undefined,
+    summary: install(name, { kind: "evap", brand: "Brivis", size: null, unit: `Brivis ${u.series} ${u.model} evaporative cooler in ${u.colour}` }),
     lines: [{ skuId: unitSkuId, skuType: "Equipment", quantity: 1, unitPrice }, L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)],
   };
 }
-
-const hw = (what: string, fuel: "gas" | "water and power") =>
-  `Replacement of your existing hot water system with a new ${what}, fully installed.\n\nIncludes disconnection, removal and disposal of the old unit, supply and installation of the new system, connection to the existing ${fuel === "gas" ? "gas and water supply" : "water and power"}, all valves and fittings, a full operational test and a compliance certificate on completion.`;
-const heater = (unit: string) =>
-  `Replacement of your existing ducted gas heater with a new ${unit}, fully installed.\n\nIncludes removal and disposal of the old heater, installation of the new unit and its connection to your existing gas, flue, ducting and controller, a full operational and safety test, and a compliance certificate on completion.`;
 
 /**
  * Everything else, from the quotes the office built by hand (Sept to Nov).
@@ -253,10 +216,10 @@ const heater = (unit: string) =>
  */
 export const OTHER_TEMPLATES: TemplateSpec[] = [
   { name: "Kaden KC32 Evaporative Cooler (Charcoal) - Replacement", code: "EVAP-KADEN-KC32-CHAR",
-    summary: `Replacement of your existing evaporative cooler with a new Kaden KC32 in Charcoal, fully installed.\n\n${FITTED}`,
+    summary: install("Kaden KC32 Evaporative Cooler (Charcoal) - Replacement", { kind: "evap", brand: "Kaden", size: null, unit: "Kaden KC32 evaporative cooler in Charcoal" }),
     lines: [L(SKU.kadenKC32, 2200), L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)] },
   { name: "Evaporative Cooler - Replacement (Add Unit)", code: "EVAP-REPLACE-ADD-UNIT",
-    summary: `Replacement of your existing evaporative cooler with a new unit, fully installed.\n\n${FITTED}`,
+    summary: install("Evaporative Cooler - Replacement (Add Unit)", { kind: "evap", brand: "Evaporative cooler", size: null }),
     lines: [L(SKU.evapInstall, priceOf(SKU.evapInstall.skuId)), L(SKU.compliance, 65)] },
   { name: "Evaporative Cooler Service - Single Storey", code: "EVAP-SVC-SS",
     summary: "A full service of the evaporative cooler on a single-storey home, to keep it running well through summer. What's included is set out below.",
@@ -292,16 +255,16 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     summary: "Moving your split system's outdoor unit onto a wall bracket, then reconnecting and testing the system.",
     lines: [L(SKU.splitRelocate, 850), L(SKU.wallBracket550, 0)] },
   { name: "Wall Air Conditioner Replacement - Kaden 2.7kW", code: "AC-RAC-KADEN-2.7",
-    summary: "Replacement of your existing wall air conditioner with a new Kaden 2.7kW unit in the same opening, fully installed, with a compliance certificate on completion.",
+    summary: install("Wall Air Conditioner Replacement - Kaden 2.7kW", { kind: "rac", brand: "Kaden", size: "2.7kW", unit: "Kaden 2.7kW wall air conditioner" }),
     lines: [L(SKU.kadenRac27, 750), L(SKU.racInstall, 980), L(SKU.compliance, 65)] },
   { name: "Wall Air Conditioner Replacement - Kaden 3.9kW", code: "AC-RAC-KADEN-3.9",
-    summary: "Replacement of your existing wall air conditioner with a new Kaden 3.9kW unit in the same opening, fully installed, with a compliance certificate on completion.",
+    summary: install("Wall Air Conditioner Replacement - Kaden 3.9kW", { kind: "rac", brand: "Kaden", size: "3.9kW", unit: "Kaden 3.9kW wall air conditioner" }),
     lines: [L(SKU.rac4kw, 950), L(SKU.racInstall, 800), L(SKU.compliance, 65)] },
   { name: "Kaden KUN320 Ducted Gas Heater - Replacement", code: "GAS-KADEN-KUN320",
-    summary: heater("Kaden KUN320"),
+    summary: install("Kaden KUN320 Ducted Gas Heater - Replacement", { kind: "heater", brand: "Kaden KUN320", size: null, heater: "internal" }),
     lines: [L(SKU.kadenKUN320, 1650), L(SKU.heaterInternal, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
   { name: "Kaden KN315 Ducted Gas Heater - Replacement", code: "GAS-KADEN-KN315",
-    summary: heater("Kaden KN315"),
+    summary: install("Kaden KN315 Ducted Gas Heater - Replacement", { kind: "heater", brand: "Kaden KN315", size: null, heater: "internal" }),
     lines: [L(SKU.kadenKN315, 1600), L(SKU.heaterInternal, 1080), L(SKU.compliance, 65), L(SKU.heaterKit, 0)] },
   { name: "Ducted Heater Service", code: "GAS-HTR-SVC",
     summary: "A full service and safety check of your ducted gas heater. What's included is set out below.",
@@ -310,13 +273,13 @@ export const OTHER_TEMPLATES: TemplateSpec[] = [
     summary: "A full service and safety check of your ducted gas heater, and a service of its add-on cooling. What's included is set out below.",
     lines: [L(SKU.heaterService, 290)] },
   { name: "Thermann Smart Electric Storage 125L 3kW - Replacement", code: "HW-THERMANN-125-ELEC",
-    summary: hw("Thermann Smart Electric 125L 3kW storage hot water system", "water and power"),
+    summary: install("Thermann Smart Electric Storage 125L 3kW - Replacement", { kind: "elecstorage", brand: "Thermann", size: "125L", unit: "Thermann Smart Electric Storage 125L 3kW hot water system" }),
     lines: [L(SKU.thermannElec125, 1300), L(SKU.elecHwInstall, 1210), L(SKU.compliance, 65), L(SKU.valveKit, 0), L(SKU.slab600, 0), L(SKU.insulation, 0), L(SKU.copper15, 0)] },
   { name: "Thermann Smart Electric Storage 160L 3kW - Replacement", code: "HW-THERMANN-160-ELEC",
-    summary: hw("Thermann Smart Electric 160L 3kW storage hot water system", "water and power"),
+    summary: install("Thermann Smart Electric Storage 160L 3kW - Replacement", { kind: "elecstorage", brand: "Thermann", size: "160L", unit: "Thermann Smart Electric Storage 160L 3kW hot water system" }),
     lines: [L(SKU.thermannElec160, 1400), L(SKU.elecHwInstall, 1210), L(SKU.compliance, 65), L(SKU.valveKit, 0), L(SKU.slab600, 0), L(SKU.insulation, 0), L(SKU.copper15, 0)] },
   { name: "Thermann 170L Gas Storage", code: "HW-THERMANN-170-GAS",
-    summary: hw("Thermann 170L 4 Star gas storage hot water system", "gas"),
+    summary: install("Thermann 170L Gas Storage", { kind: "gasstorage", brand: "Thermann", size: "170L" }),
     lines: [L(SKU.thermannGas170, 1500), L(SKU.gasStorageInstall, 1210), L(SKU.compliance, 65), L(SKU.duoValve, 0), L(SKU.tempValve, 0), L(SKU.copper15, 0, 2), L(SKU.elbow, 0, 2), L(SKU.insulation, 0, 4), L(SKU.tee, 0)] },
   { name: "Gas Storage Hot Water - Tempering & Relief Valve Replacement", code: "HW-REP-TEMP-PTR",
     summary: "Replacement of the tempering valve and the pressure and temperature relief valve on your hot water system, with the system tested on completion.",
