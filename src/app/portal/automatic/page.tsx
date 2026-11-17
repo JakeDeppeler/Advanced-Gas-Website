@@ -7,7 +7,7 @@ import { Locked } from "@/components/portal/Locked";
 import { Bad, Head } from "@/components/portal/kit/Kit";
 import { Icon } from "@/components/portal/shell/Menu";
 import { BookingProvider, OfficeTo } from "@/components/portal/AutoSwitch";
-import { ACTS, LEAD_ACTS, AutoGroup, AutoLog, AutoRow, NeedsLook, ORDER_KINDS, SetRow, TODOS, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
+import { ACTS, INBOX_ACTS, LEAD_ACTS, AutoGroup, AutoLog, AutoRow, NeedsLook, ORDER_KINDS, SetRow, TODOS, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
 import { officeIds, teamPeople } from "@/lib/todos/store";
 import { loadAutoLog, loadSorted, loadSwitches, type AutoKey } from "@/lib/automation/log";
 import { guessedSent } from "@/lib/automation/quoteDrafts";
@@ -60,7 +60,7 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
     const k = a.k as AutoKey;
     return <AutoRow key={k} a={a} on={sw[k]} mine={recent.filter((e) => e.kind === kindOf(k))} looks={looks.filter((l) => l.kind === kindOf(k)).length} admin={admin} settings={settingsFor[k]} />;
   };
-  const every = [...TODOS, ...ACTS, ...LEAD_ACTS];
+  const every = [...TODOS, ...ACTS, ...INBOX_ACTS, ...LEAD_ACTS];
   const on = every.filter((a) => sw[a.k as AutoKey]).length;
   const titleOf = new Map(every.map((a) => [kindOf(a.k), a.title]));
   const shown = searchParams.log && titleOf.has(searchParams.log) ? searchParams.log : null;
@@ -87,6 +87,12 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
           </AutoGroup>
           <AutoGroup title="In ServiceTitan" on={ACTS.filter((a) => sw[a.k as AutoKey]).length} of={ACTS.length}>
             {ACTS.map(row)}
+          </AutoGroup>
+          <AutoGroup
+            title="Email into ServiceTitan" on={INBOX_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={INBOX_ACTS.length}
+            intro={<>What the portal does with the inbox in ServiceTitan by itself. Reply drafts in Outlook carry on either way.</>}
+          >
+            {INBOX_ACTS.map(row)}
           </AutoGroup>
           <AutoGroup title="Enquiries" on={LEAD_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={LEAD_ACTS.length}>
             {LEAD_ACTS.map(row)}
