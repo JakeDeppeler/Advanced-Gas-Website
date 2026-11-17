@@ -14,11 +14,13 @@ import { lineCopy, plainText, summaryHtml, templateFacts, templateSummary } from
  *
  *   - every install template's summary: what we're doing, removing, including
  *     and not (wording.ts; the templates made here take their own spec's);
- *   - the description on each of its lines: the unit's (equipmentCopy.ts) on
- *     an equipment line, the service's (wording.ts › SERVICE_COPY) on a
- *     service line;
- *   - each unit's own description in the pricebook, so a unit added to a
- *     quote by hand says the same.
+ *   - each unit's own description in the pricebook (equipmentCopy.ts), first:
+ *     a template's equipment line shows the pricebook's words, whatever the
+ *     template sends (the Thermann 135L on 17 Nov kept its old line after a
+ *     PATCH that changed its summary), so the pricebook is where they go;
+ *   - the description on each service line (wording.ts › SERVICE_COPY). A
+ *     line ServiceTitan won't change is noted, not a failure: the summary is
+ *     what has to stick.
  *
  * Each is read back. The old words are saved to quote_wording_backup before
  * the first write over them, and summaryRule.ts decides what may be written
@@ -87,9 +89,44 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
 
   let writes = 0, stopped = false;
 
-  // --- 1. Templates: summary and line descriptions ---------------------------------
+  // --- 1. Each unit's own description in the pricebook ------------------------------
+  for (const id of equipTodo) {
+    if (Date.now() > until || writes >= maxWrites || out.failed.length) break;
+    const r = units.get(id);
+    const want = unitCopy(id);
+    const rec = eqRecs[id] ?? {};
+    if (!r || !want) { eqRecs[id] = { ...rec, v: VERSION }; continue; }
+    const a = wordingAction(r.description as string | null, want, rec.h, firstPass);
+    if (a !== "write") {
+      if (a === "same") rec.h = textHash(flatText(want));
+      else left[`equipment:${id}`] = `${String(r.displayName ?? id)}: description edited in ServiceTitan, left as it is`;
+      eqRecs[id] = { ...rec, v: VERSION };
+      continue;
+    }
+    if (!bE[id]) backupDirty = true;
+    if (!bE[id]) bE[id] = { at: at(), description: plainText(r.description as string | null) };
+    const path = stTenantPath("pricebook", `equipment/${id}`);
+    try {
+      await keepBackup();
+      await stSend("PATCH", path, { description: summaryHtml(want) });
+      writes++;
+      const back = await stFetch<Raw>(path);
+      if (wordingAction(back.description as string | null, want, undefined, false) !== "same") throw new Error("the description reads back different");
+      eqRecs[id] = { v: VERSION, h: textHash(flatText(want)) };
+      out.equipment.push(String(r.displayName ?? id).trim());
+      await saveSettings(KEY, p);
+    } catch (e) {
+      p.fails = (p.fails ?? 0) + 1;
+      notes[`equipment:${id}`] = (e as Error).message.slice(0, 200);
+      out.failed.push(String(r.displayName ?? id));
+      log.push({ at: at(), kind: "quoteTemplates", ok: false, title: `"${String(r.displayName ?? id).trim()}" couldn't take its new description`, detail: (e as Error).message.slice(0, 300) });
+      break;
+    }
+  }
+
+  // --- 2. Templates: summary and service line descriptions ------------------------
   for (const t of templatesTodo) {
-    if (Date.now() > until || writes >= maxWrites || stopped) break;
+    if (Date.now() > until || writes >= maxWrites || stopped || out.failed.length) break;
     const items = t.items ?? [];
     const withCodes = items.map((i) => ({ ...i, code: i.skuType === "Service" ? codeOf.get(i.skuId) ?? "" : "" }));
     const facts = templateFacts(t.name ?? "", withCodes);
@@ -103,7 +140,8 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     let lineWrites = 0;
     for (const i of withCodes) {
       if (i.id == null) continue;
-      const want = i.skuType === "Equipment" ? unitCopy(i.skuId) : i.skuType === "Service" ? lineCopy(i.code, facts) : null;
+      // Equipment lines follow the pricebook (step 1 below), not the template.
+      const want = i.skuType === "Service" ? lineCopy(i.code, facts) : null;
       if (!want) continue;
       const a = wordingAction(i.description, want, lineRecs[i.id], firstPass);
       if (a === "same") lineRecs[i.id] = textHash(flatText(want));
@@ -133,8 +171,8 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
       if (sAction === "write" && wordingAction(back.summary, wantSummary!, undefined, false) !== "same") throw new Error("the summary reads back different");
       for (const [id, want] of lineWants) {
         const b = back.items?.find((x) => x.id === id);
-        if (!b || wordingAction(b.description, want, undefined, false) !== "same") throw new Error(`line ${id} reads back different`);
-        lineRecs[id] = textHash(flatText(want));
+        if (b && wordingAction(b.description, want, undefined, false) === "same") lineRecs[id] = textHash(flatText(want));
+        else left[`${t.id}:${id}`] = `${t.name}: line ${id} keeps ServiceTitan's own words`;
       }
       if (sAction === "write") rec.s = textHash(flatText(wantSummary!));
       rec.v = VERSION;
@@ -147,41 +185,6 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
       notes[String(t.id)] = (e as Error).message.slice(0, 200);
       out.failed.push(t.name ?? String(t.id));
       log.push({ at: at(), kind: "quoteTemplates", ok: false, title: `Quote template "${t.name}" couldn't take its new wording`, detail: (e as Error).message.slice(0, 300) });
-      break;
-    }
-  }
-
-  // --- 2. Each unit's own description in the pricebook ------------------------------
-  for (const id of equipTodo) {
-    if (Date.now() > until || writes >= maxWrites || stopped || out.failed.length) break;
-    const r = units.get(id);
-    const want = unitCopy(id);
-    const rec = eqRecs[id] ?? {};
-    if (!r || !want) { eqRecs[id] = { ...rec, v: VERSION }; continue; }
-    const a = wordingAction(r.description as string | null, want, rec.h, firstPass);
-    if (a !== "write") {
-      if (a === "same") rec.h = textHash(flatText(want));
-      else left[`equipment:${id}`] = `${String(r.displayName ?? id)}: description edited in ServiceTitan, left as it is`;
-      eqRecs[id] = { ...rec, v: VERSION };
-      continue;
-    }
-    if (!bE[id]) backupDirty = true;
-    if (!bE[id]) bE[id] = { at: at(), description: plainText(r.description as string | null) };
-    const path = stTenantPath("pricebook", `equipment/${id}`);
-    try {
-      await keepBackup();
-      await stSend("PATCH", path, { description: summaryHtml(want) });
-      writes++;
-      const back = await stFetch<Raw>(path);
-      if (wordingAction(back.description as string | null, want, undefined, false) !== "same") throw new Error("the description reads back different");
-      eqRecs[id] = { v: VERSION, h: textHash(flatText(want)) };
-      out.equipment.push(String(r.displayName ?? id).trim());
-      await saveSettings(KEY, p);
-    } catch (e) {
-      p.fails = (p.fails ?? 0) + 1;
-      notes[`equipment:${id}`] = (e as Error).message.slice(0, 200);
-      out.failed.push(String(r.displayName ?? id));
-      log.push({ at: at(), kind: "quoteTemplates", ok: false, title: `"${String(r.displayName ?? id).trim()}" couldn't take its new description`, detail: (e as Error).message.slice(0, 300) });
       break;
     }
   }
