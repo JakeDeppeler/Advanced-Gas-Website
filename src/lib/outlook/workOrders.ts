@@ -14,7 +14,7 @@ import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, approvalFor, approvalHeading, bookingSummary, dedupeKey, fillTemplate, followUpFor, followUpHeading,
-  isTeamForward, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
+  isTeamForward, tapiLinkIn, tapiPageText, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
 /**
@@ -109,7 +109,7 @@ async function extract(m: GraphMessage, body: string, pdfs: FileAtt[], officeSay
     {
       type: "text",
       text: [
-        `<email>\n${head}\n\n${body.slice(0, 12000)}\n</email>`,
+        `<email>\n${head}\n\n${body.slice(0, 20000)}\n</email>`,
         pdfs.length ? `The email's PDF attachments are above.` : "",
         officeSays ? "Someone in the office has marked this email as a work order. Read it as one unless it plainly can't be." : "",
         "Read this email for a work order.",
@@ -127,6 +127,24 @@ async function extract(m: GraphMessage, body: string, pdfs: FileAtt[], officeSay
   });
   if (res.stop_reason === "refusal") throw new Error("The model wouldn't read this email.");
   return parseWorkOrder(res.content.map((b) => (b.type === "text" ? b.text : "")).join(""));
+}
+
+/**
+ * The Tapi work order page the email links to, as text, or null. The link is
+ * in the text body as Graph gives it; failing that, in the HTML's hrefs. Only
+ * tapi.app, and only a page that stays there.
+ */
+async function tapiPage(mailbox: string, id: string, textBody: string): Promise<string | null> {
+  let link = tapiLinkIn(textBody);
+  if (!link) {
+    const html = await graph<GraphMessage>(`${userPath(mailbox)}/messages/${encodeURIComponent(id)}?$select=body`).catch(() => null);
+    link = tapiLinkIn(html?.body?.content ?? "");
+  }
+  if (!link) return null;
+  const res = await fetch(link, { headers: { Accept: "text/html", "User-Agent": "Mozilla/5.0 (compatible; AdvancedGasPortal/1.0)" }, signal: AbortSignal.timeout(15_000), cache: "no-store" });
+  if (!res.ok || new URL(res.url).hostname !== "tapi.app") return null;
+  const text = tapiPageText((await res.text()).slice(0, 1_000_000));
+  return text.length > 80 ? text : null;
 }
 
 async function addCategory(mailbox: string, id: string, cat: string) {
@@ -183,7 +201,8 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       return { status: "not" };
     }
     const pdfs = full.hasAttachments ? await pdfsOf(mailbox, m.id) : [];
-    const w = await extract(m, body, pdfs, force);
+    const tapi = await tapiPage(mailbox, m.id, body).catch(() => null);
+    const w = await extract(m, tapi ? `${body}\n\n<tapi_work_order_page>\nThe Tapi page this email links to, read by the portal:\n${tapi}\n</tapi_work_order_page>` : body, pdfs, force);
     const base = {
       subject: (m.subject ?? "").slice(0, 300), from_address: addressOf(m.from) || null, received_at: m.receivedDateTime ?? null,
       kind: w.kind, platform: w.platform || null, agency: w.agency || null, wo_number: w.number || null,

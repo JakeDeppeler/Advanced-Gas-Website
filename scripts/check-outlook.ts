@@ -25,7 +25,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
-import { PROPERTY_TYPES, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName } from "../src/lib/outlook/workOrderTypes";
+import { PROPERTY_TYPES, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiPageText, visitEnd } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -342,6 +342,22 @@ console.log("-- work order jobs: unit, site details (18 Nov: 18 Leonie Court) --
   ok("Unknown is nothing", propertyTypeFrom("ANSWER: Unknown") === null);
   ok("an answer not in the list is nothing", propertyTypeFrom("ANSWER: Apartment") === null && propertyTypeFrom("no answer line") === null);
   ok("the three types are the office's", PROPERTY_TYPES.join("|") === "House - Single Storey|House - Double Storey|Townhouse");
+}
+
+console.log("-- visit length and Tapi pages (18 Nov) --");
+{
+  const start = "2026-11-20T21:00:00.000Z";
+  ok("a visit is as long as its job type", visitEnd(start, 5400) === "2026-11-20T22:30:00.000Z");
+  ok("a job type with no length gets an hour and a half", visitEnd(start, null) === "2026-11-20T22:30:00.000Z" && visitEnd(start, 0) === "2026-11-20T22:30:00.000Z");
+  ok("a two-hour gas safety check stays two hours", visitEnd(start, 7200) === "2026-11-20T23:00:00.000Z");
+  const link = "https://tapi.app/issue/1a0a23c2-55d4-4e35-801b-3f764ddb5182/t/bc8fd9fb-5ba2-45ee-8605-89be5267c88d?s=6146230f";
+  ok("the link in Graph's text body", tapiLinkIn(`View issue report<${link}>`) === link);
+  ok("the link in an HTML href", tapiLinkIn(`<a href="${link.replace("?", "?")}" target="_blank">View issue report</a>`) === link);
+  ok("not another host", tapiLinkIn(link.replace("tapi.app", "tapi.app.evil.com")) === null && tapiLinkIn("https://evil.com/?u=https://tapi.app/issue/x") === null);
+  const page = `<html><head><script>var x=1</script><style>.a{}</style></head><body><a>Log in</a><h1>Broken Air Conditioner</h1><p>Description:</p><p>Not cooling &amp; noisy.</p><button>Cancel</button><button>Delete</button><span>&times;</span><p>Tenants:</p><p>Jane Tenant</p><p>Key number:</p><p>272</p><p>Invoice to:</p><p>Pat Owner</p><p>c/o Some Agency</p><p>Invoice reference:</p><p>TAPI-022811</p><p>Health &amp; safety hazards:</p><p>None.</p><p>Health &amp; safety information for this property</p><p>Reschedule this job?</p><p>Decline work order?</p></body></html>`;
+  const text = tapiPageText(page);
+  ok("the page's work order is kept", ["Broken Air Conditioner", "Not cooling & noisy.", "Jane Tenant", "272", "Pat Owner", "c/o Some Agency", "TAPI-022811"].every((w) => text.includes(w)), text);
+  ok("its scripts, buttons and dialogs aren't", !/var x|Cancel|Delete|×|Log in|Reschedule|Decline/.test(text), text);
 }
 
 console.log("-- booking confirmations --");
