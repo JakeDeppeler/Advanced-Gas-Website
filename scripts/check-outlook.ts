@@ -25,6 +25,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
+import { PROPERTY_TYPES, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -321,6 +322,26 @@ console.log("-- new leads --");
   ok("postcode that isn't one is dropped", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ postcode: "38" }) })).lead?.postcode === "");
   ok("not new: none", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ is_new: false }) })).lead === null);
   ok("missing new_lead: none, still parses", parseMailDraft(JSON.stringify(base)).lead === null);
+}
+
+console.log("-- work order jobs: unit, site details (18 Nov: 18 Leonie Court) --");
+{
+  const leonie = parseWorkOrder(JSON.stringify({ is_work_order: true, kind: "quote_request", number: "20426", street: "18 Leonie Court", suburb: "Narre Warren", owner: "Tie Hong Tang", is_real_estate: true, work_kind: "Diagnostics" }));
+  ok("the owner is read", leonie.owner === "Tie Hong Tang");
+  ok("a rental's disconnected heater goes under Real Estate - Diagnostics", realEstateUnitName(leonie) === "Real Estate - Diagnostics");
+  ok("a service goes under Real Estate - Maintenance", realEstateUnitName({ isRealEstate: true, workKind: "Maintenance" }) === "Real Estate - Maintenance");
+  ok("a builder's isn't Real Estate", realEstateUnitName(parseWorkOrder(JSON.stringify({ is_work_order: true, is_real_estate: false, work_kind: "Diagnostics" }))) === null);
+  ok("an older reading with no work kind is Diagnostics, not Real Estate", (() => { const r = parseWorkOrder(JSON.stringify({ is_work_order: true })); return r.workKind === "Diagnostics" && !r.isRealEstate && r.owner === ""; })());
+  ok("an agency's plain number reads as the office writes it", jobReference("20426") === "JOB NO. 20426", jobReference("20426"));
+  ok("a Tapi number stays as it is", jobReference("TAPI-25913") === "TAPI-25913");
+  for (const u of ["Unit 4/15 Golden Av", "4/15 Golden Av", "5/6 Dulcie Gr", "Apt 3 12 Main St", "Lot 12 Smith Rd"]) ok(`a unit isn't looked up: ${u}`, isUnitAddress(u));
+  for (const h of ["18 Leonie Court", "10 Sundaze Street", "2 Butterfields Walk", "160 Racecourse Road North"]) ok(`a house is looked up: ${h}`, !isUnitAddress(h));
+  ok("the answer line is read", propertyTypeFrom("Listings show a single-level home.\nANSWER: House - Single Storey") === "House - Single Storey");
+  ok("the last answer line wins", propertyTypeFrom("ANSWER: Unknown\nOn a second look:\nANSWER: House - Double Storey") === "House - Double Storey");
+  ok("a trailing full stop is fine", propertyTypeFrom("ANSWER: Townhouse.") === "Townhouse");
+  ok("Unknown is nothing", propertyTypeFrom("ANSWER: Unknown") === null);
+  ok("an answer not in the list is nothing", propertyTypeFrom("ANSWER: Apartment") === null && propertyTypeFrom("no answer line") === null);
+  ok("the three types are the office's", PROPERTY_TYPES.join("|") === "House - Single Storey|House - Double Storey|Townhouse");
 }
 
 console.log("-- booking confirmations --");

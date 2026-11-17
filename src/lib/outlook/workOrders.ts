@@ -8,7 +8,8 @@ import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, fillSiteDetails, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
+import { lookUpPropertyType } from "./propertyType";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
@@ -276,11 +277,6 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
         ...base, dedupe_key: key, status: "booked", reason: null, st_job_id: job.jobId, st_job_number: job.jobNumber,
         st_customer_id: job.customerId, st_location_id: job.locationId, location_how: job.how,
       });
-      // Onto the job straight away: it exists now, nothing to wait for.
-      await attachToJob(mailbox, m.id, job.jobId, m.receivedDateTime ?? null)
-        .then(() => save(mailbox, m.id, { attached_at: new Date().toISOString(), attach_error: null }))
-        .catch((e: Error) => save(mailbox, m.id, { attach_error: e.message.slice(0, 240) }));
-      await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
       // On hold before anything else can see it. A hold that fails leaves the
       // job as it was, and says so on Settings › Automatic.
       if ((await loadSwitches()).woHold) {
@@ -293,6 +289,18 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
             await logAuto([{ at: new Date().toISOString(), kind: "woHold", ok: false, jobId: made.jobId, title: `Job ${made.jobNumber ?? made.jobId} from a work order couldn't be put on hold, so Dispatch Pro can see it`, detail: said }]).catch(() => undefined);
           });
       }
+      // Onto the job straight away: it exists now, nothing to wait for.
+      await attachToJob(mailbox, m.id, job.jobId, m.receivedDateTime ?? null)
+        .then(() => save(mailbox, m.id, { attached_at: new Date().toISOString(), attach_error: null }))
+        .catch((e: Error) => save(mailbox, m.id, { attach_error: e.message.slice(0, 240) }));
+      await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
+      // The site's job reference, owner and property type, as the office
+      // fills them by hand. Never at the cost of the job: a miss is logged.
+      const site_ = job;
+      await fillSiteDetails(site_.locationId, w, () => lookUpPropertyType(w.street, w.suburb, zip))
+        .catch(async (e: Error) => {
+          await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the site's job reference, owner or property type couldn't be filled in`, detail: stSaid(e).slice(0, 200) }]).catch(() => undefined);
+        });
       await emailTenant(mailbox, m.id, w, addressOf(m.from)).catch(() => undefined);
       return { status: "booked", isWorkOrder: true, jobId: job.jobId, jobNumber: job.jobNumber };
     }
