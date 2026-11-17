@@ -36,7 +36,7 @@ export function openRunFailures(log: AutoEntry[]): Set<string> {
  * check reminder: the crew don't have the trade iPads yet, so a to-do saying
  * "do your van check" would be asking for something they can't do.
  */
-export const AUTO_KEYS = ["quoteTag", "rebateTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "installSummary", "leadToJob", "leadBooking", "emailLeads"] as const;
+export const AUTO_KEYS = ["quoteTag", "rebateTag", "soldNotBooked", "notInvoiced", "factoryMin", "quoteFollow", "overdueInv", "vanCheck", "keepInTouch", "orderTags", "orderMoves", "accountFlow", "workOrderSend", "woNeedsTech", "woNotToday", "quoteToWrite", "jobsToClose", "installPack", "installSummary", "leadToJob", "leadBooking", "emailLeads", "emailToJob", "workOrderBook", "emailDrafts", "woHold", "woTenantEmail"] as const;
 export type AutoKey = (typeof AUTO_KEYS)[number];
 export type AutoSwitches = Record<AutoKey, boolean> & {
   /** Who gets the office's automatic to-dos. Null: the first person in the office. */
@@ -62,7 +62,12 @@ export const NOTIFY_DEFAULT = "jake@advancedgas.com.au";
 // Bookings need a booking provider made in ServiceTitan and the Bookings scope on the API app first.
 // The install summary is written and kept from the start, but only goes in
 // the packs installers get once someone's read a few and turned it on.
-const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "leadBooking", "installSummary"];
+// The inbox into ServiceTitan (emails onto their jobs, work orders booked by
+// themselves) was switched off by Jake on 17 Nov; off until he turns it back on.
+// Reply drafts and holding work-order jobs read as on unless switched off.
+// woTenantEmail is a view of work_orders.tenantEmail (the Work orders page's),
+// not stored here: Settings › Automatic reads and writes it there.
+const OFF_UNTIL_ASKED: AutoKey[] = ["vanCheck", "leadBooking", "installSummary", "emailToJob", "workOrderBook"];
 
 const LOG = "automation_log";
 const SW = "automation";

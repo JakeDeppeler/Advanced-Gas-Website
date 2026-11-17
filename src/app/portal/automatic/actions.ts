@@ -5,12 +5,20 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { AUTO_KEYS, loadSwitches, saveSwitches, type AutoKey } from "@/lib/automation/log";
 import { teamPeople } from "@/lib/todos/store";
+import { getWorkOrderSettings, saveWorkOrderSettings } from "@/lib/outlook/workOrderList";
 
 /** Turn one automatic job on or off. Admins only: some of them write to ServiceTitan. */
 export async function setAuto(key: AutoKey, on: boolean): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change this." };
   if (!AUTO_KEYS.includes(key)) return { ok: false, error: "That isn't one of them." };
+  // The tenant email's switch is the Work orders page's, kept with its wording.
+  if (key === "woTenantEmail") {
+    const r = await saveWorkOrderSettings({ ...(await getWorkOrderSettings()), tenantEmail: !!on });
+    revalidatePath("/portal/automatic");
+    revalidatePath("/portal/work-orders");
+    return r.ok ? { ok: true } : { ok: false, error: "Couldn't save it." };
+  }
   const cur = await loadSwitches();
   // Bookings start from the moment they're turned on: the backlog is already in ServiceTitan by hand.
   const since = key === "leadBooking" && on && !cur.leadBooking ? { leadBookingSince: new Date().toISOString() } : {};

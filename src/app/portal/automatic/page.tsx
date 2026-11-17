@@ -7,10 +7,11 @@ import { Locked } from "@/components/portal/Locked";
 import { Bad, Head } from "@/components/portal/kit/Kit";
 import { Icon } from "@/components/portal/shell/Menu";
 import { BookingProvider, OfficeTo } from "@/components/portal/AutoSwitch";
-import { ACTS, LEAD_ACTS, AutoGroup, AutoLog, AutoRow, NeedsLook, ORDER_KINDS, SetRow, TODOS, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
+import { ACTS, INBOX_ACTS, LEAD_ACTS, AutoGroup, AutoLog, AutoRow, NeedsLook, ORDER_KINDS, SetRow, TODOS, kindOf, needsLook, type Auto } from "@/components/portal/automation/AutoParts";
 import { officeIds, teamPeople } from "@/lib/todos/store";
 import { loadAutoLog, loadSorted, loadSwitches, type AutoKey } from "@/lib/automation/log";
 import { guessedSent } from "@/lib/automation/quoteDrafts";
+import { getWorkOrderSettings } from "@/lib/outlook/workOrderList";
 import { GuessedQuotes } from "@/components/portal/automation/GuessedQuotes";
 import type { ReactNode } from "react";
 
@@ -29,7 +30,9 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead") && !can(user, "manage_users")) return <Locked user={user} what="Automatic" forWhom="the office" />;
-  const [sw, all, sorted, people, office, guessed] = await Promise.all([loadSwitches(), loadAutoLog(), loadSorted(), teamPeople(), officeIds(), guessedSent().catch(() => [])]);
+  const [stored, all, sorted, people, office, guessed, wo] = await Promise.all([loadSwitches(), loadAutoLog(), loadSorted(), teamPeople(), officeIds(), guessedSent().catch(() => []), getWorkOrderSettings()]);
+  // The tenant email's switch lives with its wording on Work orders.
+  const sw = { ...stored, woTenantEmail: wo.tenantEmail };
   const log = all.filter((e) => !ORDER_KINDS.has(e.kind));
   const recent = log.filter((e) => Date.now() - Date.parse(e.at) < 14 * 86_400_000);
   const looks = needsLook(recent, sorted);
@@ -60,7 +63,7 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
     const k = a.k as AutoKey;
     return <AutoRow key={k} a={a} on={sw[k]} mine={recent.filter((e) => e.kind === kindOf(k))} looks={looks.filter((l) => l.kind === kindOf(k)).length} admin={admin} settings={settingsFor[k]} />;
   };
-  const every = [...TODOS, ...ACTS, ...LEAD_ACTS];
+  const every = [...TODOS, ...ACTS, ...INBOX_ACTS, ...LEAD_ACTS];
   const on = every.filter((a) => sw[a.k as AutoKey]).length;
   const titleOf = new Map(every.map((a) => [kindOf(a.k), a.title]));
   const shown = searchParams.log && titleOf.has(searchParams.log) ? searchParams.log : null;
@@ -87,6 +90,12 @@ export default async function AutomaticPage({ searchParams }: { searchParams: { 
           </AutoGroup>
           <AutoGroup title="In ServiceTitan" on={ACTS.filter((a) => sw[a.k as AutoKey]).length} of={ACTS.length}>
             {ACTS.map(row)}
+          </AutoGroup>
+          <AutoGroup
+            title="Email and work orders" on={INBOX_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={INBOX_ACTS.length}
+            intro={<>What the portal does with the inbox by itself, in Outlook and in ServiceTitan. The tenant email&rsquo;s wording is on the Work orders page.</>}
+          >
+            {INBOX_ACTS.map(row)}
           </AutoGroup>
           <AutoGroup title="Enquiries" on={LEAD_ACTS.filter((a) => sw[a.k as AutoKey]).length} of={LEAD_ACTS.length}>
             {LEAD_ACTS.map(row)}
