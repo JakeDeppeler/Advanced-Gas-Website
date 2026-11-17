@@ -417,11 +417,246 @@ const ZONEMATE: Family = {
   }),
 };
 
+// --- Ducted gas heating and the Dominator ----------------------------------------------
+// rinnai.com.au (Brivis Buffalo BX3C/BX5C, Classic Wombat, Compact Classic, StarPro 6;
+// Brivis warranty booklet Mar 2026), braemar.com.au and seeleyinternational.com
+// (Ecostar TQM618, Dominator), kaden.com.au (KN3/KUN3 brochure). Checked 17 Nov 2026.
+// Brivis publishes outputs that differ from the pricebook names: the "26kW" Buffalos
+// are 28 kW (3-star) and 30 kW (5-star); the titles use Brivis's figures.
+const BRIVIS_HEATER_WARRANTY = "Brivis: 5 years parts and labour (extendable to 9 with registration and Brivis services in years 4, 6 and 8), and 10 years on the heat exchanger and burner (parts). Servicing every 2 years is a condition of the warranty.";
+const STAR_STEP = "Brivis says each extra star cuts gas use by about 10%.";
+const BUFFALO_3: Record<string, string> = { "315": "15.5", "320": "20", "326": "28" };
+const BRIVIS_BUFFALO_3: Family = {
+  key: "brivis-buffalo-3",
+  matches: has(/buffalo\s+3\s*star|BX3\d\dC/i),
+  copy: (u) => ({
+    title: `Brivis Buffalo ${BUFFALO_3[grab(u, /BX(3\d\d)/i)] ?? grab(u, /(\d+)\s*kw/i)}kW 3-star external ducted gas heater, natural gas.`,
+    saves: `Rated 3.5 stars, the top of the 3-star band. ${STAR_STEP} No pilot light burning gas between runs.`,
+    features: "Made in Australia. Weatherproof outdoor cabinet, built as an easy changeover for an existing Buffalo. Networker or wifi control available with an extra module.",
+    choose: "Compared with the 5-star Buffalo, it costs less up front and is the simplest like-for-like swap for an existing Buffalo, with the same warranty. The 5-star uses less gas over a long winter and adds a modulating burner and zoning.",
+    warranty: BRIVIS_HEATER_WARRANTY,
+  }),
+};
+const BUFFALO_5: Record<string, { kw: string; stars: string }> = { "520": { kw: "20", stars: "5.1" }, "526": { kw: "30", stars: "5.0" } };
+const BRIVIS_BUFFALO_5: Family = {
+  key: "brivis-buffalo-5",
+  matches: has(/buffalo\s+5\s*star|BX5\d\dC/i),
+  copy: (u) => {
+    const m = BUFFALO_5[grab(u, /BX(5\d\d)/i)] ?? BUFFALO_5["520"];
+    return {
+      title: `Brivis Buffalo ${m.kw}kW 5-star external ducted gas heater, natural gas.`,
+      saves: `Rated ${m.stars} stars. Brivis estimates a 5-star heater uses about 22% less gas than a standard 3.0-star one: around $603 a year in its test home (220 m², 600 hours a year, gas at 3.01c/MJ). Its modulating gas valve turns down as your home warms.`,
+      features: "Made in Australia. Weatherproof outdoor cabinet designed to replace an existing Buffalo. Works with ZonePlus zoning (up to 4 zones) and wifi control.",
+      choose: "Compared with the 3-star Buffalo, it burns less gas every winter and adds a modulating burner and zoning. The 3-star is rated 3.5 stars, so your saving against it will be under Brivis's 22%.",
+      warranty: BRIVIS_HEATER_WARRANTY,
+    };
+  },
+};
+const BRIVIS_WOMBAT: Family = {
+  key: "brivis-wombat",
+  matches: has(/wombat|2PW\d\dN/i),
+  copy: (u) => ({
+    title: `Brivis Classic Wombat ${/2PW20|20NG/i.test(u.all) ? "21" : "15.5"}kW internal ducted gas heater, natural gas.`,
+    saves: `Rated 3.8 stars, which Brivis says makes it one of the highest-rated 3-star heaters available. ${STAR_STEP} No pilot light burning gas between runs.`,
+    features: "Made in Australia. Installs out of sight in the roof space, and splits in two for easier handling. Networker or wifi control available with an extra module.",
+    choose: "Compared with the Brivis Compact Classic below it, it has a higher star rating (3.8 against 3.0 to 3.5) and a longer warranty (5 years against 3). Zoning needs a StarPro.",
+    warranty: BRIVIS_HEATER_WARRANTY,
+  }),
+};
+const BRIVIS_COMPACT: Family = {
+  key: "brivis-compact-classic",
+  matches: has(/compact classic|CC3\d\dIN/i),
+  copy: (u) => {
+    const big = /CC320|19\s*kw/i.test(u.all);
+    return {
+      title: `Brivis Compact Classic ${big ? "19.5" : "15"}kW internal ducted gas heater, natural gas, with manual controller.`,
+      saves: `Rated ${big ? "3.5" : "3.0"} stars. ${STAR_STEP} No pilot light burning gas between runs.`,
+      features: "Made in Australia. Low-profile, compact and splittable for tight roof spaces. Three-speed fan. Manual controller with a large digital display.",
+      choose: "Compared with the Brivis Wombat, it's much smaller (724mm long against 1,187mm), so it fits roof spaces a Wombat won't, and it costs less. The Wombat has the higher star rating and the longer warranty.",
+      warranty: "Brivis: 3 years parts and labour on the Compact Classic, and 10 years on the heat exchanger and burner (parts). Servicing every 2 years is a condition of the warranty.",
+    };
+  },
+};
+const BRIVIS_STARPRO: Family = {
+  key: "brivis-starpro-6",
+  matches: has(/starpro|SP615/i),
+  copy: () => ({
+    title: "Brivis StarPro 6 15kW 6-star internal ducted gas heater, natural gas (SP615IN).",
+    saves: "Brivis estimates a 6-star heater uses about 30% less gas than a standard 3.0-star one: around $814 a year in its test home (220 m², 600 hours a year, gas at 3.01c/MJ).",
+    features: "Made in Australia. Condensing, with a modulating gas valve, a 4-pass heat exchanger and up to 16 fan speeds. Works with ZonePlus zoning (up to 4 zones) and wifi control.",
+    choose: "Compared with the 15.5kW Brivis Wombat (3.8 stars), it rates more than two stars higher, each worth about 10% less gas by Brivis's measure, and adds modulation and zoning.",
+    warranty: BRIVIS_HEATER_WARRANTY,
+  }),
+};
+const BRAEMAR_ECOSTAR: Family = {
+  key: "braemar-ecostar-tqm618",
+  matches: has(/TQM618|ecostar/i),
+  copy: () => ({
+    title: "Braemar Ecostar 6-star 17.9kW ducted gas heater, natural gas (TQM618).",
+    saves: "Rated 6.3 stars equivalent in Australian Gas Association testing, above the label's 6-star top. Braemar puts each star at about 10% less gas, and estimates a 6-star heater saves about $966 a year over a 3-star (240 m² home, 600 hours a year, gas at 3.26c/MJ).",
+    features: "Australian made. Modulating gas control, Tri-Action heat exchanger and the Stealth Softair fan system for steady warm air without cold draughts. Zoning available with the MagIQtouch controller.",
+    choose: "Compared with Brivis's StarPro 6 (6.0 stars), it tests slightly higher and adds the Softair fan system.",
+    warranty: "Braemar: 5 years comprehensive cover for home use (7 when bought through a Seeley participating dealer), plus 10 years on the heat exchanger and burner (parts only). Servicing every 2 years as set out in the owner's manual is a condition.",
+  }),
+};
+const KADEN_KN315: Family = {
+  key: "kaden-kn315",
+  matches: has(/KN315/i),
+  copy: () => ({
+    title: "Kaden 15kW 3-star internal ducted gas heater, natural gas (KN315INT), with digital manual controller.",
+    saves: "Rated 3 stars. Kaden says each extra star saves around 10% on running costs. No pilot light burning gas while it's off.",
+    features: "Made by Rinnai for Kaden. Compact and splittable; installs in the roof space or under the floor. Three-speed fan. Takes add-on cooling up to 10kW.",
+    choose: "Compared with Brivis's 15kW Compact Classic, also Rinnai-built and 3-star, the Kaden carries 5 years parts and labour rather than 3.",
+    warranty: "Kaden: 5 years parts and labour (7 with registration within 12 months and a Rinnai service in year 4), and 10 years on the heat exchanger and burner (parts). Servicing as set out in the owner's manual is a condition.",
+  }),
+};
+const KADEN_KUN320: Family = {
+  key: "kaden-kun320",
+  matches: has(/KUN320/i),
+  copy: () => ({
+    title: "Kaden Universal 19kW 3-star ducted gas heater, natural gas (KUN320), with manual controller.",
+    saves: "Rated 3 stars. Kaden says each extra star saves around 10% on running costs. No pilot light burning gas while it's off.",
+    features: "Made by Rinnai for Kaden. The Universal cabinet can go in the roof space, under the floor or outside. Splittable, three-speed fan. Takes add-on cooling up to 10kW.",
+    choose: "Compared with Kaden's internal-only models, it can go inside or out, so it suits wherever your old heater sat, and it carries a longer warranty than Brivis's entry-level Compact Classic (5 years against 3).",
+    warranty: "Kaden: 5 years parts and labour (7 with registration within 12 months and a Rinnai service in year 4), and 10 years on the heat exchanger and burner (parts). Servicing as set out in the owner's manual is a condition.",
+  }),
+};
+const BRAEMAR_DOMINATOR: Family = {
+  key: "braemar-dominator",
+  matches: has(/dominator/i),
+  copy: (u) => {
+    // The pricebook's "Series 3 - External" (KGHV200A1S) is the earlier KGHV model.
+    const s3 = /KCDB195|KGDB195|18\s*kw/i.test(u.all);
+    const m = s3 ? { heat: "17.9", cool: "16.5" } : { heat: "17", cool: "13.2" };
+    return {
+      title: `Braemar Dominator ${m.heat}kW ducted reverse cycle system, made to replace a ducted gas heater.`,
+      saves: "Your heating comes off gas. Seeley says its heat pump gives 3 to 4 units of heat for every unit of electricity, with a seasonal heating rating of HSPF 3.4 in Melbourne's cold zone.",
+      features: `Indoor unit made by Seeley in Albury, NSW, to sit where your gas heater is now, on your existing ducts and outlets. Adds ${m.cool}kW of refrigerated cooling. Optional zoning up to 8 zones.`,
+      choose: "Compared with a full new ducted system, it reuses your ductwork and avoids ceiling work. Compared with keeping gas, one system heats and cools; the air from the outlets is a little cooler than a gas heater's (40 to 50°C against about 53°C).",
+      warranty: "Seeley: 5 years comprehensive cover for home use, with servicing as set out in the owner's manual.",
+    };
+  },
+};
+
+// --- Heat pump hot water: Reclaim, Panasonic, Thermann, iStore ------------------------
+// reclaimenergy.com.au (CO2 brochure, V2 manual, warranty booklet Issue 19 Sep 2026, Eco
+// R290 manual), panasonic.com/au (CO2 range launch: 10 years parts and labour),
+// thermann.com.au (Integrated Heat Pump manual), istore.net.au (manual, warranty); STC
+// counts from the Clean Energy Regulator, the locally made list from Solar Victoria's
+// list of 4 Nov 2026. Checked 17 Nov 2026. Where Reclaim's booklet contradicts itself
+// on tank labour, the tank line gives parts only.
+const RECLAIM_SAVES = "Reclaim says it uses up to 80% less electricity than a conventional electric water heater, and it needs no booster element, even at -10°C outside.";
+const v2 = (u: Unit) => /\bV2\b/i.test(u.all);
+const reclaimVersion = (u: Unit) => v2(u)
+  ? { label: "V2 with wifi controller", controller: "Wifi controller and app: 8 modes, solar and off-peak timers, holiday mode, boost and fault alerts.", hp: "Heat pump and wifi controller: 10 years parts and labour.", rebate: " Eligible for STCs, VEU and Solar Victoria's higher locally made rebate.", vs: "The V2 adds app control and a 10-year heat pump warranty (7 on the V1)." }
+  : { label: "V1", controller: "Six-mode controller with off-peak and solar timers.", hp: "Heat pump and controller: 7 years parts and labour.", rebate: " Eligible for STC and VEU discounts.", vs: "The V2 adds app control and a longer heat pump warranty, if you'd like them." };
+const RECLAIM_TAIL = "Licensed installation and Reclaim's water quality limits apply.";
+const RECLAIM_DUPLEX: Family = {
+  key: "reclaim-co2-duplex",
+  matches: has(/reclaim split.*duplex/i),
+  copy: (u) => {
+    const v = reclaimVersion(u);
+    return {
+      title: `Reclaim Energy CO2 split heat pump with 315L duplex stainless steel tank, ${v.label}.`,
+      saves: `${RECLAIM_SAVES} Eligible for STC and VEU discounts and Solar Victoria's hot water rebate.`,
+      features: `2205 duplex stainless inner tank and casing, 65mm insulation. Natural CO2 refrigerant; the outdoor heat pump is rated at 37 dB and makes water at 63°C. ${v.controller}`,
+      choose: `Reclaim's duplex stainless tank, about 100mm shorter than its standard 315L stainless tank. ${v.vs}`,
+      warranty: `Tank: 15 years parts (full replacement to year 6, then pro-rata). ${v.hp} ${RECLAIM_TAIL}`,
+    };
+  },
+};
+const RECLAIM_GL: Family = {
+  key: "reclaim-co2-glass",
+  matches: has(/reclaim split\s*-\s*glass lined/i),
+  copy: (u) => {
+    const v = reclaimVersion(u);
+    return {
+      title: `Reclaim Energy CO2 split heat pump with ${grab(u, /(\d{3})\s*l/i)}L glass-lined tank, ${v.label}.`,
+      saves: `${RECLAIM_SAVES}${v.rebate}`,
+      features: `Natural CO2 refrigerant. The outdoor heat pump is rated at 37 dB and makes water at 63°C. Australian-made tank. ${v.controller}`,
+      choose: `Reclaim recommends glass-lined for a wider range of water supplies than its stainless tank, at a lower price. ${v.vs}`,
+      warranty: `Tank: 10 years parts. ${v.hp} ${RECLAIM_TAIL}`,
+    };
+  },
+};
+const RECLAIM_SS: Family = {
+  key: "reclaim-co2-stainless",
+  matches: has(/reclaim split\s*-\s*stainless/i),
+  copy: (u) => {
+    const v = reclaimVersion(u), ew = /earth\s*worker/i.test(u.all);
+    return {
+      title: `Reclaim Energy CO2 split heat pump with ${grab(u, /(\d{3})\s*l/i)}L stainless steel tank${ew ? " (Earthworker)" : ""}, ${v.label}.`,
+      saves: `${RECLAIM_SAVES}${v.rebate}`,
+      features: `Natural CO2 refrigerant. The outdoor heat pump is rated at 37 dB and makes water at 63°C. Stainless steel tank${ew ? " by Earthworker" : ""}. ${v.controller}`,
+      choose: `Compared with Reclaim's glass-lined tank, stainless gives 15 years of tank cover instead of 10, where your water suits it. ${v.vs}`,
+      warranty: `Tank: 15 years parts (full replacement to year 6, then pro-rata). ${v.hp} ${RECLAIM_TAIL}`,
+    };
+  },
+};
+const PANASONIC: Family = {
+  key: "reclaim-x-panasonic",
+  matches: has(/reclaim x panasonic|HE-UM\d0CR/i),
+  copy: (u) => {
+    const six = /\b6\s*kw\b|UM60/i.test(u.all), ss = /stainless/i.test(u.all);
+    return {
+      title: `Panasonic ${six ? "6kW HE-UM60CR" : "4kW HE-UM40CR"} CO2 heat pump with ${grab(u, /(\d{3})\s*l/i)}L ${ss ? "stainless steel" : "glass-lined"} tank.`,
+      saves: `Panasonic says it makes hot water with no electric booster, even at -10°C outside.${six ? "" : " Panasonic rates the 4kW at COP 5.0 (32.5°C air, 21°C inlet water)."} Eligible for STCs, VEU and Solar Victoria's higher locally made rebate.`,
+      features: "Natural CO2 refrigerant. Japanese-made Panasonic outdoor heat pump rated at 37 dB, working from -10°C to 43°C. Works with your solar without extra hardware.",
+      choose: `Compared with Reclaim's own CO2 heat pump, you get Panasonic's heat pump and Panasonic's 10-year warranty.${six ? " The 6kW has more capacity than Reclaim's 5.24kW unit, for faster reheating." : ""}`,
+      warranty: "Panasonic backs its CO2 heat pump range with 10 years parts and labour.",
+    };
+  },
+};
+const RECLAIM_ECO: Family = {
+  key: "reclaim-eco-r290",
+  matches: has(/reclaim heat pump\s+(200|300)\s*l|REC25P/i),
+  copy: (u) => {
+    const big = /300/.test(u.all);
+    return {
+      title: `Reclaim Eco R290 ${big ? "300" : "200"}L all-in-one plug-in heat pump.`,
+      saves: `Reclaim rates it at COP ${big ? "4.63" : "4.23"} at 20°C air, heating water from 20°C to 60°C. Eligible for STCs, VEU and Solar Victoria's higher locally made rebate.`,
+      features: "Tank and heat pump in one outdoor unit on a standard 10A plug. Natural R290 refrigerant. App with Eco, Boost, Holiday and solar or off-peak schedules. 1.2kW backup element. Made in Australia.",
+      choose: "Built by Dux to the same published specs as the Thermann integrated heat pump, with a longer warranty: 8 years on the tank and heat pump, against Thermann's 7-year tank and 3-year heat pump.",
+      warranty: "In a single-family home: tank and refrigeration parts 8 years parts and labour; sensors, valves, element and anode 1 year. A Solar Homes rebate adds a 5-year whole-of-product warranty with labour.",
+    };
+  },
+};
+const THERMANN_HP: Family = {
+  key: "thermann-integrated-hp",
+  matches: has(/thermann heat pump\s+(200|285)\s*l|THC25P/i),
+  copy: (u) => {
+    const big = /285|300THC/i.test(u.all);
+    return {
+      title: `Thermann R290 integrated heat pump, ${big ? "285" : "200"}L, plug-in.`,
+      saves: `Thermann's VEU-approved simulation puts it at up to ${big ? "70.7" : "69.3"}% less energy than a standard electric water heater for a medium household. Eligible for STCs, VEU and Solar Victoria's higher locally made rebate.`,
+      features: "Tank and heat pump in one outdoor unit on a standard 10A plug. The heat pump runs from -6°C to 45°C, with a 1.2kW element beyond that. Controller and app with schedule, holiday, boost and rescue modes.",
+      choose: "Compared with the iStore, it's locally made, which can mean a higher Solar Victoria rebate, and its tank warranty is longer (7 years against 5).",
+      warranty: "In a single-family home: tank 7 years parts and 3 years labour; heat pump and controller 3 years parts and labour; other parts 1 year. A Solar Homes rebate adds a 5-year whole-of-product warranty with labour.",
+    };
+  },
+};
+const ISTORE: Family = {
+  key: "istore-r290",
+  matches: has(/istore/i),
+  copy: (u) => {
+    const big = /270/.test(u.all);
+    return {
+      title: `iStore ${big ? "270" : "180"}L R290 all-in-one heat pump.`,
+      saves: `iStore says it uses up to 70% less hot water energy than conventional electric storage, based on about 200L a day.${big ? " Rated COP 4.82 at about 20°C air, heating from 15°C to 60°C." : ""} Eligible for STCs, VEU and Solar Victoria's hot water rebate.`,
+      features: `Tank and heat pump in one outdoor unit. Natural R290 refrigerant. ${big ? "4kW-plus heat output, 46.6 dB or less at 1m." : "2.5kW heat output."} Solar-hours timer and electric booster.`,
+      choose: "Compared with the Thermann integrated, iStore's 5-year warranty covers parts and labour on everything, the heat pump included (Thermann: 3 years).",
+      warranty: "5 years parts and labour on the tank, refrigeration, electrical parts, anode and relief valve. Register online within 6 weeks of installation. Licensed installation and iStore's water quality limits apply.",
+    };
+  },
+};
+
 /** In order: the first match wins, so the Contour 7 comes before the Contour. */
 const FAMILIES: Family[] = [
   MITSU_SPLIT, MITSU_HEAD, MITSU_MULTI, MITSU_DUCTED,
   KADEN_SPLIT, KADEN_HEAD, KADEN_MULTI, KADEN_DUCTED, KADEN_WINDOW,
   RINNAI_HEAD, RINNAI_MULTI, ZONEMATE,
+  RECLAIM_DUPLEX, RECLAIM_GL, RECLAIM_SS, PANASONIC, RECLAIM_ECO, THERMANN_HP, ISTORE,
+  BRIVIS_BUFFALO_3, BRIVIS_BUFFALO_5, BRIVIS_WOMBAT, BRIVIS_COMPACT, BRIVIS_STARPRO, BRAEMAR_ECOSTAR, KADEN_KN315, KADEN_KUN320, BRAEMAR_DOMINATOR,
   THERMANN_GAS, THERMANN_SMART, THERMANN_CF,
   BRIVIS_ADVANCE, BRIVIS_PROMINA, BRIVIS_CONTOUR_7, BRIVIS_CONTOUR, BRIVIS_BALAERO, KADEN_KC32,
   BOSCH_COOKTOP, BEKO_COOKTOP, WESTINGHOUSE_COOKTOP, BOSCH_RANGEHOOD,
