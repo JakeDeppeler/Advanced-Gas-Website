@@ -2,13 +2,13 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { q, sbInsertIfAbsent, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
-import { loadSwitches } from "@/lib/automation/log";
+import { loadSwitches, logAuto } from "@/lib/automation/log";
 import { getSettings } from "@/lib/portal/db";
 import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, findSite, jobsAt, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
@@ -281,6 +281,18 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
         .then(() => save(mailbox, m.id, { attached_at: new Date().toISOString(), attach_error: null }))
         .catch((e: Error) => save(mailbox, m.id, { attach_error: e.message.slice(0, 240) }));
       await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
+      // On hold before anything else can see it. A hold that fails leaves the
+      // job as it was, and says so on Settings › Automatic.
+      if ((await loadSwitches()).woHold) {
+        const made = job;
+        await holdForTenant(made.jobId)
+          .then((why) => save(mailbox, m.id, { reason: `on hold (${why}) until the tenant's rung`.slice(0, 300) }))
+          .catch(async (e: Error) => {
+            const said = stSaid(e).slice(0, 200);
+            await save(mailbox, m.id, { reason: `made, but not put on hold: ${said}`.slice(0, 300) }).catch(() => undefined);
+            await logAuto([{ at: new Date().toISOString(), kind: "woHold", ok: false, jobId: made.jobId, title: `Job ${made.jobNumber ?? made.jobId} from a work order couldn't be put on hold, so Dispatch Pro can see it`, detail: said }]).catch(() => undefined);
+          });
+      }
       await emailTenant(mailbox, m.id, w, addressOf(m.from)).catch(() => undefined);
       return { status: "booked", isWorkOrder: true, jobId: job.jobId, jobNumber: job.jobNumber };
     }

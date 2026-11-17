@@ -1,6 +1,6 @@
 import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
-import { stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
 import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder } from "./workOrderTypes";
@@ -280,4 +280,27 @@ export async function makeJob(w: WorkOrder, site: Site, zip: string, jobTypeName
   });
   if (!made?.id) throw new Error("ServiceTitan made no job");
   return { jobId: made.id, jobNumber: made.jobNumber ?? null, customerId: site.customerId, locationId, how: site.locationId ? site.how : "new site under the agency" };
+}
+
+let holdReason: { id: number; name: string } | null | undefined;
+async function holdReasonToUse(): Promise<{ id: number; name: string } | null> {
+  if (holdReason !== undefined) return holdReason;
+  const reasons = await stList<{ id: number; name: string; active?: boolean }>("jpm", "job-hold-reasons", {}, 2);
+  const live = reasons.filter((r) => r.active !== false);
+  holdReason = live.find((r) => /tenant|customer|client|contact|call|wait|book/i.test(r.name)) ?? live[0] ?? null;
+  return holdReason;
+}
+
+/**
+ * A work order's job on hold as soon as it's made (Jake, 17 Nov), so Dispatch
+ * Pro leaves its placeholder visit alone: the office books it once they've
+ * rung the tenant, and takes the hold off then. The reason is the first of
+ * ServiceTitan's own that's about the customer, else the first there is.
+ * Returns the reason used.
+ */
+export async function holdForTenant(jobId: number): Promise<string> {
+  const reason = await holdReasonToUse();
+  if (!reason) throw new Error("ServiceTitan has no job hold reasons to use (Settings › Operations › Job hold reasons there)");
+  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/hold`), { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." });
+  return reason.name;
 }

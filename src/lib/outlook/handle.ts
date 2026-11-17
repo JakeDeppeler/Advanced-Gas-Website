@@ -191,6 +191,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     }
     const answered = answeredReason(m, thread, mailbox);
     if (answered) return done({ status: "skipped", reason: answered });
+    // Reading it is only for the draft and the lead; with both off there's
+    // nothing to read it for.
+    if (!sw.emailDrafts && !sw.emailLeads) return done({ status: "skipped", reason: "reply drafts are off" });
 
     const [customer, settings] = await Promise.all([
       customerContext(from, m.subject ?? "").catch(() => ""),
@@ -216,6 +219,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
         .catch(() => undefined);
     }
     if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` }, callBack);
+    // Settings › Automatic › Email auto draft. The words aren't kept: draft_text
+    // is what the office's sent replies are learned against, and none was offered.
+    if (!sw.emailDrafts) return done({ status: "skipped", reason: "reply drafts are off" }, callBack);
 
     // createReply makes the draft the way Outlook's Reply button does —
     // addressed, threaded, the original quoted underneath — and the reply goes
