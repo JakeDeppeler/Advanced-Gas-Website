@@ -1,21 +1,21 @@
 /**
  * The words on a quote: every template summary and every service description,
- * written from one place so they read the same (Jake, 6 Nov 2026).
+ * written from one place so they read the same.
  *
- * Every summary runs in the same order: what the job is and what it involves;
- * the brand and why it's the one we fit; how we install it, which is where we
- * show why we cost more (our own licensed team, the materials actually on the
- * template, the testing, the care); then what's included and what isn't.
+ * Jake, 17 Nov: the summary is the job — "what we are doing, what we are
+ * removing, what it covers" — and the equipment line sells the unit (how it
+ * saves money, its key features, why it beats the model below it, the
+ * warranty; equipmentCopy.ts). So every install summary runs in four labelled
+ * parts, the same four on every quote, and names the unit without selling it.
  *
- * Brand and product claims are the ones the templates already made, carried
- * over. Where a line says something the old wording didn't, it's listed in
- * NEW_CLAIMS so it's checked before it goes on a quote; nothing here invents
- * a figure.
+ * What's included is what's on the template: the pipe length from the coils
+ * on it, the base box and flashing where they're listed, the condensate pump
+ * where there is one. Nothing here is a product claim.
  */
 
 export type Kind =
-  | "split" | "multi" | "ducted" | "dominator" | "heatpump" | "hpsplit" | "gasstorage" | "cf"
-  | "heater" | "cooktop" | "evap";
+  | "split" | "multi" | "ducted" | "dominator" | "heatpump" | "hpsplit" | "gasstorage" | "elecstorage" | "cf"
+  | "heater" | "cooktop" | "evap" | "rac";
 
 export type TemplateFacts = {
   name: string;
@@ -23,136 +23,137 @@ export type TemplateFacts = {
   brand: string;
   /** e.g. "3.5kW", "315L", "15kW" */
   size: string | null;
+  /** The unit as the summary names it, where brand and size don't ("Brivis Promina P46 in Charcoal"). */
+  unit?: string;
   /** Split placement, from the install line. */
   placement?: "btb" | "rtw" | "rtr";
+  /** Metres of copper on the template (each Ardent pair coil is 20 m); null when it carries none. */
+  pipeM?: number | null;
+  /** Multi-head: indoor heads on it, a labour line for them, a condensate pump. */
+  heads?: number;
+  labourLine?: boolean;
+  pump?: boolean;
   /** Heat pump: hard-wired or plug-in. */
   wired?: "elec" | "plug";
   heater?: "internal" | "external";
-  /** Extra product facts carried over from the old summary. */
-  product?: string;
+  /** An external heater's base box and flashing, when the template carries them. */
+  baseBox?: boolean;
+  /** Cooktop: the appliance regulator and gas cock on the template. */
+  regulator?: boolean;
   /** New gas feed on a continuous flow. */
   newGasFeed?: boolean;
 };
 
+/** The four parts, in order, labelled the same on every quote. */
+export const LABELS = { doing: "What we're doing:", removing: "What we're removing:", included: "What's included:", excluded: "What's not included:" } as const;
+
 const ROOM: Record<string, string> = {
   "2.5": "a bedroom or study", "2.6": "a bedroom or study", "3.5": "a large bedroom or a smaller living area",
-  "5": "a living area", "6": "a larger living area", "7.1": "a large open-plan living area",
-};
-
-const BRAND: Record<string, string> = {
-  "Mitsubishi Electric": "Mitsubishi Electric is the premium range we fit: quiet, efficient inverter systems from one of the most established names in air conditioning.",
-  Kaden: "Kaden is the value range we fit: a dependable inverter system that heats and cools efficiently and keeps the cost down.",
-  Rinnai: "Rinnai is a name Australian homes have relied on for heating and cooling for decades.",
-};
-
-/** Lines that say something the old wording didn't: checked before they go out. */
-export const NEW_CLAIMS = [
-  BRAND["Mitsubishi Electric"], BRAND.Kaden, BRAND.Rinnai,
-];
-
-const CARE = {
-  split: "Your install is done by our own licensed technicians, with a licensed electrician we've worked with for years. We use Ardent copper pipe and Rodigas brackets, finish the pipework outside in Colorbond capping, and pressure-test and vacuum the system before it's run, so it starts clean, dry and leak-free. Every penetration is sealed, the site is cleaned up, and we show you how to use it before we leave.",
-  multi: "Your install is done by our own licensed technicians, with a licensed electrician we've worked with for years. Each head gets its own Ardent copper run and drain, the pipework outside is finished in Colorbond capping, and the whole system is pressure-tested and vacuumed before it's run. Every penetration is sealed, the site is cleaned up, and we show you how to use each controller before we leave.",
-  ducted: "Your install is done by our own licensed technicians, with a licensed electrician we've worked with for years. Every run is new Bradflo R1.5 insulated duct, sized for the room it feeds, so the system delivers the airflow it's rated for. The pipework is pressure-tested and vacuumed, every outlet is balanced, and we walk you through the Zonemate controller and app before we leave.",
-  dominator: "Your install is done by our own licensed technicians, with a licensed electrician we've worked with for years. We check the existing ducting in the roof before we commit to reusing it, fit a new return air box, and commission and test the system before handover.",
-  hotwater: "Your install is done by our own licensed plumbers, with a licensed electrician we've worked with for years where it's wired in. We use Tomson valves, Kembla copper and fire-rated pipe insulation, sit the unit on a proper base, and test everything before we hand it over. Your old system is taken away, and we handle the rebate paperwork for you.",
-  gas: "Your install is done by our own licensed gas fitters. Every gas connection is pressure-tested, the system is commissioned and checked burning safely, and your old unit is taken away.",
-  heater: "Your install is done by our own licensed gas fitters. The new heater is connected to your ductwork, gas and flue, a carbon monoxide safety check is done, and it's fully commissioned and tested before handover. Your old heater is taken away.",
-  evap: "Your install is done by our own licensed technicians. The roof penetration is resealed and weatherproofed, the cooler connected to your ducting, water and a new drain, and it's run and tested before we leave.",
+  "5": "a living area", "6": "a larger living area", "7.1": "a large open-plan living area", "7": "a large open-plan living area",
 };
 
 const sentence = (s: string) => s.trim().replace(/\s+/g, " ");
+const ELECTRICIAN = "with a licensed electrician for the power";
+const OLD_HOT_WATER = "Your old hot water system, drained, disconnected and taken away for disposal.";
 
-/** The summary for a template, in the one order every summary follows. */
+/** The summary for a template: what we're doing, removing, including and not. */
 export function templateSummary(f: TemplateFacts): string {
   const kw = f.size?.replace(/kw$/i, "") ?? "";
-  const parts: string[] = [];
+  let doing = "", removing = "", included = "", excluded = "";
   switch (f.kind) {
     case "split": {
       const where = {
-        btb: "The outdoor unit goes on the outside wall directly behind the indoor head: the neatest install there is, with no pipework through the roof space.",
-        rtw: "The outdoor unit goes on a wall bracket on another wall, with the pipework and drain run out of sight through the roof space.",
-        rtr: "The outdoor unit goes on a roof bracket, fixed and flashed to keep the roof weathertight, with the pipework and drain run out of sight through the roof space.",
+        btb: "The outdoor unit goes on a bracket on the outside wall directly behind the indoor unit, so the pipework runs straight through the wall: the neatest install there is, with nothing in the roof space.",
+        rtw: "The outdoor unit goes on a bracket on another outside wall, with the pipework and drain run out of sight through the roof space.",
+        rtr: "The outdoor unit goes on a bracket on the roof, fixed and sealed to keep the roof watertight, with the pipework and drain run out of sight through the roof space.",
       }[f.placement ?? "btb"];
-      parts.push(`Supply and installation of a new ${f.brand} ${f.size} split system air conditioner. ${where} At ${f.size} it's sized for ${ROOM[kw] ?? "the room it serves"}, big enough to hold temperature on the hottest and coldest days without being oversized.`);
-      parts.push(BRAND[f.brand] ?? "");
-      parts.push(CARE.split);
-      parts.push("Includes removal of your old system where we're replacing one, the electrical connection with a Certificate of Electrical Safety, and a compliance certificate on completion. Switchboard upgrades, a condensate pump where the drain can't fall naturally, extra pipe beyond a standard run and non-standard access are quoted separately.");
+      const pipe = f.pipeM ? `up to ${f.pipeM} m of Ardent copper pipework` : "a standard run of Ardent copper pipework";
+      doing = `Supplying and installing your new ${f.brand} ${f.size} split system${ROOM[kw] ? `, sized for ${ROOM[kw]}` : ""}. ${where} Our own licensed technicians do the install, ${ELECTRICIAN}. The system is pressure-tested and vacuumed before it's first run, so it starts clean, dry and leak-free, and we show you how to use it before we leave.`;
+      removing = "Your old split system, if we're replacing one: the refrigerant is recovered by a licensed technician, and the indoor and outdoor units are taken down and disposed of.";
+      included = `The indoor and outdoor units, the Rodigas ${f.placement === "rtr" ? "roof bracket and a roof seal where the pipework goes through" : "wall bracket"}, ${pipe}, the drain, Colorbond capping over the pipework outside, sealed wall penetrations, a dedicated circuit and breaker at your switchboard with an isolator at the outdoor unit and a Certificate of Electrical Safety, commissioning, a clean-up, and a compliance certificate on completion.`;
+      excluded = `Switchboard upgrades, a condensate pump where the drain can't fall naturally, pipework beyond ${f.pipeM ? `the ${f.pipeM} m included` : "a standard run"} and non-standard access are quoted separately.`;
       break;
     }
     case "multi":
-      parts.push(`Supply and installation of a new ${f.brand} ${f.size} multi-head split system: one outdoor unit running a head in each room, each with its own controller, so bedrooms and living areas run independently and only the rooms in use are on. One condenser to site instead of several, and fewer penetrations in your walls.`);
-      parts.push(BRAND[f.brand] ?? "");
-      parts.push(CARE.multi);
-      parts.push("Includes the electrical connection with a Certificate of Electrical Safety and a compliance certificate on completion. Installation labour is shown on its own line for the number of heads being fitted. Switchboard upgrades, extra pipe beyond a standard run and non-standard access are quoted separately.");
+      doing = `Supplying and installing your new ${f.brand} ${f.size} multi-head split system: one outdoor unit running ${f.heads ? `${f.heads} indoor heads` : "an indoor head in each room"}, each with its own controller, so every room runs on its own. Our own licensed technicians do the install, ${ELECTRICIAN}. Each head gets its own Ardent copper run and drain, the whole system is pressure-tested and vacuumed before it's first run, and we show you how to use each controller before we leave.`;
+      removing = "Any old split systems in those rooms, if we're replacing them: the refrigerant is recovered by a licensed technician, and the units are taken down and disposed of.";
+      included = `The outdoor unit and the indoor heads listed, a Rodigas wall bracket for the outdoor unit, Ardent copper pipework and a drain to each head${f.pump ? ", a condensate pump where a head's drain can't fall naturally" : ""}, Colorbond capping over the pipework outside, sealed wall penetrations, a new RCBO and dedicated circuit at your switchboard with an isolator and control cabling to each head, a Certificate of Electrical Safety, commissioning, and a compliance certificate on completion.${f.labourLine ? " The installation labour is its own line, for the number of heads being fitted." : ""} Rebates are shown on their own lines.`;
+      excluded = "Switchboard upgrades, pipework beyond a standard run to each head and non-standard access are quoted separately.";
       break;
     case "ducted":
-      parts.push(`Supply and installation of a new ${f.brand} ${f.size} ducted reverse-cycle system, with all new ductwork. The indoor unit sits out of sight in the roof space with an outlet in each room, and the house is zoned so you run only the areas you're using, from the wall controller or your phone.`);
-      parts.push(f.brand === "Mitsubishi Electric" ? BRAND["Mitsubishi Electric"] : "");
-      parts.push(CARE.ducted);
-      parts.push("Includes removal of the old system and ducting, the Zonemate Touch controller with wifi, the electrical connection with a Certificate of Electrical Safety, and a compliance certificate on completion.");
+      doing = `Supplying and installing your new ${f.brand} ${f.size} ducted reverse-cycle system with all-new ductwork. The indoor unit sits out of sight in the roof space with an outlet in each room, and the house is zoned so you run only the areas you're using, from the wall controller or your phone. Our own licensed technicians do the install, ${ELECTRICIAN}. Every run is new Bradflo R1.5 insulated duct sized for the room it feeds, the pipework is pressure-tested and vacuumed, every outlet is balanced, and we walk you through the controller and app before we leave.`;
+      removing = "Your old ducted system and its ductwork, where there is one, taken out of the roof space and disposed of.";
+      included = "The indoor and outdoor units, new Bradflo R1.5 insulated ductwork to an outlet in each room, the return air, the zone dampers, the Zonemate Touch controller with wifi, the refrigeration pipework and drainage, a new RCBO and dedicated circuit at your switchboard with an isolator and the controller wiring, a Certificate of Electrical Safety, commissioning, airflow balancing at every outlet, and a compliance certificate on completion.";
+      excluded = "Switchboard upgrades are quoted separately.";
       break;
     case "dominator":
-      parts.push("Replacement of your existing ducted system with a Braemar Dominator reverse-cycle unit, reusing your existing ductwork. Where the ducting is in good condition and correctly sized, there's no need to replace it, which makes this a single-day changeover and a considerably cheaper result than a full ducted install, with heating and cooling from one system.");
-      parts.push(CARE.dominator);
-      parts.push("Includes removal of your old unit, the electrical connection with a Certificate of Electrical Safety, and a compliance certificate on completion. Quoted on the existing ducting being serviceable: if it isn't, we'll tell you before any work starts.");
+      doing = `Replacing your ducted gas heater with a Braemar Dominator ducted reverse-cycle system, for heating and cooling from one system through your existing ductwork. The indoor unit goes in where your gas heater was and the outdoor unit on a wall bracket outside, usually in a single day. Our own licensed technicians do the install, ${ELECTRICIAN}. We check the ducting in the roof before we commit to reusing it, fit a new return air box and filter, and commission and test the system before handover.`;
+      removing = "Your old gas heater, disconnected, decommissioned and taken away. Removing it is what makes the job eligible for the Victorian Energy Upgrades discount shown on its own line.";
+      included = "The Dominator indoor and outdoor units, connection to your existing ductwork with new Bradflo insulated duct where it's needed, a new return air box and filter, a Rodigas wall bracket for the outdoor unit, Ardent copper pipework and drainage, the electrical work (the old unit disconnected and made safe, a new RCBO and dedicated circuit where needed, power and control cabling, an isolator and a Certificate of Electrical Safety), commissioning, and a compliance certificate on completion.";
+      excluded = "This is quoted on your existing ductwork being serviceable: if it isn't, we'll tell you before any work starts. Switchboard upgrades are quoted separately.";
       break;
     case "heatpump":
-      parts.push(`Replacement of your existing hot water system with a new ${f.brand} ${f.size} heat pump, fully installed. A heat pump draws heat from the air rather than making it, so it runs your hot water on a fraction of the energy of a conventional electric or gas system.`);
-      parts.push(CARE.hotwater);
-      parts.push(f.wired === "plug"
-        ? "Includes removal of your old system, installation in the same location and a compliance certificate on completion. The unit plugs into an existing power point within reach, so no electrical work is needed. Rebates are shown on their own lines."
-        : "Includes removal of your old system, installation in the same location, a new dedicated circuit with a Certificate of Electrical Safety, and a compliance certificate on completion. Rebates are shown on their own lines. Switchboard upgrades are quoted separately.");
+      doing = `Replacing your hot water system with your new ${f.brand} ${f.size ?? ""} heat pump, installed in the same location. Our own licensed plumbers do the install${f.wired === "plug" ? "" : `, ${ELECTRICIAN}`}. The unit sits on a concrete base and is plumbed in Kembla copper with a Tomson tempering valve and fire-rated pipe insulation, then commissioned and tested before we hand it over. We handle the rebate paperwork for you.`;
+      removing = OLD_HOT_WATER;
+      included = `The heat pump, a concrete base, all plumbing to your existing water connections with a Tomson tempering valve, drainage, ${f.wired === "plug" ? "connection to an existing power point within reach (it plugs in, so there's no electrical work)" : "a new dedicated circuit at your switchboard with a Certificate of Electrical Safety"}, commissioning, and a compliance certificate on completion. Rebates are shown on their own lines.`;
+      excluded = f.wired === "plug"
+        ? "A new power point, if there isn't one within reach, and moving the system to a new location are quoted separately."
+        : "Switchboard upgrades and moving the system to a new location are quoted separately.";
       break;
     case "hpsplit":
-      parts.push(`Replacement of your existing hot water system with a new ${f.brand} ${f.size} split heat pump, fully installed. The tank and the heat pump unit are separate, so the heat pump can sit where it runs best and stays out of the way.`);
-      parts.push(f.product ?? "");
-      parts.push(CARE.hotwater);
-      parts.push("Includes removal of your old system, all plumbing between the tank and the heat pump, a new dedicated circuit with a Certificate of Electrical Safety, and a compliance certificate on completion. Rebates are shown on their own lines. Switchboard upgrades are quoted separately.");
+      doing = `Replacing your hot water system with your new ${f.brand} ${f.size ?? ""} split heat pump. The tank goes in place of your old system and the heat pump unit is mounted nearby, where it runs best and stays out of the way. Our own licensed plumbers do the install, ${ELECTRICIAN}. We use Kembla copper, a Tomson tempering valve and fire-rated pipe insulation, sit the tank on a concrete base, and commission and test everything before we hand it over. We handle the rebate paperwork for you.`;
+      removing = OLD_HOT_WATER;
+      included = "The tank and the heat pump unit, a concrete base, a wall bracket for the heat pump unit, all plumbing between the tank and the heat pump and to your existing water connections, a Tomson tempering valve, drainage, a new dedicated circuit at your switchboard with a Certificate of Electrical Safety, commissioning, and a compliance certificate on completion. Rebates are shown on their own lines.";
+      excluded = "Switchboard upgrades and moving the system to a new location are quoted separately.";
       break;
     case "gasstorage":
-      parts.push(`Replacement of your existing hot water system with a new ${f.brand} ${f.size} gas storage system, fully installed.`);
-      parts.push(f.product ?? "");
-      parts.push(CARE.hotwater.replace(", with a licensed electrician we've worked with for years where it's wired in", "").replace(" and we handle the rebate paperwork for you", ""));
-      parts.push("Includes removal of your old system, connection to your existing gas and water, all valves and fittings, and a compliance certificate on completion.");
+      doing = `Replacing your hot water system with your new ${f.brand} ${f.size ?? ""} gas storage system, in the same location. Our own licensed plumbers and gas fitters connect it to your existing gas and water in Kembla copper with a Tomson tempering valve and fire-rated pipe insulation. Every gas connection is pressure-tested, and the system is commissioned and checked burning safely before handover.`;
+      removing = OLD_HOT_WATER;
+      included = "The new system, connection to your existing gas and water, a Tomson tempering valve and a Tomson duo valve (isolation and non-return), all fittings, a gas pressure test, commissioning, and a compliance certificate on completion.";
+      excluded = "Moving the system to a new location and upgrading the gas line are quoted separately.";
+      break;
+    case "elecstorage":
+      doing = `Replacing your hot water system with your new ${f.unit ?? `${f.brand} ${f.size ?? ""} electric storage system`}, in the same location. Our own licensed plumbers connect it to your existing water and power in Kembla copper with a Tomson valve kit and fire-rated pipe insulation, on a concrete base, then commission and test it before handover.`;
+      removing = OLD_HOT_WATER;
+      included = "The new system, a concrete base, connection to your existing water and power, a Tomson valve kit, all fittings, commissioning, and a compliance certificate on completion.";
+      excluded = "Moving the system to a new location, a new circuit and switchboard upgrades are quoted separately.";
       break;
     case "cf":
-      parts.push(`Supply and installation of a new ${f.brand} gas continuous flow hot water system. It heats water only as you use it, so you never run out and you're not paying to keep a tank hot around the clock.${f.newGasFeed ? " This includes a new gas feed sized for the unit." : ""}`);
-      parts.push(CARE.gas);
-      parts.push(`Includes connection to your gas and water, all valves and fittings, a full operational test and a compliance certificate on completion.${f.newGasFeed ? "" : " If your gas supply needs upsizing for the new unit, that's quoted separately."} A new power point, if one's needed, is quoted separately.`);
+      doing = `Supplying and installing your new ${f.unit ?? f.brand} continuous flow hot water system${f.newGasFeed ? ", in place of your gas storage system, with a new gas feed sized for the new unit" : ""}. Our own licensed gas fitters mount it and connect it to your gas and water in Kembla copper with press-fit gas fittings and fire-rated pipe insulation. Every gas connection is pressure-tested, and the system is commissioned and checked burning safely before handover.`;
+      removing = OLD_HOT_WATER;
+      included = `The new unit, a Zetco connection kit with its valves, connection to your gas and water${f.newGasFeed ? ", a new gas feed sized for the unit" : ""}, all fittings, a gas pressure test, commissioning, and a compliance certificate on completion.`;
+      excluded = `${f.newGasFeed ? "" : "If your gas supply needs upsizing for the new unit, that's quoted separately. "}A new power point, if one's needed, is quoted separately.`;
       break;
-    case "heater":
-      parts.push(`Replacement of your existing ducted gas heater with a new ${f.brand} ${f.size ?? ""} ${f.heater === "internal" ? "internal heater, installed where your old one was" : f.heater === "external" ? "external heater in a weatherproof cabinet outside, taking up no room inside your home" : "ducted gas heater"}, connected to your existing ductwork.`);
-      parts.push(f.product ?? "");
-      parts.push(CARE.heater);
-      parts.push("Includes a new wall controller, a carbon monoxide safety check and a compliance certificate on completion. If the gas line, flue or ductwork needs upgrading or repair to suit the new heater, that's quoted separately.");
+    case "heater": {
+      const what = f.heater === "internal" ? "internal heater, in the same place as your old one" : f.heater === "external" ? "external heater, in a weatherproof cabinet outside so it takes up no room inside" : "ducted gas heater";
+      doing = `Replacing your ducted gas heater with your new ${f.brand} ${f.size ?? ""} ${what}, connected to your existing ductwork. Our own licensed gas fitters do the install: the heater is connected to your ductwork and gas${f.heater === "external" ? "" : " and flue"}, a new wall controller is fitted, every gas connection is pressure-tested, a carbon monoxide safety check is done, and it's commissioned and tested before handover.`;
+      removing = "Your old heater, disconnected from the gas and power, taken out and disposed of.";
+      included = `The new heater${f.baseBox ? " on a new base box with its flashing" : ""}, connection to your existing ductwork and gas${f.heater === "external" ? "" : " and flue"}, a new wall controller, a gas pressure test, a carbon monoxide safety check, commissioning, and a compliance certificate on completion.`;
+      excluded = "If the gas line, flue or ductwork needs upgrading or repair to suit the new heater, that's quoted separately.";
+      break;
+    }
+    case "evap":
+      doing = `Replacing your evaporative cooler with ${f.unit ? `your new ${f.unit}` : "a new evaporative cooler"}, on your existing roof dropper and ducting. Our own licensed technicians do the install: the new cooler is connected to your water, power and controller and to a new drain, the roof penetration is resealed and weatherproofed, and the cooler is run and tested before we leave.`;
+      removing = "Your old cooler, disconnected, lifted off the roof and disposed of.";
+      included = "The new cooler, connection to your existing roof dropper, ducting, water, power and controller, a new drain, the roof penetration resealed and weatherproofed, a full operational test, and a compliance certificate on completion.";
+      excluded = "Replacing the roof dropper or ductwork, and electrical work if your existing cooler is hard-wired, are quoted separately.";
+      break;
+    case "rac":
+      doing = `Replacing your wall air conditioner with your new ${f.unit ?? f.brand}, in the same opening. Our own licensed technicians fit it, seal it into the opening and test it before we leave.`;
+      removing = "Your old wall air conditioner, taken out and disposed of.";
+      included = "The new unit fitted and sealed into the existing opening, a full operational test, and a compliance certificate on completion.";
+      excluded = "Altering the opening to suit the new unit and any electrical work are quoted separately.";
       break;
     case "cooktop":
-      parts.push(`Supply and installation of a new ${f.brand} gas cooktop into your existing benchtop cut-out, connected to your existing gas point with an approved connection.`);
-      parts.push(CARE.gas);
-      parts.push("Includes a gas pressure test, a check that every burner lights and burns correctly, and a compliance certificate on completion. Benchtop changes for a different size, gas line alterations and electrical work are quoted separately.");
-      break;
-    case "evap":
-      parts.push(`Replacement of your existing evaporative cooler with a new ${f.brand} ${f.size ?? ""} evaporative cooler and controller, fully installed.`);
-      parts.push(f.product ?? "");
-      parts.push(CARE.evap);
-      parts.push("Includes removal of your old cooler and a compliance certificate on completion. If your existing cooler is hard-wired, the electrical work is quoted separately.");
+      doing = `Supplying and installing your new ${f.unit ?? f.brand} gas cooktop into your existing benchtop cut-out. Our own licensed gas fitters connect it to your existing gas point with an approved connection, pressure-test it, and check every burner lights and burns correctly.`;
+      removing = "Your old cooktop, disconnected and taken away.";
+      included = `The new cooktop, ${f.regulator ? "an appliance regulator and gas isolation valve, " : ""}the gas connection, a gas pressure test, and a compliance certificate on completion.`;
+      excluded = "Benchtop changes for a different size, gas line alterations and electrical work are quoted separately.";
       break;
   }
-  return parts.map(sentence).filter(Boolean).join("\n\n");
+  return [[LABELS.doing, doing], [LABELS.removing, removing], [LABELS.included, included], [LABELS.excluded, excluded]]
+    .map(([label, text]) => sentence(`${label} ${text}`)).join("\n\n");
 }
-
-/** Product facts the old summaries made, carried over word for word where they're right for the template. */
-export const PRODUCT: Record<string, string> = {
-  thermann135: "The Thermann 135L is a compact mains-pressure system built for outdoor installation and suited to one or two people, with a vitreous enamel lined steel tank built for a long service life.",
-  reclaim: "Reclaim runs on CO2 and keeps performing through cold Victorian mornings, when other heat pumps drop off.",
-  panasonic: "It pairs a Reclaim tank with a Panasonic heat pump unit.",
-  buffalo5: "A 5-Star heater uses noticeably less gas than a 3-Star to give the same warmth: Brivis estimates around 22% less, roughly $600 a year for an average home under their standard test conditions. Your savings will depend on your home and how you use it.",
-  brivis3: "Brivis is one of the most trusted names in ducted gas heating in Australia, and has kept Victorian homes warm for decades.",
-  starpro: "The Australian-made StarPro is a 6 Star condensing heater: it gets more heat out of every bit of gas, so your home warms faster while running costs come down.",
-  ecostar: "The Australian-made Braemar Ecostar has a 6.3 star energy rating, the quiet Stealth Softair fan system and the MagIQtouch touchscreen controller, with zoning so you only heat the rooms you're using.",
-  contour: "The Australian-built Contour is Brivis' premium slimline cooler, sitting lower on your roof, with AquaSave water management, a pre-wet cycle that soaks the pads before the fan starts, and a motorised winter seal.",
-};
 
 /**
  * Service descriptions, by ServiceTitan code, in the same voice. A code that
@@ -218,29 +219,43 @@ export const ADDON_COPY: Record<string, string> = {
 };
 
 /**
- * What a template is, from its own lines: the install service it uses and
- * the equipment on it. Sizes come from the equipment where it names one, so
- * the summary describes what's actually being quoted ("Rinnai 9kW" carrying
- * the 11kW condenser is described as 11kW; the fix is the condenser).
- * Templates that aren't an install (servicing, leak detection, commercial,
- * the deposit) give null and keep their wording.
+ * What a template is, from its own lines: the install service it uses, the
+ * equipment on it and the materials that change what's included. Sizes come
+ * from the equipment where it names one, so the summary describes what's
+ * actually being quoted ("Rinnai 9kW" carrying the 11kW condenser is described
+ * as 11kW; the fix is the condenser). Templates that aren't an install
+ * (servicing, leak detection, commercial, the deposit) give null and keep
+ * their wording.
  */
-export function templateFacts(name: string, items: { skuType: string; skuName?: string | null; code?: string }[]): TemplateFacts | null {
+export type FactItem = { skuType: string; skuName?: string | null; code?: string; quantity?: number | null };
+export function templateFacts(name: string, items: FactItem[]): TemplateFacts | null {
   const codes = new Set(items.map((i) => (i.code ?? "").toUpperCase()));
+  const named = (re: RegExp) => items.filter((i) => re.test(i.skuName ?? ""));
   const equip = items.filter((i) => i.skuType === "Equipment").map((i) => (i.skuName ?? "").trim());
   const kwOf = (s: string) => { const m = /(\d+(?:[.,]\d+)?)\s*kw/i.exec(s); return m ? `${m[1].replace(",", ".")}kW` : null; };
   const lOf = (s: string) => { const m = /(\d{2,3})\s*l\b/i.exec(s); return m ? `${m[1]}L` : null; };
   const n = name.trim();
   const brandOf = (...names: string[]) => names.find((b) => n.toLowerCase().startsWith(b.toLowerCase())) ?? names[0];
+  // Each Ardent pair coil is 20 m; the back-to-back carries half of one. The
+  // same coil listed twice (the Kaden 5kW roof-mounted) is one run, not two.
+  const coilBy = new Map<string, number>();
+  for (const i of named(/copper pair coil/i).filter((x) => x.skuType === "Material")) {
+    const k = (i.skuName ?? "").trim().toLowerCase();
+    coilBy.set(k, Math.max(coilBy.get(k) ?? 0, Number(i.quantity ?? 1)));
+  }
+  const coils = [...coilBy.values()].reduce((a, q) => a + q, 0);
+  const pipeM = coils > 0 ? Math.round(coils * 20) : null;
 
   const split = ["AC-SPLIT-BTB", "AC-SPLIT-RTW", "AC-SPLIT-RTR"].find((c) => codes.has(c));
   if (split) {
     return { name: n, kind: "split", brand: brandOf("Mitsubishi Electric", "Kaden", "Rinnai"), size: kwOf(equip[0] ?? "") ?? kwOf(n),
-      placement: split === "AC-SPLIT-BTB" ? "btb" : split === "AC-SPLIT-RTW" ? "rtw" : "rtr" };
+      placement: split === "AC-SPLIT-BTB" ? "btb" : split === "AC-SPLIT-RTW" ? "rtw" : "rtr", pipeM };
   }
   if (codes.has("AC-SPLIT-MULTI")) {
     const condenser = equip.find((e) => /condenser/i.test(e)) ?? "";
-    return { name: n, kind: "multi", brand: brandOf("Mitsubishi Electric", "Kaden", "Rinnai"), size: kwOf(condenser) ?? kwOf(n) };
+    const heads = items.filter((i) => i.skuType === "Equipment" && /indoor|head/i.test(i.skuName ?? "")).reduce((a, i) => a + Number(i.quantity ?? 1), 0);
+    return { name: n, kind: "multi", brand: brandOf("Mitsubishi Electric", "Kaden", "Rinnai"), size: kwOf(condenser) ?? kwOf(n),
+      heads: heads || undefined, labourLine: [...codes].some((c) => /^AC-SPLIT-MULTI-\d$/.test(c)), pump: named(/cond(ensate)? pump/i).length > 0 };
   }
   if (codes.has("AC-DUCTED-2DAYS")) return { name: n, kind: "ducted", brand: brandOf("Mitsubishi Electric", "Kaden"), size: kwOf(equip[0] ?? "") ?? kwOf(n) };
   if (codes.has("AC-DOM-INSTALL")) return { name: n, kind: "dominator", brand: "Braemar Dominator", size: null };
@@ -251,37 +266,44 @@ export function templateFacts(name: string, items: { skuType: string; skuName?: 
     const pana = /^panasonic/i.test(n);
     const tank = /\bSS\b|stainless/i.test(n) ? "stainless steel" : "glass-lined";
     const kind = /earthworker/i.test(n) ? "Earthworker " : /duplex/i.test(n) ? "Duplex " : "";
-    const wifi = equip.some((e) => /wifi/i.test(e)) ? " This model has wifi, so you can check and control it from your phone." : "";
-    const hp = kwOf(n);
-    return { name: n, kind: "hpsplit", brand: pana ? "Reclaim x Panasonic" : `Reclaim ${kind}`.trim(), size: `${lOf(n) ?? ""} ${tank}`.trim(),
-      product: `${pana ? PRODUCT.panasonic.replace("a Panasonic heat pump", `a Panasonic ${hp ?? ""} heat pump`) : PRODUCT.reclaim}${wifi}` };
+    return { name: n, kind: "hpsplit", brand: pana ? `Reclaim x Panasonic ${kwOf(n) ?? ""}`.trim() : `Reclaim ${kind}`.trim(), size: `${lOf(n) ?? ""} ${tank}`.trim() };
   }
-  if (codes.has("HW-GAS-STORAGE-INS")) return { name: n, kind: "gasstorage", brand: "Thermann", size: lOf(n), product: /135/.test(n) ? PRODUCT.thermann135 : undefined };
+  if (codes.has("HW-GAS-STORAGE-INS")) return { name: n, kind: "gasstorage", brand: "Thermann", size: lOf(n) };
   if (codes.has("HW-CF-INS") || codes.has("HW-STORAGE-TO-CF")) {
     const unit = equip[0] ?? "";
     const m = /^(.*?\d+L)/i.exec(unit);
-    return { name: n, kind: "cf", brand: m ? m[1].trim() : "Thermann", size: null, newGasFeed: codes.has("HW-STORAGE-TO-CF") };
+    return { name: n, kind: "cf", brand: m ? m[1].trim() : "Thermann", unit: m ? m[1].trim() : undefined, size: null, newGasFeed: codes.has("HW-STORAGE-TO-CF") };
   }
   if (codes.has("GAS-DUCT-EXT") || codes.has("GAS-DUCT-INT")) {
     const all = `${n} ${equip.join(" ")}`;
     const heater = isInternalHeater(all) ? "internal" : /buffalo/i.test(all) ? "external" : undefined;
-    const product = /starpro/i.test(all) ? PRODUCT.starpro : /ecostar/i.test(all) ? PRODUCT.ecostar : /buffalo 5 star/i.test(n) ? PRODUCT.buffalo5 : /brivis/i.test(all) ? PRODUCT.brivis3 : undefined;
     const brand = n.replace(/\s*\d+(?:\.\d+)?kw.*$/i, "").replace(/\s*ducted gas heater.*$/i, "").trim();
-    return { name: n, kind: "heater", brand, size: kwOf(n), heater, product };
+    return { name: n, kind: "heater", brand, size: kwOf(n), heater, baseBox: named(/base box/i).length > 0 };
   }
   if (codes.has("GAS-COOKTOP-INSTALL")) {
     const unit = (equip[0] ?? "").replace(/\s*(natural\s+)?gas cooktop.*$/i, "").replace(/\s*with wok burner/i, "").trim();
-    return { name: n, kind: "cooktop", brand: unit || brandOf("Beko", "Bosch", "Westinghouse"), size: null };
+    return { name: n, kind: "cooktop", brand: unit || brandOf("Beko", "Bosch", "Westinghouse"), unit: unit || undefined, size: null, regulator: named(/appliance regulator/i).length > 0 };
+  }
+  if (codes.has("HWS-ELEC-INSTALLATION")) {
+    const unit = (equip[0] ?? "").replace(/(\d)\s*kw\b/i, "$1kW").trim();
+    return { name: n, kind: "elecstorage", brand: "Thermann", size: lOf(n), unit: unit ? `${unit} hot water system` : undefined };
+  }
+  if (codes.has("AC-RAC-INSTALL")) {
+    const m = /-\s*(.+?)\s*$/.exec(n);
+    return { name: n, kind: "rac", brand: "Kaden", size: kwOf(n), unit: m ? `${m[1]} wall air conditioner` : undefined };
   }
   if (codes.has("EVAP-INSTALL")) {
-    const m = /^(.*?)\s*-\s*changeover/i.exec(n);
-    return { name: n, kind: "evap", brand: m ? m[1] : n, size: null, product: /contour/i.test(n) ? PRODUCT.contour : undefined };
+    const unit = (equip[0] ?? "").replace(/\s*evap(orative)? cooler/i, "").replace(/\s*\((beige|charcoal|terra red|char|red|t'cotta red)\)\s*$/i, "").trim();
+    const colour = /\((beige|charcoal|terra red)\)/i.exec(equip[0] ?? n)?.[1];
+    return { name: n, kind: "evap", brand: unit || "Evaporative cooler", unit: unit ? `${unit} evaporative cooler${colour ? ` in ${colour}` : ""}` : undefined, size: null };
   }
   return null;
 }
 
-/** A summary as ServiceTitan stores it: one paragraph each. */
-export const summaryHtml = (text: string) => text.split(/\n\n+/).map((p) => `<p>${p.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p>`).join("");
+/** The labels that open a paragraph, the summary's four and the equipment's four: bold on the quote. */
+const OPENING_LABEL = /^(What we're doing|What we're removing|What's included|What's not included|Why it saves you money|Key features|Why choose it|Warranty):/;
+/** A summary or description as ServiceTitan stores it: one paragraph each, its label bold. */
+export const summaryHtml = (text: string) => text.split(/\n\n+/).map((p) => `<p>${p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(OPENING_LABEL, "<strong>$1:</strong>")}</p>`).join("");
 /** Text for comparing a stored summary or description with ours, whatever markup it was saved with. */
 export const plainText = (html: string | null | undefined) =>
   String(html ?? "").replace(/<\/(p|div)>|<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&#0?39;|&#x27;|&apos;/gi, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();

@@ -1,14 +1,19 @@
 import { plainText } from "./wording";
 
 /**
- * When a quote template's summary may be rewritten from quoteTemplateSpecs.ts:
- * only over words this code put there, either as the template was made (the
- * spec's `was`) or as it last wrote them. Anything else on it means someone in
- * the office has edited it, and that edit is left alone. Pure, for
- * scripts/check-quote-templates.ts; templateSummaries.ts does the writing.
+ * When a piece of quote wording may be written: a template's summary, the
+ * description on one of its lines, or a pricebook item's description.
+ * Pure, for scripts/check-quote-templates.ts; quoteWording.ts does the writing.
+ *
+ * The first pass (Jake, 17 Nov: "go through and fix the equipment wording and
+ * the job summary") writes over whatever is there; the old words are kept in
+ * portal_settings.quote_wording_backup first. After that it only writes over
+ * words it put there itself: anything the office has typed since, on a
+ * template or item it has already done, or on one made after the first pass,
+ * is left as it is. An empty description is always filled.
  */
 
-/** A summary as compared: one line per paragraph, as plainText reads ServiceTitan's <p>s. */
+/** A text as compared: one line per paragraph, as plainText reads ServiceTitan's <p>s. */
 export const flatText = (text: string) => text.trim().split(/\n\n+/).map((p) => p.trim()).join("\n");
 
 /** Short and stable, to remember what was written without keeping every word of it. */
@@ -18,11 +23,16 @@ export function textHash(s: string): string {
   return `${h.toString(36)}.${s.length}`;
 }
 
-export type SummaryAction = "same" | "write" | "edited";
+export type WordingAction = "same" | "write" | "leave";
 
-export function summaryAction(liveHtml: string | null | undefined, spec: { summary: string; was?: string[] }, lastWritten?: string): SummaryAction {
+/**
+ * @param recorded the hash of what was last written here, if anything was
+ * @param firstPass true until every template and item has been through once
+ */
+export function wordingAction(liveHtml: string | null | undefined, desired: string, recorded: string | undefined, firstPass: boolean): WordingAction {
   const live = plainText(liveHtml);
-  if (live === flatText(spec.summary)) return "same";
-  const ours = (lastWritten != null && textHash(live) === lastWritten) || (spec.was ?? []).some((w) => flatText(w) === live);
-  return ours ? "write" : "edited";
+  if (live === flatText(desired)) return "same";
+  if (!live) return "write";
+  if (recorded == null) return firstPass ? "write" : "leave";
+  return textHash(live) === recorded ? "write" : "leave";
 }

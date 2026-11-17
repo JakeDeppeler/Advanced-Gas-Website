@@ -12,7 +12,7 @@ import { groupedItems, isGrouped, isTestTemplate, tidyCode, tidyName } from "../
 import { HEATER_EVAP_DISCOUNTS, SERVICE_PRICES, sameName } from "../src/lib/pricebook/servicePricing";
 import { GENERIC_REBATE_HEADER, REBATE_HEADERS, rebateGroup, swapHeader } from "../src/lib/pricebook/rebateSpecs";
 import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
-import { flatText, summaryAction, textHash } from "../src/lib/pricebook/summaryRule";
+import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
 
@@ -88,7 +88,7 @@ ok("each option is a template that's made", props.every((p) => p.options.every((
 ok("names match through ServiceTitan's dashes", sameName("Evaporative Cooler - Maintenance (Single Storey)", "Evaporative Cooler – Maintenance (Single Storey)") && !sameName("Split System - Deep Clean", "Split System - Clean & Service"));
 ok("an evap replacement is unit, install, compliance", evap.every((t) => t.lines.map((l) => l.skuType).join() === "Equipment,Service,Service"));
 ok("names say size and colour", evap[0].name === "Brivis Contour L36 Evaporative Cooler (Beige) - Replacement", evap[0].name);
-ok("the summary names the unit and colour", /new Brivis Contour L36 in Beige/.test(evap[0].summary));
+ok("the summary names the unit and colour", /new Brivis Contour L36 evaporative cooler in Beige/.test(evap[0].summary));
 
 // Prices on the lines.
 const live = new Map<number, LiveSku>([
@@ -159,26 +159,29 @@ ok("test templates left alone", isTestTemplate("fefefefefefefefe", "") && isTest
 ok("real ones aren't taken for tests", !isTestTemplate("Brivis Buffalo 3 Star 20kW Ducted Gas Heater ", "GAS-BUFFALO-3-STAR-20kW ") && !isTestTemplate("Reclaim Split GL 315 V2", "HW-RECLAIM-315-GL-SPLIT-V2"));
 
 
-// The Brivis comparison (Jake, 16 Nov): what tells each range apart, then why choose it.
+// Jake, 17 Nov: the summary is the job, in four labelled parts; the unit is sold on its own line.
 const unit = (series: "Advance" | "Promina" | "Contour" | "Balaero", model: string) => EVAP_UNITS.find((u) => u.series === series && u.model === model && (u.colour === "Charcoal"))!;
-const adv = evapTemplate(unit("Advance", "F46DS"), 0, 0), pro = evapTemplate(unit("Promina", "P46"), 0, 0), con = evapTemplate(unit("Contour", "L46"), 0, 0), bal = evapTemplate(unit("Balaero", "50"), 0, 0);
+const pro = evapTemplate(unit("Promina", "P46"), 0, 0), bal = evapTemplate(unit("Balaero", "50"), 0, 0);
 const paras = (t: { summary: string }) => t.summary.split("\n\n");
-ok("each range's summary: opening, how it compares, what all three share, why choose it, what's included", [adv, pro, con].every((t) => paras(t).length === 5 && paras(t)[1].startsWith("How it compares:") && paras(t)[2].startsWith("Like the other two") && paras(t)[3].startsWith("Choose the ") && paras(t)[4].startsWith("Includes removal")), paras(adv));
-ok("the shared paragraph is word for word the same on all three", new Set([adv, pro, con].map((t) => paras(t)[2])).size === 1);
-ok("each says its own name where it compares and recommends", [[adv, "Advance"], [pro, "Promina"], [con, "Contour"]].every(([t, n]) => paras(t as typeof adv)[1].includes(`the ${n} is`) && paras(t as typeof adv)[3].startsWith(`Choose the ${n} if`)));
-ok("the winter seal: built into the Advance and Contour, not the Promina (Rinnai's price list)", /motorised winter seal built in/.test(paras(adv)[1]) && /motorised winter seal is built in/.test(paras(con)[1]) && /doesn't come with a winter seal/.test(paras(pro)[1]));
-ok("AquaSave only on the Contour", /AquaSave/.test(con.summary) && !/AquaSave/.test(adv.summary) && !/AquaSave/.test(pro.summary));
-ok("the Balaero keeps its plain summary", paras(bal).length === 2 && !bal.was);
-ok("the 15 Nov wording is kept as what it was made with", adv.was?.[0] === `${paras(adv)[0]}\n\n${paras(adv)[4]}`);
-ok("no figure the brochure doesn't give", !/\d+%/.test(adv.summary + pro.summary) && (con.summary.match(/\d+%/g) ?? []).join() === "45%");
+const FOUR = ["What we're doing:", "What we're removing:", "What's included:", "What's not included:"];
+ok("an evap summary is the four parts, in order", paras(pro).length === 4 && paras(pro).every((p, k) => p.startsWith(FOUR[k])), paras(pro).map((p) => p.slice(0, 24)));
+ok("it names the unit and colour, and doesn't sell it", /new Brivis Promina P46 evaporative cooler in Charcoal/.test(pro.summary) && !/AquaSave|winter seal|best value|Choose the/.test(pro.summary));
+ok("the Balaero reads the same way", paras(bal).length === 4 && /Brivis Balaero 50 evaporative cooler in Charcoal/.test(bal.summary));
+const installs = OTHER_TEMPLATES.filter((t) => /Replacement|Gas Storage$/.test(t.name) && !/Valve|Motor|Capacitor|Controller|Pump Replacement/.test(t.name));
+ok("every install the code makes has the four parts", installs.length >= 9 && installs.every((t) => FOUR.every((l) => t.summary.includes(l))), installs.filter((t) => !FOUR.every((l) => t.summary.includes(l))).map((t) => t.name));
+ok("the Add Unit template doesn't name itself as the unit", /with a new evaporative cooler,/.test(OTHER_TEMPLATES.find((t) => t.code === "EVAP-REPLACE-ADD-UNIT")!.summary));
 
-// When a summary may be written over.
+// When wording may be written over (summaryRule.ts).
 const html = (t: string) => summaryHtml(t);
-ok("already right: nothing to do", summaryAction(html(con.summary), con) === "same");
-ok("as made on 15 Nov: written", summaryAction(html(con.was![0]), con) === "write");
-ok("as last written: written", summaryAction(html("Older words.\n\nOurs."), con, textHash(flatText("Older words.\n\nOurs."))) === "write");
-ok("edited in ServiceTitan: left alone", summaryAction(html(`${con.was![0]}\n\nCall Jake before booking.`), con) === "edited" && summaryAction(null, con) === "edited");
-ok("ServiceTitan's escaped apostrophes still read as ours", summaryAction(html(con.summary).replace(/'/g, "&#39;"), con) === "same");
+const want = pro.summary, h = (t: string) => textHash(flatText(t));
+ok("already right: nothing to do", wordingAction(html(want), want, undefined, true) === "same");
+ok("ServiceTitan's escaped apostrophes still read as the same", wordingAction(html(want).replace(/'/g, "&#39;"), want, undefined, false) === "same");
+ok("the labels go in bold and still read as the same", html(want).includes("<strong>What we're doing:</strong>") && wordingAction(html(want), want, undefined, false) === "same");
+ok("first pass: whatever is there is written over", wordingAction(html("The office's old words."), want, undefined, true) === "write");
+ok("after it: words nobody recorded are left alone", wordingAction(html("Typed by the office."), want, undefined, false) === "leave");
+ok("words this code wrote are written over", wordingAction(html("Older words.\n\nOurs."), want, h("Older words.\n\nOurs."), false) === "write");
+ok("words edited since it wrote them are left alone", wordingAction(html("Ours, then edited."), want, h("Ours."), false) === "leave");
+ok("an empty description is always filled", wordingAction("", want, h("Ours."), false) === "write" && wordingAction(null, want, undefined, false) === "write");
 
 console.log("\nTemplates, at the prices quoted by hand:");
 for (const t of OTHER_TEMPLATES) console.log(`  ${t.code.padEnd(26)} $${lineTotal(t.lines).toFixed(0).padStart(5)}  ${t.name}`);
