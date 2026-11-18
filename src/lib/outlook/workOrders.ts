@@ -648,7 +648,9 @@ export async function applyUnitFixes(deadline: number): Promise<{ changed: numbe
  * Tapi jobs from the last four days that came in without the page's details
  * (20910 and 20911, 18 Nov): the email is opened again, its Tapi page read,
  * and the tenant, owner and job reference put on the site, as a new one
- * would have. Three a run; each tried once, the outcome kept on its row.
+ * would have. One a run, last in the sweep: reading the email, the page and
+ * the web for one takes a good part of the minute the sweep has (three at
+ * once ran it out, 18 Nov). Each tried once, the outcome kept on its row.
  */
 export async function tapiBackfill(deadline: number): Promise<{ filled: number; tried: number }> {
   const out = { filled: 0, tried: 0 };
@@ -656,7 +658,7 @@ export async function tapiBackfill(deadline: number): Promise<{ filled: number; 
   type R = { mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; st_location_id: number | null; details: (WorkOrder & { tapi?: string }) | null };
   const rows = await sbSelect<R>(TABLE, [
     q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
-    "platform=eq.Tapi", "details->>tenantName=eq.", "details->>tapi=is.null", q.gte("created_at", since), "limit=3",
+    "platform=eq.Tapi", "details->>tenantName=eq.", "details->>tapi=is.null", q.gte("created_at", since), "limit=1",
   ].join("&")).catch(() => []);
   for (const r of rows) {
     if (Date.now() > deadline) break;
