@@ -587,13 +587,22 @@ export async function applyUnitFixes(deadline: number): Promise<{ changed: numbe
     try {
       if (!unit) throw new Error(`no business unit called "${want}" in ServiceTitan`);
       await stSend("PATCH", path, { businessUnitId: unit.id });
-      const back = await stFetch<{ businessUnitId?: number; jobNumber?: string }>(path);
-      if (Number(back.businessUnitId) !== unit.id) throw new Error(`ServiceTitan kept business unit ${back.businessUnitId ?? "unknown"}`);
+      // Read back after a moment: straight away, ServiceTitan can still give
+      // the old one (20905, 18 Nov: changed, but read back as Maintenance).
+      let back: { businessUnitId?: number; jobNumber?: string } = {};
+      for (let i = 0; i < 3; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        back = await stFetch<{ businessUnitId?: number; jobNumber?: string }>(path);
+        if (Number(back.businessUnitId) === Number(unit.id)) break;
+      }
+      if (Number(back.businessUnitId) !== Number(unit.id)) throw new Error(`ServiceTitan kept business unit ${back.businessUnitId ?? "unknown"}`);
       delete jobs[id];
       out.changed++;
       await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: Number(id), title: `Job ${back.jobNumber ?? id} moved to ${unit.name.trim()}` }]).catch(() => undefined);
     } catch (e) {
-      const said = stSaid(e).slice(0, 200);
+      // ServiceTitan's refusals read through stSaid; our own words as they are.
+      const msg = (e as Error).message;
+      const said = (/^ServiceTitan \S+ failed: /.test(msg) ? stSaid(e) : msg).slice(0, 200);
       jobs[id] = { unit: want, error: said };
       out.error = said;
       await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: Number(id), title: `Job ${id} couldn't be moved to ${want}`, detail: said }]).catch(() => undefined);
