@@ -14,7 +14,7 @@ import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, approvalFor, approvalHeading, bookingSummary, dedupeKey, fillTemplate, followUpFor, followUpHeading,
-  isTeamForward, siteKey, tapiLinkIn, tapiPageText, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
+  isTeamForward, looksLikeTapiJob, siteKey, tapiLinkHostOk, tapiLinksIn, tapiPageText, TAPI_HOST, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
 /**
@@ -134,18 +134,48 @@ async function extract(m: GraphMessage, body: string, pdfs: FileAtt[], officeSay
  * in the text body as Graph gives it; failing that, in the HTML's hrefs. Only
  * tapi.app, and only a page that stays there.
  */
-async function tapiPage(mailbox: string, id: string, textBody: string): Promise<string | null> {
-  let link = tapiLinkIn(textBody);
-  if (!link) {
-    const html = await graph<GraphMessage>(`${userPath(mailbox)}/messages/${encodeURIComponent(id)}?$select=body`).catch(() => null);
-    link = tapiLinkIn(html?.body?.content ?? "");
+async function tapiPage(mailbox: string, id: string, textBody: string): Promise<{ text: string | null; note: string }> {
+  // The HTML's hrefs as well as Graph's text: a button's link isn't always
+  // in the text Graph makes of it.
+  const html = await graph<GraphMessage>(`${userPath(mailbox)}/messages/${encodeURIComponent(id)}?$select=body`).catch(() => null);
+  const links = tapiLinksIn(`${textBody}\n${html?.body?.content ?? ""}`);
+  if (!links.length) return { text: null, note: "no Tapi link in the email" };
+  let note = "";
+  for (const link of links.slice(0, 4)) {
+    const r = await openTapi(link).catch((e: Error) => ({ text: null, note: `couldn't open ${hostOf(link)}: ${e.message}`.slice(0, 160) }));
+    if (r.text) return r;
+    note = r.note;
   }
-  if (!link) return null;
-  const res = await fetch(link, { headers: { Accept: "text/html", "User-Agent": "Mozilla/5.0 (compatible; AdvancedGasPortal/1.0)" }, signal: AbortSignal.timeout(15_000), cache: "no-store" });
-  if (!res.ok || new URL(res.url).hostname !== "tapi.app") return null;
-  const text = tapiPageText((await res.text()).slice(0, 1_000_000));
-  return text.length > 80 ? text : null;
+  return { text: null, note: note || "no Tapi link led to a work order page" };
 }
+
+const hostOf = (u: string) => { try { return new URL(u).hostname; } catch { return "a link"; } };
+
+/**
+ * A Tapi link followed by hand, one redirect at a time, so it never leaves
+ * Tapi's hosts and the trackers its mail passes through, and read only once
+ * it's on tapi.app with a work order on it.
+ */
+async function openTapi(start: string): Promise<{ text: string | null; note: string }> {
+  let url = start;
+  for (let hop = 0; hop < 6; hop++) {
+    if (!tapiLinkHostOk(url)) return { text: null, note: `a link led off Tapi, to ${hostOf(url)}` };
+    const res = await fetch(url, { redirect: "manual", headers: { Accept: "text/html", "User-Agent": "Mozilla/5.0 (compatible; AdvancedGasPortal/1.0)" }, signal: AbortSignal.timeout(15_000), cache: "no-store" });
+    if (res.status >= 300 && res.status < 400) {
+      const to = res.headers.get("location");
+      if (!to) return { text: null, note: `${hostOf(url)} redirected nowhere` };
+      url = new URL(to, url).toString();
+      continue;
+    }
+    if (!res.ok) return { text: null, note: `${hostOf(url)} answered ${res.status}` };
+    if (!TAPI_HOST.test(new URL(url).hostname)) return { text: null, note: `the link stopped at ${hostOf(url)}, not on Tapi` };
+    const text = tapiPageText((await res.text()).slice(0, 1_000_000));
+    return looksLikeTapiJob(text) ? { text, note: `read the Tapi page (${text.length} characters)` } : { text: null, note: "the Tapi page had no work order on it (a sign-in page?)" };
+  }
+  return { text: null, note: "too many redirects" };
+}
+
+const withTapi = (body: string, page: string | null) => (page ? `${body}\n\n<tapi_work_order_page>\nThe Tapi page this email links to, read by the portal:\n${page}\n</tapi_work_order_page>` : body);
 
 async function addCategory(mailbox: string, id: string, cat: string) {
   const path = `${userPath(mailbox)}/messages/${encodeURIComponent(id)}`;
@@ -201,12 +231,14 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       return { status: "not" };
     }
     const pdfs = full.hasAttachments ? await pdfsOf(mailbox, m.id) : [];
-    const tapi = await tapiPage(mailbox, m.id, body).catch(() => null);
-    const w = await extract(m, tapi ? `${body}\n\n<tapi_work_order_page>\nThe Tapi page this email links to, read by the portal:\n${tapi}\n</tapi_work_order_page>` : body, pdfs, force);
+    // Tapi's emails say little; the page their link opens has the rest.
+    const fromTapi = /tapi/i.test(addressOf(m.from)) || /tapi\.app|tapihq/i.test(body);
+    const tapi = fromTapi ? await tapiPage(mailbox, m.id, body).catch((e: Error) => ({ text: null, note: `couldn't read the Tapi page: ${e.message}`.slice(0, 160) })) : null;
+    const w = await extract(m, withTapi(body, tapi?.text ?? null), pdfs, force);
     const base = {
       subject: (m.subject ?? "").slice(0, 300), from_address: addressOf(m.from) || null, received_at: m.receivedDateTime ?? null,
       kind: w.kind, platform: w.platform || null, agency: w.agency || null, wo_number: w.number || null,
-      address: [w.street, w.suburb, w.postcode].filter(Boolean).join(", ") || null, details: w,
+      address: [w.street, w.suburb, w.postcode].filter(Boolean).join(", ") || null, details: tapi ? { ...w, tapi: tapi.note } : w,
     };
     // An agency cancelling one: the job comes off (cancel.ts), or a person is
     // told why it couldn't be.
@@ -609,6 +641,50 @@ export async function applyUnitFixes(deadline: number): Promise<{ changed: numbe
     }
   }
   await saveSettings(UNIT_FIXES, { jobs });
+  return out;
+}
+
+/**
+ * Tapi jobs from the last four days that came in without the page's details
+ * (20910 and 20911, 18 Nov): the email is opened again, its Tapi page read,
+ * and the tenant, owner and job reference put on the site, as a new one
+ * would have. Three a run; each tried once, the outcome kept on its row.
+ */
+export async function tapiBackfill(deadline: number): Promise<{ filled: number; tried: number }> {
+  const out = { filled: 0, tried: 0 };
+  const since = new Date(Date.now() - 4 * 86_400_000).toISOString();
+  type R = { mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; st_location_id: number | null; details: (WorkOrder & { tapi?: string }) | null };
+  const rows = await sbSelect<R>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
+    "platform=eq.Tapi", "details->>tenantName=eq.", "details->>tapi=is.null", q.gte("created_at", since), "limit=3",
+  ].join("&")).catch(() => []);
+  for (const r of rows) {
+    if (Date.now() > deadline) break;
+    out.tried++;
+    const old = r.details ?? ({} as WorkOrder & { tapi?: string });
+    try {
+      const m = await graph<GraphMessage>(`${userPath(r.mailbox)}/messages/${encodeURIComponent(r.message_id)}?$select=id,subject,from,sender,receivedDateTime,body`, { text: true });
+      const body = plainText(m.body);
+      const page = await tapiPage(r.mailbox, r.message_id, body);
+      if (!page.text) {
+        await save(r.mailbox, r.message_id, { details: { ...old, tapi: `caught up later: ${page.note}` } });
+        continue;
+      }
+      const w = await extract(m, withTapi(body, page.text), [], true);
+      // What the page adds; what the first reading decided (kind, job type, unit) stands.
+      const merged: WorkOrder = { ...old, tenantName: w.tenantName || old.tenantName, tenantPhone: w.tenantPhone || old.tenantPhone, tenantEmail: w.tenantEmail || old.tenantEmail, owner: w.owner || old.owner, postcode: w.postcode || old.postcode, number: old.number || w.number, propertyManager: old.propertyManager || w.propertyManager, pmEmail: old.pmEmail || w.pmEmail, pmPhone: old.pmPhone || w.pmPhone };
+      const loc = r.st_location_id!;
+      const said = [
+        await fillTenant(loc, merged).catch((e: Error) => `tenant not put on: ${stSaid(e)}`),
+        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).catch(() => null)).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
+      ].filter(Boolean).join("; ");
+      await save(r.mailbox, r.message_id, { details: { ...merged, tapi: `caught up later: ${page.note}` } });
+      await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: the Tapi page's details put on the site`, detail: (said || "nothing new for the site").slice(0, 300) }]).catch(() => undefined);
+      out.filled++;
+    } catch (e) {
+      await save(r.mailbox, r.message_id, { details: { ...old, tapi: `caught up later, but: ${(e as Error).message}`.slice(0, 200) } }).catch(() => undefined);
+    }
+  }
   return out;
 }
 
