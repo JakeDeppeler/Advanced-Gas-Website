@@ -1,9 +1,9 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { q, sbInsertIfAbsent, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
-import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
+import { stFetch, stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { loadSwitches, logAuto } from "@/lib/automation/log";
-import { getSettings } from "@/lib/portal/db";
+import { getSettings, saveSettings } from "@/lib/portal/db";
 import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
@@ -560,6 +560,47 @@ async function twinJob(mailbox: string, id: string, w: WorkOrder): Promise<{ job
     await new Promise((res) => setTimeout(res, 5000));
   }
   return null;
+}
+
+/**
+ * A job moved to another business unit by hand from here (Jake, 18 Nov: "change
+ * 20905 and 20907 to Real Estate - Installation"): the jobs are listed in
+ * portal_settings, keyed by ServiceTitan job id, with the unit's name. Each is
+ * changed, read back, logged and taken off the list; one ServiceTitan won't
+ * change keeps its reason there and isn't tried again until it's cleared.
+ */
+const UNIT_FIXES = "work_order_unit_fixes";
+type UnitFixes = { jobs?: Record<string, { unit: string; error?: string }> };
+
+export async function applyUnitFixes(deadline: number): Promise<{ changed: number; error?: string }> {
+  const out = { changed: 0 } as { changed: number; error?: string };
+  const fixes = (await getSettings<UnitFixes>(UNIT_FIXES).catch(() => null)) ?? {};
+  const jobs = fixes.jobs ?? {};
+  const todo = Object.keys(jobs).filter((id) => !jobs[id].error);
+  if (!todo.length) return out;
+  const units = await sbSelect<{ id: number; name: string }>("st_business_units", "select=id,name&active=is.true").catch(() => []);
+  for (const id of todo) {
+    if (Date.now() > deadline) break;
+    const want = jobs[id].unit;
+    const unit = units.find((u) => u.name.trim().toLowerCase() === want.trim().toLowerCase());
+    const path = stTenantPath("jpm", `jobs/${id}`);
+    try {
+      if (!unit) throw new Error(`no business unit called "${want}" in ServiceTitan`);
+      await stSend("PATCH", path, { businessUnitId: unit.id });
+      const back = await stFetch<{ businessUnitId?: number; jobNumber?: string }>(path);
+      if (Number(back.businessUnitId) !== unit.id) throw new Error(`ServiceTitan kept business unit ${back.businessUnitId ?? "unknown"}`);
+      delete jobs[id];
+      out.changed++;
+      await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: Number(id), title: `Job ${back.jobNumber ?? id} moved to ${unit.name.trim()}` }]).catch(() => undefined);
+    } catch (e) {
+      const said = stSaid(e).slice(0, 200);
+      jobs[id] = { unit: want, error: said };
+      out.error = said;
+      await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: Number(id), title: `Job ${id} couldn't be moved to ${want}`, detail: said }]).catch(() => undefined);
+    }
+  }
+  await saveSettings(UNIT_FIXES, { jobs });
+  return out;
 }
 
 /** What a work order's row says when its job was made but the hold didn't take. */
