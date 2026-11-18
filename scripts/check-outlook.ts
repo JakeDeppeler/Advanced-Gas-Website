@@ -22,7 +22,7 @@ import {
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
-import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
+import { phoneDigits, stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
 import { PROPERTY_TYPES, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiLinksIn, tapiPageText, looksLikeTapiJob, visitEnd } from "../src/lib/outlook/workOrderTypes";
@@ -418,13 +418,16 @@ console.log("-- two tenants (6 Nov: 4 Kirrilee Ct, 9 Naomi St) --");
   const two = { tenantName: "Joshua Croucher; Christine Upton", tenantPhone: "0428 946 984; 0417 535 760", tenantEmail: "josh.croucher@yahoo.com; chrisupton34@yahoo.com.au" };
   const c = tenantContacts(two, "MobilePhone");
   ok("four contacts, one value each", c.length === 4 && c.every((x) => !x.value.includes(";")), c);
-  ok("each number with its person", c[0].value === "0428 946 984" && c[0].memo === "Tenant: Joshua Croucher" && c[1].memo === "Tenant: Christine Upton", c.slice(0, 2));
+  ok("each number with its person, digits only", c[0].value === "0428946984" && c[0].memo === "Tenant: Joshua Croucher" && c[1].memo === "Tenant: Christine Upton", c.slice(0, 2));
   ok("emails split", c[2].value === "josh.croucher@yahoo.com" && c[3].value === "chrisupton34@yahoo.com.au");
   ok("site named for both", tenantLabel(two) === "Joshua Croucher & Christine Upton");
   ok("greeting both", tenantGreeting(two) === "Joshua and Christine");
-  ok("one tenant unchanged", JSON.stringify(tenantContacts({ tenantName: "Sam Lee", tenantPhone: "0412 345 678", tenantEmail: "sam.lee@gmail.com" }, "Phone")) === JSON.stringify([{ type: "Phone", value: "0412 345 678", memo: "Tenant: Sam Lee" }, { type: "Email", value: "sam.lee@gmail.com", memo: "Tenant: Sam Lee" }]));
+  ok("one tenant unchanged", JSON.stringify(tenantContacts({ tenantName: "Sam Lee", tenantPhone: "0412 345 678", tenantEmail: "sam.lee@gmail.com" }, "Phone")) === JSON.stringify([{ type: "Phone", value: "0412345678", memo: "Tenant: Sam Lee" }, { type: "Email", value: "sam.lee@gmail.com", memo: "Tenant: Sam Lee" }]));
   ok("phones split on slash and 'or'", JSON.stringify(tenantPhones({ tenantPhone: "0425277986 / 0437217497 or (03) 5941 2222" })) === JSON.stringify(["0425277986", "0437217497", "(03) 5941 2222"]), tenantPhones({ tenantPhone: "0425277986 / 0437217497 or (03) 5941 2222" }));
   ok("junk phone dropped", tenantPhones({ tenantPhone: "ask the agent" }).length === 0);
+  // 13 Goodall Court (18 Nov): ServiceTitan refused "0425 743 079" as a mobile.
+  ok("a spaced mobile goes as digits", phoneDigits("0425 743 079") === "0425743079");
+  ok("+61 goes as 0", phoneDigits("+61 425 743 079") === "0425743079" && phoneDigits("(03) 5941 1977") === "0359411977");
   ok("one name, two numbers: both 'Tenant: name'", tenantContacts({ tenantName: "Karra Finlayson", tenantPhone: "0425277986; 0437217497", tenantEmail: "" }, "Phone").every((x) => x.memo === "Tenant: Karra Finlayson"));
   const w = { ...parseWorkOrder(JSON.stringify({ is_work_order: true, kind: "work_order", platform: "", agency: "Barry Plant Pakenham", property_manager: "", pm_email: "pakenhamrentals@barryplant.com.au", pm_phone: "", number: "18965", street: "9 Naomi St", suburb: "Pakenham", postcode: "3810", tenant_name: "Karra Finlayson; Leigh Lombard", tenant_phone: "", tenant_email: "karrafinlayson@outlook.com; leighlombard@hotmail.com", access: "", job: "Ducted heating not working", urgent: false, attend_by: "", job_type: "", is_cancellation: false, why: "" })) };
   ok("both tenants emailed", JSON.stringify(tenantAddresses(w, "pakenhamrentals@email.propertyme.com")) === JSON.stringify(["karrafinlayson@outlook.com", "leighlombard@hotmail.com"]), tenantAddresses(w, "x@y.com"));

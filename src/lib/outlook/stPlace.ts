@@ -415,8 +415,15 @@ export async function fillTenant(locationId: number, w: WorkOrder): Promise<stri
   const have = await stList<{ type?: string; value?: string; active?: boolean }>("crm", `locations/${locationId}/contacts`);
   const there = new Set(have.filter((c) => c.active !== false).map(key).filter(Boolean));
   const add = want.filter((c) => key(c) && !there.has(key(c)));
-  for (const c of add) await stSend("POST", stTenantPath("crm", `locations/${locationId}/contacts`), c);
-  const said = add.map((c) => c.value);
+  // Each on its own: one ServiceTitan refuses mustn't keep the others off.
+  const said: string[] = [];
+  const refused: string[] = [];
+  for (const c of add) {
+    await stSend("POST", stTenantPath("crm", `locations/${locationId}/contacts`), c)
+      .then(() => said.push(c.value))
+      .catch((e: Error) => refused.push(`${c.value}: ${stSaid(e).replace(/^ServiceTitan said:? ?/, "")}`));
+  }
+  if (!said.length && refused.length) throw new Error(`ServiceTitan took none of the tenant's contacts (${refused.join("; ")})`);
   const label = tenantLabel(w).slice(0, 100);
   if (label && add.length === want.length) {
     const path = stTenantPath("crm", `locations/${locationId}`);
@@ -426,5 +433,5 @@ export async function fillTenant(locationId: number, w: WorkOrder): Promise<stri
       said.push(`site renamed from "${(loc.name ?? "").trim()}" to "${label}"`);
     }
   }
-  return said.length ? `tenant: ${said.join(", ")}` : "";
+  return [said.length ? `tenant: ${said.join(", ")}` : "", refused.length ? `not taken: ${refused.join("; ")}` : ""].filter(Boolean).join("; ");
 }
