@@ -295,13 +295,21 @@ export async function makeJob(w: WorkOrder, site: Site, zip: string, jobTypeName
   return { jobId: made.id, jobNumber: made.jobNumber ?? null, customerId: site.customerId, locationId, how: site.locationId ? site.how : "new site under the agency" };
 }
 
-let holdReason: { id: number; name: string } | null | undefined;
-async function holdReasonToUse(): Promise<{ id: number; name: string } | null> {
-  if (holdReason !== undefined) return holdReason;
+/**
+ * The hold reason to use: one of ServiceTitan's own that's about the tenant
+ * or customer. Not "waiting" on its own: that picked "Waiting for materials"
+ * for 20905 (18 Nov), which would send the office looking for parts. With
+ * none to use, the error lists what there is, so one can be added there.
+ */
+let holdReason: { id: number; name: string } | undefined;
+async function holdReasonToUse(): Promise<{ id: number; name: string }> {
+  if (holdReason) return holdReason;
   const reasons = await stList<{ id: number; name: string; active?: boolean }>("jpm", "job-hold-reasons", {}, 2);
   const live = reasons.filter((r) => r.active !== false);
-  holdReason = live.find((r) => /tenant|customer|client|contact|call|wait|book/i.test(r.name)) ?? live[0] ?? null;
-  return holdReason;
+  const hit = live.find((r) => /tenant/i.test(r.name)) ?? live.find((r) => /customer|client|contact|call back|callback|access|book/i.test(r.name));
+  if (!hit) throw new Error(`no hold reason about the tenant or customer in ServiceTitan (add one such as "Waiting on tenant" under Settings › Operations › Job hold reasons). There are: ${live.map((r) => r.name).join(", ") || "none"}`);
+  holdReason = hit;
+  return hit;
 }
 
 /** "Real Estate - Maintenance" or "Real Estate - Diagnostics", when the job type allows it. */
@@ -326,11 +334,33 @@ export async function holdForTenant(jobId: number): Promise<string> {
     const said = stSaid(e).replace(/^ServiceTitan said:? ?/, "").replace(/^(.+): \1$/, "$1");
     throw new Error(`ServiceTitan refused ${what}: ${said}`);
   };
-  const reason = await holdReasonToUse().catch(step("reading ServiceTitan's job hold reasons"));
-  if (!reason) throw new Error("ServiceTitan has no job hold reasons to use (Settings › Operations › Job hold reasons there)");
-  await stSend("PUT", stTenantPath("jpm", `jobs/${jobId}/hold`), { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." })
-    .catch(step(`putting job ${jobId} on hold (reason "${reason.name}")`));
-  return reason.name;
+  let reason: { id: number; name: string };
+  try {
+    reason = await holdReasonToUse();
+  } catch (e) {
+    // Ours (no reason to use) as it is; ServiceTitan's refusal labelled.
+    if (!/^ServiceTitan /.test((e as Error).message)) throw e;
+    return step("reading its job hold reasons")(e);
+  }
+  const body = { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." };
+  // The job first; ServiceTitan refused that for 20905 (403, 18 Nov) with
+  // Jobs allowed on the app. Its help puts a job on hold by holding its
+  // appointment, which Appointments allows, so that's tried next.
+  let jobRefusal = "";
+  try {
+    await stSend("PUT", stTenantPath("jpm", `jobs/${jobId}/hold`), body);
+    return reason.name;
+  } catch (e) {
+    jobRefusal = stSaid(e).replace(/^ServiceTitan said:? ?/, "").replace(/^(.+): \1$/, "$1");
+  }
+  const job = await stFetch<{ firstAppointmentId?: number; lastAppointmentId?: number }>(stTenantPath("jpm", `jobs/${jobId}`)).catch(step(`reading job ${jobId}`));
+  const appts = [...new Set([job.firstAppointmentId, job.lastAppointmentId].filter((x): x is number => Boolean(x)))];
+  if (!appts.length) throw new Error(`ServiceTitan refused putting job ${jobId} on hold (${jobRefusal}), and it has no appointment to hold instead`);
+  for (const a of appts) {
+    await stSend("PUT", stTenantPath("jpm", `appointments/${a}/hold`), body)
+      .catch(step(`putting job ${jobId} on hold (${jobRefusal}) and its appointment ${a} too (reason "${reason.name}")`));
+  }
+  return `${reason.name}, on its appointment`;
 }
 
 /* ------------------------------------------------------------ the site's details */
