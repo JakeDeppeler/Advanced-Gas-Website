@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, fillSiteDetails, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, fillSiteDetails, fillTenant, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
 import { lookUpPropertyType } from "./propertyType";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
@@ -333,6 +333,10 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       const lookUp = () => lookUpPropertyType(w.street, w.suburb, zip).catch(async (e: Error) => {
         await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the property type couldn't be looked up`, detail: e.message.slice(0, 200) }]).catch(() => undefined);
         return null;
+      });
+      await fillTenant(site_.locationId, w).catch(async (e: Error) => {
+        await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the tenant couldn't be put on the site`, detail: stSaid(e).slice(0, 200) }]).catch(() => undefined);
+        return "";
       });
       await fillSiteDetails(site_.locationId, w, lookUp)
         .catch(async (e: Error) => {

@@ -3,7 +3,7 @@ import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { graph, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { jobNumbersIn, namesSite, workAfterQuote } from "./workOrderTypes";
+import { jobNumbersIn, namesSite, senderNameOnFile, workAfterQuote } from "./workOrderTypes";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 
 /**
@@ -56,7 +56,55 @@ async function contactsOf(email: string): Promise<{ customers: number[]; locatio
 // The street with its number or its kind, not its name alone: see namesSite.
 const mentions = namesSite;
 
-export async function findJob(mailbox: string, m: GraphMessage, from: string, body: string): Promise<JobMatch | null> {
+/**
+ * The names on a job's file: its customer's (off its invoices, as the replica
+ * has no customers table), its site's, and the notes on the sender's own
+ * contacts there.
+ */
+async function namesOnFile(j: Job, email: string): Promise<string[]> {
+  const key = email.trim().toLowerCase();
+  const [inv, loc, cc, lc] = await Promise.all([
+    j.customer_id ? sbSelectOne<{ name: string | null }>("st_invoices", ["select=name:raw->customer->>name", `raw->customer->>id=eq.${j.customer_id}`, "limit=1"].join("&")).catch(() => null) : null,
+    j.location_id ? sbSelectOne<{ name: string | null }>("st_locations", [q.select("name"), q.eq("id", String(j.location_id))].join("&")).catch(() => null) : null,
+    j.customer_id ? sbSelect<{ memo: string | null }>("st_customer_contacts", [q.select("memo"), q.eq("customer_id", String(j.customer_id)), q.eq("match_key", key), "limit=5"].join("&")).catch(() => []) : [],
+    j.location_id ? sbSelect<{ memo: string | null }>("st_location_contacts", [q.select("memo"), q.eq("location_id", String(j.location_id)), q.eq("match_key", key), "limit=5"].join("&")).catch(() => []) : [],
+  ]);
+  return [inv?.name, loc?.name, ...cc.map((c) => c.memo), ...lc.map((c) => c.memo)].filter((x): x is string => Boolean(x && x.trim()));
+}
+
+/**
+ * findJob's guesses from the sender (a job number, or their open job) only
+ * stand when their address is a contact on that job's customer or site and
+ * their name is on the file too (Jake, 18 Nov), and, from an agency, when the
+ * email names the job's address. A thread already on a job is the same
+ * conversation and isn't asked again. refused, when given, hears why
+ * a guess was turned down, for the row.
+ */
+export async function findJob(mailbox: string, m: GraphMessage, from: string, body: string, refused?: (why: string) => void): Promise<JobMatch | null> {
+  const match = await guessJob(mailbox, m, from, body);
+  if (!match || match.how.startsWith("same thread")) return match;
+  const j = await sbSelectOne<Job>("st_jobs", [q.select(JOB_COLS), q.eq("id", String(match.jobId))].join("&")).catch(() => null);
+  const who = await contactsOf(from);
+  const theirs = Boolean(j && ((j.customer_id && who.customers.includes(j.customer_id)) || (j.location_id && who.locations.includes(j.location_id))));
+  const name = m.from?.emailAddress?.name ?? m.sender?.emailAddress?.name ?? "";
+  const named = j ? senderNameOnFile({ name, email: from }, await namesOnFile(j, from)) : false;
+  // An agency's people write about dozens of sites, and about none (O'Brien's
+  // end-of-year invitation went on 20114, 18 Nov, as the one quote waiting at
+  // a site the sender is on): from an agency, only an email naming the
+  // job's address is about it.
+  if (theirs && named && j && !match.how.startsWith("job ")) {
+    const sites = j.customer_id ? await sbSelect<{ id: number }>("st_locations", [q.select("id"), q.eq("customer_id", String(j.customer_id)), "limit=6"].join("&")).catch(() => []) : [];
+    if (sites.length > 5 && !mentions(`${m.subject ?? ""}\n${body.slice(0, 4000)}`, await streetOf(j.location_id))) {
+      refused?.(`looked like job ${match.jobNumber ?? match.jobId} (${match.how}), but it's from the agency and doesn't name the address: left off it`.slice(0, 300));
+      return null;
+    }
+  }
+  if (theirs && named) return match;
+  refused?.(`looked like job ${match.jobNumber ?? match.jobId} (${match.how}), but ${!theirs ? "the sender's email isn't on its file" : `"${name || from}" isn't a name on its file`}: left off it`.slice(0, 300));
+  return null;
+}
+
+async function guessJob(mailbox: string, m: GraphMessage, from: string, body: string): Promise<JobMatch | null> {
   const subject = m.subject ?? "";
   const text = `${subject}\n${body.slice(0, 4000)}`;
 

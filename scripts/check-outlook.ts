@@ -25,7 +25,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
-import { PROPERTY_TYPES, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiPageText, visitEnd } from "../src/lib/outlook/workOrderTypes";
+import { PROPERTY_TYPES, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiPageText, visitEnd } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -371,6 +371,19 @@ console.log("-- visit length and Tapi pages (18 Nov) --");
   const text = tapiPageText(page);
   ok("the page's work order is kept", ["Broken Air Conditioner", "Not cooling & noisy.", "Jane Tenant", "272", "Pat Owner", "c/o Some Agency", "TAPI-022811"].every((w) => text.includes(w)), text);
   ok("its scripts, buttons and dialogs aren't", !/var x|Cancel|Delete|×|Log in|Reschedule|Decline/.test(text), text);
+}
+
+console.log("-- the sender's name on the file (18 Nov) --");
+{
+  const file = ["Barry Plant - Berwick", "Jake Tunbridge", "Natasha Mitrovic - Property Manager"];
+  ok("the property manager by name", senderNameOnFile({ name: "Natasha Mitrovic", email: "bdppm7@barryplant.com.au" }, file));
+  ok("the tenant by name", senderNameOnFile({ name: "Jake Tunbridge", email: "x@gmail.com" }, file));
+  ok("no display name: the address will do", senderNameOnFile({ name: "", email: "tunbridgejake@gmail.com" }, file));
+  ok("the agency's own name", senderNameOnFile({ name: "Barry Plant Berwick", email: "bdpcro@barryplant.com.au" }, file));
+  ok("someone else isn't", !senderNameOnFile({ name: "Kim Rosser", email: "kim.r@neilsonpartners.com.au" }, file));
+  ok("a role alone isn't a name", !senderNameOnFile({ name: "Property Manager", email: "pm@agency.com.au" }, ["Adeline Johnston - Property Manager"]));
+  ok("Tapi's sender line, the person's name in it", senderNameOnFile({ name: "Kim Rosser (via Tapi)", email: "hi@tapihq.com" }, ["Kim Rosser"]));
+  ok("an empty file matches nothing", !senderNameOnFile({ name: "Jake Tunbridge", email: "a@b.com" }, []));
 }
 
 console.log("-- booking confirmations --");

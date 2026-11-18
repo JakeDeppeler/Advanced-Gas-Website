@@ -163,7 +163,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     // draft. Not mail from us, or from machines (the skip rules below).
     // Still looked for when that's off: an email about a job isn't a new lead.
     if (!m.isDraft && external && !skipReason(m, mailbox, Date.now(), opts.maxAgeMs)) {
-      onJob ??= await findJob(mailbox, m, from, words).catch(() => null);
+      let refusal = "";
+      onJob ??= await findJob(mailbox, m, from, words, (why) => { refusal = why; }).catch(() => null);
+      if (!onJob && refusal) await finish(mailbox, id, { job_how: refusal }).catch(() => undefined);
       if (onJob && sw.emailToJob) {
         const match = onJob;
         await putOnJob(mailbox, m, match.jobId)
