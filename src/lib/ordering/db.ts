@@ -54,7 +54,7 @@ export const DEFAULT_SETTINGS: OrderingSettings = {
   signName: "Kellie Winbanks",
   signPosition: "Owner",
   factoryInstructions: "Deliver to our factory",
-  deliveryNote: "We do not have a forklift.",
+  deliveryNote: "We don't have a forklift or pallet jack.",
   pickupInstructions: "We'll pick this up — please call 03 5947 8000 when it's ready.",
 };
 
