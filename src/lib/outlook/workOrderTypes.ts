@@ -239,9 +239,17 @@ export function tenantContacts(w: Pick<WorkOrder, "tenantName" | "tenantPhone" |
   const memo = (list: string[], i: number) => (names.length === list.length && names[i] ? `Tenant: ${names[i]}` : names.length === 1 ? `Tenant: ${names[0]}` : "Tenant");
   const phones = tenantPhones(w), emails = tenantEmails(w);
   return [
-    ...phones.map((v, i) => ({ type: phoneType, value: v, memo: memo(phones, i).slice(0, 100) })),
+    // Digits only: ServiceTitan refuses "0425 743 079" as a mobile ("Only
+    // numeric value is allowed", 13 Goodall Court, 18 Nov). +61 as 0.
+    ...phones.map((v, i) => ({ type: phoneType, value: phoneDigits(v), memo: memo(phones, i).slice(0, 100) })),
     ...emails.map((v, i) => ({ type: "Email", value: v, memo: memo(emails, i).slice(0, 100) })),
   ];
+}
+
+/** A phone as ServiceTitan takes it: digits, an Australian +61 written as 0. */
+export function phoneDigits(v: string): string {
+  const d = v.replace(/\D/g, "");
+  return /^61\d{9}$/.test(d) ? `0${d.slice(2)}` : d;
 }
 
 /** "Joshua", or "Joshua and Christine". */
