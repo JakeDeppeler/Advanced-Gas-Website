@@ -152,7 +152,6 @@ export async function sweep(): Promise<SweepResult> {
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
   const holds = await retryHolds(started + TAGS_BUDGET_MS).catch((e: Error) => ({ held: 0, error: e.message }));
   const units = await applyUnitFixes(started + TAGS_BUDGET_MS).catch((e: Error) => ({ changed: 0, error: e.message }));
-  const tapi = await tapiBackfill(started + TAGS_BUDGET_MS).catch(() => ({ filled: 0, tried: 0 }));
 
   // A quote sold and made into a job: its emails go on that job too, once.
   const carried = (await loadSwitches()).emailToJob
@@ -177,6 +176,9 @@ export async function sweep(): Promise<SweepResult> {
   for (const mailbox of outlookMailboxes()) {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
+
+  // Last, and only with time in hand: one can take half the minute.
+  const tapi = Date.now() - started < 25_000 ? await tapiBackfill(started + TAGS_BUDGET_MS).catch(() => ({ filled: 0, tried: 0 })) : { filled: 0, tried: 0 };
 
   return { subscriptions, mailboxes, workOrders, attached, holds, units, tapi, carried, secondLook, duplicates, handoffs };
 }
