@@ -303,8 +303,8 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
         await holdForTenant(made.jobId)
           .then((why) => save(mailbox, m.id, { reason: `on hold (${why}) until the tenant's rung`.slice(0, 300) }))
           .catch(async (e: Error) => {
-            const said = stSaid(e).slice(0, 200);
-            await save(mailbox, m.id, { reason: `made, but not put on hold: ${said}`.slice(0, 300) }).catch(() => undefined);
+            const said = e.message.slice(0, 220);
+            await save(mailbox, m.id, { reason: `${NOT_HELD}: ${said}`.slice(0, 300) }).catch(() => undefined);
             await logAuto([{ at: new Date().toISOString(), kind: "woHold", ok: false, jobId: made.jobId, title: `Job ${made.jobNumber ?? made.jobId} from a work order couldn't be put on hold, so Dispatch Pro can see it`, detail: said }]).catch(() => undefined);
           });
       }
@@ -500,6 +500,50 @@ export async function sweepWorkOrders(mailbox: string, deadline: number): Promis
     }
   } catch (e) {
     out.error = (e as Error).message;
+  }
+  return out;
+}
+
+/** What a work order's row says when its job was made but the hold didn't take. */
+const NOT_HELD = "made, but not put on hold";
+
+/**
+ * The holds that didn't take, tried again each sweep (20905, 18 Nov: refused
+ * with a 403), so a permission put right in ServiceTitan catches the jobs
+ * made in the meantime. Only jobs still Scheduled from the last fortnight;
+ * one booked or started since is the office's. Stops at the first refusal:
+ * the next would be refused for the same reason.
+ */
+export async function retryHolds(deadline: number): Promise<{ held: number; error?: string }> {
+  const out = { held: 0 } as { held: number; error?: string };
+  if (!(await loadSwitches()).woHold) return out;
+  const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+  const rows = await sbSelect<{ mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; reason: string | null }>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,reason"), q.eq("status", "booked"), "st_job_id=not.is.null",
+    `reason=like.${encodeURIComponent(NOT_HELD)}*`, q.gte("created_at", since), "limit=10",
+  ].join("&")).catch(() => []);
+  for (const r of rows) {
+    if (Date.now() > deadline) break;
+    const job = await sbSelectOne<{ status: string | null }>("st_jobs", [q.select("status"), q.eq("id", String(r.st_job_id))].join("&")).catch(() => null);
+    if (job?.status && job.status !== "Scheduled") {
+      await save(r.mailbox, r.message_id, { reason: `not put on hold: it was ${job.status.toLowerCase()} by the time it could be` }).catch(() => undefined);
+      continue;
+    }
+    try {
+      const why = await holdForTenant(r.st_job_id);
+      await save(r.mailbox, r.message_id, { reason: `on hold (${why}) until the tenant's rung` });
+      await logAuto([{ at: new Date().toISOString(), kind: "woHold", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id} from a work order put on hold, on a second try` }]).catch(() => undefined);
+      out.held++;
+    } catch (e) {
+      const said = (e as Error).message.slice(0, 220);
+      // Logged when what ServiceTitan says changes, not every ten minutes.
+      if (!(r.reason ?? "").includes(said)) {
+        await logAuto([{ at: new Date().toISOString(), kind: "woHold", ok: false, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id} from a work order still couldn't be put on hold`, detail: said }]).catch(() => undefined);
+      }
+      await save(r.mailbox, r.message_id, { reason: `${NOT_HELD}: ${said}`.slice(0, 300) }).catch(() => undefined);
+      out.error = said;
+      break;
+    }
   }
   return out;
 }
