@@ -680,6 +680,39 @@ export const TAPI_LINK = /https:\/\/tapi\.app\/issue\/[0-9a-f-]{36}\/t\/[0-9a-f-
 
 export const tapiLinkIn = (text: string) => TAPI_LINK.exec(text.replace(/&amp;/g, "&"))?.[0] ?? null;
 
+/** Tapi's own hosts: the only ones a page is read from. */
+export const TAPI_HOST = /(^|\.)tapi\.app$/i;
+/**
+ * Hosts a Tapi email's buttons may pass through on the way to tapi.app:
+ * Tapi's own, and the click-tracking of the services that send mail for
+ * others. Followed only to see where they lead, never read.
+ */
+const TAPI_VIA = /(^|\.)(tapi\.app|tapihq\.com|sendgrid\.net|mailgun\.org|mailgun\.net|mandrillapp\.com|list-manage\.com|customeriomail\.com|postmarkapp\.com|mailjet\.com|sparkpostmail\.com|awstrack\.me)$/i;
+export const tapiLinkHostOk = (url: string) => {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && TAPI_VIA.test(u.hostname);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * The links in a Tapi email worth opening for its page, best first (Jake,
+ * 18 Nov: 20910 and 20911 came in with no tenant: their links aren't the
+ * /issue/.../t/... of a message email). From Graph's text ("View<https://…>")
+ * or the HTML's hrefs: tapi.app's own first, then any through a tracker.
+ */
+export function tapiLinksIn(text: string): string[] {
+  const urls = [...text.replace(/&amp;/g, "&").matchAll(/https:\/\/[^\s"'<>()]+/g)].map((m) => m[0].replace(/[.,;:!?]+$/, ""));
+  const ok = [...new Set(urls)].filter(tapiLinkHostOk).filter((u) => !/\.(png|jpe?g|gif|svg|css|js)(\?|$)/i.test(u) && !/unsubscribe|privacy|terms|help|support\.tapi|tapihq\.com\/?$/i.test(u));
+  const rank = (u: string) => (TAPI_LINK.test(u) ? 0 : (() => { try { return TAPI_HOST.test(new URL(u).hostname) ? 1 : 2; } catch { return 3; } })());
+  return ok.sort((a, b) => rank(a) - rank(b));
+}
+
+/** Whether a page's words are a Tapi work order's, not its sign-in or an error. */
+export const looksLikeTapiJob = (text: string) => text.length > 80 && /Tenants?:|Property:|Invoice to:|Work order|Quote request|Description:/i.test(text);
+
 /** Lines that are the page's buttons and dialogs, not the work order. */
 const TAPI_CHROME = /^(×|-->|Cancel|Delete|Previous|\/|Next|View document|Download file|Loading file …|Delete photo|Delete attachment|Are you sure .*|Close|Send message|New message|To:|Message:|Enter a message\.|Print|·|View as myself|Help|Log in|About Tapi|Tapi|Optional\.|Open in Google Maps|Show more)$/;
 

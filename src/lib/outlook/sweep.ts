@@ -6,7 +6,7 @@ import { handleMessage, secondLookForQuotes, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
-import { applyUnitFixes, attachBookedJobs, retryHolds, sweepWorkOrders } from "./workOrders";
+import { applyUnitFixes, attachBookedJobs, retryHolds, sweepWorkOrders, tapiBackfill } from "./workOrders";
 import { carryQuoteEmails } from "./jobLink";
 import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
@@ -51,6 +51,7 @@ export type SweepResult = {
   attached: { attached: number; errors: string[] } | { error: string };
   holds: { held: number; error?: string };
   units: { changed: number; error?: string };
+  tapi: { filled: number; tried: number };
   secondLook: { mailbox: string; looked: number; linked: number; error?: string }[];
   carried: { carried: number; error?: string };
 };
@@ -151,6 +152,7 @@ export async function sweep(): Promise<SweepResult> {
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
   const holds = await retryHolds(started + TAGS_BUDGET_MS).catch((e: Error) => ({ held: 0, error: e.message }));
   const units = await applyUnitFixes(started + TAGS_BUDGET_MS).catch((e: Error) => ({ changed: 0, error: e.message }));
+  const tapi = await tapiBackfill(started + TAGS_BUDGET_MS).catch(() => ({ filled: 0, tried: 0 }));
 
   // A quote sold and made into a job: its emails go on that job too, once.
   const carried = (await loadSwitches()).emailToJob
@@ -176,5 +178,5 @@ export async function sweep(): Promise<SweepResult> {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, workOrders, attached, holds, units, carried, secondLook, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, holds, units, tapi, carried, secondLook, duplicates, handoffs };
 }

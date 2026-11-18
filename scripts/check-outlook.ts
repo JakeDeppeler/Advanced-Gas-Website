@@ -25,7 +25,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
-import { PROPERTY_TYPES, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiPageText, visitEnd } from "../src/lib/outlook/workOrderTypes";
+import { PROPERTY_TYPES, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiLinksIn, tapiPageText, looksLikeTapiJob, visitEnd } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -371,6 +371,15 @@ console.log("-- visit length and Tapi pages (18 Nov) --");
   const text = tapiPageText(page);
   ok("the page's work order is kept", ["Broken Air Conditioner", "Not cooling & noisy.", "Jane Tenant", "272", "Pat Owner", "c/o Some Agency", "TAPI-022811"].every((w) => text.includes(w)), text);
   ok("its scripts, buttons and dialogs aren't", !/var x|Cancel|Delete|×|Log in|Reschedule|Decline/.test(text), text);
+  // 20910 and 20911 (18 Nov): new work order and quote emails link elsewhere than /issue/…/t/….
+  const wo = "https://tapi.app/work-orders/3f6c1b2a-1111-2222-3333-444455556666?s=ab12cd34";
+  const tracked = "https://u123456.ct.sendgrid.net/ls/click?upn=abc-123";
+  const found = tapiLinksIn(`<a href="https://tapihq.com/">Tapi</a> <img src="https://tapi.app/logo.png"> <a href="${tracked}">View work order</a> <a href="${wo}">Open</a> <a href="https://tapi.app/unsubscribe?x=1">Unsubscribe</a> <a href="https://evil.com/x">x</a>`);
+  ok("any tapi.app link, before a tracked one", found[0] === wo && found[1] === tracked && found.length === 2, found);
+  ok("the message email's link still first", tapiLinksIn(`${tracked} ${link}`)[0] === link);
+  ok("no Tapi link, nothing to open", tapiLinksIn("Hello <https://evil.com/a> and http://tapi.app/x").length === 0);
+  ok("a work order page reads as one", looksLikeTapiJob(text));
+  ok("a sign-in page doesn't", !looksLikeTapiJob("Log in to Tapi\nEmail\nPassword\nForgot your password? Sign in with Google to continue to your account"));
 }
 
 console.log("-- the sender's name on the file (18 Nov) --");
