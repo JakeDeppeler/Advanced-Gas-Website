@@ -181,19 +181,20 @@ export async function jobsAt(locationId: number): Promise<SiteJob[]> {
       "select=id,job_number,status,created_on,po:raw->>customerPo,jt:raw->>jobTypeId",
       q.eq("location_id", String(locationId)), q.gte("created_on", since), q.order("created_on", "desc", "last"), "limit=40",
     ].join("&")),
-    sbSelect<{ st_job_id: number; st_job_number: string | null; wo_number: string | null; kind: string | null; created_at: string }>("work_orders", [
-      q.select("st_job_id,st_job_number,wo_number,kind,created_at"), q.eq("st_location_id", String(locationId)), q.notNull("st_job_id"), q.gte("created_at", since), "limit=60",
+    sbSelect<{ st_job_id: number; st_job_number: string | null; wo_number: string | null; kind: string | null; created_at: string; jt: string | null }>("work_orders", [
+      q.select("st_job_id,st_job_number,wo_number,kind,created_at,jt:details->>jobType"), q.eq("st_location_id", String(locationId)), q.notNull("st_job_id"), q.gte("created_at", since), "limit=60",
     ].join("&")).catch(() => []),
     activeJobTypes(),
   ]);
   const quoteType = new Set(types.filter((t) => /quot/i.test(t.name)).map((t) => String(t.id)));
+  const typeName = new Map(types.map((t) => [String(t.id), t.name]));
   const out = new Map<number, SiteJob>();
   for (const j of jobs) {
-    out.set(Number(j.id), { id: Number(j.id), jobNumber: j.job_number, status: j.status, numbers: j.po ? [j.po] : [], isQuote: quoteType.has(String(j.jt ?? "")), createdOn: j.created_on });
+    out.set(Number(j.id), { id: Number(j.id), jobNumber: j.job_number, status: j.status, numbers: j.po ? [j.po] : [], isQuote: quoteType.has(String(j.jt ?? "")), createdOn: j.created_on, jobType: typeName.get(String(j.jt ?? "")) ?? null });
   }
   for (const r of ours) {
     const id = Number(r.st_job_id);
-    const had = out.get(id) ?? { id, jobNumber: r.st_job_number, status: null, numbers: [], isQuote: r.kind === "quote_request", createdOn: r.created_at };
+    const had = out.get(id) ?? { id, jobNumber: r.st_job_number, status: null, numbers: [], isQuote: r.kind === "quote_request", createdOn: r.created_at, jobType: r.jt };
     if (r.wo_number && !had.numbers.includes(r.wo_number)) had.numbers.push(r.wo_number);
     out.set(id, had);
   }

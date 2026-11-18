@@ -62,6 +62,9 @@ export function dedupeKey(kind: WorkOrderKind, number: string, street: string, s
   return `${kind}|${num || addressKey(street, suburb)}`;
 }
 
+export const WORK_KINDS = ["Installation", "Diagnostics", "Repairs", "Maintenance"] as const;
+export type WorkKind = (typeof WORK_KINDS)[number];
+
 export type WorkOrder = {
   isWorkOrder: boolean;
   whyNot: string;
@@ -93,8 +96,8 @@ export type WorkOrder = {
   owner: string;
   /** From a real estate agency or property manager for a rental: the job goes under Real Estate (Jake, 18 Nov). */
   isRealEstate: boolean;
-  /** Which Real Estate business unit: a service or check is Maintenance, anything wrong is Diagnostics. */
-  workKind: "Maintenance" | "Diagnostics";
+  /** Which Real Estate business unit (Jake, 18 Nov: "read the work order so it's a quote or problem or installation"). */
+  workKind: WorkKind;
 };
 
 const str = { type: "string" } as const;
@@ -123,7 +126,7 @@ export const WORK_ORDER_SCHEMA = {
     is_cancellation: { type: "boolean", description: "True if this email cancels or withdraws a work order, quote request or job already sent to us (then is_work_order is false). Fill in the address and number of what's being cancelled." },
     owner: { type: "string", description: "The property owner the work order is issued for, as written, e.g. 'Tie Hong Tang' from 'issued on behalf of the owner - Tie Hong Tang (Owner)', or on a Tapi page the 'Invoice to' name before 'c/o' the agency. Empty if it doesn't say." },
     is_real_estate: { type: "boolean", description: "True when it comes from a real estate agency, property manager or their maintenance platform about a rental. False for a builder, developer, body corporate, business or homeowner." },
-    work_kind: { type: "string", enum: ["Maintenance", "Diagnostics"], description: "Maintenance for a routine service, safety or compliance check, or other planned work on something that works. Diagnostics when something is faulty, broken, leaking or disconnected and needs finding, fixing or quoting." },
+    work_kind: { type: "string", enum: ["Installation", "Diagnostics", "Repairs", "Maintenance"], description: "Installation: a quote for, or the work of, installing, replacing or adding equipment (a new split system, a heater to replace, more units upstairs). Diagnostics: something faulty, broken, leaking or not working to be looked at and found, including a quote to find or fix it. Repairs: the go-ahead to repair a fault that's already been found. Maintenance: a routine service, clean, or safety or compliance check on something that works." },
   },
 } as const;
 
@@ -140,7 +143,7 @@ export function parseWorkOrder(text: string): WorkOrder {
     job: s("job", 120), details: s("details", 3000), attendBy: s("attend_by", 60), urgent: o.urgent === true,
     isCancellation: o.is_cancellation === true,
     attendByDate: /^\d{4}-\d{2}-\d{2}$/.test(s("attend_by_date", 10)) ? s("attend_by_date", 10) : "", jobType: s("job_type", 80),
-    owner: s("owner", 160), isRealEstate: o.is_real_estate === true, workKind: o.work_kind === "Maintenance" ? "Maintenance" : "Diagnostics",
+    owner: s("owner", 160), isRealEstate: o.is_real_estate === true, workKind: (WORK_KINDS as readonly string[]).includes(o.work_kind as string) ? (o.work_kind as WorkKind) : "Diagnostics",
   };
 }
 
@@ -489,8 +492,10 @@ export function numberKey(number: string): string {
 }
 
 /** A job already at the work order's site: from the replica, or one the portal made that the replica hasn't caught up with. */
-export type SiteJob = { id: number; jobNumber: string | null; status: string | null; numbers: string[]; isQuote: boolean; createdOn: string | null };
-export type FollowUp = { job: SiteJob; why: string };
+/** jobType: its ServiceTitan job type's name, when known. */
+export type SiteJob = { id: number; jobNumber: string | null; status: string | null; numbers: string[]; isQuote: boolean; createdOn: string | null; jobType?: string | null };
+/** pin: the office should see it at the top of the job (a new request on a job already there). */
+export type FollowUp = { job: SiteJob; why: string; pin?: boolean };
 
 const DAY_MS = 86_400_000;
 
@@ -549,6 +554,13 @@ export function approvalHeading(w: Pick<WorkOrder, "agency" | "platform" | "numb
  *  2. A "Re:" about an open job there from the last month, unless the two
  *     carry different numbers.
  *  3. No number of its own, and a job open there from the last three months.
+ *  4. A number of its own, and the same work open there from the last
+ *     month: a quote request and a quote job, or a work order and a job of
+ *     the same job type (the same appliance's fault). Agencies send the same
+ *     request again under a new number (Jake, 18 Nov: 4 Dundee Court as 23835
+ *     then 24552; 41 Shanks Drive as QU-8041 and QU-8042 a second apart). A
+ *     work order for something else at the house is its own job, as each
+ *     carries its own reference to invoice. Pinned, so the office sees it.
  *
  * A completed job takes only a reminder that it's still to do. Anything else
  * about it asks for something new, and a note on a finished job is a note
@@ -558,7 +570,7 @@ export function approvalHeading(w: Pick<WorkOrder, "agency" | "platform" | "numb
  * its job, made by the office since: an open job there newer than the
  * finished one, with no other number, takes it.
  */
-export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder">, reply: boolean, jobs: SiteJob[], now = Date.now()): FollowUp | null {
+export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder"> & { jobType?: string }, reply: boolean, jobs: SiteJob[], now = Date.now()): FollowUp | null {
   const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
   const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
   const done = (j: SiteJob) => j.status === "Completed";
@@ -582,7 +594,11 @@ export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder">
   if (!num) {
     const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS);
     if (open) return { job: open, why: `no work order number, and ${name(open)} is open at this address` };
+    return null;
   }
+  const sameKind = (j: SiteJob) => (w.kind === "quote_request" ? j.isQuote : w.kind === "work_order" ? !j.isQuote && Boolean(w.jobType) && j.jobType === w.jobType : false);
+  const alike = live.find((j) => !done(j) && sameKind(j) && now - when(j) <= 30 * DAY_MS);
+  if (alike) return { job: alike, why: `${w.kind === "quote_request" ? "a quote" : "a work order"} under a new number (${w.number}), and ${name(alike)} is open at this address for the same kind of work`, pin: true };
   return null;
 }
 
