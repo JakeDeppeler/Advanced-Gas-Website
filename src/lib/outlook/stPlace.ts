@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
-import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, realEstateUnitName, visitEnd } from "./workOrderTypes";
+import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, realEstateUnitName, stSaid, visitEnd } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -320,9 +320,16 @@ async function realEstateUnit(name: string, allowed: number[]): Promise<number |
  * Returns the reason used.
  */
 export async function holdForTenant(jobId: number): Promise<string> {
-  const reason = await holdReasonToUse();
+  // Each step says itself when it fails: a bare "403 Forbidden" on 20905
+  // (18 Nov) couldn't tell reading the reasons from the hold.
+  const step = (what: string) => (e: unknown) => {
+    const said = stSaid(e).replace(/^ServiceTitan said:? ?/, "").replace(/^(.+): \1$/, "$1");
+    throw new Error(`ServiceTitan refused ${what}: ${said}`);
+  };
+  const reason = await holdReasonToUse().catch(step("reading ServiceTitan's job hold reasons"));
   if (!reason) throw new Error("ServiceTitan has no job hold reasons to use (Settings › Operations › Job hold reasons there)");
-  await stSend("PUT", stTenantPath("jpm", `jobs/${jobId}/hold`), { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." });
+  await stSend("PUT", stTenantPath("jpm", `jobs/${jobId}/hold`), { reasonId: reason.id, memo: "Waiting on the tenant: put on hold by the portal so Dispatch Pro leaves it. Take it off hold once they've been rung and it's booked." })
+    .catch(step(`putting job ${jobId} on hold (reason "${reason.name}")`));
   return reason.name;
 }
 

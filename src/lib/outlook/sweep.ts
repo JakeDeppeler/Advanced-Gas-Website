@@ -6,7 +6,7 @@ import { handleMessage, secondLookForQuotes, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
-import { attachBookedJobs, sweepWorkOrders } from "./workOrders";
+import { attachBookedJobs, retryHolds, sweepWorkOrders } from "./workOrders";
 import { carryQuoteEmails } from "./jobLink";
 import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
@@ -49,6 +49,7 @@ export type SweepResult = {
   duplicates: { mailbox: string; threads: number; removed: number; keptEdited: number; error?: string }[];
   workOrders: { mailbox: string; marked: number; retried: number; error?: string }[];
   attached: { attached: number; errors: string[] } | { error: string };
+  holds: { held: number; error?: string };
   secondLook: { mailbox: string; looked: number; linked: number; error?: string }[];
   carried: { carried: number; error?: string };
 };
@@ -147,6 +148,7 @@ export async function sweep(): Promise<SweepResult> {
     workOrders.push({ mailbox, ...(await sweepWorkOrders(mailbox, started + TAGS_BUDGET_MS)) });
   }
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
+  const holds = await retryHolds(started + TAGS_BUDGET_MS).catch((e: Error) => ({ held: 0, error: e.message }));
 
   // A quote sold and made into a job: its emails go on that job too, once.
   const carried = (await loadSwitches()).emailToJob
@@ -172,5 +174,5 @@ export async function sweep(): Promise<SweepResult> {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, workOrders, attached, carried, secondLook, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, holds, carried, secondLook, duplicates, handoffs };
 }
