@@ -694,3 +694,29 @@ export function tapiPageText(html: string): string {
   const end = lines.findIndex((l, i) => i > 10 && /^Health & safety information for this property$/.test(l));
   return (end > 0 ? lines.slice(0, end) : lines).join("\n").slice(0, 8000);
 }
+
+/* ------------------------------------------------------------ the sender and the file */
+
+/** Words that say nothing about who someone is: titles, roles and agency filler. */
+const NAME_FILLER = new Set([
+  "the", "and", "for", "from", "via", "mr", "mrs", "ms", "miss", "dr", "pty", "ltd", "co", "group", "team", "office", "admin", "accounts",
+  "info", "enquiries", "reception", "real", "estate", "property", "properties", "manager", "management", "rentals", "rental", "realty",
+  "agents", "tenant", "tenants", "owner", "owners", "administration", "assistant", "senior", "leasing", "consultant", "maintenance",
+  "tapi", "propertyme", "ailo", "noreply", "reply",
+]);
+const nameWords = (s: string) => s.toLowerCase().replace(/['\u2019]/g, "").split(/[^a-z]+/).filter((w) => w.length >= 3 && !NAME_FILLER.has(w));
+
+/**
+ * Whether the sender's name is on the file (Jake, 18 Nov: "check email and
+ * name match"): a word of the sender's name, or of the start of their address
+ * when the name is blank ("tunbridgejake@"), is a word of the customer's or
+ * site's name, or of the note on their contact ("Adeline Johnston - Property
+ * Manager"). Filler like "Property Manager" never counts on its own.
+ */
+export function senderNameOnFile(sender: { name: string; email: string }, fileNames: string[]): boolean {
+  const file = new Set(fileNames.flatMap(nameWords));
+  if (!file.size) return false;
+  if (nameWords(sender.name).some((w) => file.has(w))) return true;
+  const local = (sender.email.split("@")[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  return local.length >= 4 && [...file].some((w) => w.length >= 4 && local.includes(w));
+}

@@ -400,3 +400,31 @@ export async function fillSiteDetails(locationId: number, w: WorkOrder, property
   const said: Record<number, string> = { [FIELD.jobRef]: "job reference", [FIELD.owner]: "owner", [FIELD.propertyType]: "property type" };
   return changed.map(([id, v]) => `${said[id]} ${v}`).join(", ");
 }
+
+/**
+ * The work order's tenant on the site (Jake, 18 Nov): each email and phone
+ * of theirs the site hasn't got is added as a contact, noted "Tenant: name".
+ * When none of them was there, it's a new tenant, and the site, which the
+ * office names after whoever lives there, takes their name. Nothing already
+ * on the site is taken off. Returns what changed, in words, or "".
+ */
+export async function fillTenant(locationId: number, w: WorkOrder): Promise<string> {
+  const want = tenantContacts(w, "MobilePhone");
+  if (!want.length) return "";
+  const key = (c: { type?: string; value?: string }) => (c.type === "Email" ? (c.value ?? "").trim().toLowerCase() : (c.value ?? "").replace(/\D/g, "").slice(-9));
+  const have = await stList<{ type?: string; value?: string; active?: boolean }>("crm", `locations/${locationId}/contacts`);
+  const there = new Set(have.filter((c) => c.active !== false).map(key).filter(Boolean));
+  const add = want.filter((c) => key(c) && !there.has(key(c)));
+  for (const c of add) await stSend("POST", stTenantPath("crm", `locations/${locationId}/contacts`), c);
+  const said = add.map((c) => c.value);
+  const label = tenantLabel(w).slice(0, 100);
+  if (label && add.length === want.length) {
+    const path = stTenantPath("crm", `locations/${locationId}`);
+    const loc = await stFetch<{ name?: string }>(path);
+    if ((loc.name ?? "").trim().toLowerCase() !== label.toLowerCase()) {
+      await stSend("PATCH", path, { name: label });
+      said.push(`site renamed from "${(loc.name ?? "").trim()}" to "${label}"`);
+    }
+  }
+  return said.length ? `tenant: ${said.join(", ")}` : "";
+}
