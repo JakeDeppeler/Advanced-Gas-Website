@@ -248,6 +248,19 @@ ok("onto a job the portal made minutes ago", followUpFor(wf("work_order", "TAPI-
 ok("same number after a repair's done: new work, a new job", followUpFor(wf("work_order", "18000"), false, [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
 ok("a cancelled job takes nothing", followUpFor(wf("work_order", "18969"), false, [sj({ status: "Canceled", numbers: ["18969"] })], FU_NOW) === null);
 ok("another number at the same house: a new job", followUpFor(wf("work_order", "TAPI-023600"), false, [sj({ numbers: ["TAPI-023594"] })], FU_NOW) === null);
+// 4 Dundee Court (18 Nov): quote request 23835 made 20884; the same desktop quote again as 24552 made 20886.
+{
+  const dundee = followUpFor(wf("quote_request", "24552"), false, [sj({ jobNumber: "20884", isQuote: true, numbers: ["23835"], createdOn: "2026-11-16T03:35:00Z" })], Date.parse("2026-11-16T23:08:00Z"));
+  ok("a quote request under a new number, a quote open there: onto it, pinned", dundee?.job.jobNumber === "20884" && dundee?.pin === true, dundee);
+  ok("a quote request, only a repair job open there: a new job", followUpFor(wf("quote_request", "QU-8042"), false, [sj({ isQuote: false, numbers: ["9858"], jobType: "Diagnostics - Split System" })], FU_NOW) === null);
+  ok("a quote request, the quote there done: a new job", followUpFor(wf("quote_request", "QU-8042"), false, [sj({ isQuote: true, status: "Completed", numbers: ["QU-1"] })], FU_NOW) === null);
+  ok("a quote request, the quote there over a month old: a new job", followUpFor(wf("quote_request", "QU-8042"), false, [sj({ isQuote: true, numbers: ["QU-1"], createdOn: "2026-10-01T00:00:00Z" })], FU_NOW) === null);
+  const sameFault = followUpFor({ ...wf("work_order", "TAPI-023600"), jobType: "Diagnostics - Split System" }, false, [sj({ numbers: ["TAPI-023594"], jobType: "Diagnostics - Split System" })], FU_NOW);
+  ok("a work order under a new number for the same fault: onto the open job", sameFault?.job.jobNumber === "20796" && sameFault?.pin === true, sameFault);
+  ok("a work order for another appliance at the house: its own job", followUpFor({ ...wf("work_order", "TAPI-023600"), jobType: "Diagnostics - Gas Ducted Heater" }, false, [sj({ numbers: ["TAPI-023594"], jobType: "Diagnostics - Split System" })], FU_NOW) === null);
+}
+for (const k of ["Installation", "Diagnostics", "Repairs", "Maintenance"] as const) ok(`a ${k} reading goes under Real Estate - ${k}`, realEstateUnitName(parseWorkOrder(JSON.stringify({ is_work_order: true, is_real_estate: true, work_kind: k }))) === `Real Estate - ${k}`);
+ok("an unknown work kind reads as Diagnostics", parseWorkOrder(JSON.stringify({ is_work_order: true, work_kind: "Something" })).workKind === "Diagnostics");
 // 8/21 Pakenham Rd: LJ Hooker's "Re: Work order" WO-0801 asking for a quote to replace the unit went on 20390,
 // the clean done in October, and no quote job was made (audit, 12 Nov).
 ok("a reply asking for more after the job's done: a new job", followUpFor(wf("quote_request", "WO-0801"), true, [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" })], FU_NOW) === null);

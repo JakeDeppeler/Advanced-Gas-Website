@@ -14,7 +14,7 @@ import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, approvalFor, approvalHeading, bookingSummary, dedupeKey, fillTemplate, followUpFor, followUpHeading,
-  isTeamForward, tapiLinkIn, tapiPageText, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
+  isTeamForward, siteKey, tapiLinkIn, tapiPageText, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
 } from "./workOrderTypes";
 
 /**
@@ -255,12 +255,24 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
     if (site?.locationId) {
       const f = followUpFor(w, /^\s*re\s*:/i.test(m.subject ?? ""), jobs);
       if (f) {
-        await putOnJob(mailbox, { ...m, ...full }, f.job.id, { heading: followUpHeading(w), pin: w.urgent });
+        await putOnJob(mailbox, { ...m, ...full }, f.job.id, { heading: followUpHeading(w), pin: w.urgent || Boolean(f.pin) });
         const reason = `a follow-up, ${f.why}: the email went on that job as a note`.slice(0, 300);
         await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: f.job.id, st_job_number: f.job.jobNumber, st_location_id: site.locationId, st_customer_id: site.customerId, attached_at: new Date().toISOString() });
         await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
         return { status: "duplicate", reason, isWorkOrder: true, jobId: f.job.id, jobNumber: f.job.jobNumber };
       }
+    }
+
+    // The same request in another email being read at this very moment (41
+    // Shanks Drive, 18 Nov: QU-8041 and QU-8042 a second apart made two
+    // jobs). The later one waits for the earlier's job and goes on it.
+    const twin = await twinJob(mailbox, m.id, w).catch(() => null);
+    if (twin) {
+      await putOnJob(mailbox, { ...m, ...full }, twin.jobId, { heading: followUpHeading(w), pin: true });
+      const reason = `the same request as another email read alongside it, which made job ${twin.jobNumber ?? twin.jobId}: this one went on that job as a note`.slice(0, 300);
+      await save(mailbox, m.id, { ...base, dedupe_key: key, status: "duplicate", reason, st_job_id: twin.jobId, st_job_number: twin.jobNumber, st_location_id: site?.locationId ?? null, st_customer_id: site?.customerId ?? null, attached_at: new Date().toISOString() });
+      await addCategory(mailbox, m.id, BOOKED_CATEGORY).catch(() => undefined);
+      return { status: "duplicate", reason, isWorkOrder: true, jobId: twin.jobId, jobNumber: twin.jobNumber };
     }
 
     // One already in from an earlier email as a Booking (a job ServiceTitan
@@ -514,6 +526,36 @@ async function hasTech(jobId: number): Promise<boolean> {
     "select=active:raw->>active", `raw->>appointmentId=in.(${appts.map((a) => `"${a.id}"`).join(",")})`, "limit=20",
   ].join("&")).catch(() => null);
   return !on || on.some((a) => a.active !== "false");
+}
+
+/**
+ * Another email for the same address and kind of work, claimed just before
+ * this one (in the last three minutes) and still being read or booked: its
+ * job, once it has one, waited for up to 25 seconds. Only the later of two
+ * waits, so two never wait on each other. Null when there's none, or it
+ * made no job.
+ */
+async function twinJob(mailbox: string, id: string, w: WorkOrder): Promise<{ jobId: number; jobNumber: string | null } | null> {
+  const me = await sbSelectOne<{ created_at: string }>(TABLE, [q.select("created_at"), ...rowFilter(mailbox, id)].join("&"));
+  if (!me) return null;
+  const want = siteKey(w.street, w.suburb);
+  const since = new Date(Date.parse(me.created_at) - 3 * 60_000).toISOString();
+  type R = { message_id: string; created_at: string; status: string; st_job_id: number | null; st_job_number: string | null; kind: string | null; details: { street?: string; suburb?: string; jobType?: string } | null };
+  for (let i = 0; i < 6; i++) {
+    const rows = await sbSelect<R>(TABLE, [
+      q.select("message_id,created_at,status,st_job_id,st_job_number,kind,details"), q.eq("mailbox", mailbox), q.gte("created_at", since), `created_at=lte.${encodeURIComponent(me.created_at)}`, "limit=30",
+    ].join("&"));
+    const earlier = rows.filter((r) => r.message_id !== id && (r.created_at < me.created_at || (r.created_at === me.created_at && r.message_id < id)));
+    // A work order for another appliance at the house is its own job, as in followUpFor.
+    const twins = earlier.filter((r) => r.kind === w.kind && r.details && siteKey(r.details.street ?? "", r.details.suburb ?? "") === want && (w.kind !== "work_order" || r.details.jobType === w.jobType));
+    const made = twins.find((r) => r.st_job_id);
+    if (made) return { jobId: made.st_job_id!, jobNumber: made.st_job_number };
+    // Still being read (no details yet) may be one too; a twin still booking is.
+    const pending = [...twins, ...earlier.filter((r) => !r.details)].filter((r) => r.status === "working" && !r.st_job_id);
+    if (!pending.length) return null;
+    await new Promise((res) => setTimeout(res, 5000));
+  }
+  return null;
 }
 
 /** What a work order's row says when its job was made but the hold didn't take. */
