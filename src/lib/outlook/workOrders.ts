@@ -504,6 +504,18 @@ export async function sweepWorkOrders(mailbox: string, deadline: number): Promis
   return out;
 }
 
+/** Whether any visit on the job has a tech on it, as the replica last saw. */
+async function hasTech(jobId: number): Promise<boolean> {
+  const appts = await sbSelect<{ id: number }>("st_appointments", [q.select("id"), `raw->>jobId=eq.${jobId}`, "limit=10"].join("&")).catch(() => null);
+  // Unsure is booked: the replica not answering never puts a job on hold.
+  if (!appts) return true;
+  if (!appts.length) return false;
+  const on = await sbSelect<{ active: string | null }>("st_appointment_assignments", [
+    "select=active:raw->>active", `raw->>appointmentId=in.(${appts.map((a) => `"${a.id}"`).join(",")})`, "limit=20",
+  ].join("&")).catch(() => null);
+  return !on || on.some((a) => a.active !== "false");
+}
+
 /** What a work order's row says when its job was made but the hold didn't take. */
 const NOT_HELD = "made, but not put on hold";
 
@@ -527,6 +539,11 @@ export async function retryHolds(deadline: number): Promise<{ held: number; erro
     const job = await sbSelectOne<{ status: string | null }>("st_jobs", [q.select("status"), q.eq("id", String(r.st_job_id))].join("&")).catch(() => null);
     if (job?.status && job.status !== "Scheduled") {
       await save(r.mailbox, r.message_id, { reason: `not put on hold: it was ${job.status.toLowerCase()} by the time it could be` }).catch(() => undefined);
+      continue;
+    }
+    // A visit with a tech on it has been booked by the office: theirs.
+    if (await hasTech(r.st_job_id)) {
+      await save(r.mailbox, r.message_id, { reason: "not put on hold: a tech had been put on its visit" }).catch(() => undefined);
       continue;
     }
     try {
