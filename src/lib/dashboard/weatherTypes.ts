@@ -99,6 +99,36 @@ export const HEATER_WARM_C = 30;
 /** At or below this, the heater phone starts ringing. */
 export const HEATER_COLD_C = 16;
 
+/*
+ * How often to go and look, by the time of day.
+ *
+ * Jake, 19 November: "can we do a weather check every 30 minutes against jobs,
+ * and only do it from 6:30am to 5pm, and check any 4 hours after that."
+ *
+ * Which is right twice over. The office acts on this page between those hours,
+ * so that is when it has to be current; and the forecast comes from a free
+ * service of the Norwegian Meteorological Institute that asks clients not to
+ * poll harder than the data changes. The old flat half-hour made 48 calls a
+ * night that nobody was awake to read. This makes six.
+ */
+export const CHECK_FROM_MINUTE = 6 * 60 + 30;
+export const CHECK_TO_MINUTE = 17 * 60;
+export const CHECK_OPEN_SECONDS = 30 * 60;
+export const CHECK_SHUT_SECONDS = 4 * 60 * 60;
+
+/**
+ * Seconds to hold a forecast for, given the Melbourne minute of the day.
+ *
+ * Takes the minute rather than a Date so it is pure and the check script can
+ * walk the whole day across it — the boundaries are the part worth holding
+ * still, and 6:30 exactly is inside the window while 5pm exactly is the last
+ * minute of it.
+ */
+export function checkEverySeconds(minuteOfDay: number): number {
+  const m = ((minuteOfDay % 1440) + 1440) % 1440;
+  return m >= CHECK_FROM_MINUTE && m <= CHECK_TO_MINUTE ? CHECK_OPEN_SECONDS : CHECK_SHUT_SECONDS;
+}
+
 /** One hour of the forecast, in Melbourne local time. */
 export type WxHour = {
   /** Melbourne wall-clock hour, 0–23. */

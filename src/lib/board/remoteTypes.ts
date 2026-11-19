@@ -17,7 +17,7 @@
  * "Performance" became "Job types" the same way: what was left of it once the
  * Today and Crew pages carried its other three cards was a table of job types.
  */
-export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Daily pace", "Crew", "Team", "Job types", "Sectors", "Areas", "Weather"] as const;
+export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Daily pace", "Crew", "Team", "Job types", "Sectors", "Areas", "Weather", "Booked work"] as const;
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
 /** The board's alerts, as the demo shows them: a sale, a quote, a job to bill, a new lead. */

@@ -3,6 +3,8 @@ import "server-only";
 import { TZ } from "@/lib/dashboard/dates";
 import {
   FORECAST_PLACE,
+  CHECK_SHUT_SECONDS,
+  checkEverySeconds,
   ROOF_WET_MM,
   WORK_FROM_HOUR,
   WORK_TO_HOUR,
@@ -52,18 +54,34 @@ const USER_AGENT = "AdvancedGasWallBoard/1.0 (+https://advancedgas.com.au)";
 
 export const CREDIT = "Forecast: MET Norway, CC BY 4.0";
 
-/*
- * Half an hour.
+/**
+ * How long to hold a forecast for, right now: half an hour through the working
+ * day, four hours outside it. See checkEverySeconds, which holds the rule and
+ * the reason.
  *
- * The underlying run updates roughly hourly and MET explicitly asks clients
- * not to poll harder than the data changes. Half an hour keeps the board no
- * more than one cycle behind while making one request per two board
- * recomputes at worst — the snapshot itself recomputes every thirty seconds.
+ * The underlying model run updates roughly hourly, so half an hour keeps the
+ * board no more than one cycle behind during the hours anybody is reading it.
  */
-const REVALIDATE_SECONDS = 30 * 60;
+function holdFor(now: Date): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(now);
+  const num = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? NaN);
+  const minute = num("hour") * 60 + num("minute");
+  // A clock we could not read is not a reason to hammer the service.
+  return Number.isFinite(minute) ? checkEverySeconds(minute) : CHECK_SHUT_SECONDS;
+}
 
-/** How many days the board shows: today and the six after it. */
-const DAYS = 7;
+/**
+ * How many days to keep.
+ *
+ * Nine, not the seven the week panel shows. The diary is read a week ahead,
+ * and a job booked for the eighth day would otherwise come back "no forecast"
+ * — which is the page failing quietly on exactly the booking somebody still
+ * has time to move. The Weather page slices this back to seven for its own
+ * panel; the booked-work page uses the lot.
+ */
+const DAYS = 9;
 
 /*
  * A backstop against asking MET for the same forecast every thirty seconds.
@@ -182,7 +200,8 @@ export function stampToday(w: Weather | null, now: Date): Weather | null {
 export async function readWeather(now: Date = new Date()): Promise<Weather | null> {
   // Re-stamped on the way out, so a cached payload still knows what day it is
   // being shown on. See Weather.today.
-  if (lastRead && now.getTime() - lastRead.at < REVALIDATE_SECONDS * 1000) {
+  const hold = holdFor(now);
+  if (lastRead && now.getTime() - lastRead.at < hold * 1000) {
     return { ...lastRead.value, today: melbourneParts(now.toISOString())?.date ?? lastRead.value.today };
   }
 
@@ -190,7 +209,7 @@ export async function readWeather(now: Date = new Date()): Promise<Weather | nul
   try {
     const res = await fetch(`${ENDPOINT}?lat=-38.078&lon=145.487`, {
       headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-      next: { revalidate: REVALIDATE_SECONDS },
+      next: { revalidate: hold },
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { properties?: { timeseries?: MetPoint[] } };

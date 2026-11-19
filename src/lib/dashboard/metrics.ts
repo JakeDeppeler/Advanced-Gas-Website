@@ -148,6 +148,8 @@ export function quoteKey(r: {
 }
 
 import { readWeather, stampToday } from "./weather";
+import { readBookedJobs } from "./weatherJobs";
+import type { BookedJob } from "./weatherJobsTypes";
 import type { Weather } from "./weatherTypes";
 export type { SourceState } from "./sourceState";
 import type { SourceState } from "./sourceState";
@@ -636,6 +638,12 @@ export type Metrics = {
    * existed still renders. See weather.ts.
    */
   weather?: Weather | null;
+  /**
+   * The next week of booked work that the weather has a bearing on — evap,
+   * heater, ducted, anything on a roof. Judged against `weather` on the board
+   * rather than here, so the rules stay in one pure module. See weatherJobs.ts.
+   */
+  bookedWork?: BookedJob[] | null;
   /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
@@ -2701,6 +2709,12 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       return stampToday(previous?.metrics.weather ?? null, now);
     },
   );
+  /*
+   * The diary, for the booked-work page. Carried forward on failure like
+   * everything else: a week-old booking list is still mostly right, and the
+   * page's own job numbers make a stale one obvious.
+   */
+  const bookedWork = await readBookedJobs(now).catch(() => previous?.metrics.bookedWork ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
   // Carried forward like the journals beside it: a failed read leaves the
   // last reading standing rather than clearing an alert nobody has acted on.
@@ -2765,6 +2779,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       crew: crewDays,
       crewToday,
       weather,
+      bookedWork,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,
