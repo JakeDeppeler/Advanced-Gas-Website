@@ -3317,11 +3317,21 @@ with. A tall bar that is mostly solid is the day to book the handovers.
   and no working ones. The first version reported that as "Too far out" —
   about today — every day from about four.
 
-## Booked work: which jobs the weather could move
+## The week, and the work booked into it
 
-The Weather page says what the week is like. This says what that means for the
-jobs already in the diary, which is the half somebody can act on — by the time
-a wet Tuesday arrives, the booking went out the week before.
+The forecast and the diary read against it, on one page: seven day columns
+across the top, and under each one the jobs booked into that day.
+
+**It was two pages for about an hour.** Jake merged them (19 Nov): "have the
+weather across the top for 7 days and then a list going down, and then the jobs
+on those days with the job number and the title and if it's good or not."
+
+He was right that they were one page. Reading "Monday: off the roof" on one
+screen and "Monday 7am, evap install, Narre Warren" thirty seconds later on
+another asks the room to hold a week of weather in its head and join it up. A
+column per day does the joining — which is the half somebody can act on,
+because by the time a wet Tuesday arrives the booking went out the week
+before.
 
 Jake, 19 November: "if it raining the night before and we have an evap
 installation in the morning flags it, as well as any job with roof works like a
@@ -3429,6 +3439,41 @@ a radar loop tells you where rain is *now* — which is the one question a wall
 board four metres away is worst placed to answer and a phone is best. What the
 office cannot get from a phone is which of next week's bookings the weather is
 about to spoil.
+
+### Three jobs a day, and the folded ones are always the good ones
+
+A column shows three jobs and folds the rest into "and 3 more, all good to go".
+
+**Three, not four.** Four was measured against a fabricated January week — six
+evap jobs a day, every day — and overflowed the tile at every size the board
+runs at, by 68 pixels at 1920 and 284 at 4K. November's nine real bookings
+would never have shown it. The first hot week would have, on the wall.
+
+**And what gets folded is never a problem.** Taking the first three by time
+would hide a two o'clock job that is at risk behind three morning ones that are
+fine, which is the page failing at the one thing it is for. Each day is ranked
+worst-first to decide what shows, and the survivors are put back into time
+order to be read. The fold line only says "all good to go" when that is true of
+every job behind it.
+
+### A day past the hourly forecast leads on the roof
+
+"Too far out" — the evap verdict for a day with no hourly humidity — stood as
+Wednesday's headline directly above two booked jobs marked good to go. That
+reads as the page arguing with itself. Rain and temperature *are* forecast that
+far out; only humidity is not, so the roof call is the one that can still be
+made and it leads. The evap call still says "too far out" when asked directly,
+on the day it is asked about.
+
+### The hour strip came off in the merge and went back an hour later
+
+With one tile, seven columns filled barely half the wall in a quiet November
+week, and half an empty page reads as something having failed to load. It also
+answers the question Jake asked first — "what time and how hot is it going to
+be" — which the day columns only half carry.
+
+So today's hours sit beneath the week, and the week takes the larger share of
+the page because that is where the decisions are.
 
 ## The page strip holds its width as pages are added
 

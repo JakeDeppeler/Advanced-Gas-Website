@@ -412,6 +412,15 @@ export function headlineCall(d: WxDay): WxCall {
   if (roof.rating === "poor") return roof;
   if (evap.rating === "good") return evap;
   if (heater.rating === "good") return heater;
+  /*
+   * A day with no hourly forecast has no evap verdict, so it must not head
+   * with the absence of one. "Too far out" stood as Wednesday's headline
+   * directly above two jobs marked good to go — which reads as the page
+   * contradicting itself, when in fact rain and temperature are known that
+   * far out and only humidity is not. The roof call is the one that can still
+   * be made, so it leads.
+   */
+  if (d.hours.length === 0) return roof;
   return tooMild ? roof : evap;
 }
 

@@ -259,6 +259,16 @@ ok("a cold day leads on the heater calls coming", headlineCall(cold).kind === "h
  */
 const mildDry = day({ hours: [hour(8, 15, 60), hour(13, 22, 48), hour(16, 21, 50)] });
 ok("a mild dry day does not lead on 'can’t show it'", headlineCall(mildDry).kind !== "evap", headlineCall(mildDry).word);
+/*
+ * And a day past the hourly horizon leads on what is still knowable. "Too far
+ * out" headed a Wednesday that sat directly above two booked jobs marked good
+ * to go — the page appearing to argue with itself, when rain and temperature
+ * are forecast that far and only humidity is not.
+ */
+ok("a day with no hourly forecast leads on the roof", headlineCall(far).kind === "roof", headlineCall(far).word);
+ok("rather than on the evap verdict it cannot make", headlineCall(far).word !== "Too far out");
+ok("and its evap call still says so when asked directly", evapCall(far).word === "Too far out");
+
 ok("every day gets all three calls", callsFor(hotDry).length === 3);
 ok("and every call carries a word and a reason",
    callsFor(wetDay).every((c) => c.word.length > 0 && c.why.length > 0));
