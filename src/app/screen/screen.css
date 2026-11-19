@@ -2840,3 +2840,89 @@ body:has(.screen) .utilbar {
   min-width: 0;
   overflow-wrap: break-word;
 }
+
+/* ── Booked work ──────────────────────────────────────────────────────────
+   One row per job in the diary the weather could move. A table and not the
+   Weather page's columns: this is a to-do list read top to bottom, and the
+   thing somebody wants is the first row. */
+.wxj {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(0.3 * var(--u));
+}
+.wxj__head,
+.wxj__row {
+  display: grid;
+  /* When · Job · Where · Needs · What the weather says. The verdict column
+     takes the slack, because it is the only one whose length varies. */
+  grid-template-columns: calc(9 * var(--u)) minmax(0, 1.35fr) calc(10 * var(--u)) calc(11 * var(--u)) minmax(0, 1.6fr);
+  gap: calc(0.9 * var(--u));
+  align-items: center;
+}
+.wxj__head {
+  font-size: calc(0.82 * var(--u));
+  color: var(--ink-muted);
+  padding: 0 calc(0.6 * var(--u)) calc(0.25 * var(--u));
+  border-bottom: 2px solid var(--hairline);
+}
+.wxj__row {
+  flex: 1;
+  min-height: 0;
+  padding: calc(0.3 * var(--u)) calc(0.6 * var(--u));
+  border-radius: calc(0.5 * var(--u));
+  margin-bottom: calc(0.18 * var(--u));
+}
+.wxj__row:nth-child(odd) { background: var(--track); }
+.wxj__row:last-child { margin-bottom: 0; }
+/* A job in trouble gets a rule down its left edge as well as its word and its
+   dot — three signals, none of them colour alone. */
+.wxj__row.is-risk { box-shadow: inset calc(0.3 * var(--u)) 0 0 0 var(--wx-no); }
+.wxj__row.is-watch { box-shadow: inset calc(0.3 * var(--u)) 0 0 0 var(--wx-poor); }
+
+.wxj__when {
+  font-size: calc(1 * var(--u));
+  font-weight: 700;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.wxj__job { display: flex; flex-direction: column; min-width: 0; gap: calc(0.04 * var(--u)); }
+.wxj__kind {
+  font-size: calc(1.02 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.wxj__doing { font-size: calc(0.78 * var(--u)); color: var(--ink-muted); }
+.wxj__where {
+  font-size: calc(0.92 * var(--u));
+  color: var(--ink-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Why this job is on the page at all, in the words of the rule that judged it
+   — so a job the patterns classified wrongly is visible from the room rather
+   than only from the code. */
+.wxj__needs { font-size: calc(0.78 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+.wxj__says { display: flex; flex-direction: column; min-width: 0; gap: calc(0.04 * var(--u)); }
+.wxj__word {
+  display: flex;
+  align-items: center;
+  gap: calc(0.35 * var(--u));
+  font-size: calc(1 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.wxj__why {
+  font-size: calc(0.8 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+/* The navy card's verdict is a phrase, not a figure, so it takes a size that
+   holds "Showers about" inside a quarter of the wall. */
+.wxj__navy { font-size: calc(1.9 * var(--u)); }

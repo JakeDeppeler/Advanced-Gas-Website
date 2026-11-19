@@ -40,6 +40,7 @@
     "check:ducted": "npx tsx scripts/check-ducted.ts",
     "check:service": "npx tsx scripts/check-service.ts",
     "check:weather": "npx tsx scripts/check-weather.ts",
+    "check:weatherjobs": "npx tsx scripts/check-weatherjobs.ts",
     "check:reviews": "npx tsx scripts/check-reviews.ts",
     "check:wording": "npx tsx scripts/check-wording.ts",
     "check:quote-templates": "npx tsx scripts/check-quote-templates.ts",

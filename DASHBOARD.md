@@ -3317,6 +3317,119 @@ with. A tall bar that is mostly solid is the day to book the handovers.
   and no working ones. The first version reported that as "Too far out" —
   about today — every day from about four.
 
+## Booked work: which jobs the weather could move
+
+The Weather page says what the week is like. This says what that means for the
+jobs already in the diary, which is the half somebody can act on — by the time
+a wet Tuesday arrives, the booking went out the week before.
+
+Jake, 19 November: "if it raining the night before and we have an evap
+installation in the morning flags it, as well as any job with roof works like a
+heater or internal dominator or ducted split, and if it's going to be over 30
+then we don't want to be doing heater or ducted split system installation
+either… maybe have a job status for install and evap service, if they are good
+to go or look like they may not go ahead."
+
+### Only the work the weather bears on
+
+A hundred split-system services a week would bury the six jobs that matter, so
+the page shows only the work that needs something from the weather:
+
+| What it needs | Which job types |
+|---|---|
+| **A roof** somebody can stand on | evaporative anything; installs and removals of gas ducted heaters, space heaters, log fires, Dominators, ducted refrigerated |
+| **A handover** that will impress | evaporative **installs** only |
+| **Under 30°** | heater installs (comfort); ducted refrigerated installs (roof cavity) |
+
+The classifier works on **keywords in the type's name**, not a list of exact
+names. The type list changes — an "Add-on Cooling" or a "Dominator" appears the
+week somebody adds it in ServiceTitan — and a hardcoded list fails silently in
+the dangerous direction, by quietly dropping a roof job off the page.
+`check:weatherjobs` asserts every job type in the tenant, both the ones that
+must appear and the ones that must not.
+
+Every row also prints *why* it is on the page — "roof · handover", "roof ·
+cavity ≤30°" — so a job classified wrongly is visible from the room rather than
+only from the code.
+
+**An internal unit is still roof work.** A Dominator in a cupboard takes a flue
+through the roof. That is the one this is easiest to get wrong from a job list,
+and it is why the flue pattern matches the unit's location not at all.
+
+**A diagnostic is not an install.** Somebody diagnosing a ducted heater is at
+the controller, so a wet day does not move it. Only installs and removals put
+anybody up there.
+
+### The rules, worst first
+
+1. **Rain during the job's own hours.** Over 1mm it is at risk; under, it is
+   "showers about" — a warning, not a stop. The first version put a red badge
+   on an install over 0.2mm of drizzle, which is how a board teaches a room to
+   stop reading it.
+2. **Jake's overnight rule.** A roof job starting before 10am, with 1mm or more
+   between 6pm the night before and the start: *wet roof*. No rain needs to
+   fall during the job at all — the roof simply has not dried. This is the rule
+   the page was asked for.
+3. **Wind** over 35 km/h sustained: nobody on a roof.
+4. **Over 30°**, with the reason that belongs to the work. A heater install
+   gets "nobody wants it run up to temp in it"; a ducted refrigerated install
+   gets "the roof cavity will be past 50°". Same threshold, different problem,
+   and telling a crew the customer is uncomfortable when the real issue is
+   twenty hours in a 50° cavity would be worse than saying nothing.
+5. **The evap handover**, on installs only — see below.
+
+### A service is not a handover
+
+Evaps get serviced and repaired through the cold months as a matter of course.
+Judging a spring service on whether a customer could be impressed put "can't
+demo it" against four of the nine jobs in the real diary — true, unactionable,
+and most of the page. A service is judged on whether somebody can get on the
+roof, and nothing else. Only a new unit being handed over has to show what it
+does.
+
+### An early start is judged on the day, not on the dawn
+
+Mornings are humid everywhere, so judging a 7:30 evap install against 7:30 air
+put "too humid" on days that were ideal by noon — and disagreed with the
+Weather page about the very same day. The handover is at the end of the job and
+the customer uses the thing that afternoon, so the evap question is asked of
+the day's hottest working hour, exactly as the Weather page asks it. Two pages
+on one wall disagreeing about whether Thursday suits an evap is worse than
+either being wrong alone.
+
+### How often it goes and looks
+
+Jake: "can we do a weather check every 30 minutes against jobs, and only do it
+from 6:30am to 5pm, and check any 4 hours after that."
+
+Which is right twice over. The office acts on this between those hours, so that
+is when it has to be current; and the forecast is a free service that asks
+clients not to poll harder than the data changes. A flat half hour made 48
+calls a night nobody was awake to read. This makes six.
+
+The **diary is read on the same clock**, because "a weather check against jobs"
+is one operation and the two halves disagreeing would be worse than either
+being slow. It also took three table reads off every thirty-second snapshot
+recompute, which is what it was doing before.
+
+### The forecast keeps nine days, the week panel shows seven
+
+The diary is read a week ahead. A job booked for the eighth day would come back
+"no forecast" — the page failing quietly on exactly the booking somebody still
+has time to move. So the reader keeps nine days and the Weather page slices
+back to seven for its own panel, which is as many columns as stay readable from
+across the room.
+
+### Why there is no rain radar
+
+Jake asked about a BOM radar and then answered it himself: "if we have that we
+may not need the radar." He is right, and there is a second reason. The Bureau
+is explicit that its API must not be used (see the Weather section above), and
+a radar loop tells you where rain is *now* — which is the one question a wall
+board four metres away is worst placed to answer and a phone is best. What the
+office cannot get from a phone is which of next week's bookings the weather is
+about to spoil.
+
 ## The page strip holds its width as pages are added
 
 The dashes in the header sit in the same baseline row as the page subtitle,

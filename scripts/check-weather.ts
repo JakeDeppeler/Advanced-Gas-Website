@@ -8,10 +8,13 @@
  * book a handover on a day the unit cannot cool.
  */
 import {
+  CHECK_OPEN_SECONDS,
+  CHECK_SHUT_SECONDS,
   EVAP_DEMO_MIN_TEMP,
   PAD_EFFICIENCY,
   ROOF_WIND_KMH,
   callsFor,
+  checkEverySeconds,
   clock,
   deliveredC,
   evapCall,
@@ -259,6 +262,33 @@ ok("a mild dry day does not lead on 'can’t show it'", headlineCall(mildDry).ki
 ok("every day gets all three calls", callsFor(hotDry).length === 3);
 ok("and every call carries a word and a reason",
    callsFor(wetDay).every((c) => c.word.length > 0 && c.why.length > 0));
+
+console.log("\n-- how often to go and look --");
+/*
+ * Jake: every 30 minutes from 6:30am to 5pm, every 4 hours after that. The
+ * boundaries are the part worth pinning: 6:30 exactly is inside the window,
+ * and 5pm exactly is the last minute of it.
+ */
+const half = CHECK_OPEN_SECONDS;
+const four = CHECK_SHUT_SECONDS;
+ok("6:29am is still the overnight rate", checkEverySeconds(6 * 60 + 29) === four);
+ok("6:30am starts the half-hourly check", checkEverySeconds(6 * 60 + 30) === half);
+ok("noon is half-hourly", checkEverySeconds(12 * 60) === half);
+ok("5:00pm is the last half-hourly minute", checkEverySeconds(17 * 60) === half);
+ok("5:01pm drops back to four-hourly", checkEverySeconds(17 * 60 + 1) === four);
+ok("midnight is four-hourly", checkEverySeconds(0) === four);
+ok("and the two rates are 30 minutes and 4 hours", half === 1800 && four === 14400);
+// A minute outside the day is a bug upstream, not a reason to hammer MET.
+ok("a negative minute does not fall through to the fast rate", checkEverySeconds(-30) === four);
+ok("nor does one past midnight", checkEverySeconds(1500) === four, String(checkEverySeconds(1500)));
+/*
+ * And the whole point: the overnight hours stop making calls nobody reads.
+ * A flat half hour was 48 a night.
+ */
+let overnight = 0;
+for (let m = 0; m < 1440; m++) if (checkEverySeconds(m) === four) overnight++;
+ok("the slow rate covers the hours the office is shut", overnight === 1440 - (17 * 60 - (6 * 60 + 30) + 1),
+   `${overnight} minutes of the day`);
 
 console.log("\n-- the words on the wall --");
 ok("7 is 7am", clock(7) === "7am");
