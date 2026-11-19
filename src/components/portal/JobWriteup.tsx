@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Pill } from "@/components/portal/kit/Kit";
+import { Pill } from "@/components/portal/kit/Kit";
 import { money2 } from "@/lib/portal/format";
 import { ROLE_WORD, type Role } from "@/lib/jobwrite/lines";
-import { INVOICE_LABELS, QUOTE_LABELS, type InvoiceWords, type JobWords, type QuoteWords } from "@/lib/jobwrite/labels";
-import { putWriteup, undoJobWriteup, writeJobWords } from "@/app/portal/jobs/write-up/actions";
+import { summaryBlock } from "@/lib/jobwrite/labels";
+import { putWriteup, saveJobNotes, undoJobWriteup, writeJobWords } from "@/app/portal/jobs/write-up/actions";
 
 export type DocView = {
   kind: "estimate" | "invoice";
   id: number;
   name: string | null;
   status: string | null;
+  /** On it now, a block of text a paragraph. */
   summary: string;
+  /** The main labour line's words now, and what it's called. */
+  labour: string;
+  labourName: string | null;
   lines: Array<{ id: number; name: string; code: string; role: Role; qty: number; total: number; newTotal: number; merged: boolean; target: boolean }>;
   combined: number;
   parts: { labour: number; materials: number; electrical: number };
@@ -28,6 +32,8 @@ export type DocView = {
 export type HistoryRow = { id: string; doc_kind: "estimate" | "invoice"; status: string; note: string | null; created_by: string | null; created_at: string };
 
 type Msg = { ok: boolean; text: string } | null;
+type Kind = "estimate" | "invoice";
+type Draft = { summary: string; labour: string };
 
 const qty = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 const when = (iso: string) => new Date(iso).toLocaleString("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
@@ -38,6 +44,17 @@ const STATUS_WORD: Record<string, { k: "good" | "mid" | "bad" | "none"; w: strin
   failed: { k: "bad", w: "Check it" },
   started: { k: "mid", w: "Didn't finish" },
 };
+const DOC_WORD: Record<Kind, string> = { estimate: "quote", invoice: "invoice" };
+const rows = (text: string, min: number) => Math.max(min, text.split("\n").reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 78)), 0) + 1);
+
+function Copy({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button type="button" className="jw-copy" disabled={!text.trim()} onClick={() => {
+      navigator.clipboard?.writeText(text).then(() => { setDone(true); setTimeout(() => setDone(false), 1500); }).catch(() => undefined);
+    }}>{done ? "Copied" : "Copy"}</button>
+  );
+}
 
 /** The lines and where each one's price goes under one price. */
 function PlanTable({ d }: { d: DocView }) {
@@ -49,10 +66,10 @@ function PlanTable({ d }: { d: DocView }) {
         <tbody>
           {shown.map((l) => (
             <tr key={l.id} className={l.target ? "jw-target" : l.merged ? "jw-merged" : undefined}>
-              <td data-l="Line"><span className="jw-ln">{qty(l.qty)} × {l.name}</span>{l.code && l.code !== l.name ? <span className="jw-code">{l.code}</span> : null}</td>
-              <td data-l="What it is">{l.target ? "Carries the one price" : l.merged ? `${ROLE_WORD[l.role]}, now in the one price` : ROLE_WORD[l.role]}</td>
-              <td data-l="Now">{money2(l.total)}</td>
-              <td data-l="One price"><b>{money2(l.newTotal)}</b></td>
+              <td><span className="jw-ln">{qty(l.qty)} × {l.name}</span>{l.code && l.code !== l.name ? <span className="jw-code">{l.code}</span> : null}</td>
+              <td>{l.target ? "Carries the one price" : l.merged ? `${ROLE_WORD[l.role]}, in the one price` : ROLE_WORD[l.role]}</td>
+              <td>{money2(l.total)}</td>
+              <td><b>{money2(l.newTotal)}</b></td>
             </tr>
           ))}
         </tbody>
@@ -62,93 +79,82 @@ function PlanTable({ d }: { d: DocView }) {
   );
 }
 
-function Copy({ text }: { text: string }) {
-  const [done, setDone] = useState(false);
+/** "Labour $8,370 + materials $611 + electrical $1,000 = $9,981", the parts that are there. */
+function OnePriceSum({ d }: { d: DocView }) {
+  if (!d.hasTarget || d.blockers.length) return <p className="jw-sum jw-quiet">{d.blockers.length ? `One price can't be done on this ${DOC_WORD[d.kind]}: ${d.blockers.join(" ")}` : "No labour line to carry one price."}</p>;
+  const parts = [["Labour", d.parts.labour], ["materials", d.parts.materials], ["electrical", d.parts.electrical]].filter(([, v]) => (v as number) !== 0) as [string, number][];
   return (
-    <button type="button" className="jw-copy" onClick={() => {
-      navigator.clipboard?.writeText(text).then(() => { setDone(true); setTimeout(() => setDone(false), 1500); }).catch(() => undefined);
-    }}>{done ? "Copied" : "Copy"}</button>
+    <p className="jw-sum">
+      {parts.map(([w, v], i) => <span key={w}>{i ? " + " : ""}{i ? w : w.charAt(0).toUpperCase() + w.slice(1)} {money2(v)}</span>)}
+      {" = "}<b>{money2(d.combined)}</b>{d.changes === 0 ? " (already one price)" : ""}
+    </p>
   );
 }
 
-function Field({ id, label, value, onChange, rows = 3 }: { id: string; label: string; value: string; onChange: (v: string) => void; rows?: number }) {
-  return (
-    <div className="jw-field">
-      <div className="jw-fh"><label htmlFor={id}>{label}</label><Copy text={value} /></div>
-      {/* Tall enough for what's in it: about 60 characters a line at the card's width. */}
-      <textarea id={id} className="jw-ta" rows={Math.max(rows, Math.ceil(value.length / 60) + 1)} value={value} onChange={(e) => onChange(e.target.value)} />
-    </div>
-  );
-}
-
-/** One document's words, its one price, and the button that puts them on. */
-function DocPanel({ job, d, words, setWords }: {
-  job: string; d: DocView; words: QuoteWords | InvoiceWords; setWords: (w: QuoteWords | InvoiceWords) => void;
-}) {
-  const router = useRouter();
-  const [busy, start] = useTransition();
-  const [msg, setMsg] = useState<Msg>(null);
-  const canMerge = d.blockers.length === 0 && d.hasTarget;
-  const [onePrice, setOnePrice] = useState(canMerge && d.changes > 0);
-  const what = d.kind === "estimate" ? "quote" : "invoice";
-  const labels: Record<string, string> = d.kind === "estimate" ? QUOTE_LABELS : INVOICE_LABELS;
-  const set = (k: string, v: string) => setWords({ ...words, [k]: v } as QuoteWords | InvoiceWords);
-
-  return (
-    <div className="jw-doc">
-      {Object.entries(labels).map(([k, label]) => (
-        <Field key={k} id={`jw-${d.kind}-${k}`} label={label.replace(/:$/, "")} value={(words as Record<string, string>)[k] ?? ""} onChange={(v) => set(k, v)} rows={2} />
-      ))}
-      <Field id={`jw-${d.kind}-labour`} label={d.hasTarget ? "Labour line (labour, materials and electrical)" : "Labour line"} value={words.labour} onChange={(v) => set("labour", v)} rows={4} />
-      <div className="jw-put">
-        {canMerge && d.changes > 0 ? (
-          <label className="jw-check">
-            <input type="checkbox" checked={onePrice} onChange={(e) => setOnePrice(e.target.checked)} />
-            <span>Put labour, materials and electrical under one price of <b>{money2(d.combined)}</b></span>
-          </label>
-        ) : canMerge ? (
-          <span className="jw-quiet">Already one price: only the words change.</span>
-        ) : (
-          <span className="jw-quiet">One price can&rsquo;t be done here: {d.blockers.join(" ")} The words can still go on.</span>
-        )}
-        <button className="pk-btn" type="button" disabled={busy} onClick={() => start(async () => {
-          setMsg(null);
-          const r = await putWriteup({ job, kind: d.kind, docId: d.id, words, onePrice: onePrice && canMerge, expectCombined: onePrice && canMerge ? d.combined : null });
-          setMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
-          router.refresh();
-        })}>{busy ? "Putting it on…" : `Put on the ${what}`}</button>
-      </div>
-      {msg && <p className={`jw-msg ${msg.ok ? "ok" : "bad"}`} role="status">{msg.text}</p>}
-    </div>
-  );
-}
-
-export function JobWriteup({ job, quotes, quote, invoice, history }: {
+export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes: savedNotes, notesBy, history }: {
   job: string;
+  heading: { number: string | null; type: string | null; customer: string | null; read: string[]; missing: string[] };
   quotes: Array<{ id: number; name: string | null; status: string | null }>;
   quote: DocView | null;
   invoice: DocView | null;
+  start: Kind;
+  notes: string;
+  notesBy: { by: string; at: string } | null;
   history: HistoryRow[];
 }) {
   const router = useRouter();
-  const [words, setWords] = useState<JobWords | null>(null);
-  const [from, setFrom] = useState<string[]>([]);
-  const [busy, start] = useTransition();
-  const [msg, setMsg] = useState<Msg>(null);
-  const [undoMsg, setUndoMsg] = useState<Msg>(null);
-  const [undoing, startUndo] = useTransition();
-
-  const write = () => start(async () => {
-    setMsg(null);
-    const r = await writeJobWords(job, quote?.id ?? null);
-    if (r.ok) { setWords(r.words); setFrom(r.from); } else setMsg({ ok: false, text: r.error });
+  const docs = { estimate: quote, invoice } as Record<Kind, DocView | null>;
+  const [kind, setKind] = useState<Kind>(docs[start] ? start : quote ? "estimate" : "invoice");
+  const d = docs[kind];
+  const [drafts, setDrafts] = useState<Record<Kind, Draft>>({
+    estimate: { summary: quote?.summary ?? "", labour: quote?.labour ?? "" },
+    invoice: { summary: invoice?.summary ?? "", labour: invoice?.labour ?? "" },
   });
+  const [written, setWritten] = useState<string[] | null>(null);
+  const [notes, setNotes] = useState(savedNotes);
+  const [writing, startWrite] = useTransition();
+  const [saving, startSave] = useTransition();
+  const [putting, startPut] = useTransition();
+  const [undoing, startUndo] = useTransition();
+  const [writeMsg, setWriteMsg] = useState<Msg>(null);
+  const [putMsg, setPutMsg] = useState<Msg>(null);
+  const [undoMsg, setUndoMsg] = useState<Msg>(null);
+  const canMerge = !!d && d.blockers.length === 0 && d.hasTarget && d.changes > 0;
+  const [onePrice, setOnePrice] = useState(true);
+  const draft = drafts[kind];
+  const set = (k: keyof Draft, v: string) => setDrafts({ ...drafts, [kind]: { ...draft, [k]: v } });
+
+  const write = () => startWrite(async () => {
+    setWriteMsg(null); setPutMsg(null);
+    const r = await writeJobWords(job, quote?.id ?? null, notes);
+    if (!r.ok) { setWriteMsg({ ok: false, text: r.error }); return; }
+    setDrafts({
+      estimate: { summary: summaryBlock("estimate", r.words.quote), labour: r.words.quote.labour },
+      invoice: { summary: summaryBlock("invoice", r.words.invoice), labour: r.words.invoice.labour },
+    });
+    setWritten(r.from);
+    // The notes were saved with it: the "Saved by" line catches up.
+    router.refresh();
+  });
+
+  if (!d) return <p className="jw-quiet">Job {heading.number} has no quote or invoice to write for.</p>;
 
   return (
     <div className="jw">
-      {quotes.length > 1 && (
+      <div className="jw-head">
+        <p className="jw-job">
+          <b>Job {heading.number}</b>{heading.type ? <> · {heading.type}</> : null}{heading.customer ? <> · {heading.customer}</> : null}
+        </p>
+        <div className="jw-seg" role="group" aria-label="Write for">
+          {(["estimate", "invoice"] as Kind[]).map((k) => docs[k] && (
+            <button key={k} type="button" aria-pressed={kind === k} onClick={() => { setKind(k); setPutMsg(null); }}>
+              {k === "estimate" ? "Quote" : "Invoice"}{docs[k]!.status ? <span> · {docs[k]!.status}</span> : null}
+            </button>
+          ))}
+        </div>
+      </div>
+      {kind === "estimate" && quotes.length > 1 && (
         <nav className="jw-quotes" aria-label="Which quote">
-          <span>Quote:</span>
           {quotes.map((x) => (
             <Link key={x.id} href={`/portal/jobs/write-up?job=${encodeURIComponent(job)}&quote=${x.id}`} aria-current={quote?.id === x.id ? "true" : undefined}>
               {x.name || `Quote ${x.id}`}{x.status ? ` · ${x.status}` : ""}
@@ -157,37 +163,60 @@ export function JobWriteup({ job, quotes, quote, invoice, history }: {
         </nav>
       )}
 
-      <div className="jw-write">
-        <button className="pk-btn" type="button" onClick={write} disabled={busy || (!quote && !invoice)}>
-          {busy ? "Reading the job and writing…" : words ? "Write them again" : "Write the job summary and labour line"}
-        </button>
-        <span className="jw-quiet">{busy ? "About half a minute." : words ? `Written from ${from.join(", ")}. Change anything before putting it on.` : !quote && !invoice ? "This job has no quote or invoice to write for." : "Nothing changes in ServiceTitan until you press Put on."}</span>
-      </div>
-      {msg && <p className="jw-msg bad" role="status">{msg.text}</p>}
+      <section className="jw-box" aria-labelledby="jw-s-h">
+        <div className="jw-bh"><h2 id="jw-s-h">Job summary</h2><Copy text={draft.summary} /></div>
+        <p className="jw-quiet">{written ? `Written from ${written.join(", ")}. Change anything you like.` : `What's on the ${DOC_WORD[kind]} now. Add your notes below and press Write it.`}</p>
+        <textarea id="jw-summary" aria-labelledby="jw-s-h" className="jw-ta" rows={rows(draft.summary, 5)} value={draft.summary} onChange={(e) => set("summary", e.target.value)} placeholder={kind === "estimate" ? "What we're doing: …\n\nWhat we're removing: …\n\nWhat's included: …\n\nWhat's not included: …" : "What we did: …\n\nWhat we removed: …\n\nWhat was included: …"} />
+      </section>
 
-      <div className="jw-cols">
-        {[quote, invoice].map((d) => d && (
-          <Card key={d.kind} title={d.kind === "estimate" ? `The quote${d.name ? `: ${d.name}` : ""}` : `The invoice${d.name ? ` ${d.name}` : ""}`} aside={d.status ?? undefined}>
-            {words ? (
-              <DocPanel job={job} d={d} words={d.kind === "estimate" ? words.quote : words.invoice}
-                setWords={(w) => setWords(d.kind === "estimate" ? { ...words, quote: w as QuoteWords } : { ...words, invoice: w as InvoiceWords })} />
-            ) : (
-              <div className="jw-now"><b>Summary on it now</b><p>{d.summary || "None."}</p></div>
-            )}
-            <details className="jw-lines" open={!words}>
-              <summary>
-                {d.hasTarget && d.blockers.length === 0
-                  ? <>Labour {money2(d.parts.labour)}, materials {money2(d.parts.materials)} and electrical {money2(d.parts.electrical)}: one price of <b>{money2(d.combined)}</b></>
-                  : <>The lines{d.blockers.length ? ` (one price can't be done: ${d.blockers[0]})` : ""}</>}
-              </summary>
-              <PlanTable d={d} />
-            </details>
-          </Card>
-        ))}
-      </div>
+      <section className="jw-box" aria-labelledby="jw-l-h">
+        <div className="jw-bh"><h2 id="jw-l-h">Labour line{d.labourName ? <span className="jw-sub"> · {d.labourName}</span> : null}</h2><Copy text={draft.labour} /></div>
+        <OnePriceSum d={d} />
+        <textarea id="jw-labour" aria-labelledby="jw-l-h" className="jw-ta" rows={rows(draft.labour, 4)} value={draft.labour} onChange={(e) => set("labour", e.target.value)} placeholder="Installation of your new … This one price covers the installation labour, the materials and the electrical work." />
+      </section>
+
+      <section className="jw-box jw-notes" aria-labelledby="jw-n-h">
+        <div className="jw-bh"><h2 id="jw-n-h">Your notes for this job</h2>{notesBy ? <span className="jw-quiet">Saved by {notesBy.by}, {when(notesBy.at)}</span> : null}</div>
+        <p className="jw-quiet">How it&rsquo;s going in, what&rsquo;s coming out, and anything that comes off the price if it isn&rsquo;t needed. These go in first.</p>
+        <textarea id="jw-notes" aria-labelledby="jw-n-h" className="jw-ta" rows={rows(notes, 4)} value={notes} onChange={(e) => setNotes(e.target.value)}
+          placeholder={"e.g. Outdoor unit on a roof bracket.\nCondensate pump on the indoor head. If we don't need it, it comes off the quoted price.\nRemoving the old Fujitsu split from the lounge."} />
+        <div className="jw-row">
+          <button className="pk-btn" type="button" onClick={write} disabled={writing}>{writing ? "Writing…" : written ? "Write it again" : "Write it"}</button>
+          <button className="pk-btn g" type="button" disabled={saving || writing} onClick={() => startSave(async () => {
+            const r = await saveJobNotes(job, notes);
+            setWriteMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
+            router.refresh();
+          })}>{saving ? "Saving…" : "Save notes"}</button>
+          <span className="jw-quiet">{writing ? "About half a minute." : <>{heading.read.length ? `Also reads ${heading.read.join(", ")}.` : ""}{heading.missing.length ? ` Couldn't read ${heading.missing.join(", ")}.` : ""}</>}</span>
+        </div>
+        {writeMsg && <p className={`jw-msg ${writeMsg.ok ? "ok" : "bad"}`} role="status">{writeMsg.text}</p>}
+      </section>
+
+      <section className="jw-box jw-putbox" aria-label={`Put on the ${DOC_WORD[kind]}`}>
+        <div className="jw-row">
+          {canMerge ? (
+            <label className="jw-check">
+              <input type="checkbox" checked={onePrice} onChange={(e) => setOnePrice(e.target.checked)} />
+              <span>Put labour, materials and electrical under one price of <b>{money2(d.combined)}</b></span>
+            </label>
+          ) : <span className="jw-quiet jw-grow">Only the words change on the {DOC_WORD[kind]}.</span>}
+          <button className="pk-btn" type="button" disabled={putting || !draft.summary.trim()} onClick={() => startPut(async () => {
+            setPutMsg(null);
+            const r = await putWriteup({ job, kind, docId: d.id, summary: draft.summary, labour: draft.labour, onePrice: onePrice && canMerge, expectCombined: onePrice && canMerge ? d.combined : null });
+            setPutMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
+            router.refresh();
+          })}>{putting ? "Putting it on…" : `Put on the ${DOC_WORD[kind]}`}</button>
+        </div>
+        {putMsg && <p className={`jw-msg ${putMsg.ok ? "ok" : "bad"}`} role="status">{putMsg.text}</p>}
+        <details className="jw-lines">
+          <summary>The lines on the {DOC_WORD[kind]}{d.name ? `: ${d.name}` : ""}</summary>
+          <PlanTable d={d} />
+        </details>
+      </section>
 
       {history.length > 0 && (
-        <Card title="Put on before">
+        <section className="jw-box" aria-labelledby="jw-h-h">
+          <h2 id="jw-h-h" className="jw-h">Put on before</h2>
           <ul className="jw-hist">
             {history.map((h) => (
               <li key={h.id}>
@@ -205,7 +234,7 @@ export function JobWriteup({ job, quotes, quote, invoice, history }: {
             ))}
           </ul>
           {undoMsg && <p className={`jw-msg ${undoMsg.ok ? "ok" : "bad"}`} role="status">{undoMsg.text}</p>}
-        </Card>
+        </section>
       )}
     </div>
   );
