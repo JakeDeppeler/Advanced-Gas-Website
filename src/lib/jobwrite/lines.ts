@@ -160,9 +160,14 @@ export const alreadyOnePrice = (p: Plan) => p.target != null && p.changes === 0;
  * electrical work only where there's an electrical line, materials only where
  * there are materials.
  */
-export function labourLine(p: Pick<Plan, "lines"> | null): string {
+export function labourLine(p: Pick<Plan, "lines" | "target"> | null): string {
   const has = (r: Role) => (p?.lines ?? []).some((l) => l.role === r && l.qty > 0);
-  const parts = ["labour", has("materials") ? "materials" : null, has("electrical") ? "standard electrical works" : null].filter(Boolean) as string[];
+  // The electrical is in the one price when it merges into it, or is $0
+  // already; priced on a line of its own that stays, it isn't the labour
+  // line's to claim (the templates' rule, pricebook/wording.ts labourCopy).
+  const elec = (p?.lines ?? []).filter((l) => l.role === "electrical" && l.qty > 0);
+  const elecIn = elec.length > 0 && (p?.target != null || elec.every((l) => l.total === 0));
+  const parts = ["labour", has("materials") ? "materials" : null, elecIn ? "standard electrical works" : null].filter(Boolean) as string[];
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
   return `All ${list} required to complete the works described in the Job Summary.`;
 }

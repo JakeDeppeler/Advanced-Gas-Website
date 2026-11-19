@@ -425,7 +425,7 @@ export async function planWording(): Promise<{ changes: WordingChange[]; untouch
     const after = keepSummary ? before : templateSummary(facts);
     let lines = 0;
     const patched = t.items.map((i, k) => {
-      const want = i.skuType === "Service" ? lineCopy(items[k].code, facts) : null;
+      const want = i.skuType === "Service" ? lineCopy(items[k].code, facts, items) : null;
       if (!want || plainText(i.description) === want) return i;
       lines++;
       return { ...i, description: want };

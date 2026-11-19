@@ -6,7 +6,7 @@ import { templatePatchItems, type TemplateItem } from "./labour";
 import { EVAP_UNITS, OTHER_TEMPLATES, evapTemplate, type TemplateSpec } from "./quoteTemplateSpecs";
 import { equipmentCopy } from "./equipmentCopy";
 import { flatText, textHash, wordingAction } from "./summaryRule";
-import { lineCopy, plainText, summaryHtml, templateFacts, templateSummary } from "./wording";
+import { lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "./wording";
 
 /**
  * Jake's 17 Nov wording onto ServiceTitan, after each sync, a call's worth at
@@ -29,7 +29,15 @@ import { lineCopy, plainText, summaryHtml, templateFacts, templateSummary } from
  *
  * Bump VERSION when the wording changes, and everything is looked at again.
  */
-export const VERSION = "2026-11-17";
+// 2026-11-19 (Jake, "do it on all the templates"): each template's labour
+// line says only "All labour, materials and standard electrical works
+// required to complete the works described in the Job Summary" (wording.ts
+// labourCopy), the summary carrying the detail.
+export const VERSION = "2026-11-19";
+// The units' own descriptions didn't change with it, so they stay on the
+// 17 Nov pass: a new pass would treat any description nobody recorded as
+// fair to write over, and nobody asked for the units to be looked at again.
+const EQUIPMENT_VERSION = "2026-11-17";
 const KEY = "quote_wording";
 const BACKUP = "quote_wording_backup";
 /** ServiceTitan's limit on ids in one call. */
@@ -57,11 +65,16 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
   const p: Progress = (await getSettings<Progress>(KEY).catch(() => null)) ?? {};
   if ((p.fails ?? 0) >= 3) return out;
   const recs = (p.templates ??= {}), eqRecs = (p.equipment ??= {}), left = (p.left ??= {}), notes = (p.notes ??= {});
-  const firstPass = p.firstPassDone !== VERSION;
+  // The first pass (17 Nov) was the one allowed to write over words it had no
+  // record of. A later version only replaces words this put there itself, or
+  // a service's own earlier words (below): a template the office has made or
+  // edited since keeps what they wrote.
+  const firstPass = p.firstPassDone == null;
+  const eqFirstPass = firstPass;
 
   const equipIds = [...new Set(all.flatMap((t) => (t.items ?? []).filter((i) => i.skuType === "Equipment").map((i) => i.skuId)))];
   const templatesTodo = all.filter((t) => recs[t.id]?.v !== VERSION);
-  const equipTodo = equipIds.filter((id) => eqRecs[id]?.v !== VERSION);
+  const equipTodo = equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION);
   out.todo = templatesTodo.length + equipTodo.length;
   if (!out.todo) return out;
 
@@ -95,12 +108,12 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     const r = units.get(id);
     const want = unitCopy(id);
     const rec = eqRecs[id] ?? {};
-    if (!r || !want) { eqRecs[id] = { ...rec, v: VERSION }; continue; }
-    const a = wordingAction(r.description as string | null, want, rec.h, firstPass);
+    if (!r || !want) { eqRecs[id] = { ...rec, v: EQUIPMENT_VERSION }; continue; }
+    const a = wordingAction(r.description as string | null, want, rec.h, eqFirstPass);
     if (a !== "write") {
       if (a === "same") rec.h = textHash(flatText(want));
       else left[`equipment:${id}`] = `${String(r.displayName ?? id)}: description edited in ServiceTitan, left as it is`;
-      eqRecs[id] = { ...rec, v: VERSION };
+      eqRecs[id] = { ...rec, v: EQUIPMENT_VERSION };
       continue;
     }
     if (!bE[id]) backupDirty = true;
@@ -112,7 +125,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
       writes++;
       const back = await stFetch<Raw>(path);
       if (wordingAction(back.description as string | null, want, undefined, false) !== "same") throw new Error("the description reads back different");
-      eqRecs[id] = { v: VERSION, h: textHash(flatText(want)) };
+      eqRecs[id] = { v: EQUIPMENT_VERSION, h: textHash(flatText(want)) };
       out.equipment.push(String(r.displayName ?? id).trim());
       await saveSettings(KEY, p);
     } catch (e) {
@@ -141,9 +154,14 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     for (const i of withCodes) {
       if (i.id == null) continue;
       // Equipment lines follow the pricebook (step 1 below), not the template.
-      const want = i.skuType === "Service" ? lineCopy(i.code, facts) : null;
+      const want = i.skuType === "Service" ? lineCopy(i.code, facts, withCodes) : null;
       if (!want) continue;
-      const a = wordingAction(i.description, want, lineRecs[i.id], firstPass);
+      // A line still carrying our own earlier words (a template rebuilt with
+      // the service's description, never recorded here) is ours to replace,
+      // not the office's edit to keep.
+      const ours = SERVICE_COPY[i.code];
+      const recorded = lineRecs[i.id] ?? (ours && plainText(i.description) === flatText(ours) ? textHash(flatText(ours)) : undefined);
+      const a = wordingAction(i.description, want, recorded, firstPass);
       if (a === "same") lineRecs[i.id] = textHash(flatText(want));
       else if (a === "write") { lineWants.set(i.id, want); lineWrites++; }
       else left[`${t.id}:${i.id}`] = `${t.name}: "${i.skuName}" line edited in ServiceTitan, left as it is`;
@@ -189,7 +207,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     }
   }
 
-  const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== VERSION).length;
+  const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION).length;
   if (!remaining && firstPass) p.firstPassDone = VERSION;
   out.left = Object.values(left).slice(0, 20);
   if (out.templates.length || out.equipment.length) {
