@@ -3206,45 +3206,6 @@ probability of precipitation. Both ride on the Nordic-area models only. So
 neither appears on the board: a "70% chance of rain" we cannot measure is
 exactly the sort of figure this document says to leave out.
 
-### An evap is judged on wet-bulb depression, not on humidity
-
-An evaporative cooler cools by evaporating water into the airstream, so what it
-can deliver is set by how much water the air will still take — the wet-bulb
-depression, which is the dry-bulb temperature minus the wet-bulb temperature. A
-clean pad gets about 80% of the way there.
-
-Humidity on its own says nothing useful: 60% at 22° is a mild morning and 60%
-at 36° is a day an evap cannot do its job. Depression collapses both into the
-one number that decides it.
-
-| Depression at the hottest working hour | Verdict |
-|---|---|
-| 11° and over | **Good day** — about 9° of cooling |
-| 8–11° | **Fine** |
-| 5–8° | **Marginal** — the customer will say "is that it?" |
-| under 5° | **Don't** — too humid to hand one over |
-
-Below 24° the verdict is **Can't show it**, whatever the humidity. Not a knock
-on the unit: a 19° day is a fine day to *install* one. But a handover is
-somebody standing under the outlet deciding whether they got what they paid
-for, and on a mild day they feel a draught rather than cooling. Commission it;
-book the demonstration for a warm one.
-
-The board shows the arithmetic rather than asking to be believed: the navy card
-says what an evap *would blow* — "20° on a 23° day" — because that is the
-sentence that settles the argument, and nobody has to take the board's word
-for it.
-
-**The wet bulb is calculated, not fetched.** The forecast carries dew point,
-which is the wrong figure — dew point is where air condenses, whereas an evap's
-floor is what it reaches by evaporating *into* the air, and the two differ by
-several degrees in exactly the dry heat this page is judging. Stull's (2011)
-fit is used instead. `npm run check:weather` measures it against a bisection
-solve of the psychrometric equation on every run: it agrees to 0.62 °C where
-the thresholds sit and 0.80 °C at worst. So a day within two-thirds of a degree
-of a boundary could be called either way — which is smaller than the boundary
-is arbitrary, since 11° is a round number somebody chose and not a cliff.
-
 ### The roof is a separate question from the evap
 
 They are asked separately because they fail separately: a cold wet day is fine
@@ -3370,6 +3331,28 @@ and it is why the flue pattern matches the unit's location not at all.
 the controller, so a wet day does not move it. Only installs and removals put
 anybody up there.
 
+### Every verdict is about the roof
+
+The page carried three kinds: how well an evaporative unit would cool, whether
+anybody could get on the roof, and whether a heater was worth running up. Two
+of them are gone.
+
+> "We don't need the won't cool or barely cools — we just need if the install
+> or service is able to go ahead." — Jake, 20 November
+
+So a day column and the job boxes under it now answer the same question in the
+same three words. A column that said one thing and its jobs another was asking
+the room to hold two ideas about one day.
+
+**What went with it was about 150 lines of physics.** An evap's output was
+modelled from wet-bulb depression, with Stull's polynomial fit measured against
+a bisection solve of the psychrometric equation on every test run. It was
+carefully made, it was correct, and it answered a question nobody had asked:
+*"tell if the day is bad to book an evap"* meant **can the job happen**, not
+**will the unit impress**. Three rounds of feedback — "what are we demo?",
+then "we don't need the won't cool" — were all pointing at the same
+misreading. It is in the history if the question ever becomes real.
+
 ### Gold is a chance; red is a day that won't happen
 
 Jake, 19 November: "the gold is to flag any chance, and then red if there is a
@@ -3477,30 +3460,6 @@ The day's own verdict above the boxes keeps its own vocabulary — "Don't",
 "Marginal", "Off the roof" — because it answers a different question: not
 *will this job go ahead* but *what is this day good for*.
 
-### Nothing is flagged for humidity, or for being mild
-
-There was an evap-handover verdict on every install: a new unit on a mild or
-muggy day was flagged, on the reasoning that a handover is somebody standing
-under the outlet deciding whether they got what they paid for.
-
-Jake asked what it meant — "the mon 23, why does it say can't demo it, what are
-we demo?" — and the answer did not survive the question.
-
-- **It was not a scheduling concern.** Gold means *a chance the job does not go
-  ahead*. That install goes ahead on Monday whatever the temperature.
-- **The premise was an assumption.** Nobody had said a handover is a cold-air
-  demonstration. If commissioning an evap is water flow, pads wetting, airflow
-  and the controller, all of which work at 20°, the rule measured nothing.
-- **It crowded out the real flags.** It was one of only two gold flags in a
-  normal week.
-
-So it is gone, along with the "too humid" verdict on installs that shared its
-premise. `check:weatherjobs` asserts that neither can come back.
-
-The **day's** evap verdict stays. "Tell if the day is bad to book an evap" was
-the original ask and is still worth answering; it is simply not a reason to
-move a booking.
-
 ### The hour strip: time, sky, temperature, wind, rain
 
 Each cell carried **two** temperatures — the air, and what an evaporative unit
@@ -3597,25 +3556,6 @@ ten hours from the working day's start and walks forward: 7–4, then 8–5, the
 Once fewer than three working hours are left in today it shows **tomorrow**
 instead, because at half past three, ten columns of evening is a worse answer
 to "what time and how hot" than tomorrow morning is.
-
-### A service is not a handover
-
-Evaps get serviced and repaired through the cold months as a matter of course.
-Judging a spring service on whether a customer could be impressed put "can't
-demo it" against four of the nine jobs in the real diary — true, unactionable,
-and most of the page. A service is judged on whether somebody can get on the
-roof, and nothing else. Only a new unit being handed over has to show what it
-does.
-
-### An early start is judged on the day, not on the dawn
-
-Mornings are humid everywhere, so judging a 7:30 evap install against 7:30 air
-put "too humid" on days that were ideal by noon — and disagreed with the
-Weather page about the very same day. The handover is at the end of the job and
-the customer uses the thing that afternoon, so the evap question is asked of
-the day's hottest working hour, exactly as the Weather page asks it. Two pages
-on one wall disagreeing about whether Thursday suits an evap is worse than
-either being wrong alone.
 
 ### How often it goes and looks
 

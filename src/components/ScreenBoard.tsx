@@ -4,9 +4,8 @@ import { BREAK_HOURS, CREW_SECTORS, DAY_END_HOUR, DAY_START_HOUR, LONGEST_ALLOWE
 import {
   WORK_FROM_HOUR,
   WORK_TO_HOUR,
-  deliveredC,
-  judgedHour,
   type WxHour,
+  type WxRating,
   type WxSky,
 } from "@/lib/dashboard/weatherTypes";
 import {
@@ -16,10 +15,9 @@ import {
   type JobStatus,
 } from "@/lib/dashboard/weatherJobsTypes";
 import {
-  callsFor,
   clock,
   degrees,
-  headlineCall,
+  roofCall,
   mm,
   type WxDay,
 } from "@/lib/dashboard/weatherTypes";
@@ -2980,7 +2978,7 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
       ) : (
         <div className="wxs">
           {strip.map((h) => (
-            <WxHourCell key={h.hour} h={h} judged={judgedHour(stripDay)?.hour === h.hour} />
+            <WxHourCell key={h.hour} h={h} />
           ))}
           {/* Ten working hours in a row sized for fourteen leaves a gap at the
               end. It holds the day's totals rather than white space — the
@@ -3013,10 +3011,13 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
  * subtitle described had been invisible at every screen size, and the rain
  * figure under it was being clipped. Five fixed lines cannot do that.
  */
-function WxHourCell({ h, judged }: { h: WxHour; judged: boolean }) {
+function WxHourCell({ h }: { h: WxHour }) {
   const working = h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR;
+  /* No outlined hour any more. The white box marked the hour the day's evap
+     verdict was decided on, and Jake asked what its point was — a fair
+     question once that verdict had gone. */
   return (
-    <div className={`wxs__h${working ? " is-work" : ""}${judged ? " is-judged" : ""}`}>
+    <div className={`wxs__h${working ? " is-work" : ""}`}>
       {/* The hour heads the cell and the temperature sits under it (Jake,
           19 Nov). It was the other way round, which asked the eye to find the
           time at the bottom of a column it was reading from the top. */}
@@ -3066,8 +3067,24 @@ function WxDaySummary({ d }: { d: WxDay }) {
 }
 
 /** One day: what it is like, then what is booked into it. */
+/** A day's work verdict as one of the three words the job boxes use. */
+const DAY_STATUS: Record<WxRating, JobStatus> = { good: "go", fair: "go", poor: "watch", no: "risk" };
+
 function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[] }) {
-  const head = headlineCall(d);
+  /*
+   * Whether work can go ahead, and nothing else.
+   *
+   * The column used to lead on how well an evaporative unit would cool —
+   * "Won't cool", "Barely cools" — and Jake cut it: "we don't need the won't
+   * cool or barely cools, we just need if the install or service is able to go
+   * ahead."
+   *
+   * So the day answers the same question as the boxes beneath it, in the same
+   * three words. A column that said one thing and its jobs another was asking
+   * the room to hold two ideas about one day.
+   */
+  const head = roofCall(d);
+  const status = DAY_STATUS[head.rating];
   /*
    * What gets folded away is the good news, never a problem.
    *
@@ -3100,7 +3117,7 @@ function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[
           {d.rainMm > 0 ? mm(d.rainMm) : "dry"}
           {d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : d.peakAt != null ? ` · peak ${clock(d.peakAt)}` : ""}
         </span>
-        <span className={`wxw__head wx--${head.rating}`}>{head.word}</span>
+        <span className={`wxw__head ${JOB_INK[status]}`}>{JOB_WORD[status]}</span>
         <span className="wxw__why">{head.why}</span>
       </span>
 

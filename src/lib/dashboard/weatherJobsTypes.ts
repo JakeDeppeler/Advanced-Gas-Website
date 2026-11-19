@@ -17,14 +17,9 @@
  */
 
 import {
-  EVAP_DEMO_MIN_TEMP,
-  EVAP_POOR_DEPRESSION,
   ROOF_STOP_MM,
   ROOF_WATCH_MM,
   ROOF_WIND_KMH,
-  deliveredC,
-  judgedHour,
-  wetBulbC,
   type Weather,
   type WxDay,
 } from "./weatherTypes";
@@ -373,7 +368,7 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
    */
 
   const why = needs.roof
-    ? `dry ${clockOf(job.hour)}–${clockOf(endHour)}${day.maxC >= EVAP_DEMO_MIN_TEMP ? ` · ${round(day.maxC)}°` : ""}`
+    ? `dry ${clockOf(job.hour)}–${clockOf(endHour)} · ${round(day.maxC)}°`
     : `${round(day.maxC)}° · nothing in the way`;
   return call("go", "Good to go", why);
 }
