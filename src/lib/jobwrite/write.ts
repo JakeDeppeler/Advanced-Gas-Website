@@ -2,6 +2,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { aiConfigured } from "@/lib/chat/draft";
 import { WORDS_RULES, WORDS_SCHEMA, parseWords, wordsInput, type JobWords, type WordsInput } from "./words";
+import { labourLine } from "./lines";
 
 export { aiConfigured };
 
@@ -42,7 +43,11 @@ export async function writeWords(w: WordsInput): Promise<{ words: JobWords; from
   if (res.stop_reason === "max_tokens") throw new Error("the words ran too long");
   const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
   try {
-    return { words: parseWords(text), from: input.sources, key: input.key };
+    const words = parseWords(text);
+    // The labour line's fixed sentence, naming what each document has on it.
+    words.quote.labour = labourLine(w.quotePlan);
+    words.invoice.labour = labourLine(w.invoicePlan);
+    return { words, from: input.sources, key: input.key };
   } catch {
     throw new Error("the words came back in a shape that couldn't be read");
   }

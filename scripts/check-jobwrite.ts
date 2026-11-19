@@ -6,7 +6,7 @@
 // materials, the compliance certificate and the VEEC rebate.
 
 import assert from "node:assert/strict";
-import { alreadyOnePrice, planOnePrice, roleOf, type DocLine } from "../src/lib/jobwrite/lines";
+import { alreadyOnePrice, labourLine, planOnePrice, roleOf, type DocLine } from "../src/lib/jobwrite/lines";
 import { WORDS_RULES, isHeading, parseWords, summaryHtmlFromText, tidySummary, wordsInput } from "../src/lib/jobwrite/words";
 
 let n = 0;
@@ -39,8 +39,10 @@ assert.equal(roleOf(ducted[4]), "rebate");
 assert.equal(roleOf(ducted[5]), "electrical");
 assert.equal(roleOf(ducted[7]), "rebate");
 assert.equal(roleOf(ducted[1]), "equipment", "Mitsubishi Electric is equipment, not electrical work");
+assert.equal(roleOf({ code: "AC-SPLIT-ELEC", name: "AC-SPLIT-ELEC", type: "Service", total: 0 }), "electrical", "the code alone reads as electrical");
+assert.equal(roleOf({ code: "X", name: "Mitsubishi Electric 5kw Indoor Head", type: "Material", total: 0 }), "materials", "Electric in a brand isn't electrical work");
 assert.equal(roleOf(ducted[9]), "materials");
-n += 7;
+n += 9;
 
 // The plan: labour 8370 + electrical 1000 + priced materials 571 on the labour line; total unchanged.
 const p = planOnePrice({ kind: "estimate", lines: ducted });
@@ -101,10 +103,20 @@ n += 5;
 
 // Markdown the model slips in comes out; paragraphs stay.
 assert.equal(tidySummary("**Installation Details:**\n\n- Master bedroom: under the bulkhead.\n\n\n1. Lounge: 5kW head."), "Installation Details:\n\nMaster bedroom: under the bulkhead.\n\nLounge: 5kW head.");
-const parsed = parseWords(JSON.stringify({ quote: { summary: "Supply and installation of X.\n\nInstallation Details:", labour: "  Installation   of X. " }, invoice: { summary: "Supplied and installed X.", labour: "Installed X." } }));
+const parsed = parseWords(JSON.stringify({ quote: { summary: "Supply and installation of X.\n\nInstallation Details:" }, invoice: { summary: "Supplied and installed X." } }));
 assert.equal(parsed.quote.summary, "Supply and installation of X.\n\nInstallation Details:");
-assert.equal(parsed.quote.labour, "Installation of X.");
+assert.equal(parsed.quote.labour, "", "the labour line isn't Claude's to write");
 n += 3;
+
+// The labour line: one fixed sentence pointing to the summary, naming only what's on the document (Jake, job 20900).
+assert.equal(labourLine(p), "All labour, materials and standard electrical works required to complete the works described in the Job Summary.");
+const split20900 = planOnePrice({ kind: "estimate", lines: [line(1, "Equipment", "Kaden KSI 5kw V3", 1, 1200), line(2, "Service", "AC-SPLIT-RTR", 1, 2570), line(3, "Service", "BPC Compliance Certificate", 1, 65), line(4, "Service", "AC-SPLIT-ELEC", 1, 0), line(5, "Material", "Rodigas Air Conditioner Roof", 1, 0), line(6, "Material", "Silent Mini Pump FP3450", 1, 0)] });
+assert.equal(split20900.changes, 0, "20900's Kaden quote is already one price");
+assert.equal(labourLine(split20900), "All labour, materials and standard electrical works required to complete the works described in the Job Summary.");
+assert.equal(labourLine(planOnePrice({ kind: "estimate", lines: [line(1, "Service", "HW-HP-PLUG", 1, 900), line(2, "Material", "Tomson valve", 1, 0)] })), "All labour and materials required to complete the works described in the Job Summary.");
+assert.equal(labourLine(planOnePrice({ kind: "estimate", lines: [line(1, "Service", "EVAP-INSTALL", 1, 1150)] })), "All labour required to complete the works described in the Job Summary.");
+assert.equal(labourLine(null), "All labour required to complete the works described in the Job Summary.");
+n += 6;
 
 // The rules carry both of Jake's examples and say their facts aren't this job's.
 assert.match(WORDS_RULES, /A54 \/ A1400, 13 x 1372mm/);
