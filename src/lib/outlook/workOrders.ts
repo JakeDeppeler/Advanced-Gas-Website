@@ -14,8 +14,7 @@ import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
 import {
   BOOKED_CATEGORY, BOOKINGS_ADDRESS, TENANT_CATEGORY, WORK_ORDER_CATEGORY, approvalFor, approvalHeading, bookingSummary, dedupeKey, fillTemplate, followUpFor, followUpHeading,
-  isTeamForward, looksLikeTapiJob, siteKey, tapiLinkHostOk, tapiLinksIn, tapiPageText, TAPI_HOST, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder,
-} from "./workOrderTypes";
+  isTeamForward, looksLikeTapiJob, siteKey, tapiLinkHostOk, tapiLinksIn, tapiPageText, TAPI_HOST, mightBeWorkOrder, parseWorkOrder, stSaid, tenantAddresses, tenantContacts, workOrderSchema, workOrderSettingsFrom, type WorkOrder, isUnitHome } from "./workOrderTypes";
 
 /**
  * Work orders from email into ServiceTitan's Bookings, and onto the job once
@@ -381,7 +380,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
         });
       // What the house type lookup said and the manager's contacts, on the row,
       // so the site catch-up passes this one by.
-      await save(mailbox, m.id, { details: { ...base.details, propertyLookup: lookupNote || "the site already had one", siteCaught: pm || "nothing new" } }).catch(() => undefined);
+      await save(mailbox, m.id, { details: { ...base.details, propertyLookup: lookupNote || (isUnitHome(w.street) ? "a unit: Unit" : "the site already had one"), siteCaught: pm || "nothing new", typeFilled: "with the job" } }).catch(() => undefined);
       await emailTenant(mailbox, m.id, w, addressOf(m.from)).catch(() => undefined);
       return { status: "booked", isWorkOrder: true, jobId: job.jobId, jobNumber: job.jobNumber };
     }
@@ -806,6 +805,33 @@ export async function jobFieldsBackfill(deadline: number): Promise<{ done: numbe
       .catch((e: Error) => `not copied: ${stSaid(e)}`.slice(0, 200));
     await save(r.mailbox, r.message_id, { details: { ...(r.details ?? {}), jobFields: said || "nothing to copy" } }).catch(() => undefined);
     if (said && !said.startsWith("not copied")) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: job reference, owner and property type put on the job`, detail: said.slice(0, 300) }]).catch(() => undefined);
+    out.done++;
+  }
+  return out;
+}
+
+/**
+ * Work order sites and jobs from the last fortnight still without a Property
+ * Type: Unit for a unit, else Unknown (Jake, 19 Nov: "if you can't find the
+ * property type just make it unknown"), on the site and its job. No search
+ * here, as these were searched when they came in or caught up; a later work
+ * order at the address searches again, since an Unknown is only a stand-in.
+ */
+export async function typeBackfill(deadline: number): Promise<{ done: number }> {
+  const out = { done: 0 };
+  const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+  type R = { mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; st_location_id: number; details: (WorkOrder & Record<string, unknown>) | null };
+  const rows = await sbSelect<R>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
+    "details=not.is.null", "details->>typeFilled=is.null", q.gte("created_at", since), q.order("created_at", "desc", "last"), "limit=3",
+  ].join("&")).catch(() => []);
+  for (const r of rows) {
+    if (Date.now() > deadline - 10_000) break;
+    const w = r.details!;
+    const said = await fillSiteDetails(r.st_location_id, { ...w, street: w.street ?? "", number: w.number ?? "", owner: w.owner ?? "" }, async () => null, { onlyEmpty: true, jobId: r.st_job_id })
+      .catch((e: Error) => `not filled: ${stSaid(e)}`.slice(0, 200));
+    await save(r.mailbox, r.message_id, { details: { ...w, typeFilled: said || "nothing to fill" } }).catch(() => undefined);
+    if (said && !said.startsWith("not filled")) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: property type filled in`, detail: said.slice(0, 300) }]).catch(() => undefined);
     out.done++;
   }
   return out;

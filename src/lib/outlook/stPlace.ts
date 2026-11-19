@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
-import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, managerContacts, realEstateUnitName, stSaid, visitEnd } from "./workOrderTypes";
+import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, isUnitHome, jobReference, propertyTypeToWrite, UNKNOWN_TYPE, managerContacts, realEstateUnitName, stSaid, visitEnd } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -375,9 +375,10 @@ const FIELD = { jobRef: 209604015, owner: 209602958, propertyType: 209599952 } a
 
 /**
  * The work order's number and owner onto the site, and its property type
- * when the site has none. The number and owner are this work order's, so
- * they replace what's there; a property type someone has set is kept.
- * Returns what changed, in words, or "" for nothing.
+ * when the site has none (or only Unknown). The number and owner are this
+ * work order's, so they replace what's there; a property type someone has set
+ * is kept. Nothing found is Unknown (Jake, 19 Nov). Returns what changed, in
+ * words, or "" for nothing.
  */
 export async function fillSiteDetails(locationId: number, w: WorkOrder, propertyType: () => Promise<string | null>, opts: { onlyEmpty?: boolean; jobId?: number } = {}): Promise<string> {
   const path = stTenantPath("crm", `locations/${locationId}`);
@@ -389,8 +390,11 @@ export async function fillSiteDetails(locationId: number, w: WorkOrder, property
   const may = (id: number) => !opts.onlyEmpty || !have.get(id);
   if (w.number && may(FIELD.jobRef)) set.set(FIELD.jobRef, jobReference(w.number).slice(0, 100));
   if (w.owner && may(FIELD.owner)) set.set(FIELD.owner, w.owner.slice(0, 160));
-  if (!have.get(FIELD.propertyType)) {
-    const t = await propertyType().catch(() => null);
+  const haveType = have.get(FIELD.propertyType) ?? "";
+  if (!haveType || haveType === UNKNOWN_TYPE) {
+    // A unit's is Unit without a search; anyone else's is searched for.
+    const found = isUnitHome(w.street ?? "") ? null : await propertyType().catch(() => null);
+    const t = propertyTypeToWrite(w.street ?? "", haveType, found);
     if (t) set.set(FIELD.propertyType, t);
   }
   const changed = [...set].filter(([id, v]) => have.get(id) !== v);
@@ -398,8 +402,13 @@ export async function fillSiteDetails(locationId: number, w: WorkOrder, property
   // only these could take the others off.
   const all = new Map(have);
   for (const [id, v] of changed) all.set(id, v);
-  if (changed.length) await stSend("PATCH", path, { customFields: [...all].filter(([, v]) => v).map(([typeId, value]) => ({ typeId, value })) });
-  const said = changed.map(([id, v]) => `${FIELD_SAID[id]} ${v}`);
+  const refused = changed.length ? await patchFields(path, all, have) : false;
+  // Not on the site, so not for the job either.
+  if (refused) {
+    if (haveType) all.set(FIELD.propertyType, haveType);
+    else all.delete(FIELD.propertyType);
+  }
+  const said = changed.map(([id, v]) => `${FIELD_SAID[id]} ${v}${refused && id === FIELD.propertyType ? " (ServiceTitan wouldn't take it)" : ""}`);
   // And on the job, where the office reads them (Jake, 19 Nov: 20917's job
   // page showed no owner; the site had it).
   if (opts.jobId) {
@@ -413,6 +422,27 @@ export async function fillSiteDetails(locationId: number, w: WorkOrder, property
 const FIELD_SAID: Record<number, string> = { [FIELD.jobRef]: "job reference", [FIELD.owner]: "owner", [FIELD.propertyType]: "property type" };
 
 /**
+ * The fields onto a site or job. The office's Property Type has only ever
+ * held their own options, so an Unknown we added may be refused: then it's
+ * sent again without it, so the number and owner still go in. True when
+ * that happened.
+ */
+async function patchFields(path: string, all: Map<number, string>, have: Map<number, string>): Promise<boolean> {
+  const send = (m: Map<number, string>) => stSend("PATCH", path, { customFields: [...m].filter(([, v]) => v).map(([typeId, value]) => ({ typeId, value })) });
+  try {
+    await send(all);
+    return false;
+  } catch (e) {
+    const added = all.get(FIELD.propertyType) === UNKNOWN_TYPE && have.get(FIELD.propertyType) !== UNKNOWN_TYPE;
+    if (!added) throw e;
+    const without = new Map(all);
+    without.set(FIELD.propertyType, have.get(FIELD.propertyType) ?? "");
+    if ([...without].some(([id, v]) => (have.get(id) ?? "") !== v)) await send(without);
+    return true;
+  }
+}
+
+/**
  * The job's own Job Reference, Owners Details and Property Type, as the
  * office fills them on a job by hand (20889, 20901, 20910), from the values
  * given. A catch-up only fills what's empty. Read back. Returns what
@@ -422,11 +452,14 @@ export async function fillJobFields(jobId: number, values: Map<number, string>, 
   const path = stTenantPath("jpm", `jobs/${jobId}`);
   const job = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(path);
   const have = new Map((job.customFields ?? []).map((f) => [f.typeId, (f.value ?? "").trim()]));
-  const set = [...values].filter(([id, v]) => v && (!opts.onlyEmpty || !have.get(id)) && have.get(id) !== v);
+  // An Unknown is as good as empty: a real answer replaces it.
+  const empty = (id: number) => !have.get(id) || (id === FIELD.propertyType && have.get(id) === UNKNOWN_TYPE);
+  let set = [...values].filter(([id, v]) => v && (!opts.onlyEmpty || empty(id)) && have.get(id) !== v);
   if (!set.length) return "";
   const all = new Map(have);
   for (const [id, v] of set) all.set(id, v);
-  await stSend("PATCH", path, { customFields: [...all].filter(([, v]) => v).map(([typeId, value]) => ({ typeId, value })) });
+  if (await patchFields(path, all, have)) set = set.filter(([id]) => id !== FIELD.propertyType);
+  if (!set.length) return "";
   // A job reads back as it was for a moment after an update (the unit fixes,
   // 18 Nov), so a miss is looked at again before it counts.
   let missed = set;

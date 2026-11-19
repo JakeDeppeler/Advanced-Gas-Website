@@ -25,6 +25,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { phoneDigits, stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
+import { UNKNOWN_TYPE, isUnitHome, propertyTypeToWrite } from "../src/lib/outlook/workOrderTypes";
 import { PROPERTY_TYPES, managerContacts, propertyWhyFrom, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiLinksIn, tapiPageText, looksLikeTapiJob, visitEnd } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
@@ -353,6 +354,17 @@ console.log("-- work order jobs: unit, site details (18 Nov: 18 Leonie Court) --
   ok("the last answer line wins", propertyTypeFrom("ANSWER: Unknown\nOn a second look:\nANSWER: House - Double Storey") === "House - Double Storey");
   ok("a trailing full stop is fine", propertyTypeFrom("ANSWER: Townhouse.") === "Townhouse");
   ok("Unknown is nothing", propertyTypeFrom("ANSWER: Unknown") === null);
+  // Jake, 19 Nov: "if you can't find the property type just make it unknown".
+  ok("nothing found on an empty site is Unknown", propertyTypeToWrite("18 Leonie Court", "", null) === UNKNOWN_TYPE);
+  ok("a found type goes in", propertyTypeToWrite("18 Leonie Court", "", "House - Double Storey") === "House - Double Storey");
+  ok("a found type replaces Unknown", propertyTypeToWrite("18 Leonie Court", "Unknown", "Townhouse") === "Townhouse");
+  ok("Unknown isn't written over Unknown", propertyTypeToWrite("18 Leonie Court", "Unknown", null) === null);
+  ok("the office's type is kept", propertyTypeToWrite("18 Leonie Court", "House - Single Storey", "Townhouse") === null);
+  ok("a unit is Unit", propertyTypeToWrite("4/15 Golden Av", "", null) === "Unit");
+  ok("a unit replaces Unknown", propertyTypeToWrite("Unit 2, 7 Main St", "Unknown", null) === "Unit");
+  ok("a lot is not a unit", !isUnitHome("Lot 12 Smith Rd") && propertyTypeToWrite("Lot 12 Smith Rd", "", null) === UNKNOWN_TYPE);
+  ok("a shop is not a unit", !isUnitHome("Shop 3 12 High St"));
+  ok("a house is not a unit", !isUnitHome("160 Racecourse Road North"));
   ok("an answer not in the list is nothing", propertyTypeFrom("ANSWER: Apartment") === null && propertyTypeFrom("no answer line") === null);
   ok("the three types are the office's", PROPERTY_TYPES.join("|") === "House - Single Storey|House - Double Storey|Townhouse");
 }
