@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { checkServiceTitan } from "@/lib/dashboard/stCheck";
 import { snapshotCatalog } from "@/lib/proposals/snapshot";
-import { probeEstimates, probeForms, probeJobHistory, probeReports, probeTemplates } from "@/lib/dashboard/stEstimateProbe";
+import { probeEstimates, probeForms, probeJobHistory, probeJobNotes, probeReports, probeTemplates } from "@/lib/dashboard/stEstimateProbe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +27,10 @@ export const maxDuration = 60;
 // ?job=<id>,<id> lists the kinds of event in those jobs' history
 // (probeJobHistory): whether ServiceTitan records a quote being sent.
 //
+// ?notes=<id>,<id> lists those jobs' notes, opening words only, emails and
+// phone numbers masked (probeJobNotes): what a note says when a quote is
+// emailed.
+//
 // ?forms=<name> lists the tenant's forms and the shape of the newest
 // submissions of those matching the name (probeForms): whether a work order
 // can carry the job's Condition Report.
@@ -49,6 +53,8 @@ export async function GET(req: Request) {
   if (ids.length) return NextResponse.json({ estimates: await probeEstimates(ids) });
   const jobs = (new URL(req.url).searchParams.get("job") ?? "").split(",").map((x) => x.trim()).filter((x) => /^\d{1,12}$/.test(x)).slice(0, 5).map(Number);
   if (jobs.length) return NextResponse.json({ jobs: await probeJobHistory(jobs) });
+  const noteJobs = (new URL(req.url).searchParams.get("notes") ?? "").split(",").map((x) => x.trim()).filter((x) => /^\d{1,12}$/.test(x)).slice(0, 6).map(Number);
+  if (noteJobs.length) return NextResponse.json({ notes: await probeJobNotes(noteJobs) });
   const forms = new URL(req.url).searchParams.get("forms");
   if (forms) return NextResponse.json({ forms: await probeForms(forms) });
   // ?templates=1 also saves the whole catalogue (templates, proposals and the
