@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, fillSiteDetails, fillTenant, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, fillManager, fillSiteDetails, fillTenant, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
 import { lookUpPropertyType } from "./propertyType";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
@@ -362,18 +362,26 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
       const site_ = job;
       // A lookup that fails (rather than isn't sure) is said, so a blank
       // Property Type can be told apart from one the web couldn't settle.
-      const lookUp = () => lookUpPropertyType(w.street, w.suburb, zip).catch(async (e: Error) => {
-        await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the property type couldn't be looked up`, detail: e.message.slice(0, 200) }]).catch(() => undefined);
-        return null;
-      });
+      let lookupNote = "";
+      const lookUp = () => lookUpPropertyType(w.street, w.suburb, zip)
+        .then((r) => { lookupNote = r.note; return r.type; })
+        .catch(async (e: Error) => {
+          lookupNote = `the lookup failed: ${e.message}`.slice(0, 200);
+          await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the property type couldn't be looked up`, detail: e.message.slice(0, 200) }]).catch(() => undefined);
+          return null;
+        });
       await fillTenant(site_.locationId, w).catch(async (e: Error) => {
         await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the tenant couldn't be put on the site`, detail: stSaid(e).slice(0, 200) }]).catch(() => undefined);
         return "";
       });
+      const pm = await fillManager(site_.locationId, w).catch((e: Error) => `property manager not put on: ${stSaid(e)}`.slice(0, 200));
       await fillSiteDetails(site_.locationId, w, lookUp)
         .catch(async (e: Error) => {
           await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the site's job reference, owner or property type couldn't be filled in`, detail: stSaid(e).slice(0, 200) }]).catch(() => undefined);
         });
+      // What the house type lookup said and the manager's contacts, on the row,
+      // so the site catch-up passes this one by.
+      await save(mailbox, m.id, { details: { ...base.details, propertyLookup: lookupNote || "the site already had one", siteCaught: pm || "nothing new" } }).catch(() => undefined);
       await emailTenant(mailbox, m.id, w, addressOf(m.from)).catch(() => undefined);
       return { status: "booked", isWorkOrder: true, jobId: job.jobId, jobNumber: job.jobNumber };
     }
@@ -678,7 +686,8 @@ export async function tapiBackfill(deadline: number): Promise<{ filled: number; 
       const loc = r.st_location_id!;
       const said = [
         await fillTenant(loc, merged).catch((e: Error) => `tenant not put on: ${stSaid(e)}`),
-        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).catch(() => null)).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
+        await fillManager(loc, merged).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
+        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).then((x) => x.type).catch(() => null)).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
       ].filter(Boolean).join("; ");
       await save(r.mailbox, r.message_id, { details: { ...merged, tapi: `caught up later: ${page.note}` } });
       await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: the Tapi page's details put on the site`, detail: (said || "nothing new for the site").slice(0, 300) }]).catch(() => undefined);
@@ -686,6 +695,38 @@ export async function tapiBackfill(deadline: number): Promise<{ filled: number; 
     } catch (e) {
       await save(r.mailbox, r.message_id, { details: { ...old, tapi: `caught up later, but: ${(e as Error).message}`.slice(0, 200) } }).catch(() => undefined);
     }
+  }
+  return out;
+}
+
+/**
+ * Work order jobs from the last week made before the property manager and the
+ * house type lookup's note were kept (19 Nov: 1 Bermer Court had neither):
+ * the manager put on the site, and the house type looked up where the site
+ * has none. One a run, newest first, after everything else in the sweep.
+ */
+export async function siteBackfill(deadline: number): Promise<{ done: number }> {
+  const out = { done: 0 };
+  const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  type R = { mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; st_location_id: number; details: (WorkOrder & Record<string, unknown>) | null };
+  const rows = await sbSelect<R>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
+    "details=not.is.null", "details->>siteCaught=is.null", q.gte("created_at", since), q.order("created_at", "desc", "last"), "limit=1",
+  ].join("&")).catch(() => []);
+  for (const r of rows) {
+    if (Date.now() > deadline) break;
+    const w = r.details as WorkOrder & Record<string, unknown>;
+    let lookupNote = "";
+    const said = [
+      await fillManager(r.st_location_id, w).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
+      await fillSiteDetails(r.st_location_id, w, () => lookUpPropertyType(w.street ?? "", w.suburb ?? "", w.postcode ?? "")
+        .then((x) => { lookupNote = x.note; return x.type; })
+        .catch((e: Error) => { lookupNote = `the lookup failed: ${e.message}`.slice(0, 200); return null; }))
+        .catch((e: Error) => `site details not filled: ${stSaid(e)}`),
+    ].filter(Boolean).join("; ");
+    await save(r.mailbox, r.message_id, { details: { ...w, siteCaught: said || "nothing new", propertyLookup: lookupNote || (w.propertyLookup as string | undefined) || "the site already had one" } }).catch(() => undefined);
+    if (said) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: the site caught up`, detail: `${said}${lookupNote ? `; house type: ${lookupNote}` : ""}`.slice(0, 300) }]).catch(() => undefined);
+    out.done++;
   }
   return out;
 }

@@ -3,7 +3,7 @@ import { q, sbSelect } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { site as business } from "@/lib/site";
 import { TEAM_DOMAIN } from "./outlookTypes";
-import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, realEstateUnitName, stSaid, visitEnd } from "./workOrderTypes";
+import { AGENCY_FILLER, agencyMatches, bareStreet, bookingSummary, melbourneInstant, placeholderDay, siteKey, streetWord, tenantContacts, tenantLabel, type SiteJob, type WorkOrder, isUnitAddress, jobReference, managerContacts, realEstateUnitName, stSaid, visitEnd } from "./workOrderTypes";
 
 /**
  * Where a work order goes in ServiceTitan, and the job made there (Jake, 5 Nov).
@@ -434,4 +434,25 @@ export async function fillTenant(locationId: number, w: WorkOrder): Promise<stri
     }
   }
   return [said.length ? `tenant: ${said.join(", ")}` : "", refused.length ? `not taken: ${refused.join("; ")}` : ""].filter(Boolean).join("; ");
+}
+
+/**
+ * The managing agent on the site (Jake, 19 Nov: "bring in the managed by name
+ * and email and contact information and list them as the property manager"):
+ * their email and phone, where the site hasn't got them, noted "Name -
+ * Property Manager" as the office does. Returns what changed, or "".
+ */
+export async function fillManager(locationId: number, w: WorkOrder): Promise<string> {
+  const want = managerContacts(w);
+  if (!want.length) return "";
+  const key = (c: { type?: string; value?: string }) => (c.type === "Email" ? (c.value ?? "").trim().toLowerCase() : (c.value ?? "").replace(/\D/g, "").slice(-9));
+  const have = await stList<{ type?: string; value?: string; active?: boolean }>("crm", `locations/${locationId}/contacts`);
+  const there = new Set(have.filter((c) => c.active !== false).map(key).filter(Boolean));
+  const said: string[] = [];
+  for (const c of want.filter((c) => key(c) && !there.has(key(c)))) {
+    await stSend("POST", stTenantPath("crm", `locations/${locationId}/contacts`), c)
+      .then(() => said.push(c.value))
+      .catch((e: Error) => said.push(`${c.value} not taken (${stSaid(e).replace(/^ServiceTitan said:? ?/, "")})`));
+  }
+  return said.length ? `property manager: ${said.join(", ")}` : "";
 }
