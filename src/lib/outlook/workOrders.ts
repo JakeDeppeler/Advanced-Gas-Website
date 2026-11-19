@@ -816,6 +816,8 @@ export async function jobFieldsBackfill(deadline: number): Promise<{ done: numbe
  * property type just make it unknown"), on the site and its job. No search
  * here, as these were searched when they came in or caught up; a later work
  * order at the address searches again, since an Unknown is only a stand-in.
+ * Where ServiceTitan refused Unknown, it's tried again once the office has
+ * added it as an option (below).
  */
 export async function typeBackfill(deadline: number): Promise<{ done: number }> {
   const out = { done: 0 };
@@ -825,17 +827,46 @@ export async function typeBackfill(deadline: number): Promise<{ done: number }> 
     q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
     "details=not.is.null", "details->>typeFilled=is.null", q.gte("created_at", since), q.order("created_at", "desc", "last"), "limit=3",
   ].join("&")).catch(() => []);
-  for (const r of rows) {
-    if (Date.now() > deadline - 10_000) break;
+  const fill = async (r: R) => {
     const w = r.details!;
     const said = await fillSiteDetails(r.st_location_id, { ...w, street: w.street ?? "", number: w.number ?? "", owner: w.owner ?? "" }, async () => null, { onlyEmpty: true, jobId: r.st_job_id })
       .catch((e: Error) => `not filled: ${stSaid(e)}`.slice(0, 200));
     await save(r.mailbox, r.message_id, { details: { ...w, typeFilled: said || "nothing to fill" } }).catch(() => undefined);
-    if (said && !said.startsWith("not filled")) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: property type filled in`, detail: said.slice(0, 300) }]).catch(() => undefined);
+    const title = `Job ${r.st_job_number ?? r.st_job_id}: ${said.includes(REFUSED) ? "Property Type left blank: Unknown isn't one of its options in ServiceTitan" : "property type filled in"}`;
+    if (said && !said.startsWith("not filled")) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: !said.includes(REFUSED), jobId: r.st_job_id, title, detail: said.slice(0, 300) }]).catch(() => undefined);
+    return said;
+  };
+  for (const r of rows) {
+    if (Date.now() > deadline - 10_000) break;
+    await fill(r);
     out.done++;
+  }
+  if (rows.length || Date.now() > deadline - 10_000) return out;
+
+  // ServiceTitan refused Unknown on 19 Nov: it isn't one of the field's
+  // options until the office adds it. Every six hours one refused site is
+  // tried again, and once one takes it the rest are let go round again.
+  const state = (await getSettings<{ at?: string }>(UNKNOWN_RETRY).catch(() => null)) ?? {};
+  if (state.at && Date.now() - Date.parse(state.at) < 6 * 3_600_000) return out;
+  const refused = await sbSelect<R>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
+    `details->>typeFilled=like.${encodeURIComponent(`*${REFUSED}*`)}`, q.gte("created_at", since), q.order("created_at", "desc", "last"), "limit=50",
+  ].join("&")).catch(() => []);
+  if (!refused.length) return out;
+  await saveSettings(UNKNOWN_RETRY, { at: new Date().toISOString() }).catch(() => undefined);
+  const said = await fill(refused[0]);
+  out.done++;
+  if (said.includes(REFUSED) || said.startsWith("not filled")) return out;
+  for (const r of refused.slice(1)) {
+    const { typeFilled: _, ...rest } = r.details!;
+    await save(r.mailbox, r.message_id, { details: rest }).catch(() => undefined);
   }
   return out;
 }
+
+/** What fillSiteDetails says when ServiceTitan won't take a property type. */
+const REFUSED = "wouldn't take it";
+const UNKNOWN_RETRY = "property_type_unknown_retry";
 
 /** What a work order's row says when its job was made but the hold didn't take. */
 const NOT_HELD = "made, but not put on hold";
