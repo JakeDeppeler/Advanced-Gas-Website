@@ -12,6 +12,7 @@
     "check:pace": "npx tsx scripts/check-pace.ts",
     "check:xero": "npx tsx scripts/check-xero.ts",
     "check:alerts": "npx tsx scripts/check-alerts.ts",
+    "check:jobwrite": "npx tsx scripts/check-jobwrite.ts",
     "check:ticker": "npx tsx scripts/check-ticker.ts",
     "check:paging": "npx tsx scripts/check-paging.ts",
     "check:pairing": "npx tsx scripts/check-pairing.ts",

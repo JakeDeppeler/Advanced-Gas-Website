@@ -143,6 +143,8 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Leads", href: "/portal/leads", icon: "phone" },
       // The whole run of a job, of which the quotes are one stretch.
       { label: "Job tracker", href: "/portal/tracker", icon: "run" },
+      // A job's quote and invoice words, written from the job (19 Nov).
+      { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
     ],
   },
   {

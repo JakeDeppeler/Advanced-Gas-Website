@@ -81,7 +81,7 @@ const tidy = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").tr
 const qty = (n: number) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2))));
 
 /** A report's units as plain lines, without the customer's name, address or signature. */
-function reportLines(v: VisitReport): string {
+export function reportLines(v: VisitReport): string {
   const r = toReport(v.submission);
   // Who and where, not what: the customer's details stay out. Matched whole,
   // so a field like "Indoor unit location" still goes in.
