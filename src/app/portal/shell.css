@@ -4213,43 +4213,62 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .kc-t tr.kc-tip td { padding: 10px 0 0; }
 }
 
-/* Jobs › Write-up: a job's summary, its labour line under one price, and the office's notes (19 Nov). */
+/* Jobs › Write-up (19 Nov): the job up top, then 1 notes, 2 the job summary and 3 the labour line, then putting it on. */
 .jw-find { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 18px; }
 .jw-find label { font-size: 13px; font-weight: 600; color: var(--ink2); }
 .jw-find .pk-in { width: 140px; font-size: 15px; padding: 8px 12px; }
 .jw { display: grid; gap: 14px; }
-.jw-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
-.jw-job { margin: 0; font-size: 15px; color: var(--ink2); }
-.jw-job b { color: var(--ink); }
-.jw-seg { display: inline-flex; padding: 3px; border-radius: 99px; background: var(--quiet); gap: 2px; }
-.jw-seg button { font: inherit; font-size: 14px; font-weight: 600; color: var(--ink2); background: none; border: 0; border-radius: 99px; padding: 7px 16px; cursor: pointer; }
+.jw-card { background: var(--surface); border-radius: 18px; padding: 18px 20px; display: grid; gap: 10px; box-shadow: var(--shadow); min-width: 0; align-content: start; }
+.jw-quiet { margin: 0; font-size: 13px; color: var(--ink2); }
+.jw-grow { flex: 1 1 260px; }
+
+/* The job */
+.jw-top { gap: 14px; }
+.jw-top-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; }
+.jw-id { display: grid; gap: 2px; min-width: 0; }
+.jw-eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.jw-num { font-family: var(--f-display, inherit); font-size: 30px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.jw-meta { font-size: 14.5px; color: var(--ink2); }
+.jw-seg { display: inline-flex; padding: 3px; border-radius: 99px; background: var(--quiet); gap: 2px; max-width: 100%; }
+.jw-seg button { font: inherit; font-size: 14px; font-weight: 600; color: var(--ink2); background: none; border: 0; border-radius: 99px; padding: 8px 18px; cursor: pointer; white-space: nowrap; }
 .jw-seg button span { font-weight: 500; }
 .jw-seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--seg-shadow); }
+.jw-chips { list-style: none; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px 8px; }
+.jw-chips li { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--sunken); padding: 4px 10px; border-radius: 99px; }
+.jw-chips li svg { color: var(--good); }
+.jw-chips li.bad { color: var(--bad); background: var(--bad-bg); }
 .jw-quotes { display: flex; flex-wrap: wrap; gap: 6px 8px; font-size: 13px; }
 .jw-quotes a { padding: 5px 11px; border-radius: 99px; background: var(--quiet); color: var(--ink); text-decoration: none; }
 .jw-quotes a[aria-current="true"] { background: var(--mark); color: var(--on-mark); font-weight: 700; }
-.jw-box { background: var(--surface); border-radius: 16px; padding: 16px 18px; display: grid; gap: 8px; box-shadow: var(--shadow); }
-.jw-bh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.jw-bh h2, .jw-h { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); }
-.jw-sub { font-weight: 500; color: var(--ink2); font-size: 14px; }
-.jw-quiet { margin: 0; font-size: 13px; color: var(--ink2); }
-.jw-grow { flex: 1 1 260px; }
-.jw-sum { margin: 0; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
-.jw-ta { field-sizing: content; width: 100%; box-sizing: border-box; resize: vertical; padding: 10px 12px; border-radius: 10px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--sunken); font: inherit; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
-.jw-ta:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent); }
+
+/* The steps */
+.jw-bh { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.jw-bh h2, .jw-h { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: var(--ink); }
+.jw-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--mark); color: var(--on-mark); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.jw-end { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.jw-tag { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: var(--quiet); color: var(--ink2); white-space: nowrap; }
+.jw-tag.mid { background: var(--mid-bg); color: var(--mid); }
+.jw-tag.good { background: var(--good-bg); color: var(--good); }
 .jw-notes { box-shadow: var(--shadow), inset 0 0 0 2px var(--accent-bg); }
+.jw-pair { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; align-items: start; }
+.jw-sum { margin: 0; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.jw-ta { field-sizing: content; width: 100%; box-sizing: border-box; resize: vertical; padding: 11px 13px; border-radius: 12px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--sunken); font: inherit; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+.jw-ta:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent); background: var(--surface); }
 .jw-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .jw-row > .jw-quiet:last-child { flex: 1 1 220px; }
-.jw-putbox .jw-row { justify-content: space-between; }
 .jw-copy { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--quiet); border: 0; border-radius: 99px; padding: 3px 10px; cursor: pointer; }
 .jw-copy:disabled { opacity: .5; cursor: default; }
-.jw-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; flex: 1 1 260px; }
-.jw-check input { margin-top: 3px; }
 .jw-msg { margin: 0; font-size: 14px; padding: 9px 12px; border-radius: 10px; }
 .jw-msg.ok { background: var(--good-bg); color: var(--good); }
 .jw-msg.bad { background: var(--bad-bg); color: var(--bad); }
-.jw-lines { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
-.jw-lines > summary { cursor: pointer; font-size: 14px; color: var(--ink2); }
+
+/* Putting it on */
+.jw-putbar .jw-row { justify-content: space-between; }
+.jw-putbar .pk-btn { padding: 10px 20px; font-size: 15px; }
+.jw-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; flex: 1 1 280px; }
+.jw-check input { margin-top: 3px; }
+.jw-lines { border-top: 1px solid var(--line); padding-top: 10px; }
+.jw-lines > summary { cursor: pointer; font-size: 13.5px; color: var(--ink2); }
 .jw-lines .pk-tbl-wrap { margin-top: 8px; }
 .jw-plan td, .jw-plan th { vertical-align: top; }
 .jw-plan td:nth-child(n+3), .jw-plan th:nth-child(n+3), .jw-plan tfoot td { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -4261,8 +4280,15 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .jw-hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
 .jw-hist li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .jw-hist li > span:not(.pk-st) { flex: 1 1 240px; color: var(--ink2); }
+@media (max-width: 1000px) {
+  .jw-pair { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 640px) {
-  .jw-box { padding: 14px; }
+  .jw-card { padding: 15px; border-radius: 16px; }
+  .jw-num { font-size: 26px; }
+  .jw-seg { width: 100%; }
+  .jw-seg button { flex: 1; padding: 8px 10px; }
+  .jw-putbar .pk-btn { width: 100%; justify-content: center; }
   .jw-plan thead { display: none; }
   .jw-plan tr { display: grid; grid-template-columns: 1fr auto auto; gap: 2px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .jw-plan td { padding: 0; border: 0; }
