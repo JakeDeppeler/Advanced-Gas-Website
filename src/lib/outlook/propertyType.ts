@@ -9,7 +9,9 @@ import { isUnitAddress, propertyTypeFrom, propertyWhyFrom } from "./workOrderTyp
  * is, and answers only when a listing or record for that exact address says
  * so. Anything less sure is null, and the office fills it in as before.
  *
- * A unit or apartment isn't one of the office's three, so it isn't looked up.
+ * A unit is Unit without a search (stPlace.fillSiteDetails), and a shop or
+ * lot isn't looked up either: no listing says what the office needs.
+ * Whatever isn't found is Unknown on the site (Jake, 19 Nov).
  */
 const MODEL = "claude-opus-5-5";
 
@@ -34,7 +36,7 @@ Answer Unknown whenever you aren't sure.`;
  */
 export async function lookUpPropertyType(street: string, suburb: string, postcode: string): Promise<{ type: string | null; note: string }> {
   if (!street.trim() || !suburb.trim()) return { type: null, note: "no street or suburb to look up" };
-  if (isUnitAddress(street)) return { type: null, note: "a unit: not one of the office's three types" };
+  if (isUnitAddress(street)) return { type: null, note: "a unit, shop or lot: not searched" };
   const address = [street.trim(), suburb.trim(), "VIC", postcode.trim()].filter(Boolean).join(" ");
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: `What kind of home is at ${address}?` }];
   let text = "";

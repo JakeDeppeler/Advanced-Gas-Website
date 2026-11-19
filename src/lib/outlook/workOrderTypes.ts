@@ -657,8 +657,31 @@ export const PROPERTY_TYPES = ["House - Single Storey", "House - Double Storey",
 /** "JOB NO. 20426" for an agency's plain number, as the office writes it; a Tapi number as it is. */
 export const jobReference = (n: string) => (/^\d+$/.test(n.trim()) ? `JOB NO. ${n.trim()}` : n.trim());
 
-/** A unit, flat or lot: none of the office's three property types, so never looked up. */
+/** A unit, flat, shop or lot: no listing settles its storeys, so never looked up. */
 export const isUnitAddress = (street: string) => /^\s*(unit|apt|apartment|flat|shop|suite|lot)\b|^\s*\d+[a-z]?\s*\//i.test(street);
+
+/**
+ * A home in a block: "Unit 4", "Apt 3", "4/15 ...". The office's Property
+ * Type for these is "Unit" (200 of their jobs; "Apartment" once). A shop,
+ * suite or lot isn't one, and stays Unknown.
+ */
+export const isUnitHome = (street: string) => /^\s*(unit|apt|apartment|flat)\b|^\s*\d+[a-z]?\s*\//i.test(street);
+
+/** What Property Type says when nothing settles it (Jake, 19 Nov: "just make it unknown"). */
+export const UNKNOWN_TYPE = "Unknown";
+
+/**
+ * What a site's Property Type should be: Unit for a home in a block, else
+ * what the lookup found, else Unknown. Null when the site's own value stays:
+ * anything but Unknown is the office's or a lookup's answer, and an Unknown
+ * is only replaced by a real answer.
+ */
+export function propertyTypeToWrite(street: string, have: string, found: string | null): string | null {
+  if (have && have !== UNKNOWN_TYPE) return null;
+  const t = isUnitHome(street) ? "Unit" : found;
+  if (t) return t;
+  return have ? null : UNKNOWN_TYPE;
+}
 
 /** The lookup's last "ANSWER:" line as one of PROPERTY_TYPES, else null (Unknown included). */
 export function propertyTypeFrom(text: string): string | null {
