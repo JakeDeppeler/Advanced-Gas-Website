@@ -5,7 +5,7 @@ import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { dayLabel } from "@/lib/ordering/plan";
 import { tagKey, tagTypes } from "@/lib/ordering/stJobNotes";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry } from "./log";
-import { LIVE_DAYS, planTags, STAGE_TAGS, stageOf, VISIT_DAYS, type Est, type Facts, type Stage, type TaggedStage } from "./quoteStage";
+import { LIVE_DAYS, planTags, STAGE_TAGS, stageOf, unsoldAtToBook, VISIT_DAYS, type Est, type Facts, type Stage, type TaggedStage } from "./quoteStage";
 
 /** Jobs looked at in ServiceTitan per run: a backlog clears over a few runs rather than all at once against its rate limit. */
 const PER_RUN = 25;
@@ -156,6 +156,9 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
   const why = (s: (typeof staged)[number], stage: Stage): string => {
     const mine = estsBy.get(Number(s.j.id)) ?? [];
     if (stage === "toQuote") return `Quote visit ${day(s.f.lastVisit)} and no quote in ServiceTitan for it yet.`;
+    if (stage === "draft" && unsoldAtToBook(Array.isArray(s.j.tags) ? s.j.tags.map(Number) : [], stage, ids)) {
+      return "To Be Booked, but its quote isn't sold, so it's still waiting on the customer.";
+    }
     if (stage === "draft") {
       const first = mine.filter((e) => e.status === "Open").map((e) => e.created_on ?? "").sort()[0] ?? null;
       return `Quote written ${day(first)} and not sold. When it's sent, swap this for Awaiting Quote Approval: ServiceTitan doesn't tell the portal when a quote goes out.`;
@@ -168,9 +171,10 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
 
   for (const stage of ORDER) {
     for (const s of staged.filter((x) => x.stage === stage)) {
-      const key = `qstage:${s.j.id}:${stage}`;
-      if (made.has(key)) continue;
       const cur = Array.isArray(s.j.tags) ? s.j.tags.map(Number) : [];
+      // Its own step, as a job that was at Quote In Draft once has had that one.
+      const key = `qstage:${s.j.id}:${unsoldAtToBook(cur, stage, ids) ? "unsold" : stage}`;
+      if (made.has(key)) continue;
       if (!planTags(cur, stage, ids)) {
         if (atStage(cur, stage)) made.set(key, stamp());
         continue;
