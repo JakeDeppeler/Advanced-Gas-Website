@@ -42,6 +42,7 @@
     "check:wording": "npx tsx scripts/check-wording.ts",
     "check:quote-templates": "npx tsx scripts/check-quote-templates.ts",
     "check:equipment-copy": "npx tsx scripts/check-equipment-copy.ts",
+    "check:service-wording": "npx tsx scripts/check-service-wording.ts",
     "check:crew": "npx tsx scripts/check-crew.ts"
   },
   "dependencies": {
