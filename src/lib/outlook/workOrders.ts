@@ -687,7 +687,7 @@ export async function tapiBackfill(deadline: number): Promise<{ filled: number; 
       const said = [
         await fillTenant(loc, merged).catch((e: Error) => `tenant not put on: ${stSaid(e)}`),
         await fillManager(loc, merged).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
-        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).then((x) => x.type).catch(() => null)).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
+        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).then((x) => x.type).catch(() => null), { onlyEmpty: true }).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
       ].filter(Boolean).join("; ");
       await save(r.mailbox, r.message_id, { details: { ...merged, tapi: `caught up later: ${page.note}` } });
       await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: the Tapi page's details put on the site`, detail: (said || "nothing new for the site").slice(0, 300) }]).catch(() => undefined);
@@ -721,7 +721,7 @@ export async function siteBackfill(deadline: number): Promise<{ done: number }> 
       await fillManager(r.st_location_id, w).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
       await fillSiteDetails(r.st_location_id, w, () => lookUpPropertyType(w.street ?? "", w.suburb ?? "", w.postcode ?? "")
         .then((x) => { lookupNote = x.note; return x.type; })
-        .catch((e: Error) => { lookupNote = `the lookup failed: ${e.message}`.slice(0, 200); return null; }))
+        .catch((e: Error) => { lookupNote = `the lookup failed: ${e.message}`.slice(0, 200); return null; }), { onlyEmpty: true })
         .catch((e: Error) => `site details not filled: ${stSaid(e)}`),
     ].filter(Boolean).join("; ");
     await save(r.mailbox, r.message_id, { details: { ...w, siteCaught: said || "nothing new", propertyLookup: lookupNote || (w.propertyLookup as string | undefined) || "the site already had one" } }).catch(() => undefined);

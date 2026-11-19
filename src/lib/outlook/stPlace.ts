@@ -379,13 +379,16 @@ const FIELD = { jobRef: 209604015, owner: 209602958, propertyType: 209599952 } a
  * they replace what's there; a property type someone has set is kept.
  * Returns what changed, in words, or "" for nothing.
  */
-export async function fillSiteDetails(locationId: number, w: WorkOrder, propertyType: () => Promise<string | null>): Promise<string> {
+export async function fillSiteDetails(locationId: number, w: WorkOrder, propertyType: () => Promise<string | null>, opts: { onlyEmpty?: boolean } = {}): Promise<string> {
   const path = stTenantPath("crm", `locations/${locationId}`);
   const loc = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(path);
   const have = new Map((loc.customFields ?? []).map((f) => [f.typeId, (f.value ?? "").trim()]));
   const set = new Map<number, string>();
-  if (w.number) set.set(FIELD.jobRef, jobReference(w.number).slice(0, 100));
-  if (w.owner) set.set(FIELD.owner, w.owner.slice(0, 160));
+  // A catch-up only fills what's empty: the office may have written it since
+  // (41 Shanks Drive's "QU-8041 & 8042", 18 Nov), and a new job's are its own.
+  const may = (id: number) => !opts.onlyEmpty || !have.get(id);
+  if (w.number && may(FIELD.jobRef)) set.set(FIELD.jobRef, jobReference(w.number).slice(0, 100));
+  if (w.owner && may(FIELD.owner)) set.set(FIELD.owner, w.owner.slice(0, 160));
   if (!have.get(FIELD.propertyType)) {
     const t = await propertyType().catch(() => null);
     if (t) set.set(FIELD.propertyType, t);
