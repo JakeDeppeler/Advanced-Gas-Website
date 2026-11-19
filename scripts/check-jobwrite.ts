@@ -7,8 +7,7 @@
 
 import assert from "node:assert/strict";
 import { alreadyOnePrice, planOnePrice, roleOf, type DocLine } from "../src/lib/jobwrite/lines";
-import { summaryHtmlFor, summaryHtmlFromText, summaryTextFor, wordsInput } from "../src/lib/jobwrite/words";
-import { summaryBlock } from "../src/lib/jobwrite/labels";
+import { WORDS_RULES, isHeading, parseWords, summaryHtmlFromText, tidySummary, wordsInput } from "../src/lib/jobwrite/words";
 
 let n = 0;
 const line = (id: number, type: string, code: string, qty: number, unitPrice: number, unitCost = 0): DocLine =>
@@ -76,12 +75,6 @@ assert.equal(none.target, null);
 assert.equal(none.after, none.before);
 n += 5;
 
-// The summary: labels in bold, empty parts left out, the text escaped.
-const q = { doing: "Replacing your heater & cooling.", removing: "", included: "New ductwork <R1.5>.", excluded: "", labour: "x" };
-assert.equal(summaryHtmlFor("estimate", q), "<p><strong>What we're doing:</strong> Replacing your heater &amp; cooling.</p><p><strong>What's included:</strong> New ductwork &lt;R1.5&gt;.</p>");
-assert.equal(summaryTextFor("invoice", { did: "Fitted it.", removed: "The old one.", included: "", labour: "" }), "What we did: Fitted it.\n\nWhat we removed: The old one.");
-n += 2;
-
 // The input says which parts went into the one price, and no prices are asked for.
 const input = wordsInput({
   job: { number: "20912", type: "Installation - Ducted Refrigerated", businessUnit: null, status: "Scheduled", summary: "<p>Ducted 16kW</p>" },
@@ -95,14 +88,29 @@ assert.match(input.text, /<invoice>none on this job<\/invoice>/);
 assert.equal(input.key, wordsInput({ ...{ job: { number: "20912", type: "Installation - Ducted Refrigerated", businessUnit: null, status: "Scheduled", summary: "<p>Ducted 16kW</p>" } }, quote: { kind: "estimate", id: 1, name: "Mitsubishi 16kW", status: "Sold", summary: null, lines: ducted }, quotePlan: p, invoice: null, invoicePlan: null, reports: [], notes: [{ at: "2026-11-10T00:00:00Z", text: "Manhole in the hallway", jobNumber: "20880" }], electricians: [] }).key);
 n += 5;
 
-// The summary as one block on the page and back to ServiceTitan: labels bold, other paragraphs as typed.
-const block = summaryBlock("estimate", { doing: "Replacing your split.", removing: "The old Fujitsu & its bracket.", included: "", excluded: "Patching.", labour: "x" });
-assert.equal(block, "What we're doing: Replacing your split.\n\nWhat we're removing: The old Fujitsu & its bracket.\n\nWhat's not included: Patching.");
-assert.equal(summaryHtmlFromText(`${block}\n\nThe pump comes off if it isn't needed.`),
-  "<p><strong>What we're doing:</strong> Replacing your split.</p><p><strong>What we're removing:</strong> The old Fujitsu &amp; its bracket.</p><p><strong>What's not included:</strong> Patching.</p><p>The pump comes off if it isn't needed.</p>");
+// The summary as written, in Jake's style, back to ServiceTitan: paragraphs, headings in bold, escaped.
+const written = "Supply and installation of a Rinnai multi-head system & controller.\n\nInstallation Details:\n\nMaster bedroom: Indoor unit beneath the bulkhead.\n\nImportant Note – Existing System Condition\n\nThe cooler is <old>.";
+assert.equal(summaryHtmlFromText(written),
+  "<p>Supply and installation of a Rinnai multi-head system &amp; controller.</p><p><strong>Installation Details:</strong></p><p>Master bedroom: Indoor unit beneath the bulkhead.</p><p><strong>Important Note – Existing System Condition</strong></p><p>The cooler is &lt;old&gt;.</p>");
+assert.equal(isHeading("Master bedroom: Indoor unit beneath the bulkhead."), false, "a location line is a paragraph, not a heading");
+assert.equal(isHeading("Installation Details:"), true);
+// A template's labelled summary still keeps its labels bold.
 assert.equal(summaryHtmlFromText("What we did: Fitted it.\nTested it.\n\n\n"), "<p><strong>What we did:</strong> Fitted it.<br>Tested it.</p>");
 assert.equal(summaryHtmlFromText("  \n  "), "");
-n += 4;
+n += 5;
+
+// Markdown the model slips in comes out; paragraphs stay.
+assert.equal(tidySummary("**Installation Details:**\n\n- Master bedroom: under the bulkhead.\n\n\n1. Lounge: 5kW head."), "Installation Details:\n\nMaster bedroom: under the bulkhead.\n\nLounge: 5kW head.");
+const parsed = parseWords(JSON.stringify({ quote: { summary: "Supply and installation of X.\n\nInstallation Details:", labour: "  Installation   of X. " }, invoice: { summary: "Supplied and installed X.", labour: "Installed X." } }));
+assert.equal(parsed.quote.summary, "Supply and installation of X.\n\nInstallation Details:");
+assert.equal(parsed.quote.labour, "Installation of X.");
+n += 3;
+
+// The rules carry both of Jake's examples and say their facts aren't this job's.
+assert.match(WORDS_RULES, /A54 \/ A1400, 13 x 1372mm/);
+assert.match(WORDS_RULES, /Rinnai multi-head reverse cycle split system comprising five indoor units/);
+assert.match(WORDS_RULES, /None of their facts belong to this job/);
+n += 3;
 
 // The office's notes go in first, and say so in what it was written from.
 const withNotes = wordsInput({
@@ -112,6 +120,7 @@ const withNotes = wordsInput({
 });
 assert.ok(withNotes.text.startsWith("<office_notes>\nRoof bracket."));
 assert.equal(withNotes.sources[0], "your notes");
+assert.ok(input.text.indexOf("<job_notes>") < input.text.indexOf("<quote "), "the report and notes come before the quote");
 assert.match(wordsInput({ job: { number: "1", type: null, businessUnit: null, status: null, summary: null }, quote: null, quotePlan: null, invoice: null, invoicePlan: null, reports: [], notes: [], electricians: [] }).text, /^<office_notes>\nnone\n<\/office_notes>/);
 n += 3;
 

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Pill } from "@/components/portal/kit/Kit";
 import { money2 } from "@/lib/portal/format";
 import { ROLE_WORD, type Role } from "@/lib/jobwrite/lines";
-import { summaryBlock } from "@/lib/jobwrite/labels";
 import { putWriteup, saveJobNotes, undoJobWriteup, writeJobWords } from "@/app/portal/jobs/write-up/actions";
 
 export type DocView = {
@@ -144,8 +143,8 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
     const r = await writeJobWords(job, quote?.id ?? null, notes);
     if (!r.ok) { setWriteMsg({ ok: false, text: r.error }); return; }
     setDrafts({
-      estimate: { summary: summaryBlock("estimate", r.words.quote), labour: r.words.quote.labour },
-      invoice: { summary: summaryBlock("invoice", r.words.invoice), labour: r.words.invoice.labour },
+      estimate: { summary: r.words.quote.summary, labour: r.words.quote.labour },
+      invoice: { summary: r.words.invoice.summary, labour: r.words.invoice.labour },
     });
     setStage({ estimate: "new", invoice: "new" });
     setWritten(r.from);
@@ -223,7 +222,7 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
             <h2 id="jw-s-h"><span className="jw-n" aria-hidden="true">2</span>Job summary</h2>
             <span className="jw-end"><span className={`jw-tag ${tag.cls}`}>{tag.w}</span><Copy text={draft.summary} /></span>
           </div>
-          <textarea id="jw-summary" aria-labelledby="jw-s-h" className="jw-ta" rows={rows(draft.summary, 6)} value={draft.summary} onChange={(e) => set("summary", e.target.value)} placeholder={kind === "estimate" ? "What we're doing: …\n\nWhat we're removing: …\n\nWhat's included: …\n\nWhat's not included: …" : "What we did: …\n\nWhat we removed: …\n\nWhat was included: …"} />
+          <textarea id="jw-summary" aria-labelledby="jw-s-h" className="jw-ta" rows={rows(draft.summary, 6)} value={draft.summary} onChange={(e) => set("summary", e.target.value)} placeholder={kind === "estimate" ? "Supply and installation of …\n\nThe existing … will be removed …\n\nInstallation Details:\n\nMaster bedroom: …\n\nAll installations will be completed in accordance with manufacturer specifications and applicable industry requirements." : "Supplied and installed …\n\nThe existing … was removed …"} />
         </section>
 
         <section className="jw-card" aria-labelledby="jw-l-h">
