@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { officeWork } from "@/lib/portal/caps";
+import { sbUpsert } from "@/lib/dashboard/db";
 import { jobDocIds, loadJob } from "@/lib/jobwrite/load";
 import { planOnePrice } from "@/lib/jobwrite/lines";
 import { writeWords } from "@/lib/jobwrite/write";
-import { summaryHtmlFor } from "@/lib/jobwrite/words";
-import type { InvoiceWords, JobWords, QuoteWords } from "@/lib/jobwrite/labels";
+import { summaryHtmlFromText } from "@/lib/jobwrite/words";
+import type { JobWords } from "@/lib/jobwrite/labels";
 import { putOnServiceTitan, undoWriteup } from "@/lib/jobwrite/apply";
 
 export type WordsResult = { ok: true; words: JobWords; from: string[] } | { ok: false; error: string };
@@ -15,29 +16,55 @@ export type PutResult = { ok: true; note: string } | { ok: false; error: string 
 
 const PATH = "/portal/jobs/write-up";
 
-/** The words for the job's chosen quote and its invoice, read fresh from ServiceTitan. */
-export async function writeJobWords(job: string, quoteId: number | null): Promise<WordsResult> {
+/** The office's notes for the job, kept with it so the next person sees them (0121). */
+async function saveNotes(jobId: number, notes: string, by: string): Promise<void> {
+  await sbUpsert("job_writeup_notes", [{ job_id: jobId, notes: notes.slice(0, 3000), updated_by: by, updated_at: new Date().toISOString() }], "job_id");
+}
+
+/**
+ * The words for the job's chosen quote and its invoice, read fresh from
+ * ServiceTitan, written from the office's notes first. The notes are saved
+ * before writing, so they're kept even if Claude can't be reached.
+ */
+export async function writeJobWords(job: string, quoteId: number | null, notes: string): Promise<WordsResult> {
   const user = await getPortalUser();
   if (!user || !officeWork(user)) return { ok: false, error: "This is for the office." };
   try {
     const f = await loadJob(job);
     if (!f) return { ok: false, error: `Job ${job} isn't in the portal's copy of ServiceTitan yet.` };
+    await saveNotes(f.jobId, notes, user.name).catch(() => undefined);
     const quote = f.quotes.find((x) => x.id === quoteId) ?? f.quotes[0] ?? null;
     const r = await writeWords({
       job: { number: f.number, type: f.type, businessUnit: f.businessUnit, status: f.status, summary: f.summary },
       quote, quotePlan: quote ? planOnePrice(quote) : null,
       invoice: f.invoice, invoicePlan: f.invoice ? planOnePrice(f.invoice) : null,
-      reports: f.reports, notes: f.notes, electricians: f.electricians,
+      reports: f.reports, notes: f.notes, electricians: f.electricians, officeNotes: notes,
     });
+    revalidatePath(PATH);
     return { ok: true, words: r.words, from: r.from };
   } catch (e) {
     return { ok: false, error: `The words couldn't be written: ${(e as Error).message}.` };
   }
 }
 
+/** Just the notes, from the Save button, without writing anything. */
+export async function saveJobNotes(job: string, notes: string): Promise<PutResult> {
+  const user = await getPortalUser();
+  if (!user || !officeWork(user)) return { ok: false, error: "This is for the office." };
+  const f = await jobDocIds(job).catch(() => null);
+  if (!f) return { ok: false, error: `Job ${job} couldn't be read.` };
+  try {
+    await saveNotes(f.jobId, notes, user.name);
+  } catch {
+    return { ok: false, error: "The notes couldn't be saved." };
+  }
+  revalidatePath(PATH);
+  return { ok: true, note: "Notes saved." };
+}
+
 /** The summary and the labour line onto the quote or the invoice, with the one price if asked. */
 export async function putWriteup(input: {
-  job: string; kind: "estimate" | "invoice"; docId: number; words: QuoteWords | InvoiceWords; onePrice: boolean; expectCombined: number | null;
+  job: string; kind: "estimate" | "invoice"; docId: number; summary: string; labour: string; onePrice: boolean; expectCombined: number | null;
 }): Promise<PutResult> {
   const user = await getPortalUser();
   if (!user || !officeWork(user)) return { ok: false, error: "This is for the office." };
@@ -46,11 +73,11 @@ export async function putWriteup(input: {
   // Only the job's own quote or invoice: an id typed into the request can't reach another customer's.
   const mine = input.kind === "estimate" ? f.quoteIds.includes(input.docId) : f.invoiceId === input.docId;
   if (!mine) return { ok: false, error: "That isn't this job's quote or invoice." };
-  const html = summaryHtmlFor(input.kind, input.words);
-  if (!html) return { ok: false, error: "The summary is empty." };
+  const html = summaryHtmlFromText(input.summary ?? "");
+  if (!html) return { ok: false, error: "The job summary is empty." };
   const r = await putOnServiceTitan({
     jobId: f.jobId, jobNumber: f.number, kind: input.kind, docId: input.docId,
-    summaryHtml: html, labour: input.words.labour ?? "", onePrice: input.onePrice, expectCombined: input.expectCombined, by: user.name,
+    summaryHtml: html, labour: input.labour ?? "", onePrice: input.onePrice, expectCombined: input.expectCombined, by: user.name,
   });
   revalidatePath(PATH);
   return r;

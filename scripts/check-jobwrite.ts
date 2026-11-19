@@ -7,7 +7,8 @@
 
 import assert from "node:assert/strict";
 import { alreadyOnePrice, planOnePrice, roleOf, type DocLine } from "../src/lib/jobwrite/lines";
-import { summaryHtmlFor, summaryTextFor, wordsInput } from "../src/lib/jobwrite/words";
+import { summaryHtmlFor, summaryHtmlFromText, summaryTextFor, wordsInput } from "../src/lib/jobwrite/words";
+import { summaryBlock } from "../src/lib/jobwrite/labels";
 
 let n = 0;
 const line = (id: number, type: string, code: string, qty: number, unitPrice: number, unitCost = 0): DocLine =>
@@ -93,5 +94,25 @@ assert.match(input.text, /Manhole in the hallway/);
 assert.match(input.text, /<invoice>none on this job<\/invoice>/);
 assert.equal(input.key, wordsInput({ ...{ job: { number: "20912", type: "Installation - Ducted Refrigerated", businessUnit: null, status: "Scheduled", summary: "<p>Ducted 16kW</p>" } }, quote: { kind: "estimate", id: 1, name: "Mitsubishi 16kW", status: "Sold", summary: null, lines: ducted }, quotePlan: p, invoice: null, invoicePlan: null, reports: [], notes: [{ at: "2026-11-10T00:00:00Z", text: "Manhole in the hallway", jobNumber: "20880" }], electricians: [] }).key);
 n += 5;
+
+// The summary as one block on the page and back to ServiceTitan: labels bold, other paragraphs as typed.
+const block = summaryBlock("estimate", { doing: "Replacing your split.", removing: "The old Fujitsu & its bracket.", included: "", excluded: "Patching.", labour: "x" });
+assert.equal(block, "What we're doing: Replacing your split.\n\nWhat we're removing: The old Fujitsu & its bracket.\n\nWhat's not included: Patching.");
+assert.equal(summaryHtmlFromText(`${block}\n\nThe pump comes off if it isn't needed.`),
+  "<p><strong>What we're doing:</strong> Replacing your split.</p><p><strong>What we're removing:</strong> The old Fujitsu &amp; its bracket.</p><p><strong>What's not included:</strong> Patching.</p><p>The pump comes off if it isn't needed.</p>");
+assert.equal(summaryHtmlFromText("What we did: Fitted it.\nTested it.\n\n\n"), "<p><strong>What we did:</strong> Fitted it.<br>Tested it.</p>");
+assert.equal(summaryHtmlFromText("  \n  "), "");
+n += 4;
+
+// The office's notes go in first, and say so in what it was written from.
+const withNotes = wordsInput({
+  job: { number: "20912", type: "Installation - Split", businessUnit: null, status: null, summary: null },
+  quote: null, quotePlan: null, invoice: null, invoicePlan: null, reports: [], notes: [], electricians: [],
+  officeNotes: "Roof bracket. Condensate pump; if not needed it comes off the quote.",
+});
+assert.ok(withNotes.text.startsWith("<office_notes>\nRoof bracket."));
+assert.equal(withNotes.sources[0], "your notes");
+assert.match(wordsInput({ job: { number: "1", type: null, businessUnit: null, status: null, summary: null }, quote: null, quotePlan: null, invoice: null, invoicePlan: null, reports: [], notes: [], electricians: [] }).text, /^<office_notes>\nnone\n<\/office_notes>/);
+n += 3;
 
 console.log(`check-jobwrite: ${n} checks passed`);

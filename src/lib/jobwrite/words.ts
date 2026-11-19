@@ -41,11 +41,16 @@ export const WORDS_SCHEMA = {
 } as const;
 
 /** Bumped when the rules change, so a saved write-up is written again. */
-export const WORDS_VERSION = "1";
+// 2 (19 Nov, Jake): the office's own notes for the job come first: how it's
+// going in (a roof bracket, a pump), what's coming out, and anything that
+// comes off the quoted price if it isn't needed.
+export const WORDS_VERSION = "2";
 
 export const WORDS_RULES = `You write the customer-facing words on a quote and an invoice for Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The customer reads them, so they are plain, specific to this job and accurate.
 
-You are given the job, its quote (the lines and the summary already on it), the invoice if there is one, the tech's Condition Report from the visit, the notes on the job and earlier visits to the site, and any electrician booked.
+You are given the office's notes for this job, then the job, its quote (the lines and the summary already on it), the invoice if there is one, the tech's Condition Report from the visit, the notes on the job and earlier visits to the site, and any electrician booked.
+
+The office's notes come first. They say how the job is going in (an outdoor unit on a roof bracket, a condensate pump), what's coming out, and anything that comes off the price if it turns out not to be needed. Everything they say goes in, in the part it belongs to, and where an older record disagrees, the notes win. Something that may not be needed goes under what's included, said plainly: "A condensate pump to drain the indoor unit, if it's needed; if it isn't, it comes off the quoted price." Give the amount only when the notes give one.
 
 Write two things for each document.
 
@@ -61,7 +66,7 @@ Rules:
 - The parts of the price you're told are merged into the labour line are the only ones it covers. Say electrical work is included only if the job has an electrical line or an electrician booked; say materials only if there are materials.
 - What a tech found is said the way they said it, not reworded into something else.
 - The equipment line sells the unit, so the summary describes the job, not the brand's features.
-- No prices, dollar figures, hours or quantities of labour. No customer names, phone numbers or addresses. No selling, no warranty claims, no promises the records don't make.
+- No prices, dollar figures, hours or quantities of labour, except an amount the office's notes give for something that comes off. No customer names, phone numbers or addresses. No selling, no warranty claims, no promises the records don't make.
 - Australian English, short plain sentences, written to the customer ("your").
 - Don't mention the records themselves (a form, a note, what's missing). Write about the job.`;
 
@@ -81,6 +86,8 @@ export type WordsInput = {
   reports: VisitReport[];
   notes: JobNote[];
   electricians: Electrician[];
+  /** What the office typed on the write-up page for this job. */
+  officeNotes?: string;
 };
 
 function docText(tag: string, d: Doc | null, p: Plan | null): string {
@@ -107,7 +114,9 @@ function docText(tag: string, d: Doc | null, p: Plan | null): string {
 export function wordsInput(w: WordsInput): { text: string; key: string; sources: string[] } {
   const notes = w.notes.filter((n) => tidy(n.text)).slice(0, 12).map((n) => `- ${n.at ? n.at.slice(0, 10) : "undated"}${n.jobNumber ? `, job ${n.jobNumber}` : ""}: ${cut(tidy(n.text), 500)}`);
   const sparky = w.electricians.map((e) => `- ${e.supplier}${e.date ? `, ${e.date}` : ""} (${e.status})${e.note ? `: ${cut(tidy(e.note), 300)}` : ""}`);
+  const office = (w.officeNotes ?? "").trim().slice(0, 3000);
   const text = [
+    `<office_notes>\n${office || "none"}\n</office_notes>`,
     `Job ${tidy(w.job.number) || "?"}: ${tidy(w.job.type) || "type not set"}${w.job.businessUnit ? `, ${tidy(w.job.businessUnit)}` : ""}${w.job.status ? `, ${tidy(w.job.status)}` : ""}`,
     `<job_summary>\n${cut(tidy(plainText(w.job.summary)), 1500) || "(none written)"}\n</job_summary>`,
     docText("quote", w.quote, w.quotePlan),
@@ -118,11 +127,12 @@ export function wordsInput(w: WordsInput): { text: string; key: string; sources:
   ].join("\n\n");
   const key = createHash("sha1").update(`${WORDS_VERSION}\n${text}`).digest("hex").slice(0, 16);
   const sources = [
+    office ? "your notes" : null,
     w.quote ? "the quote" : null,
     w.invoice ? "the invoice" : null,
     w.job.summary ? "the job summary" : null,
     w.reports.length ? `${w.reports.length === 1 ? "the Condition Report" : `${w.reports.length} Condition Reports`}` : null,
-    w.notes.length ? `${w.notes.length} ${w.notes.length === 1 ? "note" : "notes"}` : null,
+    w.notes.length ? `${w.notes.length} ${w.notes.length === 1 ? "job note" : "job notes"}` : null,
     w.electricians.length ? "the electrician's booking" : null,
   ].filter(Boolean) as string[];
   return { text, key, sources };
@@ -159,4 +169,19 @@ export function summaryTextFor(kind: "estimate" | "invoice", w: QuoteWords | Inv
     .filter(([, t]) => t)
     .map(([label, t]) => `${label} ${t}`)
     .join("\n\n");
+}
+
+const LABEL_AT_START = new RegExp(`^(${[...Object.values(QUOTE_LABELS), ...Object.values(INVOICE_LABELS)].map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*`);
+
+/**
+ * The job summary as the office left it on the page, as ServiceTitan's HTML:
+ * a paragraph for each block of text, and a label it starts with in bold, the
+ * way the quote templates show theirs. Anything else typed stays as typed.
+ */
+export function summaryHtmlFromText(text: string): string {
+  return text.replace(/\r/g, "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((p) => {
+    const m = LABEL_AT_START.exec(p);
+    const body = esc(m ? p.slice(m[0].length) : p).replace(/\n/g, "<br>");
+    return `<p>${m ? `<strong>${esc(m[1])}</strong> ` : ""}${body}</p>`;
+  }).join("");
 }

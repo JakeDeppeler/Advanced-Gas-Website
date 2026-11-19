@@ -4213,37 +4213,43 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .kc-t tr.kc-tip td { padding: 10px 0 0; }
 }
 
-/* Jobs › Write-up: a job's quote and invoice words, and one labour price (19 Nov). */
-.jw-find { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 16px; }
+/* Jobs › Write-up: a job's summary, its labour line under one price, and the office's notes (19 Nov). */
+.jw-find { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 18px; }
 .jw-find label { font-size: 13px; font-weight: 600; color: var(--ink2); }
 .jw-find .pk-in { width: 140px; font-size: 15px; padding: 8px 12px; }
-.jw { display: grid; gap: 16px; }
-.jw-quotes { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; font-size: 13px; }
-.jw-quotes > span { color: var(--ink2); font-weight: 600; }
+.jw { display: grid; gap: 14px; max-width: 860px; }
+.jw-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.jw-job { margin: 0; font-size: 15px; color: var(--ink2); }
+.jw-job b { color: var(--ink); }
+.jw-seg { display: inline-flex; padding: 3px; border-radius: 99px; background: var(--quiet); gap: 2px; }
+.jw-seg button { font: inherit; font-size: 14px; font-weight: 600; color: var(--ink2); background: none; border: 0; border-radius: 99px; padding: 7px 16px; cursor: pointer; }
+.jw-seg button span { font-weight: 500; }
+.jw-seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--seg-shadow); }
+.jw-quotes { display: flex; flex-wrap: wrap; gap: 6px 8px; font-size: 13px; }
 .jw-quotes a { padding: 5px 11px; border-radius: 99px; background: var(--quiet); color: var(--ink); text-decoration: none; }
 .jw-quotes a[aria-current="true"] { background: var(--mark); color: var(--on-mark); font-weight: 700; }
-.jw-write { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.jw-quiet { font-size: 13px; color: var(--ink2); }
+.jw-box { background: var(--surface); border-radius: 16px; padding: 16px 18px; display: grid; gap: 8px; box-shadow: var(--shadow); }
+.jw-bh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.jw-bh h2, .jw-h { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); }
+.jw-sub { font-weight: 500; color: var(--ink2); font-size: 14px; }
+.jw-quiet { margin: 0; font-size: 13px; color: var(--ink2); }
+.jw-grow { flex: 1 1 260px; }
+.jw-sum { margin: 0; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.jw-ta { field-sizing: content; width: 100%; box-sizing: border-box; resize: vertical; padding: 10px 12px; border-radius: 10px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--sunken); font: inherit; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+.jw-ta:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent); }
+.jw-notes { box-shadow: var(--shadow), inset 0 0 0 2px var(--accent-bg); }
+.jw-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.jw-row > .jw-quiet:last-child { flex: 1 1 220px; }
+.jw-putbox .jw-row { justify-content: space-between; }
+.jw-copy { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--quiet); border: 0; border-radius: 99px; padding: 3px 10px; cursor: pointer; }
+.jw-copy:disabled { opacity: .5; cursor: default; }
+.jw-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; flex: 1 1 260px; }
+.jw-check input { margin-top: 3px; }
 .jw-msg { margin: 0; font-size: 14px; padding: 9px 12px; border-radius: 10px; }
 .jw-msg.ok { background: var(--good-bg); color: var(--good); }
 .jw-msg.bad { background: var(--bad-bg); color: var(--bad); }
-.jw-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; align-items: start; }
-.jw-cols > * { min-width: 0; }
-.jw-doc { display: grid; gap: 12px; }
-.jw-field { display: grid; gap: 5px; }
-.jw-fh { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-.jw-fh label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink2); }
-.jw-ta { field-sizing: content; width: 100%; box-sizing: border-box; resize: vertical; padding: 9px 11px; border-radius: 10px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--surface); font: inherit; font-size: 14px; line-height: 1.5; color: var(--ink); }
-.jw-ta:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent); }
-.jw-copy { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--quiet); border: 0; border-radius: 99px; padding: 3px 10px; cursor: pointer; }
-.jw-copy:disabled { opacity: .5; cursor: default; }
-.jw-put { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; padding-top: 4px; }
-.jw-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; flex: 1 1 260px; }
-.jw-check input { margin-top: 3px; }
-.jw-now { display: grid; gap: 4px; font-size: 14px; }
-.jw-now p { margin: 0; color: var(--ink2); white-space: pre-line; }
-.jw-lines { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
-.jw-lines > summary { cursor: pointer; font-size: 14px; color: var(--ink); }
+.jw-lines { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+.jw-lines > summary { cursor: pointer; font-size: 14px; color: var(--ink2); }
 .jw-lines .pk-tbl-wrap { margin-top: 8px; }
 .jw-plan td, .jw-plan th { vertical-align: top; }
 .jw-plan td:nth-child(n+3), .jw-plan th:nth-child(n+3), .jw-plan tfoot td { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -4256,10 +4262,10 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .jw-hist li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .jw-hist li > span:not(.pk-st) { flex: 1 1 240px; color: var(--ink2); }
 @media (max-width: 640px) {
+  .jw-box { padding: 14px; }
   .jw-plan thead { display: none; }
   .jw-plan tr { display: grid; grid-template-columns: 1fr auto auto; gap: 2px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .jw-plan td { padding: 0; border: 0; }
   .jw-plan td:nth-child(1) { grid-column: 1 / -1; }
   .jw-plan td:nth-child(2) { font-size: 12.5px; color: var(--ink2); }
-  .jw-plan tfoot tr { grid-template-columns: 1fr auto auto; }
 }

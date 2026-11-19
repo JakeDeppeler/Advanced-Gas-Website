@@ -13,3 +13,18 @@ export const QUOTE_LABELS: Record<keyof Omit<QuoteWords, "labour">, string> = {
 export const INVOICE_LABELS: Record<keyof Omit<InvoiceWords, "labour">, string> = {
   did: "What we did:", removed: "What we removed:", included: "What was included:",
 };
+
+/**
+ * The job summary as one block to read and change (Jake, 19 Nov: "the job
+ * summary and then the labour line"): each part a paragraph starting with its
+ * label, the empty ones left out. words.ts turns it back into ServiceTitan's
+ * HTML with the labels in bold.
+ */
+export function summaryBlock(kind: "estimate" | "invoice", w: QuoteWords | InvoiceWords): string {
+  const labels: Record<string, string> = kind === "estimate" ? QUOTE_LABELS : INVOICE_LABELS;
+  return Object.entries(labels)
+    .map(([k, label]) => [label, ((w as Record<string, string>)[k] ?? "").replace(/\s+/g, " ").trim()] as const)
+    .filter(([, t]) => t)
+    .map(([label, t]) => `${label} ${t}`)
+    .join("\n\n");
+}
