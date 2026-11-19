@@ -2705,19 +2705,14 @@ body:has(.screen) .utilbar {
   align-items: center;
   gap: calc(0.08 * var(--u));
   border-radius: calc(0.45 * var(--u));
-  padding: calc(0.2 * var(--u)) calc(0.1 * var(--u));
+  /* More at the foot than the head: the rain figure is the last line and was
+     sitting hard on the bottom edge, which read as hanging off it. */
+  padding: calc(0.2 * var(--u)) calc(0.1 * var(--u)) calc(0.45 * var(--u));
 }
 /* The working day is the lit part of the strip. The shoulders are there so an
    early start and a late finish are on the page, not to be read equally. */
 .wxs__h.is-work { background: var(--track); }
 .wxs__h:not(.is-work) { opacity: 0.55; }
-/* The hour the evap verdict was decided on, outlined so the week above and the
-   strip below visibly agree. */
-.wxs__h.is-judged {
-  outline: 2px solid var(--navy);
-  outline-offset: calc(-0.1 * var(--u));
-}
-.screen--dark .wxs__h.is-judged { outline-color: var(--ink-2); }
 .wxs__t {
   font-size: calc(1.1 * var(--u));
   font-weight: 800;
