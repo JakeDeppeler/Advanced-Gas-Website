@@ -365,7 +365,7 @@ body:has(.screen) .utilbar {
 /* The week and its jobs on top, today hour by hour beneath. The week takes
    the larger share: on the busiest day of summer a column holds its weather
    header and four job cards, and the strip is a glance. */
-.screen__grid--weather { grid-template-rows: 2.2fr 1fr; }
+.screen__grid--weather { grid-template-rows: 2.45fr 1fr; }
 
 /* Sectors: what a breakdown or a maintenance visit led to. The navy family, not
    the status palette: an install isn't "good" and a plain service isn't "bad",
@@ -2820,8 +2820,8 @@ body:has(.screen) .utilbar {
 .wxw__jobs {
   display: flex;
   flex-direction: column;
-  gap: calc(0.22 * var(--u));
-  padding-top: calc(0.35 * var(--u));
+  gap: calc(0.2 * var(--u));
+  padding-top: calc(0.25 * var(--u));
   flex: 1;
   min-height: 0;
 }
@@ -2893,3 +2893,38 @@ body:has(.screen) .utilbar {
   min-width: 0;
   overflow-wrap: break-word;
 }
+
+/* ── the sky ──────────────────────────────────────────────────────────────
+   Drawn, not fetched. Everything inherits currentColor or the two tints
+   below, so the icon follows its column's ink into the dark theme without a
+   second rule. */
+.sky {
+  /* Square, and no taller than the temperature it sits beside: a taller icon
+     sets the height of the whole header row, and the half unit it added put a
+     busy summer week 18 pixels over the tile. */
+  width: calc(1.55 * var(--u));
+  height: calc(1.55 * var(--u));
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.sky--cloud { fill: #c6cbd8; stroke: none; }
+.sky--sun { fill: #e8a33d; stroke: none; }
+.sky__rays { stroke: #e8a33d; stroke-width: 1.6; stroke-linecap: round; fill: none; }
+.sky--rain { stroke: #5b7fc4; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+.sky--bolt { fill: #e8a33d; stroke: none; }
+.screen--dark .sky--cloud { fill: #6a7183; }
+.screen--dark .sky--sun,
+.screen--dark .sky--bolt { fill: #f0b659; }
+.screen--dark .sky__rays { stroke: #f0b659; }
+.screen--dark .sky--rain { stroke: #89a8e4; }
+
+/* The temperature and the sky share a line at the head of a day column. */
+.wxw__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(0.3 * var(--u));
+  min-width: 0;
+}
+/* In the hour strip the icon is smaller: fourteen of them across the wall. */
+.wxs__h .sky { width: calc(1.35 * var(--u)); height: calc(1.5 * var(--u)); }

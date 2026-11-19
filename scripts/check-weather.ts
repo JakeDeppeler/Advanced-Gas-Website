@@ -13,8 +13,12 @@ import {
   EVAP_DEMO_MIN_TEMP,
   PAD_EFFICIENCY,
   ROOF_WIND_KMH,
+  ROOF_STOP_MM,
+  ROOF_WATCH_MM,
   callsFor,
   checkEverySeconds,
+  skyFrom,
+  worstSky,
   clock,
   deliveredC,
   evapCall,
@@ -191,37 +195,37 @@ ok("today after the working day says the day is done", evapCall(evening).word ==
 ok("and not that today is too far away", evapCall(evening).word !== "Too far out");
 
 console.log("\n-- the roof --");
-const wetDay = day({ hours: [hour(8, 18, 80), hour(11, 20, 85, 1.4), hour(13, 21, 85, 2.2), hour(16, 19, 88)] });
-ok("rain in the working day is off the roof", roofCall(wetDay).rating === "no", roofCall(wetDay).word);
+/*
+ * The thresholds here moved once, and the move is the point: see "Jake's roof
+ * numbers" above. What was tested before — 0.2mm in any single hour taking a
+ * crew off a roof, 2mm across a day — was measuring whether a roof got wet.
+ * What matters is whether a day is lost.
+ */
+const wetDay = day({ hours: [hour(8, 18, 80), hour(11, 20, 85, 3.5), hour(13, 21, 85, 4.5), hour(16, 19, 88)] });
+ok("8mm through the working day is a watch", roofCall(wetDay).rating === "poor", roofCall(wetDay).word);
 ok("and it says how much and when", roofCall(wetDay).why.includes("mm") && /\d(am|pm|noon)/.test(roofCall(wetDay).why),
    roofCall(wetDay).why);
 
-const wetNight = day({ hours: [hour(3, 14, 95, 6), hour(8, 17, 70), hour(13, 24, 45), hour(16, 23, 48)] });
-ok("rain overnight is not", roofCall(wetNight).rating === "fair", roofCall(wetNight).word);
+const wetNight = day({ hours: [hour(3, 14, 95, 9), hour(8, 17, 70), hour(13, 24, 45), hour(16, 23, 48)] });
+ok("rain that falls around the working day is not", roofCall(wetNight).rating === "fair", roofCall(wetNight).word);
 ok("and it says the day itself is dry", roofCall(wetNight).why.includes("dry 7am–4pm"), roofCall(wetNight).why);
 
 const windy = day({ hours: [8, 11, 14, 16].map((h) => hour(h, 22, 50, 0, 44)) });
 ok(`${ROOF_WIND_KMH} km/h and over is off the roof`, roofCall(windy).rating === "no", roofCall(windy).why);
 
 /*
- * The smear. Past the hourly horizon a day's rain arrives six hours at a time
- * and gets apportioned to the working window, so a 0.9mm Sunday came out as
- * "0.6mm in the working day" and the first version put "Off the roof" on it.
- * One sprinkle is not a lost day.
+ * A coarse day past the hourly horizon carries one rain figure per six hours,
+ * apportioned to the working window. It is judged on the same two numbers as
+ * everything else — there is no separate, twitchier rule for it any more.
  */
 const sprinkle = day({
   hours: [],
   minC: 10, maxC: 20, peakAt: null, rainMm: 0.9, workRainMm: 0.6, rainFrom: null, rainTo: null, windKmh: null,
 });
-ok("a sprinkle smeared across a coarse day is not off the roof", roofCall(sprinkle).rating !== "no",
+ok("a sprinkle on a coarse day says nothing", roofCall(sprinkle).rating === "good",
    `${roofCall(sprinkle).word} — ${roofCall(sprinkle).why}`);
-ok("but a real fall on one is", roofCall({ ...sprinkle, rainMm: 9, workRainMm: 6 }).rating === "no");
-/*
- * And the hourly bar stays low, because it is measuring a real hour: 0.3mm
- * falling between two and three o'clock wets the roof you are standing on.
- */
-const oneWetHour = day({ hours: [hour(8, 22, 55), hour(14, 24, 60, 0.3), hour(16, 23, 58)] });
-ok("one wet hour is off the roof, even at 0.3mm", roofCall(oneWetHour).rating === "no", roofCall(oneWetHour).why);
+ok("a real fall on one is a watch", roofCall({ ...sprinkle, rainMm: 9, workRainMm: 7 }).rating === "poor");
+ok("and a downpour takes the roof off the table", roofCall({ ...sprinkle, rainMm: 20, workRainMm: 14 }).rating === "no");
 
 console.log("\n-- a wind figure we do not have --");
 ok("is not reported as a calm", !roofCall(sprinkle).why.includes("0 km/h"), roofCall(sprinkle).why);
@@ -272,6 +276,43 @@ ok("and its evap call still says so when asked directly", evapCall(far).word ===
 ok("every day gets all three calls", callsFor(hotDry).length === 3);
 ok("and every call carries a word and a reason",
    callsFor(wetDay).every((c) => c.word.length > 0 && c.why.length > 0));
+
+console.log("\n-- Jake's roof numbers --");
+/** A working day carrying `total` mm, spread 7am to 3pm. */
+const rainyDay = (total: number) => day({ hours: [7, 9, 11, 13, 15].map((h) => hour(h, 18, 85, total / 5)) });
+ok(`${ROOF_WATCH_MM}mm across the working day is still clear`, roofCall(rainyDay(5)).rating === "good",
+   roofCall(rainyDay(5)).word);
+ok("6mm is a watch", roofCall(rainyDay(6)).rating === "poor", roofCall(rainyDay(6)).word);
+ok(`${ROOF_STOP_MM}mm is still only a watch`, roofCall(rainyDay(10)).rating === "poor");
+ok("12mm takes the roof off the table", roofCall(rainyDay(12)).rating === "no", roofCall(rainyDay(12)).word);
+/*
+ * And Jake's own counter-example: 0.3mm from 9am. The board flagged it, he
+ * said "that is a very very low chance of it not going ahead", and the old
+ * thresholds — 0.2mm in an hour, 2mm across a day — were measuring whether a
+ * roof got wet rather than whether a day was lost.
+ */
+ok("0.3mm in a day says nothing at all", roofCall(rainyDay(0.3)).rating === "good", roofCall(rainyDay(0.3)).why);
+
+console.log("\n-- the sky, from MET's symbol codes --");
+ok("clearsky_day is clear", skyFrom("clearsky_day") === "clear");
+ok("fair_night is fair", skyFrom("fair_night") === "fair");
+ok("partlycloudy_day is partly", skyFrom("partlycloudy_day") === "partly");
+ok("cloudy is cloudy", skyFrom("cloudy") === "cloudy");
+ok("lightrainshowers_day is light rain", skyFrom("lightrainshowers_day") === "lightrain");
+ok("rainshowers_day is rain", skyFrom("rainshowers_day") === "rain");
+ok("heavyrain is heavy rain", skyFrom("heavyrain") === "heavyrain");
+// A code can say several things; the worse one has to win.
+ok("heavyrainandthunder is thunder, not rain", skyFrom("heavyrainandthunder") === "thunder");
+ok("lightsleetshowers is sleet", skyFrom("lightsleetshowers") === "sleet");
+ok("fog is fog", skyFrom("fog") === "fog");
+// No icon beats a wrong icon on a wall.
+ok("something unrecognised draws nothing", skyFrom("martian_dust_storm") === null);
+ok("and so does an absent code", skyFrom(null) === null && skyFrom("") === null);
+
+ok("a day takes the worst of its hours", worstSky(["clear", "cloudy", "heavyrain", "fair"]) === "heavyrain");
+ok("not the commonest", worstSky(["clear", "clear", "clear", "thunder"]) === "thunder");
+ok("nulls are ignored", worstSky([null, "partly", null]) === "partly");
+ok("and all nulls draw nothing", worstSky([null, null]) === null);
 
 console.log("\n-- how often to go and look --");
 /*

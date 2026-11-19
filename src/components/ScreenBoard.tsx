@@ -7,6 +7,7 @@ import {
   deliveredC,
   judgedHour,
   type WxHour,
+  type WxSky,
 } from "@/lib/dashboard/weatherTypes";
 import {
   callsForJobs,
@@ -2776,6 +2777,46 @@ function TypeRow({ t, folded }: { t: JobTypeKpi; folded?: boolean }) {
  * check:weather and check:weatherjobs can get at it.
  */
 
+/**
+ * What the sky is doing, drawn rather than fetched.
+ *
+ * Inline SVG and not MET's own icon set: the set is a hundred PNGs for the
+ * eleven shapes a wall board can tell apart at four metres, and this page
+ * already carries its meaning in words and figures — the icon is there to be
+ * recognised in a glance, not read. `currentColor` throughout, so it inherits
+ * the column's ink and needs nothing from the dark theme.
+ */
+function SkyIcon({ sky }: { sky: WxSky | null | undefined }) {
+  if (!sky) return null;
+  const sun = <circle cx="8" cy="8" r="4.1" />;
+  const cloud = <path d="M6.4 18.5h9.8a3.4 3.4 0 0 0 .35-6.78 5 5 0 0 0-9.6-.9 3.35 3.35 0 0 0-.55 7.68Z" />;
+  const drops = (n: number) => (
+    <g>
+      {[0, 1, 2].slice(0, n).map((i) => (
+        <line key={i} x1={7.2 + i * 3.6} y1="19.6" x2={6.1 + i * 3.6} y2="22.6" />
+      ))}
+    </g>
+  );
+  const body = {
+    clear: <g className="sky--sun">{sun}<g className="sky__rays"><line x1="8" y1="1" x2="8" y2="2.6" /><line x1="8" y1="13.4" x2="8" y2="15" /><line x1="1" y1="8" x2="2.6" y2="8" /><line x1="13.4" y1="8" x2="15" y2="8" /><line x1="3" y1="3" x2="4.2" y2="4.2" /><line x1="11.8" y1="11.8" x2="13" y2="13" /><line x1="13" y1="3" x2="11.8" y2="4.2" /><line x1="4.2" y1="11.8" x2="3" y2="13" /></g></g>,
+    fair: <g><g className="sky--sun">{sun}</g><g className="sky--cloud">{cloud}</g></g>,
+    partly: <g><g className="sky--sun">{sun}</g><g className="sky--cloud">{cloud}</g></g>,
+    cloudy: <g className="sky--cloud">{cloud}</g>,
+    fog: <g className="sky--cloud">{cloud}<line x1="4" y1="21" x2="18" y2="21" /><line x1="6" y1="23.4" x2="16" y2="23.4" /></g>,
+    lightrain: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(1)}</g></g>,
+    rain: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(2)}</g></g>,
+    heavyrain: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(3)}</g></g>,
+    thunder: <g><g className="sky--cloud">{cloud}</g><g className="sky--bolt"><path d="M12.4 18.8 9.2 23.4h2.6l-1 3.4 3.6-5h-2.6l1-2Z" /></g></g>,
+    sleet: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(2)}</g></g>,
+    snow: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain"><line x1="7" y1="20" x2="7" y2="23" /><line x1="11" y1="20" x2="11" y2="23" /><line x1="15" y1="20" x2="15" y2="23" /></g></g>,
+  }[sky];
+  return (
+    <svg className="sky" viewBox="0 0 24 27" aria-hidden="true" focusable="false">
+      {body}
+    </svg>
+  );
+}
+
 /** Status to the ink it is written in. Never the colour alone — the word leads. */
 const JOB_INK: Record<JobStatus, string> = { go: "wx--good", watch: "wx--poor", risk: "wx--no" };
 
@@ -2789,10 +2830,19 @@ const JOB_INK: Record<JobStatus, string> = { go: "wx--good", watch: "wx--poor", 
  */
 const JOBS_PER_DAY = 3;
 
-/* The strip's span: the working day with a shoulder either side, so an early
-   start and a late finish are both on the page. */
-const STRIP_FROM = 6;
-const STRIP_TO = 19;
+/**
+ * How many hours the strip draws.
+ *
+ * Jake, 19 November: "the hour by hour should show the weather for the day 7-4
+ * each hour, and once the time has passed either move it out and then show 8-5
+ * etc, or make it gray."
+ *
+ * Rolling, which is the first of the two he offered, because the forecast only
+ * carries hours still to come — there is no eight o'clock left to grey out at
+ * ten. So the window is ten hours from the working day's start, and it walks
+ * forward through the morning: 7–4, then 8–5, then 9–6.
+ */
+const STRIP_HOURS = 10;
 
 /** "Thu 20". The day, as somebody standing in front of the wall would say it. */
 function wxDayName(iso: string, today: boolean): string {
@@ -2852,16 +2902,25 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
   for (const list of byDay.values()) list.sort((a, b) => a.hour - b.hour);
   const flagged = calls.filter((c) => c.status !== "go");
 
-  const today = w.days[0];
-  const strip = today.hours.filter((h) => h.hour >= STRIP_FROM && h.hour <= STRIP_TO);
+  /*
+   * Whose hours the strip shows. Today's until its working day is nearly
+   * spent, and tomorrow's after that: at half past three, ten columns of
+   * evening is a worse answer to "what time and how hot" than tomorrow
+   * morning is.
+   */
+  const workLeft = (d: WxDay) => d.hours.filter((h) => h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR).length;
+  const stripDay = workLeft(w.days[0]) >= 3 || w.days.length === 1 ? w.days[0] : w.days[1];
+  const first = stripDay.hours.length > 0 ? stripDay.hours[0].hour : WORK_FROM_HOUR;
+  const from = Math.max(WORK_FROM_HOUR, first);
+  const strip = stripDay.hours.filter((h) => h.hour >= from && h.hour < from + STRIP_HOURS);
   /*
    * One scale for the whole strip, from the coldest air an evap could make to
    * the hottest the day gets. Shared rather than per-hour, because the bars
    * are compared with each other: the length of each is the cooling there is
    * to be had in that hour, and lengths mean nothing without a common ruler.
    */
-  const floor = Math.min(...strip.map((h) => deliveredC(h.tempC, h.humidity)), today.minC) - 3;
-  const ceiling = Math.max(...strip.map((h) => h.tempC), today.maxC) + 1;
+  const floor = Math.min(...strip.map((h) => deliveredC(h.tempC, h.humidity)), stripDay.minC) - 3;
+  const ceiling = Math.max(...strip.map((h) => h.tempC), stripDay.maxC) + 1;
 
   return (
     <>
@@ -2895,7 +2954,9 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
 
     <div className="tile c12" style={{ gridRow: 2 }}>
       <div className="tile__head">
-        <span className="tile__title">{today.date === w.today ? "Today, hour by hour" : "Tomorrow, hour by hour"}</span>
+        <span className="tile__title">
+          {stripDay.date === w.today ? "Today, hour by hour" : `${wxDayName(stripDay.date, false)}, hour by hour`}
+        </span>
         {/* The bar carries two readings, so the subtitle names both. */}
         <span className="tile__sub">
           {`bar height is the heat · the solid top is the cooling an evap would get · ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)} is the working day`}
@@ -2906,7 +2967,7 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
       ) : (
         <div className="wxs">
           {strip.map((h) => (
-            <WxHourCell key={h.hour} h={h} lo={floor} hi={ceiling} judged={judgedHour(today)?.hour === h.hour} />
+            <WxHourCell key={h.hour} h={h} lo={floor} hi={ceiling} judged={judgedHour(stripDay)?.hour === h.hour} />
           ))}
         </div>
       )}
@@ -2940,6 +3001,7 @@ function WxHourCell({ h, lo, hi, judged }: { h: WxHour; lo: number; hi: number; 
   return (
     <div className={`wxs__h${working ? " is-work" : ""}${judged ? " is-judged" : ""}`}>
       <b className="wxs__t">{degrees(h.tempC)}</b>
+      <SkyIcon sky={h.sky} />
       <span className="wxs__bar" aria-hidden="true">
         <i className="wxs__air" style={{ height: `${top}%` }} />
         {/* A floor on the cap, so an hour with no cooling is a visible line
@@ -2973,8 +3035,11 @@ function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[
   return (
     <div className={`wxw__d${today ? " is-today" : ""}`}>
       <span className="wxw__name">{wxDayName(d.date, today)}</span>
-      <span className="wxw__temp">
-        {degrees(d.minC)}–{degrees(d.maxC)}
+      <span className="wxw__row">
+        <span className="wxw__temp">
+          {degrees(d.minC)}–{degrees(d.maxC)}
+        </span>
+        <SkyIcon sky={d.sky} />
       </span>
       <span className="wxw__rain">
         {d.rainMm > 0 ? mm(d.rainMm) : "dry"}

@@ -8,7 +8,7 @@
  * asserted below for that reason.
  */
 import {
-  JOB_RAIN_RISK_MM,
+  NEXT_DAY_RAIN_MM,
   MORNING_BEFORE_HOUR,
   OVERNIGHT_WET_MM,
   TOO_HOT_C,
@@ -20,6 +20,7 @@ import {
   weatherMatters,
   type BookedJob,
 } from "../src/lib/dashboard/weatherJobsTypes";
+import { ROOF_STOP_MM, ROOF_WATCH_MM } from "../src/lib/dashboard/weatherTypes";
 import type { Weather, WxDay, WxHour } from "../src/lib/dashboard/weatherTypes";
 
 let bad = 0;
@@ -105,26 +106,87 @@ ok("a split system service does not", !weatherMatters(needsOf("Service - Split S
 ok("nor does a quotation", !weatherMatters(needsOf("Quotation")));
 
 console.log("\n-- rain while they are on the roof --");
+/*
+ * A service rather than an install throughout this section: a service carries
+ * the roof rules and not the handover one, so a cold wet fixture tests the
+ * rain thresholds rather than tripping over "can't demo it" first. The first
+ * version of these tests used installs and failed for that reason.
+ */
 const wetMorning = weather([
   day("2026-11-20", [hour(7, 17, 80), hour(8, 18, 82, 1.2), hour(9, 19, 84, 0.8), hour(10, 20, 80), hour(14, 22, 70)]),
 ]);
-const evapInstall = job({ type: "Installation - Evaporative Cooler", hour: 8, hours: 3 });
-ok("stops the job", callFor(evapInstall, wetMorning).status === "risk", callFor(evapInstall, wetMorning).word);
-ok("and says how much and when", /mm between \d+am and/.test(callFor(evapInstall, wetMorning).why),
-   callFor(evapInstall, wetMorning).why);
+const evapService = job({ type: "Service - Evaporative Cooler", hour: 8, hours: 3 });
+ok("2mm across the working day no longer stops anything",
+   callFor(evapService, wetMorning).status === "go", callFor(evapService, wetMorning).word);
+ok("because a roof dries", callFor(evapService, wetMorning).why.length > 0);
 
 /*
- * And the case the live diary turned up on day one: an evap install with
- * 0.2mm forecast across it. A red "at risk" over two tenths of a millimetre
- * is how a board teaches a room to stop reading it.
+ * Jake's own example, 19 November, and the reason the thresholds moved:
+ *
+ *   "for saturday is 0.3 mil from 9am, so that is a very very low chance of it
+ *    not going ahead — if the job is booked before that they could be done, or
+ *    later in the day the roof could dry up."
+ *
+ * The board had flagged exactly that. It must not any more.
  */
-const drizzle = weather([
-  day("2026-11-20", [hour(7, 17, 80), hour(8, 18, 82, 0.2), hour(9, 19, 80), hour(12, 26, 50), hour(15, 28, 45)]),
+const sprinkleDay = weather([
+  day("2026-11-20", [hour(7, 17, 80), hour(9, 19, 78, 0.3), hour(12, 26, 50), hour(15, 28, 45)]),
 ]);
-const spotted = callFor(job({ type: "Installation - Evaporative Cooler", hour: 8, hours: 2 }), drizzle);
-ok("a drizzle is a warning, not a stop", spotted.status === "watch", `${spotted.word} — ${spotted.why}`);
-ok("and it still says a roof will be wet", spotted.why.includes("wet a roof"), spotted.why);
-ok(`a real fall over ${JOB_RAIN_RISK_MM}mm is a stop`, callFor(evapInstall, wetMorning).status === "risk");
+const spotted = callFor(job({ type: "Service - Evaporative Cooler", hour: 8, hours: 2 }), sprinkleDay);
+ok("0.3mm in a day is not flagged at all", spotted.status === "go", `${spotted.word} — ${spotted.why}`);
+ok("nor is a job booked right through it",
+   callFor(job({ type: "Service - Evaporative Cooler", hour: 9, hours: 2 }), sprinkleDay).status === "go");
+
+console.log("\n-- Jake's two numbers: 5mm is gold, 10mm is red --");
+/** A working day carrying `mmTotal`, spread across 7am to 3pm. */
+const wetWorkDay = (mmTotal: number) =>
+  weather([
+    day("2026-11-20", [7, 9, 11, 13, 15].map((h) => hour(h, 18, 85, mmTotal / 5))),
+  ]);
+const roofJob = { type: "Service - Evaporative Cooler", hour: 8, hours: 3 };
+ok(`${ROOF_WATCH_MM}mm exactly is still fine`, callFor(job({ ...roofJob }), wetWorkDay(5)).status === "go",
+   callFor(job({ ...roofJob }), wetWorkDay(5)).word);
+ok("6mm is gold — a chance, not a verdict", callFor(job({ ...roofJob }), wetWorkDay(6)).status === "watch",
+   callFor(job({ ...roofJob }), wetWorkDay(6)).word);
+ok(`${ROOF_STOP_MM}mm exactly is still gold`, callFor(job({ ...roofJob }), wetWorkDay(10)).status === "watch");
+ok("12mm is red — it won't go ahead", callFor(job({ ...roofJob }), wetWorkDay(12)).status === "risk",
+   callFor(job({ ...roofJob }), wetWorkDay(12)).word);
+ok("and red says how much and when", callFor(job({ ...roofJob }), wetWorkDay(12)).why.includes("working day"));
+/*
+ * And the point of judging the day rather than the job's own hours: a job
+ * booked into a dry gap on a day that gets 12mm is still a day nobody wants
+ * to be on a roof.
+ */
+ok("a dry gap in a 12mm day does not rescue it",
+   callFor(job({ ...roofJob, hour: 11, hours: 1 }), weather([
+     day("2026-11-20", [hour(7, 17, 90, 6), hour(9, 18, 88, 6), hour(11, 19, 70), hour(13, 20, 75)]),
+   ])).status === "risk");
+
+console.log("\n-- the day after, for a job that opens a ceiling --");
+/*
+ * Jake's ducted-split case: "we would have opened the roof for the Monday and
+ * gotten everything in the roof the first day, so it would more be flagging to
+ * get everything in the roof for the first day." It is a plan, not a warning,
+ * and no other rule on the board looks at the day after a job.
+ */
+const dryThenWet = weather([
+  day("2026-11-20", [hour(7, 18, 60), hour(10, 24, 50), hour(14, 28, 45)]),
+  day("2026-11-21", [7, 9, 11, 13, 15].map((h) => hour(h, 17, 88, 1.6))),
+], "2026-11-20");
+const ducted = job({ type: "Installation - Ducted Refrigerated", date: "2026-11-20", hour: 7, hours: 10, multiDay: true });
+const plan = callFor(ducted, dryThenWet);
+ok("a multi-day install on a dry day before a wet one is flagged", plan.status === "watch", plan.word);
+ok("and told to close the roof on day one", plan.word === "Close the roof today", plan.why);
+ok("with tomorrow's figure in it", plan.why.includes("tomorrow"), plan.why);
+ok("a single-day job on the same day is not flagged",
+   callFor(job({ type: "Installation - Evaporative Cooler", date: "2026-11-20", hour: 8 }), dryThenWet).status === "go");
+ok("nor is a multi-day job when tomorrow is dry",
+   callFor({ ...ducted, date: "2026-11-21" }, weather([
+     day("2026-11-21", [hour(8, 20, 55), hour(13, 26, 45)]),
+     day("2026-11-22", [hour(8, 21, 50), hour(13, 27, 42)]),
+   ], "2026-11-21")).status === "go");
+ok(`and the bar for tomorrow is ${NEXT_DAY_RAIN_MM}mm, lower than a day that stops work`,
+   NEXT_DAY_RAIN_MM < ROOF_WATCH_MM);
 
 console.log("\n-- a service is not a handover --");
 /*
@@ -147,25 +209,30 @@ console.log("\n-- Jake's rule: wet overnight, roof job in the morning --");
  * roof is simply still wet from the night before.
  */
 const dryDayWetNight = weather([
-  day("2026-11-19", [hour(19, 18, 85, 2.4), hour(21, 16, 90, 1.8), hour(23, 15, 92, 0.4)]),
+  day("2026-11-19", [hour(19, 18, 85, 3.4), hour(21, 16, 90, 2.8), hour(23, 15, 92, 0.6)]),
   day("2026-11-20", [hour(6, 14, 92), hour(7, 15, 90), hour(8, 17, 85), hour(9, 19, 80), hour(12, 24, 60), hour(15, 26, 55)]),
 ], "2026-11-19");
 const morningEvap = job({ type: "Installation - Evaporative Cooler", date: "2026-11-20", hour: 7, hours: 4 });
 const c = callFor(morningEvap, dryDayWetNight);
-ok("is flagged even though no rain falls during the job", c.status === "risk", c.word);
-ok("and the reason is the roof, not the rain", c.why.includes("overnight") && c.why.includes("hasn’t dried"), c.why);
+/*
+ * Gold, not red: "later in the day the roof could dry up" (Jake, 19 Nov). An
+ * overnight shower is a chance the start slips an hour, not a lost day.
+ */
+ok("is flagged even though no rain falls during the job", c.status === "watch", c.word);
+ok("and the reason is the roof, not the rain", c.why.includes("overnight") && c.why.includes("may not have dried"), c.why);
+ok("but gold, because a roof dries", c.status !== "risk");
 ok("the same job in the afternoon is not flagged",
    callFor({ ...morningEvap, hour: 12 }, dryDayWetNight).status !== "risk",
    callFor({ ...morningEvap, hour: 12 }, dryDayWetNight).word);
 ok(`and the morning cut-off is ${MORNING_BEFORE_HOUR}`, MORNING_BEFORE_HOUR === 10);
 ok("a flue job gets the same treatment, internal unit or not",
-   callFor(job({ type: "Installation - Gas Ducted Heater", date: "2026-11-20", hour: 7 }), dryDayWetNight).status === "risk");
+   callFor(job({ type: "Installation - Gas Ducted Heater", date: "2026-11-20", hour: 7 }), dryDayWetNight).status === "watch");
 ok("a split system service does not, because nobody goes up",
    callFor(job({ type: "Service - Split System", date: "2026-11-20", hour: 7 }), dryDayWetNight).status === "go");
 
 console.log("\n-- a light sprinkle overnight is not a wet roof --");
 const dampNight = weather([
-  day("2026-11-19", [hour(20, 16, 88, 0.2)]),
+  day("2026-11-19", [hour(20, 16, 88, 1.2)]),
   day("2026-11-20", [hour(7, 15, 80), hour(8, 18, 70), hour(12, 25, 55)]),
 ], "2026-11-19");
 ok(`under ${OVERNIGHT_WET_MM}mm does not stop a morning`,
