@@ -16,19 +16,25 @@ import { plainText } from "./wording";
  * of a service's words. Worded so it reads the same on a quote or an invoice
  * (serviceScopes.ts).
  *
- * The same rules as the quote wording (summaryRule.ts): the first pass of a
- * version writes over what's there, the old words kept in
- * service_wording_backup first; after that only over its own, so an edit the
- * office makes in ServiceTitan stays. Every write is read back, and a
- * template whose total moves stops the run.
+ * The same rules as the quote wording (summaryRule.ts): the very first pass
+ * wrote over what was there, the old words kept in service_wording_backup
+ * first. A new version (the wording changed) writes only over the last
+ * version's own words, so an edit the office has made in ServiceTitan stays.
+ * Every write is read back, and a template whose total moves stops the run.
+ *
+ * 19 Nov, second version: the carbon monoxide test is on every heater (Jake).
  */
-export const VERSION = "2026-11-19";
+export const VERSION = "2026-11-19.2";
 const KEY = "service_wording";
 const BACKUP = "service_wording_backup";
 
 type Raw = Record<string, unknown>;
 type Live = { id: number; name?: string; totalPrice?: number; items?: TemplateItem[] };
-type Progress = { v?: string; items?: Record<string, string>; lines?: Record<string, string>; left?: Record<string, string>; fails?: number; done?: string };
+type Progress = {
+  v?: string; items?: Record<string, string>; lines?: Record<string, string>; left?: Record<string, string>; fails?: number; done?: string;
+  /** The last version's own words (their hashes), the only ones a new version writes over. */
+  prev?: { items?: Record<string, string>; lines?: Record<string, string> };
+};
 type Backup = { items?: Record<string, { at: string; description: string }>; lines?: Record<string, { at: string; description: string }> };
 
 const at = () => new Date().toISOString();
@@ -36,7 +42,12 @@ const at = () => new Date().toISOString();
 export async function syncServiceWording(until: number, all: Live[], maxWrites = 12): Promise<{ items: string[]; templates: string[]; left: string[]; failed: string[] }> {
   const out = { items: [] as string[], templates: [] as string[], left: [] as string[], failed: [] as string[] };
   const p: Progress = (await getSettings<Progress>(KEY).catch(() => null)) ?? {};
-  if (p.v !== VERSION) Object.assign(p, { v: VERSION, items: {}, lines: {}, left: {}, fails: 0, done: undefined });
+  if (p.v !== VERSION) {
+    const prev = p.v ? { items: p.items ?? {}, lines: p.lines ?? {} } : undefined;
+    Object.assign(p, { v: VERSION, items: {}, lines: {}, left: {}, fails: 0, done: undefined, prev });
+  }
+  // Never run before: Jake's go-ahead to write over the old words.
+  const firstEver = !p.prev;
   if (p.done === VERSION || (p.fails ?? 0) >= 3) return out;
   const items = (p.items ??= {}), lines = (p.lines ??= {}), left = (p.left ??= {});
   const backup: Backup = (await getSettings<Backup>(BACKUP).catch(() => null)) ?? {};
@@ -67,8 +78,9 @@ export async function syncServiceWording(until: number, all: Live[], maxWrites =
       const r = await stFetch<{ data?: Raw[] }>(stTenantPath("pricebook", "services"), { ids: String(id) });
       const live = r.data?.[0];
       if (!live) { items[id] = "missing"; left[`item:${id}`] = `${scope.name}: not in the pricebook`; continue; }
-      const a = wordingAction(live.description as string | null, scopeText(scope), undefined, true);
+      const a = wordingAction(live.description as string | null, scopeText(scope), p.prev?.items?.[id], firstEver);
       if (a === "same") { items[id] = textHash(scopeFlat(scope)); continue; }
+      if (a === "leave") { items[id] = "office"; left[`item:${id}`] = `${scope.name}: description edited in ServiceTitan, left as it is`; continue; }
       bItems[id] ??= { at: at(), description: String(live.description ?? "") };
       await saveSettings(BACKUP, backup);
       await stSend("PATCH", path, { description: scopeHtml(scope) });
@@ -96,10 +108,11 @@ export async function syncServiceWording(until: number, all: Live[], maxWrites =
       const scope = i.skuType === "Service" && i.id != null ? byId.get(i.skuId) : undefined;
       if (!scope) continue;
       const k = `${t.id}:${i.id}`;
-      const a = wordingAction(i.description, scopeText(scope), lines[k], !lines[k]);
+      if (lines[k]) continue;
+      const a = wordingAction(i.description, scopeText(scope), p.prev?.lines?.[k], firstEver);
       if (a === "same") lines[k] = textHash(scopeFlat(scope));
-      else if (a === "write" && !lines[k]) want.set(i.id!, scope);
-      else if (a === "leave") left[k] = `${t.name}: "${i.skuName}" line edited in ServiceTitan, left as it is`;
+      else if (a === "write") want.set(i.id!, scope);
+      else { lines[k] = "office"; left[k] = `${t.name}: "${i.skuName}" line edited in ServiceTitan, left as it is`; }
     }
     if (!want.size) continue;
     for (const i of tItems) if (i.id != null && want.has(i.id)) bLines[`${t.id}:${i.id}`] ??= { at: at(), description: plainText(i.description) };

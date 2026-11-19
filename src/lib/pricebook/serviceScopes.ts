@@ -103,7 +103,7 @@ export const SERVICE_SCOPES: ServiceScope[] = [
       },
       {
         heading: "Safety",
-        bullets: ["Heat exchanger inspection for cracks, corrosion or overheating", "Carbon monoxide spillage test, where applicable to the heater type", "Flue and flue terminal clearance inspection", "Electrical connections and safety controls inspection"],
+        bullets: ["Heat exchanger inspection for cracks, corrosion or overheating", "Carbon monoxide spillage test", "Flue and flue terminal clearance inspection", "Electrical connections and safety controls inspection"],
       },
       {
         heading: "Air and operation",
