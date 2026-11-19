@@ -272,51 +272,51 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
   const during = window(hours, job.date, job.hour, job.date, endHour);
 
   /*
-   * Rain while they are on the roof. The first thing asked, because it is the
-   * only one that stops the work rather than spoiling it.
+   * Rain the roof has on it by the time they finish — not the day's total.
+   *
+   * Jake, 20 November: "for today it says don't, but the rain doesn't start
+   * until 1pm, so if we had an evap at 7am to even 11am we would be fine, as
+   * it only takes an hour."
+   *
+   * Exactly so, and a day figure cannot express it. What decides a roof job is
+   * what has fallen by the time they are off it: everything from six the
+   * evening before through the job's own hours. Rain that arrives after they
+   * have packed up is somebody else's problem.
+   *
+   * Jake's two numbers still do the judging — see ROOF_WATCH_MM — they are
+   * just measured over the window belonging to this job rather than over nine
+   * hours of a day it may occupy two of. This also folds in the overnight
+   * wet-roof rule, which was a separate branch asking about the same water.
    */
   if (needs.roof) {
     /*
-     * Judged on the working day, not on the job's own hours, and on Jake's
-     * two numbers — see ROOF_WATCH_MM. A job booked before the rain can be
-     * finished, and one booked after it starts on a roof that has had all
-     * morning to dry; what actually costs a day is a wet day.
+     * Strictly before the start. `window` is inclusive at both ends, so the
+     * job's first hour sat in both halves and its rain was counted twice —
+     * which pushed a day of exactly five millimetres over a threshold of more
+     * than five. The hour a job starts in is during the job.
      */
-    if (day.workRainMm > ROOF_STOP_MM) {
-      return call("risk", "No roof", `${mmText(day.workRainMm)} through the working day`);
-    }
+    const before = window(hours, dayBefore(job.date), OVERNIGHT_FROM_HOUR, job.date, job.hour).filter(
+      (h) => !(h.date === job.date && h.hour >= job.hour),
+    );
+    const beforeMm = before.reduce((a, h) => a + h.rainMm, 0);
+    const duringMm = during.reduce((a, h) => a + h.rainMm, 0);
+    const byEnd = beforeMm + duringMm;
 
-    if (day.workRainMm > ROOF_WATCH_MM) {
-      const total = during.reduce((a, h) => a + h.rainMm, 0);
+    if (byEnd > ROOF_WATCH_MM) {
+      /*
+       * Rain falling while they are up there and rain already on the tiles
+       * are both reasons to come down, and they are not the same news to
+       * somebody reading a run sheet — so whichever window carries more of it
+       * names the verdict.
+       */
+      const onTheJob = duringMm >= beforeMm;
       return call(
-        "watch",
-        "Off the roof",
-        `${mmText(day.workRainMm)} through the day${total > 0 ? ` · ${mmText(total)} on the job` : ""}`,
+        byEnd > ROOF_STOP_MM ? "risk" : "watch",
+        byEnd > ROOF_STOP_MM ? "No roof work" : onTheJob ? "Rain on the job" : "Wet roof",
+        onTheJob
+          ? `${mmText(duringMm)} between ${clockOf(job.hour)} and ${clockOf(endHour)}`
+          : `${mmText(beforeMm)} before they start`,
       );
-    }
-  }
-
-  /*
-   * Jake's overnight rule: a wet roof at half past seven. The job does not
-   * need rain in it to be in trouble — it needs a roof that has not dried.
-   */
-  if (needs.roof && job.hour < MORNING_BEFORE_HOUR) {
-    const overnight = window(hours, dayBefore(job.date), OVERNIGHT_FROM_HOUR, job.date, job.hour);
-    if (overnight.length > 0) {
-      const fell = overnight.reduce((a, h) => a + h.rainMm, 0);
-      if (fell >= OVERNIGHT_WET_MM) {
-        /*
-         * Gold, not red. Jake's own framing decides it: "later in the day the
-         * roof could dry up" — an overnight shower is a chance the start slips
-         * an hour, not a day that will not go ahead. Red is reserved for
-         * weather that takes the day off a crew.
-         */
-        return call(
-          "watch",
-          "Wet roof",
-          `${mmText(fell)} overnight · ${clockOf(job.hour)} start`,
-        );
-      }
     }
   }
 

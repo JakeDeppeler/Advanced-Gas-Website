@@ -148,6 +148,17 @@ ok(`and it only ever claims ${Math.round(PAD_EFFICIENCY * 100)}% of the depressi
    Math.abs((34 - deliveredC(34, 30)) / (34 - wetBulbC(34, 30)) - PAD_EFFICIENCY) < 0.001);
 
 console.log("\n-- the evap verdict --");
+/*
+ * The words say what they are about. They were "Good day" and "Don't", and
+ * Jake read the latter as being about the rain. On a board whose other
+ * verdicts decide whether work goes ahead, a bare "Don't" is an instruction.
+ */
+ok("every evap verdict names cooling, not a decision",
+   ["Cools well", "Cools fine", "Barely cools", "Won’t cool", "Too cool for evap", "Day’s done", "Too far out"].includes(
+     evapCall(day({ hours: [hour(13, 34, 72)] })).word,
+   ), evapCall(day({ hours: [hour(13, 34, 72)] })).word);
+ok("and none of them is a bare instruction",
+   !["Don’t", "Good day", "Marginal", "Fine"].includes(evapCall(day({ hours: [hour(13, 34, 72)] })).word));
 const hotDry = day({ hours: [8, 10, 12, 14, 15, 16].map((h) => hour(h, h < 12 ? 26 : 36, 18)) });
 ok("a hot dry day is a good day", evapCall(hotDry).rating === "good", evapCall(hotDry).word);
 ok("and it says what the unit would do", /would blow \d+°/.test(evapCall(hotDry).why), evapCall(hotDry).why);

@@ -141,7 +141,7 @@ const wetWorkDay = (mmTotal: number) =>
   weather([
     day("2026-11-20", [7, 9, 11, 13, 15].map((h) => hour(h, 18, 85, mmTotal / 5))),
   ]);
-const roofJob = { type: "Service - Evaporative Cooler", hour: 8, hours: 3 };
+const roofJob = { type: "Service - Evaporative Cooler", hour: 7, hours: 9 };
 ok(`${ROOF_WATCH_MM}mm exactly is still fine`, callFor(job({ ...roofJob }), wetWorkDay(5)).status === "go",
    callFor(job({ ...roofJob }), wetWorkDay(5)).word);
 ok("6mm is gold — a chance, not a verdict", callFor(job({ ...roofJob }), wetWorkDay(6)).status === "watch",
@@ -149,16 +149,54 @@ ok("6mm is gold — a chance, not a verdict", callFor(job({ ...roofJob }), wetWo
 ok(`${ROOF_STOP_MM}mm exactly is still gold`, callFor(job({ ...roofJob }), wetWorkDay(10)).status === "watch");
 ok("12mm is red — it won't go ahead", callFor(job({ ...roofJob }), wetWorkDay(12)).status === "risk",
    callFor(job({ ...roofJob }), wetWorkDay(12)).word);
-ok("and red says how much and when", callFor(job({ ...roofJob }), wetWorkDay(12)).why.includes("working day"));
+ok("and red names the hours it fell in", /between \d+am and/.test(callFor(job({ ...roofJob }), wetWorkDay(12)).why),
+   callFor(job({ ...roofJob }), wetWorkDay(12)).why);
 /*
  * And the point of judging the day rather than the job's own hours: a job
  * booked into a dry gap on a day that gets 12mm is still a day nobody wants
  * to be on a roof.
  */
-ok("a dry gap in a 12mm day does not rescue it",
+/*
+ * A job starting after 12mm has already fallen is on a roof carrying all of
+ * it. The dry hour it is booked into rescues nothing.
+ */
+ok("a dry hour after 12mm has fallen does not rescue it",
    callFor(job({ ...roofJob, hour: 11, hours: 1 }), weather([
      day("2026-11-20", [hour(7, 17, 90, 6), hour(9, 18, 88, 6), hour(11, 19, 70), hour(13, 20, 75)]),
    ])).status === "risk");
+
+console.log("\n-- a job is judged on its own hours, not on the day --");
+/*
+ * Jake, 20 November: "for today it says don't, but the rain doesn't start
+ * until 1pm, so if we had an evap at 7am to even 11am we would be fine, as it
+ * only takes an hour."
+ *
+ * The same day, the same 15mm, two jobs, two answers.
+ */
+const rainFromOne = weather([
+  day("2026-11-20", [
+    hour(7, 17, 70), hour(9, 20, 65), hour(11, 23, 60), hour(12, 24, 60),
+    hour(13, 25, 70, 5), hour(14, 24, 80, 5), hour(15, 22, 85, 5),
+  ]),
+]);
+const morningJob = callFor(job({ type: "Service - Evaporative Cooler", hour: 7, hours: 2 }), rainFromOne);
+ok("a 7am job on a day that rains from 1pm is clear", morningJob.status === "go",
+   `${morningJob.word} — ${morningJob.why}`);
+ok("so is one that runs to 11am", callFor(job({ type: "Service - Evaporative Cooler", hour: 9, hours: 2 }), rainFromOne).status === "go");
+const afternoonJob = callFor(job({ type: "Service - Evaporative Cooler", hour: 13, hours: 3 }), rainFromOne);
+ok("the same day at 1pm is not", afternoonJob.status === "risk", `${afternoonJob.word} — ${afternoonJob.why}`);
+ok("and it names the hours, not the day", afternoonJob.why.includes("between 1pm"), afternoonJob.why);
+/*
+ * And rain already on the tiles still counts, which is what the separate
+ * overnight branch used to do before it was folded into this one window.
+ */
+const wetBefore = weather([
+  day("2026-11-19", [hour(19, 16, 90, 4), hour(22, 15, 92, 3)]),
+  day("2026-11-20", [hour(7, 15, 88), hour(9, 18, 80), hour(12, 24, 60)]),
+], "2026-11-19");
+const afterWetNight = callFor(job({ type: "Service - Evaporative Cooler", date: "2026-11-20", hour: 7, hours: 2 }), wetBefore);
+ok("a dry morning after a wet night is still a wet roof", afterWetNight.status === "watch", afterWetNight.word);
+ok("and it says the water fell before they start", afterWetNight.why.includes("before they start"), afterWetNight.why);
 
 console.log("\n-- the day after, for a job that opens a ceiling --");
 /*
@@ -217,7 +255,7 @@ const c = callFor(morningEvap, dryDayWetNight);
  * overnight shower is a chance the start slips an hour, not a lost day.
  */
 ok("is flagged even though no rain falls during the job", c.status === "watch", c.word);
-ok("and the reason is the roof, not the rain", c.why.includes("overnight") && c.why.includes("start"), c.why);
+ok("and the reason is the roof, not the rain", c.why.includes("before they start"), c.why);
 ok("but gold, because a roof dries", c.status !== "risk");
 ok("the same job in the afternoon is not flagged",
    callFor({ ...morningEvap, hour: 12 }, dryDayWetNight).status !== "risk",
