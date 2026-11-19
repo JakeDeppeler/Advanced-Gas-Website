@@ -56,12 +56,13 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
         sbSelectOne<{ notes: string; updated_by: string | null; updated_at: string }>("job_writeup_notes", [q.select("notes,updated_by,updated_at"), q.eq("job_id", String(facts.jobId))].join("&")).catch(() => null),
       ])
     : [[], null];
+  // Short, for the tags under the job: what it was read from.
   const read = facts ? [
-    quote ? "the quote" : null,
-    facts.invoice ? "the invoice" : null,
+    quote ? "Quote" : null,
+    facts.invoice ? "Invoice" : null,
     facts.reports.length ? `${facts.reports.length} ${facts.reports.length === 1 ? "Condition Report" : "Condition Reports"}` : null,
     facts.notes.length ? `${facts.notes.length} ${facts.notes.length === 1 ? "job note" : "job notes"}` : null,
-    facts.electricians.length ? "the electrician's booking" : null,
+    facts.electricians.length ? "Electrician booked" : null,
   ].filter(Boolean) as string[] : [];
   // A finished job is being invoiced; anything before that is still the quote.
   const start = facts?.invoice && /complete/i.test(facts.status ?? "") ? "invoice" : quote ? "estimate" : "invoice";

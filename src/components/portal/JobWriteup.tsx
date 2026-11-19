@@ -91,6 +91,18 @@ function OnePriceSum({ d }: { d: DocView }) {
   );
 }
 
+type Stage = "now" | "new" | "put";
+/** Where the words in a box stand, written on the tag so it isn't only a colour. */
+const STAGE_TAG: Record<Stage, (doc: string) => { cls: string; w: string }> = {
+  now: (doc) => ({ cls: "", w: `On the ${doc} now` }),
+  new: () => ({ cls: "mid", w: "New, not put on yet" }),
+  put: (doc) => ({ cls: "good", w: `Put on the ${doc}` }),
+};
+
+const Tick = () => (
+  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+
 export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes: savedNotes, notesBy, history }: {
   job: string;
   heading: { number: string | null; type: string | null; customer: string | null; read: string[]; missing: string[] };
@@ -110,6 +122,7 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
     estimate: { summary: quote?.summary ?? "", labour: quote?.labour ?? "" },
     invoice: { summary: invoice?.summary ?? "", labour: invoice?.labour ?? "" },
   });
+  const [stage, setStage] = useState<Record<Kind, Stage>>({ estimate: "now", invoice: "now" });
   const [written, setWritten] = useState<string[] | null>(null);
   const [notes, setNotes] = useState(savedNotes);
   const [writing, startWrite] = useTransition();
@@ -123,6 +136,8 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
   const [onePrice, setOnePrice] = useState(true);
   const draft = drafts[kind];
   const set = (k: keyof Draft, v: string) => setDrafts({ ...drafts, [kind]: { ...draft, [k]: v } });
+  const doc = DOC_WORD[kind];
+  const tag = STAGE_TAG[stage[kind]](doc);
 
   const write = () => startWrite(async () => {
     setWriteMsg(null); setPutMsg(null);
@@ -132,8 +147,18 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
       estimate: { summary: summaryBlock("estimate", r.words.quote), labour: r.words.quote.labour },
       invoice: { summary: summaryBlock("invoice", r.words.invoice), labour: r.words.invoice.labour },
     });
+    setStage({ estimate: "new", invoice: "new" });
     setWritten(r.from);
     // The notes were saved with it: the "Saved by" line catches up.
+    router.refresh();
+  });
+
+  const put = () => startPut(async () => {
+    if (!d) return;
+    setPutMsg(null);
+    const r = await putWriteup({ job, kind, docId: d.id, summary: draft.summary, labour: draft.labour, onePrice: onePrice && canMerge, expectCombined: onePrice && canMerge ? d.combined : null });
+    setPutMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
+    if (r.ok) setStage({ ...stage, [kind]: "put" });
     router.refresh();
   });
 
@@ -141,44 +166,43 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
 
   return (
     <div className="jw">
-      <div className="jw-head">
-        <p className="jw-job">
-          <b>Job {heading.number}</b>{heading.type ? <> · {heading.type}</> : null}{heading.customer ? <> · {heading.customer}</> : null}
-        </p>
-        <div className="jw-seg" role="group" aria-label="Write for">
-          {(["estimate", "invoice"] as Kind[]).map((k) => docs[k] && (
-            <button key={k} type="button" aria-pressed={kind === k} onClick={() => { setKind(k); setPutMsg(null); }}>
-              {k === "estimate" ? "Quote" : "Invoice"}{docs[k]!.status ? <span> · {docs[k]!.status}</span> : null}
-            </button>
-          ))}
+      <section className="jw-card jw-top" aria-label={`Job ${heading.number}`}>
+        <div className="jw-top-row">
+          <div className="jw-id">
+            <span className="jw-eyebrow">Job</span>
+            <span className="jw-num">{heading.number}</span>
+            <span className="jw-meta">{[heading.type, heading.customer].filter(Boolean).join(" · ")}</span>
+          </div>
+          <div className="jw-seg" role="group" aria-label="Write for">
+            {(["estimate", "invoice"] as Kind[]).map((k) => docs[k] && (
+              <button key={k} type="button" aria-pressed={kind === k} onClick={() => { setKind(k); setPutMsg(null); }}>
+                {k === "estimate" ? "Quote" : "Invoice"}{docs[k]!.status ? <span> · {docs[k]!.status}</span> : null}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      {kind === "estimate" && quotes.length > 1 && (
-        <nav className="jw-quotes" aria-label="Which quote">
-          {quotes.map((x) => (
-            <Link key={x.id} href={`/portal/jobs/write-up?job=${encodeURIComponent(job)}&quote=${x.id}`} aria-current={quote?.id === x.id ? "true" : undefined}>
-              {x.name || `Quote ${x.id}`}{x.status ? ` · ${x.status}` : ""}
-            </Link>
-          ))}
-        </nav>
-      )}
-
-      <section className="jw-box" aria-labelledby="jw-s-h">
-        <div className="jw-bh"><h2 id="jw-s-h">Job summary</h2><Copy text={draft.summary} /></div>
-        <p className="jw-quiet">{written ? `Written from ${written.join(", ")}. Change anything you like.` : `What's on the ${DOC_WORD[kind]} now. Add your notes below and press Write it.`}</p>
-        <textarea id="jw-summary" aria-labelledby="jw-s-h" className="jw-ta" rows={rows(draft.summary, 5)} value={draft.summary} onChange={(e) => set("summary", e.target.value)} placeholder={kind === "estimate" ? "What we're doing: …\n\nWhat we're removing: …\n\nWhat's included: …\n\nWhat's not included: …" : "What we did: …\n\nWhat we removed: …\n\nWhat was included: …"} />
+        <ul className="jw-chips" aria-label="Read from ServiceTitan">
+          {heading.read.map((r) => <li key={r}><Tick />{r}</li>)}
+          {heading.missing.map((m) => <li key={m} className="bad">Couldn&rsquo;t read {m}</li>)}
+        </ul>
+        {kind === "estimate" && quotes.length > 1 && (
+          <nav className="jw-quotes" aria-label="Which quote">
+            {quotes.map((x) => (
+              <Link key={x.id} href={`/portal/jobs/write-up?job=${encodeURIComponent(job)}&quote=${x.id}`} aria-current={quote?.id === x.id ? "true" : undefined}>
+                {x.name || `Quote ${x.id}`}{x.status ? ` · ${x.status}` : ""}
+              </Link>
+            ))}
+          </nav>
+        )}
       </section>
 
-      <section className="jw-box" aria-labelledby="jw-l-h">
-        <div className="jw-bh"><h2 id="jw-l-h">Labour line{d.labourName ? <span className="jw-sub"> · {d.labourName}</span> : null}</h2><Copy text={draft.labour} /></div>
-        <OnePriceSum d={d} />
-        <textarea id="jw-labour" aria-labelledby="jw-l-h" className="jw-ta" rows={rows(draft.labour, 4)} value={draft.labour} onChange={(e) => set("labour", e.target.value)} placeholder="Installation of your new … This one price covers the installation labour, the materials and the electrical work." />
-      </section>
-
-      <section className="jw-box jw-notes" aria-labelledby="jw-n-h">
-        <div className="jw-bh"><h2 id="jw-n-h">Notes to write it from</h2>{notesBy ? <span className="jw-quiet">Saved by {notesBy.by}, {when(notesBy.at)}</span> : null}</div>
-        <p className="jw-quiet">Only for writing the job summary and the labour line; they aren&rsquo;t put on the job. Say how it&rsquo;s going in, what&rsquo;s coming out, and anything that comes off the price if it isn&rsquo;t needed.</p>
-        <textarea id="jw-notes" aria-labelledby="jw-n-h" className="jw-ta" rows={rows(notes, 4)} value={notes} onChange={(e) => setNotes(e.target.value)}
+      <section className="jw-card jw-notes" aria-labelledby="jw-n-h">
+        <div className="jw-bh">
+          <h2 id="jw-n-h"><span className="jw-n" aria-hidden="true">1</span>Notes to write it from</h2>
+          {notesBy ? <span className="jw-quiet">Saved by {notesBy.by}, {when(notesBy.at)}</span> : null}
+        </div>
+        <p className="jw-quiet">How it&rsquo;s going in, what&rsquo;s coming out, and anything that comes off the price if it isn&rsquo;t needed. Only used for the writing; they aren&rsquo;t put on the job.</p>
+        <textarea id="jw-notes" aria-labelledby="jw-n-h" className="jw-ta" rows={rows(notes, 3)} value={notes} onChange={(e) => setNotes(e.target.value)}
           placeholder={"e.g. Outdoor unit on a roof bracket.\nCondensate pump on the indoor head. If we don't need it, it comes off the quoted price.\nRemoving the old Fujitsu split from the lounge."} />
         <div className="jw-row">
           {/* Written from the notes, so not without them (Jake, 19 Nov). */}
@@ -188,35 +212,50 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
             setWriteMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
             router.refresh();
           })}>{saving ? "Saving…" : "Save notes"}</button>
-          <span className="jw-quiet">{writing ? "About half a minute." : !notes.trim() ? "Add your notes, then Write it." : <>{heading.read.length ? `Also reads ${heading.read.join(", ")}.` : ""}{heading.missing.length ? ` Couldn't read ${heading.missing.join(", ")}.` : ""}</>}</span>
+          <span className="jw-quiet">{writing ? "Reading the job and writing: about half a minute." : !notes.trim() ? "Add your notes, then Write it." : written ? `Written from ${written.join(", ")}.` : "Writes the quote's and the invoice's words."}</span>
         </div>
         {writeMsg && <p className={`jw-msg ${writeMsg.ok ? "ok" : "bad"}`} role="status">{writeMsg.text}</p>}
       </section>
 
-      <section className="jw-box jw-putbox" aria-label={`Put on the ${DOC_WORD[kind]}`}>
+      <div className="jw-pair">
+        <section className="jw-card" aria-labelledby="jw-s-h">
+          <div className="jw-bh">
+            <h2 id="jw-s-h"><span className="jw-n" aria-hidden="true">2</span>Job summary</h2>
+            <span className="jw-end"><span className={`jw-tag ${tag.cls}`}>{tag.w}</span><Copy text={draft.summary} /></span>
+          </div>
+          <textarea id="jw-summary" aria-labelledby="jw-s-h" className="jw-ta" rows={rows(draft.summary, 6)} value={draft.summary} onChange={(e) => set("summary", e.target.value)} placeholder={kind === "estimate" ? "What we're doing: …\n\nWhat we're removing: …\n\nWhat's included: …\n\nWhat's not included: …" : "What we did: …\n\nWhat we removed: …\n\nWhat was included: …"} />
+        </section>
+
+        <section className="jw-card" aria-labelledby="jw-l-h">
+          <div className="jw-bh">
+            <h2 id="jw-l-h"><span className="jw-n" aria-hidden="true">3</span>Labour line</h2>
+            <span className="jw-end"><span className={`jw-tag ${tag.cls}`}>{tag.w}</span><Copy text={draft.labour} /></span>
+          </div>
+          {d.labourName ? <p className="jw-quiet">On {d.labourName}</p> : null}
+          <OnePriceSum d={d} />
+          <textarea id="jw-labour" aria-labelledby="jw-l-h" className="jw-ta" rows={rows(draft.labour, 5)} value={draft.labour} onChange={(e) => set("labour", e.target.value)} placeholder="Installation of your new … This one price covers the installation labour, the materials and the electrical work." />
+        </section>
+      </div>
+
+      <section className="jw-card jw-putbar" aria-label={`Put on the ${doc}`}>
         <div className="jw-row">
           {canMerge ? (
             <label className="jw-check">
               <input type="checkbox" checked={onePrice} onChange={(e) => setOnePrice(e.target.checked)} />
-              <span>Put labour, materials and electrical under one price of <b>{money2(d.combined)}</b></span>
+              <span>Put labour, materials and electrical under one price of <b>{money2(d.combined)}</b>. The total stays {money2(d.before)}.</span>
             </label>
-          ) : <span className="jw-quiet jw-grow">Only the words change on the {DOC_WORD[kind]}.</span>}
-          <button className="pk-btn" type="button" disabled={putting || !draft.summary.trim()} onClick={() => startPut(async () => {
-            setPutMsg(null);
-            const r = await putWriteup({ job, kind, docId: d.id, summary: draft.summary, labour: draft.labour, onePrice: onePrice && canMerge, expectCombined: onePrice && canMerge ? d.combined : null });
-            setPutMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
-            router.refresh();
-          })}>{putting ? "Putting it on…" : `Put on the ${DOC_WORD[kind]}`}</button>
+          ) : <span className="jw-quiet jw-grow">Only the words change on the {doc}. The total stays {money2(d.before)}.</span>}
+          <button className="pk-btn" type="button" disabled={putting || !draft.summary.trim()} onClick={put}>{putting ? "Putting it on…" : `Put on the ${doc}`}</button>
         </div>
         {putMsg && <p className={`jw-msg ${putMsg.ok ? "ok" : "bad"}`} role="status">{putMsg.text}</p>}
         <details className="jw-lines">
-          <summary>The lines on the {DOC_WORD[kind]}{d.name ? `: ${d.name}` : ""}</summary>
+          <summary>See the lines on the {doc}{d.name ? `: ${d.name}` : ""}</summary>
           <PlanTable d={d} />
         </details>
       </section>
 
       {history.length > 0 && (
-        <section className="jw-box" aria-labelledby="jw-h-h">
+        <section className="jw-card" aria-labelledby="jw-h-h">
           <h2 id="jw-h-h" className="jw-h">Put on before</h2>
           <ul className="jw-hist">
             {history.map((h) => (
