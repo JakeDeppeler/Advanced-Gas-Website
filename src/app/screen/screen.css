@@ -2755,7 +2755,14 @@ body:has(.screen) .utilbar {
   line-height: 1.1;
   min-height: 1.1em;
 }
-.wxs__hr { font-size: calc(0.8 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+/* The hour heads the cell now, so it carries a little more weight than a
+   caption at the foot did. */
+.wxs__hr {
+  font-size: calc(0.86 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
 
 /* ── the week ──────────────────────────────────────────────────────────── */
 .wxw {
@@ -2807,13 +2814,23 @@ body:has(.screen) .utilbar {
   padding-top: calc(0.2 * var(--u));
   overflow-wrap: break-word;
 }
+/* A fixed block, so every column's first job box starts on the same line.
+   It floated before: one day's reason runs to three lines and the next day's
+   to one, and seven columns of boxes at seven heights reads as a mistake. */
+.wxw__sky {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.1 * var(--u));
+  min-width: 0;
+  min-height: calc(8.6 * var(--u));
+  padding-bottom: calc(0.3 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+}
 .wxw__why {
   font-size: calc(0.78 * var(--u));
   color: var(--ink-muted);
   line-height: 1.25;
   overflow-wrap: break-word;
-  padding-bottom: calc(0.3 * var(--u));
-  border-bottom: 1px solid var(--hairline);
 }
 
 /* The day's diary, under the weather that decides it. */
@@ -2870,6 +2887,15 @@ body:has(.screen) .utilbar {
   font-weight: 800;
   padding-top: calc(0.08 * var(--u));
   white-space: nowrap;
+}
+/* What makes this job different from the one above it, now that the status
+   above is one of three fixed words. Two lines at most: the colour has
+   already done the catching. */
+.wxj2__why {
+  font-size: calc(0.72 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .wxw__calls {
   display: flex;
@@ -2928,3 +2954,38 @@ body:has(.screen) .utilbar {
 }
 /* In the hour strip the icon is smaller: fourteen of them across the wall. */
 .wxs__h .sky { width: calc(1.35 * var(--u)); height: calc(1.5 * var(--u)); }
+
+/* ── the day's totals, in the space the working hours leave ─────────────── */
+.wxsum {
+  flex: 1 1 0;
+  min-width: calc(9 * var(--u));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(0.35 * var(--u));
+  padding: calc(0.3 * var(--u)) calc(0.9 * var(--u));
+  margin-left: calc(0.5 * var(--u));
+  border-left: 1px solid var(--hairline);
+}
+.wxsum__head {
+  font-size: calc(0.86 * var(--u));
+  font-weight: 700;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.wxsum__row { display: flex; align-items: baseline; gap: calc(0.45 * var(--u)); min-width: 0; }
+.wxsum__fig {
+  font-size: calc(1.35 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1;
+  white-space: nowrap;
+}
+.wxsum__lab {
+  font-size: calc(0.76 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.15;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

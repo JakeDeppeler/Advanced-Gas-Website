@@ -2821,6 +2821,28 @@ function SkyIcon({ sky }: { sky: WxSky | null | undefined }) {
 const JOB_INK: Record<JobStatus, string> = { go: "wx--good", watch: "wx--poor", risk: "wx--no" };
 
 /**
+ * Three words, and only three, whatever the reason underneath.
+ *
+ * Jake, 19 November: "we should have 3 words like no roof work, clear and keep
+ * an eye on."
+ *
+ * The rules produce a dozen different verdicts — wet roof, too windy, too hot,
+ * close the roof today — and a column of a dozen different phrases is a column
+ * nobody scans. The status is the headline and it is one of three; what makes
+ * this job different from that one goes on the line below, which is where
+ * somebody reads once the colour has caught them.
+ *
+ * "No roof work" fits every red on the page because every red is a roof:
+ * more than ten millimetres through the working day, or wind. Heat, an
+ * overnight shower and the day-one roof flag are all gold.
+ */
+const JOB_WORD: Record<JobStatus, string> = {
+  risk: "No roof work",
+  watch: "Keep an eye on",
+  go: "Clear",
+};
+
+/**
  * How many jobs a day's column shows before it folds the rest into a line.
  *
  * Three. Four was measured against a fabricated January week — six evap jobs
@@ -2969,6 +2991,11 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
           {strip.map((h) => (
             <WxHourCell key={h.hour} h={h} lo={floor} hi={ceiling} judged={judgedHour(stripDay)?.hour === h.hour} />
           ))}
+          {/* Ten working hours in a row sized for fourteen leaves a gap at the
+              end. It holds the day's totals rather than white space — the
+              three figures the hours themselves can only be read for one at a
+              time. */}
+          <WxDaySummary d={stripDay} />
         </div>
       )}
     </div>
@@ -3000,6 +3027,10 @@ function WxHourCell({ h, lo, hi, judged }: { h: WxHour; lo: number; hi: number; 
   const working = h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR;
   return (
     <div className={`wxs__h${working ? " is-work" : ""}${judged ? " is-judged" : ""}`}>
+      {/* The hour heads the cell and the temperature sits under it (Jake,
+          19 Nov). It was the other way round, which asked the eye to find the
+          time at the bottom of a column it was reading from the top. */}
+      <span className="wxs__hr">{clock(h.hour)}</span>
       <b className="wxs__t">{degrees(h.tempC)}</b>
       <SkyIcon sky={h.sky} />
       <span className="wxs__bar" aria-hidden="true">
@@ -3010,7 +3041,36 @@ function WxHourCell({ h, lo, hi, judged }: { h: WxHour; lo: number; hi: number; 
       </span>
       <span className="wxs__out">{degrees(out)}</span>
       <span className="wxs__rain">{h.rainMm >= 0.1 ? mm(h.rainMm) : ""}</span>
-      <span className="wxs__hr">{clock(h.hour)}</span>
+    </div>
+  );
+}
+
+/**
+ * The day's totals, in the space the working hours leave at the end of the
+ * strip.
+ *
+ * Each figure answers something the row of hours can only be read for one
+ * column at a time: how much rain the whole day gets, when it is hottest, and
+ * the best an evap would manage all day — which is the figure the week's evap
+ * verdict above is actually decided on.
+ */
+function WxDaySummary({ d }: { d: WxDay }) {
+  const best = judgedHour(d);
+  return (
+    <div className="wxsum">
+      <span className="wxsum__head">The day</span>
+      <span className="wxsum__row">
+        <b className="wxsum__fig">{mm(d.rainMm)}</b>
+        <span className="wxsum__lab">rain{d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : ""}</span>
+      </span>
+      <span className="wxsum__row">
+        <b className="wxsum__fig">{degrees(d.maxC)}</b>
+        <span className="wxsum__lab">{d.peakAt != null ? `at ${clock(d.peakAt)}` : "at its hottest"}</span>
+      </span>
+      <span className="wxsum__row">
+        <b className="wxsum__fig">{best ? degrees(deliveredC(best.tempC, best.humidity)) : NA}</b>
+        <span className="wxsum__lab">best an evap would blow</span>
+      </span>
     </div>
   );
 }
@@ -3034,19 +3094,25 @@ function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[
   const allHiddenFine = hidden.every((h) => h.status === "go");
   return (
     <div className={`wxw__d${today ? " is-today" : ""}`}>
-      <span className="wxw__name">{wxDayName(d.date, today)}</span>
-      <span className="wxw__row">
-        <span className="wxw__temp">
-          {degrees(d.minC)}–{degrees(d.maxC)}
+      {/* The weather block is a fixed height so that every column's first job
+          box starts on the same line. It floated before, because one day's
+          reason runs to three lines and the next day's to one, and seven
+          columns of boxes at seven different heights reads as a mistake. */}
+      <span className="wxw__sky">
+        <span className="wxw__name">{wxDayName(d.date, today)}</span>
+        <span className="wxw__row">
+          <span className="wxw__temp">
+            {degrees(d.minC)}–{degrees(d.maxC)}
+          </span>
+          <SkyIcon sky={d.sky} />
         </span>
-        <SkyIcon sky={d.sky} />
+        <span className="wxw__rain">
+          {d.rainMm > 0 ? mm(d.rainMm) : "dry"}
+          {d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : d.peakAt != null ? ` · peak ${clock(d.peakAt)}` : ""}
+        </span>
+        <span className={`wxw__head wx--${head.rating}`}>{head.word}</span>
+        <span className="wxw__why">{head.why}</span>
       </span>
-      <span className="wxw__rain">
-        {d.rainMm > 0 ? mm(d.rainMm) : "dry"}
-        {d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : d.peakAt != null ? ` · peak ${clock(d.peakAt)}` : ""}
-      </span>
-      <span className={`wxw__head wx--${head.rating}`}>{head.word}</span>
-      <span className="wxw__why">{head.why}</span>
 
       {/* And the diary for that day, under the weather that decides it. */}
       <span className="wxw__jobs">
@@ -3067,8 +3133,12 @@ function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[
                 </span>
                 <span className={`wxj2__word ${JOB_INK[c.status]}`}>
                   <i className={`wxdot ${JOB_INK[c.status]}`} aria-hidden="true" />
-                  {c.word}
+                  {JOB_WORD[c.status]}
                 </span>
+                {/* What makes this job different from the one above it. The
+                    rule's own words, now that the status no longer carries
+                    them. */}
+                <span className="wxj2__why">{c.status === "go" ? c.why : `${c.word} · ${c.why}`}</span>
               </span>
             ))}
             {rest > 0 && (

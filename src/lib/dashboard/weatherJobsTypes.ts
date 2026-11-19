@@ -108,17 +108,6 @@ export type JobNeeds = {
   roof: boolean;
   /** An evaporative unit of any kind — the thing lives on the roof. */
   evap: boolean;
-  /**
-   * A new unit is being handed over today, so the air has to be dry enough
-   * for it to show what it does.
-   *
-   * Installs only, and that distinction matters more than it looks. Evaps get
-   * serviced through winter as a matter of course — the first version put
-   * "can't demo it" against four spring services on 17° days, which is true,
-   * unactionable, and four fifths of the page. A service is judged on whether
-   * somebody can get on the roof, and nothing else.
-   */
-  handover: boolean;
   /** A hot day is the wrong day for it, and why. */
   heat: HeatReason | null;
 };
@@ -169,7 +158,6 @@ export function needsOf(jobType: string): JobNeeds {
      */
     roof: evap || ((flue || ducted) && installing),
     evap,
-    handover: evap && installing,
     heat: installing && flue ? "comfort" : installing && ducted ? "cavity" : null,
   };
 }
@@ -278,7 +266,7 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
   const hours = flatHours(w.days);
   const call = (status: JobStatus, word: string, why: string): JobCall => ({ ...job, needs, status, word, why });
 
-  if (!day) return call("watch", "No forecast", "this far out the forecast has nothing to say");
+  if (!day) return call("watch", "No forecast", "too far out to say");
 
   const endHour = Math.min(23, job.hour + Math.ceil(job.hours));
   const during = window(hours, job.date, job.hour, job.date, endHour);
@@ -303,9 +291,7 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
       return call(
         "watch",
         "Off the roof",
-        `${mmText(day.workRainMm)} through the day${
-          total > 0 ? ` · ${mmText(total)} between ${clockOf(job.hour)} and ${clockOf(endHour)}` : ""
-        }`,
+        `${mmText(day.workRainMm)} through the day${total > 0 ? ` · ${mmText(total)} on the job` : ""}`,
       );
     }
   }
@@ -328,14 +314,14 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
         return call(
           "watch",
           "Wet roof",
-          `${mmText(fell)} overnight · ${clockOf(job.hour)} start on a roof that may not have dried`,
+          `${mmText(fell)} overnight · ${clockOf(job.hour)} start`,
         );
       }
     }
   }
 
   if (needs.roof && day.windKmh != null && day.windKmh >= ROOF_WIND_KMH) {
-    return call("risk", "Too windy", `${round(day.windKmh)} km/h · nobody should be on a roof in it`);
+    return call("risk", "Too windy", `${round(day.windKmh)} km/h wind`);
   }
 
   /*
@@ -357,7 +343,7 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
       return call(
         "watch",
         "Close the roof today",
-        `${mmText(next.workRainMm)} tomorrow · get everything in the roof on day one`,
+        `${mmText(next.workRainMm)} tomorrow · close it on day one`,
       );
     }
   }
@@ -365,42 +351,26 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
   // Jake's thirty degrees, with the reason that belongs to this kind of work.
   if (needs.heat && day.maxC >= TOO_HOT_C) {
     return needs.heat === "comfort"
-      ? call("risk", "Too hot", `${round(day.maxC)}° · nobody wants a heater run up to temp in it`)
+      ? call("risk", "Too hot", `${round(day.maxC)}° · too hot to run a heater up`)
       : call("risk", "Too hot", `${round(day.maxC)}° · the roof cavity will be past 50°`);
   }
 
   /*
-   * And the evap handover. A watch rather than a risk: the unit still goes in
-   * and the work still gets paid for, but the customer standing under the
-   * outlet will not be impressed, so somebody should know before they arrive.
+   * There is deliberately no evap-handover verdict here.
+   *
+   * There was: a new unit on a mild or muggy day was flagged, on the reasoning
+   * that a handover is somebody standing under the outlet deciding whether
+   * they got what they paid for. Jake asked what "can't demo it" meant and the
+   * answer did not survive the question. It flagged jobs that were going ahead
+   * regardless — and gold on this page means a chance the job does *not* go
+   * ahead, so it was a colour on something that is not a risk. With only one
+   * or two flags on a normal week it was also crowding out the ones that
+   * matter.
+   *
+   * The day's own evap verdict stays, on the Weather column above: "is this a
+   * good day for evaporative work" was the original question and it is still
+   * worth answering. What it is not is a reason to move a booking.
    */
-  if (needs.handover) {
-    if (day.maxC < EVAP_DEMO_MIN_TEMP) {
-      return call("watch", "Can’t demo it", `tops ${round(day.maxC)}° · fit it, show them on a warm day`);
-    }
-    /*
-     * Judged on the day's hottest working hour, not on the job's own window.
-     *
-     * Two reasons, and the first is the one that bit. A half past seven start
-     * is judged against half past seven air, and mornings are humid
-     * everywhere — so every early evap install read "too humid" on days that
-     * were perfectly good by noon. The handover is at the end of the job, and
-     * the customer uses the thing that afternoon.
-     *
-     * The second is that the Weather page judges the same day the same way.
-     * Two pages on the same wall disagreeing about whether Thursday suits an
-     * evap is worse than either of them being wrong on its own.
-     */
-    const judged = judgedHour(day);
-    if (judged && judged.tempC - wetBulbC(judged.tempC, judged.humidity) < EVAP_POOR_DEPRESSION) {
-      const out = deliveredC(judged.tempC, judged.humidity);
-      return call(
-        "watch",
-        "Too humid",
-        `would blow ${round(out)}° at ${round(judged.tempC)}° · ${round(judged.humidity)}% humidity`,
-      );
-    }
-  }
 
   const why = needs.roof
     ? `dry ${clockOf(job.hour)}–${clockOf(endHour)}${day.maxC >= EVAP_DEMO_MIN_TEMP ? ` · ${round(day.maxC)}°` : ""}`

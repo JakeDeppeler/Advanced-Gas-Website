@@ -3433,6 +3433,73 @@ than a warning, and its bar is deliberately lower than the ones that stop work
 — a day that would only be gold on its own is worth knowing about the night
 before you open somebody's ceiling.
 
+### Three words on a job, and only three
+
+> "We should have 3 words like no roof work, clear and keep an eye on."
+
+| Status | Word |
+|---|---|
+| red | **No roof work** |
+| gold | **Keep an eye on** |
+| green | **Clear** |
+
+The rules produce a dozen verdicts — wet roof, too windy, too hot, close the
+roof today — and a column of a dozen different phrases is a column nobody
+scans. The status is one of three; what makes *this* job different from the one
+above it goes on the line underneath, which is where somebody reads once the
+colour has caught them.
+
+"No roof work" fits every red on the page because every red **is** a roof:
+more than ten millimetres through the working day, or wind. Heat, an overnight
+shower and the day-one roof flag are all gold.
+
+The day's own verdict above the boxes keeps its own vocabulary — "Don't",
+"Marginal", "Off the roof" — because it answers a different question: not
+*will this job go ahead* but *what is this day good for*.
+
+### Nothing is flagged for humidity, or for being mild
+
+There was an evap-handover verdict on every install: a new unit on a mild or
+muggy day was flagged, on the reasoning that a handover is somebody standing
+under the outlet deciding whether they got what they paid for.
+
+Jake asked what it meant — "the mon 23, why does it say can't demo it, what are
+we demo?" — and the answer did not survive the question.
+
+- **It was not a scheduling concern.** Gold means *a chance the job does not go
+  ahead*. That install goes ahead on Monday whatever the temperature.
+- **The premise was an assumption.** Nobody had said a handover is a cold-air
+  demonstration. If commissioning an evap is water flow, pads wetting, airflow
+  and the controller, all of which work at 20°, the rule measured nothing.
+- **It crowded out the real flags.** It was one of only two gold flags in a
+  normal week.
+
+So it is gone, along with the "too humid" verdict on installs that shared its
+premise. `check:weatherjobs` asserts that neither can come back.
+
+The **day's** evap verdict stays. "Tell if the day is bad to book an evap" was
+the original ask and is still worth answering; it is simply not a reason to
+move a booking.
+
+### The day's totals sit at the end of the hour strip
+
+Ten working hours in a row sized for fourteen leaves a gap. It holds three
+figures the hours themselves can only be read for one column at a time: the
+day's rain and when it starts, the peak and its hour, and the best an evap
+would manage all day — which is the figure the week's evap verdict above is
+actually decided on.
+
+### Every column's boxes start on the same line
+
+The weather block above the jobs is a fixed height. It floated before: one
+day's reason runs to three lines and the next day's to one, so seven columns of
+boxes sat at seven different heights, which reads as a mistake rather than as
+information.
+
+The reasons were **shortened at the source** rather than clamped, so nothing is
+hidden. A CSS line clamp also reports as an overflow at every screen size,
+which buries real overflows in the layout check — the thing that catches these.
+
 ### The sky, drawn rather than fetched
 
 Each day column and each hour carries an icon. MET names about ninety symbol
