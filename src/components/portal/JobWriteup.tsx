@@ -176,18 +176,19 @@ export function JobWriteup({ job, heading, quotes, quote, invoice, start, notes:
       </section>
 
       <section className="jw-box jw-notes" aria-labelledby="jw-n-h">
-        <div className="jw-bh"><h2 id="jw-n-h">Your notes for this job</h2>{notesBy ? <span className="jw-quiet">Saved by {notesBy.by}, {when(notesBy.at)}</span> : null}</div>
-        <p className="jw-quiet">How it&rsquo;s going in, what&rsquo;s coming out, and anything that comes off the price if it isn&rsquo;t needed. These go in first.</p>
+        <div className="jw-bh"><h2 id="jw-n-h">Notes to write it from</h2>{notesBy ? <span className="jw-quiet">Saved by {notesBy.by}, {when(notesBy.at)}</span> : null}</div>
+        <p className="jw-quiet">Only for writing the job summary and the labour line; they aren&rsquo;t put on the job. Say how it&rsquo;s going in, what&rsquo;s coming out, and anything that comes off the price if it isn&rsquo;t needed.</p>
         <textarea id="jw-notes" aria-labelledby="jw-n-h" className="jw-ta" rows={rows(notes, 4)} value={notes} onChange={(e) => setNotes(e.target.value)}
           placeholder={"e.g. Outdoor unit on a roof bracket.\nCondensate pump on the indoor head. If we don't need it, it comes off the quoted price.\nRemoving the old Fujitsu split from the lounge."} />
         <div className="jw-row">
-          <button className="pk-btn" type="button" onClick={write} disabled={writing}>{writing ? "Writing…" : written ? "Write it again" : "Write it"}</button>
+          {/* Written from the notes, so not without them (Jake, 19 Nov). */}
+          <button className="pk-btn" type="button" onClick={write} disabled={writing || !notes.trim()}>{writing ? "Writing…" : written ? "Write it again" : "Write it"}</button>
           <button className="pk-btn g" type="button" disabled={saving || writing} onClick={() => startSave(async () => {
             const r = await saveJobNotes(job, notes);
             setWriteMsg(r.ok ? { ok: true, text: r.note } : { ok: false, text: r.error });
             router.refresh();
           })}>{saving ? "Saving…" : "Save notes"}</button>
-          <span className="jw-quiet">{writing ? "About half a minute." : <>{heading.read.length ? `Also reads ${heading.read.join(", ")}.` : ""}{heading.missing.length ? ` Couldn't read ${heading.missing.join(", ")}.` : ""}</>}</span>
+          <span className="jw-quiet">{writing ? "About half a minute." : !notes.trim() ? "Add your notes, then Write it." : <>{heading.read.length ? `Also reads ${heading.read.join(", ")}.` : ""}{heading.missing.length ? ` Couldn't read ${heading.missing.join(", ")}.` : ""}</>}</span>
         </div>
         {writeMsg && <p className={`jw-msg ${writeMsg.ok ? "ok" : "bad"}`} role="status">{writeMsg.text}</p>}
       </section>

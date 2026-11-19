@@ -70,7 +70,7 @@ export default async function WriteupPage({ searchParams }: { searchParams: { jo
     <PortalShell user={user}>
       <div className="pk">
         <Head title="Job write-up" eyebrow="Jobs" sub="The job summary and the labour line for a job's quote or invoice, written from your notes and what's in ServiceTitan." info={[
-          ["Your notes", "Say how it's going in (a roof bracket, a pump), what's coming out, and anything that comes off the price if it isn't needed. They're saved with the job and written in first; where they disagree with an older record, your notes win."],
+          ["Notes to write it from", "Only for writing: they aren't put on the job in ServiceTitan. Say how it's going in (a roof bracket, a pump), what's coming out, and anything that comes off the price if it isn't needed. Nothing is written until there are notes, and where they disagree with an older record, your notes win. They're kept here for whoever opens the job next."],
           ["One price", "The installation labour, the materials and the electrical work go under the main labour line, at what they come to together. The other lines stay on at $0 with their cost, so job profit still sees them. The equipment, the compliance certificate and the rebates keep their own lines, and the total doesn't change."],
           ["Undo", "Each time it's put on, the summary and every line it changed are kept first. If ServiceTitan doesn't read back exactly as intended, it's put back straight away; otherwise Undo puts it back while nobody has changed it since."],
         ]} />
