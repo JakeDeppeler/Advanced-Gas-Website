@@ -4212,3 +4212,54 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .kc-t .kc-chg { display: inline; margin: 0; }
   .kc-t tr.kc-tip td { padding: 10px 0 0; }
 }
+
+/* Jobs › Write-up: a job's quote and invoice words, and one labour price (19 Nov). */
+.jw-find { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 16px; }
+.jw-find label { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.jw-find .pk-in { width: 140px; font-size: 15px; padding: 8px 12px; }
+.jw { display: grid; gap: 16px; }
+.jw-quotes { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; font-size: 13px; }
+.jw-quotes > span { color: var(--ink2); font-weight: 600; }
+.jw-quotes a { padding: 5px 11px; border-radius: 99px; background: var(--quiet); color: var(--ink); text-decoration: none; }
+.jw-quotes a[aria-current="true"] { background: var(--mark); color: var(--on-mark); font-weight: 700; }
+.jw-write { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.jw-quiet { font-size: 13px; color: var(--ink2); }
+.jw-msg { margin: 0; font-size: 14px; padding: 9px 12px; border-radius: 10px; }
+.jw-msg.ok { background: var(--good-bg); color: var(--good); }
+.jw-msg.bad { background: var(--bad-bg); color: var(--bad); }
+.jw-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; align-items: start; }
+.jw-cols > * { min-width: 0; }
+.jw-doc { display: grid; gap: 12px; }
+.jw-field { display: grid; gap: 5px; }
+.jw-fh { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.jw-fh label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink2); }
+.jw-ta { field-sizing: content; width: 100%; box-sizing: border-box; resize: vertical; padding: 9px 11px; border-radius: 10px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--surface); font: inherit; font-size: 14px; line-height: 1.5; color: var(--ink); }
+.jw-ta:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent); }
+.jw-copy { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--ink); background: var(--quiet); border: 0; border-radius: 99px; padding: 3px 10px; cursor: pointer; }
+.jw-copy:disabled { opacity: .5; cursor: default; }
+.jw-put { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; padding-top: 4px; }
+.jw-check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; flex: 1 1 260px; }
+.jw-check input { margin-top: 3px; }
+.jw-now { display: grid; gap: 4px; font-size: 14px; }
+.jw-now p { margin: 0; color: var(--ink2); white-space: pre-line; }
+.jw-lines { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.jw-lines > summary { cursor: pointer; font-size: 14px; color: var(--ink); }
+.jw-lines .pk-tbl-wrap { margin-top: 8px; }
+.jw-plan td, .jw-plan th { vertical-align: top; }
+.jw-plan td:nth-child(n+3), .jw-plan th:nth-child(n+3), .jw-plan tfoot td { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jw-plan .jw-ln { display: block; }
+.jw-plan .jw-code { display: block; font-size: 12px; color: var(--ink2); }
+.jw-plan tr.jw-target td { background: var(--good-bg); }
+.jw-plan tr.jw-merged td:nth-child(4) { color: var(--ink2); }
+.jw-plan tfoot th { text-align: left; }
+.jw-hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.jw-hist li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.jw-hist li > span:not(.pk-st) { flex: 1 1 240px; color: var(--ink2); }
+@media (max-width: 640px) {
+  .jw-plan thead { display: none; }
+  .jw-plan tr { display: grid; grid-template-columns: 1fr auto auto; gap: 2px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .jw-plan td { padding: 0; border: 0; }
+  .jw-plan td:nth-child(1) { grid-column: 1 / -1; }
+  .jw-plan td:nth-child(2) { font-size: 12.5px; color: var(--ink2); }
+  .jw-plan tfoot tr { grid-template-columns: 1fr auto auto; }
+}
