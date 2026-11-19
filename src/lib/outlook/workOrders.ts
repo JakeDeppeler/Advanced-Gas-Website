@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/email/send";
 import { site } from "@/lib/site";
 import { graph, GraphError, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { activeJobTypes, fillManager, fillSiteDetails, fillTenant, findSite, holdForTenant, jobsAt, makeJob, type MadeJob } from "./stPlace";
+import { activeJobTypes, fillJobFields, fillManager, fillSiteDetails, fillTenant, findSite, holdForTenant, jobsAt, jobValues, makeJob, siteFields, type MadeJob } from "./stPlace";
 import { lookUpPropertyType } from "./propertyType";
 import { putOnJob } from "./jobLink";
 import { cancelFromEmail } from "./cancel";
@@ -375,7 +375,7 @@ export async function handleWorkOrder(mailbox: string, m: GraphMessage, source: 
         return "";
       });
       const pm = await fillManager(site_.locationId, w).catch((e: Error) => `property manager not put on: ${stSaid(e)}`.slice(0, 200));
-      await fillSiteDetails(site_.locationId, w, lookUp)
+      await fillSiteDetails(site_.locationId, w, lookUp, { jobId: site_.jobId })
         .catch(async (e: Error) => {
           await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: false, jobId: site_.jobId, title: `Job ${site_.jobNumber ?? site_.jobId}: the site's job reference, owner or property type couldn't be filled in`, detail: stSaid(e).slice(0, 200) }]).catch(() => undefined);
         });
@@ -687,7 +687,7 @@ export async function tapiBackfill(deadline: number): Promise<{ filled: number; 
       const said = [
         await fillTenant(loc, merged).catch((e: Error) => `tenant not put on: ${stSaid(e)}`),
         await fillManager(loc, merged).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
-        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).then((x) => x.type).catch(() => null), { onlyEmpty: true }).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
+        await fillSiteDetails(loc, merged, () => lookUpPropertyType(merged.street, merged.suburb, merged.postcode).then((x) => x.type).catch(() => null), { onlyEmpty: true, jobId: r.st_job_id }).catch((e: Error) => `site details not filled: ${stSaid(e)}`),
       ].filter(Boolean).join("; ");
       await save(r.mailbox, r.message_id, { details: { ...merged, tapi: `caught up later: ${page.note}` } });
       await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: the Tapi page's details put on the site`, detail: (said || "nothing new for the site").slice(0, 300) }]).catch(() => undefined);
@@ -721,7 +721,7 @@ export async function siteBackfill(deadline: number): Promise<{ done: number }> 
       await fillManager(r.st_location_id, w).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
       await fillSiteDetails(r.st_location_id, w, () => lookUpPropertyType(w.street ?? "", w.suburb ?? "", w.postcode ?? "")
         .then((x) => { lookupNote = x.note; return x.type; })
-        .catch((e: Error) => { lookupNote = `the lookup failed: ${e.message}`.slice(0, 200); return null; }), { onlyEmpty: true })
+        .catch((e: Error) => { lookupNote = `the lookup failed: ${e.message}`.slice(0, 200); return null; }), { onlyEmpty: true, jobId: r.st_job_id })
         .catch((e: Error) => `site details not filled: ${stSaid(e)}`),
     ].filter(Boolean).join("; ");
     await save(r.mailbox, r.message_id, { details: { ...w, siteCaught: said || "nothing new", propertyLookup: lookupNote || (w.propertyLookup as string | undefined) || "the site already had one" } }).catch(() => undefined);
@@ -770,7 +770,7 @@ export async function ownerBackfill(deadline: number): Promise<{ done: number }>
       };
       const loc = r.st_location_id;
       const said = [
-        await fillSiteDetails(loc, merged, async () => null, { onlyEmpty: true }).catch((e: Error) => `owner not filled: ${stSaid(e)}`),
+        await fillSiteDetails(loc, merged, async () => null, { onlyEmpty: true, jobId: r.st_job_id }).catch((e: Error) => `owner not filled: ${stSaid(e)}`),
         await fillTenant(loc, merged).catch((e: Error) => `tenant not put on: ${stSaid(e)}`),
         await fillManager(loc, merged).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
       ].filter(Boolean).join("; ");
@@ -780,6 +780,33 @@ export async function ownerBackfill(deadline: number): Promise<{ done: number }>
     } catch (e) {
       await save(r.mailbox, r.message_id, { details: { ...old, ownerCaught: `read again, but: ${(e as Error).message}`.slice(0, 200) } }).catch(() => undefined);
     }
+  }
+  return out;
+}
+
+/**
+ * Work order jobs from the last fortnight, whose Job Reference, Owners
+ * Details and Property Type the portal put only on the site until 19 Nov:
+ * the job's own work order number and owner, and the site's property type,
+ * onto the job, only into empty fields. No reading, so three a run.
+ */
+export async function jobFieldsBackfill(deadline: number): Promise<{ done: number }> {
+  const out = { done: 0 };
+  const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+  type R = { mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; st_location_id: number; details: (Partial<WorkOrder> & Record<string, unknown>) | null };
+  const rows = await sbSelect<R>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
+    "details->>jobFields=is.null", q.gte("created_at", since), q.order("created_at", "desc", "last"), "limit=3",
+  ].join("&")).catch(() => []);
+  for (const r of rows) {
+    // Each can take eight seconds reading back.
+    if (Date.now() > deadline - 10_000) break;
+    const said = await siteFields(r.st_location_id)
+      .then((f) => fillJobFields(r.st_job_id, jobValues({ number: r.details?.number ?? "", owner: r.details?.owner ?? "" }, f), { onlyEmpty: true }))
+      .catch((e: Error) => `not copied: ${stSaid(e)}`.slice(0, 200));
+    await save(r.mailbox, r.message_id, { details: { ...(r.details ?? {}), jobFields: said || "nothing to copy" } }).catch(() => undefined);
+    if (said && !said.startsWith("not copied")) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: job reference, owner and property type put on the job`, detail: said.slice(0, 300) }]).catch(() => undefined);
+    out.done++;
   }
   return out;
 }

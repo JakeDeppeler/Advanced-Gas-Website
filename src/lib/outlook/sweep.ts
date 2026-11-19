@@ -6,7 +6,7 @@ import { handleMessage, secondLookForQuotes, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
-import { applyUnitFixes, attachBookedJobs, ownerBackfill, retryHolds, siteBackfill, sweepWorkOrders, tapiBackfill } from "./workOrders";
+import { applyUnitFixes, attachBookedJobs, jobFieldsBackfill, ownerBackfill, retryHolds, siteBackfill, sweepWorkOrders, tapiBackfill } from "./workOrders";
 import { carryQuoteEmails } from "./jobLink";
 import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
@@ -51,6 +51,7 @@ export type SweepResult = {
   attached: { attached: number; errors: string[] } | { error: string };
   holds: { held: number; error?: string };
   units: { changed: number; error?: string };
+  jobFields: { done: number };
   tapi: { filled: number; tried: number };
   sites: { done: number };
   owners: { done: number };
@@ -154,6 +155,7 @@ export async function sweep(): Promise<SweepResult> {
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
   const holds = await retryHolds(started + TAGS_BUDGET_MS).catch((e: Error) => ({ held: 0, error: e.message }));
   const units = await applyUnitFixes(started + TAGS_BUDGET_MS).catch((e: Error) => ({ changed: 0, error: e.message }));
+  const jobFields = await jobFieldsBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 }));
 
   // A quote sold and made into a job: its emails go on that job too, once.
   const carried = (await loadSwitches()).emailToJob
@@ -184,5 +186,5 @@ export async function sweep(): Promise<SweepResult> {
   const sites = Date.now() - started < 25_000 ? await siteBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
   const owners = Date.now() - started < 25_000 ? await ownerBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
 
-  return { subscriptions, mailboxes, workOrders, attached, holds, units, tapi, sites, owners, carried, secondLook, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, holds, units, jobFields, tapi, sites, owners, carried, secondLook, duplicates, handoffs };
 }

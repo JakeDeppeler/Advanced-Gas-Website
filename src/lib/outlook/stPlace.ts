@@ -379,7 +379,7 @@ const FIELD = { jobRef: 209604015, owner: 209602958, propertyType: 209599952 } a
  * they replace what's there; a property type someone has set is kept.
  * Returns what changed, in words, or "" for nothing.
  */
-export async function fillSiteDetails(locationId: number, w: WorkOrder, propertyType: () => Promise<string | null>, opts: { onlyEmpty?: boolean } = {}): Promise<string> {
+export async function fillSiteDetails(locationId: number, w: WorkOrder, propertyType: () => Promise<string | null>, opts: { onlyEmpty?: boolean; jobId?: number } = {}): Promise<string> {
   const path = stTenantPath("crm", `locations/${locationId}`);
   const loc = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(path);
   const have = new Map((loc.customFields ?? []).map((f) => [f.typeId, (f.value ?? "").trim()]));
@@ -394,14 +394,71 @@ export async function fillSiteDetails(locationId: number, w: WorkOrder, property
     if (t) set.set(FIELD.propertyType, t);
   }
   const changed = [...set].filter(([id, v]) => have.get(id) !== v);
-  if (!changed.length) return "";
   // Every field the site has, with these over the top: an update that sent
   // only these could take the others off.
   const all = new Map(have);
   for (const [id, v] of changed) all.set(id, v);
+  if (changed.length) await stSend("PATCH", path, { customFields: [...all].filter(([, v]) => v).map(([typeId, value]) => ({ typeId, value })) });
+  const said = changed.map(([id, v]) => `${FIELD_SAID[id]} ${v}`);
+  // And on the job, where the office reads them (Jake, 19 Nov: 20917's job
+  // page showed no owner; the site had it).
+  if (opts.jobId) {
+    const onJob = await fillJobFields(opts.jobId, jobValues(w, all), { onlyEmpty: opts.onlyEmpty })
+      .catch((e: Error) => `job fields not filled: ${stSaid(e)}`);
+    if (onJob) said.push(onJob);
+  }
+  return said.join(", ");
+}
+
+const FIELD_SAID: Record<number, string> = { [FIELD.jobRef]: "job reference", [FIELD.owner]: "owner", [FIELD.propertyType]: "property type" };
+
+/**
+ * The job's own Job Reference, Owners Details and Property Type, as the
+ * office fills them on a job by hand (20889, 20901, 20910), from the values
+ * given. A catch-up only fills what's empty. Read back. Returns what
+ * changed, in words, or "".
+ */
+export async function fillJobFields(jobId: number, values: Map<number, string>, opts: { onlyEmpty?: boolean } = {}): Promise<string> {
+  const path = stTenantPath("jpm", `jobs/${jobId}`);
+  const job = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(path);
+  const have = new Map((job.customFields ?? []).map((f) => [f.typeId, (f.value ?? "").trim()]));
+  const set = [...values].filter(([id, v]) => v && (!opts.onlyEmpty || !have.get(id)) && have.get(id) !== v);
+  if (!set.length) return "";
+  const all = new Map(have);
+  for (const [id, v] of set) all.set(id, v);
   await stSend("PATCH", path, { customFields: [...all].filter(([, v]) => v).map(([typeId, value]) => ({ typeId, value })) });
-  const said: Record<number, string> = { [FIELD.jobRef]: "job reference", [FIELD.owner]: "owner", [FIELD.propertyType]: "property type" };
-  return changed.map(([id, v]) => `${said[id]} ${v}`).join(", ");
+  // A job reads back as it was for a moment after an update (the unit fixes,
+  // 18 Nov), so a miss is looked at again before it counts.
+  let missed = set;
+  for (let i = 0; i < 3 && missed.length; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const back = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(path);
+    const got = new Map((back.customFields ?? []).map((f) => [f.typeId, (f.value ?? "").trim()]));
+    missed = set.filter(([id, v]) => got.get(id) !== v);
+  }
+  if (missed.length === set.length) throw new Error("ServiceTitan didn't keep the job's fields");
+  return `on the job: ${set.filter(([id]) => !missed.some(([m]) => m === id)).map(([id, v]) => `${FIELD_SAID[id]} ${v}`).join(", ")}`;
+}
+
+/**
+ * What a job's three fields should say: its own work order's number (never
+ * the site's, which can be an earlier job's), and the work order's owner,
+ * else the site's; the property type is the house's, so the site's.
+ */
+export function jobValues(w: Pick<WorkOrder, "number" | "owner"> | null, site: Map<number, string>): Map<number, string> {
+  const out = new Map<number, string>();
+  if (w?.number) out.set(FIELD.jobRef, jobReference(w.number).slice(0, 100));
+  const owner = w?.owner?.trim() || site.get(FIELD.owner);
+  if (owner) out.set(FIELD.owner, owner.slice(0, 160));
+  const type = site.get(FIELD.propertyType);
+  if (type) out.set(FIELD.propertyType, type);
+  return out;
+}
+
+/** The site's own values of the three fields, for copying to its job. */
+export async function siteFields(locationId: number): Promise<Map<number, string>> {
+  const loc = await stFetch<{ customFields?: { typeId: number; value?: string | null }[] }>(stTenantPath("crm", `locations/${locationId}`));
+  return new Map((loc.customFields ?? []).filter((f) => Object.values(FIELD).includes(f.typeId as never)).map((f) => [f.typeId, (f.value ?? "").trim()]));
 }
 
 /**
