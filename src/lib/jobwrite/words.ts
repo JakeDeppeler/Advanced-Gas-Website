@@ -20,10 +20,11 @@ import type { Doc, Plan } from "./lines";
 
 export type { DocWords, JobWords };
 
+// Only the summary: the labour line is a fixed sentence (lines.ts labourLine).
 const doc = {
   type: "object",
-  properties: { summary: { type: "string" }, labour: { type: "string" } },
-  required: ["summary", "labour"],
+  properties: { summary: { type: "string" } },
+  required: ["summary"],
   additionalProperties: false,
 } as const;
 export const WORDS_SCHEMA = {
@@ -38,7 +39,9 @@ export const WORDS_SCHEMA = {
 // 3 (19 Nov, Jake): written in the style of his two examples, as paragraphs
 // with an Installation Details section and, on a repair to an old system, an
 // Existing System Condition note; the facts from the report and the notes.
-export const WORDS_VERSION = "3";
+// 4 (19 Nov, Jake, job 20900): the labour line is one fixed sentence pointing
+// to the summary, so the summary has to cover everything the price does.
+export const WORDS_VERSION = "4";
 
 /** Jake's two summaries, 19 Nov, as he wrote them: the style to match, never facts for another job. */
 const EXAMPLE_REPAIR = `Supply and installation of a new fan belt (A54 / A1400, 13 x 1372mm) including correct tensioning to ensure appropriate fan operation and minimise unnecessary load on the fan motor.
@@ -75,7 +78,9 @@ Front living room: 5kW indoor unit positioned to provide heating and cooling to 
 
 All installations will be completed in accordance with manufacturer specifications and applicable industry requirements.`;
 
-export const WORDS_RULES = `You write the job summary and the labour line on a quote and an invoice for Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The customer reads them, and on a rental so does the agent and the owner.
+export const WORDS_RULES = `You write the job summary on a quote and on an invoice for Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The customer reads it, and on a rental so does the agent and the owner.
+
+The labour line under it carries the labour, materials and electrical work as one price, and says only "All labour, materials and standard electrical works required to complete the works described in the Job Summary." So the summary is where the customer learns what that price covers: the work, the materials that go with it (named the way the quote or notes name them: copper pipework, brackets, ductwork, a condensate pump), and the electrical work where the job has any.
 
 ## Where the facts come from
 
@@ -111,14 +116,11 @@ Anything the office says may not be needed goes where it belongs, plainly: "A co
 
 The quote is in the future tense ("will be removed"). The invoice says the same in the past tense ("Supplied and installed", "was removed"), leaves out part 3, and keeps part 6 on a repair. Paragraphs are separated by a blank line; the two headings are lines of their own. No bullet points, numbering, markdown or asterisks.
 
-## The labour line
-
-One paragraph for the single line that carries the installation labour, the materials and the electrical work as one price. Start with what the work is, then say what the one price covers on this job: the labour, the materials named the way the quote or notes name them (copper pipework, brackets, a condensate pump, ductwork), and the electrical work where there is any. Quote: "covers"; invoice: "covered". Cover only the parts you're told are merged into the one price; electrical only if there's an electrical line or an electrician booked.
-
 ## Always
 
 - No prices or dollar figures (except an amount the notes give for something that may come off), no hours, no customer names, phone numbers or addresses.
 - No warranty claims and no promises the records don't make. The equipment line sells the unit, so don't describe the brand's features.
+- Electrical work is mentioned only when the quote has an electrical line or an electrician is booked.
 - Don't mention the records themselves (a form, a note, something missing). Write about the job.`;
 
 const tidy = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
@@ -205,9 +207,10 @@ export function tidySummary(s: string): string {
 export function parseWords(text: string): JobWords {
   const v = JSON.parse(text) as JobWords;
   if (!v || typeof v !== "object" || !v.quote || !v.invoice) throw new Error("not a write-up");
+  // The labour line is filled in from the lines afterwards (write.ts).
   const one = (d: Partial<DocWords> | undefined): DocWords => ({
     summary: typeof d?.summary === "string" ? tidySummary(d.summary) : "",
-    labour: typeof d?.labour === "string" ? tidy(d.labour) : "",
+    labour: "",
   });
   return { quote: one(v.quote), invoice: one(v.invoice) };
 }

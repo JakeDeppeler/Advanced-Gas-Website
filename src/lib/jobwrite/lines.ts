@@ -63,7 +63,7 @@ export const ROLE_WORD: Record<Role, string> = {
 
 const REBATE = /^rebate|rebate|discount|deposit|\bstc\b|veec|solar victoria|card fee/i;
 const CERT = /\bbpc\b|compliance|certificate|permit/i;
-const ELECTRICAL = /(^|[-\s])ele($|[-\s])|electric(al|ian)|\brcbo\b|circuit|isolator|power point/i;
+const ELECTRICAL = /(^|[-\s])elec?($|[-\s])|electric(al|ian)|\brcbo\b|circuit|isolator|power point/i;
 
 /** What a line is, for the one price. Rebates and the compliance certificate keep their own lines. */
 export function roleOf(l: Pick<DocLine, "code" | "name" | "type" | "total">): Role {
@@ -149,3 +149,20 @@ export function planOnePrice(doc: Pick<Doc, "kind" | "lines" | "exported">): Pla
 
 /** Already one price: nothing but the target line carries a merged price. */
 export const alreadyOnePrice = (p: Plan) => p.target != null && p.changes === 0;
+
+/**
+ * The words on the labour line that carries the one price (Jake, 19 Nov, on
+ * job 20900: "because we have covered everything in the job summary, the
+ * Split System - Roof Bracket needs to be more simple, like: All labour,
+ * materials and standard electrical works required to complete the works
+ * described in the Job Summary"). A fixed sentence, not written by Claude, so
+ * it reads the same on every quote; it names only what the document has: the
+ * electrical work only where there's an electrical line, materials only where
+ * there are materials.
+ */
+export function labourLine(p: Pick<Plan, "lines"> | null): string {
+  const has = (r: Role) => (p?.lines ?? []).some((l) => l.role === r && l.qty > 0);
+  const parts = ["labour", has("materials") ? "materials" : null, has("electrical") ? "standard electrical works" : null].filter(Boolean) as string[];
+  const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
+  return `All ${list} required to complete the works described in the Job Summary.`;
+}
