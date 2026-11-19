@@ -147,6 +147,8 @@ export function quoteKey(r: {
   return `e${r.id}`;
 }
 
+import { readWeather, stampToday } from "./weather";
+import type { Weather } from "./weatherTypes";
 export type { SourceState } from "./sourceState";
 import type { SourceState } from "./sourceState";
 
@@ -628,6 +630,12 @@ export type Metrics = {
   crew?: Crew | null;
   /** The same, over today alone: the Daily pace page. See crew.ts. */
   crewToday?: Crew | null;
+  /**
+   * The week's forecast for the yard, and what it means for booking work that
+   * needs dry air or a dry roof. Optional so a snapshot written before it
+   * existed still renders. See weather.ts.
+   */
+  weather?: Weather | null;
   /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
@@ -2674,6 +2682,25 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     computeCrew(now).catch(() => previous?.metrics.crew ?? null),
     computeCrew(now, startOfDayMelbourne(now)).catch(() => previous?.metrics.crewToday ?? null),
   ]);
+  /*
+   * The forecast. Its own source light, because it is the one feed on the
+   * board that belongs to nobody we have a contract with: a free service of
+   * the Norwegian Meteorological Institute, which is entitled to be down.
+   * Carried forward on failure like everything else here — a six-hour-old
+   * forecast is worth more than an empty page, and the dot says which it is.
+   */
+  const weather = await readWeather(now).then(
+    (w) => {
+      sources.weather = w
+        ? { state: "ok", at: now.toISOString() }
+        : { state: "error", detail: "the forecast service did not answer" };
+      return w ?? stampToday(previous?.metrics.weather ?? null, now);
+    },
+    (e: unknown) => {
+      sources.weather = { state: "error", detail: (e as Error).message };
+      return stampToday(previous?.metrics.weather ?? null, now);
+    },
+  );
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
   // Carried forward like the journals beside it: a failed read leaves the
   // last reading standing rather than clearing an alert nobody has acted on.
@@ -2737,6 +2764,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       sectors,
       crew: crewDays,
       crewToday,
+      weather,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,
