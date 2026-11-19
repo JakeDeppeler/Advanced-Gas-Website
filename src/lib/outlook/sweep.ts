@@ -10,6 +10,7 @@ import { applyUnitFixes, attachBookedJobs, jobFieldsBackfill, ownerBackfill, ret
 import { carryQuoteEmails } from "./jobLink";
 import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
+import { probeJobNotes } from "@/lib/dashboard/stEstimateProbe";
 
 /**
  * The safety net under the webhook, and the office's catch-up.
@@ -188,5 +189,21 @@ export async function sweep(): Promise<SweepResult> {
   const sites = Date.now() - started < 25_000 ? await siteBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
   const owners = Date.now() - started < 25_000 ? await ownerBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
 
+  await noteSample().catch(() => undefined);
   return { subscriptions, mailboxes, workOrders, attached, holds, units, jobFields, types, tapi, sites, owners, carried, secondLook, duplicates, handoffs };
+}
+
+/**
+ * The job notes probe (stEstimateProbe.probeJobNotes), run from here when job
+ * ids are put in the probe_job_notes setting: the check route takes only
+ * CRON_SECRET, GitHub won't let this session start the workflow that holds
+ * it, and the route isn't to be opened to the scheduler's token. Read-only;
+ * the masked result goes back into the setting, in place of the ids, so it
+ * runs once.
+ */
+async function noteSample(): Promise<void> {
+  const want = await getSettings<{ ids?: unknown }>("probe_job_notes").catch(() => null);
+  const ids = Array.isArray(want?.ids) ? want.ids.filter((x): x is number => Number.isInteger(x)).slice(0, 6) : [];
+  if (!ids.length) return;
+  await saveSettings("probe_job_notes", { at: new Date().toISOString(), notes: await probeJobNotes(ids) });
 }
