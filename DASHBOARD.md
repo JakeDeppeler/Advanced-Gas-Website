@@ -3370,23 +3370,101 @@ and it is why the flue pattern matches the unit's location not at all.
 the controller, so a wet day does not move it. Only installs and removals put
 anybody up there.
 
+### Gold is a chance; red is a day that won't happen
+
+Jake, 19 November: "the gold is to flag any chance, and then red if there is a
+really high chance it won't go ahead."
+
+So red is reserved for weather that takes the day off a crew. Everything else
+worth saying is gold. Being over thirty for a heater install is a strong
+preference and still a choice; an overnight shower is a start that might slip
+an hour. Neither is red.
+
 ### The rules, worst first
 
-1. **Rain during the job's own hours.** Over 1mm it is at risk; under, it is
-   "showers about" — a warning, not a stop. The first version put a red badge
-   on an install over 0.2mm of drizzle, which is how a board teaches a room to
-   stop reading it.
-2. **Jake's overnight rule.** A roof job starting before 10am, with 1mm or more
-   between 6pm the night before and the start: *wet roof*. No rain needs to
-   fall during the job at all — the roof simply has not dried. This is the rule
-   the page was asked for.
-3. **Wind** over 35 km/h sustained: nobody on a roof.
-4. **Over 30°**, with the reason that belongs to the work. A heater install
+1. **Rain through the working day**, on Jake's two numbers: over **10mm**
+   between 7am and 4pm is red — *no roof*; over **5mm** is gold — *watch the
+   roof*; under 5mm the board says nothing at all.
+2. **Jake's overnight rule.** A roof job starting before 10am with 5mm or more
+   between 6pm the night before and the start: *wet roof*, in gold. No rain
+   need fall during the job — the roof simply may not have dried.
+3. **Wind** over 35 km/h sustained: nobody on a roof. Red.
+4. **The day after, for a job that opens a ceiling** — see below.
+5. **Over 30°**, with the reason that belongs to the work. A heater install
    gets "nobody wants it run up to temp in it"; a ducted refrigerated install
    gets "the roof cavity will be past 50°". Same threshold, different problem,
    and telling a crew the customer is uncomfortable when the real issue is
    twenty hours in a 50° cavity would be worse than saying nothing.
-5. **The evap handover**, on installs only — see below.
+6. **The evap handover**, on installs only — see below.
+
+### The thresholds moved once, and that is the lesson
+
+The first version flagged a roof job over **0.2mm in any single hour** and
+**2mm across a day**. The board duly put a warning on a Saturday forecast to
+get 0.3mm from 9am, and Jake's reply is the whole thing:
+
+> "That is a very very low chance of it not going ahead. If the job is booked
+> before that they could be done, or later in the day the roof could dry up.
+> The main time I would make it off the roof is if it's more than 5 mil for the
+> day and from 7 to 4, and no roof if it's more than 10 mil for the day."
+
+The old numbers were measuring **whether a roof got wet**. What matters is
+**whether a day is lost**. A roof dries; a crew works around a shower; nobody
+reschedules an install over two tenths of a millimetre. Judging the working day
+rather than the job's own hours follows from the same point — a job booked
+before the rain gets finished, and one booked after it starts on a roof that
+has had all morning to dry.
+
+### The day after, for a job that opens a ceiling
+
+> "If a ducted split is on the Monday and it's raining on the Tuesday, we would
+> have opened the roof for the Monday and gotten everything in the roof the
+> first day — so it would more be flagging to get everything in the roof for
+> the first day."
+
+A ducted refrigerated install is booked for twenty hours, which is more than a
+day. Monday's weather decides whether it starts; **Tuesday's decides whether an
+open ceiling gets rained into.** Every other rule on this board asks only about
+the day a job is booked on, so nothing would have said so.
+
+So a multi-day roof job with 3mm or more forecast for the next working day
+reads **"Close the roof today"**. It is the one flag here that is a plan rather
+than a warning, and its bar is deliberately lower than the ones that stop work
+— a day that would only be gold on its own is worth knowing about the night
+before you open somebody's ceiling.
+
+### The sky, drawn rather than fetched
+
+Each day column and each hour carries an icon. MET names about ninety symbol
+codes — `lightrainshowersandthunder_night` and the like — which collapse to the
+eleven shapes a wall board can tell apart at four metres; the millimetres
+beside the icon carry the detail.
+
+They are inline SVG rather than MET's own icon set, which is a hundred PNGs for
+those eleven shapes. Everything uses `currentColor` or two tints, so an icon
+follows its column into the dark theme without a second rule.
+
+A code the classifier does not recognise draws **nothing**. A missing icon is
+honest; a wrong one on a wall is worse than none.
+
+A day takes the **worst** sky of its working hours, not the commonest: a day
+with one thundery hour is a thundery day to anybody planning to be on a roof,
+and the mode would draw a sun over it.
+
+### The hour strip rolls forward through the day
+
+> "The hour by hour should show the weather for the day 7-4 each hour, and once
+> the time has passed either move it out and then show 8-5 etc, or make it
+> gray."
+
+Rolling, which is the first of the two, because the forecast only carries hours
+still to come — there is no eight o'clock left to grey out at ten. The window is
+ten hours from the working day's start and walks forward: 7–4, then 8–5, then
+9–6.
+
+Once fewer than three working hours are left in today it shows **tomorrow**
+instead, because at half past three, ten columns of evening is a worse answer
+to "what time and how hot" than tomorrow morning is.
 
 ### A service is not a handover
 

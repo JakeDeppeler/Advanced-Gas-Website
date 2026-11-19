@@ -19,7 +19,8 @@
 import {
   EVAP_DEMO_MIN_TEMP,
   EVAP_POOR_DEPRESSION,
-  ROOF_WET_MM,
+  ROOF_STOP_MM,
+  ROOF_WATCH_MM,
   ROOF_WIND_KMH,
   deliveredC,
   judgedHour,
@@ -46,8 +47,15 @@ export const MORNING_BEFORE_HOUR = 10;
  */
 export const OVERNIGHT_FROM_HOUR = 18;
 
-/** Rain across the overnight window that leaves a roof wet in the morning. */
-export const OVERNIGHT_WET_MM = 1;
+/**
+ * Rain across the overnight window that leaves a roof wet in the morning.
+ *
+ * Five, raised from one. A roof dries, and Jake's own words about a 0.3mm
+ * morning are the test: "that is a very very low chance of it not going
+ * ahead." One millimetre overnight was flagging mornings that would have been
+ * fine by the time the van arrived.
+ */
+export const OVERNIGHT_WET_MM = 5;
 
 /**
  * Over this, a heater is not worth running up and a roof cavity is dangerous.
@@ -62,14 +70,28 @@ export const TOO_HOT_C = 30;
 export const DEFAULT_JOB_HOURS = 3;
 
 /**
- * Rain across a job's own hours that makes it a stop rather than a warning.
+ * What the two colours mean, which is the whole design of this page.
  *
- * Below this it is "showers about": enough that somebody should know before
- * they load the van, not enough to move a booking. The first version put a
- * red "at risk" against an install over 0.2mm of drizzle, which is how a
- * board teaches a room to stop reading it.
+ * Jake, 19 November: "the gold is to flag any chance, and then red if there is
+ * a really high chance it won't go ahead."
+ *
+ * So red is reserved for weather that takes the day off a crew — more than ten
+ * millimetres through the working day, or wind nobody should be on a roof in.
+ * Everything else that is worth saying at all is gold: a chance, not a
+ * verdict. Being over thirty degrees for a heater install is a strong
+ * preference and still a choice, so it is gold; it is not the weather stopping
+ * anybody.
  */
-export const JOB_RAIN_RISK_MM = 1;
+
+/**
+ * Rain inside a multi-day job's *second* day that is worth planning around.
+ *
+ * Lower than the thresholds that stop work, because this flag does not stop
+ * anything — it asks a crew to get the roof closed on day one. A day that
+ * would only be gold on its own is worth knowing about the night before you
+ * open somebody's ceiling.
+ */
+export const NEXT_DAY_RAIN_MM = 3;
 
 /**
  * What a job needs from the weather, worked out from the name of its type.
@@ -168,6 +190,12 @@ export type BookedJob = {
   hour: number;
   /** How long the type is booked for, in hours. */
   hours: number;
+  /**
+   * Booked for longer than a day — a ducted refrigerated install runs to
+   * twenty hours. Which day it starts on is not the only day that matters:
+   * see the roof-closing flag in callFor.
+   */
+  multiDay?: boolean;
 };
 
 export type JobStatus = "go" | "watch" | "risk";
@@ -260,13 +288,25 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
    * only one that stops the work rather than spoiling it.
    */
   if (needs.roof) {
-    const wet = during.filter((h) => h.rainMm >= ROOF_WET_MM);
-    if (wet.length > 0) {
+    /*
+     * Judged on the working day, not on the job's own hours, and on Jake's
+     * two numbers — see ROOF_WATCH_MM. A job booked before the rain can be
+     * finished, and one booked after it starts on a roof that has had all
+     * morning to dry; what actually costs a day is a wet day.
+     */
+    if (day.workRainMm > ROOF_STOP_MM) {
+      return call("risk", "No roof", `${mmText(day.workRainMm)} through the working day`);
+    }
+
+    if (day.workRainMm > ROOF_WATCH_MM) {
       const total = during.reduce((a, h) => a + h.rainMm, 0);
-      const when = `between ${clockOf(job.hour)} and ${clockOf(endHour)}`;
-      return total >= JOB_RAIN_RISK_MM
-        ? call("risk", "Rain on the job", `${mmText(total)} ${when}`)
-        : call("watch", "Showers about", `${mmText(total)} ${when} · enough to wet a roof`);
+      return call(
+        "watch",
+        "Off the roof",
+        `${mmText(day.workRainMm)} through the day${
+          total > 0 ? ` · ${mmText(total)} between ${clockOf(job.hour)} and ${clockOf(endHour)}` : ""
+        }`,
+      );
     }
   }
 
@@ -279,10 +319,16 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
     if (overnight.length > 0) {
       const fell = overnight.reduce((a, h) => a + h.rainMm, 0);
       if (fell >= OVERNIGHT_WET_MM) {
+        /*
+         * Gold, not red. Jake's own framing decides it: "later in the day the
+         * roof could dry up" — an overnight shower is a chance the start slips
+         * an hour, not a day that will not go ahead. Red is reserved for
+         * weather that takes the day off a crew.
+         */
         return call(
-          "risk",
+          "watch",
           "Wet roof",
-          `${mmText(fell)} overnight · ${clockOf(job.hour)} start on a roof that hasn’t dried`,
+          `${mmText(fell)} overnight · ${clockOf(job.hour)} start on a roof that may not have dried`,
         );
       }
     }
@@ -290,6 +336,30 @@ export function callFor(job: BookedJob, w: Weather): JobCall {
 
   if (needs.roof && day.windKmh != null && day.windKmh >= ROOF_WIND_KMH) {
     return call("risk", "Too windy", `${round(day.windKmh)} km/h · nobody should be on a roof in it`);
+  }
+
+  /*
+   * The one flag on this page that is not a warning but a plan.
+   *
+   * Jake, 19 November: "if a ducted split is on the Monday and it's raining on
+   * the Tuesday, we would have opened the roof for the Monday and gotten
+   * everything in the roof the first day — so it would more be flagging to get
+   * everything in the roof for the first day."
+   *
+   * A ducted refrigerated install is booked for twenty hours. Monday's weather
+   * decides whether it starts; Tuesday's decides whether an open ceiling gets
+   * rained into. Nothing else on the board would have said so, because every
+   * other rule asks only about the day a job is booked on.
+   */
+  if (needs.roof && job.multiDay) {
+    const next = w.days.find((x) => x.date > job.date);
+    if (next && next.workRainMm >= NEXT_DAY_RAIN_MM) {
+      return call(
+        "watch",
+        "Close the roof today",
+        `${mmText(next.workRainMm)} tomorrow · get everything in the roof on day one`,
+      );
+    }
   }
 
   // Jake's thirty degrees, with the reason that belongs to this kind of work.

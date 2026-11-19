@@ -160,11 +160,16 @@ export async function readBookedJobs(now: Date = new Date()): Promise<BookedJob[
       date: when.date,
       hour: when.hour,
       /*
-       * A multi-day slot is clamped to the day. A ducted refrigerated install
-       * is booked for twenty hours, and asking "does it rain between 7am and
-       * 3am tomorrow" would put rain on every one of them.
+       * A multi-day slot is clamped to the day for the "does it rain during
+       * this job" question — a ducted refrigerated install is booked for
+       * twenty hours, and asking "does it rain between 7am and 3am tomorrow"
+       * would put rain on every one of them.
+       *
+       * But the fact that it IS multi-day is kept, because the day after
+       * matters to a job that opens a ceiling on day one.
        */
       hours: Math.min(slot ?? DEFAULT_JOB_HOURS, 10),
+      multiDay: (slot ?? DEFAULT_JOB_HOURS) > 10,
     });
   }
   return keep(out.sort((a, b) => a.date.localeCompare(b.date) || a.hour - b.hour));

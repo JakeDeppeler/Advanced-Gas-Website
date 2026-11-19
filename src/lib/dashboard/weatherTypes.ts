@@ -65,24 +65,25 @@ export const EVAP_POOR_DEPRESSION = 5;
  */
 export const EVAP_DEMO_MIN_TEMP = 24;
 
-/**
- * Rain in one hour that takes you off a roof. Enough to wet a tile is enough,
- * and a wet tile stays wet for an hour after the shower has gone through.
- */
-export const ROOF_WET_MM = 0.2;
-/**
- * Rain across the working day that takes you off a roof, where there is no
- * hour-by-hour forecast to judge instead.
+/*
+ * What rain across the working day does to roof work. Jake's numbers,
+ * 19 November: "the main time I would make it off the roof is if it's more
+ * than 5 mil for the day and from 7 to 4, and no roof if it's more than 10 mil
+ * for the day."
  *
- * Higher than the hourly figure, and deliberately. Past the hourly horizon a
- * day's rain arrives as one total for every six hours, which this codebase
- * then apportions to the working window — so "0.3mm between 7am and 4pm" is
- * not a measurement of anything that happened at a particular time, it is a
- * sixth of a shower smeared across nine hours. Thresholding that at 0.2mm put
- * "Off the roof" on a Sunday forecast to get 0.9mm, which is one passing
- * sprinkle. Two millimetres in a working day is weather.
+ * Measured over 7am to 4pm, which is what "for the day" means to a crew.
+ *
+ * These replaced a pair of thresholds — 0.2mm in any hour, 2mm across the day
+ * — that were far too twitchy for the trade. The board put a flag on a
+ * Saturday forecast to get 0.3mm from 9am, and Jake's reply is the whole
+ * lesson: "that is a very very low chance of it not going ahead; if the job is
+ * booked before that they could be done, or later in the day the roof could
+ * dry up." A roof dries. The old numbers were measuring whether a roof got
+ * wet; these measure whether a day is lost.
  */
-export const ROOF_DAY_MM = 2;
+export const ROOF_WATCH_MM = 5;
+export const ROOF_STOP_MM = 10;
+
 /**
  * Sustained wind that takes you off a roof, km/h.
  *
@@ -129,6 +130,60 @@ export function checkEverySeconds(minuteOfDay: number): number {
   return m >= CHECK_FROM_MINUTE && m <= CHECK_TO_MINUTE ? CHECK_OPEN_SECONDS : CHECK_SHUT_SECONDS;
 }
 
+/**
+ * What the sky is doing, in the few categories a wall board can draw.
+ *
+ * MET names about ninety symbol codes — `lightrainshowersandthunder_night` and
+ * the like. At four metres the difference between light rain showers and light
+ * rain is not a difference, so they collapse to these, and the millimetres
+ * beside the icon carry the detail.
+ */
+export type WxSky = "clear" | "fair" | "partly" | "cloudy" | "fog" | "lightrain" | "rain" | "heavyrain" | "thunder" | "sleet" | "snow";
+
+/**
+ * A MET symbol code as one of the above.
+ *
+ * Order matters: thunder beats rain, and heavy beats light, because a code can
+ * say several things at once ("heavyrainandthunder"). Anything unrecognised
+ * comes back null rather than guessing at "cloudy" — no icon is honest, and a
+ * wrong one on a wall is worse than none.
+ */
+export function skyFrom(code: string | null | undefined): WxSky | null {
+  if (!code) return null;
+  const c = code.toLowerCase();
+  if (c.includes("thunder")) return "thunder";
+  if (c.includes("snow")) return "snow";
+  if (c.includes("sleet")) return "sleet";
+  if (c.includes("heavyrain")) return "heavyrain";
+  if (c.includes("lightrain")) return "lightrain";
+  if (c.includes("rain")) return "rain";
+  if (c.includes("fog")) return "fog";
+  if (c.startsWith("clearsky")) return "clear";
+  if (c.startsWith("fair")) return "fair";
+  if (c.startsWith("partlycloudy")) return "partly";
+  if (c.startsWith("cloudy")) return "cloudy";
+  return null;
+}
+
+/** How much each sky matters, for picking one to stand for a whole day. */
+const SKY_WEIGHT: Record<WxSky, number> = {
+  thunder: 9, heavyrain: 8, snow: 7, sleet: 6, rain: 5,
+  lightrain: 4, fog: 3, cloudy: 2, partly: 1, fair: 0, clear: 0,
+};
+
+/**
+ * One sky to stand for a working day: the worst of its hours.
+ *
+ * The worst rather than the commonest, because a day with one thundery hour in
+ * it is a thundery day to anybody planning to be on a roof, and a board that
+ * showed the mode would draw a sun over it.
+ */
+export function worstSky(skies: Array<WxSky | null>): WxSky | null {
+  const real = skies.filter((s): s is WxSky => s != null);
+  if (real.length === 0) return null;
+  return real.reduce((a, b) => (SKY_WEIGHT[b] > SKY_WEIGHT[a] ? b : a));
+}
+
 /** One hour of the forecast, in Melbourne local time. */
 export type WxHour = {
   /** Melbourne wall-clock hour, 0–23. */
@@ -138,6 +193,8 @@ export type WxHour = {
   /** Rain falling in this hour, mm. */
   rainMm: number;
   windKmh: number;
+  /** What the sky is doing, where the forecast says. */
+  sky?: WxSky | null;
 };
 
 /**
@@ -175,6 +232,8 @@ export type WxDay = {
   windKmh: number | null;
   /** Hourly where the model gives it, else empty. */
   hours: WxHour[];
+  /** The worst sky across the working day, for the icon on the column. */
+  sky?: WxSky | null;
 };
 
 export type Weather = {
@@ -335,31 +394,47 @@ export function roofCall(d: WxDay): WxCall {
         ? ` from ${clock(d.rainFrom)}`
         : ` ${clock(d.rainFrom)}–${clock((d.rainTo ?? d.rainFrom) + 1)}`
       : "";
-  const wettestHour = work.length > 0 ? Math.max(...work.map((h) => h.rainMm)) : 0;
-
-  if (wettestHour >= ROOF_WET_MM || d.workRainMm >= ROOF_DAY_MM) {
-    return {
-      kind,
-      rating: "no",
-      word: "Off the roof",
-      why: `${mm(d.workRainMm)} in the working day${when}`,
-    };
+  /*
+   * Two tiers, because the two mean different things to the office: amber is
+   * "there is a chance this doesn't go ahead", red is "it won't". Anything
+   * under five millimetres across the working day is weather a roof dries
+   * from, and the board says nothing about it.
+   */
+  if (d.workRainMm > ROOF_STOP_MM) {
+    return { kind, rating: "no", word: "No roof", why: `${mm(d.workRainMm)} in the working day${when}` };
+  }
+  if (d.workRainMm > ROOF_WATCH_MM) {
+    return { kind, rating: "poor", word: "Off the roof", why: `${mm(d.workRainMm)} in the working day${when}` };
   }
   if (d.windKmh != null && d.windKmh >= ROOF_WIND_KMH) {
-    return { kind, rating: "no", word: "Off the roof", why: `${round(d.windKmh)} km/h wind` };
+    // "No roof", like the heavy-rain branch: both are red, and sharing a word
+    // with the gold tier below would undo the distinction the colours make.
+    return { kind, rating: "no", word: "No roof", why: `${round(d.windKmh)} km/h wind` };
   }
   if (d.maxC >= ROOF_HOT_C) {
     return { kind, rating: "poor", word: "Start early", why: `${round(d.maxC)}° — the roof will be brutal by noon` };
   }
-  if (d.rainMm >= ROOF_WET_MM) {
+  if (d.rainMm > ROOF_WATCH_MM && d.workRainMm <= ROOF_WATCH_MM) {
     return {
       kind,
-      // A damp start rather than a lost day: enough to mention, not enough to
-      // move an install. The figure is the day's, because the overnight total
-      // is what leaves a roof wet at seven.
+      // Enough to mention, not enough to move an install: it falls around the
+      // working day rather than through it.
       rating: "fair",
       word: "Clear by day",
       why: `${mm(d.rainMm)} around it, dry ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)}`,
+    };
+  }
+  if (d.rainMm >= 1) {
+    /*
+     * A shower a roof dries from. Named rather than hidden, so nobody wonders
+     * whether the board noticed it — but only once it is a millimetre. "0.1mm
+     * about" under a heading reading Clear is a figure doing no work.
+     */
+    return {
+      kind,
+      rating: "good",
+      word: "Clear",
+      why: `${mm(d.rainMm)} about${d.windKmh != null ? ` · ${round(d.windKmh)} km/h` : ""}`,
     };
   }
   // No wind figure past the hourly horizon, so the good-day line does not

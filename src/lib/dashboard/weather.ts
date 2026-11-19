@@ -2,12 +2,13 @@ import "server-only";
 
 import { TZ } from "@/lib/dashboard/dates";
 import {
-  FORECAST_PLACE,
   CHECK_SHUT_SECONDS,
-  checkEverySeconds,
-  ROOF_WET_MM,
+  FORECAST_PLACE,
   WORK_FROM_HOUR,
   WORK_TO_HOUR,
+  checkEverySeconds,
+  skyFrom,
+  worstSky,
   type Weather,
   type WxDay,
   type WxHour,
@@ -109,8 +110,9 @@ type MetPoint = {
         wind_speed?: number;
       };
     };
-    next_1_hours?: { details?: { precipitation_amount?: number } };
+    next_1_hours?: { summary?: { symbol_code?: string }; details?: { precipitation_amount?: number } };
     next_6_hours?: {
+      summary?: { symbol_code?: string };
       details?: {
         precipitation_amount?: number;
         air_temperature_min?: number;
@@ -150,6 +152,8 @@ type Draft = {
   hours: WxHour[];
   rainMm: number;
   workRainMm: number;
+  /** Skies from the six-hourly blocks, for days past the hourly horizon. */
+  sixSkies: Array<ReturnType<typeof skyFrom>>;
 };
 
 /**
@@ -226,7 +230,7 @@ export async function readWeather(now: Date = new Date()): Promise<Weather | nul
   const draft = (date: string): Draft => {
     const found = drafts.get(date);
     if (found) return found;
-    const made: Draft = { date, temps: [], hours: [], rainMm: 0, workRainMm: 0 };
+    const made: Draft = { date, temps: [], hours: [], rainMm: 0, workRainMm: 0, sixSkies: [] };
     drafts.set(date, made);
     return made;
   };
@@ -252,6 +256,7 @@ export async function readWeather(now: Date = new Date()): Promise<Weather | nul
         humidity: inst.relative_humidity ?? 0,
         rainMm: rain,
         windKmh: (inst.wind_speed ?? 0) * 3.6,
+        sky: skyFrom(p.data?.next_1_hours?.summary?.symbol_code),
       });
       d.rainMm += rain;
       if (at.hour >= WORK_FROM_HOUR && at.hour <= WORK_TO_HOUR) d.workRainMm += rain;
@@ -262,6 +267,10 @@ export async function readWeather(now: Date = new Date()): Promise<Weather | nul
       const rain = sixly.precipitation_amount ?? 0;
       d.rainMm += rain;
       d.workRainMm += rain * workShare(at.hour);
+      // A six-hour block's sky counts for the day only if the block overlaps
+      // the working hours at all — a wet midnight should not draw rain over a
+      // clear Friday.
+      if (workShare(at.hour) > 0) d.sixSkies.push(skyFrom(p.data?.next_6_hours?.summary?.symbol_code));
       for (const t of [sixly.air_temperature_min, sixly.air_temperature_max]) {
         if (typeof t === "number") d.temps.push(t);
       }
@@ -275,7 +284,7 @@ export async function readWeather(now: Date = new Date()): Promise<Weather | nul
     .map((d) => {
       const hours = [...d.hours].sort((a, b) => a.hour - b.hour);
       const work = hours.filter((h) => h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR);
-      const wet = work.filter((h) => h.rainMm >= ROOF_WET_MM);
+      const wet = work.filter((h) => h.rainMm >= 0.2);
       const peak = hours.length > 0 ? hours.reduce((a, b) => (b.tempC > a.tempC ? b : a)) : null;
       return {
         date: d.date,
@@ -288,6 +297,21 @@ export async function readWeather(now: Date = new Date()): Promise<Weather | nul
         rainTo: wet.length > 0 ? wet[wet.length - 1].hour : null,
         // Null, not zero, where there is no hourly wind to take a maximum of.
         windKmh: work.length > 0 ? Math.max(...work.map((h) => h.windKmh)) : null,
+        /*
+         * The working day's worst sky; failing that the day's own remaining
+         * hours, and failing that the six-hourly blocks.
+         *
+         * The middle case is today after four o'clock, when the working hours
+         * have gone by and only the evening is left — which left today's
+         * column with no icon at all while every other day had one.
+         */
+        sky: worstSky(
+          work.length > 0
+            ? work.map((h) => h.sky ?? null)
+            : hours.length > 0
+              ? hours.map((h) => h.sky ?? null)
+              : d.sixSkies,
+        ),
         hours,
       };
     });
