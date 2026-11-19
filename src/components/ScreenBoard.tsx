@@ -2935,15 +2935,6 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
   const first = stripDay.hours.length > 0 ? stripDay.hours[0].hour : WORK_FROM_HOUR;
   const from = Math.max(WORK_FROM_HOUR, first);
   const strip = stripDay.hours.filter((h) => h.hour >= from && h.hour < from + STRIP_HOURS);
-  /*
-   * One scale for the whole strip, from the coldest air an evap could make to
-   * the hottest the day gets. Shared rather than per-hour, because the bars
-   * are compared with each other: the length of each is the cooling there is
-   * to be had in that hour, and lengths mean nothing without a common ruler.
-   */
-  const floor = Math.min(...strip.map((h) => deliveredC(h.tempC, h.humidity)), stripDay.minC) - 3;
-  const ceiling = Math.max(...strip.map((h) => h.tempC), stripDay.maxC) + 1;
-
   return (
     <>
     <div className="tile c12" style={{ gridRow: 1 }}>
@@ -2981,7 +2972,7 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
         </span>
         {/* The bar carries two readings, so the subtitle names both. */}
         <span className="tile__sub">
-          {`bar height is the heat · the solid top is the cooling an evap would get · ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)} is the working day`}
+          {`the air, the sky, the wind and the rain, hour by hour · ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)} is the working day`}
         </span>
       </div>
       {strip.length === 0 ? (
@@ -2989,7 +2980,7 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
       ) : (
         <div className="wxs">
           {strip.map((h) => (
-            <WxHourCell key={h.hour} h={h} lo={floor} hi={ceiling} judged={judgedHour(stripDay)?.hour === h.hour} />
+            <WxHourCell key={h.hour} h={h} judged={judgedHour(stripDay)?.hour === h.hour} />
           ))}
           {/* Ten working hours in a row sized for fourteen leaves a gap at the
               end. It holds the day's totals rather than white space — the
@@ -3004,26 +2995,25 @@ function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
 }
 
 /**
- * One hour of today: how hot it gets, how much of that an evap could take off,
- * and any rain.
+ * One hour: the time, how hot, what the sky is doing, the wind and any rain.
  *
- * One bar carrying two readings, which took three goes. Height alone was
- * decorative — every column prints its own temperature twice. Drawing only the
- * gap between the two temperatures was honest and unreadable: on a humid day
- * every bar is a stub in an empty track, which looks like a page that failed
- * to load rather than a day with no cooling in it.
+ * It carried two temperatures — the air, and what an evaporative unit would
+ * blow in it — with a two-tone bar drawn between them. Jake asked why there
+ * were two numbers and said what the second should be instead: "we need the
+ * main temp and also the wind, as this can close a job as well, for a job
+ * that has tin roof etc."
  *
- * So the bar's height is the hour's heat, and the solid cap on it is the
- * cooling an evap would get out of that hour. A tall bar with a sliver on top
- * is a hot day an evap can do nothing with; one that is mostly solid is the
- * day to book the handovers.
+ * He is right twice over. Wind closes a roof job and the cooling figure never
+ * did — that argument belongs to the day's evap verdict in the column above,
+ * where it is made once rather than fourteen times.
+ *
+ * The bar went with it, and that fixed a fault neither of us had named. It was
+ * `flex: 1` with `min-height: 0`, so when the cell's other lines outgrew the
+ * tile it shrank silently to nothing instead of overflowing: the bar the
+ * subtitle described had been invisible at every screen size, and the rain
+ * figure under it was being clipped. Five fixed lines cannot do that.
  */
-function WxHourCell({ h, lo, hi, judged }: { h: WxHour; lo: number; hi: number; judged: boolean }) {
-  const out = deliveredC(h.tempC, h.humidity);
-  const span = hi - lo;
-  const at = (t: number) => (span > 0 ? Math.max(0, Math.min(100, ((t - lo) / span) * 100)) : 50);
-  const top = at(h.tempC);
-  const cool = at(out);
+function WxHourCell({ h, judged }: { h: WxHour; judged: boolean }) {
   const working = h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR;
   return (
     <div className={`wxs__h${working ? " is-work" : ""}${judged ? " is-judged" : ""}`}>
@@ -3031,45 +3021,45 @@ function WxHourCell({ h, lo, hi, judged }: { h: WxHour; lo: number; hi: number; 
           19 Nov). It was the other way round, which asked the eye to find the
           time at the bottom of a column it was reading from the top. */}
       <span className="wxs__hr">{clock(h.hour)}</span>
-      <b className="wxs__t">{degrees(h.tempC)}</b>
-      <SkyIcon sky={h.sky} />
-      <span className="wxs__bar" aria-hidden="true">
-        <i className="wxs__air" style={{ height: `${top}%` }} />
-        {/* A floor on the cap, so an hour with no cooling is a visible line
-            rather than nothing — an absent segment reads as missing data. */}
-        <i className="wxs__cool" style={{ bottom: `${cool}%`, height: `${Math.max(1.5, top - cool)}%` }} />
+      {/* The sky sits beside the temperature rather than under it. On its own
+          line the cell wanted a unit more height than the strip has, and the
+          choice was this or dropping the icon Jake asked for. */}
+      <span className="wxs__now">
+        <SkyIcon sky={h.sky} />
+        <b className="wxs__t">{degrees(h.tempC)}</b>
       </span>
-      <span className="wxs__out">{degrees(out)}</span>
+      <span className="wxs__wind">{Math.round(h.windKmh)} km/h</span>
       <span className="wxs__rain">{h.rainMm >= 0.1 ? mm(h.rainMm) : ""}</span>
     </div>
   );
 }
 
 /**
- * The day's totals, in the space the working hours leave at the end of the
- * strip.
+ * The day's totals, in the space the working hours leave at the end.
  *
- * Each figure answers something the row of hours can only be read for one
- * column at a time: how much rain the whole day gets, when it is hottest, and
- * the best an evap would manage all day — which is the figure the week's evap
- * verdict above is actually decided on.
+ * The three figures Jake asked for: "the rain for today and when it starts,
+ * the highest temp for the day, and the highest wind speed for the day."
+ *
+ * Each answers something the row of hours can only be read for one column at
+ * a time. It used to end on the best an evap would blow, which went with the
+ * cooling figure out of the cells above: that reading belongs to the day's own
+ * evap verdict, not to a strip about the hours.
  */
 function WxDaySummary({ d }: { d: WxDay }) {
-  const best = judgedHour(d);
+  const windiest = d.hours.length > 0 ? Math.max(...d.hours.map((h) => h.windKmh)) : d.windKmh;
   return (
     <div className="wxsum">
-      <span className="wxsum__head">The day</span>
       <span className="wxsum__row">
-        <b className="wxsum__fig">{mm(d.rainMm)}</b>
-        <span className="wxsum__lab">rain{d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : ""}</span>
+        <b className="wxsum__fig">{d.rainMm > 0 ? mm(d.rainMm) : "dry"}</b>
+        <span className="wxsum__lab">{d.rainFrom != null ? `rain, from ${clock(d.rainFrom)}` : "no rain due"}</span>
       </span>
       <span className="wxsum__row">
         <b className="wxsum__fig">{degrees(d.maxC)}</b>
         <span className="wxsum__lab">{d.peakAt != null ? `at ${clock(d.peakAt)}` : "at its hottest"}</span>
       </span>
       <span className="wxsum__row">
-        <b className="wxsum__fig">{best ? degrees(deliveredC(best.tempC, best.humidity)) : NA}</b>
-        <span className="wxsum__lab">best an evap would blow</span>
+        <b className="wxsum__fig">{windiest != null ? String(Math.round(windiest)) : NA}</b>
+        <span className="wxsum__lab">km/h at its windiest</span>
       </span>
     </div>
   );

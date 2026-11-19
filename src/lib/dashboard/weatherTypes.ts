@@ -335,6 +335,16 @@ const round = (n: number) => Math.round(n);
  * thing will show what it does with the customer watching. Whether you can
  * physically get it on the roof is `roofCall`, and an install needs both.
  */
+/*
+ * The words name what the verdict is about: cooling.
+ *
+ * They were "Good day", "Fine", "Marginal" and "Don't", and Jake read the last
+ * of those as being about the rain — "for today it says don't, but the rain
+ * doesn't start until 1pm". Fair reading. On a board whose other verdicts are
+ * about whether work goes ahead, a bare "Don't" is an instruction, not a
+ * statement about how well a unit would cool. "Won't cool" cannot be mistaken
+ * for either.
+ */
 export function evapCall(d: WxDay): WxCall {
   const h = judgedHour(d);
   const kind = "evap" as const;
@@ -362,7 +372,7 @@ export function evapCall(d: WxDay): WxCall {
     return {
       kind,
       rating: "no",
-      word: "Can’t show it",
+      word: "Too cool for evap",
       why: `only ${round(d.maxC)}° — install it, demo it on a warm day`,
     };
   }
@@ -372,10 +382,10 @@ export function evapCall(d: WxDay): WxCall {
   const out = deliveredC(h.tempC, h.humidity);
   const why = `would blow ${round(out)}° at ${round(h.tempC)}° · ${round(h.humidity)}% humidity`;
 
-  if (depression >= EVAP_GOOD_DEPRESSION) return { kind, rating: "good", word: "Good day", why };
-  if (depression >= EVAP_FAIR_DEPRESSION) return { kind, rating: "fair", word: "Fine", why };
-  if (depression >= EVAP_POOR_DEPRESSION) return { kind, rating: "poor", word: "Marginal", why };
-  return { kind, rating: "no", word: "Don’t", why };
+  if (depression >= EVAP_GOOD_DEPRESSION) return { kind, rating: "good", word: "Cools well", why };
+  if (depression >= EVAP_FAIR_DEPRESSION) return { kind, rating: "fair", word: "Cools fine", why };
+  if (depression >= EVAP_POOR_DEPRESSION) return { kind, rating: "poor", word: "Barely cools", why };
+  return { kind, rating: "no", word: "Won’t cool", why };
 }
 
 /**

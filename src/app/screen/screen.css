@@ -2689,6 +2689,10 @@ body:has(.screen) .utilbar {
   gap: calc(0.25 * var(--u));
   padding-top: calc(0.4 * var(--u));
 }
+/* Five fixed lines and nothing that grows. The cell held a `flex: 1` bar
+   with `min-height: 0`, which shrank silently to nothing when the rest
+   outgrew the tile rather than reporting an overflow — so the bar was
+   invisible at every size and the rain figure under it was clipped. */
 .wxs__h {
   flex: 1 1 0;
   min-width: 0;
@@ -2721,32 +2725,14 @@ body:has(.screen) .utilbar {
   color: var(--navy);
   line-height: 1;
 }
-.wxs__bar {
-  flex: 1;
-  min-height: 0;
-  width: calc(1.4 * var(--u));
-  position: relative;
-  background: linear-gradient(var(--hairline), var(--hairline)) center / 1px 100% no-repeat;
-}
-.wxs__bar > i {
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-radius: calc(0.2 * var(--u));
-}
-/* The hour's heat, from the floor of the strip's scale. */
-.wxs__air { bottom: 0; background: #b9c2e2; }
-/* And the cooling an evap would get out of it, capping the same bar. The two
-   are a tint apart rather than two colours: it is one reading with a part of
-   it called out, not two series. */
-.wxs__cool { background: #3d4d8f; }
-.screen--dark .wxs__air { background: #3f4769; }
-.screen--dark .wxs__cool { background: #9fabe4; }
-.wxs__out {
-  font-size: calc(0.9 * var(--u));
+/* Wind, which closes a roof job on a tin roof where the cooling figure that
+   used to sit here closed nothing. */
+.wxs__wind {
+  font-size: calc(0.8 * var(--u));
   font-weight: 700;
   color: var(--ink-2);
-  line-height: 1;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 .wxs__rain {
   font-size: calc(0.76 * var(--u));
@@ -2956,7 +2942,15 @@ body:has(.screen) .utilbar {
   min-width: 0;
 }
 /* In the hour strip the icon is smaller: fourteen of them across the wall. */
-.wxs__h .sky { width: calc(1.15 * var(--u)); height: calc(1.15 * var(--u)); }
+.wxs__h .sky { width: calc(1.25 * var(--u)); height: calc(1.25 * var(--u)); }
+/* The sky and the temperature share a line in the hour cell. */
+.wxs__now {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(0.25 * var(--u));
+  min-width: 0;
+}
 
 /* ── the day's totals, in the space the working hours leave ─────────────── */
 .wxsum {
@@ -2965,20 +2959,14 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: calc(0.28 * var(--u));
-  padding: calc(0.3 * var(--u)) calc(0.9 * var(--u));
+  gap: calc(0.22 * var(--u));
+  padding: calc(0.25 * var(--u)) calc(0.9 * var(--u));
   margin-left: calc(0.5 * var(--u));
   border-left: 1px solid var(--hairline);
 }
-.wxsum__head {
-  font-size: calc(0.86 * var(--u));
-  font-weight: 700;
-  color: var(--ink-muted);
-  white-space: nowrap;
-}
 .wxsum__row { display: flex; align-items: baseline; gap: calc(0.45 * var(--u)); min-width: 0; }
 .wxsum__fig {
-  font-size: calc(1.35 * var(--u));
+  font-size: calc(1.2 * var(--u));
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--navy);

@@ -3380,6 +3380,26 @@ worth saying is gold. Being over thirty for a heater install is a strong
 preference and still a choice; an overnight shower is a start that might slip
 an hour. Neither is red.
 
+### A job is judged on its own hours, not on the day
+
+> "For today it says don't, but the rain doesn't start until 1pm, so if we had
+> an evap at 7am to even 11am we would be fine, as it only takes an hour."
+
+Exactly so, and a day figure cannot express it. What decides a roof job is
+**what has fallen by the time they are off it**: everything from six the
+evening before through the job's own hours. Rain that arrives after they have
+packed up is somebody else's problem.
+
+Jake's two numbers still do the judging — they are measured over the window
+belonging to *this job* rather than over nine hours of a day it may occupy two
+of. The same 15mm Friday clears a 7am job and stops a 1pm one.
+
+This also folded in the overnight wet-roof rule, which was a separate branch
+asking about the same water. Writing it as one window exposed a bug the day
+version had hidden: the two halves both included the job's starting hour, so
+that hour's rain was counted twice, and a day of exactly five millimetres came
+out over a threshold of *more than* five.
+
 ### The rules, worst first
 
 1. **Rain through the working day**, on Jake's two numbers: over **10mm**
@@ -3481,13 +3501,58 @@ The **day's** evap verdict stays. "Tell if the day is bad to book an evap" was
 the original ask and is still worth answering; it is simply not a reason to
 move a booking.
 
+### The hour strip: time, sky, temperature, wind, rain
+
+Each cell carried **two** temperatures — the air, and what an evaporative unit
+would blow in it — with a two-tone bar drawn between them. Jake asked why there
+were two numbers and said what the second should be instead:
+
+> "We need the main temp and also the wind, as this can close a job as well,
+> for a job that has tin roof etc."
+
+Right twice over. **Wind closes a roof job and the cooling figure never did** —
+that argument belongs to the day's evap verdict in the column above, where it
+is made once rather than fourteen times.
+
+**The bar went with it, and that uncovered a fault nobody had named.** It was
+`flex: 1` with `min-height: 0`, so once the cell's other lines outgrew the tile
+it shrank *silently to nothing* rather than overflowing. The bar the subtitle
+described had been invisible at every screen size for a day, and the rain
+figure under it was being clipped. Five fixed lines cannot do that.
+
+The sky icon sits **beside** the temperature rather than above it. On its own
+line the cell wanted a unit more height than the strip has, and the choice was
+that or dropping the icon.
+
 ### The day's totals sit at the end of the hour strip
 
-Ten working hours in a row sized for fourteen leaves a gap. It holds three
-figures the hours themselves can only be read for one column at a time: the
-day's rain and when it starts, the peak and its hour, and the best an evap
-would manage all day — which is the figure the week's evap verdict above is
-actually decided on.
+Ten working hours in a row sized for fourteen leaves a gap. It holds the three
+figures Jake asked for — "the rain for today and when it starts, the highest
+temp for the day, and the highest wind speed for the day" — each answering
+something the row of hours can only be read for one column at a time.
+
+### Two ways the layout check was blind
+
+Both were found the same morning, by Jake looking at the wall rather than by
+the check.
+
+**It only trusted boxes that clip.** The generic sweep compared `scrollHeight`
+against `clientHeight` and skipped anything with `overflow: visible`, because a
+line box is routinely a pixel taller than its element and the noise buries the
+signal. But content hanging out of the bottom of a non-clipping box is still
+content off the page. The containers that must hold their content — the hour
+cell, the job card, the day column, the summary — are now measured against
+their own children directly.
+
+**It had no idea what collapse looks like.** A flex child with `min-height: 0`
+does not overflow when the box runs out of room; it shrinks. Nothing looked for
+an element that had been squashed to nothing, so a zero-height bar passed every
+size, every theme, every data state.
+
+A third gap was narrower but the same shape: **every test size was 16:9 or
+16:10**, which is a fullscreen kiosk. Jake was looking at a browser window —
+about 1920×830 once the chrome is taken off — where `--u` becomes
+height-driven and much smaller. Three window-shaped sizes are now in the list.
 
 ### Every column's boxes start on the same line
 
