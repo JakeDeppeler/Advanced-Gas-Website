@@ -25,7 +25,7 @@ import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } 
 import { phoneDigits, stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
 import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
-import { PROPERTY_TYPES, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiLinksIn, tapiPageText, looksLikeTapiJob, visitEnd } from "../src/lib/outlook/workOrderTypes";
+import { PROPERTY_TYPES, managerContacts, propertyWhyFrom, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiLinksIn, tapiPageText, looksLikeTapiJob, visitEnd } from "../src/lib/outlook/workOrderTypes";
 import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
@@ -393,6 +393,19 @@ console.log("-- the sender's name on the file (18 Nov) --");
   ok("a role alone isn't a name", !senderNameOnFile({ name: "Property Manager", email: "pm@agency.com.au" }, ["Adeline Johnston - Property Manager"]));
   ok("Tapi's sender line, the person's name in it", senderNameOnFile({ name: "Kim Rosser (via Tapi)", email: "hi@tapihq.com" }, ["Kim Rosser"]));
   ok("an empty file matches nothing", !senderNameOnFile({ name: "Jake Tunbridge", email: "a@b.com" }, []));
+}
+
+console.log("-- the property manager on the site (19 Nov: 1 Bermer Court) --");
+{
+  const bermer = managerContacts({ propertyManager: "Alesia Kasy", pmEmail: "alesia.k@neilsonpartners.com.au", pmPhone: "" });
+  ok("the manager's email, noted as the office does", bermer.length === 1 && bermer[0].type === "Email" && bermer[0].value === "alesia.k@neilsonpartners.com.au" && bermer[0].memo === "Alesia Kasy - Property Manager", bermer);
+  const both = managerContacts({ propertyManager: "Natasha Mitrovic", pmEmail: "BDPPM7@barryplant.com.au", pmPhone: "0424 163 259" });
+  ok("phone as digits, email lower case", both.length === 2 && both[0].value === "0424163259" && both[1].value === "bdppm7@barryplant.com.au", both);
+  ok("a platform's no-reply isn't the manager's", managerContacts({ propertyManager: "Kim", pmEmail: "hi@tapihq.com", pmPhone: "" }).length === 0);
+  ok("nor our own", managerContacts({ propertyManager: "", pmEmail: "admin@advancedgas.com.au", pmPhone: "" }).length === 0);
+  ok("no name: just Property Manager", managerContacts({ propertyManager: "", pmEmail: "pm@agency.com.au", pmPhone: "" })[0]?.memo === "Property Manager");
+  ok("the lookup's reason is read", propertyWhyFrom("Found it.\nWHY: realestate.com.au listing says single level\nANSWER: House - Single Storey") === "realestate.com.au listing says single level");
+  ok("no reason, nothing", propertyWhyFrom("ANSWER: Unknown") === "");
 }
 
 console.log("-- booking confirmations --");

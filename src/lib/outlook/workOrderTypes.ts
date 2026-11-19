@@ -761,3 +761,16 @@ export function senderNameOnFile(sender: { name: string; email: string }, fileNa
   const local = (sender.email.split("@")[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
   return local.length >= 4 && [...file].some((w) => w.length >= 4 && local.includes(w));
 }
+
+/** The lookup's "WHY:" line: what it found, or why it couldn't tell. */
+export const propertyWhyFrom = (text: string) => ([...text.matchAll(/WHY:\s*([^\n]+)/gi)].at(-1)?.[1]?.trim() ?? "").slice(0, 200);
+
+/** The managing agent as a site contact, noted as the office notes them ("Kristina Verkaik - Property Manager"). */
+export function managerContacts(w: Pick<WorkOrder, "propertyManager" | "pmEmail" | "pmPhone">): { type: string; value: string; memo: string }[] {
+  const memo = (w.propertyManager.trim() ? `${w.propertyManager.trim()} - Property Manager` : "Property Manager").slice(0, 100);
+  const email = w.pmEmail.trim().toLowerCase();
+  // A platform's no-reply address isn't the manager's.
+  const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !/no-?reply|@(?:[\w.-]+\.)?(tapihq\.com|tapi\.app|propertyme\.com|ailo\.io)$/i.test(email) && !/@advancedgas\.com\.au$/i.test(email);
+  const phones = tenantPhones({ tenantPhone: w.pmPhone }).map(phoneDigits);
+  return [...phones.map((v) => ({ type: "Phone", value: v, memo })), ...(okEmail ? [{ type: "Email", value: email, memo }] : [])];
+}

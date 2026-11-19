@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { isUnitAddress, propertyTypeFrom } from "./workOrderTypes";
+import { isUnitAddress, propertyTypeFrom, propertyWhyFrom } from "./workOrderTypes";
 
 /**
  * Single storey, double storey or townhouse, for the site's Property Type
@@ -18,29 +18,46 @@ const api = () => (client ??= new Anthropic());
 
 const RULES = `You find out what kind of home is at an address in Victoria, Australia, for a heating and cooling business booking a visit there.
 
-Search the web for the exact address: sales and rental listings (realestate.com.au, domain.com.au, onthehouse, property.com.au, allhomes and the like) describe the home. Decide from what a listing or property record for that exact address says, with its street number: a single-level house, a two-storey house, or a townhouse. A listing for a different number in the same street, or a guess from the suburb, doesn't count.
+Search the web for the exact address: sales and rental listings (realestate.com.au, domain.com.au, property.com.au, onthehouse, allhomes, rent.com.au and the like) describe the home. When a result for that exact address doesn't say in its snippet, open the listing page and read it: the description, the floor plan, "single level", "double storey", "two-storey", "upstairs", "downstairs", "townhouse". Decide from what a listing or property record for that exact address says, with its street number: a single-level house, a two-storey house, or a townhouse. A listing for a different number in the same street, or a guess from the suburb, doesn't count.
 
-End your answer with one line, exactly one of:
-ANSWER: House - Single Storey
-ANSWER: House - Double Storey
-ANSWER: Townhouse
-ANSWER: Unknown
+End your answer with two lines:
+WHY: what you found and where, in one short sentence (or why you couldn't tell)
+ANSWER: exactly one of House - Single Storey, House - Double Storey, Townhouse, Unknown
 
 Answer Unknown whenever you aren't sure.`;
 
-export async function lookUpPropertyType(street: string, suburb: string, postcode: string): Promise<string | null> {
-  if (!street.trim() || !suburb.trim() || isUnitAddress(street)) return null;
+/**
+ * The type, or null, and a note of what was found or why not (kept on the
+ * work order's row, so a blank can be told apart: 1 Bermer Court, 18 Nov).
+ * It can open a listing as well as search (Jake, 19 Nov: "by what Google
+ * lists the house has"), and is let carry on twice when a long search pauses.
+ */
+export async function lookUpPropertyType(street: string, suburb: string, postcode: string): Promise<{ type: string | null; note: string }> {
+  if (!street.trim() || !suburb.trim()) return { type: null, note: "no street or suburb to look up" };
+  if (isUnitAddress(street)) return { type: null, note: "a unit: not one of the office's three types" };
   const address = [street.trim(), suburb.trim(), "VIC", postcode.trim()].filter(Boolean).join(" ");
-  const res = await api().beta.messages.create({
-    model: MODEL,
-    max_tokens: 4000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low" },
-    system: RULES,
-    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 3, user_location: { type: "approximate", country: "AU", region: "Victoria" } }],
-    messages: [{ role: "user", content: `What kind of home is at ${address}?` }],
-  });
-  if (res.stop_reason === "refusal" || res.stop_reason === "pause_turn") return null;
-  return propertyTypeFrom(res.content.map((b) => (b.type === "text" ? b.text : "")).join(""));
+  const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: `What kind of home is at ${address}?` }];
+  let text = "";
+  for (let turn = 0; turn < 3; turn++) {
+    const res = await api().beta.messages.create({
+      model: MODEL,
+      max_tokens: 4000,
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+      output_config: { effort: "low" },
+      system: RULES,
+      tools: [
+        { type: "web_search_20260209", name: "web_search", max_uses: 4, user_location: { type: "approximate", country: "AU", region: "Victoria" } },
+        { type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 },
+      ],
+      messages,
+    });
+    if (res.stop_reason === "refusal") return { type: null, note: "the lookup was declined" };
+    text += res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+    if (res.stop_reason !== "pause_turn") break;
+    messages.push({ role: "assistant", content: res.content });
+  }
+  const type = propertyTypeFrom(text);
+  const why = propertyWhyFrom(text);
+  return { type, note: `${type ?? "Unknown"}${why ? `: ${why}` : ""}`.slice(0, 240) };
 }

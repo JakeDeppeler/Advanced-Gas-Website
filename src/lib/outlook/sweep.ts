@@ -6,7 +6,7 @@ import { handleMessage, secondLookForQuotes, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
-import { applyUnitFixes, attachBookedJobs, retryHolds, sweepWorkOrders, tapiBackfill } from "./workOrders";
+import { applyUnitFixes, attachBookedJobs, retryHolds, siteBackfill, sweepWorkOrders, tapiBackfill } from "./workOrders";
 import { carryQuoteEmails } from "./jobLink";
 import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
@@ -52,6 +52,7 @@ export type SweepResult = {
   holds: { held: number; error?: string };
   units: { changed: number; error?: string };
   tapi: { filled: number; tried: number };
+  sites: { done: number };
   secondLook: { mailbox: string; looked: number; linked: number; error?: string }[];
   carried: { carried: number; error?: string };
 };
@@ -179,6 +180,7 @@ export async function sweep(): Promise<SweepResult> {
 
   // Last, and only with time in hand: one can take half the minute.
   const tapi = Date.now() - started < 25_000 ? await tapiBackfill(started + TAGS_BUDGET_MS).catch(() => ({ filled: 0, tried: 0 })) : { filled: 0, tried: 0 };
+  const sites = Date.now() - started < 25_000 ? await siteBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
 
-  return { subscriptions, mailboxes, workOrders, attached, holds, units, tapi, carried, secondLook, duplicates, handoffs };
+  return { subscriptions, mailboxes, workOrders, attached, holds, units, tapi, sites, carried, secondLook, duplicates, handoffs };
 }
