@@ -5,11 +5,14 @@ import { stFetch, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { dayLabel } from "@/lib/ordering/plan";
 import { tagKey, tagTypes } from "@/lib/ordering/stJobNotes";
 import { loadMade, loadSwitches, logAuto, saveMade, type AutoEntry } from "./log";
-import { LIVE_DAYS, planTags, STAGE_TAGS, stageOf, VISIT_DAYS, type Est, type Facts, type Stage, type TaggedStage } from "./quoteStage";
+import { emailedAt, LIVE_DAYS, planTags, STAGE_TAGS, stageOf, VISIT_DAYS, type Est, type Facts, type Stage, type TaggedStage } from "./quoteStage";
 
 /** Jobs looked at in ServiceTitan per run: a backlog clears over a few runs rather than all at once against its rate limit. */
 const PER_RUN = 25;
 const DAY = 86_400_000;
+/** Jobs at Quote In Draft whose notes are read per run, and how often each is read again. */
+const SENT_LOOKS = 15;
+const SENT_EVERY = 20 * 60_000;
 /** Most pressing first: a sale waiting to be booked, then a quote written, then one to write, then tidying up. "sent" is never reached here: the office sets it. */
 const ORDER: Stage[] = ["toBook", "draft", "toQuote", "done"];
 
@@ -31,7 +34,8 @@ class NotMade extends Error {
  * The quote tags follow the quote, as the office moves them by hand:
  * Quotation Required once the visit's done, Quote In Draft once a quote's
  * written, To Be Booked once it sells, and off once the work's booked.
- * Awaiting Quote Approval is the office's, put on when they send the quote.
+ * Awaiting Quote Approval goes on when ServiceTitan notes the job "Estimate
+ * emailed to …" (Jake, 19 Nov); a quote sent another way is the office's to mark.
  * Where a job is up to, and why each step is read the way it is, is in
  * quoteStage.ts.
  *
@@ -158,12 +162,14 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
     if (stage === "toQuote") return `Quote visit ${day(s.f.lastVisit)} and no quote in ServiceTitan for it yet.`;
     if (stage === "draft") {
       const first = mine.filter((e) => e.status === "Open").map((e) => e.created_on ?? "").sort()[0] ?? null;
-      return `Quote written ${day(first)} and not sold. When it's sent, swap this for Awaiting Quote Approval: ServiceTitan doesn't tell the portal when a quote goes out.`;
+      return `Quote written ${day(first)} and not sold. It moves to Awaiting Quote Approval by itself once it's emailed from ServiceTitan; if it goes out another way, swap it by hand.`;
     }
     const soldOn = mine.filter((e) => e.status === "Sold").map((e) => e.sold_on ?? "").sort().pop() ?? null;
     if (stage === "toBook") return `Quote sold ${day(soldOn)} and nothing booked from it yet. It comes off once the work's booked.`;
     return `Sold ${day(soldOn)}, and ${s.f.bookedFrom ? "a job's been booked from its quote" : s.f.future ? "it's booked in for a visit" : "it's been invoiced"}.`;
   };
+  // Jobs this run moved to Quote In Draft, whose notes are worth reading too.
+  const movedToDraft = new Set<number>();
   const atStage = (cur: number[], stage: Stage) => stage === "done" ? !cur.some((x) => stageIds.includes(x)) : cur.includes(ids[stage] as number);
 
   for (const stage of ORDER) {
@@ -225,6 +231,7 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
         }
         made.set(key, stamp());
         changed++;
+        if (stage === "draft") movedToDraft.add(Number(s.j.id));
         const what = plan.add != null && plan.drop.length
           ? `"${plan.drop.map(name).join('" and "')}" → "${name(plan.add)}"`
           : plan.add != null ? `"${name(plan.add)}" on` : `"${plan.drop.map(name).join('" and "')}" off`;
@@ -238,6 +245,56 @@ export async function syncQuoteTags(): Promise<{ changed: number; failed: number
       }
     }
   }
+  // --- Sent. ServiceTitan notes the job "Estimate emailed to <address>" when
+  // a quote is emailed from it (Jake, 19 Nov: "once the job note has that the
+  // email was emailed remove the draft quote and add the waiting quote
+  // approval"). Once for each such note: a job the office puts back to Quote
+  // In Draft afterwards stays there until another estimate is emailed.
+  if (ids.draft != null && ids.sent != null) {
+    const draftId = ids.draft, sentId = ids.sent;
+    const onDraft = (s: (typeof staged)[number]) => movedToDraft.has(Number(s.j.id)) || (Array.isArray(s.j.tags) && s.j.tags.map(Number).includes(draftId));
+    let read = 0;
+    for (const s of staged.filter((x) => x.stage === "draft" && onDraft(x))) {
+      const id = Number(s.j.id);
+      const lastLook = made.get(`qsent-look:${id}`);
+      if (read >= SENT_LOOKS || (lastLook && now - Date.parse(lastLook) < SENT_EVERY) || since(`qtag-fail:${id}`, 1) || since(`qtag-hold:${id}`, 7)) continue;
+      read++;
+      made.set(`qsent-look:${id}`, stamp());
+      const label = s.j.job_number ? `Job ${s.j.job_number}` : `Job ${id}`;
+      try {
+        const notes = await stFetch<{ data?: { text?: string | null; createdOn?: string | null }[] }>(stTenantPath("jpm", `jobs/${id}/notes`), { pageSize: "200" });
+        const at = emailedAt(notes.data ?? []);
+        if (at == null) continue;
+        const key = `qsent:${id}:${at}`;
+        if (made.has(key)) continue;
+        const fresh = await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${id}`));
+        if (!Array.isArray(fresh.tagTypeIds)) throw new Error("ServiceTitan didn't return the job's tags, so they were left alone");
+        // Moved on by hand already (to Awaiting, or sold): nothing to do for this note.
+        if (!fresh.tagTypeIds.includes(draftId)) { made.set(key, stamp()); continue; }
+        const tags = [...fresh.tagTypeIds.filter((x) => x !== draftId), ...(fresh.tagTypeIds.includes(sentId) ? [] : [sentId])];
+        const landed = (t: number[] | undefined) => Array.isArray(t) && t.includes(sentId) && !t.includes(draftId);
+        const reply = await stSend<{ tagTypeIds?: number[] } | null>("PATCH", stTenantPath("jpm", `jobs/${id}`), { tagTypeIds: tags });
+        // As above: the reply is the check, and a read straight after can be stale.
+        if (!landed(reply?.tagTypeIds)) {
+          let after: number[] | undefined;
+          for (const wait of [1500, 4000]) {
+            await new Promise((r) => setTimeout(r, wait));
+            after = (await stFetch<{ tagTypeIds?: number[] }>(stTenantPath("jpm", `jobs/${id}`))).tagTypeIds;
+            if (landed(after)) break;
+          }
+          if (!landed(after)) throw new NotMade();
+        }
+        made.set(key, stamp());
+        changed++;
+        log.push({ at: stamp(), kind: "quote-tag", ok: true, jobId: id, title: `${label}: "${name(draftId)}" → "${name(sentId)}"`, detail: `ServiceTitan noted the estimate emailed${at ? ` ${day(at)}` : ""}.` });
+      } catch (e) {
+        failed++;
+        made.set(`${e instanceof NotMade ? "qtag-hold" : "qtag-fail"}:${id}`, stamp());
+        log.push({ at: stamp(), kind: "quote-tag", ok: false, jobId: id, title: `${label}: couldn't move it to "${name(sentId)}"`, detail: `ServiceTitan noted the estimate emailed, but: ${(e as Error).message}`.slice(0, 200) });
+      }
+    }
+  }
+
   await saveMade(made).catch(() => undefined);
   await logAuto(log).catch(() => undefined);
   return { changed, failed };

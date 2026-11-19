@@ -3,7 +3,7 @@
  *
  *   visit done, nothing quoted yet ..... Quotation Required
  *   a quote written, not sold .......... Quote In Draft
- *   the quote sent ..................... Awaiting Quote Approval (by hand)
+ *   the quote sent ..................... Awaiting Quote Approval
  *   sold, nothing booked ............... To Be Booked
  *   sold and booked, or invoiced ....... none of them
  *
@@ -15,6 +15,11 @@
  * day, and drafts got Awaiting Quote Approval (job 20527). Now the office
  * swaps Quote In Draft for Awaiting Quote Approval when they send it (Jake,
  * 31 Oct), and a job at Awaiting is never put back (planTags).
+ *
+ * The job's notes do say, though (Jake, 19 Nov): ServiceTitan notes the job
+ * "Estimate emailed to <address>" when a quote is emailed from it. That note,
+ * and only that, moves a job from Quote In Draft to Awaiting (emailedAt). A
+ * quote that goes out another way is still the office's to mark.
  *
  * Kept apart from the ServiceTitan calls so it can be checked without them.
  */
@@ -75,6 +80,19 @@ export function stageOf(f: Facts, now: number): Stage | null {
   if (f.ests.some((e) => e.status === "Dismissed") || f.quotedElsewhere) return null;
   if (!f.quoteVisit || !f.lastVisit || now - at(f.lastVisit) > VISIT_DAYS * DAY) return null;
   return "toQuote";
+}
+
+/** ServiceTitan's own note on the job when an estimate is emailed from it. */
+export const SENT_NOTE = /\bestimate\s+emailed\s+to\b/i;
+
+/**
+ * When the newest "Estimate emailed to" note on a job was made, or null for
+ * none. A note without a date reads as "", which still counts.
+ */
+export function emailedAt(notes: { text?: string | null; createdOn?: string | null }[]): string | null {
+  const hits = notes.filter((n) => SENT_NOTE.test(n.text ?? ""));
+  if (!hits.length) return null;
+  return hits.map((n) => n.createdOn ?? "").sort().at(-1) ?? "";
 }
 
 export type TagPlan =
