@@ -5,70 +5,121 @@
 // Jake, 19 Nov: type in a job, and from the quote, the forms and the notes
 // get a job summary and a labour summary that "covers the labour, materials
 // and electrical under the one price, but it needs to make sense and relate to
-// the quote and job". Both documents are written for: the quote before it's
-// sold and the invoice after the work, in the four-part form the quote
-// templates already use (pricebook/wording.ts, 17 Nov), so a quote written
-// here reads like one from a template.
+// the quote and job". Later the same day he gave two summaries of his own as
+// the way they should read (an evap repair on an old cooler, a five-head
+// Rinnai replacing an evap and a wall furnace): "this is help with the wording
+// and the style we want it written, also pull information from the report or
+// notes". So the examples set the voice and the order, and every fact comes
+// from the office's notes, the Condition Report and the job notes first.
 
 import { createHash } from "node:crypto";
 import { plainText } from "@/lib/pricebook/wording";
 import { reportLines, type VisitReport } from "@/lib/installpack/summaryText";
+import { TEMPLATE_LABELS, type DocWords, type JobWords } from "./labels";
 import type { Doc, Plan } from "./lines";
 
-import { INVOICE_LABELS, QUOTE_LABELS, type InvoiceWords, type JobWords, type QuoteWords } from "./labels";
+export type { DocWords, JobWords };
 
-export { INVOICE_LABELS, QUOTE_LABELS, type InvoiceWords, type JobWords, type QuoteWords };
-
-const str = { type: "string" } as const;
+const doc = {
+  type: "object",
+  properties: { summary: { type: "string" }, labour: { type: "string" } },
+  required: ["summary", "labour"],
+  additionalProperties: false,
+} as const;
 export const WORDS_SCHEMA = {
   type: "object",
-  properties: {
-    quote: {
-      type: "object",
-      properties: { doing: str, removing: str, included: str, excluded: str, labour: str },
-      required: ["doing", "removing", "included", "excluded", "labour"],
-      additionalProperties: false,
-    },
-    invoice: {
-      type: "object",
-      properties: { did: str, removed: str, included: str, labour: str },
-      required: ["did", "removed", "included", "labour"],
-      additionalProperties: false,
-    },
-  },
+  properties: { quote: doc, invoice: doc },
   required: ["quote", "invoice"],
   additionalProperties: false,
 } as const;
 
 /** Bumped when the rules change, so a saved write-up is written again. */
-// 2 (19 Nov, Jake): the office's own notes for the job come first: how it's
-// going in (a roof bracket, a pump), what's coming out, and anything that
-// comes off the quoted price if it isn't needed.
-export const WORDS_VERSION = "2";
+// 2 (19 Nov, Jake): the office's own notes for the job come first.
+// 3 (19 Nov, Jake): written in the style of his two examples, as paragraphs
+// with an Installation Details section and, on a repair to an old system, an
+// Existing System Condition note; the facts from the report and the notes.
+export const WORDS_VERSION = "3";
 
-export const WORDS_RULES = `You write the customer-facing words on a quote and an invoice for Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The customer reads them, so they are plain, specific to this job and accurate.
+/** Jake's two summaries, 19 Nov, as he wrote them: the style to match, never facts for another job. */
+const EXAMPLE_REPAIR = `Supply and installation of a new fan belt (A54 / A1400, 13 x 1372mm) including correct tensioning to ensure appropriate fan operation and minimise unnecessary load on the fan motor.
 
-You are given the office's notes for this job, then the job, its quote (the lines and the summary already on it), the invoice if there is one, the tech's Condition Report from the visit, the notes on the job and earlier visits to the site, and any electrician booked.
+Complete maintenance and cleaning of the evaporative cooler, including the water tank, pump, water distribution system and cabinet. Following completion, the system will be tested to assess its operation.
 
-The office's notes come first. They say how the job is going in (an outdoor unit on a roof bracket, a condensate pump), what's coming out, and anything that comes off the price if it turns out not to be needed. Everything they say goes in, in the part it belongs to, and where an older record disagrees, the notes win. Something that may not be needed goes under what's included, said plainly: "A condensate pump to drain the indoor unit, if it's needed; if it isn't, it comes off the quoted price." Give the amount only when the notes give one.
+Important Note – Existing System Condition
 
-Write two things for each document.
+Please be aware that the evaporative cooler is approximately 24 years old and has exceeded what would generally be considered a reasonable service life for this type of equipment.
 
-1. The job summary, in parts:
-   Quote, future tense: "doing" (what we're installing or replacing and where), "removing" (what comes out and is disposed of), "included" (what the price covers: the work and the parts that go with it), "excluded" (what isn't covered).
-   Invoice, past tense: "did", "removed", "included".
-   One to three sentences each. A part with nothing to say from the records is an empty string, never a guess.
+While the proposed works are intended to address the identified issues and assist in maintaining the existing system's operation, due to the age and condition of the unit, we cannot guarantee the longevity or reliability of these repairs.
 
-2. The labour line: one paragraph for the single line that carries the price of the installation labour, the materials and the electrical work together. Say what that one price covers on this job: the installation work itself, the materials that go with it named the way the quote names them (copper pipework, ductwork and outlets, brackets, a slab, a tempering valve), and the electrical work where the job has any. Quote: "covers"; invoice: "covered". Start with what the work is, e.g. "Installation of your new Mitsubishi Electric 10kW ducted system to the upper floor: ...".
+There is also a possibility that additional components may fail during or following the maintenance works, particularly once the system is returned to normal operation. Furthermore, we cannot rule out potential damage to the fan motor as a result of the unit previously operating with a loose fan belt.
 
-Rules:
-- Everything comes from the records. Never invent a room, a wall, a distance, a fitting, a brand or a size. The equipment is what's on the quote's equipment lines.
-- The parts of the price you're told are merged into the labour line are the only ones it covers. Say electrical work is included only if the job has an electrical line or an electrician booked; say materials only if there are materials.
-- What a tech found is said the way they said it, not reworded into something else.
-- The equipment line sells the unit, so the summary describes the job, not the brand's features.
-- No prices, dollar figures, hours or quantities of labour, except an amount the office's notes give for something that comes off. No customer names, phone numbers or addresses. No selling, no warranty claims, no promises the records don't make.
-- Australian English, short plain sentences, written to the customer ("your").
-- Don't mention the records themselves (a form, a note, what's missing). Write about the job.`;
+Accordingly, these works should be considered a maintenance and repair attempt only, rather than a long-term solution. We recommend consideration be given to replacing the existing evaporative cooler with an alternative cooling system to provide a more reliable and sustainable long-term outcome.`;
+
+const EXAMPLE_INSTALL = `Supply and installation of a Rinnai multi-head reverse cycle split system comprising five indoor units, servicing all four bedrooms and the front living room.
+
+The existing evaporative cooler and gas wall furnace will be removed, with the property transitioning to reverse cycle heating and cooling throughout the designated rooms. Removal of the existing gas heating system also provides an opportunity to access the applicable Victorian Energy Upgrades (VEU) government rebate, subject to program eligibility requirements.
+
+We recommend this option as a long-term heating and cooling solution, particularly with Victoria's upcoming minimum energy efficiency standards for rental properties commencing from March 2027. Upgrading to reverse cycle technology now provides an opportunity to get ahead of these changes, improve comfort throughout the property and potentially reduce ongoing energy consumption and running costs.
+
+Each bedroom and the front living room will have its own dedicated heating and cooling outlet. The kitchen will not have a dedicated indoor unit; however, the 5kW living room unit will be positioned to assist with airflow into the adjoining kitchen area.
+
+Installation Details:
+
+Rear bedrooms (2) and master bedroom: Back-to-back installations, with indoor units mounted on external walls and pipework running directly through to the outdoor installation.
+
+Master bedroom: Indoor unit to be positioned beneath the existing bulkhead.
+
+Middle bedroom: Indoor unit to be installed on an internal wall, requiring a condensate pump for drainage.
+
+Front living room: 5kW indoor unit positioned to provide heating and cooling to the living area, with airflow extending towards the kitchen.
+
+All installations will be completed in accordance with manufacturer specifications and applicable industry requirements.`;
+
+export const WORDS_RULES = `You write the job summary and the labour line on a quote and an invoice for Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The customer reads them, and on a rental so does the agent and the owner.
+
+## Where the facts come from
+
+You're given, most important first: the office's notes for this job, the tech's Condition Report from the visit, the notes on the job and on earlier visits to the site, the quote (its lines and the summary on it now), the invoice if there is one, and any electrician booked.
+
+Every detail you write (a room, a wall, a part, a size, a model, the age of a unit, a fault, what's coming out) comes from one of those. Where they disagree, the office's notes win, then the Condition Report and the job notes, then the quote. If something isn't recorded, leave it out: never guess, and never borrow a detail from the examples below.
+
+What a tech found is said the way they said it, not reworded into something that means something else.
+
+## The job summary
+
+Write it the way these two examples are written: professional, plain paragraphs in Australian English, specific to the job. They show the voice, the structure and the kind of detail. None of their facts belong to this job.
+
+<example kind="a repair and service on an old system">
+${EXAMPLE_REPAIR}
+</example>
+
+<example kind="a replacement, on a rental">
+${EXAMPLE_INSTALL}
+</example>
+
+Build it from these parts, in this order, using only the ones the records support:
+
+1. The work. An installation opens "Supply and installation of [the system on the quote's equipment lines], [what it serves]." A repair or service has a paragraph for each part supplied or job done: what it is (with its size or model where the records give one), what's done with it, and why it matters. A maintenance paragraph says what's cleaned and checked and ends "Following completion, the system will be tested to assess its operation."
+2. What comes out: the existing equipment being removed and what the property moves to. Only when the quote has a VEU or VEEC rebate line and gas heating is being removed, say that removing it provides an opportunity to access the applicable Victorian Energy Upgrades (VEU) government rebate, subject to program eligibility requirements.
+3. Why this option. Only on a replacement at a rental (the business unit or job type says Real Estate): recommend it as a long-term heating and cooling solution, particularly with Victoria's upcoming minimum energy efficiency standards for rental properties commencing from March 2027, and what upgrading now offers (comfort, energy use, running costs). On a home owner's job, a sentence on why only if the records give a reason.
+4. Coverage: which rooms get their own heating and cooling, and any room that doesn't and how it's helped.
+5. "Installation Details:" on a line of its own, then a paragraph for each location the records name, "Location: what goes where and how" (back to back, internal wall, under a bulkhead, wall or roof bracket, how the pipes run, a condensate pump). Only when the records give locations.
+6. "Important Note – Existing System Condition" on a line of its own, only on a repair or service to an existing system the records say is old, worn or near the end of its life. Then, as in the example: its age if recorded and that it has exceeded what would generally be considered a reasonable service life; that the works are intended to address the issues found but, due to its age and condition, we cannot guarantee the longevity or reliability of the repairs; that other components may fail during or after the works, naming any specific risk the records give; and that the works should be considered a maintenance and repair attempt only, rather than a long-term solution, with a recommendation to consider replacing it for a more reliable and sustainable long-term outcome.
+7. An installation closes: "All installations will be completed in accordance with manufacturer specifications and applicable industry requirements."
+
+Anything the office says may not be needed goes where it belongs, plainly: "A condensate pump will be fitted if required; if it isn't needed, it will be removed from the quoted price." Give the amount only if the notes give one.
+
+The quote is in the future tense ("will be removed"). The invoice says the same in the past tense ("Supplied and installed", "was removed"), leaves out part 3, and keeps part 6 on a repair. Paragraphs are separated by a blank line; the two headings are lines of their own. No bullet points, numbering, markdown or asterisks.
+
+## The labour line
+
+One paragraph for the single line that carries the installation labour, the materials and the electrical work as one price. Start with what the work is, then say what the one price covers on this job: the labour, the materials named the way the quote or notes name them (copper pipework, brackets, a condensate pump, ductwork), and the electrical work where there is any. Quote: "covers"; invoice: "covered". Cover only the parts you're told are merged into the one price; electrical only if there's an electrical line or an electrician booked.
+
+## Always
+
+- No prices or dollar figures (except an amount the notes give for something that may come off), no hours, no customer names, phone numbers or addresses.
+- No warranty claims and no promises the records don't make. The equipment line sells the unit, so don't describe the brand's features.
+- Don't mention the records themselves (a form, a note, something missing). Write about the job.`;
 
 const tidy = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
 const qty = (n: number) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2))));
@@ -110,76 +161,81 @@ function docText(tag: string, d: Doc | null, p: Plan | null): string {
   ].join("\n");
 }
 
-/** The words Claude is given, and a key over them, so the same job isn't written again for nothing. */
+/** The words Claude is given, most important first, and a key over them. */
 export function wordsInput(w: WordsInput): { text: string; key: string; sources: string[] } {
   const notes = w.notes.filter((n) => tidy(n.text)).slice(0, 12).map((n) => `- ${n.at ? n.at.slice(0, 10) : "undated"}${n.jobNumber ? `, job ${n.jobNumber}` : ""}: ${cut(tidy(n.text), 500)}`);
   const sparky = w.electricians.map((e) => `- ${e.supplier}${e.date ? `, ${e.date}` : ""} (${e.status})${e.note ? `: ${cut(tidy(e.note), 300)}` : ""}`);
   const office = (w.officeNotes ?? "").trim().slice(0, 3000);
   const text = [
     `<office_notes>\n${office || "none"}\n</office_notes>`,
-    `Job ${tidy(w.job.number) || "?"}: ${tidy(w.job.type) || "type not set"}${w.job.businessUnit ? `, ${tidy(w.job.businessUnit)}` : ""}${w.job.status ? `, ${tidy(w.job.status)}` : ""}`,
+    `Job ${tidy(w.job.number) || "?"}: ${tidy(w.job.type) || "type not set"}${w.job.businessUnit ? `, business unit ${tidy(w.job.businessUnit)}` : ""}${w.job.status ? `, ${tidy(w.job.status)}` : ""}`,
+    w.reports.length ? w.reports.map((r) => `<condition_report>\n${reportLines(r)}\n</condition_report>`).join("\n") : "<condition_report>none</condition_report>",
+    `<job_notes>\n${notes.join("\n") || "none"}\n</job_notes>`,
     `<job_summary>\n${cut(tidy(plainText(w.job.summary)), 1500) || "(none written)"}\n</job_summary>`,
     docText("quote", w.quote, w.quotePlan),
     docText("invoice", w.invoice, w.invoicePlan),
-    w.reports.length ? w.reports.map((r) => `<condition_report>\n${reportLines(r)}\n</condition_report>`).join("\n") : "<condition_report>none</condition_report>",
-    `<notes>\n${notes.join("\n") || "none"}\n</notes>`,
     `<electrician>\n${sparky.join("\n") || "none booked"}\n</electrician>`,
   ].join("\n\n");
   const key = createHash("sha1").update(`${WORDS_VERSION}\n${text}`).digest("hex").slice(0, 16);
   const sources = [
     office ? "your notes" : null,
+    w.reports.length ? `${w.reports.length === 1 ? "the Condition Report" : `${w.reports.length} Condition Reports`}` : null,
+    w.notes.length ? `${w.notes.length} ${w.notes.length === 1 ? "job note" : "job notes"}` : null,
     w.quote ? "the quote" : null,
     w.invoice ? "the invoice" : null,
     w.job.summary ? "the job summary" : null,
-    w.reports.length ? `${w.reports.length === 1 ? "the Condition Report" : `${w.reports.length} Condition Reports`}` : null,
-    w.notes.length ? `${w.notes.length} ${w.notes.length === 1 ? "job note" : "job notes"}` : null,
     w.electricians.length ? "the electrician's booking" : null,
   ].filter(Boolean) as string[];
   return { text, key, sources };
 }
 
-/** The answer, held to the schema's shape. */
-export function parseWords(text: string): JobWords {
-  const v = JSON.parse(text) as JobWords;
-  const s = (x: unknown) => (typeof x === "string" ? tidy(x) : "");
-  if (!v || typeof v !== "object" || !v.quote || !v.invoice) throw new Error("not a write-up");
-  return {
-    quote: { doing: s(v.quote.doing), removing: s(v.quote.removing), included: s(v.quote.included), excluded: s(v.quote.excluded), labour: s(v.quote.labour) },
-    invoice: { did: s(v.invoice.did), removed: s(v.invoice.removed), included: s(v.invoice.included), labour: s(v.invoice.labour) },
-  };
-}
-
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-/** The summary as ServiceTitan's HTML: one paragraph a part, its label in bold, empty parts left out. */
-export function summaryHtmlFor(kind: "estimate" | "invoice", w: QuoteWords | InvoiceWords): string {
-  const labels: Record<string, string> = kind === "estimate" ? QUOTE_LABELS : INVOICE_LABELS;
-  return Object.entries(labels)
-    .map(([k, label]) => [label, tidy((w as Record<string, string>)[k])] as const)
-    .filter(([, t]) => t)
-    .map(([label, t]) => `<p><strong>${esc(label)}</strong> ${esc(t)}</p>`)
-    .join("");
-}
-
-/** The same summary as plain text, for the page and for copying. */
-export function summaryTextFor(kind: "estimate" | "invoice", w: QuoteWords | InvoiceWords): string {
-  const labels: Record<string, string> = kind === "estimate" ? QUOTE_LABELS : INVOICE_LABELS;
-  return Object.entries(labels)
-    .map(([k, label]) => [label, tidy((w as Record<string, string>)[k])] as const)
-    .filter(([, t]) => t)
-    .map(([label, t]) => `${label} ${t}`)
+/**
+ * A summary as written: paragraphs kept, a blank line between, and any
+ * markdown the model slipped in taken out (no **bold**, no "- " bullets).
+ */
+export function tidySummary(s: string): string {
+  return s.replace(/\r/g, "")
+    .split(/\n\s*\n/)
+    .map((p) => p.split("\n").map((l) => l.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "").replace(/\*\*|__/g, "").replace(/^#+\s*/, "").replace(/[ \t]+/g, " ").trim()).filter(Boolean).join("\n"))
+    .filter(Boolean)
     .join("\n\n");
 }
 
-const LABEL_AT_START = new RegExp(`^(${[...Object.values(QUOTE_LABELS), ...Object.values(INVOICE_LABELS)].map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*`);
+/** The answer, held to the schema's shape. */
+export function parseWords(text: string): JobWords {
+  const v = JSON.parse(text) as JobWords;
+  if (!v || typeof v !== "object" || !v.quote || !v.invoice) throw new Error("not a write-up");
+  const one = (d: Partial<DocWords> | undefined): DocWords => ({
+    summary: typeof d?.summary === "string" ? tidySummary(d.summary) : "",
+    labour: typeof d?.labour === "string" ? tidy(d.labour) : "",
+  });
+  return { quote: one(v.quote), invoice: one(v.invoice) };
+}
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const LABEL_AT_START = new RegExp(`^(${TEMPLATE_LABELS.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*`);
+
+/**
+ * A paragraph that's a heading: one short line, not a sentence, ending in a
+ * colon ("Installation Details:") or one of the note headings ("Important
+ * Note – Existing System Condition").
+ */
+export function isHeading(p: string): boolean {
+  const t = p.trim();
+  if (!t || t.includes("\n") || t.length > 70) return false;
+  if (/^important note\b/i.test(t)) return true;
+  return /:$/.test(t) && !/[.!?]\s/.test(t);
+}
 
 /**
  * The job summary as the office left it on the page, as ServiceTitan's HTML:
- * a paragraph for each block of text, and a label it starts with in bold, the
- * way the quote templates show theirs. Anything else typed stays as typed.
+ * a paragraph for each block of text, a heading in bold, and a template label
+ * a paragraph starts with in bold, the way the quote templates show theirs.
+ * Anything else stays as typed.
  */
 export function summaryHtmlFromText(text: string): string {
   return text.replace(/\r/g, "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((p) => {
+    if (isHeading(p)) return `<p><strong>${esc(p)}</strong></p>`;
     const m = LABEL_AT_START.exec(p);
     const body = esc(m ? p.slice(m[0].length) : p).replace(/\n/g, "<br>");
     return `<p>${m ? `<strong>${esc(m[1])}</strong> ` : ""}${body}</p>`;
