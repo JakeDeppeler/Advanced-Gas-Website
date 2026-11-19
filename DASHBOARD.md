@@ -3167,6 +3167,167 @@ Code: `jobTypeKpis` and `rollUpTypes` in `crewTypes.ts` (pure, tested by
 reads, `JobTypesPage`, `PANEL_SECTORS`, `SectorPanel` and `TypeRow` in
 `ScreenBoard.tsx`.
 
+## Weather: whether the day is one to book an evap on
+
+The one page that looks forward. Everything else on the board reports what
+happened; this says whether Thursday is a day to put an evaporative unit in and
+hand it over, and whether anybody can be on a roof.
+
+Jake asked for it on 19 November: "the temp the rain the amount mill what time
+and how hot its going to be and tell if the day is bad to book a evap or evap
+heater ect."
+
+### The forecast comes from Norway, and not from the Bureau
+
+Which needs explaining, because the obvious source is the BOM and the obvious
+source is not available.
+
+The JSON API behind `weather.bom.gov.au` — the one every hobby project in
+Australia is built on — returns this in the body of every response it serves:
+
+> This application programming interface (API) is owned by the Bureau of
+> Meteorology. You must not use, copy or share it.
+
+That is not something to build a commercial business's wall board on, so it is
+not used here. BOM's own data services sell the bulk datasets and give away a
+coarse text product with no hourly detail. Open-Meteo was the next candidate
+and its free tier is non-commercial only.
+
+**MET Norway's Locationforecast** is free, needs no key, covers Australia from
+the global ECMWF run, and is licensed CC BY 4.0 with commercial use permitted.
+The licence asks for two things and both are honoured: an identifying
+User-Agent with a way to make contact — a business domain, not anybody's email
+address — and the credit carried through to where the data is shown. That is
+the `Forecast: MET Norway, CC BY 4.0` line in the corner of the hour strip, and
+it is not decoration. It is the licence.
+
+**What it will not give us**, for an Australian location, is gust speed or
+probability of precipitation. Both ride on the Nordic-area models only. So
+neither appears on the board: a "70% chance of rain" we cannot measure is
+exactly the sort of figure this document says to leave out.
+
+### An evap is judged on wet-bulb depression, not on humidity
+
+An evaporative cooler cools by evaporating water into the airstream, so what it
+can deliver is set by how much water the air will still take — the wet-bulb
+depression, which is the dry-bulb temperature minus the wet-bulb temperature. A
+clean pad gets about 80% of the way there.
+
+Humidity on its own says nothing useful: 60% at 22° is a mild morning and 60%
+at 36° is a day an evap cannot do its job. Depression collapses both into the
+one number that decides it.
+
+| Depression at the hottest working hour | Verdict |
+|---|---|
+| 11° and over | **Good day** — about 9° of cooling |
+| 8–11° | **Fine** |
+| 5–8° | **Marginal** — the customer will say "is that it?" |
+| under 5° | **Don't** — too humid to hand one over |
+
+Below 24° the verdict is **Can't show it**, whatever the humidity. Not a knock
+on the unit: a 19° day is a fine day to *install* one. But a handover is
+somebody standing under the outlet deciding whether they got what they paid
+for, and on a mild day they feel a draught rather than cooling. Commission it;
+book the demonstration for a warm one.
+
+The board shows the arithmetic rather than asking to be believed: the navy card
+says what an evap *would blow* — "20° on a 23° day" — because that is the
+sentence that settles the argument, and nobody has to take the board's word
+for it.
+
+**The wet bulb is calculated, not fetched.** The forecast carries dew point,
+which is the wrong figure — dew point is where air condenses, whereas an evap's
+floor is what it reaches by evaporating *into* the air, and the two differ by
+several degrees in exactly the dry heat this page is judging. Stull's (2011)
+fit is used instead. `npm run check:weather` measures it against a bisection
+solve of the psychrometric equation on every run: it agrees to 0.62 °C where
+the thresholds sit and 0.80 °C at worst. So a day within two-thirds of a degree
+of a boundary could be called either way — which is smaller than the boundary
+is arbitrary, since 11° is a round number somebody chose and not a cliff.
+
+### The roof is a separate question from the evap
+
+They are asked separately because they fail separately: a cold wet day is fine
+for an evap's air and impossible on a roof, and a muggy still day is the
+reverse. An install needs both.
+
+- **any working hour with 0.2mm in it** → off the roof. A wet tile stays wet
+  for an hour after the shower has gone through.
+- **2mm across the working day**, where there is no hour-by-hour forecast to
+  judge instead → off the roof. The bar is higher on purpose: past about three
+  days the model gives one rain figure per six hours, which this codebase then
+  apportions to the working window, so "0.3mm between 7am and 4pm" is not a
+  measurement of anything that happened at a particular time — it is a sixth of
+  a shower smeared across nine hours. Thresholding *that* at 0.2mm put "Off the
+  roof" on a Sunday forecast to get 0.9mm, which is one passing sprinkle.
+- **35 km/h sustained** → off the roof. Sustained and not gusts, because there
+  is no gust figure for Australia; 35 sustained implies gusts past 50, which is
+  the real limit.
+- **38°** → start early. A workable day, not a lost one.
+
+### Everything is judged on the working day, 7am to 4pm
+
+Rain at 3am is not a reason to move an install; rain at 11am is. Every day-level
+verdict is computed over those hours alone, which is why a wet night followed by
+a clear day reads as a day you can work — because it is one.
+
+### The headline is a priority list, not the worst verdict
+
+Each day carries three calls and one headline. The headline was first written
+as "whichever call is worst", which put *"nobody wants the heater run up to
+temp"* at the top of a 36° bone-dry day — true, useless, and it buried the best
+evaporative handover day of the week behind it.
+
+So the headline goes, hardest constraint first: the roof says no; the air is too
+humid to hand over; the roof is workable but punishing; and only then the good
+news. A heater verdict is a note about demand and never outranks a verdict about
+whether work can be done.
+
+"Too mild to demonstrate" is held out of the ranking entirely. It is true of
+every day from May to September, and headlining it would make winter read as a
+season of evap problems when what winter actually is, is heater calls.
+
+### The bar carries two readings, which took three goes
+
+Height alone was decorative — every column already prints its own temperature
+twice. Drawing only the gap between the two temperatures was honest and
+unreadable: on a humid day every bar is a stub floating in an empty track,
+which looks like a page that failed to load rather than a day with no cooling
+in it.
+
+So the bar's height is the hour's heat — what somebody scanning the strip is
+looking for — and the solid cap on it is the cooling an evap would get out of
+that hour. A tall bar with a sliver on top is a hot day an evap can do nothing
+with. A tall bar that is mostly solid is the day to book the handovers.
+
+### What the page will not say
+
+- **No evap verdict past about three days.** The humidity forecast runs out
+  before the temperature one does, so days four to seven read "Too far out"
+  rather than carrying a verdict worked back from a daily maximum. The tile
+  says why, because three columns of "Too far out" otherwise look like a broken
+  page.
+- **No gusts, no rain probability.** See above — they are not in the data.
+- **No wind figure where there is no wind forecast.** `windKmh` is nullable for
+  that reason. Summing nothing gives zero, and the roof verdict printed "dry,
+  0 km/h" on every day past the hourly horizon: a dead calm presented as a
+  measurement, on days the model had said nothing about wind at all.
+- **"Day's done", not "Too far out", after four o'clock.** The forecast only
+  carries hours still to come, so from late afternoon today has evening hours
+  and no working ones. The first version reported that as "Too far out" —
+  about today — every day from about four.
+
+## The page strip holds its width as pages are added
+
+The dashes in the header sit in the same baseline row as the page subtitle,
+which shrinks to fit. Each dash was a fixed width with a fixed gap, so the strip
+grew by about two units per page added — and adding the eleventh page was enough
+to start ellipsing the *Daily pace* subtitle on the wall, a page that had nothing
+to do with the change.
+
+The ten-page geometry is now the constant: 15u of dash and 4.05u of gap, divided
+among however many pages there are. A twelfth page costs the subtitle nothing.
+
 ## Sectors: maintenance, breakdowns, repairs and installs
 
 The ninth page. Jake asked (15 Nov) whether maintenance and breakdown work earns

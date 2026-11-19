@@ -1,6 +1,22 @@
 "use client";
 
 import { BREAK_HOURS, CREW_SECTORS, DAY_END_HOUR, DAY_START_HOUR, LONGEST_ALLOWED_HOURS, MIN_IDLE_DAYS, MIN_TIMED, MIN_TYPE_TIMED, rollUpTypes, type CrewSector, type JobTypeKpi, type TechKpi } from "@/lib/dashboard/crewTypes";
+import {
+  ROOF_WET_MM,
+  WORK_FROM_HOUR,
+  WORK_TO_HOUR,
+  callsFor,
+  clock,
+  degrees,
+  deliveredC,
+  evapCall,
+  headlineCall,
+  judgedHour,
+  mm,
+  type WxDay,
+  type WxHour,
+  type WxKind,
+} from "@/lib/dashboard/weatherTypes";
 import type { SectorKey, VisitOutcomes } from "@/lib/dashboard/sectors";
 import { Fragment, type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
@@ -61,6 +77,7 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   "Job types": "screen__grid--crew",
   Sectors: "screen__grid--sectors",
   Areas: "screen__grid--areas",
+  Weather: "screen__grid--weather",
 };
 
 /**
@@ -106,6 +123,16 @@ const WINDOWS: Record<(typeof PAGES)[number], (m: Metrics) => string | null> = {
   "Job types": (m) => since(m.crew?.firstDay ?? m.crew?.from),
   Sectors: (m) => since(m.sectors?.from),
   Areas: () => "last 60 days",
+  /*
+   * The only page on the board that looks forward rather than back — and it
+   * counts the days it still has rather than the days it was given, so a
+   * forecast carried across midnight does not claim a week it has spent.
+   */
+  Weather: (m) => {
+    const ahead = m.weather ? m.weather.days.filter((d) => d.date >= m.weather!.today).length : 0;
+    if (ahead === 0) return "the week ahead";
+    return ahead === 1 ? "the rest of today" : `today and the next ${ahead - 1} days`;
+  },
 };
 
 /**
@@ -178,6 +205,10 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return "Each kind of work, and what it leads to · jobs billed in the window, before GST";
   },
   Areas: () => "Where the work is, on the corridor",
+  Weather: (m) =>
+    m.weather
+      ? `${m.weather.place} \u00b7 what the week is good for booking`
+      : "What the week is good for booking",
   // Says what the second line of every cell is, because a page of pairs is
   // unreadable until you know which half is today.
   "Daily pace": (m) => {
@@ -626,7 +657,14 @@ export function ScreenBoard({
             the page that matters next. It also matches the portal, which is the
             point of the exercise. */}
         <nav className="screen__pager" aria-label="Board pages">
-          <span className="screen__dashes" aria-hidden="true">
+          {/* The strip is told how many pages it is drawing, so it can keep
+              its own width as pages are added. Adding the eleventh widened it
+              by two units and started ellipsing the Daily pace subtitle. */}
+          <span
+            className="screen__dashes"
+            aria-hidden="true"
+            style={{ "--page-n": PAGES.length } as CSSProperties}
+          >
             {PAGES.map((p, i) => (
               <span key={p} className={`screen__dash ${i === page ? "is-on" : ""}`} />
             ))}
@@ -716,6 +754,7 @@ export function ScreenBoard({
         {name === "Job types" && <JobTypesPage m={m} live={live} />}
         {name === "Sectors" && <SectorsPage m={m} live={live} />}
         {name === "Areas" && <AreasPage m={m} live={live} />}
+        {name === "Weather" && <WeatherPage m={m} live={live} />}
         </TickerScope.Provider>
       </div>
 
@@ -2707,6 +2746,248 @@ function TypeRow({ t, folded }: { t: JobTypeKpi; folded?: boolean }) {
  * A suburb with no coordinate on file is named under the map rather than
  * dropped, because its jobs happened whether or not we know where.
  */
+/* ── Weather ──────────────────────────────────────────────────────────────
+ *
+ * Not a forecast — anybody can look out of the window. The question this page
+ * answers is whether a day is one to put an evaporative unit in and hand it
+ * over, and whether anybody can be on a roof, because those two decisions are
+ * made days ahead in the office and the weather is the thing that decides them.
+ *
+ * The arithmetic is all in weatherTypes.ts, where check:weather can get at it.
+ */
+
+/** Short enough for a column a seventh of the wall wide. */
+const WX_KIND_SHORT: Record<WxKind, string> = { evap: "Evap", roof: "Roof", heater: "Heater" };
+
+/* The strip's span: the working day with an hour either side, so an early
+   start and a late finish are both on the page. */
+const STRIP_FROM = 6;
+const STRIP_TO = 19;
+
+/** "Thu 20". The day, as somebody standing in front of the wall would say it. */
+function wxDayName(iso: string, today: boolean): string {
+  if (today) return "Today";
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()]} ${d.getDate()}`;
+}
+
+function WeatherPage({ m }: { m: Metrics; live: Live }) {
+  const all = m.weather;
+  /*
+   * Only the days still ahead. A forecast carried forward through a failed
+   * read is worth having; one carried through midnight has yesterday at the
+   * front of it, and a page that drew yesterday's hours under the heading
+   * "Today" would be wrong in the quietest possible way. See Weather.today.
+   */
+  const w = all ? { ...all, days: all.days.filter((d) => d.date >= all.today) } : null;
+  if (!w || w.days.length === 0) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 3" }}>
+        <span className="tile__title">No forecast</span>
+        <span className="tile__sub">
+          {all
+            ? "The forecast on file has run out. The board will have a new one on the next sync."
+            : "The weather service didn’t answer. The board will have it back on the next sync."}
+        </span>
+      </div>
+    );
+  }
+
+  const today = w.days[0];
+  const judged = judgedHour(today);
+  const evap = evapCall(today);
+  /* Whether today's working hours are behind us, taken from the data rather
+     than from a clock: the forecast only carries hours still to come, so a
+     today with hours in it but none between seven and four is an afternoon
+     that has already gone. Reading the TV's clock would have the harness and
+     the wall disagree. */
+  const dayDone = today.hours.length > 0 && judged == null;
+  const strip = today.hours.filter((h) => h.hour >= STRIP_FROM && h.hour <= STRIP_TO);
+  /*
+   * One scale for the whole strip, from the coldest air an evap could make to
+   * the hottest the day gets. Shared rather than per-hour, because the bars
+   * are being compared with each other: the length of each one is the cooling
+   * there is to be had in that hour, and lengths only mean anything against a
+   * common ruler.
+   */
+  const floor = Math.min(...strip.map((h) => deliveredC(h.tempC, h.humidity)), today.minC) - 3;
+  const ceiling = Math.max(...strip.map((h) => h.tempC), today.maxC) + 1;
+
+  return (
+    <>
+      <HeadCard
+        label="Right now"
+        value={w.now ? degrees(w.now.tempC) : NA}
+        foot={
+          w.now
+            ? `${Math.round(w.now.humidity)}% humidity · ${Math.round(w.now.windKmh)} km/h · ${w.place}`
+            : `no current reading · ${w.place}`
+        }
+      />
+      <HeadCard
+        label={dayDone ? "Rest of today" : "Today’s top"}
+        value={degrees(today.maxC)}
+        foot={`${today.peakAt != null ? `peak ${clock(today.peakAt)} · ` : ""}down to ${degrees(today.minC)}`}
+      />
+      <HeadCard
+        label="Rain today"
+        value={mm(today.rainMm)}
+        foot={
+          today.workRainMm >= ROOF_WET_MM
+            ? `${mm(today.workRainMm)} of it ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)}${
+                today.rainFrom != null ? ` · from ${clock(today.rainFrom)}` : ""
+              }`
+            : `none ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)}${today.rainMm > 0 ? " · it falls around it" : ""}`
+        }
+      />
+      {/*
+       * The navy card is the page's answer, and it is a temperature rather
+       * than a word because a temperature is what settles an argument: "it
+       * would blow 31° on a 34° day" is the whole case against booking a
+       * handover, and nobody has to take the board's word for it.
+       *
+       * The verdict is still written out, because three degrees of cooling
+       * only reads as bad news if you already knew what good looks like.
+       */}
+      <div className="tile tile--head tile--navy c3">
+        <span className="tile__labelrow">
+          <span className="tile__label">An evap would blow</span>
+          <span className={`tile__verdict wx wx--${evap.rating}`}>{evap.word}</span>
+        </span>
+        <span className={vcls(judged ? degrees(deliveredC(judged.tempC, judged.humidity)) : NA)}>
+          {judged ? degrees(deliveredC(judged.tempC, judged.humidity)) : NA}
+        </span>
+        <span className="tile__foot">{evap.why}</span>
+      </div>
+
+      <div className="tile c12" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">Today, hour by hour</span>
+          {/* The bar carries two readings, so the subtitle names both. Kept to
+              one line: at 160 characters it wrapped and pushed the title onto
+              two lines of its own. */}
+          <span className="tile__sub">
+            {`bar height is the heat · the solid top is the cooling an evap would get · ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)} is the working day`}
+          </span>
+          <span className="crew__legend">
+            <span className="wx__credit">{w.credit}</span>
+          </span>
+        </div>
+        {strip.length === 0 ? (
+          <span className="jtp__empty">
+            No hours left in today. Tomorrow starts the row below.
+          </span>
+        ) : (
+          <div className="wxs">
+            {strip.map((h) => (
+              <WxHourCell
+                key={h.hour}
+                h={h}
+                lo={floor}
+                hi={ceiling}
+                judged={judged?.hour === h.hour}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="tile c12" style={{ gridRow: 3 }}>
+        <div className="tile__head">
+          <span className="tile__title">The week, and what it is a day for</span>
+          {/* Says why half the week has no evap verdict, because three columns
+              reading "Too far out" otherwise look like a broken page. */}
+          <span className="tile__sub">
+            each day judged on its own hottest working hour · humidity is only forecast about three days out, so the
+            evap call stops there
+          </span>
+          <span className="crew__legend">
+            <span className="crew__key"><i className="wxdot wx--good" aria-hidden="true" />good</span>
+            <span className="crew__key"><i className="wxdot wx--fair" aria-hidden="true" />fine</span>
+            <span className="crew__key"><i className="wxdot wx--poor" aria-hidden="true" />marginal</span>
+            <span className="crew__key"><i className="wxdot wx--no" aria-hidden="true" />don’t</span>
+          </span>
+        </div>
+        <div className="wxw" style={{ "--wx-n": w.days.length } as CSSProperties}>
+          {w.days.map((d) => (
+            <WxDayCol key={d.date} d={d} today={d.date === w.today} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/**
+ * One hour of today: how hot it gets, how much of that an evap could take
+ * off, and any rain.
+ *
+ * One bar carrying two readings, which took three goes to get right. Height
+ * alone was decorative — every column prints its own temperature twice.
+ * Drawing only the gap between the two temperatures was honest and unreadable:
+ * on a humid day every bar is a stub floating in an empty track, which looks
+ * like a page that failed to load rather than a day with no cooling in it.
+ *
+ * So: the bar's height is the hour's heat, which is what somebody scanning
+ * the strip is looking for, and the solid cap on it is the cooling an evap
+ * would get out of that hour. A tall bar with a sliver on top is a hot day an
+ * evap can do nothing with; a tall bar that is mostly solid is the day to book
+ * the handovers.
+ */
+function WxHourCell({ h, lo, hi, judged }: { h: WxHour; lo: number; hi: number; judged: boolean }) {
+  const out = deliveredC(h.tempC, h.humidity);
+  const span = hi - lo;
+  const at = (t: number) => (span > 0 ? Math.max(0, Math.min(100, ((t - lo) / span) * 100)) : 50);
+  const top = at(h.tempC);
+  const cool = at(out);
+  const working = h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR;
+  return (
+    <div className={`wxs__h${working ? " is-work" : ""}${judged ? " is-judged" : ""}`}>
+      <b className="wxs__t">{degrees(h.tempC)}</b>
+      <span className="wxs__bar" aria-hidden="true">
+        <i className="wxs__air" style={{ height: `${top}%` }} />
+        {/* A floor on the cap, so an hour with no cooling in it is a visible
+            line rather than nothing — an absent segment reads as missing data. */}
+        <i className="wxs__cool" style={{ bottom: `${cool}%`, height: `${Math.max(1.5, top - cool)}%` }} />
+      </span>
+      <span className="wxs__out">{degrees(out)}</span>
+      <span className="wxs__rain">{h.rainMm >= 0.1 ? mm(h.rainMm) : ""}</span>
+      <span className="wxs__hr">{clock(h.hour)}</span>
+    </div>
+  );
+}
+
+/** One day of the week, with the three calls under it. */
+function WxDayCol({ d, today }: { d: WxDay; today: boolean }) {
+  const head = headlineCall(d);
+  return (
+    <div className={`wxw__d${today ? " is-today" : ""}`}>
+      <span className="wxw__name">{wxDayName(d.date, today)}</span>
+      <span className="wxw__temp">
+        {degrees(d.minC)}–{degrees(d.maxC)}
+      </span>
+      <span className="wxw__rain">
+        {d.rainMm > 0 ? mm(d.rainMm) : "dry"}
+        {d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : ""}
+      </span>
+      {/* The headline first and in full, because it is the one line somebody
+          reads before deciding where the booking goes. */}
+      <span className={`wxw__head wx--${head.rating}`}>{head.word}</span>
+      <span className="wxw__why">{head.why}</span>
+      <span className="wxw__calls">
+        {callsFor(d).map((c) => (
+          <span className="wxw__call" key={c.kind}>
+            <i className={`wxdot wx--${c.rating}`} aria-hidden="true" />
+            <span className="wxw__kind">{WX_KIND_SHORT[c.kind]}</span>
+            <span className="wxw__word">{c.word}</span>
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
 function SuburbHeat({ places }: { places: Metrics["topJobSuburbs"] }) {
   const located = places.map((p) => ({ ...p, at: suburbCoords[slugForSuburb(p.suburb)] }));
   const pts = located
