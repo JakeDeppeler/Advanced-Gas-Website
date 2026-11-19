@@ -3135,10 +3135,12 @@ function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[
                   <i className={`wxdot ${JOB_INK[c.status]}`} aria-hidden="true" />
                   {JOB_WORD[c.status]}
                 </span>
-                {/* What makes this job different from the one above it. The
-                    rule's own words, now that the status no longer carries
-                    them. */}
-                <span className="wxj2__why">{c.status === "go" ? c.why : `${c.word} · ${c.why}`}</span>
+                {/* What makes this job different from the one above it, now
+                    that the status above is one of three fixed words.
+                    Flagged jobs only: "Clear" followed by "dry 8am–10am" is a
+                    line saying the same thing twice, and on a busy summer week
+                    three of those a column put the tile 71 pixels over. */}
+                {c.status !== "go" && <span className="wxj2__why">{`${c.word} · ${c.why}`}</span>}
               </span>
             ))}
             {rest > 0 && (

@@ -365,7 +365,7 @@ body:has(.screen) .utilbar {
 /* The week and its jobs on top, today hour by hour beneath. The week takes
    the larger share: on the busiest day of summer a column holds its weather
    header and four job cards, and the strip is a glance. */
-.screen__grid--weather { grid-template-rows: 2.45fr 1fr; }
+.screen__grid--weather { grid-template-rows: 3.5fr 1fr; }
 
 /* Sectors: what a breakdown or a maintenance visit led to. The navy family, not
    the status palette: an install isn't "good" and a plain service isn't "bad",
@@ -2699,9 +2699,9 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(0.12 * var(--u));
+  gap: calc(0.08 * var(--u));
   border-radius: calc(0.45 * var(--u));
-  padding: calc(0.3 * var(--u)) calc(0.1 * var(--u));
+  padding: calc(0.2 * var(--u)) calc(0.1 * var(--u));
 }
 /* The working day is the lit part of the strip. The shoulders are there so an
    early start and a late finish are on the page, not to be read equally. */
@@ -2715,7 +2715,7 @@ body:has(.screen) .utilbar {
 }
 .screen--dark .wxs__h.is-judged { outline-color: var(--ink-2); }
 .wxs__t {
-  font-size: calc(1.2 * var(--u));
+  font-size: calc(1.1 * var(--u));
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--navy);
@@ -2743,7 +2743,7 @@ body:has(.screen) .utilbar {
 .screen--dark .wxs__air { background: #3f4769; }
 .screen--dark .wxs__cool { background: #9fabe4; }
 .wxs__out {
-  font-size: calc(0.95 * var(--u));
+  font-size: calc(0.9 * var(--u));
   font-weight: 700;
   color: var(--ink-2);
   line-height: 1;
@@ -2758,7 +2758,7 @@ body:has(.screen) .utilbar {
 /* The hour heads the cell now, so it carries a little more weight than a
    caption at the foot did. */
 .wxs__hr {
-  font-size: calc(0.86 * var(--u));
+  font-size: calc(0.82 * var(--u));
   font-weight: 700;
   color: var(--ink-2);
   white-space: nowrap;
@@ -2820,16 +2820,19 @@ body:has(.screen) .utilbar {
 .wxw__sky {
   display: flex;
   flex-direction: column;
-  gap: calc(0.1 * var(--u));
+  gap: calc(0.06 * var(--u));
   min-width: 0;
-  min-height: calc(8.6 * var(--u));
+  /* Measured, not guessed: name, temperature row, rain, verdict and two
+     lines of reason come to about 7.2u. Anything more is height the job
+     boxes below want. */
+  min-height: calc(7.3 * var(--u));
   padding-bottom: calc(0.3 * var(--u));
   border-bottom: 1px solid var(--hairline);
 }
 .wxw__why {
-  font-size: calc(0.78 * var(--u));
+  font-size: calc(0.76 * var(--u));
   color: var(--ink-muted);
-  line-height: 1.25;
+  line-height: 1.2;
   overflow-wrap: break-word;
 }
 
@@ -2837,8 +2840,8 @@ body:has(.screen) .utilbar {
 .wxw__jobs {
   display: flex;
   flex-direction: column;
-  gap: calc(0.2 * var(--u));
-  padding-top: calc(0.25 * var(--u));
+  gap: calc(0.16 * var(--u));
+  padding-top: calc(0.22 * var(--u));
   flex: 1;
   min-height: 0;
 }
@@ -2851,7 +2854,7 @@ body:has(.screen) .utilbar {
   gap: calc(0.02 * var(--u));
   min-width: 0;
   border-radius: calc(0.45 * var(--u));
-  padding: calc(0.22 * var(--u)) calc(0.42 * var(--u));
+  padding: calc(0.18 * var(--u)) calc(0.42 * var(--u));
   background: var(--track);
 }
 /* A job in trouble gets a rule down its edge as well as its word and its dot
@@ -2953,7 +2956,7 @@ body:has(.screen) .utilbar {
   min-width: 0;
 }
 /* In the hour strip the icon is smaller: fourteen of them across the wall. */
-.wxs__h .sky { width: calc(1.35 * var(--u)); height: calc(1.5 * var(--u)); }
+.wxs__h .sky { width: calc(1.15 * var(--u)); height: calc(1.15 * var(--u)); }
 
 /* ── the day's totals, in the space the working hours leave ─────────────── */
 .wxsum {
@@ -2962,7 +2965,7 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: calc(0.35 * var(--u));
+  gap: calc(0.28 * var(--u));
   padding: calc(0.3 * var(--u)) calc(0.9 * var(--u));
   margin-left: calc(0.5 * var(--u));
   border-left: 1px solid var(--hairline);
