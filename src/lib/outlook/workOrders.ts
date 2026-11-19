@@ -731,6 +731,59 @@ export async function siteBackfill(deadline: number): Promise<{ done: number }> 
   return out;
 }
 
+/**
+ * Work order jobs from the last week with no owner read (Jake, 19 Nov: "fill
+ * the tag in for owner for the real estate as well where it says to bill":
+ * 5 Limestone Drive's Ailo quote and 41 Shanks Drive's emailed PDFs had
+ * none): the email, its PDFs and any Tapi page read again, and the owner,
+ * tenant and manager put on the site where it has none. One a run.
+ */
+export async function ownerBackfill(deadline: number): Promise<{ done: number }> {
+  const out = { done: 0 };
+  const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+  type R = { mailbox: string; message_id: string; st_job_id: number; st_job_number: string | null; st_location_id: number; details: (WorkOrder & Record<string, unknown>) | null };
+  const rows = await sbSelect<R>(TABLE, [
+    q.select("mailbox,message_id,st_job_id,st_job_number,st_location_id,details"), q.eq("status", "booked"), "st_job_id=not.is.null", "st_location_id=not.is.null",
+    "details=not.is.null", "or=(details->>owner.is.null,details->>owner.eq.)", "details->>ownerCaught=is.null",
+    q.gte("created_at", since), q.order("created_at", "desc", "last"), "limit=1",
+  ].join("&")).catch(() => []);
+  for (const r of rows) {
+    if (Date.now() > deadline) break;
+    const old = r.details as WorkOrder & Record<string, unknown>;
+    // A builder's or a homeowner's has no owner to find. (Null is a reading
+    // from before the question was asked: read again.)
+    if (old.isRealEstate === false) {
+      await save(r.mailbox, r.message_id, { details: { ...old, ownerCaught: "not a rental" } }).catch(() => undefined);
+      continue;
+    }
+    try {
+      const m = await graph<GraphMessage>(`${userPath(r.mailbox)}/messages/${encodeURIComponent(r.message_id)}?$select=id,subject,from,sender,receivedDateTime,body,hasAttachments`, { text: true });
+      const body = plainText(m.body);
+      const [pdfs, tapi] = await Promise.all([
+        m.hasAttachments ? pdfsOf(r.mailbox, r.message_id) : Promise.resolve([] as FileAtt[]),
+        /tapi/i.test(addressOf(m.from)) || /tapi\.app|tapihq/i.test(body) ? tapiPage(r.mailbox, r.message_id, body).catch(() => null) : Promise.resolve(null),
+      ]);
+      const w = await extract(m, withTapi(body, tapi?.text ?? null), pdfs, true);
+      const merged: WorkOrder = {
+        ...old, owner: w.owner || old.owner || "", tenantName: old.tenantName || w.tenantName, tenantPhone: old.tenantPhone || w.tenantPhone, tenantEmail: old.tenantEmail || w.tenantEmail,
+        propertyManager: old.propertyManager || w.propertyManager, pmEmail: old.pmEmail || w.pmEmail, pmPhone: old.pmPhone || w.pmPhone,
+      };
+      const loc = r.st_location_id;
+      const said = [
+        await fillSiteDetails(loc, merged, async () => null, { onlyEmpty: true }).catch((e: Error) => `owner not filled: ${stSaid(e)}`),
+        await fillTenant(loc, merged).catch((e: Error) => `tenant not put on: ${stSaid(e)}`),
+        await fillManager(loc, merged).catch((e: Error) => `property manager not put on: ${stSaid(e)}`),
+      ].filter(Boolean).join("; ");
+      await save(r.mailbox, r.message_id, { details: { ...merged, ownerCaught: w.owner ? `read: ${w.owner}` : "read again, no owner named" } });
+      if (said) await logAuto([{ at: new Date().toISOString(), kind: "workOrderBook", ok: true, jobId: r.st_job_id, title: `Job ${r.st_job_number ?? r.st_job_id}: the work order read again for its owner`, detail: said.slice(0, 300) }]).catch(() => undefined);
+      out.done++;
+    } catch (e) {
+      await save(r.mailbox, r.message_id, { details: { ...old, ownerCaught: `read again, but: ${(e as Error).message}`.slice(0, 200) } }).catch(() => undefined);
+    }
+  }
+  return out;
+}
+
 /** What a work order's row says when its job was made but the hold didn't take. */
 const NOT_HELD = "made, but not put on hold";
 
