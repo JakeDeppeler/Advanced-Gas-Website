@@ -370,13 +370,12 @@ export function evapCall(d: WxDay): WxCall {
   const wet = wetBulbC(h.tempC, h.humidity);
   const depression = h.tempC - wet;
   const out = deliveredC(h.tempC, h.humidity);
-  const drop = h.tempC - out;
-  const why = `would blow ${round(out)}° at ${round(h.tempC)}° · ${round(drop)}° of cooling · ${round(h.humidity)}% humidity`;
+  const why = `would blow ${round(out)}° at ${round(h.tempC)}° · ${round(h.humidity)}% humidity`;
 
   if (depression >= EVAP_GOOD_DEPRESSION) return { kind, rating: "good", word: "Good day", why };
   if (depression >= EVAP_FAIR_DEPRESSION) return { kind, rating: "fair", word: "Fine", why };
   if (depression >= EVAP_POOR_DEPRESSION) return { kind, rating: "poor", word: "Marginal", why };
-  return { kind, rating: "no", word: "Don’t", why: `${why} — too humid to hand over` };
+  return { kind, rating: "no", word: "Don’t", why };
 }
 
 /**

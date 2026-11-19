@@ -154,7 +154,9 @@ ok("and it says what the unit would do", /would blow \d+°/.test(evapCall(hotDry
 
 const hotHumid = day({ hours: [8, 10, 12, 14, 15, 16].map((h) => hour(h, h < 12 ? 26 : 34, 72)) });
 ok("a hot humid day is not", evapCall(hotHumid).rating === "no", evapCall(hotHumid).word);
-ok("and it says why in the figures", evapCall(hotHumid).why.includes("too humid"), evapCall(hotHumid).why);
+ok("and it says why in the figures", /would blow \d+° at \d+° · \d+% humidity/.test(evapCall(hotHumid).why),
+   evapCall(hotHumid).why);
+ok("without repeating the verdict in prose", !evapCall(hotHumid).why.includes("too humid"));
 
 /*
  * The case the thresholds exist for: same 34°, two humidities, opposite

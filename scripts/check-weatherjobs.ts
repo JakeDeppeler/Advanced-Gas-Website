@@ -64,39 +64,37 @@ console.log("-- every job type in the tenant, classified --");
  * The live list, as booked in the eight days from 19 November 2026. If a name
  * here stops matching, a real job silently drops off the board.
  */
-const cases: Array<[string, { roof: boolean; evap: boolean; handover: boolean; heat: string | null }]> = [
-  ["Installation - Evaporative Cooler",      { roof: true,  evap: true,  handover: true,  heat: null }],
-  // Serviced and repaired through winter as a matter of course, so the demo
-  // question does not apply — only whether somebody can get on the roof.
-  ["Service - Evaporative Cooler",           { roof: true,  evap: true,  handover: false, heat: null }],
-  ["Repair - Evaporative Cooler",            { roof: true,  evap: true,  handover: false, heat: null }],
-  ["Diagnostics - Evaporative",              { roof: true,  evap: true,  handover: false, heat: null }],
-  ["Installation - Gas Ducted Heater",       { roof: true,  evap: false, handover: false, heat: "comfort" }],
-  ["Installation - Gas Space Heater / Log Fire", { roof: true, evap: false, handover: false, heat: "comfort" }],
-  ["Installation - Ducted Refrigerated",     { roof: true,  evap: false, handover: false, heat: "cavity" }],
+const cases: Array<[string, { roof: boolean; evap: boolean; heat: string | null }]> = [
+  ["Installation - Evaporative Cooler",      { roof: true,  evap: true,  heat: null }],
+  ["Service - Evaporative Cooler",           { roof: true,  evap: true,  heat: null }],
+  ["Repair - Evaporative Cooler",            { roof: true,  evap: true,  heat: null }],
+  ["Diagnostics - Evaporative",              { roof: true,  evap: true,  heat: null }],
+  ["Installation - Gas Ducted Heater",       { roof: true,  evap: false, heat: "comfort" }],
+  ["Installation - Gas Space Heater / Log Fire", { roof: true, evap: false, heat: "comfort" }],
+  ["Installation - Ducted Refrigerated",     { roof: true,  evap: false, heat: "cavity" }],
   // Not a type in the tenant today, but the words Jake used. It must classify
   // the day somebody adds it.
-  ["Installation - Brivis Dominator",        { roof: true,  evap: false, handover: false, heat: "comfort" }],
-  ["Installation - Ducted Split",            { roof: true,  evap: false, handover: false, heat: "cavity" }],
+  ["Installation - Brivis Dominator",        { roof: true,  evap: false, heat: "comfort" }],
+  ["Installation - Ducted Split",            { roof: true,  evap: false, heat: "cavity" }],
   // Indoor work, or a van-level job. These must stay off the page: a hundred
   // split-system services a week would bury the six jobs that matter.
-  ["Service - Split System",                 { roof: false, evap: false, handover: false, heat: null }],
-  ["Installation - Split System",            { roof: false, evap: false, handover: false, heat: null }],
-  ["Repair - Split System",                  { roof: false, evap: false, handover: false, heat: null }],
-  ["Quotation",                              { roof: false, evap: false, handover: false, heat: null }],
-  ["Gas Safety Check",                       { roof: false, evap: false, handover: false, heat: null }],
-  ["Repair - Gas Cooktop",                   { roof: false, evap: false, handover: false, heat: null }],
-  ["Service - Add-on Cooling",               { roof: false, evap: false, handover: false, heat: null }],
+  ["Service - Split System",                 { roof: false, evap: false, heat: null }],
+  ["Installation - Split System",            { roof: false, evap: false, heat: null }],
+  ["Repair - Split System",                  { roof: false, evap: false, heat: null }],
+  ["Quotation",                              { roof: false, evap: false, heat: null }],
+  ["Gas Safety Check",                       { roof: false, evap: false, heat: null }],
+  ["Repair - Gas Cooktop",                   { roof: false, evap: false, heat: null }],
+  ["Service - Add-on Cooling",               { roof: false, evap: false, heat: null }],
   // A diagnostic on a ducted heater is somebody at the controller, not on the
   // roof — so it is not a roof job, and a wet day does not move it.
-  ["Diagnostics - Gas Ducted Heater",        { roof: false, evap: false, handover: false, heat: null }],
+  ["Diagnostics - Gas Ducted Heater",        { roof: false, evap: false, heat: null }],
 ];
 for (const [name, want] of cases) {
   const got = needsOf(name);
   ok(
     `${name}`,
-    got.roof === want.roof && got.evap === want.evap && got.handover === want.handover && (got.heat ?? null) === want.heat,
-    `roof=${got.roof} evap=${got.evap} handover=${got.handover} heat=${got.heat}`,
+    got.roof === want.roof && got.evap === want.evap && (got.heat ?? null) === want.heat,
+    `roof=${got.roof} evap=${got.evap} heat=${got.heat}`,
   );
 }
 
@@ -200,8 +198,8 @@ ok("a 17° day does not flag an evap service",
    callFor(job({ type: "Service - Evaporative Cooler", hour: 10, hours: 2 }), coldDay).status === "go",
    callFor(job({ type: "Service - Evaporative Cooler", hour: 10 }), coldDay).word);
 ok("nor a repair", callFor(job({ type: "Repair - Evaporative Cooler", hour: 10 }), coldDay).status === "go");
-ok("but it does flag an install, because that one gets handed over",
-   callFor(job({ type: "Installation - Evaporative Cooler", hour: 10 }), coldDay).word === "Can’t demo it");
+ok("and neither does an install on the same day, now the handover rule is gone",
+   callFor(job({ type: "Installation - Evaporative Cooler", hour: 10 }), coldDay).status === "go");
 
 console.log("\n-- Jake's rule: wet overnight, roof job in the morning --");
 /*
@@ -219,7 +217,7 @@ const c = callFor(morningEvap, dryDayWetNight);
  * overnight shower is a chance the start slips an hour, not a lost day.
  */
 ok("is flagged even though no rain falls during the job", c.status === "watch", c.word);
-ok("and the reason is the roof, not the rain", c.why.includes("overnight") && c.why.includes("may not have dried"), c.why);
+ok("and the reason is the roof, not the rain", c.why.includes("overnight") && c.why.includes("start"), c.why);
 ok("but gold, because a roof dries", c.status !== "risk");
 ok("the same job in the afternoon is not flagged",
    callFor({ ...morningEvap, hour: 12 }, dryDayWetNight).status !== "risk",
@@ -256,7 +254,7 @@ console.log("\n-- over thirty, and the two different reasons for it --");
 const scorcher = weather([day("2026-11-20", [hour(8, 24, 40), hour(12, 33, 25), hour(15, 34, 22)])]);
 const heaterIn = callFor(job({ type: "Installation - Gas Ducted Heater", hour: 8 }), scorcher);
 ok("a heater install is off", heaterIn.status === "risk", heaterIn.word);
-ok("because nobody wants it run up to temp", heaterIn.why.includes("run up to temp"), heaterIn.why);
+ok("because a heater cannot be run up in it", heaterIn.why.includes("run a heater up"), heaterIn.why);
 const ductedIn = callFor(job({ type: "Installation - Ducted Refrigerated", hour: 8 }), scorcher);
 ok("a ducted refrigerated install is off too", ductedIn.status === "risk", ductedIn.word);
 /*
@@ -265,7 +263,7 @@ ok("a ducted refrigerated install is off too", ductedIn.status === "risk", ducte
  * when the actual problem is twenty hours in a 50° roof cavity.
  */
 ok("but because the roof cavity is dangerous, not because of comfort",
-   ductedIn.why.includes("cavity") && !ductedIn.why.includes("run up"), ductedIn.why);
+   ductedIn.why.includes("cavity") && !ductedIn.why.includes("heater"), ductedIn.why);
 ok(`the threshold is ${TOO_HOT_C}`, TOO_HOT_C === 30);
 const warm = weather([day("2026-11-20", [hour(8, 20, 50), hour(14, 29, 40)])]);
 ok("29° is fine", callFor(job({ type: "Installation - Gas Ducted Heater", hour: 8 }), warm).status === "go");
@@ -273,18 +271,27 @@ ok("and an evap install on a hot dry day is good to go",
    callFor(job({ type: "Installation - Evaporative Cooler", hour: 8 }), scorcher).status === "go",
    callFor(job({ type: "Installation - Evaporative Cooler", hour: 8 }), scorcher).why);
 
-console.log("\n-- the evap handover is a watch, not a stop --");
+console.log("\n-- no job is flagged for humidity or for being mild --");
+/*
+ * There was an evap-handover verdict here, and Jake's question killed it:
+ * "why does it say can't demo it, what are we demo?" It flagged installs that
+ * were going ahead regardless, and gold on this page means a chance the job
+ * does NOT go ahead. These assertions exist so it cannot creep back.
+ */
 const muggy = weather([day("2026-11-20", [hour(8, 24, 75), hour(12, 31, 72), hour(14, 32, 70)])]);
-// An install, because that is the one that gets handed over. The same day
-// against a service is a plain good-to-go, asserted just above.
-const handover = callFor(job({ type: "Installation - Evaporative Cooler", hour: 12, hours: 2 }), muggy);
-ok("a muggy day is a watch", handover.status === "watch", handover.word);
-ok("because the unit still goes in, it just won't impress", handover.why.includes("would blow"), handover.why);
-ok("and the same muggy day does not flag the service beside it",
-   callFor(job({ type: "Service - Evaporative Cooler", hour: 12, hours: 2 }), muggy).status === "go");
+ok("a muggy day does not flag an evap install",
+   callFor(job({ type: "Installation - Evaporative Cooler", hour: 12, hours: 2 }), muggy).status === "go",
+   callFor(job({ type: "Installation - Evaporative Cooler", hour: 12, hours: 2 }), muggy).word);
 const mild = weather([day("2026-11-20", [hour(8, 14, 70), hour(12, 19, 60), hour(15, 20, 58)])]);
-ok("and a mild day can't demo a new one",
-   callFor(job({ type: "Installation - Evaporative Cooler", hour: 12 }), mild).word === "Can’t demo it");
+ok("nor does a mild one", callFor(job({ type: "Installation - Evaporative Cooler", hour: 12 }), mild).status === "go",
+   callFor(job({ type: "Installation - Evaporative Cooler", hour: 12 }), mild).word);
+ok("and no job verdict mentions demonstrating anything",
+   !callFor(job({ type: "Installation - Evaporative Cooler", hour: 12 }), mild).word.toLowerCase().includes("demo"));
+/*
+ * The day's own evap verdict is untouched — "is this a good day for
+ * evaporative work" was the original ask and is still worth answering. It is
+ * simply not a reason to move a booking.
+ */
 
 console.log("\n-- windy --");
 const windy = weather([day("2026-11-20", [hour(8, 20, 50, 0, 48), hour(12, 24, 45, 0, 52)])]);
