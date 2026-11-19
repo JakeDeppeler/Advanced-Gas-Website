@@ -29,6 +29,8 @@ async function saveNotes(jobId: number, notes: string, by: string): Promise<void
 export async function writeJobWords(job: string, quoteId: number | null, notes: string): Promise<WordsResult> {
   const user = await getPortalUser();
   if (!user || !officeWork(user)) return { ok: false, error: "This is for the office." };
+  // The notes are what it's written from (Jake, 19 Nov): none, nothing to write.
+  if (!notes.trim()) return { ok: false, error: "Add your notes first: how it's going in, what's coming out, and anything that comes off if it isn't needed." };
   try {
     const f = await loadJob(job);
     if (!f) return { ok: false, error: `Job ${job} isn't in the portal's copy of ServiceTitan yet.` };

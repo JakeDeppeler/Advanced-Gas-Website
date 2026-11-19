@@ -4217,7 +4217,7 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
 .jw-find { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 18px; }
 .jw-find label { font-size: 13px; font-weight: 600; color: var(--ink2); }
 .jw-find .pk-in { width: 140px; font-size: 15px; padding: 8px 12px; }
-.jw { display: grid; gap: 14px; max-width: 860px; }
+.jw { display: grid; gap: 14px; }
 .jw-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
 .jw-job { margin: 0; font-size: 15px; color: var(--ink2); }
 .jw-job b { color: var(--ink); }
