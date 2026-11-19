@@ -311,8 +311,72 @@ export const plainText = (html: string | null | undefined) =>
 /** An internal ducted heater, by the unit's name: Wombat, Compact Classic, StarPro "in" models. */
 export const isInternalHeater = (s: string) => /wombat|compact classic|sp\d+in\b/i.test(s);
 
-/** The description a template line should carry, by its service code; internal heaters get their own. */
-export function lineCopy(code: string, facts: TemplateFacts | null): string | null {
+/**
+ * The labour line's words: one sentence pointing to the job summary (Jake,
+ * 19 Nov, on job 20900: "because we have covered everything in the job
+ * summary, the Split System - Roof Bracket needs to be more simple, like: All
+ * labour, materials and standard electrical works required to complete the
+ * works described in the Job Summary", then "yes, do it on all the
+ * templates"). The job write-up uses the same sentence (jobwrite/lines.ts).
+ */
+export function coverSentence(parts: string[]): string {
+  const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
+  return `All ${list} required to complete the works described in the Job Summary.`;
+}
+
+/** A template's line as the labour sentence reads it. */
+export type LineItem = { skuType: string; skuName?: string | null; code?: string; quantity?: number | null; unitPrice?: number | null };
+
+/** The line that is the installation on each install template: the one Jake calls the labour line. */
+const INSTALL_LINES = new Set([
+  "AC-SPLIT-BTB", "AC-SPLIT-RTW", "AC-SPLIT-RTR", "AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL", "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE",
+  "EVAP-INSTALL", "GAS-DUCT-INT", "GAS-DUCT-EXT", "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-STORAGE-TO-CF", "HW-GAS-STORAGE-INS",
+  "GAS-COOKTOP-INSTALL",
+]);
+/** Crew-and-hours lines that sit beside an installation line on the multi-head, Dominator and older ducted templates. */
+const LABOUR_HOURS = /^(AC-SPLIT-MULTI-\d|AC-DOM-LAB|AC-DUCTED-LAB(-1DAY)?)$/;
+/** The electrician's line: AC-SPLIT-ELEC, AC-MULTI-ELEC, AC-DUCTED-ELE, DOM-ELEC, ELEC-HP, HWS-ELEC-INSTALLATION. */
+const ELECTRICAL_LINE = /(^|-)ELEC?(-|$)|ELECTRIC(AL|IAN)/;
+
+/**
+ * The labour sentence for one of a template's lines, or null when the line
+ * isn't its labour line. Each line says only what it carries:
+ *
+ *   - "standard electrical works" only where the electrician's line is $0,
+ *     so the labour line's price includes it. Where the electrical is priced
+ *     on its own line (a heat pump's ELEC-HP, a multi-head's AC-MULTI-ELEC),
+ *     that line keeps its own words and the labour line doesn't claim it;
+ *   - "materials" only where the template carries materials;
+ *   - beside a crew-and-hours line, the installation line carries the
+ *     materials and the hours line the labour, so no two lines both say
+ *     "all labour".
+ */
+export function labourCopy(code: string, items: LineItem[]): string | null {
+  const c = code.trim().toUpperCase();
+  const isInstall = INSTALL_LINES.has(c), isHours = LABOUR_HOURS.test(c);
+  if (!isInstall && !isHours) return null;
+  const codes = items.map((i) => (i.code ?? "").trim().toUpperCase());
+  const materials = items.some((i) => i.skuType === "Material" && Number(i.quantity ?? 1) > 0 && !/rebate|veec|\bstc\b/i.test(`${i.code ?? ""} ${i.skuName ?? ""}`));
+  const elec = items.filter((i, k) => i.skuType === "Service" && ELECTRICAL_LINE.test(codes[k]));
+  const elecIncluded = elec.length > 0 && elec.every((i) => Number(i.unitPrice ?? 0) === 0);
+  if (isHours) return coverSentence(["labour"]);
+  const parts = codes.some((x) => LABOUR_HOURS.test(x))
+    ? [materials ? "materials" : null, elecIncluded ? "standard electrical works" : null]
+    : ["labour", materials ? "materials" : null, elecIncluded ? "standard electrical works" : null];
+  const kept = parts.filter(Boolean) as string[];
+  return kept.length ? coverSentence(kept) : null;
+}
+
+/**
+ * The description a template line should carry, by its service code; internal
+ * heaters get their own. Given the template's lines, its labour line gets the
+ * one plain sentence (labourCopy) instead.
+ */
+export function lineCopy(code: string, facts: TemplateFacts | null, items?: LineItem[]): string | null {
+  if (items) {
+    const labour = labourCopy(code, items);
+    if (labour) return labour;
+  }
   if (code === "GAS-DUCT-EXT" && facts?.heater === "internal") return SERVICE_COPY["GAS-DUCT-EXT#internal"];
   return SERVICE_COPY[code] ?? null;
 }

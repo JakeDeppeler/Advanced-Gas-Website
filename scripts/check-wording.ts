@@ -7,7 +7,8 @@
  *
  *   npm run check:wording
  */
-import { plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "../src/lib/pricebook/wording";
+import { coverSentence, labourCopy, lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary, type LineItem } from "../src/lib/pricebook/wording";
+import { labourLine, planOnePrice } from "../src/lib/jobwrite/lines";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -90,6 +91,37 @@ ok("zone add-ons describe what they are", /motorised damper/.test(SERVICE_COPY["
 const html = summaryHtml("One & two.\n\nThree < four.");
 ok("summaries go in as paragraphs, escaped", html === "<p>One &amp; two.</p><p>Three &lt; four.</p>");
 ok("and read back to the same text", plainText(html) === "One & two.\nThree < four.");
+
+
+// The labour line on every template (Jake, 19 Nov): one sentence pointing to the summary, saying only what that line carries.
+const S = (code: string, unitPrice: number): LineItem => ({ skuType: "Service", code, skuName: code, quantity: 1, unitPrice });
+const M = (name: string): LineItem => ({ skuType: "Material", code: "", skuName: name, quantity: 1, unitPrice: 0 });
+const E = (name: string): LineItem => ({ skuType: "Equipment", code: "", skuName: name, quantity: 1, unitPrice: 1200 });
+const FULL = "All labour, materials and standard electrical works required to complete the works described in the Job Summary.";
+const LM = "All labour and materials required to complete the works described in the Job Summary.";
+const split = [E("Kaden KSI 5kw V3"), S("AC-SPLIT-RTR", 2570), S("BPC COMPLIANCE CERTIFICATE", 65), S("AC-SPLIT-ELEC", 0), M("Rodigas roof bracket"), M("Ardent Copper Pair Coil")];
+ok("a split's roof bracket line: labour, materials and the $0 electrical", labourCopy("AC-SPLIT-RTR", split) === FULL, labourCopy("AC-SPLIT-RTR", split));
+ok("the split's other lines keep their own words", labourCopy("AC-SPLIT-ELEC", split) === null && labourCopy("BPC COMPLIANCE CERTIFICATE", split) === null);
+const splitPricedElec = split.map((i) => (i.code === "AC-SPLIT-ELEC" ? { ...i, unitPrice: 500 } : i));
+ok("electrical priced on its own line isn't claimed by the labour line", labourCopy("AC-SPLIT-RTR", splitPricedElec) === LM);
+ok("a hard-wired heat pump with ELEC-HP at $400: labour and materials", labourCopy("HW-HP-HARD", [E("Reclaim 300L"), S("HW-HP-HARD", 1380), S("ELEC-HP", 400), M("Tomson tempering valve")]) === LM);
+ok("a plug-in heat pump: labour and materials", labourCopy("HW-HP-PLUG", [E("iStore 180L"), S("HW-HP-PLUG", 1050), M("Tomson tempering valve")]) === LM);
+const multi = [E("Rinnai Multi Condenser 7kw"), E("Rinnai RPX 2.5kW Indoor"), S("AC-SPLIT-MULTI", 620), S("AC-SPLIT-MULTI-2", 1640), S("AC-MULTI-ELEC", 700), M("Ardent Copper Pair Coil")];
+ok("multi-head: the installation line carries the materials", labourCopy("AC-SPLIT-MULTI", multi) === "All materials required to complete the works described in the Job Summary.", labourCopy("AC-SPLIT-MULTI", multi));
+ok("multi-head: the heads' labour line carries the labour", labourCopy("AC-SPLIT-MULTI-2", multi) === "All labour required to complete the works described in the Job Summary.");
+const dom = [E("Braemar Dominator"), S("AC-DOM-INSTALL", 1680), S("AC-DOM-LAB", 3270), S("DOM-ELEC", 650), M("Return Air Box")];
+ok("Dominator: install line materials, labour line labour, no two lines both 'all labour'",
+  labourCopy("AC-DOM-INSTALL", dom) === "All materials required to complete the works described in the Job Summary." && labourCopy("AC-DOM-LAB", dom) === "All labour required to complete the works described in the Job Summary.");
+ok("ducted with AC-DUCTED-ELE priced: labour and materials", labourCopy("AC-DUCTED-2DAYS", [E("Mitsubishi 16kw Ducted"), S("AC-DUCTED-2DAYS", 8370), S("AC-DUCTED-ELE", 1000), M("Bradflo R1.5"), S("ZONE 200MM ADD-ON", 0)]) === LM);
+ok("an evap changeover with no materials: labour", labourCopy("EVAP-INSTALL", [E("Brivis Promina P36"), S("EVAP-INSTALL", 1150), S("BPC COMPLIANCE CERTIFICATE", 65)]) === "All labour required to complete the works described in the Job Summary.");
+ok("zone add-ons keep their words", labourCopy("ZONE 200MM ADD-ON", split) === null);
+ok("a rebate line isn't counted as materials", labourCopy("EVAP-INSTALL", [S("EVAP-INSTALL", 1150), { skuType: "Material", code: "REBATE-VEEC", skuName: "REBATE-VEEC", quantity: 9, unitPrice: -70 }]) === "All labour required to complete the works described in the Job Summary.");
+ok("lineCopy with the template's lines gives the sentence; without, the service's own words (the pricebook's)", lineCopy("AC-SPLIT-RTR", null, split) === FULL && lineCopy("AC-SPLIT-RTR", null) === SERVICE_COPY["AC-SPLIT-RTR"]);
+ok("the job write-up's sentence is the same words", coverSentence(["labour", "materials", "standard electrical works"]) === labourLine(planOnePrice({ kind: "estimate", lines: [
+  { id: 1, skuId: 1, code: "AC-SPLIT-RTR", name: "AC-SPLIT-RTR", type: "Service", qty: 1, unitPrice: 2570, total: 2570, unitCost: 0, chargeable: true, description: "" },
+  { id: 2, skuId: 2, code: "AC-SPLIT-ELEC", name: "AC-SPLIT-ELEC", type: "Service", qty: 1, unitPrice: 0, total: 0, unitCost: 0, chargeable: false, description: "" },
+  { id: 3, skuId: 3, code: "Bracket", name: "Bracket", type: "Material", qty: 1, unitPrice: 0, total: 0, unitCost: 0, chargeable: false, description: "" },
+] })));
 
 console.log(bad ? `\n${bad} failed` : "\nall passed");
 process.exit(bad ? 1 : 0);
