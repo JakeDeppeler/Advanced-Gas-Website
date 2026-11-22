@@ -11,6 +11,7 @@ import { carryQuoteEmails } from "./jobLink";
 import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
 import { probeJobNotes } from "@/lib/dashboard/stEstimateProbe";
+import { applyJobSummaryQueue } from "@/lib/jobwrite/jobSummary";
 
 /**
  * The safety net under the webhook, and the office's catch-up.
@@ -47,6 +48,7 @@ export type SweepResult = {
   subscriptions: SubStatus[] | { error: string };
   mailboxes: { mailbox: string; seen: number; left: number; backfill?: string; handled: (Outcome & { id: string })[]; error?: string }[];
   handoffs: { mailbox: string; checked: number; cleared: number; error?: string }[];
+  jobSummaries: { done: number };
   duplicates: { mailbox: string; threads: number; removed: number; keptEdited: number; error?: string }[];
   workOrders: { mailbox: string; marked: number; retried: number; error?: string }[];
   attached: { attached: number; errors: string[] } | { error: string };
@@ -190,7 +192,8 @@ export async function sweep(): Promise<SweepResult> {
   const owners = Date.now() - started < 25_000 ? await ownerBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
 
   await noteSample().catch(() => undefined);
-  return { subscriptions, mailboxes, workOrders, attached, holds, units, jobFields, types, tapi, sites, owners, carried, secondLook, duplicates, handoffs };
+  const jobSummaries = await applyJobSummaryQueue(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 }));
+  return { subscriptions, mailboxes, workOrders, attached, holds, units, jobFields, types, tapi, sites, owners, carried, secondLook, duplicates, handoffs, jobSummaries };
 }
 
 /**
