@@ -6,7 +6,7 @@ import { templatePatchItems, type TemplateItem } from "./labour";
 import { EVAP_UNITS, OTHER_TEMPLATES, evapTemplate, type TemplateSpec } from "./quoteTemplateSpecs";
 import { equipmentCopy } from "./equipmentCopy";
 import { flatText, textHash, wordingAction } from "./summaryRule";
-import { lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "./wording";
+import { INSTALL_CODES, lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, templateSummary } from "./wording";
 
 /**
  * Jake's 17 Nov wording onto ServiceTitan, after each sync, a call's worth at
@@ -29,11 +29,15 @@ import { lineCopy, plainText, SERVICE_COPY, summaryHtml, templateFacts, template
  *
  * Bump VERSION when the wording changes, and everything is looked at again.
  */
-// 2026-11-19 (Jake, "do it on all the templates"): each template's labour
-// line says only "All labour, materials and standard electrical works
-// required to complete the works described in the Job Summary" (wording.ts
-// labourCopy), the summary carrying the detail.
-export const VERSION = "2026-11-19";
+// 2026-11-19 (Jake, "do it on all the templates"): the labour line says only
+// "All labour and materials required to complete the works described in the
+// Job Summary". That run wrote it on 171 templates' lines and every one read
+// back with the service's own words: a template's service line shows the
+// pricebook service's description, whatever the template sends.
+// 2026-11-22: so it goes on the installation services themselves (step 2
+// below, wording.ts INSTALL_CODES), and the templates' lines are left to
+// follow them.
+export const VERSION = "2026-11-22";
 // The units' own descriptions didn't change with it, so they stay on the
 // 17 Nov pass: a new pass would treat any description nobody recorded as
 // fair to write over, and nobody asked for the units to be looked at again.
@@ -49,19 +53,25 @@ type Rec = { v?: string; s?: string; l?: Record<string, string> };
 type Progress = {
   templates?: Record<string, Rec>;
   equipment?: Record<string, { v?: string; h?: string }>;
+  /** Installation services whose description is done, by id: the VERSION it was done at. */
+  services?: Record<string, string>;
   /** The version whose first pass is done: from then on, nothing unrecorded is written over. */
   firstPassDone?: string;
   left?: Record<string, string>;
   fails?: number;
   notes?: Record<string, string>;
 };
-type Backup = { templates?: Record<string, { at: string; summary: string; lines: Record<string, string> }>; equipment?: Record<string, { at: string; description: string }> };
+type Backup = {
+  templates?: Record<string, { at: string; summary: string; lines: Record<string, string> }>;
+  equipment?: Record<string, { at: string; description: string }>;
+  services?: Record<string, { at: string; code: string; description: string }>;
+};
 
 const at = () => new Date().toISOString();
 const specs = (): TemplateSpec[] => [...EVAP_UNITS.map((u) => evapTemplate(u, 0, 0)), ...OTHER_TEMPLATES];
 
-export async function syncQuoteWording(until: number, all: Live[], maxWrites = 25): Promise<{ templates: string[]; equipment: string[]; left: string[]; failed: string[]; todo: number }> {
-  const out = { templates: [] as string[], equipment: [] as string[], left: [] as string[], failed: [] as string[], todo: 0 };
+export async function syncQuoteWording(until: number, all: Live[], maxWrites = 25): Promise<{ templates: string[]; equipment: string[]; services: string[]; left: string[]; failed: string[]; todo: number }> {
+  const out = { templates: [] as string[], equipment: [] as string[], services: [] as string[], left: [] as string[], failed: [] as string[], todo: 0 };
   const p: Progress = (await getSettings<Progress>(KEY).catch(() => null)) ?? {};
   if ((p.fails ?? 0) >= 3) return out;
   const recs = (p.templates ??= {}), eqRecs = (p.equipment ??= {}), left = (p.left ??= {}), notes = (p.notes ??= {});
@@ -80,7 +90,7 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
 
   const log: AutoEntry[] = [];
   const backup: Backup = (await getSettings<Backup>(BACKUP).catch(() => null)) ?? {};
-  const bT = (backup.templates ??= {}), bE = (backup.equipment ??= {});
+  const bT = (backup.templates ??= {}), bE = (backup.equipment ??= {}), bS = (backup.services ??= {});
   let backupDirty = false;
   const keepBackup = async () => { if (backupDirty) { await saveSettings(BACKUP, backup); backupDirty = false; } };
 
@@ -137,7 +147,43 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     }
   }
 
-  // --- 2. Templates: summary and service line descriptions ------------------------
+  // --- 2. The installation services' own descriptions ------------------------------
+  // What every template's and quote's line for the service shows. Jake asked
+  // for it on all of them, so it's written over whatever the service says,
+  // the old words kept in quote_wording_backup first.
+  const svcRecs = (p.services ??= {});
+  const installCodes = new Set<string>(INSTALL_CODES);
+  const installServices = services.filter((s) => installCodes.has(String(s.code ?? "").trim().toUpperCase()));
+  for (const s of installServices) {
+    const id = Number(s.id);
+    if (svcRecs[id] === VERSION) continue;
+    if (Date.now() > until || writes >= maxWrites || out.failed.length) break;
+    const code = String(s.code ?? "").trim().toUpperCase();
+    const want = SERVICE_COPY[code];
+    const name = String(s.displayName ?? code).trim();
+    if (plainText(s.description as string | null) === flatText(want)) { svcRecs[id] = VERSION; continue; }
+    if (!bS[id]) { bS[id] = { at: at(), code, description: plainText(s.description as string | null) }; backupDirty = true; }
+    // As the 17 Nov service wording went on (labourSync.ts applyWording): plain text, read back.
+    const path = stTenantPath("pricebook", `services/${id}`);
+    try {
+      await keepBackup();
+      await stSend("PATCH", path, { description: want });
+      writes++;
+      const back = await stFetch<Raw>(path);
+      if (plainText(back.description as string | null) !== flatText(want)) throw new Error("the description reads back different");
+      svcRecs[id] = VERSION;
+      out.services.push(name);
+      await saveSettings(KEY, p);
+    } catch (e) {
+      p.fails = (p.fails ?? 0) + 1;
+      notes[`service:${id}`] = (e as Error).message.slice(0, 200);
+      out.failed.push(name);
+      log.push({ at: at(), kind: "quoteTemplates", ok: false, title: `The "${name}" service couldn't take its new description`, detail: (e as Error).message.slice(0, 300) });
+      break;
+    }
+  }
+
+  // --- 3. Templates: summary and service line descriptions ------------------------
   for (const t of templatesTodo) {
     if (Date.now() > until || writes >= maxWrites || stopped || out.failed.length) break;
     const items = t.items ?? [];
@@ -154,17 +200,12 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     for (const i of withCodes) {
       if (i.id == null) continue;
       // Equipment lines follow the pricebook (step 1 below), not the template.
-      const want = i.skuType === "Service" ? lineCopy(i.code, facts, withCodes) : null;
+      const want = i.skuType === "Service" ? lineCopy(i.code, facts) : null;
       if (!want) continue;
-      // A line still carrying our own earlier words (a template rebuilt with
-      // the service's description, never recorded here) is ours to replace,
-      // not the office's edit to keep.
-      const ours = SERVICE_COPY[i.code];
-      const recorded = lineRecs[i.id] ?? (ours && plainText(i.description) === flatText(ours) ? textHash(flatText(ours)) : undefined);
-      const a = wordingAction(i.description, want, recorded, firstPass);
-      if (a === "same") lineRecs[i.id] = textHash(flatText(want));
-      else if (a === "write") { lineWants.set(i.id, want); lineWrites++; }
-      else left[`${t.id}:${i.id}`] = `${t.name}: "${i.skuName}" line edited in ServiceTitan, left as it is`;
+      // A service line shows the service's own description whatever the
+      // template sends (19 Nov), so it isn't written here: step 2 puts the
+      // words on the service. It's only recorded once it reads the same.
+      if (plainText(i.description) === flatText(want)) { lineRecs[i.id] = textHash(flatText(want)); delete left[`${t.id}:${i.id}`]; }
     }
     if (sAction === "same" && wantSummary) rec.s = textHash(flatText(wantSummary));
     if (sAction === "leave") left[String(t.id)] = `${t.name}: summary edited in ServiceTitan, left as it is`;
@@ -207,11 +248,12 @@ export async function syncQuoteWording(until: number, all: Live[], maxWrites = 2
     }
   }
 
-  const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION).length;
+  const remaining = all.filter((t) => recs[t.id]?.v !== VERSION).length + equipIds.filter((id) => eqRecs[id]?.v !== EQUIPMENT_VERSION).length
+    + installServices.filter((s) => svcRecs[Number(s.id)] !== VERSION).length;
   if (!remaining && firstPass) p.firstPassDone = VERSION;
   out.left = Object.values(left).slice(0, 20);
-  if (out.templates.length || out.equipment.length) {
-    log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Quote wording: ${out.templates.length} template${out.templates.length === 1 ? "" : "s"} and ${out.equipment.length} unit${out.equipment.length === 1 ? "" : "s"} updated`, detail: remaining ? `${remaining} to go` : "all done" });
+  if (out.templates.length || out.equipment.length || out.services.length) {
+    log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Quote wording: ${out.services.length ? `${out.services.length} installation service${out.services.length === 1 ? "" : "s"}, ` : ""}${out.templates.length} template${out.templates.length === 1 ? "" : "s"} and ${out.equipment.length} unit${out.equipment.length === 1 ? "" : "s"} updated`, detail: remaining ? `${remaining} to go` : "all done" });
   }
   await keepBackup();
   await saveSettings(KEY, p);

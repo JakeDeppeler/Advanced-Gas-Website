@@ -159,39 +159,59 @@ export function templateSummary(f: TemplateFacts): string {
  * Service descriptions, by ServiceTitan code, in the same voice. A code that
  * isn't here keeps its description.
  */
+/**
+ * What every installation line says (Jake, 19 Nov: the labour line should be
+ * as simple as "All labour, materials and standard electrical works required
+ * to complete the works described in the Job Summary", then "do it on all the
+ * templates"). A service's description is what ServiceTitan shows on every
+ * template and quote line for it, whatever the template sends (the 19 Nov run
+ * wrote 171 templates' lines and every one read back with the service's own
+ * words), so it is said here, once a service.
+ *
+ * Without "standard electrical works": on the templates the electrician is a
+ * line of its own with its own price (AC-SPLIT-ELEC and ELEC-HP $400,
+ * AC-MULTI-ELEC $700, DOM-ELEC $650, AC-DUCTED-ELE $1,000), which keeps its
+ * words, so the installation line claiming the electrical would claim it
+ * twice. Where the job write-up puts everything under one price on a quote,
+ * that quote's line does say it (jobwrite/lines.ts labourLine).
+ */
+export const INSTALL_LINE = "All labour and materials required to complete the works described in the Job Summary.";
+/** The services that carry it, for the after-sync run to put on the pricebook (quoteWording.ts). */
+export const INSTALL_CODES = ["AC-SPLIT-BTB", "AC-SPLIT-RTW", "AC-SPLIT-RTR", "AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL", "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE", "EVAP-INSTALL", "GAS-DUCT-INT", "GAS-DUCT-EXT", "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-STORAGE-TO-CF", "HW-GAS-STORAGE-INS", "GAS-COOKTOP-INSTALL"] as const;
+
 export const SERVICE_COPY: Record<string, string> = {
   // Split installs: what the job is, where the outdoor unit goes, what's in it.
-  "AC-SPLIT-BTB": "Installation of your new split system with the outdoor unit directly behind the indoor head: wall bracket, core hole, Ardent copper pipework, drain, pressure test, vacuum, commissioning and a walk-through. Includes removal of your old system where we're replacing one. The materials and the electrical connection are listed under this line.",
-  "AC-SPLIT-RTW": "Installation of your new split system with the outdoor unit on a wall bracket on another wall, and the pipework and drain run out of sight through the roof space: Ardent copper pipework, Colorbond capping outside, sealed penetrations, pressure test, vacuum, commissioning and a walk-through. Includes removal of your old system where we're replacing one. The materials and the electrical connection are listed under this line.",
-  "AC-SPLIT-RTR": "Installation of your new split system with the outdoor unit on a roof bracket, fixed and flashed to keep the roof weathertight, and the pipework and drain run through the roof space: Ardent copper pipework, sealed penetrations, pressure test, vacuum, commissioning and a walk-through. Includes removal of your old system where we're replacing one. The materials and the electrical connection are listed under this line.",
-  "AC-SPLIT-MULTI": "Installation of your new multi-head system: mounting the outdoor unit and every indoor head, an Ardent copper run and drain to each head, Colorbond capping outside, sealed penetrations, pressure test, vacuum, commissioning and a walk-through of each controller. The materials and the electrical connection are listed under this line; the installation labour is its own line, for the number of heads being fitted.",
+  "AC-SPLIT-BTB": INSTALL_LINE,
+  "AC-SPLIT-RTW": INSTALL_LINE,
+  "AC-SPLIT-RTR": INSTALL_LINE,
+  "AC-SPLIT-MULTI": INSTALL_LINE,
   "AC-SPLIT-MULTI-2": "Installation labour for a 2-head system: two technicians, 5 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-3": "Installation labour for a 3-head system: two technicians, 7 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-4": "Installation labour for a 4-head system: two technicians, 8 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-5": "Installation labour for a 5-head system: two technicians, 12 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
   "AC-SPLIT-MULTI-6": "Installation labour for a 6-head system: two technicians, 14 hours, to mount the heads and the outdoor unit, run and connect the pipework and drains, test, vacuum and commission.",
-  "AC-DUCTED-2DAYS": "Installation of your new ducted reverse-cycle system: the indoor unit in the roof space and the outdoor unit, new Bradflo insulated ductwork to an outlet in each room, the return air, zone dampers and the Zonemate controller, refrigeration pipework, drainage, pressure test, vacuum, commissioning and airflow balancing to every outlet. Includes removal of the old system and ducting.",
+  "AC-DUCTED-2DAYS": INSTALL_LINE,
   "AC-DUCTED-LAB": "Installation labour for your ducted system: two technicians, two days, on the roof-space and outdoor work, ductwork, outlets, zoning, pipework, commissioning and balancing.",
   "AC-DUCTED-LAB-1DAY": "Installation labour for your ducted system: two technicians, one day.",
-  "AC-DOM-INSTALL": "Installation of your new Braemar Dominator, reusing your existing ductwork: removal of the old unit, the new system positioned and connected, a new return air box, drainage, commissioning and testing before handover.",
+  "AC-DOM-INSTALL": INSTALL_LINE,
   "AC-DOM-LAB": "Installation labour for your Dominator changeover: two technicians, one day, to remove the old unit, fit and connect the new system to your existing ductwork, commission and test.",
-  "AC-RAC-INSTALL": "Installation of your new window or wall air conditioner into the existing opening, sealed and tested, with your old unit removed.",
-  "AC-CONDENSER-REPLACE": "Replacement of the outdoor unit: the old unit's refrigerant recovered and the unit removed, the new unit fitted and connected, pressure-tested, vacuumed, charged and tested.",
+  "AC-RAC-INSTALL": INSTALL_LINE,
+  "AC-CONDENSER-REPLACE": INSTALL_LINE,
   "DECOMMISSION-DISPOSAL": "Disconnection and removal of your old unit, with the refrigerant safely recovered by a licensed technician, and disposal. For a visit where we're taking a system out and not installing a new one; when we install a new system, removing the old one is included.",
-  "EVAP-INSTALL": "Changeover of your rooftop evaporative cooler: the old cooler disconnected, removed and disposed of, the new cooler and controller installed, connected to your ducting, water and a new drain, the roof penetration resealed and weatherproofed, and an operational test.",
+  "EVAP-INSTALL": INSTALL_LINE,
   // The internal heater's own service (3 hours, Jake 6 Nov), and the words an
   // internal heater's line gets while its template still uses the external one.
-  "GAS-DUCT-INT": "Changeover of your ducted gas heater to a new internal heater, in the same place as the old one: the old heater removed and disposed of, the new heater connected to your ductwork, gas and flue, a new wall controller, a carbon monoxide safety check, commissioning and testing.",
-  "GAS-DUCT-EXT#internal": "Changeover of your ducted gas heater to a new internal heater, in the same place as the old one: the old heater removed and disposed of, the new heater connected to your ductwork, gas and flue, a new wall controller, a carbon monoxide safety check, commissioning and testing.",
-  "GAS-DUCT-EXT": "Changeover of your ducted gas heater to a new external heater: the old heater removed and disposed of, the new heater connected to your ductwork and gas, a new wall controller, a carbon monoxide safety check, commissioning and testing.",
+  "GAS-DUCT-INT": INSTALL_LINE,
+  "GAS-DUCT-EXT#internal": INSTALL_LINE,
+  "GAS-DUCT-EXT": INSTALL_LINE,
   // Hot water and cooking.
-  "HW-HP-HARD": "Installation of your new heat pump: removal and disposal of the old system, the new unit in the same location on a proper base, all plumbing with a Tomson tempering valve, drainage, commissioning and handover. The materials and the electrical connection are listed under this line.",
-  "HW-HP-PLUG": "Installation of your new plug-in heat pump: removal and disposal of the old system, the new unit in the same location on a proper base, all plumbing with a Tomson tempering valve, drainage, commissioning and handover. It plugs into an existing power point within reach, so there's no electrical work. The materials are listed under this line.",
-  "HW-HP-SPLIT": "Installation of your new split heat pump: removal and disposal of the old system, the tank and the heat pump unit positioned and mounted, all plumbing between them, a Tomson tempering valve, drainage, commissioning and handover. The materials and the electrical connection are listed under this line.",
-  "HW-CF-INS": "Installation of your new continuous flow system: removal and disposal of the old system, the new unit mounted and connected to the gas and water, all valves and fittings, a gas pressure test, commissioning and handover. The materials are listed under this line.",
-  "HW-STORAGE-TO-CF": "Changeover from a gas storage system to continuous flow, with a new gas feed sized for the new unit: removal and disposal of the old system, the new unit mounted, new gas and water connections, a gas pressure test, commissioning and handover. The materials are listed under this line.",
-  "HW-GAS-STORAGE-INS": "Installation of your new gas storage system: removal and disposal of the old system, the new unit in the same location, connection to your gas and water, all valves and fittings, a gas pressure test, commissioning and handover. The materials are listed under this line.",
-  "GAS-COOKTOP-INSTALL": "Installation of your new gas cooktop into your existing cut-out: removal of the old cooktop, connection to your gas point with an approved connection, a gas pressure test, and every burner checked lighting and burning correctly. The materials are listed under this line.",
+  "HW-HP-HARD": INSTALL_LINE,
+  "HW-HP-PLUG": INSTALL_LINE,
+  "HW-HP-SPLIT": INSTALL_LINE,
+  "HW-CF-INS": INSTALL_LINE,
+  "HW-STORAGE-TO-CF": INSTALL_LINE,
+  "HW-GAS-STORAGE-INS": INSTALL_LINE,
+  "GAS-COOKTOP-INSTALL": INSTALL_LINE,
   // Electrical: the electrician's work, in the same words.
   "AC-SPLIT-ELEC": "The electrical work by a licensed electrician: a dedicated circuit and breaker at the switchboard, cabling to the unit, a weatherproof isolator at the outdoor unit, control cabling between the units, testing and a Certificate of Electrical Safety.",
   "AC-MULTI-ELEC": "The electrical work by a licensed electrician: a new RCBO and dedicated circuit from the switchboard, power to the outdoor unit, a weatherproof isolator, control cabling to each indoor head, testing and a Certificate of Electrical Safety.",
@@ -311,72 +331,8 @@ export const plainText = (html: string | null | undefined) =>
 /** An internal ducted heater, by the unit's name: Wombat, Compact Classic, StarPro "in" models. */
 export const isInternalHeater = (s: string) => /wombat|compact classic|sp\d+in\b/i.test(s);
 
-/**
- * The labour line's words: one sentence pointing to the job summary (Jake,
- * 19 Nov, on job 20900: "because we have covered everything in the job
- * summary, the Split System - Roof Bracket needs to be more simple, like: All
- * labour, materials and standard electrical works required to complete the
- * works described in the Job Summary", then "yes, do it on all the
- * templates"). The job write-up uses the same sentence (jobwrite/lines.ts).
- */
-export function coverSentence(parts: string[]): string {
-  const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
-  return `All ${list} required to complete the works described in the Job Summary.`;
-}
-
-/** A template's line as the labour sentence reads it. */
-export type LineItem = { skuType: string; skuName?: string | null; code?: string; quantity?: number | null; unitPrice?: number | null };
-
-/** The line that is the installation on each install template: the one Jake calls the labour line. */
-const INSTALL_LINES = new Set([
-  "AC-SPLIT-BTB", "AC-SPLIT-RTW", "AC-SPLIT-RTR", "AC-SPLIT-MULTI", "AC-DUCTED-2DAYS", "AC-DOM-INSTALL", "AC-RAC-INSTALL", "AC-CONDENSER-REPLACE",
-  "EVAP-INSTALL", "GAS-DUCT-INT", "GAS-DUCT-EXT", "HW-HP-HARD", "HW-HP-PLUG", "HW-HP-SPLIT", "HW-CF-INS", "HW-STORAGE-TO-CF", "HW-GAS-STORAGE-INS",
-  "GAS-COOKTOP-INSTALL",
-]);
-/** Crew-and-hours lines that sit beside an installation line on the multi-head, Dominator and older ducted templates. */
-const LABOUR_HOURS = /^(AC-SPLIT-MULTI-\d|AC-DOM-LAB|AC-DUCTED-LAB(-1DAY)?)$/;
-/** The electrician's line: AC-SPLIT-ELEC, AC-MULTI-ELEC, AC-DUCTED-ELE, DOM-ELEC, ELEC-HP, HWS-ELEC-INSTALLATION. */
-const ELECTRICAL_LINE = /(^|-)ELEC?(-|$)|ELECTRIC(AL|IAN)/;
-
-/**
- * The labour sentence for one of a template's lines, or null when the line
- * isn't its labour line. Each line says only what it carries:
- *
- *   - "standard electrical works" only where the electrician's line is $0,
- *     so the labour line's price includes it. Where the electrical is priced
- *     on its own line (a heat pump's ELEC-HP, a multi-head's AC-MULTI-ELEC),
- *     that line keeps its own words and the labour line doesn't claim it;
- *   - "materials" only where the template carries materials;
- *   - beside a crew-and-hours line, the installation line carries the
- *     materials and the hours line the labour, so no two lines both say
- *     "all labour".
- */
-export function labourCopy(code: string, items: LineItem[]): string | null {
-  const c = code.trim().toUpperCase();
-  const isInstall = INSTALL_LINES.has(c), isHours = LABOUR_HOURS.test(c);
-  if (!isInstall && !isHours) return null;
-  const codes = items.map((i) => (i.code ?? "").trim().toUpperCase());
-  const materials = items.some((i) => i.skuType === "Material" && Number(i.quantity ?? 1) > 0 && !/rebate|veec|\bstc\b/i.test(`${i.code ?? ""} ${i.skuName ?? ""}`));
-  const elec = items.filter((i, k) => i.skuType === "Service" && ELECTRICAL_LINE.test(codes[k]));
-  const elecIncluded = elec.length > 0 && elec.every((i) => Number(i.unitPrice ?? 0) === 0);
-  if (isHours) return coverSentence(["labour"]);
-  const parts = codes.some((x) => LABOUR_HOURS.test(x))
-    ? [materials ? "materials" : null, elecIncluded ? "standard electrical works" : null]
-    : ["labour", materials ? "materials" : null, elecIncluded ? "standard electrical works" : null];
-  const kept = parts.filter(Boolean) as string[];
-  return kept.length ? coverSentence(kept) : null;
-}
-
-/**
- * The description a template line should carry, by its service code; internal
- * heaters get their own. Given the template's lines, its labour line gets the
- * one plain sentence (labourCopy) instead.
- */
-export function lineCopy(code: string, facts: TemplateFacts | null, items?: LineItem[]): string | null {
-  if (items) {
-    const labour = labourCopy(code, items);
-    if (labour) return labour;
-  }
+/** The description a template line should carry, by its service code; internal heaters get their own. */
+export function lineCopy(code: string, facts: TemplateFacts | null): string | null {
   if (code === "GAS-DUCT-EXT" && facts?.heater === "internal") return SERVICE_COPY["GAS-DUCT-EXT#internal"];
   return SERVICE_COPY[code] ?? null;
 }
