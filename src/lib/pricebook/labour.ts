@@ -6,7 +6,9 @@
  * apprentice), fixing a problem for one. An install done in part of a day (a
  * split, a heat pump, a cooktop) is at the part-day rate, $350, because the
  * travel to the next job comes out of it; one that takes the whole day or
- * more (multi-head, ducted, Dominator) is at the crew rate, $310. A diagnostic is the standard
+ * more (multi-head, ducted, Dominator) is at the crew rate, $310; since 22 Nov
+ * the multi-heads, the ducted install and the Dominator labour are prices Jake
+ * set himself (servicePricing.ts), not this run's. A diagnostic is the standard
  * call-out, $200: it's the customer's first contact with us and how the job is
  * won, so it isn't priced up by the hour. Servicing is left at its own prices
  * for the same reason: it's where the problems are found.
@@ -23,6 +25,7 @@
 
 /** `callout` is a flat fee, not an hourly rate: the price is the fee whatever the hours. */
 import { ADDON_COPY, isInternalHeater, SERVICE_COPY } from "@/lib/pricebook/wording";
+import { SERVICE_PRICES } from "@/lib/pricebook/servicePricing";
 
 export type Crew = "callout" | "solo" | "partDay" | "pair" | "crew3";
 export type Rates = { callout: number | null; solo: number | null; partDay: number | null; pair: number | null; crew3: number | null };
@@ -53,9 +56,10 @@ const PART_DAY = [
   "DECOMMISSION-DISPOSAL",
 ];
 const PAIR = [
-  // A day or more on one job.
-  "AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-3", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-5", "AC-SPLIT-MULTI-6",
-  "AC-DUCTED-2DAYS", "AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY", "AC-DOM-LAB",
+  // A day or more on one job. Not the multi-head labour lines, AC-DUCTED-2DAYS
+  // or AC-DOM-LAB: Jake set those prices on 22 Nov (servicePricing.ts), and
+  // this run would price them from the hours again.
+  "AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY",
   "LAB-HR-2P",
 ];
 const CREW3 = ["LAB-HR-3P"];
@@ -439,8 +443,11 @@ export function planTemplate(t: Template, cat: Catalogue, rates: TemplateRates):
   if (kind === "multi") {
     for (const n of Array.from(cat.multiHead.keys()).sort((a, b) => a - b)) {
       const svc = cat.multiHead.get(n)!;
-      if (svc.hours <= 0) continue;
-      const price = cents(svc.hours * pairRate);
+      // Jake's own price where he has set one (22 Nov), which is what the
+      // pricebook carries and so what ServiceTitan shows on the line anyway.
+      const fixed = SERVICE_PRICES.find((x) => x.skuId === svc.skuId)?.price;
+      if (fixed == null && svc.hours <= 0) continue;
+      const price = fixed ?? cents(svc.hours * pairRate);
       const had = labourLines.get(n);
       addOnItems.push(had
         ? { ...had, quantity: 1, unitPrice: price, isAddOn: true, parentItemId: null, itemGroupParentId: null, itemGroupName: null }

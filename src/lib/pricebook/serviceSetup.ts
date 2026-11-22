@@ -205,7 +205,7 @@ export async function setUpServices(until: number): Promise<{ priced: string[]; 
   const allPriced = SERVICE_PRICES.every((t) => priced[t.skuId]) && !!multiId && !!priced[multiId];
   const allMade = HEATER_EVAP_DISCOUNTS.every((d) => made[d.code] && !notes[d.code]);
   if (allPriced && allMade) p.done = at();
-  if (done.length) log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Service prices set in ServiceTitan (Jake, 16 Nov)`, detail: done.join("; ").slice(0, 400) });
+  if (done.length) log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `Jake's prices set in ServiceTitan`, detail: done.join("; ").slice(0, 400) });
   if (madeNow.length) log.push({ at: at(), kind: "quoteTemplates", ok: true, title: `${madeNow.length} item${madeNow.length === 1 ? "" : "s"} added to the pricebook for the service templates`, detail: madeNow.join(", ").slice(0, 400) });
   await save();
   await logAuto(log).catch(() => undefined);

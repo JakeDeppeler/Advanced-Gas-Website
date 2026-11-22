@@ -1,5 +1,6 @@
 /**
- * Jake's service prices, 16 Nov 2026, all ex GST:
+ * Prices Jake has set himself, ex GST, rather than worked out from hours × a
+ * rate by the labour run (labour.ts). His service prices, 16 Nov 2026:
  *
  *   "a standard service on a split is 250+ gst and a deep clean is 350+ and
  *   single story evap is 300+ and a double story is 400+ … if we are doing
@@ -24,6 +25,23 @@ export const SERVICE_PRICES = [
   // Later the same day: "a evap install should be $900 for labour to install them".
   // Taken out of the labour run (labour.ts), which priced it at 2.8 h × $350.
   { skuId: 209601267, name: "Evaporative Cooler - Installation", price: 900 },
+  // Jake, 22 Nov, after seeing the timesheets against the hours each install
+  // is priced on: "the dominator pricing can go to $3300 as the jobs take 8
+  // hours with 1 main and 2 apprentices and the ducted split can $5000 … update
+  // all of the multi head pricing". Asked which lines: the Dominator's internal
+  // labour line (its $980 install line stays), and the ducted installation line
+  // the ducted templates are built on (the internal two-day labour line stays).
+  // The multi-heads are 1 tech and 1 apprentice at $250 + $100 an hour for 6,
+  // 8, 10, 12 and 14 hours (the 4-head was on 8, against 7 for 3 heads and 12
+  // for 5). All taken out of the labour run, which would price them from the
+  // hours again and, for the ducted line, put back its $5,230 floor.
+  { skuId: 301165543, name: "Dominator - Labour (One Day)", price: 3300 },
+  { skuId: 209599911, name: "Ducted Refrigerated System - Installation", price: 5000 },
+  { skuId: 301089962, name: "Multi Head Labour (2 head)", price: 2100 },
+  { skuId: 301089572, name: "Multi Head Labour (3 head)", price: 2800 },
+  { skuId: 301090544, name: "Multi Head Labour (4 Head)", price: 3500 },
+  { skuId: 301091980, name: "Multi Head Labour (5 Head)", price: 4200 },
+  { skuId: 301089957, name: "Multi Head Labour (6 Head)", price: 4900 },
 ] as const;
 
 export const priceOf = (skuId: number): number => {

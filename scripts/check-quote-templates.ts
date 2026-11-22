@@ -57,7 +57,13 @@ ok("no 10kW ducted until it's priced", !all.some((t) => /10 ?kw/i.test(t.name)))
 ok("every template has lines and a summary", all.every((t) => t.lines.length > 0 && t.summary.length > 40));
 
 // Jake, 16 Nov: service prices ex GST; two or more splits $180 each; 10% off a heater and evap together.
-ok("service prices as Jake gave them, and the evap install at $900", SERVICE_PRICES.map((s) => s.price).join(",") === "250,350,300,400,250,900");
+ok("service prices as Jake gave them, and the evap install at $900", SERVICE_PRICES.slice(0, 6).map((s) => s.price).join(",") === "250,350,300,400,250,900");
+// Jake, 22 Nov: Dominator labour $3,300, the ducted install $5,000, multi-heads at 1 tech + 1 apprentice ($350 an hour) for 6–14 h.
+const p22 = (id: number) => SERVICE_PRICES.find((s) => s.skuId === id)?.price;
+ok("Dominator labour $3,300 and the ducted install $5,000", p22(301165543) === 3300 && p22(209599911) === 5000);
+ok("multi-heads 2–6 at $2,100 to $4,900", [301089962, 301089572, 301090544, 301091980, 301089957].map(p22).join(",") === "2100,2800,3500,4200,4900");
+ok("multi-heads are 6, 8, 10, 12, 14 hours at $350", [2100, 2800, 3500, 4200, 4900].every((p, i) => p === (6 + 2 * i) * 350));
+ok("every priced item once", new Set(SERVICE_PRICES.map((s) => s.skuId)).size === SERVICE_PRICES.length);
 ok("the 10% off heater + evap: $55 single storey, $65 double", HEATER_EVAP_DISCOUNTS.map((d) => d.price).join(",") === "-55,-65");
 const total = (code: string) => lineTotal(OTHER_TEMPLATES.find((t) => t.code === code)!.lines);
 ok("2, 3 and 4 splits at $180 each", [total("AC-SPLIT-SVC-2"), total("AC-SPLIT-SVC-3"), total("AC-SPLIT-SVC-4")].join(",") === "360,540,720");
