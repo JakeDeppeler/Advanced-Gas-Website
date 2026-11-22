@@ -42,6 +42,11 @@ export const SERVICE_PRICES = [
   { skuId: 301090544, name: "Multi Head Labour (4 Head)", price: 3500 },
   { skuId: 301091980, name: "Multi Head Labour (5 Head)", price: 4200 },
   { skuId: 301089957, name: "Multi Head Labour (6 Head)", price: 4900 },
+  // Jake, 22 Nov: "push the electrical to $450". Geoff Thomson bills $350 to
+  // $400 for a single split, so at $400 the line made $0 to $50 a job. The
+  // template lines go to $450 as well (templateFixPlan.ts).
+  { skuId: 209621215, name: "Split System - Electrical Connection", price: 450 },
+  { skuId: 209607618, name: "Heat Pump - Electrical", price: 450 },
 ] as const;
 
 export const priceOf = (skuId: number): number => {
