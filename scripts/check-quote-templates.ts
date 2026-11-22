@@ -243,7 +243,7 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ] };
   const d = planFixes(duct, prices);
   const lab = d?.items.find((i) => i.skuId === SKU.ductedLabour);
-  ok("ducted: the two-day labour comes out of the installation group onto its own line", !!lab && lab.itemGroupParentId == null && !!lab.itemGroupName
+  ok("ducted: the two-day labour comes out of the installation group onto its own, new line", !!lab && lab.id == null && lab.itemGroupParentId == null && !!lab.itemGroupName
     && d!.items.indexOf(lab) > d!.items.findIndex((i) => i.id === 73) && d!.items.indexOf(lab) < d!.items.findIndex((i) => i.skuId === SKU.bpc));
   const df = planDuctedFixed({ ...duct, items: d!.items }, 5000, prices);
   ok("ducted at a fixed price: $5,000 on the installation, its materials at their pricebook price, add-on parts left alone",
