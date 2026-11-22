@@ -22,6 +22,9 @@ const DRAWABLE = /\.(jpe?g|png|webp|heic|heif)$/i;
 const PER_JOB = 12;
 const MAX_BYTES = 6 * 1048576;
 
+const TYPES: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
+const typeOf = (name: string) => TYPES[(name.split(".").pop() ?? "").toLowerCase()];
+
 type Out = { jobId: number; error?: string; photos: { name: string; at: string | null; url: string }[]; left: number };
 
 export async function exportPackPhotos(deadline: number): Promise<{ done: number }> {
@@ -42,7 +45,9 @@ export async function exportPackPhotos(deadline: number): Promise<{ done: number
       try {
         const { bytes, mime } = await stDownload(stTenantPath("forms", `jobs/attachment/${f.id}`), MAX_BYTES);
         const path = `install-pack/${jobId}/${f.id}-${f.name.replace(/[^\w.-]+/g, "_")}`;
-        const up = await uploadPhoto(path, bytes, mime || (/\.hei[cf]$/i.test(f.name) ? "image/heic" : "image/jpeg"));
+        // By the file's own name: ServiceTitan hands attachments back as
+        // application/octet-stream, which the bucket refuses (22 Nov).
+        const up = await uploadPhoto(path, bytes, typeOf(f.name) ?? mime);
         if (up.ok) paths.push({ path, name: f.name, at: f.at });
         else { o.left++; o.error = `storage: ${up.error ?? "refused"}`.slice(0, 160); }
       } catch (e) {
