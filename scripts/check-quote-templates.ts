@@ -15,6 +15,7 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
+import { DUCTED, SKU, T, planDuctedFixed, planFixes } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -188,6 +189,67 @@ ok("after it: words nobody recorded are left alone", wordingAction(html("Typed b
 ok("words this code wrote are written over", wordingAction(html("Older words.\n\nOurs."), want, h("Older words.\n\nOurs."), false) === "write");
 ok("words edited since it wrote them are left alone", wordingAction(html("Ours, then edited."), want, h("Ours."), false) === "leave");
 ok("an empty description is always filled", wordingAction("", want, h("Ours."), false) === "write" && wordingAction(null, want, undefined, false) === "write");
+
+// Jake, 22 Nov: the template fixes from the review.
+{
+  const L = (id: number, skuId: number, skuType: TemplateItem["skuType"], skuName: string, unitPrice: number, extra: Partial<TemplateItem> = {}): TemplateItem =>
+    ({ id, skuId, skuType, skuName, quantity: 1, unitPrice, isAddOn: false, ...extra } as TemplateItem);
+  const prices = new Map<number, number>([[SKU.pvc, 20], [SKU.coil38, 240], [SKU.bpc, 65], [900001, 55]]);
+  const multi = { id: 1, name: "Rinnai 5kW Multi Head Split System", items: [
+    L(10, 500, "Equipment", "Rinnai Multi Condenser 5kw", 2220),
+    L(11, 209600205, "Service", "Multi Head Installation", 1000, { itemGroupName: "Multi Head Installation" }),
+    L(12, SKU.coil38, "Material", "Ardent Copper Pair Coil 1/4 x 3/8", 0, { quantity: 2, itemGroupParentId: 11 }),
+    L(13, 301089962, "Service", "Multi Head Labour (2 head)", 2100),
+    L(14, SKU.splitElec, "Service", "Split System - Electrical Connection", 400, { itemGroupParentId: 11 }),
+  ] };
+  const m = planFixes(multi, prices);
+  ok("multi-head: the head labour comes off", !!m && !m.items.some((i) => i.skuId === 301089962), m?.did);
+  ok("multi-head: one coil of each size", m?.items.find((i) => i.skuId === SKU.coil38)?.quantity === 1);
+  ok("electrical $400 → $450", m?.items.find((i) => i.skuId === SKU.splitElec)?.unitPrice === 450);
+  ok("a fixed template has nothing left to do", planFixes({ ...multi, items: m!.items }, prices) === null);
+  const mits = planFixes({ id: 2, name: "Mitsubishi Electric 12kW Multi Head Split System", items: [L(20, 9, "Service", "Multi Head Installation", 1060, { itemGroupName: "x" }), L(21, SKU.coil58, "Material", "Coil 1/4 x 5/8", 0, { itemGroupParentId: 20 })] }, prices);
+  ok("Mitsubishi multi-heads keep only the 3/8 and 1/2 coils", !!mits && !mits.items.some((i) => i.skuId === SKU.coil58));
+  const btb = planFixes({ id: T.mitsu25Btb, name: "Mitsubishi Electric 2.5kW Split System - Back to Back", items: [
+    L(30, 7, "Equipment", "Mitsubishi Electric 2.5kw Split System", 1200),
+    L(31, 209600004, "Service", "Split System Install - Back To Back", 1320, { itemGroupName: "Installation" }),
+    L(32, SKU.hat, "Material", "Colorbond Hat Section", 0, { quantity: 2, itemGroupParentId: 31 }),
+    L(33, SKU.coil12, "Material", "Coil 1/4 x 1/2", 0, { quantity: 0.5, itemGroupParentId: 31 }),
+    L(34, SKU.splitElec, "Service", "Split System - Electrical Connection", 450, { itemGroupParentId: 31 }),
+    L(35, SKU.bpc, "Service", "BPC Compliance Certificate", 65),
+  ] }, prices);
+  const coil = btb?.items.find((i) => i.skuId === SKU.coil38);
+  ok("Mitsubishi 2.5kW back-to-back: 1/4 x 3/8 coil, half a coil, in the install group", !!coil && coil.quantity === 0.5 && coil.itemGroupParentId === 31 && !btb!.items.some((i) => i.skuId === SKU.coil12));
+  ok("…one hat section, and a drain pipe in the group before the certificate", btb?.items.find((i) => i.skuId === SKU.hat)?.quantity === 1
+    && btb!.items.findIndex((i) => i.skuId === SKU.pvc) < btb!.items.findIndex((i) => i.skuId === SKU.bpc) && btb!.items.find((i) => i.skuId === SKU.pvc)?.itemGroupParentId === 31);
+  const rec = planFixes({ id: T.reclaimGl250V1, name: "Reclaim Split GL 250L V1", items: [L(40, 8, "Equipment", "Reclaim Split", 5100)] }, prices);
+  ok("Reclaim Split GL 250L V1 gets its BPC certificate at $65", rec?.items.find((i) => i.skuId === SKU.bpc)?.unitPrice === 65);
+  const evapT = { id: 3, name: "Brivis Contour L36 Evaporative Cooler (Beige) - Replacement", items: [
+    L(50, 11, "Equipment", "Brivis Contour L36", 2600), L(51, SKU.evapInstall, "Service", "Evaporative Cooler - Installation", 900, { itemGroupName: "Evaporative Cooler - Installation" }), L(52, SKU.bpc, "Service", "BPC", 65)] };
+  const ev = planFixes(evapT, prices);
+  const pvc = ev?.items.find((i) => i.skuId === SKU.pvc);
+  ok("evap replacements get the PVC drain, at its price, in the install group", !!pvc && pvc.unitPrice === 20 && pvc.itemGroupParentId === 51, ev?.items);
+  ok("…once", planFixes({ ...evapT, items: ev!.items }, prices) === null);
+  ok("an evap repair isn't an evap replacement", planFixes({ ...evapT, name: "Evaporative Cooler - Fan Motor Replacement" }, prices) === null);
+  const k5 = planFixes({ id: T.kaden5Roof, name: "Kaden 5kW Split System - Roof Mounted", items: [
+    L(60, SKU.pump, "Material", "Silent Mini Pump", 280, { isAddOn: true }), L(61, SKU.coil12, "Material", "Second coil", 300, { isAddOn: true }), L(62, SKU.blygold, "Service", "Blygold", 1100, { isAddOn: true })] }, prices);
+  ok("Kaden 5kW roof: the pump and Blygold add-ons go, the second coil stays", !!k5 && k5.items.length === 1 && k5.items[0].skuId === SKU.coil12);
+  const duct = { id: DUCTED[0], name: "Kaden Ducted Split 17kW", items: [
+    L(70, 12, "Equipment", "Kaden Ducted Split 17kW V2", 6300),
+    L(71, SKU.ductedLabour, "Service", "Ducted Split - Labour (Two Days)", 5230, { itemGroupParentId: 72 }),
+    L(72, SKU.ductedInstall, "Service", "Ducted Refrigerated System - Installation", 8830, { itemGroupName: "Ducted Refrigerated System - Installation" }),
+    L(73, 900001, "Material", "Bradflo duct", 0, { itemGroupParentId: 72 }),
+    L(74, 900002, "Material", "Zone damper", 0, { itemGroupParentId: 72, parentItemId: 75 }),
+    L(76, SKU.bpc, "Service", "BPC", 65),
+  ] };
+  const d = planFixes(duct, prices);
+  const lab = d?.items.find((i) => i.skuId === SKU.ductedLabour);
+  ok("ducted: the two-day labour comes out of the installation group onto its own line", !!lab && lab.itemGroupParentId == null && !!lab.itemGroupName
+    && d!.items.indexOf(lab) > d!.items.findIndex((i) => i.id === 73) && d!.items.indexOf(lab) < d!.items.findIndex((i) => i.skuId === SKU.bpc));
+  const df = planDuctedFixed({ ...duct, items: d!.items }, 5000, prices);
+  ok("ducted at a fixed price: $5,000 on the installation, its materials at their pricebook price, add-on parts left alone",
+    df?.items.find((i) => i.skuId === SKU.ductedInstall)?.unitPrice === 5000 && df.items.find((i) => i.id === 73)?.unitPrice === 55 && df.items.find((i) => i.id === 74)?.unitPrice === 0);
+  ok("split and heat pump electrical at $450 in the pricebook", [209621215, 209607618].every((id) => SERVICE_PRICES.find((x) => x.skuId === id)?.price === 450));
+}
 
 console.log("\nTemplates, at the prices quoted by hand:");
 for (const t of OTHER_TEMPLATES) console.log(`  ${t.code.padEnd(26)} $${lineTotal(t.lines).toFixed(0).padStart(5)}  ${t.name}`);

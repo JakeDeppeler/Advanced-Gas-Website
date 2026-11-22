@@ -4,6 +4,7 @@ import { serviceTitanConfigured, stList } from "@/lib/dashboard/servicetitan";
 import { scheduledCallAuthorised } from "@/lib/dashboard/cronAuth";
 import { addQuoteTemplates } from "@/lib/pricebook/quoteTemplatesAdd";
 import { setUpServices } from "@/lib/pricebook/serviceSetup";
+import { fixTemplates22Nov } from "@/lib/pricebook/templateFixes";
 import { splitRebateHeaders } from "@/lib/pricebook/rebateHeaders";
 import { addEvapProposals } from "@/lib/pricebook/evapProposals";
 import { syncQuoteWording } from "@/lib/pricebook/quoteWording";
@@ -46,6 +47,7 @@ export async function GET(req: Request) {
     let proposals: Awaited<ReturnType<typeof addEvapProposals>> | null = null;
     let wording: Awaited<ReturnType<typeof syncQuoteWording>> | null = null;
     let serviceWording: Awaited<ReturnType<typeof syncServiceWording>> | null = null;
+    let fixes: Awaited<ReturnType<typeof fixTemplates22Nov>> | null = null;
     if (Date.now() < until) {
       // One read of the templates for both steps: the regroup changes lines, the renames names.
       const all = await stList<{ id: number; name?: string; internalName?: string | null; totalPrice?: number; summary?: string | null; items?: TemplateItem[] }>(
@@ -61,9 +63,11 @@ export async function GET(req: Request) {
       if (Date.now() < until) wording = await syncQuoteWording(until, all);
       // Jake, 19 Nov: the service and maintenance items, worded for a quote or an invoice alike.
       if (Date.now() < until) serviceWording = await syncServiceWording(until, all);
+      // Jake, 22 Nov: the fixes from the review of every template (templateFixPlan.ts).
+      if (Date.now() < until) fixes = await fixTemplates22Nov(until, all);
     }
-    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(wording?.failed ?? []), ...(serviceWording?.failed ?? [])];
-    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, wording, serviceWording });
+    const failed = [...services.failed, ...add.failed, ...(group?.failed ?? []), ...(tidy?.failed ?? []), ...(lineUp?.failed ?? []), ...(rebates?.failed ?? []), ...(proposals?.failed ?? []), ...(wording?.failed ?? []), ...(serviceWording?.failed ?? []), ...(fixes?.failed ?? [])];
+    return NextResponse.json({ ok: failed.length === 0, services, add, group, tidy, lineUp, rebates, proposals, wording, serviceWording, fixes });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
