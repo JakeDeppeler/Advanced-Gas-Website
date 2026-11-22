@@ -19,7 +19,17 @@ export type PriceChange = {
   was: number; price: number;
 };
 export type ChangeDone = { at: string; ok: boolean; detail?: string };
-export type PricePlan = { title: string; made: string; changes: PriceChange[]; done: Record<string, ChangeDone> };
+export type PricePlan = {
+  title: string; made: string; changes: PriceChange[]; done: Record<string, ChangeDone>;
+  /**
+   * Jake's go-ahead for the whole plan, given in chat rather than with the
+   * button on Our prices (22 Nov: "can you update the equipment markups").
+   * The after-sync schedule then writes it a slice at a time
+   * (api/pricebook/equipment-plan/run). A plan worked out again from the page
+   * has none, so a new plan always waits for its own go-ahead.
+   */
+  approved?: { by: string; at: string; finished?: string };
+};
 
 export const PLAN_KEY = "equipment_price_plan";
 
