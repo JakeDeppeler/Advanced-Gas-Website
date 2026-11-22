@@ -7,6 +7,7 @@ import { installJobs, packFactsFor, packPhotos, type InstallJob } from "./facts"
 import { packPdf, type PackPhoto } from "./pdf";
 import { aiConfigured, visitReports, writeSummary } from "./summary";
 import { summaryInput, type SummaryState, type VisitReport } from "./summaryText";
+import { getSettings } from "@/lib/portal/db";
 
 /**
  * Settings › Automatic › Install pack: put a pack on every install job, and
@@ -21,6 +22,11 @@ import { summaryInput, type SummaryState, type VisitReport } from "./summaryText
  * A pack stops being updated once its install has started: install_pack_jobs
  * only lists visits still to come, so nothing is rewritten under someone
  * who's already reading it on site.
+ *
+ * A pack is made only once the next visit is confirmed in ServiceTitan (Jake,
+ * 22 Nov: "create one once the appointment gets confirmed"), and never on a job
+ * that has a pack made by hand on it (pack_attach_queue), which the crew are
+ * told to use.
  */
 
 type Row = {
@@ -176,6 +182,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
     sbSelect<Row>("install_packs", [q.select("job_id,version,fingerprint,parts,photo_ids,attached_at,photos_checked_at,last_error,last_tried_at,visit_reports,reports_checked_at,summary,summary_key"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&")),
   ]);
   const rowOf = new Map(rows.map((r) => [r.job_id, r]));
+  const byHand = new Set(((await getSettings<{ jobs?: { jobId?: number; done?: string }[] }>("pack_attach_queue").catch(() => null))?.jobs ?? []).filter((r) => r.done).map((r) => Number(r.jobId)));
   const now = Date.now();
   const ran: PackOutcome[] = [];
   const log: AutoEntry[] = [];
@@ -185,7 +192,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
   for (const j of jobs) {
     if (ran.length >= max || Date.now() > deadline - 20_000) break;
     const base = facts.get(j.job_id);
-    if (!base) continue;
+    if (!base || !base.confirmed || byHand.has(j.job_id)) continue;
     const row = rowOf.get(j.job_id);
     if (row?.last_error && row.last_tried_at && now - Date.parse(row.last_tried_at) < RETRY_MS) continue;
 
@@ -230,7 +237,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       const shown = `${built.photos} photo${built.photos === 1 ? "" : "s"}${built.notShown ? ` (${built.notShown} more on the job)` : ""}`;
       await stUpload(stTenantPath("forms", `jobs/${j.job_id}/attachments`), built.fileName, built.pdf, "application/pdf");
       const note = version === 1
-        ? `Install pack attached (${built.fileName}): ${f.summary && "ok" in f.summary ? "an installation guide written from the records" : "the scope from the job summary"}, ${f.quote ? "what's going in and every material from the sold quote with where it was ordered" : "no equipment list as there's no sold quote on the job"}${f.visitReports?.length ? `, the Condition Report${f.visitReports.length === 1 ? "" : "s"} from the earlier visit` : ""}, and ${shown}.`
+        ? `Install pack attached (${built.fileName}), now the visit's confirmed: ${f.summary && "ok" in f.summary ? "the job summary, where each unit goes and what's particular to the job, written from the records" : "the job summary"}, ${f.quote ? "the unit and materials from the sold quote with where each was ordered" : "no equipment list as there's no sold quote on the job"}, the photos to take and what to do before leaving${built.facts.items.some((i) => /^REBATE-(STC|VEEC|SOLARVIC)/i.test(i.code)) ? " (a rebate job: the trailer photo, Alitsy and the customer's sign-off are marked)" : ""}, and ${shown}.`
         : `Install pack updated to v${version}: ${whatChanged(row?.parts ?? null, parts, photosChanged)}. The new PDF (${built.fileName}) is attached; use it rather than earlier versions.`;
       // The PDF is on the job either way; a refused note shouldn't make the
       // next run upload it again.
