@@ -152,12 +152,14 @@ export function planFixes(t: Tpl, prices: Prices): Edit | null {
   if (DUCTED.includes(t.id)) {
     const lab = items.find((i) => plain(i) && i.skuId === SKU.ductedLabour && i.itemGroupParentId != null);
     if (lab) {
-      // Out of the installation's group, to sit after it as its own line.
+      // Out of the installation's group, to sit after it as its own line. As a
+      // new line: ServiceTitan kept the existing one in the group when only its
+      // group fields changed (22 Nov, all four ducted templates, twice each).
       const rest = items.filter((i) => i !== lab);
       const head = rest.find((i) => i.id === lab.itemGroupParentId) ?? null;
       let at = head ? rest.indexOf(head) : rest.length - 1;
       rest.forEach((x, k) => { if (head && x.itemGroupParentId === head.id) at = Math.max(at, k); });
-      items = [...rest.slice(0, at + 1), { ...lab, itemGroupParentId: null, itemGroupName: (lab.skuName ?? "Ducted Split - Labour (Two Days)").trim() }, ...rest.slice(at + 1)];
+      items = [...rest.slice(0, at + 1), { ...lab, id: null, itemGroupParentId: null, itemGroupName: (lab.skuName ?? "Ducted Split - Labour (Two Days)").trim() }, ...rest.slice(at + 1)];
       did.push("two-day labour moved to its own line");
     }
   }
