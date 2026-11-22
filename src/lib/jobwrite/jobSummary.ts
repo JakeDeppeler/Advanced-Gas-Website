@@ -12,11 +12,16 @@ import { logAuto } from "@/lib/automation/log";
  * never the job's, and there's no page for this yet, so a queued row is the
  * request (put there at Jake's asking). Each one is done once and taken off the
  * queue; what it replaced is kept in job_summary_done, so it can be put back.
+ *
+ * A request says what it expects to replace (onlyIf), and a summary that has
+ * changed since is left alone. The first run wrote over the office's own edit
+ * of 20801's summary, made between the request and the write (22 Nov); it was
+ * put back from job_summary_done. Only force writes without that check.
  */
 const QUEUE = "job_summary_queue";
 const DONE = "job_summary_done";
 
-type Ask = { jobId: number; summary: string; why?: string };
+type Ask = { jobId: number; summary: string; why?: string; onlyIf?: string; force?: boolean };
 type Done = { jobId: number; at: string; ok: boolean; previous?: string; error?: string; why?: string };
 
 const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -39,6 +44,13 @@ export async function applyJobSummaryQueue(deadline: number): Promise<{ done: nu
     try {
       const job = await stFetch<{ summary?: string | null; jobNumber?: string }>(path);
       r.previous = job.summary ?? "";
+      if (!a.force && (a.onlyIf == null || plain(job.summary) !== plain(a.onlyIf))) {
+        r.error = a.onlyIf == null ? "not written: the request didn't say what it replaces" : "not written: the summary on the job has changed since this was asked for";
+        await logAuto([{ at: r.at, kind: "jobSummary", ok: false, jobId: a.jobId, title: `Job ${job.jobNumber ?? a.jobId}: summary left as it is`, detail: r.error }]).catch(() => undefined);
+        done.unshift(r);
+        n++;
+        continue;
+      }
       await stSend("PATCH", path, { summary: html(a.summary) });
       // A job can read back as it was for a moment after an update (the unit
       // fixes, 18 Nov), so a miss is looked at again before it counts.
