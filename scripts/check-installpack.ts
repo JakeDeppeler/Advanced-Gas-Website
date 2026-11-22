@@ -11,7 +11,7 @@
  *   npm run check:installpack -- out.pdf photo1.jpg photo2.jpg   (also writes the PDF)
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { buildPack, fingerprint, packParts, plainText, whatChanged, type PackFacts } from "../src/lib/installpack/build";
+import { beforeLeaving, buildPack, fingerprint, kindOf, packParts, photosToTake, plainText, rebatesOn, whatChanged, type PackFacts, type QuoteItem } from "../src/lib/installpack/build";
 import { packPdf } from "../src/lib/installpack/pdf";
 import { SUMMARY_SCHEMA, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
 
@@ -63,8 +63,9 @@ const names = (ls: { name: string }[]) => ls.map((l) => l.name);
 console.log("-- what's listed --");
 ok("the unit is under Going in", names(p.units).join() === "Braemar Dominator Series 2 - Internal", names(p.units));
 ok("a rebate is never a material", !names(p.materials).some((n) => /rebate|VEEC/i.test(n)));
-ok("materials keep the quote's order", names(p.materials)[0] === "Bradflo Insulated Duct R1.0 350mm x 6 Metre" && p.materials.length === 6, names(p.materials));
-ok("names are tidied of ServiceTitan's stray spaces", names(p.materials).includes("Multivent MDO 4-Way 230mm x 230mm"));
+ok("materials keep the quote's order", names(p.materials)[0] === "Bradflo Insulated Duct R1.0 350mm x 6 Metre" && p.materials.length + p.zoning.length === 6, names(p.materials));
+ok("names are tidied of ServiceTitan's stray spaces", names([...p.materials, ...p.zoning]).includes("Multivent MDO 4-Way 230mm x 230mm"));
+ok("a ducted job's outlets and return air are under zoning, not materials (22 Nov)", names(p.zoning).includes("Multivent MDO 4-Way 230mm x 230mm") && !names(p.materials).some((n) => /Multivent|Return Air/i.test(n)), names(p.zoning));
 ok("no pricebook codes are printed", !JSON.stringify(p).includes("INS-R1.0-350"));
 ok("part quantities stay as written", p.materials.find((l) => l.name === "Silicone")?.qty === "0.5");
 ok("labour lines aren't listed as gear", ![...names(p.units), ...names(p.materials)].some((n) => /Installation|Extra Time|Electrical Connection/.test(n)));
@@ -139,11 +140,31 @@ ok("…and the electrician booked", si.text.includes("Contractors booked: GT Ele
 ok("the same records give the same key", summaryInput(structuredClone(facts), [structuredClone(visit)]).key === si.key);
 ok("a report turning up is a new key", summaryInput(facts, []).key !== si.key);
 ok("it says what it was written from", listed(si.sources) === "the job summary, the sold quote and the Condition Report from job 20106", listed(si.sources));
-ok("a summary that isn't the right shape is refused", (() => { try { parseSummary(JSON.stringify({ overview: "x" })); return false; } catch { return true; } })());
-ok("an empty section is dropped", parseSummary(JSON.stringify({ overview: " a ", sections: [{ heading: "Pipework and drain", text: " " }, { heading: "Electrical", text: "b" }] })).sections.length === 1);
+ok("a summary that isn't the right shape is refused", (() => { try { parseSummary(JSON.stringify({ sections: [] })); return false; } catch { return true; } })());
+const parsed = parseSummary(JSON.stringify({ overview: " a ", alert: { title: " ", text: "" }, locations: [{ label: "Indoor unit", text: " " }, { label: "Outdoor unit", text: "On a slab" }], extra: ["", " b "] }));
+ok("an empty location is dropped", parsed.locations?.length === 1, parsed.locations);
+ok("an empty alert is none", parsed.alert === null);
+ok("an empty extra point is dropped, the rest tidied", JSON.stringify(parsed.extra) === '["b"]', parsed.extra);
+
+// The new pack's lists (Jake, 22 Nov).
+const q = (code: string, name: string, type = "Material", qty = 1): QuoteItem => ({ skuId: null, type, code, name, qty });
+ok("an AIO heat pump job is hot water, all-in-one", JSON.stringify(kindOf("Installation - AIO Heat Pump (Plug)", [])) === '{"kind":"hotwater","aio":true}');
+ok("a split is a split", kindOf("Installation - Split System", []).kind === "split");
+ok("ducted refrigerated is ducted", kindOf("Installation - Ducted Refrigerated", []).kind === "ducted");
+ok("a gas ducted heater is gas ducted", kindOf("Installation - Gas Ducted Heater", []).kind === "gasDucted");
+ok("an evaporative cooler is evap", kindOf("Installation - Evaporative Cooler", []).kind === "evap");
+ok("the rebates are read from their lines, the total left out", JSON.stringify(rebatesOn([q("REBATE-STC", "STC", "Material", 16), q("REBATE-VEEC", "VEEC", "Material", 7), q("REBATE-TOTAL", "Total", "Service"), q("REBATE-SOLARVIC-AM", "AM")])) === '["STCs","VEU","Solar Victoria Australian-made bonus"]');
+ok("a rebate job's photos have the trailer one, marked", photosToTake("hotwater", true).some((c) => c.must && /trailer/.test(c.text)));
+ok("…and before leaving, the sign-off and Alitsy, marked", beforeLeaving("hotwater", true).filter((c) => c.must).map((c) => c.text).join("|") === "Customer signs off the rebate before you leave|Data plate details, old and new unit, entered into Alitsy");
+ok("a job without a rebate has neither", !photosToTake("split", false).some((c) => c.must) && !beforeLeaving("split", false).some((c) => c.must));
+const aioPack = buildPack({ ...facts, jobType: "Installation - AIO Heat Pump (Plug)", summary: { from: "x", ok: { overview: "o", locations: [{ label: "Indoor unit", text: "x" }, { label: "Heat pump", text: "On the old pad" }] } } });
+ok("an all-in-one has no indoor unit to place", aioPack.locations.length === 1 && aioPack.locations[0].label === "Heat pump", aioPack.locations);
 
 // What a summary for this job might say: for the layout, not from Claude.
 const SAMPLE: InstallSummary = {
+  alert: { title: "Reuse the existing ductwork", text: "Only the return air box is new." },
+  locations: [{ label: "Indoor unit", text: "In the roof space above the hallway, on the existing heater platform." }, { label: "Outdoor unit", text: "On a slab beside the laundry." }],
+  extra: ["GT Electrics are booked for the electrical connection."],
   overview: "There's an old Brivis Buffalo gas ducted heater in the roof space; the tech found \"heat exchanger cracked\". It comes out and a Braemar Dominator Series 2 internal ducted reverse-cycle system goes in, using the existing ductwork, with a new 400 x 600 return air box.",
   sections: [
     { heading: "What's there now", text: "A 24-year-old Brivis Buffalo B20 in the roof space, \"heat exchanger cracked\". It's being replaced." },

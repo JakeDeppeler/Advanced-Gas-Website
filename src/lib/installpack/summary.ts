@@ -1,7 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { q, sbSelect } from "@/lib/dashboard/db";
-import { stDownload, stTenantPath } from "@/lib/dashboard/servicetitan";
+import { stDownload, stFetch, stTenantPath } from "@/lib/dashboard/servicetitan";
 import { conditionReports } from "@/lib/conditionReport/fetch";
 import { listJobFiles } from "@/lib/ordering/jobFiles";
 import { aiConfigured } from "@/lib/chat/draft";
@@ -80,6 +80,28 @@ async function summaryPhotos(j: InstallJob, reports: VisitReport[], deadline: nu
   return out;
 }
 
+/**
+ * The notes on the install job and the quote visit, newest first, as the
+ * crew would read them in ServiceTitan: the electrician booked, a customer's
+ * "call when you're on the way", a part on top of the heat pumps. Not in the
+ * summary's key, so a note alone doesn't rewrite it; read when it's written.
+ * The portal's own notes about packs, and the emails it files on jobs, are
+ * left out: the one is about the pack, the other is long and mostly not.
+ */
+async function jobNotes(j: InstallJob): Promise<string> {
+  const ids = [j.job_id, ...(j.quote_job_id && j.quote_job_id !== j.job_id ? [j.quote_job_id] : [])];
+  const out: string[] = [];
+  for (const id of ids) {
+    const r = await stFetch<{ data?: { text?: string | null; createdOn?: string | null }[] }>(stTenantPath("jpm", `jobs/${id}/notes`), { pageSize: "50" }).catch(() => ({ data: [] }));
+    for (const n of r.data ?? []) {
+      const t = (n.text ?? "").replace(/\s+/g, " ").trim();
+      if (!t || /^(install pack|INSTALL PACK)/.test(t) || /^Email from /.test(t) || /^EMAILS ABOUT THE QUOTE/.test(t)) continue;
+      out.push(`- ${(n.createdOn ?? "").slice(0, 10)}${id === j.job_id ? "" : " (quote visit)"}: ${t.slice(0, 500)}`);
+    }
+  }
+  return out.slice(0, 15).join("\n");
+}
+
 const MODEL = "claude-opus-5-5";
 let client: Anthropic | null = null;
 const api = () => (client ??= new Anthropic());
@@ -99,7 +121,8 @@ export async function writeSummary(j: InstallJob, f: PackFacts, reports: VisitRe
     content.push({ type: "text", text: p.label });
     content.push({ type: "image", source: { type: "base64", media_type: p.mime, data: p.data } });
   }
-  content.push({ type: "text", text: `${input.text}\n\nWrite the installation guide for this job.${photos.length ? "" : " There are no photos."}` });
+  const notes = await jobNotes(j).catch(() => "");
+  content.push({ type: "text", text: `${input.text}${notes ? `\n\n<job_notes>\n${notes}\n</job_notes>` : ""}\n\nWrite the install pack's words for this job.${photos.length ? "" : " There are no photos."}` });
 
   let res: Anthropic.Beta.BetaMessage;
   try {
@@ -125,7 +148,7 @@ export async function writeSummary(j: InstallJob, f: PackFacts, reports: VisitRe
   if (res.stop_reason === "max_tokens") throw new Error("the summary ran too long");
   const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
   try {
-    return { summary: parseSummary(text), from: listed([...input.sources, ...(photos.length ? [`${photos.length} photo${photos.length === 1 ? "" : "s"} from the earlier visit`] : [])]) };
+    return { summary: parseSummary(text), from: listed([...input.sources, ...(notes ? ["the notes on the job"] : []), ...(photos.length ? [`${photos.length} photo${photos.length === 1 ? "" : "s"} from the earlier visit`] : [])]) };
   } catch {
     throw new Error("the summary came back in a shape that couldn't be read");
   }

@@ -44,11 +44,22 @@ type RawEstimate = { name?: string | null; summary?: string | null; soldOn?: str
 export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, PackFacts>> {
   if (!jobs.length) return new Map();
   const estIds = [...new Set(jobs.flatMap((j) => (j.estimate_id == null ? [] : [j.estimate_id])))];
-  const [ests, lines, suppliers] = await Promise.all([
+  const [ests, lines, suppliers, appts] = await Promise.all([
     estIds.length ? sbSelect<{ id: number; raw: RawEstimate }>("st_estimates", [q.select("id,raw"), `id=in.(${estIds.join(",")})`].join("&")) : Promise.resolve([]),
     sbSelect<{ po_id: number; job_id: number; sku_id: number | null }>("purchase_order_lines", [q.select("po_id,job_id,sku_id"), `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`].join("&")),
     sbSelect<{ id: string; name: string }>("order_suppliers", q.select("id,name")),
+    // The next visit's confirmation and instructions: a pack waits for the
+    // visit to be confirmed (Jake, 22 Nov).
+    sbSelect<{ job_id: number; start_at: string; status: string | null; confirmed: string | null; instructions: string | null }>("st_appointments", [
+      q.select("job_id,start_at,status,confirmed:raw->>isConfirmed,instructions:raw->>specialInstructions"),
+      `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`, q.gte("start_at", new Date(Date.now() - 12 * 3_600_000).toISOString()), "order=start_at.asc",
+    ].join("&")).catch(() => []),
   ]);
+  const nextVisit = new Map<number, { confirmed: boolean; instructions: string | null }>();
+  for (const a of appts) {
+    if (a.status === "Canceled" || nextVisit.has(a.job_id)) continue;
+    nextVisit.set(a.job_id, { confirmed: a.confirmed === "true", instructions: a.instructions });
+  }
   const poIds = [...new Set(lines.map((l) => l.po_id))];
   const pos = poIds.length
     ? await sbSelect<{ id: number; po_number: string; supplier_id: string; status: OrderLine["status"]; kind: OrderLine["kind"]; sent_at: string | null; pickup: boolean }>(
@@ -90,6 +101,8 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
       jobSummary: j.job_summary,
       items,
       orders,
+      confirmed: nextVisit.get(j.job_id)?.confirmed ?? false,
+      instructions: nextVisit.get(j.job_id)?.instructions ?? null,
     });
   }
   return out;

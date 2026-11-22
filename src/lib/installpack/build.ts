@@ -68,7 +68,17 @@ export type PackFacts = {
   visitReports?: VisitReport[];
   /** The install summary written from them, or why there isn't one; null when drafting is off. */
   summary?: SummaryState | null;
+  /** The next visit's own instructions in ServiceTitan ("with Thomas"), when there are any. */
+  instructions?: string | null;
+  /** Whether the next visit is confirmed in ServiceTitan: a pack is made only then (Jake, 22 Nov). */
+  confirmed?: boolean;
 };
+
+/** What sort of install, for the lists that differ by it. */
+export type Kind = "split" | "hotwater" | "ducted" | "gasDucted" | "evap" | "other";
+
+/** A line to tick. `must`: one that keeps getting missed, printed bold with a tag (Jake, 22 Nov). */
+export type Check = { text: string; must?: boolean };
 
 /** state is what ordered says, for the PDF's emphasis; the words carry it either way. */
 export type PackLine = { qty: string; name: string; ordered: string; state: "sent" | "waiting" | "none" };
@@ -93,7 +103,76 @@ export type Pack = {
   summary: SummaryState | null;
   /** The Condition Reports, to print in full after the gear. */
   reports: Report[];
+  kind: Kind;
+  /** An all-in-one heat pump: the whole unit sits outside, so there's no indoor unit to place. */
+  aio: boolean;
+  /** The rebates on the sold quote, in words ("STCs", "VEU"); empty on a job without. */
+  rebates: string[];
+  /** Ducted: the zoning and outlet lines, kept apart from the materials. */
+  zoning: PackLine[];
+  /** Photos to take before leaving, by kind, the rebate's first. */
+  toTake: Check[];
+  /** What's done before leaving, the rebate's first. */
+  leaving: Check[];
+  /** The next visit's own instructions. */
+  instructions: string | null;
+  /** Where each unit goes, from the install summary; an all-in-one's indoor unit left out, as it has none. */
+  locations: { label: string; text: string }[];
 };
+
+/** The kind of install, from the job type and the quote. */
+export function kindOf(jobType: string | null, items: QuoteItem[]): { kind: Kind; aio: boolean } {
+  const t = jobType ?? "";
+  const names = items.map((i) => `${i.code} ${i.name ?? ""}`).join(" ");
+  const aio = /\bAIO\b|all.?in.?one/i.test(`${t} ${names}`);
+  if (/evap/i.test(t)) return { kind: "evap", aio: false };
+  if (/gas ducted|ducted heat/i.test(t)) return { kind: "gasDucted", aio: false };
+  if (/ducted/i.test(t)) return { kind: "ducted", aio: false };
+  if (/heat pump|hot water|\bAIO\b/i.test(t)) return { kind: "hotwater", aio };
+  if (/split|multi.?head/i.test(t)) return { kind: "split", aio: false };
+  return { kind: "other", aio };
+}
+
+const REBATE_NAMES: [RegExp, string][] = [
+  [/^REBATE-STC$/i, "STCs"], [/^REBATE-VEEC$/i, "VEU"], [/^REBATE-SOLARVIC$/i, "Solar Victoria"], [/^REBATE-SOLARVIC-AM$/i, "Solar Victoria Australian-made bonus"],
+];
+
+/** The rebates a quote carries, by their lines; the total line isn't one. */
+export function rebatesOn(items: QuoteItem[]): string[] {
+  const out: string[] = [];
+  for (const i of items) {
+    if (i.qty <= 0 || !/^REBATE-/i.test(i.code) || /^REBATE-TOTAL$/i.test(i.code)) continue;
+    const name = REBATE_NAMES.find(([re]) => re.test(i.code))?.[1] ?? (tidy(i.name) || i.code);
+    if (!out.includes(name)) out.push(name);
+  }
+  return out;
+}
+
+/** What a ducted job's zoning and outlets are, on the quote. */
+const ZONING = /zone|damper|sensor|controller|thermostat|outlet|grille|diffuser|register|return air|spigot|vent\b/i;
+
+/** The photos the crew take, by kind; a rebate job's come first, the one they forget marked. */
+export function photosToTake(kind: Kind, rebate: boolean): Check[] {
+  const by: Record<Kind, string[]> = {
+    split: ["Indoor unit installed, level, with the remote", "Outdoor unit in place, with the pipework and drain in shot", "Wall penetration sealed, inside and out", "Outdoor unit's data plate, with the serial number readable"],
+    hotwater: ["New unit installed, with the connections, PTR and tempering valve in shot", "New unit's data plate, with the serial number readable"],
+    ducted: ["Indoor unit in the roof space, with the ductwork connected", "Outdoor unit in place, with the pipework in shot", "Each outlet and the return air grille fitted", "Controller on the wall", "Outdoor unit's data plate, with the serial number readable"],
+    gasDucted: ["Heater installed, with the flue and the gas connection in shot", "Each outlet and the return air grille fitted", "Controller on the wall", "Heater's data plate, with the serial number readable"],
+    evap: ["Cooler on the roof, level, with the water and drain connected", "Each outlet fitted", "Controller on the wall", "Cooler's data plate, with the serial number readable"],
+    other: ["The finished install", "The new unit's data plate, with the serial number readable"],
+  };
+  const rebateShots: Check[] = rebate ? [{ text: "Old system's data plate, showing its date" }, { text: "Old system made inoperable" }, { text: "Old system in the trailer", must: true }] : [];
+  return [...rebateShots, ...by[kind].map((text) => ({ text }))];
+}
+
+/** What's done before the crew leave; a rebate job's sign-off and Alitsy come first, as they keep getting missed. */
+export function beforeLeaving(kind: Kind, rebate: boolean): Check[] {
+  const out: Check[] = rebate ? [{ text: "Customer signs off the rebate before you leave", must: true }, { text: "Data plate details, old and new unit, entered into Alitsy", must: true }] : [];
+  if (kind === "hotwater") out.push({ text: "No leaks, unit running, hot water at the taps" });
+  else if (kind !== "other") out.push({ text: "Customer shown how to use the controller" });
+  out.push({ text: rebate ? "All photos uploaded to the job, the trailer one included" : "Photos uploaded to the job" }, { text: "Area cleaned up, offcuts and packaging taken away" });
+  return out;
+}
 
 /** Rebates are lines on a quote for the customer's benefit, not anything to fit. */
 const NOT_FITTED = /^REBATE/i;
@@ -149,6 +228,10 @@ function ordered(lines: OrderLine[]): Pick<PackLine, "ordered" | "state"> {
 
 export function buildPack(f: PackFacts): Pack {
   const fitted = f.items.filter((i) => i.qty > 0 && !NOT_FITTED.test(i.code));
+  const { kind, aio } = kindOf(f.jobType, f.items);
+  const rebates = rebatesOn(f.items);
+  const ductedKind = kind === "ducted" || kind === "gasDucted" || kind === "evap";
+  const isZoning = (i: QuoteItem) => ductedKind && ZONING.test(`${i.name ?? ""} ${i.code}`);
   const bySku = new Map<number, OrderLine[]>();
   for (const o of f.orders) if (o.skuId != null) bySku.set(o.skuId, [...(bySku.get(o.skuId) ?? []), o]);
 
@@ -184,8 +267,8 @@ export function buildPack(f: PackFacts): Pack {
         ? [tidy(f.quote.name) || null, f.quote.fromJob ? `from job ${f.quote.fromJob}` : null, f.quote.soldOn ? `sold ${day(f.quote.soldOn)}` : null].filter(Boolean).join(" · ")
         : "No sold quote on this job"],
     ] as [string, string][]).filter(([, v]) => v),
-    units: fitted.filter((i) => i.type === "Equipment").map(line),
-    materials: fitted.filter((i) => i.type === "Material").map(line),
+    units: fitted.filter((i) => i.type === "Equipment" && !isZoning(i)).map(line),
+    materials: fitted.filter((i) => i.type === "Material" && !isZoning(i)).map(line),
     contractors,
     scope: plainText(f.jobSummary),
     quoted: f.quote != null,
@@ -195,6 +278,14 @@ export function buildPack(f: PackFacts): Pack {
       const r = toReport(v.submission);
       return { ...r, jobNumber: r.jobNumber ?? v.jobNumber };
     }),
+    kind,
+    aio,
+    rebates,
+    zoning: fitted.filter((i) => (i.type === "Equipment" || i.type === "Material") && isZoning(i)).map(line),
+    toTake: photosToTake(kind, rebates.length > 0),
+    leaving: beforeLeaving(kind, rebates.length > 0),
+    instructions: tidy(f.instructions) || null,
+    locations: (f.summary && "ok" in f.summary ? f.summary.ok.locations ?? [] : []).filter((l) => !(aio && /indoor/i.test(l.label))),
   };
 }
 
@@ -212,7 +303,11 @@ export type PackParts = Record<"layout" | "booking" | "crew" | "contact" | "scop
  * 8: a summary's title no longer runs into its first sentence.
  * 9: the install summary under the scope, the Condition Reports after the gear.
  */
-export const LAYOUT = "9";
+// 10 (22 Nov, Jake): the layout of the packs made by hand for 20801 and
+// 20881: summary, alert, where it goes, unit and materials, extra
+// information, photos to take, before leaving, the photos on the job; a
+// rebate badge and the rebate's often-missed lines; zoning on ducted jobs.
+export const LAYOUT = "10";
 
 const hash = (v: unknown) => createHash("sha1").update(JSON.stringify(v)).digest("hex").slice(0, 16);
 
@@ -226,7 +321,7 @@ export function packParts(f: PackFacts): PackParts {
   const p = buildPack(f);
   return {
     layout: LAYOUT,
-    booking: hash(p.facts.find(([k]) => k === "Booked")?.[1] ?? ""),
+    booking: hash([p.facts.find(([k]) => k === "Booked")?.[1] ?? "", p.instructions]),
     crew: hash(p.facts.find(([k]) => k === "Crew")?.[1] ?? ""),
     contact: hash([f.siteAddress, f.sitePhone, f.customer]),
     scope: hash(p.scope ?? ""),

@@ -1,17 +1,17 @@
-// An install pack as a PDF, for the install job in ServiceTitan, in the
-// website's colours: the full logo on white with the job number beside it, an
-// orange rule, the address and booking in a cream box, then the scope of works
-// (the job summary, word for word) and the contractors, then the
-// equipment and the materials with a tick box each for loading the van, then
-// the photos four to a page. The plain style Jake picked on 28 Oct from four
-// mock-ups: headings with a short orange underline rather than boxes, and the
-// long lists shaded every other row so a line can be followed across the page.
+// An install pack as a PDF, for the install job in ServiceTitan, in the layout
+// of the packs made by hand for jobs 20801 and 20881 (Jake, 22 Nov): a navy
+// header with the logo, "Install Pack." and the job's chips, a rebate badge on
+// a rebate job; an alert when one thing is easy to miss; the job summary;
+// arrival and contractors; where each unit goes; the unit and materials with
+// where each was ordered; extra information; the photos to take and what to do
+// before leaving, the often-missed lines marked; then the photos on the job,
+// a plan drawn whole. Headings numbered, with a short orange underline.
 // Pure apart from pdf-lib, so it can be rendered from a fixture.
 
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from "pdf-lib";
-import type { Pack, PackLine, Photo } from "./build";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type RGB } from "pdf-lib";
+import type { Check, Pack, PackLine, Photo } from "./build";
+import { NOT_PLACED } from "./summaryText";
 import { LOGO_FULL_JPG, LOGO_FULL_SIZE } from "./logo";
-import { reportPdf } from "@/lib/conditionReport/pdf";
 import { site } from "@/lib/site";
 
 const W = 595.28;
@@ -31,6 +31,12 @@ const GREY = rgb(0.4, 0.42, 0.5);
 // text on white. Each also says so in words; the colour only agrees.
 const WAITING = rgb(168 / 255, 53 / 255, 20 / 255);
 const MISSING = rgb(194 / 255, 32 / 255, 42 / 255);
+// The rebate badge (status green, used for nothing else in the pack), the
+// summary's tint, the cards' cream and the often-missed lines' dark orange.
+const GREEN = rgb(34 / 255, 181 / 255, 115 / 255);
+const SUMMARY_BG = rgb(242 / 255, 249 / 255, 253 / 255);
+const CARD = rgb(246 / 255, 244 / 255, 239 / 255);
+const MUST = rgb(196 / 255, 80 / 255, 15 / 255);
 
 /**
  * The standard fonts only carry Windows-1252, and a quote can hold anything
@@ -87,295 +93,276 @@ export async function packPdf(pack: Pack, photos: PackPhoto[], meta: PackMeta): 
   doc.setCreator("Advanced Gas team portal");
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  // A logo that won't embed costs the pack its logo, not the pack: the name
-  // goes in its place.
+  // A logo that won't embed costs the pack its logo, not the pack.
   const logo = await doc.embedJpg(own(Buffer.from(LOGO_FULL_JPG, "base64"))).catch(() => null);
 
+  const L = 40;
+  const CW = W - 2 * L;
+  const FOOT = 52;
   let page!: PDFPage;
   let y = 0;
-  const text = (s: string, x: number, size: number, f: PDFFont = font, color = INK) =>
-    page.drawText(drawable(f, s), { x, y, size, font: f, color });
-  const right = (s: string, xRight: number, size: number, f: PDFFont, color = INK) => {
-    const t = drawable(f, s);
-    page.drawText(t, { x: xRight - f.widthOfTextAtSize(t, size), y, size, font: f, color });
-  };
+  const newPage = () => { page = doc.addPage([W, H]); y = H - 44; };
+  const ensure = (h: number) => { if (y - h < FOOT) newPage(); };
+  const say = (t: string, x: number, yy: number, size: number, f: PDFFont, color: RGB) => page.drawText(drawable(f, t), { x, y: yy, size, font: f, color });
+  const lines = (t: string, size: number, f: PDFFont, width: number) => wrap(f, size, t, width).filter((l, i, a) => l || i < a.length - 1);
+  // A rectangle with round corners, its top left at (x, top).
+  const round = (x: number, top: number, w: number, h: number, r: number, o: { fill?: RGB; border?: RGB; bw?: number; opacity?: number }) =>
+    page.drawSvgPath(`M ${r},0 H ${w - r} Q ${w},0 ${w},${r} V ${h - r} Q ${w},${h} ${w - r},${h} H ${r} Q 0,${h} 0,${h - r} V ${r} Q 0,0 ${r},0 Z`,
+      { x, y: top, color: o.fill, borderColor: o.border, borderWidth: o.border ? (o.bw ?? 0.8) : 0, opacity: o.opacity });
 
-  /* ---- the header, on every page: the logo, and the job number */
-  const BAND = 70;
-  const band = (first: boolean) => {
-    page = doc.addPage([W, H]);
-    const lw = 140;
+  /* ---- the header */
+  newPage();
+  const BAND = 196;
+  page.drawRectangle({ x: 0, y: H - BAND, width: W, height: BAND, color: NAVY });
+  page.drawCircle({ x: W - 40, y: H - 10, size: 150, borderColor: rgb(1, 1, 1), borderWidth: 46, borderOpacity: 0.035 });
+  page.drawCircle({ x: W - 20, y: H + 10, size: 80, borderColor: rgb(1, 1, 1), borderWidth: 26, borderOpacity: 0.035 });
+  round(L, H - 30, 118, 46, 8, { fill: rgb(1, 1, 1) });
+  if (logo) {
+    const lw = 100;
     const lh = (lw * LOGO_FULL_SIZE.height) / LOGO_FULL_SIZE.width;
-    if (logo) page.drawImage(logo, { x: M, y: H - BAND / 2 - lh / 2 + 2, width: lw, height: lh });
-    else { y = H - BAND / 2 - 4; text("Advanced Gas & Aircon", M, 16, bold, NAVY); }
-    page.drawRectangle({ x: 0, y: H - BAND - 3, width: W, height: 3, color: ORANGE });
-    y = H - BAND / 2 + 9;
-    right(first ? "INSTALL PACK · JOB" : "INSTALL PACK, CONTINUED · JOB", W - M, 8.5, bold, SKY);
-    y -= 22;
-    right(pack.jobNumber, W - M, 22, bold, NAVY);
-    y = H - BAND - 3 - 24;
-  };
-  /*
-   * Every section has a heading: navy, with a short orange underline and a
-   * hairline to the margin. A section that runs over a page carries on under
-   * "(continued)" on the next, so a list is never left without its heading.
-   */
-  const LIMIT = M + 28;
-  const IN = M + 12;
-  const IN_R = W - M - 12;
-  let card: { title: string; note?: string } | null = null;
-  const strip = (title: string, note?: string) => {
-    const top = y;
-    y = top - 16;
-    text(title, M, 12.5, bold, NAVY);
-    if (note) right(note, W - M, 8, font, GREY);
-    page.drawRectangle({ x: M, y: top - 24, width: 34, height: 2.5, color: ORANGE });
-    page.drawLine({ start: { x: M + 34, y: top - 22.75 }, end: { x: W - M, y: top - 22.75 }, thickness: 0.6, color: LINE });
-    y = top - 24 - 18;
-  };
-  const room = (h: number) => {
-    if (y - h >= LIMIT) return;
-    band(false);
-    if (card) strip(`${card.title} (continued)`, card.note);
-  };
-  const open = (title: string, note?: string) => {
-    card = null;
-    room(80);
-    card = { title, note };
-    strip(title, note);
-  };
-  const close = () => {
-    card = null;
-    y -= 16;
-  };
-
-  band(true);
-
-  /* ---- what the job is, then the site and booking in a cream box */
-  if (pack.jobType) { text(pack.jobType, M, 13, bold, NAVY); y -= 16; }
-  if (pack.customer) { text(pack.customer, M, 10.5, font, GREY); y -= 10; }
-  y -= 6;
-
-  const BOX_X = M;
-  const BOX_W = W - 2 * M;
-  const PAD = 12;
-  const addr = pack.address ? wrap(bold, 14, pack.address, BOX_W - 2 * PAD) : [];
-  const COL = (BOX_W - 2 * PAD) / 2;
-  const cells = pack.facts.map(([k, v]) => ({ k, v: wrap(font, 10, v, COL - 10) }));
-  const rowsH: number[] = [];
-  for (let i = 0; i < cells.length; i += 2) rowsH.push(Math.max(...cells.slice(i, i + 2).map((c) => 11 + c.v.length * 12.5)) + 8);
-  const boxH = PAD + (addr.length ? 10 + addr.length * 17 + 6 : 0) + rowsH.reduce((a, b) => a + b, 0) + PAD - 8;
-  const boxTop = y;
-  page.drawRectangle({ x: BOX_X, y: y - boxH, width: BOX_W, height: boxH, color: CREAM });
-  page.drawRectangle({ x: BOX_X, y: y - boxH, width: 4, height: boxH, color: ORANGE });
-  y -= PAD + 8;
-  if (addr.length) {
-    text("SITE", BOX_X + PAD, 7.5, bold, GREY);
-    y -= 16;
-    for (const l of addr) { text(l, BOX_X + PAD, 14, bold, NAVY); y -= 17; }
-    y -= 6;
-  }
-  for (let i = 0; i < cells.length; i += 2) {
-    const top = y;
-    cells.slice(i, i + 2).forEach((c, j) => {
-      y = top;
-      const x = BOX_X + PAD + j * COL;
-      text(c.k.toUpperCase(), x, 7.5, bold, GREY);
-      y -= 12.5;
-      for (const l of c.v) { text(l, x, 10, font, INK); y -= 12.5; }
-    });
-    y = top - rowsH[i / 2];
-  }
-  y = boxTop - boxH - 14;
-
-  const para = (s: string) => {
-    for (const l of wrap(font, 10.5, s, IN_R - IN)) { room(13.5); text(l, IN, 10.5); y -= 13.5; }
-  };
-
-  const bullets = (items: string[], color = SKY) => {
-    for (const it of items) {
-      const lines = wrap(font, 10.5, it, IN_R - IN - 16);
-      room(lines.length * 13.5);
-      page.drawRectangle({ x: IN + 1, y: y + 1.5, width: 5, height: 5, color });
-      for (const l of lines) { text(l, IN + 16, 10.5); y -= 13.5; }
-    }
-  };
-
-  /*
-   * The scope first, under the site: what the job is, before what to bring.
-   * Where there's an installation guide it takes the scope's place (Jake,
-   * 4 Nov): the job summary is mostly stock wording and the guide is written
-   * from it anyway. Without a guide the job summary is all that says what the
-   * job is, so it stays.
-   */
-  const guided = pack.summary != null && "ok" in pack.summary;
-  if (!guided) {
-    open("Scope of works sold");
-    if (pack.scope) para(pack.scope);
-    else { text("No job summary written on this job. Check with the office.", IN, 10, font, GREY); y -= 14; }
-    close();
-  }
-
-  /*
-   * How the install will go, written from the records (summaryText.ts), under
-   * a heading of its own so it's never read as the office's scope, with what
-   * it was written from said under it.
-   */
-  if (pack.summary) {
-    open("Installation guide", "ok" in pack.summary ? "Written by the portal from the records" : undefined);
-    if ("ok" in pack.summary) {
-      const sm = pack.summary.ok;
-      para(sm.overview);
-      for (const sec of sm.sections) {
-        y -= 6;
-        room(13 + 2 * 13.5);
-        text(sec.heading, IN, 10.5, bold, NAVY);
-        y -= 14;
-        para(sec.text);
-      }
-      y -= 6;
-      for (const l of wrap(font, 8, `Written by the portal from ${pack.summary.from}. It says only what those say: if something on site doesn't match, go by the site and tell the office.`, IN_R - IN)) {
-        room(11);
-        text(l, IN, 8, font, GREY);
-        y -= 11;
-      }
-    } else {
-      text(`It couldn't be written this time (${pack.summary.error}).${pack.reports.length ? " The Condition Report is further on." : ""}`, IN, 10, font, GREY);
-      y -= 14;
-    }
-    close();
-  }
-  // Who else is on the job and whether they've been told, before the gear
-  // (Jake, 28 Oct). The labour lines on the quote are left off: they're the
-  // price breakdown, and the scope above already says what the work is.
-  if (pack.contractors.length) { open("Contractors"); bullets(pack.contractors); close(); }
-
-  /* ---- equipment and materials: a tick box, qty, the item, and whether it's ordered */
-  const BOX = 10;
-  const QTY_X = IN + BOX + 10;
-  const ITEM_X = QTY_X + 34;
-  const ORD_W = 120;
-  const ORD_X = IN_R - ORD_W;
-  const ITEM_W = ORD_X - ITEM_X - 12;
-  const table = (rows: PackLine[]) => {
-    room(16);
-    text("QTY", QTY_X, 7.5, bold, GREY);
-    text("ITEM", ITEM_X, 7.5, bold, GREY);
-    text("ORDERED", ORD_X, 7.5, bold, GREY);
-    y -= 15;
-    rows.forEach((r, i) => {
-      const name = wrap(font, 10.5, r.name, ITEM_W);
-      const ordFont = r.state === "sent" ? font : bold;
-      const ord = wrap(ordFont, 9, r.ordered, ORD_W);
-      const h = Math.max(name.length * 13, ord.length * 11.5);
-      room(h + 9);
-      const top = y;
-      // Every other row shaded, to follow a line across to its order status.
-      if (i % 2 === 0) page.drawRectangle({ x: M, y: top - h + 3, width: W - 2 * M, height: h + 9, color: ZEBRA });
-      // An empty box to tick when it's in the van, with a pen on the printout
-      // or on a tablet.
-      page.drawRectangle({ x: IN, y: top - 2, width: BOX, height: BOX, borderColor: NAVY, borderWidth: 0.9 });
-      text(r.qty, QTY_X, 10.5, bold, NAVY);
-      for (const l of name) { text(l, ITEM_X, 10.5); y -= 13; }
-      y = top;
-      const colour = r.state === "sent" ? GREY : r.state === "waiting" ? WAITING : MISSING;
-      for (const l of ord) { text(l, ORD_X, 9, ordFont, colour); y -= 11.5; }
-      y = top - h;
-      y -= 9;
-    });
-    y += 8;
-  };
-
-  // The gear starts a page of its own (Jake, 28 Oct), so the list someone
-  // ticks off while loading the van isn't split from its heading by the scope
-  // and notes; on most jobs equipment and materials then fit on one sheet.
-  const tickNote = "Tick each one as it goes in the van";
-  if (pack.quoted) {
-    card = null;
-    band(false);
-    open("Equipment", pack.units.length ? tickNote : undefined);
-    if (pack.units.length) table(pack.units); else { text("No equipment on the quote.", IN, 10, font, GREY); y -= 14; }
-    close();
-
-    open("Materials", pack.materials.length ? tickNote : undefined);
-    if (pack.materials.length) table(pack.materials); else { text("No materials on the quote.", IN, 10, font, GREY); y -= 14; }
-    close();
+    page.drawImage(logo, { x: L + 9, y: H - 30 - 23 - lh / 2, width: lw, height: lh });
   } else {
-    // Without a sold quote there's nothing to list, and empty tables would
-    // read as "nothing needed"; one line on the first page says why instead
-    // of a page of its own.
-    open("Equipment and materials");
-    text("No sold quote on this job, so no list. Check with the office what's going in.", IN, 10, font, GREY);
+    say("Advanced Gas & Aircon", L + 10, H - 57, 10, bold, NAVY);
+  }
+  if (pack.rebates.length) {
+    const t = "REBATE JOB";
+    const tw = bold.widthOfTextAtSize(t, 11);
+    round(W - L - tw - 30, H - 36, tw + 30, 28, 7, { fill: GREEN });
+    say(t, W - L - tw - 15, H - 54, 11, bold, rgb(1, 1, 1));
+  }
+  const title = "Install Pack";
+  say(title, L, H - 120, 38, bold, rgb(1, 1, 1));
+  say(".", L + bold.widthOfTextAtSize(title, 38), H - 120, 38, bold, SKY);
+  const sub = [pack.jobType, pack.address].filter(Boolean).join(" · ");
+  let sy = H - 142;
+  for (const l of lines(sub, 11.5, font, 400).slice(0, 2)) { say(l, L, sy, 11.5, font, rgb(0.9, 0.91, 0.95)); sy -= 15; }
+  // The chips: the job, the main unit, internal use.
+  let cx = L;
+  const chip = (t: string, filled: boolean) => {
+    const tt = t.length > 46 ? `${t.slice(0, 45)}…` : t;
+    const w = (filled ? bold : font).widthOfTextAtSize(drawable(font, tt), 8.5) + 20;
+    if (cx + w > W - L) return;
+    round(cx, H - BAND + 32, w, 20, 10, filled ? { fill: ORANGE } : { border: rgb(0.75, 0.78, 0.86), bw: 0.8 });
+    say(tt, cx + 10, H - BAND + 18.5, 8.5, filled ? bold : font, rgb(1, 1, 1));
+    cx += w + 6;
+  };
+  chip(`Job ${pack.jobNumber}`, true);
+  if (pack.units[0]) chip(pack.units[0].name, false);
+  chip("Internal use only", false);
+  page.drawRectangle({ x: 0, y: H - BAND - 5, width: W / 3, height: 5, color: ORANGE });
+  page.drawRectangle({ x: W / 3, y: H - BAND - 5, width: (2 * W) / 3, height: 5, color: SKY });
+  y = H - BAND - 5 - 18;
+
+  /* ---- the alert, then the summary */
+  const sm = pack.summary && "ok" in pack.summary ? pack.summary.ok : null;
+  if (sm?.alert?.title) {
+    const tl = lines(sm.alert.title, 12, bold, CW - 28);
+    const xl = sm.alert.text ? lines(sm.alert.text, 9.5, font, CW - 28) : [];
+    const h = 14 + tl.length * 15 + xl.length * 13 + 8;
+    ensure(h);
+    round(L, y, CW, h, 8, { fill: ORANGE });
+    let yy = y - 22;
+    for (const l of tl) { say(l, L + 14, yy, 12, bold, rgb(1, 1, 1)); yy -= 15; }
+    for (const l of xl) { say(l, L + 14, yy + 1, 9.5, font, rgb(1, 1, 1)); yy -= 13; }
+    y -= h + 10;
+  }
+  {
+    const text = sm?.overview ?? pack.scope ?? "No job summary written in ServiceTitan.";
+    const from = sm && pack.summary && "ok" in pack.summary ? `Written from ${pack.summary.from}.` : "The job summary from ServiceTitan.";
+    const tl = lines(text, 9.5, font, CW - 30);
+    const h = 30 + tl.length * 13 + 16;
+    ensure(h);
+    round(L, y, CW, h, 6, { fill: SUMMARY_BG });
+    page.drawRectangle({ x: L, y: y - h, width: 4, height: h, color: SKY });
+    say("JOB SUMMARY", L + 16, y - 16, 7.5, bold, SKY);
+    let yy = y - 31;
+    for (const l of tl) { say(l, L + 16, yy, 9.5, font, INK); yy -= 13; }
+    say(from, L + 16, yy - 1, 7, font, GREY);
+    y -= h + 10;
+  }
+
+  /* ---- arrival and contractors */
+  {
+    const gap = 12;
+    const cw = (CW - gap) / 2;
+    const left: [string, string][] = [
+      ["Booked", pack.facts.find(([k]) => k === "Booked")?.[1] ?? ""],
+      ["Site", pack.address ?? ""],
+      ["Customer", pack.customer ? `${pack.customer}, phone on the job` : ""],
+      ["Crew", pack.facts.find(([k]) => k === "Crew")?.[1] ?? ""],
+    ].filter(([, v]) => v) as [string, string][];
+    const right: [string, string][] = pack.contractors.length
+      ? pack.contractors.map((c) => ["", c] as [string, string])
+      : [["Quote", pack.facts.find(([k]) => k === "Quote")?.[1] ?? "No sold quote on this job"]];
+    const rows = (rs: [string, string][]) => rs.map(([k, v]) => ({ k, l: lines(k ? `${k}: ${v}` : v, 9, font, cw - 26) }));
+    const lr = rows(left);
+    const rr = rows(right);
+    const hOf = (r: { l: string[] }[]) => 28 + r.reduce((n, x) => n + x.l.length * 12.5, 0) + 10;
+    const h = Math.max(hOf(lr), hOf(rr));
+    ensure(h);
+    const card = (x: number, label: string, rs: { k: string; l: string[] }[]) => {
+      round(x, y, cw, h, 7, { fill: CARD, border: LINE });
+      say(label, x + 13, y - 17, 7.5, bold, SKY);
+      let yy = y - 32;
+      for (const r of rs) {
+        r.l.forEach((l, i) => {
+          if (i === 0 && r.k && l.startsWith(`${r.k}:`)) {
+            say(`${r.k}:`, x + 13, yy, 9, bold, INK);
+            say(l.slice(r.k.length + 1), x + 13 + bold.widthOfTextAtSize(`${r.k}:`, 9), yy, 9, font, INK);
+          } else say(l, x + 13, yy, 9, font, INK);
+          yy -= 12.5;
+        });
+      }
+    };
+    card(L, "ARRIVAL & ACCESS", lr);
+    card(L + cw + gap, pack.contractors.length ? "CONTRACTORS" : "QUOTE", rr);
+    y -= h + 6;
+  }
+
+  /* ---- numbered sections */
+  let n = 0;
+  const heading = (t: string, lead?: string) => {
+    ensure(70);
+    n++;
+    // Room above a heading that follows something on the page; none at the top of one.
+    y -= y > H - 60 ? 16 : 28;
+    const num = String(n).padStart(2, "0");
+    say(num, L, y, 10, bold, ORANGE);
+    say(t, L + bold.widthOfTextAtSize(num, 10) + 6, y, 16, bold, NAVY);
+    page.drawRectangle({ x: L, y: y - 8, width: 34, height: 2, color: ORANGE });
+    y -= 20;
+    if (lead) { for (const l of lines(lead, 8.8, font, CW)) { say(l, L, y, 8.8, font, GREY); y -= 12; } y -= 2; }
+    page.drawLine({ start: { x: L, y }, end: { x: W - L, y }, thickness: 0.5, color: LINE });
+  };
+  const checklist = (items: (Check & { right?: { t: string; c: RGB } })[]) => {
+    for (const it of items) {
+      const tag = it.must ? "OFTEN MISSED" : "";
+      const tagW = tag ? bold.widthOfTextAtSize(tag, 6.8) + 12 : 0;
+      const rw = it.right ? font.widthOfTextAtSize(drawable(font, it.right.t), 8) + 8 : 0;
+      const tl = lines(it.text, 9.3, it.must ? bold : font, CW - 20 - rw - (tag ? tagW + 8 : 0));
+      const h = tl.length * 12 + 9;
+      ensure(h);
+      page.drawRectangle({ x: L + 1, y: y - 14, width: 8.5, height: 8.5, borderColor: INK, borderWidth: 0.9, color: rgb(1, 1, 1) });
+      let yy = y - 13;
+      tl.forEach((l, i) => {
+        say(l, L + 18, yy, 9.3, it.must ? bold : font, it.must ? MUST : INK);
+        if (i === 0 && tag) {
+          const tx = L + 18 + (it.must ? bold : font).widthOfTextAtSize(l, 9.3) + 8;
+          round(tx, yy + 8, tagW, 11, 4, { fill: ORANGE });
+          say(tag, tx + 6, yy + 0.5, 6.8, bold, rgb(1, 1, 1));
+        }
+        yy -= 12;
+      });
+      if (it.right) say(it.right.t, W - L - rw + 8, y - 13, 8, font, it.right.c);
+      y -= h;
+      page.drawLine({ start: { x: L, y }, end: { x: W - L, y }, thickness: 0.5, color: LINE });
+    }
+  };
+  const orderRight = (l: PackLine) => ({ t: l.ordered, c: l.state === "none" ? MISSING : l.state === "waiting" ? WAITING : GREY });
+
+  // 01 Where it goes. An all-in-one has no indoor unit (Jake, 22 Nov).
+  const locs = pack.locations;
+  if (locs.length) {
+    heading("Where it goes");
+    const gap = 12;
+    const bw = (CW - gap) / 2;
+    for (let i = 0; i < locs.length; i += 2) {
+      const pair = locs.slice(i, i + 2).map((l) => ({ ...l, tl: lines(l.text, 9.2, l.text === NOT_PLACED ? bold : font, bw - 24) }));
+      const h = 26 + Math.max(...pair.map((p) => p.tl.length)) * 12.5 + 8;
+      y -= 8;
+      ensure(h);
+      pair.forEach((p, k) => {
+        const x = L + k * (bw + gap);
+        round(x, y, bw, h, 7, { border: LINE });
+        say(p.label.toUpperCase(), x + 12, y - 16, 7.5, bold, ORANGE);
+        let yy = y - 30;
+        for (const l of p.tl) { say(l, x + 12, yy, 9.2, p.text === NOT_PLACED ? bold : font, p.text === NOT_PLACED ? WAITING : INK); yy -= 12.5; }
+      });
+      y -= h;
+    }
+    y -= 4;
+  }
+
+  // 02 Unit & materials, with where each was ordered.
+  heading("Unit & materials", pack.quoted ? "Load up before heading out. Where each line was ordered is on the right." : undefined);
+  if (!pack.quoted) {
     y -= 14;
-    close();
+    say("No sold quote on this job, so no list. Check with the office what's going in.", L, y, 9.3, font, GREY);
+    y -= 8;
+  } else {
+    const all = [...pack.units, ...pack.materials];
+    if (all.length) checklist(all.map((l) => ({ text: `${l.qty} × ${l.name}`, right: orderRight(l) })));
+    else { y -= 14; say("No equipment or materials on the quote.", L, y, 9.3, font, GREY); y -= 8; }
   }
 
-  /* ---- the Condition Reports from the visit before, each as its own pages */
-  // Drawn by reportPdf, the same as the one emailed with a work order, without
-  // its footer: the pack's footer goes on every page below, so the page count
-  // covers them.
-  for (const r of pack.reports) {
-    const src = await PDFDocument.load(await reportPdf(r, meta.madeAt, { bare: true }));
-    for (const pg of await doc.copyPages(src, src.getPageIndices())) doc.addPage(pg);
+  // Ducted: the zoning and outlets on their own.
+  if (pack.zoning.length) {
+    const plan = photos.some((ph) => /plan|layout|drawing|design/i.test(ph.photo.name));
+    heading("Zoning & outlets", plan ? "From the sold quote. The plan on the job is on the photo pages, drawn whole." : "From the sold quote.");
+    checklist(pack.zoning.map((l) => ({ text: `${l.qty} × ${l.name}`, right: orderRight(l) })));
   }
 
-  /* ---- photos, four to a page */
-  const embedded: { img: PDFImage; p: Photo }[] = [];
+  // Extra information: what's particular to the job, and the visit's own instructions.
+  const extra: Check[] = [...(sm?.extra ?? []).map((text) => ({ text })), ...(pack.instructions ? [{ text: `Appointment instructions: ${pack.instructions}` }] : [])];
+  if (extra.length) { heading("Extra information"); checklist(extra); }
+
+  heading("Photos to take", pack.rebates.length ? `For the rebate (${pack.rebates.join(", ")} on the quote) and the job. Uploaded before leaving.` : "Uploaded to the job before leaving.");
+  checklist(pack.toTake);
+  heading("Before leaving");
+  checklist(pack.leaving);
+
+  /* ---- the photos on the job, a plan drawn whole */
+  const embedded: { img: PDFImage; p: Photo; plan: boolean }[] = [];
   let failed = 0;
   for (const ph of photos) {
     try {
       const img = /\.png$/i.test(ph.photo.name) ? await doc.embedPng(own(ph.bytes)) : await doc.embedJpg(own(ph.bytes));
-      embedded.push({ img, p: ph.photo });
+      embedded.push({ img, p: ph.photo, plan: /plan|layout|drawing|design/i.test(ph.photo.name) });
     } catch {
       failed++;
     }
   }
+  embedded.sort((a, b) => Number(b.plan) - Number(a.plan));
+  // One photo on its own is drawn as big as a plan.
+  if (embedded.length === 1) embedded[0].plan = true;
   const unshown = meta.notShown + failed;
   if (embedded.length || unshown) {
-    // Photos on pages of their own, after the gear rather than under it.
-    band(false);
-    strip("Photos", [
-      embedded.length ? `${embedded.length} photo${embedded.length === 1 ? "" : "s"}, newest first` : "No photos could go in",
-      unshown ? `${unshown} more on the job in ServiceTitan` : null,
-    ].filter(Boolean).join(" · "));
-    y += 6;
-  }
-  // Two across, two rows to a page: sized so the first photo page, under its
-  // heading, holds four like the rest.
-  const GAP = 12;
-  const CAP = 14;
-  const cellW = (W - 2 * M - GAP) / 2;
-  // The first row starts under the heading: band leaves y 27 below the header
-  // band, the heading takes 42 and the grid starts 6 back up from there.
-  const firstTop = H - BAND - 27 - 42 + 6;
-  const cellH = Math.floor((firstTop - (M + 28) - GAP) / 2 - CAP);
-  let yTop = y;
-  embedded.forEach(({ img, p }, i) => {
-    const col = i % 2;
-    if (col === 0) {
-      if (i > 0) yTop -= cellH + CAP + GAP;
-      if (yTop - cellH - CAP < M + 28) { band(false); yTop = y + 6; }
+    newPage();
+    heading("Photos on the job", [embedded.length ? `${embedded.length} photo${embedded.length === 1 ? "" : "s"}` : "No photos could go in", unshown ? `${unshown} more on the job in ServiceTitan` : null].filter(Boolean).join(" · "));
+    y -= 8;
+    const gap = 12;
+    const cellW = (CW - gap) / 2;
+    const cellH = 168;
+    const CAP = 13;
+    let col = 0;
+    for (const e of embedded) {
+      const caption = [e.p.label ?? (e.p.quoteVisit ? "Quote visit" : "This job"), e.p.at ? new Date(e.p.at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "Australia/Melbourne" }) : null, e.p.name].filter(Boolean).join(" · ");
+      if (e.plan || col === 0) { if (col !== 0) { y -= cellH + CAP + gap; col = 0; } }
+      const w0 = e.plan ? CW : cellW;
+      const h0 = e.plan ? Math.min(330, (CW * e.img.height) / e.img.width) : cellH;
+      ensure(h0 + CAP + 4);
+      const x0 = L + (e.plan ? 0 : col * (cellW + gap));
+      round(x0, y, w0, h0, 6, { fill: CARD, border: LINE });
+      const sc = Math.min((w0 - 4) / e.img.width, (h0 - 4) / e.img.height, 1);
+      const iw = e.img.width * sc;
+      const ih = e.img.height * sc;
+      page.drawImage(e.img, { x: x0 + (w0 - iw) / 2, y: y - h0 + (h0 - ih) / 2, width: iw, height: ih });
+      say(lines(caption, 7.5, font, w0)[0] ?? "", x0, y - h0 - 10, 7.5, font, GREY);
+      if (e.plan) { y -= h0 + CAP + gap; col = 0; }
+      else if (col === 1) { y -= cellH + CAP + gap; col = 0; }
+      else col = 1;
     }
-    const x0 = M + col * (cellW + GAP);
-    page.drawRectangle({ x: x0, y: yTop - cellH, width: cellW, height: cellH, color: CREAM });
-    const scale = Math.min(cellW / img.width, cellH / img.height, 1);
-    const w = img.width * scale;
-    const h = img.height * scale;
-    page.drawImage(img, { x: x0 + (cellW - w) / 2, y: yTop - cellH + (cellH - h) / 2, width: w, height: h });
-    y = yTop - cellH - 10;
-    const when = p.at ? new Date(p.at).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "Australia/Melbourne" }) : null;
-    const cap = wrap(font, 7.5, [p.label ?? (p.quoteVisit ? "Quote visit" : "This job"), when, p.name].filter(Boolean).join(" · "), cellW)[0] ?? "";
-    text(cap, x0, 7.5, font, GREY);
-  });
+  }
 
   /* ---- footer on every page */
   const pages = doc.getPages();
   const made = meta.madeAt.toLocaleString("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
   pages.forEach((pg, i) => {
-    pg.drawLine({ start: { x: M, y: M + 4 }, end: { x: W - M, y: M + 4 }, thickness: 0.6, color: LINE });
-    pg.drawText(drawable(bold, `Advanced Gas & Aircon · ${site.phone}`), { x: M, y: M - 8, size: 7.5, font: bold, color: NAVY });
-    const r = drawable(font, `${meta.version ? `Version ${meta.version}` : "Preview, not on the job"} · made ${made} from ServiceTitan · replaces any earlier version · page ${i + 1} of ${pages.length}`);
-    pg.drawText(r, { x: W - M - font.widthOfTextAtSize(r, 7.5), y: M - 8, size: 7.5, font, color: GREY });
+    pg.drawLine({ start: { x: L, y: 36 }, end: { x: W - L, y: 36 }, thickness: 0.6, color: LINE });
+    const left = drawable(bold, `Advanced Gas & Aircon · Job ${pack.jobNumber} Install Pack`);
+    pg.drawText(left, { x: L, y: 24, size: 7.5, font: bold, color: NAVY });
+    const r = drawable(font, `${meta.version ? `Version ${meta.version}` : "Preview, not on the job"} · made ${made} · ${site.phone} · page ${i + 1} of ${pages.length}`);
+    pg.drawText(r, { x: W - L - font.widthOfTextAtSize(r, 7.5), y: 24, size: 7.5, font, color: GREY });
   });
 
   return doc.save();
