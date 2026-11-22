@@ -13,6 +13,7 @@ import { MAX_AGE_MS } from "./outlookTypes";
 import { probeJobNotes } from "@/lib/dashboard/stEstimateProbe";
 import { applyJobSummaryQueue } from "@/lib/jobwrite/jobSummary";
 import { exportPackPhotos } from "@/lib/installpack/photoExport";
+import { attachQueuedPacks } from "@/lib/installpack/attachQueue";
 
 /**
  * The safety net under the webhook, and the office's catch-up.
@@ -195,6 +196,7 @@ export async function sweep(): Promise<SweepResult> {
   await noteSample().catch(() => undefined);
   const jobSummaries = await applyJobSummaryQueue(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 }));
   await exportPackPhotos(started + TAGS_BUDGET_MS).catch(() => undefined);
+  await attachQueuedPacks(started + TAGS_BUDGET_MS).catch(() => undefined);
   return { subscriptions, mailboxes, workOrders, attached, holds, units, jobFields, types, tapi, sites, owners, carried, secondLook, duplicates, handoffs, jobSummaries };
 }
 
