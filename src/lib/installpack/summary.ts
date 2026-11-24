@@ -7,7 +7,7 @@ import { listJobFiles } from "@/lib/ordering/jobFiles";
 import { aiConfigured } from "@/lib/chat/draft";
 import type { PackFacts } from "./build";
 import type { InstallJob } from "./facts";
-import { SUMMARY_RULES, SUMMARY_SCHEMA, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "./summaryText";
+import { SUMMARY_RULES, SUMMARY_SCHEMA, keepNote, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "./summaryText";
 
 export { aiConfigured };
 
@@ -95,7 +95,7 @@ async function jobNotes(j: InstallJob): Promise<string> {
     const r = await stFetch<{ data?: { text?: string | null; createdOn?: string | null }[] }>(stTenantPath("jpm", `jobs/${id}/notes`), { pageSize: "50" }).catch(() => ({ data: [] }));
     for (const n of r.data ?? []) {
       const t = (n.text ?? "").replace(/\s+/g, " ").trim();
-      if (!t || /^(install pack|INSTALL PACK)/.test(t) || /^Email from /.test(t) || /^EMAILS ABOUT THE QUOTE/.test(t)) continue;
+      if (!t || !keepNote(t)) continue;
       out.push(`- ${(n.createdOn ?? "").slice(0, 10)}${id === j.job_id ? "" : " (quote visit)"}: ${t.slice(0, 500)}`);
     }
   }

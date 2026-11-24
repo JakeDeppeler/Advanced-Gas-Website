@@ -167,3 +167,13 @@ export function parseSummary(text: string): InstallSummary {
     extra: (Array.isArray(v.extra) ? v.extra : []).filter((x) => typeof x === "string" && tidy(x)).map(tidy).slice(0, 5),
   };
 }
+
+/**
+ * The notes the pack's own words shouldn't be written from: the pack's notes
+ * about itself (left in, "Install pack updated to v6 … use it rather than
+ * earlier versions" came back as advice to use v6 when v8 was attached), and
+ * filed emails, which the quote already covers.
+ */
+export function keepNote(t: string): boolean {
+  return !/^install pack\b/i.test(t) && !/^Email from /.test(t) && !/^EMAILS ABOUT THE QUOTE/.test(t);
+}
