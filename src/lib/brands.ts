@@ -2426,14 +2426,17 @@ const brandCatalogue: Brand[] = [
     slug: "thermann",
     logo: "/logos/thermann.svg",
     layout: "blocks",
-    // Gas hot water only (Nov 2026 audit). The finder sells Thermann as gas
-    // continuous flow and gas storage and nothing else, so the heat pump,
-    // electric storage and Australian-made VEU bonus copy that led this page
-    // sold things its own range didn't list. The heat pump and electric
-    // records below stay so their old URLs still redirect here.
+    // Led by gas hot water (Jake, 24 Nov 2026): we still sell Thermann heat
+    // pumps but don't push them, so the page leads with the G-series and the
+    // storage tank and offers the heat pumps rather than selling them. The
+    // "built by Dux" and "Australian-made VEU bonus" lines that used to lead
+    // it are gone: neither was confirmed, and the $400 locally made top-up is
+    // Solar Victoria's, not VEU's. The heat pump and electric records below
+    // stay so their old URLs still redirect here.
     heroProducts: [
       { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas unit", label: "G-series continuous flow" },
       { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", alt: "Thermann 4-star gas storage unit", label: "Gas storage" },
+      { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump", label: "Heat pump, on request" },
     ],
     story: {
       heading: "Reece's own hot water, {on every Reece shelf}.",
@@ -2485,14 +2488,14 @@ const brandCatalogue: Brand[] = [
       ],
     },
     name: "Thermann",
-    tagline: "Reece-exclusive gas hot water, with the parts in every store.",
+    tagline: "Reece-exclusive hot water, with the parts in every store.",
     origin: "Reece-exclusive brand",
     intro:
       "Thermann is Reece's exclusive plumbing-trade brand. Reece owns the distribution, and every Reece store in the state carries the common spares, which is why a fault on one of these rarely costs you a week.",
     ourTake:
       "Thermann is the one to pick when you want the parts pipeline behind you. It's Reece's own brand, and as a Reece trade partner we pull parts and warranty over the counter at any store in Victoria. In practice that means most faults get fixed the same day rather than next week, which is why the G-series continuous flow and the 4-star storage tank are our standard gas hot water swaps.",
     accreditation: "Reece trade partner · Thermann installer",
-    productLabel: "G-series gas continuous flow and 4-star gas storage, natural gas or LPG",
+    productLabel: "G-series gas continuous flow and 4-star gas storage, natural gas or LPG, with Thermann heat pumps on request",
     photo: "/G-Series_Front_On_View_1200x900.jpg",
     photoFallback: "/thermann-continuous-flow-back.jpg",
     photoAlt: "Thermann G-series continuous flow gas hot water unit",
@@ -2522,11 +2525,11 @@ const brandCatalogue: Brand[] = [
     verdict:
       "Thermann is the one we reach for when the parts pipeline is what matters most: on a rental, an investment property, or anywhere a fault has to be fixed today. It's Reece's own brand, and as a Reece trade partner we pull parts and warranty over the counter at any store in Victoria, so most faults get sorted the same day rather than next week. For gas hot water, continuous flow or a storage tank, it's the range we can support fastest.",
     notRightWhen:
-      "Want to get off gas? Thermann is our gas hot water brand. A heat pump takes the VEU rebate and costs less to run, and for that we'd quote an iStore, a Viessmann or a Reclaim instead. Thermann earns its keep on the parts pipeline for a household staying on gas.",
+      "Want to get off gas? Thermann makes heat pumps and we'll fit one if you ask, but for most homes coming off gas we'd quote an iStore, a Viessmann or a Reclaim first. Thermann earns its keep on the parts pipeline for a household staying on gas.",
     versus:
-      "We fit heat pumps too, and they win a different job: coming off gas, an iStore is the lowest price after the VEU rebate, and a Reclaim CO₂ split is the best hot water we fit. Thermann is what goes in when you're staying on gas and getting a part today matters more than anything.",
+      "Coming off gas, the heat pumps we usually quote win a different job: an iStore is the lowest price after the VEU rebate, and a Reclaim CO₂ split is the best hot water we fit. Thermann's own heat pumps are there if you'd rather stay with the brand. Thermann is what goes in when getting a part today matters more than anything.",
     heroSub:
-      "Reece's own hot-water brand, and the one we can get parts for over the counter at any Reece store in Victoria. G-series continuous flow or a 4-star storage tank, natural gas or LPG: start with what you're replacing.",
+      "Reece's own hot-water brand, and the one we can get parts for over the counter at any Reece store in Victoria. G-series continuous flow or a 4-star storage tank, natural gas or LPG, and a Thermann heat pump if you'd like one: start with what you're replacing.",
     fitsWhere:
       "The G-series continuous flow as our standard gas swap right across the corridor, a 4-star tank where a household wants storage back, and the first call on a rental where a fault has to be fixed today.",
     heroFacts: [

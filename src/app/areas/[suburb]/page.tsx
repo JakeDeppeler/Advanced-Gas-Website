@@ -159,7 +159,9 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
 
   const drive = sub.driveMin
     ? sub.driveMin[0] === sub.driveMin[1] ? `${sub.driveMin[0]} min` : `${sub.driveMin[0]}–${sub.driveMin[1]} min`
-    : sub.distanceKm === 0 ? "On site" : `${Math.max(10, Math.round(sub.distanceKm * 0.7))}–${Math.max(15, Math.round(sub.distanceKm * 1.1))} min`;
+    // distanceKm is straight-line, and the road is longer, so the estimate
+    // allows a minute to a minute and a half per straight-line km.
+    : sub.distanceKm === 0 ? "On site" : `${Math.max(10, Math.round(sub.distanceKm * 1.0))}–${Math.max(15, Math.round(sub.distanceKm * 1.5))} min`;
 
   // The suburb's own jobs first, from its record; a record naming fewer than
   // three is topped up from the general order, so every page shows three.
