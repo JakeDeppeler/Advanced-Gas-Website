@@ -39,7 +39,7 @@ const SPLIT: Learn = {
 
 export const LEARN: Record<string, Learn> = {
   "split-system": SPLIT,
-  // The Dominator (Jake, Nov 2026): the one system we fit that keeps the
+  // The Dominator (Jake, Nov 2026): the one reverse-cycle system we fit that keeps the
   // ductwork a gas ducted house already has. Braemar's brochure: it goes in
   // the gas heater's own position, keeps the ducts and vents where they're
   // sound, needs a return air grille, and can go in in a day.
@@ -181,7 +181,7 @@ export const LEARN: Record<string, Learn> = {
   "gas-ducted-heating": {
     diagram: "gas-ducted",
     how: [
-      { t: "The heater", d: "A gas heater in the roof warms the air." },
+      { t: "The heater", d: "The gas heater warms the air." },
       { t: "Ducts and vents", d: "A fan pushes the warm air through ducts to a vent in each room." },
       { t: "Return air", d: "Air comes back through a big grille to be warmed again." },
       { t: "Safety tested", d: "We test for carbon monoxide on every gas heater we fit or service." },
@@ -268,7 +268,7 @@ export const SYS_INTRO: Record<string, string> = {
   "multi-head": "A multi-head system runs two or more indoor units off one outdoor unit. Each room gets its own head and its own remote, with only one box on the outside wall.",
   ducted: "A ducted split heats and cools the whole house from one unit hidden in the roof. Air comes out of slim vents in the ceiling, and zones let you run only the rooms you're using.",
   "reverse-cycle-ducted": "A ducted split heats the whole house in winter and cools it in summer, from one unit hidden in the roof. It takes its heat from the outside air, so there's no gas, and zones let you run only the rooms you're using.",
-  dominator: "The Braemar Dominator is a ducted split in a different form: the one system we fit that keeps the ductwork your gas ducted heating already has. It goes in the gas heater's own spot, on the same ducts and vents, and gives the house reverse-cycle heating and cooling, all electric, usually in a day. A standard ducted split means pulling the old ductwork out, inside and out, and running new.",
+  dominator: "The Braemar Dominator is a ducted split in a different form: the one reverse-cycle system we fit that keeps the ductwork your gas ducted heating already has. It goes in the gas heater's own spot, on the same ducts and vents, and gives the house reverse-cycle heating and cooling, all electric, usually in a day. A standard ducted split means pulling the old ductwork out, inside and out, and running new.",
   evaporative: "An evaporative cooler sits on the roof and cools the house with outside air drawn through water-soaked pads. It's the cheapest way to cool a whole home on dry, hot days.",
   "gas-ducted-heating": "Gas ducted heating warms the whole house from one heater, pushing warm air through ducts to a vent in each room. It's quick, even warmth through a Victorian winter.",
   zoning: "Zoning splits a ducted system into areas you can turn on and off, so you heat or cool the rooms you're in instead of the whole house.",
@@ -352,8 +352,8 @@ const SPLIT_CHOOSE: Record<string, Choice> = {
   ] },
 };
 const rooms = (n: number) => `${n} rooms off the one outdoor unit.`;
-/** The PEAD-M's six outputs. The heat load at the site check has the final say. */
-const PEAD_SIZES: Record<string, string> = {
+/** The PEA-M's six outputs. The heat load at the site check has the final say. */
+const PEA_M_SIZES: Record<string, string> = {
   "10 kW": "Smaller homes, around three bedrooms.",
   "12.5 kW": "Three to four-bedroom homes.",
   "14 kW": "Most four-bedroom homes.",
@@ -384,7 +384,7 @@ export const CHOOSE: Record<string, Choice> = {
     `${sys}.${tier}`, { ...c, instead: c.instead.map((x) => ({ ...x, go: x.go.includes(".") ? x.go : `${sys}.${x.go}` })) },
   ]))),
   "multi-head.essential": {
-    sizes: { "2 heads": "Two rooms, say the main bedroom and the living area.", "4 heads": "Up to four rooms off the one outdoor unit.", "5 heads · 12 kW": "Five rooms in a bigger home.", "6 heads · 18 kW": "Six rooms: most of the house." },
+    sizes: { "2 heads": "Two rooms, say the main bedroom and the living area.", "4 heads": "Up to four rooms off the one outdoor unit.", "5 heads": "Five rooms in a bigger home.", "6 heads": "Six rooms: most of the house." },
     instead: [
       { go: "multi-head.premium", label: "Mitsubishi Electric MXZ", when: "You want Mitsubishi's quiet and track record, or a mix of wall and floor heads." },
       { go: "ducted.essential", label: "A ducted system", when: "You want every room done with nothing on the walls, and there's room to work in the roof." },
@@ -398,26 +398,26 @@ export const CHOOSE: Record<string, Choice> = {
     ],
   },
   "multi-head.signature": {
-    sizes: { "Floor console": "A room where heat at floor level matters, or where a unit high on the wall would spoil a feature wall." },
+    sizes: { "2.5–5.0 kW": "Console heads in 2.5, 3.5 or 5.0 kW, for a room where heat at floor level matters, or where a unit high on the wall would spoil a feature wall." },
     instead: [{ go: "multi-head.premium", label: "MXZ with wall heads", when: "It's mostly for cooling, or wall space isn't a problem. Wall heads cost less." }],
   },
   "ducted.essential": {
     sizes: { "10 kW": "Smaller homes.", "12.5 kW": "Smaller to mid-size family homes.", "14 kW": "Most family homes.", "17 kW": "Larger homes: the biggest in the Kaden range." },
     instead: [
-      { go: "ducted.premium", label: "Mitsubishi Electric PEAD-M", when: "You want zoning as standard, or the home is bigger than the Kaden range covers." },
+      { go: "ducted.premium", label: "Mitsubishi Electric PEA-M", when: "You want Mitsubishi's track record, or the home is bigger than the Kaden range covers." },
       { go: "multi-head.essential", label: "A multi-head system", when: "There's no usable roof space." },
     ],
   },
   "ducted.premium": {
-    sizes: PEAD_SIZES,
+    sizes: PEA_M_SIZES,
     instead: [
-      { go: "ducted.signature", label: "PEAD-M + Mitsubishi zone controller", when: "You want every zone on Mitsubishi Electric's own controller, one brand end to end." },
+      { go: "ducted.signature", label: "PEA-M + Mitsubishi zone controller", when: "You want to run only the rooms you're using: Mitsubishi Electric's own zone controller, 4 or 8 zones, one brand end to end." },
       { go: "ducted.essential", label: "Kaden KDI", when: "Cost decides it, and the home is within the Kaden range." },
     ],
   },
   "ducted.signature": {
-    sizes: PEAD_SIZES,
-    instead: [{ go: "ducted.premium", label: "PEAD-M with its standard controller", when: "A simple wall controller is all you want." }],
+    sizes: PEA_M_SIZES,
+    instead: [{ go: "ducted.premium", label: "PEA-M with its standard wall controller", when: "One wall controller for the whole house is all you want, with no zones." }],
   },
   "evaporative.essential": {
     sizes: { Classic: "Most homes with a pitched roof, where the look on the roof doesn't matter much." },
@@ -468,17 +468,17 @@ export const CHOOSE: Record<string, Choice> = {
   "heat-pump.essential": {
     sizes: {
       "180 L": "One or two people with one bathroom, or an apartment. A smaller tank isn't keeping water hot that nobody uses.",
-      "275 L": "Three to five people, or two bathrooms. Enough stored to get through the evening showers when it heats once in the middle of the day.",
+      "270 L": "Three or four people, or two bathrooms. Enough stored to get through the evening showers when it heats once in the middle of the day.",
     },
     instead: [
-      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd like an Australian-made unit with a longer warranty, in the same single-unit format." },
+      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd like an Australian brand with a longer warranty, in the same single-unit format." },
       { go: "heat-pump.signature", label: "Reclaim CO₂ split", when: "It has to sit near a bedroom, you want the quietest option, or frosty mornings worry you most." },
     ],
   },
   "heat-pump.premium": {
     sizes: {
       "200 L": "One to three people with one bathroom. It fits a tighter spot and isn't heating water you won't use. On solar, it heats around midday and covers a small household's evening.",
-      "285 L": "Four or five people, two bathrooms, or showers back to back in the morning. The bigger tank also carries more of the day's solar heat into the night.",
+      "300 L": "Four or five people, two bathrooms, or showers back to back in the morning. The bigger tank also carries more of the day's solar heat into the night.",
     },
     instead: [
       { go: "heat-pump.signature", label: "Reclaim CO₂ split", when: "It has to go near a bedroom window: the split puts the heat pump away from the tank, so it's quieter where it counts. It also holds its output on frosty mornings, and comes in 315 L and 400 L for bigger households." },
@@ -491,8 +491,8 @@ export const CHOOSE: Record<string, Choice> = {
       "270 L": "Up to six people. It's 1830 mm tall, so we check the spot first.",
     },
     instead: [
-      { go: "heat-pump.essential", label: "iStore all-in-one", when: "The upfront price matters most, or you want the VEU rebate to go as far as it can." },
-      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd rather have an Australian-made unit." },
+      { go: "heat-pump.essential", label: "iStore all-in-one", when: "The upfront price matters most: it's the lowest of our heat pumps after the rebate." },
+      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd rather have an Australian brand." },
       { go: "heat-pump.signature", label: "Reclaim CO₂ split", when: "You want the compressor away from the tank, or a size over 270 L." },
     ],
   },
@@ -504,7 +504,7 @@ export const CHOOSE: Record<string, Choice> = {
       "400 L": "Five or more people, or two bathrooms going at once every morning.",
     },
     instead: [
-      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "There's only room for one unit where the old tank stood, or you'd rather spend less. One unit means less install work." },
+      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "There's only room for one unit where the old tank stood, or you'd rather spend less." },
       { go: "heat-pump.essential", label: "iStore all-in-one", when: "The lowest price is what matters most." },
     ],
   },
@@ -545,7 +545,7 @@ for (const [k, c] of Object.entries(CHOOSE)) {
 
 /** What happens after "Book this install". Every line is a promise the site already makes. */
 export const BOOKING_STEPS = (install: string): HowStep[] => [
-  { t: "Free site check", d: "We look at the room, the walls and where everything can go, and confirm the size." },
+  { t: "Free site check", d: "We look at the house and where everything can go, and confirm the size." },
   { t: "Fixed price in writing", d: "One price, with the model, the work and the warranty spelled out." },
   { t: "Install day", d: `How long: ${install.charAt(0).toLowerCase()}${install.slice(1)}. Done by our own crew.` },
   { t: "Handover", d: "The compliance certificate is emailed within 24 hours, and our workmanship is covered for six years." },
@@ -563,7 +563,7 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     cons: ["A shorter track record in Australia than Mitsubishi", "One room per unit: several rooms means several outdoor units"],
   },
   "Mitsubishi Electric MSZ-AP wall split": {
-    pros: ["Very quiet on low fan, good for bedrooms", "The lowest failure rate of anything we install", "Parts still available many years on"],
+    pros: ["Very quiet on low fan, good for bedrooms", "The best reliability record of anything we install", "Parts still available many years on"],
     cons: ["Costs more upfront than the Kaden", "One room per unit: several rooms means several outdoor units"],
   },
   "Kaden Multi-head system": {
@@ -582,12 +582,12 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     pros: ["Heats and cools the whole home", "Hidden in the roof, with slim ceiling vents", "Costs less than the Mitsubishi ducted"],
     cons: ["Needs a usable roof space", "A bigger job: usually two to three days", "The range tops out at 17 kW"],
   },
-  "Mitsubishi Electric PEAD-M ducted": {
-    pros: ["Zoned as standard", "Heating output matches the cooling", "Mitsubishi's reliability, hidden in the roof"],
-    cons: ["Costs more than the Kaden ducted", "Needs a usable roof space", "A bigger job: usually two to three days"],
+  "Mitsubishi Electric PEA-M ducted": {
+    pros: ["Mitsubishi's reliability, hidden in the roof", "Heating output matches the cooling", "One wall controller runs the whole house"],
+    cons: ["Costs more than the Kaden ducted", "No zones: those come with the Signature option's zone controller", "A bigger job: usually two to three days"],
   },
-  "Mitsubishi Electric PEAD-M + zone controller": {
-    pros: ["Mitsubishi Electric's own zone control, not a third-party box", "One brand end to end, so one warranty covers the lot", "Run only the rooms you're using"],
+  "Mitsubishi Electric PEA-M + zone controller": {
+    pros: ["Mitsubishi Electric's own zone controller, 4 or 8 zones", "One brand end to end, so one warranty covers the lot", "Run only the rooms you're using"],
     cons: ["The most expensive of our ducted options", "Needs a usable roof space"],
   },
   "Kaden Classic evaporative": {
@@ -603,7 +603,7 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     cons: ["Cooling only, no heating", "Less effective on humid days"],
   },
   "Braemar Dominator Series 3": {
-    pros: ["Keeps your existing ducts and vents: the only system we fit that does", "Heating and cooling from one electric system, with the VEU rebate", "Australian designed, made and owned (Seeley International)", "Usually done in a day"],
+    pros: ["Keeps your existing ducts and vents: the only reverse-cycle system we fit that does", "Heating and cooling from one electric system, with the VEU rebate", "Australian designed and owned (Seeley International)", "Usually done in a day"],
     cons: ["The ducts have to be sound and sized right to reuse", "Zoned, it needs at least six vents open at a time; a standard ducted split can run just one", "Costs more upfront than a gas heater swap"],
   },
   "Brivis Classic Wombat 3-star": {
@@ -624,10 +624,10 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   },
   "iStore R290 all-in-one": {
     pros: ["The lowest price of our heat pumps, with the VEU rebate taken off at the quote", "Solar diverter and Wi-Fi built in", "One unit: nothing else to place outside", "5-year warranty on the whole unit"],
-    cons: ["The compressor is in the same shell, so it hums near the house", "A shorter warranty than the Reclaim", "Two sizes only: 180 L and 275 L"],
+    cons: ["The compressor is in the same shell, so it hums near the house", "A shorter warranty than the Reclaim", "Two sizes only: 180 L and 270 L"],
   },
   "Reclaim ECO R290 all-in-one": {
-    pros: ["Australian made", "VEU rebate taken off at the quote", "One unit: nothing else to place outside"],
+    pros: ["An Australian brand", "VEU rebate taken off at the quote", "One unit: nothing else to place outside"],
     cons: ["Costs more than the iStore", "The compressor is in the same shell, so it hums near the house"],
   },
   "Viessmann Vitocal 161-A all-in-one": {
@@ -641,7 +641,7 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
   // steel one, with the heat pump itself on 10, so it says that.
   "Reclaim CO₂ split heat pump": {
     pros: ["The highest-quality hot water we fit", "15-year warranty on a stainless tank, 10 on glass-lined steel", "The compressor sits away from the tank, so it's quieter", "CO₂ keeps making hot water on cold mornings", "Stainless tank option for harder water"],
-    cons: ["The highest upfront cost of our hot water options", "Two units to place, and more install work"],
+    cons: ["The highest upfront cost of our hot water options", "Two units to place: the heat pump and the tank"],
   },
   "Thermann G-series continuous flow": {
     pros: ["Hot water that doesn't run out", "Same-day swaps on common models", "Compact and wall-hung"],

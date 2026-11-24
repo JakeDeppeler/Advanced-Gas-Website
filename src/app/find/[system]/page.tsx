@@ -11,6 +11,7 @@ import "@/components/homepage/homepage.css";
 import "@/components/homepage/product/product.css";
 import "@/components/homepage/brand/brand.css";
 import "@/components/homepage/page/kit.css";
+import { canonicalProductSystem } from "@/lib/homepage/canonical";
 import { JsonLd } from "@/components/JsonLd";
 
 /** /find/split-system and the rest: a page about the kind of system, above its three product pages. */
@@ -26,12 +27,16 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const ref = findSystem(params.system);
   if (!ref) notFound();
   const { sys } = ref;
+  const twin = canonicalProductSystem(sys);
   const prices = sys.tiers.map((t) => t.price).filter((p): p is number => typeof p === "number");
   const from = prices.length ? ` From ${money(Math.min(...prices))} installed.` : "";
   return seoMeta({
     title: `${sys.label}: how it works, pros and cons, and the options`,
     description: `${SYS_INTRO[sys.slug] ?? sys.sub}${from} Installed by our own crew, 6 years on our workmanship.`,
-    canonical: `/find/${sys.slug}`,
+    // The heating menu's "Ducted split" is the cooling one under the same name
+    // and title, so it points search engines there. A twin with a name of its
+    // own ("Reverse-cycle split") keeps its own page: its copy is about heating.
+    canonical: `/find/${twin.label === sys.label ? twin.slug : sys.slug}`,
   });
 }
 

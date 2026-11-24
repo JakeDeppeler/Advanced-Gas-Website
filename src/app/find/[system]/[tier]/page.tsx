@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 import { seoMeta } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/schema";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
-import { allProductParams, findSystem, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
+import { allProductParams, findSystem, lowerLabel, money, PHOTO, REVIEW_MATCH, tierModels, BRAND_SLUGS } from "@/lib/homepage/data";
 import { badgesFor, keyFigures } from "@/lib/homepage/badges";
 import { findBrand, findProduct } from "@/lib/brands";
 import { docsFor } from "@/lib/homepage/docs";
@@ -41,7 +41,8 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
   const { sys, tier } = found;
   const price = typeof tier.price === "number" ? ` From ${money(tier.price)} installed, GST included.` : " Fixed price in writing after a free site check.";
   return seoMeta({
-    title: `${tier.tier} ${sys.label.toLowerCase()}: ${tier.brand} ${tier.model}`,
+    // lowerLabel keeps a brand-named system in capitals ("Braemar Dominator").
+    title: `${tier.tier} ${lowerLabel(sys.label)}: ${tier.brand} ${tier.model}`,
     description: `${tier.brand} ${tier.model} installed by our own crews across Melbourne's south-east.${price} 6-year workmanship warranty.`,
     canonical: `/find/${canonicalProductSystem(sys).slug}/${tier.slug}`,
     image: PHOTO.team,

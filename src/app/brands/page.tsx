@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { brands, visibleProducts, type Brand } from "@/lib/brands";
+import { brands, type Brand } from "@/lib/brands";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
 import { BrandLockup } from "@/components/homepage/brand/BrandMark";
 import { PageHero, HeroCard } from "@/components/homepage/page/PageHero";
@@ -50,12 +50,14 @@ const BRAND_GROUPS: { label: string; h: string; slug: string; brandSlugs: string
     brandSlugs: ["brivis", "braemar"],
     blurb: "Like-for-like Brivis replacements, the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring. Or off gas altogether: the Braemar Dominator goes in where the gas heater was, on the ducts you have.",
   },
+  // Thermann is our gas hot water brand, so the group is hot water, not heat
+  // pumps. The anchor stays #heat-pump for the links already pointing at it.
   {
-    label: "Heat pump hot water",
-    h: "Heat pump {hot water}.",
+    label: "Hot water",
+    h: "Hot {water}.",
     slug: "heat-pump",
     brandSlugs: ["reclaim", "thermann", "viessmann", "istore"],
-    blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, Viessmann when you want a German name on the unit, iStore when the rebate is what decides it.",
+    blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you're staying on gas and want parts in every Reece store, Viessmann when you want a German name on the unit, iStore when the price is what decides it.",
   },
 ];
 
@@ -74,8 +76,8 @@ const BEST_FOR: Record<string, string> = {
   "mitsubishi-electric": "Family homes where reliability, quiet operation and long-term serviceability matter more than the lowest up-front price",
   "kaden": "3+ bedroom fitouts where every room gets done in one visit rather than one a year",
   "reclaim": "Long-term owners, hills postcodes, homes with rooftop solar for the PV-diverter payback",
-  "istore": "Rebate-maximisers, tight budgets, straightforward like-for-like electric tank swaps",
-  "thermann": "Households that want an Australian-made brand and prefer the integrated tank+heat-pump form factor",
+  "istore": "Tight budgets: the lowest heat pump price after the rebate, and straightforward like-for-like electric tank swaps",
+  "thermann": "Households staying on gas that want continuous flow or a storage tank, with the parts in every Reece store",
   "viessmann": "Households replacing an old electric or gas tank that want a German brand and a quiet unit",
   "braemar": "Gas ducted homes that want cooling and to get off gas, without pulling the ducts out",
   "brivis": "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
@@ -115,7 +117,6 @@ function BrandName({ b }: { b: Brand }) {
 function BrandCard({ b, sizes }: { b: Brand; sizes: string }) {
   const scene = scenePhoto(b);
   const lead = b.reasons?.[0];
-  const models = visibleProducts(b).length;
   const best = BEST_FOR[b.slug];
   return (
     <Link href={`/brands/${b.slug}`} className="bi__card" style={{ ["--c" as string]: b.blockAccent ?? b.accent }}>
@@ -126,7 +127,6 @@ function BrandCard({ b, sizes }: { b: Brand; sizes: string }) {
       <div className="bi__body">
         <div className="bi__top">
           <h3 className="bi__name"><BrandName b={b} /></h3>
-          <span className="bi__count">{models} model{models === 1 ? "" : "s"}</span>
         </div>
         <small className="bi__origin">{b.origin}</small>
         <span className="bi__tag">{b.tagline}</span>
@@ -143,7 +143,7 @@ function BrandCard({ b, sizes }: { b: Brand; sizes: string }) {
   );
 }
 
-type Group = (typeof BRAND_GROUPS)[number] & { list: Brand[]; models: number };
+type Group = (typeof BRAND_GROUPS)[number] & { list: Brand[] };
 
 function GroupHead({ g, id }: { g: Group; id?: string }) {
   return (
@@ -154,9 +154,13 @@ function GroupHead({ g, id }: { g: Group; id?: string }) {
   );
 }
 
-/** The group's own figures, counted rather than written, so they can't drift from the cards. Words, not a colour, carry them. */
+/**
+ * The group's brand count, counted rather than written. Model counts came off
+ * (Nov 2026 audit): this page counted every catalogue record, retired sizes
+ * and models no option sells included, so it disagreed with every brand page.
+ */
 function GroupMeta({ g }: { g: Group }) {
-  return <span className="bi__meta"><b>{g.list.length}</b> brand{g.list.length === 1 ? "" : "s"} · <b>{g.models}</b> models</span>;
+  return <span className="bi__meta"><b>{g.list.length}</b> brand{g.list.length === 1 ? "" : "s"}</span>;
 }
 
 /** The cards for one group. The group's size sets the columns (bi__grid--n), so a row is never left with one card in it. */
@@ -201,10 +205,9 @@ function CreamGroup({ g, sizes }: { g: Group; sizes: string }) {
 }
 
 export default function BrandsIndex() {
-  const totalModels = brands.reduce((sum, b) => sum + visibleProducts(b).length, 0);
   const groups: Group[] = BRAND_GROUPS.map((g) => {
     const list = g.brandSlugs.map((sl) => brands.find((b) => b.slug === sl)).filter((b): b is Brand => Boolean(b));
-    return { ...g, list, models: list.reduce((n, b) => n + visibleProducts(b).length, 0) };
+    return { ...g, list };
   }).filter((g) => g.list.length > 0);
   const by = (slug: string) => groups.find((g) => g.slug === slug);
   const air = by("aircon");
@@ -226,7 +229,7 @@ export default function BrandsIndex() {
           another, and is now the page's shelves, each with its brands. */}
       <PageHero
         crumbs={[{ name: "Brands" }]}
-        title={`${brands.length} brands, {${totalModels} models}.`}
+        title={`${brands.length} brands, {and our take on each}.`}
         sub="We install what works, not what we're paid to push. Every brand here is one we've put into enough Melbourne homes to have a real opinion on, and each has its own page with the range and our take."
         photo={PHOTO.outdoorUnit} pos="center 40%"
         ctas={<><a href="#aircon" className="abtn abtn--or">See the brands ↓</a><Link href="/#find" className="abtn abtn--line">Or find your system</Link></>}
