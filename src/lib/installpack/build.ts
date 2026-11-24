@@ -18,6 +18,7 @@
 import { createHash } from "node:crypto";
 import { toReport, type Report } from "@/lib/conditionReport/report";
 import type { SummaryState, VisitReport } from "./summaryText";
+import { melbourneInstant } from "@/lib/outlook/workOrderTypes";
 
 export type QuoteItem = {
   skuId: number | null;
@@ -70,9 +71,25 @@ export type PackFacts = {
   summary?: SummaryState | null;
   /** The next visit's own instructions in ServiceTitan ("with Thomas"), when there are any. */
   instructions?: string | null;
-  /** Whether the next visit is confirmed in ServiceTitan: a pack is made only then (Jake, 22 Nov). */
+  /** Whether the next visit is confirmed in ServiceTitan: a pack is made then (Jake, 22 Nov), or failing that the day before (packDue). */
   confirmed?: boolean;
+  /** When the next visit starts. */
+  visitStart?: string | null;
 };
+
+/**
+ * Whether a pack is due: as soon as the visit's confirmed, and otherwise from
+ * midday the day before it (Jake, 24 Nov: "go with the confirm but also the
+ * fall back"). The office rarely ticks confirmed in ServiceTitan (two of the
+ * week's installs had it), and a crew shouldn't go out without a pack.
+ */
+export function packDue(f: Pick<PackFacts, "confirmed" | "visitStart">, now = Date.now()): { due: boolean; why: "confirmed" | "day before" | null } {
+  if (f.confirmed) return { due: true, why: "confirmed" };
+  if (!f.visitStart) return { due: false, why: null };
+  const day = new Date(f.visitStart).toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
+  const before = new Date(Date.parse(`${day}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+  return now >= Date.parse(melbourneInstant(before, "12:00")) ? { due: true, why: "day before" } : { due: false, why: null };
+}
 
 /** What sort of install, for the lists that differ by it. */
 export type Kind = "split" | "hotwater" | "ducted" | "gasDucted" | "evap" | "other";

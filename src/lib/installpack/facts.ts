@@ -55,10 +55,10 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
       `job_id=in.(${jobs.map((j) => j.job_id).join(",")})`, q.gte("start_at", new Date(Date.now() - 12 * 3_600_000).toISOString()), "order=start_at.asc",
     ].join("&")).catch(() => []),
   ]);
-  const nextVisit = new Map<number, { confirmed: boolean; instructions: string | null }>();
+  const nextVisit = new Map<number, { confirmed: boolean; instructions: string | null; start: string }>();
   for (const a of appts) {
     if (a.status === "Canceled" || nextVisit.has(a.job_id)) continue;
-    nextVisit.set(a.job_id, { confirmed: a.confirmed === "true", instructions: a.instructions });
+    nextVisit.set(a.job_id, { confirmed: a.confirmed === "true", instructions: a.instructions, start: a.start_at });
   }
   const poIds = [...new Set(lines.map((l) => l.po_id))];
   const pos = poIds.length
@@ -103,6 +103,7 @@ export async function packFactsFor(jobs: InstallJob[]): Promise<Map<number, Pack
       orders,
       confirmed: nextVisit.get(j.job_id)?.confirmed ?? false,
       instructions: nextVisit.get(j.job_id)?.instructions ?? null,
+      visitStart: nextVisit.get(j.job_id)?.start ?? j.appointment_start ?? null,
     });
   }
   return out;
