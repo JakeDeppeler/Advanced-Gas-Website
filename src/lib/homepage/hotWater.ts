@@ -53,7 +53,7 @@ export const FIT_TEXT: Record<Fit, string> = {
 
 export type Tank = { litres: number; rec: number | null; chip: string; id: string };
 
-/** Every tank size an option comes in, from its model list ("275 L" chips). */
+/** Every tank size an option comes in, from its model list ("270 L" chips). */
 export function tanksOf(sysSlug: string, tierSlug: string): Tank[] {
   const refs = TIER_MODELS[`${sysSlug}.${tierSlug}`] ?? [];
   return refs.flatMap(([, slug, chip, id]) => {

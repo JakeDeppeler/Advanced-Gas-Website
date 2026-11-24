@@ -99,7 +99,7 @@ export const range = (total: number, ceiling = Infinity) => {
 
 export function ductedPrice(a: { brand: BrandId; size: string; storeys: string; zones: number; points: number; wifi: boolean; removal: boolean; gas: boolean }): Line[] {
   const size = DUCTED_SIZES.find((s) => s.v === a.size);
-  const lines: Line[] = [{ l: `${a.brand === "kaden" ? "Kaden KDI" : "Mitsubishi Electric PEAD-M"} ${size?.s ?? ""}, 4 zones, 8 points, installed`, v: DUCTED_BASE[a.brand][a.size] }];
+  const lines: Line[] = [{ l: `${a.brand === "kaden" ? "Kaden KDI" : "Mitsubishi Electric PEA-M"} ${size?.s ?? ""}, 4 zones, 8 points, installed`, v: DUCTED_BASE[a.brand][a.size] }];
   if (a.zones > 4) lines.push({ l: `${a.zones - 4} more zones`, v: ((a.zones - 4) / 2) * DUCTED_ADD.perTwoZones });
   if (a.points > 8) lines.push({ l: `${a.points - 8} more points`, v: (a.points - 8) * DUCTED_ADD.perPoint });
   if (a.storeys === "double") lines.push({ l: "Double storey", v: DUCTED_ADD.double });

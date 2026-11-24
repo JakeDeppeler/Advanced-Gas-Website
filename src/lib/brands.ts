@@ -359,7 +359,7 @@ export type Brand = {
  *
  *  Filenames to save real photos as (Wave 3 of the photo-swap plan):
  *    /mitsubishi-msz-ap.webp          · Mitsubishi MSZ-AP wall split
- *    /mitsubishi-pead-ducted.webp     · Mitsubishi PEAD-M ducted indoor
+ *    /mitsubishi-pead-ducted.webp     · Mitsubishi PEA-M ducted indoor
  *    /mitsubishi-outdoor-large.webp   · Mitsubishi twin-fan outdoor
  *    /kaden-bold-split.webp           · Kaden wall split + outdoor
  *    /kaden-ducted-small.webp         · Kaden ducted small
@@ -454,7 +454,7 @@ const brandCatalogue: Brand[] = [
       image: { src: "/Brivis Starpro 6 star indoor and outdoor gas ducted heater.jpg", alt: "Brivis StarPro gas ducted heaters" },
       points: [
         { t: "The same footprint", d: "The Wombat and Buffalo share their footprint with older Brivis and Braemar units, so the ducts, wiring and return-air grille all stay put." },
-        { t: "Cupboard or pad", d: "An internal unit where the heater lives in a cupboard, the weatherproof Buffalo where it sits outside on a slab." },
+        { t: "Cupboard or pad", d: "An internal heater where it lives in a cupboard, an external one in a weatherproof cabinet where it sits outside on a slab." },
         { t: "3-star to 6-star", d: "A Wombat for a rental, a StarPro 4 or 5-star where the gas bill starts to move." },
         { t: "A burner that modulates", d: "The 6-star StarPro varies its output to match the rooms, for a house that heats a lot of hours." },
       ],
@@ -467,8 +467,9 @@ const brandCatalogue: Brand[] = [
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start. CO tested." },
-      { y: 5, t: "Year 5", d: "Brivis's heat exchanger warranty ends." },
+      { y: 5, t: "Year 5", d: "Brivis's parts and labour warranty ends on a StarPro (year 3 on the Classic)." },
       { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
+      { y: 10, t: "Year 10", d: "The heat exchanger and burner warranty ends." },
       { y: 15, t: "Year 15", d: "Usually still fixable. Rinnai holds the parts." },
     ],
     picker: {
@@ -490,17 +491,22 @@ const brandCatalogue: Brand[] = [
     ourTake:
       "Brivis is the answer when a gas ducted heater comes out and a gas ducted heater goes back in. Same footprint, same ducts, same controller wiring, so the house is warm again the day we start. If the old unit is past 12 to 15 years we'll put a reverse-cycle price next to it as well, not to talk you out of gas, but so you're deciding with both running costs in front of you.",
     accreditation: "Brivis-Rinnai approved installer",
-    productLabel: "3 models · Wombat + Buffalo internal ducted, evaporative",
+    productLabel: "Gas ducted heaters, Classic Wombat 3-star to StarPro 6-star, and evaporative coolers",
     photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
     photoFallback: "/gas-ducted-install.webp",
     photoAlt: "Brivis gas ducted heater installed in a Melbourne home",
     accent: "#0B3C7A",
     established: "Founded 1971 · Melbourne · part of Rinnai Australia since 2004",
-    warranty: "5-year manufacturer warranty on heat exchanger + 6-year on our workmanship",
+    // Rinnai's Brivis warranty booklet (terms table, revised Mar 2026): ducted
+    // heaters and evaporative coolers 5 years parts and labour, the Compact
+    // Classic series 3; heat exchangers and burners, and a cooler's structure,
+    // 10. The site had 5 years on the heat exchanger here and 7 in the specs.
+    // This line is the warranty card on the evap pages too, hence both halves.
+    warranty: "5 years parts and labour (3 on the Classic heaters), and 10 on a heater's heat exchanger and burners or a cooler's structure + 6-year on our workmanship",
     keyFeatures: [
       "The gas ducted brand more Melbourne homes were built with than any other",
       "Same-footprint retrofit into most existing ducted heater cavities",
-      "Full internal range: Wombat + Buffalo, 3 to 6 star at 15 / 20 / 26 / 30 kW",
+      "Full internal range: Classic Wombat and StarPro, 3 to 6 star at 15 / 20 / 26 / 30 kW",
       "Rinnai-backed parts pipeline, so even a 15-year-old unit is still serviceable",
     ],
     commonInMelbourne:
@@ -523,16 +529,16 @@ const brandCatalogue: Brand[] = [
     notRightWhen:
       "If the old unit is well past its life and you run the heater all winter, gas is not automatically the cheap option any more, the running-cost gap to a reverse-cycle ducted can pay back the swap. And if you are moving off gas entirely, there is no sense putting a new burner in first. In both cases we price the reverse-cycle alternative next to the Brivis so the numbers make the call, not us.",
     versus:
-      "We fit reverse-cycle too, and where the old unit is well past its life and you heat all winter, a Mitsubishi Electric ducted is the honest spend: it reuses much of the existing duct run, does the cooling as well, and ends the gas bill. Brivis is what goes in when the ducts are sound, the unit is not ancient, and a same-day like-for-like is what the house needs.",
+      "We fit reverse-cycle too, and where the old unit is well past its life and you heat all winter, a Braemar Dominator is the honest spend: it goes where the gas heater was, on the existing ducts where they're sound, does the cooling as well, and ends the gas bill. Brivis is what goes in when the ducts are sound, the unit is not ancient, and a same-day like-for-like is what the house needs.",
     heroSub:
       "The gas ducted heater we replace, service and re-install more than any other in the south-east, most homes here were built with one. When the ducts are sound and only the heater has failed, a like-for-like Brivis has the house warm again the same day.",
     fitsWhere:
-      "The heater cupboard or the side-of-house pad in Pakenham, Berwick, Officer, Cranbourne and Endeavour Hills homes built 1990–2015: internal Wombat and Starpro where it lives in a cupboard, Buffalo and external Starpro where it sits outside on a slab.",
+      "The heater cupboard or the side-of-house pad in Pakenham, Berwick, Officer, Cranbourne and Endeavour Hills homes built 1990–2015: internal Wombat and StarPro where it lives in a cupboard, Buffalo and external StarPro where it sits outside on a slab.",
     heroFacts: [
       { v: "9", k: "Models we install and support" },
       { v: "Since 1971", k: "Melbourne-built · Rinnai-owned since 2004" },
-      { v: "3–6 star", k: "Wombat through to Starpro efficiency" },
-      { v: "5 yr & 6 yr", k: "5-yr manufacturer and 6-yr workmanship warranties, both from install day" },
+      { v: "3–6 star", k: "Wombat through to StarPro efficiency" },
+      { v: "5 yr & 6 yr", k: "5-yr Brivis parts and labour (3 on the Classic) and 6-yr workmanship, both from install day" },
     ],
     benefitsHeading: "Why the like-for-like usually wins.",
     benefitTiles: [
@@ -559,14 +565,14 @@ const brandCatalogue: Brand[] = [
       },
       {
         t: "3-star to 6-star, one range",
-        line: "A Wombat for a rental, a modulating Starpro for a house you heat hard",
+        line: "A Wombat for a rental, a modulating StarPro for a house you heat hard",
         detail:
-          "A 3-star Wombat is the right call for a house being sold or rented; the Starpro 4/5-star is where the gas bill starts to move; the 6-star Starpro's modulating burner varies its output to match the rooms in a home that heats a lot of hours. Same cupboard footprint across the lot, so the retrofit stays clean whichever you pick.",
+          "A 3-star Wombat is the right call for a house being sold or rented; the StarPro 4/5-star is where the gas bill starts to move; the 6-star StarPro's modulating burner varies its output to match the rooms in a home that heats a lot of hours. Same cupboard footprint across the lot, so the retrofit stays clean whichever you pick.",
         icon: "flame",
       },
       {
         t: "Cupboard or pad, we match what's there",
-        line: "Internal Wombat and Starpro, or the weatherproof Buffalo outside",
+        line: "Internal Wombat and StarPro, or the weatherproof Buffalo outside",
         detail:
           "Some of these homes have the heater in an internal cupboard; the older Berwick, Endeavour Hills and Cranbourne weatherboards have it outside on a slab. We fit the internal unit or the external cabinet to suit, reusing the existing pad and gas line rather than pouring anything new.",
         icon: "wrench",
@@ -615,12 +621,12 @@ const brandCatalogue: Brand[] = [
         a: "It depends on the unit's age and how hard you run it. If the ducts are sound and the heater is not ancient, a like-for-like Brivis is the least-disruptive and usually cheapest way to be warm again the same day. If the old unit is well past its life and you heat all winter, we put a reverse-cycle ducted price alongside it: not to push you off gas, but so both running costs are in front of you.",
       },
       {
-        q: "What's the difference between the Wombat and the Starpro?",
-        a: "Star rating, and therefore the gas bill. The Wombat is a 3-star heater: the right call for a house being sold, rented, or heated a few weeks a year. The Starpro 4/5-star is where the gas bill starts to move for a family running it all winter, and the 6-star Starpro adds a modulating burner that varies its output to match the rooms. Same cupboard footprint across all of them, so the retrofit is the same job whichever you pick.",
+        q: "What's the difference between the Wombat and the StarPro?",
+        a: "Star rating, and therefore the gas bill. The Wombat is a 3-star heater: the right call for a house being sold, rented, or heated a few weeks a year. The StarPro 4/5-star is where the gas bill starts to move for a family running it all winter, and the 6-star StarPro adds a modulating burner that varies its output to match the rooms. Same cupboard footprint across all of them, so the retrofit is the same job whichever you pick.",
       },
       {
         q: "My heater's outside on a slab, not in a cupboard, is that a problem?",
-        a: "Not at all. The Buffalo and external Starpro are the weatherproof-cabinet builds for exactly that, common on the older Berwick, Endeavour Hills and Cranbourne weatherboards where the heater has always sat outside. We reuse the existing pad and gas line, so nothing new gets poured.",
+        a: "Not at all. The Buffalo and external StarPro are the weatherproof-cabinet builds for exactly that, common on the older Berwick, Endeavour Hills and Cranbourne weatherboards where the heater has always sat outside. We reuse the existing pad and gas line, so nothing new gets poured.",
       },
       {
         q: "What warranty do I get, and do you carbon monoxide test it?",
@@ -642,16 +648,16 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Brivis Classic Wombat 3-star internal gas ducted heater",
         bestFor: "Like-for-like retrofit into an existing cupboard cavity, usually done in a few hours",
         ourTake:
-          "The Wombat is the straight swap. It shares its footprint with the older Brivis and Braemar units, so the existing ducts, controller wiring and return-air grille all stay where they are and the job is usually done in 3–5 hours. It's a 3-star heater, which is the right call for a house that's being sold, rented out, or heated a few weeks a year. If you're staying and running it all winter, a Starpro burns less gas doing the same work, and we'll show you both numbers.",
+          "The Wombat is the straight swap. It shares its footprint with the older Brivis and Braemar units, so the existing ducts, controller wiring and return-air grille all stay where they are and the job is usually done in 3–5 hours. It's a 3-star heater, which is the right call for a house that's being sold, rented out, or heated a few weeks a year. If you're staying and running it all winter, a StarPro burns less gas doing the same work, and we'll show you both numbers.",
         specs: [
           { label: "Star rating", value: "3-star" },
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
-          { label: "Install position", value: "Internal cupboard (under-floor or roof-space)" },
+          { label: "Install position", value: "Internal: cupboard, roof space or under floor" },
           { label: "Configuration", value: "Down-flow / up-flow / horizontal" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
           { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
         ],
         related: ["brivis-internal-compact-classic", "brivis-internal-starpro-45", "brivis-external-buffalo"],
@@ -675,47 +681,47 @@ const brandCatalogue: Brand[] = [
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
           { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
         ],
         related: ["brivis-internal-wombat-3", "brivis-internal-starpro-45", "brivis-external-buffalo"],
       },
       {
         slug: "brivis-internal-starpro-45",
-        name: "Brivis Starpro · 4 & 5-Star Internal",
-        model: "Starpro 4★ / 5★ Internal",
+        name: "Brivis StarPro · 4 & 5-Star Internal",
+        model: "StarPro 4★ / 5★ Internal",
         category: "ducted",
         categoryLabel: "Internal gas ducted heater",
         capacity: "15 · 20 · 26 · 30 kW output · 4-star or 5-star",
         starRating: "4-star / 5-star",
         veuEligible: false,
         photo: "/Brivis Starpro 4 and 4 & 5 star indoor verison and external verson .jpg",
-        photoAlt: "Brivis Starpro 4/5-star internal gas ducted heater",
+        photoAlt: "Brivis StarPro 4/5-star internal gas ducted heater",
         bestFor: "In-cupboard retrofit for a household staying put and running the heater all winter",
         ourTake:
-          "Starpro 4/5-star is where the gas bill starts to move. Same in-cupboard footprint as the Wombat so the retrofit stays clean, and enough of an efficiency gain that a family running the heater every day through a Melbourne winter feels it on the bill. The 6-star adds a modulating burner on top of that, which is worth having in some houses and not in others, and we'll tell you which yours is.",
+          "The 4-star is where the gas bill starts to move, and the 5-star takes it further for a family running the heater every day through a long Melbourne winter. Same in-cupboard footprint as the Wombat either way, so the retrofit stays clean. The 6-star adds a modulating burner on top of that, which is worth having in some houses and not in others, and we'll tell you which yours is.",
         specs: [
           { label: "Star rating options", value: "4-star or 5-star" },
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
           { label: "Install position", value: "Internal cupboard" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
-          { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
+          { label: "Unit warranty", value: "5-year parts and labour + 6-year workmanship" },
         ],
         related: ["brivis-internal-starpro-6", "brivis-internal-wombat-3", "brivis-external-starpro-45"],
       },
       {
         slug: "brivis-internal-starpro-6",
-        name: "Brivis Starpro · 6-Star Internal",
-        model: "Starpro 6★ Internal",
+        name: "Brivis StarPro · 6-Star Internal",
+        model: "StarPro 6★ Internal",
         category: "ducted",
         categoryLabel: "Internal gas ducted heater",
         capacity: "15 · 20 · 26 · 30 kW output · 6-star premium",
         starRating: "6-star",
         veuEligible: false,
         photo: "/Brivis Starpro 6 star indoor and outdoor gas ducted heater.jpg",
-        photoAlt: "Brivis Starpro 6-star internal gas ducted heater",
+        photoAlt: "Brivis StarPro 6-star internal gas ducted heater",
         bestFor: "Homes staying on gas for the long haul that run the heater hard",
         ourTake:
           "The modulating burner is what you're buying here. Instead of firing flat out and shutting off, it varies its output to match what the rooms are asking for, so there's less temperature swing and less gas burnt getting there. It earns its money in a house that heats a lot of hours, and it's the most efficient gas ducted heater Brivis builds.",
@@ -726,8 +732,8 @@ const brandCatalogue: Brand[] = [
           { label: "Burner", value: "Modulating (varies output to match room demand)" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
-          { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
+          { label: "Unit warranty", value: "5-year parts and labour + 6-year workmanship" },
         ],
         related: ["brivis-internal-starpro-45", "brivis-external-starpro-6"],
       },
@@ -750,47 +756,47 @@ const brandCatalogue: Brand[] = [
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
           { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
         ],
         related: ["brivis-external-starpro-45", "brivis-internal-compact-classic"],
       },
       {
         slug: "brivis-external-starpro-45",
-        name: "Brivis Starpro · 4 & 5-Star External",
-        model: "Starpro 4★ / 5★ External",
+        name: "Brivis StarPro · 4 & 5-Star External",
+        model: "StarPro 4★ / 5★ External",
         category: "ducted",
         categoryLabel: "External gas ducted heater",
         capacity: "15 · 20 · 26 · 30 kW output · 4-star or 5-star · external cabinet",
         starRating: "4-star / 5-star",
         veuEligible: false,
         photo: "/Brivis Starpro 4 and 4 & 5 star indoor verison and external verson .jpg",
-        photoAlt: "Brivis Starpro 4/5-star external gas ducted heater cabinet",
+        photoAlt: "Brivis StarPro 4/5-star external gas ducted heater cabinet",
         bestFor: "External-cabinet retrofit where the heater runs most of the winter",
         ourTake:
-          "Starpro External in 4-star or 5-star, for the house with the heater outdoors that runs it hard enough to care what the gas costs. Same weatherproof cabinet footprint as the Buffalo External, so the existing pad and gas line get reused and nothing new gets poured.",
+          "StarPro External in 4-star or 5-star, for the house with the heater outdoors that runs it hard enough to care what the gas costs. Same weatherproof cabinet footprint as the Buffalo External, so the existing pad and gas line get reused and nothing new gets poured.",
         specs: [
           { label: "Star rating options", value: "4-star or 5-star" },
           { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
           { label: "Install position", value: "External weatherproof cabinet on ground pad" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
-          { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
+          { label: "Unit warranty", value: "5-year parts and labour + 6-year workmanship" },
         ],
         related: ["brivis-external-starpro-6", "brivis-external-buffalo", "brivis-internal-starpro-45"],
       },
       {
         slug: "brivis-external-starpro-6",
-        name: "Brivis Starpro · 6-Star External",
-        model: "Starpro 6★ External",
+        name: "Brivis StarPro · 6-Star External",
+        model: "StarPro 6★ External",
         category: "ducted",
         categoryLabel: "External gas ducted heater",
         capacity: "15 · 20 · 26 · 30 kW output · 6-star premium · external cabinet",
         starRating: "6-star",
         veuEligible: false,
         photo: "/Brivis Starpro 6 star indoor and outdoor gas ducted heater.jpg",
-        photoAlt: "Brivis Starpro 6-star external gas ducted heater cabinet",
+        photoAlt: "Brivis StarPro 6-star external gas ducted heater cabinet",
         bestFor: "Outdoor-cabinet homes staying on gas for the long haul",
         ourTake:
           "The modulating burner, in the weatherproof cabinet. Output varies to match what the house is asking for rather than cycling hard on and off, which is the difference you feel in a home that heats a lot of hours. The most efficient outdoor-cabinet heater Brivis makes.",
@@ -801,8 +807,8 @@ const brandCatalogue: Brand[] = [
           { label: "Burner", value: "Modulating (varies output to match room demand)" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Controller", value: "Brivis Networker + Touch wall controller" },
-          { label: "Heat exchanger warranty", value: "7-year (aluminised steel)" },
-          { label: "Unit warranty", value: "3-year full unit + 6-year workmanship" },
+          { label: "Heat exchanger warranty", value: "10 years (heat exchanger and burners)" },
+          { label: "Unit warranty", value: "5-year parts and labour + 6-year workmanship" },
         ],
         related: ["brivis-external-starpro-45", "brivis-internal-starpro-6"],
       },
@@ -812,7 +818,7 @@ const brandCatalogue: Brand[] = [
         model: "Contour · Classic roof profile",
         category: "ducted",
         categoryLabel: "Roof-mounted evaporative cooling",
-        capacity: "15 · 20 · 26 · 30 kW · Classic (taller) roof silhouette",
+        capacity: "Classic (taller) roof silhouette",
         veuEligible: false,
         photo: "/classic_evap_product_image.jpg",
         photoAlt: "Brivis Contour Classic evaporative cooler on the roof",
@@ -821,17 +827,16 @@ const brandCatalogue: Brand[] = [
           "The Contour is the Classic profile, the taller cabinet. It's what goes on when the roof pitch carries it and nobody minds how it reads from the footpath, which covers most houses. Cools a whole home for a fraction of what refrigerated ducted costs to run, as long as the day is dry, and most Melbourne days are.",
         specs: [
           { label: "Silhouette", value: "Classic (taller) roof profile" },
-          { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
           { label: "Install position", value: "Roof-mounted" },
           { label: "Refrigerant", value: "None, evaporative water cooling" },
-          { label: "Running cost", value: "~25% of a refrigerated ducted equivalent" },
+          { label: "Running cost", value: "A fraction of a refrigerated ducted system's" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
           "Classic (taller) silhouette, Brivis's default evap profile",
-          "Four output sizes (15 / 20 / 26 / 30 kW), matched to home cooling load",
+          "Sized to the home's cooling load at the site check",
           "Roof-mounted install pushes cooled air through ceiling vents",
-          "Running cost ~25% of refrigerated ducted, genuinely cheap to run in dry heatwaves",
+          "A fraction of refrigerated ducted's running cost, genuinely cheap to run in dry heatwaves",
           "No refrigerant, no ARC ticket needed for service, straightforward annual clean",
         ],
         whyWeInstall: [
@@ -847,7 +852,7 @@ const brandCatalogue: Brand[] = [
         model: "Advance · Low-Profile roof silhouette",
         category: "ducted",
         categoryLabel: "Roof-mounted evaporative cooling",
-        capacity: "15 · 20 · 26 · 30 kW · Low-Profile (flatter) roof silhouette",
+        capacity: "Low-Profile (flatter) roof silhouette",
         veuEligible: false,
         photo: "/Kaden low_evap cooler.jpg",
         photoAlt: "Low-profile roof-mounted evaporative cooler",
@@ -856,16 +861,14 @@ const brandCatalogue: Brand[] = [
           "Same cooling as the Contour, in a flatter cabinet. It goes on when the roofline is the thing that matters: a character street, an estate with covenants, or a low-pitch roof where the taller cabinet sits awkwardly. You're buying the silhouette rather than the cooling, and that's a fair reason to buy it.",
         specs: [
           { label: "Silhouette", value: "Low-Profile (flatter) roof silhouette" },
-          { label: "Output range", value: "15 · 20 · 26 · 30 kW" },
           { label: "Install position", value: "Roof-mounted (suits low-pitch roofs)" },
           { label: "Refrigerant", value: "None, evaporative water cooling" },
-          { label: "Running cost", value: "~25% of a refrigerated ducted equivalent" },
+          { label: "Running cost", value: "A fraction of a refrigerated ducted system's" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
           "Low-Profile silhouette, clean street-view roofline, ~30% lower than the Contour",
-          "Same four output sizes as the Contour (15 / 20 / 26 / 30 kW)",
-          "Same cooling capability as the Classic, just a flatter cabinet",
+          "Same cooling as the Contour, just a flatter cabinet",
           "Suits low-pitch roofs where the Contour would sit awkwardly",
           "Standard Brivis evap service pipeline, no new parts to learn",
         ],
@@ -886,10 +889,10 @@ const brandCatalogue: Brand[] = [
     tagline: "The default air conditioning brand in our workshop.",
     origin: "Japan",
     intro:
-      "Mitsubishi Electric is the brand we quote first on any air conditioning job, and the reason is the reliability record across our own install base. A decade-old MSZ-AP still runs to spec, and the parts pipeline for units that age is still open, which is what decides whether a system gets fixed or replaced in year twelve.",
+      "Mitsubishi Electric is the brand we quote first on any air conditioning job, and the reason is the reliability record across our own install base. A decade-old Mitsubishi wall split still runs to spec, and the parts pipeline for units that age is still open, which is what decides whether a system gets fixed or replaced in year twelve.",
     ourTake:
-      "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
-    productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
+      "Mitsubishi Electric has the best reliability record of anything we install, across the whole range. That is what decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
+    productLabel: "16 models · wall splits, multi-head, ducted, floor console, controllers",
     // The product, not an install photo. The roof-space photo this used
     // (/ducted-split.webp) is a Kaden ducted unit: its rating plate says so.
     photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
@@ -901,11 +904,11 @@ const brandCatalogue: Brand[] = [
     ],
     layout: "blocks",
     accentLight: "#FF5A6B",
-    // Mitsubishi Electric's own failure rate across its whole range, not
-    // our call-back count: an earlier draft said "come back to us", which
-    // was the wrong claim.
+    // An "under 1% failure rate" figure led here until the Nov 2026 audit:
+    // nothing on the site or from Mitsubishi sourced it. Put a number back
+    // only with its source beside it.
     reasons: [
-      { v: "Under 1%", icon: "check", k: "failure rate", d: "Across Mitsubishi Electric's whole range. The lowest of anything we install.", img: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor unit" },
+      { v: "Reliable", icon: "check", k: "across the range", d: "The best reliability record of anything we install.", img: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor unit" },
       { v: "19 dBA", icon: "quiet", k: "on low", d: "The smallest wall split is quieter than a library. Quiet enough to sleep next to.", img: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
       { v: "1 brand", icon: "controller", k: "unit, controls and zoning", d: "Mitsubishi Electric's own zone controller on its own ducted system, so one warranty covers the lot.", img: "/mitsubishi-zone-controller-v2.webp", alt: "Mitsubishi Electric touch zone controller" },
       { v: "Year 12", icon: "wrench", k: "and the parts are still there", d: "Common parts come out of the Melbourne warehouse the same day, however old the unit.", img: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric MXZ outdoor unit" },
@@ -927,17 +930,17 @@ const brandCatalogue: Brand[] = [
     established: "Australian sales since 1978 · manufacturing in Thailand",
     warranty: "5-year manufacturer parts + labour, plus 6 years on our workmanship.",
     keyFeatures: [
-      "Under 1% failure rate across the entire range, the lowest of anything we install",
-      "A decade-old MSZ-AP still runs to spec, we service units we put in over 10 years ago",
+      "The best reliability record of anything we install, across the entire range",
+      "Decade-old Mitsubishi wall splits still run to spec, we service units we put in over 10 years ago",
       "Parts pipeline is genuinely never a worry, whatever the age of the unit",
       "MSZ-AP wall splits are our default for bedrooms and living rooms",
-      "PEAD-M ducted for family homes, sized off a proper room-by-room heat load",
+      "PEA-M ducted for family homes, sized off a proper room-by-room heat load",
       "MXZ multi-head runs 2-6 indoor units off one outdoor, one set of penetrations",
       "R32 refrigerant across the range, modern and low-GWP",
       "MELCloud Wi-Fi module adds phone control to any indoor unit",
     ],
     commonInMelbourne:
-      "In every suburb we work in, and specified for different reasons in each. Berwick, Officer, Clyde North and Cranbourne new-builds go PEAD-M ducted almost by default. Berwick and Pakenham weatherboards, where there is no roof space to run ducts through, get MSZ-AP wall splits.",
+      "In every suburb we work in, and specified for different reasons in each. Berwick, Officer, Clyde North and Cranbourne new-builds go PEA-M ducted almost by default. Berwick and Pakenham weatherboards, where there is no roof space to run ducts through, get MSZ-AP wall splits.",
     support:
       "Mitsubishi's Melbourne parts warehouse is same-day for common indoor/outdoor parts. Manufacturer tech support is genuinely responsive. We rarely wait on a part.",
     resources: [
@@ -980,12 +983,12 @@ const brandCatalogue: Brand[] = [
       results: [
         { when: { rooms: "one" }, model: "MSZ-AP wall split", why: "One unit on the wall and one outside. Our default for a bedroom or living room, and usually in within half a day." },
         { when: { rooms: "few" }, model: "MXZ multi-head", why: "One outdoor unit runs two to six indoor units, each room on its own remote. One set of holes in the wall, not four." },
-        { when: { rooms: "all", roof: "yes" }, model: "PEAD-M + zone controller", why: "The unit lives in the roof and vents into every room, and Mitsubishi Electric's own zone controller means you only run the rooms you're using." },
+        { when: { rooms: "all", roof: "yes" }, model: "PEA-M + zone controller", why: "The unit lives in the roof and vents into every room, and Mitsubishi Electric's own zone controller means you only run the rooms you're using." },
         { when: { rooms: "all" }, model: "MXZ multi-head", why: "With no roof space for ducts, one outdoor unit runs up to six indoor units instead." },
       ],
     },
     verdict:
-      "Mitsubishi is what we quote first and fit most, and we'd rather be straight about why: it costs a few hundred more than a budget brand on a bedroom split, and that gap buys you a decade where we don't come back. The reliability is real, the parts are on a Melbourne shelf in year twelve, and a decade-old MSZ-AP still makes its rated output, we measure them. If a system you'll own for fifteen years is worth paying for once, this is the one.",
+      "Mitsubishi is what we quote first and fit most, and we'd rather be straight about why: it costs a few hundred more than a budget brand on a bedroom split, and that gap buys you a decade where we don't come back. The reliability is real, the parts are on a Melbourne shelf in year twelve, and a decade-old Mitsubishi wall split still makes its rated output, we measure them. If a system you'll own for fifteen years is worth paying for once, this is the one.",
     notRightWhen:
       "Renovating to sell inside two years? The reliability premium is money you won't see again at the open house, a Kaden cools the room just as well for the photos. Mitsubishi earns its price over a decade of ownership, not a quick flip, and we'll say so rather than sell you up.",
     versus:
@@ -1016,14 +1019,14 @@ const brandCatalogue: Brand[] = [
         id: "wall-split",
         label: "MSZ-AP wall splits",
         blurb:
-          "One outdoor unit, one indoor head on the wall. Our default for a bedroom, a living room or a granny flat, and the quickest thing we fit. Most go in back-to-back in a single morning.",
+          "One outdoor unit, one indoor head on the wall. Our default for a bedroom, a living room or a granny flat, and the quickest thing we fit. Most go in within a single morning.",
         photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
         photoAlt: "Mitsubishi Electric MSZ-AP wall-mounted split system",
         priceFrom: "from $2,199 installed",
         facts: [
           { lead: "Six sizes", note: "2.5 kW for a bedroom up to 8.0 kW for large open-plan" },
           { lead: "19 dBA on low", note: "On the AP25, quiet enough to sleep next to" },
-          { lead: "One morning", note: "Back-to-back install in three to four hours" },
+          { lead: "One morning", note: "Three to four hours with the outdoor unit right behind the wall" },
           { lead: "Phone control", note: "Add the MELCloud Wi-Fi module to any indoor unit" },
         ],
         models: ["msz-ap25", "msz-ap35", "msz-ap50", "msz-ap60", "msz-ap71", "msz-ap80"],
@@ -1046,16 +1049,16 @@ const brandCatalogue: Brand[] = [
       },
       {
         id: "ducted",
-        label: "PEAD-M ducted",
+        label: "PEA-M ducted",
         blurb:
-          "The indoor unit lives in the roof and vents into every room, zoned so you are not paying to condition the bedrooms at seven at night. New builds and retrofits both, sized off a room-by-room heat load rather than a guess.",
+          "The indoor unit lives in the roof and vents into every room. Add Mitsubishi Electric's own zone controller and you are not paying to condition the bedrooms at seven at night. New builds and retrofits both, sized off a room-by-room heat load rather than a guess.",
         photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
-        photoAlt: "Mitsubishi PEAD-M ducted indoor unit",
+        photoAlt: "Mitsubishi PEA-M ducted indoor unit",
         priceFrom: "from $12,500 installed",
         facts: [
-          { lead: "10 kW to 20 kW", note: "PEAD-M for most homes, PEA-M where the load is bigger" },
+          { lead: "10 kW to 20 kW", note: "Six PEA-M sizes, the 20 kW on three-phase" },
           { lead: "Heating parity", note: "Rated heat output matches the cooling figure" },
-          { lead: "Zoned as standard", note: "Four, six or eight zones, fitted by default" },
+          { lead: "Zoning on top", note: "Mitsubishi Electric's own zone controller, 4 or 8 zones" },
           { lead: "The duct design first", note: "We size the trunk and the branches, not just the unit" },
         ],
         models: ["pead-m", "pead-large"],
@@ -1080,10 +1083,10 @@ const brandCatalogue: Brand[] = [
         id: "controls",
         label: "Controllers and zoning",
         blurb:
-          "The wired wall controller and the native ducted zone controller. Not an upsell. On a ducted job the zoning is what decides whether the system costs sense to run, and it goes in as part of the install.",
+          "The wired wall controller and the native ducted zone controller. On a ducted job the zoning is what decides whether the system makes sense to run, and it's what our Signature ducted option adds.",
         photo: "/mitsubishi-par-41maa-controller-v2.webp",
         photoAlt: "Mitsubishi PAR-41MAA wired wall controller",
-        priceFrom: "Included in the install",
+        priceFrom: "Priced at quote",
         facts: [
           { lead: "PAR-41MAA wall controller", note: "Backlit, weekly schedule, no phone required" },
           { lead: "Native zone control", note: "Mitsubishi's own, not a third-party box bolted on" },
@@ -1104,7 +1107,7 @@ const brandCatalogue: Brand[] = [
       body:
         "Anyone can sell you a system. The part that decides whether it was a good decision is what the next fifteen years look like: whether it holds its output, whether the parts still exist, and whether somebody can get to it. That last one is a decision made on install day, not on service day.",
       facts: [
-        "A decade-old MSZ-AP still makes its rated output: we measure them on annual services and they hold",
+        "A decade-old Mitsubishi wall split still makes its rated output: we measure them on annual services and they hold",
         "Common indoor and outdoor parts come out of the Melbourne warehouse same-day",
         "Annual service is $250 + GST on a split, $390 on a ducted, and we text you eleven months later so it gets booked",
         "We lodge the service report with Mitsubishi, so the warranty record stays clean for any future claim",
@@ -1114,9 +1117,9 @@ const brandCatalogue: Brand[] = [
 
     steps: [
       { title: "Room-by-room heat load", detail: "We walk the house, measure ceiling height, window aspect and insulation, then compute the actual kW. A 5 kW room gets a 5 kW unit, not a 7 kW one somebody had on the truck." },
-      { title: "Written quote in 12 hours", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
+      { title: "Written quote after the site visit", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
       { title: "Stock ordered, day booked", detail: "Mitsubishi's Melbourne warehouse is same-day on common stock. We confirm your install day the moment the unit lands with us rather than pencilling one in and hoping." },
-      { title: "Install day", detail: "Single split back-to-back is three to four hours. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside, fresh copper every time." },
+      { title: "Install day", detail: "A single split with the outdoor unit right behind the wall is three to four hours. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside, fresh copper every time." },
       { title: "Commission and walk through", detail: "We run it up, check refrigerant pressures against spec, and set up the remote and MELCloud with you. You sign the job card when you're happy with it, not before." },
       { title: "Compliance and warranty inside 24 hours", detail: "Electrical and refrigeration compliance certificates emailed by end of business the next day, and the manufacturer warranty registered in your name at the same time." },
     ],
@@ -1124,15 +1127,15 @@ const brandCatalogue: Brand[] = [
     faqs: [
       {
         q: "Is Mitsubishi Electric actually worth the extra over a budget brand?",
-        a: "On a bedroom split the gap is modest, and the honest answer is that it usually pays for itself the first time something goes wrong, or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
+        a: "On a bedroom split the gap is modest, and the honest answer is that it usually pays for itself the first time something goes wrong, or rather, the first time it doesn't. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
       },
       {
         q: "Which Mitsubishi wall split do you install?",
         a: "The MSZ-AP series, in six sizes from 2.5 kW for a bedroom up to 8.0 kW for a large open-plan room. It's the one we know inside out and keep parts for, so it's the only Mitsubishi wall split we fit.",
       },
       {
-        q: "Do I need the ducted zoning, or is it an upsell?",
-        a: "You need it. An unzoned ducted system conditions the whole house every time it runs, including four bedrooms nobody is in at seven at night. Four to eight zones is what makes the running cost sensible, and we fit it by default rather than quoting it as an extra to make the headline number look better.",
+        q: "Do I need the ducted zoning?",
+        a: "We'd recommend it. An unzoned ducted system conditions the whole house every time it runs, including four bedrooms nobody is in at seven at night. Mitsubishi Electric's own zone controller, with four or eight zones, is what makes the running cost sensible, and it's what our Signature ducted option adds to the Premium one.",
       },
       {
         q: "Can I control it from my phone?",
@@ -1140,7 +1143,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "How long does a Mitsubishi install take?",
-        a: "A single split back-to-back is three to four hours, done in one visit. A multi-head is usually a full day. Ducted is one to two days depending on how many zones and how kind the roof space is. We tell you which of those you're in before you accept the quote.",
+        a: "A single split with the outdoor unit right behind the wall is three to four hours, done in one visit. A multi-head is usually a full day. Ducted is one to two days depending on how many zones and how kind the roof space is. We tell you which of those you're in before you accept the quote.",
       },
       {
         q: "What warranty do I get?",
@@ -1169,13 +1172,13 @@ const brandCatalogue: Brand[] = [
         veuEligible: true,
         bestFor: "Single bedroom or small home office up to 25 m²",
         ourTake:
-          "The 2.5 kW MSZ-AP is the bedroom unit. Quiet at 21 dBA on low fan, barely draws anything on standby, and the parts pipeline is never a worry. If it's going in a kid's room and it has to run all night without waking anyone, this is the one.",
+          "The 2.5 kW MSZ-AP is the bedroom unit. Quiet at 19 dBA on low fan, barely draws anything on standby, and the parts pipeline is never a worry. If it's going in a kid's room and it has to run all night without waking anyone, this is the one.",
         specs: [
           { label: "Cooling capacity", value: "2.5 kW" },
           { label: "Heating capacity", value: "3.2 kW" },
           { label: "Room size", value: "up to 25 m²" },
           { label: "Refrigerant", value: "R32" },
-          { label: "Indoor sound (min)", value: "21 dBA" },
+          { label: "Indoor sound (min)", value: "19 dBA" },
           { label: "Star rating", value: "4.5 cool / 4.5 heat (zoned)" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
@@ -1422,36 +1425,34 @@ const brandCatalogue: Brand[] = [
         veuEligible: true,
         photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
         photoAlt: "Mitsubishi Electric PEA-M ducted indoor unit",
-        bestFor: "3-4 bed single-storey ducted retrofit or new-build, 4-6 zones",
+        bestFor: "3-4 bed single-storey ducted retrofit or new-build",
         ourTake:
-          "Our default ducted system for a three or four-bedroom home. Zoned with Mitsubishi Electric's own controller.",
+          "Our default ducted system for a three or four-bedroom home, run from Mitsubishi's PAR-41MAA wall controller. Add Mitsubishi Electric's own zone controller (4 or 8 zones) and it becomes our Signature option, with each zone switched on its own.",
         specs: [
           { label: "Cool / heat capacity", value: "10 kW · 12.5 kW · 14 kW (three model steps)" },
           { label: "Model codes", value: "PEA-M100HAA · PEA-M125HAA · PEA-M140HAA" },
           { label: "Refrigerant", value: "R32 (low GWP)" },
           { label: "External static pressure", value: "Adjustable 50–150 Pa" },
-          { label: "Air flow", value: "1,320–2,340 L/s across the three sizes" },
           { label: "Indoor sound", value: "34–41 dBA" },
           { label: "Power supply", value: "Single-phase" },
-          { label: "Zoning", value: "Mitsubishi Electric zone controller (PAR-ZC01M-E + PAC-ZC40/ZC80), 4 or 8 zones" },
-          { label: "Controller", value: "PAR-40 wired / MA-remote / MELCloud Wi-Fi module" },
+          { label: "Zoning", value: "Signature option: Mitsubishi Electric zone controller (PAR-ZC01M-E + PAC-ZC40/ZC80), 4 or 8 zones" },
+          { label: "Controller", value: "PAR-41MAA wired wall controller · MELCloud Wi-Fi module optional" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
-          "Three capacity steps (10 / 12.5 / 14 kW), right-size to the actual heat load, not oversized as a habit",
-          "Adjustable external static pressure 50–150 Pa suits typical 3-4 zone Melbourne retrofits",
-          "R32 refrigerant across all three sizes, low-GWP, no HFC phase-down risk",
-          "MELCloud Wi-Fi module adds phone control to the wired PAR-40 controller",
-          "Zoned with Mitsubishi Electric's own zone controller: one brand from the outdoor unit to the wall",
+          "Six sizes across the PEA-M range, 10 to 20 kW, so it's right-sized to the actual heat load, not oversized as a habit",
+          "Adjustable external static pressure (50–150 Pa) suits typical Melbourne retrofit duct runs",
+          "R32 refrigerant across the range, with a lower GWP than the older R410A",
+          "MELCloud Wi-Fi module adds phone control to the wired PAR-41MAA controller",
+          "Zoning on top: Mitsubishi Electric's own zone controller, our Signature option, one brand from the outdoor unit to the wall",
           "Inverter compressor + DC fan motor for quiet, efficient part-load running",
           "Made in Thailand at Mitsubishi's dedicated air-conditioning plant",
         ],
         whyWeInstall: [
-          "The most reliable ducted platform in our install base, decade-old PEA-M / PEAD-M units still run to spec",
+          "The most reliable ducted platform in our install base: decade-old Mitsubishi ducted units still run to spec",
           "Mitsubishi's Melbourne parts warehouse is same-day on virtually every PEA-M part we've ever needed",
-          "Under 1% failure rate across the range. It is the unit we are least likely to have to come back to",
-          "Right-sizing across three capacity steps means we don't oversize you into a bigger unit that short-cycles and wastes power",
-          "Mitsubishi's own zone controller means one brand end to end, so one warranty covers the lot and there's no argument over whose part failed",
+          "Right-sizing across six capacity steps means we don't oversize you into a bigger unit that short-cycles and wastes power",
+          "With Mitsubishi's own zone controller (Signature), it's one brand end to end, so one warranty covers the lot and there's no argument over whose part failed",
         ],
         related: ["pead-large", "me-zone-controller", "par-41maa", "mfz-kw"],
       },
@@ -1475,7 +1476,7 @@ const brandCatalogue: Brand[] = [
           { label: "Power supply", value: "16 & 18 kW single-phase · 20 kW three-phase" },
           { label: "Refrigerant", value: "R32 (low GWP)" },
           { label: "External static pressure", value: "Adjustable 100–200 Pa (higher-static than M100-M140)" },
-          { label: "Zoning", value: "Mitsubishi Electric zone controller (PAR-ZC01M-E + PAC-ZC40/ZC80), up to 8 zones" },
+          { label: "Zoning", value: "Signature option: Mitsubishi Electric zone controller (PAR-ZC01M-E + PAC-ZC40/ZC80), up to 8 zones" },
           { label: "Controller", value: "PAR-42MAA wired / MA-remote" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
@@ -1484,12 +1485,12 @@ const brandCatalogue: Brand[] = [
           "The 20 kW runs on three-phase power",
           "Higher external static pressure (100–200 Pa) delivers rated flow through longer flex-duct runs",
           "Same R32 refrigerant + inverter platform as the M100-M140, so parts + service story is unchanged",
-          "Mitsubishi Electric's eight-zone controller gives a bigger home proper per-room control",
+          "Add Mitsubishi Electric's eight-zone controller (Signature) for proper per-room control in a bigger home",
         ],
         whyWeInstall: [
           "The pick for a two-storey Berwick / Officer / Clyde home where a single M140 would short-cycle in shoulder seasons",
           "Same Mitsubishi parts + support platform as the smaller M-series, no separate stocking to worry about",
-          "Mitsubishi's own eight-zone controller gives full per-room control on a home big enough to need it",
+          "With Mitsubishi's own eight-zone controller (Signature), a home big enough to need it gets full per-room control",
         ],
         related: ["pead-m", "me-zone-controller", "par-41maa"],
       },
@@ -1511,6 +1512,7 @@ const brandCatalogue: Brand[] = [
           { label: "Cooling capacity", value: "2.5 · 3.5 · 5.0 kW (three model steps)" },
           { label: "Heating capacity", value: "3.4 · 4.5 · 6.3 kW" },
           { label: "Install position", value: "Floor-standing, under-window compatible" },
+          { label: "Outdoor unit", value: "A head on an MXZ multi-head (2 to 6 heads), or on its own outdoor unit" },
           { label: "Refrigerant", value: "R32 (low GWP)" },
           { label: "Indoor sound (min)", value: "27 dBA on low fan" },
           { label: "Air-flow pattern", value: "Warm air low-and-out (matches convection radiator behaviour)" },
@@ -1527,7 +1529,7 @@ const brandCatalogue: Brand[] = [
         whyWeInstall: [
           "Only floor console we quote, reliability record is identical to the wall-mount MSZ-AP range",
           "Common ask in Berwick and Officer character homes retrofitted off hydronic radiators",
-          "The pick for elderly-owner cottages where floor-level warmth reads more like a real heater",
+          "A favourite in older homes where people want warmth at floor level, like the heater it replaces",
           "Backed by our 6-year workmanship + Mitsubishi's 5-year parts warranty",
         ],
         related: ["msz-ap35", "pead-m"],
@@ -1546,7 +1548,7 @@ const brandCatalogue: Brand[] = [
           "The PAR-41MAA is Mitsubishi's current-generation standard wired wall controller, the model we fit as standard on every PEA-M and MFZ-KW install. Physical wall control for anyone who'd rather not reach for a phone or handheld remote. On a zoned job it sits alongside Mitsubishi Electric's own zone controller.",
         specs: [
           { label: "Model code", value: "PAR-41MAA (current-generation Standard)" },
-          { label: "Compatibility", value: "PEA-M / PEAD-M ducted + MFZ-KW floor console" },
+          { label: "Compatibility", value: "PEA-M ducted + MFZ-KW floor console" },
           { label: "Display", value: "Backlit LCD with icon menu" },
           { label: "Schedule", value: "7-day, up to 8 events per day" },
           { label: "Sensor", value: "Built-in room temperature sensor at the controller position" },
@@ -1576,7 +1578,7 @@ const brandCatalogue: Brand[] = [
         // over. Until then this is the older controller image.
         photo: "/mitsubishi-zone-controller-v2.webp",
         photoAlt: "Mitsubishi Electric PAR-ZC01M-E zone controller, white glass touch screen with occupancy sensor",
-        bestFor: "PEA-M and PEAD-M ducted installs where you want the whole system, zoning included, on one badge",
+        bestFor: "PEA-M ducted installs where you want the whole system, zoning included, on one badge",
         ourTake:
           "The PAR-ZC01M-E is the glass touch controller on the wall, and behind it sits a PAC-ZC interface board driving the dampers: PAC-ZC40 for four zones, PAC-ZC80 for eight, in an L version for 24 V damper motors and an H version for 240 V. The part people notice is the occupancy sensor built into the controller itself. It watches the room it is in, and when nobody has been there for a while the system can drop that zone back rather than keep conditioning an empty study. Everything is Mitsubishi end to end, which means one warranty channel and one support number for the indoor unit, the outdoor unit and the zoning.",
         specs: [
@@ -1585,7 +1587,7 @@ const brandCatalogue: Brand[] = [
           { label: "Remote sensors", value: "Up to 2 additional room temperature sensors per controller" },
           { label: "Zone interface", value: "PAC-ZC40L-E / ZC40H-E (4 zones) · PAC-ZC80L-E / ZC80H-E (8 zones)" },
           { label: "Damper motors", value: "L models drive 24 V AC, H models drive 240 V AC" },
-          { label: "Compatibility", value: "PEA-M100/125/140HAA + PEAD-M SG series + PEA-M160/180/200 large-capacity" },
+          { label: "Compatibility", value: "PEA-M100/125/140HAA + PEA-M160/180/200HAA large-capacity" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
@@ -1680,14 +1682,15 @@ const brandCatalogue: Brand[] = [
     accent: "#6B3FA0",
     established: "Designed and assembled in Sydney, Australia · trading since 2007",
     // Warranty terms taken from Reclaim's residential component warranty
-    // table. The split between the Reclaim heat pump and the
-    // Reclaim/Panasonic one is real and it is 3 years, so it belongs on
-    // the page rather than buried in a PDF.
+    // table. This line is the warranty card on every Reclaim product page,
+    // the ECO all-in-one's included, so it leads with the two systems and
+    // keeps the component detail (the Reclaim/Panasonic heat pump's 7 years,
+    // controllers, PTRV) for the FAQ below.
     warranty:
-      "Tank: 10-year parts + 5-year labour (glass-lined) or 15-year parts + 5-year labour (stainless). Heat pump: 10-year parts + labour on the Reclaim EHPE-4550P-A, 7-year parts + labour on the Reclaim/Panasonic HE-UM60AR. Controller: 10-year parts + labour on the Reclaim controller and sensor lead, 7-year on the Reclaim/Panasonic non-Wi-Fi controller. ECO R290 all-in-one: 8-year tank, parts and labour. PTRV and Quickie Kit: 5-year parts + labour. Plus 6-year workmanship from us.",
+      "ECO R290 all-in-one: 8 years on the whole unit, parts and labour. CO₂ split: 15 years on a stainless tank, 10 on glass-lined, 10 on the Reclaim heat pump. Plus 6-year workmanship from us.",
     keyFeatures: [
       "Two kinds to choose from: the CO₂ split (outdoor heat pump + separate tank) and the ECO R290 all-in-one (one unit)",
-      "ECO R290 all-in-one: 200 or 285 L, nothing else to mount outside, 8-year warranty on the whole unit",
+      "ECO R290 all-in-one: 200 or 300 L, nothing else to mount outside, 8-year warranty on the whole unit",
       "CO₂ (R744) natural refrigerant on the split, zero global-warming potential",
       "The split holds heating capacity down to -10°C ambient, which is what Emerald and Gembrook mornings ask for",
       "Stainless tanks have no anode to swap and nothing to rust, and the duplex tank steps up to 2205 duplex / 316-grade for the hardest water",
@@ -1712,11 +1715,11 @@ const brandCatalogue: Brand[] = [
       sub: "The CO₂ split keeps making hot water at -10° with a tank built to outlast the pump. The ECO R290 all-in-one is one unit in the old tank's spot.",
     },
     verdict:
-      "Reclaim is what we put in for someone staying in the house, the ten-to-fifteen-year plan, not the flip. CO₂ (R744) pulls heat out of cold air in a way R290 and R134a can't, which is what earns it on an Emerald or Gembrook morning rather than on a spec sheet, and a stainless tank has no anode to swap and nothing in it to rust, so it outlasts the compressor sitting in front of it. Two shapes: the CO₂ SPLIT: an outdoor heat pump plumbed to a separate tank, in glass-lined, stainless, 316 stainless and Earthworker finishes from 160 to 400 L, and the ECO R290 ALL-IN-ONE, the lot in one shell at 200 or 285 L. It costs more on day one, and it's built to still be there in fifteen years. If hot water you never think about is worth paying for once, this is the one.",
+      "Reclaim is what we put in for someone staying in the house, the ten-to-fifteen-year plan, not the flip. CO₂ (R744) pulls heat out of cold air in a way R290 and R134a can't, which is what earns it on an Emerald or Gembrook morning rather than on a spec sheet, and a stainless tank has no anode to swap and nothing in it to rust, so it outlasts the compressor sitting in front of it. Two shapes: the CO₂ SPLIT: an outdoor heat pump plumbed to a separate tank, in glass-lined, stainless, 316 stainless and Earthworker finishes from 160 to 400 L, and the ECO R290 ALL-IN-ONE, the lot in one shell at 200 or 300 L. It costs more on day one, and it's built to still be there in fifteen years. If hot water you never think about is worth paying for once, this is the one.",
     notRightWhen:
       "Selling inside a couple of years, or the up-front number is the whole decision? The premium Reclaim charges is money you earn back over a decade of ownership, not at the next open house, and if the VEU rebate is what makes the job add up, an iStore does the same job for less today. Reclaim earns its price on the long hold, and we'll say so rather than sell you up.",
     versus:
-      "We fit iStore and Thermann too, and they win different jobs. When the VEU rebate is what makes the numbers work, best rebate, cheaper up front, an iStore is the sensible call. When same-day parts on the shelf matter more than anything else, a Thermann's pipeline is hard to beat. Reclaim is what goes in when you're staying in the house and want the tank to outlast the compressor, not the rebate to close the gap.",
+      "We fit iStore and Thermann too, and they win different jobs. When the price after the VEU rebate is what makes the numbers work, an iStore is the sensible call. When same-day parts on the shelf matter more than anything else, a Thermann's pipeline is hard to beat. Reclaim is what goes in when you're staying in the house and want the tank to outlast the compressor, not the rebate to close the gap.",
     heroSub:
       "Two ways to heat your water with the air. The CO₂ split: a quiet outdoor heat pump and a separate tank, for the coldest mornings and the longest stay. The ECO R290 all-in-one: one unit, nothing extra outside, for a simple swap.",
     fitsWhere:
@@ -1749,7 +1752,7 @@ const brandCatalogue: Brand[] = [
           name: "ECO R290 all-in-one",
           img: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
           line: "Heat pump and tank in one unit",
-          points: ["One unit in the old tank's spot, nothing else outside", "200 L or 285 L", "8-year warranty on the whole unit, parts and labour", "R290 natural refrigerant, VEU rebate at the quote"],
+          points: ["One unit in the old tank's spot, nothing else outside", "200 L or 300 L", "8-year warranty on the whole unit, parts and labour", "R290 natural refrigerant, VEU rebate at the quote"],
           best: "A straight swap, townhouses and tight side paths",
           href: "/find/heat-pump/premium",
         },
@@ -1782,7 +1785,7 @@ const brandCatalogue: Brand[] = [
         t: "All-in-one: one unit, one spot",
         line: "Heat pump and tank together, nothing else outside",
         detail:
-          "The ECO R290 all-in-one goes where the old tank stood, with no separate outdoor unit to find a place for. That suits townhouses, narrow side paths and anyone who wants a straight swap. 200 L for a smaller household, 285 L for a family of four or five.",
+          "The ECO R290 all-in-one goes where the old tank stood, with no separate outdoor unit to find a place for. That suits townhouses, narrow side paths and anyone who wants a straight swap. 200 L for a smaller household, 300 L for a family of four or five.",
         icon: "people",
       },
       {
@@ -1826,7 +1829,7 @@ const brandCatalogue: Brand[] = [
     faqs: [
       {
         q: "Do I want the split or the ECO R290 all-in-one?",
-        a: "The CO₂ split: outdoor heat pump plumbed to a separate tank: is the one we fit most, in 160 through 400 L, because it's the best cold-weather performer and the tank choice is widest. The ECO R290 all-in-one puts everything in one shell at 200 or 285 L and goes in where there's no room to separate the pump and tank, or where the run between them would be awkward. We'll tell you which your house is at the quote.",
+        a: "The CO₂ split: outdoor heat pump plumbed to a separate tank: is the one we fit most, in 160 through 400 L, because it's the best cold-weather performer and the tank choice is widest. The ECO R290 all-in-one puts everything in one shell at 200 or 300 L and goes in where there's no room to separate the pump and tank, or where the run between them would be awkward. We'll tell you which your house is at the quote.",
       },
       {
         q: "Why CO₂ when everyone else runs R290 or R134a?",
@@ -1838,7 +1841,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "It costs more than the other heat pumps, is it worth it?",
-        a: "On the long hold, yes; on a quick sale, probably not. Reclaim costs more on day one and it's built to still be there in fifteen years, so it earns its price over a decade of ownership rather than at the next open house. If the VEU rebate and the up-front number are what the decision comes down to, an iStore gets you the best rebate for less today, and we'll say so rather than sell you up.",
+        a: "On the long hold, yes; on a quick sale, probably not. Reclaim costs more on day one and it's built to still be there in fifteen years, so it earns its price over a decade of ownership rather than at the next open house. If the VEU rebate and the up-front number are what the decision comes down to, an iStore is the lowest price after the rebate today, and we'll say so rather than sell you up.",
       },
       {
         q: "Is there a rebate, and do you handle the paperwork?",
@@ -1866,7 +1869,7 @@ const brandCatalogue: Brand[] = [
         photo: "/Reclaim Glass lined and stainless v2.webp",
         photoAlt: "Reclaim 160L CO₂ split heat pump, glass-lined tank",
         bestFor: "One or two people, a unit, or a granny flat where floor space is the constraint",
-        ourTake: "The smallest tank Reclaim make, on the same CO₂ compressor as every other system in the range. It suits one or two people, and the reason to pick it over a 250 is almost always space rather than money: a narrow side path, a unit courtyard, a laundry corner that a bigger tank simply will not go into. Two people showering back to back will get through it, so if there is a third in the house we will say so at the quote.",
+        ourTake: "The smallest tank Reclaim make, on the same CO₂ compressor as every other system in the range. It suits one or two people, and the reason to pick it over a 250 is almost always space rather than money: a narrow side path, a unit courtyard, a laundry corner that a bigger tank simply will not go into. Two people showering back to back get through it with water to spare. A bigger household can get through it on short showers, with little left for the kitchen and laundry, so if there are more than two of you we will talk about the 250 at the quote.",
         specs: [
           { label: "Tank capacity", value: "160 L" },
           { label: "Tank material", value: "Glass-lined + sacrificial anode" },
@@ -2175,7 +2178,7 @@ const brandCatalogue: Brand[] = [
         refrigerant: "R290 (propane)",
         veuEligible: true,
         bestFor: "Couples / small households wanting a single-unit install",
-        ourTake: "Tank and heat pump in one shell, running R290 rather than the split range's CO₂. Nothing goes outside, which is the whole point of it: 200 L for a smaller household on a block where there's no clean spot for an outdoor unit.",
+        ourTake: "Tank and heat pump in one shell, running R290 rather than the split range's CO₂. There's no separate outdoor unit, which is the whole point of it: 200 L for a smaller household on a block where there's no clean spot for an outdoor unit.",
         specs: [
           { label: "Tank capacity", value: "200 L" },
           { label: "Format", value: "All-in-one (single unit)" },
@@ -2186,18 +2189,18 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "eco-r290-300",
-        name: "Reclaim ECO R290 · 285L All-in-One",
-        tankLitres: 285,
+        name: "Reclaim ECO R290 · 300L All-in-One",
+        tankLitres: 300,
         model: "RE-ECO-300",
         category: "heat-pump",
         categoryLabel: "R290 all-in-one heat pump",
-        capacity: "285 L integrated tank + heat pump",
+        capacity: "300 L integrated tank + heat pump",
         refrigerant: "R290 (propane)",
         veuEligible: true,
         bestFor: "Family of 4-5 wanting a single-unit install (no separate outdoor)",
-        ourTake: "285 L with the heat pump built into the same shell as the tank. It goes in where there's no good outdoor position for a split heat pump but there is room where the old tank stood, which describes a lot of townhouses and a lot of narrow side paths.",
+        ourTake: "300 L with the heat pump built into the same shell as the tank. It goes in where there's no good outdoor position for a split heat pump but there is room where the old tank stood, which describes a lot of townhouses and a lot of narrow side paths.",
         specs: [
-          { label: "Tank capacity", value: "285 L" },
+          { label: "Tank capacity", value: "300 L" },
           { label: "Format", value: "All-in-one (single unit)" },
           { label: "Refrigerant", value: "R290 (propane)" },
           { label: "Warranty", value: "8-year whole unit, parts and labour" },
@@ -2423,49 +2426,52 @@ const brandCatalogue: Brand[] = [
     slug: "thermann",
     logo: "/logos/thermann.svg",
     layout: "blocks",
+    // Gas hot water only (Nov 2026 audit). The finder sells Thermann as gas
+    // continuous flow and gas storage and nothing else, so the heat pump,
+    // electric storage and Australian-made VEU bonus copy that led this page
+    // sold things its own range didn't list. The heat pump and electric
+    // records below stay so their old URLs still redirect here.
     heroProducts: [
-      { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump", label: "Heat pump" },
       { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas unit", label: "G-series continuous flow" },
       { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", alt: "Thermann 4-star gas storage unit", label: "Gas storage" },
     ],
     story: {
-      heading: "Built by Dux in NSW, {sold through Reece}.",
-      body: "Thermann is Reece's own hot water brand, made by Dux at its Moss Vale factory. Every Reece store in Victoria carries the common spares.",
+      heading: "Reece's own hot water, {on every Reece shelf}.",
+      body: "Thermann is Reece's own hot water brand. Every Reece store in Victoria carries the common spares, so we're rarely the ones waiting on a part.",
       marks: [
-        { v: "Aus-made", k: "Built by Dux in Moss Vale, NSW" },
+        { v: "Reece", k: "Reece's own hot water brand" },
         { v: "Same day", k: "Common parts at any Reece store" },
-        { v: "3", k: "Ways to heat: heat pump, gas and electric" },
+        { v: "2", k: "Ways to do gas: continuous flow or a storage tank" },
       ],
       stops: [
-        { place: "Moss Vale, NSW", role: "Built", d: "Made by Dux at its Moss Vale factory." },
+        { place: "Reece, nationally", role: "Sold", d: "Thermann is Reece-exclusive: you'll only find it through Reece." },
         { place: "Every Reece store in Victoria", role: "Stocked", d: "The common spares on the shelf, over the counter for us." },
-        { place: "Pakenham, VIC", role: "Fitted", d: "Installed by our own crew, and fixed the same day when it faults." },
+        { place: "Pakenham, VIC", role: "Fitted", d: "Installed by our own crew, and usually fixed the same day when it faults, because the parts are at Reece." },
       ],
     },
     quality: {
-      tab: "Built here",
-      heading: "Australian-made, {Reece-backed}.",
-      intro: "Built in New South Wales, with the parts on a shelf at every Reece store in the state.",
-      image: { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump" },
+      tab: "Reece-backed",
+      heading: "Parts on the shelf, {Reece-backed}.",
+      intro: "Reece's own brand, with the common parts on a shelf at every Reece store in the state.",
+      image: { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas unit" },
       points: [
-        { t: "Built in Moss Vale", d: "Genuinely Australian-made, so it qualifies for the Australian-made VEU bonus on top of the rebate." },
-        { t: "R290 refrigerant", d: "A natural refrigerant across the heat pump range, low in global-warming terms and efficient." },
-        { t: "Three ways to heat", d: "Heat pumps, G-series continuous flow and storage, from the one brand." },
+        { t: "Continuous flow", d: "The G-series in 16, 20, 26 and 32 L/min: hot water that doesn't run out, sized by how many outlets run at once." },
+        { t: "Gas storage", d: "A 4-star tank in 135 L or 170 L, the like-for-like swap for the tank you have." },
+        { t: "Natural gas or LPG", d: "Both, so we bring the unit that matches your supply." },
         { t: "One parts counter", d: "Whichever you have, the parts come from the same Reece counter." },
       ],
     },
     reasons: [
-      { v: "Same day", icon: "clock", k: "most faults fixed", d: "We pull the common spares over the counter at any Reece store in Victoria.", img: "/thermann-heat-pump.webp", alt: "A Thermann heat pump we installed", cover: true, pos: "50% 45%" },
-      { v: "Aus-made", icon: "aus", k: "VEU bonus", d: "Built by Dux in NSW, so the Australian-made bonus comes off on top of the rebate.", img: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann all-in-one heat pump" },
-      { v: "R290", icon: "leaf", k: "natural refrigerant", d: "The same refrigerant across the heat pump range, nothing exotic to track down later.", img: "/Thermann-Split-heat-pump.jpg", alt: "Thermann split heat pump" },
-      { v: "5 years", icon: "shield", k: "on the cylinder", d: "Plus six years on our workmanship. Dux handles cylinder and compressor claims directly.", img: "/thermann-contineues-flow-standing-back.webp", alt: "A Thermann continuous flow unit we installed on a brick wall", cover: true },
+      { v: "Same day", icon: "clock", k: "most faults fixed", d: "We pull the common spares over the counter at any Reece store in Victoria.", img: "/thermann-contineues-flow-standing-back.webp", alt: "A Thermann continuous flow unit we installed on a brick wall", cover: true },
+      { v: "16–32", icon: "range", k: "L/min continuous flow", d: "Four G-series sizes, picked by how many outlets run at once.", img: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas unit" },
+      { v: "135 / 170 L", icon: "tank", k: "gas storage", d: "A 4-star tank for a like-for-like swap, natural gas or LPG.", img: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", alt: "Thermann 4-star gas storage unit" },
+      { v: "5 years", icon: "shield", k: "on a storage tank's cylinder", d: "Plus six years on our workmanship. Thermann's warranty on each model is on your quote.", img: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas unit" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "All warranties start." },
-      { y: 3, t: "Year 3", d: "Compressor warranty ends, or year 5 on R290." },
-      { y: 5, t: "Year 5", d: "Cylinder warranty ends." },
+      { y: 1, t: "Year 1", d: "Component warranty ends on a gas storage tank." },
+      { y: 5, t: "Year 5", d: "Cylinder warranty ends on a gas storage tank." },
       { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
-      { y: 7, t: "Years 5 to 7", d: "Anode swap on a split's glass-lined tank." },
     ],
     picker: {
       steps: [
@@ -2479,56 +2485,55 @@ const brandCatalogue: Brand[] = [
       ],
     },
     name: "Thermann",
-    tagline: "Reece exclusive, built by Dux in NSW.",
-    origin: "Made by Dux in Moss Vale NSW · Reece-exclusive brand",
+    tagline: "Reece-exclusive gas hot water, with the parts in every store.",
+    origin: "Reece-exclusive brand",
     intro:
-      "Thermann is Reece's exclusive plumbing-trade brand, built by Dux at their Moss Vale factory in NSW. Reece owns the distribution, Dux does the manufacturing, and between them Thermann has the widest Australian parts pipeline of any hot water brand: every Reece store in the state carries the common spares, which is why a fault on one of these rarely costs you a week.",
+      "Thermann is Reece's exclusive plumbing-trade brand. Reece owns the distribution, and every Reece store in the state carries the common spares, which is why a fault on one of these rarely costs you a week.",
     ourTake:
-      "Thermann is the one to pick when you want the parts pipeline behind you. It's Reece's own brand, built in Australia, and as a Reece trade partner we pull parts and warranty over the counter at any store in Victoria. In practice that means most faults get fixed the same day rather than next week, and across heat pumps, continuous flow and storage it's the range we can support fastest.",
-    accreditation: "Reece trade partner · Dux/Thermann approved installer",
-    productLabel: "8 models · heat pump (all-in-one + split), G-series continuous flow, electric storage",
-    photo: "/thermann_integrated_heat_pump_02.jpg",
-    photoFallback: "/thermann-heat-pump.webp",
-    photoAlt: "Thermann integrated heat pump hot water system",
+      "Thermann is the one to pick when you want the parts pipeline behind you. It's Reece's own brand, and as a Reece trade partner we pull parts and warranty over the counter at any store in Victoria. In practice that means most faults get fixed the same day rather than next week, which is why the G-series continuous flow and the 4-star storage tank are our standard gas hot water swaps.",
+    accreditation: "Reece trade partner · Thermann installer",
+    productLabel: "G-series gas continuous flow and 4-star gas storage, natural gas or LPG",
+    photo: "/G-Series_Front_On_View_1200x900.jpg",
+    photoFallback: "/thermann-continuous-flow-back.jpg",
+    photoAlt: "Thermann G-series continuous flow gas hot water unit",
     accent: "#C1272D",
-    established: "Reece exclusive brand · manufactured by Dux at their Moss Vale (NSW) factory",
-    warranty: "5-year cylinder + 3-year compressor + 6-year on our workmanship. R290 heat pump range extends compressor warranty to 5 years.",
+    established: "Reece-exclusive brand",
+    warranty: "Manufacturer warranty by model, set out on your quote (gas storage: 5-year cylinder, 1-year components) + 6-year on our workmanship",
     keyFeatures: [
       "Reece-exclusive, so every Reece store in Victoria carries the common parts",
-      "Built in NSW by Dux, genuinely Australian-made, and it qualifies for the Australian-made VEU bonus",
-      "R290 natural refrigerant across the heat pump range, low-GWP and efficient with it",
-      "Strong VEU rebate outcome, and the Australian-made bonus on top",
+      "G-series continuous flow in 16, 20, 26 and 32 L/min, natural gas or LPG",
+      "4-star gas storage in 135 L and 170 L, a like-for-like tank swap",
+      "Same-day swaps on common models and sizes",
     ],
     commonInMelbourne:
-      "The one we reach for when the parts pipeline is what matters most, which on a rental, an investment property or anywhere a fault has to be fixed today is often the whole argument. Thermann all-in-one heat pumps go into a lot of Hampton Park, Cranbourne and Narre Warren jobs, and the G-series continuous flow is our standard gas hot water swap right across the corridor.",
+      "The one we reach for when the parts pipeline is what matters most, which on a rental, an investment property or anywhere a fault has to be fixed today is often the whole argument. The G-series continuous flow is our standard gas hot water swap right across the corridor, and the 4-star tank goes in where a household wants a storage tank back like for like.",
     support:
-      "The Reece store network across Melbourne is same-day for us, and every branch stocks the common Thermann parts. Dux handles compressor and cylinder warranty claims directly.",
+      "The Reece store network across Melbourne is same-day for us, and every branch stocks the common Thermann parts. Warranty claims go through Thermann, and we do the on-site work.",
     resources: [
       { label: "Thermann · manufacturer website", href: "https://www.thermann.com.au/" },
-      { label: "Dux (made in Australia by)", href: "https://www.dux.com.au/" },
     ],
 
     // --- brand-first fields (Thermann) ---
-    advisorService: "heat-pump-installation",
+    advisorService: "gas-plumbing",
     whyLead: {
       claim: "Why we choose {Thermann}.",
       sub: "Every Reece store in Victoria carries the common Thermann spares, so a fault on one of these rarely costs you a week.",
     },
     verdict:
-      "Thermann is the one we reach for when the parts pipeline is what matters most: on a rental, an investment property, or anywhere a fault has to be fixed today. It's Reece's own brand, built by Dux in NSW, and as a Reece trade partner we pull parts and warranty over the counter at any store in Victoria, so most faults get sorted the same day rather than next week. It's genuinely Australian-made too, which means the VEU rebate with the Australian-made bonus on top: and across heat pumps, continuous flow and storage it's the range we can support fastest.",
+      "Thermann is the one we reach for when the parts pipeline is what matters most: on a rental, an investment property, or anywhere a fault has to be fixed today. It's Reece's own brand, and as a Reece trade partner we pull parts and warranty over the counter at any store in Victoria, so most faults get sorted the same day rather than next week. For gas hot water, continuous flow or a storage tank, it's the range we can support fastest.",
     notRightWhen:
-      "Staying in the house fifteen years and want the tank to outlast the compressor in front of it? Thermann's split runs a glass-lined tank with a sacrificial anode that wants swapping every five to seven years, and if that's a job you'd rather never think about, a stainless Reclaim is the honest answer. Thermann earns its keep on the parts pipeline, not on outliving everything.",
+      "Want to get off gas? Thermann is our gas hot water brand. A heat pump takes the VEU rebate and costs less to run, and for that we'd quote an iStore, a Viessmann or a Reclaim instead. Thermann earns its keep on the parts pipeline for a household staying on gas.",
     versus:
-      "We fit Reclaim and iStore alongside it, and the honest split is this: if you're staying long-term and want CO₂ and a stainless tank that shrugs off a cold Pakenham morning, Reclaim is the one; if the VEU rebate is the whole decision, iStore takes it furthest. Thermann is what goes in when getting a part today matters more than either.",
+      "We fit heat pumps too, and they win a different job: coming off gas, an iStore is the lowest price after the VEU rebate, and a Reclaim CO₂ split is the best hot water we fit. Thermann is what goes in when you're staying on gas and getting a part today matters more than anything.",
     heroSub:
-      "Reece's own hot-water brand, built by Dux in NSW, and the one we can get parts for over the counter at any Reece store in Victoria. Heat pump, continuous flow and storage, start with what you're replacing.",
+      "Reece's own hot-water brand, and the one we can get parts for over the counter at any Reece store in Victoria. G-series continuous flow or a 4-star storage tank, natural gas or LPG: start with what you're replacing.",
     fitsWhere:
-      "All-in-one heat pumps into Hampton Park, Cranbourne and Narre Warren, the G-series continuous flow as our standard gas swap right across the corridor, and the first call on a rental where a fault has to be fixed today.",
+      "The G-series continuous flow as our standard gas swap right across the corridor, a 4-star tank where a household wants storage back, and the first call on a rental where a fault has to be fixed today.",
     heroFacts: [
       { v: "Same day", k: "Common parts over the counter at any Reece store" },
-      { v: "8", k: "Models we install and support" },
-      { v: "Aus-made", k: "Built by Dux in Moss Vale NSW · VEU bonus" },
-      { v: "5 yr & 6 yr", k: "5-yr cylinder and 6-yr workmanship warranties, both from install day" },
+      { v: "6", k: "Models we install and support" },
+      { v: "Gas", k: "Continuous flow or storage, natural gas or LPG" },
+      { v: "5 yr & 6 yr", k: "5-yr cylinder on a storage tank and 6-yr workmanship, both from install day" },
     ],
     benefitsHeading: "Why the parts pipeline is the whole argument.",
     benefitTiles: [
@@ -2548,76 +2553,57 @@ const brandCatalogue: Brand[] = [
       },
       {
         t: "The warranty, and where it splits",
-        line: "5-year cylinder, 6-year on our workmanship",
+        line: "Thermann on the unit, 6 years from us on the install",
         detail:
-          "5-year cylinder + 3-year compressor + 6-year on our workmanship. R290 heat pump range extends compressor warranty to 5 years. Dux handles the cylinder and compressor claims directly; the six years on workmanship is ours, and covers the install rather than the box.",
+          "Thermann's warranty on the unit depends on the model and is on your quote: on the 4-star gas storage it's 5 years on the cylinder and 1 year on components. The six years on workmanship is ours, and covers the install rather than the box.",
         icon: "shield",
       },
       {
-        t: "R290, and nothing exotic",
-        line: "Natural refrigerant across the whole heat pump range",
+        t: "Continuous flow or a tank",
+        line: "Both from the one brand and the one parts counter",
         detail:
-          "The heat pump range runs R290, propane, a natural refrigerant with a low global-warming number and good efficiency to go with it. It's the same refrigerant across the all-in-one and the split, so there's nothing unusual to gas up or track down in year eight.",
-        icon: "snowflake",
-      },
-      {
-        t: "Australian-made, bonus on top",
-        line: "Built by Dux in Moss Vale NSW",
-        detail:
-          "Thermann is Reece's brand, but the units are built by Dux at their Moss Vale factory in NSW. Because it's genuinely Australian-made it qualifies for the Australian-made VEU bonus, which comes off the price on top of the standard rebate: real money, not a sticker.",
-        icon: "people",
-      },
-      {
-        t: "One brand across three fuels",
-        line: "Heat pump, continuous flow and storage, supported the same way",
-        detail:
-          "The all-in-one and split heat pumps, the G-series continuous flow that's our standard gas swap, and electric storage all come from the one brand and the one parts counter. Whichever your house needs, it's the range we can support fastest.",
+          "The G-series continuous flow that's our standard gas swap, and the 4-star storage tank for a like-for-like, both come from the one brand and the one parts counter. Whichever your house needs, it's the range we can support fastest.",
         icon: "wrench",
       },
     ],
     servicing: {
       tab: "When it faults",
       heading: "What happens the day {one faults}.",
-      photo: "/gas-hot-water-changeover.webp",
-      photoAlt: "A Thermann hot water unit installed and connected",
+      photo: "/thermann-continuous-flow-back.jpg",
+      photoAlt: "A Thermann continuous flow unit we installed on a brick wall",
       body:
         "Anyone can sell you a hot water unit. What decides whether it was a good buy is the day it faults: whether the part exists, whether it's nearby, and whether someone can get to it this week. With Thermann that's a decision Reece already made for us: the common spares sit on a shelf at every store in the state.",
       facts: [
         "The Reece store network across Melbourne is same-day for us, and every branch stocks the common Thermann parts",
-        "Dux handles compressor and cylinder warranty claims directly, and we do the on-site swap-out",
-        "The split's glass-lined tank has a sacrificial anode we swap every five to seven years: the tank warranty depends on it, so it goes on the service list rather than getting forgotten",
-        "The warranty is 5-year cylinder + 3-year compressor + 6-year on our workmanship. R290 heat pump range extends compressor warranty to 5 years",
-        "Heat pump, continuous flow or storage, the parts come from the same counter, which is why it's the range we can support fastest",
+        "Warranty claims go through Thermann, and we do the on-site swap-out",
+        "Thermann's warranty is on your quote by model (5-year cylinder and 1-year components on the 4-star gas storage), plus 6 years on our workmanship",
+        "Continuous flow or storage, the parts come from the same counter, which is why it's the range we can support fastest",
       ],
     },
     steps: [
-      { title: "We size it to the house, not the truck", detail: "How many of you there are, what's there now and where it lives, a couple on one bathroom is a different unit to five people back-to-back. An all-in-one where there's no outdoor spot, a split where the tank and heat pump want to live apart, or the G-series continuous flow for a straight gas swap." },
-      { title: "Written quote", detail: "Model, capacity, install position and the total installed price, with the VEU rebate and the Australian-made bonus already taken off rather than promised later. No 'from $X' that turns into a variation on the day." },
+      { title: "We size it to the house, not the truck", detail: "How many of you there are, what's there now and where it lives. The G-series is sized by how many outlets run at once; a storage tank by how many of you shower back to back." },
+      { title: "Written quote", detail: "Model, capacity, install position and the total installed price. No 'from $X' that turns into a variation on the day." },
       { title: "Unit and parts over the counter", detail: "Because it's Reece's own brand we pull the unit and the common fittings over the counter at the local store, usually same-day. That's the difference between booking your changeover this week and waiting on a delivery." },
       { title: "Old unit out, new one in", detail: "We drain and pull the old tank or heater, cart it away, and set the Thermann on a proper base or wall pad. Fresh water connections, and a new tempering valve fitted so the hot water leaves the unit at a safe 50° at the tap." },
-      { title: "Commission and hand over", detail: "We fill it, fire it up, check it's making hot water to spec and walk you through the controller. On a heat pump we set the run timer for the cheap part of the day, or onto your solar if you've got it." },
-      { title: "Rebate and compliance paperwork", detail: "We lodge the VEU rebate and the Australian-made bonus, register the manufacturer warranty in your name, and email the plumbing compliance certificate. The paperwork is our job, not yours." },
+      { title: "Commission and hand over", detail: "We fill it, fire it up, check it's making hot water to spec and walk you through the controls." },
+      { title: "Compliance paperwork", detail: "We register the manufacturer warranty in your name and email the gas and plumbing compliance certificates. The paperwork is our job, not yours." },
     ],
     faqs: [
       {
-        q: "Why Thermann over the other heat pumps you fit?",
-        a: "One reason above the rest: the parts pipeline. Thermann is Reece's own brand, so the common spares sit on a shelf at every Reece store in Victoria and we pull them over the counter as a trade partner. A fault on one of these rarely costs you a week, most get fixed the same day. If getting a part today matters more than anything else, this is the range we can support fastest.",
+        q: "Why Thermann for gas hot water?",
+        a: "One reason above the rest: the parts pipeline. Thermann is Reece's own brand, so the common spares sit on a shelf at every Reece store in Victoria and we pull them over the counter as a trade partner. A fault on one of these rarely costs you a week, and most get fixed the same day.",
       },
       {
-        q: "Is it actually made in Australia?",
-        a: "Yes. Thermann is Reece's brand, but the units are built by Dux at their Moss Vale factory in NSW. That's not just a sticker: because it's genuinely Australian-made it qualifies for the Australian-made VEU bonus, which comes off the price on top of the standard rebate.",
+        q: "Continuous flow or a storage tank?",
+        a: "Continuous flow heats water as it runs through, so it doesn't run out, and it hangs on an outside wall. A storage tank keeps a tank of water hot, and it's the simplest like-for-like swap for the tank you have. If you run out with back-to-back showers, continuous flow is the answer; if you rarely do, a tank is the lower upfront cost.",
       },
       {
         q: "What's the warranty?",
-        a: "5-year cylinder + 3-year compressor + 6-year on our workmanship. R290 heat pump range extends compressor warranty to 5 years. Dux handles the compressor and cylinder claims directly; the six years on workmanship is ours, and it covers the install: the fittings, the tempering valve, the connections, rather than the box.",
+        a: "Thermann's warranty depends on the model and is set out on your quote: on the 4-star gas storage it's 5 years on the cylinder and 1 year on components. On top of that we carry 6 years on our own workmanship, which covers the install: the fittings, the tempering valve, the connections, rather than the box.",
       },
       {
-        q: "All-in-one or split heat pump?",
-        a: "An all-in-one is tank and heat pump in one shell with nothing to place outside, which is what makes it fit where a split's outdoor unit has nowhere to sit, it's our default across Hampton Park, Cranbourne and Narre Warren. A split lets the tank live indoors and the heat pump outside, but its glass-lined tank has a sacrificial anode we swap every five to seven years to keep the warranty alive. We'll tell you which your site wants.",
-      },
-      {
-        q: "Can I still get a gas unit?",
-        a: "Yes. The G-series continuous flow is our standard gas hot-water swap right across the corridor, natural gas or LPG, sized by how many outlets run at once rather than by people. If your gas unit's on its way out though, it's worth letting us price a heat pump beside it, the VEU rebate and the Australian-made bonus close the gap by more than most people expect.",
+        q: "Should I switch to a heat pump instead?",
+        a: "If you're open to coming off gas, it's worth a look: a heat pump takes the VEU rebate and costs less to run. Thermann is our gas brand; for a heat pump we'd quote an iStore, a Viessmann or a Reclaim, side by side with the gas unit.",
       },
       {
         q: "How fast can you do it, and what if it faults later?",
@@ -2711,7 +2697,7 @@ const brandCatalogue: Brand[] = [
         veuEligible: false,
         bestFor: "Couple or small family (1 bathroom)",
         ourTake:
-          "The 16 L/min G-series suits a couple or a single-bathroom household. Two showers that might run at once want the 20 L/min instead, which is a question of outlets rather than of spend.",
+          "The 16 L/min G-series suits a couple or a single-bathroom household. Two showers that might run at once want the 26 L/min high-flow instead, which is a question of outlets rather than of spend.",
         specs: [
           { label: "Flow rate", value: "16 L/min at 25°C rise" },
           { label: "Gas type", value: "Natural gas or LPG" },
@@ -2726,9 +2712,9 @@ const brandCatalogue: Brand[] = [
         categoryLabel: "G-series gas continuous-flow",
         capacity: "20 L/min",
         veuEligible: false,
-        bestFor: "Family of 3-4, one or two bathrooms",
+        bestFor: "Family of 3-4 with one bathroom",
         ourTake:
-          "The 20 L/min is our most-installed continuous flow. It carries two showers running at once without either of them going thin, which is the moment most households find out what they actually bought.",
+          "The 20 L/min is our most-installed continuous flow. It runs a shower with the kitchen or the laundry going at the same time without the shower going thin, which is the moment most households find out what they actually bought.",
         specs: [
           { label: "Flow rate", value: "20 L/min at 25°C rise" },
         ],
@@ -2779,7 +2765,7 @@ const brandCatalogue: Brand[] = [
         veuEligible: false,
         photo: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg",
         photoAlt: "Thermann 135L gas storage hot water unit",
-        bestFor: "Couples / small households wanting a like-for-like gas tank replacement",
+        bestFor: "One to three people wanting a like-for-like gas tank replacement",
         ourTake:
           "The compact gas storage tank, natural gas or LPG, 4-star. It suits a unit or a smaller household. The burner puts back 122 L an hour, so it keeps up better than the size suggests, but for a busy house the 170 L or a heat pump is the better answer, and we'll price whichever fits the site.",
         specs: [
@@ -2788,7 +2774,7 @@ const brandCatalogue: Brand[] = [
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Install position", value: "External wall-mount pad" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
-          { label: "Suitable for", value: "2–5 people across the range" },
+          { label: "Suitable for", value: "1–3 people" },
           { label: "Gas consumption", value: "29.5 MJ/h natural gas · 28 MJ/h LPG" },
           { label: "Recovery rate", value: "122 L/h at a 45°C rise" },
           { label: "Warranty", value: "5-year cylinder + 1-year components + 6-year workmanship" },
@@ -2807,16 +2793,16 @@ const brandCatalogue: Brand[] = [
         veuEligible: false,
         photo: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg",
         photoAlt: "Thermann 170L gas storage hot water unit",
-        bestFor: "Family of 3-4 wanting a like-for-like gas tank replacement",
+        bestFor: "Three to five people wanting a like-for-like gas tank replacement",
         ourTake:
-          "170 L is the gas storage size for a three or four person household, where a smaller tank runs dry partway through the back-to-back showers. Same 4-star efficiency and the same warranty position as the 135, in a taller body, so the cupboard needs checking before we order it.",
+          "170 L is the gas storage size for a three to five person household, where a smaller tank runs dry partway through the back-to-back showers. Same 4-star efficiency and the same warranty position as the 135, in a taller body, so the cupboard needs checking before we order it.",
         specs: [
           { label: "Tank capacity", value: "170 L" },
           { label: "Star rating", value: "4-star" },
           { label: "Gas type", value: "Natural gas or LPG" },
           { label: "Install position", value: "External wall-mount pad" },
           { label: "Ignition", value: "Direct spark, no pilot light" },
-          { label: "Suitable for", value: "2–5 people across the range" },
+          { label: "Suitable for", value: "3–5 people" },
           { label: "Gas consumption", value: "33.5 MJ/h" },
           { label: "Recovery rate", value: "145 L/h at a 45°C rise" },
           { label: "Warranty", value: "5-year cylinder + 1-year components + 6-year workmanship" },
@@ -2972,7 +2958,7 @@ const brandCatalogue: Brand[] = [
       body: "iStore is an Australian company out of Sydney. Its units are made in China to AS/NZS standards, and we'd rather tell you that straight.",
       marks: [
         { v: "Cheapest", k: "The lowest-priced heat pump we offer, with the VEU rebate off at the quote" },
-        { v: "2", k: "Models: 180 L and 275 L" },
+        { v: "2", k: "Models: 180 L and 270 L" },
         { v: "5 years", k: "On the whole unit" },
       ],
       stops: [
@@ -2991,7 +2977,7 @@ const brandCatalogue: Brand[] = [
         { t: "A PV diverter, built in", d: "On a solar home the compressor runs on power your panels were exporting anyway." },
         { t: "Wi-Fi app as standard", d: "Scheduling and monitoring on both models, with no add-on module." },
         { t: "R290, high COP", d: "A natural refrigerant, and a lot of hot water back for the power it uses." },
-        { t: "Two sizes, sized right", d: "180 L for a couple, 275 L for a family of three or four." },
+        { t: "Two sizes, sized right", d: "180 L for a couple, 270 L for a family of three or four." },
       ],
     },
     reasons: [
@@ -2999,9 +2985,9 @@ const brandCatalogue: Brand[] = [
       // what iStore is for (Jake, Nov 2026: "the main thing would be cheapest
       // option we offer"). It is the lowest heat pump price in the tiers
       // (homepage/data.ts), under the Reclaim ECO.
-      { v: "Cheapest", icon: "rebate", k: "heat pump we offer", d: "The lowest price on our list, and the VEU rebate comes off that at the quote.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
+      { v: "Cheapest", icon: "rebate", k: "heat pump we offer", d: "The lowest price on our list, and the VEU rebate comes off that at the quote.", img: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump" },
       { v: "R290", icon: "bolt", k: "high COP", d: "For a house coming off an electric tank, that's the running-cost drop doing the work.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
-      { v: "2 sizes", icon: "tank", k: "180 L and 275 L", d: "Sized to the house, not up. A bigger tank heating water nobody uses is just a bigger bill.", img: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump" },
+      { v: "2 sizes", icon: "tank", k: "180 L and 270 L", d: "Sized to the house, not up. A bigger tank heating water nobody uses is just a bigger bill.", img: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump" },
       { v: "5 years", icon: "shield", k: "on the whole unit", d: "Tank, heat pump and parts alike, plus six years from us on the workmanship.", img: "/istore-product.png", alt: "iStore all-in-one heat pump" },
     ],
     timeline: [
@@ -3015,9 +3001,9 @@ const brandCatalogue: Brand[] = [
     intro:
       "iStore is the cheapest heat pump we offer, with the VEU rebate off at the quote. Solid heat pump platform, and the built-in PV diverter means it plays well with solar homes without needing an aftermarket accessory.",
     ourTake:
-      "When the VEU rebate is what decides the job, iStore is the answer. Nothing else we fit takes the rebate as far, it goes in with the same crew and the same warranty as anything on the list, and for a household replacing an electric storage tank that is exactly the right call.",
+      "When the price after the VEU rebate is what decides the job, iStore is the answer. It's the lowest-priced heat pump we fit, it goes in with the same crew and the same warranty as anything on the list, and for a household replacing an electric storage tank that is exactly the right call.",
     accreditation: "iStore accredited installer",
-    productLabel: "2 models · 180L + 275L heat pump storage",
+    productLabel: "2 models · 180 L and 270 L all-in-one heat pumps",
     photo: "/270L-istore-heatpump.webp",
     photoFallback: "/reclaim-spit-close-up.webp",
     photoAlt: "iStore all-in-one heat pump hot water system",
@@ -3025,7 +3011,7 @@ const brandCatalogue: Brand[] = [
     established: "Australian company (Sydney) · manufactured in China to AS/NZS standards",
     warranty: "5-year iStore warranty on the whole unit (tank, heat pump and parts) + 6-year on our workmanship",
     keyFeatures: [
-      "Best VEU rebate outcome of any heat pump we install",
+      "The lowest price after the VEU rebate of any heat pump we install",
       "Built-in PV-diverter compatibility, so the compressor runs when your panels are making power",
       "Wi-Fi smart-app control comes standard · no aftermarket module needed",
       "R290 natural refrigerant, high COP",
@@ -3041,22 +3027,22 @@ const brandCatalogue: Brand[] = [
     // --- brand-first fields (iStore) ---
     whyLead: {
       claim: "Why we choose {iStore}.",
-      sub: "The cheapest heat pump we offer, and the one the VEU rebate stretches furthest. For a household pulling out an old electric tank, that's usually the whole decision.",
+      sub: "The cheapest heat pump we offer, with the VEU rebate off at the quote. For a household pulling out an old electric tank, that's usually the whole decision.",
     },
     verdict:
-      "When the VEU rebate is what decides the job, the iStore is our answer: nothing else we fit takes the rebate as far, and the rebate comes off right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew as anything else on our list, with 5 years from iStore on the whole unit and 6 years from us on the workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
+      "When the price after the VEU rebate is what decides the job, the iStore is our answer: it's the lowest-priced heat pump we fit, and the rebate comes off right there at the quote. It's a solid R290 platform on a high COP, with the PV diverter and the Wi-Fi app built into the unit rather than bolted on afterward. It goes in with the same crew as anything else on our list, with 5 years from iStore on the whole unit and 6 years from us on the workmanship. For a household replacing an old electric storage tank that's exactly the right call, and we'll say plainly when it isn't.",
     notRightWhen:
-      "Staying in the house for the long haul, and it's the coldest mornings that worry you most? The iStore is built to a price the rebate makes sense of, not to outlast everything else on the block. If tank longevity and cold-morning recovery matter to you more than the biggest upfront rebate, we'd point you at a Reclaim instead, and we'd rather tell you that now than have you wish we had in year eight.",
+      "Staying in the house for the long haul, and it's the coldest mornings that worry you most? The iStore is built to a price the rebate makes sense of, not to outlast everything else on the block. If tank longevity and cold-morning recovery matter to you more than the lowest upfront price, we'd point you at a Reclaim instead, and we'd rather tell you that now than have you wish we had in year eight.",
     versus:
-      "We fit Reclaim too, and where the house is the one you're staying in and cold-morning performance and a stainless tank matter more than the upfront rebate, that's the one we'd steer you to. The iStore is what goes in when the rebate is what decides it.",
+      "We fit Reclaim too, and where the house is the one you're staying in and cold-morning performance and a stainless tank matter more than the upfront price, that's the one we'd steer you to. The iStore is what goes in when the price is what decides it.",
     advisorService: "heat-pump-installation",
     heroSub:
-      "The VEU rebate stretches furthest on it and comes off at the quote. Two models, 180 L and 275 L, with the PV diverter and the smart app built in rather than sold to you as extras.",
+      "The lowest-priced heat pump we fit, with the VEU rebate off at the quote. Two models, 180 L and 270 L, with the PV diverter and the smart app built in rather than sold to you as extras.",
     fitsWhere:
       "Replacing tired electric storage tanks, and running the compressor on solar surplus for households with panels on the roof.",
     heroFacts: [
       { v: "Cheapest", k: "The lowest-priced heat pump we offer, rebate taken off at the quote" },
-      { v: "2 models", k: "180 L and 275 L, nothing in between to read through" },
+      { v: "2 models", k: "180 L and 270 L, nothing in between to read through" },
       { v: "R290", k: "Natural refrigerant, high COP" },
       { v: "5 yr & 6 yr", k: "5-yr iStore warranty on the whole unit and 6-yr on our workmanship, both from install day" },
     ],
@@ -3066,7 +3052,7 @@ const brandCatalogue: Brand[] = [
         t: "The cheapest we offer",
         line: "The lowest-priced heat pump on our list",
         detail:
-          "Of every heat pump we fit, the iStore costs the least, the VEU rebate stretches furthest on it, and the rebate comes off right there at the quote. Pulling out an old electric tank on a budget, this is the unit that makes the numbers work.",
+          "Of every heat pump we fit, the iStore costs the least, and the VEU rebate comes off that right there at the quote. Pulling out an old electric tank on a budget, this is the unit that makes the numbers work.",
         icon: "shield",
       },
       {
@@ -3092,9 +3078,9 @@ const brandCatalogue: Brand[] = [
       },
       {
         t: "Two models, sized right",
-        line: "180 L for a couple, 275 L for a family",
+        line: "180 L for a couple, 270 L for a family",
         detail:
-          "There are only two: 180 L on a 2.5 kW compressor for a couple or an apartment, and 275 L on a 4 kW for a family of three or four. We size it to the house rather than up, a 275 heating water nobody uses is just a bigger power bill, and there's no wall of model numbers to wade through to get there.",
+          "There are only two: 180 L on a 2.5 kW compressor for a couple or an apartment, and 270 L on a 4 kW for a family of three or four. We size it to the house rather than up, a 270 heating water nobody uses is just a bigger power bill, and there's no wall of model numbers to wade through to get there.",
         icon: "people",
       },
     ],
@@ -3102,14 +3088,14 @@ const brandCatalogue: Brand[] = [
       tab: "After the swap",
       heading: "Who looks after it {after the swap}.",
       photo: "/270L-istore-heatpump.webp",
-      photoAlt: "An iStore 275L heat pump hot water system installed outside",
+      photoAlt: "An iStore 270L heat pump hot water system installed outside",
       body:
         "A heat pump is a compressor and a tank, and both carry a warranty worth knowing how to use before you need it. The iStore is an Australian company out of Sydney, its units built in China to AS/NZS standards, and the way a claim runs is worth understanding on install day rather than the day something stops, because who you ring is decided by which part it is.",
       facts: [
         "5 years from iStore on the whole unit, tank, heat pump and parts alike, plus 6 years from us on the workmanship",
         "Warranty claims are handled by iStore's Sydney office directly with the homeowner, and we do the on-site swap-out",
         "Parts come through iStore's Melbourne distributor, so a replacement isn't a wait on a container from overseas",
-        "Both models are VEU-eligible, so the rebate applies whether the house needs the 180 L or the 275 L",
+        "Both models are VEU-eligible, so the rebate applies whether the house needs the 180 L or the 270 L",
         "iStore is an Australian company out of Sydney, its units manufactured in China to AS/NZS standards, we'll tell you that straight rather than dress it up",
       ],
     },
@@ -3117,7 +3103,7 @@ const brandCatalogue: Brand[] = [
       {
         title: "Size it and confirm the rebate",
         detail:
-          "We look at what's on the wall now, how many of you there are, and confirm your VEU eligibility, then size it, 180 L for a couple, 275 L for a family. The rebate is worked out and applied at the quote, so the number you sign is the number you pay.",
+          "We look at what's on the wall now, how many of you there are, and confirm your VEU eligibility, then size it, 180 L for a couple, 270 L for a family. The rebate is worked out and applied at the quote, so the number you sign is the number you pay.",
       },
       {
         title: "Check the power point",
@@ -3148,7 +3134,7 @@ const brandCatalogue: Brand[] = [
     faqs: [
       {
         q: "Why the iStore and not one of the other heat pumps?",
-        a: "Because of the rebate, mostly. Of everything we fit, the iStore is the one the VEU rebate stretches furthest, which is what brings the price down so far. It's a solid R290 platform with the PV diverter and the app built in, and for a house pulling out an old electric tank it's the one that makes the numbers work. Where you're staying long-term and cold-morning recovery matters to you more than the upfront rebate, we'd point you at a Reclaim instead, and we'll say so plainly.",
+        a: "Because of the price, mostly. Of everything we fit, the iStore costs the least, and the VEU rebate comes off that at the quote. It's a solid R290 platform with the PV diverter and the app built in, and for a house pulling out an old electric tank it's the one that makes the numbers work. Where you're staying long-term and cold-morning recovery matters to you more than the upfront price, we'd point you at a Reclaim instead, and we'll say so plainly.",
       },
       {
         q: "What's this electrical charge I've heard about?",
@@ -3156,7 +3142,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "Will a heat pump keep up with our showers?",
-        a: "Sized right, yes. The 180 L on a 2.5 kW compressor suits a couple or an apartment; the 275 L on a 4 kW is our most-fitted unit and covers a family of three or four, with enough output to have it back before the evening run. We size it to how many of you actually shower, not to the biggest tank on the shelf.",
+        a: "Sized right, yes. The 180 L on a 2.5 kW compressor suits a couple or an apartment; the 270 L on a 4 kW is our most-fitted unit and covers a family of three or four, with enough output to have it back before the evening run. We size it to how many of you actually shower, not to the biggest tank on the shelf.",
       },
       {
         q: "We've got solar, does that change things?",
@@ -3188,7 +3174,7 @@ const brandCatalogue: Brand[] = [
         photo: "/270L-istore-heatpump.webp",
         photoAlt: "iStore 180L heat pump, full unit view",
         ourTake:
-          "180 L on a 2.5 kW compressor, the smallest iStore we fit. It's the right size for a couple or an apartment, where a 275 would be paying for water nobody uses. The rebate is applied at the quote, and this is where it goes furthest.",
+          "180 L on a 2.5 kW compressor, the smallest iStore we fit. It's the right size for a couple or an apartment, where a 270 would be paying for water nobody uses. The rebate is applied at the quote.",
         specs: [
           { label: "Tank capacity", value: "180 L" },
           { label: "Refrigerant", value: "R290" },
@@ -3198,22 +3184,22 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "istore-270",
-        name: "iStore 275L Heat Pump",
+        name: "iStore 270L Heat Pump",
         compressorKw: 4.0,
-        tankLitres: 275,
-        model: "iStore 275 L",
+        tankLitres: 270,
+        model: "iStore 270 L",
         category: "heat-pump",
         categoryLabel: "Heat pump hot water",
-        capacity: "275 L",
+        capacity: "270 L",
         refrigerant: "R290",
         veuEligible: true,
         bestFor: "Family of three or four, where the rebate is what decides it",
         photo: "/270L-istore-heatpump.webp",
-        photoAlt: "iStore 275L heat pump, installed unit",
+        photoAlt: "iStore 270L heat pump, installed unit",
         ourTake:
-          "275 L on a 4 kW compressor, and that pairing is the point: enough stored for a family of four, and enough output to have it back before the evening run. One of our most-installed units, with the rebate applied at the quote.",
+          "270 L on a 4 kW compressor, and that pairing is the point: enough stored for a family of four, and enough output to have it back before the evening run. One of our most-installed units, with the rebate applied at the quote.",
         specs: [
-          { label: "Tank capacity", value: "275 L" },
+          { label: "Tank capacity", value: "270 L" },
           { label: "Refrigerant", value: "R290" },
           { label: "Warranty", value: "5 years on the whole unit" },
         ],
@@ -3302,9 +3288,9 @@ const brandCatalogue: Brand[] = [
     verdict:
       "The Vitocal 161-A is the heat pump for the household that wants a German brand on it. It's an all-in-one on R290, with Wi-Fi and a touch screen, rated at 43 dB(A), and it makes hot water down to −7 °C before the element takes over. Five years from Viessmann on parts and labour, six from us on the workmanship.",
     notRightWhen:
-      "If the rebate is what decides it, or you want the compressor split away from the tank, we'd point you at an iStore or a Reclaim CO₂ split instead, and we'll show you the difference at the quote.",
+      "If the lowest price is what decides it, or you want the compressor split away from the tank, we'd point you at an iStore or a Reclaim CO₂ split instead, and we'll show you the difference at the quote.",
     versus:
-      "We fit iStore, Reclaim and Viessmann. iStore is the pick when the rebate decides it, Reclaim when you want Australian made or a CO₂ split, and Viessmann when you want the German name.",
+      "We fit iStore, Reclaim and Viessmann. iStore is the pick when price decides it, Reclaim when you want an Australian brand or a CO₂ split, and Viessmann when you want the German name.",
     advisorService: "heat-pump-installation",
     heroSub:
       "A German heating name since 1917. The Vitocal 161-A all-in-one heat pump, in 200 L and 270 L, with Wi-Fi, a backup element and five years on parts and labour.",
@@ -3435,13 +3421,13 @@ const brandCatalogue: Brand[] = [
         { v: "5 yr", k: "Comprehensive manufacturer's warranty" },
       ],
       stops: [
-        { place: "Australia", role: "Made", d: "Designed, made and owned in Australia by Seeley International." },
+        { place: "Australia", role: "Designed", d: "Designed by Seeley International, an Australian-owned company." },
         { place: "Your roof or underfloor", role: "Fits", d: "In the gas heater's own spot: internal models in the ceiling or under the floor, or an external model." },
         { place: "Pakenham, VIC", role: "Fitted", d: "Installed by our own crew, with six years from us on the workmanship." },
       ],
     },
     reasons: [
-      { v: "Your ducts", icon: "duct", k: "kept", d: "The only system we fit that reuses the ductwork and vents a gas ducted house already has.", img: "/dominator-indoor.webp", alt: "Braemar Dominator Series 3 indoor unit" },
+      { v: "Your ducts", icon: "duct", k: "kept", d: "The only reverse-cycle system we fit that reuses the ductwork and vents a gas ducted house already has.", img: "/dominator-indoor.webp", alt: "Braemar Dominator Series 3 indoor unit" },
       { v: "1 day", icon: "clock", k: "as little as", d: "Braemar's figure for a changeover, with fewer trades through the house than pulling the ducts out.", img: "/dominator-system.webp", alt: "Braemar Dominator Series 3 indoor and outdoor units" },
       { v: "Heats + cools", icon: "heatcool", k: "one system", d: "Reverse cycle, all electric, with the gas capped off and the VEU rebate for making the switch.", img: "/dominator-outdoor.webp", alt: "Braemar Dominator Series 3 outdoor unit" },
       { v: "5 years", icon: "shield", k: "comprehensive", d: "Braemar's manufacturer's warranty, plus six years from us on the workmanship.", img: "/dominator-controller.webp", alt: "Braemar XE7C wall controller" },
@@ -3457,7 +3443,7 @@ const brandCatalogue: Brand[] = [
     intro:
       "Braemar is Seeley International's heating and cooling brand, Australian designed, made and owned. We fit its Dominator Series 3: reverse-cycle ducted heating and cooling that replaces a ducted gas heater in the same spot.",
     ourTake:
-      "The Dominator is the one system we fit that keeps the ductwork a gas ducted house already has. A ducted split means pulling the old ductwork out, inside and out, and running new; the Dominator goes in where the gas heater was, on the same ducts and vents where they're sound, with a return air grille added. Less work in the house, heating and cooling from one electric system, and the VEU rebate for coming off gas.",
+      "The Dominator is the one reverse-cycle system we fit that keeps the ductwork a gas ducted house already has. A ducted split means pulling the old ductwork out, inside and out, and running new; the Dominator goes in where the gas heater was, on the same ducts and vents where they're sound, with a return air grille added. Less work in the house, heating and cooling from one electric system, and the VEU rebate for coming off gas.",
     productLabel: "2 models · 12.1 kW + 17.9 kW",
     photo: "/dominator-system.webp",
     photoAlt: "Braemar Dominator Series 3 indoor and outdoor units",
@@ -3469,7 +3455,7 @@ const brandCatalogue: Brand[] = [
       "Reverse-cycle heating and cooling, all electric",
       "Internal (ceiling or under-floor) and external models",
       "XE7C wall controller with Wi-Fi built in; zoning up to 8 zones, with at least six vents open at a time",
-      "Australian designed, made and owned",
+      "From Seeley International, an Australian-owned company",
     ],
     commonInMelbourne:
       "It suits the many Melbourne homes on gas ducted heating that want cooling and to get off gas, without pulling the ducts out of the roof or from under the floor.",
@@ -3592,7 +3578,7 @@ const brandCatalogue: Brand[] = [
       body: "Kaden is sold only through Reece. That's why the common parts sit on a shelf in every Reece store in Victoria, and why we're rarely the ones waiting on one.",
       marks: [
         { v: "2015", k: "Trading as a Reece-exclusive brand" },
-        { v: "12", k: "Models, from splits to evap" },
+        { v: "15", k: "Models, from splits to evap" },
         { v: "Same day", k: "Parts pickup at any Reece store" },
       ],
       stops: [
@@ -3604,26 +3590,25 @@ const brandCatalogue: Brand[] = [
     quality: {
       tab: "The whole house",
       heading: "One brand, {the whole house}.",
-      intro: "Splits, multi-head, ducted, gas ducted and evap from the one range, so the whole house can be done in one visit.",
+      intro: "Splits, multi-head, ducted and evap from the one range, so the whole house can be done in one visit.",
       image: { src: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden KDI ducted system with its outdoor unit and controller" },
       points: [
-        { t: "Every shape the house needs", d: "A split for a bedroom, a multi-head where there's one spot outside, ducted from 10 kW up, gas ducted and evap." },
+        { t: "Every shape the house needs", d: "A split for a bedroom, a multi-head where there's one spot outside, ducted from 10 to 17 kW, and evap." },
         { t: "One remote, one parts list", d: "A whole house on Kaden stays on one app and one parts pipeline. Mixed-brand houses are where warranty arguments start." },
-        { t: "Gas ducted that modulates", d: "The 6-star burner ramps up and down instead of running flat-out then off, so a house that heats all winter burns noticeably less gas." },
-        { t: "Backed seven years, and six of ours", d: "Seven years of Kaden's parts and labour on the unit (ten on a gas ducted heater's heat exchanger), and six years of ours on the install." },
+        { t: "Evap on the same list", d: "A Classic or low-profile evaporative cooler for the dry-summer estates, on the same Reece parts pipeline." },
+        { t: "Backed seven years, and six of ours", d: "Seven years of Kaden's parts and labour on the unit, and six years of ours on the install." },
       ],
     },
     reasons: [
       { v: "Same day", icon: "wrench", k: "parts from Reece", d: "The common Kaden parts sit in every Reece store in Victoria, so a fault rarely means a wait.", img: "/Kaden Condesnser.jpg", alt: "A Kaden outdoor unit on a roof", cover: true },
-      { v: "12 models", icon: "range", k: "one parts list", d: "Wall splits, multi-head, ducted, gas ducted and evap, all from one brand.", img: "/Kaden Multi Head.jpg", alt: "Kaden multi-head system: one outdoor unit and several indoor units" },
-      { v: "6-star", icon: "star", k: "gas ducted", d: "A modulating burner that matches its output to the house, instead of cycling on and off.", img: "/kaden_internal_ducted_heater_star pro 4 and 5  star.jpg", alt: "Kaden gas ducted heater" },
+      { v: "15 models", icon: "range", k: "one parts list", d: "Wall splits, multi-head, ducted and evap, all from one brand.", img: "/Kaden Multi Head.jpg", alt: "Kaden multi-head system: one outdoor unit and several indoor units" },
+      { v: "10–17 kW", icon: "duct", k: "KDI ducted", d: "The whole house on one ducted system, sized off a room-by-room heat load.", img: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden KDI ducted system with its outdoor unit and controller" },
       { v: "6 years", icon: "shield", k: "on our workmanship", d: "On top of Kaden's seven years on the unit, registered in your name the day after we fit it.", img: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI wall split" },
     ],
     timeline: [
       { y: 0, t: "Install day", d: "Both warranties start." },
       { y: 6, t: "Year 6", d: "Our workmanship warranty ends." },
       { y: 7, t: "Year 7", d: "Kaden's parts and labour warranty ends." },
-      { y: 10, t: "Year 10", d: "The heat exchanger warranty on a Kaden gas ducted heater ends." },
     ],
     picker: {
       steps: [
@@ -3640,14 +3625,14 @@ const brandCatalogue: Brand[] = [
       ],
     },
     name: "Kaden",
-    tagline: "Reece exclusive. Splits, ducted, gas and evap on one parts list.",
+    tagline: "Reece exclusive. Splits, ducted and evap on one parts list.",
     origin: "Reece-exclusive brand · Australian-distributed",
     intro:
       "Kaden is Reece-exclusive, which means parts in every store in Victoria and a supply chain that does not blink. Solid build, national parts support, and a 7-year manufacturer warranty behind it.",
     ourTake:
       "Kaden is what we quote when a family wants the whole house done in one visit instead of a room a year. It's Reece-exclusive, so parts sit on a shelf in every store in Victoria, and it goes in with the same crew, the same brackets and the same workmanship warranty as anything else we fit. Across three bedrooms and a living zone, doing it once is worth more than doing it in stages.",
     accreditation: "Reece trade partner · Kaden authorised dealer",
-    productLabel: "12 models · splits, multi-head, ducted, gas ducted, evaporative",
+    productLabel: "15 models · splits, multi-head, KDI ducted, evaporative",
     photo: "/Kaden KSI V3 wall split system.jpg",
     photoFallback: "/kaden-indoor.webp",
     photoAlt: "Kaden split system with outdoor condenser",
@@ -3657,11 +3642,11 @@ const brandCatalogue: Brand[] = [
     keyFeatures: [
       "Reece-exclusive, stocked in every Reece store, same-day parts across Victoria",
       "Build quality that holds up next to anything else we fit, on a range wide enough to do a whole house in one visit",
-      "Full range: wall splits, multi-head, ducted (10-16 kW), gas ducted, evaporative",
-      "Kaden 6-star gas ducted runs a modulating burner, so a house that heats a lot of hours burns noticeably less gas",
+      "Full range: wall splits, multi-head, ducted (10-17 kW), evaporative",
+      "7-year Kaden manufacturer warranty on the aircon and the evaporative coolers",
     ],
     commonInMelbourne:
-      "What we reach for when a family wants three or more bedrooms done in one visit rather than one a year. Very common through Cranbourne, Narre Warren, Hampton Park and Endeavour Hills, where the houses are big enough that doing it in stages means three summers of half a solution. Kaden gas ducted is also our standard like-for-like path out of an old Brivis or Braemar.",
+      "What we reach for when a family wants three or more bedrooms done in one visit rather than one a year. Very common through Cranbourne, Narre Warren, Hampton Park and Endeavour Hills, where the houses are big enough that doing it in stages means three summers of half a solution.",
     support:
       "Every Reece store in Melbourne stocks the common Kaden parts, which means same-day pickup for us on almost every job. Warranty claims run through the Reece trade portal.",
     resources: [
@@ -3680,13 +3665,13 @@ const brandCatalogue: Brand[] = [
     notRightWhen:
       "Staying in the house fifteen years and want the quietest possible unit over the bed? Kaden runs a touch louder than the Mitsubishi at the same size, worth knowing if the bed sits directly under it, and for a forever home the reliability premium is the thing worth paying once. We fit both, and we will say when the Mitsubishi is the better spend rather than sell you the cheaper box.",
     versus:
-      "Mitsubishi is the one we fit when the house is the one you are staying in and parts-in-year-twelve matter most. Kaden is the sensible spend on a house you will hold about five years. On gas ducted specifically, a Brivis is the straight same-footprint swap where a Kaden is our standard like-for-like path out of a tired old Brivis or Braemar. We fit all three, and we will tell you which one the house actually wants.",
+      "Mitsubishi is the one we fit when the house is the one you are staying in and parts-in-year-twelve matter most. Kaden is the sensible spend on a house you will hold about five years. We fit both, and we will tell you which one the house actually wants.",
     heroSub:
-      "Reece-exclusive air conditioning: splits, multi-head, ducted, gas ducted and evap on one parts list. The value pick when a family wants the whole house done in one visit, not a room a year.",
+      "Reece-exclusive air conditioning: splits, multi-head, ducted and evap on one parts list. The value pick when a family wants the whole house done in one visit, not a room a year.",
     fitsWhere:
-      "Three-or-more-bedroom homes through Cranbourne, Narre Warren, Hampton Park and Endeavour Hills that want the lot done at once, and old Brivis and Braemar gas ducted swapped like for like.",
+      "Three-or-more-bedroom homes through Cranbourne, Narre Warren, Hampton Park and Endeavour Hills that want the lot done at once.",
     heroFacts: [
-      { v: "12 models", k: "Splits, multi-head, ducted, gas ducted and evap" },
+      { v: "15 models", k: "Splits, multi-head, ducted and evap" },
       { v: "Reece-exclusive", k: "Common parts in every Reece store in Victoria" },
       { v: "Since 2015", k: "Reece-exclusive brand, distributed nationally" },
       { v: "7 yr & 6 yr", k: "7-yr manufacturer and 6-yr workmanship warranties, both from install day" },
@@ -3711,15 +3696,8 @@ const brandCatalogue: Brand[] = [
         t: "Backed seven years, and six of ours",
         line: "7-year manufacturer parts + labour + 6-year on our workmanship",
         detail:
-          "That is seven years of Kaden's own parts and labour on the unit, ten on a gas ducted heater's heat exchanger, and on top of it six years of ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong. Seven years fully backed, registered in your name the day after we fit it.",
+          "That is seven years of Kaden's own parts and labour on the unit, registered in your name the day after we fit it, and on top of it six years of ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong.",
         icon: "shield",
-      },
-      {
-        t: "Gas ducted that modulates",
-        line: "6-star burner ramps rather than full-on, full-off",
-        detail:
-          "The Kaden 6-star gas ducted runs a modulating burner instead of cycling flat-out then off, so a house that heats a lot of hours through a Melbourne winter burns noticeably less gas. It is also our standard like-for-like path out of a tired old Brivis or Braemar, and the universal cabinet drops onto the existing pad without new base work.",
-        icon: "flame",
       },
       {
         t: "One remote, one parts list",
@@ -3730,9 +3708,9 @@ const brandCatalogue: Brand[] = [
       },
       {
         t: "Every shape the house needs",
-        line: "Wall splits, multi-head, ducted, gas ducted and evap",
+        line: "Wall splits, multi-head, ducted and evap",
         detail:
-          "Splits for a bedroom, a multi-head where there is only one spot outside for the condenser, ducted from 10 kW up, gas ducted for the winter and evap for the dry-summer estates, all under one brand. Whatever shape the house wants, the controller, the parts and the service story stay the same.",
+          "Splits for a bedroom, a multi-head where there is only one spot outside for the condenser, ducted from 10 to 17 kW and evap for the dry-summer estates, all under one brand. Whatever shape the house wants, the controller, the parts and the service story stay the same.",
         icon: "snowflake",
       },
     ],
@@ -3746,7 +3724,7 @@ const brandCatalogue: Brand[] = [
       facts: [
         "Every Reece store in Melbourne stocks the common Kaden parts, same-day pickup for us on almost every job",
         "Warranty claims run through the Reece trade portal, so the paper trail stays in one place",
-        "7-year manufacturer parts and labour on the unit, 10 on a gas ducted heat exchanger, registered in your name after we install it",
+        "7-year manufacturer parts and labour on the unit, registered in your name after we install it",
         "Six years of our own workmanship on top, covering the install rather than the box",
         "Do the whole house in Kaden and it is one remote, one app and one parts list to service, not five",
       ],
@@ -3755,7 +3733,7 @@ const brandCatalogue: Brand[] = [
       { title: "Room-by-room heat load", detail: "We walk the house, measure ceiling height, window aspect and insulation, and compute the actual kW room by room. A 5 kW room gets a 5 kW unit, whether that ends up a split, a head off a multi or a zone off the ducted, not a 7 kW one somebody had on the truck." },
       { title: "The whole house, scoped in one go", detail: "The reason to go Kaden is doing the lot in one visit, so we scope every room at once: which rooms take a split, which want a multi-head off a single condenser, and whether ducted works out cheaper than five heads. You see the whole plan before you commit to any of it." },
       { title: "Written quote", detail: "Model numbers, capacities, line-set lengths, controller spec, warranty position and one installed total. No ‘from $X’, and no allowance that turns into a variation on the day. Because Kaden is Reece-exclusive the stock is never far away, so the day we book is a day we can keep." },
-      { title: "Install day", detail: "A single split back-to-back is three to four hours; a multi-head or ducted is a full day; a whole house is one or two. Drop sheets down, dust extraction on every wall cut, conduit colour-matched outside, fresh copper every time, same standard as anything else we fit." },
+      { title: "Install day", detail: "A single split with the outdoor unit right behind the wall is three to four hours; a multi-head or ducted is a full day; a whole house is one or two. Drop sheets down, dust extraction on every wall cut, conduit colour-matched outside, fresh copper every time, same standard as anything else we fit." },
       { title: "Commission and walk through", detail: "We run each system up, check refrigerant pressures against spec, and set up the remotes and the Kaden app with you. You sign the job card when you are happy with it, not before." },
       { title: "Compliance and warranty inside 24 hours", detail: "Electrical and refrigeration compliance certificates emailed by end of business the next day, and the manufacturer warranty registered in your name at the same time so the record is clean for any future claim." },
     ],
@@ -3778,11 +3756,11 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "I've got an old Brivis or Braemar gas ducted, can Kaden replace it?",
-        a: "Yes, and it is our standard like-for-like path out of one. The Kaden universal cabinet drops onto the existing Brivis or Braemar pad without new base work, so the slab, the gas line and the ducts all stay put and the house is warm again the same day. If you would rather keep the same brand footprint we will price a Brivis instead: and if you heat a lot of hours, the 6-star modulating burner is the one that shows up on the gas bill.",
+        a: "For gas ducted heating we fit Brivis: a like-for-like Brivis goes into the same spot on the same ducts, and the house is warm again the same day. If you'd rather come off gas and keep the ducts, the Braemar Dominator goes where the heater was. Kaden is what we fit for splits, multi-head, reverse-cycle ducted and evaporative cooling.",
       },
       {
         q: "What warranty do I get?",
-        a: "7-year manufacturer parts + labour + 6-year on our workmanship. The seven years is Kaden's own cover on the unit (a gas ducted heater's heat exchanger gets ten), registered in your name the day after we install it; the six years is ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong. So it is seven years fully backed.",
+        a: "7-year manufacturer parts + labour + 6-year on our workmanship. The seven years is Kaden's own cover on the unit, registered in your name the day after we install it; the six years is ours on the install: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong.",
       },
     ],
 
@@ -3821,8 +3799,8 @@ const brandCatalogue: Brand[] = [
         ],
         whyWeInstall: [
           "Same crew, same brackets, same 6-year workmanship as anything else we fit",
-          "Kaden's Australian distribution means parts and support are reliable through Emerson",
-          "7-year parts warranty alongside our 6-year workmanship, 7 years fully backed",
+          "Kaden is Reece-exclusive, so parts and support come through every Reece store",
+          "7-year Kaden parts and labour, plus 6 years on our workmanship",
           "The usual answer when three bedrooms need doing in one visit rather than one a year",
           "R32 refrigerant + inverter puts it on modern efficiency footing, not the old fixed-speed",
         ],
@@ -3889,7 +3867,7 @@ const brandCatalogue: Brand[] = [
         whyWeInstall: [
           "Holds the same room the Mitsubishi 5.0 does, on the range that lets the whole house happen at once",
           "Sweet-spot capacity for a typical open-plan family living zone",
-          "Kaden distributor pipeline through Emerson gives us reliable parts turnaround",
+          "Parts from every Reece store give us reliable turnaround",
           "Reece-exclusive rather than an import nobody stocks parts for, which is the difference that shows up in year six",
           "Backed by 7-year parts + our 6-year workmanship",
         ],
@@ -3944,8 +3922,8 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "kaden-ducted-10",
-        name: "Kaden Ducted 10 kW",
-        model: "KCI-100",
+        name: "Kaden KDI Ducted 10 kW",
+        model: "KDI · 10 kW",
         category: "ducted",
         categoryLabel: "Ducted system",
         capacity: "10.0 kW cooling",
@@ -3955,14 +3933,14 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Kaden ducted install with return-air duct work",
         bestFor: "Small 3-bed single-storey ducted retrofit",
         ourTake:
-          "10 kW of ducted for a smaller three-bedroom single-storey. Same ductwork, same zoning and the same crew as any ducted job we do, on the range that keeps a whole-house number reachable.",
-        specs: [{ label: "Cool capacity", value: "10.0 kW" }],
+          "10 kW of ducted for a smaller three-bedroom single-storey. Same ductwork and the same crew as any ducted job we do, on the range that keeps a whole-house number reachable.",
+        specs: [{ label: "Cool capacity", value: "10.0 kW" }, { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" }],
         related: ["kaden-ducted-12", "pead-m"],
       },
       {
         slug: "kaden-ducted-12",
-        name: "Kaden Ducted 12.5 kW",
-        model: "KCI-125",
+        name: "Kaden KDI Ducted 12.5 kW",
+        model: "KDI · 12.5 kW",
         category: "ducted",
         categoryLabel: "Ducted system",
         capacity: "12.5 kW cooling",
@@ -3971,14 +3949,14 @@ const brandCatalogue: Brand[] = [
         photo: "/Kaden kdi-v2-Ducted Split System.webp",
         photoAlt: "Kaden ducted install with return-air duct work",
         bestFor: "3-4 bed single-storey ducted retrofit",
-        ourTake: "12.5 kW is the size a typical three or four bedroom single-storey lands on. It's the Kaden ducted we install most, and it zones exactly the way the Mitsubishi does.",
-        specs: [{ label: "Cool capacity", value: "12.5 kW" }],
+        ourTake: "12.5 kW is the size a typical three or four bedroom single-storey lands on. It's the Kaden ducted we install most.",
+        specs: [{ label: "Cool capacity", value: "12.5 kW" }, { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" }],
         related: ["kaden-ducted-10", "kaden-ducted-14"],
       },
       {
         slug: "kaden-ducted-14",
-        name: "Kaden Ducted 14 kW",
-        model: "KCI-140",
+        name: "Kaden KDI Ducted 14 kW",
+        model: "KDI · 14 kW",
         category: "ducted",
         categoryLabel: "Ducted system",
         capacity: "14.0 kW cooling",
@@ -3988,13 +3966,13 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Kaden ducted install with return-air duct work",
         bestFor: "Larger single-storey or a modest double-storey",
         ourTake: "14 kW for a larger single-storey, or a long duct run that loses air before it reaches the far bedroom. The one to have when the rest of the house is already on Kaden and you want one remote and one parts list.",
-        specs: [{ label: "Cool capacity", value: "14.0 kW" }],
+        specs: [{ label: "Cool capacity", value: "14.0 kW" }, { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" }],
         related: ["kaden-ducted-12", "kaden-ducted-17"],
       },
       {
         slug: "kaden-ducted-17",
-        name: "Kaden Ducted 17 kW",
-        model: "KCI-170",
+        name: "Kaden KDI Ducted 17 kW",
+        model: "KDI-17",
         category: "ducted",
         categoryLabel: "Ducted system",
         capacity: "17.0 kW cooling",
@@ -4004,7 +3982,7 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Kaden ducted install with return-air duct work",
         bestFor: "Larger single-storey and double-storey family homes",
         ourTake: "The top of the Kaden ducted range, and what goes into larger double-storey family homes. Past 17 kW the range stops and the Mitsubishi PEA-M picks it up, which is a question of capacity rather than of quality.",
-        specs: [{ label: "Cool capacity", value: "17.0 kW" }],
+        specs: [{ label: "Cool capacity", value: "17.0 kW" }, { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" }],
         related: ["kaden-ducted-14", "pead-large"],
       },
       {
@@ -4019,7 +3997,7 @@ const brandCatalogue: Brand[] = [
         refrigerant: "R32",
         veuEligible: false,
         bestFor: "Two-bedroom install with only one balcony spot for the outdoor unit",
-        ourTake: "Two heads off one outdoor. Same arrangement as the Mitsubishi MXZ-2F, and the option we quote when the house is already on Kaden or the numbers need to cover two rooms in one job.",
+        ourTake: "Two heads off one outdoor. Same arrangement as the Mitsubishi MXZ-2F, and the option we quote when the house is already on Kaden or the budget has to stretch to two rooms in one job.",
         specs: [
           { label: "Combined cooling", value: "4.0 kW" },
           { label: "Indoor heads", value: "2" },
@@ -4209,19 +4187,19 @@ const brandCatalogue: Brand[] = [
         photoAlt: "Kaden Classic evaporative cooler roof unit",
         bestFor: "Standard roof pitches where the Classic silhouette isn't a street-view concern",
         ourTake:
-          "Kaden's Classic evap works on the same principle as the Brivis Contour, with an Emerson-backed parts pipeline behind it. Cools a whole home for ~25% of refrigerated running cost when outside humidity is low.",
+          "Kaden's Classic evap works on the same principle as the Brivis Contour, with Reece's parts pipeline behind it. Cools a whole home for a fraction of what refrigerated ducted costs to run when outside humidity is low.",
         specs: [
           { label: "Silhouette", value: "Classic (taller) roof profile" },
           { label: "Capacity", value: "Small · Medium · Large roof unit sizes" },
           { label: "Refrigerant", value: "None · evaporative water cooling" },
-          { label: "Running cost", value: "~25% of a refrigerated ducted equivalent" },
-          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
+          { label: "Running cost", value: "A fraction of a refrigerated ducted system's" },
+          { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" },
         ],
         features: [
           "Same whole-home cooling principle as the Brivis Contour, on the Kaden parts pipeline",
           "Three roof-unit sizes (Small / Medium / Large) matched to home cooling load",
           "Roof-mounted install, cooled air through ceiling vents",
-          "Emerson-backed parts pipeline, reliable Melbourne warranty turnaround",
+          "Reece parts pipeline, reliable Melbourne warranty turnaround",
         ],
         whyWeInstall: [
           "Whole-home evap for dry-summer suburbs, on the Kaden parts pipeline",
@@ -4248,7 +4226,7 @@ const brandCatalogue: Brand[] = [
           { label: "Capacity", value: "Small · Medium · Large roof unit sizes" },
           { label: "Install position", value: "Roof-mounted (suits low-pitch roofs)" },
           { label: "Refrigerant", value: "None · evaporative water cooling" },
-          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
+          { label: "Warranty", value: "7-year Kaden manufacturer + 6-year workmanship" },
         ],
         features: [
           "Low-Profile silhouette, clean street-view roofline",
@@ -4259,7 +4237,7 @@ const brandCatalogue: Brand[] = [
         whyWeInstall: [
           "Low-profile evap for heritage and covenanted streets, where roof height is capped",
           "Same install team, same 6-year workmanship warranty",
-          "Emerson parts pipeline, quick Melbourne warranty turnaround",
+          "Reece parts pipeline, quick Melbourne warranty turnaround",
         ],
         related: ["kaden-evaporative-classic", "brivis-evap-advance", "kaden-internal-3"],
       },
