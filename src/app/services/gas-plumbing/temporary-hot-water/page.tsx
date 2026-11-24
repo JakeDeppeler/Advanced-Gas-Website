@@ -272,7 +272,7 @@ export default function TemporaryHotWaterPage() {
                   <li><span className="tick tick--on-orange">✓</span> No obligation to buy the replacement from us</li>
                 </ul>
                 <p className="quotesec__finep">
-                  Licensed plumbers · {site.licences.plumbing} · 24/7 for no hot water and gas leaks.
+                  Licensed plumbers · {site.licences.plumbing} · After-hours call-outs for no hot water and gas leaks.
                 </p>
               </div>
               <QuoteForm presetService="gas-plumbing" />

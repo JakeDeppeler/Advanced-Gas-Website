@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Contact, Free quote in 12 hours",
-  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 75 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
+  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 75 km. ${site.phone} · ${site.email} · After-hours emergencies.`,
   alternates: { canonical: "/contact" },
 };
 
@@ -32,10 +32,10 @@ export default function ContactPage() {
             </div>
 
             <div className="ct-card ct-card--red" id="emergency">
-              <span className="ct-card__sub">24/7 Emergency</span>
+              <span className="ct-card__sub">After-hours emergency</span>
               <a className="ct-card__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
               <p style={{ marginTop: 8 }}>
-                Gas leak, no hot water, CO alarm, we answer after hours for locals only. $380 call-out, then $260/hr after.
+                Gas leak, no hot water or a CO alarm: call us after hours and we&apos;ll answer if we can. The call-out is {site.afterHours.callout}, which covers {site.afterHours.covers}. For a gas leak, ring the gas emergency line on 132 771 as well.
               </p>
             </div>
 
@@ -89,7 +89,7 @@ export default function ContactPage() {
             <li>
               <Link href="/contact#emergency">
                 <strong>Gas leak or no hot water?</strong>
-                <span>The after-hours line, answered by someone on the tools</span>
+                <span>Call after hours and we&apos;ll answer if we can</span>
               </Link>
             </li>
             <li>
