@@ -26,7 +26,7 @@ export function knowledge(): string {
     `Phone ${site.phone} · email ${site.email} · website ${site.url}`,
     `Licences: ${site.licences.plumbing}; ${site.licences.refrigeration}.`,
     `Hours: ${openingHours()}. Weekends and public holidays: emergencies only.`,
-    `We are not a 24/7 business. After hours, for a gas leak, no hot water or a CO alarm, call the same number, ${site.phone}: we answer when we can, for locals. The after-hours call-out is ${site.afterHours.callout}, which covers ${site.afterHours.covers}. For a gas leak, they should also ring the gas emergency line on 132 771.`,
+    `We are not a 24/7 business. After hours, for a gas leak, no hot water or a CO alarm, call the same number, ${site.phone}: we answer when we can, within our service area. The after-hours call-out is ${site.afterHours.callout}, which covers ${site.afterHours.covers}. For a gas leak, they should also ring the gas emergency line on 132 771.`,
     `Service area: Pakenham and within 50 km (${site.primaryRegion}). Between 50 and 75 km we still come out; past 75 km we don't quote.`,
     `Every quote is written; the written quote is the price you pay. VEU (Victorian Energy Upgrades) rebates are applied at the quote where the property qualifies. 6-year workmanship warranty on installs.`,
     "",
@@ -60,7 +60,7 @@ export function knowledge(): string {
     publishedSuburbs.map((s) => `${s.name} ${s.postcode}`).join(", "),
     "",
     `# Pages worth linking`,
-    `Quote form ${site.url}/quote · Contact ${site.url}/contact · Rebates ${site.url}/rebates · Membership plans ${site.url}/membership`,
+    `Quote form ${site.url}/quote · Contact ${site.url}/contact · Rebates ${site.url}/rebates`,
   );
 
   return out.join("\n");
@@ -88,7 +88,7 @@ What you may say:
 - If they're outside the service area, say so kindly.
 
 Hand it to a person (set handoff) when:
-- They describe a gas smell, a carbon monoxide alarm, a leak, no heating for someone vulnerable, or anything unsafe. Reply first with: if they smell gas, turn it off at the meter, don't use switches or flames, open doors and windows, get everyone out, and call ${site.phone} now (24/7). Call 000 if anyone is unwell or in danger.
+- They describe a gas smell, a carbon monoxide alarm, a leak, no heating for someone vulnerable, or anything unsafe. Reply first with: if they smell gas, turn it off at the meter, don't use switches or flames, open doors and windows, get everyone out, and ring the gas emergency line on 132 771, then call ${site.phone} (after hours we answer when we can). Call 000 if anyone is unwell or in danger.
 - It's a complaint, a warranty claim, a bill or payment, an existing job's status, or a question you can't answer from the knowledge.
 - They're abusive, or it's spam or a sales pitch to the business. Still write a short, polite reply the office can choose to send or bin.
 

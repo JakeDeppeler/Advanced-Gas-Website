@@ -12,7 +12,7 @@ import "@/components/homepage/page/membership.css";
 export const metadata: Metadata = {
   title: "Membership, discounted servicing & priority response",
   description:
-    "Become a member for discounted annual servicing, priority same-week response, and waived call-out fees across Pakenham and within 50 km.",
+    "Planned membership tiers: annual servicing, priority booking, and a waived after-hours make-safe fee on Gold, across Pakenham and within 50 km.",
   alternates: { canonical: "/membership" },
   // Placeholder pricing ($TBC on all three tiers). Take this out with the
   // real numbers — and add the page to sitemap.ts at the same time.
@@ -52,7 +52,7 @@ const tiers: Tier[] = [
     price: "$TBC",
     cadence: "/ year",
     highlight: true,
-    blurb: "Most households pick this one, better discounts and priority callbacks.",
+    blurb: "Better discounts and priority callbacks.",
     features: [
       { label: "Annual gas service at the member rate" },
       { label: "Annual aircon filter clean / inspection" },
@@ -109,7 +109,6 @@ export default function MembershipPage() {
           <div className="mbx__grid" data-anim="stagger">
             {tiers.map((t) => (
               <article key={t.id} className={`mbx__tier${t.highlight ? " mbx__tier--feature" : ""}`}>
-                {t.highlight && <span className="mbx__flag">Most popular</span>}
                 <h3 className="mbx__name">{t.name}</h3>
                 <p className="mbx__price"><strong>{t.price}</strong><span>{t.cadence}</span></p>
                 <p className="mbx__blurb">{t.blurb}</p>
@@ -126,7 +125,7 @@ export default function MembershipPage() {
             ))}
           </div>
           <p className="mbx__fine">
-            Pricing on this page is illustrative while we finalise tier costs. Call <a href={`tel:${site.phoneE164}`}>{site.phone}</a> for the current rate sheet.
+            Membership hasn&rsquo;t launched and the tier prices aren&rsquo;t set yet. Call <a href={`tel:${site.phoneE164}`}>{site.phone}</a> if you&rsquo;d like to hear when it does.
           </p>
         </>
       ),
@@ -158,7 +157,7 @@ export default function MembershipPage() {
         crumbs={[{ name: "Membership" }]}
         eye="Membership"
         title="Servicing done {before} it becomes a problem."
-        sub={<>Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay.</>}
+        sub={<>Three tiers, one promise: your gear keeps working, your call-outs get answered first, and the price you see is the price you pay.</>}
         photo={PHOTO.evapService} pos="center 45%"
         ctas={<><Link href="/contact" className="abtn abtn--or">Become a member →</Link><CallButton from="membership-hero" /></>}
         trust={[]}
@@ -166,7 +165,7 @@ export default function MembershipPage() {
           <HeroCard label="Three tiers">
             <ul className="phx__rows">
               {tiers.map((t) => (
-                <li key={t.id}><a href="#tiers"><strong>{t.name}{t.highlight && <em>Most popular</em>}</strong><span>{t.blurb}</span></a></li>
+                <li key={t.id}><a href="#tiers"><strong>{t.name}</strong><span>{t.blurb}</span></a></li>
               ))}
             </ul>
           </HeroCard>

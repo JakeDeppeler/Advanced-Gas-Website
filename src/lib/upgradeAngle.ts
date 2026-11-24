@@ -110,12 +110,15 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
 export const REBATE_FACTS = {
   veec: 576,
   stc: 629,
+  /** Solar Victoria's top-up for a locally made product: part of its rebate, so owner-occupier only. */
   ausMade: 400,
   vicSolar: 1_000,
-  /** Owner-occupier, everything stacked. */
+  /** The most we say a heat pump gets, all rebates together (Jake, 24 Nov 2026). */
+  upTo: 2_700,
+  /** A worked example under that maximum: VEEC + STC + Solar Victoria + the locally made top-up. */
   maxStacked: 2_605,
-  /** Rentals: no Solar Homes, everything else applies. */
-  maxRental: 1_605,
+  /** Rentals: VEEC + STC only. Solar Victoria's rebate and its locally made top-up are owner-occupier only. */
+  maxRental: 1_205,
 } as const;
 
 export type NudgeVariant = "hot-water" | "heating" | "cooling" | "general";

@@ -38,7 +38,7 @@ const EMERGENCY = /\b(?:smell(?:s|ing)?(?: of)? gas|gas (?:leak|smell)|leak(?:in
  * now?" answer and the office's drafting rules. A safety message is never
  * left to a word-overlap match.
  */
-export const GAS_SAFETY = `If you can smell gas: turn it off at the meter, don't use light switches or flames, open the doors and windows and get everyone outside. Then call us on ${site.phone}, 24/7. If anyone feels unwell or is in danger, call 000.`;
+export const GAS_SAFETY = `If you can smell gas: turn it off at the meter, don't use light switches or flames, open the doors and windows and get everyone outside. Then ring the gas emergency line on 132 771, and call us on ${site.phone}: after hours we answer when we can. If anyone feels unwell or is in danger, call 000.`;
 
 export const isEmergency = (q: string) => EMERGENCY.test(normalise(q));
 
@@ -338,7 +338,7 @@ const WHEN = /\b(?:how soon|how quickly|when can (?:you|someone|somebody)|soones
 
 export function whenAnswer(): AskReply {
   return reply(
-    `I can't see the booking diary from here, so I won't guess a day. The office books jobs: call ${site.phone} or send the quote form. If it's an emergency (gas leak, no hot water), call now: it's answered 24/7.`,
+    `I can't see the booking diary from here, so I won't guess a day. The office books jobs: call ${site.phone} or send the quote form. If it's an emergency (gas leak, no hot water), call now: after hours we answer when we can, and for a gas leak ring 132 771 too.`,
     { href: "/quote", label: "Request a quote or booking" },
     "unsure",
   );

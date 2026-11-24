@@ -283,7 +283,7 @@ export function BrandView({ brand, reviews }: { brand: Brand; reviews: Review[] 
               <span className="aeye"><i /> Reviews</span>
               <h2 className="h2 h2--sm">From local households.</h2>
             </div>
-            <Link href="/reviews">Read every review →</Link>
+            <Link href="/reviews">Read our reviews →</Link>
           </div>
           <div className="pp__revs">
             {reviews.map((r) => (

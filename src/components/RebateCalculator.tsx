@@ -15,7 +15,9 @@ import { SHOW_PRICES } from "@/lib/homepage/data";
  *   − VEEC + STC + VIC Solar (if eligible) + Aus-Made (if brand eligible)
  *   = customer final price inc GST
  *
- * Australian Made $400 rebate applies to Reclaim and Thermann, both built by Dux at Moss Vale.
+ * The $400 for a locally made product is part of Solar Victoria's rebate (up
+ * to $1,400 instead of $1,000), so it is owner-occupier only like the rest of
+ * it (Jake, 24 Nov 2026): a rental gets VEEC + STC and nothing else.
  * VIC Solar Homes $1,000 rebate has eligibility criteria (owner-occupier,
  * combined household income < $150k, property value < $3M, no prior HW /
  * battery Solar Homes rebate at the address, existing HW system 3+ yrs
@@ -83,30 +85,20 @@ const HP_BRANDS: Brand[] = [
     ],
   },
   {
-    id: "thermann",
-    t: "Thermann",
-    s: "Australian made · great value",
-    ausMade: true,
-    products: [
-      { id: "thermann-200", name: "Thermann R290 all-in-one 200 L", desc: "1–2 person homes · plug-in", rrp: 3195, install: "aio", needsPower: true },
-      { id: "thermann-285", name: "Thermann R290 all-in-one 285 L", desc: "3–4 person homes · plug-in", rrp: 3545, install: "aio", needsPower: true },
-    ],
-  },
-  {
     id: "istore",
     t: "iStore",
     s: "Smart-app ready",
     ausMade: false,
     products: [
       { id: "istore-180", name: "iStore 180 L", desc: "1–3 person homes", rrp: 2800, install: "split" },
-      { id: "istore-275", name: "iStore 275 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
+      { id: "istore-275", name: "iStore 270 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
     ],
   },
   ];
 
 const AC_BRANDS = [
   { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium quiet inverter" },
-  { id: "kaden",  t: "Kaden",               s: "Great value, 5-yr warranty" },
+  { id: "kaden",  t: "Kaden",               s: "Great value, 7-yr warranty" },
 ];
 
 /* ------- component ------- */
@@ -135,7 +127,7 @@ export function RebateCalculator() {
     const powerAddOn = product.needsPower && power === "no" ? POWER_ADDON : 0;
     const veec = VEEC;
     const stc  = STC;
-    const ausMade = brand.ausMade ? AUS_MADE : 0;
+    const ausMade = brand.ausMade && solar === "yes" ? AUS_MADE : 0;
     const solarR = solar === "yes" ? VIC_SOLAR : 0;
     const rebates = veec + stc + ausMade + solarR;
     const subtotal = unitIncGST + installIncGST + powerAddOn;
@@ -174,7 +166,7 @@ export function RebateCalculator() {
             onClick={() => pickCategory("hp")}
           >
             <span className="rb-calc__card-t">Heat pump hot water</span>
-            <span className="rb-calc__card-s">Reclaim · Thermann · iStore</span>
+            <span className="rb-calc__card-s">Reclaim · iStore</span>
           </button>
           <button
             type="button"
@@ -193,7 +185,7 @@ export function RebateCalculator() {
           {/* Step 2, brand */}
           <div className="rb-calc__block">
             <span className="rb-calc__qlabel">2. Which brand?</span>
-            <div className="rb-calc__grid rb-calc__grid--3">
+            <div className="rb-calc__grid rb-calc__grid--2">
               {HP_BRANDS.map((b) => (
                 <button
                   type="button"

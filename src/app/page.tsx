@@ -16,6 +16,7 @@ import { ServiceArea } from "@/components/homepage/ServiceArea";
 import { IntentFromUrl } from "@/components/homepage/IntentFromUrl";
 import "@/components/homepage/homepage.css";
 import { JsonLd } from "@/components/JsonLd";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   // The root page sits beside the layout, so the layout's title
@@ -67,7 +68,7 @@ export default async function HomePage() {
           <div className="ahero__copy anim">
             <h1 className="ahero__h1">One standard.<br /><span>Every job.</span></h1>
             <p className="ahero__p">
-              A local Pakenham team looking after heating, cooling, gas and hot water across Melbourne&apos;s south-east and Gippsland. Our own crews, twelve years on the tools, and the same high standard every time.
+              A local Pakenham team looking after heating, cooling, gas and hot water across Melbourne&apos;s south-east and Gippsland. Our own crews, twelve years trading, and the same high standard every time.
             </p>
             <div className="ahero__ctas">
               <a href="#find" className="abtn abtn--or">Find your system →</a>
@@ -81,7 +82,7 @@ export default async function HomePage() {
               <span className="ahero__sep" aria-hidden="true" />
               <span><strong>1,200+</strong><small>installs done</small></span>
               <span className="ahero__sep" aria-hidden="true" />
-              <Link href="/rebates"><strong>Up to $6,000 →</strong><small>See if you qualify</small></Link>
+              <Link href="/rebates"><strong>Up to $6,000 →</strong><small>Aircon rebates</small></Link>
             </div>
           </div>
           <HeroQuote />
@@ -140,13 +141,13 @@ export default async function HomePage() {
               <div className="shade" aria-hidden="true" />
               <div className="body">
                 <span className="whycard__lbl" style={{ color: "#FF7A36" }}>Our own installers</span>
-                <strong className="disp" style={{ fontSize: "clamp(26px, 2.6vw, 36px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-.02em" }}>The team who quotes it does the work.</strong>
+                <strong className="disp" style={{ fontSize: "clamp(26px, 2.6vw, 36px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-.02em" }}>Quoted and installed by our own team.</strong>
                 <span style={{ fontSize: 15, lineHeight: 1.55, color: "rgba(255,255,255,.85)", maxWidth: "30rem" }}>The person who quotes your job is on the same team as the person who installs it.</span>
               </div>
             </div>
             <div className="whycard whycard--or arv">
               <strong className="whycard__big">12 yrs</strong>
-              <span style={{ fontSize: 15, lineHeight: 1.45 }}>On the tools across Pakenham and the south-east.</span>
+              <span style={{ fontSize: 15, lineHeight: 1.45 }}>Trading across Pakenham and the south-east, since 2014.</span>
             </div>
             <div className="whycard whycard--sky arv">
               <strong className="whycard__big">6 yrs</strong>
@@ -166,8 +167,8 @@ export default async function HomePage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
                 <span className="whycard__lbl" style={{ color: "#B04711" }}>VEU accredited</span>
                 <strong className="disp" style={{ fontSize: 22, fontWeight: 800, color: "#050A30", lineHeight: 1.15 }}>Rebate taken off at the quote, not claimed back later.</strong>
-                {/* What adds up to $6,000 (Jake, Nov 2026). Hot water on its own is up to $2,700, which is what the heat pump pages say. */}
-                <span style={{ fontSize: 14, lineHeight: 1.5, color: "#3F4A63" }}>Combined rebates: VEECs on reverse-cycle air con, plus VEECs, STCs and Solar Victoria&apos;s rebate and Australian-made bonus on a heat pump. Up to $2,700 of that is on hot water.</span>
+                {/* Two separate maximums (Jake, 24 Nov 2026): up to $6,000 is air conditioning on its own, and a heat pump is up to $2,700 on top of that, not part of it. */}
+                <span style={{ fontSize: 14, lineHeight: 1.5, color: "#3F4A63" }}>Up to $6,000 off reverse-cycle air conditioning. Separately, up to $2,700 off a heat pump hot water system, from VEU, the federal STCs and Solar Victoria&apos;s rebate for eligible owner-occupiers.</span>
                 <Link href="/tools/veu-rebate-estimator" style={{ fontSize: 14, fontWeight: 700, color: "#B04711", textUnderlineOffset: 3 }}>Estimate your rebate →</Link>
               </div>
               <strong className="disp" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", fontSize: "clamp(34px, 3.4vw, 48px)", fontWeight: 900, color: "#C2521A", letterSpacing: "-.03em", whiteSpace: "nowrap", lineHeight: 1 }}>
@@ -176,13 +177,13 @@ export default async function HomePage() {
             </div>
             <div className="whycard whycard--white arv">
               <span className="whycard__ico" style={{ background: "#E6F5FC", color: "#0C6F96" }}><Svg d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9 12l2 2 4-4" size={22} width={1.8} /></span>
-              <div style={col}><strong className="whycard__t">Certified in 24 hrs</strong><span className="whycard__s">Compliance certificate emailed the day after install.</span></div>
+              <div style={col}><strong className="whycard__t">Compliance cert in 24 hrs</strong><span className="whycard__s">Compliance certificate emailed the day after install.</span></div>
             </div>
             <div className="whycard whycard--white arv">
               <span className="whycard__ico" style={{ background: "#050A30", color: "#fff" }}>
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
               </span>
-              <div style={col}><strong className="whycard__t">24/7 emergencies</strong><span className="whycard__s">After hours goes to someone on the tools.</span></div>
+              <div style={col}><strong className="whycard__t">After hours</strong><span className="whycard__s">Gas leak or no hot water? Call and we&apos;ll answer if we can. The call-out is {site.afterHours.callout}, which covers {site.afterHours.covers}.</span></div>
             </div>
           </div>
         </div>
@@ -228,7 +229,7 @@ export default async function HomePage() {
         <div className="wrap revs__in">
           <div className="sechead arv" style={{ gap: 24 }}>
             <div className="sechead__t" style={{ gap: 14, maxWidth: 620 }}>
-              <h2 className="h2">Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
+              <h2 className="h2">Reviews from real households across the south-east.</h2>
             </div>
             <div className="revs__score">
               <span className="stars stars--ink" style={{ letterSpacing: 4 }} aria-hidden="true">★★★★★</span>
@@ -317,7 +318,7 @@ export default async function HomePage() {
           <div className="ctabox__body">
             <div className="ctabox__t">
               <h2>Let&apos;s get your job done properly.</h2>
-              <p>A free written quote with the VEU rebate already applied, usually back to you within 12 business hours. The price only changes if the job does, and you approve it before we start.</p>
+              <p>We call you back within 12 business hours to book a free site check, then send one fixed price in writing with the VEU rebate already applied. The price only changes if the job does, and you approve it before we start.</p>
             </div>
             <div className="sechead__btns">
               <a href="#quote" className="abtn abtn--navy">Get a quote →</a>

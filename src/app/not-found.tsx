@@ -14,8 +14,8 @@ const GO = [
   { href: "/services", label: "Everything we do", sub: "Aircon, heat pumps, gas and hot water" },
   { href: "/range", label: "The full range", sub: "Every model we fit, side by side" },
   { href: "/service-areas", label: "Do you come to me?", sub: "Every suburb, with drive times from Pakenham" },
-  { href: "/quote", label: "Get a price", sub: "A written quote back inside 12 business hours" },
-  { href: "/contact", label: "Contact us", sub: "Phone, email, hours and the 24/7 emergency line" },
+  { href: "/quote", label: "Get a price", sub: "A call back inside 12 business hours, then a written quote" },
+  { href: "/contact", label: "Contact us", sub: "Phone, email, hours and after-hours emergencies" },
   { href: "/blog", label: "Guides and advice", sub: "Rebates, sizing and running costs, explained" },
 ];
 
@@ -40,8 +40,8 @@ export default function NotFound() {
             <p className="nf__sub" style={{ marginTop: 14 }}>
               Mon&ndash;Fri {openingHoursShort()}. Gas leak, no hot water or a CO alarm after hours?{" "}
               <Link href="/contact#emergency" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>
-                We answer the emergency line
-              </Link>.
+                Call, and we&rsquo;ll answer if we can
+              </Link>. Smell gas? Ring the gas emergency line on 132 771.
             </p>
           </div>
         </div>

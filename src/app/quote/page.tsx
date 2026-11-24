@@ -16,9 +16,9 @@ import "@/components/homepage/page/category.css";
 import "./quote.css";
 
 export const metadata: Metadata = {
-  title: "Get a Free Quote, Pakenham VEU-applied",
+  title: "Free Quote in Pakenham, VEU Rebate Applied",
   description:
-    "Free, no-obligation quote in 60 seconds from licensed Pakenham aircon and heat pump installers. A free site check, then one fixed price in writing.",
+    "Request a free, no-obligation quote in 60 seconds from licensed Pakenham aircon and heat pump installers. A free site check, then one fixed price in writing.",
   alternates: { canonical: "/quote" },
   robots: { index: true, follow: true },
 };
@@ -39,7 +39,7 @@ const PROMISES: [string, string][] = [
   ["VEU rebate handled for you.", "For eligible homes we apply it at the quote, so you never chase it."],
   ["Licensed plumbing & refrigeration.", "Compliance certificate on completion."],
   ["6-year workmanship warranty", "on every install."],
-  ["Same-week installation.", "Most jobs scheduled within 5–7 days of approval."],
+  ["Booked in promptly.", "Most jobs scheduled within 5–7 days of approval."],
 ];
 
 const STEPS = [
@@ -67,7 +67,7 @@ const PRICE_PROMISE: [string, string][] = [
 /** Answers drawn from what the rest of the site already promises, nothing new. */
 const FAQS = [
   { q: "Is the quote really free?", a: "Yes. The quote and the site check are free, and there's no obligation to go ahead." },
-  { q: "How quickly will I hear back?", a: "Within 12 business hours. If it's urgent, call (03) 5947 8000: after hours goes to someone on the tools." },
+  { q: "How quickly will I hear back?", a: "We call you back within 12 business hours. If it's urgent, call (03) 5947 8000. After hours, for a gas leak or no hot water, call and we'll answer if we can; if you smell gas, ring the gas emergency line on 132 771 as well." },
   { q: "Why do you need a site check?", a: "So the price is right the first time. We confirm the size and look for anything that affects the work, then put one fixed price in writing." },
   { q: "Will the price change after the site check?", a: "The written quote that follows the site check is one fixed price, with the model, the work and the warranty spelled out. It only changes if the job does, and we ask you first." },
   { q: "Do you handle the VEU rebate?", a: "Yes. For eligible homes we apply it at the quote, so it comes straight off the price and you never chase it." },
@@ -98,13 +98,13 @@ export default function QuotePage() {
       <section className="qpg" id="form" data-hide-sticky-cta>
         <div className="wrap qpg__in">
           <div className="qpg__copy">
-            <span className="lk2__eye cx__eye">Free quote · usually back within 12 hrs</span>
+            <span className="lk2__eye cx__eye">Free quote · usually back within 12 business hrs</span>
             <h1 className="qpg__h1">Tell us what you need. Get a <em>written price.</em></h1>
             <p className="qpg__sub">A few quick taps, no obligation and no spam. We call you back within 12 business hours to book a free site check, then put one fixed price in writing.</p>
             <ul className="qpg__list">
               {PROMISES.map(([b, t]) => <li key={b}><span aria-hidden="true">✓</span><p><strong>{b}</strong> {t}</p></li>)}
             </ul>
-            <p className="qpg__call">Prefer to talk? <a href="tel:+61359478000" data-call-from="quote-page">Call (03) 5947 8000</a>, {openingHours()}. After hours goes to someone on the tools.</p>
+            <p className="qpg__call">Prefer to talk? <a href="tel:+61359478000" data-call-from="quote-page">Call (03) 5947 8000</a>, {openingHours()}. After hours, for a gas leak or no hot water, call and we&apos;ll answer if we can.</p>
           </div>
           <div className="qpg__form"><HeroQuote /></div>
         </div>
@@ -236,7 +236,7 @@ export default function QuotePage() {
               <h2 className="h2">How their <span>quote went</span>.</h2>
               <p>{RATING_TEXT} from {RATING_SUMMARY.count} Google reviews by local households.</p>
             </header>
-            <Link href="/reviews">Read every review →</Link>
+            <Link href="/reviews">Read our reviews →</Link>
           </div>
           <div className="pp__revs" data-anim="stagger">
             {reviews.map((r) => (

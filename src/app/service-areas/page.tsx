@@ -30,7 +30,7 @@ export default function ServiceAreasPage() {
         photo={PHOTO.vans} pos="center 60%" from="areas-hero"
         trust={[
           { v: String(publishedSuburbs.length), k: "Suburbs with their own page" },
-          { v: "12 hrs", k: "To a written quote" },
+          { v: "12 business hrs", k: "To a callback" },
         ]}
       />
     }>
@@ -53,7 +53,7 @@ export default function ServiceAreasPage() {
         ),
       }]} />
 
-      <EndCta title={<>Free quote, <span>rebate applied</span>.</>} text="A free, no-obligation quote back within 12 business hours." from="areas-cta" />
+      <EndCta title={<>Free quote, <span>rebate applied</span>.</>} text="A callback within 12 business hours, then a free site check and a written price." from="areas-cta" />
     </BandPage>
   );
 }

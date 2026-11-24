@@ -94,7 +94,7 @@ export function Finder({ only }: { only?: string } = {}) {
             <div className="find__intro">
               <h2 className="find__h">Find your <span>{fixed ? fixed.sys.label.toLowerCase() : "system"}</span></h2>
               <p className="find__p">
-                {fixed ? "Answer a few quick questions and we'll show you every option side by side, with the one we'd pick for you, at the size that covers your showers" : "Pick what you need, answer a few quick questions about your home, and we'll show you three options side by side"}
+                {fixed ? "Answer a few quick questions and we'll show you every option side by side, with the one we'd pick for you, at the size that covers your showers" : "Pick what you need, answer a few quick questions about your home, and we'll show you the options side by side"}
                 {fixed ? "" : SHOW_PRICES ? (SHOW_FINANCE ? " with the weekly finance figure" : " with installed prices") : ", then a free written quote for the one you like"}. Something stopped working?{" "}
                 <a href="tel:+61359478000" data-call-from="finder">Call (03) 5947 8000</a>.
               </p>

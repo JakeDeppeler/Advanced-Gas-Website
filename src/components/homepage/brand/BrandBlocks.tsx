@@ -341,7 +341,7 @@ export function BrandBlocks({ brand, reviews }: { brand: Brand; reviews: Review[
         <div className="wrap"><div className="bk__blk bk__col">
           <div className="pp__revhead">
             <header className="bk__head"><h2 className="h2">From local <span>households</span>.</h2></header>
-            <Link href="/reviews">Read every review →</Link>
+            <Link href="/reviews">Read our reviews →</Link>
           </div>
           <div className="pp__revs" data-anim="stagger">
             {reviews.map((r) => (

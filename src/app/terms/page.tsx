@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-const UPDATED = "12 August 2026";
+const UPDATED = "24 November 2026";
 
 const TOC: [string, string][] = [
   ["quotes", "Quotes"],
@@ -109,7 +109,7 @@ export default function TermsPage() {
           </p>
           <p>
             If we arrive at an agreed time and can&rsquo;t get in, or the job is
-            cancelled with less than 24 hours notice, a call-out fee may apply. We
+            cancelled with less than 24 hours&rsquo; notice, a call-out fee may apply. We
             will tell you before charging it.
           </p>
         </LegalSection>
@@ -117,7 +117,7 @@ export default function TermsPage() {
         <LegalSection id="warranty" title="Warranty" icon="shield">
           <ul>
             <li>
-              <strong>Our workmanship: 6 years.</strong> If something we did
+              <strong>Our workmanship: 6 years, on homes and businesses alike.</strong> If something we did
               fails, we come back and fix it. That covers the install, the
               brackets, the pipework, the wiring and the finish.
             </li>
@@ -171,7 +171,7 @@ export default function TermsPage() {
           <p>
             These terms are governed by the law of Victoria, Australia. If a
             dispute comes up, call us first, on{" "}
-            <a href={`tel:${site.phoneE164}`}>{site.phone}</a>. In eleven years
+            <a href={`tel:${site.phoneE164}`}>{site.phone}</a>. Since 2014
             almost everything has been sorted out on the phone.
           </p>
         </LegalSection>

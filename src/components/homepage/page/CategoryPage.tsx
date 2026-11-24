@@ -255,7 +255,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
             <p>The person who quotes your job is on the same team as the person who installs it.</p>
           </header>
           <ul className="cx__why" data-anim="stagger">
-            <li><b>12 yrs</b><strong>On the tools</strong><span>Across Pakenham and the south-east.</span></li>
+            <li><b>12 yrs</b><strong>Trading</strong><span>Since 2014, across Pakenham and the south-east.</span></li>
             <li><b>6 yrs</b><strong>Workmanship warranty</strong><span>On every install, on top of the manufacturer&apos;s.</span></li>
             <li><b>In writing</b><strong>One fixed price</strong><span>It only changes if the job does, and you approve it first.</span></li>
             <li><b>{RATING_TEXT}</b><strong>On Google</strong><span>From {RATING_SUMMARY.count} reviews by local households.</span></li>
@@ -295,7 +295,7 @@ export function CategoryPage({ cat, copy }: { cat: Category; copy: CategoryCopy 
         <div className="wrap"><div className="bk__blk bk__col">
           <div className="pp__revhead">
             <header className="bk__head"><h2 className="h2">From local <span>households</span>.</h2></header>
-            <Link href="/reviews">Read every review →</Link>
+            <Link href="/reviews">Read our reviews →</Link>
           </div>
           <div className="pp__revs" data-anim="stagger">
             {reviews.map((r) => (

@@ -82,7 +82,7 @@ export default function AboutPage() {
               <h2 className="h2">Rated {RATING_TEXT} by <span>{RATING_SUMMARY.count} customers</span>.</h2>
               <p>What local households say once the job&apos;s done and the crew has gone.</p>
             </header>
-            <Link href="/reviews">Read every review →</Link>
+            <Link href="/reviews">Read our reviews →</Link>
           </div>
           <div className="pp__revs" data-anim="stagger">
             {reviews.map((r) => (
