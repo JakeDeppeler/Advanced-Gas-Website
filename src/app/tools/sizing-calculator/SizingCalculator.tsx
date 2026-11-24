@@ -8,13 +8,19 @@ import "@/components/homepage/tools/calc-a.css";
  * Residential aircon-sizing calculator. Client-only — the inputs
  * change the result live without a page reload.
  *
- * Formula: base 150 W/m² (Melbourne climate, standard 2.4m ceiling)
+ * Formula: base 100 W/m² (Melbourne climate, standard 2.4m ceiling)
  * adjusted for ceiling height, orientation, insulation, glazing and
- * occupants. Output is a cooling-capacity band in kW and the closest
- * standard model size we install (2.5 / 3.5 / 5.0 / 7.0 / 8.0 kW).
+ * occupants. Output is a cooling-capacity band in kW and the next
+ * standard model size up (2.5 / 3.5 / 5.0 / 7.1 / 8.0 kW and on).
  */
 
-const BASE_LOAD_W_PER_M2 = 150;
+/**
+ * 100 W/m², the rule of thumb Jake's own sizing guides start from (20 m² ×
+ * 100 = 2 kW, so a 2.5 kW). At 150 the default 20 m² bedroom came out at
+ * 5 kW, the exact oversell the bedroom guide warns against; the
+ * insulation, glazing and orientation factors already carry the extra.
+ */
+const BASE_LOAD_W_PER_M2 = 100;
 
 const STANDARD_MODEL_SIZES_KW = [2.5, 3.5, 5.0, 7.1, 8.0, 9.4, 10.5, 12.5, 14, 16] as const;
 
@@ -204,12 +210,12 @@ export function SizingCalculator() {
       <div className="ca__card ca__sum" aria-live="polite">
         <span className="ca__lbl">Recommended size · cooling capacity</span>
         <div className="ca__big">{result.minKw.toFixed(1)}–{result.maxKw.toFixed(1)}<small> kW</small></div>
-        <p className="ca__tag">Closest standard model: <b>{kw}&nbsp;kW</b> split system</p>
+        <p className="ca__tag">Next standard size up: <b>{kw}&nbsp;kW</b> split system</p>
       </div>
 
       <div className="ca__card ca__det">
         <p className="ca__sub">
-          For a <strong>{result.area.toFixed(1)}&nbsp;m²</strong> room, the closest standard model size is a
+          For a <strong>{result.area.toFixed(1)}&nbsp;m²</strong> room, the next standard size up is a
           <strong> {kw}&nbsp;kW</strong> split system.
         </p>
 

@@ -114,14 +114,14 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
                   <div>
                     <small>Written by</small>
                     <h3>{author.name}</h3>
-                    <span className="art-author__cred">{author.role} · {author.credential}</span>
+                    <span className="art-author__cred">{author.credential ? `${author.role} · ${author.credential}` : author.role}</span>
                   </div>
                   <p>{author.bio}</p>
                 </div>
                 <div className="art-ask">
                   <small>Ready for a quote?</small>
                   <h3>In writing, no obligation, VEU rebate applied at the quote.</h3>
-                  <p>We usually reply within 12 hours. Free 20-minute site check for bigger jobs.</p>
+                  <p>We call back within 12 business hours. Free 20-minute site check for bigger jobs.</p>
                   <Link href="/quote" className="abtn abtn--or abtn--flat">Get a free quote →</Link>
                   <a href={`tel:${site.phoneE164}`} data-call-from="blog-side">Or call {site.phone}</a>
                 </div>
@@ -154,7 +154,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
         }] : []),
       ]} />
 
-      <EndCta title={<>Free quote, <span>in writing</span>.</>} text="VEU rebate applied at the quote where it applies. We usually reply within 12 hours." from="blog-post-cta" />
+      <EndCta title={<>Free quote, <span>in writing</span>.</>} text="VEU rebate applied at the quote where it applies. We call back within 12 business hours." from="blog-post-cta" />
 
       {/* WEB-012 / WEB-013: Article with a real author reference and ISO
           dates, plus a Person for the author. */}

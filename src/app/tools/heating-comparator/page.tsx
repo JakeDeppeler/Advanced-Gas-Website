@@ -41,8 +41,8 @@ export default function HeatingComparatorPage() {
             Ducted systems typically run 4-8 hours/day for ~120-150 days per year.
             </p>
             <p>
-            Big picture: a modern reverse-cycle unit on 2025 tariffs typically runs at half the
-            cost of a 3-star gas ducted heater. The VEU rebate makes the swap cost dramatically
+            Big picture: a modern reverse-cycle unit on current tariffs typically runs at a third to
+            a half of the cost of a 3-star gas ducted heater. The VEU rebate makes the swap cost dramatically
             less, <Link href="/tools/veu-rebate-estimator">estimate your rebate</Link>.
             </p>
 

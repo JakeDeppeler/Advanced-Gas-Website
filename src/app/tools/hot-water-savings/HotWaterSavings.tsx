@@ -102,8 +102,9 @@ export function HotWaterSavings() {
             <Num id="cost" label="Heat pump install" unit="$" value={form.installCost} min={0} max={15000} step={100} int blank="From your quote"
               onChange={(v) => update("installCost", v || 0)}
               hint={SHOW_PRICES ? "Ballpark install price before rebate." : "The price before rebate, from your written quote."} />
-            <Num id="veu" label="VEU rebate" unit="$" value={form.veuRebate} min={0} max={3000} step={100} int
-              onChange={(v) => update("veuRebate", v || 0)} hint="Typical VIC heat pump $2,100-$2,700 at current VEEC prices." />
+            {/* Capped at the $2,700 every other page quotes: it's the whole stack, not VEU alone. */}
+            <Num id="veu" label="Rebates" unit="$" value={form.veuRebate} min={0} max={2700} step={100} int
+              onChange={(v) => update("veuRebate", Math.min(2700, v || 0))} hint="Up to $2,700 all together (VEU, STCs and Solar Victoria for eligible owner-occupiers). A rental gets about $1,205." />
           </div>
         </div>
       </div>
@@ -121,7 +122,7 @@ export function HotWaterSavings() {
                   ? "n/a, no saving in this scenario"
                   : `${result.paybackYears.toFixed(1)} years`}
               </strong>{" "}
-              on a net install of <strong>{$(result.netInstall)}</strong> after the VEU rebate.
+              on a net install of <strong>{$(result.netInstall)}</strong> after rebates.
             </p>
           ) : (
             <p className="cb__sub">
@@ -151,11 +152,11 @@ export function HotWaterSavings() {
           <div><dt>Current annual cost</dt><dd>{$(result.currentCostYr)}</dd></div>
           <div><dt>Current energy use</dt><dd>{result.currentEnergyLabel}</dd></div>
           <div><dt>Heat pump annual cost</dt><dd>{$(result.heatPumpCostYr)}</dd></div>
-          <div><dt>Heat pump input</dt><dd>{Math.round(result.heatPumpInputKwh)} kWh/yr</dd></div>
+          <div><dt>Heat pump input</dt><dd>{Math.round(result.heatPumpInputKwh).toLocaleString("en-AU")} kWh/yr</dd></div>
           <div><dt>Annual saving</dt><dd>{$(result.savingYr)}</dd></div>
           {hasInstall && (
             <>
-              <div><dt>Net install (after VEU)</dt><dd>{$(result.netInstall)}</dd></div>
+              <div><dt>Net install (after rebates)</dt><dd>{$(result.netInstall)}</dd></div>
               <div className={result.tenYearNetSaving > 0 ? "cb__good" : undefined}><dt>10-year net saving</dt><dd>{$(result.tenYearNetSaving)}</dd></div>
             </>
           )}

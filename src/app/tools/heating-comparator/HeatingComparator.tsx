@@ -53,7 +53,7 @@ const DEFAULTS: FormState = {
   // own quoted figure (Jake asked for every price off, Nov 2026), and the
   // payback lines wait until there is one.
   installCost: SHOW_PRICES ? 12000 : 0,
-  veuRebate: 3400,      // typical gas ducted → RC ducted at current $60-$75 VEEC prices
+  veuRebate: 3400,      // a typical gas ducted → RC ducted rebate; the most is $6,000
 };
 
 /** The star ratings, with the notes the old drop-down carried. */
@@ -174,7 +174,7 @@ export function HeatingComparator() {
               onChange={(v) => update("installCost", v || 0)}
               hint={SHOW_PRICES ? "Ducted RC retrofit ~$11-14k, multi-head split ~$6-9k." : "The price before rebate, from your written quote."} />
             <Num id="veu" label="VEU rebate" unit="$" value={form.veuRebate} min={0} max={6000} step={100} int
-              onChange={(v) => update("veuRebate", v || 0)} hint="Gas ducted → RC ducted typically $2,800-$4,200 at current VEEC prices." />
+              onChange={(v) => update("veuRebate", v || 0)} hint="Up to $6,000 off a switch from gas ducted to reverse-cycle." />
           </div>
         </div>
       </div>

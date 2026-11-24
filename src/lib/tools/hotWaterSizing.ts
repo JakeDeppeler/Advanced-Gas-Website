@@ -14,10 +14,10 @@ export const USABLE_FRACTION = 0.8; // stratification, you can't use the last 20
 /**
  * Sizes we can actually put on a wall.
  *
- * Every rung must be a real product. There is no 300 L unit — the
- * Reclaim and Thermann all-in-ones are 285 L — so recommending "300 L"
- * sent someone off to buy a 285 and come up short. If the sum lands
- * between rungs, the next REAL size up is the answer.
+ * Every rung must be a real product. The Thermann all-in-one is 285 L and
+ * Reclaim's is quoted as 300 L, so that rung sits at 285, which either one
+ * covers. If the sum lands between rungs, the next REAL size up is the
+ * answer.
  */
 export const TANK_SIZES: {
   litres: number;
@@ -36,14 +36,14 @@ export const TANK_SIZES: {
       { label: "Reclaim CO₂ Split 250 L", href: "/brands/reclaim/co2-split-250-glass" },
       { label: "Panasonic CO₂ 6 kW · 250 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-250" },
     ] },
-  { litres: 270, models: "Reclaim CO₂ 270 L · iStore 275 L · Thermann Split 270 L",
+  { litres: 270, models: "iStore 270 L · Thermann Split 270 L",
     picks: [
-      { label: "iStore 275 L Heat Pump", href: "/brands/istore/istore-270" },
+      { label: "iStore 270 L Heat Pump", href: "/brands/istore/istore-270" },
       { label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" },
     ] },
-  { litres: 285, models: "Reclaim ECO R290 285 L · Thermann ECO R290 285 L",
+  { litres: 285, models: "Thermann ECO R290 285 L · Reclaim ECO R290 300 L",
     picks: [
-      { label: "Reclaim ECO R290 285 L", href: "/brands/reclaim/eco-r290-300" },
+      { label: "Reclaim ECO R290 300 L", href: "/brands/reclaim/eco-r290-300" },
       { label: "Thermann ECO R290 285 L", href: "/brands/thermann/thermann-eco-r290-300" },
     ] },
   { litres: 315, models: "Reclaim CO₂ 315 L · Panasonic CO₂ 315 L",
@@ -57,7 +57,7 @@ export const TANK_SIZES: {
 ];
 
 /**
- * iStore tops out at 275 L. Past about 310 L it stops being an option at
+ * iStore tops out at 270 L. Past about 310 L it stops being an option at
  * all, so listing it against a bigger recommendation would send someone
  * to a product that can't do the job.
  */
@@ -89,8 +89,6 @@ export const SYSTEMS: SystemPreset[] = [
     note: "The standard Reclaim. A 2.5 kW compressor leans on stored volume rather than recovery speed, so the tank does the work." },
   { id: "reclaim-co2-315", name: "Reclaim CO₂ 315 L", heatKw: 2.5, tankLitres: 315, cop: 4.5, verified: true,
     note: "Same 2.5 kW compressor, more buffer. The size to reach for when the whole house showers in one go." },
-  { id: "reclaim-5kw-215", name: "Reclaim CO₂ 215 L · 5 kW", heatKw: 5.0, tankLitres: 215, cop: 4.5, verified: true,
-    note: "Twice the recovery of the standard unit on a smaller tank. Suits a tight morning rush and a tight footprint." },
   { id: "reclaim-5kw-315", name: "Reclaim CO₂ 315 L · 5 kW", heatKw: 5.0, tankLitres: 315, cop: 4.5, verified: true,
     note: "Volume and recovery together. Handles a full morning run and is back before anyone gets home." },
   { id: "reclaim-400", name: "Reclaim CO₂ 400 L · 5 kW", heatKw: 5.0, tankLitres: 400, cop: 4.5, verified: true,
@@ -101,10 +99,10 @@ export const SYSTEMS: SystemPreset[] = [
     note: "4 kW Panasonic. Quieter and cheaper than the 6 kW, and plenty with a long morning-to-evening gap." },
   { id: "thermann-285", name: "Thermann ECO R290 285 L", heatKw: 2.5, tankLitres: 285, cop: 4.0, verified: true,
     note: "Australian-made, 2.5 kW compressor, and the Aus-made VEU bonus on top. Big tank doing the work." },
-  { id: "istore-270", name: "iStore 275 L", heatKw: 4.0, tankLitres: 275, cop: 3.5, verified: true,
+  { id: "istore-270", name: "iStore 270 L", heatKw: 4.0, tankLitres: 270, cop: 3.5, verified: true,
     note: "The 4 kW is what makes this one punch above its size. Boost mode forces a full reheat ahead of a big day." },
   { id: "istore-180", name: "iStore 180 L", heatKw: 2.5, tankLitres: 180, cop: 3.5, verified: true,
-    note: "Smaller tank and the 2.5 kW compressor, not the 4 kW in the 275. Where that shows is the third shower." },
+    note: "Smaller tank and the 2.5 kW compressor, not the 4 kW in the 270. Where that shows is the third shower." },
 ];
 
 /**
@@ -226,11 +224,12 @@ export function sizeHousehold(form: SizingForm) {
       ? recommended.picks.filter((p) => !p.href.includes("/istore/"))
       : recommended.picks;
 
-    // 285 and 270 are a rung apart and both real. A Reclaim 270 covers a
-    // 285 recommendation comfortably, so offer it rather than making
-    // someone buy up a size for 15 L.
+    // 285 and 270 are a rung apart and both real. The iStore 270, on its
+    // 4 kW compressor, covers a 285 recommendation comfortably, so offer it
+    // rather than making someone buy up a size for 15 L. (This used to offer
+    // a "Reclaim CO₂ 270 L", which isn't a product, linked to the 250.)
     const alsoFine = recommended.litres === 285
-      ? { label: "Reclaim CO₂ Split 270 L", href: "/brands/reclaim/co2-split-250-glass" }
+      ? { label: "iStore 270 L", href: "/brands/istore/istore-270" }
       : null;
 
     // The trade-off, spelled out: a bigger compressor buys back tank

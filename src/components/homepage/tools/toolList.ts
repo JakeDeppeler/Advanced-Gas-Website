@@ -47,7 +47,7 @@ export const TOOL_LIST: ToolInfo[] = [
   {
     slug: "sizing-calculator", group: "size", acc: BLUE, icon: IC.ruler,
     title: "Aircon sizing calculator", q: "What size aircon does this room need?",
-    points: ["The residential heat-load formula our installers use", "Adjusts for ceiling height, orientation, insulation, glazing and people", "A kW range and the closest standard model size"],
+    points: ["The residential heat-load formula our installers use", "Adjusts for ceiling height, orientation, insulation, glazing and people", "A kW range and the next standard model size up"],
     cta: "Size a room",
   },
   {
@@ -59,13 +59,13 @@ export const TOOL_LIST: ToolInfo[] = [
   {
     slug: "veu-rebate-estimator", group: "cost", acc: ORANGE, icon: IC.rebate,
     title: "VEU rebate calculator", q: "How much rebate can I get?",
-    points: ["Every VEU upgrade path, hot water and heating", "Household size and solar taken into account", "The rebate range and what you'd pay after it"],
+    points: ["Every VEU upgrade path, hot water and heating", "Household size and solar taken into account", "The rebate range for your upgrade"],
     cta: "Estimate my rebate",
   },
   {
     slug: "hot-water-savings", group: "cost", acc: ORANGE, icon: IC.saving,
     title: "Hot water savings", q: "How much would a heat pump save me?",
-    points: ["Gas storage, continuous flow, electric and solar-boosted", "The VEU rebate off the install cost", "Payback in years and ten-year savings"],
+    points: ["Gas storage, continuous flow, electric and solar-boosted", "The rebates off the install cost", "Payback and ten-year savings, once you add your quote"],
     cta: "See my savings",
   },
   {
@@ -88,8 +88,8 @@ export const TOOL_LIST: ToolInfo[] = [
   },
   {
     slug: "heat-pump-compare", group: "compare", acc: ORANGE, icon: IC.compare,
-    title: "Heat pump compare", q: "Reclaim, iStore, Thermann or Rheem?",
-    points: ["Every hot water heat pump brand we service", "Refrigerant, COP, warranty and size range", "Pros, cons and which we'd pick"],
+    title: "Heat pump compare", q: "Reclaim, iStore or Thermann?",
+    points: ["The heat pump brands we install, plus Rheem for comparison", "Refrigerant, COP, warranty and size range", "Pros, cons and which we'd pick"],
     cta: "Compare heat pumps",
   },
   {

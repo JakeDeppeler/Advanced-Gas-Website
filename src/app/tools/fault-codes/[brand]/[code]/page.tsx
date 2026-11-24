@@ -141,13 +141,12 @@ export default function FaultCodePage({ params }: { params: Params }) {
             <h3>Got this code right now?</h3>
             <p>
               We service every major brand, including ones we don&rsquo;t install.
-              Same-day across Pakenham, Officer, Berwick, Beaconsfield, Narre Warren
-              and Cranbourne.
+              Often same-day during business hours across Pakenham, Officer, Berwick,
+              Beaconsfield, Narre Warren and Cranbourne.
             </p>
             <a href={`tel:${site.phoneE164}`} className="abtn abtn--or abtn--flat">Call {site.phone}</a>
             <p className="cc-fine">
-              Written quoted in writing before we touch anything. Call-out waived
-              if the repair goes ahead the same day.
+              Repairs quoted in writing before we touch anything.
             </p>
           </div>
         </div></div>
