@@ -1041,13 +1041,13 @@ export const serviceContent: Record<string, ServiceContent> = {
     },
     metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
     metaDescription:
-      "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. Up to $2,700 in rebates applied at the quote, no chasing paperwork. 6-year workmanship warranty.",
+      "Reclaim all-in-one and CO₂ split heat pumps, plus iStore and Thermann, installed across Melbourne's south-east. Up to $2,700 in rebates applied at the quote. 6-year workmanship warranty.",
     heroPhoto: "/reclaim-split-stand-back-shot.webp",
     heroPhotoAlt: "Reclaim CO2 split heat pump installed against a brick wall",
     heroFacts: [
       { v: "Up to $2,700", k: "In rebates, applied at the quote" },
       { v: "2–4 hours", k: "On site, or 4–6 from an old electric tank in the roof" },
-      { v: "Three brands", k: "iStore, Reclaim and Thermann, for three different jobs" },
+      { v: "Reclaim", k: "Our pick: the ECO all-in-one or the CO₂ split" },
       { v: "6-year", k: "Workmanship, plus the tank and compressor cover" },
     ],
     h1: "Heat pump hot water, installed properly",
@@ -1093,22 +1093,26 @@ export const serviceContent: Record<string, ServiceContent> = {
         "The honest part: they're not silent, they need airflow around the outdoor unit, and if your existing tank is under about six years old with a cheap fault we'd fix that instead and tell you to come back in a few years.",
     },
     whyThese: {
-      heading: "Why Reclaim, iStore and Thermann, and nothing else.",
+      // Reclaim leads (Jake, 24 Nov 2026: push the Reclaim all-in-one and
+      // split over the iStore and the German). The iStore and Thermann stay
+      // as options in one point; Thermann's "built by Dux" and $400 locally
+      // made lines went with the brand page's, as neither was confirmed.
+      heading: "Why Reclaim first.",
       blurb:
-        "Hot water is the appliance a household notices only when it fails, which is exactly why the brand matters here. These three are the ones we'd put on our own houses, and each of them answers a different question.",
+        "Hot water is the appliance a household notices only when it fails, which is exactly why the brand matters here. Reclaim is the one we recommend: the ECO all-in-one for a straight swap, the CO₂ split for the long stay. We fit iStore and Thermann too, when they suit the job better.",
       points: [
         { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a unit built for milder conditions spends July running an element it was supposed to replace." },
         { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined costs less up front and does the same job, but somebody has to remember the anode in year five, and nobody does." },
-        { t: "iStore, when the rebate decides it", d: "On the rebate numbers the 270 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
-        { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for Solar Victoria's $400 locally made top-up for eligible owner-occupiers, and means Reece stocks the parts in every Victorian store." },
+        { t: "Reclaim ECO for a straight swap", d: "One unit where the old tank stood, nothing else to place outside, and 8 years on the whole unit, parts and labour. It's the one we quote first for a like-for-like swap." },
+        { t: "iStore or Thermann, when they suit better", d: "The iStore is the lowest price of our heat pumps after the rebate, so we'll quote it when price is all the decision turns on. Thermann is Reece's own brand, with parts in every Reece store, and we fit its heat pumps on request." },
         { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement, all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
         { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
       ],
     },
     benefits: [
       { t: "Rebates applied at quote", d: "Up to $2,700 in rebates (VEU, STCs and Solar Victoria for eligible owner-occupiers). We handle the paperwork. You don't front the cash then chase it back six months later." , line: "Not claimed back six months later", icon: "tag" },
-      { t: "Three brands, three different jobs", d: "iStore when the rebate is what decides it. Reclaim ECO R290 or Thermann Integrated when it all has to fit in one shell with nothing outside. Reclaim CO₂ Split when you are staying in the house and want a stainless tank that outlasts the compressor." , line: "iStore, Reclaim and Thermann do different ones", icon: "heatpump" },
-      { t: "Two similar all-in-ones, one price", d: "Reclaim ECO R290 and Thermann's R290 all-in-one are two similar units at the same installed price. Pick on brand preference or on which one Reece can supply." , line: "Two similar units, priced the same", icon: "tank" },
+      { t: "Reclaim, for two different jobs", d: "Reclaim ECO R290 when it all has to fit in one shell where the old tank stood. Reclaim CO₂ Split when you are staying in the house and want a stainless tank that outlasts the compressor. iStore when the lowest price is what decides it." , line: "The all-in-one or the split", icon: "heatpump" },
+      { t: "8 years on the whole unit (Reclaim ECO)", d: "The Reclaim ECO R290 all-in-one carries 8 years on the tank, heat pump and controls, parts and labour, against 5 on the iStore. Our 6-year workmanship warranty sits on top." , line: "Tank, heat pump and controls, covered", icon: "tank" },
       { t: "Keeps heating on a cold morning (Reclaim CO₂)", d: "Reclaim's CO₂ split keeps heating down to –10 °C, so it doesn't fall back on an element in a hills winter. That is the difference in Emerald, Gembrook and Cockatoo, where an R290 unit spends July leaning on the element it was bought to replace." , line: "Where a cheap unit quietly stops working", icon: "flow" },
       { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500 and isolation valves, done by our licensed plumber, not a sub-contractor. Any new circuit is run and certified by our licensed electrician." , line: "A plumbing job, done by plumbers", icon: "shield" },
       { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to a metal recycler on install day, with any refrigerant recovered under our ARC authorisation. No waiting for hard rubbish." , line: "Disconnected, removed and gone", icon: "truck" },
@@ -1131,11 +1135,11 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
     photos: [
-      { src: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump hot water system", caption: "iStore 270 L, where the rebates go furthest" },
-      { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 all-in-one" },
+      { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 all-in-one, 8 years on the whole unit" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split, 15-year stainless tank" },
-      { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, Australian-made by Dux" },
       { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ heat pump, outdoor unit and tank installed", caption: "Reclaim CO₂ Split, outdoor unit + separate tank" },
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump hot water system", caption: "iStore 270 L, the lowest price after the rebate" },
+      { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, on request" },
       { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover in progress", caption: "Same-day changeover, old tank out, new heat pump in" },
     ],
     /**
@@ -1293,19 +1297,19 @@ export const serviceContent: Record<string, ServiceContent> = {
           heading: "One cylinder where the old tank stood.",
           note:
             "An all-in-one is a single unit: tank below, compressor in a shroud on top. It goes back on the slab the old electric or gas tank came off, which is why it is the simplest swap there is. It is taller than what it replaces, and that is the one thing worth checking before the day.",
-          photo: "/270L-istore-heatpump.webp",
-          photoAlt: "iStore all-in-one heat pump",
+          photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
+          photoAlt: "Reclaim ECO R290 all-in-one heat pump",
           facts: [
             { v: "~1.8 m tall", k: "On a 270 L, taller than the tank it replaces" },
             { v: "One footprint", k: "Nothing separate to place or plumb" },
-            { v: "180 – 285 L", k: "The sizes that cover most households" },
+            { v: "180 – 300 L", k: "The sizes that cover most households" },
             { v: "Existing slab", k: "Where it will take the weight, we check on the day" },
           ],
         },
         servicing: {
           heading: "Simpler to fit, and simpler to keep.",
-          photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
-          photoAlt: "Reclaim ECO R290 all-in-one heat pump",
+          photo: "/270L-istore-heatpump.webp",
+          photoAlt: "iStore all-in-one heat pump",
           body:
             "There is less to an all-in-one than to a split, and that cuts both ways: fewer things to go wrong, and one shell to replace when the tank eventually does. The anode rule is the same as anywhere else, and it is still the thing most owners have never heard of.",
           facts: [
@@ -1316,8 +1320,10 @@ export const serviceContent: Record<string, ServiceContent> = {
         },
         label: "All-in-one heat pump hot water",
         blurb:
-          "Compressor and tank in a single shell. One thing to place, one thing to plumb, and the simplest way into a heat pump, which is why it's where the rebate goes furthest and where most straight electric swaps end up.",
-        photo: { src: "/thermann-heat-pump.webp", alt: "Thermann all-in-one heat pump hot water unit against a brick wall", scene: true },
+          "Compressor and tank in a single shell. One thing to place, one thing to plumb, and the simplest way into a heat pump, which is where most straight electric swaps end up. The Reclaim ECO is the one we recommend, with 8 years on the whole unit.",
+        // A Reclaim ECO of ours, not the Thermann shot it used to be: it's the
+        // all-in-one we push (Jake, 24 Nov 2026), and this is the page's hero.
+        photo: { src: "/ba-hw-after.webp", alt: "A Reclaim ECO all-in-one heat pump we installed on a new concrete pad", scene: true },
         brands: ["Reclaim Energy", "iStore", "Thermann"],
         benefitTiles: [
           {
@@ -1328,17 +1334,17 @@ export const serviceContent: Record<string, ServiceContent> = {
             icon: "tank",
           },
           {
-            t: "Where the rebate goes furthest",
-            line: "iStore takes the VEU further than anything else we fit",
+            t: "8 years on the whole unit",
+            line: "Reclaim ECO: tank, heat pump and controls",
             detail:
-              "The VEU rebate is calculated on what you're replacing and what you're putting in. On a straight electric-storage swap to an iStore, it takes the biggest bite out of the install of anything on this site.",
-            icon: "tag",
+              "The Reclaim ECO R290 carries 8 years on the whole unit, parts and labour, against 5 on the iStore. Our 6-year workmanship warranty sits on top.",
+            icon: "shield",
           },
           {
-            t: "Two similar all-in-ones",
-            line: "Reclaim ECO R290 and Thermann's R290 unit",
+            t: "Reclaim first, iStore on price",
+            line: "Our pick, and the cheaper option",
             detail:
-              "Two similar R290 all-in-ones at the same installed price. Pick on brand preference or on which one Reece can get you this week.",
+              "We quote the Reclaim ECO first: an Australian brand with the longer warranty. When the lowest price is what decides it, the iStore is the cheapest heat pump we fit after the rebate. Thermann's all-in-one is available on request.",
             icon: "heatpump",
           },
           {
@@ -1349,10 +1355,10 @@ export const serviceContent: Record<string, ServiceContent> = {
             icon: "flow",
           },
           {
-            t: "200 or 285 litres",
-            line: "Plus iStore at 180 and 270",
+            t: "200 or 300 litres",
+            line: "Reclaim ECO, plus iStore at 180 and 270",
             detail:
-              "Four sizes across the two platforms. 180–200 L suits one or two people, 270–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
+              "Four sizes across the two. 180–200 L suits one or two people, 270–300 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
             icon: "ruler",
           },
           {
@@ -1378,9 +1384,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
         ],
         points: [
-          "Reclaim ECO R290 and Thermann's R290 all-in-one, two similar units",
-          "iStore 180 L and 270 L, where the rebates reach furthest",
-          "200 L and 285 L on the R290 platform",
+          "Reclaim ECO R290 all-in-one: our pick, 8 years on the whole unit",
+          "Reclaim ECO in 200 L and 300 L",
+          "iStore 180 L and 270 L, the lowest price after the rebate",
           "One shell: nothing separate to place or plumb",
           "R290 natural refrigerant, single-digit global-warming potential",
           "2–4 hours on site, usually same day; 4–6 from an old electric tank in the roof",
@@ -1389,19 +1395,19 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $2,150 inc GST",
         intro:
-          "An all-in-one puts the compressor on top of the tank in a single shell. There is one thing to place and one thing to plumb, which makes it the simplest way into a heat pump and the cheapest, and it's where the VEU rebate reaches furthest on a straight electric swap.",
+          "An all-in-one puts the compressor on top of the tank in a single shell. There is one thing to place and one thing to plumb, which makes it the simplest way into a heat pump and the cheapest. The Reclaim ECO is the one we recommend: an Australian brand, with 8 years on the whole unit.",
         faqs: [
           {
             q: "Is an all-in-one worse than a split?",
             a: "Not worse, different. A split performs better in the cold and gives you the tank options; an all-in-one is simpler, cheaper and only needs one spot. If your old tank's position is the only place a unit can go, the all-in-one is the right system and the split isn't an option at all.",
           },
           {
-            q: "Reclaim ECO or Thermann ECO, which one?",
-            a: "Two similar R290 all-in-ones at the same installed price. Pick on brand preference or on which one Reece has in stock.",
+            q: "Reclaim ECO or iStore, which one?",
+            a: "The Reclaim ECO, unless the lowest price is all that matters. It's an Australian brand with 8 years on the whole unit, parts and labour, against 5 on the iStore. The iStore is the cheapest heat pump we fit after the rebate, with a PV diverter and Wi-Fi built in.",
           },
           {
             q: "Why is iStore cheaper?",
-            a: "It's a more basic unit, and it takes the VEU rebate further than anything else we fit, which is what makes the installed number so low. It's the right call when the rebate is what decides the job. It won't hold output on a cold morning the way a CO₂ split will.",
+            a: "It's a more basic unit with a shorter warranty: 5 years on the whole unit, against the Reclaim ECO's 8. It's the right call when the upfront price is what decides the job. It won't hold output on a cold morning the way a CO₂ split will.",
           },
           {
             q: "Is R290 propane safe?",
@@ -1409,7 +1415,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "What size do I need?",
-            a: "180–200 L for one or two people, 270–285 L for three or four. Five or more and you're better off on a split with a bigger tank and a faster recovery rate, we'll tell you that rather than sell you an undersized all-in-one.",
+            a: "180–200 L for one or two people, 270–300 L for three or four. Five or more and you're better off on a split with a bigger tank and a faster recovery rate, we'll tell you that rather than sell you an undersized all-in-one.",
           },
           {
             q: "How long does it take?",
@@ -1420,9 +1426,9 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
 
     brandPods: [
-      { brand: "Reclaim Energy", reason: "The only mainstream CO₂ heat pump in Australia. 15-yr stainless tank on the flagship. Made in Sydney.", href: "/brands/reclaim" },
-      { brand: "iStore", reason: "Takes the VEU rebate further than anything else we fit. Widely serviced, healthy parts pipeline.", href: "/brands/istore" },
-      { brand: "Thermann", reason: "Australian-made by Dux (Moss Vale). Reece distribution means same-day parts state-wide.", href: "/brands/thermann" },
+      { brand: "Reclaim Energy", reason: "Our pick: the ECO all-in-one with 8 years on the whole unit, or the CO₂ split with 15 years on a stainless tank.", href: "/brands/reclaim" },
+      { brand: "iStore", reason: "The lowest price of our heat pumps after the rebate, with a PV diverter and Wi-Fi built in.", href: "/brands/istore" },
+      { brand: "Thermann", reason: "Reece's own brand, so the parts are in every Reece store. Heat pumps on request.", href: "/brands/thermann" },
     ],
     typical: {
       time: "Heat pump, all-in-one or split · 2–4 hrs. From an old electric tank in the roof · 4–6 hrs (usually same-day).",

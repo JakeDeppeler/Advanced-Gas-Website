@@ -43,6 +43,9 @@ export function Finder({ only }: { only?: string } = {}) {
   // "What matters most?" marks the option it points to as our pick, in place of "Most popular".
   const pick = sys?.qs.some((q) => q.id === "want") ? hpPick(ans) : null;
   const pickTier = pick?.tier ?? null;
+  // Before that answer, a system's own pick (the Reclaim all-in-one for heat pumps) or the second option.
+  const badgeTier = pickTier ?? sys?.pick ?? null;
+  const badge = pickTier ? "Our pick for you" : sys?.pick ? "Our pick" : "Most popular";
   const size = sys && ans.size != null ? sys.sizes[ans.size] : null;
   // The shower check, for a tank system once its people and shower length
   // are in: everyone back to back, at Jake's 5 L of hot a minute.
@@ -246,8 +249,8 @@ export function Finder({ only }: { only?: string } = {}) {
                   const href = exact ? `${base}${base.includes("?") ? "&" : "?"}model=${exact.id}` : base;
                   const nPhotos = galleryFor(sys, t).length;
                   return (
-                    <article key={t.slug} className={`tier${(pickTier ? t.slug === pickTier : i === 1) ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
-                      {(pickTier ? t.slug === pickTier : i === 1) && <span className="tier__badge pop">{pickTier ? "Our pick for you" : "Most popular"}</span>}
+                    <article key={t.slug} className={`tier${(badgeTier ? t.slug === badgeTier : i === 1) ? " tier--pop" : ""}`} style={{ animationDelay: `${(i + 1) * 0.07}s` }}>
+                      {(badgeTier ? t.slug === badgeTier : i === 1) && <span className="tier__badge pop">{badge}</span>}
                       <span className="tier__tier" style={{ color: TONES[i] }}>{t.tier}</span>
                       <Link href={href} className="tier__img" aria-label={`View ${t.brand} ${t.model}`}>
                         <Image src={t.img} alt={`${t.brand} ${t.model}`} fill sizes="(max-width: 600px) 80vw, 340px" />

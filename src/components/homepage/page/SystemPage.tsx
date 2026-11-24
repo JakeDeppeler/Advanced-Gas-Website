@@ -207,8 +207,9 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
               const real = realOption(sys, t);
               const feats = t.feats.filter((f) => f !== WORKMANSHIP);
               return (
-                <article key={t.slug} className="sxo__card">
+                <article key={t.slug} className={`sxo__card${t.slug === sys.pick ? " sxo__card--pick" : ""}`}>
                   <span className="sxo__tier"><i style={{ background: TONES[i] }} aria-hidden="true" />{t.tier}</span>
+                  {t.slug === sys.pick && <span className="sxo__pick">Our pick</span>}
                   <span className="sxo__img"><Image src={t.img} alt="" fill sizes="(max-width: 900px) 90vw, 400px" /></span>
                   <span className="sxo__brand">{t.brand}</span>
                   <h3>{t.model}</h3>

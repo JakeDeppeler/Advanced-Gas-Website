@@ -50,7 +50,7 @@ export type CategoryCopy = {
  */
 const CMP_SPLIT: Record<string, { tiers: string[]; label: string; tag: string; pros?: string }[]> = {
   "heat-pump": [
-    { tiers: ["essential", "premium", "german"], label: "Heat pump all-in-one", tag: "Tank and heat pump in one" },
+    { tiers: ["premium", "essential", "german"], label: "Heat pump all-in-one", tag: "Tank and heat pump in one" },
     { tiers: ["signature"], label: "Heat pump split", tag: "Heat pump apart from the tank", pros: "Reclaim CO₂ split heat pump" },
   ],
 };

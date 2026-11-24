@@ -74,7 +74,10 @@ const HEAT_PUMPS: Row[] = [
     capacity: "200 / 300 L",
     form: "All-in-one",
     tank: "Enamel-lined steel",
-    warranty: "6-yr tank · 3-yr compressor + 6-yr workmanship",
+    // Jake's quote template (pricebook/equipmentCopy): tank and refrigeration
+    // parts 8 years, parts and labour. The 6/3 here was stale, and said less
+    // than every other page.
+    warranty: "8-yr tank and heat pump, parts and labour + 6-yr workmanship",
     installFrom: "$2,624",
     installTo: "$2,624",
     madeIn: "Australia",
@@ -272,10 +275,12 @@ const HEAT_PUMPS: Row[] = [
   },
 ];
 
+// The two Reclaims first, against the iStore on price (Jake, 24 Nov 2026:
+// push the Reclaim all-in-one and split over the iStore and the German).
 const DEFAULT_SELECTED = new Set([
   "reclaim-co2-split-ss",
+  "reclaim-eco-r290-aio",
   "istore-270",
-  "thermann-integrated",
   "sanden-eco",
 ]);
 
@@ -417,11 +422,10 @@ export function HeatPumpCompareTool() {
         <span className="cc-lbl">What we&apos;d pick</span>
         <h2>Our default recommendations</h2>
         <ul>
-          <li><strong>When price is what decides it:</strong> iStore 270 L, the cheapest heat pump we fit once the rebates come off.</li>
-          <li><strong>Best long-term:</strong> Reclaim CO₂ Split Stainless 315L (15-year tank).</li>
+          <li><strong>Straight swap for an old storage tank:</strong> Reclaim ECO R290 all-in-one, 8 years on the whole unit.</li>
+          <li><strong>Best long-term:</strong> Reclaim CO₂ Split Stainless 315 L (15-year tank).</li>
           <li><strong>Hills / cold-climate suburbs:</strong> Reclaim CO₂ (holds capacity to -10 °C).</li>
-          <li><strong>Straight swap for old storage tank:</strong> Reclaim ECO R290 All-in-One.</li>
-          <li><strong>When you want parts in every Reece store:</strong> Thermann Integrated, Australian made by Dux.</li>
+          <li><strong>When price is all that decides it:</strong> iStore 270 L, the cheapest heat pump we fit once the rebates come off.</li>
         </ul>
       </aside>
     </div>

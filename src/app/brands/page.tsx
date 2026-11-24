@@ -57,7 +57,8 @@ const BRAND_GROUPS: { label: string; h: string; slug: string; brandSlugs: string
     h: "Hot {water}.",
     slug: "heat-pump",
     brandSlugs: ["reclaim", "thermann", "viessmann", "istore"],
-    blurb: "Four brands answering four different questions: Reclaim when you're staying in the house, Thermann when you're staying on gas and want parts in every Reece store, Viessmann when you want a German name on the unit, iStore when the price is what decides it.",
+    // Reclaim leads (Jake, 24 Nov 2026: push the Reclaim all-in-one and split).
+    blurb: "Reclaim first: the ECO all-in-one for a straight swap, the CO₂ split for the long stay. Thermann when you're staying on gas and want parts in every Reece store, Viessmann when you want a German name on the unit, iStore when the price is all that decides it.",
   },
 ];
 

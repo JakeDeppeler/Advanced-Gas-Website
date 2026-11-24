@@ -548,21 +548,22 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
   "heat-pump-installation/all-in-one": {
     specs: [
       { label: "Refrigerant", value: "R290 propane" },
-      { label: "Tank sizes", value: "180 – 285 L" },
+      { label: "Tank sizes", value: "180 – 300 L" },
       { label: "On site, or 4 – 6 from an old electric tank in the roof", value: "2 – 4 hrs" },
       { label: "Rebate", value: "Up to $2,700 off" },
     ],
     steps: [
       { title: "One spot to check", detail: "An all-in-one goes where the old tank was, provided there is air around it. That's the whole siting question, which is why these are the simpler job." },
-      { title: "Size on the household", detail: "180–200 L for one or two, 270–285 L for three or four. Five or more and we'll point you at a split instead of selling you an undersized one." },
-      { title: "Rebate worked out at the quote", detail: "On a straight electric-storage swap the VEU figure is at its largest, and on an iStore it takes the biggest bite out of the install of anything we fit." },
+      { title: "Size on the household", detail: "180–200 L for one or two, 270–300 L for three or four. Five or more and we'll point you at a split instead of selling you an undersized one." },
+      { title: "Rebate worked out at the quote", detail: "On a straight electric-storage swap the VEU figure is at its largest. It comes off the price on the quote, whichever unit you choose." },
       { title: "Old unit out, new one in", detail: "Drained, disconnected and to a metal recycler the same visit. New tempering valve holding the outlets at 50 °C." },
       { title: "Electrical checked", detail: "Most swaps run off the existing circuit. Where they don't, that's on the quote before we start rather than a surprise on the day." },
       { title: "Timer set before we go", detail: "Cheap tariff, or the middle of the day if you have solar. Tested with you rather than left on the default." },
     ],
     pricing: [
+      // Reclaim ECO first, the one we push (Jake, 24 Nov 2026); the iStore is still the lowest price.
+      { tier: "Reclaim ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, 8-year warranty on the whole unit, parts and labour, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", priceKey: "Inc GST" },
       { tier: "iStore", price: "$2,150", includes: "Supply and install, Tempering valve fitted, Old unit drained and taken away, VEU rebate applied at the quote", group: "All-in-one", photo: "/270L-istore-heatpump.webp", priceKey: "Inc GST" },
-      { tier: "Reclaim ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, 8-year tank warranty, parts and labour, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", priceKey: "Inc GST" },
       { tier: "Thermann ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, A similar R290 all-in-one to the Reclaim ECO, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg", priceKey: "Inc GST" },
     ],
     pricingNote:

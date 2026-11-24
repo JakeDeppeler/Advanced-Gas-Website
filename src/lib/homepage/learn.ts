@@ -471,7 +471,7 @@ export const CHOOSE: Record<string, Choice> = {
       "270 L": "Three or four people, or two bathrooms. Enough stored to get through the evening showers when it heats once in the middle of the day.",
     },
     instead: [
-      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd like an Australian brand with a longer warranty, in the same single-unit format." },
+      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd like an Australian brand with 8 years on the whole unit, in the same single-unit format. It's the heat pump we recommend most." },
       { go: "heat-pump.signature", label: "Reclaim CO₂ split", when: "It has to sit near a bedroom, you want the quietest option, or frosty mornings worry you most." },
     ],
   },
@@ -491,9 +491,9 @@ export const CHOOSE: Record<string, Choice> = {
       "270 L": "Up to six people. It's 1830 mm tall, so we check the spot first.",
     },
     instead: [
-      { go: "heat-pump.essential", label: "iStore all-in-one", when: "The upfront price matters most: it's the lowest of our heat pumps after the rebate." },
-      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd rather have an Australian brand." },
+      { go: "heat-pump.premium", label: "Reclaim ECO all-in-one", when: "You'd rather have an Australian brand, with 8 years on the whole unit. It's the heat pump we recommend most." },
       { go: "heat-pump.signature", label: "Reclaim CO₂ split", when: "You want the compressor away from the tank, or a size over 270 L." },
+      { go: "heat-pump.essential", label: "iStore all-in-one", when: "The upfront price matters most: it's the lowest of our heat pumps after the rebate." },
     ],
   },
   "heat-pump.signature": {
@@ -531,7 +531,7 @@ export const CHOOSE: Record<string, Choice> = {
     sizes: { "135 L": "One to three people, as a straight swap for a tank around the same size.", "170 L": "Three to five people, or a household that runs out with a smaller tank." },
     instead: [
       { go: "gas-continuous-flow.essential", label: "Gas continuous flow", when: "You run out with back-to-back showers. Continuous flow doesn't." },
-      { go: "heat-pump.essential", label: "A heat pump", when: "You'd like off gas, with the VEU rebate off the price." },
+      { go: "heat-pump.premium", label: "A heat pump", when: "You'd like off gas, with the VEU rebate off the price." },
     ],
   },
 };
@@ -627,7 +627,7 @@ export const PROS: Record<string, { pros: string[]; cons: string[] }> = {
     cons: ["The compressor is in the same shell, so it hums near the house", "A shorter warranty than the Reclaim", "Two sizes only: 180 L and 270 L"],
   },
   "Reclaim ECO R290 all-in-one": {
-    pros: ["An Australian brand", "VEU rebate taken off at the quote", "One unit: nothing else to place outside"],
+    pros: ["An Australian brand", "8-year warranty on the whole unit, parts and labour", "VEU rebate taken off at the quote", "One unit: nothing else to place outside"],
     cons: ["Costs more than the iStore", "The compressor is in the same shell, so it hums near the house"],
   },
   "Viessmann Vitocal 161-A all-in-one": {

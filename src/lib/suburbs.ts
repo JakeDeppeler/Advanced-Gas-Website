@@ -301,7 +301,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "80s and 90s Ryan Homes estates, mostly brick veneer on standard 500-600m² blocks, with original hot water and heating still in place on a lot of them",
     commonInstall:
-      "iStore 270L heat pumps replacing original electric-storage tanks. A lot of those original electric tanks are still here, and an old electric tank is the swap that gets the largest VEU rebate",
+      "Reclaim heat pumps replacing original electric-storage tanks. A lot of those original electric tanks are still here, and an old electric tank is the swap that gets the largest VEU rebate",
     localHooks: [
       "Hampton Park Secondary",
       "Coral Park Primary",
@@ -565,7 +565,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "new estates carved out east of Thompsons Road through the 2010s, most homes fully ducted from day one with electric-storage hot water",
     commonInstall:
-      "ducted rebalance and zoning upgrades, and iStore or Thermann heat pump swaps to unlock the VEU rebate on the original electric tanks",
+      "ducted rebalance and zoning upgrades, and Reclaim heat pump swaps to unlock the VEU rebate on the original electric tanks",
     localHooks: [
       "Lyndhurst Primary",
       "Marriott Waters wetland",
@@ -585,7 +585,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "post-war fibro and brick homes, Doveton is one of the older postcodes in the corridor and most homes are on their original hot water and heating",
     commonInstall:
-      "gas heater replacements (usually Brivis or Braemar rip-and-replace), and iStore heat pump swaps where the household qualifies for the max VEU rebate",
+      "gas heater replacements (usually Brivis or Braemar rip-and-replace), and Reclaim heat pump swaps where the household qualifies for the max VEU rebate",
     localHooks: [
       "Doveton College",
       "Power Reserve",
@@ -646,7 +646,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "post-war fibro and brick veneer, one of the older postcodes in the south-east, most homes are on their original gas heater and electric hot water",
     commonInstall:
-      "Mitsubishi MSZ-AP wall split upgrades (bedrooms first, living zone next), and iStore or Thermann heat pump hot water swaps timed to the VEU rebate",
+      "Mitsubishi MSZ-AP wall split upgrades (bedrooms first, living zone next), and Reclaim heat pump hot water swaps timed to the VEU rebate",
     localHooks: [
       "Noble Park Station",
       "Ross Reserve",
@@ -745,7 +745,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "new-build estate family homes, most ducted from day one",
     commonInstall:
-      "ducted rebalance and zoning upgrades on the original 4-zone systems, plus iStore heat pump swaps as the developer-installed tanks reach end-of-life",
+      "ducted rebalance and zoning upgrades on the original 4-zone systems, plus Reclaim heat pump swaps as the developer-installed tanks reach end-of-life",
     localHooks: [
       "Selandra Rise Community Hub",
       "Selandra Boulevard",
@@ -1379,7 +1379,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "hills residential village, weatherboards along the highway, brick veneer on the ridges either side, mains gas throughout most of the postcode",
     commonInstall:
-      "Mitsubishi Hyper Heating splits, gas ducted rip-and-replace on end-of-life Brivis units, and iStore or Reclaim heat pump swaps replacing original electric tanks",
+      "Mitsubishi Hyper Heating splits, gas ducted rip-and-replace on end-of-life Brivis units, and Reclaim heat pump swaps replacing original electric tanks",
     localHooks: [
       "Tecoma Station",
       "Burwood Highway village strip",
@@ -1443,7 +1443,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "post-war brick and weatherboard through the older streets, 90s brick veneer south toward Wantirna, some newer townhouse infill near the station",
     commonInstall:
-      "gas ducted heater replacements, iStore or Thermann heat pump swaps replacing original electric tanks (the swap that gets the largest VEU rebate), and Mitsubishi MSZ wall splits in the older stock",
+      "gas ducted heater replacements, Reclaim heat pump swaps replacing original electric tanks (the swap that gets the largest VEU rebate), and Mitsubishi MSZ wall splits in the older stock",
     localHooks: [
       "Boronia Mall",
       "Boronia Station",
@@ -1485,7 +1485,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "predominantly late-80s and 90s brick veneer family homes on standard 600-800 m² blocks, a lot of ducted heating from build, most on their original hot water",
     commonInstall:
-      "gas ducted heating tune-ups and replacements, iStore or Thermann heat pump swaps replacing original electric tanks, and Mitsubishi MXZ multi-head splits for zoning older homes",
+      "gas ducted heating tune-ups and replacements, Reclaim heat pump swaps replacing original electric tanks, and Mitsubishi MXZ multi-head splits for zoning older homes",
     localHooks: [
       "Stud Park Shopping Centre",
       "Rowville Secondary College",
@@ -1670,7 +1670,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "seventies through nineties brick veneer family homes on solid blocks, most built with ducted heating from new, with newer townhouse clusters filling the gaps closer to Knox",
     commonInstall:
-      "gas ducted heater replacements and reverse-cycle changeovers, plus iStore and Thermann heat pump swaps on original storage tanks",
+      "gas ducted heater replacements and reverse-cycle changeovers, plus Reclaim heat pump swaps on original storage tanks",
     localHooks: [
       "Westfield Knox",
       "Knox Gardens Primary",

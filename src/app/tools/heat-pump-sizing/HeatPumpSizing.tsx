@@ -245,7 +245,7 @@ export function HeatPumpSizing() {
         </div>
 
         <div className="ca__sec">
-          <span className="ca__q">Systems we install at this size</span>
+          <span className="ca__q">Systems we install that cover it</span>
           <div className="ca__links">
             {r.picks.map((pk) => (
               <Link key={pk.href} href={pk.href}>{pk.label} →</Link>

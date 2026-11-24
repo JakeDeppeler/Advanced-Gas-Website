@@ -24,8 +24,14 @@ export const TANK_SIZES: {
   models: string;
   picks: { label: string; href: string }[];
 }[] = [
-  { litres: 180, models: "iStore 180 L",
-    picks: [{ label: "iStore 180 L Heat Pump", href: "/brands/istore/istore-180" }] },
+  // The Reclaim ECO leads where a size has one, even a rung up: it's the
+  // all-in-one Jake wants pushed over the iStore (24 Nov 2026), and a 200 L
+  // or 300 L tank covers a 180 L or 270 L need.
+  { litres: 180, models: "Reclaim ECO R290 200 L · iStore 180 L",
+    picks: [
+      { label: "Reclaim ECO R290 200 L", href: "/brands/reclaim/eco-r290-200" },
+      { label: "iStore 180 L Heat Pump", href: "/brands/istore/istore-180" },
+    ] },
   { litres: 200, models: "Reclaim ECO R290 200 L · Thermann ECO R290 200 L",
     picks: [
       { label: "Reclaim ECO R290 200 L", href: "/brands/reclaim/eco-r290-200" },
@@ -36,12 +42,13 @@ export const TANK_SIZES: {
       { label: "Reclaim CO₂ Split 250 L", href: "/brands/reclaim/co2-split-250-glass" },
       { label: "Panasonic CO₂ 6 kW · 250 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-250" },
     ] },
-  { litres: 270, models: "iStore 270 L · Thermann Split 270 L",
+  { litres: 270, models: "Reclaim ECO R290 300 L · iStore 270 L · Thermann Split 270 L",
     picks: [
+      { label: "Reclaim ECO R290 300 L", href: "/brands/reclaim/eco-r290-300" },
       { label: "iStore 270 L Heat Pump", href: "/brands/istore/istore-270" },
       { label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" },
     ] },
-  { litres: 285, models: "Thermann ECO R290 285 L · Reclaim ECO R290 300 L",
+  { litres: 285, models: "Reclaim ECO R290 300 L · Thermann ECO R290 285 L",
     picks: [
       { label: "Reclaim ECO R290 300 L", href: "/brands/reclaim/eco-r290-300" },
       { label: "Thermann ECO R290 285 L", href: "/brands/thermann/thermann-eco-r290-300" },

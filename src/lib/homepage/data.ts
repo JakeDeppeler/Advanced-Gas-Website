@@ -310,14 +310,17 @@ export const QB = {
     { label: "Average", sub: "About 8 minutes", img: "/finder/shower-average.svg" },
     { label: "Long", sub: "10 minutes or more", img: "/finder/shower-long.svg" },
   ] },
-  // Heat pumps: price to quality, one step per option (Jake, Nov 2026: "lowest
-  // price, highest quality etc", not a brand per answer). HP_WANT_TIER maps each
-  // answer to the option the finder marks "Our pick", in the options' order:
-  // iStore, Viessmann, Reclaim all-in-one, the split.
+  // Heat pumps: price to quality (Jake, Nov 2026: "lowest price, highest
+  // quality etc", not a brand per answer). HP_WANT_TIER maps each answer to
+  // the option the finder marks "Our pick": iStore, the Reclaim all-in-one,
+  // the Reclaim split. There was a fourth, "Good value", that pointed at the
+  // Viessmann; it went when Jake asked to push the two Reclaims over the
+  // iStore and the German (24 Nov 2026). The Viessmann is still a card, just
+  // no answer's pick. Old links carrying want=3 are dropped by answersFrom.
   hpWant: { id: "want", q: "What matters most to you?", opts: [
     { label: "The lowest price", sub: "The lowest price after the rebate", img: "/finder/want-price.svg" },
-    { label: "Good value", sub: "A proven name, 5 years on parts and labour", img: "/finder/want-value.svg" },
-    { label: "Built to last", sub: "An Australian brand", img: "/finder/want-last.svg" },
+    // Tagged as the answer we steer to, as zoning's "Most control" is: it picks the Reclaim all-in-one.
+    { label: "Built to last", sub: "An Australian brand, 8 years on the whole unit", tag: "We recommend", img: "/finder/want-last.svg" },
     { label: "The highest quality", sub: "The quietest, and best on frosty mornings", img: "/finder/want-quality.svg" },
   ] },
   // Where it goes decides between one unit and a split; solar, whether the
@@ -383,7 +386,7 @@ export type Tier = {
   mockPrice?: boolean;
   /**
    * "system.tier" of the option this one really is. A gas storage customer is
-   * offered "switch to a heat pump", but that heat pump is the iStore under
+   * offered "switch to a heat pump", but that heat pump is the Reclaim all-in-one under
    * Heat pump, and its page has to explain a heat pump, not a gas tank. So the
    * card links to the real product's page rather than having one of its own.
    */
@@ -396,6 +399,13 @@ export type System = {
   slug: string;
   /** For a system listed under two categories (the Dominator heats and cools), the one its page sits in. */
   home?: Category["id"];
+  /**
+   * The option we recommend before any answers, badged "Our pick" on the
+   * system's list of options, and in the finder until an answer picks one
+   * (there, without it, the second option is "Most popular"). Heat pumps have
+   * one: Jake wants the Reclaim all-in-one pushed (24 Nov 2026).
+   */
+  pick?: string;
   label: string;
   sub: string;
   img: string;
@@ -535,14 +545,16 @@ export const CATS: Category[] = [
     id: "hw", label: "Hot water", sub: "Heat pumps and gas",
     photo: PHOTO.heatPump, alt: "Reclaim heat pump installed against a brick wall", pos: "center 40%", fg: "#C2521A", icon: ICON.drop,
     systems: [
-      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hpPlace, QB.solar, QB.hpWant, QB.hwNow], tiers: [
-        t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
-        // Shown iStore, Viessmann, Reclaim all-in-one, then the split (Jake, Nov
-        // 2026). Viessmann is the German option, on the VEU list; its other
-        // lines are Viessmann Australia's own figures.
-        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "VEU rebate applied at the quote", "5 years on parts and labour"], null),
-        t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["An Australian brand", "VEU rebate applied at the quote", "Old unit removed"], 2624),
+      // The two Reclaims lead, the all-in-one as our pick before any answers,
+      // then the iStore and the Viessmann (Jake, 24 Nov 2026: "push the
+      // reclaim aio and split over the istore and the german"). Viessmann is
+      // the German option, on the VEU list; its other lines are Viessmann
+      // Australia's own figures.
+      sys({ slug: "heat-pump", label: "Heat pump", sub: "Energy-saving hot water", img: IMG.reclaimAio, q: "How many people at home?", sizes: PEOPLE, faq: "hp", service: "hp", more: [QB.showers, QB.hpPlace, QB.solar, QB.hpWant, QB.hwNow], pick: "premium", tiers: [
+        t("premium", "Reclaim", "ECO R290 all-in-one", IMG.reclaimAio, ["An Australian brand", "8-year warranty on the whole unit", "VEU rebate applied at the quote"], 2624),
         t("signature", "Reclaim", "CO₂ split heat pump", IMG.reclaimSplit, ["Compressor split from the tank: quieter", "Stainless tank option", "VEU rebate applied at the quote"], null),
+        t("essential", "iStore", "R290 all-in-one", IMG.istore, ["VEU rebate applied at the quote", "PV diverter and Wi-Fi built in", "5-year warranty on the whole unit"], 2150),
+        t("german", "Viessmann", "Vitocal 161-A all-in-one", IMG.viessmann, ["German brand, since 1917", "VEU rebate applied at the quote", "5 years on parts and labour"], null),
       ] }),
       sys({ slug: "gas-continuous-flow", label: "Gas continuous flow", sub: "Endless gas hot water", img: IMG.gasCf, q: "How many bathrooms?", sizes: BATHS, faq: "gashw", service: "gas-hot-water", more: [QB.hwNow, QB.gasType], tiers: [
         t("essential", "Thermann", "G-series continuous flow", IMG.gasCf, ["Endless hot water", "Same-day swaps on common models", W], null),
@@ -560,7 +572,7 @@ export const CATS: Category[] = [
 
 export const WORKMANSHIP = W;
 /** The heat pump option each "What matters most?" answer points to, in answer order. */
-export const HP_WANT_TIER = ["essential", "german", "premium", "signature"];
+export const HP_WANT_TIER = ["essential", "premium", "signature"];
 
 /**
  * The heat pump we'd fit, from the finder's answers, and the reason in a
@@ -572,9 +584,11 @@ export const HP_WANT_TIER = ["essential", "german", "premium", "signature"];
 export function hpPick(ans: Answers): { tier: string; why: string } | null {
   if (ans.want == null) return null;
   let tier = HP_WANT_TIER[ans.want];
-  const why: string[] = [["the lowest price after the rebate", "good value from a proven name, with 5 years on parts and labour", "built to last, from an Australian brand", "the highest quality: the quietest, and the best on frosty mornings"][ans.want]];
+  const why: string[] = [["the lowest price after the rebate", "built to last, from an Australian brand", "the highest quality: the quietest, and the best on frosty mornings"][ans.want]];
   if (ans.place === 1 && tier === "premium") { tier = "signature"; why.push("quiet near a bedroom, with the compressor away from the tank"); }
   if (ans.place === 0 && tier === "signature") { tier = "premium"; why.push("one unit where the old tank stood"); }
+  // The 8 years is the all-in-one's whole-unit warranty, so it's only said when that's the pick.
+  if (ans.want === 1 && tier === "premium") why[0] += " with 8 years on the whole unit";
   if (ans.solar != null && ans.solar !== 1 && tier === "essential") why.push("its built-in PV diverter runs it on your solar");
   return { tier, why: why.join(", and ") };
 }
