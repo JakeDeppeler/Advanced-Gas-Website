@@ -101,7 +101,7 @@ export function HwSizeCheck() {
         )}
       </ul>
       <p className="hws__note">
-        Each size allows a quarter on top of the showers for the kitchen tap, dishwasher and washing machine, which use the
+        Where the range allows, each size leaves about a quarter on top of the showers for the kitchen tap, dishwasher and washing machine, which use the
         same hot water. We confirm the size at the free site check.
       </p>
     </div>

@@ -63,7 +63,7 @@ const HP_STYLES = [
 type SizeRange = { id: string; t: string; s: string; aio: boolean; split: boolean };
 const HP_SIZE_RANGES: SizeRange[] = [
   { id: "small", t: "180 L – 200 L", s: "1–2 people · Reclaim 200 L · Thermann 200 L · iStore 180 L", aio: true,  split: false },
-  { id: "large", t: "275 L – 300 L", s: "3+ people · Reclaim 300 L · Thermann 285 L · iStore 275 L",  aio: true,  split: true  },
+  { id: "large", t: "270 L – 300 L", s: "3+ people · Reclaim 300 L · iStore 270 L",  aio: true,  split: true  },
   { id: "xl",    t: "315 L – 400 L", s: "Reclaim split only · 315 L or 400 L",                        aio: false, split: true  },
   { id: UNSURE,  t: "Not sure",      s: "We'll size it from how many people live there",              aio: true,  split: true  },
 ];
@@ -608,7 +608,7 @@ export function HeroQuoteForm() {
     <aside className="qcard" ref={cardRef}>
       <div className="qcard__ribbon">
         <span className="qcard__ribbon-dot" />
-        Free quote · usually replied within 12 hrs
+        Free quote · we call back within 12 business hours
       </div>
 
       <h2 className="qcard__h">Get a written quote</h2>

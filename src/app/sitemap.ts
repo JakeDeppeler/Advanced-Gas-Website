@@ -132,7 +132,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // query string; that is the canonical form of each.
   const findUrls: MetadataRoute.Sitemap = [
     // A page per kind of system, above its options.
-    ...ALL_SYSTEMS().map((sy) => ({ url: `${base}/find/${sy.slug}`, changeFrequency: "monthly" as const, priority: 0.65 })),
+    // Less a twin whose page canonicals to its namesake (the heating menu's
+    // "Ducted split" is /find/ducted under the same name), as with the tiers below.
+    ...ALL_SYSTEMS().filter((sy) => {
+      const twin = canonicalProductSystem(sy);
+      return twin.slug === sy.slug || twin.label !== sy.label;
+    }).map((sy) => ({ url: `${base}/find/${sy.slug}`, changeFrequency: "monthly" as const, priority: 0.65 })),
     // Less the ones whose canonical is another system's copy of the same
     // product (see lib/homepage/canonical): a sitemap URL that canonicals
     // elsewhere is a mixed signal.
