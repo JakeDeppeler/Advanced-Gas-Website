@@ -1834,7 +1834,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { v: "Type-A endorsed", k: "Full Victorian plumbing licence 46828" },
       { v: "AS/NZS 5601", k: "Every gas job to the standard" },
       { v: "Same day", k: "Ducted swaps and continuous flow changeovers" },
-      { v: "24/7", k: "Gas leaks, no hot water, CO alarms" },
+      { v: "After hours", k: "Gas leaks and no hot water, when we can answer" },
     ],
     h1: "Gas heating, hot water & plumbing",
     intro:

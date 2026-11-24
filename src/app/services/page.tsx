@@ -162,10 +162,10 @@ const services: Service[] = [
   {
     id: "emergency",
     num: "08",
-    eyebrow: "08 · 24/7 emergency",
+    eyebrow: "08 · After-hours emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
     lede: "After-hours calls go to someone on the tools, not an overseas call centre. Pakenham locals only, sorry, we can't cover all of Melbourne overnight.",
-    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 12 hrs"], ["After-hours", "$380 call-out · $260/hr after"], ["Call diversion", "no"]],
+    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 12 hrs"], ["After-hours", `${site.afterHours.callout} call-out, first hour included`], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
       "Hot water failure with kids in the house, priority",

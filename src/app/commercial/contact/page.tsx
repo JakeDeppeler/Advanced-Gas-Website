@@ -47,7 +47,7 @@ export default function CommercialContactPage() {
         ctas={
           <span className="cx-live">
             <i aria-hidden="true" />
-            <span>Emergency line open 24/7</span>
+            <span>After-hours call-outs for emergencies</span>
           </span>
         }
       />
@@ -60,7 +60,7 @@ export default function CommercialContactPage() {
 
           <aside className="cx-cside">
             <a className="cx-cc cx-cc--em cx-rv" href={`tel:${site.phoneE164}`}>
-              <span className="cx-mono">Phone · 24/7 emergency</span>
+              <span className="cx-mono">Phone · after-hours emergencies</span>
               <b>{site.phone}</b>
               <small>
                 Gas, hot water and plant down on a contracted site. After hours goes to someone on the tools.

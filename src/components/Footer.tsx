@@ -57,7 +57,7 @@ export function Footer() {
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <span>{openingHours()} · 24/7 emergency call-out</span>
+                <span>{openingHours()} · after hours for gas leaks &amp; no hot water</span>
               </li>
             </ul>
 
@@ -107,7 +107,7 @@ export function Footer() {
                 </li>
               ))}
               <li><Link href="/services#commercial">Commercial &amp; strata</Link></li>
-              <li><Link href="/contact#emergency">24/7 emergency</Link></li>
+              <li><Link href="/contact#emergency">After-hours emergency</Link></li>
               <li><Link href="/pricing"><strong>Full price list</strong></Link></li>
             </ul>
           </div>

@@ -274,7 +274,7 @@ export function ChatWidget() {
             </div>
             {error && <p className="agchat__err" role="alert">{error}</p>}
             <p className="agchat__sos">
-              Smell gas or an emergency? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>, 24/7.
+              Smell gas? Ring the gas emergency line, 132 771. No hot water after hours? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>.
             </p>
           </form>
         </div>

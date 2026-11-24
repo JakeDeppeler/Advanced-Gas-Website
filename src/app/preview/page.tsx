@@ -253,7 +253,7 @@ export default function PreviewPage() {
             </Link>
             <Link href="/contact#emergency" className="pv-sv-tile pv-sv-tile--red pv-sv-tile--wide">
               <span className="pv-sv-ico">🚨</span>
-              <span className="pv-sv-t">Emergency call-outs · 24/7</span>
+              <span className="pv-sv-t">Emergency call-outs · after hours</span>
               <span className="pv-sv-s">Gas leak, no hot water, smoking flue. Phones answered after hours.</span>
             </Link>
           </div>

@@ -25,7 +25,7 @@ export function knowledge(): string {
     `Phone ${site.phone} · email ${site.email} · website ${site.url}`,
     `Licences: ${site.licences.plumbing}; ${site.licences.refrigeration}.`,
     `Hours: ${openingHours()}. Weekends and public holidays: emergencies only.`,
-    `24/7 emergency line is the same number, ${site.phone}: gas leak, no hot water, CO alarm. After hours we answer for locals only: $380 call-out, then $260/hr.`,
+    `We are not a 24/7 business. After hours, for a gas leak, no hot water or a CO alarm, call the same number, ${site.phone}: we answer when we can, for locals. The after-hours call-out is ${site.afterHours.callout}, which covers ${site.afterHours.covers}. For a gas leak, they should also ring the gas emergency line on 132 771.`,
     `Service area: Pakenham and within 75 km (${site.primaryRegion}). We don't quote outside that radius.`,
     `Every quote is written; the written quote is the price you pay. VEU (Victorian Energy Upgrades) rebates are applied at the quote where the property qualifies. 6-year workmanship warranty on installs.`,
     "",

@@ -284,9 +284,9 @@ const GAS: AdvisorConfig = {
       answer: {
         heading: "Stop reading and ring us.",
         body:
-          "A gas smell is the one thing on this site that does not belong in a form. Turn the gas off at the meter if you can get to it safely, open the windows, and call. We're on for gas leaks around the clock.",
+          "A gas smell is the one thing on this site that does not belong in a form. Turn the gas off at the meter if you can get to it safely, open the windows, and ring the gas emergency line on 132 771. Then call us: after hours we answer when we can.",
         href: "/contact#emergency",
-        cta: "24/7 emergency call-out",
+        cta: "After-hours call-outs",
         note: "If anyone feels unwell, leave the house first and ring from outside.",
       },
     },

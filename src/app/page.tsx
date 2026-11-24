@@ -563,8 +563,8 @@ export default async function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">08</span>
                 <h3>Emergency call-outs</h3>
-                <p>Gas leak, no hot water, smoking flue. Phones answered after hours.</p>
-                <span className="bcard__pill bcard__pill--red">24 / 7</span>
+                <p>Gas leak, no hot water, smoking flue. Call after hours and we&apos;ll answer if we can.</p>
+                <span className="bcard__pill bcard__pill--red">After hours</span>
               </div>
             </Link>
           </div>
