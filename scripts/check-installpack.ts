@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { beforeLeaving, buildPack, fingerprint, kindOf, packDue, packParts, photosToTake, plainText, rebatesOn, whatChanged, type PackFacts, type QuoteItem } from "../src/lib/installpack/build";
 import { packPdf } from "../src/lib/installpack/pdf";
-import { SUMMARY_SCHEMA, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
+import { SUMMARY_SCHEMA, keepNote, listed, parseSummary, summaryInput, type InstallSummary, type VisitReport } from "../src/lib/installpack/summaryText";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -62,6 +62,8 @@ const p = buildPack(facts);
 const names = (ls: { name: string }[]) => ls.map((l) => l.name);
 console.log("-- what's listed --");
 ok("the unit is under Going in", names(p.units).join() === "Braemar Dominator Series 2 - Internal", names(p.units));
+ok("the pack's own notes are kept out of its words, whatever the case (24 Nov)", ["Install pack updated to v6: the crew changed. The new PDF is attached; use it rather than earlier versions.", "INSTALL PACK: Job 20881 Install Pack.pdf is attached", "install pack on job 20769", "Email from bob@example.com: re quote", "EMAILS ABOUT THE QUOTE (3)"].every((t) => !keepNote(t)));
+ok("…and the office's own notes are kept", ["Keys left no one home", "Install the packing strip under the fan coil", "Customer emailed about parking"].every(keepNote));
 ok("a rebate is never a material", !names(p.materials).some((n) => /rebate|VEEC/i.test(n)));
 ok("materials keep the quote's order", names(p.materials)[0] === "Bradflo Insulated Duct R1.0 350mm x 6 Metre" && p.materials.length + p.zoning.length === 6, names(p.materials));
 ok("names are tidied of ServiceTitan's stray spaces", names([...p.materials, ...p.zoning]).includes("Multivent MDO 4-Way 230mm x 230mm"));
