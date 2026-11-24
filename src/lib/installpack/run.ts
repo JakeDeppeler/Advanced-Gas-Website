@@ -2,7 +2,7 @@ import "server-only";
 import { q, sbInsertIfAbsent, sbSelect, sbUpdateReturning, sbUpsert } from "@/lib/dashboard/db";
 import { stDownload, stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { loadSwitches, logAuto, type AutoEntry } from "@/lib/automation/log";
-import { buildPack, fingerprint, packParts, whatChanged, type PackFacts, type PackParts } from "./build";
+import { buildPack, fingerprint, packDue, packParts, whatChanged, type PackFacts, type PackParts } from "./build";
 import { installJobs, packFactsFor, packPhotos, type InstallJob } from "./facts";
 import { packPdf, type PackPhoto } from "./pdf";
 import { aiConfigured, visitReports, writeSummary } from "./summary";
@@ -23,10 +23,11 @@ import { getSettings } from "@/lib/portal/db";
  * only lists visits still to come, so nothing is rewritten under someone
  * who's already reading it on site.
  *
- * A pack is made only once the next visit is confirmed in ServiceTitan (Jake,
- * 22 Nov: "create one once the appointment gets confirmed"), and never on a job
- * that has a pack made by hand on it (pack_attach_queue), which the crew are
- * told to use.
+ * A pack is made once the next visit is confirmed in ServiceTitan (Jake,
+ * 22 Nov: "create one once the appointment gets confirmed"), or from midday
+ * the day before an unconfirmed one (24 Nov: "but also the fall back"), and
+ * never on a job that has a pack made by hand on it (pack_attach_queue), which
+ * the crew are told to use.
  */
 
 type Row = {
@@ -192,7 +193,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
   for (const j of jobs) {
     if (ran.length >= max || Date.now() > deadline - 20_000) break;
     const base = facts.get(j.job_id);
-    if (!base || !base.confirmed || byHand.has(j.job_id)) continue;
+    if (!base || !packDue(base).due || byHand.has(j.job_id)) continue;
     const row = rowOf.get(j.job_id);
     if (row?.last_error && row.last_tried_at && now - Date.parse(row.last_tried_at) < RETRY_MS) continue;
 
@@ -237,7 +238,7 @@ export async function runInstallPacks(opts: { max?: number; deadline?: number } 
       const shown = `${built.photos} photo${built.photos === 1 ? "" : "s"}${built.notShown ? ` (${built.notShown} more on the job)` : ""}`;
       await stUpload(stTenantPath("forms", `jobs/${j.job_id}/attachments`), built.fileName, built.pdf, "application/pdf");
       const note = version === 1
-        ? `Install pack attached (${built.fileName}), now the visit's confirmed: ${f.summary && "ok" in f.summary ? "the job summary, where each unit goes and what's particular to the job, written from the records" : "the job summary"}, ${f.quote ? "the unit and materials from the sold quote with where each was ordered" : "no equipment list as there's no sold quote on the job"}, the photos to take and what to do before leaving${built.facts.items.some((i) => /^REBATE-(STC|VEEC|SOLARVIC)/i.test(i.code)) ? " (a rebate job: the trailer photo, Alitsy and the customer's sign-off are marked)" : ""}, and ${shown}.`
+        ? `Install pack attached (${built.fileName}), ${packDue(f).why === "confirmed" ? "now the visit's confirmed" : "the day before the visit, as it isn't confirmed in ServiceTitan"}: ${f.summary && "ok" in f.summary ? "the job summary, where each unit goes and what's particular to the job, written from the records" : "the job summary"}, ${f.quote ? "the unit and materials from the sold quote with where each was ordered" : "no equipment list as there's no sold quote on the job"}, the photos to take and what to do before leaving${built.facts.items.some((i) => /^REBATE-(STC|VEEC|SOLARVIC)/i.test(i.code)) ? " (a rebate job: the trailer photo, Alitsy and the customer's sign-off are marked)" : ""}, and ${shown}.`
         : `Install pack updated to v${version}: ${whatChanged(row?.parts ?? null, parts, photosChanged)}. The new PDF (${built.fileName}) is attached; use it rather than earlier versions.`;
       // The PDF is on the job either way; a refused note shouldn't make the
       // next run upload it again.
