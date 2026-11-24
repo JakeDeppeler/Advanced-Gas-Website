@@ -94,12 +94,16 @@ const SYSTEMS: SystemRow[] = [
     heats: "yes",
     installFrom: "$9,500",
     installTo: "$18,000",
-    runningCost: "$800-$2,500 / yr",
+    // Heating only, from the gas vs reverse-cycle comparator at its own
+    // defaults (8-15 kW of heat load), so it reads against the gas row below
+    // like for like. The old "$800-$2,500 / yr" mixed in summer cooling and
+    // made reverse-cycle look dearer to run than gas.
+    runningCost: "$500-$1,000 per winter, plus summer cooling",
     zoneControl: "Yes, 4-8 zones",
     lifespan: "15-20 years",
     bestFor: "Whole-home solution for 3+ bed family homes with attic space",
     bestSuburbs: "Officer, Berwick, Clyde, Cranbourne, new-build estates",
-    brandsWeInstall: "Mitsubishi PEAD-M, Kaden ducted",
+    brandsWeInstall: "Mitsubishi PEA-M, Kaden ducted",
     pros: [
       "Seamless, no visible indoor units",
       "One system handles cooling AND heating for the whole home",
@@ -129,7 +133,7 @@ const SYSTEMS: SystemRow[] = [
     pros: [
       "Fast heat-up, big room reaches temp in ~15 minutes",
       "Same-footprint retrofit into most 90s-onwards homes with an existing ducted heater",
-      "Doesn't need refrigerant handling licence to service",
+      "Any licensed gas fitter can service it",
     ],
     cons: [
       "Heating only, need separate cooling for summer",

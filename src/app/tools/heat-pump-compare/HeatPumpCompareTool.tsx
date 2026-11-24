@@ -53,7 +53,7 @@ const HEAT_PUMPS: Row[] = [
     madeIn: "Designed & assembled in Sydney",
     bestFor: "Hills postcodes, and anyone staying in the house long enough to care what the tank is made of",
     pros: [
-      "Only mainstream CO₂ heat pump in AU",
+      "One of very few CO₂ heat pumps on the Australian market",
       "15-year stainless tank warranty",
       "Quiet 37 dBA, safe next to bedroom walls",
       "PV-diverter compatible for solar-scheduled hot water",
@@ -120,19 +120,19 @@ const HEAT_PUMPS: Row[] = [
     key: "istore-270",
     brand: "iStore",
     model: "iS-HP-270",
-    eyebrow: "All-in-one · R290 · 180/275 L",
+    eyebrow: "All-in-one · R290 · 180/270 L",
     refrigerant: "R290 (propane) · natural",
     cop: "~3.5",
-    capacity: "180 / 275 L",
+    capacity: "180 / 270 L",
     form: "All-in-one",
     tank: "Enamel-lined steel",
     warranty: "5 years on the whole unit",
     installFrom: "$2,144",
     installTo: "$2,144",
     madeIn: "Australian company · manufactured in China (AS/NZS)",
-    bestFor: "Cheapest heat pump on the market post-rebate, Hampton Park / Cranbourne stock swap-outs",
+    bestFor: "The cheapest heat pump we fit once the rebates come off",
     pros: [
-      "Cheapest heat pump once the VEU rebate is applied",
+      "Cheapest heat pump we fit once the rebates come off",
       "180 L option for couples / apartments",
       "Widely serviced, parts pipeline healthy",
     ],
@@ -160,7 +160,7 @@ const HEAT_PUMPS: Row[] = [
     pros: [
       "Australian-made by Dux",
       "Same tank + heat pump platform as the Reclaim ECO R290 AIO",
-      "Reece distribution, same-day parts state-wide",
+      "Reece distribution, parts usually on the shelf locally",
     ],
     cons: [
       "COP slightly lower than Reclaim CO₂",
@@ -417,7 +417,7 @@ export function HeatPumpCompareTool() {
         <span className="cc-lbl">What we&apos;d pick</span>
         <h2>Our default recommendations</h2>
         <ul>
-          <li><strong>When the rebate is what decides it:</strong> iStore 275 L, it takes the VEU further than anything else we fit.</li>
+          <li><strong>When price is what decides it:</strong> iStore 270 L, the cheapest heat pump we fit once the rebates come off.</li>
           <li><strong>Best long-term:</strong> Reclaim CO₂ Split Stainless 315L (15-year tank).</li>
           <li><strong>Hills / cold-climate suburbs:</strong> Reclaim CO₂ (holds capacity to -10 °C).</li>
           <li><strong>Straight swap for old storage tank:</strong> Reclaim ECO R290 All-in-One.</li>

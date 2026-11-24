@@ -52,7 +52,12 @@ export default async function BlogPage() {
   // Posts written in the portal, over the ones in blog.ts.
   const posts = await publishedPosts();
   const featured = posts.find((p) => p.featured) ?? posts[0];
-  const rest = posts.filter((p) => p.slug !== featured.slug);
+  // Newest first. The merged list is already sorted, but the fallback (no
+  // database) is blog.ts in the order it was written, which put the August
+  // guides at the bottom under the March ones.
+  const rest = posts
+    .filter((p) => p.slug !== featured.slug)
+    .sort((a, b) => b.publishedISO.localeCompare(a.publishedISO));
   const topics = new Set(posts.map((p) => p.cat)).size;
   const writers = [...new Set(posts.map((p) => AUTHORS[p.author]?.name.split(" ")[0]).filter(Boolean))];
 
@@ -111,7 +116,7 @@ export default async function BlogPage() {
         },
       ]} />
 
-      <EndCta title={<>Ready <span>when you are</span>.</>} text="Free quote with the rebate already applied. Usually back within 12 hours." from="blog-cta" />
+      <EndCta title={<>Ready <span>when you are</span>.</>} text="Free quote with the rebate already applied. Usually back within 12 business hours." from="blog-cta" />
     </BandPage>
   );
 }

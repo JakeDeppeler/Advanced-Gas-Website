@@ -18,7 +18,7 @@ export const EFFICIENCY: Record<string, number> = {
 
 // Sensible install-cost + rebate defaults (mid-2026 VIC).
 export const HEAT_PUMP_INSTALL_COST = 3500;
-export const VEU_REBATE_TYPICAL = 2400; // Typical VIC heat-pump rebate at $60-$75 VEEC prices (max ~$2,700).
+export const VEU_REBATE_TYPICAL = 2400; // All rebates together (VEU, STCs, Solar Victoria); the most is $2,700.
 
 // Energy prices (mid-2026 Melbourne retail averages).
 export const DEFAULT_GAS_C_PER_MJ = 4.5;       // c / MJ for natural gas usage
@@ -51,6 +51,9 @@ export const SAVINGS_DEFAULTS: SavingsForm = {
 };
 
 
+/** 16,819 rather than 16819, like every other figure on the page. */
+const fmt = (n: number) => Math.round(n).toLocaleString("en-AU");
+
 export function hotWaterRunningCost(form: SavingsForm) {
     const eff = EFFICIENCY[form.currentSystem] ?? 1;
     const deliveredKwhPerYear = form.household * DELIVERED_KWH_PER_PERSON_PER_DAY * DAYS_PER_YEAR;
@@ -64,27 +67,27 @@ export function hotWaterRunningCost(form: SavingsForm) {
         const inputKwh = deliveredKwhPerYear / eff;
         const inputMj = inputKwh * KWH_TO_MJ;
         currentCostYr = (inputMj * form.gasCentsPerMJ) / 100;
-        currentEnergyLabel = `${Math.round(inputMj)} MJ/yr gas`;
+        currentEnergyLabel = `${fmt(inputMj)} MJ/yr gas`;
         break;
       }
       case "electric-off-peak": {
         const inputKwh = deliveredKwhPerYear / eff;
         currentCostYr = (inputKwh * form.offpeakCentsPerKwh) / 100;
-        currentEnergyLabel = `${Math.round(inputKwh)} kWh/yr off-peak`;
+        currentEnergyLabel = `${fmt(inputKwh)} kWh/yr off-peak`;
         break;
       }
       case "solar-electric-boost": {
         // Assume solar handles 65% of the load; the rest is off-peak boost.
         const inputKwh = (deliveredKwhPerYear / eff) * 0.35;
         currentCostYr = (inputKwh * form.offpeakCentsPerKwh) / 100;
-        currentEnergyLabel = `${Math.round(inputKwh)} kWh/yr boost only`;
+        currentEnergyLabel = `${fmt(inputKwh)} kWh/yr boost only`;
         break;
       }
       case "electric-storage":
       default: {
         const inputKwh = deliveredKwhPerYear / eff;
         currentCostYr = (inputKwh * form.elecCentsPerKwh) / 100;
-        currentEnergyLabel = `${Math.round(inputKwh)} kWh/yr peak`;
+        currentEnergyLabel = `${fmt(inputKwh)} kWh/yr peak`;
         break;
       }
     }

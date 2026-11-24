@@ -48,8 +48,8 @@ import { SIZING_DEFAULTS as DEFAULTS, SYSTEMS, sizeHousehold, type SizingForm as
 
 const HEAT_KW: { v: number; l: string; s: string }[] = [
   { v: 2.5, l: "2.5 kW", s: "Standard Reclaim, Thermann, iStore 180" },
-  { v: 4, l: "4 kW", s: "iStore 275, Panasonic 4 kW" },
-  { v: 5, l: "5 kW", s: "Reclaim 215 / 315" },
+  { v: 4, l: "4 kW", s: "iStore 270, Panasonic 4 kW" },
+  { v: 5, l: "5 kW", s: "Reclaim 315 / 400" },
   { v: 6, l: "6 kW", s: "Panasonic, fastest recovery" },
 ];
 
@@ -202,7 +202,8 @@ export function HeatPumpSizing() {
 
       <div className="ca__card ca__det">
         <p className="ca__sub">
-          Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong> over about{" "}
+          Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong>, the showers plus
+          basins and the kitchen, over about{" "}
           {n(r.drawHours * 60)} minutes. The {form.heatKw} kW compressor makes{" "}
           <strong>{n(r.madeDuringRun)} L</strong> of that while people are still
           showering, so the tank only has to hold <strong>{n(r.mustBeStored)} L</strong>.

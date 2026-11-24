@@ -6,7 +6,7 @@ import { ToolPage } from "@/components/homepage/tools/ToolPage";
 export const metadata: Metadata = {
   title: "Hot Water Savings, How Much Will I Save?",
   description:
-    "Compare your current gas or electric hot water cost against a heat pump, with the VEU rebate applied and the payback period shown.",
+    "Compare your current gas or electric hot water cost against a heat pump, with the rebates applied and the payback period shown.",
   alternates: { canonical: "/tools/hot-water-savings" },
 };
 
@@ -16,7 +16,7 @@ export default function HotWaterSavingsPage() {
       slug="hot-water-savings"
       crumb="Hot water savings"
       title="How much would a {heat pump} save you?"
-      sub={<>See what you&rsquo;ll save each year by swapping an old gas or electric hot water system for a modern heat pump. Includes the Victorian VEU rebate at the install-cost end and a payback-period projection over 10&nbsp;years.</>}
+      sub={<>See what you&rsquo;ll save each year by swapping an old gas or electric hot water system for a modern heat pump. Takes the rebates off the install cost and, once you add the price from your quote, projects the payback over 10&nbsp;years.</>}
       how={{
         h: "How the {sum} works.",
         body: (
@@ -36,10 +36,11 @@ export default function HotWaterSavingsPage() {
             electricity, so the same 10 kWh of delivered heat needs only ~2.5-3.5 kWh of input.
             </p>
             <p>
-            The <strong>VEU rebate</strong> in Victoria knocks up to $2,700 off a heat pump install
-            (max at current $60-$75 VEEC prices), which comes off the quoted price rather than
-            being something you chase later. Combined with the annual saving, the payback period is usually inside 4-6
-            years, and the unit is warrantied for at least a decade after that.
+            <strong>Rebates</strong> take up to $2,700 off a heat pump install (VEU, STCs and Solar
+            Victoria for eligible owner-occupiers), and they come off the quoted price rather than
+            being something you chase later. Add the price from your quote and the calculator works
+            out the payback on your own numbers. Warranties depend on the brand, from 5 years on the
+            whole unit (iStore) up to 15 years on a Reclaim stainless tank.
             {" "}<Link href="/rebates">See our rebate breakdown</Link>.
             </p>
 

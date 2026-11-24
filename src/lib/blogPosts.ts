@@ -57,14 +57,14 @@ export const blogPosts: BlogPost[] = [
         kind: "ul",
         items: [
           "<strong>Smaller household, rental or a tight budget?</strong> Thermann 270L. Cheapest after rebate, stainless tank, simple controls.",
-          "<strong>Got solar PV and want app control?</strong> iStore 275L. Smart scheduling drops your daytime hot water cost to almost zero.",
+          "<strong>Got solar PV and want app control?</strong> iStore 270L. Smart scheduling drops your daytime hot water cost to almost zero.",
           "<strong>Want the quietest, longest-lasting unit money can buy?</strong> Reclaim CO₂. Premium price, premium build, 10-year tank.",
         ],
       },
       { kind: "h2", text: "What you actually get" },
       {
         kind: "table",
-        headers: ["", "Thermann 270L", "iStore 275L", "Reclaim CO₂ 270L"],
+        headers: ["", "Thermann 270L", "iStore 270L", "Reclaim CO₂ 270L"],
         rows: [
           ["After-VEU price*", "Lowest", "Middle", "Highest"],
           ["Refrigerant", "R134a", "R290", "CO₂ (R744)"],
@@ -112,7 +112,7 @@ export const blogPosts: BlogPost[] = [
         kind: "ol",
         items: [
           "<strong>Couple, no solar:</strong> Thermann 200L or 270L. Cheap, reliable, gets the rebate.",
-          "<strong>Family of 4, average usage, has solar:</strong> iStore 275L on a daytime schedule. Best dollars-per-comfort.",
+          "<strong>Family of 4, average usage, has solar:</strong> iStore 270L on a daytime schedule. Best dollars-per-comfort.",
           "<strong>Family of 5+, premium build, near a bedroom:</strong> Reclaim CO₂ 270L. Quiet, 10-year tank, sleep easy.",
           "<strong>Investment property:</strong> Thermann 270L. Tenant gets a working unit, you bank most of the rebate.",
         ],
@@ -184,7 +184,7 @@ export const blogPosts: BlogPost[] = [
         kind: "ul",
         items: [
           "<strong>Thermann 270L:</strong> the cheapest of the three. Best value, 5-year tank.",
-          "<strong>iStore 275L:</strong> in the middle. Smart Wi-Fi, 5-year warranty on the whole unit.",
+          "<strong>iStore 270L:</strong> in the middle. Smart Wi-Fi, 5-year warranty on the whole unit.",
           "<strong>Reclaim CO₂ 270L:</strong> the dearest. Premium, 37 dB, 10-year tank.",
         ],
       },
@@ -449,7 +449,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Open the iStore app → Schedule → set a daily window of 10:00 to 15:00. The unit only heats during those hours. If you run low on hot water (rare with a 275L tank), tap \"Boost\" for a manual top-up.",
+          "Open the iStore app → Schedule → set a daily window of 10:00 to 15:00. The unit only heats during those hours. If you run low on hot water (rare with a 270L tank), tap \"Boost\" for a manual top-up.",
       },
       { kind: "h3", text: "Reclaim CO₂" },
       {
@@ -467,7 +467,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "A Pakenham family of four, 6.6 kW solar, iStore 275L on a 10am–3pm schedule:",
+          "A Pakenham family of four, 6.6 kW solar, iStore 270L on a 10am–3pm schedule:",
       },
       {
         kind: "table",
@@ -518,7 +518,7 @@ export const blogPosts: BlogPost[] = [
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
     metaTitle: "Failed Hot Water Tank. Replace Gas or Upgrade to Heat Pump?",
     metaDescription:
-      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,700 VEU rebate question.",
+      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the rebate question (up to $2,700 on a heat pump).",
     category: "Hot water",
     categoryShort: "Hot water",
     date: "25 Mar 2026",
@@ -625,7 +625,7 @@ export const blogPosts: BlogPost[] = [
           "<strong>Open-plan living</strong> that doesn't need every zone heated equally",
           "<strong>You also want cooling</strong>: one system, both seasons",
           "<strong>You have or will get solar</strong>, daytime heating becomes near-free",
-          "<strong>VEU rebate applies</strong>: up to $5,000 off the install",
+          "<strong>VEU rebate applies</strong>: up to $6,000 off the install",
         ],
       },
       { kind: "h2", text: "Where ducted gas still makes sense" },
@@ -657,7 +657,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Install cost: a 12–16 kW ducted system is a big job, and the VEU rebate takes up to $5,000 off it at the quote. Payback: <strong>4–6 years</strong>, depending on solar.",
+          "Install cost: a 12–16 kW ducted system is a big job, and the VEU rebate takes up to $6,000 off it at the quote. Payback: <strong>4–6 years</strong>, depending on solar.",
       },
       { kind: "h2", text: "Things people forget to ask" },
       { kind: "h3", text: "Can I keep the existing ductwork?" },
@@ -759,7 +759,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "One hot-water-system rebate per dwelling. If the property has separate aircon eligibility (gas heater swap → reverse cycle), that's a separate rebate up to $5,000.",
+          "One hot-water-system rebate per dwelling. If the property has separate aircon eligibility (gas heater swap → reverse cycle), that's a separate rebate up to $6,000.",
       },
       { kind: "h3", text: "What's the tax treatment?" },
       {

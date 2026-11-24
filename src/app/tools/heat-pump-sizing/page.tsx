@@ -9,7 +9,7 @@ import { JsonLd } from "@/components/JsonLd";
 export const metadata: Metadata = {
   title: "Heat Pump Sizing, What Size Tank Do I Need?",
   description:
-    "Work out what size heat pump tank your home needs, from real shower flow, household size and reheat time. 160 to 400 L, with recovery rate for each.",
+    "Work out what size heat pump tank your home needs, from real shower flow, household size and reheat time. 180 to 400 L, with recovery rate for each.",
   alternates: { canonical: "/tools/heat-pump-sizing" },
 };
 

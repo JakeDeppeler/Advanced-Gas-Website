@@ -17,7 +17,7 @@ export default function HeatPumpComparePage() {
       slug="heat-pump-compare"
       crumb="Heat pump compare"
       title="Heat pumps, {side by side}."
-      sub={<>Every heat pump hot water brand we service, Reclaim, iStore and Thermann and Rheem, with the specs a real buyer cares about: refrigerant, COP, capacity, warranty, price band, made-in and what it&rsquo;s best for. Pick 2-5 to compare side-by-side.</>}
+      sub={<>The heat pump hot water brands we install, Reclaim, iStore and Thermann, plus Rheem for comparison (we don&rsquo;t install Rheem), with the specs a real buyer cares about: refrigerant, COP, capacity, warranty, price band, made-in and what it&rsquo;s best for. Pick 2-5 to compare side-by-side.</>}
       how={{
         h: "How to read the {comparison}.",
         body: (
@@ -34,8 +34,8 @@ export default function HeatPumpComparePage() {
             Higher is better, but real-world COP falls when ambient temp drops.
             </p>
             <p>
-            <strong>Tank warranty</strong> is the single best long-term signal, stainless (15 yr) beats
-            enamel/glass (10 yr) beats standard. <strong>Made-in</strong> matters for parts availability:
+            <strong>Tank warranty</strong> is the single best long-term signal: stainless (15 yr) beats
+            glass-lined or enamel (5-10 yr, depending on brand). <strong>Made-in</strong> matters for parts availability:
             Australian-made or Aus-designed brands (Reclaim) have local parts pipelines,
             imported units can be slower.
             </p>

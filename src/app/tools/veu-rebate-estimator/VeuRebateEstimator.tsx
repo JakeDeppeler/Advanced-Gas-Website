@@ -4,17 +4,18 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import "@/components/homepage/tools/calc-a.css";
 import { SHOW_PRICES } from "@/lib/homepage/data";
-import { UPGRADES, VEEC_PRICE_TREND, VEU_DEFAULTS as DEFAULTS, estimateVeu, type VeuForm as FormState } from "@/lib/tools/veuEstimate";
+import { UPGRADES, VEU_DEFAULTS as DEFAULTS, estimateVeu, type VeuForm as FormState } from "@/lib/tools/veuEstimate";
 
 /**
  * VEU rebate estimator. Client-only, live-updating.
  *
  * The VEU scheme generates VEECs (Victorian Energy Efficiency Certificates)
  * — one for every tonne of avoided CO2 over the upgrade's assumed 10-year
- * life. Each VEEC has a traded market price (2025-26 ~$85-$110).
+ * life. Each VEEC has a traded market price that moves through the year.
  *
- * We approximate the rebate as (typical certificate count) × (VEEC price)
- * per upgrade path. Numbers below are ballparks derived from the current
+ * On a heat pump the figure shown is the whole stack (VEECs, STCs and Solar
+ * Victoria for an eligible owner-occupier), held to the $2,700 every other
+ * page quotes, so it is labelled "rebates", never "VEU rebate". Numbers below are ballparks derived from the current
  * ESC Product Class schedule + observed 2025-26 rebate outcomes on our
  * install base. A firm rebate is always confirmed at quote time.
  *
@@ -127,15 +128,26 @@ export function VeuRebateEstimator() {
       </div>
 
       <div className="ca__card ca__sum" aria-live="polite">
-        <span className="ca__lbl">Estimated VEU rebate</span>
+        <span className="ca__lbl">Estimated rebates</span>
         <div className="ca__big">{$(result.minRebate)}–{$(result.maxRebate)}</div>
         <p className="ca__tag">Typically around <b>{$(result.midRebate)}</b></p>
       </div>
 
       <div className="ca__card ca__det">
         <p className="ca__sub">
-          At the current VEEC price of <strong>{VEEC_PRICE_TREND}</strong>, this upgrade typically
-          generates a rebate around <strong>{$(result.midRebate)}</strong>.
+          {result.isHotWater ? (
+            <>
+              All the rebates together (VEU, STCs and Solar Victoria for eligible
+              owner-occupiers) typically come to around <strong>{$(result.midRebate)}</strong> on
+              this upgrade. A rental gets the VEU and STC part only (about $1,205 on a typical
+              gas-to-heat-pump swap).
+            </>
+          ) : (
+            <>
+              On current certificate prices, this upgrade typically attracts around{" "}
+              <strong>{$(result.midRebate)}</strong> in rebates.
+            </>
+          )}
         </p>
 
         <dl className="ca__maths" aria-label="The rebate">
