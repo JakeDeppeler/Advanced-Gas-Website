@@ -50,7 +50,7 @@ export function entries(): Entry[] {
   };
 
   /* The business itself, from site.ts. */
-  add({ id: "site.hours", q: "What are your opening hours? When are you open?", tags: "office time weekday weekend", a: `We're on the tools ${openingHours()}. For an emergency outside those hours, like a gas leak or no hot water, call ${site.phone}: it's answered 24/7.`, href: "/contact", label: "Contact us" });
+  add({ id: "site.hours", q: "What are your opening hours? When are you open?", tags: "office time weekday weekend", a: `We're on the tools ${openingHours()}. We're not a 24/7 business. For an emergency outside those hours, like a gas leak or no hot water, call ${site.phone} and we'll answer if we can. For a gas leak, ring the gas emergency line on 132 771 too.`, href: "/contact", label: "Contact us" });
   add({ id: "site.contact", q: "How do I contact you? What's your phone number and email?", tags: "call ring phone email contact reach", a: `Call ${site.phone} or email ${site.email}. For a price, the quote form is the quickest way in.`, href: "/contact", label: "Contact us" });
   add({ id: "site.address", q: "Where are you based? What's your address?", tags: "location workshop located address pakenham", a: `We're based in ${site.address.suburb}: ${site.address.street}, ${site.address.suburb} ${site.address.state} ${site.address.postcode}.`, href: "/contact", label: "Contact us" });
   add({ id: "site.licences", q: "Are you licensed? What are your licence numbers?", tags: "licence license licensed registered arc arctick plumber gasfitter qualified insured", a: `Yes. ${site.licences.plumbing}, and ${site.licences.refrigeration} for air conditioning and refrigeration work.`, href: "/about", label: "About us" });
@@ -158,7 +158,7 @@ export function promptKnowledge(): string {
     "# The business",
     `${site.name}, ${site.address.street}, ${site.address.suburb} ${site.address.state} ${site.address.postcode}. Phone ${site.phone}, email ${site.email}.`,
     `Licences: ${site.licences.plumbing}; ${site.licences.refrigeration}.`,
-    `Office hours ${openingHours()}. The main number is answered 24/7 for emergencies.`,
+    `Office hours ${openingHours()}. Not a 24/7 business: after hours, for a gas leak or no hot water, call the main number and we answer when we can. For a gas leak, also ring the gas emergency line on 132 771.`,
     `Service area: Pakenham and ${RADIUS_KM} km around it (${site.primaryRegion}); we still come out as far as ${MAX_KM} km, and not past that.`,
     `Services: ${services.map((s) => `${s.name}: ${s.blurb}`).join(" ")}`,
     `Brands we install: ${ourBrands().map((b) => `${b.name} (${b.range})`).join("; ")}.`,

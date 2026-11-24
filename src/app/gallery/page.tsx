@@ -121,7 +121,7 @@ export default async function GalleryPage() {
           <div className="glx__ig">
             <InstagramCTA
               heading="The full gallery lives on Instagram"
-              body="We post every job as it's finished. Splits, ducted, heat pumps and gas heaters going into real houses across the south-east."
+              body="We post jobs as they're finished. Splits, ducted, heat pumps and gas heaters going into real houses across the south-east."
             />
           </div>
         </>
@@ -139,8 +139,9 @@ export default async function GalleryPage() {
         sub={<>Every photo below is one of our own jobs, shot on site, on the day. Product photography elsewhere on the site is manufacturer imagery so you can see exactly which unit we&rsquo;re quoting; this page is the actual work.</>}
         photo={lead ? encodeURI(lead.src) : PHOTO.team} from="gallery-hero"
         trust={[
-          { v: String(GALLERY.length), k: "Photos of our own jobs" },
-          { v: String(grouped.length), k: "Kinds of job" },
+          // The team photo is in the gallery but isn't a job, so it counts in neither.
+          { v: String(GALLERY.filter((g) => g.category !== "team").length), k: "Photos of our own jobs" },
+          { v: String(grouped.filter((g) => g.category !== "team").length), k: "Kinds of job" },
         ]}
       />
     }>
@@ -154,7 +155,7 @@ export default async function GalleryPage() {
           blurb="Pulled straight from our Instagram, so it's current, not a gallery someone forgot to update two years ago."
         />
       </div>
-      <EndCta title={<>Want yours to look <span>like this</span>?</>} text="Free, no-obligation quote back within 12 business hours. Six years on our workmanship." from="gallery-cta" />
+      <EndCta title={<>Want yours to look <span>like this</span>?</>} text="A callback within 12 business hours, a free site check, then a written price. Six years on our workmanship." from="gallery-cta" />
       <JsonLd data={crumbs} />
     </BandPage>
   );

@@ -33,7 +33,7 @@ import { JsonLd } from "@/components/JsonLd";
 export const metadata: Metadata = {
   title: pageTitle("Repair or Replace? The 10-Year Rule"),
   description: metaDescription(
-    "How long hot water systems, gas heaters and aircon actually last, when repairing stops making financial sense, and why the VEU rebate is worth most at exactly that point.",
+    "How long hot water systems, gas heaters and aircon really last, when repairing stops making sense, and why the VEU rebate is worth most at that point.",
   ),
   keywords: [
     "should I repair or replace my hot water system",
@@ -66,7 +66,7 @@ const FAQS = [
   },
   {
     q: "How much is the VEU rebate worth?",
-    a: `Up to about $${REBATE_FACTS.maxStacked.toLocaleString()} on heat pump hot water for an owner-occupier with everything stacked. VEEC, STC, the $${REBATE_FACTS.ausMade} Australian Made bonus on eligible brands, and the $${REBATE_FACTS.vicSolar.toLocaleString()} Solar Homes rebate if you qualify. Rentals get up to about $${REBATE_FACTS.maxRental.toLocaleString()}, because Solar Homes is owner-occupier only. We apply it at the quote rather than making you chase it.`,
+    a: `Up to $${REBATE_FACTS.upTo.toLocaleString()} in rebates on heat pump hot water, for an eligible owner-occupier. On today's figures a typical owner-occupier total is about $${REBATE_FACTS.maxStacked.toLocaleString()}: the VEU discount ($${REBATE_FACTS.veec}), the federal STCs ($${REBATE_FACTS.stc}), and Solar Victoria's $${REBATE_FACTS.vicSolar.toLocaleString()} rebate, which is $${(REBATE_FACTS.vicSolar + REBATE_FACTS.ausMade).toLocaleString()} for a locally made product. Rentals get VEU and STCs only, about $${REBATE_FACTS.maxRental.toLocaleString()}, because Solar Victoria's rebate is owner-occupier only. We apply it at the quote rather than making you chase it.`,
   },
   {
     q: "What if you tell me to replace it and I don't believe you?",
@@ -96,7 +96,7 @@ const SIGNS = [
     d: "When a part takes three weeks, that isn't just an inconvenience, it's the supply chain telling you the model is being wound down. We'll always tell you when we're chasing a part for a discontinued unit rather than quietly adding days.",
   },
   {
-    t: "A gas appliance over ten that hasn't been CO tested",
+    t: "A gas appliance over ten years old that hasn't been CO tested",
     d: "This one isn't economics. A cracked heat exchanger has no smell and no warning, and the test takes minutes with a calibrated analyser. Whatever you decide about replacing it, get it tested.",
   },
 ];
@@ -221,9 +221,9 @@ export default async function UpgradeOrRepairPage() {
             </p>
           </div>
           <dl className="kx__facts rpx__nums" data-anim="stagger">
-            <div><dd>${REBATE_FACTS.maxStacked.toLocaleString()}</dd><dt>up to, owner-occupier, everything stacked</dt></div>
-            <div><dd>${REBATE_FACTS.maxRental.toLocaleString()}</dd><dt>up to, rentals, no Solar Homes, everything else applies</dt></div>
-            <div><dd>${REBATE_FACTS.ausMade}</dd><dt>Australian Made bonus, on the brands that qualify</dt></div>
+            <div><dd>${REBATE_FACTS.upTo.toLocaleString()}</dd><dt>maximum for owner-occupiers, all rebates combined</dt></div>
+            <div><dd>${REBATE_FACTS.maxRental.toLocaleString()}</dd><dt>about, for rentals: VEU and STCs only</dt></div>
+            <div><dd>${REBATE_FACTS.ausMade}</dd><dt>more from Solar Victoria for a locally made product, owner-occupiers only</dt></div>
             <div><dd>$0</dd><dt>for you to chase. We do the paperwork</dt></div>
           </dl>
         </>
@@ -251,7 +251,7 @@ export default async function UpgradeOrRepairPage() {
         crumbs={[{ name: "Repair or replace" }]}
         eye="The question behind most of our call-outs"
         title="Repair it, or {replace it?}"
-        sub={<>Ten years is usually where the answer changes. Nobody in this trade wants to say out loud that sometimes the right answer is &ldquo;fix it and keep going&rdquo;, because there&rsquo;s no invoice in it. So here&rsquo;s the whole argument in public: how long these things actually last, where repair spend stops earning its keep, when we&rsquo;d tell you to repair instead, and why the VEU rebate is worth the most at exactly the moment your system hits the line.</>}
+        sub={<>Ten years is usually where the answer changes. Nobody in this trade wants to say out loud that sometimes the right answer is &ldquo;fix it and keep going&rdquo;, because there&rsquo;s less money in it. So here&rsquo;s the whole argument in public: how long these things actually last, where repair spend stops earning its keep, when we&rsquo;d tell you to repair instead, and why the VEU rebate is worth the most at exactly the moment your system hits the line.</>}
         photo={PHOTO.hotWater1} pos="center 40%"
         ctas={<>
           <a href="#quote" className="abtn abtn--or">Get both prices side by side →</a>

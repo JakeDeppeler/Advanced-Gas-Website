@@ -18,7 +18,7 @@ const DOTS: [string, number, number, 0 | 1 | 2][] = [
   ["Koo Wee Rup", -38.191, 145.484, 1], ["Lang Lang", -38.286, 145.567, 0], ["Longwarry", -38.116, 145.771, 0], ["Drouin", -38.135, 145.858, 1],
   ["Warragul", -38.156, 145.933, 2], ["Emerald", -37.939, 145.446, 1], ["Cockatoo", -37.941, 145.5, 0], ["Gembrook", -37.955, 145.564, 0],
   ["Belgrave", -37.911, 145.353, 0], ["Monbulk", -37.878, 145.421, 0], ["Olinda", -37.849, 145.365, 0], ["Pakenham Upper", -38.005, 145.464, 0],
-  ["Upper Beaconsfield", -37.997, 145.415, 0], ["Pakenham", -38.078, 145.487, 0],
+  ["Beaconsfield Upper", -37.997, 145.415, 0], ["Pakenham", -38.078, 145.487, 0],
 ];
 
 const slugify = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -28,8 +28,7 @@ export function areaSuburbs(): AreaSuburb[] {
   const out = new Map<string, AreaSuburb>();
 
   for (const [name, lat, lng, label] of DOTS) {
-    // The site calls it Beaconsfield Upper; people type Upper Beaconsfield.
-    const s = byName.get(name.toLowerCase()) ?? (name === "Upper Beaconsfield" ? byName.get("beaconsfield upper") : undefined);
+    const s = byName.get(name.toLowerCase());
     const slug = s?.slug ?? slugify(name);
     const c = suburbCoords[slug];
     out.set(name.toLowerCase(), { name, slug, lat: c?.[0] ?? lat, lng: c?.[1] ?? lng, page: !!s?.published, dot: label, km: s?.distanceKm });
@@ -40,6 +39,10 @@ export function areaSuburbs(): AreaSuburb[] {
     if (!c || out.has(s.name.toLowerCase())) continue;
     out.set(s.name.toLowerCase(), { name: s.name, slug: s.slug, lat: c[0], lng: c[1], page: s.published, dot: null, km: s.distanceKm });
   }
+  // The map labels it by its official name, Beaconsfield Upper, as its page
+  // does; people type Upper Beaconsfield, so that finds it too, undrawn.
+  const bu = out.get("beaconsfield upper");
+  if (bu) out.set("upper beaconsfield", { ...bu, name: "Upper Beaconsfield", dot: null });
   // Nearest first, so a three-letter prefix finds the town people mean.
   const d = (x: AreaSuburb) => Math.hypot(x.lat + 38.078, (x.lng - 145.487) * 0.79);
   return [...out.values()].sort((a, b) => d(a) - d(b));

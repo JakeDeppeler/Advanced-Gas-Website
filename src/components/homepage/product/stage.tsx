@@ -120,7 +120,7 @@ export function StageHero({ v }: { v: PV }) {
               <span className="stg__ico stg__ico--or" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16v12H8l-4 4z" /></svg>
               </span>
-              <span className="stg__st"><small>{v.known ? `From ${money(t.price!)} installed` : "Written quote in 12 hrs"}</small><b>Quote this model</b></span>
+              <span className="stg__st"><small>{v.known ? `From ${money(t.price!)} installed` : "Free written quote"}</small><b>Quote this model</b></span>
               <span className="stg__plus" aria-hidden="true">+</span>
             </Link>
             <Link href="/about" className="stg__side">

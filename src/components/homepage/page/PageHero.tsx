@@ -31,7 +31,7 @@ export type HeroFact = { v: string; k: string; href?: string };
  */
 export const HOME_TRUST: HeroFact[] = [
   { v: "1,200+", k: "installs done" },
-  { v: "Up to $6,000 →", k: "See if you qualify", href: "/rebates" },
+  { v: "Up to $6,000 →", k: "Aircon rebates", href: "/rebates" },
 ];
 
 /**

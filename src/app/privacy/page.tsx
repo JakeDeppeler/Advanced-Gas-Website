@@ -10,9 +10,10 @@ import { LegalPage, LegalLead, LegalSection } from "../legal/LegalPage";
  * The footer has linked here since the site launched and the page has
  * never existed, so every crawl reports a 404 on it. It also isn't
  * optional: we collect names, addresses and phone numbers through the
- * quote form and hand identifying details to an accredited provider to
- * lodge a VEU rebate, which is exactly the sort of disclosure a privacy
- * notice is for.
+ * quote form and lodge identifying details to claim a VEU rebate, which is
+ * exactly the sort of disclosure a privacy notice is for. We are a
+ * VEU-accredited installer ourselves, so the notice says that rather than
+ * naming a third-party "provider" the rest of the site contradicts.
  *
  * Written plainly on purpose. A page nobody can read protects nobody.
  */
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const UPDATED = "12 August 2026";
+const UPDATED = "24 November 2026";
 
 const TOC: [string, string][] = [
   ["collect", "What we collect"],
@@ -76,9 +77,10 @@ export default function PrivacyPage() {
               your email address, and nothing else.
             </li>
             <li>
-              <strong>When you use the site:</strong> anonymous page-performance
-              measurements. We do not run advertising trackers and we do not build
-              a profile of you.
+              <strong>When you use the site:</strong> which pages are viewed and
+              which site sent you to us, counted by Vercel Analytics, plus
+              anonymous page-speed measurements. We do not run advertising
+              trackers and we do not build a profile of you.
             </li>
           </ul>
         </LegalSection>
@@ -89,10 +91,11 @@ export default function PrivacyPage() {
           </p>
           <ul>
             <li>
-              <strong>VEU accredited providers.</strong> To claim a Victorian
-              Energy Upgrades rebate on your behalf we have to lodge your name,
-              the property address, and evidence of the old and new systems. That
-              is a requirement of the scheme, not a choice we make.
+              <strong>Victorian Energy Upgrades.</strong> We are a VEU-accredited
+              installer. To claim a VEU rebate on your behalf we have to lodge
+              your name, the property address, and evidence of the old and new
+              systems under the scheme. That is a requirement of the scheme, not
+              a choice we make.
             </li>
             <li>
               <strong>Manufacturers.</strong> We register your warranty in your
@@ -106,7 +109,9 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong>The people who run our software.</strong> Email, quoting and
-              website hosting. They store the data; they don&rsquo;t use it.
+              website hosting. They store the data; they don&rsquo;t use it. Our
+              database and the servers behind the website are in Tokyo, Japan, so
+              the details you send us through the site are stored there.
             </li>
           </ul>
           <p>
@@ -127,10 +132,11 @@ export default function PrivacyPage() {
 
         <LegalSection id="cookies" title="Cookies" icon="cookie">
           <p>
-            The site sets no advertising or profiling cookies. It records
-            anonymous page-speed measurements so we can tell whether a page is
-            loading slowly on a phone in a bad reception area, which is the only
-            reason we look at it.
+            The site sets no advertising or profiling cookies. Vercel Analytics
+            counts page views and referring sites without cookies, so we can see
+            which pages people actually use. The site also records anonymous
+            page-speed measurements so we can tell whether a page is loading
+            slowly on a phone in a bad reception area.
           </p>
         </LegalSection>
 

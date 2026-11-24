@@ -14,11 +14,13 @@ export const REBATE_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Can I use VEU with solar?",
-    a: "Absolutely, heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. Most of our customers see hot water bills drop to almost zero after a daytime-charge install.",
+    a: "Absolutely, heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. With solar, a heat pump set to run on a daytime timer can cut hot water running costs to very little.",
   },
   {
     q: "I rent, can my landlord do this?",
-    a: "Yes. VEU is open to rental properties, many landlords love it because the upgrade adds property value with most of the cost offset by the rebate. We can speak to them directly if it helps.",
+    // Rentals get VEU + STCs only (Jake, 24 Nov 2026): Solar Victoria's rebate,
+    // and the locally made top-up that is part of it, are owner-occupier only.
+    a: "Yes. The VEU discount and the federal STCs both apply to rental properties. Solar Victoria's rebate is for owner-occupiers only, so a rental gets less off, about $1,205 on a heat pump on today's figures. We can speak to your landlord directly if it helps.",
   },
   {
     q: "What if my old unit still works?",
@@ -26,7 +28,7 @@ export const REBATE_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Are concession card holders eligible for more?",
-    a: "Yes, concession card holders (pensioner, healthcare, etc.) can stack with additional Victorian Government top-up rebates in some cases. Worth a quick call to confirm what applies to your situation.",
+    a: "Sometimes. It depends on the program and your circumstances, so call us and we'll check what applies to you.",
   },
   {
     q: "Does VEU cover servicing or just installation?",

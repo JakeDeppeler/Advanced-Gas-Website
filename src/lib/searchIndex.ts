@@ -23,13 +23,12 @@ export type Hit = {
 
 /** Pages that exist in their own right rather than coming out of a data file. */
 const PAGES: Hit[] = [
-  { title: "Get a quote", path: "/quote", kind: "Page", blurb: "Tell us about the job and we come back in writing inside 12 hours.", terms: "estimate price booking enquire" },
+  { title: "Get a quote", path: "/quote", kind: "Page", blurb: "Tell us about the job and we call you back within 12 business hours, then put the price in writing.", terms: "estimate price booking enquire" },
   { title: "VEU rebates", path: "/rebates", kind: "Page", blurb: "The Victorian Energy Upgrades rebate, applied at the quote rather than chased afterwards.", terms: "rebate veu government subsidy solar homes discount" },
   { title: "Hot water: heat pump or gas", path: "/services/heat-pump-installation", kind: "Hot water", blurb: "All-in-one, split, gas continuous flow and gas storage, and which suits your place.", terms: "hot water heat pump reclaim istore thermann tank" },
   { title: "Emergency and after hours", path: "/contact#emergency", kind: "Page", blurb: "Gas leak, no hot water, CO alarm. We answer after hours for locals.", terms: "emergency urgent after hours leak no hot water" },
   { title: "Service areas", path: "/service-areas", kind: "Page", blurb: "Every suburb we work in, with drive times from Pakenham.", terms: "areas coverage suburbs do you come to" },
   { title: "Commercial and mechanical", path: "/commercial", kind: "Page", blurb: "Fit-outs, plant replacement, maintenance and breakdowns across Melbourne's south-east.", terms: "commercial business shop office builder site fitout" },
-  { title: "Membership", path: "/membership", kind: "Page", blurb: "Servicing booked before it becomes a problem, with priority call-outs.", terms: "membership plan subscription annual service" },
   { title: "About us", path: "/about", kind: "Page", blurb: "Who we are, how long we have been at it, and what we hold licences for.", terms: "about team jake licence arc abn history" },
   { title: "Contact", path: "/contact", kind: "Page", blurb: "Phone, email and the quote form.", terms: "contact phone email address call" },
   { title: "Reviews", path: "/reviews", kind: "Page", blurb: "What customers across the south-east have said.", terms: "reviews testimonials google rating" },

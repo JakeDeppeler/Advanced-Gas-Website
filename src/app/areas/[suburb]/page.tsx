@@ -5,6 +5,7 @@ import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { breadcrumbSchema, suburbServiceSchema } from "@/lib/schema";
 import { seoMeta } from "@/lib/seo";
 import { suburbJobs, suburbReviews } from "@/lib/suburbJobs";
+import { REVIEWS } from "@/lib/reviews";
 import Image from "next/image";
 import { getReviews } from "@/lib/googleReviews";
 import { faqSchema } from "@/lib/schema";
@@ -26,7 +27,8 @@ import "@/components/homepage/page/kit.css";
 import "@/components/homepage/page/about.css";
 import { JsonLd } from "@/components/JsonLd";
 
-const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+// Leaves a lower-case brand alone: "iStore …" must not become "IStore …".
+const cap = (x: string) => (/^i[A-Z]/.test(x) ? x : x.charAt(0).toUpperCase() + x.slice(1));
 
 export function generateStaticParams() {
   return publishedSuburbs.map((s) => ({ suburb: s.slug }));
@@ -46,7 +48,7 @@ export function generateMetadata({ params }: { params: { suburb: string } }): Me
     // old title left it out while the H1 said it. "Aircon" rather than
     // "Air Conditioning" buys the eleven characters it needs.
     title: `Aircon, Heating & Hot Water ${sub.name} ${sub.postcode}`,
-    description: `Air conditioning, heating and hot water in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, written quotes, 6-year workmanship warranty.`,
+    description: `Air conditioning, heating and hot water in ${sub.name} ${sub.postcode}. ${cap(sub.commonInstall)}. VEU rebates handled, written quotes, 6-year workmanship warranty.`,
     canonical: `/areas/${sub.slug}`,
     // Absolute so the suffix gives way, not the postcode. A long suburb
     // name (Beaconsfield Upper) pushed the title past 60 and the clamp
@@ -172,7 +174,13 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
   const local = suburbReviews(sub);
   const { reviews: all, summary } = await getReviews(12);
   const seen = new Set(local.map((r) => r.who + r.title));
-  const reviews = [...local, ...all.filter((r) => !seen.has(r.who + r.title))].slice(0, 12);
+  // The featured testimonial is printed beside the homes section; the same
+  // review again in the columns read as two versions of one quote.
+  const featured = sub.testimonial?.who.split(",")[0].trim();
+  const reviews = [...local, ...all.filter((r) => !seen.has(r.who + r.title) && r.who !== featured)].slice(0, 12);
+  // Local reviews on Google, the featured one included. Under three, the
+  // suburb's own count undersells us, so the tile shows the overall rating.
+  const localCount = local.length + (featured && REVIEWS.some((r) => r.who === featured) ? 1 : 0);
   const cols = [0, 1, 2].map((c) => reviews.filter((_, i) => i % 3 === c));
   const rating = summary.value.toFixed(1);
   const home = sub.distanceKm === 0;
@@ -180,7 +188,9 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
   // Close enough to count as local: a crew member lives in the suburb or a
   // short drive from it. Past that the workshop distance says it better.
   const crew = nearestCrew(sub.slug);
-  const crewNear = crew && crew.km <= 15 ? crew : null;
+  // A crew town that is Pakenham, or no nearer than the workshop, only
+  // restates the workshop distance with a different (straight-line) figure.
+  const crewNear = crew && crew.km <= 15 && (crew.here || (crew.name !== site.address.suburb && crew.km < sub.distanceKm)) ? crew : null;
   const crewList = CREW_TOWNS.map((t) => t.name).join(", ").replace(/, ([^,]*)$/, " and $1");
   const hours = openingHours();
 
@@ -192,13 +202,13 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
         ? `Yes, for booked work. ${sub.name} is about ${sub.distanceKm} km from our Pakenham workshop, ${drive} each way, so we're the right call for a planned install or service and the wrong one for a 2 am emergency.`
         : home
           ? `It's where our workshop is: Sierra Circuit, Pakenham. Most ${sub.name} jobs are ${drive} from the van leaving the yard.`
-          : `Every week. ${sub.name} is ${sub.distanceKm} km from our Pakenham workshop, usually ${drive} in the van.`,
+          : `Yes. ${sub.name} is ${sub.distanceKm} km from our Pakenham workshop, usually ${drive} in the van.`,
     },
     { q: `What do you install most in ${sub.name}?`, a: `${cap(sub.commonInstall)}.` },
     { q: `What are the homes like in ${sub.name}?`, a: `${cap(sub.housingStock)}. That decides most of what goes where: roof space for ducted, wall space for a split, and where a hot water unit can stand.` },
     ...(sub.knownEstates ? [{ q: `Which ${sub.name} estates do you know?`, a: sub.knownEstates }] : []),
     { q: `Do you handle the ${sub.council} paperwork?`, a: `Yes. Compliance certificates and any permits for ${sub.name} jobs are handled in-house, and the certificate is emailed to you the day after the install.` },
-    { q: "How fast can I get a price?", a: "A free, no-obligation written quote, usually back within 12 business hours, with any VEU rebate already taken off. The price only changes if the job does, and you approve it first." },
+    { q: "How fast can I get a price?", a: "We call you back within 12 business hours to book a free site check, then send one fixed price in writing, with any VEU rebate already taken off. The price only changes if the job does, and you approve it first." },
   ];
 
   const crumbs = breadcrumbSchema([
@@ -239,7 +249,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
                   corner. See `outerRing` in lib/suburbs.ts. */}
               {outer
                 ? `We travel to ${sub.name} from Pakenham for booked work, about ${drive} each way. That makes us the right call for a planned install and the wrong one for a 2 am emergency, and we'd rather say so up front.`
-                : `A licensed plumbing and refrigeration team working in ${sub.name} since 2014, out of our own workshop ${home ? "here in Pakenham" : `${drive} away in Pakenham`}. You'll usually find us ${sub.landmark}.`}
+                : `A licensed plumbing and refrigeration team, trading since 2014 out of our own workshop ${home ? "here in Pakenham" : `${drive} away in Pakenham`}. We work across ${sub.name}, including the streets near ${sub.landmark}.`}
             </p>
             <div className="ahero__ctas">
               <a href="tel:+61359478000" data-call-from="suburb-hero" className="abtn abtn--or abtn--call"><PhoneIcon />Call (03) 5947 8000</a>
@@ -251,9 +261,9 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
                 <span style={{ display: "flex", flexDirection: "column" }}><strong>{rating} / 5</strong><small>Google reviews</small></span>
               </span>
               <span className="ahero__sep" aria-hidden="true" />
-              <span><strong>{hours}</strong><small>{outer ? "Booked work" : "24/7 for gas and no hot water"}</small></span>
+              <span><strong>{hours}</strong><small>{outer ? "Booked work" : "Office hours"}</small></span>
               <span className="ahero__sep" aria-hidden="true" />
-              <span><strong>12 hrs</strong><small>To a written quote</small></span>
+              <span><strong>12 business hrs</strong><small>To a callback</small></span>
             </div>
           </div>
           <HeroQuote />
@@ -269,7 +279,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
           <ul className="sbx__proof">
             <li><b>{drive}</b><span>{home ? "From our Sierra Circuit workshop" : `From our workshop to ${sub.name}, ${sub.distanceKm} km`}</span></li>
             <li><b>6 years</b><span>On our workmanship, on top of the maker&apos;s warranty</span></li>
-            <li><b>{local.length ? `${local.length} ${sub.name} review${local.length === 1 ? "" : "s"}` : `${rating} ★`}</b><span>{local.length ? `On Google from ${sub.name} households, and ${rating} ★ across all ${summary.count}` : `From ${summary.count} Google reviews by local households`}</span></li>
+            <li><b>{localCount >= 3 ? `${localCount} ${sub.name} reviews` : `${rating} ★`}</b><span>{localCount >= 3 ? `On Google from ${sub.name} households, and ${rating} ★ across all ${summary.count}` : `From ${summary.count} Google reviews`}</span></li>
             {crewNear
               ? <li><b>{crewNear.here ? "Locals" : crewNear.name}</b><span>{crewNear.here ? `Some of our installers live here in ${sub.name}` : `Some of our installers live about ${Math.max(2, crewNear.km)} km away`}</span></li>
               : <li><b>{sub.council.replace(/ (Shire|City)? ?Council$/, "")}</b><span>{sub.council} paperwork and compliance handled in-house</span></li>}
@@ -302,7 +312,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
             </div>
           </details>
           {!outer && (
-            <p className="sbx__urgent">Something broken right now? <a href="tel:+61359478000" data-call-from="suburb-emergency">Call (03) 5947 8000</a>. Gas leaks and no hot water are answered 24/7.</p>
+            <p className="sbx__urgent">Something broken right now? <a href="tel:+61359478000" data-call-from="suburb-emergency">Call (03) 5947 8000</a>. After hours, for a gas leak or no hot water, call and we&apos;ll answer if we can: the call-out is {site.afterHours.callout}, which covers {site.afterHours.covers}. Smell gas? Ring the gas emergency line on 132 771.</p>
           )}
         </div>
       </section>
@@ -380,7 +390,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
         <div className="wrap revs__in">
           <div className="sechead arv" style={{ gap: 24 }}>
             <div className="sechead__t" style={{ gap: 14, maxWidth: 620 }}>
-              <h2 className="h2">{local.length ? `What ${sub.name} households say.` : `What households around ${sub.name} say.`}</h2>
+              <h2 className="h2">What our customers say.</h2>
             </div>
             <div className="revs__score">
               <span className="stars stars--ink" style={{ letterSpacing: 4 }} aria-hidden="true">★★★★★</span>
@@ -444,7 +454,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
               </li>
               <li>
                 <a href="#quote">
-                  <small>Free quote</small><strong>Tell us about the job</strong><span>A written price back within 12 business hours.</span>
+                  <small>Free quote</small><strong>Tell us about the job</strong><span>A call back within 12 business hours, then a written price.</span>
                 </a>
               </li>
               <li>
@@ -489,7 +499,7 @@ export default async function SuburbPage({ params }: { params: { suburb: string 
           <div className="ctabox__body">
             <div className="ctabox__t">
               <h2>Let&apos;s get your {sub.name} job done properly.</h2>
-              <p>A free written quote with the VEU rebate already applied, usually back to you within 12 business hours. The price only changes if the job does, and you approve it before we start.</p>
+              <p>We call you back within 12 business hours to book a free site check, then send one fixed price in writing with the VEU rebate already applied. The price only changes if the job does, and you approve it before we start.</p>
             </div>
             <div className="sechead__btns">
               <a href="#quote" className="abtn abtn--navy">Get a quote →</a>

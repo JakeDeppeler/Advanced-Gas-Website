@@ -125,7 +125,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         }] : []),
       ]} />
 
-      <EndCta title={<>Can&rsquo;t find it? <span>Ask us</span>.</>} text="Tell us about the job and someone will answer, usually within 12 hours." from="search-cta" />
+      <EndCta title={<>Can&rsquo;t find it? <span>Ask us</span>.</>} text="Tell us about the job and someone will call you back, usually within 12 business hours." from="search-cta" />
     </BandPage>
   );
 }

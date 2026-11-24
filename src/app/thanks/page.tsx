@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** The same steps the quote page promises, picked up from step two: the form is done. */
+/** The same steps the quote page promises, from its step two (the form is done), numbered from one here. */
 const NEXT = [
   { when: "Within 12 business hours", t: "We call you back", d: "To ask anything the form didn't and book a time that suits you." },
   { when: "At your place", t: "A free site check", d: "We look at the space, confirm the size and check for anything that changes the price, before we price it." },
@@ -48,8 +48,8 @@ export default function ThanksPage() {
           <aside className="tl__what" aria-label="While you wait">
             <small>While you wait</small>
             <ul>
-              <li><span aria-hidden="true">✓</span>A photo of the room, or of the old unit and its label, helps us price it faster. Reply to our text with it.</li>
-              <li><span aria-hidden="true">✓</span>Office hours are {openingHours()}. After hours goes to someone on the tools.</li>
+              <li><span aria-hidden="true">✓</span>A photo of the room, or of the old unit and its label, helps us price it faster. Reply to our text with it, or email it to {site.email}.</li>
+              <li><span aria-hidden="true">✓</span>After hours, for a gas leak or no hot water, call and we&apos;ll answer if we can. Smell gas? Ring the gas emergency line on 132 771.</li>
             </ul>
             <p><b>No obligation</b> · The quote is free</p>
           </aside>
@@ -65,7 +65,7 @@ export default function ThanksPage() {
           <ol className="qpg__steps qpg__steps--3" data-anim="stagger">
             {NEXT.map((x, i) => (
               <li key={x.t}>
-                <span className="qpg__n" aria-hidden="true">{String(i + 2).padStart(2, "0")}</span>
+                <span className="qpg__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
                 <small className="qpg__when">{x.when}</small>
                 <h3>{x.t}</h3>
                 <p>{x.d}</p>
@@ -80,7 +80,7 @@ export default function ThanksPage() {
           already in, so it offers the team rather than another quote. */}
       <EndCta
         title={<>Rather talk it <span>through now</span>?</>}
-        text={`Office hours are ${openingHours()}. After hours goes to someone on the tools.`}
+        text={`Office hours are ${openingHours()}.`}
         from="thanks-cta"
         cta={{ href: "/about", label: "Meet the team →" }}
       />

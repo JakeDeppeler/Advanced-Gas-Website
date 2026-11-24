@@ -169,7 +169,7 @@ const SERVICES_MEGA: {
         },
         {
           href: "/contact#emergency",
-          label: "24/7 emergency call-out",
+          label: "After-hours call-outs",
           sub: "Gas leaks, no hot water, CO alarms",
           photo: "/gas hot water change over same day.webp",
           photoAlt: "Same-day hot water changeover",
@@ -809,8 +809,8 @@ const COMPANY_GROUPS: RailGroup[] = [
     label: "Talk to us",
     items: [
       { href: "/contact", label: "Contact", sub: "Phone, email, where we are", icon: "\u2706" },
-      { href: "/contact#emergency", label: "24/7 emergency", sub: "Gas leak, no hot water, CO alarm", icon: "!", lead: true },
-      { href: "/quote", label: "Get a quote", sub: "In writing, inside 12 business hours", icon: "\u2261" },
+      { href: "/contact#emergency", label: "After-hours emergency", sub: "Gas leak, no hot water, CO alarm", icon: "!", lead: true },
+      { href: "/quote", label: "Get a quote", sub: "A call back inside 12 business hours", icon: "\u2261" },
     ],
   },
 ];
@@ -836,7 +836,7 @@ function CompanyMega() {
         <div className="megasvc__foot">
           <span className="megasvc__footlabel">Since 2014</span>
           <span className="megarow__note">
-            Family owned in Pakenham. The same face on the quote as on the tools.
+            Family owned in Pakenham. The same team on the quote as on the tools.
           </span>
         </div>
       }
@@ -1085,7 +1085,7 @@ export function SiteModeStrip({ tabs = true }: { tabs?: boolean }) {
         <div className="sitemode__right">
           <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>
             <span className="sitemode__emergdot" aria-hidden="true" />
-            24/7 emergency gas &amp; hot water
+            After hours: gas leaks &amp; no hot water
           </a>
         {tabs && <nav className="sitemode__tabs" aria-label="Residential or commercial">
           <Link

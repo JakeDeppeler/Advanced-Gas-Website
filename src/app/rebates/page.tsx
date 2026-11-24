@@ -45,7 +45,7 @@ const products = [
       "Best for: staying in the house, and for solar pairing",
     ],
     price: "from $5,340",
-    rebate: "$2,605 VEU rebate applied",
+    rebate: "$2,605 in rebates applied",
     pill: "long-life tank",
     photo: "/reclaim-split-back.webp",
     photoAlt: "Reclaim CO₂ split heat pump install",
@@ -53,23 +53,24 @@ const products = [
   },
   {
     brand: "Reclaim · R290 AIO",
-    name: "Reclaim R290 all-in-one 285 L",
+    // 300 L is the size Jake quotes (model eco-r290-300), as the calculator has it.
+    name: "Reclaim R290 all-in-one 300 L",
     bullets: [
       "Plug-in all-in-one, tank + compressor in one unit",
       "R290 refrigerant, low GWP",
       "Compact footprint, fast, simple installs",
-      "Best for: 3–4 person homes with nowhere to put an outdoor unit",
+      "Best for: 3–4 person homes with room for one unit only",
     ],
     price: "$2,610",
-    rebate: "$2,605 VEU rebate applied",
-    pill: "nothing outside",
+    rebate: "$2,605 in rebates applied",
+    pill: "no separate outdoor unit",
     // Was the Thermann install photo; this is the Reclaim unit itself.
     photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
     photoAlt: "Reclaim ECO R290 all-in-one heat pumps",
   },
   {
     brand: "iStore",
-    name: "iStore 275 L heat pump",
+    name: "iStore 270 L heat pump",
     bullets: [
       "Smart Wi-Fi control + scheduling",
       "Australian designed",
@@ -77,27 +78,11 @@ const products = [
       "Best for: solar-paired households",
     ],
     price: "$2,910",
-    rebate: "$2,205 VEU rebate applied",
-    pill: "rebate goes furthest",
+    rebate: "$2,205 in rebates applied",
+    pill: "solar pairing",
     // Was the Thermann install photo; this is the iStore.
     photo: "/270L-istore-heatpump.webp",
     photoAlt: "iStore heat pump",
-  },
-  {
-    brand: "Thermann · R290",
-    name: "Thermann 285 L R290 all-in-one",
-    bullets: [
-      "Australian made, extra $400 rebate",
-      "R290 refrigerant, low GWP",
-      "5-year tank warranty",
-      "Best for: 3–4 person homes, and anywhere parts have to be here today",
-    ],
-    price: "$2,610",
-    rebate: "$2,605 VEU rebate applied",
-    pill: "Australian made",
-    photo: "/thermann-heat-pump.webp",
-    photoAlt: "Thermann 285 L R290 heat pump",
-    scene: true,
   },
   {
     brand: "Mitsubishi Electric",
@@ -119,7 +104,7 @@ const products = [
     name: "Kaden KSI-v3 series split",
     bullets: [
       "Inverter, R32 refrigerant",
-      "5-year warranty",
+      "7-year warranty",
       "Australian designed",
       "Whole house on one parts list",
     ],
@@ -140,7 +125,7 @@ const products = [
       "5–7 year warranty",
     ],
     price: "from $11,000",
-    rebate: "up to $5,000 rebate",
+    rebate: "up to $6,000 rebate",
     pill: "whole home",
     photo: "/ducted-condenser.webp",
     photoAlt: "Ducted aircon condenser install",
@@ -151,7 +136,7 @@ const products = [
 const steps = [
   {
     t: "You request a quote",
-    d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can, speeds things up.",
+    d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can; it speeds things up.",
   },
   {
     t: "We assess eligibility",
@@ -280,15 +265,18 @@ export default function RebatesPage() {
         crumbs={[{ name: "VEU rebates" }]}
         eye="Victorian Energy Upgrades · Accredited installer"
         title="The VEU rebate is real. {We do the paperwork.}"
-        sub={<>The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}
+        sub={<>The Victorian Energy Upgrades program pays for part of the swap from old gas, electric or inefficient cooling to clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}
         photo="/reclaim-split-back.webp" pos="center 45%"
         ctas={<>
           <a href="#calc" className="abtn abtn--or">Check my rebate →</a>
           <a href={`tel:${site.phoneE164}`} className="abtn abtn--line abtn--call" data-call-from="rebates-hero"><PhoneIcon />Or talk to a human</a>
         </>}
         trust={[
-          { v: "up to $2,700", k: "heat pump hot water" },
-          { v: "up to $5,000", k: "split & ducted aircon" },
+          // Jake's maximums (24 Nov 2026), separate rather than added together.
+          // $2,700 is every heat pump rebate stacked (VEU, STCs, Solar Victoria),
+          // so it is "in rebates", never "VEU rebate".
+          { v: "up to $2,700", k: "in rebates on heat pump hot water" },
+          { v: "up to $6,000", k: "on split & ducted aircon" },
         ]}
       />
     }>
@@ -296,7 +284,7 @@ export default function RebatesPage() {
       <Bands list={bands} />
       <EndCta
         title={<>We put it in writing, and the rebate is <span>already off it</span>.</>}
-        text="A free site visit, a written quote inside 12 business hours, and the number on it is the number you pay."
+        text="A callback within 12 business hours, a free site visit, then a written quote, and the number on it is the number you pay."
         from="rebates-cta"
       />
       <JsonLd data={faqSchema(faqs)} />

@@ -398,8 +398,8 @@ export function HeroQuote() {
           </span>
           <h2 className="qf__h">Got it, {first}.</h2>
           <p className="qf__sub" style={{ fontSize: 15 }}>
-            We&apos;ll call {phone || "you"} {urgentToday ? "today" : "within 12 business hours"} about your {doneAbout}
-            {photos.length && !photosLost ? ` (with ${photos.length} photo${photos.length === 1 ? "" : "s"})` : ""}. Urgent? Call (03) 5947 8000, 24/7.
+            We&apos;ll call {phone || "you"} {urgentToday ? "as soon as we can" : "within 12 business hours"} about your {doneAbout}
+            {photos.length && !photosLost ? ` (with ${photos.length} photo${photos.length === 1 ? "" : "s"})` : ""}. Urgent? Call (03) 5947 8000.
           </p>
           {photosLost && (
             <p className="qf__err">Your enquiry is in, but the photos didn&apos;t come through. Reply to our email or text them to us when we call.</p>

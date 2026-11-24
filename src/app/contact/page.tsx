@@ -13,8 +13,8 @@ import "@/components/homepage/page/kit.css";
 import "./contact.css";
 
 export const metadata: Metadata = {
-  title: "Contact, Free quote in 12 hours",
-  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 50 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
+  title: "Contact Us · Callback in 12 Business Hours",
+  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 50 km. ${site.phone} · ${site.email} · After hours for gas leaks and no hot water.`,
   alternates: { canonical: "/contact" },
 };
 
@@ -29,11 +29,11 @@ export default function ContactPage() {
       <PageHero
         crumbs={[{ name: "Contact" }]}
         eye="Contact us"
-        title="Tell us what you need. {We'll come back within 12 hours.}"
-        sub="A free, no-obligation quote with the VEU rebate already worked in where it applies. The person who quotes it is the person who installs it."
+        title="Tell us what you need. {We'll call back within 12 business hours.}"
+        sub="A free, no-obligation quote with the VEU rebate already worked in where it applies. Quoted and installed by our own team."
         photo={PHOTO.team} pos="center 40%" short card={false}
         ctas={<><a href="#form" className="abtn abtn--or">To the form ↓</a><CallButton from="contact-hero" /></>}
-        trust={[{ v: openingHoursShort(), k: "Mon – Fri" }, { v: "24/7", k: "Emergency" }]}
+        trust={[{ v: openingHoursShort(), k: "Mon – Fri" }, { v: "After hours", k: "Gas leaks & no hot water" }]}
       />
 
       <section className="pxs" id="form">
@@ -46,9 +46,10 @@ export default function ContactPage() {
               <p>Mon–Fri · {openingHoursShort()}</p>
             </div>
             <div className="kx__card kx__card--alert" id="emergency">
-              <h3>24/7 emergency</h3>
+              <h3>After-hours emergency</h3>
               <a className="kx__big" href={`tel:${site.phoneE164}`}>{site.phone}</a>
-              <p>Gas leak, no hot water or a CO alarm: we answer after hours for locals, and tell you the call-out fee on the phone before anyone comes out.</p>
+              <p>Gas leak or no hot water: call us after hours and we&apos;ll answer if we can, within our service area. The call-out is {site.afterHours.callout}, which covers {site.afterHours.covers}.</p>
+              <p>Smell gas? Ring the gas emergency line on 132 771 as well. CO alarm going off? Get everyone outside and call 000.</p>
             </div>
             <div className="kx__card">
               <h3>Hours</h3>
@@ -71,7 +72,7 @@ export default function ContactPage() {
         <div className="wrap pp__col">
           <Head eye="Where next" h="Or go straight to it." />
           <Next items={[
-            { t: "Find your system", s: "Options, prices and how each one works", href: "/#find" },
+            { t: "Find your system", s: "Options, and how each one works", href: "/#find" },
             { t: "Do you come to me?", s: "Pakenham and 50 km around", href: "/service-areas" },
             { t: "What customers say", s: "Reviews from real jobs", href: "/reviews" },
           ]} />
@@ -82,7 +83,7 @@ export default function ContactPage() {
           so its main button goes back up to the form rather than off to /quote. */}
       <EndCta
         title={<>Rather we <span>call you</span>?</>}
-        text="Leave your number on the form and we'll come back within 12 business hours, with the VEU rebate worked in where it applies."
+        text="Leave your number on the form and we'll call you back within 12 business hours. Your written quote comes with the VEU rebate worked in where it applies."
         from="contact-cta"
         cta={{ href: "#form", label: "Back to the form ↑" }}
       />

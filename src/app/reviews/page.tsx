@@ -40,7 +40,10 @@ export default async function ReviewsPage() {
         crumbs={[{ name: "Reviews" }]}
         eye={`${summary.value.toFixed(1)} / 5 on Google`}
         title="What our {customers} say."
-        sub="Every review here is from a real job. No paid placements and no filtered feedback: if a job goes wrong we'd rather fix it than bury the review."
+        // We publish our 4- and 5-star Google reviews (MIN_PUBLISHED_RATING in
+        // lib/reviews.ts), so this can't claim "every review" or "no filtered
+        // feedback". Google has the lot, and the link to it is the honest version.
+        sub={<>Every review here is a real Google review from a real job, copied word for word. We show our 4- and 5-star reviews on this page; all of them, whatever the rating, are <a href={site.social.google} target="_blank" rel="noopener noreferrer">on Google</a>.</>}
         photo={PHOTO.heatPumpInstall} pos="center 55%" from="reviews-hero"
         rating={{ value: summary.value.toFixed(1), label: summary.verifiedCount ? `From ${summary.count} Google reviews` : "Google reviews" }}
         trust={[]}
@@ -48,7 +51,7 @@ export default async function ReviewsPage() {
 
       <section className="pxs">
         <div className="wrap pp__col">
-          <Head eye="Every review" h="In their words." />
+          <Head eye="A selection from Google" h="In their words." />
           <div className="pp__revs">
             {reviews.map((r) => (
               <article key={r.who + r.title} className="rev">
@@ -62,6 +65,7 @@ export default async function ReviewsPage() {
               </article>
             ))}
           </div>
+          <p><a href={site.social.google} target="_blank" rel="noopener noreferrer">Read all {summary.count} reviews on Google →</a></p>
         </div>
       </section>
 
@@ -71,13 +75,13 @@ export default async function ReviewsPage() {
           <Next items={[
             { t: "Work we've done", s: "Real installs, before and after", href: "/gallery" },
             { t: "Who we are", s: "The team and how we work", href: "/about" },
-            { t: "Find your system", s: "Options, prices and how each one works", href: "/#find" },
+            { t: "Find your system", s: "Options, and how each one works", href: "/#find" },
           ]} />
         </div>
       </section>
 
       {/* The homepage's closing box rather than a full-width orange band: every inside page ends on it. */}
-      <EndCta title={<>Want the same <span>experience</span>?</>} text="A free, no-obligation quote back within 12 business hours." />
+      <EndCta title={<>Want the same <span>experience</span>?</>} text="A callback within 12 business hours, then a free site check and a written price." />
       <JsonLd data={crumbs} />
     </div>
     </>

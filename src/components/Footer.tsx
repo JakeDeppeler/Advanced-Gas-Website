@@ -57,7 +57,7 @@ export function Footer() {
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <span>{openingHours()} · 24/7 emergency call-out</span>
+                <span>{openingHours()} · after hours for gas leaks &amp; no hot water</span>
               </li>
             </ul>
 
@@ -106,8 +106,8 @@ export function Footer() {
                   <Link href={`/services/${s.slug}`}>{s.short}</Link>
                 </li>
               ))}
-              <li><Link href="/services#commercial">Commercial &amp; strata</Link></li>
-              <li><Link href="/contact#emergency">24/7 emergency</Link></li>
+              <li><Link href="/commercial">Commercial &amp; strata</Link></li>
+              <li><Link href="/contact#emergency">After-hours emergency</Link></li>
             </ul>
           </div>
 
@@ -174,18 +174,12 @@ export function Footer() {
         </nav>
 
         {/* ============ Trust badges strip ============ */}
+        {/* Only what the Compliance column above doesn't already say: the
+            licence, ARC and insurance badges repeated it word for word. */}
         <ul className="ftr__badges" aria-label="Accreditations">
           <li>
             <span className="ftr__badge-tag">Accredited</span>
             <span className="ftr__badge-name">VEU Provider</span>
-          </li>
-          <li>
-            <span className="ftr__badge-tag">Authorised</span>
-            <span className="ftr__badge-name">ARC Refrigeration</span>
-          </li>
-          <li>
-            <span className="ftr__badge-tag">Licensed</span>
-            <span className="ftr__badge-name">Victorian Plumber</span>
           </li>
           <li>
             <span className="ftr__badge-tag">Partner</span>
@@ -194,10 +188,6 @@ export function Footer() {
           <li>
             <span className="ftr__badge-tag">Rated</span>
             <span className="ftr__badge-name">{RATING_TEXT}★ on Google</span>
-          </li>
-          <li>
-            <span className="ftr__badge-tag">Insured</span>
-            <span className="ftr__badge-name">$20M Public Liability</span>
           </li>
         </ul>
 
@@ -235,7 +225,7 @@ export function Footer() {
             <span className="ftr__legal-sep" aria-hidden>·</span>
             <Link href="/terms">Terms</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>
-            <Link href="/sitemap.xml">Sitemap</Link>
+            <Link href="/service-areas">Service areas</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>
             <Link href="/contact">Complaints &amp; feedback</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>

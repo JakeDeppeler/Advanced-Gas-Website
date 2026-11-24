@@ -137,7 +137,7 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/gas-line-safe.webp",
     alt: "Excavator trenching for a new gas line",
-    caption: "Trenching a new gas main in to the house",
+    caption: "Trenching a new gas line into the house",
     category: "gas",
   },
 
@@ -178,9 +178,9 @@ export const BEFORE_AFTER: BeforeAfter[] = [
     slug: "electric-storage-to-heat-pump",
     title: "Old electric storage tank → Reclaim heat pump",
     blurb:
-      "Aging electric storage tank sitting on bare dirt, pipework exposed and rusting at the base. Out it came, new concrete pad poured, Reclaim heat pump set on top, all pipework re-run and lagged. Same corner of the house, completely different result. Running cost drops by roughly three quarters on the changeover.",
+      "Ageing electric storage tank sitting on bare dirt, pipework exposed and rusting at the base. Out it came, new concrete pad poured, Reclaim heat pump set on top, all pipework re-run and lagged. Same corner of the house, completely different result. Running cost drops by roughly three quarters on the changeover.",
     before: { src: "/ba-hw-before.webp", alt: "Old electric storage hot water tank on bare ground beside a house" },
     after: { src: "/ba-hw-after.webp", alt: "New Reclaim heat pump hot water system on a fresh concrete pad in the same position" },
-    meta: ["Same-day changeover", "VEU rebate applied at quote", "New slab + re-run pipework"],
+    meta: ["VEU rebate applied at quote", "New slab + re-run pipework"],
   },
 ];
