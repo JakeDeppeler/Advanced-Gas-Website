@@ -71,7 +71,11 @@ export function metaDescription(text: string, budget = DESCRIPTION_BUDGET): stri
   const cut = s.slice(0, budget);
   const lastStop = cut.lastIndexOf(". ");
   if (lastStop > budget * 0.66) return cut.slice(0, lastStop + 1);
-  return clamp(cut, budget);
+  // Clamp the whole text, not `cut`: clamp() returns anything already within
+  // the budget untouched, so passing the hard cut ended descriptions mid-word.
+  // The ellipsis says the sentence carries on; "worth most at" on its own reads
+  // like a mistake in a search result.
+  return `${clamp(s, budget - 1)}…`;
 }
 
 /**

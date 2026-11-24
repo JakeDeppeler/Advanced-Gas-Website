@@ -33,8 +33,8 @@ export const site = {
    * 16:00, so the same business kept three sets of hours and only one of them
    * was ever right.
    *
-   * Anything outside these is a call-out. The after-hours line is separate and
-   * always answered — see contact#emergency.
+   * Anything outside these is a call-out. After hours we answer for a gas
+   * leak or no hot water when we can (see afterHours below).
    */
   hours: [
     { day: "Mon-Fri", open: "07:00", close: "15:30" },
@@ -52,6 +52,13 @@ export const site = {
     // the status bar; the destination is identical either way.
     google: "https://share.google/Y5gbVEwoMu8dAr7vp",
   },
+  /**
+   * After hours (Jake, 24 Nov 2026): we are not a 24/7 business. Outside the
+   * hours above we pick up for a gas leak or no hot water when we can, and the
+   * call-out is $450 + GST, which covers the first hour on site. Every page
+   * that mentions after-hours reads the price from here.
+   */
+  afterHours: { callout: "$450 + GST", covers: "the first hour on site" },
   primaryRegion: "South-East Victoria & Gippsland",
   primaryRegionShort: "South-East Vic",
   primaryState: "Victoria",

@@ -60,7 +60,7 @@ function openNow(): { open: boolean; label: string } {
       return { open: true, label: "Open now" };
     }
   }
-  return { open: false, label: "After-hours line open" };
+  return { open: false, label: "Closed · emergencies only" };
 }
 
 export function LocalConditions() {
