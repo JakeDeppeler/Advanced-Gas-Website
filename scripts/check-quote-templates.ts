@@ -15,7 +15,7 @@ import { evapProposals } from "../src/lib/pricebook/evapProposalSpecs";
 import { flatText, textHash, wordingAction } from "../src/lib/pricebook/summaryRule";
 import { summaryHtml } from "../src/lib/pricebook/wording";
 import type { TemplateItem } from "../src/lib/pricebook/labour";
-import { DUCTED, SKU, T, planDuctedFixed, planFixes } from "../src/lib/pricebook/templateFixPlan";
+import { DUCTED, RENAME_24, SKU, SKU24, T, T24, planDuctedFixed, planFixes, planFixes24 } from "../src/lib/pricebook/templateFixPlan";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -249,6 +249,25 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   ok("ducted at a fixed price: $5,000 on the installation, its materials at their pricebook price, add-on parts left alone",
     df?.items.find((i) => i.skuId === SKU.ductedInstall)?.unitPrice === 5000 && df.items.find((i) => i.id === 73)?.unitPrice === 55 && df.items.find((i) => i.id === 74)?.unitPrice === 0);
   ok("split and heat pump electrical at $450 in the pricebook", [209621215, 209607618].every((id) => SERVICE_PRICES.find((x) => x.skuId === id)?.price === 450));
+
+  // Jake, 24 Nov.
+  const m5 = planFixes24({ id: T24.mitsu5Btb, name: "Mitsubishi Electric 5kW Split System - Back to Back", items: [
+    L(80, 209600004, "Service", "Split System Install - Back To Back", 1280, { itemGroupName: "Installation" }),
+    L(81, SKU.coil38, "Material", "Coil 1/4 x 3/8", 0, { quantity: 0.5, itemGroupParentId: 80 })] });
+  const c12 = m5?.items.find((i) => i.skuId === SKU.coil12);
+  ok("Mitsubishi 5kW back-to-back: 1/4 x 1/2 coil, half a coil, in the group", !!c12 && c12.quantity === 0.5 && c12.itemGroupParentId === 80 && !m5!.items.some((i) => i.skuId === SKU.coil38));
+  const rtw = { id: 9, name: "Mitsubishi Electric 7.1kW Split System - Roof To Wall Bracket", items: [
+    L(90, 209624835, "Service", "Split System Installation - Wall Bracket", 1850, { itemGroupName: "Installation" }),
+    L(91, SKU24.roof520, "Material", "Rodigas Roof Bracket 520mm", 0, { itemGroupParentId: 90 }),
+    L(92, SKU.hat, "Material", "Colorbond Hat Section", 0, { itemGroupParentId: 90 })] };
+  const r7 = planFixes24(rtw);
+  ok("roof-to-wall 7.1kW: the roof bracket becomes the 550mm wall bracket, and two hat sections", r7?.items.some((i) => i.skuId === SKU24.wall550 && i.itemGroupParentId === 90) === true
+    && !r7!.items.some((i) => i.skuId === SKU24.roof520) && r7!.items.find((i) => i.skuId === SKU.hat)?.quantity === 2, r7?.did);
+  ok("…and a fixed one is left alone", planFixes24({ ...rtw, items: r7!.items }) === null);
+  const r25 = planFixes24({ ...rtw, name: "Mitsubishi Electric 2.5kW Split System - Roof To Wall Bracket" });
+  ok("a 2.5kW roof-to-wall takes the 420mm wall bracket", r25?.items.some((i) => i.skuId === SKU24.wall420) === true);
+  ok("back-to-back and roof-mounted templates aren't roof-to-wall", planFixes24({ ...rtw, name: "Kaden 5kW Split System - Roof Mounted" }) === null);
+  ok("the two Brivis Charcoal coolers named as the price list has them", RENAME_24.every((r) => /^Brivis Advance F[48]6DS Evap Cooler \(Charcoal\)$/.test(r.to)));
 }
 
 console.log("\nTemplates, at the prices quoted by hand:");

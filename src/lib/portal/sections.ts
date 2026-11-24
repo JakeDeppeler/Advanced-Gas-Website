@@ -18,7 +18,7 @@
 import type { NavItem } from "@/lib/portal/nav";
 import type { Business } from "@/lib/portal/businessTypes";
 
-export type SectionId = "home" | "crm" | "todo" | "pipe" | "orders" | "web" | "mkt" | "fin" | "team" | "you";
+export type SectionId = "home" | "crm" | "tools" | "todo" | "pipe" | "orders" | "web" | "mkt" | "fin" | "team" | "you";
 
 /** The prototype's stroke icons, 24×24. Several elements each, so kept as markup. */
 export const SECTION_ICON: Record<string, string> = {
@@ -115,12 +115,26 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
+    // Jake, 24 Nov: "a new tab ... so we can put the write-up and other things
+    // we will use on a daily [basis]". The tools a job is done with, out of
+    // the areas they'd been filed in (Pipeline, To-do, Team › How we work), so
+    // they're one click from anywhere. The job calculator isn't here: its
+    // address now opens Labour rates.
+    id: "tools", label: "Daily tools", icon: "wrench", group: 1, blurb: "The job write-up, the trade tools and toolbox talks: what a day's work is done with",
+    pages: [
+      // A job's quote and invoice words, written from the job (19 Nov).
+      { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
+      { label: "Trade tools", href: "/portal/tools/fault-codes", icon: "wrench" },
+      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
+    ],
+  },
+  {
     // Out of CRM and an area of its own: everyone's lists are worked all
     // day, by more people than work the rest of CRM. Each person's own
     // board, then the accounts', then marketing's, the order Jake reads
     // them. Account to-dos are the work the portal writes for the office,
     // kept off people's own lists.
-    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists, who to keep in touch with, toolbox talks and future plans",
+    id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists, who to keep in touch with, and future plans",
     pages: [
       { label: "Personal", href: "/portal/todo", icon: "me" },
       { label: "Accounts", href: "/portal/todo/accounts", icon: "pf" },
@@ -128,9 +142,6 @@ export const SECTION_DEFS: SectionDef[] = [
       // What keeps coming back, and what would take it off the lists.
       { label: "Repeats", href: "/portal/todo/repeats", office: true, icon: "todo" },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true, icon: "phone" },
-      // Things to get through rather than to look up, so on the lists with the
-      // rest of the work, not in Team.
-      { label: "Toolbox talks", href: "/portal/toolbox", icon: "book" },
       { label: "Future planning", href: "/portal/plans", office: true, icon: "grow" },
     ],
   },
@@ -143,8 +154,6 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Leads", href: "/portal/leads", icon: "phone" },
       // The whole run of a job, of which the quotes are one stretch.
       { label: "Job tracker", href: "/portal/tracker", icon: "run" },
-      // A job's quote and invoice words, written from the job (19 Nov).
-      { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
     ],
   },
   {
@@ -266,7 +275,6 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Handbook", href: "/portal/handbook" },
         { label: "Learning", href: "/portal/learning" },
         { label: "Information", href: "/portal/information" },
-        { label: "Trade tools", href: "/portal/tools/fault-codes" },
       ] },
     ],
   },
