@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { JobNoteBox } from "@/components/portal/JobNoteBox";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
@@ -29,7 +29,7 @@ type Event = { at: string; kind: string; what: string; amount?: number | null };
 export default async function CustomerPage({ params }: { params: { id: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Customers" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Customers" forWhom="the office" />;
   if (!/^\d+$/.test(params.id) || !dbConfigured()) notFound();
   const id = Number(params.id);
 

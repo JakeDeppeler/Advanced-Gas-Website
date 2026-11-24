@@ -11,7 +11,7 @@
  * the caller already has.
  */
 
-import { can, type PortalUser } from "@/lib/portal/caps";
+import { can, officeWork, type PortalUser } from "@/lib/portal/caps";
 import { SOPS } from "@/lib/portal/sops";
 
 /** Counted, not typed: the card said 24 when it was written and would have gone on saying it. */
@@ -113,6 +113,8 @@ export const ICON: Record<string, string> = {
  */
 export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } = {}): NavItem[] {
   const office = can(user, "overhead");
+  // The office's working pages, without the money: what the Admin's level opens.
+  const work = officeWork(user);
   const admin = can(user, "manage_users");
   const items: NavItem[] = [];
   const add = (ok: boolean, ...xs: NavItem[]) => { if (ok) items.push(...xs); };
@@ -147,22 +149,34 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["work order", "work orders", "propertyme", "tapi", "real estate", "agent", "property manager", "tenant", "bookings"],
   });
 
-  add(office,
+  // admin@ filed into its own folders, and the flagged words that keep an email in the Inbox.
+  add(office || can(user, "quotes"), {
+    href: "/portal/email-filing", label: "Email filing", blurb: "admin@ into its own folders, so the Inbox only holds the work", band: "customers", icon: "doc",
+    also: ["email", "inbox", "folders", "filing", "outlook", "admin@", "flagged words", "tidy inbox", "sort email"],
+  });
+
+  add(work,
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
     { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
+  );
+  add(office,
     { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
-    {
-      href: "/portal/tracker", label: "Job tracker", short: "Tracker", band: "run", icon: "list",
-      blurb: "Every job from enquiry to paid, in the stage it's stuck at",
-      also: ["job status", "where is", "pipeline", "lost jobs", "not closed", "left open", "still open", "close out", "quote visit", "to quote", "not quoted", "not sent", "to book", "not booked", "enquiry", "on hold", "to invoice", "overdue", "imported", "old jobs", "start to finish", "tracker"],
-    },
+  );
+  add(work, {
+    href: "/portal/tracker", label: "Job tracker", short: "Tracker", band: "run", icon: "list",
+    blurb: "Every job from enquiry to paid, in the stage it's stuck at",
+    also: ["job status", "where is", "pipeline", "lost jobs", "not closed", "left open", "still open", "close out", "quote visit", "to quote", "not quoted", "not sent", "to book", "not booked", "enquiry", "on hold", "to invoice", "overdue", "imported", "old jobs", "start to finish", "tracker"],
+  });
+  add(office,
     {
       href: "/portal/stuck", label: "Stuck money", short: "Stuck", band: "run", icon: "chart",
       blurb: "Done but not billed, billed but not paid, and jobs that have stopped",
       also: ["stuck", "not billed", "unbilled", "to bill", "not invoiced", "not paid", "overdue", "aged", "ageing", "backlog", "on hold", "letting jobs go", "leak", "chase"],
     },
     { href: "/portal/money", label: "Owed to us", short: "Owed", blurb: "Unpaid invoices, real estate and domestic, oldest first", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "money in", "real estate", "agents", "chase"] },
-    { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] },
+  );
+  add(work, { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] });
+  add(office,
     { href: "/trade/pricebook", label: "Pricebook", blurb: "What the iPad shows, and ServiceTitan", band: "customers", icon: "tag", also: ["price", "installed price", "ipad", "servicetitan"] },
     // Beside the goal it paces: Run the company is six across, and a seventh
     // card there sat on a row of its own.
@@ -204,7 +218,9 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       href: "/portal/journals", label: "Journal entries", short: "Journals", blurb: "ServiceTitan to Xero, and what didn't go",
       band: "profit", icon: "doc", also: ["journal", "xero sync", "sync error", "accounting", "export", "manual journal"],
     },
-    { href: "/portal/website", label: "Website leads", short: "Web leads", blurb: "What the website brings in", band: "marketing", icon: "speaker", also: ["website", "lead", "enquiry", "form"] },
+  );
+  add(work, { href: "/portal/website", label: "Website leads", short: "Web leads", blurb: "What the website brings in", band: "marketing", icon: "speaker", also: ["website", "lead", "enquiry", "form"] });
+  add(office,
     { href: "/portal/marketing", label: "Campaigns", blurb: "Everything we're running", band: "marketing", icon: "grid", also: ["campaign", "ads", "facebook", "marketing", "social", "brand"] },
     { href: "/portal/website?tab=pages", label: "On the site", blurb: "What people do on each page", band: "marketing", icon: "globe", also: ["page", "views", "traffic", "seo"] },
     { href: "/portal/website?tab=dropoff", label: "Drop-off", blurb: "Where people stop", band: "marketing", icon: "funnel", also: ["drop off", "abandon", "form"] },
@@ -222,6 +238,8 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/vehicles", label: "Vehicles", blurb: "Weekly checks, service, damage", band: "crew", icon: "truck", also: ["van", "fleet", "rego", "service", "clean"] });
   add(office,
     { href: "/portal/supply", label: "Supply", blurb: "Reece pricing and orders", band: "crew", icon: "box", also: ["reece", "max", "order", "pricebook", "material"] },
+  );
+  add(work,
     {
       href: "/portal/supply/next-week", label: "Next week's orders", short: "Next week", blurb: "Gear for next week's installs, and the electrician",
       band: "crew", icon: "box", also: ["order", "purchase order", "mitsubishi", "reclaim", "rinnai", "brivis", "braemar", "istore", "electrician", "geoff", "work order", "next week"],
@@ -234,6 +252,8 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       href: "/portal/supply/work-orders", label: "Work orders", blurb: "Every contractor's work order: the electrician, water balancing and the rest",
       band: "crew", icon: "box", also: ["work order", "contractor", "subcontractor", "electrician", "electrical", "geoff", "gte", "sparky", "switchboard", "circuit", "ross", "water balancing", "plumber"],
     },
+  );
+  add(office,
     {
       href: "/portal/supply/automation", label: "Ordering automation", short: "Automation", blurb: "What ordering does by itself, and what it did",
       band: "crew", icon: "box", also: ["automation", "automatic", "auto", "draft", "work order send", "install pack", "low stock", "tags"],
@@ -262,7 +282,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/per-van", label: "Per van, per day", short: "Per van", blurb: "What each van brings in a day it's out", band: "crew", icon: "truck", also: ["revenue per van", "per day", "van a day", "per tech"] },
     { href: "/portal/drive", label: "Drive time", blurb: "How much of the day is on the road", band: "crew", icon: "clock", also: ["driving", "travel", "routing", "on the road"] },
   );
-  add(office,
+  add(work,
     { href: "/portal/stock", label: "Factory stock", short: "Stock", blurb: "What's on the shelf, who took what", band: "crew", icon: "box", also: ["stock", "factory", "shelf", "inventory"] },
     { href: "/portal/requests", label: "From the crew", short: "Requests", blurb: "Leave, parts, incidents, Take 5s", band: "crew", icon: "bell", also: ["leave", "rdo", "parts order", "incident", "take 5", "near miss", "tool broken"] },
   );
@@ -300,6 +320,8 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/plans", label: "Future planning", blurb: "What you want to do for the business, by when", band: "hidden", icon: "target", also: ["plans", "planning", "future", "goals", "ideas", "business plan", "long term", "someday", "vision"] });
   items.push({ href: "/portal/keep-in-touch", label: "Keep in touch", blurb: "Important people to reach out to every month", band: "hidden", icon: "people", also: ["contacts", "keep in contact", "relationships", "builders", "agents", "suppliers", "referrers", "call list", "reach out", "networking"] });
   items.push({ href: "/portal/todo", label: "To-do", blurb: "Today's jobs, given to each other, with the day each is due", band: "hidden", icon: "list", also: ["todo", "to do", "to-do list", "task", "tasks", "reminder", "due", "overdue", "jobs to do"] });
+  if (work) items.push({ href: "/portal/jobs/write-up", label: "Job write-up", blurb: "A job's quote and invoice summary, and one labour price, written from the job", band: "hidden", icon: "doc", also: ["write up", "job summary", "labour summary", "labour line", "invoice summary", "quote summary", "one price", "description", "wording"] });
+  if (office) items.push({ href: "/portal/todo/repeats", label: "Repeated work", blurb: "The to-dos that keep coming back, and what would take them off the list", band: "hidden", icon: "list", also: ["repeat", "repeated", "automate", "automation", "same task", "again", "recurring", "manual"] });
   items.push({ href: "/portal/todo/marketing", label: "Marketing to-dos", blurb: "Google Ads, Facebook, and the rest: sign wraps, flyers, the website", band: "hidden", icon: "list", also: ["marketing", "marketing to do", "google ads", "facebook", "social", "posts", "ads", "sign wrap", "flyers", "website", "reviews"] });
   // The wall board's own tab: the remote first, because driving the TV is
   // what people come here to do; then what it shows, then what it aims at.
@@ -333,8 +355,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   // The rebuilt Run the company pages (PR 2 of the new design).
   add(office,
     { href: "/portal/accounts", label: "Accounts", blurb: "What to invoice, money to chase, bills to pay, and what hasn't reached Xero", band: "hidden", icon: "doc", also: ["accounts", "invoice", "to invoice", "chase", "overdue", "bills", "accounts person", "finance"] },
-    { href: "/portal/finance/leads", label: "Every enquiry", blurb: "Every lead from the website, the phone and ServiceTitan", band: "hidden", icon: "list", also: ["enquiry", "enquiries", "lead", "leads", "form", "website"] },
-    { href: "/portal/todo/accounts", label: "Account to-dos", blurb: "Quotes to follow up, invoices to send, late payments, jobs to book", band: "hidden", icon: "list", also: ["follow up", "chase", "invoice", "late payment", "overdue invoice", "book in", "account", "accounts to do"] },
     { href: "/portal/today", label: "Today", blurb: "How today is going, who's on what, the calls", band: "hidden", icon: "clock", also: ["today", "sold today", "team now", "call booking", "calls"] },
     {
       href: "/portal/office", label: "Office today", short: "Office today", blurb: "The morning routine: review, send, hold list, quotes due, part-paid", band: "hidden", icon: "list",
@@ -347,6 +367,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
     { href: "/portal/sales", label: "Sales", blurb: "The month, the quotes out, the weeks", band: "hidden", icon: "trend", also: ["sales", "sold", "quotes out", "job types", "sold each week"] },
     { href: "/portal/rates", label: "Team", short: "Labour rates", blurb: "Labour rates and the leaderboard", band: "hidden", icon: "people", also: ["labour rate", "leaderboard", "cost an hour", "break even"] },
+  );
+  add(work,
+    { href: "/portal/finance/leads", label: "Every enquiry", blurb: "Every lead from the website, the phone and ServiceTitan", band: "hidden", icon: "list", also: ["enquiry", "enquiries", "lead", "leads", "form", "website"] },
+    { href: "/portal/todo/accounts", label: "Account to-dos", blurb: "Quotes to follow up, invoices to send, late payments, jobs to book", band: "hidden", icon: "list", also: ["follow up", "chase", "invoice", "late payment", "overdue invoice", "book in", "account", "accounts to do"] },
   );
   add(office || can(user, "quotes"),
     { href: "/portal/jobs", label: "Jobs", blurb: "Today's jobs, job profit, not billed, compliance certificates", band: "hidden", icon: "wrench", also: ["jobs", "not billed", "compliance certificate", "vba", "cert", "running over"] },

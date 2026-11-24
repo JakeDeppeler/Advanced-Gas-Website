@@ -134,11 +134,18 @@ const addDays = (iso: string, n: number) => {
 
 /**
  * When Reece should have it there, in Melbourne time as Reece wants it
- * (yyyy-MM-ddTHH:mm:ss): 7 am the day before the install, or the office's own
+ * (yyyy-MM-ddTHH:mm:ss): the day before the install, or the office's own
  * deliver-by day if set, a weekend moved back to the Friday, never earlier
- * than 7 am tomorrow, as Reece refuses a time that's passed.
+ * than tomorrow, as Reece refuses a time that's passed.
+ *
+ * The time: 3:30 pm into the factory, where someone's in to take it at the
+ * end of the day (Jake, 11 Nov); 7 am straight to a site, where the crew is
+ * there first thing.
  */
-export function requiredBy(install: string | null, deliverBy: string | null, today: string): string {
+export const FACTORY_TIME = "15:30:00";
+export const SITE_TIME = "07:00:00";
+
+export function requiredBy(install: string | null, deliverBy: string | null, today: string, time: string = FACTORY_TIME): string {
   const tomorrow = addDays(today, 1);
   let day = deliverBy || (install ? addDays(install, -1) : tomorrow);
   // The day before a Monday install is a Sunday: Friday instead, as the
@@ -149,7 +156,7 @@ export function requiredBy(install: string | null, deliverBy: string | null, tod
     else if (dow === 6) day = addDays(day, -1);
   }
   if (day < tomorrow) day = tomorrow;
-  return `${day}T07:00:00`;
+  return `${day}T${time}`;
 }
 
 /** Reece's refusals (400) carry a list of violations: just their words. */

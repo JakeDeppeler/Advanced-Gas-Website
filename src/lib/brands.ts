@@ -1106,7 +1106,7 @@ const brandCatalogue: Brand[] = [
       facts: [
         "A decade-old MSZ-AP still makes its rated output: we measure them on annual services and they hold",
         "Common indoor and outdoor parts come out of the Melbourne warehouse same-day",
-        "Annual service, priced in writing, and we text you eleven months later so it gets booked",
+        "Annual service is $250 + GST on a split, $390 on a ducted, and we text you eleven months later so it gets booked",
         "We lodge the service report with Mitsubishi, so the warranty record stays clean for any future claim",
         "Ducted indoors go on a platform with a clear path to them, because a unit walled in behind cabinetry is a quote, not a service",
       ],
@@ -1148,7 +1148,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "Can you service a Mitsubishi you didn't install?",
-        a: "Yes, and we do a lot of them. Split or ducted, the service is priced before we come, and the service report goes to Mitsubishi so your warranty record stays clean. If we find something we'd have done differently on the install we'll tell you what it is and whether it's worth fixing.",
+        a: "Yes, and we do a lot of them. $250 + GST for a split, $390 for a ducted, and the service report goes to Mitsubishi so your warranty record stays clean. If we find something we'd have done differently on the install we'll tell you what it is and whether it's worth fixing.",
       },
       {
         q: "Do you install Mitsubishi in the eastern suburbs, or just the south-east?",

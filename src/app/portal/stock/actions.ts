@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { listVehicles } from "@/lib/portal/db";
 import { VAN_STOCK, itemKey } from "@/lib/portal/vanChecks";
 import {
@@ -23,7 +23,7 @@ const clip = (s: string | undefined, n: number) => (s ?? "").trim().slice(0, n);
 
 async function office() {
   const me = await getPortalUser();
-  return me && can(me, "overhead") ? me : null;
+  return me && officeWork(me) ? me : null;
 }
 
 function done(): void {

@@ -394,7 +394,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "An annual gas heater service across SE Melbourne, priced in writing before we come (members get the member rate). Includes the full CO test, written report with photos, gas pressure check and combustion analysis, everything an insurance assessor or property manager will ask for.",
+          "Flat <strong>$250 + GST</strong> for an annual gas heater service across SE Melbourne. Includes the full CO test, written report with photos, gas pressure check and combustion analysis, everything an insurance assessor or property manager will ask for.",
       },
     ],
     faqs: [

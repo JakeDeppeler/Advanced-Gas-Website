@@ -28,6 +28,7 @@ export const EMAIL_KINDS = {
   "chat-reply": { label: "Chat reply", who: "a customer" },
   "work-order-tenant": { label: "Work order: tenant asked to book", who: "a tenant" },
   "work-order-summary": { label: "Work orders: daily summary", who: "the office" },
+  "work-order-approved": { label: "Work order: quote approved", who: "the office" },
   "daily-reminder": { label: "Morning to-do reminder", who: "the office" },
   "review-request": { label: "Google review request", who: "a customer" },
   "quote-answer": { label: "Quote follow-up answer", who: "the office" },

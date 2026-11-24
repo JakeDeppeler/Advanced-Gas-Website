@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Bars } from "@/components/portal/marketingParts";
@@ -36,7 +36,7 @@ function tally(keys: string[]): Array<{ label: string; n: number }> {
 export default async function LeadsPage({ searchParams }: { searchParams: { m?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Leads" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Leads" forWhom="the office" />;
 
   const last = searchParams?.m === "last";
   const thisStart = startOfMonthMelbourne(new Date());

@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { can, type PortalUser } from "@/lib/portal/caps";
+import { can, officeWork, type PortalUser } from "@/lib/portal/caps";
 import { crewRequests, latestBoard, vanIssues } from "@/lib/portal/office";
 import { dueState, isLow, listStock } from "@/lib/portal/stock";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
@@ -27,7 +27,7 @@ const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : ma
  * at zero.
  */
 export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> => {
-  if (!can(user, "overhead")) {
+  if (!can(user, "overhead") && !officeWork(user)) {
     // The office without the finance side still has quotes to ring.
     if (!can(user, "quotes")) return [];
     const pipe = await pipelineDue().catch(() => null);
@@ -126,8 +126,14 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
     lines.push({ n: lapsed.length, text: `${plural(lapsed.length, "tool")} overdue for test & tag or service · ${lapsed[0].name}${lapsed.length > 1 ? ` and ${lapsed.length - 1} more` : ""}`, href: "/portal/stock?s=tools" });
   }
 
-  // Each line belongs to the tab whose page it opens.
+  // Each line belongs to the tab whose page it opens, and shows only to
+  // someone who can open it: the Admin's level gets the jobs to bill and the
+  // parts to order, not the overdue invoices or the jobs that lost money.
   const items = portalNav(user);
+  const opens = (href: string) => {
+    const path = href.split(/[?#]/)[0];
+    return items.some((it) => { const base = it.href.split("?")[0]; return path === base || path.startsWith(`${base}/`); });
+  };
   const bandOf = (href: string): NavBand | null => {
     const path = href.split(/[?#]/)[0];
     let best: { band: NavBand; len: number } | null = null;
@@ -140,7 +146,11 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
     }
     return best?.band ?? null;
   };
-  return lines.map((l) => ({ ...l, band: bandOf(l.href) }));
+  // Named rather than inferred: leave and incidents are about people, and the
+  // requests page keeps them from the office level even though it opens.
+  const officeLine = (href: string) =>
+    /^\/portal\/(pipeline|todo|vehicles|stock)(\/|\?|#|$)/.test(href) || /^\/portal\/requests#(parts|reports)/.test(href);
+  return lines.filter((l) => can(user, "overhead") || (officeLine(l.href) && opens(l.href))).map((l) => ({ ...l, band: bandOf(l.href) }));
 });
 
 /** How many lines of the list each tab holds: the side bar's and Home's "need you". */

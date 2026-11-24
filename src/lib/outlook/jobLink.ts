@@ -3,7 +3,8 @@ import { q, sbSelect, sbSelectOne } from "@/lib/dashboard/db";
 import { stSend, stTenantPath, stUpload } from "@/lib/dashboard/servicetitan";
 import { graph, userPath } from "./graph";
 import { addressOf, plainText, type GraphMessage } from "./outlookTypes";
-import { jobNumbersIn, namesStreet } from "./workOrderTypes";
+import { jobNumbersIn, namesSite, senderNameOnFile, workAfterQuote } from "./workOrderTypes";
+import { getSettings, saveSettings } from "@/lib/portal/db";
 
 /**
  * An email about a job goes onto the job (Jake, 5 Nov: "if they are talking
@@ -15,12 +16,14 @@ import { jobNumbersIn, namesStreet } from "./workOrderTypes";
  *     one, or a work order in it made one. A reply belongs to the same job.
  *  2. Our job number is in the subject or the opening of the email, and
  *     something else agrees: the sender is a contact on that job's customer
- *     or site, or the site's street is named. Agencies quote their own job
+ *     or site, or the site's address is named (number and street, or street
+ *     and its kind). Agencies quote their own job
  *     numbers (Barry Plant's "Job #18943"), which can collide with ours, so a
  *     number alone is never enough.
  *  3. The sender is a contact on exactly one customer or site with exactly
- *     one live job (not completed or cancelled). An agency's address has
- *     dozens; then only a job whose street the email names will do.
+ *     one job in play: open, or completed with a quote still open (the quote
+ *     waiting on them). An agency's address has dozens; then only a job whose
+ *     address the email names will do.
  * Anything less certain is left alone. The email goes on as a job note (who,
  * when, the subject and its own words), with its files as attachments.
  */
@@ -50,16 +53,71 @@ async function contactsOf(email: string): Promise<{ customers: number[]; locatio
   return { customers: [...new Set(c.map((r) => r.customer_id).filter(Boolean))], locations: [...new Set(l.map((r) => r.location_id).filter(Boolean))] };
 }
 
-const mentions = namesStreet;
+// The street with its number or its kind, not its name alone: see namesSite.
+const mentions = namesSite;
 
-export async function findJob(mailbox: string, m: GraphMessage, from: string, body: string): Promise<JobMatch | null> {
+/**
+ * The names on a job's file: its customer's (off its invoices, as the replica
+ * has no customers table), its site's, and the notes on the sender's own
+ * contacts there.
+ */
+async function namesOnFile(j: Job, email: string): Promise<string[]> {
+  const key = email.trim().toLowerCase();
+  const [inv, loc, cc, lc] = await Promise.all([
+    j.customer_id ? sbSelectOne<{ name: string | null }>("st_invoices", ["select=name:raw->customer->>name", `raw->customer->>id=eq.${j.customer_id}`, "limit=1"].join("&")).catch(() => null) : null,
+    j.location_id ? sbSelectOne<{ name: string | null }>("st_locations", [q.select("name"), q.eq("id", String(j.location_id))].join("&")).catch(() => null) : null,
+    j.customer_id ? sbSelect<{ memo: string | null }>("st_customer_contacts", [q.select("memo"), q.eq("customer_id", String(j.customer_id)), q.eq("match_key", key), "limit=5"].join("&")).catch(() => []) : [],
+    j.location_id ? sbSelect<{ memo: string | null }>("st_location_contacts", [q.select("memo"), q.eq("location_id", String(j.location_id)), q.eq("match_key", key), "limit=5"].join("&")).catch(() => []) : [],
+  ]);
+  return [inv?.name, loc?.name, ...cc.map((c) => c.memo), ...lc.map((c) => c.memo)].filter((x): x is string => Boolean(x && x.trim()));
+}
+
+/**
+ * findJob's guesses from the sender (a job number, or their open job) only
+ * stand when their address is a contact on that job's customer or site and
+ * their name is on the file too (Jake, 18 Nov), and, from an agency, when the
+ * email names the job's address. A thread already on a job is the same
+ * conversation and isn't asked again. refused, when given, hears why
+ * a guess was turned down, for the row.
+ */
+export async function findJob(mailbox: string, m: GraphMessage, from: string, body: string, refused?: (why: string) => void): Promise<JobMatch | null> {
+  const match = await guessJob(mailbox, m, from, body);
+  if (!match || match.how.startsWith("same thread")) return match;
+  const j = await sbSelectOne<Job>("st_jobs", [q.select(JOB_COLS), q.eq("id", String(match.jobId))].join("&")).catch(() => null);
+  const who = await contactsOf(from);
+  const theirs = Boolean(j && ((j.customer_id && who.customers.includes(j.customer_id)) || (j.location_id && who.locations.includes(j.location_id))));
+  const name = m.from?.emailAddress?.name ?? m.sender?.emailAddress?.name ?? "";
+  const named = j ? senderNameOnFile({ name, email: from }, await namesOnFile(j, from)) : false;
+  // An agency's people write about dozens of sites, and about none (O'Brien's
+  // end-of-year invitation went on 20114, 18 Nov, as the one quote waiting at
+  // a site the sender is on): from an agency, only an email naming the
+  // job's address is about it.
+  if (theirs && named && j && !match.how.startsWith("job ")) {
+    const sites = j.customer_id ? await sbSelect<{ id: number }>("st_locations", [q.select("id"), q.eq("customer_id", String(j.customer_id)), "limit=6"].join("&")).catch(() => []) : [];
+    if (sites.length > 5 && !mentions(`${m.subject ?? ""}\n${body.slice(0, 4000)}`, await streetOf(j.location_id))) {
+      refused?.(`looked like job ${match.jobNumber ?? match.jobId} (${match.how}), but it's from the agency and doesn't name the address: left off it`.slice(0, 300));
+      return null;
+    }
+  }
+  if (theirs && named) return match;
+  refused?.(`looked like job ${match.jobNumber ?? match.jobId} (${match.how}), but ${!theirs ? "the sender's email isn't on its file" : `"${name || from}" isn't a name on its file`}: left off it`.slice(0, 300));
+  return null;
+}
+
+async function guessJob(mailbox: string, m: GraphMessage, from: string, body: string): Promise<JobMatch | null> {
   const subject = m.subject ?? "";
   const text = `${subject}\n${body.slice(0, 4000)}`;
 
-  // 1. The thread is already tied to a job.
+  // 1. The thread is already tied to a job; once that job's quote is sold
+  // and the work made into a job of its own, the thread follows the work.
   if (m.conversationId) {
     const tied = await sbSelectOne<{ job_id: number; job_number: string | null }>("mail_drafts", [q.select("job_id,job_number"), q.eq("mailbox", mailbox), q.eq("conversation_id", m.conversationId), q.notNull("job_id"), q.order("received_at", "desc", "last"), "limit=1"].join("&")).catch(() => null);
-    if (tied) return { jobId: tied.job_id, jobNumber: tied.job_number, how: "same thread as an email already on the job" };
+    if (tied) {
+      const quote = await sbSelectOne<Job>("st_jobs", [q.select(JOB_COLS), q.eq("id", String(tied.job_id))].join("&")).catch(() => null);
+      const work = quote?.status === "Completed" ? await soldInto(quote).catch(() => null) : null;
+      if (work) return { jobId: work.id, jobNumber: work.job_number, how: `same thread as the quote on job ${tied.job_number ?? tied.job_id}, now job ${work.job_number ?? work.id}` };
+      return { jobId: tied.job_id, jobNumber: tied.job_number, how: "same thread as an email already on the job" };
+    }
   }
 
   const who = await contactsOf(from);
@@ -81,8 +139,28 @@ export async function findJob(mailbox: string, m: GraphMessage, from: string, bo
     who.customers.length ? `customer_id.in.(${who.customers.join(",")})` : null,
     who.locations.length ? `location_id.in.(${who.locations.join(",")})` : null,
   ].filter(Boolean);
-  const live = await sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `or=(${filters.join(",")})`, `status=in.(${LIVE.join(",")})`, q.gte("created_on", since), "limit=60"].join("&")).catch(() => []);
-  if (live.length === 1) return { jobId: live[0].id, jobNumber: live[0].job_number, how: "the sender's only open job" };
+  const [open, done] = await Promise.all([
+    sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `or=(${filters.join(",")})`, `status=in.(${LIVE.join(",")})`, q.gte("created_on", since), "limit=60"].join("&")).catch(() => []),
+    sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `or=(${filters.join(",")})`, "status=eq.Completed", q.gte("created_on", since), "limit=60"].join("&")).catch(() => []),
+  ]);
+  // A quote visit is completed the day it's done, and the quote then waits on
+  // the customer: that job is still theirs to write about. Every email from Dr
+  // Govindarajah about his ducted quote (job 20284, both estimates open) went
+  // on nothing (12 Nov).
+  // Waiting = an estimate still open and none sold: once one option is sold
+  // (20284's Mitsubishi), the other's open in name only and the quote is done.
+  const ests = done.length
+    ? await sbSelect<{ job_id: number; status: string | null }>("st_estimates", [q.select("job_id,status"), `job_id=in.(${done.map((j) => j.id).join(",")})`, "status=in.(Open,Sold)", "limit=400"].join("&")).catch(() => [])
+    : [];
+  const soldOn = new Set(ests.filter((e) => e.status === "Sold").map((e) => Number(e.job_id)));
+  const quoted = new Set(ests.filter((e) => e.status === "Open" && !soldOn.has(Number(e.job_id))).map((e) => Number(e.job_id)));
+  const waiting = done.filter((j) => quoted.has(Number(j.id)));
+  // A reply to the quote email ("Your quote from Advanced Gas & Aircon") is
+  // about the quote, even with one other job of theirs open. Not an agency's:
+  // with dozens open, only the address will do.
+  if (waiting.length === 1 && (!open.length || (open.length === 1 && /\bquote\b/i.test(subject)))) return { jobId: waiting[0].id, jobNumber: waiting[0].job_number, how: "the sender's quote, waiting on them" };
+  const live = [...open, ...waiting];
+  if (open.length === 1) return { jobId: open[0].id, jobNumber: open[0].job_number, how: "the sender's only open job" };
   if (live.length > 1) {
     const named = [];
     for (const j of live) if (mentions(text, await streetOf(j.location_id))) named.push(j);
@@ -91,12 +169,110 @@ export async function findJob(mailbox: string, m: GraphMessage, from: string, bo
   return null;
 }
 
-/** The email onto the job: a note with its words, and its files. */
-export async function putOnJob(mailbox: string, m: GraphMessage, jobId: number): Promise<void> {
+/** The open job a completed quote job's quote was sold into, or null (workAfterQuote says when). */
+async function soldInto(quote: Job): Promise<Job | null> {
+  if (!quote.location_id) return null;
+  const [sold, later] = await Promise.all([
+    sbSelect<{ sold_on: string | null }>("st_estimates", [q.select("sold_on"), q.eq("job_id", String(quote.id)), "status=eq.Sold", q.order("sold_on", "desc", "last"), "limit=1"].join("&")).catch(() => []),
+    sbSelect<Job>("st_jobs", [q.select(JOB_COLS), q.eq("location_id", String(quote.location_id)), `status=in.(${LIVE.join(",")})`, q.gte("created_on", quote.created_on ?? "1970-01-01"), "limit=10"].join("&")).catch(() => []),
+  ]);
+  if (!later.length) return null;
+  const ests = await sbSelect<{ job_id: number; created_on: string | null }>("st_estimates", [q.select("job_id,created_on"), `job_id=in.(${later.map((j) => j.id).join(",")})`, "limit=100"].join("&")).catch(() => []);
+  const id = workAfterQuote(
+    { id: quote.id, created: quote.created_on, soldOn: sold[0]?.sold_on ?? null },
+    later.map((j) => ({ id: j.id, created: j.created_on, estimateBefore: ests.some((e) => Number(e.job_id) === j.id && (Date.parse(e.created_on ?? "") || Infinity) < (Date.parse(j.created_on ?? "") || 0)) })),
+  );
+  return later.find((j) => j.id === id) ?? null;
+}
+
+const CARRIED = "outlook_quote_carried";
+
+type ConvMessage = GraphMessage & { body?: { content?: string } | null };
+
+/**
+ * A quote sold and made into a job: the emails about the quote, ours
+ * included, go onto that job once, oldest first, so whoever does the work
+ * reads what was agreed (Jake, 14 Nov: Dr Govindarajah's install, job 20873,
+ * had none of the conversation, which sat on the quote job 20284, the first
+ * annual service thrown in among it). Run from the sweep over jobs made in
+ * the last fortnight.
+ */
+export async function carryQuoteEmails(deadline: number): Promise<{ carried: number; error?: string }> {
+  const out = { carried: 0 } as { carried: number; error?: string };
+  try {
+    const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+    const fresh = await sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `status=in.(${LIVE.join(",")})`, q.gte("created_on", since), "limit=400"].join("&"));
+    const locs = [...new Set(fresh.map((j) => j.location_id).filter(Boolean))] as number[];
+    if (!locs.length) return out;
+    const quotes: Job[] = [];
+    for (let i = 0; i < locs.length; i += 100) {
+      quotes.push(...await sbSelect<Job>("st_jobs", [q.select(JOB_COLS), `location_id=in.(${locs.slice(i, i + 100).join(",")})`, "status=eq.Completed", "limit=1000"].join("&")));
+    }
+    if (!quotes.length) return out;
+    const linked: { job_id: number; mailbox: string; conversation_id: string | null }[] = [];
+    for (let i = 0; i < quotes.length; i += 100) {
+      linked.push(...await sbSelect<{ job_id: number; mailbox: string; conversation_id: string | null }>("mail_drafts", [q.select("job_id,mailbox,conversation_id"), `job_id=in.(${quotes.slice(i, i + 100).map((j) => j.id).join(",")})`, q.notNull("conversation_id"), "limit=1000"].join("&")));
+    }
+    if (!linked.length) return out;
+    // Its own record, not the automations' done list: a run of those saving
+    // over it would forget a carry, and the conversation would go on twice.
+    const made = new Map(Object.entries((await getSettings<{ keys?: Record<string, string> }>(CARRIED).catch(() => null))?.keys ?? {}));
+    for (const quote of quotes.filter((k) => linked.some((l) => Number(l.job_id) === k.id))) {
+      if (Date.now() > deadline) break;
+      const work = await soldInto(quote);
+      if (!work) continue;
+      const key = `carry:${work.id}:${quote.id}`;
+      if (made.has(key)) continue;
+      const threads = [...new Map(linked.filter((l) => Number(l.job_id) === quote.id).map((l) => [`${l.mailbox}|${l.conversation_id}`, l])).values()];
+      const seen = new Set<string>();
+      const msgs: ConvMessage[] = [];
+      for (const t of threads) {
+        const f = encodeURIComponent(`conversationId eq '${t.conversation_id}'`);
+        const got = await graph<{ value: ConvMessage[] }>(`${userPath(t.mailbox)}/messages?$filter=${f}&$select=id,internetMessageId,from,sentDateTime,receivedDateTime,subject,uniqueBody,isDraft&$top=50`, { text: true }).catch(() => ({ value: [] as ConvMessage[] }));
+        for (const msg of got.value) {
+          // The same email reaches admin@ and jake@: once.
+          const k = msg.internetMessageId ?? msg.id;
+          if (msg.isDraft || seen.has(k)) continue;
+          seen.add(k);
+          msgs.push(msg);
+        }
+      }
+      if (!msgs.length) continue;
+      const at = (msg: ConvMessage) => Date.parse(msg.sentDateTime ?? msg.receivedDateTime ?? "") || 0;
+      msgs.sort((a, b) => at(a) - at(b));
+      const fmt = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", dateStyle: "medium", timeStyle: "short" });
+      const parts = msgs.map((msg) => `${fmt.format(at(msg) || Date.now())}, ${msg.from?.emailAddress?.name ?? ""} <${addressOf(msg.from)}>:\n${plainText(msg.uniqueBody).trim()}`);
+      const head = `EMAILS ABOUT THE QUOTE (job ${quote.job_number ?? quote.id}), now this job. Oldest first, ours included.`;
+      // Split across notes as they fill, never mid-email unless one email is longer than a note.
+      const notes: string[] = [];
+      let cur = head;
+      for (const p of parts) {
+        const piece = p.length > NOTE_MAX - 200 ? `${p.slice(0, NOTE_MAX - 260)}\n[…the rest is in the email]` : p;
+        if (cur.length + piece.length + 8 > NOTE_MAX) { notes.push(cur); cur = `${head} (continued)`; }
+        cur += `\n\n———\n\n${piece}`;
+      }
+      notes.push(cur);
+      for (const text of notes) await stSend("POST", stTenantPath("jpm", `jobs/${work.id}/notes`), { text, pinToTop: false });
+      made.set(key, new Date().toISOString());
+      await saveSettings(CARRIED, { keys: Object.fromEntries(made) });
+      out.carried++;
+    }
+  } catch (e) {
+    out.error = (e as Error).message;
+  }
+  return out;
+}
+
+/**
+ * The email onto the job: a note with its words, and its files. `heading`
+ * opens the note (a work order follow-up says what it is), and `pin` puts it
+ * at the top of the job's notes where the office will see it.
+ */
+export async function putOnJob(mailbox: string, m: GraphMessage, jobId: number, opts: { heading?: string; pin?: boolean } = {}): Promise<void> {
   const when = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", dateStyle: "medium", timeStyle: "short" }).format(Date.parse(m.receivedDateTime ?? "") || Date.now());
   const words = plainText(m.uniqueBody ?? m.body);
-  const note = [`Email from ${m.from?.emailAddress?.name ?? ""} <${addressOf(m.from)}>, ${when}`, `Subject: ${m.subject ?? ""}`, "", words].join("\n");
-  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX)}\n[…the rest is in the email]` : note, pinToTop: false });
+  const note = [...(opts.heading ? [opts.heading, ""] : []), `Email from ${m.from?.emailAddress?.name ?? ""} <${addressOf(m.from)}>, ${when}`, `Subject: ${m.subject ?? ""}`, "", words].join("\n");
+  await stSend("POST", stTenantPath("jpm", `jobs/${jobId}/notes`), { text: note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX)}\n[…the rest is in the email]` : note, pinToTop: Boolean(opts.pin) });
   if (!m.hasAttachments) return;
   type Att = { "@odata.type"?: string; name?: string; contentType?: string; size?: number; isInline?: boolean; contentBytes?: string };
   const atts = await graph<{ value: Att[] }>(`${userPath(mailbox)}/messages/${encodeURIComponent(m.id)}/attachments`).catch(() => ({ value: [] as Att[] }));

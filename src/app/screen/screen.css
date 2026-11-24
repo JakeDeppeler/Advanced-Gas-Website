@@ -73,6 +73,16 @@
   /* The same two as text on a white card. The dial strokes above are 3.6:1
      and 2.5:1 on white, fine for an arc and too faint for a word. */
   --vd-track-ink: #15803d;
+  /*
+   * The weather verdicts get their own four inks rather than borrowing the
+   * pace palette. "Don't book a handover" is not "behind on the month", and a
+   * reader who has learned that orange means the month is slipping should not
+   * meet the same orange meaning the air is humid.
+   */
+  --wx-good: #15803d;
+  --wx-fair: #5c5a54;
+  --wx-poor: #a15c07;
+  --wx-no: #c0271a;
   --vd-close-ink: #a15c07;
   --leader-row: #fef4eb;
 
@@ -148,15 +158,18 @@ body:has(.screen) .utilbar {
   line-height: 1;
 }
 
-/* The page's verdict, between its name and the line describing it. Carries the
-   board's status colour and the word, like every other verdict here. */
-.screen__verdict {
+/* The window each page measures, between its name and the line describing it.
+   Quiet on purpose: it is a label, not a figure, and it is on every page — at
+   the weight of the title it would be the second thing read nine times a
+   rotation. See WINDOWS in ScreenBoard.tsx. */
+.screen__when {
   flex: none;
-  padding: calc(0.12 * var(--u)) calc(0.7 * var(--u));
+  padding: calc(0.1 * var(--u)) calc(0.6 * var(--u));
   border-radius: 999px;
-  background: var(--leader-row);
-  font-size: calc(1 * var(--u));
-  font-weight: 800;
+  border: 1px solid var(--hairline);
+  font-size: calc(0.92 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
   white-space: nowrap;
 }
 
@@ -180,15 +193,30 @@ body:has(.screen) .utilbar {
   gap: calc(0.45 * var(--u));
 }
 
-.screen__dashes { display: flex; align-items: center; gap: calc(0.45 * var(--u)); }
+/*
+ * The strip holds a constant width however many pages there are.
+ *
+ * Each dash was a fixed 1.5u with a fixed gap, so the strip grew by two units
+ * per page added — and the pager sits in the same baseline row as the page
+ * subtitle, which shrinks to fit. The eleventh page was enough to start
+ * ellipsing Daily pace's subtitle on the wall, a page that had nothing to do
+ * with the change. The ten-page geometry is the constant: 15u of dash and
+ * 4.05u of gap, divided among however many there now are.
+ */
+.screen__dashes {
+  display: flex;
+  align-items: center;
+  gap: calc(4.05 / (var(--page-n, 10) - 1) * var(--u));
+}
 .screen__dash {
-  width: calc(1.5 * var(--u));
+  width: calc(15 / var(--page-n, 10) * var(--u));
   height: calc(0.28 * var(--u));
   border-radius: 999px;
   background: #d9d3c3;
 }
 .screen__dash.is-on {
-  width: calc(2.9 * var(--u));
+  /* Twice a dash and a bit, whatever a dash is now. */
+  width: calc(29 / var(--page-n, 10) * var(--u));
   background: var(--navy);
 }
 
@@ -324,9 +352,229 @@ body:has(.screen) .utilbar {
    them are what somebody actually works from. */
 .screen__grid--team { grid-template-rows: 1fr auto; }
 /* Five cards of equal height, then the day's one-line summary. */
-.screen__grid--daily { grid-template-rows: 1fr auto; }
-.screen__grid--perf { grid-template-rows: 0.52fr 2fr; }
+/* Four team figures, then a row per van — the Crew page's shape over one day. */
+.screen__grid--daily { grid-template-rows: 0.52fr 2fr; }
 .screen__grid--areas { grid-template-rows: 0.85fr 0.85fr 1.6fr; }
+.screen__grid--sectors { grid-template-rows: 1fr 1.15fr; }
+/* Four team figures, then a row per tech. */
+.screen__grid--crew { grid-template-rows: 0.52fr 2fr; }
+/* One tile, the whole page: seven day columns with the jobs booked into each
+   underneath. The head cards and the hour-by-hour strip both came off when the
+   forecast page and the booked-work page merged — seven columns of jobs need
+   the height more than a row of sums did. */
+/* The week and its jobs on top, today hour by hour beneath. The week takes
+   the larger share: on the busiest day of summer a column holds its weather
+   header and four job cards, and the strip is a glance. */
+.screen__grid--weather { grid-template-rows: 3.5fr 1fr; }
+
+/* Sectors: what a breakdown or a maintenance visit led to. The navy family, not
+   the status palette: an install isn't "good" and a plain service isn't "bad",
+   and every segment is written out in words beside its colour. */
+.tile--sector { justify-content: space-between; }
+.tile--sector .rows { flex: 0 0 auto; }
+.sector__fig { display: flex; flex-direction: column; gap: calc(0.35 * var(--u)); }
+/* The pipeline. Cumulative stages, each a subset of the one before, so the row
+   narrows left to right and the drop-off is the gap you can see. Replaced a
+   stacked bar of the four outcomes a visit ended at — the same data, answering
+   a different question, and it took reading a key to tell that "install" and
+   "quoted, nothing booked" were not two steps of one thing. */
+.pipe { display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: calc(0.8 * var(--u)); }
+.pipe__row {
+  display: grid;
+  /* The name beside both halves: the stages on top, where the visit ended up
+     underneath. One row of the grid each, and the name spans them. */
+  grid-template-columns: calc(10 * var(--u)) 1fr;
+  grid-template-rows: auto auto;
+  column-gap: calc(1 * var(--u));
+  row-gap: calc(0.55 * var(--u));
+  align-items: center;
+}
+.pipe__name { grid-row: 1 / span 2; }
+.pipe__name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: calc(1.3 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.pipe__name em { font-style: normal; font-weight: 500; font-size: calc(0.92 * var(--u)); color: var(--ink-muted); }
+.pipe__flow { display: flex; align-items: stretch; gap: calc(0.3 * var(--u)); }
+.pipe__stage {
+  /* Equal boxes; the bar inside carries the share. See the note in the JSX. */
+  flex: 1 1 0;
+  box-sizing: border-box;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.1 * var(--u));
+  padding: calc(0.38 * var(--u)) calc(0.7 * var(--u));
+  border: 1px solid var(--hairline);
+  border-radius: calc(0.5 * var(--u));
+  background: var(--plane);
+  overflow: hidden;
+}
+/* The ramp is a second signal, never the only one: every stage is named and
+   counted in words beside it. */
+/* The share of the visits that got this far, drawn against the box it sits in.
+   Never the only signal: the count and the share are written underneath. */
+.pipe__tint {
+  display: block;
+  height: calc(0.45 * var(--u));
+  border-radius: 999px;
+  margin-bottom: calc(0.25 * var(--u));
+}
+.pipe__stage b {
+  font-size: calc(1.7 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1;
+}
+.pipe__stage u {
+  text-decoration: none;
+  font-size: calc(0.92 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pipe__stage em { font-style: normal; font-size: calc(0.82 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+.pipe__arrow { display: flex; align-items: center; flex: 0 0 auto; font-size: calc(1.6 * var(--u)); color: var(--ink-muted); }
+
+/* Where the visit ended up: four exclusive outcomes under the cumulative
+   stages. The navy family again, and every segment written out with its count
+   and share beside it. */
+.pipe__out { grid-column: 2; display: flex; flex-direction: column; gap: calc(0.4 * var(--u)); }
+.pipe__bar {
+  display: flex;
+  gap: 3px;
+  height: calc(1 * var(--u));
+  border-radius: calc(0.3 * var(--u));
+  overflow: hidden;
+  background: var(--track);
+}
+.pipe__seg { flex-basis: 0; min-width: 4px; }
+.pipe__key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(0.3 * var(--u)) calc(1.2 * var(--u));
+  font-size: calc(0.88 * var(--u));
+  color: var(--ink-2);
+}
+.pipe__kcap { font-style: normal; font-weight: 700; color: var(--ink-muted); text-transform: lowercase; }
+.pipe__k { display: inline-flex; align-items: baseline; gap: calc(0.3 * var(--u)); white-space: nowrap; }
+.pipe__k i { width: calc(0.72 * var(--u)); height: calc(0.72 * var(--u)); border-radius: 2px; display: inline-block; align-self: center; }
+.pipe__k b { color: var(--navy); font-weight: 800; }
+.pipe__k em { font-style: normal; color: var(--ink-muted); }
+.rows__v--big { font-size: calc(2.1 * var(--u)); letter-spacing: -0.03em; }
+
+/* What a visit is worth, all in. The figure answers the page's question, so it
+   is sized like an answer rather than like a row in a list. */
+.worth { display: flex; flex-direction: column; justify-content: center; gap: calc(1.6 * var(--u)); flex: 1; }
+.worth__one { display: flex; flex-direction: column; }
+.worth__name { font-size: calc(1.15 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.66); }
+.worth__fig {
+  /* Four and a half units ran off the tile on a narrower panel. Three and a
+     half still carries the tile and leaves room for a five-figure number. */
+  font-size: calc(3.5 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  color: #fff;
+}
+.worth__sub { font-size: calc(0.92 * var(--u)); color: rgba(255, 255, 255, 0.72); }
+.rows__k small { font-size: calc(0.8 * var(--u)); opacity: 0.85; }
+
+
+/* --------------------------------------------------------------------- crew */
+/* Each tech's sixty days. Every figure carries its denominator underneath, and
+   nothing on the page is status-coloured: no target is set for hours on the
+   tools or for the share of jobs that come in inside the sold time, so a green
+   figure here would be the board inventing a target and marking a man against
+   it. See CrewPage in ScreenBoard.tsx. */
+.crew { display: flex; flex-direction: column; flex: 1; }
+.crew__head,
+.crew__row {
+  display: grid;
+  /* Name, the mix bar on the free space, then five columns of figures. The
+     figure columns are fixed: they are read down against the person above, not
+     across against each other, and sharing the free space between them put
+     each one a different distance from its heading. */
+  grid-template-columns:
+    calc(11 * var(--u)) 1fr calc(8.5 * var(--u)) calc(8.5 * var(--u))
+    calc(9 * var(--u)) calc(10.5 * var(--u)) calc(8 * var(--u)) calc(13 * var(--u));
+  align-items: center;
+  gap: calc(0.8 * var(--u));
+  padding: calc(0.35 * var(--u)) calc(0.6 * var(--u));
+}
+/* Daily pace: the same table with Billed off, so seven columns. The space it
+   freed goes to the slot comparison, which carries two figures on its second
+   line where the sold column carried one. */
+.crew--day .crew__head,
+.crew--day .crew__row {
+  grid-template-columns:
+    calc(11 * var(--u)) 1fr calc(8.5 * var(--u)) calc(8.5 * var(--u))
+    calc(9.5 * var(--u)) calc(12 * var(--u)) calc(13 * var(--u));
+}
+.crew__head { font-size: calc(0.9 * var(--u)); color: var(--ink-2); }
+.crew__row { flex: 1; border-top: 1px solid var(--hairline); border-radius: calc(0.6 * var(--u)); }
+.crew__name {
+  display: flex;
+  flex-direction: column;
+  font-size: calc(1.2 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.crew__name em { font-style: normal; font-weight: 500; font-size: calc(0.82 * var(--u)); color: var(--ink-muted); }
+.crew__fig { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); min-width: 0; }
+.crew__fig b {
+  font-size: calc(1.32 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.1;
+}
+.crew__fig span { font-size: calc(0.8 * var(--u)); color: var(--ink-muted); line-height: 1.25; }
+.crew__mix { display: flex; flex-direction: column; gap: calc(0.35 * var(--u)); min-width: 0; }
+.crew__bar {
+  display: flex;
+  gap: 2px;
+  height: calc(1.1 * var(--u));
+  border-radius: calc(0.3 * var(--u));
+  overflow: hidden;
+  background: var(--track);
+}
+.crew__seg { flex-basis: 0; min-width: 3px; }
+/* Wraps rather than ellipses: on a narrow panel the five counts are the point
+   of the bar above them, and half of "16 other" says nothing. */
+.crew__mixnums { font-size: calc(0.8 * var(--u)); color: var(--ink-2); line-height: 1.25; }
+.crew__legend { display: flex; gap: calc(0.9 * var(--u)); font-size: calc(0.82 * var(--u)); color: var(--ink-muted); }
+.crew__key { display: inline-flex; align-items: center; gap: calc(0.3 * var(--u)); white-space: nowrap; }
+.crew__key i { width: calc(0.7 * var(--u)); height: calc(0.7 * var(--u)); border-radius: 2px; display: inline-block; }
+
+/* The navy family in one order, lightest to darkest, with "other" in the cream
+   the Sectors bars use. Not the status palette: an install is not "good" and a
+   maintenance call is not "bad", and the words are written out beside every
+   bar because nobody reads a shade of navy from four metres. */
+.mix--maintenance { background: #a7b0d6; }
+.mix--breakdown { background: #7c87bf; }
+.mix--repair { background: #4a5a9c; }
+.mix--install { background: #050a30; }
+.mix--other { background: #dcd8cb; }
+/* Dark mode: the same ramp, turned over, because #050a30 on a #17171a panel is
+   a hole in the bar rather than a segment. */
+.screen--dark .mix--maintenance { background: #3c4675; }
+.screen--dark .mix--breakdown { background: #5c68a8; }
+.screen--dark .mix--repair { background: #8b97d4; }
+.screen--dark .mix--install { background: #cdd5f5; }
+.screen--dark .mix--other { background: #4a483f; }
 
 /**
  * How a page arrives.
@@ -530,7 +778,32 @@ body:has(.screen) .utilbar {
   line-height: 1.05;
 }
 .halves__value.is-na { font-size: calc(1.6 * var(--u)); color: var(--muted-fig); }
-.halves__sub { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+/* Wraps. It was `nowrap`, which is safe only while every sub line is short,
+   and "Booked" carries the longest on the board: "from 12 leads · 5 in the
+   next 7 days" is 36 characters in a half about 280px wide at 1920. With
+   Manrope it just fits; with the fallback the browser uses before the font
+   arrives it does not, and the line was cut on every size in both themes —
+   the whole board's only fallback-font failure. Two-digit lead counts would
+   have got there on their own.
+
+   A second line is what a sub line is for. The half is `min-width: 0` in a
+   grid and the card centres its content, so the wrap grows into space the
+   tile already has. */
+.halves__sub {
+  font-size: calc(0.86 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.25;
+  /* Breaks between words, never inside one: "in the next 7 d / ays" is worse
+     than the cut it replaced. */
+  overflow-wrap: break-word;
+  /* Room for the second line whether or not it is used. `.halves` centres each
+     half on its own content, so a sub that wrapped on one side and not the
+     other dropped "Booked 8" ten pixels above "Completed 0" — two figures
+     abreast at different heights, which is the kind of thing a wall board gets
+     noticed for. Reserving the line costs nothing on a card that has the room
+     and keeps the pair level in every case. */
+  min-height: 2.5em;
+}
 
 /* Two figures abreast, the second one quieter: leads today against leads this
    week, where the first is the one being acted on. */
@@ -1050,6 +1323,10 @@ body:has(.screen) .utilbar {
   --muted-fig: #6f6d66;
   --vd-track-ink: #6fdca0;
   --vd-close-ink: #ffc46b;
+  --wx-good: #6fdca0;
+  --wx-fair: #a9a7a0;
+  --wx-poor: #ffc46b;
+  --wx-no: #ff9484;
 }
 
 .screen--dark .tile { box-shadow: none; border: 1px solid var(--hairline); }
@@ -1081,112 +1358,120 @@ body:has(.screen) .utilbar {
 .screen--dark .heat__ramp { background: linear-gradient(90deg, #3a2a20, #ff9a62); }
 
 
-/* ------------------------------------------------- /05 the job-type table */
-/* One row per kind of work, with the month's margin goal drawn on every bar so
-   the question "is this one paying?" is answered without arithmetic. */
-.jt { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 
-.jt__head,
-.jt__row {
-  display: grid;
-  /* Name, invoices, revenue, the margin bar, the margin figure. Profit came
-     off the page: it read "—" every day, because no invoice in this tenant
-     carries a cost. */
-  grid-template-columns:
-    minmax(0, 1.5fr) calc(5 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u))
-    minmax(0, 1.6fr) calc(5 * var(--u));
-  align-items: center;
-  gap: calc(1.2 * var(--u));
-}
-
-.jt__head {
-  padding-bottom: calc(0.7 * var(--u));
-  font-size: calc(0.86 * var(--u));
-  color: var(--ink-2);
-}
-.jt__head > span:nth-child(2),
-.jt__head > span:nth-child(3),
-.jt__head > span:nth-child(4) { text-align: right; }
-
-.jt__row {
+/* ------------------------------------------------- /07 the job-type panels */
+/* Five sectors in five columns running the long way, each with its own job
+   types under it. One ranked table put Service - Split System next to
+   Installation - Ducted Refrigerated and invited the room to read one against
+   the other; grouped, every row's neighbours are the rows it is comparable to.
+   Columns rather than two by two, so every sector is level with every other
+   and the eye compares across instead of travelling back up the page.
+   See JobTypesPage. */
+.jtp {
   flex: 1;
   min-height: 0;
-  border-top: 1px solid var(--hairline);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: calc(1.1 * var(--u));
 }
-
-/* The month's own totals, so the five ranked rows are read against the whole
-   rather than mistaken for it. Not flex: 1 — it takes only the height it needs
-   and the ranked rows keep sharing the rest. */
-.jt__row--total {
-  flex: 0 0 auto;
-  border-top: 2px solid var(--ink-muted);
-  padding-top: calc(0.5 * var(--u));
-  margin-top: calc(0.3 * var(--u));
+.jtp__sec {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  /* A rule between columns rather than a card each: five boxes on a page that
+     is already a box reads as a form, and the panels are one table. */
+  padding-left: calc(1.1 * var(--u));
+  border-left: 1px solid var(--hairline);
 }
-.jt__row--total .jt__name,
-.jt__row--total .jt__n { color: var(--ink-2); }
-
-.jt__name {
-  font-size: calc(1.22 * var(--u));
-  font-weight: 700;
-  color: var(--ink);
+.jtp__sec:first-child { padding-left: 0; border-left: 0; }
+.jtp__head {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.05 * var(--u));
+  padding-bottom: calc(0.18 * var(--u));
+  border-bottom: 2px solid var(--hairline);
+}
+.jtp__name {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: calc(1.5 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  line-height: 1.1;
+}
+.jtp__tot { font-size: calc(0.86 * var(--u)); color: var(--ink-2); }
+.jtp__led1 { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); font-weight: 700; }
+.jtp__empty { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); padding-top: calc(0.5 * var(--u)); }
+.jtp__rows { display: flex; flex-direction: column; flex: 1; min-height: 0; padding-top: calc(0.25 * var(--u)); }
+/* A narrow column, so the row stacks: name and count, the money, the slot,
+   then what it turned into. */
+.jtp__row {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.07 * var(--u));
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+  /* Each row is its own block rather than four lines above a hairline: a
+     column of twenty-eight muted lines separated by rules reads as one list,
+     and the eye loses which money belongs to which name. Alternating tint and
+     a gap do what the rules were failing to. */
+  border-radius: calc(0.5 * var(--u));
+  padding: calc(0.3 * var(--u)) calc(0.45 * var(--u));
+  margin-bottom: calc(0.18 * var(--u));
+}
+.jtp__row:nth-child(odd) { background: var(--track); }
+.jtp__row:last-child { margin-bottom: 0; }
+.jtp__top { display: flex; align-items: baseline; gap: calc(0.4 * var(--u)); min-width: 0; }
+.jtp__type {
+  flex: 1;
+  min-width: 0;
+  /* Small enough that most type names hold one line in a fifth of the panel.
+     At 1.02u, three of them wrapped and the seventh row fell off the bottom. */
+  font-size: calc(0.95 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  /* Wraps rather than ellipses where it still must: "AIO Heat Pump (Pl…" is
+     the wrong half of the name, and the row has the height for a second. */
+  overflow-wrap: anywhere;
+}
+.jtp__jobs {
+  flex: none;
+  font-size: calc(1.25 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.jtp__meta { font-size: calc(0.76 * var(--u)); color: var(--ink-muted); line-height: 1.15; }
+.jtp__bar {
+  display: flex;
+  gap: 1px;
+  height: calc(0.45 * var(--u));
+  border-radius: calc(0.25 * var(--u));
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.jt__n {
-  text-align: right;
-  font-size: calc(1.22 * var(--u));
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-
-.jt__bar {
-  position: relative;
-  height: calc(0.62 * var(--u));
-  border-radius: 999px;
   background: var(--track);
-  overflow: visible;
+  margin-top: calc(0.08 * var(--u));
 }
-.jt__fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 999px;
-  /* Share of the month is context, not a verdict, so it stays in the page's own
-     warm neutrals rather than taking the navy the figures are set in. Five navy
-     bars down the table pulled the eye off the revenue column they are there to
-     qualify. Margin keeps its status colours below. */
-  background: var(--muted-fig);
-}
-/* Teal at or above the goal, orange below. The written percentage beside it
-   carries the same message, so the colour is never the only signal. */
-.jt__fill.is-over { background: var(--ahead-ink); }
-.jt__fill.is-under { background: var(--accent); }
+.jtp__bar > span { flex-basis: 0; min-width: 0; }
+.jtp__ledwords { font-size: calc(0.78 * var(--u)); color: var(--ink-2); line-height: 1.15; font-weight: 600; }
+/* The third segment is "nothing came of it", so it is a shade of the track
+   rather than a fifth tint — an absence should not read as a category. It
+   still has to read as a *filled* segment: a row where nothing came of the
+   work is a full bar of "just the job", and a bar that looks empty says the
+   figure is missing instead.
 
-/* The goal, at the midpoint of a track scaled to twice it. */
-.jt__goal {
-  position: absolute;
-  left: 50%;
-  top: calc(-0.28 * var(--u));
-  bottom: calc(-0.28 * var(--u));
-  width: calc(0.14 * var(--u));
-  border-radius: 999px;
-  background: var(--navy);
-}
-
-.jt__pct {
-  text-align: right;
-  font-size: calc(1.35 * var(--u));
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-.jt__pct.is-over { color: var(--ahead-ink); }
-/* A share of the month is not a verdict, so it does not take a status colour. */
-.jt__pct--quiet { color: var(--ink-2); font-weight: 700; }
-.jt__pct.is-under { color: var(--accent); }
-.jt__marginhead { font-size: calc(0.86 * var(--u)); }
+   Dark needs its own pair. The row tint is `--track`, so at the light theme's
+   relationship the segment and the row it sits on were the same colour and
+   every "just the job" row read as an empty rail. The bar takes a background
+   a step off the row, and the segment a step off that. */
+.jtp__none { background: #dcd8cb; }
+.screen--dark .jtp__bar { background: #313138; }
+.screen--dark .jtp__none { background: #55555f; }
 
 /* ------------------------------------------------------- head & hero cards */
 .tile--head { justify-content: center; gap: calc(0.3 * var(--u)); }
@@ -2331,160 +2616,6 @@ body:has(.screen) .utilbar {
    must be the same width whatever is in them — a tech with a long job name must
    not get a wider card than one with a short one, or the dials stop lining up
    across the row and the page reads as five unrelated things. */
-.dp__row {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: calc(1.1 * var(--u));
-  min-height: 0;
-}
-.dp__card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  border-radius: calc(1 * var(--u));
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  overflow: hidden;
-}
-
-/* The verdict, in words, across the top of the card. The status colours are the
-   board's own and are never used decoratively, so the band is the one place on
-   the page a colour carries meaning — and it carries the word beside it. */
-.dp__band {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: calc(0.6 * var(--u));
-  padding: calc(0.5 * var(--u)) calc(0.8 * var(--u));
-  font-size: calc(0.82 * var(--u));
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-}
-.dp__band b,
-.dp__band em { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.dp__band b { font-weight: 900; }
-.dp__band em { font-style: normal; font-weight: 800; opacity: 0.92; }
-/* No quoted time is not a verdict. Grey, and it says so in words. */
-.dp__band--none { background: var(--track); color: var(--ink-muted); }
-
-.dp__who {
-  display: flex;
-  align-items: center;
-  gap: calc(0.6 * var(--u));
-  padding: calc(0.7 * var(--u)) calc(0.9 * var(--u));
-  border-bottom: 1px solid var(--hairline);
-  font-size: calc(1.45 * var(--u));
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dp__who i {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: calc(1.7 * var(--u));
-  height: calc(1.7 * var(--u));
-  border-radius: 999px;
-  background: var(--track);
-  font-size: calc(0.9 * var(--u));
-  font-style: normal;
-  font-weight: 800;
-  color: var(--ink-2);
-}
-
-.dp__cell {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: calc(0.45 * var(--u)) calc(0.6 * var(--u));
-  border-bottom: 1px solid var(--hairline);
-  overflow: hidden;
-}
-/* Says which of the three dials this is. Quiet, because the figure inside the
-   dial is the thing being read from across the room and this only has to be
-   there when somebody asks "what is that one?". */
-.dp__glabel {
-  font-size: calc(0.82 * var(--u));
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/*
- * Three dials stacked in one card, so each gets a third of the height and the
- * dial has to give way rather than the words under it.
- *
- * The bare gauge is built for the Pace page, where a card holds two of them
- * across a full row. Here there are three down a fifth of the width, and at its
- * own size the SVG alone was taller than the cell — the status line and the
- * foot ran out of the bottom and over the dial below. Capped, with the type
- * stepped down to match, the whole cell fits and nothing overlaps.
- */
-.dp__cell .gauge--bare {
-  flex: 1 1 0;
-  min-height: 0;
-  width: 100%;
-  padding: 0;
-  gap: calc(0.1 * var(--u));
-  justify-content: center;
-}
-.dp__cell .gauge__svg { max-height: calc(5.1 * var(--u)); margin-top: 0; }
-.dp__cell .gauge .status { font-size: calc(0.95 * var(--u)); }
-.dp__cell .gauge__foot { font-size: calc(0.78 * var(--u)); line-height: 1.15; }
-
-.dp__foot {
-  display: flex;
-  flex-direction: column;
-  gap: calc(0.15 * var(--u));
-  padding: calc(0.7 * var(--u)) calc(0.9 * var(--u));
-  font-size: calc(0.95 * var(--u));
-  color: var(--ink-2);
-}
-.dp__foot b { font-weight: 800; color: var(--ink); }
-
-/* The team band reuses .year, so it inherits the navy surface and its dark-mode
-   behaviour rather than growing a second copy of both. */
-.dp__team {
-  grid-column: 1 / -1;
-  grid-row: auto;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-.dp__teamstats {
-  display: flex;
-  align-items: center;
-  gap: calc(2.4 * var(--u));
-}
-.dp__teamstats span { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); }
-.dp__teamstats em {
-  font-style: normal;
-  font-size: calc(1 * var(--u));
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.72);
-}
-.dp__teamstats b {
-  font-size: calc(1.7 * var(--u));
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-.dp__teamstats i {
-  font-style: normal;
-  font-size: calc(1 * var(--u));
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.dp__empty { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: calc(0.5 * var(--u)); }
-.dp__emptysub { font-size: calc(1.2 * var(--u)); color: var(--ink-muted); }
 
 /* A plan rate somebody typed, called out in the Pace legend. The status
    palette's warning colour, and the words say it too — a colour never carries
@@ -2511,3 +2642,336 @@ body:has(.screen) .utilbar {
 .goalmark { font-size: calc(0.86 * var(--u)); }
 .tile--navy .goalmark.status--behind { color: #ff8d80; }
 .tile--navy .goalmark.status--ahead { color: #6fdca0; }
+
+
+/* ── Weather ──────────────────────────────────────────────────────────────
+   Today hour by hour, then the week as seven columns. The columns are the
+   Job types panel's shape — a rule between them rather than a card each —
+   because seven boxes inside a box reads as a form. */
+
+/* A verdict, in ink. Always beside the word it belongs to and never instead
+   of it: the whole palette is unreadable to somebody colour-blind and the
+   words are what the page is actually saying. */
+.wx--good { color: var(--wx-good); }
+.wx--fair { color: var(--wx-fair); }
+.wx--poor { color: var(--wx-poor); }
+.wx--no { color: var(--wx-no); }
+
+.wx {
+  font-size: calc(0.92 * var(--u));
+  font-weight: 700;
+  white-space: nowrap;
+}
+/* On the navy card the four inks have nothing like enough contrast, so the
+   verdict there is white and the figure under it carries the argument. */
+.tile--navy .wx { color: rgba(255, 255, 255, 0.92); }
+
+/* The key's square. Decorative — every row it stands beside is labelled. */
+.wxdot {
+  width: calc(0.6 * var(--u));
+  height: calc(0.6 * var(--u));
+  border-radius: calc(0.14 * var(--u));
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+.wx__credit {
+  font-size: calc(0.78 * var(--u));
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* ── today, hour by hour ──────────────────────────────────────────────── */
+.wxs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: calc(0.25 * var(--u));
+  padding-top: calc(0.4 * var(--u));
+}
+/* Five fixed lines and nothing that grows. The cell held a `flex: 1` bar
+   with `min-height: 0`, which shrank silently to nothing when the rest
+   outgrew the tile rather than reporting an overflow — so the bar was
+   invisible at every size and the rain figure under it was clipped. */
+.wxs__h {
+  flex: 1 1 0;
+  min-width: 0;
+  /* Never wider than it would be with a full day in the strip: late in the
+     afternoon only a couple of hours are left, and equal flex shares stretched
+     two columns across the whole wall. */
+  max-width: calc(100% / 14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(0.08 * var(--u));
+  border-radius: calc(0.45 * var(--u));
+  /* More at the foot than the head: the rain figure is the last line and was
+     sitting hard on the bottom edge, which read as hanging off it. */
+  padding: calc(0.2 * var(--u)) calc(0.1 * var(--u)) calc(0.45 * var(--u));
+}
+/* The working day is the lit part of the strip. The shoulders are there so an
+   early start and a late finish are on the page, not to be read equally. */
+.wxs__h.is-work { background: var(--track); }
+.wxs__h:not(.is-work) { opacity: 0.55; }
+.wxs__t {
+  font-size: calc(1.1 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1;
+}
+/* Wind, which closes a roof job on a tin roof where the cooling figure that
+   used to sit here closed nothing. */
+.wxs__wind {
+  font-size: calc(0.8 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.wxs__rain {
+  font-size: calc(0.76 * var(--u));
+  font-weight: 700;
+  color: var(--wx-no);
+  line-height: 1.1;
+  min-height: 1.1em;
+}
+/* The hour heads the cell now, so it carries a little more weight than a
+   caption at the foot did. */
+.wxs__hr {
+  font-size: calc(0.82 * var(--u));
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* ── the week ──────────────────────────────────────────────────────────── */
+.wxw {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  /* However many days came back, not a hard seven: the forecast runs out at
+     its own pace and a fixed seven left a column of empty rule on the right. */
+  grid-template-columns: repeat(var(--wx-n, 7), 1fr);
+  gap: calc(1 * var(--u));
+  padding-top: calc(0.4 * var(--u));
+}
+.wxw__d {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.1 * var(--u));
+  min-width: 0;
+  min-height: 0;
+  padding-left: calc(1 * var(--u));
+  border-left: 1px solid var(--hairline);
+}
+.wxw__d:first-child { padding-left: 0; border-left: 0; }
+/* Today is the column somebody checks against what they can see out of the
+   window, which is how the other six earn any trust. */
+.wxw__d.is-today .wxw__name { color: var(--navy); }
+.wxw__name {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: calc(1.15 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink-2);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.wxw__temp {
+  font-size: calc(1.55 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--navy);
+  line-height: 1;
+  white-space: nowrap;
+}
+.wxw__rain { font-size: calc(0.82 * var(--u)); color: var(--ink-muted); line-height: 1.2; }
+.wxw__head {
+  font-size: calc(1 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  padding-top: calc(0.2 * var(--u));
+  overflow-wrap: break-word;
+}
+/* A fixed block, so every column's first job box starts on the same line.
+   It floated before: one day's reason runs to three lines and the next day's
+   to one, and seven columns of boxes at seven heights reads as a mistake. */
+.wxw__sky {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.06 * var(--u));
+  min-width: 0;
+  /* Measured, not guessed: name, temperature row, rain, verdict and two
+     lines of reason come to about 7.2u. Anything more is height the job
+     boxes below want. */
+  min-height: calc(7.3 * var(--u));
+  padding-bottom: calc(0.3 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+}
+.wxw__why {
+  font-size: calc(0.76 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+/* The day's diary, under the weather that decides it. */
+.wxw__jobs {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.16 * var(--u));
+  padding-top: calc(0.22 * var(--u));
+  flex: 1;
+  min-height: 0;
+}
+.wxw__none { font-size: calc(0.78 * var(--u)); color: var(--ink-muted); }
+
+/* One booked job inside a day's column. */
+.wxj2 {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.02 * var(--u));
+  min-width: 0;
+  border-radius: calc(0.45 * var(--u));
+  padding: calc(0.18 * var(--u)) calc(0.42 * var(--u));
+  background: var(--track);
+}
+/* A job in trouble gets a rule down its edge as well as its word and its dot
+   — three signals, none of them colour alone. */
+.wxj2.is-risk { box-shadow: inset calc(0.28 * var(--u)) 0 0 0 var(--wx-no); }
+.wxj2.is-watch { box-shadow: inset calc(0.28 * var(--u)) 0 0 0 var(--wx-poor); }
+.wxj2__top { display: flex; align-items: baseline; gap: calc(0.4 * var(--u)); min-width: 0; }
+.wxj2__num {
+  font-size: calc(0.92 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+}
+.wxj2__at { font-size: calc(0.8 * var(--u)); color: var(--ink-2); margin-left: auto; white-space: nowrap; }
+.wxj2__what {
+  font-size: calc(0.88 * var(--u));
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.wxj2__doing {
+  font-size: calc(0.74 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.wxj2__word {
+  display: flex;
+  align-items: center;
+  gap: calc(0.3 * var(--u));
+  font-size: calc(0.82 * var(--u));
+  font-weight: 800;
+  padding-top: calc(0.08 * var(--u));
+  white-space: nowrap;
+}
+/* What makes this job different from the one above it, now that the status
+   above is one of three fixed words. Two lines at most: the colour has
+   already done the catching. */
+.wxj2__why {
+  font-size: calc(0.72 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.wxw__calls {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.1 * var(--u));
+  padding-top: calc(0.25 * var(--u));
+  border-top: 1px solid var(--hairline);
+}
+.wxw__call {
+  display: flex;
+  align-items: center;
+  gap: calc(0.3 * var(--u));
+  min-width: 0;
+  font-size: calc(0.8 * var(--u));
+  line-height: 1.2;
+}
+.wxw__kind { color: var(--ink-muted); flex: 0 0 auto; }
+.wxw__word {
+  color: var(--ink-2);
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* ── the sky ──────────────────────────────────────────────────────────────
+   Drawn, not fetched. Everything inherits currentColor or the two tints
+   below, so the icon follows its column's ink into the dark theme without a
+   second rule. */
+.sky {
+  /* Square, and no taller than the temperature it sits beside: a taller icon
+     sets the height of the whole header row, and the half unit it added put a
+     busy summer week 18 pixels over the tile. */
+  width: calc(1.55 * var(--u));
+  height: calc(1.55 * var(--u));
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.sky--cloud { fill: #c6cbd8; stroke: none; }
+.sky--sun { fill: #e8a33d; stroke: none; }
+.sky__rays { stroke: #e8a33d; stroke-width: 1.6; stroke-linecap: round; fill: none; }
+.sky--rain { stroke: #5b7fc4; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+.sky--bolt { fill: #e8a33d; stroke: none; }
+.screen--dark .sky--cloud { fill: #6a7183; }
+.screen--dark .sky--sun,
+.screen--dark .sky--bolt { fill: #f0b659; }
+.screen--dark .sky__rays { stroke: #f0b659; }
+.screen--dark .sky--rain { stroke: #89a8e4; }
+
+/* The temperature and the sky share a line at the head of a day column. */
+.wxw__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(0.3 * var(--u));
+  min-width: 0;
+}
+/* In the hour strip the icon is smaller: fourteen of them across the wall. */
+.wxs__h .sky { width: calc(1.25 * var(--u)); height: calc(1.25 * var(--u)); }
+/* The sky and the temperature share a line in the hour cell. */
+.wxs__now {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(0.25 * var(--u));
+  min-width: 0;
+}
+
+/* ── the day's totals, in the space the working hours leave ─────────────── */
+.wxsum {
+  flex: 1 1 0;
+  min-width: calc(9 * var(--u));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(0.22 * var(--u));
+  padding: calc(0.25 * var(--u)) calc(0.9 * var(--u));
+  margin-left: calc(0.5 * var(--u));
+  border-left: 1px solid var(--hairline);
+}
+.wxsum__row { display: flex; align-items: baseline; gap: calc(0.45 * var(--u)); min-width: 0; }
+.wxsum__fig {
+  font-size: calc(1.2 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1;
+  white-space: nowrap;
+}
+.wxsum__lab {
+  font-size: calc(0.76 * var(--u));
+  color: var(--ink-muted);
+  line-height: 1.15;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

@@ -1,6 +1,28 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { BREAK_HOURS, CREW_SECTORS, DAY_END_HOUR, DAY_START_HOUR, LONGEST_ALLOWED_HOURS, MIN_IDLE_DAYS, MIN_TIMED, MIN_TYPE_TIMED, rollUpTypes, type CrewSector, type JobTypeKpi, type TechKpi } from "@/lib/dashboard/crewTypes";
+import {
+  WORK_FROM_HOUR,
+  WORK_TO_HOUR,
+  type WxHour,
+  type WxRating,
+  type WxSky,
+} from "@/lib/dashboard/weatherTypes";
+import {
+  callsForJobs,
+  tally,
+  type JobCall,
+  type JobStatus,
+} from "@/lib/dashboard/weatherJobsTypes";
+import {
+  clock,
+  degrees,
+  roofCall,
+  mm,
+  type WxDay,
+} from "@/lib/dashboard/weatherTypes";
+import type { SectorKey, VisitOutcomes } from "@/lib/dashboard/sectors";
+import { Fragment, type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
@@ -54,9 +76,12 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   Quotes: "screen__grid--quotes",
   Invoices: "screen__grid--invoices",
   "Daily pace": "screen__grid--daily",
+  Crew: "screen__grid--crew",
   Team: "screen__grid--team",
-  Performance: "screen__grid--perf",
+  "Job types": "screen__grid--crew",
+  Sectors: "screen__grid--sectors",
   Areas: "screen__grid--areas",
+  Weather: "screen__grid--weather",
 };
 
 /**
@@ -65,24 +90,72 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
  * Pace names where its targets came from, because "63%" on a wall invites the
  * question and the answer is the whole point of the board.
  */
-/**
- * The badge beside a page's name: is this page's own measure on track?
+/*
+ * No page carries a *verdict* badge beside its name any more.
  *
- * Only Performance carries one so far. Its headline question is whether the
- * month's work is getting done, so the badge is the `completed` step of Pace —
- * the same figure the Pace page's Completed dial shows, on the same done ÷
- * by-now scale as every other verdict on the board and as the footer's key. A
- * second scale invented for this one badge is how a board starts disagreeing
- * with itself.
+ * Performance carried one — the `completed` step of Pace, repeated — and the
+ * page that replaced it is about which kind of job takes how long. Nothing
+ * sets a target for that, and borrowing Pace's month-completed verdict to sit
+ * beside a table of job types would be the board answering a question nobody
+ * asked on that page. If a page earns one, it goes back here.
+ *
+ * What every page does carry is the window it measures, below.
  */
-function headVerdict(name: (typeof PAGES)[number], m: Metrics): { verdict: string; text: string } | null {
-  if (name !== "Performance") return null;
-  const s = m.pace?.standing.month.completed;
-  if (!s || s.need == null) return null;
-  const index = paceIndex(s.done, s.byNow);
-  const verdict = verdictOf(index);
-  if (!verdict) return null;
-  return { verdict, text: verdictText(index, verdict) };
+
+/**
+ * The period each page is measuring, in the same place on every page.
+ *
+ * Jake asked for it (16 Nov: "at the top of each tab have the time frame that
+ * it is measuring so it's more clear"), and he asked because he had just been
+ * caught out by it: Sectors reads as a year and is in fact clamped to the day
+ * ServiceTitan became the ledger, which is two months. Nine pages measuring
+ * nine different periods with the period named in the prose of some of them is
+ * how a room compares two figures that were never comparable.
+ *
+ * It says what is true rather than what was asked for. Crew and Job types ask
+ * for 365 days and get what exists, which starts the day ServiceTitan did — so
+ * the chip reads "22 Jun – today", not "last 365 days". See Crew.firstDay.
+ */
+const WINDOWS: Record<(typeof PAGES)[number], (m: Metrics) => string | null> = {
+  Today: () => "today",
+  Pace: () => "this week, month and year",
+  Quotes: () => "today, and everything still out",
+  Invoices: () => "everything owed, now",
+  "Daily pace": () => "today",
+  Crew: (m) => since(m.crew?.firstDay ?? m.crew?.from),
+  Team: () => "this week and month",
+  "Job types": (m) => since(m.crew?.firstDay ?? m.crew?.from),
+  Sectors: (m) => since(m.sectors?.from),
+  Areas: () => "last 60 days",
+  /*
+   * The only page on the board that looks forward rather than back — and it
+   * counts the days it still has rather than the days it was given, so a
+   * forecast carried across midnight does not claim a week it has spent.
+   */
+  Weather: (m) => {
+    const ahead = m.weather ? m.weather.days.filter((d) => d.date >= m.weather!.today).length : 0;
+    if (ahead === 0) return "the week ahead";
+    return ahead === 1 ? "the rest of today" : `today and the next ${ahead - 1} days`;
+  },
+
+};
+
+/**
+ * "22 Jun – today · 5 months", from an ISO date.
+ *
+ * The span is spelled out beside the date because "since 22 Jun" needs a
+ * calendar and four metres is too far to do arithmetic. Months once there are
+ * two, days before that — "0 months" on a new tenant would be worse than the
+ * number it replaced.
+ */
+function since(from: string | null | undefined): string | null {
+  if (!from) return null;
+  const start = new Date(`${from}T00:00:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  const days = Math.max(0, Math.round((Date.now() - start.getTime()) / 86_400_000));
+  const months = Math.round(days / 30.4);
+  const span = days < 60 ? `${days} days` : `${months} months`;
+  return `${shortDay(from)} – today · ${span}`;
 }
 
 const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
@@ -101,6 +174,17 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `What the ${goal} goal needs of every step${rateNote(m)}${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
+  // Says the window and, in the same breath, how much of the clock it is built
+  // from: a tech's hours are the visits whose stamps gave a real span, and a
+  // page about people has to lead with what it did not measure.
+  Crew: (m) => {
+    const c = m.crew;
+    if (!c) return "Each van";
+    const t = c.team.timed;
+    return `Each van · ${t.with} of ${t.of} visits have a start and finish clocked${
+      c.passengers.length > 0 ? ` · ${c.passengers.length} riding with them` : ""
+    }`;
+  },
   // Names whose job it is, because the page is a work list rather than a score:
   // everything on it is something one person in the office does next.
   Invoices: () => "Money to bill, money owed to us, and what's overdue · one person's job",
@@ -113,17 +197,31 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
       : "Who has sold what",
   // Says which population the page counts, because it was read as jobs twice
   // and it is invoices — a job can carry more than one.
-  Performance: () => `${monthName(new Date())} so far · booked and invoiced, by job type`,
-  Areas: () => "Where the work is · last 60 days",
-  // Says whose day it is and what the dials measure, because the first dial is
-  // time against a quote and the room has to know that is what it is seeing.
+  // Says the window and what the two time figures are, because "4h" against
+  // "3.8h" is unreadable until you know which is the booking and which is the
+  // work.
+  "Job types": (m) =>
+    m.crew
+      ? "Each sector and the job types under it"
+      : "Each sector and the job types under it",
+  Sectors: (m) => {
+    const s = m.sectors;
+    if (!s) return "Maintenance, breakdowns, repairs and installs";
+    return "Each kind of work, and what it leads to · jobs billed in the window, before GST";
+  },
+  Areas: () => "Where the work is, on the corridor",
+  Weather: (m) =>
+    m.weather
+      ? `${m.weather.place} \u00b7 what each day suits, and what is booked into it`
+      : "What the week is good for booking",
+  // Says what the second line of every cell is, because a page of pairs is
+  // unreadable until you know which half is today.
   "Daily pace": (m) => {
-    const d = m.daily;
-    if (!d) return "Each tech's day on the tools";
-    const cover = d.team.quotedCover;
-    const gap = cover.of - cover.with;
-    return `each tech's day on the tools: on time vs quoted, jobs done, billed${
-      gap > 0 ? ` · ${gap} of ${cover.of} jobs have no quoted time` : ""
+    const d = m.crewToday;
+    if (!d) return "Each van's day, against its year";
+    const t = d.team.timed;
+    return `Each figure against the same figure over the year · ${t.with} of ${t.of} visits clocked${
+      d.passengers.length > 0 ? ` · ${d.passengers.length} riding with them` : ""
     }`;
   },
 };
@@ -537,15 +635,9 @@ export function ScreenBoard({
             thirty seconds, and re-running the animation for a changed minute
             would make the header twitch on its own. */}
         <span className="screen__title" key={name}>{name}</span>
-        {/* Whether the page's own headline measure is behind, close, on track
-            or ahead, right beside its name — so the room gets the answer before
-            reading any of the figures under it. The word is written out: this
-            is the board's status palette and it is never carried by hue alone. */}
-        {headVerdict(name, m) && (
-          <span className={`screen__verdict status status--${headVerdict(name, m)!.verdict}`}>
-            {headVerdict(name, m)!.text}
-          </span>
-        )}
+        {/* The period this page measures, in the same place on every page, so
+            two pages are never silently compared over different ones. */}
+        {WINDOWS[name](m) && <span className="screen__when">{WINDOWS[name](m)}</span>}
         <span className="screen__subtitle">
           {name === "Today"
             ? `${now.toLocaleDateString("en-AU", {
@@ -570,7 +662,14 @@ export function ScreenBoard({
             the page that matters next. It also matches the portal, which is the
             point of the exercise. */}
         <nav className="screen__pager" aria-label="Board pages">
-          <span className="screen__dashes" aria-hidden="true">
+          {/* The strip is told how many pages it is drawing, so it can keep
+              its own width as pages are added. Adding the eleventh widened it
+              by two units and started ellipsing the Daily pace subtitle. */}
+          <span
+            className="screen__dashes"
+            aria-hidden="true"
+            style={{ "--page-n": PAGES.length } as CSSProperties}
+          >
             {PAGES.map((p, i) => (
               <span key={p} className={`screen__dash ${i === page ? "is-on" : ""}`} />
             ))}
@@ -654,10 +753,13 @@ export function ScreenBoard({
         {name === "Pace" && <PacePage m={m} live={live} now={now} />}
         {name === "Quotes" && <QuotesPage m={m} live={live} />}
         {name === "Invoices" && <InvoicesPage m={m} live={live} />}
-        {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
+        {name === "Daily pace" && <DailyPacePage m={m} live={live} />}
+        {name === "Crew" && <CrewPage m={m} live={live} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
-        {name === "Performance" && <PerformancePage m={m} live={live} />}
+        {name === "Job types" && <JobTypesPage m={m} live={live} />}
+        {name === "Sectors" && <SectorsPage m={m} live={live} />}
         {name === "Areas" && <AreasPage m={m} live={live} />}
+        {name === "Weather" && <WeatherPage m={m} live={live} />}
         </TickerScope.Provider>
       </div>
 
@@ -1831,201 +1933,197 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
  * room should be able to see the denominator it is being judged against.
  */
 /**
- * Each tech's day on the tools.
+ * Today, in the Crew page's shape, with the year beside it (Jake, 15 Nov:
+ * "unless we make it like the crew style but just track it daily vs over the
+ * year").
  *
- * The only page the crew are the subject of, which sets how it behaves: worst
- * first, so the card the room should look at is the leftmost one, and nobody is
- * scored against a number that was never set.
+ * It replaced five gauge cards per tech. Those read well for one day and could
+ * not be read against anything: a dial at 96% told the room nothing about
+ * whether 96% was this man's normal. Every figure here carries the same figure
+ * over the year underneath it, which is the comparison the page is for — and
+ * it is the same arithmetic over a different window, from the same function,
+ * so the two pages cannot mean different things by "in the time sold".
  *
- * **The first dial is quoted ÷ taken, not the other way round.** Taking longer
- * than the job was priced for is the bad outcome, and the board's zones run
- * low-is-behind — so a day quoted at 4h and taken in 6 reads 67%, in the red
- * band, where 6h quoted and 5.5h taken reads 109% and sits on track. One
- * palette, no inverted dial, and "over time" lands in the colour the rest of
- * the board uses for trouble.
- *
- * **A job with no quoted time is not scored.** Most service work is billed
- * without a labour line, so only 76 of 268 timesheet spans over thirty days
- * carried quoted hours; a standard time per job type, set in the portal, fills
- * the rest in as it gets filled in. Until then those jobs show their hours
- * taken, the dial is drawn flat, and the card says how many of the day's jobs
- * had nothing to measure against. That is the whole reason the header carries
- * the caveat too: a figure the room cannot check is one it stops trusting.
+ * Nothing is status-coloured, for the reason the Crew page isn't: no target is
+ * set for any of it, and a green figure would be the board inventing one.
  */
-function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
-  const d = m.daily;
-  const hrs = (n: number) => `${Math.round(n * 10) / 10}h`;
-  /** "0.5h under" / "1.2h over" — the gap in the unit the crew talk in. */
-  const gap = (quoted: number, taken: number) => {
-    const diff = Math.round(Math.abs(quoted - taken) * 10) / 10;
-    if (diff < 0.1) return "on the quote";
-    return `${diff}h ${taken > quoted ? "over" : "under"}`;
-  };
-  /** The band's word. The four verdicts, said the way a day is said. */
-  const BAND: Record<Verdict, string> = {
-    ahead: "Under time",
-    track: "On time",
-    close: "Running over",
-    behind: "Over time",
-  };
-
+function DailyPacePage({ m, live }: { m: Metrics; live: Live }) {
+  const d = m.crewToday;
+  const year = m.crew;
   if (!live.st || !d || d.techs.length === 0) {
     return (
-      <div className="tile c12 dp__empty">
-          <span className="tile__label">Nobody on the tools yet</span>
-        <span className="dp__emptysub">
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Nobody on the tools yet</span>
+        <span className="tile__sub">
           {live.st ? "The first job of the day fills this page." : "Waiting on ServiceTitan."}
         </span>
       </div>
     );
   }
-
   const t = d.team;
-  const teamIndex = t.hoursQuoted != null && t.hoursTakenQuoted > 0 ? t.hoursQuoted / t.hoursTakenQuoted : null;
+  const y = year?.team ?? null;
+  /** The year's figure per day worked, which is what a day can be read against. */
+  const perDay = (total: number | undefined, days: number | undefined) =>
+    total != null && days != null && days > 0 ? total / days : null;
+  const dayLabel = (n: number | null) => (n != null ? `${hrs(n)} on a usual day` : "no year to compare");
+  const yearTech = new Map((year?.techs ?? []).map((p) => [p.tech, p]));
 
   return (
     <>
-      <div className="dp__row">
-        {d.techs.slice(0, 5).map((p, i) => {
-          // Over the quoted jobs only, both halves. See hoursTakenQuoted.
-          const index = p.hoursQuoted != null && p.hoursTakenQuoted > 0 ? p.hoursQuoted / p.hoursTakenQuoted : null;
-          const v = verdictOf(index);
-          const jobsIdx = paceIndex(p.jobsDone, p.jobsTotal);
-          const billIdx = paceIndex(p.billedCount, Math.max(1, p.jobsDone));
-          const noQuote = p.quotedCover.of - p.quotedCover.with;
-          return (
-            <div className="dp__card" key={p.tech}>
-              <span className={`dp__band ${v ? `status--${v}` : "dp__band--none"}`}>
-                <b>{v ? BAND[v] : "No quoted time"}</b>
-                <em>
-                  {index != null && p.hoursQuoted != null
-                    ? `${Math.round(index * 100)}% · ${gap(p.hoursQuoted, p.hoursTakenQuoted)}`
-                    : `${hrs(p.hoursTaken)} taken`}
-                </em>
+      <HeadCard
+        label="Time on the tools"
+        value={hrs(t.hours)}
+        foot={`${count(t.jobs)} jobs · ${t.timed.with} of ${t.timed.of} clocked${
+          y ? ` · ${dayLabel(perDay(y.hours, y.daysWorked))}` : ""
+        }`}
+      />
+      <HeadCard
+        label="Not billable"
+        value={t.idle.share != null ? hrs(t.idle.hours) : NA}
+        // Short: at 2560x1440 a longer line wrapped out of the card. The van
+        // count has to stay — "0h" off one van of four reads as nobody idle.
+        foot={`${
+          t.idle.share != null
+            ? `${pct(t.idle.share)} of the day · ${t.idle.days} of ${t.daysWorked} vans`
+            : "no van fully stamped yet"
+        }${y?.idle.share != null ? ` · ${pct(y.idle.share)} this year` : ""}`}
+      />
+      {/* The day's driving added up, with the per-job average under it (Jake,
+          16 Nov). The total is the figure a day is read by — four hours in the
+          van is four hours — and the average is what makes two days of
+          different length comparable, so both are here and the total leads. */}
+      <HeadCard
+        label="Drive time"
+        value={hrs(t.drive.hours)}
+        foot={`${
+          t.drive.avgMins != null ? `${Math.round(t.drive.avgMins)} min a job` : "none recorded"
+        } · ${t.drive.jobs} of ${t.drive.of} jobs${
+          y?.drive.avgMins != null ? ` · ${Math.round(y.drive.avgMins)} min usually` : ""
+        }`}
+      />
+      {/* Against the slot the office booked, not against the invoice: nothing
+          is sold until after the day is over, so a day page built on sold
+          hours is mostly empty on the day somebody reads it. Jake, 16 Nov. */}
+      <HeadCard
+        navy
+        label="In the time allowed"
+        value={t.allow.of > 0 ? `${t.allow.within} of ${t.allow.of}` : NA}
+        foot={`${
+          t.allow.of > 0
+            ? `${hrs(t.allow.allowed)} booked · ${hrs(t.allow.taken)} used`
+            : "no job today is booked by the hour"
+        }${y?.inAllowedRate != null ? ` · ${pct(y.inAllowedRate)} usually` : ""}`}
+      />
+
+      <div className="tile c12" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">Today</span>
+          <span className="tile__sub">each figure against the same figure over the year · judged on the slot each job is booked for</span>
+          <span className="crew__legend">
+            {CREW_SECTORS.map((k) => (
+              <span className="crew__key" key={k}>
+                <i className={`mix--${k}`} aria-hidden="true" />
+                {SECTOR_WORD[k]}
               </span>
-
-              <span className="dp__who">
-                <i aria-hidden>{i + 1}</i>
-                {p.tech}
-              </span>
-
-              {/* The label belongs to the cell, not the dial: `bare` drops the
-                  Gauge's own heading so it can sit inside a card that already
-                  has one, and three unlabelled dials in a column are three
-                  numbers nobody can name. */}
-              <div className="dp__cell">
-                <span className="dp__glabel">On time · hours vs quoted</span>
-                <Gauge
-                  bare
-                  index={index}
-                  verdict={v}
-                  figure={hrs(index != null ? p.hoursTakenQuoted : p.hoursTaken)}
-                  of={p.hoursQuoted != null ? `of ${hrs(p.hoursQuoted)} ${p.jobs.some((j) => j.quotedFrom === "typical") ? "allowed" : "quoted"}` : "taken"}
-                  status={
-                    index != null
-                      ? verdictText(index, v)
-                      : /* Never "0%". Nothing was quoted, so there is nothing to be
-                           behind, and a red dial here would blame somebody for a
-                           missing setting. */
-                        "nothing quoted to measure"
-                  }
-                  foot={
-                    noQuote > 0
-                      ? `${noQuote} of ${p.quotedCover.of} not quoted · ${hrs(p.hoursTaken)} all up`
-                      : p.jobs.some((j) => j.quotedFrom === "typical")
-                        ? `${p.jobs.filter((j) => j.quotedFrom === "typical").length} at the usual time for the job type`
-                        : undefined
-                  }
-                />
-              </div>
-
-              <div className="dp__cell">
-                <span className="dp__glabel">Jobs done off the list</span>
-                <Gauge
-                  bare
-                  index={jobsIdx}
-                  verdict={verdictOf(jobsIdx)}
-                  figure={`${p.jobsDone} of ${p.jobsTotal}`}
-                  status={verdictText(jobsIdx, verdictOf(jobsIdx))}
-                  foot={p.jobsDone >= p.jobsTotal ? "list done" : `${p.jobsTotal - p.jobsDone} still to go`}
-                />
-              </div>
-
-              <div className="dp__cell">
-                <span className="dp__glabel">Billed</span>
-                <Gauge
-                  bare
-                  index={p.jobsDone > 0 ? billIdx : null}
-                  verdict={p.jobsDone > 0 ? verdictOf(billIdx) : null}
-                  figure={`${p.billedCount} of ${p.jobsDone}`}
-                  status={p.jobsDone > 0 ? verdictText(billIdx, verdictOf(billIdx)) : "nothing finished yet"}
-                  foot={p.billedValue > 0 ? `${money(p.billedValue)} billed today` : "nothing billed yet"}
-                />
-              </div>
-
-              <span className="dp__foot">
-                {p.onNow ? (
-                  <b>
-                    Now · {p.onNow.what}
-                    {p.onNow.where ? `, ${p.onNow.where}` : ""} · {hrs(p.onNow.taken)}
-                    {p.onNow.quoted != null ? ` of ${hrs(p.onNow.quoted)}` : ""}
-                  </b>
-                ) : (
-                  <b>{p.jobsDone >= p.jobsTotal ? "List done" : "Between jobs"}</b>
-                )}
-                <span>
-                  {p.toBillCount > 0
-                    ? `${p.toBillCount} ${p.toBillCount === 1 ? "job" : "jobs"} waiting to bill`
-                    : "Nothing waiting to bill"}
-                </span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* The day in one line, in the same navy the Pace page's year band uses. */}
-      <div className="year dp__team">
-        <div className="year__main">
-          <span className="year__nums">
-            <b className="year__gap">{hrs(t.hoursTaken)} taken</b>
-            <em className={`year__vs ${teamIndex != null && teamIndex < 1 ? "is-behind" : "is-ahead"}`}>
-              {/* Named as the subset it is. "16.2h taken, 6h quoted, 10.2h over"
-                  was the whole day's hours against four jobs' quotes, which is
-                  not a comparison — it is two different days put next to each
-                  other with a minus sign between them. */}
-              {t.hoursQuoted != null
-                ? `${hrs(t.hoursTakenQuoted)} of that on ${t.quotedCover.with} quoted ${
-                    t.quotedCover.with === 1 ? "job" : "jobs"
-                  } · ${gap(t.hoursQuoted, t.hoursTakenQuoted)}`
-                : "no quoted time on today's jobs"}
-            </em>
+            ))}
           </span>
         </div>
-        <div className="dp__teamstats">
-          <span>
-            <em>Jobs done</em>
-            <b>
-              {t.jobsDone} <i>of {t.jobsTotal}</i>
-            </b>
-          </span>
-          <span>
-            <em>Billed</em>
-            <b>
-              {t.billedCount} <i>of {t.billableCount} done</i>
-            </b>
-          </span>
-          <span>
-            <em>On the tools</em>
-            <b>
-              {d.techs.length} <i>{d.techs.length === 1 ? "tech" : "techs"}</i>
-            </b>
-          </span>
+        {/* Seven columns, not the Crew page's eight: Billed came off. Nothing
+            is invoiced until the office has been through the day, so the
+            column read "$0 · nothing billed yet" on every row until late
+            afternoon — a measurement of the office's paperwork wearing a
+            tech's name. Jake, 16 Nov. */}
+        <div className="crew crew--day">
+          <div className="crew__head">
+            <span>Tech</span>
+            <span>Work</span>
+            <span>On the tools</span>
+            <span>Not billable</span>
+            <span>Drive</span>
+            <span>In the time allowed</span>
+            <span>Work found on a visit</span>
+          </div>
+          {d.techs.map((p) => (
+            <DayRow key={p.tech} p={p} year={yearTech.get(p.tech) ?? null} />
+          ))}
         </div>
       </div>
     </>
   );
 }
+
+/** One tech's day, with their year under each figure. */
+function DayRow({ p, year }: { p: TechKpi; year: TechKpi | null }) {
+  const mix = CREW_SECTORS.filter((k) => p.mix[k] > 0);
+  const usualDay = year && year.daysWorked > 0 ? year.hours / year.daysWorked : null;
+  return (
+    <div className="crew__row">
+      <span className="crew__name">
+        {p.tech}
+        <em>
+          {count(p.jobs)} {p.jobs === 1 ? "job" : "jobs"}
+        </em>
+      </span>
+
+      <span className="crew__mix">
+        <span className="crew__bar" aria-hidden="true">
+          {mix.map((k) => (
+            <span key={k} className={`crew__seg mix--${k}`} style={{ flexGrow: p.mix[k] }} />
+          ))}
+        </span>
+        <span className="crew__mixnums">
+          {mix.length > 0 ? mix.map((k) => `${p.mix[k]} ${SECTOR_SHORT[k]}`).join(" · ") : "nothing yet"}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{hrs(p.hours)}</b>
+        <span>{usualDay != null ? `${hrs(usualDay)} on a usual day` : "no year to compare"}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.idle.share != null ? hrs(p.idle.hours) : NA}</b>
+        <span>
+          {p.idle.share != null ? `${pct(p.idle.share)} of the day` : "a job not stamped"}
+          {year?.idle.share != null ? ` · ${pct(year.idle.share)} usually` : ""}
+        </span>
+      </span>
+
+      {/* The day's driving added up, the average per job under it. */}
+      <span className="crew__fig">
+        <b>{hrs(p.drive.hours)}</b>
+        <span>
+          {p.drive.avgMins != null
+            ? `${Math.round(p.drive.avgMins)} min a job`
+            : `none of ${p.drive.of} recorded`}
+          {year?.drive.avgMins != null ? ` · ${Math.round(year.drive.avgMins)} min usually` : ""}
+        </span>
+      </span>
+
+      {/* The slot, not the invoice — see the head card above. */}
+      <span className="crew__fig">
+        <b>{p.allow.of > 0 ? `${p.allow.within} of ${p.allow.of}` : NA}</b>
+        <span>
+          {p.allow.of === 0
+            ? "none booked by the hour"
+            : `${hrs(p.allow.allowed)} booked · ${hrs(p.allow.taken)} used`}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>
+          {count(p.found.quoted)} {p.found.quoted === 1 ? "quote" : "quotes"}
+        </b>
+        <span>
+          {p.found.visits > 0
+            ? `off ${p.found.visits} service ${p.found.visits === 1 ? "call" : "calls"}`
+            : "no service calls today"}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 
 function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="who has sold what" />;
@@ -2354,305 +2452,291 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
   return next > 0 ? Math.max(2, Math.min(100, (r.sold / next) * 100)) : 0;
 }
 
-/* ------------------------------------------------------------ /05 Performance */
-/**
- * Performance: what the month's work was worth, by the kind of job it was.
- *
- * One table, not two panels. The second panel here used to be top suburbs by
- * website lead, which is a different question on a page about job profitability
- * and is answered properly by the heat map on Areas — off thousands of jobs
- * rather than the thirty-odd rows the web form has ever produced.
- *
- * The goal line on each margin bar is the year goal's profit percentage. No
- * percentage set means no line, rather than a line at a number nobody chose.
- */
-/**
- * What the quote allowed against what the crew actually clocked.
- *
- * The one comparison on this page that is about doing the work rather than
- * selling it, and the one the office asked for: a job priced at four hours that
- * takes nine was sold at a margin it never had.
- *
- * It counts only jobs carrying *both* numbers — sold hours on the invoice and a
- * timesheet against the job — which is a narrower set than the costed one and a
- * small one either way. The count goes on the card, because thirty-seven jobs'
- * over-run is a different statement from the month's and the room has to be
- * able to see which it is being shown.
- *
- * Over the year rather than the month, alone among this page's cards: October
- * carries six such jobs and the year carries thirty-seven. Six jobs is a
- * fortnight's weather, so the card's sub line says which period it means.
- *
- * Quoted margin against achieved margin, the other half of what was asked for,
- * is not here: the estimate line items do carry a cost, but only seven jobs in
- * the year have both a quoted cost and a billed one, and seven is an anecdote.
- * See DASHBOARD.md.
- */
-function TimeCard({ jp, live }: { jp: Metrics["jobProfitMonth"]; live: Live }) {
-  const n = jp?.timeJobs ?? 0;
-  const allowed = jp?.timeAllowed ?? 0;
-  const actual = jp?.timeActual ?? 0;
-  // Over-run as a share of what was allowed: 91.5 allowed and 141.7 taken is
-  // 55% over, not 155%.
-  const over = n > 0 && allowed > 0 ? actual / allowed - 1 : null;
-  const hrs = (h: number) => `${h >= 100 ? Math.round(h) : h.toFixed(1)} hrs`;
-  // Under the quote is good, over is not. The same four-step palette as
-  // everything else, read in the direction that matters here.
-  const verdict = over == null ? null : over <= 0 ? "ahead" : over <= 0.1 ? "track" : over <= 0.3 ? "close" : "behind";
 
-  return (
-    <div className="tile c3">
-      <div className="tile__head">
-        <span className="tile__title">Time on the tools</span>
-        {/* The one card on a month page that isn't the month, and it says so.
-            October holds six jobs with both a quoted time and a timesheet; the
-            year holds thirty-seven. Six is not an over-run, it is a fortnight.
-            Just the period: "allowed vs taken" alongside it wrapped the title
-            onto two lines in a quarter-width card, and the two rows below
-            already name both halves. */}
-        <span className="tile__sub">last 30 days</span>
-      </div>
-      {!live.st || n === 0 ? (
-        <span className="tile__sub tile__sub--body">
-          {st.sub("No job this month carries both a quoted time and a timesheet", live)}
+/* ------------------------------------------------------------- /05 Job types */
+/**
+ * Job types: the row underneath Sectors.
+ *
+ * Sectors answers the four kinds of work. This answers the question Jake asked
+ * next (16 Nov): "if it is an install what type and if it a maintenance is a
+ * split or a ducted ect" — because "installs take 3.8 hours" has averaged a
+ * four-hour split system with a twenty-hour ducted job and said nothing about
+ * either.
+ *
+ * It replaced the Performance page, which had become three things that live
+ * better elsewhere: jobs booked is the Today page's own figure, time on the
+ * tools is the Crew page's, and the month's invoiced and paid totals are on
+ * Today and Pace. What was left was a job-type table ranked by a month of
+ * invoices, with a margin column off `st_invoices.cost` that has never once
+ * been populated.
+ *
+ * **Booked for** is the slot ServiceTitan books the type into — the width of
+ * the block on the dispatch board. **Takes** is time on site: first arrival to
+ * last done, over everyone who went. Not man-hours: the slot is the same four
+ * hours whether one turns up or two, so man-hours would read every two-man job
+ * as twice over. See the note on CrewVisit in crewTypes.ts.
+ */
+
+/**
+ * The four sectors, each with its own job types under it, and what each kind of
+ * work turns into (Jake, 16 Nov): "service then a list below of all of the job
+ * types, so service split — how many we have done, how much we bill and how
+ * much work that turn into... like how many problem turn into a repair, install
+ * or just a problem".
+ *
+ * So the page is five columns rather than one ranked table. A ranked table put
+ * Service - Split System next to Installation - Ducted Refrigerated and invited
+ * the room to read one against the other; grouped, every row's neighbours are
+ * the rows it is actually comparable to.
+ *
+ * The columns run the long way across the panel rather than two by two (Jake,
+ * 16 Nov). Each is narrow, so a row stacks instead of spreading: the name and
+ * the count on top, then the money, then the slot, then what it turned into.
+ * Two by two gave wider rows but put Repairs below the fold on a 768-high
+ * panel, and the eye had to travel back up the page to compare two sectors.
+ */
+const PANEL_SECTORS: Array<[CrewSector, string]> = [
+  ["maintenance", "Service"],
+  ["breakdown", "Breakdowns"],
+  ["install", "Installs"],
+  ["repair", "Repairs"],
+  /*
+   * The fifth panel, added once the figures argued for it (Jake, 16 Nov).
+   * ServiceTitan's job types put quote visits, warranty calls, site
+   * assessments and return visits in none of the four sectors, so they were
+   * counted in the head cards and named there — until the live snapshot showed
+   * those 78 visits led to 13 installs worth $90K, which is more follow-on
+   * money than breakdowns and service put together. The biggest source of work
+   * on the page is not something to leave off it.
+   *
+   * Named for what is mostly in it and honest about the rest: 60 of the 78 are
+   * quote visits, and the panel's own rows show what the others are.
+   */
+  ["other", "Quotes & other"],
+];
+
+/**
+ * Types with a row of their own in a column, before the tail is folded into
+ * one. Six since the head cards came off and the columns took the whole tile:
+ * at four, the install column was folding Installation - Evaporative Cooler
+ * and Installation - Split Heat Pump into "12 other kinds".
+ */
+const TYPES_PER_SECTOR = 6;
+
+/**
+ * The job type without the sector already written above it: "Service - Split
+ * System" under a panel headed Service is three words of which two are noise,
+ * and the noise is the two the eye reads first.
+ */
+function shortType(name: string): string {
+  const cut = name.replace(
+    /^(service|diagnostics|installation|repair|quotation|commercial\s*[–-]\s*\w+)\s*[–-]\s*/i,
+    "",
+  );
+  return cut.trim() || name;
+}
+
+/**
+ * The time half of a row's one muted line: what it takes against what it is
+ * booked for, or why neither can be said.
+ *
+ * "— of 1h · none clocked" was two ways of saying the same absence, so a type
+ * nobody has clocked leads with the slot instead.
+ */
+function slotLine(t: JobTypeKpi, folded?: boolean): string {
+  if (t.allowed == null) return folded ? "several slots" : unjudged(t);
+  if (t.avgTaken == null) return `booked for ${hrs(t.allowed)} · none clocked`;
+  return `${hrs(t.avgTaken)} of ${hrs(t.allowed)}`;
+}
+
+/** Why a type carries no verdict, in the words that say which problem it is. */
+function unjudged(t: JobTypeKpi): string {
+  if (t.timed === 0) return "none clocked";
+  if (t.allowed == null) return "no slot set";
+  if (t.allowed > LONGEST_ALLOWED_HOURS) return "booked across days";
+  return `${MIN_TYPE_TIMED} to rate`;
+}
+
+function JobTypesPage({ m, live }: { m: Metrics; live: Live }) {
+  const c = m.crew;
+  const all = c?.jobTypes ?? [];
+  if (!live.st || all.length === 0) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Every kind of work</span>
+        <span className="tile__sub">
+          {!live.st
+            ? "ServiceTitan isn’t connected."
+            : c
+              ? "No job in the window has anybody timesheeted against it."
+              : "Worked out on the next sync."}
         </span>
-      ) : (
-        <div className="timecard">
-          <span className={`timecard__fig status--${verdict}`}>
-            {over == null ? NA : `${over > 0 ? "+" : ""}${Math.round(over * 100)}%`}
-          </span>
-          <span className="timecard__say">{over != null && over > 0 ? "over the quote" : "inside the quote"}</span>
-          {/* Both bars scaled against the longer of the two, so the overhang is
-              the over-run drawn to scale rather than a percentage read twice. */}
-          <div className="timecard__bars">
-            <span className="timecard__row">
-              <span className="timecard__k">Allowed</span>
-              <b>{hrs(allowed)}</b>
-            </span>
-            <span className="timecard__bar">
-              <i className="is-allowed" style={{ width: `${(allowed / Math.max(allowed, actual)) * 100}%` }} />
-            </span>
-            <span className="timecard__row">
-              <span className="timecard__k">Taken</span>
-              <b>{hrs(actual)}</b>
-            </span>
-            <span className="timecard__bar">
-              <i
-                className={`is-actual status--${verdict}`}
-                style={{ width: `${(actual / Math.max(allowed, actual)) * 100}%` }}
-              />
-            </span>
-          </div>
+      </div>
+    );
+  }
+
+  const total = rollUpTypes(all, "All work");
+  const panels = PANEL_SECTORS.map(([key, label]) => {
+    const rows = all.filter((t) => t.sector === key);
+    const head = rollUpTypes(rows, label, key);
+    const shown = rows.slice(0, TYPES_PER_SECTOR);
+    const tail = rows.slice(TYPES_PER_SECTOR);
+    return {
+      key,
+      label,
+      head,
+      shown,
+      // Folded rather than dropped: the tail of a sector is a dozen job types
+      // with a handful of jobs each, and a panel that leaves them out is a
+      // panel whose rows do not add up to its own heading.
+      rest: tail.length > 0 ? rollUpTypes(tail, `${tail.length} other kinds`, key) : null,
+    };
+  });
+  const ledJobs = total.led.install + total.led.repair;
+
+  /*
+   * No head cards: the five columns get the whole tile (Jake, 16 Nov).
+   *
+   * Every figure the cards carried is already in the page — each column heads
+   * with its own jobs, money and share turned into work — so four cards of
+   * totals were buying a fifth of the height to repeat the sum of what was
+   * underneath them. The page totals go on one line in the tile's head
+   * instead, which is where the room went: four job types a column became six,
+   * and the install column stopped folding its fifth-biggest type away.
+   *
+   * It is the one page on the board with no navy card. Nothing here is
+   * measured against a target anybody set, so the navy was carrying emphasis
+   * rather than meaning, and what the room actually compares is the five
+   * sector headings against each other.
+   */
+  return (
+    <>
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <div className="tile__head">
+          <span className="tile__title">Each kind of work</span>
+          {/* What the four head cards used to say, on one line. */}
           <span className="tile__sub">
-            {count(jp?.timeOver ?? 0)} of {count(n)} {n === 1 ? "job" : "jobs"} ran over
+            {`${count(total.jobs)} jobs · ${compact(total.billed)} · ${count(ledJobs)} turned into work`}
+            {total.rate != null ? ` · ${pct(total.rate)} in the time allowed` : ""}
           </span>
+          <span className="crew__legend">
+            {/* The rule, in front of the three keys it qualifies — it was the
+                page subtitle until the subtitle ran past the panel edge at
+                1920, and it belongs next to the bar it describes anyway. */}
+            <span className="crew__key">within {c?.followDays ?? 60} days:</span>
+            <span className="crew__key">
+              <i className="mix--install" aria-hidden="true" />
+              led to an install
+            </span>
+            <span className="crew__key">
+              <i className="mix--repair" aria-hidden="true" />
+              led to a repair
+            </span>
+            <span className="crew__key">
+              <i className="jtp__none" aria-hidden="true" />
+              just the job
+            </span>
+          </span>
+        </div>
+        <div className="jtp">
+          {panels.map(({ key, ...p }) => (
+            <SectorPanel key={key} {...p} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SectorPanel({
+  label,
+  head,
+  shown,
+  rest,
+}: {
+  label: string;
+  head: JobTypeKpi;
+  shown: JobTypeKpi[];
+  rest: JobTypeKpi | null;
+}) {
+  const led = head.led.install + head.led.repair;
+  return (
+    <div className="jtp__sec">
+      <div className="jtp__head">
+        <span className="jtp__name">{label}</span>
+        <span className="jtp__tot">
+          {count(head.jobs)} jobs · {compact(head.billed)}
+        </span>
+        {/* The sector's own answer to the page's question, on its own line so
+            it is the second thing read in the column rather than the fourth. */}
+        <span className="jtp__led1">
+          {head.jobs > 0 ? `${pct(led / head.jobs)} turned into work` : "nothing yet"}
+        </span>
+        {/* And how often this sector comes in on its slot. It was a fourth line
+            on every row — "36 of 42 on it" — which is a column of denominators
+            nobody reads across. Once per sector is where it belongs; the row
+            still shows its own "1.1h of 1.5h", which says over or under at a
+            glance without arithmetic. */}
+        <span className="jtp__tot">
+          {head.rate != null
+            ? `${pct(head.rate)} in the time allowed`
+            : head.inTime.of > 0
+              ? `${count(head.inTime.within)} of ${count(head.inTime.of)} in the time allowed`
+              : "none booked by the hour"}
+        </span>
+      </div>
+      {head.jobs === 0 ? (
+        <span className="jtp__empty">Nothing of this kind in the window.</span>
+      ) : (
+        <div className="jtp__rows">
+          {shown.map((t) => (
+            <TypeRow key={t.type} t={t} />
+          ))}
+          {rest && <TypeRow t={rest} folded />}
         </div>
       )}
     </div>
   );
 }
 
-function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
-  const goal = m.marginGoal;
-
-  const rows = m.topJobTypes.map((t) => ({
-    ...t,
-    margin: t.profit != null && t.revenue > 0 ? t.profit / t.revenue : null,
-  }));
-
-  /**
-   * Margin, or — when there is none to show — each type's share of the month.
-   *
-   * The job-type table's margin comes off `st_invoices.cost`, and not one
-   * invoice in the replica carries one: 0 of 5,415. So the column was five empty
-   * grey tracks and a column of dashes, which from four metres reads as a broken
-   * chart rather than as missing data, and Jake asked why the line was grey.
-   *
-   * A column that has never once held a figure is not holding a place, it is
-   * taking one. Share of the month's invoicing goes there instead — measured,
-   * and it answers what the table is actually read for, which is where the
-   * month's money came from. The navy tile above still carries a real margin,
-   * worked per job from equipment cost and hours (see jobProfit.ts), and this
-   * column comes back on its own the day ServiceTitan starts sending a cost.
-   */
-  const anyMargin = rows.some((t) => t.margin != null);
-  const share = (revenue: number) => (m.revenueInvoicedMtd > 0 ? revenue / m.revenueInvoicedMtd : null);
-
-  // The tile's margin is the job-level one, not the invoice column's: the
-  // invoice column has never once been populated, so a tile built on it read
-  // "—" on every single day it has been up.
-  // The rolling thirty days. The month and year fields are only still read so a
-  // snapshot written before jobProfitRecent existed renders rather than blanks.
-  const jp = m.jobProfitRecent ?? m.jobProfitYear ?? m.jobProfitMonth;
-
+/** One job type inside its sector's panel, or the folded tail of them. */
+function TypeRow({ t, folded }: { t: JobTypeKpi; folded?: boolean }) {
+  const led = t.led.install + t.led.repair;
   return (
-    <>
-      {/* Three cards, and each says which population it counts. Jobs booked is
-          jobs created this month; everything else on this page is invoices, and
-          the two differ — 29 invoices against 20 jobs booked and 11 completed in
-          the same month, because ServiceTitan bills a job when it is billed and
-          one job can carry more than one invoice. The page was read as job
-          counts twice; now it says.
+    <div className="jtp__row">
+      <span className="jtp__top">
+        <span className="jtp__type">{folded ? t.type : shortType(t.type)}</span>
+        <b className="jtp__jobs">{count(t.jobs)}</b>
+      </span>
 
-          The foot names the work rather than the date, because the date was
-          never the interesting half. This counted every job created, installs
-          among them, and an install is not a booking — it exists because
-          something was already sold, so it was counted on the way in and again
-          at Sold and Completed. It was also judged against a target built from
-          quote visits and service calls, which made 78 look ahead of a plan
-          that had asked for 62. Same definition as the Pace funnel now, so one
-          word means one thing across the board. */}
-      <HeadCard
-        label="Jobs booked"
-        value={st.count(m.bookingsMonth, live)}
-        verdict={headVerdictOf(m.bookingsMonth, m.pace?.standing.month.booked.byNow)}
-        foot="quote, repair and service jobs"
-      />
-      <HeadCard
-        label="Invoiced"
-        value={st.money(m.revenueInvoicedMtd, live)}
-        verdict={headVerdictOf(m.revenueInvoicedMtd, m.pace?.standing.month.invoiced.byNow)}
-        foot={live.st ? `${count(m.invoiceCountMonth)} invoices raised` : undefined}
-      />
-      {/* What turned up against what was asked for. The row was three cards in a
-          space built for four, with a quarter of it empty since profit came
-          off, and this is the figure that was missing from the story: booked,
-          invoiced, paid, and what was left of it. */}
-      {/* Measured against the same plan as Invoiced, not against what we
-          happened to invoice: the goal is revenue, and revenue is not revenue
-          until it is banked. It will read behind Invoiced most months, because
-          cash lags billing — that gap is the thing worth seeing. */}
-      <HeadCard
-        label="Paid"
-        value={m.paidMonth == null ? NA : money(m.paidMonth)}
-        verdict={headVerdictOf(m.paidMonth, m.pace?.standing.month.invoiced.byNow)}
-        foot={
-          m.paidMonth == null
-            ? "payments not synced yet"
-            : m.revenueInvoicedMtd > 0
-              ? `${pct(m.paidMonth / m.revenueInvoicedMtd)} of what was invoiced`
-              : "banked this month"
-        }
-      />
-      {/* Profit came off: it read "—" on every single day, because no invoice in
-          the tenant carries a cost. Margin stays because Jake asked for it, and
-          it is now the per-job figure — price before GST, less equipment and
-          materials, less the hours at what an hour of the crew costs — with the
-          jobs it could cost said underneath, so a margin off four jobs never
-          passes as a margin off the month. */}
-      <HeadCard
-        navy
-        label="Job margin"
-        value={live.st ? pct(jp?.margin ?? null) : NA}
-        /* Against the goal itself, not against a by-now share of it: a margin
-           is a rate, and a rate is not something you accumulate half of by the
-           middle of the month. */
-        verdict={headVerdictOf(jp?.margin ?? null, goal)}
-        suffix={goal != null && jp?.margin != null ? `of ${pct(goal)}` : undefined}
-        foot={
-          !live.st
-            ? undefined
-            : jp == null || jp.costed === 0
-              ? "no job costed this month yet"
-              : `over ${count(jp.costed)} of ${count(jp.jobs)} jobs billed · last 30 days`
-        }
-      />
+      {/* Money and time on one line. They were two, and four lines of muted
+          grey under every name is what made a column hard to read from across
+          the room. */}
+      <span className="jtp__meta">
+        {t.avgBilled != null ? `${compact(t.billed)} · ${money(t.avgBilled)} each` : "nothing billed"}
+        {` · ${slotLine(t, folded)}`}
+      </span>
 
-      <TimeCard jp={jp} live={live} />
-
-      <div className="tile c9">
-        <div className="tile__head">
-          <span className="tile__title">Job types</span>
-          {/* The set-aside count is on the wall, not buried: a ranking that
-              quietly omits most of the invoices is a ranking you can't trust. */}
-          <span className="tile__sub">
-            this month
-            {m.jobTypeUnclassified > 0 ? ` · ${count(m.jobTypeUnclassified)} untyped` : ""}
-          </span>
-        </div>
-        {rows.length === 0 ? (
-          <span className="tile__sub">{st.sub("No invoiced work in the this month", live)}</span>
-        ) : (
-          <div className="jt">
-            <div className="jt__head">
-              <span />
-              {/* Invoices, not jobs: the table is grouped from st_invoices, and
-                  a job can carry more than one. 29 invoices against 11 jobs
-                  completed this month is the kind of gap a wrong column heading
-                  turns into an argument. */}
-              {/* Booked leads invoiced: a month that takes a lot on and bills
-                  little of it reads as quiet on the invoice column alone. */}
-              <span>Booked</span>
-              <span>Invoices</span>
-              <span>Revenue</span>
-              <span className="jt__marginhead">
-                {anyMargin ? `Margin${goal != null ? ` · line is the ${pct(goal)} goal` : ""}` : "Share of the month"}
-              </span>
-              <span />
-            </div>
-            {rows.map((t) => {
-              const under = goal != null && t.margin != null && t.margin < goal;
-              const part = anyMargin ? null : share(t.revenue);
-              return (
-                <div className="jt__row" key={t.jobType}>
-                  <span className="jt__name">{t.jobType}</span>
-                  <span className="jt__n">{t.booked == null ? NA : count(t.booked)}</span>
-                  <span className="jt__n">{count(t.jobs)}</span>
-                  <span className="jt__n">{money(t.revenue)}</span>
-                  <span className="jt__bar">
-                    {anyMargin ? (
-                      t.margin == null ? null : (
-                        <>
-                          {/* Scaled to twice the goal, so a bar at the goal sits
-                              mid-track and the line has somewhere to be. Without
-                              a goal the scale is the best margin on the page. */}
-                          <span
-                            className={`jt__fill ${under ? "is-under" : "is-over"}`}
-                            style={{
-                              width: `${Math.min(100, (t.margin / (goal != null ? goal * 2 : Math.max(0.01, ...rows.map((r) => r.margin ?? 0)))) * 100)}%`,
-                            }}
-                          />
-                          {goal != null && <span className="jt__goal" />}
-                        </>
-                      )
-                    ) : part == null ? null : (
-                      // Share of the whole month, so the bars sit against the
-                      // figure in the tile above rather than against each other
-                      // — the top row is not automatically a full track.
-                      <span className="jt__fill" style={{ width: `${Math.min(100, part * 100)}%` }} />
-                    )}
-                  </span>
-                  <span className={`jt__pct ${anyMargin ? (t.margin == null ? "" : under ? "is-under" : "is-over") : "jt__pct--quiet"}`}>
-                    {anyMargin ? (t.margin == null ? NA : pct(t.margin)) : part == null ? NA : pct(part)}
-                  </span>
-                </div>
-              );
-            })}
-            {/* The five rows are a ranking, not the month. Jake asked for the
-                month's own totals under them because the obvious reading of a
-                table is that it adds up, and these five came to a third of the
-                invoiced figure in the tile above. Counted over every invoice,
-                untyped ones included, so this line and "Invoiced" agree. */}
-            <div className="jt__row jt__row--total">
-              <span className="jt__name">All work this month</span>
-              <span className="jt__n">{count(m.bookingsMonth)}</span>
-              <span className="jt__n">{count(m.invoiceCountMonth)}</span>
-              {/* Full digits, not $21K: this is the figure of the page and it
-                  gets read off the wall and repeated. */}
-              <span className="jt__n">{plain(m.revenueInvoicedMtd)}</span>
-              <span />
-              <span
-                className={`jt__pct ${
-                  anyMargin ? (m.marginPct == null ? "" : goal != null && m.marginPct < goal ? "is-under" : "is-over") : "jt__pct--quiet"
-                }`}
-              >
-                {anyMargin ? (m.marginPct == null ? NA : pct(m.marginPct)) : "100%"}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+      {/* Three segments that add to the row, so the bar is a whole bar. The
+          words are under it: these are three shades and nobody reads a shade
+          from four metres. */}
+      <span className="jtp__bar" aria-hidden="true">
+        <span className="mix--install" style={{ flexGrow: t.led.install }} />
+        <span className="mix--repair" style={{ flexGrow: t.led.repair }} />
+        <span className="jtp__none" style={{ flexGrow: t.led.none }} />
+      </span>
+      <span className="jtp__ledwords">
+        {led === 0
+          ? "just the job"
+          : [
+              t.led.install > 0 ? `${t.led.install} install` : null,
+              t.led.repair > 0 ? `${t.led.repair} repair` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+        {t.led.billed > 0 ? ` · ${compact(t.led.billed)}` : ""}
+      </span>
+    </div>
   );
 }
 
@@ -2667,6 +2751,415 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
  * A suburb with no coordinate on file is named under the map rather than
  * dropped, because its jobs happened whether or not we know where.
  */
+/* ── Weather ──────────────────────────────────────────────────────────────
+ *
+ * The week across the top, and under each day the work booked into it.
+ *
+ * It was two pages — one for the forecast and one for the diary read against
+ * it — and Jake merged them (19 Nov): "have the weather across the top for 7
+ * days and then a list going down, and then the jobs on those days with the
+ * job number and the title and if it's good or not."
+ *
+ * He is right that they were one page. Reading "Monday: off the roof" on one
+ * screen and "Monday 7am, evap install, Narre Warren" thirty seconds later on
+ * another asks the room to hold a week of weather in its head and join it up.
+ * A column per day does the joining.
+ *
+ * The hour-by-hour strip for today came off when they merged and went back on
+ * an hour later: with one tile the seven columns filled barely half the wall
+ * in a quiet November week, and half an empty page reads as something having
+ * failed to load. It also answers the question Jake asked first — "what time
+ * and how hot is it going to be" — which the day columns only half carry.
+ *
+ * The arithmetic is all in weatherTypes.ts and weatherJobsTypes.ts, where
+ * check:weather and check:weatherjobs can get at it.
+ */
+
+/**
+ * What the sky is doing, drawn rather than fetched.
+ *
+ * Inline SVG and not MET's own icon set: the set is a hundred PNGs for the
+ * eleven shapes a wall board can tell apart at four metres, and this page
+ * already carries its meaning in words and figures — the icon is there to be
+ * recognised in a glance, not read. `currentColor` throughout, so it inherits
+ * the column's ink and needs nothing from the dark theme.
+ */
+function SkyIcon({ sky }: { sky: WxSky | null | undefined }) {
+  if (!sky) return null;
+  const sun = <circle cx="8" cy="8" r="4.1" />;
+  const cloud = <path d="M6.4 18.5h9.8a3.4 3.4 0 0 0 .35-6.78 5 5 0 0 0-9.6-.9 3.35 3.35 0 0 0-.55 7.68Z" />;
+  const drops = (n: number) => (
+    <g>
+      {[0, 1, 2].slice(0, n).map((i) => (
+        <line key={i} x1={7.2 + i * 3.6} y1="19.6" x2={6.1 + i * 3.6} y2="22.6" />
+      ))}
+    </g>
+  );
+  const body = {
+    clear: <g className="sky--sun">{sun}<g className="sky__rays"><line x1="8" y1="1" x2="8" y2="2.6" /><line x1="8" y1="13.4" x2="8" y2="15" /><line x1="1" y1="8" x2="2.6" y2="8" /><line x1="13.4" y1="8" x2="15" y2="8" /><line x1="3" y1="3" x2="4.2" y2="4.2" /><line x1="11.8" y1="11.8" x2="13" y2="13" /><line x1="13" y1="3" x2="11.8" y2="4.2" /><line x1="4.2" y1="11.8" x2="3" y2="13" /></g></g>,
+    fair: <g><g className="sky--sun">{sun}</g><g className="sky--cloud">{cloud}</g></g>,
+    partly: <g><g className="sky--sun">{sun}</g><g className="sky--cloud">{cloud}</g></g>,
+    cloudy: <g className="sky--cloud">{cloud}</g>,
+    fog: <g className="sky--cloud">{cloud}<line x1="4" y1="21" x2="18" y2="21" /><line x1="6" y1="23.4" x2="16" y2="23.4" /></g>,
+    lightrain: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(1)}</g></g>,
+    rain: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(2)}</g></g>,
+    heavyrain: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(3)}</g></g>,
+    thunder: <g><g className="sky--cloud">{cloud}</g><g className="sky--bolt"><path d="M12.4 18.8 9.2 23.4h2.6l-1 3.4 3.6-5h-2.6l1-2Z" /></g></g>,
+    sleet: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain">{drops(2)}</g></g>,
+    snow: <g><g className="sky--cloud">{cloud}</g><g className="sky--rain"><line x1="7" y1="20" x2="7" y2="23" /><line x1="11" y1="20" x2="11" y2="23" /><line x1="15" y1="20" x2="15" y2="23" /></g></g>,
+  }[sky];
+  return (
+    <svg className="sky" viewBox="0 0 24 27" aria-hidden="true" focusable="false">
+      {body}
+    </svg>
+  );
+}
+
+/** Status to the ink it is written in. Never the colour alone — the word leads. */
+const JOB_INK: Record<JobStatus, string> = { go: "wx--good", watch: "wx--poor", risk: "wx--no" };
+
+/**
+ * Three words, and only three, whatever the reason underneath.
+ *
+ * Jake, 19 November: "we should have 3 words like no roof work, clear and keep
+ * an eye on."
+ *
+ * The rules produce a dozen different verdicts — wet roof, too windy, too hot,
+ * close the roof today — and a column of a dozen different phrases is a column
+ * nobody scans. The status is the headline and it is one of three; what makes
+ * this job different from that one goes on the line below, which is where
+ * somebody reads once the colour has caught them.
+ *
+ * "No roof work" fits every red on the page because every red is a roof:
+ * more than ten millimetres through the working day, or wind. Heat, an
+ * overnight shower and the day-one roof flag are all gold.
+ */
+const JOB_WORD: Record<JobStatus, string> = {
+  risk: "No roof work",
+  watch: "Keep an eye on",
+  go: "Clear",
+};
+
+/**
+ * How many jobs a day's column shows before it folds the rest into a line.
+ *
+ * Three. Four was measured against a fabricated January week — six evap jobs
+ * a day, every day — and overflowed the tile at every size the board runs at,
+ * by 68 pixels at 1920 and 284 at 4K. November's nine real bookings would
+ * never have shown it; the first hot week would have, on the wall.
+ */
+const JOBS_PER_DAY = 3;
+
+/**
+ * How many hours the strip draws.
+ *
+ * Jake, 19 November: "the hour by hour should show the weather for the day 7-4
+ * each hour, and once the time has passed either move it out and then show 8-5
+ * etc, or make it gray."
+ *
+ * Rolling, which is the first of the two he offered, because the forecast only
+ * carries hours still to come — there is no eight o'clock left to grey out at
+ * ten. So the window is ten hours from the working day's start, and it walks
+ * forward through the morning: 7–4, then 8–5, then 9–6.
+ */
+const STRIP_HOURS = 10;
+
+/** "Thu 20". The day, as somebody standing in front of the wall would say it. */
+function wxDayName(iso: string, today: boolean): string {
+  if (today) return "Today";
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return `${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()]} ${d.getDate()}`;
+}
+
+/** The job type without the "Installation - " already said by the line under it. */
+function jobKind(type: string): string {
+  return type.replace(/^(installation|service|repair|diagnostics|removal)\s*[–-]\s*/i, "").trim() || type;
+}
+
+/** "Install", "Service" — what is being done, which decides half the verdicts. */
+function jobDoing(type: string): string {
+  const m = /^(installation|service|repair|diagnostics|removal)/i.exec(type);
+  if (!m) return "Job";
+  const w = m[1].toLowerCase();
+  return w === "installation" ? "Install" : w === "diagnostics" ? "Diagnose" : w[0].toUpperCase() + w.slice(1);
+}
+
+/** "8am", "noon" — a booked start as somebody would say it. */
+function startAt(hour: number): string {
+  if (hour === 12) return "noon";
+  const h = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h}${hour < 12 ? "am" : "pm"}`;
+}
+
+function WeatherPage({ m, live }: { m: Metrics; live: Live }) {
+  const all = m.weather;
+  /*
+   * Only the days still ahead, and at most a week of them. The reader keeps
+   * nine so a job booked eight days out can still be judged; seven is what
+   * stays readable as columns from across the room.
+   */
+  const w = all ? { ...all, days: all.days.filter((d) => d.date >= all.today).slice(0, 7) } : null;
+
+  if (!w || w.days.length === 0) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">No forecast</span>
+        <span className="tile__sub">
+          {all
+            ? "The forecast on file has run out. The board will have a new one on the next sync."
+            : "The weather service didn’t answer. The board will have it back on the next sync."}
+        </span>
+      </div>
+    );
+  }
+
+  // Every booked job the weather bears on, judged, and filed under its day.
+  const calls = live.st && m.bookedWork ? callsForJobs(m.bookedWork, all!) : [];
+  const t = tally(calls);
+  const byDay = new Map<string, JobCall[]>();
+  for (const c of calls) byDay.set(c.date, [...(byDay.get(c.date) ?? []), c]);
+  for (const list of byDay.values()) list.sort((a, b) => a.hour - b.hour);
+  const flagged = calls.filter((c) => c.status !== "go");
+
+  /*
+   * Whose hours the strip shows. Today's until its working day is nearly
+   * spent, and tomorrow's after that: at half past three, ten columns of
+   * evening is a worse answer to "what time and how hot" than tomorrow
+   * morning is.
+   */
+  const workLeft = (d: WxDay) => d.hours.filter((h) => h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR).length;
+  const stripDay = workLeft(w.days[0]) >= 3 || w.days.length === 1 ? w.days[0] : w.days[1];
+  const first = stripDay.hours.length > 0 ? stripDay.hours[0].hour : WORK_FROM_HOUR;
+  const from = Math.max(WORK_FROM_HOUR, first);
+  const strip = stripDay.hours.filter((h) => h.hour >= from && h.hour < from + STRIP_HOURS);
+  return (
+    <>
+    <div className="tile c12" style={{ gridRow: 1 }}>
+      <div className="tile__head">
+        <span className="tile__title">The week, and the work booked into it</span>
+        {/* The totals on one line, where four head cards used to be: the seven
+            columns want the height more than a row of sums does. */}
+        <span className="tile__sub">
+          {w.now ? `${degrees(w.now.tempC)} now · ${Math.round(w.now.humidity)}% humidity · ` : ""}
+          {calls.length > 0
+            ? `${count(calls.length)} jobs the weather bears on · ${count(t.go)} good to go${
+                t.watch > 0 ? ` · ${count(t.watch)} to watch` : ""
+              }${t.risk > 0 ? ` · ${count(t.risk)} at risk` : ""}`
+            : "nothing booked that the weather touches"}
+          {flagged.length > 0 ? ` · soonest: #${flagged[0].number} ${wxDayName(flagged[0].date, flagged[0].date === w.today)}` : ""}
+        </span>
+        <span className="crew__legend">
+          <span className="crew__key"><i className="wxdot wx--no" aria-hidden="true" />at risk</span>
+          <span className="crew__key"><i className="wxdot wx--poor" aria-hidden="true" />watch</span>
+          <span className="crew__key"><i className="wxdot wx--good" aria-hidden="true" />good</span>
+          <span className="wx__credit">{w.credit}</span>
+        </span>
+      </div>
+      <div className="wxw" style={{ "--wx-n": w.days.length } as CSSProperties}>
+        {w.days.map((d) => (
+          <WxDayCol key={d.date} d={d} today={d.date === w.today} jobs={byDay.get(d.date) ?? []} />
+        ))}
+      </div>
+    </div>
+
+    <div className="tile c12" style={{ gridRow: 2 }}>
+      <div className="tile__head">
+        <span className="tile__title">
+          {stripDay.date === w.today ? "Today, hour by hour" : `${wxDayName(stripDay.date, false)}, hour by hour`}
+        </span>
+        {/* The bar carries two readings, so the subtitle names both. */}
+        <span className="tile__sub">
+          {`the air, the sky, the wind and the rain, hour by hour · ${clock(WORK_FROM_HOUR)}–${clock(WORK_TO_HOUR)} is the working day`}
+        </span>
+      </div>
+      {strip.length === 0 ? (
+        <span className="wxw__none">No hours left in today. The week above starts with tomorrow.</span>
+      ) : (
+        <div className="wxs">
+          {strip.map((h) => (
+            <WxHourCell key={h.hour} h={h} />
+          ))}
+          {/* Ten working hours in a row sized for fourteen leaves a gap at the
+              end. It holds the day's totals rather than white space — the
+              three figures the hours themselves can only be read for one at a
+              time. */}
+          <WxDaySummary d={stripDay} />
+        </div>
+      )}
+    </div>
+    </>
+  );
+}
+
+/**
+ * One hour: the time, how hot, what the sky is doing, the wind and any rain.
+ *
+ * It carried two temperatures — the air, and what an evaporative unit would
+ * blow in it — with a two-tone bar drawn between them. Jake asked why there
+ * were two numbers and said what the second should be instead: "we need the
+ * main temp and also the wind, as this can close a job as well, for a job
+ * that has tin roof etc."
+ *
+ * He is right twice over. Wind closes a roof job and the cooling figure never
+ * did — that argument belongs to the day's evap verdict in the column above,
+ * where it is made once rather than fourteen times.
+ *
+ * The bar went with it, and that fixed a fault neither of us had named. It was
+ * `flex: 1` with `min-height: 0`, so when the cell's other lines outgrew the
+ * tile it shrank silently to nothing instead of overflowing: the bar the
+ * subtitle described had been invisible at every screen size, and the rain
+ * figure under it was being clipped. Five fixed lines cannot do that.
+ */
+function WxHourCell({ h }: { h: WxHour }) {
+  const working = h.hour >= WORK_FROM_HOUR && h.hour <= WORK_TO_HOUR;
+  /* No outlined hour any more. The white box marked the hour the day's evap
+     verdict was decided on, and Jake asked what its point was — a fair
+     question once that verdict had gone. */
+  return (
+    <div className={`wxs__h${working ? " is-work" : ""}`}>
+      {/* The hour heads the cell and the temperature sits under it (Jake,
+          19 Nov). It was the other way round, which asked the eye to find the
+          time at the bottom of a column it was reading from the top. */}
+      <span className="wxs__hr">{clock(h.hour)}</span>
+      {/* The sky sits beside the temperature rather than under it. On its own
+          line the cell wanted a unit more height than the strip has, and the
+          choice was this or dropping the icon Jake asked for. */}
+      <span className="wxs__now">
+        <SkyIcon sky={h.sky} />
+        <b className="wxs__t">{degrees(h.tempC)}</b>
+      </span>
+      <span className="wxs__wind">{Math.round(h.windKmh)} km/h</span>
+      <span className="wxs__rain">{h.rainMm >= 0.1 ? mm(h.rainMm) : ""}</span>
+    </div>
+  );
+}
+
+/**
+ * The day's totals, in the space the working hours leave at the end.
+ *
+ * The three figures Jake asked for: "the rain for today and when it starts,
+ * the highest temp for the day, and the highest wind speed for the day."
+ *
+ * Each answers something the row of hours can only be read for one column at
+ * a time. It used to end on the best an evap would blow, which went with the
+ * cooling figure out of the cells above: that reading belongs to the day's own
+ * evap verdict, not to a strip about the hours.
+ */
+function WxDaySummary({ d }: { d: WxDay }) {
+  const windiest = d.hours.length > 0 ? Math.max(...d.hours.map((h) => h.windKmh)) : d.windKmh;
+  return (
+    <div className="wxsum">
+      <span className="wxsum__row">
+        <b className="wxsum__fig">{d.rainMm > 0 ? mm(d.rainMm) : "dry"}</b>
+        <span className="wxsum__lab">{d.rainFrom != null ? `rain, from ${clock(d.rainFrom)}` : "no rain due"}</span>
+      </span>
+      <span className="wxsum__row">
+        <b className="wxsum__fig">{degrees(d.maxC)}</b>
+        <span className="wxsum__lab">{d.peakAt != null ? `at ${clock(d.peakAt)}` : "at its hottest"}</span>
+      </span>
+      <span className="wxsum__row">
+        <b className="wxsum__fig">{windiest != null ? String(Math.round(windiest)) : NA}</b>
+        <span className="wxsum__lab">km/h at its windiest</span>
+      </span>
+    </div>
+  );
+}
+
+/** One day: what it is like, then what is booked into it. */
+/** A day's work verdict as one of the three words the job boxes use. */
+const DAY_STATUS: Record<WxRating, JobStatus> = { good: "go", fair: "go", poor: "watch", no: "risk" };
+
+function WxDayCol({ d, today, jobs }: { d: WxDay; today: boolean; jobs: JobCall[] }) {
+  /*
+   * Whether work can go ahead, and nothing else.
+   *
+   * The column used to lead on how well an evaporative unit would cool —
+   * "Won't cool", "Barely cools" — and Jake cut it: "we don't need the won't
+   * cool or barely cools, we just need if the install or service is able to go
+   * ahead."
+   *
+   * So the day answers the same question as the boxes beneath it, in the same
+   * three words. A column that said one thing and its jobs another was asking
+   * the room to hold two ideas about one day.
+   */
+  const head = roofCall(d);
+  const status = DAY_STATUS[head.rating];
+  /*
+   * What gets folded away is the good news, never a problem.
+   *
+   * Taking the first three by time would hide a two o'clock job that is at
+   * risk behind three morning ones that are fine — which is the page failing
+   * at the one thing it is for. So the day is ranked worst-first to decide
+   * what shows, and the survivors are put back in time order to be read.
+   */
+  const rank: Record<JobStatus, number> = { risk: 0, watch: 1, go: 2 };
+  const byTrouble = [...jobs].sort((a, b) => rank[a.status] - rank[b.status] || a.hour - b.hour);
+  const shown = byTrouble.slice(0, JOBS_PER_DAY).sort((a, b) => a.hour - b.hour);
+  const hidden = byTrouble.slice(JOBS_PER_DAY);
+  const rest = hidden.length;
+  const allHiddenFine = hidden.every((h) => h.status === "go");
+  return (
+    <div className={`wxw__d${today ? " is-today" : ""}`}>
+      {/* The weather block is a fixed height so that every column's first job
+          box starts on the same line. It floated before, because one day's
+          reason runs to three lines and the next day's to one, and seven
+          columns of boxes at seven different heights reads as a mistake. */}
+      <span className="wxw__sky">
+        <span className="wxw__name">{wxDayName(d.date, today)}</span>
+        <span className="wxw__row">
+          <span className="wxw__temp">
+            {degrees(d.minC)}–{degrees(d.maxC)}
+          </span>
+          <SkyIcon sky={d.sky} />
+        </span>
+        <span className="wxw__rain">
+          {d.rainMm > 0 ? mm(d.rainMm) : "dry"}
+          {d.rainFrom != null ? ` · from ${clock(d.rainFrom)}` : d.peakAt != null ? ` · peak ${clock(d.peakAt)}` : ""}
+        </span>
+        <span className={`wxw__head ${JOB_INK[status]}`}>{JOB_WORD[status]}</span>
+        <span className="wxw__why">{head.why}</span>
+      </span>
+
+      {/* And the diary for that day, under the weather that decides it. */}
+      <span className="wxw__jobs">
+        {jobs.length === 0 ? (
+          <span className="wxw__none">nothing booked that this touches</span>
+        ) : (
+          <>
+            {shown.map((c) => (
+              <span className={`wxj2 is-${c.status}`} key={c.jobId}>
+                <span className="wxj2__top">
+                  <b className="wxj2__num">#{c.number}</b>
+                  <span className="wxj2__at">{startAt(c.hour)}</span>
+                </span>
+                <span className="wxj2__what">{jobKind(c.type)}</span>
+                <span className="wxj2__doing">
+                  {jobDoing(c.type)}
+                  {c.suburb ? ` · ${c.suburb}` : ""}
+                </span>
+                <span className={`wxj2__word ${JOB_INK[c.status]}`}>
+                  <i className={`wxdot ${JOB_INK[c.status]}`} aria-hidden="true" />
+                  {JOB_WORD[c.status]}
+                </span>
+                {/* What makes this job different from the one above it, now
+                    that the status above is one of three fixed words.
+                    Flagged jobs only: "Clear" followed by "dry 8am–10am" is a
+                    line saying the same thing twice, and on a busy summer week
+                    three of those a column put the tile 71 pixels over. */}
+                {c.status !== "go" && <span className="wxj2__why">{`${c.word} · ${c.why}`}</span>}
+              </span>
+            ))}
+            {rest > 0 && (
+              <span className="wxw__none">{`and ${rest} more${allHiddenFine ? ", all good to go" : ""}`}</span>
+            )}
+          </>
+        )}
+      </span>
+    </div>
+  );
+}
+
 function SuburbHeat({ places }: { places: Metrics["topJobSuburbs"] }) {
   const located = places.map((p) => ({ ...p, at: suburbCoords[slugForSuburb(p.suburb)] }));
   const pts = located
@@ -2792,6 +3285,474 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
 }
 
 
+
+/* --------------------------------------------------------------------- crew */
+
+const SECTOR_WORD: Record<CrewSector, string> = {
+  maintenance: "maintenance",
+  breakdown: "breakdowns",
+  repair: "repairs",
+  install: "installs",
+  other: "other",
+};
+/* "break" was the short word for a breakdown until the Daily pace page started
+   allowing half an hour a day for a break: "1 break · 1 rep" beside a column
+   headed Not billable reads as a tea break. Diagnostics is what the job type
+   is actually called. */
+const SECTOR_SHORT: Record<CrewSector, string> = {
+  maintenance: "maint",
+  breakdown: "diag",
+  repair: "rep",
+  install: "inst",
+  other: "other",
+};
+
+/** "7–3:30", the day non-billable time is measured against. */
+const dayWindow = `${DAY_START_HOUR}\u2013${Math.floor(DAY_END_HOUR)}:${String(Math.round((DAY_END_HOUR % 1) * 60)).padStart(2, "0")}`;
+
+/** "166h", "0.5h" — the unit the crew talk in. */
+const hrs = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n * 10) / 10}h`);
+/** Whole hours, for a figure read from across the room. */
+const bigHrs = (n: number | null | undefined) => (n == null ? "—" : `${Math.round(n)}h`);
+
+/**
+ * Each tech's last sixty days.
+ *
+ * Jake asked (15 Nov) for the mix of work per person, time on the tools, how
+ * much of it is not billable, drive time, whether jobs came in inside the time
+ * they were sold for, and "other KPI we can use to see who is standing out vs
+ * who is not".
+ *
+ * **Nothing on this page carries a verdict colour**, and that is deliberate.
+ * The board's status palette says where a figure sits against something that
+ * measures it, and nothing here is measured against anything anybody has set:
+ * there is no configured target for hours on the tools, for drive time, or for
+ * the share of jobs that come in inside the sold time. A green 71% would be the
+ * board inventing a target and then marking a man against it. The figures sit
+ * in ink with their denominators written beside them, and the room does the
+ * judging — which is also why the rows are ordered by jobs attended and carry
+ * no rank.
+ *
+ * **Lateness to a job is not here.** The arrival stamp is a default on 576 of
+ * the last 715 visits, so a late count would rank the crew on who taps the app.
+ * The first line of the page says how much of the clock is real instead, and
+ * the per-tech column says it again per person. See DASHBOARD.md.
+ */
+function CrewPage({ m, live }: { m: Metrics; live: Live }) {
+  const c = m.crew;
+  if (!live.st || !c || c.techs.length === 0) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Each van, this year</span>
+        <span className="tile__sub">
+          {!live.st
+            ? "ServiceTitan isn’t connected."
+            : c && c.techs.length === 0
+              ? "None of the vans has clocked a job in the window yet."
+              : "Worked out on the next sync."}
+        </span>
+      </div>
+    );
+  }
+  const t = c.team;
+
+  return (
+    <>
+      <HeadCard
+        label="Time on the tools"
+        value={bigHrs(t.hours)}
+        foot={`${count(t.jobs)} jobs · ${t.timed.with} of ${t.timed.of} visits clocked`}
+      />
+      {/* Not on a job and not driving to one, inside the day the business pays
+          for. Jake's definition, 15 Nov. */}
+      <HeadCard
+        label="Not billable"
+        value={t.idle.share != null ? bigHrs(t.idle.hours) : NA}
+        foot={
+          t.idle.share != null
+            ? `${pct(t.idle.share)} of the ${dayWindow} day · after a ${Math.round(BREAK_HOURS * 60)} min break`
+            : `only ${count(t.idle.days)} days fully stamped`
+        }
+      />
+      <HeadCard
+        label="Drive time"
+        value={t.drive.avgMins != null ? String(Math.round(t.drive.avgMins)) : NA}
+        suffix={t.drive.avgMins != null ? "min a job" : undefined}
+        // Short enough to hold one line at 1600x900, where the longer wording wrapped.
+        foot={`${hrs(t.drive.hours)} · ${t.drive.jobs} of ${t.drive.of} jobs recorded`}
+      />
+      {/* Navy, not a status colour: it is the page's headline question and
+          nothing sets a target for it. See the note above. */}
+      {/* Against the booked slot, with the invoice's own verdict beneath it.
+          Over the year 458 of 490 attended jobs carry a slot and 238 carry a
+          sold time, so the slot is the one that can speak for the whole crew;
+          the sold time stays because it is what the customer paid for. */}
+      <HeadCard
+        navy
+        label="In the time allowed"
+        value={t.inAllowedRate != null ? pct(t.inAllowedRate) : NA}
+        foot={
+          t.inAllowedRate != null
+            ? `${t.allow.within} of ${t.allow.of} jobs${
+                t.inTimeRate != null ? ` · ${pct(t.inTimeRate)} of the time sold` : ""
+              }`
+            : `${t.allow.of} jobs booked by the hour · too few to rate`
+        }
+      />
+
+      <div className="tile c12" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">Each van</span>
+          <span className="tile__sub">
+            work found: a quote written on a maintenance or breakdown call, or an install booked at
+            that address within {c.followDays} days
+          </span>
+          <span className="crew__legend">
+            {CREW_SECTORS.map((k) => (
+              <span className="crew__key" key={k}>
+                <i className={`mix--${k}`} aria-hidden="true" />
+                {SECTOR_WORD[k]}
+              </span>
+            ))}
+          </span>
+        </div>
+        <div className="crew">
+          <div className="crew__head">
+            <span>Tech</span>
+            <span>Work</span>
+            <span>On the tools</span>
+            <span>Not billable</span>
+            <span>Drive</span>
+            <span>In the time allowed</span>
+            <span>Billed</span>
+            <span>Work found on a visit</span>
+          </div>
+          {c.techs.map((p) => (
+            <CrewRow key={p.tech} p={p} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CrewRow({ p }: { p: TechKpi }) {
+  const mix = CREW_SECTORS.filter((k) => p.mix[k] > 0);
+  return (
+    <div className="crew__row">
+      <span className="crew__name">
+        {p.tech}
+        <em>{count(p.jobs)} jobs</em>
+      </span>
+
+      <span className="crew__mix">
+        <span className="crew__bar" aria-hidden="true">
+          {mix.map((k) => (
+            <span key={k} className={`crew__seg mix--${k}`} style={{ flexGrow: p.mix[k] }} />
+          ))}
+        </span>
+        {/* The words, not just the colours: the segments are five shades of the
+            one navy family and nobody reads a shade from four metres. */}
+        <span className="crew__mixnums">
+          {mix.map((k) => `${p.mix[k]} ${SECTOR_SHORT[k]}`).join(" · ")}
+        </span>
+      </span>
+
+      {/* The clock, and how much of it was measured at all. A tech's hours are
+          only the visits whose stamps gave a real span, so the denominator goes
+          under the figure rather than in a footnote nobody reads. */}
+      <span className="crew__fig">
+        <b>{bigHrs(p.hours)}</b>
+        <span>{`${p.timed.with} of ${p.timed.of} clocked`}</span>
+      </span>
+
+      {/* Only the days every job was stamped can say what the rest of the day
+          was. Below the floor it says how few, rather than putting an hour and
+          a half a day on a man for not tapping his phone. */}
+      <span className="crew__fig">
+        <b>{p.idle.share != null ? hrs(p.idle.hours) : NA}</b>
+        <span>
+          {p.idle.share != null
+            ? `${pct(p.idle.share)} over ${count(p.idle.days)} days`
+            : `${p.idle.days} of ${MIN_IDLE_DAYS} days stamped`}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{p.drive.avgMins != null ? `${Math.round(p.drive.avgMins)} min` : NA}</b>
+        <span>
+          {p.drive.jobs > 0
+            ? `${hrs(p.drive.hours)} · ${p.drive.jobs} of ${p.drive.of} jobs`
+            : `none of ${p.drive.of} jobs recorded`}
+        </span>
+      </span>
+
+      {/* The slot leads and the sold time follows: see the head card. A man
+          with too few jobs booked by the hour to rate still gets the count,
+          because "3 of 4" is a fact and "—" is not. */}
+      <span className="crew__fig">
+        <b>{p.inAllowedRate != null ? pct(p.inAllowedRate) : NA}</b>
+        <span>
+          {p.inAllowedRate != null
+            ? `${p.allow.within} of ${p.allow.of} · ${
+                p.inTimeRate != null ? `sold ${pct(p.inTimeRate)}` : "booked by the hour"
+              }`
+            : `${p.allow.of} jobs · ${MIN_TIMED} needed to rate`}
+        </span>
+      </span>
+
+      <span className="crew__fig">
+        <b>{compact(p.billed)}</b>
+        <span>{p.perHour != null ? `${compact(p.perHour)} an hour` : "no hours clocked"}</span>
+      </span>
+
+      <span className="crew__fig">
+        <b>
+          {count(p.found.quoted)} {p.found.quoted === 1 ? "quote" : "quotes"}
+        </b>
+        <span>
+          {p.found.visits > 0
+            ? `${p.found.install} led to an install · of ${p.found.visits} calls`
+            : "no service calls in the window"}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ sectors */
+
+const SECTOR_NAMES: Array<[SectorKey, string]> = [
+  ["maintenance", "Maintenance"],
+  ["breakdown", "Breakdowns"],
+  ["repair", "Repairs"],
+  ["install", "Installs"],
+];
+
+/** "17 Sep", for the page's line. */
+function shortDay(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+}
+
+/**
+ * The pipeline's stages: each one a subset of the one before it.
+ *
+ * "Quoted on the visit" is every visit that was quoted on, not the ones where
+ * nothing came of it — a funnel stage is a count of what got that far, and
+ * `quoted` in VisitOutcomes is the leftovers. Dropped entirely on a snapshot
+ * written before `quotedAll` existed, rather than drawn as a zero.
+ */
+function pipeStages(o: VisitOutcomes): Array<{ label: string; n: number; tint: CrewSector }> {
+  return [
+    { label: "Visits", n: o.visits, tint: "maintenance" as CrewSector },
+    ...(o.quotedAll != null
+      ? [{ label: "Quoted there", n: o.quotedAll, tint: "breakdown" as CrewSector }]
+      : []),
+    { label: "Booked back", n: o.install + o.repair, tint: "repair" as CrewSector },
+    { label: "Installs", n: o.install, tint: "install" as CrewSector },
+  ];
+}
+
+/**
+ * Where a visit ended up: four outcomes, exclusive, adding up to the visits.
+ *
+ * Not the same thing as the pipeline above it, which is cumulative — "quoted
+ * there" counts every visit that was quoted on, and this one counts the visits
+ * where that is all that happened. Both are on the tile because they answer
+ * different questions: how far the work got, and where it stopped.
+ */
+function endedAt(o: VisitOutcomes): Array<[string, number, CrewSector]> {
+  return [
+    ["Install", o.install, "install"],
+    ["Repair", o.repair, "repair"],
+    ["Quoted, nothing booked", o.quoted, "maintenance"],
+    ["Just the visit", o.only, "other"],
+  ];
+}
+
+/**
+ * The four kinds of work side by side, and what the two kinds of visit lead to.
+ *
+ * Jake's question (15 Nov): is maintenance or breakdown work worth pushing for
+ * the installs it brings, not just for itself? So each visit is valued twice:
+ * what it billed, and what it billed plus the installs and repairs booked at
+ * the same address in the 60 days after it. The second figure is the one the
+ * question is about, and it sits in the navy card.
+ *
+ * The outcome bars use the navy family, not the status palette: an install is
+ * not "good" and a plain service is not "bad" in the board's colour language,
+ * and every segment is written out in words with its count beside it.
+ */
+function SectorsPage({ m, live }: { m: Metrics; live: Live }) {
+  const s = m.sectors;
+  if (!live.st || !s) {
+    return (
+      <div className="tile c12" style={{ gridRow: "1 / span 2" }}>
+        <span className="tile__title">Maintenance, breakdowns, repairs and installs</span>
+        <span className="tile__sub">{!live.st ? "ServiceTitan isn’t connected." : "Worked out on the next sync."}</span>
+      </div>
+    );
+  }
+  const goal = m.marginGoal;
+  const visits: Array<[string, VisitOutcomes]> = [["Breakdowns", s.breakdown], ["Maintenance", s.maintenance]];
+  const per = (o: VisitOutcomes) => (o.visits > 0 ? (o.ownRevenue + o.ledRevenue) / o.visits : null);
+  const perOwn = (o: VisitOutcomes) => (o.visits > 0 ? o.ownRevenue / o.visits : null);
+  const perProfit = (o: VisitOutcomes) => (o.visits > 0 ? (o.ownProfit + o.ledProfit) / o.visits : null);
+  const b = per(s.breakdown);
+  const mt = per(s.maintenance);
+  // Too few visits and the comparison is one install either way.
+  const enough = s.breakdown.visits >= 10 && s.maintenance.visits >= 10;
+  const lead = enough && b != null && mt != null && mt > 0 && b > 0
+    ? b >= mt
+      ? `A breakdown has brought in ${(b / mt).toFixed(1)}× a maintenance visit`
+      : `A maintenance visit has brought in ${(mt / b).toFixed(1)}× a breakdown`
+    : "Not enough visits yet to compare";
+
+  return (
+    <>
+      {SECTOR_NAMES.map(([k, name]) => {
+        const f = s.bySector[k];
+        const avg = f.jobs > 0 ? f.revenue / f.jobs : null;
+        // Over or under the goal's margin, in words. The pace scale ("Ahead · 197%")
+        // is margin as a share of the goal, which on a wall reads as nonsense.
+        const verdict = f.margin != null && goal != null
+          ? f.margin >= goal ? { verdict: "ahead", text: `▲ Over ${pct(goal)}` } : { verdict: "behind", text: `▼ Under ${pct(goal)}` }
+          : null;
+        return (
+          <div className="tile tile--sector c3" key={k} style={{ gridRow: 1 }}>
+            <span className="tile__labelrow">
+              <span className="tile__label">{name}</span>
+              {verdict ? <span className={`tile__verdict status status--${verdict.verdict}`}>{verdict.text}</span> : null}
+            </span>
+            <span className="sector__fig">
+              <span className={vcls(f.jobs ? money(f.revenue) : NA)}>
+                <Ticker id={`Sector ${name}`} text={f.jobs ? money(f.revenue) : NA} />
+              </span>
+              <span className="tile__sub">billed</span>
+            </span>
+            <div className="rows">
+              <span className="rows__one"><span className="rows__k">Jobs · average</span><span className="rows__v">{count(f.jobs)} · {plain(avg)}</span></span>
+              <span className="rows__one"><span className="rows__k">Profit</span><span className="rows__v">{f.costed ? money(f.profit) : NA}</span></span>
+              <span className="rows__one">
+                <span className="rows__k">Margin{goal != null ? ` · goal ${pct(goal)}` : ""}</span>
+                <span className="rows__v">{f.margin == null ? (f.costed ? `${f.costed} costed, too few` : NA) : pct(f.margin)}</span>
+              </span>
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="tile c8" style={{ gridRow: 2 }}>
+        <div className="tile__head">
+          <span className="tile__title">What a visit turns into</span>
+          <span className="tile__sub">
+            same address, within {s.followDays} days · visits at least {s.settleDays} days old
+          </span>
+        </div>
+        {/* A pipeline rather than a stacked bar (Jake, 15 Nov). The stages are
+            cumulative and each one is a subset of the one before it, so the row
+            narrows left to right and the drop-off is the gap you can see. The
+            stacked bar it replaced showed the four outcomes a visit *ended* at,
+            which is the same data and answers a different question: it took
+            reading the key to work out that "install" and "quoted, nothing
+            booked" were not two steps of one thing. */}
+        <div className="pipe">
+          {visits.map(([name, o]) => (
+            <div className="pipe__row" key={name}>
+              <span className="pipe__name">
+                {name}
+                <em>{count(o.visits)} visits</em>
+              </span>
+              <span className="pipe__flow">
+                {pipeStages(o).map((st, i) => (
+                  <Fragment key={st.label}>
+                    {i > 0 ? (
+                      <span className="pipe__arrow" aria-hidden="true">
+                        &rsaquo;
+                      </span>
+                    ) : null}
+                    {/*
+                      Equal boxes, and the bar inside each one carries the
+                      share. Sizing the boxes themselves by the count was the
+                      first try: at nineteen installs out of sixty-eight visits
+                      the last box came out too narrow for its own label, and
+                      once every box had a floor under it they were all the same
+                      width anyway — a funnel that did not narrow. The bar does
+                      narrow, and the text stays the size it needs to be.
+                    */}
+                    <span className="pipe__stage">
+                      <i
+                        className={`pipe__tint mix--${st.tint}`}
+                        aria-hidden="true"
+                        style={{ width: o.visits > 0 ? `${Math.max(3, (st.n / o.visits) * 100)}%` : "100%" }}
+                      />
+                      <b>{count(st.n)}</b>
+                      <u>{st.label}</u>
+                      <em>{o.visits > 0 ? `${pct(st.n / o.visits)} of visits` : ""}</em>
+                    </span>
+                  </Fragment>
+                ))}
+              </span>
+              {/* Where the visit ended up, under how far it got. Two different
+                  questions off the same visits, and Jake wanted both: the
+                  stages are cumulative and each contains the one after it,
+                  these four are exclusive and add up to the visits. The lead-in
+                  word is what keeps them from being read as one list. */}
+              <span className="pipe__out">
+                <span className="pipe__bar" aria-hidden="true">
+                  {o.visits > 0 &&
+                    endedAt(o)
+                      .filter(([, n]) => n > 0)
+                      .map(([w, n, c]) => (
+                        <span key={w} className={`pipe__seg mix--${c}`} style={{ flexGrow: n }} />
+                      ))}
+                </span>
+                <span className="pipe__key">
+                  <em className="pipe__kcap">ended at</em>
+                  {endedAt(o).map(([w, n, c]) => (
+                    <span key={w} className="pipe__k">
+                      <i className={`mix--${c}`} aria-hidden="true" />
+                      {w} <b>{count(n)}</b>
+                      {o.visits > 0 ? <em>{pct(n / o.visits)}</em> : null}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="tile tile--navy c4" style={{ gridRow: 2 }}>
+        <span className="tile__label">Each visit is worth, with what it led to</span>
+        {/* The two figures are the answer to the page's question, so they are
+            the size of an answer. They were a right-hand column in a two-row
+            list at a third of this, which put the money at the same weight as
+            the labels beside it in a tile with room to spare. */}
+        <div className="worth">
+          {visits.map(([name, o]) => (
+            <div className="worth__one" key={name}>
+              <span className="worth__name">{name}</span>
+              <span className="worth__fig">
+                <Ticker id={`Worth ${name}`} text={plain(per(o))} />
+              </span>
+              <span className="worth__sub">
+                {plain(perOwn(o))} the visit alone · {plain(perProfit(o))} profit all in
+              </span>
+            </div>
+          ))}
+        </div>
+        <span className="tile__sub">
+          <b>{lead}</b>
+          {visits.some(([, o]) => o.ledUnbilled > 0)
+            ? ` · ${count(s.breakdown.ledUnbilled + s.maintenance.ledUnbilled)} follow‑on jobs not billed yet`
+            : ""}
+        </span>
+      </div>
+    </>
+  );
+}
 
 /* ------------------------------------------------------------------- pieces */
 /**

@@ -71,7 +71,9 @@ export async function cancelFromEmail(mailbox: string, m: GraphMessage, w: WorkO
 
   const when = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", dateStyle: "medium", timeStyle: "short" }).format(Date.parse(m.receivedDateTime ?? "") || Date.now());
   const memo = `Cancelled by ${w.agency || addressOf(m.from)} by email, ${when}: "${(m.subject ?? "").slice(0, 120)}"`;
-  await stSend("POST", stTenantPath("jpm", `jobs/${t.jobId}/cancel`), { reasonId: reason, memo });
+  // PUT, as ServiceTitan documents it: POST was never tried (no cancel had
+  // matched a job before 18 Nov).
+  await stSend("PUT", stTenantPath("jpm", `jobs/${t.jobId}/cancel`), { reasonId: reason, memo });
   await stSend("POST", stTenantPath("jpm", `jobs/${t.jobId}/notes`), { text: `${memo}\n\nCancelled automatically by the portal from the email.`, pinToTop: false }).catch(() => undefined);
   await sbUpdate(TABLE, `id=eq.${t.rowId}`, { cancelled_at: new Date().toISOString(), cancel_note: memo.slice(0, 300), updated_at: new Date().toISOString() });
   return { done: true, line: `cancelled job ${t.jobNumber ?? t.jobId} at ${t.address ?? where}` };

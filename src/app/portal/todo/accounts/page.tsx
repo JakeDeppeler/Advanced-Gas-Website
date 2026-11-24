@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { can, officeWork } from "@/lib/portal/caps";
 import { TodoView } from "@/components/portal/TodoView";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +10,6 @@ export const metadata = { title: "Account to-dos · Team portal" };
 export default async function AccountTodosPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead") && !can(user, "manage_users")) redirect("/portal/todo");
+  if (!officeWork(user) && !can(user, "manage_users")) redirect("/portal/todo");
   return <TodoView user={user} kind="accounts" />;
 }

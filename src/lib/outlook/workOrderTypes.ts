@@ -62,6 +62,9 @@ export function dedupeKey(kind: WorkOrderKind, number: string, street: string, s
   return `${kind}|${num || addressKey(street, suburb)}`;
 }
 
+export const WORK_KINDS = ["Installation", "Diagnostics", "Repairs", "Maintenance"] as const;
+export type WorkKind = (typeof WORK_KINDS)[number];
+
 export type WorkOrder = {
   isWorkOrder: boolean;
   whyNot: string;
@@ -89,13 +92,19 @@ export type WorkOrder = {
   urgent: boolean;
   /** The email cancels a work order, quote request or job already sent to us. */
   isCancellation: boolean;
+  /** The owner the work order is issued for, as written: the location's Owners Details. */
+  owner: string;
+  /** From a real estate agency or property manager for a rental: the job goes under Real Estate (Jake, 18 Nov). */
+  isRealEstate: boolean;
+  /** Which Real Estate business unit (Jake, 18 Nov: "read the work order so it's a quote or problem or installation"). */
+  workKind: WorkKind;
 };
 
 const str = { type: "string" } as const;
 export const WORK_ORDER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent", "is_cancellation"],
+  required: ["is_work_order", "why_not", "kind", "is_reminder", "platform", "agency", "property_manager", "pm_email", "pm_phone", "number", "street", "suburb", "postcode", "tenant_name", "tenant_phone", "tenant_email", "job", "details", "attend_by", "attend_by_date", "job_type", "urgent", "is_cancellation", "owner", "is_real_estate", "work_kind"],
   properties: {
     is_work_order: { type: "boolean", description: "True only if this asks us to attend a property: a new work order, a request to quote, or a quote accepted and the work to go ahead." },
     why_not: { type: "string", description: "When false, at most eight words on what it is instead, e.g. 'Progress update on an existing job'." },
@@ -115,6 +124,9 @@ export const WORK_ORDER_SCHEMA = {
     job_type: { type: "string", description: "The ServiceTitan job type for the visit, from the list given. A request to quote is 'Quotation'; a fault is the Diagnostics type for the appliance." },
     urgent: { type: "boolean" },
     is_cancellation: { type: "boolean", description: "True if this email cancels or withdraws a work order, quote request or job already sent to us (then is_work_order is false). Fill in the address and number of what's being cancelled." },
+    owner: { type: "string", description: "The property owner, as written, from wherever the work order or its attachments name them: 'issued on behalf of the owner - Tie Hong Tang (Owner)'; 'Owner:' or 'Landlord:'; or who to bill: 'Bill to', 'Invoice to', 'Charge to' or 'Account to' a person, before any 'c/o' or 'C/-' the agency (e.g. 'Larissa Alman' from 'Invoice to: Larissa Alman c/o First National Neilson Partners'). Never the agency, the property manager or the tenant. Empty if it doesn't say." },
+    is_real_estate: { type: "boolean", description: "True when it comes from a real estate agency, property manager or their maintenance platform about a rental. False for a builder, developer, body corporate, business or homeowner." },
+    work_kind: { type: "string", enum: ["Installation", "Diagnostics", "Repairs", "Maintenance"], description: "Installation: a quote for, or the work of, installing, replacing or adding equipment (a new split system, a heater to replace, more units upstairs). Diagnostics: something faulty, broken, leaking or not working to be looked at and found, including a quote to find or fix it. Repairs: the go-ahead to repair a fault that's already been found. Maintenance: a routine service, clean, or safety or compliance check on something that works." },
   },
 } as const;
 
@@ -131,6 +143,7 @@ export function parseWorkOrder(text: string): WorkOrder {
     job: s("job", 120), details: s("details", 3000), attendBy: s("attend_by", 60), urgent: o.urgent === true,
     isCancellation: o.is_cancellation === true,
     attendByDate: /^\d{4}-\d{2}-\d{2}$/.test(s("attend_by_date", 10)) ? s("attend_by_date", 10) : "", jobType: s("job_type", 80),
+    owner: s("owner", 160), isRealEstate: o.is_real_estate === true, workKind: (WORK_KINDS as readonly string[]).includes(o.work_kind as string) ? (o.work_kind as WorkKind) : "Diagnostics",
   };
 }
 
@@ -226,9 +239,17 @@ export function tenantContacts(w: Pick<WorkOrder, "tenantName" | "tenantPhone" |
   const memo = (list: string[], i: number) => (names.length === list.length && names[i] ? `Tenant: ${names[i]}` : names.length === 1 ? `Tenant: ${names[0]}` : "Tenant");
   const phones = tenantPhones(w), emails = tenantEmails(w);
   return [
-    ...phones.map((v, i) => ({ type: phoneType, value: v, memo: memo(phones, i).slice(0, 100) })),
+    // Digits only: ServiceTitan refuses "0425 743 079" as a mobile ("Only
+    // numeric value is allowed", 13 Goodall Court, 18 Nov). +61 as 0.
+    ...phones.map((v, i) => ({ type: phoneType, value: phoneDigits(v), memo: memo(phones, i).slice(0, 100) })),
     ...emails.map((v, i) => ({ type: "Email", value: v, memo: memo(emails, i).slice(0, 100) })),
   ];
+}
+
+/** A phone as ServiceTitan takes it: digits, an Australian +61 written as 0. */
+export function phoneDigits(v: string): string {
+  const d = v.replace(/\D/g, "");
+  return /^61\d{9}$/.test(d) ? `0${d.slice(2)}` : d;
 }
 
 /** "Joshua", or "Joshua and Christine". */
@@ -308,6 +329,8 @@ export function stage(r: WorkOrderRow): { tone: "good" | "mid" | "bad" | "none";
   if (r.status === "not") return { tone: "none", word: "Not a work order", line: r.reason ?? "Read and judged not to be one" };
   if (r.status === "failed") return { tone: "bad", word: "Not booked yet", line: r.reason ?? "ServiceTitan refused it; tried again automatically" };
   if (r.status === "working") return { tone: "mid", word: "Reading", line: "Being read now" };
+  if (r.status === "duplicate" && (r.reason ?? "").startsWith("quote approved")) return { tone: "good", word: r.st_job_number ? `Approved, on job ${r.st_job_number}` : "Approved", line: `${(r.reason ?? "").replace(/^quote approved/, "Quote approved")}. No new job: sell the estimate to book the work` };
+  if (r.status === "duplicate" && r.st_job_number) return { tone: "good", word: `Note on job ${r.st_job_number}`, line: `${(r.reason ?? "A follow-up").replace(/^a follow-up, /, "A follow-up: ").replace(/: the email went on that job as a note$/, "")}. Added as a note, not a new job` };
   if (r.status === "duplicate") return { tone: "none", word: "Already booked", line: "A reminder or resend of one booked from an earlier email" };
   if (r.status === "needs_agency") return { tone: "bad", word: "Agency not set up", line: `${r.reason ?? "The agency isn't a customer in ServiceTitan"}. Set it up as a customer, then give the email the Outlook category Work order again.` };
   // A job the portal made itself (no booking): on the site, waiting for the tenant.
@@ -361,8 +384,8 @@ export function streetWord(street: string): string {
   return words.sort((a, b) => b.length - a.length)[0] ?? "";
 }
 
-const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
-const agencyWords = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
+export const AGENCY_FILLER = new Set(["real", "estate", "pty", "ltd", "the", "rentals", "rental", "property", "properties", "management", "group", "agents", "realty", "and", "co"]);
+const agencyWords = (s: string) => s.toLowerCase().replace(/['\u2019]/g, "").replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter((w) => w && !AGENCY_FILLER.has(w));
 
 /**
  * Whether a ServiceTitan customer's name is this agency: every word of the
@@ -419,6 +442,26 @@ export function namesStreet(text: string, street: string): boolean {
 }
 
 /**
+ * Whether the email names this job's address: the street's name with its
+ * number before it ("11 Emerald") or its kind after it ("Emerald Court",
+ * "Emerald Ct"). The name alone isn't enough to put an email on a job: Peake
+ * Real Estate's email about 80 Inglis Road went on job 20050 at 11 Emerald
+ * Court (6 Nov), its job number in the email by chance and "Emerald" a suburb.
+ */
+export function namesSite(text: string, street: string): boolean {
+  const w = streetWord(street).replace(/[^a-z]/g, "");
+  if (w.length <= 2) return false;
+  const bare = street.toLowerCase().replace(/^.*\//, "").trim();
+  const num = /^(\d+[a-z]?)\b/.exec(bare)?.[1].replace(/[a-z]$/, "") ?? "";
+  const last = bare.replace(/[^a-z ]/g, " ").trim().split(/\s+/).pop() ?? "";
+  const full = Object.entries(ABBREV).find(([f, a]) => f === last || a === last);
+  const kinds = full ? [...new Set(full)] : [];
+  const byNumber = num ? new RegExp(`(?<![\\d])${num}[a-z]?\\s+${w}\\b`, "i") : null;
+  const byKind = kinds.length ? new RegExp(`\\b${w}\\s+(?:${kinds.join("|")})\\b`, "i") : null;
+  return Boolean(byNumber?.test(text) || byKind?.test(text));
+}
+
+/**
  * A ServiceTitan refusal in words: its own title ("\"0428 946 984; 0417 535 760\"
  * is not a valid phone number"), not the JSON it came wrapped in, which the
  * daily summary printed whole.
@@ -437,4 +480,320 @@ export function stSaid(e: unknown): string {
   }
   detail = detail.replace(/\\u0022|\\"/g, '"').replace(/\\u0027/g, "'");
   return `ServiceTitan said${status ? ` ${status}` : ""}${detail ? `: ${detail}` : ""}`;
+}
+
+/* ------------------------------------------------------------ follow-ups */
+
+/**
+ * A work order's own number, one spelling, for telling whether two emails are
+ * the same work order: "TAPI-023197", "TAPI-23197-1" and "tapi 23197" agree;
+ * "Job #01895" is "1895"; "PO 428520" is "428520". Ailo's WO-1061 and QU-1061
+ * are a work order and a quote, so the letters stay. Empty for no number, or
+ * one too short to mean anything.
+ */
+export function numberKey(number: string): string {
+  const n = (number ?? "").toUpperCase().replace(/\s+/g, "");
+  const tapi = /TAPI-?0*(\d+)/.exec(n);
+  if (tapi) return `TAPI-${tapi[1]}`;
+  const k = n.replace(/^(JOB|PO|NO\.?|#)+/, "").replace(/[^A-Z0-9]/g, "").replace(/\d+/g, (d) => d.replace(/^0+(?=\d)/, ""));
+  return /\d{3,}/.test(k) ? k : "";
+}
+
+/** A job already at the work order's site: from the replica, or one the portal made that the replica hasn't caught up with. */
+/** jobType: its ServiceTitan job type's name, when known. */
+export type SiteJob = { id: number; jobNumber: string | null; status: string | null; numbers: string[]; isQuote: boolean; createdOn: string | null; jobType?: string | null };
+/** pin: the office should see it at the top of the job (a new request on a job already there). */
+export type FollowUp = { job: SiteJob; why: string; pin?: boolean };
+
+const DAY_MS = 86_400_000;
+
+/**
+ * A quote approved is never made into a job (Jake, 12 Nov: "some of the work
+ * orders say quote approved and then you are thinking it a quote ... we don't
+ * want to create another file, just that it has been approved, and then an
+ * email to admin to say it has"). The office books the work by selling the
+ * estimate in ServiceTitan, which makes the job with the quote's items on it;
+ * a job the portal made beside it was a second file (7 Gatsby Dr and Home
+ * Affairs went in as Quotations).
+ *
+ * It's an approval when it says the quote is accepted, or when it's a work
+ * order carrying the number of a quote visit already done (Tapi sends the
+ * install for 1/19 Lyall St as a work order under the quote's number). The
+ * email goes, pinned, on the job it belongs to: an open job there (the quote
+ * waiting, or the job the office has since sold it into), else the one with
+ * its number, else the latest quote there. None found, it's still an approval:
+ * admin is told and looks for it.
+ */
+export function approvalFor(w: Pick<WorkOrder, "kind" | "number">, jobs: SiteJob[], now = Date.now()): { job: SiteJob | null; why: string } | null {
+  const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
+  const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
+  const done = (j: SiteJob) => j.status === "Completed";
+  const name = (j: SiteJob) => `job ${j.jobNumber ?? j.id}`;
+  const num = numberKey(w.number);
+  const keys = (j: SiteJob) => j.numbers.map(numberKey).filter(Boolean);
+  const same = num ? live.find((j) => keys(j).includes(num)) : undefined;
+  const afterQuote = w.kind === "work_order" && !!same && done(same) && same.isQuote;
+  if (w.kind !== "quote_accepted" && !afterQuote) return null;
+
+  const fits = (j: SiteJob) => !num || !keys(j).length || keys(j).includes(num);
+  const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS && fits(j) && (!same || when(j) >= when(same)));
+  if (open) return { job: open, why: `${name(open)} is open there` };
+  if (same) return { job: same, why: `${name(same)} has its number` };
+  const quote = live.find((j) => j.isQuote && now - when(j) <= 120 * DAY_MS);
+  if (quote) return { job: quote, why: `${name(quote)} is the latest quote there` };
+  return { job: null, why: "no job for it found at this address" };
+}
+
+/** The note an approval opens with on the job. */
+export function approvalHeading(w: Pick<WorkOrder, "agency" | "platform" | "number">): string {
+  const from = [w.agency, w.platform ? `(${w.platform})` : ""].filter(Boolean).join(" ");
+  return `QUOTE APPROVED${w.number ? ` ${w.number}` : ""}${from ? ` by ${from}` : ""}. No new job made: sell the estimate to book the work. Admin has been emailed.`;
+}
+
+/**
+ * Whether this work order is a follow-up about a job already at the site, and
+ * so goes on that job as a note rather than making another (Jake, 12 Nov:
+ * "they send a work order follow up and it is currently create a new job each
+ * time, not just add another note to the current file"). Approvals are taken
+ * out first (approvalFor). In order:
+ *
+ *  1. The same work order number as a job there (its PO, or a work order
+ *     already put on it). An open job takes it, whatever kind it now says.
+ *  2. A "Re:" about an open job there from the last month, unless the two
+ *     carry different numbers.
+ *  3. No number of its own, and a job open there from the last three months.
+ *  4. A number of its own, and the same work open there from the last
+ *     month: a quote request and a quote job, or a work order and a job of
+ *     the same job type (the same appliance's fault). Agencies send the same
+ *     request again under a new number (Jake, 18 Nov: 4 Dundee Court as 23835
+ *     then 24552; 41 Shanks Drive as QU-8041 and QU-8042 a second apart). A
+ *     work order for something else at the house is its own job, as each
+ *     carries its own reference to invoice. Pinned, so the office sees it.
+ *
+ * A completed job takes only a reminder that it's still to do. Anything else
+ * about it asks for something new, and a note on a finished job is a note
+ * nobody reads (the audit, 12 Nov: LJ Hooker's request to quote a new split
+ * system at 8/21 Pakenham Rd, "Re: Work order", went on the clean done three
+ * weeks before, and no quote job was made). That new work may already have
+ * its job, made by the office since: an open job there newer than the
+ * finished one, with no other number, takes it.
+ */
+export function followUpFor(w: Pick<WorkOrder, "kind" | "number" | "isReminder"> & { jobType?: string }, reply: boolean, jobs: SiteJob[], now = Date.now()): FollowUp | null {
+  const when = (j: SiteJob) => Date.parse(j.createdOn ?? "") || now;
+  const live = jobs.filter((j) => j.status !== "Canceled").sort((a, b) => when(b) - when(a));
+  const done = (j: SiteJob) => j.status === "Completed";
+  const takes = (j: SiteJob) => !done(j) || w.isReminder;
+  const name = (j: SiteJob) => `job ${j.jobNumber ?? j.id}`;
+  const keys = (j: SiteJob) => j.numbers.map(numberKey).filter(Boolean);
+  const num = numberKey(w.number);
+  const fits = (j: SiteJob) => !num || !keys(j).length || keys(j).includes(num);
+  const since = (j: SiteJob) => live.find((o) => o !== j && !done(o) && when(o) >= when(j) && now - when(o) <= 14 * DAY_MS && fits(o));
+
+  const same = num ? live.find((j) => keys(j).includes(num)) : undefined;
+  if (same) {
+    if (takes(same)) return { job: same, why: done(same) ? `a reminder about ${name(same)}, already done` : `the same work order as ${name(same)}` };
+    const newer = since(same);
+    return newer ? { job: newer, why: `${name(same)} is done, and the work after it is ${name(newer)}` } : null;
+  }
+  if (reply) {
+    const recent = live.find((j) => now - when(j) <= 30 * DAY_MS && !(num && keys(j).length));
+    if (recent && takes(recent)) return { job: recent, why: `a reply about ${name(recent)}` };
+  }
+  if (!num) {
+    const open = live.find((j) => !done(j) && now - when(j) <= 90 * DAY_MS);
+    if (open) return { job: open, why: `no work order number, and ${name(open)} is open at this address` };
+    return null;
+  }
+  const sameKind = (j: SiteJob) => (w.kind === "quote_request" ? j.isQuote : w.kind === "work_order" ? !j.isQuote && Boolean(w.jobType) && j.jobType === w.jobType : false);
+  const alike = live.find((j) => !done(j) && sameKind(j) && now - when(j) <= 30 * DAY_MS);
+  if (alike) return { job: alike, why: `${w.kind === "quote_request" ? "a quote" : "a work order"} under a new number (${w.number}), and ${name(alike)} is open at this address for the same kind of work`, pin: true };
+  return null;
+}
+
+/** The line a follow-up note on a job opens with, so the office can see it's the agency again and not a stray email. */
+export function followUpHeading(w: Pick<WorkOrder, "agency" | "platform" | "kind" | "number" | "urgent" | "isReminder">): string {
+  const what = w.isReminder ? "Reminder" : KIND_SHORT[w.kind];
+  const from = [w.agency, w.platform ? `(${w.platform})` : ""].filter(Boolean).join(" ");
+  return `WORK ORDER FOLLOW-UP${w.urgent ? ", URGENT" : ""}: ${what}${w.number ? ` ${w.number}` : ""}${from ? ` from ${from}` : ""}. Added to this job as a note, not made into a new job.`;
+}
+
+/**
+ * The same address with its number taken off, for a site ServiceTitan holds
+ * with none ("Mullaly Close", West Melbourne: Home Affairs, the only place on
+ * it the office goes). Null when there's a unit or no number to take off: a
+ * unit is one of many, never the whole street.
+ */
+export function bareStreet(key: string): string | null {
+  const [addr, city = ""] = key.split("|");
+  if (addr.includes("/") || !/^\d/.test(addr)) return null;
+  return `${addr.replace(/^\d+[a-z]?\s+/, "")}|${city}`;
+}
+
+/**
+ * The job a quote turned into, once it's sold (Jake, 14 Nov: Dr Govindarajah's
+ * ducted quote on job 20284 was sold and the install made as job 20873, while
+ * every email about it, and every one after, stayed on the quote job). The
+ * only open job at the quote's address made since, with a sale to show for it:
+ * the quote's estimate sold no later than a day after the new job was made,
+ * or the new job holding an estimate written before it existed (ServiceTitan
+ * moves a sold estimate onto the job it makes). Two such jobs is a guess, so
+ * none.
+ */
+export type QuoteJob = { id: number; created: string | null; soldOn: string | null };
+export type LaterJob = { id: number; created: string | null; estimateBefore: boolean };
+export function workAfterQuote(quote: QuoteJob, later: LaterJob[]): number | null {
+  const at = (s: string | null) => Date.parse(s ?? "") || 0;
+  const sold = quote.soldOn ? at(quote.soldOn) : null;
+  const fits = later.filter((j) => j.id !== quote.id && at(j.created) >= at(quote.created)
+    && (j.estimateBefore || (sold !== null && sold <= at(j.created) + DAY_MS)));
+  return fits.length === 1 ? fits[0].id : null;
+}
+
+/* ------------------------------------------------------------ the site's details */
+
+/** The Property Type values the office uses on a site; anything else is left for them. */
+export const PROPERTY_TYPES = ["House - Single Storey", "House - Double Storey", "Townhouse"] as const;
+
+/** "JOB NO. 20426" for an agency's plain number, as the office writes it; a Tapi number as it is. */
+export const jobReference = (n: string) => (/^\d+$/.test(n.trim()) ? `JOB NO. ${n.trim()}` : n.trim());
+
+/** A unit, flat, shop or lot: no listing settles its storeys, so never looked up. */
+export const isUnitAddress = (street: string) => /^\s*(unit|apt|apartment|flat|shop|suite|lot)\b|^\s*\d+[a-z]?\s*\//i.test(street);
+
+/**
+ * A home in a block: "Unit 4", "Apt 3", "4/15 ...". The office's Property
+ * Type for these is "Unit" (200 of their jobs; "Apartment" once). A shop,
+ * suite or lot isn't one, and stays Unknown.
+ */
+export const isUnitHome = (street: string) => /^\s*(unit|apt|apartment|flat)\b|^\s*\d+[a-z]?\s*\//i.test(street);
+
+/** What Property Type says when nothing settles it (Jake, 19 Nov: "just make it unknown"). */
+export const UNKNOWN_TYPE = "Unknown";
+
+/**
+ * What a site's Property Type should be: Unit for a home in a block, else
+ * what the lookup found, else Unknown. Null when the site's own value stays:
+ * anything but Unknown is the office's or a lookup's answer, and an Unknown
+ * is only replaced by a real answer.
+ */
+export function propertyTypeToWrite(street: string, have: string, found: string | null): string | null {
+  if (have && have !== UNKNOWN_TYPE) return null;
+  const t = isUnitHome(street) ? "Unit" : found;
+  if (t) return t;
+  return have ? null : UNKNOWN_TYPE;
+}
+
+/** The lookup's last "ANSWER:" line as one of PROPERTY_TYPES, else null (Unknown included). */
+export function propertyTypeFrom(text: string): string | null {
+  const lines = [...text.matchAll(/ANSWER:\s*([^\n]+)/gi)];
+  const said = lines.at(-1)?.[1]?.trim().replace(/[.*`]+$/g, "") ?? "";
+  return (PROPERTY_TYPES as readonly string[]).find((t) => t.toLowerCase() === said.toLowerCase()) ?? null;
+}
+
+/** Which Real Estate business unit a work order goes under, by name. Null when it isn't a rental's. */
+export const realEstateUnitName = (w: Pick<WorkOrder, "isRealEstate" | "workKind">) => (w.isRealEstate ? `Real Estate - ${w.workKind}` : null);
+
+/** A visit's end: the job type's own length, an hour and a half when it has none, never under half an hour. */
+export function visitEnd(startIso: string, durationSeconds: number | null): string {
+  const secs = durationSeconds && durationSeconds >= 1800 && durationSeconds <= 12 * 3600 ? durationSeconds : 5400;
+  return new Date(Date.parse(startIso) + secs * 1000).toISOString();
+}
+
+/* ------------------------------------------------------------ Tapi */
+
+/**
+ * Tapi's emails say little ("Kim sent a message", "Full details are in the
+ * Tapi work order"); the page their link opens, without signing in, has the
+ * tenant, key number, owner ("Invoice to"), property manager and the full
+ * description (Jake, 18 Nov). Only a link of exactly this shape is opened.
+ */
+export const TAPI_LINK = /https:\/\/tapi\.app\/issue\/[0-9a-f-]{36}\/t\/[0-9a-f-]{36}\?s=[A-Za-z0-9]{4,40}/;
+
+export const tapiLinkIn = (text: string) => TAPI_LINK.exec(text.replace(/&amp;/g, "&"))?.[0] ?? null;
+
+/** Tapi's own hosts: the only ones a page is read from. */
+export const TAPI_HOST = /(^|\.)tapi\.app$/i;
+/**
+ * Hosts a Tapi email's buttons may pass through on the way to tapi.app:
+ * Tapi's own, and the click-tracking of the services that send mail for
+ * others. Followed only to see where they lead, never read.
+ */
+const TAPI_VIA = /(^|\.)(tapi\.app|tapihq\.com|sendgrid\.net|mailgun\.org|mailgun\.net|mandrillapp\.com|list-manage\.com|customeriomail\.com|postmarkapp\.com|mailjet\.com|sparkpostmail\.com|awstrack\.me)$/i;
+export const tapiLinkHostOk = (url: string) => {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && TAPI_VIA.test(u.hostname);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * The links in a Tapi email worth opening for its page, best first (Jake,
+ * 18 Nov: 20910 and 20911 came in with no tenant: their links aren't the
+ * /issue/.../t/... of a message email). From Graph's text ("View<https://…>")
+ * or the HTML's hrefs: tapi.app's own first, then any through a tracker.
+ */
+export function tapiLinksIn(text: string): string[] {
+  const urls = [...text.replace(/&amp;/g, "&").matchAll(/https:\/\/[^\s"'<>()]+/g)].map((m) => m[0].replace(/[.,;:!?]+$/, ""));
+  const ok = [...new Set(urls)].filter(tapiLinkHostOk).filter((u) => !/\.(png|jpe?g|gif|svg|css|js)(\?|$)/i.test(u) && !/unsubscribe|privacy|terms|help|support\.tapi|tapihq\.com\/?$/i.test(u));
+  const rank = (u: string) => (TAPI_LINK.test(u) ? 0 : (() => { try { return TAPI_HOST.test(new URL(u).hostname) ? 1 : 2; } catch { return 3; } })());
+  return ok.sort((a, b) => rank(a) - rank(b));
+}
+
+/** Whether a page's words are a Tapi work order's, not its sign-in or an error. */
+export const looksLikeTapiJob = (text: string) => text.length > 80 && /Tenants?:|Property:|Invoice to:|Work order|Quote request|Description:/i.test(text);
+
+/** Lines that are the page's buttons and dialogs, not the work order. */
+const TAPI_CHROME = /^(×|-->|Cancel|Delete|Previous|\/|Next|View document|Download file|Loading file …|Delete photo|Delete attachment|Are you sure .*|Close|Send message|New message|To:|Message:|Enter a message\.|Print|·|View as myself|Help|Log in|About Tapi|Tapi|Optional\.|Open in Google Maps|Show more)$/;
+
+/** The page's words, without its scripts, buttons and the dialogs after the work order. */
+export function tapiPageText(html: string): string {
+  const words = html
+    .replace(/<(script|style|svg|noscript|template)[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]+>/g, "\n")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&#x27;/g, "'").replace(/&[a-z]+;|&#\d+;/gi, " ");
+  const lines = words.split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter((l) => l && !TAPI_CHROME.test(l));
+  // Everything after the job's own health & safety section is Tapi's dialogs.
+  const end = lines.findIndex((l, i) => i > 10 && /^Health & safety information for this property$/.test(l));
+  return (end > 0 ? lines.slice(0, end) : lines).join("\n").slice(0, 8000);
+}
+
+/* ------------------------------------------------------------ the sender and the file */
+
+/** Words that say nothing about who someone is: titles, roles and agency filler. */
+const NAME_FILLER = new Set([
+  "the", "and", "for", "from", "via", "mr", "mrs", "ms", "miss", "dr", "pty", "ltd", "co", "group", "team", "office", "admin", "accounts",
+  "info", "enquiries", "reception", "real", "estate", "property", "properties", "manager", "management", "rentals", "rental", "realty",
+  "agents", "tenant", "tenants", "owner", "owners", "administration", "assistant", "senior", "leasing", "consultant", "maintenance",
+  "tapi", "propertyme", "ailo", "noreply", "reply",
+]);
+const nameWords = (s: string) => s.toLowerCase().replace(/['\u2019]/g, "").split(/[^a-z]+/).filter((w) => w.length >= 3 && !NAME_FILLER.has(w));
+
+/**
+ * Whether the sender's name is on the file (Jake, 18 Nov: "check email and
+ * name match"): a word of the sender's name, or of the start of their address
+ * when the name is blank ("tunbridgejake@"), is a word of the customer's or
+ * site's name, or of the note on their contact ("Adeline Johnston - Property
+ * Manager"). Filler like "Property Manager" never counts on its own.
+ */
+export function senderNameOnFile(sender: { name: string; email: string }, fileNames: string[]): boolean {
+  const file = new Set(fileNames.flatMap(nameWords));
+  if (!file.size) return false;
+  if (nameWords(sender.name).some((w) => file.has(w))) return true;
+  const local = (sender.email.split("@")[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  return local.length >= 4 && [...file].some((w) => w.length >= 4 && local.includes(w));
+}
+
+/** The lookup's "WHY:" line: what it found, or why it couldn't tell. */
+export const propertyWhyFrom = (text: string) => ([...text.matchAll(/WHY:\s*([^\n]+)/gi)].at(-1)?.[1]?.trim() ?? "").slice(0, 200);
+
+/** The managing agent as a site contact, noted as the office notes them ("Kristina Verkaik - Property Manager"). */
+export function managerContacts(w: Pick<WorkOrder, "propertyManager" | "pmEmail" | "pmPhone">): { type: string; value: string; memo: string }[] {
+  const memo = (w.propertyManager.trim() ? `${w.propertyManager.trim()} - Property Manager` : "Property Manager").slice(0, 100);
+  const email = w.pmEmail.trim().toLowerCase();
+  // A platform's no-reply address isn't the manager's.
+  const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !/no-?reply|@(?:[\w.-]+\.)?(tapihq\.com|tapi\.app|propertyme\.com|ailo\.io)$/i.test(email) && !/@advancedgas\.com\.au$/i.test(email);
+  const phones = tenantPhones({ tenantPhone: w.pmPhone }).map(phoneDigits);
+  return [...phones.map((v) => ({ type: "Phone", value: v, memo })), ...(okEmail ? [{ type: "Email", value: email, memo }] : [])];
 }

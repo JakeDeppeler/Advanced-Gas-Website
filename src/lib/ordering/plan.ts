@@ -41,8 +41,22 @@ export type Supplier = {
 export const DEFAULT_ORDER_INTRO = "Hi team,\n\nPlease supply the following for Advanced Gas & Aircon, order {po}.";
 // Several orders can be with a supplier at once (this week's and next week's,
 // a top-up); each delivery can carry a fee and a trip to the factory, so every
-// order asks for anything still to go out to come together.
-export const DEFAULT_ORDER_SIGNOFF = "If you have another order of ours that hasn't gone out yet, please send this one with it, all in one delivery.\n\nPlease confirm the order and expected delivery by replying to this email.";
+// order asks for anything still to go out to come together. The unloading line
+// leads (Jake, 18 Nov): the Instructions line already said "no forklift", but
+// that gets keyed into the supplier's system, and the closing is what the
+// person reading the email reads.
+export const DEFAULT_ORDER_SIGNOFF = "Please note we don't have a forklift or pallet jack, so the delivery will need to be unloaded by hand or with a tailgate lift.\n\nIf you have another order of ours that hasn't gone out yet, please send this one with it, all in one delivery.\n\nPlease confirm the order and expected delivery by replying to this email.";
+
+/**
+ * The closing for an order: the supplier's own, else the default. On an order
+ * we collect, the paragraph about unloading comes out, because nothing is
+ * being delivered to unload.
+ */
+function orderClosing(supplier: Supplier, vars: { supplier: string; po: string }, pickup?: boolean): string {
+  const text = fillWording(blank(supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : supplier.email_signoff!, vars);
+  if (!pickup) return text;
+  return text.split(/\n{2,}/).filter((p) => !/fork ?lift|pallet jack|tailgate/i.test(p)).join("\n\n").trim();
+}
 export const DEFAULT_WORK_INTRO = "Hi Geoff,\n\nPlease book in the electrical for the install below.";
 
 export function fillWording(template: string, vars: { supplier: string; po: string }): string {
@@ -603,7 +617,7 @@ ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cel
 </table>`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
-  const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
+  const closing = orderClosing(o.supplier, vars, o.pickup);
   const intro = paras(opening)
     + (o.attached ? "<br><br>Your order form is attached, filled in." : "")
     + (o.pickup ? `<br><br><strong>Pick up:</strong> we'll collect this order — no delivery needed.` : `<br><br><strong>Deliver to:</strong> ${esc(o.delivery)}`)
@@ -849,7 +863,7 @@ export function mitsubishiOrderEmail(o: {
   const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${o.pickup ? " — PICK UP" : ""}${needed ? ` — ${deliverPhrase(needed, o.pickup)}` : ""}`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
-  const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
+  const closing = orderClosing(o.supplier, vars, o.pickup);
   const file = mitsubishiFormFilename(o.poNumber);
 
   const facts: [string, string][] = [

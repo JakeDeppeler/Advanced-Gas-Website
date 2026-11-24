@@ -123,7 +123,7 @@ invoices had their lines touched in bulk — so it can't carry the year.
 
 ## The pages
 
-The board cycles every 30 seconds through nine pages. Past about eight tiles
+The board cycles every 30 seconds through its pages. Past about eight tiles
 nothing on a 1080p panel stays readable from four metres, so it rotates rather
 than shrinks.
 
@@ -192,7 +192,7 @@ Eleven tiles became six. The page had grown a tile per available number, and at
 that density nothing on it was bigger than anything else — which is the one
 thing a wall needs. Nothing real was lost: jobs completed is the line under
 Invoiced, the lead count is the line under Jobs booked, quotes out has a page
-of its own, and the service mix is the job-type table on Performance.
+of its own, and the service mix is the table on Job types.
 
 **Pace** is the year goal worked back through every step the money moves
 through — booked, quoted, quote value, sold, completed, invoiced — in three
@@ -395,24 +395,17 @@ absent, so the fix is to lead with sold and say on the page how much of the
 month it accounts for — the totals row does, whenever the named sales come to
 less than 90% of the month.
 
-**Performance** is four figures with job margin as the navy one — booked,
-invoiced, paid, and what was left of it — over one table of job types: jobs booked, invoices, revenue, and a bar.
+**Job types** is the row underneath Sectors: which kind of install, which kind
+of service, how long each is booked for and how long it really takes. See
+[Job types](#job-types-what-each-kind-of-work-is-booked-for-and-what-it-takes).
 
-The margin tile is the **per-job** figure — price before GST, less equipment and
-materials, less the hours at what an hour of the crew costs (see
-`src/lib/dashboard/jobProfit.ts`) — against the year goal's profit percentage,
-with the jobs it could cost said underneath, so a margin off four jobs never
-passes as a margin off the month. It used to come off `st_invoices.cost`, which
-is null on all 5,415 rows in the replica, so it read "—" on every day it was up.
-
-The table's bar is still that invoice-level margin, and **when no invoice
-carries a cost it is each type's share of the month instead.** The column was
-five empty grey tracks and a column of dashes, which from four metres reads as a
-broken chart rather than as missing data. A column that has never once held a
-figure is not holding a place, it is taking one. Share of the month's invoicing
-is measured, and it answers what the table is actually read for — where the
-month's money came from. The margin comes back on its own the day ServiceTitan
-starts sending a cost.
+It replaced **Performance**, which by then was three things that live better
+elsewhere — jobs booked is the Today page's own figure, time on the tools is the
+Crew page's, and the month's invoiced and paid totals are on Today and Pace —
+over a job-type table ranked by a month of invoices, whose margin column came
+off `st_invoices.cost` and has never once been populated (0 of 5,415 rows). The
+per-job margin those cards carried is the year's, on
+[Pace](#the-years-margin-is-the-years-not-the-months) and on Sectors.
 
 **Areas** is where the work is over the last 60 days, on a real map. Tiles are
 CARTO's light basemap — a full-colour one fights the orange heat sitting on it —
@@ -875,6 +868,36 @@ screen is what the quote is built from), weekly finance figures in the
 pricebook (no finance product or rate is written down anywhere), and jobs per
 day on the timesheet (ServiceTitan's job assignments aren't synced).
 
+## Every page says the period it measures
+
+A chip beside each page's name, in the same place on all ten, saying the window
+that page's figures cover: `today`, `this week and month`, `22 June – today ·
+5 months`, `17 Sept – today · 2 months`.
+
+Jake asked for it (16 Nov) and he asked because he had just been caught by it:
+"is the sectors is this per year?" **Sectors is not a year.** It asks for 365
+days and is then clamped to `ST_LEDGER_FROM`, the day ServiceTitan became the
+ledger, so it covers two months. Crew and Job types ask for the same 365 days
+and get five, because the first job and the first timesheet are both 22 June
+2026. Ten pages measuring ten different periods, with the period named in the
+prose of some of them, is how a room compares two figures that were never
+comparable.
+
+**The chip says what is true, not what was asked for.** `Crew.firstDay` is the
+earliest stamp actually in the window, so the chip reads "22 June – today"
+rather than "last 365 days", which would be a sentence about an intention. The
+span is spelled out beside the date — "· 5 months" — because "since 22 June"
+needs a calendar and four metres is too far to do arithmetic. Days below sixty,
+months above, so a new tenant never reads "0 months".
+
+It is quiet on purpose: a hairline outline and the muted ink, at the weight of
+a label rather than a figure. It is on every page, and at the title's weight it
+would be the second thing read nine times a rotation.
+
+Where a page named its own window in its subtitle, that text came out — the
+chip is the one place, so the two can never drift apart. Code: `WINDOWS` and
+`since()` in `ScreenBoard.tsx`, `.screen__when` in `screen.css`.
+
 ## Pace: what the goal needs of every step
 
 Set on the portal's **Pace** page (`/portal/pace`), which writes the same
@@ -1079,31 +1102,41 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
-**The Money page is gone.** Jake asked for it off the rotation, so the board is
-eight pages: Today, Pace, Quotes, Invoices, Daily pace, Team, Performance,
-Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
+**The Money page is gone.** Jake asked for it off the rotation. With Crew and
+Sectors since added, the board is ten pages: Today, Pace, Quotes, Invoices,
+Daily pace, Crew, Team, Job types, Sectors, Areas. What we owe is no longer anywhere on the wall; the portal's Owe board
 still has it, arrangements and all. The payables read itself is left in place —
 `fetchXeroPayables`, the ageing and the on-terms split still run every five
 minutes and still reconcile — so the page is one revert away rather than a
 rebuild, at the cost of one Xero call nothing currently renders.
 
 **Lateness to a job cannot be measured yet, so there is no tile for it.** The
-third cut on these grounds, and the clearest. `st_appointments` carries the slot
-and the arrival window, `st_timesheets` carries `arrived_on` per technician, and
-the join works — but of the 558 visits in the last sixty days, **365 (65%) have
-`arrived_on` stamped at exactly the scheduled start, to the second**, and
-another 188 at exactly the dispatch moment. Those are defaults, not
-measurements: a real arrival is never exactly on the second. Strip them and 122
-visits are genuinely recorded, which is 22% of the work, spread one to
-thirty-one per technician — Jye has 1, Jake 4, Kayden 9. On that sample Kayden
-reads 78% late off nine visits. Naming a person on a wall off nine visits, with
-four in five of their jobs unmeasured and the measured ones self-selected, is
-the worst version of a confidently wrong number: it is wrong *about somebody*.
+third cut on these grounds, and the clearest. Asked for twice — a late count per
+person (14 Nov), then again inside the Crew page's KPIs (15 Nov) — and refused
+twice for the same reason. `st_appointments` carries the slot and the arrival
+window, `st_timesheets` carries `arrived_on` per technician, and the join on
+`appointment_id` is exact. But of the **715 visits in the last sixty days, 576
+have `arrived_on` stamped either at the scheduled start to the second or at the
+dispatch moment** — defaults, not measurements; a real arrival is never exactly
+on the second. Strip them and 139 visits are genuinely recorded, 19% of the
+work, from 0 to 34 per technician: Jake 0 of 67, Thomas 2 of 18, Jye 9 of 69.
+On that sample Kayden reads 4 late off 14 recorded visits. Naming a person on a
+wall off fourteen visits, with four in five of their jobs unmeasured and the
+measured ones self-selected, is the worst version of a confidently wrong
+number: it is wrong *about somebody*.
+
+Worse, the remnant is not even consistent. Averaged against the arrival window,
+the recorded visits give Paddy +2,034 minutes and Chaz −618: there are arrivals
+stamped days away from the appointment they belong to. There is no threshold
+that makes a figure out of this.
 
 What unlocks it is not code. It is technicians tapping **On my way / Arrived**
 in the ServiceTitan app so `arrived_on` is a real timestamp rather than a
-default. Once coverage is up the tile is a day's work — the fields, the join and
-the honest denominator are already worked out and in this file.
+default. Until then the Crew page carries the honest version of the same
+question in its *On the tools* column — "93 of 108 clocked" — which measures how
+much of each person's work has a real stamp at all, and is the thing that has to
+move first. Once coverage is up the tile is a day's work: the fields, the join
+and the honest denominator are worked out here.
 
 **The board is reconciled against the database, not trusted.**
 `scripts/audit-board.sql` recomputes every published figure straight from the
@@ -1708,8 +1741,8 @@ the card, next to the only big number anybody had in mind — the $3.2M year goa
 So the day cards on **Today** and **Quotes** no longer carry a pace chip. They
 say what the day asks for instead: *$4,054 · of $11,093 today · 1 job sold*.
 That figure only goes up through the day, means the same thing at 9am and at
-5pm, and carries its own denominator. Judging is left to **Pace** and
-**Performance**, which measure the week and the month.
+5pm, and carries its own denominator. Judging is left to **Pace**, which
+measures the week and the month.
 
 Two things deliberately left alone:
 
@@ -1744,8 +1777,8 @@ against the same by-now, so the two pages cannot disagree about whether the day
 is going well.
 
 `Verdict` is one component and `headVerdictOf` is one function, used by the
-Today cards, the Quotes tiles and the Performance head cards, because four
-places each deciding what "on track" means is four chances to drift.
+Today cards and the Quotes tiles, because three places each deciding what "on
+track" means is three chances to drift.
 
 **Sold's by-now is computed, not read from `standing`.** The `sold` step there
 counts jobs, so its `byNow` is in jobs — the same unit trap that once put
@@ -1758,6 +1791,29 @@ multiplied.
 on cancellations too — this week's figure was 18 where 16 jobs were actually
 completed. Both now filter on `status = 'Completed'`, the same fix the billing
 queue needed.
+
+## The longest line on Today wraps, because it was being cut
+
+"Jobs today → Booked" carries the longest sub line on the board: `from 3 leads
+· 62 in the next 7 days`, in a half about 280px wide at 1920. `.halves__sub`
+was `white-space: nowrap`, which is safe only while every sub line is short.
+
+**It was cut on the live board**, not hypothetically: with Manrope loaded and
+the production figures of 16 November — 3 leads, 62 scheduled — the line
+overflowed its half at every panel size in both themes. It had passed every
+check until then because the test fixture read `from 0 leads · 0 in the next 7
+days`, and two characters was the whole margin.
+
+A fallback font made it worse rather than causing it. Rendering the board with
+`fonts.googleapis.com` and `fonts.gstatic.com` blocked is a reproducible way to
+test that, because it is what the TV sees for the first moments after a cold
+start, and it found this line and nothing else on all ten pages.
+
+So the line wraps now, breaking between words. And `.halves__sub` reserves two
+lines whether or not it uses them: `.halves` centres each half on its own
+content, so a sub that wrapped on one side and not the other dropped "Booked 8"
+ten pixels above "Completed 0" — two figures abreast at different heights,
+which is the kind of thing a wall board gets noticed for.
 
 ## Figures count up
 
@@ -1813,13 +1869,13 @@ being readable across the room, which costs more than the seventh card is worth.
 The header says "top 6 of 7" when somebody is not shown, so six never reads as
 everybody, and the team strip still counts them all.
 
-**The Performance head cards carry their verdict**, each against the thing that
-measures it: jobs booked and invoiced against the month's pace, margin against
-the margin goal itself (a rate is not something you accumulate half of by
-mid-month), and paid against the *same plan as invoiced* rather than against
-what we happened to invoice — the goal is revenue, and revenue is not revenue
-until it is banked. Paid will read behind invoiced most months because cash lags
-billing, and that gap is the thing worth seeing.
+**No page carries a verdict beside its name any more.** Performance did — the
+`completed` step of Pace, repeated — and the Job types page that replaced it is
+about which kind of job takes how long. Nothing sets a target for that, and
+borrowing Pace's month-completed verdict to sit beside a table of job types
+would be the board answering a question nobody asked on that page. The hook is
+written down in `ScreenBoard.tsx` where the function used to be, for the day a
+page earns one.
 
 ## The Team page
 
@@ -2039,16 +2095,19 @@ writing.
 
 ## Time on the tools, and the margin that isn't there
 
-The Performance page carries **Time on the tools**: hours the quote allowed
-against hours the crew clocked, over the jobs that carry both. It is the one
-figure on that page about doing the work rather than selling it, and it is
-blunt — 91.5 allowed against 141.7 taken this financial year, 55% over, 17 of 37
-jobs past their quoted time. A job priced at four hours that takes nine was sold
-at a margin it never had.
+Performance used to carry a **Time on the tools** card: hours the quote allowed
+against hours the crew clocked, over the jobs that carry both — 91.5 allowed
+against 141.7 taken in the financial year, 55% over, 17 of 37 jobs past their
+quoted time. A job priced at four hours that takes nine was sold at a margin it
+never had.
 
-Its population is narrower than the costed one and deliberately so: a job needs
-sold hours on the invoice **and** a timesheet, where costing takes hours from
-either. The job count is on the card for the same reason the margin's is.
+That comparison is now the Crew page's, per van rather than for the firm, and
+its denominator is wider: the Crew and Job types pages lead on the **time
+allowed** — the slot the job is booked into, which 458 of 490 attended jobs
+carry — and keep the sold-hours verdict beneath it, where 238 do. It also uses
+time on site rather than summed man-hours, which the old card did not, and which
+is the difference between a two-man install reading 2.0× its sold time and
+1.11×. See [Crew](#crew-each-van-over-the-year).
 
 **Quoted margin against achieved margin is not on the board, and this is why.**
 The estimate line items do carry a cost — `totalCost` and `unitCost` on each item
@@ -2318,7 +2377,7 @@ has to be looked at.**
 The Team band carries **Margin · sold**: what the month's sales were sold at,
 price against cost, ex-GST.
 
-**It is not the Job margin from the Performance page and must not be read as the
+**It is not the Job margin on the Pace strip and must not be read as the
 same number moving.** Job margin is what finished work actually made — invoice
 revenue less materials and the crew's hours — and it arrives weeks late, because
 a job sold in October is often installed and billed in December. Margin · sold
@@ -2360,55 +2419,59 @@ one.
 out: with one to nine sales each per month, a single job moves somebody's number
 by twenty points on a wall the whole office reads.
 
-## Daily pace — each tech's day on the tools
+## Daily pace — today, against the year
 
-Fifth in the rotation, between Invoices and Team. Five cards across, one per
-technician, worst first: the point is the person who needs a hand, not a
-leaderboard, so the card the room should look at is the leftmost one.
+Fifth in the rotation, between Invoices and Crew, and the same table as
+[Crew](#crew-each-van-over-the-year) over one day: the same columns, the same
+arithmetic, out of the same function — `computeCrew` takes the start of its
+window, and the board asks it for the year and for today. That is what stops the
+two pages meaning different things by "in the time allowed".
 
-**Where the data comes from.** `st_jobs` carries no technician and no
-appointment — ServiceTitan's job export sends neither — so every figure is built
-from `st_timesheets`, which has one row per technician per appointment with
-`arrived_on` and `done_on`, joined out to the job.
+**Every figure carries the same figure over the year underneath it**, because
+that is the comparison the page is for. "6h on the tools" says nothing on its
+own; "6h, 3.5h on a usual day" says Jye had a big day. Likewise "29 min a job ·
+34 min usually", "3 of 3 · 82% usually".
 
-**The first dial is quoted ÷ taken, not taken ÷ quoted.** Running over is the
-bad outcome, and the board's zones run low-is-behind, so a day quoted at 4h and
-taken in 6 reads 67% and lands in the red band the rest of the board uses for
-trouble; 6h quoted and 5.5h taken reads 109% and sits on track. One palette, no
-inverted dial.
+**Three things make it a day page rather than the Crew page with a shorter
+window** (Jake, 16 Nov):
 
-**Both halves of that dial cover the same jobs.** This is the trap and it was
-shipped wrong once before being caught in a render: summing a tech's whole day
-against the quoted hours of the two jobs that had quotes gave Ray "4.2h taken,
-3h quoted, 1.2h over" — 72%, in the red — when his third job was never quoted at
-all. Over the same two jobs it is 3.5h against 3h, 86%, close. `hoursTakenQuoted`
-exists for exactly this and `npm run check:daily` asserts it.
+*It is judged on the time allowed, never on the time sold.* Nothing is invoiced
+until the office has been through the day, so a day page built on sold hours is
+empty on the day somebody reads it. The slot is on the job the moment it is
+booked. See the Crew section above for both yardsticks and their coverage.
 
-**A job with no quoted time is not scored.** Quoted hours come from the labour
-lines on an invoice, and most service work is billed without one: over thirty
-days only **76 of 268** timesheet spans had them. Those cards show hours taken,
-draw the dial flat, and say "nothing quoted to measure" — never 0%, which would
-be blaming somebody for a missing setting. The card foot says how many of the
-day's jobs had nothing to measure against, and so does the page header.
+*Drive time is the day's total, with the average per job underneath.* "Add up
+all of their driving time for the day and then show the avg for each job" — the
+total is the figure a day is read by, four hours in the van being four hours,
+and the average is what makes two days of different length comparable. The Crew
+page leads on the average instead, because a year's total tells you nothing.
 
-**Standard times fill the gap.** `/portal/board/times` sets an expected time per
-job type, busiest first, and any job whose invoice carries no hours falls back
-to it. A real quote still wins where there is one — it is the figure the
-customer was given. A type left unset stays unset; zero means "not set", not
-"takes no time". As the list is filled in, more of the page becomes measurable
-without another build.
+*Billed came off.* It read "$0 · nothing billed yet" on every row until late
+afternoon, which is a measurement of the office's paperwork wearing a tech's
+name. The column is still on Crew, where a year has caught up with itself. That
+leaves seven columns rather than eight, and the space went to the slot
+comparison, which carries two figures on its second line.
 
-**Not built, for want of a rule:** the mockup's "plumbing cert + VEU form first"
-on the to-bill line. The paperwork rule has never been defined, so the cards say
-how many jobs are waiting to bill and leave the reason off.
+It replaced five gauge cards per tech — a dial for time against quoted, one for
+jobs off the list, one for billed. They read well for a single day and could not
+be read against anything, and two of their three figures were wrong in ways only
+a real day showed up:
 
-### The page list is keyed by name
+*A forgotten "done" tap is not a day's work.* One diagnostic on 13 November was
+stamped arrived at 1pm and done the next morning: a 24.8-hour span, which put
+30.7 hours on Chaz's card and scored him 60% behind for it, and read the day as
+63.8 hours when it was 39. A span longer than twelve hours is not a measurement
+anywhere on the board now.
 
-Both the page switch and the grid-proportions class used to be arrays indexed by
-page number. Inserting Daily pace at position five silently gave Team the
-Performance layout, Performance the Areas layout, and the new page Team's — all
-of which typechecked, built, and showed up only as three pages spilling in a
-render. Both are keyed by name now.
+*A job three men were on is one job's allowance.* The ducted install at Garfield
+was sold at 17 hours with three on it, and each man was scored against the whole
+17 — so all three read "▲ Ahead · 204%" off a job the crew was 5.5 hours over
+on. The Crew page's answer is the one that stands: the job is judged once, on
+its time on site, and everyone on it carries that verdict.
+
+The gauge version lives on in `dailyPace.ts`, which the portal's Jobs › Today
+tab still reads; the fixes above are in that module and the portal gets them
+too. Code: `DailyPacePage` and `DayRow` in `ScreenBoard.tsx`.
 
 ## The board says it paints its own colours
 
@@ -2827,6 +2890,826 @@ then counted the plan's way, each job once — counted per option they read
 $1.6M against a goal set in jobs. On the Team tab the month's sales goal is
 shared evenly across everyone who has quoted; the team line decides the
 sentence, so one person ahead covering another behind is the team on track.
+
+## Crew: each van, over the year
+
+The sixth page, beside Daily pace. Jake asked (15 Nov) for "an overview of each
+main tech so we can see how many installs, repairs, break down and mataince, how
+on time they are, if they got the job done within the time frame, if they were
+late and other KPI we can use to see who is standing out vs who is not", and
+then for "time on tool per person as well as a stat, and how much non billable
+time we have, and also drive time per person".
+
+**It is one row per van, not per person.** Dean, Jackson, Chaz, Jye and Paddy
+drive; Ray, Kayden, Thomas and Jake ride with them, so their hours are already
+inside a van's day and a row of their own would count the same work twice. The
+list is in `VAN_TECHS` rather than worked out from the data, because nothing in
+ServiceTitan says who drives — `portal_settings` under `crew-vans` overrides it
+without a deploy. The page says how many are riding along.
+
+**The money follows the van, not the head.** A job Jackson did with Ray on the
+other end of it is Jackson's van's money, because Ray got there in it; where two
+vans were on one job it splits between them by the hours they clocked. So the
+Billed column adds up to what the work billed, rather than losing a passenger's
+share off the side of the page.
+
+Everything here is built from `st_timesheets` — one row per technician per
+appointment, with `dispatched_on`, `arrived_on` and `done_on` — joined out to
+the job. `st_jobs` carries no technician at all; ServiceTitan's job export sends
+none.
+
+**Three of the four stamps are often defaults, and each is handled separately.**
+Of 715 rows in the last sixty days: 158 have done stamped within a minute of
+arrived, 289 have arrived stamped at the dispatch moment to the second. So a row
+counts as **a job attended** always — dispatch is not in doubt — as **time on
+the tools** only where the two stamps are a real span apart (15 minutes to 12
+hours), and as **a drive** only where dispatch and arrival are (1 minute to 3
+hours). Every column says what it measured out of what it could have: "93 of 108
+clocked", "72 of 117 trips". **Lateness is left out** for the reason set out
+above; this page's clocked count is the honest version of the same question.
+
+| Column | What it is |
+|---|---|
+| Work | The job mix by [sector](#sectors-maintenance-breakdowns-repairs-and-installs), as a bar and in words: `30 maint · 34 break · 8 rep · 20 inst · 16 other`. |
+| On the tools | Hours clocked, and how many of their visits were clocked at all. |
+| Not billable | Of the 7:00–15:30 day, the part spent neither on a job nor driving to one. |
+| Drive | Average minutes a job over the jobs that recorded a drive, with the hours and the count beside it. |
+| In the time allowed | Of the jobs with both a measured time on site and a booked slot, the share that came in within a quarter hour of it — with the same figure against the invoice's sold hours underneath. |
+| Billed | Their share of what those jobs billed, before GST, and per hour on the clock. |
+| Work found on a visit | Quotes written on their maintenance and breakdown calls, and how many of those addresses had an install booked within 60 days. |
+
+**The time comparison is the job's, not the man's, and this is the whole point
+of the page.** Sold labour hours do not scale with the crew: a service call is
+sold at an hour and an install at three whether one man goes or two. Summing the
+crew's man-hours against them puts the median two-man install at 2.0× its sold
+time and the median two-man service at 1.8× — every two-man job permanently in
+the red. Measured as time *on site*, first arrival to last done, the same jobs
+come in at 1.11× and 1.00×. So the job is judged once, on its time on site, and
+every tech who was on it carries that verdict. Nothing in the data separates two
+men on one install, and pretending otherwise is how you blame one of them.
+
+**The column leads on the time allowed, and carries the sold time underneath.**
+Two yardsticks exist and they measure different things, so the page shows both
+rather than mixing them — mixing them would make a tech's score depend on which
+of their jobs happened to be invoiced with labour lines.
+
+*Time allowed* is the slot ServiceTitan books the job type into, kept as
+`duration` (in seconds) on `st_job_types` and joined back through
+`job_type_id`: 1.5 hours for a split-system service, 4 for a split install, 20
+for a ducted one. It exists on the morning of the job and **458 of 490 attended
+jobs in the year carry one**. *Sold hours* arrive with the invoice, days later
+and only on what was billed by the hour: **238 do**. That is why the slot leads.
+
+They are not the same strictness and the page does not pretend they are: on the
+median, a job uses **0.62 of its slot** and **0.90 of its sold time**. Read the
+two figures in a cell as two different questions — "did it fit the booking" and
+"did it fit what the customer paid for" — not as one number disagreeing with
+itself. The gap is the booking being generous, which is worth knowing on its
+own and is what the [Job types](#job-types-what-each-kind-of-work-is-booked-for-and-what-it-takes)
+page is for.
+
+**A job booked for longer than the paid day is not judged against either.**
+"Installation - Ducted Refrigerated" is a twenty-hour slot run over two or three
+days; time on site is one continuous stretch, so a twenty-hour slot can only
+ever come in under. Those jobs are counted and timed like any other and left out
+of the rate, and the Job types page says so in the cell.
+
+Jake asked for this on 16 November, off the dispatch board: "it should more be
+time allow vs time sold as like break down you can sell it untill after".
+
+**Nothing on this page is status-coloured, and the rows carry no rank.** The
+status palette says where a figure sits against something that measures it, and
+nothing here is measured against anything anybody set — no target for hours on
+the tools, for drive time, or for the share of jobs inside the sold time. A
+green 71% would be the board inventing a target and marking a man against it.
+Ordering by any one column would make that column the score and the rest
+decoration, so the rows run by jobs attended, which nobody reads as a judgement.
+
+**The window is the last 365 days.** It was sixty; Jake asked for the year
+(15 Nov) and the Sectors page moved with it. ServiceTitan's timesheets only
+start in June, so the two are closer than they sound, and every column prints
+the count it was measured over. A rate needs 8 judged jobs; below that the cell
+says how many it has.
+
+**Money** is each job's price before GST (`subtotal`, else the total less GST,
+the same as [job profit](#profit-on-every-job)), split between the vans on it by
+their share of the hours clocked, and counted only once the job is Completed.
+Split by heads when no van's stamps gave a span, so it is never quietly lost.
+
+**Non-billable time is the rest of the paid day.** Jake's definition (15 Nov):
+"any time from 7am to 3:30pm not doing a job or dispatch to a job". So each
+timesheet row contributes the interval from dispatch — when they set off — to
+done; those are unioned per day so two overlapping jobs are not counted twice,
+and the union is clipped to the window, so a job that ran to six o'clock fills
+the rest of the day and no more.
+
+**Half an hour a day is a break, not idleness** (Jake, 16 Nov). It comes off
+each day's own gap, not off the window's total: a man who worked straight
+through on Tuesday does not bank Tuesday's half hour against Wednesday, and a
+day already full cannot go below nought idle because of it. The denominator
+stays the whole 8.5-hour day — the break is an allowance against what was idle,
+not an hour the business stopped paying for — so the card says "20% of the
+7–15:30 day · after a 30 min break".
+
+**It is counted only on days where every job was stamped both ways**, and this
+matters more than anything else on the page. Over every day worked, Dean's day
+comes out 4.24 hours idle; over the days everything was stamped, 2.71. Ray's
+2.43 against 1.07. The gap is work nobody recorded, and counting it as idleness
+would put an hour and a half a day on a man for not tapping his phone. Days that
+cannot answer are left out, the column says how many answered, and below five of
+them it shows a dash instead of a figure — which is why Jye's reads "3 of 5 days
+stamped" rather than 48%.
+
+That definition replaced an earlier one — a finished job that billed nothing,
+once it was a week old — which measured something real but not what was asked
+for, and said nothing about the hours between jobs.
+
+Code: `src/lib/dashboard/crew.ts`, `crewTypes.ts` (pure, tested by
+`npm run check:crew`), `CrewPage` in `ScreenBoard.tsx`. `computeCrew` takes the
+start of its window, and the board asks for two: the year, and today — which is
+the Daily pace page below.
+
+## Job types: what each kind of work is booked for, and what it takes
+
+The eighth page, where Performance was. Jake asked for it on 16 November: "the
+thing we could turn it into is like the job type, so if it is an install what
+type, and if it a matinace is a split or a ducted ect, and make it look like the
+crew type".
+
+It is the row underneath [Sectors](#sectors-maintenance-breakdowns-repairs-and-installs).
+Sectors answers the four kinds of work; this answers which kind of install and
+which kind of service — because "installs take 3.8 hours" has averaged a
+four-hour split system with a twenty-hour ducted job and said nothing about
+either.
+
+**It is five columns, not one ranked table.** Jake, 16 Nov: "it should be
+service then a list below of all of the job types, so service split — how many
+we have done, how much we bill and how much work that turn into, and the same
+for the breakdown, and installation and repairs". A ranked table put Service -
+Split System next to Installation - Ducted Refrigerated and invited the room to
+read one against the other; grouped, every row's neighbours are the rows it is
+comparable to. Each column heads with its sector's own totals and its share
+turned into work, lists its four commonest types, and folds the rest into one
+labelled row that still counts into the heading.
+
+**The columns run the long way across the panel rather than two by two** (Jake,
+16 Nov). Two by two gave wider rows, but it put Repairs below the fold on a
+768-high panel and made the eye travel back up the page to compare two sectors.
+Side by side, every sector's "28% turned into work" line sits on the same
+baseline as every other and the comparison is one sweep. The columns are narrow,
+so a row stacks rather than spreading: the name and the count, the money, the
+slot, then what it turned into.
+
+**There are no head cards, and this is the one page on the board without them**
+(Jake, 16 Nov: "do we remove the top header like the jobs and billed to make
+more room"). Every figure the four cards carried is already in the page — each
+column heads with its own jobs, money and share turned into work — so they were
+buying a fifth of the height to repeat the sum of what was underneath them. The
+page totals go on one line in the tile's head instead, and the room went into
+rows: four job types a column became six, which stopped the install column
+folding Evaporative Cooler, Commercial – Installation and Split Heat Pump into
+"12 other kinds".
+
+It is also the one page with no navy card. Nothing here is measured against a
+target anybody set, so the navy was carrying emphasis rather than meaning, and
+what the room compares is the five sector headings against each other. The
+60-day rule moved to the front of the legend, where it sits beside the bar it
+describes; it was the page subtitle until the subtitle ran past the panel edge
+at 1920.
+
+Each column heads with four lines — its jobs and money, its share turned into
+work, and how often its work comes in on the slot — and then one block per job
+type:
+
+| Line | What it is |
+|---|---|
+| Name and count | The name with its sector stripped — "Split System" under a column headed *Service* — and the jobs somebody was sent to. |
+| The muted line | What those jobs billed before GST, the average over the ones that billed anything, and the time they take against the slot they are booked into. |
+| The bar and its words | An install or a repair booked at that address within 60 days, as a three-part bar and in words, with what the follow-on work has billed. |
+
+**Dark mode needed its own pair of greys for the outcome bar.** The row tint
+is `--track`, so at the light theme's relationship the "just the job" segment
+and the row it sat on were the same colour, and every row where nothing came of
+the work read as an empty rail — which says the figure is missing, not that the
+answer is none. The bar takes a background a step off the row and the segment a
+step off that, so a full bar of "just the job" reads as full. The light pair was
+already right and is unchanged.
+
+**A row is a block, not four lines above a hairline** (Jake, 16 Nov: "is there
+a way we can make this easier to read"). Twenty-eight muted lines in a column
+separated by rules read as one list, and the eye lost which money belonged to
+which name; alternating tint, rounded corners and a gap do what the rules were
+failing to. The row also lost a line to buy the padding: "36 of 42 on it" was a
+column of denominators nobody reads downwards, and it moved to the column head
+as one figure for the sector. The row still carries "1.1h of 1.5h", which says
+over or under at a glance without arithmetic.
+
+**"Turned into" is Jake's second question** (16 Nov): "how many problem turn
+into a repair, install or just a problem". So three buckets that add to the row:
+led to an install, led to a repair, or just the job. An install outranks a
+repair where both followed, because the install is the outcome the question is
+about.
+
+**Each follow-on is credited to one job only** — the most recent completed job
+at that address before it was booked, inside the 60 days, with a day's grace at
+the front because the install is often booked the morning the tech rings it in.
+This is the Sectors page's rule and it now runs in `crew.ts` for both pages.
+The Crew page's "work found" column used to credit *every* visit at the address
+inside the window, which counted one install as the fruit of two visits to the
+same house; that is fixed in the same change, and its numbers move down a
+little as a result.
+
+**What it is already saying.** Over the year to 16 November:
+
+- **A breakdown turns into work 28% of the time; a service visit 8%.** 116
+  diagnostics produced 25 installs and 8 repairs; 114 service calls produced 6
+  and 3. That is the Sectors page's finding, now with the job type beside it:
+  Diagnostics - Split System and Diagnostics - Gas Ducted Heater between them
+  account for 17 of the 25.
+- **"Installation - AIO Heat Pump (Plug)" is booked for 3 hours, takes 3.3, and
+  comes in 8 times out of 18** — the one row on the page where the booking is
+  wrong rather than the crew. Every other install type beats its slot.
+- **"Installation - Ducted Refrigerated" shows no verdict at all**: a 20-hour
+  slot run over two or three days, which one continuous stretch cannot be
+  measured against. It still carries its 14 jobs, its 8.2 hours on site and its
+  $12K a job, and the cell says "booked across days".
+
+**The fifth column is "Quotes & other", and the figures argued it onto the
+page.** ServiceTitan's job types put quote visits, warranty calls, site
+assessments and return visits in none of the four sectors Jake named, so they
+were counted in the head cards and named there — until the live snapshot showed
+those 78 visits led to **13 installs worth $90,224**, which is more follow-on
+money than breakdowns ($64,716) and service ($26,097) put together. The biggest
+source of work on the page is not something to leave off it.
+
+It is named for what is mostly in it and honest about the rest: 60 of the 78 are
+quote visits, and the column's own rows show what the others are. Every job is
+now in exactly one column, so the head cards and the columns add to the same
+number.
+
+**The population is every job somebody was sent to**, vans and passengers
+alike — the page is about the work, not about who did it, and dropping a job
+because only a passenger was timesheeted on it would quietly shrink a job type.
+One row per job, so a return visit does not count the type twice, and the money
+is the job's whole price rather than anybody's share of it.
+
+**The average price is over the jobs that billed something, not over all of
+them.** A quote visit and a warranty call bill nothing by design, and averaging
+their zeroes in reads as the work being worth less than it is. It also prints in
+full digits rather than compacted: $1,559 a job reading "$2K a job" is a quarter
+out on the one number here somebody would repeat.
+
+A type needs five judged jobs before it shows a percentage; below that the cell
+is the count on its own, which is a fact either way.
+
+Code: `jobTypeKpis` and `rollUpTypes` in `crewTypes.ts` (pure, tested by
+`npm run check:crew`), grouped in `crew.ts` off the same jobs the Crew page
+reads, `JobTypesPage`, `PANEL_SECTORS`, `SectorPanel` and `TypeRow` in
+`ScreenBoard.tsx`.
+
+## Weather: whether the day is one to book an evap on
+
+The one page that looks forward. Everything else on the board reports what
+happened; this says whether Thursday is a day to put an evaporative unit in and
+hand it over, and whether anybody can be on a roof.
+
+Jake asked for it on 19 November: "the temp the rain the amount mill what time
+and how hot its going to be and tell if the day is bad to book a evap or evap
+heater ect."
+
+### The forecast comes from Norway, and not from the Bureau
+
+Which needs explaining, because the obvious source is the BOM and the obvious
+source is not available.
+
+The JSON API behind `weather.bom.gov.au` — the one every hobby project in
+Australia is built on — returns this in the body of every response it serves:
+
+> This application programming interface (API) is owned by the Bureau of
+> Meteorology. You must not use, copy or share it.
+
+That is not something to build a commercial business's wall board on, so it is
+not used here. BOM's own data services sell the bulk datasets and give away a
+coarse text product with no hourly detail. Open-Meteo was the next candidate
+and its free tier is non-commercial only.
+
+**MET Norway's Locationforecast** is free, needs no key, covers Australia from
+the global ECMWF run, and is licensed CC BY 4.0 with commercial use permitted.
+The licence asks for two things and both are honoured: an identifying
+User-Agent with a way to make contact — a business domain, not anybody's email
+address — and the credit carried through to where the data is shown. That is
+the `Forecast: MET Norway, CC BY 4.0` line in the corner of the hour strip, and
+it is not decoration. It is the licence.
+
+**What it will not give us**, for an Australian location, is gust speed or
+probability of precipitation. Both ride on the Nordic-area models only. So
+neither appears on the board: a "70% chance of rain" we cannot measure is
+exactly the sort of figure this document says to leave out.
+
+### The roof is a separate question from the evap
+
+They are asked separately because they fail separately: a cold wet day is fine
+for an evap's air and impossible on a roof, and a muggy still day is the
+reverse. An install needs both.
+
+- **any working hour with 0.2mm in it** → off the roof. A wet tile stays wet
+  for an hour after the shower has gone through.
+- **2mm across the working day**, where there is no hour-by-hour forecast to
+  judge instead → off the roof. The bar is higher on purpose: past about three
+  days the model gives one rain figure per six hours, which this codebase then
+  apportions to the working window, so "0.3mm between 7am and 4pm" is not a
+  measurement of anything that happened at a particular time — it is a sixth of
+  a shower smeared across nine hours. Thresholding *that* at 0.2mm put "Off the
+  roof" on a Sunday forecast to get 0.9mm, which is one passing sprinkle.
+- **35 km/h sustained** → off the roof. Sustained and not gusts, because there
+  is no gust figure for Australia; 35 sustained implies gusts past 50, which is
+  the real limit.
+- **38°** → start early. A workable day, not a lost one.
+
+### Everything is judged on the working day, 7am to 4pm
+
+Rain at 3am is not a reason to move an install; rain at 11am is. Every day-level
+verdict is computed over those hours alone, which is why a wet night followed by
+a clear day reads as a day you can work — because it is one.
+
+### The headline is a priority list, not the worst verdict
+
+Each day carries three calls and one headline. The headline was first written
+as "whichever call is worst", which put *"nobody wants the heater run up to
+temp"* at the top of a 36° bone-dry day — true, useless, and it buried the best
+evaporative handover day of the week behind it.
+
+So the headline goes, hardest constraint first: the roof says no; the air is too
+humid to hand over; the roof is workable but punishing; and only then the good
+news. A heater verdict is a note about demand and never outranks a verdict about
+whether work can be done.
+
+"Too mild to demonstrate" is held out of the ranking entirely. It is true of
+every day from May to September, and headlining it would make winter read as a
+season of evap problems when what winter actually is, is heater calls.
+
+### The bar carries two readings, which took three goes
+
+Height alone was decorative — every column already prints its own temperature
+twice. Drawing only the gap between the two temperatures was honest and
+unreadable: on a humid day every bar is a stub floating in an empty track,
+which looks like a page that failed to load rather than a day with no cooling
+in it.
+
+So the bar's height is the hour's heat — what somebody scanning the strip is
+looking for — and the solid cap on it is the cooling an evap would get out of
+that hour. A tall bar with a sliver on top is a hot day an evap can do nothing
+with. A tall bar that is mostly solid is the day to book the handovers.
+
+### What the page will not say
+
+- **No evap verdict past about three days.** The humidity forecast runs out
+  before the temperature one does, so days four to seven read "Too far out"
+  rather than carrying a verdict worked back from a daily maximum. The tile
+  says why, because three columns of "Too far out" otherwise look like a broken
+  page.
+- **No gusts, no rain probability.** See above — they are not in the data.
+- **No wind figure where there is no wind forecast.** `windKmh` is nullable for
+  that reason. Summing nothing gives zero, and the roof verdict printed "dry,
+  0 km/h" on every day past the hourly horizon: a dead calm presented as a
+  measurement, on days the model had said nothing about wind at all.
+- **"Day's done", not "Too far out", after four o'clock.** The forecast only
+  carries hours still to come, so from late afternoon today has evening hours
+  and no working ones. The first version reported that as "Too far out" —
+  about today — every day from about four.
+
+## The week, and the work booked into it
+
+The forecast and the diary read against it, on one page: seven day columns
+across the top, and under each one the jobs booked into that day.
+
+**It was two pages for about an hour.** Jake merged them (19 Nov): "have the
+weather across the top for 7 days and then a list going down, and then the jobs
+on those days with the job number and the title and if it's good or not."
+
+He was right that they were one page. Reading "Monday: off the roof" on one
+screen and "Monday 7am, evap install, Narre Warren" thirty seconds later on
+another asks the room to hold a week of weather in its head and join it up. A
+column per day does the joining — which is the half somebody can act on,
+because by the time a wet Tuesday arrives the booking went out the week
+before.
+
+Jake, 19 November: "if it raining the night before and we have an evap
+installation in the morning flags it, as well as any job with roof works like a
+heater or internal dominator or ducted split, and if it's going to be over 30
+then we don't want to be doing heater or ducted split system installation
+either… maybe have a job status for install and evap service, if they are good
+to go or look like they may not go ahead."
+
+### Only the work the weather bears on
+
+A hundred split-system services a week would bury the six jobs that matter, so
+the page shows only the work that needs something from the weather:
+
+| What it needs | Which job types |
+|---|---|
+| **A roof** somebody can stand on | evaporative anything; installs and removals of gas ducted heaters, space heaters, log fires, Dominators, ducted refrigerated |
+| **A handover** that will impress | evaporative **installs** only |
+| **Under 30°** | heater installs (comfort); ducted refrigerated installs (roof cavity) |
+
+The classifier works on **keywords in the type's name**, not a list of exact
+names. The type list changes — an "Add-on Cooling" or a "Dominator" appears the
+week somebody adds it in ServiceTitan — and a hardcoded list fails silently in
+the dangerous direction, by quietly dropping a roof job off the page.
+`check:weatherjobs` asserts every job type in the tenant, both the ones that
+must appear and the ones that must not.
+
+Every row also prints *why* it is on the page — "roof · handover", "roof ·
+cavity ≤30°" — so a job classified wrongly is visible from the room rather than
+only from the code.
+
+**An internal unit is still roof work.** A Dominator in a cupboard takes a flue
+through the roof. That is the one this is easiest to get wrong from a job list,
+and it is why the flue pattern matches the unit's location not at all.
+
+**A diagnostic is not an install.** Somebody diagnosing a ducted heater is at
+the controller, so a wet day does not move it. Only installs and removals put
+anybody up there.
+
+### Every verdict is about the roof
+
+The page carried three kinds: how well an evaporative unit would cool, whether
+anybody could get on the roof, and whether a heater was worth running up. Two
+of them are gone.
+
+> "We don't need the won't cool or barely cools — we just need if the install
+> or service is able to go ahead." — Jake, 20 November
+
+So a day column and the job boxes under it now answer the same question in the
+same three words. A column that said one thing and its jobs another was asking
+the room to hold two ideas about one day.
+
+**What went with it was about 150 lines of physics.** An evap's output was
+modelled from wet-bulb depression, with Stull's polynomial fit measured against
+a bisection solve of the psychrometric equation on every test run. It was
+carefully made, it was correct, and it answered a question nobody had asked:
+*"tell if the day is bad to book an evap"* meant **can the job happen**, not
+**will the unit impress**. Three rounds of feedback — "what are we demo?",
+then "we don't need the won't cool" — were all pointing at the same
+misreading. It is in the history if the question ever becomes real.
+
+### Gold is a chance; red is a day that won't happen
+
+Jake, 19 November: "the gold is to flag any chance, and then red if there is a
+really high chance it won't go ahead."
+
+So red is reserved for weather that takes the day off a crew. Everything else
+worth saying is gold. Being over thirty for a heater install is a strong
+preference and still a choice; an overnight shower is a start that might slip
+an hour. Neither is red.
+
+### A job is judged on its own hours, not on the day
+
+> "For today it says don't, but the rain doesn't start until 1pm, so if we had
+> an evap at 7am to even 11am we would be fine, as it only takes an hour."
+
+Exactly so, and a day figure cannot express it. What decides a roof job is
+**what has fallen by the time they are off it**: everything from six the
+evening before through the job's own hours. Rain that arrives after they have
+packed up is somebody else's problem.
+
+Jake's two numbers still do the judging — they are measured over the window
+belonging to *this job* rather than over nine hours of a day it may occupy two
+of. The same 15mm Friday clears a 7am job and stops a 1pm one.
+
+This also folded in the overnight wet-roof rule, which was a separate branch
+asking about the same water. Writing it as one window exposed a bug the day
+version had hidden: the two halves both included the job's starting hour, so
+that hour's rain was counted twice, and a day of exactly five millimetres came
+out over a threshold of *more than* five.
+
+### The rules, worst first
+
+1. **Rain through the working day**, on Jake's two numbers: over **10mm**
+   between 7am and 4pm is red — *no roof*; over **5mm** is gold — *watch the
+   roof*; under 5mm the board says nothing at all.
+2. **Jake's overnight rule.** A roof job starting before 10am with 5mm or more
+   between 6pm the night before and the start: *wet roof*, in gold. No rain
+   need fall during the job — the roof simply may not have dried.
+3. **Wind** over 35 km/h sustained: nobody on a roof. Red.
+4. **The day after, for a job that opens a ceiling** — see below.
+5. **Over 30°**, with the reason that belongs to the work. A heater install
+   gets "nobody wants it run up to temp in it"; a ducted refrigerated install
+   gets "the roof cavity will be past 50°". Same threshold, different problem,
+   and telling a crew the customer is uncomfortable when the real issue is
+   twenty hours in a 50° cavity would be worse than saying nothing.
+6. **The evap handover**, on installs only — see below.
+
+### The thresholds moved once, and that is the lesson
+
+The first version flagged a roof job over **0.2mm in any single hour** and
+**2mm across a day**. The board duly put a warning on a Saturday forecast to
+get 0.3mm from 9am, and Jake's reply is the whole thing:
+
+> "That is a very very low chance of it not going ahead. If the job is booked
+> before that they could be done, or later in the day the roof could dry up.
+> The main time I would make it off the roof is if it's more than 5 mil for the
+> day and from 7 to 4, and no roof if it's more than 10 mil for the day."
+
+The old numbers were measuring **whether a roof got wet**. What matters is
+**whether a day is lost**. A roof dries; a crew works around a shower; nobody
+reschedules an install over two tenths of a millimetre. Judging the working day
+rather than the job's own hours follows from the same point — a job booked
+before the rain gets finished, and one booked after it starts on a roof that
+has had all morning to dry.
+
+### The day after, for a job that opens a ceiling
+
+> "If a ducted split is on the Monday and it's raining on the Tuesday, we would
+> have opened the roof for the Monday and gotten everything in the roof the
+> first day — so it would more be flagging to get everything in the roof for
+> the first day."
+
+A ducted refrigerated install is booked for twenty hours, which is more than a
+day. Monday's weather decides whether it starts; **Tuesday's decides whether an
+open ceiling gets rained into.** Every other rule on this board asks only about
+the day a job is booked on, so nothing would have said so.
+
+So a multi-day roof job with 3mm or more forecast for the next working day
+reads **"Close the roof today"**. It is the one flag here that is a plan rather
+than a warning, and its bar is deliberately lower than the ones that stop work
+— a day that would only be gold on its own is worth knowing about the night
+before you open somebody's ceiling.
+
+### Three words on a job, and only three
+
+> "We should have 3 words like no roof work, clear and keep an eye on."
+
+| Status | Word |
+|---|---|
+| red | **No roof work** |
+| gold | **Keep an eye on** |
+| green | **Clear** |
+
+The rules produce a dozen verdicts — wet roof, too windy, too hot, close the
+roof today — and a column of a dozen different phrases is a column nobody
+scans. The status is one of three; what makes *this* job different from the one
+above it goes on the line underneath, which is where somebody reads once the
+colour has caught them.
+
+"No roof work" fits every red on the page because every red **is** a roof:
+more than ten millimetres through the working day, or wind. Heat, an overnight
+shower and the day-one roof flag are all gold.
+
+The day's own verdict above the boxes keeps its own vocabulary — "Don't",
+"Marginal", "Off the roof" — because it answers a different question: not
+*will this job go ahead* but *what is this day good for*.
+
+### The hour strip: time, sky, temperature, wind, rain
+
+Each cell carried **two** temperatures — the air, and what an evaporative unit
+would blow in it — with a two-tone bar drawn between them. Jake asked why there
+were two numbers and said what the second should be instead:
+
+> "We need the main temp and also the wind, as this can close a job as well,
+> for a job that has tin roof etc."
+
+Right twice over. **Wind closes a roof job and the cooling figure never did** —
+that argument belongs to the day's evap verdict in the column above, where it
+is made once rather than fourteen times.
+
+**The bar went with it, and that uncovered a fault nobody had named.** It was
+`flex: 1` with `min-height: 0`, so once the cell's other lines outgrew the tile
+it shrank *silently to nothing* rather than overflowing. The bar the subtitle
+described had been invisible at every screen size for a day, and the rain
+figure under it was being clipped. Five fixed lines cannot do that.
+
+The sky icon sits **beside** the temperature rather than above it. On its own
+line the cell wanted a unit more height than the strip has, and the choice was
+that or dropping the icon.
+
+### The day's totals sit at the end of the hour strip
+
+Ten working hours in a row sized for fourteen leaves a gap. It holds the three
+figures Jake asked for — "the rain for today and when it starts, the highest
+temp for the day, and the highest wind speed for the day" — each answering
+something the row of hours can only be read for one column at a time.
+
+### Two ways the layout check was blind
+
+Both were found the same morning, by Jake looking at the wall rather than by
+the check.
+
+**It only trusted boxes that clip.** The generic sweep compared `scrollHeight`
+against `clientHeight` and skipped anything with `overflow: visible`, because a
+line box is routinely a pixel taller than its element and the noise buries the
+signal. But content hanging out of the bottom of a non-clipping box is still
+content off the page. The containers that must hold their content — the hour
+cell, the job card, the day column, the summary — are now measured against
+their own children directly.
+
+**It had no idea what collapse looks like.** A flex child with `min-height: 0`
+does not overflow when the box runs out of room; it shrinks. Nothing looked for
+an element that had been squashed to nothing, so a zero-height bar passed every
+size, every theme, every data state.
+
+A third gap was narrower but the same shape: **every test size was 16:9 or
+16:10**, which is a fullscreen kiosk. Jake was looking at a browser window —
+about 1920×830 once the chrome is taken off — where `--u` becomes
+height-driven and much smaller. Three window-shaped sizes are now in the list.
+
+### Every column's boxes start on the same line
+
+The weather block above the jobs is a fixed height. It floated before: one
+day's reason runs to three lines and the next day's to one, so seven columns of
+boxes sat at seven different heights, which reads as a mistake rather than as
+information.
+
+The reasons were **shortened at the source** rather than clamped, so nothing is
+hidden. A CSS line clamp also reports as an overflow at every screen size,
+which buries real overflows in the layout check — the thing that catches these.
+
+### The sky, drawn rather than fetched
+
+Each day column and each hour carries an icon. MET names about ninety symbol
+codes — `lightrainshowersandthunder_night` and the like — which collapse to the
+eleven shapes a wall board can tell apart at four metres; the millimetres
+beside the icon carry the detail.
+
+They are inline SVG rather than MET's own icon set, which is a hundred PNGs for
+those eleven shapes. Everything uses `currentColor` or two tints, so an icon
+follows its column into the dark theme without a second rule.
+
+A code the classifier does not recognise draws **nothing**. A missing icon is
+honest; a wrong one on a wall is worse than none.
+
+A day takes the **worst** sky of its working hours, not the commonest: a day
+with one thundery hour is a thundery day to anybody planning to be on a roof,
+and the mode would draw a sun over it.
+
+### The hour strip rolls forward through the day
+
+> "The hour by hour should show the weather for the day 7-4 each hour, and once
+> the time has passed either move it out and then show 8-5 etc, or make it
+> gray."
+
+Rolling, which is the first of the two, because the forecast only carries hours
+still to come — there is no eight o'clock left to grey out at ten. The window is
+ten hours from the working day's start and walks forward: 7–4, then 8–5, then
+9–6.
+
+Once fewer than three working hours are left in today it shows **tomorrow**
+instead, because at half past three, ten columns of evening is a worse answer
+to "what time and how hot" than tomorrow morning is.
+
+### How often it goes and looks
+
+Jake: "can we do a weather check every 30 minutes against jobs, and only do it
+from 6:30am to 5pm, and check any 4 hours after that."
+
+Which is right twice over. The office acts on this between those hours, so that
+is when it has to be current; and the forecast is a free service that asks
+clients not to poll harder than the data changes. A flat half hour made 48
+calls a night nobody was awake to read. This makes six.
+
+The **diary is read on the same clock**, because "a weather check against jobs"
+is one operation and the two halves disagreeing would be worse than either
+being slow. It also took three table reads off every thirty-second snapshot
+recompute, which is what it was doing before.
+
+### The forecast keeps nine days, the week panel shows seven
+
+The diary is read a week ahead. A job booked for the eighth day would come back
+"no forecast" — the page failing quietly on exactly the booking somebody still
+has time to move. So the reader keeps nine days and the Weather page slices
+back to seven for its own panel, which is as many columns as stay readable from
+across the room.
+
+### Why there is no rain radar
+
+Jake asked about a BOM radar and then answered it himself: "if we have that we
+may not need the radar." He is right, and there is a second reason. The Bureau
+is explicit that its API must not be used (see the Weather section above), and
+a radar loop tells you where rain is *now* — which is the one question a wall
+board four metres away is worst placed to answer and a phone is best. What the
+office cannot get from a phone is which of next week's bookings the weather is
+about to spoil.
+
+### Three jobs a day, and the folded ones are always the good ones
+
+A column shows three jobs and folds the rest into "and 3 more, all good to go".
+
+**Three, not four.** Four was measured against a fabricated January week — six
+evap jobs a day, every day — and overflowed the tile at every size the board
+runs at, by 68 pixels at 1920 and 284 at 4K. November's nine real bookings
+would never have shown it. The first hot week would have, on the wall.
+
+**And what gets folded is never a problem.** Taking the first three by time
+would hide a two o'clock job that is at risk behind three morning ones that are
+fine, which is the page failing at the one thing it is for. Each day is ranked
+worst-first to decide what shows, and the survivors are put back into time
+order to be read. The fold line only says "all good to go" when that is true of
+every job behind it.
+
+### A day past the hourly forecast leads on the roof
+
+"Too far out" — the evap verdict for a day with no hourly humidity — stood as
+Wednesday's headline directly above two booked jobs marked good to go. That
+reads as the page arguing with itself. Rain and temperature *are* forecast that
+far out; only humidity is not, so the roof call is the one that can still be
+made and it leads. The evap call still says "too far out" when asked directly,
+on the day it is asked about.
+
+### The hour strip came off in the merge and went back an hour later
+
+With one tile, seven columns filled barely half the wall in a quiet November
+week, and half an empty page reads as something having failed to load. It also
+answers the question Jake asked first — "what time and how hot is it going to
+be" — which the day columns only half carry.
+
+So today's hours sit beneath the week, and the week takes the larger share of
+the page because that is where the decisions are.
+
+## The page strip holds its width as pages are added
+
+The dashes in the header sit in the same baseline row as the page subtitle,
+which shrinks to fit. Each dash was a fixed width with a fixed gap, so the strip
+grew by about two units per page added — and adding the eleventh page was enough
+to start ellipsing the *Daily pace* subtitle on the wall, a page that had nothing
+to do with the change.
+
+The ten-page geometry is now the constant: 15u of dash and 4.05u of gap, divided
+among however many pages there are. A twelfth page costs the subtitle nothing.
+
+## Sectors: maintenance, breakdowns, repairs and installs
+
+The ninth page. Jake asked (15 Nov) whether maintenance and breakdown work earns
+its keep through the installs it leads to, and so which of the two to push.
+
+**The four cards** are the per-job figures from [Profit on every job](#profit-on-every-job)
+grouped by ServiceTitan job type, over jobs billed from 17 September (the day
+ServiceTitan became the ledger) or the last 90 days, whichever is shorter:
+
+| Sector | Job types |
+|---|---|
+| Maintenance | `Service -`, `Commercial – Maintenance`, `Commercial – Service`, `Gas Safety Check` |
+| Breakdowns | `Diagnostics -` |
+| Repairs | `Repair -`, `Commercial – Repair` |
+| Installs | `Installation -`, `Commercial – Installation` |
+
+Quote visits, warranty, return visits and commissioning belong to none of them
+and are left out rather than padding one. Each card shows what was billed
+(before GST), jobs and the average, profit, and margin against the goal's
+percentage, worded "Over 20%" / "Under 20%". The pace scale ("Ahead · 197%")
+is margin as a share of the goal and read as nonsense on a margin. A margin
+needs five costed jobs; fewer and it says so.
+
+**What a visit turns into** is a pipeline (Jake, 15 Nov: "for the sector can we
+have this as a pipe line style"). Four stages, each one a subset of the one
+before: visits → quoted there → booked back → installs. Breakdowns run 68 → 34 →
+23 → 19, maintenance 68 → 14 → 8 → 6, so the drop-off is the gap you can see and
+the two kinds of visit are compared down the same four steps.
+
+**Underneath each row is where the visit ended up** — an install, a repair,
+quoted with nothing booked, just the visit — as the stacked bar that was there
+before the pipeline. It was going to be replaced; Jake asked for both (15 Nov),
+and they are not the same figure. The stages are cumulative and each contains
+the one after it, so "quoted there" counts every visit that was quoted on; the
+four outcomes are exclusive and add up to the visits, so "quoted, nothing
+booked" counts only the ones where that was the end of it. A lead-in word,
+*ended at*, is what stops the two rows being read as one list.
+
+**Each visit is worth** carries the tile's answer, so the two figures are set at
+four times the body size (Jake, 15 Nov: "the numbers need to be larger"). They
+were a right-hand column in a two-row list at a third of that, which put the
+money at the same weight as the labels beside it in a tile with room to spare.
+
+The stage boxes are equal and the bar inside each carries the share. Sizing the
+boxes by the count was the first attempt: at nineteen installs out of sixty-eight
+visits the last box came out too narrow for its own label, and once every box had
+a floor under it they were all the same width anyway — a funnel that didn't
+narrow. "Quoted there" counts every visit that was quoted on, not the ones where
+nothing came of it (`quotedAll`, not `quoted`): a funnel stage is what got that
+far, and the old field is the leftovers. On a snapshot written before
+`quotedAll` existed the stage drops out rather than drawing a zero.
+
+**Which visit gets the credit** follows the address, not the quote. Of the first 76
+breakdowns, 37 were quoted on the visit and 7 of those quotes were sold through
+a job made from them, but 22 of the addresses had an install booked within 60
+days: the office books the install as a new job at the site as often as it
+converts the quote. So each install or repair job is credited to the most recent
+maintenance or breakdown visit at the same address in the 60 days before it was
+booked, once. A visit is only counted once it is 14 days old, so a call from
+yesterday isn't read as "just the visit" before anyone has rung back. Outcomes,
+first match wins: an install; a repair; quoted on the visit with nothing booked;
+just the visit.
+
+**Each visit is worth** (navy) is what the visits billed plus what the installs
+and repairs they led to have billed so far, divided by the visits. The profit
+beside it is the same, all in. Follow-on jobs booked but not billed yet are
+counted beside it and add nothing until they are billed, so the figure only ever
+understates. The comparison line needs ten visits of each kind.
+
+The segments use the navy family, not the status palette: an install isn't
+"good" and a plain service isn't "bad", and every segment is written out with
+its count and share.
+
+Code: `src/lib/dashboard/sectors.ts`, `SectorsPage` in `ScreenBoard.tsx`.
 
 ## Things worth knowing
 

@@ -106,6 +106,34 @@ export async function probeJobHistory(jobIds: number[]): Promise<Record<string, 
 }
 
 /**
+ * What a job's notes say when its quote is emailed (Jake, 19 Nov: "once the
+ * job note has that the email was emailed", swap Quote In Draft for Awaiting
+ * Quote Approval). Each note's date, author id and opening words, with email
+ * addresses and phone numbers masked: enough to see the wording ServiceTitan
+ * or the office uses, nothing more about the customer.
+ */
+export async function probeJobNotes(jobIds: number[]): Promise<Record<string, { ok: boolean; error?: string; notes?: { on?: unknown; by?: unknown; pinned?: unknown; fields?: string[]; text: string }[] }>> {
+  const mask = (t: string) => t.replace(/[\w.+-]+@([\w-]+\.)+[\w-]+/g, "[email]").replace(/(\+?\d[\d\s()-]{7,}\d)/g, "[phone]");
+  const out: Record<string, { ok: boolean; error?: string; notes?: { on?: unknown; by?: unknown; pinned?: unknown; fields?: string[]; text: string }[] }> = {};
+  for (const id of jobIds) {
+    try {
+      const r = await stFetch<{ data?: Array<Record<string, unknown>> }>(stTenantPath("jpm", `jobs/${id}/notes`), { pageSize: "50" });
+      out[String(id)] = {
+        ok: true,
+        notes: (r.data ?? []).map((n, i) => ({
+          on: n.createdOn, by: n.createdById, pinned: n.isPinned,
+          ...(i === 0 ? { fields: Object.keys(n) } : {}),
+          text: mask(String(n.text ?? "")).slice(0, 160),
+        })),
+      };
+    } catch (e) {
+      out[String(id)] = { ok: false, error: (e instanceof Error ? e.message : "failed").slice(0, 160) };
+    }
+  }
+  return out;
+}
+
+/**
  * Can the portal read a completed form, so a work order can carry the job's
  * Condition Report (Jake, 31 Oct)? Lists the tenant's forms by name, then the
  * newest few submissions of those whose name matches: who they belong to,

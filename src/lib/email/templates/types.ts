@@ -103,7 +103,7 @@ export const PLACEHOLDERS: Record<TplGroup, Placeholder[]> = {
   followup: [
     P.first,
     { key: "quoter", what: "who quoted it, first name", sample: "Jake" },
-    { key: "since_visit", what: "“since I was out”, or “since Jye was out” when someone else quoted and the email is signed by someone else", sample: "since I was out" },
+    { key: "since_visit", what: "“since I was out”, or “since Dean was out” when someone else quoted and the email is signed by someone else", sample: "since I was out" },
     P.phone,
     P.option,
     { key: "rating", what: "our Google rating, as the website shows it", sample: "4.8" },
@@ -111,7 +111,7 @@ export const PLACEHOLDERS: Record<TplGroup, Placeholder[]> = {
   ],
   reply: [P.first, P.mobile, P.option, { key: "note", what: "what they typed on the page, if anything", sample: "Does the 300 litre fit where the old gas unit is? It's a tight spot beside the meter box." }, P.phone],
   sold: [P.first, P.mobile, P.option, P.phone],
-  done: [P.first, { key: "tech", what: "who did the job, first name (“Jye and Dean” for two)", sample: "Jye" }, { key: "job", what: "what we did, in words (“heat pump installation”)", sample: "heat pump installation" }, P.phone],
+  done: [P.first, { key: "tech", what: "who did the job, first name (“Dean and Chaz” for two)", sample: "Dean" }, { key: "job", what: "what we did, in words (“heat pump installation”)", sample: "heat pump installation" }, P.phone],
   invoice: [P.first, { key: "number", what: "the invoice number", sample: "20999" }, { key: "amount", what: "what's still owing on it", sample: "$3,060.50" }, { key: "due", what: "the day it was due (“Mon 3 Nov”)", sample: "Mon 3 Nov" }, P.phone],
   service: [P.first, { key: "job", what: "what we did last time, in words (“split system service”)", sample: "split system service" }, { key: "when", what: "the month we were last there (“December”)", sample: "December" }, P.phone],
 };

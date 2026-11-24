@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { listWebLeads, dbConfigured } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
@@ -17,7 +17,7 @@ export const metadata = { title: "Website leads · Team portal" };
 export default async function LeadsPage({ searchParams }: { searchParams: { d?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Website" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Website" forWhom="the office" />;
 
   // The same three windows as the Website tabs, so moving between them keeps the window.
   const win = windowKey(searchParams?.d);

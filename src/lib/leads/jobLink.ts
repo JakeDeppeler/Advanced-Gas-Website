@@ -28,6 +28,8 @@ export type FormLead = {
   pagePath: string | null; cameFrom: string;
   photoCount: number; photoPaths: string[];
   stJobId: number | null; stJobNumber: string | null; linkedAt: string | null; linkedBy: string | null;
+  /** Quoted without a job: the ServiceTitan customer the quotes were written on (0118). */
+  stCustomerId: number | null;
   upload: LeadUpload | null;
 };
 
@@ -44,9 +46,10 @@ type Row = {
   page_path: string | null; utm: Record<string, string> | null;
   photo_count: number | null; photo_paths: string[] | null;
   st_job_id: number | null; st_job_number: string | null; linked_at: string | null; linked_by: string | null;
+  st_customer_id: number | null;
   st_upload: LeadUpload | null;
 };
-const COLS = "id,created_at,name,phone,email,suburb,postcode,address,service,headline,summary,notes,page_path,utm,photo_count,photo_paths,st_job_id,st_job_number,linked_at,linked_by,st_upload";
+const COLS = "id,created_at,name,phone,email,suburb,postcode,address,service,headline,summary,notes,page_path,utm,photo_count,photo_paths,st_job_id,st_job_number,linked_at,linked_by,st_customer_id,st_upload";
 
 const toLead = (r: Row): FormLead => ({
   id: r.id, createdAt: r.created_at, name: r.name, phone: r.phone, email: r.email,
@@ -55,6 +58,7 @@ const toLead = (r: Row): FormLead => ({
   pagePath: r.page_path, cameFrom: classifyLead(r.utm ?? {}).label,
   photoCount: r.photo_count ?? 0, photoPaths: r.photo_paths ?? [],
   stJobId: r.st_job_id, stJobNumber: r.st_job_number, linkedAt: r.linked_at, linkedBy: r.linked_by,
+  stCustomerId: r.st_customer_id,
   upload: r.st_upload && typeof r.st_upload === "object" ? r.st_upload : null,
 });
 
@@ -74,15 +78,27 @@ async function oneLead(id: string): Promise<FormLead | null> {
 export async function stagesFor(leads: FormLead[]): Promise<Map<string, LeadStage>> {
   const out = new Map<string, LeadStage>();
   const ids = [...new Set(leads.map((l) => l.stJobId).filter((x): x is number => x != null))];
-  const [ests, appts] = ids.length ? await Promise.all([
-    sbSelect<{ job_id: number; status: string | null; sold_on: string | null }>("st_estimates", [q.select("job_id,status,sold_on"), `job_id=in.(${ids.join(",")})`, "limit=2000"].join("&")).catch(() => []),
-    sbSelect<{ job_id: number; start_at: string | null }>("st_appointments", [q.select("job_id,start_at"), `job_id=in.(${ids.join(",")})`, "status=neq.Canceled", "limit=2000"].join("&")).catch(() => []),
-  ]) : [[], []];
+  // Quoted without a job: the quotes hang off the customer instead.
+  const custs = [...new Set(leads.filter((l) => l.stJobId == null).map((l) => l.stCustomerId).filter((x): x is number => x != null))];
+  type Est = { job_id: number | null; customer_id: number | null; status: string | null; sold_on: string | null; created_on: string | null };
+  const [ests, appts, custEsts] = await Promise.all([
+    ids.length ? sbSelect<Est>("st_estimates", [q.select("job_id,customer_id,status,sold_on,created_on"), `job_id=in.(${ids.join(",")})`, "limit=2000"].join("&")).catch(() => []) : Promise.resolve([] as Est[]),
+    ids.length ? sbSelect<{ job_id: number; start_at: string | null }>("st_appointments", [q.select("job_id,start_at"), `job_id=in.(${ids.join(",")})`, "status=neq.Canceled", "limit=2000"].join("&")).catch(() => []) : Promise.resolve([]),
+    custs.length ? sbSelect<Est>("st_estimates", [q.select("job_id,customer_id,status,sold_on,created_on"), `customer_id=in.(${custs.join(",")})`, "limit=2000"].join("&")).catch(() => []) : Promise.resolve([] as Est[]),
+  ]);
+  const isSold = (e: Est) => !!e.sold_on || /^sold$/i.test(e.status ?? "");
   for (const l of leads) {
+    if (l.stJobId == null && l.stCustomerId != null) {
+      // The same window the match used: quotes from a day before the enquiry on.
+      const from = Date.parse(l.createdAt) - 86_400_000;
+      const mine = custEsts.filter((e) => e.customer_id === l.stCustomerId && (!e.created_on || Date.parse(e.created_on) >= from));
+      out.set(l.id, { linked: true, quoted: mine.length > 0, sold: mine.some(isSold), lateBy: null });
+      continue;
+    }
     if (l.stJobId == null) { out.set(l.id, { linked: false, quoted: false, sold: false, lateBy: null }); continue; }
     const mine = ests.filter((e) => e.job_id === l.stJobId);
     const quoted = mine.length > 0;
-    const sold = mine.some((e) => e.sold_on || /^sold$/i.test(e.status ?? ""));
+    const sold = mine.some(isSold);
     const first = appts.filter((a) => a.job_id === l.stJobId && a.start_at).map((a) => Date.parse(a.start_at as string)).sort((a, b) => a - b)[0];
     const since = first ? Math.floor((Date.now() - first) / 86_400_000) : null;
     out.set(l.id, { linked: true, quoted, sold, lateBy: !quoted && since != null && since >= LATE_DAYS ? since : null });
@@ -116,7 +132,7 @@ export async function linkLead(id: string, jobNumber: string, who: string): Prom
 /** Untie it. What already went onto the job stays there: ServiceTitan keeps attachments. */
 export async function unlinkLead(id: string): Promise<LinkResult> {
   if (!(await oneLead(id))) return { ok: false, error: "That enquiry couldn't be found." };
-  await sbUpdate("portal_leads", `id=eq.${id}`, { st_job_id: null, st_job_number: null, linked_at: null, linked_by: null });
+  await sbUpdate("portal_leads", `id=eq.${id}`, { st_job_id: null, st_job_number: null, st_customer_id: null, linked_at: null, linked_by: null });
   return { ok: true, note: "Unlinked. Anything already put on the job in ServiceTitan stays there." };
 }
 

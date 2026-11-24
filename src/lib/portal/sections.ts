@@ -123,8 +123,10 @@ export const SECTION_DEFS: SectionDef[] = [
     id: "todo", label: "To-do", icon: "todo", group: 1, blurb: "Everyone's lists, who to keep in touch with, toolbox talks and future plans",
     pages: [
       { label: "Personal", href: "/portal/todo", icon: "me" },
-      { label: "Accounts", href: "/portal/todo/accounts", office: true, icon: "pf" },
+      { label: "Accounts", href: "/portal/todo/accounts", icon: "pf" },
       { label: "Marketing", href: "/portal/todo/marketing", icon: "mega" },
+      // What keeps coming back, and what would take it off the lists.
+      { label: "Repeats", href: "/portal/todo/repeats", office: true, icon: "todo" },
       { label: "Keep in touch", href: "/portal/keep-in-touch", office: true, icon: "phone" },
       // Things to get through rather than to look up, so on the lists with the
       // rest of the work, not in Team.
@@ -140,7 +142,9 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Quotes", href: "/portal/pipeline", icon: "quote" },
       { label: "Leads", href: "/portal/leads", icon: "phone" },
       // The whole run of a job, of which the quotes are one stretch.
-      { label: "Job tracker", href: "/portal/tracker", office: true, icon: "run" },
+      { label: "Job tracker", href: "/portal/tracker", icon: "run" },
+      // A job's quote and invoice words, written from the job (19 Nov).
+      { label: "Write-up", href: "/portal/jobs/write-up", icon: "file" },
     ],
   },
   {
@@ -201,7 +205,7 @@ export const SECTION_DEFS: SectionDef[] = [
       ] },
       { label: "Profit & sales", icon: "grow", group: [
         { label: "Profit & loss", href: "/portal/finance/pl" },
-        { label: "Job profit", href: "/portal/jobs?tab=profit", gate: "/portal/jobs" },
+        { label: "Job profit", href: "/portal/jobs?tab=profit", gate: "/portal/profit" },
         { label: "Sales", href: "/portal/sales" },
         { label: "Job types", href: "/portal/sales?tab=types", gate: "/portal/sales" },
       ] },
@@ -284,6 +288,8 @@ export const SECTION_DEFS: SectionDef[] = [
         { label: "Messages", href: "/portal/chats" },
         // Work orders from email into ServiceTitan's Bookings: what came in and where each is up to.
         { label: "Work orders", href: "/portal/work-orders" },
+        // admin@ filed into its own folders: the switch, the flagged words, where each email went.
+        { label: "Email filing", href: "/portal/email-filing" },
       ] },
       { label: "The portal", icon: "cog", group: [
         { label: "Settings", href: "/portal/settings" },

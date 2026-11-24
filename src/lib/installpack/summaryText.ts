@@ -21,7 +21,14 @@ export type VisitReport = { jobId: number; jobNumber: string | null; jobType: st
 export type InstallSummary = {
   /** Two or three sentences: what's there now, what's going in, the kind of install. */
   overview: string;
-  sections: { heading: string; text: string }[];
+  /** The one thing on this job most likely to be missed, when a record names one. */
+  alert?: { title: string; text: string } | null;
+  /** Where each unit goes: "Indoor unit", "Outdoor unit", "Heat pump"... */
+  locations?: { label: string; text: string }[];
+  /** What's particular to this job, from the records. Never general trade practice. */
+  extra?: string[];
+  /** Version 4 and before: the guide's sections. Read from packs made then. */
+  sections?: { heading: string; text: string }[];
 };
 
 /** What was written: the guide, or why there isn't one. */
@@ -36,7 +43,12 @@ export type SummaryState = { ok: InstallSummary; from: string } | { error: strin
 // what's going in and how — and no "to confirm on site" list.
 // 4 (5 Nov): no remarks about the records themselves — job 20338's guide
 // opened with "there's no condition report from an earlier visit".
-export const SUMMARY_VERSION = "4";
+// 5 (22 Nov, Jake): the pack's new layout. A short job summary, an alert
+// only when a record names something easy to miss (20801's dented Mitsubishi
+// panel), where each unit goes (no indoor unit on an all-in-one), and extra
+// information that's particular to the job: 20881's first draft was "take
+// care with fresh paint" and the like, "pretty standard stuff".
+export const SUMMARY_VERSION = "5";
 
 export const SECTIONS = [
   "What's there now", "Indoor unit", "Outdoor unit", "Pipework and drain", "Electrical", "Gas", "Water", "Flue", "Ductwork", "Access",
@@ -46,25 +58,41 @@ export const SUMMARY_SCHEMA = {
   type: "object",
   properties: {
     overview: { type: "string" },
-    sections: {
+    alert: {
+      type: "object",
+      properties: { title: { type: "string" }, text: { type: "string" } },
+      required: ["title", "text"],
+      additionalProperties: false,
+    },
+    locations: {
       type: "array",
       items: {
         type: "object",
-        properties: { heading: { type: "string", enum: [...SECTIONS] }, text: { type: "string" } },
-        required: ["heading", "text"],
+        properties: { label: { type: "string" }, text: { type: "string" } },
+        required: ["label", "text"],
         additionalProperties: false,
       },
     },
+    extra: { type: "array", items: { type: "string" } },
   },
-  required: ["overview", "sections"],
+  required: ["overview", "alert", "locations", "extra"],
   additionalProperties: false,
 } as const;
 
-export const SUMMARY_RULES = `You write the "Installation guide" in the install pack of Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The installers read it before they arrive, so they know what the job is and how it goes: what's there now and whether it's being replaced, what's going in, where it goes and what it sits on, how the pipes and drain run, and power, gas, water, flue and ductwork where they apply.
+/** What a location says when the records don't place the unit. The one remark about the records the pack allows: the crew have to ask. */
+export const NOT_PLACED = "Not recorded: confirm with the customer on arrival.";
+
+export const SUMMARY_RULES = `You write the words in the install pack of Advanced Gas & Aircon, a Melbourne gas, hot water, heating and cooling business. The installers read it before they arrive, so they know what the job is and how it goes: what's there now and whether it's being replaced, what's going in, where it goes and what it sits on, how the pipes and drain run, and power, gas, water, flue and ductwork where they apply.
 
 You are given the office's job summary, the sold quote's lines (equipment, materials, and the labour lines that name the kind of install), any contractor booked, and the Condition Report and photos from the earlier visit to the site.
 
 Write it simply, the way a supervisor would brief the crew: "There's an old Fujitsu split on the lounge wall that isn't working. It comes out and a new Kaden 5kW goes in back to back, outdoor unit on a slab." Short plain sentences, Australian trade English.
+
+You give four things:
+- overview: the job in two or three sentences: what's there now, what's going in, the kind of install, anyone else booked.
+- alert: the one thing on this job most likely to be missed, when a record names something out of the ordinary: a replacement part to fit, a second task on another unit, damage, an access problem, something the customer asked for. A title of a few words ("Replace the dented panel on the Mitsubishi outdoor unit") and one or two sentences. When there's nothing like that, give an empty title and text.
+- locations: where each unit goes, one entry each, labelled for the job: "Indoor unit" and "Outdoor unit" for a split; just "Heat pump" for an all-in-one heat pump hot water unit, which sits outside whole and has no indoor unit; "Indoor unit" (the fan coil), "Outdoor unit" and "Return air" for ducted; "Cooler" for an evaporative cooler; "Heater" for a gas ducted heater. Add an entry for any other unit the job touches (a panel to swap on an existing outdoor unit). Say where it goes as the records say it: the room, the wall, what it sits on. If a unit's place isn't recorded, write exactly "${NOT_PLACED}"
+- extra: up to five short points that are particular to this job and come from a record: a customer request, a contractor booked and when, a part or order to check, a mismatch between the quote and what was ordered, how to get in. Nothing that's true of every job: no drop sheets, cleaning up, sealing penetrations, care with new homes, testing or commissioning. If there's nothing particular, give none.
 
 Rules:
 - Say only what the records say or plainly show. Never invent a room, a wall, a distance or a fitting. If something isn't recorded, leave it out; don't guess and don't raise questions.
@@ -73,15 +101,15 @@ Rules:
 - Read the quote's lines for the kind of install: "Roof Bracket" means the outdoor unit on a roof bracket; "Back To Back" means indoor and outdoor units on the two sides of the same wall; "Wall Bracket" (labour, or a bracket with a quantity) means a wall-mounted outdoor unit; a slab means a ground-mounted outdoor unit; a condensate pump on the materials means a pump goes in. A line with quantity 0 isn't part of the job.
 - From photos, only what's clearly visible.
 - The Condition Report is about what's there now. If there's an existing unit, say what it is and that it's being replaced or removed; don't describe the old unit as the new one.
-- Overview: two or three sentences. Sections: only those that apply, one to three sentences each.
-- Write about the job, never about the records: don't say a report, photo or detail is missing or wasn't recorded.
+- Write about the job, never about the records: don't say a report, photo or detail is missing, except a unit's place in locations as above.
+- Rebates, photos to take and what to do before leaving are printed from fixed lists: don't write them.
 - No selling, no prices, no customer names or phone numbers.`;
 
 const tidy = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
 const qty = (n: number) => (Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2))));
 
 /** A report's units as plain lines, without the customer's name, address or signature. */
-function reportLines(v: VisitReport): string {
+export function reportLines(v: VisitReport): string {
   const r = toReport(v.submission);
   // Who and where, not what: the customer's details stay out. Matched whole,
   // so a field like "Indoor unit location" still goes in.
@@ -112,6 +140,7 @@ export function summaryInput(f: PackFacts, reports: VisitReport[]): { text: stri
   const contractors = f.orders.filter((o) => o.kind === "work_order" && o.status !== "cancelled").map((o) => o.supplier);
   const text = [
     `Job type: ${tidy(f.jobType) || "not set"}`,
+    f.instructions ? `Appointment instructions: ${tidy(f.instructions)}` : "",
     `<job_summary>\n${plainText(f.jobSummary) ?? "(none written)"}\n</job_summary>`,
     f.quote ? `<sold_quote name="${tidy(f.quote.name)}">\nEquipment:\n${list("Equipment")}\nMaterials:\n${list("Material")}\nLabour and services:\n${list("Service")}\n</sold_quote>` : "<sold_quote>none on this job</sold_quote>",
     contractors.length ? `Contractors booked: ${[...new Set(contractors)].join(", ")}` : "",
@@ -129,9 +158,12 @@ export const listed = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join
 /** The answer, held to the schema's shape; anything else is refused rather than half-printed. */
 export function parseSummary(text: string): InstallSummary {
   const v = JSON.parse(text) as InstallSummary;
-  if (typeof v?.overview !== "string" || !Array.isArray(v.sections)) throw new Error("not a summary");
+  if (typeof v?.overview !== "string") throw new Error("not a summary");
+  const alert = v.alert && typeof v.alert.title === "string" && tidy(v.alert.title) ? { title: tidy(v.alert.title), text: tidy(v.alert.text) } : null;
   return {
     overview: tidy(v.overview),
-    sections: v.sections.filter((s) => s && typeof s.heading === "string" && typeof s.text === "string" && tidy(s.text)).map((s) => ({ heading: tidy(s.heading), text: tidy(s.text) })),
+    alert,
+    locations: (Array.isArray(v.locations) ? v.locations : []).filter((l) => l && typeof l.label === "string" && typeof l.text === "string" && tidy(l.label) && tidy(l.text)).map((l) => ({ label: tidy(l.label), text: tidy(l.text) })).slice(0, 6),
+    extra: (Array.isArray(v.extra) ? v.extra : []).filter((x) => typeof x === "string" && tidy(x)).map(tidy).slice(0, 5),
   };
 }

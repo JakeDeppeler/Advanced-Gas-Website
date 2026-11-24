@@ -34,6 +34,10 @@ on:
         description: "Job ids (not numbers), comma-separated (up to five). Instead of the connection check, lists the kinds of event in each job's history, to see whether ServiceTitan records a quote being sent."
         type: string
         required: false
+      notes:
+        description: "Job ids (not numbers), comma-separated (up to six). Instead of the connection check, lists each job's notes: date, author id and opening words, emails and phone numbers masked, to see what a note says when a quote is emailed."
+        type: string
+        required: false
 
 jobs:
   check:
@@ -46,6 +50,7 @@ jobs:
           URL_OVERRIDE: ${{ inputs.url }}
           ESTIMATE: ${{ inputs.estimate }}
           JOB: ${{ inputs.job }}
+          NOTES: ${{ inputs.notes }}
           FORMS: ${{ inputs.forms }}
           REPORTS: ${{ inputs.reports }}
           TEMPLATES: ${{ inputs.templates && '1' || '' }}
@@ -156,6 +161,24 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             echo "--- raw probe ---"
             jq '.jobs | map_values(map_values({ok, error, count, kinds, fields}))' probe.json
+            exit 0
+          fi
+
+          # The job notes probe, the same way: digits and commas only.
+          if [ -n "${NOTES:-}" ]; then
+            IDS="$(printf '%s' "$NOTES" | tr -cd '0-9,')"
+            curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}?notes=${IDS}" > probe.json
+            {
+              echo "## The notes on jobs ${IDS}"
+              echo
+              echo "Date, author id and opening words; emails and phone numbers masked:"
+              echo
+              echo '```json'
+              jq '.notes' probe.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "--- raw probe ---"
+            jq '.notes' probe.json
             exit 0
           fi
 

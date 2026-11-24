@@ -2,7 +2,7 @@ import "server-only";
 import { q, sbInsert, sbSelect } from "@/lib/dashboard/db";
 import { createAutoTodo, todayMelbourne, teamPeople, officeIds } from "@/lib/todos/store";
 import { loadSwitches, logAuto } from "@/lib/automation/log";
-import type { NewLead } from "@/lib/outlook/outlookTypes";
+import { enquirySubject, type NewLead } from "@/lib/outlook/outlookTypes";
 
 /**
  * An enquiry that came in by email, made into a lead like the website's (Jake,
@@ -27,6 +27,11 @@ export async function leadFromEmail(input: {
   const key = `email:${input.messageKey}`.slice(0, 300);
   const [had] = await sbSelect<{ id: string }>("portal_leads", [q.select("id"), q.eq("external_id", key), "limit=1"].join("&"));
   if (had) return { made: false, leadId: had.id };
+  // A reply in the same enquiry isn't another one: Whytehall's "Re: RFQ - WBC
+  // Mulgrave BBC" twice more made two more leads and two more to-dos to quote
+  // (12 Nov). Same sender, same subject less its Re:/Fw:, in the last month.
+  const same = await sameEnquiry(input.from, input.subject);
+  if (same) return { made: false, leadId: same };
 
   const l = input.lead;
   const email = l.email || input.from;
@@ -78,4 +83,15 @@ export async function leadFromEmail(input: {
     title: `${who}: email enquiry made a lead${todo ? `, to-do to quote for ${todo}` : ""}`,
   }]).catch(() => undefined);
   return { made: true, leadId: row?.id, todo };
+}
+
+
+async function sameEnquiry(from: string, subject: string): Promise<string | null> {
+  const want = enquirySubject(subject);
+  if (!from || !want) return null;
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const rows = await sbSelect<{ id: string; subject: string | null }>("portal_leads", [
+    "select=id,subject:details->>subject", "source=eq.Email", `details->>from=eq.${encodeURIComponent(from)}`, q.gte("created_at", since), "order=created_at.asc", "limit=20",
+  ].join("&")).catch(() => []);
+  return rows.find((r) => enquirySubject(r.subject ?? "") === want)?.id ?? null;
 }

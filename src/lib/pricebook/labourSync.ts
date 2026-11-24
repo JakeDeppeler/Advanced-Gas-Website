@@ -390,13 +390,20 @@ export type WordingChange = {
   /** Template lines whose description changes. */
   lines?: number;
   items?: Template["items"];
+  /** The summary stays: quoteTemplateSpecs.ts writes it (templateSummaries.ts). */
+  keepSummary?: boolean;
 };
 
 export async function planWording(): Promise<{ changes: WordingChange[]; untouched: string[] }> {
-  const [services, templates] = await Promise.all([
+  const [services, templates, added] = await Promise.all([
     stList<Raw>("pricebook", "services", { active: "True" }, 10),
     stList<Template & { summary?: string | null }>("sales", "estimate-templates", { active: "True" }, 10),
+    getSettings<{ templates?: Record<string, number> }>("quote_templates_added").catch(() => null),
   ]);
+  // The 15 Nov templates carry their own summaries, and templateFacts would
+  // misread them (a Brivis name as the brand, its comparison lost): their lines
+  // still take the service wording, their summaries are left alone.
+  const specSummary = new Set(Object.values(added?.templates ?? {}));
   const codeOf = new Map(services.map((s) => [Number(s.id), normCode(s.code)]));
   const changes: WordingChange[] = [];
   const untouched: string[] = [];
@@ -413,8 +420,9 @@ export async function planWording(): Promise<{ changes: WordingChange[]; untouch
     const items = t.items.map((i) => ({ ...i, code: i.skuType === "Service" ? codeOf.get(i.skuId) ?? "" : "" }));
     const facts = templateFacts(t.name, items);
     if (!facts) { untouched.push(t.name.trim()); continue; }
-    const after = templateSummary(facts);
+    const keepSummary = specSummary.has(t.id);
     const before = plainText(t.summary);
+    const after = keepSummary ? before : templateSummary(facts);
     let lines = 0;
     const patched = t.items.map((i, k) => {
       const want = i.skuType === "Service" ? lineCopy(items[k].code, facts) : null;
@@ -422,8 +430,8 @@ export async function planWording(): Promise<{ changes: WordingChange[]; untouch
       lines++;
       return { ...i, description: want };
     });
-    if (before === after.replace(/\n\n/g, "\n") && lines === 0) continue;
-    changes.push({ kind: "template", id: t.id, name: t.name.trim(), before, after, lines, items: lines ? patched : undefined });
+    if ((keepSummary || before === after.replace(/\n\n/g, "\n")) && lines === 0) continue;
+    changes.push({ kind: "template", id: t.id, name: t.name.trim(), before, after, lines, items: lines ? patched : undefined, ...(keepSummary ? { keepSummary } : {}) });
   }
   return { changes, untouched };
 }
@@ -443,10 +451,10 @@ export async function applyWording(changes: WordingChange[], limit: number): Pro
         else out.failed.push({ id: c.id, name: c.name, error: "the description didn't stick" });
       } else {
         const path = stTenantPath("sales", `estimate-templates/${c.id}`);
-        await stSend("PATCH", path, { summary: summaryHtml(c.after), ...(c.items ? { items: templatePatchItems(c.items) } : {}) });
+        await stSend("PATCH", path, { ...(c.keepSummary ? {} : { summary: summaryHtml(c.after) }), ...(c.items ? { items: templatePatchItems(c.items) } : {}) });
         out.applied++;
         const back = await stFetch<Template & { summary?: string | null }>(path);
-        const summaryOk = plainText(back.summary) === c.after.replace(/\n\n/g, "\n");
+        const summaryOk = c.keepSummary || plainText(back.summary) === c.after.replace(/\n\n/g, "\n");
         const linesOk = !c.items || c.items.every((i) => {
           const b = back.items.find((x) => x.id === i.id);
           return !b || plainText(b.description) === plainText(i.description);

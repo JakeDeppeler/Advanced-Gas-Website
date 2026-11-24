@@ -52,13 +52,14 @@ ok("unit and street on two lines", JSON.stringify(parseAddress("Unit 4, 38-40 Tu
 ok("ServiceTitan's form with a comma and Australia", parseAddress("5 Park Street, Seaford, VIC 3198 Australia")?.suburb === "Seaford", parseAddress("5 Park Street, Seaford, VIC 3198 Australia"));
 ok("an address without a state and postcode isn't guessed", parseAddress("1 Sierra Circuit Pakenham") === null && parseAddress("") === null);
 
-ok("needed 7 am the day before the install", requiredBy("2026-11-11", null, "2026-11-02") === "2026-11-10T07:00:00");
-ok("the office's deliver-by day wins", requiredBy("2026-11-10", "2026-11-06", "2026-11-02") === "2026-11-06T07:00:00");
-ok("never before tomorrow: Reece refuses a time that's passed", requiredBy("2026-11-02", null, "2026-11-02") === "2026-11-03T07:00:00" && requiredBy(null, null, "2026-11-02") === "2026-11-03T07:00:00");
-ok("across a month end", requiredBy("2026-12-02", null, "2026-11-02") === "2026-12-01T07:00:00");
-ok("a Monday install is wanted the Friday before", requiredBy("2026-11-09", null, "2026-11-02") === "2026-11-06T07:00:00");
-ok("a Sunday install is wanted the Friday before", requiredBy("2026-11-08", null, "2026-11-02") === "2026-11-06T07:00:00");
-ok("the office's weekend deliver-by is left as set", requiredBy("2026-11-09", "2026-11-07", "2026-11-02") === "2026-11-07T07:00:00");
+ok("needed 3:30 pm the day before the install, into the factory", requiredBy("2026-11-11", null, "2026-11-02") === "2026-11-10T15:30:00");
+ok("7 am when it goes straight to the site", requiredBy("2026-11-11", null, "2026-11-02", "07:00:00") === "2026-11-10T07:00:00");
+ok("the office's deliver-by day wins", requiredBy("2026-11-10", "2026-11-06", "2026-11-02") === "2026-11-06T15:30:00");
+ok("never before tomorrow: Reece refuses a time that's passed", requiredBy("2026-11-02", null, "2026-11-02") === "2026-11-03T15:30:00" && requiredBy(null, null, "2026-11-02") === "2026-11-03T15:30:00");
+ok("across a month end", requiredBy("2026-12-02", null, "2026-11-02") === "2026-12-01T15:30:00");
+ok("a Monday install is wanted the Friday before", requiredBy("2026-11-09", null, "2026-11-02") === "2026-11-06T15:30:00");
+ok("a Sunday install is wanted the Friday before", requiredBy("2026-11-08", null, "2026-11-02") === "2026-11-06T15:30:00");
+ok("the office's weekend deliver-by is left as set", requiredBy("2026-11-09", "2026-11-07", "2026-11-02") === "2026-11-07T15:30:00");
 
 ok("Reece's refusal reads as its words", reeceViolations(JSON.stringify({ violations: [{ fieldName: "requiredByDateTime", message: "must be in the future" }] }))[0] === "requiredByDateTime: must be in the future");
 ok("a body that isn't Reece's list gives nothing", reeceViolations("<html>").length === 0);

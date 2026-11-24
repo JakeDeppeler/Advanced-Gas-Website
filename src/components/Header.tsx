@@ -118,7 +118,7 @@ const SERVICES_MEGA: {
         {
           href: "/services/gas-plumbing/gas-service",
           label: "Gas heater service & CO test",
-          sub: "Annual safety check · written report",
+          sub: "Annual safety check · $250 + GST",
           photo: "/gas-ducted-install.webp",
           photoAlt: "Gas ducted heater in a roof space",
         },

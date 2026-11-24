@@ -14,8 +14,13 @@
  * press naming the old one falls back to "whatever is up" rather than
  * breaking. "On hold" was here until the office asked for the money owed and
  * owing in its place; the held-work view it replaced is at /portal/stuck.
+ * "Performance" became "Job types" the same way: what was left of it once the
+ * Today and Crew pages carried its other three cards was a table of job types.
+ * "Booked work" lasted a day: the forecast and the diary read against it were
+ * always one page, and Jake said so — the week across the top, the jobs for
+ * each day under it.
  */
-export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
+export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Daily pace", "Crew", "Team", "Job types", "Sectors", "Areas", "Weather"] as const;
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
 /** The board's alerts, as the demo shows them: a sale, a quote, a job to bill, a new lead. */

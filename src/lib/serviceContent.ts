@@ -310,7 +310,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "Almost every January call-out we get is a filthy coil, a blocked filter or a clogged condensate drain on a system nobody has touched since it went in. None of those are faults. All of them look like faults on the hottest day of the year, and all of them are an afternoon rather than a new system.",
       facts: [
-        { v: "Once a year", k: "the manufacturer minimum to keep the warranty in force" },
+        { v: "$250 + GST", k: "or $180 + GST each for two or more at one address" },
         { v: "Sept \u2013 Nov", k: "booked before the heatwave, not during it" },
         { v: "Lodged for you", k: "the report goes to the manufacturer, not a drawer" },
       ],
@@ -479,7 +479,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A split that gets serviced once a year runs at its rated output for fifteen years. One that doesn't loses capacity quietly, and the first anyone notices is the afternoon it can't hold the room. That is not a fault, it's a filter and a coil.",
           facts: [
-            { v: "Once a year", k: "the manufacturer minimum to keep the warranty in force" },
+            { v: "$250 + GST", k: "or $180 + GST each for two or more at one address" },
             { v: "Sept \u2013 Nov", k: "before the first heatwave, not during it" },
             { v: "5 + 6 years", k: "manufacturer on the unit, ours on the install" },
           ],
@@ -621,7 +621,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "The saving on a multi-head shows up again at service time: one outdoor unit to clean rather than four. The indoor heads still each need doing, which is why the bundle rate exists. There is no sense charging a full call-out per head when we are already standing in the house.",
           facts: [
-            { v: "One visit", k: "every head done the same day, not a call-out each" },
+            { v: "$180 a head", k: "+ GST, every head when two or more are serviced" },
             { v: "One coil clean", k: "the outdoor unit covers every head running off it" },
             { v: "Blocked drains", k: "the most common call, and a fifteen-minute fix" },
           ],
@@ -865,7 +865,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "Evaporative coolers sit on a roof through a Melbourne winter doing nothing, and the pump is the part that decides whether they wake up. The first thirty-degree day is the worst possible time to find out it seized in July, which is why the pre-summer service exists.",
           facts: [
-            { v: "Pre-summer", k: "booked September to November" },
+            { v: "$300 + GST", k: "single storey, or $400 + GST on a double storey" },
             { v: "3 \u2013 5 years", k: "how long a set of pads usually lasts" },
             { v: "Under load", k: "the pump tested running, not just switched on" },
           ],
@@ -1524,8 +1524,9 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brands: ["Mitsubishi Electric", "Daikin", "Fujitsu", "Panasonic", "LG", "Kaden", "Braemar", "Samsung"],
     pricing: [
-      { tier: "Split system · annual service", price: "$220", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
-      { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Everything in the split system service, Charged per extra unit at the same address, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per extra unit" },
+      { tier: "Split system · annual service", price: "$250 + GST", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
+      { tier: "Two or more splits at one address", price: "$180 + GST", includes: "Everything in the split system service, Every split at the address at this rate, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per split" },
+      { tier: "Split system · deep clean", price: "$350 + GST", includes: "Indoor unit taken apart, Coil and fan washed through rather than wiped, Drain tray and line flushed, Run and tested once it is back together", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per unit" },
       { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", priceKey: "Per visit", photoScene: true },
       { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
       { tier: "Emergency call-out (after-hours / weekend)", price: "$220 + parts", includes: "Same-day attendance, Someone on the tools rather than an overseas call-centre, Diagnosis and a written repair quote on the spot", group: "Call-out", priceKey: "Call-out fee" },
@@ -1624,7 +1625,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Belt, bearings and fan motor checked before the first hot day",
           "Roof access and safety handled by us, not you",
         ],
-        priceFrom: "from $220 + GST",
+        priceFrom: "from $300 + GST",
         intro:
           "A pre-summer service on a roof-mounted evaporative cooler. Pads, water tray, pump and float all get checked and cleaned, because the first 38-degree day is a bad time to discover the pump seized over winter, and it's the day everyone else rings too.",
         bestFor: [
@@ -1729,7 +1730,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Capacitor, fan motor and thermistors tested under load",
           "Electrical connections torque-checked and thermal-scanned",
         ],
-        priceFrom: "from $190 + GST",
+        priceFrom: "from $250 + GST",
         intro:
           "An annual service on a refrigerated system is filters, coils, drains and pressures. It's unglamorous and it's the difference between a system that lasts fifteen years and one that dies in an eight-year-old heatwave with the whole street ahead of you in the queue.",
         bestFor: [
@@ -1812,7 +1813,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "A cracked heat exchanger puts carbon monoxide into the air your house is breathing, and it does it silently. There is no smell, no alarm on most homes, and the early symptoms read as a bad night's sleep. This is the single reason we will not let a gas heater over ten years old go unserviced without saying something about it.",
       facts: [
-        { v: "CO tested", k: "a full service with a calibrated CO analyser" },
+        { v: "$250 + GST", k: "a full service with a calibrated CO analyser" },
         { v: "Every 2 years", k: "and annually once it is past ten" },
         { v: "Real readings", k: "on a written report, not a sticker saying it passed" },
       ],
@@ -1900,7 +1901,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A cracked heat exchanger puts carbon monoxide into the air the house is breathing, silently. No smell, no alarm in most homes, and early symptoms that read as a bad night's sleep. It is the one reason we will not quietly let a heater past ten years go unserviced.",
           facts: [
-            { v: "CO tested", k: "a full service with a calibrated CO analyser" },
+            { v: "$250 + GST", k: "a full service with a calibrated CO analyser" },
             { v: "Every 2 years", k: "and annually once it is past ten" },
             { v: "Condemned", k: "on the spot if the exchanger is cracked, that's the law" },
           ],
@@ -2163,7 +2164,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "That interval is not ours. It is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
           facts: [
-            { v: "Combustion analysis", k: "included in the service, not extra" },
+            { v: "$250 + GST", k: "with the combustion analysis included, not extra" },
             { v: "AS/NZS 5601", k: "the standard the pressure and spillage test is to" },
             { v: "Priced in writing", k: "before any repair goes ahead" },
           ],
@@ -2227,7 +2228,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Flue and seals checked end to end",
           "Calibrated CO analyser reading recorded on the report",
         ],
-        priceFrom: "$280 + GST",
+        priceFrom: "$250 + GST",
         intro:
           "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that actually matters, a cracked heat exchanger has no smell, no noise and no warning, and it vents into the house you sleep in.",
         bestFor: [

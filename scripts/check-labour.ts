@@ -27,8 +27,10 @@ ok("split repair is one person by the hour", crewFor("AC-SPLIT-REPAIR") === "sol
 ok("servicing is left at its own price", crewFor("SVC-AS-SPLIT") === null && crewFor("AC-SPLIT-DEEPCLEAN") === null && crewFor("EVAP-MAINT-DS") === null);
 ok("a split install is the part-day rate", crewFor("AC-SPLIT-RTR") === "partDay");
 ok("heat pump, split hot water and cooktop installs are part-day", ["HW-HP-HARD", "HW-HP-SPLIT", "GAS-COOKTOP-INSTALL", "HW-CF-INS"].every((c) => crewFor(c) === "partDay"));
-ok("all-day jobs are the crew rate: multi-head, ducted, Dominator", ["AC-SPLIT-MULTI-3", "AC-DUCTED-2DAYS", "AC-DOM-LAB"].every((c) => crewFor(c) === "pair"));
-ok("codes with stray spaces still match", crewFor(" GAS-DUCT-EXT") === "partDay" && crewFor("AC-SPLIT-MULTI-4 ") === "pair");
+ok("the ducted labour lines are the crew rate", ["AC-DUCTED-LAB", "AC-DUCTED-LAB-1DAY", "LAB-HR-2P"].every((c) => crewFor(c) === "pair"));
+// Jake, 22 Nov: his own prices (servicePricing.ts), so this run never prices them from hours.
+ok("multi-heads, the ducted install and the Dominator labour are Jake's prices, not the run's", ["AC-SPLIT-MULTI-2", "AC-SPLIT-MULTI-4", "AC-SPLIT-MULTI-6", "AC-DUCTED-2DAYS", "AC-DOM-LAB"].every((c) => crewFor(c) === null));
+ok("codes with stray spaces still match", crewFor(" GAS-DUCT-EXT") === "partDay" && crewFor("AC-DUCTED-LAB ") === "pair");
 ok("a hot water repair filed under Split System – Repair is left alone", crewFor("HW-CF-REPAIR") === null);
 ok("electrical connections are the electrician's price, left alone", crewFor("AC-SPLIT-ELEC") === null);
 ok("the three-person hourly line follows the install rate", crewFor("LAB-HR-3P") === "crew3");
@@ -49,8 +51,8 @@ const by = (id: number) => sv.changes.find((c) => c.id === id);
 ok("diagnostics: the $200 call-out", by(1)?.after === 200, by(1));
 ok("a diagnostic with no hours on it is still the call-out", by(8)?.after === 200, by(8));
 ok("repair: 1 hour at $250", by(9)?.after === 250, by(9));
-ok("4-head labour: 8 hours at $310", by(2)?.after === 2480, by(2));
-ok("evap install, 2.8 hours at the part-day $350: $980", by(3)?.after === 980, by(3));
+ok("4-head labour is Jake's $3,500 (22 Nov): left alone here", !by(2), by(2));
+ok("evap install is Jake's flat $900, not hours (16 Nov): left alone here", !by(3));
 ok("a listed hourly service with no hours is skipped and says so", sv.skipped.some((s) => s.id === 4 && /hours/.test(s.reason)));
 ok("an unlisted service is not touched or reported", !by(5) && !sv.skipped.some((s) => s.id === 5));
 ok("already at its price counts as unchanged", !by(6) && sv.unchanged === 1);

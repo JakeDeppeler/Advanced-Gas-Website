@@ -2,12 +2,18 @@ import "server-only";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { graph, outlookMailboxes, userPath } from "./graph";
-import { handleMessage, type Outcome } from "./handle";
+import { handleMessage, secondLookForQuotes, type Outcome } from "./handle";
 import { ensureSubscriptions, type SubStatus } from "./subscriptions";
 import { sweepHandoffs } from "./handoff";
 import { dedupeDrafts } from "./drafts";
-import { attachBookedJobs, sweepWorkOrders } from "./workOrders";
+import { applyUnitFixes, attachBookedJobs, jobFieldsBackfill, ownerBackfill, retryHolds, siteBackfill, sweepWorkOrders, tapiBackfill, typeBackfill } from "./workOrders";
+import { carryQuoteEmails } from "./jobLink";
+import { loadSwitches } from "@/lib/automation/log";
 import { MAX_AGE_MS } from "./outlookTypes";
+import { probeJobNotes } from "@/lib/dashboard/stEstimateProbe";
+import { applyJobSummaryQueue } from "@/lib/jobwrite/jobSummary";
+import { exportPackPhotos } from "@/lib/installpack/photoExport";
+import { attachQueuedPacks } from "@/lib/installpack/attachQueue";
 
 /**
  * The safety net under the webhook, and the office's catch-up.
@@ -44,9 +50,19 @@ export type SweepResult = {
   subscriptions: SubStatus[] | { error: string };
   mailboxes: { mailbox: string; seen: number; left: number; backfill?: string; handled: (Outcome & { id: string })[]; error?: string }[];
   handoffs: { mailbox: string; checked: number; cleared: number; error?: string }[];
+  jobSummaries: { done: number };
   duplicates: { mailbox: string; threads: number; removed: number; keptEdited: number; error?: string }[];
   workOrders: { mailbox: string; marked: number; retried: number; error?: string }[];
   attached: { attached: number; errors: string[] } | { error: string };
+  holds: { held: number; error?: string };
+  units: { changed: number; error?: string };
+  jobFields: { done: number };
+  types: { done: number };
+  tapi: { filled: number; tried: number };
+  sites: { done: number };
+  owners: { done: number };
+  secondLook: { mailbox: string; looked: number; linked: number; error?: string }[];
+  carried: { carried: number; error?: string };
 };
 
 /** Every Inbox id received since `since`, newest first, page by page. */
@@ -143,6 +159,22 @@ export async function sweep(): Promise<SweepResult> {
     workOrders.push({ mailbox, ...(await sweepWorkOrders(mailbox, started + TAGS_BUDGET_MS)) });
   }
   const attached = await attachBookedJobs(started + TAGS_BUDGET_MS).catch((e: Error) => ({ error: e.message }));
+  const holds = await retryHolds(started + TAGS_BUDGET_MS).catch((e: Error) => ({ held: 0, error: e.message }));
+  const units = await applyUnitFixes(started + TAGS_BUDGET_MS).catch((e: Error) => ({ changed: 0, error: e.message }));
+  const jobFields = await jobFieldsBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 }));
+  const types = await typeBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 }));
+
+  // A quote sold and made into a job: its emails go on that job too, once.
+  const carried = (await loadSwitches()).emailToJob
+    ? await carryQuoteEmails(started + TAGS_BUDGET_MS).catch((e: Error) => ({ carried: 0, error: e.message }))
+    : { carried: 0 };
+
+  // Emails about a quote waiting on the customer that went on no job before
+  // findJob counted those: once each, then nothing left to do.
+  const secondLook: { mailbox: string; looked: number; linked: number; error?: string }[] = [];
+  for (const mailbox of outlookMailboxes()) {
+    secondLook.push({ mailbox, ...(await secondLookForQuotes(mailbox, started + TAGS_BUDGET_MS)) });
+  }
 
   // One draft per thread: older ones the webhook's own clean-up missed. Before
   // the tag check, which then sees those drafts gone.
@@ -156,5 +188,29 @@ export async function sweep(): Promise<SweepResult> {
     handoffs.push({ mailbox, ...(await sweepHandoffs(mailbox, started + TAGS_BUDGET_MS)) });
   }
 
-  return { subscriptions, mailboxes, workOrders, attached, duplicates, handoffs };
+  // Last, and only with time in hand: one can take half the minute.
+  const tapi = Date.now() - started < 25_000 ? await tapiBackfill(started + TAGS_BUDGET_MS).catch(() => ({ filled: 0, tried: 0 })) : { filled: 0, tried: 0 };
+  const sites = Date.now() - started < 25_000 ? await siteBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
+  const owners = Date.now() - started < 25_000 ? await ownerBackfill(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 })) : { done: 0 };
+
+  await noteSample().catch(() => undefined);
+  const jobSummaries = await applyJobSummaryQueue(started + TAGS_BUDGET_MS).catch(() => ({ done: 0 }));
+  await exportPackPhotos(started + TAGS_BUDGET_MS).catch(() => undefined);
+  await attachQueuedPacks(started + TAGS_BUDGET_MS).catch(() => undefined);
+  return { subscriptions, mailboxes, workOrders, attached, holds, units, jobFields, types, tapi, sites, owners, carried, secondLook, duplicates, handoffs, jobSummaries };
+}
+
+/**
+ * The job notes probe (stEstimateProbe.probeJobNotes), run from here when job
+ * ids are put in the probe_job_notes setting: the check route takes only
+ * CRON_SECRET, GitHub won't let this session start the workflow that holds
+ * it, and the route isn't to be opened to the scheduler's token. Read-only;
+ * the masked result goes back into the setting, in place of the ids, so it
+ * runs once.
+ */
+async function noteSample(): Promise<void> {
+  const want = await getSettings<{ ids?: unknown }>("probe_job_notes").catch(() => null);
+  const ids = Array.isArray(want?.ids) ? want.ids.filter((x): x is number => Number.isInteger(x)).slice(0, 6) : [];
+  if (!ids.length) return;
+  await saveSettings("probe_job_notes", { at: new Date().toISOString(), notes: await probeJobNotes(ids) });
 }

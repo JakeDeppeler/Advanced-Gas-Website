@@ -8,6 +8,9 @@ import { Head } from "@/components/portal/kit/Kit";
 import { MAX_VISIT_HRS } from "@/lib/portal/onTheTools";
 import { clockInsStart, hoursCompared, resolveSpans, type CompareKey, type HoursPerson, type HoursWindow, type RangeKey } from "@/lib/portal/hours/compare";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
+import { dayShape } from "@/lib/portal/hours/dayShape";
+import { coverBase } from "@/lib/portal/cover/load";
+import { DayShapeCard } from "@/components/portal/DayShapeCard";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Hours · Team portal" };
@@ -51,7 +54,7 @@ export default async function HoursPage({ searchParams }: { searchParams: { r?: 
   const r: RangeKey = (["week", "last", "month", "custom"] as const).find((k) => k === searchParams.r) ?? "week";
   const c: CompareKey = (["prev", "year", "custom"] as const).find((k) => k === searchParams.c) ?? "prev";
   const { range, compare } = resolveSpans(r, c, searchParams);
-  const [[a, b], start] = await Promise.all([hoursCompared(range, compare), clockInsStart()]);
+  const [[a, b], start, shape, hour] = await Promise.all([hoursCompared(range, compare), clockInsStart(), dayShape().catch(() => null), coverBase().catch(() => null)]);
   const sa = share(a), sb = share(b);
   // A span with no clock-ins at all is a gap in the record, not a week of
   // nothing: its columns read "—", never 0.
@@ -145,6 +148,8 @@ export default async function HoursPage({ searchParams }: { searchParams: { r?: 
             <span className="hr-from">ServiceTitan clock-ins</span>
           </section>
         </div>
+
+        {shape && <DayShapeCard shape={shape} aim={hour?.i.billPerDay ?? 6} />}
 
         <section className="pk-card hr-people" aria-labelledby="hr-h">
           <div className="hr-ph">

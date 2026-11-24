@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { can, officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { latestBoard } from "@/lib/portal/office";
@@ -49,8 +49,12 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   const office = can(user, "overhead");
-  if (!office && !can(user, "quotes")) return <Locked user={user} what="Jobs" forWhom="the office" />;
-  const tab = (["profit", "notbilled", "list"].includes(searchParams.tab ?? "") ? searchParams.tab : office ? "today" : "notbilled") as "today" | "profit" | "notbilled" | "list";
+  const work = officeWork(user);
+  if (!work && !can(user, "quotes")) return <Locked user={user} what="Jobs" forWhom="the office" />;
+  // Job profit is the money, so it's only for whoever sees the money: an old
+  // link to it from anyone else opens the jobs they can work instead.
+  const asked = ["notbilled", "list", ...(office ? ["profit"] : [])].includes(searchParams.tab ?? "") ? searchParams.tab : null;
+  const tab = (asked ?? (work ? "today" : "notbilled")) as "today" | "profit" | "notbilled" | "list";
 
   const [board, certs, toBill] = await Promise.all([
     latestBoard(),
@@ -140,9 +144,13 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
     );
   } else if (tab === "today") {
     const done = jobsToday.filter((j) => j.done).length;
-    const over = jobsToday.filter((j) => j.quoted != null && j.taken > j.quoted + 0.25);
+    // A job whose stamps gave no usable span is not running over; it is not
+    // measured. See PaceJob.taken.
+    const isOver = (j: (typeof jobsToday)[number]) =>
+      j.quoted != null && j.taken != null && j.taken > j.quoted + 0.25;
+    const over = jobsToday.filter(isOver);
     const st = (j: (typeof jobsToday)[number]): Status =>
-      j.quoted != null && j.taken > j.quoted + 0.25 ? { k: "bad", w: "Running over" } : j.done ? { k: "good", w: "Done" } : j.onNow ? { k: "mid", w: "On site" } : none("Next");
+      isOver(j) ? { k: "bad", w: "Running over" } : j.done ? { k: "good", w: "Done" } : j.onNow ? { k: "mid", w: "On site" } : none("Next");
     body = (
       <>
         <Say>
@@ -160,7 +168,7 @@ export default async function JobsPage({ searchParams }: { searchParams: { tab?:
                       <td><b>{j.what}</b></td>
                       <td className="l">{j.where ?? ""}</td>
                       <td className="l"><span className="pk-who"><Av name={j.who} />{j.who.split(" ")[0]}</span></td>
-                      <td>{j.taken.toFixed(1)}{j.quoted != null ? ` of ${j.quoted.toFixed(1)}` : ""}</td>
+                      <td>{j.taken != null ? j.taken.toFixed(1) : "—"}{j.quoted != null ? ` of ${j.quoted.toFixed(1)}` : ""}</td>
                       <td><Pill st={st(j)} /></td>
                     </tr>
                   ))}

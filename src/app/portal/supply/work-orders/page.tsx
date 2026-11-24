@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { Bad, Card, Empty, Good, Group, Head, Row, Say, Tabs } from "@/components/portal/kit/Kit";
@@ -35,7 +35,7 @@ const hhmm = (iso: string) =>
 export default async function WorkOrdersPage({ searchParams }: { searchParams: { q?: string; job?: string; tab?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Work orders" forWhom="managers" />;
+  if (!officeWork(user)) return <Locked user={user} what="Work orders" forWhom="the office" />;
 
   const q = (searchParams?.q ?? "").slice(0, 60);
   const jobId = Number(searchParams?.job);

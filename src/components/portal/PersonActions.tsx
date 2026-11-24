@@ -7,7 +7,7 @@ import { startPreview } from "@/app/portal/admin/viewAsActions";
 
 type Props = {
   userId: string;
-  /** Their first name, for the button face — "See it as Jye does". */
+  /** Their first name, for the button face — "See it as Kellie does". */
   first: string;
   level: string | null;
   hasEmail: boolean;
@@ -67,7 +67,7 @@ export function PersonActions({ userId, first, level, hasEmail, canManage }: Pro
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setErr(null); }}
-            placeholder="jye@advancedgas.com.au"
+            placeholder="name@advancedgas.com.au"
           />
           <p className="pt-pacts__note">
             They&rsquo;ll be able to sign in with this straight away, as a {level ?? "crew member"}.

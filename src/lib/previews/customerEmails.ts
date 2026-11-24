@@ -116,9 +116,9 @@ export async function sendCustomerEmailPreviews(only: PreviewSet[] = [...PREVIEW
   if (want("review")) {
     const s = await loadReviewSettings();
     const link = reviewLink(s, process.env.GOOGLE_PLACE_ID) ?? site.social.google;
-    // Jye has a headshot, so the preview shows the photo version; a tech without one gets their initials.
+    // Dean has a headshot, so the preview shows the photo version; a tech without one gets their initials.
     const sample = await sampleJobPhoto();
-    const review = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Jye Stephens"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
+    const review = reviewEmail(s, { customer: "Sarah Jones", techs: [sample?.tech ?? "Dean Winbanks"], jobType: sample?.jobType ?? "Service - Split System", suburb: "Berwick", href: link, photo: sample?.photo }, emailContext());
     const reviewNote = `Preview of the Google review email, exactly as customers get it (made-up customer). ${sample ? "The photo is from a real recent install, picked because it shows the whole system; each customer gets their own job's. " : "None of the recent jobs had a photo of the whole system, so this shows the stock one, as a customer would get. "}${s.link || process.env.GOOGLE_PLACE_ID ? "The button goes to your review link." : "No review link is saved yet, so the button goes to your Google profile for now."}`;
     mails.push(plain({ subject: `[Preview] ${review.subject}`, html: withBanner(review.html, reviewNote), text: `${reviewNote}\n\n${review.text}` }, "reviews", "review-request"));
   }

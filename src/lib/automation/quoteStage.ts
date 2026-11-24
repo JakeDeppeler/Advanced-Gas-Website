@@ -87,8 +87,14 @@ export type TagPlan =
  * as it is.
  *
  * Never backwards: a job at Awaiting Quote Approval isn't put back to Quote
- * In Draft because another option is being written, and To Be Booked stays
- * when a sold quote is unsold to change it. `ours` are stage tags this
+ * In Draft because another option is being written.
+ *
+ * Except To Be Booked on a quote that isn't sold, never sold or unsold since
+ * (Jake, 19 Nov: "if a quote has been sent with no sold its tag should be
+ * awaiting quote approval vs the to be booked"): it's gone to the customer
+ * and they haven't said yes, so it goes to Awaiting Quote Approval. Only a
+ * job with a quote written, open and not sold; one with no quote at all is a
+ * work order waiting on the tenant's call, where To Be Booked means the visit. `ours` are stage tags this
  * automation put on by guessing, which don't hold a job back: the office
  * marks those still in draft from Settings › Automatic (quoteDrafts.ts).
  *
@@ -100,7 +106,8 @@ export function planTags(cur: number[], stage: Stage, ids: Partial<Record<Tagged
   const stageOfId = new Map<number, TaggedStage>();
   for (const s of Object.keys(STAGE_TAGS) as TaggedStage[]) if (ids[s] != null) stageOfId.set(ids[s] as number, s);
   const on = cur.filter((x) => stageOfId.has(x));
-  if (on.some((x) => !ours.includes(x) && RANK[stageOfId.get(x) as TaggedStage] > RANK[stage])) return null;
+  if (unsoldAtToBook(cur, stage, ids)) stage = "sent";
+  else if (on.some((x) => !ours.includes(x) && RANK[stageOfId.get(x) as TaggedStage] > RANK[stage])) return null;
   const want = stage === "done" ? null : ids[stage] ?? null;
   // That tag isn't in ServiceTitan, or has been renamed: nothing to swap to.
   if (stage !== "done" && want == null) return null;
@@ -110,3 +117,7 @@ export function planTags(cur: number[], stage: Stage, ids: Partial<Record<Tagged
   const tags = [...cur.filter((x) => !drop.includes(x)), ...(add != null ? [add] : [])];
   return tags.length ? { tags, add, drop } : { stuck: drop };
 }
+
+/** A job at To Be Booked whose quote is written and not sold: Awaiting Quote Approval instead (planTags). */
+export const unsoldAtToBook = (cur: number[], stage: Stage, ids: Partial<Record<TaggedStage, number>>) =>
+  stage === "draft" && ids.toBook != null && ids.sent != null && cur.includes(ids.toBook);

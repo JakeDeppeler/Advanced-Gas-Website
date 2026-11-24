@@ -15,14 +15,19 @@ import {
   repliedSince,
   untouched,
   replyHtml,
+  enquirySubject,
   signoffFor,
   skipReason,
   threadText,
   type GraphMessage,
 } from "../src/lib/outlook/outlookTypes";
 import { mightConfirmBooking, parseBooking, swapTag, tagWords as bookingWords } from "../src/lib/outlook/bookingTypes";
-import { stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
-import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
+import { phoneDigits, stSaid, tenantAddresses, tenantContacts, tenantGreeting, tenantLabel, tenantPhones } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_NEVER, DEFAULT_PROTECTED, filingSettingsFrom, flaggedWord, folderForAgency, isNever, kindOf, learnHomes, pickFolder, waitReason, wordsFromText, type DraftRecord, type Folder } from "../src/lib/outlook/filingTypes";
+import { approvalFor, approvalHeading, bareStreet, followUpFor, followUpHeading, numberKey, workAfterQuote, type SiteJob } from "../src/lib/outlook/workOrderTypes";
+import { UNKNOWN_TYPE, isUnitHome, propertyTypeToWrite } from "../src/lib/outlook/workOrderTypes";
+import { PROPERTY_TYPES, managerContacts, propertyWhyFrom, senderNameOnFile, isUnitAddress, jobReference, propertyTypeFrom, realEstateUnitName, tapiLinkIn, tapiLinksIn, tapiPageText, looksLikeTapiJob, visitEnd } from "../src/lib/outlook/workOrderTypes";
+import { DEFAULT_TENANT_BODY, DEFAULT_TENANT_SUBJECT, addressKey, bookingSummary, dedupeKey, fillTemplate, isTeamForward, siteKey, streetWord, agencyMatches, jobNumbersIn, namesSite, namesStreet, placeholderDay, melbourneInstant, mightBeWorkOrder, parseWorkOrder, stage, tenantAddress, workOrderSettingsFrom, worthListing, type WorkOrderRow } from "../src/lib/outlook/workOrderTypes";
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra: unknown = "") => {
@@ -212,6 +217,74 @@ ok("searched by the street's name", streetWord("11/1-3 Young Road") === "young" 
 ok("agency by name", agencyMatches("Barry Plant Pakenham", "Barry Plant Pakenham 1") && agencyMatches("Stockdale & Leggo Pakenham", "Stockdale & Leggo (Pakenham)"));
 ok("another branch isn't the agency", !agencyMatches("Barry Plant Pakenham", "Barry Plant Berwick - Matavier Pty Ltd"));
 ok("one word is too little to go on", !agencyMatches("Tapi", "Tapi Pty Ltd"));
+
+// --- follow-ups go on the job already there (Jake, 12 Nov), from the week's real ones
+ok("Tapi numbers agree", numberKey("TAPI-25643-1") === numberKey("[TAPI-25643] ") && numberKey("TAPI-023197") === numberKey("tapi 23197"));
+ok("Job #01895 is 1895", numberKey("Job #01895") === numberKey("1895") && numberKey("PO 428520") === numberKey("428520"));
+ok("Ailo's work order and quote stay apart", numberKey("WO-1061") !== numberKey("QU-1061"));
+ok("no number, or too short to count", numberKey("") === "" && numberKey("#7") === "");
+const FU_NOW = Date.parse("2026-11-12T00:00:00Z");
+const sj = (o: Partial<SiteJob>): SiteJob => ({ id: 1, jobNumber: "20796", status: "Scheduled", numbers: [], isQuote: false, createdOn: "2026-11-09T00:00:00Z", ...o });
+const wf = (kind: "work_order" | "quote_request" | "quote_accepted", number: string, isReminder = false) => ({ kind, number, isReminder });
+// 4 Bishop Pl: quote request 18969 (job 20796, open), then "quote accepted" 18969 made 20799; the office cancelled 20796.
+const bishop = followUpFor(wf("quote_request", "18969", true), false, [sj({ numbers: ["18969"], isQuote: true })], FU_NOW);
+ok("same number, job open: onto that job", bishop?.job.jobNumber === "20796", bishop);
+// Quote approvals (Jake, 12 Nov): never a job; pinned on the job it belongs to, admin emailed.
+ok("approved, the quote job open: onto it, no new job", approvalFor(wf("quote_accepted", "18969"), [sj({ numbers: ["18969"], isQuote: true })], FU_NOW)?.job?.jobNumber === "20796");
+ok("approved, nothing there: still an approval, no job", (() => { const a = approvalFor(wf("quote_accepted", "TAPI-25643-1"), [], FU_NOW); return a !== null && a.job === null; })());
+ok("not an approval: a work order", approvalFor(wf("work_order", "18000"), [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
+ok("not an approval: a request to quote", approvalFor(wf("quote_request", ""), [], FU_NOW) === null);
+// 1/19 Lyall St: Tapi's install work order under the number of the quote visit done (20341) is the approval.
+ok("a work order under a done quote's number: an approval on that quote", approvalFor(wf("work_order", "TAPI-023197"), [sj({ jobNumber: "20341", status: "Completed", isQuote: true, numbers: ["TAPI-023197"], createdOn: "2026-10-14T00:00:00Z" })], FU_NOW)?.job?.jobNumber === "20341");
+// 1 Grenaroff Walk: the office had sold the quote into 20806 by then.
+ok("approved after the office sold it into a job: onto that job", approvalFor(wf("quote_accepted", ""), [sj({ jobNumber: "20384", status: "Completed", createdOn: "2026-10-16T00:00:00Z" }), sj({ jobNumber: "20806", createdOn: "2026-11-10T00:00:00Z" })], FU_NOW)?.job?.jobNumber === "20806");
+ok("approved, no number, the quote done: onto the latest quote", approvalFor(wf("quote_accepted", ""), [sj({ jobNumber: "20498", status: "Completed", isQuote: true, createdOn: "2026-10-24T00:00:00Z" })], FU_NOW)?.job?.jobNumber === "20498");
+ok("approval note says so", /^QUOTE APPROVED 18969 by Barry Plant Pakenham \(PropertyMe\)\. No new job made/.test(approvalHeading({ agency: "Barry Plant Pakenham", platform: "PropertyMe", number: "18969" })));
+ok("approval on the page", stage({ ...base, status: "duplicate", st_booking_id: null, st_job_number: "20796", reason: "quote approved, on job 20796 (job 20796 is open there); admin emailed" }).word === "Approved, on job 20796");
+// 5 Albany Cres: TAPI-25643-1 accepted (20774), then a reminder for it made 20804, cancelled.
+ok("a reminder for a job already done: onto it", followUpFor(wf("work_order", "TAPI-25643-1", true), false, [sj({ jobNumber: "20774", status: "Completed", numbers: ["TAPI-25643-1"] })], FU_NOW)?.job.jobNumber === "20774");
+// 30 Hackney Cct: "Reminder: [TAPI-023594]" onto 20788, which the replica hasn't got yet (status unknown).
+ok("onto a job the portal made minutes ago", followUpFor(wf("work_order", "TAPI-023594", true), false, [sj({ jobNumber: "20788", status: null, numbers: ["TAPI-023594"] })], FU_NOW)?.job.jobNumber === "20788");
+// 1/19 Lyall St: TAPI-023197 quote (20341, done), then the install for it: a job of its own (20783, kept).
+ok("same number after a repair's done: new work, a new job", followUpFor(wf("work_order", "18000"), false, [sj({ status: "Completed", numbers: ["18000"] })], FU_NOW) === null);
+ok("a cancelled job takes nothing", followUpFor(wf("work_order", "18969"), false, [sj({ status: "Canceled", numbers: ["18969"] })], FU_NOW) === null);
+ok("another number at the same house: a new job", followUpFor(wf("work_order", "TAPI-023600"), false, [sj({ numbers: ["TAPI-023594"] })], FU_NOW) === null);
+// 4 Dundee Court (18 Nov): quote request 23835 made 20884; the same desktop quote again as 24552 made 20886.
+{
+  const dundee = followUpFor(wf("quote_request", "24552"), false, [sj({ jobNumber: "20884", isQuote: true, numbers: ["23835"], createdOn: "2026-11-16T03:35:00Z" })], Date.parse("2026-11-16T23:08:00Z"));
+  ok("a quote request under a new number, a quote open there: onto it, pinned", dundee?.job.jobNumber === "20884" && dundee?.pin === true, dundee);
+  ok("a quote request, only a repair job open there: a new job", followUpFor(wf("quote_request", "QU-8042"), false, [sj({ isQuote: false, numbers: ["9858"], jobType: "Diagnostics - Split System" })], FU_NOW) === null);
+  ok("a quote request, the quote there done: a new job", followUpFor(wf("quote_request", "QU-8042"), false, [sj({ isQuote: true, status: "Completed", numbers: ["QU-1"] })], FU_NOW) === null);
+  ok("a quote request, the quote there over a month old: a new job", followUpFor(wf("quote_request", "QU-8042"), false, [sj({ isQuote: true, numbers: ["QU-1"], createdOn: "2026-10-01T00:00:00Z" })], FU_NOW) === null);
+  const sameFault = followUpFor({ ...wf("work_order", "TAPI-023600"), jobType: "Diagnostics - Split System" }, false, [sj({ numbers: ["TAPI-023594"], jobType: "Diagnostics - Split System" })], FU_NOW);
+  ok("a work order under a new number for the same fault: onto the open job", sameFault?.job.jobNumber === "20796" && sameFault?.pin === true, sameFault);
+  ok("a work order for another appliance at the house: its own job", followUpFor({ ...wf("work_order", "TAPI-023600"), jobType: "Diagnostics - Gas Ducted Heater" }, false, [sj({ numbers: ["TAPI-023594"], jobType: "Diagnostics - Split System" })], FU_NOW) === null);
+}
+for (const k of ["Installation", "Diagnostics", "Repairs", "Maintenance"] as const) ok(`a ${k} reading goes under Real Estate - ${k}`, realEstateUnitName(parseWorkOrder(JSON.stringify({ is_work_order: true, is_real_estate: true, work_kind: k }))) === `Real Estate - ${k}`);
+ok("an unknown work kind reads as Diagnostics", parseWorkOrder(JSON.stringify({ is_work_order: true, work_kind: "Something" })).workKind === "Diagnostics");
+// 8/21 Pakenham Rd: LJ Hooker's "Re: Work order" WO-0801 asking for a quote to replace the unit went on 20390,
+// the clean done in October, and no quote job was made (audit, 12 Nov).
+ok("a reply asking for more after the job's done: a new job", followUpFor(wf("quote_request", "WO-0801"), true, [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" })], FU_NOW) === null);
+ok("a reply about an open job: onto it", followUpFor(wf("work_order", ""), true, [sj({ jobNumber: "20754", status: "InProgress", isQuote: true, createdOn: "2026-11-02T00:00:00Z" })], FU_NOW)?.job.jobNumber === "20754");
+// A quote sold, and the work made a job of its own (Govindarajah: quote 20284 sold 14 Nov 15:11, install 20873 at 16:32).
+const q20284 = { id: 20284, created: "2026-10-07T07:36:00Z", soldOn: "2026-11-14T04:11:00Z" };
+ok("the quote sold, the install made after: the thread follows it", workAfterQuote(q20284, [{ id: 20873, created: "2026-11-14T05:32:00Z", estimateBefore: false }]) === 20873);
+ok("...not a job made before the sale", workAfterQuote(q20284, [{ id: 20800, created: "2026-11-01T00:00:00Z", estimateBefore: false }]) === null);
+ok("...not with the quote unsold, unless the new job holds an estimate from before it", workAfterQuote({ ...q20284, soldOn: null }, [{ id: 20873, created: "2026-11-14T05:32:00Z", estimateBefore: false }]) === null && workAfterQuote({ ...q20284, soldOn: null }, [{ id: 20806, created: "2026-11-10T00:00:00Z", estimateBefore: true }]) === 20806);
+ok("...not two candidates", workAfterQuote(q20284, [{ id: 1, created: "2026-11-14T05:32:00Z", estimateBefore: false }, { id: 2, created: "2026-11-14T06:00:00Z", estimateBefore: false }]) === null);
+// New work after a finished job, and the office has made its job since.
+const after = [sj({ jobNumber: "20390", status: "Completed", numbers: ["WO-0801"], createdOn: "2026-10-19T00:00:00Z" }), sj({ jobNumber: "20830", numbers: [], createdOn: "2026-11-11T22:00:00Z" })];
+ok("the job's done, the work after it already a job: onto that", followUpFor(wf("quote_request", "WO-0801"), true, after, FU_NOW)?.job.jobNumber === "20830");
+ok("...not one carrying another number", followUpFor(wf("quote_request", "WO-0801"), true, [after[0], sj({ jobNumber: "20831", numbers: ["WO-0999"] })], FU_NOW) === null);
+ok("a reply after two months: a new job", followUpFor(wf("quote_request", ""), true, [sj({ status: "Completed", createdOn: "2026-09-02T00:00:00Z" })], FU_NOW) === null);
+ok("a reply with another number: a new job", followUpFor(wf("work_order", "TAPI-023539"), true, [sj({ status: "Completed", numbers: ["TAPI-023378"], createdOn: "2026-10-26T00:00:00Z" })], FU_NOW) === null);
+ok("no number, a job open there: onto it", followUpFor(wf("work_order", ""), false, [sj({ jobNumber: "20806" })], FU_NOW)?.job.jobNumber === "20806");
+ok("no number, nothing open: a new job", followUpFor(wf("work_order", ""), false, [sj({ status: "Completed" })], FU_NOW) === null);
+ok("the newest of two with the number", followUpFor(wf("work_order", "18969"), false, [sj({ id: 1, jobNumber: "old", numbers: ["18969"], createdOn: "2026-10-01T00:00:00Z" }), sj({ id: 2, jobNumber: "new", numbers: ["18969"] })], FU_NOW)?.job.jobNumber === "new");
+ok("the note says what it is", /^WORK ORDER FOLLOW-UP, URGENT: Quote accepted 18969 from Barry Plant Pakenham \(PropertyMe\)\./.test(followUpHeading({ agency: "Barry Plant Pakenham", platform: "PropertyMe", kind: "quote_accepted", number: "18969", urgent: true, isReminder: false })));
+ok("no number on the site: the street with it taken off", bareStreet(siteKey("4-10 Mullaly Close", "West Melbourne")) === siteKey("Mullaly Close", "West Melbourne"));
+ok("a unit is never the whole street", bareStreet(siteKey("3/185 Camms Road", "Cranbourne")) === null && bareStreet(siteKey("Mullaly Close", "West Melbourne")) === null);
+ok("follow-up on the page", stage({ ...base, status: "duplicate", st_booking_id: null, st_job_number: "20788", reason: "a follow-up, the same work order as job 20788: the email went on that job as a note" }).word === "Note on job 20788");
 const thu = new Date("2026-11-05T05:00:00Z");
 ok("placeholder: next weekday", placeholderDay("", thu) === "2026-11-06" && placeholderDay("", new Date("2026-11-06T05:00:00Z")) === "2026-11-09");
 ok("placeholder: the attend-by date", placeholderDay("2026-11-27", thu) === "2026-11-27");
@@ -228,6 +301,11 @@ ok("money, dates, phones and sizes aren't job numbers", jobNumbersIn("Invoice $1
 ok("postcodes (four digits) aren't", jobNumbersIn("Berwick VIC 3806").length === 0);
 ok("street named", namesStreet("Re: Broken Air Conditioner at 24 Melzak Way, BERWICK", "24 Melzak Way"));
 ok("other street not", !namesStreet("Re: aircon at 5 Golden Green St", "24 Melzak Way"));
+ok("an email onto a job: the street with its number", namesSite("Re: Broken Air Conditioner at 24 Melzak Way, BERWICK", "24 Melzak Way") && namesSite("RE: 4/40 Army Road", "40 Army Road"));
+ok("...or with its kind", namesSite("the unit at Emerald Ct", "11 Emerald Court") && namesSite("33 Willslie Cres", "33 Willslie Crescent"));
+// Peake's email about 80 Inglis Road, with "Emerald" (a suburb) in it, went on job 20050 at 11 Emerald Court.
+ok("...not the name alone", !namesSite("RE: 80 Inglis Road Unit 1, Berwick. Peake Real Estate, Berwick | Emerald", "11 Emerald Court"));
+ok("O'Brien is OBrien", agencyMatches("O'Brien Real Estate Cranbourne", "OBrien Real Estate (Cranbourne)"));
 
 // --- cancellations
 ok("an agent's cancellation is read", mightBeWorkOrder(wo("pm@raywhite.com.au", "Please cancel the job at 5 Owen Court"), ""));
@@ -253,10 +331,93 @@ console.log("-- new leads --");
   const nl = (o: Record<string, unknown>) => ({ is_new: true, name: "Sam Lee", phone: "0400 111 222", email: "sam@example.com", address: "12 Main St", suburb: "Berwick", postcode: "3806", service: "Quote: 7kW split", summary: "Wants a split in the lounge.", ...o });
   const a = parseMailDraft(JSON.stringify({ ...base, new_lead: nl({}) }));
   ok("lead read", a.lead?.name === "Sam Lee" && a.lead?.postcode === "3806" && a.lead?.suburb === "Berwick", a.lead);
+  ok("a reply is the same enquiry", enquirySubject("Re: RE: RFQ - WBC Mulgrave BBC - Refurbishment") === enquirySubject("RFQ - WBC Mulgrave BBC  - Refurbishment") && enquirySubject("Re: RFQ - Store Development - Durks Cafe") !== enquirySubject("RFQ - WBC Mulgrave BBC - Refurbishment"));
   ok("postcode found inside text", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ postcode: "VIC 3810" }) })).lead?.postcode === "3810");
   ok("postcode that isn't one is dropped", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ postcode: "38" }) })).lead?.postcode === "");
   ok("not new: none", parseMailDraft(JSON.stringify({ ...base, new_lead: nl({ is_new: false }) })).lead === null);
   ok("missing new_lead: none, still parses", parseMailDraft(JSON.stringify(base)).lead === null);
+}
+
+console.log("-- work order jobs: unit, site details (18 Nov: 18 Leonie Court) --");
+{
+  const leonie = parseWorkOrder(JSON.stringify({ is_work_order: true, kind: "quote_request", number: "20426", street: "18 Leonie Court", suburb: "Narre Warren", owner: "Tie Hong Tang", is_real_estate: true, work_kind: "Diagnostics" }));
+  ok("the owner is read", leonie.owner === "Tie Hong Tang");
+  ok("a rental's disconnected heater goes under Real Estate - Diagnostics", realEstateUnitName(leonie) === "Real Estate - Diagnostics");
+  ok("a service goes under Real Estate - Maintenance", realEstateUnitName({ isRealEstate: true, workKind: "Maintenance" }) === "Real Estate - Maintenance");
+  ok("a builder's isn't Real Estate", realEstateUnitName(parseWorkOrder(JSON.stringify({ is_work_order: true, is_real_estate: false, work_kind: "Diagnostics" }))) === null);
+  ok("an older reading with no work kind is Diagnostics, not Real Estate", (() => { const r = parseWorkOrder(JSON.stringify({ is_work_order: true })); return r.workKind === "Diagnostics" && !r.isRealEstate && r.owner === ""; })());
+  ok("an agency's plain number reads as the office writes it", jobReference("20426") === "JOB NO. 20426", jobReference("20426"));
+  ok("a Tapi number stays as it is", jobReference("TAPI-25913") === "TAPI-25913");
+  for (const u of ["Unit 4/15 Golden Av", "4/15 Golden Av", "5/6 Dulcie Gr", "Apt 3 12 Main St", "Lot 12 Smith Rd"]) ok(`a unit isn't looked up: ${u}`, isUnitAddress(u));
+  for (const h of ["18 Leonie Court", "10 Sundaze Street", "2 Butterfields Walk", "160 Racecourse Road North"]) ok(`a house is looked up: ${h}`, !isUnitAddress(h));
+  ok("the answer line is read", propertyTypeFrom("Listings show a single-level home.\nANSWER: House - Single Storey") === "House - Single Storey");
+  ok("the last answer line wins", propertyTypeFrom("ANSWER: Unknown\nOn a second look:\nANSWER: House - Double Storey") === "House - Double Storey");
+  ok("a trailing full stop is fine", propertyTypeFrom("ANSWER: Townhouse.") === "Townhouse");
+  ok("Unknown is nothing", propertyTypeFrom("ANSWER: Unknown") === null);
+  // Jake, 19 Nov: "if you can't find the property type just make it unknown".
+  ok("nothing found on an empty site is Unknown", propertyTypeToWrite("18 Leonie Court", "", null) === UNKNOWN_TYPE);
+  ok("a found type goes in", propertyTypeToWrite("18 Leonie Court", "", "House - Double Storey") === "House - Double Storey");
+  ok("a found type replaces Unknown", propertyTypeToWrite("18 Leonie Court", "Unknown", "Townhouse") === "Townhouse");
+  ok("Unknown isn't written over Unknown", propertyTypeToWrite("18 Leonie Court", "Unknown", null) === null);
+  ok("the office's type is kept", propertyTypeToWrite("18 Leonie Court", "House - Single Storey", "Townhouse") === null);
+  ok("a unit is Unit", propertyTypeToWrite("4/15 Golden Av", "", null) === "Unit");
+  ok("a unit replaces Unknown", propertyTypeToWrite("Unit 2, 7 Main St", "Unknown", null) === "Unit");
+  ok("a lot is not a unit", !isUnitHome("Lot 12 Smith Rd") && propertyTypeToWrite("Lot 12 Smith Rd", "", null) === UNKNOWN_TYPE);
+  ok("a shop is not a unit", !isUnitHome("Shop 3 12 High St"));
+  ok("a house is not a unit", !isUnitHome("160 Racecourse Road North"));
+  ok("an answer not in the list is nothing", propertyTypeFrom("ANSWER: Apartment") === null && propertyTypeFrom("no answer line") === null);
+  ok("the three types are the office's", PROPERTY_TYPES.join("|") === "House - Single Storey|House - Double Storey|Townhouse");
+}
+
+console.log("-- visit length and Tapi pages (18 Nov) --");
+{
+  const start = "2026-11-20T21:00:00.000Z";
+  ok("a visit is as long as its job type", visitEnd(start, 5400) === "2026-11-20T22:30:00.000Z");
+  ok("a job type with no length gets an hour and a half", visitEnd(start, null) === "2026-11-20T22:30:00.000Z" && visitEnd(start, 0) === "2026-11-20T22:30:00.000Z");
+  ok("a two-hour gas safety check stays two hours", visitEnd(start, 7200) === "2026-11-20T23:00:00.000Z");
+  const link = "https://tapi.app/issue/1a0a23c2-55d4-4e35-801b-3f764ddb5182/t/bc8fd9fb-5ba2-45ee-8605-89be5267c88d?s=6146230f";
+  ok("the link in Graph's text body", tapiLinkIn(`View issue report<${link}>`) === link);
+  ok("the link in an HTML href", tapiLinkIn(`<a href="${link.replace("?", "?")}" target="_blank">View issue report</a>`) === link);
+  ok("not another host", tapiLinkIn(link.replace("tapi.app", "tapi.app.evil.com")) === null && tapiLinkIn("https://evil.com/?u=https://tapi.app/issue/x") === null);
+  const page = `<html><head><script>var x=1</script><style>.a{}</style></head><body><a>Log in</a><h1>Broken Air Conditioner</h1><p>Description:</p><p>Not cooling &amp; noisy.</p><button>Cancel</button><button>Delete</button><span>&times;</span><p>Tenants:</p><p>Jane Tenant</p><p>Key number:</p><p>272</p><p>Invoice to:</p><p>Pat Owner</p><p>c/o Some Agency</p><p>Invoice reference:</p><p>TAPI-022811</p><p>Health &amp; safety hazards:</p><p>None.</p><p>Health &amp; safety information for this property</p><p>Reschedule this job?</p><p>Decline work order?</p></body></html>`;
+  const text = tapiPageText(page);
+  ok("the page's work order is kept", ["Broken Air Conditioner", "Not cooling & noisy.", "Jane Tenant", "272", "Pat Owner", "c/o Some Agency", "TAPI-022811"].every((w) => text.includes(w)), text);
+  ok("its scripts, buttons and dialogs aren't", !/var x|Cancel|Delete|×|Log in|Reschedule|Decline/.test(text), text);
+  // 20910 and 20911 (18 Nov): new work order and quote emails link elsewhere than /issue/…/t/….
+  const wo = "https://tapi.app/work-orders/3f6c1b2a-1111-2222-3333-444455556666?s=ab12cd34";
+  const tracked = "https://u123456.ct.sendgrid.net/ls/click?upn=abc-123";
+  const found = tapiLinksIn(`<a href="https://tapihq.com/">Tapi</a> <img src="https://tapi.app/logo.png"> <a href="${tracked}">View work order</a> <a href="${wo}">Open</a> <a href="https://tapi.app/unsubscribe?x=1">Unsubscribe</a> <a href="https://evil.com/x">x</a>`);
+  ok("any tapi.app link, before a tracked one", found[0] === wo && found[1] === tracked && found.length === 2, found);
+  ok("the message email's link still first", tapiLinksIn(`${tracked} ${link}`)[0] === link);
+  ok("no Tapi link, nothing to open", tapiLinksIn("Hello <https://evil.com/a> and http://tapi.app/x").length === 0);
+  ok("a work order page reads as one", looksLikeTapiJob(text));
+  ok("a sign-in page doesn't", !looksLikeTapiJob("Log in to Tapi\nEmail\nPassword\nForgot your password? Sign in with Google to continue to your account"));
+}
+
+console.log("-- the sender's name on the file (18 Nov) --");
+{
+  const file = ["Barry Plant - Berwick", "Jake Tunbridge", "Natasha Mitrovic - Property Manager"];
+  ok("the property manager by name", senderNameOnFile({ name: "Natasha Mitrovic", email: "bdppm7@barryplant.com.au" }, file));
+  ok("the tenant by name", senderNameOnFile({ name: "Jake Tunbridge", email: "x@gmail.com" }, file));
+  ok("no display name: the address will do", senderNameOnFile({ name: "", email: "tunbridgejake@gmail.com" }, file));
+  ok("the agency's own name", senderNameOnFile({ name: "Barry Plant Berwick", email: "bdpcro@barryplant.com.au" }, file));
+  ok("someone else isn't", !senderNameOnFile({ name: "Kim Rosser", email: "kim.r@neilsonpartners.com.au" }, file));
+  ok("a role alone isn't a name", !senderNameOnFile({ name: "Property Manager", email: "pm@agency.com.au" }, ["Adeline Johnston - Property Manager"]));
+  ok("Tapi's sender line, the person's name in it", senderNameOnFile({ name: "Kim Rosser (via Tapi)", email: "hi@tapihq.com" }, ["Kim Rosser"]));
+  ok("an empty file matches nothing", !senderNameOnFile({ name: "Jake Tunbridge", email: "a@b.com" }, []));
+}
+
+console.log("-- the property manager on the site (19 Nov: 1 Bermer Court) --");
+{
+  const bermer = managerContacts({ propertyManager: "Alesia Kasy", pmEmail: "alesia.k@neilsonpartners.com.au", pmPhone: "" });
+  ok("the manager's email, noted as the office does", bermer.length === 1 && bermer[0].type === "Email" && bermer[0].value === "alesia.k@neilsonpartners.com.au" && bermer[0].memo === "Alesia Kasy - Property Manager", bermer);
+  const both = managerContacts({ propertyManager: "Natasha Mitrovic", pmEmail: "BDPPM7@barryplant.com.au", pmPhone: "0424 163 259" });
+  ok("phone as digits, email lower case", both.length === 2 && both[0].value === "0424163259" && both[1].value === "bdppm7@barryplant.com.au", both);
+  ok("a platform's no-reply isn't the manager's", managerContacts({ propertyManager: "Kim", pmEmail: "hi@tapihq.com", pmPhone: "" }).length === 0);
+  ok("nor our own", managerContacts({ propertyManager: "", pmEmail: "admin@advancedgas.com.au", pmPhone: "" }).length === 0);
+  ok("no name: just Property Manager", managerContacts({ propertyManager: "", pmEmail: "pm@agency.com.au", pmPhone: "" })[0]?.memo === "Property Manager");
+  ok("the lookup's reason is read", propertyWhyFrom("Found it.\nWHY: realestate.com.au listing says single level\nANSWER: House - Single Storey") === "realestate.com.au listing says single level");
+  ok("no reason, nothing", propertyWhyFrom("ANSWER: Unknown") === "");
 }
 
 console.log("-- booking confirmations --");
@@ -282,13 +443,16 @@ console.log("-- two tenants (6 Nov: 4 Kirrilee Ct, 9 Naomi St) --");
   const two = { tenantName: "Joshua Croucher; Christine Upton", tenantPhone: "0428 946 984; 0417 535 760", tenantEmail: "josh.croucher@yahoo.com; chrisupton34@yahoo.com.au" };
   const c = tenantContacts(two, "MobilePhone");
   ok("four contacts, one value each", c.length === 4 && c.every((x) => !x.value.includes(";")), c);
-  ok("each number with its person", c[0].value === "0428 946 984" && c[0].memo === "Tenant: Joshua Croucher" && c[1].memo === "Tenant: Christine Upton", c.slice(0, 2));
+  ok("each number with its person, digits only", c[0].value === "0428946984" && c[0].memo === "Tenant: Joshua Croucher" && c[1].memo === "Tenant: Christine Upton", c.slice(0, 2));
   ok("emails split", c[2].value === "josh.croucher@yahoo.com" && c[3].value === "chrisupton34@yahoo.com.au");
   ok("site named for both", tenantLabel(two) === "Joshua Croucher & Christine Upton");
   ok("greeting both", tenantGreeting(two) === "Joshua and Christine");
-  ok("one tenant unchanged", JSON.stringify(tenantContacts({ tenantName: "Sam Lee", tenantPhone: "0412 345 678", tenantEmail: "sam.lee@gmail.com" }, "Phone")) === JSON.stringify([{ type: "Phone", value: "0412 345 678", memo: "Tenant: Sam Lee" }, { type: "Email", value: "sam.lee@gmail.com", memo: "Tenant: Sam Lee" }]));
+  ok("one tenant unchanged", JSON.stringify(tenantContacts({ tenantName: "Sam Lee", tenantPhone: "0412 345 678", tenantEmail: "sam.lee@gmail.com" }, "Phone")) === JSON.stringify([{ type: "Phone", value: "0412345678", memo: "Tenant: Sam Lee" }, { type: "Email", value: "sam.lee@gmail.com", memo: "Tenant: Sam Lee" }]));
   ok("phones split on slash and 'or'", JSON.stringify(tenantPhones({ tenantPhone: "0425277986 / 0437217497 or (03) 5941 2222" })) === JSON.stringify(["0425277986", "0437217497", "(03) 5941 2222"]), tenantPhones({ tenantPhone: "0425277986 / 0437217497 or (03) 5941 2222" }));
   ok("junk phone dropped", tenantPhones({ tenantPhone: "ask the agent" }).length === 0);
+  // 13 Goodall Court (18 Nov): ServiceTitan refused "0425 743 079" as a mobile.
+  ok("a spaced mobile goes as digits", phoneDigits("0425 743 079") === "0425743079");
+  ok("+61 goes as 0", phoneDigits("+61 425 743 079") === "0425743079" && phoneDigits("(03) 5941 1977") === "0359411977");
   ok("one name, two numbers: both 'Tenant: name'", tenantContacts({ tenantName: "Karra Finlayson", tenantPhone: "0425277986; 0437217497", tenantEmail: "" }, "Phone").every((x) => x.memo === "Tenant: Karra Finlayson"));
   const w = { ...parseWorkOrder(JSON.stringify({ is_work_order: true, kind: "work_order", platform: "", agency: "Barry Plant Pakenham", property_manager: "", pm_email: "pakenhamrentals@barryplant.com.au", pm_phone: "", number: "18965", street: "9 Naomi St", suburb: "Pakenham", postcode: "3810", tenant_name: "Karra Finlayson; Leigh Lombard", tenant_phone: "", tenant_email: "karrafinlayson@outlook.com; leighlombard@hotmail.com", access: "", job: "Ducted heating not working", urgent: false, attend_by: "", job_type: "", is_cancellation: false, why: "" })) };
   ok("both tenants emailed", JSON.stringify(tenantAddresses(w, "pakenhamrentals@email.propertyme.com")) === JSON.stringify(["karrafinlayson@outlook.com", "leighlombard@hotmail.com"]), tenantAddresses(w, "x@y.com"));
@@ -296,6 +460,102 @@ console.log("-- two tenants (6 Nov: 4 Kirrilee Ct, 9 Naomi St) --");
   ok("refusal in words", said === 'ServiceTitan said 409 Conflict: "0428 946 984; 0417 535 760" is not a valid phone number', said);
   const cut = stSaid(new Error('ServiceTitan POST x failed: 409 Conflict — {"type":"https://x","title":"\\u0022a; b\\u0022 is not a valid email string","sta'));
   ok("refusal cut short still read", cut === 'ServiceTitan said 409 Conflict: "a; b" is not a valid email string', cut);
+}
+
+{
+  // Filing admin@ into its own folders (lib/outlook/filingTypes.ts).
+  const off = filingSettingsFrom(null);
+  ok("filing off until switched on", off.mode === "off" && !off.fileAfterReply && off.mailboxes.join() === "admin@advancedgas.com.au", off);
+  ok("default never list", off.neverFolders.join("|") === DEFAULT_NEVER.join("|"));
+  ok("default flagged words", off.protectedWords.length === DEFAULT_PROTECTED.length);
+  ok("only our own mailboxes", filingSettingsFrom({ mailboxes: ["someone@gmail.com", "Admin@AdvancedGas.com.au"] }).mailboxes.join() === "admin@advancedgas.com.au");
+  ok("words from the box", wordsFromText("gas leak\n Refund ,\n\nVCAT;x").join("|") === "gas leak|Refund|VCAT");
+
+  ok("flagged word in the text", flaggedWord("Re: heater", "I can smell gas in the laundry", DEFAULT_PROTECTED) === "smell gas");
+  ok("flagged word across a line break", flaggedWord("", "there may be a gas\nleak at the meter", DEFAULT_PROTECTED) === "gas leak");
+  ok("flagged word in the subject, any case", flaggedWord("URGENT: New urgent work order at 9 Swift Dr", "", DEFAULT_PROTECTED) === "urgent");
+  ok("word start, so complaints too", flaggedWord("", "We have had complaints from the tenant", ["complaint"]) === "complaint");
+  ok("not inside another word", flaggedWord("", "Booked for Las Vegas", ["gas"]) === null);
+  ok("a disclaimer isn't flagged", flaggedWord("Statement", "This email is confidential. We accept no liability for any damage caused by viruses.", DEFAULT_PROTECTED) === null);
+
+  const d = (over: Partial<DraftRecord>): DraftRecord => ({ status: "skipped", reason: null, handoff: null, handoff_cleared_at: null, sent_at: null, callback_at: null, callback_done_at: null, ...over });
+  ok("newsletter is done with", kindOf(d({ reason: "a mailing list or newsletter" })).kind === "machine");
+  ok("no reply needed is done with", kindOf(d({ reason: "no reply needed: Supplier invoice from Reclaim Energy" })).kind === "no-reply-needed");
+  ok("booked work order is done with", kindOf(d({ reason: "work order: booked into ServiceTitan" })).kind === "work-order-done");
+  ok("failed work order waits", kindOf(d({ reason: "work order: booking failed (ServiceTitan said 409)" })).kind === "waiting");
+  ok("agency not set up waits", kindOf(d({ reason: "work order: booking needs_agency (O'Brien isn't a customer)" })).kind === "waiting");
+  ok("drafted waits", kindOf(d({ status: "drafted", handoff: "Needs Kellie" })).why === "needs a person");
+  ok("drafted and sent is replied", kindOf(d({ status: "drafted", sent_at: "2026-11-05T01:00:00Z" })).kind === "replied");
+  ok("call back waits", kindOf(d({ reason: "no reply needed: x", callback_at: "2026-11-05T01:00:00Z" })).kind === "waiting");
+  ok("from the team waits", kindOf(d({ reason: "from the team" })).kind === "waiting");
+
+  const facts = (over: Partial<Parameters<typeof waitReason>[0]> = {}) => ({ from: "noreply@cevalogistics.com", subject: "Delivery", categories: [] as string[], flagged: false, draft: d({ reason: "no reply needed: Freight delivery pre-alert" }), agency: null as string | null, ...over });
+  const on = filingSettingsFrom({ mode: "trial" });
+  ok("done with: no reason to wait", waitReason(facts(), on) === null);
+  ok("flagged stays", waitReason(facts({ flagged: true }), on) === "flagged in Outlook");
+  ok("hand category stays", (waitReason(facts({ categories: ["On a job", "Hirotec"] }), on) ?? "").includes("Hirotec"));
+  ok("our category doesn't", waitReason(facts({ categories: ["On a job", "In ServiceTitan"] }), on) === null);
+  ok("not read by the drafts stays", waitReason(facts({ draft: null }), on) === "not read by the drafts yet");
+  ok("replied waits while after-reply is off", waitReason(facts({ draft: d({ reason: "already replied" }) }), on) !== null);
+  ok("replied files once after-reply is on", waitReason(facts({ draft: d({ reason: "already replied" }) }), { ...on, fileAfterReply: true }) === null);
+
+  const F = (id: string, path: string): Folder => ({ id, name: path.split("/").pop()!, path });
+  const folders = [
+    F("bpb", "Barry Plant Bayside"), F("bpp", "Barry Plant Ber, Pak, Drouin"), F("rwb", "Ray White Berwick"), F("rwp", "Ray White Pakenham"),
+    F("ob", "Obrien Real Estate"), F("np", "Neilson Partners"), F("re", "Real Estate Odd Jobs"), F("pk", "Peake RE"), F("lj", "LJ Hooker"),
+    F("acc", "Accounting"), F("rec", "Receipts"), F("leads", "New Leads"), F("kel", "Kellie"), F("adm", "Admin Team"), F("admq", "Admin Team/Quotes"), F("reece", "Reece"),
+  ];
+  const name = (a: string) => folderForAgency(a, folders)?.name ?? null;
+  ok("agency: Barry Plant Pakenham", name("Barry Plant Pakenham") === "Barry Plant Ber, Pak, Drouin", name("Barry Plant Pakenham"));
+  ok("agency: Barry Plant Berwick", name("Barry Plant Berwick") === "Barry Plant Ber, Pak, Drouin");
+  ok("agency: Barry Plant Bayside", name("Barry Plant Bayside") === "Barry Plant Bayside");
+  ok("agency: plain Barry Plant is a tie, so none", name("Barry Plant") === null);
+  ok("agency: Ray White Pakenham", name("Ray White Pakenham") === "Ray White Pakenham");
+  ok("agency: O'Brien with its apostrophe", name("O'Brien Real Estate Cranbourne") === "Obrien Real Estate");
+  ok("agency: First National Neilson Partners", name("First National Neilson Partners") === "Neilson Partners");
+  ok("agency: LJ Hooker Pakenham", name("LJ Hooker Pakenham") === "LJ Hooker");
+  ok("agency: never the catch-all by name", name("Real Estate Odd Jobs") === null, name("Real Estate Odd Jobs"));
+  ok("agency: unknown agency, none", name("Harcourts Packham") === null, name("Harcourts Packham"));
+
+  ok("never: a never folder", isNever("Kellie", DEFAULT_NEVER));
+  ok("never: under a never folder", isNever("Admin Team/Quotes", DEFAULT_NEVER));
+  ok("never: an ordinary one", !isNever("Ray White Pakenham", DEFAULT_NEVER));
+
+  const pick = (over: Parameters<typeof waitReason>[0], sender: { folderId: string; n: number; total: number } | null = null, domain: typeof sender = null) =>
+    pickFolder(over, { folders, never: DEFAULT_NEVER, sender, domain });
+  const pmEmail = facts({ from: "pakenhamrentals@email.propertyme.com", draft: d({ reason: "work order: booked into ServiceTitan" }), agency: "Barry Plant Pakenham" });
+  ok("sender's own folder first", pick(pmEmail, { folderId: "rwp", n: 9, total: 10 }).folder?.id === "rwp");
+  ok("a weak sender history doesn't count", pick(pmEmail, { folderId: "rwp", n: 2, total: 5 }).folder?.id === "bpp");
+  ok("never a never folder, even learned", pick(facts({ from: "x@y.com.au" }), { folderId: "kel", n: 8, total: 8 }).folder?.id !== "kel");
+  ok("domain when the sender is new", pick(facts({ from: "new.person@raywhite.com.au", draft: d({ reason: "no reply needed: FYI" }) }), null, { folderId: "rwb", n: 9, total: 10 }).folder?.id === "rwb");
+  ok("supplier invoice stays to be entered", waitReason(facts({ from: "ar@metalflex.com.au", subject: "Tax Invoice 4471", draft: d({ reason: "no reply needed: Supplier invoice from Metalflex" }) }), on) === "supplier paperwork, still to be entered");
+  ok("a receipt stays to be entered", waitReason(facts({ from: "billing@shop.com", subject: "Your receipt", draft: d({ reason: "from a no-reply address" }) }), on) !== null);
+  ok("a customer's payment notice isn't paperwork", waitReason(facts({ from: "noreply@onservicetitan.com", subject: "Online Payment Received for Customer Barry Plant", draft: d({ reason: "from a no-reply address" }) }), on) === null);
+  ok("a meeting invite stays", waitReason(facts({ from: "jyates@servicetitan.com", subject: "Invitation: Jake Deppeler and Jeremy Yates", draft: d({ reason: "a meeting invite or receipt, not an email" }) }), on) === "a meeting invite");
+  ok("a Tapi job stays for Tapi", waitReason(facts({ from: "hi@tapihq.com", draft: d({ reason: "work order: booked into ServiceTitan" }) }), on) === "from Tapi: Tapi is updated by hand");
+  ok("Tapi's please-confirm stays too", waitReason(facts({ from: "hi@tapihq.com", subject: "Please confirm work at 21 Union Ave, Pakenham", draft: d({ reason: "no reply needed: Automated Tapi job-confirmation request" }), agency: "Ray White Pakenham" }), on) === "from Tapi: Tapi is updated by hand");
+  ok("no agency folder for a work order that wasn't booked", pick(facts({ from: "pm@agency.com.au", draft: d({ reason: "no reply needed: progress update" }), agency: "Ray White Pakenham" })).folder === null);
+  const personNoReply = pick(facts({ from: "hi@tapihq.com", subject: "Please confirm work at 1 Nepeta Way", draft: d({ reason: "no reply needed: Automated Tapi job-confirmation request" }) }));
+  ok("a person's no-reply email with no folder stays", personNoReply.folder === null && !personNoReply.create, personNoReply);
+  const customerThanks = pick(facts({ from: "shenae@gmail.com", draft: d({ reason: "no reply needed: Customer's thank-you" }) }));
+  ok("a customer's thanks never goes to Notifications", customerThanks.folder === null && !customerThanks.create);
+  ok("a machine's domain history isn't used", pick(facts({ from: "donotreply@rinnai.com.au", draft: d({ reason: "from a no-reply address" }) }), null, { folderId: "rwb", n: 23, total: 23 }).create === "Notifications");
+  ok("flagged: action required", flaggedWord("Action required: Update your Veolia waste services", "", filingSettingsFrom(null).protectedWords) === "action required");
+  ok("flagged: expired", flaggedWord("A Compliance Requirement has Expired - Alert No 1", "", filingSettingsFrom(null).protectedWords) === "expired");
+  const note = pick(facts({ draft: d({ reason: "from a no-reply address" }) }));
+  ok("machine mail to a new Notifications folder", note.folder === null && note.create === "Notifications", note);
+  ok("a lead to New Leads", pick(facts({ categories: ["New lead"], draft: d({ status: "drafted", sent_at: "x" }) })).folder?.id === "leads");
+  const none = pick(facts({ from: "someone@newco.com.au", draft: d({ status: "drafted", sent_at: "x" }) }));
+  ok("a replied email from a new sender stays", none.folder === null && !none.create, none);
+
+  const homes = learnHomes([
+    { folderId: "rwp", from: "pm@raywhite.com.au" }, { folderId: "rwp", from: "pm@raywhite.com.au" }, { folderId: "rwb", from: "other@raywhite.com.au" },
+    { folderId: "acc", from: "ar@metalflex.com.au" }, { folderId: "acc", from: "kellie@advancedgas.com.au" }, { folderId: "rwp", from: "sarah@gmail.com" },
+  ]);
+  ok("learned: a sender's folder", homes.senders.get("pm@raywhite.com.au")?.folderId === "rwp" && homes.senders.get("pm@raywhite.com.au")?.n === 2);
+  ok("learned: our own mail isn't counted", !homes.senders.has("kellie@advancedgas.com.au"));
+  ok("learned: the domain split across branches", homes.domains.get("raywhite.com.au")?.total === 3 && homes.domains.get("raywhite.com.au")?.n === 2);
+  ok("learned: no domain for gmail", !homes.domains.has("gmail.com"));
 }
 
 if (bad) {

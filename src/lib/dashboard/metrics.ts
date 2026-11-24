@@ -1,3 +1,5 @@
+import { computeCrew, type Crew } from "./crew";
+import { computeSectors, type Sectors } from "./sectors";
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
 import { arReport } from "@/lib/portal/ar";
@@ -145,6 +147,10 @@ export function quoteKey(r: {
   return `e${r.id}`;
 }
 
+import { readWeather, stampToday } from "./weather";
+import { readBookedJobs } from "./weatherJobs";
+import type { BookedJob } from "./weatherJobsTypes";
+import type { Weather } from "./weatherTypes";
 export type { SourceState } from "./sourceState";
 import type { SourceState } from "./sourceState";
 
@@ -611,6 +617,33 @@ export type Metrics = {
    * matters from here on, as coverage builds up behind it.
    */
   jobProfitRecent?: ProfitSummary | null;
+  /**
+   * Maintenance, breakdowns, repairs and installs side by side, and what a
+   * maintenance visit or a breakdown led to. Optional so a snapshot written
+   * before it existed still renders. See sectors.ts.
+   */
+  sectors?: Sectors | null;
+  /**
+   * Each tech's last sixty days: the mix of work, time on the tools, what of it
+   * is not billable, drive time, the jobs that came in inside the time sold,
+   * and the work they found. Optional so a snapshot written before it existed
+   * still renders. See crew.ts.
+   */
+  crew?: Crew | null;
+  /** The same, over today alone: the Daily pace page. See crew.ts. */
+  crewToday?: Crew | null;
+  /**
+   * The week's forecast for the yard, and what it means for booking work that
+   * needs dry air or a dry roof. Optional so a snapshot written before it
+   * existed still renders. See weather.ts.
+   */
+  weather?: Weather | null;
+  /**
+   * The next week of booked work that the weather has a bearing on — evap,
+   * heater, ducted, anything on a roof. Judged against `weather` on the board
+   * rather than here, so the rules stay in one pure module. See weatherJobs.ts.
+   */
+  bookedWork?: BookedJob[] | null;
   /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
@@ -2643,6 +2676,45 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    */
   const jobProfitRecent = await profitOver(isoDateMelbourne(new Date(now.getTime() - 30 * 86_400_000)))
     .catch(() => previous?.metrics.jobProfitRecent ?? null);
+  // Carried forward on failure like the job margin beside it.
+  const sectors = crew == null
+    ? previous?.metrics.sectors ?? null
+    : await computeSectors(now, crew.costPerHr, goal?.profitPct ?? null, crew.crew).catch(() => previous?.metrics.sectors ?? null);
+  /*
+   * Two windows of the one arithmetic: the year behind the Crew page, and today
+   * behind Daily pace. The second is a small read — one day of timesheets — and
+   * having both come out of the same function is what stops the two pages
+   * meaning different things by "in the time sold".
+   */
+  const [crewDays, crewToday] = await Promise.all([
+    computeCrew(now).catch(() => previous?.metrics.crew ?? null),
+    computeCrew(now, startOfDayMelbourne(now)).catch(() => previous?.metrics.crewToday ?? null),
+  ]);
+  /*
+   * The forecast. Its own source light, because it is the one feed on the
+   * board that belongs to nobody we have a contract with: a free service of
+   * the Norwegian Meteorological Institute, which is entitled to be down.
+   * Carried forward on failure like everything else here — a six-hour-old
+   * forecast is worth more than an empty page, and the dot says which it is.
+   */
+  const weather = await readWeather(now).then(
+    (w) => {
+      sources.weather = w
+        ? { state: "ok", at: now.toISOString() }
+        : { state: "error", detail: "the forecast service did not answer" };
+      return w ?? stampToday(previous?.metrics.weather ?? null, now);
+    },
+    (e: unknown) => {
+      sources.weather = { state: "error", detail: (e as Error).message };
+      return stampToday(previous?.metrics.weather ?? null, now);
+    },
+  );
+  /*
+   * The diary, for the booked-work page. Carried forward on failure like
+   * everything else: a week-old booking list is still mostly right, and the
+   * page's own job numbers make a stale one obvious.
+   */
+  const bookedWork = await readBookedJobs(now).catch(() => previous?.metrics.bookedWork ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
   // Carried forward like the journals beside it: a failed read leaves the
   // last reading standing rather than clearing an alert nobody has acted on.
@@ -2703,6 +2775,11 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       paceSettings,
       goalLevels: goal?.revenue ? { goal: goal.revenue, floor: Number((goal as { floorRevenue?: unknown }).floorRevenue) > 0 ? Number((goal as { floorRevenue?: unknown }).floorRevenue) : null } : null,
       jobProfitRecent,
+      sectors,
+      crew: crewDays,
+      crewToday,
+      weather,
+      bookedWork,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these
       // only exist so a snapshot written before it still renders.
       jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,

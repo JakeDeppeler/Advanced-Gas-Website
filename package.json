@@ -12,6 +12,7 @@
     "check:pace": "npx tsx scripts/check-pace.ts",
     "check:xero": "npx tsx scripts/check-xero.ts",
     "check:alerts": "npx tsx scripts/check-alerts.ts",
+    "check:jobwrite": "npx tsx scripts/check-jobwrite.ts",
     "check:ticker": "npx tsx scripts/check-ticker.ts",
     "check:paging": "npx tsx scripts/check-paging.ts",
     "check:pairing": "npx tsx scripts/check-pairing.ts",
@@ -27,6 +28,7 @@
     "check:credit": "npx tsx scripts/check-credit.ts",
     "check:theme": "npx tsx scripts/check-theme.ts",
     "check:sold": "npx tsx scripts/check-sold-margin.ts",
+    "check:quote-tags": "npx tsx scripts/check-quote-tags.ts",
     "check:ordering": "npx tsx scripts/check-ordering.ts",
     "check:jobflow": "npx tsx scripts/check-jobflow.ts",
     "check:installpack": "npx tsx scripts/check-installpack.ts",
@@ -38,9 +40,15 @@
     "check:reminders": "npx tsx scripts/check-reminders.ts",
     "check:ducted": "npx tsx scripts/check-ducted.ts",
     "check:service": "npx tsx scripts/check-service.ts",
+    "check:weather": "npx tsx scripts/check-weather.ts",
+    "check:weatherjobs": "npx tsx scripts/check-weatherjobs.ts",
     "check:reviews": "npx tsx scripts/check-reviews.ts",
     "check:wording": "npx tsx scripts/check-wording.ts",
-    "check:assistant": "npx sucrase-node scripts/check-assistant.ts"
+    "check:assistant": "npx sucrase-node scripts/check-assistant.ts",
+    "check:quote-templates": "npx tsx scripts/check-quote-templates.ts",
+    "check:equipment-copy": "npx tsx scripts/check-equipment-copy.ts",
+    "check:service-wording": "npx tsx scripts/check-service-wording.ts",
+    "check:crew": "npx tsx scripts/check-crew.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

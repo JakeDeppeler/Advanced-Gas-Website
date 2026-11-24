@@ -1,4 +1,5 @@
 import { can, type PortalUser } from "@/lib/portal/caps";
+import { LiveTodos } from "@/components/portal/LiveTodos";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { TodoBoard } from "@/components/portal/TodoBoard";
 import { KpiHead } from "@/components/portal/kit/Kit";
@@ -65,6 +66,7 @@ export async function TodoView({ user, kind }: { user: PortalUser; kind: "mine" 
 
   return (
     <PortalShell user={user}>
+      <LiveTodos />
       <KpiHead title={kind === "accounts" ? <>Account to-dos</> : kind === "marketing" ? <>Marketing to-dos</> : <>Personal to-dos</>} kpis={[
         { icon: "clock", fig: String(late.length), label: "Overdue", badge: late.length ? "flagged" : undefined, tone: "down" },
         { icon: "doc", fig: String(counted.filter((t) => dueState(t, today) === "today").length), label: "Due today" },

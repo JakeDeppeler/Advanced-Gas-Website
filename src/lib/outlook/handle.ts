@@ -11,6 +11,7 @@ import { draftNote, handleWorkOrder, isManualIn } from "./workOrders";
 import { findJob, putOnJob, type JobMatch } from "./jobLink";
 import { isTeamForward } from "./workOrderTypes";
 import { confirmBooking } from "./bookingConfirm";
+import { loadSwitches } from "@/lib/automation/log";
 import { mightConfirmBooking } from "./bookingTypes";
 import { MAX_AGE_MS, TEAM_DOMAIN, addressOf, answeredReason, plainText, insertIntoBody, replyHtml, signoffFor, skipReason, threadText, type GraphMessage } from "./outlookTypes";
 
@@ -106,6 +107,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     }
 
     const from = addressOf(m.from) || addressOf(m.sender);
+    // Settings › Automatic. Off unless read as on: a database that won't
+    // answer leaves ServiceTitan alone rather than writing to it.
+    const sw = await loadSwitches();
     await finish(mailbox, id, {
       internet_message_id: m.internetMessageId ?? null,
       conversation_id: m.conversationId ?? null,
@@ -134,7 +138,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
       if (forward || isManualIn(m) || external) {
         const wo = await handleWorkOrder(mailbox, m, forward ? "forward" : isManualIn(m) ? "category" : "auto")
           .catch((e: Error) => ({ status: "failed" as const, reason: e.message }));
-        const tie = "jobId" in wo && wo.jobId ? { job_id: wo.jobId, job_number: wo.jobNumber ?? null, job_how: wo.status === "booked" ? "made from this work order" : "a reply about this job", job_linked_at: new Date().toISOString() } : {};
+        const tie = "jobId" in wo && wo.jobId ? { job_id: wo.jobId, job_number: wo.jobNumber ?? null, job_how: wo.status === "booked" ? "made from this work order" : (wo.reason ?? "a follow-up about this job").slice(0, 300), job_linked_at: new Date().toISOString() } : {};
         if (forward) return done({ status: "skipped", reason: `forwarded by the team: work order ${wo.status}${wo.reason ? ` (${wo.reason})` : ""}`.slice(0, 300) }, tie);
         // A work order gets booked, and the tenant emailed; no reply draft
         // (Jake, 5 Nov: "not reply to work orders and just upload them").
@@ -146,7 +150,7 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     // A trade confirming a booking (the skip bin, the electrician) swaps the
     // job's "Not Booked" tag, so it comes off the morning to-do email. Before
     // the skip rules: the rubbish removal company writes from a no-reply address.
-    if (!m.isDraft && recent && external && mightConfirmBooking(m, words)) {
+    if (sw.emailToJob && !m.isDraft && recent && external && mightConfirmBooking(m, words)) {
       const b = await confirmBooking(mailbox, m, words).catch((e: Error) => ({ done: false, line: `booking confirmation not applied: ${e.message}` } as const));
       if (b?.done) {
         await markEmail(box, id, [BOOKING_CATEGORY]).catch(() => undefined);
@@ -157,9 +161,12 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
 
     // An email about a job goes on the job, whatever then happens with the
     // draft. Not mail from us, or from machines (the skip rules below).
+    // Still looked for when that's off: an email about a job isn't a new lead.
     if (!m.isDraft && external && !skipReason(m, mailbox, Date.now(), opts.maxAgeMs)) {
-      onJob ??= await findJob(mailbox, m, from, words).catch(() => null);
-      if (onJob) {
+      let refusal = "";
+      onJob ??= await findJob(mailbox, m, from, words, (why) => { refusal = why; }).catch(() => null);
+      if (!onJob && refusal) await finish(mailbox, id, { job_how: refusal }).catch(() => undefined);
+      if (onJob && sw.emailToJob) {
         const match = onJob;
         await putOnJob(mailbox, m, match.jobId)
           .then(async () => {
@@ -186,6 +193,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     }
     const answered = answeredReason(m, thread, mailbox);
     if (answered) return done({ status: "skipped", reason: answered });
+    // Reading it is only for the draft and the lead; with both off there's
+    // nothing to read it for.
+    if (!sw.emailDrafts && !sw.emailLeads) return done({ status: "skipped", reason: "reply drafts are off" });
 
     const [customer, settings] = await Promise.all([
       customerContext(from, m.subject ?? "").catch(() => ""),
@@ -211,6 +221,9 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
         .catch(() => undefined);
     }
     if (!draft.replyNeeded) return done({ status: "skipped", reason: `no reply needed: ${draft.whyNot || "not something we'd answer"}` }, callBack);
+    // Settings › Automatic › Email auto draft. The words aren't kept: draft_text
+    // is what the office's sent replies are learned against, and none was offered.
+    if (!sw.emailDrafts) return done({ status: "skipped", reason: "reply drafts are off" }, callBack);
 
     // createReply makes the draft the way Outlook's Reply button does —
     // addressed, threaded, the original quoted underneath — and the reply goes
@@ -251,4 +264,71 @@ export async function handleMessage(mailbox: string, id: string, opts: { maxAgeM
     await finish(mailbox, id, { status: "failed", reason, ...(retryable(e) ? {} : { attempts: MAX_ATTEMPTS }) }).catch(() => undefined);
     return { status: "failed", reason };
   }
+}
+
+/**
+ * One pass back over the last month for emails about a quote waiting on the
+ * customer, which went on no job until findJob counted those (12 Nov: Dr
+ * Govindarajah's seven emails about job 20284, and sixteen like them). Only
+ * emails from before the change, each looked at once (job_how says so), and
+ * only a match on the waiting quote, or a reply in a thread that has since
+ * gone on one: anything else stays as the first look left it.
+ */
+const SECOND_LOOK_BEFORE = "2026-11-12T08:00:00Z";
+const SECOND_LOOK = "looked at again for a waiting quote";
+
+export async function secondLookForQuotes(mailbox: string, deadline: number): Promise<{ looked: number; linked: number; error?: string }> {
+  const out = { looked: 0, linked: 0 } as { looked: number; linked: number; error?: string };
+  if (!(await loadSwitches()).emailToJob) return out;
+  try {
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const all = await sbSelect<{ message_id: string; from_address: string | null }>(TABLE, [
+      q.select("message_id,from_address"), q.eq("mailbox", mailbox), "job_id=is.null", "job_how=is.null",
+      q.gte("received_at", since), `received_at=lt.${SECOND_LOOK_BEFORE}`, "from_address=not.ilike.*@advancedgas.com.au",
+      q.order("received_at", "asc"), "limit=300",
+    ].join("&"));
+    // Only a customer's or site's own contact can have a quote waiting on
+    // them; the rest (suppliers, newsletters, agencies' platforms) are marked
+    // looked at in one go, so the pass is over in a run or two, not a day.
+    const senders = [...new Set(all.map((r) => (r.from_address ?? "").trim().toLowerCase()).filter((a) => a.includes("@")))];
+    const known = new Set<string>();
+    for (let i = 0; i < senders.length; i += 40) {
+      const list = senders.slice(i, i + 40).map((a) => `"${encodeURIComponent(a)}"`).join(",");
+      const [c, l] = await Promise.all([
+        sbSelect<{ match_key: string }>("st_customer_contacts", [q.select("match_key"), `match_key=in.(${list})`, "limit=400"].join("&")).catch(() => []),
+        sbSelect<{ match_key: string }>("st_location_contacts", [q.select("match_key"), `match_key=in.(${list})`, "limit=400"].join("&")).catch(() => []),
+      ]);
+      for (const r of [...c, ...l]) known.add(r.match_key);
+    }
+    const strangers = all.filter((r) => !known.has((r.from_address ?? "").trim().toLowerCase())).map((r) => r.message_id);
+    for (let i = 0; i < strangers.length; i += 40) {
+      const ids = strangers.slice(i, i + 40).map((x) => `"${encodeURIComponent(x)}"`).join(",");
+      await sbUpdate(TABLE, [q.eq("mailbox", mailbox), `message_id=in.(${ids})`, "job_how=is.null"].join("&"), { job_how: SECOND_LOOK }).catch(() => undefined);
+    }
+    const rows = all.filter((r) => known.has((r.from_address ?? "").trim().toLowerCase())).slice(0, 25);
+    for (const r of rows) {
+      if (Date.now() > deadline) break;
+      // Claimed by marking it, so two sweeps can't both put it on a job.
+      const got = await sbUpdateReturning(TABLE, [...filter(mailbox, r.message_id), "job_how=is.null"].join("&"), { job_how: SECOND_LOOK });
+      if (!got.length) continue;
+      out.looked++;
+      const m = await graph<GraphMessage & { categories?: string[] }>(`${userPath(mailbox)}/messages/${encodeURIComponent(r.message_id)}?$select=${MESSAGE_FIELDS}`, { text: true }).catch(() => null);
+      if (!m || skipReason(m, mailbox, Date.now(), 31 * 86_400_000)) continue;
+      const from = addressOf(m.from) || addressOf(m.sender);
+      const match = await findJob(mailbox, m, from, plainText(m.uniqueBody)).catch(() => null);
+      if (!match || !/quote, waiting on them|same thread/.test(match.how)) continue;
+      const put = await putOnJob(mailbox, m, match.jobId).then(() => null, (e: Error) => e.message);
+      if (put) {
+        await finish(mailbox, r.message_id, { job_how: `couldn't go on job ${match.jobNumber ?? match.jobId}: ${put}`.slice(0, 300) });
+        continue;
+      }
+      await finish(mailbox, r.message_id, { job_id: match.jobId, job_number: match.jobNumber, job_how: `${match.how} (on a second look, 12 Nov)`, job_linked_at: new Date().toISOString() });
+      const cats = m.categories ?? [];
+      if (!cats.includes(ON_JOB_CATEGORY)) await graph(`${userPath(mailbox)}/messages/${encodeURIComponent(r.message_id)}`, { method: "PATCH", body: { categories: [...cats, ON_JOB_CATEGORY] } }).catch(() => undefined);
+      out.linked++;
+    }
+  } catch (e) {
+    out.error = (e as Error).message;
+  }
+  return out;
 }

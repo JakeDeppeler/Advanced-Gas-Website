@@ -7,7 +7,7 @@ import { loadFromStock, loadStocked, saveFromStock, saveStocked } from "@/lib/or
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { getSettings, saveSettings } from "@/lib/portal/db";
-import { can } from "@/lib/portal/caps";
+import { officeWork } from "@/lib/portal/caps";
 import { addStockLine, cancelDraft, listWeekOrders, mergeDrafts, draftFor, draftWeek, holdLines, setAside, markLinesOrdered, markUnbookedOrdered, orderAhead, orderLater, getOrder, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, emailReeceList, markOrderedManually, sendTest } from "@/lib/ordering/send";
@@ -25,7 +25,7 @@ async function tagStocked(items: Array<{ key: string; name: string }>, by: strin
 
 async function office() {
   const me = await getPortalUser();
-  return me && can(me, "overhead") ? me : null;
+  return me && officeWork(me) ? me : null;
 }
 
 const done = () => revalidatePath("/portal/supply/next-week");
