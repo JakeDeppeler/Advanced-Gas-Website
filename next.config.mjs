@@ -258,8 +258,18 @@ const nextConfig = {
     ];
     const immutable = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
 
+    // A preview build can sit on a test address of its own (a branch domain
+    // such as new.advancedgas.com.au), and robots.ts and the page metadata
+    // say "index" wherever they run. Without this, a test address that got
+    // crawled would be indexed as a second copy of the site. The header wins
+    // over every page's own robots setting, so it is set once, here.
+    const notLive = process.env.VERCEL_ENV === "preview"
+      ? [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }]
+      : [];
+
     return [
       { source: "/:path*", headers: security },
+      ...notLive,
       // Content-addressed build assets — safe to cache forever.
       { source: "/_next/static/:path*", headers: [immutable] },
       // Images (fingerprint-free but replaced infrequently). One-year cache with
