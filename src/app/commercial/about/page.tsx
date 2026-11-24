@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 const STATS: { v: string; k: string }[] = [
   { v: "12 yrs", k: "Trading from Pakenham" },
   { v: "20+", k: "Years' director experience" },
-  { v: "20", k: "Written procedures" },
+  { v: "6 yrs", k: "Workmanship warranty" },
   { v: "$20M", k: "Public liability" },
 ];
 
@@ -74,15 +74,16 @@ export default function CommercialAboutPage() {
             <div className="cx-rv">
               <span className="cx-eye">01 · Who we are</span>
               <blockquote className="cx-quote">
-                We under-promise, <em>over-deliver,</em> and finish on time, within schedule and budget.
+                We under-promise, <em>over-deliver,</em> and finish on time and on budget.
               </blockquote>
             </div>
             <div className="cx-ovw__t cx-rv" style={{ ["--i" as string]: "1", paddingTop: 8 }}>
               <p>We genuinely care about our clients and their stakeholders, and we operate from traditional values.</p>
               <p>
                 We pride ourselves on top-notch installation, repair and maintenance across HVAC, heating, cooling,
-                Type A gas, general and mechanical plumbing, and refrigeration. Residential, commercial and
-                industrial projects throughout Victoria, and open to projects across the region and interstate.
+                Type A and Type B gas, general and mechanical plumbing, and refrigeration. Residential, commercial
+                and industrial projects across Melbourne&rsquo;s south-east and West Gippsland, and further for
+                contract work.
               </p>
               <p>
                 Our crew, in our own vans, with every part of the job run under us. No labour hire, and the
@@ -150,7 +151,7 @@ export default function CommercialAboutPage() {
             <Image src="/dean.webp" alt="" width={128} height={128} />
             <p>
               <b>Mentored individually.</b> Our staff are trained to uphold the same traditional values and quality
-              of work, as though our director had completed your works personally.
+              of work, as if Dean had done the job himself.
             </p>
           </div>
         </div>

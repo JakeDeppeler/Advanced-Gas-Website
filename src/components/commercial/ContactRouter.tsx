@@ -48,7 +48,7 @@ const TABS: { t: Kind; label: string; h: string; s: string }[] = [
     t: "service",
     label: "Service or repair",
     h: "Book a service or repair.",
-    s: "Tell us what the plant is doing. After hours goes to someone on the tools.",
+    s: "Tell us what the plant is doing. After hours we answer for a gas leak or no hot water when we can.",
   },
   {
     t: "home",

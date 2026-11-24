@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CATS, PHOTO, SERVICES } from "@/lib/homepage/data";
+import { site } from "@/lib/site";
 import { REVIEWS, RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { CATEGORY_COPY } from "@/components/homepage/page/categoryCopy";
 import { BkMotion } from "@/components/homepage/brand/BkMotion";
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 /**
  * Everything we do, in the brand pages' block layout: the three ways in by
  * system (the Cooling, Heating and Hot water pages), every service as the
- * homepage's photo cards, the emergency line, why us, reviews and the quote.
+ * homepage's photo cards, the after-hours line, why us, reviews and the quote.
  * Built from the same records as the homepage, so the two can't disagree.
  */
 export default function ServicesPage() {
@@ -54,7 +55,7 @@ export default function ServicesPage() {
 
         <nav className="pxt" aria-label="On this page">
           <div className="wrap pxt__in">
-            {[["systems", "By system"], ["all", "Everything we do"], ["emergency", "24/7"], ["why", "Why us"], ["reviews", "Reviews"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
+            {[["systems", "By system"], ["all", "Everything we do"], ["emergency", "After hours"], ["why", "Why us"], ["reviews", "Reviews"]].map(([id, l]) => <a key={id} href={`#${id}`}>{l}</a>)}
           </div>
         </nav>
 
@@ -112,15 +113,16 @@ export default function ServicesPage() {
           </div></div>
         </section>
 
-        {/* 3. The emergency line */}
+        {/* 3. After hours. Not a 24/7 promise (Jake, 24 Nov 2026): we pick up
+            for a gas leak or no hot water when we can, at a fixed call-out. */}
         <section className="bk__sec bk__sec--red" id="emergency" style={{ ["--acc" as string]: "#C83A2B" }}>
           <div className="wrap"><div className="bk__blk sv__sos">
             <div className="bk__head">
-              <h2 className="h2">Gas leak, no hot water <span>or no heat?</span></h2>
-              <p>Call any time. After hours goes to someone on the tools, not a call centre.</p>
+              <h2 className="h2">Gas leak or <span>no hot water?</span></h2>
+              <p>After hours, call and we&apos;ll answer if we can. The call-out is {site.afterHours.callout} and covers {site.afterHours.covers}. Smell gas? Ring the gas emergency line on 132 771 first.</p>
             </div>
             <a href="tel:+61359478000" className="sv__call" data-call-from="services-emergency">
-              <small>24/7 emergency</small>
+              <small>After hours</small>
               <strong>(03) 5947 8000</strong>
             </a>
           </div></div>
@@ -147,7 +149,7 @@ export default function ServicesPage() {
           <div className="wrap"><div className="bk__blk bk__col">
             <div className="pp__revhead">
               <header className="bk__head"><h2 className="h2">From local <span>households</span>.</h2></header>
-              <Link href="/reviews">Read every review →</Link>
+              <Link href="/reviews">More reviews →</Link>
             </div>
             <div className="pp__revs" data-anim="stagger">
               {reviews.map((r) => (

@@ -18,9 +18,9 @@ import { CommReveal } from "@/components/commercial/CommReveal";
 import "../cx.css";
 
 export const metadata: Metadata = {
-  title: "What We Do: HVAC, Type A Gas & Mechanical",
+  title: "What We Do: HVAC, Gas & Mechanical",
   description:
-    "HVAC, Type A gas, mechanical services and refrigeration under one licensed team. Design, install, maintain and certify across Victoria. ARC AU59557.",
+    "HVAC, Type A and Type B gas, mechanical services and refrigeration under one licensed team. Design, install, maintain and certify across Melbourne's south-east. ARC AU59557.",
   alternates: { canonical: "/commercial/what-we-do" },
 };
 
@@ -60,8 +60,9 @@ export default function WhatWeDoPage() {
         title={<>Design. Install.<br />Maintain. <em>Certify.</em></>}
         lede={
           <>
-            HVAC, Type A gas, mechanical services and refrigeration under one licensed team. Residential, commercial
-            and industrial projects across Victoria, with compliance certificates issued on handover.
+            HVAC, Type A and Type B gas, mechanical services and refrigeration under one licensed team. Residential,
+            commercial and industrial projects across Melbourne&rsquo;s south-east and West Gippsland, with compliance
+            certificates issued on handover.
           </>
         }
         photo="/comm/ductwork.jpg"
@@ -82,9 +83,9 @@ export default function WhatWeDoPage() {
             <span className="cx-eye">01 · Specialisations</span>
             <h2>Four disciplines. One licensed team.</h2>
             <p className="cx-sec__lede">
-              With this breadth of specialisation we take a holistic approach to HVAC, Type A gas and mechanical
+              With this breadth of specialisation we take a holistic approach to HVAC, gas and mechanical
               services: design, installation and maintenance, on residential, commercial and industrial projects
-              across Victoria.
+              across Melbourne&rsquo;s south-east and West Gippsland.
             </p>
           </header>
 
@@ -104,8 +105,7 @@ export default function WhatWeDoPage() {
           <div className="cx-arc cx-rv">
             <b>{site.licences.refrigeration}</b>
             <p>
-              Advanced Gas &amp; Air Conditioning is an authorised ARC trading authority for the handling of
-              refrigerant gases.
+              {site.name} holds an ARC refrigerant trading authorisation for handling refrigerant gases.
             </p>
           </div>
         </div>

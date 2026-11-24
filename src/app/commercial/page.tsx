@@ -30,7 +30,7 @@ import "./cxd.css";
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical, Melbourne",
   description:
-    "Commercial mechanical, Type A gas and hot water across Melbourne's south-east. Fit-outs, plant replacement, maintenance. $20M public liability, SWMS supplied.",
+    "Commercial mechanical, Type A & B gas and hot water across Melbourne's south-east. Fit-outs, plant replacement, maintenance. $20M public liability, SWMS supplied.",
   alternates: { canonical: "/commercial" },
 };
 
@@ -100,8 +100,9 @@ const SIGNED = [
   {
     role: "Priced",
     name: "Jake Deppeler",
-    title: "Estimating & install",
-    lic: site.licences.refrigeration,
+    title: "Director · Estimating & quotes",
+    // ARC AU59557 is the company's authorisation (in the title block), not his.
+    lic: "jake@advancedgas.com.au",
     photo: "/jake.webp",
     bio: "Reads every commercial enquiry himself and prices it off the drawings rather than off a square metre rate. If we have quoted it, he has been on the roof.",
   },
@@ -144,10 +145,10 @@ export default function CommercialPage() {
                     <li aria-current="page">Business &amp; commercial</li>
                   </ol>
                 </nav>
-                <span className="cxd-eye">Commercial HVAC · Type A gas · Hot water</span>
+                <span className="cxd-eye">Commercial HVAC · Type A &amp; B gas · Hot water</span>
                 <h1 id="cxd-h1" className="cxd-h1">Plant craned in. <span>Doors stayed open.</span></h1>
                 <p className="cxd-lede">
-                  Mechanical services, Type A gas and commercial hot water across Melbourne&apos;s south-east and Gippsland. Our own crew, a written standard, and one person accountable for the package.
+                  Mechanical services, Type A and Type B gas and commercial hot water across Melbourne&apos;s south-east and West Gippsland. Our own crew, a written standard, and one person accountable for the package.
                 </p>
                 <div className="cxd-ctas">
                   <a href="#scope" className="abtn abtn--or">Submit a scope →</a>
@@ -383,7 +384,7 @@ export default function CommercialPage() {
                 <H2 id="cxd-faq" text="Asked before {a first job}." />
                 <p>
                   Plant down on a contracted site?{" "}
-                  <a href={`tel:${site.phoneE164}`} data-call-from="commercial-faq">Call {site.phone}</a>. After hours goes to someone on the tools.
+                  <a href={`tel:${site.phoneE164}`} data-call-from="commercial-faq">Call {site.phone}</a>. After hours, for a gas leak or no hot water, we answer when we can: the call-out is {site.afterHours.callout}, covering {site.afterHours.covers}.
                 </p>
               </header>
               <div className="cxd-faqs">

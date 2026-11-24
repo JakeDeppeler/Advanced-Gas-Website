@@ -32,7 +32,7 @@ import "./service.css";
 /** A /public path that exists, trying other extensions; the path as given if none does. */
 const asset = (src: string) => resolveAsset(src) ?? src;
 
-type Row = { tier: string; price: string; includes: string; group?: string; photo?: string; photoScene?: boolean; priceKey?: string };
+type Row = { tier: string; price: string; includes: string; group?: string; photo?: string; photoScene?: boolean; priceKey?: string; fixed?: boolean };
 type Sys = NonNullable<ServiceContent["systems"]>[number];
 type Fact = { v: string; k: string };
 
@@ -153,6 +153,19 @@ const GO: Record<string, string> = {
   "aircon-servicing-repairs": "What the service covers",
   "gas-plumbing/gas-service": "What the service covers",
   "gas-plumbing/temporary-hot-water": "How the hire works",
+};
+
+/**
+ * The closing box's line where the default ("A free site check, then one
+ * fixed price in writing") is wrong: a routine service is a fixed price
+ * (Jake, 16 Nov 2026), and nobody books a site check before one.
+ */
+const END_TEXT: Record<string, string> = {
+  // The gas pages price a like-for-like swap off a photo, so "a free site check" alone is wrong there.
+  "gas-plumbing": "A photo for a like-for-like swap, or a free site check for anything else, then one fixed price in writing. Six years on our workmanship.",
+  "aircon-servicing-repairs": "Fixed service prices, plus GST. Any repair is priced in writing before we start.",
+  "gas-plumbing/gas-service": "A fixed $250 + GST, with the CO test included. Any repair is priced in writing before we start.",
+  "gas-plumbing/temporary-hot-water": "Hired by the day, priced in writing before it goes in. No obligation to use us for the replacement.",
 };
 
 /**
@@ -497,9 +510,9 @@ function Steps({ steps }: { steps: { title: string; detail: string }[] }) {
  * Price cards, grouped under their trade so a page covering three trades
  * still reads as three lists, each job with its own photo.
  *
- * With SHOW_PRICES off the figure is gone and said once in the heading
- * ("fixed, in writing") rather than on every card; what each job includes
- * stays, because that is still worth reading.
+ * With SHOW_PRICES off an install's figure is gone and the heading says it
+ * is priced in writing; what each job includes stays, because that is still
+ * worth reading. A fixed price (a routine service) always shows.
  */
 function Prices({ rows }: { rows: Row[] }) {
   const groups = [...new Set(rows.map((r) => r.group ?? ""))].map((g) => ({ g, list: rows.filter((r) => (r.group ?? "") === g) }));
@@ -515,11 +528,11 @@ function Prices({ rows }: { rows: Row[] }) {
                   <span className={`svp__img${r.photoScene ? " svp__img--scene" : ""}`}><Image src={asset(r.photo)} alt="" fill sizes="88px" /></span>
                 ) : (
                   // A call-out has nothing to photograph: a drawing stands in.
-                  <span className="svp__img svp__img--ico"><Icon name={/emergency/i.test(r.tier) ? "alarm" : "wrench"} /></span>
+                  <span className="svp__img svp__img--ico"><Icon name={/emergency|after-hours/i.test(r.tier) ? "alarm" : "wrench"} /></span>
                 )}
                 <div className="svp__t">
                   <strong>{r.tier}</strong>
-                  {SHOW_PRICES && <em>{r.price} <small>{r.priceKey ?? "installed"}</small></em>}
+                  {(SHOW_PRICES || r.fixed) && <em>{r.price} <small>{r.priceKey ?? "installed"}</small></em>}
                   <ul>{r.includes.split(/,\s*/).filter(Boolean).map((x) => <li key={x}>{x}</li>)}</ul>
                 </div>
               </li>
@@ -531,9 +544,24 @@ function Prices({ rows }: { rows: Row[] }) {
   );
 }
 
-const PRICE_HEAD = SHOW_PRICES
-  ? { h: "What it {costs}.", p: "Every price includes GST. Your exact price is confirmed in writing after a free site check." }
-  : { h: "What each job {covers}.", p: "Every job is priced after a free site check, on a fixed written quote including GST. It only changes if the job does, and we tell you before it does." };
+/**
+ * The line over a price box, from the rows in it. Install figures stay hidden
+ * while SHOW_PRICES is off, but the fixed prices (Jake's service prices, the
+ * after-hours call-out) always show, so the line can't promise "a free site
+ * check" before a routine service, which is what it used to say on every box.
+ */
+function priceHead(rows: Row[]) {
+  const fixed = rows.filter((r) => r.fixed).length;
+  if (fixed && fixed === rows.length) return { h: "What it {costs}.", p: "Fixed prices, plus GST. Any repair is quoted in writing before we start." };
+  if (fixed) {
+    return SHOW_PRICES
+      ? { h: "What it {costs}.", p: "Service prices are fixed, plus GST. Install prices include GST and are confirmed in writing before we start." }
+      : { h: "What each job {costs}.", p: "Where a price is shown it's fixed, plus GST. Everything else is priced in writing before we start, and only changes if the job does." };
+  }
+  return SHOW_PRICES
+    ? { h: "What it {costs}.", p: "Every price includes GST. Your exact price is confirmed in writing after a free site check." }
+    : { h: "What each job {covers}.", p: "Every job is priced in writing before we start, GST included. It only changes if the job does, and we tell you before it does." };
+}
 
 /** Our own jobs, as photo tiles with their captions. */
 function Installs({ cls, h, p, shots }: { cls: string; h: string; p: string; shots: { src: string; alt: string; caption?: string }[] }) {
@@ -716,7 +744,7 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
     ...(c.looks ? [{ key: "looks", render: (cls: string) => <Feature cls={cls} id="looks" f={c.looks!} /> }] : []),
     ...(prices.length ? [{
       key: "prices",
-      render: (cls: string) => <NavyBox cls={cls} id="prices" h={PRICE_HEAD.h} p={PRICE_HEAD.p}><Prices rows={prices} /></NavyBox>,
+      render: (cls: string) => <NavyBox cls={cls} id="prices" {...priceHead(prices)}><Prices rows={prices} /></NavyBox>,
     }] : []),
     ...(c.included?.length || c.excluded?.length ? [{
       key: "in-price",
@@ -757,7 +785,7 @@ export function ServiceView({ slug, name, c, choose }: { slug: string; name: str
       />
       <BrandStrip label="The brands we fit" chips={(c.brandPods ?? []).filter((p) => p.href).map((p) => chip(slug, p.href!, p.brand))} />
       <Sections list={list} />
-      <EndCta title={<>Ready to talk about <span>{name.toLowerCase()}</span>?</>} />
+      <EndCta title={<>Ready to talk about <span>{name.toLowerCase()}</span>?</>} text={END_TEXT[slug]} />
     </div>
     </>
   );
@@ -887,14 +915,14 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
     ...(finder ? [{
       key: "options",
       render: (cls: string) => (
-        <NavyBox cls={cls} id="options" h="The options, {side by side.}" p="Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it.">
+        <NavyBox cls={cls} id="options" h="See {the options.}" p="Each has its own page: how it works, its pros and cons, which size to choose, the specs and the brand behind it.">
           <Options finder={finder} />
         </NavyBox>
       ),
     }] : d?.pricing?.length ? [{
       key: "prices",
       render: (cls: string) => (
-        <NavyBox cls={cls} id="prices" h={PRICE_HEAD.h} p={PRICE_HEAD.p}>
+        <NavyBox cls={cls} id="prices" {...priceHead(d.pricing!)}>
           <Prices rows={d.pricing!} />
           {d.pricingNote && <p className="svnote svnote--dark">{d.pricingNote}</p>}
         </NavyBox>
@@ -932,7 +960,7 @@ export function SystemView({ slug, name, s, d, finder }: { slug: string; name: s
       />
       <BrandStrip label="The brands we fit" chips={brands} />
       <Sections list={list} above={brands.length ? "white" : "navy"} />
-      <EndCta title={<>Ready to talk about <span>{label}</span>?</>} />
+      <EndCta title={<>Ready to talk about <span>{label}</span>?</>} text={END_TEXT[key] ?? END_TEXT[slug]} />
     </div>
     </>
   );

@@ -26,9 +26,8 @@ export const metadata: Metadata = {
  * are.
  *
  * The page carries no opening hours. On the commercial side the answer that
- * matters is that the emergency line is answered at any hour, and putting
- * office hours beside it invites somebody with plant down on a Saturday to
- * conclude we are shut.
+ * matters is what happens after hours: not a 24/7 line (Jake, 24 Nov 2026),
+ * but a gas leak or no hot water answered when we can, at a fixed call-out.
  */
 export default function CommercialContactPage() {
   return (
@@ -47,7 +46,7 @@ export default function CommercialContactPage() {
         ctas={
           <span className="cx-live">
             <i aria-hidden="true" />
-            <span>After-hours call-outs for emergencies</span>
+            <span>After hours: gas leaks and no hot water, when we can</span>
           </span>
         }
       />
@@ -60,10 +59,11 @@ export default function CommercialContactPage() {
 
           <aside className="cx-cside">
             <a className="cx-cc cx-cc--em cx-rv" href={`tel:${site.phoneE164}`}>
-              <span className="cx-mono">Phone · after-hours emergencies</span>
+              <span className="cx-mono">Phone · after hours</span>
               <b>{site.phone}</b>
               <small>
-                Gas, hot water and plant down on a contracted site. After hours goes to someone on the tools.
+                After hours, gas leaks and no hot water: call and we&rsquo;ll answer if we can. The call-out is{" "}
+                {site.afterHours.callout}, covering {site.afterHours.covers}. Smell gas? Ring 132 771 first.
               </small>
             </a>
 
@@ -107,7 +107,7 @@ export default function CommercialContactPage() {
           <div className="cx-area">
             <div className="cx-rv">
               <span className="cx-eye cx-eye--sky">Service area</span>
-              <h2>Melbourne&rsquo;s south-east &amp; Gippsland.</h2>
+              <h2>Melbourne&rsquo;s south-east &amp; West Gippsland.</h2>
               <p>Based in {site.address.suburb} and servicing within 50 km, and further for contract work.</p>
               <ul className="cx-chips">
                 {COMM_AREA_TOWNS.map((t) => <li key={t}>{t}</li>)}

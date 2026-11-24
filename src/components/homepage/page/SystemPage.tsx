@@ -45,6 +45,19 @@ function heroPhoto(sys: System) {
   return { src: PHOTO.team, pos: "center 35%" };
 }
 
+/**
+ * What one of a system is called in a sentence. Most labels work as they are
+ * ("a split system"), but a few name a kind of heating rather than a thing
+ * you count, and "who a gas ducted heating suits" reads as a mistake.
+ */
+const NOUN: Record<string, string> = {
+  "gas-ducted-heating": "gas ducted heater",
+  "gas-continuous-flow": "gas continuous flow system",
+  "gas-storage": "gas storage tank",
+};
+/** "a split system", "an evaporative cooler". */
+const article = (noun: string) => (/^[aeiou]/i.test(noun) ? "an" : "a");
+
 /** Systems whose page gets the hands-on zoning house. */
 // No zones section on the Dominator's page (Jake, Nov 2026): it reuses whatever ducts the house has.
 const ZONED = new Set(["ducted", "reverse-cycle-ducted"]);
@@ -56,6 +69,8 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
   const brands = [...new Set(sys.tiers.map((t) => t.brand))];
   const others = cat.systems.filter((s) => s.slug !== sys.slug);
   const lower = lowerLabel(sys.label);
+  const noun = NOUN[sys.slug] ?? lower;
+  const aNoun = `${article(noun)} ${noun}`;
   const one = sys.tiers.length === 1;
   // Build your price: ducted and multi-head. It used to show on preview
   // deployments too, as a placeholder mock-up; Jake asked for all prices off
@@ -102,7 +117,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       {learn && (
         <section className="pxs" id="fit">
           <div className="wrap pp__col">
-            <Head eye="Is it right for you?" h={`Who a ${lower} suits.`} />
+            <Head eye="Is it right for you?" h={`Who ${aNoun} suits.`} />
             <div className="pcx">
               <div className="pcx__col pcx__col--pro">
                 <h3><span aria-hidden="true">✓</span> A good fit if</h3>
@@ -124,7 +139,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       {learn && (
         <section className="pxs pxs--sky" id="how">
           <div className="wrap pp__col">
-            <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How a {lower} works.</h2></div>
+            <div className="lk2__storyhead"><span className="aeye"><i /> How it works</span><h2 className="h2">How {aNoun} works.</h2></div>
             <HowItWorks kind={learn.diagram} steps={learn.how} />
           </div>
         </section>
@@ -230,7 +245,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
 
       <section className="pxs" id="faqs">
         <div className="wrap pp__two">
-          <Head eye="Questions" h={`Questions about ${lower}.`} lede={<>Still want a human? <a href="tel:+61359478000" data-call-from="system-faq" style={{ color: "#050A30" }}>Call (03) 5947 8000</a>.</>} />
+          <Head eye="Questions" h={`Questions about ${aNoun}.`} lede={<>Still want a human? <a href="tel:+61359478000" data-call-from="system-faq" style={{ color: "#050A30" }}>Call (03) 5947 8000</a>.</>} />
           <div className="afaqs">{PRODUCT_FAQS[sys.faq].map((f) => <details key={f.q} className="afaq"><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
         </div>
       </section>
@@ -246,7 +261,7 @@ export function SystemPage({ cat, sys }: { cat: Category; sys: System }) {
       </section>
 
       {/* The homepage's closing box, as every inside page ends: it was a full-width flat orange band. */}
-      <EndCta title={<>Ready to talk about a <span>{lower}</span>?</>} />
+      <EndCta title={<>Ready to talk about {article(noun)} <span>{noun}</span>?</>} />
     </div>
   );
 }

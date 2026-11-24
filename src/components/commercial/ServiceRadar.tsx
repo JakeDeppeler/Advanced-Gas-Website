@@ -66,7 +66,7 @@ export function ServiceRadar() {
           <span className="cx-rig__eye">Base</span>
           <div>{site.address.street}, {site.address.suburb}</div>
         </div>
-        <span className="cx-rig__live">Crews out today</span>
+        {/* No "Crews out today" here: it was hard-coded, so it showed on weekends too. */}
       </figcaption>
     </figure>
   );

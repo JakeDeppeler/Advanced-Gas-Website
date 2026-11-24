@@ -80,6 +80,10 @@ export type ServiceContent = {
      *  and wrong for a call-out fee, so anything that isn't an install
      *  says what it actually is. */
     priceKey?: string;
+    /** A fixed price Jake has set (the 16 Nov 2026 service prices, the
+     *  after-hours call-out). Shown even while SHOW_PRICES hides the
+     *  install figures: a routine service is a set price, not a quote. */
+    fixed?: boolean;
   }[];
   faqs: { q: string; a: string }[];
   /** Numbered install-process steps rendered as a stepper below the
@@ -312,7 +316,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       facts: [
         { v: "$250 + GST", k: "or $180 + GST each for two or more at one address" },
         { v: "Sept \u2013 Nov", k: "booked before the heatwave, not during it" },
-        { v: "Lodged for you", k: "the report goes to the manufacturer, not a drawer" },
+        { v: "Written report", k: "yours to keep with the warranty papers" },
       ],
     },
     // ------------------------------------------------------------------
@@ -323,7 +327,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // ------------------------------------------------------------------
     metaTitle: "Air Conditioning Installation Pakenham",
     metaDescription:
-      "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Written quotes in 12 hrs, 6-year workmanship warranty.",
+      "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. We call back within 12 business hours. 6-year workmanship warranty.",
     heroFacts: [
       { v: "Same day", k: "A single wall split, start to finish" },
       { v: "ARCtick", k: "AU59557: legally required, and we hold it" },
@@ -334,13 +338,13 @@ export const serviceContent: Record<string, ServiceContent> = {
     heroPhotoAlt: "A Kaden ducted condenser we installed on a stand against a brick wall",
     h1: "Air conditioning installation, Pakenham & SE Melbourne",
     intro:
-      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 50 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
+      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 50 km of Pakenham. We call you back within 12 business hours, most single-split installs are done in one visit, and every job carries a 6-year workmanship warranty. We spec Mitsubishi Electric first, and Kaden where the job calls for it. Mitsubishi has the lowest failure rate in our own installs, which is the number that matters when you're the one who has to come back. Same install team, same warranty, same finish either way.",
     whyThese: {
       heading: "Why these two brands, and which one is yours.",
       blurb:
         "Two brands, not twelve. We'd rather know two ranges properly than carry a catalogue we can't stand behind. Which one you end up with depends on your house, not on what you're prepared to spend.",
       points: [
-        { t: "Under 1% failure rate", d: "That's Mitsubishi Electric across the whole range, and it's the number that decides what goes in a customer's wall. We're the ones who have to come back if it fails, so a unit that never needs us is worth more than the margin on a cheaper one." },
+        { t: "The fewest failures we see", d: "Mitsubishi Electric has the lowest failure rate in our own install base, and that's the number that decides what goes in a customer's wall. We're the ones who have to come back if it fails, so a unit that never needs us is worth more than the margin on a cheaper one." },
         { t: "Parts you can actually get", d: "Mitsubishi's Melbourne warehouse still stocks parts for units we put in ten years ago. Plenty of cheap brands are unsupportable by year five, the unit isn't broken, it's just unfixable." },
         { t: "Kaden, when the job wants it", d: "Reece-exclusive, so parts sit in every store in Victoria. It is what we quote when a family wants three or four rooms done in one visit rather than one a year, and it goes in with the same crew, the same finish and the same 6-year workmanship as anything else we fit." },
         { t: "Zoned properly from day one", d: "Every ducted job gets zoning as standard, not as an upsell. Zoning added in year three means pulling the ceiling apart twice." },
@@ -350,11 +354,11 @@ export const serviceContent: Record<string, ServiceContent> = {
     },
     benefits: [
       { t: "ARCtick-licensed refrigeration", d: "All refrigerant handling by ARC-certified technicians. Legally required, and we hold the ticket." , line: "Legally required, and we hold it", icon: "shield" },
-      { t: "Mitsubishi Electric default", d: "Under 1% failure rate across the range. We put it in our own homes, which is the only recommendation that really counts." , line: "Under 1% failure rate, and it's what we fit at home", icon: "snowflake" },
+      { t: "Mitsubishi Electric default", d: "The lowest failure rate in our own installs. We put it in our own homes, which is the only recommendation that really counts." , line: "The fewest failures we see, and it's what we fit at home", icon: "snowflake" },
       { t: "Right-sized, not oversized", d: "Room-by-room heat-load calc before we quote. Oversized units cycle constantly and cost 20% more to run." , line: "Room-by-room heat load, before a size is quoted", icon: "ruler" },
       { t: "Zoning for ducted", d: "We install ducted with 4/6/8-zone controllers by default. No re-work in year 3 when you want to zone a spare bedroom." , line: "Room by room, on a schedule you set", icon: "clock" },
       { t: "Colour-matched conduit + tidy exit", d: "Drop sheets on the floor, dust extraction in the wall, conduit outside colour-matched to your cladding. It's the details clients remember." , line: "The pipework you'll be looking at for a decade", icon: "ruler" },
-      { t: "Compliance cert emailed in 24 hrs", d: "Electrical + refrigeration compliance docs into your inbox the day after we leave, not chased weeks later." , line: "In your inbox inside a day, not chased", icon: "shield" },
+      { t: "Compliance certificates by the next business day", d: "The refrigeration compliance certificate, and the Certificate of Electrical Safety from our licensed electrician, in your inbox by the end of the next business day, not chased weeks later." , line: "In your inbox the next business day, not chased", icon: "shield" },
     ],
     brands: ["Mitsubishi Electric", "Kaden", "Brivis (evap)"],
     pricing: [
@@ -363,15 +367,15 @@ export const serviceContent: Record<string, ServiceContent> = {
       { tier: "Single split system (7.1 kW · large open-plan)", price: "from $3,299", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-series-v2-v3.webp" },
       { tier: "Multi-head 2-indoor (Mitsubishi MXZ-2F)", price: "from $6,500", includes: "One outdoor, two indoor heads, up to 15 m combined line-set", group: "Multi-head", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp" },
       { tier: "Multi-head 4-indoor (Mitsubishi MXZ-4F)", price: "from $11,500", includes: "One outdoor, four indoor heads, up to 30 m combined line-set", group: "Multi-head", photo: "/Kaden Multi Head.jpg" },
-      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4 zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
+      { tier: "Ducted reverse-cycle (PEA-M · 4 zones)", price: "from $12,500", includes: "PEA-M indoor, PUZ outdoor, 4 zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
     ],
     steps: [
-      { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed, a 5 kW room quote sizes to a 5 kW unit, not a 7." },
-      { title: "Written quote in 12 hrs", detail: "Back to you inside 12 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. One fixed figure, not a 'from' price." },
+      { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed: a room that needs 5 kW gets a 5 kW unit, not a 7." },
+      { title: "A call back, then the written quote", detail: "We call you back within 12 business hours, and after the visit the written quote follows with the model number, capacity, line-set length, controller spec, warranty position and total installed price. One fixed figure, not a 'from' price." },
       { title: "Order stock, book install day", detail: "Mitsubishi warehouse in Melbourne is same-day on common stock. We confirm your install day the moment the unit lands with us." },
-      { title: "Install day, usually one visit", detail: "Single-split back-to-back is 3-4 hours on site. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside." },
+      { title: "Install day, usually one visit", detail: "Single-split back-to-back is 3-4 hours on site. Multi-head is usually one to two days, ducted two to three. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside." },
       { title: "Test, commission, walk-through", detail: "We run it up, check refrigerant pressures, walk you through the remote and MELCloud Wi-Fi setup. You sign the job card when you're satisfied, not before." },
-      { title: "Compliance certificate emailed in 24 hrs", detail: "Electrical and refrigeration compliance docs into your inbox by end of business the next day. Warranty registered with Mitsubishi in your name at the same time." },
+      { title: "Compliance certificates by the next business day", detail: "The refrigeration compliance certificate, and the Certificate of Electrical Safety from our licensed electrician, into your inbox by end of business the next day. Warranty registered with Mitsubishi in your name at the same time." },
     ],
     systems: [
       {
@@ -461,7 +465,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "A shoebox on the wall and a box outside.",
           note:
-            "The indoor head goes high on the wall, usually above a door or a bed. Outside, the condenser sits on brackets or a ground stand down the side of the house. What decides whether it looks tidy is the run between them, and that is entirely down to who fits it.",
+            "The indoor head goes high on the wall, usually above a door or a window, never straight over a bed. Outside, the condenser sits on brackets or a ground stand down the side of the house. What decides whether it looks tidy is the run between them, and that is entirely down to who fits it.",
           photo: "/ducted-condenser.webp",
           photoAlt: "The outdoor condenser on a levelled stand beside the house",
           photoScene: true,
@@ -481,12 +485,12 @@ export const serviceContent: Record<string, ServiceContent> = {
           facts: [
             { v: "$250 + GST", k: "or $180 + GST each for two or more at one address" },
             { v: "Sept \u2013 Nov", k: "before the first heatwave, not during it" },
-            { v: "5 + 6 years", k: "manufacturer on the unit, ours on the install" },
+            { v: "5–7 + 6 years", k: "manufacturer on the unit (Mitsubishi 5, Kaden 7), ours on the install" },
           ],
         },
         label: "Split system air conditioning",
         blurb:
-          "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
+          "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in within a single morning.",
         photo: { src: "/Kaden Indoor.jpg", alt: "Kaden wall split system installed high on a bedroom wall", scene: true },
         brands: ["Mitsubishi Electric", "Kaden"],
         benefitTiles: [
@@ -559,7 +563,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $2,199 installed",
         intro:
-          "A split system is the simplest air conditioner there is: one box outside, one head inside, a pair of copper lines between them. That simplicity is the whole argument. There's less to buy, less to run and less to go wrong, and most go in back-to-back in a single morning without anyone taking a day off work.",
+          "A split system is the simplest air conditioner there is: one box outside, one head inside, a pair of copper lines between them. That simplicity is the whole argument. There's less to buy, less to run and less to go wrong, and most go in within a single morning without anyone taking a day off work.",
         bestFor: [
           "A bedroom, a living room, a home office or a granny flat",
           "Anywhere you want to condition one room properly rather than the whole house",
@@ -603,19 +607,19 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "One box outside instead of four.",
           note:
-            "That is the entire visual argument for a multi-head. Four separate splits means four condensers along the side of the house and four sets of holes through the wall; a multi means one larger condenser and one set of penetrations, with the pipework fanned out from there.",
+            "That is the entire visual argument for a multi-head. Four separate splits means four condensers along the side of the house and four runs of pipework down the walls; a multi means one larger condenser, with the pipework from each head brought back to it along one route.",
           photo: "/kaden-indoor.webp",
           photoAlt: "One of the indoor heads running off a multi-head system",
           photoScene: true,
           facts: [
-            { v: "One condenser", k: "For two to six indoor heads" },
+            { v: "One condenser", k: "For two to five indoor heads" },
             { v: "Wall or roof", k: "On a levelled, rated stand either way" },
             { v: "Mix the heads", k: "Wall, floor console or bulkhead on one system" },
-            { v: "One trench", k: "Of capping, not four separate runs" },
+            { v: "One run", k: "Of capping, not four separate runs" },
           ],
         },
         servicing: {
-          heading: "Six heads, one outdoor unit, one service.",
+          heading: "Up to five heads, one outdoor unit, one service.",
           photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp",
           photoAlt: "Mitsubishi MXZ multi-head outdoor condenser",
           body:
@@ -643,10 +647,10 @@ export const serviceContent: Record<string, ServiceContent> = {
             icon: "ruler",
           },
           {
-            t: "One set of penetrations",
-            line: "Not four holes in four walls",
+            t: "One route outside",
+            line: "Not four runs down four walls",
             detail:
-              "Every separate split is another core hole and another run of capping. A multi-head brings it back to one route, which is the difference between a tidy house and one that looks like it has been added to four times.",
+              "Every separate split is another outdoor unit and another run of capping. Each head on a multi still needs its own small core hole, but the runs come together to one route and one outdoor unit, which is the difference between a tidy house and one that looks like it has been added to four times.",
             icon: "shield",
           },
           {
@@ -692,7 +696,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         points: [
           "2, 3, 4 and 5-port outdoor units, Mitsubishi MXZ series",
           "Mix head types: wall, floor console or bulkhead on the one system",
-          "One set of pipe penetrations instead of four",
+          "Pipe runs brought together to one route outside, not four",
           "Each room keeps its own remote and its own set temperature",
           "New copper to every head, individually sized to that indoor unit",
           "New brackets or stand for the outdoor unit, levelled and anti-vibration mounted",
@@ -701,7 +705,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $6,500 installed",
         intro:
-          "A multi-head runs two to five indoor heads off a single outdoor unit. It's the answer when you want several rooms done but only have room, or body-corporate permission, for one condenser outside, and it means one set of pipe penetrations through the wall instead of four.",
+          "A multi-head runs two to five indoor heads off a single outdoor unit. It's the answer when you want several rooms done but only have room, or body-corporate permission, for one condenser outside, and the pipework comes back to one place outside instead of four.",
         bestFor: [
           "Three or four bedrooms where separate splits would mean a wall of outdoor units",
           "Townhouses and units where there's exactly one spot the condenser can legally go",
@@ -710,11 +714,11 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         watchOut: [
           "All the heads share one compressor, so running one small bedroom draws more power than a dedicated split would",
-          "If the outdoor unit fails, every room goes off at once, a split only takes one room with it",
+          "If the outdoor unit fails, every room goes off at once; a split only takes one room with it",
           "Costs more than a single split and less than ducted; if you're doing five-plus rooms, price ducted before you commit",
         ],
         faqs: [
-          { q: "How many rooms can one outdoor unit run?", a: "Mitsubishi's MXZ range goes from 2 up to 6 ports. Beyond about five heads, ducted usually works out better on both price and comfort." },
+          { q: "How many rooms can one outdoor unit run?", a: "The Mitsubishi MXZ units we fit run from 2 up to 5 ports. Beyond five heads, ducted usually works out better on both price and comfort." },
           { q: "Can each room have its own temperature?", a: "Yes, each head has its own remote and its own setpoint. They do share a compressor, so extreme differences between rooms are less efficient than similar ones." },
           { q: "Do all the heads have to be the same?", a: "No. You can run a wall unit in the bedrooms, a floor console in a room with no wall height, and a bulkhead unit where you want it hidden, all off the one outdoor." },
         ],
@@ -739,11 +743,11 @@ export const serviceContent: Record<string, ServiceContent> = {
         servicing: {
           heading: "Whether we can reach it was decided on install day.",
           photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
-          photoAlt: "Mitsubishi PEAD-M ducted indoor unit",
+          photoAlt: "Mitsubishi PEA-M ducted indoor unit",
           body:
             "A ducted indoor unit sits in a roof cavity for fifteen years, and the single thing that decides whether servicing it is an hour or a quote is whether somebody left a path to it. We put ours on a platform with clear access. Not everyone does, and we have crawled far enough to have opinions about it.",
           facts: [
-            { v: "Once a year", k: "filter, coils, gas pressures, zone motors, controller" },
+            { v: "Once a year", k: "filter, coils, refrigerant pressures, zone motors, controller" },
             { v: "On a platform", k: "with a clear path, so a service is an hour" },
             { v: "Return-air", k: "the most-skipped filter, and the usual reason it's weak" },
           ],
@@ -754,12 +758,12 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "The duct design first",
             line: "We size the trunk and the branches, not just the unit",
             detail:
-              "Most ducted complaints are a duct problem, not a unit problem, the back bedroom gets nothing because the branch feeding it was never sized. We design the run before we quote the box.",
+              "Most ducted complaints are a duct problem, not a unit problem: the back bedroom gets nothing because the branch feeding it was never sized. We design the run before we quote the box.",
             icon: "ruler",
           },
           {
             t: "Mitsubishi indoor and out",
-            line: "PEAD-M / PEA-M with a PUZ outdoor",
+            line: "PEA-M with a PUZ outdoor",
             detail:
               "The pairing we fit most, and the one with the parts pipeline that is still open on units we put in years ago.",
             icon: "snowflake",
@@ -812,7 +816,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Whole-home heating and cooling from a single system in the roof. Vents in every room, zoned so you are not paying to condition the bedrooms at 7pm. New builds and retrofits both.",
         photo: { src: "/duct-work.webp", alt: "Insulated flex ductwork run through a roof space", scene: true },
         points: [
-          "Mitsubishi PEAD-M / PEA-M indoor with PUZ outdoor",
+          "Mitsubishi PEA-M indoor with PUZ outdoor",
           "4, 6 and 8-zone control fitted by default",
           "Full duct design. We size the trunk and branches, not just the unit",
           "Retrofit into an existing roof cavity where there's access",
@@ -832,7 +836,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         watchOut: [
           "Needs real roof space. A tight cavity or a skillion roof can rule it out, and we'll tell you on the site visit rather than after you've paid a deposit",
-          "It's the biggest up-front cost of the three, though not per room once you're past four or five",
+          "It costs more up front than splits or a multi-head, though not per room once you're past four or five",
           "Duct design matters more than the unit. An undersized trunk or a bad branch layout will make an expensive system feel weak",
         ],
         faqs: [
@@ -881,7 +885,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "Right for dry heat",
-            line: "Best in the drier north and east",
+            line: "Best on dry, hot days",
             detail:
               "It cools by evaporating water into the air, which works beautifully on a dry 38° day and much less well on a humid one. We'd rather tell you that than sell you one for the wrong climate.",
             icon: "snowflake",
@@ -936,7 +940,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         points: [
           "Brivis and Kaden roof-mounted units",
           "Running cost is a fraction of refrigerated cooling",
-          "Best in the drier north and east, less suited to humid days",
+          "Best on dry, hot days, less suited to humid ones",
           "Cooling only; pair with gas ducted for winter",
           "New roof flashing and weatherproofing around the penetration",
           "New water supply line and isolation tap to the unit",
@@ -954,7 +958,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         watchOut: [
           "It needs windows or doors cracked open to work. Shut the house up and it does nothing",
-          "On a humid day it struggles, and Melbourne gets those, this is the honest trade-off",
+          "On a humid day it struggles, and Melbourne gets those. That's the honest trade-off",
           "Cooling only. You'll still need gas ducted or a split for winter",
           "Roof-mounted, so it needs an annual pre-summer service to stay working",
         ],
@@ -977,8 +981,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Brivis (evap)", reason: "The default evap brand in the corridor, Contour + Advance roof units for dry-summer suburbs like Cranbourne, Clyde and Officer.", href: "/brands/brivis" },
     ],
     typical: {
-      time: "Single split · same day. Multi-head · 1 day. Ducted · 1–2 days.",
-      warranty: "6-year workmanship + 5-year Mitsubishi manufacturer.",
+      time: "Single split · same day. Multi-head · 1–2 days. Ducted · 2–3 days.",
+      warranty: "6-year workmanship + 5-year Mitsubishi or 7-year Kaden manufacturer.",
       priceRange: "$2,199 wall split → $18,500 large ducted with 6 zones.",
       followUp: "We ring the week after install to check it's running the way you expected. Not a marketing call, a genuine one.",
     },
@@ -988,7 +992,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Electrical connection to existing sub-board (or a new circuit if quoted)",
       "Refrigerant charge + commissioning",
       "Old unit removed and responsibly disposed of",
-      "Full electrical + refrigeration compliance certificates",
+      "Refrigeration compliance certificate, and a Certificate of Electrical Safety from our licensed electrician",
       "Manufacturer warranty registered in your name",
     ],
     excluded: [
@@ -998,8 +1002,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       "LPG bottle relocation for gas-adjacent installs",
     ],
     faqs: [
-      { q: "How long does a split-system install take?", a: "A standard back-to-back single-split is 3–4 hours on site. Multi-head is a full day. Ducted retrofit is typically 1–2 days depending on how many zones and whether the ceiling cavity is straightforward." },
-      { q: "Do I need a separate electrician?", a: "No. We handle all electrical work in the same visit. Our team holds refrigeration + electrical + gas tickets so nothing gets subbed out." },
+      { q: "How long does a split-system install take?", a: "A standard back-to-back single-split is 3–4 hours on site. Multi-head is usually one to two days. Ducted retrofit is typically two to three days depending on how many zones and whether the ceiling cavity is straightforward." },
+      { q: "Do I need a separate electrician?", a: "No, there's nobody for you to organise. Our licensed electrician does the electrical side as part of the same job and issues the Certificate of Electrical Safety, alongside our refrigeration compliance certificate." },
       { q: "What size aircon do I need?", a: "Rough rule: ~125-150 W per m² for standard 2.4 m ceilings. Rooms with big north-facing glass, cathedral ceilings or minimal insulation push higher. We do a proper heat-load calc in the quote, not a guess." },
       { q: "Reverse-cycle vs evap for Pakenham?", a: "Reverse-cycle wins for anywhere in the south-east except the driest hot days. Evap is cheaper to run but ineffective when humidity climbs (Melbourne summers get both dry and humid days). Ducted RC is our default for whole-home." },
       { q: "Can you install on a rental?", a: "Yes. We provide a written quote you can share with your property manager, and we lodge the manufacturer warranty in the owner's name. Compliance certs included as standard." },
@@ -1018,7 +1022,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       facts: [
         { v: "~1.8 m tall", k: "A 270 L all-in-one, on the old tank's slab" },
         { v: "Two pieces", k: "On a split: tank on the wall, compressor beside it" },
-        { v: "37 dBA", k: "The Reclaim CO₂, quiet enough for a bedroom wall" },
+        { v: "37 dBA", k: "The Reclaim CO₂, quiet enough not to bother the neighbours" },
         { v: "Shady side", k: "Sited away from bedrooms and the neighbour's fence" },
       ],
     },
@@ -1031,17 +1035,17 @@ export const serviceContent: Record<string, ServiceContent> = {
         "A heat pump is a fridge running backwards into a tank, and the tank is the part that decides how long you own it. Glass-lined tanks carry a sacrificial anode that has to be replaced or the tank goes; stainless has no anode and nothing to rust. That one difference is most of the gap between a ten-year system and a twenty-year one.",
       facts: [
         { v: "Year five", k: "when a glass-lined tank wants its anode replaced" },
-        { v: "No anode", k: "on stainless, which is what the 15-year warranty is" },
-        { v: "-10\u00b0", k: "where a CO\u2082 unit still makes its rated heat" },
+        { v: "No anode", k: "on stainless, which is why it carries a 15-year tank warranty" },
+        { v: "-10\u00b0", k: "and a CO\u2082 unit is still heating the tank" },
       ],
     },
     metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
     metaDescription:
-      "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. VEU rebate up to $2,700 applied at quote, no chasing paperwork. 6-year workmanship warranty.",
+      "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. Up to $2,700 in rebates applied at the quote, no chasing paperwork. 6-year workmanship warranty.",
     heroPhoto: "/reclaim-split-stand-back-shot.webp",
     heroPhotoAlt: "Reclaim CO2 split heat pump installed against a brick wall",
     heroFacts: [
-      { v: "Up to $2,700", k: "VEU rebate, applied at the quote" },
+      { v: "Up to $2,700", k: "In rebates, applied at the quote" },
       { v: "2–4 hours", k: "On site, or 4–6 from an old electric tank in the roof" },
       { v: "Three brands", k: "iStore, Reclaim and Thermann, for three different jobs" },
       { v: "6-year", k: "Workmanship, plus the tank and compressor cover" },
@@ -1074,7 +1078,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "A heat pump doesn't make heat, it moves it. It pulls warmth out of the outside air and puts it into your tank, which is why it delivers three to four units of heat for every unit of electricity it draws. An electric element gets you one. That gap is the whole argument, and it turns up on every bill for the next fifteen years.",
       stats: [
         { value: "~75%", label: "less energy than an electric element" },
-        { value: "$2,605", label: "rebate, owner-occupier, everything stacked" },
+        { value: "Up to $2,700", label: "in rebates, owner-occupier, everything stacked" },
         { value: "$0", label: "running cost if you schedule it off your solar" },
         { value: "1 day", label: "on site for most changeovers" },
       ],
@@ -1095,21 +1099,21 @@ export const serviceContent: Record<string, ServiceContent> = {
       points: [
         { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a unit built for milder conditions spends July running an element it was supposed to replace." },
         { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined costs less up front and does the same job, but somebody has to remember the anode in year five, and nobody does." },
-        { t: "iStore, when the rebate decides it", d: "On the VEU numbers the 275 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
-        { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for the $400 Australian-made VEU bonus and means Reece stocks the parts in every Victorian store." },
+        { t: "iStore, when the rebate decides it", d: "On the rebate numbers the 270 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
+        { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for Solar Victoria's $400 locally made top-up for eligible owner-occupiers, and means Reece stocks the parts in every Victorian store." },
         { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement, all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
         { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
       ],
     },
     benefits: [
-      { t: "VEU rebate applied at quote", d: "Up to $2,700 for a Victorian owner-occupier at current VEEC prices ($60–$75). We handle the paperwork. You don't front the cash then chase it back six months later." , line: "Not claimed back six months later", icon: "tag" },
+      { t: "Rebates applied at quote", d: "Up to $2,700 in rebates (VEU, STCs and Solar Victoria for eligible owner-occupiers). We handle the paperwork. You don't front the cash then chase it back six months later." , line: "Not claimed back six months later", icon: "tag" },
       { t: "Three brands, three different jobs", d: "iStore when the rebate is what decides it. Reclaim ECO R290 or Thermann Integrated when it all has to fit in one shell with nothing outside. Reclaim CO₂ Split when you are staying in the house and want a stainless tank that outlasts the compressor." , line: "iStore, Reclaim and Thermann do different ones", icon: "heatpump" },
-      { t: "Same tank platform, honest pricing", d: "Reclaim ECO R290 AIO and Thermann Integrated are the same tank + heat-pump platform, Reclaim brand, Thermann brand, identical guts. Pick on brand preference or Reece supply, not spec." , line: "Two brands, identical guts, priced honestly", icon: "tank" },
-      { t: "COP holds on a cold morning (Reclaim CO₂)", d: "Reclaim's CO₂ split still makes about 4.5 COP at –10 °C. That is the difference in Emerald, Gembrook and Cockatoo, where an R290 unit spends July leaning on the element it was bought to replace." , line: "Where a cheap unit quietly stops working", icon: "flow" },
-      { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500, isolation valves + electrical connection on a dedicated circuit, done by our licensed plumber, not a sub-contractor." , line: "A plumbing job, done by plumbers", icon: "shield" },
-      { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to an ARC-approved recycler on install day. No waiting for hard rubbish." , line: "Disconnected, removed and gone", icon: "truck" },
+      { t: "Two similar all-in-ones, one price", d: "Reclaim ECO R290 and Thermann's R290 all-in-one are two similar units at the same installed price. Pick on brand preference or on which one Reece can supply." , line: "Two similar units, priced the same", icon: "tank" },
+      { t: "Keeps heating on a cold morning (Reclaim CO₂)", d: "Reclaim's CO₂ split keeps heating down to –10 °C, so it doesn't fall back on an element in a hills winter. That is the difference in Emerald, Gembrook and Cockatoo, where an R290 unit spends July leaning on the element it was bought to replace." , line: "Where a cheap unit quietly stops working", icon: "flow" },
+      { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500 and isolation valves, done by our licensed plumber, not a sub-contractor. Any new circuit is run and certified by our licensed electrician." , line: "A plumbing job, done by plumbers", icon: "shield" },
+      { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to a metal recycler on install day, with any refrigerant recovered under our ARC authorisation. No waiting for hard rubbish." , line: "Disconnected, removed and gone", icon: "truck" },
     ],
-    brands: ["Reclaim Energy", "iStore", "Thermann", "Rheem AmbiHeat"],
+    brands: ["Reclaim Energy", "iStore", "Thermann"],
     /**
      * Empty on purpose. Every heat pump price is a per-system row in
      * lib/systemDetail.ts, and the cards in "Choose your system" render
@@ -1120,15 +1124,15 @@ export const serviceContent: Record<string, ServiceContent> = {
     pricing: [],
     steps: [
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
-      { title: "Written quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from' price, the number on the quote is the number on the invoice." },
+      { title: "The written quote", detail: "After the inspection, in writing: model number, capacity, rebate value, tank + heat-pump warranty and the installed price after rebates. No 'from' price, the number on the quote is the number on the invoice." },
       { title: "We lodge the VEU application", detail: "Approved accredited-provider paperwork submitted the day you accept the quote. The rebate is applied to your invoice, not something you chase back six months later." },
       { title: "Install day, usually same-day swap", detail: "Swapping to a heat pump, all-in-one or split, from gas or electric, is 2–4 hours on site. Replacing an old electric tank that sits in the roof is 4–6 hours. Old tank drained, disconnected, loaded up." },
       { title: "Commission, temper, hand over", detail: "Tempering valve to AS/NZS 3500, isolation valves in, dedicated circuit tested. We wait for hot water at the tap, then walk you through the controller and timer settings." },
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
     photos: [
-      { src: "/270L-istore-heatpump.webp", alt: "iStore 275 L heat pump hot water system", caption: "iStore 275 L, where the VEU rebate goes furthest" },
-      { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 AIO, same platform as Thermann Integrated" },
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump hot water system", caption: "iStore 270 L, where the rebates go furthest" },
+      { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 all-in-one" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split, 15-year stainless tank" },
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, Australian-made by Dux" },
       { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ heat pump, outdoor unit and tank installed", caption: "Reclaim CO₂ Split, outdoor unit + separate tank" },
@@ -1158,7 +1162,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           facts: [
             { v: "Two pieces", k: "Compressor on the ground, tank against the wall" },
             { v: "160 – 400 L", k: "Tank sizes, so the footprint follows the household" },
-            { v: "37 dBA", k: "Quiet enough to sit near a bedroom wall" },
+            { v: "37 dBA", k: "Quiet enough not to bother the neighbours" },
             { v: "Shady side", k: "Sited away from bedrooms and the neighbour's fence" },
           ],
         },
@@ -1171,8 +1175,8 @@ export const serviceContent: Record<string, ServiceContent> = {
             "Glass-lined tanks carry a sacrificial anode that corrodes so the steel doesn't. Replace it around year five and the tank lasts; skip it and the tank goes. Stainless has no anode at all, which is what the fifteen-year warranty is actually about: not a better weld, an absent failure mode.",
           facts: [
             { v: "Year five", k: "when a glass-lined tank wants its anode replaced" },
-            { v: "No anode", k: "on stainless, what the 15-year warranty actually is" },
-            { v: "-10\u00b0", k: "where CO\u2082 still makes its rated heat" },
+            { v: "No anode", k: "on stainless, which is why it carries a 15-year tank warranty" },
+            { v: "-10\u00b0", k: "and CO\u2082 is still heating the tank" },
           ],
         },
         label: "Split heat pump hot water",
@@ -1183,7 +1187,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         benefitTiles: [
           {
             t: "CO₂, not R32 or R134a",
-            line: "A natural refrigerant with zero global-warming potential",
+            line: "A natural refrigerant with a global-warming potential of 1",
             detail:
               "Reclaim runs CO₂ (R744) where almost everyone else runs a synthetic. It matters here rather than on a spec sheet because CO₂ keeps pulling heat out of the air on a cold Pakenham morning, which is exactly when other heat pumps are working hardest for the least.",
             icon: "snowflake",
@@ -1199,7 +1203,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Tank choices",
             line: "Stainless or glass-lined, 160 to 400 litres",
             detail:
-              "Stainless has no anode to swap and nothing to rust, the duplex tank steps up to 2205 duplex or 316-grade for the hardest water. Glass-lined is the cheaper way in. Sizes from 160 up to 400 litres, so a couple and a family of six both get the right one.",
+              "Stainless has no anode to swap and nothing to rust, and for the hardest water there's a 2205 duplex or 316-grade option. Glass-lined is the cheaper way in. Sizes from 160 up to 400 litres, so a couple and a family of six both get the right one.",
             icon: "tank",
           },
           {
@@ -1213,21 +1217,21 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Runs on your solar",
             line: "PV-diverter kit fires it on surplus",
             detail:
-              "The diverter kit starts the compressor on solar surplus, so a house with panels heats its water on power it was exporting for a few cents. It is as close to free hot water as this gets, and it only works on a heat pump.",
+              "The diverter kit starts the compressor on solar surplus, so a house with panels heats its water on power it was exporting for a few cents. It is as close to free hot water as this gets.",
             icon: "flow",
           },
           {
-            t: "Quiet enough for a bedroom wall",
+            t: "Quiet enough not to argue about",
             line: "37 dBA at a metre",
             detail:
-              "The compressor is the only thing that makes noise and it sits outside. At 37 dBA at one metre it can go next to a bedroom window without an argument, which matters because where it goes is usually decided by where it fits.",
+              "The compressor is the only thing that makes noise and it sits outside. At 37 dBA at one metre the neighbours won't notice it, which matters because where it goes is usually decided by where it fits. We still site it away from bedrooms where the house allows.",
             icon: "shield",
           },
           {
             t: "Rebate at the quote",
             line: "Up to $2,700 off, applied before you pay",
             detail:
-              "The VEU rebate comes off the quoted price. You don't front the full amount and chase it back six months later, and the number you see is the number you pay.",
+              "The rebates come off the quoted price. You don't front the full amount and chase it back six months later, and the number you see is the number you pay.",
             icon: "tag",
           },
           {
@@ -1244,7 +1248,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Tank sizes 160 / 250 / 315 / 400 L",
           "Compressor outside, tank against the wall, needs both spots",
           "PV-diverter kit available for houses with solar",
-          "VEU rebate applied at the quote, up to $2,700",
+          "Rebates of up to $2,700 applied at the quote",
           "Tempering valve fitted, outlets held at 50 °C",
           "Old unit drained, disconnected and taken to a metal recycler",
         ],
@@ -1258,7 +1262,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "Why CO₂ instead of R32 or R290?",
-            a: "CO₂ (R744) is a natural refrigerant with zero global-warming potential, and it holds heating capacity further down the temperature range. On a Melbourne winter morning that's the difference between making hot water and falling back on an element. It's also the reason Reclaim costs more than a budget unit.",
+            a: "CO₂ (R744) is a natural refrigerant with a global-warming potential of 1, and it holds heating capacity further down the temperature range. On a Melbourne winter morning that's the difference between making hot water and falling back on an element. It's also the reason Reclaim costs more than a budget unit.",
           },
           {
             q: "Stainless or glass-lined?",
@@ -1274,7 +1278,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "How loud is it?",
-            a: "37 dBA at one metre on the Reclaim compressor, quieter than a fridge. It can sit near a bedroom window without being the reason somebody rings us in February.",
+            a: "37 dBA at one metre on the Reclaim compressor, quieter than a fridge. The neighbours won't notice it, and we still site it away from bedroom windows where we can.",
           },
           {
             q: "What's the warranty?",
@@ -1307,7 +1311,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           facts: [
             { v: "Year five", k: "anode checked on every unit that has one" },
             { v: "Clear air", k: "R290 needs it, not a sealed cupboard" },
-            { v: "6 + 3 years", k: "tank and compressor, plus six years from us" },
+            { v: "6 years", k: "our workmanship, on top of the maker's tank and heat pump cover" },
           ],
         },
         label: "All-in-one heat pump hot water",
@@ -1317,7 +1321,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         brands: ["Reclaim Energy", "iStore", "Thermann"],
         benefitTiles: [
           {
-            t: "One thing on the wall",
+            t: "One unit, one footprint",
             line: "Compressor and tank in a single shell",
             detail:
               "Nothing separate to find a spot for. If the old tank's position is the only place a hot water unit can go at your place, this is the one that fits it, a split needs somewhere for the compressor as well.",
@@ -1331,10 +1335,10 @@ export const serviceContent: Record<string, ServiceContent> = {
             icon: "tag",
           },
           {
-            t: "Two brands, identical guts",
-            line: "Reclaim ECO R290 and Thermann ECO R290",
+            t: "Two similar all-in-ones",
+            line: "Reclaim ECO R290 and Thermann's R290 unit",
             detail:
-              "These are the same tank and heat-pump platform with two badges on it. Pick on brand preference or on which one Reece can get you this week: not on spec, because there isn't a difference to find.",
+              "Two similar R290 all-in-ones at the same installed price. Pick on brand preference or on which one Reece can get you this week.",
             icon: "heatpump",
           },
           {
@@ -1346,9 +1350,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "200 or 285 litres",
-            line: "Plus iStore at 180 and 275",
+            line: "Plus iStore at 180 and 270",
             detail:
-              "Four sizes across the two platforms. 180–200 L suits one or two people, 275–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
+              "Four sizes across the two platforms. 180–200 L suits one or two people, 270–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
             icon: "ruler",
           },
           {
@@ -1374,8 +1378,8 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
         ],
         points: [
-          "Reclaim ECO R290 and Thermann ECO R290: same platform, two badges",
-          "iStore 180 L and 275 L, where the VEU rebate reaches furthest",
+          "Reclaim ECO R290 and Thermann's R290 all-in-one, two similar units",
+          "iStore 180 L and 270 L, where the rebates reach furthest",
           "200 L and 285 L on the R290 platform",
           "One shell: nothing separate to place or plumb",
           "R290 natural refrigerant, single-digit global-warming potential",
@@ -1393,7 +1397,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "Reclaim ECO or Thermann ECO, which one?",
-            a: "They are the same tank and heat-pump platform with different badges on them. Identical guts. Pick on brand preference or on which one Reece has in stock, and don't let anyone tell you one out-specs the other.",
+            a: "Two similar R290 all-in-ones at the same installed price. Pick on brand preference or on which one Reece has in stock.",
           },
           {
             q: "Why is iStore cheaper?",
@@ -1429,7 +1433,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     included: [
       "Supply of the specified heat pump + all mounting hardware",
       "Full plumbing install to AS/NZS 3500 (drainage, tempering valve, isolation valves)",
-      "Electrical connection to a dedicated circuit (new sub-board circuit if required)",
+      "Electrical connection to a dedicated circuit (a new circuit, if needed, run and certified by our licensed electrician)",
       "Old tank drained, disconnected, removed and disposed of",
       "VEU rebate application lodged with an accredited provider on your behalf",
       "Plumbing compliance certificate emailed inside 24 hours",
@@ -1440,13 +1444,13 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Relocation of the tank to a new position >2 m from the existing site (charged per metre of pipe rework)",
       "LPG bottle relocation or gas capping (itemised on the quote if needed)",
       "Repair to underlying pipework where the old tank has been leaking for months",
-      "Solar PV integration (see our PV-diverter kit as an add-on)",
+      "Solar PV integration beyond setting the timer to your solar (quoted separately if you want it)",
     ],
     faqs: [
-      { q: "How much is the VEU rebate right now?", a: "Up to $2,700 for a Victorian owner-occupier at current VEEC prices ($60–$75 per certificate). We calculate your actual rebate at the quote based on your address, existing system, and household size." },
+      { q: "How much are the rebates right now?", a: "Up to $2,700 all up: VEU certificates and STCs, plus Solar Victoria's rebate for eligible owner-occupiers. A rental gets the VEU and STCs only. We work out your actual figure at the quote from your address and the system you're replacing." },
       { q: "How much will I save on my energy bill?", a: "A gas-storage → heat pump swap typically saves $400–$900 a year. Electric storage → heat pump saves $700–$1,400. Payback after the VEU rebate is usually under 2 years." },
       { q: "Does a heat pump work in cold Melbourne mornings?", a: "R290 (propane) units drop noticeably below 0 °C. CO₂ heat pumps (Reclaim) hold full capacity down to −10 °C, worth specifying for hills postcodes like Emerald, Gembrook or Cockatoo." },
-      { q: "Is it noisy? Where do you put it?", a: "37–48 dBA at 1 m depending on model, Reclaim CO₂ is the quietest at 37 dBA (safe next to a bedroom wall). Ideally sited on the shady side of the house away from bedrooms." },
+      { q: "Is it noisy? Where do you put it?", a: "37–48 dBA at 1 m depending on model, Reclaim CO₂ is the quietest at 37 dBA. Ideally sited on the shady side of the house away from bedrooms." },
       { q: "How long does the install take?", a: "Usually 2–4 hours on site to swap to a heat pump, all-in-one or split, from gas or electric, done in one visit. Replacing an old electric tank that sits in the roof takes longer, usually 4–6 hours. Both are usually same-day." },
       { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 5 years on the whole unit. Plus our 6-year workmanship on top of all of them." },
       { q: "Can I combine it with solar PV?", a: "Yes, Reclaim's split range is PV-diverter compatible so the heat pump only runs when your PV is exporting. We can add a diverter kit at install time or later." },
@@ -1457,7 +1461,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     looks: {
       heading: "What a service visit actually looks like.",
       note:
-        "Sixty to ninety minutes, one van, one person you have met before. We are not there to sell you a system: most of the time the answer is that it is dirty rather than dying, and we would rather tell you that and be the people you ring in five years.",
+        "Sixty to ninety minutes, one van, one technician. We are not there to sell you a system: most of the time the answer is that it is dirty rather than dying, and we would rather tell you that and be the people you ring in five years.",
       photo: "/evap cooler service close ip.jpg",
       photoAlt: "Evaporative cooler opened up on a roof, pads and tray visible",
       photoScene: true,
@@ -1477,7 +1481,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "A service is worth having twice over: once because the machine runs better, and once because there is now a document saying somebody competent looked at it. That second one is what a manufacturer asks for when you make a warranty claim in year four, and it is the reason a cheap cash-in-hand clean is worth less than it looks.",
       facts: [
         { v: "12 months", k: "on any part we supply, plus six years on the labour" },
-        { v: "Fee waived", k: "if the repair goes ahead the same day" },
+        { v: "In writing", k: "every repair priced before we start" },
         { v: "Month 11", k: "we text you so the next one gets booked" },
       ],
     },
@@ -1493,14 +1497,14 @@ export const serviceContent: Record<string, ServiceContent> = {
     heroPhoto: "/evap-cooler-service.webp",
     heroPhotoAlt: "Evaporative cooler being serviced on a roof",
     heroFacts: [
-      { v: "Same day", k: "Breakdowns, across the corridor" },
+      { v: "Same day", k: "Breakdowns, in business hours where we can" },
       { v: "Under 30 min", k: "To diagnose most faults" },
       { v: "Every brand", k: "Including the ones we don't install" },
       { v: "12 months", k: "On any part we supply" },
     ],
     h1: "Aircon service, repair and breakdowns",
     intro:
-      "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 50 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and written quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
+      "Keep your aircon running efficiently with a yearly service from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 50 km of Pakenham, splits, multi-head and ducted, at fixed prices: $250 + GST for a split, $180 + GST each for two or more at one home. Breakdowns get same-day attendance where we can, a written quote before any parts are ordered, and a written service report to keep with your warranty papers.",
     whyThese: {
       heading: "Why we service brands we'd never sell you.",
       blurb:
@@ -1516,27 +1520,28 @@ export const serviceContent: Record<string, ServiceContent> = {
     },
     benefits: [
       { t: "All major brands serviced", d: "Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Braemar. Even ones we don't install." , line: "Including the ones we don't install", icon: "snowflake" },
-      { t: "Keeps your warranty valid", d: "Most manufacturers require annual service to keep warranty in force. We lodge a service report direct with the maker in your name." , line: "We lodge the report in your name", icon: "shield" },
-      { t: "Same-day breakdown attendance", d: "Aircon down in a heatwave? We aim to be on-site same-day across Pakenham, Berwick, Officer, Cranbourne and out to Warragul." , line: "Across the corridor, in a heatwave", icon: "clock" },
-      { t: "Priced in writing before we touch anything", d: "Diagnostic, gas top-up, capacitor swap, board replacement, all quoted in writing before we open a wallet." , line: "You know the number before we start", icon: "tag" },
+      { t: "A record for your warranty", d: "Most manufacturers recommend a yearly service, and a claim goes easier with a record of it. You get a written service report to keep with your warranty papers." , line: "A written report for your warranty papers", icon: "shield" },
+      { t: "Same-day breakdown attendance", d: "Aircon down in a heatwave? We aim to be on site the same day across Pakenham, Berwick, Officer and Cranbourne, and as soon as we can further out." , line: "Across the corridor, in a heatwave", icon: "clock" },
+      { t: "Priced in writing before we touch anything", d: "Diagnostic, gas top-up, capacitor swap, board replacement, all quoted in writing before you spend a dollar." , line: "You know the number before we start", icon: "tag" },
       { t: "Refrigerant leak repair (not just top-up)", d: "If you're losing gas, it's a leak, we find it and fix it. Yearly re-gassing is a bandaid; we'd rather do the job once properly." , line: "Find the leak, not just refill it", icon: "gauge" },
       { t: "Coil clean that actually cleans", d: "Chemical coil clean, full disassembly on the indoor for ducted, condenser wash on the outdoor. Not a wipe-down with a rag." , line: "Pulled apart and washed, not wiped", icon: "wrench" },
     ],
     brands: ["Mitsubishi Electric", "Daikin", "Fujitsu", "Panasonic", "LG", "Kaden", "Braemar", "Samsung"],
     pricing: [
-      { tier: "Split system · annual service", price: "$250 + GST", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
-      { tier: "Two or more splits at one address", price: "$180 + GST", includes: "Everything in the split system service, Every split at the address at this rate, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per split" },
-      { tier: "Split system · deep clean", price: "$350 + GST", includes: "Indoor unit taken apart, Coil and fan washed through rather than wiped, Drain tray and line flushed, Run and tested once it is back together", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per unit" },
-      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", priceKey: "Per visit", photoScene: true },
-      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
-      { tier: "Emergency call-out (after-hours / weekend)", price: "$220 + parts", includes: "Same-day attendance, Someone on the tools rather than an overseas call-centre, Diagnosis and a written repair quote on the spot", group: "Call-out", priceKey: "Call-out fee" },
+      { tier: "Split system · annual service", price: "$250 + GST", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor check, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit", fixed: true },
+      { tier: "Two or more splits at one address", price: "$180 + GST", includes: "Everything in the split system service, Every split at the address at this rate, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per split", fixed: true },
+      { tier: "Split system · deep clean", price: "$350 + GST", includes: "Indoor unit taken apart, Coil and fan washed through rather than wiped, Drain tray and line flushed, Run and tested once it is back together", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per unit", fixed: true },
+      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, refrigerant pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", priceKey: "Per visit", photoScene: true },
+      // No after-hours row: after hours we answer for a gas leak or no hot
+      // water (Jake, 24 Nov 2026), not an aircon breakdown.
+      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it", group: "Call-out", priceKey: "Call-out fee" },
     ],
     steps: [
-      { title: "Book the visit, one call, no menu", detail: "Call and book with the person you'll see, Chaz or Jake picks up, quotes the service fee, and books a window that suits you. No press-1 hold music, no third-party dispatcher." },
+      { title: "Book the visit, one call, no menu", detail: "Call and Kellie or Jake picks up, confirms the service price, and books a window that suits you. No press-1 hold music, no third-party dispatcher." },
       { title: "We arrive with the parts", detail: "Common consumables, capacitors, thermistors, PCB relays, refrigerant, filters, live on the truck. Most service jobs are one-visit fixes because we're not driving back for a small part." },
-      { title: "Service on the day", detail: "Filter clean, coil chemical clean (indoor + outdoor), refrigerant pressure check, capacitor + fan motor test, drain flush, thermistor calibration. Written service report before we leave." },
-      { title: "Diagnose + written quote for any repair", detail: "If a component needs replacing we quote it in writing before we touch it. Pricing in writing, no hourly creep. Fee is waived if you accept the repair the same day." },
-      { title: "Service record lodged with the manufacturer", detail: "We upload the service report direct to Mitsubishi, Daikin, Fujitsu etc so your warranty record stays clean and any future claim goes through without a fight." },
+      { title: "Service on the day", detail: "Filter clean, coil chemical clean (indoor + outdoor), refrigerant pressure check, capacitor + fan motor test, drain flush, thermistor check. Written service report before we leave." },
+      { title: "Diagnose + written quote for any repair", detail: "If a component needs replacing we quote it in writing before we touch it. Pricing in writing, no hourly creep." },
+      { title: "A service record you keep", detail: "The written service report is yours to keep with the warranty papers, so if you ever need to make a claim the record of the service is there." },
       { title: "12-month reminder", detail: "We drop you a text 11 months later so the annual is booked before the heatwave. Skip it if you don't want it, it's a one-line opt-out." },
     ],
     systems: [
@@ -1571,10 +1576,10 @@ export const serviceContent: Record<string, ServiceContent> = {
         brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
-            t: "Pads, checked and replaced",
-            line: "When they've gone brittle or scaled up",
+            t: "Pads checked",
+            line: "Replacement quoted when they're done",
             detail:
-              "The pads are what does the cooling. Once they're scaled or brittle the water runs past them instead of through them, and the unit becomes an expensive fan. They're inspected every service and replaced when they're done.",
+              "The pads are what does the cooling. Once they're scaled or brittle the water runs past them instead of through them, and the unit becomes an expensive fan. They're inspected every service, and if they're done we quote the replacement before fitting it.",
             icon: "flow",
           },
           {
@@ -1618,7 +1623,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "A pre-summer service on a roof-mounted evap. Pads, water tray, pump and float all get looked at, because the first hot day is a bad time to find out the pump has seized over winter.",
         photo: { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler service, cooling pads and water tray" , scene: true },
         points: [
-          "Pads inspected and replaced when they've gone brittle or scaled up",
+          "Pads inspected, and a replacement quoted when they've gone brittle or scaled up",
           "Water tray drained, flushed and checked for leaks",
           "Pump, float valve and bleed rate tested under load",
           "Distributor lines cleared so every pad gets wet, not just the front one",
@@ -1669,8 +1674,8 @@ export const serviceContent: Record<string, ServiceContent> = {
             "A service is worth having twice over: the machine runs better, and there is now a document saying somebody competent looked at it. The second one is what a manufacturer asks for when you claim in year four, and it is why a cash-in-hand clean is worth less than it looks.",
           facts: [
             { v: "12 months", k: "on any part we supply, six years on the labour" },
-            { v: "Fee waived", k: "if the repair goes ahead the same day" },
-            { v: "Lodged", k: "straight to the manufacturer, so the record holds" },
+            { v: "In writing", k: "every repair priced before we start" },
+            { v: "Written report", k: "yours to keep with the warranty papers" },
           ],
         },
         brands: ["Mitsubishi Electric", "Kaden", "Brivis"],
@@ -1711,10 +1716,10 @@ export const serviceContent: Record<string, ServiceContent> = {
             icon: "shield",
           },
           {
-            t: "Connections thermal-scanned",
-            line: "Torque-checked as well",
+            t: "Connections torque-checked",
+            line: "Tightened before they overheat",
             detail:
-              "Electrical connections torque-checked and thermal-scanned. A loose terminal shows up as heat long before it shows up as a fault.",
+              "Electrical connections checked and torqued. A loose terminal shows up as heat long before it shows up as a fault.",
             icon: "gauge",
           },
         ],
@@ -1728,11 +1733,11 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Condensate drain flushed and flow tested",
           "Refrigerant pressures and superheat measured against spec",
           "Capacitor, fan motor and thermistors tested under load",
-          "Electrical connections torque-checked and thermal-scanned",
+          "Electrical connections checked and torque-tightened",
         ],
         priceFrom: "from $250 + GST",
         intro:
-          "An annual service on a refrigerated system is filters, coils, drains and pressures. It's unglamorous and it's the difference between a system that lasts fifteen years and one that dies in an eight-year-old heatwave with the whole street ahead of you in the queue.",
+          "An annual service on a refrigerated system is filters, coils, drains and pressures. It's unglamorous and it's the difference between a system that lasts fifteen years and one that dies at eight, in a heatwave, with the whole street ahead of you in the queue.",
         bestFor: [
           "Any split or ducted system that hasn't been looked at in over a year",
           "Systems running weak, smelling musty or dripping inside",
@@ -1766,13 +1771,12 @@ export const serviceContent: Record<string, ServiceContent> = {
       time: "Annual service · 60–90 min per unit. Breakdown diagnosis · under 30 min. Most repairs completed same visit.",
       warranty: "12-month warranty on any part we supply + 6-year workmanship on repair labour.",
       priceRange: "$120 diagnosis-only call-out → $390 ducted annual → parts on top.",
-      followUp: "Service report lodged direct with the manufacturer + a 12-month reminder text before next summer.",
+      followUp: "Written service report on the day + a 12-month reminder text before next summer.",
     },
     included: [
       "All standard consumables (filters, drain flush chemical, chemical coil cleaner)",
       "Refrigerant top-up up to 200 g if pressure is low (bigger charge = leak = separate quote)",
-      "Written service report before we leave site",
-      "Service record lodged with the manufacturer in your name",
+      "Written service report before we leave site, to keep with your warranty papers",
       "12-month recall text so the next service gets booked in time",
     ],
     excluded: [
@@ -1782,7 +1786,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Access to a unit walled-in behind cabinetry that needs demolishing to reach",
     ],
     faqs: [
-      { q: "How often should I service my aircon?", a: "Once a year is the manufacturer minimum to keep warranty in force. Heavy commercial use (a shop, a rental short-let) may need 2–4 per year. We text a reminder 11 months out so it's booked in time for summer." },
+      { q: "How often should I service my aircon?", a: "Once a year is what most manufacturers recommend. Heavy commercial use (a shop, a rental short-let) may need 2–4 per year. We text a reminder 11 months out so it's booked in time for summer." },
       { q: "My aircon isn't cooling, what is it?", a: "Top four causes in our service book: (1) dirty filters + coil, (2) low refrigerant from a leak (needs finding, not just topping up), (3) faulty capacitor on the outdoor, (4) blocked drain triggering a safety cut-out. We diagnose in under 30 minutes." },
       { q: "Do you fix all brands?", a: "Yes. We hold spare-parts accounts with Mitsubishi, Daikin, Fujitsu, Panasonic, LG and Kaden. Non-stock parts land within 24–48 hours." },
       { q: "The last mob just kept topping up my gas, is that OK?", a: "No. If it's losing gas, there's a leak. Yearly re-gassing hides the fault while the environmental refund vents into the atmosphere. We'd rather leak-find it once and fix it properly." },
@@ -1794,7 +1798,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     looks: {
       heading: "Where the heater actually goes.",
       note:
-        "A gas ducted heater lives in one of three places: a cupboard inside, a slab against an outside wall, or up in the roof. Which one you have already been decided years ago by whoever built the house, and a like-for-like replacement goes back where the old one came out. Hot water is simpler: the unit is about the size of a briefcase, on an outside wall.",
+        "A gas ducted heater lives in one of three places: a cupboard inside, a slab against an outside wall, or up in the roof. Which one you have was decided years ago by whoever built the house, and a like-for-like replacement goes back where the old one came out. Hot water is simpler: the unit is about the size of a briefcase, on an outside wall.",
       photo: "/gas-ducted-install.webp",
       photoAlt: "Gas ducted heater installed in a roof space with flue and ductwork",
       photoScene: true,
@@ -1826,7 +1830,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // ------------------------------------------------------------------
     metaTitle: "Gas Plumbing & Ducted Heating, Melbourne SE",
     metaDescription:
-      "Licensed gas fitters + plumbers serving Melbourne's south-east, Brivis and Kaden ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection, same-day emergency call-outs. VBA-licensed, full compliance certificates.",
+      "Licensed gas fitters + plumbers serving Melbourne's south-east, Brivis and Kaden ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection and $250 + GST heater services. Full compliance certificates.",
     heroPhoto: "/gas-ducted-install.webp",
     heroPhotoAlt: "Gas ducted heater installed in a roof space",
     heroFacts: [
@@ -1837,26 +1841,26 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Gas heating, hot water & plumbing",
     intro:
-      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 50 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, written quotes on planned work back in 12 business hours, and full compliance certificates on every job.",
+      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our licensed gas fitters and plumbers handle the lot across every postcode within 50 km of Pakenham. After hours we answer for a gas leak or no hot water when we can, planned work gets a call back within 12 business hours, and every job gets full compliance certificates.",
     whyThese: {
       heading: "Why Brivis and Kaden for gas, and why the star rating matters more than the price.",
       blurb:
-        "Gas ducted is still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring a cold house up. Which one you pick decides what you pay to run it for the next fifteen years.",
+        "Gas ducted is the fastest way to bring a whole Melbourne house up from cold, and most homes here already have the ducts for it. Which heater you pick decides what you pay to run it for the next fifteen years.",
       points: [
         { t: "Brivis is what most of these homes were built with", d: "Wombat, Buffalo and Compact Classic drop into the existing cavity, ductwork and controller wiring, so a retrofit is a day rather than a rebuild. Rinnai backs the parts pipeline, even fifteen-year-old units are still serviceable." },
         { t: "Kaden, same job, different supply chain", d: "Reece-exclusive, internal and external, 3 to 6 star, with a universal footprint that drops onto an existing Brivis or Braemar pad. Parts sit in every Reece store in Victoria, and it goes in with the same crew and the same 6-year workmanship as anything else we fit." },
         { t: "We quote the payback, not just the price", d: "A 3-star and a 6-star heat the same house to the same temperature. The 6-star costs more on the day and less every winter after it. We'll show you where the crossover lands on your gas bill, because on a house you're selling in two years the answer is genuinely different from a house you're staying in." },
         { t: "Carbon monoxide testing on every gas job", d: "A cracked heat exchanger has no smell and no warning. Calibrated analyser, results on the report. This is the part of the job that isn't optional and we won't skip it to win a quote." },
         { t: "Thermann G-series for continuous flow", d: "Made by Reece, not Rinnai, whatever the internet tells you. Never runs out, no tank losing heat overnight, and same-day swap on most like-for-like replacements." },
-        { t: "Compliance certificate within 24 hours", d: "VBA-licensed gas fitters, paperwork emailed the next business day. Not chased three weeks later when you need it for a sale." },
+        { t: "Compliance certificate within 24 hours", d: "Licensed gas fitters, paperwork emailed the next business day. Not chased three weeks later when you need it for a sale." },
       ],
     },
     benefits: [
-      { t: "VBA-licensed gas fitting", d: "Full Victorian Plumbing Licence + Type-A gas endorsement. Every gas job compliant with AS/NZS 5601." , line: "Full licence and Type-A endorsement, both current", icon: "shield" },
+      { t: "Licensed gas fitting", d: "Full Victorian plumbing licence 46828, with Type A and Type B gas. Every gas job compliant with AS/NZS 5601." , line: "Full licence, Type A and Type B gas, all current", icon: "shield" },
       { t: "Gas ducted retrofit, done weekly", d: "The default heater in most homes built 1990–2015 in the corridor. We replace one nearly every week, Brivis Wombat, Buffalo and Kaden gas ducted all covered." , line: "We replace one most weeks in this corridor", icon: "flame" },
       { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water, a Reece-exclusive brand (not Rinnai), Australian-designed, 12-yr heat-exchanger warranty." , line: "12-year heat exchanger, through Reece", icon: "tank" },
       { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." , line: "Tested and made safe, not sniffed at", icon: "alarm" },
-      { t: "Emergency call-outs, someone on the tools", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." , line: "Nights and weekends, a real person", icon: "phone" },
+      { t: "After hours, when we can", d: "Gas leak or no hot water after hours? Call and we'll answer if we can. The after-hours call-out is $450 + GST and covers the first hour on site. Smell gas? Ring the gas emergency line on 132 771 first." , line: "Gas leaks and no hot water, if we can answer", icon: "phone" },
       { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow, off the pad and to the metal recycler on install day. No hard-rubbish wait." , line: "Disconnected, removed and gone", icon: "truck" },
     ],
     brands: ["Brivis", "Kaden", "Thermann", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
@@ -1866,11 +1870,11 @@ export const serviceContent: Record<string, ServiceContent> = {
       { tier: "Thermann G-series continuous flow (26 L)", price: "from $2,499", includes: "Supply, install, compliance cert, controller (indoor + outdoor)", group: "Gas hot water", photo: "/G-Series_Front_On_View_1200x900.jpg" },
       { tier: "Gas appliance installation (single point)", price: "from $349", includes: "Connection, pressure test, compliance cert", group: "Gas fitting", photo: "/gas-ducted-install.webp", photoScene: true },
       { tier: "Gas leak detection + report", price: "from $220", includes: "Electronic leak test, pressure test, written safe-to-stay report", group: "Gas fitting", photo: "/gas-line-safe.webp", priceKey: "Price", photoScene: true },
-      { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for a gas leak or a CO alarm, No hot water sorted the same day where we can, Diagnosis and a written repair quote on the spot", group: "Emergency", priceKey: "Call-out fee" },
+      { tier: "After-hours call-out: gas leak or no hot water", price: "$450 + GST", includes: "Covers the first hour on site, We answer after hours when we can, Smell gas? Ring 132 771 first, Any repair quoted in writing before it goes ahead", group: "After hours", priceKey: "Call-out fee", fixed: true },
     ],
     steps: [
-      { title: "Same-day emergency? Call first", detail: "Gas leak, no hot water, CO alarm, call and we'll be on-site same-day. The call-out fee is confirmed on the phone before we come, and waived if the repair goes ahead on the day." },
-      { title: "Planned job? Written quote in 12 hrs", detail: "Send a photo of the existing unit and we'll come back the same business day with the replacement model, capacity, star rating and installed price. Includes VEU eligibility check for the swap." },
+      { title: "Gas leak or no hot water? Call first", detail: "Smell gas? Ring the gas emergency line on 132 771 first, then us. In business hours we come out the same day where we can. After hours we answer if we can, and the call-out is $450 + GST, covering the first hour on site." },
+      { title: "Planned job? Send a photo", detail: "For a like-for-like swap, send a photo of the existing unit and we'll come back the same business day with the replacement model, capacity, star rating and installed price. Anything else gets a free site check first. Includes VEU eligibility check for the swap." },
       { title: "Old unit assessed on site", detail: "Ducted heater, is the cavity + ductwork reusable? (Usually yes on a like-for-like retrofit.) Hot water, is the existing pad + pipework good, or does it need rework? We tell you before we touch anything." },
       { title: "Install day", detail: "Brivis ducted replacement, 3-4 hours if the ducts + controller wiring reuse cleanly. Continuous flow hot water swap, 3-5 hours. Same-day for both. Old unit off the pad and loaded up." },
       { title: "Commission, pressure test, hand over", detail: "Gas pressure test to AS/NZS 5601, controller programmed, temperature setpoint checked, we run hot water at the tap. You sign the job card when it's running the way you want." },
@@ -1912,7 +1916,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Star rating is the number",
             line: "We quote the payback, not just the price",
             detail:
-              "The difference between a 3-star and a 5-star unit is a running cost you pay every winter for fifteen years. We'll show you both prices and what the gap actually pays back in.",
+              "The difference between a 3-star and a 6-star unit is a running cost you pay every winter for fifteen years. We'll show you both prices and what the gap actually pays back in.",
             icon: "tag",
           },
           {
@@ -1968,7 +1972,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Gas ducted heating",
         seoTitle: "Gas Ducted Heating Berwick & Pakenham",
         seoDescription:
-          "Gas ducted heating installed, replaced and serviced in Berwick, Pakenham, Narre Warren and Cranbourne. Brivis and Kaden, CO tested, written quote in 12 hrs.",
+          "Gas ducted heating installed, replaced and serviced in Berwick, Pakenham, Narre Warren and Cranbourne. Brivis and Kaden, CO tested, a call back within 12 business hours.",
         h1: { lead: "Gas ducted heating,", accent: "Berwick & Pakenham" },
         localAreas: {
           heading: "Gas ducted heating in your suburb.",
@@ -1984,11 +1988,11 @@ export const serviceContent: Record<string, ServiceContent> = {
           ],
         },
         blurb:
-          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. Still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring one up from cold.",
+          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. The fastest way to bring a whole Melbourne home up from cold.",
         photo: { src: "/duct-work.webp", alt: "Insulated flex ductwork run through a roof space to the vents", scene: true },
         points: [
           "Brivis Wombat, Compact Classic, Buffalo and StarPro",
-          "Kaden internal and external, 3 to 5 star",
+          "Kaden internal and external, 3 to 6 star",
           "Internal (roof or cupboard) and external (against the wall) versions",
           "Star rating drives running cost. We quote the payback, not just the price",
           "New flue and cowl to current standards, not the old one refitted",
@@ -1998,7 +2002,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $4,600 installed",
         intro:
-          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. It's still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring a cold house up to temperature, which is why most homes built here since 1990 have one.",
+          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. It's the fastest way to bring a cold house up to temperature, which is why most homes built here since 1990 have one.",
         bestFor: [
           "Whole-home winter heating, fast, in a climate that genuinely gets cold",
           "Like-for-like replacement, the existing cavity, ductwork and controller wiring usually all reuse",
@@ -2015,8 +2019,8 @@ export const serviceContent: Record<string, ServiceContent> = {
           { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it to 3–5 hours." },
           { q: "Is a 6-star worth the extra over a 3-star?", a: "On a house you're staying in, generally yes, the efficiency difference shows up every winter. On a house you're selling in two years, probably not. We'll show you where the crossover lands rather than just pushing the dearer one." },
           { q: "How long does a changeover take?", a: "A like-for-like internal swap is usually a single day. External or a first-time install with new ductwork runs longer, and we'll say which at the quote." },
-          { q: "How much does it cost to replace a gas ducted heater?", a: "It depends on the size, the star rating and what the house needs, so we price it in writing after a free site check, with the old unit removed and a compliance certificate included. Ductwork that needs replacing, a gas line that needs upsizing or a move from internal to external adds to that, and we tell you which at the quote rather than on the day." },
-          { q: "Should I replace my gas ducted heater with reverse cycle instead?", a: "If you also want cooling, price both. Reverse-cycle ducted heats and cools from one system, and the VEU rebate can take up to $4,200 off a gas-to-reverse-cycle switch, which narrows the gap a lot. If the house only needs heating and the ducts are sound, a like-for-like gas swap is still the cheaper job on the day. We'll quote both side by side if you ask." },
+          { q: "How much does it cost to replace a gas ducted heater?", a: "It depends on the size, the star rating and what the house needs, so we price it in writing, from a photo for a like-for-like swap or after a free site check for anything else, with the old unit removed and a compliance certificate included. Ductwork that needs replacing, a gas line that needs upsizing or a move from internal to external adds to that, and we tell you which at the quote rather than on the day." },
+          { q: "Should I replace my gas ducted heater with reverse cycle instead?", a: "If you also want cooling, price both. Reverse-cycle ducted heats and cools from one system, and rebates can take up to $6,000 off a gas-to-reverse-cycle switch, which narrows the gap a lot. If the house only needs heating and the ducts are sound, a like-for-like gas swap is still the cheaper job on the day. We'll quote both side by side if you ask." },
         ],
       },
       {
@@ -2162,9 +2166,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           photoAlt: "Gas line work in progress on a residential property",
           photoScene: true,
           body:
-            "That interval is not ours. It is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
+            "Every two years is what the manufacturers and the regulator recommend, and it exists because heat exchangers crack with age and thermal cycling. Annually past ten is our advice: a heater that has run twenty Melbourne winters has earned an annual look at it.",
           facts: [
-            { v: "$250 + GST", k: "with the combustion analysis included, not extra" },
+            { v: "$250 + GST", k: "with the combustion analysis included, and 10% off with an evap service" },
             { v: "AS/NZS 5601", k: "the standard the pressure and spillage test is to" },
             { v: "Priced in writing", k: "before any repair goes ahead" },
           ],
@@ -2216,7 +2220,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         label: "Gas heater service & carbon monoxide test",
         blurb:
-          "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that matters, a cracked heat exchanger has no smell and no warning.",
+          "A check of the burner, heat exchanger and flue every two years (yearly once it's over ten), with a carbon monoxide test on the running appliance. This is the one that matters, a cracked heat exchanger has no smell and no warning.",
         photo: { src: "/gas-ducted-install.webp", alt: "Gas ducted heater in a roof space, where the service and CO test happen" , scene: true },
         points: [
           "Full CO test with a calibrated analyser, results on the report",
@@ -2230,7 +2234,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "$250 + GST",
         intro:
-          "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that actually matters, a cracked heat exchanger has no smell, no noise and no warning, and it vents into the house you sleep in.",
+          "A check of the burner, heat exchanger and flue every two years (yearly once it's over ten), with a carbon monoxide test on the running appliance. This is the one that actually matters, a cracked heat exchanger has no smell, no noise and no warning, and it vents into the house you sleep in.",
         bestFor: [
           "Any gas heater going into its first winter after a year unused",
           "Units over ten years old, annually, without exception",
@@ -2240,7 +2244,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         watchOut: [
           "If the analyser finds carbon monoxide, we shut the appliance down. That's not an upsell, it's the law and the right call",
           "A failed heat exchanger isn't repairable on most units. It's a replacement, and we'll be straight with you about that",
-          "Booked in May you'll wait. Booked in March you won't",
+          "Booked in June you'll wait. Booked in March you won't",
         ],
         faqs: [
           { q: "How often should a gas heater be serviced?", a: "Every two years as a minimum, annually once it's over ten years old. Energy Safe Victoria recommends every two years for all gas heaters." },
@@ -2349,7 +2353,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
     ],
     typical: {
-      time: "Ducted heater replacement · 3–5 hrs (same day). Continuous flow swap · 2–4 hrs (same day). Emergency call-out · on-site same day.",
+      time: "Ducted heater replacement · 3–5 hrs (same day). Continuous flow swap · 2–4 hrs (same day).",
       warranty: "6-year workmanship + manufacturer heat-exchanger warranty (Brivis 7-yr, Thermann 12-yr from Reece, Rinnai 12-yr).",
       priceRange: "$220 leak test → $6,000+ premium Brivis Buffalo 6-star",
       followUp: "We ring the following week to check controller + temperature settings and that everything's running clean.",
@@ -2357,9 +2361,9 @@ export const serviceContent: Record<string, ServiceContent> = {
     included: [
       "Supply of the specified unit + all mounting hardware + gas fittings",
       "Standard install labour (like-for-like retrofit into existing cavity/pad)",
-      "Gas pressure test + refrigerant handling where relevant",
+      "Gas pressure test to AS/NZS 5601",
       "Old unit drained, disconnected, removed and taken to a metal recycler",
-      "Full electrical + gas compliance certificates emailed inside 24 hrs",
+      "Gas compliance certificate emailed inside 24 hours, and a Certificate of Electrical Safety from our licensed electrician where there's electrical work",
       "Manufacturer warranty registered in your name",
     ],
     excluded: [
@@ -2370,12 +2374,12 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Slab / concrete pad re-pour if the existing pad has failed",
     ],
     faqs: [
-      { q: "Do I need a gas-safe certificate?", a: "Yes, every new gas appliance install or replacement in Victoria requires a Type-A compliance certificate from a licensed gas fitter. We issue this on every job and email it to you inside 24 hours." },
-      { q: "Can you do same-day emergency call-outs?", a: "Yes, for gas leaks, burst pipes, no hot water and CO alarms across the corridor. The call-out fee is confirmed on the phone before we come out, and waived if you accept the repair the same day." },
+      { q: "Do I need a gas compliance certificate?", a: "Yes, every new gas appliance install or replacement in Victoria requires a gas compliance certificate from a licensed gas fitter. We issue this on every job and email it to you inside 24 hours." },
+      { q: "Can you come out in an emergency?", a: "In business hours, usually the same day for a gas leak, a burst pipe, no hot water or a CO alarm across the corridor. After hours we answer for a gas leak or no hot water when we can; the call-out is $450 + GST and covers the first hour on site. If you smell gas, ring the gas emergency line on 132 771 first." },
       { q: "Should I replace my gas hot water with a heat pump?", a: "If the gas unit is over 10 years old, a heat pump often pays back in 2–4 years through energy savings + the VEU rebate. We'll quote both side-by-side so you can see the net-of-rebate numbers before deciding." },
       { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement reuses your existing ducts and controller wiring, which is what keeps it a one-day job rather than a rebuild." },
       { q: "Can I move from gas to reverse-cycle at the same time?", a: "Yes. We're licensed refrigeration + gas so we can decommission the gas and install a reverse-cycle ducted or splits in the same visit. Usually the cleanest way to do a full swap." },
-      { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, call the emergency gas line (1800 427 532) then call us. We'll be on-site same-day to leak-test and repair." },
+      { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, ring the gas emergency line on 132 771, then call us. In business hours we'll usually be there the same day to leak-test and repair." },
     ],
   },
 };

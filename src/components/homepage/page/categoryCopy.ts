@@ -4,7 +4,8 @@ import type { CategoryCopy } from "./CategoryPage";
 export const CATEGORY_COPY: Record<"air" | "heat" | "hw", CategoryCopy & { title: string; description: string; path: string }> = {
   air: {
     path: "/cooling",
-    title: "Air Conditioning Installation, Pakenham & SE Melbourne",
+    // 45 characters at most: the " | Advanced Gas" suffix takes the rest of 60 (lib/seo.ts).
+    title: "Air Conditioning Installation, Pakenham",
     description: "Split systems, multi-head, ducted and evaporative cooling, installed by our own crew across Melbourne's south-east. Free written quote.",
     h1: "Cooling, sized {to the room}.",
     sub: "Split systems, multi-head, ducted and evaporative, installed by our own crew across Melbourne's south-east.",
@@ -16,7 +17,7 @@ export const CATEGORY_COPY: Record<"air" | "heat" | "hw", CategoryCopy & { title
   },
   heat: {
     path: "/heating",
-    title: "Heating Installation, Gas Ducted & Reverse Cycle, Pakenham",
+    title: "Gas Ducted & Reverse Cycle Heating, Pakenham",
     description: "Gas ducted heating, reverse-cycle split, multi-head and ducted, and the Braemar Dominator gas-to-electric swap. A carbon monoxide test on every gas job.",
     h1: "Heating for a {Melbourne winter}.",
     sub: "Gas ducted heating, reverse-cycle split, multi-head and ducted, and the Braemar Dominator to take a gas ducted house electric. Every gas job gets a carbon monoxide test.",
@@ -35,7 +36,7 @@ export const CATEGORY_COPY: Record<"air" | "heat" | "hw", CategoryCopy & { title
     acc: "#C2521A",
     tools: ["/tools/veu-rebate-estimator", "/tools/hot-water-savings"],
     toolsHead: "Up to {$2,700 off} a heat pump.",
-    toolsSub: "See what the VEU rebate takes off for your home, and what a heat pump would save you a year.",
+    toolsSub: "See what the rebates take off for your home, and what a heat pump would save you a year.",
     reviewWord: /hot water|heat pump|reclaim|thermann|istore|veu/i,
   },
 };
