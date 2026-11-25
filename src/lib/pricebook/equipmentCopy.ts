@@ -1,8 +1,12 @@
 /**
  * What each unit's line says on a quote (Jake, 17 Nov): "how it saves money,
- * the key feature, why it's better than its other model, like Mitsubishi vs
- * other brand or a Promina vs another model below it, the warranty". The job
- * itself (what we do, remove, include) is the template summary (wording.ts).
+ * the key feature, why it's better than its other model ... the warranty".
+ * Jake, 25 Nov: "on the brand we should only talk about that brand, not
+ * compare it to other brands". So a unit is compared only with its own
+ * brand's other models (a Promina with the Advance, a 5-star Buffalo with the
+ * 3-star) or with a kind of system (a split, gas storage), never with another
+ * maker's unit. The job itself (what we do, remove, include) is the template
+ * summary (wording.ts).
  *
  * Every description is the unit's name and four labelled paragraphs, the same
  * four on every unit, so a customer comparing options reads like for like.
@@ -94,7 +98,7 @@ const BRIVIS_ADVANCE: Family = {
     title: `Brivis Advance ${sizeOf(u, /\b(F\d\dDS?)\b/i)} evaporative cooler${colourOf(u)}.`,
     saves: EVAP_SAVES,
     features: "Traditional cabinet with a large cooling pad area for high airflow. Motorised winter seal, so no cold draughts in winter. AutoRefresh and FreshStart keep the water fresh. Pre-wet cycle, quiet fan, variable speeds. Australian made.",
-    choose: "The best value of the three Brivis ranges we fit (Advance, Promina, Contour), and still a step up from a basic traditional cooler such as the Kaden Classic: the Brivis warranty can be extended to 9 years rather than 7, and it takes the Brivis Touch and Networker controllers.",
+    choose: "The best value of the three Brivis ranges we fit (Advance, Promina, Contour), with a motorised winter seal as standard, a Brivis warranty that can be extended to 9 years, and the option of the Brivis Touch and Networker controllers.",
     warranty: BRIVIS_EVAP_WARRANTY,
   }),
 };
@@ -151,8 +155,8 @@ const KADEN_KC32: Family = {
   copy: () => ({
     title: "Kaden Classic KC32 evaporative cooler, Charcoal, with manual wall controller.",
     saves: "Kaden says evaporative cooling uses considerably less energy than a comparable ducted refrigerated system. It cools best on hot, dry days, with a window or door open.",
-    features: "The largest Kaden Classic: 1000W motor and 3,290 L/s airflow. High-efficiency pads, Smart Water Management, automatic winter seal, pre-wet cycle, self-cleaning pump, quiet fan. Made by Rinnai.",
-    choose: "Compared with the Brivis Advance, which Rinnai makes in the same size cabinet, the Kaden is the simpler, lower-cost option. Its extended warranty tops out at 7 years rather than 9.",
+    features: "The largest Kaden Classic: 1000W motor and 3,290 L/s airflow. High-efficiency pads, Smart Water Management, automatic winter seal, pre-wet cycle, self-cleaning pump, quiet fan.",
+    choose: "Kaden's largest classic cooler: a straightforward, lower-cost way to cool a whole home, with a warranty that can be extended to 7 years.",
     warranty: "Kaden: 5 years parts and labour, and 10 years on structural parts (parts only). Register within 12 months and have Rinnai service it in year 4 to add 2 years. Servicing as set out in the owner's manual is a condition.",
   }),
 };
@@ -167,7 +171,7 @@ const BOSCH_COOKTOP: Family = {
     title: "Bosch Series 4 60cm gas cooktop with wok burner, black glass (PNK6B6K40A).",
     saves: "A 1kW economy burner for simmering and small pans, so you're not running a big burner for a small job. Dishwasher-safe pan supports, and an LPG nozzle set in the box if you ever change gas supply.",
     features: "Four burners: a 3.5kW wok, two 1.75kW and a 1kW economy. Flame failure safety cuts the gas if a flame goes out. Black tempered glass with bevelled edges, front-right controls, cast iron pan supports, ignition built into the knobs.",
-    choose: "Compared with the Westinghouse stainless cooktop, the Bosch is the glass-top option: easier to wipe down, with dishwasher-safe supports. The Westinghouse has more total heat output.",
+    choose: "Black glass is quick to wipe down, the pan supports go in the dishwasher, and the 3.5kW wok burner handles high-heat cooking while the economy burner looks after the simmering.",
     warranty: "Bosch: 2 years from purchase against defects in materials and workmanship, for domestic use.",
   }),
 };
@@ -178,7 +182,7 @@ const BEKO_COOKTOP: Family = {
     title: "Beko 60cm stainless steel gas cooktop with wok burner (BCT60GX1).",
     saves: "Register it with Beko within 90 days and the warranty runs 5 years instead of 2, at no charge. An LPG conversion kit is included.",
     features: "Four burners, including a 5kW wok burner front left. Flame failure safety shuts off the gas if a flame goes out. Cast iron pan supports, electronic ignition, stainless steel finish.",
-    choose: "Compared with the Westinghouse stainless cooktop, the Beko has the stronger wok burner and the longer warranty once registered. The Westinghouse has more total output across its four burners.",
+    choose: "A strong 5kW wok burner for high-heat cooking, in easy-clean stainless steel, and up to 5 years of Beko warranty when you register it.",
     warranty: "Beko: 2 years from purchase, extended to 5 years at no charge if you register it on Beko's website within 90 days.",
   }),
 };
@@ -189,7 +193,7 @@ const WESTINGHOUSE_COOKTOP: Family = {
     title: "Westinghouse 60cm 4-burner natural gas cooktop, stainless steel (WHG644SC).",
     saves: "An LP gas conversion kit is included, and the ignition runs off mains power, so there are no batteries to replace.",
     features: "40.6 MJ/h across four burners: a 14.4 MJ/h triple-ring wok, a 12.1 MJ/h rapid, a 9.0 MJ/h semi-rapid and a 5.1 MJ/h simmer. Flame failure device cuts the gas if a flame goes out. Flat cast iron trivets, under-knob ignition.",
-    choose: "Compared with the Beko, the Westinghouse has more total heat across its four burners. The Beko has the stronger single wok burner and a longer warranty once registered.",
+    choose: "Plenty of heat across all four burners (40.6 MJ/h), from a triple-ring wok to a gentle simmer, with mains-powered ignition so there are no batteries to replace.",
     warranty: "Westinghouse: 2 years from purchase, with faulty parts repaired or replaced at no charge, for domestic use.",
   }),
 };
@@ -217,11 +221,11 @@ const KADEN_WARRANTY = "Kaden: 7 years parts, labour and compressor for home use
 const RINNAI_WARRANTY = "Rinnai: 7 years parts and labour for home use from installation (wifi devices 1 year). It needs a qualified installer and servicing as the owner's manual sets out.";
 
 const MSZ: Record<string, { cool: string; heat: string; cs: string; hs: string; vs: string }> = {
-  "2.5": { cool: "2.5", heat: "3.2", cs: "6", hs: "3", vs: "Compared with Kaden's 2.5kW, our value option, it rates a star higher for cooling (6 against 5) and gives more heat (3.2 against 2.8kW)." },
-  "3.5": { cool: "3.5", heat: "3.7", cs: "5", hs: "3", vs: "Compared with Kaden's 3.5kW, our value option, it rates half a star higher for heating (3 against 2.5)." },
-  "5": { cool: "5.0", heat: "6.0", cs: "4.5", hs: "2", vs: "Compared with Kaden's 5kW, our value option, it gives more heat (6.0 against 5.5kW) for the same star ratings." },
-  "6": { cool: "6.0", heat: "6.8", cs: "4.5", hs: "2.5", vs: "Kaden, our value option, doesn't make a 6kW split, and this size rates half a star higher for heating than Kaden's 5 and 7kW." },
-  "7.1": { cool: "7.1", heat: "8.0", cs: "3.5", hs: "2", vs: "Compared with Kaden's 7kW, our value option, it gives more heat (8.0 against 7.5kW)." },
+  "2.5": { cool: "2.5", heat: "3.2", cs: "6", hs: "3", vs: "A 6-star cooling rating, and 3.2kW of heat from a 2.5kW system." },
+  "3.5": { cool: "3.5", heat: "3.7", cs: "5", hs: "3", vs: "A 3-star heating rating at this size, with 3.7kW of heat." },
+  "5": { cool: "5.0", heat: "6.0", cs: "4.5", hs: "2", vs: "6.0kW of heat from a 5kW system, for living areas that need it in winter." },
+  "6": { cool: "6.0", heat: "6.8", cs: "4.5", hs: "2.5", vs: "A size between the 5 and 7.1kW, rated 2.5 stars for heating with 6.8kW of heat." },
+  "7.1": { cool: "7.1", heat: "8.0", cs: "3.5", hs: "2", vs: "8.0kW of heat from a 7.1kW system, for large open-plan areas." },
 };
 const MITSU_SPLIT: Family = {
   key: "mitsubishi-msz-ap-split",
@@ -247,15 +251,15 @@ const MITSU_HEAD: Family = {
       title: `Mitsubishi Electric MSZ-AP ${k}kW wall-mounted indoor unit for a multi-split system.`,
       saves: "Each room has its own remote and app control, so you run only the rooms you're using. Econo Cool raises the cooling set point 2°C without the room feeling any warmer.",
       features: `${k}kW nominal cooling (the actual output depends on the other units on the system). Built-in wifi. Dual Barrier Coating keeps the coil cleaner. Anti-allergy filter.${MSZ_HEAD_DB[k] ? ` From ${MSZ_HEAD_DB[k]} dB(A) on low fan.` : ""}`,
-      choose: "It's the same MSZ-AP unit Mitsubishi sells as a single split, so every room matches, and Mitsubishi's MXZ outdoor units rate more efficient for heating than the Kaden and Rinnai multis we fit.",
+      choose: "It's the same MSZ-AP unit Mitsubishi sells as a single split, so every room matches, with Mitsubishi Electric's own Australian service and parts support behind it.",
       warranty: MITSU_WARRANTY,
     };
   },
 };
 const MXZ: Record<string, { rooms: string; cool: string; heat: string; cop: string; vs: string }> = {
-  "8": { rooms: "4", cool: "8.0", heat: "8.8", cop: "5.2", vs: "It rates more efficient for heating than the comparable Kaden and Rinnai multis we fit." },
-  "10": { rooms: "5", cool: "10.0", heat: "10.0", cop: "4.8", vs: "It rates more efficient for heating than the comparable Kaden and Rinnai multis we fit." },
-  "12": { rooms: "6", cool: "12.0", heat: "13.2", cop: "4.4", vs: "It rates more efficient for heating and cooling than the comparable Kaden and Rinnai six-room multis we fit." },
+  "8": { rooms: "4", cool: "8.0", heat: "8.8", cop: "5.2", vs: "About 5.2kW of heat for every kW of power in Mitsubishi's heating test." },
+  "10": { rooms: "5", cool: "10.0", heat: "10.0", cop: "4.8", vs: "About 4.8kW of heat for every kW of power in Mitsubishi's heating test." },
+  "12": { rooms: "6", cool: "12.0", heat: "13.2", cop: "4.4", vs: "Up to six rooms from one Mitsubishi Electric outdoor unit." },
 };
 const MITSU_MULTI: Family = {
   key: "mitsubishi-mxz-multi",
@@ -272,9 +276,9 @@ const MITSU_MULTI: Family = {
   },
 };
 const PEA: Record<string, { cool: string; heat: string; cop: string; db: string; pa: string; vs: string }> = {
-  "12": { cool: "12.5", heat: "14.0", cop: "4.6", db: "35", pa: "150", vs: "it rates more efficient for heating and cooling than Kaden's 12.5kW ducted" },
-  "16": { cool: "16.0", heat: "18.0", cop: "4.0", db: "35", pa: "150", vs: "it matches Kaden's 17kW ducted for heating efficiency and beats it for cooling" },
-  "18": { cool: "18.0", heat: "20.0", cop: "4.1", db: "30", pa: "250", vs: "it's bigger than Kaden's largest ducted (17kW) and a little more efficient for heating" },
+  "12": { cool: "12.5", heat: "14.0", cop: "4.6", db: "35", pa: "150", vs: "" },
+  "16": { cool: "16.0", heat: "18.0", cop: "4.0", db: "35", pa: "150", vs: "" },
+  "18": { cool: "18.0", heat: "20.0", cop: "4.1", db: "30", pa: "250", vs: "" },
 };
 const MITSU_DUCTED: Family = {
   key: "mitsubishi-pea-m-ducted",
@@ -285,7 +289,7 @@ const MITSU_DUCTED: Family = {
       title: `Mitsubishi Electric PEA-M ${m.cool}kW ducted reverse cycle system, single phase.`,
       saves: `A Power Inverter outdoor unit that, in Mitsubishi's standard heating test (7°C outside), makes about ${m.cop}kW of heat for every kW of power it uses. With zoning you heat and cool only the rooms in use.`,
       features: `${m.cool}kW cooling, ${m.heat}kW heating. Indoor unit from ${m.db} dB(A). Fan pressure up to ${m.pa} Pa for long duct runs. Two-piece indoor unit to fit tight roof spaces. Heats down to -20°C outside.`,
-      choose: `Compared with Kaden's ducted, our value option, ${m.vs}. It's also quieter on low fan, and keeps heating down to -20°C outside against Kaden's -15°C.`,
+      choose: `Quiet indoors (from ${m.db} dB(A)), strong enough for long duct runs, and it keeps heating down to -20°C outside, with Mitsubishi Electric's own Australian service and parts support behind it.`,
       warranty: MITSU_WARRANTY,
     };
   },
@@ -296,7 +300,7 @@ const KSI: Record<string, { cool: string; heat: string; cs: string; hs: string }
   "5": { cool: "5.0", heat: "5.5", cs: "4.5", hs: "2" },
   "7": { cool: "7.0", heat: "7.5", cs: "4", hs: "2" },
 };
-const KADEN_VALUE = "Kaden is the value range we fit: it costs less than Mitsubishi Electric and carries a longer warranty (7 years against 5), with star ratings within a star of Mitsubishi's at every size.";
+const KADEN_VALUE = "Kaden is the value range we fit: a lower price with a 7-year warranty.";
 const KADEN_SPLIT: Family = {
   key: "kaden-ksi-v3-split",
   matches: has(/kaden ksi\s+[\d.]+\s*kw\s+v3/i),
@@ -320,14 +324,14 @@ const KADEN_HEAD: Family = {
       title: `Kaden KSI ${k}kW wall-mounted indoor unit for a Kaden multi-split system.`,
       saves: "Each room has its own controls, so you run only the rooms you're using. Kaden says ECO mode uses up to 60% less energy than normal running, for 8 hours at a time.",
       features: `${k}kW nominal cooling (the actual output depends on the rest of the system). Wifi included. Gold-fin coating, self-clean mode and a three-in-one filter.`,
-      choose: "Compared with Mitsubishi Electric's multi heads, it costs less and the warranty is longer (7 years against 5), and Kaden's outdoor units go up to 17.5kW across six rooms.",
+      choose: "A lower-cost head with a 7-year warranty, and Kaden's outdoor units go up to 17.5kW across six rooms.",
       warranty: KADEN_WARRANTY,
     };
   },
 };
 const KM: Record<string, { model: string; rooms: string; cool: string; heat: string; cs: string; hs: string; vs: string }> = {
-  KM48: { model: "KM48", rooms: "5", cool: "13.0", heat: "13.5", cs: "3.5", hs: "2.5", vs: "it has more capacity for five rooms (13 against 10kW)" },
-  KM60: { model: "KM60", rooms: "6", cool: "17.5", heat: "19.5", cs: "3.5", hs: "2", vs: "it has more capacity for six rooms (17.5 against 12kW)" },
+  KM48: { model: "KM48", rooms: "5", cool: "13.0", heat: "13.5", cs: "3.5", hs: "2.5", vs: "13kW of cooling across up to five rooms" },
+  KM60: { model: "KM60", rooms: "6", cool: "17.5", heat: "19.5", cs: "3.5", hs: "2", vs: "17.5kW of cooling across up to six rooms" },
 };
 const KADEN_MULTI: Family = {
   key: "kaden-km-multi",
@@ -338,7 +342,7 @@ const KADEN_MULTI: Family = {
       title: `Kaden ${m.model} ${m.cool}kW multi-split outdoor unit, for up to ${m.rooms} rooms.`,
       saves: `An inverter system rated ${m.cs} stars for cooling and ${m.hs} for heating ${ZERL}, and you run only the rooms in use.`,
       features: `${m.cool}kW cooling and ${m.heat}kW heating across up to ${m.rooms} wall, ducted or cassette indoor units. Heats down to -15°C outside. R32 refrigerant.`,
-      choose: `Compared with separate splits, there's one outdoor unit instead of ${m.rooms}. Compared with Mitsubishi Electric's multis, ${m.vs}, with a longer warranty (7 years against 5).`,
+      choose: `Compared with separate splits, there's one outdoor unit instead of ${m.rooms}: ${m.vs}, with a 7-year warranty.`,
       warranty: KADEN_WARRANTY,
     };
   },
@@ -350,7 +354,7 @@ const KADEN_DUCTED: Family = {
     title: "Kaden KDI V2 17kW ducted reverse cycle system, single phase.",
     saves: `An inverter system rated 3.5 stars for cooling and 2 for heating ${ZERL}. With zoning you heat and cool only the rooms in use.`,
     features: "17.0kW cooling, 18.0kW heating. Built-in wifi. Splittable indoor unit for tight roof spaces. Built-in drain pump and weekly timer. Heats down to -15°C outside. R32 refrigerant.",
-    choose: "Compared with Mitsubishi Electric's 16 to 18kW ducted, it costs less, has wifi built in and a longer warranty (7 years against 5).",
+    choose: "A lower-cost ducted system with wifi built in, a splittable indoor unit for tight roof spaces and a 7-year warranty.",
     warranty: KADEN_WARRANTY,
   }),
 };
@@ -379,7 +383,7 @@ const RINNAI_HEAD: Family = {
       title: `Rinnai RPX ${m.cool}kW wall-mounted indoor unit for a Rinnai multi-split system.`,
       saves: "You run only the rooms in use. A built-in presence sensor saves energy when the room is empty, and ECO+ fine-tunes cooling for efficiency.",
       features: `${m.cool}kW cooling, ${m.heat}kW heating, nominal (the actual output depends on the rest of the system). Wifi app and voice control. Turbo+ shifts the temperature by up to 6°C in 10 minutes. HEPA filter. Adjustable humidity. Anti-corrosion coil coating.`,
-      choose: "Compared with the Kaden heads we also fit, it adds a presence sensor and a HEPA filter. Compared with Mitsubishi Electric's, the warranty is longer (7 years against 5).",
+      choose: "A presence sensor, a HEPA filter and adjustable humidity in every room, with a 7-year warranty.",
       warranty: RINNAI_WARRANTY,
     };
   },
@@ -388,8 +392,8 @@ const MON: Record<string, { rooms?: string; cool?: string; heat?: string; acop?:
   "5": { rooms: "2", cool: "5.4", heat: "5.4", acop: "4.0", vs: "It suits two rooms where only one outdoor unit will fit." },
   // The pricebook's part (MON4H11B1LA) isn't one Rinnai lists, so no figures until it's confirmed.
   "11": { vs: "" },
-  "14": { rooms: "5", cool: "13.5", heat: "14.0", acop: "4.2", vs: "It rates a little more efficient for heating than Kaden's 13kW, and it's bigger than any Mitsubishi five-room unit." },
-  "19": { rooms: "6", cool: "19.0", heat: "21.5", acop: "4.2", vs: "It's bigger and more efficient for heating than Kaden's six-room 17.5kW, and Mitsubishi's largest multi is 12kW." },
+  "14": { rooms: "5", cool: "13.5", heat: "14.0", acop: "4.2", vs: "13.5kW of cooling across up to five rooms." },
+  "19": { rooms: "6", cool: "19.0", heat: "21.5", acop: "4.2", vs: "19kW of cooling and 21.5kW of heating across up to six rooms." },
 };
 const RINNAI_MULTI: Family = {
   key: "rinnai-mon-multi",
@@ -495,8 +499,8 @@ const BRAEMAR_ECOSTAR: Family = {
     title: "Braemar Ecostar 6-star 17.9kW ducted gas heater, natural gas (TQM618).",
     saves: "Rated 6.3 stars equivalent in Australian Gas Association testing, above the label's 6-star top. Braemar puts each star at about 10% less gas, and estimates a 6-star heater saves about $966 a year over a 3-star (240 m² home, 600 hours a year, gas at 3.26c/MJ).",
     features: "Australian made. Modulating gas control, Tri-Action heat exchanger and the Stealth Softair fan system for steady warm air without cold draughts. Zoning available with the MagIQtouch controller.",
-    choose: "Compared with Brivis's StarPro 6 (6.0 stars), it tests slightly higher and adds the Softair fan system.",
-    warranty: "Braemar: 5 years comprehensive cover for home use (7 when bought through a Seeley participating dealer), plus 10 years on the heat exchanger and burner (parts only). Servicing every 2 years as set out in the owner's manual is a condition.",
+    choose: "Braemar's most efficient heater: 6.3 stars equivalent, Australian made, with the Softair fan system for steady warm air.",
+    warranty: "Braemar: 5 years comprehensive cover for home use (7 when bought through a participating dealer), plus 10 years on the heat exchanger and burner (parts only). Servicing every 2 years as set out in the owner's manual is a condition.",
   }),
 };
 const KADEN_KN315: Family = {
@@ -505,8 +509,8 @@ const KADEN_KN315: Family = {
   copy: () => ({
     title: "Kaden 15kW 3-star internal ducted gas heater, natural gas (KN315INT), with digital manual controller.",
     saves: "Rated 3 stars. Kaden says each extra star saves around 10% on running costs. No pilot light burning gas while it's off.",
-    features: "Made by Rinnai for Kaden. Compact and splittable; installs in the roof space or under the floor. Three-speed fan. Takes add-on cooling up to 10kW.",
-    choose: "Compared with Brivis's 15kW Compact Classic, also Rinnai-built and 3-star, the Kaden carries 5 years parts and labour rather than 3.",
+    features: "Compact and splittable; installs in the roof space or under the floor. Three-speed fan. Takes add-on cooling up to 10kW.",
+    choose: "A compact 3-star heater with 5 years parts and labour from Kaden, and 10 years on the heat exchanger and burner.",
     warranty: "Kaden: 5 years parts and labour (7 with registration within 12 months and a Rinnai service in year 4), and 10 years on the heat exchanger and burner (parts). Servicing as set out in the owner's manual is a condition.",
   }),
 };
@@ -516,8 +520,8 @@ const KADEN_KUN320: Family = {
   copy: () => ({
     title: "Kaden Universal 19kW 3-star ducted gas heater, natural gas (KUN320), with manual controller.",
     saves: "Rated 3 stars. Kaden says each extra star saves around 10% on running costs. No pilot light burning gas while it's off.",
-    features: "Made by Rinnai for Kaden. The Universal cabinet can go in the roof space, under the floor or outside. Splittable, three-speed fan. Takes add-on cooling up to 10kW.",
-    choose: "Compared with Kaden's internal-only models, it can go inside or out, so it suits wherever your old heater sat, and it carries a longer warranty than Brivis's entry-level Compact Classic (5 years against 3).",
+    features: "The Universal cabinet can go in the roof space, under the floor or outside. Splittable, three-speed fan. Takes add-on cooling up to 10kW.",
+    choose: "Compared with Kaden's internal-only models, it can go inside or out, so it suits wherever your old heater sat, with 5 years parts and labour.",
     warranty: "Kaden: 5 years parts and labour (7 with registration within 12 months and a Rinnai service in year 4), and 10 years on the heat exchanger and burner (parts). Servicing as set out in the owner's manual is a condition.",
   }),
 };
@@ -530,10 +534,10 @@ const BRAEMAR_DOMINATOR: Family = {
     const m = s3 ? { heat: "17.9", cool: "16.5" } : { heat: "17", cool: "13.2" };
     return {
       title: `Braemar Dominator ${m.heat}kW ducted reverse cycle system, made to replace a ducted gas heater.`,
-      saves: "Your heating comes off gas. Seeley says its heat pump gives 3 to 4 units of heat for every unit of electricity, with a seasonal heating rating of HSPF 3.4 in Melbourne's cold zone.",
-      features: `Indoor unit made by Seeley in Albury, NSW, to sit where your gas heater is now, on your existing ducts and outlets. Adds ${m.cool}kW of refrigerated cooling. Optional zoning up to 8 zones.`,
+      saves: "Your heating comes off gas. Braemar says its heat pump gives 3 to 4 units of heat for every unit of electricity, with a seasonal heating rating of HSPF 3.4 in Melbourne's cold zone.",
+      features: `Indoor unit made in Albury, NSW, to sit where your gas heater is now, on your existing ducts and outlets. Adds ${m.cool}kW of refrigerated cooling. Optional zoning up to 8 zones.`,
       choose: "Compared with a full new ducted system, it reuses your ductwork and avoids ceiling work. Compared with keeping gas, one system heats and cools; the air from the outlets is a little cooler than a gas heater's (40 to 50°C against about 53°C).",
-      warranty: "Seeley: 5 years comprehensive cover for home use, with servicing as set out in the owner's manual.",
+      warranty: "Braemar: 5 years comprehensive cover for home use, with servicing as set out in the owner's manual.",
     };
   },
 };
@@ -616,7 +620,7 @@ const RECLAIM_ECO: Family = {
       title: `Reclaim Eco R290 ${big ? "300" : "200"}L all-in-one plug-in heat pump.`,
       saves: `Reclaim rates it at COP ${big ? "4.63" : "4.23"} at 20°C air, heating water from 20°C to 60°C. Eligible for STCs, VEU and Solar Victoria's higher locally made rebate.`,
       features: "Tank and heat pump in one outdoor unit on a standard 10A plug. Natural R290 refrigerant. App with Eco, Boost, Holiday and solar or off-peak schedules. 1.2kW backup element. Made in Australia.",
-      choose: "Built by Dux to the same published specs as the Thermann integrated heat pump, with a longer warranty: 8 years on the tank and heat pump, against Thermann's 7-year tank and 3-year heat pump.",
+      choose: "Made in Australia, with 8 years parts and labour on the tank and the heat pump, and a standard 10A plug so there's no hard wiring.",
       warranty: "In a single-family home: tank and refrigeration parts 8 years parts and labour; sensors, valves, element and anode 1 year. A Solar Homes rebate adds a 5-year whole-of-product warranty with labour.",
     };
   },
@@ -630,7 +634,7 @@ const THERMANN_HP: Family = {
       title: `Thermann R290 integrated heat pump, ${big ? "285" : "200"}L, plug-in.`,
       saves: `Thermann's VEU-approved simulation puts it at up to ${big ? "70.7" : "69.3"}% less energy than a standard electric water heater for a medium household. Eligible for STCs, VEU and Solar Victoria's higher locally made rebate.`,
       features: "Tank and heat pump in one outdoor unit on a standard 10A plug. The heat pump runs from -6°C to 45°C, with a 1.2kW element beyond that. Controller and app with schedule, holiday, boost and rescue modes.",
-      choose: "Compared with the iStore, it's locally made, which can mean a higher Solar Victoria rebate, and its tank warranty is longer (7 years against 5).",
+      choose: "Locally made, which can mean a higher Solar Victoria rebate, with 7 years on the tank and a standard 10A plug.",
       warranty: "In a single-family home: tank 7 years parts and 3 years labour; heat pump and controller 3 years parts and labour; other parts 1 year. A Solar Homes rebate adds a 5-year whole-of-product warranty with labour.",
     };
   },
@@ -644,7 +648,7 @@ const ISTORE: Family = {
       title: `iStore ${big ? "270" : "180"}L R290 all-in-one heat pump.`,
       saves: `iStore says it uses up to 70% less hot water energy than conventional electric storage, based on about 200L a day.${big ? " Rated COP 4.82 at about 20°C air, heating from 15°C to 60°C." : ""} Eligible for STCs, VEU and Solar Victoria's hot water rebate.`,
       features: `Tank and heat pump in one outdoor unit. Natural R290 refrigerant. ${big ? "4kW-plus heat output, 46.6 dB or less at 1m." : "2.5kW heat output."} Solar-hours timer and electric booster.`,
-      choose: "Compared with the Thermann integrated, iStore's 5-year warranty covers parts and labour on everything, the heat pump included (Thermann: 3 years).",
+      choose: "iStore's 5-year warranty covers parts and labour on everything, the heat pump included.",
       warranty: "5 years parts and labour on the tank, refrigeration, electrical parts, anode and relief valve. Register online within 6 weeks of installation. Licensed installation and iStore's water quality limits apply.",
     };
   },
