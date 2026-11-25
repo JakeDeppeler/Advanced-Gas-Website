@@ -50,7 +50,8 @@ ok("the standard layout is 8 outlets over 4 zones", base().outlets.length === 8 
 ok("standard house labour: two days, $5,000", q.labour === 5000 && q.hours.total === 16, q.hours);
 ok("the installation line is $0 and heads the group", line(/^Ducted Refrigerated System - Installation$/)?.unitPrice === 0 && q.lines.filter((l) => l.group === "install")[0].name === "Ducted Refrigerated System - Installation");
 ok("the two-day labour sits under it at $5,000", line(/Labour \(Two Days\)/)?.unitPrice === 5000 && line(/Labour \(Two Days\)/)?.group === "install");
-ok("the temperature controls are $0", line(/Temperature Control/)?.unitPrice === 0);
+// Jake, 25 Nov: "each zone need a itc and the $90 per itc … 4 sensor that come with the bunble".
+ok("a 4-zone house needs no extra temperature controls: 4 come with the controller", !line(/Temperature Control/));
 // 250 mm: 8 + 8 + 8 = 24 m → 4 lengths; 200 mm: 8 + 8 + 10 + 6 = 32 m → 6 lengths; 150 mm: 6 m → 1.
 ok("duct rounded up to whole 6 m lengths, per size", line(/250mm x 6m/)?.quantity === 4 && line(/200mm x 6m/)?.quantity === 6 && line(/150mm x 6m/)?.quantity === 1,
   q.lines.filter((l) => /x 6m/.test(l.name)).map((l) => [l.name, l.quantity]));
@@ -58,7 +59,9 @@ ok("a downjet per outlet, by size", line(/Downjet 250/)?.quantity === 3 && line(
 const dampers = (x: typeof q) => x.lines.filter((l) => /Damper/.test(l.name)).reduce((a, l) => a + l.quantity, 0);
 ok("a damper per zone at the zone's size, same sizes on one line, and a cable each", line(/Damper 300/)?.quantity === 2 && q.lines.filter((l) => /Damper/.test(l.name)).length === 3 && dampers(q) === 4 && line(/ZoneBoss cable/)?.quantity === 4);
 ok("the Mitsubishi Electric controller on every job, as its own group (Jake, 24 Nov)", line(/Zone Controller/)?.quantity === 1 && line(/Zone Controller/)?.group === "controls" && q.lines.filter((l) => l.group === "controls")[0] === line(/Zone Controller/));
-ok("a temperature control per zone unless told otherwise, with the installation's materials (Jake, 25 Nov)", line(/Temperature Control/)?.quantity === 4 && line(/Temperature Control/)?.group === "install");
+const six = buildDucted({ ...base(), zones: [...base().zones, { name: "Guest", damper: 200 }, { name: "Rumpus", damper: 250 }], outlets: [...base().outlets, { room: "Guest", size: 200, metres: 8, zone: 5 }, { room: "Rumpus", size: 250, metres: 8, zone: 6 }] }, cat);
+const sixItc = six.lines.find((l) => /Temperature Control/.test(l.name));
+ok("six zones: an ITC for each zone past the fourth, at its $90, with the installation's materials", sixItc?.quantity === 2 && sixItc.unitPrice === 90 && sixItc.group === "install", sixItc);
 ok("the controller is alone in its group", q.lines.filter((l) => l.group === "controls").length === 1);
 ok("the installation's head is still the installation service, not an ITC", q.lines.filter((l) => l.group === "install")[0].name.startsWith("Ducted Refrigerated System - Installation"));
 ok("the unit's kit comes along", line(/Chipboard/)?.quantity === 4 && line(/Filter/)?.quantity === 1);
@@ -76,7 +79,7 @@ ok("a size the pricebook doesn't carry is flagged, not priced from another", big
 
 const extras = buildDucted({ ...base(), doubleStorey: true, extraHours: 2, extraReason: "a tight roof space", itcs: 2, notes: "Existing ducting stays in the roof." }, cat);
 ok("past two days at the hourly rate: 22 h is $5,000 + 6 h × $310", extras.hours.total === 22 && extras.labour === 6860);
-ok("fewer temperature controls when asked, and the summary says so", extras.lines.find((l) => /Temperature Control/.test(l.name))?.quantity === 2 && /temperature control in 2 of the 4 zones/.test(extras.summary));
+ok("extra temperature controls when asked, at $90, and the summary says each zone has one", extras.lines.find((l) => /Temperature Control/.test(l.name))?.quantity === 2 && extras.lines.find((l) => /Temperature Control/.test(l.name))?.unitPrice === 90 && /temperature control in each zone/.test(extras.summary));
 ok("the summary names the Mitsubishi controller, not the Zonemate", /Mitsubishi Electric zone controller/.test(q.summary) && !/Zonemate/i.test(q.summary));
 ok("the summary names the zones and their rooms", /4 zones: Living \(Living, Kitchen \/ meals\); Bedrooms \(Bedroom 2, Bedroom 3, Bedroom 4\)/.test(extras.summary), extras.summary.slice(0, 200));
 ok("the summary carries the double storey, the reason and the notes", /double-storey/.test(extras.summary) && /Allows for a tight roof space\./.test(extras.summary) && /Existing ducting stays in the roof\./.test(extras.summary));
@@ -142,7 +145,7 @@ const d = buildFromDesign(t, opts, dcat);
 const dl = (re: RegExp) => d.lines.find((l) => re.test(l.name));
 ok("the design's unit is on unless one is chosen", d.unit?.skuId === 2 && dl(/12kw/)?.group === "unit");
 ok("design hours: 9 outlets, 5 zones → 8 + 6.75 + 2.5 = 17.25 h, $5,000 + 1.25 h × $310", d.hours.total === 17.25 && d.labour === 5387.5, d.hours);
-ok("the controller in its own group, the design's 5 ITCs with the materials", dl(/Zone Controller/)?.group === "controls" && d.lines.filter((l) => l.group === "controls").length === 1 && dl(/Temperature Control/)?.quantity === 5 && dl(/Temperature Control/)?.group === "install");
+ok("the controller in its own group; of the design's 5 ITCs, 4 come with it and 1 is $90 with the materials", dl(/Zone Controller/)?.group === "controls" && d.lines.filter((l) => l.group === "controls").length === 1 && dl(/Temperature Control/)?.quantity === 1 && dl(/Temperature Control/)?.unitPrice === 90 && dl(/Temperature Control/)?.group === "install");
 ok("duct straight from the design's lengths", dl(/200mm x 6m/)?.quantity === 6 && dl(/400mm x 6m/)?.quantity === 2 && dl(/150mm x 6m/)?.quantity === 1);
 ok("take-offs priced at the design's sizes, reducers where the exact one isn't stocked", dl(/MXY 350\.300\.200/)?.quantity === 1 && dl(/DBTO F\/Insul 300\.250\.200\.200/)?.quantity === 1 && dl(/Reducer 200-150/)?.quantity === 1, d.lines.filter((l) => /BTO|MXY|Reducer/.test(l.name)).map((l) => [l.name, l.quantity, l.note]));
 ok("two of the same take-off is two", dl(/BTO 250x200x200/)?.quantity === 2);

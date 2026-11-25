@@ -39,7 +39,11 @@ import { INSTALL_CODES, lineCopy, plainText, SERVICE_COPY, summaryHtml, template
 // follow them.
 // 2026-11-25 (Jake, "update the summary as well so it's not dot points"): the
 // summaries become three plain paragraphs with no labels.
-export const VERSION = "2026-11-25";
+// 2026-11-25-zoning (Jake, 25 Nov): the ducted summary names the Mitsubishi
+// Electric zone controller and a temperature control in each zone, not the
+// Zonemate. A new pass so the four ducted templates are looked at again; the
+// rest read the same and are left.
+export const VERSION = "2026-11-25-zoning";
 // The units' own descriptions didn't change with it, so they stay on the
 // 17 Nov pass: a new pass would treat any description nobody recorded as
 // fair to write over, and nobody asked for the units to be looked at again.

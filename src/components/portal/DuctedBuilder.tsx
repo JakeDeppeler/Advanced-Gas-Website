@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { buildDucted, DUCT_SIZES, DUCTED, GROUPS, standardLayout, type DuctSize, type DuctedCatalogue, type DuctedInput, type DuctedQuote, type Group, type Outlet, type Zone } from "@/lib/ducted/plan";
+import { buildDucted, DUCT_SIZES, DUCTED, extraItcs, GROUPS, standardLayout, type DuctSize, type DuctedCatalogue, type DuctedInput, type DuctedQuote, type Group, type Outlet, type Zone } from "@/lib/ducted/plan";
 import { buildFromDesign, matchUnit, type DesignOptions } from "@/lib/ducted/design";
 import { readTakeoff, type DesignTakeoff } from "@/lib/ducted/takeoff";
 import type { PlanRead } from "@/lib/ducted/planShape";
@@ -177,7 +177,7 @@ function DesignQuote({ cat }: { cat: DuctedCatalogue }) {
               <label className="pk-du-check" htmlFor="du-ddouble"><input id="du-ddouble" type="checkbox" checked={doubleStorey} onChange={(e) => setDouble(e.target.checked)} /> Double storey <span className="pk-du-dim">+{DUCTED.doubleStorey} h</span></label>
             </div>
             <div className="pk-du-row">
-              <label className="pk-du-f" htmlFor="du-ditc"><span>Temperature controls</span><input id="du-ditc" className="pk-in num" inputMode="numeric" placeholder={String(t.itc || q.zones)} value={itcs} onChange={(e) => setItcs(e.target.value.replace(/[^0-9]/g, ""))} /></label>
+              <label className="pk-du-f" htmlFor="du-ditc"><span>Extra temperature controls <span className="pk-du-dim">4 come with the controller</span></span><input id="du-ditc" className="pk-in num" inputMode="numeric" placeholder={String(extraItcs(t.itc || q.zones))} value={itcs} onChange={(e) => setItcs(e.target.value.replace(/[^0-9]/g, ""))} /></label>
               <label className="pk-du-f" htmlFor="du-dxh"><span>Extra hours</span><input id="du-dxh" className="pk-in num" inputMode="decimal" placeholder="0" value={extraHours} onChange={(e) => setExtraHours(e.target.value.replace(/[^0-9.]/g, ""))} /></label>
               <label className="pk-du-f grow" htmlFor="du-dxr"><span>For</span><input id="du-dxr" className="pk-in" placeholder="e.g. a tight roof space, or taking the old ducting out" value={extraReason} onChange={(e) => setExtraReason(e.target.value)} /></label>
             </div>
@@ -277,7 +277,7 @@ function HandQuote({ cat }: { cat: DuctedCatalogue }) {
         <div className="pk-du-row">
           <label className="pk-du-f" htmlFor="du-xh"><span>Extra hours</span><input id="du-xh" className="pk-in num" inputMode="decimal" placeholder="0" value={extraHours} onChange={(e) => { touch(); setExtraHours(e.target.value.replace(/[^0-9.]/g, "")); }} /></label>
           <label className="pk-du-f grow" htmlFor="du-xr"><span>For</span><input id="du-xr" className="pk-in" placeholder="e.g. a tight roof space, or taking the old ducting out" value={extraReason} onChange={(e) => { touch(); setExtraReason(e.target.value); }} /></label>
-          <label className="pk-du-f" htmlFor="du-xs"><span>Temperature controls</span><input id="du-xs" className="pk-in num" inputMode="numeric" placeholder={String(zonesUsed)} value={itcs} onChange={(e) => { touch(); setItcs(e.target.value.replace(/[^0-9]/g, "")); }} /></label>
+          <label className="pk-du-f" htmlFor="du-xs"><span>Extra temperature controls <span className="pk-du-dim">4 come with the controller</span></span><input id="du-xs" className="pk-in num" inputMode="numeric" placeholder={String(extraItcs(zonesUsed))} value={itcs} onChange={(e) => { touch(); setItcs(e.target.value.replace(/[^0-9]/g, "")); }} /></label>
         </div>
         <label className="pk-du-f" htmlFor="du-notes"><span>Notes for the summary (from the site visit, the Condition Report)</span>
           <textarea id="du-notes" className="pk-in" rows={3} value={notes} onChange={(e) => { touch(); setNotes(e.target.value); }} />
