@@ -126,9 +126,13 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
   });
 
-  // Ducted quote (/portal/ducted) is off the menus and search for now (Jake,
-  // 8 Nov): its pricing is being reworked from vents and base cost. The page
-  // is kept, so it comes back by putting this entry and the Pipeline one back.
+  // Ducted quote, back on the menus under Daily tools (Jake, 25 Nov: "where is
+  // it in the daily tools"), now that it prices a Trust Trade design and puts
+  // the quote on the job. Off the home grid like the other daily tools.
+  add(office || can(user, "quotes"), {
+    href: "/portal/ducted", label: "Ducted quote", blurb: "A ducted system priced from a Trust Trade design or the house's layout, put on the job in ServiceTitan", band: "hidden", icon: "calc",
+    also: ["ducted", "duct plan", "duct design", "trust trade", "designer", "zoning", "zones", "outlets", "mitsubishi ducted", "ducted quote", "materials list"],
+  });
 
   // Answered by whoever runs the pipeline, like the pipeline itself.
   add(office || can(user, "quotes"), {
@@ -308,6 +312,9 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   );
 
   // Not cards on the home grid, but still places the search should find.
+  // The Daily tools area opens on a box per tool (Jake, 25 Nov: "when you click the daily tools [it]
+  // should show the box and you click what tool you want to use"). Everyone has at least Trade tools.
+  items.push({ href: "/portal/daily", label: "Daily tools", blurb: "Every tool a day's work is done with, a box each", band: "hidden", icon: "wrench", also: ["tools", "daily tools", "all tools"] });
   // Everyone has a list; the side bar links it beside Home, so it's here for the search.
   items.push({ href: "/portal/toolbox", label: "Toolbox talks", blurb: "Topics to talk the crew through, and a record of each talk", band: "hidden", icon: "list", also: ["toolbox", "tool box", "toolbox talk", "safety talk", "tailgate", "pre-start", "meeting", "minutes", "safety meeting"] });
   items.push({ href: "/portal/plans", label: "Future planning", blurb: "What you want to do for the business, by when", band: "hidden", icon: "target", also: ["plans", "planning", "future", "goals", "ideas", "business plan", "long term", "someday", "vision"] });

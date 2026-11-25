@@ -4318,3 +4318,13 @@ button.nw-sent__all { background: none; border: 0; padding: 0; margin-right: 14p
   .jw-plan td:nth-child(1) { grid-column: 1 / -1; }
   .jw-plan td:nth-child(2) { font-size: 12.5px; color: var(--ink2); }
 }
+
+/* ------------------------------------------------- Daily tools: a box per tool */
+.pk-toolgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.pk-toolbox { display: grid; gap: 6px; align-content: start; padding: 18px; min-height: 148px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); color: var(--ink); text-decoration: none; }
+.pk-toolbox:hover, .pk-toolbox:focus-visible { box-shadow: var(--shadow), inset 0 0 0 2px var(--accent); outline: none; }
+.pk-toolbox-ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent); margin-bottom: 6px; }
+.pk-toolbox-ic svg { display: block; }
+.pk-toolbox b { font-size: 16px; font-weight: 700; }
+.pk-toolbox > span:last-child { font-size: 13px; line-height: 1.45; color: var(--ink2); }
+@media (max-width: 520px) { .pk-toolgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .pk-toolbox { padding: 14px; min-height: 0; } }
