@@ -286,10 +286,14 @@ ok("an empty description is always filled", wordingAction("", want, h("Ours."), 
   const zp = planMitsubishiZoning(zm, zt);
   const zc = zp?.items.find((i) => i.skuId === ZC10);
   ok("ducted zoning: the Zonemate bundle becomes the Mitsubishi 10-zone controller, new, in its own group, at its price", !!zc && zc.id == null && zc.itemGroupName === "Mitsubishi Electric Zone Controller" && zc.unitPrice === 1550 && zc.itemGroupParentId == null, zp?.did);
-  ok("…the Zonemate gateway comes off, and no Zonemate part is left", !zp!.items.some((i) => (Object.values(ZONEMATE) as number[]).includes(i.skuId)));
+  ok("…the Zonemate gateway comes off, and no Zonemate part is left on the template's own lines", !zp!.items.some((i) => i.parentItemId == null && (Object.values(ZONEMATE) as number[]).includes(i.skuId)));
   const itcs = zp!.items.filter((i) => i.skuId === ITC_SKU);
-  ok("…each ZoneMate sensor becomes a Mitsubishi ITC at $0, where it was: on the installation and in the zone add-on", itcs.length === 2 && itcs.every((i) => i.unitPrice === 0 && i.id == null && i.itemGroupParentId === 112) && itcs.some((i) => i.parentItemId === 115));
+  ok("…the ZoneMate sensor on the installation becomes a Mitsubishi ITC at $0, not chargeable, where it was", itcs.length === 1 && itcs[0].unitPrice === 0 && itcs[0].chargeable === false && itcs[0].id == null && itcs[0].itemGroupParentId === 112);
+  ok("…the sensor that's the zone add-on's own part is left for the add-on", zp!.items.some((i) => i.skuId === ZONEMATE.sensor && i.parentItemId === 115));
+  const at90 = { ...zm, items: zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k, ...(i.skuId === ITC_SKU ? { unitPrice: 90, chargeable: null } : {}) } : i)) };
+  ok("…an ITC ServiceTitan priced from the pricebook ($90) goes back to $0, not chargeable", planMitsubishiZoning(at90, zt)?.items.find((i) => i.skuId === ITC_SKU)?.chargeable === false);
   ok("…and a template already swapped is left alone", planMitsubishiZoning({ ...zm, items: zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)) }, zt) === null);
+  ok("…with the add-on's own sensor (negative id) left as it is", planMitsubishiZoning({ ...zm, items: [...zp!.items.map((i, k) => (i.id == null ? { ...i, id: 950 + k } : i)).filter((i) => i.parentItemId == null), { ...zm.items[6], id: -2 }] }, zt) === null);
   ok("…only the four ducted templates", planMitsubishiZoning({ ...zm, id: 1 }, zt) === null);
 
   // Jake, 24 Nov.
