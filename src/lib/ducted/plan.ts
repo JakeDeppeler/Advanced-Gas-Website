@@ -35,6 +35,13 @@ export const DUCTED = {
    * Our hourly rate.
    */
   twoDayPrice: 5000,
+  /**
+   * Temperature controls (ITCs) that come with the Mitsubishi controller. Jake,
+   * 25 Nov: "each zone need a itc and the $90 per itc … need to allow that there
+   * is 4 sensor that come with the bunble": a zone past the fourth adds one at
+   * its pricebook price.
+   */
+  itcsWithController: 4,
 } as const;
 
 export const DUCT_SIZES = [150, 200, 250, 300, 350, 400, 450] as const;
@@ -78,7 +85,7 @@ export type DuctedInput = {
   doubleStorey: boolean;
   extraHours: number;
   extraReason: string;
-  /** Temperature controls; null is one for every zone. */
+  /** Temperature controls on top of the 4 with the controller; null is one for each zone past the fourth. */
   itcs: number | null;
   notes: string;
 };
@@ -143,11 +150,13 @@ export function addControls(book: LineBook, cat: DuctedCatalogue, zones: number)
  * head, not under the controller. Jake, 25 Nov: "the itc should be under the
  * materials". Added after the head is on, so the head stays the installation.
  */
+/** The temperature controls a job needs beyond the 4 that come with the controller. */
+export const extraItcs = (zones: number) => Math.max(0, Math.round(zones) - DUCTED.itcsWithController);
+
+/** Temperature controls past the 4 with the controller, at their pricebook price ($90), with the materials. */
 export function addItcs(book: LineBook, cat: DuctedCatalogue, count: number) {
-  book.add("install", cat.itc, "Mitsubishi Electric temperature control (ITC)", Math.max(0, Math.round(count)), "The Mitsubishi Electric temperature control (ITC) isn't in the pricebook");
-  // At $0, as the office quotes them (20803, 12 Nov) and as Jake asked on 25 Nov.
-  const itc = book.lines.find((l) => l.group === "install" && cat.itc && l.sku?.skuId === cat.itc.skuId);
-  if (itc) { itc.unitPrice = 0; itc.note = "included, $0"; }
+  book.add("install", cat.itc, "Mitsubishi Electric temperature control (ITC)", Math.max(0, Math.round(count)), "The Mitsubishi Electric temperature control (ITC) isn't in the pricebook",
+    `past the ${DUCTED.itcsWithController} that come with the controller`);
 }
 
 /** Labour on the installation service line, and the electrician: the head of the installation group. */
@@ -211,13 +220,13 @@ export function buildDucted(input: DuctedInput, cat: DuctedCatalogue): DuctedQuo
     if (n > 0) add("install", cat.damper[size] ?? null, `${size} mm zone damper`, n, `A ${size} mm zone damper isn't in the pricebook`);
   }
   add("install", cat.zoneCable, "Zone damper cable", zonesUsed.length);
-  const itcs = Math.max(0, Math.round(input.itcs ?? zonesUsed.length));
+  const itcs = Math.max(0, Math.round(input.itcs ?? extraItcs(zonesUsed.length)));
   addItcs(book, cat, itcs);
   for (const k of unit?.kit ?? []) add("install", k.sku, k.sku.name, k.quantity);
 
   add("extra", cat.certificate, "BPC Compliance Certificate", 1);
 
-  return { hours: h, labour, lines: book.lines, total: quoteTotal(book.lines), missing: book.missing, summary: ductedSummary(input, unit, outlets, zonesUsed, itcs) };
+  return { hours: h, labour, lines: book.lines, total: quoteTotal(book.lines), missing: book.missing, summary: ductedSummary(input, unit, outlets, zonesUsed, itcs + DUCTED.itcsWithController) };
 }
 
 /** The quote's summary, written from the layout and the notes, in the templates' own voice. */

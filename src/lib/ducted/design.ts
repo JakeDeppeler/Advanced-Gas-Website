@@ -14,7 +14,7 @@
  */
 
 import { pickFitting } from "./fittings";
-import { addControls, addInstall, addItcs, controlsText, DUCT_SIZES, ductedHours, lineBook, quoteTotal, type DuctSize, type DuctedCatalogue, type DuctedQuote, type Unit } from "./plan";
+import { addControls, addInstall, addItcs, controlsText, DUCTED, extraItcs, DUCT_SIZES, ductedHours, lineBook, quoteTotal, type DuctSize, type DuctedCatalogue, type DuctedQuote, type Unit } from "./plan";
 import { outletCount, zoneCount, type DesignTakeoff } from "./takeoff";
 
 export type DesignOptions = {
@@ -62,7 +62,8 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
   const unit = cat.units.find((u) => u.skuId === o.unitSkuId) ?? suggested;
   if (!unit) book.missing.push(`Choose the unit: nothing in the pricebook matches the design's ${t.indoor ?? "indoor unit"}${t.kw ? ` (${t.kw} kW)` : ""}`);
   else book.lines.push({ group: "unit", sku: unit, name: unit.name, quantity: 1, unitPrice: unit.price, ...(t.indoor ? { note: `design: ${t.indoor}` } : {}) });
-  const itcs = Math.max(0, Math.round(o.itcs ?? (t.itc || zones)));
+  // The designer counts one per zone; 4 of them come with the controller.
+  const itcs = Math.max(0, Math.round(o.itcs ?? extraItcs(t.itc || zones)));
   addControls(book, cat, zones);
 
   const labour = addInstall(book, cat, h);
@@ -122,7 +123,7 @@ export function buildFromDesign(t: DesignTakeoff, o: DesignOptions, cat: DuctedC
 
   return {
     hours: h, labour, lines: book.lines, total: quoteTotal(book.lines), missing: book.missing, outlets, zones, unit, suggested,
-    summary: designSummary(t, o, unit, outlets, zones, itcs),
+    summary: designSummary(t, o, unit, outlets, zones, itcs + DUCTED.itcsWithController),
   };
 }
 

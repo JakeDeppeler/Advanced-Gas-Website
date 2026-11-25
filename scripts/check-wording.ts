@@ -119,5 +119,9 @@ ok("the electricians' lines keep their own words", ["AC-SPLIT-ELEC", "AC-MULTI-E
 ok("the crew-and-hours lines keep theirs", /two technicians/.test(SERVICE_COPY["AC-DOM-LAB"]) && /two technicians/.test(SERVICE_COPY["AC-DUCTED-LAB"]));
 ok("the call-outs, repairs and zones keep theirs", /first hour on site/.test(SERVICE_COPY["AC-SPLIT-DIAG"]) && /motorised damper/.test(SERVICE_COPY["ZONE 250MM ADD-ON"]));
 
+// Jake, 25 Nov: the ducted templates are on Mitsubishi Electric zoning, a temperature control in each zone.
+const du = sum("Mitsubishi Electric Ducted Split 16kW", [svc("AC-DUCTED-2DAYS"), eq("Mitsubishi Electric 16kw Ducted Split"), eq("Mitsubishi Electric Zone Controller")]);
+ok("the ducted summary names the Mitsubishi Electric zone controller and a temperature control in each zone, never the Zonemate", du.f.kind === "ducted" && /Mitsubishi Electric zone controller/.test(du.s) && /temperature control in each zone/.test(du.s) && !/zonemate|your phone|app before/i.test(du.s), du.s.slice(0, 200));
+
 console.log(bad ? `\n${bad} failed` : "\nall passed");
 process.exit(bad ? 1 : 0);
