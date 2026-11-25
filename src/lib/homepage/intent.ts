@@ -4,12 +4,12 @@ import type { Answers, Category } from "./data";
 
 /**
  * How one part of the homepage asks another to do something: the header's
- * product cards open the finder at a system, the finder's "Book" fills in the
+ * product cards open the finder at a system, the finder's "Get a quote" fills in the
  * quote form, a service card starts the form at a service.
  *
  * The same requests arrive in the URL from other pages (`/?find=…#find`,
- * `/?book=…#quote`), which is how "Back to your options" and "Book this
- * install" on a /find product page land back on the homepage with the answers
+ * `/?book=…#quote`), which is how "Back to your options" and "Get a
+ * quote" on a /find product page land back on the homepage with the answers
  * intact. <IntentFromUrl> turns those into the same calls.
  *
  * A request made before anything is listening is kept and handed to the first

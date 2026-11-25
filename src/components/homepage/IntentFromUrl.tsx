@@ -8,8 +8,8 @@ import { sendIntent } from "@/lib/homepage/intent";
 /**
  * `/?find=split-system&size=1#find` opens the finder at that system with
  * those answers; `/?book=split-system.premium&size=1#quote` fills the quote
- * form with that pick. These are what "Back to your options" and "Book this
- * install" on a /find product page link to, and what the header's product
+ * form with that pick. These are what "Back to your options" and "Get a
+ * quote" on a /find product page link to, and what the header's product
  * cards link to from any other page.
  *
  * Rendered inside its own <Suspense>, so reading the query string doesn't

@@ -47,7 +47,7 @@ export function ProductLayout({ v }: { v: PV }) {
   const tabs = [
     ["overview", "Our take"], ...(v.features.length >= 3 ? [["features", "Key features"]] : []), ...(learn ? [["how", "How it works"]] : []), ["pros", "Pros & cons"], ["choose", "Which one?"], ...(hasTank(v) ? [["showers", "Shower time"]] : []),
     ...(isHeatPumpOption(v) ? [["savings", "Savings"]] : []), ...(learn ? [["fit", "Is it right for you?"]] : []),
-    ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["resources", "Resources"], ["booking", "Booking"], ["faqs", "FAQs"], ["reviews", "Reviews"],
+    ["specs", "Specs"], ...(v.brand?.tagline ? [["brand", "The brand"]] : []), ["resources", "Resources"], ["booking", "Next steps"], ["faqs", "FAQs"], ["reviews", "Reviews"],
   ] as const;
   const name = v.model?.code ?? t.model;
   const acc = v.brand?.accent ?? "#C2521A";
@@ -144,7 +144,7 @@ export function ProductLayout({ v }: { v: PV }) {
 
       <section className="bk__sec bk__sec--navy" id="booking">
         <div className="wrap"><div className="bk__blk bk__col">
-          <Head h="From booking to {running}.">What happens after you ask for a quote, and how long each step takes.</Head>
+          <Head h="From quote to {running}.">What happens after you ask for a quote, and how long each step takes.</Head>
           <BookingSteps v={v} cls="lk2__tl" />
         </div></div>
       </section>

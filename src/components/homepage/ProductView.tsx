@@ -68,7 +68,7 @@ export function ProductView({ system, tier: tierSlug, reviews, rating, count, mo
   // size they gave in the finder chooses one.
   const [picked, setPicked] = useState<string | null>(null);
   const [term, setTerm] = useState(FINANCE_MONTHS);
-  // The bottom "Book this install" bar waits until the hero, which has its
+  // The bottom "Get a quote" bar waits until the hero, which has its
   // own book card, is off the screen; on top of the hero it covered it.
   const heroRef = useRef<HTMLElement>(null);
   const [pastHero, setPastHero] = useState(false);

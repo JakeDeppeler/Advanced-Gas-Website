@@ -543,7 +543,7 @@ for (const [k, c] of Object.entries(CHOOSE)) {
   CHOOSE[`reverse-cycle-${k}`] = { ...c, instead: c.instead.map((x) => ({ ...x, go: x.go.startsWith("ducted.") ? `reverse-cycle-${x.go}` : x.go })) };
 }
 
-/** What happens after "Book this install". Every line is a promise the site already makes. */
+/** What happens after "Get a quote" on a product page. Every line is a promise the site already makes. */
 export const BOOKING_STEPS = (install: string): HowStep[] => [
   { t: "Free site check", d: "We look at the house and where everything can go, and confirm the size." },
   { t: "Fixed price in writing", d: "One price, with the model, the work and the warranty spelled out." },

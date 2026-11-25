@@ -31,7 +31,7 @@ const MAX_PHOTOS = 4;
  * instal it moves down to Find your system and all the others stay and use
  * the top one"). A new cooling, heating or hot water system goes to the
  * finder below, opened at that system, where the options sit side by side;
- * its "Book" brings the pick back up here for the details. Services, repairs,
+ * its "Get a quote" brings the pick back up here for the details. Services, repairs,
  * and gas or commercial installs (which the finder has no options for) carry
  * on in this form. Other pages have no finder to send to, so they leave it off.
  */
@@ -91,7 +91,7 @@ export function HeroQuote({ installsToFinder = false }: { installsToFinder?: boo
   const chips = [booked?.pick, ...(booked ? [] : job), ...allQs.map(label)].filter((x): x is string => !!x);
   const summary = booked ? booked.pick : [...job, fi && typeQs[0] ? label(typeQs[0]) : null].filter(Boolean).join(" · ");
 
-  // Arrivals from the finder ("Book →"), a /find product page, or a card that
+  // Arrivals from the finder ("Get a quote →"), a /find product page, or a card that
   // starts the form at a service.
   useEffect(() => onIntent((i) => {
     if (i.kind === "book") {

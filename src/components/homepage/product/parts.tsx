@@ -37,7 +37,7 @@ export type PV = {
   optionLines: string[];
   whyTitle: string; whyLines: string[]; take: string; glance: { label: string; value: string }[];
   pickModel: (slug: string) => void; setSize: (i: number) => void;
-  /** Merge answers from the fit form (size included) into the page, so the size, the figures and Book this install all follow. */
+  /** Merge answers from the fit form (size included) into the page, so the size, the figures and Get a quote all follow. */
   applyAnswers: (a: Answers) => void;
   /** Finance term in months, for the weekly figure. */
   term: number; setTerm: (m: number) => void;
@@ -113,7 +113,7 @@ export function BuyButtons({ v, dark = false }: { v: PV; dark?: boolean }) {
   return (
     <>
       <div className="by">
-        <Link href={v.book} className="abtn abtn--or abtn--flat">Book this install →</Link>
+        <Link href={v.book} className="abtn abtn--or abtn--flat">Get a quote →</Link>
         <a href="tel:+61359478000" data-call-from="product-hero" className={`abtn ${dark ? "abtn--line" : "abtn--ghost"}`}>Call (03) 5947 8000</a>
       </div>
       {v.newBuildHp && (
@@ -157,7 +157,7 @@ const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
  * "Is it right for you?" as a short form: which line sounds like their home,
  * then the same questions the finder asks about this system (size first, then
  * floor, outdoor unit and so on). It ends on the size button to press and
- * hands every answer to the page, so Book this install arrives at the quote
+ * hands every answer to the page, so Get a quote arrives at the quote
  * form already filled in. If another kind of system fits better it says so
  * after the first tap.
  *
@@ -223,7 +223,7 @@ export function FitFinder({ v }: { v: PV }) {
             {picked.length > 0 && <div className="ff__chips">{picked.map((x) => <span key={x}>{x}</span>)}</div>}
             <div className="ff__acts">
               {done
-                ? <Link href={v.book} className="abtn abtn--or abtn--flat">Book this install →</Link>
+                ? <Link href={v.book} className="abtn abtn--or abtn--flat">Get a quote →</Link>
                 : <button type="button" className="abtn abtn--or abtn--flat" onClick={() => { v.applyAnswers(a); setDone(true); }}>Select {button}</button>}
               <button type="button" className="ff__again" onClick={restart}>Start again</button>
             </div>
@@ -287,7 +287,7 @@ function optionHref(key: string) {
 /**
  * "Which one?": when we'd recommend each size of this option, and when we'd
  * send someone to a different option instead. A size card picks that size,
- * so the header, figures and Book this install all follow it.
+ * so the header, figures and Get a quote all follow it.
  */
 export function Choose({ v }: { v: PV }) {
   const c = CHOOSE[`${v.sys.slug}.${v.t.slug}`];
@@ -429,7 +429,7 @@ export function Sticky({ v }: { v: PV }) {
           <strong>{t.brand} {t.model}</strong>
           <span>{known ? `From ${money(t.price!)} installed${SHOW_FINANCE ? ` or $${weekly(t.price!, v.term)}/wk` : ""}` : "Price on quote"}{model ? ` · ${model.chip}` : size ? ` · ${size.label}` : ""}</span>
         </span>
-        <Link href={book} className="abtn abtn--or">Book this install</Link>
+        <Link href={book} className="abtn abtn--or">Get a quote</Link>
       </div>
     </div>
   );

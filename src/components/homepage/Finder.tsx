@@ -285,7 +285,7 @@ export function Finder({ only }: { only?: string } = {}) {
                         <Link href={href} className="abtn abtn--ghost">View details</Link>
                         <a href={bookHref(sys, t, ans, exact?.id)} className={`abtn ${(pickTier ? t.slug === pickTier : i === 1) ? "abtn--or" : "abtn--navy"}`}
                           onClick={(e) => { e.preventDefault(); sendIntent({ kind: "book", system: sys.slug, tier: t.slug, answers: ans }, "quote"); }}>
-                          Book →
+                          Get a quote →
                         </a>
                       </div>
                     </article>
